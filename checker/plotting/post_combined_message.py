@@ -13,6 +13,7 @@ from csv_plotter import (
 )
 from check_throughput import check_throughput_change
 
+
 def main():
     """
     Produces a combined plot of the throughput of the Allen sequence.
@@ -66,7 +67,7 @@ def main():
 
     master_throughput = get_master_throughput(
         options.job, csvfile=options.throughput, scale=1e-3)
-    
+
     problems = check_throughput_change(throughput, master_throughput)
 
     throughput_text = produce_plot(

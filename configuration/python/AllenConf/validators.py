@@ -4,8 +4,8 @@
 from AllenAlgorithms.algorithms import (
     mc_data_provider_t, host_velo_validator_t, host_velo_ut_validator_t,
     long_track_validator_t, muon_validator_t, host_pv_validator_t,
-    host_rate_validator_t, host_routingbits_validator_t, kalman_validator_t, host_data_provider_t,
-    host_sel_report_validator_t)
+    host_rate_validator_t, host_routingbits_validator_t, kalman_validator_t,
+    host_data_provider_t, host_sel_report_validator_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenConf.persistency import make_dec_reporter, make_gather_selections, make_routingbits_writer, rb_map
 from AllenCore.generator import make_algorithm

@@ -42,7 +42,13 @@ class ParsedAlgorithm():
 
 
 class Property():
-    def __init__(self, typename, typedef, name, description, default_value, scope = "algorithm"):
+    def __init__(self,
+                 typename,
+                 typedef,
+                 name,
+                 description,
+                 default_value,
+                 scope="algorithm"):
         self.typename = typename
         self.typedef = typedef
         self.name = name
@@ -52,7 +58,8 @@ class Property():
 
 
 class Parameter():
-    def __init__(self, typename, datatype, is_input, typedef, aggregate, optional, dependencies):
+    def __init__(self, typename, datatype, is_input, typedef, aggregate,
+                 optional, dependencies):
         self.typename = typename
         self.typedef = typedef
         self.aggregate = aggregate
@@ -128,7 +135,9 @@ class AlgorithmTraversal():
     ]
 
     # Accepted tokens for parameter parsing
-    __parameter_io_datatypes = ["Allen::Store::device_datatype", "Allen::Store::host_datatype"]
+    __parameter_io_datatypes = [
+        "Allen::Store::device_datatype", "Allen::Store::host_datatype"
+    ]
     __parameter_aggregate = ["Allen::Store::aggregate_datatype"]
     __parameter_optional = ["Allen::Store::optional_datatype"]
 
@@ -204,15 +213,21 @@ class AlgorithmTraversal():
                     optional = True
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
-                    typedef = [a.type.get_canonical().spelling
-                               for a in child.get_children()][0]
-                    for i in range(child.result_type.get_num_template_arguments()):
-                        dependencies.append(child.result_type.get_template_argument_type(i).get_canonical().spelling)
+                    typedef = [
+                        a.type.get_canonical().spelling
+                        for a in child.get_children()
+                    ][0]
+                    for i in range(
+                            child.result_type.get_num_template_arguments()):
+                        dependencies.append(
+                            child.result_type.get_template_argument_type(i).
+                            get_canonical().spelling)
             if typedef == "" or typedef == "int" or aggregate:
                 # This happens if the type cannot be parsed
                 typedef = "unknown_t"
             if kind and typedef and io != None:
-                return ("Parameter", typename, kind, io, typedef, aggregate, optional, dependencies)
+                return ("Parameter", typename, kind, io, typedef, aggregate,
+                        optional, dependencies)
         elif is_property:
             # - There is a function (property) which captures:
             #   * f.type.spelling: The type (restricted to POD types)
@@ -223,7 +238,8 @@ class AlgorithmTraversal():
                                for a in child.get_children()][0]
             if typedef == "" or typedef == "int":
                 # If the type is empty or int, it is not to be trusted and instead the tag is employed here
-                typedef = AlgorithmTraversal.__properties[typename]["property_type"]
+                typedef = AlgorithmTraversal.__properties[typename][
+                    "property_type"]
             # Unfortunately, for properties we need to rely on tokens found in the
             # namespace to get the literals.
             name = AlgorithmTraversal.__properties[typename]["name"]
@@ -231,7 +247,8 @@ class AlgorithmTraversal():
                 "description"]
             default_value = AlgorithmTraversal.__properties[typename][
                 "default_value"]
-            return ("Property", typename, typedef, name, description, default_value)
+            return ("Property", typename, typedef, name, description,
+                    default_value)
         return None
 
     @staticmethod
@@ -308,7 +325,8 @@ class AlgorithmTraversal():
                     name = ts[last_found + 4]
                     description = ts[last_found + 6]
                     closing_parenthesis = ts.index(")", last_found + 8)
-                    property_type = "".join(ts[last_found + 8:closing_parenthesis])
+                    property_type = "".join(
+                        ts[last_found + 8:closing_parenthesis])
                     properties[typename] = {
                         "name": name,
                         "description": description,
@@ -327,7 +345,8 @@ class AlgorithmTraversal():
                     typename = ts[last_found + 2]
                     comma_position = ts.index(",", last_found)
                     semicolon_position = ts.index(";", last_found)
-                    default_value = "".join(ts[comma_position+1:semicolon_position-1])
+                    default_value = "".join(
+                        ts[comma_position + 1:semicolon_position - 1])
                     default_values[typename] = default_value
 
                 # Match all PROPERTY blocks with all Property blocks. In essence, for each code as:
@@ -337,11 +356,14 @@ class AlgorithmTraversal():
                 # there should be a corresponding:
                 #
                 #   Property<block_dim_x_t> m_block_dim_x {this, 64};
-                set_diff = set(properties).symmetric_difference(set(default_values))
+                set_diff = set(properties).symmetric_difference(
+                    set(default_values))
                 if set_diff:
-                    raise Exception(f"Error parsing properties {set_diff} in file {filename}.\n"
-                        "Please ensure all properties have a PROPERTY field and a Property definition.")
-                
+                    raise Exception(
+                        f"Error parsing properties {set_diff} in file {filename}.\n"
+                        "Please ensure all properties have a PROPERTY field and a Property definition."
+                    )
+
                 AlgorithmTraversal.__properties = properties
                 for t, v in default_values.items():
                     AlgorithmTraversal.__properties[t]["default_value"] = v

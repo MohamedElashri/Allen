@@ -121,8 +121,14 @@ void run_output(
         bool success = true;
         size_t n_written = 0;
 
-        auto [passing_event_list, dec_reports, sel_reports, sel_report_offsets, lumi_summaries, lumi_summary_offsets] =
-          buffer_manager->getBufferOutputData(buf_idx);
+        auto
+          [passing_event_list,
+           dec_reports,
+           routing_bits,
+           sel_reports,
+           sel_report_offsets,
+           lumi_summaries,
+           lumi_summary_offsets] = buffer_manager->getBufferOutputData(buf_idx);
         if (output_handler != nullptr) {
           std::tie(success, n_written) = output_handler->output_selected_events(
             output_id,

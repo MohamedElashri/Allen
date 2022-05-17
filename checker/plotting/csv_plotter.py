@@ -12,7 +12,6 @@ import requests
 import gitlab
 
 
-
 def parse_throughput(content, scale=1.0):
     throughput = {}
     content_reader = csv.reader(content)
@@ -24,13 +23,11 @@ def parse_throughput(content, scale=1.0):
     return throughput
 
 
-def get_master_throughput(
-    job_name,
-    csvfile,
-    ref="master",
-    instance="https://gitlab.cern.ch",
-    scale=1.0
-):
+def get_master_throughput(job_name,
+                          csvfile,
+                          ref="master",
+                          instance="https://gitlab.cern.ch",
+                          scale=1.0):
     """
     Use GitLab API to retrieve throughput reference from a successful or failed pipeline.
     """
@@ -39,9 +36,7 @@ def get_master_throughput(
             "Environment variable ALLENCI_PAT is not set - cannot access the GitLab API."
         )
 
-    gl = gitlab.Gitlab(
-        instance, private_token=os.environ[f"ALLENCI_PAT"]
-    )
+    gl = gitlab.Gitlab(instance, private_token=os.environ[f"ALLENCI_PAT"])
 
     gl.auth()
 
@@ -53,11 +48,11 @@ def get_master_throughput(
         if pipeline.status in ['success', 'failed']:
             break
 
-    print (f"Selected pipeline {pipeline.id} to extract throughput reference:")
-    print (f"Ref (sha): {pipeline.ref}  ({pipeline.sha})")
-    print (f"Status: {pipeline.status}")
-    print (f"Created at: {pipeline.created_at}")
-    print (f"Pipeline URL: {pipeline.web_url}")
+    print(f"Selected pipeline {pipeline.id} to extract throughput reference:")
+    print(f"Ref (sha): {pipeline.ref}  ({pipeline.sha})")
+    print(f"Status: {pipeline.status}")
+    print(f"Created at: {pipeline.created_at}")
+    print(f"Pipeline URL: {pipeline.web_url}")
 
     # select corresponding job containing our artifact
 
@@ -67,12 +62,10 @@ def get_master_throughput(
         all_pipeline_job_names = [j.name for j in pipeline_all_jobs]
         print('\n'.join(all_pipeline_job_names))
 
-        raise RuntimeError(
-            f"job_name {job_name} not found."
-        )
+        raise RuntimeError(f"job_name {job_name} not found.")
     pipeline_job = pipeline_job[0]
 
-    print (f"Job URL: {pipeline_job.web_url}")
+    print(f"Job URL: {pipeline_job.web_url}")
     job = project.jobs.get(pipeline_job.id, lazy=True)
 
     try:
@@ -86,7 +79,7 @@ def get_master_throughput(
     except Exception as e:
         print("get_master_throughput exception:", e)
         return {}
-    
+
     return master_throughput
 
 

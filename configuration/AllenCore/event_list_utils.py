@@ -28,6 +28,7 @@ def add_event_list_combiners(order):
     """
 
     from AllenCore.generator import initialize_event_lists
+
     def _make_combiner(inputs, logic):
         # TODO shall we somehow make the name so that parantheses are obvious?
         # here, a combinerfor (A & B) | C gets the same name as A & (B | C)

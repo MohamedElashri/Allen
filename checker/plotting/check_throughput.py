@@ -57,29 +57,21 @@ def check_throughput_change(throughput, master_throughput):
         if not tput == '--':
             tput = f"{tput:.2f}"
         single_device_table.append([
-            device,
-            tput,
-            f"{master_throughput[device]:.2f}",
-            f"{speedup:.2f}x",
-            f"{change*100:.2f}%",
-            status
+            device, tput, f"{master_throughput[device]:.2f}",
+            f"{speedup:.2f}x", f"{change*100:.2f}%", status
         ])
-    
+
     print("")
     print(
         tabulate(
-            single_device_table, headers=[
-                "Device",
-                "Throughput (kHz)",
-                "Reference Throughput (kHz)",
-                "Speedup", 
-                r"% change",
-                "Status"
+            single_device_table,
+            headers=[
+                "Device", "Throughput (kHz)", "Reference Throughput (kHz)",
+                "Speedup", r"% change", "Status"
             ],
-        )
-    )
+        ))
     print("")
-    
+
     # Average throughputs across all devices and complain if we are above decr % threshold
     average_speedup = (sum(speedup * weights[device]
                            for device, speedup in speedup_wrt_master.items()) /
@@ -91,13 +83,13 @@ def check_throughput_change(throughput, master_throughput):
     avg_tput_status = "OK"
     if change < tput_tol:
         msg = (
-            f" :warning: :eyes: **average** throughput change {change*100:.2f}% " +
-            f"_exceeds_ {abs(tput_tol)*100} % threshold")
+            f" :warning: :eyes: **average** throughput change {change*100:.2f}% "
+            + f"_exceeds_ {abs(tput_tol)*100} % threshold")
         problems.append(msg)
         avg_tput_status = "DECREASED"
 
     print(f"                 status: {avg_tput_status}")
-    
+
     print()
 
     print("Pass\n" if not problems else "FAIL\n")
@@ -109,11 +101,8 @@ def main():
     """
     Compares the throughput of the Allen sequence against the latest reference in ref master against the provided data.
     """
-    usage = (
-        "%prog [options] <-t throughput_data_file>\n"
-        +
-        'Example: %prog -t throughput_data.csv'
-    )
+    usage = ("%prog [options] <-t throughput_data_file>\n" +
+             'Example: %prog -t throughput_data.csv')
     parser = OptionParser(usage=usage)
     parser.add_option(
         "-t",
@@ -132,10 +121,10 @@ def main():
     (options, args) = parser.parse_args()
 
     with open(options.throughput) as csvfile:
-        throughput = parse_throughput(csvfile, scale=1e-3) # kHz
+        throughput = parse_throughput(csvfile, scale=1e-3)  # kHz
 
     master_throughput = get_master_throughput(
-        options.job, csvfile=options.throughput, scale=1e-3) # kHz
+        options.job, csvfile=options.throughput, scale=1e-3)  # kHz
 
     problems = check_throughput_change(throughput, master_throughput)
 

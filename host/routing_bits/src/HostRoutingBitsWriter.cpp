@@ -53,7 +53,7 @@ void host_routingbits_writer::host_routingbits_writer_t::operator()(
     data<host_routingbits_t>(arguments),
     m_rb_ids);
   // Copy routing bit info to the host buffer
-  safe_assign_to_host_buffer<host_routingbits_t>(host_buffers.host_routingbits, arguments, context);
+  Allen::copy<host_routingbits_t>(host_buffers.host_routingbits, arguments, context);
 }
 
 void host_routingbits_writer::host_routingbits_impl(

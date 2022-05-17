@@ -102,7 +102,8 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
       // add DecReport and SelReport sizes to the total size (including RawBank headers)
       // event_sizes is indexed in the same way as selected_events
-      size_t event_size = event_sizes[i] + header_size + bank_header_size + dec_report_size + bank_header_size + routing_bits_size;
+      size_t event_size =
+        event_sizes[i] + header_size + bank_header_size + dec_report_size + bank_header_size + routing_bits_size;
       if (sel_report_size > 0) {
         event_size += bank_header_size + sel_report_size;
       }
@@ -139,7 +140,8 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
       // add DecReport and SelReport sizes to the total size (including RawBank headers)
       // event_sizes is indexed in the same way as selected_events
-      size_t event_size = event_sizes[i] + header_size + bank_header_size + dec_report_size + bank_header_size + routing_bits_size;
+      size_t event_size =
+        event_sizes[i] + header_size + bank_header_size + dec_report_size + bank_header_size + routing_bits_size;
       if (sel_report_size > 0) {
         event_size += bank_header_size + sel_report_size;
       }
@@ -205,7 +207,8 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
           1 << 13,
           {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[event_number] * sizeof(uint32_t),
            static_cast<events_size>(sel_report_size)},
-          event_span.data() + header_size + event_sizes[i] + 2 * bank_header_size + dec_report_size + routing_bits_size );
+          event_span.data() + header_size + event_sizes[i] + 2 * bank_header_size + dec_report_size +
+            routing_bits_size);
       }
 
       // add the lumi summary if one exists
