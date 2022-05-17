@@ -219,11 +219,15 @@ def event_monitoring_lines(with_lumi, lumiline_name):
         lines.append(
             line_maker(
                 make_odin_event_type_line(
-                    name=lumiline_name, odin_event_type=0x8)))
+                    name=lumiline_name, odin_event_type='Lumi')))
     lines.append(
         line_maker(
             make_odin_event_type_line(
-                name="Hlt1ODINNoBias", odin_event_type=0x4)))
+                odin_event_type="VeloOpen")))
+    lines.append(
+        line_maker(
+            make_odin_event_type_line(
+                odin_event_type="NoBias")))
     return lines
 
 

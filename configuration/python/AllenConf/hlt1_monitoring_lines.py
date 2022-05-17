@@ -51,22 +51,30 @@ def make_velo_micro_bias_line(velo_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_odin_event_type_line(name=None,
+odin_eventtype_name_map = {
+    "VeloOpen": 0x0001,
+    "Physics": 0x0002,
+    "NoBias": 0x0004,
+    "Lumi": 0x0008,
+    "Beam1Gas": 0x0010,
+    "Beam2Gas": 0x0020}
+
+
+def make_odin_event_type_line(odin_event_type: str,
+                              name=None,
                               pre_scaler=1.,
                               pre_scaler_hash_string=None,
-                              post_scaler_hash_string=None,
-                              odin_event_type=0x8):
-    name_map = {0x8: "Hlt1ODINLumi", 0x4: "Hlt1ODINNoBias"}
+                              post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
 
-    line_name = name or name_map[odin_event_type_int]
+    line_name = name or 'Hlt1ODIN' + odin_event_type
     return make_algorithm(
         odin_event_type_line_t,
         name=line_name,
         pre_scaler=pre_scaler,
         dev_odin_data_t=odin["dev_odin_data"],
-        odin_event_type=odin_event_type,
+        odin_event_type=odin_eventtype_name_map[odin_event_type],
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or line_name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or line_name + "_post")
@@ -78,7 +86,6 @@ def make_calo_digits_minADC_line(decode_calo,
                                  post_scaler_hash_string=None,
                                  minADC=100):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
 
     return make_algorithm(
         calo_digits_minADC_t,
