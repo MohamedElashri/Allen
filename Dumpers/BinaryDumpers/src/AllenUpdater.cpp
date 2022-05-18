@@ -36,10 +36,12 @@ StatusCode AllenUpdater::queryInterface(const InterfaceID& riid, void** ppv)
 StatusCode AllenUpdater::initialize()
 {
 
-  m_evtProc = serviceLocator()->service<Gaudi::Interfaces::IQueueingEventProcessor>("ApplicationMgr");
-  if (!m_evtProc) {
-    error() << "Failed to obtain ApplicationMgr as IQueueingEventProcessor" << endmsg;
-    return StatusCode::FAILURE;
+  if (m_triggerEventLoop.value()) {
+    m_evtProc = serviceLocator()->service<Gaudi::Interfaces::IQueueingEventProcessor>("ApplicationMgr");
+    if (!m_evtProc) {
+      error() << "Failed to obtain ApplicationMgr as IQueueingEventProcessor" << endmsg;
+      return StatusCode::FAILURE;
+    }
   }
   return StatusCode::SUCCESS;
 }
@@ -49,7 +51,9 @@ StatusCode AllenUpdater::start()
   auto sc = Service::start();
   if (!sc.isSuccess()) return sc;
 
-  m_taskArena = std::make_unique<tbb::task_arena>(2, 1);
+  if (m_triggerEventLoop.value()) {
+    m_taskArena = std::make_unique<tbb::task_arena>(2, 1);
+  }
 
   return sc;
 }
@@ -104,16 +108,19 @@ void AllenUpdater::registerProducer(string const& id, Allen::NonEventData::Produ
 
 void AllenUpdater::update(gsl::span<unsigned const> odin_data)
 {
-  LHCb::ODIN odin {odin_data};
-  if (m_odin && m_odin->runNumber() == odin.runNumber()) {
-    return;
-  }
-  else if (msgLevel(MSG::DEBUG)) {
-    debug() << "Running Update " << odin.runNumber() << endmsg;
-  }
+  {
+    std::unique_lock {m_odinMutex};
+    LHCb::ODIN odin {odin_data};
+    if (m_odin && m_odin->runNumber() == odin.runNumber()) {
+      return;
+    }
+    else if (msgLevel(MSG::DEBUG)) {
+      debug() << "Running Update " << odin.runNumber() << endmsg;
+    }
 
-  // Store ODIN so it can be retrieved and then inserted into the event store
-  m_odin = std::move(odin);
+    // Store ODIN so it can be retrieved and then inserted into the event store
+    m_odin = std::move(odin);
+  }
 
   // Check if all consumers have a producer
   for (auto const& entry : m_pairs) {
@@ -129,14 +136,16 @@ void AllenUpdater::update(gsl::span<unsigned const> odin_data)
   }
 
   // Run the "fake" event loop to produce the new data
-  EventContext ctx(m_evtProc->createEventContext());
-  m_evtProc->push(std::move(ctx));
-  auto result = m_evtProc->pop();
-  for (; !result; result = m_evtProc->pop())
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  auto&& [sc, context] = std::move(*result);
-  if (!sc.isSuccess()) {
-    throw GaudiException {"Failed to process event for conditions update", name(), StatusCode::FAILURE};
+  if (m_triggerEventLoop.value()) {
+    EventContext ctx(m_evtProc->createEventContext());
+    m_evtProc->push(std::move(ctx));
+    auto result = m_evtProc->pop();
+    for (; !result; result = m_evtProc->pop())
+      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    auto&& [sc, context] = std::move(*result);
+    if (!sc.isSuccess()) {
+      throw GaudiException {"Failed to process event for conditions update", name(), StatusCode::FAILURE};
+    }
   }
 
   // Feed the consumers with the produced update

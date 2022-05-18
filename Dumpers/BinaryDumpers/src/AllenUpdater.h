@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <mutex>
 
 #include <GaudiKernel/Service.h>
 #include <Gaudi/Interfaces/IQueueingEventProcessor.h>
@@ -78,6 +79,8 @@ public:
   LHCb::ODIN odin() const { return m_odin ? *m_odin : LHCb::ODIN {}; }
 
 private:
+  Gaudi::Property<bool> m_triggerEventLoop {this, "TriggerEventLoop", false};
+
   std::map<
     std::string,
     std::tuple<Allen::NonEventData::Producer, std::vector<std::unique_ptr<Allen::NonEventData::Consumer>>>>
@@ -87,5 +90,6 @@ private:
 
   SmartIF<Gaudi::Interfaces::IQueueingEventProcessor> m_evtProc;
 
+  std::mutex m_odinMutex;
   std::optional<LHCb::ODIN> m_odin;
 };
