@@ -5,12 +5,8 @@
 import os
 from Configurables import ApplicationMgr
 from Allen.config import setup_allen_non_event_data_service
-from PyConf.control_flow import CompositeNode, NodeLogic
 from PyConf.application import (configure, setup_component, ComponentConfig,
                                 ApplicationOptions)
-from PyConf.Algorithms import (AllenTESProducer, DumpBeamline,
-                               DumpCaloGeometry, DumpMagneticField,
-                               DumpVPGeometry, DumpFTGeometry)
 from threading import Thread
 from time import sleep
 import ctypes
@@ -133,8 +129,6 @@ options.conddb_tag = "sim-20180530-vc-md100"
 options.finalize()
 config = ComponentConfig()
 
-setup_allen_non_event_data_service()
-
 # Some extra stuff for timing table
 extSvc = ["ToolSvc", "AuditorSvc", "ZeroMQSvc"]
 
@@ -187,40 +181,7 @@ config.add(
             'SIMCOND': options.conddb_tag,
         }))
 
-converters = [
-    DumpBeamline(),
-    DumpCaloGeometry(),
-    DumpVPGeometry(),
-    DumpMagneticField(),
-    DumpFTGeometry()
-]
-producers = []
-for converter in converters:
-    converter_id = converter.type.getDefaultProperties()['ID']
-    producer = AllenTESProducer(
-        InputID=converter.OutputID,
-        InputData=converter.Converted,
-        ID=converter_id)
-    producers.append(producer)
-
-converters_node = CompositeNode(
-    "converters",
-    converters,
-    combine_logic=NodeLogic.NONLAZY_OR,
-    force_order=True)
-producers_node = CompositeNode(
-    "producers",
-    producers,
-    combine_logic=NodeLogic.NONLAZY_OR,
-    force_order=True)
-
-control_flow = [converters_node, producers_node]
-cf_node = CompositeNode(
-    "non_event_data",
-    control_flow,
-    combine_logic=NodeLogic.LAZY_AND,
-    force_order=True)
-
+cf_node = setup_allen_non_event_data_service(allen_event_loop=True)
 config.update(configure(options, cf_node))
 
 # Start Gaudi and get the AllenUpdater service
