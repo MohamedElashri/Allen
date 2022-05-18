@@ -72,7 +72,7 @@ DumpCaloGeometry::DumpCaloGeometry(const std::string& name, ISvcLocator* svcLoc)
   MultiTransformer(
     name,
     svcLoc,
-    {KeyValue {"ECalLocation", DeCalorimeterLocation::Ecal}},
+    {KeyValue {"Location", DeCalorimeterLocation::Ecal}},
     {KeyValue {"Converted", "Allen/NonEventData/ECal"}, KeyValue {"OutputID", "Allen/NonEventData/ECalID"}})
 {}
 
