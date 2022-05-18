@@ -35,18 +35,11 @@
 //#include "DumpFTGeometry.h" , Old header, delted for this class
 
 namespace {
-  using std::ios;
-  using std::ofstream;
-  using std::string;
-  using std::tuple;
   using std::vector;
+}
 
-  inline const std::string FTconditionLocation = "/dd/Conditions/ReadoutConf/FT/ReadoutMap";
-
-} // namespace
-
-/** @class DumpCaloGeometry
- *  Dump Calo Geometry.
+/** @class DumpFTGeometry
+ *  Convert SciFi geometry for use on an accelerator
  *
  *  @author Nabil Garroum
  *  @date   2022-04-23
@@ -55,7 +48,6 @@ namespace {
  *  This Class is basically an instation of a Gaudi algorithm with specific inputs and outputs:
  *  The role of this class is to get data from TES to Allen for the SciFi
  */
-
 class DumpFTGeometry final
   : public LHCb::Algorithm::MultiTransformer<
       std::tuple<std::vector<char>, std::string>(const DeFT&, const FTReadoutMap<DumpFTGeometry>&),
