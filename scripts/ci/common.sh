@@ -16,7 +16,10 @@ function setupViews() {
         echo "Error: LCG_SYSTEM is unset"
         exit 1
     fi
+    
+    # start building platform string
     LCG_PLATFORM="${LCG_SYSTEM}"
+
     if [ -z ${LCG_QUALIFIER+x} ]; then
         echo "Info: LCG_QUALIFIER is unset (CPU build)"
     else
@@ -29,9 +32,8 @@ function setupViews() {
         LCG_OPTIMIZATION="opt"
     fi
 
-    export LCG_PLATFORM="${LCG_PLATFORM}-${LCG_BUILDTYPE}"
+    export LCG_PLATFORM="${LCG_PLATFORM}-${LCG_OPTIMIZATION}"
 
-    
     echo "LCG_VERSION: ${LCG_VERSION}"
     echo "LCG_PLATFORM: ${LCG_PLATFORM}"
 
