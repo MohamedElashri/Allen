@@ -198,18 +198,44 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
   auto const [json_file, run_from_json] = Allen::sequence_conf(options);
   auto io_conf = io_configuration(number_of_slices, n_repetitions, number_of_threads, true);
 
-  auto const bank_types = Allen::configured_bank_types(json_file);
+  auto bank_types = Allen::configured_bank_types(json_file);
 
   if (!mdf_input.empty()) {
-    MDFProviderConfig config {false,                     // verify MDF checksums
-                              10,                        // number of read buffers
-                              4,                         // number of transpose threads
-                              events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
-                              events_per_slice,          // number of events per read buffer
-                              io_conf.n_io_reps,         // number of loops over the input files
-                              !disable_run_changes};     // Whether to split slices by run number
+    auto connections = split_string(mdf_input, ",");
+
+    // If a single file that does not end in .mdf is provided, assume
+    // it contains a list of filenames, one per line. Each file should
+    // exist and end in .mdf
+    if (connections.size() == 1) {
+      fs::path p {connections[0]};
+      if (fs::exists(p) && p.extension() != ".mdf") {
+        std::ifstream file(p.string());
+        std::string line;
+        while (std::getline(file, line)) {
+          connections.push_back(line);
+        }
+        file.close();
+        if (std::all_of(connections.begin() + 1, connections.end(), [](fs::path file) {
+              return fs::exists(file) && file.extension() == ".mdf";
+            })) {
+          connections.erase(connections.begin());
+        }
+        else {
+          error_cout << "Not all files listed in " << connections[0] << " are MDF files\n";
+          return {};
+        }
+      }
+    }
+
+    MDFProviderConfig config {false,                 // verify MDF checksums
+                              4,                     // number of read buffers
+                              3,                     // number of transpose threads
+                              events_per_slice + 1,  // maximum number of offsets in read buffer
+                              events_per_slice,      // number of events per read buffer
+                              io_conf.n_io_reps,     // number of loops over the input files
+                              !disable_run_changes}; // Whether to split slices by run number
     return std::make_shared<MDFProvider>(
-      io_conf.number_of_slices, events_per_slice, n_events, split_string(mdf_input, ","), bank_types, config);
+      io_conf.number_of_slices, events_per_slice, n_events, connections, bank_types, config);
   }
   return {};
 }

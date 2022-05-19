@@ -96,7 +96,7 @@ BankTypes sd_from_sourceID(LHCb::RawBank const* raw_bank)
  *
  * @return     (eof, error, full, n_bytes)
  */
-std::tuple<bool, bool, bool, size_t> read_events(
+std::tuple<bool, bool, size_t> read_events(
   Allen::IO& input,
   Allen::ReadBuffer& read_buffer,
   LHCb::MDFHeader& header,
@@ -107,16 +107,15 @@ std::tuple<bool, bool, bool, size_t> read_events(
   auto& [n_filled, event_offsets, buffer, transpose_start] = read_buffer;
 
   // Keep track of where to write and the end of the prefetch buffer
-  auto* buffer_start = &buffer[0];
   size_t n_bytes = 0;
-  bool eof = false, error = false, full = false;
+  bool eof = false, error = false;
   gsl::span<char> bank_span;
 
   // Loop until the requested number of events is prefetched, the
   // maximum number of events per prefetch buffer is hit, an error
   // occurs or eof is reached
   while (!eof && !error && n_filled < event_offsets.size() - 1 && n_filled < n_events) {
-    // It is
+    auto* buffer_start = &buffer[0];
 
     // Read the banks
     auto const buffer_offset = event_offsets[n_filled];
@@ -125,8 +124,15 @@ std::tuple<bool, bool, bool, size_t> read_events(
     std::tie(eof, error, bank_span) =
       MDF::read_banks(input, header, std::move(buffer_span), compress_buffer, check_checksum);
     // Fill the start offset of the next event
-    event_offsets[++n_filled] = bank_span.data() + bank_span.size() - buffer_start;
-    n_bytes += bank_span.size();
+
+    if (eof || error) {
+      error_cout << "Failed to read banks " << strerror(errno) << "\n";
+      break;
+    }
+    else {
+      event_offsets[n_filled + 1] = bank_span.data() + bank_span.size() - buffer_start;
+      n_bytes += bank_span.size();
+    }
 
     // read the next header
     ssize_t n_bytes = input.read(reinterpret_cast<char*>(&header), mdf_header_size);
@@ -137,9 +143,8 @@ std::tuple<bool, bool, bool, size_t> read_events(
       int event_size =
         (header.recordSize() + mdf_header_size + 2 * (sizeof(LHCb::RawBank) + sizeof(int)) +
          (compress ? expand * (header.recordSize() - mdf_header_size) : 0));
-      if (event_offsets[n_filled] + event_size > buffer.size()) {
-        full = true;
-        break;
+      if (event_offsets[n_filled + 1] + event_size > buffer.size()) {
+        buffer.resize(static_cast<size_t>(1.5 * buffer.size()));
       }
     }
     else if (n_bytes == 0) {
@@ -150,8 +155,11 @@ std::tuple<bool, bool, bool, size_t> read_events(
       error_cout << "Failed to read header " << strerror(errno) << "\n";
       error = true;
     }
+    if (!eof && !error) {
+      ++n_filled;
+    }
   }
-  return {eof, error, full, n_bytes};
+  return {eof, error, n_bytes};
 }
 
 /**

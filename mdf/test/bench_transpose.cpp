@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
   // Read events into buffers, open more files if needed
   optional<Allen::IO> input;
   size_t i_file = 0, n_bytes_read = 0;
-  bool eof = false, error = false, read_full = false;
+  bool eof = false, error = false;
   string file;
   for (size_t i_buffer = 0; i_buffer < read_buffers.size(); ++i_buffer) {
     while (std::get<0>(read_buffers[i_buffer]) < n_events) {
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
           cout << "opened " << file << "\n";
         }
       }
-      std::tie(eof, error, read_full, n_bytes_read) =
+      std::tie(eof, error, n_bytes_read) =
         read_events(*input, read_buffers[i_buffer], header, compress_buffers[i_buffer], n_events, false);
       if (input && eof) {
         input->close();
