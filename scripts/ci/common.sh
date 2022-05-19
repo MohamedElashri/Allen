@@ -20,14 +20,14 @@ function setupViews() {
     # start building platform string
     LCG_PLATFORM="${LCG_SYSTEM}"
 
-    if [ -z ${LCG_QUALIFIER+x} ]; then
-        echo "Info: LCG_QUALIFIER is unset (CPU build)"
+    if [ -z ${LCG_QUALIFIER+x} ] || [ "$LCG_QUALIFIER" = "" ]; then
+        echo "Info: LCG_QUALIFIER is unset or empty (assume CPU build)"
     else
         echo "LCG_QUALIFIER: ${LCG_QUALIFIER}"
         LCG_PLATFORM="${LCG_PLATFORM}+${LCG_QUALIFIER}"
     fi
 
-    if [ -z ${LCG_OPTIMIZATION+x} ]; then
+    if [ -z ${LCG_OPTIMIZATION+x} ] || [ "$LCG_OPTIMIZATION" = "" ]; then
         echo "Info: LCG_OPTIMIZATION is unset - set to opt"
         LCG_OPTIMIZATION="opt"
     fi
