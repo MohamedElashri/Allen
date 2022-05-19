@@ -95,7 +95,7 @@ Hlt1_SMOG2_SMOG2Lumi_BE:                          0/  1000, (    0.00 +/-     0.
 Hlt1_SMOG2_MinimumBias_gec:                     810/  1000, (24300.00 +/-   372.17) kHz
 Hlt1Passthrough_gec_SMOG2_checkPV:              732/  1000, (21960.00 +/-   420.19) kHz
 Hlt1_SMOG2_DiMuonHighMass_gec_SMOG2_checkPV:      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_D2Kpi_gec_SMOG2_checkPV:               3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1_SMOG2_D2Kpi_gec_SMOG2_checkPV:               4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1_SMOG2_eta2pp_gec_SMOG2_checkPV:              3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1_SMOG2_2BodyGeneric_gec_SMOG2_checkPV:       21/  1000, (  630.00 +/-   136.03) kHz
 Hlt1_SMOG2_SingleTrack_gec_SMOG2_checkPV:       158/  1000, ( 4740.00 +/-   346.02) kHz
@@ -142,14 +142,14 @@ Hlt1_SMOG2_SMOG2Lumi_BE:                          0           0
 Hlt1_SMOG2_MinimumBias_gec:                     810           0
 Hlt1Passthrough_gec_SMOG2_checkPV:              732           0
 Hlt1_SMOG2_DiMuonHighMass_gec_SMOG2_checkPV:      0           0
-Hlt1_SMOG2_D2Kpi_gec_SMOG2_checkPV:               3           3
+Hlt1_SMOG2_D2Kpi_gec_SMOG2_checkPV:               4           4
 Hlt1_SMOG2_eta2pp_gec_SMOG2_checkPV:              3           3
 Hlt1_SMOG2_2BodyGeneric_gec_SMOG2_checkPV:       21          33
 Hlt1_SMOG2_SingleTrack_gec_SMOG2_checkPV:       158         202
 
-Total decisions: 3883
+Total decisions: 3884
 Total tracks:    243
 Total SVs:       34
 Total hits:      7514
-Total stdinfo:   5963
+Total stdinfo:   5964
 
