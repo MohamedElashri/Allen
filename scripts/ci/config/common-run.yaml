@@ -29,6 +29,7 @@
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
         OPTIONS: [BUILD_TESTING+ENABLE_CONTRACTS]
         AVOID_HIP: "1" # This shouldn't have multiple values
+        DO_NOT_REPORT: "NO_REPORT" # don't publish throughput report
 
 
       # run throughput, no_gec
@@ -137,7 +138,7 @@
 
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
-    LCG_ARCHITECTURE: "x86_64_v3-centos7-clang12-opt"
+    LCG_ARCHITECTURE: "x86_64_v3-centos7-clang12"
     BUILD_TYPE: "RelWithDebInfo"
 
   retry: 2

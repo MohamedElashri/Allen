@@ -7,19 +7,36 @@ function setupViews() {
     # so disable the x and u flags
     set +x; set +u
     # check LCG_ARCHITECTURE and LCG_VERSION is set
-    if [ -z ${LCG_ARCHITECTURE+x} ]; then
-        echo "Error: LCG_ARCHITECTURE is unset"
-        exit 1
-    fi
     if [ -z ${LCG_VERSION+x} ]; then
         echo "Error: LCG_VERSION is unset"
         exit 1
     fi
 
-    echo "Setting CMAKE_TOOLCHAIN_FILE to LCG version ${LCG_VERSION} and architecture ${LCG_ARCHITECTURE}"
+    if [ -z ${LCG_ARCHITECTURE+x} ]; then
+        echo "Error: LCG_ARCHITECTURE is unset"
+        exit 1
+    fi
+    if [ -z ${LCG_QUALIFIER+x} ]; then
+        echo "Info: LCG_QUALIFIER is unset (CPU build)"
+    else
+        echo "LCG_QUALIFIER: ${LCG_QUALIFIER}"
+        LCG_ARCHITECTURE="${LCG_ARCHITECTURE}+${LCG_QUALIFIER}"
+    fi
+
+    if [ -z ${LCG_BUILDTYPE+x} ]; then
+        echo "Info: LCG_BUILDTYPE is unset - set to opt"
+        LCG_BUILDTYPE="opt"
+    fi
+
+    LCG_ARCHITECTURE="${LCG_ARCHITECTURE}-${LCG_BUILDTYPE}"
+
+    
+    echo "LCG_VERSION: ${LCG_VERSION}"
+    echo "LCG_ARCHITECTURE: ${LCG_ARCHITECTURE}-${LCG_BUILDTYPE}"
 
     source /cvmfs/lhcb.cern.ch/lib/LbEnv
     export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/${LCG_VERSION}/${LCG_ARCHITECTURE}.cmake
+    echo "CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}"
     set -u; set -x
 }
 

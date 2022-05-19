@@ -42,7 +42,7 @@
     - .default_rules
   variables:
     TEST_NAME: "publish_throughput"
-    LCG_ARCHITECTURE: "x86_64_v3-centos7-clang12-opt"
+    LCG_ARCHITECTURE: "x86_64_v3-centos7-clang12"
     BREAKDOWN_DEVICE_ID: "a5000"
     PUBLISH_ARTIFACT_NAME: "publish_throughput"
 

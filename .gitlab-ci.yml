@@ -7,7 +7,14 @@ variables:
   TARGET_BRANCH: master
 
   ALLEN_DATA: "/scratch/allen_data"
+
   LCG_VERSION: "LCG_101"
+
+  # {LCG_ARCHITECTURE}+{LCG_QUALIFIER}-${LCG_BUILDTYPE}
+  LCG_ARCHITECTURE: "x86_64_v3-centos7-clang12"
+  LCG_QUALIFIER: "" # no plus added if empty or unset
+  LCG_BUILDTYPE: "opt"
+
   LB_NIGHTLY_SLOT: lhcb-head
   BINARY_TAG: x86_64_v2-centos7-gcc11-opt
   NO_LBLOGIN: "1" # prevent lbdocker containers to start LbLogin/LbEnv

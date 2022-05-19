@@ -6,34 +6,28 @@
 .geforcertx3090:
   variables:
     DEVICE_ID: "geforcertx3090"
-    TARGET: "CUDA"
 
 
 .geforcertx2080ti:
   variables:
     DEVICE_ID: "geforcertx2080ti"
-    TARGET: "CUDA"
 
 
 .a6000:
   variables:
     DEVICE_ID: "a6000"
-    TARGET: "CUDA"
 
 
 .a5000:
   variables:
     DEVICE_ID: "a5000"
-    TARGET: "CUDA"
 
 
 .mi100:
   variables:
     DEVICE_ID: "mi100"
-    TARGET: "HIP"
 
 .epyc7502:
   variables:
     DEVICE_ID: "epyc7502"
-    TARGET: "CPU"
 
