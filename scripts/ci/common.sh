@@ -6,36 +6,37 @@ function setupViews() {
     # setupViews.sh will have unbound variables and lots of output,
     # so disable the x and u flags
     set +x; set +u
-    # check LCG_ARCHITECTURE and LCG_VERSION is set
+    # check LCG_SYSTEM and LCG_VERSION is set
     if [ -z ${LCG_VERSION+x} ]; then
         echo "Error: LCG_VERSION is unset"
         exit 1
     fi
 
-    if [ -z ${LCG_ARCHITECTURE+x} ]; then
-        echo "Error: LCG_ARCHITECTURE is unset"
+    if [ -z ${LCG_SYSTEM+x} ]; then
+        echo "Error: LCG_SYSTEM is unset"
         exit 1
     fi
+    LCG_PLATFORM="${LCG_SYSTEM}"
     if [ -z ${LCG_QUALIFIER+x} ]; then
         echo "Info: LCG_QUALIFIER is unset (CPU build)"
     else
         echo "LCG_QUALIFIER: ${LCG_QUALIFIER}"
-        LCG_ARCHITECTURE="${LCG_ARCHITECTURE}+${LCG_QUALIFIER}"
+        LCG_PLATFORM="${LCG_PLATFORM}+${LCG_QUALIFIER}"
     fi
 
-    if [ -z ${LCG_BUILDTYPE+x} ]; then
-        echo "Info: LCG_BUILDTYPE is unset - set to opt"
-        LCG_BUILDTYPE="opt"
+    if [ -z ${LCG_OPTIMIZATION+x} ]; then
+        echo "Info: LCG_OPTIMIZATION is unset - set to opt"
+        LCG_OPTIMIZATION="opt"
     fi
 
-    LCG_ARCHITECTURE="${LCG_ARCHITECTURE}-${LCG_BUILDTYPE}"
+    export LCG_PLATFORM="${LCG_PLATFORM}-${LCG_BUILDTYPE}"
 
     
     echo "LCG_VERSION: ${LCG_VERSION}"
-    echo "LCG_ARCHITECTURE: ${LCG_ARCHITECTURE}-${LCG_BUILDTYPE}"
+    echo "LCG_PLATFORM: ${LCG_PLATFORM}"
 
     source /cvmfs/lhcb.cern.ch/lib/LbEnv
-    export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/${LCG_VERSION}/${LCG_ARCHITECTURE}.cmake
+    export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/${LCG_VERSION}/${LCG_PLATFORM}.cmake
     echo "CMAKE_TOOLCHAIN_FILE: ${CMAKE_TOOLCHAIN_FILE}"
     set -u; set -x
 }
@@ -60,7 +61,9 @@ function check_build_exists() {
         echo " - The build matrix is missing a build with these options:"
         echo ""
         echo "     TARGET: ${TARGET}"
-        echo "     LCG_ARCHITECTURE: ${LCG_ARCHITECTURE}"
+        echo "     LCG_SYSTEM: ${LCG_SYSTEM}"
+        echo "     LCG_QUALIFIER (can be empty): ${LCG_QUALIFIER}"
+        echo "     LCG_OPTIMIZATION: ${LCG_OPTIMIZATION}"
         echo "     BUILD_TYPE: ${BUILD_TYPE}"
         echo "     OPTIONS: ${OPTIONS}"
         echo ""
@@ -92,7 +95,7 @@ else
 export GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
 fi
 
-BUILD_FOLDER="build_${LCG_ARCHITECTURE}_${TARGET}_${BUILD_TYPE}_${BUILD_SEQUENCES}_${OPTIONS}"
+BUILD_FOLDER="build_${LCG_PLATFORM}_${TARGET}_${BUILD_TYPE}_${BUILD_SEQUENCES}_${OPTIONS}"
 
 ls -la
 

@@ -10,13 +10,13 @@ variables:
 
   LCG_VERSION: "LCG_101"
 
-  # {LCG_ARCHITECTURE}+{LCG_QUALIFIER}-${LCG_BUILDTYPE}
-  LCG_ARCHITECTURE: "x86_64_v3-centos7-clang12"
+  # LCG_PLATFORM = {LCG_SYSTEM}+{LCG_QUALIFIER}-{LCG_OPTIMIZATION}
+  LCG_SYSTEM: "x86_64_v3-centos7-clang12"
   LCG_QUALIFIER: "" # no plus added if empty or unset
-  LCG_BUILDTYPE: "opt"
+  LCG_OPTIMIZATION: "opt"
 
   LB_NIGHTLY_SLOT: lhcb-head
-  BINARY_TAG: x86_64_v2-centos7-gcc11-opt
+  BINARY_TAG: x86_64_v2-centos7-gcc11-opt # FIXME remove if not needed
   NO_LBLOGIN: "1" # prevent lbdocker containers to start LbLogin/LbEnv
 
 

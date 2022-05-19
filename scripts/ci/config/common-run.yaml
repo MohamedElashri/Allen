@@ -138,7 +138,7 @@
 
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
-    LCG_ARCHITECTURE: "x86_64_v3-centos7-clang12"
+    LCG_SYSTEM: "x86_64_v3-centos7-clang12"
     BUILD_TYPE: "RelWithDebInfo"
 
   retry: 2
