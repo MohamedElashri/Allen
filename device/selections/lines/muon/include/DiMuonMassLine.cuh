@@ -28,6 +28,7 @@ namespace di_muon_mass_line {
     PROPERTY(maxDoca_t, "maxDoca", "maxDoca description", float) maxDoca;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
+    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
   };
 
   struct di_muon_mass_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<di_muon_mass_line_t, Parameters> {
@@ -44,5 +45,6 @@ namespace di_muon_mass_line {
     Property<maxDoca_t> m_maxDoca {this, 0.2f};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.0f};
     Property<minIPChi2_t> m_minIPChi2 {this, 0.f};
+    Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
   };
 } // namespace di_muon_mass_line

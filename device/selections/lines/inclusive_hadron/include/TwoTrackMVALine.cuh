@@ -33,6 +33,7 @@ namespace two_track_mva_line {
     PROPERTY(minMcor_t, "minMcor", "Minimum corrected mass in MeV", float) minMcor;
     PROPERTY(maxSVchi2_t, "maxSVchi2", "Maximum SV chi2", float) maxSVchi2;
     PROPERTY(maxDOCA_t, "maxDOCA", "Maximum DOCA between two tracks", float) maxDOCA;
+    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
   };
 
   struct two_track_mva_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_mva_line_t, Parameters> {
@@ -57,6 +58,7 @@ namespace two_track_mva_line {
     Property<minMcor_t> m_minMcor {this, 1000.f};
     Property<maxSVchi2_t> m_maxSVchi2 {this, 20.f};
     Property<maxDOCA_t> m_maxDOCA {this, 0.2f};
+    Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
   };
 
 } // namespace two_track_mva_line

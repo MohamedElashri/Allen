@@ -13,5 +13,6 @@ __device__ bool low_pt_muon_line::low_pt_muon_line_t::select(
   const auto track = std::get<0>(input);
   return track.is_muon() && track.ip() >= parameters.minIP && track.ip_chi2() >= parameters.minIPChi2 &&
          track.state().pt() >= parameters.minPt &&
-         track.state().chi2() / track.state().ndof() <= parameters.maxChi2Ndof;
+         track.state().chi2() / track.state().ndof() <= parameters.maxChi2Ndof &&
+         track.pv().position.z >= parameters.minBPVz;
 }

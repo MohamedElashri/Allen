@@ -11,12 +11,10 @@ from AllenConf.odin import decode_odin
 
 def make_kstopipi_line(forward_tracks,
                        secondary_vertices,
-                       pre_scaler_hash_string="kstopipi_line_pre",
-                       post_scaler_hash_string="kstopipi_line_post",
+                       pre_scaler_hash_string=None,
+                       post_scaler_hash_string=None,
                        name="Hlt1KsToPiPi"):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         kstopipi_line_t,
@@ -25,18 +23,16 @@ def make_kstopipi_line(forward_tracks,
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string)
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
 def make_track_mva_line(forward_tracks,
                         long_track_particles,
-                        pre_scaler_hash_string="track_mva_line_pre",
-                        post_scaler_hash_string="track_mva_line_post",
+                        pre_scaler_hash_string=None,
+                        post_scaler_hash_string=None,
                         name="Hlt1TrackMVA"):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         track_mva_line_t,
@@ -46,18 +42,16 @@ def make_track_mva_line(forward_tracks,
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string)
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
 def make_two_track_mva_line(forward_tracks,
                             secondary_vertices,
-                            pre_scaler_hash_string="two_track_mva_line_pre",
-                            post_scaler_hash_string="two_track_mva_line_post",
+                            pre_scaler_hash_string=None,
+                            post_scaler_hash_string=None,
                             name="Hlt1TwoTrackMVA"):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     two_track_mva_evaluator = make_algorithm(
         two_track_mva_evaluator_t,
@@ -73,20 +67,18 @@ def make_two_track_mva_line(forward_tracks,
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         dev_two_track_mva_evaluation_t=two_track_mva_evaluator.
         dev_two_track_mva_evaluation_t)
 
 
 def make_two_track_line_ks(forward_tracks,
                            secondary_vertices,
-                           pre_scaler_hash_string="two_track_line_ks_pre",
-                           post_scaler_hash_string="two_track_line_ks_post",
+                           pre_scaler_hash_string=None,
+                           post_scaler_hash_string=None,
                            name="Hlt1TwoTrackKs"):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         two_track_line_ks_t,
@@ -95,5 +87,5 @@ def make_two_track_line_ks(forward_tracks,
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string)
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post")

@@ -10,45 +10,38 @@ from AllenCore.generator import make_algorithm
 from AllenConf.odin import decode_odin
 
 
-def make_single_high_pt_muon_line(
-        forward_tracks,
-        long_track_particles,
-        pre_scaler_hash_string="single_high_pt_muon_line_pre",
-        post_scaler_hash_string="single_high_pt_muon_line_post"):
+def make_single_high_pt_muon_line(forward_tracks,
+                                  long_track_particles,
+                                  name="Hlt1SingleHighPtMuon",
+                                  pre_scaler_hash_string=None,
+                                  post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         single_high_pt_muon_line_t,
-        name="Hlt1SingleHighPtMuon",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"])
 
 
-def make_single_high_pt_muon_no_muid_line(
-        forward_tracks,
-        long_track_particles,
-        pre_scaler_hash_string="single_high_pt_muon_no_muid_line_pre",
-        post_scaler_hash_string="single_high_pt_muon_no_muid_line_post"):
+def make_single_high_pt_muon_no_muid_line(forward_tracks,
+                                          long_track_particles,
+                                          name="Hlt1SingleHighPtMuonNoMuID",
+                                          pre_scaler_hash_string=None,
+                                          post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         single_high_pt_muon_no_muid_line_t,
-        name="Hlt1SingleHighPtMuonNoMuID",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
-        dev_mep_layout_t=layout["dev_mep_layout"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
@@ -57,18 +50,17 @@ def make_single_high_pt_muon_no_muid_line(
 
 def make_low_pt_muon_line(forward_tracks,
                           long_track_particles,
-                          pre_scaler_hash_string="low_pt_muon_line_pre",
-                          post_scaler_hash_string="low_pt_muon_line_post"):
+                          name="Hlt1LowPtMuon",
+                          pre_scaler_hash_string=None,
+                          post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         low_pt_muon_line_t,
-        name="Hlt1LowPtMuon",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
@@ -77,8 +69,8 @@ def make_low_pt_muon_line(forward_tracks,
 
 def make_di_muon_mass_line(forward_tracks,
                            secondary_vertices,
-                           pre_scaler_hash_string="di_muon_mass_line_pre",
-                           post_scaler_hash_string="di_muon_mass_line_post",
+                           pre_scaler_hash_string=None,
+                           post_scaler_hash_string=None,
                            minHighMassTrackPt=300.,
                            minHighMassTrackP=6000.,
                            minMass=2700.,
@@ -87,8 +79,6 @@ def make_di_muon_mass_line(forward_tracks,
                            minIPChi2=0.,
                            name="Hlt1DiMuonHighMass"):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         di_muon_mass_line_t,
@@ -97,8 +87,8 @@ def make_di_muon_mass_line(forward_tracks,
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         minHighMassTrackPt=minHighMassTrackPt,
         minHighMassTrackP=minHighMassTrackP,
         minMass=minMass,
@@ -109,59 +99,54 @@ def make_di_muon_mass_line(forward_tracks,
 
 def make_di_muon_soft_line(forward_tracks,
                            secondary_vertices,
-                           pre_scaler_hash_string="di_muon_soft_line_pre",
-                           post_scaler_hash_string="di_muon_soft_line_post"):
+                           name="Hlt1DiMuonSoft",
+                           pre_scaler_hash_string=None,
+                           post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         di_muon_soft_line_t,
-        name="Hlt1DiMuonSoft",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string)
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_low_pt_di_muon_line(
-        forward_tracks,
-        secondary_vertices,
-        pre_scaler_hash_string="low_pt_di_muon_line_pre",
-        post_scaler_hash_string="low_pt_di_muon_line_post"):
+def make_low_pt_di_muon_line(forward_tracks,
+                             secondary_vertices,
+                             name="Hlt1LowPtDiMuon",
+                             pre_scaler_hash_string=None,
+                             post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         low_pt_di_muon_line_t,
-        name="Hlt1LowPtDiMuon",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string)
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_track_muon_mva_line(
-        forward_tracks,
-        long_track_particles,
-        pre_scaler_hash_string="track_muon_mva_line_pre",
-        post_scaler_hash_string="track_muon_mva_line_post"):
+def make_track_muon_mva_line(forward_tracks,
+                             long_track_particles,
+                             name="Hlt1TrackMuonMVA",
+                             pre_scaler_hash_string=None,
+                             post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         track_muon_mva_line_t,
-        name="Hlt1TrackMuonMVA",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string)
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post")

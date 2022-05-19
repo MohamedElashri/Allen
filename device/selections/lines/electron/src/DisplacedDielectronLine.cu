@@ -35,8 +35,9 @@ __device__ bool displaced_dielectron_line::displaced_dielectron_line_t::select(
     return false;
   }
 
-  bool decision = vertex.minipchi2() > parameters.minIPChi2 && vertex.doca12() < parameters.maxDOCA &&
-                  brem_corrected_minpt > parameters.minPT && vertex.vertex().chi2() < parameters.maxVtxChi2;
+  const bool decision = vertex.minipchi2() > parameters.minIPChi2 && vertex.doca12() < parameters.maxDOCA &&
+                        brem_corrected_minpt > parameters.minPT && vertex.vertex().chi2() < parameters.maxVtxChi2 &&
+                        vertex.vertex().z() > parameters.minZ && vertex.pv().position.z >= parameters.minZ;
 
   return decision;
 }

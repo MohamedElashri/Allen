@@ -451,6 +451,12 @@ namespace Allen {
             [](const BasicParticle* p) { return p->state().pt(); }, [](float f1, float f2) { return f1 + f2; }, 0.f);
         }
 
+        __host__ __device__ int charge() const
+        {
+          return transform_reduce(
+            [](const BasicParticle* p) { return p->state().charge(); }, [](int f1, int f2) { return f1 + f2; }, 0);
+        }
+
         __host__ __device__ float m() const
         {
           const float energy = e();
@@ -569,6 +575,22 @@ namespace Allen {
           return transform_reduce(
             [](const BasicParticle* p) { return p->state().pt(); },
             [](float f1, float f2) { return (f2 < f1 || f1 < 0) ? f2 : f1; },
+            -1.f);
+        }
+
+        __host__ __device__ float maxp() const
+        {
+          return transform_reduce(
+            [](const BasicParticle* p) { return p->state().p(); },
+            [](float f1, float f2) { return f2 > f1 ? f2 : f1; },
+            -1.f);
+        }
+
+        __host__ __device__ float maxpt() const
+        {
+          return transform_reduce(
+            [](const BasicParticle* p) { return p->state().pt(); },
+            [](float f1, float f2) { return f2 > f1 ? f2 : f1; },
             -1.f);
         }
 

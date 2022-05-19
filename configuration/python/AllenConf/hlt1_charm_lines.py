@@ -9,56 +9,53 @@ from AllenConf.odin import decode_odin
 
 def make_d2kk_line(forward_tracks,
                    secondary_vertices,
-                   pre_scaler_hash_string="d2kk_line_pre",
-                   post_scaler_hash_string="d2kk_line_post"):
+                   name="Hlt1D2KK",
+                   pre_scaler_hash_string=None,
+                   post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         d2kk_line_t,
-        name="Hlt1D2KK",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string)
+        pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 
 
 def make_d2pipi_line(forward_tracks,
                      secondary_vertices,
-                     pre_scaler_hash_string="d2pipi_line_pre",
-                     post_scaler_hash_string="d2pipi_line_post"):
+                     name="Hlt1D2PiPi",
+                     pre_scaler_hash_string=None,
+                     post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         d2pipi_line_t,
-        name="Hlt1D2PiPi",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string)
+        pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 
 
 def make_two_ks_line(forward_tracks,
                      secondary_vertices,
-                     pre_scaler_hash_string="two_ks_line_pre",
-                     post_scaler_hash_string="two_ks_line_post"):
+                     name="Hlt1TwoKs",
+                     pre_scaler_hash_string=None,
+                     post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         two_ks_line_t,
-        name="Hlt1TwoKs",
+        name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        pre_scaler_hash_string=pre_scaler_hash_string,
-        post_scaler_hash_string=post_scaler_hash_string)
+        pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post')

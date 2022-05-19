@@ -29,6 +29,7 @@ namespace low_pt_di_muon_line {
     PROPERTY(maxDOCA_t, "maxDOCA", "maxDOCA description", float) maxDOCA;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minMass_t, "minMass", "minMass description", float) minMass;
+    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
   };
 
   struct low_pt_di_muon_line_t : public SelectionAlgorithm,
@@ -48,5 +49,6 @@ namespace low_pt_di_muon_line {
     Property<maxDOCA_t> m_maxDOCA {this, 0.2f};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.f};
     Property<minMass_t> m_minMass {this, 220.f};
+    Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
   };
 } // namespace low_pt_di_muon_line

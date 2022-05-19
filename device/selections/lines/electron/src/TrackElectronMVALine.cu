@@ -46,6 +46,8 @@ __device__ bool track_electron_mva_line::track_electron_mva_line_t::select(
     ((ptShift > maxPt && trackIPChi2 > minIPChi2) ||
      (ptShift > parameters.minPt && ptShift < maxPt &&
       logf(trackIPChi2) > parameters.param1 / ((ptShift - parameters.param2) * (ptShift - parameters.param2)) +
-                            (parameters.param3 / maxPt) * (maxPt - ptShift) + logf(minIPChi2)));
+                            (parameters.param3 / maxPt) * (maxPt - ptShift) + logf(minIPChi2))) &&
+    track.pv().position.z > parameters.minBPVz;
+
   return decision;
 }
