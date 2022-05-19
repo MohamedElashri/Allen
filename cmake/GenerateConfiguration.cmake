@@ -137,7 +137,7 @@ install(TARGETS extern_lines
       EXPORT Allen
       LIBRARY DESTINATION lib)
 
-if(NOT STANDALONE)
+if(NOT STANDALONE AND TARGET_DEVICE STREQUAL "CPU")
   # We need to get the list of algorithms at configuration time in order to
   # know the list of files that will be required of this build
   set(ALGORITHM_WRAPPERS_FOLDER ${CODE_GENERATION_DIR}/algorithm_wrappers)
@@ -154,7 +154,7 @@ if(NOT STANDALONE)
       ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate wrappers --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" --algorithm_wrappers_folder "${ALGORITHM_WRAPPERS_FOLDER}"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
-else()
+elseif(STANDALONE)
   find_package(Git REQUIRED)
   add_custom_command(
     OUTPUT "${PROJECT_SEQUENCE_DIR}/LHCb" "${PROJECT_SEQUENCE_DIR}/PyConf" "${PROJECT_SEQUENCE_DIR}/Gaudi" "${PROJECT_SEQUENCE_DIR}/GaudiKernel"

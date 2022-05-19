@@ -70,11 +70,7 @@ message(STATUS "Allen device target: " ${TARGET_DEVICE})
 
 # Device runtime libraries
 if(TARGET_DEVICE STREQUAL "CUDA")
-  if (DEFINED CMAKE_CUDA_COMPILER)
-    get_filename_component(nvcc_bin ${CMAKE_CUDA_COMPILER} DIRECTORY)
-    get_filename_component(cuda_root ${nvcc_bin} DIRECTORY)
-    set(CUDAToolkit_ROOT ${cuda_root})
-  endif()
+  enable_language(CUDA)
   find_package(CUDAToolkit REQUIRED)
 elseif(TARGET_DEVICE STREQUAL "HIP")
   # Setup HIPCC compiler

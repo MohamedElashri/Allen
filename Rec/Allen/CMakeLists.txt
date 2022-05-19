@@ -9,6 +9,7 @@ sequence as part of a Gaudi/LHCb
 application
 #]========================================]
 
+if(TARGET_DEVICE STREQUAL "CPU")  
 include(GenerateConfiguration)
 
 gaudi_add_module(AllenWrapper
@@ -45,6 +46,7 @@ gaudi_add_module(AllenWrapper
 
 target_include_directories(AllenWrapper PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
 add_dependencies(AllenWrapper struct_to_tuple)
+
 
 gaudi_add_module(AllenAlgorithms
                  SOURCES
@@ -92,3 +94,5 @@ gaudi_add_executable(test_mass_definitions
         LHCb::PartPropLib
     TEST
 )
+
+endif()

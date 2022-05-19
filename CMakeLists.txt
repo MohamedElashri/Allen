@@ -385,8 +385,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
-  enable_language(CUDA)
-
+  
   set(CMAKE_CUDA_STANDARD 17)
   set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
   set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
