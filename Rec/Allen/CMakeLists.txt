@@ -80,6 +80,8 @@ endif()
 target_compile_definitions(AllenWrapper PRIVATE -D${TARGET_DEFINITION})
 target_compile_definitions(AllenAlgorithms PRIVATE -D${TARGET_DEFINITION})
 
+endif()
+
 gaudi_install(PYTHON)
 
 gaudi_add_tests(QMTest)
@@ -95,4 +97,3 @@ gaudi_add_executable(test_mass_definitions
     TEST
 )
 
-endif()
