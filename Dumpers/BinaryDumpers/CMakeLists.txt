@@ -5,7 +5,6 @@
 # Package: BinaryDumpers
 ################################################################################
 
-
 gaudi_add_library(BinaryDumpers
                   SOURCES
                     src/lib/TestUTBoards.cpp
@@ -13,6 +12,8 @@ gaudi_add_library(BinaryDumpers
                   LINK PUBLIC
                     Gaudi::GaudiKernel
                     LHCb::DAQEventLib
+                    LHCb::MagnetLib
+                    LHCb::FTDetLib
                     LHCb::MuonDAQLib)
 
 gaudi_add_module(BinaryDumpersModule
@@ -36,8 +37,10 @@ gaudi_add_module(BinaryDumpersModule
                    src/PVDumper.cpp
                    src/TestMuonTable.cpp
                    src/TransposeRawBanks.cpp
+                   src/TESProducer.cpp
                  LINK
                    Rangev3::rangev3
+                   TBB::tbb
                    Gaudi::GaudiAlgLib
                    LHCb::AssociatorsBase
                    LHCb::LinkerEvent
@@ -51,6 +54,7 @@ gaudi_add_module(BinaryDumpersModule
                    LHCb::FTDetLib
                    LHCb::MuonDAQLib
                    Rec::PrKernel
+                   yaml-cpp
                    BinaryDumpers)
 
 gaudi_add_tests(QMTest)

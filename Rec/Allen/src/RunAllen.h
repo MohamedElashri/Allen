@@ -58,6 +58,8 @@ private:
   const unsigned m_n_buffers = 1;
   const bool m_do_check = true;
 
+  Allen::NonEventData::IUpdater* m_updater = nullptr;
+
   std::unique_ptr<Stream> m_stream;
   std::unique_ptr<HostBuffersManager> m_host_buffers_manager;
   std::unique_ptr<ROOTService> m_root_service;

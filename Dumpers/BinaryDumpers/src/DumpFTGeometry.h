@@ -24,4 +24,4 @@ protected:
   DumpUtils::Dumps dumpGeometry() const override;
 };
 
-#endif // DUMPUTGEOMETRY_H
+#endif

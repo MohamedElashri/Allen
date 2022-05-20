@@ -10,7 +10,7 @@
 \*****************************************************************************/
 
 // Gaudi
-#include "GaudiAlg/Producer.h"
+#include "GaudiAlg/Transformer.h"
 
 // Allen
 #include <Allen.h>
@@ -34,7 +34,7 @@ namespace {
   }
 } // namespace
 
-class ProvideConstants final : public Gaudi::Functional::Producer<std::tuple<Constants const*>()> {
+class ProvideConstants final : public Gaudi::Functional::Transformer<std::tuple<Constants const*>(LHCb::ODIN const&)> {
 
 public:
   /// Standard constructor
@@ -44,9 +44,11 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-  std::tuple<Constants const*> operator()() const override;
+  std::tuple<Constants const*> operator()(LHCb::ODIN const& odin) const override;
 
 private:
+  Allen::NonEventData::IUpdater* m_updater = nullptr;
+
   Constants m_constants;
 
   Gaudi::Property<std::string> m_paramDir {this,
@@ -56,16 +58,18 @@ private:
 };
 
 ProvideConstants::ProvideConstants(const std::string& name, ISvcLocator* pSvcLocator) :
-  Producer(
+  Transformer(
     name,
     pSvcLocator,
+    // Inputs
+    {KeyValue {"ODINLocation", LHCb::ODINLocation::Default}},
     // Outputs
     {KeyValue {"ConstantsLocation", "Allen/Stream/Constants"}})
 {}
 
 StatusCode ProvideConstants::initialize()
 {
-  auto sc = Producer::initialize();
+  auto sc = Transformer::initialize();
   if (sc.isFailure()) return sc;
 
   // initialize Allen Constants
@@ -75,8 +79,8 @@ StatusCode ProvideConstants::initialize()
     error() << "Failed get updater " << m_updaterName.value() << endmsg;
     return StatusCode::FAILURE;
   }
-  auto* updater = dynamic_cast<Allen::NonEventData::IUpdater*>(svc.get());
-  if (!updater) {
+  m_updater = dynamic_cast<Allen::NonEventData::IUpdater*>(svc.get());
+  if (!m_updater) {
     error() << "Failed cast updater " << m_updaterName.value() << " to Allen::NonEventData::IUpdater " << endmsg;
     return StatusCode::FAILURE;
   }
@@ -108,14 +112,17 @@ StatusCode ProvideConstants::initialize()
     two_track_mva_model_reader.lambda());
 
   // Allen Consumers
-  register_consumers(updater, m_constants);
-
-  // Run all registered producers and consumers
-  updater->update(0);
+  register_consumers(m_updater, m_constants);
 
   return StatusCode::SUCCESS;
 }
 
-std::tuple<Constants const*> ProvideConstants::operator()() const { return {&m_constants}; }
+std::tuple<Constants const*> ProvideConstants::operator()(LHCb::ODIN const& odin) const
+{
+  // Trigger an update of non-event-data
+  m_updater->update(odin.data);
+
+  return {&m_constants};
+}
 
 DECLARE_COMPONENT(ProvideConstants)

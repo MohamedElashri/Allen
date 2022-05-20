@@ -9,8 +9,12 @@
 #include <cmath>
 #include <mutex>
 #include <optional>
+#include <any>
 
 #include <gsl/gsl>
+
+#include <Event/ODIN.h>
+
 #include "Logger.h"
 #include "BankTypes.h"
 #include "Common.h"
@@ -70,7 +74,7 @@ public:
    *
    * @return     tuple of (success, eof, timed_out, slice_index, n_filled)
    */
-  virtual std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(
+  virtual std::tuple<bool, bool, bool, size_t, size_t, std::any> get_slice(
     std::optional<unsigned int> timeout = std::nullopt) = 0;
 
   /**

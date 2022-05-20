@@ -273,8 +273,13 @@ int allen(
   // Register all consumers
   register_consumers(updater, constants);
 
-  // Run all registered produces and consumers
-  updater->update(0);
+  // Run all registered producers and consumers
+  // FIXME: remove this in favour of the first triggered update
+  {
+    LHCb::ODIN odin;
+    odin.setRunNumber(0);
+    updater->update(std::move(odin.data));
+  }
 
   auto const& configuration = configuration_reader->params();
 
@@ -525,7 +530,7 @@ int allen(
   std::queue<std::tuple<size_t, size_t, size_t>> sub_slice_queue;
 
   // track run changes
-  std::optional<uint> next_run_number;
+  std::optional<LHCb::ODIN> next_odin;
   bool run_change = false;
   uint current_run_number = 0;
 
@@ -675,13 +680,14 @@ int allen(
 
     // If we have a pending run change we must do that before receiving further input from the I/O threads
     if (run_change) {
-      if (next_run_number) {
+      if (next_odin) {
         // Only process the run change once all GPU stream_threads have finished
         if (stream_ready.count() == number_of_threads) {
-          debug_cout << "Run number changing from " << current_run_number << " to " << *next_run_number << std::endl;
-          updater->update(*next_run_number);
-          current_run_number = *next_run_number;
-          next_run_number.reset();
+          debug_cout << "Run number changing from " << current_run_number << " to " << next_odin->runNumber()
+                     << std::endl;
+          updater->update(next_odin->data);
+          current_run_number = next_odin->runNumber();
+          next_odin.reset();
           run_change = false;
         }
       }
@@ -727,10 +733,12 @@ int allen(
           }
           else if (msg == "RUN") {
             run_change = true;
-            next_run_number = zmqSvc->receive<uint>(socket);
-            debug_cout << "Requested run change from " << current_run_number << " to " << *next_run_number << std::endl;
+            auto odin_data = zmqSvc->receive<decltype(LHCb::ODIN::data)>(socket);
+            next_odin = LHCb::ODIN {odin_data};
+            debug_cout << "Requested run change from " << current_run_number << " to " << next_odin->runNumber()
+                       << std::endl;
             // guard against double run changes if we have multiple input threads
-            if (disable_run_changes || *next_run_number == current_run_number) next_run_number.reset();
+            if (disable_run_changes || next_odin->runNumber() == current_run_number) next_odin.reset();
           }
           else if (msg == "WRITTEN") {
             auto slc_idx = zmqSvc->receive<size_t>(socket);

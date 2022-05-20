@@ -92,7 +92,7 @@ namespace Allen {
       }
     }
 
-    void Updater::update(unsigned long)
+    void Updater::update(gsl::span<unsigned const>)
     {
       for (auto const& entry : m_pairs) {
         auto const& name = std::get<0>(entry);

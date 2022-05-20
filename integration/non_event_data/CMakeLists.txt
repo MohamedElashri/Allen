@@ -17,4 +17,6 @@ target_link_libraries(NonEventData PRIVATE
   UT
   nlohmann_json::nlohmann_json)
 
-target_include_directories(NonEventData PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+target_include_directories(NonEventData PUBLIC 
+$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+target_link_libraries(NonEventData PUBLIC BinaryDumpers)

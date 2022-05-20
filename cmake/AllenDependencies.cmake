@@ -34,6 +34,7 @@ if (NOT STANDALONE)
 
   find_package(AIDA REQUIRED)
   find_package(fmt REQUIRED)
+  find_package(TBB REQUIRED)
 
   #Always enable ROOT for LHCb stack builds
   set(USE_ROOT ON)

@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "Dumpers/IUpdater.h"
+#include <Event/ODIN.h>
 
 namespace Allen {
   namespace NonEventData {
@@ -18,7 +19,7 @@ namespace Allen {
       Updater(std::map<std::string, std::string> const& options);
       virtual ~Updater() = default;
 
-      void update(unsigned long run) override;
+      void update(gsl::span<unsigned const> odin_data) override;
 
       void registerConsumer(std::string const& id, std::unique_ptr<NonEventData::Consumer> c) override;
 

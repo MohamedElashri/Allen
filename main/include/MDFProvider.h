@@ -31,6 +31,8 @@
 
 #include <SliceUtils.h>
 #include <Transpose.h>
+#include <ODINBank.cuh>
+
 #include <BackendCommon.h>
 
 namespace {
@@ -266,7 +268,7 @@ public:
    */
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override
   {
-    auto ib = to_integral<BankTypes>(bank_type);
+    auto ib = to_integral(bank_type);
     // FIXME structured binding version below triggers clang 11 bug
     //       revert after clang fix available
     // auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
@@ -287,11 +289,11 @@ public:
    *
    * @return     (good slice, input done, timed out, slice index, number of events in slice)
    */
-  std::tuple<bool, bool, bool, size_t, size_t, uint> get_slice(std::optional<unsigned int> timeout = {}) override
+  std::tuple<bool, bool, bool, size_t, size_t, std::any> get_slice(std::optional<unsigned int> timeout = {}) override
   {
     bool timed_out = false, done = false;
     size_t slice_index = 0, n_filled = 0;
-    uint run_no = 0;
+    std::any odin;
     std::unique_lock<std::mutex> lock {m_transpose_mut};
     if (!m_read_error) {
       // If no transposed slices are ready for processing, wait until
@@ -312,7 +314,10 @@ public:
         std::tie(slice_index, n_filled) = m_transposed.front();
         m_transposed.pop_front();
         if (n_filled > 0) {
-          run_no = std::get<0>(m_event_ids[slice_index].front());
+          auto bno = banks(BankTypes::ODIN, slice_index);
+          gsl::span<unsigned const> odin_data {
+            odin_data_t::data(std::get<0>(bno)[0].data(), std::get<2>(bno).data(), 0), 10};
+          odin = odin_data;
         }
       }
     }
@@ -320,7 +325,7 @@ public:
     // Check if I/O and transposition is done and return a slice index
     auto n_writable = count_writable();
     done = m_transpose_done && m_transposed.empty() && n_writable == m_buffer_status.size();
-    return {!m_read_error, done, timed_out, slice_index, n_filled, run_no};
+    return {!m_read_error, done, timed_out, slice_index, n_filled, odin};
   }
 
   /**

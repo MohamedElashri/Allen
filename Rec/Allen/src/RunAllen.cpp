@@ -55,8 +55,8 @@ StatusCode RunAllen::initialize()
     error() << "Failed get updater " << m_updaterName.value() << endmsg;
     return StatusCode::FAILURE;
   }
-  auto* updater = dynamic_cast<Allen::NonEventData::IUpdater*>(svc.get());
-  if (!updater) {
+  m_updater = dynamic_cast<Allen::NonEventData::IUpdater*>(svc.get());
+  if (!m_updater) {
     error() << "Failed cast updater " << m_updaterName.value() << " to Allen::NonEventData::IUpdater " << endmsg;
     return StatusCode::FAILURE;
   }
@@ -92,10 +92,7 @@ StatusCode RunAllen::initialize()
     two_track_mva_model_reader->lambda());
 
   // Allen Consumers
-  register_consumers(updater, m_constants);
-
-  // Run all registered producers and consumers
-  updater->update(0);
+  register_consumers(m_updater, m_constants);
 
   // Read configuration
   std::string conf_file = resolveEnvVars(m_json);
@@ -182,8 +179,11 @@ StatusCode RunAllen::finalize()
  */
 std::tuple<bool, HostBuffers> RunAllen::operator()(
   const std::array<std::tuple<std::vector<char>, int>, LHCb::RawBank::types().size()>& allen_banks,
-  const LHCb::ODIN&) const
+  const LHCb::ODIN& odin) const
 {
+  // Ensure non-event-data is up-to-date
+  m_updater->update(odin.data);
+
   // Initialize input provider
   const size_t number_of_slices = 1;
   const size_t events_per_slice = 1;

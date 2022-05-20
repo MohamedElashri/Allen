@@ -1,31 +1,101 @@
-// FIXME: LoH: will not work with DD4HEP as is
 /*****************************************************************************\
 * (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the GNU General Public      *
+* Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
+
+#ifndef DUMPFTGEOMETRY_H
+#define DUMPFTGEOMETRY_H 1
+
 #include <fstream>
 #include <iostream>
 #include <tuple>
 #include <vector>
 
-#include "DumpFTGeometry.h"
+// LHCb
+#include "DumpGeometry.h"
+#include <FTDet/DeFTDetector.h>
 #include "FTDAQ/FTReadoutMap.h"
-#include "Detector/FT/FTChannelID.h"
+#include <LHCbAlgs/Transformer.h>
+
+#include <DetDesc/GenericConditionAccessorHolder.h>
+
+// Gaudi
+//#include "GaudiAlg/Transformer.h"
+// Attention : in this class, we are using Algs from LHCb and not from Gaudi
+
+// Allen
+#include <Dumpers/Identifiers.h>
+#include <Dumpers/Utils.h>
+//#include "DumpFTGeometry.h" , Old header, delted for this class
 
 namespace {
-  using std::ios;
-  using std::ofstream;
-  using std::string;
-  using std::tuple;
   using std::vector;
-} // namespace
+}
+
+/** @class DumpFTGeometry
+ *  Convert SciFi geometry for use on an accelerator
+ *
+ *  @author Nabil Garroum
+ *  @date   2022-04-23
+ *  This Class dumps geometry for SciFi using DD4HEP and Gaudi Algorithm
+ *  This Class uses a condition derivation and a detector description
+ *  This Class is basically an instation of a Gaudi algorithm with specific inputs and outputs:
+ *  The role of this class is to get data from TES to Allen for the SciFi
+ */
+class DumpFTGeometry final
+  : public LHCb::Algorithm::MultiTransformer<
+      std::tuple<std::vector<char>, std::string>(const DeFT&, const FTReadoutMap<DumpFTGeometry>&),
+      LHCb::DetDesc::usesBaseAndConditions<GaudiAlgorithm, FTReadoutMap<DumpFTGeometry>, DeFT>> {
+public:
+  DumpFTGeometry(const std::string& name, ISvcLocator* pSvcLocator);
+
+  std::tuple<std::vector<char>, std::string> operator()(
+    const DeFT& DeFT,
+    const FTReadoutMap<DumpFTGeometry>& readoutMap) const override;
+
+  StatusCode initialize() override;
+
+  Gaudi::Property<std::string> m_id {this, "ID", Allen::NonEventData::SciFiGeometry::id};
+
+private:
+  Gaudi::Property<std::string> m_mapLocation {this, "ReadoutMapLocation", "/dd/Conditions/ReadoutConf/FT/ReadoutMap"};
+};
 
 DECLARE_COMPONENT(DumpFTGeometry)
 
-DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
+DumpFTGeometry::DumpFTGeometry(const std::string& name, ISvcLocator* pSvcLocator) :
+  MultiTransformer {
+    name,
+    pSvcLocator,
+    {KeyValue {"FTLocation", DeFTDetectorLocation::Default},
+     KeyValue {"ReadoutMapStorage", "AlgorithmSpecific-" + name + "-ReadoutMap"}},
+    {KeyValue {"Converted", "Allen/NonEventData/DeFT"}, KeyValue {"OutputID", "Allen/NonEventData/DeFTID"}}}
+{}
+
+// MultiTrasnformer algorithm with 2 inputs and 2 outputs , cf Gaudi algorithmas taxonomy as reference.
+
+StatusCode DumpFTGeometry::initialize()
 {
+  return MultiTransformer::initialize().andThen(
+    [&] { FTReadoutMap<DumpFTGeometry>::addConditionDerivation(this, inputLocation<FTReadoutMap<DumpFTGeometry>>()); });
+}
+
+// operator() call
+
+std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
+  const DeFT& det,
+  const FTReadoutMap<DumpFTGeometry>& readoutMap) const
+{
+
 // Detector and mat geometry
 #ifdef USE_DD4HEP
-  //  const auto& det = detector();
+
   uint32_t number_of_stations = LHCb::Detector::FT::nStations;
   uint32_t number_of_layers_per_station = LHCb::Detector::FT::nLayers;
   uint32_t number_of_layers = number_of_stations * number_of_layers_per_station;
@@ -33,7 +103,6 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
   uint32_t number_of_quarters = number_of_quarters_per_layer * number_of_layers;
   vector<uint32_t> number_of_modules(number_of_quarters);
 #else
-  const auto& det = detector();
   const auto& stations = det.stations();
   const auto& layersFirstStation = stations[0]->layers();
   const auto& quartersFirstLayer = layersFirstStation[0]->quarters();
@@ -109,12 +178,10 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
     }
   }
 #endif
-  // Raw bank layout (from FTReadoutTool)
-  string conditionLocation = "/dd/Conditions/ReadoutConf/FT/ReadoutMap";
-  Condition* rInfo = getDet<Condition>(conditionLocation);
-  auto readoutMap = FTReadoutMap {this, *rInfo};
+
   DumpUtils::Writer output {};
 
+  // Data from Condition
   auto comp = readoutMap.compatibleVersions();
   if (comp.count(4)) {
     auto number_of_tell40s = readoutMap.nBanks();
@@ -155,6 +222,10 @@ DumpUtils::Dumps DumpFTGeometry::dumpGeometry() const
     Gaudi::Utils::toStream(comp, s);
     throw GaudiException {"Unsupported conditions compatible with " + s.str(), __FILE__, StatusCode::FAILURE};
   }
-  return {{tuple {output.buffer(), "scifi_geometry", Allen::NonEventData::SciFiGeometry::id}}};
-  return {{tuple {output.buffer(), "scifi_geometry", Allen::NonEventData::SciFiGeometry::id}}};
+
+  // Final data output
+
+  return std::tuple {output.buffer(), m_id};
 }
+
+#endif

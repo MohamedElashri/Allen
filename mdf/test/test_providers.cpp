@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <unordered_set>
 #include <map>
+#include <any>
 
 #include <Event/RawBank.h>
 #include <read_mdf.hpp>
@@ -143,8 +144,10 @@ int main(int argc, char* argv[])
       BankTypes::ODIN>>(s_config.n_slices, s_config.n_events, s_config.n_events, s_config.mdf_files, mdf_config);
 
     bool good = false, timed_out = false, done = false;
-    uint runno = 0;
-    std::tie(good, done, timed_out, slice_mdf, filled_mdf, runno) = mdf->get_slice();
+
+    std::any odin;
+    std::tie(good, done, timed_out, slice_mdf, filled_mdf, odin) = mdf->get_slice();
+
     assert(good);
     assert(!timed_out);
     assert(filled_mdf == s_config.n_events);
