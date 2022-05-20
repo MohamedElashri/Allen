@@ -6,28 +6,34 @@
 .geforcertx3090:
   variables:
     DEVICE_ID: "geforcertx3090"
+    LCG_QUALIFIER: "cuda11_4"
 
 
 .geforcertx2080ti:
   variables:
     DEVICE_ID: "geforcertx2080ti"
+    LCG_QUALIFIER: "cuda11_4"
 
 
 .a6000:
   variables:
     DEVICE_ID: "a6000"
+    LCG_QUALIFIER: "cuda11_4"
 
 
 .a5000:
   variables:
     DEVICE_ID: "a5000"
 
+    LCG_QUALIFIER: "cuda11_4"
 
 .mi100:
   variables:
     DEVICE_ID: "mi100"
+    LCG_QUALIFIER: "hip5"
 
 .epyc7502:
   variables:
     DEVICE_ID: "epyc7502"
+    LCG_QUALIFIER: "" #cpu
 
