@@ -30,13 +30,13 @@ namespace kstopipi_line {
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minHighMassTrackPt_t, "minHighMassTrackPt", "minHighMassTrackPt description", float) minHighMassTrackPt;
-    PROPERTY(minHighMassTrackP_t, "minHighMassTrackP", "minHighMassTrackP description", float) minHighMassTrackP;
-    PROPERTY(minMass_t, "minMass", "minMass description", float) minMass;
-    PROPERTY(maxDoca_t, "maxDoca", "maxDoca description", float) maxDoca;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
+    PROPERTY(minIPChi2_t, "minIPChi2", "Minimum IPCHI2", float) minIPChi2;
+    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "Maximum vertex Chi2", float) maxVertexChi2;
+    PROPERTY(maxIP_t, "maxIP", "Maximum IP", float) maxIP;
+    PROPERTY(minMass_t, "minMass", "Minimum invariant mass", float) minMass;
+    PROPERTY(maxMass_t, "maxMass", "Maximum invariat mass", float) maxMass;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
-    PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
+
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
@@ -65,12 +65,11 @@ namespace kstopipi_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minHighMassTrackPt_t> m_minHighMassTrackPt {this, 300.f / Gaudi::Units::MeV};
-    Property<minHighMassTrackP_t> m_minHighMassTrackP {this, 6000.f / Gaudi::Units::MeV};
-    Property<minMass_t> m_minMass {this, 2700.f / Gaudi::Units::MeV};
-    Property<maxDoca_t> m_maxDoca {this, 0.2f};
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.0f};
-    Property<minIPChi2_t> m_minIPChi2 {this, 0.f};
+    Property<minIPChi2_t> m_minIPChi2 {this, 100.f};
+    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 10.0f};
+    Property<maxIP_t> m_maxIP {this, 0.3f * Gaudi::Units::mm};
+    Property<minMass_t> m_minMass {this, 400.f * Gaudi::Units::MeV};
+    Property<maxMass_t> m_maxMass {this, 600.f * Gaudi::Units::MeV};
     Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
 
     // Switch to create monitoring tuple
