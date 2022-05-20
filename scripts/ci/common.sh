@@ -62,7 +62,6 @@ function check_build_exists() {
         echo ""
         echo " - The build matrix is missing a build with these options:"
         echo ""
-        echo "     TARGET: ${TARGET}"
         echo "     LCG_SYSTEM: ${LCG_SYSTEM}"
         echo "     LCG_QUALIFIER (can be empty): ${LCG_QUALIFIER}"
         echo "     LCG_OPTIMIZATION: ${LCG_OPTIMIZATION}"
@@ -91,13 +90,17 @@ IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
 IFS=${PREVIOUS_IFS}
 
 # Extract info about NUMA_NODE or GPU_UUID from CI_RUNNER_DESCRIPTION_SPLIT
-if [ "${TARGET}" = "CPU" ]; then
-export NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+if [ ${LCG_PLATFORM} = *"+cuda"* ]; then
+    export TARGET="CUDA"
+    export GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+elif [ ${LCG_PLATFORM} = *"+hip"* ]; then
+    export TARGET="HIP"
 else
-export GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+    export TARGET="CPU"
+    export NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
 fi
 
-BUILD_FOLDER="build_${LCG_PLATFORM}_${TARGET}_${BUILD_TYPE}_${BUILD_SEQUENCES}_${OPTIONS}"
+BUILD_FOLDER="build_${LCG_PLATFORM}_${BUILD_TYPE}_${BUILD_SEQUENCES}_${OPTIONS}"
 
 ls -la
 
