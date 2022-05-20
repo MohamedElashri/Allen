@@ -105,3 +105,6 @@ BUILD_FOLDER="build_${LCG_PLATFORM}_${BUILD_TYPE}_${BUILD_SEQUENCES}_${OPTIONS}"
 ls -la
 
 export PS4=" > "
+
+
+echo "TARGET_DEVICE = ${TARGET_DEVICE}"
