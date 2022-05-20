@@ -30,13 +30,11 @@ def make_bxtype(name="BunchCrossing_Type", bx_type=3):
 def ODIN_BeamXtype(name='ODIN_BeamXType', bxtype=3):
 
     number_of_events = initialize_number_of_events()
-    layout = mep_layout()
     odin = decode_odin()
 
     return make_algorithm(
         odin_beamcrossingtype_t,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
+        dev_odin_data_t=odin['dev_odin_data'],
         beam_crossing_type=bxtype)

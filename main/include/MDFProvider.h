@@ -316,8 +316,11 @@ public:
         m_transposed.pop_front();
         if (n_filled > 0) {
           auto bno = banks(BankTypes::ODIN, slice_index);
-          gsl::span<unsigned const> odin_data {
-            odin_data_t::data(std::get<0>(bno)[0].data(), std::get<2>(bno).data(), 0), 10};
+          auto ob = odin_bank<false>(bno.fragments[0].data(), bno.offsets.data(),
+                                     bno.sizes.data(), 0);
+          ODINData odin_data;
+          assert(odin_data.size() == ob.size);
+          std::copy_n(ob.data, ob.size, odin_data.begin());
           odin = odin_data;
         }
       }

@@ -9,7 +9,7 @@ sequence as part of a Gaudi/LHCb
 application
 #]========================================]
 
-if(TARGET_DEVICE STREQUAL "CPU")  
+if(TARGET_DEVICE STREQUAL "CPU")
 include(GenerateConfiguration)
 
 gaudi_add_module(AllenWrapper
@@ -32,6 +32,7 @@ gaudi_add_module(AllenWrapper
                  LINK
                    AllenLib
                    EventModel
+                   Gear
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
                    LHCb::DAQKernelLib
@@ -96,4 +97,3 @@ gaudi_add_executable(test_mass_definitions
         LHCb::PartPropLib
     TEST
 )
-

@@ -221,7 +221,6 @@ int main(int argc, char* argv[])
 
     bool good = false, timed_out = false, done = false;
     unsigned slice_id = 0, n_filled = 0;
-    uint runno = 0;
 
     for (size_t s = 0; s < s_config.n_slices; ++s) {
       std::any odin;
