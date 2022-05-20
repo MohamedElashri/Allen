@@ -31,6 +31,23 @@ gaudi_add_module(AllenWrapper
                    src/TestVeloClusters.cpp
                  LINK
                    AllenLib
+		   Backend
+    		   Stream
+   		   HostCommon
+   		   HostEventModel
+    		   NonEventData
+    		   TrackChecking
+    		   PVChecking
+    		   CheckClustering
+    		   SelChecking
+    		   Monitoring
+    		   HostCombiners
+    		   EventModel
+    		   Gear
+    		   mdf
+    		   LHCbEvent
+                   EventModel
+		   MuonCommon
                    EventModel
                    Gear
                    Gaudi::GaudiAlgLib
@@ -54,9 +71,24 @@ gaudi_add_module(AllenAlgorithms
                    ${WRAPPED_ALGORITHM_SOURCES}
                  LINK
                    AllenLib
+		   Backend
+    		   Stream
+   		   HostCommon
+   		   HostEventModel
+    		   NonEventData
+    		   TrackChecking
+    		   PVChecking
+    		   CheckClustering
+    		   SelChecking
+    		   Monitoring
+    		   HostCombiners
+    		   EventModel
+    		   Gear
+    		   mdf
+    		   LHCbEvent
                    EventModel
-				   MuonCommon
-				   WrapperInterface
+		   MuonCommon
+		   WrapperInterface
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
                    LHCb::DAQKernelLib
