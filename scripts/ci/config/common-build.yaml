@@ -10,6 +10,7 @@
           - hip5
         BUILD_TYPE:
           - RelWithDebInfo
+  allow_failure: true # FIXME remove
 
 # Builds that are considered "additional", can be run in addition to "minimal" tests in certain scenarios
 # This is run for each device type cpu/cuda/hip (see main.yaml)
