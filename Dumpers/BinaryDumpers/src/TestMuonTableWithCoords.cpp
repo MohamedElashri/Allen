@@ -192,7 +192,7 @@ TestMuonTable::TestMuonTable(const string& name, ISvcLocator* pSvcLocator) :
 
 StatusCode TestMuonTable::initialize()
 {
-  m_det = getDet<DeMuonDetector>("/dd/Structure/LHCb/DownstreamRegion/Muon");
+  m_det = getDet<DeMuonDetector>(DeMuonLocation::Default);
 
   fs::path p {m_table.value()};
   auto read_size = fs::file_size(p);
@@ -209,7 +209,7 @@ StatusCode TestMuonTable::initialize()
 
 void TestMuonTable::operator()(const LHCb::MuonCoords& muonCoords) const
 {
-
+ 
   double xt = 0., dxt = 0., yt = 0., dyt = 0., zt = 0.;
 
   size_t n = 0;

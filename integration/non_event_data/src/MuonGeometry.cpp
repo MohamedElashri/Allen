@@ -26,46 +26,59 @@ Consumers::MuonGeometry::MuonGeometry(
 void Consumers::MuonGeometry::consume(std::vector<char> const& data)
 {
   const char* raw_input = data.data();
-  for (size_t i = 0; i < n_preamble_blocks; i++) {
-    size_t size;
-    std::copy_n((size_t*) raw_input, 1, &size);
+  int version;
+  std::copy_n((uint*) raw_input, 1, &version);
+  raw_input += sizeof(uint);
+  
+  if (version == 2) {
+    for (size_t i = 0; i < n_preamble_blocks; i++) {
+      size_t size;
+      std::copy_n((size_t*) raw_input, 1, &size);
+      raw_input += sizeof(size_t);
+      raw_input += sizeof(float) * size;
+    }
+    size_t nTilesSize;
+    std::copy_n((size_t*) raw_input, 1, &nTilesSize);
+    assert(nTilesSize == Muon::MuonGeometry::m_tiles_size);
+    size_t sizes[Muon::MuonGeometry::m_tiles_size];
+    unsigned int* tiles[Muon::MuonGeometry::m_tiles_size];
+    size_t tilesOffset[Muon::MuonGeometry::m_tiles_size];
     raw_input += sizeof(size_t);
-    raw_input += sizeof(float) * size;
-  }
-  size_t nTilesSize;
-  std::copy_n((size_t*) raw_input, 1, &nTilesSize);
-  assert(nTilesSize == Muon::MuonGeometry::m_tiles_size);
-  size_t sizes[Muon::MuonGeometry::m_tiles_size];
-  unsigned int* tiles[Muon::MuonGeometry::m_tiles_size];
-  size_t tilesOffset[Muon::MuonGeometry::m_tiles_size];
-  raw_input += sizeof(size_t);
-  for (size_t i = 0; i < nTilesSize; i++) {
-    size_t tilesSize;
-    std::copy_n((size_t*) raw_input, 1, &tilesSize);
-    raw_input += sizeof(size_t);
-    tilesOffset[i] = ((unsigned*) raw_input) - ((unsigned*) data.data());
-    raw_input += sizeof(unsigned) * tilesSize;
-    sizes[i] = tilesSize;
+    for (size_t i = 0; i < nTilesSize; i++) {
+      size_t tilesSize;
+      std::copy_n((size_t*) raw_input, 1, &tilesSize);
+      raw_input += sizeof(size_t);
+      tilesOffset[i] = ((unsigned*) raw_input) - ((unsigned*) data.data());
+      raw_input += sizeof(unsigned) * tilesSize;
+      sizes[i] = tilesSize;
+    }
+    
+    auto& dev_geometry_raw = m_dev_geometry_raw.get();
+    auto& host_geometry_raw = m_host_geometry_raw.get();
+    if (!m_muon_geometry) {
+      Allen::malloc((void**) &dev_geometry_raw, data.size());
+      Allen::malloc((void**) &m_muon_geometry.get(), sizeof(Muon::MuonGeometry));
+      m_size = sizeof(Muon::MuonGeometry);
+    }
+    else if (host_geometry_raw.size() != data.size()) {
+      throw StrException {string {"sizes don't match: "} + to_string(host_geometry_raw.size()) + " " +
+							   to_string(data.size())};
+    }
+    host_geometry_raw = data;
+    Allen::memcpy(dev_geometry_raw, host_geometry_raw.data(), host_geometry_raw.size(), Allen::memcpyHostToDevice);
+    
+    for (size_t i = 0; i < nTilesSize; i++) {
+      tiles[i] = ((unsigned*) dev_geometry_raw) + tilesOffset[i];
+    }
+    
+    Muon::MuonGeometry host_muon_geometry {sizes, tiles};
+    Allen::memcpy(m_muon_geometry.get(), &host_muon_geometry, sizeof(Muon::MuonGeometry), Allen::memcpyHostToDevice);
+  } else if (version == 3) {
+
+    
+
+  } else {
+    error_cout << "unrecognized muon geometry version" << std::endl;
   }
 
-  auto& dev_geometry_raw = m_dev_geometry_raw.get();
-  auto& host_geometry_raw = m_host_geometry_raw.get();
-  if (!m_muon_geometry) {
-    Allen::malloc((void**) &dev_geometry_raw, data.size());
-    Allen::malloc((void**) &m_muon_geometry.get(), sizeof(Muon::MuonGeometry));
-    m_size = sizeof(Muon::MuonGeometry);
-  }
-  else if (host_geometry_raw.size() != data.size()) {
-    throw StrException {string {"sizes don't match: "} + to_string(host_geometry_raw.size()) + " " +
-                        to_string(data.size())};
-  }
-  host_geometry_raw = data;
-  Allen::memcpy(dev_geometry_raw, host_geometry_raw.data(), host_geometry_raw.size(), Allen::memcpyHostToDevice);
-
-  for (size_t i = 0; i < nTilesSize; i++) {
-    tiles[i] = ((unsigned*) dev_geometry_raw) + tilesOffset[i];
-  }
-
-  Muon::MuonGeometry host_muon_geometry {sizes, tiles};
-  Allen::memcpy(m_muon_geometry.get(), &host_muon_geometry, sizeof(Muon::MuonGeometry), Allen::memcpyHostToDevice);
 }

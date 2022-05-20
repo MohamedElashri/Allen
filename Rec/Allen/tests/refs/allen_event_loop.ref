@@ -10,6 +10,11 @@ Using 2 input slices.
  Enables printing monitoring information (--enable-monitoring-printing): 0
 DeFTDetector                           INFO Current FT geometry version =   63
 ApplicationMgr                         INFO Application Manager Started successfully
+DumpMuonGeometry                       INFO Number of tiles in tell1 table: 19968
+DumpUTLookupTables.PrUTMagnetTool      INFO Start generation of VeloUT Bdl LUTs
+DumpUTLookupTables.PrUTMagnetTool      INFO Generation of VeloUT Bdl LUTs finished
+DumpUTLookupTables.PrUTMagnetTool      INFO Start generation of VeloUT deflection LUTs
+DumpUTLookupTables.PrUTMagnetTool      INFO Generation of VeloUT deflection LUTs finished
 DumpFTGeometry                         INFO Conditions DB is compatible with FT bank version 4, 5, 6.
 Starting timer for throughput measurement
 ApplicationMgr                         INFO Application Manager Stopped successfully
