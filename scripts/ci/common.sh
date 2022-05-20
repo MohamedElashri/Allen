@@ -89,18 +89,18 @@ IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
 IFS=':' read -ra CI_RUNNER_DESCRIPTION_SPLIT <<< "${CI_RUNNER_DESCRIPTION}"
 IFS=${PREVIOUS_IFS}
 
+setupViews
+
 # Extract info about NUMA_NODE or GPU_UUID from CI_RUNNER_DESCRIPTION_SPLIT
-if [ ${LCG_PLATFORM} = *"+cuda"* ]; then
+if [ ${LCG_PLATFORM} = *"cuda"* ]; then
     export TARGET="CUDA"
     export GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-elif [ ${LCG_PLATFORM} = *"+hip"* ]; then
+elif [ ${LCG_PLATFORM} = *"hip"* ]; then
     export TARGET="HIP"
 else
     export TARGET="CPU"
     export NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
 fi
-
-setupViews
 
 BUILD_FOLDER="build_${LCG_PLATFORM}_${BUILD_TYPE}_${BUILD_SEQUENCES}_${OPTIONS}"
 
