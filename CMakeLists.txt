@@ -385,7 +385,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
-  
+
   set(CMAKE_CUDA_STANDARD 17)
   set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
   set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
@@ -651,9 +651,9 @@ allen_add_host_library(HostCommon STATIC
   main/src/Transpose.cpp)
 
 target_link_libraries(AllenCommon INTERFACE
-  mdf AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
+  LHCbEvent AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
 target_link_libraries(HostCommon PRIVATE
-  EventModel Gear Backend mdf NonEventData AllenCommon LHCbEvent Boost::iostreams)
+  mdf EventModel Gear Backend mdf NonEventData AllenCommon LHCbEvent Boost::iostreams)
 
 allen_add_host_library(AllenLib SHARED
   main/src/Allen.cpp
@@ -663,30 +663,31 @@ allen_add_host_library(AllenLib SHARED
   main/src/RegisterConsumers.cpp
   main/src/ZMQOutputSender.cpp)
 
-
-
 target_compile_definitions(AllenLib PUBLIC ${TARGET_DEFINITION})
 
-target_link_libraries(AllenLib PUBLIC
-  Stream
-  HostCommon
-  AllenCommon
-  HostEventModel
-  TrackChecking
-  PVChecking
-  CheckClustering
-  SelChecking
-  Monitoring
-  NonEventData
-  AllenZMQ
-  HostCombiners
-  Threads::Threads
-  Backend
-  EventModel
-  Gear
-  mdf
-  LHCbEvent
-  ${CMAKE_DL_LIBS})
+target_link_libraries(AllenLib
+  PRIVATE
+    Backend
+    Stream
+    HostCommon
+    HostEventModel
+    NonEventData
+    TrackChecking
+    PVChecking
+    CheckClustering
+    SelChecking
+    Monitoring
+    HostCombiners
+    EventModel
+    Gear
+    mdf
+    LHCbEvent
+  PUBLIC
+    AllenCommon
+    AllenRuntime
+    Threads::Threads
+    AllenZMQ
+    ${CMAKE_DL_LIBS})
 
 # To propagate filesystem includes/libs
 target_link_libraries(AllenLib PRIVATE AllenFS)
@@ -702,7 +703,7 @@ endif()
 
 allen_add_executable(Allen main/src/main.cpp)
 
-target_link_libraries(Allen PRIVATE AllenLib)
+target_link_libraries(Allen PRIVATE AllenLib NonEventData)
 
 if (NOT STANDALONE)
   target_link_libraries(Allen PRIVATE fmt::fmt)
