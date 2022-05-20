@@ -100,6 +100,8 @@ else
     export NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
 fi
 
+setupViews
+
 BUILD_FOLDER="build_${LCG_PLATFORM}_${BUILD_TYPE}_${BUILD_SEQUENCES}_${OPTIONS}"
 
 ls -la
