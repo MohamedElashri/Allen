@@ -52,7 +52,11 @@ std::tuple<bool, Allen::sd_from_raw_bank, Allen::bank_sorter> file_type(gsl::spa
 }
 
 std::tuple<bool, std::array<unsigned, NBankTypes>, std::vector<LHCb::ODIN>, size_t, size_t, size_t, size_t>
-mdf_read_sizes(std::string filename, std::unordered_set<BankTypes> const& bank_types, std::unordered_set<LHCb::RawBank::BankType> const& skip_banks, size_t min_events)
+mdf_read_sizes(
+  std::string filename,
+  std::unordered_set<BankTypes> const& bank_types,
+  std::unordered_set<LHCb::RawBank::BankType> const& skip_banks,
+  size_t min_events)
 {
   // Storage for the sizes
   std::array<std::vector<size_t>, NBankTypes> sizes;
@@ -230,7 +234,7 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   std::unordered_set<BankTypes> allen_types {
     BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
 
-  std::unordered_set<LHCb::RawBank::BankType> skip_banks{LHCb::RawBank::VPRetinaCluster};
+  std::unordered_set<LHCb::RawBank::BankType> skip_banks {LHCb::RawBank::VPRetinaCluster};
 
   auto [success, banks_count, odins, split_event, alloc_size, max_events, total_size] =
     mdf_read_sizes(filename, allen_types, skip_banks, s_config.n_events);

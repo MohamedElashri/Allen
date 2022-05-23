@@ -316,9 +316,8 @@ public:
         m_transposed.pop_front();
         if (n_filled > 0) {
           auto bno = banks(BankTypes::ODIN, slice_index);
-          auto ob = odin_bank<false>(bno.fragments[0].data(), bno.offsets.data(),
-                                     bno.sizes.data(), 0);
-          odin = gsl::span<unsigned const>{ob.data, ob.size};
+          auto ob = odin_bank<false>(bno.fragments[0].data(), bno.offsets.data(), bno.sizes.data(), 0);
+          odin = gsl::span<unsigned const> {ob.data, ob.size};
         }
       }
     }

@@ -196,7 +196,6 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
 
   logger::setVerbosity(verbosity);
 
-
   // Set a sane default for the number of events per input slice
   if (number_of_events_requested != 0 && events_per_slice > number_of_events_requested) {
     events_per_slice = number_of_events_requested;
