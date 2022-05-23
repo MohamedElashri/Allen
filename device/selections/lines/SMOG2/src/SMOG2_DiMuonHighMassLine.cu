@@ -22,7 +22,7 @@ __device__ bool SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::select
                   trk2->chi2() / trk2->ndof() < parameters.maxTrackChi2Ndf && vtx.mdimu() >= parameters.minMass &&
                   vtx.minpt() >= parameters.minTrackPt && vtx.minp() >= parameters.minTrackP &&
                   vtx.vertex().chi2() < parameters.maxVertexChi2 && vtx.vertex().z() >= parameters.minZ &&
-                  fabsf(vtx.charge() - parameters.CombCharge) < 0.01;
+                  vtx.charge() == parameters.CombCharge;
   if (vtx.has_pv()) decision = decision && vtx.pv().position.z < parameters.maxZ;
 
   return decision;
