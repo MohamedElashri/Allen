@@ -374,7 +374,9 @@ std::tuple<bool, bool, bool> transpose_event(
     }
     else {
       ++bank_counter;
-      assert(banks_version[to_integral(allen_type)] == b->version());
+      if (allen_type != BankTypes::VP) {
+        assert(banks_version[to_integral(allen_type)] == b->version());
+      }
     }
 
     // Write sourceID
