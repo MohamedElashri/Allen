@@ -20,8 +20,9 @@ __device__ bool SMOG2_ditrack_line::SMOG2_ditrack_line_t::select(
     parameters.mMother < 0.f ?
       true :
       fabsf(min(vtx.m12(parameters.m1, parameters.m2), vtx.m12(parameters.m2, parameters.m1)) - parameters.mMother) <
-          parameters.massWindow && vtx.charge() == parameters.combCharge;
-  
+          parameters.massWindow &&
+        vtx.charge() == parameters.combCharge;
+
   bool decision = vtx.vertex().z() < parameters.maxZ && vtx.vertex().z() >= parameters.minZ &&
                   vtx.maxp() > parameters.minTrackP && vtx.maxpt() > parameters.minTrackPt &&
                   trk1->chi2() / trk1->ndof() < parameters.maxTrackChi2Ndf &&
