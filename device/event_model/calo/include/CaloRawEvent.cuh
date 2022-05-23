@@ -24,7 +24,7 @@ namespace Calo {
 
     // For Allen format
     __device__ __host__ RawBank(const char* raw_bank, const uint16_t s, const uint8_t t) :
-      RawBank {*(uint32_t*) raw_bank, raw_bank + sizeof(uint32_t), s, t}
+      RawBank {*reinterpret_cast<uint32_t const*>(raw_bank), raw_bank + sizeof(uint32_t), s, t}
     {}
 
     // For MEP format
