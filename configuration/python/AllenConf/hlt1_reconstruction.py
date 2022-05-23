@@ -64,7 +64,7 @@ def make_composite_node_with_gec(alg_name, alg, gec_name="gec"):
         alg_name, [gec(), alg], NodeLogic.LAZY_AND, force_order=True)
 
 
-def validator_node(reconstructed_objects, line_algorithms):
+def validator_node(reconstructed_objects, copied_parameters, line_algorithms):
     return CompositeNode(
         "Validators", [
             make_composite_node_with_gec(
@@ -75,15 +75,15 @@ def validator_node(reconstructed_objects, line_algorithms):
                 veloUT_validation(reconstructed_objects["ut_tracks"])),
             make_composite_node_with_gec(
                 "long_validation",
-                long_validation(reconstructed_objects["forward_tracks"])),
+                long_validation(reconstructed_objects["forward_tracks"], copied_parameters)),
             make_composite_node_with_gec(
                 "muon_validation",
-                muon_validation(reconstructed_objects["muonID"])),
+                muon_validation(reconstructed_objects["muonID"], copied_parameters)),
             make_composite_node_with_gec(
                 "pv_validation", pv_validation(reconstructed_objects["pvs"])),
-            make_composite_node_with_gec(
-                "kalman_validation",
-                kalman_validation(reconstructed_objects["kalman_velo_only"])),
+            #make_composite_node_with_gec(
+            #    "kalman_validation",
+            #    kalman_validation(reconstructed_objects["kalman_velo_only"])),
             selreport_validation(
                 make_sel_report_writer(
                     lines=line_algorithms,

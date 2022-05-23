@@ -47,9 +47,8 @@ std::vector<Checker::Tracks> prepareUTTracks(
  */
 std::vector<Checker::Tracks> prepareLongTracks(
   const unsigned number_of_events,
-  gsl::span<const Allen::Views::Physics::MultiEventLongTracks> multi_event_long_tracks_view,
-  gsl::span<const Allen::Views::Velo::Consolidated::States> velo_states,
-  const char* scifi_geometry,
+  gsl::span<const SciFi::LongCheckerTrack> long_checker_tracks,
+  gsl::span<const unsigned> event_tracks_offsets,
   gsl::span<const mask_t> event_list,
   gsl::span<const Allen::bool_as_char_t<bool>> is_muon = {});
 

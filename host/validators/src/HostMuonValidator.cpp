@@ -15,15 +15,14 @@ void host_muon_validator::host_muon_validator_t::operator()(
   const Allen::Context&) const
 {
   const auto event_list = make_vector<dev_event_list_t>(arguments);
-  const auto multi_event_long_tracks_view = make_vector<dev_multi_event_long_tracks_view_t>(arguments);
-  const auto velo_states = make_vector<dev_velo_states_view_t>(arguments);
+  const auto long_tracks_for_checker = make_vector<dev_long_checker_tracks_t>(arguments); 
+  const auto event_tracks_offsets = make_vector<dev_offsets_long_tracks_t>(arguments); 
   const auto is_muon = make_vector<dev_is_muon_t>(arguments);
 
   const auto tracks = prepareLongTracks(
     first<host_number_of_events_t>(arguments),
-    multi_event_long_tracks_view,
-    velo_states,
-    constants.host_scifi_geometry.data(),
+    long_tracks_for_checker, 
+    event_tracks_offsets,
     event_list,
     is_muon);
 

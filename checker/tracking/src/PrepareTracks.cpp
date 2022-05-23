@@ -120,62 +120,43 @@ std::vector<Checker::Tracks> prepareUTTracks(
 
 std::vector<Checker::Tracks> prepareLongTracks(
   const unsigned number_of_events,
-  gsl::span<const Allen::Views::Physics::MultiEventLongTracks> multi_event_long_tracks_view,
-  gsl::span<const Allen::Views::Velo::Consolidated::States> velo_states,
-  const char* scifi_geometry,
+  gsl::span<const SciFi::LongCheckerTrack> long_checker_tracks,
+  gsl::span<const unsigned> event_tracks_offsets,
   gsl::span<const mask_t> event_list,
   gsl::span<const Allen::bool_as_char_t<bool>> is_muon)
 {
-  const SciFi::SciFiGeometry scifi_geom(scifi_geometry);
   std::vector<Checker::Tracks> checker_tracks(event_list.size());
   float n_hits_per_track_events = 0;
-
   for (unsigned i = 0; i < event_list.size(); i++) {
     const auto event_number = event_list[i];
 
     // Tracks of this event
     auto& tracks = checker_tracks[i];
+    const auto number_of_tracks_event = event_tracks_offsets[event_number+1] - event_tracks_offsets[event_number];
+    const auto event_offset = event_tracks_offsets[event_number];
 
-    const auto event_long_tracks = multi_event_long_tracks_view.data()->container(event_number);
-    const auto number_of_tracks_event = event_long_tracks.size();
-    const unsigned event_offset = event_long_tracks.offset();
-
-    const auto endvelo_states = velo_states[event_number];
-
+    const SciFi::LongCheckerTrack* event_long_tracks = long_checker_tracks.data() + event_offset;
     tracks.resize(number_of_tracks_event);
 
     float n_hits_per_track = 0;
 
     for (unsigned i_track = 0; i_track < number_of_tracks_event; i_track++) {
 
-      const auto long_track = event_long_tracks.track(i_track);
-
-      const auto velo_track = long_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
-      const auto velo_track_index = velo_track.track_index();
-      const auto velo_state = endvelo_states.state(velo_track_index);
+      const auto long_track = event_long_tracks[i_track];
 
       auto& t = tracks[i_track];
 
-      // momentum
-      const auto qop = long_track.qop();
-      t.p = 1.f / std::abs(qop);
-      t.qop = qop;
-      // direction at first state -> velo state of track
-      const double tx = velo_state.tx();
-      const double ty = velo_state.ty();
-      const double slope2 = tx * tx + ty * ty;
-      t.pt = std::sqrt(slope2 / (1.0 + slope2)) / std::abs(qop);
-      // pseudorapidity
-      const double rho = std::sqrt(slope2);
-      t.eta = eta_from_rho(rho);
+      t.qop = long_track.qop;
+      t.p = long_track.p;
+      t.pt = long_track.pt;
+      t.eta = eta_from_rho(long_track.rho);
 
       // add all hits
-      const auto total_number_of_hits = long_track.number_of_hits();
+      const auto total_number_of_hits = long_track.total_number_of_hits;
       for (unsigned int ihit = 0; ihit < total_number_of_hits; ihit++) {
-        const auto id = long_track.get_id(ihit);
+        const auto id = long_track.allids[ihit];
         t.addId(id);
       }
-
       if (is_muon.size()) {
         t.is_muon = is_muon[event_offset + i_track];
       }

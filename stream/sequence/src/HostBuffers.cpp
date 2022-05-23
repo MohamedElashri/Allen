@@ -113,6 +113,11 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_li
   host_ut_tracks = reinterpret_cast<decltype(host_ut_tracks)>(
     malloc(max_number_of_events * UT::Constants::max_num_tracks * sizeof(UT::TrackHits)));
 
+  host_long_checker_tracks = reinterpret_cast<decltype(host_long_checker_tracks)>(
+    malloc(max_number_of_events * UT::Constants::max_num_tracks * LookingForward::maximum_number_of_candidates_per_ut_track *
+    sizeof(SciFi::LongCheckerTrack)));
+
+
   host_reconstructed_pvs = reinterpret_cast<decltype(host_reconstructed_pvs)>(
     malloc(max_number_of_events * PV::max_number_vertices * sizeof(PV::Vertex)));
   host_number_of_vertex = reinterpret_cast<decltype(host_number_of_vertex)>(malloc(max_number_of_events * sizeof(int)));

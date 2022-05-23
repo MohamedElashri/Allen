@@ -12,10 +12,10 @@ namespace host_muon_validator {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Velo::Consolidated::States) dev_velo_states_view;
-    DEVICE_INPUT(dev_multi_event_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
-    DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
     HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;
+    DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
+    DEVICE_INPUT(dev_long_checker_tracks_t, SciFi::LongCheckerTrack) dev_long_checker_tracks;
+    DEVICE_INPUT(dev_offsets_long_tracks_t, unsigned) dev_offsets_long_tracks;
     PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
   };
 
