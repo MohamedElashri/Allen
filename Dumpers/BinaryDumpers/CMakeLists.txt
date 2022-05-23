@@ -43,6 +43,7 @@ gaudi_add_module(BinaryDumpersModule
                    TBB::tbb
                    Gaudi::GaudiAlgLib
                    LHCb::AssociatorsBase
+                   LHCb::LHCbAlgsLib
                    LHCb::LinkerEvent
                    LHCb::MCEvent
                    LHCb::DAQEventLib
