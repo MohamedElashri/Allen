@@ -2,7 +2,7 @@
 ###############################################################################
 # (c) Copyright 2018-2021 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-import os
+import os, sys
 from Configurables import ApplicationMgr
 from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
 from Allen.config import setup_allen_non_event_data_service
@@ -142,7 +142,7 @@ extSvc = ["ToolSvc", "AuditorSvc", "ZeroMQSvc"]
 
 # RootCnvSvc becauce it sets up a bunch of ROOT IO stuff
 rootSvc = RootCnvSvc("RootCnvSvc", EnableIncident=1)
-ApplicationMgr().ExtSvc += [rootSvc]
+ApplicationMgr().ExtSvc += ["Gaudi::IODataManager/IODataManager", rootSvc]
 
 if args.mep is not None:
     extSvc += ["AllenConfiguration", "MEPProvider"]
@@ -178,8 +178,8 @@ if args.mep is not None:
     # mep_provider.BufferNUMA = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
     mep_provider.EvtMax = -1 if args.n_events == 0 else args.n_events
 
-config.add(
-    ApplicationMgr(EvtSel="NONE", ExtSvc=ApplicationMgr().ExtSvc + extSvc))
+ApplicationMgr().EvtSel = "NONE"
+ApplicationMgr().ExtSvc += extSvc
 
 # Copeid from PyConf.application.configure_input
 config.add(
@@ -199,7 +199,9 @@ config.update(configure(options, cf_node))
 
 # Start Gaudi and get the AllenUpdater service
 gaudi = AppMgr()
-gaudi.initialize()
+sc = gaudi.initialize()
+if not sc.isSuccess():
+    sys.exit("Failed to initialize AppMgr")
 svc = gaudi.service("AllenUpdater", interface=gbl.IService)
 zmqSvc = gaudi.service("ZeroMQSvc", interface=gbl.IZeroMQSvc)
 
