@@ -21,9 +21,6 @@
 #include <GaudiKernel/ParsersFactory.h>
 #include <GaudiKernel/StdArrayAsProperty.h>
 
-// Needed for the Gaudi wrappers when doing a device build in the stack
-using std::min;
-
 namespace Allen {
   // Shortcut for type used in input / outputs of Allen - Gaudi wrappers
   template<typename T>
