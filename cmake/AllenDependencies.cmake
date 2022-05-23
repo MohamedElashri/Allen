@@ -133,6 +133,7 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
 
   if(NOT STANDALONE)
     find_package(Rangev3 REQUIRED)
+    find_package(yaml-cpp REQUIRED)
   endif()
 endif()
 
