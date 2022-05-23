@@ -143,6 +143,7 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
   unsigned number_of_slices = 0;
   unsigned events_per_slice = 0;
   std::optional<size_t> n_events;
+  unsigned verbosity = 3;
 
   // Input file options
   std::string mdf_input = "../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf";
@@ -175,6 +176,9 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
         return {};
       }
     }
+    else if (flag_in(flag, {"v", "verbosity"})) {
+      verbosity = atoi(arg.c_str());
+    }
     else if (flag_in(flag, {"r", "repetitions"})) {
       n_repetitions = atoi(arg.c_str());
       if (n_repetitions == 0) {
@@ -189,6 +193,9 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
       disable_run_changes = atoi(arg.c_str());
     }
   }
+
+  logger::setVerbosity(verbosity);
+
 
   // Set a sane default for the number of events per input slice
   if (number_of_events_requested != 0 && events_per_slice > number_of_events_requested) {
