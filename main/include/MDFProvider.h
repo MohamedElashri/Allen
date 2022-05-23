@@ -318,10 +318,7 @@ public:
           auto bno = banks(BankTypes::ODIN, slice_index);
           auto ob = odin_bank<false>(bno.fragments[0].data(), bno.offsets.data(),
                                      bno.sizes.data(), 0);
-          ODINData odin_data;
-          assert(odin_data.size() == ob.size);
-          std::copy_n(ob.data, ob.size, odin_data.begin());
-          odin = odin_data;
+          odin = gsl::span<unsigned const>{ob.data, ob.size};
         }
       }
     }

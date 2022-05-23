@@ -22,6 +22,9 @@ remove_throughput = LineSkipper(regexps=[
     r"Cannot read more data.*"
 ])
 
+skip_config = BlockSkipper("User ApplicationOptions",
+                           "Application Manager Configured successfully")
+
 skip_options = BlockSkipper("Requested options:", "Ignore signals to update")
 
 skip_rates = BlockSkipper("rate_validator validation:", "Inclusive:")
@@ -29,5 +32,5 @@ skip_rates = BlockSkipper("rate_validator validation:", "Inclusive:")
 skip_sequence = BlockSkipper("Sequence:",
                              "Starting timer for throughput measurement")
 
-preprocessor = (LHCbPreprocessor + remove_throughput + skip_options +
+preprocessor = (LHCbPreprocessor + skip_config + remove_throughput + skip_options +
                 skip_rates + skip_sequence)
