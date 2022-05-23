@@ -97,7 +97,8 @@ namespace Allen {
 #include <cmath>
 #endif
 
-// // Replacement for gsl::span in device code
+// Replacement for gsl::span in device code when building with HIP,
+// gsl::span works for CUDA and CPU
 namespace Allen {
   namespace device {
 #if defined(TARGET_DEVICE_HIP)
