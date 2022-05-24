@@ -53,13 +53,8 @@ parser.add_argument("-v", dest="verbosity", default=3)
 parser.add_argument("-p", dest="print_memory", default=0)
 parser.add_argument("--sequence", dest="sequence", default=sequence_default)
 parser.add_argument("-s", dest="slices", default=2)
-parser.add_argument(
-    "--mdf",
-    dest="mdf",
-    default=os.path.join(
-        allen_dir, "input", "minbias", "mdf",
-        "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf"))
-parser.add_argument("--mep", dest="mep", default=None)
+parser.add_argument("--mdf", dest="mdf", default="")
+parser.add_argument("--mep", dest="mep", default="")
 parser.add_argument(
     "--mep-mask-source-id-top-5",
     action="store_true",
@@ -144,7 +139,7 @@ extSvc = ["ToolSvc", "AuditorSvc", "ZeroMQSvc"]
 rootSvc = RootCnvSvc("RootCnvSvc", EnableIncident=1)
 ApplicationMgr().ExtSvc += ["Gaudi::IODataManager/IODataManager", rootSvc]
 
-if args.mep is not None:
+if args.mep:
     extSvc += ["AllenConfiguration", "MEPProvider"]
     from Configurables import MEPProvider, AllenConfiguration
 
