@@ -10,7 +10,7 @@ from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_low_pt
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line
 from AllenConf.hlt1_smog2_lines import make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line, make_SMOG2_ditrack_line, make_SMOG2_singletrack_line
 
-from AllenConf.validators import rate_validation
+from AllenConf.validators import rate_validation, long_parameters_for_validation, kalman_parameters_for_validation
 from AllenCore.generator import make_algorithm
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
@@ -321,8 +321,16 @@ def setup_hlt1_node(withMCChecking=False,
     if not withMCChecking:
         return hlt1_node
     else:
+        copied_parameters = {
+            "long":
+            long_parameters_for_validation(
+                reconstructed_objects["forward_tracks"]),
+            "kalman":
+            kalman_parameters_for_validation(
+                reconstructed_objects["kalman_velo_only"])
+        }
         validation_node = validator_node(reconstructed_objects,
-                                         line_algorithms)
+                                         copied_parameters, line_algorithms)
 
         node = CompositeNode(
             "AllenWithValidators", [hlt1_node, validation_node],
