@@ -24,7 +24,8 @@ namespace UT {
 namespace SciFi {
   struct TrackHits;
   struct LongCheckerTrack;
-}
+  struct KalmanCheckerTrack;
+} // namespace SciFi
 struct MiniState;
 namespace ParKalmanFilter {
   struct FittedTrack;
@@ -73,6 +74,7 @@ struct HostBuffers {
   unsigned* host_lf_total_size_first_window_layer;
   unsigned* host_lf_total_number_of_candidates;
   SciFi::LongCheckerTrack* host_long_checker_tracks;
+  SciFi::KalmanCheckerTrack* host_kalman_checker_tracks;
 
   // Kalman
   gsl::span<ParKalmanFilter::FittedTrack> host_kf_tracks = {};

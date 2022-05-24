@@ -132,7 +132,7 @@ std::vector<Checker::Tracks> prepareLongTracks(
 
     // Tracks of this event
     auto& tracks = checker_tracks[i];
-    const auto number_of_tracks_event = event_tracks_offsets[event_number+1] - event_tracks_offsets[event_number];
+    const auto number_of_tracks_event = event_tracks_offsets[event_number + 1] - event_tracks_offsets[event_number];
     const auto event_offset = event_tracks_offsets[event_number];
 
     const SciFi::LongCheckerTrack* event_long_tracks = long_checker_tracks.data() + event_offset;

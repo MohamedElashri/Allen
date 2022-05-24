@@ -13,11 +13,8 @@ namespace host_kalman_validator {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Velo::Consolidated::States) dev_velo_kalman_states;
-    DEVICE_INPUT(dev_multi_event_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
-    DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
-    DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
-    DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
+    DEVICE_INPUT(dev_kalman_checker_tracks_t, SciFi::KalmanCheckerTrack) dev_kalman_checker_tracks;
+    DEVICE_INPUT(dev_offsets_long_tracks_t, unsigned) dev_offsets_long_tracks;
     HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;
     PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
   };

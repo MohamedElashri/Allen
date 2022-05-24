@@ -15,7 +15,8 @@ namespace copy_long_track_parameters {
     HOST_INPUT(host_number_of_reconstructed_long_tracks_t, unsigned) host_number_of_reconstructed_long_tracks;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    DEVICE_INPUT(dev_multi_event_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_multi_event_long_tracks_view;
+    DEVICE_INPUT(dev_multi_event_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks)
+    dev_multi_event_long_tracks_view;
     DEVICE_OUTPUT(dev_long_checker_tracks_t, SciFi::LongCheckerTrack) dev_long_checker_tracks;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

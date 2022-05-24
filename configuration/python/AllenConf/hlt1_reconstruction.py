@@ -75,15 +75,18 @@ def validator_node(reconstructed_objects, copied_parameters, line_algorithms):
                 veloUT_validation(reconstructed_objects["ut_tracks"])),
             make_composite_node_with_gec(
                 "long_validation",
-                long_validation(reconstructed_objects["forward_tracks"], copied_parameters)),
+                long_validation(reconstructed_objects["forward_tracks"],
+                                copied_parameters["long"])),
             make_composite_node_with_gec(
                 "muon_validation",
-                muon_validation(reconstructed_objects["muonID"], copied_parameters)),
+                muon_validation(reconstructed_objects["muonID"],
+                                copied_parameters["long"])),
             make_composite_node_with_gec(
                 "pv_validation", pv_validation(reconstructed_objects["pvs"])),
-            #make_composite_node_with_gec(
-            #    "kalman_validation",
-            #    kalman_validation(reconstructed_objects["kalman_velo_only"])),
+            make_composite_node_with_gec(
+                "kalman_validation",
+                kalman_validation(reconstructed_objects["kalman_velo_only"],
+                                  copied_parameters["kalman"])),
             selreport_validation(
                 make_sel_report_writer(
                     lines=line_algorithms,
