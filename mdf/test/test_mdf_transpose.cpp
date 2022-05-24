@@ -305,13 +305,14 @@ TEST_CASE("MDF slice full", "[MDF slice]")
   // Check that all events that were read have been transposed by
   // comparing event and run numbers from ODIN
   auto oi = to_integral(BankTypes::ODIN);
+  size_t i = 0;
   for (auto const& slice : slices[oi]) {
     for (size_t j = 0; j < slice.n_offsets - 1; ++j) {
-      auto const& read_odin = odins[j];
+      auto const& read_odin = odins[i++];
       auto const* odin_data =
         reinterpret_cast<unsigned const*>(slice.fragments[0].data() + slice.offsets[j] + 4 * sizeof(uint32_t));
       auto const size = Allen::bank_size(slice.sizes.data(), j, 0);
-      auto transposed_odin = MDF::decode_odin({odin_data, size}, banks_version[oi]);
+      auto transposed_odin = MDF::decode_odin({odin_data, size / sizeof(unsigned)}, banks_version[oi]);
       REQUIRE(read_odin.runNumber() == transposed_odin.runNumber());
       REQUIRE(read_odin.eventNumber() == transposed_odin.eventNumber());
     }
