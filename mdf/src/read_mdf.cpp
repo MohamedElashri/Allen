@@ -211,15 +211,15 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
 }
 
 // Decode the ODIN bank
-LHCb::ODIN MDF::decode_odin(unsigned int version, unsigned int const* odinData)
+LHCb::ODIN MDF::decode_odin(gsl::span<unsigned const> data, unsigned const version)
 {
   // we just assume the buffer has the right size and cross fingers.
   // note that we only support the default bank version in Allen
   if (version == 6) {
-    return LHCb::ODIN::from_version<6>({odinData, 10});
+    return LHCb::ODIN::from_version<6>(data);
   }
   else {
-    return LHCb::ODIN({odinData, 10});
+    return LHCb::ODIN(data);
   }
 }
 

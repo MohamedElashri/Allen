@@ -145,7 +145,7 @@ mdf_read_sizes(
       }
 
       if (allen_type == BankTypes::ODIN) {
-        odins.emplace_back(MDF::decode_odin(b->version(), b->data()));
+        odins.emplace_back(MDF::decode_odin(b->range<unsigned>(), b->version()));
       }
 
       // Move to next raw bank
@@ -304,17 +304,16 @@ TEST_CASE("MDF slice full", "[MDF slice]")
 
   // Check that all events that were read have been transposed by
   // comparing event and run numbers from ODIN
-  size_t i = 0;
   auto oi = to_integral(BankTypes::ODIN);
   for (auto const& slice : slices[oi]) {
     for (size_t j = 0; j < slice.n_offsets - 1; ++j) {
-      auto const& read_odin = odins[i];
+      auto const& read_odin = odins[j];
       auto const* odin_data =
         reinterpret_cast<unsigned const*>(slice.fragments[0].data() + slice.offsets[j] + 4 * sizeof(uint32_t));
-      auto transposed_odin = MDF::decode_odin(banks_version[oi], odin_data);
+      auto const size = Allen::bank_size(slice.sizes.data(), j, 0);
+      auto transposed_odin = MDF::decode_odin({odin_data, size}, banks_version[oi]);
       REQUIRE(read_odin.runNumber() == transposed_odin.runNumber());
       REQUIRE(read_odin.eventNumber() == transposed_odin.eventNumber());
-      ++i;
     }
   }
 }

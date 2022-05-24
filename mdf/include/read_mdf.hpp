@@ -56,6 +56,6 @@ namespace MDF {
     bool checkChecksum = true,
     bool dbg = false);
 
-  LHCb::ODIN decode_odin(unsigned int version, unsigned int const* odinData);
+  LHCb::ODIN decode_odin(gsl::span<unsigned const> data, unsigned const version);
 
 } // namespace MDF

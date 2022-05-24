@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
       if (b->type() < LHCb::RawBank::LastType) {
         ++bank_counts[b->type()];
         if (b->type() == LHCb::RawBank::ODIN && !dump.empty()) {
-          auto odin = MDF::decode_odin(b->version(), b->begin<unsigned>());
+          auto odin = MDF::decode_odin(b->range<unsigned>(), b->version());
           cout << odin.runNumber() << " " << odin.eventNumber() << "\n";
         }
 

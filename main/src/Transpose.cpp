@@ -292,7 +292,7 @@ std::tuple<bool, bool, bool> transpose_event(
 
       if (!odin_error) {
         // decode ODIN bank to obtain run and event numbers
-        auto odin = MDF::decode_odin(b->version(), b->data());
+        auto odin = MDF::decode_odin(b->range<unsigned>(), b->version());
         // if splitting by run, check for a run change since the last event
         if (split_by_run) {
           if (!event_ids.empty() && odin.runNumber() != std::get<0>(event_ids.front())) {
