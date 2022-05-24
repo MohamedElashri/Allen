@@ -1,7 +1,7 @@
 Build Allen
 ================
 
-There are two options for building Allen: Either as standalone project or as part of the LHCb software stack. The first option is recommended for algorithm developments within Allen, whereas the second is more suitable for integration developments and HLT1 line development and studies. 
+There are two options for building Allen: Either as standalone project or as part of the LHCb software stack. The first option is recommended for algorithm developments within Allen, whereas the second is more suitable for integration developments and HLT1 line development and studies.
 
 
 
@@ -44,7 +44,7 @@ We show a proposed development setup with the CVMFS filesystem and CentOS 7 that
 
     source /cvmfs/lhcb.cern.ch/lib/LbEnv
     export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake
-    
+
 * CUDA target: CUDA is available in cvmfs as well::
 
     source /cvmfs/lhcb.cern.ch/lib/LbEnv
@@ -152,14 +152,15 @@ Note: Files inside the build folder would belong to the root user.
 As a Gaudi/LHCb project
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. __stack_setup:
+.. _stack_setup:
+
 Using the stack setup
---------------------
+---------------------
 Follow the instructions in the |stack_setup| to set up the software stack.
 
 .. |stack_setup| raw:: html
 
-   <a href="https://gitlab.cern.ch/rmatev/lb-stack-setup" target="_blank">stack setup</a> 
+   <a href="https://gitlab.cern.ch/rmatev/lb-stack-setup" target="_blank">stack setup</a>
 
 To compile an Allen sequence other than the default sequence (hlt1_pp_default), compile for example with::
 
@@ -185,7 +186,7 @@ flags that you would pass to a standalone build to the `CMAKEFLAGS`
 environment variable before calling `make configure`.
 
 For example, to specify another CUDA stack to be used set::
-  
+
   export CMAKEFLAGS="-DCMAKE_CUDA_COMPILER=/path/to/alternative/nvcc"
 
 Runtime environment:
@@ -226,21 +227,3 @@ Compile both Allen and Moore::
   lb-project-init
   make configure
   make install
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

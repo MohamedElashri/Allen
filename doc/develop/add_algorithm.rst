@@ -57,8 +57,6 @@ Let's create a new folder inside the `device` directory named `example`. We need
 
 Inside the `example` folder we will create the following structure:
 
-.. code-block:: c++
-
   ├── example
   │   ├── CMakeLists.txt
   │   ├── include
@@ -151,7 +149,7 @@ In the `saxpy` namespace the parameters and properties are specified. Parameters
 Some parameter examples:
 
 .. code-block:: c++
-                
+
    DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
 
 Defines an input on the *device memory*. It has a name `dev_offsets_all_velo_tracks_t`, which can be later used to identify this argument. It is of type _unsigned_, which means the memory location named `dev_offsets_all_velo_tracks_t` holds `unsigned`s. The *io* and the *type* define the underlying type of the instance to be `<io> <type> *` -- in this case, since it is an input type, `const unsigned*`. Its identifier is `dev_atomics_velo`.
@@ -350,7 +348,7 @@ Finally, the kernel is defined:
       Velo::Consolidated::ConstTracks velo_tracks {
         parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, event_number, number_of_events};
       const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
-    
+
       parameters.dev_saxpy_output[event_number] =
         parameters.saxpy_scale_factor * number_of_tracks_event + number_of_tracks_event;
     }

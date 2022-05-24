@@ -50,6 +50,7 @@ extensions = [
     #"sphinx.ext.graphviz",
     "sphinx.ext.todo",
     #"graphviz_linked",
+    "sphinxcontrib.mermaid"
 ]
 
 # Assume unmarked references (in backticks) refer to Python objects

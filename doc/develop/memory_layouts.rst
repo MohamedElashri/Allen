@@ -14,13 +14,11 @@ in <a href="https://edms.cern.ch/document/2100937"
 target="_blank">this EDMS document</a>.
 
 The raw data is provided as four arrays:
-- The fragment data - an array of ``char const``,
-- Fragment offsets - an array of ``unsigned const`` -
-  indexed by event number and/or and bank number,
-- Bank size offsets - an array of ``unsigned const`` - indexed by
-  event number and and bank number,
-- Bank type offsets - an array of ``unsigned const`` - indexed by
-  event number and and bank number.
+
+* The fragment data - an array of `char const`,
+* Fragment offsets - an array of `unsigned const` - indexed by event number and/or and bank number,
+* Bank size offsets - an array of `unsigned const` - indexed by event number and and bank number,
+* Bank type offsets - an array of `unsigned const` - indexed by event number and and bank number.
 
 In both layouts all offsets are prepared per subdetector.
 
@@ -31,9 +29,9 @@ In Allen layout the fragments for a given event are contiguous
 in memory. The fragment offsets are indexed by event number and
 a given offset is used to obtain a block of data from the fragment
 data. This block contains the following information:
-- ``4`` bytes: the number of fragments (``n_frag``),
-- ``(n_frag + 1) * 4`` bytes: the relative offset to each fragment
-- the fragments
+* ``4`` bytes: the number of fragments (``n_frag``),
+* ``(n_frag + 1) * 4`` bytes: the relative offset to each fragment
+* the fragments
 
 For the size and types offsets arrays the sizes and types themselves
 are also stored in the array, but this is hidden behind the

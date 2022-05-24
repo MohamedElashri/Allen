@@ -17,7 +17,7 @@ This site documents various aspects of Allen.
    setup/run_allen
    setup/where_to_develop_for_GPUs
    setup/performance
-   .. hlt1/reconstruction_algorithms
+   hlt1/reconstruction_algorithms
    develop/add_algorithm
    develop/configure_sequence
    develop/selections
