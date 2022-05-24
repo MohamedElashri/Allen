@@ -53,16 +53,16 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   auto event_ids = m_input_provider->event_ids(slice_index);
 
   bool output_success = true;
-  bool n_output = 0;
+  size_t n_output = 0;
   size_t n_batches = n_events / m_output_batch_size + (n_events % m_output_batch_size != 0);
 
   for (size_t i_batch = 0; i_batch < n_batches && output_success; ++i_batch) {
 
     size_t batch_buffer_size = 0;
     size_t output_event_offset = 0;
-    size_t batch_size = std::min(i_batch + m_output_batch_size, n_events);
+    size_t batch_size = std::min(m_output_batch_size, n_events - n_output);
 
-    for (size_t i = 0; i < batch_size; ++i) {
+    for (size_t i = n_output; i < n_output + batch_size; ++i) {
 
       // The event number is constructed to index into a batch. The 0th
       // event of a batch is start_event in a slice, so we subtract
@@ -84,12 +84,12 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       batch_buffer_size += event_size;
     }
 
-    auto [buffer_id, batch_span] = buffer(batch_buffer_size, n_events);
+    auto [buffer_id, batch_span] = buffer(batch_buffer_size, batch_size);
 
     // In case output was cancelled
     if (batch_span.empty()) return {false, 0};
 
-    for (size_t i = 0; i < batch_size; ++i) {
+    for (size_t i = n_output; i < n_output + batch_size; ++i) {
 
       // The event number is constructed to index into a batch. The 0th
       // event of a batch is start_event in a slice, so we subtract
@@ -176,6 +176,6 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
     auto output_success = write_buffer(buffer_id);
     n_output += output_success ? batch_size : 0;
   }
-
+  assert(n_events - n_output == 0);
   return {output_success, n_output};
 }
