@@ -3,7 +3,9 @@ from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
-def make_heavy_ion_event_line(velo_tracks, pvs, calo_decoding,
+def make_heavy_ion_event_line(velo_tracks, 
+                              pvs, 
+                              calo_decoding,
                               pre_scaler_hash_string="heavy_ion_pre",
                               post_scaler_hash_string="heavy_ion_post",
                               min_velo_tracks_PbPb=1,

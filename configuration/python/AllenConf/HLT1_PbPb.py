@@ -130,6 +130,17 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
                 calo_decoding=calo_decoding),
             enableGEC=False))
 
+    lines.append(
+        line_maker(
+            "Hlt1PbPbUPC",
+            make_heavy_ion_event_line(
+                name="Hlt1HeavyIonPbPbUPC",
+                velo_tracks=velo_tracks,
+                pvs=pvs,
+                calo_decoding=calo_decoding,
+                max_ecal_e=94.),   #treat it as random number for now as we're still trying to convert ADC to energy
+            enableGEC=False))
+
     return lines
 
 
