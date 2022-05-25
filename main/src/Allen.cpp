@@ -273,14 +273,6 @@ int allen(
   // Register all consumers
   register_consumers(updater, constants);
 
-  // Run all registered producers and consumers
-  // FIXME: remove this in favour of the first triggered update
-  {
-    LHCb::ODIN odin;
-    odin.setRunNumber(0);
-    updater->update(std::move(odin.data));
-  }
-
   auto const& configuration = configuration_reader->params();
 
   // Find the number of lines from gather_selections
