@@ -730,7 +730,7 @@ int allen(
             debug_cout << "Requested run change from " << current_run_number << " to " << next_odin->runNumber()
                        << std::endl;
             // guard against double run changes if we have multiple input threads
-            if (disable_run_changes || next_odin->runNumber() == current_run_number) next_odin.reset();
+            if ((disable_run_changes && current_run_number != 0) || next_odin->runNumber() == current_run_number) next_odin.reset();
           }
           else if (msg == "WRITTEN") {
             auto slc_idx = zmqSvc->receive<size_t>(socket);
