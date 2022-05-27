@@ -18,34 +18,25 @@ from AllenConf.odin import decode_odin
 from AllenConf.persistency import make_gather_selections, make_global_decision, make_sel_report_writer
 
 
-def default_physics_lines(forward_tracks,
-                          long_track_particles,
+def default_physics_lines(forward_tracks, long_track_particles,
                           secondary_vertices):
     lines = []
     lines.append(
         line_maker(
             make_kstopipi_line(
-                forward_tracks,
-                secondary_vertices,
-                name="Hlt1KsToPiPi")))
+                forward_tracks, secondary_vertices, name="Hlt1KsToPiPi")))
     lines.append(
         line_maker(
             make_track_mva_line(
-                forward_tracks,
-                long_track_particles,
-                name="Hlt1TrackMVA")))
+                forward_tracks, long_track_particles, name="Hlt1TrackMVA")))
     lines.append(
         line_maker(
             make_two_track_mva_line(
-                forward_tracks,
-                secondary_vertices,
-                name="Hlt1TwoTrackMVA")))
+                forward_tracks, secondary_vertices, name="Hlt1TwoTrackMVA")))
     lines.append(
         line_maker(
             make_two_track_line_ks(
-                forward_tracks,
-                secondary_vertices,
-                name="Hlt1TwoTrackKs")))
+                forward_tracks, secondary_vertices, name="Hlt1TwoTrackKs")))
     lines.append(
         line_maker(
             make_single_high_pt_muon_line(
@@ -55,32 +46,23 @@ def default_physics_lines(forward_tracks,
     lines.append(
         line_maker(
             make_low_pt_muon_line(
-                forward_tracks,
-                long_track_particles,
-                name="Hlt1LowPtMuon")))
+                forward_tracks, long_track_particles, name="Hlt1LowPtMuon")))
     lines.append(
         line_maker(
             make_d2kk_line(
-                forward_tracks,
-                secondary_vertices,
-                name="Hlt1D2KK")))
+                forward_tracks, secondary_vertices, name="Hlt1D2KK")))
     lines.append(
         line_maker(
             make_d2kpi_line(
-                forward_tracks,
-                secondary_vertices,
-                name="Hlt1D2KPi")))
+                forward_tracks, secondary_vertices, name="Hlt1D2KPi")))
     lines.append(
         line_maker(
             make_d2pipi_line(
-                forward_tracks,
-                secondary_vertices,
-                name="Hlt1D2PiPi")))
+                forward_tracks, secondary_vertices, name="Hlt1D2PiPi")))
     lines.append(
         line_maker(
             make_di_muon_mass_line(
-                forward_tracks,
-                secondary_vertices,
+                forward_tracks, secondary_vertices,
                 name="Hlt1DiMuonHighMass")))
     lines.append(
         line_maker(
@@ -97,20 +79,15 @@ def default_physics_lines(forward_tracks,
     lines.append(
         line_maker(
             make_di_muon_soft_line(
-                forward_tracks,
-                secondary_vertices,
-                name="Hlt1DiMuonSoft")))
+                forward_tracks, secondary_vertices, name="Hlt1DiMuonSoft")))
     lines.append(
         line_maker(
             make_low_pt_di_muon_line(
-                forward_tracks,
-                secondary_vertices,
-                name="Hlt1LowPtDiMuon")))
+                forward_tracks, secondary_vertices, name="Hlt1LowPtDiMuon")))
     lines.append(
         line_maker(
             make_track_muon_mva_line(
-                forward_tracks,
-                long_track_particles,
+                forward_tracks, long_track_particles,
                 name="Hlt1TrackMuonMVA")))
     return lines
 
@@ -118,22 +95,13 @@ def default_physics_lines(forward_tracks,
 def event_monitoring_lines():
     lines = []
     lines.append(
-        line_maker(
-            make_beam_line(
-                name="Hlt1NoBeam", beam_crossing_type=0)))
+        line_maker(make_beam_line(name="Hlt1NoBeam", beam_crossing_type=0)))
     lines.append(
-        line_maker(
-            make_beam_line(
-                name="Hlt1BeamOne", beam_crossing_type=1)))
+        line_maker(make_beam_line(name="Hlt1BeamOne", beam_crossing_type=1)))
     lines.append(
-        line_maker(
-            make_beam_line(
-                name="Hlt1BeamTwo", beam_crossing_type=2)))
+        line_maker(make_beam_line(name="Hlt1BeamTwo", beam_crossing_type=2)))
     lines.append(
-        line_maker(
-            make_beam_line(
-                name="Hlt1BothBeams",
-                beam_crossing_type=3)))
+        line_maker(make_beam_line(name="Hlt1BothBeams", beam_crossing_type=3)))
     lines.append(
         line_maker(
             make_odin_event_type_line(
@@ -141,21 +109,18 @@ def event_monitoring_lines():
     lines.append(
         line_maker(
             make_odin_event_type_line(
-                name="Hlt1ODINNoBias",
-                odin_event_type=0x4)))
+                name="Hlt1ODINNoBias", odin_event_type=0x4)))
 
     return lines
 
 
-def alignment_monitoring_lines(velo_tracks,
-                               forward_tracks,
+def alignment_monitoring_lines(velo_tracks, forward_tracks,
                                long_track_particles):
 
     lines = []
     lines.append(
         line_maker(
-            make_velo_micro_bias_line(
-                velo_tracks, name="Hlt1VeloMicroBias")))
+            make_velo_micro_bias_line(velo_tracks, name="Hlt1VeloMicroBias")))
     lines.append(
         line_maker(
             make_rich_1_line(
@@ -172,9 +137,7 @@ def alignment_monitoring_lines(velo_tracks,
     return lines
 
 
-def default_smog2_lines(velo_tracks,
-                        forward_tracks,
-                        long_track_particles,
+def default_smog2_lines(velo_tracks, forward_tracks, long_track_particles,
                         secondary_vertices):
 
     lines = []
@@ -182,8 +145,7 @@ def default_smog2_lines(velo_tracks,
     lines.append(
         line_maker(
             make_SMOG2_dimuon_highmass_line(
-                secondary_vertices,
-                name="Hlt1_SMOG2_DiMuonHighMass")))
+                secondary_vertices, name="Hlt1_SMOG2_DiMuonHighMass")))
 
     lines.append(
         line_maker(
@@ -310,8 +272,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         with line_maker.bind(prefilter=SMOG2_prefilters):
             SMOG2_lines += [
                 line_maker(
-                    make_passthrough_line(
-                        name="Hlt1Passthrough_PV_in_SMOG2"))
+                    make_passthrough_line(name="Hlt1Passthrough_PV_in_SMOG2"))
             ]
 
             SMOG2_lines += default_smog2_lines(
