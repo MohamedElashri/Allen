@@ -22,7 +22,9 @@ line_algorithms = [calo_digits_line[0]]
 global_decision = make_global_decision(lines=line_algorithms)
 
 lines = CompositeNode(
-    "AllLines", [calo_digits_line[1]], NodeLogic.NONLAZY_OR, force_order=False)
+    "AllLines", [calo_digits_line[1]],
+    NodeLogic.NONLAZY_OR,
+    force_order=False)
 
 cosmics_sequence = CompositeNode(
     "Cosmics",
