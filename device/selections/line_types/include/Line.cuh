@@ -109,9 +109,14 @@ template<typename Derived, typename Parameters>
 void line_output_monitor(char* input, const RuntimeOptions& runtime_options, const Allen::Context& context)
 {
   if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
-    const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
-    auto derived_instance = std::get<5>(type_casted_input);
-    derived_instance->output_monitor(std::get<4>(type_casted_input), runtime_options, context);
+    if (input != nullptr) {
+      const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
+      const auto& parameters = std::get<0>(type_casted_input);
+      auto derived_instance = std::get<5>(type_casted_input);
+      if (parameters.enable_monitoring) {
+        derived_instance->output_monitor(std::get<4>(type_casted_input), runtime_options, context);
+      }
+    }
   }
 }
 
@@ -160,7 +165,7 @@ __device__ void process_line(
       *particle_container_ptr = nullptr;
     }
   }
-
+  
   // * Populate decisions
   const auto pre_scaler_hash = std::get<3>(type_casted_input);
   const bool pre_scaler_result =
@@ -210,6 +215,8 @@ void Line<Derived, Parameters>::operator()(
   std::memcpy(data<typename Parameters::host_fn_parameters_t>(arguments), &parameters, sizeof(parameters));
 
   if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
-    derived_instance->init_monitor(arguments, context);
+    if (derived_instance->template property<typename Parameters::enable_monitoring_t>()) {
+      derived_instance->init_monitor(arguments, context);
+    }
   }
 }

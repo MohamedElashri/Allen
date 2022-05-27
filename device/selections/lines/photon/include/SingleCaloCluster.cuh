@@ -16,11 +16,9 @@ namespace single_calo_cluster_line {
     DEVICE_INPUT(dev_ecal_clusters_t, CaloCluster) dev_ecal_clusters;
     DEVICE_INPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
 
-    DEVICE_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-
+    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
     // monitoring
