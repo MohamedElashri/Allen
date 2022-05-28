@@ -73,7 +73,8 @@ def make_odin_event_type_line(name=None,
 def make_calo_digits_minADC_line(decode_calo,
                                  name="Hlt1CaloDigitsMinADC",
                                  pre_scaler_hash_string=None,
-                                 post_scaler_hash_string=None):
+                                 post_scaler_hash_string=None,
+                                 minADC=100):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -84,7 +85,8 @@ def make_calo_digits_minADC_line(decode_calo,
         dev_ecal_digits_t=decode_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decode_calo["dev_ecal_digits_offsets"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
-        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        minADC=minADC)
 
 
 def make_beam_gas_line(velo_tracks,

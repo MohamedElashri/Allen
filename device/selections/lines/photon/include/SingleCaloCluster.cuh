@@ -87,7 +87,7 @@ namespace single_calo_cluster_line {
 
     static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
     {
-      return first<typename Parameters::host_ecal_number_of_clusters_t>(arguments);
+      return first<host_ecal_number_of_clusters_t>(arguments);
     }
 
   private:

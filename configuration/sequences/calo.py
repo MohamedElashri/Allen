@@ -15,7 +15,7 @@ reconstructed_objects = hlt1_reconstruction()
 ecal_clusters = reconstructed_objects["ecal_clusters"]
 
 calo_digits_line = line_maker(
-    make_calo_digits_minADC_line(decode_calo(), name="Hlt1CaloDigitsMinADC"))
+    make_calo_digits_minADC_line(decode_calo(), name="Hlt1CaloDigitsMinADC", minADC=100))
 
 line_algorithms = [calo_digits_line[0]]
 
@@ -26,11 +26,11 @@ lines = CompositeNode(
     NodeLogic.NONLAZY_OR,
     force_order=False)
 
-cosmics_sequence = CompositeNode(
-    "Cosmics",
+calo_sequence = CompositeNode(
+    "Calo",
     [lines, global_decision,
      rate_validation(lines=line_algorithms)],
     NodeLogic.NONLAZY_AND,
     force_order=True)
 
-generate(cosmics_sequence)
+generate(calo_sequence)

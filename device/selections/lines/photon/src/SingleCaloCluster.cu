@@ -5,7 +5,7 @@
 #include <ROOTHeaders.h>
 #include "CaloConstants.cuh"
 
-#define POW(x) (x * x)
+#define SQUARE(x) (x * x)
 
 // Explicit instantiation
 INSTANTIATE_LINE(single_calo_cluster_line::single_calo_cluster_line_t, single_calo_cluster_line::Parameters)
@@ -19,10 +19,6 @@ void single_calo_cluster_line::single_calo_cluster_line_t::set_arguments_size(
   static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
 
   // must set_size of all output variables
-  set_size<host_post_scaler_t>(arguments, 1);
-
-  set_size<host_post_scaler_hash_t>(arguments, 1);
-
   set_size<dev_clusters_x_t>(
     arguments, single_calo_cluster_line::single_calo_cluster_line_t::get_decisions_size(arguments));
 
@@ -62,7 +58,7 @@ __device__ bool single_calo_cluster_line::single_calo_cluster_line_t::select(
   const float z = Calo::Constants::z; // mm
 
   const float sintheta =
-    sqrtf((POW(ecal_cluster.x) + POW(ecal_cluster.y)) / (POW(ecal_cluster.x) + POW(ecal_cluster.y) + POW(z)));
+    sqrtf((SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y)) / (SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y) + SQUARE(z)));
   const float E_T = ecal_cluster.e * sintheta;
   const float decision = (E_T > parameters.minEt && E_T < parameters.maxEt);
 
@@ -90,8 +86,8 @@ __device__ void single_calo_cluster_line::single_calo_cluster_line_t::monitor(
   const auto& ecal_cluster = std::get<0>(input);
   const float& z = Calo::Constants::z; // mm
   const float& sintheta =
-    sqrtf((POW(ecal_cluster.x) + POW(ecal_cluster.y)) / (POW(ecal_cluster.x) + POW(ecal_cluster.y) + POW(z)));
-  const float& cosphi = ecal_cluster.x / sqrtf(POW(ecal_cluster.x) + POW(ecal_cluster.y));
+    sqrtf((SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y)) / (SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y) + SQUARE(z)));
+  const float& cosphi = ecal_cluster.x / sqrtf(SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y));
   const float& E_T = ecal_cluster.e * sintheta;
 
   if (sel) {

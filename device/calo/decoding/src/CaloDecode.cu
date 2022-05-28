@@ -117,7 +117,7 @@ void calo_decode::calo_decode_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  initialize<dev_ecal_digits_t>(arguments, 0, context);
+  initialize<dev_ecal_digits_t>(arguments, 0x7F, context);
 
   if (runtime_options.mep_layout) {
     global_function(calo_decode_dispatch<true>)(
