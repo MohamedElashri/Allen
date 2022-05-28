@@ -17,7 +17,6 @@ namespace calo_digits_minADC {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
-    DEVICE_INPUT(dev_odin_data_t, ODINData) dev_odin_data;
 
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;

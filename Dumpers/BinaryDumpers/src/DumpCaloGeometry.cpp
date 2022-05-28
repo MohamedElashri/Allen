@@ -105,7 +105,7 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
   for (MapType::iterator itr = map.begin(); itr != map.end(); ++itr) {
     uint16_t source_id = itr->first;
     // source_id is 15b word, bit 15:11 correspond  to ecal/hcal (1011/1100) --> consider only bits 10:1
-    for (int k = 0; k < itr->second.size(); k++) {
+    for (unsigned k = 0; k < itr->second.size(); k++) {
       vec_febs[3 * (source_id & 0x7ff) + k] = det.cardArea(itr->second.at(k)) < 3 ? itr->second.at(k) : 0;
       if (det.cardArea(itr->second.at(k)) < 3 && det.cardArea(itr->second.at(k)) >= 0) {
         vec_febIndices[3 * (source_id & 0x7ff) + k] = iFEB;
