@@ -200,7 +200,6 @@ sc = gaudi.initialize()
 if not sc.isSuccess():
     sys.exit("Failed to initialize AppMgr")
 
-
 svc = gaudi.service("AllenUpdater", interface=gbl.IService)
 zmqSvc = gaudi.service("ZeroMQSvc", interface=gbl.IZeroMQSvc)
 
@@ -248,7 +247,6 @@ ctx = zmq.Context.shadow(c_ctx)
 ctx.linger = -1
 control = ctx.socket(zmq.PAIR)
 
-
 if args.reuse_meps:
     gaudi.start()
 else:
@@ -281,21 +279,21 @@ if args.reuse_meps:
 else:
     # READY
     msg = control.recv()
-    assert(msg.decode() == "READY")
+    assert (msg.decode() == "READY")
     gaudi.start()
     control.send(b"START")
     msg = control.recv()
-    assert(msg.decode() == "RUNNING")
+    assert (msg.decode() == "RUNNING")
     sleep(5)
     control.send(b"STOP")
     msg = control.recv()
-    assert(msg.decode() == "READY")
+    assert (msg.decode() == "READY")
     if args.profile == "CUDA":
         runtime_lib.cudaProfilerStop()
     gaudi.stop()
     gaudi.finalize()
     control.send(b"RESET")
     msg = control.recv()
-    assert(msg.decode() == "NOT_READY")
+    assert (msg.decode() == "NOT_READY")
 
 allen_thread.join()
