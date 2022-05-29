@@ -33,7 +33,7 @@ __device__ void ecal_scan(
     unsigned matched_digit_id = ecal_geometry.getEcalID(xV_temp, yV_temp, ecal_positions[j]);
 
     // If outside the ECAL acceptance, ignore and continue
-    if (matched_digit_id == 9999) continue;
+    if (matched_digit_id == 9999 || !digits[matched_digit_id].is_valid()) continue;
 
     // Check ECAL acceptance at showermax (z=12650)
     if (j == 1) {
