@@ -2,7 +2,9 @@
 ###############################################################################
 # (c) Copyright 2018-2021 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-import os, sys
+import os
+import sys
+import zmq
 from Configurables import ApplicationMgr
 from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
 from Allen.config import setup_allen_non_event_data_service
@@ -197,6 +199,8 @@ gaudi = AppMgr()
 sc = gaudi.initialize()
 if not sc.isSuccess():
     sys.exit("Failed to initialize AppMgr")
+
+
 svc = gaudi.service("AllenUpdater", interface=gbl.IService)
 zmqSvc = gaudi.service("ZeroMQSvc", interface=gbl.IZeroMQSvc)
 
@@ -232,28 +236,66 @@ else:
     provider = gbl.Allen.make_provider(options)
 output_handler = gbl.Allen.output_handler(provider, zmqSvc, options)
 
-gaudi.start()
-
 # run Allen
 gbl.allen.__release_gil__ = 1
 
+# get the libzmq context out of the zmqSvc and use it to instantiate
+# the pyzmq Context
+cpp_ctx = zmqSvc.context()
+c_ctx = gbl.czmq_context(cpp_ctx)
+ctx = zmq.Context.shadow(c_ctx)
 
-def sleep_fun():
+ctx.linger = -1
+control = ctx.socket(zmq.PAIR)
+
+
+if args.reuse_meps:
+    gaudi.start()
+else:
+    # C++ and python strings
+    connection = "inproc:///py_allen_control"
+    con = gbl.std.string(connection)
+    control.bind(connection)
+
+
+# Call the main Allen function from a thread so we can control it from
+# the main thread
+def allen_thread():
+    if args.profile == "CUDA":
+        runtime_lib.cudaProfilerStart()
+
+    gbl.allen(options, updater, shared_wrap(gbl.IInputProvider, provider),
+              output_handler, zmqSvc, con.c_str())
+
+    if args.profile == "CUDA":
+        runtime_lib.cudaProfilerStop()
+
+
+allen_thread = Thread(target=allen_thread)
+allen_thread.start()
+
+if args.reuse_meps:
     print("sleeping")
     sleep(args.runtime)
     gaudi.stop()
+else:
+    # READY
+    msg = control.recv()
+    assert(msg.decode() == "READY")
+    gaudi.start()
+    control.send(b"START")
+    msg = control.recv()
+    assert(msg.decode() == "RUNNING")
+    sleep(5)
+    control.send(b"STOP")
+    msg = control.recv()
+    assert(msg.decode() == "READY")
+    if args.profile == "CUDA":
+        runtime_lib.cudaProfilerStop()
+    gaudi.stop()
+    gaudi.finalize()
+    control.send(b"RESET")
+    msg = control.recv()
+    assert(msg.decode() == "NOT_READY")
 
-
-if args.reuse_meps:
-    sleep_thread = Thread(target=sleep_fun)
-    sleep_thread.start()
-
-if args.profile == "CUDA":
-    runtime_lib.cudaProfilerStart()
-gbl.allen(options, updater, shared_wrap(gbl.IInputProvider, provider),
-          output_handler, zmqSvc, con.c_str())
-if args.profile == "CUDA":
-    runtime_lib.cudaProfilerStop()
-
-if args.reuse_meps:
-    sleep_thread.join()
+allen_thread.join()

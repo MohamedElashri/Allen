@@ -765,7 +765,7 @@ int allen(
             buffers_manager->returnBufferWritten(buf_idx);
           }
           else if (msg == "DONE") {
-            if (((allen_control && stop) || !allen_control) && !io_done) {
+            if (!io_done) {
               io_done = true;
               info_cout << "Input complete\n";
             }
@@ -882,11 +882,15 @@ int allen(
     }
 
     if (allen_control && items[control_index].revents & zmq::POLLIN) {
-      auto msg = zmqSvc->receive<std::string>(*allen_control);
+      bool more = false;
+      auto msg = zmqSvc->receive<std::string>(*allen_control, &more);
+
       if (msg == "STOP") {
-        stop_timeout = zmqSvc->receive<float>(*allen_control);
         stop = true;
-        t_stop = Timer {};
+        if (more) {
+          stop_timeout = zmqSvc->receive<float>(*allen_control);
+          t_stop = Timer {};
+        }
       }
       else if (msg == "START") {
         // Start the input provider

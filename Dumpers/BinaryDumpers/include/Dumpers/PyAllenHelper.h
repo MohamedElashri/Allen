@@ -5,6 +5,8 @@
 #include <Dumpers/IUpdater.h>
 #include <Allen/InputProvider.h>
 
+#include <zmq/zmq.hpp>
+
 /**
  * @brief      Helper function to cast the LHCb-implementation of the Allen
  *             non-event data manager to its shared interface
@@ -25,6 +27,10 @@ struct shared_wrap {
     return {t, [](T*) {}};
   }
 };
+
+uintptr_t czmq_context(zmq::context_t& ctx) {
+  return reinterpret_cast<uintptr_t>(ctx.operator void*());
+}
 
 // template cast_service<Allen::NonEventData::IUpdater>;
 // template cast_service<IInputProvider>(IService* svc);

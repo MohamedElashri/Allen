@@ -30,7 +30,9 @@ skip_options = BlockSkipper("Requested options:", "Ignore signals to update")
 skip_rates = BlockSkipper("rate_validator validation:", "Inclusive:")
 
 skip_sequence = BlockSkipper("Sequence:",
-                             "Starting timer for throughput measurement")
+                             "make_selreps")
 
-preprocessor = (LHCbPreprocessor + skip_config + remove_throughput +
-                skip_options + skip_rates + skip_sequence)
+preprocessor_with_rates = (LHCbPreprocessor + skip_config + remove_throughput +
+                           skip_options + skip_sequence)
+
+preprocessor = preprocessor_with_rates + skip_rates
