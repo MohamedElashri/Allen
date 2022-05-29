@@ -57,8 +57,8 @@ __device__ bool single_calo_cluster_line::single_calo_cluster_line_t::select(
   const auto& ecal_cluster = std::get<0>(input);
   const float z = Calo::Constants::z; // mm
 
-  const float sintheta =
-    sqrtf((SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y)) / (SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y) + SQUARE(z)));
+  const float sintheta = sqrtf(
+    (SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y)) / (SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y) + SQUARE(z)));
   const float E_T = ecal_cluster.e * sintheta;
   const float decision = (E_T > parameters.minEt && E_T < parameters.maxEt);
 
@@ -85,8 +85,8 @@ __device__ void single_calo_cluster_line::single_calo_cluster_line_t::monitor(
 {
   const auto& ecal_cluster = std::get<0>(input);
   const float& z = Calo::Constants::z; // mm
-  const float& sintheta =
-    sqrtf((SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y)) / (SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y) + SQUARE(z)));
+  const float& sintheta = sqrtf(
+    (SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y)) / (SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y) + SQUARE(z)));
   const float& cosphi = ecal_cluster.x / sqrtf(SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y));
   const float& E_T = ecal_cluster.e * sintheta;
 

@@ -28,9 +28,7 @@ struct shared_wrap {
   }
 };
 
-uintptr_t czmq_context(zmq::context_t& ctx) {
-  return reinterpret_cast<uintptr_t>(ctx.operator void*());
-}
+uintptr_t czmq_context(zmq::context_t& ctx) { return reinterpret_cast<uintptr_t>(ctx.operator void*()); }
 
 // template cast_service<Allen::NonEventData::IUpdater>;
 // template cast_service<IInputProvider>(IService* svc);

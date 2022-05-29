@@ -165,7 +165,7 @@ __device__ void process_line(
       *particle_container_ptr = nullptr;
     }
   }
-  
+
   // * Populate decisions
   const auto pre_scaler_hash = std::get<3>(type_casted_input);
   const bool pre_scaler_result =
