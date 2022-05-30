@@ -65,7 +65,7 @@ Add a key to `.run_matrix_jobs_full:parallel:matrix:` in `common-run.yaml` e.g.
 .. code-block:: yaml
 
       - TEST_NAME: "run_throughput"     # name of the test - runs the bash script scripts/ci/jobs/$TEST_NAME.sh
-        BUILD_TYPE: ["RelWithDebInfo"]  # use RelWithDebInfo build
+        LCG_OPTIMIZATION: ["opt"]       # use opt build
         # OPTIONS: [""]                 # leave out for default build, with no additional build options
         SEQUENCES: ["hlt1_pp_default"]  # sequence
         DATA_TAG: ["SMOG2_pppHe_retinacluster_v1"]  # dataset name
@@ -78,7 +78,6 @@ In order to ensure the correct build from the `build` stage is used in your test
 * `${LCG_SYSTEM}` (e.g. `x86_64_v3-centos7-clang12`. default value is set by `.run_jobs` key)
 * `${LCG_QUALIFIER}` (added directly after `LCG_SYSTEM` with `+` delimiter - default is `cpu`)
 * `${LCG_OPTIMIZATION}` (e.g. `opt` or `dbg`. default value is set in `.gitlab-ci.yaml` to `opt`)
-* `${BUILD_TYPE}` (default is `RelWithDebInfo` set by `.run_jobs` key)
 * `${SEQUENCES}` (must be set in `.run_matrix_jobs_full:parallel:matrix:`)
 * `${OPTIONS}` (optional, can be set in `.run_matrix_jobs_full:parallel:matrix:`)
 * `${GEOMETRY}` (optional, can be left undefined or set if a specific geometry is needed)

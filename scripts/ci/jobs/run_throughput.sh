@@ -6,6 +6,7 @@
 check_build_exists
 
 # Configure RUN_OPTIONS.
+set +x; set +u
 # If already defined, let it stick.
 if [ ! -z ${RUN_OPTIONS+x} ]; then
   RUN_OPTIONS=""

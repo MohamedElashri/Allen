@@ -68,7 +68,6 @@ function check_build_exists() {
         echo "     LCG_SYSTEM: ${LCG_SYSTEM}"
         echo "     LCG_QUALIFIER (can be empty): ${LCG_QUALIFIER}"
         echo "     LCG_OPTIMIZATION: ${LCG_OPTIMIZATION}"
-        echo "     BUILD_TYPE: ${BUILD_TYPE}"
         echo "     OPTIONS: ${OPTIONS}"
         echo ""
         echo "   ==> Please add this build and try again (see: scripts/ci/config/common-build.yaml)."
@@ -107,7 +106,7 @@ else
 fi
 set -u; set -x
 
-BUILD_FOLDER="build_${LCG_PLATFORM}_${BUILD_TYPE}_${BUILD_SEQUENCES}_${OPTIONS}"
+BUILD_FOLDER="build_${LCG_PLATFORM}_${BUILD_SEQUENCES}_${OPTIONS}"
 
 ls -la
 

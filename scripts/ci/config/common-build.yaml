@@ -8,8 +8,6 @@
           - "cpu"
           - cuda11_4
           - hip5
-        BUILD_TYPE:
-          - RelWithDebInfo
   allow_failure: true # FIXME remove
 
 # Builds that are considered "additional", can be run in addition to "minimal" tests in certain scenarios
@@ -20,14 +18,14 @@
       # build jobs (with tests)
       - LCG_SYSTEM:
           - "x86_64_v3-centos7-clang12"
-        BUILD_TYPE: [RelWithDebInfo, Debug]
+        LCG_OPTIMIZATION: [opt, dbg]
         OPTIONS:
           - BUILD_TESTING+ENABLE_CONTRACTS
 
       # debug builds with GCC, Clang with various additional cmake options
       - LCG_SYSTEM:
           - "x86_64_v3-centos7-clang12"
-        BUILD_TYPE: Debug
+        LCG_OPTIMIZATION: dbg
         OPTIONS:
           - BUILD_TESTING+ENABLE_CONTRACTS+USE_ROOT
           - BUILD_TESTING+ENABLE_CONTRACTS+USE_ROOT+TREAT_WARNINGS_AS_ERRORS
@@ -35,13 +33,13 @@
 
       - LCG_SYSTEM:
           - "x86_64_v3-centos7-gcc11"
-        BUILD_TYPE: Debug
+        LCG_OPTIMIZATION: dbg
         OPTIONS:
           - BUILD_TESTING+ENABLE_CONTRACTS+USE_ROOT+TREAT_WARNINGS_AS_ERRORS
 
       - LCG_SYSTEM: "x86_64_v3-centos7-clang12"
+        LCG_OPTIMIZATION: dbg
         OPTIONS: ["USE_ROOT"]
-        BUILD_TYPE: Debug
 
 .build_job:
   extends: .base_job
