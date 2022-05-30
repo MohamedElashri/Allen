@@ -38,8 +38,7 @@ yum install -y numactl-libs
 setupViews
 
 cmake -DSTANDALONE=ON -GNinja -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-      -DSEQUENCES=all -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} \
-      ${SOURCE_FOLDER}
+      -DSEQUENCES=all ${ADDITIONAL_OPTIONS} ${SOURCE_FOLDER}
 
 set +e;
 TRIES=0
