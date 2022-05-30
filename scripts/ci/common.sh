@@ -96,10 +96,10 @@ setupViews
 
 # Extract info about NUMA_NODE or GPU_UUID from CI_RUNNER_DESCRIPTION_SPLIT
 set +x; set +u
-if [ ${LCG_PLATFORM} = *"cuda"* ]; then
+if [ ${LCG_QUALIFIER} = *"cuda"* ]; then
     export TARGET="CUDA"
     export GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-elif [ ${LCG_PLATFORM} = *"hip"* ]; then
+elif [ ${LCG_QUALIFIER} = *"hip"* ]; then
     export TARGET="HIP"
 else
     export TARGET="CPU"
