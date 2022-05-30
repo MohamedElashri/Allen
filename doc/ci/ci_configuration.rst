@@ -75,7 +75,9 @@ If your test needs a build of Allen that is not yet included in the `build` stag
 
 In order to ensure the correct build from the `build` stage is used in your test, make sure that the following variables are set correctly and match.
 
-* `${LCG_ARCHITECTURE}` (default value is set by `.run_jobs` key)
+* `${LCG_SYSTEM}` (e.g. `x86_64_v3-centos7-clang12`. default value is set by `.run_jobs` key)
+* `${LCG_QUALIFIER}` (added directly after `LCG_SYSTEM` with `+` delimiter - default is `cpu`)
+* `${LCG_OPTIMIZATION}` (e.g. `opt` or `dbg`. default value is set in `.gitlab-ci.yaml` to `opt`)
 * `${BUILD_TYPE}` (default is `RelWithDebInfo` set by `.run_jobs` key)
 * `${SEQUENCES}` (must be set in `.run_matrix_jobs_full:parallel:matrix:`)
 * `${OPTIONS}` (optional, can be set in `.run_matrix_jobs_full:parallel:matrix:`)
@@ -91,6 +93,6 @@ The `parallel:matrix:` keys will need to be modified in either `.build_job_minim
 
 N.B. 
 
-* `$TARGET` does not need to be set in `parallel:matrix:` for the full builds, but it will need to be for the minimal builds.
+* `$LCG_QUALIFIER` does not need to be set in `parallel:matrix:` for the full builds, but it will need to be for the minimal builds.
 * `$OPTIONS` can be left blank or undefined. If options need to be passed to CMake e.g. `-DBUILD_TESTING=ON -DENABLE_CONTRACTS=ON`, then `$OPTIONS` can be set to `BUILD_TESTING+ENABLE_CONTRACTS` which will set both CMake options to `ON` by default. If you need this to be something other than `ON`, then you can do `BUILD_TESTING=OFF+ENABLE_CONTRACTS=OFF`, for example.
 * In downstream `run`-stage jobs, the `$OPTIONS` variable content *must* match for the build to be found properly.

@@ -5,7 +5,7 @@
   parallel:
     matrix:
       - LCG_QUALIFIER:
-          - "" # cpu
+          - "cpu"
           - cuda11_4
           - hip5
         BUILD_TYPE:

@@ -35,5 +35,5 @@
 .epyc7502:
   variables:
     DEVICE_ID: "epyc7502"
-    LCG_QUALIFIER: "" #cpu
+    LCG_QUALIFIER: "cpu"
 

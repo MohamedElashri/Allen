@@ -12,7 +12,7 @@ variables:
 
   # LCG_PLATFORM = {LCG_SYSTEM}+{LCG_QUALIFIER}-{LCG_OPTIMIZATION}
   LCG_SYSTEM: "x86_64_v3-centos7-clang12"
-  LCG_QUALIFIER: "" # no plus added if empty or unset
+  LCG_QUALIFIER: "cpu"
   LCG_OPTIMIZATION: "opt"
 
   LB_NIGHTLY_SLOT: lhcb-head

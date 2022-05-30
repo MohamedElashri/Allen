@@ -173,7 +173,7 @@ full-pipeline:
 CPU:
   extends: .full-build
   variables:
-    LCG_QUALIFIER: "" # blank for cpu
+    LCG_QUALIFIER: "cpu"
 
 CUDA:
   extends: .full-build
@@ -199,7 +199,7 @@ HIP:
 .cpu_run_job:
   dependencies: [CPU, build]
   variables:
-    LCG_QUALIFIER: "" # blank for cpu
+    LCG_QUALIFIER: "cpu"
 
 .cuda_run_job:
   dependencies: [CUDA, build]

@@ -21,7 +21,10 @@ function setupViews() {
     LCG_PLATFORM="${LCG_SYSTEM}"
 
     if [ -z ${LCG_QUALIFIER+x} ] || [ "$LCG_QUALIFIER" = "" ]; then
-        echo "Info: LCG_QUALIFIER is unset or empty (assume CPU build)"
+        echo "Error: LCG_QUALIFIER is unset or empty"
+        exit 1
+    elif [ "$LCG_QUALIFIER" = "cpu" ]; then
+        echo "LCG_QUALIFIER: ${LCG_QUALIFIER} (does not modify the LCG platform string)"
     else
         echo "LCG_QUALIFIER: ${LCG_QUALIFIER}"
         LCG_PLATFORM="${LCG_PLATFORM}+${LCG_QUALIFIER}"
