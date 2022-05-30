@@ -30,10 +30,17 @@ for SEQUENCE_DATASET in $(ls -1 | grep "run_throughput" | grep -Ei "run_throughp
     echo "${BUILDOPTIONS}" > test_throughput_details/${SEQUENCE_DATASET}_${BREAKDOWN_DEVICE_ID}_buildopts.txt
     cp run_throughput_output_${SEQUENCE_DATASET}/${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv test_throughput_details/${SEQUENCE_DATASET}_${BREAKDOWN_DEVICE_ID}_algo_breakdown.csv
     
+
     echo ""
     echo "********************************************************************************************************************************************"
     echo "********************************************************************************************************************************************"
     echo "Throughput of [branch ${CI_COMMIT_REF_NAME} (${CI_COMMIT_SHORT_SHA}), sequence ${SEQUENCE} over dataset ${INPUT_FILES}"
+
+    if [ -f "run_throughput_output_${SEQUENCE_DATASET}/${BREAKDOWN_DEVICE_ID}/no_throughput_report.txt" ]; then
+        echo "It is requested not to publish the throughput report for this run."
+        echo "Nope" > test_throughput_details/${SEQUENCE_DATASET}_${BREAKDOWN_DEVICE_ID}_no_throughput_report.txt
+    fi
+
     echo ""
     echo ""
     cat run_throughput_output_${SEQUENCE_DATASET}/*/output.txt | grep --color=none "select device" | sed 's/.*:\ [0-9]*\,\ //' > devices_${SEQUENCE_DATASET}.txt
