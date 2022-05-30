@@ -132,7 +132,7 @@
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
     LCG_SYSTEM: "x86_64_v3-centos7-clang12"
-    LCG_OPTIMIZATION: "RelWithDebInfo"
+    LCG_OPTIMIZATION: "opt"
 
   retry: 2
 
