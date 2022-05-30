@@ -23,7 +23,6 @@ ApplicationMgr                         INFO Application Manager Started successf
 DumpFTGeometry                         INFO Conditions DB is compatible with FT bank version 4, 5, 6.
 Starting timer for throughput measurement
 Input complete
-Processing complete
 ApplicationMgr                         INFO Application Manager Stopped successfully
 HLTControlFlowMgr                      INFO
 HLTControlFlowMgr                      INFO
@@ -43,5 +42,4 @@ LAZY_AND: allen_non_event_data                #=1       Sum=1           Eff=|( 1
 HLTControlFlowMgr                      INFO Histograms converted successfully according to request.
 ToolSvc                                INFO Removing all tools created by ToolSvc
 ApplicationMgr                         INFO Application Manager Finalized successfully
-Processing complete
 ApplicationMgr                         INFO Application Manager Terminated successfully

@@ -13,6 +13,8 @@ from GaudiConf.QMTest.LHCbTest import BlockSkipper
 from GaudiConf.QMTest.LHCbExclusions import preprocessor as LHCbPreprocessor
 
 remove_throughput = LineSkipper(regexps=[
+    # Processing complete messages
+    r"Processing complete",
     # Throughput messages
     r"\s*(\d+\.\d+)\s+events/s",
     r"Ran test for (\d+\.\d+)\s+seconds",
