@@ -66,7 +66,7 @@ function check_build_exists() {
         echo " - The build matrix is missing a build with these options:"
         echo ""
         echo "     LCG_SYSTEM: ${LCG_SYSTEM}"
-        echo "     LCG_QUALIFIER (can be empty): ${LCG_QUALIFIER}"
+        echo "     LCG_QUALIFIER: ${LCG_QUALIFIER}"
         echo "     LCG_OPTIMIZATION: ${LCG_OPTIMIZATION}"
         echo "     OPTIONS: ${OPTIONS}"
         echo ""
@@ -82,7 +82,7 @@ if [ -z ${OPTIONS+x} ]; then
   OPTIONS=""
 fi
 
-
+export TPUT_REPORT="1" # avoid unbound variable errors
 export BUILD_SEQUENCES="all"
 
 TOPLEVEL=${PWD}
@@ -95,15 +95,22 @@ setupViews
 
 # Extract info about NUMA_NODE or GPU_UUID from CI_RUNNER_DESCRIPTION_SPLIT
 set +x; set +u
-if [ ${LCG_QUALIFIER} = *"cuda"* ]; then
+if [[ "${LCG_QUALIFIER}" =~ .*"cuda".* ]]; then
     export TARGET="CUDA"
     export GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
-elif [ ${LCG_QUALIFIER} = *"hip"* ]; then
+elif [[ "${LCG_QUALIFIER}" =~ .*"hip".* ]]; then
     export TARGET="HIP"
-else
+elif [[ "${LCG_QUALIFIER}" =~ .*"cpu".* ]]; then
     export TARGET="CPU"
     export NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
+else
+    echo "Error - couldn't figure out which device is being targetted from LCG_QUALIFIER. Please check common.sh."
+    echo "LCG_QUALIFIER didn't contain string 'cuda', 'hip', or 'cpu' anywhere."
+    exit 1
 fi
+
+echo "TARGET device is ${TARGET}"
+
 set -u; set -x
 
 BUILD_FOLDER="build_${LCG_PLATFORM}_${BUILD_SEQUENCES}_${OPTIONS}"
