@@ -82,7 +82,10 @@ if [ -z ${OPTIONS+x} ]; then
   OPTIONS=""
 fi
 
-export TPUT_REPORT="1" # avoid unbound variable errors
+if [ -z ${TPUT_REPORT+x} ]; then
+    export TPUT_REPORT="1" # avoid unbound variable errors
+fi
+
 export BUILD_SEQUENCES="all"
 
 TOPLEVEL=${PWD}
