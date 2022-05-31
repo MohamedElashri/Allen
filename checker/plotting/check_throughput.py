@@ -56,8 +56,8 @@ def check_throughput_change(throughput, master_throughput):
         
         single_device_table.append([
             device,
-            f"{throughput.get(device, '--')/100.:.2f}",
-            f"{master_throughput[device]/100.:.2f}",
+            f"{throughput.get(device, '--'):.2f}",
+            f"{master_throughput[device]:.2f}",
             f"{speedup:.2f}x",
             f"{change*100:.2f}%",
             status
@@ -130,10 +130,10 @@ def main():
     (options, args) = parser.parse_args()
 
     with open(options.throughput) as csvfile:
-        throughput = parse_throughput(csvfile, scale=1e-3)
+        throughput = parse_throughput(csvfile, scale=1e-3) # kHz
 
     master_throughput = get_master_throughput(
-        options.job, csvfile=options.throughput, scale=1e-3)
+        options.job, csvfile=options.throughput, scale=1e-3) # kHz
 
     problems = check_throughput_change(throughput, master_throughput)
 
