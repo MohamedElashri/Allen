@@ -50,9 +50,6 @@ def check_throughput_change(speedup_wrt_master):
 
     # single device throughput decrease check
     single_device_table = []
-    single_device_table_headers = [
-        "Device", "Speedup", r"% change", "status"
-    ]
     for device, speedup in speedup_wrt_master.items():
         change = speedup - 1.0
         tput_tol = DEVICE_THROUGHPUT_DECREASE_THRESHOLD / weights[device]
@@ -73,8 +70,9 @@ def check_throughput_change(speedup_wrt_master):
     
     print(
         tabulate(
-            single_device_table, headers=single_device_table_headers,
-            format="rst"
+            single_device_table, headers=[
+                "Device", "Speedup", r"% change", "status"
+            ],
         )
     )
     
