@@ -29,31 +29,15 @@ def check_throughput_change(speedup_wrt_master):
         for device in speedup_wrt_master
     }
 
-    # Average throughputs across all devices and complain if we are above decr % threshold
     if len(speedup_wrt_master) == 0:
         return problems
-    
-    average_speedup = (sum(speedup * weights[device]
-                           for device, speedup in speedup_wrt_master.items()) /
-                       sum(weights.values()))
-    change = average_speedup - 1.0
-    print(f"Device-averaged speedup: {average_speedup}")
-    print(f"               % change: {change*100}")
-    tput_tol = AVG_THROUGHPUT_DECREASE_THRESHOLD
-    if change < tput_tol:
-        msg = (
-            f" :warning: :eyes: **average** throughput change {change*100:.2f}% " +
-            f"_exceeds_ {abs(tput_tol)*100} % threshold")
-        print(msg)
-        problems.append(msg)
-
 
     # single device throughput decrease check
     single_device_table = []
     for device, speedup in speedup_wrt_master.items():
         change = speedup - 1.0
         tput_tol = DEVICE_THROUGHPUT_DECREASE_THRESHOLD / weights[device]
-        print(f"{device:<30}  speedup (% change): {speedup:.2f}x ({change*100:.2f}%)")
+        # print(f"{device:<30}  speedup (% change): {speedup:.2f}x ({change*100:.2f}%)")
 
         status = "OK"
         if change < tput_tol:
@@ -62,12 +46,12 @@ def check_throughput_change(speedup_wrt_master):
                 + f"_exceeds_ {abs(tput_tol)*100}% threshold")
             print(msg)
             problems.append(msg)
-            status = "throughput decreased"
+            status = "DECREASED"
         
         single_device_table.append(
             [device, f"{speedup:.2f}x", f"{change*100:.2f}%", status]
         )
-    
+    print()
     print(
         tabulate(
             single_device_table, headers=[
@@ -75,7 +59,28 @@ def check_throughput_change(speedup_wrt_master):
             ],
         )
     )
+    print()
     
+    # Average throughputs across all devices and complain if we are above decr % threshold
+    average_speedup = (sum(speedup * weights[device]
+                           for device, speedup in speedup_wrt_master.items()) /
+                       sum(weights.values()))
+    change = average_speedup - 1.0
+    print(f"Device-averaged speedup: {average_speedup:.2f}x")
+    print(f"               % change: {change*100:.2f}%")
+    tput_tol = AVG_THROUGHPUT_DECREASE_THRESHOLD
+    avg_tput_status = "OK"
+    if change < tput_tol:
+        msg = (
+            f" :warning: :eyes: **average** throughput change {change*100:.2f}% " +
+            f"_exceeds_ {abs(tput_tol)*100} % threshold")
+        problems.append(msg)
+        avg_tput_status = "DECREASED"
+
+    print(f"                 status: {avg_tput_status}")
+    
+    print()
+
     print("Pass\n" if not problems else "FAIL\n")
 
     return problems
