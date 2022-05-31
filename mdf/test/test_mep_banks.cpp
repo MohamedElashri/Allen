@@ -201,6 +201,7 @@ int main(int argc, char* argv[])
     // Allocate providers and get slices
     std::map<std::string, std::string> options = {{"s", std::to_string(s_config.n_slices)},
                                                   {"n", std::to_string(s_config.n_events)},
+                                                  {"v", std::to_string(s_config.debug ? 4 : 3)},
                                                   {"mdf", s_config.mdf_files},
                                                   {"sequence", json_file.string()},
                                                   {"run-from-json", "1"},
@@ -616,6 +617,7 @@ TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ECalTag, MuonTag, VeloTag, SciFiTa
     auto events_mdf = mdf->event_ids(slice_mdf);
     auto events_mep = mep->event_ids(slice_mep);
 
+    REQUIRE(events_mdf.size() == events_mep.size());
     for (size_t i = 0; i < events_mdf.size(); ++i) {
       auto [run_mdf, event_mdf] = events_mdf[i];
       auto [run_mep, event_mep] = events_mep[i];

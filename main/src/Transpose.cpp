@@ -159,7 +159,7 @@ std::tuple<bool, bool, size_t> read_events(
       error_cout << "Failed to read header " << strerror(errno) << "\n";
       error = true;
     }
-    if (!eof && !error) {
+    if (!error) {
       ++n_filled;
     }
   }
