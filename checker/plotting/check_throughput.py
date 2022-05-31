@@ -61,7 +61,7 @@ def check_throughput_change(speedup_wrt_master):
         status = "OK"
         if change < tput_tol:
             msg = (
-                f":warning: :eyes: **{device}** throughput change {change*100}:.2f% "
+                f":warning: :eyes: **{device}** throughput change {change*100:.2f}% "
                 + f"_exceeds_ {abs(tput_tol)*100}% threshold")
             print(msg)
             problems.append(msg)
