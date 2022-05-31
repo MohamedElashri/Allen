@@ -67,7 +67,12 @@ def check_throughput_change(throughput, master_throughput):
     print(
         tabulate(
             single_device_table, headers=[
-                "Device", "Throughput (kHz)", "Reference Throughput (kHz)" "Speedup", r"% change", "Status"
+                "Device",
+                "Throughput (kHz)",
+                "Reference Throughput (kHz)",
+                "Speedup", 
+                r"% change",
+                "Status"
             ],
         )
     )
