@@ -4,6 +4,7 @@
 ###############################################################################
 
 import sys
+from tabulate import tabulate
 from optparse import OptionParser
 from csv_plotter import (
     get_master_throughput,
@@ -41,25 +42,43 @@ def check_throughput_change(speedup_wrt_master):
     tput_tol = AVG_THROUGHPUT_DECREASE_THRESHOLD
     if change < tput_tol:
         msg = (
-            f" :warning: :eyes: **average** throughput change {change*100}% " +
+            f" :warning: :eyes: **average** throughput change {change*100:.2f}% " +
             f"_exceeds_ {abs(tput_tol)*100} % threshold")
         print(msg)
         problems.append(msg)
 
+
     # single device throughput decrease check
+    single_device_table = []
+    single_device_table_headers = [
+        "Device", "Speedup", r"% change", "status"
+    ]
     for device, speedup in speedup_wrt_master.items():
         change = speedup - 1.0
         tput_tol = DEVICE_THROUGHPUT_DECREASE_THRESHOLD / weights[device]
-        print(f"{device}  speedup (% change): {speedup} ({change*100}%)")
+        print(f"{device:<30}  speedup (% change): {speedup:.2f}x ({change*100:.2f}%)")
 
+        status = "OK"
         if change < tput_tol:
             msg = (
-                f":warning: :eyes: **{device}** throughput change {change*100}% "
+                f":warning: :eyes: **{device}** throughput change {change*100}:.2f% "
                 + f"_exceeds_ {abs(tput_tol)*100}% threshold")
             print(msg)
             problems.append(msg)
-
-    print("Pass\n" if not problems else "Fail\n")
+            status = "throughput decreased"
+        
+        single_device_table.append(
+            [device, f"{speedup:.2f}x", f"{change*100:.2f}%", status]
+        )
+    
+    print(
+        tabulate(
+            single_device_table, headers=single_device_table_headers,
+            format="rst"
+        )
+    )
+    
+    print("Pass\n" if not problems else "FAIL\n")
 
     return problems
 
