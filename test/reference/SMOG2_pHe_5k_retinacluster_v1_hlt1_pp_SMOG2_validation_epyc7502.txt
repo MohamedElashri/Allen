@@ -95,9 +95,9 @@ Hlt1_BESMOG2_LowMult10:           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_MinimumBias:         810/  1000, (24300.00 +/-   372.17) kHz
 Hlt1Passthrough_PV_in_SMOG2:    732/  1000, (21960.00 +/-   420.19) kHz
 Hlt1_SMOG2_DiMuonHighMass:        0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_D2Kpi:                 5/  1000, (  150.00 +/-    66.91) kHz
-Hlt1_SMOG2_eta2pp:                5/  1000, (  150.00 +/-    66.91) kHz
-Hlt1_SMOG2_2BodyGeneric:         25/  1000, (  750.00 +/-   148.11) kHz
+Hlt1_SMOG2_D2Kpi:                 3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1_SMOG2_eta2pp:                4/  1000, (  120.00 +/-    59.88) kHz
+Hlt1_SMOG2_2BodyGeneric:         23/  1000, (  690.00 +/-   142.21) kHz
 Hlt1_SMOG2_SingleTrack:         160/  1000, ( 4800.00 +/-   347.79) kHz
 Inclusive:                     1000/  1000, (30000.00 +/-     0.00) kHz
 
@@ -142,14 +142,14 @@ Hlt1_BESMOG2_LowMult10:           0           0
 Hlt1_SMOG2_MinimumBias:         810           0
 Hlt1Passthrough_PV_in_SMOG2:    732           0
 Hlt1_SMOG2_DiMuonHighMass:        0           0
-Hlt1_SMOG2_D2Kpi:                 5           5
-Hlt1_SMOG2_eta2pp:                5           5
-Hlt1_SMOG2_2BodyGeneric:         25          39
+Hlt1_SMOG2_D2Kpi:                 3           3
+Hlt1_SMOG2_eta2pp:                4           4
+Hlt1_SMOG2_2BodyGeneric:         23          37
 Hlt1_SMOG2_SingleTrack:         160         204
 
-Total decisions: 3894
-Total tracks:    260
-Total SVs:       43
-Total hits:      7957
-Total stdinfo:   6146
+Total decisions: 3889
+Total tracks:    252
+Total SVs:       39
+Total hits:      7715
+Total stdinfo:   6061
 

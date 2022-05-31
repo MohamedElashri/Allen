@@ -69,18 +69,18 @@ Ghost tracks identified as muon with isMuon:                               69/  
 
 
 rate_validator validation:
-Hlt1KsToPiPi:                    20/  1000, (  600.00 +/-   132.82) kHz
-Hlt1TrackMVA:                    17/  1000, (  510.00 +/-   122.64) kHz
+Hlt1KsToPiPi:                    19/  1000, (  570.00 +/-   129.52) kHz
+Hlt1TrackMVA:                    18/  1000, (  540.00 +/-   126.13) kHz
 Hlt1TwoTrackMVA:                 21/  1000, (  630.00 +/-   136.03) kHz
 Hlt1TwoTrackKs:                   1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1SingleHighPtMuon:             0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:       1/  1000, (   30.00 +/-    29.98) kHz
-Hlt1LowPtMuon:                   67/  1000, ( 2010.00 +/-   237.19) kHz
+Hlt1LowPtMuon:                   66/  1000, ( 1980.00 +/-   235.54) kHz
 Hlt1D2KK:                         1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1D2KPi:                        2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1D2PiPi:                       2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1DiMuonHighMass:               6/  1000, (  180.00 +/-    73.26) kHz
-Hlt1DiMuonLowMass:               10/  1000, (  300.00 +/-    94.39) kHz
+Hlt1DiMuonLowMass:               11/  1000, (  330.00 +/-    98.95) kHz
 Hlt1DiMuonSoft:                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowPtDiMuon:                 15/  1000, (  450.00 +/-   115.31) kHz
 Hlt1TrackMuonMVA:                 0/  1000, (    0.00 +/-     0.00) kHz
@@ -116,20 +116,20 @@ Inclusive:                     1000/  1000, (30000.00 +/-     0.00) kHz
 
 selreport_validator validation:
                              Events  Candidates
-Hlt1KsToPiPi:                    20          20
-Hlt1TrackMVA:                    17          20
+Hlt1KsToPiPi:                    19          19
+Hlt1TrackMVA:                    18          20
 Hlt1TwoTrackMVA:                 21          36
 Hlt1TwoTrackKs:                   1           1
 Hlt1SingleHighPtMuon:             0           0
 Hlt1SingleHighPtMuonNoMuID:       1           1
-Hlt1LowPtMuon:                   67          72
+Hlt1LowPtMuon:                   66          71
 Hlt1D2KK:                         1           2
 Hlt1D2KPi:                        2           2
 Hlt1D2PiPi:                       2           2
 Hlt1DiMuonHighMass:               6           7
-Hlt1DiMuonLowMass:               10          10
+Hlt1DiMuonLowMass:               11          11
 Hlt1DiMuonSoft:                   0           0
-Hlt1LowPtDiMuon:                 15          18
+Hlt1LowPtDiMuon:                 15          17
 Hlt1TrackMuonMVA:                 0           0
 Hlt1TrackElectronMVA:             3           3
 Hlt1SingleHighPtElectron:         4           5
@@ -160,8 +160,8 @@ Hlt1_SMOG2_2BodyGeneric:          0           0
 Hlt1_SMOG2_SingleTrack:           0           0
 
 Total decisions: 2126
-Total tracks:    240
-Total SVs:       91
-Total hits:      5551
-Total stdinfo:   4410
+Total tracks:    237
+Total SVs:       90
+Total hits:      5492
+Total stdinfo:   4382
 
