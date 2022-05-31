@@ -48,7 +48,7 @@ void TestUTHits::
 operator()(HostBuffers const& host_buffers, LHCb::MCHits const& mc_hits, LHCb::Pr::UT::Hits const& hit_handler) const
 {
   if (host_buffers.host_number_of_selected_events == 0) {
-    warning() << "No events from Allen. Returning" << endmsg;
+    info() << "Allen UT decoding was not run." << endmsg;
     return;
   }
 
