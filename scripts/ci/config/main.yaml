@@ -51,10 +51,10 @@ a5000:
     - .a5000
     - .run_job
 
-mi100:
-  extends:
-    - .mi100
-    - .run_job
+# mi100: # (disabled)
+#   extends:
+#     - .mi100
+#     - .run_job
 
 epyc7502:
   extends:
@@ -69,7 +69,7 @@ epyc7502-run-changes:
 .device-jobs:
   dependencies:
     - epyc7502
-    - mi100
+    # - mi100
     - a6000
     - a5000
     - geforcertx2080ti
@@ -265,12 +265,13 @@ a5000-full:
 
 # HIP
 
+# N.B. HIP run tests are disabled
 
-mi100-full:
-  extends:
-    - .mi100
-    - .run_jobs_full
-    - .hip_run_job
+# mi100-full:
+#   extends:
+#     - .mi100
+#     - .run_jobs_full
+#     - .hip_run_job
 
 
 # add any jobs listed above to this list
@@ -284,8 +285,8 @@ mi100-full:
     # CPU
     - epyc7502-full
 
-    # HIP
-    - mi100-full
+    # HIP (disabled)
+    # - mi100-full
 
     # CUDA 
     - geforcertx3090-full
