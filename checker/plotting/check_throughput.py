@@ -3,6 +3,7 @@
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 
+from doctest import master
 import sys
 from tabulate import tabulate
 from optparse import OptionParser
@@ -22,7 +23,12 @@ DEVICE_WEIGHTS = {
 }
 
 
-def check_throughput_change(speedup_wrt_master):
+def check_throughput_change(throughput, master_throughput):
+    speedup_wrt_master = {
+        a: throughput.get(a, b) / b
+        for a, b in master_throughput.items()
+    }
+
     problems = []
     weights = {
         device: DEVICE_WEIGHTS.get(device, 1.0)
@@ -48,18 +54,24 @@ def check_throughput_change(speedup_wrt_master):
             problems.append(msg)
             status = "DECREASED"
         
-        single_device_table.append(
-            [device, f"{speedup:.2f}x", f"{change*100:.2f}%", status]
-        )
-    print()
+        single_device_table.append([
+            device,
+            f"{throughput.get(device, '--')/100.:.2f}",
+            f"{master_throughput[device]/100.:.2f}",
+            f"{speedup:.2f}x",
+            f"{change*100:.2f}%",
+            status
+        ])
+    
+    print("")
     print(
         tabulate(
             single_device_table, headers=[
-                "Device", "Speedup", r"% change", "status"
+                "Device", "Throughput (kHz)", "Reference Throughput (kHz)" "Speedup", r"% change", "Status"
             ],
         )
     )
-    print()
+    print("")
     
     # Average throughputs across all devices and complain if we are above decr % threshold
     average_speedup = (sum(speedup * weights[device]
@@ -117,12 +129,8 @@ def main():
 
     master_throughput = get_master_throughput(
         options.job, csvfile=options.throughput, scale=1e-3)
-    speedup_wrt_master = {
-        a: throughput.get(a, b) / b
-        for a, b in master_throughput.items()
-    }
 
-    problems = check_throughput_change(speedup_wrt_master)
+    problems = check_throughput_change(throughput, master_throughput)
 
     if problems:
         sys.exit(7)
