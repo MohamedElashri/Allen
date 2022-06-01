@@ -6,6 +6,7 @@
 check_build_exists
 
 # Configure RUN_OPTIONS.
+set +x; set +u
 # If already defined, let it stick.
 if [ ! -z ${RUN_OPTIONS+x} ]; then
   RUN_OPTIONS=""
@@ -137,3 +138,10 @@ echo "${CI_COMMIT_SHORT_SHA}" > "${OUTPUT_FOLDER}/revision.txt"
 
 # write metric to display on MR
 echo "throughput_kHz{device=\"${DEVICE_ID}\",sequence=\"${SEQUENCE}\",dataset=\"${DATA_TAG}\"} ${THROUGHPUT_KHZ}" >> "${OUTPUT_FOLDER}/metrics.txt"
+
+
+if [ "${TPUT_REPORT}" = "NO_REPORT" ]; then 
+  echo "TPUT_REPORT is set to ${TPUT_REPORT} - throughput will not be reported."
+
+  touch "${OUTPUT_FOLDER}/no_throughput_report.txt"
+fi

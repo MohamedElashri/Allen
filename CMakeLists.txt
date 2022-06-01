@@ -345,6 +345,8 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   message(STATUS "HIP GCC TOOLCHAIN: " ${HIP_TOOLCHAIN_OPTIONS})
   set(HIPCC_OPTIONS "${HIP_RELEASE_OPTIONS} ${HIP_TOOLCHAIN_OPTIONS} -fPIC -std=c++17 --amdgpu-target=${HIP_ARCH}")
 
+  string(APPEND CMAKE_CXX_FLAGS " -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-deprecated-copy")
+
   # Add the origin directory
   set(CMAKE_EXE_LINKER_FLAGS "-Wl,-rpath,./")
 
