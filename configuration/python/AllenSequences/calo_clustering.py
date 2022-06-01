@@ -15,7 +15,7 @@ reconstructed_objects = hlt1_reconstruction()
 ecal_clusters = reconstructed_objects["ecal_clusters"]
 
 calo_cluster_line = line_maker(
-    make_single_calo_cluster_line(ecal_clusters, name="Hlt1SingleCaloCluster", minEt=400, maxEt=2000))
+    make_single_calo_cluster_line(ecal_clusters, name="Hlt1SingleCaloCluster", minEt=400))
 
 line_algorithms = [calo_cluster_line[0]]
 
