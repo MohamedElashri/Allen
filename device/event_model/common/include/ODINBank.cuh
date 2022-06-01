@@ -22,7 +22,7 @@ struct ODINRawBank {
     data = reinterpret_cast<uint32_t const*>(raw_bank) + 1;
     size = s / sizeof(uint32_t);
     // All known ODIN banks consist of 10 words
-    assert(size = 10);
+    assert(size == 10);
   }
 
   /// Constructor from MEP layout
@@ -31,7 +31,7 @@ struct ODINRawBank {
     data = reinterpret_cast<uint32_t const*>(fragment);
     size = s / sizeof(uint32_t);
     // All known ODIN banks consist of 10 words
-    assert(size = 10);
+    assert(size == 10);
   }
 };
 

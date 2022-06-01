@@ -13,6 +13,7 @@
 #include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
+#include <optional>
 
 #include <sys/types.h>
 #include <sys/stat.h>
