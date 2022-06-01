@@ -8,6 +8,8 @@ if [ -z ${ADDITIONAL_OPTIONS+x} ]; then
   ADDITIONAL_OPTIONS=""
 fi
 
+set +u
+
 if [ "${AVOID_HIP}" = "1" ]; then 
   if [ "${TARGET}" = "HIP" ]; then
     echo "***** Variable TARGET is set to HIP, and AVOID_HIP is set to 1 - quit gracefully."
