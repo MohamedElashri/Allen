@@ -8,6 +8,14 @@ if [ -z ${ADDITIONAL_OPTIONS+x} ]; then
   ADDITIONAL_OPTIONS=""
 fi
 
+if [ "${AVOID_HIP}" = "1" ]; then 
+  if [ "${TARGET}" = "HIP" ]; then
+    echo "***** Variable TARGET is set to HIP, and AVOID_HIP is set to 1 - quit gracefully."
+    exit 0
+  fi
+fi
+
+
 # set -e will force the script to exit if a command quits with a nonzero RC. This avoids silent failures
 # set -u forces the script to fail if a variable is unbound / undefined.
 # set -x prints all commands to STDERR so you can see what is being executed.
