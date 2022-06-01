@@ -104,6 +104,10 @@ find_package(Filesystem REQUIRED)
 
 find_package(umesimd REQUIRED)
 
+find_package(PkgConfig)
+pkg_check_modules(zmq libzmq REQUIRED IMPORTED_TARGET)
+pkg_check_modules(sodium libsodium REQUIRED IMPORTED_TARGET)
+
 if(WITH_Allen_PRIVATE_DEPENDENCIES)
   # We need a Python 3 interpreter
   find_package(Python 3 REQUIRED Interpreter)
@@ -121,11 +125,6 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
   # Boost
   find_package(Boost REQUIRED COMPONENTS filesystem iostreams thread regex
     serialization program_options unit_test_framework)
-
-  # for ZeroMQ
-  find_package(PkgConfig)
-  pkg_check_modules(zmq libzmq REQUIRED IMPORTED_TARGET)
-  pkg_check_modules(sodium libsodium REQUIRED IMPORTED_TARGET)
 
   if(NOT STANDALONE)
     find_package(Rangev3 REQUIRED)
