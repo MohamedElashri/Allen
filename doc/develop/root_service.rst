@@ -1,5 +1,6 @@
 .. _root_service:
-ROOT Service 
+
+ROOT Service
 ====================================================
 
 This tutorial will help you use the ROOT Service`](main/include/ROOTService.h) utility to monitor  algorithms in general and, in particular, `Lines`. The code of the service is located `here <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/main/include/ROOTService.h>`_.
@@ -21,21 +22,21 @@ In this example we want to monitor the `Mass` and `pT` of the Secondary Vertices
 First wee need to add the additional `Parameters` that will carry our arrays to our `Line` header:
 
 .. code-block:: c++
-                
+
    namespace kstopipi_line {
      struct Parameters {
        (...)
 
        DEVICE_OUTPUT(dev_sv_masses_t, float) dev_sv_masses;
        HOST_OUTPUT(host_sv_masses_t, float) host_sv_masses;
-   
+
        DEVICE_OUTPUT(dev_pt_t, float) dev_pt;
        HOST_OUTPUT(host_pt_t, float) host_pt;
 
        PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
      };
     };
-  
+
 Now we can put a `init_monitor` function in order to initialize the values for our arrays:
 
 .. code-block:: c++
@@ -71,7 +72,7 @@ Then we want to set up an `ouput_monitor` function in order to transport these v
   void kstopipi_line::kstopipi_line_t::output_monitor(
     const ArgumentReferences<Parameters>& arguments,
     const RuntimeOptions& runtime_options,
-    const Allen::Context& context) const {  
+    const Allen::Context& context) const {
 
       copy<host_pt_t, dev_pt_t>(arguments, context);
       Allen::synchronize(context);
@@ -145,4 +146,3 @@ The source files that implement these examples correspond to the `KsToPiPiLine` 
 
 * `Line Header <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/selections/lines/inclusive_hadron/include/KsToPiPiLine.cuh>`_
 * `Line Implementation <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/selections/lines/inclusive_hadron/src/KsToPiPiLine.cu>`_
-

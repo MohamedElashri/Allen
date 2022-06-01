@@ -9,65 +9,97 @@
 
 namespace SciFi {
   struct SciFiRawBank {
-    uint32_t sourceID;
-    uint16_t* data;
-    uint16_t* last;
+    uint32_t sourceID = 0;
+    uint16_t const* data = nullptr;
+    uint16_t const* last = nullptr;
+    uint8_t type = Allen::LastBankType;
 
-    __device__ __host__ SciFiRawBank(const char* raw_bank, const char* end)
+    __device__ __host__ SciFiRawBank(const char* raw_bank, const uint16_t s, const uint8_t t)
     {
       const char* p = raw_bank;
-      sourceID = *((uint32_t*) p);
+      sourceID = reinterpret_cast<uint32_t const*>(p)[0];
       p += sizeof(uint32_t);
-      data = (uint16_t*) p;
-      last = (uint16_t*) end;
+      data = reinterpret_cast<uint16_t const*>(p);
+      last = reinterpret_cast<uint16_t const*>(p + s);
+      type = t;
     }
 
-    __device__ __host__ SciFiRawBank(const uint32_t sID, const char* fragment, const char* end)
+    __device__ __host__ SciFiRawBank(const uint32_t sID, const char* fragment, const uint16_t s, const uint8_t t)
     {
       sourceID = sID;
-      data = (uint16_t*) fragment;
-      last = (uint16_t*) end;
+      data = reinterpret_cast<uint16_t const*>(fragment);
+      last = reinterpret_cast<uint16_t const*>(fragment + s);
+      type = t;
     }
   };
 
   struct SciFiRawEvent {
   private:
-    uint32_t m_number_of_raw_banks;
-    uint32_t* m_raw_bank_offset;
-    char* m_payload;
+    uint32_t m_number_of_raw_banks = 0;
+    uint32_t const* m_raw_bank_offset = nullptr;
+    uint16_t const* m_raw_bank_sizes = nullptr;
+    uint8_t const* m_raw_bank_types = nullptr;
+    char const* m_payload = nullptr;
 
-    __device__ __host__ void initialize(const char* event)
+    __device__ __host__ void initialize(const char* event, const uint16_t* sizes, const uint8_t* types = nullptr)
     {
       const char* p = event;
-      m_number_of_raw_banks = *((uint32_t*) p);
+      m_number_of_raw_banks = reinterpret_cast<uint32_t const*>(p)[0];
       p += sizeof(uint32_t);
-      m_raw_bank_offset = (uint32_t*) p;
+      m_raw_bank_offset = reinterpret_cast<uint32_t const*>(p);
       p += (m_number_of_raw_banks + 1) * sizeof(uint32_t);
-      m_payload = (char*) p;
+      m_raw_bank_sizes = sizes;
+      m_raw_bank_types = types;
+      m_payload = p;
     }
 
   public:
-    __device__ __host__ SciFiRawEvent(const char* event) { initialize(event); }
+    // FIXME: temporarily keep this one until types is properly propagated everywhere.
+    __device__ __host__ SciFiRawEvent(const char* event, const uint16_t* sizes) { initialize(event, sizes); }
+
+    // FIXME: temporarily keep this one until types is properly propagated everywhere.
+    __device__ __host__ SciFiRawEvent(
+      const char* dev_scifi_raw_input,
+      const unsigned* dev_scifi_raw_input_offsets,
+      const unsigned* dev_scifi_raw_input_sizes,
+      const unsigned event_number)
+    {
+      const uint16_t* sizes = Allen::bank_sizes(dev_scifi_raw_input_sizes, event_number);
+      initialize(dev_scifi_raw_input + dev_scifi_raw_input_offsets[event_number], sizes);
+    }
+
+    __device__ __host__ SciFiRawEvent(const char* event, const uint16_t* sizes, const uint8_t* types)
+    {
+      initialize(event, sizes, types);
+    }
 
     __device__ __host__ SciFiRawEvent(
       const char* dev_scifi_raw_input,
       const unsigned* dev_scifi_raw_input_offsets,
+      const unsigned* dev_scifi_raw_input_sizes,
+      const unsigned* dev_scifi_raw_input_types,
       const unsigned event_number)
     {
-      initialize(dev_scifi_raw_input + dev_scifi_raw_input_offsets[event_number]);
+      const uint16_t* sizes = Allen::bank_sizes(dev_scifi_raw_input_sizes, event_number);
+      const uint8_t* types = Allen::bank_types(dev_scifi_raw_input_types, event_number);
+      initialize(dev_scifi_raw_input + dev_scifi_raw_input_offsets[event_number], sizes, types);
     }
 
     __device__ __host__ unsigned number_of_raw_banks() const { return m_number_of_raw_banks; }
 
     __device__ __host__ SciFiRawBank raw_bank(const unsigned index) const
     {
-      return SciFiRawBank {m_payload + m_raw_bank_offset[index], m_payload + m_raw_bank_offset[index + 1]};
+      auto type = m_raw_bank_types == nullptr ? uint8_t {0} : m_raw_bank_types[index];
+      return SciFiRawBank {m_payload + m_raw_bank_offset[index], m_raw_bank_sizes[index], type};
     }
 
     // get bank size in bytes, subtract four bytes for header word
-    __device__ __host__ unsigned bank_size(const unsigned index) const
+    __device__ __host__ unsigned bank_size(const unsigned index) const { return m_raw_bank_sizes[index] - 4; }
+
+    // get bank type
+    __device__ __host__ unsigned bank_type(const unsigned index) const
     {
-      return m_raw_bank_offset[index + 1] - m_raw_bank_offset[index] - 4;
+      return m_raw_bank_types == nullptr ? uint8_t {0} : m_raw_bank_types[index];
     }
   };
 

@@ -273,14 +273,6 @@ int allen(
   // Register all consumers
   register_consumers(updater, constants);
 
-  // Run all registered producers and consumers
-  // FIXME: remove this in favour of the first triggered update
-  {
-    LHCb::ODIN odin;
-    odin.setRunNumber(0);
-    updater->update(std::move(odin.data));
-  }
-
   auto const& configuration = configuration_reader->params();
 
   // Find the number of lines from gather_selections
@@ -708,9 +700,9 @@ int allen(
 
             // Check once that raw banks with MC information are available if MC check is requested
             if (n_events_read == 0 && sequence_contains_validation_algorithms) {
-              auto bno_pvs = input_provider->banks(BankTypes::OTError, *slice_index);
-              auto bno_tracks = input_provider->banks(BankTypes::OTRaw, *slice_index);
-              if (std::get<2>(bno_pvs).size() == 1 || std::get<2>(bno_tracks).size() == 1) {
+              auto bno_pvs = input_provider->banks(BankTypes::MCVertices, *slice_index);
+              auto bno_tracks = input_provider->banks(BankTypes::MCTracks, *slice_index);
+              if (bno_pvs.offsets.size() == 1 || bno_tracks.offsets.size() == 1) {
                 error_cout << "No raw bank containing MC information found in input file" << std::endl;
                 goto loop_error;
               }
@@ -738,7 +730,8 @@ int allen(
             debug_cout << "Requested run change from " << current_run_number << " to " << next_odin->runNumber()
                        << std::endl;
             // guard against double run changes if we have multiple input threads
-            if (disable_run_changes || next_odin->runNumber() == current_run_number) next_odin.reset();
+            if ((disable_run_changes && current_run_number != 0) || next_odin->runNumber() == current_run_number)
+              next_odin.reset();
           }
           else if (msg == "WRITTEN") {
             auto slc_idx = zmqSvc->receive<size_t>(socket);
@@ -772,7 +765,7 @@ int allen(
             buffers_manager->returnBufferWritten(buf_idx);
           }
           else if (msg == "DONE") {
-            if (((allen_control && stop) || !allen_control) && !io_done) {
+            if (!io_done) {
               io_done = true;
               info_cout << "Input complete\n";
             }
@@ -889,11 +882,15 @@ int allen(
     }
 
     if (allen_control && items[control_index].revents & zmq::POLLIN) {
-      auto msg = zmqSvc->receive<std::string>(*allen_control);
+      bool more = false;
+      auto msg = zmqSvc->receive<std::string>(*allen_control, &more);
+
       if (msg == "STOP") {
-        stop_timeout = zmqSvc->receive<float>(*allen_control);
         stop = true;
-        t_stop = Timer {};
+        if (more) {
+          stop_timeout = zmqSvc->receive<float>(*allen_control);
+          t_stop = Timer {};
+        }
       }
       else if (msg == "START") {
         // Start the input provider
@@ -1006,6 +1003,8 @@ loop_error:
     info_cout << "Wrote " << n_events_output << "/" << n_events_processed << " events to "
               << output_handler->connection() << "\n";
   }
+
+  input_provider.reset();
 
   // Reset device
   Allen::device_reset();

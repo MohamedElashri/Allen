@@ -49,9 +49,6 @@ struct MDFProviderConfig {
   // check the MDF checksum if it is available
   bool check_checksum = false;
 
-  // number of prefetch buffers
-  size_t n_buffers = 10;
-
   // number of transpose threads
   size_t n_transpose_threads = 5;
 
@@ -65,6 +62,8 @@ struct MDFProviderConfig {
   size_t n_loops = 0;
 
   bool split_by_run = false;
+
+  std::unordered_set<LHCb::RawBank::BankType> skip_banks;
 };
 
 /**
@@ -101,12 +100,12 @@ public:
     std::unordered_set<BankTypes> const& bank_types,
     MDFProviderConfig config = MDFProviderConfig {}) :
     InputProvider {n_slices, events_per_slice, bank_types, IInputProvider::Layout::Allen, n_events},
-    m_buffer_status(config.n_buffers), m_slice_to_buffer(n_slices, {-1, 0}), m_slice_free(n_slices, true),
-    m_mfp_count {0}, m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
+    m_buffer_status(n_slices), m_slice_to_buffer(n_slices, {-1, 0}), m_slice_free(n_slices, true), m_mfp_count {0},
+    m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
 
     // Preallocate prefetch buffer memory
-    m_buffers.resize(config.n_buffers);
+    m_buffers.resize(n_slices);
     for (auto& [n_filled, event_offsets, buffer, transpose_start] : m_buffers) {
       auto epb = config.events_per_buffer;
       buffer.resize((epb < 100 ? 100 : epb) * average_event_size * bank_size_fudge_factor * kB);
@@ -154,8 +153,15 @@ public:
 
         // Check what type of file we have: old MC or (new MC or data)
         m_is_mc = check_sourceIDs(event_span);
-        m_sd_from_raw = m_is_mc ? sd_from_bank_type : sd_from_sourceID;
-        std::tie(count_success, m_mfp_count) = fill_counts(event_span, m_sd_from_raw);
+        if (*m_is_mc) {
+          m_sd_from_raw = sd_from_bank_type;
+          m_bank_sorter = sort_by_bank_type;
+        }
+        else {
+          m_sd_from_raw = sd_from_sourceID;
+          m_bank_sorter = sort_by_sourceID;
+        }
+        std::tie(count_success, m_mfp_count) = fill_counts(event_span, m_sd_from_raw, m_config.skip_banks);
 
         for (auto allen_type : types()) {
           if (m_mfp_count[to_integral(allen_type)] == 0) {
@@ -173,7 +179,7 @@ public:
 
           // Allocate slice memory that will contain transposed banks ready
           // for processing by the Allen kernels
-          auto size_fun = [events_per_slice, this](BankTypes bank_type) -> std::tuple<size_t, size_t> {
+          auto size_fun = [events_per_slice, this](BankTypes bank_type) -> std::tuple<size_t, size_t, size_t> {
             auto it = BankSizes.find(bank_type);
             auto ib = to_integral<BankTypes>(bank_type);
             if (it == end(BankSizes)) {
@@ -182,35 +188,31 @@ public:
             // Allocate a minimum size
             auto allocate_events = events_per_slice < 100 ? 100 : events_per_slice;
 
+            // Allocate memory to store the offsets to the sizes and
+            // the sizes themselves. The details of the memory layout
+            // are documented in the Allen documentation.
+            auto n_sizes = allocate_events * ((m_mfp_count[ib] + 2) / 2 + 1);
+
             // When events are transposed from the read buffer into
             // the per-rawbank-type slices, a check is made each time
             // to see if there is enough space available in a slice.
             // To avoid having to read every event twice to get the
-            // size of all the banks, the size of the entire event is
-            // used for the check - 65 kB on average. To avoid
-            // problems for banks with very low average size like the
-            // ODIN bank - 0.1 kB, a fixed amount is also added.
+            // size of all the banks.
             auto n_bytes = std::lround(
               ((1 + m_mfp_count[ib]) * sizeof(uint32_t) + it->second * kB) * allocate_events * bank_size_fudge_factor +
               2 * MB);
-            return {n_bytes, events_per_slice};
+            return {n_bytes, n_sizes, events_per_slice};
           };
           m_slices = allocate_slices(n_slices, types(), size_fun);
         }
       }
     }
 
-    // Sanity check on the number of buffers and threads
-    if (m_config.n_buffers <= 1) {
-      warning_cout << "too few read buffers requested, setting it to 2\n";
-      m_config.n_buffers = 2;
-    }
-
-    if (m_config.n_transpose_threads > m_config.n_buffers - 1) {
-      warning_cout << "too many transpose threads requested with respect "
-                      "to the number of read buffers; reducing the number of threads to "
-                   << m_config.n_buffers - 1;
-      m_config.n_transpose_threads = m_config.n_buffers - 1;
+    if (m_config.n_transpose_threads > n_slices) {
+      debug_cout << "too many transpose threads requested with respect "
+                    "to the number of read buffers; reducing the number of threads to "
+                 << n_slices;
+      m_config.n_transpose_threads = n_slices;
     }
 
     // Start the transpose threads
@@ -242,6 +244,8 @@ public:
     for (auto& thread : m_transpose_threads) {
       thread.join();
     }
+
+    free_slices(m_slices);
   }
 
   /**
@@ -269,17 +273,17 @@ public:
   BanksAndOffsets banks(BankTypes bank_type, size_t slice_index) const override
   {
     auto ib = to_integral(bank_type);
-    // FIXME structured binding version below triggers clang 11 bug
-    //       revert after clang fix available
-    // auto const& [banks, data_size, offsets, offsets_size] = m_slices[ib][slice_index];
-    auto const& tup = m_slices[ib][slice_index];
-    auto const& banks = std::get<0>(tup);
-    auto const offsets = std::get<2>(tup);
-    auto const offsets_size = std::get<3>(tup);
+    auto const& slice = m_slices[ib][slice_index];
+    auto const& banks = slice.fragments;
+    auto const offsets = slice.offsets;
+    auto const offsets_size = slice.n_offsets;
 
     gsl::span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
+    gsl::span<unsigned int const> s {slice.sizes.data(), slice.sizes.size()};
     gsl::span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
-    return BanksAndOffsets {{std::move(b)}, offsets[offsets_size - 1], std::move(o), m_banks_version[ib]};
+    gsl::span<unsigned int const> t {slice.types.data(), slice.types.size()};
+    return BanksAndOffsets {
+      {std::move(b)}, std::move(o), offsets[offsets_size - 1], std::move(s), std::move(t), m_banks_version[ib]};
   }
 
   /**
@@ -315,9 +319,8 @@ public:
         m_transposed.pop_front();
         if (n_filled > 0) {
           auto bno = banks(BankTypes::ODIN, slice_index);
-          gsl::span<unsigned const> odin_data {
-            odin_data_t::data(std::get<0>(bno)[0].data(), std::get<2>(bno).data(), 0), 10};
-          odin = odin_data;
+          auto ob = odin_bank<false>(bno.fragments[0].data(), bno.offsets.data(), bno.sizes.data(), 0);
+          odin = gsl::span<unsigned const> {ob.data, ob.size};
         }
       }
     }
@@ -465,12 +468,14 @@ private:
       {
         std::unique_lock<std::mutex> lock {m_prefetch_mut};
         if (m_prefetched.empty() && !m_transpose_done) {
-          m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_transpose_done; });
+          m_prefetch_cond.wait(
+            lock, [this] { return !m_prefetched.empty() || m_transpose_done || (m_prefetched.empty() && m_done); });
         }
         if (m_prefetched.empty() || m_transpose_done) {
           this->debug_output(
             "Transpose done: " + std::to_string(m_transpose_done) + " " + std::to_string(m_prefetched.empty()),
             thread_id);
+          m_transpose_done = true;
           break;
         }
         i_read = m_prefetched.front();
@@ -516,7 +521,9 @@ private:
         *slice_index,
         this->types(),
         m_sd_from_raw,
+        m_bank_sorter,
         m_mfp_count,
+        m_config.skip_banks,
         m_banks_version,
         m_event_ids[*slice_index],
         m_masks[*slice_index],
@@ -674,12 +681,6 @@ private:
         std::tie(eof, error, bytes_read) =
           read_events(*m_input, read_buffer, m_header, m_compress_buffer, to_prefetch, m_config.check_checksum);
 
-        auto const is_mc = check_sourceIDs({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
-        if (m_is_mc && *m_is_mc != is_mc) {
-          throw std::out_of_range {"The next batch of events is different from the previous events"s +
-                                   (*m_is_mc ? "some banks now"s : "none of the banks"s) + "have the top 5 bits set"s};
-        }
-
         size_t n_read = std::get<0>(read_buffer) - read;
         if (to_read) {
           *to_read -= std::min(*to_read, n_read);
@@ -722,15 +723,28 @@ private:
         }
       }
 
-      this->debug_output(
-        "Read " + std::to_string(std::get<0>(read_buffer)) + " events into " + std::to_string(i_buffer));
+      auto const n_events = std::get<0>(read_buffer);
+      this->debug_output("Read " + std::to_string(n_events) + " events into " + std::to_string(i_buffer));
+
+      if (m_is_mc && n_events > 0) {
+        auto const is_mc = check_sourceIDs({std::get<2>(read_buffer).data(), std::get<1>(read_buffer)[1]});
+        if (*m_is_mc != is_mc) {
+          throw std::out_of_range {"The next batch of events is different from the previous events"s +
+                                   (*m_is_mc ? "some banks now"s : "none of the banks"s) + "have the top 5 bits set"s};
+        }
+      }
 
       // Notify a transpose thread that a new buffer of events is
       // ready. If prefetching is done, wake up all threads
       if (!error) {
         {
           std::unique_lock<std::mutex> lock {m_prefetch_mut};
-          m_prefetched.push_back(i_buffer);
+          if (n_events > 0) {
+            m_prefetched.push_back(i_buffer);
+          }
+          else {
+            it->writable = true;
+          }
         }
         if (prefetch_done) {
           m_done = prefetch_done;
@@ -801,6 +815,8 @@ private:
   std::optional<bool> m_is_mc = std::nullopt;
 
   Allen::sd_from_raw_bank m_sd_from_raw;
+
+  Allen::bank_sorter m_bank_sorter;
 
   // Run and event numbers present in each slice
   std::vector<EventIDs> m_event_ids;

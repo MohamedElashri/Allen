@@ -274,7 +274,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
     add_library(${ARGV})
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
     install(TARGETS ${ARGV0}
       EXPORT Allen
       LIBRARY DESTINATION lib)
@@ -298,7 +298,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
     endif()
 
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
     install(TARGETS ${ARGV0}
       EXPORT Allen
       DESTINATION ${destination})
@@ -371,7 +371,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
 
     install(TARGETS ${ARGV0}
       EXPORT Allen
@@ -385,7 +385,6 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
-  enable_language(CUDA)
 
   set(CMAKE_CUDA_STANDARD 17)
   set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
@@ -400,8 +399,11 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_VERBOSE_FLAGS "")
   endif()
 
-  string(REGEX REPLACE "toolchain/.*" "toolchain" CXX_COMPILER_DIR ${CMAKE_CXX_COMPILER})
-  string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} -ccbin=${CXX_COMPILER_DIR} ${CUDA_TOOLCHAIN_OPTIONS} -Xcudafe --display_error_number --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+  string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} ${CUDA_TOOLCHAIN_OPTIONS} -Xcudafe --display_error_number --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
+  if (NOT CMAKE_CUDA_HOST_COMPILER)
+    string(REGEX REPLACE "toolchain/.*" "toolchain" CXX_COMPILER_DIR ${CMAKE_CXX_COMPILER})
+    string(APPEND CMAKE_CUDA_FLAGS " -ccbin=${CXX_COMPILER_DIR} ")
+  endif()
 
   message(STATUS "CMAKE CUDA FLAGS:" ${CMAKE_CUDA_FLAGS})
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
@@ -420,7 +422,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
       set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
     endif()
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${PROJECT_BINARY_DIR}/code_generation)
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     install(TARGETS ${ARGV0}
       EXPORT Allen
@@ -451,7 +453,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   function(allen_add_executable)
     add_executable(${ARGV})
     if(SEPARABLE_COMPILATION)
-      set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
+      set_property(TARGET ${ARGV0} PROPERTY CUDA_RESOLVE_DEVICE_SYMBOLS OFF)
     endif()
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
@@ -605,6 +607,7 @@ foreach(header
     InputProvider.h
     OutputHandler.h
     SliceUtils.h
+    FileSystem.h
     TransposeTypes.h)
   list(APPEND AllenHeaders main/include/${header})
 endforeach()
@@ -637,7 +640,6 @@ message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 # Add host library
 allen_add_host_library(HostCommon STATIC
   main/src/BankTypes.cpp
-  main/src/CheckVP.cpp
   main/src/InputReader.cpp
   main/src/InputTools.cpp
   main/src/Logger.cpp
@@ -649,9 +651,9 @@ allen_add_host_library(HostCommon STATIC
   main/src/Transpose.cpp)
 
 target_link_libraries(AllenCommon INTERFACE
-  mdf AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
+  LHCbEvent AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
 target_link_libraries(HostCommon PRIVATE
-  EventModel Gear Backend mdf NonEventData AllenCommon LHCbEvent Boost::iostreams)
+  mdf EventModel Gear Backend mdf NonEventData AllenCommon LHCbEvent Boost::iostreams)
 
 allen_add_host_library(AllenLib SHARED
   main/src/Allen.cpp
@@ -661,30 +663,31 @@ allen_add_host_library(AllenLib SHARED
   main/src/RegisterConsumers.cpp
   main/src/ZMQOutputSender.cpp)
 
-
-
 target_compile_definitions(AllenLib PUBLIC ${TARGET_DEFINITION})
 
-target_link_libraries(AllenLib PUBLIC
-  Stream
-  HostCommon
-  AllenCommon
-  HostEventModel
-  TrackChecking
-  PVChecking
-  CheckClustering
-  SelChecking
-  Monitoring
-  NonEventData
-  AllenZMQ
-  HostCombiners
-  Threads::Threads
-  Backend
-  EventModel
-  Gear
-  mdf
-  LHCbEvent
-  ${CMAKE_DL_LIBS})
+target_link_libraries(AllenLib
+  PRIVATE
+    Backend
+    Stream
+    HostCommon
+    HostEventModel
+    NonEventData
+    TrackChecking
+    PVChecking
+    CheckClustering
+    SelChecking
+    Monitoring
+    HostCombiners
+    EventModel
+    Gear
+    mdf
+    LHCbEvent
+  PUBLIC
+    AllenCommon
+    AllenRuntime
+    Threads::Threads
+    AllenZMQ
+    ${CMAKE_DL_LIBS})
 
 # To propagate filesystem includes/libs
 target_link_libraries(AllenLib PRIVATE AllenFS)
@@ -700,7 +703,7 @@ endif()
 
 allen_add_executable(Allen main/src/main.cpp)
 
-target_link_libraries(Allen PRIVATE AllenLib)
+target_link_libraries(Allen PRIVATE AllenLib NonEventData)
 
 if (NOT STANDALONE)
   target_link_libraries(Allen PRIVATE fmt::fmt)
@@ -717,7 +720,7 @@ if (STANDALONE)
   find_package(Git REQUIRED)
   file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/input/PARAM/")
   SET(PARAMFILESROOT "${CMAKE_CURRENT_SOURCE_DIR}/input/PARAM/ParamFiles/")
-  add_custom_command(  
+  add_custom_command(
     OUTPUT "${PARAMFILESROOT}"
     COMMENT "Checking out parameterization files from the LHCb stack"
     COMMAND
@@ -729,4 +732,3 @@ if (STANDALONE)
   add_compile_definitions(PARAMFILESROOTPATH=${PARAMFILESROOT})
   message(STATUS "PARAMFILESROOT set to ${PARAMFILESROOT}")
 endif()
-

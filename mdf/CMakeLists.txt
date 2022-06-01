@@ -5,10 +5,33 @@
 # Interface library for lhcb includes
 add_library(LHCbEvent INTERFACE)
 
+if (STANDALONE)
+  set(odin_files "src/ODIN.cpp" "include/Event/ODIN.h")
+else()
+  set(odin_files "src/ODIN.cpp")
+endif()
+
+foreach(odin_file ${odin_files})
+  if (NOT EXISTS "${PROJECT_BINARY_DIR}/imported_${odin_file}")
+    file(DOWNLOAD "https://gitlab.cern.ch/lhcb/LHCb/-/raw/master/Event/DAQEvent/${odin_file}"
+      "${PROJECT_BINARY_DIR}/imported_${odin_file}"
+      STATUS ODIN_DOWNLOAD_STATUS)
+    list(POP_FRONT ODIN_DOWNLOAD_STATUS_CODE ODIN_DOWNLOAD_STATUS_MSG)
+    if(ODIN_DOWNLOAD_STATUS_CODE)
+      message(FATAL_ERROR "Failed to get ${odin_file} copy: ${ODIN_DOWNLOAD_STATUS_MSG}")
+    endif()
+  endif()
+endforeach()
+
+add_library(odin OBJECT ${PROJECT_BINARY_DIR}/imported_src/ODIN.cpp)
+target_link_libraries(odin PRIVATE LHCbEvent cppgsl::cppgsl)
+target_compile_definitions(odin PRIVATE ODIN_WITHOUT_GAUDI)
+
 set(mdf_sources
     src/raw_helpers.cpp
     src/read_mdf.cpp
-    src/write_mdf.cpp)
+    src/write_mdf.cpp
+	$<TARGET_OBJECTS:odin>)
 
 if (USE_ROOT)
   list(APPEND mdf_sources src/root_mdf.cpp)
@@ -25,20 +48,6 @@ target_include_directories(LHCbEvent INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT
 
 if (STANDALONE)
   # Make sure we have a local copy of ODIN.{h,cpp} if building in standalone mode
-  set(odin_files "src/ODIN.cpp" "include/Event/ODIN.h")
-  foreach(odin_file ${odin_files})
-    if (NOT EXISTS "${PROJECT_BINARY_DIR}/imported_${odin_file}")
-      file(DOWNLOAD "https://gitlab.cern.ch/lhcb/LHCb/-/raw/master/Event/DAQEvent/${odin_file}"
-        "${PROJECT_BINARY_DIR}/imported_${odin_file}"
-        STATUS ODIN_DOWNLOAD_STATUS)
-      list(POP_FRONT ODIN_DOWNLOAD_STATUS_CODE ODIN_DOWNLOAD_STATUS_MSG)
-      if(ODIN_DOWNLOAD_STATUS_CODE)
-        message(FATAL_ERROR "Failed to get ${odin_file} copy: ${ODIN_DOWNLOAD_STATUS_MSG}")
-      endif()
-    endif()
-  endforeach()
-  list(APPEND mdf_sources ${PROJECT_BINARY_DIR}/imported_src/ODIN.cpp)
-  target_sources(mdf PRIVATE ${mdf_sources})
   target_include_directories(LHCbEvent INTERFACE
     lhcb
     ${PROJECT_BINARY_DIR}/imported_include
@@ -61,18 +70,20 @@ remove_definitions(-DTARGET_DEVICE_CUDA)
 add_compile_definitions(TARGET_DEVICE_CPU)
 
 function(test_program)
-  cmake_parse_arguments(PARSED_ARGS "" "NAME" "" ${ARGN})
-  add_executable(${PARSED_ARGS_NAME} test/${PARSED_ARGS_NAME}.cpp)
+  cmake_parse_arguments(PARSED_ARGS "" "NAME;SOURCE" "" ${ARGN})
+  set(test_name allen_${PARSED_ARGS_NAME})
+  add_executable(${test_name} ${PARSED_ARGS_SOURCE})
 
   find_package(Threads REQUIRED)
 
-  target_link_libraries(${PARSED_ARGS_NAME} PRIVATE Transpose Threads::Threads EventModel AllenZMQ Catch2::Catch2)
+  target_link_libraries(${test_name} PRIVATE Transpose Threads::Threads EventModel AllenZMQ Catch2::Catch2 Boost::program_options)
+  target_compile_definitions(${test_name} PRIVATE ODIN_WITHOUT_GAUDI)
   if (NOT STANDALONE)
     find_package(fmt REQUIRED)
-    target_link_libraries(${PARSED_ARGS_NAME} PRIVATE fmt::fmt)
+    target_link_libraries(${test_name} PRIVATE fmt::fmt LHCb::DAQEventLib)
   endif()
 
-  install(TARGETS ${PARSED_ARGS_NAME} RUNTIME DESTINATION bin)
+  install(TARGETS ${test_name} RUNTIME DESTINATION bin)
 endfunction()
 
 if (BUILD_TESTING)
@@ -80,19 +91,19 @@ if (BUILD_TESTING)
     ${PROJECT_SOURCE_DIR}/main/src/Transpose.cpp
     ${PROJECT_SOURCE_DIR}/main/src/Provider.cpp
     ${PROJECT_SOURCE_DIR}/main/src/ZMQOutputSender.cpp)
+  target_compile_definitions(Transpose PRIVATE ODIN_WITHOUT_GAUDI)
   target_link_libraries(Transpose PUBLIC HostCommon Backend mdf LHCbEvent AllenZMQ EventModel AllenFS)
 
-  test_program(NAME dump_banks)
-  test_program(NAME test_read)
-  test_program(NAME bench_read)
-  test_program(NAME bench_provider )
-  test_program(NAME bench_transpose)
-  test_program(NAME test_mdf_transpose)
+  test_program(NAME mdf_test_read SOURCE test/test_read.cpp)
+  test_program(NAME mdf_bench_read SOURCE test/bench_read.cpp)
+  test_program(NAME mdf_bench_provider SOURCE test/bench_provider.cpp)
+  test_program(NAME mdf_bench_transpose SOURCE test/bench_transpose.cpp)
+  test_program(NAME mdf_test_transpose SOURCE test/test_mdf_transpose.cpp)
 
   if (NOT STANDALONE)
-    test_program(NAME test_mep_banks)
-    target_link_libraries(test_mep_banks PRIVATE Gaudi::GaudiKernel)
+    test_program(NAME mep_test_banks SOURCE test/test_mep_banks.cpp)
+    target_link_libraries(allen_mep_test_banks PRIVATE Gaudi::GaudiKernel)
   endif()
 
-  add_test(NAME allen_mdf_transpose COMMAND test_mdf_transpose --mdf-file root://eoslhcb.cern.ch//eos/lhcb/wg/rta/WP6/Allen/mdf_input/RetinaCluster_samples_v1/upgrade-minbias-magdown-scifi-v5_retinacluster_mdf/mdf/upgrade-minbias-magdown-scifi-v5_retinacluster.mdf)
+  add_test(NAME allen_mdf_transpose COMMAND allen_mdf_test_transpose --mdf-file root://eoslhcb.cern.ch//eos/lhcb/wg/rta/WP6/Allen/mdf_input/RetinaCluster_samples/upgrade-minbias-magdown-scifi-v5_retinacluster_mdf/upgrade-minbias-magdown-scifi-v5/mdf/upgrade-minbias-magdown-scifi-v5.mdf)
 endif()

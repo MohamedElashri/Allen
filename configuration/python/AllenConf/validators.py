@@ -25,8 +25,10 @@ def mc_data_provider():
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_mc_particle_banks_t=host_mc_particle_banks.host_raw_banks_t,
         host_mc_particle_offsets_t=host_mc_particle_banks.host_raw_offsets_t,
+        host_mc_particle_sizes_t=host_mc_particle_banks.host_raw_sizes_t,
         host_mc_pv_banks_t=host_mc_pv_banks.host_raw_banks_t,
-        host_mc_pv_offsets_t=host_mc_pv_banks.host_raw_offsets_t)
+        host_mc_pv_offsets_t=host_mc_pv_banks.host_raw_offsets_t,
+        host_mc_pv_sizes_t=host_mc_pv_banks.host_raw_sizes_t)
 
 
 def velo_validation(velo_tracks, name="velo_validator"):

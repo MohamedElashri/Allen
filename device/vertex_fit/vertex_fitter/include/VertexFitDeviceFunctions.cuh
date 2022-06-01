@@ -456,8 +456,8 @@ namespace VertexFit {
     sv.mcor = sqrtf(mvis2 + pperp2) + sqrtf(pperp2);
 
     // Minimum IP chi2 of constituent tracks.
-    sv.minipchi2 = min(trackA.ip_chi2(), trackB.ip_chi2());
-    sv.minip = min(trackA.ip(), trackB.ip());
+    sv.minipchi2 = fminf(trackA.ip_chi2(), trackB.ip_chi2());
+    sv.minip = fminf(trackA.ip(), trackB.ip());
 
     // cos DIRA.
     const float p = sqrtf(sv.px * sv.px + sv.py * sv.py + sv.pz * sv.pz);

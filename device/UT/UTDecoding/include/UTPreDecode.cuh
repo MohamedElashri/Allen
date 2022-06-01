@@ -16,6 +16,7 @@ namespace ut_pre_decode {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
     DEVICE_INPUT(dev_ut_raw_input_offsets_t, unsigned) dev_ut_raw_input_offsets;
+    DEVICE_INPUT(dev_ut_raw_input_sizes_t, unsigned) dev_ut_raw_input_sizes;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
     DEVICE_OUTPUT(dev_ut_pre_decoded_hits_t, char) dev_ut_pre_decoded_hits;

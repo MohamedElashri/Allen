@@ -15,18 +15,9 @@
  */
 template<typename Derived, typename Parameters>
 struct ODINLine : public EventLine<Derived, Parameters> {
-  __device__ static std::tuple<const unsigned*>
+  __device__ static std::tuple<const ODINData&>
   get_input(const Parameters& parameters, const unsigned event_number, const unsigned)
   {
-    const unsigned* event_odin_data = nullptr;
-    if (parameters.dev_mep_layout[0]) {
-      event_odin_data =
-        odin_data_mep_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
-    }
-    else {
-      event_odin_data =
-        odin_data_t::data(parameters.dev_odin_raw_input, parameters.dev_odin_raw_input_offsets, event_number);
-    }
-    return std::forward_as_tuple(event_odin_data);
+    return std::forward_as_tuple(parameters.dev_odin_data[event_number]);
   }
 };

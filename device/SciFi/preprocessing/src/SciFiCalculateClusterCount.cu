@@ -20,18 +20,21 @@ __global__ void scifi_calculate_cluster_count_kernel(
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  const auto scifi_raw_event =
-    SciFi::RawEvent<mep_layout>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number);
+  const auto scifi_raw_event = SciFi::RawEvent<mep_layout>(
+    parameters.dev_scifi_raw_input,
+    parameters.dev_scifi_raw_input_offsets,
+    parameters.dev_scifi_raw_input_sizes,
+    event_number);
   const SciFi::SciFiGeometry geom(scifi_geometry);
   SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
 
   // NO version checking of the decoding - to be improved later
   for (unsigned i = threadIdx.x; i < scifi_raw_event.number_of_raw_banks(); i += blockDim.x) {
     const unsigned current_raw_bank = SciFi::getRawBankIndexOrderedByX(i);
-    uint32_t* hits_module;
+    uint32_t* hits_module = nullptr;
     const auto rawbank = scifi_raw_event.raw_bank(current_raw_bank);
-    uint16_t* it = rawbank.data + 2;
-    uint16_t* last = rawbank.last;
+    uint16_t const* it = rawbank.data + 2;
+    uint16_t const* last = rawbank.last;
 
     // For details see RawBankDecoder
     if (*(last - 1) == 0) --last; // Remove padding at the end

@@ -18,11 +18,11 @@ tracks. These are stored in the device buffer type
 `dev_kf_tracks_t`. The structure of these tracks is defined in `ParKalmanDefinitions.h <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/kalman/ParKalman/include/ParKalmanDefinitions.cuh>`_. This includes muon ID information.
 
 Selections can be made based on data members of `ParKalmanFilter::FittedTrack`.
-    
+
 * `ipChi2`: best PV IP chi2
 * `chi2`, `ndof`: fit quality
 * `is_muon`: muon ID information
-    
+
 In addition several helper member functions are available for commonly used variables: `p()`, `pt()`, `px()`, `py()`, `pz()`, `eta()`.
 
 TwoTrackLine
@@ -36,7 +36,7 @@ reconstruction. These vertices are stored in the device buffer with type
 `dev_consolidated_svs_t`.
 
 Selections can be made based on data members of `VertexFit::TrackMVAVertex`.
-    
+
     *   `px`, `py`, `pz`: vertex 3-momentum
     *   `x`, `y`, `z`: vertex position
     *   `chi2`: vertex fit chi2
@@ -54,12 +54,13 @@ Selections can be made based on data members of `VertexFit::TrackMVAVertex`.
     *   `ntrks16`: number of constituent tracks with a minimum IP chi2 < 16
     *   `trk1_is_muon`, `trk2_is_muon`: muon ID information for constituent tracks
     *   `is_dimuon`: `trk1_is_muon && trk2_is_muon`
-    
+
     In addition, some helper member functions are available for commone quantities.
-    
+
     *   `pt()`: vertex transverse momentum
     *   `m(float m1, float m2)`: vertex mass assuming mass hypotheses
         `m1` and `m2` for the constituent tracks
+
 EventLine
 -------------
 These make trigger selections based on event-level information. Right
@@ -83,7 +84,7 @@ HLT1 selection lines live in the directory  `device/selections/lines <https://gi
 * monitoring
 * photon
 
-If your new selection fits into any of these categories, please add it in the respective directory. If not, feel free to create a new one and discuss in your merge request why you believe a new directory is required. 
+If your new selection fits into any of these categories, please add it in the respective directory. If not, feel free to create a new one and discuss in your merge request why you believe a new directory is required.
 
 Every sub-directory contains a `include` and a `src` directory where the header and source files are placed.
 
@@ -164,7 +165,7 @@ A function that returns the size of the decisions container.
 
    __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number) const { ... }
 
-A function that returns the `event_number`th offset of the decisions container.
+A function that returns the offset of the decisions container for a given `event_number`
 
 .. code-block:: c++
 
@@ -174,7 +175,7 @@ A function that returns the `event_number`th offset of the decisions container.
         return std::forward_as_tuple("instances");
     }
 
-  A function that gets the `i`th input of `event_number`, and returns it as a tuple. The `"configurable_types"` can be anything. The return statement of the function is suggested to be a `return std::forward_as_tuple()` with the `"instances"` of the desired objects. The return type of this function will be used as the input of the `select` function.
+A function that gets the `i`th input of `event_number`, and returns it as a tuple. The `"configurable_types"` can be anything. The return statement of the function is suggested to be a `return std::forward_as_tuple()` with the `"instances"` of the desired objects. The return type of this function will be used as the input of the `select` function.
 
 .. code-block:: c++
 
@@ -185,8 +186,9 @@ A function that returns the `event_number`th offset of the decisions container.
       ...
       return [true/false];
   }
-  
-  The function that performs the selection for a single input. The type of the input must match the `"configurable_types"` of the `get_input` function. It returns a boolean with the decision output. The `select` function must be defined as static in the header file.
+
+The function that performs the selection for a single input. The type of the input must match the `"configurable_types"` of the `get_input` function. It returns a boolean with the decision output. The `select` function must be defined as static in the header file.
+
 * Optional: `unsigned get_block_dim_x(const ArgumentReferences<Parameters>&) const { ... }`: Defines the number of threads the selection will be performed with.
 
 In addition, lines must be instantiated in their source file definition:
@@ -202,7 +204,7 @@ OneTrackLine example
 As an example, we'll create a line that triggers on highly displaced,
 high-pT single long tracks. It will be of type `OneTrackLine`. We will first create the
 header.
-        
+
 .. code-block:: c++
 
   #pragma once
@@ -261,7 +263,7 @@ And the then the source:
 
   __device__ bool example_one_track_line::example_one_track_line_t::select(
     const Parameters& parameters,
-    std::tuple<const ParKalmanFilter::FittedTrack&> input) 
+    std::tuple<const ParKalmanFilter::FittedTrack&> input)
   {
     const auto& track = std::get<0>(input);
     const bool decision = track.pt() > parameters.minPt && track.ipChi2 > parameters.minIPChi2;
@@ -275,7 +277,7 @@ TwoTrackLine example
 -----------------------
 Here we'll create an example of a 2-long-track line that selects displaced
 secondary vertices with no postscale. This line inherits from `TwoTrackLine`. We'll create a header with the following contents:
-    
+
 .. code-block:: c++
 
   #pragma once
@@ -347,7 +349,7 @@ And a source with the following:
       return false;
     }
 
-    const bool decision = vertex.pt() > parameters.minComboPt && 
+    const bool decision = vertex.pt() > parameters.minComboPt &&
       vertex.minpt > parameters.minTrackPt &&
       vertex.minipchi2 > parameters.minTrackIPChi2;
     return decision;
@@ -505,11 +507,11 @@ The header `ExampleOneVeloTrackLine.cuh` is as follows:
       Property<minNHits_t> m_minNHits {this, 0};
     };
   } // namespace example_one_velo_track_line
-    
+
 Note that we have added some inputs and one property.
 
 The source file looks as follows:
-    
+
 .. code-block:: c++
 
   #include "ExampleOneVeloTrackLine.cuh"
@@ -518,7 +520,7 @@ The source file looks as follows:
   INSTANTIATE_LINE(example_one_velo_track_line::example_one_velo_track_line_t, example_one_velo_track_line::Parameters)
 
   // Offset function
-  __device__ unsigned example_one_velo_track_line::example_one_velo_track_line_t::offset(const Parameters& parameters, 
+  __device__ unsigned example_one_velo_track_line::example_one_velo_track_line_t::offset(const Parameters& parameters,
       const unsigned event_number)
   {
     return parameters.dev_track_offsets[event_number];
@@ -531,17 +533,17 @@ The source file looks as follows:
   }
 
   // Get input function
-  __device__ std::tuple<const unsigned> example_one_velo_track_line::example_one_velo_track_line_t::get_input(const Parameters& parameters, 
+  __device__ std::tuple<const unsigned> example_one_velo_track_line::example_one_velo_track_line_t::get_input(const Parameters& parameters,
       const unsigned event_number, const unsigned i)
   {
     // Get the number of events
-    const uint number_of_events = parameters.dev_number_of_events[0]; 
+    const uint number_of_events = parameters.dev_number_of_events[0];
 
     // Create the velo tracks
     Velo::Consolidated::Tracks const velo_tracks {
-      parameters.dev_track_offsets, 
-      parameters.dev_velo_track_hit_number, 
-      event_number, 
+      parameters.dev_track_offsets,
+      parameters.dev_velo_track_hit_number,
+      event_number,
       number_of_events};
 
     // Get the ith velo track
@@ -552,7 +554,7 @@ The source file looks as follows:
 
 
   // Selection function
-  __device__ bool example_one_velo_track_line::example_one_velo_track_line_t::select(const Parameters& parameters, 
+  __device__ bool example_one_velo_track_line::example_one_velo_track_line_t::select(const Parameters& parameters,
       std::tuple<const unsigned> input)
   {
     // Get number of hits for current velo track
@@ -570,7 +572,7 @@ Adding your selection to the Allen sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 After creating the selection source code, the selection can either be added to an existing sequence or a new sequence is generated.
 Selections are added to the Allen sequence similarly as
-algorithms, described in :ref:`configure_sequence`, using the python functions defined in `AllenConf <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/configuration/python/AllenConf>`_.  
+algorithms, described in :ref:`configure_sequence`, using the python functions defined in `AllenConf <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/configuration/python/AllenConf>`_.
 Let us first look at the default sequence definition in `hlt1_pp_default.py <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/configuration/python/AllenConf>`_
 
 .. code-block:: python
@@ -612,7 +614,7 @@ The CompositeNode containing the default HLT1 selections `setup_hlt1_node` is de
           NodeLogic.NONLAZY_AND,
           force_order=True)
 
-The default HLT1 reconstruction algorithms are called with `hlt1_reconstruction() <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/hlt1_reconstruction.py>`_. Their output is passed to the selection algorithms as required. The functions `default_physics_lines` and `default_monitoring_lines` define the default HLT1 selections. Each returns a list of tuples of `[algorithm, node]`. The list of nodes is passed as input to make the CompositeNode defining the HLT1 selections, while the list of algorithms is required as input for the DecReport algorithm. 
+The default HLT1 reconstruction algorithms are called with `hlt1_reconstruction() <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/hlt1_reconstruction.py>`_. Their output is passed to the selection algorithms as required. The functions `default_physics_lines` and `default_monitoring_lines` define the default HLT1 selections. Each returns a list of tuples of `[algorithm, node]`. The list of nodes is passed as input to make the CompositeNode defining the HLT1 selections, while the list of algorithms is required as input for the DecReport algorithm.
 
 Let us take a closer look at one example, i.e. how the Hlt1DiMuonLowMass line is defined within `default_physics_lines <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/HLT1.py>`_.
 
@@ -635,7 +637,7 @@ Let us take a closer look at one example, i.e. how the Hlt1DiMuonLowMass line is
                   minIPChi2="4."),
                   enableGEC=True))
 
-The `line_maker <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/HLT1.py>`_ function is called to set the line name, the line algorithm with its required inputs and to specify whether or not the prefilter of the global event cut (GEC) should be applied. The line algorithm can be configured as described below. `line_maker` returns a tuple of `[algorithm, node]` which is appended to the list of lines. 
+The `line_maker <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/HLT1.py>`_ function is called to set the line name, the line algorithm with its required inputs and to specify whether or not the prefilter of the global event cut (GEC) should be applied. The line algorithm can be configured as described below. `line_maker` returns a tuple of `[algorithm, node]` which is appended to the list of lines.
 
 The line algorithms are defined in the files following the same naming convention as the source files:
 
@@ -682,7 +684,7 @@ The HLT1DiMuonLowMass line is defined in `hlt1_muon_lines.py` as follows:
           maxVertexChi2=maxVertexChi2,
           minIPChi2=minIPChi2)
 
-It takes as input the objects on which the selection is based (`forward_tracks` and `secondary_vertices`), a possible pre and post scalar hash string (`pre_scaler_hash_string` and `post_scaler_hash_string`), configurable parameters (`minHighMassTrackPt` etc.) and a name (`"Hlt1DiMuonHighMass"`). In the call to `make_algorithm` the arguments of the selection (`HOST_INPUT`, `HOST_OUTPUT` and `PROPERTY`) defined in the source code are configured. 
+It takes as input the objects on which the selection is based (`forward_tracks` and `secondary_vertices`), a possible pre and post scalar hash string (`pre_scaler_hash_string` and `post_scaler_hash_string`), configurable parameters (`minHighMassTrackPt` etc.) and a name (`"Hlt1DiMuonHighMass"`). In the call to `make_algorithm` the arguments of the selection (`HOST_INPUT`, `HOST_OUTPUT` and `PROPERTY`) defined in the source code are configured.
 In Allen it is common practice, to set the default values of Properties within the source code (.cu file) and only expose those Properties to python parameters that are actually varied in a selection definition. It is particularly useful to specify the name of a line when calling the `make_..._line` function, if more than one configuration of the same selection is defined.
 
 We now have the tools to create our own CompositeNode defining a custom sequence with one of the example algorithms defined above.
@@ -759,9 +761,9 @@ Second, we will create the CompositeNode for the selection (rather than using th
 
     generate(custom_hlt1_node)
 
-The `lines` CompositeNode gathers all lines. In our case this is only one, but the addition of more lines is straight-forward by appending more entries to `lines` with more calls to the `line_maker`. 
-The `custom_hlt1_node` combines the lines with the DecReport algorithm to setup the full HLT1. 
-  
+The `lines` CompositeNode gathers all lines. In our case this is only one, but the addition of more lines is straight-forward by appending more entries to `lines` with more calls to the `line_maker`.
+The `custom_hlt1_node` combines the lines with the DecReport algorithm to setup the full HLT1.
+
 Notice that all the values of the properties have to be given in a string even if the type of the property is an `int` or a `float`.
 Now, you should be able to build and run the newly generated `custom_hlt1`.
 
@@ -777,4 +779,3 @@ The training procedure for the TwoTrackMVA is found in `https://github.com/nikla
 The event types used for training can be seen in `here <https://github.com/niklasnolte/HLT_2Track/blob/main/hlt2trk/utils/config.py#L384>`_.
 
 The model exported from there goes into `Allen/input/parameters/two_track_mva_model.json <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/input/parameters/two_track_mva_model.json>`_
-    

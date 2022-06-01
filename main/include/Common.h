@@ -78,32 +78,12 @@ namespace std {
 } // namespace std
 
 // Utility to apply a function to a tuple of things
-template<class T>
-constexpr std::make_index_sequence<std::tuple_size<T>::value> get_indexes(T const&)
-{
-  return {};
-}
-
-//
-template<class F, class... Args>
-void for_each_arg(F&& f, Args&&... args)
-{
-  using discard = int[];
-  (void) discard {0, ((void) (f(std::forward<Args>(args))), 0)...};
-}
-
-template<size_t... Is, class Tuple, class F>
-void for_each(std::index_sequence<Is...>, Tuple&& tup, F&& f)
-{
-  using std::get;
-  for_each_arg(std::forward<F>(f), get<Is>(std::forward<Tuple>(tup))...);
-}
-
 template<class Tuple, class F>
 void for_each(Tuple&& tup, F&& f)
 {
-  auto indexes = get_indexes(tup);
-  for_each(indexes, std::forward<Tuple>(tup), std::forward<F>(f));
+  std::apply(
+    [f = std::forward<F>(f)](auto&&... args) { (std::invoke(f, std::forward<decltype(args)>(args)), ...); },
+    std::forward<Tuple>(tup));
 }
 
 // Detection idiom
@@ -119,6 +99,12 @@ namespace detail {
 
 template<template<class...> class Trait, class... Args>
 using is_detected = typename detail::is_detected<Trait, void, Args...>::type;
+
+template<typename ENUM>
+constexpr auto to_integral(ENUM e) -> typename std::underlying_type<ENUM>::type
+{
+  return static_cast<typename std::underlying_type<ENUM>::type>(e);
+}
 
 using events_span = gsl::span<char>;
 using offsets_span = gsl::span<unsigned int>;

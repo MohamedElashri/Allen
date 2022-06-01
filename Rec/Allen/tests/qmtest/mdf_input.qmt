@@ -16,16 +16,17 @@
   <argument name="args"><set>
     <text>${BINARYDUMPERSROOT}/options/allen.py</text>
     <text>--monitoring-filename</text><text>mdf_input_hists.root</text>
-    <text>--mdf</text><text>${ALLEN_PROJECT_ROOT}/input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf</text>
+    <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/mc/RetinaClusters_FTv4_MDF/00067189_retinaCluster_no63.mdf</text>
+    <text>-n</text><text>10000</text>
   </set></argument>
-  <argument name="reference"><text>../refs/allen_10ev.ref</text></argument>
+  <argument name="reference"><text>../refs/allen_event_loop.ref</text></argument>
   <argument name="timeout"><integer>600</integer></argument>
   <argument name="validator"><text>
 
 from Allen.qmtest.exclusions import preprocessor
 validateWithReference(preproc = preprocessor)
 
-countErrorLines({"FATAL":0,"ERROR":0,"WARNING":2})
+countErrorLines({"FATAL":0,"ERROR":0,"WARNING":0})
 
   </text></argument>
 </extension>

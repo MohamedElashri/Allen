@@ -9,11 +9,14 @@
 #include <unordered_set>
 #include <map>
 
+#include <boost/algorithm/string.hpp>
+
 #include <nlohmann/json.hpp>
 
 #include <TransposeTypes.h>
 #include <Provider.h>
 #include <ProgramOptions.h>
+#include <FileSystem.h>
 #include <MEPTools.h>
 #include <Event/RawBank.h>
 #include <Timer.h>
@@ -22,7 +25,7 @@
 #include <UTRaw.cuh>
 #include <MuonRaw.cuh>
 #include <CaloRawEvent.cuh>
-#include <CaloRawBanks.cuh>
+#include <ODINBank.cuh>
 
 #include <GaudiKernel/Bootstrap.h>
 #include <GaudiKernel/IProperty.h>
@@ -30,12 +33,6 @@
 #include <GaudiKernel/IStateful.h>
 #include <GaudiKernel/ISvcLocator.h>
 #include <GaudiKernel/SmartIF.h>
-
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-#else
-#include <filesystem>
-#endif
 
 #define CATCH_CONFIG_RUNNER
 #include <catch2/catch.hpp>
@@ -47,30 +44,40 @@ struct Config {
   std::string mdf_files;
   std::string mep_files;
   size_t n_slices = 1;
-  size_t n_events = 10;
+  unsigned n_events = 10;
+  unsigned eps = 0;
   bool run = false;
-  std::string sequence;
+  bool transpose_mep = false;
+  std::string subdetectors = "VP,UT,FT,ECal,Muon,ODIN";
+  bool debug = false;
+
+  std::unordered_map<EventID, unsigned> mdf_slices;
+  std::unordered_map<EventID, unsigned> mep_slices;
+
+  std::unordered_set<BankTypes> sds {};
 };
 
 namespace {
   Config s_config;
 
   std::shared_ptr<IInputProvider> mdf;
+  SmartIF<IStateful> app;
   IInputProvider* mep;
 
-  size_t slice_mdf = 0, slice_mep = 0;
-  size_t filled_mdf = 0, filled_mep = 0;
-
-#ifdef USE_BOOST_FILESYSTEM
-  namespace fs = boost::filesystem;
-#else
-  namespace fs = std::filesystem;
-#endif
+  namespace ba = boost::algorithm;
 
   using json = nlohmann::json;
 } // namespace
 
-fs::path write_json(std::unordered_set<BankTypes> const& bank_types)
+namespace Allen {
+  unsigned
+  number_of_banks(gsl::span<char const> allen_banks, gsl::span<unsigned const> allen_offsets, unsigned const i_event)
+  {
+    return reinterpret_cast<unsigned const*>(allen_banks.data() + allen_offsets[i_event])[0];
+  }
+} // namespace Allen
+
+fs::path write_json(std::unordered_set<BankTypes> const& bank_types, bool velo_sp)
 {
 
   // Write a JSON file that can be fed to AllenConfiguration to
@@ -79,6 +86,8 @@ fs::path write_json(std::unordered_set<BankTypes> const& bank_types)
   for (auto bt : bank_types) {
     bank_types_json["provide_"s + bank_name(bt)]["bank_type"] = bank_name(bt);
   }
+  std::array<std::string, 2> velo_decoding {velo_sp ? "velo_masked_clustering" : "decode_retina", "decode"};
+  bank_types_json["sequence"]["configured_algorithms"] = std::vector<std::array<std::string, 2>> {velo_decoding};
 
   auto bt_filename = fs::canonical(fs::current_path()) / "bank_types.json";
   std::ofstream bt_json(bt_filename.string());
@@ -96,7 +105,7 @@ fs::path write_json(std::unordered_set<BankTypes> const& bank_types)
 IInputProvider* mep_provider(std::string json_file)
 {
 
-  SmartIF<IStateful> app = Gaudi::createApplicationMgr();
+  app = Gaudi::createApplicationMgr();
   auto prop = app.as<IProperty>();
   bool sc = prop->setProperty("ExtSvc", "[\"AllenConfiguration\", \"MEPProvider\"]").isSuccess();
   sc &= prop->setProperty("JobOptionsType", "\"NONE\"");
@@ -114,13 +123,14 @@ IInputProvider* mep_provider(std::string json_file)
   auto provider = sloc->service<IService>("MEPProvider");
   if (!provider) return nullptr;
   auto provider_prop = provider.as<IProperty>();
-  sc &= provider_prop->setProperty("NSlices", "1").isSuccess();
-  sc &= provider_prop->setProperty("EventsPerSlice", std::to_string(s_config.n_events));
+  sc &= provider_prop->setProperty("NSlices", std::to_string(s_config.n_slices)).isSuccess();
+  sc &= provider_prop->setProperty("EventsPerSlice", std::to_string(s_config.eps));
   sc &= provider_prop->setProperty("EvtMax", std::to_string(s_config.n_events));
   sc &= provider_prop->setProperty("SplitByRun", "0");
   sc &= provider_prop->setProperty("Source", "\"Files\"");
-  sc &= provider_prop->setProperty("BufferConfig", "(1, 1)");
-  sc &= provider_prop->setProperty("OutputLevel", "2");
+  sc &= provider_prop->setProperty("BufferConfig", "(2, 1)");
+  sc &= provider_prop->setProperty("TransposeMEPs", std::to_string(s_config.transpose_mep));
+  sc &= provider_prop->setProperty("OutputLevel", s_config.debug ? "2" : "3");
 
   auto mep_files = split_string(s_config.mep_files, ",");
   std::stringstream ss;
@@ -141,16 +151,17 @@ int main(int argc, char* argv[])
 {
 
   Catch::Session session; // There must be exactly one instance
+  bool velo_sp = false;
 
   // Build a new parser on top of Catch's
   using namespace Catch::clara;
-  auto cli = session.cli()                                   // Get Catch's composite command line parser
-             | Opt(s_config.mdf_files, string {"MDF files"}) // bind variable to a new option, with a hint string
-                 ["--mdf"]("MDF files") |
-             Opt(s_config.mep_files, string {"MEP files"}) // bind variable to a new option, with a hint string
-               ["--mep"]("MEP files") |
-             Opt(s_config.n_events, string {"#events"}) // bind variable to a new option, with a hint string
-               ["--nevents"]("number of events");
+  auto cli = session.cli() | Opt(s_config.mdf_files, string {"MDF files"})["--mdf"]("MDF files") |
+             Opt(s_config.mep_files, string {"MEP files"})["--mep"]("MEP files") |
+             Opt(s_config.n_events, string {"#events"})["--nevents"]("number of events") |
+             Opt(s_config.transpose_mep)["--transpose-mep"]("transpose MEPs") |
+             Opt(velo_sp)["--velo-sp"]("Use Velo SuperPixel banks") | Opt(s_config.debug)["--debug"]("debug output") |
+             Opt(s_config.subdetectors, string {"SDs"})["--subdetectors"]("subdetectors") |
+             Opt(s_config.eps, string {"#events-per-slice"})["--eps"]("number of events per slice");
 
   // Now pass the new composite back to Catch so it uses that
   session.cli(cli);
@@ -160,37 +171,46 @@ int main(int argc, char* argv[])
   if (returnCode != 0) {
     return returnCode;
   }
-  std::cout << "mdf_files = " << s_config.mdf_files << std::endl;
-  std::cout << "mep_files = " << s_config.mep_files << std::endl;
-  s_config.run = !s_config.mdf_files.empty();
-  if (s_config.run) {
+  s_config.run = !s_config.mdf_files.empty() && !s_config.mep_files.empty();
 
-    std::unordered_set<BankTypes> bank_types = {BankTypes::VP,
-                                                BankTypes::VPRetinaCluster,
-                                                BankTypes::UT,
-                                                BankTypes::FT,
-                                                BankTypes::ODIN,
-                                                BankTypes::ECal,
-                                                BankTypes::HCal,
-                                                BankTypes::MUON};
-    auto json_file = write_json(bank_types);
+  if (s_config.run) {
+    std::cout << "mdf_files = " << s_config.mdf_files << std::endl;
+    std::cout << "mep_files = " << s_config.mep_files << std::endl;
+  }
+
+  if (s_config.eps == 0) s_config.eps = s_config.n_events;
+  s_config.n_slices = (s_config.n_events - 1) / s_config.eps + 1;
+
+  logger::setVerbosity(s_config.debug ? 4 : 3);
+
+  if (s_config.run) {
+    std::vector<std::string> s;
+    ba::split(s, s_config.subdetectors, ba::is_any_of(","));
+    for (auto sd : s) {
+      auto bt = bank_type(sd);
+      if (bt == BankTypes::Unknown) {
+        std::cerr << "Failed to obtain BankType for " << sd << "\n";
+        return 1;
+      }
+      else {
+        s_config.sds.emplace(bt);
+      }
+    }
+    auto json_file = write_json(s_config.sds, velo_sp);
 
     // Allocate providers and get slices
-    std::map<std::string, std::string> options = {{"s", "1"},
+    std::map<std::string, std::string> options = {{"s", std::to_string(s_config.n_slices)},
                                                   {"n", std::to_string(s_config.n_events)},
+                                                  {"v", std::to_string(s_config.debug ? 4 : 3)},
                                                   {"mdf", s_config.mdf_files},
                                                   {"sequence", json_file.string()},
                                                   {"run-from-json", "1"},
-                                                  {"events-per-slice", std::to_string(s_config.n_events)},
+                                                  {"events-per-slice", std::to_string(s_config.eps)},
                                                   {"disable-run-changes", "1"}};
 
     mdf = Allen::make_provider(options);
-
-    bool good = false, timed_out = false, done = false;
-    std::any odin;
-    std::tie(good, done, timed_out, slice_mdf, filled_mdf, odin) = mdf->get_slice();
-    if (!good) {
-      std::cerr << "Failed to obtain MDF slice\n";
+    if (!mdf) {
+      std::cerr << "Failed to obtain MDFProvider\n";
       return 1;
     }
 
@@ -199,233 +219,318 @@ int main(int argc, char* argv[])
       std::cerr << "Failed to obtain MEPProvider\n";
       return 1;
     }
-    std::tie(good, done, timed_out, slice_mep, filled_mep, odin) = mep->get_slice();
-    if (!good) {
-      std::cerr << "Failed to obtain MEP slice\n";
-      return 1;
-    }
-  }
 
-  return session.run();
-}
+    bool good = false, timed_out = false, done = false;
+    unsigned slice_id = 0, n_filled = 0;
 
-template<BankTypes BT>
-void compare(
-  const int,
-  gsl::span<char const> mep_fragments,
-  gsl::span<unsigned const> mep_offsets,
-  gsl::span<char const> alle_fragments,
-  gsl::span<unsigned const> allen_offsets,
-  size_t const i_event);
-
-template<typename... BankType>
-void compare_UT(
-  gsl::span<char const> mep_fragments,
-  gsl::span<unsigned const> mep_offsets,
-  gsl::span<char const> allen_fragments,
-  gsl::span<unsigned const> allen_offsets,
-  size_t const i_event);
-
-template<>
-void compare<BankTypes::VP>(
-  const int,
-  gsl::span<char const> mep_fragments,
-  gsl::span<unsigned const> mep_offsets,
-  gsl::span<char const> allen_banks,
-  gsl::span<unsigned const> allen_offsets,
-  size_t const i_event)
-{
-  auto const mep_n_banks = mep_offsets[0];
-
-  const auto allen_raw_event = Velo::VeloRawEvent(allen_banks.data() + allen_offsets[i_event]);
-  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
-
-  for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
-    // Read raw bank
-    auto const mep_bank = MEP::raw_bank<Velo::VeloRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
-    auto const allen_bank = allen_raw_event.raw_bank(bank);
-    auto top5_mask = (allen_bank.sensor_index >> 11 == 0) ? 0x7FF : 0xFFFF;
-    REQUIRE((mep_bank.sensor_index & top5_mask) == allen_bank.sensor_index);
-    REQUIRE(mep_bank.count == allen_bank.count);
-    for (size_t j = 0; j < allen_bank.count; ++j) {
-      REQUIRE(allen_bank.word[j] == mep_bank.word[j]);
-    }
-  }
-}
-
-template<>
-void compare<BankTypes::VPRetinaCluster>(
-  const int,
-  gsl::span<char const> mep_fragments,
-  gsl::span<unsigned const> mep_offsets,
-  gsl::span<char const> allen_banks,
-  gsl::span<unsigned const> allen_offsets,
-  size_t const i_event)
-{
-  auto const mep_n_banks = mep_offsets[0];
-
-  const auto allen_raw_event = Velo::VeloRawEvent(allen_banks.data() + allen_offsets[i_event]);
-  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
-
-  for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
-    // Read raw bank
-    auto const mep_bank = MEP::raw_bank<Velo::VeloRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
-    auto const allen_bank = allen_raw_event.raw_bank(bank);
-    REQUIRE(mep_bank.sensor_index == allen_bank.sensor_index);
-    REQUIRE(mep_bank.count == allen_bank.count);
-    for (size_t j = 0; j < allen_bank.count; ++j) {
-      REQUIRE(allen_bank.word[j] == mep_bank.word[j]);
-    }
-  }
-}
-
-template<>
-void compare<BankTypes::UT>(
-  const int version,
-  gsl::span<char const> mep_fragments,
-  gsl::span<unsigned const> mep_offsets,
-  gsl::span<char const> allen_banks,
-  gsl::span<unsigned const> allen_offsets,
-  size_t const i_event)
-{
-  auto const mep_n_banks = mep_offsets[0];
-
-  const auto allen_raw_event = UTRawEvent(allen_banks.data() + allen_offsets[i_event]);
-  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
-
-  for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
-    // Read raw bank
-    if (version == 3) {
-      auto const mep_bank = MEP::raw_bank<UTRawBank<3>>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
-      auto const event_offset = allen_raw_event.raw_bank_offsets[bank];
-      auto const allen_bank = allen_raw_event.getUTRawBank<3>(bank);
-      auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
-      REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
-      REQUIRE(mep_bank.number_of_hits == allen_bank.number_of_hits);
-      for (size_t j = 0; j < ((allen_raw_event.raw_bank_offsets[bank + 1] - event_offset) >> 1) - 4; ++j) {
-        REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+    for (size_t s = 0; s < s_config.n_slices; ++s) {
+      std::any odin;
+      std::tie(good, done, timed_out, slice_id, n_filled, odin) = mdf->get_slice();
+      if (!good) {
+        std::cerr << "Failed to obtain MDF slice " << s << "\n";
+        return 1;
       }
+
+      auto events_mdf = mdf->event_ids(slice_id);
+      auto first_id = events_mdf.front();
+      s_config.mdf_slices.emplace(std::move(first_id), slice_id);
+
+      std::tie(good, done, timed_out, slice_id, n_filled, odin) = mep->get_slice();
+      if (!good) {
+        std::cerr << "Failed to obtain MEP slice " << s << "\n";
+        return 1;
+      }
+
+      auto events_mep = mep->event_ids(slice_id);
+      first_id = events_mep.front();
+      s_config.mep_slices.emplace(std::move(first_id), slice_id);
     }
-    if (version == 4) {
-      auto const mep_bank = MEP::raw_bank<UTRawBank<4>>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
-      auto const event_offset = allen_raw_event.raw_bank_offsets[bank];
-      auto const allen_bank = allen_raw_event.getUTRawBank<4>(bank);
+  }
 
-      // The bank size is derived from the Allen layout, where the
-      // source ID is part of the data.
-      auto const fragment_size = allen_raw_event.raw_bank_offsets[bank + 1] - event_offset - sizeof(uint32_t);
+  auto r = session.run();
 
-      // skip buggy banks without content
-      if (fragment_size < sizeof(uint32_t) * 6) continue;
+  for (auto [id, slice_mdf] : s_config.mdf_slices) {
+    mdf->slice_free(slice_mdf);
+  }
 
-      auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
-      REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
-      REQUIRE(mep_bank.number_of_hits == allen_bank.number_of_hits);
+  for (auto [id, slice_mep] : s_config.mep_slices) {
+    mep->slice_free(slice_mep);
+  }
 
-      // Skip the 64bit header
-      // The fragment size is in bytes, but the bank data are shorts,
-      // so divide by 2
-      for (size_t j = 0; j < ((fragment_size - 2 * sizeof(uint32_t)) >> 1); ++j) {
-        REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+  mdf.reset();
+  if (app) {
+    app->stop().ignore();
+    app->finalize().ignore();
+  }
+  return r;
+}
+
+template<BankTypes BT, bool transpose_mep>
+struct compare {
+};
+
+template<bool transpose_mep>
+struct compare<BankTypes::ODIN, transpose_mep> {
+  void operator()(
+    const int,
+    gsl::span<char const> mep_fragments,
+    gsl::span<unsigned const> mep_offsets,
+    gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const> mep_types,
+    gsl::span<char const> allen_banks,
+    gsl::span<unsigned const> allen_offsets,
+    gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const> allen_types,
+    unsigned const i_event)
+  {
+    const auto allen_bank = odin_bank<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
+    const auto mep_bank =
+      odin_bank<!transpose_mep>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
+
+    // Check that the number of banks is 1
+    auto const n_mep_banks = transpose_mep ? Allen::number_of_banks(mep_fragments, mep_offsets, i_event) :
+                                             MEP::number_of_banks(mep_offsets.data());
+    REQUIRE(n_mep_banks == 1);
+    REQUIRE(n_mep_banks == Allen::number_of_banks(allen_banks, allen_offsets, i_event));
+
+    // Check sizes
+    REQUIRE(allen_bank.size == mep_bank.size);
+
+    // Check bank types
+    REQUIRE(
+      Allen::bank_type(allen_types.data(), i_event, 0) ==
+      MEP::bank_type(mep_fragments.data(), mep_types.data(), i_event, 0));
+
+    // Check bank contents
+    for (unsigned short i = 0; i < allen_bank.size; ++i) {
+      REQUIRE(allen_bank.data[i] == mep_bank.data[i]);
+    }
+  }
+};
+
+template<bool transpose_mep>
+struct compare<BankTypes::VP, transpose_mep> {
+  void operator()(
+    const int,
+    gsl::span<char const> mep_fragments,
+    gsl::span<unsigned const> mep_offsets,
+    gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const> mep_types,
+    gsl::span<char const> allen_banks,
+    gsl::span<unsigned const> allen_offsets,
+    gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const> allen_types,
+    unsigned const i_event)
+  {
+    const auto allen_raw_event =
+      Velo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
+    const auto mep_raw_event = Velo::RawEvent<!transpose_mep>(
+      mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
+    auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
+
+    REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
+
+    for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
+      // Read raw bank
+      auto const mep_bank = mep_raw_event.raw_bank(bank);
+      auto const allen_bank = allen_raw_event.raw_bank(bank);
+      REQUIRE(mep_bank.type == allen_bank.type);
+      auto top5_mask = (allen_bank.sensor_index >> 11 == 0) ? 0x7FF : 0xFFFF;
+      REQUIRE((mep_bank.sensor_index & top5_mask) == allen_bank.sensor_index);
+      REQUIRE(mep_bank.count == allen_bank.count);
+      for (size_t j = 0; j < allen_bank.count; ++j) {
+        REQUIRE(allen_bank.word[j] == mep_bank.word[j]);
       }
     }
   }
-}
+};
 
-template<>
-void compare<BankTypes::FT>(
-  const int,
-  gsl::span<char const> mep_fragments,
-  gsl::span<unsigned const> mep_offsets,
-  gsl::span<char const> allen_banks,
-  gsl::span<unsigned const> allen_offsets,
-  size_t const i_event)
-{
-  auto const mep_n_banks = mep_offsets[0];
+template<bool transpose_mep>
+struct compare<BankTypes::UT, transpose_mep> {
+  void operator()(
+    const int version,
+    gsl::span<char const> mep_fragments,
+    gsl::span<unsigned const> mep_offsets,
+    gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const>,
+    gsl::span<char const> allen_banks,
+    gsl::span<unsigned const> allen_offsets,
+    gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const>,
+    unsigned const i_event)
+  {
+    const auto allen_raw_event =
+      UTRawEvent<false> {allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event};
+    const auto mep_raw_event =
+      UTRawEvent<!transpose_mep> {mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event};
+    auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
-  const auto allen_raw_event = SciFi::SciFiRawEvent(allen_banks.data() + allen_offsets[i_event]);
-  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
+    REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
 
-  for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
-    // Read raw bank
-    auto const mep_bank = MEP::raw_bank<SciFi::SciFiRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
-    auto const allen_bank = allen_raw_event.raw_bank(bank);
-    auto mep_len = mep_bank.last - mep_bank.data;
-    auto allen_len = allen_bank.last - allen_bank.data;
-    auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
-    REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
-    REQUIRE(mep_len == allen_len);
-    for (long j = 0; j < mep_len; ++j) {
-      REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+    for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
+      // Read raw bank
+      if (version == 3) {
+        auto const mep_bank = mep_raw_event.template raw_bank<3>(bank);
+        auto const allen_bank = allen_raw_event.template raw_bank<3>(bank);
+        auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
+        REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
+        REQUIRE(mep_bank.number_of_hits == allen_bank.number_of_hits);
+
+        for (size_t j = 0; j < allen_bank.size; ++j) {
+          REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+        }
+      }
+      if (version == 4) {
+        auto const mep_bank = mep_raw_event.template raw_bank<4>(bank);
+        auto const allen_bank = allen_raw_event.template raw_bank<4>(bank);
+
+        // skip buggy banks without content
+        if (allen_bank.size < sizeof(uint32_t) * 6) continue;
+
+        auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
+        REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
+        REQUIRE(mep_bank.number_of_hits == allen_bank.number_of_hits);
+
+        REQUIRE(allen_bank.get_n_hits() == mep_bank.get_n_hits());
+        if (allen_bank.get_n_hits() == 0) continue;
+
+        for (size_t j = 0; j < allen_bank.size; ++j) {
+          REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+        }
+      }
     }
   }
-}
+};
 
-template<>
-void compare<BankTypes::MUON>(
-  const int,
-  gsl::span<char const> mep_fragments,
-  gsl::span<unsigned const> mep_offsets,
-  gsl::span<char const> allen_banks,
-  gsl::span<unsigned const> allen_offsets,
-  size_t const i_event)
-{
-  auto const mep_n_banks = mep_offsets[0];
+template<bool transpose_mep>
+struct compare<BankTypes::FT, transpose_mep> {
+  void operator()(
+    const int,
+    gsl::span<char const> mep_fragments,
+    gsl::span<unsigned const> mep_offsets,
+    gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const> mep_types,
+    gsl::span<char const> allen_banks,
+    gsl::span<unsigned const> allen_offsets,
+    gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const> allen_types,
+    unsigned const i_event)
+  {
+    const auto allen_raw_event =
+      SciFi::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
+    const auto mep_raw_event = SciFi::RawEvent<!transpose_mep>(
+      mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
+    auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
-  const auto allen_raw_event = Muon::MuonRawEvent(allen_banks.data() + allen_offsets[i_event]);
-  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
+    REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
 
-  for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
-    // Read raw bank
-    auto const mep_bank = MEP::raw_bank<Muon::MuonRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
-    auto const allen_bank = allen_raw_event.raw_bank(bank);
-    auto mep_len = mep_bank.last - mep_bank.data;
-    auto allen_len = allen_bank.last - allen_bank.data;
-    auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
-    REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
-    REQUIRE(mep_len == allen_len);
-    for (long j = 0; j < mep_len; ++j) {
-      REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+    for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
+      // Read raw bank
+      auto const mep_bank = mep_raw_event.raw_bank(bank);
+      auto const allen_bank = allen_raw_event.raw_bank(bank);
+      auto mep_len = mep_bank.last - mep_bank.data;
+      auto allen_len = allen_bank.last - allen_bank.data;
+
+      REQUIRE(mep_bank.type == allen_bank.type);
+
+      auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
+      REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
+      REQUIRE(mep_len == allen_len);
+      for (long j = 0; j < mep_len; ++j) {
+        REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+      }
     }
   }
-}
+};
 
-template<>
-void compare<BankTypes::ECal>(
-  const int,
-  gsl::span<char const> mep_fragments,
-  gsl::span<unsigned const> mep_offsets,
-  gsl::span<char const> allen_banks,
-  gsl::span<unsigned const> allen_offsets,
-  size_t const i_event)
-{
-  auto const mep_n_banks = mep_offsets[0];
+template<bool transpose_mep>
+struct compare<BankTypes::MUON, transpose_mep> {
+  void operator()(
+    const int,
+    gsl::span<char const> mep_fragments,
+    gsl::span<unsigned const> mep_offsets,
+    gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const>,
+    gsl::span<char const> allen_banks,
+    gsl::span<unsigned const> allen_offsets,
+    gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const>,
+    unsigned const i_event)
+  {
 
-  const auto allen_raw_event = CaloRawEvent(allen_banks.data(), allen_offsets.data(), i_event);
-  REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
+    const auto allen_raw_event =
+      Muon::RawEvent<false, 3>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
+    const auto mep_raw_event =
+      Muon::RawEvent<!transpose_mep, 3>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
+    auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
-  for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
-    // Read raw bank
-    auto const mep_bank = MEP::raw_bank<CaloRawBank>(mep_fragments.data(), mep_offsets.data(), i_event, bank);
-    auto const allen_bank = allen_raw_event.bank(bank);
-    auto mep_len = mep_bank.end - mep_bank.data;
-    auto allen_len = allen_bank.end - allen_bank.data;
-    auto top5_mask = (allen_bank.source_id >> 11 == 0) ? 0x7FF : 0xFFFF;
-    REQUIRE((mep_bank.source_id & top5_mask) == allen_bank.source_id);
-    REQUIRE(mep_len == allen_len);
-    for (long j = 0; j < mep_len; ++j) {
-      REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+    REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
+
+    for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
+      // Read raw bank
+      auto const mep_bank = mep_raw_event.raw_bank(bank);
+      auto const allen_bank = allen_raw_event.raw_bank(bank);
+      auto mep_len = mep_bank.last - mep_bank.data;
+      auto allen_len = allen_bank.last - allen_bank.data;
+      auto top5_mask = (allen_bank.sourceID >> 11 == 0) ? 0x7FF : 0xFFFF;
+      REQUIRE((mep_bank.sourceID & top5_mask) == allen_bank.sourceID);
+      REQUIRE(mep_len == allen_len);
+      for (long j = 0; j < mep_len; ++j) {
+        REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+      }
     }
   }
-}
+};
+
+template<bool transpose_mep>
+struct compare<BankTypes::ECal, transpose_mep> {
+  void operator()(
+    const int,
+    gsl::span<char const> mep_fragments,
+    gsl::span<unsigned const> mep_offsets,
+    gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const> mep_types,
+    gsl::span<char const> allen_banks,
+    gsl::span<unsigned const> allen_offsets,
+    gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const> allen_types,
+    unsigned const i_event)
+  {
+
+    const auto allen_raw_event =
+      Calo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
+    const auto mep_raw_event = Calo::RawEvent<!transpose_mep>(
+      mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
+    auto const mep_n_banks = mep_raw_event.number_of_raw_banks;
+
+    REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
+
+    for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
+      // Read raw bank
+      auto const mep_bank = mep_raw_event.raw_bank(bank);
+      auto const allen_bank = allen_raw_event.raw_bank(bank);
+      auto mep_len = mep_bank.end - mep_bank.data;
+      auto allen_len = allen_bank.end - allen_bank.data;
+      REQUIRE(mep_len == allen_len);
+
+      REQUIRE(mep_bank.type == allen_bank.type);
+
+      auto top5_mask = (allen_bank.source_id >> 11 == 0) ? 0x7FF : 0xFFFF;
+      REQUIRE((mep_bank.source_id & top5_mask) == allen_bank.source_id);
+      for (long j = 0; j < mep_len; ++j) {
+        REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+      }
+    }
+  }
+};
 
 template<BankTypes BT_>
 struct BTTag {
   inline static const BankTypes BT = BT_;
 };
 
+using ODINTag = BTTag<BankTypes::ODIN>;
 using VeloTag = BTTag<BankTypes::VP>;
-using VeloClusterTag = BTTag<BankTypes::VPRetinaCluster>;
 using SciFiTag = BTTag<BankTypes::FT>;
 using UTTag = BTTag<BankTypes::UT>;
 using MuonTag = BTTag<BankTypes::MUON>;
@@ -434,8 +539,8 @@ using ECalTag = BTTag<BankTypes::ECal>;
 /**
  * @brief      Check banks
  */
-template<BankTypes BT>
-void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_data, size_t const n_events)
+template<BankTypes BT, bool transpose_mep>
+void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_data, unsigned const n_events)
 {
   // In MEP layout the fragmets are split into MFPs that are not
   // contiguous in memory. When the data is copied to the device the
@@ -444,52 +549,99 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
 
   // To make direct use of the offsets, the MFPs need to be copied
   // into temporary storage
-  auto const& mfps = std::get<0>(mep_data);
-  auto const& mep_offsets = std::get<2>(mep_data);
-  vector<char> mep_fragments(std::get<1>(mep_data), 0);
+  auto const& mfps = mep_data.fragments;
+  auto const& mep_offsets = mep_data.offsets;
+  auto const& mep_sizes = mep_data.sizes;
+  auto const& mep_types = mep_data.types;
+  vector<char> mep_fragments(mep_data.fragments_mem_size, 0);
+
   char* destination = &mep_fragments[0];
-  for (gsl::span<char const> mfp : mfps) {
-    ::memcpy(destination, mfp.data(), mfp.size_bytes());
-    destination += mfp.size_bytes();
+  if constexpr (transpose_mep) {
+    ::memcpy(destination, mfps[0].data(), mep_data.fragments_mem_size);
+  }
+  else {
+    for (auto mfp : mfps) {
+      ::memcpy(destination, mfp.data(), mfp.size_bytes());
+      destination += mfp.size_bytes();
+    }
+    assert(static_cast<size_t>(destination - mep_fragments.data()) == mep_data.fragments_mem_size);
   }
 
   // Allen banks; the fragments are already contiguous
-  auto const& allen_banks = std::get<0>(allen_data);
-  auto const& allen_offsets = std::get<2>(allen_data);
+  auto const& allen_banks = allen_data.fragments;
+  auto const& allen_offsets = allen_data.offsets;
+  auto const& allen_sizes = allen_data.sizes;
+  auto const& allen_types = allen_data.types;
 
   // In Allen layout the first uint32_t for each event is the number
   // of banks, while in MEP layout the first uint32_t in the offsets
   // is the number of banks. Compare them to make sure things are
   // consistent
-  for (size_t i = 0; i < n_events; ++i) {
-    REQUIRE(reinterpret_cast<uint32_t const*>(allen_banks[0].data() + allen_offsets[i])[0] == mep_offsets[0]);
-    compare<BT>(std::get<3>(mep_data), mep_fragments, mep_offsets, allen_banks[0], allen_offsets, i);
+  for (unsigned i = 0; i < n_events; ++i) {
+    if constexpr (transpose_mep) {
+      for (size_t j = 0; j < allen_offsets.size(); ++j) {
+        REQUIRE(allen_offsets[j] == mep_offsets[j]);
+      }
+    }
+    else {
+      REQUIRE(reinterpret_cast<uint32_t const*>(allen_banks[0].data() + allen_offsets[i])[0] == mep_offsets[0]);
+    }
+    compare<BT, transpose_mep> {}(
+      mep_data.version,
+      mep_fragments,
+      mep_offsets,
+      mep_sizes,
+      mep_types,
+      allen_banks[0],
+      allen_offsets,
+      allen_sizes,
+      allen_types,
+      i);
   }
 }
 
 // Main test case, multiple bank types are checked
-TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", VeloTag, UTTag, SciFiTag, MuonTag, ECalTag)
+// VeloTag, UTTag, SciFiTag,
+TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ECalTag, MuonTag, VeloTag, SciFiTag, UTTag, ODINTag)
 {
   if (!s_config.run) return;
 
-  // Check that the number of events read matches
-  REQUIRE(filled_mep == filled_mdf);
+  if (!s_config.sds.count(TestType::BT)) return;
 
-  auto events_mdf = mdf->event_ids(slice_mdf);
-  auto events_mep = mep->event_ids(slice_mdf);
+  for (auto [event_id, slice_mdf] : s_config.mdf_slices) {
+    auto it = s_config.mep_slices.find(event_id);
+    REQUIRE(it != s_config.mep_slices.end());
 
-  for (size_t i = 0; i < filled_mdf; ++i) {
-    auto [run_mdf, event_mdf] = events_mdf[i];
-    auto [run_mep, event_mep] = events_mep[i];
-    REQUIRE(run_mdf == run_mep);
-    REQUIRE(event_mdf == event_mep);
+    auto const slice_mep = it->second;
+
+    auto events_mdf = mdf->event_ids(slice_mdf);
+    auto events_mep = mep->event_ids(slice_mep);
+
+    REQUIRE(events_mdf.size() == events_mep.size());
+    for (size_t i = 0; i < events_mdf.size(); ++i) {
+      auto [run_mdf, event_mdf] = events_mdf[i];
+      auto [run_mep, event_mep] = events_mep[i];
+      REQUIRE(run_mdf == run_mep);
+      REQUIRE(event_mdf == event_mep);
+    }
+
+    auto mdf_banks = mdf->banks(TestType::BT, slice_mdf);
+    auto mep_banks = mep->banks(TestType::BT, slice_mep);
+
+    // Skip comparison of ODIN banks if one of them has been converted on the fly
+    if (TestType::BT == BankTypes::ODIN && mep_banks.version != mdf_banks.version) return;
+
+    // Compare reported versions
+    REQUIRE(mep_banks.version == mdf_banks.version);
+
+    SECTION(std::string {"Checking "} + bank_name(TestType::BT) + " banks")
+    {
+      if (s_config.transpose_mep) {
+        check_banks<TestType::BT, true>(mep_banks, mdf_banks, s_config.eps);
+      }
+      else {
+        check_banks<TestType::BT, false>(mep_banks, mdf_banks, s_config.eps);
+      }
+    }
   }
-
-  auto mep_banks = mep->banks(TestType::BT, slice_mep);
-  auto mdf_banks = mdf->banks(TestType::BT, slice_mdf);
-
-  // Compare reported versions
-  REQUIRE(std::get<3>(mep_banks) == std::get<3>(mdf_banks));
-
-  SECTION("Checking banks") { check_banks<TestType::BT>(mep_banks, mdf_banks, s_config.n_events); }
 }

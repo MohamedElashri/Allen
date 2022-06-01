@@ -10,20 +10,8 @@
 #include <InputReader.h>
 #include <FileWriter.h>
 #include <ZMQOutputSender.h>
-
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-#else
-#include <filesystem>
-#endif
-
-namespace {
-#ifdef USE_BOOST_FILESYSTEM
-  namespace fs = boost::filesystem;
-#else
-  namespace fs = std::filesystem;
-#endif
-} // namespace
+#include <Event/RawBank.h>
+#include <FileSystem.h>
 
 std::unordered_set<BankTypes> Allen::configured_bank_types(std::string const& json_file)
 {
@@ -35,7 +23,7 @@ std::unordered_set<BankTypes> Allen::configured_bank_types(std::string const& js
     auto it = props.find("bank_type");
     if (it != props.end()) {
       auto type = it->second;
-      auto const bt = bank_type(type);
+      auto const bt = ::bank_type(type);
       if (bt == BankTypes::Unknown) {
         error_cout << "Unknown bank type " << type << "requested.\n";
       }
@@ -45,6 +33,29 @@ std::unordered_set<BankTypes> Allen::configured_bank_types(std::string const& js
     }
   }
   return bank_types;
+}
+
+std::tuple<bool, bool> Allen::velo_decoding_type(std::string const& json_file)
+{
+  bool veloSP = false;
+  bool retina = false;
+  std::ifstream conf(json_file);
+  nlohmann::json j;
+  conf >> j;
+  if (j.count("sequence") && j["sequence"].count("configured_algorithms")) {
+    auto algs = j["sequence"]["configured_algorithms"];
+    for (auto const& alg : algs) {
+      if (alg.size() != 2) continue;
+      auto alg_type = alg[0].get<std::string>();
+      if (alg_type.find("decode_retina") != std::string::npos) {
+        retina = true;
+      }
+      else if (alg_type.find("velo_masked_clustering") != std::string::npos) {
+        veloSP = true;
+      }
+    }
+  }
+  return {veloSP, retina};
 }
 
 std::tuple<std::string, bool> Allen::sequence_conf(std::map<std::string, std::string> const& options)
@@ -132,6 +143,7 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
   unsigned number_of_slices = 0;
   unsigned events_per_slice = 0;
   std::optional<size_t> n_events;
+  unsigned verbosity = 3;
 
   // Input file options
   std::string mdf_input = "../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf";
@@ -164,6 +176,9 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
         return {};
       }
     }
+    else if (flag_in(flag, {"v", "verbosity"})) {
+      verbosity = atoi(arg.c_str());
+    }
     else if (flag_in(flag, {"r", "repetitions"})) {
       n_repetitions = atoi(arg.c_str());
       if (n_repetitions == 0) {
@@ -178,6 +193,8 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
       disable_run_changes = atoi(arg.c_str());
     }
   }
+
+  logger::setVerbosity(verbosity);
 
   // Set a sane default for the number of events per input slice
   if (number_of_events_requested != 0 && events_per_slice > number_of_events_requested) {
@@ -199,6 +216,17 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
   auto io_conf = io_configuration(number_of_slices, n_repetitions, number_of_threads, true);
 
   auto bank_types = Allen::configured_bank_types(json_file);
+
+  // This is a hack to avoid copying both SP and Retina banks to the device.
+  auto [veloSP, retina] = Allen::velo_decoding_type(json_file);
+  std::unordered_set<LHCb::RawBank::BankType> skip_banks {};
+  if (!veloSP) {
+    skip_banks.insert(LHCb::RawBank::Velo);
+    skip_banks.insert(LHCb::RawBank::VP);
+  }
+  if (!retina) {
+    skip_banks.insert(LHCb::RawBank::VPRetinaCluster);
+  }
 
   if (!mdf_input.empty()) {
     auto connections = split_string(mdf_input, ",");
@@ -227,13 +255,13 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
       }
     }
 
-    MDFProviderConfig config {false,                 // verify MDF checksums
-                              4,                     // number of read buffers
-                              3,                     // number of transpose threads
-                              events_per_slice + 1,  // maximum number of offsets in read buffer
-                              events_per_slice,      // number of events per read buffer
-                              io_conf.n_io_reps,     // number of loops over the input files
-                              !disable_run_changes}; // Whether to split slices by run number
+    MDFProviderConfig config {false,                     // verify MDF checksums
+                              2,                         // number of transpose threads
+                              events_per_slice * 10 + 1, // maximum number event of offsets in read buffer
+                              events_per_slice,          // number of events per read buffer
+                              io_conf.n_io_reps,         // number of loops over the input files
+                              !disable_run_changes,      // Whether to split slices by run number
+                              skip_banks};
     return std::make_shared<MDFProvider>(
       io_conf.number_of_slices, events_per_slice, n_events, connections, bank_types, config);
   }
@@ -246,6 +274,7 @@ std::unique_ptr<OutputHandler> Allen::output_handler(
   std::map<std::string, std::string> const& options)
 {
   std::string output_file;
+  size_t output_batch_size = 10;
   auto const [json_file, run_from_json] = Allen::sequence_conf(options);
 
   for (auto const& entry : options) {
@@ -253,6 +282,14 @@ std::unique_ptr<OutputHandler> Allen::output_handler(
     if (flag_in(flag, {"output-file"})) {
       output_file = arg;
     }
+    else if (flag_in(flag, {"output-batch-size"})) {
+      output_batch_size = atol(arg.c_str());
+    }
+  }
+
+  if (!output_file.empty() && output_batch_size == 0) {
+    error_cout << "Output batch size must not be 0\n";
+    return {};
   }
 
   // Load constant parameters from JSON
@@ -272,10 +309,11 @@ std::unique_ptr<OutputHandler> Allen::output_handler(
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler = std::make_unique<ZMQOutputSender>(input_provider, output_file, n_lines, zmq_svc);
+        output_handler =
+          std::make_unique<ZMQOutputSender>(input_provider, output_file, output_batch_size, n_lines, zmq_svc);
       }
       else {
-        output_handler = std::make_unique<FileWriter>(input_provider, output_file, n_lines);
+        output_handler = std::make_unique<FileWriter>(input_provider, output_file, output_batch_size, n_lines);
       }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";

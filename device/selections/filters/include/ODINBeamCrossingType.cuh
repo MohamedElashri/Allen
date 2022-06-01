@@ -11,8 +11,7 @@ namespace odin_beamcrossingtype {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
 
-    DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-    DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
+    DEVICE_INPUT(dev_odin_data_t, ODINData) dev_odin_data;
     DEVICE_OUTPUT(dev_number_of_selected_events_t, unsigned) dev_number_of_selected_events;
 
     MASK_INPUT(dev_event_list_t) dev_event_list;

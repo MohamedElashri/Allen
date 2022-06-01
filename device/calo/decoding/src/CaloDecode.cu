@@ -12,18 +12,20 @@
 #include <CaloDecode.cuh>
 
 namespace {
-  template<typename RawEvent>
+  template<bool mep_layout>
   __device__ void decode(
-    const char* event_data,
-    const uint32_t* event_offsets,
+    const char* data,
+    const uint32_t* offsets,
+    const uint32_t* sizes,
+    const uint32_t* types,
     unsigned const event_number,
     CaloDigit* digits,
     unsigned const number_of_digits,
     CaloGeometry const& geometry)
   {
-    auto raw_event = RawEvent {event_data, event_offsets, event_number};
+    auto raw_event = Calo::RawEvent<mep_layout> {data, offsets, sizes, types, event_number};
     for (unsigned bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
-      auto raw_bank = raw_event.bank(bank_number);
+      auto raw_bank = raw_event.raw_bank(bank_number);
       while (raw_bank.data < raw_bank.end) {
         uint32_t word = *raw_bank.data;
         uint16_t trig_size = word & 0x7F;
@@ -78,19 +80,19 @@ namespace {
 } // namespace
 
 // Decode dispatch
-template<bool MEP>
+template<bool mep_layout>
 __global__ void calo_decode_dispatch(calo_decode::Parameters parameters, const char* raw_ecal_geometry)
 {
-  using RawEvent = std::conditional_t<MEP, CaloMepEvent, CaloRawEvent>;
-
   unsigned const event_number = parameters.dev_event_list[blockIdx.x];
 
   // ECal
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   auto const ecal_digits_offset = parameters.dev_ecal_digits_offsets[event_number];
-  decode<RawEvent>(
+  decode<mep_layout>(
     parameters.dev_ecal_raw_input,
     parameters.dev_ecal_raw_input_offsets,
+    parameters.dev_ecal_raw_input_sizes,
+    parameters.dev_ecal_raw_input_types,
     event_number,
     &parameters.dev_ecal_digits[ecal_digits_offset],
     parameters.dev_ecal_digits_offsets[event_number + 1] - ecal_digits_offset,
@@ -115,7 +117,7 @@ void calo_decode::calo_decode_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  initialize<dev_ecal_digits_t>(arguments, SHRT_MAX, context);
+  initialize<dev_ecal_digits_t>(arguments, 0x7F, context);
 
   if (runtime_options.mep_layout) {
     global_function(calo_decode_dispatch<true>)(

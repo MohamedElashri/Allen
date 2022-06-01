@@ -1,4 +1,5 @@
-.. _where_to_develop_for_gpus: 
+.. _where_to_develop_for_gpus:
+
 Where to develop for GPUs
 ===========================
 

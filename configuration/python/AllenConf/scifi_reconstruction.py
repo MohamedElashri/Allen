@@ -16,13 +16,14 @@ from PyConf.tonic import configurable
 def decode_scifi():
     number_of_events = initialize_number_of_events()
     scifi_banks = make_algorithm(
-        data_provider_t, name="scifi_banks", bank_type="FTCluster")
+        data_provider_t, name="scifi_banks", bank_type="FT")
 
     scifi_calculate_cluster_count = make_algorithm(
         scifi_calculate_cluster_count_t,
         name="scifi_calculate_cluster_count",
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
+        dev_scifi_raw_input_sizes_t=scifi_banks.dev_raw_sizes_t,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
 
@@ -39,6 +40,7 @@ def decode_scifi():
         host_total_sum_holder_t,
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
+        dev_scifi_raw_input_sizes_t=scifi_banks.dev_raw_sizes_t,
         dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t,
         host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
 
@@ -51,6 +53,7 @@ def decode_scifi():
         host_total_sum_holder_t,
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
+        dev_scifi_raw_input_sizes_t=scifi_banks.dev_raw_sizes_t,
         dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t,
         dev_cluster_references_t=scifi_pre_decode.dev_cluster_references_t,
         host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)

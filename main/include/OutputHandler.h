@@ -16,9 +16,14 @@ class OutputHandler {
 public:
   OutputHandler() {}
 
-  OutputHandler(IInputProvider const* input_provider, std::string connection, size_t n_lines, bool checksum)
+  OutputHandler(
+    IInputProvider const* input_provider,
+    std::string const connection,
+    size_t const output_batch_size,
+    size_t const n_lines,
+    bool const checksum)
   {
-    init(input_provider, std::move(connection), n_lines, checksum);
+    init(input_provider, std::move(connection), output_batch_size, n_lines, checksum);
   }
 
   virtual ~OutputHandler() {}
@@ -44,11 +49,17 @@ public:
   bool do_checksum() const { return m_checksum; }
 
 protected:
-  void init(IInputProvider const* input_provider, std::string connection, size_t n_lines, bool checksum)
+  void init(
+    IInputProvider const* input_provider,
+    std::string const connection,
+    size_t const output_batch_size,
+    size_t const n_lines,
+    bool const checksum)
   {
     m_input_provider = input_provider;
     m_connection = std::move(connection);
     m_sizes.resize(input_provider->events_per_slice());
+    m_output_batch_size = output_batch_size;
     m_nlines = n_lines;
     m_checksum = checksum;
   }
@@ -61,6 +72,7 @@ protected:
   std::string m_connection;
   std::vector<size_t> m_sizes;
   std::array<uint32_t, 4> m_trigger_mask = {~0u, ~0u, ~0u, ~0u};
+  size_t m_output_batch_size = 10;
   size_t m_nlines = 0;
   bool m_checksum = false;
 };

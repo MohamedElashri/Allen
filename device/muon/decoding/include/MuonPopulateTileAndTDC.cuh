@@ -15,6 +15,7 @@ namespace muon_populate_tile_and_tdc {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_muon_raw_t, char) dev_muon_raw;
     DEVICE_INPUT(dev_muon_raw_offsets_t, unsigned) dev_muon_raw_offsets;
+    DEVICE_INPUT(dev_muon_raw_sizes_t, unsigned) dev_muon_raw_sizes;
     DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
     DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, unsigned) dev_storage_station_region_quarter_offsets;
     DEVICE_OUTPUT(dev_storage_tile_id_t, unsigned) dev_storage_tile_id;

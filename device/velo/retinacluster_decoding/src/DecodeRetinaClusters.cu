@@ -138,8 +138,11 @@ __global__ void velo_calculate_sorting_key(
   const VeloGeometry& g = *dev_velo_geometry;
 
   // Read raw event
-  const auto velo_raw_event = Velo::RawEvent<mep_layout> {
-    parameters.dev_velo_retina_raw_input, parameters.dev_velo_retina_raw_input_offsets, event_number};
+  const auto velo_raw_event = Velo::RawEvent<mep_layout> {parameters.dev_velo_retina_raw_input,
+                                                          parameters.dev_velo_retina_raw_input_offsets,
+                                                          parameters.dev_velo_retina_raw_input_sizes,
+                                                          parameters.dev_velo_retina_raw_input_types,
+                                                          event_number};
 
   // Populate retina clusters
   const auto event_clusters_offset = sensor_offsets[0];
@@ -154,14 +157,15 @@ __global__ void velo_calculate_sorting_key(
       cluster_number + event_clusters_offset);
     unsigned index_within_raw_bank = cluster_number - (sensor_offsets[raw_bank_number] - event_clusters_offset);
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-
-    populate_sorting_key(
-      parameters.dev_hit_sorting_key,
-      g,
-      event_clusters_offset + cluster_number,
-      raw_bank.sensor_index,
-      raw_bank.word[index_within_raw_bank],
-      raw_bank_version);
+    if (raw_bank.type == LHCb::RawBank::VPRetinaCluster) {
+      populate_sorting_key(
+        parameters.dev_hit_sorting_key,
+        g,
+        event_clusters_offset + cluster_number,
+        raw_bank.sensor_index,
+        raw_bank.word[index_within_raw_bank],
+        raw_bank_version);
+    }
   }
 }
 
@@ -246,8 +250,11 @@ __global__ void decode_retinaclusters_sorted(
   const VeloGeometry& g = *dev_velo_geometry;
 
   // Read raw event
-  const auto velo_raw_event = Velo::RawEvent<mep_layout> {
-    parameters.dev_velo_retina_raw_input, parameters.dev_velo_retina_raw_input_offsets, event_number};
+  const auto velo_raw_event = Velo::RawEvent<mep_layout> {parameters.dev_velo_retina_raw_input,
+                                                          parameters.dev_velo_retina_raw_input_offsets,
+                                                          parameters.dev_velo_retina_raw_input_sizes,
+                                                          parameters.dev_velo_retina_raw_input_types,
+                                                          event_number};
 
   // Populate retina clusters
   const auto event_clusters_offset = sensor_offsets[0];
@@ -260,14 +267,15 @@ __global__ void decode_retinaclusters_sorted(
       sensor_offsets, Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module, cluster_number);
     unsigned index_within_raw_bank = cluster_number - sensor_offsets[raw_bank_number];
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-
-    populate_retinacluster(
-      velo_cluster_container,
-      g,
-      parameters.dev_hit_permutations[cluster_number],
-      raw_bank.sensor_index,
-      raw_bank.word[index_within_raw_bank],
-      raw_bank_version);
+    if (raw_bank.type == LHCb::RawBank::VPRetinaCluster) {
+      populate_retinacluster(
+        velo_cluster_container,
+        g,
+        parameters.dev_hit_permutations[cluster_number],
+        raw_bank.sensor_index,
+        raw_bank.word[index_within_raw_bank],
+        raw_bank_version);
+    }
   }
 }
 
@@ -295,12 +303,11 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 
   // Ensure the bank version is supported
   if (bank_version != 2 && bank_version != 3) {
-    throw StrException("SciFi bank version not supported (" + std::to_string(bank_version) + ")");
+    throw StrException("Velo bank version not supported (" + std::to_string(bank_version) + ")");
   }
 
   initialize<dev_module_cluster_num_t>(arguments, 0, context);

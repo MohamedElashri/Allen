@@ -8,6 +8,9 @@
 #include "MuonEventModel.cuh"
 
 namespace Muon {
+
+  static constexpr size_t batches_per_bank = 4;
+
   namespace Constants {
     /* Detector description
        There are four stations with number of regions in it

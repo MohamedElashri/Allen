@@ -18,6 +18,7 @@
 #include <string>
 #include <cassert>
 #include <array>
+#include <gsl/gsl>
 #include "AllenTypeTraits.h"
 #include "BackendCommonInterface.h"
 
@@ -96,9 +97,11 @@ namespace Allen {
 #include <cmath>
 #endif
 
-// Replacement for gsl::span in device code
+// Replacement for gsl::span in device code when building with HIP,
+// gsl::span works for CUDA and CPU
 namespace Allen {
   namespace device {
+#if defined(TARGET_DEVICE_HIP)
     template<class T>
     struct span {
       T* __ptr = nullptr;
@@ -123,6 +126,9 @@ namespace Allen {
       constexpr __device__ __host__ T& operator[](int i) { return __ptr[i]; }
       constexpr __device__ __host__ const T& operator[](int i) const { return __ptr[i]; }
     };
+#else
+    using gsl::span;
+#endif
   } // namespace device
 } // namespace Allen
 

@@ -446,17 +446,24 @@ void print(const Args& arguments)
 /**
  * @brief Transfer data to the device, populating raw banks and offsets.
  */
-template<class DATA_ARG, class OFFSET_ARG, class ARGUMENTS>
+template<class DATA_ARG, class OFFSET_ARG, class SIZE_ARG, class TYPES_ARG, class ARGUMENTS>
 void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const Allen::Context& context)
 {
   auto offset = data<DATA_ARG>(args);
-  for (gsl::span<char const> data_span : std::get<0>(bno)) {
+  for (gsl::span<char const> data_span : bno.fragments) {
     Allen::memcpy_async(offset, data_span.data(), data_span.size_bytes(), Allen::memcpyHostToDevice, context);
     offset += data_span.size_bytes();
   }
+  assert(static_cast<size_t>(offset - data<DATA_ARG>(args)) == bno.fragments_mem_size);
 
   Allen::memcpy_async(
-    data<OFFSET_ARG>(args), std::get<2>(bno).data(), std::get<2>(bno).size_bytes(), Allen::memcpyHostToDevice, context);
+    data<SIZE_ARG>(args), bno.sizes.data(), bno.sizes.size_bytes(), Allen::memcpyHostToDevice, context);
+
+  Allen::memcpy_async(
+    data<TYPES_ARG>(args), bno.types.data(), bno.types.size_bytes(), Allen::memcpyHostToDevice, context);
+
+  Allen::memcpy_async(
+    data<OFFSET_ARG>(args), bno.offsets.data(), bno.offsets.size_bytes(), Allen::memcpyHostToDevice, context);
 }
 
 /**

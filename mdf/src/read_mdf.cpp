@@ -53,171 +53,6 @@ Allen::IO MDF::open(std::string const& filepath, int flags, int mode)
   }
 }
 
-std::tuple<size_t, Allen::buffer_map, std::vector<LHCb::ODIN>> MDF::read_events(
-  size_t n,
-  const std::vector<std::string>& files,
-  const std::unordered_set<BankTypes>& types,
-  bool checkChecksum,
-  size_t start_event)
-{
-
-  Allen::buffer_map buffers;
-  for (auto bank_type : types) {
-    auto r = buffers.emplace(bank_type, make_pair(vector<char> {}, vector<unsigned int> {}));
-    // Reserve some memory
-    auto& banks = r.first->second.first;
-    banks.reserve(n * 100 * 1024);
-    // Reserve for 100 banks per event, more than enough
-    auto& offsets = r.first->second.second;
-    offsets.reserve(n * 100);
-    offsets.push_back(0);
-  }
-
-  vector<LHCb::ODIN> odins;
-  odins.reserve(n);
-
-  // Some storage for reading the events into
-  LHCb::MDFHeader header;
-  vector<char> buffer(1024 * 1024);
-
-  bool eof = false, error = false;
-
-  gsl::span<const char> bank_span;
-  size_t n_read = 0;
-
-  array<std::vector<uint32_t>, NBankTypes> bank_offsets;
-  array<std::vector<uint32_t>, NBankTypes> bank_datas;
-  vector<char> decompression_buffer(1024 * 1024);
-
-  // Lambda to copy data from the event-local buffer to the global
-  // one, while keeping the global buffer's size consistent with its
-  // content
-  auto copy_data = [](unsigned int& event_offset, vector<char>& buf, const void* source, size_t s) {
-    size_t n_chars = buf.size();
-    for (size_t i = 0; i < s; ++i) {
-      buf.emplace_back(0);
-    }
-    ::memcpy(&buf[n_chars], source, s);
-    event_offset += s;
-  };
-
-  for (const auto& filename : files) {
-    auto input = MDF::open(filename.c_str(), O_RDONLY);
-    if (!input.good) {
-      cout << "failed to open file " << filename << " " << strerror(errno) << "\n";
-      break;
-    }
-
-    while (n_read++ < n) {
-
-      std::tie(eof, error, bank_span) = read_event(input, header, buffer, decompression_buffer, checkChecksum);
-      if (eof || error) {
-        break;
-      }
-
-      // Skip some events
-      if (n_read < start_event) {
-        continue;
-      }
-
-      // Clear bank offsets
-      for (auto& bo : bank_offsets) {
-        bo.clear();
-        bo.push_back(0);
-      }
-
-      // Clear bank data
-      for (auto& bd : bank_datas) {
-        bd.clear();
-      }
-
-      // Put the banks in the event-local buffers
-      const auto* bank = bank_span.data();
-      const auto* end = bank_span.data() + bank_span.size();
-      while (bank < end) {
-        const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
-        if (b->magic() != LHCb::RawBank::MagicPattern) {
-          cout << "magic pattern failed: " << std::hex << b->magic() << std::dec << "\n";
-        }
-
-        // Decode the odin bank
-        if (b->type() == LHCb::RawBank::ODIN) {
-          odins.emplace_back(decode_odin(b->version(), b->data()));
-        }
-
-        // Check if Allen processes this type of bank
-        auto bank_type_it = Allen::bank_types.find(b->type());
-        if (bank_type_it == Allen::bank_types.end()) {
-          bank += b->totalSize();
-          continue;
-        }
-
-        // Check if we want this bank
-        auto buf_it = buffers.find(bank_type_it->second);
-        if (buf_it == buffers.end()) {
-          bank += b->totalSize();
-          continue;
-        }
-
-        auto index = to_integral(bank_type_it->second);
-        auto& bank_data = bank_datas[index];
-        auto& offsets = bank_offsets[index];
-        auto offset = offsets.back() / sizeof(uint32_t);
-
-        // Store this bank in the event-local buffers
-        bank_data.push_back(b->sourceID());
-        offset++;
-
-        auto b_start = b->begin<uint32_t>();
-        auto b_end = b->end<uint32_t>();
-
-        while (b_start != b_end) {
-          const uint32_t raw_data = *b_start;
-          bank_data.emplace_back(raw_data);
-
-          b_start++;
-          offset++;
-        }
-
-        // Record raw bank offset
-        offsets.push_back(offset * sizeof(uint32_t));
-
-        // Move to next raw bank
-        bank += b->totalSize();
-      }
-
-      // Fill the output buffers from the event-local buffers in the right format:
-      // - number of raw banks (uint32_t)
-      // - raw bank offset within event as number of char (one more than number of banks)
-      // - raw bank data as uint32_t
-      for (auto& entry : buffers) {
-        auto& buf = entry.second.first;
-
-        auto index = to_integral(entry.first);
-        auto& event_offsets = entry.second.second;
-        auto event_offset = event_offsets.back();
-
-        // Copy in number of banks
-        const auto& offsets = bank_offsets[index];
-        uint32_t n_banks = offsets.size() - 1;
-        copy_data(event_offset, buf, &n_banks, sizeof(n_banks));
-
-        // Copy in bank offsets
-        copy_data(event_offset, buf, offsets.data(), offsets.size() * sizeof(uint32_t));
-
-        // Copy in bank data
-        const auto& bank_data = bank_datas[index];
-        copy_data(event_offset, buf, bank_data.data(), bank_data.size() * sizeof(uint32_t));
-
-        event_offsets.push_back(event_offset);
-      }
-    }
-    input.close();
-  }
-  n_read = n_read > 0 ? n_read - 1 : 0;
-  return make_tuple(n_read, std::move(buffers), std::move(odins));
-}
-
 // return eof, error, span that covers all banks in the event
 std::tuple<bool, bool, gsl::span<char>> MDF::read_event(
   Allen::IO& input,
@@ -323,7 +158,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     // Read compressed data
     ssize_t n_bytes = input.read(decompression_buffer.data() + rawSize, readSize);
     if (n_bytes == 0) {
-      cout << "Cannot read more data  (Header). End-of-File reached.\n";
+      cout << "Cannot read more data (Header). End-of-File reached.\n";
       return {true, false, {}};
     }
     else if (n_bytes == -1) {
@@ -358,7 +193,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     // Read uncompressed data from file
     ssize_t n_bytes = input.read(bptr + rawSize, readSize);
     if (n_bytes == 0) {
-      cout << "Cannot read more data  (Header). End-of-File reached.\n";
+      cout << "Cannot read more data (Header). End-of-File reached.\n";
       return {true, false, {}};
     }
     else if (n_bytes == -1) {
@@ -376,15 +211,15 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
 }
 
 // Decode the ODIN bank
-LHCb::ODIN MDF::decode_odin(unsigned int version, unsigned int const* odinData)
+LHCb::ODIN MDF::decode_odin(gsl::span<unsigned const> data, unsigned const version)
 {
   // we just assume the buffer has the right size and cross fingers.
   // note that we only support the default bank version in Allen
   if (version == 6) {
-    return LHCb::ODIN::from_version<6>({odinData, 10});
+    return LHCb::ODIN::from_version<6>(data);
   }
   else {
-    return LHCb::ODIN({odinData, 10});
+    return LHCb::ODIN(data);
   }
 }
 

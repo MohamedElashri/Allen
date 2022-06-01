@@ -15,26 +15,26 @@
 #include "Common.h"
 
 constexpr auto NBankTypes = 11;
-enum class BankTypes { VP, VPRetinaCluster, UT, FT, MUON, ODIN, OTRaw, OTError, Rich, ECal, HCal, Unknown };
+enum class BankTypes { VP, UT, FT, MUON, ODIN, MCTracks, MCVertices, Rich1, Rich2, ECal, HCal, Unknown };
 
 // Average size of all raw banks of a given type per
 // subdetector, in kB, measured in simulated minbias events.
 // FIXME: make this configurable
-const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 20.f},
-                                                        {BankTypes::VPRetinaCluster, 20.f},
+const std::unordered_map<BankTypes, float> BankSizes = {{BankTypes::VP, 40.f},
                                                         {BankTypes::UT, 12.f},
                                                         {BankTypes::FT, 15.f},
                                                         {BankTypes::MUON, 4.f},
-                                                        {BankTypes::Rich, 35.f},
+                                                        {BankTypes::Rich1, 35.f},
+                                                        {BankTypes::Rich2, 35.f},
                                                         {BankTypes::HCal, 5.1f},
                                                         {BankTypes::ECal, 15.f},
                                                         {BankTypes::ODIN, 1.f},
-                                                        {BankTypes::OTRaw, 110.f},   // for track MC info
-                                                        {BankTypes::OTError, 0.3f}}; // for PV MC info
+                                                        {BankTypes::MCTracks, 110.f},
+                                                        {BankTypes::MCVertices, 0.3f}};
 
 // Average measured event size, measured
 // FIXME: make this configurable
-constexpr float average_event_size = 65.f;
+constexpr float average_event_size = 150.f;
 // Safety margin
 // FIXME: make this configurable
 constexpr float bank_size_fudge_factor = 1.5f;
@@ -53,13 +53,21 @@ std::string bank_name(BankTypes type);
  */
 BankTypes bank_type(std::string bank_name);
 
-template<typename ENUM>
-constexpr auto to_integral(ENUM e) -> typename std::underlying_type<ENUM>::type
-{
-  return static_cast<typename std::underlying_type<ENUM>::type>(e);
-}
+struct BanksAndOffsets {
+  std::vector<gsl::span<const char>> fragments;
+  gsl::span<unsigned const> offsets;
+  size_t fragments_mem_size = 0;
+  gsl::span<unsigned const> sizes;
+  gsl::span<unsigned const> types;
+  int version = 0;
+};
 
-using BanksAndOffsets = std::tuple<std::vector<gsl::span<const char>>, size_t, gsl::span<const unsigned int>, int>;
+struct TransposedBanks {
+  std::vector<char> data;
+  std::vector<uint16_t> sizes;
+  std::vector<uint8_t> types;
+  int version = -1;
+};
 
 template<BankTypes... BANKS>
 std::unordered_set<BankTypes> banks_set()

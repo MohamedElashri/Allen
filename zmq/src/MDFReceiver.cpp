@@ -8,17 +8,12 @@
 #include <algorithm>
 #include <thread>
 
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-#else
-#include <filesystem>
-#endif
-
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
 
 #include <ZeroMQ/IZeroMQSvc.h>
-#include "Timer.h"
+#include <FileSystem.h>
+#include <Timer.h>
 
 #include <read_mdf.hpp>
 #include <raw_helpers.hpp>
@@ -32,12 +27,6 @@ namespace {
   using namespace std::string_literals;
   using namespace zmq;
   namespace po = boost::program_options;
-
-#ifdef USE_BOOST_FILESYSTEM
-  namespace fs = boost::filesystem;
-#else
-  namespace fs = std::filesystem;
-#endif
 
   using Buffers = std::array<std::tuple<std::vector<char>, unsigned int>, 3>;
 } // namespace

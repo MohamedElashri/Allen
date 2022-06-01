@@ -9,6 +9,7 @@ sequence as part of a Gaudi/LHCb
 application
 #]========================================]
 
+if(TARGET_DEVICE STREQUAL "CPU")
 include(GenerateConfiguration)
 
 gaudi_add_module(AllenWrapper
@@ -30,7 +31,25 @@ gaudi_add_module(AllenWrapper
                    src/TestVeloClusters.cpp
                  LINK
                    AllenLib
+		   Backend
+    		   Stream
+   		   HostCommon
+   		   HostEventModel
+    		   NonEventData
+    		   TrackChecking
+    		   PVChecking
+    		   CheckClustering
+    		   SelChecking
+    		   Monitoring
+    		   HostCombiners
+    		   EventModel
+    		   Gear
+    		   mdf
+    		   LHCbEvent
                    EventModel
+		   MuonCommon
+                   EventModel
+                   Gear
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
                    LHCb::DAQKernelLib
@@ -46,14 +65,30 @@ gaudi_add_module(AllenWrapper
 target_include_directories(AllenWrapper PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
 add_dependencies(AllenWrapper struct_to_tuple)
 
+
 gaudi_add_module(AllenAlgorithms
                  SOURCES
                    ${WRAPPED_ALGORITHM_SOURCES}
                  LINK
                    AllenLib
+		   Backend
+    		   Stream
+   		   HostCommon
+   		   HostEventModel
+    		   NonEventData
+    		   TrackChecking
+    		   PVChecking
+    		   CheckClustering
+    		   SelChecking
+    		   Monitoring
+    		   HostCombiners
+    		   EventModel
+    		   Gear
+    		   mdf
+    		   LHCbEvent
                    EventModel
-				   MuonCommon
-				   WrapperInterface
+		   MuonCommon
+		   WrapperInterface
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
                    LHCb::DAQKernelLib
@@ -77,6 +112,8 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
 endif()
 target_compile_definitions(AllenWrapper PRIVATE -D${TARGET_DEFINITION})
 target_compile_definitions(AllenAlgorithms PRIVATE -D${TARGET_DEFINITION})
+
+endif()
 
 gaudi_install(PYTHON)
 

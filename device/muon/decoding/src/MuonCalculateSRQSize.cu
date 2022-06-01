@@ -9,12 +9,12 @@ INSTANTIATE_ALGORITHM(muon_calculate_srq_size::muon_calculate_srq_size_t)
 __device__ void calculate_srq_size(
   Muon::MuonRawToHits const* muon_raw_to_hits,
   int const batch_index,
-  Muon::MuonRawBank const& raw_bank,
+  Muon::MuonRawBank<2> const& raw_bank,
   unsigned int* storage_station_region_quarter_sizes)
 {
   const auto tell_number = raw_bank.sourceID;
 
-  uint16_t* p = raw_bank.data;
+  const uint16_t* p = raw_bank.data;
 
   // Note: Review this logic
   p += (*p + 3) & 0xFFFE;
@@ -54,8 +54,8 @@ template<bool mep_layout>
 __global__ void muon_calculate_srq_size_kernel(muon_calculate_srq_size::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const auto raw_event =
-    Muon::RawEvent<mep_layout> {parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, event_number};
+  const auto raw_event = Muon::RawEvent<mep_layout> {
+    parameters.dev_muon_raw, parameters.dev_muon_raw_offsets, parameters.dev_muon_raw_sizes, event_number};
   unsigned* storage_station_region_quarter_sizes =
     parameters.dev_storage_station_region_quarter_sizes + event_number * Muon::Constants::n_layouts *
                                                             Muon::Constants::n_stations * Muon::Constants::n_regions *
@@ -65,8 +65,7 @@ __global__ void muon_calculate_srq_size_kernel(muon_calculate_srq_size::Paramete
   // batches_per_bank = 4
   constexpr uint32_t batches_per_bank_mask = 0x3;
   constexpr uint32_t batches_per_bank_shift = 2;
-  for (unsigned i = threadIdx.x; i < raw_event.number_of_raw_banks() * Muon::MuonRawEvent::batches_per_bank;
-       i += blockDim.x) {
+  for (unsigned i = threadIdx.x; i < raw_event.number_of_raw_banks() * Muon::batches_per_bank; i += blockDim.x) {
     const auto bank_index = i >> batches_per_bank_shift;
     const auto batch_index = i & batches_per_bank_mask;
     const auto raw_bank = raw_event.raw_bank(bank_index);
@@ -109,6 +108,6 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
     runtime_options.mep_layout ? muon_calculate_srq_size_kernel<true> : muon_calculate_srq_size_kernel<false>)(
     size<dev_event_list_t>(arguments),
     // FIXME
-    10 * Muon::MuonRawEvent::batches_per_bank,
+    10 * Muon::batches_per_bank,
     context)(arguments);
 }

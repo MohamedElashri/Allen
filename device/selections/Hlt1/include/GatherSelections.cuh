@@ -3,10 +3,12 @@
 \*****************************************************************************/
 #pragma once
 
+#include <string>
+
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
 #include "Line.cuh"
-#include <string>
+#include "ODINBank.cuh"
 
 namespace gather_selections {
   struct Parameters {
@@ -15,7 +17,6 @@ namespace gather_selections {
     HOST_OUTPUT(host_selections_offsets_t, unsigned) host_selections_offsets;
     HOST_OUTPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
     HOST_OUTPUT(host_names_of_active_lines_t, char) host_names_of_active_lines;
-    DEVICE_INPUT(dev_mep_layout_t, unsigned) dev_mep_layout;
     HOST_INPUT_AGGREGATE(host_decisions_sizes_t, unsigned) host_decisions_sizes;
     HOST_INPUT_AGGREGATE(host_input_post_scale_factors_t, float) host_input_post_scale_factors;
     HOST_INPUT_AGGREGATE(host_input_post_scale_hashes_t, uint32_t) host_input_post_scale_hashes;
@@ -26,8 +27,7 @@ namespace gather_selections {
     HOST_OUTPUT(host_fn_indices_t, unsigned) host_fn_indices;
     DEVICE_OUTPUT(dev_fn_indices_t, unsigned) dev_fn_indices;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    DEVICE_INPUT(dev_odin_raw_input_t, char) dev_odin_raw_input;
-    DEVICE_INPUT(dev_odin_raw_input_offsets_t, unsigned) dev_odin_raw_input_offsets;
+    DEVICE_INPUT(dev_odin_data_t, ODINData) dev_odin_data;
     DEVICE_OUTPUT(dev_selections_t, bool) dev_selections;
     DEVICE_OUTPUT(dev_selections_lines_offsets_t, unsigned) dev_selections_lines_offsets;
     DEVICE_OUTPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
