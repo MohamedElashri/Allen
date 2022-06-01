@@ -53,10 +53,12 @@ def check_throughput_change(throughput, master_throughput):
             print(msg)
             problems.append(msg)
             status = "DECREASED"
-        
+        tput = throughput.get(device, '--')
+        if not tput == '--':
+            tput = f"{tput:.2f}"
         single_device_table.append([
             device,
-            f"{throughput.get(device, '--'):.2f}",
+            tput,
             f"{master_throughput[device]:.2f}",
             f"{speedup:.2f}x",
             f"{change*100:.2f}%",
