@@ -233,9 +233,12 @@ void calo_decode::calo_decode_t::operator()(
     throw StrException("Calo bank version not supported (" + std::to_string(bank_version) + ")");
   }
 
-  auto fn = runtime_options.mep_layout ?
-              (bank_version == 4 ? calo_decode_dispatch<true, 4> : (bank_version == 5 ? calo_decode_dispatch<true, 5> : calo_decode_dispatch<true, 3>)) :
-              (bank_version == 4 ? calo_decode_dispatch<false, 4> : (bank_version == 5 ? calo_decode_dispatch<false, 5> : calo_decode_dispatch<false, 3>));
+  auto fn =
+    runtime_options.mep_layout ?
+      (bank_version == 4 ? calo_decode_dispatch<true, 4> :
+                           (bank_version == 5 ? calo_decode_dispatch<true, 5> : calo_decode_dispatch<true, 3>) ) :
+      (bank_version == 4 ? calo_decode_dispatch<false, 4> :
+                           (bank_version == 5 ? calo_decode_dispatch<false, 5> : calo_decode_dispatch<false, 3>) );
 
   global_function(fn)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
     arguments, constants.dev_ecal_geometry);
