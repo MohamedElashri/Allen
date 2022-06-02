@@ -179,7 +179,7 @@ __device__ void process_line(
     decisions[index] = decision;
     if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
       if (parameters.enable_monitoring) {
-        Derived::monitor(parameters, input, event_number, decision);
+        Derived::monitor(parameters, input, index, decision);
       }
     }
   }
