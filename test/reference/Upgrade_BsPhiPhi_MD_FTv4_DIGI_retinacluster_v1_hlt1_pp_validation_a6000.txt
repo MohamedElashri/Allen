@@ -74,7 +74,7 @@ Hlt1TrackMVA:                  226/  1000, ( 6780.00 +/-   396.78) kHz
 Hlt1TwoTrackMVA:               441/  1000, (13230.00 +/-   471.03) kHz
 Hlt1TwoTrackKs:                  4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1SingleHighPtMuon:            2/  1000, (   60.00 +/-    42.38) kHz
-Hlt1SingleHighPtMuonNoMuID:      1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1SingleHighPtMuonNoMuID:      2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1LowPtMuon:                 114/  1000, ( 3420.00 +/-   301.50) kHz
 Hlt1D2KK:                       19/  1000, (  570.00 +/-   129.52) kHz
 Hlt1D2KPi:                      27/  1000, (  810.00 +/-   153.77) kHz
@@ -90,7 +90,7 @@ Hlt1DisplacedDielectron:         7/  1000, (  210.00 +/-    79.09) kHz
 Hlt1DisplacedLeptons:           27/  1000, (  810.00 +/-   153.77) kHz
 Hlt1SingleHighEt:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Passthrough:              1000/  1000, (30000.00 +/-     0.00) kHz
-Hlt1Passthrough:               887/  1000, (26610.00 +/-   300.35) kHz
+Hlt1GECPassthrough:            887/  1000, (26610.00 +/-   300.35) kHz
 Hlt1NoBeam:                      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamOne:                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamTwo:                     0/  1000, (    0.00 +/-     0.00) kHz
@@ -105,13 +105,13 @@ Inclusive:                    1000/  1000, (30000.00 +/-     0.00) kHz
 
 
 selreport_validator validation:
-                                Events  Candidates
+                            Events  Candidates
 Hlt1KsToPiPi:                   27          29
 Hlt1TrackMVA:                  226         350
 Hlt1TwoTrackMVA:               441        1251
 Hlt1TwoTrackKs:                  4           4
 Hlt1SingleHighPtMuon:            2           2
-Hlt1SingleHighPtMuonNoMuID:      1           1
+Hlt1SingleHighPtMuonNoMuID:      2           3
 Hlt1LowPtMuon:                 114         131
 Hlt1D2KK:                       19          21
 Hlt1D2KPi:                      27          29
@@ -127,7 +127,7 @@ Hlt1DisplacedDielectron:         7           7
 Hlt1DisplacedLeptons:           27           0
 Hlt1SingleHighEt:                0           0
 Hlt1Passthrough:              1000           0
-Hlt1Passthrough:               887           0
+Hlt1GECPassthrough:            887           0
 Hlt1NoBeam:                      0           0
 Hlt1BeamOne:                     0           0
 Hlt1BeamTwo:                     0           0
@@ -139,9 +139,9 @@ Hlt1RICH1Alignment:              2           2
 Hlt1RICH2Alignment:              0           0
 Hlt1BeamGas:                     0           0
 
-Total decisions: 2963
-Total tracks:    1839
+Total decisions: 2964
+Total tracks:    1840
 Total SVs:       1401
-Total hits:      45579
-Total stdinfo:   23279
+Total hits:      45594
+Total stdinfo:   23288
 
