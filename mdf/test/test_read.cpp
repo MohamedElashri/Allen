@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <unordered_set>
 #include <map>
+#include <optional>
 
 #include <boost/program_options.hpp>
 #include <boost/format.hpp>
