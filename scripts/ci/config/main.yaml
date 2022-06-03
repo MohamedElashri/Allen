@@ -84,8 +84,8 @@ run-changes:
     - .test_run_changes
     - .default_rules_always_run
   dependencies:
+    - epyc7502-run-changes
     - a5000-run-changes
-    - geforcertx2080ti-run-changes
 
 
 throughput:
