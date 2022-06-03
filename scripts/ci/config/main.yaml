@@ -75,6 +75,7 @@ epyc7502-run-changes:
     - geforcertx2080ti
     - geforcertx3090
 
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # test and publish stages for the minimal pipeline          #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -86,6 +87,7 @@ physics-efficiency:
     - .default_rules_always_run
     - .device-jobs
 
+
 run-changes:
   stage: test
   extends: 
@@ -94,9 +96,7 @@ run-changes:
   dependencies:
     - epyc7502-run-changes
     - geforcertx2080ti-run-changes
-  # FIXME! Remove as soon as indeterminate behaviour can be fixed.
-  allow_failure: 
-    exit_codes: 3
+
 
 throughput:
   extends: 
@@ -304,10 +304,6 @@ physics-efficiency-full:
     - .test_physics_efficiency
     - .default_rules_always_run
     - .depend_full_run_jobs
-  # FIXME! This should be removed as soon as the indeterminate behaviour in issue #232 is fixed.
-  # https://gitlab.cern.ch/lhcb/Allen/-/issues/232
-  allow_failure: 
-    exit_codes: 3
 
 
 run-changes-full:
@@ -319,9 +315,7 @@ run-changes-full:
     # add run changes jobs here
     - epyc7502-full-run-changes
     - geforcertx2080ti-full-run-changes
-  # FIXME! Remove once the intederminate behaviour is fixed.
-  allow_failure: 
-    exit_codes: 3
+
 
 throughput-full:
   extends: 
