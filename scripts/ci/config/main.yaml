@@ -41,20 +41,12 @@ geforcertx2080ti-run-changes:
     - .run_toggle_run_changes
   stage: run
 
-a6000:
-  extends:
-    - .a6000
-    - .run_job
 
 a5000:
   extends:
     - .a5000
     - .run_job
 
-# mi100: # (disabled)
-#   extends:
-#     - .mi100
-#     - .run_job
 
 epyc7502:
   extends:
@@ -69,11 +61,10 @@ epyc7502-run-changes:
 .device-jobs:
   dependencies:
     - epyc7502
-    # - mi100
-    - a6000
     - a5000
     - geforcertx2080ti
     - geforcertx3090
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # test and publish stages for the minimal pipeline          #
@@ -86,6 +77,7 @@ physics-efficiency:
     - .default_rules_always_run
     - .device-jobs
 
+
 run-changes:
   stage: test
   extends: 
@@ -94,9 +86,7 @@ run-changes:
   dependencies:
     - epyc7502-run-changes
     - geforcertx2080ti-run-changes
-  # FIXME! Remove as soon as indeterminate behaviour can be fixed.
-  allow_failure: 
-    exit_codes: 3
+
 
 throughput:
   extends: 
@@ -153,8 +143,6 @@ full-pipeline:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
       when: never
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
-    # - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH != "master"'
-    #   when: manual
     - when: never
   needs: []
 
@@ -249,13 +237,6 @@ geforcertx2080ti-full:
     - .cuda_run_job
 
 
-a6000-full:
-  extends:
-    - .a6000
-    - .run_jobs_full
-    - .cuda_run_job
-
-
 a5000-full:
   extends:
     - .a5000
@@ -265,33 +246,19 @@ a5000-full:
 
 # HIP
 
-# N.B. HIP run tests are disabled
-
-# mi100-full:
-#   extends:
-#     - .mi100
-#     - .run_jobs_full
-#     - .hip_run_job
-
-
 # add any jobs listed above to this list
 # (stops build artifacts being downloaded to full test and publish jobs)
 # full-run-changes should be added to the needs: list in run-changes-full
 .depend_full_run_jobs:
-
   # N.B. dependencies: is used instead of needs:, as the needs: job limit
   # is 50. See https://docs.gitlab.com/ee/ci/yaml/#changing-the-needs-job-limit
   dependencies:
     # CPU
     - epyc7502-full
 
-    # HIP (disabled)
-    # - mi100-full
-
     # CUDA 
     - geforcertx3090-full
     - geforcertx2080ti-full
-    - a6000-full
     - a5000-full
 
 
@@ -304,10 +271,6 @@ physics-efficiency-full:
     - .test_physics_efficiency
     - .default_rules_always_run
     - .depend_full_run_jobs
-  # FIXME! This should be removed as soon as the indeterminate behaviour in issue #232 is fixed.
-  # https://gitlab.cern.ch/lhcb/Allen/-/issues/232
-  allow_failure: 
-    exit_codes: 3
 
 
 run-changes-full:
@@ -319,9 +282,7 @@ run-changes-full:
     # add run changes jobs here
     - epyc7502-full-run-changes
     - geforcertx2080ti-full-run-changes
-  # FIXME! Remove once the intederminate behaviour is fixed.
-  allow_failure: 
-    exit_codes: 3
+
 
 throughput-full:
   extends: 
