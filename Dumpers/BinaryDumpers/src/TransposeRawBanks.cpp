@@ -114,8 +114,24 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
     });
   }
 
+  // We have to deal with the fact that calo banks can come in different types
   for (auto bt : m_bankTypes.value()) {
-    if (rawBanks[bt].empty()) {
+    if (bt == LHCb::RawBank::EcalPacked || bt == LHCb::RawBank::HcalPacked) {
+      if (rawBanks[bt].empty() && rawBanks[LHCb::RawBank::Calo].empty()) {
+        // Old-style calo banks empty and new-style calo banks also empty
+        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
+      }
+    }
+    else if (bt == LHCb::RawBank::Calo) {
+      if (
+        rawBanks[bt].empty() &&
+        ((m_bankTypes.value().count(LHCb::RawBank::EcalPacked) && rawBanks[LHCb::RawBank::EcalPacked].empty()) ||
+         (m_bankTypes.value().count(LHCb::RawBank::HcalPacked) && rawBanks[LHCb::RawBank::HcalPacked].empty()))) {
+        // New-style calo banks empty and old-style calo banks also empty
+        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
+      }
+    }
+    else if (rawBanks[bt].empty()) {
       throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
     }
   }
