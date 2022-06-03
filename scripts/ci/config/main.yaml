@@ -35,9 +35,9 @@ geforcertx2080ti:
   extends:
     - .geforcertx2080ti
     - .run_job
-geforcertx2080ti-run-changes:
+a5000-run-changes:
   extends:
-    - .geforcertx2080ti
+    - .a5000
     - .run_toggle_run_changes
   stage: run
 
@@ -85,7 +85,7 @@ run-changes:
     - .default_rules_always_run
   dependencies:
     - epyc7502-run-changes
-    - geforcertx2080ti-run-changes
+    - a5000-run-changes
 
 
 throughput:
@@ -223,9 +223,9 @@ geforcertx3090-full:
     - .cuda_run_job
 
 
-geforcertx2080ti-full-run-changes:
+a5000-full-run-changes:
   extends:
-    - .geforcertx2080ti
+    - .a5000
     - .run_toggle_run_changes
     - .cuda_run_job
     - .default_rules_always_run
@@ -281,7 +281,7 @@ run-changes-full:
   dependencies:
     # add run changes jobs here
     - epyc7502-full-run-changes
-    - geforcertx2080ti-full-run-changes
+    - a5000-full-run-changes
 
 
 throughput-full:
