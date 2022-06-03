@@ -70,7 +70,7 @@ epyc7502-run-changes:
   dependencies:
     - epyc7502
     # - mi100
-    - a6000
+    # - a6000
     - a5000
     - geforcertx2080ti
     - geforcertx3090
@@ -291,7 +291,7 @@ a5000-full:
     # CUDA 
     - geforcertx3090-full
     - geforcertx2080ti-full
-    - a6000-full
+    # - a6000-full (disabled)
     - a5000-full
 
 
