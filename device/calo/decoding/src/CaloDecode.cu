@@ -176,10 +176,7 @@ namespace {
 
             // Ignore cells with invalid indices; these include LED diodes.
             if (index < number_of_digits && !isFiberOff) {
-              // TODO: Remove this hard-coded value
-              if (index != 4493) { // exclude noisy channel
-                digits[index].adc = adc;
-              }
+              digits[index].adc = adc;
             }
           }
         }
