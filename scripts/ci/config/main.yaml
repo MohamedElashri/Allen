@@ -41,10 +41,10 @@ geforcertx2080ti-run-changes:
     - .run_toggle_run_changes
   stage: run
 
-a6000:
-  extends:
-    - .a6000
-    - .run_job
+# a6000: # (disabled)
+#   extends:
+#     - .a6000
+#     - .run_job
 
 a5000:
   extends:
@@ -249,11 +249,11 @@ geforcertx2080ti-full:
     - .cuda_run_job
 
 
-a6000-full:
-  extends:
-    - .a6000
-    - .run_jobs_full
-    - .cuda_run_job
+# a6000-full:
+#   extends:
+#     - .a6000
+#     - .run_jobs_full
+#     - .cuda_run_job
 
 
 a5000-full:
