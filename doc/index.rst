@@ -24,6 +24,7 @@ This site documents various aspects of Allen.
    develop/tests
    develop/root_service
    develop/memory_layouts
+   develop/debugging
    integration/producers_consumers
    monitoring/monitoring_allen
    ci/ci_configuration
