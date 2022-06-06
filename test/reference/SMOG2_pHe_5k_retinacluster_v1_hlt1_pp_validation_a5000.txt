@@ -57,6 +57,7 @@ Ghost tracks identified as muon with isMuon:                                0/  
 
 
 rate_validator validation:
+Hlt1TwoTrackMVACharmXSec:        6/  1000, (  180.00 +/-    73.26) kHz
 Hlt1KsToPiPi:                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMVA:                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackMVA:                 0/  1000, (    0.00 +/-     0.00) kHz
@@ -94,6 +95,7 @@ Inclusive:                    1000/  1000, (30000.00 +/-     0.00) kHz
 
 selreport_validator validation:
                             Events  Candidates
+Hlt1TwoTrackMVACharmXSec:        6           7
 Hlt1KsToPiPi:                    0           0
 Hlt1TrackMVA:                    0           0
 Hlt1TwoTrackMVA:                 0           0
@@ -127,9 +129,9 @@ Hlt1RICH1Alignment:              0           0
 Hlt1RICH2Alignment:              0           0
 Hlt1BeamGas:                     0           0
 
-Total decisions: 2004
-Total tracks:    0
-Total SVs:       0
-Total hits:      0
-Total stdinfo:   2004
+Total decisions: 2010
+Total tracks:    13
+Total SVs:       7
+Total hits:      273
+Total stdinfo:   2142
 
