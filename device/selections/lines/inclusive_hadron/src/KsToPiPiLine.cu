@@ -26,11 +26,9 @@ __device__ void kstopipi_line::kstopipi_line_t::monitor(
   bool sel)
 {
   const auto ks = std::get<0>(input);
-  if (sel) 
-  {
+  if (sel) {
     parameters.sv_masses[index] = ks.m12(Allen::mPi, Allen::mPi);
-    parameters.pt[index]        = ks.vertex().pt();
-    parameters.mipchi2[index]   = ks.minipchi2(); 
+    parameters.pt[index] = ks.vertex().pt();
+    parameters.mipchi2[index] = ks.minipchi2();
   }
 }
-

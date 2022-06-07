@@ -230,7 +230,6 @@ namespace Allen {
   struct has_monitoring_types<T, std::void_t<typename T::monitoring_types>> : std::true_type {
   };
 
-
   template<typename T>
   void initialize_algorithm(T& alg)
   {

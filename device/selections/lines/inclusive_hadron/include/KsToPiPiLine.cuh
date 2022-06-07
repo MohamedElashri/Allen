@@ -22,8 +22,8 @@ namespace kstopipi_line {
     host_fn_parameters;
 
     DEVICE_OUTPUT(sv_masses_t, float) sv_masses;
-    DEVICE_OUTPUT(pt_t, float)        pt;    
-    DEVICE_OUTPUT(mipchi2_t, float)   mipchi2; 
+    DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(mipchi2_t, float) mipchi2;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -41,7 +41,7 @@ namespace kstopipi_line {
 
   struct kstopipi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<kstopipi_line_t, Parameters> {
 
-    using monitoring_types = std::tuple<sv_masses_t, pt_t, mipchi2_t>; 
+    using monitoring_types = std::tuple<sv_masses_t, pt_t, mipchi2_t>;
 
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
