@@ -52,7 +52,7 @@
 
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_veloSP_validation"]
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k"]
         GEOMETRY: ["scifi_v6"]
         AVOID_HIP: "1" # This shouldn't have multiple values FIXME
 
