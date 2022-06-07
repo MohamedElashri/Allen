@@ -15,12 +15,16 @@ __global__ void velo_calculate_number_of_candidates_kernel(
        event_index += blockDim.x * gridDim.x) {
     const auto event_number = parameters.dev_event_list[event_index];
 
-    const auto velo_raw_event =
-      Velo::RawEvent<mep_layout> {parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number};
+    const auto velo_raw_event = Velo::RawEvent<mep_layout> {parameters.dev_velo_raw_input,
+                                                            parameters.dev_velo_raw_input_offsets,
+                                                            parameters.dev_velo_raw_input_sizes,
+                                                            parameters.dev_velo_raw_input_types,
+                                                            event_number};
     unsigned number_of_candidates = 0;
     for (unsigned raw_bank_number = 0; raw_bank_number < velo_raw_event.number_of_raw_banks(); ++raw_bank_number) {
       const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-      number_of_candidates += raw_bank.count;
+      if (raw_bank.type == LHCb::RawBank::VP || raw_bank.type == LHCb::RawBank::Velo)
+        number_of_candidates += raw_bank.count;
     }
 
     // The maximum number of candidates is two times the number of SPs

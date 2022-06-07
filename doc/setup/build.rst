@@ -1,7 +1,7 @@
 Build Allen
 ================
 
-There are two options for building Allen: Either as standalone project or as part of the LHCb software stack. The first option is recommended for algorithm developments within Allen, whereas the second is more suitable for integration developments and HLT1 line development and studies. 
+There are two options for building Allen: Either as standalone project or as part of the LHCb software stack. The first option is recommended for algorithm developments within Allen, whereas the second is more suitable for integration developments and HLT1 line development and studies.
 
 
 
@@ -40,28 +40,31 @@ Building with CVMFS
 
 We show a proposed development setup with the CVMFS filesystem and CentOS 7 that automatically provides all the aforementioned requisites:
 
+First source the LHCb environment::
+
+    source /cvmfs/lhcb.cern.ch/lib/LbEnv
+
+The build process is the standard cmake procedure. You should specify a `CMAKE_TOOLCHAIN_FILE` according to the architecture you want to compile.
+
 * CPU target::
-
-    source /cvmfs/lhcb.cern.ch/lib/LbEnv
-    export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake
-    
-* CUDA target: CUDA is available in cvmfs as well::
-
-    source /cvmfs/lhcb.cern.ch/lib/LbEnv
-    source /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.4/x86_64-centos7/setup.sh
-    export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake
-
-* HIP target: Either a local installation of ROCm or CVMFS are required::
-
-    source /cvmfs/lhcb.cern.ch/lib/LbEnv
-    source /cvmfs/lhcbdev.cern.ch/tools/rocm-5.0.0/setenv.sh
-    export CMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake
-
-The build process is the standard cmake procedure::
 
     mkdir build
     cd build
-    cmake -DSTANDALONE=ON -DTARGET_DEVICE=(CPU|CUDA|HIP) ..
+    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake ..
+    make
+
+* CUDA target::
+
+    mkdir build
+    cd build
+    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12+cuda11_4-opt.cmake ..
+    make
+
+* HIP target::
+
+    mkdir build
+    cd build
+    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12+hip5-opt.cmake ..
     make
 
 In order to run, use the generated wrapper::
@@ -115,16 +118,16 @@ Finally, Allen can be built and run as on any other platform::
 Compilation options
 -------------------
 
-The build process can be configured with cmake options. For a complete list of options and for editing them we suggest using the `ccmake` tool.:
+The build process can be configured with cmake options. For a complete list of options and for editing them we suggest using the `ccmake` tool::
 
     ccmake .
 
 Alternatively, cmake options can be passed with `-D` when invoking the cmake command (eg. `cmake -D<option>=<value> ..`). Here is a brief explanation of some options:
 
 * `STANDALONE` - Selects whether to build Allen standalone or as part of the Gaudi stack. Defaults to `OFF`.
-* `TARGET_DEVICE` - Selects the target device architecture. Options are `CPU` (default), `CUDA` and `HIP`.
+* `TARGET_DEVICE` - Selects the target device architecture. Options are `CPU`, `CUDA` and `HIP`.
 * `SEQUENCES` - Either a regex or `all`, if a regex is passed and the pattern is found in a sequence name, it will be built. For a complete list of sequences available, check `configuration/sequences/`. The name of a sequence is given by its filename without the `.py` extension.
-* `CMAKE_BUILD_TYPE` - Build type, which is either of `RelWithDebInfo` (default), `Release` or `Debug`.
+* `CMAKE_BUILD_TYPE` - Build type, which is either of `RelWithDebInfo`, `Release` or `Debug`.
 * `USE_ROOT` - Configure to run with / without ROOT. `OFF` by default. Histograms and trees can be written to ROOT files if this option is enabled. More information on Allen's ROOT service can be found in :ref:`root_service`.
 * `CUDA_ARCH` - Selects the architecture to target for `CUDA` compilation.
 * `HIP_ARCH` - Selects the architecture to target with `HIP` compilation.
@@ -152,14 +155,15 @@ Note: Files inside the build folder would belong to the root user.
 As a Gaudi/LHCb project
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. __stack_setup:
+.. _stack_setup:
+
 Using the stack setup
---------------------
+---------------------
 Follow the instructions in the |stack_setup| to set up the software stack.
 
 .. |stack_setup| raw:: html
 
-   <a href="https://gitlab.cern.ch/rmatev/lb-stack-setup" target="_blank">stack setup</a> 
+   <a href="https://gitlab.cern.ch/rmatev/lb-stack-setup" target="_blank">stack setup</a>
 
 To compile an Allen sequence other than the default sequence (hlt1_pp_default), compile for example with::
 
@@ -185,7 +189,7 @@ flags that you would pass to a standalone build to the `CMAKEFLAGS`
 environment variable before calling `make configure`.
 
 For example, to specify another CUDA stack to be used set::
-  
+
   export CMAKEFLAGS="-DCMAKE_CUDA_COMPILER=/path/to/alternative/nvcc"
 
 Runtime environment:
@@ -226,21 +230,3 @@ Compile both Allen and Moore::
   lb-project-init
   make configure
   make install
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

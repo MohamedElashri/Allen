@@ -3,20 +3,9 @@
 \*****************************************************************************/
 #include <string>
 
+#include <FileSystem.h>
 #include <ROOTHeaders.h>
-#include "ROOTService.h"
-
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-namespace {
-  namespace fs = boost::filesystem;
-}
-#else
-#include <filesystem>
-namespace {
-  namespace fs = std::filesystem;
-}
-#endif
+#include <ROOTService.h>
 
 namespace {
   using namespace std::string_literals;

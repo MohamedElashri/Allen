@@ -4,7 +4,6 @@
 from AllenConf.algorithms import single_calo_cluster_line_t
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
-from AllenConf.odin import decode_odin
 
 
 def make_single_calo_cluster_line(calo,

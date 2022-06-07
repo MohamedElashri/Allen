@@ -12,6 +12,8 @@ namespace velo_calculate_number_of_candidates {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_velo_raw_input_t, char) dev_velo_raw_input;
     DEVICE_INPUT(dev_velo_raw_input_offsets_t, unsigned) dev_velo_raw_input_offsets;
+    DEVICE_INPUT(dev_velo_raw_input_sizes_t, unsigned) dev_velo_raw_input_sizes;
+    DEVICE_INPUT(dev_velo_raw_input_types_t, unsigned) dev_velo_raw_input_types;
     DEVICE_OUTPUT(dev_number_of_candidates_t, unsigned) dev_number_of_candidates;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x_prop;
   };

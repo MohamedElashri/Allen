@@ -15,10 +15,12 @@
   <argument name="program"><text>python</text></argument>
   <argument name="args"><set>
     <text>../../options/allen.py</text>
+    <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/mc/RetinaClusters_FTv4_MDF/00067189_retinaCluster_no63.mdf</text>
+    <text>-n</text><text>10000</text>
   </set></argument>
   <arguement name="timeout"><integer>600</integer></arguement>
   <argument name="validator"><text>
-countErrorLines({"FATAL":0,"ERROR":0,"WARNING":2})
+countErrorLines({"FATAL":0,"ERROR":0,"WARNING":0})
 
 import re
 

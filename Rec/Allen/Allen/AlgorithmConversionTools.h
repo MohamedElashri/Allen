@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #pragma once
 
+#include <algorithm>
 #include <cstdio>
 #include <BackendCommon.h>
 #include <Argument.cuh>

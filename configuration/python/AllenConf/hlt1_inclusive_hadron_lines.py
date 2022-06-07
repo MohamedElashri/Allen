@@ -4,9 +4,8 @@
 from AllenConf.algorithms import (
     kstopipi_line_t, track_mva_line_t, two_track_mva_line_t,
     two_track_mva_evaluator_t, two_track_line_ks_t)
-from AllenConf.utils import initialize_number_of_events, mep_layout
+from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
-from AllenConf.odin import decode_odin
 
 
 def make_kstopipi_line(forward_tracks,

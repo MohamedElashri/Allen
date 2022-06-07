@@ -23,66 +23,6 @@ std::vector<char> GeometryReader::read_geometry(const std::string& filename) con
   return geometry;
 }
 
-std::vector<std::tuple<unsigned int, unsigned long>> EventReader::read_events(
-  unsigned number_of_events_requested,
-  unsigned start_event_offset)
-{
-  bool first = true;
-  std::vector<std::tuple<unsigned int, unsigned long>> event_ids;
-  for (auto bank_type : types()) {
-    const auto& folder = this->folder(bank_type);
-
-    std::vector<char> events;
-    std::vector<unsigned> event_offsets;
-
-    if (first) {
-      event_ids = read_folder(folder, number_of_events_requested, events, event_offsets, start_event_offset);
-      first = false;
-    }
-    else {
-      auto ids = read_folder(folder, number_of_events_requested, events, event_offsets, start_event_offset);
-      if (event_ids != ids) {
-        warning_cout << "Different events for bank type " << bank_name(bank_type) << std::endl;
-      }
-    }
-
-    check_events(bank_type, events, event_offsets, number_of_events_requested);
-
-    // TODO Remove: Temporal check to understand if number_of_events_requested is the same as number_of_events
-    const unsigned number_of_events = event_offsets.size() - 1;
-    if (number_of_events_requested != number_of_events) {
-      throw StrException("Number of events requested differs from number of events read.");
-    }
-
-    // Copy raw data to pinned host memory
-    char* events_mem = nullptr;
-    unsigned* offsets_mem = nullptr;
-    Allen::malloc_host((void**) &events_mem, events.size());
-    Allen::malloc_host((void**) &offsets_mem, event_offsets.size() * sizeof(unsigned));
-    std::copy_n(std::begin(events), events.size(), events_mem);
-    std::copy_n(std::begin(event_offsets), event_offsets.size(), offsets_mem);
-
-    m_events[bank_type] = make_pair(
-      events_span {events_mem, static_cast<events_size>(events.size())},
-      offsets_span {offsets_mem, static_cast<offsets_size>(event_offsets.size())});
-  }
-  return event_ids;
-}
-
-bool EventReader::check_events(
-  BankTypes type,
-  const std::vector<char>& events,
-  const std::vector<unsigned>& event_offsets,
-  unsigned number_of_events_requested) const
-{
-  if (type == BankTypes::VP) {
-    return check_velopix_events(events, event_offsets, number_of_events_requested);
-  }
-  else {
-    return events.size() == event_offsets.back();
-  }
-}
-
 CatboostModelReader::CatboostModelReader(const std::string& file_name)
 {
   if (!exists_test(file_name)) {

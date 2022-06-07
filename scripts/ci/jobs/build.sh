@@ -8,6 +8,16 @@ if [ -z ${ADDITIONAL_OPTIONS+x} ]; then
   ADDITIONAL_OPTIONS=""
 fi
 
+set +u
+
+if [ "${AVOID_HIP}" = "1" ]; then 
+  if [ "${TARGET}" = "HIP" ]; then
+    echo "***** Variable TARGET is set to HIP, and AVOID_HIP is set to 1 - quit gracefully."
+    exit 0
+  fi
+fi
+
+
 # set -e will force the script to exit if a command quits with a nonzero RC. This avoids silent failures
 # set -u forces the script to fail if a variable is unbound / undefined.
 # set -x prints all commands to STDERR so you can see what is being executed.
@@ -37,22 +47,7 @@ yum install -y numactl-libs
 
 setupViews
 
-if [ "${TARGET}" = "HIP" ]; then
-  source_quietly /cvmfs/lhcbdev.cern.ch/tools/rocm-5.0.0/setenv.sh
-  cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DSEQUENCES=all -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} ${SOURCE_FOLDER}
-elif [ "${TARGET}" = "CUDA" ]; then
-  source_quietly /cvmfs/sft.cern.ch/lcg/contrib/cuda/11.4/x86_64-centos7/setup.sh
-  cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-        -DSEQUENCES=all -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} \
-        -DOVERRIDE_CUDA_ARCH_FLAG="${OVERRIDE_CUDA_ARCH_FLAG}" ${SOURCE_FOLDER}
-elif [ "${TARGET}" = "CPU" ]; then
-  cmake -DSTANDALONE=ON -GNinja -DTARGET_DEVICE=${TARGET} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-        -DSEQUENCES=all -DCPU_ARCH=haswell ${ADDITIONAL_OPTIONS} \
-         ${SOURCE_FOLDER}
-else
-  echo "Unknown target ${TARGET}. Please check the content of the TARGET variable in the CI configuration."
-  exit 1
-fi
+cmake -DSTANDALONE=ON -GNinja -DSEQUENCES=all ${ADDITIONAL_OPTIONS} ${SOURCE_FOLDER}
 
 set +e;
 TRIES=0

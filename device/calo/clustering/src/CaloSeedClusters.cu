@@ -22,15 +22,15 @@ __device__ void seed_clusters(
 {
   // Loop over all CellIDs.
   for (unsigned i = threadIdx.x; i < num_digits; i += blockDim.x) {
-    int16_t adc = digits[i].adc;
-    if (adc == SHRT_MAX || adc < min_adc) {
+    const auto digit = digits[i];
+    if (!digit.is_valid() || digit.adc < min_adc) {
       continue;
     }
     uint16_t* neighbors = &(geometry.neighbors[i * Calo::Constants::max_neighbours]);
     bool is_max = true;
     for (unsigned n = 0; n < Calo::Constants::max_neighbours; n++) {
-      auto const neighbor_adc = digits[neighbors[n]].adc;
-      is_max = is_max && (neighbors[n] == USHRT_MAX || neighbor_adc == SHRT_MAX || adc > neighbor_adc);
+      auto const neighbor_digit = digits[neighbors[n]];
+      is_max = is_max && (neighbors[n] == USHRT_MAX || !neighbor_digit.is_valid() || digit.adc > neighbor_digit.adc);
     }
     if (is_max) {
       auto const id = atomicAdd(num_clusters, 1);

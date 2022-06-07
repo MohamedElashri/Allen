@@ -454,8 +454,11 @@ __global__ void velo_masked_clustering_kernel(
 
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;
-  const auto velo_raw_event =
-    Velo::RawEvent<mep_layout> {parameters.dev_velo_raw_input, parameters.dev_velo_raw_input_offsets, event_number};
+  const auto velo_raw_event = Velo::RawEvent<mep_layout> {parameters.dev_velo_raw_input,
+                                                          parameters.dev_velo_raw_input_offsets,
+                                                          parameters.dev_velo_raw_input_sizes,
+                                                          parameters.dev_velo_raw_input_types,
+                                                          event_number};
 
   // process no neighbour sp
   for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < velo_raw_event.number_of_raw_banks();
@@ -463,6 +466,8 @@ __global__ void velo_masked_clustering_kernel(
     const auto module_pair_number = raw_bank_number / 8;
     const unsigned cluster_start = module_pair_cluster_start[module_pair_number];
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
+
+    if (raw_bank.type != LHCb::RawBank::VP && raw_bank.type != LHCb::RawBank::Velo) continue;
 
     no_neighbour_sp(
       module_pair_cluster_start,

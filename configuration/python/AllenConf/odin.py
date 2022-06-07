@@ -16,10 +16,8 @@ def decode_odin():
         host_mep_layout_t=mep_layout()['host_mep_layout'])
 
     return {
-        "dev_odin_raw_input": odin_banks.dev_raw_banks_t,
-        "dev_odin_raw_input_offsets": odin_banks.dev_raw_offsets_t,
-        "host_odin_raw_input": odin_banks.host_raw_banks_t,
-        "host_odin_raw_input_offsets": odin_banks.host_raw_offsets_t,
+        "dev_odin_data": odin_banks.dev_odin_data_t,
+        "host_odin_data": odin_banks.host_odin_data_t,
         "host_odin_version": odin_banks.host_raw_bank_version_t,
     }
 
@@ -32,13 +30,11 @@ def make_bxtype(name="BunchCrossing_Type", bx_type=3):
 def ODIN_BeamXtype(name='ODIN_BeamXType', bxtype=3):
 
     number_of_events = initialize_number_of_events()
-    layout = mep_layout()
     odin = decode_odin()
 
     return make_algorithm(
         odin_beamcrossingtype_t,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
+        dev_odin_data_t=odin['dev_odin_data'],
         beam_crossing_type=bxtype)

@@ -34,7 +34,7 @@ struct Config {
 
 namespace {
   Config s_config;
-  MDFProviderConfig mdf_config {true, 2, 1};
+  MDFProviderConfig mdf_config {true, 1};
 
   unique_ptr<MDFProvider<
     BankTypes::VP,

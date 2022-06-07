@@ -10,6 +10,7 @@ gaudi_add_library(BinaryDumpers
                     src/lib/TestUTBoards.cpp
                     src/lib/Utils.cpp
                   LINK PUBLIC
+                    AllenCommon
                     Gaudi::GaudiKernel
                     LHCb::DAQEventLib
                     LHCb::MagnetLib

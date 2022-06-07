@@ -36,6 +36,7 @@ void checkClustering(
   const std::vector<char>& geometry,
   const std::vector<char>& events,
   const std::vector<unsigned>& event_offsets,
+  const std::vector<unsigned>& types_offsets,
   const std::vector<std::vector<uint32_t>>& found_clusters,
   float& reconstruction_efficiency,
   float& clone_fraction,
@@ -43,7 +44,7 @@ void checkClustering(
   const bool just_check_ids,
   const float allowed_distance_error)
 {
-  std::vector<std::vector<uint32_t>> expected_clusters = clustering(geometry, events, event_offsets);
+  std::vector<std::vector<uint32_t>> expected_clusters = clustering(geometry, events, event_offsets, types_offsets);
 
   reconstruction_efficiency = 0.f;
   clone_fraction = 0.f;

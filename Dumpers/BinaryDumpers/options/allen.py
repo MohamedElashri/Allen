@@ -3,7 +3,10 @@
 # (c) Copyright 2018-2021 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 import os
+import sys
+import zmq
 from Configurables import ApplicationMgr
+from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
 from Allen.config import setup_allen_non_event_data_service
 from PyConf.application import (configure, setup_component, ComponentConfig,
                                 ApplicationOptions)
@@ -27,7 +30,7 @@ interpreter.Declare("#include <Allen/Provider.h>")
 interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
 
 sequence_default = os.path.join(os.environ['ALLEN_INSTALL_DIR'], 'constants',
-                                'hlt1_pp_default')
+                                'hlt1_pp_default.json')
 
 
 def cast_service(return_type, svc):
@@ -52,13 +55,13 @@ parser.add_argument("-v", dest="verbosity", default=3)
 parser.add_argument("-p", dest="print_memory", default=0)
 parser.add_argument("--sequence", dest="sequence", default=sequence_default)
 parser.add_argument("-s", dest="slices", default=2)
+parser.add_argument("--mdf", dest="mdf", default="")
+parser.add_argument("--mep", dest="mep", default="")
 parser.add_argument(
-    "--mdf",
-    dest="mdf",
-    default=os.path.join(
-        allen_dir, "input", "minbias", "mdf",
-        "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf"))
-parser.add_argument("--mep", dest="mep", default=None)
+    "--mep-mask-source-id-top-5",
+    action="store_true",
+    dest="mask_top5",
+    default=False)
 parser.add_argument(
     "--reuse-meps",
     action="store_true",
@@ -81,6 +84,8 @@ parser.add_argument(
     help="Add profiler start and stop calls",
 )
 parser.add_argument("--output-file", dest="output_file", default=None)
+parser.add_argument(
+    "--output-batch-size", dest="output_batch_size", default=10)
 parser.add_argument(
     "--monitoring-save-period", dest="mon_save_period", default=0)
 parser.add_argument(
@@ -108,6 +113,8 @@ parser.add_argument(
     default=300,
     help="How long to run when reusing MEPs",
 )
+parser.add_argument(
+    "--tags", dest="tags", default="dddb-20171122,sim-20180530-vc-md100")
 
 args = parser.parse_args()
 
@@ -115,16 +122,14 @@ runtime_lib = None
 if args.profile == "CUDA":
     runtime_lib = ctypes.CDLL("libcudart.so")
 
+dddb_tag, conddb_tag = args.tags.split(',')
+
 options = ApplicationOptions(_enabled=False)
 options.simulation = True
 options.data_type = 'Upgrade'
 options.input_type = 'MDF'
-options.dddb_tag = "dddb-20171122"
-options.conddb_tag = "sim-20180530-vc-md100"
-
-# tags for FEST sample from 10/2021
-# dddb_tag="dddb-20210617"
-# conddb_tag="sim-20210617-vc-md100")
+options.dddb_tag = dddb_tag
+options.conddb_tag = conddb_tag
 
 options.finalize()
 config = ComponentConfig()
@@ -132,24 +137,29 @@ config = ComponentConfig()
 # Some extra stuff for timing table
 extSvc = ["ToolSvc", "AuditorSvc", "ZeroMQSvc"]
 
-if args.mep is not None:
+# RootCnvSvc becauce it sets up a bunch of ROOT IO stuff
+rootSvc = RootCnvSvc("RootCnvSvc", EnableIncident=1)
+ApplicationMgr().ExtSvc += ["Gaudi::IODataManager/IODataManager", rootSvc]
+
+if args.mep:
     extSvc += ["AllenConfiguration", "MEPProvider"]
     from Configurables import MEPProvider, AllenConfiguration
 
     allen_conf = AllenConfiguration("AllenConfiguration")
     allen_conf.JSON = args.sequence
-    allen_conf.OutputLevel = 2
+    allen_conf.OutputLevel = 3
 
     mep_provider = MEPProvider()
     mep_provider.NSlices = args.slices
     mep_provider.EventsPerSlice = args.events_per_slice
-    mep_provider.OutputLevel = 2
+    mep_provider.OutputLevel = 3
     # Number of MEP buffers and number of transpose/offset threads
     mep_provider.BufferConfig = (10, 8)
     mep_provider.TransposeMEPs = False
     mep_provider.SplitByRun = False
     mep_provider.Source = "Files"
-    mep_dir = args.mep
+    mep_provider.MaskSourceIDTop5 = args.mask_top5
+    mep_dir = os.path.expandvars(args.mep)
     if os.path.isdir(mep_dir):
         mep_provider.Connections = sorted([
             os.path.join(mep_dir, mep_file) for mep_file in os.listdir(mep_dir)
@@ -165,8 +175,8 @@ if args.mep is not None:
     # mep_provider.BufferNUMA = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
     mep_provider.EvtMax = -1 if args.n_events == 0 else args.n_events
 
-config.add(
-    ApplicationMgr(EvtSel="NONE", ExtSvc=ApplicationMgr().ExtSvc + extSvc))
+ApplicationMgr().EvtSel = "NONE"
+ApplicationMgr().ExtSvc += extSvc
 
 # Copeid from PyConf.application.configure_input
 config.add(
@@ -186,7 +196,10 @@ config.update(configure(options, cf_node))
 
 # Start Gaudi and get the AllenUpdater service
 gaudi = AppMgr()
-gaudi.initialize()
+sc = gaudi.initialize()
+if not sc.isSuccess():
+    sys.exit("Failed to initialize AppMgr")
+
 svc = gaudi.service("AllenUpdater", interface=gbl.IService)
 zmqSvc = gaudi.service("ZeroMQSvc", interface=gbl.IZeroMQSvc)
 
@@ -198,10 +211,11 @@ for flag, value in [("g", args.det_folder),
                     ("params", os.getenv("PARAMFILESROOT")),
                     ("n", args.n_events), ("t", args.threads),
                     ("r", args.repetitions), ("output-file", args.output_file),
+                    ("output-batch-size", args.output_batch_size),
                     ("m", args.reserve), ("v", args.verbosity),
                     ("p", args.print_memory),
                     ("sequence", os.path.expandvars(args.sequence)),
-                    ("s", args.slices), ("mdf", args.mdf),
+                    ("s", args.slices), ("mdf", os.path.expandvars(args.mdf)),
                     ("cpu-offload", args.cpu_offload),
                     ("disable-run-changes", int(not args.enable_run_changes)),
                     ("monitoring-save-period", args.mon_save_period),
@@ -221,28 +235,65 @@ else:
     provider = gbl.Allen.make_provider(options)
 output_handler = gbl.Allen.output_handler(provider, zmqSvc, options)
 
-gaudi.start()
-
 # run Allen
 gbl.allen.__release_gil__ = 1
 
+# get the libzmq context out of the zmqSvc and use it to instantiate
+# the pyzmq Context
+cpp_ctx = zmqSvc.context()
+c_ctx = gbl.czmq_context(cpp_ctx)
+ctx = zmq.Context.shadow(c_ctx)
 
-def sleep_fun():
+ctx.linger = -1
+control = ctx.socket(zmq.PAIR)
+
+if args.reuse_meps:
+    gaudi.start()
+else:
+    # C++ and python strings
+    connection = "inproc:///py_allen_control"
+    con = gbl.std.string(connection)
+    control.bind(connection)
+
+
+# Call the main Allen function from a thread so we can control it from
+# the main thread
+def allen_thread():
+    if args.profile == "CUDA":
+        runtime_lib.cudaProfilerStart()
+
+    gbl.allen(options, updater, shared_wrap(gbl.IInputProvider, provider),
+              output_handler, zmqSvc, con.c_str())
+
+    if args.profile == "CUDA":
+        runtime_lib.cudaProfilerStop()
+
+
+allen_thread = Thread(target=allen_thread)
+allen_thread.start()
+
+if args.reuse_meps:
     print("sleeping")
     sleep(args.runtime)
     gaudi.stop()
+else:
+    # READY
+    msg = control.recv()
+    assert (msg.decode() == "READY")
+    gaudi.start()
+    control.send(b"START")
+    msg = control.recv()
+    assert (msg.decode() == "RUNNING")
+    sleep(5)
+    control.send(b"STOP")
+    msg = control.recv()
+    assert (msg.decode() == "READY")
+    if args.profile == "CUDA":
+        runtime_lib.cudaProfilerStop()
+    gaudi.stop()
+    gaudi.finalize()
+    control.send(b"RESET")
+    msg = control.recv()
+    assert (msg.decode() == "NOT_READY")
 
-
-if args.reuse_meps:
-    sleep_thread = Thread(target=sleep_fun)
-    sleep_thread.start()
-
-if args.profile == "CUDA":
-    runtime_lib.cudaProfilerStart()
-gbl.allen(options, updater, shared_wrap(gbl.IInputProvider, provider),
-          output_handler, zmqSvc, con.c_str())
-if args.profile == "CUDA":
-    runtime_lib.cudaProfilerStop()
-
-if args.reuse_meps:
-    sleep_thread.join()
+allen_thread.join()

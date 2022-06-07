@@ -2,21 +2,11 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include <regex>
-#include <ROOTHeaders.h>
-#include "CheckerInvoker.h"
 #include <unordered_map>
 
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-namespace {
-  namespace fs = boost::filesystem;
-}
-#else
-#include <filesystem>
-namespace {
-  namespace fs = std::filesystem;
-}
-#endif
+#include <ROOTHeaders.h>
+#include <FileSystem.h>
+#include "CheckerInvoker.h"
 
 CheckerInvoker::~CheckerInvoker()
 {

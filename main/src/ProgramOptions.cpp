@@ -56,6 +56,7 @@ std::vector<ProgramOption> allen_program_options()
     {{"run-from-json"}, "run from json configuration file", "0"},
     {{"cpu-offload"}, "offload part of the computation to CPU", "1"},
     {{"output-file"}, "Write selected event to output file", ""},
+    {{"output-batch-size"}, "Write output in batches of N events", "10"},
     {{"device"}, "select device to use", "0"},
     {{"inject-mem-fail"}, "Whether to insert random memory failures (0: off 1-15: rate of 1 in 2^N)", "0"},
     {{"monitoring-filename"}, "ROOT file to write monitoring histograms to", "monitoring.root"},

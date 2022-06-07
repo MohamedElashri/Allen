@@ -22,7 +22,8 @@ def decode_muon():
         name="muon_calculate_srq_size",
         host_number_of_events_t=host_number_of_events,
         dev_muon_raw_t=muon_banks.dev_raw_banks_t,
-        dev_muon_raw_offsets_t=muon_banks.dev_raw_offsets_t)
+        dev_muon_raw_offsets_t=muon_banks.dev_raw_offsets_t,
+        dev_muon_raw_sizes_t=muon_banks.dev_raw_sizes_t)
 
     muon_srq_prefix_sum = make_algorithm(
         host_prefix_sum_t,
@@ -39,6 +40,7 @@ def decode_muon():
         host_total_sum_holder_t,
         dev_muon_raw_t=muon_banks.dev_raw_banks_t,
         dev_muon_raw_offsets_t=muon_banks.dev_raw_offsets_t,
+        dev_muon_raw_sizes_t=muon_banks.dev_raw_sizes_t,
         dev_muon_raw_to_hits_t=muon_calculate_srq_size.dev_muon_raw_to_hits_t,
         dev_storage_station_region_quarter_offsets_t=muon_srq_prefix_sum.
         dev_output_buffer_t)

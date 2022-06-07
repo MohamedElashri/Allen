@@ -7,7 +7,6 @@ from AllenConf.algorithms import (
     low_pt_di_muon_line_t, track_muon_mva_line_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
-from AllenConf.odin import decode_odin
 
 
 def make_single_high_pt_muon_line(forward_tracks,

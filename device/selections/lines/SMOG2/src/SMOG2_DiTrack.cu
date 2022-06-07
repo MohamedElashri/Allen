@@ -17,9 +17,10 @@ __device__ bool SMOG2_ditrack_line::SMOG2_ditrack_line_t::select(
   const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vtx.child(1));
 
   const bool mass_decision =
-    parameters.mMother == -1.f ?
+    parameters.mMother < 0.f ?
       true :
-      fabsf(vtx.m12(parameters.m1, parameters.m2) - parameters.mMother) < parameters.massWindow &&
+      fabsf(min(vtx.m12(parameters.m1, parameters.m2), vtx.m12(parameters.m2, parameters.m1)) - parameters.mMother) <
+          parameters.massWindow &&
         vtx.charge() == parameters.combCharge;
 
   bool decision = vtx.vertex().z() < parameters.maxZ && vtx.vertex().z() >= parameters.minZ &&

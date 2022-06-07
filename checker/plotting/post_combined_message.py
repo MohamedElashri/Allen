@@ -66,12 +66,8 @@ def main():
 
     master_throughput = get_master_throughput(
         options.job, csvfile=options.throughput, scale=1e-3)
-    speedup_wrt_master = {
-        a: throughput.get(a, b) / b
-        for a, b in master_throughput.items()
-    }
-
-    problems = check_throughput_change(speedup_wrt_master)
+    
+    problems = check_throughput_change(throughput, master_throughput)
 
     throughput_text = produce_plot(
         throughput,

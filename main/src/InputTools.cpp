@@ -5,12 +5,7 @@
 #include <unordered_map>
 #include "InputTools.h"
 #include "Common.h"
-
-#ifdef USE_BOOST_FILESYSTEM
-#include <boost/filesystem.hpp>
-#else
-#include <filesystem>
-#endif
+#include "FileSystem.h"
 
 namespace {
   // Factory for filename checking: a regex and a predicate on the its matches
@@ -56,12 +51,6 @@ namespace {
   auto natural_order = [](const std::string& lhs, const std::string& rhs) -> bool {
     return std::less<EventID> {}(name_to_number(lhs), name_to_number(rhs));
   };
-
-#ifdef USE_BOOST_FILESYSTEM
-  namespace fs = boost::filesystem;
-#else
-  namespace fs = std::filesystem;
-#endif
 } // namespace
 
 /**

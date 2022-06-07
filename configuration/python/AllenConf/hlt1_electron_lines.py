@@ -5,9 +5,8 @@ from AllenConf.algorithms import (
     track_electron_mva_line_t, single_high_pt_electron_line_t,
     displaced_dielectron_line_t, displaced_leptons_line_t,
     single_high_et_line_t)
-from AllenConf.utils import initialize_number_of_events, mep_layout
+from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
-from AllenConf.odin import decode_odin
 
 
 def make_track_electron_mva_line(forward_tracks,

@@ -14,7 +14,7 @@ IFS=${PREVIOUS_IFS}
 
 setupViews
 
-JUNITREPORT="$(realpath "${PWD}")/default-${BUILD_TYPE}-${SEQUENCE}-unit-tests.xml"
+JUNITREPORT="$(realpath "${PWD}")/default-${LCG_PLATFORM}-${SEQUENCE}-unit-tests.xml"
 
 cd "${BUILD_FOLDER}" && ls
 BUILD_DIR=`cat CTestTestfile.cmake | grep "# Build directory:" | awk '{ print $4 }'`

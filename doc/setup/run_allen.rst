@@ -2,6 +2,7 @@ Run Allen
 ============
 
 .. _run_allen_standalone:
+
 Standalone Allen
 ^^^^^^^^^^^^^^^^^^^^
 
@@ -65,11 +66,13 @@ Here are some examples for run options::
     ./Allen --sequence hlt1_pp_default -t 4 --events-per-slice 1000 --mdf /path/to/files.lst
 
 .. _run_allen_in_gaudi_moore_eventloop:
+
 As Gaudi project, event loop steered by Moore (offline)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Use Gaudi to update non-event data such as alignment and configuration constants and use Moore to steer the event loop and call Allen one event at a time (this method will be used for the offline workflow).
 To run Allen as the HLT1 trigger application, call the following options script from within the stack directory::
+
   ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/Hlt1Conf/options/allen_hlt1_pp_default.py
 
 To run a different sequence, the function call that sets up the
@@ -80,11 +83,13 @@ control flow can be wrapped using a `with` statement::
 
 A different set of configuration parameters can be configured in the
 same way::
+
   with sequence.bind(json="/path/to/custom/config.json"):
     run_allen(options)
 
 To obtain a JSON file that contains all configurable parameters, the
 following can be used::
+
   ./Moore/run Allen --write-configuration 1
 
 This will write a file `config.json` in the current working
@@ -94,6 +99,7 @@ without rebuilding.
 How to study the HLT1 physics performance within Moore is described in :ref:`moore_performance_scripts`.
 
 .. _run_allen_in_gaudi_allen_eventloop:
+
 As Gaudi project, event loop steered by Allen (data-taking)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

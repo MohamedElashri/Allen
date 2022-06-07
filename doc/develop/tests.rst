@@ -41,7 +41,8 @@ data directly from the TES instead of from `HostBuffers`.
 
 Within Allen: Contracts
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
-Be sure to check out `this presentation |presentation_contracts| which covers what is in this readme and more.
+
+Be sure to check out this presentation |presentation_contracts| which covers what is in this readme and more.
 
 .. |presentation_contracts| raw:: html
 
@@ -96,7 +97,7 @@ If you are using the |stack_setup|, you can either set the flag in `utils/config
 
 .. |stack_setup| raw:: html
 
-   <a href="https://gitlab.cern.ch/rmatev/lb-stack-setup" target="_blank">stack setup</a> 
+   <a href="https://gitlab.cern.ch/rmatev/lb-stack-setup" target="_blank">stack setup</a>
 
 You might need to remove the CMake cache from a previous build with `make Allen/purge`.
 

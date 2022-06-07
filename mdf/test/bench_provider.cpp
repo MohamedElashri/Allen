@@ -37,10 +37,10 @@ int main(int argc, char* argv[])
 
   Timer t;
 
-  MDFProviderConfig mdf_config {false, 10, 3, 10001, 1200, 10};
+  MDFProviderConfig mdf_config {false, 3, 10001, 1200, 10, false, {}};
 
   std::unordered_set<BankTypes> bank_types {
-    BankTypes::VP, BankTypes::VPRetinaCluster, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
+    BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
   MDFProvider mdf {n_slices, events_per_slice, {}, files, bank_types, mdf_config};
 
   chrono::milliseconds sleep_interval {10};

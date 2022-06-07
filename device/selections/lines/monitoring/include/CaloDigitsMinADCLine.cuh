@@ -17,11 +17,9 @@ namespace calo_digits_minADC {
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
 
-    DEVICE_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-
+    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
@@ -55,7 +53,7 @@ namespace calo_digits_minADC {
 
     static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
     {
-      return first<typename Parameters::host_ecal_number_of_digits_t>(arguments);
+      return first<host_ecal_number_of_digits_t>(arguments);
     }
 
   private:

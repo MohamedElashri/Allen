@@ -12,8 +12,10 @@ __device__ bool kstopipi_line::kstopipi_line_t::select(
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto vertex = std::get<0>(input);
-  const bool decision = vertex.minipchi2() > 100 && vertex.vertex().chi2() < 10 && vertex.ip() < 0.3f &&
-                        vertex.m12(Allen::mPi, Allen::mPi) > 400 && vertex.m12(Allen::mPi, Allen::mPi) < 600 &&
+  const bool decision = vertex.minipchi2() > parameters.minIPChi2 &&
+                        vertex.vertex().chi2() < parameters.maxVertexChi2 && vertex.ip() < parameters.maxIP &&
+                        vertex.m12(Allen::mPi, Allen::mPi) > parameters.minMass &&
+                        vertex.m12(Allen::mPi, Allen::mPi) < parameters.maxMass &&
                         vertex.pv().position.z >= parameters.minZ && vertex.vertex().z() >= parameters.minZ;
 
   return decision;

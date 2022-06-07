@@ -3,10 +3,8 @@
 ###############################################################################
 from AllenConf.algorithms import (d2kpi_line_t, passthrough_line_t,
                                   rich_1_line_t, rich_2_line_t)
-from AllenConf.utils import initialize_number_of_events, mep_layout
+from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
-from PyConf.tonic import configurable
-from AllenConf.odin import decode_odin
 
 
 def make_d2kpi_line(forward_tracks,

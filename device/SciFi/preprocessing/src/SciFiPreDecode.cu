@@ -46,8 +46,11 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   SciFi::SciFiGeometry geom(scifi_geometry);
-  const auto scifi_raw_event =
-    SciFi::RawEvent<mep_layout>(parameters.dev_scifi_raw_input, parameters.dev_scifi_raw_input_offsets, event_number);
+  const auto scifi_raw_event = SciFi::RawEvent<mep_layout>(
+    parameters.dev_scifi_raw_input,
+    parameters.dev_scifi_raw_input_offsets,
+    parameters.dev_scifi_raw_input_sizes,
+    event_number);
 
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
 
@@ -67,7 +70,7 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
 
     auto rawbank = scifi_raw_event.raw_bank(current_raw_bank);
     const uint16_t* starting_it = rawbank.data + 2;
-    uint16_t* last = rawbank.last;
+    const uint16_t* last = rawbank.last;
     if (*(last - 1) == 0) --last; // Remove padding at the end
 
     if (starting_it >= last || starting_it >= rawbank.last) continue;

@@ -3,6 +3,8 @@
 \*****************************************************************************/
 #pragma once
 
+#include <Event/RawBank.h>
+
 #include "Common.h"
 #include "SciFiRaw.cuh"
 #include "UTRaw.cuh"
@@ -13,9 +15,13 @@ namespace host_global_event_cut {
   struct Parameters {
     HOST_INPUT(host_ut_raw_banks_t, gsl::span<char const>) ut_banks;
     HOST_INPUT(host_ut_raw_offsets_t, gsl::span<unsigned int const>) ut_offsets;
+    HOST_INPUT(host_ut_raw_sizes_t, gsl::span<unsigned int const>) ut_sizes;
+    HOST_INPUT(host_ut_raw_types_t, gsl::span<unsigned int const>) ut_types;
     HOST_INPUT(host_ut_raw_bank_version_t, int) ut_raw_bank_version;
     HOST_INPUT(host_scifi_raw_banks_t, gsl::span<char const>) scifi_banks;
     HOST_INPUT(host_scifi_raw_offsets_t, gsl::span<unsigned int const>) scifi_offsets;
+    HOST_INPUT(host_scifi_raw_sizes_t, gsl::span<unsigned int const>) scifi_sizes;
+    HOST_INPUT(host_scifi_raw_types_t, gsl::span<unsigned int const>) scifi_types;
     HOST_OUTPUT(host_event_list_output_t, unsigned) host_event_list;
     HOST_OUTPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
@@ -34,8 +40,12 @@ namespace host_global_event_cut {
     const auto number_of_events = parameters.host_number_of_events[0];
 
     auto const ut_offsets = *parameters.ut_offsets;
+    auto const ut_sizes = *parameters.ut_sizes;
+    auto const ut_types = *parameters.ut_types;
     auto const ut_raw_bank_version = *parameters.ut_raw_bank_version;
     auto const scifi_offsets = *parameters.scifi_offsets;
+    auto const scifi_sizes = *parameters.scifi_sizes;
+    auto const scifi_types = *parameters.scifi_types;
 
     unsigned size_of_list = 0;
     for (unsigned event_index = 0; event_index < number_of_events; ++event_index) {
@@ -44,10 +54,12 @@ namespace host_global_event_cut {
       // Check SciFi clusters
       unsigned n_SciFi_clusters = 0;
 
-      const auto scifi_event =
-        SciFi::RawEvent<mep_layout> {parameters.scifi_banks[0].data(), scifi_offsets.data(), event_number};
+      const auto scifi_event = SciFi::RawEvent<mep_layout> {
+        parameters.scifi_banks[0].data(), scifi_offsets.data(), scifi_sizes.data(), scifi_types.data(), event_number};
       for (unsigned i = 0; i < scifi_event.number_of_raw_banks(); ++i) {
-        n_SciFi_clusters += scifi_event.bank_size(i);
+        if (scifi_event.bank_type(i) == LHCb::RawBank::FTCluster) {
+          n_SciFi_clusters += scifi_event.bank_size(i);
+        }
       }
 
       // Bank size is given in bytes. There are 2 bytes per cluster.
@@ -67,31 +79,27 @@ namespace host_global_event_cut {
           // We're on the host, so use the blocks directly
           auto block_offset = ut_offsets[2 + number_of_ut_raw_banks + i];
           auto const fragment_offset = ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i] - block_offset;
-          auto const next_fragment_offset =
-            ut_offsets[2 + number_of_ut_raw_banks * (1 + event_number) + i + 1] - block_offset;
+          char const* bank_data = parameters.ut_banks[i].data() + fragment_offset;
+          if (MEP::bank_type(bank_data, ut_types.data(), event_number, i) != LHCb::RawBank::UT) continue;
+          auto const bank_size = MEP::bank_size(bank_data, ut_sizes.data(), event_number, i);
           if (ut_raw_bank_version == 4)
-            n_UT_clusters += UTRawBank<4> {sourceID,
-                                           parameters.ut_banks[i].data() + fragment_offset,
-                                           parameters.ut_banks[i].data() + next_fragment_offset}
-                               .get_n_hits();
+            n_UT_clusters += UTRawBank<4> {sourceID, bank_data, bank_size, Allen::LastBankType}.get_n_hits();
           else if (ut_raw_bank_version == 3 || ut_raw_bank_version == -1)
-            n_UT_clusters += UTRawBank<3> {sourceID,
-                                           parameters.ut_banks[i].data() + fragment_offset,
-                                           parameters.ut_banks[i].data() + next_fragment_offset}
-                               .get_n_hits();
+            n_UT_clusters += UTRawBank<3> {sourceID, bank_data, bank_size, Allen::LastBankType}.get_n_hits();
           else
             throw std::runtime_error("Unknown UT raw bank version " + std::to_string(ut_raw_bank_version));
         }
       }
       else {
-        const uint32_t ut_event_offset = ut_offsets[event_number];
-        const UTRawEvent ut_event(parameters.ut_banks[0].data() + ut_event_offset);
+        const UTRawEvent<false> ut_event(
+          parameters.ut_banks[0].data(), ut_offsets.data(), ut_sizes.data(), event_number);
 
-        for (unsigned i = 0; i < ut_event.number_of_raw_banks; ++i) {
+        for (unsigned i = 0; i < ut_event.number_of_raw_banks(); ++i) {
+          if (Allen::bank_type(ut_types.data(), event_number, i) != LHCb::RawBank::UT) continue;
           if (ut_raw_bank_version == 4)
-            n_UT_clusters += ut_event.getUTRawBank<4>(i).get_n_hits();
+            n_UT_clusters += ut_event.raw_bank<4>(i).get_n_hits();
           else if (ut_raw_bank_version == 3 || ut_raw_bank_version == -1)
-            n_UT_clusters += ut_event.getUTRawBank<3>(i).get_n_hits();
+            n_UT_clusters += ut_event.raw_bank<3>(i).get_n_hits();
           else
             throw std::runtime_error("Unknown UT raw bank version " + std::to_string(ut_raw_bank_version));
         }

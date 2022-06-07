@@ -9,7 +9,7 @@ from AllenCore.generator import make_algorithm
 def decode_calo():
     number_of_events = initialize_number_of_events()
     ecal_banks = make_algorithm(
-        data_provider_t, name="ecal_banks", bank_type="EcalPacked")
+        data_provider_t, name="ecal_banks", bank_type="ECal")
 
     calo_count_digits = make_algorithm(
         calo_count_digits_t,
@@ -30,6 +30,8 @@ def decode_calo():
         host_total_sum_holder_t,
         dev_ecal_raw_input_t=ecal_banks.dev_raw_banks_t,
         dev_ecal_raw_input_offsets_t=ecal_banks.dev_raw_offsets_t,
+        dev_ecal_raw_input_sizes_t=ecal_banks.dev_raw_sizes_t,
+        dev_ecal_raw_input_types_t=ecal_banks.dev_raw_types_t,
         dev_ecal_digits_offsets_t=prefix_sum_ecal_num_digits.
         dev_output_buffer_t)
 

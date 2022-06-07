@@ -8,8 +8,14 @@
 
 class FileWriter final : public OutputHandler {
 public:
-  FileWriter(IInputProvider const* input_provider, std::string filename, size_t const n_lines, bool checksum = true) :
-    OutputHandler {input_provider, filename, n_lines, checksum}, m_filename {std::move(filename)}
+  FileWriter(
+    IInputProvider const* input_provider,
+    std::string filename,
+    size_t const output_batch_size,
+    size_t const n_lines,
+    bool checksum = true) :
+    OutputHandler {input_provider, filename, output_batch_size, n_lines, checksum},
+    m_filename {std::move(filename)}
   {
     m_output = MDF::open(m_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
     if (!m_output.good) {

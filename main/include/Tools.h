@@ -12,8 +12,5 @@
 #include <cstdint>
 #include "BackendCommon.h"
 #include "Logger.h"
-#include "ClusteringDefinitions.cuh"
-
-bool check_velopix_events(const std::vector<char>& events, const std::vector<unsigned>& event_offsets, size_t n_events);
 
 std::map<std::string, float> calcResults(std::vector<float>& times);

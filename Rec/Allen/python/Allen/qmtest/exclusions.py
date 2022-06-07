@@ -13,20 +13,27 @@ from GaudiConf.QMTest.LHCbTest import BlockSkipper
 from GaudiConf.QMTest.LHCbExclusions import preprocessor as LHCbPreprocessor
 
 remove_throughput = LineSkipper(regexps=[
+    # Processing complete messages
+    r"Processing complete",
     # Throughput messages
     r"\s*(\d+\.\d+)\s+events/s",
     r"Ran test for (\d+\.\d+)\s+seconds",
+    r"Providing banks for",
     r"Providing events in.*",
     r"Opened\s.*",
     r"Cannot read more data.*"
 ])
 
+skip_config = BlockSkipper("User ApplicationOptions",
+                           "Application Manager Configured successfully")
+
 skip_options = BlockSkipper("Requested options:", "Ignore signals to update")
 
 skip_rates = BlockSkipper("rate_validator validation:", "Inclusive:")
 
-skip_sequence = BlockSkipper("Sequence:",
-                             "Starting timer for throughput measurement")
+skip_sequence = BlockSkipper("Sequence:", "make_selreps")
 
-preprocessor = (LHCbPreprocessor + remove_throughput + skip_options +
-                skip_rates + skip_sequence)
+preprocessor_with_rates = (LHCbPreprocessor + skip_config + remove_throughput +
+                           skip_options + skip_sequence)
+
+preprocessor = preprocessor_with_rates + skip_rates

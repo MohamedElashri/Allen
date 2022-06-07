@@ -5,7 +5,7 @@ from AllenConf.algorithms import gather_selections_t, dec_reporter_t, global_dec
 from AllenConf.algorithms import host_prefix_sum_t, make_selrep_t
 from AllenConf.algorithms import make_selected_object_lists_t, make_subbanks_t
 from AllenConf.odin import decode_odin
-from AllenConf.utils import initialize_number_of_events, mep_layout
+from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
 
@@ -13,13 +13,11 @@ from PyConf.tonic import configurable
 def make_gather_selections(lines):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
-    layout = mep_layout()
 
     return make_algorithm(
         gather_selections_t,
         name="gather_selections",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_mep_layout_t=layout["dev_mep_layout"],
         host_decisions_sizes_t=[line.host_decisions_size_t for line in lines],
         host_input_post_scale_factors_t=[
             line.host_post_scaler_t for line in lines
@@ -27,8 +25,7 @@ def make_gather_selections(lines):
         host_input_post_scale_hashes_t=[
             line.host_post_scaler_hash_t for line in lines
         ],
-        dev_odin_raw_input_t=odin["dev_odin_raw_input"],
-        dev_odin_raw_input_offsets_t=odin["dev_odin_raw_input_offsets"],
+        dev_odin_data_t=odin["dev_odin_data"],
         names_of_active_lines=",".join([line.name for line in lines]),
         names_of_active_line_algorithms=",".join(
             [line.typename for line in lines]),

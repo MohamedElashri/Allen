@@ -3,7 +3,9 @@
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 
+from doctest import master
 import sys
+from tabulate import tabulate
 from optparse import OptionParser
 from csv_plotter import (
     get_master_throughput,
@@ -21,45 +23,84 @@ DEVICE_WEIGHTS = {
 }
 
 
-def check_throughput_change(speedup_wrt_master):
+def check_throughput_change(throughput, master_throughput):
+    speedup_wrt_master = {
+        a: throughput.get(a, b) / b
+        for a, b in master_throughput.items()
+    }
+
     problems = []
     weights = {
         device: DEVICE_WEIGHTS.get(device, 1.0)
         for device in speedup_wrt_master
     }
 
-    # Average throughputs across all devices and complain if we are above decr % threshold
     if len(speedup_wrt_master) == 0:
         return problems
+
+    # single device throughput decrease check
+    single_device_table = []
+    for device, speedup in speedup_wrt_master.items():
+        change = speedup - 1.0
+        tput_tol = DEVICE_THROUGHPUT_DECREASE_THRESHOLD / weights[device]
+        # print(f"{device:<30}  speedup (% change): {speedup:.2f}x ({change*100:.2f}%)")
+
+        status = "OK"
+        if change < tput_tol:
+            msg = (
+                f":warning: :eyes: **{device}** throughput change {change*100:.2f}% "
+                + f"_exceeds_ {abs(tput_tol)*100}% threshold")
+            print(msg)
+            problems.append(msg)
+            status = "DECREASED"
+        tput = throughput.get(device, '--')
+        if not tput == '--':
+            tput = f"{tput:.2f}"
+        single_device_table.append([
+            device,
+            tput,
+            f"{master_throughput[device]:.2f}",
+            f"{speedup:.2f}x",
+            f"{change*100:.2f}%",
+            status
+        ])
     
+    print("")
+    print(
+        tabulate(
+            single_device_table, headers=[
+                "Device",
+                "Throughput (kHz)",
+                "Reference Throughput (kHz)",
+                "Speedup", 
+                r"% change",
+                "Status"
+            ],
+        )
+    )
+    print("")
+    
+    # Average throughputs across all devices and complain if we are above decr % threshold
     average_speedup = (sum(speedup * weights[device]
                            for device, speedup in speedup_wrt_master.items()) /
                        sum(weights.values()))
     change = average_speedup - 1.0
-    print(f"Device-averaged speedup: {average_speedup}")
-    print(f"               % change: {change*100}")
+    print(f"Device-averaged speedup: {average_speedup:.2f}x")
+    print(f"               % change: {change*100:.2f}%")
     tput_tol = AVG_THROUGHPUT_DECREASE_THRESHOLD
+    avg_tput_status = "OK"
     if change < tput_tol:
         msg = (
-            f" :warning: :eyes: **average** throughput change {change*100}% " +
+            f" :warning: :eyes: **average** throughput change {change*100:.2f}% " +
             f"_exceeds_ {abs(tput_tol)*100} % threshold")
-        print(msg)
         problems.append(msg)
+        avg_tput_status = "DECREASED"
 
-    # single device throughput decrease check
-    for device, speedup in speedup_wrt_master.items():
-        change = speedup - 1.0
-        tput_tol = DEVICE_THROUGHPUT_DECREASE_THRESHOLD / weights[device]
-        print(f"{device}  speedup (% change): {speedup} ({change*100}%)")
+    print(f"                 status: {avg_tput_status}")
+    
+    print()
 
-        if change < tput_tol:
-            msg = (
-                f":warning: :eyes: **{device}** throughput change {change*100}% "
-                + f"_exceeds_ {abs(tput_tol)*100}% threshold")
-            print(msg)
-            problems.append(msg)
-
-    print("Pass\n" if not problems else "Fail\n")
+    print("Pass\n" if not problems else "FAIL\n")
 
     return problems
 
@@ -91,16 +132,12 @@ def main():
     (options, args) = parser.parse_args()
 
     with open(options.throughput) as csvfile:
-        throughput = parse_throughput(csvfile, scale=1e-3)
+        throughput = parse_throughput(csvfile, scale=1e-3) # kHz
 
     master_throughput = get_master_throughput(
-        options.job, csvfile=options.throughput, scale=1e-3)
-    speedup_wrt_master = {
-        a: throughput.get(a, b) / b
-        for a, b in master_throughput.items()
-    }
+        options.job, csvfile=options.throughput, scale=1e-3) # kHz
 
-    problems = check_throughput_change(speedup_wrt_master)
+    problems = check_throughput_change(throughput, master_throughput)
 
     if problems:
         sys.exit(7)
