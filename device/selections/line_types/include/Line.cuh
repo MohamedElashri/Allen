@@ -126,8 +126,9 @@ public:
   /**
    * @brief Default monitor function.
    */
-  void init_monitor([[maybe_unused]] const ArgumentReferences<Parameters>& arguments, 
-                    [[maybe_unused]] const Allen::Context& context) const
+  void init_monitor(
+    [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+    [[maybe_unused]] const Allen::Context& context) const
   {
     if constexpr (Allen::has_monitoring_types<Derived>::value) {
       initialize_functor f(arguments, context);
@@ -164,7 +165,7 @@ public:
     std::get<N>(l) = std::get<N>(r)[index];
   }
 
-  #ifdef WITH_ROOT
+#ifdef WITH_ROOT
   template<std::size_t N, typename ValueType>
   void make_branch(
     handleROOTSvc& handler,
@@ -198,7 +199,7 @@ public:
       }
     }
   }
-  #endif
+#endif
 
   void output_monitor(
     [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
