@@ -126,7 +126,8 @@ public:
   /**
    * @brief Default monitor function.
    */
-  void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const
+  void init_monitor([[maybe_unused]] const ArgumentReferences<Parameters>& arguments, 
+                    [[maybe_unused]] const Allen::Context& context) const
   {
     if constexpr (Allen::has_monitoring_types<Derived>::value) {
       initialize_functor f(arguments, context);
@@ -163,6 +164,7 @@ public:
     std::get<N>(l) = std::get<N>(r)[index];
   }
 
+  #ifdef WITH_ROOT
   template<std::size_t N, typename ValueType>
   void make_branch(
     handleROOTSvc& handler,
@@ -170,10 +172,8 @@ public:
     const ArgumentReferences<Parameters>& arguments,
     ValueType& values) const
   {
-#ifdef WITH_ROOT
     using TupleType = typename Derived::monitoring_types;
     handler.branch(tree, name<typename std::tuple_element<N, TupleType>::type>(arguments), std::get<N>(values));
-#endif
   }
   template<std::size_t... seq_t>
   void do_monitoring(
@@ -181,7 +181,6 @@ public:
     handleROOTSvc& handler,
     std::integer_sequence<std::size_t, seq_t...> /*int_seq*/) const
   {
-#ifdef WITH_ROOT
     using TupleType = typename Derived::monitoring_types;
     auto host_v = std::tuple {make_vector<typename std::tuple_element<seq_t, TupleType>::type>(arguments)...};
     auto values = std::tuple {typename std::tuple_element<seq_t, TupleType>::type::type()...};
@@ -198,13 +197,13 @@ public:
         tree->Fill();
       }
     }
-#endif
   }
+  #endif
 
   void output_monitor(
-    const ArgumentReferences<Parameters>& arguments,
-    const RuntimeOptions& runtime_options,
-    const Allen::Context&) const
+    [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+    [[maybe_unused]] const RuntimeOptions& runtime_options,
+    [[maybe_unused]] const Allen::Context&) const
   {
     if constexpr (Allen::has_monitoring_types<Derived>::value) {
 #ifdef WITH_ROOT
