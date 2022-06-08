@@ -99,7 +99,7 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
 
   const unsigned geom_version = det.nSourceIDs() == 0 ? 3 : 4;
 
-  const auto [cards_or_febs, feb_indices] = [&] () {
+  const auto [cards_or_febs, feb_indices] = [&]() -> std::array<std::vector<int>, 2> {
     if (geom_version == 3) {
       std::vector<int> cards {};
       // Get all card indices for every source ID.
@@ -107,8 +107,9 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
         auto tell1Cards = det.tell1ToCards(i);
         cards.insert(cards.end(), tell1Cards.begin(), tell1Cards.end());
       }
-      return {cards, std::vector<int>{}};
-    } else { // version 4 or 5
+      return {cards, std::vector<int> {}};
+    }
+    else { // version 4 or 5
       using MapType = std::map<int, std::vector<int>>;
       MapType map = det.getSourceIDsMap();
       std::vector<int> vec_febs(750, 0);
@@ -164,7 +165,7 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
   // For every card: index based on code and store all 32 channel CellIDs at that index.
   if (geom_version == 3) {
     for (int card : cards_or_febs) {
-      int code = dec.cardCode(card);
+      int code = det.cardCode(card);
       int index = (code - min) * max_channels;
       auto channels = det.cardChannels(card);
       for (size_t i = 0; i < channels.size(); i++) {
@@ -177,7 +178,8 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
         }
       }
     }
-  } else { // version 4
+  }
+  else { // version 4
     int code = 0;
     for (int card : cards_or_febs) {
       if (card == 0) continue;
@@ -285,10 +287,10 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
   output.write(digits_ranges);
 
   if (geom_version == 4) {
-    output.write(static_cast<uint32_t>(vec_febs.size()));
-    output.write(vec_febs);
-    output.write(static_cast<uint32_t>(vec_febIndices.size()));
-    output.write(vec_febIndices);
+    output.write(static_cast<uint32_t>(cards_or_febs.size()));
+    output.write(cards_or_febs);
+    output.write(static_cast<uint32_t>(feb_indices.size()));
+    output.write(feb_indices);
   }
 
   auto id = ids.find(det.caloName());
