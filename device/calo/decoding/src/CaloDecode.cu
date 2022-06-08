@@ -23,7 +23,7 @@ namespace {
     unsigned const event_number,
     CaloDigit* digits,
     unsigned const number_of_digits,
-    CaloGeometry const& geometry)
+    const CaloGeometry& geometry)
   {
     auto raw_event = RawEvent {data, offsets, sizes, types, event_number};
 

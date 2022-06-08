@@ -97,25 +97,40 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
   // start at this index. Using the num we can further index these 32 channels.
   // Wasted space: 32 * 16 bits per missing card code
 
-  typedef std::map<int, std::vector<int>> MapType;
-  MapType map = det.getSourceIDsMap();
-  std::vector<uint32_t> vec_febs(750, 0);
-  std::vector<uint32_t> vec_febIndices(750, -1);
-  uint32_t iFEB = 0;
-  for (MapType::iterator itr = map.begin(); itr != map.end(); ++itr) {
-    uint16_t source_id = itr->first;
-    // source_id is 15b word, bit 15:11 correspond  to ecal/hcal (1011/1100) --> consider only bits 10:1
-    for (unsigned k = 0; k < itr->second.size(); k++) {
-      vec_febs[3 * (source_id & 0x7ff) + k] = det.cardArea(itr->second.at(k)) < 3 ? itr->second.at(k) : 0;
-      if (det.cardArea(itr->second.at(k)) < 3 && det.cardArea(itr->second.at(k)) >= 0) {
-        vec_febIndices[3 * (source_id & 0x7ff) + k] = iFEB;
-        ++iFEB;
+  const unsigned geom_version = det.nSourceIDs() == 0 ? 3 : 4;
+
+  const auto [cards_or_febs, feb_indices] = [&] () {
+    if (geom_version == 3) {
+      std::vector<int> cards {};
+      // Get all card indices for every source ID.
+      for (int i = 0; i < det.nTell1s(); i++) {
+        auto tell1Cards = det.tell1ToCards(i);
+        cards.insert(cards.end(), tell1Cards.begin(), tell1Cards.end());
       }
-      else {
-        vec_febIndices[3 * (source_id & 0x7ff) + k] = 9999;
+      return {cards, std::vector<int>{}};
+    } else { // version 4 or 5
+      using MapType = std::map<int, std::vector<int>>;
+      MapType map = det.getSourceIDsMap();
+      std::vector<int> vec_febs(750, 0);
+      std::vector<int> vec_febIndices(750, -1);
+      uint32_t iFEB = 0;
+      for (MapType::iterator itr = map.begin(); itr != map.end(); ++itr) {
+        uint16_t source_id = itr->first;
+        // source_id is 15b word, bit 15:11 correspond  to ecal/hcal (1011/1100) --> consider only bits 10:1
+        for (unsigned k = 0; k < itr->second.size(); k++) {
+          vec_febs[3 * (source_id & 0x7ff) + k] = det.cardArea(itr->second.at(k)) < 3 ? itr->second.at(k) : 0;
+          if (det.cardArea(itr->second.at(k)) < 3 && det.cardArea(itr->second.at(k)) >= 0) {
+            vec_febIndices[3 * (source_id & 0x7ff) + k] = iFEB;
+            ++iFEB;
+          }
+          else {
+            vec_febIndices[3 * (source_id & 0x7ff) + k] = 9999;
+          }
+        }
       }
+      return {vec_febs, vec_febIndices};
     }
-  }
+  }();
 
   // Determine offset and size of the global dense index;
   unsigned indexOffset = 0, indexSize = 0;
@@ -131,13 +146,12 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
   }
 
   // Determine Minimum and maximum card Codes.
-  int min = 0;
+  int min = geom_version == 3 ? det.cardCode(cards_or_febs.at(0)) : 0;
   int max = 0;
   size_t max_channels = 0;
-  int curCode = 0;
-  for (int card : vec_febs) {
-    if (card == 0) continue;
-    curCode = det.getFEBindex(card);
+  for (int card : cards_or_febs) {
+    if (geom_version == 4 && card == 0) continue;
+    const auto curCode = geom_version == 3 ? det.cardCode(card) : det.getFEBindex(card);
     // get FEB numbers from TELL40Link map
     min = std::min(curCode, min);
     max = std::max(curCode, max);
@@ -148,21 +162,38 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
   std::vector<uint16_t> allChannels(max_channels * (max - min + 1), 0);
 
   // For every card: index based on code and store all 32 channel CellIDs at that index.
-  int code = 0;
-  for (int card : vec_febs) {
-    if (card == 0) continue;
-    int index = (code - min) * max_channels;
-    auto channels = det.cardChannels(card);
-    for (size_t i = 0; i < channels.size(); i++) {
-      LHCb::Detector::Calo::Index const caloIndex {channels.at(i)};
-      if (caloIndex) {
-        allChannels[index + i] = static_cast<uint16_t>(caloIndex - indexOffset);
-      }
-      else {
-        allChannels[index + i] = static_cast<uint16_t>(indexSize);
+  if (geom_version == 3) {
+    for (int card : cards_or_febs) {
+      int code = dec.cardCode(card);
+      int index = (code - min) * max_channels;
+      auto channels = det.cardChannels(card);
+      for (size_t i = 0; i < channels.size(); i++) {
+        LHCb::Detector::Calo::Index const caloIndex {channels.at(i)};
+        if (caloIndex) {
+          allChannels[index + i] = static_cast<uint16_t>(caloIndex - indexOffset);
+        }
+        else {
+          allChannels[index + i] = static_cast<uint16_t>(indexSize);
+        }
       }
     }
-    ++code;
+  } else { // version 4
+    int code = 0;
+    for (int card : cards_or_febs) {
+      if (card == 0) continue;
+      int index = (code - min) * max_channels;
+      auto channels = det.cardChannels(card);
+      for (size_t i = 0; i < channels.size(); i++) {
+        LHCb::Detector::Calo::Index const caloIndex {channels.at(i)};
+        if (caloIndex) {
+          allChannels[index + i] = static_cast<uint16_t>(caloIndex - indexOffset);
+        }
+        else {
+          allChannels[index + i] = static_cast<uint16_t>(indexSize);
+        }
+      }
+      ++code;
+    }
   }
 
   // Check if 'E'cal or 'H'cal
@@ -231,6 +262,7 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
 
   // Write all the parameters to the geometry file
   DumpUtils::Writer output {};
+  output.write(static_cast<uint32_t>(geom_version));
   output.write(static_cast<uint32_t>(min));
   output.write(static_cast<uint32_t>(max_channels));
   output.write(static_cast<uint32_t>(indexSize));
@@ -251,10 +283,13 @@ std::tuple<std::vector<char>, std::string> DumpCaloGeometry::operator()(const De
   output.write(module_size);
   output.write(static_cast<uint32_t>(digits_ranges.size()));
   output.write(digits_ranges);
-  output.write(static_cast<uint32_t>(vec_febs.size()));
-  output.write(vec_febs);
-  output.write(static_cast<uint32_t>(vec_febIndices.size()));
-  output.write(vec_febIndices);
+
+  if (geom_version == 4) {
+    output.write(static_cast<uint32_t>(vec_febs.size()));
+    output.write(vec_febs);
+    output.write(static_cast<uint32_t>(vec_febIndices.size()));
+    output.write(vec_febIndices);
+  }
 
   auto id = ids.find(det.caloName());
   if (id == ids.end()) {
