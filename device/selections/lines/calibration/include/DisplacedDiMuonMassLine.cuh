@@ -32,8 +32,8 @@ namespace displaced_di_muon_mass_line {
   };
 
   struct displaced_di_muon_mass_line_t : public SelectionAlgorithm,
-                                    Parameters,
-                                    TwoTrackLine<displaced_di_muon_mass_line_t, Parameters> {
+                                         Parameters,
+                                         TwoTrackLine<displaced_di_muon_mass_line_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
   private:
@@ -52,4 +52,4 @@ namespace displaced_di_muon_mass_line {
     Property<dispMaxEta_t> m_dispMaxEta {this, 5.f};
     Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
   };
-} // namespace displaced_di_muon_line
+} // namespace displaced_di_muon_mass_line
