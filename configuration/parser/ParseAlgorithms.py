@@ -30,7 +30,7 @@ class Parser():
 
     # Pattern sought in every file, prior to parsing the file for an algorithm
     __algorithm_pattern_compiled = re.compile(
-        "(?P<scope>Host|Device|Selection|Validation)Algorithm")
+        "(?P<scope>Host|Device|Selection|Validation|Provider)Algorithm")
 
     # File extensions considered
     __sought_extensions_compiled = [
@@ -95,27 +95,9 @@ class AllenCore():
     @staticmethod
     def write_preamble(i=0):
         # Fetch base_types.py and include it here to make file self-contained
-        s = "from AllenCore.AllenKernel import AllenAlgorithm, AllenDataHandle\n\
-from collections import OrderedDict\n\
-from enum import Enum\n\n\n\
-class AlgorithmCategory(Enum):\n\
-    HostAlgorithm = 0\n\
-    DeviceAlgorithm = 1\n\
-    SelectionAlgorithm = 2\n\
-    HostDataProvider = 3\n\
-    DataProvider = 4\n\
-    ValidationAlgorithm = 5\n\n\n"
-
+        s = "\n".join(["from AllenCore.AllenKernel import AllenAlgorithm, AllenDataHandle",
+                      "from collections import OrderedDict\n\n"])
         return s
-
-    @staticmethod
-    def get_algorithm_category(name, scope):
-        if name == "data_provider_t":
-            return "DataProvider"
-        elif name == "host_data_provider_t":
-            return "HostDataProvider"
-        else:
-            return scope
 
     @staticmethod
     def write_algorithm_code(algorithm, i=0):
@@ -154,7 +136,7 @@ class AlgorithmCategory(Enum):\n\
         i += 1
         s += AllenCore.prefix(
             i
-        ) + f"return AlgorithmCategory.{AllenCore.get_algorithm_category(algorithm.name, algorithm.scope)}\n\n"
+        ) + f"return \"{algorithm.scope}\"\n\n"
         i -= 1
 
         s += AllenCore.prefix(i) + "def __new__(self, name, **kwargs):\n"

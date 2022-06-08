@@ -41,7 +41,7 @@ def make_algorithm(alg_type, name, **kwargs):
         weight = benchmark_weights[name]
     elif "prefix_sum" in name:  # hard coded heuristic for now, TODO might want to change
         weight = 1000.0
-    elif alg_type.category() == AlgorithmCategory.SelectionAlgorithm:
+    elif alg_type.category() == "SelectionAlgorithm":
         weight = 10.0
     else:
         weight = 100.0
