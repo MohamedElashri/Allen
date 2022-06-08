@@ -78,7 +78,7 @@ struct CaloGeometry {
     const uint32_t digits_ranges_size = *((uint32_t*) p);
     p += sizeof(uint32_t); // Skip digits_ranges_size
     digits_ranges = (uint32_t*) p;
-    
+
     if (geom_version == 4) {
       p += sizeof(float) * digits_ranges_size; // Skip digits_ranges
       vec_febs_size = *((uint32_t*) p);
