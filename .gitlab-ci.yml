@@ -96,7 +96,7 @@ check-formatting:
     when: on_failure
     expire_in: 1 week
   needs: []
-    
+
 # On the master branch: compile docs, copy to public directory and deploy from there with gitlab pages
 pages:
   only:
@@ -159,4 +159,7 @@ test_pages:
     paths:
       - .cache/pip
 
-include: "scripts/ci/config/main.yaml"
+include:
+  - local: 'scripts/ci/config/main.yaml'
+  - project: 'lhcb-rta/reference-update-bot'
+    file: 'templates/ref-bot-ci-trigger-template.yml'
