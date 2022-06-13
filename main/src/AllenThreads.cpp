@@ -120,7 +120,7 @@ void run_output(
           buffer_manager->getBufferOutputData(buf_idx);
         if (output_handler != nullptr) {
           std::tie(success, n_written) = output_handler->output_selected_events(
-            slc_idx, first_evt, passing_event_list, dec_reports, sel_reports, sel_report_offsets);
+            thread_id, slc_idx, first_evt, passing_event_list, dec_reports, sel_reports, sel_report_offsets);
         }
 
         zmqSvc->send(control, "WRITTEN", send_flags::sndmore);

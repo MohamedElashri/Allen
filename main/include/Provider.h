@@ -12,9 +12,7 @@
 class IZeroMQSvc;
 
 namespace {
-  constexpr size_t n_write = 1;
   constexpr size_t n_input = 1;
-  constexpr size_t n_io = n_input + n_write;
   constexpr size_t n_mon = 1;
   constexpr size_t max_stream_threads = 1024;
 } // namespace

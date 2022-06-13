@@ -20,6 +20,7 @@
 #include <OutputHandler.h>
 
 std::tuple<bool, size_t> OutputHandler::output_selected_events(
+  size_t const thread_id,
   size_t const slice_index,
   size_t const start_event,
   gsl::span<bool const> const selected_events_bool,
@@ -56,11 +57,16 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   size_t n_output = 0;
   size_t n_batches = n_events / m_output_batch_size + (n_events % m_output_batch_size != 0);
 
+  if (m_nbatches) ( *m_nbatches ) += n_batches;
+
   for (size_t i_batch = 0; i_batch < n_batches && output_success; ++i_batch) {
 
     size_t batch_buffer_size = 0;
     size_t output_event_offset = 0;
     size_t batch_size = std::min(m_output_batch_size, n_events - n_output);
+
+    if (m_noutput) ( *m_noutput ) += batch_size;
+    if (m_batch_size) ( *m_batch_size ) += batch_size;
 
     for (size_t i = n_output; i < n_output + batch_size; ++i) {
 
@@ -84,7 +90,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       batch_buffer_size += event_size;
     }
 
-    auto [buffer_id, batch_span] = buffer(batch_buffer_size, batch_size);
+    auto batch_span = buffer(thread_id, batch_buffer_size, batch_size);
 
     // In case output was cancelled
     if (batch_span.empty()) return {false, 0};
@@ -173,7 +179,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       output_event_offset += event_size;
     }
 
-    auto output_success = write_buffer(buffer_id);
+    auto output_success = write_buffer(thread_id);
     n_output += output_success ? batch_size : 0;
   }
   assert(n_events - n_output == 0);

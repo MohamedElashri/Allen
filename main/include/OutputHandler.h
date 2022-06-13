@@ -12,6 +12,9 @@
 #include "BankTypes.h"
 #include "Timer.h"
 
+#include <GaudiKernel/Service.h>
+#include <Gaudi/Accumulators.h>
+
 class OutputHandler {
 public:
   OutputHandler() {}
@@ -19,11 +22,12 @@ public:
   OutputHandler(
     IInputProvider const* input_provider,
     std::string const connection,
+    size_t const n_threads,
     size_t const output_batch_size,
     size_t const n_lines,
     bool const checksum)
   {
-    init(input_provider, std::move(connection), output_batch_size, n_lines, checksum);
+    init(input_provider, std::move(connection), n_threads, output_batch_size, n_lines, checksum);
   }
 
   virtual ~OutputHandler() {}
@@ -31,6 +35,7 @@ public:
   std::string const& connection() const { return m_connection; }
 
   std::tuple<bool, size_t> output_selected_events(
+    size_t const thread_id,
     size_t const slice_index,
     size_t const event_offset,
     gsl::span<bool const> const selected_events,
@@ -38,7 +43,7 @@ public:
     gsl::span<uint32_t const> const sel_reports,
     gsl::span<unsigned const> const sel_report_offsets);
 
-  virtual zmq::socket_t* client_socket() { return nullptr; }
+  virtual zmq::socket_t* client_socket() const { return nullptr; }
 
   virtual void handle() {}
 
@@ -48,10 +53,13 @@ public:
 
   bool do_checksum() const { return m_checksum; }
 
+  size_t n_threads() const { return m_nthreads; }
+
 protected:
   void init(
     IInputProvider const* input_provider,
     std::string const connection,
+    size_t const n_threads,
     size_t const output_batch_size,
     size_t const n_lines,
     bool const checksum)
@@ -62,11 +70,19 @@ protected:
     m_output_batch_size = output_batch_size;
     m_nlines = n_lines;
     m_checksum = checksum;
+    m_nthreads = n_threads;
+
+    auto* svc = dynamic_cast<Service*>(this);
+    if (svc != nullptr) {
+      m_noutput   = std::make_unique<Gaudi::Accumulators::Counter<>>( svc, "NOutput" );
+      m_nbatches  = std::make_unique<Gaudi::Accumulators::AveragingCounter<>>( svc, "NBatches" );
+      m_batch_size = std::make_unique<Gaudi::Accumulators::AveragingCounter<>>( svc, "BatchSize" );
+    }
   }
 
-  virtual std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size, size_t n_events) = 0;
+  virtual gsl::span<char> buffer(size_t thread_id, size_t buffer_size, size_t n_events) = 0;
 
-  virtual bool write_buffer(size_t id) = 0;
+  virtual bool write_buffer(size_t thread_id) = 0;
 
   IInputProvider const* m_input_provider = nullptr;
   std::string m_connection;
@@ -75,4 +91,10 @@ protected:
   size_t m_output_batch_size = 10;
   size_t m_nlines = 0;
   bool m_checksum = false;
+  size_t m_nthreads = 1;
+
+  std::unique_ptr<Gaudi::Accumulators::Counter<>> m_noutput;
+  std::unique_ptr<Gaudi::Accumulators::AveragingCounter<>> m_batch_size;
+  std::unique_ptr<Gaudi::Accumulators::AveragingCounter<>> m_nbatches;
+
 };

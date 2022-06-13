@@ -14,7 +14,7 @@ public:
     size_t const output_batch_size,
     size_t const n_lines,
     bool checksum = true) :
-    OutputHandler {input_provider, filename, output_batch_size, n_lines, checksum},
+    OutputHandler {input_provider, filename, 1u, output_batch_size, n_lines, checksum},
     m_filename {std::move(filename)}
   {
     m_output = MDF::open(m_filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
@@ -31,10 +31,10 @@ public:
   }
 
 protected:
-  std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size, size_t) override
+  gsl::span<char> buffer(size_t, size_t buffer_size, size_t) override
   {
     m_buffer.resize(buffer_size);
-    return {0, gsl::span {&m_buffer[0], static_cast<events_size>(buffer_size)}};
+    return gsl::span {&m_buffer[0], static_cast<events_size>(buffer_size)};
   }
 
   virtual bool write_buffer(size_t) override { return m_output.write(m_buffer.data(), m_buffer.size()); }

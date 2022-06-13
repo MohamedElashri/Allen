@@ -21,12 +21,12 @@ public:
 
   ~ZMQOutputSender();
 
-  zmq::socket_t* client_socket() override;
+  zmq::socket_t* client_socket() const override;
 
   void handle() override;
 
 protected:
-  std::tuple<size_t, gsl::span<char>> buffer(size_t buffer_size, size_t) override;
+  gsl::span<char> buffer(size_t, size_t buffer_size, size_t) override;
 
   virtual bool write_buffer(size_t) override;
 
@@ -41,7 +41,7 @@ private:
   bool m_connected = false;
 
   // data socket
-  std::optional<zmq::socket_t> m_socket;
+  mutable std::optional<zmq::socket_t> m_socket;
 
   // request socket
   std::optional<zmq::socket_t> m_request;
