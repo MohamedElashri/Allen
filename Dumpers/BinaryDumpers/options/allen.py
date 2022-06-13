@@ -152,7 +152,7 @@ if args.mep:
     mep_provider = MEPProvider()
     mep_provider.NSlices = args.slices
     mep_provider.EventsPerSlice = args.events_per_slice
-    mep_provider.OutputLevel = 3
+    mep_provider.OutputLevel = (6 - int(args.verbosity))
     # Number of MEP buffers and number of transpose/offset threads
     mep_provider.BufferConfig = (10, 8)
     mep_provider.TransposeMEPs = False
@@ -286,11 +286,11 @@ else:
     assert (msg.decode() == "RUNNING")
     sleep(5)
     control.send(b"STOP")
+    gaudi.stop()
     msg = control.recv()
     assert (msg.decode() == "READY")
     if args.profile == "CUDA":
         runtime_lib.cudaProfilerStop()
-    gaudi.stop()
     gaudi.finalize()
     control.send(b"RESET")
     msg = control.recv()
