@@ -1,6 +1,6 @@
 /*****************************************************************************\
-* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
-\*****************************************************************************/
+ * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+ \*****************************************************************************/
 #pragma once
 
 #include <string>
@@ -9,6 +9,10 @@
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
 #include <tuple>
+#ifdef WITH_ROOT
+#include <ROOTHeaders.h>
+#include "ROOTService.h"
+#endif
 
 // Helper macro to explicitly instantiate lines
 #define INSTANTIATE_LINE(DERIVED, PARAMETERS)                                                                  \
@@ -55,6 +59,44 @@ private:
   uint32_t m_pre_scaler_hash;
   uint32_t m_post_scaler_hash;
 
+  template<typename TupleType, typename FuncT, std::size_t... seq_t>
+  void for_each_internal(FuncT& f, std::integer_sequence<std::size_t, seq_t...> /*seq*/) const
+  {
+    (f.template operator()<typename std::tuple_element<seq_t, TupleType>::type>(), ...);
+  }
+  template<typename FuncT, typename TupleType>
+  void for_each(FuncT& f) const
+  {
+    std::make_index_sequence<std::tuple_size<TupleType>::value> sequence;
+    for_each_internal<TupleType>(f, sequence);
+  }
+
+  // under C++20  - these can be converted to lambda functions - for now have to do
+  // lambdas the old fashioned way
+  struct set_size_functor {
+    set_size_functor(ArgumentReferences<Parameters>& arguments, std::size_t size) : arguments(arguments), size(size) {}
+    ArgumentReferences<Parameters>& arguments;
+    std::size_t size;
+    template<typename f>
+    void operator()()
+    {
+      set_size<f>(arguments, size);
+    }
+  };
+
+  struct initialize_functor {
+    initialize_functor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) :
+      arguments(arguments), context(context)
+    {}
+    const ArgumentReferences<Parameters>& arguments;
+    const Allen::Context& context;
+    template<typename f>
+    void operator()()
+    {
+      initialize<f>(arguments, -1, context);
+    }
+  };
+
 public:
   void init()
   {
@@ -72,6 +114,26 @@ public:
     m_post_scaler_hash = mixString(post_scaler_hash_string.size(), post_scaler_hash_string);
   }
 
+  void operator()(
+    const ArgumentReferences<Parameters>&,
+    const RuntimeOptions&,
+    const Constants&,
+    HostBuffers&,
+    const Allen::Context& context) const;
+
+  /**
+   * @brief Default monitor function.
+   */
+  void init_monitor(
+    [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+    [[maybe_unused]] const Allen::Context& context) const
+  {
+    if constexpr (Allen::has_monitoring_types<Derived>::value) {
+      initialize_functor f(arguments, context);
+      for_each<decltype(f), typename Derived::monitoring_types>(f);
+    }
+  }
+
   void set_arguments_size(
     ArgumentReferences<Parameters> arguments,
     const RuntimeOptions&,
@@ -84,25 +146,73 @@ public:
 
     // Set the size of the type-erased fn parameters
     set_size<typename Parameters::host_fn_parameters_t>(arguments, sizeof(type_erased_tuple_t<Derived, Parameters>));
+
+    if constexpr (Allen::has_monitoring_types<Derived>::value) {
+      set_size_functor ssf(arguments, Derived::get_decisions_size(arguments));
+      for_each<set_size_functor, typename Derived::monitoring_types>(ssf);
+    }
   }
-
-  void operator()(
-    const ArgumentReferences<Parameters>&,
-    const RuntimeOptions&,
-    const Constants&,
-    HostBuffers&,
-    const Allen::Context& context) const;
-
-  /**
-   * @brief Default monitor function.
-   */
-  void init_monitor(const ArgumentReferences<Parameters>&, const Allen::Context&) const {}
 
   template<typename T>
   static __device__ void monitor(const Parameters&, T, unsigned, bool)
   {}
 
-  void output_monitor(const ArgumentReferences<Parameters>&, const RuntimeOptions&, const Allen::Context&) const {}
+  template<std::size_t N, typename lv, typename rv>
+  void set_equal(lv& l, const rv& r, std::size_t index) const
+  {
+    std::get<N>(l) = std::get<N>(r)[index];
+  }
+
+#ifdef WITH_ROOT
+  template<std::size_t N, typename ValueType>
+  void make_branch(
+    handleROOTSvc& handler,
+    TTree* tree,
+    const ArgumentReferences<Parameters>& arguments,
+    ValueType& values) const
+  {
+    using TupleType = typename Derived::monitoring_types;
+    handler.branch(tree, name<typename std::tuple_element<N, TupleType>::type>(arguments), std::get<N>(values));
+  }
+  template<std::size_t... seq_t>
+  void do_monitoring(
+    const ArgumentReferences<Parameters>& arguments,
+    handleROOTSvc& handler,
+    std::integer_sequence<std::size_t, seq_t...> /*int_seq*/) const
+  {
+    using TupleType = typename Derived::monitoring_types;
+    auto host_v = std::tuple {make_vector<typename std::tuple_element<seq_t, TupleType>::type>(arguments)...};
+    auto values = std::tuple {typename std::tuple_element<seq_t, TupleType>::type::type()...};
+    size_t ev = 0;
+    auto tree = handler.tree("monitor_tree");
+    if (tree == nullptr) return;
+    (make_branch<seq_t>(handler, tree, arguments, values), ...);
+    handler.branch(tree, "ev", ev);
+    auto i0 = tree->GetEntries();
+    for (unsigned i = 0; i != std::get<0>(host_v).size(); ++i) {
+      if (std::get<0>(host_v)[i] != -1) {
+        (set_equal<seq_t>(values, host_v, i), ...);
+        ev = i0 + i;
+        tree->Fill();
+      }
+    }
+  }
+#endif
+
+  void output_monitor(
+    [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+    [[maybe_unused]] const RuntimeOptions& runtime_options,
+    [[maybe_unused]] const Allen::Context&) const
+  {
+    if constexpr (Allen::has_monitoring_types<Derived>::value) {
+#ifdef WITH_ROOT
+      std::make_index_sequence<std::tuple_size<typename Derived::monitoring_types>::value> sequence;
+      auto derived_instance = static_cast<const Derived*>(this);
+      auto handler = runtime_options.root_service->handle(derived_instance->name());
+      do_monitoring(arguments, handler, sequence);
+#endif
+    }
+  }
 };
 
 template<typename Derived, typename Parameters>

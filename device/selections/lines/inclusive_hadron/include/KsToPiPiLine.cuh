@@ -20,11 +20,10 @@ namespace kstopipi_line {
 
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    DEVICE_OUTPUT(dev_sv_masses_t, float) dev_sv_masses;
-    HOST_OUTPUT(host_sv_masses_t, float) host_sv_masses;
 
-    DEVICE_OUTPUT(dev_pt_t, float) dev_pt;
-    HOST_OUTPUT(host_pt_t, float) host_pt;
+    DEVICE_OUTPUT(sv_masses_t, float) sv_masses;
+    DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(mipchi2_t, float) mipchi2;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -41,24 +40,16 @@ namespace kstopipi_line {
   };
 
   struct kstopipi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<kstopipi_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
-    void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
+    using monitoring_types = std::tuple<sv_masses_t, pt_t, mipchi2_t>;
+
+    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     __device__ static void monitor(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
-
-    void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
-      const;
-
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
