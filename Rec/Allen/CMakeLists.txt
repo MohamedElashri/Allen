@@ -27,6 +27,7 @@ gaudi_add_module(AllenWrapper
                    src/TestAllenCaloDigits.cpp
                    src/TestMuonHits.cpp
                    src/TestUTHits.cpp
+                   src/TestFTClusters.cpp
                    src/TestVeloClusters.cpp
                  LINK
                    AllenLib
