@@ -66,7 +66,10 @@ protected:
   {
     m_input_provider = input_provider;
     m_connection = std::move(connection);
-    m_sizes.resize(input_provider->events_per_slice());
+    m_sizes.resize(n_threads);
+    for (auto& sizes : m_sizes) {
+      sizes.resize(input_provider->events_per_slice());
+    }
     m_output_batch_size = output_batch_size;
     m_nlines = n_lines;
     m_checksum = checksum;
@@ -74,9 +77,9 @@ protected:
 
     auto* svc = dynamic_cast<Service*>(this);
     if (svc != nullptr) {
-      m_noutput   = std::make_unique<Gaudi::Accumulators::Counter<>>( svc, "NOutput" );
-      m_nbatches  = std::make_unique<Gaudi::Accumulators::AveragingCounter<>>( svc, "NBatches" );
-      m_batch_size = std::make_unique<Gaudi::Accumulators::AveragingCounter<>>( svc, "BatchSize" );
+      m_noutput = std::make_unique<Gaudi::Accumulators::Counter<>>(svc, "NOutput");
+      m_nbatches = std::make_unique<Gaudi::Accumulators::AveragingCounter<>>(svc, "NBatches");
+      m_batch_size = std::make_unique<Gaudi::Accumulators::AveragingCounter<>>(svc, "BatchSize");
     }
   }
 
@@ -86,7 +89,7 @@ protected:
 
   IInputProvider const* m_input_provider = nullptr;
   std::string m_connection;
-  std::vector<size_t> m_sizes;
+  std::vector<std::vector<size_t>> m_sizes;
   std::array<uint32_t, 4> m_trigger_mask = {~0u, ~0u, ~0u, ~0u};
   size_t m_output_batch_size = 10;
   size_t m_nlines = 0;
@@ -96,5 +99,4 @@ protected:
   std::unique_ptr<Gaudi::Accumulators::Counter<>> m_noutput;
   std::unique_ptr<Gaudi::Accumulators::AveragingCounter<>> m_batch_size;
   std::unique_ptr<Gaudi::Accumulators::AveragingCounter<>> m_nbatches;
-
 };
