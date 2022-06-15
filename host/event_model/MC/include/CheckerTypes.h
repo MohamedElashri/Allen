@@ -48,7 +48,6 @@ namespace Checker {
     unsigned n_scifi {0};
   };
 
-
   using AcceptFn = std::function<bool(MCParticles::const_reference&)>;
 
   struct HistoCategory {

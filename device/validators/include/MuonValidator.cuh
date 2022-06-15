@@ -9,23 +9,28 @@
 #include "LookingForwardConstants.cuh"
 #include "ParticleTypes.cuh"
 #include "CheckerTracks.cuh"
+#include "CheckerInvoker.h"
+#include "TrackChecker.h"
 
-
-namespace copy_long_track_parameters {
+namespace muon_validator {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_long_tracks_t, unsigned) host_number_of_reconstructed_long_tracks;
+    HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_multi_event_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks)
     dev_multi_event_long_tracks_view;
-    DEVICE_OUTPUT(dev_long_checker_tracks_t, Checker::Track) dev_long_checker_tracks;
+    DEVICE_INPUT(dev_offsets_long_tracks_t, unsigned) dev_offsets_long_tracks;
+    DEVICE_INPUT(dev_is_muon_t, uint8_t) dev_is_muon;
+    DEVICE_OUTPUT(dev_muon_checker_tracks_t, Checker::Track) dev_muon_checker_tracks;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+    PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
   };
 
-  __global__ void copy_long_track_parameters(Parameters parameters);
-  
-  struct copy_long_track_parameters_t : public DeviceAlgorithm, Parameters {
+  __global__ void muon_validator(Parameters parameters);
+
+  struct muon_validator_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
@@ -36,10 +41,11 @@ namespace copy_long_track_parameters {
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers& host_buffers,
+      HostBuffers&,
       const Allen::Context& context) const;
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<root_output_filename_t> m_root_output_filename {this, "PrCheckerPlots.root"};
   };
-} // namespace copy_long_track_parameters
+} // namespace muon_validator

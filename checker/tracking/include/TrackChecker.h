@@ -33,8 +33,6 @@
 #include <mutex>
 #include "Argument.cuh"
 
-float eta_from_rho(const float rho);
-
 template<typename T>
 class TrackChecker : public Checker::BaseChecker {
 private:
@@ -153,8 +151,7 @@ public:
 #endif
   }
 
-  void
-  accumulate(const MCEvents& mc_events, gsl::span<Checker::Tracks> tracks, gsl::span<const mask_t> event_list)
+  void accumulate(const MCEvents& mc_events, gsl::span<Checker::Tracks> tracks, gsl::span<const mask_t> event_list)
   {
     auto guard = std::scoped_lock {m_mutex};
     for (size_t i = 0; i < event_list.size(); ++i) {
@@ -170,7 +167,7 @@ public:
         bool containsDuplicates = track.containsDuplicates();
         if (containsDuplicates) {
           warning_cout << "WARNING: Track #" << i_track << " contains duplicate LHCb IDs" << std::endl << std::hex;
-          for (unsigned i=0; i<track.total_number_of_hits; i++) {
+          for (unsigned i = 0; i < track.total_number_of_hits; i++) {
             const auto id = track.allids[i];
             warning_cout << "0x" << id << ", ";
           }
@@ -195,7 +192,7 @@ public:
     Checker::TruthCounter total_counter;
     std::unordered_map<unsigned, Checker::TruthCounter> truth_counters;
     int n_meas = 0;
-    for (unsigned i=0; i<track.total_number_of_hits; i++) {
+    for (unsigned i = 0; i < track.total_number_of_hits; i++) {
       const auto id = track.allids[i];
       if (lhcb_id::is_velo(id)) {
         n_meas++;

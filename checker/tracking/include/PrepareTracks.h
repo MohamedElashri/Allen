@@ -14,8 +14,6 @@
 #include "Argument.cuh"
 #include "ParticleTypes.cuh"
 
-float eta_from_rho(const float rho);
-
 /**
  * @brief Prepares tracks for Velo consolidated datatypes.
  */

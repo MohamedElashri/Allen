@@ -69,7 +69,8 @@ void KalmanChecker::accumulate(
     MCAssociator mcassoc {mcps};
     // Loop over tracks.
     for (auto track : event_tracks) {
-      const auto assoc = mcassoc(std::begin(track.allids), std::begin(track.allids)+track.total_number_of_hits, track.n_matched_total);
+      const auto assoc =
+        mcassoc(std::begin(track.allids), std::begin(track.allids) + track.total_number_of_hits, track.n_matched_total);
       if (!assoc)
         m_trk_ghost = 1.f;
       else {

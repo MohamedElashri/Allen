@@ -426,19 +426,8 @@ def setup_hlt1_node(withMCChecking=False,
     if not withMCChecking:
         return hlt1_node
     else:
-        copied_parameters = {
-            "long":
-            long_parameters_for_validation(
-                reconstructed_objects["forward_tracks"]),
-            "muon":
-            muon_parameters_for_validation(
-                reconstructed_objects["muonID"]),
-            "kalman":
-            kalman_parameters_for_validation(
-                reconstructed_objects["kalman_velo_only"])
-        }
         validation_node = validator_node(reconstructed_objects,
-                                         copied_parameters, line_algorithms)
+                                         line_algorithms)
 
         node = CompositeNode(
             "AllenWithValidators", [hlt1_node, validation_node],

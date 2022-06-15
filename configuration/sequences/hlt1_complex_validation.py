@@ -8,8 +8,7 @@ from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_
 from AllenConf.utils import line_maker, make_gec
 from AllenConf.validators import (
     velo_validation, veloUT_validation, long_validation, muon_validation,
-    pv_validation, rate_validation, kalman_validation,
-    long_parameters_for_validation, muon_parameters_for_validation, kalman_parameters_for_validation)
+    pv_validation, rate_validation, kalman_validation)
 
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate
@@ -20,30 +19,6 @@ with make_ut_tracks.bind(restricted=False):
 
 restricted_hlt1_reconstruction = hlt1_reconstruction()
 gec = make_gec()
-
-restricted_copied_parameters = {
-    "long":
-    long_parameters_for_validation(
-        restricted_hlt1_reconstruction["forward_tracks"]),
-    "muon":
-    muon_parameters_for_validation(
-        restricted_hlt1_reconstruction["muonID"]),
-    "kalman":
-    kalman_parameters_for_validation(
-        restricted_hlt1_reconstruction["kalman_velo_only"])
-}
-
-non_restricted_copied_parameters = {
-    "long":
-    long_parameters_for_validation(
-        non_restricted_hlt1_reconstruction["forward_tracks"]),
-    "muon":
-    muon_parameters_for_validation(
-        restricted_hlt1_reconstruction["muonID"]),
-    "kalman":
-    kalman_parameters_for_validation(
-        non_restricted_hlt1_reconstruction["kalman_velo_only"])
-}
 
 lines = []
 with line_maker.bind(prefilter=gec):
@@ -106,23 +81,19 @@ validators_leaf = CompositeNode(
         make_composite_node_with_gec(
             "restricted_long_validator",
             long_validation(restricted_hlt1_reconstruction["forward_tracks"],
-                            restricted_copied_parameters["long"],
                             "restricted_long_validator")),
         make_composite_node_with_gec(
             "non-restricted_long_validator",
             long_validation(
                 non_restricted_hlt1_reconstruction["forward_tracks"],
-                non_restricted_copied_parameters["long"],
                 "non-restricted_long_validator")),
         make_composite_node_with_gec(
             "restricted_muon_validation",
             muon_validation(restricted_hlt1_reconstruction["muonID"],
-                            restricted_copied_parameters["muon"],
                             "restricted_muon_validation")),
         make_composite_node_with_gec(
             "non-restricted_muon_validation",
             muon_validation(non_restricted_hlt1_reconstruction["muonID"],
-                            non_restricted_copied_parameters["muon"],
                             "non-restricted_muon_validation")),
         make_composite_node_with_gec(
             "pv_validation",
@@ -131,7 +102,6 @@ validators_leaf = CompositeNode(
             "restricted_kalman_validation",
             kalman_validation(
                 restricted_hlt1_reconstruction["kalman_velo_only"],
-                restricted_copied_parameters["kalman"],
                 "restricted_kalman_validation"))
     ],
     NodeLogic.NONLAZY_AND,

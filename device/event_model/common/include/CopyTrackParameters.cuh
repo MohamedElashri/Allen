@@ -42,19 +42,15 @@ __device__ inline void prepare_long_tracks(
     }
     long_checker_tracks[i_track] = t;
   }
-
 }
 
-__device__ inline void prepare_muons(
-  const unsigned number_of_tracks_event,
-  Checker::Track* long_checker_tracks,
-  const uint8_t* is_muon)
+__device__ inline void
+prepare_muons(const unsigned number_of_tracks_event, Checker::Track* long_checker_tracks, const uint8_t* is_muon)
 {
   for (unsigned i_track = 0; i_track < number_of_tracks_event; i_track++) {
     long_checker_tracks[i_track].is_muon = is_muon[i_track];
   }
 }
-
 
 __device__ inline float ipKalman(const ParKalmanFilter::FittedTrack& track, const PV::Vertex& vertex)
 {
@@ -155,7 +151,9 @@ __device__ inline float ipyVelo(const Allen::Views::Physics::KalmanState& velo_k
   return dy;
 }
 
-__device__ inline float ipChi2Velo(const Allen::Views::Physics::KalmanState& velo_kalman_state, const PV::Vertex& vertex)
+__device__ inline float ipChi2Velo(
+  const Allen::Views::Physics::KalmanState& velo_kalman_state,
+  const PV::Vertex& vertex)
 {
   // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
   float tx = velo_kalman_state.tx();
@@ -197,14 +195,14 @@ __device__ inline float veloDOCAz(const Allen::Views::Physics::KalmanState& velo
   return std::abs(ty * dx - tx * dy) / std::sqrt(tx * tx + ty * ty);
 }
 
-__host__ __device__ inline float eta_from_rho(const float rho)
+__device__ __host__ inline float eta_from_rho(const float rho)
 {
   const float z = 1.f;
   if (rho > 0.f) {
 
     // value to control Taylor expansion of sqrt
     // constant value from std::pow(std::numeric_limits<float>::epsilon(), static_cast<float>(-.25));
-    constexpr float big_z_scaled = 53.817371f; 
+    constexpr float big_z_scaled = 53.817371f;
     float z_scaled = z / rho;
     if (std::fabs(z_scaled) < big_z_scaled) {
       return std::log(z_scaled + std::sqrt(z_scaled * z_scaled + 1.f));
@@ -219,12 +217,12 @@ __host__ __device__ inline float eta_from_rho(const float rho)
 }
 
 __device__ inline void prepare_kalman_tracks(
-    const unsigned number_of_tracks,
-    const unsigned number_of_vertices,
-    const PV::Vertex* rec_vertices,
-    const Allen::Views::Physics::KalmanStates endvelo_states,
-    const ParKalmanFilter::FittedTrack* kf_tracks,
-    Checker::Track* kalman_checker_tracks)
+  const unsigned number_of_tracks,
+  const unsigned number_of_vertices,
+  const PV::Vertex* rec_vertices,
+  const Allen::Views::Physics::KalmanStates endvelo_states,
+  const ParKalmanFilter::FittedTrack* kf_tracks,
+  Checker::Track* kalman_checker_tracks)
 {
   for (unsigned i_track = 0; i_track < number_of_tracks; i_track++) {
     ParKalmanFilter::FittedTrack track = kf_tracks[i_track];

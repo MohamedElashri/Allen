@@ -19,12 +19,12 @@
 
 #include "LHCbID.h"
 
-namespace Checker {  
+namespace Checker {
   struct Track {
     LHCbID allids[42];
-    unsigned total_number_of_hits=0;
-    //SciFi information
-    unsigned velo_track_index=0;
+    unsigned total_number_of_hits = 0;
+    // SciFi information
+    unsigned velo_track_index = 0;
     // Kalman information.
     float z = 0.f, x = 0.f, y = 0.f, tx = 0.f, ty = 0.f, qop = 0.f;
     float first_qop = 0.f, best_qop = 0.f;
@@ -40,17 +40,20 @@ namespace Checker {
     float muon_catboost_output = 0.f;
     bool is_muon = false;
 
-    __device__ __host__ void addId(LHCbID id) {  //0-26 VELO , 26-30 UT, 30 - 42 SciFi
-      allids[total_number_of_hits] = id; 
+    __device__ __host__ void addId(LHCbID id)
+    { // 0-26 VELO , 26-30 UT, 30 - 42 SciFi
+      allids[total_number_of_hits] = id;
       total_number_of_hits++;
     }
 
-    __host__ bool containsDuplicates() {
-      std::sort(std::begin(allids), std::begin(allids)+total_number_of_hits);
-      return (std::unique(std::begin(allids),std::begin(allids)+total_number_of_hits)) != std::begin(allids)+total_number_of_hits; 
-    } 
+    __host__ bool containsDuplicates()
+    {
+      std::sort(std::begin(allids), std::begin(allids) + total_number_of_hits);
+      return (std::unique(std::begin(allids), std::begin(allids) + total_number_of_hits)) !=
+             std::begin(allids) + total_number_of_hits;
+    }
 
-    __device__ __host__ int nIDs() const { return sizeof(allids)/sizeof(allids[0]); }
+    __device__ __host__ int nIDs() const { return sizeof(allids) / sizeof(allids[0]); }
   };
   using Tracks = std::vector<Track>;
-} //namespace Checker
+} // namespace Checker
