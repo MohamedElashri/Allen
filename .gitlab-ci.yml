@@ -46,8 +46,8 @@ stages:
 
 check-env:
   stage: check
-  except:
-    - /.*/@lhcb/Allen
+  rules:
+    - if: $CI_MERGE_REQUEST_SOURCE_PROJECT_PATH != "lhcb/Allen"
   script:
     - |
       echo "The Allen CI depends on custom GitLab runners and therefore tests"
