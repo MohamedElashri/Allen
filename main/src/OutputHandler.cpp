@@ -59,7 +59,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   size_t n_output = 0;
   size_t n_batches = n_events / m_output_batch_size + (n_events % m_output_batch_size != 0);
 
-  if (m_nbatches) ( *m_nbatches ) += n_batches;
+  if (m_nbatches) (*m_nbatches) += n_batches;
 
   for (size_t i_batch = 0; i_batch < n_batches && output_success; ++i_batch) {
 
@@ -67,8 +67,8 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
     size_t output_event_offset = 0;
     size_t batch_size = std::min(m_output_batch_size, n_events - n_output);
 
-    if (m_noutput) ( *m_noutput ) += batch_size;
-    if (m_batch_size) ( *m_batch_size ) += batch_size;
+    if (m_noutput) (*m_noutput) += batch_size;
+    if (m_batch_size) (*m_batch_size) += batch_size;
 
     for (size_t i = n_output; i < n_output + batch_size; ++i) {
 
