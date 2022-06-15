@@ -61,6 +61,11 @@ if(STANDALONE AND NOT CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
 
+# Add ALLEN_STANDALONE compile def when on standalone
+if(STANDALONE)
+  add_compile_definitions(ALLEN_STANDALONE)
+endif()
+
 # CUDA compute capability
 set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target architecture")
 set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 70 72 75 80 86)
