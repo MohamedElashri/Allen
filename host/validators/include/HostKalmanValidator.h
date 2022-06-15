@@ -8,12 +8,13 @@
 #include "States.cuh"
 #include "ParKalmanFittedTrack.cuh"
 #include "ParticleTypes.cuh"
+#include "CheckerTracks.cuh"
 
 namespace host_kalman_validator {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    DEVICE_INPUT(dev_kalman_checker_tracks_t, SciFi::KalmanCheckerTrack) dev_kalman_checker_tracks;
+    DEVICE_INPUT(dev_kalman_checker_tracks_t, Checker::Track) dev_kalman_checker_tracks;
     DEVICE_INPUT(dev_offsets_long_tracks_t, unsigned) dev_offsets_long_tracks;
     HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;
     PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);

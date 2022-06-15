@@ -80,7 +80,7 @@ def validator_node(reconstructed_objects, copied_parameters, line_algorithms):
             make_composite_node_with_gec(
                 "muon_validation",
                 muon_validation(reconstructed_objects["muonID"],
-                                copied_parameters["long"])),
+                                copied_parameters["muon"])),
             make_composite_node_with_gec(
                 "pv_validation", pv_validation(reconstructed_objects["pvs"])),
             make_composite_node_with_gec(

@@ -13,6 +13,7 @@ target_link_libraries(Validators PRIVATE
   PVChecking
   HostEventModel
   EventModel
+  SciFi
   Gear
   AllenCommon
   Backend)

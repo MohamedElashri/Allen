@@ -63,15 +63,13 @@ void KalmanChecker::accumulate(
   auto guard = std::scoped_lock {m_mutex};
   for (size_t i = 0; i < event_list.size(); ++i) {
     const auto evnum = event_list[i];
-    const auto& event_tracks = tracks[evnum];
+    const auto& event_tracks = tracks[i];
     const auto& mc_event = mc_events[evnum];
     const auto& mcps = mc_event.m_mcps;
     MCAssociator mcassoc {mcps};
-
     // Loop over tracks.
     for (auto track : event_tracks) {
-      const auto& ids = track.ids();
-      const auto assoc = mcassoc(ids.begin(), ids.end(), track.n_matched_total);
+      const auto assoc = mcassoc(std::begin(track.allids), std::begin(track.allids)+track.total_number_of_hits, track.n_matched_total);
       if (!assoc)
         m_trk_ghost = 1.f;
       else {

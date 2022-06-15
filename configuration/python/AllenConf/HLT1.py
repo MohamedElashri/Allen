@@ -430,6 +430,9 @@ def setup_hlt1_node(withMCChecking=False,
             "long":
             long_parameters_for_validation(
                 reconstructed_objects["forward_tracks"]),
+            "muon":
+            muon_parameters_for_validation(
+                reconstructed_objects["muonID"]),
             "kalman":
             kalman_parameters_for_validation(
                 reconstructed_objects["kalman_velo_only"])

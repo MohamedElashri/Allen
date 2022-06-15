@@ -154,25 +154,24 @@ public:
   }
 
   void
-  accumulate(const MCEvents& mc_events, gsl::span<const Checker::Tracks> tracks, gsl::span<const mask_t> event_list)
+  accumulate(const MCEvents& mc_events, gsl::span<Checker::Tracks> tracks, gsl::span<const mask_t> event_list)
   {
     auto guard = std::scoped_lock {m_mutex};
     for (size_t i = 0; i < event_list.size(); ++i) {
       const auto evnum = event_list[i];
-      const auto& event_tracks = tracks[i];
+      auto& event_tracks = tracks[i];
       const auto& mc_event = mc_events[evnum];
 
       accumulate_impl(event_tracks, mc_event);
 
       // Check all tracks for duplicate LHCb IDs
       for (size_t i_track = 0; i_track < event_tracks.size(); ++i_track) {
-        const auto& track = event_tracks[i_track];
-        auto ids = track.ids();
-        std::sort(std::begin(ids), std::end(ids));
-        bool containsDuplicates = (std::unique(std::begin(ids), std::end(ids))) != std::end(ids);
+        auto& track = event_tracks[i_track];
+        bool containsDuplicates = track.containsDuplicates();
         if (containsDuplicates) {
           warning_cout << "WARNING: Track #" << i_track << " contains duplicate LHCb IDs" << std::endl << std::hex;
-          for (auto id : ids) {
+          for (unsigned i=0; i<track.total_number_of_hits; i++) {
+            const auto id = track.allids[i];
             warning_cout << "0x" << id << ", ";
           }
           warning_cout << std::endl << std::endl << std::dec;
@@ -196,9 +195,8 @@ public:
     Checker::TruthCounter total_counter;
     std::unordered_map<unsigned, Checker::TruthCounter> truth_counters;
     int n_meas = 0;
-
-    const auto& ids = track.ids();
-    for (const auto& id : ids) {
+    for (unsigned i=0; i<track.total_number_of_hits; i++) {
+      const auto id = track.allids[i];
       if (lhcb_id::is_velo(id)) {
         n_meas++;
         total_counter.n_velo++;

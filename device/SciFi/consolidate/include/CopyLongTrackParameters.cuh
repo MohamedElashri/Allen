@@ -8,6 +8,8 @@
 #include "AlgorithmTypes.cuh"
 #include "LookingForwardConstants.cuh"
 #include "ParticleTypes.cuh"
+#include "CheckerTracks.cuh"
+
 
 namespace copy_long_track_parameters {
   struct Parameters {
@@ -17,15 +19,12 @@ namespace copy_long_track_parameters {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_multi_event_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks)
     dev_multi_event_long_tracks_view;
-    DEVICE_OUTPUT(dev_long_checker_tracks_t, SciFi::LongCheckerTrack) dev_long_checker_tracks;
+    DEVICE_OUTPUT(dev_long_checker_tracks_t, Checker::Track) dev_long_checker_tracks;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void copy_long_track_parameters(
-    Parameters,
-    const LookingForward::Constants* dev_looking_forward_constants,
-    const float* dev_magnet_polarity);
-
+  __global__ void copy_long_track_parameters(Parameters parameters);
+  
   struct copy_long_track_parameters_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

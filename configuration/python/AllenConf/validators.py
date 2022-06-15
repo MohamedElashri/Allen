@@ -74,7 +74,7 @@ def veloUT_validation(veloUT_tracks, name="veloUT_validator"):
         dev_ut_qop_t=veloUT_tracks["dev_ut_qop"])
 
 
-def long_parameters_for_validation(long_tracks, name="long_validator"):
+def long_parameters_for_validation(long_tracks, name="copy_long_parameters"):
     number_of_events = initialize_number_of_events()
     velo_kalman_filter = long_tracks["velo_kalman_filter"]
 
@@ -107,8 +107,29 @@ def long_validation(long_tracks, long_parameters, name="long_validator"):
         dev_long_checker_tracks_t=long_parameters["long_checker_tracks"],
         dev_offsets_long_tracks_t=long_tracks["dev_offsets_forward_tracks"])
 
+def muon_parameters_for_validation(muonID, name="copy_muon_parameters"):
+    number_of_events = initialize_number_of_events()
+    long_tracks = muonID["forward_tracks"]
+    velo_kalman_filter = long_tracks["velo_kalman_filter"]
 
-def muon_validation(muonID, long_parameters, name="muon_validator"):
+    copy_muon_track_parameters = make_algorithm(
+        copy_muon_parameters_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_reconstructed_long_tracks_t=long_tracks[
+            "host_number_of_reconstructed_scifi_tracks"],
+        dev_velo_states_view_t=velo_kalman_filter[
+            "dev_velo_kalman_endvelo_states_view"],
+        dev_multi_event_long_tracks_view_t=long_tracks[
+            "dev_multi_event_long_tracks_view"],
+        dev_is_muon_t=muonID["dev_is_muon"])
+
+    return {
+        "muon_checker_tracks":
+        copy_muon_track_parameters.dev_muon_checker_tracks_t,
+    }
+
+def muon_validation(muonID, muon_parameters, name="muon_validator"):
     mc_events = mc_data_provider()
     number_of_events = initialize_number_of_events()
 
@@ -119,9 +140,8 @@ def muon_validation(muonID, long_parameters, name="muon_validator"):
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_mc_events_t=mc_events.host_mc_events_t,
-        dev_long_checker_tracks_t=long_parameters["long_checker_tracks"],
-        dev_offsets_long_tracks_t=long_tracks["dev_offsets_forward_tracks"],
-        dev_is_muon_t=muonID["dev_is_muon"])
+        dev_muon_checker_tracks_t=muon_parameters["muon_checker_tracks"],
+        dev_offsets_long_tracks_t=long_tracks["dev_offsets_forward_tracks"])
 
 
 def pv_validation(pvs, name="pv_validator"):
@@ -152,7 +172,7 @@ def rate_validation(lines, name="rate_validator"):
 
 
 def kalman_parameters_for_validation(kalman_velo_only,
-                                     name="kalman_copies_for_validator"):
+                                     name="copy_kalman_parameters"):
     number_of_events = initialize_number_of_events()
 
     long_tracks = kalman_velo_only["forward_tracks"]

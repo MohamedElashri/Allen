@@ -16,7 +16,6 @@
 #include <vector>
 
 using LHCbID = unsigned;
-using LHCbIDs = std::vector<LHCbID>;
 
 namespace lhcb_id {
   enum class LHCbIDType { VELO = 0x8, UT = 0xb, FT = 0xa };
