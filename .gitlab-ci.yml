@@ -47,12 +47,13 @@ stages:
 check-env:
   stage: check
   rules:
-    - if: $CI_MERGE_REQUEST_SOURCE_PROJECT_PATH != "lhcb/Allen"
+    - if: $CI_PROJECT_PATH != "lhcb/Allen"
   script:
     - |
       echo "The Allen CI depends on custom GitLab runners and therefore tests"
       echo "running on forks will fail. Please create a branch in the main"
       echo "repository at https://gitlab.cern.ch/lhcb/Allen/"
+
     - exit 1
 
 
