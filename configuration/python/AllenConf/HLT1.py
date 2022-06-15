@@ -8,7 +8,7 @@ from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line
 from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
-from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
+from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_lowmass_noip_dielectron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_beam_gas_line
 from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
@@ -127,6 +127,56 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
                 secondary_vertices,
                 calo_matching_objects,
                 name="Hlt1DisplacedDielectron")))
+
+    line_slices_mass = {
+        "1": (5., 30.),
+        "2": (30., 100.),
+        "3": (100., 200.),
+        "4": (200., 300.)
+    }
+    for subSample in ["prompt", "displaced"]:
+        for label, limits in line_slices_mass.items():
+            prescale_os = 0.3 if subSample == "prompt" else 1.0
+            lines.append(
+                line_maker(
+                    make_lowmass_noip_dielectron_line(
+                        forward_tracks,
+                        secondary_vertices,
+                        calo_matching_objects,
+                        minMass=limits[0],
+                        maxMass=limits[1],
+                        minPTprompt=500.,
+                        minPTdisplaced=0.,
+                        minIPChi2Threshold=2,
+                        selectPrompt=True if subSample == "prompt" else False,
+                        name="Hlt1LowMassNoipDielectron_massSlice{}_{}".format(
+                            label, subSample),
+                        pre_scaler_hash_string=
+                        "lowmass_noip_dielectron_massSlice{}_{}_pre".format(
+                            label, subSample),
+                        pre_scaler=prescale_os)))
+            lines.append(
+                line_maker(
+                    make_lowmass_noip_dielectron_line(
+                        forward_tracks,
+                        secondary_vertices,
+                        calo_matching_objects,
+                        is_same_sign=True,
+                        minMass=limits[0],
+                        maxMass=limits[1],
+                        minPTprompt=500.,
+                        minPTdisplaced=0.,
+                        minIPChi2Threshold=2,
+                        selectPrompt=True if subSample == "prompt" else False,
+                        name="Hlt1LowMassNoipDielectron_SS_massSlice{}_{}".
+                        format(label, subSample),
+                        pre_scaler_hash_string=
+                        "lowmass_noip_dielectron_SS_massSlice{}_{}_pre".format(
+                            label, subSample),
+                        pre_scaler=0.02,
+                        post_scaler_hash_string=
+                        "lowmass_noip_dielectron_SS_massSlice{}_{}_post".
+                        format(label, subSample))))
     lines.append(
         line_maker(
             make_displaced_leptons_line(
