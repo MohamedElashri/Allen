@@ -1,16 +1,5 @@
 DetectorPersistencySvc                 INFO Added successfully Conversion service:XmlCnvSvc
 DetectorDataSvc                     SUCCESS Detector description database: git:/lhcb.xml
-EventClockSvc.FakeEventTime            INFO Event times generated from 0 with steps of 0
-MagneticFieldSvc                       INFO Map scaled by factor 1 with polarity internally used: -1 signed relative current: -1
-DumpMuonGeometry                       INFO Registering /dd/Conditions/ReadoutConf/Muon/Cabling/M2/Cabling
-DumpMuonGeometry                       INFO Registering /dd/Conditions/ReadoutConf/Muon/Cabling/M3/Cabling
-DumpMuonGeometry                       INFO Registering /dd/Conditions/ReadoutConf/Muon/Cabling/M4/Cabling
-DumpMuonGeometry                       INFO Registering /dd/Conditions/ReadoutConf/Muon/Cabling/M5/Cabling
-DumpMuonGeometry                       INFO Number of tiles in tell1 table: 19968
-ToolSvc.PrUTMagnetTool                 INFO Start generation of VeloUT Bdl LUTs
-ToolSvc.PrUTMagnetTool                 INFO Generation of VeloUT Bdl LUTs finished
-ToolSvc.PrUTMagnetTool                 INFO Start generation of VeloUT deflection LUTs
-ToolSvc.PrUTMagnetTool                 INFO Generation of VeloUT deflection LUTs finished
 HLTControlFlowMgr                      INFO Start initialization
 HLTControlFlowMgr                      INFO Will not use an EventSelector.
 HLTControlFlowMgr                      INFO Concurrency level information:
@@ -20,6 +9,11 @@ ApplicationMgr                         INFO Application Manager Initialized succ
 Using 2 input slices.
 DeFTDetector                           INFO Current FT geometry version =   63
 ApplicationMgr                         INFO Application Manager Started successfully
+DumpMuonGeometry                       INFO Number of tiles in tell1 table: 19968
+DumpUTLookupTables.PrUTMagnetTool      INFO Start generation of VeloUT Bdl LUTs
+DumpUTLookupTables.PrUTMagnetTool      INFO Generation of VeloUT Bdl LUTs finished
+DumpUTLookupTables.PrUTMagnetTool      INFO Start generation of VeloUT deflection LUTs
+DumpUTLookupTables.PrUTMagnetTool      INFO Generation of VeloUT deflection LUTs finished
 DumpFTGeometry                         INFO Conditions DB is compatible with FT bank version 4, 5, 6.
 Starting timer for throughput measurement
 Input complete
@@ -29,6 +23,8 @@ HLTControlFlowMgr                      INFO
 LAZY_AND: allen_non_event_data                #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  NONLAZY_OR: allen_non_event_data_converters  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpBeamline/DumpBeamline                   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpUTGeometry/DumpUTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpUTLookupTables/DumpUTLookupTables       #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpCaloGeometry/DumpCaloGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpVPGeometry/DumpVPGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpMagneticField/DumpMagneticField         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
@@ -38,7 +34,6 @@ LAZY_AND: allen_non_event_data                #=1       Sum=1           Eff=|( 1
   AllenTESProducer/AllenTESProducer#1         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   AllenTESProducer/AllenTESProducer#2         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   AllenTESProducer/AllenTESProducer#3         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  AllenTESProducer/AllenTESProducer#4         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
 HLTControlFlowMgr                      INFO Histograms converted successfully according to request.
 ToolSvc                                INFO Removing all tools created by ToolSvc
 ApplicationMgr                         INFO Application Manager Finalized successfully

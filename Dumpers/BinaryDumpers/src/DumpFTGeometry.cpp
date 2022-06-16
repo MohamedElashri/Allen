@@ -18,25 +18,22 @@
 #include <vector>
 
 // LHCb
-#include "DumpGeometry.h"
+#include <Detector/FT/FTChannelID.h>
+#include <Detector/FT/FTConstants.h>
 #include <FTDet/DeFTDetector.h>
-#include "FTDAQ/FTReadoutMap.h"
+#include <FTDAQ/FTReadoutMap.h>
 #include <LHCbAlgs/Transformer.h>
-
 #include <DetDesc/GenericConditionAccessorHolder.h>
-
-// Gaudi
-//#include "GaudiAlg/Transformer.h"
-// Attention : in this class, we are using Algs from LHCb and not from Gaudi
 
 // Allen
 #include <Dumpers/Identifiers.h>
 #include <Dumpers/Utils.h>
-//#include "DumpFTGeometry.h" , Old header, delted for this class
 
 namespace {
   using std::vector;
-}
+  using FTChannelID = LHCb::Detector::FTChannelID;
+  namespace FT = LHCb::Detector::FT;
+} // namespace
 
 /** @class DumpFTGeometry
  *  Convert SciFi geometry for use on an accelerator
@@ -93,28 +90,14 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
   const FTReadoutMap<DumpFTGeometry>& readoutMap) const
 {
 
-// Detector and mat geometry
-#ifdef USE_DD4HEP
-
-  uint32_t number_of_stations = LHCb::Detector::FT::nStations;
-  uint32_t number_of_layers_per_station = LHCb::Detector::FT::nLayers;
-  uint32_t number_of_layers = number_of_stations * number_of_layers_per_station;
-  uint32_t number_of_quarters_per_layer = LHCb::Detector::FT::nQuarters;
-  uint32_t number_of_quarters = number_of_quarters_per_layer * number_of_layers;
+  // Detector and mat geometry
+  uint32_t const number_of_stations = LHCb::Detector::FT::nStations;
+  uint32_t const number_of_layers_per_station = LHCb::Detector::FT::nLayers;
+  uint32_t const number_of_layers = number_of_stations * number_of_layers_per_station;
+  uint32_t const number_of_quarters_per_layer = LHCb::Detector::FT::nQuarters;
+  uint32_t const number_of_quarters = number_of_quarters_per_layer * number_of_layers;
   vector<uint32_t> number_of_modules(number_of_quarters);
-#else
-  const auto& stations = det.stations();
-  const auto& layersFirstStation = stations[0]->layers();
-  const auto& quartersFirstLayer = layersFirstStation[0]->quarters();
-  uint32_t number_of_stations = stations.size();
-  uint32_t number_of_layers_per_station = layersFirstStation.size();
-  uint32_t number_of_layers = number_of_stations * number_of_layers_per_station;
-  uint32_t number_of_quarters_per_layer = quartersFirstLayer.size();
-  uint32_t number_of_quarters = number_of_quarters_per_layer * number_of_layers;
-  vector<uint32_t> number_of_modules(det.nQuarters);
-#endif
   uint32_t number_of_mats = 0;
-  uint32_t number_of_mats_per_module;
 
   vector<float> mirrorPointX;
   vector<float> mirrorPointY;
@@ -148,36 +131,58 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
   dzdy.resize(max_uniqueMat);
   globaldy.resize(max_uniqueMat);
 
-#ifndef USE_DD4HEP
-  for (unsigned quarter = 0; quarter < det.nQuarters; quarter++) {
-    const auto& modules = det.quarter(quarter)->modules();
-    number_of_modules[quarter] = modules.size();
+#ifdef USE_DD4HEP
+  std::array<unsigned, number_of_stations> stations = {0, 1, 2};
+#else
+  std::array<unsigned, number_of_stations> stations = {1, 2, 3};
+#endif
 
-    for (const auto& module : modules) {
-      const auto& mats = module->mats();
-      number_of_mats += mats.size();
-      number_of_mats_per_module = mats.size();
-      for (const auto& mat : mats) {
-        auto index = mat->elementID().uniqueMat() - uniqueMatOffset;
-        const auto& mirrorPoint = mat->mirrorPoint();
-        const auto& ddx = mat->ddx();
-        mirrorPointX[index] = mirrorPoint.x();
-        mirrorPointY[index] = mirrorPoint.y();
-        mirrorPointZ[index] = mirrorPoint.z();
-        ddxX[index] = ddx.x();
-        ddxY[index] = ddx.y();
-        ddxZ[index] = ddx.z();
-        uBegin[index] = mat->uBegin();
-        halfChannelPitch[index] = mat->halfChannelPitch();
-        dieGap[index] = mat->dieGap();
-        sipmPitch[index] = mat->sipmPitch();
-        dxdy[index] = mat->dxdy();
-        dzdy[index] = mat->dzdy();
-        globaldy[index] = mat->globaldy();
+  for (auto i_station : stations) {
+    FTChannelID::StationID station_id {i_station};
+    for (unsigned i_layer = 0; i_layer < number_of_layers_per_station; ++i_layer) {
+      FTChannelID::LayerID layer_id {i_layer};
+      auto const& layer = det.findLayer(FTChannelID {station_id,
+                                                     layer_id,
+                                                     FTChannelID::QuarterID {0u},
+                                                     FTChannelID::ModuleID {0u},
+                                                     FTChannelID::MatID {0u},
+                                                     0u,
+                                                     0u});
+      for (unsigned i_quarter = 0; i_quarter < number_of_quarters_per_layer; ++i_quarter) {
+        FTChannelID::QuarterID quarter_id {i_quarter};
+        auto const& quarter = layer->findQuarter(
+          FTChannelID {station_id, layer_id, quarter_id, FTChannelID::ModuleID {0u}, FTChannelID::MatID {0u}, 0, 0});
+        auto const n_modules = quarter->modules().size();
+        number_of_modules[to_unsigned(quarter_id)] = n_modules;
+        for (unsigned i_module = 0; i_module < n_modules; ++i_module) {
+          FTChannelID::ModuleID module_id {i_module};
+          auto const& mod = quarter->findModule(
+            FTChannelID {station_id, layer_id, quarter_id, module_id, FTChannelID::MatID {0u}, 0u, 0u});
+          number_of_mats += FT::nMats;
+          for (unsigned i_mat = 0; i_mat < FT::nMats; ++i_mat) {
+            FTChannelID::MatID mat_id {i_mat};
+            const auto& mat = mod->findMat(FTChannelID {station_id, layer_id, quarter_id, module_id, mat_id, 0, 0});
+            auto index = mat->elementID().uniqueMat() - uniqueMatOffset;
+            const auto& mirrorPoint = mat->mirrorPoint();
+            const auto& ddx = mat->ddx();
+            mirrorPointX[index] = mirrorPoint.x();
+            mirrorPointY[index] = mirrorPoint.y();
+            mirrorPointZ[index] = mirrorPoint.z();
+            ddxX[index] = ddx.x();
+            ddxY[index] = ddx.y();
+            ddxZ[index] = ddx.z();
+            uBegin[index] = mat->uBegin();
+            halfChannelPitch[index] = mat->halfChannelPitch();
+            dieGap[index] = mat->dieGap();
+            sipmPitch[index] = mat->sipmPitch();
+            dxdy[index] = mat->dxdy();
+            dzdy[index] = mat->dzdy();
+            globaldy[index] = mat->globaldy();
+          }
+        }
       }
     }
   }
-#endif
 
   DumpUtils::Writer output {};
 
@@ -198,7 +203,7 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
       number_of_quarters_per_layer,
       number_of_quarters,
       number_of_modules,
-      number_of_mats_per_module,
+      FT::nMats,
       number_of_mats,
       number_of_tell40s,
       bank_first_channel,
