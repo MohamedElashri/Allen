@@ -252,12 +252,55 @@ namespace Allen {
     }
   }
 
+  /**
+   * @brief Sets count bytes in T using asynchronous memset.
+   * @details T may be a host or device argument.
+   */
+  template<typename T, typename Args>
+  void memset_async(
+    const Args& arguments,
+    const Allen::Context& context,
+    const int value,
+    const size_t count = 0,
+    const size_t offset = 0)
+  {
+    assert(count <= size<T>(arguments) - offset);
+
+    const auto s = count == 0 ? size<T>(arguments) - offset : count;
+    if constexpr (std::is_base_of_v<host_datatype, T>)
+      std::memset(data<T>(arguments) + offset, value, s * sizeof(typename T::type));
+    else
+      Allen::memset_async(data<T>(arguments) + offset, value, s * sizeof(typename T::type), context);
+  }
+
+  /**
+   * @brief Synchronous memset of T.
+   */
+  template<typename T, typename Args>
+  void memset(
+    const Args& arguments,
+    const Allen::Context& context,
+    const int value,
+    const size_t count = 0,
+    const size_t offset = 0)
+  {
+    memset_async<T>(arguments, context, value, count, offset);
+    if constexpr (!std::is_base_of_v<host_datatype, T>) {
+      synchronize(context);
+    }
+  }
+
   namespace aggregate {
     /**
      * @brief Stores contents of aggregate contiguously into container.
      */
     template<typename A, typename B, typename Args>
-    void store_contiguous_async(const Args& arguments, const Allen::Context& context)
+    void store_contiguous_async(
+      const Args& arguments,
+      const Allen::Context& context,
+      bool fill_if_empty_container = false,
+      int fill_value = 0,
+      int fill_count = 1)
     {
       auto container = gsl::span {data<A>(arguments), size<A>(arguments)};
       auto aggregate = input_aggregate<B>(arguments);
@@ -275,8 +318,14 @@ namespace Allen {
 
       unsigned container_offset = 0;
       for (size_t i = 0; i < aggregate.size_of_aggregate(); ++i) {
-        Allen::copy_async(container, aggregate.span(i), context, kind, aggregate.size(i), container_offset);
-        container_offset += aggregate.size(i);
+        if (aggregate.size(i) > 0) {
+          Allen::copy_async(container, aggregate.span(i), context, kind, aggregate.size(i), container_offset);
+          container_offset += aggregate.size(i);
+        }
+        else if (fill_if_empty_container) {
+          Allen::memset_async<A>(arguments, context, fill_value, fill_count, container_offset);
+          container_offset += fill_count;
+        }
       }
     }
   } // namespace aggregate
@@ -296,6 +345,11 @@ struct SingleArgumentOverloadResolution<
      std::is_same<typename Arg::type, unsigned char>::value ||
      std::is_same<typename Arg::type, signed char>::value)>::type> {
   constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&)
+  {
+    std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
+  }
+
+  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&, const int)
   {
     std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
   }

@@ -19,7 +19,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
@@ -36,12 +36,6 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
     constants.dev_ut_geometry.data(),
     constants.dev_ut_region_offsets.data(),
     constants.dev_unique_x_sector_layer_offsets.data());
-
-  if (runtime_options.fill_extra_host_buffers) {
-    // Write hits and offsets to TES
-    safe_assign_to_host_buffer<dev_ut_hit_offsets_t>(host_buffers.ut_hits_offsets, arguments);
-    safe_assign_to_host_buffer<dev_ut_hits_t>(host_buffers.ut_hits, arguments);
-  }
 }
 
 /**

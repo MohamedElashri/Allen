@@ -25,7 +25,6 @@
 namespace Allen {
   namespace Views {
     namespace Physics {
-
       // TODO: Should really put this in AssociateConsolidated.cuh, but this was
       // just easier.
       struct PVTable {

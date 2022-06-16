@@ -29,7 +29,7 @@ namespace track_digit_selective_matching {
     DEVICE_OUTPUT(dev_matched_ecal_digits_t, std::array<unsigned, 6>) dev_matched_ecal_digits;
     DEVICE_OUTPUT(dev_track_inEcalAcc_t, bool) dev_track_inEcalAcc;
     DEVICE_OUTPUT(dev_track_Eop_t, float) dev_track_Eop;
-    DEVICE_OUTPUT(dev_track_isElectron_t, uint8_t) dev_track_isElectron;
+    DEVICE_OUTPUT(dev_track_isElectron_t, bool) dev_track_isElectron;
     // Properties
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

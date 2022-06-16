@@ -14,66 +14,40 @@
  * author Tom Boettcher
  *
  */
-#ifndef ALLENSVSTORECVERTEXV2_H
-#define ALLENSVSTORECVERTEXV2_H
+#include "GaudiAllenSVsToRecVertexV2.h"
 
 #include <sstream>
 
-// Gaudi
-#include "GaudiAlg/Transformer.h"
-#include "GaudiKernel/StdArrayAsProperty.h"
+DECLARE_COMPONENT(GaudiAllenSVsToRecVertexV2)
 
-// LHCb
-#include "Event/Track_v2.h"
-#include "Event/RecVertex_v2.h"
-
-// Allen
-#include "HostBuffers.cuh"
-#include "Logger.h"
-#include "VertexDefinitions.cuh"
-
-class AllenSVsToRecVertexV2 final
-  : public Gaudi::Functional::Transformer<
-      LHCb::Event::v2::RecVertices(const HostBuffers&, const std::vector<LHCb::Event::v2::Track>&)> {
-public:
-  // Standard constructor
-  AllenSVsToRecVertexV2(const std::string& name, ISvcLocator* pSvcLocator);
-
-  // Initialization
-  StatusCode initialize() override;
-
-  // Algorithm execution
-  LHCb::Event::v2::RecVertices operator()(const HostBuffers&, const std::vector<LHCb::Event::v2::Track>&)
-    const override;
-};
-
-#endif
-
-DECLARE_COMPONENT(AllenSVsToRecVertexV2)
-
-AllenSVsToRecVertexV2::AllenSVsToRecVertexV2(const std::string& name, ISvcLocator* pSvcLocator) :
+GaudiAllenSVsToRecVertexV2::GaudiAllenSVsToRecVertexV2(const std::string& name, ISvcLocator* pSvcLocator) :
   Transformer(
     name,
     pSvcLocator,
     // Inputs
-    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}, KeyValue {"InputTracks", "Allen/Out/ForwardTracks"}},
+    {KeyValue {"allen_atomics_scifi", ""},
+     KeyValue {"allen_sv_offsets", ""},
+     KeyValue {"allen_secondary_vertices", ""},
+     KeyValue {"InputTracks", "Allen/Out/ForwardTracks"}},
     // Outputs
     {KeyValue {"OutputSVs", "Allen/Out/RecVertex"}})
 {}
 
-StatusCode AllenSVsToRecVertexV2::initialize()
+StatusCode GaudiAllenSVsToRecVertexV2::initialize()
 {
   if (msgLevel(MSG::DEBUG)) debug() << "==> Initialize" << endmsg;
   return StatusCode::SUCCESS;
 }
 
-LHCb::Event::v2::RecVertices AllenSVsToRecVertexV2::operator()(
-  const HostBuffers& host_buffers,
+LHCb::Event::v2::RecVertices GaudiAllenSVsToRecVertexV2::operator()(
+  const std::vector<unsigned>& allen_atomics_scifi,
+  const std::vector<unsigned>& allen_sv_offsets,
+  const std::vector<VertexFit::TrackMVAVertex>& allen_secondary_vertices,
   const std::vector<LHCb::Event::v2::Track>& tracks) const
 {
   // Check number of tracks
   const unsigned i_event = 0;
-  const unsigned ev_n_trk = host_buffers.host_atomics_scifi[i_event + 1] - host_buffers.host_atomics_scifi[i_event];
+  const unsigned ev_n_trk = allen_atomics_scifi[i_event + 1] - allen_atomics_scifi[i_event];
   if (ev_n_trk != tracks.size()) {
     std::ostringstream oss;
     oss << "Mismatch in number of input tracks, needed " << ev_n_trk << " but the provided track container has "
@@ -82,9 +56,8 @@ LHCb::Event::v2::RecVertices AllenSVsToRecVertexV2::operator()(
     throw GaudiException(oss.str(), this->name(), StatusCode::FAILURE);
   }
 
-  const unsigned sv_offset = host_buffers.host_sv_offsets[i_event];
-  const unsigned n_svs = host_buffers.host_sv_offsets[i_event + 1] - sv_offset;
-  VertexFit::TrackMVAVertex* event_svs = host_buffers.host_secondary_vertices + sv_offset;
+  const unsigned sv_offset = allen_sv_offsets[i_event];
+  const unsigned n_svs = allen_sv_offsets[i_event + 1] - sv_offset;
 
   if (msgLevel(MSG::DEBUG)) {
     debug() << "Number of SVs to convert = " << n_svs << endmsg;
@@ -96,7 +69,7 @@ LHCb::Event::v2::RecVertices AllenSVsToRecVertexV2::operator()(
 
   for (unsigned int i = 0; i < n_svs; i++) {
     if (msgLevel(MSG::DEBUG)) debug() << "  Processing SV " << i << endmsg;
-    const VertexFit::TrackMVAVertex& sv = event_svs[i];
+    const VertexFit::TrackMVAVertex& sv = allen_secondary_vertices[sv_offset + i];
     Gaudi::SymMatrix3x3 poscov;
     poscov(0, 0) = sv.cov00;
     poscov(1, 0) = sv.cov10;

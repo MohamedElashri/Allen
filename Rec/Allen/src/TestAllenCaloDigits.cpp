@@ -2,12 +2,12 @@
  * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include <string>
+#include <vector>
 
 // Gaudi
 #include "GaudiAlg/Consumer.h"
 
 // Allen
-#include "HostBuffers.cuh"
 #include "CaloDigit.cuh"
 #include "Logger.h"
 
@@ -16,17 +16,17 @@
 #include <Event/CaloDigits_v2.h>
 
 class TestAllenCaloDigits final
-  : public Gaudi::Functional::Consumer<void(HostBuffers const&, LHCb::Event::Calo::Digits const&)> {
+  : public Gaudi::Functional::Consumer<void(const std::vector<CaloDigit>&, LHCb::Event::Calo::Digits const&)> {
 
 public:
   /// Standard constructor
   TestAllenCaloDigits(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
-  void operator()(const HostBuffers&, LHCb::Event::Calo::Digits const&) const override;
+  void operator()(const std::vector<CaloDigit>&, LHCb::Event::Calo::Digits const&) const override;
 
 private:
-  void compare(gsl::span<CaloDigit> const& allenDigits, LHCb::Event::Calo::Digits const& lhcbDigits) const;
+  void compare(std::vector<CaloDigit> const& allenDigits, LHCb::Event::Calo::Digits const& lhcbDigits) const;
 };
 
 DECLARE_COMPONENT(TestAllenCaloDigits)
@@ -36,24 +36,21 @@ TestAllenCaloDigits::TestAllenCaloDigits(const std::string& name, ISvcLocator* p
     name,
     pSvcLocator,
     // Inputs
-    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}, KeyValue {"EcalDigits", LHCb::CaloDigitLocation::Ecal}})
+    {KeyValue {"ecal_digits", ""}, KeyValue {"EcalDigits", LHCb::CaloDigitLocation::Ecal}})
 {}
 
-void TestAllenCaloDigits::operator()(HostBuffers const& hostBuffers, LHCb::Event::Calo::Digits const& ecalDigits) const
+void TestAllenCaloDigits::operator()(
+  const std::vector<CaloDigit>& ecal_digits,
+  LHCb::Event::Calo::Digits const& ecalDigits) const
 {
-  if (hostBuffers.host_number_of_selected_events == 0) return;
-
-  // Processing a single event, the first offset should be the same as
-  // the size of the digits container.
-  assert(hostBuffers.host_ecal_digits_offsets[1] == hostBuffers.host_ecal_digits.size());
-
-  for (auto const& [allenDigits, lhcbDigits] : {std::forward_as_tuple(hostBuffers.host_ecal_digits, ecalDigits)}) {
+  for (auto const& [allenDigits, lhcbDigits] : {std::forward_as_tuple(ecal_digits, ecalDigits)}) {
     compare(allenDigits, lhcbDigits);
   }
 }
 
-void TestAllenCaloDigits::compare(gsl::span<CaloDigit> const& allenDigits, LHCb::Event::Calo::Digits const& lhcbDigits)
-  const
+void TestAllenCaloDigits::compare(
+  std::vector<CaloDigit> const& allenDigits,
+  LHCb::Event::Calo::Digits const& lhcbDigits) const
 {
 
   namespace IndexDetails = LHCb::Detector::Calo::DenseIndex::details;

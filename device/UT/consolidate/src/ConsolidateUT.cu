@@ -67,9 +67,9 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::set_arguments_size(
 
 void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   initialize<dev_ut_multi_event_tracks_view_t>(arguments, 0, context);
@@ -79,14 +79,6 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
 
   global_function(create_ut_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
-
-  if (runtime_options.fill_extra_host_buffers) {
-    assign_to_host_buffer<dev_offsets_ut_tracks_t>(host_buffers.host_atomics_ut, arguments, context);
-    assign_to_host_buffer<dev_offsets_ut_track_hit_number_t>(host_buffers.host_ut_track_hit_number, arguments, context);
-    safe_assign_to_host_buffer<dev_ut_track_hits_t>(host_buffers.host_ut_track_hits, arguments, context);
-    assign_to_host_buffer<dev_ut_qop_t>(host_buffers.host_ut_qop, arguments, context);
-    assign_to_host_buffer<dev_ut_track_velo_indices_t>(host_buffers.host_ut_track_velo_indices, arguments, context);
-  }
 }
 
 template<typename F>

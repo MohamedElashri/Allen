@@ -15,7 +15,7 @@ from AllenCore.generator import make_algorithm
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.odin import decode_odin
-from AllenConf.persistency import make_gather_selections, make_global_decision, make_sel_report_writer
+from AllenConf.persistency import make_gather_selections, make_sel_report_writer
 
 
 def default_physics_lines(forward_tracks, long_track_particles,
@@ -184,9 +184,12 @@ def default_smog2_lines(velo_tracks, forward_tracks, long_track_particles,
     return lines
 
 
-def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
+def setup_hlt1_node(withMCChecking=False,
+                    EnableGEC=True,
+                    withSMOG2=False,
+                    enableRateValidator=False):
     # Reconstruct objects needed as input for selection lines
-    reconstructed_objects = hlt1_reconstruction()
+    reconstructed_objects = hlt1_reconstruction(add_electron_id=False)
 
     gec = make_gec()
     with line_maker.bind(prefilter=gec if EnableGEC else None):
@@ -211,10 +214,11 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
             reconstructed_objects["forward_tracks"],
             reconstructed_objects["long_track_particles"])
 
-    # list of line algorithms, required for the gather selection and DecReport algorithms
+    # List of line algorithms,
+    #   required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
                        ] + [tup[0] for tup in monitoring_lines]
-    # lost of line nodes, required to set up the CompositeNode
+    # List of line nodes, required to set up the CompositeNode
     line_nodes = [tup[1] for tup in physics_lines
                   ] + [tup[1] for tup in monitoring_lines]
 
@@ -285,13 +289,17 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         line_nodes += [tup[1] for tup in SMOG2_lines]
 
     lines = CompositeNode(
-        "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
+        "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
+
+    gather_selections_node = CompositeNode(
+        "RunAllLines",
+        [lines, make_gather_selections(lines=line_algorithms)],
+        NodeLogic.NONLAZY_AND,
+        force_order=True)
 
     hlt1_node = CompositeNode(
         "Allen", [
-            lines,
-            make_global_decision(lines=line_algorithms),
-            rate_validation(lines=line_algorithms),
+            gather_selections_node,
             *make_sel_report_writer(
                 lines=line_algorithms,
                 forward_tracks=reconstructed_objects["long_track_particles"],
@@ -300,6 +308,15 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)
+
+    if enableRateValidator:
+        hlt1_node = CompositeNode(
+            "AllenRateValidation", [
+                hlt1_node,
+                rate_validation(lines=line_algorithms),
+            ],
+            NodeLogic.NONLAZY_AND,
+            force_order=True)
 
     if not withMCChecking:
         return hlt1_node

@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import (
+from AllenAlgorithms.algorithms import (
     mc_data_provider_t, host_velo_validator_t, host_velo_ut_validator_t,
     host_forward_validator_t, host_muon_validator_t, host_pv_validator_t,
     host_rate_validator_t, host_kalman_validator_t, host_data_provider_t,

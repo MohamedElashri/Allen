@@ -516,7 +516,7 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   initialize<dev_module_cluster_num_t>(arguments, 0, context);
@@ -530,11 +530,4 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
     constants.dev_velo_sp_patterns.data(),
     constants.dev_velo_sp_fx.data(),
     constants.dev_velo_sp_fy.data());
-
-  if (runtime_options.fill_extra_host_buffers) {
-    // Event offsets to clusters
-    safe_assign_to_host_buffer<dev_offsets_estimated_input_size_t>(host_buffers.velo_clusters_offsets, arguments);
-    safe_assign_to_host_buffer<dev_module_cluster_num_t>(host_buffers.velo_module_clusters_num, arguments);
-    safe_assign_to_host_buffer<dev_velo_cluster_container_t>(host_buffers.velo_clusters, arguments);
-  }
 }

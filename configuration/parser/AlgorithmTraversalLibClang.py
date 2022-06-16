@@ -137,7 +137,7 @@ class AlgorithmTraversal():
     __ignored_namespaces = ["std", "__gnu_cxx", "__cxxabiv1", "__gnu_debug"]
 
     # Arguments to pass to compiler
-    __compile_flags = ["-x", "c++", "-std=c++17", "-nostdinc++"]
+    __compile_flags = ["-x", "c++", "-std=c++17"]
 
     # Clang index
     __index = cindex.Index.create()
@@ -204,10 +204,10 @@ class AlgorithmTraversal():
                     optional = True
                 elif child.kind == cindex.CursorKind.CXX_METHOD:
                     io = child.is_const_method()
-                    typedef = [a.type.spelling
+                    typedef = [a.type.get_canonical().spelling
                                for a in child.get_children()][0]
                     for i in range(child.result_type.get_num_template_arguments()):
-                        dependencies.append(child.result_type.get_template_argument_type(i).spelling)
+                        dependencies.append(child.result_type.get_template_argument_type(i).get_canonical().spelling)
             if typedef == "" or typedef == "int" or aggregate:
                 # This happens if the type cannot be parsed
                 typedef = "unknown_t"

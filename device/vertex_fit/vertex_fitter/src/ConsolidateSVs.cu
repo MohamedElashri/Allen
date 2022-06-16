@@ -16,18 +16,13 @@ void consolidate_svs::consolidate_svs_t::set_arguments_size(
 
 void consolidate_svs::consolidate_svs_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(consolidate_svs)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
-
-  if (runtime_options.fill_extra_host_buffers) {
-    assign_to_host_buffer<dev_consolidated_svs_t>(host_buffers.host_secondary_vertices, arguments, context);
-    assign_to_host_buffer<dev_sv_offsets_t>(host_buffers.host_sv_atomics, arguments, context);
-  }
 }
 
 __global__ void consolidate_svs::consolidate_svs(consolidate_svs::Parameters parameters)

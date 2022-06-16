@@ -59,7 +59,6 @@ RuntimeOptions ProvideRuntimeOptions::operator()(
   std::array<TransposedBanks, LHCb::RawBank::LastType> const& allen_banks) const
 {
   const unsigned number_of_repetitions = 1;
-  const bool do_check = false;
   const bool cpu_offload = true;
   const bool param_inject_mem_fail = false;
   const size_t n_slices = 1;
@@ -77,7 +76,6 @@ RuntimeOptions ProvideRuntimeOptions::operator()(
           slice_index,
           {event_start, event_end},
           number_of_repetitions,
-          do_check,
           cpu_offload,
           mep_layout,
           param_inject_mem_fail,

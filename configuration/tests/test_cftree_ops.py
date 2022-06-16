@@ -13,7 +13,7 @@ from AllenCore.cftree_ops import (
     get_execution_list_for, get_best_order, merge_execution_masks,
     find_execution_masks_for_algorithms, avrg_efficiency,
     make_independent_of_algs, simplify, order_algs)
-from AllenConf.algorithms import *
+from AllenAlgorithms.algorithms import *
 
 
 @lru_cache(1)

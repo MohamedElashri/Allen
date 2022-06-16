@@ -79,12 +79,12 @@ namespace {
     const uint32_t gps_time_hi,
     const uint32_t gps_time_lo)
   {
-    const auto accept_threshold =
-      scale_factor >= 1.f ?
-        std::numeric_limits<uint32_t>::max() :
-        static_cast<uint32_t>(scale_factor * static_cast<float>(std::numeric_limits<uint32_t>::max()));
-    if (accept_threshold == std::numeric_limits<uint32_t>::max()) return true;
+    if (scale_factor >= 1.f) {
+      return true;
+    }
 
+    const auto accept_threshold =
+      static_cast<uint32_t>(scale_factor * static_cast<float>(std::numeric_limits<uint32_t>::max()));
     auto x = mix64(mix32(mix64(initial_value, gps_time_hi, gps_time_lo), run_number), evt_number_hi, evt_number_lo);
     return x < accept_threshold;
   }

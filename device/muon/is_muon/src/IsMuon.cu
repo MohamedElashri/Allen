@@ -13,21 +13,21 @@ void is_muon::is_muon_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<dev_is_muon_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_lepton_id_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
 
 void is_muon::is_muon_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
+  initialize<dev_is_muon_t>(arguments, 0, context);
+  initialize<dev_lepton_id_t>(arguments, 0, context);
+
   global_function(is_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
     arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
-
-  if (runtime_options.fill_extra_host_buffers) {
-    assign_to_host_buffer<dev_is_muon_t>(host_buffers.host_is_muon, arguments, context);
-  }
 }
 
 __device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)
@@ -117,7 +117,6 @@ __global__ void is_muon::is_muon(
     const auto& state = scifi_states[track_id];
 
     if (momentum < dev_muon_momentum_cuts[0]) {
-      parameters.dev_is_muon[event_offset + track_id] = false;
       continue;
     }
 
@@ -145,17 +144,17 @@ __global__ void is_muon::is_muon(
       }
     }
 
-    if (occupancies[0] == 0 || occupancies[1] == 0) {
-      parameters.dev_is_muon[event_offset + track_id] = false;
-    }
-    else if (momentum < dev_muon_momentum_cuts[1]) {
-      parameters.dev_is_muon[event_offset + track_id] = true;
-    }
-    else if (momentum < dev_muon_momentum_cuts[2]) {
-      parameters.dev_is_muon[event_offset + track_id] = (occupancies[2] != 0) || (occupancies[3] != 0);
-    }
-    else {
-      parameters.dev_is_muon[event_offset + track_id] = (occupancies[2] != 0) && (occupancies[3] != 0);
+    if (occupancies[0] != 0 && occupancies[1] != 0) {
+      if (momentum < dev_muon_momentum_cuts[1]) {
+        parameters.dev_is_muon[event_offset + track_id] = true;
+      }
+      else if (momentum < dev_muon_momentum_cuts[2]) {
+        parameters.dev_is_muon[event_offset + track_id] = (occupancies[2] != 0) || (occupancies[3] != 0);
+      }
+      else {
+        parameters.dev_is_muon[event_offset + track_id] = (occupancies[2] != 0) && (occupancies[3] != 0);
+      }
+      parameters.dev_lepton_id[event_offset + track_id] = parameters.dev_is_muon[event_offset + track_id];
     }
   }
 }

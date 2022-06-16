@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import (
+from AllenAlgorithms.algorithms import (
     data_provider_t, muon_calculate_srq_size_t, host_prefix_sum_t,
     muon_populate_tile_and_tdc_t, muon_add_coords_crossing_maps_t,
     muon_populate_hits_t, is_muon_t)
@@ -113,7 +113,8 @@ def is_muon(decoded_muon, forward_tracks):
 
     return {
         "forward_tracks": forward_tracks,
-        "dev_is_muon": is_muon.dev_is_muon_t
+        "dev_is_muon": is_muon.dev_is_muon_t,
+        "dev_lepton_id": is_muon.dev_lepton_id_t
     }
 
 

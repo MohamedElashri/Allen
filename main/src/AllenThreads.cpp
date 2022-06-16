@@ -262,7 +262,6 @@ void run_stream(
          *idx,
          {static_cast<unsigned>(first), static_cast<unsigned>(last)},
          n_reps,
-         false,
          cpu_offload,
          mep_layout,
          inject_mem_fail,

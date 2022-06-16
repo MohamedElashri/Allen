@@ -34,7 +34,6 @@ namespace single_high_et_line {
 
   // SelectionAlgorithm definition
   struct single_high_et_line_t : public SelectionAlgorithm, Parameters, Line<single_high_et_line_t, Parameters> {
-
     // Offset function
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
 

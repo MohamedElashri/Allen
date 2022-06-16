@@ -75,7 +75,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
 
 void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants& constants,
   HostBuffers& host_buffers,
   const Allen::Context& context) const
@@ -88,16 +88,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
 
   global_function(create_scifi_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
 
-  if (runtime_options.fill_extra_host_buffers) {
-    // Transmission device to host of Scifi consolidated tracks
-    assign_to_host_buffer<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, context);
-    assign_to_host_buffer<dev_offsets_scifi_track_hit_number_t>(
-      host_buffers.host_scifi_track_hit_number, arguments, context);
-    assign_to_host_buffer<dev_scifi_track_hits_t>(host_buffers.host_scifi_track_hits, arguments, context);
-    assign_to_host_buffer<dev_scifi_qop_t>(host_buffers.host_scifi_qop, arguments, context);
-    assign_to_host_buffer<dev_scifi_track_ut_indices_t>(host_buffers.host_scifi_track_ut_indices, arguments, context);
-    assign_to_host_buffer<dev_scifi_states_t>(host_buffers.host_scifi_states, arguments, context);
-  }
+  safe_assign_to_host_buffer<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, context);
 }
 
 template<typename F>

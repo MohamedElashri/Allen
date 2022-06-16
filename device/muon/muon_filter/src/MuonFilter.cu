@@ -20,9 +20,9 @@ void MuonFilter::muon_filter_t::set_arguments_size(
 
 void MuonFilter::muon_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   initialize<dev_event_list_mf_t>(arguments, 0, context);
@@ -34,10 +34,6 @@ void MuonFilter::muon_filter_t::operator()(
     arguments);
 
   Allen::copy<host_selected_events_mf_t, dev_selected_events_mf_t>(arguments, context);
-
-  if (runtime_options.fill_extra_host_buffers) {
-    assign_to_host_buffer<dev_selected_events_mf_t>(host_buffers.host_selected_events_mf, arguments, context);
-  }
 }
 
 __global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters)

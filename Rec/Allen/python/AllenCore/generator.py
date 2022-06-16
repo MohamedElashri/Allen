@@ -16,14 +16,19 @@ from PyConf.Algorithms import (
     host_init_event_list_t,
 )
 from GaudiKernel.DataHandle import DataHandle
+from PyConf import configurable
 
 
 # Additional algorithms required by every Gaudi-Allen sequence
-def make_transposed_raw_banks(make_raw=default_raw_event):
-    return TransposeRawBanks(RawEventLocations=[
-        make_raw(bank_types=[k]) for k in
-        ["ODIN", "Muon", "FTCluster", "UT", "VP", "EcalPacked", "HcalPacked"]
-    ]).AllenRawInput
+@configurable
+def make_transposed_raw_banks(make_raw=default_raw_event,
+                              rawbank_list=[
+                                  "ODIN", "Muon", "FTCluster", "UT", "VP",
+                                  "VPRetinaCluster", "EcalPacked", "HcalPacked"
+                              ]):
+    return TransposeRawBanks(
+        RawEventLocations=[make_raw(bank_types=[k]) for k in rawbank_list],
+        BankTypes=rawbank_list).AllenRawInput
 
 
 def get_runtime_options():
@@ -32,7 +37,8 @@ def get_runtime_options():
 
 
 def get_constants():
-    return ProvideConstants()
+    from PyConf.application import make_odin
+    return ProvideConstants(ODINLocation=make_odin())
 
 
 # Gaudi configuration wrapper

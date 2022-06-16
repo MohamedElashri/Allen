@@ -1,8 +1,8 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import (d2kpi_line_t, passthrough_line_t,
-                                  rich_1_line_t, rich_2_line_t)
+from AllenAlgorithms.algorithms import (d2kpi_line_t, passthrough_line_t,
+                                        rich_1_line_t, rich_2_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 

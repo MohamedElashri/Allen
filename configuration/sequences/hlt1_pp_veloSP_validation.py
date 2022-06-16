@@ -7,5 +7,5 @@ from AllenCore.generator import generate
 from AllenConf.scifi_reconstruction import decode_scifi
 
 with decode_velo.bind(retina_decoding=False):
-    hlt1_node = setup_hlt1_node(withMCChecking=True)
+    hlt1_node = setup_hlt1_node(withMCChecking=True, enableRateValidator=True)
 generate(hlt1_node)

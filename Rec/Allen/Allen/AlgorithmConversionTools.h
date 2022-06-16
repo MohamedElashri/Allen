@@ -78,6 +78,10 @@ namespace Allen {
     size_t sizebytes() const override final { return size() * sizeof(typename VECTOR::value_type); }
 
     void set_type_size(size_t) override final {}
+
+    ArgumentScope scope() const override final { return ArgumentScope::Host; }
+
+    void set_scope(ArgumentScope) override final { throw; }
   };
 
   // Shortcuts for input / output wrappers

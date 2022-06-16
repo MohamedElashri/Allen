@@ -66,9 +66,9 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::set_arguments_size(
 
 void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   // Set all found tracks to accepted
@@ -82,13 +82,6 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
     arguments);
 
   global_function(create_velo_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
-
-  if (runtime_options.fill_extra_host_buffers) {
-    assign_to_host_buffer<dev_offsets_all_velo_tracks_t>(host_buffers.host_atomics_velo, arguments, context);
-    assign_to_host_buffer<dev_offsets_velo_track_hit_number_t>(
-      host_buffers.host_velo_track_hit_number, arguments, context);
-    assign_to_host_buffer<dev_velo_track_hits_t>(host_buffers.host_velo_track_hits, arguments, context);
-  }
 }
 
 template<typename F>

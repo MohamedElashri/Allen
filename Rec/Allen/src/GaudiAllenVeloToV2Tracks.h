@@ -11,7 +11,6 @@
 #include "Event/Track.h"
 
 // Allen
-#include "HostBuffers.cuh"
 #include "Logger.h"
 #include "VeloConsolidated.cuh"
 

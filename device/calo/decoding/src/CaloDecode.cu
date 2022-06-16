@@ -114,7 +114,7 @@ void calo_decode::calo_decode_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   initialize<dev_ecal_digits_t>(arguments, 0x7F, context);
@@ -128,10 +128,5 @@ void calo_decode::calo_decode_t::operator()(
     global_function(calo_decode_dispatch<false>)(
       dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
       arguments, constants.dev_ecal_geometry);
-  }
-
-  if (runtime_options.fill_extra_host_buffers) {
-    safe_assign_to_host_buffer<dev_ecal_digits_offsets_t>(host_buffers.host_ecal_digits_offsets, arguments, context);
-    safe_assign_to_host_buffer<dev_ecal_digits_t>(host_buffers.host_ecal_digits, arguments, context);
   }
 }

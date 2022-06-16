@@ -41,6 +41,9 @@ namespace gather_selections {
       DEPENDENCIES(host_fn_parameters_agg_t),
       Allen::IMultiEventContainer*)
     dev_particle_containers;
+    HOST_OUTPUT(host_event_list_output_size_t, unsigned) host_event_list_output_size;
+    DEVICE_OUTPUT(dev_event_list_output_size_t, unsigned) dev_event_list_output_size;
+    MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
     PROPERTY(names_of_active_lines_t, "names_of_active_lines", "names of active lines", std::string);
     PROPERTY(

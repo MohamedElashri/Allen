@@ -64,7 +64,8 @@ namespace gather_selections {
         evt_lo,
         gps_hi,
         gps_lo,
-        line_offsets[i]);
+        line_offsets[i],
+        number_of_events);
     }
 
     if (blockIdx.x == 0 && threadIdx.x == 0 && threadIdx.y == 0) {
@@ -78,10 +79,21 @@ namespace gather_selections {
     const ODINData* dev_odin_data,
     const float* scale_factors,
     const uint32_t* scale_hashes,
-    const unsigned number_of_lines)
+    const unsigned number_of_lines,
+    mask_t* dev_event_list_output,
+    unsigned* dev_event_list_output_size)
   {
     const auto number_of_events = gridDim.x;
     const auto event_number = blockIdx.x;
+
+    __shared__ bool event_decision;
+
+    if (threadIdx.x == 0) {
+      // Initialize event decision
+      event_decision = false;
+    }
+
+    __syncthreads();
 
     Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
 
@@ -95,8 +107,22 @@ namespace gather_selections {
 
     for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
       auto span = sels.get_span(i, event_number);
+
       deterministic_post_scaler(
         scale_hashes[i], scale_factors[i], span.size(), span.data(), run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+
+      for (unsigned j = 0; j < span.size(); ++j) {
+        if (span[j]) {
+          event_decision = true;
+        }
+      }
+    }
+
+    __syncthreads();
+
+    if (threadIdx.x == 0 && event_decision) {
+      const auto index = atomicAdd(dev_event_list_output_size, 1);
+      dev_event_list_output[index] = mask_t {event_number};
     }
   }
 } // namespace gather_selections
@@ -117,53 +143,52 @@ void gather_selections::gather_selections_t::set_arguments_size(
   const HostBuffers&) const
 {
   // Sum all the sizes from input selections
-  const auto sum_sizes_from_aggregate = [](const auto& agg) {
+  const auto host_fn_parameters_agg = input_aggregate<host_fn_parameters_agg_t>(arguments);
+  const auto total_size_host_fn_parameters_agg = [&host_fn_parameters_agg]() {
     size_t total_size = 0;
-    for (size_t i = 0; i < agg.size_of_aggregate(); ++i) {
-      total_size += agg.size(i);
+    for (size_t i = 0; i < host_fn_parameters_agg.size_of_aggregate(); ++i) {
+      total_size += host_fn_parameters_agg.size(i);
     }
     return total_size;
-  };
+  }();
 
   const auto host_decisions_sizes = input_aggregate<host_decisions_sizes_t>(arguments);
   const auto total_size_host_decisions_sizes = [&host_decisions_sizes]() {
     unsigned sum = 0;
     for (unsigned i = 0; i < host_decisions_sizes.size_of_aggregate(); ++i) {
-      sum += host_decisions_sizes.first(i);
+      sum += (host_decisions_sizes.size(i) > 0) ? host_decisions_sizes.first(i) : 0;
     }
     return sum;
   }();
 
-  const auto total_size_host_input_post_scale_factors =
-    sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_factors_t>(arguments));
-  const auto host_input_post_scale_hashes =
-    sum_sizes_from_aggregate(input_aggregate<host_input_post_scale_hashes_t>(arguments));
+  const auto size_of_aggregates = input_aggregate<host_decisions_sizes_t>(arguments).size_of_aggregate();
+
+  assert(input_aggregate<host_input_post_scale_factors_t>(arguments).size_of_aggregate() == size_of_aggregates);
+  assert(input_aggregate<host_input_post_scale_hashes_t>(arguments).size_of_aggregate() == size_of_aggregates);
+  assert(m_indices_active_line_algorithms.size() == size_of_aggregates);
 
   set_size<host_number_of_active_lines_t>(arguments, 1);
   set_size<dev_number_of_active_lines_t>(arguments, 1);
   set_size<host_names_of_active_lines_t>(arguments, std::string(property<names_of_active_lines_t>().get()).size() + 1);
-  set_size<host_selections_lines_offsets_t>(arguments, host_decisions_sizes.size_of_aggregate() + 1);
-  set_size<dev_selections_lines_offsets_t>(arguments, host_decisions_sizes.size_of_aggregate() + 1);
-  set_size<host_selections_offsets_t>(
-    arguments, first<host_number_of_events_t>(arguments) * host_decisions_sizes.size_of_aggregate() + 1);
-  set_size<dev_selections_offsets_t>(
-    arguments, first<host_number_of_events_t>(arguments) * host_decisions_sizes.size_of_aggregate() + 1);
+  set_size<host_selections_lines_offsets_t>(arguments, size_of_aggregates + 1);
+  set_size<dev_selections_lines_offsets_t>(arguments, size_of_aggregates + 1);
+  set_size<host_selections_offsets_t>(arguments, first<host_number_of_events_t>(arguments) * size_of_aggregates + 1);
+  set_size<dev_selections_offsets_t>(arguments, first<host_number_of_events_t>(arguments) * size_of_aggregates + 1);
   set_size<dev_selections_t>(arguments, total_size_host_decisions_sizes);
-  set_size<host_post_scale_factors_t>(arguments, total_size_host_input_post_scale_factors);
-  set_size<host_post_scale_hashes_t>(arguments, host_input_post_scale_hashes);
-  set_size<dev_post_scale_factors_t>(arguments, total_size_host_input_post_scale_factors);
-  set_size<dev_post_scale_hashes_t>(arguments, host_input_post_scale_hashes);
-  set_size<dev_particle_containers_t>(arguments, host_decisions_sizes.size_of_aggregate());
-  set_size<host_fn_parameters_t>(
-    arguments, sum_sizes_from_aggregate(input_aggregate<host_fn_parameters_agg_t>(arguments)));
-  set_size<dev_fn_parameters_t>(
-    arguments, sum_sizes_from_aggregate(input_aggregate<host_fn_parameters_agg_t>(arguments)));
-  set_size<host_fn_parameter_pointers_t>(
-    arguments, input_aggregate<host_fn_parameters_agg_t>(arguments).size_of_aggregate());
-  set_size<dev_fn_parameter_pointers_t>(
-    arguments, input_aggregate<host_fn_parameters_agg_t>(arguments).size_of_aggregate());
-  set_size<host_fn_indices_t>(arguments, m_indices_active_line_algorithms.size());
-  set_size<dev_fn_indices_t>(arguments, m_indices_active_line_algorithms.size());
+  set_size<host_post_scale_factors_t>(arguments, size_of_aggregates);
+  set_size<host_post_scale_hashes_t>(arguments, size_of_aggregates);
+  set_size<dev_post_scale_factors_t>(arguments, size_of_aggregates);
+  set_size<dev_post_scale_hashes_t>(arguments, size_of_aggregates);
+  set_size<dev_particle_containers_t>(arguments, size_of_aggregates);
+  set_size<host_fn_parameters_t>(arguments, total_size_host_fn_parameters_agg);
+  set_size<dev_fn_parameters_t>(arguments, total_size_host_fn_parameters_agg);
+  set_size<host_fn_parameter_pointers_t>(arguments, size_of_aggregates);
+  set_size<dev_fn_parameter_pointers_t>(arguments, size_of_aggregates);
+  set_size<host_fn_indices_t>(arguments, size_of_aggregates);
+  set_size<dev_fn_indices_t>(arguments, size_of_aggregates);
+  set_size<host_event_list_output_size_t>(arguments, 1);
+  set_size<dev_event_list_output_size_t>(arguments, 1);
+  set_size<dev_event_list_output_t>(arguments, first<host_number_of_events_t>(arguments));
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "Sizes of gather_selections datatypes: " << size<host_selections_offsets_t>(arguments) << ", "
@@ -188,8 +213,14 @@ void gather_selections::gather_selections_t::operator()(
   unsigned accumulated_offset_params = 0;
   const auto host_fn_parameters_agg = input_aggregate<host_fn_parameters_agg_t>(arguments);
   for (unsigned i = 0; i < host_fn_parameters_agg.size_of_aggregate(); ++i) {
-    data<host_fn_parameter_pointers_t>(arguments)[i] = data<dev_fn_parameters_t>(arguments) + accumulated_offset_params;
-    accumulated_offset_params += host_fn_parameters_agg.size(i);
+    if (host_fn_parameters_agg.size(i) == 0) {
+      data<host_fn_parameter_pointers_t>(arguments)[i] = nullptr;
+    }
+    else {
+      data<host_fn_parameter_pointers_t>(arguments)[i] =
+        data<dev_fn_parameters_t>(arguments) + accumulated_offset_params;
+      accumulated_offset_params += host_fn_parameters_agg.size(i);
+    }
   }
   Allen::copy_async<dev_fn_parameter_pointers_t, host_fn_parameter_pointers_t>(arguments, context);
 
@@ -202,7 +233,7 @@ void gather_selections::gather_selections_t::operator()(
   auto* container = data<host_selections_lines_offsets_t>(arguments);
   container[0] = 0;
   for (size_t i = 0; i < host_decisions_sizes.size_of_aggregate(); ++i) {
-    container[i + 1] = container[i] + host_decisions_sizes.first(i);
+    container[i + 1] = container[i] + (host_decisions_sizes.size(i) ? host_decisions_sizes.first(i) : 0);
   }
   Allen::copy_async<dev_selections_lines_offsets_t, host_selections_lines_offsets_t>(arguments, context);
 
@@ -225,6 +256,7 @@ void gather_selections::gather_selections_t::operator()(
     first<host_number_of_active_lines_t>(arguments),
     data<dev_selections_lines_offsets_t>(arguments));
 
+  // Run monitoring if configured
   for (unsigned i = 0; i < m_indices_active_line_algorithms.size(); ++i) {
     line_output_monitor_functions[m_indices_active_line_algorithms[i]](
       host_fn_parameters_agg.data(i), runtime_options, context);
@@ -237,16 +269,19 @@ void gather_selections::gather_selections_t::operator()(
 
   // Populate host_post_scale_factors_t
   Allen::aggregate::store_contiguous_async<host_post_scale_factors_t, host_input_post_scale_factors_t>(
-    arguments, context);
+    arguments, context, true);
 
   // Populate host_post_scale_hashes_t
   Allen::aggregate::store_contiguous_async<host_post_scale_hashes_t, host_input_post_scale_hashes_t>(
-    arguments, context);
+    arguments, context, true);
 
   // Copy host_post_scale_factors_t to dev_post_scale_factors_t,
   // and host_post_scale_hashes_t to dev_post_scale_hashes_t
   Allen::copy_async<dev_post_scale_factors_t, host_post_scale_factors_t>(arguments, context);
   Allen::copy_async<dev_post_scale_hashes_t, host_post_scale_hashes_t>(arguments, context);
+
+  // Initialize output mask size
+  initialize<dev_event_list_output_size_t>(arguments, 0, context);
 
   // Run the postscaler
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
@@ -255,7 +290,13 @@ void gather_selections::gather_selections_t::operator()(
     data<dev_odin_data_t>(arguments),
     data<dev_post_scale_factors_t>(arguments),
     data<dev_post_scale_hashes_t>(arguments),
-    first<host_number_of_active_lines_t>(arguments));
+    first<host_number_of_active_lines_t>(arguments),
+    data<dev_event_list_output_t>(arguments),
+    data<dev_event_list_output_size_t>(arguments));
+
+  // Reduce output mask to its proper size
+  Allen::copy<host_event_list_output_size_t, dev_event_list_output_size_t>(arguments, context);
+  reduce_size<dev_event_list_output_t>(arguments, first<host_event_list_output_size_t>(arguments));
 
   if (property<verbosity_t>() >= logger::debug) {
     std::vector<uint8_t> host_selections(size<dev_selections_t>(arguments));
@@ -289,11 +330,6 @@ void gather_selections::gather_selections_t::operator()(
     std::cout << sum / host_selections.size() << std::endl;
   }
 
-  // If running the validation, save relevant information
-  if (runtime_options.fill_extra_host_buffers) {
-    host_buffers.host_names_of_lines = std::string(property<names_of_active_lines_t>());
-    host_buffers.host_number_of_lines = first<host_number_of_active_lines_t>(arguments);
-    safe_assign_to_host_buffer<dev_selections_t>(host_buffers.host_selections, arguments, context);
-    safe_assign_to_host_buffer<dev_selections_offsets_t>(host_buffers.host_selections_offsets, arguments, context);
-  }
+  host_buffers.host_names_of_lines = std::string(property<names_of_active_lines_t>());
+  host_buffers.host_number_of_lines = first<host_number_of_active_lines_t>(arguments);
 }

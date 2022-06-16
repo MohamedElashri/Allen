@@ -110,14 +110,7 @@ HostBuffersManager::getBufferOutputData(size_t b)
   if (b > host_buffers.size()) return {};
 
   HostBuffers* buf = host_buffers.at(b);
-  auto const n_passing = buf->host_number_of_events;
-
-  gsl::span<bool const> passing_event_list {buf->host_passing_event_list, n_passing};
-  gsl::span<uint32_t const> dec_reports {buf->host_dec_reports.data(), buf->host_dec_reports.size()};
-  gsl::span<uint32_t const> sel_reports {buf->host_sel_reports.data(), buf->host_sel_reports.size()};
-  gsl::span<unsigned const> sel_report_offsets {buf->host_sel_report_offsets.data(),
-                                                buf->host_sel_report_offsets.size()};
-  return {passing_event_list, buf->host_dec_reports, sel_reports, sel_report_offsets};
+  return {buf->host_passing_event_list, buf->host_dec_reports, buf->host_sel_reports, buf->host_sel_report_offsets};
 }
 
 void HostBuffersManager::printStatus() const

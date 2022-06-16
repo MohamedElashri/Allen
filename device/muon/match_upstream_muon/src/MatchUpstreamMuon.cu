@@ -16,9 +16,9 @@ void MatchUpstreamMuon::match_upstream_muon_t::set_arguments_size(
 
 void MatchUpstreamMuon::match_upstream_muon_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   initialize<dev_match_upstream_muon_t>(arguments, 0, context);
@@ -30,10 +30,6 @@ void MatchUpstreamMuon::match_upstream_muon_t::operator()(
     constants.dev_muonmatch_search_muon_chambers,
     constants.dev_muonmatch_search_windows,
     first<host_number_of_events_t>(arguments));
-
-  if (runtime_options.fill_extra_host_buffers) {
-    assign_to_host_buffer<dev_match_upstream_muon_t>(host_buffers.host_match_upstream_muon, arguments, context);
-  }
 }
 
 __global__ void MatchUpstreamMuon::match_upstream_muon(
