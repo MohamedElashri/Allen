@@ -29,6 +29,8 @@ LAZY_AND: allen_non_event_data                #=1       Sum=1           Eff=|( 1
   DumpVPGeometry/DumpVPGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpMagneticField/DumpMagneticField         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpFTGeometry/DumpFTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpMuonGeometry/DumpMuonGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpMuonTable/DumpMuonTable                 #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  NONLAZY_OR: allen_non_event_data_producers   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   AllenTESProducer/AllenTESProducer           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   AllenTESProducer/AllenTESProducer#1         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
