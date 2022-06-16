@@ -68,11 +68,10 @@ LHCb::Event::Calo::Clusters GaudiAllenCaloToCaloClusters::operator()(
       auto clusterOut = EcalClusters.emplace_back<SIMDWrapper::InstructionSet::Scalar>();
 
       auto entry = clusterOut.entries().emplace_back();
-      entry.template field<LHCb::Event::Calo::v2::ClusterEntryTag::Id>().set(seedCellID.all());
-      entry.template field<LHCb::Event::Calo::v2::ClusterEntryTag::Energy>().set(cluster.e);
-      entry.template field<LHCb::Event::Calo::v2::ClusterEntryTag::Fraction>().set(1.f);
-      entry.template field<LHCb::Event::Calo::v2::ClusterEntryTag::Status>().set(LHCb::CaloDigitStatus::Status {
-        LHCb::CaloDigitStatus::Mask::UseForEnergy, LHCb::CaloDigitStatus::Mask::SeedCell});
+      entry.setCellID(seedCellID);
+      entry.setEnergy(cluster.e);
+      entry.setFraction(1.f);
+      entry.setStatus({LHCb::CaloDigitStatus::Mask::UseForEnergy, LHCb::CaloDigitStatus::Mask::SeedCell});
 
       auto ncells = 0;
       for (unsigned j = 0; j < Calo::Constants::max_neighbours; ++j) {
@@ -82,20 +81,17 @@ LHCb::Event::Calo::Clusters GaudiAllenCaloToCaloClusters::operator()(
         if (LHCb::Detector::Calo::isValid(cellID)) {
 
           auto entry = clusterOut.entries().emplace_back();
-          entry.template field<LHCb::Event::Calo::v2::ClusterEntryTag::Id>().set(cellID.all());
-          entry.template field<LHCb::Event::Calo::v2::ClusterEntryTag::Energy>().set(0.f);
-          entry.template field<LHCb::Event::Calo::v2::ClusterEntryTag::Fraction>().set(1.f);
-          entry.template field<LHCb::Event::Calo::v2::ClusterEntryTag::Status>().set(LHCb::CaloDigitStatus::Status {
-            LHCb::CaloDigitStatus::Mask::UseForEnergy, LHCb::CaloDigitStatus::Mask::OwnedCell});
+          entry.setCellID(cellID);
+          entry.setEnergy(0.f);
+          entry.setFraction(1.f);
+          entry.setStatus({LHCb::CaloDigitStatus::Mask::UseForEnergy, LHCb::CaloDigitStatus::Mask::OwnedCell});
         }
       }
 
-      clusterOut.template field<LHCb::Event::Calo::v2::ClusterTag::Seed>().set(seedCellID.all());
-      clusterOut.template field<LHCb::Event::Calo::v2::ClusterTag::Type>().set(
-        LHCb::Event::Calo::Clusters::Type::Area3x3);
-      clusterOut.template field<LHCb::Event::Calo::v2::ClusterTag::Energy>().set(cluster.e);
-      clusterOut.template field<LHCb::Event::Calo::v2::ClusterTag::Position>().set(
-        LHCb::LinAlg::Vec<SIMDWrapper::scalar::float_v, 3> {cluster.x, cluster.y, Calo::Constants::z});
+      clusterOut.setCellID(seedCellID);
+      clusterOut.setType(LHCb::Event::Calo::Clusters::Type::Area3x3);
+      clusterOut.setEnergy(cluster.e);
+      clusterOut.setPosition({cluster.x, cluster.y, Calo::Constants::z});
 
       iFirstEntry += ncells + 1; // seed digit+ associated digits making the cluster
     }
