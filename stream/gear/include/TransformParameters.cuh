@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "ArgumentManager.cuh"
+#include "Store.cuh"
 #include "ArgumentOps.cuh"
 #include "BackendCommon.h"
 #include "BaseTypes.cuh"
@@ -124,17 +124,17 @@ struct TransformParameters {
 };
 
 /**
- * @brief Full specialization for const ArgumentRefManager<T...>&.
+ * @brief Full specialization for const StoreRef<T...>&.
  */
 template<typename... T>
-struct TransformParameters<const ArgumentRefManager<T...>&> {
+struct TransformParameters<const StoreRef<T...>&> {
   constexpr static auto transform(
-    const ArgumentRefManager<T...>& t,
+    const StoreRef<T...>& t,
     const std::map<std::string, Allen::BaseProperty*>& properties,
     const Allen::KernelInvocationConfiguration& config)
   {
     return TransformParametersImpl<
-      ArgumentRefManager<T...>,
-      typename ArgumentRefManager<T...>::parameters_and_properties_tuple_t>::transform(t, properties, config);
+      StoreRef<T...>,
+      typename StoreRef<T...>::parameters_and_properties_tuple_t>::transform(t, properties, config);
   }
 };

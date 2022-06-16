@@ -4,7 +4,6 @@
 #pragma once
 
 #include "BackendCommon.h"
-#include "Argument.cuh"
 #include "BaseTypes.cuh"
 #include "BankTypes.h"
 #include "Logger.h"

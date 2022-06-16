@@ -4,7 +4,7 @@
 #pragma once
 
 #include "MemoryManager.cuh"
-#include "ArgumentManager.cuh"
+#include "Store.cuh"
 #include "Configuration.cuh"
 #include "Logger.h"
 #include <utility>

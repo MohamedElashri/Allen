@@ -7,7 +7,7 @@
 #include "Logger.h"
 #include "BaseTypes.cuh"
 #include "TargetFunction.cuh"
-#include "Argument.cuh"
+#include "Datatype.cuh"
 #include "Contract.h"
 #include "RuntimeOptions.h"
 #include "Constants.cuh"
@@ -16,18 +16,18 @@
 #include <any>
 
 namespace {
-  // Get the ArgumentRefManagerType from the function operator()
+  // Get the StoreRefType from the function operator()
   template<typename Function>
   struct FunctionTraits;
 
   template<typename Function, typename... Ts, typename... OtherArguments>
-  struct FunctionTraits<void (Function::*)(const ArgumentRefManager<Ts...>&, OtherArguments...) const> {
-    using ArgumentRefManagerType = ArgumentRefManager<Ts...>;
+  struct FunctionTraits<void (Function::*)(const StoreRef<Ts...>&, OtherArguments...) const> {
+    using StoreRefType = StoreRef<Ts...>;
   };
 
   template<typename Algorithm>
   struct AlgorithmTraits {
-    using ArgumentRefManagerType = typename FunctionTraits<decltype(&Algorithm::operator())>::ArgumentRefManagerType;
+    using StoreRefType = typename FunctionTraits<decltype(&Algorithm::operator())>::StoreRefType;
   };
 
   // Creates a std::array store out of the vector one
@@ -122,7 +122,7 @@ namespace Allen {
           const std::string& name,
           std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
           std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           using store_ref_t = typename arg_ref_mgr_t::store_ref_t;
           using input_aggregates_t = typename arg_ref_mgr_t::input_aggregates_t;
           if (std::tuple_size_v<store_ref_t> != vector_store_ref.size()) {
@@ -143,7 +143,7 @@ namespace Allen {
           const RuntimeOptions& runtime_options,
           const Constants& constants,
           const HostBuffers& host_buffers) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           static_cast<ALGORITHM*>(p)->set_arguments_size(
             std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, host_buffers);
         },
@@ -154,7 +154,7 @@ namespace Allen {
           const Constants& constants,
           HostBuffers& host_buffers,
           const Allen::Context& context) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           static_cast<ALGORITHM const*>(p)->operator()(
             std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, host_buffers, context);
         },
@@ -178,7 +178,7 @@ namespace Allen {
           const RuntimeOptions& runtime_options,
           const Constants& constants,
           const Allen::Context& context) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           using preconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::preconditions;
           if constexpr (std::tuple_size_v<preconditions_t>> 0) {
             auto preconditions = preconditions_t {};
@@ -201,7 +201,7 @@ namespace Allen {
           const RuntimeOptions& runtime_options,
           const Constants& constants,
           const Allen::Context& context) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           using postconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::postconditions;
           if constexpr (std::tuple_size_v<postconditions_t>> 0) {
             auto postconditions = postconditions_t {};

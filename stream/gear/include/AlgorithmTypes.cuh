@@ -10,8 +10,8 @@
 #include "RuntimeOptions.h"
 #include "Constants.cuh"
 #include "HostBuffers.cuh"
-#include "Property.cuh"
-#include "Argument.cuh"
+#include "Datatype.cuh"
+#include "InputAggregate.cuh"
 
 struct DeviceAlgorithm : public Allen::Algorithm {
   constexpr static auto algorithm_scope = "DeviceAlgorithm";

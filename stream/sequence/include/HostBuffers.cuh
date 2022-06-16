@@ -36,6 +36,11 @@ namespace Checker {
 }
 
 struct HostBuffers {
+private:
+  // Use a custom memory manager for the host pinned memory used here
+  
+
+public:
   // Pinned host datatypes
   unsigned host_number_of_events;
   unsigned host_number_of_selected_events;

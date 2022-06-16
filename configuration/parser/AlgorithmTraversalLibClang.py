@@ -358,6 +358,7 @@ class AlgorithmTraversal():
         AlgorithmTraversal.__properties = {}
         clang_args = AlgorithmTraversal.__compile_flags.copy()
         clang_args.append("-I" + project_location + "/stream/gear/include")
+        clang_args.append("-I" + project_location + "/stream/store/include")
         clang_args.append("-I" + project_location + "/backend/include")
         tu = AlgorithmTraversal.__index.parse(filename, args=clang_args)
         if tu.cursor.kind == cindex.CursorKind.TRANSLATION_UNIT:

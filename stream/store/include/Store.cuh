@@ -11,41 +11,9 @@
 #include "BackendCommon.h"
 #include "Logger.h"
 #include "AllenTypeTraits.h"
-#include "Argument.cuh"
 #include "StructToTuple.cuh"
-
-enum class ArgumentScope { Host, Device, Invalid };
-
-/**
- * @brief Contains the data of an argument, namely its name, data pointer and size.
- *
- */
-struct ArgumentData {
-private:
-  std::string m_name = "";
-  ArgumentScope m_scope = ArgumentScope::Invalid;
-  void* m_pointer = nullptr;
-  size_t m_size = 0;
-  size_t m_type_size = 0;
-
-public:
-  ArgumentData() = default;
-  ArgumentData(const ArgumentData&) = default;
-  ArgumentData(const std::string& name) : m_name(name) {}
-  ArgumentData(const std::string& name, ArgumentScope scope) : m_name(name), m_scope(scope) {}
-
-  virtual void* pointer() const { return m_pointer; }
-  virtual size_t size() const { return m_size; }
-  virtual size_t sizebytes() const { return m_size * m_type_size; }
-  virtual std::string name() const { return m_name; }
-  virtual ArgumentScope scope() const { return m_scope; }
-  virtual void set_pointer(void* pointer) { m_pointer = pointer; }
-  virtual void set_size(size_t size) { m_size = size; }
-  virtual void set_type_size(size_t type_size) { m_type_size = type_size; }
-  virtual void set_name(const std::string& name) { m_name = name; }
-  virtual void set_scope(ArgumentScope scope) { m_scope = scope; }
-  virtual ~ArgumentData() {}
-};
+#include "ArgumentData.cuh"
+#include "Datatype.cuh"
 
 /**
  * @brief Allen argument manager
@@ -73,7 +41,7 @@ template<
   typename ParameterTuple,
   typename ParameterStruct,
   typename InputAggregatesTuple = std::tuple<>>
-struct ArgumentRefManager {
+struct StoreRef {
 public:
   using parameters_and_properties_tuple_t = ParametersAndPropertiesTuple;
   using parameters_tuple_t = ParameterTuple;
@@ -86,11 +54,11 @@ private:
   input_aggregates_t m_input_aggregates;
 
 public:
-  ArgumentRefManager(store_ref_t store_ref, input_aggregates_t input_aggregates) :
+  StoreRef(store_ref_t store_ref, input_aggregates_t input_aggregates) :
     m_store_ref(store_ref), m_input_aggregates(input_aggregates)
   {}
 
-  ArgumentRefManager(store_ref_t store_ref) : m_store_ref(store_ref) {}
+  StoreRef(store_ref_t store_ref) : m_store_ref(store_ref) {}
 
   template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
   typename T::type* pointer() const
@@ -162,83 +130,6 @@ public:
 };
 
 /**
- * @brief Aggregate datatype
- */
-template<typename T>
-struct InputAggregate {
-private:
-  std::vector<std::reference_wrapper<ArgumentData>> m_argument_data_v;
-
-public:
-  using type = T;
-
-  InputAggregate() = default;
-
-  InputAggregate(const std::vector<std::reference_wrapper<ArgumentData>>& argument_data_v) :
-    m_argument_data_v(argument_data_v)
-  {}
-
-  template<typename Tuple, std::size_t... Is>
-  InputAggregate(Tuple t, std::index_sequence<Is...>) : m_argument_data_v {std::get<Is>(t)...}
-  {}
-
-  T* data(const unsigned index) const
-  {
-    assert(index < m_argument_data_v.size() && "Index is in bounds");
-    auto pointer = m_argument_data_v[index].get().pointer();
-    return reinterpret_cast<T*>(pointer);
-  }
-
-  T first(const unsigned index) const
-  {
-    assert(index < m_argument_data_v.size() && "Index is in bounds");
-    return data(index)[0];
-  }
-
-  size_t size(const unsigned index) const
-  {
-    assert(index < m_argument_data_v.size() && "Index is in bounds");
-    return m_argument_data_v[index].get().size();
-  }
-
-  gsl::span<T> span(const unsigned index) const { return {data(index), size(index)}; }
-
-  std::string name(const unsigned index) const
-  {
-    assert(index < m_argument_data_v.size() && "Index is in bounds");
-    return m_argument_data_v[index].get().name();
-  }
-
-  size_t size_of_aggregate() const { return m_argument_data_v.size(); }
-};
-
-template<typename T, typename... Ts>
-static auto makeInputAggregate(std::tuple<Ts&...> tp)
-{
-  return InputAggregate<T> {tp, std::make_index_sequence<sizeof...(Ts)>()};
-}
-
-// Macro
-#define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)                                             \
-  struct ARGUMENT_NAME : public aggregate_datatype, HOST_DEVICE {                                    \
-    using type = InputAggregate<__VA_ARGS__>;                                                        \
-    void parameter(__VA_ARGS__) const;                                                               \
-    ARGUMENT_NAME() = default;                                                                       \
-    ARGUMENT_NAME(const type& input_aggregate) : m_value(input_aggregate) {}                         \
-    template<typename... Ts>                                                                         \
-    ARGUMENT_NAME(std::tuple<Ts&...> value) : m_value(makeInputAggregate<__VA_ARGS__, Ts...>(value)) \
-    {}                                                                                               \
-    const type& value() const { return m_value; }                                                    \
-                                                                                                     \
-  private:                                                                                           \
-    type m_value {};                                                                                 \
-  }
-
-#define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(host_datatype, ARGUMENT_NAME, __VA_ARGS__)
-
-#define DEVICE_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(device_datatype, ARGUMENT_NAME, __VA_ARGS__)
-
-/**
  * @brief Tuple wrapper that extracts tuples out of the
  *        Parameters struct. It extracts a tuple of all parameters and properties
  *        (parameters_and_properties_tuple_t), and a tuple of parameters (parameters_tuple_t).
@@ -289,7 +180,7 @@ struct WrappedTuple<
 };
 
 template<typename T>
-using ArgumentReferences = ArgumentRefManager<
+using ArgumentReferences = StoreRef<
   typename WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_and_properties_tuple_t,
   typename WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_tuple_t,
   T,

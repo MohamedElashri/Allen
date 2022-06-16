@@ -9,7 +9,8 @@
 #include "BackendCommon.h"
 #include "AllenTypeTraits.h"
 #include "PinnedVector.h"
-#include "ArgumentManager.cuh"
+#include "Datatype.cuh"
+#include "Logger.h"
 
 /**
  * @brief Sets the size of a container to the specified size.

@@ -15,7 +15,7 @@
 #include <MCEvent.h>
 #include <algorithm>
 #include <mutex>
-#include <Argument.cuh>
+#include <Datatype.cuh>
 
 class TTree;
 class TFile;

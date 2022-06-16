@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <vector>
 #include <string>
-#include "ArgumentManager.cuh"
+#include "ArgumentData.cuh"
 
 struct ConfiguredAlgorithm {
   std::string id;
