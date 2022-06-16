@@ -38,7 +38,6 @@ namespace Checker {
 struct HostBuffers {
 private:
   // Use a custom memory manager for the host pinned memory used here
-  
 
 public:
   // Pinned host datatypes

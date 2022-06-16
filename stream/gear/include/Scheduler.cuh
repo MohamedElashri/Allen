@@ -20,11 +20,15 @@ constexpr bool contracts_enabled = false;
 #endif
 
 #ifdef MEMORY_MANAGER_MULTI_ALLOC
-using host_memory_manager_t = Allen::Store::MemoryManager<Allen::Store::memory_manager_details::Host, Allen::Store::memory_manager_details::MultiAlloc>;
-using device_memory_manager_t = Allen::Store::MemoryManager<Allen::Store::memory_manager_details::Device, Allen::Store::memory_manager_details::MultiAlloc>;
+using host_memory_manager_t = Allen::Store::
+  MemoryManager<Allen::Store::memory_manager_details::Host, Allen::Store::memory_manager_details::MultiAlloc>;
+using device_memory_manager_t = Allen::Store::
+  MemoryManager<Allen::Store::memory_manager_details::Device, Allen::Store::memory_manager_details::MultiAlloc>;
 #else
-using host_memory_manager_t = Allen::Store::MemoryManager<Allen::Store::memory_manager_details::Host, Allen::Store::memory_manager_details::SingleAlloc>;
-using device_memory_manager_t = Allen::Store::MemoryManager<Allen::Store::memory_manager_details::Device, Allen::Store::memory_manager_details::SingleAlloc>;
+using host_memory_manager_t = Allen::Store::
+  MemoryManager<Allen::Store::memory_manager_details::Host, Allen::Store::memory_manager_details::SingleAlloc>;
+using device_memory_manager_t = Allen::Store::
+  MemoryManager<Allen::Store::memory_manager_details::Device, Allen::Store::memory_manager_details::SingleAlloc>;
 #endif
 
 class Scheduler {

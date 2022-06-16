@@ -31,8 +31,9 @@ template<typename ArgMan, typename T>
 struct ProduceSingleParameter<
   ArgMan,
   T,
-  std::enable_if_t<(std::is_base_of_v<Allen::Store::device_datatype, T> || std::is_base_of_v<Allen::Store::host_datatype, T>) &&!std::
-                     is_base_of_v<Allen::Store::aggregate_datatype, T>>> {
+  std::enable_if_t<(
+    std::is_base_of_v<Allen::Store::device_datatype, T> ||
+    std::is_base_of_v<Allen::Store::host_datatype, T>) &&!std::is_base_of_v<Allen::Store::aggregate_datatype, T>>> {
   constexpr static auto produce(
     const ArgMan& arguments,
     const std::map<std::string, Allen::BaseProperty*>&,
@@ -60,7 +61,10 @@ struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<std::is_base_of_v<Alle
  * @brief Produces properties.
  */
 template<typename ArgMan, typename T>
-struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<Allen::is_template_base_of_v<Allen::Store::property_datatype, T>>> {
+struct ProduceSingleParameter<
+  ArgMan,
+  T,
+  std::enable_if_t<Allen::is_template_base_of_v<Allen::Store::property_datatype, T>>> {
   constexpr static auto produce(
     const ArgMan&,
     const std::map<std::string, Allen::BaseProperty*>& properties,
