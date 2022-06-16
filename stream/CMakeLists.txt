@@ -49,8 +49,6 @@ if(STANDALONE)
   add_dependencies(Stream checkout_gaudi_dirs generate_algorithms_view)
 endif()
 
-# TODO: In the future a single wrapper script can take care of
-# generating the sequence on the fly (using eg. the parsed agorithms pickle)
 foreach(sequence ${BUILD_SEQUENCES})
   generate_sequence(${sequence})
 endforeach()
