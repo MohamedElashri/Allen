@@ -41,16 +41,6 @@ std::vector<Checker::Tracks> prepareUTTracks(
   gsl::span<const mask_t> event_list);
 
 /**
- * @brief Prepares tracks for Long consolidated datatypes.
- */
-std::vector<Checker::Tracks> prepareLongTracks(
-  const unsigned number_of_events,
-  gsl::span<const Checker::Track> long_checker_tracks,
-  gsl::span<const unsigned> event_tracks_offsets,
-  gsl::span<const mask_t> event_list,
-  gsl::span<const Allen::bool_as_char_t<bool>> is_muon = {});
-
-/**
  * @brief Read forward tracks from binary files
  */
 std::vector<Checker::Tracks> read_forward_tracks(const char* events, const unsigned* event_offsets, const int n_events);
