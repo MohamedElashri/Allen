@@ -3,6 +3,8 @@
 #include <string>
 #include <unordered_map>
 
+namespace Allen::Store {
+
 enum class ArgumentScope { Host, Device, Invalid };
 
 /**
@@ -35,3 +37,5 @@ public:
   virtual void set_scope(ArgumentScope scope) { m_scope = scope; }
   virtual ~ArgumentData() {}
 };
+
+}

@@ -9,6 +9,8 @@
 #include "Logger.h"
 #include "Configuration.cuh"
 
+namespace Allen::Store {
+
 namespace memory_manager_details {
   // Distinguish between Host and Device memory managers
   struct Host {
@@ -390,3 +392,5 @@ struct MemoryManagerHelper {
     }
   }
 };
+
+}

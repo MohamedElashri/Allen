@@ -95,13 +95,13 @@ public:
 };
 
 // ArgumentData creator
-inline ArgumentData create_allen_argument(const ConfiguredArgument& alg)
+inline Allen::Store::ArgumentData create_allen_argument(const ConfiguredArgument& alg)
 {
   if (alg.scope == "host") {
-    return ArgumentData {alg.name, ArgumentScope::Host};
+    return Allen::Store::ArgumentData {alg.name, Allen::Store::ArgumentScope::Host};
   }
   else if (alg.scope == "device") {
-    return ArgumentData {alg.name, ArgumentScope::Device};
+    return Allen::Store::ArgumentData {alg.name, Allen::Store::ArgumentScope::Device};
   }
   else {
     throw ArgumentScopeNotSupportedException {alg.scope};

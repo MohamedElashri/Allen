@@ -15,6 +15,8 @@
 #include "ArgumentData.cuh"
 #include "Datatype.cuh"
 
+namespace Allen::Store {
+
 /**
  * @brief Allen argument manager
  */
@@ -179,19 +181,19 @@ struct WrappedTuple<
   using aggregates_tuple_t = typename prev_wrapped_tuple::aggregates_tuple_t;
 };
 
-template<typename T>
-using ArgumentReferences = StoreRef<
-  typename WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_and_properties_tuple_t,
-  typename WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_tuple_t,
-  T,
-  typename WrappedTuple<decltype(struct_to_tuple(T {}))>::aggregates_tuple_t>;
+template<size_t... Is>
+auto gen_input_aggregates_tuple(
+  const std::vector<std::vector<std::reference_wrapper<ArgumentData>>>& input_aggregates,
+  std::index_sequence<Is...>)
+{
+  return std::make_tuple(input_aggregates[Is]...);
+}
 
-namespace Allen {
-  template<size_t... Is>
-  auto gen_input_aggregates_tuple(
-    const std::vector<std::vector<std::reference_wrapper<ArgumentData>>>& input_aggregates,
-    std::index_sequence<Is...>)
-  {
-    return std::make_tuple(input_aggregates[Is]...);
-  }
-} // namespace Allen
+}
+
+template<typename T>
+using ArgumentReferences = Allen::Store::StoreRef<
+  typename Allen::Store::WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_and_properties_tuple_t,
+  typename Allen::Store::WrappedTuple<decltype(struct_to_tuple(T {}))>::parameters_tuple_t,
+  T,
+  typename Allen::Store::WrappedTuple<decltype(struct_to_tuple(T {}))>::aggregates_tuple_t>;

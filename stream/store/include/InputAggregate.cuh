@@ -13,6 +13,8 @@
 #include "AllenTypeTraits.h"
 #include "ArgumentData.cuh"
 
+namespace Allen::Store {
+
 /**
  * @brief Aggregate datatype
  */
@@ -72,13 +74,13 @@ static auto makeInputAggregate(std::tuple<Ts&...> tp)
 
 // Macro
 #define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)                                             \
-  struct ARGUMENT_NAME : public aggregate_datatype, HOST_DEVICE {                                    \
-    using type = InputAggregate<__VA_ARGS__>;                                                        \
+  struct ARGUMENT_NAME : public Allen::Store::aggregate_datatype, HOST_DEVICE {                                    \
+    using type = Allen::Store::InputAggregate<__VA_ARGS__>;                                                        \
     void parameter(__VA_ARGS__) const;                                                               \
     ARGUMENT_NAME() = default;                                                                       \
     ARGUMENT_NAME(const type& input_aggregate) : m_value(input_aggregate) {}                         \
     template<typename... Ts>                                                                         \
-    ARGUMENT_NAME(std::tuple<Ts&...> value) : m_value(makeInputAggregate<__VA_ARGS__, Ts...>(value)) \
+    ARGUMENT_NAME(std::tuple<Ts&...> value) : m_value(Allen::Store::makeInputAggregate<__VA_ARGS__, Ts...>(value)) \
     {}                                                                                               \
     const type& value() const { return m_value; }                                                    \
                                                                                                      \
@@ -86,6 +88,8 @@ static auto makeInputAggregate(std::tuple<Ts&...> tp)
     type m_value {};                                                                                 \
   }
 
-#define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(host_datatype, ARGUMENT_NAME, __VA_ARGS__)
+#define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(Allen::Store::host_datatype, ARGUMENT_NAME, __VA_ARGS__)
 
-#define DEVICE_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(device_datatype, ARGUMENT_NAME, __VA_ARGS__)
+#define DEVICE_INPUT_AGGREGATE(ARGUMENT_NAME, ...) INPUT_AGGREGATE(Allen::Store::device_datatype, ARGUMENT_NAME, __VA_ARGS__)
+
+}

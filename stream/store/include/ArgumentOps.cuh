@@ -197,11 +197,11 @@ namespace Allen {
 
     const auto elements_to_copy = count == 0 ? size<B>(arguments) : count;
     const Allen::memcpy_kind kind = []() {
-      if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<host_datatype, B>)
+      if constexpr (std::is_base_of_v<Allen::Store::host_datatype, A> && std::is_base_of_v<Allen::Store::host_datatype, B>)
         return Allen::memcpyHostToHost;
-      else if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<device_datatype, B>)
+      else if constexpr (std::is_base_of_v<Allen::Store::host_datatype, A> && std::is_base_of_v<Allen::Store::device_datatype, B>)
         return Allen::memcpyHostToDevice;
-      else if constexpr (std::is_base_of_v<device_datatype, A> && std::is_base_of_v<host_datatype, B>)
+      else if constexpr (std::is_base_of_v<Allen::Store::device_datatype, A> && std::is_base_of_v<Allen::Store::host_datatype, B>)
         return Allen::memcpyDeviceToHost;
       else
         return Allen::memcpyDeviceToDevice;
@@ -248,7 +248,7 @@ namespace Allen {
     const size_t offset_b = 0)
   {
     copy_async<A, B, Args>(arguments, context, count, offset_a, offset_b);
-    if constexpr (!std::is_base_of_v<host_datatype, A> || !std::is_base_of_v<host_datatype, B>) {
+    if constexpr (!std::is_base_of_v<Allen::Store::host_datatype, A> || !std::is_base_of_v<Allen::Store::host_datatype, B>) {
       synchronize(context);
     }
   }
@@ -268,7 +268,7 @@ namespace Allen {
     assert(count <= size<T>(arguments) - offset);
 
     const auto s = count == 0 ? size<T>(arguments) - offset : count;
-    if constexpr (std::is_base_of_v<host_datatype, T>)
+    if constexpr (std::is_base_of_v<Allen::Store::host_datatype, T>)
       std::memset(data<T>(arguments) + offset, value, s * sizeof(typename T::type));
     else
       Allen::memset_async(data<T>(arguments) + offset, value, s * sizeof(typename T::type), context);
@@ -286,7 +286,7 @@ namespace Allen {
     const size_t offset = 0)
   {
     memset_async<T>(arguments, context, value, count, offset);
-    if constexpr (!std::is_base_of_v<host_datatype, T>) {
+    if constexpr (!std::is_base_of_v<Allen::Store::host_datatype, T>) {
       synchronize(context);
     }
   }
@@ -307,11 +307,11 @@ namespace Allen {
       auto aggregate = input_aggregate<B>(arguments);
 
       const Allen::memcpy_kind kind = []() {
-        if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<host_datatype, B>)
+        if constexpr (std::is_base_of_v<Allen::Store::host_datatype, A> && std::is_base_of_v<Allen::Store::host_datatype, B>)
           return Allen::memcpyHostToHost;
-        else if constexpr (std::is_base_of_v<host_datatype, A> && std::is_base_of_v<device_datatype, B>)
+        else if constexpr (std::is_base_of_v<Allen::Store::host_datatype, A> && std::is_base_of_v<Allen::Store::device_datatype, B>)
           return Allen::memcpyHostToDevice;
-        else if constexpr (std::is_base_of_v<device_datatype, A> && std::is_base_of_v<host_datatype, B>)
+        else if constexpr (std::is_base_of_v<Allen::Store::device_datatype, A> && std::is_base_of_v<Allen::Store::host_datatype, B>)
           return Allen::memcpyDeviceToHost;
         else
           return Allen::memcpyDeviceToDevice;
@@ -341,7 +341,7 @@ struct SingleArgumentOverloadResolution<
   Arg,
   Args,
   typename std::enable_if<
-    std::is_base_of<host_datatype, Arg>::value &&
+    std::is_base_of<Allen::Store::host_datatype, Arg>::value &&
     (std::is_same<typename Arg::type, bool>::value || std::is_same<typename Arg::type, char>::value ||
      std::is_same<typename Arg::type, unsigned char>::value ||
      std::is_same<typename Arg::type, signed char>::value)>::type> {
@@ -372,7 +372,7 @@ struct SingleArgumentOverloadResolution<
   Arg,
   Args,
   std::enable_if_t<
-    std::is_base_of_v<host_datatype, Arg> &&
+    std::is_base_of_v<Allen::Store::host_datatype, Arg> &&
     !(std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
       std::is_same_v<typename Arg::type, uint8_t> || std::is_same_v<typename Arg::type, int8_t>)>> {
   constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&)
@@ -419,7 +419,7 @@ struct SingleArgumentOverloadResolution<
 };
 
 template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base_of_v<device_datatype, Arg>>> {
+struct SingleArgumentOverloadResolution<Arg, Args, std::enable_if_t<std::is_base_of_v<Allen::Store::device_datatype, Arg>>> {
   constexpr static void initialize(const Args& arguments, const int value, const Allen::Context& context)
   {
     Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);

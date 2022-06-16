@@ -21,8 +21,8 @@ namespace {
   struct FunctionTraits;
 
   template<typename Function, typename... Ts, typename... OtherArguments>
-  struct FunctionTraits<void (Function::*)(const StoreRef<Ts...>&, OtherArguments...) const> {
-    using StoreRefType = StoreRef<Ts...>;
+  struct FunctionTraits<void (Function::*)(const Allen::Store::StoreRef<Ts...>&, OtherArguments...) const> {
+    using StoreRefType = Allen::Store::StoreRef<Ts...>;
   };
 
   template<typename Algorithm>
@@ -33,7 +33,7 @@ namespace {
   // Creates a std::array store out of the vector one
   template<std::size_t... Is>
   auto create_store_ref(
-    const std::vector<std::reference_wrapper<ArgumentData>>& vector_store_ref,
+    const std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>& vector_store_ref,
     std::index_sequence<Is...>)
   {
     return std::array {vector_store_ref[Is]...};
@@ -80,8 +80,8 @@ namespace Allen {
       std::string (*name)(void const*) = nullptr;
       std::any (*create_arg_ref_manager)(
         const std::string&,
-        std::vector<std::reference_wrapper<ArgumentData>>,
-        std::vector<std::vector<std::reference_wrapper<ArgumentData>>>) = nullptr;
+        std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>,
+        std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>>) = nullptr;
       void (*set_arguments_size)(void*, std::any&, const RuntimeOptions&, const Constants&, const HostBuffers&) =
         nullptr;
       void (
@@ -120,8 +120,8 @@ namespace Allen {
         [](void const* p) { return static_cast<ALGORITHM const*>(p)->name(); },
         [](
           const std::string& name,
-          std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
-          std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates) {
+          std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> vector_store_ref,
+          std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>> input_aggregates) {
           using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           using store_ref_t = typename arg_ref_mgr_t::store_ref_t;
           using input_aggregates_t = typename arg_ref_mgr_t::input_aggregates_t;
@@ -133,7 +133,7 @@ namespace Allen {
           }
           auto store_ref =
             create_store_ref(vector_store_ref, std::make_index_sequence<std::tuple_size_v<store_ref_t>> {});
-          auto input_agg_store = input_aggregates_t {Allen::gen_input_aggregates_tuple(
+          auto input_agg_store = input_aggregates_t {Allen::Store::gen_input_aggregates_tuple(
             input_aggregates, std::make_index_sequence<std::tuple_size_v<input_aggregates_t>> {})};
           return std::any {arg_ref_mgr_t {store_ref, input_agg_store}};
         },
@@ -228,8 +228,8 @@ namespace Allen {
 
     std::string name() const { return (table.name)(instance); }
     std::any create_arg_ref_manager(
-      std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
-      std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates)
+      std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> vector_store_ref,
+      std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>> input_aggregates)
     {
       return (table.create_arg_ref_manager)(name(), std::move(vector_store_ref), std::move(input_aggregates));
     }
