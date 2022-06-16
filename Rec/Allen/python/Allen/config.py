@@ -8,14 +8,13 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from functools import partial
-from Configurables import (ApplicationMgr, DumpUTGeometry, DumpMuonTable,
-                           DumpMuonGeometry, DumpUTLookupTables, AllenUpdater)
+from Configurables import ApplicationMgr, AllenUpdater
 from PyConf import configurable
 from PyConf.control_flow import CompositeNode, NodeLogic
-from PyConf.Algorithms import (AllenTESProducer, DumpBeamline,
-                               DumpCaloGeometry, DumpMagneticField,
-                               DumpVPGeometry, DumpFTGeometry)
+from PyConf.Algorithms import (
+    AllenTESProducer, DumpBeamline, DumpCaloGeometry, DumpMagneticField,
+    DumpVPGeometry, DumpFTGeometry, DumpUTGeometry, DumpUTLookupTables,
+    DumpMuonGeometry, DumpMuonTable)
 from DDDB.CheckDD4Hep import UseDD4Hep
 
 
@@ -32,33 +31,40 @@ def setup_allen_non_event_data_service(allen_event_loop=False):
     """
     dump_geometry, out_dir = allen_non_event_data_config()
 
-    service_producers = [
-        p(DumpToFile=dump_geometry, OutputDirectory=out_dir)
-        for p in (DumpUTGeometry, DumpMuonGeometry, DumpMuonTable,
-                  DumpUTLookupTables)
-    ]
     appMgr = ApplicationMgr()
     if not UseDD4Hep:
         # MagneticFieldSvc is required for non-DD4hep builds
         appMgr.ExtSvc.append("MagneticFieldSvc")
-    appMgr.ExtSvc.extend(service_producers)
+
     appMgr.ExtSvc.extend(AllenUpdater(TriggerEventLoop=allen_event_loop))
 
-    algorithm_converters = [
-        DumpBeamline(),
-        DumpCaloGeometry(),
-        DumpVPGeometry(),
-        DumpMagneticField(),
-        DumpFTGeometry()
-    ]
+    types = [(DumpBeamline, 'beamline'), (DumpUTGeometry, 'ut_geometry'),
+             (DumpUTLookupTables, 'ut_tables'),
+             (DumpCaloGeometry, 'ecal_geometry'),
+             (DumpVPGeometry, 'velo_geometry'), (DumpMagneticField,
+                                                 'polarity'),
+             (DumpFTGeometry, 'scifi_geometry'),
+             (DumpMuonGeometry, 'muon_geometry'), (DumpMuonTable,
+                                                   'muon_tables')]
+
+    algorithm_converters = []
     algorithm_producers = []
-    for converter in algorithm_converters:
-        converter_id = converter.type.getDefaultProperties()['ID']
-        producer = AllenTESProducer(
-            InputID=converter.OutputID,
-            InputData=converter.Converted,
-            ID=converter_id)
-        algorithm_producers.append(producer)
+    for converter_type, filename in types:
+        converter_id = converter_type.getDefaultProperties().get('ID', None)
+        if converter_id is not None:
+            converter = converter_type()
+            # An algorithm that needs a TESProducer
+            producer = AllenTESProducer(
+                Filename=filename if dump_geometry else "",
+                OutputDirectory=out_dir,
+                InputID=converter.OutputID,
+                InputData=converter.Converted,
+                ID=converter_id)
+            algorithm_producers.append(producer)
+        else:
+            converter = converter_type(
+                DumpToFile=dump_geometry, OutputDirectory=out_dir)
+        algorithm_converters.append(converter)
 
     converters_node = CompositeNode(
         "allen_non_event_data_converters",

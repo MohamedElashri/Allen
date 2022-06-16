@@ -5,15 +5,13 @@
 #include <vector>
 
 #include <yaml-cpp/yaml.h>
-#include <LHCbAlgs/Transformer.h>
 #include <DetDesc/GenericConditionAccessorHolder.h>
 
 #include <Dumpers/Identifiers.h>
 #include <Dumpers/Utils.h>
-
-#ifdef USE_DD4HEP
 #include <DD4hep/GrammarUnparsed.h>
-#endif
+
+#include "Dumper.h"
 
 namespace {
   inline const std::string beamSpotCond = "/dd/Conditions/Online/Velo/MotionSystem";
@@ -24,9 +22,13 @@ namespace {
 
     Beamline_t() {}
 
-    Beamline_t(YAML::Node const& n) :
+    Beamline_t(std::vector<char>& data, YAML::Node const& n) :
       X {(n["ResolPosRC"].as<double>() + n["ResolPosLA"].as<double>()) / 2}, Y {n["ResolPosY"].as<double>()}
-    {}
+    {
+      DumpUtils::Writer output;
+      output.write(X, Y);
+      data = output.buffer();
+    }
   };
 } // namespace
 
@@ -36,43 +38,35 @@ namespace {
  *  @author Roel Aaij
  *  @date   2019-04-27
  */
-class DumpBeamline final : public LHCb::Algorithm::MultiTransformer<
-                             std::tuple<std::vector<char>, std::string>(const Beamline_t&),
-                             LHCb::DetDesc::usesConditions<Beamline_t>> {
+class DumpBeamline final
+  : public Allen::Dumpers::Dumper<void(Beamline_t const&), LHCb::DetDesc::usesConditions<Beamline_t>> {
 public:
   DumpBeamline(const std::string& name, ISvcLocator* svcLoc);
 
-  std::tuple<std::vector<char>, std::string> operator()(const Beamline_t& beamline) const override;
+  void operator()(const Beamline_t& beamline) const override;
 
   StatusCode initialize() override;
 
-  Gaudi::Property<std::string> m_id {this, "ID", Allen::NonEventData::Beamline::id};
+private:
+  std::vector<char> m_data;
 };
 
 DECLARE_COMPONENT(DumpBeamline)
 
 DumpBeamline::DumpBeamline(const std::string& name, ISvcLocator* svcLoc) :
-  MultiTransformer(
-    name,
-    svcLoc,
-    {KeyValue {"BeamSpotLocation", "AlgorithmSpecific-" + name + "-beamspot"}},
-    {KeyValue {"Converted", "Allen/NonEventData/Beamspot"}, KeyValue {"OutputID", "Allen/NonEventData/BeamspotID"}})
+  Dumper(name, svcLoc, {KeyValue {"BeamSpotLocation", "AlgorithmSpecific-" + name + "-beamspot"}})
 {}
 
 StatusCode DumpBeamline::initialize()
 {
-  return MultiTransformer::initialize().andThen([&] {
-    addConditionDerivation(
-      {beamSpotCond}, inputLocation<Beamline_t>(), [](YAML::Node const& n) { return Beamline_t {n}; });
+  return Dumper::initialize().andThen([&] {
+    register_producer(Allen::NonEventData::Beamline::id, "beamline", m_data);
+    addConditionDerivation({beamSpotCond}, inputLocation<Beamline_t>(), [&](YAML::Node const& n) {
+      auto beamline = Beamline_t {m_data, n};
+      dump();
+      return beamline;
+    });
   });
 }
 
-std::tuple<std::vector<char>, std::string> DumpBeamline::operator()(const Beamline_t& beamline) const
-{
-
-  DumpUtils::Writer output {};
-
-  output.write(beamline.X, beamline.Y);
-
-  return std::tuple {output.buffer(), m_id};
-}
+void DumpBeamline::operator()(const Beamline_t&) const {}

@@ -15,23 +15,17 @@
 #include <tuple>
 #include <vector>
 
-// Include files
-#include "DumpGeometry.h"
-#include <Dumpers/Utils.h>
-#include <Dumpers/Identifiers.h>
+// Gaudi
+#include <GaudiAlg/Transformer.h>
+#include <GaudiAlg/FunctionalUtilities.h>
 
 // LHCb
-#include <Kernel/ILHCbMagnetSvc.h>
-#include "Magnet/DeMagnet.h"
-// #include <DetDesc/Condition.h>
-// #include <DetDesc/ConditionAccessorHolder.h>
-// #include "DetDesc/IConditionDerivationMgr.h"
-
+#include <Magnet/DeMagnet.h>
 #include <DetDesc/GenericConditionAccessorHolder.h>
 
-// Gaudi
-#include "GaudiAlg/Transformer.h"
-#include "GaudiAlg/FunctionalUtilities.h"
+// Include files
+#include <Dumpers/Utils.h>
+#include <Dumpers/Identifiers.h>
 
 /** @class DumpMagneticField
  *  Dump Magnetic Field Polarity.
