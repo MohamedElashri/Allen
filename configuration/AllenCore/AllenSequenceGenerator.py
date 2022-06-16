@@ -3,7 +3,7 @@
 ###############################################################################
 from collections import OrderedDict
 from PyConf.dataflow import GaudiDataHandle
-from AllenConf.algorithms import AlgorithmCategory
+from AllenAlgorithms.algorithms import AlgorithmCategory
 from json import dump
 
 

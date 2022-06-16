@@ -1,10 +1,10 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import (velo_pv_ip_t, kalman_velo_only_t,
-                                  make_lepton_id_t,
-                                  make_long_track_particles_t, filter_tracks_t,
-                                  host_prefix_sum_t, fit_secondary_vertices_t)
+from AllenAlgorithms.algorithms import (
+    velo_pv_ip_t, kalman_velo_only_t, make_lepton_id_t,
+    make_long_track_particles_t, filter_tracks_t, host_prefix_sum_t,
+    fit_secondary_vertices_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenCore.generator import make_algorithm
@@ -84,7 +84,7 @@ def make_basic_particles(kalman_velo_only,
             dev_is_electron_t=is_electron_result["dev_track_isElectron"])
         lepton_id = make_lepton_id.dev_lepton_id_t
     else:
-        lepton_id = is_muon_result["dev_is_muon"]
+        lepton_id = is_muon_result["dev_lepton_id"]
 
     make_long_track_particles = make_algorithm(
         make_long_track_particles_t,

@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import (
+from AllenAlgorithms.algorithms import (
     data_provider_t, velo_calculate_number_of_candidates_t, host_prefix_sum_t,
     velo_estimate_input_size_t, velo_masked_clustering_t, velo_sort_by_phi_t,
     velo_search_by_triplet_t, velo_three_hit_tracks_filter_t,

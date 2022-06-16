@@ -21,20 +21,13 @@ void velo_kalman_filter::velo_kalman_filter_t::set_arguments_size(
 
 void velo_kalman_filter::velo_kalman_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(velo_kalman_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_beamline.data());
-
-  if (runtime_options.fill_extra_host_buffers) {
-    assign_to_host_buffer<dev_velo_kalman_beamline_states_t>(
-      host_buffers.host_velo_kalman_beamline_states, arguments, context);
-    assign_to_host_buffer<dev_velo_kalman_endvelo_states_t>(
-      host_buffers.host_velo_kalman_endvelo_states, arguments, context);
-  }
 }
 
 /**

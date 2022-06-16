@@ -20,8 +20,8 @@ namespace make_lepton_id {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_scifi_tracks_view_t, Allen::Views::SciFi::Consolidated::Tracks) dev_scifi_tracks_view;
-    DEVICE_INPUT(dev_is_muon_t, uint8_t) dev_is_muon;
-    DEVICE_INPUT(dev_is_electron_t, uint8_t) dev_is_electron;
+    DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
+    DEVICE_INPUT(dev_is_electron_t, bool) dev_is_electron;
     DEVICE_OUTPUT(dev_lepton_id_t, uint8_t) dev_lepton_id;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

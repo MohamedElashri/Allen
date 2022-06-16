@@ -278,6 +278,7 @@ class AlgorithmCategory(Enum):\n\
             "    const StatusCode sc = Algorithm::initialize();",
             "    if ( sc.isFailure() ) return sc;",
             "    Allen::initialize_algorithm(m_algorithm);",
+            "    m_algorithm.set_name(this->name());",
             "    return sc;",
             "}",
             "",
@@ -316,19 +317,18 @@ class AlgorithmCategory(Enum):\n\
         code += "auto const& constants = *m_constants.get();\n"
 
         code += "\n".join((
+            f"std::vector<{typ}> empty_vector_tes_wrappers_{agg.typename} {{}};\n" +
             f"std::vector<Allen::TESWrapperInput<{typ}>> tes_wrappers_{agg.typename};\n" +
             f"tes_wrappers_{agg.typename}.reserve(m_{agg.typename}.size());\n" +
             f"for (auto const& h : m_{agg.typename}) {{\n" +
             f"  auto* inp = h.getIfExists(); \n" +
-            f"  if (inp) \n" +
-            f"    tes_wrappers_{agg.typename}.emplace_back(*inp, \"{agg.typename}\");\n" +
+            f"  tes_wrappers_{agg.typename}.emplace_back(inp ? *inp : empty_vector_tes_wrappers_{agg.typename}, \"{agg.typename}\");\n" +
             f"}}\n" +
             f"std::vector<std::reference_wrapper<ArgumentData>> arg_data_{agg.typename};\n" +
             f"arg_data_{agg.typename}.reserve(m_{agg.typename}.size());\n" +
             f"for (auto& w : tes_wrappers_{agg.typename}) {{\n" +
             f"  arg_data_{agg.typename}.emplace_back(w);\n" +
-            f"}}\n" +
-            f"InputAggregate<{typ}> input_aggregates_{agg.typename} {{arg_data_{agg.typename}}};\n"
+            f"}}\n"
             for agg, typ in zip(aggregates, aggregate_types)
         ))
 
@@ -553,6 +553,7 @@ class AlgorithmCategory(Enum):\n\
             f"    const StatusCode sc = base_class_t::initialize();",
             f"    if ( sc.isFailure() ) return sc;",
             f"    Allen::initialize_algorithm(m_algorithm);",
+            f"    m_algorithm.set_name(this->name());",
             f"    return sc;",
             f"}}",
             f"// wrapped algorithm body",
@@ -661,7 +662,7 @@ class AlgorithmCategory(Enum):\n\
         code += "\n"
         if separable_compilation:
             for alg in selection_algorithms:
-                code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned);\n"
+                code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned, const unsigned);\n"
             code += "\n"
             for alg in selection_algorithms:
                 code += f"extern template void line_output_monitor<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, const RuntimeOptions&, const Allen::Context&);\n"
@@ -671,11 +672,11 @@ class AlgorithmCategory(Enum):\n\
             if i != len(selection_algorithms) - 1:
                 code += ",\n"
         code += "\n};\n\n"
-        code += "__device__ inline void invoke_line_functions(unsigned index, char* a, bool* b, unsigned* c, Allen::IMultiEventContainer** d, unsigned e, unsigned f, unsigned g, unsigned h, unsigned i, unsigned j) {\n"
+        code += "__device__ inline void invoke_line_functions(unsigned index, char* a, bool* b, unsigned* c, Allen::IMultiEventContainer** d, unsigned e, unsigned f, unsigned g, unsigned h, unsigned i, unsigned j, const unsigned k) {\n"
         code += f"  assert(index < {len(selection_algorithms)});\n"
         code += "  switch (index) {\n"
         for i, alg in enumerate(selection_algorithms):
-            code += f"    case {i}: process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(a, b, c, d, e, f, g, h, i, j); break;\n"
+            code += f"    case {i}: process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(a, b, c, d, e, f, g, h, i, j, k); break;\n"
         code += "  }\n}\n\n"
         code += f"constexpr std::array<void(*)(char*, const RuntimeOptions&, const Allen::Context&), {len(selection_algorithms)}> line_output_monitor_functions = {{\n"
         for i, alg in enumerate(selection_algorithms):

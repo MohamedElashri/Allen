@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import (
+from AllenAlgorithms.algorithms import (
     track_electron_mva_line_t, single_high_pt_electron_line_t,
     displaced_dielectron_line_t, displaced_leptons_line_t,
     single_high_et_line_t, prompt_vertex_evaluator_t,

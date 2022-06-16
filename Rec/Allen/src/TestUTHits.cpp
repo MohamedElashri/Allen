@@ -12,21 +12,25 @@
 #include "Event/PrHits.h"
 
 // Allen
-#include "HostBuffers.cuh"
 #include "UTEventModel.cuh"
 #include "Logger.h"
 
 using simd = SIMDWrapper::best::types;
 
 class TestUTHits final
-  : public Gaudi::Functional::Consumer<void(const HostBuffers&, const LHCb::MCHits&, const LHCb::Pr::UT::Hits&)> {
+  : public Gaudi::Functional::Consumer<
+      void(const std::vector<unsigned>&, const std::vector<char>&, const LHCb::MCHits&, const LHCb::Pr::UT::Hits&)> {
 
 public:
   /// Standard constructor
   TestUTHits(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
-  void operator()(const HostBuffers&, const LHCb::MCHits&, const LHCb::Pr::UT::Hits&) const override;
+  void operator()(
+    const std::vector<unsigned>&,
+    const std::vector<char>&,
+    const LHCb::MCHits&,
+    const LHCb::Pr::UT::Hits&) const override;
 
 private:
   mutable Gaudi::Accumulators::BinomialCounter<> m_allen_hit_eff {this, "GPU UT Hit efficiency"};
@@ -39,24 +43,20 @@ TestUTHits::TestUTHits(const std::string& name, ISvcLocator* pSvcLocator) :
   Consumer(
     name,
     pSvcLocator,
-    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"},
+    {KeyValue {"ut_hit_offsets", ""},
+     KeyValue {"ut_hits", ""},
      KeyValue {"UnpackedUTHits", "/Event/MC/UT/Hits"},
      KeyValue {"UTHitsLocation", UTInfo::HitLocation}})
 {}
 
-void TestUTHits::
-operator()(HostBuffers const& host_buffers, LHCb::MCHits const& mc_hits, LHCb::Pr::UT::Hits const& hit_handler) const
+void TestUTHits::operator()(
+  const std::vector<unsigned>& ut_hit_offsets,
+  const std::vector<char>& ut_hits,
+  LHCb::MCHits const& mc_hits,
+  LHCb::Pr::UT::Hits const& hit_handler) const
 {
-  if (host_buffers.host_number_of_selected_events == 0) {
-    info() << "Allen UT decoding was not run." << endmsg;
-    return;
-  }
-
   // read in offsets and hits from the buffer
-  const auto& ut_hit_offsets = host_buffers.ut_hits_offsets;
-  const auto& ut_hits = host_buffers.ut_hits;
-
-  const auto n_hits_total_allen = ut_hit_offsets[host_buffers.ut_hits_offsets.size() - 1];
+  const auto n_hits_total_allen = ut_hit_offsets[ut_hit_offsets.size() - 1];
   const auto n_hits_total_rec = hit_handler.nHits();
   // call the UT::Hits_t ctor in UTEventModel.cuh with offset=0
   UT::ConstHits ut_hit_container_allen {ut_hits.data(), n_hits_total_allen};
@@ -75,8 +75,7 @@ operator()(HostBuffers const& host_buffers, LHCb::MCHits const& mc_hits, LHCb::P
   // cases that it doesn't cover should be pathological... (the trick is simple: fill a vector of unique z-positions.
   // there should be 16 or less if there are no hits in the respective area)
   std::vector<float> known_zAtYEq0;
-  for (unsigned sector_group_index = 0; sector_group_index < host_buffers.ut_hits_offsets.size() - 1;
-       sector_group_index++)
+  for (unsigned sector_group_index = 0; sector_group_index < ut_hit_offsets.size() - 1; sector_group_index++)
     for (unsigned hit_idx = ut_hit_offsets[sector_group_index]; hit_idx < ut_hit_offsets[sector_group_index + 1];
          hit_idx++)
       if (
@@ -106,8 +105,7 @@ operator()(HostBuffers const& host_buffers, LHCb::MCHits const& mc_hits, LHCb::P
   };
 
   // loop sector groups and fill hit container for re-ordering
-  for (unsigned sector_group_index = 0; sector_group_index < host_buffers.ut_hits_offsets.size() - 1;
-       sector_group_index++) {
+  for (unsigned sector_group_index = 0; sector_group_index < ut_hit_offsets.size() - 1; sector_group_index++) {
     // loop hits in sector group
     debug() << "Got " << ut_hit_offsets[sector_group_index + 1] - ut_hit_offsets[sector_group_index]
             << " Allen UT hits sector group " << sector_group_index << endmsg;

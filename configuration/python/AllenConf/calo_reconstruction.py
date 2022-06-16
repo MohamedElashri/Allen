@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-from AllenConf.algorithms import data_provider_t, calo_count_digits_t, host_prefix_sum_t, calo_decode_t, track_digit_selective_matching_t, brem_recovery_t, momentum_brem_correction_t, add_electron_id_t, calo_seed_clusters_t, calo_find_clusters_t
+from AllenAlgorithms.algorithms import data_provider_t, calo_count_digits_t, host_prefix_sum_t, calo_decode_t, track_digit_selective_matching_t, brem_recovery_t, momentum_brem_correction_t, add_electron_id_t, calo_seed_clusters_t, calo_find_clusters_t
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 

@@ -32,7 +32,8 @@
     unsigned,                                                                                                  \
     unsigned,                                                                                                  \
     unsigned,                                                                                                  \
-    unsigned);                                                                                                 \
+    unsigned,                                                                                                  \
+    const unsigned);                                                                                           \
   template void line_output_monitor<DERIVED, PARAMETERS>(char*, const RuntimeOptions&, const Allen::Context&); \
   INSTANTIATE_ALGORITHM(DERIVED)
 
@@ -47,11 +48,11 @@ using line_fn_t = void (*)(
   unsigned,
   unsigned,
   unsigned,
-  unsigned);
+  unsigned,
+  const unsigned);
 
 template<typename Derived, typename Parameters>
-using type_erased_tuple_t =
-  std::tuple<Parameters, size_t, unsigned, unsigned, ArgumentReferences<Parameters>, const Derived*>;
+using type_erased_tuple_t = std::tuple<Parameters, size_t, unsigned, ArgumentReferences<Parameters>, const Derived*>;
 
 template<typename Derived, typename Parameters>
 struct Line {
@@ -221,10 +222,9 @@ void line_output_monitor(char* input, const RuntimeOptions& runtime_options, con
   if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
     if (input != nullptr) {
       const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
-      const auto& parameters = std::get<0>(type_casted_input);
-      auto derived_instance = std::get<5>(type_casted_input);
-      if (parameters.enable_monitoring) {
-        derived_instance->output_monitor(std::get<4>(type_casted_input), runtime_options, context);
+      auto derived_instance = std::get<4>(type_casted_input);
+      if (derived_instance->template property<typename Parameters::enable_monitoring_t>()) {
+        derived_instance->output_monitor(std::get<3>(type_casted_input), runtime_options, context);
       }
     }
   }
@@ -241,55 +241,68 @@ __device__ void process_line(
   unsigned evt_lo,
   unsigned gps_hi,
   unsigned gps_lo,
-  unsigned line_offset)
+  unsigned line_offset,
+  const unsigned number_of_events)
 {
-  const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
-  const auto& parameters = std::get<0>(type_casted_input);
-  const auto event_list_size = std::get<1>(type_casted_input);
-  const auto number_of_events = std::get<2>(type_casted_input);
-  const auto event_number = blockIdx.x;
-
-  // Check if blockIdx.x (event_number) is in dev_event_list
-  unsigned mask = 0;
-  for (unsigned i = 0; i < (event_list_size + warp_size - 1) / warp_size; ++i) {
-    const auto index = i * warp_size + threadIdx.x;
-    mask |=
-      __ballot_sync(0xFFFFFFFF, index < event_list_size ? event_number == parameters.dev_event_list[index] : false);
-  }
-
-  // Do initialization for all events, regardless of mask
-  // * Populate offsets in first block
-  if (blockIdx.x == 0) {
-    for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
-      decisions_offsets[i] = line_offset + Derived::offset(parameters, i);
-    }
-  }
-
-  // * Populate IMultiEventContainer* if relevant
-  if (blockIdx.x == 0 && threadIdx.x == 0) {
-    if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
-      const auto ptr = static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-      *particle_container_ptr = const_cast<Allen::IMultiEventContainer*>(ptr);
-    }
-    else {
+  if (input == nullptr) {
+    if (blockIdx.x == 0 && threadIdx.x == 0) {
       *particle_container_ptr = nullptr;
     }
+
+    if (blockIdx.x == 0) {
+      for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
+        decisions_offsets[i] = line_offset;
+      }
+    }
   }
+  else {
+    const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
+    const auto& parameters = std::get<0>(type_casted_input);
+    const auto event_list_size = std::get<1>(type_casted_input);
+    const auto event_number = blockIdx.x;
 
-  // * Populate decisions
-  const auto pre_scaler_hash = std::get<3>(type_casted_input);
-  const bool pre_scaler_result =
-    deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
-  const unsigned input_size = Derived::input_size(parameters, event_number);
+    // Check if blockIdx.x (event_number) is in dev_event_list
+    unsigned mask = 0;
+    for (unsigned i = 0; i < (event_list_size + warp_size - 1) / warp_size; ++i) {
+      const auto index = i * warp_size + threadIdx.x;
+      mask |=
+        __ballot_sync(0xFFFFFFFF, index < event_list_size ? event_number == parameters.dev_event_list[index] : false);
+    }
 
-  for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
-    const auto input = Derived::get_input(parameters, event_number, i);
-    const bool decision = mask > 0 && pre_scaler_result && Derived::select(parameters, input);
-    unsigned index = Derived::offset(parameters, event_number) + i;
-    decisions[index] = decision;
-    if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
-      if (parameters.enable_monitoring) {
-        Derived::monitor(parameters, input, index, decision);
+    // Do initialization for all events, regardless of mask
+    // * Populate offsets in first block
+    if (blockIdx.x == 0) {
+      for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
+        decisions_offsets[i] = line_offset + Derived::offset(parameters, i);
+      }
+    }
+
+    // * Populate IMultiEventContainer* if relevant
+    if (blockIdx.x == 0 && threadIdx.x == 0) {
+      if constexpr (Allen::has_dev_particle_container<Derived, device_datatype, input_datatype>::value) {
+        const auto ptr = static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
+        *particle_container_ptr = const_cast<Allen::IMultiEventContainer*>(ptr);
+      }
+      else {
+        *particle_container_ptr = nullptr;
+      }
+    }
+
+    // * Populate decisions
+    const auto pre_scaler_hash = std::get<2>(type_casted_input);
+    const bool pre_scaler_result =
+      deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+    const unsigned input_size = Derived::input_size(parameters, event_number);
+
+    for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
+      const auto input = Derived::get_input(parameters, event_number, i);
+      const bool decision = mask > 0 && pre_scaler_result && Derived::select(parameters, input);
+      unsigned index = Derived::offset(parameters, event_number) + i;
+      decisions[index] = decision;
+      if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
+        if (parameters.enable_monitoring) {
+          Derived::monitor(parameters, input, index, decision);
+        }
       }
     }
   }
@@ -316,7 +329,6 @@ void Line<Derived, Parameters>::operator()(
   auto parameters = std::make_tuple(
     derived_instance->make_parameters(1, 1, 0, arguments),
     size<typename Parameters::dev_event_list_t>(arguments),
-    first<typename Parameters::host_number_of_events_t>(arguments),
     m_pre_scaler_hash,
     arguments,
     derived_instance);

@@ -1,14 +1,13 @@
-/***************************************************************************** \
- * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
- *                                                                             *
- * This software is distributed under the terms of the GNU General Public      *
- * Licence version 5 (GPL Version 3), copied verbatim in the file "COPYING".   *
- *                                                                             *
- * In applying this licence, CERN does not waive the privileges and immunities *
- * granted to it by virtue of its status as an Intergovernmental Organization  *
- * or submit itself to any jurisdiction.                                       *
- \*****************************************************************************/
-
+/*****************************************************************************\
+* (c) Copyright 2008-2022 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the GNU General Public      *
+* Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
 /**
  * Convert AllenCalo to CaloCluster v2
  *
@@ -16,31 +15,30 @@
  *
  */
 
-#include "AllenCaloToCaloClusters.h"
+#include "GaudiAllenCaloToCaloClusters.h"
 
-DECLARE_COMPONENT(AllenCaloToCaloClusters)
+DECLARE_COMPONENT(GaudiAllenCaloToCaloClusters)
 
-AllenCaloToCaloClusters::AllenCaloToCaloClusters(const std::string& name, ISvcLocator* pSvcLocator) :
+GaudiAllenCaloToCaloClusters::GaudiAllenCaloToCaloClusters(const std::string& name, ISvcLocator* pSvcLocator) :
   Transformer(
     name,
     pSvcLocator,
     // Inputs
-    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}},
+    {KeyValue {"allen_ecal_cluster_offsets", ""}, KeyValue {"allen_ecal_clusters", ""}},
     // Outputs
     {KeyValue {"AllenEcalClusters", "Allen/Calo/EcalCluster"}})
 {}
 
-LHCb::Event::Calo::Clusters AllenCaloToCaloClusters::operator()(const HostBuffers& host_buffers) const
+LHCb::Event::Calo::Clusters GaudiAllenCaloToCaloClusters::operator()(
+  const std::vector<unsigned>& host_ecal_cluster_offsets,
+  const std::vector<CaloCluster>& host_ecal_clusters) const
 {
   LHCb::Event::Calo::Clusters EcalClusters;
   // Make the clusters
   const unsigned i_event = 0;
   const unsigned number_of_events = 1;
 
-  unsigned number_of_ecal_clusters =
-    host_buffers.host_ecal_cluster_offsets[number_of_events] - host_buffers.host_ecal_cluster_offsets[i_event];
-
-  CaloCluster* ecal_clusters = (CaloCluster*) (host_buffers.host_ecal_clusters.data());
+  unsigned number_of_ecal_clusters = host_ecal_cluster_offsets[number_of_events] - host_ecal_cluster_offsets[i_event];
 
   if (msgLevel(MSG::DEBUG)) {
     debug() << "Number of Ecal clusters to convert = " << number_of_ecal_clusters << endmsg;
@@ -52,7 +50,7 @@ LHCb::Event::Calo::Clusters AllenCaloToCaloClusters::operator()(const HostBuffer
   // Don't need to access them with offset since one event is processed at a time
   int16_t iFirstEntry = 0;
   for (unsigned i = 0; i < number_of_ecal_clusters; i++) {
-    const auto& cluster = ecal_clusters[i];
+    const auto& cluster = host_ecal_clusters[i];
 
     auto seedCellID = LHCb::Detector::Calo::DenseIndex::details::toCellID(cluster.center_id);
 

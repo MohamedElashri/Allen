@@ -38,10 +38,10 @@ __global__ void make_lepton_id::make_lepton_id(make_lepton_id::Parameters parame
   const auto scifi_tracks = parameters.dev_scifi_tracks_view[event_number];
   const unsigned offset = scifi_tracks.offset();
   const unsigned n_tracks = scifi_tracks.size();
-  const uint8_t* event_is_muon = parameters.dev_is_muon + offset;
-  const uint8_t* event_is_electron = parameters.dev_is_electron + offset;
-  uint8_t* event_lepton_id = parameters.dev_lepton_id + offset;
+  const auto* event_is_muon = parameters.dev_is_muon + offset;
+  const auto* event_is_electron = parameters.dev_is_electron + offset;
+  auto* event_lepton_id = parameters.dev_lepton_id + offset;
   for (unsigned i_track = threadIdx.x; i_track < n_tracks; i_track += blockDim.x) {
-    event_lepton_id[i_track] = event_is_muon[i_track] | event_is_electron[i_track];
+    event_lepton_id[i_track] = event_is_muon[i_track] | (event_is_electron[i_track] << 1);
   }
 }

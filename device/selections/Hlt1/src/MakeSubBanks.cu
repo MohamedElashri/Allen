@@ -95,6 +95,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       const unsigned sv_index = event_unique_sv_list[i_sv];
       const Allen::Views::Physics::CompositeParticle* sv =
         static_cast<const Allen::Views::Physics::CompositeParticle*>(event_sv_ptrs[sv_index]);
+
       const unsigned n_substr = sv->number_of_children();
       const unsigned sv_struct = ((n_substr & 0xFFFF) << 1) | 0;
       if (i_part == 0) {

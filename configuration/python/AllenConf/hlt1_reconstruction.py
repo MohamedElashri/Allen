@@ -12,11 +12,13 @@ from AllenConf.validators import (
     velo_validation, veloUT_validation, forward_validation, muon_validation,
     pv_validation, rate_validation, kalman_validation, selreport_validation)
 from PyConf.control_flow import NodeLogic, CompositeNode
+from PyConf.tonic import configurable
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer
 from AllenConf.utils import gec
 
 
-def hlt1_reconstruction(add_electron_id=False):
+@configurable
+def hlt1_reconstruction(add_electron_id=True):
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     velo_states = run_velo_kalman_filter(velo_tracks)

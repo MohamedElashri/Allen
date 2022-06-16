@@ -16,7 +16,7 @@ void kalman_filter::kalman_filter_t::set_arguments_size(
 
 void kalman_filter::kalman_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants& constants,
   HostBuffers& host_buffers,
   const Allen::Context& context) const
@@ -24,9 +24,7 @@ void kalman_filter::kalman_filter_t::operator()(
   global_function(kalman_filter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_scifi_geometry, constants.dev_inv_clus_res, constants.dev_kalman_params);
 
-  if (runtime_options.fill_extra_host_buffers) {
-    assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, context);
-  }
+  safe_assign_to_host_buffer<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, context);
 }
 
 namespace ParKalmanFilter {

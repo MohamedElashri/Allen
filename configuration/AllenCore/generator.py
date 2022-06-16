@@ -12,7 +12,7 @@ from AllenCore.cftree_ops import get_execution_list_for, BoolNode
 from AllenCore.event_list_utils import add_event_list_combiners
 from AllenCore.AllenSequenceGenerator import generate_allen_sequence
 from AllenCore.allen_benchmarks import benchmark_weights, benchmark_efficiencies
-from AllenConf.algorithms import AlgorithmCategory, host_init_event_list_t
+from AllenAlgorithms.algorithms import AlgorithmCategory, host_init_event_list_t
 from PyConf.components import Algorithm
 
 

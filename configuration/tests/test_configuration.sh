@@ -14,7 +14,9 @@
 TEST_DIR=$(mktemp -d)
 cp -r ${1}/tests ${TEST_DIR}/
 cp -r ${1}/python/AllenConf ${TEST_DIR}/tests/
-cp ${1}/tests/test_algorithms.py ${TEST_DIR}/tests/AllenConf/algorithms.py
+mkdir ${TEST_DIR}/tests/AllenAlgorithms
+touch ${TEST_DIR}/tests/AllenAlgorithms/__init__.py
+cp ${1}/tests/test_algorithms.py ${TEST_DIR}/tests/AllenAlgorithms/algorithms.py
 cp -r ${1}/AllenCore ${TEST_DIR}/tests/
 rm ${TEST_DIR}/tests/test_algorithms.py ${TEST_DIR}/tests/test_configuration.sh
 

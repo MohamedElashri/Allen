@@ -31,10 +31,10 @@ void dec_reporter::dec_reporter_t::operator()(
   global_function(dec_reporter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
-  Allen::copy<host_dec_reports_t, dev_dec_reports_t>(arguments, context);
+  Allen::copy_async<host_dec_reports_t, dev_dec_reports_t>(arguments, context);
   safe_assign_to_host_buffer<dev_dec_reports_t>(host_buffers.host_dec_reports, arguments, context);
 
-  // Synchronize
+  // Synchronize copies
   Allen::synchronize(context);
 }
 
@@ -55,6 +55,8 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
     event_dec_reports[0] = parameters.tck;
     event_dec_reports[1] = parameters.task_id;
   }
+
+  __syncthreads();
 
   for (unsigned line_index = threadIdx.x; line_index < parameters.dev_number_of_active_lines[0];
        line_index += blockDim.x) {

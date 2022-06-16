@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import initialize_number_of_events, mep_layout, make_line_composite_node, line_maker, make_gec, make_checkPV, make_lowmult
+from AllenConf.utils import line_maker, make_gec, make_checkPV, make_lowmult
 from AllenConf.odin import make_bxtype
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
@@ -13,13 +13,11 @@ from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias
 from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
+from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision
 
 from AllenConf.validators import rate_validation
-from AllenCore.generator import make_algorithm
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
-from AllenConf.odin import decode_odin
-from AllenConf.persistency import make_global_decision, make_sel_report_writer
 
 
 def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
@@ -288,9 +286,12 @@ def default_smog2_lines(velo_tracks, forward_tracks, long_track_particles,
     return lines
 
 
-def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
+def setup_hlt1_node(withMCChecking=False,
+                    EnableGEC=True,
+                    withSMOG2=False,
+                    enableRateValidator=True):
     # Reconstruct objects needed as input for selection lines
-    reconstructed_objects = hlt1_reconstruction(add_electron_id=True)
+    reconstructed_objects = hlt1_reconstruction()
 
     gec = make_gec()
     with line_maker.bind(prefilter=gec if EnableGEC else None):
@@ -392,13 +393,18 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         line_nodes += [tup[1] for tup in SMOG2_lines]
 
     lines = CompositeNode(
-        "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
+        "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
+
+    gather_selections_node = CompositeNode(
+        "RunAllLines",
+        [lines, make_gather_selections(lines=line_algorithms)],
+        NodeLogic.NONLAZY_AND,
+        force_order=True)
 
     hlt1_node = CompositeNode(
         "Allen", [
-            lines,
+            gather_selections_node,
             make_global_decision(lines=line_algorithms),
-            rate_validation(lines=line_algorithms),
             *make_sel_report_writer(
                 lines=line_algorithms,
                 forward_tracks=reconstructed_objects["long_track_particles"],
@@ -407,6 +413,15 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, withSMOG2=False):
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)
+
+    if enableRateValidator:
+        hlt1_node = CompositeNode(
+            "AllenRateValidation", [
+                hlt1_node,
+                rate_validation(lines=line_algorithms),
+            ],
+            NodeLogic.NONLAZY_AND,
+            force_order=True)
 
     if not withMCChecking:
         return hlt1_node

@@ -89,9 +89,9 @@ void calo_find_clusters::calo_find_clusters_t::set_arguments_size(
 
 __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   Allen::Context const& context) const
 {
   // Find clusters.
@@ -100,9 +100,4 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
   global_function(calo_find_clusters)(
     dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
     arguments, constants.dev_ecal_geometry, property<ecal_min_adc_t>().get());
-
-  if (runtime_options.fill_extra_host_buffers) {
-    safe_assign_to_host_buffer<dev_ecal_cluster_offsets_t>(host_buffers.host_ecal_cluster_offsets, arguments, context);
-    safe_assign_to_host_buffer<dev_ecal_clusters_t>(host_buffers.host_ecal_clusters, arguments, context);
-  }
 }

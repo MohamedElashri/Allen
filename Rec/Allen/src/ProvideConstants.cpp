@@ -34,7 +34,7 @@ namespace {
   }
 } // namespace
 
-class ProvideConstants final : public Gaudi::Functional::Transformer<std::tuple<Constants const*>(LHCb::ODIN const&)> {
+class ProvideConstants final : public Gaudi::Functional::Transformer<Constants const*(LHCb::ODIN const&)> {
 
 public:
   /// Standard constructor
@@ -44,16 +44,17 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-  std::tuple<Constants const*> operator()(LHCb::ODIN const& odin) const override;
+  Constants const* operator()(LHCb::ODIN const& odin) const override;
 
 private:
   Allen::NonEventData::IUpdater* m_updater = nullptr;
 
   Constants m_constants;
 
-  Gaudi::Property<std::string> m_paramDir {this,
-                                           "ParamDir",
-                                           ""}; // set this explicitly, must match with the Condition tags.
+  Gaudi::Property<std::string> m_paramDir {
+    this,
+    "ParamDir",
+    "${PARAMFILESROOT}"}; // set this explicitly, must match with the Condition tags.
   Gaudi::Property<std::string> m_updaterName {this, "UpdaterName", "AllenUpdater"};
 };
 
@@ -85,14 +86,15 @@ StatusCode ProvideConstants::initialize()
     return StatusCode::FAILURE;
   }
 
-  std::string geometry_path = resolveEnvVars(m_paramDir);
+  std::string geometry_path = resolveEnvVars(m_paramDir) + "/data";
 
   std::vector<float> muon_field_of_interest_params;
-  read_muon_field_of_interest(muon_field_of_interest_params, geometry_path + "/field_of_interest_params.bin");
+  read_muon_field_of_interest(
+    muon_field_of_interest_params, geometry_path + "/allen_muon_field_of_interest_params.bin");
 
-  m_constants.reserve_and_initialize(muon_field_of_interest_params, geometry_path + "/params_kalman_FT6x2/");
+  m_constants.reserve_and_initialize(muon_field_of_interest_params, geometry_path);
 
-  CatboostModelReader muon_catboost_model_reader {geometry_path + "/muon_catboost_model.json"};
+  CatboostModelReader muon_catboost_model_reader {geometry_path + "/allen_muon_catboost_model.json"};
   m_constants.initialize_muon_catboost_model_constants(
     muon_catboost_model_reader.n_trees(),
     muon_catboost_model_reader.tree_depths(),
@@ -101,7 +103,7 @@ StatusCode ProvideConstants::initialize()
     muon_catboost_model_reader.leaf_offsets(),
     muon_catboost_model_reader.split_border(),
     muon_catboost_model_reader.split_feature());
-  TwoTrackMVAModelReader two_track_mva_model_reader {geometry_path + "/two_track_mva_model.json"};
+  TwoTrackMVAModelReader two_track_mva_model_reader {geometry_path + "/allen_two_track_mva_model.json"};
   m_constants.initialize_two_track_mva_model_constants(
     two_track_mva_model_reader.weights(),
     two_track_mva_model_reader.biases(),
@@ -117,12 +119,12 @@ StatusCode ProvideConstants::initialize()
   return StatusCode::SUCCESS;
 }
 
-std::tuple<Constants const*> ProvideConstants::operator()(LHCb::ODIN const& odin) const
+Constants const* ProvideConstants::operator()(LHCb::ODIN const& odin) const
 {
   // Trigger an update of non-event-data
   m_updater->update(odin.data);
 
-  return {&m_constants};
+  return &m_constants;
 }
 
 DECLARE_COMPONENT(ProvideConstants)

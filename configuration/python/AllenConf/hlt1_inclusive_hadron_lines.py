@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.algorithms import (
+from AllenAlgorithms.algorithms import (
     kstopipi_line_t, track_mva_line_t, two_track_mva_line_t,
     two_track_mva_evaluator_t, two_track_line_ks_t)
 from AllenConf.utils import initialize_number_of_events

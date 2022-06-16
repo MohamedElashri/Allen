@@ -5,7 +5,7 @@ from PyConf.components import Algorithm
 from PyConf.dataflow import configurable_inputs
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.cftree_ops import get_best_order, BoolNode
-from AllenConf.algorithms import (
+from AllenAlgorithms.algorithms import (
     event_list_intersection_t,
     event_list_union_t,
     event_list_inversion_t,
@@ -59,7 +59,7 @@ def add_event_list_combiners(order):
         output_masks = []
         for n in nodes:
             m = [a for a in n.outputs.values() if a.type == "mask_t"]
-            assert len(m) == 1, f"should have one output mask, got {len(m)}"
+            assert len(m) == 1, f"{n} should have one output mask, got {len(m)}"
             output_masks.append(m[0])
 
         return _make_combiner(inputs=output_masks, logic=logic)
