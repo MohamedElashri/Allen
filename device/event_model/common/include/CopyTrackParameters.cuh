@@ -28,10 +28,10 @@ __device__ inline void prepare_long_tracks(
     // direction at first state -> velo state of track
     const auto tx = velo_state.tx();
     const auto ty = velo_state.ty();
-    const double slope2 = tx * tx + ty * ty;
+    const auto slope2 = tx * tx + ty * ty;
     t.pt = std::sqrt(slope2 / (1.0 + slope2)) / std::fabs(qop);
     // pseudorapidity
-    const double rho = std::sqrt(slope2);
+    const auto rho = std::sqrt(slope2);
     t.rho = rho;
 
     // add all hits
@@ -45,7 +45,7 @@ __device__ inline void prepare_long_tracks(
 }
 
 __device__ inline void
-prepare_muons(const unsigned number_of_tracks_event, Checker::Track* long_checker_tracks, const uint8_t* is_muon)
+prepare_muons(const unsigned number_of_tracks_event, Checker::Track* long_checker_tracks, const bool* is_muon)
 {
   for (unsigned i_track = 0; i_track < number_of_tracks_event; i_track++) {
     long_checker_tracks[i_track].is_muon = is_muon[i_track];

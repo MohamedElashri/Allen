@@ -12,7 +12,7 @@ __global__ void muon_validator::muon_validator(muon_validator::Parameters parame
   const auto event_long_tracks = parameters.dev_multi_event_long_tracks_view->container(event_number);
   const auto endvelo_states = parameters.dev_velo_states_view[event_number];
   const unsigned offset_long_tracks = event_long_tracks.offset();
-  const uint8_t* is_muon = parameters.dev_is_muon + offset_long_tracks;
+  const bool* is_muon = parameters.dev_is_muon + offset_long_tracks;
   Checker::Track* muon_checker_tracks_event = parameters.dev_muon_checker_tracks + offset_long_tracks;
 
   prepare_long_tracks(event_long_tracks, endvelo_states, muon_checker_tracks_event);

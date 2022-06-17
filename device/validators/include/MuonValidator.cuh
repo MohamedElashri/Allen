@@ -22,7 +22,7 @@ namespace muon_validator {
     DEVICE_INPUT(dev_multi_event_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks)
     dev_multi_event_long_tracks_view;
     DEVICE_INPUT(dev_offsets_long_tracks_t, unsigned) dev_offsets_long_tracks;
-    DEVICE_INPUT(dev_is_muon_t, uint8_t) dev_is_muon;
+    DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
     DEVICE_OUTPUT(dev_muon_checker_tracks_t, Checker::Track) dev_muon_checker_tracks;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
