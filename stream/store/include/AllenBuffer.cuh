@@ -9,14 +9,22 @@ namespace Allen {
   private:
     Allen::Store::memory_manager_t<S>& m_mem_manager;
     const std::string m_tag;
-    gsl::span<T> m_span;
+    gsl::span<T> m_span {};
 
   public:
+    __host__ buffer(Allen::Store::memory_manager_t<S>& mem_manager, const std::string& tag) :
+      m_mem_manager(mem_manager), m_tag(tag)
+    {}
+
     __host__ buffer(Allen::Store::memory_manager_t<S>& mem_manager, const std::string& tag, size_t size) :
       m_mem_manager(mem_manager), m_tag(tag), m_span(reinterpret_cast<T*>(m_mem_manager.reserve(m_tag, size * sizeof(T))), size)
     {}
     
-    __host__ ~buffer() { m_mem_manager.free(m_tag); }
+    __host__ ~buffer() {
+      if (m_span.size() != 0) {
+        m_mem_manager.free(m_tag);
+      }
+    }
     
     constexpr __host__ size_t size() const {
       return m_span.size();
@@ -28,7 +36,9 @@ namespace Allen {
     }
 
     __host__ void resize(size_t size) {
-      m_mem_manager.free(m_tag);
+      if (m_span.size() != 0) {
+        m_mem_manager.free(m_tag);
+      }
       m_span = gsl::span<T>{reinterpret_cast<T*>(m_mem_manager.reserve(m_tag, size * sizeof(T))), size};
     }
     

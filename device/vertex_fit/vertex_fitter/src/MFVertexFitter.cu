@@ -22,18 +22,13 @@ void MFVertexFit::fit_mf_vertices_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   initialize<dev_mf_svs_t>(arguments, 0, context);
 
   global_function(fit_mf_vertices)(dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
-
-  safe_assign_to_host_buffer<dev_mf_svs_t>(
-    host_buffers.host_mf_secondary_vertices, host_buffers.host_mf_secondary_vertices_size, arguments, context);
-
-  assign_to_host_buffer<dev_mf_sv_offsets_t>(host_buffers.host_mf_sv_offsets, arguments, context);
 }
 
 __global__ void MFVertexFit::fit_mf_vertices(MFVertexFit::Parameters parameters)

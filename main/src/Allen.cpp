@@ -297,7 +297,7 @@ int allen(
 
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffers_manager =
-    std::make_unique<HostBuffersManager>(number_of_buffers, input_provider->events_per_slice(), n_lines, error_line);
+    std::make_unique<HostBuffersManager>(number_of_buffers, error_line);
 
   if (print_status) {
     buffers_manager->printStatus();
