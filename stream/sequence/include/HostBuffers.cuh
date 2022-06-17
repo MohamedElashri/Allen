@@ -31,7 +31,7 @@ public:
   Allen::host_buffer<unsigned> host_number_of_multivertex {m_mem_manager, "host_number_of_multivertex"};
   Allen::host_buffer<unsigned> host_atomics_scifi {m_mem_manager, "host_atomics_scifi"};
   Allen::host_buffer<ParKalmanFilter::FittedTrack> host_kf_tracks {m_mem_manager, "host_kf_tracks"};
-  
+
   // Dec / sel reports
   Allen::host_buffer<unsigned> host_dec_reports {m_mem_manager, "host_dec_reports"};
   Allen::host_buffer<unsigned> host_sel_reports {m_mem_manager, "host_sel_reports"};

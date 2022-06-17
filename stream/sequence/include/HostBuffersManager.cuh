@@ -19,9 +19,7 @@ struct HostBuffers;
 struct HostBuffersManager {
   enum class BufferStatus { Empty, Filling, Filled, Processing, Processed, Written };
 
-  HostBuffersManager(
-    size_t nBuffers,
-    const unsigned errorevent_line) : m_errorevent_line(errorevent_line)
+  HostBuffersManager(size_t nBuffers, const unsigned errorevent_line) : m_errorevent_line(errorevent_line)
   {
     init(nBuffers);
   }
@@ -38,8 +36,8 @@ struct HostBuffersManager {
 
   void writeSingleEventPassthrough(const size_t b);
 
-  std::tuple<gsl::span<bool>, gsl::span<uint32_t>, gsl::span<uint32_t>, gsl::span<unsigned>>
-  getBufferOutputData(size_t b);
+  std::tuple<gsl::span<bool>, gsl::span<uint32_t>, gsl::span<uint32_t>, gsl::span<unsigned>> getBufferOutputData(
+    size_t b);
 
   void printStatus() const;
   bool buffersEmpty() const { return (empty_buffers.size() == host_buffers.size()); }

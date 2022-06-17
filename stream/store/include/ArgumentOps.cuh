@@ -234,10 +234,7 @@ namespace Allen {
    * @brief Copies asynchronously a datatype onto an Allen::buffer.
    */
   template<typename B, typename A, typename Args>
-  void copy_async(
-    Allen::buffer<A, typename B::type>& buffer,
-    const Args& arguments,
-    const Allen::Context& context)
+  void copy_async(Allen::buffer<A, typename B::type>& buffer, const Args& arguments, const Allen::Context& context)
   {
     if (buffer.size() < size<B>(arguments)) {
       buffer.resize(size<B>(arguments));
@@ -245,30 +242,26 @@ namespace Allen {
 
     const Allen::memcpy_kind kind = []() {
       if constexpr (
-        std::is_same_v<Allen::Store::memory_manager_details::Host, A> && std::is_base_of_v<Allen::Store::host_datatype, B>)
+        std::is_same_v<Allen::Store::memory_manager_details::Host, A> &&
+        std::is_base_of_v<Allen::Store::host_datatype, B>)
         return Allen::memcpyHostToHost;
       else if constexpr (
-        std::is_same_v<Allen::Store::memory_manager_details::Host, A> && std::is_base_of_v<Allen::Store::device_datatype, B>)
+        std::is_same_v<Allen::Store::memory_manager_details::Host, A> &&
+        std::is_base_of_v<Allen::Store::device_datatype, B>)
         return Allen::memcpyDeviceToHost;
       else if constexpr (
-        std::is_same_v<Allen::Store::memory_manager_details::Device, A> && std::is_base_of_v<Allen::Store::host_datatype, B>)
+        std::is_same_v<Allen::Store::memory_manager_details::Device, A> &&
+        std::is_base_of_v<Allen::Store::host_datatype, B>)
         return Allen::memcpyHostToDevice;
       else
         return Allen::memcpyDeviceToDevice;
     }();
 
-    copy_async(
-      buffer.to_span(),
-      gsl::span {data<B>(arguments), size<B>(arguments)},
-      context,
-      kind);
+    copy_async(buffer.to_span(), gsl::span {data<B>(arguments), size<B>(arguments)}, context, kind);
   }
 
   template<typename B, typename A, typename Args>
-  void copy(
-    Allen::buffer<A, typename B::type>& buffer,
-    const Args& arguments,
-    const Allen::Context& context)
+  void copy(Allen::buffer<A, typename B::type>& buffer, const Args& arguments, const Allen::Context& context)
   {
     copy_async<B, A, Args>(buffer, arguments, context);
     synchronize(context);
