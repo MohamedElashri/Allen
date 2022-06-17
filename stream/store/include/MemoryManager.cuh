@@ -8,18 +8,20 @@
 #include "Common.h"
 #include "Logger.h"
 #include "Configuration.cuh"
+#include "ArgumentData.cuh"
+#include "Store.cuh"
 
 namespace Allen::Store {
 
   namespace memory_manager_details {
     // Distinguish between Host and Device memory managers
     struct Host {
-      constexpr static auto scope = ArgumentScope::Host;
+      constexpr static auto scope = Allen::Store::Scope::Host;
       static void free(void* ptr) { Allen::free_host(ptr); }
       static void malloc(void** ptr, size_t s) { Allen::malloc_host(ptr, s); }
     };
     struct Device {
-      constexpr static auto scope = ArgumentScope::Device;
+      constexpr static auto scope = Allen::Store::Scope::Device;
       static void free(void* ptr) { Allen::free(ptr); }
       static void malloc(void** ptr, size_t s) { Allen::malloc(ptr, s); }
     };
@@ -42,9 +44,11 @@ namespace Allen::Store {
   template<typename Target>
   class MemoryManager<Target, memory_manager_details::SingleAlloc> : public Target {
   private:
-    char* m_base_pointer = nullptr;
+    std::string m_name = "Memory manager";
     size_t m_max_available_memory = 0;
     unsigned m_guaranteed_alignment = 512;
+    char* m_base_pointer = nullptr;
+    size_t m_total_memory_required = 0;
 
     /**
      * @brief A memory segment is composed of a start
@@ -57,15 +61,17 @@ namespace Allen::Store {
       size_t size;
       std::string tag;
     };
-
     std::list<MemorySegment> m_memory_segments = {{0, m_max_available_memory, ""}};
-    size_t m_total_memory_required = 0;
-    std::string m_name = "Memory manager";
 
   public:
     MemoryManager() = default;
-
-    MemoryManager(std::string name) : m_name {std::move(name)} {}
+    MemoryManager(const std::string& name) : m_name {name} {}
+    MemoryManager(const std::string& name, const size_t memory_size, const unsigned memory_alignment) :
+      m_name {name}, m_max_available_memory {memory_size}, m_guaranteed_alignment {memory_alignment}
+    {
+      if (m_base_pointer) Target::free(m_base_pointer);
+      Target::malloc(reinterpret_cast<void**>(&m_base_pointer), memory_size);
+    }
 
     /**
      * @brief Sets the m_max_available_memory of this manager.
@@ -81,18 +87,8 @@ namespace Allen::Store {
       m_max_available_memory = memory_size;
     }
 
-    /**
-     * @brief Reserves a memory request of size requested_size, implementation.
-     *        Finds the first available segment.
-     *        If there are no available segments of the requested size,
-     *        it throws an exception.
-     */
-    void reserve(ArgumentData& argument)
+    char* reserve(const std::string& tag, size_t requested_size)
     {
-      // Tag and requested size
-      const auto tag = argument.name();
-      size_t requested_size = argument.sizebytes();
-
       // Size requested should be greater than zero
       if (requested_size == 0) {
 #ifdef ALLEN_STANDALONE
@@ -131,7 +127,6 @@ namespace Allen::Store {
 
       // Start of allocation
       const auto start = it->start;
-      argument.set_pointer(m_base_pointer + start);
 
       // Update current segment
       it->start += aligned_request;
@@ -149,15 +144,20 @@ namespace Allen::Store {
       //       upon every reserve, and keeping the maximum used memory
       m_total_memory_required =
         std::max(m_total_memory_required, m_max_available_memory - m_memory_segments.back().size);
+
+      return m_base_pointer + start;
     }
 
     /**
-     * @brief Recursive free, implementation for Argument.
+     * @brief Reserves a memory request of size requested_size, implementation.
+     *        Finds the first available segment.
+     *        If there are no available segments of the requested size,
+     *        it throws an exception.
      */
-    void free(ArgumentData& argument)
-    {
-      const auto tag = argument.name();
+    void reserve(ArgumentData& argument) { argument.set_pointer(reserve(argument.name(), argument.sizebytes())); }
 
+    void free(const std::string& tag)
+    {
       if (logger::verbosity() >= 5) {
         verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
       }
@@ -193,6 +193,11 @@ namespace Allen::Store {
         }
       }
     }
+
+    /**
+     * @brief Recursive free, implementation for Argument.
+     */
+    void free(ArgumentData& argument) { free(argument.name()); }
 
     void test_alignment()
     {
@@ -258,15 +263,8 @@ namespace Allen::Store {
      */
     void reserve_memory(size_t, const unsigned) {}
 
-    /**
-     * @brief Allocates a segment of the requested size.
-     */
-    void reserve(ArgumentData& argument)
+    char* reserve(const std::string& tag, size_t requested_size)
     {
-      // Tag and requested size
-      const auto tag = argument.name();
-      size_t requested_size = argument.sizebytes();
-
       // Verify the pointer didn't exist in the memory segments map
       const auto it = m_memory_segments.find(tag);
       if (it != m_memory_segments.end()) {
@@ -286,21 +284,21 @@ namespace Allen::Store {
 
       Target::malloc(reinterpret_cast<void**>(&memory_pointer), requested_size);
 
-      argument.set_pointer(memory_pointer);
-
       // Add the pointer to the memory segments map
       m_memory_segments[tag] = MemorySegment {memory_pointer, requested_size};
 
       m_total_memory_required += requested_size;
+
+      return memory_pointer;
     }
 
     /**
-     * @brief Frees the requested argument.
+     * @brief Allocates a segment of the requested size.
      */
-    void free(ArgumentData& argument)
-    {
-      const auto tag = argument.name();
+    void reserve(ArgumentData& argument) { argument.set_pointer(reserve(argument.name(), argument.sizebytes())); }
 
+    void free(const std::string& tag, char* pointer)
+    {
       // Verify the pointer existed in the memory segments map
       const auto it = m_memory_segments.find(tag);
       if (it == m_memory_segments.end()) {
@@ -313,12 +311,17 @@ namespace Allen::Store {
         verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
       }
 
-      Target::free(argument.pointer());
+      Target::free(pointer);
 
       m_total_memory_required -= it->second.size;
 
       m_memory_segments.erase(tag);
     }
+
+    /**
+     * @brief Frees the requested argument.
+     */
+    void free(ArgumentData& argument) { free(argument.name(), argument.pointer()); }
 
     /**
      * @brief Frees all memory segments, effectively resetting the
@@ -393,5 +396,16 @@ namespace Allen::Store {
       }
     }
   };
+
+#ifdef MEMORY_MANAGER_MULTI_ALLOC
+  template<typename T>
+  using memory_manager_t = MemoryManager<T, memory_manager_details::MultiAlloc>;
+#else
+  template<typename T>
+  using memory_manager_t = MemoryManager<T, memory_manager_details::SingleAlloc>;
+#endif
+
+  using host_memory_manager_t = memory_manager_t<memory_manager_details::Host>;
+  using device_memory_manager_t = memory_manager_t<memory_manager_details::Device>;
 
 } // namespace Allen::Store

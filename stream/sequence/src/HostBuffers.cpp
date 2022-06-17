@@ -68,12 +68,6 @@ void HostBuffers::reserve(const unsigned max_number_of_events, const size_t n_li
   ::memset(sel_report_offsets, 0, (max_number_of_events + 1) * sizeof(uint32_t));
   host_sel_report_offsets = {sel_report_offsets, (max_number_of_events + 1)};
 
-  // Buffer for saving events passing Hlt1 selections.
-  bool* passing_event_list = nullptr;
-  Allen::malloc_host((void**) &passing_event_list, max_number_of_events * sizeof(bool));
-  ::memset(passing_event_list, 0, max_number_of_events * sizeof(bool));
-  host_passing_event_list = {passing_event_list, max_number_of_events};
-
   // Buffer for performing prefix sum
   // Note: If it is of insufficient space, it will get reallocated
   host_allocated_prefix_sum_space = 10000000;

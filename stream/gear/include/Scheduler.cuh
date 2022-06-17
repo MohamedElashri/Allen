@@ -19,26 +19,14 @@ constexpr bool contracts_enabled = true;
 constexpr bool contracts_enabled = false;
 #endif
 
-#ifdef MEMORY_MANAGER_MULTI_ALLOC
-using host_memory_manager_t = Allen::Store::
-  MemoryManager<Allen::Store::memory_manager_details::Host, Allen::Store::memory_manager_details::MultiAlloc>;
-using device_memory_manager_t = Allen::Store::
-  MemoryManager<Allen::Store::memory_manager_details::Device, Allen::Store::memory_manager_details::MultiAlloc>;
-#else
-using host_memory_manager_t = Allen::Store::
-  MemoryManager<Allen::Store::memory_manager_details::Host, Allen::Store::memory_manager_details::SingleAlloc>;
-using device_memory_manager_t = Allen::Store::
-  MemoryManager<Allen::Store::memory_manager_details::Device, Allen::Store::memory_manager_details::SingleAlloc>;
-#endif
-
 class Scheduler {
   std::vector<Allen::TypeErasedAlgorithm> m_sequence;
   Allen::Store::UnorderedStore m_store;
   std::vector<std::any> m_sequence_argument_ref_managers;
   std::vector<LifetimeDependencies> m_in_dependencies;
   std::vector<LifetimeDependencies> m_out_dependencies;
-  host_memory_manager_t host_memory_manager {"Host memory manager"};
-  device_memory_manager_t device_memory_manager {"Device memory manager"};
+  Allen::Store::host_memory_manager_t host_memory_manager {"Host memory manager"};
+  Allen::Store::device_memory_manager_t device_memory_manager {"Device memory manager"};
   bool do_print = false;
 
 private:
@@ -326,8 +314,8 @@ private:
     Allen::TypeErasedAlgorithm& algorithm,
     const LifetimeDependencies& in_dependencies,
     const LifetimeDependencies& out_dependencies,
-    host_memory_manager_t& host_memory_manager,
-    device_memory_manager_t& device_memory_manager,
+    Allen::Store::host_memory_manager_t& host_memory_manager,
+    Allen::Store::device_memory_manager_t& device_memory_manager,
     Allen::Store::UnorderedStore& store,
     bool do_print)
   {
@@ -363,8 +351,8 @@ private:
     std::any& argument_ref_manager,
     const LifetimeDependencies& in_dependencies,
     const LifetimeDependencies& out_dependencies,
-    host_memory_manager_t& host_memory_manager,
-    device_memory_manager_t& device_memory_manager,
+    Allen::Store::host_memory_manager_t& host_memory_manager,
+    Allen::Store::device_memory_manager_t& device_memory_manager,
     Allen::Store::UnorderedStore& store,
     const RuntimeOptions& runtime_options,
     const Constants& constants,

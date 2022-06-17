@@ -98,10 +98,10 @@ public:
 inline Allen::Store::ArgumentData create_allen_argument(const ConfiguredArgument& alg)
 {
   if (alg.scope == "host") {
-    return Allen::Store::ArgumentData {alg.name, Allen::Store::ArgumentScope::Host};
+    return Allen::Store::ArgumentData {alg.name, Allen::Store::Scope::Host};
   }
   else if (alg.scope == "device") {
-    return Allen::Store::ArgumentData {alg.name, Allen::Store::ArgumentScope::Device};
+    return Allen::Store::ArgumentData {alg.name, Allen::Store::Scope::Device};
   }
   else {
     throw ArgumentScopeNotSupportedException {alg.scope};

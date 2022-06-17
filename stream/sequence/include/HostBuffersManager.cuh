@@ -42,7 +42,7 @@ struct HostBuffersManager {
 
   void writeSingleEventPassthrough(const size_t b);
 
-  std::tuple<gsl::span<bool const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<unsigned const>>
+  std::tuple<gsl::span<bool>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<unsigned const>>
   getBufferOutputData(size_t b);
 
   void printStatus() const;

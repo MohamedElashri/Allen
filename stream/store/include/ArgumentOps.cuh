@@ -11,6 +11,7 @@
 #include "PinnedVector.h"
 #include "Datatype.cuh"
 #include "Logger.h"
+#include "AllenBuffer.cuh"
 
 /**
  * @brief Sets the size of a container to the specified size.
@@ -202,10 +203,10 @@ namespace Allen {
         return Allen::memcpyHostToHost;
       else if constexpr (
         std::is_base_of_v<Allen::Store::host_datatype, A> && std::is_base_of_v<Allen::Store::device_datatype, B>)
-        return Allen::memcpyHostToDevice;
+        return Allen::memcpyDeviceToHost;
       else if constexpr (
         std::is_base_of_v<Allen::Store::device_datatype, A> && std::is_base_of_v<Allen::Store::host_datatype, B>)
-        return Allen::memcpyDeviceToHost;
+        return Allen::memcpyHostToDevice;
       else
         return Allen::memcpyDeviceToDevice;
     }();
@@ -293,6 +294,50 @@ namespace Allen {
     if constexpr (!std::is_base_of_v<Allen::Store::host_datatype, T>) {
       synchronize(context);
     }
+  }
+
+  /**
+   * @brief Copies asynchronously a datatype onto an Allen::buffer.
+   */
+  template<typename B, typename A, typename Args>
+  void copy_async(
+    Allen::buffer<A, typename B::type>& buffer,
+    const Args& arguments,
+    const Allen::Context& context)
+  {
+    if (buffer.size() < size<B>(arguments)) {
+      buffer.resize(size<B>(arguments));
+    }
+
+    const Allen::memcpy_kind kind = []() {
+      if constexpr (
+        std::is_same_v<Allen::Store::memory_manager_details::Host, A> && std::is_base_of_v<Allen::Store::host_datatype, B>)
+        return Allen::memcpyHostToHost;
+      else if constexpr (
+        std::is_same_v<Allen::Store::memory_manager_details::Host, A> && std::is_base_of_v<Allen::Store::device_datatype, B>)
+        return Allen::memcpyDeviceToHost;
+      else if constexpr (
+        std::is_same_v<Allen::Store::memory_manager_details::Device, A> && std::is_base_of_v<Allen::Store::host_datatype, B>)
+        return Allen::memcpyHostToDevice;
+      else
+        return Allen::memcpyDeviceToDevice;
+    }();
+
+    copy_async(
+      buffer.to_span(),
+      gsl::span {data<B>(arguments), size<B>(arguments)},
+      context,
+      kind);
+  }
+
+  template<typename B, typename A, typename Args>
+  void copy(
+    Allen::buffer<A, typename B::type>& buffer,
+    const Args& arguments,
+    const Allen::Context& context)
+  {
+    copy_async<B, A, Args>(buffer, arguments, context);
+    synchronize(context);
   }
 
   namespace aggregate {

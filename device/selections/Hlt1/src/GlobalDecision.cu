@@ -28,7 +28,7 @@ void global_decision::global_decision_t::operator()(
 
   global_function(global_decision)(grid_size, dim3(property<block_dim_x_t>().get()), context)(arguments);
 
-  safe_assign_to_host_buffer<dev_global_decision_t>(host_buffers.host_passing_event_list, arguments, context);
+  Allen::copy_async<dev_global_decision_t>(host_buffers.host_passing_event_list, arguments, context);
 }
 
 __global__ void global_decision::global_decision(global_decision::Parameters parameters)

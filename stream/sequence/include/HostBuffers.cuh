@@ -11,8 +11,10 @@
 
 #include <CaloDigit.cuh>
 #include <CaloCluster.cuh>
-
 #include <BackendCommon.h>
+
+#include <AllenBuffer.cuh>
+#include <MemoryManager.cuh>
 
 // Forward declarations
 namespace PV {
@@ -38,13 +40,16 @@ namespace Checker {
 struct HostBuffers {
 private:
   // Use a custom memory manager for the host pinned memory used here
+  Allen::Store::host_memory_manager_t m_mem_manager {"Persistent memory manager", 200 * 1000 * 1000, 32};
 
 public:
+  // Buffer for saving events passing Hlt1 selections
+  Allen::host_buffer<bool> host_passing_event_list {m_mem_manager, "host_passing_event_list", 1};
+
   // Pinned host datatypes
   unsigned host_number_of_events;
   unsigned host_number_of_selected_events;
   unsigned* host_prefix_sum_buffer;
-  gsl::span<bool> host_passing_event_list;
   uint32_t* host_sel_rep_raw_banks;
   unsigned host_sel_rep_raw_banks_size;
   size_t host_allocated_prefix_sum_space;

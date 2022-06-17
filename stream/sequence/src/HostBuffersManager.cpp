@@ -104,7 +104,7 @@ void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
   buf->host_number_of_multivertex[0] = 0u;
 }
 
-std::tuple<gsl::span<bool const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<unsigned const>>
+std::tuple<gsl::span<bool>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<unsigned const>>
 HostBuffersManager::getBufferOutputData(size_t b)
 {
   if (b > host_buffers.size()) return {};
