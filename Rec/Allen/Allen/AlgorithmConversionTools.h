@@ -13,8 +13,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <BackendCommon.h>
-#include <Argument.cuh>
-#include <ArgumentManager.cuh>
+#include <Datatype.cuh>
 #include <BankTypes.h>
 #include <AllenTypeTraits.h>
 #include <GaudiKernel/StatusCode.h>
