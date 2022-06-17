@@ -88,7 +88,8 @@ std::tuple<std::string, bool> Allen::sequence_conf(std::map<std::string, std::st
   }
   else if (!generated) {
     int error =
-      system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/python/AllenSequences/" + sequence + ".py")
+      system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/python/AllenSequences/" +
+              sequence + ".py")
                .c_str());
     if (error) {
       throw std::runtime_error("sequence generation failed");
