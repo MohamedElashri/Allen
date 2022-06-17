@@ -7,6 +7,8 @@
 #include "ROOTService.h"
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
+#include <CaloDigit.cuh>
+#include <CaloCluster.cuh>
 
 namespace single_calo_cluster_line {
   struct Parameters {
