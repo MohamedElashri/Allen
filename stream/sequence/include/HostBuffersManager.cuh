@@ -19,10 +19,7 @@ struct HostBuffers;
 struct HostBuffersManager {
   enum class BufferStatus { Empty, Filling, Filled, Processing, Processed, Written };
 
-  HostBuffersManager(size_t nBuffers)
-  {
-    init(nBuffers);
-  }
+  HostBuffersManager(size_t nBuffers) { init(nBuffers); }
 
   HostBuffers* getBuffers(size_t i) const { return (i < host_buffers.size() ? host_buffers.at(i) : 0); }
 
