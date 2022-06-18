@@ -297,7 +297,7 @@ namespace Allen::Store {
      */
     void reserve(ArgumentData& argument) { argument.set_pointer(reserve(argument.name(), argument.sizebytes())); }
 
-    void free(const std::string& tag, char* pointer)
+    void free(const std::string& tag, void* pointer)
     {
       // Verify the pointer existed in the memory segments map
       const auto it = m_memory_segments.find(tag);

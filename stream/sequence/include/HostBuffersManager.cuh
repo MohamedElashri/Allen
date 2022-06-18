@@ -19,7 +19,7 @@ struct HostBuffers;
 struct HostBuffersManager {
   enum class BufferStatus { Empty, Filling, Filled, Processing, Processed, Written };
 
-  HostBuffersManager(size_t nBuffers, const unsigned errorevent_line) : m_errorevent_line(errorevent_line)
+  HostBuffersManager(size_t nBuffers)
   {
     init(nBuffers);
   }
@@ -50,6 +50,4 @@ private:
 
   std::queue<size_t> empty_buffers;
   std::queue<size_t> filled_buffers;
-
-  const unsigned m_errorevent_line = 0;
 };

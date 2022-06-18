@@ -278,26 +278,8 @@ int allen(
 
   auto const& configuration = configuration_reader->params();
 
-  // Find the number of lines from gather_selections
-  size_t n_lines = 0;
-  unsigned error_line = 0;
-  auto conf_it = configuration.find("gather_selections");
-  if (conf_it != configuration.end()) {
-    auto prop_it = conf_it->second.find("names_of_active_lines");
-    if (prop_it != conf_it->second.end()) {
-      auto line_names = split_string(prop_it->second, ",");
-      n_lines = line_names.size();
-      // find the name of the error event line
-      auto it = std::find_if(line_names.begin(), line_names.end(), [](std::string_view line_name) {
-        return line_name.find("ErrorEvent") != std::string::npos;
-      });
-      error_line = std::distance(line_names.begin(), it);
-    }
-  }
-
   // create host buffers
-  std::unique_ptr<HostBuffersManager> buffers_manager =
-    std::make_unique<HostBuffersManager>(number_of_buffers, error_line);
+  std::unique_ptr<HostBuffersManager> buffers_manager = std::make_unique<HostBuffersManager>(number_of_buffers);
 
   if (print_status) {
     buffers_manager->printStatus();
