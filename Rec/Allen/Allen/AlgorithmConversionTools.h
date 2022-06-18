@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <BackendCommon.h>
 #include <Datatype.cuh>
+#include <ArgumentData.cuh>
 #include <BankTypes.h>
 #include <AllenTypeTraits.h>
 #include <GaudiKernel/StatusCode.h>
@@ -39,7 +40,7 @@ namespace Allen {
             and TES wrappers provide the Allen syntax on top of these.
   */
   template<typename VECTOR>
-  struct TESWrapperArgumentData : public ArgumentData {
+  struct TESWrapperArgumentData : public Store::ArgumentData {
   private:
     VECTOR& m_data;
     std::string m_name;
@@ -78,9 +79,9 @@ namespace Allen {
 
     void set_type_size(size_t) override final {}
 
-    ArgumentScope scope() const override final { return ArgumentScope::Host; }
+    Store::Scope scope() const override final { return Store::Scope::Host; }
 
-    void set_scope(ArgumentScope) override final { throw; }
+    void set_scope(Store::Scope) override final { throw; }
   };
 
   // Shortcuts for input / output wrappers
