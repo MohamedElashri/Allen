@@ -12,8 +12,10 @@
 #include "BankTypes.h"
 #include "Timer.h"
 
+#ifndef STANDALONE
 #include <GaudiKernel/Service.h>
 #include <Gaudi/Accumulators.h>
+#endif
 
 class OutputHandler {
 public:
@@ -75,12 +77,14 @@ protected:
     m_checksum = checksum;
     m_nthreads = n_threads;
 
+#ifndef STANDALONE
     auto* svc = dynamic_cast<Service*>(this);
     if (svc != nullptr) {
       m_noutput = std::make_unique<Gaudi::Accumulators::Counter<>>(svc, "NOutput");
       m_nbatches = std::make_unique<Gaudi::Accumulators::AveragingCounter<>>(svc, "NBatches");
       m_batch_size = std::make_unique<Gaudi::Accumulators::AveragingCounter<>>(svc, "BatchSize");
     }
+#endif
   }
 
   virtual gsl::span<char> buffer(size_t thread_id, size_t buffer_size, size_t n_events) = 0;
@@ -96,7 +100,9 @@ protected:
   bool m_checksum = false;
   size_t m_nthreads = 1;
 
+#ifndef STANDALONE
   std::unique_ptr<Gaudi::Accumulators::Counter<>> m_noutput;
   std::unique_ptr<Gaudi::Accumulators::AveragingCounter<>> m_batch_size;
   std::unique_ptr<Gaudi::Accumulators::AveragingCounter<>> m_nbatches;
+#endif
 };
