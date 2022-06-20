@@ -32,7 +32,7 @@ void dec_reporter::dec_reporter_t::operator()(
     arguments);
 
   Allen::copy_async<host_dec_reports_t, dev_dec_reports_t>(arguments, context);
-  safe_assign_to_host_buffer<dev_dec_reports_t>(host_buffers.host_dec_reports, arguments, context);
+  Allen::copy_async<dev_dec_reports_t>(host_buffers.host_dec_reports, arguments, context);
 
   // Synchronize copies
   Allen::synchronize(context);

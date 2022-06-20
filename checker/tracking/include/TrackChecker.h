@@ -31,7 +31,7 @@
 #include "TrackCheckerHistos.h"
 #include "TrackCheckerCategories.h"
 #include <mutex>
-#include "Argument.cuh"
+#include <Datatype.cuh>
 
 template<typename T>
 class TrackChecker : public Checker::BaseChecker {

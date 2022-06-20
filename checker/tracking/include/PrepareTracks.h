@@ -11,7 +11,7 @@
 #include "SciFiEventModel.cuh"
 #include "UTEventModel.cuh"
 #include "States.cuh"
-#include "Argument.cuh"
+#include "Datatype.cuh"
 #include "ParticleTypes.cuh"
 
 /**

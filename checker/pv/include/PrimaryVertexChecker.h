@@ -13,7 +13,7 @@
 #include <MCVertex.h>
 #include <algorithm>
 #include <mutex>
-#include <Argument.cuh>
+#include <Datatype.cuh>
 
 // configuration for PV checker -> check values
 static constexpr int nTracksToBeRecble = 4;

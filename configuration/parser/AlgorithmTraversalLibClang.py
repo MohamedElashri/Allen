@@ -58,13 +58,13 @@ class Parameter():
         self.aggregate = aggregate
         self.optional = optional
         self.dependencies = dependencies
-        if datatype == "host_datatype":
+        if datatype == "Allen::Store::host_datatype":
             self.scope = "host"
             if is_input:
                 self.kind = "HostInput"
             else:
                 self.kind = "HostOutput"
-        elif datatype == "device_datatype":
+        elif datatype == "Allen::Store::device_datatype":
             self.scope = "device"
             if is_input:
                 self.kind = "DeviceInput"
@@ -128,9 +128,9 @@ class AlgorithmTraversal():
     ]
 
     # Accepted tokens for parameter parsing
-    __parameter_io_datatypes = ["device_datatype", "host_datatype"]
-    __parameter_aggregate = ["aggregate_datatype"]
-    __parameter_optional = ["optional_datatype"]
+    __parameter_io_datatypes = ["Allen::Store::device_datatype", "Allen::Store::host_datatype"]
+    __parameter_aggregate = ["Allen::Store::aggregate_datatype"]
+    __parameter_optional = ["Allen::Store::optional_datatype"]
 
     # Ignored namespaces. Definition of algorithms start by looking into namespaces,
     # therefore ignoring some speeds up the traversal.
@@ -358,6 +358,7 @@ class AlgorithmTraversal():
         AlgorithmTraversal.__properties = {}
         clang_args = AlgorithmTraversal.__compile_flags.copy()
         clang_args.append("-I" + project_location + "/stream/gear/include")
+        clang_args.append("-I" + project_location + "/stream/store/include")
         clang_args.append("-I" + project_location + "/backend/include")
         tu = AlgorithmTraversal.__index.parse(filename, args=clang_args)
         if tu.cursor.kind == cindex.CursorKind.TRANSLATION_UNIT:

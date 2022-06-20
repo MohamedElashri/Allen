@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <vector>
 #include <string>
-#include "ArgumentManager.cuh"
+#include "ArgumentData.cuh"
 
 struct ConfiguredAlgorithm {
   std::string id;
@@ -95,13 +95,13 @@ public:
 };
 
 // ArgumentData creator
-inline ArgumentData create_allen_argument(const ConfiguredArgument& alg)
+inline Allen::Store::ArgumentData create_allen_argument(const ConfiguredArgument& alg)
 {
   if (alg.scope == "host") {
-    return ArgumentData {alg.name, ArgumentScope::Host};
+    return Allen::Store::ArgumentData {alg.name, Allen::Store::Scope::Host};
   }
   else if (alg.scope == "device") {
-    return ArgumentData {alg.name, ArgumentScope::Device};
+    return Allen::Store::ArgumentData {alg.name, Allen::Store::Scope::Device};
   }
   else {
     throw ArgumentScopeNotSupportedException {alg.scope};

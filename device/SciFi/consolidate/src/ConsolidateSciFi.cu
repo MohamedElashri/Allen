@@ -88,7 +88,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
 
   global_function(create_scifi_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
 
-  safe_assign_to_host_buffer<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, context);
+  Allen::copy_async<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, context);
 }
 
 template<typename F>

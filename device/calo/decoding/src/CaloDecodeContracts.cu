@@ -4,8 +4,8 @@
 #include <BackendCommon.h>
 #include <CaloDigit.cuh>
 #include <CaloDecode.cuh>
-
 #include <unordered_set>
+#include <climits>
 
 bool check_digits(CaloDigit const* digits, size_t n_digits)
 {

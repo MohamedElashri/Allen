@@ -4,7 +4,7 @@
 #pragma once
 
 #include "MemoryManager.cuh"
-#include "ArgumentManager.cuh"
+#include "Store.cuh"
 #include "Configuration.cuh"
 #include "Logger.h"
 #include <utility>
@@ -19,22 +19,14 @@ constexpr bool contracts_enabled = true;
 constexpr bool contracts_enabled = false;
 #endif
 
-#ifdef MEMORY_MANAGER_MULTI_ALLOC
-using host_memory_manager_t = MemoryManager<memory_manager_details::Host, memory_manager_details::MultiAlloc>;
-using device_memory_manager_t = MemoryManager<memory_manager_details::Device, memory_manager_details::MultiAlloc>;
-#else
-using host_memory_manager_t = MemoryManager<memory_manager_details::Host, memory_manager_details::SingleAlloc>;
-using device_memory_manager_t = MemoryManager<memory_manager_details::Device, memory_manager_details::SingleAlloc>;
-#endif
-
 class Scheduler {
   std::vector<Allen::TypeErasedAlgorithm> m_sequence;
-  UnorderedStore m_store;
+  Allen::Store::UnorderedStore m_store;
   std::vector<std::any> m_sequence_argument_ref_managers;
   std::vector<LifetimeDependencies> m_in_dependencies;
   std::vector<LifetimeDependencies> m_out_dependencies;
-  host_memory_manager_t host_memory_manager {"Host memory manager"};
-  device_memory_manager_t device_memory_manager {"Device memory manager"};
+  Allen::Store::host_memory_manager_t host_memory_manager {"Host memory manager"};
+  Allen::Store::device_memory_manager_t device_memory_manager {"Device memory manager"};
   bool do_print = false;
 
 private:
@@ -208,19 +200,19 @@ public:
    * @brief Generate the store ref of an algorithm
    */
   std::tuple<
-    std::vector<std::reference_wrapper<ArgumentData>>,
-    std::vector<std::vector<std::reference_wrapper<ArgumentData>>>>
+    std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>,
+    std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>>>
   generate_algorithm_store_ref(const ConfiguredAlgorithmArguments& configured_alg_arguments)
   {
-    std::vector<std::reference_wrapper<ArgumentData>> store_ref;
-    std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates;
+    std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> store_ref;
+    std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>> input_aggregates;
 
     for (const auto& argument : configured_alg_arguments.arguments) {
       store_ref.push_back(m_store.at(argument));
     }
 
     for (const auto& conf_input_aggregate : configured_alg_arguments.input_aggregates) {
-      std::vector<std::reference_wrapper<ArgumentData>> input_aggregate;
+      std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> input_aggregate;
       for (const auto& argument : conf_input_aggregate) {
         input_aggregate.push_back(m_store.at(argument));
       }
@@ -322,9 +314,9 @@ private:
     Allen::TypeErasedAlgorithm& algorithm,
     const LifetimeDependencies& in_dependencies,
     const LifetimeDependencies& out_dependencies,
-    host_memory_manager_t& host_memory_manager,
-    device_memory_manager_t& device_memory_manager,
-    UnorderedStore& store,
+    Allen::Store::host_memory_manager_t& host_memory_manager,
+    Allen::Store::device_memory_manager_t& device_memory_manager,
+    Allen::Store::UnorderedStore& store,
     bool do_print)
   {
     /**
@@ -342,10 +334,10 @@ private:
     }
 
     // Free all arguments in OutDependencies
-    MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
+    Allen::Store::MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
 
     // Reserve all arguments in InDependencies
-    MemoryManagerHelper::reserve(host_memory_manager, device_memory_manager, store, in_dependencies);
+    Allen::Store::MemoryManagerHelper::reserve(host_memory_manager, device_memory_manager, store, in_dependencies);
 
     // Print memory manager state
     if (do_print) {
@@ -359,9 +351,9 @@ private:
     std::any& argument_ref_manager,
     const LifetimeDependencies& in_dependencies,
     const LifetimeDependencies& out_dependencies,
-    host_memory_manager_t& host_memory_manager,
-    device_memory_manager_t& device_memory_manager,
-    UnorderedStore& store,
+    Allen::Store::host_memory_manager_t& host_memory_manager,
+    Allen::Store::device_memory_manager_t& device_memory_manager,
+    Allen::Store::UnorderedStore& store,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     HostBuffers& host_buffers,

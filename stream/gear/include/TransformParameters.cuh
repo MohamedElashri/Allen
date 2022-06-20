@@ -3,7 +3,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "ArgumentManager.cuh"
+#include "Store.cuh"
 #include "ArgumentOps.cuh"
 #include "BackendCommon.h"
 #include "BaseTypes.cuh"
@@ -31,8 +31,9 @@ template<typename ArgMan, typename T>
 struct ProduceSingleParameter<
   ArgMan,
   T,
-  std::enable_if_t<(std::is_base_of_v<device_datatype, T> || std::is_base_of_v<host_datatype, T>) &&!std::
-                     is_base_of_v<aggregate_datatype, T>>> {
+  std::enable_if_t<(
+    std::is_base_of_v<Allen::Store::device_datatype, T> ||
+    std::is_base_of_v<Allen::Store::host_datatype, T>) &&!std::is_base_of_v<Allen::Store::aggregate_datatype, T>>> {
   constexpr static auto produce(
     const ArgMan& arguments,
     const std::map<std::string, Allen::BaseProperty*>&,
@@ -46,7 +47,7 @@ struct ProduceSingleParameter<
  * @brief Produces aggregate datatypes.
  */
 template<typename ArgMan, typename T>
-struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>>> {
+struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<std::is_base_of_v<Allen::Store::aggregate_datatype, T>>> {
   constexpr static auto produce(
     const ArgMan& arguments,
     const std::map<std::string, Allen::BaseProperty*>&,
@@ -60,7 +61,10 @@ struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<std::is_base_of_v<aggr
  * @brief Produces properties.
  */
 template<typename ArgMan, typename T>
-struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<Allen::is_template_base_of_v<property_datatype, T>>> {
+struct ProduceSingleParameter<
+  ArgMan,
+  T,
+  std::enable_if_t<Allen::is_template_base_of_v<Allen::Store::property_datatype, T>>> {
   constexpr static auto produce(
     const ArgMan&,
     const std::map<std::string, Allen::BaseProperty*>& properties,
@@ -124,17 +128,17 @@ struct TransformParameters {
 };
 
 /**
- * @brief Full specialization for const ArgumentRefManager<T...>&.
+ * @brief Full specialization for const Allen::Store::StoreRef<T...>&.
  */
 template<typename... T>
-struct TransformParameters<const ArgumentRefManager<T...>&> {
+struct TransformParameters<const Allen::Store::StoreRef<T...>&> {
   constexpr static auto transform(
-    const ArgumentRefManager<T...>& t,
+    const Allen::Store::StoreRef<T...>& t,
     const std::map<std::string, Allen::BaseProperty*>& properties,
     const Allen::KernelInvocationConfiguration& config)
   {
     return TransformParametersImpl<
-      ArgumentRefManager<T...>,
-      typename ArgumentRefManager<T...>::parameters_and_properties_tuple_t>::transform(t, properties, config);
+      Allen::Store::StoreRef<T...>,
+      typename Allen::Store::StoreRef<T...>::parameters_and_properties_tuple_t>::transform(t, properties, config);
   }
 };

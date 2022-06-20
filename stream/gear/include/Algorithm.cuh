@@ -7,7 +7,7 @@
 #include "Logger.h"
 #include "BaseTypes.cuh"
 #include "TargetFunction.cuh"
-#include "Argument.cuh"
+#include "Datatype.cuh"
 #include "Contract.h"
 #include "RuntimeOptions.h"
 #include "Constants.cuh"
@@ -16,24 +16,24 @@
 #include <any>
 
 namespace {
-  // Get the ArgumentRefManagerType from the function operator()
+  // Get the StoreRefType from the function operator()
   template<typename Function>
   struct FunctionTraits;
 
   template<typename Function, typename... Ts, typename... OtherArguments>
-  struct FunctionTraits<void (Function::*)(const ArgumentRefManager<Ts...>&, OtherArguments...) const> {
-    using ArgumentRefManagerType = ArgumentRefManager<Ts...>;
+  struct FunctionTraits<void (Function::*)(const Allen::Store::StoreRef<Ts...>&, OtherArguments...) const> {
+    using StoreRefType = Allen::Store::StoreRef<Ts...>;
   };
 
   template<typename Algorithm>
   struct AlgorithmTraits {
-    using ArgumentRefManagerType = typename FunctionTraits<decltype(&Algorithm::operator())>::ArgumentRefManagerType;
+    using StoreRefType = typename FunctionTraits<decltype(&Algorithm::operator())>::StoreRefType;
   };
 
   // Creates a std::array store out of the vector one
   template<std::size_t... Is>
   auto create_store_ref(
-    const std::vector<std::reference_wrapper<ArgumentData>>& vector_store_ref,
+    const std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>& vector_store_ref,
     std::index_sequence<Is...>)
   {
     return std::array {vector_store_ref[Is]...};
@@ -80,8 +80,8 @@ namespace Allen {
       std::string (*name)(void const*) = nullptr;
       std::any (*create_arg_ref_manager)(
         const std::string&,
-        std::vector<std::reference_wrapper<ArgumentData>>,
-        std::vector<std::vector<std::reference_wrapper<ArgumentData>>>) = nullptr;
+        std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>,
+        std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>>) = nullptr;
       void (*set_arguments_size)(void*, std::any&, const RuntimeOptions&, const Constants&, const HostBuffers&) =
         nullptr;
       void (
@@ -120,9 +120,9 @@ namespace Allen {
         [](void const* p) { return static_cast<ALGORITHM const*>(p)->name(); },
         [](
           const std::string& name,
-          std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
-          std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> vector_store_ref,
+          std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>> input_aggregates) {
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           using store_ref_t = typename arg_ref_mgr_t::store_ref_t;
           using input_aggregates_t = typename arg_ref_mgr_t::input_aggregates_t;
           if (std::tuple_size_v<store_ref_t> != vector_store_ref.size()) {
@@ -133,7 +133,7 @@ namespace Allen {
           }
           auto store_ref =
             create_store_ref(vector_store_ref, std::make_index_sequence<std::tuple_size_v<store_ref_t>> {});
-          auto input_agg_store = input_aggregates_t {Allen::gen_input_aggregates_tuple(
+          auto input_agg_store = input_aggregates_t {Allen::Store::gen_input_aggregates_tuple(
             input_aggregates, std::make_index_sequence<std::tuple_size_v<input_aggregates_t>> {})};
           return std::any {arg_ref_mgr_t {store_ref, input_agg_store}};
         },
@@ -143,7 +143,7 @@ namespace Allen {
           const RuntimeOptions& runtime_options,
           const Constants& constants,
           const HostBuffers& host_buffers) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           static_cast<ALGORITHM*>(p)->set_arguments_size(
             std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, host_buffers);
         },
@@ -154,7 +154,7 @@ namespace Allen {
           const Constants& constants,
           HostBuffers& host_buffers,
           const Allen::Context& context) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           static_cast<ALGORITHM const*>(p)->operator()(
             std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, host_buffers, context);
         },
@@ -178,7 +178,7 @@ namespace Allen {
           const RuntimeOptions& runtime_options,
           const Constants& constants,
           const Allen::Context& context) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           using preconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::preconditions;
           if constexpr (std::tuple_size_v<preconditions_t>> 0) {
             auto preconditions = preconditions_t {};
@@ -201,7 +201,7 @@ namespace Allen {
           const RuntimeOptions& runtime_options,
           const Constants& constants,
           const Allen::Context& context) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::ArgumentRefManagerType;
+          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           using postconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::postconditions;
           if constexpr (std::tuple_size_v<postconditions_t>> 0) {
             auto postconditions = postconditions_t {};
@@ -228,8 +228,8 @@ namespace Allen {
 
     std::string name() const { return (table.name)(instance); }
     std::any create_arg_ref_manager(
-      std::vector<std::reference_wrapper<ArgumentData>> vector_store_ref,
-      std::vector<std::vector<std::reference_wrapper<ArgumentData>>> input_aggregates)
+      std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> vector_store_ref,
+      std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>> input_aggregates)
     {
       return (table.create_arg_ref_manager)(name(), std::move(vector_store_ref), std::move(input_aggregates));
     }

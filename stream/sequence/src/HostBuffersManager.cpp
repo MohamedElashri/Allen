@@ -10,12 +10,9 @@ void HostBuffersManager::init(size_t nBuffers)
   host_buffers.reserve(nBuffers);
   for (size_t i = 0; i < nBuffers; ++i) {
     host_buffers.push_back(new HostBuffers());
-    host_buffers.back()->reserve(max_events, n_lines);
     buffer_statuses.push_back(BufferStatus::Empty);
     empty_buffers.push(i);
   }
-
-  _unused(m_errorevent_line);
 }
 
 size_t HostBuffersManager::assignBufferToFill()
@@ -24,7 +21,6 @@ size_t HostBuffersManager::assignBufferToFill()
     warning_cout << "No empty buffers available" << std::endl;
     warning_cout << "Adding new buffers" << std::endl;
     host_buffers.push_back(new HostBuffers());
-    host_buffers.back()->reserve(max_events, n_lines);
     buffer_statuses.push_back(BufferStatus::Filling);
     return host_buffers.size() - 1;
   }
@@ -104,7 +100,7 @@ void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
   buf->host_number_of_multivertex[0] = 0u;
 }
 
-std::tuple<gsl::span<bool const>, gsl::span<uint32_t const>, gsl::span<uint32_t const>, gsl::span<unsigned const>>
+std::tuple<gsl::span<bool>, gsl::span<uint32_t>, gsl::span<uint32_t>, gsl::span<unsigned>>
 HostBuffersManager::getBufferOutputData(size_t b)
 {
   if (b > host_buffers.size()) return {};

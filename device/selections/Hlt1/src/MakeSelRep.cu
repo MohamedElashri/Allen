@@ -26,8 +26,8 @@ void make_selrep::make_selrep_t::operator()(
   global_function(make_selrep_bank)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments));
 
-  safe_assign_to_host_buffer<dev_selrep_offsets_t>(host_buffers.host_sel_report_offsets, arguments, context);
-  safe_assign_to_host_buffer<dev_sel_reports_t>(host_buffers.host_sel_reports, arguments, context);
+  Allen::copy_async<dev_selrep_offsets_t>(host_buffers.host_sel_report_offsets, arguments, context);
+  Allen::copy_async<dev_sel_reports_t>(host_buffers.host_sel_reports, arguments, context);
 }
 
 __global__ void make_selrep::make_selrep_bank(make_selrep::Parameters parameters, const unsigned number_of_events)

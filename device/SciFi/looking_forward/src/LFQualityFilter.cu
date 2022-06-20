@@ -40,7 +40,7 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
   global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_looking_forward_constants);
 
-  safe_assign_to_host_buffer<dev_atomics_scifi_t>(host_buffers.host_atomics_scifi, arguments, context);
+  Allen::copy_async<dev_atomics_scifi_t>(host_buffers.host_atomics_scifi, arguments, context);
 
   if (property<verbosity_t>() >= logger::debug) {
     print<dev_atomics_scifi_t>(arguments);
