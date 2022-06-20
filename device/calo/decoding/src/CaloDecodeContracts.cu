@@ -5,12 +5,13 @@
 #include <CaloDigit.cuh>
 #include <CaloDecode.cuh>
 #include <unordered_set>
+#include <climits>
 
 bool check_digits(CaloDigit const* digits, size_t n_digits)
 {
   bool valid = true;
   for (size_t i = 0; i < n_digits; ++i) {
-    valid &= digits[i].adc < 32767;
+    valid &= digits[i].adc < SHRT_MAX;
   }
   return valid;
 }
