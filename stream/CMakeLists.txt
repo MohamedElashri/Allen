@@ -34,6 +34,7 @@ target_link_libraries(Stream
     HostInitEventList
     Backend
     Validators
+    DeviceValidators
     AllenCommon
     algorithm_db
   PUBLIC

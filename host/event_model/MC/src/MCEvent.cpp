@@ -164,10 +164,10 @@ void MCEvent::load_vertices(const std::vector<char>& vertices)
   }
 }
 
-bool MCEvent::is_subdetector_impl(const LHCbIDs& vector, const LHCbID& id) const
+bool MCEvent::is_subdetector_impl(const LHCbID (&array)[42], const LHCbID& id) const
 {
-  const auto it = std::lower_bound(std::begin(vector), std::end(vector), id);
-  if (it != std::end(vector) && *it == id) {
+  const auto it = std::lower_bound(std::begin(array), std::end(array), id);
+  if (it != std::end(array) && *it == id) {
     return true;
   }
   return false;

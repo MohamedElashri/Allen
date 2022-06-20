@@ -23,13 +23,16 @@ namespace UT {
 }
 namespace SciFi {
   struct TrackHits;
-}
+} // namespace SciFi
 struct MiniState;
 namespace ParKalmanFilter {
   struct FittedTrack;
 }
 namespace VertexFit {
   struct TrackMVAVertex;
+}
+namespace Checker {
+  struct Track;
 }
 
 struct HostBuffers {
@@ -71,6 +74,8 @@ struct HostBuffers {
   unsigned* host_accumulated_number_of_hits_in_scifi_tracks;
   unsigned* host_lf_total_size_first_window_layer;
   unsigned* host_lf_total_number_of_candidates;
+  Checker::Track* host_long_checker_tracks;
+  Checker::Track* host_kalman_checker_tracks;
 
   // Kalman
   gsl::span<ParKalmanFilter::FittedTrack> host_kf_tracks = {};

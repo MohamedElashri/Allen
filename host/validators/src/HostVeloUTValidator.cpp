@@ -24,7 +24,7 @@ void host_velo_ut_validator::host_velo_ut_validator_t::operator()(
   const auto ut_track_velo_indices = make_vector<dev_ut_track_velo_indices_t>(arguments);
   const auto ut_qop = make_vector<dev_ut_qop_t>(arguments);
 
-  const auto tracks = prepareUTTracks(
+  auto tracks = prepareUTTracks(
     first<host_number_of_events_t>(arguments),
     offsets_all_velo_tracks,
     offsets_velo_track_hit_number,

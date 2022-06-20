@@ -38,7 +38,7 @@ struct MCEvent {
   MCEvent(std::vector<char> const& _particles, std::vector<char> const& _vertices, const bool checkFile = true);
 
   // Checks if a LHCb ID is in a particular subdetector
-  bool is_subdetector_impl(const LHCbIDs& vector, const LHCbID& id) const;
+  bool is_subdetector_impl(const LHCbID (&array)[42], const LHCbID& id) const;
 
   // Subdetector-specialized check
   template<typename T>

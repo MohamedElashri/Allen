@@ -35,7 +35,7 @@ TrackChecker output                               :        61/     3362   1.81% 
 11_long_electrons                                 :        58/      596   9.73% ( 10.64%),         1 (  1.69%) clones, pur  98.92%, hit eff  95.83%
 
 
-forward_validator validation:
+long_validator validation:
 TrackChecker output                               :        19/     2476   0.77% ghosts
 for P>3GeV,Pt>0.5GeV                              :         8/     1316   0.61% ghosts
 01_long                                           :      2285/     4511  50.65% ( 49.25%),        35 (  1.51%) clones, pur  99.78%, hit eff  99.65%

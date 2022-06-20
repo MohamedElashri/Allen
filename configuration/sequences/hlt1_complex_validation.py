@@ -7,7 +7,7 @@ from AllenConf.hlt1_reconstruction import hlt1_reconstruction, make_composite_no
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line
 from AllenConf.utils import line_maker, make_gec
 from AllenConf.validators import (
-    velo_validation, veloUT_validation, forward_validation, muon_validation,
+    velo_validation, veloUT_validation, long_validation, muon_validation,
     pv_validation, rate_validation, kalman_validation)
 
 from PyConf.control_flow import NodeLogic, CompositeNode
@@ -79,15 +79,14 @@ validators_leaf = CompositeNode(
             veloUT_validation(non_restricted_hlt1_reconstruction["ut_tracks"],
                               "non-restricted_veloUT_validator")),
         make_composite_node_with_gec(
-            "restricted_forward_validator",
-            forward_validation(
-                restricted_hlt1_reconstruction["forward_tracks"],
-                "restricted_forward_validator")),
+            "restricted_long_validator",
+            long_validation(restricted_hlt1_reconstruction["forward_tracks"],
+                            "restricted_long_validator")),
         make_composite_node_with_gec(
-            "non-restricted_forward_validator",
-            forward_validation(
+            "non-restricted_long_validator",
+            long_validation(
                 non_restricted_hlt1_reconstruction["forward_tracks"],
-                "non-restricted_forward_validator")),
+                "non-restricted_long_validator")),
         make_composite_node_with_gec(
             "restricted_muon_validation",
             muon_validation(restricted_hlt1_reconstruction["muonID"],

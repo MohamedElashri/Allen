@@ -18,7 +18,7 @@ void host_velo_validator::host_velo_validator_t::operator()(
   const auto velo_track_hits = make_vector<dev_velo_track_hits_t>(arguments);
   const auto event_list = make_vector<dev_event_list_t>(arguments);
 
-  const auto tracks = prepareVeloTracks(
+  auto tracks = prepareVeloTracks(
     first<host_number_of_events_t>(arguments),
     offsets_all_velo_tracks,
     offsets_velo_track_hit_number,
