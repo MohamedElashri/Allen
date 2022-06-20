@@ -97,8 +97,6 @@ namespace Consumers {
 
   struct MuonGeometry final : public Allen::NonEventData::Consumer {
   public:
-    static constexpr size_t n_preamble_blocks = 5;
-
     MuonGeometry(std::vector<char>& host_geometry_raw, char*& dev_geometry_raw, Muon::MuonGeometry*& muon_geometry);
 
     void consume(std::vector<char> const& data) override;

@@ -13,8 +13,6 @@
 
 #include "Dumper.h"
 
-#include "AllenUpdater.h"
-
 namespace {
   inline const std::string beamSpotCond = "/dd/Conditions/Online/Velo/MotionSystem";
 

@@ -6,7 +6,6 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include <yaml-cpp/yaml.h>
 
 #include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/algorithm/fill.hpp>
@@ -31,6 +30,7 @@ namespace ranges::views {
 #include <MuonDet/MuonNamespace.h>
 #include "Dumper.h"
 #include <Dumpers/Utils.h>
+#include "MuonDefinitions.cuh"
 
 #include <DD4hep/GrammarUnparsed.h>
 
@@ -54,12 +54,12 @@ namespace {
     MuonTable_t(std::vector<char>& data, const DeMuonDetector& det)
     {
 
+      unsigned int version;
       DumpUtils::Writer output {};
       const int nStations = det.stations();
       assert(nStations == 4);
       const int nRegions = det.regions() / nStations;
       assert(nRegions == 4);
-      const unsigned int ODEFrameSize       = 48; //common to DumpMuonGeometry -> find a common place
       
       // Detector and mat geometry
       vector<float> padSizeX {}, stripXSizeX {}, stripYSizeX {}, padSizeY {}, stripXSizeY {}, stripYSizeY {};
@@ -70,10 +70,12 @@ namespace {
 	return [s, &gridX, &gridY](auto tot, const auto r) { return tot + gridX[4 * s + r] * gridY[4 * s + r]; };
       };
 	
-
-      //cabling != 0
+      //versioning?????
       if (true) { //discriminating between Run2 and Upgrade encoding	
 	std::cout << "MuonTables: Thanks for your work trying to provide me a decoding, It's sad not to be understood :(" << std::endl;
+
+	version = 3;
+	output.write(version);
 
 	constexpr array<int, 16> padGridY {8, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
 	constexpr array<int, 16> stripXGridY{1, 2, 8, 8, 1, 2, 2, 2, 8, 2, 2, 2, 8, 2, 2, 8};
@@ -160,13 +162,16 @@ namespace {
 
       } else { 
 
+	version = 2;
+	output.write(version);
+
 	constexpr array<int, 16> padGridY {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
 	constexpr array<int, 16> stripXGridY {1, 2, 2, 2, 1, 2, 2, 2, 8, 2, 2, 2, 8, 2, 2, 2};
 	constexpr array<int, 16> stripYGridX {8, 4, 2, 2, 8, 4, 2, 2, 12, 4, 2, 2, 12, 4, 2, 2};
 	constexpr array<int, 16> stripYGridY {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
       
 	for (int s = 0; s < nStations; ++s) {
-	  padTable[s].resize(ODEFrameSize * (padGridX[s] * padGridY[s]));
+	  padTable[s].resize(Muon::Constants::ODEFrameSize * (padGridX[s] * padGridY[s]));
 	  stripXTable[s].resize(12 * accumulate(views::ints(0, 4), 0, nChannels(s, stripXGridX, stripXGridY)));
 	  stripYTable[s].resize(12 * accumulate(views::ints(0, 4), 0, nChannels(s, stripYGridX, stripYGridY)));
 	}
@@ -249,57 +254,6 @@ namespace {
     }
   };
 } // namespace
-
-
-/** @class DumpMuonTable
- *  Dump tables for the muon detector
- *
- *  @author Saverio Mariani
- *  @date   2022-06-03
- */
-class DumpMuonTable final : public Allen::Dumpers::Dumper<
-  void(MuonTable_t const&),
-			       LHCb::DetDesc::usesConditions<MuonTable_t>> {
- public:
-  DumpMuonTable(const std::string& name, ISvcLocator* svcLoc);
-
-  void operator()(const MuonTable_t& MuonTable) const override;
-
-  StatusCode initialize() override;
-
-private:
-  std::vector<char> m_data;
-};
-
-
-DECLARE_COMPONENT(DumpMuonTable)
-
-DumpMuonTable::DumpMuonTable(const std::string& name,
-				   ISvcLocator* svcLoc) :
-  Dumper(
-    name,
-    svcLoc,
-    {KeyValue {"MuonTableLocation", "AlgorithmSpecific-" + name + "-table"}})
-{}
-
-
-StatusCode DumpMuonTable::initialize()
-{
-  return Dumper::initialize().andThen([&] {
-      register_producer(Allen::NonEventData::MuonLookupTables::id, "muon_tables", m_data);
-      addConditionDerivation(
-      {MuonTableCond}, inputLocation<MuonTable_t>(), [&](DeMuonDetector const& det) {
-        auto MuonTable = MuonTable_t{m_data, det};
-	dump();
-	return MuonTable;
-      });
-    });
-}
-
-void DumpMuonTable::operator()(const MuonTable_t&) const
-{
-}
-
 
 
 /** @class DumpMuonTable

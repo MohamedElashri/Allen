@@ -14,8 +14,6 @@
 
 #include <Dumpers/Utils.h>
 
-#include <Dumpers/Utils.h>
-
 #include "AllenUpdater.h"
 
 namespace Allen {

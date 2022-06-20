@@ -12,6 +12,9 @@
 namespace Muon {
   class MuonTables {
   public:
+    
+    unsigned int m_version; 
+    
     static constexpr size_t padTableNumber = 0;
     static constexpr size_t stripXTableNumber = 1;
     static constexpr size_t stripYTableNumber = 2;
@@ -29,8 +32,10 @@ namespace Muon {
     unsigned int sizeOffset[Constants::n_stations * Constants::n_regions * n_tables];
     float* coordinates[n_tables * Constants::n_stations];
 
-    MuonTables(size_t* allOffsets, char* dev_muon_tables_raw, unsigned int* sizeOffset_)
+    MuonTables(size_t* allOffsets, char* dev_muon_tables_raw, unsigned int* sizeOffset_, const int version)
     {
+      m_version = version;
+      
       for (size_t i = 0; i < Constants::n_stations * Constants::n_regions * n_tables; i++) {
         sizeOffset[i] = sizeOffset_[i];
       }
@@ -49,9 +54,12 @@ namespace Muon {
       }
     }
 
+    unsigned int getVersion() const { return m_version;}
+        
     MuonTables() {}
   };
 
+  
   __device__ inline unsigned int
   getLayoutX(MuonTables* muonTables, size_t tableNumber, unsigned int station, unsigned int region)
   {

@@ -25,7 +25,6 @@ target_include_directories(AllenRuntime INTERFACE
 # Backend library
 allen_add_host_library(Backend STATIC ${backend_sources})
 target_link_libraries(Backend PUBLIC AllenRuntime Gear AllenCommon umesimd::umesimd)
-target_link_libraries(Backend PRIVATE HostCommon)
 target_compile_definitions(Backend PUBLIC ${TARGET_DEFINITION})
 
 set(BackendHeaders)

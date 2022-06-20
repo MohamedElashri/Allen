@@ -1,22 +1,11 @@
 /*****************************************************************************\
 * (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      *
-*                                                                             *
-* This software is distributed under the terms of the GNU General Public      *
-* Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
-*                                                                             *
-* In applying this licence, CERN does not waive the privileges and immunities *
-* granted to it by virtue of its status as an Intergovernmental Organization  *
-* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
-
-#ifndef DUMPMUONGEOMETRY_H
-#define DUMPMUONGEOMETRY_H 1
-
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <tuple>
 #include <vector>
-#include <fmt/format.h>
 
 // LHCb
 #include <MuonDet/DeMuonDetector.h>
@@ -27,16 +16,17 @@
 #include <MuonDet/MuonTell40PCI.h>
 #include <LHCbAlgs/Transformer.h>
 
-
 #include <DetDesc/GenericConditionAccessorHolder.h>
 
 // Allen
 #include <Dumpers/Identifiers.h>
 #include <Dumpers/Utils.h>
+#include "MuonDefinitions.cuh"
+
+#include "Detector/Muon/TileID.h"
 
 namespace {
   using std::vector;
-
   inline const std::string CablingCond = "/dd/Conditions/ReadoutConf/Muon/Cabling/M2Upgrade/Cabling";
 }
 
@@ -61,8 +51,6 @@ public:
 
   Gaudi::Property<std::string> m_id {this, "ID", Allen::NonEventData::MuonGeometry::id};
 
-  //private:
-  //Gaudi::Property<std::string> m_mapLocation {this, "ReadoutMapLocation", "/dd/Conditions/ReadoutConf/Muon/ReadoutMap"};
 };
 
 DECLARE_COMPONENT(DumpMuonGeometry)
@@ -92,27 +80,26 @@ std::tuple<std::vector<char>, std::string> DumpMuonGeometry::operator()(
   DumpUtils::Writer output {};
   const int nStations = det.stations();
   assert(nStations == 4);
-
+  unsigned int version;
 
   auto cabling = getDetIfExists<MuonUpgradeStationCabling>(CablingCond);
   //if (cabling) { //discriminating between Run2 and Upgrade encoding
   if (true) { //discriminating between Run2 and Upgrade encoding
     std::cout << "MuonGeometry: Thanks for your work trying to provide me a decoding :), It's sad not to be understood :(" << std::endl;
 
-    const unsigned int maxTell40Number    = 22;
-    const unsigned int maxTell40PCINumber = 2;
-    const unsigned int maxNumberLinks     = 24;
-    const unsigned int ODEFrameSize       = 48;
+    version = 3;
+    output.write(version);
+
 
     //DAQ Helper
     auto daqHelper = det.getUpgradeDAQInfo();    
 
     //containers initialization
-    std::array<unsigned int, maxTell40Number> whichStationIsTell40;
-    std::array< std::array<unsigned int, maxTell40PCINumber>, maxTell40Number> tell40PCINumberOfActiveLink;
-    std::array< std::array< std::array<unsigned int, maxNumberLinks> , maxTell40PCINumber>, maxTell40Number> mapRegionOfLink;
-    std::array< std::array< std::array<unsigned int, maxNumberLinks> , maxTell40PCINumber>, maxTell40Number> mapQuarterOfLink;
-    std::array< std::array< std::array<unsigned int, maxNumberLinks * ODEFrameSize> , maxTell40PCINumber>, maxTell40Number> mapTileInTell40;
+    std::array<unsigned int, Muon::Constants::maxTell40Number> whichStationIsTell40;
+    std::array< std::array<unsigned int, Muon::Constants::maxTell40PCINumber>, Muon::Constants::maxTell40Number> tell40PCINumberOfActiveLink;
+    std::array< std::array< std::array<unsigned int, Muon::Constants::maxNumberLinks> , Muon::Constants::maxTell40PCINumber>, Muon::Constants::maxTell40Number> mapRegionOfLink;
+    std::array< std::array< std::array<unsigned int, Muon::Constants::maxNumberLinks> , Muon::Constants::maxTell40PCINumber>, Muon::Constants::maxTell40Number> mapQuarterOfLink;
+    std::array< std::array< std::array<unsigned int, Muon::Constants::maxNumberLinks * Muon::Constants::ODEFrameSize> , Muon::Constants::maxTell40PCINumber>, Muon::Constants::maxTell40Number> mapTileInTell40;
     
     /////////////starting loop on stations
     for ( int station = 0; station < nStations; station++ ) {
@@ -122,15 +109,15 @@ std::tuple<std::vector<char>, std::string> DumpMuonGeometry::operator()(
       for ( int iTell = 0; iTell < cabling -> getNumberOfTell40Board(); iTell++ ) {
 	std::string Tell40Path = cablingBasePath + cabling -> getTell40Name( iTell );
         auto tell40 = getDetIfExists<MuonTell40Board>(Tell40Path); 
-	if (  tell40 -> Tell40Number() > maxTell40Number)    
-	  throw GaudiException( fmt::format("Tell40 number {} greater than allowed {}", tell40->Tell40Number(), maxTell40Number ), __FILE__, StatusCode::FAILURE);
+	if (  tell40 -> Tell40Number() > Muon::Constants::maxTell40Number)    
+	  throw GaudiException( fmt::format("Tell40 number {} greater than allowed {}", tell40->Tell40Number(), Muon::Constants::maxTell40Number ), __FILE__, StatusCode::FAILURE);
 		
 	whichStationIsTell40[tell40->Tell40Number() - 1] = (unsigned int)tell40->getStation() - 1;
 	for ( int iPCI = 0; iPCI < tell40->numberOfPCI(); iPCI++){
  	  std::string  pcipath = cablingBasePath + tell40->getPCIName( iPCI );
 	  auto pciboard = getDetIfExists<MuonTell40PCI>(pcipath);
 	  unsigned int active_link_per_PCI = 0;
-	  for ( unsigned int ilink = 0; ilink < maxNumberLinks; ilink++ ) { 
+	  for ( unsigned int ilink = 0; ilink < Muon::Constants::maxNumberLinks; ilink++ ) { 
 	    long node = pciboard->getODENumber( ilink );
 	    if ( node > 0 ) {
 	      active_link_per_PCI++;		
@@ -142,31 +129,30 @@ std::tuple<std::vector<char>, std::string> DumpMuonGeometry::operator()(
   } //loop on stations
 
   ///second loop on links needed to fill mapRegionOfLink and mapStationOfLink
-  for ( unsigned int itell = 0; itell < maxTell40Number; itell++){
-    for ( unsigned int ipci = 0; ipci < maxTell40PCINumber; ipci++){
-      for ( unsigned int ilink = 0; ilink < maxNumberLinks; ilink++){
-	unsigned int node = daqHelper -> getODENumberNoHole(itell, ipci, ilink);
+  for ( unsigned int itell = 0; itell < Muon::Constants::maxTell40Number; itell++){
+    for ( unsigned int ipci = 0; ipci < Muon::Constants::maxTell40PCINumber; ipci++){
+      for ( unsigned int ilink = 0; ilink < Muon::Constants::maxNumberLinks; ilink++){
+ 	unsigned int node = daqHelper -> getODENumberNoHole(itell, ipci, ilink);
 	unsigned int frame = daqHelper -> getODEFrameNumberNoHole(itell, ipci, ilink);
 	if (node > 0) {
-	  for ( unsigned int ich = 0; ich < ODEFrameSize; ich++ ) {
-	    auto tileID = daqHelper -> getTileIDInNODE(node - 1, frame * ODEFrameSize + ich);
+ 	  for ( unsigned int ich = 0; ich < Muon::Constants::ODEFrameSize; ich++ ) {
+	    auto tileID = daqHelper -> getTileIDInNODE(node - 1, frame * Muon::Constants::ODEFrameSize + ich);	    
 	    if ( tileID.isValid() ) {
 	      mapRegionOfLink[itell][ipci][ilink] = tileID.region();
 	      mapQuarterOfLink[itell][ipci][ilink] = tileID.quarter();
 	    } //valid tileID
-            mapTileInTell40[itell][ipci][(ilink)*ODEFrameSize + ich] = tileID;
+            mapTileInTell40[itell][ipci][(ilink)*Muon::Constants::ODEFrameSize + ich] = int(tileID);
 	  }//loop on channels 
 	} //valid node
       }//loop on links
     }//loop on pci boards
   }//loop on tell40s
 
-  output.write( whichStationIsTell40, 
-		tell40PCINumberOfActiveLink, 
-		mapRegionOfLink,
-		mapQuarterOfLink, 
-		mapTileInTell40 );
+  output.write( whichStationIsTell40, tell40PCINumberOfActiveLink, 
+		mapRegionOfLink, mapQuarterOfLink, mapTileInTell40 );
   } else {
+    version = 2;
+    output.write(version);
     
     //DAQ Helper
     auto daqHelper = det.getDAQInfo();    
@@ -191,7 +177,7 @@ std::tuple<std::vector<char>, std::string> DumpMuonGeometry::operator()(
 
   // for (auto i : det.getUpgradeDAQInfo() -> m_which_stationIsTell40)
   //   std::cout << "m_which_stationIsTell40 map " << i << std::endl; 
-  // for (auto i = 0; i < MuonUpgradeDAQHelper_maxTell40Number; i++)
+  // for (auto i = 0; i < MuonUpgradeDAQHelper_maxTel40Number; i++)
   //   for (auto j = 0; j < MuonUpgradeDAQHelper_maxTell40PCINumber; j++)
   //     std::cout << "m_Tell40PCINumberOfActiveLink map " << det.getUpgradeDAQInfo() -> m_Tell40PCINumberOfActiveLink[i][j] << std::endl; 
   // for (auto i = 0; i < MuonUpgradeDAQHelper_maxTell40Number; i++)
@@ -209,5 +195,3 @@ std::tuple<std::vector<char>, std::string> DumpMuonGeometry::operator()(
 
   return std::tuple {output.buffer(), m_id};
 }
-
-#endif
