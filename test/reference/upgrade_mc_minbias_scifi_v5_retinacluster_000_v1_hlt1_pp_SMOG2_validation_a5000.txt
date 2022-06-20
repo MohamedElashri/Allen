@@ -43,7 +43,7 @@ Real false rate      :  0.005 (    23/  4556)
 Clones               :  0.000 (     0/  4533)
 
 
-forward_validator validation:
+long_validator validation:
 TrackChecker output                               :       916/    30351   3.02% ghosts
 for P>3GeV,Pt>0.5GeV                              :       460/    18863   2.44% ghosts
 01_long                                           :     27902/    52446  53.20% ( 53.60%),       213 (  0.76%) clones, pur  99.31%, hit eff  96.24%
@@ -64,7 +64,7 @@ Muon fraction in MCPs to which a track(s) was matched:                    257/  
 Correctly identified muons with isMuon:                                   199/      257  77.43% 
 Correctly identified muons from strange decays with isMuon:                 0/        0   -nan% 
 Correctly identified muons from B decays with isMuon:                       0/        0   -nan% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:      2055/    33771   6.09% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:      2056/    33771   6.09% 
 Ghost tracks identified as muon with isMuon:                               74/      916   8.08% 
 
 
