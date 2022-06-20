@@ -33,6 +33,7 @@ def line_maker(line_name, line_algorithm, enableGEC=True):
         node = line_algorithm
     return line_algorithm, node
 
+
 def default_lines(velo_tracks, forward_tracks, long_track_particles,
                   velo_states, calo_decoding, pvs):
     lines = []
@@ -92,6 +93,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
     lines.append(
         line_maker(
             "Hlt1Passthrough", make_passthrough_line(), enableGEC=False))
+
     # lines.append(
     #     line_maker(
     #         "Hlt1RICH1Alignment",
@@ -102,6 +104,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
     #         "HLt1RICH2Alignment",
     #         make_rich_2_line(forward_tracks, long_track_particles),
     #         enableGEC=True))
+
     lines.append(
         line_maker(
             "Hlt1BeamGas",
@@ -112,6 +115,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
                 post_scaler_hash_string="no_beam_line_post",
                 beam_crossing_type=1),
             enableGEC=True))
+
     lines.append(
         line_maker(
             "Hlt1GECPassthrough",
@@ -138,7 +142,8 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
                 velo_tracks=velo_tracks,
                 pvs=pvs,
                 calo_decoding=calo_decoding,
-                max_ecal_e=94.),   #treat it as random number for now as we're still trying to convert ADC to energy
+                max_ecal_e=94.
+            ),  #treat it as random number for now as we're still trying to convert ADC to energy
             enableGEC=False))
 
     return lines
@@ -149,13 +154,11 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
     reconstructed_objects = hlt1_reconstruction(add_electron_id=True)
     calo_decoding = decode_calo()
 
-    lines = default_lines(
-        reconstructed_objects["velo_tracks"],
-        reconstructed_objects["forward_tracks"],
-        reconstructed_objects["long_track_particles"],
-        reconstructed_objects["velo_states"],
-        calo_decoding,
-        reconstructed_objects["pvs"])
+    lines = default_lines(reconstructed_objects["velo_tracks"],
+                          reconstructed_objects["forward_tracks"],
+                          reconstructed_objects["long_track_particles"],
+                          reconstructed_objects["velo_states"], calo_decoding,
+                          reconstructed_objects["pvs"])
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in lines]

@@ -8,7 +8,7 @@
 
 namespace PV {
   // maximum number of vertices in a event
-  static constexpr unsigned max_number_vertices = 64;
+  static constexpr unsigned max_number_vertices = 32;
 
   // study this
   static constexpr unsigned max_number_subclusters = 50;

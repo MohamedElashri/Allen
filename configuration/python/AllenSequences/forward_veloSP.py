@@ -9,7 +9,9 @@ from AllenCore.generator import generate
 
 with decode_velo.bind(retina_decoding=False):
     forward_tracking_sequence = CompositeNode(
-        "ForwardTrackingWithGEC", [gec("gec", max_scifi_ut_clusters=2*9750), forward_tracking()],
+        "ForwardTrackingWithGEC",
+        [gec("gec", max_scifi_ut_clusters=2 * 9750),
+         forward_tracking()],
         NodeLogic.LAZY_AND,
         force_order=True)
 
