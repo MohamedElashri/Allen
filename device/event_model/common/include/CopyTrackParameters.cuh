@@ -26,12 +26,12 @@ __device__ inline void prepare_long_tracks(
     t.p = 1.f / std::abs(qop);
     t.qop = qop;
     // direction at first state -> velo state of track
-    const auto tx = velo_state.tx();
-    const auto ty = velo_state.ty();
-    const auto slope2 = tx * tx + ty * ty;
-    t.pt = std::sqrt(slope2 / (1.0 + slope2)) / std::fabs(qop);
+    const float tx = velo_state.tx();
+    const float ty = velo_state.ty();
+    const float slope2 = tx * tx + ty * ty;
+    t.pt = std::sqrt(slope2 / (1.0f + slope2)) / std::fabs(qop);
     // pseudorapidity
-    const auto rho = std::sqrt(slope2);
+    const float rho = std::sqrt(slope2);
     t.rho = rho;
 
     // add all hits
