@@ -227,7 +227,6 @@ void run_stream(
   CheckerInvoker* checker_invoker,
   ROOTService* root_service,
   unsigned n_reps,
-  bool cpu_offload,
   bool mep_layout,
   uint inject_mem_fail)
 {
@@ -272,7 +271,6 @@ void run_stream(
          *idx,
          {static_cast<unsigned>(first), static_cast<unsigned>(last)},
          n_reps,
-         cpu_offload,
          mep_layout,
          inject_mem_fail,
          checker_invoker,

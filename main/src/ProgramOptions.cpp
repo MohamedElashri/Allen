@@ -37,7 +37,7 @@ std::vector<ProgramOption> allen_program_options()
   // Format: options {short / long, short / long, ...}, description,
   //         [optional default value], [optional description default value]
   return {
-    {{"g", "geometry"}, "folder containing detector configuration", "../input/detector_configuration/down/"},
+    {{"g"}, "folder containing detector configuration", "../input/detector_configuration/down/"},
     {{"params"}, "folder containing parameters that do not change with the geometry", ""},
     {{"mdf"}, "comma-separated list of MDF files to use as input OR single text file containing one MDF file per line"},
     {{"print-status"}, "show status of buffer and socket", "0"},
@@ -54,7 +54,6 @@ std::vector<ProgramOption> allen_program_options()
     {{"p", "print-memory"}, "print memory usage", "0"},
     {{"sequence"}, "sequence to run", ""},
     {{"run-from-json"}, "run from json configuration file", "0"},
-    {{"cpu-offload"}, "offload part of the computation to CPU", "1"},
     {{"output-file"}, "Write selected event to output file", ""},
     {{"output-batch-size"}, "Write output in batches of N events", "10"},
     {{"device"}, "select device to use", "0"},

@@ -36,7 +36,6 @@ void run_stream(
   CheckerInvoker* checker_invoker,
   ROOTService* root_service,
   unsigned n_reps,
-  bool cpu_offload,
   bool mep_layout,
   uint inject_mem_fail);
 
