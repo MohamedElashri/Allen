@@ -44,7 +44,7 @@ ZMQOutputSender::ZMQOutputSender(
   size_t const n_lines,
   IZeroMQSvc* zmqSvc,
   bool const checksum) :
-  OutputHandler {input_provider, receiver_connection, output_batch_size, n_lines, checksum},
+  OutputHandler {input_provider, receiver_connection, 1u, output_batch_size, n_lines, checksum},
   m_zmq {zmqSvc}
 {
   auto const pos = receiver_connection.rfind(":");
@@ -88,7 +88,7 @@ ZMQOutputSender::~ZMQOutputSender()
   }
 }
 
-zmq::socket_t* ZMQOutputSender::client_socket() { return (m_connected && m_socket) ? &(*m_socket) : nullptr; }
+zmq::socket_t* ZMQOutputSender::client_socket() const { return (m_connected && m_socket) ? &(*m_socket) : nullptr; }
 
 void ZMQOutputSender::handle()
 {
@@ -103,10 +103,10 @@ void ZMQOutputSender::handle()
   }
 }
 
-std::tuple<size_t, gsl::span<char>> ZMQOutputSender::buffer(size_t buffer_size, size_t)
+gsl::span<char> ZMQOutputSender::buffer(size_t, size_t buffer_size, size_t)
 {
   m_buffer.rebuild(buffer_size);
-  return {0, gsl::span {static_cast<char*>(m_buffer.data()), static_cast<events_size>(buffer_size)}};
+  return gsl::span {static_cast<char*>(m_buffer.data()), static_cast<events_size>(buffer_size)};
 }
 
 bool ZMQOutputSender::write_buffer(size_t)

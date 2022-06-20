@@ -105,6 +105,9 @@ int allen(
   std::string mon_filename;
   bool disable_run_changes = 0;
 
+  size_t const n_write = output_handler != nullptr ? output_handler->n_threads() : 1;
+  size_t const n_io = n_input + n_write;
+
   std::string flag, arg;
 
   // Use flags to populate variables in the program
@@ -379,8 +382,8 @@ int allen(
   };
 
   // Lambda with the execution of the output thread
-  const auto output_thread = [&](unsigned thread_id, unsigned) {
-    return std::thread {run_output, thread_id, zmqSvc, output_handler, buffers_manager.get()};
+  const auto output_thread = [&](unsigned thread_id, unsigned output_id) {
+    return std::thread {run_output, thread_id, output_id, zmqSvc, output_handler, buffers_manager.get()};
   };
 
   // Lambda with the execution of the monitoring thread
@@ -636,7 +639,7 @@ int allen(
   };
 
   if (!allen_control && !error_count) {
-    for (size_t i = 0; i < n_io; ++i) {
+    for (size_t i = 0; i < n_input; ++i) {
       auto& socket = std::get<1>(io_workers[i]);
       zmqSvc->send(socket, "START");
     }
@@ -650,6 +653,24 @@ int allen(
   bool stop = false, exit_loop = false;
   std::optional<Timer> t_stop;
   float stop_timeout = 5.f;
+
+  // Iterator to the first writer thread
+  auto writer_it = io_workers.begin() + n_input;
+
+  // Get a writer thread in round-robin fashion
+  auto get_writer = [&writer_it, &io_workers, n_input = n_input, n_write]() -> zmq::socket_t& {
+    if (n_write == 1) {
+      return std::get<1>(*writer_it);
+    }
+    else {
+      auto it = writer_it;
+      ++writer_it;
+      if (writer_it == io_workers.end()) {
+        writer_it = io_workers.begin() + n_input;
+      }
+      return std::get<1>(*it);
+    }
+  };
 
   // Main event loop
   // - Check if input slices are available from the input thread
@@ -694,6 +715,7 @@ int allen(
         if (items[number_of_threads + i].revents & zmq::POLLIN) {
           auto& socket = std::get<1>(io_workers[i]);
           auto msg = zmqSvc->receive<std::string>(socket);
+
           if (msg == "SLICE") {
             slice_index = zmqSvc->receive<size_t>(socket);
             auto n_filled = zmqSvc->receive<size_t>(socket);
@@ -846,7 +868,7 @@ int allen(
 
       input_slice_status[slc_index][first_event] = SliceStatus::Writing;
 
-      auto& socket = std::get<1>(io_workers[n_input]);
+      auto& socket = get_writer();
       zmqSvc->send(socket, "WRITE", send_flags::sndmore);
       zmqSvc->send(socket, slc_index, send_flags::sndmore);
       zmqSvc->send(socket, first_event, send_flags::sndmore);
@@ -897,7 +919,7 @@ int allen(
         io_done = false;
 
         // Send slice thread start to start asking for slices
-        for (size_t i = 0; i < n_io; ++i) {
+        for (size_t i = 0; i < n_input; ++i) {
           auto& socket = std::get<1>(io_workers[i]);
           zmqSvc->send(socket, "START");
         }

@@ -48,8 +48,7 @@ odin_bank(const char* dev_odin_data, const uint* dev_odin_offsets, const uint* d
     // is only 1 banks, there are two offsets.
     char const* event_data = dev_odin_data + dev_odin_offsets[event_number];
     assert(reinterpret_cast<uint32_t const*>(event_data)[0] == 1);
-    auto const size_offset = dev_odin_sizes[event_number];
-    auto const size = reinterpret_cast<unsigned short const*>(dev_odin_sizes)[size_offset];
+    auto const size = Allen::bank_size(dev_odin_sizes, event_number, 0);
 
     return ODINRawBank(event_data + 3 * sizeof(uint32_t), size, 0);
   }

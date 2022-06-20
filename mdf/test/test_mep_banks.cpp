@@ -128,7 +128,7 @@ IInputProvider* mep_provider(std::string json_file)
   sc &= provider_prop->setProperty("EvtMax", std::to_string(s_config.n_events));
   sc &= provider_prop->setProperty("SplitByRun", "0");
   sc &= provider_prop->setProperty("Source", "\"Files\"");
-  sc &= provider_prop->setProperty("BufferConfig", "(2, 1)");
+  sc &= provider_prop->setProperty("BufferConfig", "(2, 2)");
   sc &= provider_prop->setProperty("TransposeMEPs", std::to_string(s_config.transpose_mep));
   sc &= provider_prop->setProperty("OutputLevel", s_config.debug ? "2" : "3");
 
@@ -144,6 +144,7 @@ IInputProvider* mep_provider(std::string json_file)
 
   sc &= app->initialize();
   sc &= app->start();
+  sc &= app->stop();
   return dynamic_cast<IInputProvider*>(provider.get());
 }
 
@@ -259,7 +260,6 @@ int main(int argc, char* argv[])
 
   mdf.reset();
   if (app) {
-    app->stop().ignore();
     app->finalize().ignore();
   }
   return r;

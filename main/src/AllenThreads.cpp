@@ -80,6 +80,7 @@ zmq::socket_t make_control(size_t thread_id, IZeroMQSvc* zmqSvc, std::string suf
 
 void run_output(
   const size_t thread_id,
+  const size_t output_id,
   IZeroMQSvc* zmqSvc,
   OutputHandler* output_handler,
   HostBuffersManager* buffer_manager)
@@ -105,7 +106,8 @@ void run_output(
     }
 
     if (items[0].revents & zmq::POLLIN) {
-      auto msg = zmqSvc->receive<std::string>(control);
+      bool more = false;
+      auto msg = zmqSvc->receive<std::string>(control, &more);
       if (msg == "DONE") {
         break;
       }
@@ -120,7 +122,7 @@ void run_output(
           buffer_manager->getBufferOutputData(buf_idx);
         if (output_handler != nullptr) {
           std::tie(success, n_written) = output_handler->output_selected_events(
-            slc_idx, first_evt, passing_event_list, dec_reports, sel_reports, sel_report_offsets);
+            output_id, slc_idx, first_evt, passing_event_list, dec_reports, sel_reports, sel_report_offsets);
         }
 
         zmqSvc->send(control, "WRITTEN", send_flags::sndmore);
@@ -129,6 +131,12 @@ void run_output(
         zmqSvc->send(control, buf_idx, send_flags::sndmore);
         zmqSvc->send(control, success, send_flags::sndmore);
         zmqSvc->send(control, n_written);
+      }
+      else {
+        error_cout << "Output threads got unknown message: " << msg << "\n";
+        while (more) {
+          zmqSvc->receive<zmq::message_t>(control, &more);
+        }
       }
     }
   }

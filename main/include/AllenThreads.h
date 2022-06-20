@@ -19,6 +19,7 @@ std::string connection(const size_t id, std::string suffix = "");
 
 void run_output(
   const size_t thread_id,
+  const size_t output_id,
   IZeroMQSvc* zmqSvc,
   OutputHandler* output_handler,
   HostBuffersManager* buffer_manager);
