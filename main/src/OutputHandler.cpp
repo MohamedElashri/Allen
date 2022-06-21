@@ -37,7 +37,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   // size of a RawBank header
   const int bank_header_size = 4 * sizeof(short);
   // size of the DecReport RawBank
-  const unsigned dec_report_size = (m_nlines + 2) * sizeof(uint32_t);
+  const unsigned dec_report_size = (m_nlines + 3) * sizeof(uint32_t);
   // size of the RoutingBits RawBank
   const unsigned routing_bits_size = RoutingBitsDefinition::n_words * sizeof(uint32_t);
 
@@ -203,26 +203,26 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       auto hlt_banks = std::make_tuple(
         // HltDecReports
         output_bank {LHCb::RawBank::HltDecReports,
-                     2u,
-                     Hlt1::Constants::sourceID_dec_reports,
+                     3u,
+                     Hlt1::Constants::sourceID,
                      {reinterpret_cast<char const*>(dec_reports.data()) + dec_report_size * event_number,
                       static_cast<events_size>(dec_report_size)}},
         // HltRoutingBits
         output_bank {LHCb::RawBank::HltRoutingBits,
                      0u,
-                     Hlt1::Constants::sourceID_dec_reports,
+                     Hlt1::Constants::sourceID,
                      {reinterpret_cast<char const*>(routing_bits.data()) + routing_bits_size * event_number,
                       static_cast<events_size>(routing_bits_size)}},
         // HltSelReports
         output_bank {LHCb::RawBank::HltSelReports,
-                     11u,
+                     11u, // TODO: change to 12u, update to run3 source ID...
                      Hlt1::Constants::sourceID_sel_reports,
                      {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offset * sizeof(uint32_t),
                       static_cast<events_size>(sel_report_size)}},
         // HltLumiSummary
         output_bank {LHCb::RawBank::HltLumiSummary,
                      1u, // TODO version number
-                     Hlt1::Constants::sourceID_dec_reports,
+                     Hlt1::Constants::sourceID,
                      {reinterpret_cast<char const*>(lumi_summaries.data()) + lumi_summary_offset * sizeof(uint32_t),
                       static_cast<events_size>(lumi_summary_size)}});
 

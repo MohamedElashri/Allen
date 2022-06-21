@@ -109,7 +109,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
   const unsigned* line_selected_object_offsets = parameters.dev_max_objects_offsets + n_lines * event_number;
   const unsigned selected_object_offset = n_children * line_selected_object_offsets[0];
   const uint32_t* event_dec_reports =
-    parameters.dev_dec_reports + (2 + parameters.dev_number_of_active_lines[0]) * event_number;
+    parameters.dev_dec_reports + (3 + parameters.dev_number_of_active_lines[0]) * event_number;
   unsigned* event_candidate_count =
     parameters.dev_candidate_count + event_number * parameters.dev_number_of_active_lines[0];
 
@@ -118,7 +118,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
   for (unsigned line_index = 0; line_index < n_lines; line_index += 1) {
 
     HltDecReport dec_report;
-    dec_report.setDecReport(event_dec_reports[2 + line_index]);
+    dec_report.setDecReport(event_dec_reports[3 + line_index]);
     if (!dec_report.getDecision()) continue;
 
     const auto mec = parameters.dev_multi_event_particle_containers[line_index];
@@ -248,7 +248,7 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
   const auto event_unique_sv_list = parameters.dev_unique_sv_list + selected_object_offset;
   const auto n_selected_tracks = parameters.dev_unique_track_count[event_number];
   const auto n_selected_svs = parameters.dev_unique_sv_count[event_number];
-  const uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_lines) * event_number;
+  const uint32_t* event_dec_reports = parameters.dev_dec_reports + (3 + n_lines) * event_number;
   unsigned* event_candidate_count = parameters.dev_candidate_count + event_number * n_lines;
   unsigned* event_sel_list = parameters.dev_sel_list + event_number * n_lines;
 
@@ -266,7 +266,7 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
   for (unsigned line_index = threadIdx.x; line_index < parameters.dev_number_of_active_lines[0];
        line_index += blockDim.x) {
     HltDecReport dec_report;
-    dec_report.setDecReport(event_dec_reports[2 + line_index]);
+    dec_report.setDecReport(event_dec_reports[3 + line_index]);
     if (dec_report.getDecision()) {
       atomicAdd(parameters.dev_substr_bank_size + event_number, 1 + event_candidate_count[line_index]);
       atomicAdd(parameters.dev_substr_sel_size + event_number, 1 + event_candidate_count[line_index]);

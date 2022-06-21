@@ -14,9 +14,9 @@ void dec_reporter::dec_reporter_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<dev_dec_reports_t>(
-    arguments, (2 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
+    arguments, (3 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
   set_size<host_dec_reports_t>(
-    arguments, (2 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
+    arguments, (3 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
   set_size<dev_selected_candidates_counts_t>(
     arguments, first<host_number_of_active_lines_t>(arguments) * first<host_number_of_events_t>(arguments));
 }
@@ -54,14 +54,15 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
     parameters.dev_selections, parameters.dev_selections_offsets, number_of_events};
 
   uint32_t* event_dec_reports =
-    parameters.dev_dec_reports + (2 + parameters.dev_number_of_active_lines[0]) * event_index;
+    parameters.dev_dec_reports + (3 + parameters.dev_number_of_active_lines[0]) * event_index;
   unsigned* event_selected_candidates_counts =
     parameters.dev_selected_candidates_counts + event_index * parameters.dev_number_of_active_lines[0];
 
   if (threadIdx.x == 0) {
     // Set TCK and taskID for each event dec report
-    event_dec_reports[0] = parameters.tck;
-    event_dec_reports[1] = parameters.task_id;
+    event_dec_reports[0] = parameters.key;
+    event_dec_reports[1] = parameters.tck;
+    event_dec_reports[2] = parameters.task_id;
   }
 
   __syncthreads();
@@ -87,6 +88,6 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
     dec_report.setIntDecisionID(line_index + 1);
     dec_report.setExecutionStage(1);
 
-    event_dec_reports[2 + line_index] = dec_report.getDecReport();
+    event_dec_reports[3 + line_index] = dec_report.getDecReport();
   }
 }

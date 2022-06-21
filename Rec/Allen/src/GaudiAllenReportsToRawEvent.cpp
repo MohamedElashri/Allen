@@ -38,13 +38,14 @@ LHCb::RawEvent GaudiAllenReportsToRawEvent::operator()(
 
   LHCb::RawEvent raw_event;
   // TODO: get these hard coded numbers from somewhere else... should be defined in one location only!
-  constexpr auto hlt1SourceID = (1u << 13);
-  constexpr auto sel_rep_version = 9u, dec_rep_version = 2u;
+  constexpr auto hlt1SourceID_old = (1u << 13);
+  constexpr auto hlt1SourceID_new = (1u << 8);
+  constexpr auto sel_rep_version = 9u, dec_rep_version = 3u;
   auto dec_reports =
-    LHCb::make_span(&allen_dec_reports[0], &allen_dec_reports[allen_number_of_active_lines[0] + 1] + 1);
+    LHCb::make_span(&allen_dec_reports[0], &allen_dec_reports[allen_number_of_active_lines[0] + 3] + 1);
   auto sel_reports = LHCb::make_span(&allen_sel_reports[0], allen_selrep_offsets[1]);
-  raw_event.addBank(hlt1SourceID, LHCb::RawBank::HltSelReports, sel_rep_version, sel_reports);
-  raw_event.addBank(hlt1SourceID, LHCb::RawBank::HltDecReports, dec_rep_version, dec_reports);
+  raw_event.addBank(hlt1SourceID_old, LHCb::RawBank::HltSelReports, sel_rep_version, sel_reports);
+  raw_event.addBank(hlt1SourceID_new, LHCb::RawBank::HltDecReports, dec_rep_version, dec_reports);
 
   return raw_event;
 }

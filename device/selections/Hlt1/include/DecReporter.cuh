@@ -17,6 +17,7 @@ namespace dec_reporter {
     HOST_OUTPUT(host_dec_reports_t, unsigned) host_dec_reports;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(tck_t, "tck", "TCK", unsigned) tck;
+    PROPERTY(encoding_key_t, "encoding_key", "encoding key", unsigned) key;
     PROPERTY(task_id_t, "task_is", "Task ID", unsigned) task_id;
   };
 
@@ -39,6 +40,7 @@ namespace dec_reporter {
   private:
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<tck_t> m_tck {this, 0};
+    Property<encoding_key_t> m_key {this, 0xDEADBEEF}; // FIXME
     Property<task_id_t> m_taskID {this, 1};
   };
 } // namespace dec_reporter

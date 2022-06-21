@@ -43,11 +43,11 @@ __global__ void global_decision::global_decision(global_decision::Parameters par
     bool global_decision = false;
 
     uint32_t const* event_dec_reports =
-      parameters.dev_dec_reports + (2 + parameters.dev_number_of_active_lines[0]) * event_index;
+      parameters.dev_dec_reports + (3 + parameters.dev_number_of_active_lines[0]) * event_index;
 
     for (unsigned line_index = 0; line_index < parameters.dev_number_of_active_lines[0]; ++line_index) {
       // Iterate all lines to get the decision for the current {event, line}
-      HltDecReport dec_report(event_dec_reports[2 + line_index]);
+      HltDecReport dec_report(event_dec_reports[3 + line_index]);
       global_decision |= dec_report.decision();
       if (global_decision) break;
     }
