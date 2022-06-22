@@ -238,7 +238,7 @@ void calo_decode::calo_decode_t::operator()(
   };
 
   const auto geom_version = CaloGeometry(constants.host_ecal_geometry.data()).geom_version;
-  if (!bank_geom_compatibility_check(bank_version, static_cast<const int>(geom_version))) {
+  if (!bank_geom_compatibility_check(bank_version, geom_version)) {
     throw StrException(
       "Calo bank version - geometry version mismatch (bank version " + std::to_string(bank_version) +
       ", calo geometry version " + std::to_string(geom_version) + ")");
