@@ -7,68 +7,46 @@ main reconstruction sequence.
 
 Types of selections
 ^^^^^^^^^^^^^^^^^^^^^^^
-Selections are fully configurable algorithms in Allen. However, for ease of use, some predefined selection "types" exist that make writing new selections easier. The types of selections are discussed below.
-
-Bear in mind that if the selection you want to write does not adhere to any of the types below, you can always create a new [custom selection](#orgd5c01de).
+Selections are fully configurable algorithms in Allen. Lines that select events
+based on basic or composite particles must have a device input
+`dev_particle_container_t` that is an `Allen::MultiEventContainer
+<https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/event_model/common/include/MultiEventContainer.cuh>`.
+For convenience, there are some predefined line types.
 
 OneTrackLine
 --------------
-These trigger on single Kalman filtered long (Velo-UT-SciFi)
-tracks. These are stored in the device buffer type
-`dev_kf_tracks_t`. The structure of these tracks is defined in `ParKalmanDefinitions.h <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/kalman/ParKalman/include/ParKalmanDefinitions.cuh>`_. This includes muon ID information.
-
-Selections can be made based on data members of `ParKalmanFilter::FittedTrack`.
-
-* `ipChi2`: best PV IP chi2
-* `chi2`, `ndof`: fit quality
-* `is_muon`: muon ID information
-
-In addition several helper member functions are available for commonly used variables: `p()`, `pt()`, `px()`, `py()`, `pz()`, `eta()`.
+These lines trigger on basic particles with no decay products. In most cases,
+this means triggering on Kalman-filtered long tracks. The input
+`dev_particle_container_t` must be an `Allen::MultiEventBasicParticles`. Basic
+particle properties are accessed via the `BasicParticle
+<https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/event_model/common/include/ParticleTypes.cuh>`
+view. This view provides access to the track state (including
+momentum), lepton ID, and the associated PV (including e.g. IP, IP chi2).
 
 TwoTrackLine
 ---------------
-These trigger on secondary vertices constructed from 2 Kalman filtered
-long tracks defined in `VertexDefinitions.cuh <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/kalman/ParKalman/include/ParKalmanDefinitions.cuh>`_.  The input tracks
-are filtered using loose requirements on IP chi2 and pT before the
-secondary vertex fit. No IP chi2 requirement is imposed on dimuon and dielectron
-candidates so that their reconstruction is independent of PV
-reconstruction. These vertices are stored in the device buffer with type
-`dev_consolidated_svs_t`.
-
-Selections can be made based on data members of `VertexFit::TrackMVAVertex`.
-
-    *   `px`, `py`, `pz`: vertex 3-momentum
-    *   `x`, `y`, `z`: vertex position
-    *   `chi2`: vertex fit chi2
-    *   `p1`, `p2`: constituent track momenta
-    *   `cos`: cos of the constituent track opening angle
-    *   `vertex_ip`: Vertex IP w.r.t. matched PV
-    *   `vertex_clone_sin2`: sin2 of the track opening angle
-    *   `sumpt`: sum of constituent track pT
-    *   `fdchi2`: vertex flight distance chi2
-    *   `mdimu`: vertex mass assuming the dimuon hypothesis
-    *   `mcor`: vertex corrected mass assuming dipion hypothesis
-    *   `eta`: PV -> SV eta
-    *   `minipchi2`: minimum IP chi2 of constituent tracks
-    *   `minpt`: minimum pT of constituent tracks
-    *   `ntrks16`: number of constituent tracks with a minimum IP chi2 < 16
-    *   `trk1_is_muon`, `trk2_is_muon`: muon ID information for constituent tracks
-    *   `is_dimuon`: `trk1_is_muon && trk2_is_muon`
-
-    In addition, some helper member functions are available for commone quantities.
-
-    *   `pt()`: vertex transverse momentum
-    *   `m(float m1, float m2)`: vertex mass assuming mass hypotheses
-        `m1` and `m2` for the constituent tracks
+These lines trigger on composite particles composed of other basic or composite
+particles. In most cases, this means triggering on 2-track secondary vertices.
+The input `dev_particle_container_t` must be an
+`Allen::MultiEventCompositeParticles`. Composite particle properties are
+accessed via the `CompositeParticle
+<https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/event_model/common/include/ParticleTypes.cuh>`
+view. This view provides access to vertex fit results, the associated PV
+(including e.g. FD, FD chi2), and the child particles (`BasicParticle`s and/or
+`CompositeParticle`s).
 
 EventLine
 -------------
-These make trigger selections based on event-level information. Right
-now this includes the ODIN raw bank. Examples are the minimum bias and lumi lines.
+A line that executes once per event.
+
+ODINLine
+-------------
+An EventLine that selects events based on information from the ODIN raw bank.
 
 Custom line
 --------------
-A custom selection can trigger on any input data, and can either be based on event-level information, or on more specific information.
+A custom selection can trigger on any input data, and can either be based on
+event-level information, or on more specific information.
 
 Adding a new selection
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -76,6 +54,7 @@ Choosing the right directory
 --------------------------------
 HLT1 selection lines live in the directory  `device/selections/lines <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/device/selections/lines>`_ and are grouped into directories based on the selection purpose. Currently, the following subdirectories exist:
 
+* SMOG2
 * calibration (includes alignment)
 * charm
 * electron
@@ -219,8 +198,7 @@ header.
       MASK_INPUT(dev_event_list_t);
       HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
       HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-      HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
+      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;      
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -229,8 +207,8 @@ header.
        post_scaler_hash_string;
       // Line-specific inputs and properties
       HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
-      DEVICE_INPUT(dev_tracks_t, ParKalmanFilter::FittedTrack) dev_tracks;
-      DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+      DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_particle_container_t;
+      HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
       PROPERTY(minPt_t, "minPt", "minPt description", float) minPt;
       PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
     };
@@ -238,7 +216,7 @@ header.
     // SelectionAlgorithm definition
     struct example_one_track_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<example_one_track_line_t, Parameters> {
       // Selection function.
-      __device__ static bool select(const Parameters& parameters, std::tuple<const ParKalmanFilter::FittedTrack&> input);
+      __device__ static bool select(const Parameters& parameters, std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
     private:
       // Commonly required properties
@@ -263,10 +241,10 @@ And the then the source:
 
   __device__ bool example_one_track_line::example_one_track_line_t::select(
     const Parameters& parameters,
-    std::tuple<const ParKalmanFilter::FittedTrack&> input)
+    std::tuple<const Allen::Views::Physics::BasicParticle> input)
   {
     const auto& track = std::get<0>(input);
-    const bool decision = track.pt() > parameters.minPt && track.ipChi2 > parameters.minIPChi2;
+    const bool decision = track.state().pt() > parameters.minPt && track.ip_chi2() > parameters.minIPChi2;
     return decision;
   }
 
@@ -293,7 +271,6 @@ secondary vertices with no postscale. This line inherits from `TwoTrackLine`. We
       HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
       HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
       HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-      HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
       HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
       HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
@@ -304,8 +281,8 @@ secondary vertices with no postscale. This line inherits from `TwoTrackLine`. We
        post_scaler_hash_string;
       // Line-specific inputs and properties
       HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
-      DEVICE_INPUT(dev_svs_t, VertexFit::TrackMVAVertex) dev_svs;
-      DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
+      DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
+      HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
       PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float) minComboPt;
       PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float) minTrackPt;
       PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "minTrackIPChi2 description", float) minTrackIPChi2;
@@ -314,7 +291,7 @@ secondary vertices with no postscale. This line inherits from `TwoTrackLine`. We
     // SelectionAlgorithm definition
     struct example_two_track_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<example_two_track_line_t, Parameters> {
       // Selection function.
-      __device__ static bool select(const Parameters&, std::tuple<const VertexFit::TrackMVAVertex&>);
+      __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     private:
       // Commonly required properties
@@ -340,18 +317,18 @@ And a source with the following:
 
   __device__ bool example_two_track_line::example_two_track_line_t::select(
     const Parameters& parameters,
-    std::tuple<const VertexFit::TrackMVAVertex&> input)
+    std::tuple<const Allen::Views::Physics::CompositeParticle> input)
   {
-    const auto& vertex = std::get<0>(input);
+    const auto& particle = std::get<0>(input);
 
     // Make sure the vertex fit succeeded.
-    if (vertex.chi2 < 0) {
+    if (particle.vertex().chi2() < 0) {
       return false;
     }
 
-    const bool decision = vertex.pt() > parameters.minComboPt &&
-      vertex.minpt > parameters.minTrackPt &&
-      vertex.minipchi2 > parameters.minTrackIPChi2;
+    const bool decision = particle.vertex().pt() > parameters.minComboPt &&
+      particle.minpt() > parameters.minTrackPt &&
+      particle.minipchi2() > parameters.minTrackIPChi2;
     return decision;
   }
 
@@ -570,10 +547,13 @@ It is important that the return type of `get_input` is the same as the input typ
 
 Adding your selection to the Allen sequence
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-After creating the selection source code, the selection can either be added to an existing sequence or a new sequence is generated.
-Selections are added to the Allen sequence similarly as
-algorithms, described in :ref:`configure_sequence`, using the python functions defined in `AllenConf <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/configuration/python/AllenConf>`_.
-Let us first look at the default sequence definition in `hlt1_pp_default.py <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/configuration/python/AllenConf>`_
+After creating the selection source code, the selection can either be added to
+an existing sequence or a new sequence is generated. Selections are added to the
+Allen sequence similarly as algorithms, described in :ref:`configure_sequence`,
+using the python functions defined in `AllenConf
+<https://gitlab.cern.ch/lhcb/Allen/-/tree/master/configuration/python/AllenConf>`_.
+Let us first look at the default sequence definition in `hlt1_pp_default.py
+<https://gitlab.cern.ch/lhcb/Allen/-/tree/master/configuration/python/AllenConf>`_
 
 .. code-block:: python
 
@@ -590,29 +570,48 @@ The CompositeNode containing the default HLT1 selections `setup_hlt1_node` is de
   reconstructed_objects = hlt1_reconstruction()
 
   with line_maker.bind(enableGEC=EnableGEC):
-          physics_lines = default_physics_lines(
-              reconstructed_objects["velo_tracks"],
-              reconstructed_objects["forward_tracks"],
-              reconstructed_objects["kalman_velo_only"],
-              reconstructed_objects["secondary_vertices"])
+        physics_lines = default_physics_lines(
+            reconstructed_objects["velo_tracks"],
+            reconstructed_objects["forward_tracks"],
+            reconstructed_objects["long_track_particles"],
+            reconstructed_objects["secondary_vertices"],
+            reconstructed_objects["calo_matching_objects"])
 
-      monitoring_lines = default_monitoring_lines(
-          reconstructed_objects["velo_tracks"])
+  with line_maker.bind(prefilter=gec):
+      monitoring_lines += alignment_monitoring_lines(
+          reconstructed_objects["velo_tracks"],
+          reconstructed_objects["forward_tracks"],
+          reconstructed_objects["long_track_particles"],
+          reconstructed_objects["velo_states"])
 
-      # list of line algorithms, required for the gather selection and DecReport algorithms
-      line_algorithms = [tup[0] for tup in physics_lines
-                         ] + [tup[0] for tup in monitoring_lines]
-      # lost of line nodes, required to set up the CompositeNode
-      line_nodes = [tup[1] for tup in physics_lines
-                    ] + [tup[1] for tup in monitoring_lines]
+  # list of line algorithms, required for the gather selection and DecReport algorithms
+  line_algorithms = [tup[0] for tup in physics_lines
+                      ] + [tup[0] for tup in monitoring_lines]
+  # lost of line nodes, required to set up the CompositeNode
+  line_nodes = [tup[1] for tup in physics_lines
+                ] + [tup[1] for tup in monitoring_lines]
 
-      lines = CompositeNode(
-          "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
+  lines = CompositeNode(
+      "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
-      hlt1_node = CompositeNode(
-          "Allen", [lines, make_dec_reporter(lines=line_algorithms)],
-          NodeLogic.NONLAZY_AND,
-          force_order=True)
+  gather_selections_node = CompositeNode(
+      "RunAllLines",
+      [lines, make_gather_selections(lines=line_algorithms)],
+      NodeLogic.NONLAZY_AND,
+      force_order=True)
+
+  hlt1_node = CompositeNode(
+      "Allen", [
+          gather_selections_node,
+          make_global_decision(lines=line_algorithms),
+          *make_sel_report_writer(
+              lines=line_algorithms,
+              forward_tracks=reconstructed_objects["long_track_particles"],
+              secondary_vertices=reconstructed_objects["secondary_vertices"])
+          ["algorithms"],
+      ],
+      NodeLogic.NONLAZY_AND,
+      force_order=True)
 
 The default HLT1 reconstruction algorithms are called with `hlt1_reconstruction() <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/hlt1_reconstruction.py>`_. Their output is passed to the selection algorithms as required. The functions `default_physics_lines` and `default_monitoring_lines` define the default HLT1 selections. Each returns a list of tuples of `[algorithm, node]`. The list of nodes is passed as input to make the CompositeNode defining the HLT1 selections, while the list of algorithms is required as input for the DecReport algorithm.
 
@@ -673,8 +672,8 @@ The HLT1DiMuonLowMass line is defined in `hlt1_muon_lines.py` as follows:
           name=name,
           host_number_of_events_t=number_of_events["host_number_of_events"],
           host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
-          dev_svs_t=secondary_vertices["dev_consolidated_svs"],
-          dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
+          dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
           pre_scaler_hash_string=pre_scaler_hash_string,
           post_scaler_hash_string=post_scaler_hash_string,
           minHighMassTrackPt=minHighMassTrackPt,
@@ -684,10 +683,20 @@ The HLT1DiMuonLowMass line is defined in `hlt1_muon_lines.py` as follows:
           maxVertexChi2=maxVertexChi2,
           minIPChi2=minIPChi2)
 
-It takes as input the objects on which the selection is based (`forward_tracks` and `secondary_vertices`), a possible pre and post scalar hash string (`pre_scaler_hash_string` and `post_scaler_hash_string`), configurable parameters (`minHighMassTrackPt` etc.) and a name (`"Hlt1DiMuonHighMass"`). In the call to `make_algorithm` the arguments of the selection (`HOST_INPUT`, `HOST_OUTPUT` and `PROPERTY`) defined in the source code are configured.
-In Allen it is common practice, to set the default values of Properties within the source code (.cu file) and only expose those Properties to python parameters that are actually varied in a selection definition. It is particularly useful to specify the name of a line when calling the `make_..._line` function, if more than one configuration of the same selection is defined.
+It takes as input the objects on which the selection is based (`forward_tracks`
+and `secondary_vertices`), a possible pre and post scalar hash string
+(`pre_scaler_hash_string` and `post_scaler_hash_string`), configurable
+parameters (`minHighMassTrackPt` etc.) and a name (`"Hlt1DiMuonHighMass"`). In
+the call to `make_algorithm` the arguments of the selection (`HOST_INPUT`,
+`HOST_OUTPUT` and `PROPERTY`) defined in the source code are configured. In
+Allen it is common practice, to set the default values of Properties within the
+source code (.cu file) and only expose those Properties to python parameters
+that are actually varied in a selection definition. It is particularly useful to
+specify the name of a line when calling the `make_..._line` function, if more
+than one configuration of the same selection is defined.
 
-We now have the tools to create our own CompositeNode defining a custom sequence with one of the example algorithms defined above.
+We now have the tools to create our own CompositeNode defining a custom sequence
+with one of the example algorithms defined above.
 
 Head to `configuration/sequences` and add a new configuration file.
 
@@ -703,10 +712,10 @@ First define the line algorithm, for example within `hlt1_inclusive_hadron_lines
 .. code-block:: python
 
   def make_example_one_track_line(forward_tracks,
-                        kalman_velo_only,
-                        pre_scaler_hash_string="track_mva_line_pre",
-                        post_scaler_hash_string="track_mva_line_post",
-                        name="Hlt1OneTrackExample"):
+                                  long_track_particles,
+                                  pre_scaler_hash_string="track_mva_line_pre",
+                                  post_scaler_hash_string="track_mva_line_post",
+                                  name="Hlt1OneTrackExample"):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
     layout = mep_layout()
@@ -716,13 +725,15 @@ First define the line algorithm, for example within `hlt1_inclusive_hadron_lines
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
-            "host_number_of_reconstructed_scifi_tracks"],
-        dev_tracks_t=kalman_velo_only["dev_kf_tracks"],
-        dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
+          "host_number_of_reconstructed_scifi_tracks"],
+        dev_particle_container_t=long_track_particles[
+          "dev_multi_event_basic_particles"],          
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
 
-Second, we will create the CompositeNode for the selection (rather than using the predefined `setup_hlt1_node`) and generate the sequence within a new configuration file `custom_hlt1.py`:
+Second, we will create the CompositeNode for the selection (rather than using
+the predefined `setup_hlt1_node`) and generate the sequence within a new
+configuration file `custom_hlt1.py`:
 
 .. code-block:: python
 
@@ -732,12 +743,14 @@ Second, we will create the CompositeNode for the selection (rather than using th
 
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction()
+    forward_tracks = reconstructed_objects["forward_tracks"]
+    long_track_particles = reconstructed_objects["long_track_particles"]
 
     lines = []
     lines.append(
       line_maker(
           "Hlt1OneTracExample",
-          make_one_track_example_line(forward_tracks, kalman_velo_only),
+          make_one_track_example_line(forward_tracks, long_track_particles),
           enableGEC=True))
 
     line_algorithms = [tup[0] for tup in lines]
@@ -746,15 +759,21 @@ Second, we will create the CompositeNode for the selection (rather than using th
     lines = CompositeNode(
       "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
+    gather_selections_node = CompositeNode(
+        "RunAllLines",
+        [lines, make_gather_selections(lines=line_algorithms)],
+        NodeLogic.NONLAZY_AND,
+        force_order=True)
+
     custom_hlt1_node = CompositeNode(
       "Allen", [
-          lines,
-          make_sel_report_writer(
+          gather_selections_node,
+          make_global_decision(lines=line_algorithms),
+          *make_sel_report_writer(
               lines=line_algorithms,
-              forward_tracks=reconstructed_objects["forward_tracks"],
+              long_track_particles=reconstructed_objects["long_track_particles"],
               secondary_vertices=reconstructed_objects["secondary_vertices"])
-          ["dev_sel_reports"].producer,
-          make_global_decision(lines=line_algorithms)
+          ["algorithms"],
       ],
       NodeLogic.NONLAZY_AND,
       force_order=True)
