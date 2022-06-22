@@ -96,7 +96,6 @@ int allen(
 
   // Input file options
   int device_id = 0;
-  int cpu_offload = 1;
   std::string file_list;
   bool print_config = 0;
   bool print_status = 0;
@@ -147,9 +146,6 @@ int allen(
     }
     else if (flag_in(flag, {"p", "print-memory"})) {
       print_memory_usage = atoi(arg.c_str());
-    }
-    else if (flag_in(flag, {"cpu-offload"})) {
-      cpu_offload = atoi(arg.c_str());
     }
     else if (flag_in(flag, {"device"})) {
       if (arg.find(":") != std::string::npos) {
@@ -352,7 +348,6 @@ int allen(
                         checker_invoker.get(),
                         root_service.get(),
                         io_conf.number_of_repetitions,
-                        cpu_offload,
                         input_provider->layout() == IInputProvider::Layout::MEP,
                         inject_mem_fail};
   };

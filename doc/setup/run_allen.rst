@@ -15,7 +15,7 @@ Some input files are included with the project for testing:
 A run of the Allen program with the help option `-h` will let you know the basic options::
 
     Usage: ./Allen
-     -g, --geometry {folder containing detector configuration}=../input/detector_configuration/down/
+     -g {folder containing detector configuration}=../input/detector_configuration/down/
      --mdf {comma-separated list of MDF files to use as input OR single text file containing one MDF file per line}
      --mep {comma-separated list of MEP files to use as input}
      --transpose-mep {Transpose MEPs instead of decoding from MEP layout directly}=0 (don't transpose)
@@ -33,7 +33,6 @@ A run of the Allen program with the help option `-h` will let you know the basic
      -p, --print-memory {print memory usage}=0
      --sequence {sequence to run}
      --run-from-json {run from json configuration file}=0
-     --cpu-offload {offload part of the computation to CPU}=1
      --output-file {Write selected event to output file}
      --device {select device to use}=0
      --non-stop {Runs the program indefinitely}=0

@@ -70,12 +70,6 @@ parser.add_argument(
     help="Fill all MEP buffers once and then reuse them",
 )
 parser.add_argument(
-    "--cpu-offload",
-    dest="cpu_offload",
-    default=1,
-    help="Offload some operations to the CPU",
-)
-parser.add_argument(
     "--profile",
     dest="profile",
     type=str,
@@ -216,7 +210,6 @@ for flag, value in [("g", args.det_folder),
                     ("p", args.print_memory),
                     ("sequence", os.path.expandvars(args.sequence)),
                     ("s", args.slices), ("mdf", os.path.expandvars(args.mdf)),
-                    ("cpu-offload", args.cpu_offload),
                     ("disable-run-changes", int(not args.enable_run_changes)),
                     ("monitoring-save-period", args.mon_save_period),
                     ("monitoring-filename", args.mon_filename),
