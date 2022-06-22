@@ -91,14 +91,10 @@ namespace Allen::Store {
     {
       // Size requested should be greater than zero
       if (requested_size == 0) {
-#ifdef ALLEN_STANDALONE
-        constexpr int zero_size_message_verbosity = 2;
-#else
-        constexpr int zero_size_message_verbosity = 5;
-#endif
+        constexpr int zero_size_message_verbosity = logger::debug;
         if (logger::verbosity() >= zero_size_message_verbosity) {
-          warning_cout << "MemoryManager: Requested to reserve zero bytes for argument " << tag
-                       << ". Did you forget to set_size?" << std::endl;
+          debug_cout << "MemoryManager: Requested to reserve zero bytes for argument " << tag
+                     << ". Did you forget to set_size?" << std::endl;
         }
         requested_size = 1;
       }
