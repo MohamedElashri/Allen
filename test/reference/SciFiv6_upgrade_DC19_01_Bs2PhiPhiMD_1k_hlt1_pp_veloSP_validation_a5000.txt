@@ -71,8 +71,8 @@ Ghost tracks identified as muon with isMuon:                              117/  
 rate_validator validation:
 Hlt1TwoTrackMVACharmXSec:                             523/  1000, (15690.00 +/-   473.84) kHz
 Hlt1KsToPiPi:                                          44/  1000, ( 1320.00 +/-   194.57) kHz
-Hlt1TrackMVA:                                         270/  1000, ( 8100.00 +/-   421.18) kHz
-Hlt1TwoTrackMVA:                                      485/  1000, (14550.00 +/-   474.13) kHz
+Hlt1TrackMVA:                                         225/  1000, ( 6750.00 +/-   396.15) kHz
+Hlt1TwoTrackMVA:                                      447/  1000, (13410.00 +/-   471.67) kHz
 Hlt1TwoTrackKs:                                         3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuon:                                   1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1SingleHighPtMuonNoMuID:                             2/  1000, (   60.00 +/-    42.38) kHz
@@ -125,8 +125,8 @@ selreport_validator validation:
                                                    Events  Candidates
 Hlt1TwoTrackMVACharmXSec:                             523        1107
 Hlt1KsToPiPi:                                          44          47
-Hlt1TrackMVA:                                         270         414
-Hlt1TwoTrackMVA:                                      485        1540
+Hlt1TrackMVA:                                         225         335
+Hlt1TwoTrackMVA:                                      447        1279
 Hlt1TwoTrackKs:                                         3           3
 Hlt1SingleHighPtMuon:                                   1           1
 Hlt1SingleHighPtMuonNoMuID:                             2           2
@@ -173,9 +173,9 @@ Hlt1RICH1Alignment:                                     7           8
 Hlt1RICH2Alignment:                                     1           1
 Hlt1BeamGas:                                            0           0
 
-Total decisions: 3737
-Total tracks:    2716
-Total SVs:       2181
-Total hits:      66486
-Total stdinfo:   34189
+Total decisions: 3654
+Total tracks:    2601
+Total SVs:       2032
+Total hits:      63657
+Total stdinfo:   32590
 

@@ -33,6 +33,7 @@ namespace two_track_mva_line {
     PROPERTY(minMcor_t, "minMcor", "Minimum corrected mass in MeV", float) minMcor;
     PROPERTY(maxSVchi2_t, "maxSVchi2", "Maximum SV chi2", float) maxSVchi2;
     PROPERTY(maxDOCA_t, "maxDOCA", "Maximum DOCA between two tracks", float) maxDOCA;
+    PROPERTY(minipchi2_t, "minipchi2", "minimum ipchi2 of the tracks", float) minipchi2;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
   };
 
@@ -50,7 +51,7 @@ namespace two_track_mva_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
 
-    Property<minMVA_t> m_minMVA {this, 0.92385f};
+    Property<minMVA_t> m_minMVA {this, 0.9569f}; // tuned to about 660 kHz (modulo GEC)
     Property<minPt_t> m_minPt {this, 200.f * Gaudi::Units::MeV};
     Property<minSVpt_t> m_minSVpt {this, 1000.f * Gaudi::Units::MeV};
     Property<minEta_t> m_minEta {this, 2.f};
@@ -58,6 +59,7 @@ namespace two_track_mva_line {
     Property<minMcor_t> m_minMcor {this, 1000.f};
     Property<maxSVchi2_t> m_maxSVchi2 {this, 20.f};
     Property<maxDOCA_t> m_maxDOCA {this, 0.2f};
+    Property<minipchi2_t> m_minipchi2 {this, 4.f}; // this is probably a noop, but better safe than sorry
     Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
   };
 
