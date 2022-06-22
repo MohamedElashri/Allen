@@ -9,13 +9,14 @@ Standalone Allen
 Some input files are included with the project for testing:
 
 * `input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf`: Minbias sample produced from MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster TestFile DB entry. Includes raw banks with MC information.
-* the directory `input/detector_configuration/down` contains the dumped geometry files for the above listed three data sets (they all have the same geometry version)
-* other dumped geometries shipped with Allen are located in `input/detector_configuration` and used for other data sets in the CI tests
+* The directory `input/detector_configuration` contains the dumped geometry files for MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster
+* Other dumped Allen geometries are located in `/scratch/allen_geometries` in the LHCb Online domain, and are used for other data sets in the CI tests
+* Dumped Allen geometries can also be found in eos under `/eos/lhcb/wg/rta/WP6/Allen/geometries`
 
 A run of the Allen program with the help option `-h` will let you know the basic options::
 
     Usage: ./Allen
-     -g {folder containing detector configuration}=../input/detector_configuration/down/
+     -g {folder containing detector configuration}=../input/detector_configuration/
      --mdf {comma-separated list of MDF files to use as input OR single text file containing one MDF file per line}
      --mep {comma-separated list of MEP files to use as input}
      --transpose-mep {Transpose MEPs instead of decoding from MEP layout directly}=0 (don't transpose)

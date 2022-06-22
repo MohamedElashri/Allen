@@ -42,7 +42,7 @@
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
         DATA_TAG: ["SMOG2_pppHe_retinacluster_v1"]
-        GEOMETRY: ["smog"]
+        GEOMETRY: ["SMOG2_pppHe"]
 
       # Allen clustering jobs
       - TEST_NAME: "run_throughput"
@@ -53,7 +53,7 @@
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_veloSP_validation"]
         DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k"]
-        GEOMETRY: ["scifi_v6"]
+        GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
         AVOID_HIP: "1" # This shouldn't have multiple values FIXME
 
       # run throughput, pp_SMOG2_default, SMOG2_pppHe
@@ -61,7 +61,7 @@
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_SMOG2_default"]
         DATA_TAG: ["SMOG2_pppHe_retinacluster_v1"]
-        GEOMETRY: ["smog"]
+        GEOMETRY: ["SMOG2_pppHe"]
 
       # run throughput, pp_SMOG2_default, minbias_scifi_v5
       - TEST_NAME: "run_throughput"
@@ -79,25 +79,25 @@
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
         DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1"]
-        GEOMETRY: ["scifi_v6"]
+        GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
 
       # run physics efficiency, scifi_v6
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_validation"]
         DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1"]
-        GEOMETRY: ["scifi_v6"]
+        GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
 
       # efficiency tests, SMOG2 pHe
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_validation"]
         DATA_TAG: ["SMOG2_pHe_5k_retinacluster_v1"]
-        GEOMETRY: ["smog"]
+        GEOMETRY: ["SMOG2_pppHe"]
 
       # run throughput, pp_SMOG2_default, SMOG2_pHe
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_SMOG2_validation"]
         DATA_TAG: ["SMOG2_pHe_5k_retinacluster_v1"]
-        GEOMETRY: ["smog"]
+        GEOMETRY: ["SMOG2_pppHe"]
 
       # FIXME
       # - TEST_NAME: "run_physics_efficiency"
@@ -119,7 +119,7 @@
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
         DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1"]
-        GEOMETRY: ["sim10_up08_md"]
+        GEOMETRY: ["upgrade-magdown-sim10-up08-11102202-digi"]
 
 
 .run_jobs:
