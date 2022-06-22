@@ -37,7 +37,7 @@ std::vector<ProgramOption> allen_program_options()
   // Format: options {short / long, short / long, ...}, description,
   //         [optional default value], [optional description default value]
   return {
-    {{"g"}, "folder containing detector configuration", "../input/detector_configuration/down/"},
+    {{"g"}, "folder containing detector configuration", "../input/detector_configuration/"},
     {{"params"}, "folder containing parameters that do not change with the geometry", ""},
     {{"mdf"}, "comma-separated list of MDF files to use as input OR single text file containing one MDF file per line"},
     {{"print-status"}, "show status of buffer and socket", "0"},

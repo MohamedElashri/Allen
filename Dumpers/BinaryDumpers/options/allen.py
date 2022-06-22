@@ -46,7 +46,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "-g",
     dest="det_folder",
-    default=os.path.join(allen_dir, "input", "detector_configuration", "down"))
+    default=os.path.join(allen_dir, "input", "detector_configuration"))
 parser.add_argument("-n", dest="n_events", default=0)
 parser.add_argument("-t", dest="threads", default=1)
 parser.add_argument("-r", dest="repetitions", default=1)
