@@ -32,15 +32,13 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   initialize<dev_atomics_scifi_t>(arguments, 0, context);
 
   global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_looking_forward_constants);
-
-  Allen::copy_async<dev_atomics_scifi_t>(host_buffers.host_atomics_scifi, arguments, context);
 
   if (property<verbosity_t>() >= logger::debug) {
     print<dev_atomics_scifi_t>(arguments);

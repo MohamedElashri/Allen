@@ -77,7 +77,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   initialize<dev_scifi_multi_event_tracks_view_t>(arguments, 0, context);
@@ -87,8 +87,6 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
     arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
 
   global_function(create_scifi_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
-
-  Allen::copy_async<dev_offsets_forward_tracks_t>(host_buffers.host_atomics_scifi, arguments, context);
 }
 
 template<typename F>

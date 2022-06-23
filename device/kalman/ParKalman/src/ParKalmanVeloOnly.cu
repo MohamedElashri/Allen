@@ -23,7 +23,7 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(kalman_velo_only)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
@@ -31,8 +31,6 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
 
   global_function(kalman_pv_ipchi2)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
-
-  Allen::copy_async<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, context);
 }
 
 __device__ void add_noise_1d(
