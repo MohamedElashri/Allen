@@ -31,9 +31,14 @@ def register_decision_ids( ids ) :
     # note: as the HltSelRep raw bank does not have its own encoding key just yet, it
     #       still 'sidesteps' to the decreports raw bank. Hence we stick
     #       the SelectionID and InfoID into the same encoding table as the decision IDs
+    append_decision = lambda x : x if x.endswith('Decision') else '{}Decision'.format(x)
+
+    # and since we only persist the 'final' selection, the selection ids are the same
+    #  as the decision ids... so we waste some space here...
+
     return int( register_encoding_dictionary(
-       'Hlt1DecisionID', {'Hlt1DecisionID': {v: k for k, v in ids.items()}, 
-                          'Hlt1SelectionID': {v: k for k, v in ids.items() },
+       'Hlt1DecisionID', {'Hlt1DecisionID': {v: append_decision(k) for k, v in ids.items()}, 
+                          'Hlt1SelectionID': {v: append_decision(k) for k, v in ids.items() },
                           'InfoID': {},
                           'version':'0' }),
      16)  # TODO unsigned? Stick to hex string?
