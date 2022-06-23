@@ -29,46 +29,43 @@ for SEQUENCE_DATASET in $(ls -1 | grep "run_throughput" | grep -Ei "run_throughp
     echo "${SEQUENCE}" > test_throughput_details/${SEQUENCE_DATASET}_${BREAKDOWN_DEVICE_ID}_sequence.txt
     echo "${BUILDOPTIONS}" > test_throughput_details/${SEQUENCE_DATASET}_${BREAKDOWN_DEVICE_ID}_buildopts.txt
     cp run_throughput_output_${SEQUENCE_DATASET}/${BREAKDOWN_DEVICE_ID}/algo_breakdown.csv test_throughput_details/${SEQUENCE_DATASET}_${BREAKDOWN_DEVICE_ID}_algo_breakdown.csv
-    
-
-    echo ""
-    echo "********************************************************************************************************************************************"
-    echo "********************************************************************************************************************************************"
-    echo "Throughput of [branch ${CI_COMMIT_REF_NAME} (${CI_COMMIT_SHORT_SHA}), sequence ${SEQUENCE} over dataset ${INPUT_FILES}"
 
     if [ -f "run_throughput_output_${SEQUENCE_DATASET}/${BREAKDOWN_DEVICE_ID}/no_throughput_report.txt" ]; then
-        echo "It is requested not to publish the throughput report for this run."
         echo "Nope" > test_throughput_details/${SEQUENCE_DATASET}_${BREAKDOWN_DEVICE_ID}_no_throughput_report.txt
-    fi
-
-    echo ""
-    echo ""
-    cat run_throughput_output_${SEQUENCE_DATASET}/*/output.txt | grep --color=none "select device" | sed 's/.*:\ [0-9]*\,\ //' > devices_${SEQUENCE_DATASET}.txt
-    cat run_throughput_output_${SEQUENCE_DATASET}/*/output.txt | grep --color=none "events/s" | awk '{ print $1; }' > throughputs_${SEQUENCE_DATASET}.txt
-    paste -d, devices_${SEQUENCE_DATASET}.txt throughputs_${SEQUENCE_DATASET}.txt > devices_throughputs_${SEQUENCE_DATASET}.csv
-
-    if [ "${BUILDOPTIONS}" = "" ]; then
-        BUILDOPTIONS_DISPLAY="default"
     else
-        BUILDOPTIONS_DISPLAY=${BUILDOPTIONS}
-    fi
+        echo ""
+        echo "********************************************************************************************************************************************"
+        echo "********************************************************************************************************************************************"
+        echo "Throughput of [branch ${CI_COMMIT_REF_NAME} (${CI_COMMIT_SHORT_SHA}), sequence ${SEQUENCE} over dataset ${INPUT_FILES}"
+        echo ""
+        echo ""
+        cat run_throughput_output_${SEQUENCE_DATASET}/*/output.txt | grep --color=none "select device" | sed 's/.*:\ [0-9]*\,\ //' > devices_${SEQUENCE_DATASET}.txt
+        cat run_throughput_output_${SEQUENCE_DATASET}/*/output.txt | grep --color=none "events/s" | awk '{ print $1; }' > throughputs_${SEQUENCE_DATASET}.txt
+        paste -d, devices_${SEQUENCE_DATASET}.txt throughputs_${SEQUENCE_DATASET}.txt > devices_throughputs_${SEQUENCE_DATASET}.csv
 
-    RC=0
-    python checker/plotting/check_throughput.py \
-        -j "${CI_JOB_NAME}" \
-        -t devices_throughputs_${SEQUENCE_DATASET}.csv || RC=$?
+        if [ "${BUILDOPTIONS}" = "" ]; then
+            BUILDOPTIONS_DISPLAY="default"
+        else
+            BUILDOPTIONS_DISPLAY=${BUILDOPTIONS}
+        fi
 
-    if [ "$RC" = "7" ]; then
-        THROUGHPUT_ALARM=1
-        THROUGHPUT_MESSAGES="${THROUGHPUT_MESSAGES}
-FAIL: throughput decreased too much for sequence ${SEQUENCE} over dataset ${INPUT_FILES}"
-    elif [ "$RC" != "0" ]; then
-        THROUGHPUT_MESSAGES="${THROUGHPUT_MESSAGES}
-FAIL: check_throughput.py script failed for ${SEQUENCE} - ${INPUT_FILES}"
-        THROUGHPUT_ALARM=1
+        RC=0
+        python checker/plotting/check_throughput.py \
+            -j "${CI_JOB_NAME}" \
+            -t devices_throughputs_${SEQUENCE_DATASET}.csv || RC=$?
+
+        if [ "$RC" = "7" ]; then
+            THROUGHPUT_ALARM=1
+            THROUGHPUT_MESSAGES="${THROUGHPUT_MESSAGES}
+    FAIL: throughput decreased too much for sequence ${SEQUENCE} over dataset ${INPUT_FILES}"
+        elif [ "$RC" != "0" ]; then
+            THROUGHPUT_MESSAGES="${THROUGHPUT_MESSAGES}
+    FAIL: check_throughput.py script failed for ${SEQUENCE} - ${INPUT_FILES}"
+            THROUGHPUT_ALARM=1
+        fi
+        echo ""
+        echo ""
     fi
-    echo ""
-    echo ""
 done
 
 if [ "${THROUGHPUT_ALARM}" = "1" ]; then
