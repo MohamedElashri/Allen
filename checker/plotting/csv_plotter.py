@@ -49,7 +49,9 @@ def get_master_throughput(
     project = gl.projects.get(proj_id)
 
     # select last successful or failed pipeline
-    pipeline = [p for p in project.pipelines.list(ref=ref) if p.status in ['success', 'failed']][0]
+    for pipeline in project.pipelines.list(ref=ref, as_list=False):
+        if pipeline.status in ['success', 'failed']:
+            break
 
     print (f"Selected pipeline {pipeline.id} to extract throughput reference:")
     print (f"Ref (sha): {pipeline.ref}  ({pipeline.sha})")
