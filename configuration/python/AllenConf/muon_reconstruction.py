@@ -81,6 +81,8 @@ def decode_muon():
         dev_output_buffer_t)
 
     return {
+        "dev_storage_station_region_quarter_offsets":
+        muon_srq_prefix_sum.dev_output_buffer_t,
         "dev_muon_hits":
         muon_populate_hits.dev_muon_hits_t,
         "dev_station_ocurrences_offset":

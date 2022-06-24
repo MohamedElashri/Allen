@@ -8,6 +8,19 @@ TrackChecker output                               :        94/    13749   0.68% 
 08_long_electrons                                 :       583/      596  97.82% ( 98.16%),        23 (  3.80%) clones, pur  98.31%, hit eff  95.94%
 
 
+veloUT_validator validation:
+TrackChecker output                               :        61/     3362   1.81% ghosts
+01_velo                                           :      3071/     7805  39.35% ( 38.19%),        50 (  1.60%) clones, pur  99.59%, hit eff  96.08%
+02_velo+UT                                        :      3069/     6705  45.77% ( 44.15%),        50 (  1.60%) clones, pur  99.60%, hit eff  96.08%
+03_velo+UT_P>5GeV                                 :      2389/     3693  64.69% ( 63.84%),        41 (  1.69%) clones, pur  99.67%, hit eff  96.41%
+04_velo+notLong                                   :       625/     3294  18.97% ( 19.53%),        13 (  2.04%) clones, pur  99.40%, hit eff  95.61%
+05_velo+UT+notLong                                :       623/     2209  28.20% ( 28.21%),        13 (  2.04%) clones, pur  99.44%, hit eff  95.60%
+06_velo+UT+notLong_P>5GeV                         :       422/      755  55.89% ( 55.49%),        10 (  2.31%) clones, pur  99.56%, hit eff  97.19%
+07_long                                           :      2446/     4511  54.22% ( 52.66%),        37 (  1.49%) clones, pur  99.64%, hit eff  96.20%
+08_long_P>5GeV                                    :      1967/     2941  66.88% ( 65.57%),        31 (  1.55%) clones, pur  99.70%, hit eff  96.24%
+11_long_electrons                                 :        58/      596   9.73% ( 10.64%),         1 (  1.69%) clones, pur  98.92%, hit eff  95.83%
+
+
 pv_validator validation:
 REC and MC vertices matched by dz distance
 MC PV is reconstructible if at least 4 tracks are reconstructed
@@ -20,19 +33,6 @@ Close                :  0.000 (     0/     0)
 False rate           :  0.010 (     7/   734)
 Real false rate      :  0.010 (     7/   734)
 Clones               :  0.001 (     1/   727)
-
-
-veloUT_validator validation:
-TrackChecker output                               :        61/     3362   1.81% ghosts
-01_velo                                           :      3071/     7805  39.35% ( 38.19%),        50 (  1.60%) clones, pur  99.59%, hit eff  96.08%
-02_velo+UT                                        :      3069/     6705  45.77% ( 44.15%),        50 (  1.60%) clones, pur  99.60%, hit eff  96.08%
-03_velo+UT_P>5GeV                                 :      2389/     3693  64.69% ( 63.84%),        41 (  1.69%) clones, pur  99.67%, hit eff  96.41%
-04_velo+notLong                                   :       625/     3294  18.97% ( 19.53%),        13 (  2.04%) clones, pur  99.40%, hit eff  95.61%
-05_velo+UT+notLong                                :       623/     2209  28.20% ( 28.21%),        13 (  2.04%) clones, pur  99.44%, hit eff  95.60%
-06_velo+UT+notLong_P>5GeV                         :       422/      755  55.89% ( 55.49%),        10 (  2.31%) clones, pur  99.56%, hit eff  97.19%
-07_long                                           :      2446/     4511  54.22% ( 52.66%),        37 (  1.49%) clones, pur  99.64%, hit eff  96.20%
-08_long_P>5GeV                                    :      1967/     2941  66.88% ( 65.57%),        31 (  1.55%) clones, pur  99.70%, hit eff  96.24%
-11_long_electrons                                 :        58/      596   9.73% ( 10.64%),         1 (  1.69%) clones, pur  98.92%, hit eff  95.83%
 
 
 long_validator validation:

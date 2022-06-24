@@ -19,6 +19,7 @@ gaudi_add_module(AllenWrapper
                    src/GaudiAllenCountAndDumpLineDecisions.cpp
                    src/GaudiAllenForwardToV2Tracks.cpp
                    src/GaudiAllenReportsToRawEvent.cpp
+                   src/GaudiAllenLumiSummaryToRawEvent.cpp
                    src/GaudiAllenSVsToRecVertexV2.cpp
                    src/GaudiAllenVeloToV2Tracks.cpp
                    src/ProvideConstants.cpp

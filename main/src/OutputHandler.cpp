@@ -26,7 +26,9 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   gsl::span<bool const> const selected_events_bool,
   gsl::span<uint32_t const> const dec_reports,
   gsl::span<uint32_t const> const sel_reports,
-  gsl::span<unsigned const> const sel_report_offsets)
+  gsl::span<unsigned const> const sel_report_offsets,
+  gsl::span<uint32_t const> const lumi_summaries,
+  gsl::span<unsigned const> const lumi_summary_offsets)
 {
   auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
   // size of a RawBank header
@@ -86,12 +88,20 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       // need the index into the batch here
       const unsigned sel_report_size =
         (sel_report_offsets[event_number + 1] - sel_report_offsets[event_number]) * sizeof(uint32_t);
+      unsigned lumi_summary_size = 0;
+      if (!lumi_summary_offsets.empty()) {
+        lumi_summary_size =
+          (lumi_summary_offsets[event_number + 1] - lumi_summary_offsets[event_number]) * sizeof(uint32_t);
+      }
 
       // add DecReport and SelReport sizes to the total size (including RawBank headers)
       // event_sizes is indexed in the same way as selected_events
       size_t event_size = event_sizes[i] + header_size + bank_header_size + dec_report_size;
       if (sel_report_size > 0) {
         event_size += bank_header_size + sel_report_size;
+      }
+      if (lumi_summary_size > 0) {
+        event_size += bank_header_size + lumi_summary_size;
       }
       batch_buffer_size += event_size;
     }
@@ -113,12 +123,20 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       // need the index into the batch here
       const unsigned sel_report_size =
         (sel_report_offsets[event_number + 1] - sel_report_offsets[event_number]) * sizeof(uint32_t);
+      unsigned lumi_summary_size = 0;
+      if (!lumi_summary_offsets.empty()) {
+        lumi_summary_size =
+          (lumi_summary_offsets[event_number + 1] - lumi_summary_offsets[event_number]) * sizeof(uint32_t);
+      }
 
       // add DecReport and SelReport sizes to the total size (including RawBank headers)
       // event_sizes is indexed in the same way as selected_events
       size_t event_size = event_sizes[i] + header_size + bank_header_size + dec_report_size;
       if (sel_report_size > 0) {
         event_size += bank_header_size + sel_report_size;
+      }
+      if (lumi_summary_size > 0) {
+        event_size += bank_header_size + lumi_summary_size;
       }
 
       // The memory range in the output buffer for this event
@@ -171,6 +189,17 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
           {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[event_number] * sizeof(uint32_t),
            static_cast<events_size>(sel_report_size)},
           event_span.data() + header_size + event_sizes[i] + bank_header_size + dec_report_size);
+      }
+
+      // add the lumi summary if one exists
+      if (lumi_summary_size > 0) {
+        Allen::add_raw_bank(
+          LHCb::RawBank::HltLumiSummary,
+          1u, // TODO version number
+          1 << 13,
+          {reinterpret_cast<char const*>(lumi_summaries.data()) + lumi_summary_offsets[event_number] * sizeof(uint32_t),
+           static_cast<events_size>(lumi_summary_size)},
+          event_span.data() + header_size + event_sizes[i] + 2 * bank_header_size + dec_report_size + sel_report_size);
       }
 
       if (m_checksum) {

@@ -43,7 +43,9 @@ public:
     gsl::span<bool const> const selected_events,
     gsl::span<uint32_t const> const dec_reports,
     gsl::span<uint32_t const> const sel_reports,
-    gsl::span<unsigned const> const sel_report_offsets);
+    gsl::span<unsigned const> const sel_report_offsets,
+    gsl::span<uint32_t const> const lumi_summaries,
+    gsl::span<unsigned const> const lumi_summary_offsets);
 
   virtual zmq::socket_t* client_socket() const { return nullptr; }
 
