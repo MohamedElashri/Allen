@@ -103,7 +103,7 @@ StatusCode ProvideConstants::initialize()
     muon_catboost_model_reader.leaf_offsets(),
     muon_catboost_model_reader.split_border(),
     muon_catboost_model_reader.split_feature());
-  TwoTrackMVAModelReader two_track_mva_model_reader {geometry_path + "/allen_two_track_mva_model.json"};
+  TwoTrackMVAModelReader two_track_mva_model_reader {geometry_path + "/allen_two_track_mva_model_June22.json"};
   m_constants.initialize_two_track_mva_model_constants(
     two_track_mva_model_reader.weights(),
     two_track_mva_model_reader.biases(),

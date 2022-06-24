@@ -241,7 +241,7 @@ int allen(
     std::make_unique<CatboostModelReader>(folder_parameters + "allen_muon_catboost_model.json");
   // Two Track Model
   two_track_mva_model_reader =
-    std::make_unique<TwoTrackMVAModelReader>(folder_parameters + "allen_two_track_mva_model.json");
+    std::make_unique<TwoTrackMVAModelReader>(folder_parameters + "allen_two_track_mva_model_June22.json");
 
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
