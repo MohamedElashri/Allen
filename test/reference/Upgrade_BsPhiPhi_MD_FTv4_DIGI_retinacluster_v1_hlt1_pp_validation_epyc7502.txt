@@ -12,20 +12,6 @@ TrackChecker output                               :      2191/   257219   0.85% 
 10_long_fromB_electrons_P>5GeV                    :       122/      126  96.83% ( 97.44%),         9 (  6.87%) clones, pur  98.56%, hit eff  97.06%
 
 
-pv_validator validation:
-REC and MC vertices matched by dz distance
-MC PV is reconstructible if at least 4 tracks are reconstructed
-MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
-REC and MC vertices matched by dz distance
-
-All                  :  0.929 (  4827/  5194)
-Isolated             :  0.965 (  2599/  2694)
-Close                :  0.891 (  2228/  2500)
-False rate           :  0.013 (    65/  4892)
-Real false rate      :  0.013 (    65/  4892)
-Clones               :  0.000 (     0/  4827)
-
-
 veloUT_validator validation:
 TrackChecker output                               :      3626/    55847   6.49% ghosts
 01_velo                                           :     49477/   110735  44.68% ( 45.03%),       441 (  0.88%) clones, pur  99.46%, hit eff  96.79%
@@ -41,6 +27,20 @@ TrackChecker output                               :      3626/    55847   6.49% 
 11_long_electrons                                 :       844/     4744  17.79% ( 18.58%),        26 (  2.99%) clones, pur  97.99%, hit eff  95.21%
 12_long_fromB_electrons                           :        79/      190  41.58% ( 46.96%),         4 (  4.82%) clones, pur  98.22%, hit eff  96.08%
 13_long_fromB_electrons_P>5GeV                    :        73/      126  57.94% ( 64.90%),         4 (  5.19%) clones, pur  98.40%, hit eff  97.34%
+
+
+pv_validator validation:
+REC and MC vertices matched by dz distance
+MC PV is reconstructible if at least 4 tracks are reconstructed
+MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
+REC and MC vertices matched by dz distance
+
+All                  :  0.929 (  4827/  5194)
+Isolated             :  0.965 (  2599/  2694)
+Close                :  0.891 (  2228/  2500)
+False rate           :  0.013 (    65/  4892)
+Real false rate      :  0.013 (    65/  4892)
+Clones               :  0.000 (     0/  4827)
 
 
 long_validator validation:

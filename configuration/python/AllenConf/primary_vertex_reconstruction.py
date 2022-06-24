@@ -78,6 +78,8 @@ def make_pvs(velo_tracks):
         dev_number_of_multi_fit_vertices_t)
 
     return {
+        "dev_number_of_zpeaks":
+        pv_beamline_peak.dev_number_of_zpeaks_t,
         "dev_multi_final_vertices":
         pv_beamline_cleanup.dev_multi_final_vertices_t,
         "dev_number_of_multi_final_vertices":

@@ -37,6 +37,17 @@ public:
   Allen::host_buffer<unsigned> host_sel_reports {m_mem_manager, "host_sel_reports"};
   Allen::host_buffer<unsigned> host_sel_report_offsets {m_mem_manager, "host_sel_report_offsets"};
 
+  // Lumi
+  // The size of LumiSummary events is defined in the header file
+  // device/lumi/include/LumiCounterOffsets.h
+  // and LumiSummary only be present for events that pass the ODINLumi line.
+  // The lumi event rate is expected to be on average 1 per 1000,
+  // but due to binomial fluctuations one might see a slice
+  // with around 11-12 in a typical 24 hour period.
+  // The size of lumi_summaries is expected to be much smaller than sel reports
+  Allen::host_buffer<unsigned> host_lumi_summaries {m_mem_manager, "host_lumi_summaries"};
+  Allen::host_buffer<unsigned> host_lumi_summary_offsets {m_mem_manager, "host_lumi_summary_offsets"};
+
   // Selections
   unsigned host_number_of_events = 0;
   unsigned host_number_of_selected_events = 0;

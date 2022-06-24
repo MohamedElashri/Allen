@@ -38,6 +38,7 @@ target_link_libraries(Stream
     DeviceValidators
     AllenCommon
     algorithm_db
+    Lumi
   PUBLIC
     Utils
     Selections)

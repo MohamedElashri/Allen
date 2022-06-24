@@ -19,6 +19,8 @@ from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 
+from AllenConf.lumi_reconstruction import lumi_reconstruction
+
 
 def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
                           secondary_vertices, calo_matching_objects):
@@ -405,6 +407,7 @@ def setup_hlt1_node(withMCChecking=False,
         "Allen", [
             gather_selections_node,
             make_global_decision(lines=line_algorithms),
+            *lumi_reconstruction(lines=line_algorithms),
             *make_sel_report_writer(
                 lines=line_algorithms,
                 forward_tracks=reconstructed_objects["long_track_particles"],
