@@ -86,7 +86,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
       // size of the SelReport RawBank
       // need the index into the batch here
-      const unsigned sel_report_size =
+      const unsigned sel_report_size = sel_report_offsets.empty() ? 0 :
         (sel_report_offsets[event_number + 1] - sel_report_offsets[event_number]) * sizeof(uint32_t);
       unsigned lumi_summary_size = 0;
       if (!lumi_summary_offsets.empty()) {
@@ -121,7 +121,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
       // size of the SelReport RawBank
       // need the index into the batch here
-      const unsigned sel_report_size =
+      const unsigned sel_report_size = sel_report_offsets.empty() ? 0 :
         (sel_report_offsets[event_number + 1] - sel_report_offsets[event_number]) * sizeof(uint32_t);
       unsigned lumi_summary_size = 0;
       if (!lumi_summary_offsets.empty()) {
