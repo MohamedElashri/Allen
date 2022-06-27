@@ -115,7 +115,6 @@ namespace {
             raw_bank_fiberCheck.data += 3;
           }
           lastData = get_data(raw_bank.data);
-          assert(lastData != 0xf1bea0ff);
 
           int nADC = 0;
           bool isFiberOff = false;
@@ -141,7 +140,6 @@ namespace {
               offset -= 32;
               raw_bank.data += 1;
               lastData = get_data(raw_bank.data);
-              assert(lastData != 0xf1bea0ff);
             }
 
             int adc = 0;
@@ -163,7 +161,6 @@ namespace {
             if (24 == offset) { //.. get the extra bits on next word
               raw_bank.data += 1;
               lastData = get_data(raw_bank.data);
-              assert(lastData != 0xf1bea0ff);
               int temp = (lastData >> (offset + 4)) & 0xF;
               offset -= 32;
               adc = (adc << 4) + temp;
