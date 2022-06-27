@@ -46,11 +46,9 @@ namespace Allen {
     std::string m_name;
 
   public:
-    TESWrapperArgumentData(VECTOR& data, const std::string& name) : m_data(data), m_name(name) {}
-
-    std::string name() const override final { return m_name; }
-
-    void set_name(const std::string& name) override final { m_name = name; }
+    TESWrapperArgumentData(VECTOR& data, const std::string& name) :
+      Store::ArgumentData{std::in_place_type<typename VECTOR::value_type>, name, Store::Scope::Host},
+      m_data(data) {}
 
     void* pointer() const override final
     {
@@ -76,10 +74,6 @@ namespace Allen {
     }
 
     size_t sizebytes() const override final { return size() * sizeof(typename VECTOR::value_type); }
-
-    Store::Scope scope() const override final { return Store::Scope::Host; }
-
-    void set_scope(Store::Scope) override final { throw; }
   };
 
   // Shortcuts for input / output wrappers

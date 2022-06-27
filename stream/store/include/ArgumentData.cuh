@@ -60,11 +60,8 @@ namespace Allen::Store {
     ArgumentData(std::in_place_type_t<T>, const std::string& name, Scope scope) : m_vtable{&vtable_for<T>}, m_name{name}, m_scope{scope},
       m_type_size{sizeof(T)} {}
 
-    virtual void* pointer() const { return m_pointer; }
-    virtual size_t size() const { return m_size; }
-    virtual size_t sizebytes() const { return m_size * m_type_size; }
-    virtual std::string name() const { return m_name; }
-    virtual Scope scope() const { return m_scope; }
+    std::string name() const { return m_name; }
+    Scope scope() const { return m_scope; }
     std::type_index type() const { return m_vtable->type_(); }
     
     template<typename T>
@@ -77,6 +74,9 @@ namespace Allen::Store {
       return gsl::span<const T>{static_cast<const T*>(m_vtable->cast_(std::type_index(typeid(T)), m_pointer)), m_size};
     }
 
+    virtual void* pointer() const { return m_pointer; }
+    virtual size_t size() const { return m_size; }
+    virtual size_t sizebytes() const { return m_size * m_type_size; }
     virtual void set_pointer(void* pointer) { m_pointer = pointer; }
     virtual void set_size(size_t size) { m_size = size; }
     virtual ~ArgumentData() {}
