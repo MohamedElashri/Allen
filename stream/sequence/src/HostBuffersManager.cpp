@@ -97,7 +97,6 @@ void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
   buf->host_number_of_events = 1u;
   buf->host_number_of_selected_events = 0u;
   buf->host_passing_event_list[0] = true;
-  buf->host_number_of_multivertex[0] = 0u;
 }
 
 std::tuple<

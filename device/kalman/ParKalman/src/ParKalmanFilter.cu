@@ -18,13 +18,11 @@ void kalman_filter::kalman_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(kalman_filter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_scifi_geometry, constants.dev_inv_clus_res, constants.dev_kalman_params);
-
-  Allen::copy_async<dev_kf_tracks_t>(host_buffers.host_kf_tracks, arguments, context);
 }
 
 namespace ParKalmanFilter {

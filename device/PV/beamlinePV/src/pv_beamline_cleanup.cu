@@ -19,16 +19,13 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   initialize<dev_number_of_multi_final_vertices_t>(arguments, 0, context);
 
   global_function(pv_beamline_cleanup)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
-
-  Allen::copy_async<dev_multi_final_vertices_t>(host_buffers.host_reconstructed_multi_pvs, arguments, context);
-  Allen::copy_async<dev_number_of_multi_final_vertices_t>(host_buffers.host_number_of_multivertex, arguments, context);
 }
 
 __global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Parameters parameters)
