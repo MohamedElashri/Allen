@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <BackendCommon.h>
 #include <Datatype.cuh>
-#include <ArgumentData.cuh>
+#include <Argument.cuh>
 #include <BankTypes.h>
 #include <AllenTypeTraits.h>
 #include <GaudiKernel/StatusCode.h>
@@ -40,14 +40,13 @@ namespace Allen {
             and TES wrappers provide the Allen syntax on top of these.
   */
   template<typename VECTOR>
-  struct TESWrapperArgumentData : public Store::ArgumentData {
+  struct TESWrapperArgument : public Store::BaseArgument {
   private:
     VECTOR& m_data;
-    std::string m_name;
 
   public:
-    TESWrapperArgumentData(VECTOR& data, const std::string& name) :
-      Store::ArgumentData{std::in_place_type<typename VECTOR::value_type>, name, Store::Scope::Host},
+    TESWrapperArgument(VECTOR& data, const std::string& name) :
+      Store::BaseArgument{std::in_place_type<typename VECTOR::value_type>, name, Store::Scope::Host},
       m_data(data) {}
 
     void* pointer() const override final
@@ -72,16 +71,14 @@ namespace Allen {
         throw;
       }
     }
-
-    size_t sizebytes() const override final { return size() * sizeof(typename VECTOR::value_type); }
   };
 
   // Shortcuts for input / output wrappers
   template<typename T>
-  using TESWrapperInput = TESWrapperArgumentData<const parameter_vector<T>>;
+  using TESWrapperInput = TESWrapperArgument<const parameter_vector<T>>;
 
   template<typename T>
-  using TESWrapperOutput = TESWrapperArgumentData<parameter_vector<T>>;
+  using TESWrapperOutput = TESWrapperArgument<parameter_vector<T>>;
 } // namespace Allen
 
 // Parsers are in namespace LHCb for ADL to work.

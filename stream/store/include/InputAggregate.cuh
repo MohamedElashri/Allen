@@ -11,7 +11,7 @@
 #include "BackendCommon.h"
 #include "Logger.h"
 #include "AllenTypeTraits.h"
-#include "ArgumentData.cuh"
+#include "Argument.cuh"
 
 namespace Allen::Store {
 
@@ -21,14 +21,14 @@ namespace Allen::Store {
   template<typename T>
   struct InputAggregate {
   private:
-    std::vector<std::reference_wrapper<ArgumentData>> m_argument_data_v;
+    std::vector<std::reference_wrapper<BaseArgument>> m_argument_data_v;
 
   public:
     using type = T;
 
     InputAggregate() = default;
 
-    InputAggregate(const std::vector<std::reference_wrapper<ArgumentData>>& argument_data_v) :
+    InputAggregate(const std::vector<std::reference_wrapper<BaseArgument>>& argument_data_v) :
       m_argument_data_v(argument_data_v)
     {}
 

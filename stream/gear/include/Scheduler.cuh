@@ -201,19 +201,19 @@ public:
    * @brief Generate the store ref of an algorithm
    */
   std::tuple<
-    std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>,
-    std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>>>
+    std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>,
+    std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>>>
   generate_algorithm_store_ref(const ConfiguredAlgorithmArguments& configured_alg_arguments)
   {
-    std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> store_ref;
-    std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>> input_aggregates;
+    std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> store_ref;
+    std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>> input_aggregates;
 
     for (const auto& argument : configured_alg_arguments.arguments) {
       store_ref.push_back(m_store.at(argument));
     }
 
     for (const auto& conf_input_aggregate : configured_alg_arguments.input_aggregates) {
-      std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> input_aggregate;
+      std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> input_aggregate;
       for (const auto& argument : conf_input_aggregate) {
         input_aggregate.push_back(m_store.at(argument));
       }

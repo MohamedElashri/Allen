@@ -46,40 +46,53 @@ namespace Allen::Store {
    * @brief Contains the data of an argument, namely its name, data pointer and size.
    *
    */
-  struct ArgumentData {
-  private:
+  struct BaseArgument {
+  protected:
     const VTable *m_vtable = &vtable_for<void>;
     std::string m_name = "";
     Scope m_scope = Scope::Invalid;
     size_t m_type_size = 0;
+
+  public:
+    template<typename T>
+    BaseArgument(std::in_place_type_t<T>, const std::string& name, Scope scope) : m_vtable{&vtable_for<T>},
+      m_name{name}, m_scope{scope}, m_type_size{sizeof(T)} {}
+
+    std::string name() const { return m_name; }
+    Scope scope() const { return m_scope; }
+    std::type_index type() const { return m_vtable->type_(); }
+    size_t sizebytes() const { return size() * m_type_size; }
+
+    virtual ~BaseArgument() {}
+    virtual void* pointer() const = 0;
+    virtual size_t size() const = 0;
+    virtual void set_pointer(void* pointer) = 0;
+    virtual void set_size(size_t size) = 0;
+  };
+
+  struct AllenArgument : public BaseArgument {
+  private:
     void* m_pointer = nullptr;
     size_t m_size = 0;
 
   public:
     template<typename T>
-    ArgumentData(std::in_place_type_t<T>, const std::string& name, Scope scope) : m_vtable{&vtable_for<T>}, m_name{name}, m_scope{scope},
-      m_type_size{sizeof(T)} {}
+    AllenArgument(std::in_place_type_t<T>, const std::string& name, Scope scope) : 
+      Store::BaseArgument{std::in_place_type<T>, name, scope} {}
 
-    std::string name() const { return m_name; }
-    Scope scope() const { return m_scope; }
-    std::type_index type() const { return m_vtable->type_(); }
-    
     template<typename T>
-    gsl::span<T> to_span() {
+    gsl::span<T> get() {
       return gsl::span<T>{static_cast<T*>(m_vtable->cast_(std::type_index(typeid(T)), m_pointer)), m_size};
     }
 
     template<typename T>
-    gsl::span<const T> to_span() const {
+    gsl::span<const T> get() const {
       return gsl::span<const T>{static_cast<const T*>(m_vtable->cast_(std::type_index(typeid(T)), m_pointer)), m_size};
     }
 
-    virtual void* pointer() const { return m_pointer; }
-    virtual size_t size() const { return m_size; }
-    virtual size_t sizebytes() const { return m_size * m_type_size; }
-    virtual void set_pointer(void* pointer) { m_pointer = pointer; }
-    virtual void set_size(size_t size) { m_size = size; }
-    virtual ~ArgumentData() {}
+    void* pointer() const override final { return m_pointer; }
+    size_t size() const override final { return m_size; }
+    void set_pointer(void* pointer) override final { m_pointer = pointer; }
+    void set_size(size_t size) override final { m_size = size; }
   };
-
 } // namespace Allen::Store

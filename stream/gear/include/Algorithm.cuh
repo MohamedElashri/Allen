@@ -33,7 +33,7 @@ namespace {
   // Creates a std::array store out of the vector one
   template<std::size_t... Is>
   auto create_store_ref(
-    const std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>& vector_store_ref,
+    const std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>& vector_store_ref,
     std::index_sequence<Is...>)
   {
     return std::array {vector_store_ref[Is]...};
@@ -46,10 +46,13 @@ namespace {
   {
     using t = std::tuple_element_t<I, T>;
     if constexpr (Allen::is_template_base_of_v<Allen::Store::output_datatype, t>) {
-      store.emplace(arguments[I], Allen::Store::ArgumentData {
+      store.emplace(arguments[I], Allen::Store::AllenArgument {
         std::in_place_type<typename t::type>,
         arguments[I],
         std::is_base_of_v<Allen::Store::host_datatype, t> ? Allen::Store::Scope::Host : Allen::Store::Scope::Device});
+    } else {
+      _unused(arguments);
+      _unused(store);
     }
     return true;
   }
@@ -104,8 +107,8 @@ namespace Allen {
       std::string (*name)(void const*) = nullptr;
       std::any (*create_arg_ref_manager)(
         const std::string&,
-        std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>,
-        std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>>) = nullptr;
+        std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>,
+        std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>>) = nullptr;
       void (*set_arguments_size)(void*, std::any&, const RuntimeOptions&, const Constants&, const HostBuffers&) =
         nullptr;
       void (
@@ -145,8 +148,8 @@ namespace Allen {
         [](void const* p) { return static_cast<ALGORITHM const*>(p)->name(); },
         [](
           const std::string& name,
-          std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> vector_store_ref,
-          std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>> input_aggregates) {
+          std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> vector_store_ref,
+          std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>> input_aggregates) {
           using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           using store_ref_t = typename arg_ref_mgr_t::store_ref_t;
           using input_aggregates_t = typename arg_ref_mgr_t::input_aggregates_t;
@@ -258,8 +261,8 @@ namespace Allen {
 
     std::string name() const { return (table.name)(instance); }
     std::any create_arg_ref_manager(
-      std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> vector_store_ref,
-      std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>> input_aggregates)
+      std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> vector_store_ref,
+      std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>> input_aggregates)
     {
       return (table.create_arg_ref_manager)(name(), std::move(vector_store_ref), std::move(input_aggregates));
     }

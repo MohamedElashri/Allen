@@ -12,7 +12,7 @@
 #include "Logger.h"
 #include "AllenTypeTraits.h"
 #include "StructToTuple.cuh"
-#include "ArgumentData.cuh"
+#include "Argument.cuh"
 #include "Datatype.cuh"
 
 namespace Allen::Store {
@@ -20,10 +20,10 @@ namespace Allen::Store {
    * @brief Allen argument manager
    */
   class UnorderedStore {
-    std::unordered_map<std::string, ArgumentData> m_store;
+    std::unordered_map<std::string, AllenArgument> m_store;
 
   public:
-    ArgumentData& at(const std::string& k) {
+    AllenArgument& at(const std::string& k) {
       try {
         return m_store.at(k);
       } catch (std::out_of_range) {
@@ -35,16 +35,16 @@ namespace Allen::Store {
     template<typename T>
     gsl::span<T>& at(const std::string& k) {
       try {
-        return m_store.at(k).to_span<T>();
+        return m_store.at(k).get<T>();
       } catch (std::out_of_range) {
         error_cout << "Store: key " << k << " not found\n";
         throw;
       }
     }
 
-    void emplace(const std::string& k, ArgumentData&& t)
+    void emplace(const std::string& k, AllenArgument&& t)
     {
-      const auto& [ret, ok] = m_store.try_emplace(k, std::forward<ArgumentData>(t));
+      const auto& [ret, ok] = m_store.try_emplace(k, std::forward<AllenArgument>(t));
       if (!ok) {
         throw std::runtime_error("store emplace failed, entry already exists");
       }
@@ -65,7 +65,7 @@ namespace Allen::Store {
     using parameters_tuple_t = ParameterTuple;
     using parameters_struct_t = ParameterStruct;
     using input_aggregates_t = InputAggregatesTuple;
-    using store_ref_t = std::array<std::reference_wrapper<ArgumentData>, std::tuple_size_v<parameters_tuple_t>>;
+    using store_ref_t = std::array<std::reference_wrapper<BaseArgument>, std::tuple_size_v<parameters_tuple_t>>;
 
   private:
     mutable store_ref_t m_store_ref;
@@ -199,7 +199,7 @@ namespace Allen::Store {
 
   template<size_t... Is>
   auto gen_input_aggregates_tuple(
-    const std::vector<std::vector<std::reference_wrapper<ArgumentData>>>& input_aggregates,
+    const std::vector<std::vector<std::reference_wrapper<BaseArgument>>>& input_aggregates,
     std::index_sequence<Is...>)
   {
     return std::make_tuple(input_aggregates[Is]...);

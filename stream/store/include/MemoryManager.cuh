@@ -8,7 +8,7 @@
 #include "Common.h"
 #include "Logger.h"
 #include "Configuration.cuh"
-#include "ArgumentData.cuh"
+#include "Argument.cuh"
 #include "Store.cuh"
 
 namespace Allen::Store {
@@ -150,7 +150,7 @@ namespace Allen::Store {
      *        If there are no available segments of the requested size,
      *        it throws an exception.
      */
-    void reserve(ArgumentData& argument) { argument.set_pointer(reserve(argument.name(), argument.sizebytes())); }
+    void reserve(BaseArgument& argument) { argument.set_pointer(reserve(argument.name(), argument.sizebytes())); }
 
     void free(const std::string& tag)
     {
@@ -193,7 +193,7 @@ namespace Allen::Store {
     /**
      * @brief Recursive free, implementation for Argument.
      */
-    void free(ArgumentData& argument) { free(argument.name()); }
+    void free(BaseArgument& argument) { free(argument.name()); }
 
     void test_alignment()
     {
@@ -291,7 +291,7 @@ namespace Allen::Store {
     /**
      * @brief Allocates a segment of the requested size.
      */
-    void reserve(ArgumentData& argument) { argument.set_pointer(reserve(argument.name(), argument.sizebytes())); }
+    void reserve(BaseArgument& argument) { argument.set_pointer(reserve(argument.name(), argument.sizebytes())); }
 
     void free(const std::string& tag, void* pointer)
     {
@@ -317,7 +317,7 @@ namespace Allen::Store {
     /**
      * @brief Frees the requested argument.
      */
-    void free(ArgumentData& argument) { free(argument.name(), argument.pointer()); }
+    void free(BaseArgument& argument) { free(argument.name(), argument.pointer()); }
 
     /**
      * @brief Frees all memory segments, effectively resetting the
