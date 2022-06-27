@@ -13,7 +13,6 @@
 #include <stdexcept>
 #include <vector>
 #include <string>
-#include "ArgumentData.cuh"
 
 struct ConfiguredAlgorithm {
   std::string id;
@@ -93,17 +92,3 @@ public:
   {}
   const char* what() const noexcept override { return m_exception_text.c_str(); }
 };
-
-// ArgumentData creator
-inline Allen::Store::ArgumentData create_allen_argument(const ConfiguredArgument& alg)
-{
-  if (alg.scope == "host") {
-    return Allen::Store::ArgumentData {alg.name, Allen::Store::Scope::Host};
-  }
-  else if (alg.scope == "device") {
-    return Allen::Store::ArgumentData {alg.name, Allen::Store::Scope::Device};
-  }
-  else {
-    throw ArgumentScopeNotSupportedException {alg.scope};
-  }
-}

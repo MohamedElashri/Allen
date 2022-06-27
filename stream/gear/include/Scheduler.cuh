@@ -138,14 +138,11 @@ public:
     auto& [configured_algorithms, configured_arguments, sequence_arguments, arg_deps] = configuration;
     assert(configured_algorithms.size() == sequence_arguments.size());
 
-    // Reserve the size of the sequence to avoid calls to the copy constructor when emplacing to this vector
-    m_sequence.reserve(configured_algorithms.size());
-
     // Generate type erased sequence
     instantiate_sequence(configured_algorithms);
 
     // Create and populate store
-    initialize_store(configured_arguments);
+    initialize_store(configured_arguments, sequence_arguments);
 
     // Calculate in and out dependencies of defined sequence
     std::tie(m_in_dependencies, m_out_dependencies) =
@@ -181,6 +178,8 @@ public:
    */
   void instantiate_sequence(const std::vector<ConfiguredAlgorithm>& configured_algorithms)
   {
+    // Reserve the size of the sequence to avoid calls to the copy constructor when emplacing to this vector
+    m_sequence.reserve(configured_algorithms.size());
     for (const auto& alg : configured_algorithms) {
       m_sequence.emplace_back(instantiate_allen_algorithm(alg));
     }
@@ -189,10 +188,12 @@ public:
   /**
    * @brief Initializes the store with the configured arguments
    */
-  void initialize_store(const std::vector<ConfiguredArgument>& configured_arguments)
+  void initialize_store(const std::vector<ConfiguredArgument>&,
+    const std::vector<ConfiguredAlgorithmArguments>& configured_algorithm_arguments)
   {
-    for (const auto& arg : configured_arguments) {
-      m_store.emplace(arg.name, create_allen_argument(arg));
+    assert(m_sequence.size() == configured_algorithm_arguments.size());
+    for (unsigned i = 0; i < m_sequence.size(); ++i) {
+      m_sequence[i].emplace_output_arguments(configured_algorithm_arguments[i].arguments, m_store);
     }
   }
 

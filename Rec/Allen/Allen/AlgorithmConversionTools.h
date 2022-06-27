@@ -77,8 +77,6 @@ namespace Allen {
 
     size_t sizebytes() const override final { return size() * sizeof(typename VECTOR::value_type); }
 
-    void set_type_size(size_t) override final {}
-
     Store::Scope scope() const override final { return Store::Scope::Host; }
 
     void set_scope(Store::Scope) override final { throw; }

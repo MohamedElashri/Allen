@@ -38,6 +38,30 @@ namespace {
   {
     return std::array {vector_store_ref[Is]...};
   }
+
+  template<typename T, std::size_t I>
+  bool emplace_output_arg(
+    const std::vector<std::string>& arguments,
+    Allen::Store::UnorderedStore& store)
+  {
+    using t = std::tuple_element_t<I, T>;
+    if constexpr (Allen::is_template_base_of_v<Allen::Store::output_datatype, t>) {
+      store.emplace(arguments[I], Allen::Store::ArgumentData {
+        std::in_place_type<typename t::type>,
+        arguments[I],
+        std::is_base_of_v<Allen::Store::host_datatype, t> ? Allen::Store::Scope::Host : Allen::Store::Scope::Device});
+    }
+    return true;
+  }
+
+  template<typename T, std::size_t... Is>
+  void emplace_output_argument(
+    const std::vector<std::string>& arguments,
+    Allen::Store::UnorderedStore& store,
+    std::index_sequence<Is...>)
+  {
+    (emplace_output_arg<T, Is>(arguments, store) && ...);
+  }
 } // namespace
 
 namespace Allen {
@@ -104,6 +128,7 @@ namespace Allen {
         const RuntimeOptions& runtime_options,
         const Constants& constants,
         const Allen::Context& context) = nullptr;
+      void (*emplace_output_arguments)(const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store) = nullptr;
     };
 
     void* instance = nullptr;
@@ -216,8 +241,13 @@ namespace Allen {
                  ...);
               },
               postconditions);
-          }
-        }};
+          }},
+          [](
+            const std::vector<std::string>& arguments,
+            Allen::Store::UnorderedStore& store) {
+              using parameters_tuple_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType::parameters_tuple_t;
+              ::emplace_output_argument<parameters_tuple_t>(arguments, store, std::make_index_sequence<std::tuple_size_v<parameters_tuple_t>> {});
+            }};
     }
     ~TypeErasedAlgorithm() { (table.dtor)(instance); }
     TypeErasedAlgorithm(const TypeErasedAlgorithm&) = delete;
@@ -272,6 +302,9 @@ namespace Allen {
       const Allen::Context& context)
     {
       return (table.run_postconditions)(instance, arg_ref_manager, runtime_options, constants, context);
+    }
+    void emplace_output_arguments(const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store) {
+      (table.emplace_output_arguments)(arguments, store);
     }
   };
 

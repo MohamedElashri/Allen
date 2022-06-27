@@ -16,7 +16,6 @@
 #include "Datatype.cuh"
 
 namespace Allen::Store {
-
   /**
    * @brief Allen argument manager
    */
@@ -24,7 +23,24 @@ namespace Allen::Store {
     std::unordered_map<std::string, ArgumentData> m_store;
 
   public:
-    ArgumentData& at(const std::string& k) { return m_store.at(k); }
+    ArgumentData& at(const std::string& k) {
+      try {
+        return m_store.at(k);
+      } catch (std::out_of_range) {
+        error_cout << "Store: key " << k << " not found\n";
+        throw;
+      }
+    }
+
+    template<typename T>
+    gsl::span<T>& at(const std::string& k) {
+      try {
+        return m_store.at(k).to_span<T>();
+      } catch (std::out_of_range) {
+        error_cout << "Store: key " << k << " not found\n";
+        throw;
+      }
+    }
 
     void emplace(const std::string& k, ArgumentData&& t)
     {
@@ -99,7 +115,6 @@ namespace Allen::Store {
       constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
       static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
       m_store_ref[index_of_T].get().set_size(size);
-      m_store_ref[index_of_T].get().set_type_size(sizeof(typename T::type));
     }
 
     /**
