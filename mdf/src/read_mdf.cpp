@@ -177,6 +177,12 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     size_t space_size = buffer.size() - bnkSize;
     size_t new_len = 0;
 
+#ifndef WITH_ROOT
+    if (compress != 0) {
+      cerr << "Support for reading compressed MDF data not available, build with -DUSE_ROOT=ON to enable it\n";
+    }
+#endif
+
     // decompress payload
     if (LHCb::decompressBuffer(compress, ptr, space_size, src, hdr->size(), new_len)) {
       hdr->setSize(new_len);
