@@ -33,6 +33,6 @@ void data_provider::data_provider_t::operator()(
 
   // Copy the bank version
   auto version = bno.version;
-  printf("For bank version is %d\n", version);
+  printf("Bank version is %d\n", version);
   ::memcpy(data<host_raw_bank_version_t>(arguments), &version, sizeof(version));
 }

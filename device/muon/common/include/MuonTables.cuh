@@ -20,8 +20,7 @@ namespace Muon {
     static constexpr size_t stripYTableNumber = 2;
     static constexpr size_t n_tables = 3;
     static constexpr size_t n_dimensions = 3;
-    static constexpr size_t tableStationRegionOffset[] = {0,
-                                                          Constants::n_stations* Constants::n_regions,
+    static constexpr size_t tableStationRegionOffset[] = {0,Constants::n_stations* Constants::n_regions,
                                                           Constants::n_stations* Constants::n_regions * 2,
                                                           Constants::n_stations* Constants::n_regions* n_tables};
     int* gridX[n_tables];
@@ -111,7 +110,13 @@ namespace Muon {
     const auto idx = Constants::n_regions * tile.station() + tile.region();
     const int perQuarter =
       3 * muonTables->gridX[MuonTables::padTableNumber][idx] * muonTables->gridY[MuonTables::padTableNumber][idx];
-    return (4 * tile.region() + tile.quarter()) * perQuarter;
+    unsigned int pad_offset;
+    
+    if   ( muonTables -> getVersion() == 2 ) pad_offset = (4 * tile.region() + tile.quarter()) * perQuarter;
+    else if ( muonTables -> getVersion() == 3 ) pad_offset = muonTables -> offset[MuonTables::padTableNumber][idx] + tile.quarter() * perQuarter;
+    else throw StrException {"Unrecognized MuonTable version"};
+    
+    return pad_offset;
   }
 
   __device__ inline unsigned int strip_x_offset(MuonTables* muonTables, const Muon::MuonTileID& tile)

@@ -26,6 +26,8 @@ namespace Muon {
     static constexpr unsigned int maxNumberLinks     = 24;
     static constexpr unsigned int ODEFrameSize       = 48;
 
+    static constexpr uint8_t single_bit_position[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+
 
     /* Cut-offs */
     static constexpr unsigned max_numhits_per_event = 600 * n_stations;

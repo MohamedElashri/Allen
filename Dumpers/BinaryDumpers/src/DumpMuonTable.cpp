@@ -201,7 +201,7 @@ namespace {
 	  for (auto station : views::ints(0, nStations)) {
 	    size_t index = 0;
 	    for (auto region : views::ints(0, nRegions)) {
-	      size_t gidx = station * 4 + region;
+	      size_t gidx = station * Muon::Constants::n_regions + region;
 	      offset[gidx] = index;
 	      
 	      auto yxRange = views::concat(views::cartesian_product(views::ints(0, gridY[gidx]), views::ints(gridX[gidx], 2 * gridX[gidx])),

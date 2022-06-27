@@ -11,6 +11,7 @@
 namespace muon_add_coords_crossing_maps {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     HOST_INPUT(host_muon_total_number_of_tiles_t, unsigned) host_muon_total_number_of_tiles;
     DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, unsigned) dev_storage_station_region_quarter_offsets;
     DEVICE_INPUT(dev_storage_tile_id_t, unsigned) dev_storage_tile_id;
@@ -23,7 +24,9 @@ namespace muon_add_coords_crossing_maps {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void muon_add_coords_crossing_maps(Parameters);
+  __global__ void muon_add_coords_crossing_maps_tell1(Parameters);
+
+  __global__ void muon_add_coords_crossing_maps_tell40(Parameters);
 
   struct muon_add_coords_crossing_maps_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(

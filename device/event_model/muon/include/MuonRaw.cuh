@@ -36,9 +36,10 @@ namespace Muon {
       last = reinterpret_cast<const data_type*>(bank_start + s);
       type = t;
     }
+
   };
 
-  template<unsigned version = 2>
+  template<unsigned version >
   struct MuonRawEvent {
   private:
     uint32_t m_number_of_raw_banks = 0;
@@ -81,6 +82,6 @@ namespace Muon {
     }
   };
 
-  template<bool mep_layout, unsigned version = 2>
+  template<bool mep_layout, unsigned version>
   using RawEvent = std::conditional_t<mep_layout, MEP::RawEvent<MuonRawBank<version>>, MuonRawEvent<version>>;
 } // namespace Muon

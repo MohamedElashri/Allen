@@ -4,6 +4,8 @@
 #pragma once
 
 #include "BackendCommon.h"
+#include <ostream>
+#include <iomanip>
 
 namespace Muon {
   /**
@@ -190,5 +192,32 @@ namespace Muon {
     int uncrossed;
     int delta_time;
     int region;
+
+    __device__ Hit(
+      const float _x,
+      const float _dx,
+      const float _y,
+      const float _dy,
+      const float _z,
+      const unsigned int _time,
+      const int _tile,
+      const int _uncrossed,
+      const int _delta_time,
+      const int _region) :
+      x(_x),
+      dx(_dx), y(_y), dy(_dy), z(_z), time(_time), tile(_tile), uncrossed(_uncrossed), delta_time(_delta_time),
+      region(_region)
+    {}
+
+    friend std::ostream& operator<<(std::ostream& stream, const Hit& muon_hit)
+    {
+      constexpr int prec = 6, width = 12;
+      stream << std::setprecision(prec) << std::setw(width) << "Muon hit" << std::setw(width) << muon_hit.tile
+             << std::setw(width) << muon_hit.x << std::setw(width) << muon_hit.y << std::setw(width) << muon_hit.z
+             << std::setw(width) << muon_hit.dx << std::setw(width) << muon_hit.dy << std::setw(width) << muon_hit.time
+             << std::setw(width) << muon_hit.uncrossed << std::setw(width) << muon_hit.delta_time << std::setw(width)
+             << muon_hit.region;
+      return stream;
+    }
   };
 } // namespace Muon

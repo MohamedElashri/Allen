@@ -25,6 +25,7 @@ gaudi_add_module(AllenWrapper
                    src/ProvideConstants.cpp
                    src/ProvideRuntimeOptions.cpp
                    src/TestAllenCaloDigits.cpp
+                   src/TestMuonHits.cpp
                    src/TestUTHits.cpp
                    src/TestVeloClusters.cpp
                  LINK

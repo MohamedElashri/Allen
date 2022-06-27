@@ -134,12 +134,16 @@ std::tuple<std::vector<char>, std::string> DumpMuonGeometry::operator()(
       for ( unsigned int ilink = 0; ilink < Muon::Constants::maxNumberLinks; ilink++){
  	unsigned int node = daqHelper -> getODENumberNoHole(itell, ipci, ilink);
 	unsigned int frame = daqHelper -> getODEFrameNumberNoHole(itell, ipci, ilink);
+	//std::cout << "Ode " << node << ", frame " << frame <<std::endl;
 	if (node > 0) {
  	  for ( unsigned int ich = 0; ich < Muon::Constants::ODEFrameSize; ich++ ) {
 	    auto tileID = daqHelper -> getTileIDInNODE(node - 1, frame * Muon::Constants::ODEFrameSize + ich);	    
+	    //std::cout << "ich " << ich << ", tileID " << tileID <<std::endl;
 	    if ( tileID.isValid() ) {
 	      mapRegionOfLink[itell][ipci][ilink] = tileID.region();
 	      mapQuarterOfLink[itell][ipci][ilink] = tileID.quarter();
+	      //std::cout << "Filling indices  " << itell << ", ipci " << ipci <<", " << ilink << " --> region ";
+	      //std::cout << mapRegionOfLink[itell][ipci][ilink] << ", quarter: "<< mapQuarterOfLink[itell][ipci][ilink] << std::endl;
 	    } //valid tileID
             mapTileInTell40[itell][ipci][(ilink)*Muon::Constants::ODEFrameSize + ich] = int(tileID);
 	  }//loop on channels 
@@ -147,9 +151,30 @@ std::tuple<std::vector<char>, std::string> DumpMuonGeometry::operator()(
       }//loop on links
     }//loop on pci boards
   }//loop on tell40s
+  
 
   output.write( whichStationIsTell40, tell40PCINumberOfActiveLink, 
 		mapRegionOfLink, mapQuarterOfLink, mapTileInTell40 );
+
+   // std::cout << "DUMPING DIRECTLY THE MAPS FROM THE MUONDUMPER" << std::endl;
+   //  for (auto i = 0; i < 2; i++){
+   //    std::cout << "Tell40 number " << i << std::endl;
+   //    std::cout << "    which_station_is_tell_40 " << whichStationIsTell40[i] << std::endl;
+   //    for (auto j = 0; j < Muon::Constants::maxTell40PCINumber; j++){
+   //      std::cout << "        pci number " << j << std::endl;
+   //      std::cout << "        numberOfActiveLink " << tell40PCINumberOfActiveLink[i][j] << std::endl; 
+   //      for (auto k = 0; k < Muon::Constants::maxNumberLinks; k++){
+   //  	std::cout <<  "            link number " << k << std::endl;
+   //  	std::cout  << "            QuarterOfLink " << mapQuarterOfLink[i][j][k] << ", RegionOfLink " << mapRegionOfLink[i][j][k] << std::endl; 
+   // 	for (auto l = 0; l < Muon::Constants::ODEFrameSize; l++){
+   // 	  std::cout << "              ODE number " << l << std::endl;
+   // 	  std::cout << "              TileInTell40 map " << mapTileInTell40[i][j][k * Muon::Constants::ODEFrameSize + l] << std::endl;	  
+   // 	}
+   //      }
+   //    }    
+   //  }
+    
+
   } else {
     version = 2;
     output.write(version);
@@ -172,26 +197,6 @@ std::tuple<std::vector<char>, std::string> DumpMuonGeometry::operator()(
     }
 
   } //Run2 encoding
-  //data = output.buffer();
-
-
-  // for (auto i : det.getUpgradeDAQInfo() -> m_which_stationIsTell40)
-  //   std::cout << "m_which_stationIsTell40 map " << i << std::endl; 
-  // for (auto i = 0; i < MuonUpgradeDAQHelper_maxTel40Number; i++)
-  //   for (auto j = 0; j < MuonUpgradeDAQHelper_maxTell40PCINumber; j++)
-  //     std::cout << "m_Tell40PCINumberOfActiveLink map " << det.getUpgradeDAQInfo() -> m_Tell40PCINumberOfActiveLink[i][j] << std::endl; 
-  // for (auto i = 0; i < MuonUpgradeDAQHelper_maxTell40Number; i++)
-  //   for (auto j = 0; j < MuonUpgradeDAQHelper_maxTell40PCINumber; j++)
-  //     for (auto k = 0; k < MuonUpgradeDAQHelper_linkNumber; k++)
-  // 	std::cout << "m_mapStationOfLink map " << det.getUpgradeDAQInfo() -> m_mapStationOfLink[i][j][k] << std::endl;
-  // for (auto i = 0; i < MuonUpgradeDAQHelper_maxTell40Number; i++)
-  //   for (auto j = 0; j < MuonUpgradeDAQHelper_maxTell40PCINumber; j++)
-  //     for (auto k = 0; k < MuonUpgradeDAQHelper_linkNumber; k++)
-  // 	std::cout << "m_mapQuarterOfLink map " << det.getUpgradeDAQInfo() -> m_mapQuarterOfLink[i][j][k] << std::endl; 
-  // for (auto i = 0; i < MuonUpgradeDAQHelper_maxTell40Number; i++)
-  //   for (auto j = 0; j < MuonUpgradeDAQHelper_maxTell40PCINumber; j++)
-  //     for (auto k = 0; k < MuonUpgradeDAQHelper_linkNumber * MuonUpgradeDAQHelper_ODEFrameSize; k++)
-  // 	std::cout << "m_mapTileInTell1 map " << det.getUpgradeDAQInfo() -> m_mapTileInTell40[i][j][k] << std::endl;
 
   return std::tuple {output.buffer(), m_id};
 }
