@@ -30,7 +30,8 @@ bool check_sourceIDs(gsl::span<char const> bank_data)
 
   // Loop over all the banks and check if any of the sourceIDs has
   // the most-significant bits set. In MC data they are not set.
-  bool is_mc = true;
+  size_t n_banks = 0;
+  size_t has_top5 = 0;
   while (bank < bank_data.data() + bank_data.size()) {
 
     const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
@@ -38,13 +39,18 @@ bool check_sourceIDs(gsl::span<char const> bank_data)
     if (
       b->type() != LHCb::RawBank::DAQ && b->type() != LHCb::RawBank::HltDecReports &&
       b->type() != LHCb::RawBank::HltSelReports) {
-      is_mc &= (SourceId_sys(static_cast<short>(b->sourceID())) == 0);
+      has_top5 += (SourceId_sys(static_cast<short>(b->sourceID())) != 0);
+      ++n_banks;
     }
 
     // Increment overall bank pointer
     bank += b->totalSize();
   }
-  return is_mc;
+
+  // In real data or simulation with all the 5 most significant bits
+  // correctly set, there is only a single bank with those set to 0:
+  // ODIN.
+  return (n_banks - has_top5) != 1;
 }
 
 /**
