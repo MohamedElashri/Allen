@@ -99,15 +99,41 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
   std::array<LHCb::RawBank::View, LHCb::RawBank::types().size()> rawBanks;
 
   for (auto const* rawEvent : rawEvents) {
-    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks](auto bt) {
+    if (rawEvent == nullptr) continue;
+    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [this, rawEvent, &rawBanks](auto bt) {
       auto banks = rawEvent->banks(bt);
       if (!banks.empty()) {
-        rawBanks[bt] = banks;
-      }
-      else {
-        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
+        if (rawBanks[bt].empty()) {
+          rawBanks[bt] = banks;
+        }
+        else if (msgLevel(MSG::DEBUG)) {
+          debug() << "Multiple RawEvents contain " << toString(bt) << " banks. The first ones found will be used."
+                  << endmsg;
+        }
       }
     });
+  }
+
+  // We have to deal with the fact that calo banks can come in different types
+  for (auto bt : m_bankTypes.value()) {
+    if (bt == LHCb::RawBank::EcalPacked || bt == LHCb::RawBank::HcalPacked) {
+      if (rawBanks[bt].empty() && rawBanks[LHCb::RawBank::Calo].empty()) {
+        // Old-style calo banks empty and new-style calo banks also empty
+        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
+      }
+    }
+    else if (bt == LHCb::RawBank::Calo) {
+      if (
+        rawBanks[bt].empty() &&
+        ((m_bankTypes.value().count(LHCb::RawBank::EcalPacked) && rawBanks[LHCb::RawBank::EcalPacked].empty()) ||
+         (m_bankTypes.value().count(LHCb::RawBank::HcalPacked) && rawBanks[LHCb::RawBank::HcalPacked].empty()))) {
+        // New-style calo banks empty and old-style calo banks also empty
+        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
+      }
+    }
+    else if (rawBanks[bt].empty()) {
+      throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
+    }
   }
 
   for (auto bt : LHCb::RawBank::types()) {
