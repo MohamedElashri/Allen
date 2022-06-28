@@ -561,7 +561,7 @@ if (USE_KALMAN_DOUBLE_PRECISION)
 endif()
 
 # Determine which sequences to generate or copy configurations for
-file(GLOB available_sequences CONFIGURE_DEPENDS "configuration/sequences/*.py")
+file(GLOB available_sequences CONFIGURE_DEPENDS "configuration/python/AllenSequences/*.py")
 set(BUILD_SEQUENCES "")
 foreach(sequence_filename ${available_sequences})
   get_filename_component(sequence ${sequence_filename} NAME_WE)

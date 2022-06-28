@@ -58,3 +58,8 @@ def make_algorithm(algorithm, *args, **kwargs):
     for dev_event_list_name in event_list_names:
         kwargs[dev_event_list_name] = dev_event_list
     return algorithm(runtime_options_t=rto, constants_t=cs, *args, **kwargs)
+
+
+# Empty generate to support importing Allen sequences in Gaudi-Allen
+def generate(node):
+    pass
