@@ -33,7 +33,7 @@ namespace Allen::Store {
     }
 
     template<typename T>
-    gsl::span<T>& at(const std::string& k) {
+    gsl::span<T> at(const std::string& k) {
       try {
         return m_store.at(k).get<T>();
       } catch (std::out_of_range) {
@@ -42,12 +42,26 @@ namespace Allen::Store {
       }
     }
 
-    void emplace(const std::string& k, AllenArgument&& t)
+    template<typename T>
+    gsl::span<const T> at(const std::string& k) const {
+      try {
+        return m_store.at(k).get<const T>();
+      } catch (std::out_of_range) {
+        error_cout << "Store: key " << k << " not found\n";
+        throw;
+      }
+    }
+
+    void register_entry(const std::string& k, AllenArgument&& t)
     {
       const auto& [ret, ok] = m_store.try_emplace(k, std::forward<AllenArgument>(t));
       if (!ok) {
-        throw std::runtime_error("store emplace failed, entry already exists");
+        throw std::runtime_error("store register_entry failed, entry already exists");
       }
+    }
+
+    void reset() {
+      m_store = std::unordered_map<std::string, AllenArgument>{};
     }
   };
 

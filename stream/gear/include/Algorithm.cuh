@@ -46,7 +46,7 @@ namespace {
   {
     using t = std::tuple_element_t<I, T>;
     if constexpr (Allen::is_template_base_of_v<Allen::Store::output_datatype, t>) {
-      store.emplace(arguments[I], Allen::Store::AllenArgument {
+      store.register_entry(arguments[I], Allen::Store::AllenArgument {
         std::in_place_type<typename t::type>,
         arguments[I],
         std::is_base_of_v<Allen::Store::host_datatype, t> ? Allen::Store::Scope::Host : Allen::Store::Scope::Device});

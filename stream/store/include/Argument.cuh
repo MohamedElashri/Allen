@@ -43,8 +43,8 @@ namespace Allen::Store {
   enum class Scope { Host, Device, Invalid };
 
   /**
-   * @brief Contains the data of an argument, namely its name, data pointer and size.
-   *
+   * @brief A base type-erased Allen argument, consistent of a vtable, name, scope and type size.
+   *        It carries information about its type.
    */
   struct BaseArgument {
   protected:
@@ -70,6 +70,9 @@ namespace Allen::Store {
     virtual void set_size(size_t size) = 0;
   };
 
+  /**
+   * @brief An AllenArgument, which extends BaseArgument with pointer and size.
+   */
   struct AllenArgument : public BaseArgument {
   private:
     void* m_pointer = nullptr;

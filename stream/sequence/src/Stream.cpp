@@ -56,7 +56,7 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
 
       try {
         // Visit all algorithms in configured sequence
-        scheduler->run(runtime_options, constants, host_buffers, m_context);
+        scheduler->run(runtime_options, constants, *host_buffers, m_context);
 
         // deterministic injection of ~random memory failures
         if (runtime_options.inject_mem_fail > 0) {

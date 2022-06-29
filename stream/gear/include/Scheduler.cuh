@@ -25,8 +25,8 @@ class Scheduler {
   std::vector<std::any> m_sequence_argument_ref_managers;
   std::vector<LifetimeDependencies> m_in_dependencies;
   std::vector<LifetimeDependencies> m_out_dependencies;
-  Allen::Store::host_memory_manager_t host_memory_manager {"Host memory manager"};
-  Allen::Store::device_memory_manager_t device_memory_manager {"Device memory manager"};
+  Allen::Store::host_memory_manager_t m_host_memory_manager {"Host memory manager"};
+  Allen::Store::device_memory_manager_t m_device_memory_manager {"Device memory manager"};
   bool do_print = false;
 
 private:
@@ -164,8 +164,8 @@ public:
     do_print = param_do_print;
 
     // Reserve memory in managers
-    host_memory_manager.reserve_memory(host_requested_mb * 1000 * 1000, required_memory_alignment);
-    device_memory_manager.reserve_memory(device_requested_mb * 1000 * 1000, required_memory_alignment);
+    m_host_memory_manager.reserve_memory(host_requested_mb * 1000 * 1000, required_memory_alignment);
+    m_device_memory_manager.reserve_memory(device_requested_mb * 1000 * 1000, required_memory_alignment);
   }
 
   Scheduler(const Scheduler&) = delete;
@@ -228,8 +228,8 @@ public:
    */
   void reset()
   {
-    host_memory_manager.free_all();
-    device_memory_manager.free_all();
+    m_host_memory_manager.free_all();
+    m_device_memory_manager.free_all();
   }
 
   // Configure constants for algorithms in the sequence
@@ -273,7 +273,7 @@ public:
   void run(
     const RuntimeOptions& runtime_options,
     const Constants& constants,
-    HostBuffers* host_buffers,
+    HostBuffers& persistent_buffers,
     const Allen::Context& context)
   {
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
@@ -282,12 +282,12 @@ public:
         m_sequence_argument_ref_managers[i],
         m_in_dependencies[i],
         m_out_dependencies[i],
-        host_memory_manager,
-        device_memory_manager,
+        m_host_memory_manager,
+        m_device_memory_manager,
         m_store,
         runtime_options,
         constants,
-        *host_buffers,
+        persistent_buffers,
         context,
         do_print);
     }
@@ -357,12 +357,12 @@ private:
     Allen::Store::UnorderedStore& store,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
-    HostBuffers& host_buffers,
+    HostBuffers& persistent_buffers,
     const Allen::Context& context,
     bool do_print)
   {
     // Sets the arguments sizes
-    algorithm.set_arguments_size(argument_ref_manager, runtime_options, constants, host_buffers);
+    algorithm.set_arguments_size(argument_ref_manager, runtime_options, constants, persistent_buffers);
 
     // Setup algorithm, reserving / freeing memory buffers
     setup(algorithm, in_dependencies, out_dependencies, host_memory_manager, device_memory_manager, store, do_print);
@@ -374,11 +374,14 @@ private:
 
     try {
       // Invoke the algorithm
-      algorithm.invoke(argument_ref_manager, runtime_options, constants, host_buffers, context);
+      algorithm.invoke(argument_ref_manager, runtime_options, constants, persistent_buffers, context);
     } catch (std::invalid_argument& e) {
       fprintf(stderr, "Execution of algorithm %s raised an exception\n", algorithm.name().c_str());
       throw e;
     }
+
+    // Store persistent buffers
+    // store_persistent_buffers(persistent_buffers);
 
     // Run postconditions
     if constexpr (contracts_enabled) {
