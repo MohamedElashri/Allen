@@ -119,6 +119,8 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+sequence_name = args.sequence.split('/')[-1].split('.')[0]
+
 runtime_lib = None
 if args.profile == "CUDA":
     runtime_lib = ctypes.CDLL("libcudart.so")
@@ -194,7 +196,8 @@ config.add(
             'SIMCOND': options.conddb_tag,
         }))
 
-cf_node = setup_allen_non_event_data_service(allen_event_loop=True)
+cf_node = setup_allen_non_event_data_service(
+    allen_event_loop=True, sequence_name=sequence_name)
 config.update(configure(options, cf_node))
 
 # Start Gaudi and get the AllenUpdater service

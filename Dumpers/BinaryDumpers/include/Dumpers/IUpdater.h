@@ -104,6 +104,8 @@ namespace Allen {
        * @return     void
        */
       virtual void registerProducer(std::string const& id, Producer p) = 0;
+
+      virtual std::vector<std::string> requestedBanks() = 0;
     };
   } // namespace NonEventData
 } // namespace Allen

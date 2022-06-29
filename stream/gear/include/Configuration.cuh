@@ -19,7 +19,9 @@ struct ConfiguredAlgorithm {
   std::string name;
   std::string scope;
 
-  ConfiguredAlgorithm(const std::string& id, const std::string& name, const std::string& scope) : id(id), name(name), scope(scope) {}
+  ConfiguredAlgorithm(const std::string& id, const std::string& name, const std::string& scope) :
+    id(id), name(name), scope(scope)
+  {}
 };
 
 struct ConfiguredArgument {
