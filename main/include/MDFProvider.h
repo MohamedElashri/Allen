@@ -154,10 +154,12 @@ public:
         // Check what type of file we have: old MC or (new MC or data)
         m_is_mc = check_sourceIDs(event_span);
         if (*m_is_mc) {
+          debug_cout << "Using bank types to determine subdetector\n";
           m_sd_from_raw = sd_from_bank_type;
           m_bank_sorter = sort_by_bank_type;
         }
         else {
+          debug_cout << "Using 5 most significant bits to determine subdetector\n";
           m_sd_from_raw = sd_from_sourceID;
           m_bank_sorter = sort_by_sourceID;
         }
