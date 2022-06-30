@@ -53,6 +53,9 @@ namespace Allen::Store {
     Scope m_scope = Scope::Invalid;
     size_t m_type_size = 0;
 
+    virtual void* pointer() const = 0;
+    virtual size_t size() const = 0;
+
   public:
     template<typename T>
     BaseArgument(std::in_place_type_t<T>, const std::string& name, Scope scope) : m_vtable{&vtable_for<T>},
@@ -63,9 +66,17 @@ namespace Allen::Store {
     std::type_index type() const { return m_vtable->type_(); }
     size_t sizebytes() const { return size() * m_type_size; }
 
+    template<typename T>
+    operator gsl::span<T>() {
+      return gsl::span<T>{static_cast<T*>(m_vtable->cast_(std::type_index(typeid(T)), pointer())), size()};
+    }
+
+    template<typename T>
+    operator gsl::span<const T>() const {
+      return gsl::span<const T>{static_cast<const T*>(m_vtable->cast_(std::type_index(typeid(T)), pointer())), size()};
+    }
+
     virtual ~BaseArgument() {}
-    virtual void* pointer() const = 0;
-    virtual size_t size() const = 0;
     virtual void set_pointer(void* pointer) = 0;
     virtual void set_size(size_t size) = 0;
   };
@@ -78,33 +89,15 @@ namespace Allen::Store {
     void* m_pointer = nullptr;
     size_t m_size = 0;
 
+  protected:
+    void* pointer() const override final { return m_pointer; }
+    size_t size() const override final { return m_size; }
+
   public:
     template<typename T>
     AllenArgument(std::in_place_type_t<T>, const std::string& name, Scope scope) : 
       Store::BaseArgument{std::in_place_type<T>, name, scope} {}
 
-    template<typename T>
-    operator gsl::span<T>() {
-      return gsl::span<T>{static_cast<T*>(m_vtable->cast_(std::type_index(typeid(T)), m_pointer)), m_size};
-    }
-
-    template<typename T>
-    operator gsl::span<const T>() const {
-      return gsl::span<const T>{static_cast<const T*>(m_vtable->cast_(std::type_index(typeid(T)), m_pointer)), m_size};
-    }
-
-    template<typename T>
-    gsl::span<T> get() {
-      return operator gsl::span<T>();
-    }
-
-    template<typename T>
-    gsl::span<const T> get() const {
-      return operator gsl::span<T>();
-    }
-
-    void* pointer() const override final { return m_pointer; }
-    size_t size() const override final { return m_size; }
     void set_pointer(void* pointer) override final { m_pointer = pointer; }
     void set_size(size_t size) override final { m_size = size; }
   };

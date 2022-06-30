@@ -53,7 +53,7 @@ size_t size(const Args& arguments)
 template<typename Arg, typename Args>
 auto* data(const Args& arguments)
 {
-  return arguments.template pointer<Arg>();
+  return arguments.template data<Arg>();
 }
 
 /**
@@ -299,7 +299,7 @@ namespace Allen {
       unsigned container_offset = 0;
       for (size_t i = 0; i < aggregate.size_of_aggregate(); ++i) {
         if (aggregate.size(i) > 0) {
-          Allen::copy_async(container, aggregate.span(i), context, kind, aggregate.size(i), container_offset);
+          Allen::copy_async(container, aggregate.get(i), context, kind, aggregate.size(i), container_offset);
           container_offset += aggregate.size(i);
         }
         else if (fill_if_empty_container) {

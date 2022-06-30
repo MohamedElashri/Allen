@@ -50,6 +50,26 @@ namespace Allen::Store {
       }
     }
 
+    template<typename T>
+    gsl::span<T> at(const std::string& k) {
+      try {
+        return m_store.at(k);
+      } catch (std::out_of_range) {
+        error_cout << "Store: key " << k << " not found\n";
+        throw;
+      }
+    }
+
+    template<typename T>
+    gsl::span<const T> at(const std::string& k) const {
+      try {
+        return m_store.at(k);
+      } catch (std::out_of_range) {
+        error_cout << "Store: key " << k << " not found\n";
+        throw;
+      }
+    }
+
     void register_entry(const std::string& k, AllenArgument&& t)
     {
       const auto& [ret, ok] = m_store.try_emplace(k, std::forward<AllenArgument>(t));
@@ -137,32 +157,31 @@ namespace Allen::Store {
     StoreRef(store_ref_t store_ref) : m_store_ref(store_ref) {}
 
     template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
-    typename T::type* pointer() const
+    gsl::span<typename T::type> get() const
     {
       constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
       static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-      auto pointer = m_store_ref[index_of_T].get().pointer();
-      return reinterpret_cast<typename T::type*>(pointer);
+      return m_store_ref[index_of_T].get();
     }
 
     template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
-    typename T::type first() const
+    auto data() const
+    {
+      return get<T>().data();
+    }
+
+    template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
+    auto first() const
     {
       static_assert(std::is_base_of_v<host_datatype, T> && "first can only access host datatypes");
-      if constexpr (std::is_base_of_v<optional_datatype, T>) {
-        if (pointer<T>() == nullptr) {
-          return 0;
-        }
-      }
-      return pointer<T>()[0];
+      static_assert(!std::is_base_of_v<optional_datatype, T> && "first can only access non-optional datatypes");
+      return get<T>()[0];
     }
 
     template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
-    size_t size() const
+    auto size() const
     {
-      constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
-      static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-      return m_store_ref[index_of_T].get().size();
+      return get<T>().size();
     }
 
     template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>

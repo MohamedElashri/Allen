@@ -44,20 +44,21 @@ namespace Allen {
   private:
     VECTOR& m_data;
 
-  public:
-    TESWrapperArgument(VECTOR& data, const std::string& name) :
-      Store::BaseArgument{std::in_place_type<typename VECTOR::value_type>, name, Store::Scope::Host},
-      m_data(data) {}
-
+  protected:
     void* pointer() const override final
     {
       return const_cast<void*>(reinterpret_cast<forward_type_t<VECTOR, void>*>(m_data.data()));
     }
 
+    size_t size() const override final { return m_data.size(); }
+
+  public:
+    TESWrapperArgument(VECTOR& data, const std::string& name) :
+      Store::BaseArgument{std::in_place_type<typename VECTOR::value_type>, name, Store::Scope::Host},
+      m_data(data) {}
+
     // set_pointer should never used, since vectors are allocated directly with set_size
     void set_pointer(void*) override final { throw; }
-
-    size_t size() const override final { return m_data.size(); }
 
     // set_size resizes the vector of data, when it is an output datatype (not const)
     // If it is invoked on a const vector, it throws
