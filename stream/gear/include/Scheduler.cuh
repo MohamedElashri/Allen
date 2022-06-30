@@ -3,7 +3,6 @@
 \*****************************************************************************/
 #pragma once
 
-#include "MemoryManager.cuh"
 #include "Store.cuh"
 #include "Configuration.cuh"
 #include "Logger.h"
@@ -25,8 +24,6 @@ class Scheduler {
   std::vector<std::any> m_sequence_argument_ref_managers;
   std::vector<LifetimeDependencies> m_in_dependencies;
   std::vector<LifetimeDependencies> m_out_dependencies;
-  Allen::Store::host_memory_manager_t m_host_memory_manager {"Host memory manager"};
-  Allen::Store::device_memory_manager_t m_device_memory_manager {"Device memory manager"};
   bool do_print = false;
 
 private:
@@ -164,8 +161,8 @@ public:
     do_print = param_do_print;
 
     // Reserve memory in managers
-    m_host_memory_manager.reserve_memory(host_requested_mb * 1000 * 1000, required_memory_alignment);
-    m_device_memory_manager.reserve_memory(device_requested_mb * 1000 * 1000, required_memory_alignment);
+    m_store.reserve_memory_host(host_requested_mb, required_memory_alignment);
+    m_store.reserve_memory_device(device_requested_mb, required_memory_alignment);
   }
 
   Scheduler(const Scheduler&) = delete;
@@ -224,12 +221,11 @@ public:
   }
 
   /**
-   * @brief Resets the memory manager.
+   * @brief Free the memory managers.
    */
-  void reset()
+  void free_all()
   {
-    m_host_memory_manager.free_all();
-    m_device_memory_manager.free_all();
+    m_store.free_all();
   }
 
   // Configure constants for algorithms in the sequence
@@ -282,8 +278,6 @@ public:
         m_sequence_argument_ref_managers[i],
         m_in_dependencies[i],
         m_out_dependencies[i],
-        m_host_memory_manager,
-        m_device_memory_manager,
         m_store,
         runtime_options,
         constants,
@@ -315,8 +309,6 @@ private:
     Allen::TypeErasedAlgorithm& algorithm,
     const LifetimeDependencies& in_dependencies,
     const LifetimeDependencies& out_dependencies,
-    Allen::Store::host_memory_manager_t& host_memory_manager,
-    Allen::Store::device_memory_manager_t& device_memory_manager,
     Allen::Store::UnorderedStore& store,
     bool do_print)
   {
@@ -335,15 +327,18 @@ private:
     }
 
     // Free all arguments in OutDependencies
-    Allen::Store::MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
+    for (const auto& arg : out_dependencies.arguments) {
+      store.free(arg);
+    }
 
     // Reserve all arguments in InDependencies
-    Allen::Store::MemoryManagerHelper::reserve(host_memory_manager, device_memory_manager, store, in_dependencies);
+    for (const auto& arg : in_dependencies.arguments) {
+      store.put(arg);
+    }
 
     // Print memory manager state
     if (do_print) {
-      host_memory_manager.print();
-      device_memory_manager.print();
+      store.print_memory_manager_states();
     }
   }
 
@@ -352,8 +347,6 @@ private:
     std::any& argument_ref_manager,
     const LifetimeDependencies& in_dependencies,
     const LifetimeDependencies& out_dependencies,
-    Allen::Store::host_memory_manager_t& host_memory_manager,
-    Allen::Store::device_memory_manager_t& device_memory_manager,
     Allen::Store::UnorderedStore& store,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
@@ -365,7 +358,7 @@ private:
     algorithm.set_arguments_size(argument_ref_manager, runtime_options, constants, persistent_buffers);
 
     // Setup algorithm, reserving / freeing memory buffers
-    setup(algorithm, in_dependencies, out_dependencies, host_memory_manager, device_memory_manager, store, do_print);
+    setup(algorithm, in_dependencies, out_dependencies, store, do_print);
 
     // Run preconditions
     if constexpr (contracts_enabled) {

@@ -14,15 +14,24 @@
 #include "StructToTuple.cuh"
 #include "Argument.cuh"
 #include "Datatype.cuh"
+#include "MemoryManager.cuh"
 
 namespace Allen::Store {
   /**
    * @brief Allen argument manager
    */
   class UnorderedStore {
-    std::unordered_map<std::string, AllenArgument> m_store;
+    host_memory_manager_t m_host_memory_manager {"Host memory manager"};
+    device_memory_manager_t m_device_memory_manager {"Device memory manager"};
+    std::unordered_map<std::string, AllenArgument> m_store {};
 
   public:
+    UnorderedStore() = default;
+    UnorderedStore(const UnorderedStore&) = delete;
+    UnorderedStore& operator=(const UnorderedStore&) = delete;
+    UnorderedStore(UnorderedStore&&) = delete;
+    UnorderedStore& operator=(UnorderedStore&&) = delete;
+
     AllenArgument& at(const std::string& k) {
       try {
         return m_store.at(k);
@@ -32,20 +41,9 @@ namespace Allen::Store {
       }
     }
 
-    template<typename T>
-    gsl::span<T> at(const std::string& k) {
+    const AllenArgument& at(const std::string& k) const {
       try {
-        return m_store.at(k).get<T>();
-      } catch (std::out_of_range) {
-        error_cout << "Store: key " << k << " not found\n";
-        throw;
-      }
-    }
-
-    template<typename T>
-    gsl::span<const T> at(const std::string& k) const {
-      try {
-        return m_store.at(k).get<const T>();
+        return m_store.at(k);
       } catch (std::out_of_range) {
         error_cout << "Store: key " << k << " not found\n";
         throw;
@@ -60,8 +58,54 @@ namespace Allen::Store {
       }
     }
 
+    void put(const std::string& k) {
+      AllenArgument& arg = at(k);
+      if (arg.scope() == m_host_memory_manager.scope) {
+        m_host_memory_manager.reserve(arg);
+      }
+      else if (arg.scope() == m_device_memory_manager.scope) {
+        m_device_memory_manager.reserve(arg);
+      }
+      else {
+        throw std::runtime_error("argument scope not recognized");
+      }
+    }
+
+    void reserve_memory_host(const size_t requested_mb, const unsigned required_memory_alignment) {
+      m_host_memory_manager.reserve_memory(requested_mb * 1000 * 1000, required_memory_alignment);
+    }
+
+    void reserve_memory_device(const size_t requested_mb, const unsigned required_memory_alignment) {
+      m_device_memory_manager.reserve_memory(requested_mb * 1000 * 1000, required_memory_alignment);
+    }
+
+    void free(const std::string& k) {
+      auto& arg = at(k);
+      arg.set_pointer(nullptr);
+      if (arg.scope() == m_host_memory_manager.scope) {
+        m_host_memory_manager.free(arg);
+      }
+      else if (arg.scope() == m_device_memory_manager.scope) {
+        m_device_memory_manager.free(arg);
+      }
+      else {
+        throw std::runtime_error("argument scope not recognized");
+      }
+    }
+
+    void free_all() {
+      m_host_memory_manager.free_all();
+      m_device_memory_manager.free_all();
+    }
+
     void reset() {
-      m_store = std::unordered_map<std::string, AllenArgument>{};
+      m_store.clear();
+      free_all();
+    }
+
+    void print_memory_manager_states() const {
+      m_host_memory_manager.print();
+      m_device_memory_manager.print();
     }
   };
 

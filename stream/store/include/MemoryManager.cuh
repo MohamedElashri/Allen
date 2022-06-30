@@ -9,7 +9,6 @@
 #include "Logger.h"
 #include "Configuration.cuh"
 #include "Argument.cuh"
-#include "Store.cuh"
 
 namespace Allen::Store {
 
@@ -217,7 +216,7 @@ namespace Allen::Store {
     /**
      * @brief Prints the current state of the memory segments.
      */
-    void print()
+    void print() const
     {
       info_cout << m_name << " segments (MB):" << std::endl;
       for (auto& segment : m_memory_segments) {
@@ -336,7 +335,7 @@ namespace Allen::Store {
     /**
      * @brief Prints the current state of the memory segments.
      */
-    void print()
+    void print() const
     {
       info_cout << m_name << " segments (MB):" << std::endl;
       for (auto const& [name, segment] : m_memory_segments) {
@@ -344,52 +343,6 @@ namespace Allen::Store {
       }
       info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / (1000.f * 1000.f)) << " MB"
                 << "\n\n";
-    }
-  };
-
-  struct MemoryManagerHelper {
-    template<typename HostMemoryManager, typename DeviceMemoryManager>
-    static void reserve(
-      HostMemoryManager& host_memory_manager,
-      DeviceMemoryManager& device_memory_manager,
-      UnorderedStore& store,
-      const LifetimeDependencies& in_dependencies)
-    {
-      for (const auto& arg_name : in_dependencies.arguments) {
-        auto& arg = store.at(arg_name);
-        if (arg.scope() == host_memory_manager.scope) {
-          host_memory_manager.reserve(arg);
-        }
-        else if (arg.scope() == device_memory_manager.scope) {
-          device_memory_manager.reserve(arg);
-        }
-        else {
-          throw std::runtime_error("argument scope not recognized");
-        }
-      }
-    }
-
-    /**
-     * @brief Frees memory buffers specified by out_dependencies.
-     *        Host memory buffers are NOT freed, which is required by the
-     *        current Allen memory model.
-     */
-    template<typename HostMemoryManager, typename DeviceMemoryManager>
-    static void free(
-      HostMemoryManager& host_memory_manager,
-      DeviceMemoryManager& device_memory_manager,
-      UnorderedStore& store,
-      const LifetimeDependencies& out_dependencies)
-    {
-      for (const auto& arg_name : out_dependencies.arguments) {
-        auto& arg = store.at(arg_name);
-        if (arg.scope() == device_memory_manager.scope) {
-          device_memory_manager.free(arg);
-        }
-        else if (arg.scope() != host_memory_manager.scope) {
-          throw std::runtime_error("argument scope not recognized");
-        }
-      }
     }
   };
 
@@ -403,5 +356,4 @@ namespace Allen::Store {
 
   using host_memory_manager_t = memory_manager_t<memory_manager_details::Host>;
   using device_memory_manager_t = memory_manager_t<memory_manager_details::Device>;
-
 } // namespace Allen::Store

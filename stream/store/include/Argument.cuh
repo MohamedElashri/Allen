@@ -84,13 +84,23 @@ namespace Allen::Store {
       Store::BaseArgument{std::in_place_type<T>, name, scope} {}
 
     template<typename T>
-    gsl::span<T> get() {
+    operator gsl::span<T>() {
       return gsl::span<T>{static_cast<T*>(m_vtable->cast_(std::type_index(typeid(T)), m_pointer)), m_size};
     }
 
     template<typename T>
-    gsl::span<const T> get() const {
+    operator gsl::span<const T>() const {
       return gsl::span<const T>{static_cast<const T*>(m_vtable->cast_(std::type_index(typeid(T)), m_pointer)), m_size};
+    }
+
+    template<typename T>
+    gsl::span<T> get() {
+      return operator gsl::span<T>();
+    }
+
+    template<typename T>
+    gsl::span<const T> get() const {
+      return operator gsl::span<T>();
     }
 
     void* pointer() const override final { return m_pointer; }
