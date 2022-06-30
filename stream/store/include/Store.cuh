@@ -15,6 +15,7 @@
 #include "Argument.cuh"
 #include "Datatype.cuh"
 #include "MemoryManager.cuh"
+#include "AllenBuffer.cuh"
 
 namespace Allen::Store {
   /**
@@ -24,6 +25,7 @@ namespace Allen::Store {
     host_memory_manager_t m_host_memory_manager {"Host memory manager"};
     device_memory_manager_t m_device_memory_manager {"Device memory manager"};
     std::unordered_map<std::string, AllenArgument> m_store {};
+    unsigned m_temporary_buffer_counter = 0;
 
   public:
     UnorderedStore() = default;
@@ -31,6 +33,16 @@ namespace Allen::Store {
     UnorderedStore& operator=(const UnorderedStore&) = delete;
     UnorderedStore(UnorderedStore&&) = delete;
     UnorderedStore& operator=(UnorderedStore&&) = delete;
+
+    template<typename T>
+    auto make_host_buffer(size_t size) {
+      return Allen::host_buffer<T>{m_host_memory_manager, "temp_" + std::to_string(m_temporary_buffer_counter++), size};
+    }
+
+    template<typename T>
+    auto make_device_buffer(size_t size) {
+      return Allen::device_buffer<T>{m_device_memory_manager, "temp_" + std::to_string(m_temporary_buffer_counter++), size};
+    }
 
     AllenArgument& at(const std::string& k)
     {
@@ -43,28 +55,6 @@ namespace Allen::Store {
     }
 
     const AllenArgument& at(const std::string& k) const
-    {
-      try {
-        return m_store.at(k);
-      } catch (std::out_of_range) {
-        error_cout << "Store: key " << k << " not found\n";
-        throw;
-      }
-    }
-
-    template<typename T>
-    gsl::span<T> at(const std::string& k)
-    {
-      try {
-        return m_store.at(k);
-      } catch (std::out_of_range) {
-        error_cout << "Store: key " << k << " not found\n";
-        throw;
-      }
-    }
-
-    template<typename T>
-    gsl::span<const T> at(const std::string& k) const
     {
       try {
         return m_store.at(k);
@@ -123,6 +113,7 @@ namespace Allen::Store {
     {
       m_host_memory_manager.free_all();
       m_device_memory_manager.free_all();
+      m_temporary_buffer_counter = 0;
     }
 
     void reset()
@@ -152,25 +143,25 @@ namespace Allen::Store {
     using parameters_tuple_t = ParameterTuple;
     using parameters_struct_t = ParameterStruct;
     using input_aggregates_t = InputAggregatesTuple;
-    using store_ref_t = std::array<std::reference_wrapper<BaseArgument>, std::tuple_size_v<parameters_tuple_t>>;
+    using arguments_t = std::array<std::reference_wrapper<BaseArgument>, std::tuple_size_v<parameters_tuple_t>>;
 
   private:
-    mutable store_ref_t m_store_ref;
+    mutable arguments_t m_arguments;
     input_aggregates_t m_input_aggregates;
 
   public:
-    StoreRef(store_ref_t store_ref, input_aggregates_t input_aggregates) :
-      m_store_ref(store_ref), m_input_aggregates(input_aggregates)
+    StoreRef(arguments_t arguments, input_aggregates_t input_aggregates) :
+      m_arguments(arguments), m_input_aggregates(input_aggregates)
     {}
 
-    StoreRef(store_ref_t store_ref) : m_store_ref(store_ref) {}
+    StoreRef(arguments_t arguments) : m_arguments(arguments) {}
 
     template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
     gsl::span<typename T::type> get() const
     {
       constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
       static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-      return m_store_ref[index_of_T].get();
+      return m_arguments[index_of_T].get();
     }
 
     template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
@@ -200,7 +191,7 @@ namespace Allen::Store {
         !Allen::is_template_base_of_v<input_datatype, T> && "set_size can only be used on output datatypes");
       constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
       static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-      m_store_ref[index_of_T].get().set_size(size);
+      m_arguments[index_of_T].get().set_size(size);
     }
 
     /**
@@ -214,8 +205,8 @@ namespace Allen::Store {
         !Allen::is_template_base_of_v<input_datatype, T> && "reduce_size can only be used on output datatypes");
       constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
       static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-      assert(size <= m_store_ref[index_of_T].get().size());
-      m_store_ref[index_of_T].get().set_size(size);
+      assert(size <= m_arguments[index_of_T].get().size());
+      m_arguments[index_of_T].get().set_size(size);
     }
 
     template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
@@ -223,7 +214,7 @@ namespace Allen::Store {
     {
       constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
       static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-      return m_store_ref[index_of_T].get().name();
+      return m_arguments[index_of_T].get().name();
     }
 
     template<typename T, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>, bool> = true>
