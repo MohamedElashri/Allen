@@ -324,7 +324,7 @@ private:
       info_cout << "Sequence step \"" << algorithm.name() << "\":\n";
     }
 
-    // Free all arguments in OutDependencies
+    // Free arguments in OutDependencies
     for (const auto& arg : out_dependencies.arguments) {
       store.free(arg);
     }

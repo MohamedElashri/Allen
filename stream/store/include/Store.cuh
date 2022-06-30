@@ -109,14 +109,12 @@ namespace Allen::Store {
     void free(const std::string& k)
     {
       auto& arg = at(k);
-      arg.set_pointer(nullptr);
-      if (arg.scope() == m_host_memory_manager.scope) {
-        m_host_memory_manager.free(arg);
-      }
-      else if (arg.scope() == m_device_memory_manager.scope) {
+      // Do not free host arguments
+      if (arg.scope() == m_device_memory_manager.scope) {
         m_device_memory_manager.free(arg);
+        arg.set_pointer(nullptr);
       }
-      else {
+      else if (arg.scope() != m_host_memory_manager.scope) {
         throw std::runtime_error("argument scope not recognized");
       }
     }
