@@ -231,7 +231,10 @@ void calo_decode::calo_decode_t::operator()(
     if (bank_version <= 3 && geom_version <= 3) {
       return true;
     }
-    return bank_version == geom_version;
+    else if ((bank_version == 4 || bank_version == 5) && geom_version == 4) {
+      return true;
+    }
+    return false;
   };
 
   const auto geom_version = CaloGeometry(constants.host_ecal_geometry.data()).geom_version;

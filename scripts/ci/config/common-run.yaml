@@ -20,7 +20,7 @@
 
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["calo"]
-        DATA_TAG: ["sim-20190912-vc-md100-FTv7-calov4.mdf"]
+        DATA_TAG: ["sim-20190912-vc-md100-FTv7-calov4"]
         GEOMETRY: ["MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4"]
 
 
