@@ -185,7 +185,8 @@ public:
   /**
    * @brief Initializes the store with the configured arguments
    */
-  void initialize_store(const std::vector<ConfiguredArgument>&,
+  void initialize_store(
+    const std::vector<ConfiguredArgument>&,
     const std::vector<ConfiguredAlgorithmArguments>& configured_algorithm_arguments)
   {
     assert(m_sequence.size() == configured_algorithm_arguments.size());
@@ -223,10 +224,7 @@ public:
   /**
    * @brief Free the memory managers.
    */
-  void free_all()
-  {
-    m_store.free_all();
-  }
+  void free_all() { m_store.free_all(); }
 
   // Configure constants for algorithms in the sequence
   void configure_algorithms(const std::map<std::string, std::map<std::string, nlohmann::json>>& config)

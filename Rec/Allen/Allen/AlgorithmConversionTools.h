@@ -54,8 +54,8 @@ namespace Allen {
 
   public:
     TESWrapperArgument(VECTOR& data, const std::string& name) :
-      Store::BaseArgument{std::in_place_type<typename VECTOR::value_type>, name, Store::Scope::Host},
-      m_data(data) {}
+      Store::BaseArgument {std::in_place_type<typename VECTOR::value_type>, name, Store::Scope::Host}, m_data(data)
+    {}
 
     // set_pointer should never used, since vectors are allocated directly with set_size
     void set_pointer(void*) override final { throw; }

@@ -32,7 +32,8 @@ namespace Allen::Store {
     UnorderedStore(UnorderedStore&&) = delete;
     UnorderedStore& operator=(UnorderedStore&&) = delete;
 
-    AllenArgument& at(const std::string& k) {
+    AllenArgument& at(const std::string& k)
+    {
       try {
         return m_store.at(k);
       } catch (std::out_of_range) {
@@ -41,7 +42,8 @@ namespace Allen::Store {
       }
     }
 
-    const AllenArgument& at(const std::string& k) const {
+    const AllenArgument& at(const std::string& k) const
+    {
       try {
         return m_store.at(k);
       } catch (std::out_of_range) {
@@ -51,7 +53,8 @@ namespace Allen::Store {
     }
 
     template<typename T>
-    gsl::span<T> at(const std::string& k) {
+    gsl::span<T> at(const std::string& k)
+    {
       try {
         return m_store.at(k);
       } catch (std::out_of_range) {
@@ -61,7 +64,8 @@ namespace Allen::Store {
     }
 
     template<typename T>
-    gsl::span<const T> at(const std::string& k) const {
+    gsl::span<const T> at(const std::string& k) const
+    {
       try {
         return m_store.at(k);
       } catch (std::out_of_range) {
@@ -78,7 +82,8 @@ namespace Allen::Store {
       }
     }
 
-    void put(const std::string& k) {
+    void put(const std::string& k)
+    {
       AllenArgument& arg = at(k);
       if (arg.scope() == m_host_memory_manager.scope) {
         m_host_memory_manager.reserve(arg);
@@ -91,15 +96,18 @@ namespace Allen::Store {
       }
     }
 
-    void reserve_memory_host(const size_t requested_mb, const unsigned required_memory_alignment) {
+    void reserve_memory_host(const size_t requested_mb, const unsigned required_memory_alignment)
+    {
       m_host_memory_manager.reserve_memory(requested_mb * 1000 * 1000, required_memory_alignment);
     }
 
-    void reserve_memory_device(const size_t requested_mb, const unsigned required_memory_alignment) {
+    void reserve_memory_device(const size_t requested_mb, const unsigned required_memory_alignment)
+    {
       m_device_memory_manager.reserve_memory(requested_mb * 1000 * 1000, required_memory_alignment);
     }
 
-    void free(const std::string& k) {
+    void free(const std::string& k)
+    {
       auto& arg = at(k);
       arg.set_pointer(nullptr);
       if (arg.scope() == m_host_memory_manager.scope) {
@@ -113,17 +121,20 @@ namespace Allen::Store {
       }
     }
 
-    void free_all() {
+    void free_all()
+    {
       m_host_memory_manager.free_all();
       m_device_memory_manager.free_all();
     }
 
-    void reset() {
+    void reset()
+    {
       m_store.clear();
       free_all();
     }
 
-    void print_memory_manager_states() const {
+    void print_memory_manager_states() const
+    {
       m_host_memory_manager.print();
       m_device_memory_manager.print();
     }

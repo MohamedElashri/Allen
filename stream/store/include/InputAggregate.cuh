@@ -42,20 +42,11 @@ namespace Allen::Store {
       return m_argument_data_v[index].get();
     }
 
-    auto data(const unsigned index) const
-    {
-      return get(index).data();
-    }
+    auto data(const unsigned index) const { return get(index).data(); }
 
-    auto first(const unsigned index) const
-    {
-      return get(index)[0];
-    }
+    auto first(const unsigned index) const { return get(index)[0]; }
 
-    auto size(const unsigned index) const
-    {
-      return get(index).size();
-    }
+    auto size(const unsigned index) const { return get(index).size(); }
 
     std::string name(const unsigned index) const
     {

@@ -40,17 +40,18 @@ namespace {
   }
 
   template<typename T, std::size_t I>
-  bool emplace_output_arg(
-    const std::vector<std::string>& arguments,
-    Allen::Store::UnorderedStore& store)
+  bool emplace_output_arg(const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store)
   {
     using t = std::tuple_element_t<I, T>;
     if constexpr (Allen::is_template_base_of_v<Allen::Store::output_datatype, t>) {
-      store.register_entry(arguments[I], Allen::Store::AllenArgument {
-        std::in_place_type<typename t::type>,
+      store.register_entry(
         arguments[I],
-        std::is_base_of_v<Allen::Store::host_datatype, t> ? Allen::Store::Scope::Host : Allen::Store::Scope::Device});
-    } else {
+        Allen::Store::AllenArgument {std::in_place_type<typename t::type>,
+                                     arguments[I],
+                                     std::is_base_of_v<Allen::Store::host_datatype, t> ? Allen::Store::Scope::Host :
+                                                                                         Allen::Store::Scope::Device});
+    }
+    else {
       _unused(arguments);
       _unused(store);
     }
@@ -131,7 +132,8 @@ namespace Allen {
         const RuntimeOptions& runtime_options,
         const Constants& constants,
         const Allen::Context& context) = nullptr;
-      void (*emplace_output_arguments)(const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store) = nullptr;
+      void (*emplace_output_arguments)(const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store) =
+        nullptr;
     };
 
     void* instance = nullptr;
@@ -244,13 +246,13 @@ namespace Allen {
                  ...);
               },
               postconditions);
-          }},
-          [](
-            const std::vector<std::string>& arguments,
-            Allen::Store::UnorderedStore& store) {
-              using parameters_tuple_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType::parameters_tuple_t;
-              ::emplace_output_argument<parameters_tuple_t>(arguments, store, std::make_index_sequence<std::tuple_size_v<parameters_tuple_t>> {});
-            }};
+          }
+        },
+        [](const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store) {
+          using parameters_tuple_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType::parameters_tuple_t;
+          ::emplace_output_argument<parameters_tuple_t>(
+            arguments, store, std::make_index_sequence<std::tuple_size_v<parameters_tuple_t>> {});
+        }};
     }
     ~TypeErasedAlgorithm() { (table.dtor)(instance); }
     TypeErasedAlgorithm(const TypeErasedAlgorithm&) = delete;
@@ -306,7 +308,8 @@ namespace Allen {
     {
       return (table.run_postconditions)(instance, arg_ref_manager, runtime_options, constants, context);
     }
-    void emplace_output_arguments(const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store) {
+    void emplace_output_arguments(const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store)
+    {
       (table.emplace_output_arguments)(arguments, store);
     }
   };

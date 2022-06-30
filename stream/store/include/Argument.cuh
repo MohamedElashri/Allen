@@ -24,21 +24,28 @@ namespace Allen::Store {
       std::type_index (*type_)();
     };
 
-    template <typename T>
-    inline std::type_index type_() { return std::type_index(typeid(T)); }
-
-    template <typename T>
-    inline void* cast_(std::type_index type, void* self) { 
-        return type==std::type_index(typeid(T)) ? static_cast<T*>(self)
-                                                : magic_cast(type,std::type_index(typeid(T)),self);
+    template<typename T>
+    inline std::type_index type_()
+    {
+      return std::type_index(typeid(T));
     }
 
-    template <>
-    inline void *cast_<void>(std::type_index,void*) { return nullptr; }
+    template<typename T>
+    inline void* cast_(std::type_index type, void* self)
+    {
+      return type == std::type_index(typeid(T)) ? static_cast<T*>(self) :
+                                                  magic_cast(type, std::type_index(typeid(T)), self);
+    }
 
-    template <typename T>
-    inline constexpr VTable const vtable_for = { &cast_<T>, &type_<T> };
-  }
+    template<>
+    inline void* cast_<void>(std::type_index, void*)
+    {
+      return nullptr;
+    }
+
+    template<typename T>
+    inline constexpr VTable const vtable_for = {&cast_<T>, &type_<T>};
+  } // namespace
 
   enum class Scope { Host, Device, Invalid };
 
@@ -48,7 +55,7 @@ namespace Allen::Store {
    */
   struct BaseArgument {
   protected:
-    const VTable *m_vtable = &vtable_for<void>;
+    const VTable* m_vtable = &vtable_for<void>;
     std::string m_name = "";
     Scope m_scope = Scope::Invalid;
     size_t m_type_size = 0;
@@ -58,8 +65,9 @@ namespace Allen::Store {
 
   public:
     template<typename T>
-    BaseArgument(std::in_place_type_t<T>, const std::string& name, Scope scope) : m_vtable{&vtable_for<T>},
-      m_name{name}, m_scope{scope}, m_type_size{sizeof(T)} {}
+    BaseArgument(std::in_place_type_t<T>, const std::string& name, Scope scope) :
+      m_vtable {&vtable_for<T>}, m_name {name}, m_scope {scope}, m_type_size {sizeof(T)}
+    {}
 
     std::string name() const { return m_name; }
     Scope scope() const { return m_scope; }
@@ -67,13 +75,15 @@ namespace Allen::Store {
     size_t sizebytes() const { return size() * m_type_size; }
 
     template<typename T>
-    operator gsl::span<T>() {
-      return gsl::span<T>{static_cast<T*>(m_vtable->cast_(std::type_index(typeid(T)), pointer())), size()};
+    operator gsl::span<T>()
+    {
+      return gsl::span<T> {static_cast<T*>(m_vtable->cast_(std::type_index(typeid(T)), pointer())), size()};
     }
 
     template<typename T>
-    operator gsl::span<const T>() const {
-      return gsl::span<const T>{static_cast<const T*>(m_vtable->cast_(std::type_index(typeid(T)), pointer())), size()};
+    operator gsl::span<const T>() const
+    {
+      return gsl::span<const T> {static_cast<const T*>(m_vtable->cast_(std::type_index(typeid(T)), pointer())), size()};
     }
 
     virtual ~BaseArgument() {}
@@ -95,8 +105,9 @@ namespace Allen::Store {
 
   public:
     template<typename T>
-    AllenArgument(std::in_place_type_t<T>, const std::string& name, Scope scope) : 
-      Store::BaseArgument{std::in_place_type<T>, name, scope} {}
+    AllenArgument(std::in_place_type_t<T>, const std::string& name, Scope scope) :
+      Store::BaseArgument {std::in_place_type<T>, name, scope}
+    {}
 
     void set_pointer(void* pointer) override final { m_pointer = pointer; }
     void set_size(size_t size) override final { m_size = size; }
