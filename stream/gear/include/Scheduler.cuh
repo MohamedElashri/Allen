@@ -149,8 +149,7 @@ public:
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
       // Generate store references for each algorithm's configured arguments
       auto [alg_arguments, alg_input_aggregates] = generate_algorithm_store_ref(sequence_arguments[i]);
-      m_sequence_ref_stores.emplace_back(
-        m_sequence[i].create_ref_store(alg_arguments, alg_input_aggregates, m_store));
+      m_sequence_ref_stores.emplace_back(m_sequence[i].create_ref_store(alg_arguments, alg_input_aggregates, m_store));
     }
 
     assert(configured_algorithms.size() == m_sequence.size());

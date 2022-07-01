@@ -35,13 +35,17 @@ namespace Allen::Store {
     UnorderedStore& operator=(UnorderedStore&&) = delete;
 
     template<typename T>
-    auto make_host_buffer(size_t size) {
-      return Allen::host_buffer<T>{m_host_memory_manager, "temp_" + std::to_string(m_temporary_buffer_counter++), size};
+    auto make_host_buffer(size_t size)
+    {
+      return Allen::host_buffer<T> {
+        m_host_memory_manager, "temp_" + std::to_string(m_temporary_buffer_counter++), size};
     }
 
     template<typename T>
-    auto make_device_buffer(size_t size) {
-      return Allen::device_buffer<T>{m_device_memory_manager, "temp_" + std::to_string(m_temporary_buffer_counter++), size};
+    auto make_device_buffer(size_t size)
+    {
+      return Allen::device_buffer<T> {
+        m_device_memory_manager, "temp_" + std::to_string(m_temporary_buffer_counter++), size};
     }
 
     AllenArgument& at(const std::string& k)
