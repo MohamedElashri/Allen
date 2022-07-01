@@ -76,6 +76,7 @@ def make_calo_digits_minADC_line(decode_calo,
                                  post_scaler_hash_string=None,
                                  minADC=100):
     number_of_events = initialize_number_of_events()
+    odin = decode_odin()
 
     return make_algorithm(
         calo_digits_minADC_t,

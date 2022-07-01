@@ -161,6 +161,8 @@ if args.mep:
         ])
     else:
         mep_provider.Connections = mep_dir.split(',')
+    # mep_provider.Connections = ["/daqarea1/fest/beam_test/Allen_BU_10.mep"]
+
     mep_provider.LoopOnMEPs = False
     mep_provider.Preload = args.reuse_meps
     # Use this property to allocate buffers to specific NUMA domains

@@ -20,6 +20,7 @@ namespace Allen {
     {LHCb::RawBank::ODIN, BankTypes::ODIN},
     {LHCb::RawBank::HcalPacked, BankTypes::HCal},
     {LHCb::RawBank::EcalPacked, BankTypes::ECal},
+    {LHCb::RawBank::Calo, BankTypes::ECal},
     {LHCb::RawBank::OTError, BankTypes::MCVertices}, // used for PV MC info
     {LHCb::RawBank::OTRaw, BankTypes::MCTracks}};    // used for track MC info
 

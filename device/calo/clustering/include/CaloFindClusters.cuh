@@ -39,6 +39,6 @@ namespace calo_find_clusters {
 
   private:
     Property<block_dim_x_t> m_block_dim_x {this, 32};
-    Property<ecal_min_adc_t> m_ecal_min_adc {this, 10};
+    Property<ecal_min_adc_t> m_ecal_min_adc {this, 50};
   };
 } // namespace calo_find_clusters

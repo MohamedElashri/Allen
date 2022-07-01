@@ -13,6 +13,7 @@ namespace calo_decode {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_ecal_number_of_digits_t, unsigned) host_ecal_number_digits;
+    HOST_INPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ecal_raw_input_t, char) dev_ecal_raw_input;
     DEVICE_INPUT(dev_ecal_raw_input_offsets_t, unsigned) dev_ecal_raw_input_offsets;

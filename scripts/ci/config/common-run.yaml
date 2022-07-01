@@ -11,7 +11,6 @@
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
-        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"]
 
       # efficiency tests
       - TEST_NAME: "run_physics_efficiency"
@@ -98,6 +97,13 @@
         SEQUENCE: ["hlt1_pp_SMOG2_validation"]
         DATA_TAG: ["SMOG2_pHe_5k_retinacluster_v1"]
         GEOMETRY: ["SMOG2_pppHe"]
+
+      # run throughput, calov4
+      - TEST_NAME: "run_throughput"
+        SEQUENCE: ["calo"]
+        DATA_TAG: ["sim-20190912-vc-md100-FTv7-calov4"]
+        GEOMETRY: ["MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4"]
+        TPUT_REPORT: "NO_REPORT" # don't publish throughput report
 
       # FIXME
       # - TEST_NAME: "run_physics_efficiency"

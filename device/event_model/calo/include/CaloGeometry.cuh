@@ -16,6 +16,7 @@
 #include "States.cuh"
 
 struct CaloGeometry {
+  uint32_t geom_version = 0;
   uint32_t code_offset = 0;
   uint32_t card_channels = 0;
   uint32_t max_index = 0;
@@ -28,10 +29,18 @@ struct CaloGeometry {
   float* calo_planes = nullptr;
   float module_size = 0.f;
   uint32_t* digits_ranges = nullptr;
+  uint32_t vec_sourceids_size = 0;
+  uint32_t* vec_sourceids = nullptr;
+  uint32_t vec_febs_size = 0;
+  int* vec_febs = nullptr;
+  uint32_t vec_febIndices_size = 0;
+  int* vec_febIndices = nullptr;
 
   __device__ __host__ CaloGeometry(const char* raw_geometry)
   {
     const char* p = raw_geometry;
+    geom_version = *((uint32_t*) p);
+    p += sizeof(uint32_t); // Skip geom_version
     code_offset = *((uint32_t*) p);
     p += sizeof(uint32_t); // Skip code_offset
     card_channels = *((uint32_t*) p);
@@ -66,10 +75,33 @@ struct CaloGeometry {
     p += sizeof(float) * calo_planes_size; // Skip calo_planes
     module_size = *((float*) p);
     p += sizeof(float); // Skip module_size
-    // const uint32_t digits_ranges_size = *((uint32_t*) p);
+    const uint32_t digits_ranges_size = *((uint32_t*) p);
     p += sizeof(uint32_t); // Skip digits_ranges_size
     digits_ranges = (uint32_t*) p;
-    // p += sizeof(float) * digits_ranges_size; // Skip digits_ranges
+
+    if (geom_version == 4) {
+      p += sizeof(float) * digits_ranges_size; // Skip digits_ranges
+      vec_febs_size = *((uint32_t*) p);
+      p += sizeof(uint32_t); // Skip vec_febs_size
+      vec_febs = (int*) p;
+      p += sizeof(int) * vec_febs_size; // Skip vec_febs
+      vec_febIndices_size = *((uint32_t*) p);
+      p += sizeof(uint32_t); // Skip vec_febIndices_size
+      vec_febIndices = (int*) p;
+      //    p += sizeof(int) * vec_febIndices_size; // Skip vec_febs
+    }
+  }
+
+  __device__ __host__ inline int getFEB(uint32_t source_id, int nFeb) const
+  {
+    assert(geom_version == 4 && "getFEB is only available for decoding_version 4 or higher");
+    return vec_febs[3 * (source_id & 0x7ff) + nFeb];
+  }
+
+  __device__ __host__ inline int getFEBindex(uint32_t source_id, int nFeb) const
+  {
+    assert(geom_version == 4 && "getFEBIndex is only available for decoding_version 4 or higher");
+    return vec_febIndices[3 * (source_id & 0x7ff) + nFeb];
   }
 
   __device__ __host__ inline float getX(uint16_t cellid) const { return xy[2 * cellid]; }

@@ -28,6 +28,7 @@ def decode_calo():
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_ecal_number_of_digits_t=prefix_sum_ecal_num_digits.
         host_total_sum_holder_t,
+        host_raw_bank_version_t=ecal_banks.host_raw_bank_version_t,
         dev_ecal_raw_input_t=ecal_banks.dev_raw_banks_t,
         dev_ecal_raw_input_offsets_t=ecal_banks.dev_raw_offsets_t,
         dev_ecal_raw_input_sizes_t=ecal_banks.dev_raw_sizes_t,
