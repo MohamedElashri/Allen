@@ -219,7 +219,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
           1 << 13,
           {reinterpret_cast<char const*>(lumi_summaries.data()) + lumi_summary_offsets[event_number] * sizeof(uint32_t),
            static_cast<events_size>(lumi_summary_size)},
-          event_span.data() + header_size + event_sizes[i] + 3 * bank_header_size + dec_report_size + sel_report_size);
+          event_span.data() + header_size + event_sizes[i] + 3 * bank_header_size + dec_report_size + routing_bits_size + sel_report_size);
       }
 
       if (m_checksum) {

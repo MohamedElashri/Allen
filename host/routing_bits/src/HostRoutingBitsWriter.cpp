@@ -90,11 +90,6 @@ void host_routingbits_writer::host_routingbits_impl(
       }
     }
 
-    // make sure that at least one routing bit is non-zero, needed to create the output streams
-    for (int i = 0; i < RoutingBitsDefinition::n_words; i++) {
-      if (bits[i] == 0) bits[i] = 0xFFFFFFFF;
-    }
-
     if (logger::verbosity() >= logger::debug) {
       debug_cout << " HostRoutingBits: Event n. " << event << ", routing bits: ";
       for (int i = 0; i < RoutingBitsDefinition::n_words; i++) {

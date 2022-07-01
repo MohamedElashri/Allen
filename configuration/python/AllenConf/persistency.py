@@ -50,9 +50,6 @@ rb_map = {
     #RB 16 NoBias, prescaled
     'Hlt1.*NoBias':
     16,
-    #RB 18 Passthrough for tests
-    'Hlt1Passthrough':
-    18,
     # RB 21 Tracker alignment
     'Hlt1D2KPi':
     21,
