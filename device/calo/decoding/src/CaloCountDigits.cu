@@ -20,7 +20,7 @@ __global__ void calo_count_digits::calo_count_digits(
 {
   // ECal
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
-  
+
   for (unsigned event_index = threadIdx.x; event_index < n_events; event_index += blockDim.x) {
     auto event_number = parameters.dev_event_list[event_index];
     parameters.dev_ecal_num_digits[event_number] = ecal_geometry.max_index;
