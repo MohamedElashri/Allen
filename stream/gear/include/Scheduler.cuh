@@ -21,7 +21,7 @@ constexpr bool contracts_enabled = false;
 class Scheduler {
   std::vector<Allen::TypeErasedAlgorithm> m_sequence;
   Allen::Store::UnorderedStore m_store;
-  std::vector<std::any> m_sequence_argument_ref_managers;
+  std::vector<std::any> m_sequence_ref_stores;
   std::vector<LifetimeDependencies> m_in_dependencies;
   std::vector<LifetimeDependencies> m_out_dependencies;
   bool do_print = false;
@@ -148,13 +148,13 @@ public:
     // Create ArgumentRefManager of each algorithm
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
       // Generate store references for each algorithm's configured arguments
-      auto [alg_store_ref, alg_input_aggregates] = generate_algorithm_store_ref(sequence_arguments[i]);
-      m_sequence_argument_ref_managers.emplace_back(
-        m_sequence[i].create_arg_ref_manager(alg_store_ref, alg_input_aggregates));
+      auto [alg_arguments, alg_input_aggregates] = generate_algorithm_store_ref(sequence_arguments[i]);
+      m_sequence_ref_stores.emplace_back(
+        m_sequence[i].create_ref_store(alg_arguments, alg_input_aggregates, m_store));
     }
 
     assert(configured_algorithms.size() == m_sequence.size());
-    assert(configured_algorithms.size() == m_sequence_argument_ref_managers.size());
+    assert(configured_algorithms.size() == m_sequence_ref_stores.size());
     assert(configured_algorithms.size() == m_in_dependencies.size());
     assert(configured_algorithms.size() == m_out_dependencies.size());
 
@@ -273,7 +273,7 @@ public:
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
       run(
         m_sequence[i],
-        m_sequence_argument_ref_managers[i],
+        m_sequence_ref_stores[i],
         m_in_dependencies[i],
         m_out_dependencies[i],
         m_store,

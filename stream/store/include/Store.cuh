@@ -148,13 +148,12 @@ namespace Allen::Store {
   private:
     mutable arguments_t m_arguments;
     input_aggregates_t m_input_aggregates;
+    UnorderedStore& m_store;
 
   public:
-    StoreRef(arguments_t arguments, input_aggregates_t input_aggregates) :
-      m_arguments(arguments), m_input_aggregates(input_aggregates)
+    StoreRef(arguments_t arguments, input_aggregates_t input_aggregates, UnorderedStore& store) :
+      m_arguments(arguments), m_input_aggregates(input_aggregates), m_store(store)
     {}
-
-    StoreRef(arguments_t arguments) : m_arguments(arguments) {}
 
     template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
     gsl::span<typename T::type> get() const

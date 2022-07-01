@@ -106,10 +106,11 @@ namespace Allen {
   class TypeErasedAlgorithm {
     struct vtable {
       std::string (*name)(void const*) = nullptr;
-      std::any (*create_arg_ref_manager)(
+      std::any (*create_ref_store)(
         const std::string&,
         std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>,
-        std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>>) = nullptr;
+        std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>>,
+        Allen::Store::UnorderedStore&) = nullptr;
       void (*set_arguments_size)(void*, std::any&, const RuntimeOptions&, const Constants&, const HostBuffers&) =
         nullptr;
       void (
@@ -151,7 +152,8 @@ namespace Allen {
         [](
           const std::string& name,
           std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> vector_store_ref,
-          std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>> input_aggregates) {
+          std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>> input_aggregates,
+          Allen::Store::UnorderedStore& store) {
           using store_ref_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           using arguments_t = typename store_ref_t::arguments_t;
           using input_aggregates_t = typename store_ref_t::input_aggregates_t;
@@ -165,7 +167,7 @@ namespace Allen {
             create_store_ref(vector_store_ref, std::make_index_sequence<std::tuple_size_v<arguments_t>> {});
           auto input_agg_store = input_aggregates_t {Allen::Store::gen_input_aggregates_tuple(
             input_aggregates, std::make_index_sequence<std::tuple_size_v<input_aggregates_t>> {})};
-          return std::any {store_ref_t {store_ref, input_agg_store}};
+          return std::any {store_ref_t {store_ref, input_agg_store, store}};
         },
         [](
           void* p,
@@ -262,11 +264,12 @@ namespace Allen {
     TypeErasedAlgorithm& operator=(TypeErasedAlgorithm&&) = delete;
 
     std::string name() const { return (table.name)(instance); }
-    std::any create_arg_ref_manager(
+    std::any create_ref_store(
       std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> vector_store_ref,
-      std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>> input_aggregates)
+      std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>> input_aggregates,
+      Allen::Store::UnorderedStore& store)
     {
-      return (table.create_arg_ref_manager)(name(), std::move(vector_store_ref), std::move(input_aggregates));
+      return (table.create_ref_store)(name(), std::move(vector_store_ref), std::move(input_aggregates), store);
     }
     void set_arguments_size(
       std::any& arg_ref_manager,
