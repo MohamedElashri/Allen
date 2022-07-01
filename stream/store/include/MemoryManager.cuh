@@ -115,10 +115,10 @@ namespace Allen::Store {
 
       // Complain if no space was available
       if (it == m_memory_segments.end()) {
+        warning_cout << "Reserve: Requested size for argument " + tag + " could not be met (" +
+          std::to_string(((float) aligned_request) / (1000.f * 1000.f)) + " MB)\n";
         print();
-        throw MemoryException(
-          "Reserve: Requested size for argument " + tag + " could not be met (" +
-          std::to_string(((float) aligned_request) / (1000.f * 1000.f)) + " MB)");
+        throw MemoryException("not enough memory to meet request");
       }
 
       // Start of allocation

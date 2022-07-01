@@ -13,15 +13,6 @@
 
 INSTANTIATE_ALGORITHM(calo_count_digits::calo_count_digits_t)
 
-__device__ void
-offsets(mask_t const* event_list, unsigned const n_events, unsigned* number_of_digits, CaloGeometry const& geometry)
-{
-  for (unsigned idx = threadIdx.x; idx < n_events; idx += blockDim.x) {
-    auto event_number = event_list[idx];
-    number_of_digits[event_number] = geometry.max_index;
-  }
-}
-
 __global__ void calo_count_digits::calo_count_digits(
   calo_count_digits::Parameters parameters,
   unsigned const n_events,
@@ -29,7 +20,11 @@ __global__ void calo_count_digits::calo_count_digits(
 {
   // ECal
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
-  offsets(parameters.dev_event_list, n_events, parameters.dev_ecal_num_digits, ecal_geometry);
+  
+  for (unsigned event_index = threadIdx.x; event_index < n_events; event_index += blockDim.x) {
+    auto event_number = parameters.dev_event_list[event_index];
+    parameters.dev_ecal_num_digits[event_number] = ecal_geometry.max_index;
+  }
 }
 
 void calo_count_digits::calo_count_digits_t::set_arguments_size(
