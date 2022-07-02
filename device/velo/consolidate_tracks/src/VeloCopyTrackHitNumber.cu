@@ -28,7 +28,7 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_offsets_all_velo_tracks_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_all_velo_tracks_t>(arguments, 0, context);
 
   global_function(velo_copy_track_hit_number)(
     first<host_number_of_events_t>(arguments), property<block_dim_t>(), context)(arguments);

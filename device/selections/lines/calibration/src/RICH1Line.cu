@@ -51,12 +51,12 @@ void rich_1_line::rich_1_line_t::init_monitor(
   const ArgumentReferences<Parameters>& arguments,
   const Allen::Context& context) const
 {
-  initialize<dev_decision_t>(arguments, false, context);
-  initialize<dev_pt_t>(arguments, 0, context);
-  initialize<dev_p_t>(arguments, 0, context);
-  initialize<dev_track_chi2_t>(arguments, 0, context);
-  initialize<dev_eta_t>(arguments, 0, context);
-  initialize<dev_phi_t>(arguments, 0, context);
+  Allen::memset_async<dev_decision_t>(arguments, false, context);
+  Allen::memset_async<dev_pt_t>(arguments, 0, context);
+  Allen::memset_async<dev_p_t>(arguments, 0, context);
+  Allen::memset_async<dev_track_chi2_t>(arguments, 0, context);
+  Allen::memset_async<dev_eta_t>(arguments, 0, context);
+  Allen::memset_async<dev_phi_t>(arguments, 0, context);
 }
 
 /*

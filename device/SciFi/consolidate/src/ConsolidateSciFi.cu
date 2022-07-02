@@ -80,8 +80,8 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_scifi_multi_event_tracks_view_t>(arguments, 0, context);
-  initialize<dev_scifi_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_scifi_multi_event_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_scifi_tracks_view_t>(arguments, 0, context);
 
   global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());

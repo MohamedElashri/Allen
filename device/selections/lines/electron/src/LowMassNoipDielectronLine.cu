@@ -136,14 +136,14 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::init_monitor(
   const ArgumentReferences<Parameters>& arguments,
   const Allen::Context& context) const
 {
-  initialize<dev_die_masses_raw_t>(arguments, -1, context);
-  initialize<dev_die_masses_bremcorr_t>(arguments, -1, context);
-  initialize<dev_die_pts_raw_t>(arguments, -1, context);
-  initialize<dev_die_pts_bremcorr_t>(arguments, -1, context);
-  initialize<dev_die_minipchi2_t>(arguments, -1, context);
-  initialize<dev_die_ip_t>(arguments, -1, context);
-  initialize<dev_e_minpts_raw_t>(arguments, -1, context);
-  initialize<dev_e_minpt_bremcorr_t>(arguments, -1, context);
+  Allen::memset_async<dev_die_masses_raw_t>(arguments, -1, context);
+  Allen::memset_async<dev_die_masses_bremcorr_t>(arguments, -1, context);
+  Allen::memset_async<dev_die_pts_raw_t>(arguments, -1, context);
+  Allen::memset_async<dev_die_pts_bremcorr_t>(arguments, -1, context);
+  Allen::memset_async<dev_die_minipchi2_t>(arguments, -1, context);
+  Allen::memset_async<dev_die_ip_t>(arguments, -1, context);
+  Allen::memset_async<dev_e_minpts_raw_t>(arguments, -1, context);
+  Allen::memset_async<dev_e_minpt_bremcorr_t>(arguments, -1, context);
 }
 
 __device__ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::monitor(

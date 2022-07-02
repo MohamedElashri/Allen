@@ -72,11 +72,11 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
   const Allen::Context& context) const
 {
   // Set all found tracks to accepted
-  initialize<dev_accepted_velo_tracks_t>(arguments, 1, context);
+  Allen::memset_async<dev_accepted_velo_tracks_t>(arguments, 1, context);
 
   // Initialize dev_velo_multi_event_tracks_view_t to avoid invalid std::function destructor
-  initialize<dev_velo_multi_event_tracks_view_t>(arguments, 0, context);
-  initialize<dev_velo_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_velo_multi_event_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_velo_tracks_view_t>(arguments, 0, context);
 
   global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
     arguments);

@@ -26,7 +26,7 @@ void dec_reporter::dec_reporter_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  initialize<host_dec_reports_t>(arguments, 0, context);
+  Allen::memset_async<host_dec_reports_t>(arguments, 0, context);
 
   global_function(dec_reporter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);

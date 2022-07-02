@@ -25,7 +25,7 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_ut_hit_sizes_t>(arguments, 0, context);
+  Allen::memset_async<dev_ut_hit_sizes_t>(arguments, 0, context);
 
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 

@@ -102,7 +102,7 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   Allen::memcpy_async(
     data<dev_muon_raw_to_hits_t>(arguments), &muonRawToHits, sizeof(muonRawToHits), Allen::memcpyHostToDevice, context);
 
-  initialize<dev_storage_station_region_quarter_sizes_t>(arguments, 0, context);
+  Allen::memset_async<dev_storage_station_region_quarter_sizes_t>(arguments, 0, context);
 
   global_function(
     runtime_options.mep_layout ? muon_calculate_srq_size_kernel<true> : muon_calculate_srq_size_kernel<false>)(

@@ -29,7 +29,7 @@ void velo_sort_by_phi::velo_sort_by_phi_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_hit_permutation_t>(arguments, 0, context);
+  Allen::memset_async<dev_hit_permutation_t>(arguments, 0, context);
 
   global_function(velo_sort_by_phi)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);

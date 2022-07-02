@@ -21,7 +21,7 @@ void MatchUpstreamMuon::match_upstream_muon_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_match_upstream_muon_t>(arguments, 0, context);
+  Allen::memset_async<dev_match_upstream_muon_t>(arguments, 0, context);
 
   global_function(match_upstream_muon)(
     dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), context)(

@@ -95,7 +95,7 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
   Allen::Context const& context) const
 {
   // Find clusters.
-  initialize<dev_ecal_clusters_t>(arguments, SHRT_MAX, context);
+  Allen::memset_async<dev_ecal_clusters_t>(arguments, SHRT_MAX, context);
 
   global_function(calo_find_clusters)(
     dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(

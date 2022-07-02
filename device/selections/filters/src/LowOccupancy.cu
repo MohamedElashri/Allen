@@ -25,9 +25,9 @@ void low_occupancy::low_occupancy_t::operator()(
   const Allen::Context& context) const
 {
 
-  initialize<dev_number_of_selected_events_t>(arguments, 0, context);
-  initialize<host_number_of_selected_events_t>(arguments, 0, context);
-  initialize<dev_event_list_output_t>(arguments, 0, context);
+  Allen::memset_async<dev_number_of_selected_events_t>(arguments, 0, context);
+  Allen::memset_async<host_number_of_selected_events_t>(arguments, 0, context);
+  Allen::memset_async<dev_event_list_output_t>(arguments, 0, context);
 
   global_function(low_occupancy)(dim3(1), dim3(property<block_dim_x_t>().get()), context)(
     arguments, size<dev_event_list_t>(arguments));

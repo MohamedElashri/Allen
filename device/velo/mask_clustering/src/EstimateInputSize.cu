@@ -233,8 +233,8 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_estimated_input_size_t>(arguments, 0, context);
-  initialize<dev_module_candidate_num_t>(arguments, 0, context);
+  Allen::memset_async<dev_estimated_input_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_module_candidate_num_t>(arguments, 0, context);
 
   global_function(
     runtime_options.mep_layout ? velo_estimate_input_size_kernel<true> : velo_estimate_input_size_kernel<false>)(

@@ -94,7 +94,7 @@ private:
     template<typename f>
     void operator()()
     {
-      initialize<f>(arguments, -1, context);
+      Allen::memset_async<f>(arguments, -1, context);
     }
   };
 

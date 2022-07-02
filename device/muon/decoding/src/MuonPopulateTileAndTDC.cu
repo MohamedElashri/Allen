@@ -108,9 +108,9 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_atomics_muon_t>(arguments, 0, context);
-  initialize<dev_storage_tile_id_t>(arguments, 0, context);
-  initialize<dev_storage_tdc_value_t>(arguments, 0, context);
+  Allen::memset_async<dev_atomics_muon_t>(arguments, 0, context);
+  Allen::memset_async<dev_storage_tile_id_t>(arguments, 0, context);
+  Allen::memset_async<dev_storage_tdc_value_t>(arguments, 0, context);
 
   global_function(
     runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<true> : muon_populate_tile_and_tdc_kernel<false>)(

@@ -29,7 +29,7 @@ void FilterTracks::filter_tracks_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_sv_atomics_t>(arguments, 0, context);
+  Allen::memset_async<dev_sv_atomics_t>(arguments, 0, context);
 
   global_function(prefilter_tracks)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_prefilter_t>(), context)(arguments);

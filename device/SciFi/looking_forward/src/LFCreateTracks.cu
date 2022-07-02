@@ -31,8 +31,8 @@ void lf_create_tracks::lf_create_tracks_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_scifi_lf_total_number_of_found_triplets_t>(arguments, 0, context);
-  initialize<dev_scifi_lf_atomics_t>(arguments, 0, context);
+  Allen::memset_async<dev_scifi_lf_total_number_of_found_triplets_t>(arguments, 0, context);
+  Allen::memset_async<dev_scifi_lf_atomics_t>(arguments, 0, context);
 
   global_function(lf_triplet_keep_best)(
     dim3(size<dev_event_list_t>(arguments)), property<triplet_keep_best_block_dim_t>(), context)(

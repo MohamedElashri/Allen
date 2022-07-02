@@ -199,8 +199,8 @@ namespace Allen {
   template<typename T, typename Args>
   void memset_async(
     const Args& arguments,
-    const Allen::Context& context,
     const int value,
+    const Allen::Context& context,
     const size_t count = 0,
     const size_t offset = 0)
   {
@@ -219,12 +219,12 @@ namespace Allen {
   template<typename T, typename Args>
   void memset(
     const Args& arguments,
-    const Allen::Context& context,
     const int value,
+    const Allen::Context& context,
     const size_t count = 0,
     const size_t offset = 0)
   {
-    memset_async<T>(arguments, context, value, count, offset);
+    memset_async<T>(arguments, value, context, count, offset);
     if constexpr (!std::is_base_of_v<Allen::Store::host_datatype, T>) {
       synchronize(context);
     }
@@ -297,7 +297,7 @@ namespace Allen {
           container_offset += aggregate.size(i);
         }
         else if (fill_if_empty_container) {
-          Allen::memset_async<A>(arguments, context, fill_value, fill_count, container_offset);
+          Allen::memset_async<A>(arguments, fill_value, context, fill_count, container_offset);
           container_offset += fill_count;
         }
       }
@@ -305,130 +305,24 @@ namespace Allen {
   } // namespace aggregate
 } // namespace Allen
 
-// SFINAE for single argument functions, like initialization and print of host / device parameters
-template<typename Arg, typename Args, typename Enabled = void>
-struct SingleArgumentOverloadResolution;
-
+/**
+ * @brief Prints the value of an argument.
+ * @details On the host, a mere loop and a print statement is done.
+ *          On the device, a Allen::memcpy is used to first copy the data onto a std::vector.
+ *          Note that as a consequence of this, printing device variables results in a
+ *          considerable slowdown.
+ */
 template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<
-  Arg,
-  Args,
-  typename std::enable_if<
-    std::is_base_of<Allen::Store::host_datatype, Arg>::value &&
-    (std::is_same<typename Arg::type, bool>::value || std::is_same<typename Arg::type, char>::value ||
-     std::is_same<typename Arg::type, unsigned char>::value ||
-     std::is_same<typename Arg::type, signed char>::value)>::type> {
-  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&)
-  {
-    std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
-  }
-
-  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&, const int)
-  {
-    std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
-  }
-
-  static void print(const Args& arguments)
-  {
+void print(const Args& arguments)
+{
+  if constexpr (std::is_base_of_v<Allen::Store::host_datatype, Arg>) {
     const auto array = data<Arg>(arguments);
-
     info_cout << name<Arg>(arguments) << ": ";
     for (unsigned i = 0; i < size<Arg>(arguments); ++i) {
       info_cout << ((int) array[i]) << ", ";
     }
     info_cout << "\n";
-  }
-};
-
-template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<
-  Arg,
-  Args,
-  std::enable_if_t<
-    std::is_base_of_v<Allen::Store::host_datatype, Arg> &&
-    !(std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
-      std::is_same_v<typename Arg::type, uint8_t> || std::is_same_v<typename Arg::type, int8_t>)>> {
-  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&)
-  {
-    std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
-  }
-
-  /**
-   * @brief Asynchronous make_vector.
-   */
-  static auto make_vector(const Args& arguments, const Allen::Context& context)
-  {
-    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
-    Allen::memcpy_async(
-      v.data(),
-      data<Arg>(arguments),
-      size<Arg>(arguments) * sizeof(typename Arg::type),
-      Allen::memcpyHostToHost,
-      context);
-    return v;
-  }
-
-  /**
-   * @brief Synchronous make_vector.
-   */
-  static auto make_vector(const Args& arguments)
-  {
-    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
-    Allen::memcpy(
-      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyHostToHost);
-    return v;
-  }
-
-  static void print(const Args& arguments)
-  {
-    const auto array = data<Arg>(arguments);
-
-    info_cout << name<Arg>(arguments) << ": ";
-    for (unsigned i = 0; i < size<Arg>(arguments); ++i) {
-      info_cout << array[i] << ", ";
-    }
-    info_cout << "\n";
-  }
-};
-
-template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<
-  Arg,
-  Args,
-  std::enable_if_t<std::is_base_of_v<Allen::Store::device_datatype, Arg>>> {
-  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context& context)
-  {
-    Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);
-  }
-
-  /**
-   * @brief Asynchronous make_vector.
-   */
-  static auto make_vector(const Args& arguments, const Allen::Context& context)
-  {
-    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
-    Allen::memcpy_async(
-      v.data(),
-      data<Arg>(arguments),
-      size<Arg>(arguments) * sizeof(typename Arg::type),
-      Allen::memcpyDeviceToHost,
-      context);
-    return v;
-  }
-
-  /**
-   * @brief Synchronous make_vector.
-   */
-  static auto make_vector(const Args& arguments)
-  {
-    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
-    Allen::memcpy(
-      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
-    return v;
-  }
-
-  static void print(const Args& arguments)
-  {
+  } else {
     std::vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
     Allen::memcpy(
       v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
@@ -446,32 +340,6 @@ struct SingleArgumentOverloadResolution<
     }
     info_cout << "\n";
   }
-};
-
-/**
- * @brief Initializes a datatype with the value specified.
- *        Can be used to either initialize values on the host or on the device.
- * @details On the host, this resolves to a std::memset.
- *          On the device, this resolves to a Allen::memset_async. No synchronization
- *          is performed after the initialization.
- */
-template<typename Arg, typename Args>
-void initialize(const Args& arguments, const int value, const Allen::Context& context)
-{
-  SingleArgumentOverloadResolution<Arg, Args>::initialize(arguments, value, context);
-}
-
-/**
- * @brief Prints the value of an argument.
- * @details On the host, a mere loop and a print statement is done.
- *          On the device, a Allen::memcpy is used to first copy the data onto a std::vector.
- *          Note that as a consequence of this, printing device variables results in a
- *          considerable slowdown.
- */
-template<typename Arg, typename Args>
-void print(const Args& arguments)
-{
-  SingleArgumentOverloadResolution<Arg, Args>::print(arguments);
 }
 
 /**

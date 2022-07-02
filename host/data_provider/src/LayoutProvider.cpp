@@ -25,8 +25,8 @@ void layout_provider::layout_provider_t::operator()(
   unsigned int mep_layout = runtime_options.mep_layout;
 
   // Host output
-  initialize<host_mep_layout_t>(arguments, mep_layout, context);
+  Allen::memset_async<host_mep_layout_t>(arguments, mep_layout, context);
 
   // Device output
-  initialize<dev_mep_layout_t>(arguments, mep_layout, context);
+  Allen::memset_async<dev_mep_layout_t>(arguments, mep_layout, context);
 }

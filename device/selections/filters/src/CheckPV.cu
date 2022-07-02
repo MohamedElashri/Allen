@@ -23,9 +23,9 @@ void check_pvs::check_pvs_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_number_of_selected_events_t>(arguments, 0, context);
-  initialize<host_number_of_selected_events_t>(arguments, 0, context);
-  initialize<dev_event_list_output_t>(arguments, 0, context);
+  Allen::memset_async<dev_number_of_selected_events_t>(arguments, 0, context);
+  Allen::memset_async<host_number_of_selected_events_t>(arguments, 0, context);
+  Allen::memset_async<dev_event_list_output_t>(arguments, 0, context);
 
   global_function(check_pvs)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 

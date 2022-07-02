@@ -167,7 +167,11 @@ namespace Allen::Store {
     template<Scope S, typename T>
     auto make_buffer(const size_t size) const
     {
+#if ALLEN_STANDALONE
       return m_store->make_buffer<S, T>(size);
+#else
+      return std::vector<T>(size);
+#endif
     }
 
     template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>

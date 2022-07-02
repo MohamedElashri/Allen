@@ -24,7 +24,7 @@ void pv_beamline_histo::pv_beamline_histo_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_zhisto_t>(arguments, 0, context);
+  Allen::memset_async<dev_zhisto_t>(arguments, 0, context);
 
   global_function(pv_beamline_histo)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_beamline.data());

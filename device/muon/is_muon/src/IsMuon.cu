@@ -23,8 +23,8 @@ void is_muon::is_muon_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_is_muon_t>(arguments, 0, context);
-  initialize<dev_lepton_id_t>(arguments, 0, context);
+  Allen::memset_async<dev_is_muon_t>(arguments, 0, context);
+  Allen::memset_async<dev_lepton_id_t>(arguments, 0, context);
 
   global_function(is_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
     arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);

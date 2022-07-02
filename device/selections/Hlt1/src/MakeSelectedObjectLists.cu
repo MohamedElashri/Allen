@@ -76,21 +76,21 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_candidate_count_t>(arguments, 0, context);
-  initialize<dev_sel_track_count_t>(arguments, 0, context);
-  initialize<dev_sel_sv_count_t>(arguments, 0, context);
-  initialize<dev_track_duplicate_map_t>(arguments, -1, context);
-  initialize<dev_sv_duplicate_map_t>(arguments, -1, context);
-  initialize<dev_unique_track_count_t>(arguments, 0, context);
-  initialize<dev_unique_sv_count_t>(arguments, 0, context);
-  initialize<dev_sel_count_t>(arguments, 0, context);
-  initialize<dev_hits_bank_size_t>(arguments, 0, context);
-  initialize<dev_substr_bank_size_t>(arguments, 0, context);
-  initialize<dev_substr_sel_size_t>(arguments, 0, context);
-  initialize<dev_substr_sv_size_t>(arguments, 0, context);
-  initialize<dev_stdinfo_bank_size_t>(arguments, 0, context);
-  initialize<dev_objtyp_bank_size_t>(arguments, 0, context);
-  initialize<dev_selrep_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_candidate_count_t>(arguments, 0, context);
+  Allen::memset_async<dev_sel_track_count_t>(arguments, 0, context);
+  Allen::memset_async<dev_sel_sv_count_t>(arguments, 0, context);
+  Allen::memset_async<dev_track_duplicate_map_t>(arguments, -1, context);
+  Allen::memset_async<dev_sv_duplicate_map_t>(arguments, -1, context);
+  Allen::memset_async<dev_unique_track_count_t>(arguments, 0, context);
+  Allen::memset_async<dev_unique_sv_count_t>(arguments, 0, context);
+  Allen::memset_async<dev_sel_count_t>(arguments, 0, context);
+  Allen::memset_async<dev_hits_bank_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_substr_bank_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_substr_sel_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_substr_sv_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_stdinfo_bank_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_objtyp_bank_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_selrep_size_t>(arguments, 0, context);
 
   global_function(make_selected_object_lists)(
     dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(

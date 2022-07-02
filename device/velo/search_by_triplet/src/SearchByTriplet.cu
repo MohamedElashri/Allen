@@ -43,9 +43,9 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_atomics_velo_t>(arguments, 0, context);
-  initialize<dev_hit_used_t>(arguments, 0, context);
-  initialize<dev_number_of_velo_tracks_t>(arguments, 0, context);
+  Allen::memset_async<dev_atomics_velo_t>(arguments, 0, context);
+  Allen::memset_async<dev_hit_used_t>(arguments, 0, context);
+  Allen::memset_async<dev_number_of_velo_tracks_t>(arguments, 0, context);
 
   global_function(velo_search_by_triplet)(size<dev_event_list_t>(arguments), property<block_dim_x_t>().get(), context)(
     arguments, constants.dev_velo_geometry);

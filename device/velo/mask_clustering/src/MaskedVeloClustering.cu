@@ -519,7 +519,7 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_module_cluster_num_t>(arguments, 0, context);
+  Allen::memset_async<dev_module_cluster_num_t>(arguments, 0, context);
 
   // Selector from layout
   global_function(
