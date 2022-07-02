@@ -241,17 +241,11 @@ namespace Allen {
     }
 
     const Allen::memcpy_kind kind = []() {
-      if constexpr (
-        Allen::Store::Scope::Host == A &&
-        std::is_base_of_v<Allen::Store::host_datatype, B>)
+      if constexpr (Allen::Store::Scope::Host == A && std::is_base_of_v<Allen::Store::host_datatype, B>)
         return Allen::memcpyHostToHost;
-      else if constexpr (
-        Allen::Store::Scope::Host == A &&
-        std::is_base_of_v<Allen::Store::device_datatype, B>)
+      else if constexpr (Allen::Store::Scope::Host == A && std::is_base_of_v<Allen::Store::device_datatype, B>)
         return Allen::memcpyDeviceToHost;
-      else if constexpr (
-        Allen::Store::Scope::Device == A &&
-        std::is_base_of_v<Allen::Store::host_datatype, B>)
+      else if constexpr (Allen::Store::Scope::Device == A && std::is_base_of_v<Allen::Store::host_datatype, B>)
         return Allen::memcpyHostToDevice;
       else
         return Allen::memcpyDeviceToDevice;
@@ -504,24 +498,28 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
 }
 
 template<typename T, typename Args>
-auto make_host_buffer(const Args& arguments, const size_t size) {
+auto make_host_buffer(const Args& arguments, const size_t size)
+{
   return arguments.template make_buffer<Allen::Store::Scope::Host, T>(size);
 }
 
 template<typename T, typename Args>
-auto make_device_buffer(const Args& arguments, const size_t size) {
+auto make_device_buffer(const Args& arguments, const size_t size)
+{
   return arguments.template make_buffer<Allen::Store::Scope::Device, T>(size);
 }
 
 template<typename Arg, typename Args>
-auto make_host_buffer(const Args& arguments, const Allen::Context& context) {
+auto make_host_buffer(const Args& arguments, const Allen::Context& context)
+{
   auto buffer = arguments.template make_buffer<Allen::Store::Scope::Host, typename Arg::type>(size<Arg>(arguments));
   Allen::copy<Arg>(buffer, arguments, context);
   return buffer;
 }
 
 template<typename Arg, typename Args>
-auto make_device_buffer(const Args& arguments, const Allen::Context& context) {
+auto make_device_buffer(const Args& arguments, const Allen::Context& context)
+{
   auto buffer = arguments.template make_buffer<Allen::Store::Scope::Device, typename Arg::type>(size<Arg>(arguments));
   Allen::copy<Arg>(buffer, arguments, context);
   return buffer;

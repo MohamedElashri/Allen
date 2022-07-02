@@ -19,18 +19,22 @@ namespace Allen::Store {
     constexpr static auto scope = S;
     static_assert((S == Scope::Host || S == Scope::Device) && "memory manager allocator scope must be supported");
 
-    static void free(void* ptr) {
+    static void free(void* ptr)
+    {
       if constexpr (S == Scope::Host) {
         Allen::free_host(ptr);
-      } else {
+      }
+      else {
         Allen::free(ptr);
       }
     }
 
-    static void malloc(void** ptr, size_t s) {
+    static void malloc(void** ptr, size_t s)
+    {
       if constexpr (S == Scope::Host) {
         Allen::malloc_host(ptr, s);
-      } else {
+      }
+      else {
         Allen::malloc(ptr, s);
       }
     }

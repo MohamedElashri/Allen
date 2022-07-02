@@ -40,7 +40,8 @@ namespace Allen::Store {
       if constexpr (S == Scope::Host) {
         return Allen::buffer<S, T> {
           m_host_memory_manager, "temp_" + std::to_string(m_temporary_buffer_counter++), size};
-      } else {
+      }
+      else {
         return Allen::buffer<S, T> {
           m_device_memory_manager, "temp_" + std::to_string(m_temporary_buffer_counter++), size};
       }
@@ -164,7 +165,8 @@ namespace Allen::Store {
     StoreRef(arguments_t arguments) : m_arguments(arguments) {}
 
     template<Scope S, typename T>
-    auto make_buffer(const size_t size) const {
+    auto make_buffer(const size_t size) const
+    {
       return m_store->make_buffer<S, T>(size);
     }
 

@@ -183,7 +183,8 @@ public:
     const Allen::Context& context) const
   {
     using TupleType = typename Derived::monitoring_types;
-    auto host_v = std::tuple {make_host_buffer<typename std::tuple_element<seq_t, TupleType>::type>(arguments, context)...};
+    auto host_v =
+      std::tuple {make_host_buffer<typename std::tuple_element<seq_t, TupleType>::type>(arguments, context)...};
     auto values = std::tuple {typename std::tuple_element<seq_t, TupleType>::type::type()...};
     size_t ev = 0;
     auto tree = handler.tree("monitor_tree");

@@ -32,9 +32,10 @@ namespace Allen {
     {}
 
     // Allow to move the object
-    __host__ buffer(buffer&& o) : m_mem_manager(o.m_mem_manager), m_tag(o.m_tag), m_span(o.m_span) {
+    __host__ buffer(buffer&& o) : m_mem_manager(o.m_mem_manager), m_tag(o.m_tag), m_span(o.m_span)
+    {
       // Set o span to empty to avoid the data being freed in the destructor of o
-      o.m_span = gsl::span<T>{};
+      o.m_span = gsl::span<T> {};
     }
 
     __host__ ~buffer()
@@ -44,13 +45,9 @@ namespace Allen {
       }
     }
 
-    __host__ auto begin() const {
-      return m_span.begin();
-    }
+    __host__ auto begin() const { return m_span.begin(); }
 
-    __host__ auto end() const {
-      return m_span.end();
-    }
+    __host__ auto end() const { return m_span.end(); }
 
     constexpr __host__ size_t size() const { return m_span.size(); }
 
@@ -60,9 +57,7 @@ namespace Allen {
       return m_span.sizebytes();
     }
 
-    constexpr __host__ T* data() const {
-      return m_span.data();
-    }
+    constexpr __host__ T* data() const { return m_span.data(); }
 
     __host__ void resize(size_t size)
     {

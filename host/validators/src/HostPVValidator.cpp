@@ -14,7 +14,8 @@ void host_pv_validator::host_pv_validator_t::operator()(
   const Allen::Context& context) const
 {
   const auto multi_final_vertices = make_host_buffer<dev_multi_final_vertices_t>(arguments, context);
-  const auto number_of_multi_final_vertices = make_host_buffer<dev_number_of_multi_final_vertices_t>(arguments, context);
+  const auto number_of_multi_final_vertices =
+    make_host_buffer<dev_number_of_multi_final_vertices_t>(arguments, context);
   const auto event_list = make_host_buffer<dev_event_list_t>(arguments, context);
 
   auto& checker = runtime_options.checker_invoker->checker<PVChecker>(name(), property<root_output_filename_t>());
