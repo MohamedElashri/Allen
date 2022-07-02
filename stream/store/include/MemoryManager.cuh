@@ -75,7 +75,7 @@ namespace Allen::Store {
     MemoryManager(const std::string& name, const size_t memory_size, const unsigned memory_alignment) :
       m_name {name}, m_max_available_memory {memory_size}, m_guaranteed_alignment {memory_alignment}
     {
-      if (m_base_pointer) free(m_base_pointer);
+      if (m_base_pointer) MemoryManagerAllocator<S>::free(m_base_pointer);
       malloc(reinterpret_cast<void**>(&m_base_pointer), memory_size);
     }
 
@@ -86,7 +86,7 @@ namespace Allen::Store {
      */
     void reserve_memory(size_t memory_size, const unsigned memory_alignment)
     {
-      if (m_base_pointer) free(m_base_pointer);
+      if (m_base_pointer) MemoryManagerAllocator<S>::free(m_base_pointer);
       malloc(reinterpret_cast<void**>(&m_base_pointer), memory_size);
 
       m_guaranteed_alignment = memory_alignment;
@@ -313,7 +313,7 @@ namespace Allen::Store {
         verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
       }
 
-      free(pointer);
+      MemoryManagerAllocator<S>::free(pointer);
 
       m_total_memory_required -= it->second.size;
 
