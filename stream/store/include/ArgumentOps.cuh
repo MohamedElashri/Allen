@@ -322,7 +322,8 @@ void print(const Args& arguments)
       info_cout << ((int) array[i]) << ", ";
     }
     info_cout << "\n";
-  } else {
+  }
+  else {
     std::vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
     Allen::memcpy(
       v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
