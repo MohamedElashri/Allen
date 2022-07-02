@@ -233,7 +233,7 @@ namespace Allen {
   /**
    * @brief Copies asynchronously a datatype onto an Allen::buffer.
    */
-  template<typename B, typename A, typename Args>
+  template<typename B, Allen::Store::Scope A, typename Args>
   void copy_async(Allen::buffer<A, typename B::type>& buffer, const Args& arguments, const Allen::Context& context)
   {
     if (buffer.size() < size<B>(arguments)) {
@@ -242,15 +242,15 @@ namespace Allen {
 
     const Allen::memcpy_kind kind = []() {
       if constexpr (
-        std::is_same_v<Allen::Store::memory_manager_details::Host, A> &&
+        Allen::Store::Scope::Host == A &&
         std::is_base_of_v<Allen::Store::host_datatype, B>)
         return Allen::memcpyHostToHost;
       else if constexpr (
-        std::is_same_v<Allen::Store::memory_manager_details::Host, A> &&
+        Allen::Store::Scope::Host == A &&
         std::is_base_of_v<Allen::Store::device_datatype, B>)
         return Allen::memcpyDeviceToHost;
       else if constexpr (
-        std::is_same_v<Allen::Store::memory_manager_details::Device, A> &&
+        Allen::Store::Scope::Device == A &&
         std::is_base_of_v<Allen::Store::host_datatype, B>)
         return Allen::memcpyHostToDevice;
       else
@@ -260,7 +260,7 @@ namespace Allen {
     copy_async(buffer.to_span(), gsl::span {data<B>(arguments), size<B>(arguments)}, context, kind);
   }
 
-  template<typename B, typename A, typename Args>
+  template<typename B, Store::Scope A, typename Args>
   void copy(Allen::buffer<A, typename B::type>& buffer, const Args& arguments, const Allen::Context& context)
   {
     copy_async<B, A, Args>(buffer, arguments, context);
@@ -503,25 +503,26 @@ void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const All
     data<OFFSET_ARG>(args), bno.offsets.data(), bno.offsets.size_bytes(), Allen::memcpyHostToDevice, context);
 }
 
-/**
- * @brief Makes a std::vector out of an Allen container.
- * @details The copy function here is asynchronous. The only small caveat of this
- *          function is the requirement to dynamically allocate a buffer on the host.
- */
-template<typename Arg, typename Args>
-auto make_vector(const Args& arguments, const Allen::Context& context)
-{
-  return SingleArgumentOverloadResolution<Arg, Args>::make_vector(arguments, context);
+template<typename T, typename Args>
+auto make_host_buffer(const Args& arguments, const size_t size) {
+  return arguments.template make_buffer<Allen::Store::Scope::Host, T>(size);
 }
 
-/**
- * @brief Makes a std::vector out of an Allen container.
- * @details This copy mechanism to create a std::vector is blocking and synchronous.
- *          This function should only be used where the performance of the application
- *          is irrelevant.
- */
+template<typename T, typename Args>
+auto make_device_buffer(const Args& arguments, const size_t size) {
+  return arguments.template make_buffer<Allen::Store::Scope::Device, T>(size);
+}
+
 template<typename Arg, typename Args>
-auto make_vector(const Args& arguments)
-{
-  return SingleArgumentOverloadResolution<Arg, Args>::make_vector(arguments);
+auto make_host_buffer(const Args& arguments, const Allen::Context& context) {
+  auto buffer = arguments.template make_buffer<Allen::Store::Scope::Host, typename Arg::type>(size<Arg>(arguments));
+  Allen::copy<Arg>(buffer, arguments, context);
+  return buffer;
+}
+
+template<typename Arg, typename Args>
+auto make_device_buffer(const Args& arguments, const Allen::Context& context) {
+  auto buffer = arguments.template make_buffer<Allen::Store::Scope::Device, typename Arg::type>(size<Arg>(arguments));
+  Allen::copy<Arg>(buffer, arguments, context);
+  return buffer;
 }

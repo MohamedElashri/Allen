@@ -299,7 +299,7 @@ void gather_selections::gather_selections_t::operator()(
   reduce_size<dev_event_list_output_t>(arguments, first<host_event_list_output_size_t>(arguments));
 
   if (property<verbosity_t>() >= logger::debug) {
-    const auto host_selections = make_vector<dev_selections_t>(arguments);
+    const auto host_selections = make_host_buffer<dev_selections_t>(arguments, context);
     Allen::copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 
     Selections::ConstSelections sels {reinterpret_cast<const bool*>(host_selections.data()),

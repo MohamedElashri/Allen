@@ -11,12 +11,12 @@ void host_velo_validator::host_velo_validator_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  const Allen::Context&) const
+  const Allen::Context& context) const
 {
-  const auto offsets_all_velo_tracks = make_vector<dev_offsets_all_velo_tracks_t>(arguments);
-  const auto offsets_velo_track_hit_number = make_vector<dev_offsets_velo_track_hit_number_t>(arguments);
-  const auto velo_track_hits = make_vector<dev_velo_track_hits_t>(arguments);
-  const auto event_list = make_vector<dev_event_list_t>(arguments);
+  const auto offsets_all_velo_tracks = make_host_buffer<dev_offsets_all_velo_tracks_t>(arguments, context);
+  const auto offsets_velo_track_hit_number = make_host_buffer<dev_offsets_velo_track_hit_number_t>(arguments, context);
+  const auto velo_track_hits = make_host_buffer<dev_velo_track_hits_t>(arguments, context);
+  const auto event_list = make_host_buffer<dev_event_list_t>(arguments, context);
 
   auto tracks = prepareVeloTracks(
     first<host_number_of_events_t>(arguments),

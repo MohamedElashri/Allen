@@ -34,18 +34,16 @@ namespace Allen::Store {
     UnorderedStore(UnorderedStore&&) = delete;
     UnorderedStore& operator=(UnorderedStore&&) = delete;
 
-    template<typename T>
-    auto make_host_buffer(size_t size)
+    template<Scope S, typename T>
+    auto make_buffer(const size_t size)
     {
-      return Allen::host_buffer<T> {
-        m_host_memory_manager, "temp_" + std::to_string(m_temporary_buffer_counter++), size};
-    }
-
-    template<typename T>
-    auto make_device_buffer(size_t size)
-    {
-      return Allen::device_buffer<T> {
-        m_device_memory_manager, "temp_" + std::to_string(m_temporary_buffer_counter++), size};
+      if constexpr (S == Scope::Host) {
+        return Allen::buffer<S, T> {
+          m_host_memory_manager, "temp_" + std::to_string(m_temporary_buffer_counter++), size};
+      } else {
+        return Allen::buffer<S, T> {
+          m_device_memory_manager, "temp_" + std::to_string(m_temporary_buffer_counter++), size};
+      }
     }
 
     AllenArgument& at(const std::string& k)
@@ -152,12 +150,23 @@ namespace Allen::Store {
   private:
     mutable arguments_t m_arguments;
     input_aggregates_t m_input_aggregates;
-    UnorderedStore& m_store;
+    UnorderedStore* m_store;
 
   public:
     StoreRef(arguments_t arguments, input_aggregates_t input_aggregates, UnorderedStore& store) :
-      m_arguments(arguments), m_input_aggregates(input_aggregates), m_store(store)
+      m_arguments(arguments), m_input_aggregates(input_aggregates), m_store(&store)
     {}
+
+    StoreRef(arguments_t arguments, input_aggregates_t input_aggregates) :
+      m_arguments(arguments), m_input_aggregates(input_aggregates)
+    {}
+
+    StoreRef(arguments_t arguments) : m_arguments(arguments) {}
+
+    template<Scope S, typename T>
+    auto make_buffer(const size_t size) const {
+      return m_store->make_buffer<S, T>(size);
+    }
 
     template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
     gsl::span<typename T::type> get() const

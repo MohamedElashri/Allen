@@ -179,10 +179,11 @@ public:
   void do_monitoring(
     const ArgumentReferences<Parameters>& arguments,
     handleROOTSvc& handler,
-    std::integer_sequence<std::size_t, seq_t...> /*int_seq*/) const
+    std::integer_sequence<std::size_t, seq_t...> /*int_seq*/,
+    const Allen::Context& context) const
   {
     using TupleType = typename Derived::monitoring_types;
-    auto host_v = std::tuple {make_vector<typename std::tuple_element<seq_t, TupleType>::type>(arguments)...};
+    auto host_v = std::tuple {make_host_buffer<typename std::tuple_element<seq_t, TupleType>::type>(arguments, context)...};
     auto values = std::tuple {typename std::tuple_element<seq_t, TupleType>::type::type()...};
     size_t ev = 0;
     auto tree = handler.tree("monitor_tree");
@@ -203,14 +204,14 @@ public:
   void output_monitor(
     [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
     [[maybe_unused]] const RuntimeOptions& runtime_options,
-    [[maybe_unused]] const Allen::Context&) const
+    [[maybe_unused]] const Allen::Context& context) const
   {
     if constexpr (Allen::has_monitoring_types<Derived>::value) {
 #ifdef WITH_ROOT
       std::make_index_sequence<std::tuple_size<typename Derived::monitoring_types>::value> sequence;
       auto derived_instance = static_cast<const Derived*>(this);
       auto handler = runtime_options.root_service->handle(derived_instance->name());
-      do_monitoring(arguments, handler, sequence);
+      do_monitoring(arguments, handler, sequence, context);
 #endif
     }
   }

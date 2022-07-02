@@ -11,37 +11,40 @@
 #include "Argument.cuh"
 
 namespace Allen::Store {
+  // Distinguish between single and multi alloc memory managers
+  enum struct AllocPolicy { SingleAlloc, MultiAlloc };
 
-  namespace memory_manager_details {
-    // Distinguish between Host and Device memory managers
-    struct Host {
-      constexpr static auto scope = Allen::Store::Scope::Host;
-      static void free(void* ptr) { Allen::free_host(ptr); }
-      static void malloc(void** ptr, size_t s) { Allen::malloc_host(ptr, s); }
-    };
-    struct Device {
-      constexpr static auto scope = Allen::Store::Scope::Device;
-      static void free(void* ptr) { Allen::free(ptr); }
-      static void malloc(void** ptr, size_t s) { Allen::malloc(ptr, s); }
-    };
+  template<Scope S>
+  struct MemoryManagerAllocator {
+    constexpr static auto scope = S;
+    static_assert((S == Scope::Host || S == Scope::Device) && "memory manager allocator scope must be supported");
 
-    // Distinguish between single and multi alloc memory managers
-    struct SingleAlloc {
-    };
-    struct MultiAlloc {
-    };
+    static void free(void* ptr) {
+      if constexpr (S == Scope::Host) {
+        Allen::free_host(ptr);
+      } else {
+        Allen::free(ptr);
+      }
+    }
 
-  } // namespace memory_manager_details
+    static void malloc(void** ptr, size_t s) {
+      if constexpr (S == Scope::Host) {
+        Allen::malloc_host(ptr, s);
+      } else {
+        Allen::malloc(ptr, s);
+      }
+    }
+  };
 
-  template<typename Target, typename AllocPolicy>
-  class MemoryManager;
+  template<Scope S, AllocPolicy P>
+  struct MemoryManager;
 
   /**
    * @brief This memory manager allocates a single chunk of memory at the beginning,
    *        and reserves / frees using this memory chunk from that point onwards.
    */
-  template<typename Target>
-  class MemoryManager<Target, memory_manager_details::SingleAlloc> : public Target {
+  template<Scope S>
+  struct MemoryManager<S, AllocPolicy::SingleAlloc> : MemoryManagerAllocator<S> {
   private:
     std::string m_name = "Memory manager";
     size_t m_max_available_memory = 0;
@@ -68,8 +71,8 @@ namespace Allen::Store {
     MemoryManager(const std::string& name, const size_t memory_size, const unsigned memory_alignment) :
       m_name {name}, m_max_available_memory {memory_size}, m_guaranteed_alignment {memory_alignment}
     {
-      if (m_base_pointer) Target::free(m_base_pointer);
-      Target::malloc(reinterpret_cast<void**>(&m_base_pointer), memory_size);
+      if (m_base_pointer) free(m_base_pointer);
+      malloc(reinterpret_cast<void**>(&m_base_pointer), memory_size);
     }
 
     /**
@@ -79,8 +82,8 @@ namespace Allen::Store {
      */
     void reserve_memory(size_t memory_size, const unsigned memory_alignment)
     {
-      if (m_base_pointer) Target::free(m_base_pointer);
-      Target::malloc(reinterpret_cast<void**>(&m_base_pointer), memory_size);
+      if (m_base_pointer) free(m_base_pointer);
+      malloc(reinterpret_cast<void**>(&m_base_pointer), memory_size);
 
       m_guaranteed_alignment = memory_alignment;
       m_max_available_memory = memory_size;
@@ -232,8 +235,8 @@ namespace Allen::Store {
    * @brief This memory manager allocates / frees using the backend calls (eg. Allen::malloc, Allen::free).
    *        It is slower but better at debugging out-of-bound accesses.
    */
-  template<typename Target>
-  class MemoryManager<Target, memory_manager_details::MultiAlloc> : public Target {
+  template<Scope S>
+  struct MemoryManager<S, AllocPolicy::MultiAlloc> : MemoryManagerAllocator<S> {
   private:
     size_t m_total_memory_required = 0;
     std::string m_name = "Memory manager";
@@ -277,7 +280,7 @@ namespace Allen::Store {
       // We will allocate in a char*
       char* memory_pointer;
 
-      Target::malloc(reinterpret_cast<void**>(&memory_pointer), requested_size);
+      malloc(reinterpret_cast<void**>(&memory_pointer), requested_size);
 
       // Add the pointer to the memory segments map
       m_memory_segments[tag] = MemorySegment {memory_pointer, requested_size};
@@ -306,7 +309,7 @@ namespace Allen::Store {
         verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
       }
 
-      Target::free(pointer);
+      free(pointer);
 
       m_total_memory_required -= it->second.size;
 
@@ -325,7 +328,7 @@ namespace Allen::Store {
     void free_all()
     {
       for (const auto& it : m_memory_segments) {
-        Target::free(it.second.pointer);
+        free(it.second.pointer);
       }
       m_memory_segments.clear();
     }
@@ -347,13 +350,13 @@ namespace Allen::Store {
   };
 
 #ifdef MEMORY_MANAGER_MULTI_ALLOC
-  template<typename T>
-  using memory_manager_t = MemoryManager<T, memory_manager_details::MultiAlloc>;
+  template<Scope S>
+  using memory_manager_t = MemoryManager<S, AllocPolicy::MultiAlloc>;
 #else
-  template<typename T>
-  using memory_manager_t = MemoryManager<T, memory_manager_details::SingleAlloc>;
+  template<Scope S>
+  using memory_manager_t = MemoryManager<S, AllocPolicy::SingleAlloc>;
 #endif
 
-  using host_memory_manager_t = memory_manager_t<memory_manager_details::Host>;
-  using device_memory_manager_t = memory_manager_t<memory_manager_details::Device>;
+  using host_memory_manager_t = memory_manager_t<Scope::Host>;
+  using device_memory_manager_t = memory_manager_t<Scope::Device>;
 } // namespace Allen::Store

@@ -184,9 +184,9 @@ void ut_consolidate_tracks::lhcb_id_container_checks::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  const Allen::Context&) const
+  const Allen::Context& context) const
 {
-  const auto ut_multi_event_tracks_view = make_vector<Parameters::dev_ut_multi_event_tracks_view_t>(arguments);
+  const auto ut_multi_event_tracks_view = make_host_buffer<Parameters::dev_ut_multi_event_tracks_view_t>(arguments, context);
   const Allen::Views::UT::Consolidated::MultiEventTracks* multiev_id_cont =
     reinterpret_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(ut_multi_event_tracks_view.data());
 

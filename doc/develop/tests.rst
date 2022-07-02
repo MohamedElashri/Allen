@@ -115,7 +115,7 @@ Here is an example of a postcondition that checks there are no repeated hits in 
       const Constants&,
       const Allen::Context&) const
     {
-      const auto velo_tracks_container = make_vector<Parameters::dev_tracks_t>(arguments);
+      const auto velo_tracks_container = make_host_buffer<Parameters::dev_tracks_t>(arguments, context);
 
       auto maximum_number_of_hits = true;
       auto no_repeated_hits = true;

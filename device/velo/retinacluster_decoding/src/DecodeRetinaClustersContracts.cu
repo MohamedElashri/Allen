@@ -8,16 +8,16 @@ void decode_retinaclusters::cluster_container_checks::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  const Allen::Context&) const
+  const Allen::Context& context) const
 {
   constexpr float velo_cluster_min_x = -100.f;
   constexpr float velo_cluster_max_x = 100.f;
   constexpr float velo_cluster_min_y = -100.f;
   constexpr float velo_cluster_max_y = 100.f;
 
-  const auto velo_cluster_container = make_vector<Parameters::dev_velo_cluster_container_t>(arguments);
-  const auto offsets_module_pair_cluster = make_vector<Parameters::dev_offsets_module_pair_cluster_t>(arguments);
-  const auto module_cluster_num = make_vector<Parameters::dev_module_cluster_num_t>(arguments);
+  const auto velo_cluster_container = make_host_buffer<Parameters::dev_velo_cluster_container_t>(arguments, context);
+  const auto offsets_module_pair_cluster = make_host_buffer<Parameters::dev_offsets_module_pair_cluster_t>(arguments, context);
+  const auto module_cluster_num = make_host_buffer<Parameters::dev_module_cluster_num_t>(arguments, context);
 
   // Condition to check
   bool x_greater_than_min_value = true;

@@ -163,15 +163,15 @@ void velo_consolidate_tracks::lhcb_id_container_checks::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  const Allen::Context&) const
+  const Allen::Context& context) const
 {
   const unsigned number_of_events = first<Parameters::host_number_of_events_t>(arguments);
 
   // Create velo hits views
-  const auto dev_velo_track_hits = make_vector<Parameters::dev_velo_track_hits_t>(arguments);
-  const auto dev_offsets_all_velo_tracks = make_vector<Parameters::dev_offsets_all_velo_tracks_t>(arguments);
+  const auto dev_velo_track_hits = make_host_buffer<Parameters::dev_velo_track_hits_t>(arguments, context);
+  const auto dev_offsets_all_velo_tracks = make_host_buffer<Parameters::dev_offsets_all_velo_tracks_t>(arguments, context);
   const auto dev_offsets_velo_track_hit_number =
-    make_vector<Parameters::dev_offsets_velo_track_hit_number_t>(arguments);
+    make_host_buffer<Parameters::dev_offsets_velo_track_hit_number_t>(arguments, context);
   std::vector<Allen::Views::Velo::Consolidated::Hits> velo_hits_view;
   for (unsigned event_number = 0; event_number < number_of_events; ++event_number) {
     velo_hits_view.emplace_back(Allen::Views::Velo::Consolidated::Hits {dev_velo_track_hits.data(),

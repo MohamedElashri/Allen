@@ -179,7 +179,7 @@ void VertexFit::vertex_fit_checks::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  const Allen::Context&) const
+  const Allen::Context& context) const
 {
   // Conditions to check
   bool chi2_always_positive = true;
@@ -188,9 +188,9 @@ void VertexFit::vertex_fit_checks::operator()(
   bool cov_always_posdef = true;
 
   const unsigned number_of_events = size<Parameters::dev_event_list_t>(arguments);
-  const auto sv_offsets = make_vector<Parameters::dev_sv_offsets_t>(arguments);
-  const auto event_list = make_vector<Parameters::dev_event_list_t>(arguments);
-  const auto svs = make_vector<Parameters::dev_consolidated_svs_t>(arguments);
+  const auto sv_offsets = make_host_buffer<Parameters::dev_sv_offsets_t>(arguments, context);
+  const auto event_list = make_host_buffer<Parameters::dev_event_list_t>(arguments, context);
+  const auto svs = make_host_buffer<Parameters::dev_consolidated_svs_t>(arguments, context);
 
   for (unsigned event_number = 0; event_number < number_of_events; event_number++) {
     const auto event_idx = event_list[event_number];

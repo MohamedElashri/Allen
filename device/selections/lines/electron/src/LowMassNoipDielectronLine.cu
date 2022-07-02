@@ -182,14 +182,14 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::output_monito
   const Allen::Context&) const
 {
 #ifdef WITH_ROOT
-  const auto v_die_masses_raw = make_vector<dev_die_masses_raw_t>(arguments);
-  const auto v_die_masses_bremcorr = make_vector<dev_die_masses_bremcorr_t>(arguments);
-  const auto v_die_pts_raw = make_vector<dev_die_pts_raw_t>(arguments);
-  const auto v_die_pts_bremcorr = make_vector<dev_die_pts_bremcorr_t>(arguments);
-  const auto v_die_minipchi2 = make_vector<dev_die_minipchi2_t>(arguments);
-  const auto v_dev_die_ip = make_vector<dev_die_ip_t>(arguments);
-  const auto v_e_minpts_raw = make_vector<dev_e_minpts_raw_t>(arguments);
-  const auto v_e_minpt_bremcorr = make_vector<dev_e_minpt_bremcorr_t>(arguments);
+  const auto v_die_masses_raw = make_host_buffer<dev_die_masses_raw_t>(arguments, context);
+  const auto v_die_masses_bremcorr = make_host_buffer<dev_die_masses_bremcorr_t>(arguments, context);
+  const auto v_die_pts_raw = make_host_buffer<dev_die_pts_raw_t>(arguments, context);
+  const auto v_die_pts_bremcorr = make_host_buffer<dev_die_pts_bremcorr_t>(arguments, context);
+  const auto v_die_minipchi2 = make_host_buffer<dev_die_minipchi2_t>(arguments, context);
+  const auto v_dev_die_ip = make_host_buffer<dev_die_ip_t>(arguments, context);
+  const auto v_e_minpts_raw = make_host_buffer<dev_e_minpts_raw_t>(arguments, context);
+  const auto v_e_minpt_bremcorr = make_host_buffer<dev_e_minpt_bremcorr_t>(arguments, context);
 
   auto handler = runtime_options.root_service->handle(name());
   auto tree = handler.tree("monitor_tree");

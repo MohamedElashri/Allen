@@ -14,7 +14,7 @@
 #include <gsl/gsl>
 
 namespace Allen {
-  template<typename S, typename T>
+  template<Store::Scope S, typename T>
   struct buffer {
   private:
     Allen::Store::memory_manager_t<S>& m_mem_manager;
@@ -31,6 +31,12 @@ namespace Allen {
       m_span(reinterpret_cast<T*>(m_mem_manager.reserve(m_tag, size * sizeof(T))), size)
     {}
 
+    // Allow to move the object
+    __host__ buffer(buffer&& o) : m_mem_manager(o.m_mem_manager), m_tag(o.m_tag), m_span(o.m_span) {
+      // Set o span to empty to avoid the data being freed in the destructor of o
+      o.m_span = gsl::span<T>{};
+    }
+
     __host__ ~buffer()
     {
       if (m_span.size() != 0) {
@@ -38,12 +44,24 @@ namespace Allen {
       }
     }
 
+    __host__ auto begin() const {
+      return m_span.begin();
+    }
+
+    __host__ auto end() const {
+      return m_span.end();
+    }
+
     constexpr __host__ size_t size() const { return m_span.size(); }
 
     constexpr __host__ size_t sizebytes() const
     {
-      static_assert(std::is_same_v<S, Allen::Store::memory_manager_details::Host>);
+      static_assert(S == Allen::Store::Scope::Host);
       return m_span.sizebytes();
+    }
+
+    constexpr __host__ T* data() const {
+      return m_span.data();
     }
 
     __host__ void resize(size_t size)
@@ -60,25 +78,24 @@ namespace Allen {
 
     constexpr __host__ T& operator[](int i)
     {
-      static_assert(std::is_same_v<S, Allen::Store::memory_manager_details::Host>);
+      static_assert(S == Allen::Store::Scope::Host);
       return m_span[i];
     }
 
     constexpr __host__ const T& operator[](int i) const
     {
-      static_assert(std::is_same_v<S, Allen::Store::memory_manager_details::Host>);
+      static_assert(S == Allen::Store::Scope::Host);
       return m_span[i];
     }
 
     buffer(const buffer&) = delete;
     buffer& operator=(const buffer&) = delete;
-    buffer(buffer&&) = delete;
     buffer& operator=(buffer&&) = delete;
   };
 
   template<typename T>
-  using host_buffer = buffer<Allen::Store::memory_manager_details::Host, T>;
+  using host_buffer = buffer<Allen::Store::Scope::Host, T>;
 
   template<typename T>
-  using device_buffer = buffer<Allen::Store::memory_manager_details::Device, T>;
+  using device_buffer = buffer<Allen::Store::Scope::Device, T>;
 } // namespace Allen

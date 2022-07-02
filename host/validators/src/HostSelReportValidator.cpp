@@ -18,10 +18,10 @@ void host_sel_report_validator::host_sel_report_validator_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  const Allen::Context&) const
+  const Allen::Context& context) const
 {
-  const auto sel_reports = make_vector<dev_sel_reports_t>(arguments);
-  const auto sel_report_offsets = make_vector<dev_sel_report_offsets_t>(arguments);
+  const auto sel_reports = make_host_buffer<dev_sel_reports_t>(arguments, context);
+  const auto sel_report_offsets = make_host_buffer<dev_sel_report_offsets_t>(arguments, context);
   const char* line_names_char = data<host_names_of_lines_t>(arguments);
   const std::string line_names_str = line_names_char;
   std::vector<std::string> line_names;

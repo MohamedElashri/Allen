@@ -339,6 +339,6 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
       dev_offsets_module_pair_cluster_t,
       dev_module_cluster_num_t,
       host_total_number_of_velo_clusters_t,
-      host_number_of_events_t>(arguments);
+      host_number_of_events_t>(arguments, context);
   }
 }

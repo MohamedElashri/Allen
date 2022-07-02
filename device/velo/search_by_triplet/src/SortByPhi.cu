@@ -41,7 +41,7 @@ void velo_sort_by_phi::velo_sort_by_phi_t::operator()(
       dev_offsets_estimated_input_size_t,
       dev_module_cluster_num_t,
       host_total_number_of_velo_clusters_t,
-      host_number_of_events_t>(arguments);
+      host_number_of_events_t>(arguments, context);
   }
 }
 

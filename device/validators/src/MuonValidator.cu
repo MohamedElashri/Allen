@@ -38,9 +38,9 @@ void muon_validator::muon_validator_t::operator()(
 {
   global_function(muon_validator)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
 
-  const auto event_list = make_vector<dev_event_list_t>(arguments);
-  const auto muon_tracks_for_checker = make_vector<dev_muon_checker_tracks_t>(arguments);
-  const auto event_tracks_offsets = make_vector<dev_offsets_long_tracks_t>(arguments);
+  const auto event_list = make_host_buffer<dev_event_list_t>(arguments, context);
+  const auto muon_tracks_for_checker = make_host_buffer<dev_muon_checker_tracks_t>(arguments, context);
+  const auto event_tracks_offsets = make_host_buffer<dev_offsets_long_tracks_t>(arguments, context);
   std::vector<Checker::Tracks> tracks;
   tracks.resize(event_list.size());
   for (size_t i = 0; i < event_list.size(); ++i) {

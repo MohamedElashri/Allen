@@ -50,9 +50,9 @@ void kalman_validator::kalman_validator_t::operator()(
 {
   global_function(create_kalman_tracks_for_checker)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
 
-  const auto event_list = make_vector<dev_event_list_t>(arguments);
-  const auto kalman_tracks_for_checker = make_vector<dev_kalman_checker_tracks_t>(arguments);
-  const auto event_tracks_offsets = make_vector<dev_offsets_long_tracks_t>(arguments);
+  const auto event_list = make_host_buffer<dev_event_list_t>(arguments, context);
+  const auto kalman_tracks_for_checker = make_host_buffer<dev_kalman_checker_tracks_t>(arguments, context);
+  const auto event_tracks_offsets = make_host_buffer<dev_offsets_long_tracks_t>(arguments, context);
   std::vector<std::vector<Checker::Track>> tracks;
   tracks.resize(event_list.size());
   for (size_t i = 0; i < event_list.size(); ++i) {

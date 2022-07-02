@@ -36,7 +36,7 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
     print_velo_three_hit_tracks<
       dev_three_hit_tracks_output_t,
       dev_number_of_three_hit_tracks_output_t,
-      dev_offsets_estimated_input_size_t>(arguments);
+      dev_offsets_estimated_input_size_t>(arguments, context);
   }
 }
 
