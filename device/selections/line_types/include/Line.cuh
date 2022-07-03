@@ -81,7 +81,7 @@ private:
     template<typename f>
     void operator()()
     {
-      set_size<f>(arguments, size);
+      arguments.template set_size<f>(size);
     }
   };
 
@@ -141,12 +141,12 @@ public:
     const Constants&,
     const HostBuffers&) const
   {
-    set_size<typename Parameters::host_decisions_size_t>(arguments, 1);
-    set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
-    set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
+    arguments.template set_size<typename Parameters::host_decisions_size_t>(1);
+    arguments.template set_size<typename Parameters::host_post_scaler_t>(1);
+    arguments.template set_size<typename Parameters::host_post_scaler_hash_t>(1);
 
     // Set the size of the type-erased fn parameters
-    set_size<typename Parameters::host_fn_parameters_t>(arguments, sizeof(type_erased_tuple_t<Derived, Parameters>));
+    arguments.template set_size<typename Parameters::host_fn_parameters_t>(sizeof(type_erased_tuple_t<Derived, Parameters>));
 
     if constexpr (Allen::has_monitoring_types<Derived>::value) {
       set_size_functor ssf(arguments, Derived::get_decisions_size(arguments));
@@ -325,21 +325,21 @@ void Line<Derived, Parameters>::operator()(
 
   // Copy post scaler and hash to an output, such that GatherSelections can later
   // perform the postscaling
-  data<typename Parameters::host_post_scaler_t>(arguments)[0] =
+  arguments.template data<typename Parameters::host_post_scaler_t>()[0] =
     derived_instance->template property<typename Parameters::post_scaler_t>();
-  data<typename Parameters::host_post_scaler_hash_t>(arguments)[0] = m_post_scaler_hash;
-  data<typename Parameters::host_decisions_size_t>(arguments)[0] = Derived::get_decisions_size(arguments);
+  arguments.template data<typename Parameters::host_post_scaler_hash_t>()[0] = m_post_scaler_hash;
+  arguments.template data<typename Parameters::host_decisions_size_t>()[0] = Derived::get_decisions_size(arguments);
 
   // Delay the execution of the line: Pass the parameters
   auto parameters = std::make_tuple(
     derived_instance->make_parameters(1, 1, 0, arguments),
-    size<typename Parameters::dev_event_list_t>(arguments),
+    arguments.template size<typename Parameters::dev_event_list_t>(),
     m_pre_scaler_hash,
     arguments,
     derived_instance);
 
   assert(sizeof(type_erased_tuple_t<Derived, Parameters>) == sizeof(parameters));
-  std::memcpy(data<typename Parameters::host_fn_parameters_t>(arguments), &parameters, sizeof(parameters));
+  std::memcpy(arguments.template data<typename Parameters::host_fn_parameters_t>(), &parameters, sizeof(parameters));
 
   if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
     if (derived_instance->template property<typename Parameters::enable_monitoring_t>()) {

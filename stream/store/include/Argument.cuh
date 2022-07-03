@@ -16,36 +16,34 @@
 #include <gsl/span>
 
 namespace Allen::Store {
-  namespace {
-    inline void* magic_cast(std::type_index, std::type_index, void*) { return nullptr; }
+  inline void* magic_cast(std::type_index, std::type_index, void*) { return nullptr; }
 
-    struct VTable {
-      void* (*cast_)(std::type_index, void*);
-      std::type_index (*type_)();
-    };
+  struct VTable {
+    void* (*cast_)(std::type_index, void*);
+    std::type_index (*type_)();
+  };
 
-    template<typename T>
-    inline std::type_index type_()
-    {
-      return std::type_index(typeid(T));
-    }
+  template<typename T>
+  inline std::type_index type_()
+  {
+    return std::type_index(typeid(T));
+  }
 
-    template<typename T>
-    inline void* cast_(std::type_index type, void* self)
-    {
-      return type == std::type_index(typeid(T)) ? static_cast<T*>(self) :
-                                                  magic_cast(type, std::type_index(typeid(T)), self);
-    }
+  template<typename T>
+  inline void* cast_(std::type_index type, void* self)
+  {
+    return type == std::type_index(typeid(T)) ? static_cast<T*>(self) :
+                                                magic_cast(type, std::type_index(typeid(T)), self);
+  }
 
-    template<>
-    inline void* cast_<void>(std::type_index, void*)
-    {
-      return nullptr;
-    }
+  template<>
+  inline void* cast_<void>(std::type_index, void*)
+  {
+    return nullptr;
+  }
 
-    template<typename T>
-    inline constexpr VTable const vtable_for = {&cast_<T>, &type_<T>};
-  } // namespace
+  template<typename T>
+  inline constexpr VTable const vtable_for = {&cast_<T>, &type_<T>};
 
   enum class Scope { Host, Device, Invalid };
 

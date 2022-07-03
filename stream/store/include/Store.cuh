@@ -51,7 +51,7 @@ namespace Allen::Store {
     {
       try {
         return m_store.at(k);
-      } catch (std::out_of_range) {
+      } catch (std::out_of_range&) {
         error_cout << "Store: key " << k << " not found\n";
         throw;
       }
@@ -61,7 +61,7 @@ namespace Allen::Store {
     {
       try {
         return m_store.at(k);
-      } catch (std::out_of_range) {
+      } catch (std::out_of_range&) {
         error_cout << "Store: key " << k << " not found\n";
         throw;
       }
@@ -223,7 +223,7 @@ namespace Allen::Store {
         !Allen::is_template_base_of_v<input_datatype, T> && "reduce_size can only be used on output datatypes");
       constexpr auto index_of_T = index_of_v<T, parameters_tuple_t>;
       static_assert(index_of_T < std::tuple_size_v<parameters_tuple_t> && "Index of T is in bounds");
-      assert(size <= m_arguments[index_of_T].get().size());
+      assert(size <= m_arguments[index_of_T].get().operator gsl::span<typename T::type>().size());
       m_arguments[index_of_T].get().set_size(size);
     }
 

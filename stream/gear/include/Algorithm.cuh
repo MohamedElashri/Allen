@@ -341,8 +341,7 @@ namespace Allen {
    * other algorithms
    *
    */
-  class Algorithm : public BaseAlgorithm {
-  public:
+  struct Algorithm : BaseAlgorithm, ArgumentOperations {
     // Define empty contract container by default
     using contracts = std::tuple<>;
 

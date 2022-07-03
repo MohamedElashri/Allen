@@ -36,8 +36,8 @@ namespace Allen {
         const Allen::Context& context) const
       {
         const UnOp unop {};
-        const auto container = make_host_buffer<T>(arguments, context);
-        const auto container_name = name<T>(arguments);
+        const auto container = Allen::ArgumentOperations::make_host_buffer<T>(arguments, context);
+        const auto container_name = Allen::ArgumentOperations::name<T>(arguments);
 
         bool condition = true;
         for (size_t i = 0; i < container.size() && condition; ++i) {
@@ -61,8 +61,8 @@ namespace Allen {
         const Allen::Context& context) const
       {
         const BinOp binop {};
-        const auto container = make_host_buffer<T>(arguments, context);
-        const auto container_name = name<T>(arguments);
+        const auto container = Allen::ArgumentOperations::make_host_buffer<T>(arguments, context);
+        const auto container_name = Allen::ArgumentOperations::name<T>(arguments);
 
         bool condition = true;
         if (container.size() > 0) {
@@ -87,10 +87,10 @@ namespace Allen {
         const Constants&,
         const Allen::Context& context) const
       {
-        const auto container_a = make_host_buffer<A>(arguments, context);
-        const auto container_b = make_host_buffer<B>(arguments, context);
-        const auto container_a_name = name<A>(arguments);
-        const auto container_b_name = name<B>(arguments);
+        const auto container_a = Allen::ArgumentOperations::make_host_buffer<A>(arguments, context);
+        const auto container_b = Allen::ArgumentOperations::make_host_buffer<B>(arguments, context);
+        const auto container_a_name = Allen::ArgumentOperations::name<A>(arguments);
+        const auto container_b_name = Allen::ArgumentOperations::name<B>(arguments);
 
         bool condition = container_a.size() == container_b.size();
         if (condition) {

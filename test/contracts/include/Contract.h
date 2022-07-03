@@ -3,10 +3,12 @@
 \*****************************************************************************/
 #pragma once
 
+#include "ArgumentOps.cuh"
+
 namespace Allen {
   // Contract classes
   namespace contract {
-    struct ContractException : public std::exception {
+    struct ContractException : std::exception {
     private:
       std::string m_exception_message;
 
@@ -47,7 +49,7 @@ namespace Allen {
       }
     };
 
-    struct Precondition : public Location {
+    struct Precondition : public Location, ArgumentOperations {
       virtual ~Precondition() {}
       void require(const bool condition, const std::string& contract_message) const override
       {
@@ -55,7 +57,7 @@ namespace Allen {
       }
     };
 
-    struct Postcondition : public Location {
+    struct Postcondition : public Location, ArgumentOperations {
       virtual ~Postcondition() {}
       void require(const bool condition, const std::string& contract_message) const override
       {
