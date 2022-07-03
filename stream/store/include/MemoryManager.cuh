@@ -76,7 +76,7 @@ namespace Allen::Store {
       m_name {name}, m_max_available_memory {memory_size}, m_guaranteed_alignment {memory_alignment}
     {
       if (m_base_pointer) MemoryManagerAllocator<S>::free(m_base_pointer);
-      malloc(reinterpret_cast<void**>(&m_base_pointer), memory_size);
+      MemoryManagerAllocator<S>::malloc(reinterpret_cast<void**>(&m_base_pointer), memory_size);
     }
 
     /**
@@ -87,7 +87,7 @@ namespace Allen::Store {
     void reserve_memory(size_t memory_size, const unsigned memory_alignment)
     {
       if (m_base_pointer) MemoryManagerAllocator<S>::free(m_base_pointer);
-      malloc(reinterpret_cast<void**>(&m_base_pointer), memory_size);
+      MemoryManagerAllocator<S>::malloc(reinterpret_cast<void**>(&m_base_pointer), memory_size);
 
       m_guaranteed_alignment = memory_alignment;
       m_max_available_memory = memory_size;
@@ -284,7 +284,7 @@ namespace Allen::Store {
       // We will allocate in a char*
       char* memory_pointer;
 
-      malloc(reinterpret_cast<void**>(&memory_pointer), requested_size);
+      MemoryManagerAllocator<S>::malloc(reinterpret_cast<void**>(&memory_pointer), requested_size);
 
       // Add the pointer to the memory segments map
       m_memory_segments[tag] = MemorySegment {memory_pointer, requested_size};
