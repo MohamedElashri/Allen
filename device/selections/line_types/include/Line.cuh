@@ -146,7 +146,8 @@ public:
     arguments.template set_size<typename Parameters::host_post_scaler_hash_t>(1);
 
     // Set the size of the type-erased fn parameters
-    arguments.template set_size<typename Parameters::host_fn_parameters_t>(sizeof(type_erased_tuple_t<Derived, Parameters>));
+    arguments.template set_size<typename Parameters::host_fn_parameters_t>(
+      sizeof(type_erased_tuple_t<Derived, Parameters>));
 
     if constexpr (Allen::has_monitoring_types<Derived>::value) {
       set_size_functor ssf(arguments, Derived::get_decisions_size(arguments));

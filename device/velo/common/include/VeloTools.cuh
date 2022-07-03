@@ -87,8 +87,10 @@ __host__ inline void print_velo_clusters(Arguments arguments, const Allen::Conte
   const auto offsets_estimated_input_size = Allen::ArgumentOperations::make_host_buffer<Offsets>(arguments, context);
   const auto module_cluster_num = Allen::ArgumentOperations::make_host_buffer<ClusterNum>(arguments, context);
 
-  const auto velo_cluster_container = Velo::ConstClusters {a.data(), Allen::ArgumentOperations::first<TotalNumberOfClusters>(arguments)};
-  for (unsigned event_number = 0; event_number < Allen::ArgumentOperations::first<NumberOfEvents>(arguments); ++event_number) {
+  const auto velo_cluster_container =
+    Velo::ConstClusters {a.data(), Allen::ArgumentOperations::first<TotalNumberOfClusters>(arguments)};
+  for (unsigned event_number = 0; event_number < Allen::ArgumentOperations::first<NumberOfEvents>(arguments);
+       ++event_number) {
     const auto event_number_of_hits =
       offsets_estimated_input_size[(event_number + 1) * Velo::Constants::n_module_pairs] -
       offsets_estimated_input_size[event_number * Velo::Constants::n_module_pairs];
@@ -125,10 +127,13 @@ __host__ inline void print_velo_tracks(Arguments arguments, const Allen::Context
 {
   // Prints the velo clusters
   const auto trackhits = Allen::ArgumentOperations::make_host_buffer<VeloTracks>(arguments, context);
-  const auto number_of_velo_tracks = Allen::ArgumentOperations::make_host_buffer<NumberOfVeloTracks>(arguments, context);
+  const auto number_of_velo_tracks =
+    Allen::ArgumentOperations::make_host_buffer<NumberOfVeloTracks>(arguments, context);
   const auto tracklethits = Allen::ArgumentOperations::make_host_buffer<VeloTracklets>(arguments, context);
-  const auto number_of_velo_tracklets = Allen::ArgumentOperations::make_host_buffer<NumberOfVeloTracklets>(arguments, context);
-  const auto offsets_estimated_input_size = Allen::ArgumentOperations::make_host_buffer<OffsetsEstimatedInputSize>(arguments, context);
+  const auto number_of_velo_tracklets =
+    Allen::ArgumentOperations::make_host_buffer<NumberOfVeloTracklets>(arguments, context);
+  const auto offsets_estimated_input_size =
+    Allen::ArgumentOperations::make_host_buffer<OffsetsEstimatedInputSize>(arguments, context);
 
   for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
     const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];
@@ -165,8 +170,10 @@ __host__ inline void print_velo_three_hit_tracks(Arguments arguments, const Alle
 {
   // Prints the velo clusters
   const auto trackhits = Allen::ArgumentOperations::make_host_buffer<VeloTracks>(arguments, context);
-  const auto number_of_velo_tracks = Allen::ArgumentOperations::make_host_buffer<NumberOfVeloTracks>(arguments, context);
-  const auto offsets_estimated_input_size = Allen::ArgumentOperations::make_host_buffer<OffsetsEstimatedInputSize>(arguments, context);
+  const auto number_of_velo_tracks =
+    Allen::ArgumentOperations::make_host_buffer<NumberOfVeloTracks>(arguments, context);
+  const auto offsets_estimated_input_size =
+    Allen::ArgumentOperations::make_host_buffer<OffsetsEstimatedInputSize>(arguments, context);
 
   for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
     const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];

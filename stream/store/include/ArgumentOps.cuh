@@ -205,7 +205,11 @@ namespace Allen {
       args.template data<TYPES_ARG>(), bno.types.data(), bno.types.size_bytes(), Allen::memcpyHostToDevice, context);
 
     Allen::memcpy_async(
-      args.template data<OFFSET_ARG>(), bno.offsets.data(), bno.offsets.size_bytes(), Allen::memcpyHostToDevice, context);
+      args.template data<OFFSET_ARG>(),
+      bno.offsets.data(),
+      bno.offsets.size_bytes(),
+      Allen::memcpyHostToDevice,
+      context);
   }
 
   namespace aggregate {
