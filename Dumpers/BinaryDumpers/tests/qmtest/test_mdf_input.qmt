@@ -1,0 +1,31 @@
+<?xml version="1.0" ?><!DOCTYPE extension  PUBLIC '-//QM/2.3/Extension//EN'  'http://www.codesourcery.com/qm/dtds/2.3/-//qm/2.3/extension//en.dtd'>
+<!--
+         (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration
+-->
+<!--
+     #######################################################
+# SUMMARY OF THIS TEST
+# ...................
+# Author: Kate Richardson 
+# Purpose: Test running Allen through MooreOnline with
+# the passthrough sequence
+#######################################################
+-->
+<extension class="GaudiTest.GaudiExeTest" kind="test">
+  <argument name="program"><text>python</text></argument>
+  <argument name="args"><set>
+    <text>${BINARYDUMPERSROOT}/options/allen.py</text>
+    <text>-n</text><text>1000</text>
+    <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants/hlt1_pp_default.json</text>
+    <text>--tags</text><text>dddb-20210617,sim-20210617-vc-md100</text>
+    <text>--mdf</text><text>/daqarea1/fest/202110/mdf/30000000/00146082_00007138_1.mdf</text>
+  </set></argument>
+  <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
+  <argument name="timeout"><integer>3000</integer></argument>
+  <argument name="validator"><text>
+
+countErrorLines({"FATAL" : 0, "ERROR" : 0, "WARNING" : 0})
+
+  </text></argument>
+</extension>
+
