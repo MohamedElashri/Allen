@@ -75,7 +75,7 @@ namespace Allen {
 
     __host__ gsl::span<T> to_span() { return m_span; }
 
-    __host__ operator gsl::span<T>() { return m_span; }
+    __host__ operator gsl::span<T>() { return to_span(); }
 
     constexpr __host__ T& operator[](int i)
     {
@@ -103,9 +103,11 @@ namespace Allen {
   template<Store::Scope, typename T>
   struct buffer {
   private:
-    std::vector<T> m_vector;
+    std::vector<bool_as_char_t<T>> m_vector;
 
   public:
+    __host__ buffer(const Allen::Store::host_memory_manager_t&, const std::string&) : m_vector{} {}
+
     __host__ buffer(size_t size) : m_vector(size) {}
 
     // Allow to move the object
@@ -119,17 +121,35 @@ namespace Allen {
 
     constexpr __host__ size_t sizebytes() const { return m_vector.sizebytes(); }
 
-    constexpr __host__ T* data() const { return m_vector.data(); }
+    constexpr __host__ auto data() const { return m_vector.data(); }
 
     __host__ void resize(size_t size) { m_vector.resize(size); }
 
-    __host__ gsl::span<T> to_span() { return m_vector; }
+    __host__ gsl::span<T> to_span() {
+      if constexpr (std::is_same_v<std::decay_t<T>, bool>) {
+        return {Allen::forward_type_t<T, bool*>(m_vector.data()), m_vector.size()};
+      } else {
+        return m_vector;
+      }
+    }
 
-    __host__ operator gsl::span<T>() { return m_vector; }
+    __host__ operator gsl::span<T>() { return to_span(); }
 
-    constexpr __host__ T& operator[](int i) { return m_vector[i]; }
+    constexpr __host__ T& operator[](int i) {
+      if constexpr (std::is_same_v<std::decay_t<T>, bool>) {
+        return Allen::forward_type_t<T&, bool>(m_vector[i]);
+      } else {
+        return m_vector[i];
+      }
+    }
 
-    constexpr __host__ const T& operator[](int i) const { return m_vector[i]; }
+    constexpr __host__ const T& operator[](int i) const {
+      if constexpr (std::is_same_v<std::decay_t<T>, bool>) {
+        return Allen::forward_type_t<const T&, bool>(m_vector[i]);
+      } else {
+        return m_vector[i];
+      }
+    }
 
     buffer(const buffer&) = delete;
     buffer& operator=(const buffer&) = delete;

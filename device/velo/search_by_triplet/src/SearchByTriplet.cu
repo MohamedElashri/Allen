@@ -50,9 +50,6 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
   global_function(velo_search_by_triplet)(size<dev_event_list_t>(arguments), property<block_dim_x_t>().get(), context)(
     arguments, constants.dev_velo_geometry);
 
-  auto a = make_host_buffer<unsigned>(arguments, 20);
-  auto b = make_host_buffer<dev_atomics_velo_t>(arguments, context);
-
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO tracks found:\n";
     print_velo_tracks<

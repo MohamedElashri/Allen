@@ -324,7 +324,7 @@ class AlgorithmCategory(Enum):\n\
             f"  auto* inp = h.getIfExists(); \n" +
             f"  tes_wrappers_{agg.typename}.emplace_back(inp ? *inp : empty_vector_tes_wrappers_{agg.typename}, \"{agg.typename}\");\n" +
             f"}}\n" +
-            f"std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> arg_data_{agg.typename};\n" +
+            f"std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> arg_data_{agg.typename};\n" +
             f"arg_data_{agg.typename}.reserve(m_{agg.typename}.size());\n" +
             f"for (auto& w : tes_wrappers_{agg.typename}) {{\n" +
             f"  arg_data_{agg.typename}.emplace_back(w);\n" +
@@ -372,7 +372,7 @@ class AlgorithmCategory(Enum):\n\
         tes_wrappers = "\n".join(tes_wrappers_list)
         tes_wrappers_reference_initialization = ",".join(
             tes_wrappers_reference_initialization_list)
-        tes_wrappers_reference = f"std::array<std::reference_wrapper<Allen::Store::ArgumentData>, {len(parameters_non_aggregate)}> tes_wrappers_references {{{tes_wrappers_reference_initialization}}};"
+        tes_wrappers_reference = f"std::array<std::reference_wrapper<Allen::Store::BaseArgument>, {len(parameters_non_aggregate)}> tes_wrappers_references {{{tes_wrappers_reference_initialization}}};"
 
         # lets call m_algorithm with our newly defined inputs
         # make teswrappers
@@ -537,7 +537,7 @@ class AlgorithmCategory(Enum):\n\
         tes_wrappers = "\n".join(tes_wrappers_list)
         tes_wrappers_reference_initialization = ",".join(
             tes_wrappers_reference_initialization_list)
-        tes_wrappers_reference = f"std::array<std::reference_wrapper<Allen::Store::ArgumentData>, {len(algorithm.parameters)}> tes_wrappers_references {{{tes_wrappers_reference_initialization}}};"
+        tes_wrappers_reference = f"std::array<std::reference_wrapper<Allen::Store::BaseArgument>, {len(algorithm.parameters)}> tes_wrappers_references {{{tes_wrappers_reference_initialization}}};"
 
         code = "\n".join([
             f"#include \"AlgorithmConversionTools.h\"",
