@@ -81,7 +81,7 @@ private:
     template<typename f>
     void operator()()
     {
-      arguments.template set_size<f>(size);
+      Allen::ArgumentOperations::set_size<f>(arguments, size);
     }
   };
 
@@ -141,13 +141,13 @@ public:
     const Constants&,
     const HostBuffers&) const
   {
-    arguments.template set_size<typename Parameters::host_decisions_size_t>(1);
-    arguments.template set_size<typename Parameters::host_post_scaler_t>(1);
-    arguments.template set_size<typename Parameters::host_post_scaler_hash_t>(1);
+    Allen::ArgumentOperations::set_size<typename Parameters::host_decisions_size_t>(arguments, 1);
+    Allen::ArgumentOperations::set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
+    Allen::ArgumentOperations::set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
 
     // Set the size of the type-erased fn parameters
-    arguments.template set_size<typename Parameters::host_fn_parameters_t>(
-      sizeof(type_erased_tuple_t<Derived, Parameters>));
+    Allen::ArgumentOperations::set_size<typename Parameters::host_fn_parameters_t>(
+      arguments, sizeof(type_erased_tuple_t<Derived, Parameters>));
 
     if constexpr (Allen::has_monitoring_types<Derived>::value) {
       set_size_functor ssf(arguments, Derived::get_decisions_size(arguments));
@@ -174,7 +174,7 @@ public:
     ValueType& values) const
   {
     using TupleType = typename Derived::monitoring_types;
-    handler.branch(tree, name<typename std::tuple_element<N, TupleType>::type>(arguments), std::get<N>(values));
+    handler.branch(tree, Allen::ArgumentOperations::name<typename std::tuple_element<N, TupleType>::type>(arguments), std::get<N>(values));
   }
   template<std::size_t... seq_t>
   void do_monitoring(
@@ -185,7 +185,7 @@ public:
   {
     using TupleType = typename Derived::monitoring_types;
     auto host_v =
-      std::tuple {make_host_buffer<typename std::tuple_element<seq_t, TupleType>::type>(arguments, context)...};
+      std::tuple {Allen::ArgumentOperations::make_host_buffer<typename std::tuple_element<seq_t, TupleType>::type>(arguments, context)...};
     auto values = std::tuple {typename std::tuple_element<seq_t, TupleType>::type::type()...};
     size_t ev = 0;
     auto tree = handler.tree("monitor_tree");
@@ -326,21 +326,21 @@ void Line<Derived, Parameters>::operator()(
 
   // Copy post scaler and hash to an output, such that GatherSelections can later
   // perform the postscaling
-  arguments.template data<typename Parameters::host_post_scaler_t>()[0] =
+  Allen::ArgumentOperations::data<typename Parameters::host_post_scaler_t>(arguments)[0] =
     derived_instance->template property<typename Parameters::post_scaler_t>();
-  arguments.template data<typename Parameters::host_post_scaler_hash_t>()[0] = m_post_scaler_hash;
-  arguments.template data<typename Parameters::host_decisions_size_t>()[0] = Derived::get_decisions_size(arguments);
+  Allen::ArgumentOperations::data<typename Parameters::host_post_scaler_hash_t>(arguments)[0] = m_post_scaler_hash;
+  Allen::ArgumentOperations::data<typename Parameters::host_decisions_size_t>(arguments)[0] = Derived::get_decisions_size(arguments);
 
   // Delay the execution of the line: Pass the parameters
   auto parameters = std::make_tuple(
     derived_instance->make_parameters(1, 1, 0, arguments),
-    arguments.template size<typename Parameters::dev_event_list_t>(),
+    Allen::ArgumentOperations::size<typename Parameters::dev_event_list_t>(arguments),
     m_pre_scaler_hash,
     arguments,
     derived_instance);
 
   assert(sizeof(type_erased_tuple_t<Derived, Parameters>) == sizeof(parameters));
-  std::memcpy(arguments.template data<typename Parameters::host_fn_parameters_t>(), &parameters, sizeof(parameters));
+  std::memcpy(Allen::ArgumentOperations::data<typename Parameters::host_fn_parameters_t>(arguments), &parameters, sizeof(parameters));
 
   if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
     if (derived_instance->template property<typename Parameters::enable_monitoring_t>()) {

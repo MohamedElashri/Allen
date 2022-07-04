@@ -179,7 +179,7 @@ __device__ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::mo
 void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::output_monitor(
   [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
   [[maybe_unused]] const RuntimeOptions& runtime_options,
-  const Allen::Context&) const
+  [[maybe_unused]] const Allen::Context& context) const
 {
 #ifdef WITH_ROOT
   const auto v_die_masses_raw = make_host_buffer<dev_die_masses_raw_t>(arguments, context);
@@ -215,14 +215,14 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::output_monito
   unsigned n_svs = v_die_masses_raw.size();
 
   for (unsigned i = 0; i < n_svs; i++) {
-    die_mass_raw = v_die_masses_raw.at(i);
-    die_mass_bremcorr = v_die_masses_bremcorr.at(i);
-    die_pt_raw = v_die_pts_raw.at(i);
-    die_pt_bremcorr = v_die_pts_bremcorr.at(i);
-    die_minipchi2 = v_die_minipchi2.at(i);
-    die_ip = v_dev_die_ip.at(i);
-    e_minpt_raw = v_e_minpts_raw.at(i);
-    e_minpt_bremcorr = v_e_minpt_bremcorr.at(i);
+    die_mass_raw = v_die_masses_raw[i];
+    die_mass_bremcorr = v_die_masses_bremcorr[i];
+    die_pt_raw = v_die_pts_raw[i];
+    die_pt_bremcorr = v_die_pts_bremcorr[i];
+    die_minipchi2 = v_die_minipchi2[i];
+    die_ip = v_dev_die_ip[i];
+    e_minpt_raw = v_e_minpts_raw[i];
+    e_minpt_bremcorr = v_e_minpt_bremcorr[i];
     if (die_mass_raw > -1) {
       tree->Fill();
     }
