@@ -251,6 +251,7 @@ __device__ void scifi_consolidate_tracks_impl(
                                             number_of_events};
   const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(event_number);
   const unsigned event_offset = scifi_hit_count.event_offset();
+  float* tracks_qop = parameters.dev_scifi_qop + parameters.dev_atomics_scifi[event_number];
 
   // Loop over tracks.
   for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
@@ -308,7 +309,12 @@ __device__ void scifi_consolidate_tracks_impl(
     const auto txO = velo_state.tx();
     const auto tyO = velo_state.ty();
 
+    //QoP for scifi tracks
     scifi_tracks.qop(i) =
+      qop_calculation(dev_looking_forward_constants, magSign, z0, x0, y0, xVelo, yVelo, zVelo, txO, tyO, tx, ty);
+
+    //QoP for long tracks
+    tracks_qop[i] =
       qop_calculation(dev_looking_forward_constants, magSign, z0, x0, y0, xVelo, yVelo, zVelo, txO, tyO, tx, ty);
 
     // Populate arrays

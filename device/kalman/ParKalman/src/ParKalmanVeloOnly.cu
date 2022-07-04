@@ -530,26 +530,24 @@ __global__ void kalman_velo_only::kalman_velo_only(kalman_velo_only::Parameters 
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  // Forward tracks.
-  const auto event_scifi_tracks = parameters.dev_scifi_tracks_view->container(event_number);
-  const unsigned total_number_of_tracks = parameters.dev_scifi_tracks_view->number_of_contained_objects();
+  // Long tracks.
+  const auto event_long_tracks = parameters.dev_long_tracks_view->container(event_number);
+  const unsigned total_number_of_tracks = parameters.dev_long_tracks_view->number_of_contained_objects();
 
   parameters.dev_kalman_states_view[event_number] = Allen::Views::Physics::KalmanStates {
     parameters.dev_kalman_fit_results, parameters.dev_atomics_scifi, event_number, number_of_events};
   // TODO: It'd be nice not to need the total number of tracks here.
   Velo::Consolidated::States kalman_states {parameters.dev_kalman_fit_results, total_number_of_tracks};
-
   // Loop over SciFi tracks and get associated UT and VELO tracks.
-  const unsigned n_scifi_tracks = event_scifi_tracks.size();
-  for (unsigned i_scifi_track = threadIdx.x; i_scifi_track < n_scifi_tracks; i_scifi_track += blockDim.x) {
-    const auto scifi_track = event_scifi_tracks.track(i_scifi_track);
-    const auto velo_track = scifi_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
-    const KalmanFloat init_qop = (KalmanFloat) scifi_track.qop();
+  const unsigned n_long_tracks = event_long_tracks.size();
+  for (unsigned i_long_track = threadIdx.x; i_long_track < n_long_tracks; i_long_track += blockDim.x) {
+    const auto long_track = event_long_tracks.track(i_long_track);
+    const auto velo_track = long_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
+    const KalmanFloat init_qop = (KalmanFloat) long_track.qop();
     ParKalmanFilter::FittedTrack kalman_track;
-
     simplified_fit(velo_track, init_qop, kalman_track);
 
-    set_fit_result(event_scifi_tracks.offset() + i_scifi_track, kalman_track, kalman_states);
-    parameters.dev_kf_tracks[event_scifi_tracks.offset() + i_scifi_track] = kalman_track;
+    set_fit_result(event_long_tracks.offset() + i_long_track, kalman_track, kalman_states);
+    parameters.dev_kf_tracks[event_long_tracks.offset() + i_long_track] = kalman_track;
   }
 }

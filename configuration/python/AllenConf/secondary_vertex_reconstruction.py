@@ -42,7 +42,7 @@ def make_kalman_velo_only(forward_tracks,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_scifi_tracks_view_t=forward_tracks[
+        dev_long_tracks_view_t=forward_tracks[
             "dev_multi_event_long_tracks_view"],
         dev_offsets_forward_tracks_t=forward_tracks[
             "dev_offsets_forward_tracks"],
