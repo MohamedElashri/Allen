@@ -170,7 +170,7 @@ namespace Allen::Store {
 #if ALLEN_STANDALONE
       return m_store->make_buffer<S, T>(size);
 #else
-      return std::vector<T>(size);
+      return Allen::buffer<Allen::Store::Scope::Host, T> {size};
 #endif
     }
 

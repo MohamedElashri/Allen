@@ -14,6 +14,12 @@
 #include <gsl/gsl>
 
 namespace Allen {
+#ifdef ALLEN_STANDALONE
+
+  /**
+   * @brief Standalone buffer: Uses an instance of the memory manager
+   *        to keep its store and frees upon destruction.
+   */
   template<Store::Scope S, typename T>
   struct buffer {
   private:
@@ -87,6 +93,49 @@ namespace Allen {
     buffer& operator=(const buffer&) = delete;
     buffer& operator=(buffer&&) = delete;
   };
+
+#else
+
+  /**
+   * @brief Non standalone buffer: Uses a std::vector to store its data.
+   *        The scope is irrelevant, as it is always stored in the host.
+   */
+  template<Store::Scope, typename T>
+  struct buffer {
+  private:
+    std::vector<T> m_vector;
+
+  public:
+    __host__ buffer(size_t size) : m_vector(size) {}
+
+    // Allow to move the object
+    __host__ buffer(buffer&& o) : m_vector{std::move(o.m_vector)} {}
+
+    __host__ auto begin() const { return m_vector.begin(); }
+
+    __host__ auto end() const { return m_vector.end(); }
+
+    constexpr __host__ size_t size() const { return m_vector.size(); }
+
+    constexpr __host__ size_t sizebytes() const { return m_vector.sizebytes(); }
+
+    constexpr __host__ T* data() const { return m_vector.data(); }
+
+    __host__ void resize(size_t size) { m_vector.resize(size); }
+
+    __host__ gsl::span<T> to_span() { return m_vector; }
+
+    __host__ operator gsl::span<T>() { return m_vector; }
+
+    constexpr __host__ T& operator[](int i) { return m_vector[i]; }
+
+    constexpr __host__ const T& operator[](int i) const { return m_vector[i]; }
+
+    buffer(const buffer&) = delete;
+    buffer& operator=(const buffer&) = delete;
+    buffer& operator=(buffer&&) = delete;
+  };
+#endif
 
   template<typename T>
   using host_buffer = buffer<Allen::Store::Scope::Host, T>;
