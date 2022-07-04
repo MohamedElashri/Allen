@@ -174,7 +174,10 @@ public:
     ValueType& values) const
   {
     using TupleType = typename Derived::monitoring_types;
-    handler.branch(tree, Allen::ArgumentOperations::name<typename std::tuple_element<N, TupleType>::type>(arguments), std::get<N>(values));
+    handler.branch(
+      tree,
+      Allen::ArgumentOperations::name<typename std::tuple_element<N, TupleType>::type>(arguments),
+      std::get<N>(values));
   }
   template<std::size_t... seq_t>
   void do_monitoring(
@@ -185,7 +188,8 @@ public:
   {
     using TupleType = typename Derived::monitoring_types;
     auto host_v =
-      std::tuple {Allen::ArgumentOperations::make_host_buffer<typename std::tuple_element<seq_t, TupleType>::type>(arguments, context)...};
+      std::tuple {Allen::ArgumentOperations::make_host_buffer<typename std::tuple_element<seq_t, TupleType>::type>(
+        arguments, context)...};
     auto values = std::tuple {typename std::tuple_element<seq_t, TupleType>::type::type()...};
     size_t ev = 0;
     auto tree = handler.tree("monitor_tree");
@@ -329,7 +333,8 @@ void Line<Derived, Parameters>::operator()(
   Allen::ArgumentOperations::data<typename Parameters::host_post_scaler_t>(arguments)[0] =
     derived_instance->template property<typename Parameters::post_scaler_t>();
   Allen::ArgumentOperations::data<typename Parameters::host_post_scaler_hash_t>(arguments)[0] = m_post_scaler_hash;
-  Allen::ArgumentOperations::data<typename Parameters::host_decisions_size_t>(arguments)[0] = Derived::get_decisions_size(arguments);
+  Allen::ArgumentOperations::data<typename Parameters::host_decisions_size_t>(arguments)[0] =
+    Derived::get_decisions_size(arguments);
 
   // Delay the execution of the line: Pass the parameters
   auto parameters = std::make_tuple(
@@ -340,7 +345,10 @@ void Line<Derived, Parameters>::operator()(
     derived_instance);
 
   assert(sizeof(type_erased_tuple_t<Derived, Parameters>) == sizeof(parameters));
-  std::memcpy(Allen::ArgumentOperations::data<typename Parameters::host_fn_parameters_t>(arguments), &parameters, sizeof(parameters));
+  std::memcpy(
+    Allen::ArgumentOperations::data<typename Parameters::host_fn_parameters_t>(arguments),
+    &parameters,
+    sizeof(parameters));
 
   if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
     if (derived_instance->template property<typename Parameters::enable_monitoring_t>()) {
