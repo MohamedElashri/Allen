@@ -106,12 +106,12 @@ namespace Allen {
     std::vector<bool_as_char_t<T>> m_vector;
 
   public:
-    __host__ buffer(const Allen::Store::host_memory_manager_t&, const std::string&) : m_vector{} {}
+    __host__ buffer(const Allen::Store::host_memory_manager_t&, const std::string&) : m_vector {} {}
 
     __host__ buffer(size_t size) : m_vector(size) {}
 
     // Allow to move the object
-    __host__ buffer(buffer&& o) : m_vector{std::move(o.m_vector)} {}
+    __host__ buffer(buffer&& o) : m_vector {std::move(o.m_vector)} {}
 
     __host__ auto begin() const { return m_vector.begin(); }
 
@@ -125,28 +125,34 @@ namespace Allen {
 
     __host__ void resize(size_t size) { m_vector.resize(size); }
 
-    __host__ gsl::span<T> to_span() {
+    __host__ gsl::span<T> to_span()
+    {
       if constexpr (std::is_same_v<std::decay_t<T>, bool>) {
         return {Allen::forward_type_t<T, bool*>(m_vector.data()), m_vector.size()};
-      } else {
+      }
+      else {
         return m_vector;
       }
     }
 
     __host__ operator gsl::span<T>() { return to_span(); }
 
-    constexpr __host__ T& operator[](int i) {
+    constexpr __host__ T& operator[](int i)
+    {
       if constexpr (std::is_same_v<std::decay_t<T>, bool>) {
         return Allen::forward_type_t<T&, bool>(m_vector[i]);
-      } else {
+      }
+      else {
         return m_vector[i];
       }
     }
 
-    constexpr __host__ const T& operator[](int i) const {
+    constexpr __host__ const T& operator[](int i) const
+    {
       if constexpr (std::is_same_v<std::decay_t<T>, bool>) {
         return Allen::forward_type_t<const T&, bool>(m_vector[i]);
-      } else {
+      }
+      else {
         return m_vector[i];
       }
     }
