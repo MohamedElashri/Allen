@@ -45,6 +45,8 @@ def make_rich_line(line_type,
                    forward_tracks,
                    long_track_particles,
                    name,
+                   pre_scaler=1.0,
+                   post_scaler=1.0,
                    pre_scaler_hash_string=None,
                    post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
@@ -58,7 +60,9 @@ def make_rich_line(line_type,
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
-        post_scaler_hash_string=post_scaler_hash_string or name + '_post')
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post'
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler)
 
 
 def make_rich_1_line(forward_tracks,
