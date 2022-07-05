@@ -18,7 +18,7 @@
     <text>-n</text><text>1000</text>
     <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants/hlt1_pp_default.json</text>
     <text>--tags</text><text>dddb-20210617,sim-20210617-vc-md100</text>
-    <text>--mdf</text><text>/daqarea1/fest/202110/mdf/30000000/00146082_00007138_1.mdf</text>
+    <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/mc/RetinaClusters_FTv4_MDF/00067189_retinaCluster_no63.mdf</text>
   </set></argument>
   <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
   <argument name="timeout"><integer>3000</integer></argument>
