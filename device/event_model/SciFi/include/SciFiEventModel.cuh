@@ -520,4 +520,45 @@ namespace SciFi {
     std::size_t n_matched_total = 0;
     float p = 0.f, pt = 0.f, rho = 0.f;
   };
+  namespace Seeding {
+    struct TrackXZ {
+      int number_of_hits;
+      unsigned int ids[6];
+      int idx[6];
+      unsigned int hits[6];
+      float chi2;
+      float ax;
+      float bx;
+      float cx;
+    };
+
+    struct Track {
+      int number_of_hits = 0;
+      // unsigned int ids[SciFi::Constants::n_layers] = {SciFi::Constants::INVALID_ID};
+      unsigned int hits[SciFi::Constants::n_layers] = {SciFi::Constants::INVALID_ID};
+      float ax;
+      float bx;
+      float cx;
+      float ay;
+      float by;
+
+      __host__ __device__ float x(float z) const
+      {
+        const float dz = z - SciFi::Constants::z_mid_t;
+        return ax + dz * (bx + dz * cx * (1.f + SciFi::Constants::dRatio * dz));
+      }
+      __host__ __device__ float y(float z) const { return (ay + by * (z - SciFi::Constants::z_mid_t)); }
+
+      __host__ __device__ float xFromDz(float dz) const
+      {
+        return ax + dz * (bx + dz * cx * (1.f + SciFi::Constants::dRatio * dz));
+      }
+      __host__ __device__ float yFromDz(float dz) const { return ay + by * dz; }
+      __host__ __device__ float xSlopeFromDz(float dz) const
+      {
+        return bx + 2.f * dz * cx + 3.f * dz * dz * cx * SciFi::Constants::dRatio;
+      }
+      __host__ __device__ float ySlope() const { return by; }
+    };
+  } // namespace Seeding
 } // namespace SciFi

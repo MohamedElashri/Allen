@@ -4,7 +4,7 @@
 #pragma once
 
 #include <cstdio>
-
+#include <math.h>
 #include "TrackChecker.h"
 #include "CheckerTypes.h"
 
@@ -735,6 +735,28 @@ namespace Categories {
         [](MCParticles::const_reference& mcp) {
           return mcp.isLong && !mcp.isElectron() && mcp.fromBeautyDecay && mcp.p > 5e3f && mcp.pt > 1e3f &&
                  mcp.inEta2_5();
+      TrackEffReport({
+        "11_noVelo_UT",
+        [](MCParticles::const_reference& mcp) {
+          return !mcp.hasVelo && mcp.hasUT && mcp.hasSciFi && mcp.isElectron() && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "12_noVelo_UT_P>5GeV",
+        [](MCParticles::const_reference& mcp) {
+          return !mcp.hasVelo && mcp.hasUT && mcp.hasSciFi && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 5e3f;
+        },
+      }),
+      TrackEffReport({
+        "13_long_PT>2GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.pt > 2e3f && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "14_long_from_B_PT>2GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.pt > 2e3f && mcp.inEta2_5();
         },
       }),
 
@@ -1007,6 +1029,336 @@ namespace Categories {
   }
 
   template<>
+  inline std::vector<TrackEffReport> make_track_eff_report_vector<Checker::Subdetector::SciFiSeeding>()
+  {
+    constexpr float pi = static_cast<float>(M_PI);
+    constexpr auto base = [](MCParticles::const_reference& mcp) {
+      return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5();
+    };
+    return std::vector<TrackEffReport> {{
+      // define which categories to monitor
+      TrackEffReport({
+        "00_P>3Gev_Pt>0.5",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f && mcp.pt > 500.f;
+        },
+      }),
+      TrackEffReport({
+        "01_long",
+        [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5(); },
+      }),
+      TrackEffReport({
+        "---1. phi quadrant",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5() && mcp.phi > 0 && mcp.phi < pi / 2.f;
+        },
+      }),
+      TrackEffReport({
+        "---2. phi quadrant",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5() && mcp.phi > pi / 2.f && mcp.phi < pi;
+        },
+      }),
+      TrackEffReport({
+        "---3. phi quadrant",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5() && mcp.phi > -pi && mcp.phi < -pi / 2.f;
+        },
+      }),
+      TrackEffReport({
+        "---4. phi quadrant",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5() && mcp.phi > -pi / 2.f && mcp.phi < 0.f;
+        },
+      }),
+      TrackEffReport({
+        "---eta < 2.5, small x, large y ",
+        [&base](MCParticles::const_reference& mcp) {
+          return base(mcp) && mcp.eta < 2.5f &&
+                 ((mcp.phi > pi / 3.f && mcp.phi < 2.f * pi / 3.f) ||
+                  (mcp.phi > -2.f * pi / 3.f && mcp.phi < -pi / 3.f));
+        },
+      }),
+      TrackEffReport({
+        "---eta < 2.5, large x, small y ",
+        [&base](MCParticles::const_reference& mcp) {
+          return base(mcp) && mcp.eta < 2.5f &&
+                 ((mcp.phi > 2.f * pi / 3.f) || (mcp.phi < -2.f * pi / 3.f) ||
+                  (mcp.phi > -pi / 3.f && mcp.phi < pi / 3.f));
+        },
+      }),
+      TrackEffReport({
+        "---eta > 2.5, small x, large y ",
+        [&base](MCParticles::const_reference& mcp) {
+          return base(mcp) && mcp.eta > 2.5f &&
+                 ((mcp.phi > pi / 3.f && mcp.phi < 2 * pi / 3.f) || (mcp.phi > -2 * pi / 3.f && mcp.phi < -pi / 3.f));
+        },
+      }),
+      TrackEffReport({
+        "---eta > 2.5, large x, small y ",
+        [&base](MCParticles::const_reference& mcp) {
+          return base(mcp) && mcp.eta > 2.5f &&
+                 ((mcp.phi > 2 * pi / 3.f) || (mcp.phi < -2 * pi / 3.f) || (mcp.phi > -pi / 3.f && mcp.phi < pi / 3.f));
+        },
+      }),
+      TrackEffReport({
+        "02_long_P>5GeV",
+        [&base](MCParticles::const_reference& mcp) { return base(mcp) && mcp.p > 5e3f; },
+      }),
+      TrackEffReport({
+        "02_long_P>5GeV, eta > 4",
+        [&base](MCParticles::const_reference& mcp) { return base(mcp) && mcp.p > 5e3f && mcp.eta > 4.f; },
+      }),
+      TrackEffReport({
+        "---eta < 2.5, small x, large y ",
+        [&base](MCParticles::const_reference& mcp) {
+          return base(mcp) && mcp.p > 5e3f && mcp.eta < 2.5f &&
+                 ((mcp.phi > pi / 3.f && mcp.phi < 2.f * pi / 3.f) ||
+                  (mcp.phi > -2.f * pi / 3.f && mcp.phi < -pi / 3.f));
+        },
+      }),
+      TrackEffReport({
+        "---eta < 2.5, large x, small y ",
+        [&base](MCParticles::const_reference& mcp) {
+          return base(mcp) && mcp.p > 5e3f && mcp.eta < 2.5f &&
+                 ((mcp.phi > 2 * pi / 3.f) || (mcp.phi < -2 * pi / 3.f) || (mcp.phi > -pi / 3.f && mcp.phi < pi / 3.f));
+        },
+      }),
+      TrackEffReport({
+        "---eta > 2.5, small x, large y ",
+        [&base](MCParticles::const_reference& mcp) {
+          return base(mcp) && mcp.p > 5e3f && mcp.eta > 2.5f &&
+                 ((mcp.phi > pi / 3.f && mcp.phi < 2.f * pi / 3.f) ||
+                  (mcp.phi > -2.f * pi / 3.f && mcp.phi < -pi / 3.f));
+        },
+      }),
+      TrackEffReport({
+        "---eta > 2.5, large x, small y ",
+        [&base](MCParticles::const_reference& mcp) {
+          return base(mcp) && mcp.p > 5e3f && mcp.eta > 2.5f &&
+                 ((mcp.phi > 2.f * pi / 3.f) || (mcp.phi < -2.f * pi / 3.f) ||
+                  (mcp.phi > -pi / 3.f && mcp.phi < pi / 3.f));
+        },
+      }),
+      TrackEffReport({
+        "03_long_P>3GeV",
+        [&base](MCParticles::const_reference& mcp) { return base(mcp) && mcp.p > 3e3f; },
+      }),
+      TrackEffReport({
+        "04_long_P>0.5GeV",
+        [&base](MCParticles::const_reference& mcp) { return base(mcp) && mcp.p > 5e2f; },
+      }),
+      TrackEffReport({
+        "05_long_from_B",
+        [&base](MCParticles::const_reference& mcp) { return base(mcp) && mcp.fromBeautyDecay; },
+      }),
+      TrackEffReport({
+        "06_long_from_B_P>5GeV",
+        [&base](MCParticles::const_reference& mcp) { return base(mcp) && mcp.fromBeautyDecay && mcp.p > 5e3f; },
+      }),
+      TrackEffReport({
+        "07_long_from_B_P>3GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.p > 3e3f && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "08_UT+SciFi",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.hasUT && mcp.hasSciFi && !mcp.hasVelo && !mcp.isElectron() && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "09_UT+SciFi_P>5GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.hasUT && mcp.hasSciFi && !mcp.hasVelo && !mcp.isElectron() && mcp.p > 5e3f && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "10_UT+SciFi_P>3GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.hasUT && mcp.hasSciFi && !mcp.hasVelo && !mcp.isElectron() && mcp.p > 3e3f && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "11_UT+SciFi_fromStrange",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.hasUT && mcp.hasSciFi && !mcp.hasVelo && mcp.fromStrangeDecay && !mcp.isElectron() &&
+                 mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "12_UT+SciFi_fromStrange_P>5GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.hasUT && mcp.hasSciFi && !mcp.hasVelo && mcp.fromStrangeDecay && mcp.p > 5e3f &&
+                 !mcp.isElectron() && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "13_UT+SciFi_fromStrange_P>3GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.hasUT && mcp.hasSciFi && !mcp.hasVelo && mcp.fromStrangeDecay && mcp.p > 3e3f &&
+                 !mcp.isElectron() && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "14_long_electrons",
+        [](MCParticles::const_reference& mcp) { return mcp.isLong && mcp.isElectron() && mcp.inEta2_5(); },
+      }),
+      TrackEffReport({
+        "15_long_electrons_P>5GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && mcp.isElectron() && mcp.p > 5e3f && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "16_long_electrons_P>3GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && mcp.isElectron() && mcp.p > 3e3f && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "17_long_fromB_electrons",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && mcp.isElectron() && mcp.fromBeautyDecay && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "18_long_fromB_electrons_P>5GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && mcp.isElectron() && mcp.fromBeautyDecay && mcp.p > 5e3f && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "19_long_PT>2GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.pt > 2e3f && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "20_long_from_B_PT>2GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.pt > 2e3f && mcp.inEta2_5();
+        },
+      }),
+
+    }};
+  }
+
+  template<>
+  inline std::vector<HistoCategory> make_histo_category_vector<Checker::Subdetector::SciFiSeeding>()
+  {
+    return std::vector<HistoCategory> {
+      {// define which categories to create histograms for
+       HistoCategory({
+         "Long_eta25_electrons",
+         [](MCParticles::const_reference& mcp) { return mcp.isLong && mcp.isElectron() && mcp.inEta2_5(); },
+       }),
+       HistoCategory({
+         "LongFromB_eta25_electrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5();
+         },
+       }),
+       HistoCategory({
+         "LongFromD_eta25_electrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5();
+         },
+       }),
+       HistoCategory({
+         "LongStrange_eta25_electrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromStrangeDecay && mcp.isElectron() && mcp.inEta2_5();
+         },
+       }),
+       HistoCategory({
+         "LongStrange_eta25_muons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromStrangeDecay && mcp.isMuon() && mcp.inEta2_5();
+         },
+       }),
+       HistoCategory({
+         "LongFromD_eta25_p_gt_3_pt_gt_0p5_electrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                  mcp.pt > 0.5e3f;
+         },
+       }),
+       HistoCategory({
+         "LongFromD_eta25_p_gt_3_pt_gt_0p3_electrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromCharmDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                  mcp.pt > 0.3e3f;
+         },
+       }),
+       HistoCategory({
+         "LongFromB_eta25_p_gt_3_pt_gt_0p5_electrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                  mcp.pt > 0.5e3f;
+         },
+       }),
+       HistoCategory({
+         "LongFromB_eta25_p_gt_3_pt_gt_0p3_electrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromBeautyDecay && mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                  mcp.pt > 0.3e3f;
+         },
+       }),
+       HistoCategory({
+         "Long_eta25_notElectrons",
+         [](MCParticles::const_reference& mcp) { return mcp.isLong && !mcp.isElectron() && mcp.inEta2_5(); },
+       }),
+       HistoCategory({
+         "LongFromB_eta25_notElectrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5();
+         },
+       }),
+       HistoCategory({
+         "LongFromD_eta25_p_gt_3_pt_gt_0p5_notElectrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                  mcp.pt > 0.5e3f;
+         },
+       }),
+       HistoCategory({
+         "LongFromD_eta25_p_gt_3_pt_gt_0p3_notElectrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                  mcp.pt > 0.3e3f;
+         },
+       }),
+       HistoCategory({
+         "LongFromB_eta25_p_gt_3_pt_gt_0p5_notElectrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                  mcp.pt > 0.5e3f;
+         },
+       }),
+       HistoCategory({
+         "LongFromB_eta25_p_gt_3_pt_gt_0p3_notElectrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.inEta2_5() && mcp.p > 3e3f &&
+                  mcp.pt > 0.3e3f;
+         },
+       }),
+       HistoCategory({
+         "LongFromD_eta25_notElectrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromCharmDecay && !mcp.isElectron() && mcp.inEta2_5();
+         },
+       }),
+       HistoCategory({
+         "LongStrange_eta25_notElectrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5();
+         },
+       })}};
+  }
+
+  template<>
   inline std::vector<TrackEffReport> make_track_eff_report_vector<Checker::Subdetector::Muon>()
   {
     return std::vector<TrackEffReport> {};
@@ -1017,4 +1369,5 @@ namespace Categories {
   {
     return std::vector<HistoCategory> {};
   }
+
 } // namespace Categories

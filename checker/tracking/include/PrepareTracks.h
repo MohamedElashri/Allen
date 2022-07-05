@@ -40,6 +40,22 @@ std::vector<Checker::Tracks> prepareUTTracks(
   gsl::span<const float> ut_qop,
   gsl::span<const mask_t> event_list);
 
+std::vector<Checker::Tracks> prepareSeedingTracks(
+  const unsigned number_of_events,
+  gsl::span<const unsigned> scifi_seed_atomics,
+  gsl::span<const unsigned> scifi_seed_hit_number,
+  gsl::span<const char> scifi_seed_hits,
+  gsl::span<const SciFi::Seeding::Track> scifi_seeds,
+  gsl::span<const MiniState> seeding_states,
+  gsl::span<const mask_t> event_list);
+
+std::vector<Checker::Tracks> prepareSeedingTracksXZ(
+  const unsigned number_of_events,
+  gsl::span<const unsigned> scifi_seed_atomics,
+  gsl::span<const unsigned> scifi_seed_hit_number,
+  gsl::span<const SciFi::Seeding::TrackXZ> scifi_seeds,
+  gsl::span<const mask_t> event_list);
+
 /**
  * @brief Read forward tracks from binary files
  */
