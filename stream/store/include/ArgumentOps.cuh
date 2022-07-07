@@ -292,7 +292,7 @@ namespace Allen {
     {
       return arguments.template get<Arg>();
     }
-    
+
     /**
      * @brief Returns the size of a container (length * sizeof(T)).
      */
