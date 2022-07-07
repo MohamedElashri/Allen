@@ -35,7 +35,7 @@ namespace Allen::Store {
   inline void* cast_(std::type_index type, void* self)
   {
     if (type != std::type_index(typeid(T))) {
-      throw std::runtime_error{"Incompatible cast requested"};
+      throw std::runtime_error {"Incompatible cast requested"};
     }
     return static_cast<T*>(self);
   }
