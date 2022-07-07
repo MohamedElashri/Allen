@@ -285,6 +285,15 @@ namespace Allen {
     }
 
     /**
+     * @brief Returns a span to the container.
+     */
+    template<typename Arg, typename Args>
+    static auto get(const Args& arguments)
+    {
+      return arguments.template get<Arg>();
+    }
+    
+    /**
      * @brief Returns the size of a container (length * sizeof(T)).
      */
     template<typename Arg, typename Args>
