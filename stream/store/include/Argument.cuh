@@ -20,42 +20,23 @@ namespace Allen::Store {
   enum class Scope { Host, Device, Invalid };
   enum class Kind { Input, Output };
 
-  struct VTable {
-    void* (*cast_)(std::type_index, void*);
-    std::type_index (*type_)();
-  };
-
-  template<typename T>
-  inline std::type_index type_()
-  {
-    return std::type_index(typeid(T));
-  }
-
-  template<typename T>
-  inline void* cast_(std::type_index type, void* self)
-  {
-    if (type != std::type_index(typeid(T))) {
-      throw std::runtime_error {"Incompatible cast requested"};
-    }
-    return static_cast<T*>(self);
-  }
-
-  template<>
-  inline void* cast_<void>(std::type_index, void*)
-  {
-    return nullptr;
-  }
-
-  template<typename T>
-  inline constexpr VTable const vtable_for = {&cast_<T>, &type_<T>};
-
   /**
    * @brief A base type-erased Allen argument, consistent of a vtable, name, scope and type size.
    *        It carries information about its type.
    */
   struct BaseArgument {
+  private:
+    template<typename T>
+    T* cast() const
+    {
+      if (std::type_index(typeid(T)) != m_type_index) {
+        throw std::runtime_error {"Incompatible cast requested"};
+      }
+      return reinterpret_cast<T*>(pointer());
+    }
+
   protected:
-    const VTable* m_vtable = &vtable_for<void>;
+    std::type_index m_type_index;
     std::string m_name = "";
     Scope m_scope = Scope::Invalid;
     size_t m_type_size = 0;
@@ -66,24 +47,24 @@ namespace Allen::Store {
   public:
     template<typename T>
     BaseArgument(std::in_place_type_t<T>, const std::string& name, Scope scope) :
-      m_vtable {&vtable_for<T>}, m_name {name}, m_scope {scope}, m_type_size {sizeof(T)}
+      m_type_index {std::type_index(typeid(T))}, m_name {name}, m_scope {scope}, m_type_size {sizeof(T)}
     {}
 
     std::string name() const { return m_name; }
     Scope scope() const { return m_scope; }
-    std::type_index type() const { return m_vtable->type_(); }
+    std::type_index type() const { return m_type_index; }
     size_t sizebytes() const { return size() * m_type_size; }
 
     template<typename T>
     operator gsl::span<T>()
     {
-      return gsl::span<T> {static_cast<T*>(m_vtable->cast_(std::type_index(typeid(T)), pointer())), size()};
+      return gsl::span<T> {cast<T>(), size()};
     }
 
     template<typename T>
     operator gsl::span<const T>() const
     {
-      return gsl::span<const T> {static_cast<const T*>(m_vtable->cast_(std::type_index(typeid(T)), pointer())), size()};
+      return gsl::span<T> {cast<const T>(), size()};
     }
 
     virtual ~BaseArgument() {}
