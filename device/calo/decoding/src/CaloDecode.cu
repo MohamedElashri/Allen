@@ -219,7 +219,7 @@ void calo_decode::calo_decode_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_ecal_digits_t>(arguments, 0x7F, context);
+  Allen::memset_async<dev_ecal_digits_t>(arguments, 0x7F, context);
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 
   // Ensure the bank version is supported

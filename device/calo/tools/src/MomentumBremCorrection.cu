@@ -22,8 +22,8 @@ void momentum_brem_correction::momentum_brem_correction_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_brem_corrected_p_t>(arguments, 0, context);
-  initialize<dev_brem_corrected_pt_t>(arguments, 0, context);
+  Allen::memset_async<dev_brem_corrected_p_t>(arguments, 0, context);
+  Allen::memset_async<dev_brem_corrected_pt_t>(arguments, 0, context);
 
   global_function(momentum_brem_correction)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);

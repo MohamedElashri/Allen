@@ -136,14 +136,14 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::init_monitor(
   const ArgumentReferences<Parameters>& arguments,
   const Allen::Context& context) const
 {
-  initialize<dev_die_masses_raw_t>(arguments, -1, context);
-  initialize<dev_die_masses_bremcorr_t>(arguments, -1, context);
-  initialize<dev_die_pts_raw_t>(arguments, -1, context);
-  initialize<dev_die_pts_bremcorr_t>(arguments, -1, context);
-  initialize<dev_die_minipchi2_t>(arguments, -1, context);
-  initialize<dev_die_ip_t>(arguments, -1, context);
-  initialize<dev_e_minpts_raw_t>(arguments, -1, context);
-  initialize<dev_e_minpt_bremcorr_t>(arguments, -1, context);
+  Allen::memset_async<dev_die_masses_raw_t>(arguments, -1, context);
+  Allen::memset_async<dev_die_masses_bremcorr_t>(arguments, -1, context);
+  Allen::memset_async<dev_die_pts_raw_t>(arguments, -1, context);
+  Allen::memset_async<dev_die_pts_bremcorr_t>(arguments, -1, context);
+  Allen::memset_async<dev_die_minipchi2_t>(arguments, -1, context);
+  Allen::memset_async<dev_die_ip_t>(arguments, -1, context);
+  Allen::memset_async<dev_e_minpts_raw_t>(arguments, -1, context);
+  Allen::memset_async<dev_e_minpt_bremcorr_t>(arguments, -1, context);
 }
 
 __device__ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::monitor(
@@ -179,17 +179,17 @@ __device__ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::mo
 void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::output_monitor(
   [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
   [[maybe_unused]] const RuntimeOptions& runtime_options,
-  const Allen::Context&) const
+  [[maybe_unused]] const Allen::Context& context) const
 {
 #ifdef WITH_ROOT
-  const auto v_die_masses_raw = make_vector<dev_die_masses_raw_t>(arguments);
-  const auto v_die_masses_bremcorr = make_vector<dev_die_masses_bremcorr_t>(arguments);
-  const auto v_die_pts_raw = make_vector<dev_die_pts_raw_t>(arguments);
-  const auto v_die_pts_bremcorr = make_vector<dev_die_pts_bremcorr_t>(arguments);
-  const auto v_die_minipchi2 = make_vector<dev_die_minipchi2_t>(arguments);
-  const auto v_dev_die_ip = make_vector<dev_die_ip_t>(arguments);
-  const auto v_e_minpts_raw = make_vector<dev_e_minpts_raw_t>(arguments);
-  const auto v_e_minpt_bremcorr = make_vector<dev_e_minpt_bremcorr_t>(arguments);
+  const auto v_die_masses_raw = make_host_buffer<dev_die_masses_raw_t>(arguments, context);
+  const auto v_die_masses_bremcorr = make_host_buffer<dev_die_masses_bremcorr_t>(arguments, context);
+  const auto v_die_pts_raw = make_host_buffer<dev_die_pts_raw_t>(arguments, context);
+  const auto v_die_pts_bremcorr = make_host_buffer<dev_die_pts_bremcorr_t>(arguments, context);
+  const auto v_die_minipchi2 = make_host_buffer<dev_die_minipchi2_t>(arguments, context);
+  const auto v_dev_die_ip = make_host_buffer<dev_die_ip_t>(arguments, context);
+  const auto v_e_minpts_raw = make_host_buffer<dev_e_minpts_raw_t>(arguments, context);
+  const auto v_e_minpt_bremcorr = make_host_buffer<dev_e_minpt_bremcorr_t>(arguments, context);
 
   auto handler = runtime_options.root_service->handle(name());
   auto tree = handler.tree("monitor_tree");
@@ -215,14 +215,14 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::output_monito
   unsigned n_svs = v_die_masses_raw.size();
 
   for (unsigned i = 0; i < n_svs; i++) {
-    die_mass_raw = v_die_masses_raw.at(i);
-    die_mass_bremcorr = v_die_masses_bremcorr.at(i);
-    die_pt_raw = v_die_pts_raw.at(i);
-    die_pt_bremcorr = v_die_pts_bremcorr.at(i);
-    die_minipchi2 = v_die_minipchi2.at(i);
-    die_ip = v_dev_die_ip.at(i);
-    e_minpt_raw = v_e_minpts_raw.at(i);
-    e_minpt_bremcorr = v_e_minpt_bremcorr.at(i);
+    die_mass_raw = v_die_masses_raw[i];
+    die_mass_bremcorr = v_die_masses_bremcorr[i];
+    die_pt_raw = v_die_pts_raw[i];
+    die_pt_bremcorr = v_die_pts_bremcorr[i];
+    die_minipchi2 = v_die_minipchi2[i];
+    die_ip = v_dev_die_ip[i];
+    e_minpt_raw = v_e_minpts_raw[i];
+    e_minpt_bremcorr = v_e_minpt_bremcorr[i];
     if (die_mass_raw > -1) {
       tree->Fill();
     }

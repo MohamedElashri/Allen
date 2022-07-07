@@ -25,7 +25,7 @@ void compass_ut::compass_ut_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_atomics_ut_t>(arguments, 0, context);
+  Allen::memset_async<dev_atomics_ut_t>(arguments, 0, context);
 
   global_function(compass_ut)(dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::num_thr_compassut), context)(
     arguments,

@@ -3,7 +3,6 @@
 \*****************************************************************************/
 #pragma once
 
-#include "MemoryManager.cuh"
 #include "Store.cuh"
 #include "Configuration.cuh"
 #include "Logger.h"
@@ -22,11 +21,9 @@ constexpr bool contracts_enabled = false;
 class Scheduler {
   std::vector<Allen::TypeErasedAlgorithm> m_sequence;
   Allen::Store::UnorderedStore m_store;
-  std::vector<std::any> m_sequence_argument_ref_managers;
+  std::vector<std::any> m_sequence_ref_stores;
   std::vector<LifetimeDependencies> m_in_dependencies;
   std::vector<LifetimeDependencies> m_out_dependencies;
-  Allen::Store::host_memory_manager_t host_memory_manager {"Host memory manager"};
-  Allen::Store::device_memory_manager_t device_memory_manager {"Device memory manager"};
   bool do_print = false;
 
 private:
@@ -138,14 +135,11 @@ public:
     auto& [configured_algorithms, configured_arguments, sequence_arguments, arg_deps] = configuration;
     assert(configured_algorithms.size() == sequence_arguments.size());
 
-    // Reserve the size of the sequence to avoid calls to the copy constructor when emplacing to this vector
-    m_sequence.reserve(configured_algorithms.size());
-
     // Generate type erased sequence
     instantiate_sequence(configured_algorithms);
 
     // Create and populate store
-    initialize_store(configured_arguments);
+    initialize_store(configured_arguments, sequence_arguments);
 
     // Calculate in and out dependencies of defined sequence
     std::tie(m_in_dependencies, m_out_dependencies) =
@@ -154,21 +148,20 @@ public:
     // Create ArgumentRefManager of each algorithm
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
       // Generate store references for each algorithm's configured arguments
-      auto [alg_store_ref, alg_input_aggregates] = generate_algorithm_store_ref(sequence_arguments[i]);
-      m_sequence_argument_ref_managers.emplace_back(
-        m_sequence[i].create_arg_ref_manager(alg_store_ref, alg_input_aggregates));
+      auto [alg_arguments, alg_input_aggregates] = generate_algorithm_store_ref(sequence_arguments[i]);
+      m_sequence_ref_stores.emplace_back(m_sequence[i].create_ref_store(alg_arguments, alg_input_aggregates, m_store));
     }
 
     assert(configured_algorithms.size() == m_sequence.size());
-    assert(configured_algorithms.size() == m_sequence_argument_ref_managers.size());
+    assert(configured_algorithms.size() == m_sequence_ref_stores.size());
     assert(configured_algorithms.size() == m_in_dependencies.size());
     assert(configured_algorithms.size() == m_out_dependencies.size());
 
     do_print = param_do_print;
 
     // Reserve memory in managers
-    host_memory_manager.reserve_memory(host_requested_mb * 1000 * 1000, required_memory_alignment);
-    device_memory_manager.reserve_memory(device_requested_mb * 1000 * 1000, required_memory_alignment);
+    m_store.reserve_memory_host(host_requested_mb, required_memory_alignment);
+    m_store.reserve_memory_device(device_requested_mb, required_memory_alignment);
   }
 
   Scheduler(const Scheduler&) = delete;
@@ -181,6 +174,8 @@ public:
    */
   void instantiate_sequence(const std::vector<ConfiguredAlgorithm>& configured_algorithms)
   {
+    // Reserve the size of the sequence to avoid calls to the copy constructor when emplacing to this vector
+    m_sequence.reserve(configured_algorithms.size());
     for (const auto& alg : configured_algorithms) {
       m_sequence.emplace_back(instantiate_allen_algorithm(alg));
     }
@@ -189,10 +184,13 @@ public:
   /**
    * @brief Initializes the store with the configured arguments
    */
-  void initialize_store(const std::vector<ConfiguredArgument>& configured_arguments)
+  void initialize_store(
+    const std::vector<ConfiguredArgument>&,
+    const std::vector<ConfiguredAlgorithmArguments>& configured_algorithm_arguments)
   {
-    for (const auto& arg : configured_arguments) {
-      m_store.emplace(arg.name, create_allen_argument(arg));
+    assert(m_sequence.size() == configured_algorithm_arguments.size());
+    for (unsigned i = 0; i < m_sequence.size(); ++i) {
+      m_sequence[i].emplace_output_arguments(configured_algorithm_arguments[i].arguments, m_store);
     }
   }
 
@@ -200,19 +198,19 @@ public:
    * @brief Generate the store ref of an algorithm
    */
   std::tuple<
-    std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>,
-    std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>>>
+    std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>,
+    std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>>>
   generate_algorithm_store_ref(const ConfiguredAlgorithmArguments& configured_alg_arguments)
   {
-    std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> store_ref;
-    std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>> input_aggregates;
+    std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> store_ref;
+    std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>> input_aggregates;
 
     for (const auto& argument : configured_alg_arguments.arguments) {
       store_ref.push_back(m_store.at(argument));
     }
 
     for (const auto& conf_input_aggregate : configured_alg_arguments.input_aggregates) {
-      std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> input_aggregate;
+      std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> input_aggregate;
       for (const auto& argument : conf_input_aggregate) {
         input_aggregate.push_back(m_store.at(argument));
       }
@@ -223,13 +221,9 @@ public:
   }
 
   /**
-   * @brief Resets the memory manager.
+   * @brief Free the memory managers.
    */
-  void reset()
-  {
-    host_memory_manager.free_all();
-    device_memory_manager.free_all();
-  }
+  void free_all() { m_store.free_all(); }
 
   // Configure constants for algorithms in the sequence
   void configure_algorithms(const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
@@ -272,21 +266,19 @@ public:
   void run(
     const RuntimeOptions& runtime_options,
     const Constants& constants,
-    HostBuffers* host_buffers,
+    HostBuffers& persistent_buffers,
     const Allen::Context& context)
   {
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
       run(
         m_sequence[i],
-        m_sequence_argument_ref_managers[i],
+        m_sequence_ref_stores[i],
         m_in_dependencies[i],
         m_out_dependencies[i],
-        host_memory_manager,
-        device_memory_manager,
         m_store,
         runtime_options,
         constants,
-        *host_buffers,
+        persistent_buffers,
         context,
         do_print);
     }
@@ -314,8 +306,6 @@ private:
     Allen::TypeErasedAlgorithm& algorithm,
     const LifetimeDependencies& in_dependencies,
     const LifetimeDependencies& out_dependencies,
-    Allen::Store::host_memory_manager_t& host_memory_manager,
-    Allen::Store::device_memory_manager_t& device_memory_manager,
     Allen::Store::UnorderedStore& store,
     bool do_print)
   {
@@ -333,16 +323,19 @@ private:
       info_cout << "Sequence step \"" << algorithm.name() << "\":\n";
     }
 
-    // Free all arguments in OutDependencies
-    Allen::Store::MemoryManagerHelper::free(host_memory_manager, device_memory_manager, store, out_dependencies);
+    // Free arguments in OutDependencies
+    for (const auto& arg : out_dependencies.arguments) {
+      store.free(arg);
+    }
 
     // Reserve all arguments in InDependencies
-    Allen::Store::MemoryManagerHelper::reserve(host_memory_manager, device_memory_manager, store, in_dependencies);
+    for (const auto& arg : in_dependencies.arguments) {
+      store.put(arg);
+    }
 
     // Print memory manager state
     if (do_print) {
-      host_memory_manager.print();
-      device_memory_manager.print();
+      store.print_memory_manager_states();
     }
   }
 
@@ -351,20 +344,18 @@ private:
     std::any& argument_ref_manager,
     const LifetimeDependencies& in_dependencies,
     const LifetimeDependencies& out_dependencies,
-    Allen::Store::host_memory_manager_t& host_memory_manager,
-    Allen::Store::device_memory_manager_t& device_memory_manager,
     Allen::Store::UnorderedStore& store,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
-    HostBuffers& host_buffers,
+    HostBuffers& persistent_buffers,
     const Allen::Context& context,
     bool do_print)
   {
     // Sets the arguments sizes
-    algorithm.set_arguments_size(argument_ref_manager, runtime_options, constants, host_buffers);
+    algorithm.set_arguments_size(argument_ref_manager, runtime_options, constants, persistent_buffers);
 
     // Setup algorithm, reserving / freeing memory buffers
-    setup(algorithm, in_dependencies, out_dependencies, host_memory_manager, device_memory_manager, store, do_print);
+    setup(algorithm, in_dependencies, out_dependencies, store, do_print);
 
     // Run preconditions
     if constexpr (contracts_enabled) {
@@ -373,11 +364,14 @@ private:
 
     try {
       // Invoke the algorithm
-      algorithm.invoke(argument_ref_manager, runtime_options, constants, host_buffers, context);
+      algorithm.invoke(argument_ref_manager, runtime_options, constants, persistent_buffers, context);
     } catch (std::invalid_argument& e) {
       fprintf(stderr, "Execution of algorithm %s raised an exception\n", algorithm.name().c_str());
       throw e;
     }
+
+    // Store persistent buffers
+    // store_persistent_buffers(persistent_buffers);
 
     // Run postconditions
     if constexpr (contracts_enabled) {

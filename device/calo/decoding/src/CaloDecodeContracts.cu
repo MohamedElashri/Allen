@@ -20,12 +20,12 @@ void calo_decode::check_digits::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  const Allen::Context&) const
+  const Allen::Context& context) const
 {
-  const auto event_list = make_vector<Parameters::dev_event_list_t>(arguments);
+  const auto event_list = make_host_buffer<Parameters::dev_event_list_t>(arguments, context);
 
-  const auto ecal_digits = make_vector<Parameters::dev_ecal_digits_t>(arguments);
-  const auto ecal_offsets = make_vector<Parameters::dev_ecal_digits_offsets_t>(arguments);
+  const auto ecal_digits = make_host_buffer<Parameters::dev_ecal_digits_t>(arguments, context);
+  const auto ecal_offsets = make_host_buffer<Parameters::dev_ecal_digits_offsets_t>(arguments, context);
 
   bool ecal_valid = true;
 

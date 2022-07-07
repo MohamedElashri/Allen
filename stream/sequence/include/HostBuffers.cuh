@@ -9,14 +9,6 @@
 #include <AllenBuffer.cuh>
 #include <MemoryManager.cuh>
 
-// Forward declarations
-namespace PV {
-  class Vertex;
-}
-namespace ParKalmanFilter {
-  struct FittedTrack;
-}
-
 struct HostBuffers {
 private:
   // Use a custom memory manager for the host pinned memory used here

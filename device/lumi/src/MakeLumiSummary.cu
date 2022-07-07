@@ -46,7 +46,7 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
     return;
   }
 
-  initialize<dev_lumi_summaries_t>(arguments, 0, context);
+  Allen::memset_async<dev_lumi_summaries_t>(arguments, 0, context);
 
   global_function(make_lumi_summary)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments), size<dev_event_list_t>(arguments));

@@ -32,7 +32,7 @@ void make_long_track_particles::make_long_track_particles_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_long_track_particle_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_long_track_particle_view_t>(arguments, 0, context);
 
   global_function(make_particles)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);

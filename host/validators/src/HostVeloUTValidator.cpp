@@ -11,18 +11,18 @@ void host_velo_ut_validator::host_velo_ut_validator_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  const Allen::Context&) const
+  const Allen::Context& context) const
 {
-  const auto offsets_all_velo_tracks = make_vector<dev_offsets_all_velo_tracks_t>(arguments);
-  const auto offsets_velo_track_hit_number = make_vector<dev_offsets_velo_track_hit_number_t>(arguments);
-  const auto velo_track_hits = make_vector<dev_velo_track_hits_t>(arguments);
-  const auto event_list = make_vector<dev_event_list_t>(arguments);
-  const auto velo_kalman_endvelo_states = make_vector<dev_velo_kalman_endvelo_states_t>(arguments);
-  const auto offsets_ut_tracks = make_vector<dev_offsets_ut_tracks_t>(arguments);
-  const auto offsets_ut_track_hit_number = make_vector<dev_offsets_ut_track_hit_number_t>(arguments);
-  const auto ut_track_hits = make_vector<dev_ut_track_hits_t>(arguments);
-  const auto ut_track_velo_indices = make_vector<dev_ut_track_velo_indices_t>(arguments);
-  const auto ut_qop = make_vector<dev_ut_qop_t>(arguments);
+  const auto offsets_all_velo_tracks = make_host_buffer<dev_offsets_all_velo_tracks_t>(arguments, context);
+  const auto offsets_velo_track_hit_number = make_host_buffer<dev_offsets_velo_track_hit_number_t>(arguments, context);
+  const auto velo_track_hits = make_host_buffer<dev_velo_track_hits_t>(arguments, context);
+  const auto event_list = make_host_buffer<dev_event_list_t>(arguments, context);
+  const auto velo_kalman_endvelo_states = make_host_buffer<dev_velo_kalman_endvelo_states_t>(arguments, context);
+  const auto offsets_ut_tracks = make_host_buffer<dev_offsets_ut_tracks_t>(arguments, context);
+  const auto offsets_ut_track_hit_number = make_host_buffer<dev_offsets_ut_track_hit_number_t>(arguments, context);
+  const auto ut_track_hits = make_host_buffer<dev_ut_track_hits_t>(arguments, context);
+  const auto ut_track_velo_indices = make_host_buffer<dev_ut_track_velo_indices_t>(arguments, context);
+  const auto ut_qop = make_host_buffer<dev_ut_qop_t>(arguments, context);
 
   auto tracks = prepareUTTracks(
     first<host_number_of_events_t>(arguments),

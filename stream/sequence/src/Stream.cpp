@@ -51,12 +51,12 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
       // Initialize selected_number_of_events with requested_number_of_events
       host_buffers->host_number_of_events = event_end - event_start;
 
-      // Reset scheduler
-      scheduler->reset();
+      // Free memory
+      scheduler->free_all();
 
       try {
         // Visit all algorithms in configured sequence
-        scheduler->run(runtime_options, constants, host_buffers, m_context);
+        scheduler->run(runtime_options, constants, *host_buffers, m_context);
 
         // deterministic injection of ~random memory failures
         if (runtime_options.inject_mem_fail > 0) {

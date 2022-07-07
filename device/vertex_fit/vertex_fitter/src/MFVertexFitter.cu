@@ -25,7 +25,7 @@ void MFVertexFit::fit_mf_vertices_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_mf_svs_t>(arguments, 0, context);
+  Allen::memset_async<dev_mf_svs_t>(arguments, 0, context);
 
   global_function(fit_mf_vertices)(dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), context)(
     arguments);

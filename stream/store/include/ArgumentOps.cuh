@@ -13,76 +13,6 @@
 #include "Logger.h"
 #include "AllenBuffer.cuh"
 
-/**
- * @brief Sets the size of a container to the specified size.
- */
-template<typename Arg, typename Args>
-void set_size(Args arguments, const size_t size)
-{
-  arguments.template set_size<Arg>(size);
-}
-
-/**
- * @brief Reduces the size of the container.
- * @details Reducing the size can be done after the data has
- *          been allocated (such as in the operator() of an
- *          algorithm). It reduces the exposed size of an
- *          argument.
- *
- *          Note however that this does not impact the amount
- *          of allocated memory of the container, which remains unchanged.
- */
-template<typename Arg, typename Args>
-void reduce_size(const Args& arguments, const size_t size)
-{
-  arguments.template reduce_size<Arg>(size);
-}
-
-/**
- * @brief Returns the size of a container (length * sizeof(T)).
- */
-template<typename Arg, typename Args>
-size_t size(const Args& arguments)
-{
-  return arguments.template size<Arg>();
-}
-
-/**
- * @brief Returns a pointer to the container with the container type.
- */
-template<typename Arg, typename Args>
-auto* data(const Args& arguments)
-{
-  return arguments.template pointer<Arg>();
-}
-
-/**
- * @brief Returns the first element in the container.
- */
-template<typename Arg, typename Args>
-auto first(const Args& arguments)
-{
-  return arguments.template first<Arg>();
-}
-
-/**
- * @brief Gets the name of a container.
- */
-template<typename Arg, typename Args>
-std::string name(Args arguments)
-{
-  return arguments.template name<Arg>();
-}
-
-/**
- * @brief Fetches an aggregate value.
- */
-template<typename Arg, typename Args>
-auto input_aggregate(const Args& arguments)
-{
-  return arguments.template input_aggregate<Arg>();
-}
-
 namespace Allen {
   /**
    * @brief  Base implementation. Copy of two spans with an Allen context and a kind.
@@ -130,7 +60,7 @@ namespace Allen {
   {
     static_assert(sizeof(typename A::type) == sizeof(typename B::type));
 
-    const auto elements_to_copy = count == 0 ? size<B>(arguments) : count;
+    const auto elements_to_copy = count == 0 ? arguments.template size<B>() : count;
     const Allen::memcpy_kind kind = []() {
       if constexpr (
         std::is_base_of_v<Allen::Store::host_datatype, A> && std::is_base_of_v<Allen::Store::host_datatype, B>)
@@ -146,13 +76,7 @@ namespace Allen {
     }();
 
     Allen::copy_async(
-      gsl::span {data<A>(arguments), size<A>(arguments)},
-      gsl::span {data<B>(arguments), size<B>(arguments)},
-      context,
-      kind,
-      elements_to_copy,
-      offset_a,
-      offset_b);
+      arguments.template get<A>(), arguments.template get<B>(), context, kind, elements_to_copy, offset_a, offset_b);
   }
 
   /**
@@ -199,18 +123,18 @@ namespace Allen {
   template<typename T, typename Args>
   void memset_async(
     const Args& arguments,
-    const Allen::Context& context,
     const int value,
+    const Allen::Context& context,
     const size_t count = 0,
     const size_t offset = 0)
   {
-    assert(count <= size<T>(arguments) - offset);
+    assert(count == 0 || count <= arguments.template size<T>() - offset);
 
-    const auto s = count == 0 ? size<T>(arguments) - offset : count;
+    const auto s = count == 0 ? arguments.template size<T>() - offset : count;
     if constexpr (std::is_base_of_v<Allen::Store::host_datatype, T>)
-      std::memset(data<T>(arguments) + offset, value, s * sizeof(typename T::type));
+      std::memset(arguments.template data<T>() + offset, value, s * sizeof(typename T::type));
     else
-      Allen::memset_async(data<T>(arguments) + offset, value, s * sizeof(typename T::type), context);
+      Allen::memset_async(arguments.template data<T>() + offset, value, s * sizeof(typename T::type), context);
   }
 
   /**
@@ -219,12 +143,12 @@ namespace Allen {
   template<typename T, typename Args>
   void memset(
     const Args& arguments,
-    const Allen::Context& context,
     const int value,
+    const Allen::Context& context,
     const size_t count = 0,
     const size_t offset = 0)
   {
-    memset_async<T>(arguments, context, value, count, offset);
+    memset_async<T>(arguments, value, context, count, offset);
     if constexpr (!std::is_base_of_v<Allen::Store::host_datatype, T>) {
       synchronize(context);
     }
@@ -233,38 +157,59 @@ namespace Allen {
   /**
    * @brief Copies asynchronously a datatype onto an Allen::buffer.
    */
-  template<typename B, typename A, typename Args>
+  template<typename B, Allen::Store::Scope A, typename Args>
   void copy_async(Allen::buffer<A, typename B::type>& buffer, const Args& arguments, const Allen::Context& context)
   {
-    if (buffer.size() < size<B>(arguments)) {
-      buffer.resize(size<B>(arguments));
+    if (buffer.size() < arguments.template size<B>()) {
+      buffer.resize(arguments.template size<B>());
     }
 
     const Allen::memcpy_kind kind = []() {
-      if constexpr (
-        std::is_same_v<Allen::Store::memory_manager_details::Host, A> &&
-        std::is_base_of_v<Allen::Store::host_datatype, B>)
+      if constexpr (Allen::Store::Scope::Host == A && std::is_base_of_v<Allen::Store::host_datatype, B>)
         return Allen::memcpyHostToHost;
-      else if constexpr (
-        std::is_same_v<Allen::Store::memory_manager_details::Host, A> &&
-        std::is_base_of_v<Allen::Store::device_datatype, B>)
+      else if constexpr (Allen::Store::Scope::Host == A && std::is_base_of_v<Allen::Store::device_datatype, B>)
         return Allen::memcpyDeviceToHost;
-      else if constexpr (
-        std::is_same_v<Allen::Store::memory_manager_details::Device, A> &&
-        std::is_base_of_v<Allen::Store::host_datatype, B>)
+      else if constexpr (Allen::Store::Scope::Device == A && std::is_base_of_v<Allen::Store::host_datatype, B>)
         return Allen::memcpyHostToDevice;
       else
         return Allen::memcpyDeviceToDevice;
     }();
 
-    copy_async(buffer.to_span(), gsl::span {data<B>(arguments), size<B>(arguments)}, context, kind);
+    copy_async(buffer.to_span(), arguments.template get<B>(), context, kind);
   }
 
-  template<typename B, typename A, typename Args>
+  template<typename B, Store::Scope A, typename Args>
   void copy(Allen::buffer<A, typename B::type>& buffer, const Args& arguments, const Allen::Context& context)
   {
     copy_async<B, A, Args>(buffer, arguments, context);
     synchronize(context);
+  }
+
+  /**
+   * @brief Transfer data to the device, populating raw banks and offsets.
+   */
+  template<class DATA_ARG, class OFFSET_ARG, class SIZE_ARG, class TYPES_ARG, class ARGUMENTS>
+  void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const Allen::Context& context)
+  {
+    auto offset = args.template data<DATA_ARG>();
+    for (gsl::span<char const> data_span : bno.fragments) {
+      Allen::memcpy_async(offset, data_span.data(), data_span.size_bytes(), Allen::memcpyHostToDevice, context);
+      offset += data_span.size_bytes();
+    }
+    assert(static_cast<size_t>(offset - args.template data<DATA_ARG>()) == bno.fragments_mem_size);
+
+    Allen::memcpy_async(
+      args.template data<SIZE_ARG>(), bno.sizes.data(), bno.sizes.size_bytes(), Allen::memcpyHostToDevice, context);
+
+    Allen::memcpy_async(
+      args.template data<TYPES_ARG>(), bno.types.data(), bno.types.size_bytes(), Allen::memcpyHostToDevice, context);
+
+    Allen::memcpy_async(
+      args.template data<OFFSET_ARG>(),
+      bno.offsets.data(),
+      bno.offsets.size_bytes(),
+      Allen::memcpyHostToDevice,
+      context);
   }
 
   namespace aggregate {
@@ -279,8 +224,8 @@ namespace Allen {
       int fill_value = 0,
       int fill_count = 1)
     {
-      auto container = gsl::span {data<A>(arguments), size<A>(arguments)};
-      auto aggregate = input_aggregate<B>(arguments);
+      auto container = arguments.template get<A>();
+      auto aggregate = arguments.template input_aggregate<B>();
 
       const Allen::memcpy_kind kind = []() {
         if constexpr (
@@ -299,229 +244,169 @@ namespace Allen {
       unsigned container_offset = 0;
       for (size_t i = 0; i < aggregate.size_of_aggregate(); ++i) {
         if (aggregate.size(i) > 0) {
-          Allen::copy_async(container, aggregate.span(i), context, kind, aggregate.size(i), container_offset);
+          Allen::copy_async(container, aggregate.get(i), context, kind, aggregate.size(i), container_offset);
           container_offset += aggregate.size(i);
         }
         else if (fill_if_empty_container) {
-          Allen::memset_async<A>(arguments, context, fill_value, fill_count, container_offset);
+          Allen::memset_async<A>(arguments, fill_value, context, fill_count, container_offset);
           container_offset += fill_count;
         }
       }
     }
   } // namespace aggregate
-} // namespace Allen
 
-// SFINAE for single argument functions, like initialization and print of host / device parameters
-template<typename Arg, typename Args, typename Enabled = void>
-struct SingleArgumentOverloadResolution;
-
-template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<
-  Arg,
-  Args,
-  typename std::enable_if<
-    std::is_base_of<Allen::Store::host_datatype, Arg>::value &&
-    (std::is_same<typename Arg::type, bool>::value || std::is_same<typename Arg::type, char>::value ||
-     std::is_same<typename Arg::type, unsigned char>::value ||
-     std::is_same<typename Arg::type, signed char>::value)>::type> {
-  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&)
-  {
-    std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
-  }
-
-  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&, const int)
-  {
-    std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
-  }
-
-  static void print(const Args& arguments)
-  {
-    const auto array = data<Arg>(arguments);
-
-    info_cout << name<Arg>(arguments) << ": ";
-    for (unsigned i = 0; i < size<Arg>(arguments); ++i) {
-      info_cout << ((int) array[i]) << ", ";
+  /**
+   * @brief A collection of operations that operate on arguments.
+   */
+  struct ArgumentOperations {
+    /**
+     * @brief Sets the size of a container to the specified size.
+     */
+    template<typename Arg, typename Args>
+    static void set_size(Args arguments, const size_t size)
+    {
+      arguments.template set_size<Arg>(size);
     }
-    info_cout << "\n";
-  }
-};
 
-template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<
-  Arg,
-  Args,
-  std::enable_if_t<
-    std::is_base_of_v<Allen::Store::host_datatype, Arg> &&
-    !(std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
-      std::is_same_v<typename Arg::type, uint8_t> || std::is_same_v<typename Arg::type, int8_t>)>> {
-  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context&)
-  {
-    std::memset(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type));
-  }
-
-  /**
-   * @brief Asynchronous make_vector.
-   */
-  static auto make_vector(const Args& arguments, const Allen::Context& context)
-  {
-    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
-    Allen::memcpy_async(
-      v.data(),
-      data<Arg>(arguments),
-      size<Arg>(arguments) * sizeof(typename Arg::type),
-      Allen::memcpyHostToHost,
-      context);
-    return v;
-  }
-
-  /**
-   * @brief Synchronous make_vector.
-   */
-  static auto make_vector(const Args& arguments)
-  {
-    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
-    Allen::memcpy(
-      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyHostToHost);
-    return v;
-  }
-
-  static void print(const Args& arguments)
-  {
-    const auto array = data<Arg>(arguments);
-
-    info_cout << name<Arg>(arguments) << ": ";
-    for (unsigned i = 0; i < size<Arg>(arguments); ++i) {
-      info_cout << array[i] << ", ";
+    /**
+     * @brief Reduces the size of the container.
+     * @details Reducing the size can be done after the data has
+     *          been allocated (such as in the operator() of an
+     *          algorithm). It reduces the exposed size of an
+     *          argument.
+     *
+     *          Note however that this does not impact the amount
+     *          of allocated memory of the container, which remains unchanged.
+     */
+    template<typename Arg, typename Args>
+    static void reduce_size(const Args& arguments, const size_t size)
+    {
+      arguments.template reduce_size<Arg>(size);
     }
-    info_cout << "\n";
-  }
-};
 
-template<typename Arg, typename Args>
-struct SingleArgumentOverloadResolution<
-  Arg,
-  Args,
-  std::enable_if_t<std::is_base_of_v<Allen::Store::device_datatype, Arg>>> {
-  constexpr static void initialize(const Args& arguments, const int value, const Allen::Context& context)
-  {
-    Allen::memset_async(data<Arg>(arguments), value, size<Arg>(arguments) * sizeof(typename Arg::type), context);
-  }
+    /**
+     * @brief Returns a span to the container.
+     */
+    template<typename Arg, typename Args>
+    static auto get(const Args& arguments)
+    {
+      return arguments.template get<Arg>();
+    }
 
-  /**
-   * @brief Asynchronous make_vector.
-   */
-  static auto make_vector(const Args& arguments, const Allen::Context& context)
-  {
-    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
-    Allen::memcpy_async(
-      v.data(),
-      data<Arg>(arguments),
-      size<Arg>(arguments) * sizeof(typename Arg::type),
-      Allen::memcpyDeviceToHost,
-      context);
-    return v;
-  }
+    /**
+     * @brief Returns the size of a container (length * sizeof(T)).
+     */
+    template<typename Arg, typename Args>
+    static auto size(const Args& arguments)
+    {
+      return arguments.template size<Arg>();
+    }
 
-  /**
-   * @brief Synchronous make_vector.
-   */
-  static auto make_vector(const Args& arguments)
-  {
-    Allen::pinned_vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
-    Allen::memcpy(
-      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
-    return v;
-  }
+    /**
+     * @brief Returns a pointer to the container with the container type.
+     */
+    template<typename Arg, typename Args>
+    static auto data(const Args& arguments)
+    {
+      return arguments.template data<Arg>();
+    }
 
-  static void print(const Args& arguments)
-  {
-    std::vector<Allen::bool_as_char_t<typename Arg::type>> v(size<Arg>(arguments));
-    Allen::memcpy(
-      v.data(), data<Arg>(arguments), size<Arg>(arguments) * sizeof(typename Arg::type), Allen::memcpyDeviceToHost);
+    /**
+     * @brief Returns the first element in the container.
+     */
+    template<typename Arg, typename Args>
+    static auto first(const Args& arguments)
+    {
+      return arguments.template first<Arg>();
+    }
 
-    info_cout << name<Arg>(arguments) << ": ";
-    for (const auto& i : v) {
-      if constexpr (
-        std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
-        std::is_same_v<typename Arg::type, unsigned char> || std::is_same_v<typename Arg::type, signed char>) {
-        info_cout << static_cast<int>(i) << ", ";
+    /**
+     * @brief Gets the name of a container.
+     */
+    template<typename Arg, typename Args>
+    static auto name(Args arguments)
+    {
+      return arguments.template name<Arg>();
+    }
+
+    /**
+     * @brief Fetches an aggregate value.
+     */
+    template<typename Arg, typename Args>
+    static auto input_aggregate(const Args& arguments)
+    {
+      return arguments.template input_aggregate<Arg>();
+    }
+
+    template<typename T, typename Args>
+    static auto make_host_buffer(const Args& arguments, const size_t size)
+    {
+      return arguments.template make_buffer<Allen::Store::Scope::Host, T>(size);
+    }
+
+    template<typename T, typename Args>
+    static auto make_device_buffer(const Args& arguments, const size_t size)
+    {
+      return arguments.template make_buffer<Allen::Store::Scope::Device, T>(size);
+    }
+
+    template<typename Arg, typename Args>
+    static auto make_host_buffer(const Args& arguments, const Allen::Context& context)
+    {
+      auto buffer =
+        arguments.template make_buffer<Allen::Store::Scope::Host, typename Arg::type>(arguments.template size<Arg>());
+      Allen::copy<Arg>(buffer, arguments, context);
+      return buffer;
+    }
+
+    template<typename Arg, typename Args>
+    static auto make_device_buffer(const Args& arguments, const Allen::Context& context)
+    {
+      auto buffer =
+        arguments.template make_buffer<Allen::Store::Scope::Device, typename Arg::type>(arguments.template size<Arg>());
+      Allen::copy<Arg>(buffer, arguments, context);
+      return buffer;
+    }
+
+    /**
+     * @brief Prints the value of an argument.
+     * @details On the host, a mere loop and a print statement is done.
+     *          On the device, a Allen::memcpy is used to first copy the data onto a std::vector.
+     *          Note that as a consequence of this, printing device variables results in a
+     *          considerable slowdown.
+     */
+    template<typename Arg, typename Args>
+    static void print(const Args& arguments)
+    {
+      if constexpr (std::is_base_of_v<Allen::Store::host_datatype, Arg>) {
+        const auto data = arguments.template get<Arg>();
+        info_cout << arguments.template name<Arg>() << ": ";
+        for (unsigned i = 0; i < data.size(); ++i) {
+          info_cout << ((int) data[i]) << ", ";
+        }
+        info_cout << "\n";
       }
       else {
-        info_cout << i << ", ";
+        std::vector<Allen::bool_as_char_t<typename Arg::type>> v(arguments.template size<Arg>());
+        Allen::memcpy(
+          v.data(),
+          arguments.template data<Arg>(),
+          arguments.template size<Arg>() * sizeof(typename Arg::type),
+          Allen::memcpyDeviceToHost);
+
+        info_cout << arguments.template name<Arg>() << ": ";
+        for (const auto& i : v) {
+          if constexpr (
+            std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
+            std::is_same_v<typename Arg::type, unsigned char> || std::is_same_v<typename Arg::type, signed char>) {
+            info_cout << static_cast<int>(i) << ", ";
+          }
+          else {
+            info_cout << i << ", ";
+          }
+        }
+        info_cout << "\n";
       }
     }
-    info_cout << "\n";
-  }
-};
-
-/**
- * @brief Initializes a datatype with the value specified.
- *        Can be used to either initialize values on the host or on the device.
- * @details On the host, this resolves to a std::memset.
- *          On the device, this resolves to a Allen::memset_async. No synchronization
- *          is performed after the initialization.
- */
-template<typename Arg, typename Args>
-void initialize(const Args& arguments, const int value, const Allen::Context& context)
-{
-  SingleArgumentOverloadResolution<Arg, Args>::initialize(arguments, value, context);
-}
-
-/**
- * @brief Prints the value of an argument.
- * @details On the host, a mere loop and a print statement is done.
- *          On the device, a Allen::memcpy is used to first copy the data onto a std::vector.
- *          Note that as a consequence of this, printing device variables results in a
- *          considerable slowdown.
- */
-template<typename Arg, typename Args>
-void print(const Args& arguments)
-{
-  SingleArgumentOverloadResolution<Arg, Args>::print(arguments);
-}
-
-/**
- * @brief Transfer data to the device, populating raw banks and offsets.
- */
-template<class DATA_ARG, class OFFSET_ARG, class SIZE_ARG, class TYPES_ARG, class ARGUMENTS>
-void data_to_device(ARGUMENTS const& args, BanksAndOffsets const& bno, const Allen::Context& context)
-{
-  auto offset = data<DATA_ARG>(args);
-  for (gsl::span<char const> data_span : bno.fragments) {
-    Allen::memcpy_async(offset, data_span.data(), data_span.size_bytes(), Allen::memcpyHostToDevice, context);
-    offset += data_span.size_bytes();
-  }
-  assert(static_cast<size_t>(offset - data<DATA_ARG>(args)) == bno.fragments_mem_size);
-
-  Allen::memcpy_async(
-    data<SIZE_ARG>(args), bno.sizes.data(), bno.sizes.size_bytes(), Allen::memcpyHostToDevice, context);
-
-  Allen::memcpy_async(
-    data<TYPES_ARG>(args), bno.types.data(), bno.types.size_bytes(), Allen::memcpyHostToDevice, context);
-
-  Allen::memcpy_async(
-    data<OFFSET_ARG>(args), bno.offsets.data(), bno.offsets.size_bytes(), Allen::memcpyHostToDevice, context);
-}
-
-/**
- * @brief Makes a std::vector out of an Allen container.
- * @details The copy function here is asynchronous. The only small caveat of this
- *          function is the requirement to dynamically allocate a buffer on the host.
- */
-template<typename Arg, typename Args>
-auto make_vector(const Args& arguments, const Allen::Context& context)
-{
-  return SingleArgumentOverloadResolution<Arg, Args>::make_vector(arguments, context);
-}
-
-/**
- * @brief Makes a std::vector out of an Allen container.
- * @details This copy mechanism to create a std::vector is blocking and synchronous.
- *          This function should only be used where the performance of the application
- *          is irrelevant.
- */
-template<typename Arg, typename Args>
-auto make_vector(const Args& arguments)
-{
-  return SingleArgumentOverloadResolution<Arg, Args>::make_vector(arguments);
-}
+  };
+} // namespace Allen

@@ -48,7 +48,7 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_number_of_candidates_t>(arguments, 0, context);
+  Allen::memset_async<dev_number_of_candidates_t>(arguments, 0, context);
 
   // Enough blocks to cover all events
   const auto grid_size =

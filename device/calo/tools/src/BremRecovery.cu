@@ -26,11 +26,11 @@ void brem_recovery::brem_recovery_t::operator()(
   HostBuffers&,
   Allen::Context const& context) const
 {
-  initialize<dev_brem_E_t>(arguments, 0, context);
-  initialize<dev_brem_ET_t>(arguments, 0, context);
-  initialize<dev_brem_inECALacc_t>(arguments, 0, context);
-  initialize<dev_brem_ecal_digits_size_t>(arguments, 0, context);
-  initialize<dev_brem_ecal_digits_t>(arguments, 0, context);
+  Allen::memset_async<dev_brem_E_t>(arguments, 0, context);
+  Allen::memset_async<dev_brem_ET_t>(arguments, 0, context);
+  Allen::memset_async<dev_brem_inECALacc_t>(arguments, 0, context);
+  Allen::memset_async<dev_brem_ecal_digits_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_brem_ecal_digits_t>(arguments, 0, context);
 
   global_function(brem_recovery)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_ecal_geometry);

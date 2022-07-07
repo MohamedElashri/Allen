@@ -26,7 +26,7 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_number_of_three_hit_tracks_output_t>(arguments, 0, context);
+  Allen::memset_async<dev_number_of_three_hit_tracks_output_t>(arguments, 0, context);
 
   global_function(velo_three_hit_tracks_filter)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
     arguments);
@@ -36,7 +36,7 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
     print_velo_three_hit_tracks<
       dev_three_hit_tracks_output_t,
       dev_number_of_three_hit_tracks_output_t,
-      dev_offsets_estimated_input_size_t>(arguments);
+      dev_offsets_estimated_input_size_t>(arguments, context);
   }
 }
 

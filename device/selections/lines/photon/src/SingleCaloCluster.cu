@@ -70,11 +70,11 @@ void single_calo_cluster_line::single_calo_cluster_line_t::init_monitor(
   const Allen::Context& context) const
 {
 
-  initialize<dev_clusters_x_t>(arguments, -1, context);
-  initialize<dev_clusters_y_t>(arguments, -1, context);
-  initialize<dev_clusters_Et_t>(arguments, -1, context);
-  initialize<dev_clusters_Eta_t>(arguments, -1, context);
-  initialize<dev_clusters_Phi_t>(arguments, -1, context);
+  Allen::memset_async<dev_clusters_x_t>(arguments, -1, context);
+  Allen::memset_async<dev_clusters_y_t>(arguments, -1, context);
+  Allen::memset_async<dev_clusters_Et_t>(arguments, -1, context);
+  Allen::memset_async<dev_clusters_Eta_t>(arguments, -1, context);
+  Allen::memset_async<dev_clusters_Phi_t>(arguments, -1, context);
 }
 
 __device__ void single_calo_cluster_line::single_calo_cluster_line_t::monitor(

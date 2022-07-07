@@ -80,7 +80,7 @@ void calo_seed_clusters::calo_seed_clusters_t::operator()(
   HostBuffers&,
   Allen::Context const& context) const
 {
-  initialize<dev_ecal_num_clusters_t>(arguments, 0, context);
+  Allen::memset_async<dev_ecal_num_clusters_t>(arguments, 0, context);
 
   // Find local maxima.
   global_function(calo_seed_clusters)(

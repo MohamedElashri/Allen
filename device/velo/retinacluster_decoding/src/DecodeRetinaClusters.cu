@@ -310,8 +310,8 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
     throw StrException("Velo bank version not supported (" + std::to_string(bank_version) + ")");
   }
 
-  initialize<dev_module_cluster_num_t>(arguments, 0, context);
-  initialize<dev_offsets_module_pair_cluster_t>(arguments, 0, context);
+  Allen::memset_async<dev_module_cluster_num_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_module_pair_cluster_t>(arguments, 0, context);
 
   const auto grid_dim_x = (size<dev_module_cluster_num_t>(arguments) +
                            Velo::Tracking::block_dim_x_populate_module_pair_offsets_and_sizes - 1) /
@@ -339,6 +339,6 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
       dev_offsets_module_pair_cluster_t,
       dev_module_cluster_num_t,
       host_total_number_of_velo_clusters_t,
-      host_number_of_events_t>(arguments);
+      host_number_of_events_t>(arguments, context);
   }
 }

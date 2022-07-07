@@ -33,10 +33,38 @@ namespace {
   // Creates a std::array store out of the vector one
   template<std::size_t... Is>
   auto create_store_ref(
-    const std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>& vector_store_ref,
+    const std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>& vector_store_ref,
     std::index_sequence<Is...>)
   {
     return std::array {vector_store_ref[Is]...};
+  }
+
+  template<typename T, std::size_t I>
+  bool emplace_output_arg(const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store)
+  {
+    using t = std::tuple_element_t<I, T>;
+    if constexpr (Allen::is_template_base_of_v<Allen::Store::output_datatype, t>) {
+      store.register_entry(
+        arguments[I],
+        Allen::Store::AllenArgument {std::in_place_type<typename t::type>,
+                                     arguments[I],
+                                     std::is_base_of_v<Allen::Store::host_datatype, t> ? Allen::Store::Scope::Host :
+                                                                                         Allen::Store::Scope::Device});
+    }
+    else {
+      _unused(arguments);
+      _unused(store);
+    }
+    return true;
+  }
+
+  template<typename T, std::size_t... Is>
+  void emplace_output_argument(
+    const std::vector<std::string>& arguments,
+    Allen::Store::UnorderedStore& store,
+    std::index_sequence<Is...>)
+  {
+    (emplace_output_arg<T, Is>(arguments, store) && ...);
   }
 } // namespace
 
@@ -78,10 +106,11 @@ namespace Allen {
   class TypeErasedAlgorithm {
     struct vtable {
       std::string (*name)(void const*) = nullptr;
-      std::any (*create_arg_ref_manager)(
+      std::any (*create_ref_store)(
         const std::string&,
-        std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>,
-        std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>>) = nullptr;
+        std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>,
+        std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>>,
+        Allen::Store::UnorderedStore&) = nullptr;
       void (*set_arguments_size)(void*, std::any&, const RuntimeOptions&, const Constants&, const HostBuffers&) =
         nullptr;
       void (
@@ -104,6 +133,8 @@ namespace Allen {
         const RuntimeOptions& runtime_options,
         const Constants& constants,
         const Allen::Context& context) = nullptr;
+      void (*emplace_output_arguments)(const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store) =
+        nullptr;
     };
 
     void* instance = nullptr;
@@ -120,22 +151,23 @@ namespace Allen {
         [](void const* p) { return static_cast<ALGORITHM const*>(p)->name(); },
         [](
           const std::string& name,
-          std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> vector_store_ref,
-          std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>> input_aggregates) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
-          using store_ref_t = typename arg_ref_mgr_t::store_ref_t;
-          using input_aggregates_t = typename arg_ref_mgr_t::input_aggregates_t;
-          if (std::tuple_size_v<store_ref_t> != vector_store_ref.size()) {
+          std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> vector_store_ref,
+          std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>> input_aggregates,
+          Allen::Store::UnorderedStore& store) {
+          using store_ref_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
+          using arguments_t = typename store_ref_t::arguments_t;
+          using input_aggregates_t = typename store_ref_t::input_aggregates_t;
+          if (std::tuple_size_v<arguments_t> != vector_store_ref.size()) {
             throw std::runtime_error(
               "algorithm " + name +
               " received an unexpected number of arguments: " + std::to_string(vector_store_ref.size()) +
-              " were passed, while the store expects " + std::to_string(std::tuple_size_v<store_ref_t>));
+              " were passed, while the store expects " + std::to_string(std::tuple_size_v<arguments_t>));
           }
           auto store_ref =
-            create_store_ref(vector_store_ref, std::make_index_sequence<std::tuple_size_v<store_ref_t>> {});
+            create_store_ref(vector_store_ref, std::make_index_sequence<std::tuple_size_v<arguments_t>> {});
           auto input_agg_store = input_aggregates_t {Allen::Store::gen_input_aggregates_tuple(
             input_aggregates, std::make_index_sequence<std::tuple_size_v<input_aggregates_t>> {})};
-          return std::any {arg_ref_mgr_t {store_ref, input_agg_store}};
+          return std::any {store_ref_t {store_ref, input_agg_store, store}};
         },
         [](
           void* p,
@@ -143,9 +175,9 @@ namespace Allen {
           const RuntimeOptions& runtime_options,
           const Constants& constants,
           const HostBuffers& host_buffers) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
+          using store_ref_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           static_cast<ALGORITHM*>(p)->set_arguments_size(
-            std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, host_buffers);
+            std::any_cast<store_ref_t&>(arg_ref_manager), runtime_options, constants, host_buffers);
         },
         [](
           const void* p,
@@ -154,9 +186,9 @@ namespace Allen {
           const Constants& constants,
           HostBuffers& host_buffers,
           const Allen::Context& context) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
+          using store_ref_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           static_cast<ALGORITHM const*>(p)->operator()(
-            std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, host_buffers, context);
+            std::any_cast<store_ref_t&>(arg_ref_manager), runtime_options, constants, host_buffers, context);
         },
         [](void* p) {
           if constexpr (Allen::has_init_member_fn<ALGORITHM>::value) {
@@ -178,7 +210,7 @@ namespace Allen {
           const RuntimeOptions& runtime_options,
           const Constants& constants,
           const Allen::Context& context) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
+          using store_ref_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           using preconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::preconditions;
           if constexpr (std::tuple_size_v<preconditions_t>> 0) {
             auto preconditions = preconditions_t {};
@@ -189,7 +221,7 @@ namespace Allen {
             std::apply(
               [&](const auto&... contract) {
                 (std::invoke(
-                   contract, std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, context),
+                   contract, std::any_cast<store_ref_t&>(arg_ref_manager), runtime_options, constants, context),
                  ...);
               },
               preconditions);
@@ -201,7 +233,7 @@ namespace Allen {
           const RuntimeOptions& runtime_options,
           const Constants& constants,
           const Allen::Context& context) {
-          using arg_ref_mgr_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
+          using store_ref_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           using postconditions_t = typename AlgorithmContracts<typename ALGORITHM::contracts>::postconditions;
           if constexpr (std::tuple_size_v<postconditions_t>> 0) {
             auto postconditions = postconditions_t {};
@@ -212,11 +244,16 @@ namespace Allen {
             std::apply(
               [&](const auto&... contract) {
                 (std::invoke(
-                   contract, std::any_cast<arg_ref_mgr_t&>(arg_ref_manager), runtime_options, constants, context),
+                   contract, std::any_cast<store_ref_t&>(arg_ref_manager), runtime_options, constants, context),
                  ...);
               },
               postconditions);
           }
+        },
+        [](const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store) {
+          using parameters_tuple_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType::parameters_tuple_t;
+          ::emplace_output_argument<parameters_tuple_t>(
+            arguments, store, std::make_index_sequence<std::tuple_size_v<parameters_tuple_t>> {});
         }};
     }
     ~TypeErasedAlgorithm() { (table.dtor)(instance); }
@@ -227,11 +264,12 @@ namespace Allen {
     TypeErasedAlgorithm& operator=(TypeErasedAlgorithm&&) = delete;
 
     std::string name() const { return (table.name)(instance); }
-    std::any create_arg_ref_manager(
-      std::vector<std::reference_wrapper<Allen::Store::ArgumentData>> vector_store_ref,
-      std::vector<std::vector<std::reference_wrapper<Allen::Store::ArgumentData>>> input_aggregates)
+    std::any create_ref_store(
+      std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> vector_store_ref,
+      std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>> input_aggregates,
+      Allen::Store::UnorderedStore& store)
     {
-      return (table.create_arg_ref_manager)(name(), std::move(vector_store_ref), std::move(input_aggregates));
+      return (table.create_ref_store)(name(), std::move(vector_store_ref), std::move(input_aggregates), store);
     }
     void set_arguments_size(
       std::any& arg_ref_manager,
@@ -273,6 +311,10 @@ namespace Allen {
     {
       return (table.run_postconditions)(instance, arg_ref_manager, runtime_options, constants, context);
     }
+    void emplace_output_arguments(const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store)
+    {
+      (table.emplace_output_arguments)(arguments, store);
+    }
   };
 
 #if __GNUC__ == 11
@@ -299,8 +341,7 @@ namespace Allen {
    * other algorithms
    *
    */
-  class Algorithm : public BaseAlgorithm {
-  public:
+  struct Algorithm : BaseAlgorithm, ArgumentOperations {
     // Define empty contract container by default
     using contracts = std::tuple<>;
 

@@ -55,7 +55,7 @@ void calculate_number_of_retinaclusters_each_sensor::calculate_number_of_retinac
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_each_sensor_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_each_sensor_size_t>(arguments, 0, context);
 
   global_function(
     runtime_options.mep_layout ? calculate_number_of_retinaclusters_each_sensor_kernel<true> :

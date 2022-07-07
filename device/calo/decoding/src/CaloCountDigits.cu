@@ -43,7 +43,7 @@ void calo_count_digits::calo_count_digits_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_ecal_num_digits_t>(arguments, 0, context);
+  Allen::memset_async<dev_ecal_num_digits_t>(arguments, 0, context);
 
   global_function(calo_count_digits)(dim3(1), dim3(property<block_dim_x_t>().get()), context)(
     arguments, size<dev_event_list_t>(arguments), constants.dev_ecal_geometry);

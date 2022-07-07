@@ -31,7 +31,7 @@ void make_subbanks::make_subbanks_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_rb_substr_t>(arguments, 0, context);
+  Allen::memset_async<dev_rb_substr_t>(arguments, 0, context);
   global_function(make_rb_substr)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments));
 

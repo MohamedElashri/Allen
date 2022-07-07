@@ -25,7 +25,7 @@ struct TwoTrackLine : public Line<Derived, Parameters> {
 
   static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
   {
-    return first<typename Parameters::host_number_of_svs_t>(arguments);
+    return arguments.template first<typename Parameters::host_number_of_svs_t>();
   }
 
   __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)

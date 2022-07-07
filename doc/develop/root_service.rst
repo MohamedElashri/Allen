@@ -42,8 +42,8 @@ Now we can put a `init_monitor` function in order to initialize the values for o
 .. code-block:: c++
 
    void kstopipi_line::kstopipi_line_t::init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context){
-     initialize<dev_sv_masses_t>(arguments, -1, context);
-     initialize<dev_pt_t>(arguments, -1, context);
+     Allen::memset_async<dev_sv_masses_t>(arguments, -1, context);
+     Allen::memset_async<dev_pt_t>(arguments, -1, context);
    }
 
 Then we set up the `monitor` function that will be handled by the kernel in order to retrieve the information that we want to monitor:

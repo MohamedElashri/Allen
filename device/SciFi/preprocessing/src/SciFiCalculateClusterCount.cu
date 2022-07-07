@@ -98,7 +98,7 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_scifi_hit_count_t>(arguments, 0, context);
+  Allen::memset_async<dev_scifi_hit_count_t>(arguments, 0, context);
 
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 

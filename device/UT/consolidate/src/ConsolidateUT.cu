@@ -72,8 +72,8 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_ut_multi_event_tracks_view_t>(arguments, 0, context);
-  initialize<dev_ut_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_ut_multi_event_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_ut_tracks_view_t>(arguments, 0, context);
 
   global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
@@ -184,9 +184,10 @@ void ut_consolidate_tracks::lhcb_id_container_checks::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  const Allen::Context&) const
+  const Allen::Context& context) const
 {
-  const auto ut_multi_event_tracks_view = make_vector<Parameters::dev_ut_multi_event_tracks_view_t>(arguments);
+  const auto ut_multi_event_tracks_view =
+    make_host_buffer<Parameters::dev_ut_multi_event_tracks_view_t>(arguments, context);
   const Allen::Views::UT::Consolidated::MultiEventTracks* multiev_id_cont =
     reinterpret_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(ut_multi_event_tracks_view.data());
 

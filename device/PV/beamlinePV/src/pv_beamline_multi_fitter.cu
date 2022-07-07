@@ -22,7 +22,7 @@ void pv_beamline_multi_fitter::pv_beamline_multi_fitter_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_number_of_multi_fit_vertices_t>(arguments, 0, context);
+  Allen::memset_async<dev_number_of_multi_fit_vertices_t>(arguments, 0, context);
 
   const auto block_dimension = dim3(warp_size, property<block_dim_y_t>());
   global_function(pv_beamline_multi_fitter)(dim3(size<dev_event_list_t>(arguments)), block_dimension, context)(

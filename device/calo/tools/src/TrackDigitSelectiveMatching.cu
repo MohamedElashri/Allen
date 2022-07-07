@@ -27,12 +27,12 @@ void track_digit_selective_matching::track_digit_selective_matching_t::operator(
   HostBuffers&,
   Allen::Context const& context) const
 {
-  initialize<dev_matched_ecal_energy_t>(arguments, 0, context);
-  initialize<dev_matched_ecal_digits_t>(arguments, 0, context);
-  initialize<dev_matched_ecal_digits_size_t>(arguments, 0, context);
-  initialize<dev_track_inEcalAcc_t>(arguments, 0, context);
-  initialize<dev_track_Eop_t>(arguments, 0, context);
-  initialize<dev_track_isElectron_t>(arguments, 0, context);
+  Allen::memset_async<dev_matched_ecal_energy_t>(arguments, 0, context);
+  Allen::memset_async<dev_matched_ecal_digits_t>(arguments, 0, context);
+  Allen::memset_async<dev_matched_ecal_digits_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_track_inEcalAcc_t>(arguments, 0, context);
+  Allen::memset_async<dev_track_Eop_t>(arguments, 0, context);
+  Allen::memset_async<dev_track_isElectron_t>(arguments, 0, context);
 
   global_function(track_digit_selective_matching)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_ecal_geometry);

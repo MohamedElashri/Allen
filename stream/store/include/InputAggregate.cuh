@@ -11,7 +11,7 @@
 #include "BackendCommon.h"
 #include "Logger.h"
 #include "AllenTypeTraits.h"
-#include "ArgumentData.cuh"
+#include "Argument.cuh"
 
 namespace Allen::Store {
 
@@ -21,14 +21,14 @@ namespace Allen::Store {
   template<typename T>
   struct InputAggregate {
   private:
-    std::vector<std::reference_wrapper<ArgumentData>> m_argument_data_v;
+    std::vector<std::reference_wrapper<BaseArgument>> m_argument_data_v;
 
   public:
     using type = T;
 
     InputAggregate() = default;
 
-    InputAggregate(const std::vector<std::reference_wrapper<ArgumentData>>& argument_data_v) :
+    InputAggregate(const std::vector<std::reference_wrapper<BaseArgument>>& argument_data_v) :
       m_argument_data_v(argument_data_v)
     {}
 
@@ -36,26 +36,17 @@ namespace Allen::Store {
     InputAggregate(Tuple t, std::index_sequence<Is...>) : m_argument_data_v {std::get<Is>(t)...}
     {}
 
-    T* data(const unsigned index) const
+    gsl::span<T> get(const unsigned index) const
     {
       assert(index < m_argument_data_v.size() && "Index is in bounds");
-      auto pointer = m_argument_data_v[index].get().pointer();
-      return reinterpret_cast<T*>(pointer);
+      return m_argument_data_v[index].get();
     }
 
-    T first(const unsigned index) const
-    {
-      assert(index < m_argument_data_v.size() && "Index is in bounds");
-      return data(index)[0];
-    }
+    auto data(const unsigned index) const { return get(index).data(); }
 
-    size_t size(const unsigned index) const
-    {
-      assert(index < m_argument_data_v.size() && "Index is in bounds");
-      return m_argument_data_v[index].get().size();
-    }
+    auto first(const unsigned index) const { return get(index)[0]; }
 
-    gsl::span<T> span(const unsigned index) const { return {data(index), size(index)}; }
+    auto size(const unsigned index) const { return get(index).size(); }
 
     std::string name(const unsigned index) const
     {

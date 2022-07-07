@@ -31,7 +31,7 @@ void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_scifi_lf_number_of_found_triplets_t>(arguments, 0, context);
+  Allen::memset_async<dev_scifi_lf_number_of_found_triplets_t>(arguments, 0, context);
 
   global_function(lf_triplet_seeding)(
     dim3(size<dev_event_list_t>(arguments)),

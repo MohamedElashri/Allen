@@ -14,7 +14,7 @@
 #include <cstdio>
 #include <BackendCommon.h>
 #include <Datatype.cuh>
-#include <ArgumentData.cuh>
+#include <Argument.cuh>
 #include <BankTypes.h>
 #include <AllenTypeTraits.h>
 #include <GaudiKernel/StatusCode.h>
@@ -39,34 +39,33 @@ namespace Allen {
   * @brief A TES wrapper. Allen TES objects are stored as std::vectors (of non-boolean types),
             and TES wrappers provide the Allen syntax on top of these.
   */
-  template<typename VECTOR>
-  struct TESWrapperArgumentData : public Store::ArgumentData {
+  template<Store::Kind K, typename T>
+  struct TESWrapperArgument : public Store::BaseArgument {
   private:
-    VECTOR& m_data;
-    std::string m_name;
+    using vector_t = std::conditional_t<K == Store::Kind::Input, const parameter_vector<T>, parameter_vector<T>>;
+    vector_t& m_data;
 
-  public:
-    TESWrapperArgumentData(VECTOR& data, const std::string& name) : m_data(data), m_name(name) {}
-
-    std::string name() const override final { return m_name; }
-
-    void set_name(const std::string& name) override final { m_name = name; }
-
+  protected:
     void* pointer() const override final
     {
-      return const_cast<void*>(reinterpret_cast<forward_type_t<VECTOR, void>*>(m_data.data()));
+      return const_cast<void*>(reinterpret_cast<forward_type_t<vector_t, void>*>(m_data.data()));
     }
+
+    size_t size() const override final { return m_data.size(); }
+
+  public:
+    TESWrapperArgument(vector_t& data, const std::string& name) :
+      Store::BaseArgument {std::in_place_type<T>, name, Store::Scope::Host}, m_data(data)
+    {}
 
     // set_pointer should never used, since vectors are allocated directly with set_size
     void set_pointer(void*) override final { throw; }
-
-    size_t size() const override final { return m_data.size(); }
 
     // set_size resizes the vector of data, when it is an output datatype (not const)
     // If it is invoked on a const vector, it throws
     void set_size([[maybe_unused]] size_t size) override final
     {
-      if constexpr (!std::is_const_v<VECTOR>) {
+      if constexpr (K == Store::Kind::Output) {
         m_data.resize(size);
       }
       else {
@@ -74,22 +73,14 @@ namespace Allen {
         throw;
       }
     }
-
-    size_t sizebytes() const override final { return size() * sizeof(typename VECTOR::value_type); }
-
-    void set_type_size(size_t) override final {}
-
-    Store::Scope scope() const override final { return Store::Scope::Host; }
-
-    void set_scope(Store::Scope) override final { throw; }
   };
 
   // Shortcuts for input / output wrappers
   template<typename T>
-  using TESWrapperInput = TESWrapperArgumentData<const parameter_vector<T>>;
+  using TESWrapperInput = TESWrapperArgument<Store::Kind::Input, T>;
 
   template<typename T>
-  using TESWrapperOutput = TESWrapperArgumentData<parameter_vector<T>>;
+  using TESWrapperOutput = TESWrapperArgument<Store::Kind::Output, T>;
 } // namespace Allen
 
 // Parsers are in namespace LHCb for ADL to work.

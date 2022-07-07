@@ -263,7 +263,7 @@ void gather_selections::gather_selections_t::operator()(
   }
 
   // Save the names of active lines as output
-  initialize<host_names_of_active_lines_t>(arguments, 0, context);
+  Allen::memset_async<host_names_of_active_lines_t>(arguments, 0, context);
   const auto line_names = std::string(property<names_of_active_lines_t>());
   line_names.copy(data<host_names_of_active_lines_t>(arguments), line_names.size());
 
@@ -281,7 +281,7 @@ void gather_selections::gather_selections_t::operator()(
   Allen::copy_async<dev_post_scale_hashes_t, host_post_scale_hashes_t>(arguments, context);
 
   // Initialize output mask size
-  initialize<dev_event_list_output_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_event_list_output_size_t>(arguments, 0, context);
 
   // Run the postscaler
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
@@ -299,7 +299,7 @@ void gather_selections::gather_selections_t::operator()(
   reduce_size<dev_event_list_output_t>(arguments, first<host_event_list_output_size_t>(arguments));
 
   if (property<verbosity_t>() >= logger::debug) {
-    const auto host_selections = make_vector<dev_selections_t>(arguments);
+    const auto host_selections = make_host_buffer<dev_selections_t>(arguments, context);
     Allen::copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 
     Selections::ConstSelections sels {reinterpret_cast<const bool*>(host_selections.data()),

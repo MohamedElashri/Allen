@@ -26,7 +26,7 @@ void ut_search_windows::ut_search_windows_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_ut_windows_layers_t>(arguments, 0, context);
+  Allen::memset_async<dev_ut_windows_layers_t>(arguments, 0, context);
 
   global_function(ut_search_windows)(
     dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::n_layers, property<block_dim_y_t>()), context)(
