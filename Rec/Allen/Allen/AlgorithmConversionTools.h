@@ -39,22 +39,23 @@ namespace Allen {
   * @brief A TES wrapper. Allen TES objects are stored as std::vectors (of non-boolean types),
             and TES wrappers provide the Allen syntax on top of these.
   */
-  template<typename VECTOR>
+  template<Store::Kind K, typename T>
   struct TESWrapperArgument : public Store::BaseArgument {
   private:
-    VECTOR& m_data;
+    using vector_t = std::conditional_t<K == Store::Kind::Input, const parameter_vector<T>, parameter_vector<T>>;
+    vector_t& m_data;
 
   protected:
     void* pointer() const override final
     {
-      return const_cast<void*>(reinterpret_cast<forward_type_t<VECTOR, void>*>(m_data.data()));
+      return const_cast<void*>(reinterpret_cast<forward_type_t<vector_t, void>*>(m_data.data()));
     }
 
     size_t size() const override final { return m_data.size(); }
 
   public:
-    TESWrapperArgument(VECTOR& data, const std::string& name) :
-      Store::BaseArgument {std::in_place_type<typename VECTOR::value_type>, name, Store::Scope::Host}, m_data(data)
+    TESWrapperArgument(vector_t& data, const std::string& name) :
+      Store::BaseArgument {std::in_place_type<T>, name, Store::Scope::Host}, m_data(data)
     {}
 
     // set_pointer should never used, since vectors are allocated directly with set_size
@@ -64,7 +65,7 @@ namespace Allen {
     // If it is invoked on a const vector, it throws
     void set_size([[maybe_unused]] size_t size) override final
     {
-      if constexpr (!std::is_const_v<VECTOR>) {
+      if constexpr (K == Store::Kind::Output) {
         m_data.resize(size);
       }
       else {
@@ -76,10 +77,10 @@ namespace Allen {
 
   // Shortcuts for input / output wrappers
   template<typename T>
-  using TESWrapperInput = TESWrapperArgument<const parameter_vector<T>>;
+  using TESWrapperInput = TESWrapperArgument<Store::Kind::Input, T>;
 
   template<typename T>
-  using TESWrapperOutput = TESWrapperArgument<parameter_vector<T>>;
+  using TESWrapperOutput = TESWrapperArgument<Store::Kind::Output, T>;
 } // namespace Allen
 
 // Parsers are in namespace LHCb for ADL to work.

@@ -14,9 +14,11 @@
 #include <unordered_map>
 #include <typeindex>
 #include <gsl/span>
+#include <stdexcept>
 
 namespace Allen::Store {
-  inline void* magic_cast(std::type_index, std::type_index, void*) { return nullptr; }
+  enum class Scope { Host, Device, Invalid };
+  enum class Kind { Input, Output };
 
   struct VTable {
     void* (*cast_)(std::type_index, void*);
@@ -32,8 +34,10 @@ namespace Allen::Store {
   template<typename T>
   inline void* cast_(std::type_index type, void* self)
   {
-    return type == std::type_index(typeid(T)) ? static_cast<T*>(self) :
-                                                magic_cast(type, std::type_index(typeid(T)), self);
+    if (type != std::type_index(typeid(T))) {
+      throw std::runtime_error{"Incompatible cast requested"};
+    }
+    return static_cast<T*>(self);
   }
 
   template<>
@@ -44,8 +48,6 @@ namespace Allen::Store {
 
   template<typename T>
   inline constexpr VTable const vtable_for = {&cast_<T>, &type_<T>};
-
-  enum class Scope { Host, Device, Invalid };
 
   /**
    * @brief A base type-erased Allen argument, consistent of a vtable, name, scope and type size.

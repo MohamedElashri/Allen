@@ -128,7 +128,7 @@ namespace Allen {
     const size_t count = 0,
     const size_t offset = 0)
   {
-    assert(count <= arguments.template size<T>() - offset);
+    assert(count == 0 || count <= arguments.template size<T>() - offset);
 
     const auto s = count == 0 ? arguments.template size<T>() - offset : count;
     if constexpr (std::is_base_of_v<Allen::Store::host_datatype, T>)
