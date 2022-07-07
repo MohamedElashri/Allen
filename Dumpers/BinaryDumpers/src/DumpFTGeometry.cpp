@@ -113,23 +113,19 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
   vector<float> dzdy;
   vector<float> globaldy;
 
-  // First uniqueMat is 512, save space by subtracting
-  const uint32_t uniqueMatOffset = 512;
-  // PrStoreFTHit.h uses hardcoded 2<<11, which is too much.
-  uint32_t max_uniqueMat = (2 << 10) - uniqueMatOffset;
-  mirrorPointX.resize(max_uniqueMat);
-  mirrorPointY.resize(max_uniqueMat);
-  mirrorPointZ.resize(max_uniqueMat);
-  ddxX.resize(max_uniqueMat);
-  ddxY.resize(max_uniqueMat);
-  ddxZ.resize(max_uniqueMat);
-  uBegin.resize(max_uniqueMat);
-  halfChannelPitch.resize(max_uniqueMat);
-  dieGap.resize(max_uniqueMat);
-  sipmPitch.resize(max_uniqueMat);
-  dxdy.resize(max_uniqueMat);
-  dzdy.resize(max_uniqueMat);
-  globaldy.resize(max_uniqueMat);
+  mirrorPointX.resize(LHCb::Detector::FT::nMatsTotal);
+  mirrorPointY.resize(LHCb::Detector::FT::nMatsTotal);
+  mirrorPointZ.resize(LHCb::Detector::FT::nMatsTotal);
+  ddxX.resize(LHCb::Detector::FT::nMatsTotal);
+  ddxY.resize(LHCb::Detector::FT::nMatsTotal);
+  ddxZ.resize(LHCb::Detector::FT::nMatsTotal);
+  uBegin.resize(LHCb::Detector::FT::nMatsTotal);
+  halfChannelPitch.resize(LHCb::Detector::FT::nMatsTotal);
+  dieGap.resize(LHCb::Detector::FT::nMatsTotal);
+  sipmPitch.resize(LHCb::Detector::FT::nMatsTotal);
+  dxdy.resize(LHCb::Detector::FT::nMatsTotal);
+  dzdy.resize(LHCb::Detector::FT::nMatsTotal);
+  globaldy.resize(LHCb::Detector::FT::nMatsTotal);
 
 #ifdef USE_DD4HEP
   std::array<unsigned, number_of_stations> stations = {0, 1, 2};
@@ -162,7 +158,7 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
           for (unsigned i_mat = 0; i_mat < FT::nMats; ++i_mat) {
             FTChannelID::MatID mat_id {i_mat};
             const auto& mat = mod->findMat(FTChannelID {station_id, layer_id, quarter_id, module_id, mat_id, 0, 0});
-            auto index = mat->elementID().uniqueMat() - uniqueMatOffset;
+            auto index = mat->elementID().globalMatIdx();
             const auto& mirrorPoint = mat->mirrorPoint();
             const auto& ddx = mat->ddx();
             mirrorPointX[index] = mirrorPoint.x();
@@ -207,7 +203,7 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
       number_of_mats,
       number_of_tell40s,
       bank_first_channel,
-      max_uniqueMat,
+      LHCb::Detector::FT::nMatsTotal,
       mirrorPointX,
       mirrorPointY,
       mirrorPointZ,
