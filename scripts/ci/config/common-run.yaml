@@ -17,7 +17,7 @@
         SEQUENCE: ["hlt1_pp_validation"]
         DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
 
-
+ 
 .run_matrix_jobs_full:
   parallel:
     matrix:
@@ -126,6 +126,22 @@
         SEQUENCE: ["hlt1_pp_default"]
         DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1"]
         GEOMETRY: ["upgrade-magdown-sim10-up08-11102202-digi"]
+
+      # run throughput, forward no ut
+      - TEST_NAME: "run_throughput"
+        SEQUENCE: ["hlt1_pp_no_ut"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
+
+      # run physics efficiency, forward no ut, scifi v4
+      - TEST_NAME: "run_physics_efficiency"
+        SEQUENCE: ["hlt1_pp_no_ut_validation"]
+        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
+
+      # run physics efficiency, forward no ut, scifi v6
+      - TEST_NAME: "run_physics_efficiency"
+        SEQUENCE: ["hlt1_pp_no_ut_validation"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1"]
+        GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
 
 
 .run_jobs:

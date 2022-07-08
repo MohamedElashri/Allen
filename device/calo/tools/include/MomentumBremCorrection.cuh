@@ -5,6 +5,7 @@
 
 #include "ParKalmanFittedTrack.cuh"
 #include "AlgorithmTypes.cuh"
+#include "ParticleTypes.cuh"
 
 namespace momentum_brem_correction {
   struct Parameters {
@@ -14,11 +15,8 @@ namespace momentum_brem_correction {
     DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_track_offsets;
     // Velo tracks
     DEVICE_INPUT(dev_velo_tracks_offsets_t, unsigned) dev_velo_tracks_offsets;
-    // UT tracks
-    DEVICE_INPUT(dev_ut_tracks_velo_indices_t, unsigned) dev_ut_tracks_velo_indices;
-    DEVICE_INPUT(dev_ut_tracks_offsets_t, unsigned) dev_ut_tracks_offsets;
     // SciFi tracks
-    DEVICE_INPUT(dev_scifi_tracks_ut_indices_t, unsigned) dev_scifi_tracks_ut_indices;
+    DEVICE_INPUT(dev_scifi_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_scifi_tracks_view;
     // Calo
     DEVICE_INPUT(dev_brem_E_t, float) dev_brem_E;
     DEVICE_INPUT(dev_brem_ET_t, float) dev_brem_ET;

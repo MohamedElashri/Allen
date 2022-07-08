@@ -269,6 +269,8 @@ def make_velo_tracks(decoded_velo):
         velo_consolidate_tracks.dev_accepted_velo_tracks_t,
         "dev_velo_tracks_view":
         velo_consolidate_tracks.dev_velo_tracks_view_t,
+        "dev_imec_velo_tracks":
+        velo_consolidate_tracks.dev_imec_velo_tracks_t,
 
         # Needed for long track particles dependencies.
         "dev_velo_track_view":

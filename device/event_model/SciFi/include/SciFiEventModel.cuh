@@ -10,6 +10,41 @@
 #include "SciFiDefinitions.cuh"
 
 namespace SciFi {
+  // Bitfields to manipulate triplets
+  // Size of lf_triplet must be 64 bits
+  struct lf_triplet {
+    using t = uint32_t;
+
+    unsigned h2_rel : 6;
+    unsigned h1_rel : 6;
+    unsigned h0_rel : 6;
+    unsigned triplet_seed : 1;
+    unsigned left_right_side : 1;
+    unsigned chi2 : 12;
+
+    lf_triplet() = default;
+
+    __host__ __device__ lf_triplet(const t i)
+    {
+      auto* this_t = reinterpret_cast<t*>(this);
+      this_t[0] = i;
+    }
+
+    __host__ __device__ lf_triplet(
+      const unsigned h0,
+      const unsigned h1,
+      const unsigned h2,
+      const unsigned _triplet_seed,
+      const unsigned _left_right_side,
+      const unsigned _chi2) :
+      h2_rel(h2),
+      h1_rel(h1), h0_rel(h0), triplet_seed(_triplet_seed), left_right_side(_left_right_side), chi2(_chi2 >> 3)
+    {}
+
+    __host__ __device__ operator uint32_t() const { return *reinterpret_cast<const t*>(this); }
+  };
+  static_assert(sizeof(lf_triplet) == sizeof(lf_triplet::t));
+
   //----------------------------
   // Struct for hit information.
   //----------------------------
@@ -315,17 +350,20 @@ namespace SciFi {
   struct TrackCandidate {
     float quality = 0.f;
     float qop;
-    uint16_t ut_track_index;
+    uint16_t input_track_index;
     uint16_t hits[SciFi::Constants::max_track_candidate_size];
     uint8_t hitsNum = 0;
 
     TrackCandidate() = default;
     TrackCandidate(const TrackCandidate&) = default;
 
-    __host__ __device__
-    TrackCandidate(const uint16_t h0, const uint16_t h1, const uint16_t param_ut_track_index, const float param_qop) :
+    __host__ __device__ TrackCandidate(
+      const uint16_t h0,
+      const uint16_t h1,
+      const uint16_t param_input_track_index,
+      const float param_qop) :
       quality(0.f),
-      qop(param_qop), ut_track_index(param_ut_track_index), hitsNum(2)
+      qop(param_qop), input_track_index(param_input_track_index), hitsNum(2)
     {
       hits[0] = h0;
       hits[1] = h1;
@@ -351,7 +389,8 @@ namespace SciFi {
   struct TrackHits {
     float quality = 0.f;
     float qop;
-    uint16_t ut_track_index;
+    uint16_t input_track_index;
+    uint16_t charge_seed;
     uint16_t hits[SciFi::Constants::max_track_size];
     uint8_t hitsNum = 0;
 
@@ -360,7 +399,7 @@ namespace SciFi {
     TrackHits& operator=(const TrackHits&) = default;
 
     __host__ __device__ TrackHits(const TrackCandidate& candidate) :
-      quality(candidate.quality), qop(candidate.qop), ut_track_index(candidate.ut_track_index),
+      quality(candidate.quality), qop(candidate.qop), input_track_index(candidate.input_track_index),
       hitsNum(candidate.hitsNum)
     {
       for (int i = 0; i < hitsNum; ++i) {
@@ -374,9 +413,10 @@ namespace SciFi {
       const uint16_t h2,
       const float chi2,
       const float qop,
-      const uint16_t ut_track_index) :
+      const uint16_t input_track_index,
+      const uint16_t charge_seed) :
       quality(chi2),
-      qop(qop), ut_track_index(ut_track_index)
+      qop(qop), input_track_index(input_track_index), charge_seed(charge_seed)
     {
       hitsNum = 3;
       hits[0] = h0;
@@ -393,9 +433,10 @@ namespace SciFi {
       const uint16_t layer_h2,
       const float chi2,
       const float qop,
-      const uint16_t ut_track_index) :
+      const uint16_t input_track_index,
+      const uint16_t charge_seed) :
       quality(chi2),
-      qop(qop), ut_track_index(ut_track_index)
+      qop(qop), input_track_index(input_track_index), charge_seed(charge_seed)
     {
       hitsNum = 3;
       hits[0] = h0;
@@ -446,11 +487,37 @@ namespace SciFi {
         printf(" %i,", hits[i]);
       }
       printf(
-        " qop %f, quality %f, UT track %i", static_cast<double>(qop), static_cast<double>(quality), ut_track_index);
+        " qop %f, quality %f, UT track %i", static_cast<double>(qop), static_cast<double>(quality), input_track_index);
       if (event_number >= 0) {
         printf(" (event %i)", event_number);
       }
       printf("\n");
     }
+  };
+
+  struct LongCheckerTrack {
+    using LHCbID = unsigned;
+    LHCbID allids[42];
+    unsigned total_number_of_hits = 0;
+    unsigned velo_track_index = 0;
+    float p = 0.f, pt = 0.f, rho = 0.f, qop = 0.f;
+  };
+  struct KalmanCheckerTrack {
+    using LHCbID = unsigned;
+    LHCbID allids[42];
+    unsigned total_number_of_hits = 0;
+    unsigned velo_track_index = 0;
+    // Kalman information.
+    float z = 0.f, x = 0.f, y = 0.f, tx = 0.f, ty = 0.f, qop = 0.f;
+    float first_qop = 0.f, best_qop = 0.f;
+    float chi2 = 0.f, chi2V = 0.f, chi2T = 0.f;
+    unsigned ndof = 0, ndofV = 0, ndofT = 0;
+    float kalman_ip = 0.f, kalman_ip_chi2 = 0.f, kalman_ipx = 0.f, kalman_ipy = 0.f;
+    float kalman_docaz = 0.f;
+    float velo_ip = 0.f, velo_ip_chi2 = 0.f, velo_ipx = 0.f, velo_ipy = 0.f;
+    float velo_docaz = 0.f;
+    float long_ip = 0.f, long_ip_chi2 = 0.f, long_ipx = 0.f, long_ipy = 0.f;
+    std::size_t n_matched_total = 0;
+    float p = 0.f, pt = 0.f, rho = 0.f;
   };
 } // namespace SciFi

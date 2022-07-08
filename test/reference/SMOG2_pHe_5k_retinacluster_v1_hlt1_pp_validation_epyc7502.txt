@@ -44,6 +44,7 @@ for P>3GeV,Pt>0.5GeV                              :         7/     1317   0.53% 
 04_long_strange_P>5GeV                            :        55/      116  47.41% ( 48.09%),         0 (  0.00%) clones, pur  99.95%, hit eff  99.83%
 07_long_electrons                                 :        51/      596   8.56% (  9.44%),         1 (  1.92%) clones, pur  99.36%, hit eff  99.84%
 08_long_electrons_P>5GeV                          :        48/      336  14.29% ( 14.25%),         1 (  2.04%) clones, pur  99.32%, hit eff  99.83%
+long_P>5GeV_AND_Pt>1GeV                           :       210/      220  95.45% ( 96.55%),         5 (  2.33%) clones, pur  99.85%, hit eff  99.96%
 
 
 muon_validator validation:

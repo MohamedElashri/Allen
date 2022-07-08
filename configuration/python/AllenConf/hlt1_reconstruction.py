@@ -17,25 +17,29 @@ from AllenConf.persistency import make_gather_selections, make_sel_report_writer
 from AllenConf.utils import gec
 
 
-@configurable
-def hlt1_reconstruction(add_electron_id=True):
+def hlt1_reconstruction(add_electron_id=True, with_ut=True):
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     velo_states = run_velo_kalman_filter(velo_tracks)
     pvs = make_pvs(velo_tracks)
-    decoded_ut = decode_ut()
-    ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
+    if with_ut:
+        decoded_ut = decode_ut()
+        ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
+        input_tracks = ut_tracks
+    else:
+        input_tracks = velo_tracks
     decoded_scifi = decode_scifi()
-    forward_tracks = make_forward_tracks(decoded_scifi, ut_tracks)
+    forward_tracks = make_forward_tracks(
+        decoded_scifi, input_tracks, with_ut=with_ut)
     decoded_muon = decode_muon()
     muonID = is_muon(decoded_muon, forward_tracks)
     kalman_velo_only = make_kalman_velo_only(forward_tracks, pvs, muonID)
     decoded_calo = decode_calo()
     ecal_clusters = make_ecal_clusters(decoded_calo)
 
-    calo_matching_objects = make_track_matching(
-        decoded_calo, velo_tracks, velo_states, ut_tracks, forward_tracks,
-        kalman_velo_only)
+    calo_matching_objects = make_track_matching(decoded_calo, velo_tracks,
+                                                velo_states, forward_tracks,
+                                                kalman_velo_only)
 
     if add_electron_id:
         long_track_particles = make_basic_particles(kalman_velo_only, muonID,
@@ -49,7 +53,7 @@ def hlt1_reconstruction(add_electron_id=True):
         "velo_states": velo_states,
         "decoded_calo": decoded_calo,
         "pvs": pvs,
-        "ut_tracks": ut_tracks,
+        "ut_tracks": input_tracks,
         "forward_tracks": forward_tracks,
         "muonID": muonID,
         "kalman_velo_only": kalman_velo_only,
@@ -65,35 +69,69 @@ def make_composite_node_with_gec(alg_name, alg, gec_name="gec"):
         alg_name, [gec(), alg], NodeLogic.LAZY_AND, force_order=True)
 
 
-def validator_node(reconstructed_objects, line_algorithms):
-    return CompositeNode(
-        "Validators", [
-            make_composite_node_with_gec(
-                "velo_validation",
-                velo_validation(reconstructed_objects["velo_tracks"])),
-            make_composite_node_with_gec(
-                "veloUT_validation",
-                veloUT_validation(reconstructed_objects["ut_tracks"])),
-            make_composite_node_with_gec(
-                "long_validation",
-                long_validation(reconstructed_objects["forward_tracks"])),
-            make_composite_node_with_gec(
-                "muon_validation",
-                muon_validation(reconstructed_objects["muonID"])),
-            make_composite_node_with_gec(
-                "pv_validation", pv_validation(reconstructed_objects["pvs"])),
-            make_composite_node_with_gec(
-                "kalman_validation",
-                kalman_validation(reconstructed_objects["kalman_velo_only"])),
-            selreport_validation(
-                make_sel_report_writer(
-                    lines=line_algorithms,
-                    forward_tracks=reconstructed_objects[
-                        "long_track_particles"],
-                    secondary_vertices=reconstructed_objects[
-                        "secondary_vertices"]),
-                make_gather_selections(lines=line_algorithms),
-            )
-        ],
-        NodeLogic.NONLAZY_AND,
-        force_order=False)
+def validator_node(reconstructed_objects, line_algorithms, with_ut):
+    if (with_ut):
+        return CompositeNode(
+            "Validators", [
+                make_composite_node_with_gec(
+                    "velo_validation",
+                    velo_validation(reconstructed_objects["velo_tracks"])),
+                make_composite_node_with_gec(
+                    "veloUT_validation",
+                    veloUT_validation(reconstructed_objects["ut_tracks"])),
+                make_composite_node_with_gec(
+                    "long_validation",
+                    long_validation(reconstructed_objects["forward_tracks"])),
+                make_composite_node_with_gec(
+                    "muon_validation",
+                    muon_validation(reconstructed_objects["muonID"])),
+                make_composite_node_with_gec(
+                    "pv_validation", pv_validation(
+                        reconstructed_objects["pvs"])),
+                make_composite_node_with_gec(
+                    "kalman_validation",
+                    kalman_validation(
+                        reconstructed_objects["kalman_velo_only"])),
+                selreport_validation(
+                    make_sel_report_writer(
+                        lines=line_algorithms,
+                        forward_tracks=reconstructed_objects[
+                            "long_track_particles"],
+                        secondary_vertices=reconstructed_objects[
+                            "secondary_vertices"]),
+                    make_gather_selections(lines=line_algorithms),
+                )
+            ],
+            NodeLogic.NONLAZY_AND,
+            force_order=False)
+    else:
+        return CompositeNode(
+            "Validators", [
+                make_composite_node_with_gec(
+                    "velo_validation",
+                    velo_validation(reconstructed_objects["velo_tracks"])),
+                make_composite_node_with_gec(
+                    "long_validation",
+                    long_validation(reconstructed_objects["forward_tracks"])),
+                make_composite_node_with_gec(
+                    "muon_validation",
+                    muon_validation(reconstructed_objects["muonID"])),
+                make_composite_node_with_gec(
+                    "pv_validation", pv_validation(
+                        reconstructed_objects["pvs"])),
+                make_composite_node_with_gec(
+                    "kalman_validation",
+                    kalman_validation(
+                        reconstructed_objects["kalman_velo_only"])),
+                selreport_validation(
+                    make_sel_report_writer(
+                        lines=line_algorithms,
+                        forward_tracks=reconstructed_objects[
+                            "long_track_particles"],
+                        secondary_vertices=reconstructed_objects[
+                            "secondary_vertices"]),
+                    make_gather_selections(lines=line_algorithms),
+                )
+            ],
+            NodeLogic.NONLAZY_AND,
+            force_order=False)

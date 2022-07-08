@@ -291,9 +291,11 @@ def default_smog2_lines(velo_tracks, forward_tracks, long_track_particles,
 def setup_hlt1_node(withMCChecking=False,
                     EnableGEC=True,
                     withSMOG2=False,
-                    enableRateValidator=True):
+                    enableRateValidator=True,
+                    with_ut=True):
     # Reconstruct objects needed as input for selection lines
-    reconstructed_objects = hlt1_reconstruction()
+    reconstructed_objects = hlt1_reconstruction(
+        add_electron_id=True, with_ut=with_ut)
 
     gec = make_gec()
     with line_maker.bind(prefilter=gec if EnableGEC else None):
@@ -430,7 +432,7 @@ def setup_hlt1_node(withMCChecking=False,
         return hlt1_node
     else:
         validation_node = validator_node(reconstructed_objects,
-                                         line_algorithms)
+                                         line_algorithms, with_ut)
 
         node = CompositeNode(
             "AllenWithValidators", [hlt1_node, validation_node],

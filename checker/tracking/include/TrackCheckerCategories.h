@@ -723,7 +723,20 @@ namespace Categories {
         [](MCParticles::const_reference& mcp) {
           return mcp.isLong && mcp.isElectron() && mcp.fromBeautyDecay && mcp.p > 5e3f && mcp.inEta2_5();
         },
-      })
+      }),
+      TrackEffReport({
+        "long_P>5GeV_AND_Pt>1GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.p > 5e3f && mcp.pt > 1e3f && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "long_fromB_P>5GeV_AND_Pt>1GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.fromBeautyDecay && mcp.p > 5e3f && mcp.pt > 1e3f &&
+                 mcp.inEta2_5();
+        },
+      }),
 
       /* TrackEffReport({ */
       /*   "Long", */

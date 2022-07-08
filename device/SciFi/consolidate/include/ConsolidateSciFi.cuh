@@ -20,7 +20,7 @@ namespace scifi_consolidate_tracks {
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
-    DEVICE_INPUT(dev_ut_tracks_view_t, Allen::Views::UT::Consolidated::Tracks) dev_ut_tracks_view;
+    DEVICE_INPUT(dev_tracks_view_t, Allen::IMultiEventContainer*) dev_tracks_view;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
@@ -40,7 +40,7 @@ namespace scifi_consolidate_tracks {
     dev_scifi_hits_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_track_view_t,
-      DEPENDENCIES(dev_scifi_hits_view_t, dev_ut_tracks_view_t, dev_scifi_qop_t),
+      DEPENDENCIES(dev_scifi_hits_view_t, dev_tracks_view_t, dev_scifi_qop_t),
       Allen::Views::SciFi::Consolidated::Track)
     dev_scifi_track_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
@@ -55,7 +55,7 @@ namespace scifi_consolidate_tracks {
     dev_scifi_multi_event_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_long_track_view_t,
-      DEPENDENCIES(dev_scifi_multi_event_tracks_view_t, dev_ut_tracks_view_t),
+      DEPENDENCIES(dev_scifi_multi_event_tracks_view_t, dev_tracks_view_t),
       Allen::Views::Physics::LongTrack)
     dev_long_track_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(

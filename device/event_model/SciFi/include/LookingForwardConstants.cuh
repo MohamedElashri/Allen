@@ -34,23 +34,27 @@ namespace LookingForward {
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
 
-  // Number of ints per track in initial window (xbegin, xend, uvbegin, uvend == 4)
-  constexpr int number_of_elements_initial_window = 4;
+  namespace InputUT {
+    // Number of ints per track in initial window (xbegin, xend, uvbegin, uvend == 4)
+    constexpr int number_of_elements_initial_window = 4;
+    // 2 triplet seeds
+    constexpr int n_seeds = 2;
 
-  // Chi2 cuts for triplet of three x hits and when extending to other x and uv layers
-  constexpr float chi2_max_triplet_single = 8.f;
-  constexpr float chi2_max_extrapolation_to_x_layers_single = 2.f;
+  } // namespace InputUT
+  namespace InputVelo {
+    // Number of ints per track in initial window (xleft, xsize_left, xright, xsize_right, uvbegin_left, uvend_left,
+    // uvbegin_right, uvend_right == 8)
+    constexpr int number_of_elements_initial_window = 8;
+    // 2 triplets seeds and 2 charge seeds
+    constexpr int n_seeds = 4;
 
-  // Maximum number of hits in window
-  constexpr int triplet_seeding_block_dim_x = 32;
-  constexpr int n_triplet_seeds = 2;
-  constexpr int maximum_number_of_triplets_per_thread = 8;
-  constexpr int maximum_number_of_candidates_per_ut_track = 12;
+  } // namespace InputVelo
 
   constexpr int track_min_hits = 9;
   constexpr float quality_filter_max_quality = 0.5f;
   constexpr float range_y_fit_end = 800.f;
   constexpr int num_atomics = 1;
+  constexpr int maximum_number_of_candidates_per_ut_track = 12;
 
   // z at the center of the magnet
   constexpr float z_magnet = 5212.38f;      // FIXME_GEOMETRY_HARDCODING
@@ -93,7 +97,6 @@ namespace LookingForward {
 
   // Windows
   constexpr int min_hits_or_ty_window = 11;
-  constexpr float max_diff_ty_window = 0.02f;
 
   // Quality multipliers
   constexpr float track_9_hits_quality_multiplier = 5.f;
@@ -105,7 +108,6 @@ namespace LookingForward {
   constexpr float initial_window_offset_xtol = 150.f;
   constexpr float initial_window_factor_qop = 2e6f;
   constexpr float initial_window_factor_assymmetric_opening = 100.f;
-  constexpr float initial_windows_max_offset_uv_window = 800.f;
 
   struct Constants {
     int xZones[12] {0, 6, 8, 14, 16, 22, 1, 7, 9, 15, 17, 23};
@@ -118,6 +120,15 @@ namespace LookingForward {
     float zMagnetParams[4] {5212.38f, 406.609f, -1102.35f, -498.039f};
     float Zone_dxdy[4] {0.f, 0.0874892f, -0.0874892f, 0.f};
     float Zone_dxdy_uvlayers[2] {0.0874892f, -0.0874892f};
+
+    float toSciFiExtParams[8] {4824.31956565f,
+                               426.26974766f,
+                               7071.08408876f,
+                               12080.38364257f,
+                               14077.79607408f,
+                               13909.31561208f,
+                               9315.34184959f,
+                               3209.49021545f};
 
     /*=====================================
     Constant arrays for search by triplet
@@ -133,7 +144,7 @@ namespace LookingForward {
     //   be from T1, T2 and T3 respectively.
     // * Hit 0 and hit 2 of the track are expected to be a T1 and T3 hit,
     //   in the calculation of QualityFilter.cu of the updated qop.
-    unsigned triplet_seeding_layers[n_triplet_seeds][3] {{0, 2, 4}, {1, 3, 5}};
+    unsigned triplet_seeding_layers[2][3] {{0, 2, 4}, {1, 3, 5}};
 
     // Extrapolation to UV
     unsigned x_layers[6] {0, 3, 4, 7, 8, 11};
