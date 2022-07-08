@@ -33,22 +33,22 @@ __global__ void momentum_brem_correction::momentum_brem_correction(momentum_brem
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
+  const auto event_scifi_tracks = parameters.dev_scifi_tracks_view->container(event_number);
+
   // Kalman fitted tracks.
   const ParKalmanFilter::FittedTrack* event_tracks =
     parameters.dev_kf_tracks + parameters.dev_track_offsets[event_number];
-  const auto N_tracks = parameters.dev_track_offsets[event_number + 1] - parameters.dev_track_offsets[event_number];
 
+  const unsigned n_scifi_tracks = event_scifi_tracks.size();
   // Loop over tracks.
-  for (unsigned i_track = threadIdx.x; i_track < N_tracks; i_track += blockDim.x) {
+  for (unsigned i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
 
     const auto track = event_tracks[i_track];
 
-    const unsigned UT_track_index =
-      parameters.dev_scifi_tracks_ut_indices[i_track + parameters.dev_track_offsets[event_number]];
-
+    const auto scifi_track = event_scifi_tracks.track(i_track);
+    const auto velo_track = scifi_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
     const auto velo_track_index_with_offset =
-      parameters.dev_ut_tracks_velo_indices[UT_track_index + parameters.dev_ut_tracks_offsets[event_number]] +
-      parameters.dev_velo_tracks_offsets[event_number];
+      velo_track.track_index() + parameters.dev_velo_tracks_offsets[event_number];
 
     parameters.dev_brem_corrected_p[i_track + parameters.dev_track_offsets[event_number]] =
       track.p() + parameters.dev_brem_E[velo_track_index_with_offset];

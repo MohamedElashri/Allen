@@ -50,10 +50,10 @@ namespace velo_consolidate_tracks {
       Allen::Views::Velo::Consolidated::MultiEventTracks)
     dev_velo_multi_event_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_velo_multi_event_lhcb_id_container_t,
+      dev_imec_velo_tracks_t,
       DEPENDENCIES(dev_velo_multi_event_tracks_view_t),
       Allen::IMultiEventContainer*)
-    dev_velo_multi_event_lhcb_id_container;
+    dev_imec_velo_tracks;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

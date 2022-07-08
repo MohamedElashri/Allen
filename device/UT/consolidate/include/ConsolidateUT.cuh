@@ -48,10 +48,10 @@ namespace ut_consolidate_tracks {
       Allen::Views::UT::Consolidated::MultiEventTracks)
     dev_ut_multi_event_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
-      dev_ut_multi_event_lhcb_id_container_t,
+      dev_imec_ut_tracks_t,
       DEPENDENCIES(dev_ut_multi_event_tracks_view_t),
       Allen::IMultiEventContainer*)
-    dev_ut_multi_event_lhcb_id_container;
+    dev_imec_ut_tracks;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

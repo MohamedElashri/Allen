@@ -15,8 +15,7 @@ def make_kalman_velo_only(forward_tracks,
                           is_muon_result,
                           is_electron_result=None):
     number_of_events = initialize_number_of_events()
-    ut_tracks = forward_tracks["veloUT_tracks"]
-    velo_tracks = ut_tracks["velo_tracks"]
+    velo_tracks = forward_tracks["velo_tracks"]
     velo_states = run_velo_kalman_filter(velo_tracks)
 
     velo_pv_ip = make_algorithm(
@@ -112,8 +111,7 @@ def make_basic_particles(kalman_velo_only,
 def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only,
                            long_track_particles):
     number_of_events = initialize_number_of_events()
-    ut_tracks = forward_tracks["veloUT_tracks"]
-    velo_tracks = ut_tracks["velo_tracks"]
+    velo_tracks = forward_tracks["velo_tracks"]
 
     filter_tracks = make_algorithm(
         filter_tracks_t,

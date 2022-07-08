@@ -3,13 +3,14 @@
 ###############################################################################
 from AllenAlgorithms.algorithms import (
     data_provider_t, host_prefix_sum_t, scifi_calculate_cluster_count_t,
-    scifi_pre_decode_t, scifi_raw_bank_decoder_t, lf_search_initial_windows_t,
-    lf_triplet_seeding_t, lf_create_tracks_t, lf_quality_filter_length_t,
-    lf_quality_filter_t, scifi_copy_track_hit_number_t,
-    scifi_consolidate_tracks_t)
+    scifi_pre_decode_t, scifi_raw_bank_decoder_t, ut_select_velo_tracks_t,
+    lf_search_initial_windows_t, lf_triplet_seeding_t, lf_create_tracks_t,
+    lf_quality_filter_length_t, lf_quality_filter_t,
+    scifi_copy_track_hit_number_t, scifi_consolidate_tracks_t, get_type_id_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
+from AllenConf.velo_reconstruction import run_velo_kalman_filter
 
 
 @configurable
@@ -60,114 +61,202 @@ def decode_scifi():
 
     return {
         "dev_scifi_hits": scifi_raw_bank_decoder.dev_scifi_hits_t,
-        "dev_scifi_hit_offsets": prefix_sum_scifi_hits.dev_output_buffer_t
+        "dev_scifi_hit_offsets": prefix_sum_scifi_hits.dev_output_buffer_t,
+        "host_number_of_scifi_hits":
+        prefix_sum_scifi_hits.host_total_sum_holder_t
     }
 
 
 @configurable
-def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size=32):
+def make_forward_tracks(decoded_scifi, input_tracks, with_ut=True):
     number_of_events = initialize_number_of_events()
 
-    velo_tracks = ut_tracks["velo_tracks"]
+    if (with_ut):
+        velo_tracks = input_tracks["velo_tracks"]
+        host_number_of_reconstructed_input_tracks = input_tracks[
+            "host_number_of_reconstructed_ut_tracks"]
+        dev_offsets_input_tracks = input_tracks["dev_offsets_ut_tracks"]
+        velo_states = input_tracks["velo_states"]
+        input_track_views = input_tracks["dev_imec_ut_tracks"]
+        #search windows
+        hit_window_size = 32
+        overlap_in_mm = 5.
+        initial_windows_max_offset_uv_window = 800.
+        x_windows_factor = 1.
+        input_momentum = 5000
+        input_pt = 1000
+        #triplet seeding
+        maximum_number_of_triplets_per_warp = 64
+        chi2_max_triplet_single = 8.
+        z_mag_difference = 10.
+        #create tracks
+        max_triplets_per_input_track = 12
+        chi2_max_extrapolation_to_x_layers_single = 2.
+        uv_hits_chi2_factor = 50.
+        #quality factor
+        max_diff_ty_window = 0.02
+    else:
+        velo_tracks = input_tracks
+        dev_offsets_all_velo_tracks = velo_tracks[
+            "dev_offsets_all_velo_tracks"]
+        host_number_of_reconstructed_input_tracks = velo_tracks[
+            "host_number_of_reconstructed_velo_tracks"]
+        dev_offsets_input_tracks = velo_tracks["dev_offsets_all_velo_tracks"]
+        velo_states = run_velo_kalman_filter(velo_tracks)
+        input_track_views = velo_tracks["dev_imec_velo_tracks"]
+        #search windows
+        hit_window_size = 64
+        overlap_in_mm = 5.
+        initial_windows_max_offset_uv_window = 1200.
+        x_windows_factor = 1.2
+        input_momentum = 5000
+        input_pt = 1000
+        #triplet seeding
+        maximum_number_of_triplets_per_warp = 64
+        chi2_max_triplet_single = 2.0
+        z_mag_difference = 12.
+        #create tracks
+        max_triplets_per_input_track = 20
+        chi2_max_extrapolation_to_x_layers_single = 0.5
+        uv_hits_chi2_factor = 15.
+        #quality factor
+        max_diff_ty_window = 0.003
+
+    dev_offsets_all_velo_tracks = velo_tracks["dev_offsets_all_velo_tracks"]
     host_number_of_reconstructed_velo_tracks = velo_tracks[
         "host_number_of_reconstructed_velo_tracks"]
-    dev_offsets_all_velo_tracks = velo_tracks["dev_offsets_all_velo_tracks"]
-    dev_offsets_velo_track_hit_number = velo_tracks[
-        "dev_offsets_velo_track_hit_number"]
     dev_accepted_velo_tracks = velo_tracks["dev_accepted_velo_tracks"]
-    host_number_of_reconstructed_ut_tracks = ut_tracks[
-        "host_number_of_reconstructed_ut_tracks"]
-    dev_offsets_ut_tracks = ut_tracks["dev_offsets_ut_tracks"]
-    velo_states = ut_tracks["velo_states"]
+
+    # The preexisting will be deduplicated in UT-ful
+    ut_select_velo_tracks = make_algorithm(
+        ut_select_velo_tracks_t,
+        name="ut_select_velo_tracks",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_reconstructed_velo_tracks_t=
+        host_number_of_reconstructed_velo_tracks,
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
+        dev_velo_states_view_t=velo_states[
+            "dev_velo_kalman_beamline_states_view"],
+        dev_accepted_velo_tracks_t=dev_accepted_velo_tracks)
+
+    # With or without UT (get type if of input_track_views)
+    get_type_id = make_algorithm(
+        get_type_id_t, name="get_type_id", dev_imec_t=input_track_views)
 
     lf_search_initial_windows = make_algorithm(
         lf_search_initial_windows_t,
         name="lf_search_initial_windows",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_number_of_reconstructed_ut_tracks_t=
-        host_number_of_reconstructed_ut_tracks,
+        host_number_of_reconstructed_input_tracks_t=
+        host_number_of_reconstructed_input_tracks,
         dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
         dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
         dev_velo_states_view_t=velo_states[
             "dev_velo_kalman_endvelo_states_view"],
-        dev_ut_tracks_view_t=ut_tracks["dev_ut_tracks_view"],
+        dev_tracks_view_t=input_track_views,
+        dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
+        dev_ut_number_of_selected_velo_tracks_t,
+        dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
+        dev_ut_selected_velo_tracks_t,
         hit_window_size=hit_window_size,
-        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"])
+        overlap_in_mm=overlap_in_mm,
+        initial_windows_max_offset_uv_window=
+        initial_windows_max_offset_uv_window,
+        x_windows_factor=x_windows_factor,
+        host_track_type_id_t=get_type_id.host_type_id_t,
+        input_momentum=input_momentum,
+        input_pt=input_pt)
 
     lf_triplet_seeding = make_algorithm(
         lf_triplet_seeding_t,
         name="lf_triplet_seeding",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_number_of_reconstructed_ut_tracks_t=
-        host_number_of_reconstructed_ut_tracks,
+        host_number_of_reconstructed_input_tracks_t=
+        host_number_of_reconstructed_input_tracks,
         dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
         dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
-        dev_offsets_all_velo_tracks_t=dev_offsets_all_velo_tracks,
+        host_scifi_hit_count_t=decoded_scifi["host_number_of_scifi_hits"],
         dev_velo_states_view_t=velo_states[
             "dev_velo_kalman_endvelo_states_view"],
-        dev_ut_tracks_view_t=ut_tracks["dev_ut_tracks_view"],
+        dev_tracks_view_t=input_track_views,
         dev_scifi_lf_initial_windows_t=lf_search_initial_windows.
         dev_scifi_lf_initial_windows_t,
-        dev_ut_states_t=lf_search_initial_windows.dev_ut_states_t,
-        dev_scifi_lf_process_track_t=lf_search_initial_windows.
-        dev_scifi_lf_process_track_t,
-        hit_window_size=hit_window_size)
+        dev_input_states_t=lf_search_initial_windows.dev_input_states_t,
+        maximum_number_of_triplets_per_warp=maximum_number_of_triplets_per_warp,
+        chi2_max_triplet_single=chi2_max_triplet_single,
+        z_mag_difference=z_mag_difference,
+        dev_scifi_lf_number_of_tracks_t=lf_search_initial_windows.
+        dev_scifi_lf_number_of_tracks_t,
+        dev_scifi_lf_tracks_indices_t=lf_search_initial_windows.
+        dev_scifi_lf_tracks_indices_t,
+        host_track_type_id_t=get_type_id.host_type_id_t)
 
     lf_create_tracks = make_algorithm(
         lf_create_tracks_t,
         name="lf_create_tracks",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_number_of_reconstructed_ut_tracks_t=
-        host_number_of_reconstructed_ut_tracks,
+        host_number_of_reconstructed_input_tracks_t=
+        host_number_of_reconstructed_input_tracks,
         dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
         dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_velo_states_view_t=velo_states[
             "dev_velo_kalman_endvelo_states_view"],
-        dev_ut_tracks_view_t=ut_tracks["dev_ut_tracks_view"],
+        dev_tracks_view_t=input_track_views,
         dev_scifi_lf_initial_windows_t=lf_search_initial_windows.
         dev_scifi_lf_initial_windows_t,
-        dev_ut_states_t=lf_search_initial_windows.dev_ut_states_t,
-        dev_scifi_lf_process_track_t=lf_search_initial_windows.
-        dev_scifi_lf_process_track_t,
+        dev_input_states_t=lf_search_initial_windows.dev_input_states_t,
         dev_scifi_lf_found_triplets_t=lf_triplet_seeding.
         dev_scifi_lf_found_triplets_t,
         dev_scifi_lf_number_of_found_triplets_t=lf_triplet_seeding.
-        dev_scifi_lf_number_of_found_triplets_t)
+        dev_scifi_lf_number_of_found_triplets_t,
+        chi2_max_extrapolation_to_x_layers_single=
+        chi2_max_extrapolation_to_x_layers_single,
+        uv_hits_chi2_factor=uv_hits_chi2_factor,
+        max_triplets_per_input_track=max_triplets_per_input_track,
+        maximum_number_of_triplets_per_warp=maximum_number_of_triplets_per_warp,
+        dev_scifi_lf_number_of_tracks_t=lf_search_initial_windows.
+        dev_scifi_lf_number_of_tracks_t,
+        dev_scifi_lf_tracks_indices_t=lf_search_initial_windows.
+        dev_scifi_lf_tracks_indices_t,
+        host_track_type_id_t=get_type_id.host_type_id_t)
 
     lf_quality_filter_length = make_algorithm(
         lf_quality_filter_length_t,
         name="lf_quality_filter_length",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_number_of_reconstructed_ut_tracks_t=
-        host_number_of_reconstructed_ut_tracks,
-        dev_ut_tracks_view_t=ut_tracks["dev_ut_tracks_view"],
+        host_number_of_reconstructed_input_tracks_t=
+        host_number_of_reconstructed_input_tracks,
+        dev_tracks_view_t=input_track_views,
         dev_scifi_lf_tracks_t=lf_create_tracks.dev_scifi_lf_tracks_t,
         dev_scifi_lf_atomics_t=lf_create_tracks.dev_scifi_lf_atomics_t,
         dev_scifi_lf_parametrization_t=lf_create_tracks.
-        dev_scifi_lf_parametrization_t)
+        dev_scifi_lf_parametrization_t,
+        maximum_number_of_candidates_per_ut_track=max_triplets_per_input_track)
 
     lf_quality_filter = make_algorithm(
         lf_quality_filter_t,
         name="lf_quality_filter",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_number_of_reconstructed_ut_tracks_t=
-        host_number_of_reconstructed_ut_tracks,
+        host_number_of_reconstructed_input_tracks_t=
+        host_number_of_reconstructed_input_tracks,
         dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
         dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
-        dev_ut_tracks_view_t=ut_tracks["dev_ut_tracks_view"],
+        dev_tracks_view_t=input_track_views,
         dev_scifi_lf_length_filtered_atomics_t=lf_quality_filter_length.
         dev_scifi_lf_length_filtered_atomics_t,
         dev_scifi_lf_length_filtered_tracks_t=lf_quality_filter_length.
         dev_scifi_lf_length_filtered_tracks_t,
         dev_scifi_lf_parametrization_length_filter_t=lf_quality_filter_length.
         dev_scifi_lf_parametrization_length_filter_t,
-        dev_ut_states_t=lf_search_initial_windows.dev_ut_states_t)
+        dev_input_states_t=lf_search_initial_windows.dev_input_states_t,
+        maximum_number_of_candidates_per_ut_track=max_triplets_per_input_track,
+        max_diff_ty_window=max_diff_ty_window)
 
     prefix_sum_forward_tracks = make_algorithm(
         host_prefix_sum_t,
@@ -180,7 +269,7 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size=32):
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
         host_total_sum_holder_t,
-        dev_offsets_ut_tracks_t=dev_offsets_ut_tracks,
+        dev_offsets_input_tracks_t=dev_offsets_input_tracks,
         dev_scifi_tracks_t=lf_quality_filter.dev_scifi_tracks_t,
         dev_offsets_forward_tracks_t=prefix_sum_forward_tracks.
         dev_output_buffer_t)
@@ -209,14 +298,16 @@ def make_forward_tracks(decoded_scifi, ut_tracks, hit_window_size=32):
         dev_scifi_tracks_t=lf_quality_filter.dev_scifi_tracks_t,
         dev_scifi_lf_parametrization_consolidate_t=lf_quality_filter.
         dev_scifi_lf_parametrization_consolidate_t,
-        dev_ut_tracks_view_t=ut_tracks["dev_ut_tracks_view"],
+        dev_tracks_view_t=input_track_views,
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_velo_states_view_t=velo_states[
             "dev_velo_kalman_endvelo_states_view"])
 
     return {
         "veloUT_tracks":
-        ut_tracks,
+        input_tracks,
+        "velo_tracks":
+        velo_tracks,
         "dev_scifi_track_hits":
         scifi_consolidate_tracks.dev_scifi_track_hits_t,
         "dev_scifi_qop":

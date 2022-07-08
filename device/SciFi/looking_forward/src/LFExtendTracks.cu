@@ -4,19 +4,30 @@
 #include "LFCreateTracks.cuh"
 #include "BinarySearch.cuh"
 
-__global__ void lf_create_tracks::lf_extend_tracks(
+template<bool with_ut, typename T>
+__device__ void extend_tracks(
   lf_create_tracks::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants)
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const T* tracks)
 {
+
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
+  const unsigned number_of_elements_initial_window = with_ut ?
+                                                       LookingForward::InputUT::number_of_elements_initial_window :
+                                                       LookingForward::InputVelo::number_of_elements_initial_window;
 
-  // UT tracks
-  const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
-  const auto ut_event_tracks_offset = ut_tracks_view.offset();
-  // TODO: Don't do this. Needs changes to the SciFi EM.
-  const auto ut_total_number_of_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
-                                         parameters.dev_ut_tracks_view[number_of_events - 1].size();
+  const unsigned uv_hits_chi2_factor = parameters.uv_hits_chi2_factor;
+  const unsigned max_triplets_per_input_track = parameters.max_triplets_per_input_track;
+  const float chi2_max_extrapolation_to_x_layers_single = parameters.chi2_max_extrapolation_to_x_layers_single;
+
+  const auto input_tracks_view = tracks->container(event_number);
+
+  const int event_tracks_offset = input_tracks_view.offset();
+
+  // TODO: Don't do this. Will be replaced when SciFi EM is updated.
+  const unsigned total_number_of_tracks =
+    tracks->container(number_of_events - 1).offset() + tracks->container(number_of_events - 1).size();
 
   // SciFi hits
   const unsigned total_number_of_hits =
@@ -28,23 +39,23 @@ __global__ void lf_create_tracks::lf_extend_tracks(
   const auto number_of_tracks = parameters.dev_scifi_lf_atomics[event_number];
 
   for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    const auto scifi_track_index =
-      ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
+    const auto scifi_track_index = event_tracks_offset * max_triplets_per_input_track + i;
     SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
-    const auto current_ut_track_index = ut_event_tracks_offset + track.ut_track_index;
-    const auto ut_state = parameters.dev_ut_states[current_ut_track_index];
+    const auto current_input_track_index = event_tracks_offset + track.input_track_index;
+    const auto input_state = parameters.dev_input_states[current_input_track_index];
+    const auto left_right_side = track.charge_seed;
 
     // Load track parametrization
     const auto a1 = parameters.dev_scifi_lf_parametrization[scifi_track_index];
     const auto b1 =
-      parameters.dev_scifi_lf_parametrization
-        [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
+      parameters
+        .dev_scifi_lf_parametrization[total_number_of_tracks * max_triplets_per_input_track + scifi_track_index];
     const auto c1 =
-      parameters.dev_scifi_lf_parametrization
-        [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
+      parameters
+        .dev_scifi_lf_parametrization[2 * total_number_of_tracks * max_triplets_per_input_track + scifi_track_index];
     const auto d_ratio =
-      parameters.dev_scifi_lf_parametrization
-        [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index];
+      parameters
+        .dev_scifi_lf_parametrization[3 * total_number_of_tracks * max_triplets_per_input_track + scifi_track_index];
 
     // Note: This logic assumes the candidate layers have hits in {T0, T1, T2}
     for (auto current_layer : {1 - track.get_layer(0), 5 - track.get_layer(1), 9 - track.get_layer(2)}) {
@@ -54,12 +65,12 @@ __global__ void lf_create_tracks::lf_extend_tracks(
       // Find window
       const auto window_start =
         parameters.dev_scifi_lf_initial_windows
-          [current_ut_track_index +
-           current_layer * LookingForward::number_of_elements_initial_window * ut_total_number_of_tracks];
+          [current_input_track_index +
+           (current_layer * number_of_elements_initial_window + left_right_side * 2) * total_number_of_tracks];
       const auto window_size =
         parameters.dev_scifi_lf_initial_windows
-          [current_ut_track_index +
-           (current_layer * LookingForward::number_of_elements_initial_window + 1) * ut_total_number_of_tracks];
+          [current_input_track_index +
+           (current_layer * number_of_elements_initial_window + 1 + left_right_side * 2) * total_number_of_tracks];
       const float z = dev_looking_forward_constants->Zone_zPos_xlayers[current_layer];
 
       const auto dz = z - LookingForward::z_mid_t;
@@ -67,7 +78,7 @@ __global__ void lf_create_tracks::lf_extend_tracks(
 
       // Pick the best, according to chi2
       int best_index = -1;
-      float best_chi2 = LookingForward::chi2_max_extrapolation_to_x_layers_single;
+      float best_chi2 = chi2_max_extrapolation_to_x_layers_single;
 
       const auto scifi_hits_x0 = scifi_hits.x0_p(event_offset + window_start);
 
@@ -93,7 +104,7 @@ __global__ void lf_create_tracks::lf_extend_tracks(
     }
 
     // Normalize track quality
-    track.quality *= (1.f / LookingForward::chi2_max_extrapolation_to_x_layers_single);
+    track.quality *= (1.f / chi2_max_extrapolation_to_x_layers_single);
 
     // Add UV hits
     for (int relative_uv_layer = 0; relative_uv_layer < 6; relative_uv_layer++) {
@@ -103,12 +114,14 @@ __global__ void lf_create_tracks::lf_extend_tracks(
       // Use UV windows
       const auto uv_window_start =
         parameters.dev_scifi_lf_initial_windows
-          [ut_event_tracks_offset + track.ut_track_index +
-           (relative_uv_layer * LookingForward::number_of_elements_initial_window + 2) * ut_total_number_of_tracks];
+          [current_input_track_index + (relative_uv_layer * number_of_elements_initial_window +
+                                        int(number_of_elements_initial_window / 2) + left_right_side * 2) *
+                                         total_number_of_tracks];
       const auto uv_window_size =
         parameters.dev_scifi_lf_initial_windows
-          [ut_event_tracks_offset + track.ut_track_index +
-           (relative_uv_layer * LookingForward::number_of_elements_initial_window + 3) * ut_total_number_of_tracks];
+          [current_input_track_index + (relative_uv_layer * number_of_elements_initial_window +
+                                        int(number_of_elements_initial_window / 2) + 1 + left_right_side * 2) *
+                                         total_number_of_tracks];
 
       // Calculate expected X true position in z-UV layer, use expected X-position to evaluate expected Y with
       // correction in Y Note : the correction in y is currently ONLY dependent on the x position of the choosen hit,
@@ -119,7 +132,7 @@ __global__ void lf_create_tracks::lf_extend_tracks(
       const auto expected_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
       const auto expected_y = LookingForward::project_y(
         dev_looking_forward_constants,
-        ut_state,
+        input_state,
         expected_x,
         z4,
         dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
@@ -135,7 +148,7 @@ __global__ void lf_create_tracks::lf_extend_tracks(
       // +-2 mm windows is ok (2^{2}  = 4) . If we have large slope the error on x can be big,  For super peripheral
       // tracks ( delta-slope = 0.3, ty = 0.3) you want to open up up to : sqrt(4+60*0.3+60*0.3) = 6 mm windows. Anyway,
       // we need some retuning of this scaling windows.
-      const float max_chi2 = 50.f * fabsf(ut_state.ty) + 50.f * fabsf(ut_state.tx);
+      const float max_chi2 = uv_hits_chi2_factor * fabsf(input_state.ty) + uv_hits_chi2_factor * fabsf(input_state.tx);
 
       int best_index = -1;
       float best_chi2 = max_chi2;
@@ -162,5 +175,21 @@ __global__ void lf_create_tracks::lf_extend_tracks(
         track.add_hit_with_quality((uint16_t) uv_window_start + best_index, best_chi2 / max_chi2);
       }
     }
+  }
+}
+
+__global__ void lf_create_tracks::lf_extend_tracks(
+  lf_create_tracks::Parameters parameters,
+  const LookingForward::Constants* dev_looking_forward_constants)
+{
+  const auto* ut_tracks =
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+  if (ut_tracks) {
+    extend_tracks<true>(parameters, dev_looking_forward_constants, ut_tracks);
+  }
+  else {
+    const auto* velo_tracks =
+      static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    extend_tracks<false>(parameters, dev_looking_forward_constants, velo_tracks);
   }
 }

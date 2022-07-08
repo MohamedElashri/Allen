@@ -43,7 +43,7 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
     new (parameters.dev_ut_multi_event_tracks_view)
       Allen::Views::UT::Consolidated::MultiEventTracks {parameters.dev_ut_tracks_view, number_of_events};
 
-    parameters.dev_ut_multi_event_lhcb_id_container[0] = parameters.dev_ut_multi_event_tracks_view;
+    parameters.dev_imec_ut_tracks[0] = parameters.dev_ut_multi_event_tracks_view;
   }
 }
 
@@ -62,7 +62,7 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::set_arguments_size(
   set_size<dev_ut_track_view_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
   set_size<dev_ut_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_ut_multi_event_tracks_view_t>(arguments, 1);
-  set_size<dev_ut_multi_event_lhcb_id_container_t>(arguments, 1);
+  set_size<dev_imec_ut_tracks_t>(arguments, 1);
 }
 
 void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(

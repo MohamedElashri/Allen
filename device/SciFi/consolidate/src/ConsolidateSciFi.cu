@@ -5,7 +5,8 @@
 
 INSTANTIATE_ALGORITHM(scifi_consolidate_tracks::scifi_consolidate_tracks_t)
 
-__global__ void create_scifi_views(scifi_consolidate_tracks::Parameters parameters)
+template<bool with_ut, typename T>
+__device__ void create_scifi_views_impl(const scifi_consolidate_tracks::Parameters& parameters, const T* tracks)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = blockIdx.x;
@@ -14,18 +15,36 @@ __global__ void create_scifi_views(scifi_consolidate_tracks::Parameters paramete
   const auto event_number_of_tracks = parameters.dev_atomics_scifi[event_number + 1] - event_tracks_offset;
   const auto event_scifi_track_ut_indices = parameters.dev_scifi_track_ut_indices + event_tracks_offset;
   for (unsigned track_index = threadIdx.x; track_index < event_number_of_tracks; track_index += blockDim.x) {
-    const auto ut_track_index = event_scifi_track_ut_indices[track_index];
-    const auto* ut_track = &parameters.dev_ut_tracks_view[event_number].track(ut_track_index);
-    const auto* velo_track = &ut_track->velo_track();
-    new (parameters.dev_scifi_track_view + event_tracks_offset + track_index)
-      Allen::Views::SciFi::Consolidated::Track {parameters.dev_scifi_hits_view,
-                                                parameters.dev_scifi_qop,
-                                                parameters.dev_atomics_scifi,
-                                                parameters.dev_scifi_track_hit_number,
-                                                track_index,
-                                                event_number};
-    new (parameters.dev_long_track_view + event_tracks_offset + track_index) Allen::Views::Physics::LongTrack {
-      velo_track, ut_track, parameters.dev_scifi_track_view + event_tracks_offset + track_index};
+    const auto input_track_index = event_scifi_track_ut_indices[track_index];
+    const auto input_tracks_view = tracks->container(event_number);
+    if constexpr (with_ut) {
+
+      const auto* ut_track = &input_tracks_view.track(input_track_index);
+      const auto* velo_track = &ut_track->velo_track();
+      new (parameters.dev_scifi_track_view + event_tracks_offset + track_index)
+        Allen::Views::SciFi::Consolidated::Track {parameters.dev_scifi_hits_view,
+                                                  parameters.dev_scifi_qop,
+                                                  parameters.dev_atomics_scifi,
+                                                  parameters.dev_scifi_track_hit_number,
+                                                  track_index,
+                                                  event_number};
+      new (parameters.dev_long_track_view + event_tracks_offset + track_index) Allen::Views::Physics::LongTrack {
+        velo_track, ut_track, parameters.dev_scifi_track_view + event_tracks_offset + track_index};
+    }
+    else {
+
+      const auto* velo_track = &input_tracks_view.track(input_track_index);
+
+      new (parameters.dev_scifi_track_view + event_tracks_offset + track_index)
+        Allen::Views::SciFi::Consolidated::Track {parameters.dev_scifi_hits_view,
+                                                  parameters.dev_scifi_qop,
+                                                  parameters.dev_atomics_scifi,
+                                                  parameters.dev_scifi_track_hit_number,
+                                                  track_index,
+                                                  event_number};
+      new (parameters.dev_long_track_view + event_tracks_offset + track_index) Allen::Views::Physics::LongTrack {
+        velo_track, nullptr, parameters.dev_scifi_track_view + event_tracks_offset + track_index};
+    }
   }
 
   if (threadIdx.x == 0) {
@@ -49,6 +68,20 @@ __global__ void create_scifi_views(scifi_consolidate_tracks::Parameters paramete
     new (parameters.dev_multi_event_long_tracks_view)
       Allen::Views::Physics::MultiEventLongTracks {parameters.dev_long_tracks_view, number_of_events};
     parameters.dev_multi_event_long_tracks_ptr[0] = parameters.dev_multi_event_long_tracks_view.get();
+  }
+}
+
+__global__ void create_scifi_views(scifi_consolidate_tracks::Parameters parameters)
+{
+  const auto* ut_tracks =
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+  if (ut_tracks) {
+    create_scifi_views_impl<true>(parameters, ut_tracks);
+  }
+  else {
+    const auto* velo_tracks =
+      static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    create_scifi_views_impl<false>(parameters, velo_tracks);
   }
 }
 
@@ -180,24 +213,25 @@ __device__ float qop_calculation(
   return qop;
 }
 
-__global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
-  scifi_consolidate_tracks::Parameters parameters,
+template<bool with_ut, typename T>
+__device__ void scifi_consolidate_tracks_impl(
+  const scifi_consolidate_tracks::Parameters& parameters,
   const LookingForward::Constants* dev_looking_forward_constants,
-  const float* dev_magnet_polarity)
+  const float* dev_magnet_polarity,
+  const T* tracks)
 {
+
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  // UT consolidated tracks
-  // UT consolidated tracks
-  const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
-  const auto ut_event_tracks_offset = ut_tracks_view.offset();
-  // TODO: Don't do this.
-  const auto ut_total_number_of_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
-                                         parameters.dev_ut_tracks_view[number_of_events - 1].size();
+  const auto input_tracks_view = tracks->container(event_number);
+  const int event_tracks_offset = input_tracks_view.offset();
+  // TODO: Don't do this. Will be replaced when SciFi EM is updated.
+  const unsigned total_number_of_tracks =
+    tracks->container(number_of_events - 1).offset() + tracks->container(number_of_events - 1).size();
 
   const SciFi::TrackHits* event_scifi_tracks =
-    parameters.dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
+    parameters.dev_scifi_tracks + event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;
 
   const unsigned total_number_of_scifi_hits =
     parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
@@ -220,28 +254,38 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
 
   // Loop over tracks.
   for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
-    const auto ut_track = ut_tracks_view.track(event_scifi_tracks[i].ut_track_index);
-    const auto velo_track = ut_track.velo_track();
-    const auto velo_state = velo_track.state(velo_states_view);
 
-    scifi_tracks.ut_track(i) = event_scifi_tracks[i].ut_track_index;
-    const auto scifi_track_index = ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + i;
+    // different ways to access velo track depend on the input track
+    const auto velo_state = [&]() {
+      if constexpr (with_ut) {
+        const auto ut_track = input_tracks_view.track(event_scifi_tracks[i].input_track_index);
+        const auto velo_track = ut_track.velo_track();
+        return velo_track.state(velo_states_view);
+      }
+      else {
+        const auto velo_track = input_tracks_view.track(event_scifi_tracks[i].input_track_index);
+        return velo_track.state(velo_states_view);
+      }
+    }();
+
+    scifi_tracks.ut_track(i) = event_scifi_tracks[i].input_track_index;
+    const auto scifi_track_index = event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + i;
 
     const auto curvature = parameters.dev_scifi_lf_parametrization_consolidate[scifi_track_index];
     const auto tx = parameters.dev_scifi_lf_parametrization_consolidate
-                      [ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + scifi_track_index];
+                      [total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + scifi_track_index];
     const auto x0 =
       parameters.dev_scifi_lf_parametrization_consolidate
-        [2 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + scifi_track_index];
+        [2 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + scifi_track_index];
     const auto d_ratio =
       parameters.dev_scifi_lf_parametrization_consolidate
-        [3 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + scifi_track_index];
+        [3 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + scifi_track_index];
     const auto y0 =
       parameters.dev_scifi_lf_parametrization_consolidate
-        [4 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + scifi_track_index];
+        [4 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + scifi_track_index];
     const auto ty =
       parameters.dev_scifi_lf_parametrization_consolidate
-        [5 * ut_total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + scifi_track_index];
+        [5 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + scifi_track_index];
 
     const auto dz = SciFi::Constants::ZEndT - LookingForward::z_mid_t;
     const MiniState scifi_state {x0 + tx * dz + curvature * dz * dz * (1.f + d_ratio * dz),
@@ -287,5 +331,22 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
     populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
       consolidated_hits.assembled_datatype(i) = scifi_hits.assembled_datatype(event_offset + hit_index);
     });
+  }
+}
+
+__global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
+  scifi_consolidate_tracks::Parameters parameters,
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const float* dev_magnet_polarity)
+{
+  const auto* ut_tracks =
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+  if (ut_tracks) {
+    scifi_consolidate_tracks_impl<true>(parameters, dev_looking_forward_constants, dev_magnet_polarity, ut_tracks);
+  }
+  else {
+    const auto* velo_tracks =
+      static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    scifi_consolidate_tracks_impl<false>(parameters, dev_looking_forward_constants, dev_magnet_polarity, velo_tracks);
   }
 }

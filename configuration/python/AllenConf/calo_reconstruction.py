@@ -46,8 +46,8 @@ def decode_calo():
     }
 
 
-def make_track_matching(decoded_calo, velo_tracks, velo_states, ut_tracks,
-                        forward_tracks, kalman_velo_only):
+def make_track_matching(decoded_calo, velo_tracks, velo_states, forward_tracks,
+                        kalman_velo_only):
     number_of_events = initialize_number_of_events()
 
     track_digit_selective_matching = make_algorithm(
@@ -89,10 +89,8 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, ut_tracks,
             "host_number_of_reconstructed_scifi_tracks"],
         dev_kf_tracks_t=kalman_velo_only["dev_kf_tracks"],
         dev_velo_tracks_offsets_t=velo_tracks["dev_offsets_all_velo_tracks"],
-        dev_ut_tracks_velo_indices_t=ut_tracks["dev_ut_track_velo_indices"],
-        dev_ut_tracks_offsets_t=ut_tracks["dev_offsets_ut_tracks"],
-        dev_scifi_tracks_ut_indices_t=forward_tracks[
-            "dev_scifi_track_ut_indices"],
+        dev_scifi_tracks_view_t=forward_tracks[
+            "dev_multi_event_long_tracks_view"],
         dev_offsets_forward_tracks_t=forward_tracks[
             "dev_offsets_forward_tracks"],
         dev_brem_E_t=brem_recovery.dev_brem_E_t,

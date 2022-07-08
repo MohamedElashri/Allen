@@ -3,20 +3,24 @@
 \*****************************************************************************/
 #include "LFCreateTracks.cuh"
 
-__global__ void lf_create_tracks::lf_calculate_parametrization(
+template<bool with_ut, typename T>
+__device__ void calculate_parametrization(
   lf_create_tracks::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants)
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const T* tracks)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  const auto ut_tracks_view = parameters.dev_ut_tracks_view[event_number];
-  const auto velo_states_view = parameters.dev_velo_states_view[event_number];
+  const auto max_triplets_per_input_track = parameters.max_triplets_per_input_track;
+  const auto input_tracks_view = tracks->container(event_number);
 
-  const auto ut_event_tracks_offset = ut_tracks_view.offset();
-  // TODO: Don't do this. Needs changes to the SciFi EM.
-  const auto ut_total_number_of_tracks = parameters.dev_ut_tracks_view[number_of_events - 1].offset() +
-                                         parameters.dev_ut_tracks_view[number_of_events - 1].size();
+  const int event_tracks_offset = input_tracks_view.offset();
+  // TODO: Don't do this. Will be replaced when SciFi EM is updated.
+  const unsigned total_number_of_tracks =
+    tracks->container(number_of_events - 1).offset() + tracks->container(number_of_events - 1).size();
+
+  const auto velo_states_view = parameters.dev_velo_states_view[event_number];
 
   // SciFi hits
   const unsigned total_number_of_hits =
@@ -29,12 +33,21 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
   const auto number_of_tracks = parameters.dev_scifi_lf_atomics[event_number];
 
   for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    const auto scifi_track_index =
-      ut_event_tracks_offset * LookingForward::maximum_number_of_candidates_per_ut_track + i;
+    const auto scifi_track_index = event_tracks_offset * max_triplets_per_input_track + i;
     const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
-    const auto ut_track = ut_tracks_view.track(track.ut_track_index);
-    const auto velo_track = ut_track.velo_track();
-    const auto velo_state = velo_track.state(velo_states_view);
+    const auto input_track_number = track.input_track_index;
+    const auto input_track = input_tracks_view.track(input_track_number);
+
+    // different ways to access velo track depend on the input track
+    const auto velo_state = [&input_track, velo_states_view]() {
+      if constexpr (with_ut) {
+        const auto velo_track = input_track.velo_track();
+        return velo_track.state(velo_states_view);
+      }
+      else {
+        return input_track.state(velo_states_view);
+      }
+    }();
 
     // Note: The notation 1, 2, 3 is used here (instead of h0, h1, h2)
     //       to avoid mistakes, as the code is similar to that of Hybrid Seeding
@@ -83,13 +96,28 @@ __global__ void lf_create_tracks::lf_calculate_parametrization(
     const auto c1 = recdet * det3;
 
     parameters.dev_scifi_lf_parametrization[scifi_track_index] = a1;
-    parameters.dev_scifi_lf_parametrization
-      [ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index] = b1;
-    parameters.dev_scifi_lf_parametrization
-      [2 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index] =
-      c1;
-    parameters.dev_scifi_lf_parametrization
-      [3 * ut_total_number_of_tracks * LookingForward::maximum_number_of_candidates_per_ut_track + scifi_track_index] =
+    parameters.dev_scifi_lf_parametrization[total_number_of_tracks * max_triplets_per_input_track + scifi_track_index] =
+      b1;
+    parameters
+      .dev_scifi_lf_parametrization[2 * total_number_of_tracks * max_triplets_per_input_track + scifi_track_index] = c1;
+    parameters
+      .dev_scifi_lf_parametrization[3 * total_number_of_tracks * max_triplets_per_input_track + scifi_track_index] =
       d_ratio;
+  }
+}
+
+__global__ void lf_create_tracks::lf_calculate_parametrization(
+  lf_create_tracks::Parameters parameters,
+  const LookingForward::Constants* dev_looking_forward_constants)
+{
+  const auto* ut_tracks =
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+  if (ut_tracks) {
+    calculate_parametrization<true>(parameters, dev_looking_forward_constants, ut_tracks);
+  }
+  else {
+    const auto* velo_tracks =
+      static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    calculate_parametrization<false>(parameters, dev_looking_forward_constants, velo_tracks);
   }
 }

@@ -32,7 +32,7 @@ __global__ void scifi_copy_track_hit_number::scifi_copy_track_hit_number(
   scifi_copy_track_hit_number::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
-  const auto ut_event_tracks_offset = parameters.dev_atomics_ut[event_number];
+  const auto ut_event_tracks_offset = parameters.dev_atomics_input[event_number];
 
   const auto event_tracks =
     parameters.dev_scifi_tracks + ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track;

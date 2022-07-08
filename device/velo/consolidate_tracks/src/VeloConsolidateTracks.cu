@@ -41,7 +41,7 @@ __global__ void create_velo_views(velo_consolidate_tracks::Parameters parameters
     new (parameters.dev_velo_multi_event_tracks_view)
       Allen::Views::Velo::Consolidated::MultiEventTracks {parameters.dev_velo_tracks_view, number_of_events};
 
-    parameters.dev_velo_multi_event_lhcb_id_container[0] = parameters.dev_velo_multi_event_tracks_view;
+    parameters.dev_imec_velo_tracks[0] = parameters.dev_velo_multi_event_tracks_view;
   }
 }
 
@@ -61,7 +61,7 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::set_arguments_size(
   set_size<dev_velo_track_view_t>(arguments, total_number_of_velo_tracks);
   set_size<dev_velo_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_velo_multi_event_tracks_view_t>(arguments, 1);
-  set_size<dev_velo_multi_event_lhcb_id_container_t>(arguments, 1);
+  set_size<dev_imec_velo_tracks_t>(arguments, 1);
 }
 
 void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
