@@ -265,6 +265,19 @@ public:
   }
 
   /**
+   * @brief      Obtain event mask in a given slice (ODIN error)
+   *
+   * @param      slice index
+   *
+   * @return     event mask in given slice
+   */
+  std::vector<char> event_mask(size_t slice_index)
+    const override
+  {
+    return m_masks[slice_index];
+  }
+
+  /**
    * @brief      Obtain banks from a slice
    *
    * @param      BankType

@@ -49,7 +49,7 @@ public:
   virtual size_t events_per_slice() const = 0;
 
   /**
-   * @brief      Get event ids in a given slice
+  * @brief      Get event ids in a given slice
    *
    * @param      slice index
    *
@@ -59,6 +59,15 @@ public:
     size_t slice_index,
     std::optional<size_t> first = std::nullopt,
     std::optional<size_t> last = std::nullopt) const = 0;
+
+  /**
+   * @brief      Get event mask in a given slice (ODIN erro bank)
+   *
+   * @param      slice index
+   *
+   * @return     event mask
+   */
+  virtual std::vector<char> event_mask(size_t slice_index) const = 0;
 
   /**
    * @brief      Indicate a slice is free for filling

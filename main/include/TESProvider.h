@@ -115,6 +115,19 @@ public:
     return EventIDs {};
   }
 
+  /**
+   * @brief      Obtain event mask in a given slice (ODIN error)
+   *
+   * @param      slice index
+   *
+   * @return     event mask in given slice
+   */
+  std::vector<char> event_mask(size_t)
+    const override
+  {
+    return std::vector<char> {};
+  }
+
   void slice_free(size_t) override {};
 
   std::tuple<bool, bool, bool, size_t, size_t, std::any> get_slice(std::optional<unsigned int> = {}) override
