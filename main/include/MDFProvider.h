@@ -271,11 +271,7 @@ public:
    *
    * @return     event mask in given slice
    */
-  std::vector<char> event_mask(size_t slice_index)
-    const override
-  {
-    return m_masks[slice_index];
-  }
+  std::vector<char> event_mask(size_t slice_index) const override { return m_masks[slice_index]; }
 
   /**
    * @brief      Obtain banks from a slice

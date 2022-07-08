@@ -49,7 +49,7 @@ public:
   virtual size_t events_per_slice() const = 0;
 
   /**
-  * @brief      Get event ids in a given slice
+   * @brief      Get event ids in a given slice
    *
    * @param      slice index
    *

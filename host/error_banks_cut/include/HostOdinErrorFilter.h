@@ -3,12 +3,10 @@
 \*****************************************************************************/
 #pragma once
 
-
 #include "Common.h"
 #include "AlgorithmTypes.cuh"
 #include <gsl/span>
 #include "InputProvider.h"
-
 
 namespace host_odin_error_filter {
   struct Parameters {

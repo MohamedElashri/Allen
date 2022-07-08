@@ -35,18 +35,18 @@ void host_odin_error_filter::host_odin_error_filter_t::operator()(
   // Initialize number of events
   data<host_number_of_events_t>(arguments)[0] = number_of_events;
 
-  
   auto event_mask_odin = runtime_options.input_provider->event_mask(runtime_options.slice_index);
 
   unsigned size_of_list = 0;
-    for (unsigned event_index = 0; event_index < number_of_events; ++event_index) {
-        unsigned event_number = event_index;
+  for (unsigned event_index = 0; event_index < number_of_events; ++event_index) {
+    unsigned event_number = event_index;
 
-        if (event_mask_odin[event_number] == 1) {
-        data<host_event_list_output_t>(arguments)[size_of_list++] = event_number;}
+    if (event_mask_odin[event_number] == 1) {
+      data<host_event_list_output_t>(arguments)[size_of_list++] = event_number;
     }
+  }
 
-    data<host_number_of_selected_events_t>(arguments)[0] = size_of_list;
+  data<host_number_of_selected_events_t>(arguments)[0] = size_of_list;
 
   // Reduce the size of the event lists to the selected events
   reduce_size<host_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));

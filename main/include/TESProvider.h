@@ -122,11 +122,7 @@ public:
    *
    * @return     event mask in given slice
    */
-  std::vector<char> event_mask(size_t)
-    const override
-  {
-    return std::vector<char> {};
-  }
+  std::vector<char> event_mask(size_t) const override { return std::vector<char> {}; }
 
   void slice_free(size_t) override {};
 

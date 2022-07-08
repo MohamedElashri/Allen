@@ -23,7 +23,8 @@ passthrough_line = line_maker(make_passthrough_line())
 odin_error = odin_error_filter("odin_error_filter")
 
 with line_maker.bind(prefilter=odin_error):
-    passthrough_line_filter_odin_error = line_maker(make_passthrough_line(name="Hlt1_Passthrough_ODIN_filter"))
+    passthrough_line_filter_odin_error = line_maker(
+        make_passthrough_line(name="Hlt1_Passthrough_ODIN_filter"))
 
 line_algorithms = [passthrough_line[0], passthrough_line_filter_odin_error[0]]
 
@@ -33,7 +34,9 @@ providers = CompositeNode(
     "Providers", bank_providers, NodeLogic.NONLAZY_AND, force_order=False)
 
 lines = CompositeNode(
-    "AllLines", [passthrough_line[1], passthrough_line_filter_odin_error[1]], NodeLogic.NONLAZY_OR, force_order=False)
+    "AllLines", [passthrough_line[1], passthrough_line_filter_odin_error[1]],
+    NodeLogic.NONLAZY_OR,
+    force_order=False)
 
 passthrough_sequence = CompositeNode(
     "Passthrough", [
