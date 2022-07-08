@@ -67,7 +67,6 @@ private:
                                                                    LHCb::RawBank::UT,
                                                                    LHCb::RawBank::FTCluster,
                                                                    LHCb::RawBank::EcalPacked,
-                                                                   LHCb::RawBank::Calo,
                                                                    LHCb::RawBank::Muon,
                                                                    LHCb::RawBank::ODIN}};
 
@@ -100,87 +99,42 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
   std::array<LHCb::RawBank::View, LHCb::RawBank::types().size()> rawBanks;
 
   for (auto const* rawEvent : rawEvents) {
-    if (rawEvent == nullptr) continue;
-    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [this, rawEvent, &rawBanks](auto bt) {
+    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [rawEvent, &rawBanks](auto bt) {
       auto banks = rawEvent->banks(bt);
       if (!banks.empty()) {
-        if (rawBanks[bt].empty()) {
-          rawBanks[bt] = banks;
-        }
-        else if (msgLevel(MSG::DEBUG)) {
-          debug() << "Multiple RawEvents contain " << toString(bt) << " banks. The first ones found will be used."
-                  << endmsg;
-        }
+        rawBanks[bt] = banks;
+      }
+      else {
+        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
       }
     });
-  }
-
-  // We have to deal with the fact that calo banks can come in different types
-  for (auto bt : m_bankTypes.value()) {
-    if (bt == LHCb::RawBank::EcalPacked || bt == LHCb::RawBank::HcalPacked) {
-      if (rawBanks[bt].empty() && rawBanks[LHCb::RawBank::Calo].empty()) {
-        // Old-style calo banks empty and new-style calo banks also empty
-        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
-      }
-    }
-    else if (bt == LHCb::RawBank::Calo) {
-      if (
-        rawBanks[bt].empty() &&
-        ((m_bankTypes.value().count(LHCb::RawBank::EcalPacked) && rawBanks[LHCb::RawBank::EcalPacked].empty()) ||
-         (m_bankTypes.value().count(LHCb::RawBank::HcalPacked) && rawBanks[LHCb::RawBank::HcalPacked].empty()))) {
-        // New-style calo banks empty and old-style calo banks also empty
-        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
-      }
-    }
-    else if (rawBanks[bt].empty()) {
-      throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
-    }
   }
 
   for (auto bt : LHCb::RawBank::types()) {
     auto const& banks = rawBanks[bt];
     if (banks.empty()) continue;
 
-    const uint32_t nBanks = banks.size();
-    printf("Transpose: Number of raw banks: %u \n", nBanks);
-	  
+    const uint32_t nBanks = banks.size();	  
     uint32_t offset = 0;
 
     std::vector<uint32_t> bankOffsets;
     bankOffsets.push_back(0);
-    std::vector<uint8_t> bankData;
     std::vector<uint16_t> bankSizes;
     bankSizes.reserve(nBanks);
     std::vector<uint8_t> bankTypes;
     bankTypes.reserve(nBanks);
 
+    std::vector<uint32_t> bankData;    
+    auto tot_size = std::accumulate( banks.begin(), banks.end(), 0, []( int sum, const LHCb::RawBank* const b ) { return sum + b -> size();} );
+    bankData.reserve( nBanks * ( 1 + tot_size ) );
+
     for (auto& bank : banks) {
-      const uint32_t sourceID = static_cast<uint32_t>(bank->sourceID());
-      printf(" Reading sourceID %d, type is %d \n", sourceID, bank -> type());
-      
-      //bankData.push_back(sourceID);
+      const uint32_t sourceID = static_cast<uint32_t>(bank->sourceID());      
+      bankData.push_back(sourceID);
+      offset++;
 
-      //TODO: better way?
-      unsigned int b1 = (unsigned int)(sourceID & 0xff);
-      unsigned int b2 = (unsigned int)(sourceID >> 8) & 0xff;
-      unsigned int b3 = (unsigned int)(sourceID >> 16) & 0xff;
-      unsigned int b4 = (unsigned int)(sourceID >> 24);
-      
-      bankData.push_back(b1);
-      bankData.push_back(b2);
-      bankData.push_back(b3);
-      bankData.push_back(b4);
-
-      //auto sourceID_read_back = reinterpret_cast<const uint32_t*>(bankData[bankData.size()-4]);
-      //printf(" sourceID read back = %u \n", sourceID_read_back);
-
-      offset += sizeof(uint32_t);
-
-      auto bStart = bank->begin<uint8_t>();
-      auto bEnd = bank->end<uint8_t>();
-
-      printf("TRANSPOSE RAW BANKS: bank size: %u, (bEnd - bStart)*sizeof(uint32_t) %lu \n", bank->size(), (bEnd - bStart) * sizeof(uint8_t) );
-      printf(" the same? %d \n", (long unsigned int) bank->size() == (bEnd - bStart) * sizeof(uint8_t));
+      auto bStart = bank->begin<uint32_t>();
+      auto bEnd = bank->end<uint32_t>();      
 
       // Debug/testing histogram with the sizes of the binary data per bank
       auto histo = m_histos[bt];
@@ -188,19 +142,19 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
         warning() << "No histogram booked for bank type " << toString(bt) << endmsg;
       }
       else {
-        histo->fill((bEnd - bStart) * sizeof(uint8_t));
+        histo->fill((bEnd - bStart) * sizeof(uint32_t));
       }
 
-      while (bStart != bEnd) {
-        const uint8_t raw_data = *(bStart);
+      while (bStart != (bank -> size() % sizeof(unsigned) == 0 ? bEnd : bEnd + 1) ) {
+        const uint32_t raw_data = *(bStart);
+	
         bankData.push_back(raw_data);
-
         bStart++;
         offset++;
       }
 
-      bankOffsets.push_back( offset );
-      bankSizes.push_back(bank->size());      
+      bankOffsets.push_back( offset * sizeof(uint32_t) );
+      bankSizes.push_back( bank -> size());      
       bankTypes.push_back(static_cast<uint8_t>(bank->type()));
     }
     
