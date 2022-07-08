@@ -141,7 +141,7 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
     auto const& banks = rawBanks[bt];
     if (banks.empty()) continue;
 
-    const uint32_t nBanks = banks.size();	  
+    const uint32_t nBanks = banks.size();
     uint32_t offset = 0;
 
     std::vector<uint32_t> bankOffsets;
@@ -151,17 +151,18 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
     std::vector<uint8_t> bankTypes;
     bankTypes.reserve(nBanks);
 
-    std::vector<uint32_t> bankData;    
-    auto tot_size = std::accumulate( banks.begin(), banks.end(), 0, []( int sum, const LHCb::RawBank* const b ) { return sum + b -> size();} );
-    bankData.reserve( nBanks * ( 1 + tot_size ) );
+    std::vector<uint32_t> bankData;
+    auto tot_size = std::accumulate(
+      banks.begin(), banks.end(), 0, [](int sum, const LHCb::RawBank* const b) { return sum + b->size(); });
+    bankData.reserve(nBanks * (1 + tot_size));
 
     for (auto& bank : banks) {
-      const uint32_t sourceID = static_cast<uint32_t>(bank->sourceID());      
+      const uint32_t sourceID = static_cast<uint32_t>(bank->sourceID());
       bankData.push_back(sourceID);
       offset++;
 
       auto bStart = bank->begin<uint32_t>();
-      auto bEnd = bank->end<uint32_t>();      
+      auto bEnd = bank->end<uint32_t>();
 
       // Debug/testing histogram with the sizes of the binary data per bank
       auto histo = m_histos[bt];
@@ -172,19 +173,19 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
         histo->fill((bEnd - bStart) * sizeof(uint32_t));
       }
 
-      while (bStart != (bank -> size() % sizeof(unsigned) == 0 ? bEnd : bEnd + 1) ) {
+      while (bStart != (bank->size() % sizeof(unsigned) == 0 ? bEnd : bEnd + 1)) {
         const uint32_t raw_data = *(bStart);
-	
+
         bankData.push_back(raw_data);
         bStart++;
         offset++;
       }
 
-      bankOffsets.push_back( offset * sizeof(uint32_t) );
-      bankSizes.push_back( bank -> size());      
+      bankOffsets.push_back(offset * sizeof(uint32_t));
+      bankSizes.push_back(bank->size());
       bankTypes.push_back(static_cast<uint8_t>(bank->type()));
     }
-    
+
     // Dumping number_of_rawbanks + 1 offsets!
     DumpUtils::Writer bank_buffer;
     bank_buffer.write(nBanks, bankOffsets, bankData);
@@ -192,7 +193,7 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
       TransposedBanks {bank_buffer.buffer(), std::move(bankSizes), std::move(bankTypes), banks[0]->version()};
   }
 
- return output;
+  return output;
 }
 
 // Declaration of the Algorithm Factory
