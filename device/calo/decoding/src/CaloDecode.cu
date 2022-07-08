@@ -30,7 +30,7 @@ namespace {
 
     for (unsigned bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
       auto raw_bank = raw_event.raw_bank(bank_number);
-      
+
       if constexpr (decoding_version < 4) { // old decoding
 
         while (raw_bank.data < raw_bank.end) {
@@ -89,10 +89,10 @@ namespace {
 
         int32_t source_id = raw_bank.source_id;
         if (!((source_id >> 11) == 11)) continue; // Only decode Ecal banks
-	if (raw_bank.type != LHCb::RawBank::BankType::Calo){
-	  //printf("at event %u, raw bank %u bank type = %u \n", event_number, bank_number, raw_bank.type);
-	  continue; // Only decode data banks
-	}
+        if (raw_bank.type != LHCb::RawBank::BankType::Calo) {
+          // printf("at event %u, raw bank %u bank type = %u \n", event_number, bank_number, raw_bank.type);
+          continue; // Only decode data banks
+        }
 
         auto raw_event_fiberCheck = RawEvent {data, offsets, sizes, types, event_number};
         auto raw_bank_fiberCheck = raw_event_fiberCheck.raw_bank(bank_number);
