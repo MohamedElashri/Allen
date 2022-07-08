@@ -44,7 +44,7 @@ LHCb::Event::Calo::Clusters GaudiAllenCaloToCaloClusters::operator()(
     debug() << "Number of Ecal clusters to convert = " << number_of_ecal_clusters << endmsg;
   }
 
-  EcalClusters.reserveForEntries(number_of_ecal_clusters);
+  EcalClusters.reserve(number_of_ecal_clusters);
 
   // Loop over Allen Ecal clusters and convert them
   // Don't need to access them with offset since one event is processed at a time
@@ -64,32 +64,34 @@ LHCb::Event::Calo::Clusters GaudiAllenCaloToCaloClusters::operator()(
     // Add the all digits, marking the seed ones
 
     if (LHCb::Detector::Calo::isValid(seedCellID)) {
-      EcalClusters.emplace_back(
-        seedCellID,
-        cluster.e,
-        1.0,
-        LHCb::CaloDigitStatus::Status {LHCb::CaloDigitStatus::Mask::UseForEnergy,
-                                       LHCb::CaloDigitStatus::Mask::SeedCell});
+
+      auto clusterOut = EcalClusters.emplace_back<SIMDWrapper::InstructionSet::Scalar>();
+
+      auto entry = clusterOut.entries().emplace_back();
+      entry.setCellID(seedCellID);
+      entry.setEnergy(cluster.e);
+      entry.setFraction(1.f);
+      entry.setStatus({LHCb::CaloDigitStatus::Mask::UseForEnergy, LHCb::CaloDigitStatus::Mask::SeedCell});
+
       auto ncells = 0;
       for (unsigned j = 0; j < Calo::Constants::max_neighbours; ++j) {
         if (cluster.digits[j] == USHRT_MAX) continue;
         ncells++;
         auto cellID = LHCb::Detector::Calo::DenseIndex::details::toCellID(cluster.digits[j]);
         if (LHCb::Detector::Calo::isValid(cellID)) {
-          EcalClusters.emplace_back(
-            cellID,
-            0.,
-            1.0,
-            LHCb::CaloDigitStatus::Status {LHCb::CaloDigitStatus::Mask::UseForEnergy,
-                                           LHCb::CaloDigitStatus::Mask::OwnedCell});
+
+          auto entry = clusterOut.entries().emplace_back();
+          entry.setCellID(cellID);
+          entry.setEnergy(0.f);
+          entry.setFraction(1.f);
+          entry.setStatus({LHCb::CaloDigitStatus::Mask::UseForEnergy, LHCb::CaloDigitStatus::Mask::OwnedCell});
         }
       }
-      EcalClusters.emplace_back(
-        seedCellID,
-        LHCb::Event::Calo::Clusters::Type::Area3x3,
-        {iFirstEntry, ncells + 1},
-        cluster.e,
-        {cluster.x, cluster.y, Calo::Constants::z});
+
+      clusterOut.setCellID(seedCellID);
+      clusterOut.setType(LHCb::Event::Calo::Clusters::Type::Area3x3);
+      clusterOut.setEnergy(cluster.e);
+      clusterOut.setPosition({cluster.x, cluster.y, Calo::Constants::z});
 
       iFirstEntry += ncells + 1; // seed digit+ associated digits making the cluster
     }
@@ -104,7 +106,7 @@ LHCb::Event::Calo::Clusters GaudiAllenCaloToCaloClusters::operator()(
   if (msgLevel(MSG::DEBUG)) {
     debug() << "Number of ecal seed clusters: " << EcalClusters.size() << endmsg;
     uint i = 0;
-    for (const auto& Cluster : EcalClusters) {
+    for (const auto& Cluster : EcalClusters.scalar()) {
       auto cellID = Cluster.cellID();
       const double e = Cluster.energy();
       const double x = Cluster.position().x();
