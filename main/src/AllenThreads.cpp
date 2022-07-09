@@ -246,9 +246,16 @@ void run_stream(
   ROOTService* root_service,
   unsigned n_reps,
   bool mep_layout,
-  uint inject_mem_fail)
+  uint inject_mem_fail,
+  bool prefer_shared)
 {
   Allen::set_device(device_id, stream_id);
+
+#if defined(TARGET_DEVICE_CUDA)
+  if (prefer_shared) {
+    cudaCheck(cudaDeviceSetCacheConfig(cudaFuncCachePreferShared));
+  }
+#endif
 
   zmq::socket_t control = make_control(thread_id, zmqSvc);
 

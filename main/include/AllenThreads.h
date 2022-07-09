@@ -37,7 +37,8 @@ void run_stream(
   ROOTService* root_service,
   unsigned n_reps,
   bool mep_layout,
-  uint inject_mem_fail);
+  uint inject_mem_fail,
+  bool prefer_shared);
 
 void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* monitor_manager, unsigned i_monitor);
 
