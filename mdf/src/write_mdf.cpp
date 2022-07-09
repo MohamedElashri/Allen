@@ -24,7 +24,8 @@ size_t Allen::add_raw_bank(
   // pad to a multiple of 4 bytes
   auto const padded_size = padded_bank_size(fragment.size());
   std::memset(bank->begin<char>() + fragment.size(), 0, padded_size - fragment.size());
-  assert(static_cast<unsigned long>(bank->totalSize()) == bank->hdrSize() + padded_size);
+  if (static_cast<LHCb::RawBank::BankType>(type) < LHCb::RawBank::BankType::DaqErrorFragmentThrottled)
+    assert(static_cast<unsigned long>(bank->totalSize()) == bank->hdrSize() + padded_size);
 
   return bank->totalSize();
 }
