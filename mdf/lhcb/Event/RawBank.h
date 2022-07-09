@@ -147,6 +147,7 @@ namespace LHCb {
       DaqErrorSyncBXIDCorrupted, // 91
       DaqErrorFragmentMissing,   // 92
       DaqErrorFragmentTruncated, // 93
+      DaqErrorIdleBXIDCorrupted, // 94
 
       // Add new types here. Don't forget to update also RawBank.cpp
       LastType, // LOOP Marker; add new bank types ONLY before!
