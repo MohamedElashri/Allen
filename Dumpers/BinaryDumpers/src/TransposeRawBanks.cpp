@@ -175,12 +175,11 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
 
       while (bStart != (bank->size() % sizeof(unsigned) == 0 ? bEnd : bEnd + 1)) {
         const uint32_t raw_data = *(bStart);
-
         bankData.push_back(raw_data);
+
         bStart++;
         offset++;
       }
-
       bankOffsets.push_back(offset * sizeof(uint32_t));
       bankSizes.push_back(bank->size());
       bankTypes.push_back(static_cast<uint8_t>(bank->type()));
@@ -192,7 +191,6 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
     output[bt] =
       TransposedBanks {bank_buffer.buffer(), std::move(bankSizes), std::move(bankTypes), banks[0]->version()};
   }
-
   return output;
 }
 
