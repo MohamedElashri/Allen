@@ -3,7 +3,7 @@
 ###############################################################################
 from AllenConf.utils import line_maker, make_gec, make_checkPV, make_lowmult
 from AllenConf.odin import make_bxtype, odin_error_filter
-from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
+from AllenConf.hlt1_reconstruction import hlt1_reconstruction, hlt1_reconstruction_matching, validator_node, validator_node_matching
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line
@@ -22,69 +22,69 @@ from PyConf.tonic import configurable
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 
 
-def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
+def default_physics_lines(velo_tracks, long_tracks, long_track_particles,
                           secondary_vertices, calo_matching_objects):
 
     lines = []
     lines.append(
         line_maker(
             make_two_track_mva_charm_xsec_line(
-                forward_tracks,
+                long_tracks,
                 secondary_vertices,
                 name="Hlt1TwoTrackMVACharmXSec")))
     lines.append(
         line_maker(
             make_kstopipi_line(
-                forward_tracks, secondary_vertices, name="Hlt1KsToPiPi")))
+                long_tracks, secondary_vertices, name="Hlt1KsToPiPi")))
     lines.append(
         line_maker(
             make_track_mva_line(
-                forward_tracks, long_track_particles, name="Hlt1TrackMVA")))
+                long_tracks, long_track_particles, name="Hlt1TrackMVA")))
     lines.append(
         line_maker(
             make_two_track_mva_line(
-                forward_tracks, secondary_vertices, name="Hlt1TwoTrackMVA")))
+                long_tracks, secondary_vertices, name="Hlt1TwoTrackMVA")))
     lines.append(
         line_maker(
             make_two_track_line_ks(
-                forward_tracks, secondary_vertices, name="Hlt1TwoTrackKs")))
+                long_tracks, secondary_vertices, name="Hlt1TwoTrackKs")))
     lines.append(
         line_maker(
             make_single_high_pt_muon_line(
-                forward_tracks,
+                long_tracks,
                 long_track_particles,
                 name="Hlt1SingleHighPtMuon")))
     lines.append(
         line_maker(
             make_single_high_pt_muon_no_muid_line(
-                forward_tracks,
+                long_tracks,
                 long_track_particles,
                 name="Hlt1SingleHighPtMuonNoMuID")))
     lines.append(
         line_maker(
             make_low_pt_muon_line(
-                forward_tracks, long_track_particles, name="Hlt1LowPtMuon")))
+                long_tracks, long_track_particles, name="Hlt1LowPtMuon")))
     lines.append(
         line_maker(
             make_d2kk_line(
-                forward_tracks, secondary_vertices, name="Hlt1D2KK")))
+                long_tracks, secondary_vertices, name="Hlt1D2KK")))
     lines.append(
         line_maker(
             make_d2kpi_line(
-                forward_tracks, secondary_vertices, name="Hlt1D2KPi")))
+                long_tracks, secondary_vertices, name="Hlt1D2KPi")))
     lines.append(
         line_maker(
             make_d2pipi_line(
-                forward_tracks, secondary_vertices, name="Hlt1D2PiPi")))
+                long_tracks, secondary_vertices, name="Hlt1D2PiPi")))
     lines.append(
         line_maker(
             make_di_muon_mass_line(
-                forward_tracks, secondary_vertices,
+                long_tracks, secondary_vertices,
                 name="Hlt1DiMuonHighMass")))
     lines.append(
         line_maker(
             make_di_muon_mass_line(
-                forward_tracks,
+                long_tracks,
                 secondary_vertices,
                 name="Hlt1DiMuonLowMass",
                 minHighMassTrackPt=500.,
@@ -96,15 +96,15 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
     lines.append(
         line_maker(
             make_di_muon_soft_line(
-                forward_tracks, secondary_vertices, name="Hlt1DiMuonSoft")))
+                long_tracks, secondary_vertices, name="Hlt1DiMuonSoft")))
     lines.append(
         line_maker(
             make_low_pt_di_muon_line(
-                forward_tracks, secondary_vertices, name="Hlt1LowPtDiMuon")))
+                long_tracks, secondary_vertices, name="Hlt1LowPtDiMuon")))
     lines.append(
         line_maker(
             make_track_muon_mva_line(
-                forward_tracks, long_track_particles,
+                long_tracks, long_track_particles,
                 name="Hlt1TrackMuonMVA")))
 
     lines.append(
@@ -127,21 +127,21 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
     lines.append(
         line_maker(
             make_track_electron_mva_line(
-                forward_tracks,
+                long_tracks,
                 long_track_particles,
                 calo_matching_objects,
                 name="Hlt1TrackElectronMVA")))
     lines.append(
         line_maker(
             make_single_high_pt_electron_line(
-                forward_tracks,
+                long_tracks,
                 long_track_particles,
                 calo_matching_objects,
                 name="Hlt1SingleHighPtElectron")))
     lines.append(
         line_maker(
             make_displaced_dielectron_line(
-                forward_tracks,
+                long_tracks,
                 secondary_vertices,
                 calo_matching_objects,
                 name="Hlt1DisplacedDielectron")))
@@ -158,7 +158,7 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
             lines.append(
                 line_maker(
                     make_lowmass_noip_dielectron_line(
-                        forward_tracks,
+                        long_tracks,
                         secondary_vertices,
                         calo_matching_objects,
                         minMass=limits[0],
@@ -176,7 +176,7 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
             lines.append(
                 line_maker(
                     make_lowmass_noip_dielectron_line(
-                        forward_tracks,
+                        long_tracks,
                         secondary_vertices,
                         calo_matching_objects,
                         is_same_sign=True,
@@ -198,7 +198,7 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
     lines.append(
         line_maker(
             make_displaced_leptons_line(
-                forward_tracks,
+                long_tracks,
                 long_track_particles,
                 calo_matching_objects,
                 name="Hlt1DisplacedLeptons")))
@@ -232,7 +232,7 @@ def event_monitoring_lines(with_lumi, lumiline_name):
     return lines
 
 
-def alignment_monitoring_lines(velo_tracks, forward_tracks,
+def alignment_monitoring_lines(velo_tracks, long_tracks,
                                long_track_particles, velo_states,
                                secondary_vertices):
 
@@ -243,13 +243,13 @@ def alignment_monitoring_lines(velo_tracks, forward_tracks,
     lines.append(
         line_maker(
             make_rich_1_line(
-                forward_tracks,
+                long_tracks,
                 long_track_particles,
                 name="Hlt1RICH1Alignment")))
     lines.append(
         line_maker(
             make_rich_2_line(
-                forward_tracks,
+                long_tracks,
                 long_track_particles,
                 name="Hlt1RICH2Alignment")))
     lines.append(
@@ -280,7 +280,7 @@ def alignment_monitoring_lines(velo_tracks, forward_tracks,
     return lines
 
 
-def default_smog2_lines(velo_tracks, forward_tracks, long_track_particles,
+def default_smog2_lines(velo_tracks, long_tracks, long_track_particles,
                         secondary_vertices):
 
     lines = []
@@ -319,7 +319,7 @@ def default_smog2_lines(velo_tracks, forward_tracks, long_track_particles,
     lines.append(
         line_maker(
             make_SMOG2_singletrack_line(
-                forward_tracks,
+                long_tracks,
                 long_track_particles,
                 name="Hlt1_SMOG2_SingleTrack")))
 
@@ -333,10 +333,14 @@ def setup_hlt1_node(withMCChecking=False,
                     with_ut=True,
                     with_lumi=True,
                     with_odin_filter=True,
-                    with_calo=True):
+                    with_calo=True,
+                    matching=False):
     # Reconstruct objects needed as input for selection lines
-    reconstructed_objects = hlt1_reconstruction(
-        add_electron_id=with_calo, with_ut=with_ut)
+    if not matching:
+        reconstructed_objects = hlt1_reconstruction(
+            add_electron_id=with_calo, with_ut=with_ut)
+    else:
+        reconstructed_objects = hlt1_reconstruction_matching()
 
     gec = [make_gec()] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
@@ -346,7 +350,7 @@ def setup_hlt1_node(withMCChecking=False,
     with line_maker.bind(prefilter=prefilters):
         physics_lines = default_physics_lines(
             reconstructed_objects["velo_tracks"],
-            reconstructed_objects["forward_tracks"],
+            reconstructed_objects["long_tracks"],
             reconstructed_objects["long_track_particles"],
             reconstructed_objects["secondary_vertices"],
             reconstructed_objects["calo_matching_objects"]
@@ -366,7 +370,7 @@ def setup_hlt1_node(withMCChecking=False,
     with line_maker.bind(prefilter=prefilters):
         monitoring_lines += alignment_monitoring_lines(
             reconstructed_objects["velo_tracks"],
-            reconstructed_objects["forward_tracks"],
+            reconstructed_objects["long_tracks"],
             reconstructed_objects["long_track_particles"],
             reconstructed_objects["velo_states"],
             reconstructed_objects["secondary_vertices"])
@@ -437,7 +441,7 @@ def setup_hlt1_node(withMCChecking=False,
 
             SMOG2_lines += default_smog2_lines(
                 reconstructed_objects["velo_tracks"],
-                reconstructed_objects["forward_tracks"],
+                reconstructed_objects["long_tracks"],
                 reconstructed_objects["long_track_particles"],
                 reconstructed_objects["secondary_vertices"])
 
@@ -455,7 +459,7 @@ def setup_hlt1_node(withMCChecking=False,
             make_routingbits_writer(lines=line_algorithms),
             *make_sel_report_writer(
                 lines=line_algorithms,
-                forward_tracks=reconstructed_objects["long_track_particles"],
+                long_tracks=reconstructed_objects["long_track_particles"],
                 secondary_vertices=reconstructed_objects["secondary_vertices"])
             ["algorithms"],
         ],
@@ -491,8 +495,12 @@ def setup_hlt1_node(withMCChecking=False,
     if not withMCChecking:
         return hlt1_node
     else:
-        validation_node = validator_node(reconstructed_objects,
+        if not matching:
+            validation_node = validator_node(reconstructed_objects,
                                          line_algorithms, with_ut)
+        else:
+            validation_node = validator_node_matching(reconstructed_objects,
+                                         line_algorithms)
 
         node = CompositeNode(
             "AllenWithValidators", [hlt1_node, validation_node],

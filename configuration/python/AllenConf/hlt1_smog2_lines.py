@@ -75,7 +75,7 @@ def make_SMOG2_ditrack_line(secondary_vertices,
         minTrackPt=minTrackPt)
 
 
-def make_SMOG2_singletrack_line(forward_tracks,
+def make_SMOG2_singletrack_line(long_tracks,
                                 long_track_particles,
                                 pre_scaler_hash_string=None,
                                 post_scaler_hash_string=None,
@@ -87,7 +87,7 @@ def make_SMOG2_singletrack_line(forward_tracks,
         SMOG2_singletrack_line_t,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
+        host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],

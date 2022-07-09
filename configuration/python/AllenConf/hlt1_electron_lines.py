@@ -10,7 +10,7 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
 
-def make_track_electron_mva_line(forward_tracks,
+def make_track_electron_mva_line(long_tracks,
                                  long_track_particles,
                                  calo,
                                  name="Hlt1TrackElectronMVA",
@@ -22,7 +22,7 @@ def make_track_electron_mva_line(forward_tracks,
         track_electron_mva_line_t,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
+        host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
@@ -32,7 +32,7 @@ def make_track_electron_mva_line(forward_tracks,
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])
 
 
-def make_single_high_pt_electron_line(forward_tracks,
+def make_single_high_pt_electron_line(long_tracks,
                                       long_track_particles,
                                       calo,
                                       name="Hlt1SingleHighPtElectron",
@@ -46,7 +46,7 @@ def make_single_high_pt_electron_line(forward_tracks,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
-        host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
+        host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
@@ -54,7 +54,7 @@ def make_single_high_pt_electron_line(forward_tracks,
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])
 
 
-def make_displaced_dielectron_line(forward_tracks,
+def make_displaced_dielectron_line(long_tracks,
                                    secondary_vertices,
                                    calo,
                                    name="Hlt1DisplacedDielectron",
@@ -71,12 +71,12 @@ def make_displaced_dielectron_line(forward_tracks,
             "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
-        dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
         dev_track_isElectron_t=calo["dev_track_isElectron"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])
 
 
-def make_displaced_leptons_line(forward_tracks,
+def make_displaced_leptons_line(long_tracks,
                                 long_track_particles,
                                 calo,
                                 name="Hlt1DisplacedLeptons",
@@ -117,7 +117,7 @@ def make_single_high_et_line(velo_tracks,
 
 
 def make_lowmass_noip_dielectron_line(
-        forward_tracks,
+        long_tracks,
         secondary_vertices,
         calo,
         minMass,
@@ -139,7 +139,7 @@ def make_lowmass_noip_dielectron_line(
         name="prompt_vertex_evaluator",
         dev_consolidated_svs_t=secondary_vertices["dev_consolidated_svs"],
         dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
-        dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         MinIPChi2Threshold=minIPChi2Threshold,
@@ -151,7 +151,7 @@ def make_lowmass_noip_dielectron_line(
         lowmass_noip_dielectron_line_t,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_track_offsets_t=forward_tracks["dev_offsets_forward_tracks"],
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
         dev_track_isElectron_t=calo["dev_track_isElectron"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],

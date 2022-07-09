@@ -12,11 +12,11 @@ namespace momentum_brem_correction {
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
-    DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_track_offsets;
+    DEVICE_INPUT(dev_offsets_long_tracks_t, unsigned) dev_track_offsets;
     // Velo tracks
     DEVICE_INPUT(dev_velo_tracks_offsets_t, unsigned) dev_velo_tracks_offsets;
-    // SciFi tracks
-    DEVICE_INPUT(dev_scifi_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_scifi_tracks_view;
+    // Long tracks
+    DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
     // Calo
     DEVICE_INPUT(dev_brem_E_t, float) dev_brem_E;
     DEVICE_INPUT(dev_brem_ET_t, float) dev_brem_ET;

@@ -46,18 +46,18 @@ def decode_calo():
     }
 
 
-def make_track_matching(decoded_calo, velo_tracks, velo_states, forward_tracks,
-                        kalman_velo_only):
+def make_track_matching(decoded_calo, velo_tracks, velo_states,
+                        long_tracks, kalman_velo_only):
     number_of_events = initialize_number_of_events()
 
     track_digit_selective_matching = make_algorithm(
         track_digit_selective_matching_t,
         name="track_digit_selective_matching",
-        host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
+        host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_scifi_states_t=forward_tracks["dev_scifi_states"],
-        dev_scifi_tracks_view_t=forward_tracks["dev_scifi_tracks_view"],
-        dev_long_tracks_view_t=forward_tracks[
+        dev_scifi_states_t=long_tracks["dev_scifi_states"],
+        dev_scifi_tracks_view_t=long_tracks["dev_scifi_tracks_view"],
+        dev_long_tracks_view_t=long_tracks[
             "dev_multi_event_long_tracks_view"],
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
@@ -81,14 +81,14 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, forward_tracks,
     momentum_brem_correction = make_algorithm(
         momentum_brem_correction_t,
         name="momentum_brem_correction",
-        host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
+        host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_kf_tracks_t=kalman_velo_only["dev_kf_tracks"],
         dev_velo_tracks_offsets_t=velo_tracks["dev_offsets_all_velo_tracks"],
-        dev_scifi_tracks_view_t=forward_tracks[
+        dev_long_tracks_view_t=long_tracks[
             "dev_multi_event_long_tracks_view"],
-        dev_offsets_forward_tracks_t=forward_tracks[
-            "dev_offsets_forward_tracks"],
+        dev_offsets_long_tracks_t=long_tracks[
+            "dev_offsets_long_tracks"],
         dev_brem_E_t=brem_recovery.dev_brem_E_t,
         dev_brem_ET_t=brem_recovery.dev_brem_ET_t)
 

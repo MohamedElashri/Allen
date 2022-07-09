@@ -140,7 +140,7 @@ def make_global_decision(lines):
         dev_dec_reports_t=dec_reporter.dev_dec_reports_t)
 
 
-def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
+def make_sel_report_writer(lines, long_tracks, secondary_vertices):
     gather_selections = make_gather_selections(lines)
     dec_reporter = make_dec_reporter(lines)
     number_of_events = initialize_number_of_events()

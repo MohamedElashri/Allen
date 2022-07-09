@@ -32,6 +32,9 @@ namespace MatchUpstreamMuon {
   struct MuonChambers;
   struct SearchWindows;
 } // namespace MatchUpstreamMuon
+namespace TrackMatchingConsts {
+  struct MagnetParametrization;
+}
 
 /**
  * @brief Struct intended as a singleton with constants defined on GPU.
@@ -83,6 +86,9 @@ struct Constants {
   // Looking forward
   LookingForward::Constants* host_looking_forward_constants;
 
+  // Track matching
+  TrackMatchingConsts::MagnetParametrization* host_magnet_parametrization;
+
   // Calo
   std::vector<char> host_ecal_geometry;
   char* dev_ecal_geometry = nullptr;
@@ -120,6 +126,9 @@ struct Constants {
   float dev_two_track_mva_nominal_cut = 0;
 
   LookingForward::Constants* dev_looking_forward_constants = nullptr;
+
+  // TrackMaching
+  TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization = nullptr;
 
   // Kalman filter
   ParKalmanFilter::KalmanParametrizations* dev_kalman_params = nullptr;

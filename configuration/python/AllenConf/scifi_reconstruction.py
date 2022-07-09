@@ -276,7 +276,7 @@ def make_forward_tracks(decoded_scifi, input_tracks, with_ut=True):
         host_total_sum_holder_t,
         dev_offsets_input_tracks_t=dev_offsets_input_tracks,
         dev_scifi_tracks_t=lf_quality_filter.dev_scifi_tracks_t,
-        dev_offsets_forward_tracks_t=prefix_sum_forward_tracks.
+        dev_offsets_long_tracks_t=prefix_sum_forward_tracks.
         dev_output_buffer_t)
 
     prefix_sum_scifi_track_hit_number = make_algorithm(
@@ -323,7 +323,7 @@ def make_forward_tracks(decoded_scifi, input_tracks, with_ut=True):
         scifi_consolidate_tracks.dev_scifi_track_ut_indices_t,
         "host_number_of_reconstructed_scifi_tracks":
         prefix_sum_forward_tracks.host_total_sum_holder_t,
-        "dev_offsets_forward_tracks":
+        "dev_offsets_long_tracks":
         prefix_sum_forward_tracks.dev_output_buffer_t,
         "dev_offsets_scifi_track_hit_number":
         prefix_sum_scifi_track_hit_number.dev_output_buffer_t,
@@ -432,6 +432,8 @@ def make_seeding_tracks(decoded_scifi, xz_tracks):
         seed_confirmTracks_consolidate.dev_seeding_track_hits_t,
         "dev_seeding_states":
         seed_confirmTracks_consolidate.dev_seeding_states_t,
+        "dev_seeding_qop":
+        seed_confirmTracks_consolidate.dev_seeding_qop_t,
         "host_number_of_reconstructed_seeding_tracks":
         prefix_sum_seeding_tracks.host_total_sum_holder_t,
         "dev_offsets_scifi_seeds":
@@ -455,8 +457,8 @@ def forward_tracking():
     decoded_ut = decode_ut()
     ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
     decoded_scifi = decode_scifi()
-    forward_tracks = make_forward_tracks(decoded_scifi, ut_tracks)
-    alg = forward_tracks["dev_scifi_track_hits"].producer
+    long_tracks = make_long_tracks(decoded_scifi, ut_tracks)
+    alg = long_tracks["dev_scifi_track_hits"].producer
     return alg
 
 def seeding_xz():

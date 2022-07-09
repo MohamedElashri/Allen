@@ -95,15 +95,15 @@ def decode_muon():
     }
 
 
-def is_muon(decoded_muon, forward_tracks):
+def is_muon(decoded_muon, long_tracks):
     number_of_events = initialize_number_of_events()
     host_number_of_events = number_of_events["host_number_of_events"]
     dev_number_of_events = number_of_events["dev_number_of_events"]
 
-    host_number_of_reconstructed_scifi_tracks = forward_tracks[
+    host_number_of_reconstructed_scifi_tracks = long_tracks[
         "host_number_of_reconstructed_scifi_tracks"]
-    dev_scifi_tracks_view = forward_tracks["dev_scifi_tracks_view"]
-    dev_scifi_states = forward_tracks["dev_scifi_states"]
+    dev_scifi_tracks_view = long_tracks["dev_scifi_tracks_view"]
+    dev_scifi_states = long_tracks["dev_scifi_states"]
 
     is_muon = make_algorithm(
         is_muon_t,
@@ -114,14 +114,14 @@ def is_muon(decoded_muon, forward_tracks):
         host_number_of_reconstructed_scifi_tracks,
         dev_scifi_tracks_view_t=dev_scifi_tracks_view,
         dev_scifi_states_t=dev_scifi_states,
-        dev_long_tracks_view_t=forward_tracks[
+        dev_long_tracks_view_t=long_tracks[
             "dev_multi_event_long_tracks_view"],
         dev_station_ocurrences_offset_t=decoded_muon[
             "dev_station_ocurrences_offset"],
         dev_muon_hits_t=decoded_muon["dev_muon_hits"])
 
     return {
-        "forward_tracks": forward_tracks,
+        "long_tracks": long_tracks,
         "dev_is_muon": is_muon.dev_is_muon_t,
         "dev_lepton_id": is_muon.dev_lepton_id_t
     }
@@ -130,15 +130,15 @@ def is_muon(decoded_muon, forward_tracks):
 def muon_id():
     from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
     from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
-    from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks
+    from AllenConf.scifi_reconstruction import decode_scifi, make_long_tracks
 
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     decoded_ut = decode_ut()
     ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
     decoded_scifi = decode_scifi()
-    forward_tracks = make_forward_tracks(decoded_scifi, ut_tracks)
+    long_tracks = make_long_tracks(decoded_scifi, ut_tracks)
     decoded_muon = decode_muon()
-    muonID = is_muon(decoded_muon, forward_tracks)
+    muonID = is_muon(decoded_muon, long_tracks)
     alg = muonID["dev_is_muon"].producer
     return alg

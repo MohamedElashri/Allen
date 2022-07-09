@@ -561,4 +561,14 @@ namespace SciFi {
       __host__ __device__ float ySlope() const { return by; }
     };
   } // namespace Seeding
+  
+  struct MatchedTrack {
+    uint16_t velo_track_index;
+    uint16_t scifi_track_index;
+    int number_of_hits_velo = 0;
+    int number_of_hits_ut = 0;
+    int number_of_hits_scifi = 0;
+    float chi2_matching;
+    float qop;
+  };
 } // namespace SciFi

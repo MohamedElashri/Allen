@@ -18,7 +18,7 @@ namespace FilterMFTracks {
     HOST_INPUT(host_selected_events_mf_t, unsigned) host_selected_events_mf;
     DEVICE_INPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
     DEVICE_INPUT(dev_mf_tracks_t, ParKalmanFilter::FittedTrack) dev_mf_tracks;
-    DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_atomics_scifi;
+    DEVICE_INPUT(dev_offsets_long_tracks_t, unsigned) dev_atomics_scifi;
     DEVICE_INPUT(dev_offsets_scifi_track_hit_number, unsigned) dev_scifi_track_hit_number;
     DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
