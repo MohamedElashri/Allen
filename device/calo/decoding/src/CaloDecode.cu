@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #include <MEPTools.h>
 #include <CaloDecode.cuh>
+#include <BankTypes.h>
 
 INSTANTIATE_ALGORITHM(calo_decode::calo_decode_t)
 
@@ -88,6 +89,10 @@ namespace {
 
         int32_t source_id = raw_bank.source_id;
         if (!((source_id >> 11) == 11)) continue; // Only decode Ecal banks
+        if (raw_bank.type != LHCb::RawBank::BankType::Calo) {
+          // printf("at event %u, raw bank %u bank type = %u \n", event_number, bank_number, raw_bank.type);
+          continue; // Only decode data banks
+        }
 
         auto raw_event_fiberCheck = RawEvent {data, offsets, sizes, types, event_number};
         auto raw_bank_fiberCheck = raw_event_fiberCheck.raw_bank(bank_number);

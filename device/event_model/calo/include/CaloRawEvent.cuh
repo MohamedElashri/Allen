@@ -31,9 +31,7 @@ namespace Calo {
     __device__ __host__ RawBank(const uint32_t sid, const char* fragment, const uint16_t s, const uint8_t t) :
       source_id {sid}, data {reinterpret_cast<uint32_t const*>(fragment)},
       end {reinterpret_cast<uint32_t const*>(fragment + s)}, type {t}
-    {
-      assert(s % sizeof(uint32_t) == 0);
-    }
+    {}
   };
 
   template<bool mep_layout>
