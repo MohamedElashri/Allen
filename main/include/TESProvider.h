@@ -30,7 +30,7 @@ public:
   TESProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events) :
     InputProvider {n_slices, events_per_slice, {}, IInputProvider::Layout::Allen, n_events}
   {
-    //setting here the event mask to be 1 for every event
+    // setting here the event mask to be 1 for every event
     m_masks.resize(n_slices);
     for (auto& mask : m_masks) {
       mask.resize(events_per_slice, 1);
