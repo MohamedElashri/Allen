@@ -25,5 +25,7 @@ namespace Calo {
 
     constexpr uint16_t z = 12650;
 
+    constexpr uint16_t max_ndiclusters = 3000;
+
   } // namespace Constants
 } // namespace Calo

@@ -13,8 +13,8 @@ from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias
 from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
+from AllenConf.hlt1_photon_lines import make_bs2gammagamma_line
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer
-
 from AllenConf.validators import rate_validation, routingbits_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
@@ -22,8 +22,9 @@ from PyConf.tonic import configurable
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 
 
-def default_physics_lines(velo_tracks, long_tracks, long_track_particles,
-                          secondary_vertices, calo_matching_objects):
+def default_physics_lines(velo_tracks, long_tracks, long_track_particles, pvs,
+                          secondary_vertices, ecal_clusters,
+                          calo_matching_objects):
 
     lines = []
     lines.append(
@@ -202,6 +203,11 @@ def default_physics_lines(velo_tracks, long_tracks, long_track_particles,
             make_single_high_et_line(
                 velo_tracks, calo_matching_objects, name="Hlt1SingleHighEt")))
 
+    lines.append(
+        line_maker(
+            make_bs2gammagamma_line(
+                ecal_clusters, pvs, name="Hlt1Bs2GammaGamma")))
+
     return lines
 
 
@@ -341,7 +347,9 @@ def setup_hlt1_node(withMCChecking=False,
             reconstructed_objects["velo_tracks"],
             reconstructed_objects["long_tracks"],
             reconstructed_objects["long_track_particles"],
+            reconstructed_objects["pvs"],
             reconstructed_objects["secondary_vertices"],
+            reconstructed_objects["ecal_clusters"],
             reconstructed_objects["calo_matching_objects"]
             if with_calo else None)
 
