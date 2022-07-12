@@ -29,7 +29,13 @@ class TESProvider final : public InputProvider {
 public:
   TESProvider(size_t n_slices, size_t events_per_slice, std::optional<size_t> n_events) :
     InputProvider {n_slices, events_per_slice, {}, IInputProvider::Layout::Allen, n_events}
-  {}
+  {
+    // setting here the event mask to be 1 for every event
+    m_masks.resize(n_slices);
+    for (auto& mask : m_masks) {
+      mask.resize(events_per_slice, 1);
+    }
+  }
 
   /**
    * @brief      Get banks in the format they are stored in TES
@@ -115,6 +121,15 @@ public:
     return EventIDs {};
   }
 
+  /**
+   * @brief      Obtain event mask in a given slice (ODIN error)
+   *
+   * @param      slice index
+   *
+   * @return     event mask in given slice
+   */
+  std::vector<char> event_mask(size_t slice_index) const override { return m_masks[slice_index]; }
+
   void slice_free(size_t) override {};
 
   std::tuple<bool, bool, bool, size_t, size_t, std::any> get_slice(std::optional<unsigned int> = {}) override
@@ -136,4 +151,5 @@ private:
   std::array<std::array<unsigned int, 2>, NBankTypes> m_offsets;
   std::array<std::vector<unsigned>, NBankTypes> m_sizes;
   std::array<std::vector<unsigned>, NBankTypes> m_types;
+  std::vector<std::vector<char>> m_masks;
 };

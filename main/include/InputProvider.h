@@ -61,6 +61,15 @@ public:
     std::optional<size_t> last = std::nullopt) const = 0;
 
   /**
+   * @brief      Get event mask in a given slice (ODIN erro bank)
+   *
+   * @param      slice index
+   *
+   * @return     event mask
+   */
+  virtual std::vector<char> event_mask(size_t slice_index) const = 0;
+
+  /**
    * @brief      Indicate a slice is free for filling
    *
    * @param      slice index
