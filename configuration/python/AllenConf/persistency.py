@@ -10,7 +10,8 @@ from AllenCore.generator import make_algorithm
 from PyConf.application import register_encoding_dictionary
 from PyConf.tonic import configurable
 
-def build_decision_ids( lines, offset = 1 ) :
+
+def build_decision_ids(lines, offset=1):
     """Return a dict of decision names to integer IDs.
 
     Decision report IDs must not be zero. This method generates IDs starting
@@ -25,28 +26,32 @@ def build_decision_ids( lines, offset = 1 ) :
         decision_ids (dict of str to int): Mapping from decision name to ID.
     """
 
-    return {name: idx for idx, name in enumerate(lines, offset)}
+    append_decision = lambda x: x if x.endswith('Decision') else '{}Decision'.format(x)
 
-def register_decision_ids( ids ) :
-    # note: as the HltSelRep raw bank does not have its own encoding key just yet, it
-    #       still 'sidesteps' to the decreports raw bank. Hence we stick
-    #       the SelectionID and InfoID into the same encoding table as the decision IDs
-    append_decision = lambda x : x if x.endswith('Decision') else '{}Decision'.format(x)
-
-    # and since we only persist the 'final' selection, the selection ids are the same
-    #  as the decision ids... so we waste some space here...
-
-    return int( register_encoding_dictionary(
-       'Hlt1DecisionID', {'Hlt1DecisionID': {v: append_decision(k) for k, v in ids.items()}, 
-                          'Hlt1SelectionID': {v: append_decision(k) for k, v in ids.items() },
-                          'InfoID': {},
-                          'version':'0' }),
-     16)  # TODO unsigned? Stick to hex string?
+    return {
+        append_decision(name): idx
+        for idx, name in enumerate(lines, offset)
+    }
 
 
-def register_allen_encoding_table( lines ) :
-    ids = build_decision_ids([ l.name for l in lines])
-    return register_decision_ids( ids )
+def register_decision_ids(ids):
+    if not all(k.endswith('Decision') for k in ids.keys()):
+        raise RuntimeError(
+            'Not all decision ids end in \'Decision\': {}'.format(ids))
+
+    return int(
+        register_encoding_dictionary(
+            'Hlt1SelectionID', {
+                'Hlt1SelectionID': {v: k
+                                    for k, v in ids.items()},
+                'InfoID': {},
+                'version': '0'
+            }), 16)  # TODO unsigned? Stick to hex string?
+
+
+def register_allen_encoding_table(lines):
+    ids = build_decision_ids([l.name for l in lines])
+    return register_decision_ids(ids)
 
 
 def _build_decision_ids(decision_names, offset=0):
@@ -125,7 +130,7 @@ def make_dec_reporter(lines, TCK=0):
     gather_selections = make_gather_selections(lines)
     number_of_events = initialize_number_of_events()
 
-    key = register_allen_encoding_table( lines )
+    key = register_allen_encoding_table(lines)
 
     return make_algorithm(
         dec_reporter_t,
