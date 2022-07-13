@@ -82,7 +82,7 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
   const Allen::Context& context) const
 {
 
-  std::cout << "Entering host_prefix_sum_t" << std::endl;
+  // std::cout << "Entering host_prefix_sum_t" << std::endl;
 #if defined(TARGET_DEVICE_CPU)
   // Copy directly data to the output buffer
   data<dev_output_buffer_t>(arguments)[0] = 0;
@@ -110,6 +110,6 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
   Allen::copy_async<dev_output_buffer_t, host_output_buffer_t>(arguments, context);
 #endif
 
-  print<dev_output_buffer_t>(arguments);
-  std::cout << "Out from host_prefix_sum_t" << std::endl;
+  // print<dev_output_buffer_t>(arguments);
+  // std::cout << "Out from host_prefix_sum_t" << std::endl;
 }

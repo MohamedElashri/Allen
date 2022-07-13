@@ -209,7 +209,7 @@ StatusCode TestMuonTable::initialize()
 
 void TestMuonTable::operator()(const LHCb::MuonCoords& muonCoords) const
 {
- 
+
   double xt = 0., dxt = 0., yt = 0., dyt = 0., zt = 0.;
 
   size_t n = 0;

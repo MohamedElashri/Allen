@@ -8,14 +8,13 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from Configurables import ApplicationMgr,  AllenUpdater
+from Configurables import ApplicationMgr, AllenUpdater
 from PyConf import configurable
 from PyConf.control_flow import CompositeNode, NodeLogic
-from PyConf.Algorithms import (AllenTESProducer, DumpBeamline,
-                               DumpUTGeometry, DumpUTLookupTables,
-                               DumpCaloGeometry, DumpMagneticField,
-                               DumpVPGeometry, DumpFTGeometry, 
-                               DumpMuonGeometry, DumpMuonTable)
+from PyConf.Algorithms import (AllenTESProducer, DumpBeamline, DumpUTGeometry,
+                               DumpUTLookupTables, DumpCaloGeometry,
+                               DumpMagneticField, DumpVPGeometry,
+                               DumpFTGeometry, DumpMuonGeometry, DumpMuonTable)
 from DDDB.CheckDD4Hep import UseDD4Hep
 
 
@@ -39,13 +38,17 @@ def setup_allen_non_event_data_service(allen_event_loop=False):
 
     appMgr.ExtSvc.extend(AllenUpdater(TriggerEventLoop=allen_event_loop))
 
-    types = [(DumpBeamline, 'beamline'), 
-             (DumpCaloGeometry, 'ecal_geometry'),
-             (DumpUTGeometry, 'ut_geometry'), (DumpUTLookupTables, 'ut_tables'),
-             (DumpVPGeometry, 'velo_geometry'), 
-             (DumpMagneticField, 'polarity'),
-             #(DumpFTGeometry, 'scifi_geometry'),
-             (DumpMuonGeometry, 'muon_geometry'), (DumpMuonTable, 'muon_tables')]
+    types = [
+        (DumpBeamline, 'beamline'),
+        (DumpCaloGeometry, 'ecal_geometry'),
+        (DumpUTGeometry, 'ut_geometry'),
+        (DumpUTLookupTables, 'ut_tables'),
+        (DumpVPGeometry, 'velo_geometry'),
+        (DumpMagneticField, 'polarity'),
+        #(DumpFTGeometry, 'scifi_geometry'),
+        (DumpMuonGeometry, 'muon_geometry'),
+        (DumpMuonTable, 'muon_tables')
+    ]
 
     algorithm_converters = []
     algorithm_producers = []
@@ -68,7 +71,7 @@ def setup_allen_non_event_data_service(allen_event_loop=False):
 
     converters_node = CompositeNode(
         "allen_non_event_data_converters",
-        algorithm_converters, 
+        algorithm_converters,
         combine_logic=NodeLogic.NONLAZY_OR,
         force_order=True)
     producers_node = CompositeNode(

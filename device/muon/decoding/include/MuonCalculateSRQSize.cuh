@@ -17,7 +17,7 @@ namespace muon_calculate_srq_size {
     DEVICE_INPUT(dev_muon_raw_t, char) dev_muon_raw;
     DEVICE_INPUT(dev_muon_raw_offsets_t, unsigned) dev_muon_raw_offsets;
     DEVICE_INPUT(dev_muon_raw_sizes_t, unsigned) dev_muon_raw_sizes;
-    //DEVICE_INPUT(dev_muon_raw_types_t, unsigned) dev_muon_raw_types;
+    DEVICE_INPUT(dev_muon_raw_types_t, unsigned) dev_muon_raw_types;
     DEVICE_OUTPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
     DEVICE_OUTPUT(dev_storage_station_region_quarter_sizes_t, unsigned) dev_storage_station_region_quarter_sizes;
   };

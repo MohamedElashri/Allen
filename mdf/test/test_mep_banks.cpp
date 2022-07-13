@@ -457,18 +457,18 @@ struct compare<BankTypes::MUON, transpose_mep> {
     gsl::span<char const> mep_fragments,
     gsl::span<unsigned const> mep_offsets,
     gsl::span<unsigned const> mep_sizes,
-    gsl::span<unsigned const>,
+    gsl::span<unsigned const> mep_types,
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
-    gsl::span<unsigned const>,
+    gsl::span<unsigned const> allen_types,
     unsigned const i_event)
   {
 
-    const auto allen_raw_event =
-      Muon::RawEvent<false, 3>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event);
-    const auto mep_raw_event =
-      Muon::RawEvent<!transpose_mep, 3>(mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event);
+    const auto allen_raw_event = Muon::RawEvent<false, 3>(
+      allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
+    const auto mep_raw_event = Muon::RawEvent<!transpose_mep, 3>(
+      mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
     auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
     REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());

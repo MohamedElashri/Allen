@@ -53,7 +53,7 @@ unsigned int pad_offset(MuonTable const& table, LHCb::Detector::Muon::TileID con
 {
   int idx = 4 * tile.station() + tile.region();
   int perQuarter = 3 * table.gridX[idx] * table.gridY[idx];
-  return static_cast<unsigned int> (table.offset[idx] + tile.quarter() * perQuarter);
+  return static_cast<unsigned int>(table.offset[idx] + tile.quarter() * perQuarter);
 }
 
 unsigned int strip_offset(MuonTable const& table, LHCb::Detector::Muon::TileID const& tile)
@@ -209,45 +209,47 @@ StatusCode TestMuonTableWithHits::initialize()
 
 void TestMuonTableWithHits::operator()(const MuonHitContainer& muon_hits_container) const
 {
- 
+
   double xt = 0., dxt = 0., yt = 0., dyt = 0., zt = 0.;
   size_t n = 0;
 
   unsigned int counter = 0;
-  for ( auto istation = 0; istation < 3; istation++){  
-    auto hits = muon_hits_container.hits( istation );
+  for (auto istation = 0; istation < 3; istation++) {
+    auto hits = muon_hits_container.hits(istation);
     for (auto hit : hits) {
-      
-      auto pos = m_det->position(hit.tile());      
+
+      auto pos = m_det->position(hit.tile());
       hit_position(hit.tile(), m_pad, m_stripX, m_stripY, hit.uncrossed(), xt, dxt, yt, dyt, zt);
-      
+
       array<tuple<char const*, double, double>, 5> values {{{"x ", pos->x(), xt},
-	    {"dx", pos->dX(), dxt},
-	      {"y ", pos->y(), yt},
-		{"dy", pos->dY(), dyt},
-		  {"z ", pos->z(), zt}}};
+                                                            {"dx", pos->dX(), dxt},
+                                                            {"y ", pos->y(), yt},
+                                                            {"dy", pos->dY(), dyt},
+                                                            {"z ", pos->z(), zt}}};
 
       boost::format msg {"%|4d| %|8d| %|6s| %|d| %|d| %|d| %|2d| %|2d| %|d| %|5d| %|5d|"};
 
       for (auto [w, a, b] : values) {
-	if (boost::math::relative_difference(a, b) > 0.01) {
-	  counter++;
-	  auto const& tile = hit.tile();
-	  auto [table, tt] = lookup_table(tile, hit.uncrossed(), m_pad, m_stripX, m_stripY);
-	  const auto index = lookup_index(table.get(), tile);
-	  
-	  auto dx_index = MuonUtils::size_index(table.get().sizeOffset, table.get().gridX, table.get().gridY, tile);
-	  
-	  // positions are always indexed by station
-	  error() << (msg % n % static_cast<unsigned int>(tile) % tt % tile.station() % tile.region() % tile.quarter() %
-		      tile.nX() % tile.nY() % hit.uncrossed() % index % dx_index)
-		  << endmsg;
-	  error() << w << " " << a << " " << b << endmsg;
-	}
+        if (boost::math::relative_difference(a, b) > 0.01) {
+          counter++;
+          auto const& tile = hit.tile();
+          auto [table, tt] = lookup_table(tile, hit.uncrossed(), m_pad, m_stripX, m_stripY);
+          const auto index = lookup_index(table.get(), tile);
+
+          auto dx_index = MuonUtils::size_index(table.get().sizeOffset, table.get().gridX, table.get().gridY, tile);
+
+          // positions are always indexed by station
+          error() << (msg % n % static_cast<unsigned int>(tile) % tt % tile.station() % tile.region() % tile.quarter() %
+                      tile.nX() % tile.nY() % hit.uncrossed() % index % dx_index)
+                  << endmsg;
+          error() << w << " " << a << " " << b << endmsg;
+        }
       }
       ++n;
     }
   }
-  if (counter == 0) 
-    std::cout << "I found no difference between the CPU decoding and the dumped muon tables...congrats, the dumping you implemented seems to be successful!" << std::endl;
+  if (counter == 0)
+    std::cout << "I found no difference between the CPU decoding and the dumped muon tables...congrats, the dumping "
+                 "you implemented seems to be successful!"
+              << std::endl;
 }

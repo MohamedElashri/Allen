@@ -106,7 +106,7 @@ void TestMuonHits::operator()(
       error() << "This Muon Hit decoded by Allen has multiple Muon hits decoded by Rec" << endmsg;
       error() << muon_hit_allen << endmsg;
     }
-    else if (n_hits_found == 1){
+    else if (n_hits_found == 1) {
       info() << "Successfully matched hit" << muon_hit_allen << endmsg;
     }
   }

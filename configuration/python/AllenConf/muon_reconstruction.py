@@ -24,6 +24,7 @@ def decode_muon():
         dev_muon_raw_t=muon_banks.dev_raw_banks_t,
         dev_muon_raw_offsets_t=muon_banks.dev_raw_offsets_t,
         dev_muon_raw_sizes_t=muon_banks.dev_raw_sizes_t,
+        dev_muon_raw_types_t=muon_banks.dev_raw_types_t,
         host_raw_bank_version_t=muon_banks.host_raw_bank_version_t)
 
     muon_srq_prefix_sum = make_algorithm(
@@ -42,6 +43,7 @@ def decode_muon():
         dev_muon_raw_t=muon_banks.dev_raw_banks_t,
         dev_muon_raw_offsets_t=muon_banks.dev_raw_offsets_t,
         dev_muon_raw_sizes_t=muon_banks.dev_raw_sizes_t,
+        dev_muon_raw_types_t=muon_banks.dev_raw_types_t,
         dev_muon_raw_to_hits_t=muon_calculate_srq_size.dev_muon_raw_to_hits_t,
         dev_storage_station_region_quarter_offsets_t=muon_srq_prefix_sum.
         dev_output_buffer_t,
@@ -86,7 +88,6 @@ def decode_muon():
     return {
         "dev_storage_station_region_quarter_offsets":
         muon_srq_prefix_sum.dev_output_buffer_t,
-        "placeholder_output" : muon_station_ocurrence_prefix_sum.host_total_sum_holder_t,
         "dev_muon_hits":
         muon_populate_hits.dev_muon_hits_t,
         "dev_station_ocurrences_offset":

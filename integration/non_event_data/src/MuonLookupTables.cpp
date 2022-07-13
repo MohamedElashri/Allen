@@ -29,11 +29,11 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data)
   int version;
   std::copy_n((uint*) raw_input, 1, &version);
   raw_input += sizeof(uint);
-  
+
   if (version != 2 && version != 3) {
     error_cout << "Unrecognized MuonTable version!" << std::endl;
   }
-  
+
   size_t allOffsets[n_data_blocks];
   unsigned int sizeOffset[Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::MuonTables::n_tables];
   int gridY[Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::MuonTables::n_tables];
@@ -108,5 +108,4 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data)
     dev_muon_tables_raw, host_muon_tables_raw.data(), host_muon_tables_raw.size(), Allen::memcpyHostToDevice);
   Muon::MuonTables host_muon_tables {allOffsets, dev_muon_tables_raw, sizeOffset, version};
   Allen::memcpy(m_muon_tables.get(), &host_muon_tables, sizeof(Muon::MuonTables), Allen::memcpyHostToDevice);
-  
 }
