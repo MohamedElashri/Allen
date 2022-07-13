@@ -18,14 +18,8 @@ namespace track_matching_veloSciFi {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
 
-    DEVICE_INPUT(dev_seeding_confirmTracks_atomics_t, unsigned) dev_atomics_scifi;
-
-    DEVICE_INPUT(dev_offsets_all_seeding_tracks_t, unsigned) dev_atomics_seeding;
-    DEVICE_INPUT(dev_offsets_scifi_seed_hit_number_t, unsigned) dev_seeding_hit_number;
     DEVICE_INPUT(dev_seeding_states_t, MiniState) dev_seeding_states;
-    DEVICE_INPUT(dev_seeding_track_hits_t, char) dev_seeding_track_hits;
-
-    DEVICE_INPUT(dev_scifi_track_seeds_t, SciFi::Seeding::Track) dev_scifi_track_seeds;
+    DEVICE_INPUT(dev_scifi_tracks_view_t, Allen::Views::SciFi::Consolidated::Tracks) dev_scifi_tracks_view;
 
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Velo::Consolidated::States) dev_velo_states_view;

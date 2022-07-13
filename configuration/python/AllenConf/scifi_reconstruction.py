@@ -296,7 +296,7 @@ def make_forward_tracks(decoded_scifi, input_tracks, with_ut=True):
         host_total_sum_holder_t,
         dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
         dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
-        dev_offsets_forward_tracks_t=prefix_sum_forward_tracks.
+        dev_offsets_long_tracks_t=prefix_sum_forward_tracks.
         dev_output_buffer_t,
         dev_offsets_scifi_track_hit_number_t=prefix_sum_scifi_track_hit_number.
         dev_output_buffer_t,
@@ -457,7 +457,7 @@ def forward_tracking():
     decoded_ut = decode_ut()
     ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
     decoded_scifi = decode_scifi()
-    long_tracks = make_long_tracks(decoded_scifi, ut_tracks)
+    long_tracks = make_forward_tracks(decoded_scifi, ut_tracks)
     alg = long_tracks["dev_scifi_track_hits"].producer
     return alg
 

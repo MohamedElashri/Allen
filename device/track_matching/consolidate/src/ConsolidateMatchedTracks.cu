@@ -74,12 +74,6 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
   const SciFi::MatchedTrack* event_matched_tracks =
     parameters.dev_matched_tracks + event_number * TrackMatchingConsts::max_num_tracks;
 
-  SciFi::Consolidated::ConstSeeds scifi_seeds {parameters.dev_atomics_scifi,
-                                               parameters.dev_seeding_hit_number,
-                                               parameters.dev_seeding_states,
-                                               event_number,
-                                               number_of_events};
-
   float* tracks_qop = parameters.dev_matched_qop + parameters.dev_atomics_matched[event_number];
   unsigned int* tracks_velo_indices =
     parameters.dev_matched_track_velo_indices + parameters.dev_atomics_matched[event_number];

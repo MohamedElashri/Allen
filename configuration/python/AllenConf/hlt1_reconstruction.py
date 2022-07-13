@@ -3,7 +3,7 @@
 ###############################################################################
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
 from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
-from AllenConf.scifi_reconstruction import decode_scifi, make_long_tracks, make_seeding_XZ_tracks, make_seeding_tracks
+from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
 from AllenConf.muon_reconstruction import decode_muon, is_muon
 from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters

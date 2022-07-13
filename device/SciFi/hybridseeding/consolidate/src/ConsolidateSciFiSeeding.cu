@@ -136,9 +136,7 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
   // Create consolidated SoAs.
   SciFi::Consolidated::Seeds scifi_seeds {parameters.dev_atomics_scifi,
                                            parameters.dev_seeding_hit_number,
-                                           //parameters.dev_seeding_qop,
                                            parameters.dev_seeding_states,
-                                           //nullptr,
                                            event_number,
                                            number_of_events};
   const unsigned number_of_tracks_event = scifi_seeds.number_of_tracks(event_number);
@@ -161,8 +159,8 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
     scifi_seeds.states(i) = seeding_state;
 
     const auto magSign = dev_magnet_polarity[0];
-    //scifi_seeds.qop(i) =
-    //  qop_seeding_calculation(magSign, seeding_state, true);
+    tracks_qop[i] =
+      qop_seeding_calculation(magSign, seeding_state, true);
 
     auto consolidated_hits = scifi_seeds.get_hits(parameters.dev_seeding_track_hits, i);
 

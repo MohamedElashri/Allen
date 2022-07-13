@@ -130,14 +130,14 @@ def is_muon(decoded_muon, long_tracks):
 def muon_id():
     from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
     from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
-    from AllenConf.scifi_reconstruction import decode_scifi, make_long_tracks
+    from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks
 
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     decoded_ut = decode_ut()
     ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
     decoded_scifi = decode_scifi()
-    long_tracks = make_long_tracks(decoded_scifi, ut_tracks)
+    long_tracks = make_forward_tracks(decoded_scifi, ut_tracks)
     decoded_muon = decode_muon()
     muonID = is_muon(decoded_muon, long_tracks)
     alg = muonID["dev_is_muon"].producer

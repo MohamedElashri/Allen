@@ -32,13 +32,7 @@ def make_velo_scifi_matches(velo_tracks, velo_kalman_filter, seeding_tracks):
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_velo_states_view_t=velo_kalman_filter[
             "dev_velo_kalman_endvelo_states_view"],
-        dev_seeding_confirmTracks_atomics_t=seeding_tracks["seed_atomics"],
-        dev_scifi_track_seeds_t=seeding_tracks["seed_tracks"],
-        dev_offsets_all_seeding_tracks_t=seeding_tracks[
-            "dev_offsets_scifi_seeds"],
-        dev_seeding_track_hits_t=seeding_tracks["dev_seeding_track_hits"],
-        dev_offsets_scifi_seed_hit_number_t=seeding_tracks[
-            "dev_offsets_scifi_seed_hit_number"],
+        dev_scifi_tracks_view_t=seeding_tracks["dev_scifi_tracks_view"],
         dev_seeding_states_t=seeding_tracks["dev_seeding_states"],
         dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
         dev_ut_number_of_selected_velo_tracks_t,
@@ -72,10 +66,6 @@ def make_velo_scifi_matches(velo_tracks, velo_kalman_filter, seeding_tracks):
         name="matching_consolidate_tracks",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        dev_offsets_seeding_hit_number_t=seeding_tracks[
-            "dev_offsets_scifi_seed_hit_number"],
-        dev_seeding_states_t=seeding_tracks["dev_seeding_states"],
-        dev_offsets_seeding_tracks_t=seeding_tracks["dev_offsets_scifi_seeds"],
         host_accumulated_number_of_hits_in_matched_tracks_t=
         prefix_sum_matched_track_hit_number.host_total_sum_holder_t,
         host_number_of_reconstructed_matched_tracks_t=prefix_sum_matched_tracks

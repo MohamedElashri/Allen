@@ -25,9 +25,6 @@ namespace matching_consolidate_tracks {
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_INPUT(dev_scifi_tracks_view_t, Allen::Views::SciFi::Consolidated::Tracks) dev_scifi_tracks_view;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT(dev_offsets_seeding_tracks_t, unsigned) dev_atomics_scifi;          // fishy
-    DEVICE_INPUT(dev_offsets_seeding_hit_number_t, unsigned) dev_seeding_hit_number; // fishy
-    DEVICE_INPUT(dev_seeding_states_t, MiniState) dev_seeding_states;
     DEVICE_INPUT(dev_offsets_matched_tracks_t, unsigned) dev_atomics_matched;
     DEVICE_INPUT(dev_offsets_matched_hit_number_t, unsigned) dev_matched_track_hit_number; // fishy
     DEVICE_INPUT(dev_matched_tracks_t, SciFi::MatchedTrack) dev_matched_tracks;

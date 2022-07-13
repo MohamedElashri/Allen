@@ -127,16 +127,12 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
   const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
   const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_velo_seeds_offset;
 
-  // consolidated scifi seeds
-  SciFi::Consolidated::ConstSeeds scifi_seeds {parameters.dev_atomics_seeding,
-                                               parameters.dev_seeding_hit_number,
-                                               parameters.dev_seeding_states,
-                                               event_number,
-                                               number_of_events};
+  // SciFi seed views
+  const auto scifi_seeds = parameters.dev_scifi_tracks_view[event_number];
 
-  const unsigned event_scifi_seeds_offset = scifi_seeds.tracks_offset(event_number);
-  const auto number_of_scifi_seeds = parameters.dev_atomics_scifi[event_number];
-  const auto scifiSeeds = parameters.dev_scifi_track_seeds + event_number * SciFi::Constants::Nmax_seeds;
+  const unsigned event_scifi_seeds_offset = scifi_seeds.offset();
+  const auto number_of_scifi_seeds = scifi_seeds.size();
+  const auto scifi_states = parameters.dev_seeding_states + event_scifi_seeds_offset;
 
   unsigned* n_matched_tracks_event = parameters.dev_atomics_matched_tracks + event_number;
 
@@ -153,8 +149,8 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
   __syncthreads();
 
   for (unsigned i = threadIdx.x; i < number_of_scifi_seeds; i += blockDim.x) {
-    const auto scifi_state = scifi_seeds.states(i);
-    auto& scifiseed = scifiSeeds[i];
+    const auto scifi_state = scifi_states[i];
+    auto& scifiseed = scifi_seeds.track(i);
 
     track_matching::Match BestMatch = {-9999, 1000.f};
 
@@ -180,7 +176,7 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
     matched_track.scifi_track_index = i;
 
     matched_track.number_of_hits_velo = velo_tracks.track(BestMatch.ivelo).number_of_hits();
-    matched_track.number_of_hits_scifi = scifiseed.number_of_hits;
+    matched_track.number_of_hits_scifi = scifiseed.number_of_scifi_hits();
     matched_track.chi2_matching = BestMatch.chi2;
 
     const auto endvelo_state = velo_states.state(BestMatch.ivelo);
