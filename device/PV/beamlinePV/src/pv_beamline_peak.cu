@@ -179,7 +179,6 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
       rising = stillrising;
       integral += value;
     }
-    // assert(rising == false);
     extrema[number_of_extrema] = Extremum(iend, zhisto[iend], integral);
     number_of_extrema++;
 
