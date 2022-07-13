@@ -22,7 +22,10 @@ void velo_search_by_triplet::velo_search_by_triplet_t::set_arguments_size(
   const HostBuffers&) const
 {
   const unsigned track_container_size =
-    first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster;
+    first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster <
+        first<host_number_of_events_t>(arguments) * Velo::Constants::minimum_container_size ?
+      first<host_number_of_events_t>(arguments) * Velo::Constants::minimum_container_size :
+      first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster;
 
   set_size<dev_tracks_t>(arguments, track_container_size);
   set_size<dev_three_hit_tracks_t>(arguments, track_container_size);
@@ -283,11 +286,12 @@ __device__ std::tuple<int16_t, int16_t> velo_search_by_triplet::find_forward_can
   const auto y_prediction = h0.y + predy;
   const auto track_extrapolation_phi = hit_phi_16(x_prediction, y_prediction);
 
-  return {binary_search_leftmost(
-            hit_phis + module_pair.hit_start,
-            module_pair.hit_num,
-            static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
-          track_extrapolation_phi};
+  return {
+    binary_search_leftmost(
+      hit_phis + module_pair.hit_start,
+      module_pair.hit_num,
+      static_cast<int16_t>(track_extrapolation_phi - phi_tolerance)),
+    track_extrapolation_phi};
 }
 
 /**
