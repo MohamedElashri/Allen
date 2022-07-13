@@ -46,8 +46,8 @@ def decode_calo():
     }
 
 
-def make_track_matching(decoded_calo, velo_tracks, velo_states,
-                        long_tracks, kalman_velo_only):
+def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
+                        kalman_velo_only):
     number_of_events = initialize_number_of_events()
 
     track_digit_selective_matching = make_algorithm(
@@ -57,8 +57,7 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states,
             "host_number_of_reconstructed_scifi_tracks"],
         dev_scifi_states_t=long_tracks["dev_scifi_states"],
         dev_scifi_tracks_view_t=long_tracks["dev_scifi_tracks_view"],
-        dev_long_tracks_view_t=long_tracks[
-            "dev_multi_event_long_tracks_view"],
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"])

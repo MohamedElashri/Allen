@@ -309,11 +309,11 @@ __device__ void scifi_consolidate_tracks_impl(
     const auto txO = velo_state.tx();
     const auto tyO = velo_state.ty();
 
-    //QoP for scifi tracks
+    // QoP for scifi tracks
     scifi_tracks.qop(i) =
       qop_calculation(dev_looking_forward_constants, magSign, z0, x0, y0, xVelo, yVelo, zVelo, txO, tyO, tx, ty);
 
-    //QoP for long tracks
+    // QoP for long tracks
     tracks_qop[i] =
       qop_calculation(dev_looking_forward_constants, magSign, z0, x0, y0, xVelo, yVelo, zVelo, txO, tyO, tx, ty);
 

@@ -243,7 +243,7 @@ namespace SciFi {
       __host__ __device__ float qop(const unsigned index) const { return m_qop[index]; }
 
       __host__ __device__ float& qop(const unsigned index) { return m_qop[index]; }
-      
+
       __host__ __device__ MiniState states(const unsigned index) const { return m_states[index]; }
 
       __host__ __device__ MiniState& states(const unsigned index) { return m_states[index]; }

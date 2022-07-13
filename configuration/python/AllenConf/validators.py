@@ -97,6 +97,7 @@ def long_validation(long_tracks, name="long_validator"):
             "dev_multi_event_long_tracks_view"],
         dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"])
 
+
 def seeding_xz_validation(name="seed_xz_validator"):
     mc_events = mc_data_provider()
     decoded_scifi = decode_scifi()
@@ -156,6 +157,7 @@ def seeding_validation(seeding_tracks, name="seed_validator"):
         dev_seeding_states_t=seeding_tracks["dev_seeding_states"],
         host_mc_events_t=mc_events.host_mc_events_t)
 
+
 def velo_scifi_dump(matched_tracks, name="veloscifi_dump"):
     mc_events = mc_data_provider()
 
@@ -187,7 +189,8 @@ def velo_scifi_dump(matched_tracks, name="veloscifi_dump"):
             "dev_offsets_scifi_seed_hit_number"],
         dev_scifi_seeds_t=seeding_tracks["seed_tracks"],
         dev_seeding_states_t=seeding_tracks["dev_seeding_states"])
-        
+
+
 def muon_validation(muonID, name="muon_validator"):
     mc_events = mc_data_provider()
     number_of_events = initialize_number_of_events()

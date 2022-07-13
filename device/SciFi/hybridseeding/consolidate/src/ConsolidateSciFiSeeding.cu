@@ -56,40 +56,36 @@ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::set_argum
   set_size<dev_scifi_multi_event_tracks_view_t>(arguments, 1);
 }
 
-
 //===========================================================================================
-// Calculate momentum, given T state only, adapted from 
+// Calculate momentum, given T state only, adapted from
 // https://gitlab.cern.ch/lhcb/Rec/-/blob/master/Tr/TrackTools/src/FastMomentumEstimate.cpp
 //===========================================================================================
-__device__ float qop_seeding_calculation( 
-  const float magSign,
-  const MiniState seeding_state,
-  bool tCubicFit) 
+__device__ float qop_seeding_calculation(const float magSign, const MiniState seeding_state, bool tCubicFit)
 {
   const float tx = seeding_state.tx;
   const float ty = seeding_state.ty;
-  const float x  = seeding_state.x;
-  const float z  = seeding_state.z;
+  const float x = seeding_state.x;
+  const float z = seeding_state.z;
 
   const float m_paramsTParab[4] = {-6.30991, -4.83533, -12.9192, 4.23025e-08};
   const float m_paramsTCubic[4] = {-6.34025, -4.85287, -12.4491, 4.25461e-08};
 
   float qop = 0.f;
   const auto x0 = x - tx * z;
-  const auto& params = ( tCubicFit ? m_paramsTCubic : m_paramsTParab );
+  const auto& params = (tCubicFit ? m_paramsTCubic : m_paramsTParab);
   const auto p = params[0] + params[1] * tx * tx + params[2] * ty * ty + params[3] * x0 * x0;
 
-  const auto scale_factor = 1. * magSign; //is there a way to get the scale_factor from the constants? 
-  const float denom = p * scale_factor * 1e6 * ( -1 );
+  const auto scale_factor = 1. * magSign; // is there a way to get the scale_factor from the constants?
+  const float denom = p * scale_factor * 1e6 * (-1);
 
-  if ( std::abs( scale_factor ) < 1e-6 ) {
-    qop     = 0.01 / Gaudi::Units::GeV;
-  } else {
-    qop      = x0 / denom;
+  if (std::abs(scale_factor) < 1e-6) {
+    qop = 0.01 / Gaudi::Units::GeV;
+  }
+  else {
+    qop = x0 / denom;
   }
   return qop;
 }
-
 
 void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
@@ -102,7 +98,8 @@ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::operator(
   initialize<dev_scifi_tracks_view_t>(arguments, 0, context);
 
   global_function(seed_confirmTracks_consolidate)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_magnet_polarity.data());
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    arguments, constants.dev_magnet_polarity.data());
 
   global_function(create_scifi_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
 }
@@ -135,10 +132,10 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
 
   // Create consolidated SoAs.
   SciFi::Consolidated::Seeds scifi_seeds {parameters.dev_atomics_scifi,
-                                           parameters.dev_seeding_hit_number,
-                                           parameters.dev_seeding_states,
-                                           event_number,
-                                           number_of_events};
+                                          parameters.dev_seeding_hit_number,
+                                          parameters.dev_seeding_states,
+                                          event_number,
+                                          number_of_events};
   const unsigned number_of_tracks_event = scifi_seeds.number_of_tracks(event_number);
   const unsigned event_offset = scifi_hit_count.event_offset();
   float* tracks_qop = parameters.dev_seeding_qop + parameters.dev_atomics_scifi[event_number];
@@ -159,8 +156,7 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
     scifi_seeds.states(i) = seeding_state;
 
     const auto magSign = dev_magnet_polarity[0];
-    tracks_qop[i] =
-      qop_seeding_calculation(magSign, seeding_state, true);
+    tracks_qop[i] = qop_seeding_calculation(magSign, seeding_state, true);
 
     auto consolidated_hits = scifi_seeds.get_hits(parameters.dev_seeding_track_hits, i);
 

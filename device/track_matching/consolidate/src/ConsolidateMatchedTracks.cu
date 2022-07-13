@@ -62,7 +62,6 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 
   global_function(create_matched_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
-
 }
 
 __global__ void matching_consolidate_tracks::matching_consolidate_tracks(

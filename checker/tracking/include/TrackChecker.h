@@ -84,7 +84,8 @@ public:
         (100.0 * static_cast<double>(m_nghosts)) / (static_cast<double>(m_ntracks)));
     }
 
-    if constexpr (std::is_same_v<T, Checker::Subdetector::SciFi> || std::is_same_v<T, Checker::Subdetector::SciFiSeeding> ) {
+    if constexpr (
+      std::is_same_v<T, Checker::Subdetector::SciFi> || std::is_same_v<T, Checker::Subdetector::SciFiSeeding>) {
       std::printf(
         "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
         "for P>3GeV,Pt>0.5GeV",

@@ -13,7 +13,8 @@ namespace Hlt1 {
   template<typename U>
   struct DeviceTraverseLinesImpl<std::tuple<>, U, std::index_sequence<>, void> {
     template<typename F>
-    __device__ constexpr static void traverse(const F&) {}
+    __device__ constexpr static void traverse(const F&)
+    {}
   };
 
   // If the line inherits from U, execute the lambda with the index of the line
@@ -62,7 +63,8 @@ namespace Hlt1 {
   template<typename U>
   struct DeviceTraverseLinesNamesImpl<std::tuple<>, U, std::index_sequence<>, void> {
     template<typename F>
-    __device__ constexpr static void traverse(const F&) {}
+    __device__ constexpr static void traverse(const F&)
+    {}
   };
 
   // If the line inherits from U, execute the lambda with the index of the line
@@ -111,7 +113,8 @@ namespace Hlt1 {
   template<typename U>
   struct DeviceTraverseLinesScaleFactorsImpl<std::tuple<>, U, std::index_sequence<>, void> {
     template<typename F>
-    __device__ constexpr static void traverse(const F&) {}
+    __device__ constexpr static void traverse(const F&)
+    {}
   };
 
   // If the line inherits from U, execute the lambda with the index of the line
@@ -120,12 +123,13 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     U,
     std::index_sequence<I, Is...>,
-    typename std::enable_if<std::is_base_of<U, T>::value>::type> {\
+    typename std::enable_if<std::is_base_of<U, T>::value>::type> {
     template<typename F>
     __device__ constexpr static void traverse(const F& lambda_fn)
     {
       lambda_fn(I, T::scale_factor);
-      DeviceTraverseLinesScaleFactorsImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(lambda_fn);
+      DeviceTraverseLinesScaleFactorsImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(
+        lambda_fn);
     }
   };
 
@@ -139,7 +143,8 @@ namespace Hlt1 {
     template<typename F>
     __device__ constexpr static void traverse(const F& lambda_fn)
     {
-      DeviceTraverseLinesScaleFactorsImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(lambda_fn);
+      DeviceTraverseLinesScaleFactorsImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(
+        lambda_fn);
     }
   };
 
@@ -149,7 +154,8 @@ namespace Hlt1 {
     template<typename F>
     __device__ constexpr static void traverse(const F& lambda_fn)
     {
-      DeviceTraverseLinesScaleFactorsImpl<T, U, std::make_index_sequence<std::tuple_size<T>::value>>::traverse(lambda_fn);
+      DeviceTraverseLinesScaleFactorsImpl<T, U, std::make_index_sequence<std::tuple_size<T>::value>>::traverse(
+        lambda_fn);
     }
   };
 

@@ -51,8 +51,7 @@ def default_physics_lines(velo_tracks, long_tracks, long_track_particles,
     lines.append(
         line_maker(
             make_single_high_pt_muon_line(
-                long_tracks,
-                long_track_particles,
+                long_tracks, long_track_particles,
                 name="Hlt1SingleHighPtMuon")))
     lines.append(
         line_maker(
@@ -66,12 +65,11 @@ def default_physics_lines(velo_tracks, long_tracks, long_track_particles,
                 long_tracks, long_track_particles, name="Hlt1LowPtMuon")))
     lines.append(
         line_maker(
-            make_d2kk_line(
-                long_tracks, secondary_vertices, name="Hlt1D2KK")))
+            make_d2kk_line(long_tracks, secondary_vertices, name="Hlt1D2KK")))
     lines.append(
         line_maker(
-            make_d2kpi_line(
-                long_tracks, secondary_vertices, name="Hlt1D2KPi")))
+            make_d2kpi_line(long_tracks, secondary_vertices,
+                            name="Hlt1D2KPi")))
     lines.append(
         line_maker(
             make_d2pipi_line(
@@ -79,8 +77,7 @@ def default_physics_lines(velo_tracks, long_tracks, long_track_particles,
     lines.append(
         line_maker(
             make_di_muon_mass_line(
-                long_tracks, secondary_vertices,
-                name="Hlt1DiMuonHighMass")))
+                long_tracks, secondary_vertices, name="Hlt1DiMuonHighMass")))
     lines.append(
         line_maker(
             make_di_muon_mass_line(
@@ -109,11 +106,11 @@ def default_physics_lines(velo_tracks, long_tracks, long_track_particles,
 
     lines.append(
         line_maker(
-            make_di_muon_no_ip_line(forward_tracks, secondary_vertices)))
+            make_di_muon_no_ip_line(long_tracks, secondary_vertices)))
     lines.append(
         line_maker(
             make_di_muon_no_ip_line(
-                forward_tracks,
+                long_tracks,
                 secondary_vertices,
                 name="Hlt1DiMuonNoIP_ss",
                 pre_scaler_hash_string="di_muon_no_ip_ss_line_pre",
@@ -243,15 +240,11 @@ def alignment_monitoring_lines(velo_tracks, long_tracks,
     lines.append(
         line_maker(
             make_rich_1_line(
-                long_tracks,
-                long_track_particles,
-                name="Hlt1RICH1Alignment")))
+                long_tracks, long_track_particles, name="Hlt1RICH1Alignment")))
     lines.append(
         line_maker(
             make_rich_2_line(
-                long_tracks,
-                long_track_particles,
-                name="Hlt1RICH2Alignment")))
+                long_tracks, long_track_particles, name="Hlt1RICH2Alignment")))
     lines.append(
         line_maker(
             make_beam_gas_line(
@@ -262,18 +255,18 @@ def alignment_monitoring_lines(velo_tracks, long_tracks,
     lines.append(
         line_maker(
             make_d2kpi_line(
-                forward_tracks, secondary_vertices,
+                long_tracks, secondary_vertices,
                 name="Hlt1D2KPiAlignment")))
     lines.append(
         line_maker(
             make_di_muon_mass_align_line(
-                forward_tracks,
+                long_tracks,
                 secondary_vertices,
                 name="Hlt1DiMuonHighMassAlignment")))
     lines.append(
         line_maker(
             make_displaced_dimuon_mass_line(
-                forward_tracks,
+                long_tracks,
                 secondary_vertices,
                 name="Hlt1DisplacedDiMuonAlignment")))
 
@@ -500,7 +493,7 @@ def setup_hlt1_node(withMCChecking=False,
                                          line_algorithms, with_ut)
         else:
             validation_node = validator_node_matching(reconstructed_objects,
-                                         line_algorithms)
+                                                      line_algorithms)
 
         node = CompositeNode(
             "AllenWithValidators", [hlt1_node, validation_node],

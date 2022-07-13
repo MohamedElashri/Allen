@@ -342,6 +342,7 @@ def make_forward_tracks(decoded_scifi, input_tracks, with_ut=True):
         scifi_consolidate_tracks.dev_scifi_hits_view_t
     }
 
+
 @configurable
 def make_seeding_XZ_tracks(decoded_scifi):
     number_of_events = initialize_number_of_events()
@@ -448,6 +449,7 @@ def make_seeding_tracks(decoded_scifi, xz_tracks):
         seed_confirmTracks_consolidate.dev_scifi_hits_view_t
     }
 
+
 def forward_tracking():
     from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
     from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
@@ -460,6 +462,7 @@ def forward_tracking():
     long_tracks = make_forward_tracks(decoded_scifi, ut_tracks)
     alg = long_tracks["dev_scifi_track_hits"].producer
     return alg
+
 
 def seeding_xz():
     decoded_scifi = decode_scifi()

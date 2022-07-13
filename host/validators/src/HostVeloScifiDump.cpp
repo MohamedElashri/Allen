@@ -25,7 +25,7 @@ namespace {
     int n_meas = 0;
     int n_hits_missing = 0; // FIXME
     const auto nhits = track.total_number_of_hits;
-    for (unsigned ihit=0; ihit<nhits; ihit++) {
+    for (unsigned ihit = 0; ihit < nhits; ihit++) {
       const auto id = track.allids[ihit];
       if (id == 0) {
         // std::cout << "check SciFi: " << lhcb_id::is_scifi(id) << std::endl;

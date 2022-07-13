@@ -12,7 +12,8 @@ void track_matching_veloSciFi::track_matching_veloSciFi_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  set_size<dev_matched_tracks_t>(arguments, first<host_number_of_events_t>(arguments) * TrackMatchingConsts::max_num_tracks);
+  set_size<dev_matched_tracks_t>(
+    arguments, first<host_number_of_events_t>(arguments) * TrackMatchingConsts::max_num_tracks);
   set_size<dev_atomics_matched_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 

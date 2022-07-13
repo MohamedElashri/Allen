@@ -114,8 +114,7 @@ def is_muon(decoded_muon, long_tracks):
         host_number_of_reconstructed_scifi_tracks,
         dev_scifi_tracks_view_t=dev_scifi_tracks_view,
         dev_scifi_states_t=dev_scifi_states,
-        dev_long_tracks_view_t=long_tracks[
-            "dev_multi_event_long_tracks_view"],
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
         dev_station_ocurrences_offset_t=decoded_muon[
             "dev_station_ocurrences_offset"],
         dev_muon_hits_t=decoded_muon["dev_muon_hits"])

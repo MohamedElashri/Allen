@@ -42,10 +42,8 @@ def make_kalman_velo_only(long_tracks,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_long_tracks_view_t=long_tracks[
-            "dev_multi_event_long_tracks_view"],
-        dev_offsets_long_tracks_t=long_tracks[
-            "dev_offsets_long_tracks"],
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"],
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
         dev_number_of_multi_final_vertices_t=pvs[
             "dev_number_of_multi_final_vertices"],
@@ -94,8 +92,7 @@ def make_basic_particles(kalman_velo_only,
             "host_number_of_reconstructed_scifi_tracks"],
         dev_multi_event_long_tracks_t=long_tracks[
             "dev_multi_event_long_tracks_ptr"],
-        dev_offsets_long_tracks_t=long_tracks[
-            "dev_offsets_long_tracks"],
+        dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"],
         dev_kalman_states_view_t=kalman_velo_only["dev_kalman_states_view"],
         dev_kalman_pv_tables_t=kalman_velo_only["dev_kalman_pv_tables"],
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],

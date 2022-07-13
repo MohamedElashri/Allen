@@ -10,8 +10,8 @@ from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, make_basic_particles, fit_secondary_vertices
 from AllenConf.validators import (
-    velo_validation, veloUT_validation, seeding_validation, long_validation, muon_validation,
-    pv_validation, kalman_validation, selreport_validation)
+    velo_validation, veloUT_validation, seeding_validation, long_validation,
+    muon_validation, pv_validation, kalman_validation, selreport_validation)
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer
@@ -81,9 +81,9 @@ def hlt1_reconstruction_matching(add_electron_id=True):
     decoded_calo = decode_calo()
     ecal_clusters = make_ecal_clusters(decoded_calo)
 
-    calo_matching_objects = make_track_matching(
-        decoded_calo, velo_tracks, velo_states, matched_tracks,
-        kalman_velo_only)
+    calo_matching_objects = make_track_matching(decoded_calo, velo_tracks,
+                                                velo_states, matched_tracks,
+                                                kalman_velo_only)
 
     if add_electron_id:
         long_track_particles = make_basic_particles(kalman_velo_only, muonID,
@@ -125,7 +125,7 @@ def validator_node(reconstructed_objects, line_algorithms, with_ut):
                     veloUT_validation(reconstructed_objects["ut_tracks"])),
                 make_composite_node_with_gec(
                     "long_validation",
-                    long_validation(reconstructed_objects["forward_tracks"])),
+                    long_validation(reconstructed_objects["long_tracks"])),
                 make_composite_node_with_gec(
                     "muon_validation",
                     muon_validation(reconstructed_objects["muonID"])),
@@ -139,7 +139,7 @@ def validator_node(reconstructed_objects, line_algorithms, with_ut):
                 selreport_validation(
                     make_sel_report_writer(
                         lines=line_algorithms,
-                        forward_tracks=reconstructed_objects[
+                        long_tracks=reconstructed_objects[
                             "long_track_particles"],
                         secondary_vertices=reconstructed_objects[
                             "secondary_vertices"]),
@@ -156,7 +156,7 @@ def validator_node(reconstructed_objects, line_algorithms, with_ut):
                     velo_validation(reconstructed_objects["velo_tracks"])),
                 make_composite_node_with_gec(
                     "long_validation",
-                    long_validation(reconstructed_objects["forward_tracks"])),
+                    long_validation(reconstructed_objects["long_tracks"])),
                 make_composite_node_with_gec(
                     "muon_validation",
                     muon_validation(reconstructed_objects["muonID"])),
@@ -170,7 +170,7 @@ def validator_node(reconstructed_objects, line_algorithms, with_ut):
                 selreport_validation(
                     make_sel_report_writer(
                         lines=line_algorithms,
-                        forward_tracks=reconstructed_objects[
+                        long_tracks=reconstructed_objects[
                             "long_track_particles"],
                         secondary_vertices=reconstructed_objects[
                             "secondary_vertices"]),
@@ -180,11 +180,9 @@ def validator_node(reconstructed_objects, line_algorithms, with_ut):
             NodeLogic.NONLAZY_AND,
             force_order=False)
 
-def validator_node_matching(reconstructed_objects,
-                            line_algorithms):
+def validator_node_matching(reconstructed_objects, line_algorithms):
     return CompositeNode(
-        "Validators",
-        [
+        "Validators", [
             make_composite_node_with_gec(
                 "velo_validation",
                 velo_validation(reconstructed_objects["velo_tracks"])),

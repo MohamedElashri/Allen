@@ -561,7 +561,7 @@ namespace SciFi {
       __host__ __device__ float ySlope() const { return by; }
     };
   } // namespace Seeding
-  
+
   struct MatchedTrack {
     uint16_t velo_track_index;
     uint16_t scifi_track_index;
