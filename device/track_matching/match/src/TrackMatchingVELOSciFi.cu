@@ -24,9 +24,6 @@ void track_matching_veloSciFi::track_matching_veloSciFi_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_atomics_matched_tracks_t>(
-    arguments, 0, context); // This is only needed because of the prefix sum, should be removed
-
   global_function(track_matching_veloSciFi)(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(
     arguments, constants.dev_magnet_parametrization);
 }

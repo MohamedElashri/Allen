@@ -49,9 +49,6 @@ void seed_confirmTracks::seed_confirmTracks_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  initialize<dev_seeding_confirmTracks_atomics_t>(
-    arguments, 0, context); // This is only needed because of the prefix sum, should be removed
-  initialize<dev_count_hits_working_mem_t>(arguments, 0, context);
   global_function(seed_confirmTracks)(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(arguments);
 
   // copy<host_seeding_number_of_tracks_t, dev_seeding_number_of_tracks_t>(arguments, context); //FIXME

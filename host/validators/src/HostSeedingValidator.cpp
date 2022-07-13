@@ -10,14 +10,14 @@ void host_seeding_validator::host_seeding_validator_t::operator()(
   const RuntimeOptions& runtime_options,
   const Constants&,
   HostBuffers&,
-  const Allen::Context&) const
+  const Allen::Context& context) const
 {
-  const auto scifi_seed_atomics = make_vector<dev_offsets_scifi_seeds_t>(arguments);
-  const auto scifi_seed_hit_number = make_vector<dev_offsets_scifi_seed_hit_number_t>(arguments);
-  const auto scifi_seed_hits = make_vector<dev_scifi_hits_t>(arguments);
-  const auto scifi_seeds = make_vector<dev_scifi_seeds_t>(arguments);
-  const auto seeding_states = make_vector<dev_seeding_states_t>(arguments);
-  const auto event_list = make_vector<dev_event_list_t>(arguments);
+  const auto scifi_seed_atomics = make_host_buffer<dev_offsets_scifi_seeds_t>(arguments, context);
+  const auto scifi_seed_hit_number = make_host_buffer<dev_offsets_scifi_seed_hit_number_t>(arguments, context);
+  const auto scifi_seed_hits = make_host_buffer<dev_scifi_hits_t>(arguments, context);
+  const auto scifi_seeds = make_host_buffer<dev_scifi_seeds_t>(arguments, context);
+  const auto seeding_states = make_host_buffer<dev_seeding_states_t>(arguments, context);
+  const auto event_list = make_host_buffer<dev_event_list_t>(arguments, context);
 
   auto tracks = prepareSeedingTracks(
     first<host_number_of_events_t>(arguments),

@@ -735,6 +735,8 @@ namespace Categories {
         [](MCParticles::const_reference& mcp) {
           return mcp.isLong && !mcp.isElectron() && mcp.fromBeautyDecay && mcp.p > 5e3f && mcp.pt > 1e3f &&
                  mcp.inEta2_5();
+        },
+      }),
       TrackEffReport({
         "11_noVelo_UT",
         [](MCParticles::const_reference& mcp) {
