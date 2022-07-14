@@ -428,7 +428,7 @@ def setup_hlt1_node(withMCChecking=False,
 
     if with_lumi:
         lumi_with_prefilter = CompositeNode(
-            "AllenLumi", odin_err_filter + [
+            "LumiWithPrefilter", odin_err_filter + [
                 lumi_reconstruction(
                     lines=line_algorithms, lumiline_name=lumiline_name)
             ])
