@@ -67,4 +67,4 @@ def lumi_reconstruction(lines, lumiline_name):
         dev_storage_station_region_quarter_offsets_t=decoded_muon[
             "dev_storage_station_region_quarter_offsets"])
 
-    return [prefix_sum_lumi_size, make_lumi_summary]
+    return make_lumi_summary
