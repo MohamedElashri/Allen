@@ -16,16 +16,16 @@ from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.persistency import make_gather_selections
 
 
-def findLine(lines, name="Hlt1ODINLumi"):
+def findLine(lines, name):
     for i in range(len(lines)):
         if lines[i].name == name:
-            return i
-    return 0xFFFF
+            return i, True
+    return -1, False
 
 
-def lumi_reconstruction(lines):
-    lumiLine_index = findLine(lines)
-    if lumiLine_index == 0xFFFF:
+def lumi_reconstruction(lines, lumiline_name):
+    lumiLine_index, found = findLine(lines, lumiline_name)
+    if not found:
         return []
 
     gather_selections = make_gather_selections(lines)

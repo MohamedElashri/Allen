@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import line_maker, make_gec, make_checkPV, make_lowmult
+from AllenConf.utils import line_maker, make_gec, make_checkPV, make_lowmult, odin_error_filter
 from AllenConf.odin import make_bxtype
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
@@ -192,7 +192,7 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
     return lines
 
 
-def event_monitoring_lines():
+def event_monitoring_lines(with_lumi, lumiline_name):
     lines = []
     lines.append(
         line_maker(make_beam_line(name="Hlt1NoBeam", beam_crossing_type=0)))
@@ -202,10 +202,11 @@ def event_monitoring_lines():
         line_maker(make_beam_line(name="Hlt1BeamTwo", beam_crossing_type=2)))
     lines.append(
         line_maker(make_beam_line(name="Hlt1BothBeams", beam_crossing_type=3)))
-    lines.append(
-        line_maker(
-            make_odin_event_type_line(
-                name="Hlt1ODINLumi", odin_event_type=0x8)))
+    if with_lumi:
+        lines.append(
+            line_maker(
+                make_odin_event_type_line(
+                    name=lumiline_name, odin_event_type=0x8)))
     lines.append(
         line_maker(
             make_odin_event_type_line(
@@ -292,13 +293,22 @@ def setup_hlt1_node(withMCChecking=False,
                     EnableGEC=True,
                     withSMOG2=False,
                     enableRateValidator=True,
-                    with_ut=True):
+                    with_ut=True,
+                    with_lumi=True,
+                    with_odin_filter=True):
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(
         add_electron_id=True, with_ut=with_ut)
 
-    gec = make_gec()
-    with line_maker.bind(prefilter=gec if EnableGEC else None):
+    prefilters = []
+    gec = [make_gec()] if EnableGEC else []
+    odin_err_filter = [odin_error_filter("odin_error_filter")] if with_odin_filter else []
+    if EnableGEC:
+        prefilters += gec
+    if with_odin_filter:
+        prefilters += odin_err_filter
+
+    with line_maker.bind(prefilter=prefilters):
         physics_lines = default_physics_lines(
             reconstructed_objects["velo_tracks"],
             reconstructed_objects["forward_tracks"],
@@ -306,17 +316,18 @@ def setup_hlt1_node(withMCChecking=False,
             reconstructed_objects["secondary_vertices"],
             reconstructed_objects["calo_matching_objects"])
 
-    with line_maker.bind(prefilter=None):
-        monitoring_lines = event_monitoring_lines()
+    lumiline_name = "Hlt1ODINLumi"
+    with line_maker.bind(prefilter=odin_err_filter):
+        monitoring_lines = event_monitoring_lines(with_lumi, lumiline_name)
         physics_lines += [line_maker(make_passthrough_line())]
 
     if EnableGEC:
-        with line_maker.bind(prefilter=gec):
+        with line_maker.bind(prefilter=prefilters):
             physics_lines += [
                 line_maker(make_passthrough_line(name="Hlt1GECPassthrough"))
             ]
 
-    with line_maker.bind(prefilter=gec):
+    with line_maker.bind(prefilter=prefilters):
         monitoring_lines += alignment_monitoring_lines(
             reconstructed_objects["velo_tracks"],
             reconstructed_objects["forward_tracks"],
@@ -338,14 +349,14 @@ def setup_hlt1_node(withMCChecking=False,
             name="LowMult_5",
             minTracks=1,
             maxTracks=5)
-        with line_maker.bind(prefilter=[gec, lowMult_5]):
+        with line_maker.bind(prefilter=prefilters + [lowMult_5]):
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(name="Hlt1GECPassThrough_LowMult5"))
             ]
 
         bx_BE = make_bxtype("BX_BeamEmpty", bx_type=1)
-        with line_maker.bind(prefilter=bx_BE):
+        with line_maker.bind(prefilter=odin_err_filter + [bx_BE]):
             SMOG2_lines += [
                 line_maker(make_passthrough_line(name="Hlt1_BESMOG2_NoBias"))
             ]
@@ -355,7 +366,7 @@ def setup_hlt1_node(withMCChecking=False,
             name="LowMult_10",
             minTracks=1,
             maxTracks=10)
-        with line_maker.bind(prefilter=[bx_BE, lowMult_10]):
+        with line_maker.bind(prefilter=odin_err_filter + [bx_BE, lowMult_10]):
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(name="Hlt1_BESMOG2_LowMult10"))
@@ -364,7 +375,7 @@ def setup_hlt1_node(withMCChecking=False,
         if EnableGEC:
             SMOG2_prefilters += [gec]
 
-        with line_maker.bind(prefilter=SMOG2_prefilters):
+        with line_maker.bind(prefilter=odin_err_filter + SMOG2_prefilters):
             SMOG2_lines += [
                 line_maker(
                     make_SMOG2_minimum_bias_line(
@@ -381,7 +392,7 @@ def setup_hlt1_node(withMCChecking=False,
                 maxZ=-300)
         ]
 
-        with line_maker.bind(prefilter=SMOG2_prefilters):
+        with line_maker.bind(prefilter=odin_err_filter + SMOG2_prefilters):
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(name="Hlt1Passthrough_PV_in_SMOG2"))
@@ -409,7 +420,6 @@ def setup_hlt1_node(withMCChecking=False,
         "Allen", [
             gather_selections_node,
             make_global_decision(lines=line_algorithms),
-            *lumi_reconstruction(lines=line_algorithms),
             *make_sel_report_writer(
                 lines=line_algorithms,
                 forward_tracks=reconstructed_objects["long_track_particles"],
@@ -418,6 +428,15 @@ def setup_hlt1_node(withMCChecking=False,
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)
+
+    if with_lumi:
+        hlt1_node = CompositeNode(
+            "AllenWithLumi", [
+                hlt1_node,
+                *lumi_reconstruction(lines=line_algorithms, lumiline_name=lumiline_name),
+            ],
+            NodeLogic.NONLAZY_AND,
+            force_order=True)
 
     if enableRateValidator:
         hlt1_node = CompositeNode(

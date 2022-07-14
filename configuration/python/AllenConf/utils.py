@@ -18,21 +18,18 @@ def make_line_composite_node(name, algos):
 
 @configurable
 def line_maker(line_algorithm, prefilter=None):
-
-    odin_filter = odin_error_filter("odin_error_filter")
     #add odin error filter by default
     if prefilter is None:
         node = make_line_composite_node(
-            line_algorithm.name, algos=[odin_filter, line_algorithm])
+            line_algorithm.name, algos=[line_algorithm])
+    elif isinstance(prefilter, list):
+        node = make_line_composite_node(
+            line_algorithm.name,
+            algos=prefilter + [line_algorithm])
     else:
-        if isinstance(prefilter, list):
-            node = make_line_composite_node(
-                line_algorithm.name,
-                algos=prefilter + [odin_filter, line_algorithm])
-        else:
-            node = make_line_composite_node(
-                line_algorithm.name,
-                algos=[odin_filter, prefilter, line_algorithm])
+        node = make_line_composite_node(
+            line_algorithm.name,
+            algos=[prefilter, line_algorithm])
     return line_algorithm, node
 
 
