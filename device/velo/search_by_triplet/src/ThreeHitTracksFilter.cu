@@ -13,7 +13,10 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::set_arguments
   const HostBuffers&) const
 {
   const unsigned track_container_size =
-    first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster;
+    first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster <
+        first<host_number_of_events_t>(arguments) * Velo::Constants::minimum_container_size ?
+      first<host_number_of_events_t>(arguments) * Velo::Constants::minimum_container_size :
+      first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster;
 
   set_size<dev_number_of_three_hit_tracks_output_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_three_hit_tracks_output_t>(arguments, track_container_size);
