@@ -31,6 +31,8 @@ namespace ranges::views {
 #include "Dumper.h"
 #include <Dumpers/Utils.h>
 
+#include <DD4hep/GrammarUnparsed.h>
+
 namespace {
   using boost::numeric_cast;
   using std::array;
