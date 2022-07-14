@@ -24,12 +24,10 @@ def line_maker(line_algorithm, prefilter=None):
             line_algorithm.name, algos=[line_algorithm])
     elif isinstance(prefilter, list):
         node = make_line_composite_node(
-            line_algorithm.name,
-            algos=prefilter + [line_algorithm])
+            line_algorithm.name, algos=prefilter + [line_algorithm])
     else:
         node = make_line_composite_node(
-            line_algorithm.name,
-            algos=[prefilter, line_algorithm])
+            line_algorithm.name, algos=[prefilter, line_algorithm])
     return line_algorithm, node
 
 

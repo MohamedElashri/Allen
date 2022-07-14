@@ -301,9 +301,10 @@ def setup_hlt1_node(withMCChecking=False,
         add_electron_id=True, with_ut=with_ut)
 
     gec = [make_gec()] if EnableGEC else []
-    odin_err_filter = [odin_error_filter("odin_error_filter")] if with_odin_filter else []
+    odin_err_filter = [odin_error_filter("odin_error_filter")
+                       ] if with_odin_filter else []
     prefilters = gec + odin_err_filter
-    
+
     with line_maker.bind(prefilter=prefilters):
         physics_lines = default_physics_lines(
             reconstructed_objects["velo_tracks"],
@@ -427,8 +428,10 @@ def setup_hlt1_node(withMCChecking=False,
 
     if with_lumi:
         lumi_with_prefilter = CompositeNode(
-            "AllenLumi",
-            odin_err_filter + [lumi_reconstruction(lines=line_algorithms, lumiline_name=lumiline_name)])
+            "AllenLumi", odin_err_filter + [
+                lumi_reconstruction(
+                    lines=line_algorithms, lumiline_name=lumiline_name)
+            ])
 
         hlt1_node = CompositeNode(
             "AllenWithLumi", [
