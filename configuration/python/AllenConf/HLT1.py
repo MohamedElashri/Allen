@@ -370,7 +370,7 @@ def setup_hlt1_node(withMCChecking=False,
             ]
 
         if EnableGEC:
-            SMOG2_prefilters += [gec]
+            SMOG2_prefilters += gec
 
         with line_maker.bind(prefilter=odin_err_filter + SMOG2_prefilters):
             SMOG2_lines += [
