@@ -84,12 +84,12 @@ namespace gather_selections {
   public:
     void init_monitor();
 
-    void monitor_operator(const ArgumentReferences<Parameters>& arguments, Selections::ConstSelections& sels) const;
+    void monitor_operator(const ArgumentReferences<Parameters>& arguments, gsl::span<bool>) const;
 
     void monitor_postscaled_operator(
       const ArgumentReferences<Parameters>& arguments,
       const Constants& constants,
-      Selections::ConstSelections& sels) const;
+      gsl::span<bool>) const;
 
   private:
     mutable std::vector<std::unique_ptr<Gaudi::Accumulators::Counter<>>> m_pass_counters;

@@ -47,7 +47,7 @@ void gather_selections::gather_selections_t::init_monitor()
 
 void gather_selections::gather_selections_t::monitor_operator(
   const ArgumentReferences<Parameters>& arguments,
-  Selections::ConstSelections& sels) const
+  gsl::span<bool> decisions) const
 {
   auto* histogram_line_passes_p = reinterpret_cast<gaudi_histo_t<1>*>(histogram_line_passes);
   auto hist_buf = histogram_line_passes_p->buffer();
@@ -55,13 +55,9 @@ void gather_selections::gather_selections_t::monitor_operator(
   for (auto j = 0u; j < first<host_number_of_active_lines_t>(arguments); ++j) {
     auto buf = m_pass_counters[j]->buffer();
     for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {
-      auto decs = sels.get_span(j, i);
-      for (auto k = 0u; k < decs.size(); ++k) {
-        if (decs[k]) {
-          ++buf;
-          ++hist_buf[j];
-          break;
-        }
+      if (decisions[i * first<host_number_of_active_lines_t>(arguments) + j]) {
+        ++buf;
+        ++hist_buf[j];
       }
     }
   }
@@ -70,7 +66,7 @@ void gather_selections::gather_selections_t::monitor_operator(
 void gather_selections::gather_selections_t::monitor_postscaled_operator(
   const ArgumentReferences<Parameters>& arguments,
   const Constants& constants,
-  Selections::ConstSelections& sels) const
+  gsl::span<bool> postscaled_decisions) const
 {
   auto* histogram_line_rates_p = reinterpret_cast<gaudi_histo_t<1>*>(histogram_line_rates);
   auto hist_buf = histogram_line_rates_p->buffer();
@@ -84,14 +80,10 @@ void gather_selections::gather_selections_t::monitor_postscaled_operator(
     auto* histograms_rates_vs_time_p = reinterpret_cast<gaudi_histo_t<1>*>(histograms_rates_vs_time[j]);
     auto buf_time = histograms_rates_vs_time_p->buffer();
     for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {
-      auto decs = sels.get_span(j, i);
-      for (auto k = 0u; k < decs.size(); ++k) {
-        if (decs[k]) {
-          ++buf;
-          ++buf_time[time_bin];
-          ++hist_buf[j];
-          break;
-        }
+      if (postscaled_decisions[i * first<host_number_of_active_lines_t>(arguments) + j]) {
+        ++buf;
+        ++hist_buf[j];
+        ++buf_time[time_bin];
       }
     }
   }
