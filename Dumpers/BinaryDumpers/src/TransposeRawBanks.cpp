@@ -152,9 +152,9 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
     bankTypes.reserve(nBanks);
 
     std::vector<uint32_t> bankData;
-    bankData.reserve( std::accumulate( banks.begin(), banks.end(), 0, [](int sum, const LHCb::RawBank* const b) { 
-	  return sum + ( b->size() + sizeof(unsigned) -1 )/sizeof(unsigned) ;})
-      );
+    bankData.reserve(std::accumulate(banks.begin(), banks.end(), 0, [](int sum, const LHCb::RawBank* const b) {
+      return sum + (b->size() + sizeof(unsigned) - 1) / sizeof(unsigned);
+    }));
 
     for (auto& bank : banks) {
       const uint32_t sourceID = static_cast<uint32_t>(bank->sourceID());
