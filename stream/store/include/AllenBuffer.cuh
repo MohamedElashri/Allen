@@ -51,9 +51,15 @@ namespace Allen {
       }
     }
 
-    __host__ auto begin() const { return m_span.begin(); }
+    __host__ auto begin() const {
+      static_assert(S == Allen::Store::Scope::Host);
+      return m_span.begin();
+    }
 
-    __host__ auto end() const { return m_span.end(); }
+    __host__ auto end() const {
+      static_assert(S == Allen::Store::Scope::Host);
+      return m_span.end();
+    }
 
     constexpr __host__ size_t size() const { return m_span.size(); }
 
@@ -73,9 +79,9 @@ namespace Allen {
       m_span = gsl::span<T> {reinterpret_cast<T*>(m_mem_manager.reserve(m_tag, size * sizeof(T))), size};
     }
 
-    __host__ gsl::span<T> to_span() { return m_span; }
+    __host__ gsl::span<T> get() { return m_span; }
 
-    __host__ operator gsl::span<T>() { return to_span(); }
+    __host__ operator gsl::span<T>() { return get(); }
 
     constexpr __host__ T& operator[](int i)
     {
