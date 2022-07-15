@@ -73,6 +73,8 @@ namespace Allen {
 
     constexpr __host__ T* data() const { return m_span.data(); }
 
+    constexpr __host__ T* data() { return m_span.data(); }
+
     __host__ void resize(size_t size)
     {
       if (m_span.size() != 0) {
@@ -129,11 +131,17 @@ namespace Allen {
 
     constexpr __host__ size_t sizebytes() const { return m_vector.sizebytes(); }
 
-    constexpr __host__ auto data() const { return m_vector.data(); }
+    constexpr __host__ auto data() const {
+      return reinterpret_cast<const T*>(m_vector.data());
+    }
+
+    constexpr __host__ auto data() {
+      return reinterpret_cast<T*>(m_vector.data());
+    }
 
     __host__ void resize(size_t size) { m_vector.resize(size); }
 
-    __host__ gsl::span<T> to_span()
+    __host__ gsl::span<T> get()
     {
       if constexpr (std::is_same_v<std::decay_t<T>, bool>) {
         return {Allen::forward_type_t<T, bool*>(m_vector.data()), m_vector.size()};
@@ -143,7 +151,7 @@ namespace Allen {
       }
     }
 
-    __host__ operator gsl::span<T>() { return to_span(); }
+    __host__ operator gsl::span<T>() { return get(); }
 
     constexpr __host__ T& operator[](int i)
     {
