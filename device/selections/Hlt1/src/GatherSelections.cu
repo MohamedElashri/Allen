@@ -114,6 +114,7 @@ namespace gather_selections {
       for (unsigned j = 0; j < span.size(); ++j) {
         if (span[j]) {
           event_decision = true;
+          break;
         }
       }
     }
@@ -282,6 +283,17 @@ void gather_selections::gather_selections_t::operator()(
 
   // Initialize output mask size
   Allen::memset_async<dev_event_list_output_size_t>(arguments, 0, context);
+  
+#ifndef ALLEN_STANDALONE
+  // Monitoring
+  Allen::copy_async<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
+  auto host_selections = make_host_buffer<dev_selections_t>(arguments, context);
+  Selections::ConstSelections sels {(bool*) host_selections.data(),
+    data<host_selections_offsets_t>(arguments),
+    first<host_number_of_events_t>(arguments)};
+
+  monitor_operator(arguments, sels);
+#endif
 
   // Run the postscaler
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(

@@ -10,6 +10,11 @@
 #include "Line.cuh"
 #include "ODINBank.cuh"
 
+#ifndef ALLEN_STANDALONE
+#include "SelectionsEventModel.cuh"
+#include "Gaudi/Accumulators.h"
+#endif
+
 namespace gather_selections {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -74,5 +79,24 @@ namespace gather_selections {
     Property<block_dim_x_t> m_block_dim_x {this, 256};
     Property<names_of_active_line_algorithms_t> m_names_of_active_line_algorithms {this, ""};
     Property<names_of_active_lines_t> m_names_of_active_lines {this, ""};
+
+#ifndef ALLEN_STANDALONE
+  public:
+    void init_monitor();
+
+    void monitor_operator(const ArgumentReferences<Parameters>& arguments, Selections::ConstSelections& sels) const;
+
+    void monitor_postscaled_operator(
+      const ArgumentReferences<Parameters>& arguments,
+      const Constants& constants,
+      Selections::ConstSelections& sels) const;
+
+  private:
+    mutable std::vector<std::unique_ptr<Gaudi::Accumulators::Counter<>>> m_pass_counters;
+    mutable std::vector<std::unique_ptr<Gaudi::Accumulators::Counter<>>> m_rate_counters;
+    void* histogram_line_passes;
+    void* histogram_line_rates;
+    std::vector<void*> histograms_rates_vs_time;
+#endif
   };
 } // namespace gather_selections

@@ -237,6 +237,7 @@ void line_output_monitor(char* input, const RuntimeOptions& runtime_options, con
   }
 }
 
+#if defined(DEVICE_COMPILER)
 template<typename Derived, typename Parameters>
 __device__ void process_line(
   char* input,
@@ -356,3 +357,4 @@ void Line<Derived, Parameters>::operator()(
     }
   }
 }
+#endif
