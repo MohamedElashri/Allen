@@ -28,8 +28,13 @@ void make_selrep::make_selrep_t::operator()(
 
   host_buffers.host_sel_report_offsets.resize(size<dev_selrep_offsets_t>(arguments));
   host_buffers.host_sel_reports.resize(size<dev_sel_reports_t>(arguments));
-  Allen::copy_async(host_buffers.host_sel_report_offsets.get(), get<dev_selrep_offsets_t>(arguments), context, Allen::memcpyDeviceToHost);
-  Allen::copy_async(host_buffers.host_sel_reports.get(), get<dev_sel_reports_t>(arguments), context, Allen::memcpyDeviceToHost);
+  Allen::copy_async(
+    host_buffers.host_sel_report_offsets.get(),
+    get<dev_selrep_offsets_t>(arguments),
+    context,
+    Allen::memcpyDeviceToHost);
+  Allen::copy_async(
+    host_buffers.host_sel_reports.get(), get<dev_sel_reports_t>(arguments), context, Allen::memcpyDeviceToHost);
 }
 
 __global__ void make_selrep::make_selrep_bank(make_selrep::Parameters parameters, const unsigned number_of_events)

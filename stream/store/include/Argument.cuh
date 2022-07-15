@@ -30,8 +30,8 @@ namespace Allen::Store {
     T* cast() const
     {
       if (std::type_index(typeid(T)) != m_type_index) {
-        throw std::runtime_error {"Incompatible cast requested between "
-          + std::string{m_type_index.name()} + " and " + std::string{std::type_index(typeid(T)).name()}};
+        throw std::runtime_error {"Incompatible cast requested between " + std::string {m_type_index.name()} + " and " +
+                                  std::string {std::type_index(typeid(T)).name()}};
       }
       return reinterpret_cast<T*>(pointer());
     }

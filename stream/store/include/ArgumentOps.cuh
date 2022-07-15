@@ -324,13 +324,14 @@ namespace Allen {
     {
       auto buffer =
         arguments.template make_buffer<Allen::Store::Scope::Host, typename Arg::type>(arguments.template size<Arg>());
-      
+
       if constexpr (std::is_base_of_v<Allen::Store::host_datatype, Arg>) {
         Allen::copy(buffer.get(), get<Arg>(arguments), context, Allen::memcpyHostToHost);
-      } else {
+      }
+      else {
         Allen::copy(buffer.get(), get<Arg>(arguments), context, Allen::memcpyDeviceToHost);
       }
-      
+
       return buffer;
     }
 
@@ -339,10 +340,11 @@ namespace Allen {
     {
       auto buffer =
         arguments.template make_buffer<Allen::Store::Scope::Device, typename Arg::type>(arguments.template size<Arg>());
-      
+
       if constexpr (std::is_base_of_v<Allen::Store::host_datatype, Arg>) {
         Allen::copy(buffer.get(), get<Arg>(arguments), context, Allen::memcpyHostToDevice);
-      } else {
+      }
+      else {
         Allen::copy(buffer.get(), get<Arg>(arguments), context, Allen::memcpyDeviceToDevice);
       }
 

@@ -51,12 +51,14 @@ namespace Allen {
       }
     }
 
-    __host__ auto begin() const {
+    __host__ auto begin() const
+    {
       static_assert(S == Allen::Store::Scope::Host);
       return m_span.begin();
     }
 
-    __host__ auto end() const {
+    __host__ auto end() const
+    {
       static_assert(S == Allen::Store::Scope::Host);
       return m_span.end();
     }
