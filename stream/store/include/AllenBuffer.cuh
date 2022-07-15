@@ -129,17 +129,11 @@ namespace Allen {
 
     constexpr __host__ size_t size() const { return m_vector.size(); }
 
-    constexpr __host__ size_t sizebytes() const {
-      return m_vector.size() * sizeof(T);
-    }
+    constexpr __host__ size_t sizebytes() const { return m_vector.size() * sizeof(T); }
 
-    constexpr __host__ auto data() const {
-      return reinterpret_cast<const T*>(m_vector.data());
-    }
+    constexpr __host__ auto data() const { return reinterpret_cast<const T*>(m_vector.data()); }
 
-    constexpr __host__ auto data() {
-      return reinterpret_cast<T*>(m_vector.data());
-    }
+    constexpr __host__ auto data() { return reinterpret_cast<T*>(m_vector.data()); }
 
     __host__ void resize(size_t size) { m_vector.resize(size); }
 
