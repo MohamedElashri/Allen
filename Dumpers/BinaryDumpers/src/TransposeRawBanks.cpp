@@ -146,11 +146,15 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
 
     std::vector<uint32_t> bankOffsets;
     bankOffsets.push_back(0);
-    std::vector<uint32_t> bankData;
     std::vector<uint16_t> bankSizes;
     bankSizes.reserve(nBanks);
     std::vector<uint8_t> bankTypes;
     bankTypes.reserve(nBanks);
+
+    std::vector<uint32_t> bankData;
+    bankData.reserve(std::accumulate(banks.begin(), banks.end(), 0, [](int sum, const LHCb::RawBank* const b) {
+      return sum + (b->size() + sizeof(unsigned) - 1) / sizeof(unsigned);
+    }));
 
     for (auto& bank : banks) {
       const uint32_t sourceID = static_cast<uint32_t>(bank->sourceID());
@@ -158,7 +162,7 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
       offset++;
 
       auto bStart = bank->begin<uint32_t>();
-      auto bEnd = bank->end<uint32_t>();
+      auto bEnd = bank->end<uint32_t>() + (bank->size() % sizeof(uint32_t) != 0);
 
       // Debug/testing histogram with the sizes of the binary data per bank
       auto histo = m_histos[bt];
