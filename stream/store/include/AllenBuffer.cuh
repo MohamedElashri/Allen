@@ -51,9 +51,17 @@ namespace Allen {
       }
     }
 
-    __host__ auto begin() const { return m_span.begin(); }
+    __host__ auto begin() const
+    {
+      static_assert(S == Allen::Store::Scope::Host);
+      return m_span.begin();
+    }
 
-    __host__ auto end() const { return m_span.end(); }
+    __host__ auto end() const
+    {
+      static_assert(S == Allen::Store::Scope::Host);
+      return m_span.end();
+    }
 
     constexpr __host__ size_t size() const { return m_span.size(); }
 
@@ -65,6 +73,8 @@ namespace Allen {
 
     constexpr __host__ T* data() const { return m_span.data(); }
 
+    constexpr __host__ T* data() { return m_span.data(); }
+
     __host__ void resize(size_t size)
     {
       if (m_span.size() != 0) {
@@ -73,9 +83,9 @@ namespace Allen {
       m_span = gsl::span<T> {reinterpret_cast<T*>(m_mem_manager.reserve(m_tag, size * sizeof(T))), size};
     }
 
-    __host__ gsl::span<T> to_span() { return m_span; }
+    __host__ gsl::span<T> get() { return m_span; }
 
-    __host__ operator gsl::span<T>() { return to_span(); }
+    __host__ operator gsl::span<T>() { return get(); }
 
     constexpr __host__ T& operator[](int i)
     {
@@ -119,13 +129,15 @@ namespace Allen {
 
     constexpr __host__ size_t size() const { return m_vector.size(); }
 
-    constexpr __host__ size_t sizebytes() const { return m_vector.sizebytes(); }
+    constexpr __host__ size_t sizebytes() const { return m_vector.size() * sizeof(T); }
 
-    constexpr __host__ auto data() const { return m_vector.data(); }
+    constexpr __host__ auto data() const { return reinterpret_cast<const T*>(m_vector.data()); }
+
+    constexpr __host__ auto data() { return reinterpret_cast<T*>(m_vector.data()); }
 
     __host__ void resize(size_t size) { m_vector.resize(size); }
 
-    __host__ gsl::span<T> to_span()
+    __host__ gsl::span<T> get()
     {
       if constexpr (std::is_same_v<std::decay_t<T>, bool>) {
         return {Allen::forward_type_t<T, bool*>(m_vector.data()), m_vector.size()};
@@ -135,7 +147,7 @@ namespace Allen {
       }
     }
 
-    __host__ operator gsl::span<T>() { return to_span(); }
+    __host__ operator gsl::span<T>() { return get(); }
 
     constexpr __host__ T& operator[](int i)
     {

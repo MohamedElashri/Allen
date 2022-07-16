@@ -155,37 +155,6 @@ namespace Allen {
   }
 
   /**
-   * @brief Copies asynchronously a datatype onto an Allen::buffer.
-   */
-  template<typename B, Allen::Store::Scope A, typename Args>
-  void copy_async(Allen::buffer<A, typename B::type>& buffer, const Args& arguments, const Allen::Context& context)
-  {
-    if (buffer.size() < arguments.template size<B>()) {
-      buffer.resize(arguments.template size<B>());
-    }
-
-    const Allen::memcpy_kind kind = []() {
-      if constexpr (Allen::Store::Scope::Host == A && std::is_base_of_v<Allen::Store::host_datatype, B>)
-        return Allen::memcpyHostToHost;
-      else if constexpr (Allen::Store::Scope::Host == A && std::is_base_of_v<Allen::Store::device_datatype, B>)
-        return Allen::memcpyDeviceToHost;
-      else if constexpr (Allen::Store::Scope::Device == A && std::is_base_of_v<Allen::Store::host_datatype, B>)
-        return Allen::memcpyHostToDevice;
-      else
-        return Allen::memcpyDeviceToDevice;
-    }();
-
-    copy_async(buffer.to_span(), arguments.template get<B>(), context, kind);
-  }
-
-  template<typename B, Store::Scope A, typename Args>
-  void copy(Allen::buffer<A, typename B::type>& buffer, const Args& arguments, const Allen::Context& context)
-  {
-    copy_async<B, A, Args>(buffer, arguments, context);
-    synchronize(context);
-  }
-
-  /**
    * @brief Transfer data to the device, populating raw banks and offsets.
    */
   template<class DATA_ARG, class OFFSET_ARG, class SIZE_ARG, class TYPES_ARG, class ARGUMENTS>
@@ -355,7 +324,14 @@ namespace Allen {
     {
       auto buffer =
         arguments.template make_buffer<Allen::Store::Scope::Host, typename Arg::type>(arguments.template size<Arg>());
-      Allen::copy<Arg>(buffer, arguments, context);
+
+      if constexpr (std::is_base_of_v<Allen::Store::host_datatype, Arg>) {
+        Allen::copy(buffer.get(), get<Arg>(arguments), context, Allen::memcpyHostToHost);
+      }
+      else {
+        Allen::copy(buffer.get(), get<Arg>(arguments), context, Allen::memcpyDeviceToHost);
+      }
+
       return buffer;
     }
 
@@ -364,7 +340,14 @@ namespace Allen {
     {
       auto buffer =
         arguments.template make_buffer<Allen::Store::Scope::Device, typename Arg::type>(arguments.template size<Arg>());
-      Allen::copy<Arg>(buffer, arguments, context);
+
+      if constexpr (std::is_base_of_v<Allen::Store::host_datatype, Arg>) {
+        Allen::copy(buffer.get(), get<Arg>(arguments), context, Allen::memcpyHostToDevice);
+      }
+      else {
+        Allen::copy(buffer.get(), get<Arg>(arguments), context, Allen::memcpyDeviceToDevice);
+      }
+
       return buffer;
     }
 

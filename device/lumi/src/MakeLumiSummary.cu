@@ -24,12 +24,7 @@ void make_lumi_summary::make_lumi_summary_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
-  // to avoid warning massage from MemoryManager
-  // if no lumi event, set lumi_sum_sizes = 1u
-  if (first<host_lumi_summaries_size_t>(arguments) == 0)
-    set_size<dev_lumi_summaries_t>(arguments, 1u);
-  else
-    set_size<dev_lumi_summaries_t>(arguments, first<host_lumi_summaries_size_t>(arguments));
+  set_size<dev_lumi_summaries_t>(arguments, first<host_lumi_summaries_size_t>(arguments));
 }
 
 void make_lumi_summary::make_lumi_summary_t::operator()(
@@ -40,9 +35,16 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
   const Allen::Context& context) const
 {
   // do nothing if no lumi event
+  host_buffers.host_lumi_summary_offsets.resize(size<dev_lumi_summary_offsets_t>(arguments));
+  host_buffers.host_lumi_summaries.resize(size<dev_lumi_summaries_t>(arguments));
   if (first<host_lumi_summaries_size_t>(arguments) == 0) {
-    Allen::copy_async<dev_lumi_summary_offsets_t>(host_buffers.host_lumi_summary_offsets, arguments, context);
-    Allen::copy_async<dev_lumi_summaries_t>(host_buffers.host_lumi_summaries, arguments, context);
+    Allen::copy_async(
+      host_buffers.host_lumi_summary_offsets.get(),
+      get<dev_lumi_summary_offsets_t>(arguments),
+      context,
+      Allen::memcpyDeviceToHost);
+    Allen::copy_async(
+      host_buffers.host_lumi_summaries.get(), get<dev_lumi_summaries_t>(arguments), context, Allen::memcpyDeviceToHost);
     return;
   }
 
@@ -51,8 +53,13 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
   global_function(make_lumi_summary)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments), size<dev_event_list_t>(arguments));
 
-  Allen::copy_async<dev_lumi_summary_offsets_t>(host_buffers.host_lumi_summary_offsets, arguments, context);
-  Allen::copy_async<dev_lumi_summaries_t>(host_buffers.host_lumi_summaries, arguments, context);
+  Allen::copy_async(
+    host_buffers.host_lumi_summary_offsets.get(),
+    get<dev_lumi_summary_offsets_t>(arguments),
+    context,
+    Allen::memcpyDeviceToHost);
+  Allen::copy_async(
+    host_buffers.host_lumi_summaries.get(), get<dev_lumi_summaries_t>(arguments), context, Allen::memcpyDeviceToHost);
 }
 
 __device__ void make_lumi_summary::setField(

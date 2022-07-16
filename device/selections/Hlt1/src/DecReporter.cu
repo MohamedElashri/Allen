@@ -32,7 +32,10 @@ void dec_reporter::dec_reporter_t::operator()(
     arguments);
 
   Allen::copy_async<host_dec_reports_t, dev_dec_reports_t>(arguments, context);
-  Allen::copy_async<dev_dec_reports_t>(host_buffers.host_dec_reports, arguments, context);
+
+  host_buffers.host_dec_reports.resize(size<dev_dec_reports_t>(arguments));
+  Allen::copy_async(
+    host_buffers.host_dec_reports.get(), get<dev_dec_reports_t>(arguments), context, Allen::memcpyDeviceToHost);
 
   // Synchronize copies
   Allen::synchronize(context);

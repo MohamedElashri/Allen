@@ -28,7 +28,12 @@ void global_decision::global_decision_t::operator()(
 
   global_function(global_decision)(grid_size, dim3(property<block_dim_x_t>().get()), context)(arguments);
 
-  Allen::copy_async<dev_global_decision_t>(host_buffers.host_passing_event_list, arguments, context);
+  host_buffers.host_passing_event_list.resize(size<dev_global_decision_t>(arguments));
+  Allen::copy_async(
+    host_buffers.host_passing_event_list.get(),
+    get<dev_global_decision_t>(arguments),
+    context,
+    Allen::memcpyDeviceToHost);
 }
 
 __global__ void global_decision::global_decision(global_decision::Parameters parameters)
