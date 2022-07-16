@@ -32,3 +32,4 @@ checker/plotting/output
 InstallArea*
 Makefile
 toolchain.cmake
+configuration/python/AllenConf/algorithms.py

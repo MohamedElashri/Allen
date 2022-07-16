@@ -721,19 +721,18 @@ if (NOT STANDALONE)
   lhcb_finalize_configuration()
 endif()
 
-
 # Download parameter files if in STANDALONE
 if (STANDALONE)
   find_package(Git REQUIRED)
-  file(MAKE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/input/PARAM/")
-  SET(PARAMFILESROOT "${CMAKE_CURRENT_SOURCE_DIR}/input/PARAM/ParamFiles/")
+  file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/external/input/PARAM")
+  SET(PARAMFILESROOT "${PROJECT_BINARY_DIR}/external/input/PARAM/ParamFiles")
   add_custom_command(
     OUTPUT "${PARAMFILESROOT}"
     COMMENT "Checking out parameterization files from the LHCb stack"
     COMMAND
       ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb-datapkg/ParamFiles.git --no-checkout &&
       ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} --work-tree=ParamFiles --git-dir=ParamFiles/.git checkout origin/master -- data
-    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/input/PARAM/")
+    WORKING_DIRECTORY "${PROJECT_BINARY_DIR}/external/input/PARAM")
   add_custom_target(checkout_param_files DEPENDS "${PARAMFILESROOT}")
   add_dependencies(AllenLib checkout_param_files)
   add_compile_definitions(PARAMFILESROOTPATH=${PARAMFILESROOT})
