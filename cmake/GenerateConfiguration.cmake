@@ -158,19 +158,49 @@ if(NOT STANDALONE AND TARGET_DEVICE STREQUAL "CPU")
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 elseif(STANDALONE)
-  find_package(Git REQUIRED)
-  add_custom_command(
-    OUTPUT "${PROJECT_SEQUENCE_DIR}/LHCb" "${PROJECT_SEQUENCE_DIR}/PyConf" "${PROJECT_SEQUENCE_DIR}/Gaudi" "${PROJECT_SEQUENCE_DIR}/GaudiKernel"
-    COMMENT "Checking out configuration utilities from the LHCb stack"
-    COMMAND
-      ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb.git --no-checkout &&
-      ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} --work-tree=LHCb --git-dir=LHCb/.git checkout HEAD -- PyConf &&
-      ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/gaudi/Gaudi.git --no-checkout &&
-      ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} --work-tree=Gaudi --git-dir=Gaudi/.git checkout HEAD -- GaudiKernel &&
-      ${CMAKE_COMMAND} -E create_symlink LHCb/PyConf/python/PyConf PyConf &&
-      ${CMAKE_COMMAND} -E create_symlink Gaudi/GaudiKernel/python/GaudiKernel GaudiKernel
-    WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
-  add_custom_target(checkout_gaudi_dirs DEPENDS "${PROJECT_SEQUENCE_DIR}/LHCb" "${PROJECT_SEQUENCE_DIR}/PyConf" "${PROJECT_SEQUENCE_DIR}/Gaudi" "${PROJECT_SEQUENCE_DIR}/GaudiKernel")
+  set(LHCBROOT $ENV{LHCBROOT} CACHE STRING "LHCB root directory")
+  if (LHCBROOT)
+    add_custom_command(
+      OUTPUT "${LHCBROOT}"
+      COMMENT "Selecting user-specified LHCBROOT"
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
+    add_custom_target(checkout_lhcb DEPENDS "${LHCBROOT}")
+    message(STATUS "LHCBROOT set to ${LHCBROOT}")
+  else()
+    find_package(Git REQUIRED)
+    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/external/LHCb")
+    set(LHCBROOT "${PROJECT_BINARY_DIR}/external/LHCb")
+    add_custom_command(
+      OUTPUT "${PROJECT_BINARY_DIR}/external/LHCb"
+      COMMENT "Checking out LHCb project from the LHCb stack"
+      COMMAND
+        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb.git ${PROJECT_BINARY_DIR}/external/LHCb &&
+        ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
+    add_custom_target(checkout_lhcb DEPENDS "${PROJECT_BINARY_DIR}/external/LHCb")
+    message(STATUS "LHCBROOT set to ${LHCBROOT}")
+  endif()
+
+  set(GAUDIROOT $ENV{GAUDIROOT} CACHE STRING "GAUDI root directory")
+  if (GAUDIROOT)
+    add_custom_command(
+      OUTPUT "${GAUDIROOT}"
+      COMMENT "Selecting user-specified GAUDIROOT"
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAUDIROOT}/GaudiKernel/python/GaudiKernel ${PROJECT_SEQUENCE_DIR}/GaudiKernel)
+    add_custom_target(checkout_gaudi DEPENDS "${GAUDIROOT}")
+    message(STATUS "GAUDIROOT set to ${GAUDIROOT}")
+  else()
+    find_package(Git REQUIRED)
+    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/external/Gaudi")
+    set(GAUDIROOT "${PROJECT_BINARY_DIR}/external/Gaudi")
+    add_custom_command(
+      OUTPUT "${PROJECT_BINARY_DIR}/external/Gaudi"
+      COMMENT "Checking out Gaudi project from the LHCb stack"
+      COMMAND
+        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/gaudi/Gaudi.git ${PROJECT_BINARY_DIR}/external/Gaudi &&
+        ${CMAKE_COMMAND} -E create_symlink ${GAUDIROOT}/GaudiKernel/python/GaudiKernel ${PROJECT_SEQUENCE_DIR}/GaudiKernel)
+    add_custom_target(checkout_gaudi DEPENDS "${PROJECT_BINARY_DIR}/external/Gaudi")
+    message(STATUS "GAUDIROOT set to ${GAUDIROOT}")
+  endif()
 endif()
 
 function(generate_sequence sequence)
@@ -191,7 +221,7 @@ function(generate_sequence sequence)
       COMMAND
         ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" &&
         ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" generate_algorithms_view checkout_gaudi_dirs
+      DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" generate_algorithms_view checkout_gaudi checkout_lhcb
       WORKING_DIRECTORY ${sequence_dir})
   endif()
   add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
