@@ -294,12 +294,13 @@ void gather_selections::gather_selections_t::operator()(
   // Initialize output mask size
   Allen::memset_async<dev_event_list_output_size_t>(arguments, 0, context);
 
-  auto dev_decisions_per_event_line = make_device_buffer<bool>(arguments,
-    first<host_number_of_events_t>(arguments) * first<host_number_of_active_lines_t>(arguments));
-  auto dev_postscaled_decisions_per_event_line = make_device_buffer<bool>(arguments,
-    first<host_number_of_events_t>(arguments) * first<host_number_of_active_lines_t>(arguments));
+  auto dev_decisions_per_event_line = make_device_buffer<bool>(
+    arguments, first<host_number_of_events_t>(arguments) * first<host_number_of_active_lines_t>(arguments));
+  auto dev_postscaled_decisions_per_event_line = make_device_buffer<bool>(
+    arguments, first<host_number_of_events_t>(arguments) * first<host_number_of_active_lines_t>(arguments));
   Allen::memset_async(dev_decisions_per_event_line.data(), 0, dev_decisions_per_event_line.sizebytes(), context);
-  Allen::memset_async(dev_postscaled_decisions_per_event_line.data(), 0, dev_decisions_per_event_line.sizebytes(), context);
+  Allen::memset_async(
+    dev_postscaled_decisions_per_event_line.data(), 0, dev_decisions_per_event_line.sizebytes(), context);
 
   // Run the postscaler
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
@@ -317,10 +318,16 @@ void gather_selections::gather_selections_t::operator()(
 #ifndef ALLEN_STANDALONE
   // Monitoring
   auto host_decisions_per_event_line = make_host_buffer<bool>(arguments, dev_decisions_per_event_line.size());
-  auto host_postscaled_decisions_per_event_line = make_host_buffer<bool>(arguments, dev_postscaled_decisions_per_event_line.size());
-  
-  Allen::copy_async(host_decisions_per_event_line.get(), dev_decisions_per_event_line.get(), context, Allen::memcpyDeviceToHost);
-  Allen::copy_async(host_postscaled_decisions_per_event_line.get(), dev_postscaled_decisions_per_event_line.get(), context, Allen::memcpyDeviceToHost);
+  auto host_postscaled_decisions_per_event_line =
+    make_host_buffer<bool>(arguments, dev_postscaled_decisions_per_event_line.size());
+
+  Allen::copy_async(
+    host_decisions_per_event_line.get(), dev_decisions_per_event_line.get(), context, Allen::memcpyDeviceToHost);
+  Allen::copy_async(
+    host_postscaled_decisions_per_event_line.get(),
+    dev_postscaled_decisions_per_event_line.get(),
+    context,
+    Allen::memcpyDeviceToHost);
   Allen::synchronize(context);
 
   monitor_operator(arguments, host_decisions_per_event_line);
