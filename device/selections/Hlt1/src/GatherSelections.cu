@@ -319,8 +319,8 @@ void gather_selections::gather_selections_t::operator()(
   auto host_decisions_per_event_line = make_host_buffer<bool>(arguments, dev_decisions_per_event_line.size());
   auto host_postscaled_decisions_per_event_line = make_host_buffer<bool>(arguments, dev_postscaled_decisions_per_event_line.size());
   
-  Allen::copy_async(host_decisions_per_event_line.to_span(), dev_decisions_per_event_line.to_span(), context, Allen::memcpyDeviceToHost);
-  Allen::copy_async(host_postscaled_decisions_per_event_line.to_span(), dev_postscaled_decisions_per_event_line.to_span(), context, Allen::memcpyDeviceToHost);
+  Allen::copy_async(host_decisions_per_event_line.get(), dev_decisions_per_event_line.get(), context, Allen::memcpyDeviceToHost);
+  Allen::copy_async(host_postscaled_decisions_per_event_line.get(), dev_postscaled_decisions_per_event_line.get(), context, Allen::memcpyDeviceToHost);
   Allen::synchronize(context);
 
   monitor_operator(arguments, host_decisions_per_event_line);
