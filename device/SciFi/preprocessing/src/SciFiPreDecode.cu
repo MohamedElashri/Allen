@@ -81,7 +81,7 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
       const uint16_t c = *it;
       const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + SciFi::channelInBank(c);
       const auto chid = SciFi::SciFiChannelID(ch);
-      const uint32_t correctedMat = chid.correctedUniqueMat();
+      const uint32_t correctedMat = chid.globalMatIdx_Xorder();
 
       const auto store_sorted_fn = [&](const int condition, const int delta) {
         store_sorted_cluster_reference(
