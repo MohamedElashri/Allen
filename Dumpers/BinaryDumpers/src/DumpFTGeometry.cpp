@@ -91,10 +91,10 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
 {
 
   // Detector and mat geometry
-  uint32_t const number_of_stations = LHCb::Detector::FT::nStations;
-  uint32_t const number_of_layers_per_station = LHCb::Detector::FT::nLayers;
+  uint32_t const number_of_stations = FT::nStations;
+  uint32_t const number_of_layers_per_station = FT::nLayers;
   uint32_t const number_of_layers = number_of_stations * number_of_layers_per_station;
-  uint32_t const number_of_quarters_per_layer = LHCb::Detector::FT::nQuarters;
+  uint32_t const number_of_quarters_per_layer = FT::nQuarters;
   uint32_t const number_of_quarters = number_of_quarters_per_layer * number_of_layers;
   vector<uint32_t> number_of_modules(number_of_quarters);
   uint32_t number_of_mats = 0;
@@ -113,21 +113,22 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
   vector<float> dzdy;
   vector<float> globaldy;
 
-  mirrorPointX.resize(LHCb::Detector::FT::nMatsTotal);
-  mirrorPointY.resize(LHCb::Detector::FT::nMatsTotal);
-  mirrorPointZ.resize(LHCb::Detector::FT::nMatsTotal);
-  ddxX.resize(LHCb::Detector::FT::nMatsTotal);
-  ddxY.resize(LHCb::Detector::FT::nMatsTotal);
-  ddxZ.resize(LHCb::Detector::FT::nMatsTotal);
-  uBegin.resize(LHCb::Detector::FT::nMatsTotal);
-  halfChannelPitch.resize(LHCb::Detector::FT::nMatsTotal);
-  dieGap.resize(LHCb::Detector::FT::nMatsTotal);
-  sipmPitch.resize(LHCb::Detector::FT::nMatsTotal);
-  dxdy.resize(LHCb::Detector::FT::nMatsTotal);
-  dzdy.resize(LHCb::Detector::FT::nMatsTotal);
-  globaldy.resize(LHCb::Detector::FT::nMatsTotal);
+  mirrorPointX.resize(FT::nMatsMax);
+  mirrorPointY.resize(FT::nMatsMax);
+  mirrorPointZ.resize(FT::nMatsMax);
+  ddxX.resize(FT::nMatsMax);
+  ddxY.resize(FT::nMatsMax);
+  ddxZ.resize(FT::nMatsMax);
+  uBegin.resize(FT::nMatsMax);
+  halfChannelPitch.resize(FT::nMatsMax);
+  dieGap.resize(FT::nMatsMax);
+  sipmPitch.resize(FT::nMatsMax);
+  dxdy.resize(FT::nMatsMax);
+  dzdy.resize(FT::nMatsMax);
+  globaldy.resize(FT::nMatsMax);
 
 #ifdef USE_DD4HEP
+  //FIXME
   std::array<unsigned, number_of_stations> stations = {0, 1, 2};
 #else
   std::array<unsigned, number_of_stations> stations = {1, 2, 3};
@@ -203,7 +204,7 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
       number_of_mats,
       number_of_tell40s,
       bank_first_channel,
-      LHCb::Detector::FT::nMatsTotal,
+      FT::nMatsMax,
       mirrorPointX,
       mirrorPointY,
       mirrorPointZ,
