@@ -213,7 +213,7 @@ namespace SciFi {
     {
       // Returns local module ID in ascending x order.
       // There may be a faster way to do this.
-      uint32_t module_count = globalLayerID() >= 3 ? 6 : 5;
+      uint32_t module_count = station() >= 3 ? 6 : 5;
       return (isRight())? module_count - 1 - module(): module();
     }
 
@@ -224,10 +224,10 @@ namespace SciFi {
     __device__ __host__ uint32_t station() const { return ((channelID & stationMask) >> stationBits); }
 
     __device__ __host__ uint32_t globalLayerID() const { return ((channelID & uniqueLayerMask) >> layerBits); }
-    __device__ __host__ uint32_t globalLayerIdx() const { return globalLayerIdx() - 4; }
+    __device__ __host__ uint32_t globalLayerIdx() const { return globalLayerID() - 4; }
 
     __device__ __host__ uint32_t globalQuarterID() const { return ((channelID & uniqueQuarterMask) >> quarterBits); }
-    __device__ __host__ uint32_t globalQuarterIdx() const { return globalQuarterIdx() - 16; }
+    __device__ __host__ uint32_t globalQuarterIdx() const { return globalQuarterID() - 16; }
 
     __device__ __host__ uint32_t globalModuleID() const { return ((channelID & uniqueModuleMask) >> moduleBits); }
     __device__ __host__ uint32_t globalModuleIdx() const { 
