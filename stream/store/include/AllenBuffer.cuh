@@ -65,11 +65,7 @@ namespace Allen {
 
     constexpr __host__ size_t size() const { return m_span.size(); }
 
-    constexpr __host__ size_t sizebytes() const
-    {
-      static_assert(S == Allen::Store::Scope::Host);
-      return m_span.sizebytes();
-    }
+    constexpr __host__ size_t sizebytes() const { return m_span.size() * sizeof(T); }
 
     constexpr __host__ T* data() const { return m_span.data(); }
 

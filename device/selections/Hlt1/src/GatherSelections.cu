@@ -211,7 +211,7 @@ void gather_selections::gather_selections_t::set_arguments_size(
 void gather_selections::gather_selections_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
-  const Constants& constants,
+  [[maybe_unused]] const Constants& constants,
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
