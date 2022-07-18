@@ -53,7 +53,7 @@
     expire_in: 1 day
     paths:
       - input
-      - input/PARAM/ParamFiles/*
+      - build*/external/ParamFiles/*
       - build*/*Allen*
       - build*/sequences/libStream_*.so
       - build*/*.json
@@ -61,9 +61,6 @@
       - build*/test/unit_tests/unit_tests
       - build*/test/unit_tests/*cmake
       - build*/toolchain/*
-      - build*/code_generation/sequences/LHCb/PyConf/python/PyConf/*
-      - build*/code_generation/sequences/Gaudi/GaudiKernel/python/GaudiKernel/*
-      - configuration/python/AllenAlgorithms/algorithms.py
   tags:
     - cvmfs
   retry: 2
