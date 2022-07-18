@@ -19,6 +19,9 @@
 #include <Stream.h>
 #include <Tools.h>
 
+#include "MonitoringAggregator.h"
+#include "MonitoringPrinter.h"
+
 namespace {
   using namespace zmq;
   using namespace std::string_literals;
@@ -342,4 +345,43 @@ void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* mon
       zmqSvc->send(control, i_monitor);
     }
   }
+}
+
+void run_aggregation(
+  const size_t thread_id,
+  IZeroMQSvc* zmqSvc,
+  MonitoringAggregator* aggregator,
+  MonitoringPrinter* printer)
+{
+  zmq::socket_t control = make_control(thread_id, zmqSvc);
+  zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
+
+  Timer t;
+
+  while (true) {
+    // Run timer to attempt to keep aggregation out of sync with any sinks
+    t.restart();
+
+    // Run the aggregator and printer
+    if (aggregator) aggregator->process();
+    if (printer) printer->process();
+
+    // Check for signal to terminate
+    // Otherwise continue processing
+    if (zmqSvc->poll(&items[0], 1, 0) > 0) {
+      if (items[0].revents & zmq::POLLIN) {
+        auto msg = zmqSvc->receive<std::string>(control);
+        if (msg == "DONE") {
+          break;
+        }
+      }
+    }
+
+    // Sleep
+    long millis = static_cast<long>(1000 * t.get_elapsed_time());
+    std::this_thread::sleep_for(std::chrono::milliseconds(997 - millis));
+    t.stop();
+  }
+
+  if (printer) printer->process(true);
 }

@@ -58,6 +58,14 @@
 #include "Provider.h"
 #include "ROOTService.h"
 
+#include "MonitoringAggregator.h"
+#include "MonitoringPrinter.h"
+#include "ServiceLocator.h"
+
+#ifndef ALLEN_STANDALONE
+#include <GaudiKernel/Bootstrap.h>
+#endif
+
 namespace {
   enum class SliceStatus { Empty, Filling, Filled, Processing, Processed, Writing, Written };
   using namespace zmq;
@@ -206,7 +214,7 @@ int allen(
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
-  items.resize(number_of_threads + n_io + n_mon + !control_connection.empty());
+  items.resize(number_of_threads + n_io + n_mon + n_agg + !control_connection.empty());
 
   std::optional<zmq::socket_t> allen_control;
   size_t control_index = 0;
@@ -271,6 +279,20 @@ int allen(
 
   // Register all consumers
   register_consumers(updater, constants);
+
+  // Set up monitoring sink
+  MonitoringAggregator monitoringAggregator;
+  MonitoringPrinter monitoringPrinter(10);
+#ifndef ALLEN_STANDALONE
+  // Accumulators from multiple streams must first be aggregated so we run two monitoring hubs
+  // The first is internal to Allen and passes all accumulators to the aggregation service
+  // The aggregation service then passes all aggregated accumulators to the second hub
+  // The second hub is the one provided by Gaudi so can also link to external sinks
+  Gaudi::Monitoring::Hub* firstHub = &StreamServiceLocator::get()->monitoringHub();
+  firstHub->addSink(&monitoringAggregator);
+  Gaudi::Monitoring::Hub* secondHub = &Gaudi::svcLocator()->monitoringHub();
+  secondHub->addSink(&monitoringPrinter);
+#endif
 
   auto const& configuration = configuration_reader->params();
 
@@ -368,6 +390,11 @@ int allen(
     return std::thread {run_monitoring, thread_id, zmqSvc, monitor_manager.get(), mon_id};
   };
 
+  // Lambda with the execution of the monitoring aggregation
+  const auto agg_thread = [&](unsigned thread_id, unsigned) {
+    return std::thread {run_aggregation, thread_id, zmqSvc, &monitoringAggregator, &monitoringPrinter};
+  };
+
   using start_thread = std::function<std::thread(unsigned, unsigned)>;
 
   // Vector of worker threads
@@ -378,6 +405,8 @@ int allen(
   io_workers.reserve(n_io);
   workers_t mon_workers;
   mon_workers.reserve(n_mon);
+  workers_t agg_workers;
+  agg_workers.reserve(n_agg);
 
   auto socket_ready = [zmqSvc](zmq::socket_t& socket) -> std::optional<size_t> {
     zmq::pollitem_t ready_items[] = {{socket, 0, zmq::POLLIN, 0}};
@@ -426,6 +455,11 @@ int allen(
                                                               start_thread {mon_thread},
                                                               static_cast<unsigned>(n_mon),
                                                               std::string("Mon"),
+                                                              handle_ready {handle_default_ready}},
+                                                  std::tuple {&agg_workers,
+                                                              start_thread {agg_thread},
+                                                              static_cast<unsigned>(n_agg),
+                                                              std::string("Agg"),
                                                               handle_ready {handle_default_ready}}}) {
     size_t n_ready = 0;
     for (unsigned i = 0; i < n; ++i) {
@@ -966,7 +1000,7 @@ loop_error:
   }
 
   // Send stop signal to all threads and join them
-  for (auto workers : {std::ref(io_workers), std::ref(mon_workers), std::ref(stream_threads)}) {
+  for (auto workers : {std::ref(io_workers), std::ref(mon_workers), std::ref(stream_threads), std::ref(agg_workers)}) {
     for (auto& worker : workers.get()) {
       zmqSvc->send(std::get<1>(worker), "DONE");
       std::get<0>(worker).join();

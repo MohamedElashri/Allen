@@ -14,6 +14,12 @@ class IZeroMQSvc;
 namespace {
   constexpr size_t n_input = 1;
   constexpr size_t n_mon = 1;
+#ifdef ALLEN_STANDALONE
+  // Stand-alone build does not run an aggregation thread
+  constexpr size_t n_agg = 0;
+#else
+  constexpr size_t n_agg = 1;
+#endif
   constexpr size_t max_stream_threads = 1024;
 } // namespace
 

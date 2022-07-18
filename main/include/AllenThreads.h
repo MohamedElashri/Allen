@@ -40,3 +40,12 @@ void run_stream(
   uint inject_mem_fail);
 
 void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* monitor_manager, unsigned i_monitor);
+
+struct MonitoringAggregator;
+struct MonitoringPrinter;
+
+void run_aggregation(
+  const size_t thread_id,
+  IZeroMQSvc* zmqSvc,
+  MonitoringAggregator* aggregator,
+  MonitoringPrinter* printer);
