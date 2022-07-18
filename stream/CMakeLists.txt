@@ -47,7 +47,7 @@ target_link_libraries(Stream
 # In STANDALONE, the following dependencies will make runtime sequence generation work
 # even if SEQUENCES was empty.
 if(STANDALONE)
-  add_dependencies(Stream checkout_gaudi_dirs generate_algorithms_view)
+  add_dependencies(Stream checkout_lhcb checkout_gaudi generate_algorithms_view)
 endif()
 
 foreach(sequence ${BUILD_SEQUENCES})

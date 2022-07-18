@@ -66,6 +66,7 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate parsed_algorithms --filename "${PARSED_ALGORITHMS_OUTPUTFILE}" --prefix_project_folder "${PROJECT_SOURCE_DIR}"
   DEPENDS "${PROJECT_SOURCE_DIR}/configuration/parser/ParseAlgorithms.py")
+add_custom_target(parsed_algorithms DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 
 # Symlink Allen build directories
 add_custom_command(
@@ -84,7 +85,7 @@ add_custom_command(
     ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate views --filename "${ALGORITHMS_OUTPUTFILE}" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" &&
     ${CMAKE_COMMAND} -E touch ${ALLEN_ALGORITHMS_DIR}/__init__.py
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
-  DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}" generate_conf_core)
+  DEPENDS parsed_algorithms generate_conf_core)
 add_custom_target(generate_algorithms_view DEPENDS "${ALGORITHMS_OUTPUTFILE}")
 
 # Generate Allen AlgorithmDB
@@ -93,7 +94,7 @@ add_custom_command(
   COMMENT "Generating AlgorithmDB"
   COMMAND ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate db --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
-  DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
+  DEPENDS parsed_algorithms)
 add_custom_target(algorithm_db_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h")
 add_library(algorithm_db INTERFACE)
 add_dependencies(algorithm_db algorithm_db_generation)
@@ -108,7 +109,7 @@ add_custom_command(
   COMMAND
     ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate struct_to_tuple --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" --struct_to_tuple_folder "${PROJECT_SOURCE_DIR}/configuration/parser/struct_to_tuple"
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
-  DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
+  DEPENDS parsed_algorithms)
 add_custom_target(struct_to_tuple_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh")
 add_library(struct_to_tuple INTERFACE)
 add_dependencies(struct_to_tuple struct_to_tuple_generation)
@@ -123,14 +124,14 @@ if(SEPARABLE_COMPILATION)
     COMMAND
       ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate extern_lines --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
     WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
-    DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
+    DEPENDS parsed_algorithms)
 else()
   add_custom_command(
     OUTPUT "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh"
     COMMAND
       ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate extern_lines_nosepcomp --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
     WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
-    DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
+    DEPENDS parsed_algorithms)
 endif()
 add_custom_target(extern_lines_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh")
 add_library(extern_lines INTERFACE)
@@ -156,21 +157,51 @@ if(NOT STANDALONE AND TARGET_DEVICE STREQUAL "CPU")
     COMMAND
       ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate wrappers --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" --algorithm_wrappers_folder "${ALGORITHM_WRAPPERS_FOLDER}"
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
-    DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
+    DEPENDS parsed_algorithms)
 elseif(STANDALONE)
-  find_package(Git REQUIRED)
-  add_custom_command(
-    OUTPUT "${PROJECT_SEQUENCE_DIR}/LHCb" "${PROJECT_SEQUENCE_DIR}/PyConf" "${PROJECT_SEQUENCE_DIR}/Gaudi" "${PROJECT_SEQUENCE_DIR}/GaudiKernel"
-    COMMENT "Checking out configuration utilities from the LHCb stack"
-    COMMAND
-      ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb.git --no-checkout &&
-      ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} --work-tree=LHCb --git-dir=LHCb/.git checkout HEAD -- PyConf &&
-      ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/gaudi/Gaudi.git --no-checkout &&
-      ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} --work-tree=Gaudi --git-dir=Gaudi/.git checkout HEAD -- GaudiKernel &&
-      ${CMAKE_COMMAND} -E create_symlink LHCb/PyConf/python/PyConf PyConf &&
-      ${CMAKE_COMMAND} -E create_symlink Gaudi/GaudiKernel/python/GaudiKernel GaudiKernel
-    WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR})
-  add_custom_target(checkout_gaudi_dirs DEPENDS "${PROJECT_SEQUENCE_DIR}/LHCb" "${PROJECT_SEQUENCE_DIR}/PyConf" "${PROJECT_SEQUENCE_DIR}/Gaudi" "${PROJECT_SEQUENCE_DIR}/GaudiKernel")
+  set(LHCBROOT $ENV{LHCBROOT} CACHE STRING "LHCB root directory")
+  if (LHCBROOT)
+    add_custom_command(
+      OUTPUT "${PROJECT_SEQUENCE_DIR}/PyConf"
+      COMMENT "Selecting user-specified LHCBROOT"
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
+    add_custom_target(checkout_lhcb DEPENDS "${PROJECT_SEQUENCE_DIR}/PyConf")
+    message(STATUS "LHCBROOT set to ${LHCBROOT}")
+  else()
+    find_package(Git REQUIRED)
+    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/external/LHCb")
+    set(LHCBROOT "${PROJECT_BINARY_DIR}/external/LHCb")
+    add_custom_command(
+      OUTPUT "${PROJECT_SEQUENCE_DIR}/PyConf"
+      COMMENT "Checking out LHCb project from the LHCb stack"
+      COMMAND
+        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb.git ${PROJECT_BINARY_DIR}/external/LHCb &&
+        ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
+    add_custom_target(checkout_lhcb DEPENDS "${PROJECT_SEQUENCE_DIR}/PyConf")
+    message(STATUS "LHCBROOT set to ${LHCBROOT}")
+  endif()
+
+  set(GAUDIROOT $ENV{GAUDIROOT} CACHE STRING "GAUDI root directory")
+  if (GAUDIROOT)
+    add_custom_command(
+      OUTPUT "${PROJECT_SEQUENCE_DIR}/GaudiKernel"
+      COMMENT "Selecting user-specified GAUDIROOT"
+      COMMAND ${CMAKE_COMMAND} -E create_symlink ${GAUDIROOT}/GaudiKernel/python/GaudiKernel ${PROJECT_SEQUENCE_DIR}/GaudiKernel)
+    add_custom_target(checkout_gaudi DEPENDS "${PROJECT_SEQUENCE_DIR}/GaudiKernel")
+    message(STATUS "GAUDIROOT set to ${GAUDIROOT}")
+  else()
+    find_package(Git REQUIRED)
+    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/external/Gaudi")
+    set(GAUDIROOT "${PROJECT_BINARY_DIR}/external/Gaudi")
+    add_custom_command(
+      OUTPUT "${PROJECT_SEQUENCE_DIR}/GaudiKernel"
+      COMMENT "Checking out Gaudi project from the LHCb stack"
+      COMMAND
+        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/gaudi/Gaudi.git ${PROJECT_BINARY_DIR}/external/Gaudi &&
+        ${CMAKE_COMMAND} -E create_symlink ${GAUDIROOT}/GaudiKernel/python/GaudiKernel ${PROJECT_SEQUENCE_DIR}/GaudiKernel)
+    add_custom_target(checkout_gaudi DEPENDS "${PROJECT_SEQUENCE_DIR}/GaudiKernel")
+    message(STATUS "GAUDIROOT set to ${GAUDIROOT}")
+  endif()
 endif()
 
 function(generate_sequence sequence)
@@ -191,7 +222,7 @@ function(generate_sequence sequence)
       COMMAND
         ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" &&
         ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" generate_algorithms_view checkout_gaudi_dirs
+      DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" generate_algorithms_view checkout_gaudi checkout_lhcb
       WORKING_DIRECTORY ${sequence_dir})
   endif()
   add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
