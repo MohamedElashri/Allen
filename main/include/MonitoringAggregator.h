@@ -113,4 +113,3 @@ private:
   Gaudi::Monitoring::Hub* m_hub = &Gaudi::svcLocator()->monitoringHub();
 };
 #endif
-

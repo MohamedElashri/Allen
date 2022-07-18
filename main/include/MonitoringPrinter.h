@@ -60,4 +60,3 @@ private:
   unsigned int m_delayCount {0};
 };
 #endif
-
