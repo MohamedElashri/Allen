@@ -14,7 +14,7 @@
 #include <gsl/gsl>
 
 namespace Allen {
-#ifdef ALLEN_STANDALONE
+#if defined(ALLEN_STANDALONE) || !defined(TARGET_DEVICE_CPU)
 
   /**
    * @brief Standalone buffer: Uses an instance of the memory manager

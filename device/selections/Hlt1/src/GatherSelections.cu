@@ -145,6 +145,9 @@ void gather_selections::gather_selections_t::init()
     const auto it = std::find(std::begin(line_strings), std::end(line_strings), name);
     m_indices_active_line_algorithms.push_back(it - std::begin(line_strings));
   }
+#ifndef ALLEN_STANDALONE
+  gather_selections::gather_selections_t::init_monitor();
+#endif
 }
 
 void gather_selections::gather_selections_t::set_arguments_size(
