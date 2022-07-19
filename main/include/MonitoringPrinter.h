@@ -28,7 +28,8 @@ struct MonitoringPrinter {
 struct MonitoringPrinter : public Gaudi::Monitoring::Hub::Sink {
   using Entity = Gaudi::Monitoring::Hub::Entity;
 
-  MonitoringPrinter(unsigned int printPeriod = 10, bool do_print = true) : m_printPeriod(printPeriod), m_print(do_print) {}
+  MonitoringPrinter(unsigned int printPeriod = 10, bool do_print = true) : m_printPeriod(printPeriod), m_print(do_print)
+  {}
 
   virtual void registerEntity(Entity ent) override { m_entities.push_back(ent); }
 

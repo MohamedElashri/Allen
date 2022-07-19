@@ -117,7 +117,6 @@ parser.add_argument(
     help="Enables printing monitoring information",
 )
 
-
 args = parser.parse_args()
 
 runtime_lib = None
@@ -225,7 +224,8 @@ for flag, value in [("g", args.det_folder),
                     ("monitoring-filename", args.mon_filename),
                     ("events-per-slice", args.events_per_slice),
                     ("device", args.device), ("run-from-json", "1"),
-                    ("enable-monitoring-printing", int(args.enable_monitoring_printing))]:
+                    ("enable-monitoring-printing",
+                     int(args.enable_monitoring_printing))]:
     if value is not None:
         options[flag] = str(value)
 
