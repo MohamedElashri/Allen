@@ -427,7 +427,8 @@ def setup_hlt1_node(withMCChecking=False,
 
     if with_lumi:
         lumi_with_prefilter = CompositeNode(
-            "LumiWithPrefilter", odin_err_filter + [
+            "LumiWithPrefilter",
+            odin_err_filter + [
                 lumi_reconstruction(
                     lines=line_algorithms, lumiline_name=lumiline_name)
             ],
@@ -435,10 +436,7 @@ def setup_hlt1_node(withMCChecking=False,
             force_order=True)
 
         hlt1_node = CompositeNode(
-            "AllenWithLumi", [
-                hlt1_node,
-                lumi_with_prefilter
-            ],
+            "AllenWithLumi", [hlt1_node, lumi_with_prefilter],
             NodeLogic.NONLAZY_AND,
             force_order=False)
 
