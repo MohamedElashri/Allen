@@ -32,8 +32,7 @@ def add_event_list_combiners(order):
         # TODO shall we somehow make the name so that parantheses are obvious?
         # here, a combinerfor (A & B) | C gets the same name as A & (B | C)
         assert 1 <= len(inputs) <= 2, "only one or two inputs are accepted"
-        if len(inputs) == 1 and logic in [BoolNode.AND, BoolNode.OR]: # one of the algorithms always accepts
-            return inputs[0].producer
+
         if logic == BoolNode.AND:
             return Algorithm(
                 event_list_intersection_t,
@@ -57,7 +56,7 @@ def add_event_list_combiners(order):
         else:
             raise ValueError(f"unknown logic {logic}")
 
-    def combine(logic, *nodes):  # needs to return pyconf algorithm
+    def combine(logic, *nodes):  # needs to return pyconf algorithms
         output_masks = []
         for n in nodes:
             m = [a for a in n.outputs.values() if a.type == "mask_t"]
@@ -67,6 +66,9 @@ def add_event_list_combiners(order):
                 pass # no mask, no need to do anything
             elif len(m) > 1:
                 raise ValueError(f"more than one mask in {n}")
+
+        if len(output_masks) == 1 and logic in [BoolNode.AND, BoolNode.OR]: # one of the algorithms always accepts
+            return []
 
         return [_make_combiner(inputs=output_masks, logic=logic)]
 
