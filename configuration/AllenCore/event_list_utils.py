@@ -32,6 +32,8 @@ def add_event_list_combiners(order):
         # TODO shall we somehow make the name so that parantheses are obvious?
         # here, a combinerfor (A & B) | C gets the same name as A & (B | C)
         assert 1 <= len(inputs) <= 2, "only one or two inputs are accepted"
+        if len(inputs) == 1 and logic in [BoolNode.AND, BoolNode.OR]: # one of the algorithms always accepts
+            return inputs[0].producer
         if logic == BoolNode.AND:
             return Algorithm(
                 event_list_intersection_t,
@@ -59,10 +61,14 @@ def add_event_list_combiners(order):
         output_masks = []
         for n in nodes:
             m = [a for a in n.outputs.values() if a.type == "mask_t"]
-            assert len(m) == 1, f"{n} should have one output mask, got {len(m)}"
-            output_masks.append(m[0])
+            if len(m) == 1:
+                output_masks.append(m[0])
+            elif len(m) == 0:
+                pass # no mask, no need to do anything
+            elif len(m) > 1:
+                raise ValueError(f"more than one mask in {n}")
 
-        return _make_combiner(inputs=output_masks, logic=logic)
+        return [_make_combiner(inputs=output_masks, logic=logic)]
 
     def make_combiners_from(node):
         if node is None:
@@ -72,14 +78,13 @@ def add_event_list_combiners(order):
         elif isinstance(node, BoolNode):
             if node.combine_logic == BoolNode.NOT:
                 combs = make_combiners_from(node.children[0])
-                return combs + [combine(BoolNode.NOT, combs[-1])]
+                return combs + combine(BoolNode.NOT, combs[-1])
             else:  # AND / OR
                 lhs, rhs = node.children
                 combs_lhs = make_combiners_from(lhs)
                 combs_rhs = make_combiners_from(rhs)
-                return combs_lhs + combs_rhs + [
-                    combine(node.combine_logic, combs_lhs[-1], combs_rhs[-1])
-                ]
+                return combs_lhs + combs_rhs + combine(node.combine_logic, combs_lhs[-1], combs_rhs[-1])
+                
         else:
             raise ValueError(
                 f"expected input of type NoneType, Algorithm or BoolNode, got {type(node)}"

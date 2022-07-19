@@ -14,7 +14,7 @@ from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision
-
+from AllenConf.odin import decode_odin
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
@@ -429,17 +429,20 @@ def setup_hlt1_node(withMCChecking=False,
     if with_lumi:
         lumi_with_prefilter = CompositeNode(
             "LumiWithPrefilter", odin_err_filter + [
+                decode_odin()["dev_odin_data"].producer,
                 lumi_reconstruction(
                     lines=line_algorithms, lumiline_name=lumiline_name)
-            ])
+            ],
+            NodeLogic.LAZY_AND,
+            force_order=True)
 
         hlt1_node = CompositeNode(
             "AllenWithLumi", [
                 hlt1_node,
-                lumi_with_prefilter,
+                lumi_with_prefilter
             ],
             NodeLogic.NONLAZY_AND,
-            force_order=True)
+            force_order=False)
 
     if enableRateValidator:
         hlt1_node = CompositeNode(
