@@ -21,14 +21,14 @@
 
 #ifdef ALLEN_STANDALONE
 struct MonitoringPrinter {
-  MonitoringPrinter(unsigned int) {}
+  MonitoringPrinter(unsigned = 0, bool = true) {}
   void process(bool = false) {}
 };
 #else
 struct MonitoringPrinter : public Gaudi::Monitoring::Hub::Sink {
   using Entity = Gaudi::Monitoring::Hub::Entity;
 
-  MonitoringPrinter(unsigned int printPeriod = 1) : m_printPeriod(printPeriod) {}
+  MonitoringPrinter(unsigned int printPeriod = 10, bool do_print = true) : m_printPeriod(printPeriod), m_print(do_print) {}
 
   virtual void registerEntity(Entity ent) override { m_entities.push_back(ent); }
 
@@ -40,7 +40,7 @@ struct MonitoringPrinter : public Gaudi::Monitoring::Hub::Sink {
 
   void process(bool forcePrint = false)
   {
-    if (++m_delayCount >= m_printPeriod || forcePrint) {
+    if (m_print && (++m_delayCount >= m_printPeriod || forcePrint)) {
       m_delayCount = 0;
       for (auto entity : m_entities) {
         auto json = entity.toJSON();
@@ -58,5 +58,6 @@ private:
 
   unsigned int m_printPeriod;
   unsigned int m_delayCount {0};
+  bool m_print;
 };
 #endif

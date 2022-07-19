@@ -109,6 +109,14 @@ parser.add_argument(
 )
 parser.add_argument(
     "--tags", dest="tags", default="dddb-20171122,sim-20180530-vc-md100")
+parser.add_argument(
+    "--enable-monitoring-printing",
+    dest="enable_monitoring_printing",
+    type=bool,
+    default=False,
+    help="Enables printing monitoring information",
+)
+
 
 args = parser.parse_args()
 
@@ -216,7 +224,8 @@ for flag, value in [("g", args.det_folder),
                     ("monitoring-save-period", args.mon_save_period),
                     ("monitoring-filename", args.mon_filename),
                     ("events-per-slice", args.events_per_slice),
-                    ("device", args.device), ("run-from-json", "1")]:
+                    ("device", args.device), ("run-from-json", "1"),
+                    ("enable-monitoring-printing", int(args.enable_monitoring_printing))]:
     if value is not None:
         options[flag] = str(value)
 

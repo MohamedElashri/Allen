@@ -116,6 +116,7 @@ int allen(
   size_t const n_io = n_input + n_write;
 
   std::string flag, arg;
+  bool enable_monitoring_printing = false;
 
   // Use flags to populate variables in the program
   for (auto const& entry : options) {
@@ -186,6 +187,9 @@ int allen(
     }
     else if (flag_in(flag, {"disable-run-changes"})) {
       disable_run_changes = atoi(arg.c_str());
+    }
+    else if (flag_in(flag, {"enable-monitoring-printing"})) {
+      enable_monitoring_printing = atoi(arg.c_str());
     }
   }
 
@@ -282,7 +286,8 @@ int allen(
 
   // Set up monitoring sink
   MonitoringAggregator monitoringAggregator;
-  MonitoringPrinter monitoringPrinter(10);
+  MonitoringPrinter monitoringPrinter {10, enable_monitoring_printing};
+
 #ifndef ALLEN_STANDALONE
   // Accumulators from multiple streams must first be aggregated so we run two monitoring hubs
   // The first is internal to Allen and passes all accumulators to the aggregation service
