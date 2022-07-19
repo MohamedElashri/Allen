@@ -4,8 +4,7 @@
 from AllenCore.generator import make_algorithm
 from AllenAlgorithms.algorithms import (
     host_init_number_of_events_t, host_data_provider_t,
-    host_global_event_cut_t, layout_provider_t, check_pvs_t, low_occupancy_t,
-    host_odin_error_filter_t)
+    host_global_event_cut_t, layout_provider_t, check_pvs_t, low_occupancy_t)
 from PyConf.tonic import configurable
 from PyConf.control_flow import NodeLogic, CompositeNode
 
@@ -88,13 +87,6 @@ def gec(name="gec", min_scifi_ut_clusters=0, max_scifi_ut_clusters=9750):
         host_ut_raw_bank_version_t=host_ut_banks.host_raw_bank_version_t)
 
     return gec
-
-
-def odin_error_filter(name="odin_error_filter"):
-    number_of_events = initialize_number_of_events()
-    odin_error_filter = make_algorithm(
-        host_odin_error_filter_t, name="odin_error_filter")
-    return odin_error_filter
 
 
 def mep_layout():

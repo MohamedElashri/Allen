@@ -1,8 +1,8 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import line_maker, make_gec, make_checkPV, make_lowmult, odin_error_filter
-from AllenConf.odin import make_bxtype
+from AllenConf.utils import line_maker, make_gec, make_checkPV, make_lowmult
+from AllenConf.odin import make_bxtype, odin_error_filter
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line
@@ -14,7 +14,6 @@ from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision
-from AllenConf.odin import decode_odin
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
@@ -429,7 +428,6 @@ def setup_hlt1_node(withMCChecking=False,
     if with_lumi:
         lumi_with_prefilter = CompositeNode(
             "LumiWithPrefilter", odin_err_filter + [
-                decode_odin()["dev_odin_data"].producer,
                 lumi_reconstruction(
                     lines=line_algorithms, lumiline_name=lumiline_name)
             ],

@@ -10,10 +10,8 @@
 
 namespace host_odin_error_filter {
   struct Parameters {
-    HOST_OUTPUT(host_event_list_output_t, unsigned) host_event_list;
-    HOST_OUTPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
-    DEVICE_OUTPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
+    DEVICE_INPUT(dev_event_mask_t, unsigned) dev_event_mask;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list;
   };
 
