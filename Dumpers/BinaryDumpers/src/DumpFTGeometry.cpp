@@ -128,7 +128,7 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
   globaldy.resize(FT::nMatsMax);
 
 #ifdef USE_DD4HEP
-  //FIXME
+  // FIXME
   std::array<unsigned, number_of_stations> stations = {0, 1, 2};
 #else
   std::array<unsigned, number_of_stations> stations = {1, 2, 3};

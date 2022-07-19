@@ -214,7 +214,7 @@ namespace SciFi {
       // Returns local module ID in ascending x order.
       // There may be a faster way to do this.
       uint32_t module_count = station() >= 3 ? 6 : 5;
-      return (isRight())? module_count - 1 - module(): module();
+      return (isRight()) ? module_count - 1 - module() : module();
     }
 
     __device__ __host__ uint32_t quarter() const { return ((channelID & quarterMask) >> quarterBits); }
@@ -230,9 +230,10 @@ namespace SciFi {
     __device__ __host__ uint32_t globalQuarterIdx() const { return globalQuarterID() - 16; }
 
     __device__ __host__ uint32_t globalModuleID() const { return ((channelID & uniqueModuleMask) >> moduleBits); }
-    __device__ __host__ uint32_t globalModuleIdx() const { 
+    __device__ __host__ uint32_t globalModuleIdx() const
+    {
       auto quarterIdx = globalQuarterIdx();
-      return quarterIdx * 5 + (quarterIdx >= 32 ? quarterIdx - 32 : 0) + localModuleIdx() ;
+      return quarterIdx * 5 + (quarterIdx >= 32 ? quarterIdx - 32 : 0) + localModuleIdx();
     }
     __device__ __host__ uint32_t globalMatID() const { return ((channelID & uniqueMatMask) >> matBits); }
     __device__ __host__ uint32_t globalMatID_shift() const { return globalMatID() - 512; }
@@ -240,7 +241,7 @@ namespace SciFi {
     {
       // Returns global mat ID in ascending x order without any gaps.
       // Geometry dependent. No idea how to not hardcode this.
-      return globalModuleIdx() * 4 + (reversedZone() ? 3 - mat() : mat());      
+      return globalModuleIdx() * 4 + (reversedZone() ? 3 - mat() : mat());
     }
 
     __device__ __host__ uint32_t die() const { return ((channelID & 0x40) >> 6); }
