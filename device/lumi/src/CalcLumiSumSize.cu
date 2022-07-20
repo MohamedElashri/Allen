@@ -48,7 +48,8 @@ __global__ void calc_lumi_sum_size::calc_lumi_sum_size(
     Selections::ConstSelections selections {
       parameters.dev_selections, parameters.dev_selections_offsets, number_of_events};
     // skip non-lumi event
-    if (!selections.get_span(parameters.line_index, event_number)[0]) continue;
+    const auto sel_span = selections.get_span(parameters.line_index, event_number);
+    if (sel_span.empty() || !sel_span[0]) continue;
 
     // the unit of Allen::LumiCounterOffsets::TotalSize is bit
     // convert it to be unsigned int
