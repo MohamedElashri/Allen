@@ -7,6 +7,7 @@ HLTControlFlowMgr                      INFO  o Number of events slots: 1
 HLTControlFlowMgr                      INFO  o TBB thread pool size:  'ThreadPoolSize':1
 ApplicationMgr                         INFO Application Manager Initialized successfully
 Using 2 input slices.
+ Enables printing monitoring information (--enable-monitoring-printing): 0
 DeFTDetector                           INFO Current FT geometry version =   63
 ApplicationMgr                         INFO Application Manager Started successfully
 DumpFTGeometry                         INFO Conditions DB is compatible with FT bank version 4, 5, 6.
@@ -35,3 +36,49 @@ HLTControlFlowMgr                      INFO Histograms converted successfully ac
 ToolSvc                                INFO Removing all tools created by ToolSvc
 ApplicationMgr                         INFO Application Manager Finalized successfully
 ApplicationMgr                         INFO Application Manager Terminated successfully
+gather_selections                      INFO Number of counters : 44
+ |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
+ | "Hlt1BothBeamsPass"                             |      1000 |
+ | "Hlt1BothBeamsRate"                             |         3 |
+ | "Hlt1D2KKPass"                                  |         1 |
+ | "Hlt1D2KKRate"                                  |         1 |
+ | "Hlt1D2KPiPass"                                 |         2 |
+ | "Hlt1D2KPiRate"                                 |         2 |
+ | "Hlt1D2PiPiPass"                                |         2 |
+ | "Hlt1D2PiPiRate"                                |         2 |
+ | "Hlt1DiMuonHighMassPass"                        |         6 |
+ | "Hlt1DiMuonHighMassRate"                        |         6 |
+ | "Hlt1DiMuonLowMassPass"                         |        10 |
+ | "Hlt1DiMuonLowMassRate"                         |        10 |
+ | "Hlt1DisplacedDielectronPass"                   |         2 |
+ | "Hlt1DisplacedDielectronRate"                   |         2 |
+ | "Hlt1DisplacedLeptonsPass"                      |         4 |
+ | "Hlt1DisplacedLeptonsRate"                      |         4 |
+ | "Hlt1GECPassthroughPass"                        |       951 |
+ | "Hlt1GECPassthroughRate"                        |       951 |
+ | "Hlt1KsToPiPiPass"                              |        22 |
+ | "Hlt1KsToPiPiRate"                              |        22 |
+ | "Hlt1LowPtDiMuonPass"                           |        13 |
+ | "Hlt1LowPtDiMuonRate"                           |        13 |
+ | "Hlt1LowPtMuonPass"                             |        63 |
+ | "Hlt1LowPtMuonRate"                             |        63 |
+ | "Hlt1PassthroughPass"                           |      1000 |
+ | "Hlt1PassthroughRate"                           |      1000 |
+ | "Hlt1RICH1AlignmentPass"                        |         1 |
+ | "Hlt1RICH1AlignmentRate"                        |         1 |
+ | "Hlt1SingleHighPtElectronPass"                  |         3 |
+ | "Hlt1SingleHighPtElectronRate"                  |         3 |
+ | "Hlt1SingleHighPtMuonNoMuIDPass"                |         1 |
+ | "Hlt1SingleHighPtMuonNoMuIDRate"                |         1 |
+ | "Hlt1TrackElectronMVAPass"                      |         2 |
+ | "Hlt1TrackElectronMVARate"                      |         2 |
+ | "Hlt1TrackMVAPass"                              |        14 |
+ | "Hlt1TrackMVARate"                              |        14 |
+ | "Hlt1TwoTrackKsPass"                            |         1 |
+ | "Hlt1TwoTrackKsRate"                            |         1 |
+ | "Hlt1TwoTrackMVACharmXSecPass"                  |       125 |
+ | "Hlt1TwoTrackMVACharmXSecRate"                  |       125 |
+ | "Hlt1TwoTrackMVAPass"                           |        23 |
+ | "Hlt1TwoTrackMVARate"                           |        23 |
+ | "Hlt1VeloMicroBiasPass"                         |       949 |
+ | "Hlt1VeloMicroBiasRate"                         |         1 |
