@@ -425,7 +425,9 @@ def setup_hlt1_node(withMCChecking=False,
             "LumiWithPrefilter",
             odin_err_filter + [
                 lumi_reconstruction(
-                    gather_selections=gather_selections, lines=line_algorithms, lumiline_name=lumiline_name)
+                    gather_selections=gather_selections,
+                    lines=line_algorithms,
+                    lumiline_name=lumiline_name)
             ],
             NodeLogic.LAZY_AND,
             force_order=True)
