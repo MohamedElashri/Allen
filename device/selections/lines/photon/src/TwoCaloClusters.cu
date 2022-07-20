@@ -18,8 +18,6 @@ void two_calo_clusters_line::two_calo_clusters_line_t::set_arguments_size(
   // must set_size of all output variables
   static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
 
-  set_size<host_number_of_multi_final_vertices_t>(arguments, size<dev_number_of_multi_final_vertices_t>(arguments));
-
   set_size<host_ecal_twoclusters_t>(arguments, size<dev_ecal_twoclusters_t>(arguments));
 
   set_size<host_local_decisions_t>(arguments, get_decisions_size(arguments));
@@ -34,10 +32,8 @@ __device__ bool two_calo_clusters_line::two_calo_clusters_line_t::select(
   std::tuple<const TwoCaloCluster> input)
 {
   const auto dicluster = std::get<0>(input);
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  bool decision = (*(parameters.dev_number_of_multi_final_vertices + event_number) <= parameters.maxNPVs) &&
-                  (dicluster.Mass > parameters.minMass) && (dicluster.Mass < parameters.maxMass) &&
+  bool decision = (dicluster.Mass > parameters.minMass) && (dicluster.Mass < parameters.maxMass) &&
                   (dicluster.Et > parameters.minEt) &&
                   (dicluster.et1 > parameters.minEt_clusters && dicluster.et2 > parameters.minEt_clusters) &&
                   (dicluster.et1 + dicluster.et2 > parameters.minSumEt_clusters) &&
@@ -79,7 +75,6 @@ void two_calo_clusters_line::two_calo_clusters_line_t::output_monitor(
   auto tree_evts = handler.tree("monitor_tree_evts");
   if (tree_evts == nullptr) return;
 
-  Allen::copy<host_number_of_multi_final_vertices_t, dev_number_of_multi_final_vertices_t>(arguments, context);
   Allen::copy<host_ecal_twocluster_offsets_t, dev_ecal_twocluster_offsets_t>(arguments, context);
   Allen::copy<host_ecal_twoclusters_t, dev_ecal_twoclusters_t>(arguments, context);
   Allen::copy<host_local_decisions_t, dev_local_decisions_t>(arguments, context);
@@ -96,7 +91,6 @@ void two_calo_clusters_line::two_calo_clusters_line_t::output_monitor(
   float et2 = 0.f;
   float e19_1 = 0.f;
   float e19_2 = 0.f;
-  unsigned npvs = 0u;
   unsigned num_twoclusters = 0u;
   unsigned event_number = 0u;
 
@@ -112,18 +106,15 @@ void two_calo_clusters_line::two_calo_clusters_line_t::output_monitor(
   handler.branch(tree_twoclusters, "e19_1", e19_1);
   handler.branch(tree_twoclusters, "e19_2", e19_2);
   handler.branch(tree_twoclusters, "num_twoclusters", num_twoclusters);
-  handler.branch(tree_twoclusters, "npvs", npvs);
   handler.branch(tree_twoclusters, "event_number", event_number);
 
   handler.branch(tree_evts, "num_twoclusters", num_twoclusters);
-  handler.branch(tree_evts, "npvs", npvs);
 
   const unsigned n_events = size<host_ecal_twocluster_offsets_t>(arguments) - 1;
 
   for (unsigned event_index = 0; event_index < n_events; event_index++) {
     const unsigned& twoclusters_offset = (data<host_ecal_twocluster_offsets_t>(arguments) + event_index)[0];
     num_twoclusters = (data<host_ecal_twocluster_offsets_t>(arguments) + event_index + 1)[0] - twoclusters_offset;
-    npvs = (data<host_number_of_multi_final_vertices_t>(arguments) + event_index)[0];
     event_number = event_index;
     tree_evts->Fill();
 

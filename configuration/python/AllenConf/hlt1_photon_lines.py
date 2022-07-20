@@ -31,7 +31,6 @@ def make_single_calo_cluster_line(calo,
 
 
 def make_bs2gammagamma_line(calo,
-                            pvs,
                             name="Hlt1Bs2GammaGamma",
                             pre_scaler_hash_string=None,
                             post_scaler_hash_string=None):
@@ -48,8 +47,6 @@ def make_bs2gammagamma_line(calo,
         dev_ecal_twocluster_offsets_t=calo["dev_ecal_twocluster_offsets"],
         host_ecal_number_of_twoclusters_t=calo[
             "host_ecal_number_of_twoclusters"],
-        dev_number_of_multi_final_vertices_t=pvs[
-            "dev_number_of_multi_final_vertices"],
         minMass=3000,  #MeV
         maxMass=8000,  #MeV
         minEt=1000,

@@ -206,7 +206,7 @@ def default_physics_lines(velo_tracks, long_tracks, long_track_particles, pvs,
     lines.append(
         line_maker(
             make_bs2gammagamma_line(
-                ecal_clusters, pvs, name="Hlt1Bs2GammaGamma")))
+                ecal_clusters, name="Hlt1Bs2GammaGamma")))
 
     return lines
 

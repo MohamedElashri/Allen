@@ -16,7 +16,6 @@ namespace two_calo_clusters_line {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ecal_twoclusters_t, TwoCaloCluster) dev_ecal_twoclusters;
     DEVICE_INPUT(dev_ecal_twocluster_offsets_t, unsigned) dev_ecal_twocluster_offsets;
-    DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
 
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
 
@@ -26,7 +25,6 @@ namespace two_calo_clusters_line {
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
     // Monitoring
-    HOST_OUTPUT(host_number_of_multi_final_vertices_t, unsigned) host_number_of_multi_final_vertices;
     HOST_OUTPUT(host_ecal_twoclusters_t, TwoCaloCluster) host_ecal_twoclusters;
     HOST_OUTPUT(host_local_decisions_t, bool) host_local_decisions;
     HOST_OUTPUT(dev_local_decisions_t, bool) dev_local_decisions;
@@ -42,7 +40,6 @@ namespace two_calo_clusters_line {
     PROPERTY(minEt_t, "minEt", "min Et of the twocluster", float) minEt;
     PROPERTY(minMass_t, "minMass", "min Mass of the two cluster", float) minMass;
     PROPERTY(maxMass_t, "maxMass", "max Mass of the two cluster", float) maxMass;
-    PROPERTY(maxNPVs_t, "maxNPVs", "max of PVs", unsigned) maxNPVs;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
@@ -99,7 +96,6 @@ namespace two_calo_clusters_line {
     Property<minEt_clusters_t> m_minEt_clusters {this, 200.f};       // MeV
     Property<minSumEt_clusters_t> m_minSumEt_clusters {this, 400.f}; // MeV
     Property<minE19_clusters_t> m_minE19_clusters {this, 0.6f};
-    Property<maxNPVs_t> m_maxNPVs {this, UINT_MAX};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
   };
 } // namespace two_calo_clusters_line
