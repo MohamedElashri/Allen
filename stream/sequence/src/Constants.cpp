@@ -74,6 +74,8 @@ void Constants::initialize_constants(
     &host_muonmatch_search_windows,
     sizeof(MatchUpstreamMuon::SearchWindows),
     Allen::memcpyHostToDevice);
+
+  initialize_histogram_time_epoch();
 }
 
 void Constants::initialize_muon_catboost_model_constants(

@@ -15,6 +15,11 @@
 #include "nlohmann/json.hpp"
 #include <any>
 
+#ifndef ALLEN_STANDALONE
+#include "ServiceLocator.h"
+#include "Gaudi/MonitoringHub.h"
+#endif
+
 namespace {
   // Get the StoreRefType from the function operator()
   template<typename Function>
@@ -458,5 +463,13 @@ namespace Allen {
     std::map<std::string, BaseProperty*> m_properties;
     std::string m_name = "";
     Property<verbosity_t> m_verbosity = {this, 3};
+
+#ifndef ALLEN_STANDALONE
+  public:
+    auto serviceLocator() { return m_serviceLocator; }
+
+  private:
+    StreamServiceLocator* m_serviceLocator = StreamServiceLocator::get();
+#endif
   };
 } // namespace Allen

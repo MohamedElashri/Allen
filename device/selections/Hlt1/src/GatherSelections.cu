@@ -81,7 +81,9 @@ namespace gather_selections {
     const uint32_t* scale_hashes,
     const unsigned number_of_lines,
     mask_t* dev_event_list_output,
-    unsigned* dev_event_list_output_size)
+    unsigned* dev_event_list_output_size,
+    bool* dev_decisions_per_event_line,
+    bool* dev_postscaled_decisions_per_event_line)
   {
     const auto number_of_events = gridDim.x;
     const auto event_number = blockIdx.x;
@@ -108,12 +110,21 @@ namespace gather_selections {
     for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
       auto span = sels.get_span(i, event_number);
 
+      for (unsigned j = 0; j < span.size(); ++j) {
+        if (span[j]) {
+          dev_decisions_per_event_line[event_number * number_of_lines + i] = true;
+          break;
+        }
+      }
+
       deterministic_post_scaler(
         scale_hashes[i], scale_factors[i], span.size(), span.data(), run_no, evt_hi, evt_lo, gps_hi, gps_lo);
 
       for (unsigned j = 0; j < span.size(); ++j) {
         if (span[j]) {
+          dev_postscaled_decisions_per_event_line[event_number * number_of_lines + i] = true;
           event_decision = true;
+          break;
         }
       }
     }
@@ -134,6 +145,9 @@ void gather_selections::gather_selections_t::init()
     const auto it = std::find(std::begin(line_strings), std::end(line_strings), name);
     m_indices_active_line_algorithms.push_back(it - std::begin(line_strings));
   }
+#ifndef ALLEN_STANDALONE
+  gather_selections::gather_selections_t::init_monitor();
+#endif
 }
 
 void gather_selections::gather_selections_t::set_arguments_size(
@@ -200,7 +214,7 @@ void gather_selections::gather_selections_t::set_arguments_size(
 void gather_selections::gather_selections_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
-  const Constants&,
+  [[maybe_unused]] const Constants& constants,
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
@@ -283,6 +297,14 @@ void gather_selections::gather_selections_t::operator()(
   // Initialize output mask size
   Allen::memset_async<dev_event_list_output_size_t>(arguments, 0, context);
 
+  auto dev_decisions_per_event_line = make_device_buffer<bool>(
+    arguments, first<host_number_of_events_t>(arguments) * first<host_number_of_active_lines_t>(arguments));
+  auto dev_postscaled_decisions_per_event_line = make_device_buffer<bool>(
+    arguments, first<host_number_of_events_t>(arguments) * first<host_number_of_active_lines_t>(arguments));
+  Allen::memset_async(dev_decisions_per_event_line.data(), 0, dev_decisions_per_event_line.sizebytes(), context);
+  Allen::memset_async(
+    dev_postscaled_decisions_per_event_line.data(), 0, dev_decisions_per_event_line.sizebytes(), context);
+
   // Run the postscaler
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
     data<dev_selections_t>(arguments),
@@ -292,7 +314,28 @@ void gather_selections::gather_selections_t::operator()(
     data<dev_post_scale_hashes_t>(arguments),
     first<host_number_of_active_lines_t>(arguments),
     data<dev_event_list_output_t>(arguments),
-    data<dev_event_list_output_size_t>(arguments));
+    data<dev_event_list_output_size_t>(arguments),
+    dev_decisions_per_event_line.data(),
+    dev_postscaled_decisions_per_event_line.data());
+
+#ifndef ALLEN_STANDALONE
+  // Monitoring
+  auto host_decisions_per_event_line = make_host_buffer<bool>(arguments, dev_decisions_per_event_line.size());
+  auto host_postscaled_decisions_per_event_line =
+    make_host_buffer<bool>(arguments, dev_postscaled_decisions_per_event_line.size());
+
+  Allen::copy_async(
+    host_decisions_per_event_line.get(), dev_decisions_per_event_line.get(), context, Allen::memcpyDeviceToHost);
+  Allen::copy_async(
+    host_postscaled_decisions_per_event_line.get(),
+    dev_postscaled_decisions_per_event_line.get(),
+    context,
+    Allen::memcpyDeviceToHost);
+  Allen::synchronize(context);
+
+  monitor_operator(arguments, host_decisions_per_event_line);
+  monitor_postscaled_operator(arguments, constants, host_postscaled_decisions_per_event_line);
+#endif
 
   // Reduce output mask to its proper size
   Allen::copy<host_event_list_output_size_t, dev_event_list_output_size_t>(arguments, context);

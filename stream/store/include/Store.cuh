@@ -167,7 +167,7 @@ namespace Allen::Store {
     template<Scope S, typename T>
     auto make_buffer(const size_t size) const
     {
-#if ALLEN_STANDALONE
+#if defined(ALLEN_STANDALONE) || !defined(TARGET_DEVICE_CPU)
       return m_store->make_buffer<S, T>(size);
 #else
       return Allen::buffer<Allen::Store::Scope::Host, T> {size};
