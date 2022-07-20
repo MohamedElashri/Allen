@@ -23,16 +23,13 @@ def findLine(lines, name):
     return -1, False
 
 
-def lumi_reconstruction(lines, lumiline_name):
+def lumi_reconstruction(gather_selections, lines, lumiline_name):
     lumiLine_index, found = findLine(lines, lumiline_name)
     if not found:
         return []
 
-    gather_selections = make_gather_selections(lines)
     number_of_events = initialize_number_of_events()
-
     odin = decode_odin()
-
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     decoded_scifi = decode_scifi()
