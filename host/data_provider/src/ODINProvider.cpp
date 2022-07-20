@@ -64,13 +64,13 @@ void odin_provider::odin_provider_t::operator()(
   auto event_mask_odin = runtime_options.input_provider->event_mask(runtime_options.slice_index);
   auto buffer = make_host_buffer<unsigned>(arguments, first<host_number_of_events_t>(arguments));
   unsigned size_of_list = 0;
-  for (unsigned event_index = 0; event_index < first<host_number_of_events_t>(arguments); ++event_index) {
-    unsigned event_number = event_index;
+  for (unsigned event_number = 0; event_number < first<host_number_of_events_t>(arguments); ++event_number) {
     if (event_mask_odin[event_number] == 1) {
       buffer[size_of_list++] = event_number;
     }
   }
-  Allen::copy_async(get<dev_event_mask_t>(arguments), buffer.get(), context, Allen::memcpyHostToDevice, size_of_list);
+  // This copy needs to be synchronous, as it needs to happen before the buffer is deallocated
+  Allen::copy(get<dev_event_mask_t>(arguments), buffer.get(), context, Allen::memcpyHostToDevice, size_of_list);
   reduce_size<dev_event_mask_t>(arguments, size_of_list);
 
   // Copy data to device
