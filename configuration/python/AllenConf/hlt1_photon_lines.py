@@ -35,7 +35,6 @@ def make_bs2gammagamma_line(calo,
                             pre_scaler_hash_string=None,
                             post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
-    layout = mep_layout()
 
     return make_algorithm(
         two_calo_clusters_line_t,
