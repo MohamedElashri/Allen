@@ -92,6 +92,8 @@ struct ConfigurationReader {
 
   std::map<std::string, nlohmann::json> get_sequence() const;
 
+  std::unordered_set<BankTypes> configured_bank_types() const;
+
 private:
   std::map<std::string, std::map<std::string, nlohmann::json>> m_params;
   std::map<std::string, nlohmann::json> m_sequence;

@@ -13,38 +13,6 @@
 #include <Event/RawBank.h>
 #include <FileSystem.h>
 
-std::unordered_set<BankTypes> Allen::configured_bank_types(const ConfigurationReader& configuration_reader)
-{
-  // Bank types
-  std::unordered_set<BankTypes> bank_types = {BankTypes::ODIN};
-  const auto& configured_sequence = configuration_reader.configured_sequence();
-  const auto& params = configuration_reader.params();
-
-  std::vector<std::string> provider_algorithms;
-  for (const auto& alg : configured_sequence.configured_algorithms) {
-    if (alg.scope == "ProviderAlgorithm") {
-      provider_algorithms.push_back(alg.name);
-    }
-  }
-
-  for (const auto& provider_alg : provider_algorithms) {
-    const auto props = params.at(provider_alg);
-    auto it = props.find("bank_type");
-    if (it != props.end()) {
-      auto type = it->second;
-      auto const bt = ::bank_type(type);
-      if (bt == BankTypes::Unknown) {
-        error_cout << "Unknown bank type " << type << "requested.\n";
-      }
-      else {
-        bank_types.emplace(bt);
-      }
-    }
-  }
-
-  return bank_types;
-}
-
 std::tuple<bool, bool> Allen::velo_decoding_type(const ConfigurationReader& configuration_reader)
 {
   bool veloSP = false;
@@ -223,7 +191,7 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
 
   auto io_conf = io_configuration(number_of_slices, n_repetitions, number_of_threads, true);
 
-  auto bank_types = Allen::configured_bank_types(configuration_reader);
+  auto bank_types = configuration_reader.configured_bank_types();
 
   // This is a hack to avoid copying both SP and Retina banks to the device.
   auto [veloSP, retina] = Allen::velo_decoding_type(configuration_reader);

@@ -177,3 +177,33 @@ void ConfigurationReader::save(std::string file_name)
   o << j.dump(4);
   o.close();
 }
+
+std::unordered_set<BankTypes> ConfigurationReader::configured_bank_types() const
+{
+  // Bank types
+  std::unordered_set<BankTypes> bank_types = {BankTypes::ODIN};
+
+  std::vector<std::string> provider_algorithms;
+  for (const auto& alg : m_configured_sequence.configured_algorithms) {
+    if (alg.scope == "ProviderAlgorithm") {
+      provider_algorithms.push_back(alg.name);
+    }
+  }
+
+  for (const auto& provider_alg : provider_algorithms) {
+    const auto props = m_params.at(provider_alg);
+    auto it = props.find("bank_type");
+    if (it != props.end()) {
+      auto type = it->second;
+      auto const bt = ::bank_type(type);
+      if (bt == BankTypes::Unknown) {
+        error_cout << "Unknown bank type " << type << "requested.\n";
+      }
+      else {
+        bank_types.emplace(bt);
+      }
+    }
+  }
+
+  return bank_types;
+}
