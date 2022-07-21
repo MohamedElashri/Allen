@@ -45,7 +45,7 @@ std::tuple<bool, bool> Allen::velo_decoding_type(std::string const& json_file)
   if (j.count("sequence") && j["sequence"].count("configured_algorithms")) {
     auto algs = j["sequence"]["configured_algorithms"];
     for (auto const& alg : algs) {
-      if (alg.size() != 2) continue;
+      if (alg.size() != 3) continue;
       auto alg_type = alg[0].get<std::string>();
       if (alg_type.find("decode_retina") != std::string::npos) {
         retina = true;

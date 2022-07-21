@@ -86,8 +86,8 @@ fs::path write_json(std::unordered_set<BankTypes> const& bank_types, bool velo_s
   for (auto bt : bank_types) {
     bank_types_json["provide_"s + bank_name(bt)]["bank_type"] = bank_name(bt);
   }
-  std::array<std::string, 2> velo_decoding {velo_sp ? "velo_masked_clustering" : "decode_retina", "decode"};
-  bank_types_json["sequence"]["configured_algorithms"] = std::vector<std::array<std::string, 2>> {velo_decoding};
+  std::array<std::string, 3> velo_decoding {velo_sp ? "velo_masked_clustering" : "decode_retina", "decode"};
+  bank_types_json["sequence"]["configured_algorithms"] = std::vector<std::array<std::string, 3>> {velo_decoding};
 
   auto bt_filename = fs::canonical(fs::current_path()) / "bank_types.json";
   std::ofstream bt_json(bt_filename.string());
