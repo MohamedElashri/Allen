@@ -9,4 +9,7 @@
 #include "Constants.cuh"
 #include "BankTypes.h"
 
-void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants, const std::unordered_set<BankTypes> requested_banks);
+void register_consumers(
+  Allen::NonEventData::IUpdater* updater,
+  Constants& constants,
+  const std::unordered_set<BankTypes> requested_banks);
