@@ -147,10 +147,10 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
                                                      0u});
       for (unsigned i_quarter = 0; i_quarter < number_of_quarters_per_layer; ++i_quarter) {
         FTChannelID::QuarterID quarter_id {i_quarter};
-        auto const& quarter = layer->findQuarter(
-          FTChannelID {station_id, layer_id, quarter_id, FTChannelID::ModuleID {0u}, FTChannelID::MatID {0u}, 0, 0});
+	FTChannelID quarterChanID(station_id, layer_id, quarter_id, FTChannelID::ModuleID {0u}, FTChannelID::MatID {0u}, 0, 0);
+        auto const& quarter = layer->findQuarter(quarterChanID);
         auto const n_modules = quarter->modules().size();
-        number_of_modules[to_unsigned(quarter_id)] = n_modules;
+        number_of_modules[quarterChanID.globalQuarterIdx()] = n_modules;
         for (unsigned i_module = 0; i_module < n_modules; ++i_module) {
           FTChannelID::ModuleID module_id {i_module};
           auto const& mod = quarter->findModule(
@@ -159,7 +159,7 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
           for (unsigned i_mat = 0; i_mat < FT::nMats; ++i_mat) {
             FTChannelID::MatID mat_id {i_mat};
             const auto& mat = mod->findMat(FTChannelID {station_id, layer_id, quarter_id, module_id, mat_id, 0, 0});
-            auto index = mat->elementID().globalMatIdx();
+            auto index = mat->elementID().globalMatID_shift();
             const auto& mirrorPoint = mat->mirrorPoint();
             const auto& ddx = mat->ddx();
             mirrorPointX[index] = mirrorPoint.x();
@@ -218,6 +218,29 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
       dxdy,
       dzdy,
       globaldy);
+    /*
+    printf("FT geometry\n");
+    printf("Number of stations: %u\n",number_of_stations);
+    printf("Number of layers per station: %u\n",number_of_layers_per_station);
+    printf("Number of layers: %u\n",number_of_layers);
+    printf("Number of quarters per layer: %u\n",number_of_quarters_per_layer);
+    printf("Number of quarters: %u\n",number_of_quarters);
+    printf("Number of modules:\n");
+    for (unsigned int i = 0 ; i < number_of_quarters ; i++)
+      printf("%u ",number_of_modules[i]);
+    printf("\n");
+    printf("Number of mats per module: %u\n",FT::nMats);
+    printf("Number of mats: %u\n",number_of_mats);
+    printf("Number of banks: %u\n",number_of_tell40s);
+    printf("Number of mats (max): %u\n",FT::nMatsMax);
+    printf("Bank first channel:\n");
+    for (unsigned int i = 0 ; i < number_of_tell40s ; i++){
+      if(i%10 == 0 && i != 0)
+	printf("\n");
+      printf("%i ",bank_first_channel[i]);
+    }
+    printf("\n");
+    */
   }
   else {
     std::stringstream s;
