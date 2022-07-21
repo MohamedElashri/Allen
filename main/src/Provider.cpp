@@ -19,14 +19,14 @@ std::unordered_set<BankTypes> Allen::configured_bank_types(const ConfigurationRe
   std::unordered_set<BankTypes> bank_types = {BankTypes::ODIN};
   const auto& configured_sequence = configuration_reader.configured_sequence();
   const auto& params = configuration_reader.params();
-  
+
   std::vector<std::string> provider_algorithms;
   for (const auto& alg : configured_sequence.configured_algorithms) {
     if (alg.scope == "ProviderAlgorithm") {
       provider_algorithms.push_back(alg.name);
     }
   }
-  
+
   for (const auto& provider_alg : provider_algorithms) {
     const auto props = params.at(provider_alg);
     auto it = props.find("bank_type");
