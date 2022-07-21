@@ -147,7 +147,8 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
                                                      0u});
       for (unsigned i_quarter = 0; i_quarter < number_of_quarters_per_layer; ++i_quarter) {
         FTChannelID::QuarterID quarter_id {i_quarter};
-	FTChannelID quarterChanID(station_id, layer_id, quarter_id, FTChannelID::ModuleID {0u}, FTChannelID::MatID {0u}, 0, 0);
+        FTChannelID quarterChanID(
+          station_id, layer_id, quarter_id, FTChannelID::ModuleID {0u}, FTChannelID::MatID {0u}, 0, 0);
         auto const& quarter = layer->findQuarter(quarterChanID);
         auto const n_modules = quarter->modules().size();
         number_of_modules[quarterChanID.globalQuarterIdx()] = n_modules;
@@ -236,7 +237,7 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
     printf("Bank first channel:\n");
     for (unsigned int i = 0 ; i < number_of_tell40s ; i++){
       if(i%10 == 0 && i != 0)
-	printf("\n");
+  printf("\n");
       printf("%i ",bank_first_channel[i]);
     }
     printf("\n");
