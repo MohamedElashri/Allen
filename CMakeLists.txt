@@ -710,7 +710,7 @@ endif()
 
 allen_add_executable(Allen main/src/main.cpp)
 
-target_link_libraries(Allen PRIVATE AllenLib NonEventData)
+target_link_libraries(Allen PRIVATE AllenLib NonEventData Gear)
 
 if (NOT STANDALONE)
   target_link_libraries(Allen PRIVATE fmt::fmt)

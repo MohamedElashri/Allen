@@ -13,13 +13,22 @@
 #include <Event/RawBank.h>
 #include <FileSystem.h>
 
-std::unordered_set<BankTypes> Allen::configured_bank_types(std::string const& json_file)
+std::unordered_set<BankTypes> Allen::configured_bank_types(const ConfigurationReader& configuration_reader)
 {
   // Bank types
   std::unordered_set<BankTypes> bank_types = {BankTypes::ODIN};
-  ConfigurationReader configuration_reader {json_file};
-  auto const& configuration = configuration_reader.params();
-  for (auto const& [key, props] : configuration) {
+  const auto& configured_sequence = configuration_reader.configured_sequence();
+  const auto& params = configuration_reader.params();
+  
+  std::vector<std::string> provider_algorithms;
+  for (const auto& alg : configured_sequence.configured_algorithms) {
+    if (alg.scope == "ProviderAlgorithm") {
+      provider_algorithms.push_back(alg.name);
+    }
+  }
+  
+  for (const auto& provider_alg : provider_algorithms) {
+    const auto props = params.at(provider_alg);
     auto it = props.find("bank_type");
     if (it != props.end()) {
       auto type = it->second;
@@ -32,29 +41,25 @@ std::unordered_set<BankTypes> Allen::configured_bank_types(std::string const& js
       }
     }
   }
+
   return bank_types;
 }
 
-std::tuple<bool, bool> Allen::velo_decoding_type(std::string const& json_file)
+std::tuple<bool, bool> Allen::velo_decoding_type(const ConfigurationReader& configuration_reader)
 {
   bool veloSP = false;
   bool retina = false;
-  std::ifstream conf(json_file);
-  nlohmann::json j;
-  conf >> j;
-  if (j.count("sequence") && j["sequence"].count("configured_algorithms")) {
-    auto algs = j["sequence"]["configured_algorithms"];
-    for (auto const& alg : algs) {
-      if (alg.size() != 3) continue;
-      auto alg_type = alg[0].get<std::string>();
-      if (alg_type.find("decode_retina") != std::string::npos) {
-        retina = true;
-      }
-      else if (alg_type.find("velo_masked_clustering") != std::string::npos) {
-        veloSP = true;
-      }
+
+  const auto& configured_sequence = configuration_reader.configured_sequence();
+  for (const auto& alg : configured_sequence.configured_algorithms) {
+    if (alg.id == "decode_retinaclusters::decode_retinaclusters_t") {
+      retina = true;
+    }
+    else if (alg.id == "velo_masked_clustering::velo_masked_clustering_t") {
+      veloSP = true;
     }
   }
+
   return {veloSP, retina};
 }
 
@@ -214,12 +219,14 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
 #endif
 
   auto const [json_file, run_from_json] = Allen::sequence_conf(options);
+  ConfigurationReader configuration_reader {json_file};
+
   auto io_conf = io_configuration(number_of_slices, n_repetitions, number_of_threads, true);
 
-  auto bank_types = Allen::configured_bank_types(json_file);
+  auto bank_types = Allen::configured_bank_types(configuration_reader);
 
   // This is a hack to avoid copying both SP and Retina banks to the device.
-  auto [veloSP, retina] = Allen::velo_decoding_type(json_file);
+  auto [veloSP, retina] = Allen::velo_decoding_type(configuration_reader);
   std::unordered_set<LHCb::RawBank::BankType> skip_banks {};
   if (!veloSP) {
     skip_banks.insert(LHCb::RawBank::Velo);

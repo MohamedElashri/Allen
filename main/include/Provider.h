@@ -8,6 +8,7 @@
 #include "BankTypes.h"
 #include "InputProvider.h"
 #include "OutputHandler.h"
+#include "InputReader.h"
 
 class IZeroMQSvc;
 
@@ -31,9 +32,9 @@ namespace Allen {
     unsigned n_io_reps = 0;
   };
 
-  std::unordered_set<BankTypes> configured_bank_types(std::string const& json_file);
+  std::unordered_set<BankTypes> configured_bank_types(const ConfigurationReader& configuration_reader);
 
-  std::tuple<bool, bool> velo_decoding_type(std::string const& json_file);
+  std::tuple<bool, bool> velo_decoding_type(const ConfigurationReader& configuration_reader);
 
   std::tuple<std::string, bool> sequence_conf(std::map<std::string, std::string> const& options);
 
