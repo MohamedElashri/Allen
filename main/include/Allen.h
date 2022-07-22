@@ -10,10 +10,9 @@
 #include <Dumpers/IUpdater.h>
 #include "InputProvider.h"
 #include "OutputHandler.h"
+#include "RegisterConsumers.h"
 
 struct Constants;
-
-void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants);
 
 int allen(
   std::map<std::string, std::string> options,

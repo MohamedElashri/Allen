@@ -17,7 +17,7 @@ from AllenConf.velo_reconstruction import run_velo_kalman_filter
 def decode_scifi():
     number_of_events = initialize_number_of_events()
     scifi_banks = make_algorithm(
-        data_provider_t, name="scifi_banks", bank_type="FT")
+        data_provider_t, name="scifi_banks", bank_type="FTCluster")
 
     scifi_calculate_cluster_count = make_algorithm(
         scifi_calculate_cluster_count_t,
