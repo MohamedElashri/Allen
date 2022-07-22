@@ -15,16 +15,8 @@ void two_calo_clusters_line::two_calo_clusters_line_t::set_arguments_size(
   const Constants& constants,
   const HostBuffers& host_buffers) const
 {
-  // must set_size of all output variables
   static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
-
-  set_size<host_ecal_twoclusters_t>(arguments, size<dev_ecal_twoclusters_t>(arguments));
-
-  set_size<host_local_decisions_t>(arguments, get_decisions_size(arguments));
-
   set_size<dev_local_decisions_t>(arguments, get_decisions_size(arguments));
-
-  set_size<host_ecal_twocluster_offsets_t>(arguments, size<dev_ecal_twocluster_offsets_t>(arguments));
 }
 
 __device__ bool two_calo_clusters_line::two_calo_clusters_line_t::select(
@@ -75,10 +67,9 @@ void two_calo_clusters_line::two_calo_clusters_line_t::output_monitor(
   auto tree_evts = handler.tree("monitor_tree_evts");
   if (tree_evts == nullptr) return;
 
-  Allen::copy<host_ecal_twocluster_offsets_t, dev_ecal_twocluster_offsets_t>(arguments, context);
-  Allen::copy<host_ecal_twoclusters_t, dev_ecal_twoclusters_t>(arguments, context);
-  Allen::copy<host_local_decisions_t, dev_local_decisions_t>(arguments, context);
-  Allen::synchronize(context);
+  const auto host_ecal_twocluster_offsets = make_host_buffer<dev_ecal_twocluster_offsets_t>(arguments, context);
+  const auto host_ecal_twoclusters = make_host_buffer<dev_ecal_twoclusters_t>(arguments, context);
+  const auto host_local_decisions = make_host_buffer<dev_local_decisions_t>(arguments, context);
 
   float Mass = 0.f;
   float Et = 0.f;
@@ -110,18 +101,18 @@ void two_calo_clusters_line::two_calo_clusters_line_t::output_monitor(
 
   handler.branch(tree_evts, "num_twoclusters", num_twoclusters);
 
-  const unsigned n_events = size<host_ecal_twocluster_offsets_t>(arguments) - 1;
+  auto const n_events = first<host_number_of_events_t>(arguments);
 
   for (unsigned event_index = 0; event_index < n_events; event_index++) {
-    const unsigned& twoclusters_offset = (data<host_ecal_twocluster_offsets_t>(arguments) + event_index)[0];
-    num_twoclusters = (data<host_ecal_twocluster_offsets_t>(arguments) + event_index + 1)[0] - twoclusters_offset;
+    const unsigned& twoclusters_offset = host_ecal_twocluster_offsets[event_index];
+    num_twoclusters = host_ecal_twocluster_offsets[event_index + 1] - twoclusters_offset;
     event_number = event_index;
     tree_evts->Fill();
 
     for (unsigned twocluster_index = 0; twocluster_index < num_twoclusters; twocluster_index++) {
-      const bool& decision = (data<host_local_decisions_t>(arguments) + twoclusters_offset + twocluster_index)[0];
+      const bool& decision = host_local_decisions[twoclusters_offset + twocluster_index];
       if (decision) {
-        const auto& dicluster = (data<host_ecal_twoclusters_t>(arguments) + twoclusters_offset + twocluster_index)[0];
+        const auto& dicluster = host_ecal_twoclusters[twoclusters_offset + twocluster_index];
 
         Mass = dicluster.Mass;
         Distance = dicluster.Distance;
