@@ -113,20 +113,25 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
   vector<float> dzdy;
   vector<float> globaldy;
 
-  mirrorPointX.resize(FT::nMatsMax);
-  mirrorPointY.resize(FT::nMatsMax);
-  mirrorPointZ.resize(FT::nMatsMax);
-  ddxX.resize(FT::nMatsMax);
-  ddxY.resize(FT::nMatsMax);
-  ddxZ.resize(FT::nMatsMax);
-  uBegin.resize(FT::nMatsMax);
-  halfChannelPitch.resize(FT::nMatsMax);
-  dieGap.resize(FT::nMatsMax);
-  sipmPitch.resize(FT::nMatsMax);
-  dxdy.resize(FT::nMatsMax);
-  dzdy.resize(FT::nMatsMax);
-  globaldy.resize(FT::nMatsMax);
+  // First uniqueMat is 512, save space by subtracting
+  const uint32_t uniqueMatOffset = 512; // FIXME -- hardcoded
+  // PrStoreFTHit.h uses hardcoded 2<<11, which is too much.
+  uint32_t max_uniqueMat = (1 << 11) - uniqueMatOffset; // FIXME -- hardcoded
+  mirrorPointX.resize(max_uniqueMat);
+  mirrorPointY.resize(max_uniqueMat);
+  mirrorPointZ.resize(max_uniqueMat);
+  ddxX.resize(max_uniqueMat);
+  ddxY.resize(max_uniqueMat);
+  ddxZ.resize(max_uniqueMat);
+  uBegin.resize(max_uniqueMat);
+  halfChannelPitch.resize(max_uniqueMat);
+  dieGap.resize(max_uniqueMat);
+  sipmPitch.resize(max_uniqueMat);
+  dxdy.resize(max_uniqueMat);
+  dzdy.resize(max_uniqueMat);
+  globaldy.resize(max_uniqueMat);
 
+  // FIXME: Stations starting at 0 is not to be done.
 #ifdef USE_DD4HEP
   // FIXME
   std::array<unsigned, number_of_stations> stations = {0, 1, 2};
@@ -186,12 +191,12 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
 
   // Data from Condition
   auto comp = readoutMap.compatibleVersions();
+  auto number_of_banks = readoutMap.nBanks();
   if (comp.count(4)) {
-    auto number_of_tell40s = readoutMap.nBanks();
     // Decoding v6
     vector<uint32_t> bank_first_channel;
-    bank_first_channel.reserve(number_of_tell40s);
-    for (unsigned int i = 0; i < number_of_tell40s; i++) {
+    bank_first_channel.reserve(number_of_banks);
+    for (unsigned int i = 0; i < number_of_banks; i++) {
       bank_first_channel.push_back(readoutMap.channelIDShift(i));
     }
     output.write(
@@ -203,7 +208,8 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
       number_of_modules,
       FT::nMats,
       number_of_mats,
-      number_of_tell40s,
+      number_of_banks,
+      0,
       bank_first_channel,
       FT::nMatsMax,
       mirrorPointX,
@@ -243,14 +249,51 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
     printf("\n");
     */
   }
+  else if (comp.count(7)) {
+    constexpr uint32_t nLinksPerBank = 24; // FIXME: change to centralised number
+    std::vector<uint32_t> source_ids;
+    source_ids.reserve(number_of_banks);
+    for (unsigned int i = 0; i < number_of_banks; i++)
+      source_ids.push_back(readoutMap.sourceID(i).sourceID());
+    std::vector<uint32_t> linkMap;
+    linkMap.reserve(number_of_banks * nLinksPerBank);
+    for (unsigned int i = 0; i < number_of_banks; i++)
+      for (unsigned int j = 0; j < nLinksPerBank; j++)
+        linkMap.push_back(readoutMap.getGlobalSiPMIDFromIndex(i, j));
+    output.write(
+      number_of_stations,
+      number_of_layers_per_station,
+      number_of_layers,
+      number_of_quarters_per_layer,
+      number_of_quarters,
+      number_of_modules,
+      FT::nMats,
+      number_of_mats,
+      number_of_banks,
+      1,
+      source_ids,
+      linkMap,
+      max_uniqueMat,
+      mirrorPointX,
+      mirrorPointY,
+      mirrorPointZ,
+      ddxX,
+      ddxY,
+      ddxZ,
+      uBegin,
+      halfChannelPitch,
+      dieGap,
+      sipmPitch,
+      dxdy,
+      dzdy,
+      globaldy);
+  }
   else {
     std::stringstream s;
     Gaudi::Utils::toStream(comp, s);
     throw GaudiException {"Unsupported conditions compatible with " + s.str(), __FILE__, StatusCode::FAILURE};
   }
-
   // Final data output
-
   return std::tuple {output.buffer(), m_id};
 }
 
