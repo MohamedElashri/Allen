@@ -1,4 +1,4 @@
-/*****************************************************************************\
+/***************************************************************************** \
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "SciFiRawBankDecoder.cuh"
@@ -19,8 +19,8 @@ __device__ void make_cluster(
   const SciFi::SciFiChannelID id {chan};
 
   // Offset to save space in geometry structure, see DumpFTGeometry.cpp
-  const uint32_t mat = id.uniqueMat() - 512;
-  const uint32_t planeCode = id.uniqueLayer() - 4;
+  const uint32_t mat = id.globalMatID_shift();
+  const uint32_t planeCode = id.globalLayerIdx();
   const float dxdy = geom.dxdy[mat];
   const float dzdy = geom.dzdy[mat];
   float uFromChannel = geom.uBegin[mat] + (2 * id.channel() + 1 + fraction) * geom.halfChannelPitch[mat];
@@ -35,7 +35,7 @@ __device__ void make_cluster(
   assert(pseudoSize < 9 && "Pseudosize of cluster is > 8. Out of range.");
 
   // Apparently the unique* methods are not designed to start at 0, therefore -16
-  const uint32_t uniqueZone = ((id.uniqueQuarter() - 16) >> 1);
+  const uint32_t uniqueZone = (id.globalQuarterIdx() >> 1);
 
   const unsigned plane_code = 2 * planeCode + (uniqueZone % 2);
   hits.x0(hit_index) = x0;

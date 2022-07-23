@@ -209,16 +209,12 @@ namespace SciFi {
 
     __device__ __host__ uint32_t module() const { return ((channelID & moduleMask) >> moduleBits); }
 
-    __device__ __host__ unsigned correctedModule() const
+    __device__ __host__ uint32_t localModuleIdx() const
     {
       // Returns local module ID in ascending x order.
       // There may be a faster way to do this.
-      unsigned uQuarter = uniqueQuarter() - 16;
-      unsigned module_count = uQuarter >= 32 ? 6 : 5;
-      unsigned q = uQuarter % 4;
-      if (q == 0 || q == 2) return module_count - 1 - module();
-      if (q == 1 || q == 3) return module();
-      return 0;
+      uint32_t module_count = station() >= 3 ? 6 : 5;
+      return (isRight()) ? module_count - 1 - module() : module();
     }
 
     __device__ __host__ uint32_t quarter() const { return ((channelID & quarterMask) >> quarterBits); }
@@ -227,30 +223,36 @@ namespace SciFi {
 
     __device__ __host__ uint32_t station() const { return ((channelID & stationMask) >> stationBits); }
 
-    __device__ __host__ uint32_t uniqueLayer() const { return ((channelID & uniqueLayerMask) >> layerBits); }
+    __device__ __host__ uint32_t globalLayerID() const { return ((channelID & uniqueLayerMask) >> layerBits); }
+    __device__ __host__ uint32_t globalLayerIdx() const { return globalLayerID() - 4; }
 
-    __device__ __host__ uint32_t uniqueMat() const { return ((channelID & uniqueMatMask) >> matBits); }
+    __device__ __host__ uint32_t globalQuarterID() const { return ((channelID & uniqueQuarterMask) >> quarterBits); }
+    __device__ __host__ uint32_t globalQuarterIdx() const { return globalQuarterID() - 16; }
 
-    __device__ __host__ uint32_t correctedUniqueMat() const
+    __device__ __host__ uint32_t globalModuleID() const { return ((channelID & uniqueModuleMask) >> moduleBits); }
+    __device__ __host__ uint32_t globalModuleIdx() const
+    {
+      auto quarterIdx = globalQuarterIdx();
+      return quarterIdx * 5 + (quarterIdx >= 32 ? quarterIdx - 32 : 0) + localModuleIdx();
+    }
+    __device__ __host__ uint32_t globalMatID() const { return ((channelID & uniqueMatMask) >> matBits); }
+    __device__ __host__ uint32_t globalMatID_shift() const { return globalMatID() - 512; }
+    __device__ __host__ uint32_t globalMatIdx_Xorder() const
     {
       // Returns global mat ID in ascending x order without any gaps.
       // Geometry dependent. No idea how to not hardcode this.
-      uint32_t quarter = uniqueQuarter() - 16;
-      return (quarter < 32 ? quarter : 32) * 5 * 4 + (quarter >= 32 ? quarter - 32 : 0) * 6 * 4 +
-             4 * correctedModule() + (reversedZone() ? 3 - mat() : mat());
+      return globalModuleIdx() * 4 + (reversedZone() ? 3 - mat() : mat());
     }
-
-    __device__ __host__ uint32_t uniqueModule() const { return ((channelID & uniqueModuleMask) >> moduleBits); }
-
-    __device__ __host__ uint32_t uniqueQuarter() const { return ((channelID & uniqueQuarterMask) >> quarterBits); }
 
     __device__ __host__ uint32_t die() const { return ((channelID & 0x40) >> 6); }
 
     __device__ __host__ bool isBottom() const { return (quarter() == 0 || quarter() == 1); }
 
+    __device__ __host__ bool isRight() const { return (quarter() == 0 || quarter() == 2); }
+
     __device__ __host__ bool reversedZone() const
     {
-      unsigned zone = ((uniqueQuarter() - 16) >> 1) % 4;
+      unsigned zone = ((globalQuarterIdx()) >> 1) % 4;
       return zone == 1 || zone == 2;
     }
 
