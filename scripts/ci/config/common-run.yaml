@@ -105,6 +105,13 @@
         GEOMETRY: ["MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4"]
         TPUT_REPORT: "NO_REPORT" # don't publish throughput report
 
+      # run throughput, scifiv7
+      - TEST_NAME: "run_throughput"
+        SEQUENCE: ["scifi_decoding"]
+        DATA_TAG: ["SciFiV7_not_compressed"]
+        GEOMETRY: ["MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7"]
+        TPUT_REPORT: "NO_REPORT" # don't publish throughput report
+
       # FIXME
       # - TEST_NAME: "run_physics_efficiency"
       #   LCG_OPTIMIZATION: ["dbg"]

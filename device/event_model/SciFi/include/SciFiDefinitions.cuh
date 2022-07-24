@@ -32,8 +32,8 @@ namespace SciFi {
      * The following constants are based on the number of modules per quarter.
      * There are currently 80 raw banks per SciFi station:
      *
-     *   The first two stations (first 160 raw banks) encode 4 modules per quarter.
-     *   The last station (raw banks 161 to 240) encode 5 modules per quarter.
+     *   The first two stations (first 160 raw banks) encode 4 modules per quarter.//FIXME: WRONG
+     *   The last station (raw banks 161 to 240) encode 5 modules per quarter.//FIXME: WRONG
      *
      * The raw data is sorted such that every four consecutive modules are either
      * monotonically increasing or monotonically decreasing, following a particular pattern.
@@ -103,8 +103,11 @@ namespace SciFi {
     uint32_t* number_of_modules; // for each quarter
     uint32_t number_of_mats_per_module;
     uint32_t number_of_mats;
-    uint32_t number_of_tell40s;
-    uint32_t* bank_first_channel;
+    uint32_t number_of_banks;
+    uint32_t version;
+    uint32_t* bank_first_channel; // decoding v6
+    uint32_t* source_ids;         // decoding v7
+    uint32_t* bank_sipm_list;     // decoding v7
     uint32_t max_uniqueMat;
     float* mirrorPointX;
     float* mirrorPointY;
@@ -145,10 +148,20 @@ namespace SciFi {
       p += sizeof(uint32_t);
       number_of_mats = *((uint32_t*) p);
       p += sizeof(uint32_t);
-      number_of_tell40s = *((uint32_t*) p);
+      number_of_banks = *((uint32_t*) p);
       p += sizeof(uint32_t);
-      bank_first_channel = (uint32_t*) p;
-      p += number_of_tell40s * sizeof(uint32_t);
+      version = *((uint32_t*) p);
+      p += sizeof(uint32_t);
+      if (version == 0) {
+        bank_first_channel = (uint32_t*) p;
+        p += number_of_banks * sizeof(uint32_t);
+      }
+      else {
+        source_ids = (uint32_t*) p;
+        p += number_of_banks * sizeof(uint32_t);
+        bank_sipm_list = (uint32_t*) p;
+        p += number_of_banks * SciFiRawBankParams::BankProperties::NbLinksPerBank * sizeof(uint32_t);
+      }
       max_uniqueMat = *((uint32_t*) p);
       p += sizeof(uint32_t);
       mirrorPointX = (float*) p;
@@ -189,8 +202,7 @@ namespace SciFi {
 
   struct SciFiChannelID {
     uint32_t channelID;
-
-    __host__ std::string toString()
+    __host__ std::string toString() const
     {
       std::ostringstream s;
       s << "{ SciFiChannelID : "
@@ -258,6 +270,8 @@ namespace SciFi {
 
     __device__ __host__ SciFiChannelID(const uint32_t channelID) : channelID(channelID) {}
 
+    static constexpr uint32_t kInvalidChannelID = 14336;
+
     // from FTChannelID.h (generated)
     enum channelIDMasks {
       channelMask = 0x7fL,
@@ -286,6 +300,11 @@ namespace SciFi {
 
   __device__ inline uint32_t channelInBank(const uint32_t c) { return (c >> SciFiRawBankParams::cellShift); }
 
+  __device__ inline uint32_t channelInLink(const uint32_t c)
+  {
+    return (c >> SciFiRawBankParams::cellShift & SciFiChannelID::channelIDMasks::channelMask);
+  }
+
   __device__ inline uint16_t getLinkInBank(const uint16_t c) { return (c >> SciFiRawBankParams::linkShift); }
 
   __device__ inline int cell(const uint16_t c)
@@ -302,4 +321,26 @@ namespace SciFi {
   {
     return (c >> SciFiRawBankParams::sizeShift) & SciFiRawBankParams::sizeMaximum;
   }
+
+  __device__ inline unsigned int iSource(const SciFi::SciFiGeometry& geom, unsigned int sourceID)
+  {
+    if (geom.version == 0) return sourceID;
+    unsigned int output(geom.number_of_banks);
+    for (uint32_t i = 0; i < geom.number_of_banks; i++)
+      if (geom.source_ids[i] == sourceID) {
+        output = i;
+        break;
+      }
+    return output;
+  }
+
+  __device__ inline uint32_t
+  getGlobalSiPMFromIndex(const SciFi::SciFiGeometry& geom, const unsigned int iRowInDB, const uint16_t c)
+  {
+    auto localLinkIdx = getLinkInBank(c);
+    uint32_t globalSipmID =
+      geom.bank_sipm_list[iRowInDB * SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank + localLinkIdx];
+    return globalSipmID;
+  }
+
 } // namespace SciFi

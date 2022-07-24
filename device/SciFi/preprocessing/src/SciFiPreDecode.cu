@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+ * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "SciFiPreDecode.cuh"
 #include <MEPTools.h>
@@ -65,24 +65,33 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
   __syncthreads();
 
   // Main execution loop
-  for (unsigned i = threadIdx.x; i < scifi_raw_event.number_of_raw_banks(); i += blockDim.x) {
-    const unsigned current_raw_bank = SciFi::getRawBankIndexOrderedByX(i);
-
-    auto rawbank = scifi_raw_event.raw_bank(current_raw_bank);
+  for (unsigned iRawBank = threadIdx.x; iRawBank < scifi_raw_event.number_of_raw_banks(); iRawBank += blockDim.x) {
+    // In decoding < 7, (continuous index) -> (x ordered continuous index)
+    // Could be a lookup table where index is i (x ordered index) and value is the source ID. lookup[i] is the sourceID
+    // of the i-th bank, x ordered
+    auto rawbank = scifi_raw_event.raw_bank(iRawBank);
+    const auto sourceID = rawbank.sourceID;
+    const auto iRowInMap = iSource(geom, sourceID);
+    if (iRowInMap == geom.number_of_banks)
+      continue; // FIXME: means the source ID is unknown. This should have been caught by the PreDecode error
     const uint16_t* starting_it = rawbank.data + 2;
     const uint16_t* last = rawbank.last;
-    if (*(last - 1) == 0) --last; // Remove padding at the end
-
+    if (starting_it != last && *(last - 1) == 0) --last; // Remove padding at the end
     if (starting_it >= last || starting_it >= rawbank.last) continue;
 
     const unsigned number_of_iterations = last - starting_it;
     for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {
       auto it = starting_it + it_number;
       const uint16_t c = *it;
-      const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + SciFi::channelInBank(c);
+      uint32_t ch;
+      if constexpr (decoding_version == 4 || decoding_version == 6) {
+        ch = geom.bank_first_channel[iRawBank] + SciFi::channelInBank(c); //---LoH: only works for versions 4-6
+      }
+      else { // Decoding v7
+        ch = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c);
+      }
       const auto chid = SciFi::SciFiChannelID(ch);
       const uint32_t correctedMat = chid.globalMatIdx_Xorder();
-
       const auto store_sorted_fn = [&](const int condition, const int delta) {
         store_sorted_cluster_reference(
           hit_count,
@@ -90,7 +99,7 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
           ch,
           shared_mat_offsets,
           shared_mat_count,
-          current_raw_bank,
+          iRawBank,
           it_number,
           parameters.dev_cluster_references,
           condition,
@@ -100,7 +109,7 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
       if constexpr (decoding_version == 4) {
         store_sorted_fn(0x01, 0x00);
       }
-      else if constexpr (decoding_version == 6) {
+      else if constexpr (decoding_version == 6 || decoding_version == 7) {
         if (!SciFi::cSize(c)) {
           // Single cluster
           store_sorted_fn(0x01, 0x00);
@@ -112,20 +121,24 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
           }
           else {
             const unsigned c2 = *(it + 1);
-            assert(SciFi::cSize(c2) && !SciFi::fraction(c2));
-            const unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
-            if (widthClus > 8) {
-              uint16_t j = 0;
-              for (; j < widthClus - 4; j += 4) {
-                // big cluster(s)
-                store_sorted_fn(0x03, j);
-              }
+            if (SciFi::cSize(c2) && !SciFi::fraction(c2)) {
+              const unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
+              if (widthClus > 8) {
+                uint16_t j = 0;
+                for (; j < widthClus - 4; j += 4) {
+                  // big cluster(s)
+                  store_sorted_fn(0x03, j);
+                }
 
-              // add the last edge
-              store_sorted_fn(0x04, j);
+                // add the last edge
+                store_sorted_fn(0x04, j);
+              }
+              else {
+                store_sorted_fn(0x05, 0x00);
+              }
             }
             else {
-              store_sorted_fn(0x05, 0x00);
+              // FIXME: Corrupt cluster
             }
             ++it_number;
           }
@@ -152,10 +165,9 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  auto const bank_version = first<host_raw_bank_version_t>(arguments);
-
+  unsigned int const bank_version = first<host_raw_bank_version_t>(arguments);
   // Ensure the bank version is supported
-  if (bank_version != 4 && bank_version != 5 && bank_version != 6) {
+  if (bank_version != 4 && bank_version != 5 && bank_version != 6 && bank_version != 7) {
     throw StrException("SciFi bank version not supported (" + std::to_string(bank_version) + ")");
   }
 
@@ -165,8 +177,11 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
   auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
                      (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<4, true>) :
                                                    global_function(scifi_pre_decode_kernel<4, false>)) :
+                     (bank_version == 6) ?
                      (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<6, true>) :
-                                                   global_function(scifi_pre_decode_kernel<6, false>));
+                                                   global_function(scifi_pre_decode_kernel<6, false>)) :
+                     (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<7, true>) :
+                                                   global_function(scifi_pre_decode_kernel<7, false>));
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
     arguments, constants.dev_scifi_geometry);

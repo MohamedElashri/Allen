@@ -63,21 +63,29 @@ __global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters
                     parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
   const unsigned number_of_hits_in_event = hit_count.event_number_of_hits();
-
   for (unsigned i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
     const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.event_offset() + i];
     const int raw_bank_number = (cluster_reference >> 24) & 0xFF;
     const int it_number = (cluster_reference >> 16) & 0xFF;
 
     const auto rawbank = scifi_raw_event.raw_bank(raw_bank_number);
+    const auto iRowInMap = SciFi::iSource(geom, rawbank.sourceID);
+    if (iRowInMap == geom.number_of_banks)
+      continue; // FIXME: means the source ID is unknown. This should have been caught by the PreDecode error
     const uint16_t* it = rawbank.data + 2;
     it += it_number;
 
     const uint16_t c = *it;
-    const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + SciFi::channelInBank(c);
 
     // Call parameters for make_cluster
-    uint32_t cluster_chan = ch;
+    uint32_t cluster_chan;
+    if constexpr (decoding_version == 4 || decoding_version == 6) {
+      const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + SciFi::channelInBank(c);
+      cluster_chan = ch;
+    }
+    else {
+      cluster_chan = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c); //---FIXME
+    }
     uint8_t cluster_fraction = SciFi::fraction(c);
 
     if constexpr (decoding_version == 4) {
@@ -85,9 +93,8 @@ __global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters
       uint8_t pseudoSize = SciFi::cSize(c) ? 0 : 4;
       make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
     }
-    else if constexpr (decoding_version == 6) {
-      const int condition = (cluster_reference >> 13) & 0x07;
-      const int delta_parameter = cluster_reference & 0xFF;
+    else if constexpr (decoding_version == 6 || decoding_version == 7) {
+      const int condition = (cluster_reference >> 13) & 0x07; // FIXME
       uint8_t pseudoSize = 4;
 
       assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
@@ -98,6 +105,7 @@ __global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters
       else if (condition > 0x02) {
         const auto c2 = *(it + 1);
         const auto widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
+        const int delta_parameter = cluster_reference & 0xFF;
 
         if (condition == 0x03) {
           pseudoSize = 0;
@@ -115,7 +123,6 @@ __global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters
           cluster_chan += (widthClus - 1) / 2 - 1;
         }
       }
-
       make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
     }
   }
@@ -139,13 +146,16 @@ void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  auto const bank_version = first<host_raw_bank_version_t>(arguments);
+  unsigned int const bank_version = first<host_raw_bank_version_t>(arguments);
 
   auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
                      (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<4, true>) :
                                                    global_function(scifi_raw_bank_decoder_kernel<4, false>)) :
+                     (bank_version == 6) ?
                      (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<6, true>) :
-                                                   global_function(scifi_raw_bank_decoder_kernel<6, false>));
+                                                   global_function(scifi_raw_bank_decoder_kernel<6, false>)) :
+                     (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<7, true>) :
+                                                   global_function(scifi_raw_bank_decoder_kernel<7, false>));
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_scifi_geometry);
