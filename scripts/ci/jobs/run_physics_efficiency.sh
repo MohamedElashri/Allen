@@ -15,7 +15,7 @@ RUN_OPTIONS="-n 1000 -m 1000 --run-from-json 1"
 # Configure the input files (--mdf) and geometry (-g)
 set +x; set +u
 if [ ! -z ${GEOMETRY+x} ]; then
-  RUN_OPTIONS="${RUN_OPTIONS} -g /scratch/allen_geometries/newscifi/${GEOMETRY}"
+  RUN_OPTIONS="${RUN_OPTIONS} -g /scratch/allen_geometries/${GEOMETRY}"
 fi
 
 set -euxo pipefail
