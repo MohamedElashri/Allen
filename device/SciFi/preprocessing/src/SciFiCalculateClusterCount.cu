@@ -96,7 +96,7 @@ __global__ void scifi_calculate_cluster_count_kernel(
           atomicAdd(counter, 1);
           continue;
         }
-        const uint32_t uniqueMat = chid.correctedUniqueMat();
+        const uint32_t uniqueMat = chid.globalMatIdx_Xorder();
         unsigned uniqueGroupOrMat;
         if (uniqueMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
           uniqueGroupOrMat = uniqueMat / SciFi::Constants::n_mats_per_consec_raw_bank;
