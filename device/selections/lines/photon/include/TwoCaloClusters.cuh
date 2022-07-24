@@ -25,7 +25,7 @@ namespace two_calo_clusters_line {
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
     // Monitoring
-    HOST_OUTPUT(dev_local_decisions_t, bool) dev_local_decisions;
+    DEVICE_OUTPUT(dev_local_decisions_t, bool) dev_local_decisions;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
