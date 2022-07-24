@@ -158,7 +158,7 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
   auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
                      (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<4, true>) :
                                                    global_function(scifi_calculate_cluster_count_kernel<4, false>)) :
-                   (bank_version == 6) ?
+                     (bank_version == 6) ?
                      (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<6, true>) :
                                                    global_function(scifi_calculate_cluster_count_kernel<6, false>)) :
                      (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<7, true>) :
