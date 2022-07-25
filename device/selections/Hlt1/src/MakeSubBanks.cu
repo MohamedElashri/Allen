@@ -48,21 +48,22 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
     unsigned* event_rb_substr = parameters.dev_rb_substr + parameters.dev_rb_substr_offsets[event_number];
     const unsigned event_rb_substr_size =
       parameters.dev_rb_substr_offsets[event_number + 1] - parameters.dev_rb_substr_offsets[event_number];
-    const unsigned sv_offset = parameters.max_selected_svs * event_number;
-    const unsigned track_offset = parameters.max_selected_tracks * event_number;
+    const unsigned n_lines = parameters.dev_number_of_active_lines[0];
+    const unsigned* line_object_offsets = parameters.dev_max_objects_offsets + n_lines*event_number;
+    const unsigned selected_object_offset = line_object_offsets[0];
     const unsigned n_tracks = parameters.dev_unique_track_count[event_number];
     const unsigned n_svs = parameters.dev_unique_sv_count[event_number];
     const unsigned n_sels = parameters.dev_sel_count[event_number];
-    const unsigned n_lines = parameters.dev_number_of_active_lines[0];
+    
 
     const unsigned sels_start_short = 2;
     const unsigned svs_start_short = sels_start_short + parameters.dev_substr_sel_size[event_number];
     const unsigned tracks_start_short = svs_start_short + parameters.dev_substr_sv_size[event_number];
 
-    const auto event_track_ptrs = parameters.dev_basic_particle_ptrs + track_offset;
-    const auto event_sv_ptrs = parameters.dev_composite_particle_ptrs + sv_offset;
-    const unsigned* event_unique_track_list = parameters.dev_unique_track_list + track_offset;
-    const unsigned* event_unique_sv_list = parameters.dev_unique_sv_list + sv_offset;
+    const auto event_track_ptrs = parameters.dev_basic_particle_ptrs + selected_object_offset;
+    const auto event_sv_ptrs = parameters.dev_composite_particle_ptrs + selected_object_offset;
+    const unsigned* event_unique_track_list = parameters.dev_unique_track_list + selected_object_offset;
+    const unsigned* event_unique_sv_list = parameters.dev_unique_sv_list + selected_object_offset;
 
     // Add the track substructures.
     // Each track substructure has one pointer to a sequence of LHCbIDs.
@@ -159,7 +160,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       // Handle lines that select BasicParticles.
       if (Allen::dyn_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(mec)) {
         const unsigned* line_candidate_indices =
-          parameters.dev_sel_track_indices + (event_number * n_lines + line_id) * parameters.max_selected_tracks;
+          parameters.dev_sel_track_indices + line_object_offsets[i_line];
         unsigned n_cand = event_candidate_offsets[line_id + 1] - event_candidate_offsets[line_id];
         unsigned i_word = insert_short / 2;
         unsigned i_part = insert_short % 2;
@@ -170,13 +171,13 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         insert_short++;
         for (unsigned i_cand = 0; i_cand < n_cand; i_cand++) {
           const unsigned i_track = line_candidate_indices[i_cand];
-          const unsigned track_index = parameters.dev_track_duplicate_map[track_offset + i_track] >= 0 ?
-                                         parameters.dev_track_duplicate_map[track_offset + i_track] :
+          const unsigned track_index = parameters.dev_track_duplicate_map[selected_object_offset + i_track] >= 0 ?
+                                         parameters.dev_track_duplicate_map[selected_object_offset + i_track] :
                                          i_track;
           unsigned obj_index = 0;
           // if (track_index < 0) track_index = i_track;
           for (unsigned j_track = 0; j_track < n_tracks; j_track++) {
-            const unsigned test_index = parameters.dev_unique_track_list[track_offset + j_track];
+            const unsigned test_index = parameters.dev_unique_track_list[selected_object_offset + j_track];
             if (track_index == test_index) {
               obj_index = n_sels + n_svs + j_track;
               break;
@@ -193,7 +194,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       // Handle lines that select CompositeParticles.
       else if (Allen::dyn_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(mec)) {
         const unsigned* line_candidate_indices =
-          parameters.dev_sel_sv_indices + (event_number * n_lines + line_id) * parameters.max_selected_svs;
+          parameters.dev_sel_sv_indices + line_object_offsets[line_id];
         unsigned n_cand = event_candidate_offsets[line_id + 1] - event_candidate_offsets[line_id];
         unsigned i_word = insert_short / 2;
         unsigned i_part = insert_short % 2;
@@ -204,8 +205,8 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         insert_short++;
         for (unsigned i_cand = 0; i_cand < n_cand; i_cand++) {
           const unsigned i_sv = line_candidate_indices[i_cand];
-          const unsigned sv_index = parameters.dev_sv_duplicate_map[sv_offset + i_sv] >= 0 ?
-                                      parameters.dev_sv_duplicate_map[sv_offset + i_sv] :
+          const unsigned sv_index = parameters.dev_sv_duplicate_map[selected_object_offset + i_sv] >= 0 ?
+                                      parameters.dev_sv_duplicate_map[selected_object_offset + i_sv] :
                                       i_sv;
           unsigned obj_index = 0;
           // if (sv_index < 0) sv_index = i_sv;
@@ -355,7 +356,8 @@ __global__ void make_subbanks::make_rb_hits(make_subbanks::Parameters parameters
   const unsigned n_hit_sequences = parameters.dev_unique_track_count[event_number];
   unsigned* event_rb_hits = parameters.dev_rb_hits + parameters.dev_rb_hits_offsets[event_number];
   const unsigned bank_info_size = 1 + (n_hit_sequences / 2);
-  const unsigned track_offset = parameters.max_selected_tracks * event_number;
+  const unsigned n_lines = parameters.dev_number_of_active_lines[0];
+  const unsigned track_offset = parameters.dev_max_objects_offsets[event_number*n_lines];
 
   // Run sequentially over tracks and in parallel over hits. There will usually
   // only be ~1 selected track anyway.

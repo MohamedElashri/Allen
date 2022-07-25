@@ -24,6 +24,7 @@ namespace make_subbanks {
     DEVICE_INPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
     DEVICE_INPUT(dev_selections_t, bool) dev_selections;
     DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
+    DEVICE_INPUT(dev_max_objects_offsets_t, unsigned) dev_max_objects_offsets;
     DEVICE_INPUT(dev_sel_count_t, unsigned) dev_sel_count;
     DEVICE_INPUT(dev_sel_list_t, unsigned) dev_sel_list;
     DEVICE_INPUT(dev_candidate_count_t, unsigned) dev_candidate_count;
@@ -52,10 +53,8 @@ namespace make_subbanks {
     DEVICE_OUTPUT(dev_rb_stdinfo_t, unsigned) dev_rb_stdinfo;
     // TODO: This needs to be the same as the properties in
     // MakeSelectedObjectLists. These should be saved as constants somewhere.
-    PROPERTY(max_selected_tracks_t, "max_selected_tracks", "Maximum number of selected tracks per event.", unsigned)
-    max_selected_tracks;
-    PROPERTY(max_selected_svs_t, "max_selected_svs", "Maximum number of selected SVs per event.", unsigned)
-    max_selected_svs;
+    PROPERTY(max_children_per_object_t, "max_children_per_object", "Maximum number of children per selected object", unsigned)
+    max_children_per_object;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
@@ -79,7 +78,6 @@ namespace make_subbanks {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
-    Property<max_selected_tracks_t> m_max_selected_tracks {this, 100};
-    Property<max_selected_svs_t> m_max_selected_svs {this, 100};
+    Property<max_children_per_object_t> m_max_children_per_object {this, 4};
   };
 } // namespace make_subbanks

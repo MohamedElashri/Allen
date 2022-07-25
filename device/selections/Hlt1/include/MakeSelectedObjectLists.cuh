@@ -17,6 +17,7 @@ namespace make_selected_object_lists {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
+    HOST_INPUT(host_max_objects_t, unsigned) host_max_objects;
     DEVICE_INPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
     DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
     MASK_INPUT(dev_event_list_t) dev_event_list;
@@ -25,6 +26,7 @@ namespace make_selected_object_lists {
     dev_multi_event_particle_containers;
     DEVICE_INPUT(dev_selections_t, bool) dev_selections;
     DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
+    DEVICE_INPUT(dev_max_objects_offsets_t, unsigned) dev_max_objects_offsets;
     DEVICE_OUTPUT(dev_candidate_count_t, unsigned) dev_candidate_count;
     DEVICE_OUTPUT(dev_sel_track_count_t, unsigned) dev_sel_track_count;
     DEVICE_OUTPUT(dev_sel_track_indices_t, unsigned) dev_sel_track_indices;
@@ -56,10 +58,8 @@ namespace make_selected_object_lists {
       DEPENDENCIES(dev_multi_event_particle_containers_t),
       Allen::Views::Physics::CompositeParticle*)
     dev_selected_composite_particle_ptrs;
-    PROPERTY(max_selected_tracks_t, "max_selected_tracks", "Maximum number of selected tracks per event.", unsigned)
-    max_selected_tracks;
-    PROPERTY(max_selected_svs_t, "max_selected_svs", "Maximum number of selected SVs per event.", unsigned)
-    max_selected_svs;
+    PROPERTY(max_children_per_object_t, "max_children_per_object", "Maximum number of children per selected object", unsigned)
+    max_children_per_object;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
@@ -83,8 +83,7 @@ namespace make_selected_object_lists {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
-    Property<max_selected_tracks_t> m_max_selected_tracks {this, 100};
-    Property<max_selected_svs_t> m_max_selected_svs {this, 100};
+    Property<max_children_per_object_t> m_max_children_per_object {this, 4};
   };
 
 } // namespace make_selected_object_lists
