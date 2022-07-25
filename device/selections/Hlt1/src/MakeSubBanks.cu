@@ -49,12 +49,11 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
     const unsigned event_rb_substr_size =
       parameters.dev_rb_substr_offsets[event_number + 1] - parameters.dev_rb_substr_offsets[event_number];
     const unsigned n_lines = parameters.dev_number_of_active_lines[0];
-    const unsigned* line_object_offsets = parameters.dev_max_objects_offsets + n_lines*event_number;
+    const unsigned* line_object_offsets = parameters.dev_max_objects_offsets + n_lines * event_number;
     const unsigned selected_object_offset = line_object_offsets[0];
     const unsigned n_tracks = parameters.dev_unique_track_count[event_number];
     const unsigned n_svs = parameters.dev_unique_sv_count[event_number];
     const unsigned n_sels = parameters.dev_sel_count[event_number];
-    
 
     const unsigned sels_start_short = 2;
     const unsigned svs_start_short = sels_start_short + parameters.dev_substr_sel_size[event_number];
@@ -159,8 +158,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
 
       // Handle lines that select BasicParticles.
       if (Allen::dyn_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(mec)) {
-        const unsigned* line_candidate_indices =
-          parameters.dev_sel_track_indices + line_object_offsets[i_line];
+        const unsigned* line_candidate_indices = parameters.dev_sel_track_indices + line_object_offsets[i_line];
         unsigned n_cand = event_candidate_offsets[line_id + 1] - event_candidate_offsets[line_id];
         unsigned i_word = insert_short / 2;
         unsigned i_part = insert_short % 2;
@@ -193,8 +191,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       }
       // Handle lines that select CompositeParticles.
       else if (Allen::dyn_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(mec)) {
-        const unsigned* line_candidate_indices =
-          parameters.dev_sel_sv_indices + line_object_offsets[line_id];
+        const unsigned* line_candidate_indices = parameters.dev_sel_sv_indices + line_object_offsets[line_id];
         unsigned n_cand = event_candidate_offsets[line_id + 1] - event_candidate_offsets[line_id];
         unsigned i_word = insert_short / 2;
         unsigned i_part = insert_short % 2;
@@ -357,7 +354,7 @@ __global__ void make_subbanks::make_rb_hits(make_subbanks::Parameters parameters
   unsigned* event_rb_hits = parameters.dev_rb_hits + parameters.dev_rb_hits_offsets[event_number];
   const unsigned bank_info_size = 1 + (n_hit_sequences / 2);
   const unsigned n_lines = parameters.dev_number_of_active_lines[0];
-  const unsigned track_offset = parameters.dev_max_objects_offsets[event_number*n_lines];
+  const unsigned track_offset = parameters.dev_max_objects_offsets[event_number * n_lines];
 
   // Run sequentially over tracks and in parallel over hits. There will usually
   // only be ~1 selected track anyway.

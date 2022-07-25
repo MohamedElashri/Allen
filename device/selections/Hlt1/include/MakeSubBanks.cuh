@@ -53,7 +53,11 @@ namespace make_subbanks {
     DEVICE_OUTPUT(dev_rb_stdinfo_t, unsigned) dev_rb_stdinfo;
     // TODO: This needs to be the same as the properties in
     // MakeSelectedObjectLists. These should be saved as constants somewhere.
-    PROPERTY(max_children_per_object_t, "max_children_per_object", "Maximum number of children per selected object", unsigned)
+    PROPERTY(
+      max_children_per_object_t,
+      "max_children_per_object",
+      "Maximum number of children per selected object",
+      unsigned)
     max_children_per_object;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

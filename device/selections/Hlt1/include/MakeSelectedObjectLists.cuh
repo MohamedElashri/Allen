@@ -58,7 +58,11 @@ namespace make_selected_object_lists {
       DEPENDENCIES(dev_multi_event_particle_containers_t),
       Allen::Views::Physics::CompositeParticle*)
     dev_selected_composite_particle_ptrs;
-    PROPERTY(max_children_per_object_t, "max_children_per_object", "Maximum number of children per selected object", unsigned)
+    PROPERTY(
+      max_children_per_object_t,
+      "max_children_per_object",
+      "Maximum number of children per selected object",
+      unsigned)
     max_children_per_object;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

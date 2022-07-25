@@ -32,25 +32,25 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
   set_size<dev_sel_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
   // These are effectively 3D arrays. Use the convention: X = candidate, Y = event, Z = line.
   set_size<dev_sel_track_indices_t>(
-    arguments, property<max_children_per_object_t>()*first<host_max_objects_t>(arguments));
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_sel_sv_indices_t>(
-    arguments, property<max_children_per_object_t>()*first<host_max_objects_t>(arguments));
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
 
   // For saving selected candidates.
   // We could have multiple track and SV containers, so we can either set these
   // sizes arbitrarily, or create an algorithm to calculate them.
-  set_size<dev_selected_basic_particle_ptrs_t>(arguments, 4*first<host_max_objects_t>(arguments));
-  set_size<dev_selected_composite_particle_ptrs_t>(arguments, 4*first<host_max_objects_t>(arguments));
+  set_size<dev_selected_basic_particle_ptrs_t>(arguments, 4 * first<host_max_objects_t>(arguments));
+  set_size<dev_selected_composite_particle_ptrs_t>(arguments, 4 * first<host_max_objects_t>(arguments));
 
   // For removing duplicates.
   set_size<dev_track_duplicate_map_t>(
-    arguments, property<max_children_per_object_t>()*first<host_max_objects_t>(arguments));
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_sv_duplicate_map_t>(
-    arguments, property<max_children_per_object_t>()*first<host_max_objects_t>(arguments));
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_unique_track_list_t>(
-    arguments, property<max_children_per_object_t>()*first<host_max_objects_t>(arguments));
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_unique_sv_list_t>(
-    arguments, property<max_children_per_object_t>()*first<host_max_objects_t>(arguments));
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_unique_track_count_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_unique_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
 
@@ -104,9 +104,8 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
   const auto event_number = blockIdx.x;
   const unsigned n_lines = parameters.dev_number_of_active_lines[0];
   const unsigned n_children = parameters.max_children_per_object;
-  const unsigned* line_selected_object_offsets = 
-    parameters.dev_max_objects_offsets + n_lines * event_number;
-  const unsigned selected_object_offset = n_children*line_selected_object_offsets[0];
+  const unsigned* line_selected_object_offsets = parameters.dev_max_objects_offsets + n_lines * event_number;
+  const unsigned selected_object_offset = n_children * line_selected_object_offsets[0];
   const uint32_t* event_dec_reports =
     parameters.dev_dec_reports + (2 + parameters.dev_number_of_active_lines[0]) * event_number;
   unsigned* event_candidate_count =
@@ -134,8 +133,8 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
         if (decs[track_index]) {
           const unsigned track_candidate_index = atomicAdd(event_candidate_count + line_index, 1);
           const unsigned track_insert_index = atomicAdd(parameters.dev_sel_track_count + event_number, 1);
-          parameters.dev_sel_track_indices
-            [n_children*line_selected_object_offsets[line_index] + track_candidate_index] =
+          parameters
+            .dev_sel_track_indices[n_children * line_selected_object_offsets[line_index] + track_candidate_index] =
             track_insert_index;
           parameters.dev_selected_basic_particle_ptrs[selected_object_offset + track_insert_index] =
             const_cast<Allen::Views::Physics::BasicParticle*>(event_tracks.particle_pointer(track_index));
@@ -153,8 +152,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
         if (decs[sv_index]) {
           const unsigned sv_candidate_index = atomicAdd(event_candidate_count + line_index, 1);
           const unsigned sv_insert_index = atomicAdd(parameters.dev_sel_sv_count + event_number, 1);
-          parameters.dev_sel_sv_indices
-            [n_children*line_selected_object_offsets[line_index] + sv_candidate_index] =
+          parameters.dev_sel_sv_indices[n_children * line_selected_object_offsets[line_index] + sv_candidate_index] =
             sv_insert_index;
           parameters.dev_selected_composite_particle_ptrs[selected_object_offset + sv_insert_index] =
             const_cast<Allen::Views::Physics::CompositeParticle*>(&event_svs.particle(sv_index));
@@ -240,19 +238,16 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
   const auto event_number = blockIdx.x;
   const unsigned n_children = parameters.max_children_per_object;
   const unsigned n_lines = parameters.dev_number_of_active_lines[0];
-  const unsigned* line_selected_object_offsets = 
-    parameters.dev_max_objects_offsets + n_lines * event_number;
-  const unsigned selected_object_offset = n_children*line_selected_object_offsets[0];
+  const unsigned* line_selected_object_offsets = parameters.dev_max_objects_offsets + n_lines * event_number;
+  const unsigned selected_object_offset = n_children * line_selected_object_offsets[0];
   const auto event_track_ptrs = parameters.dev_selected_basic_particle_ptrs + selected_object_offset;
   const auto event_unique_track_list = parameters.dev_unique_track_list + selected_object_offset;
   const auto event_sv_ptrs = parameters.dev_selected_composite_particle_ptrs + selected_object_offset;
   const auto event_unique_sv_list = parameters.dev_unique_sv_list + selected_object_offset;
   const auto n_selected_tracks = parameters.dev_unique_track_count[event_number];
   const auto n_selected_svs = parameters.dev_unique_sv_count[event_number];
-  const uint32_t* event_dec_reports =
-    parameters.dev_dec_reports + (2 + n_lines) * event_number;
-  unsigned* event_candidate_count =
-    parameters.dev_candidate_count + event_number * n_lines;
+  const uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_lines) * event_number;
+  unsigned* event_candidate_count = parameters.dev_candidate_count + event_number * n_lines;
   unsigned* event_sel_list = parameters.dev_sel_list + event_number * n_lines;
 
   // Calculate the size of the hits bank.

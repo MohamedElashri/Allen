@@ -18,7 +18,7 @@ void dec_reporter::dec_reporter_t::set_arguments_size(
   set_size<host_dec_reports_t>(
     arguments, (2 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
   set_size<dev_selected_candidates_counts_t>(
-    arguments, first<host_number_of_active_lines_t>(arguments)*first<host_number_of_events_t>(arguments));
+    arguments, first<host_number_of_active_lines_t>(arguments) * first<host_number_of_events_t>(arguments));
 }
 
 void dec_reporter::dec_reporter_t::operator()(
