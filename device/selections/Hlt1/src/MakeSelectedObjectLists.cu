@@ -39,8 +39,10 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
   // For saving selected candidates.
   // We could have multiple track and SV containers, so we can either set these
   // sizes arbitrarily, or create an algorithm to calculate them.
-  set_size<dev_selected_basic_particle_ptrs_t>(arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
-  set_size<dev_selected_composite_particle_ptrs_t>(arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
+  set_size<dev_selected_basic_particle_ptrs_t>(
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
+  set_size<dev_selected_composite_particle_ptrs_t>(
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
 
   // For removing duplicates.
   set_size<dev_track_duplicate_map_t>(
