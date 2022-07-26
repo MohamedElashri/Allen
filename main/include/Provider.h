@@ -8,9 +8,9 @@
 #include "BankTypes.h"
 #include "InputProvider.h"
 #include "OutputHandler.h"
-#include "InputReader.h"
 
 class IZeroMQSvc;
+struct ConfigurationReader;
 
 namespace {
   constexpr size_t n_input = 1;

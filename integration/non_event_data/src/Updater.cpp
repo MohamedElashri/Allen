@@ -6,7 +6,7 @@
 #include <memory>
 #include <map>
 #include <array>
-
+#include <Logger.h>
 #include <Dumpers/Identifiers.h>
 #include <Common.h>
 #include <InputReader.h>

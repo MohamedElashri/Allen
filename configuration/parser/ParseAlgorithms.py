@@ -601,7 +601,7 @@ class AllenCore():
     @staticmethod
     def write_algorithms_db(algorithms, filename):
         code = "\n".join(
-            ("#pragma once", "", "#include <Configuration.cuh>", "\n"))
+            ("#pragma once", "", "#include <Configuration.h>", "\n"))
         for alg in algorithms:
             code += f"namespace {alg.namespace} {{ struct {alg.name}; }}\n"
         code += "\nAllen::TypeErasedAlgorithm instantiate_allen_algorithm(const ConfiguredAlgorithm& alg) {\n"

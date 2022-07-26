@@ -78,11 +78,8 @@ public:
 
   LHCb::ODIN odin() const { return m_odin ? *m_odin : LHCb::ODIN {}; }
 
-  std::vector<std::string> requestedBanks() override { return m_requested_banks; }
-
 private:
   Gaudi::Property<bool> m_triggerEventLoop {this, "TriggerEventLoop", false};
-  Gaudi::Property<std::vector<std::string>> m_requested_banks {this, "RequestedBanks", {}};
 
   std::map<
     std::string,

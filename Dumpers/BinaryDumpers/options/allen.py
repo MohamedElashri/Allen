@@ -196,8 +196,7 @@ config.add(
             'SIMCOND': options.conddb_tag,
         }))
 
-cf_node = setup_allen_non_event_data_service(
-    allen_event_loop=True, sequence_name=sequence_name)
+cf_node = setup_allen_non_event_data_service(allen_event_loop=True)
 config.update(configure(options, cf_node))
 
 # Start Gaudi and get the AllenUpdater service

@@ -4,6 +4,8 @@
 #include <gsl/gsl>
 #include <InputReader.h>
 #include <boost/algorithm/string.hpp>
+#include "InputTools.h"
+#include "Tools.h"
 
 namespace {
   using std::make_pair;
@@ -197,7 +199,7 @@ std::unordered_set<BankTypes> ConfigurationReader::configured_bank_types() const
       auto type = it->second;
       auto const bt = ::bank_type(type);
       if (bt == BankTypes::Unknown) {
-        error_cout << "Unknown bank type " << type << "requested.\n";
+        error_cout << "Unknown bank type " << type << " requested.\n";
       }
       else {
         bank_types.emplace(bt);

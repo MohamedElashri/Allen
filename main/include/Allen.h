@@ -10,7 +10,6 @@
 #include <Dumpers/IUpdater.h>
 #include "InputProvider.h"
 #include "OutputHandler.h"
-#include "RegisterConsumers.h"
 
 struct Constants;
 
@@ -21,3 +20,8 @@ int allen(
   OutputHandler* output_handler,
   IZeroMQSvc* zmqSvc,
   std::string_view control_connection);
+
+void register_consumers(
+  Allen::NonEventData::IUpdater* updater,
+  Constants& constants,
+  const std::unordered_set<BankTypes> requested_banks);

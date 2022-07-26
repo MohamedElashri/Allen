@@ -25,8 +25,6 @@ namespace Allen {
 
       void registerProducer(std::string const& id, NonEventData::Producer p) override;
 
-      std::vector<std::string> requestedBanks() override { return {}; }
-
     private:
       std::map<std::string, std::tuple<NonEventData::Producer, std::vector<std::unique_ptr<NonEventData::Consumer>>>>
         m_pairs;

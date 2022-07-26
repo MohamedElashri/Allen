@@ -83,8 +83,8 @@ void AllenUpdater::registerConsumer(string const& id, unique_ptr<Allen::NonEvent
   else {
     std::get<1>(it->second).emplace_back(std::move(c));
   }
-  if (msgLevel(MSG::INFO)) {
-    info() << "Registered Consumer for " << id << endmsg;
+  if (msgLevel(MSG::DEBUG)) {
+    debug() << "Registered Consumer for " << id << endmsg;
   }
 }
 
@@ -101,8 +101,8 @@ void AllenUpdater::registerProducer(string const& id, Allen::NonEventData::Produ
   else {
     throw GaudiException {string {"Producer for "} + id, name(), StatusCode::FAILURE};
   }
-  if (msgLevel(MSG::INFO)) {
-    info() << "Registered Producer for " << id << endmsg;
+  if (msgLevel(MSG::DEBUG)) {
+    debug() << "Registered Producer for " << id << endmsg;
   }
 }
 

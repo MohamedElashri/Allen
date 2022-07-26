@@ -615,7 +615,9 @@ foreach(header
     OutputHandler.h
     SliceUtils.h
     FileSystem.h
-    TransposeTypes.h)
+    TransposeTypes.h
+    InputReader.h
+    Configuration.h)
   list(APPEND AllenHeaders main/include/${header})
 endforeach()
 

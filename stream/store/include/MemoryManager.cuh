@@ -7,7 +7,6 @@
 #include <algorithm>
 #include "Common.h"
 #include "Logger.h"
-#include "Configuration.cuh"
 #include "Argument.cuh"
 
 namespace Allen::Store {

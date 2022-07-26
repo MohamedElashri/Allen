@@ -12,6 +12,7 @@
 #include <ZMQOutputSender.h>
 #include <Event/RawBank.h>
 #include <FileSystem.h>
+#include <InputReader.h>
 
 std::tuple<bool, bool> Allen::velo_decoding_type(const ConfigurationReader& configuration_reader)
 {
