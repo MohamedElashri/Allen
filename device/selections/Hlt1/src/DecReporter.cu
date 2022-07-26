@@ -74,7 +74,7 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
     for (unsigned i = 0; i < decs.size(); ++i) {
       final_decision |= decs[i];
       if (decs[i]) {
-        event_selected_candidates_counts[i]++;
+        event_selected_candidates_counts[line_index]++;
       }
     }
 
