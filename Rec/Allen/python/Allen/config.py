@@ -45,7 +45,7 @@ def setup_allen_non_event_data_service(allen_event_loop=False):
         (DumpUTLookupTables, 'ut_tables'),
         (DumpVPGeometry, 'velo_geometry'),
         (DumpMagneticField, 'polarity'),
-        #(DumpFTGeometry, 'scifi_geometry'),
+        (DumpFTGeometry, 'scifi_geometry'),
         (DumpMuonGeometry, 'muon_geometry'),
         (DumpMuonTable, 'muon_tables')
     ]

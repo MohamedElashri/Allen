@@ -163,9 +163,9 @@ void Consumers::MuonGeometry::consume(std::vector<char> const& data)
     // 	  for (auto k = 0; k < Muon::Constants::maxNumberLinks; k++){
     // 	    std::cout <<  "            link number " << k << std::endl;
     // 	    std::cout  << "            QuarterOfLink " << quarterOfLink[i][j][k] << ", RegionOfLink " <<
-    // regionOfLink[i][j][k] << std::endl; 	    for (auto l = 0; l < Muon::Constants::ODEFrameSize; l++){ 	      std::cout << " ODE
-    // number " << l << std::endl; 	      std::cout << "              TileInTell40 map " << tileinTell40[i][j][k *
-    // Muon::Constants::ODEFrameSize + l] << std::endl;
+    // regionOfLink[i][j][k] << std::endl; 	    for (auto l = 0; l < Muon::Constants::ODEFrameSize; l++){
+    // std::cout << " ODE number " << l << std::endl; 	      std::cout << "              TileInTell40 map " <<
+    // tileinTell40[i][j][k * Muon::Constants::ODEFrameSize + l] << std::endl;
     // 	    }
     // 	  }
     // 	}

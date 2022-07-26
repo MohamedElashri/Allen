@@ -4,7 +4,6 @@
 #pragma once
 
 #include <algorithm>
-
 #include "MuonTileID.cuh"
 #include "MuonDefinitions.cuh"
 
@@ -125,7 +124,7 @@ namespace Muon {
 
     /// IS THERE A BETTER PLACE FOR THIS?
     __device__ unsigned int get_number_of_readout_fibers(
-      gsl::span<const uint8_t> span_banks,
+      Allen::device::span<const uint8_t> span_banks,
       unsigned int active_links,
       unsigned int* map_connected_fibers)
     {
@@ -140,7 +139,7 @@ namespace Muon {
       }
       else {
         auto range_fiber = span_banks.subspan(1, 3);
-        bool align_vector[24] = {};
+        bool align_vector[24] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
         unsigned int readout_fibers = 0;
         for (int i = 0; i < 8; i++) {
           if ((range_fiber[0] >> i) & 0x1) {

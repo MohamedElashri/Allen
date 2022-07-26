@@ -99,26 +99,27 @@ namespace Allen {
 
 // Replacement for gsl::span in device code when building with HIP,
 // gsl::span works for CUDA and CPU
-namespace Allen {
-  namespace device {
+namespace Allen::device {
 #if defined(TARGET_DEVICE_HIP)
-    template<class T>
-    struct span {
-      T* __ptr = nullptr;
-      size_t __size = 0;
+  template<class T>
+  struct span {
+  private:
+    T* m_ptr = nullptr;
+    std::size_t m_size = 0;
 
-      constexpr span() = default;
+  public:
+    constexpr span() = default;
 
-      constexpr __device__ __host__ span(T* ptr, size_t size) : __ptr(ptr), __size(size) {}
+    constexpr __device__ __host__ span(T* ptr, std::size_t size) : m_ptr(ptr), m_size(size) {}
 
-      template<size_t N>
-      constexpr __device__ __host__ span(std::array<T, N>& a) : __ptr(std::data(a)), __size(N)
-      {}
+    template<std::size_t N>
+    constexpr __device__ __host__ span(std::array<T, N>& a) : m_ptr(std::data(a)), m_size(N)
+    {}
 
-      template<size_t N>
-      constexpr __device__ __host__ span(const std::array<std::remove_const_t<T>, N>& a) :
-        __ptr(std::data(a)), __size(N)
-      {}
+    template<std::size_t N>
+    constexpr __device__ __host__ span(const std::array<std::remove_const_t<T>, N>& a) :
+      m_ptr(std::data(a)), m_size(N)
+    {}
 
       constexpr __device__ __host__ bool empty() const { return size() == 0; }
       constexpr __device__ __host__ T* data() const { return __ptr; }
@@ -126,11 +127,45 @@ namespace Allen {
       constexpr __device__ __host__ size_t size_bytes() const { return __size * sizeof(T); }
       constexpr __device__ __host__ T& operator[](int i) { return __ptr[i]; }
       constexpr __device__ __host__ const T& operator[](int i) const { return __ptr[i]; }
+      constexpr __device__ __host__ span<T> subspan(
+        const std::size_t offset,
+        const std::size_t count = 0) const
+      {
+        if (count == 0) {
+          return {__ptr + offset, __size - offset};
+        }
+        else {
+          assert(offset + count <= __size);
+          return {__ptr + offset, count};
+        }
+      }
     };
+
+    constexpr __device__ __host__ span<T> subspan(const std::size_t offset) const
+    {
+      return {__ptr + offset, __size - offset};
+    }
+
+    constexpr __device__ __host__ T* begin() const {
+      return __ptr;
+    }
+    
+    constexpr __device__ __host__ T* end() const {
+      return __ptr + __size;
+    }
+
+    constexpr __device__ __host__ T* rbegin() const {
+      return __ptr + __size - 1;
+    }
+
+    constexpr __device__ __host__ T* rend() const {
+      return __ptr - 1;
+    }
+  };
+
 #else
-    using gsl::span;
+  using gsl::span;
 #endif
-  } // namespace device
 } // namespace Allen
 
 using DeviceDimensions = std::array<unsigned, 3>;

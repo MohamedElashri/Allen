@@ -24,10 +24,6 @@ namespace muon_add_coords_crossing_maps {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void muon_add_coords_crossing_maps_tell1(Parameters);
-
-  __global__ void muon_add_coords_crossing_maps_tell40(Parameters);
-
   struct muon_add_coords_crossing_maps_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,

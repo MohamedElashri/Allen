@@ -154,6 +154,12 @@ void scifi_pre_decode::scifi_pre_decode_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
+  // Ensure the bank version is supported
+  unsigned int const bank_version = first<host_raw_bank_version_t>(arguments);
+  if (bank_version < 4 || bank_version > 7) {
+    throw StrException("SciFi bank version not supported (" + std::to_string(bank_version) + ")");
+  }
+
   set_size<dev_cluster_references_t>(
     arguments, first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays);
 }
@@ -166,10 +172,6 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
   const Allen::Context& context) const
 {
   unsigned int const bank_version = first<host_raw_bank_version_t>(arguments);
-  // Ensure the bank version is supported
-  if (bank_version != 4 && bank_version != 5 && bank_version != 6 && bank_version != 7) {
-    throw StrException("SciFi bank version not supported (" + std::to_string(bank_version) + ")");
-  }
 
   // Mapping is:
   // * Version 4, version 5: Use v4 decoding

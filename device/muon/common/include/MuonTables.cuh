@@ -31,7 +31,7 @@ namespace Muon {
     unsigned int sizeOffset[Constants::n_stations * Constants::n_regions * n_tables];
     float* coordinates[n_tables * Constants::n_stations];
 
-    MuonTables(size_t* allOffsets, char* dev_muon_tables_raw, unsigned int* sizeOffset_, const int version)
+    __device__ MuonTables(size_t* allOffsets, char* dev_muon_tables_raw, unsigned int* sizeOffset_, const int version)
     {
       m_version = version;
 
@@ -53,9 +53,9 @@ namespace Muon {
       }
     }
 
-    unsigned int getVersion() const { return m_version; }
+    __device__ unsigned int getVersion() const { return m_version; }
 
-    MuonTables() {}
+    MuonTables() = default;
   };
 
   __device__ inline unsigned int
@@ -124,10 +124,8 @@ namespace Muon {
 
     if (muonTables->getVersion() == 2)
       pad_offset = (4 * tile.region() + tile.quarter()) * perQuarter;
-    else if (muonTables->getVersion() == 3)
+    else // if (muonTables->getVersion() == 3)
       pad_offset = muonTables->offset[MuonTables::padTableNumber][idx] + tile.quarter() * perQuarter;
-    else
-      throw StrException {"Unrecognized MuonTable version"};
 
     return pad_offset;
   }
