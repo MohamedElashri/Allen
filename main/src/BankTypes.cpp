@@ -26,9 +26,7 @@ namespace {
 std::string bank_name(BankTypes bank_type)
 {
   auto it = std::find_if(
-    BankNames.begin(), BankNames.end(), [bank_type](const auto& entry) {
-      return entry.second == bank_type;
-    });
+    BankNames.begin(), BankNames.end(), [bank_type](const auto& entry) { return entry.second == bank_type; });
   if (it != end(BankNames)) {
     return it->first;
   }

@@ -73,7 +73,7 @@ void register_consumers(
     std::make_tuple(std::make_tuple(Allen::NonEventData::MagneticField {}, [&constants]() {
       return std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity);
     }));
-  
+
   for_each(consumers, [updater, requested_banks](const auto& c) {
     if (requested_banks.count(std::get<2>(c))) {
       using id_t = typename std::remove_reference_t<decltype(std::get<0>(c))>;

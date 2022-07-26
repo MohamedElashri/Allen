@@ -29,7 +29,8 @@ def make_transposed_raw_banks(rawbank_list, make_raw=default_raw_event):
 
 def get_runtime_options(rawbank_list):
     return ProvideRuntimeOptions(
-        AllenBanksLocation=make_transposed_raw_banks(rawbank_list=rawbank_list))
+        AllenBanksLocation=make_transposed_raw_banks(
+            rawbank_list=rawbank_list))
 
 
 def get_constants():
@@ -39,7 +40,7 @@ def get_constants():
 
 # Gaudi configuration wrapper
 def make_algorithm(algorithm, name, *args, **kwargs):
-    
+
     # Deduce the types requested
     bank_type = kwargs.get('bank_type', '')
     rawbank_list = []
@@ -64,7 +65,8 @@ def make_algorithm(algorithm, name, *args, **kwargs):
     ]
     for dev_event_list_name in event_list_names:
         kwargs[dev_event_list_name] = dev_event_list
-    return algorithm(name=name, runtime_options_t=rto, constants_t=cs, *args, **kwargs)
+    return algorithm(
+        name=name, runtime_options_t=rto, constants_t=cs, *args, **kwargs)
 
 
 # Empty generate to support importing Allen sequences in Gaudi-Allen
