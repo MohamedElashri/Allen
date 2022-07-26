@@ -119,8 +119,6 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-sequence_name = args.sequence.split('/')[-1].split('.')[0]
-
 runtime_lib = None
 if args.profile == "CUDA":
     runtime_lib = ctypes.CDLL("libcudart.so")
