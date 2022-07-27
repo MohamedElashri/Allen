@@ -124,7 +124,7 @@ namespace Muon {
 
     if (muonTables->getVersion() == 2)
       pad_offset = (4 * tile.region() + tile.quarter()) * perQuarter;
-    else // if (muonTables->getVersion() == 3)
+    else
       pad_offset = muonTables->offset[MuonTables::padTableNumber][idx] + tile.quarter() * perQuarter;
 
     return pad_offset;

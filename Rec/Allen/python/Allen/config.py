@@ -11,10 +11,10 @@
 from Configurables import ApplicationMgr, AllenUpdater
 from PyConf import configurable
 from PyConf.control_flow import CompositeNode, NodeLogic
-from PyConf.Algorithms import (AllenTESProducer, DumpBeamline, DumpUTGeometry,
-                               DumpUTLookupTables, DumpCaloGeometry,
-                               DumpMagneticField, DumpVPGeometry,
-                               DumpFTGeometry, DumpMuonGeometry, DumpMuonTable)
+from PyConf.Algorithms import (
+    AllenTESProducer, DumpBeamline, DumpCaloGeometry, DumpMagneticField,
+    DumpVPGeometry, DumpFTGeometry, DumpUTGeometry, DumpUTLookupTables,
+    DumpMuonGeometry, DumpMuonTable)
 from DDDB.CheckDD4Hep import UseDD4Hep
 
 
@@ -38,17 +38,14 @@ def setup_allen_non_event_data_service(allen_event_loop=False):
 
     appMgr.ExtSvc.extend(AllenUpdater(TriggerEventLoop=allen_event_loop))
 
-    types = [
-        (DumpBeamline, 'beamline'),
-        (DumpCaloGeometry, 'ecal_geometry'),
-        (DumpUTGeometry, 'ut_geometry'),
-        (DumpUTLookupTables, 'ut_tables'),
-        (DumpVPGeometry, 'velo_geometry'),
-        (DumpMagneticField, 'polarity'),
-        (DumpFTGeometry, 'scifi_geometry'),
-        (DumpMuonGeometry, 'muon_geometry'),
-        (DumpMuonTable, 'muon_tables')
-    ]
+    types = [(DumpBeamline, 'beamline'), (DumpUTGeometry, 'ut_geometry'),
+             (DumpUTLookupTables, 'ut_tables'),
+             (DumpCaloGeometry, 'ecal_geometry'),
+             (DumpVPGeometry, 'velo_geometry'), (DumpMagneticField,
+                                                 'polarity'),
+             (DumpFTGeometry, 'scifi_geometry'),
+             (DumpMuonGeometry, 'muon_geometry'), (DumpMuonTable,
+                                                   'muon_tables')]
 
     algorithm_converters = []
     algorithm_producers = []

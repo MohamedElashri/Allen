@@ -17,13 +17,10 @@ namespace Muon {
     unsigned int getVersion() const { return m_version; }
     void setVersion(unsigned int version)
     {
-      // std::cout << "I am inside SetVersion" << std::endl;
       m_version = version;
-      // std::cout << "I am gouing outside SetVersion: m_version is now: " << m_version << std::endl;
       return;
     }
 
-    ///////////////// getters for version2
     MuonGeometry(size_t* sizes, unsigned** tiles)
     {
       for (size_t i = 0; i < m_tiles_size; i++) {
@@ -44,14 +41,12 @@ namespace Muon {
       return m_tiles[Tell1_num][ch];
     }
 
-    ///////////////// getters for version3
     unsigned int m_stationsTell40[maxTell40Number];
     unsigned int m_activeLink[maxTell40Number][maxTell40PCINumber];
     unsigned int m_regionOfLink[maxTell40Number][maxTell40PCINumber][maxNumberLinks];
     unsigned int m_quarterOfLink[maxTell40Number][maxTell40PCINumber][maxNumberLinks];
     unsigned int m_tileinTell40[maxTell40Number][maxTell40PCINumber][maxNumberLinks * ODEFrameSize];
 
-    ///////////////// version3 constructor
     MuonGeometry(
       unsigned int stations[maxTell40Number],
       unsigned int activelinks[maxTell40Number][maxTell40PCINumber],
@@ -62,16 +57,13 @@ namespace Muon {
       for (unsigned int itell = 0; itell < maxTell40Number; itell++) {
         m_stationsTell40[itell] = stations[itell];
         for (unsigned int ipci = 0; ipci < maxTell40PCINumber; ipci++) {
-          // auto flattenedPCIindex = itell * maxTell40PCINumber + ipci;
-          m_activeLink[itell][ipci] = activelinks[itell][ipci]; // activelinks[ flattenedPCIindex ] ;
+          m_activeLink[itell][ipci] = activelinks[itell][ipci];
           for (unsigned int ilink = 0; ilink < maxNumberLinks; ilink++) {
-            // auto flattenedLinkindex = flattenedPCIindex * maxNumberLinks + ilink;
-            m_regionOfLink[itell][ipci][ilink] = linkregion[itell][ipci][ilink];   //[flattenedLinkindex];
-            m_quarterOfLink[itell][ipci][ilink] = linkquarter[itell][ipci][ilink]; //[flattenedLinkindex];
+            m_regionOfLink[itell][ipci][ilink] = linkregion[itell][ipci][ilink];
+            m_quarterOfLink[itell][ipci][ilink] = linkquarter[itell][ipci][ilink];
             for (unsigned int ich = 0; ich < ODEFrameSize; ich++) {
-              // auto flattenedchindex = flattenedLinkindex * ODEFrameSize + ich;
               m_tileinTell40[itell][ipci][ilink * ODEFrameSize + ich] =
-                tileintell40[itell][ipci][ilink * ODEFrameSize + ich]; //[flattenedchindex];
+                tileintell40[itell][ipci][ilink * ODEFrameSize + ich];
             }
           }
         }
@@ -122,7 +114,6 @@ namespace Muon {
       return m_tileinTell40[tell40_num - 1][PCI_num][link_num * ODEFrameSize + ch_num];
     }
 
-    /// IS THERE A BETTER PLACE FOR THIS?
     __device__ unsigned int get_number_of_readout_fibers(
       Allen::device::span<const uint8_t> span_banks,
       unsigned int active_links,

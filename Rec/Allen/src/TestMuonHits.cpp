@@ -40,9 +40,6 @@ void TestMuonHits::operator()(
   const MuonHitContainer& muon_hit_container) const
 {
 
-  // the goal is to compare tileIDs (maybe?) of individual hits, and their positions from data decoded with HLT1 and
-  // HLT2. it's not imperative to store them in another container like this; it's fine to do the comparison on the fly
-  // or differently.
   std::vector<Muon::Hit> muon_hits_allen, muon_hits_rec;
 
   const auto n_hits_total_allen = muon_hit_offsets[Muon::Constants::n_stations];
@@ -89,12 +86,9 @@ void TestMuonHits::operator()(
   }
 
   for (const auto& muon_hit_allen : muon_hits_allen) {
-    // where is std::erase_if https://en.cppreference.com/w/cpp/container/vector/erase2 ?
-    // compare by LHCbID and x position (we mostly care about x, and everything below 1 micon difference is not
-    // important for us)
     auto tmp_iter = std::remove_if(muon_hits_rec.begin(), muon_hits_rec.end(), [&muon_hit_allen](auto& muon_hit_rec) {
-      return muon_hit_rec.tile == muon_hit_allen.tile && abs(muon_hit_rec.x - muon_hit_allen.x) < 1e-3 &&
-             abs(muon_hit_rec.y - muon_hit_allen.y) < 1e-3 && abs(muon_hit_rec.z - muon_hit_allen.z) < 1e-1;
+      return muon_hit_rec.tile == muon_hit_allen.tile && fabsf(muon_hit_rec.x - muon_hit_allen.x) < 1e-3 &&
+             fabsf(muon_hit_rec.y - muon_hit_allen.y) < 1e-3 && fabsf(muon_hit_rec.z - muon_hit_allen.z) < 1e-1;
     });
     const auto n_hits_found = std::distance(tmp_iter, muon_hits_rec.end());
     muon_hits_rec.erase(tmp_iter, muon_hits_rec.end());
@@ -112,7 +106,6 @@ void TestMuonHits::operator()(
   }
 
   if (!muon_hits_rec.empty()) {
-    // error() << "Printing UT hits decoded by Rec that could not be matched to a UT hit in Allen" << endmsg;
     for (const auto& muon_hit_rec : muon_hits_rec)
       error() << "Lonely Rec hit " << muon_hit_rec << endmsg;
   }

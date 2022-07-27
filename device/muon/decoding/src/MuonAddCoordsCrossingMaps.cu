@@ -1,4 +1,4 @@
-/***************************************************************************** \
+/*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "MuonAddCoordsCrossingMaps.cuh"
@@ -53,7 +53,6 @@ __global__ void muon_add_coords_crossing_maps_kernel(muon_add_coords_crossing_ma
 
         muon_compact_hit[localCurrentHitIndex] = compact_hit;
         used[start_index] = true;
-        // printf("ADDING A PAD WITH TILE ID %u \n", tile.id());
       }
     }
 

@@ -53,9 +53,6 @@ __device__ void calculate_srq_size(
     const auto tell_station = muon_raw_to_hits->muonGeometry->whichStationIsTell40(tell_number - 1);
     const auto active_links = muon_raw_to_hits->muonGeometry->NumberOfActiveLink(tell_number, pci_number);
 
-    // printf("SRQSize: sourceID = %u, raw_bank.last - raw_bank.data = %ld, tell_station = %u, active_links = %u \n",
-    // raw_bank.sourceID,  raw_bank.last - raw_bank.data, tell_station, active_links);
-
     const Allen::device::span<const uint8_t> range8 {raw_bank.data, (raw_bank.last - raw_bank.data) / sizeof(uint8_t)};
     const auto range_data = range8.subspan(1);
     const unsigned link_start_pointer = ((range8[0] & 0x20) >> 5) ? 3 : 0;
@@ -64,15 +61,12 @@ __device__ void calculate_srq_size(
     if (!synch_evt) {
       unsigned number_of_readout_fibers =
         muon_raw_to_hits->muonGeometry->get_number_of_readout_fibers(range8, active_links, map_connected_fibers);
-      // printf( "Number of readout fibers is %d \n", number_of_readout_fibers );
 
       for (unsigned link = threadIdx.y; link < number_of_readout_fibers; link += blockDim.y) {
         unsigned reroutered_link = map_connected_fibers[link];
 
         auto regionOfLink = muon_raw_to_hits->muonGeometry->RegionOfLink(tell_number, pci_number, reroutered_link);
         auto quarterOfLink = muon_raw_to_hits->muonGeometry->QuarterOfLink(tell_number, pci_number, reroutered_link);
-        // printf("at link %u, reroutered link %u, tell_number %u, pci_number %u, regionOfLink = %u, quarterOfLink = %u
-        // \n", link, reroutered_link, tell_number, pci_number, regionOfLink, quarterOfLink);
 
         unsigned current_pointer = link_start_pointer;
         auto size_of_link = (static_cast<unsigned>(range_data[current_pointer]) >> 4) + 1;

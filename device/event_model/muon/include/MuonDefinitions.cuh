@@ -20,7 +20,7 @@ namespace Muon {
     static constexpr unsigned n_regions = 4;
     static constexpr unsigned n_quarters = 4;
 
-    // v3 geometry version
+    // v3 geometry
     static constexpr unsigned maxTell40Number = 22;
     static constexpr unsigned int maxTell40PCINumber = 2;
     static constexpr unsigned int maxNumberLinks = 24;

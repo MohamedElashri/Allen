@@ -117,56 +117,43 @@ namespace Allen::device {
     {}
 
     template<std::size_t N>
-    constexpr __device__ __host__ span(const std::array<std::remove_const_t<T>, N>& a) :
-      m_ptr(std::data(a)), m_size(N)
+    constexpr __device__ __host__ span(const std::array<std::remove_const_t<T>, N>& a) : m_ptr(std::data(a)), m_size(N)
     {}
 
-      constexpr __device__ __host__ bool empty() const { return size() == 0; }
-      constexpr __device__ __host__ T* data() const { return __ptr; }
-      constexpr __device__ __host__ size_t size() const { return __size; }
-      constexpr __device__ __host__ size_t size_bytes() const { return __size * sizeof(T); }
-      constexpr __device__ __host__ T& operator[](int i) { return __ptr[i]; }
-      constexpr __device__ __host__ const T& operator[](int i) const { return __ptr[i]; }
-      constexpr __device__ __host__ span<T> subspan(
-        const std::size_t offset,
-        const std::size_t count = 0) const
-      {
-        if (count == 0) {
-          return {__ptr + offset, __size - offset};
-        }
-        else {
-          assert(offset + count <= __size);
-          return {__ptr + offset, count};
-        }
+    constexpr __device__ __host__ bool empty() const { return size() == 0; }
+    constexpr __device__ __host__ T* data() const { return m_ptr; }
+    constexpr __device__ __host__ size_t size() const { return m_size; }
+    constexpr __device__ __host__ size_t size_bytes() const { return m_size * sizeof(T); }
+    constexpr __device__ __host__ T& operator[](int i) { return m_ptr[i]; }
+    constexpr __device__ __host__ const T& operator[](int i) const { return m_ptr[i]; }
+    constexpr __device__ __host__ span<T> subspan(const std::size_t offset, const std::size_t count) const
+    {
+      if (count == 0) {
+        return {m_ptr + offset, m_size - offset};
       }
-    };
+      else {
+        assert(offset + count <= m_size);
+        return {m_ptr + offset, count};
+      }
+    }
 
     constexpr __device__ __host__ span<T> subspan(const std::size_t offset) const
     {
-      return {__ptr + offset, __size - offset};
+      return {m_ptr + offset, m_size - offset};
     }
 
-    constexpr __device__ __host__ T* begin() const {
-      return __ptr;
-    }
-    
-    constexpr __device__ __host__ T* end() const {
-      return __ptr + __size;
-    }
+    constexpr __device__ __host__ T* begin() const { return m_ptr; }
 
-    constexpr __device__ __host__ T* rbegin() const {
-      return __ptr + __size - 1;
-    }
+    constexpr __device__ __host__ T* end() const { return m_ptr + m_size; }
 
-    constexpr __device__ __host__ T* rend() const {
-      return __ptr - 1;
-    }
+    constexpr __device__ __host__ T* rbegin() const { return m_ptr + m_size - 1; }
+
+    constexpr __device__ __host__ T* rend() const { return m_ptr - 1; }
   };
-
 #else
   using gsl::span;
 #endif
-} // namespace Allen
+} // namespace Allen::device
 
 using DeviceDimensions = std::array<unsigned, 3>;
 

@@ -49,20 +49,14 @@ __device__ void decode_muon_bank(
       }
     }
   }
-  else { // decoding_version == 3
-    // printf( "Entering the New PopulateTileANDTDC  \n" );
-
+  else {
     const auto tell_pci = raw_bank.sourceID & 0x00FF;
     const auto tell_number = tell_pci / 2 + 1;
     const auto pci_number = tell_pci % 2;
     const auto tell_station = muon_raw_to_hits->muonGeometry->whichStationIsTell40(tell_number - 1);
     const auto active_links = muon_raw_to_hits->muonGeometry->NumberOfActiveLink(tell_number, pci_number);
 
-    // printf("TileandTDC: sourceID = %u, raw_bank.last - raw_bank.data = %ld, tell_station = %u, active_links = %u \n",
-    // raw_bank.sourceID,  raw_bank.last - raw_bank.data, tell_station, active_links);
-
     const Allen::device::span<const uint8_t> range8 {raw_bank.data, (raw_bank.last - raw_bank.data) / sizeof(uint8_t)};
-
     auto range_data = range8.subspan(1);
     unsigned link_start_pointer = (range8[0] & 0x20) >> 5 ? 3 : 0;
     unsigned map_connected_fibers[24] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -70,15 +64,12 @@ __device__ void decode_muon_bank(
     if (!synch_evt) {
       unsigned number_of_readout_fibers =
         muon_raw_to_hits->muonGeometry->get_number_of_readout_fibers(range8, active_links, map_connected_fibers);
-      // printf( "Number of readout fibers is %d \n", number_of_readout_fibers );
 
       for (unsigned link = threadIdx.y; link < number_of_readout_fibers; link += blockDim.y) {
         unsigned reroutered_link = map_connected_fibers[link];
 
         auto regionOfLink = muon_raw_to_hits->muonGeometry->RegionOfLink(tell_number, pci_number, reroutered_link);
         auto quarterOfLink = muon_raw_to_hits->muonGeometry->QuarterOfLink(tell_number, pci_number, reroutered_link);
-        // printf("at link %u, reroutered link %u, tell_number %u, pci_number %u, regionOfLink = %u, quarterOfLink =
-        // %u\n", link, reroutered_link, tell_number, pci_number, regionOfLink, quarterOfLink);
 
         unsigned current_pointer = link_start_pointer;
         auto size_of_link = (static_cast<unsigned>(range_data[current_pointer]) >> 4) + 1;
@@ -87,8 +78,6 @@ __device__ void decode_muon_bank(
           size_of_link = (static_cast<unsigned>(range_data[current_pointer]) >> 4) + 1;
         }
 
-        // printf("current_pointer is %u, curr_byte is %u, Size of link is %u\n", current_pointer, curr_byte,
-        // size_of_link);
         if (size_of_link > 1) {
           auto range_link_HitsMap = range_data.subspan(current_pointer, 7);
           auto range_link_TDC = range_data.subspan(current_pointer + 6, size_of_link - 6);
@@ -100,22 +89,19 @@ __device__ void decode_muon_bank(
           unsigned nSynch_hits_number = 0;
           unsigned TDC_counter = range_link_TDC.size() * 2 - 1;
 
-          // printf("TDC counter is %u \n ", TDC_counter);
           for (auto r = range_link_HitsMap.rbegin(); r < range_link_HitsMap.rend(); r++) {
             // loop in reverse mode hits map is 47->0
             count_byte++;
             if (count_byte == 7) first_hitmap_byte = true;
-            if (count_byte > 7) break; // should never happens
+            if (count_byte > 7) break;
             for (unsigned bit_pos_1 = 8; bit_pos_1 > 0; --bit_pos_1) {
               unsigned bit_pos = bit_pos_1 - 1;
 
-              if (first_hitmap_byte && bit_pos < 4) continue; // better put break
-              if (last_hitmap_byte && bit_pos > 3) continue;  // better put bit_pos_1=4
+              if (first_hitmap_byte && bit_pos < 4) continue;
+              if (last_hitmap_byte && bit_pos > 3) continue;
               if (*r & Muon::Constants::single_bit_position()[bit_pos]) {
-                // printf("Pos in link: %u \n ", pos_in_link);
                 auto tileId =
                   muon_raw_to_hits->muonGeometry->TileInTell40(tell_number, pci_number, reroutered_link, pos_in_link);
-                // printf("TileandIDC: tileID is %u \n", tileId);
 
                 if (tileId != 0) {
                   const auto tile = Muon::MuonTileID(tileId);
@@ -132,7 +118,6 @@ __device__ void decode_muon_bank(
                     }
                   }
 
-                  // printf("tdc_value is %u \n", tdc_value);
                   nSynch_hits_number++;
 
                   // Store tiles according to their station, region, quarter and layout,
@@ -162,7 +147,6 @@ template<int decoding_version, bool mep_layout>
 __global__ void muon_populate_tile_and_tdc_kernel(muon_populate_tile_and_tdc::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-
   const auto storage_station_region_quarter_offsets =
     parameters.dev_storage_station_region_quarter_offsets +
     event_number * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
@@ -174,24 +158,6 @@ __global__ void muon_populate_tile_and_tdc_kernel(muon_populate_tile_and_tdc::Pa
                                                                        parameters.dev_muon_raw_sizes,
                                                                        parameters.dev_muon_raw_types,
                                                                        event_number};
-
-  // printf("=======+++==========================================================\n" );
-  // for (auto i = 1; i < Muon::Constants::maxTell40Number; i++){
-  //   printf("Tell40 number %u \n", i );
-  //   for (auto j = 0; j < Muon::Constants::maxTell40PCINumber; j++){
-  //     printf("        pci number %u \n", j );
-  //     for (auto k = 0; k < Muon::Constants::maxNumberLinks; k++){
-  //   printf( "           link number %u \n", k );
-  //   printf("            QuarterOfLink %u" ,  parameters.dev_muon_raw_to_hits -> muonGeometry -> QuarterOfLink(i, j,
-  //   k) ); printf(", RegionOfLink  %u \n" , parameters.dev_muon_raw_to_hits -> muonGeometry -> RegionOfLink(i, j, k)
-  //   ); for (auto l = 0; l < Muon::Constants::ODEFrameSize; l++){
-  //     printf("              ODE number %u \n", l );
-  //     printf("              TileInTell40 map %u \n", parameters.dev_muon_raw_to_hits -> muonGeometry ->
-  //     TileInTell40(i, j, k, l) );
-  //   }
-  //     }
-  //   }
-  // }
 
   for (unsigned bank_index = threadIdx.x; bank_index < raw_event.number_of_raw_banks(); bank_index += blockDim.x) {
     const auto raw_bank = raw_event.raw_bank(bank_index);
