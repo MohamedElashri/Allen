@@ -61,79 +61,94 @@ namespace VP {
 } // namespace VP
 
 namespace Velo {
+  template<int decoding_version>
   struct VeloRawBank {
-    uint32_t sensor_index;
-    uint32_t count;
-    uint8_t type;
-    uint32_t* word;
+
+    // two sensors per bank so count banks as well as sensors
+    uint32_t sourceID = 0;
+    uint32_t count = 0;
+    uint32_t const* word = nullptr;
+    uint16_t size = 0;
+    uint16_t type = 0;
 
     // For MEP format
-    __device__ __host__ VeloRawBank(uint32_t source_id, const char* fragment, uint8_t t)
+    __device__ __host__ VeloRawBank(uint32_t source_id, const char* fragment, uint16_t s, uint8_t t)
     {
       type = t;
-      sensor_index = source_id;
-      const char* p = fragment;
-      count = *((uint32_t*) p);
-      p += sizeof(uint32_t);
-      word = (uint32_t*) p;
+      sourceID = source_id;
+      uint32_t const* p = reinterpret_cast<uint32_t const*>(fragment);
+      if constexpr (decoding_version == 2 || decoding_version == 3) {
+        count = *p;
+        p += 1;
+      }
+      word = p;
+      size = s;
     }
 
     // For Allen format
-    __device__ __host__ VeloRawBank(const char* raw_bank, uint8_t t)
-    {
-      type = t;
-      const char* p = raw_bank;
-      sensor_index = *((uint32_t*) p);
-      p += sizeof(uint32_t);
-      count = *((uint32_t*) p);
-      p += sizeof(uint32_t);
-      word = (uint32_t*) p;
-    }
+    __device__ __host__ VeloRawBank(const char* raw_bank, uint16_t s, uint8_t t) :
+      VeloRawBank(*reinterpret_cast<uint32_t const*>(raw_bank), raw_bank + sizeof(uint32_t), s, t)
+    {}
+
+    inline __device__ __host__ uint32_t sensor_pair() const { return sourceID & 0x1FFU; }
+
+    inline __device__ __host__ uint32_t sensor_index0() const { return (sourceID & 0x1FFU) << 1; }
+
+    inline __device__ __host__ uint32_t sensor_index1() const { return ((sourceID & 0x1FFU) << 1) | 0x1; }
   };
 
+  template<unsigned decoding_version>
   struct VeloRawEvent {
   private:
     uint32_t m_number_of_raw_banks = 0;
     uint32_t const* m_raw_bank_offset = nullptr;
     uint8_t const* m_raw_bank_types = nullptr;
-    char* m_payload = nullptr;
+    uint16_t const* m_raw_bank_sizes = nullptr;
+    char const* m_payload = nullptr;
 
-    __device__ __host__ void initialize(const char* event, const unsigned char* types)
+    __device__ __host__ void initialize(const char* event, const uint16_t* sizes, const unsigned char* types)
     {
       const char* p = event;
-      m_number_of_raw_banks = *((uint32_t*) p);
+      m_number_of_raw_banks = *reinterpret_cast<uint32_t const*>(p);
       p += sizeof(uint32_t);
-      m_raw_bank_offset = (uint32_t*) p;
+      m_raw_bank_offset = reinterpret_cast<uint32_t const*>(p);
       p += (m_number_of_raw_banks + 1) * sizeof(uint32_t);
-      m_payload = (char*) p;
+      m_payload = p;
       m_raw_bank_types = types;
+      m_raw_bank_sizes = sizes;
     }
 
   public:
-    __device__ __host__ VeloRawEvent(const char* event, const unsigned char* types) { initialize(event, types); }
+    __device__ __host__ VeloRawEvent(const char* event, const uint16_t* sizes, const unsigned char* types)
+    {
+      initialize(event, sizes, types);
+    }
 
     __device__ __host__ VeloRawEvent(
       const char* dev_velo_raw_input,
       const unsigned* dev_velo_raw_input_offsets,
-      const unsigned*,
+      const unsigned* dev_velo_raw_input_sizes,
       const unsigned* dev_velo_raw_input_types,
       const unsigned event_number)
     {
       initialize(
         dev_velo_raw_input + dev_velo_raw_input_offsets[event_number],
+        Allen::bank_sizes(dev_velo_raw_input_sizes, event_number),
         Allen::bank_types(dev_velo_raw_input_types, event_number));
     }
 
     __device__ __host__ unsigned number_of_raw_banks() const { return m_number_of_raw_banks; }
 
-    __device__ __host__ VeloRawBank raw_bank(const unsigned index) const
+    __device__ __host__ VeloRawBank<decoding_version> raw_bank(const unsigned index) const
     {
-      return VeloRawBank {m_payload + m_raw_bank_offset[index], m_raw_bank_types[index]};
+      return VeloRawBank<decoding_version> {
+        m_payload + m_raw_bank_offset[index], m_raw_bank_sizes[index], m_raw_bank_types[index]};
     }
   };
 
-  template<bool mep_layout>
-  using RawEvent = std::conditional_t<mep_layout, MEP::RawEvent<VeloRawBank>, VeloRawEvent>;
+  template<int decoding_version, bool mep_layout>
+  using RawEvent =
+    std::conditional_t<mep_layout, MEP::RawEvent<VeloRawBank<decoding_version>>, VeloRawEvent<decoding_version>>;
 } // namespace Velo
 
 /**

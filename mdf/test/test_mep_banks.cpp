@@ -322,9 +322,9 @@ struct compare<BankTypes::VP, transpose_mep> {
     gsl::span<unsigned const> allen_types,
     unsigned const i_event)
   {
-    const auto allen_raw_event =
-      Velo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
-    const auto mep_raw_event = Velo::RawEvent<!transpose_mep>(
+    const auto allen_raw_event = Velo::RawEvent<4, false>(
+      allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
+    const auto mep_raw_event = Velo::RawEvent<4, !transpose_mep>(
       mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
     auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
@@ -335,8 +335,8 @@ struct compare<BankTypes::VP, transpose_mep> {
       auto const mep_bank = mep_raw_event.raw_bank(bank);
       auto const allen_bank = allen_raw_event.raw_bank(bank);
       REQUIRE(mep_bank.type == allen_bank.type);
-      auto top5_mask = (allen_bank.sensor_index >> 11 == 0) ? 0x7FF : 0xFFFF;
-      REQUIRE((mep_bank.sensor_index & top5_mask) == allen_bank.sensor_index);
+      auto top5_mask = (allen_bank.sensor_index0() >> 11 == 0) ? 0x7FF : 0xFFFF;
+      REQUIRE((mep_bank.sensor_index0() & top5_mask) == allen_bank.sensor_index0());
       REQUIRE(mep_bank.count == allen_bank.count);
       for (size_t j = 0; j < allen_bank.count; ++j) {
         REQUIRE(allen_bank.word[j] == mep_bank.word[j]);
