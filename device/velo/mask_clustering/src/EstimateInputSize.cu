@@ -6,20 +6,38 @@
 
 INSTANTIATE_ALGORITHM(velo_estimate_input_size::velo_estimate_input_size_t)
 
+template<int decoding_version>
 __device__ void estimate_raw_bank_size(
   unsigned* estimated_input_size,
   uint32_t* cluster_candidates,
   unsigned* event_candidate_num,
-  unsigned raw_bank_number,
-  Velo::VeloRawBank const& raw_bank)
+  Velo::VeloRawBank<decoding_version> const& raw_bank)
 {
-  unsigned* estimated_module_pair_size = estimated_input_size + (raw_bank.sensor_index / 8);
+  // both sensors in the same module so sensor_index0/8 covers both module offsets
+  unsigned* estimated_module_pair_size;
+  uint32_t n_sp;
+  if constexpr (decoding_version == 2 || decoding_version == 3) {
+    estimated_module_pair_size = estimated_input_size + (raw_bank.sensor_pair() / 8);
+    n_sp = raw_bank.count;
+  }
+  else {
+    estimated_module_pair_size = estimated_input_size + (raw_bank.sensor_index0() / 8);
+    n_sp = raw_bank.size / 4;
+  }
   unsigned found_cluster_candidates = 0;
-  for (unsigned sp_index = threadIdx.x; sp_index < raw_bank.count; sp_index += blockDim.x) { // Decode sp
+  for (unsigned sp_index = threadIdx.x; sp_index < n_sp; sp_index += blockDim.x) { // Decode sp
     const uint32_t sp_word = raw_bank.word[sp_index];
     const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
     const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
     const uint8_t sp = sp_word & 0xFFU;
+
+    uint32_t sensor_number;
+    if constexpr (decoding_version == 2 || decoding_version == 3) {
+      sensor_number = raw_bank.sensor_pair();
+    }
+    else {
+      sensor_number = (raw_bank.sensor_index0() | ((sp_word >> 23) & 0x1));
+    }
 
     if (no_sp_neighbours) {
       // The SP does not have any neighbours
@@ -90,7 +108,7 @@ __device__ void estimate_raw_bank_size(
       const uint32_t sp_row = sp_addr & 0x3FU;
       const uint32_t sp_col = sp_addr >> 6;
 
-      for (unsigned k = 0; k < raw_bank.count; ++k) {
+      for (unsigned k = 0; k < n_sp; ++k) {
         const uint32_t other_sp_word = raw_bank.word[k];
         const uint32_t other_no_sp_neighbours = sp_word & 0x80000000U;
 
@@ -165,7 +183,7 @@ __device__ void estimate_raw_bank_size(
         const auto candidate_pixel = __clz(first_candidate) - 24;
 
         auto current_cluster_candidate = atomicAdd(event_candidate_num, 1);
-        const uint32_t candidate = (sp_index << 11) | (raw_bank_number << 3) | candidate_pixel;
+        uint32_t candidate = (sp_index << 11) | (sensor_number << 3) | candidate_pixel;
         cluster_candidates[current_cluster_candidate] = candidate;
         ++found_cluster_candidates;
       }
@@ -179,7 +197,7 @@ __device__ void estimate_raw_bank_size(
         const auto candidate_pixel = __clz(second_candidate) - 24;
 
         auto current_cluster_candidate = atomicAdd(event_candidate_num, 1);
-        const uint32_t candidate = (sp_index << 11) | (raw_bank_number << 3) | candidate_pixel;
+        uint32_t candidate = (sp_index << 11) | (sensor_number << 3) | candidate_pixel;
         cluster_candidates[current_cluster_candidate] = candidate;
         ++found_cluster_candidates;
       }
@@ -193,7 +211,7 @@ __device__ void estimate_raw_bank_size(
   }
 }
 
-template<bool mep_layout>
+template<int decoding_version, bool mep_layout>
 __global__ void velo_estimate_input_size_kernel(velo_estimate_input_size::Parameters parameters)
 {
   const auto event_number = parameters.dev_event_list[blockIdx.x];
@@ -201,16 +219,17 @@ __global__ void velo_estimate_input_size_kernel(velo_estimate_input_size::Parame
   unsigned* event_candidate_num = parameters.dev_module_candidate_num + event_number;
   uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
-  const auto velo_raw_event = Velo::RawEvent<mep_layout> {parameters.dev_velo_raw_input,
-                                                          parameters.dev_velo_raw_input_offsets,
-                                                          parameters.dev_velo_raw_input_sizes,
-                                                          parameters.dev_velo_raw_input_types,
-                                                          event_number};
+  const auto velo_raw_event = Velo::RawEvent<decoding_version, mep_layout> {parameters.dev_velo_raw_input,
+                                                                            parameters.dev_velo_raw_input_offsets,
+                                                                            parameters.dev_velo_raw_input_sizes,
+                                                                            parameters.dev_velo_raw_input_types,
+                                                                            event_number};
   for (unsigned raw_bank_number = threadIdx.y; raw_bank_number < velo_raw_event.number_of_raw_banks();
        raw_bank_number += blockDim.y) {
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
+
     if (raw_bank.type != LHCb::RawBank::VP && raw_bank.type != LHCb::RawBank::Velo) continue;
-    estimate_raw_bank_size(estimated_input_size, cluster_candidates, event_candidate_num, raw_bank_number, raw_bank);
+    estimate_raw_bank_size<decoding_version>(estimated_input_size, cluster_candidates, event_candidate_num, raw_bank);
   }
 }
 
@@ -236,7 +255,21 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
   Allen::memset_async<dev_estimated_input_size_t>(arguments, 0, context);
   Allen::memset_async<dev_module_candidate_num_t>(arguments, 0, context);
 
-  global_function(
-    runtime_options.mep_layout ? velo_estimate_input_size_kernel<true> : velo_estimate_input_size_kernel<false>)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  auto const bank_version = first<host_raw_bank_version_t>(arguments);
+
+  // Ensure the bank version is supported
+  if (bank_version != 2 && bank_version != 3 && bank_version != 4) {
+    throw StrException("Velo SP bank version not supported (" + std::to_string(bank_version) + ")");
+  }
+
+  auto kernel_fn = (bank_version == 2) ?
+                     (runtime_options.mep_layout ? global_function(velo_estimate_input_size_kernel<2, true>) :
+                                                   global_function(velo_estimate_input_size_kernel<2, false>)) :
+                     (bank_version == 3) ?
+                     (runtime_options.mep_layout ? global_function(velo_estimate_input_size_kernel<3, true>) :
+                                                   global_function(velo_estimate_input_size_kernel<3, false>)) :
+                     (runtime_options.mep_layout ? global_function(velo_estimate_input_size_kernel<4, true>) :
+                                                   global_function(velo_estimate_input_size_kernel<4, false>));
+
+  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 }

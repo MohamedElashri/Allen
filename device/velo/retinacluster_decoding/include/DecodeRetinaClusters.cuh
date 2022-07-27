@@ -19,7 +19,7 @@ namespace decode_retinaclusters {
     DEVICE_INPUT(dev_velo_retina_raw_input_offsets_t, unsigned) dev_velo_retina_raw_input_offsets;
     DEVICE_INPUT(dev_velo_retina_raw_input_sizes_t, unsigned) dev_velo_retina_raw_input_sizes;
     DEVICE_INPUT(dev_velo_retina_raw_input_types_t, unsigned) dev_velo_retina_raw_input_types;
-    DEVICE_INPUT(dev_offsets_each_sensor_size_t, unsigned) dev_offsets_each_sensor_size;
+    DEVICE_INPUT(dev_offsets_each_sensor_pair_size_t, unsigned) dev_offsets_each_sensor_pair_size;
     DEVICE_INPUT(dev_retina_bank_index_t, unsigned) dev_retina_bank_index;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;

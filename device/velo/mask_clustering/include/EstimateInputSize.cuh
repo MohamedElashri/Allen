@@ -10,6 +10,7 @@ namespace velo_estimate_input_size {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_cluster_candidates_t, unsigned) host_number_of_cluster_candidates;
+    HOST_INPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_candidates_offsets_t, unsigned) dev_candidates_offsets;
     DEVICE_INPUT(dev_velo_raw_input_t, char) dev_velo_raw_input;

@@ -15,6 +15,7 @@ std::vector<std::vector<uint32_t>> clustering(
   const std::vector<char>& geometry,
   const std::vector<char>& events,
   const std::vector<unsigned int>& event_offsets,
+  const std::vector<unsigned int>& event_sizes,
   const std::vector<unsigned int>& event_types,
   const bool assume_never_no_sp = false);
 

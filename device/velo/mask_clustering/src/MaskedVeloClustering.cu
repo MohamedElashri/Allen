@@ -128,6 +128,7 @@ __device__ void print_array_64(const uint64_t p, const int row = -1, const int c
   printf("\n");
 }
 
+template<int decoding_version>
 __device__ void no_neighbour_sp(
   unsigned const* module_pair_cluster_start,
   uint8_t const* dev_velo_sp_patterns,
@@ -138,15 +139,35 @@ __device__ void no_neighbour_sp(
   VeloGeometry const& g,
   int const module_pair_number,
   unsigned const cluster_start,
-  Velo::VeloRawBank const& raw_bank)
+  Velo::VeloRawBank<decoding_version> const& raw_bank)
 {
-  const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
+  // need to double up as two indedependet sensors in the bank
+  const float* ltg0;
+  uint32_t n_sp;
 
-  for (unsigned sp_index = 0; sp_index < raw_bank.count; ++sp_index) {
+  if constexpr (decoding_version == 2 || decoding_version == 3) {
+    ltg0 = g.ltg + g.n_trans * raw_bank.sensor_pair();
+    n_sp = raw_bank.count;
+  }
+  else {
+    ltg0 = g.ltg + g.n_trans * raw_bank.sensor_index0();
+    n_sp = raw_bank.size / 4;
+  }
+
+  for (unsigned sp_index = 0; sp_index < n_sp; ++sp_index) {
     // Decode sp
     const uint32_t sp_word = raw_bank.word[sp_index];
     const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
     const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
+    uint32_t sensor_index;
+
+    if constexpr (decoding_version == 2 || decoding_version == 3) {
+      sensor_index = raw_bank.sourceID;
+    }
+    else {
+      const uint32_t sensorBit = (sp_word & 0x800000U) ? (0x1U << 22) : 0x0U;
+      sensor_index = sensorBit ? raw_bank.sensor_index1() : raw_bank.sensor_index0();
+    }
 
     // There are no neighbours, so compute the number of pixels of this superpixel
     if (no_sp_neighbours) {
@@ -166,7 +187,7 @@ __device__ void no_neighbour_sp(
         const uint32_t cx = sp_col * 2 + col;
         const uint32_t cy = sp_row * 4 + row;
 
-        const unsigned cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
+        const unsigned cid = get_channel_id(sensor_index, chip, cx & VP::ChipColumns_mask, cy);
 
         const float fx = dev_velo_sp_fx[sp * 2];
         const float fy = dev_velo_sp_fy[sp * 2];
@@ -183,9 +204,26 @@ __device__ void no_neighbour_sp(
         _unused(module_pair_cluster_start);
 #endif
 
-        const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
-        const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
-        const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+        float gx, gy, gz;
+        if constexpr (decoding_version == 2 || decoding_version == 3) {
+          gx = (ltg0[0] * local_x + ltg0[1] * local_y + ltg0[9]);
+          gy = (ltg0[3] * local_x + ltg0[4] * local_y + ltg0[10]);
+          gz = (ltg0[6] * local_x + ltg0[7] * local_y + ltg0[11]);
+        }
+        else {
+          const uint32_t sensorBit = (sp_word & 0x800000U) ? (0x1U << 22) : 0x0U;
+          const float* ltg1 = g.ltg + g.n_trans * raw_bank.sensor_index1();
+          if (sensorBit) {
+            gx = (ltg1[0] * local_x + ltg1[1] * local_y + ltg1[9]);
+            gy = (ltg1[3] * local_x + ltg1[4] * local_y + ltg1[10]);
+            gz = (ltg1[6] * local_x + ltg1[7] * local_y + ltg1[11]);
+          }
+          else {
+            gx = (ltg0[0] * local_x + ltg0[1] * local_y + ltg0[9]);
+            gy = (ltg0[3] * local_x + ltg0[4] * local_y + ltg0[10]);
+            gz = (ltg0[6] * local_x + ltg0[7] * local_y + ltg0[11]);
+          }
+        }
 
         const auto cluster_index = cluster_start + cluster_num;
         velo_cluster_container.set_id(cluster_index, get_lhcb_id(cid));
@@ -203,7 +241,7 @@ __device__ void no_neighbour_sp(
         const uint32_t cx = sp_col * 2 + col;
         const uint32_t cy = sp_row * 4 + row;
 
-        unsigned cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
+        unsigned cid = get_channel_id(sensor_index, chip, cx & VP::ChipColumns_mask, cy);
 
         const float fx = dev_velo_sp_fx[sp * 2 + 1];
         const float fy = dev_velo_sp_fy[sp * 2 + 1];
@@ -218,10 +256,26 @@ __device__ void no_neighbour_sp(
         assert(cluster_num <= module_estimated_num);
 #endif
 
-        const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
-        const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
-        const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
-
+        float gx, gy, gz;
+        if constexpr (decoding_version == 2 || decoding_version == 3) {
+          gx = (ltg0[0] * local_x + ltg0[1] * local_y + ltg0[9]);
+          gy = (ltg0[3] * local_x + ltg0[4] * local_y + ltg0[10]);
+          gz = (ltg0[6] * local_x + ltg0[7] * local_y + ltg0[11]);
+        }
+        else {
+          const uint32_t sensorBit = (sp_word & 0x800000U) ? (0x1U << 22) : 0x0U;
+          const float* ltg1 = g.ltg + g.n_trans * raw_bank.sensor_index1();
+          if (sensorBit) {
+            gx = (ltg1[0] * local_x + ltg1[1] * local_y + ltg1[9]);
+            gy = (ltg1[3] * local_x + ltg1[4] * local_y + ltg1[10]);
+            gz = (ltg1[6] * local_x + ltg1[7] * local_y + ltg1[11]);
+          }
+          else {
+            gx = (ltg0[0] * local_x + ltg0[1] * local_y + ltg0[9]);
+            gy = (ltg0[3] * local_x + ltg0[4] * local_y + ltg0[10]);
+            gz = (ltg0[6] * local_x + ltg0[7] * local_y + ltg0[11]);
+          }
+        }
         const auto cluster_index = cluster_start + cluster_num;
         velo_cluster_container.set_id(cluster_index, get_lhcb_id(cid));
         velo_cluster_container.set_x(cluster_index, gx);
@@ -233,20 +287,29 @@ __device__ void no_neighbour_sp(
   }
 }
 
+template<int decoding_version>
 __device__ void rest_of_clusters(
   unsigned const* module_pair_cluster_start,
   Velo::Clusters velo_cluster_container,
   unsigned* module_pair_cluster_num,
   VeloGeometry const& g,
   uint32_t const candidate,
-  Velo::VeloRawBank const& raw_bank)
+  Velo::VeloRawBank<decoding_version> const& raw_bank)
 {
   const auto sp_index = candidate >> 11;
-  const auto raw_bank_number = (candidate >> 3) & 0xFF;
-  const auto module_pair_number = raw_bank_number / 8;
+  const auto sensor_number = (candidate >> 3) & 0xFF;
+  const auto module_pair_number = sensor_number / 8;
   const auto starting_pixel_location = candidate & 0x7;
+  const float* ltg = g.ltg + g.n_trans * sensor_number;
+  uint32_t n_sp;
 
-  const float* ltg = g.ltg + g.n_trans * raw_bank.sensor_index;
+  if constexpr (decoding_version == 2 || decoding_version == 3) {
+    n_sp = raw_bank.count;
+  }
+  else {
+    n_sp = raw_bank.size / 4;
+  }
+
   const uint32_t sp_word = raw_bank.word[sp_index];
   const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
   // Note: In the code below, row and col are int32_t (not unsigned)
@@ -295,9 +358,14 @@ __device__ void rest_of_clusters(
   // Load SPs
   // Note: We will pick up the current one,
   //       no need to add a special case
-  for (unsigned k = 0; k < raw_bank.count; ++k) {
+  for (unsigned k = 0; k < n_sp; ++k) {
     const uint32_t other_sp_word = raw_bank.word[k];
     const uint32_t other_no_sp_neighbours = other_sp_word & 0x80000000U;
+    if constexpr (decoding_version > 3) {
+      const uint32_t otherSensorBit = (other_sp_word & 0x800000U) ? (0x1U) : 0x0U;
+      // Check if the other SP id from the same sensor in the pair in this bank
+      if (otherSensorBit != (sensor_number & 0x1)) continue;
+    }
     if (!other_no_sp_neighbours) {
       const uint32_t other_sp_addr = (other_sp_word & 0x007FFF00U) >> 8;
       const int32_t other_sp_row = other_sp_addr & 0x3FU;
@@ -398,7 +466,7 @@ __device__ void rest_of_clusters(
 
       // store target (3D point for tracking)
       const uint32_t chip = cx >> VP::ChipColumns_division;
-      const unsigned cid = get_channel_id(raw_bank.sensor_index, chip, cx & VP::ChipColumns_mask, cy);
+      const unsigned cid = get_channel_id(sensor_number, chip, cx & VP::ChipColumns_mask, cy);
 
       const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
       const float local_y = (cy + 0.5f + fy) * Velo::Constants::pixel_size;
@@ -427,7 +495,7 @@ __device__ void rest_of_clusters(
   }
 }
 
-template<bool mep_layout>
+template<int decoding_version, bool mep_layout>
 __global__ void velo_masked_clustering_kernel(
   velo_masked_clustering::Parameters parameters,
   const VeloGeometry* dev_velo_geometry,
@@ -454,22 +522,29 @@ __global__ void velo_masked_clustering_kernel(
 
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;
-  const auto velo_raw_event = Velo::RawEvent<mep_layout> {parameters.dev_velo_raw_input,
-                                                          parameters.dev_velo_raw_input_offsets,
-                                                          parameters.dev_velo_raw_input_sizes,
-                                                          parameters.dev_velo_raw_input_types,
-                                                          event_number};
+  const auto velo_raw_event = Velo::RawEvent<decoding_version, mep_layout> {parameters.dev_velo_raw_input,
+                                                                            parameters.dev_velo_raw_input_offsets,
+                                                                            parameters.dev_velo_raw_input_sizes,
+                                                                            parameters.dev_velo_raw_input_types,
+                                                                            event_number};
 
   // process no neighbour sp
   for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < velo_raw_event.number_of_raw_banks();
        raw_bank_number += blockDim.x) {
-    const auto module_pair_number = raw_bank_number / 8;
-    const unsigned cluster_start = module_pair_cluster_start[module_pair_number];
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
 
     if (raw_bank.type != LHCb::RawBank::VP && raw_bank.type != LHCb::RawBank::Velo) continue;
 
-    no_neighbour_sp(
+    unsigned module_pair_number = 0;
+    if constexpr (decoding_version == 2 || decoding_version == 3) {
+      module_pair_number = raw_bank.sensor_pair() / 8;
+    }
+    else {
+      module_pair_number = raw_bank.sensor_index0() / 8;
+    }
+    const unsigned cluster_start = module_pair_cluster_start[module_pair_number];
+
+    no_neighbour_sp<decoding_version>(
       module_pair_cluster_start,
       dev_velo_sp_patterns,
       velo_cluster_container,
@@ -488,13 +563,13 @@ __global__ void velo_masked_clustering_kernel(
   for (unsigned candidate_number = threadIdx.x; candidate_number < number_of_candidates;
        candidate_number += blockDim.x) {
     const uint32_t candidate = cluster_candidates[candidate_number];
-    const uint8_t raw_bank_number = (candidate >> 3) & 0xFF;
+    uint8_t sensor_number = (candidate >> 3) & 0xFF;
 
-    assert(raw_bank_number < Velo::Constants::n_sensors);
+    assert(sensor_number < Velo::Constants::n_sensors);
 
+    const auto raw_bank_number = parameters.dev_velo_bank_index[sensor_number];
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-
-    rest_of_clusters(
+    rest_of_clusters<decoding_version>(
       module_pair_cluster_start, velo_cluster_container, module_pair_cluster_num, g, candidate, raw_bank);
   }
 }
@@ -521,10 +596,19 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
 {
   Allen::memset_async<dev_module_cluster_num_t>(arguments, 0, context);
 
+  auto const bank_version = first<host_raw_bank_version_t>(arguments);
+
   // Selector from layout
-  global_function(
-    runtime_options.mep_layout ? velo_masked_clustering_kernel<true> : velo_masked_clustering_kernel<false>)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  auto kernel_fn = (bank_version == 2) ?
+                     (runtime_options.mep_layout ? global_function(velo_masked_clustering_kernel<2, true>) :
+                                                   global_function(velo_masked_clustering_kernel<2, false>)) :
+                     (bank_version == 3) ?
+                     (runtime_options.mep_layout ? global_function(velo_masked_clustering_kernel<3, true>) :
+                                                   global_function(velo_masked_clustering_kernel<3, false>)) :
+                     (runtime_options.mep_layout ? global_function(velo_masked_clustering_kernel<4, true>) :
+                                                   global_function(velo_masked_clustering_kernel<4, false>));
+
+  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
     constants.dev_velo_geometry,
     constants.dev_velo_sp_patterns.data(),

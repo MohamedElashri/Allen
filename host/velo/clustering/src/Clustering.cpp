@@ -8,6 +8,7 @@ std::vector<std::vector<uint32_t>> clustering(
   const std::vector<char>& geometry,
   const std::vector<char>& events,
   const std::vector<unsigned int>& event_offsets,
+  const std::vector<unsigned int>& event_sizes,
   const std::vector<unsigned int>& event_types,
   const bool assume_never_no_sp)
 {
@@ -28,14 +29,18 @@ std::vector<std::vector<uint32_t>> clustering(
   for (size_t i = 1; i < event_offsets.size(); ++i) {
     std::vector<unsigned int> lhcb_ids;
 
-    Velo::VeloRawEvent e {events.data() + event_offsets[i - 1], Allen::bank_types(event_types.data(), i - 1)};
+    const auto e = Velo::RawEvent<4, false> {events.data() + event_offsets[i - 1],
+                                             Allen::bank_sizes(event_sizes.data(), i - 1),
+                                             Allen::bank_types(event_types.data(), i - 1)};
 
     for (unsigned int raw_bank_index = 0; raw_bank_index < e.number_of_raw_banks(); ++raw_bank_index) {
-      std::vector<uint32_t> pixel_idx;
+      std::vector<uint32_t> pixel_idx0;
+      std::vector<uint32_t> pixel_idx1;
 
       const auto velo_raw_bank = e.raw_bank(raw_bank_index);
       if (velo_raw_bank.type != LHCb::RawBank::VP && velo_raw_bank.type != LHCb::RawBank::Velo) continue;
-      const unsigned int sensor = velo_raw_bank.sensor_index;
+      const unsigned int sensor0 = velo_raw_bank.sensor_index0();
+      const unsigned int sensor1 = velo_raw_bank.sensor_index1();
       // const unsigned int module = sensor / Velo::Constants::n_sensors_per_module;
       // const float* ltg = g.ltg + 16 * sensor;
 
@@ -53,6 +58,9 @@ std::vector<std::vector<uint32_t>> clustering(
         const uint32_t sp_row = sp_addr & 0x3FU;
         const uint32_t sp_col = (sp_addr >> 6);
         const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
+        // pick which sensor this SP is
+        const uint32_t sensor = (sp_word >> 22) & 0x1 ? sensor1 : sensor0;
+        auto& pixel_idx = (sp_word >> 22) & 0x1 ? pixel_idx1 : pixel_idx0;
 
         // if a super pixel is isolated the clustering boils
         // down to a simple pattern look up.
@@ -128,131 +136,137 @@ std::vector<std::vector<uint32_t>> clustering(
 
       // the sensor buffer is filled, perform the clustering on
       // clusters that span several super pixels.
-      const unsigned int nidx = pixel_idx.size();
-      for (unsigned int irc = 0; irc < nidx; ++irc) {
+      for (unsigned int iSens = 0; iSens < 2; ++iSens) {
+        // pick which sensor this SP is
+        const uint32_t sensor = (iSens == 1) ? sensor1 : sensor0;
+        auto& pixel_idx = (iSens == 1) ? pixel_idx1 : pixel_idx0;
 
-        const uint32_t idx = pixel_idx[irc];
-        const uint8_t pixel = buffer[idx];
+        const unsigned int nidx = pixel_idx.size();
+        for (unsigned int irc = 0; irc < nidx; ++irc) {
 
-        if (0 == pixel) continue; // pixel is used in another cluster
+          const uint32_t idx = pixel_idx[irc];
+          const uint8_t pixel = buffer[idx];
 
-        // 8-way row scan optimized seeded flood fill from here.
-        std::vector<uint32_t> stack;
+          if (0 == pixel) continue; // pixel is used in another cluster
 
-        // mark seed as used
-        buffer[idx] = 0;
+          // 8-way row scan optimized seeded flood fill from here.
+          std::vector<uint32_t> stack;
 
-        // initialize sums
-        unsigned int x = 0;
-        unsigned int y = 0;
-        unsigned int n = 0;
+          // mark seed as used
+          buffer[idx] = 0;
 
-        // push seed on stack
-        stack.push_back(idx);
+          // initialize sums
+          unsigned int x = 0;
+          unsigned int y = 0;
+          unsigned int n = 0;
 
-        // as long as the stack is not exhausted:
-        // - pop the stack and add popped pixel to cluster
-        // - scan the row to left and right, adding set pixels
-        //   to the cluster and push set pixels above and below
-        //   on the stack (and delete both from the pixel buffer).
-        while (!stack.empty()) {
+          // push seed on stack
+          stack.push_back(idx);
 
-          // pop pixel from stack and add it to cluster
-          const uint32_t idx = stack.back();
-          stack.pop_back();
-          const uint32_t row = idx & 0xFFU;
-          const uint32_t col = (idx >> 8) & 0x3FFU;
-          x += col;
-          y += row;
-          ++n;
+          // as long as the stack is not exhausted:
+          // - pop the stack and add popped pixel to cluster
+          // - scan the row to left and right, adding set pixels
+          //   to the cluster and push set pixels above and below
+          //   on the stack (and delete both from the pixel buffer).
+          while (!stack.empty()) {
 
-          // check up and down
-          uint32_t u_idx = idx + 1;
-          if (row < VP::NRows - 1 && buffer[u_idx]) {
-            buffer[u_idx] = 0;
-            stack.push_back(u_idx);
-          }
-          uint32_t d_idx = idx - 1;
-          if (row > 0 && buffer[d_idx]) {
-            buffer[d_idx] = 0;
-            stack.push_back(d_idx);
-          }
+            // pop pixel from stack and add it to cluster
+            const uint32_t idx = stack.back();
+            stack.pop_back();
+            const uint32_t row = idx & 0xFFU;
+            const uint32_t col = (idx >> 8) & 0x3FFU;
+            x += col;
+            y += row;
+            ++n;
 
-          // scan row to the right
-          for (unsigned int c = col + 1; c < VP::NSensorColumns; ++c) {
-            const uint32_t nidx = (c << 8) | row;
             // check up and down
-            u_idx = nidx + 1;
+            uint32_t u_idx = idx + 1;
             if (row < VP::NRows - 1 && buffer[u_idx]) {
               buffer[u_idx] = 0;
               stack.push_back(u_idx);
             }
-            d_idx = nidx - 1;
+            uint32_t d_idx = idx - 1;
             if (row > 0 && buffer[d_idx]) {
               buffer[d_idx] = 0;
               stack.push_back(d_idx);
             }
-            // add set pixel to cluster or stop scanning
-            if (buffer[nidx]) {
-              buffer[nidx] = 0;
-              x += c;
-              y += row;
-              ++n;
+
+            // scan row to the right
+            for (unsigned int c = col + 1; c < VP::NSensorColumns; ++c) {
+              const uint32_t nidx = (c << 8) | row;
+              // check up and down
+              u_idx = nidx + 1;
+              if (row < VP::NRows - 1 && buffer[u_idx]) {
+                buffer[u_idx] = 0;
+                stack.push_back(u_idx);
+              }
+              d_idx = nidx - 1;
+              if (row > 0 && buffer[d_idx]) {
+                buffer[d_idx] = 0;
+                stack.push_back(d_idx);
+              }
+              // add set pixel to cluster or stop scanning
+              if (buffer[nidx]) {
+                buffer[nidx] = 0;
+                x += c;
+                y += row;
+                ++n;
+              }
+              else {
+                break;
+              }
             }
-            else {
-              break;
+
+            // scan row to the left
+            for (int c = col - 1; c >= 0; --c) {
+              const uint32_t nidx = (c << 8) | row;
+              // check up and down
+              u_idx = nidx + 1;
+              if (row < VP::NRows - 1 && buffer[u_idx]) {
+                buffer[u_idx] = 0;
+                stack.push_back(u_idx);
+              }
+              d_idx = nidx - 1;
+              if (row > 0 && buffer[d_idx]) {
+                buffer[d_idx] = 0;
+                stack.push_back(d_idx);
+              }
+              // add set pixel to cluster or stop scanning
+              if (buffer[nidx]) {
+                buffer[nidx] = 0;
+                x += c;
+                y += row;
+                ++n;
+              }
+              else {
+                break;
+              }
             }
+          } // while the stack is not empty
+
+          // we are done with this cluster, calculate
+          // centroid pixel coordinate and fractions.
+          if (n <= max_cluster_size) {
+            const unsigned int cx = x / n;
+            const unsigned int cy = y / n;
+
+            // std::cout << "Cluster (cx, cy): " << cx << ", " << cy << std::endl;
+            // const float fx = x / static_cast<float>(n) - cx;
+            // const float fy = y / static_cast<float>(n) - cy;
+
+            // store target (3D point for tracking)
+            const uint32_t chip = cx / VP::ChipColumns;
+            // LHCb::VPChannelID cid(sensor, chip, cx % VP::ChipColumns, cy);
+            unsigned int cid = get_channel_id(sensor, chip, cx % VP::ChipColumns, cy);
+
+            // const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
+            // const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
+            // const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
+            // const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
+            // const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
+
+            lhcb_ids.emplace_back(get_lhcb_id(cid));
           }
-
-          // scan row to the left
-          for (int c = col - 1; c >= 0; --c) {
-            const uint32_t nidx = (c << 8) | row;
-            // check up and down
-            u_idx = nidx + 1;
-            if (row < VP::NRows - 1 && buffer[u_idx]) {
-              buffer[u_idx] = 0;
-              stack.push_back(u_idx);
-            }
-            d_idx = nidx - 1;
-            if (row > 0 && buffer[d_idx]) {
-              buffer[d_idx] = 0;
-              stack.push_back(d_idx);
-            }
-            // add set pixel to cluster or stop scanning
-            if (buffer[nidx]) {
-              buffer[nidx] = 0;
-              x += c;
-              y += row;
-              ++n;
-            }
-            else {
-              break;
-            }
-          }
-        } // while the stack is not empty
-
-        // we are done with this cluster, calculate
-        // centroid pixel coordinate and fractions.
-        if (n <= max_cluster_size) {
-          const unsigned int cx = x / n;
-          const unsigned int cy = y / n;
-
-          // std::cout << "Cluster (cx, cy): " << cx << ", " << cy << std::endl;
-          // const float fx = x / static_cast<float>(n) - cx;
-          // const float fy = y / static_cast<float>(n) - cy;
-
-          // store target (3D point for tracking)
-          const uint32_t chip = cx / VP::ChipColumns;
-          // LHCb::VPChannelID cid(sensor, chip, cx % VP::ChipColumns, cy);
-          unsigned int cid = get_channel_id(sensor, chip, cx % VP::ChipColumns, cy);
-
-          // const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-          // const float local_y = (cy + 0.5 + fy) * Velo::Constants::pixel_size;
-          // const float gx = ltg[0] * local_x + ltg[1] * local_y + ltg[9];
-          // const float gy = ltg[3] * local_x + ltg[4] * local_y + ltg[10];
-          // const float gz = ltg[6] * local_x + ltg[7] * local_y + ltg[11];
-
-          lhcb_ids.emplace_back(get_lhcb_id(cid));
         }
       }
     }

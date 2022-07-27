@@ -14,6 +14,7 @@ namespace velo_masked_clustering {
   struct Parameters {
     HOST_INPUT(host_total_number_of_velo_clusters_t, unsigned) host_total_number_of_velo_clusters;
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     DEVICE_INPUT(dev_velo_raw_input_t, char) dev_velo_raw_input;
     DEVICE_INPUT(dev_velo_raw_input_offsets_t, unsigned) dev_velo_raw_input_offsets;
     DEVICE_INPUT(dev_velo_raw_input_sizes_t, unsigned) dev_velo_raw_input_sizes;
@@ -24,6 +25,7 @@ namespace velo_masked_clustering {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_candidates_offsets_t, unsigned) dev_candidates_offsets;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
+    DEVICE_INPUT(dev_velo_bank_index_t, unsigned) dev_velo_bank_index;
     DEVICE_OUTPUT(dev_module_cluster_num_t, unsigned) dev_module_pair_cluster_num;
     DEVICE_OUTPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(

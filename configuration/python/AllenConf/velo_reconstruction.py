@@ -6,7 +6,8 @@ from AllenAlgorithms.algorithms import (
     velo_estimate_input_size_t, velo_masked_clustering_t, velo_sort_by_phi_t,
     velo_search_by_triplet_t, velo_three_hit_tracks_filter_t,
     velo_copy_track_hit_number_t, velo_consolidate_tracks_t,
-    velo_kalman_filter_t, calculate_number_of_retinaclusters_each_sensor_t,
+    velo_kalman_filter_t,
+    calculate_number_of_retinaclusters_each_sensor_pair_t,
     decode_retinaclusters_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
@@ -21,10 +22,11 @@ def decode_velo(retina_decoding=True):
         data_provider_t, name="velo_banks", bank_type="VP")
 
     if retina_decoding:
-        calculate_number_of_retinaclusters_each_sensor = make_algorithm(
-            calculate_number_of_retinaclusters_each_sensor_t,
-            name="calculate_number_of_retinaclusters_each_sensor",
+        calculate_number_of_retinaclusters_each_sensor_pair = make_algorithm(
+            calculate_number_of_retinaclusters_each_sensor_pair_t,
+            name="calculate_number_of_retinaclusters_each_sensor_pair",
             host_number_of_events_t=number_of_events["host_number_of_events"],
+            host_raw_bank_version_t=velo_banks.host_raw_bank_version_t,
             dev_velo_retina_raw_input_t=velo_banks.dev_raw_banks_t,
             dev_velo_retina_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
             dev_velo_retina_raw_input_sizes_t=velo_banks.dev_raw_sizes_t,
@@ -33,8 +35,9 @@ def decode_velo(retina_decoding=True):
         prefix_sum_offsets_estimated_input_size = make_algorithm(
             host_prefix_sum_t,
             name="prefix_sum_offsets_estimated_input_size",
-            dev_input_buffer_t=calculate_number_of_retinaclusters_each_sensor.
-            dev_each_sensor_size_t)
+            dev_input_buffer_t=
+            calculate_number_of_retinaclusters_each_sensor_pair.
+            dev_each_sensor_pair_size_t)
 
         decode_retinaclusters = make_algorithm(
             decode_retinaclusters_t,
@@ -47,9 +50,9 @@ def decode_velo(retina_decoding=True):
             dev_velo_retina_raw_input_sizes_t=velo_banks.dev_raw_sizes_t,
             dev_velo_retina_raw_input_types_t=velo_banks.dev_raw_types_t,
             dev_retina_bank_index_t=
-            calculate_number_of_retinaclusters_each_sensor.
+            calculate_number_of_retinaclusters_each_sensor_pair.
             dev_retina_bank_index_t,
-            dev_offsets_each_sensor_size_t=
+            dev_offsets_each_sensor_pair_size_t=
             prefix_sum_offsets_estimated_input_size.dev_output_buffer_t,
             dev_number_of_events_t=number_of_events["dev_number_of_events"],
             host_raw_bank_version_t=velo_banks.host_raw_bank_version_t)
@@ -71,6 +74,7 @@ def decode_velo(retina_decoding=True):
             velo_calculate_number_of_candidates_t,
             name="velo_calculate_number_of_candidates",
             host_number_of_events_t=number_of_events["host_number_of_events"],
+            host_raw_bank_version_t=velo_banks.host_raw_bank_version_t,
             dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
             dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
             dev_velo_raw_input_sizes_t=velo_banks.dev_raw_sizes_t,
@@ -89,6 +93,7 @@ def decode_velo(retina_decoding=True):
             host_number_of_events_t=number_of_events["host_number_of_events"],
             host_number_of_cluster_candidates_t=
             prefix_sum_offsets_velo_candidates.host_total_sum_holder_t,
+            host_raw_bank_version_t=velo_banks.host_raw_bank_version_t,
             dev_candidates_offsets_t=prefix_sum_offsets_velo_candidates.
             dev_output_buffer_t,
             dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
@@ -109,6 +114,7 @@ def decode_velo(retina_decoding=True):
             host_total_number_of_velo_clusters_t=
             prefix_sum_offsets_estimated_input_size.host_total_sum_holder_t,
             host_number_of_events_t=number_of_events["host_number_of_events"],
+            host_raw_bank_version_t=velo_banks.host_raw_bank_version_t,
             dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
             dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
             dev_velo_raw_input_sizes_t=velo_banks.dev_raw_sizes_t,
@@ -122,7 +128,8 @@ def decode_velo(retina_decoding=True):
             dev_candidates_offsets_t=prefix_sum_offsets_velo_candidates.
             dev_output_buffer_t,
             dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        )
+            dev_velo_bank_index_t=velo_calculate_number_of_candidates.
+            dev_velo_bank_index_t)
 
         velo_sort_by_phi = make_algorithm(
             velo_sort_by_phi_t,
