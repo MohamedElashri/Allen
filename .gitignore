@@ -33,3 +33,4 @@ InstallArea*
 Makefile
 toolchain.cmake
 configuration/python/AllenConf/algorithms.py
+cache_preload.cmake
