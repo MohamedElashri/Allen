@@ -49,9 +49,10 @@ void seed_confirmTracks::seed_confirmTracks_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  global_function(seed_confirmTracks)(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(arguments);
+  Allen::memset_async<dev_seeding_confirmTracks_atomics_t>(arguments, 0, context);
+  Allen::memset_async<dev_count_hits_working_mem_t>(arguments, 0, context);
 
-  // copy<host_seeding_number_of_tracks_t, dev_seeding_number_of_tracks_t>(arguments, context); //FIXME
+  global_function(seed_confirmTracks)(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(arguments);
 }
 
 __device__ int seed_confirmTracks::findHit(const float tolRem, float predPos, int startPos, int nHits, float* coords)

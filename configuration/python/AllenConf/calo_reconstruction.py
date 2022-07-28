@@ -84,10 +84,8 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
             "host_number_of_reconstructed_scifi_tracks"],
         dev_kf_tracks_t=kalman_velo_only["dev_kf_tracks"],
         dev_velo_tracks_offsets_t=velo_tracks["dev_offsets_all_velo_tracks"],
-        dev_long_tracks_view_t=long_tracks[
-            "dev_multi_event_long_tracks_view"],
-        dev_offsets_long_tracks_t=long_tracks[
-            "dev_offsets_long_tracks"],
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"],
         dev_brem_E_t=brem_recovery.dev_brem_E_t,
         dev_brem_ET_t=brem_recovery.dev_brem_ET_t)
 

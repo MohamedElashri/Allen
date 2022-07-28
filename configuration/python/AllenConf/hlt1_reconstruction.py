@@ -38,9 +38,8 @@ def hlt1_reconstruction(add_electron_id=True, with_ut=True):
     decoded_calo = decode_calo()
     ecal_clusters = make_ecal_clusters(decoded_calo)
 
-    calo_matching_objects = make_track_matching(decoded_calo, velo_tracks,
-                                                velo_states,long_tracks,
-                                                kalman_velo_only)
+    calo_matching_objects = make_track_matching(
+        decoded_calo, velo_tracks, velo_states, long_tracks, kalman_velo_only)
 
     if add_electron_id:
         long_track_particles = make_basic_particles(kalman_velo_only, muonID,
@@ -54,7 +53,7 @@ def hlt1_reconstruction(add_electron_id=True, with_ut=True):
         "velo_states": velo_states,
         "decoded_calo": decoded_calo,
         "pvs": pvs,
-        "ut_tracks": ut_tracks,
+        "ut_tracks": input_tracks,
         "long_tracks": long_tracks,
         "muonID": muonID,
         "kalman_velo_only": kalman_velo_only,
@@ -179,6 +178,7 @@ def validator_node(reconstructed_objects, line_algorithms, with_ut):
             ],
             NodeLogic.NONLAZY_AND,
             force_order=False)
+
 
 def validator_node_matching(reconstructed_objects, line_algorithms):
     return CompositeNode(

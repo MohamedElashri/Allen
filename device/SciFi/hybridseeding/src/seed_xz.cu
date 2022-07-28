@@ -226,6 +226,9 @@ void seed_xz::seed_xz_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
+  Allen::memset_async<dev_seeding_number_of_tracksXZ_t>(arguments, 0, context);
+  Allen::memset_async<dev_count_hits_working_mem_t>(arguments, 0, context);
+
   global_function(seed_xz)(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(arguments);
 }
 

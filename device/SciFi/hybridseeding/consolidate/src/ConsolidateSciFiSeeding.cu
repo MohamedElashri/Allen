@@ -94,6 +94,8 @@ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::operator(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
+  Allen::memset_async<dev_scifi_multi_event_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_scifi_tracks_view_t>(arguments, 0, context);
 
   global_function(seed_confirmTracks_consolidate)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(

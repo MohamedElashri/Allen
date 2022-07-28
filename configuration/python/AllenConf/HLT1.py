@@ -490,7 +490,7 @@ def setup_hlt1_node(withMCChecking=False,
     else:
         if not matching:
             validation_node = validator_node(reconstructed_objects,
-                                         line_algorithms, with_ut)
+                                             line_algorithms, with_ut)
         else:
             validation_node = validator_node_matching(reconstructed_objects,
                                                       line_algorithms)

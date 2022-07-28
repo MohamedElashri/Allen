@@ -28,11 +28,11 @@ __device__ void create_scifi_views_impl(const scifi_consolidate_tracks::Paramete
                                                   parameters.dev_scifi_track_hit_number,
                                                   track_index,
                                                   event_number};
-      new (parameters.dev_long_track_view + event_tracks_offset + track_index) Allen::Views::Physics::LongTrack {
-        velo_track, 
-        ut_track, 
-        parameters.dev_scifi_track_view + event_tracks_offset + track_index, 
-        parameters.dev_scifi_qop + event_tracks_offset + track_index};
+      new (parameters.dev_long_track_view + event_tracks_offset + track_index)
+        Allen::Views::Physics::LongTrack {velo_track,
+                                          ut_track,
+                                          parameters.dev_scifi_track_view + event_tracks_offset + track_index,
+                                          parameters.dev_scifi_qop + event_tracks_offset + track_index};
     }
     else {
 
@@ -45,11 +45,11 @@ __device__ void create_scifi_views_impl(const scifi_consolidate_tracks::Paramete
                                                   parameters.dev_scifi_track_hit_number,
                                                   track_index,
                                                   event_number};
-      new (parameters.dev_long_track_view + event_tracks_offset + track_index) Allen::Views::Physics::LongTrack {
-        velo_track, 
-        nullptr, 
-        parameters.dev_scifi_track_view + event_tracks_offset + track_index, 
-        parameters.dev_scifi_qop + event_tracks_offset + track_index};
+      new (parameters.dev_long_track_view + event_tracks_offset + track_index)
+        Allen::Views::Physics::LongTrack {velo_track,
+                                          nullptr,
+                                          parameters.dev_scifi_track_view + event_tracks_offset + track_index,
+                                          parameters.dev_scifi_qop + event_tracks_offset + track_index};
     }
   }
 

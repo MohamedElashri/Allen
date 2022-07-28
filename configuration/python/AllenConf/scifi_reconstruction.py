@@ -7,7 +7,8 @@ from AllenAlgorithms.algorithms import (
     lf_search_initial_windows_t, lf_triplet_seeding_t, lf_create_tracks_t,
     lf_quality_filter_length_t, lf_quality_filter_t,
     scifi_copy_track_hit_number_t, scifi_consolidate_tracks_t, get_type_id_t,
-    seed_xz_t, seed_confirmTracks_t, seeding_copy_track_hit_number_t, seed_confirmTracks_consolidate_t) 
+    seed_xz_t, seed_confirmTracks_t, seeding_copy_track_hit_number_t,
+    seed_confirmTracks_consolidate_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
@@ -65,8 +66,10 @@ def decode_scifi():
         scifi_calculate_cluster_count.dev_scifi_hit_count_t,
         "host_number_of_scifi_hits":
         prefix_sum_scifi_hits.host_total_sum_holder_t,
-        "dev_scifi_hits": scifi_raw_bank_decoder.dev_scifi_hits_t,
-        "dev_scifi_hit_offsets": prefix_sum_scifi_hits.dev_output_buffer_t,
+        "dev_scifi_hits":
+        scifi_raw_bank_decoder.dev_scifi_hits_t,
+        "dev_scifi_hit_offsets":
+        prefix_sum_scifi_hits.dev_output_buffer_t,
         "host_number_of_scifi_hits":
         prefix_sum_scifi_hits.host_total_sum_holder_t
     }

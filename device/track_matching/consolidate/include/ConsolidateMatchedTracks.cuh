@@ -55,7 +55,7 @@ namespace matching_consolidate_tracks {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_multi_event_long_tracks_ptr_t,
       DEPENDENCIES(dev_multi_event_long_tracks_view_t),
-      Allen::Views::Physics::MultiEventLongTracks*)
+      Allen::IMultiEventContainer*)
     dev_multi_event_long_tracks_ptr;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

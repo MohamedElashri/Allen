@@ -24,6 +24,8 @@ void track_matching_veloSciFi::track_matching_veloSciFi_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
+  Allen::memset_async<dev_atomics_matched_tracks_t>(arguments, 0, context);
+
   global_function(track_matching_veloSciFi)(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(
     arguments, constants.dev_magnet_parametrization);
 }
