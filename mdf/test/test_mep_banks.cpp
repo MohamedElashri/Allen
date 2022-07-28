@@ -87,10 +87,12 @@ fs::path write_json(std::unordered_set<BankTypes> const& bank_types, bool velo_s
     bank_types_json["provide_"s + bank_name(bt)]["bank_type"] = bank_name(bt);
   }
   std::vector<std::array<std::string, 3>> configured_algorithms {
-    {velo_sp ? "velo_masked_clustering::velo_masked_clustering_t" : "decode_retinaclusters::decode_retinaclusters_t", "decode", "DeviceAlgorithm"}
-  };
+    {velo_sp ? "velo_masked_clustering::velo_masked_clustering_t" : "decode_retinaclusters::decode_retinaclusters_t",
+     "decode",
+     "DeviceAlgorithm"}};
   for (auto bt : bank_types) {
-    configured_algorithms.push_back({"data_provider::data_provider_t", "provide_" + bank_name(bt), "ProviderAlgorithm"});
+    configured_algorithms.push_back(
+      {"data_provider::data_provider_t", "provide_" + bank_name(bt), "ProviderAlgorithm"});
   }
   bank_types_json["sequence"]["configured_algorithms"] = configured_algorithms;
 
