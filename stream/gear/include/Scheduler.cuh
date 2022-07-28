@@ -4,7 +4,7 @@
 #pragma once
 
 #include "Store.cuh"
-#include "Configuration.cuh"
+#include "Configuration.h"
 #include "Logger.h"
 #include <utility>
 #include <type_traits>

@@ -18,10 +18,10 @@ from PyConf.tonic import configurable
 def decode_velo(retina_decoding=True):
     number_of_events = initialize_number_of_events()
 
-    velo_banks = make_algorithm(
-        data_provider_t, name="velo_banks", bank_type="VP")
-
     if retina_decoding:
+        velo_banks = make_algorithm(
+            data_provider_t, name="velo_banks", bank_type="VPRetinaCluster")
+
         calculate_number_of_retinaclusters_each_sensor_pair = make_algorithm(
             calculate_number_of_retinaclusters_each_sensor_pair_t,
             name="calculate_number_of_retinaclusters_each_sensor_pair",
@@ -70,6 +70,9 @@ def decode_velo(retina_decoding=True):
             decode_retinaclusters.dev_velo_clusters_t
         }
     else:
+        velo_banks = make_algorithm(
+            data_provider_t, name="velo_banks", bank_type="VP")
+
         velo_calculate_number_of_candidates = make_algorithm(
             velo_calculate_number_of_candidates_t,
             name="velo_calculate_number_of_candidates",

@@ -21,20 +21,16 @@ from PyConf import configurable
 
 # Additional algorithms required by every Gaudi-Allen sequence
 @configurable
-def make_transposed_raw_banks(make_raw=default_raw_event,
-                              rawbank_list=[
-                                  "ODIN", "Muon", "FTCluster", "UT", "VP",
-                                  "VPRetinaCluster", "Calo", "EcalPacked",
-                                  "HcalPacked"
-                              ]):
+def make_transposed_raw_banks(rawbank_list, make_raw=default_raw_event):
     return TransposeRawBanks(
         RawEventLocations=[make_raw(bank_types=[k]) for k in rawbank_list],
         BankTypes=rawbank_list).AllenRawInput
 
 
-def get_runtime_options():
+def get_runtime_options(rawbank_list):
     return ProvideRuntimeOptions(
-        AllenBanksLocation=make_transposed_raw_banks())
+        AllenBanksLocation=make_transposed_raw_banks(
+            rawbank_list=rawbank_list))
 
 
 def get_constants():
@@ -43,9 +39,21 @@ def get_constants():
 
 
 # Gaudi configuration wrapper
-def make_algorithm(algorithm, *args, **kwargs):
-    rto = get_runtime_options()
+def make_algorithm(algorithm, name, *args, **kwargs):
+
+    # Deduce the types requested
+    bank_type = kwargs.get('bank_type', '')
+    rawbank_list = []
+    if name == "populate_odin_banks":
+        rawbank_list = ["ODIN"]
+    elif bank_type == "ECal":
+        rawbank_list = ["Calo", "EcalPacked"]
+    elif bank_type:
+        rawbank_list = [bank_type]
+
+    rto = get_runtime_options(rawbank_list)
     cs = get_constants()
+
     dev_event_list = host_init_event_list_t(
         name="make_event_list", runtime_options_t=rto,
         constants_t=cs).dev_event_list_output_t
@@ -57,7 +65,8 @@ def make_algorithm(algorithm, *args, **kwargs):
     ]
     for dev_event_list_name in event_list_names:
         kwargs[dev_event_list_name] = dev_event_list
-    return algorithm(runtime_options_t=rto, constants_t=cs, *args, **kwargs)
+    return algorithm(
+        name=name, runtime_options_t=rto, constants_t=cs, *args, **kwargs)
 
 
 # Empty generate to support importing Allen sequences in Gaudi-Allen

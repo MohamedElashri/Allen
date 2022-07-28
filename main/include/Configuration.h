@@ -17,8 +17,11 @@
 struct ConfiguredAlgorithm {
   std::string id;
   std::string name;
+  std::string scope;
 
-  ConfiguredAlgorithm(const std::string& id, const std::string& name) : id(id), name(name) {}
+  ConfiguredAlgorithm(const std::string& id, const std::string& name, const std::string& scope) :
+    id(id), name(name), scope(scope)
+  {}
 };
 
 struct ConfiguredArgument {
@@ -54,7 +57,7 @@ struct ConfiguredSequence {
 };
 
 struct ParsedSequence {
-  using configured_algorithm_parse_t = std::vector<std::tuple<std::string, std::string>>;
+  using configured_algorithm_parse_t = std::vector<std::tuple<std::string, std::string, std::string>>;
   using configured_argument_parse_t = std::vector<std::tuple<std::string, std::string>>;
   using configured_algorithm_argument_parse_t =
     std::vector<std::tuple<std::vector<std::string>, std::vector<std::vector<std::string>>>>;

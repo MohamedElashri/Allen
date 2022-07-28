@@ -6,26 +6,29 @@
 #include <optional>
 #include <BankTypes.h>
 #include <Common.h>
+#include <iostream>
 
 namespace {
-  const std::map<BankTypes, std::string> BankNames = {{BankTypes::VP, "VP"},
-                                                      {BankTypes::UT, "UT"},
-                                                      {BankTypes::FT, "FT"},
-                                                      {BankTypes::MUON, "Muon"},
-                                                      {BankTypes::ODIN, "ODIN"},
-                                                      {BankTypes::Rich1, "Rich1"},
-                                                      {BankTypes::Rich2, "Rich2"},
-                                                      {BankTypes::HCal, "HCal"},
-                                                      {BankTypes::ECal, "ECal"},
-                                                      {BankTypes::MCTracks, "tracks"},
-                                                      {BankTypes::MCVertices, "PVs"}};
+  const std::map<std::string, BankTypes> BankNames = {{"VP", BankTypes::VP},
+                                                      {"VPRetinaCluster", BankTypes::VP},
+                                                      {"UT", BankTypes::UT},
+                                                      {"FTCluster", BankTypes::FT},
+                                                      {"Muon", BankTypes::MUON},
+                                                      {"ODIN", BankTypes::ODIN},
+                                                      {"Rich1", BankTypes::Rich1},
+                                                      {"Rich2", BankTypes::Rich2},
+                                                      {"HCal", BankTypes::HCal},
+                                                      {"ECal", BankTypes::ECal},
+                                                      {"tracks", BankTypes::MCTracks},
+                                                      {"PVs", BankTypes::MCVertices}};
 }
 
-std::string bank_name(BankTypes type)
+std::string bank_name(BankTypes bank_type)
 {
-  auto it = BankNames.find(type);
+  auto it = std::find_if(
+    BankNames.begin(), BankNames.end(), [bank_type](const auto& entry) { return entry.second == bank_type; });
   if (it != end(BankNames)) {
-    return it->second;
+    return it->first;
   }
   else {
     return "Unknown";
@@ -34,10 +37,9 @@ std::string bank_name(BankTypes type)
 
 BankTypes bank_type(std::string bank_name)
 {
-  auto it = std::find_if(
-    BankNames.begin(), BankNames.end(), [bank_name](const auto& entry) { return entry.second == bank_name; });
+  auto it = BankNames.find(bank_name);
   if (it != end(BankNames)) {
-    return it->first;
+    return it->second;
   }
   else {
     return BankTypes::Unknown;

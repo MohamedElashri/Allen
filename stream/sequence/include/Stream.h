@@ -19,7 +19,7 @@
 #include "HostBuffers.cuh"
 #include "HostBuffersManager.cuh"
 #include "CheckerInvoker.h"
-#include "Configuration.cuh"
+#include "Configuration.h"
 #include "nlohmann/json.hpp"
 
 struct HostBuffers;

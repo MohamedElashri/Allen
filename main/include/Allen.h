@@ -13,8 +13,6 @@
 
 struct Constants;
 
-void register_consumers(Allen::NonEventData::IUpdater* updater, Constants& constants);
-
 int allen(
   std::map<std::string, std::string> options,
   Allen::NonEventData::IUpdater* updater,
@@ -22,3 +20,8 @@ int allen(
   OutputHandler* output_handler,
   IZeroMQSvc* zmqSvc,
   std::string_view control_connection);
+
+void register_consumers(
+  Allen::NonEventData::IUpdater* updater,
+  Constants& constants,
+  const std::unordered_set<BankTypes> requested_banks);

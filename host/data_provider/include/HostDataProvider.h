@@ -18,7 +18,7 @@ namespace host_data_provider {
     PROPERTY(raw_bank_type_t, "bank_type", "type of raw bank to provide", BankTypes) prop_raw_bank_type;
   };
 
-  struct host_data_provider_t : public HostAlgorithm, Parameters {
+  struct host_data_provider_t : public ProviderAlgorithm, Parameters {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions& runtime_options,

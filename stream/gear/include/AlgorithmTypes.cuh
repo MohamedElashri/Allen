@@ -28,3 +28,7 @@ struct SelectionAlgorithm : public Allen::Algorithm {
 struct ValidationAlgorithm : public Allen::Algorithm {
   constexpr static auto algorithm_scope = "ValidationAlgorithm";
 };
+
+struct ProviderAlgorithm : public Allen::Algorithm {
+  constexpr static auto algorithm_scope = "ProviderAlgorithm";
+};

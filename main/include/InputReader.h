@@ -4,16 +4,14 @@
 #ifndef INPUTREADER_H
 #define INPUTREADER_H 1
 
-#include "InputTools.h"
 #include "Common.h"
 #include "BankTypes.h"
-#include "Tools.h"
 #include <string>
 #include <algorithm>
 #include <unordered_set>
 #include <gsl/gsl>
 #include "nlohmann/json.hpp"
-#include <Configuration.cuh>
+#include "Configuration.h"
 
 struct Reader {
   std::string folder_name;
@@ -91,6 +89,8 @@ struct ConfigurationReader {
   void save(std::string file_name);
 
   std::map<std::string, nlohmann::json> get_sequence() const;
+
+  std::unordered_set<BankTypes> configured_bank_types() const;
 
 private:
   std::map<std::string, std::map<std::string, nlohmann::json>> m_params;

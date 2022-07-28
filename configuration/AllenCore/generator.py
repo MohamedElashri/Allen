@@ -12,7 +12,7 @@ from AllenCore.cftree_ops import get_execution_list_for, BoolNode
 from AllenCore.event_list_utils import add_event_list_combiners
 from AllenCore.AllenSequenceGenerator import generate_allen_sequence
 from AllenCore.allen_benchmarks import benchmark_weights, benchmark_efficiencies
-from AllenAlgorithms.algorithms import AlgorithmCategory, host_init_event_list_t
+from AllenAlgorithms.algorithms import host_init_event_list_t
 from PyConf.components import Algorithm
 
 
@@ -41,7 +41,7 @@ def make_algorithm(alg_type, name, **kwargs):
         weight = benchmark_weights[name]
     elif "prefix_sum" in name:  # hard coded heuristic for now, TODO might want to change
         weight = 1000.0
-    elif alg_type.category() == AlgorithmCategory.SelectionAlgorithm:
+    elif alg_type.category() == "SelectionAlgorithm":
         weight = 10.0
     else:
         weight = 100.0

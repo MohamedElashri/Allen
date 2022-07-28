@@ -114,7 +114,8 @@ StatusCode ProvideConstants::initialize()
     two_track_mva_model_reader.lambda());
 
   // Allen Consumers
-  register_consumers(m_updater, m_constants);
+  register_consumers(
+    m_updater, m_constants, {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::ECal, BankTypes::MUON});
 
   return StatusCode::SUCCESS;
 }

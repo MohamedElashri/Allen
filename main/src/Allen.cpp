@@ -282,7 +282,7 @@ int allen(
     two_track_mva_model_reader->lambda());
 
   // Register all consumers
-  register_consumers(updater, constants);
+  register_consumers(updater, constants, configuration_reader->configured_bank_types());
 
   // Set up monitoring sink
   MonitoringAggregator monitoringAggregator;
