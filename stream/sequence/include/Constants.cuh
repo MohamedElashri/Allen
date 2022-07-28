@@ -124,9 +124,6 @@ struct Constants {
   // Kalman filter
   ParKalmanFilter::KalmanParametrizations* dev_kalman_params = nullptr;
 
-  // Monitoring
-  std::chrono::high_resolution_clock::time_point histogram_time_epoch;
-
   /**
    * @brief Reserves and initializes constants.
    */
@@ -172,6 +169,4 @@ struct Constants {
     const std::vector<float>& monotone_constraints,
     float nominal_cut,
     float lambda);
-
-  void initialize_histogram_time_epoch() { histogram_time_epoch = std::chrono::high_resolution_clock::now(); }
 };

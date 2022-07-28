@@ -86,17 +86,14 @@ namespace gather_selections {
 
     void monitor_operator(const ArgumentReferences<Parameters>& arguments, gsl::span<bool>) const;
 
-    void monitor_postscaled_operator(
-      const ArgumentReferences<Parameters>& arguments,
-      const Constants& constants,
-      gsl::span<bool>) const;
+    void monitor_postscaled_operator(const ArgumentReferences<Parameters>& arguments, const Constants&, gsl::span<bool>)
+      const;
 
   private:
     mutable std::vector<std::unique_ptr<Gaudi::Accumulators::Counter<>>> m_pass_counters;
     mutable std::vector<std::unique_ptr<Gaudi::Accumulators::Counter<>>> m_rate_counters;
     void* histogram_line_passes;
     void* histogram_line_rates;
-    std::vector<void*> histograms_rates_vs_time;
 #endif
   };
 } // namespace gather_selections
