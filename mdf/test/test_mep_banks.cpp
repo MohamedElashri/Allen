@@ -48,7 +48,7 @@ struct Config {
   unsigned eps = 0;
   bool run = false;
   bool transpose_mep = false;
-  std::string subdetectors = "VP,UT,FT,ECal,Muon,ODIN";
+  std::string subdetectors = "VP,UT,FTCluster,ECal,Muon,ODIN";
   bool debug = false;
 
   std::unordered_map<EventID, unsigned> mdf_slices;
