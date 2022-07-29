@@ -95,8 +95,10 @@ class AllenCore():
     @staticmethod
     def write_preamble(i=0):
         # Fetch base_types.py and include it here to make file self-contained
-        s = "\n".join(["from AllenCore.AllenKernel import AllenAlgorithm, AllenDataHandle",
-                      "from collections import OrderedDict\n\n"])
+        s = "\n".join([
+            "from AllenCore.AllenKernel import AllenAlgorithm, AllenDataHandle",
+            "from collections import OrderedDict\n\n"
+        ])
         return s
 
     @staticmethod
@@ -134,9 +136,7 @@ class AllenCore():
         s += AllenCore.prefix(i) + "@staticmethod\n"
         s += AllenCore.prefix(i) + "def category():\n"
         i += 1
-        s += AllenCore.prefix(
-            i
-        ) + f"return \"{algorithm.scope}\"\n\n"
+        s += AllenCore.prefix(i) + f"return \"{algorithm.scope}\"\n\n"
         i -= 1
 
         s += AllenCore.prefix(i) + "def __new__(self, name, **kwargs):\n"
@@ -304,10 +304,10 @@ class AllenCore():
             f"tes_wrappers_{agg.typename}.reserve(m_{agg.typename}.size());\n" +
             f"for (auto const& h : m_{agg.typename}) {{\n" +
             f"  auto* inp = h.getIfExists(); \n" +
-            f"  tes_wrappers_{agg.typename}.emplace_back(inp ? *inp : empty_vector_tes_wrappers_{agg.typename}, \"{agg.typename}\");\n" +
-            f"}}\n" +
-            f"std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> arg_data_{agg.typename};\n" +
-            f"arg_data_{agg.typename}.reserve(m_{agg.typename}.size());\n" +
+            f"  tes_wrappers_{agg.typename}.emplace_back(inp ? *inp : empty_vector_tes_wrappers_{agg.typename}, \"{agg.typename}\");\n"
+            + f"}}\n" +
+            f"std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> arg_data_{agg.typename};\n"
+            + f"arg_data_{agg.typename}.reserve(m_{agg.typename}.size());\n" +
             f"for (auto& w : tes_wrappers_{agg.typename}) {{\n" +
             f"  arg_data_{agg.typename}.emplace_back(w);\n" +
             f"}}\n"
@@ -600,8 +600,8 @@ class AllenCore():
 
     @staticmethod
     def write_algorithms_db(algorithms, filename):
-        code = "\n".join(
-            ("#pragma once", "", "#include <Configuration.h>", "\n"))
+        code = "\n".join(("#pragma once", "", "#include <Configuration.h>",
+                          "\n"))
         for alg in algorithms:
             code += f"namespace {alg.namespace} {{ struct {alg.name}; }}\n"
         code += "\nAllen::TypeErasedAlgorithm instantiate_allen_algorithm(const ConfiguredAlgorithm& alg) {\n"

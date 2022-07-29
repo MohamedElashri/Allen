@@ -44,6 +44,7 @@ void host_routingbits_writer::host_routingbits_writer_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
+  Allen::memset<host_routingbits_t>(arguments, 0, context);
 
   host_routingbits_impl(
     first<host_number_of_events_t>(arguments),
@@ -53,7 +54,9 @@ void host_routingbits_writer::host_routingbits_writer_t::operator()(
     data<host_routingbits_t>(arguments),
     m_rb_ids);
   // Copy routing bit info to the host buffer
-  Allen::copy<host_routingbits_t>(host_buffers.host_routingbits, arguments, context);
+  host_buffers.host_routingbits.resize(size<host_routingbits_t>(arguments));
+  Allen::copy(
+    host_buffers.host_routingbits.get(), get<host_routingbits_t>(arguments), context, Allen::memcpyHostToHost);
 }
 
 void host_routingbits_writer::host_routingbits_impl(

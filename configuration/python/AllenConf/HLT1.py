@@ -422,7 +422,8 @@ def setup_hlt1_node(withMCChecking=False,
 
     gather_selections = make_gather_selections(lines=line_algorithms)
     hlt1_node = CompositeNode(
-        "Allen", [
+        "Allen",
+        [
             lines,
             make_global_decision(lines=line_algorithms),
             make_routingbits_writer(lines=line_algorithms),

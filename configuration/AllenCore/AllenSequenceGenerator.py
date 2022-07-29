@@ -33,7 +33,10 @@ def generate_json_configuration(algorithms, filename):
                 sequence_json[algorithm.name][str(k)] = v
 
     # Generate list of configured algorithms
-    configured_algorithms = [[f"{algorithm.type.namespace()}::{algorithm.typename}", algorithm.name, algorithm.type.category()] for algorithm in algorithms]
+    configured_algorithms = [[
+        f"{algorithm.type.namespace()}::{algorithm.typename}", algorithm.name,
+        algorithm.type.category()
+    ] for algorithm in algorithms]
 
     # All output arguments
     configured_arguments = []
