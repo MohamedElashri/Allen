@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
   auto bank_ids = ::bank_ids();
   MEP::Blocks blocks;
 
-  vector<unsigned> scifi_block_ids, ut_block_ids;
+  vector<unsigned> scifi_block_ids;
 
   bool count_success = false;
   std::array<unsigned int, LHCb::NBankTypes> banks_count;
@@ -103,8 +103,7 @@ int main(int argc, char* argv[])
       auto const allen_type = bank_ids[lhcb_type];
 
       // Copy blocks and calculate block offsets
-      for (auto& [ids, at] : {std::tuple {std::ref(scifi_block_ids), BankTypes::FT},
-                              std::tuple {std::ref(ut_block_ids), BankTypes::UT}}) {
+      for (auto& [ids, at] : {std::tuple {std::ref(scifi_block_ids), BankTypes::FT}}) {
         if (allen_type == to_integral(at)) {
           auto& [spans, offset, offsets, offsets_size] = slices[allen_type][0];
           ids.get().emplace_back(i_block);
@@ -118,7 +117,7 @@ int main(int argc, char* argv[])
     }
 
     MEP::mep_offsets(
-      slices, 0, bank_ids, {BankTypes::UT, BankTypes::FT}, banks_count, events, mep_header, blocks, {0, interval});
+      slices, 0, bank_ids, {BankTypes::FT}, banks_count, events, mep_header, blocks, {0, interval});
     auto scifi_allen_type = to_integral(BankTypes::FT);
 
     auto const& [scifi_data, scifi_data_size, scifi_offsets, scifi_offsets_size] = slices[scifi_allen_type][0];
@@ -151,7 +150,6 @@ int main(int argc, char* argv[])
       return bno;
     };
 
-    auto ut_banks = slice_to_banks(0, BankTypes::UT);
     auto scifi_banks = slice_to_banks(0, BankTypes::FT);
 
     vector<unsigned> host_total_number_of_events(interval, 0);
@@ -160,10 +158,7 @@ int main(int argc, char* argv[])
     unsigned dev_number_of_events = 0;
     unsigned number_of_selected_events = 0;
 
-    host_global_event_cut::Parameters pars {std::get<0>(ut_banks).data(),
-                                            &std::get<2>(ut_banks),
-                                            &std::get<3>(ut_banks),
-                                            std::get<0>(scifi_banks).data(),
+    host_global_event_cut::Parameters pars {std::get<0>(scifi_banks).data(),
                                             &std::get<2>(scifi_banks),
                                             host_event_list.data(),
                                             host_total_number_of_events.data(),
