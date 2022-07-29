@@ -60,9 +60,7 @@ namespace host_global_event_cut {
       // number of clusters due to the merging of clusters.
       n_SciFi_clusters = (n_SciFi_clusters / 2) - 2;
 
-      if (
-        n_SciFi_clusters <= parameters.max_scifi_clusters &&
-        n_SciFi_clusters >= parameters.min_scifi_clusters) {
+      if (n_SciFi_clusters <= parameters.max_scifi_clusters && n_SciFi_clusters >= parameters.min_scifi_clusters) {
         parameters.host_event_list[size_of_list++] = event_number;
       }
     }

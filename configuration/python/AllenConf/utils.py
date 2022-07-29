@@ -31,9 +31,7 @@ def line_maker(line_algorithm, prefilter=None):
 
 
 @configurable
-def make_gec(gec_name='gec',
-             min_scifi_clusters=0,
-             max_scifi_clusters=9750):
+def make_gec(gec_name='gec', min_scifi_clusters=0, max_scifi_clusters=9750):
     return gec(
         name=gec_name,
         min_scifi_clusters=min_scifi_clusters,
