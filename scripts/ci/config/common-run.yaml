@@ -37,6 +37,12 @@
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
         #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"]
 
+      # run throughput, no_gec, no ut
+      - TEST_NAME: "run_throughput"
+        SEQUENCE: ["hlt1_pp_no_gec_no_ut"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
+        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"]
+
       # run throughput, default, SMOG2_pppHe
       - TEST_NAME: "run_throughput"
         SEQUENCE: ["hlt1_pp_default"]
@@ -142,6 +148,11 @@
       # run physics efficiency, forward no ut, scifi v4
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_no_ut_validation"]
+        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
+
+      # run physics efficiency, no gec, forward no ut, scifi v4
+      - TEST_NAME: "run_physics_efficiency"
+        SEQUENCE: ["hlt1_pp_no_gec_no_ut_validation"]
         DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
 
       # run physics efficiency, forward no ut, scifi v6
