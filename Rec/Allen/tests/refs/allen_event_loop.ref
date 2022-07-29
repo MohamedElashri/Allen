@@ -15,7 +15,7 @@ Starting timer for throughput measurement
 ApplicationMgr                         INFO Application Manager Stopped successfully
 Input complete
 HLTControlFlowMgr                      INFO
-HLTControlFlowMgr                      INFO
+HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #passed
 LAZY_AND: allen_non_event_data                #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  NONLAZY_OR: allen_non_event_data_converters  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpBeamline/DumpBeamline                   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
