@@ -29,18 +29,16 @@ namespace host_routingbits_writer {
   /**
    * @brief Implementation of routing bits writer on the host.
    */
-  std::unordered_map<uint32_t, boost::dynamic_bitset<>> m_rb_ids;
 
   void host_routingbits_impl(
     unsigned host_number_of_events,
     unsigned number_of_active_lines,
-    char* names_of_active_lines,
     unsigned* host_dec_reports,
     unsigned* host_routing_bits,
     const std::unordered_map<uint32_t, boost::dynamic_bitset<>>& rb_ids);
 
   struct host_routingbits_writer_t : public HostAlgorithm, Parameters {
-    void init() const;
+    void init();
 
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
@@ -56,6 +54,7 @@ namespace host_routingbits_writer {
       const Allen::Context&) const;
 
   private:
+    std::unordered_map<uint32_t, boost::dynamic_bitset<>> m_rb_ids;
     Property<routingbit_map_t> m_routingbit_map {this, RoutingBitsDefinition::default_routingbit_map};
     Property<name_to_id_map_t> m_name_to_id_map {this, RoutingBitsDefinition::default_routingbit_map};
   };

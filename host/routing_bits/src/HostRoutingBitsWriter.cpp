@@ -16,7 +16,7 @@ void host_routingbits_writer::host_routingbits_writer_t::set_arguments_size(
   set_size<host_routingbits_t>(arguments, RoutingBitsDefinition::n_words * first<host_number_of_events_t>(arguments));
 }
 
-void host_routingbits_writer::host_routingbits_writer_t::init() const
+void host_routingbits_writer::host_routingbits_writer_t::init()
 {
   const auto name_to_id_map = m_name_to_id_map.get_value().get();
   const auto rb_map = m_routingbit_map.get_value().get();
@@ -28,9 +28,11 @@ void host_routingbits_writer::host_routingbits_writer_t::init() const
     boost::dynamic_bitset<> rb_bitset(nlines);
     for (auto const& [name, id] : name_to_id_map) {
       if (std::regex_match(name, rb_regex)) {
-        debug_cout << "Bit: " << bit << " expression: " << expr << " matched to line: " << name << " with ID " << id
-                   << std::endl;
         rb_bitset[id] = 1;
+        if (logger::verbosity() >= logger::debug) {
+          debug_cout << "Bit: " << bit << " expression: " << expr << " matched to line: " << name << " with ID " << id
+                     << std::endl;
+        }
       }
     }
     m_rb_ids[bit] = rb_bitset;
@@ -49,7 +51,6 @@ void host_routingbits_writer::host_routingbits_writer_t::operator()(
   host_routingbits_impl(
     first<host_number_of_events_t>(arguments),
     first<host_number_of_active_lines_t>(arguments),
-    data<host_names_of_active_lines_t>(arguments),
     data<host_dec_reports_t>(arguments),
     data<host_routingbits_t>(arguments),
     m_rb_ids);
@@ -62,13 +63,10 @@ void host_routingbits_writer::host_routingbits_writer_t::operator()(
 void host_routingbits_writer::host_routingbits_impl(
   unsigned host_number_of_events,
   unsigned host_number_of_active_lines,
-  char* host_names_of_active_lines,
   unsigned* host_dec_reports,
   unsigned* host_routing_bits,
   const std::unordered_map<uint32_t, boost::dynamic_bitset<>>& rb_ids)
 {
-  auto line_names = split_string(static_cast<char const*>(host_names_of_active_lines), ",");
-
   boost::dynamic_bitset<> fired(host_number_of_active_lines);
   for (unsigned event = 0; event < host_number_of_events; ++event) {
 
