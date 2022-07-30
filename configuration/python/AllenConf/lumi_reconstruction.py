@@ -16,23 +16,20 @@ from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.persistency import make_gather_selections
 
 
-def findLine(lines, name="Hlt1ODINLumi"):
+def findLine(lines, name):
     for i in range(len(lines)):
         if lines[i].name == name:
-            return i
-    return 0xFFFF
+            return i, True
+    return -1, False
 
 
-def lumi_reconstruction(lines):
-    lumiLine_index = findLine(lines)
-    if lumiLine_index == 0xFFFF:
+def lumi_reconstruction(gather_selections, lines, lumiline_name):
+    lumiLine_index, found = findLine(lines, lumiline_name)
+    if not found:
         return []
 
-    gather_selections = make_gather_selections(lines)
     number_of_events = initialize_number_of_events()
-
     odin = decode_odin()
-
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     decoded_scifi = decode_scifi()
@@ -67,4 +64,4 @@ def lumi_reconstruction(lines):
         dev_storage_station_region_quarter_offsets_t=decoded_muon[
             "dev_storage_station_region_quarter_offsets"])
 
-    return [prefix_sum_lumi_size, make_lumi_summary]
+    return make_lumi_summary

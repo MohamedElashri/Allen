@@ -23,6 +23,8 @@ void odin_provider::odin_provider_t::set_arguments_size(
 
   // A single number for the version
   set_size<host_raw_bank_version_t>(arguments, 1);
+
+  set_size<dev_event_mask_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void odin_provider::odin_provider_t::operator()(
@@ -57,6 +59,19 @@ void odin_provider::odin_provider_t::operator()(
       std::copy_n(event_odin.data, event_odin.size, output->data());
     }
   }
+
+  // Create the event mask, to be consumed by other algorithms
+  auto event_mask_odin = runtime_options.input_provider->event_mask(runtime_options.slice_index);
+  auto buffer = make_host_buffer<unsigned>(arguments, first<host_number_of_events_t>(arguments));
+  unsigned size_of_list = 0;
+  for (unsigned event_number = 0; event_number < first<host_number_of_events_t>(arguments); ++event_number) {
+    if (event_mask_odin[event_number] == 1) {
+      buffer[size_of_list++] = event_number;
+    }
+  }
+  // This copy needs to be synchronous, as it needs to happen before the buffer is deallocated
+  Allen::copy(get<dev_event_mask_t>(arguments), buffer.get(), context, Allen::memcpyHostToDevice, size_of_list);
+  reduce_size<dev_event_mask_t>(arguments, size_of_list);
 
   // Copy data to device
   Allen::copy_async<dev_odin_data_t, host_odin_data_t>(arguments, context);

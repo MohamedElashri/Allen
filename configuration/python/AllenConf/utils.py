@@ -4,8 +4,7 @@
 from AllenCore.generator import make_algorithm
 from AllenAlgorithms.algorithms import (
     host_init_number_of_events_t, host_data_provider_t,
-    host_global_event_cut_t, layout_provider_t, check_pvs_t, low_occupancy_t,
-    host_odin_error_filter_t)
+    host_global_event_cut_t, layout_provider_t, check_pvs_t, low_occupancy_t)
 from PyConf.tonic import configurable
 from PyConf.control_flow import NodeLogic, CompositeNode
 
@@ -18,21 +17,16 @@ def make_line_composite_node(name, algos):
 
 @configurable
 def line_maker(line_algorithm, prefilter=None):
-
-    odin_filter = odin_error_filter("odin_error_filter")
     #add odin error filter by default
     if prefilter is None:
         node = make_line_composite_node(
-            line_algorithm.name, algos=[odin_filter, line_algorithm])
+            line_algorithm.name, algos=[line_algorithm])
+    elif isinstance(prefilter, list):
+        node = make_line_composite_node(
+            line_algorithm.name, algos=prefilter + [line_algorithm])
     else:
-        if isinstance(prefilter, list):
-            node = make_line_composite_node(
-                line_algorithm.name,
-                algos=prefilter + [odin_filter, line_algorithm])
-        else:
-            node = make_line_composite_node(
-                line_algorithm.name,
-                algos=[odin_filter, prefilter, line_algorithm])
+        node = make_line_composite_node(
+            line_algorithm.name, algos=[prefilter, line_algorithm])
     return line_algorithm, node
 
 
@@ -93,13 +87,6 @@ def gec(name="gec", min_scifi_ut_clusters=0, max_scifi_ut_clusters=9750):
         host_ut_raw_bank_version_t=host_ut_banks.host_raw_bank_version_t)
 
     return gec
-
-
-def odin_error_filter(name="odin_error_filter"):
-    number_of_events = initialize_number_of_events()
-    odin_error_filter = make_algorithm(
-        host_odin_error_filter_t, name="odin_error_filter")
-    return odin_error_filter
 
 
 def mep_layout():

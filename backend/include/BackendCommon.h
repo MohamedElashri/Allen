@@ -120,6 +120,7 @@ namespace Allen {
         __ptr(std::data(a)), __size(N)
       {}
 
+      constexpr __device__ __host__ bool empty() const { return size() == 0; }
       constexpr __device__ __host__ T* data() const { return __ptr; }
       constexpr __device__ __host__ size_t size() const { return __size; }
       constexpr __device__ __host__ size_t size_bytes() const { return __size * sizeof(T); }
