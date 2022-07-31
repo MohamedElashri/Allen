@@ -7,7 +7,7 @@ from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line
-from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line
+from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line, make_di_muon_no_ip_line
 from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_lowmass_noip_dielectron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_beam_gas_line
 from AllenConf.hlt1_smog2_lines import (
@@ -188,6 +188,19 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
         line_maker(
             make_single_high_et_line(
                 velo_tracks, calo_matching_objects, name="Hlt1SingleHighEt")))
+    lines.append(
+        line_maker(
+            make_di_muon_no_ip_line(forward_tracks, secondary_vertices)))
+    lines.append(
+        line_maker(
+            make_di_muon_no_ip_line(
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1DiMuonNoIP_ss",
+                pre_scaler_hash_string="di_muon_no_ip_ss_line_pre",
+                post_scaler_hash_string="di_muon_no_ip_ss_line_post",
+                ss_on=True,
+                pre_scaler=.1)))
 
     return lines
 

@@ -108,6 +108,8 @@ Hlt1LowMassNoipDielectron_massSlice4_displaced:         1/  1000, (   30.00 +/- 
 Hlt1LowMassNoipDielectron_SS_massSlice4_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DisplacedLeptons:                                  28/  1000, (  840.00 +/-   156.51) kHz
 Hlt1SingleHighEt:                                       0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DiMuonNoIP:                                        27/  1000, (  810.00 +/-   153.77) kHz
+Hlt1DiMuonNoIP_ss:                                      2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1Passthrough:                                     1000/  1000, (30000.00 +/-     0.00) kHz
 Hlt1GECPassthrough:                                   887/  1000, (26610.00 +/-   300.35) kHz
 Hlt1NoBeam:                                             0/  1000, (    0.00 +/-     0.00) kHz
@@ -162,6 +164,8 @@ Hlt1LowMassNoipDielectron_massSlice4_displaced:         1           1
 Hlt1LowMassNoipDielectron_SS_massSlice4_displaced:      0           0
 Hlt1DisplacedLeptons:                                  28           0
 Hlt1SingleHighEt:                                       0           0
+Hlt1DiMuonNoIP:                                        27          33
+Hlt1DiMuonNoIP_ss:                                      2           3
 Hlt1Passthrough:                                     1000           0
 Hlt1GECPassthrough:                                   887           0
 Hlt1NoBeam:                                             0           0
@@ -175,9 +179,8 @@ Hlt1RICH1Alignment:                                     2           2
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
 
-Total decisions: 3482
-Total tracks:    2634
-Total SVs:       2179
-Total hits:      65228
-Total stdinfo:   33270
-
+Total decisions: 3511
+Total tracks:    2681
+Total SVs:       2210
+Total hits:      66438
+Total stdinfo:   33799
