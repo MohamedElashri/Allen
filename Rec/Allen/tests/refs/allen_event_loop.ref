@@ -36,7 +36,7 @@ HLTControlFlowMgr                      INFO Histograms converted successfully ac
 ToolSvc                                INFO Removing all tools created by ToolSvc
 ApplicationMgr                         INFO Application Manager Finalized successfully
 ApplicationMgr                         INFO Application Manager Terminated successfully
-gather_selections                      INFO Number of counters : 44
+gather_selections                      INFO Number of counters : 48
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Hlt1BothBeamsPass"                             |      1000 |
  | "Hlt1BothBeamsRate"                             |         3 |
@@ -50,6 +50,10 @@ gather_selections                      INFO Number of counters : 44
  | "Hlt1DiMuonHighMassRate"                        |         6 |
  | "Hlt1DiMuonLowMassPass"                         |        10 |
  | "Hlt1DiMuonLowMassRate"                         |        10 |
+ | "Hlt1DiMuonNoIPPass"                            |         5 |
+ | "Hlt1DiMuonNoIPRate"                            |         5 |
+ | "Hlt1DiMuonNoIP_ssPass"                         |         1 |
+ | "Hlt1DiMuonNoIP_ssRate"                         |         1 |
  | "Hlt1DisplacedDielectronPass"                   |         2 |
  | "Hlt1DisplacedDielectronRate"                   |         2 |
  | "Hlt1DisplacedLeptonsPass"                      |         4 |
