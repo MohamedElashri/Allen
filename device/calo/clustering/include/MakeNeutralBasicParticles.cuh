@@ -51,8 +51,8 @@ namespace make_neutral_basic_particles {
       HostBuffers& host_buffers,
       const Allen::Context& context) const;
 
-    private:
-      Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+  private:
+    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
   };
 
 } // namespace make_neutral_basic_particles

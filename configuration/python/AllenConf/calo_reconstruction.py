@@ -227,9 +227,11 @@ def make_ecal_clusters(decoded_calo,
         make_neutral_particles_t,
         name="make_neutral_particles",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_clusters_t=prefix_sum_ecal_num_clusters.host_total_sum_holder_t,
+        host_number_of_clusters_t=prefix_sum_ecal_num_clusters.
+        host_total_sum_holder_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.dev_output_buffer_t,
+        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
+        dev_output_buffer_t,
         dev_ecal_clusters_t=calo_find_clusters.dev_ecal_clusters_t)
 >>>>>>> Add neutral particle maker to configuration
 

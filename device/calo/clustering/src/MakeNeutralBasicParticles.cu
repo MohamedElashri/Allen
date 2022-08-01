@@ -3,10 +3,10 @@
 INSTANTIATE_ALGORITHM(make_neutral_basic_particles::make_neutral_particles_t)
 
 void make_neutral_basic_particles::make_neutral_particles_t::set_arguments_size(
-    ArgumentReferences<Parameters> arguments,
-    const RuntimeOptions&,
-    const Constants&,
-    const HostBuffers&) const
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
 {
   auto n_clusters = first<host_number_of_clusters_t>(arguments);
   set_size<dev_neutral_basic_particle_view_t>(arguments, n_clusters);
@@ -37,8 +37,8 @@ void __global__ make_neutral_basic_particles::make_particles(make_neutral_basic_
 
   for (unsigned i = threadIdx.x; i < number_of_clusters; i += blockDim.x) {
     const auto* calo_cluster = event_clusters + i;
-    new (parameters.dev_neutral_basic_particle_view + offset + i) Allen::Views::Physics::NeutralBasicParticle {
-      calo_cluster};
+    new (parameters.dev_neutral_basic_particle_view + offset + i)
+      Allen::Views::Physics::NeutralBasicParticle {calo_cluster};
   }
 
   if (threadIdx.x == 0) {
@@ -47,8 +47,8 @@ void __global__ make_neutral_basic_particles::make_particles(make_neutral_basic_
   }
 
   if (blockIdx.x == 0 && threadIdx.x == 0) {
-    new (parameters.dev_multi_event_neutral_particles_view)
-      Allen::Views::Physics::MultiEventNeutralBasicParticles {parameters.dev_neutral_basic_particles_view, number_of_events};
+    new (parameters.dev_multi_event_neutral_particles_view) Allen::Views::Physics::MultiEventNeutralBasicParticles {
+      parameters.dev_neutral_basic_particles_view, number_of_events};
     parameters.dev_multi_event_container_neutral_particles[0] = parameters.dev_multi_event_neutral_particles_view;
   }
 }

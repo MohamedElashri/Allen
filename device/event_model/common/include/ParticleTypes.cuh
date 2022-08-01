@@ -418,9 +418,7 @@ namespace Allen {
         const CaloCluster* m_calo_cluster;
 
       public:
-        __host__ __device__ NeutralBasicParticle(
-          const CaloCluster* calo_cluster) :
-          m_calo_cluster(calo_cluster)
+        __host__ __device__ NeutralBasicParticle(const CaloCluster* calo_cluster) : m_calo_cluster(calo_cluster)
         {
           assert(m_calo_cluster != nullptr);
         }
@@ -439,23 +437,20 @@ namespace Allen {
 
         __host__ __device__ unsigned size_impl() const { return m_size; }
 
-        __host__ __device__ const NeutralBasicParticle& particle_impl(const unsigned i) const
-        {
-          return m_particle[i];
-        }
+        __host__ __device__ const NeutralBasicParticle& particle_impl(const unsigned i) const { return m_particle[i]; }
 
       public:
-        NeutralBasicParticles() = default; 
+        NeutralBasicParticles() = default;
 
-        __host__ __device__
-        NeutralBasicParticles(const NeutralBasicParticle* particle, const unsigned* offsets, const unsigned event_number) :
+        __host__ __device__ NeutralBasicParticles(
+          const NeutralBasicParticle* particle,
+          const unsigned* offsets,
+          const unsigned event_number) :
           m_particle(particle + offsets[event_number]),
-          m_size(offsets[event_number + 1] - offsets[event_number]),
-          m_offset(offsets[event_number])
+          m_size(offsets[event_number + 1] - offsets[event_number]), m_offset(offsets[event_number])
         {}
 
         __host__ __device__ unsigned offset() const { return m_offset; }
-
       };
 
       struct CompositeParticle : IParticle {
