@@ -8,9 +8,10 @@
 * granted to it by virtue of its status as an Intergovernmental Organization  *
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
+#include "GatherSelections.cuh"
+
 #ifndef ALLEN_STANDALONE
 
-#include "GatherSelections.cuh"
 #include "SelectionsEventModel.cuh"
 #include "Gaudi/Accumulators.h"
 #include "Gaudi/Accumulators/Histogram.h"
