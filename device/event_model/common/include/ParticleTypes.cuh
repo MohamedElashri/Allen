@@ -22,6 +22,7 @@
 #include "SciFiConsolidated.cuh"
 #include "PV_Definitions.cuh"
 #include "MassDefinitions.h"
+#include "CaloCluster.cuh"
 
 namespace Allen {
   namespace Views {
@@ -410,6 +411,51 @@ namespace Allen {
         }
 
         __host__ __device__ unsigned offset() const { return m_offset; }
+      };
+
+      struct NeutralBasicParticle : IParticle {
+      private:
+        const CaloCluster* m_calo_cluster;
+
+      public:
+        __host__ __device__ NeutralBasicParticle(
+          const CaloCluster* calo_cluster) :
+          m_calo_cluster(calo_cluster)
+        {
+          assert(m_calo_cluster != nullptr);
+        }
+
+        __host__ __device__ const CaloCluster& cluster() const { return *m_calo_cluster; }
+      };
+
+      struct NeutralBasicParticles : IParticleContainer<NeutralBasicParticles> {
+        friend IParticleContainer<NeutralBasicParticles>;
+        constexpr static auto TypeID = Allen::TypeIDs::NeutralBasicParticles;
+
+      private:
+        const NeutralBasicParticle* m_particle;
+        unsigned m_size = 0;
+        unsigned m_offset = 0;
+
+        __host__ __device__ unsigned size_impl() const { return m_size; }
+
+        __host__ __device__ const NeutralBasicParticle& particle_impl(const unsigned i) const
+        {
+          return m_particle[i];
+        }
+
+      public:
+        NeutralBasicParticles() = default;
+
+        __host__ __device__
+        NeutralBasicParticles(const NeutralBasicParticle* particle, const unsigned* offsets, const unsigned event_number) :
+          m_particle(particle + offsets[event_number]),
+          m_size(offsets[event_number + 1] - offsets[event_number]),
+          m_offset(offsets[event_number])
+        {}
+
+        __host__ __device__ unsigned offset() const { return m_offset; }
+
       };
 
       struct CompositeParticle : IParticle {
@@ -835,6 +881,7 @@ namespace Allen {
       };
 
       using MultiEventBasicParticles = Allen::MultiEventContainer<BasicParticles>;
+      using MultiEventNeutralBasicParticles = Allen::MultiEventContainer<NeutralBasicParticles>;
       using MultiEventCompositeParticles = Allen::MultiEventContainer<CompositeParticles>;
     } // namespace Physics
   }   // namespace Views
