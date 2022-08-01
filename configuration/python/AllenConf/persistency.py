@@ -72,12 +72,18 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
     dec_reporter = make_dec_reporter(lines)
     number_of_events = initialize_number_of_events()
 
+    prefix_sum_max_objects = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_sum_max_objects",
+        dev_input_buffer_t=dec_reporter.dev_selected_candidates_counts_t)
+
     make_selected_object_lists = make_algorithm(
         make_selected_object_lists_t,
         name="make_selected_object_lists",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_active_lines_t=gather_selections.
         host_number_of_active_lines_t,
+        host_max_objects_t=prefix_sum_max_objects.host_total_sum_holder_t,
         dev_dec_reports_t=dec_reporter.dev_dec_reports_t,
         dev_number_of_active_lines_t=gather_selections.
         dev_number_of_active_lines_t,
@@ -85,7 +91,8 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         dev_multi_event_particle_containers_t=gather_selections.
         dev_particle_containers_t,
         dev_selections_t=gather_selections.dev_selections_t,
-        dev_selections_offsets_t=gather_selections.dev_selections_offsets_t)
+        dev_selections_offsets_t=gather_selections.dev_selections_offsets_t,
+        dev_max_objects_offsets_t=prefix_sum_max_objects.dev_output_buffer_t)
 
     prefix_sum_hits_size = make_algorithm(
         host_prefix_sum_t,
@@ -131,6 +138,7 @@ def make_sel_report_writer(lines, forward_tracks, secondary_vertices):
         dev_dec_reports_t=dec_reporter.dev_dec_reports_t,
         dev_selections_t=gather_selections.dev_selections_t,
         dev_selections_offsets_t=gather_selections.dev_selections_offsets_t,
+        dev_max_objects_offsets_t=prefix_sum_max_objects.dev_output_buffer_t,
         dev_sel_count_t=make_selected_object_lists.dev_sel_count_t,
         dev_sel_list_t=make_selected_object_lists.dev_sel_list_t,
         dev_candidate_count_t=make_selected_object_lists.dev_candidate_count_t,

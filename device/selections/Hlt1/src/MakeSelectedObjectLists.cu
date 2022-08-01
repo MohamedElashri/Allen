@@ -32,30 +32,27 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
   set_size<dev_sel_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
   // These are effectively 3D arrays. Use the convention: X = candidate, Y = event, Z = line.
   set_size<dev_sel_track_indices_t>(
-    arguments,
-    property<max_selected_tracks_t>() * first<host_number_of_events_t>(arguments) *
-      first<host_number_of_active_lines_t>(arguments));
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_sel_sv_indices_t>(
-    arguments,
-    property<max_selected_svs_t>() * first<host_number_of_events_t>(arguments) *
-      first<host_number_of_active_lines_t>(arguments));
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
 
   // For saving selected candidates.
   // We could have multiple track and SV containers, so we can either set these
   // sizes arbitrarily, or create an algorithm to calculate them.
   set_size<dev_selected_basic_particle_ptrs_t>(
-    arguments, first<host_number_of_events_t>(arguments) * property<max_selected_tracks_t>());
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_selected_composite_particle_ptrs_t>(
-    arguments, first<host_number_of_events_t>(arguments) * property<max_selected_svs_t>());
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
 
   // For removing duplicates.
   set_size<dev_track_duplicate_map_t>(
-    arguments, first<host_number_of_events_t>(arguments) * property<max_selected_tracks_t>());
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_sv_duplicate_map_t>(
-    arguments, first<host_number_of_events_t>(arguments) * property<max_selected_svs_t>());
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_unique_track_list_t>(
-    arguments, first<host_number_of_events_t>(arguments) * property<max_selected_tracks_t>());
-  set_size<dev_unique_sv_list_t>(arguments, first<host_number_of_events_t>(arguments) * property<max_selected_svs_t>());
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
+  set_size<dev_unique_sv_list_t>(
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_unique_track_count_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_unique_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
 
@@ -107,9 +104,10 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
   const unsigned total_events)
 {
   const auto event_number = blockIdx.x;
-  const unsigned selected_track_offset = parameters.max_selected_tracks * event_number;
-  const unsigned selected_sv_offset = parameters.max_selected_svs * event_number;
   const unsigned n_lines = parameters.dev_number_of_active_lines[0];
+  const unsigned n_children = parameters.max_children_per_object;
+  const unsigned* line_selected_object_offsets = parameters.dev_max_objects_offsets + n_lines * event_number;
+  const unsigned selected_object_offset = n_children * line_selected_object_offsets[0];
   const uint32_t* event_dec_reports =
     parameters.dev_dec_reports + (2 + parameters.dev_number_of_active_lines[0]) * event_number;
   unsigned* event_candidate_count =
@@ -137,10 +135,10 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
         if (decs[track_index]) {
           const unsigned track_candidate_index = atomicAdd(event_candidate_count + line_index, 1);
           const unsigned track_insert_index = atomicAdd(parameters.dev_sel_track_count + event_number, 1);
-          parameters.dev_sel_track_indices
-            [(event_number * n_lines + line_index) * parameters.max_selected_tracks + track_candidate_index] =
+          parameters
+            .dev_sel_track_indices[n_children * line_selected_object_offsets[line_index] + track_candidate_index] =
             track_insert_index;
-          parameters.dev_selected_basic_particle_ptrs[selected_track_offset + track_insert_index] =
+          parameters.dev_selected_basic_particle_ptrs[selected_object_offset + track_insert_index] =
             const_cast<Allen::Views::Physics::BasicParticle*>(event_tracks.particle_pointer(track_index));
         }
       }
@@ -156,10 +154,9 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
         if (decs[sv_index]) {
           const unsigned sv_candidate_index = atomicAdd(event_candidate_count + line_index, 1);
           const unsigned sv_insert_index = atomicAdd(parameters.dev_sel_sv_count + event_number, 1);
-          parameters.dev_sel_sv_indices
-            [(event_number * n_lines + line_index) * parameters.max_selected_svs + sv_candidate_index] =
+          parameters.dev_sel_sv_indices[n_children * line_selected_object_offsets[line_index] + sv_candidate_index] =
             sv_insert_index;
-          parameters.dev_selected_composite_particle_ptrs[selected_sv_offset + sv_insert_index] =
+          parameters.dev_selected_composite_particle_ptrs[selected_object_offset + sv_insert_index] =
             const_cast<Allen::Views::Physics::CompositeParticle*>(&event_svs.particle(sv_index));
 
           // Parse the substructure.
@@ -171,13 +168,13 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
             if (substr->type_id() == Allen::TypeIDs::BasicParticle) { // Handle track substructures.
               const unsigned track_insert_index = atomicAdd(parameters.dev_sel_track_count + event_number, 1);
               const auto basic_substr = static_cast<const Allen::Views::Physics::BasicParticle*>(substr);
-              parameters.dev_selected_basic_particle_ptrs[selected_track_offset + track_insert_index] =
+              parameters.dev_selected_basic_particle_ptrs[selected_object_offset + track_insert_index] =
                 const_cast<Allen::Views::Physics::BasicParticle*>(basic_substr);
             }
             else { // Handle composite substructures.
               const unsigned sv_insert_index = atomicAdd(parameters.dev_sel_sv_count + event_number, 1);
               const auto composite_substr = static_cast<const Allen::Views::Physics::CompositeParticle*>(substr);
-              parameters.dev_selected_composite_particle_ptrs[selected_sv_offset + sv_insert_index] =
+              parameters.dev_selected_composite_particle_ptrs[selected_object_offset + sv_insert_index] =
                 const_cast<Allen::Views::Physics::CompositeParticle*>(composite_substr);
 
               // Manually handle sub-substructure to avoid recursion.
@@ -187,7 +184,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
                 // Assume all sub-substructures are BasicParticles.
                 const auto basic_subsubstr =
                   static_cast<const Allen::Views::Physics::BasicParticle*>(composite_substr->child(i_subsubstr));
-                parameters.dev_selected_basic_particle_ptrs[selected_sv_offset + track_insert_index] =
+                parameters.dev_selected_basic_particle_ptrs[selected_object_offset + track_insert_index] =
                   const_cast<Allen::Views::Physics::BasicParticle*>(basic_subsubstr);
               } // End sub-substructure loop.
             }
@@ -207,15 +204,15 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
     const auto n_selected_tracks = parameters.dev_sel_track_count[event_number];
     for (unsigned i_track = 0; i_track < n_selected_tracks; i_track += 1) {
       // Skip tracks that are already marked as duplicates.
-      if (parameters.dev_track_duplicate_map[selected_track_offset + i_track] >= 0) continue;
+      if (parameters.dev_track_duplicate_map[selected_object_offset + i_track] >= 0) continue;
       const unsigned track_insert = atomicAdd(parameters.dev_unique_track_count + event_number, 1);
-      parameters.dev_unique_track_list[selected_track_offset + track_insert] = i_track;
-      const auto trackA = parameters.dev_selected_basic_particle_ptrs[selected_track_offset + i_track];
+      parameters.dev_unique_track_list[selected_object_offset + track_insert] = i_track;
+      const auto trackA = parameters.dev_selected_basic_particle_ptrs[selected_object_offset + i_track];
       // Check for duplicate tracks.
       for (unsigned j_track = i_track + 1; j_track < n_selected_tracks; j_track++) {
-        const auto trackB = parameters.dev_selected_basic_particle_ptrs[selected_track_offset + j_track];
+        const auto trackB = parameters.dev_selected_basic_particle_ptrs[selected_object_offset + j_track];
         if (trackA == trackB) {
-          parameters.dev_track_duplicate_map[selected_track_offset + j_track] = i_track;
+          parameters.dev_track_duplicate_map[selected_object_offset + j_track] = i_track;
         }
       }
     }
@@ -223,15 +220,15 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
     const auto n_selected_svs = parameters.dev_sel_sv_count[event_number];
     for (unsigned i_sv = 0; i_sv < n_selected_svs; i_sv += 1) {
       // Skip SVs that are already marked as duplicates.
-      if (parameters.dev_sv_duplicate_map[selected_sv_offset + i_sv] >= 0) continue;
+      if (parameters.dev_sv_duplicate_map[selected_object_offset + i_sv] >= 0) continue;
       const unsigned sv_insert = atomicAdd(parameters.dev_unique_sv_count + event_number, 1);
-      parameters.dev_unique_sv_list[selected_sv_offset + sv_insert] = i_sv;
-      const auto svA = parameters.dev_selected_composite_particle_ptrs[selected_sv_offset + i_sv];
+      parameters.dev_unique_sv_list[selected_object_offset + sv_insert] = i_sv;
+      const auto svA = parameters.dev_selected_composite_particle_ptrs[selected_object_offset + i_sv];
       // Check for duplicate SVs.
       for (unsigned j_sv = i_sv + 1; j_sv < n_selected_svs; j_sv++) {
-        const auto svB = parameters.dev_selected_composite_particle_ptrs[selected_sv_offset + j_sv];
+        const auto svB = parameters.dev_selected_composite_particle_ptrs[selected_object_offset + j_sv];
         if (svA == svB) {
-          parameters.dev_sv_duplicate_map[selected_sv_offset + j_sv] = i_sv;
+          parameters.dev_sv_duplicate_map[selected_object_offset + j_sv] = i_sv;
         }
       }
     }
@@ -241,19 +238,19 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
 __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_lists::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
-  const unsigned selected_track_offset = parameters.max_selected_tracks * event_number;
-  const unsigned selected_sv_offset = parameters.max_selected_svs * event_number;
-  const auto event_track_ptrs = parameters.dev_selected_basic_particle_ptrs + selected_track_offset;
-  const auto event_unique_track_list = parameters.dev_unique_track_list + selected_track_offset;
-  const auto event_sv_ptrs = parameters.dev_selected_composite_particle_ptrs + selected_sv_offset;
-  const auto event_unique_sv_list = parameters.dev_unique_sv_list + selected_sv_offset;
+  const unsigned n_children = parameters.max_children_per_object;
+  const unsigned n_lines = parameters.dev_number_of_active_lines[0];
+  const unsigned* line_selected_object_offsets = parameters.dev_max_objects_offsets + n_lines * event_number;
+  const unsigned selected_object_offset = n_children * line_selected_object_offsets[0];
+  const auto event_track_ptrs = parameters.dev_selected_basic_particle_ptrs + selected_object_offset;
+  const auto event_unique_track_list = parameters.dev_unique_track_list + selected_object_offset;
+  const auto event_sv_ptrs = parameters.dev_selected_composite_particle_ptrs + selected_object_offset;
+  const auto event_unique_sv_list = parameters.dev_unique_sv_list + selected_object_offset;
   const auto n_selected_tracks = parameters.dev_unique_track_count[event_number];
   const auto n_selected_svs = parameters.dev_unique_sv_count[event_number];
-  const uint32_t* event_dec_reports =
-    parameters.dev_dec_reports + (2 + parameters.dev_number_of_active_lines[0]) * event_number;
-  unsigned* event_candidate_count =
-    parameters.dev_candidate_count + event_number * parameters.dev_number_of_active_lines[0];
-  unsigned* event_sel_list = parameters.dev_sel_list + event_number * parameters.dev_number_of_active_lines[0];
+  const uint32_t* event_dec_reports = parameters.dev_dec_reports + (2 + n_lines) * event_number;
+  unsigned* event_candidate_count = parameters.dev_candidate_count + event_number * n_lines;
+  unsigned* event_sel_list = parameters.dev_sel_list + event_number * n_lines;
 
   // Calculate the size of the hits bank.
   for (unsigned i_track = threadIdx.x; i_track < n_selected_tracks; i_track += blockDim.x) {

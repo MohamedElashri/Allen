@@ -17,6 +17,8 @@ void dec_reporter::dec_reporter_t::set_arguments_size(
     arguments, (2 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
   set_size<host_dec_reports_t>(
     arguments, (2 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
+  set_size<dev_selected_candidates_counts_t>(
+    arguments, first<host_number_of_active_lines_t>(arguments) * first<host_number_of_events_t>(arguments));
 }
 
 void dec_reporter::dec_reporter_t::operator()(
@@ -27,6 +29,7 @@ void dec_reporter::dec_reporter_t::operator()(
   const Allen::Context& context) const
 {
   Allen::memset_async<host_dec_reports_t>(arguments, 0, context);
+  Allen::memset_async<dev_selected_candidates_counts_t>(arguments, 0, context);
 
   global_function(dec_reporter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
@@ -52,6 +55,8 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
 
   uint32_t* event_dec_reports =
     parameters.dev_dec_reports + (2 + parameters.dev_number_of_active_lines[0]) * event_index;
+  unsigned* event_selected_candidates_counts =
+    parameters.dev_selected_candidates_counts + event_index * parameters.dev_number_of_active_lines[0];
 
   if (threadIdx.x == 0) {
     // Set TCK and taskID for each event dec report
@@ -68,6 +73,9 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
     auto decs = selections.get_span(line_index, event_index);
     for (unsigned i = 0; i < decs.size(); ++i) {
       final_decision |= decs[i];
+      if (decs[i]) {
+        event_selected_candidates_counts[line_index]++;
+      }
     }
 
     HltDecReport dec_report;

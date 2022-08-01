@@ -12,6 +12,7 @@ namespace dec_reporter {
     DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
     DEVICE_INPUT(dev_selections_t, bool) dev_selections;
     DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
+    DEVICE_OUTPUT(dev_selected_candidates_counts_t, unsigned) dev_selected_candidates_counts;
     DEVICE_OUTPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
     HOST_OUTPUT(host_dec_reports_t, unsigned) host_dec_reports;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
