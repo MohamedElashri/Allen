@@ -761,6 +761,19 @@ namespace Categories {
           return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.pt > 2e3f && mcp.inEta2_5();
         },
       }),
+      TrackEffReport({
+        "15_long_strange_P>5GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.fromStrangeDecay && mcp.p > 5e3f && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "16_long_strange_P>5GeV_PT>500MeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.fromStrangeDecay && mcp.p > 5e3f && mcp.inEta2_5() &&
+                 mcp.pt > 5e2f;
+        },
+      }),
 
       /* TrackEffReport({ */
       /*   "Long", */
@@ -1243,7 +1256,19 @@ namespace Categories {
           return mcp.isLong && mcp.fromBeautyDecay && !mcp.isElectron() && mcp.pt > 2e3f && mcp.inEta2_5();
         },
       }),
-
+      TrackEffReport({
+        "21_long_strange_P>5GeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.fromStrangeDecay && mcp.p > 5e3f && mcp.inEta2_5();
+        },
+      }),
+      TrackEffReport({
+        "22_long_strange_P>5GeV_PT>500MeV",
+        [](MCParticles::const_reference& mcp) {
+          return mcp.isLong && !mcp.isElectron() && mcp.fromStrangeDecay && mcp.p > 5e3f && mcp.inEta2_5() &&
+                 mcp.pt > 5e2f;
+        },
+      }),
     }};
   }
 
