@@ -19,6 +19,7 @@
 #include <InputProvider.h>
 #include <OutputHandler.h>
 #include <RoutingBitsDefinition.h>
+#include <HltConstants.cuh>
 
 std::tuple<bool, size_t> OutputHandler::output_selected_events(
   size_t const thread_id,
@@ -185,7 +186,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       Allen::add_raw_bank(
         LHCb::RawBank::HltDecReports,
         2u,
-        1 << 13,
+        Hlt1::Constants::sourceID_dec_reports,
         {reinterpret_cast<char const*>(dec_reports.data()) + dec_report_size * event_number,
          static_cast<events_size>(dec_report_size)},
         event_span.data() + header_size + event_sizes[i]);
@@ -194,7 +195,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       Allen::add_raw_bank(
         LHCb::RawBank::HltRoutingBits,
         0u,
-        1 << 13,
+        Hlt1::Constants::sourceID_dec_reports,
         {reinterpret_cast<char const*>(routing_bits.data()) + routing_bits_size * event_number,
          static_cast<events_size>(routing_bits_size)},
         event_span.data() + header_size + event_sizes[i] + bank_header_size + dec_report_size);
@@ -204,7 +205,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
         Allen::add_raw_bank(
           LHCb::RawBank::HltSelReports,
           11u,
-          1 << 13,
+          Hlt1::Constants::sourceID_sel_reports,
           {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[event_number] * sizeof(uint32_t),
            static_cast<events_size>(sel_report_size)},
           event_span.data() + header_size + event_sizes[i] + 2 * bank_header_size + dec_report_size +
@@ -216,7 +217,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
         Allen::add_raw_bank(
           LHCb::RawBank::HltLumiSummary,
           1u, // TODO version number
-          1 << 13,
+          Hlt1::Constants::sourceID_dec_reports,
           {reinterpret_cast<char const*>(lumi_summaries.data()) + lumi_summary_offsets[event_number] * sizeof(uint32_t),
            static_cast<events_size>(lumi_summary_size)},
           event_span.data() + header_size + event_sizes[i] + 3 * bank_header_size + dec_report_size +

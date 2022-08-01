@@ -35,6 +35,11 @@
  */
 namespace LHCb {
 
+  namespace sourceIDs {
+    const short id_dec_reports = 1 << 13;
+    const short id_sel_reports = 1 << 13;
+  } // namespace sourceIDs
+
   class RawBankSubClass;
 
   class RawBank {
