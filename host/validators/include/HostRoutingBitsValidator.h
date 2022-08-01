@@ -37,6 +37,6 @@ namespace host_routingbits_validator {
       const Allen::Context&) const;
 
   private:
-    Property<routingbit_map_t> m_routingbit_map {this, RoutingBitsDefinition::default_routingbit_map};
+    Property<routingbit_map_t> m_routingbit_map {this, {}};
   };
 } // namespace host_routingbits_validator

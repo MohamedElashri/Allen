@@ -55,7 +55,7 @@ namespace host_routingbits_writer {
 
   private:
     std::unordered_map<uint32_t, boost::dynamic_bitset<>> m_rb_ids;
-    Property<routingbit_map_t> m_routingbit_map {this, RoutingBitsDefinition::default_routingbit_map};
-    Property<name_to_id_map_t> m_name_to_id_map {this, RoutingBitsDefinition::default_routingbit_map};
+    Property<routingbit_map_t> m_routingbit_map {this, {}};
+    Property<name_to_id_map_t> m_name_to_id_map {this, {}};
   };
 } // namespace host_routingbits_writer
