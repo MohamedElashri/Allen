@@ -7,6 +7,7 @@
 #include "ROOTService.h"
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
+#include "CaloClusterLine.cuh"
 #include <CaloDigit.cuh>
 #include <CaloCluster.cuh>
 
@@ -16,13 +17,12 @@ namespace single_calo_cluster_line {
     HOST_INPUT(host_ecal_number_of_clusters_t, unsigned) host_ecal_number_of_clusters;
     DEVICE_INPUT(dev_ecal_number_of_clusters_t, unsigned) dev_ecal_number_of_clusters;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    DEVICE_INPUT(dev_ecal_clusters_t, CaloCluster) dev_ecal_clusters;
-    DEVICE_INPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
+    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventNeutralBasicParticles) dev_particle_container;
 
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
+    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
 
     // monitoring
     DEVICE_OUTPUT(clusters_x_t, float) clusters_x;
@@ -44,34 +44,23 @@ namespace single_calo_cluster_line {
 
   struct single_calo_cluster_line_t : public SelectionAlgorithm,
                                       Parameters,
-                                      Line<single_calo_cluster_line_t, Parameters> {
+                                      CaloClusterLine<single_calo_cluster_line_t, Parameters> {
 
-    __device__ static void fill_tuples(
-      const Parameters& parameters,
-      std::tuple<const CaloCluster, const unsigned> input,
-      unsigned index,
-      bool sel);
+    void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
 
-    __device__ static bool select(const Parameters& ps, std::tuple<const CaloCluster, const unsigned> input);
+    __device__ static void
+    monitor(const Parameters& parameters, std::tuple<const Allen::Views::Physics::NeutralBasicParticle> input, unsigned index, bool sel);
 
-    __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
-    {
-      return parameters.dev_ecal_cluster_offsets[event_number];
-    }
+    void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
+      const;
 
-    __device__ static std::tuple<const CaloCluster, const unsigned>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
-    {
-      const unsigned ecal_number_of_clusters = parameters.dev_ecal_number_of_clusters[event_number];
-      const CaloCluster event_ecal_clusters =
-        parameters.dev_ecal_clusters[parameters.dev_ecal_cluster_offsets[event_number] + i];
-      return std::forward_as_tuple(event_ecal_clusters, ecal_number_of_clusters);
-    }
+    __device__ static bool select(const Parameters& ps, std::tuple<const Allen::Views::Physics::NeutralBasicParticle> input);
 
-    static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
-    {
-      return first<host_ecal_number_of_clusters_t>(arguments);
-    }
+    void set_arguments_size(
+      ArgumentReferences<Parameters> arguments,
+      const RuntimeOptions&,
+      const Constants&,
+      const HostBuffers&) const;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
