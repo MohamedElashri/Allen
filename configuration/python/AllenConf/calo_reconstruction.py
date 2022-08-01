@@ -6,7 +6,7 @@ from AllenCore.algorithms import (
     track_digit_selective_matching_t, brem_recovery_t,
     momentum_brem_correction_t, calo_seed_clusters_t, calo_find_clusters_t,
     calo_prefilter_clusters_t, calo_filter_clusters_t, calo_find_twoclusters_t,
-    total_ecal_energy_t)
+    total_ecal_energy_t, make_neutral_particles_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
@@ -172,6 +172,7 @@ def make_ecal_clusters(decoded_calo,
         dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
         dev_output_buffer_t)
 
+<<<<<<< HEAD
     calo_prefilter_clusters = make_algorithm(
         calo_prefilter_clusters_t,
         name='calo_prefilter_clusters_{hash}',
@@ -221,6 +222,16 @@ def make_ecal_clusters(decoded_calo,
         dev_cluster2_idx_t=calo_filter_clusters.dev_cluster2_idx_t,
         dev_ecal_twocluster_offsets_t=prefix_sum_ecal_num_twoclusters.
         dev_output_buffer_t)
+=======
+    make_neutral_particles = make_algorithm(
+        make_neutral_particles_t,
+        name="make_neutral_particles",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_clusters_t=prefix_sum_ecal_num_clusters.host_total_sum_holder_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.dev_output_buffer_t,
+        dev_ecal_clusters_t=calo_find_clusters.dev_ecal_clusters_t)
+>>>>>>> Add neutral particle maker to configuration
 
     return {
         "host_ecal_number_of_clusters":
@@ -237,8 +248,13 @@ def make_ecal_clusters(decoded_calo,
         calo_prefilter_clusters.dev_ecal_num_twoclusters_t,
         "dev_ecal_clusters":
         calo_find_clusters.dev_ecal_clusters_t,
+<<<<<<< HEAD
         "dev_ecal_twoclusters":
         calo_find_twoclusters.dev_ecal_twoclusters_t
+=======
+        "dev_multi_event_neutral_particles":
+        make_neutral_particles.dev_multi_event_neutral_particles_view_t
+>>>>>>> Add neutral particle maker to configuration
     }
 
 

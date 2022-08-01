@@ -445,7 +445,7 @@ namespace Allen {
         }
 
       public:
-        NeutralBasicParticles() = default;
+        NeutralBasicParticles() = default; 
 
         __host__ __device__
         NeutralBasicParticles(const NeutralBasicParticle* particle, const unsigned* offsets, const unsigned event_number) :
