@@ -24,11 +24,11 @@ def decode_odin():
 
 
 @configurable
-def make_bxtype(name="BunchCrossing_Type", bx_type=3):
-    return ODIN_BeamXtype(name=name, bxtype=bx_type)
+def make_bxtype(name="BunchCrossing_Type", bx_type=3, invert=False):
+    return ODIN_BeamXtype(name=name, bxtype=bx_type, invert=invert)
 
 
-def ODIN_BeamXtype(name='ODIN_BeamXType', bxtype=3):
+def ODIN_BeamXtype(name='ODIN_BeamXType', bxtype=3, invert=False):
 
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
@@ -36,6 +36,7 @@ def ODIN_BeamXtype(name='ODIN_BeamXType', bxtype=3):
     return make_algorithm(
         odin_beamcrossingtype_t,
         name=name,
+        invert=invert,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_odin_data_t=odin['dev_odin_data'],
         beam_crossing_type=bxtype)

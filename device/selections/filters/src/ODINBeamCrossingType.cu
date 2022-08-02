@@ -27,7 +27,9 @@ __global__ void odin_beamcrossingtype_kernel(
     const unsigned event_number = parameters.dev_event_list[idx];
     const unsigned bxt =
       static_cast<unsigned int>(LHCb::ODIN {parameters.dev_odin_data[event_number]}.bunchCrossingType());
-    if (bxt == parameters.beam_crossing_type) {
+    if (
+      (!parameters.invert && bxt == parameters.beam_crossing_type) ||
+      (parameters.invert && bxt != parameters.beam_crossing_type)) {
       const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.get(), 1);
       parameters.dev_event_list_output[current_event] = mask_t {event_number};
     }
