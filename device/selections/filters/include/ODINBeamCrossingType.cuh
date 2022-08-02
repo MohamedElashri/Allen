@@ -19,6 +19,7 @@ namespace odin_beamcrossingtype {
 
     PROPERTY(beam_crossing_type_t, "beam_crossing_type", "ODIN beam crossing type [0-3]", unsigned) beam_crossing_type;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
+    PROPERTY(invert_t, "invert", "invert on", bool) invert;
   };
 
   struct odin_beamcrossingtype_t : public DeviceAlgorithm, Parameters {
@@ -38,6 +39,7 @@ namespace odin_beamcrossingtype {
   private:
     Property<block_dim_x_t> m_block_dim_x {this, 256};
     Property<beam_crossing_type_t> m_beam_crossing_type {this, 0};
+    Property<invert_t> m_invert {this, false};
   }; // odin_beamcrossingtype_t
 
 } // namespace odin_beamcrossingtype
