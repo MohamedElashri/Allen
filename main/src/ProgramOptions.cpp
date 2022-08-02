@@ -61,7 +61,8 @@ std::vector<ProgramOption> allen_program_options()
     {{"monitoring-filename"}, "ROOT file to write monitoring histograms to", "monitoring.root"},
     {{"monitoring-save-period"}, "Number of seconds between writes of the monitoring histograms (0: off)", "0"},
     {{"disable-run-changes"}, "Ignore signals to update non-event data with each run change", "1"},
-    {{"enable-monitoring-printing"}, "Enables printing monitoring information", "0"}};
+    {{"enable-monitoring-printing"}, "Enables printing monitoring information", "0"},
+    {{"register-monitoring-counters"}, "Registers monitoring counters", "1"}};
 }
 
 void print_call_options(const std::map<std::string, std::string>& options, const std::string& device_name)
