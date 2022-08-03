@@ -10,6 +10,7 @@
 ###############################################################################
 import os
 import json
+from itertools import chain
 from Configurables import ApplicationMgr, AllenUpdater
 from PyConf import configurable
 from PyConf.control_flow import CompositeNode, NodeLogic
@@ -34,9 +35,9 @@ def configured_bank_types(json_filename):
     bank_types = set()
     with open(sequence_json) as json_file:
         j = json.load(json_file)
-        for k, v in j.items():
-            if 'bank_type' in v:
-                bank_types.add(v['bank_type'])
+        for t, n, c in j["sequence"]["configured_algorithms"]:
+            if c == "ProviderAlgorithm":
+                bank_types.add(j[n]['bank_type'])
     return bank_types
 
 
@@ -73,8 +74,28 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     An ExtSvc is added to the ApplicationMgr to provide the Allen non-event
     data (geometries etc.)
     """
+    converter_types = {
+        'VP': [(DumpBeamline, 'beamline'), (DumpVPGeometry, 'velo_geometry')],
+        'UT': [(DumpUTGeometry, 'ut_geometry'),
+               (DumpUTLookupTables, 'ut_tables')],
+        'ECal': [(DumpCaloGeometry, 'ecal_geometry')],
+        'Magnet': [(DumpMagneticField, 'polarity')],
+        'FTCluster': [(DumpFTGeometry, 'scifi_geometry')],
+        'Muon': [(DumpMuonGeometry, 'muon_geometry'),
+                 (DumpMuonTable, 'muon_tables')]
+    }
+
     if type(bank_types) == list:
         bank_types = set(bank_types)
+    elif bank_types is None:
+        bank_types = set(converter_types.keys())
+
+    if 'VPRetinaCluster' in bank_types:
+        bank_types.remove('VPRetinaCluster')
+        bank_types.add('VP')
+
+    # Always include the magnetic field polarity
+    bank_types.add('Magnet')
 
     dump_geometry, out_dir = allen_non_event_data_config()
 
@@ -85,28 +106,15 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
 
     appMgr.ExtSvc.extend(AllenUpdater(TriggerEventLoop=allen_event_loop))
 
-    types = [(DumpBeamline, 'beamline', {'VP', 'VPRetinaCluster'}),
-             (DumpUTGeometry, 'ut_geometry', {'UT'}),
-             (DumpUTLookupTables, 'ut_tables', {'UT'}),
-             (DumpCaloGeometry, 'ecal_geometry', {'ECal'}),
-             (DumpVPGeometry, 'velo_geometry', {'VP', 'VPRetinaCluster'}),
-             (DumpMagneticField, 'polarity', set()),
-             (DumpFTGeometry, 'scifi_geometry', {"FTCluster"}),
-             (DumpMuonGeometry, 'muon_geometry', {"Muon"}),
-             (DumpMuonTable, 'muon_tables', {"Muon"})]
-
     algorithm_converters = []
     algorithm_producers = []
-
-    def use_converter(entry):
-        return (bank_types is None or not entry[2]
-                or bool(entry[2].intersection(bank_types)))
 
     if allen_event_loop:
         algorithm_converters.append(AllenODINProducer())
 
-    for converter_type, filename, converter_banks in filter(
-            use_converter, types):
+    converters = chain.from_iterable(
+        convs for bt, convs in converter_types.items() if bt in bank_types)
+    for converter_type, filename in converters:
         converter_id = converter_type.getDefaultProperties().get('ID', None)
         if converter_id is not None:
             converter = converter_type()
