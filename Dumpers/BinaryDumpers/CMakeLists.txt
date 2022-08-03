@@ -22,6 +22,7 @@ gaudi_add_library(BinaryDumpers
 
 gaudi_add_module(BinaryDumpersModule
                  SOURCES
+                   src/ODINProducer.cpp
                    src/AllenUpdater.cpp
                    src/DumpBeamline.cpp
                    src/DumpCaloGeometry.cpp

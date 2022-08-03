@@ -5,9 +5,11 @@
 import os
 import sys
 import zmq
+import json
 from Configurables import ApplicationMgr
 from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
-from Allen.config import setup_allen_non_event_data_service
+from Allen.config import (setup_allen_non_event_data_service, allen_odin,
+                          configured_bank_types)
 from PyConf.application import (configure, setup_component, ComponentConfig,
                                 ApplicationOptions)
 from threading import Thread
@@ -201,8 +203,11 @@ config.add(
             'SIMCOND': options.conddb_tag,
         }))
 
-cf_node = setup_allen_non_event_data_service(allen_event_loop=True)
-config.update(configure(options, cf_node))
+
+bank_types = configured_bank_types(args.sequence)
+cf_node = setup_allen_non_event_data_service(allen_event_loop=True,
+                                             bank_types=bank_types)
+config.update(configure(options, cf_node, make_odin=allen_odin))
 
 # Start Gaudi and get the AllenUpdater service
 gaudi = AppMgr()

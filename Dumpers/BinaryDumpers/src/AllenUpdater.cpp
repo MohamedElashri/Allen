@@ -119,7 +119,7 @@ void AllenUpdater::update(gsl::span<unsigned const> odin_data)
     }
 
     // Store ODIN so it can be retrieved and then inserted into the event store
-    m_odin = std::move(odin);
+    m_odin = odin;
   }
 
   // Check if all consumers have a producer
