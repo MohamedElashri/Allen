@@ -65,7 +65,6 @@ public:
   StatusCode initialize() override;
 
   Gaudi::Property<std::string> m_id {this, "ID", Allen::NonEventData::SciFiGeometry::id};
-
 };
 
 DECLARE_COMPONENT(DumpFTGeometry)

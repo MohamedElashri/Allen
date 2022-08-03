@@ -203,10 +203,9 @@ config.add(
             'SIMCOND': options.conddb_tag,
         }))
 
-
 bank_types = configured_bank_types(args.sequence)
-cf_node = setup_allen_non_event_data_service(allen_event_loop=True,
-                                             bank_types=bank_types)
+cf_node = setup_allen_non_event_data_service(
+    allen_event_loop=True, bank_types=bank_types)
 config.update(configure(options, cf_node, make_odin=allen_odin))
 
 # Start Gaudi and get the AllenUpdater service

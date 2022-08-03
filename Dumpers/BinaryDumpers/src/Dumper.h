@@ -46,7 +46,8 @@ namespace Allen::Dumpers {
     }
 
   protected:
-    static std::string location(std::string name, std::string loc) {
+    static std::string location(std::string name, std::string loc)
+    {
       std::string prefix;
 #ifdef USE_DD4HEP
       prefix = "/world:";

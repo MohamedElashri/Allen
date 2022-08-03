@@ -10,14 +10,12 @@ from AllenConf.validators import (velo_validation, long_validation)
 tracks = forward_tracking(with_ut=False)
 
 velo_node = CompositeNode(
-    "velo_validation",
-    [velo_validation(tracks["velo_tracks"])],
+    "velo_validation", [velo_validation(tracks["velo_tracks"])],
     NodeLogic.LAZY_AND,
     force_order=True)
 
 long_node = CompositeNode(
-    "long_validation",
-    [long_validation(tracks)],
+    "long_validation", [long_validation(tracks)],
     NodeLogic.LAZY_AND,
     force_order=True)
 

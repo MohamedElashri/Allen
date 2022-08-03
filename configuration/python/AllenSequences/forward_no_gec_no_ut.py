@@ -6,7 +6,6 @@ from AllenConf.scifi_reconstruction import forward_tracking
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate
 
-
 forward_tracks = forward_tracking(with_ut=False)
 
 forward_tracking_sequence = CompositeNode(

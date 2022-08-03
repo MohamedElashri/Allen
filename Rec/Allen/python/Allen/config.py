@@ -66,7 +66,8 @@ def allen_json_sequence(sequence="hlt1_pp_default", json=None):
     return (sequence, json)
 
 
-def setup_allen_non_event_data_service(allen_event_loop=False, bank_types=None):
+def setup_allen_non_event_data_service(allen_event_loop=False,
+                                       bank_types=None):
     """Setup Allen non-event data
 
     An ExtSvc is added to the ApplicationMgr to provide the Allen non-event
@@ -104,7 +105,8 @@ def setup_allen_non_event_data_service(allen_event_loop=False, bank_types=None):
     if allen_event_loop:
         algorithm_converters.append(AllenODINProducer())
 
-    for converter_type, filename, converter_banks in filter(use_converter, types):
+    for converter_type, filename, converter_banks in filter(
+            use_converter, types):
         converter_id = converter_type.getDefaultProperties().get('ID', None)
         if converter_id is not None:
             converter = converter_type()
