@@ -301,7 +301,7 @@ int allen(
     // The second hub is the one provided by Gaudi so can also link to external sinks
     Gaudi::Monitoring::Hub* firstHub = &StreamServiceLocator::get()->monitoringHub();
     firstHub->addSink(&monitoringAggregator);
-  
+
     Gaudi::Monitoring::Hub* secondHub = &Gaudi::svcLocator()->monitoringHub();
     secondHub->addSink(&monitoringPrinter);
   }
