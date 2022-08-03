@@ -16,4 +16,5 @@ target_include_directories(track_matching PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/consolidate/include>)
 
 target_include_directories(WrapperInterface INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/match/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>)
