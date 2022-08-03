@@ -221,8 +221,8 @@ DumpUTGeometry::DumpUTGeometry(const std::string& name, ISvcLocator* svcLoc) :
   Dumper(
     name,
     svcLoc,
-    {KeyValue {"UTGeomLocation", "AlgorithmSpecific-" + name + "-geometry"},
-     KeyValue {"UTBoardsLocation", "AlgorithmSpecific-" + name + "-boards"}})
+    {KeyValue {"UTGeomLocation", location(name, "geometry")},
+     KeyValue {"UTBoardsLocation", location(name, "boards")}})
 {}
 
 StatusCode DumpUTGeometry::initialize()

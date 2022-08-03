@@ -46,6 +46,14 @@ namespace Allen::Dumpers {
     }
 
   protected:
+    static std::string location(std::string name, std::string loc) {
+      std::string prefix;
+#ifdef USE_DD4HEP
+      prefix = "/world:";
+#endif
+      return prefix + "AlgorithmSpecific-" + name + "-" + loc;
+    }
+
     void register_producer(std::string id, std::string fn, std::vector<char> const& data)
     {
 
