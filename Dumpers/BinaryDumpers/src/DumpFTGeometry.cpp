@@ -33,6 +33,12 @@ namespace {
   using std::vector;
   using FTChannelID = LHCb::Detector::FTChannelID;
   namespace FT = LHCb::Detector::FT;
+
+#ifdef USE_DD4HEP
+  static const std::string s_prefix = "/world:";
+#else
+  static const std::string s_prefix = "";
+#endif
 } // namespace
 
 /** @class DumpFTGeometry
@@ -60,8 +66,6 @@ public:
 
   Gaudi::Property<std::string> m_id {this, "ID", Allen::NonEventData::SciFiGeometry::id};
 
-private:
-  Gaudi::Property<std::string> m_mapLocation {this, "ReadoutMapLocation", "/dd/Conditions/ReadoutConf/FT/ReadoutMap"};
 };
 
 DECLARE_COMPONENT(DumpFTGeometry)
@@ -71,7 +75,7 @@ DumpFTGeometry::DumpFTGeometry(const std::string& name, ISvcLocator* pSvcLocator
     name,
     pSvcLocator,
     {KeyValue {"FTLocation", DeFTDetectorLocation::Default},
-     KeyValue {"ReadoutMapStorage", "AlgorithmSpecific-" + name + "-ReadoutMap"}},
+     KeyValue {"ReadoutMapStorage", s_prefix + "AlgorithmSpecific-" + name + "-ReadoutMap"}},
     {KeyValue {"Converted", "Allen/NonEventData/DeFT"}, KeyValue {"OutputID", "Allen/NonEventData/DeFTID"}}}
 {}
 
@@ -131,13 +135,7 @@ std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
   dzdy.resize(max_uniqueMat);
   globaldy.resize(max_uniqueMat);
 
-  // FIXME: Stations starting at 0 is not to be done.
-#ifdef USE_DD4HEP
-  // FIXME
-  std::array<unsigned, number_of_stations> stations = {0, 1, 2};
-#else
   std::array<unsigned, number_of_stations> stations = {1, 2, 3};
-#endif
 
   for (auto i_station : stations) {
     FTChannelID::StationID station_id {i_station};
