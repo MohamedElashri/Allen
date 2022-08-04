@@ -117,7 +117,7 @@ int allen(
 
   std::string flag, arg;
   bool enable_monitoring_printing = false;
-  bool register_monitoring_counters = true;
+  [[maybe_unused]] bool register_monitoring_counters = true;
 
   // Use flags to populate variables in the program
   for (auto const& entry : options) {
@@ -293,7 +293,6 @@ int allen(
   MonitoringPrinter monitoringPrinter {10, enable_monitoring_printing};
 
 #ifndef ALLEN_STANDALONE
-
   if (register_monitoring_counters) {
     // Accumulators from multiple streams must first be aggregated so we run two monitoring hubs
     // The first is internal to Allen and passes all accumulators to the aggregation service
