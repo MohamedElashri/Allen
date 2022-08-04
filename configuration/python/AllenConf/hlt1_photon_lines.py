@@ -8,6 +8,7 @@ from AllenCore.generator import make_algorithm
 
 def make_single_calo_cluster_line(calo,
                                   name="Hlt1SingleCaloCluster",
+                                  pre_scaler=1.,
                                   pre_scaler_hash_string=None,
                                   post_scaler_hash_string=None,
                                   minEt=200.0,
@@ -17,6 +18,7 @@ def make_single_calo_cluster_line(calo,
     return make_algorithm(
         single_calo_cluster_line_t,
         name=name,
+        pre_scaler=pre_scaler,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",

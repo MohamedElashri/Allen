@@ -27,6 +27,7 @@ def make_d2kpi_line(forward_tracks,
 
 
 def make_passthrough_line(name="Hlt1Passthrough",
+                          pre_scaler=1.,
                           pre_scaler_hash_string=None,
                           post_scaler_hash_string=None):
 
@@ -35,6 +36,7 @@ def make_passthrough_line(name="Hlt1Passthrough",
     return make_algorithm(
         passthrough_line_t,
         name=name,
+        pre_scaler=pre_scaler,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
