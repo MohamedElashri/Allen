@@ -23,7 +23,9 @@ def decode_muon():
         host_number_of_events_t=host_number_of_events,
         dev_muon_raw_t=muon_banks.dev_raw_banks_t,
         dev_muon_raw_offsets_t=muon_banks.dev_raw_offsets_t,
-        dev_muon_raw_sizes_t=muon_banks.dev_raw_sizes_t)
+        dev_muon_raw_sizes_t=muon_banks.dev_raw_sizes_t,
+        dev_muon_raw_types_t=muon_banks.dev_raw_types_t,
+        host_raw_bank_version_t=muon_banks.host_raw_bank_version_t)
 
     muon_srq_prefix_sum = make_algorithm(
         host_prefix_sum_t,
@@ -41,9 +43,11 @@ def decode_muon():
         dev_muon_raw_t=muon_banks.dev_raw_banks_t,
         dev_muon_raw_offsets_t=muon_banks.dev_raw_offsets_t,
         dev_muon_raw_sizes_t=muon_banks.dev_raw_sizes_t,
+        dev_muon_raw_types_t=muon_banks.dev_raw_types_t,
         dev_muon_raw_to_hits_t=muon_calculate_srq_size.dev_muon_raw_to_hits_t,
         dev_storage_station_region_quarter_offsets_t=muon_srq_prefix_sum.
-        dev_output_buffer_t)
+        dev_output_buffer_t,
+        host_raw_bank_version_t=muon_banks.host_raw_bank_version_t)
 
     muon_add_coords_crossing_maps = make_algorithm(
         muon_add_coords_crossing_maps_t,
@@ -54,7 +58,8 @@ def decode_muon():
         dev_storage_station_region_quarter_offsets_t=muon_srq_prefix_sum.
         dev_output_buffer_t,
         dev_storage_tile_id_t=muon_populate_tile_and_tdc.dev_storage_tile_id_t,
-        dev_muon_raw_to_hits_t=muon_calculate_srq_size.dev_muon_raw_to_hits_t)
+        dev_muon_raw_to_hits_t=muon_calculate_srq_size.dev_muon_raw_to_hits_t,
+        host_raw_bank_version_t=muon_banks.host_raw_bank_version_t)
 
     muon_station_ocurrence_prefix_sum = make_algorithm(
         host_prefix_sum_t,

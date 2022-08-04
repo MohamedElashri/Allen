@@ -12,6 +12,8 @@
 namespace Muon {
   class MuonTables {
   public:
+    unsigned int m_version;
+
     static constexpr size_t padTableNumber = 0;
     static constexpr size_t stripXTableNumber = 1;
     static constexpr size_t stripYTableNumber = 2;
@@ -29,8 +31,10 @@ namespace Muon {
     unsigned int sizeOffset[Constants::n_stations * Constants::n_regions * n_tables];
     float* coordinates[n_tables * Constants::n_stations];
 
-    MuonTables(size_t* allOffsets, char* dev_muon_tables_raw, unsigned int* sizeOffset_)
+    __device__ MuonTables(size_t* allOffsets, char* dev_muon_tables_raw, unsigned int* sizeOffset_, const int version)
     {
+      m_version = version;
+
       for (size_t i = 0; i < Constants::n_stations * Constants::n_regions * n_tables; i++) {
         sizeOffset[i] = sizeOffset_[i];
       }
@@ -49,7 +53,9 @@ namespace Muon {
       }
     }
 
-    MuonTables() {}
+    __device__ unsigned int getVersion() const { return m_version; }
+
+    MuonTables() = default;
   };
 
   __device__ inline unsigned int
@@ -62,6 +68,17 @@ namespace Muon {
   getLayoutY(MuonTables* muonTables, size_t tableNumber, unsigned int station, unsigned int region)
   {
     return static_cast<unsigned int>(muonTables->gridY[tableNumber][station * Constants::n_regions + region]);
+  }
+
+  __device__ inline std::array<Muon::MuonLayout, 2> getLayout(MuonTables* muonTables, const Muon::MuonTileID& tile)
+  {
+
+    const auto x1 = getLayoutX(muonTables, Muon::MuonTables::stripXTableNumber, tile.station(), tile.region());
+    const auto y1 = getLayoutY(muonTables, Muon::MuonTables::stripXTableNumber, tile.station(), tile.region());
+    const auto x2 = getLayoutX(muonTables, Muon::MuonTables::stripYTableNumber, tile.station(), tile.region());
+    const auto y2 = getLayoutY(muonTables, Muon::MuonTables::stripYTableNumber, tile.station(), tile.region());
+    return x1 > x2 ? std::array<Muon::MuonLayout, 2> {Muon::MuonLayout {x1, y1}, Muon::MuonLayout {x2, y2}} :
+                     std::array<Muon::MuonLayout, 2> {Muon::MuonLayout {x2, y2}, Muon::MuonLayout {x1, y1}};
   }
 
   __device__ inline size_t
@@ -103,7 +120,14 @@ namespace Muon {
     const auto idx = Constants::n_regions * tile.station() + tile.region();
     const int perQuarter =
       3 * muonTables->gridX[MuonTables::padTableNumber][idx] * muonTables->gridY[MuonTables::padTableNumber][idx];
-    return (4 * tile.region() + tile.quarter()) * perQuarter;
+    unsigned int pad_offset;
+
+    if (muonTables->getVersion() == 2)
+      pad_offset = (4 * tile.region() + tile.quarter()) * perQuarter;
+    else
+      pad_offset = muonTables->offset[MuonTables::padTableNumber][idx] + tile.quarter() * perQuarter;
+
+    return pad_offset;
   }
 
   __device__ inline unsigned int strip_x_offset(MuonTables* muonTables, const Muon::MuonTileID& tile)

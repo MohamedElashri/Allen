@@ -117,6 +117,7 @@ int allen(
 
   std::string flag, arg;
   bool enable_monitoring_printing = false;
+  [[maybe_unused]] bool register_monitoring_counters = true;
 
   // Use flags to populate variables in the program
   for (auto const& entry : options) {
@@ -190,6 +191,9 @@ int allen(
     }
     else if (flag_in(flag, {"enable-monitoring-printing"})) {
       enable_monitoring_printing = atoi(arg.c_str());
+    }
+    else if (flag_in(flag, {"register-monitoring-counters"})) {
+      register_monitoring_counters = atoi(arg.c_str());
     }
   }
 
@@ -289,14 +293,17 @@ int allen(
   MonitoringPrinter monitoringPrinter {10, enable_monitoring_printing};
 
 #ifndef ALLEN_STANDALONE
-  // Accumulators from multiple streams must first be aggregated so we run two monitoring hubs
-  // The first is internal to Allen and passes all accumulators to the aggregation service
-  // The aggregation service then passes all aggregated accumulators to the second hub
-  // The second hub is the one provided by Gaudi so can also link to external sinks
-  Gaudi::Monitoring::Hub* firstHub = &StreamServiceLocator::get()->monitoringHub();
-  firstHub->addSink(&monitoringAggregator);
-  Gaudi::Monitoring::Hub* secondHub = &Gaudi::svcLocator()->monitoringHub();
-  secondHub->addSink(&monitoringPrinter);
+  if (register_monitoring_counters) {
+    // Accumulators from multiple streams must first be aggregated so we run two monitoring hubs
+    // The first is internal to Allen and passes all accumulators to the aggregation service
+    // The aggregation service then passes all aggregated accumulators to the second hub
+    // The second hub is the one provided by Gaudi so can also link to external sinks
+    Gaudi::Monitoring::Hub* firstHub = &StreamServiceLocator::get()->monitoringHub();
+    firstHub->addSink(&monitoringAggregator);
+
+    Gaudi::Monitoring::Hub* secondHub = &Gaudi::svcLocator()->monitoringHub();
+    secondHub->addSink(&monitoringPrinter);
+  }
 #endif
 
   auto const& configuration = configuration_reader->params();

@@ -53,7 +53,11 @@ unsigned int pad_offset(MuonTable const& table, LHCb::Detector::Muon::TileID con
 {
   int idx = 4 * tile.station() + tile.region();
   int perQuarter = 3 * table.gridX[idx] * table.gridY[idx];
-  return static_cast<unsigned int>((4 * tile.region() + tile.quarter()) * perQuarter);
+  unsigned int geom_version = table.get_geom_version();
+  unsigned int offset = geom_version == 2 ?
+                          static_cast<unsigned int>((4 * tile.region() + tile.quarter()) * perQuarter) :
+                          static_cast<unsigned int>(table.offset[idx] + tile.quarter() * perQuarter);
+  return offset;
 }
 
 unsigned int strip_offset(MuonTable const& table, LHCb::Detector::Muon::TileID const& tile)
@@ -135,7 +139,7 @@ tuple<std::reference_wrapper<const MuonTable>, string> lookup_table(
   return table;
 }
 
-void coord_position(
+void hit_position(
   LHCb::Detector::Muon::TileID const& tile,
   MuonTable const& pad,
   MuonTable const& stripX,
@@ -154,7 +158,10 @@ void coord_position(
 void read_muon_table(gsl::span<const char> raw_input, MuonTable& pad, MuonTable& stripX, MuonTable& stripY)
 {
   size_t n = 0;
+  auto version = pop<unsigned int>(raw_input);
+
   for (MuonTable& muonTable : {std::ref(pad), std::ref(stripX), std::ref(stripY)}) {
+    muonTable.set_geom_version(version);
     for_each(
       std::tie(muonTable.gridX, muonTable.gridY, muonTable.sizeX, muonTable.sizeY, muonTable.offset),
       [&n, &raw_input](auto& table) {
@@ -186,63 +193,60 @@ void read_muon_table(gsl::span<const char> raw_input, MuonTable& pad, MuonTable&
   }
 }
 
-TestMuonTable::TestMuonTable(const string& name, ISvcLocator* pSvcLocator) :
-  Consumer(name, pSvcLocator, {KeyValue {"MuonCoordsLocation", LHCb::MuonCoordLocation::MuonCoords}})
-{}
-
 StatusCode TestMuonTable::initialize()
 {
-  m_det = getDet<DeMuonDetector>("/dd/Structure/LHCb/DownstreamRegion/Muon");
+  return Consumer::initialize().andThen([&] {
+    fs::path p {m_table.value()};
+    auto read_size = fs::file_size(p);
+    std::vector<char> raw_input(read_size);
 
-  fs::path p {m_table.value()};
-  auto read_size = fs::file_size(p);
-  std::vector<char> raw_input(read_size);
+    std::ifstream input(p.c_str(), std::ios::binary);
+    input.read(raw_input.data(), read_size);
+    input.close();
 
-  std::ifstream input(p.c_str(), std::ios::binary);
-  input.read(raw_input.data(), read_size);
-  input.close();
-
-  read_muon_table(raw_input, m_pad, m_stripX, m_stripY);
-
-  return StatusCode::SUCCESS;
+    read_muon_table(raw_input, m_pad, m_stripX, m_stripY);
+  });
 }
 
-void TestMuonTable::operator()(const LHCb::MuonCoords& muonCoords) const
+void TestMuonTable::operator()(DeMuonDetector const& det, MuonHitContainer const& muon_hits_container) const
 {
 
+  [[maybe_unused]] unsigned int det_geom_version = det.upgradeReadout() ? 3 : 2;
+  assert(m_pad.get_geom_version() == det_geom_version);
+
   double xt = 0., dxt = 0., yt = 0., dyt = 0., zt = 0.;
-
   size_t n = 0;
+  for (auto istation = 0; istation < 4; istation++) {
+    auto hits = muon_hits_container.hits(istation);
+    for (auto hit : hits) {
 
-  for (auto coord : muonCoords) {
+      auto pos = det.position(hit.tile());
+      hit_position(hit.tile(), m_pad, m_stripX, m_stripY, hit.uncrossed(), xt, dxt, yt, dyt, zt);
 
-    auto pos = m_det->position(coord->key());
+      array<tuple<char const*, double, double>, 5> values {{{"x ", pos->x(), xt},
+                                                            {"dx", pos->dX(), dxt},
+                                                            {"y ", pos->y(), yt},
+                                                            {"dy", pos->dY(), dyt},
+                                                            {"z ", pos->z(), zt}}};
 
-    coord_position(coord->key(), m_pad, m_stripX, m_stripY, coord->uncrossed(), xt, dxt, yt, dyt, zt);
+      boost::format msg {"%|4d| %|8d| %|6s| %|d| %|d| %|d| %|2d| %|2d| %|d| %|5d| %|5d|"};
 
-    array<tuple<char const*, double, double>, 5> values {{{"x ", pos->x(), xt},
-                                                          {"dx", pos->dX(), dxt},
-                                                          {"y ", pos->y(), yt},
-                                                          {"dy", pos->dY(), dyt},
-                                                          {"z ", pos->z(), zt}}};
+      for (auto [w, a, b] : values) {
+        if (boost::math::relative_difference(a, b) > 0.01) {
+          auto const& tile = hit.tile();
+          auto [table, tt] = lookup_table(tile, hit.uncrossed(), m_pad, m_stripX, m_stripY);
+          const auto index = lookup_index(table.get(), tile);
 
-    boost::format msg {"%|4d| %|8d| %|6s| %|d| %|d| %|d| %|2d| %|2d| %|d| %|5d| %|5d|"};
+          auto dx_index = MuonUtils::size_index(table.get().sizeOffset, table.get().gridX, table.get().gridY, tile);
 
-    for (auto [w, a, b] : values) {
-      if (boost::math::relative_difference(a, b) > 0.01) {
-        auto const& tile = coord->key();
-        auto [table, tt] = lookup_table(tile, coord->uncrossed(), m_pad, m_stripX, m_stripY);
-        const auto index = lookup_index(table.get(), tile);
-
-        auto dx_index = MuonUtils::size_index(table.get().sizeOffset, table.get().gridX, table.get().gridY, tile);
-
-        // positions are always indexed by station
-        error() << (msg % n % static_cast<unsigned int>(tile) % tt % tile.station() % tile.region() % tile.quarter() %
-                    tile.nX() % tile.nY() % coord->uncrossed() % index % dx_index)
-                << endmsg;
-        error() << w << " " << a << " " << b << endmsg;
+          // positions are always indexed by station
+          error() << (msg % n % static_cast<unsigned int>(tile) % tt % tile.station() % tile.region() % tile.quarter() %
+                      tile.nX() % tile.nY() % hit.uncrossed() % index % dx_index)
+                  << endmsg;
+          error() << w << " " << a << " " << b << endmsg;
+        }
       }
+      ++n;
     }
-    ++n;
   }
 }

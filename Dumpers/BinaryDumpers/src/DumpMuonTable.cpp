@@ -30,6 +30,7 @@ namespace ranges::views {
 #include <MuonDet/MuonNamespace.h>
 #include "Dumper.h"
 #include <Dumpers/Utils.h>
+#include "MuonDefinitions.cuh"
 
 #include <DD4hep/GrammarUnparsed.h>
 
@@ -43,21 +44,17 @@ namespace {
   using std::vector;
   using namespace ranges;
 
-  constexpr array<int, 16> padGridX {48, 48, 48, 48, 48, 48, 48, 48, 12, 12, 12, 12, 12, 12, 12, 12};
-  constexpr array<int, 16> padGridY {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
-  constexpr array<int, 16> stripXGridX {48, 48, 48, 48, 48, 48, 48, 48, 12, 12, 12, 12, 12, 12, 12, 12};
-  constexpr array<int, 16> stripXGridY {1, 2, 2, 2, 1, 2, 2, 2, 8, 2, 2, 2, 8, 2, 2, 2};
-  constexpr array<int, 16> stripYGridX {8, 4, 2, 2, 8, 4, 2, 2, 12, 4, 2, 2, 12, 4, 2, 2};
-  constexpr array<int, 16> stripYGridY {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
-
   inline const std::string MuonTableCond = DeMuonLocation::Default;
+
+  array<int, 16> padGridX {48, 48, 48, 48, 48, 48, 48, 48, 12, 12, 12, 12, 12, 12, 12, 12};
+  array<int, 16> stripXGridX {48, 48, 48, 48, 48, 48, 48, 48, 12, 12, 12, 12, 12, 12, 12, 12};
 
   struct MuonTable_t {
     MuonTable_t() = default;
     MuonTable_t(std::vector<char>& data, const DeMuonDetector& det)
     {
 
-      // Detector and mat geometry
+      DumpUtils::Writer output {};
       const int nStations = det.stations();
       assert(nStations == 4);
       const int nRegions = det.regions() / nStations;
@@ -66,14 +63,34 @@ namespace {
       vector<float> padSizeX {}, stripXSizeX {}, stripYSizeX {}, padSizeY {}, stripXSizeY {}, stripYSizeY {};
       array<unsigned int, 16> padOffset {}, stripXOffset {}, stripYOffset {}, padSizeOffset {}, stripXSizeOffset {},
         stripYSizeOffset {};
+      array<int, 16> padGridY {}, stripXGridY {}, stripYGridX {}, stripYGridY {};
       array<vector<array<float, 3>>, 4> padTable {}, stripXTable {}, stripYTable {};
 
       auto nChannels = [](size_t s, const auto& gridX, const auto& gridY) {
         return [s, &gridX, &gridY](auto tot, const auto r) { return tot + gridX[4 * s + r] * gridY[4 * s + r]; };
       };
 
+      unsigned int geom_version = det.upgradeReadout() ? 3 : 2;
+      output.write(geom_version);
+
+      if (geom_version == 3) {
+        padGridY = {8, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+        stripXGridY = {1, 2, 8, 8, 1, 2, 2, 2, 8, 2, 2, 2, 8, 2, 2, 8};
+        stripYGridX = {8, 4, 48, 48, 8, 4, 2, 2, 12, 4, 2, 2, 12, 4, 2, 12};
+        stripYGridY = {8, 16, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+      }
+      else {
+        padGridY = {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+        stripXGridY = {1, 2, 2, 2, 1, 2, 2, 2, 8, 2, 2, 2, 8, 2, 2, 2};
+        stripYGridX = {8, 4, 2, 2, 8, 4, 2, 2, 12, 4, 2, 2, 12, 4, 2, 2};
+        stripYGridY = {8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8};
+      }
+
       for (int s = 0; s < nStations; ++s) {
-        padTable[s].resize(48 * (padGridX[s] * padGridY[s]));
+        const auto pad_resize = geom_version == 3 ?
+                                  12 * accumulate(views::ints(0, 4), 0, nChannels(s, padGridX, padGridY)) :
+                                  Muon::Constants::ODEFrameSize * padGridX[s] * padGridY[s];
+        padTable[s].resize(pad_resize);
         stripXTable[s].resize(12 * accumulate(views::ints(0, 4), 0, nChannels(s, stripXGridX, stripXGridY)));
         stripYTable[s].resize(12 * accumulate(views::ints(0, 4), 0, nChannels(s, stripYGridX, stripYGridY)));
       }
@@ -100,11 +117,6 @@ namespace {
       auto stripY = std::tie(
         stripYType, stripYGridX, stripYGridY, stripYSizeX, stripYSizeY, stripYOffset, stripYSizeOffset, stripYTable);
 
-      boost::format info_output {"%|s| %|8d| %|d| %|d| %|d| "
-                                 "%|2d| %|2d| %|2d| %|2d| %|2d| "
-                                 "%|5d| %|9.3f| %|9.3f| %|9.3f| %|7.3f| %|7.3f| %|5d|"};
-
-      DumpUtils::Writer output {};
       for (auto& [t, gridX, gridY, sizeX, sizeY, offset, sizeOffset, table] : {pad, stripX, stripY}) {
         for (auto station : views::ints(0, nStations)) {
           size_t index = 0;
@@ -166,7 +178,6 @@ namespace {
           }
         }
       }
-
       data = output.buffer();
     }
   };
