@@ -20,7 +20,7 @@ namespace SciFi {
       sourceID = reinterpret_cast<uint32_t const*>(p)[0];
       p += sizeof(uint32_t);
       data = reinterpret_cast<uint16_t const*>(p);
-      last = reinterpret_cast<uint16_t const*>(p + s);
+      last = reinterpret_cast<uint16_t const*>(p) + (s / sizeof(uint16_t));
       type = t;
     }
 
@@ -28,7 +28,7 @@ namespace SciFi {
     {
       sourceID = sID;
       data = reinterpret_cast<uint16_t const*>(fragment);
-      last = reinterpret_cast<uint16_t const*>(fragment + s);
+      last = reinterpret_cast<uint16_t const*>(fragment) + (s / sizeof(uint16_t));
       type = t;
     }
   };
