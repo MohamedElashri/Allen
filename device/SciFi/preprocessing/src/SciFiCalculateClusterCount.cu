@@ -38,94 +38,58 @@ __global__ void scifi_calculate_cluster_count_kernel(
       atomicAdd(counter, 1);
       continue;
     }
-    uint16_t const* it = rawbank.data + 2;
+
+    uint16_t const* it = rawbank.data + 2; // mstahl: skip header?
     uint16_t const* last = rawbank.last;
     // For details see RawBankDecoder
     if (it != last && *(last - 1) == 0) --last; // Remove padding at the end
     for (; it < last; ++it) {                   // loop over the clusters
+      uint16_t c = *it;
+      SciFi::SciFiChannelID chid(SciFi::SciFiChannelID::kInvalidChannelID);
       if constexpr (decoding_version != 7) {
-        uint16_t c = *it;
         uint32_t ch = geom.bank_first_channel[iRawBank] + SciFi::channelInBank(c);
-
-        const auto chid = SciFi::SciFiChannelID(ch);
-        const uint32_t uniqueMat = chid.globalMatIdx_Xorder();
-        unsigned uniqueGroupOrMat;
-        if (uniqueMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
-          uniqueGroupOrMat = uniqueMat / SciFi::Constants::n_mats_per_consec_raw_bank;
-        else
-          uniqueGroupOrMat = uniqueMat - SciFi::Constants::mat_index_substract;
-
-        hits_module = hit_count.mat_offsets_p(uniqueGroupOrMat);
-
-        if constexpr (decoding_version == 4) {
-          // v4 code does not use a special format for a large clusters, then can be added directly
-          atomicAdd(hits_module, 1);
-        }
-        else if constexpr (decoding_version == 6) {
-          if (!SciFi::cSize(c)) { // Not flagged as large
-            atomicAdd(hits_module, 1);
-          }
-          else if (SciFi::fraction(c)) { // flagged as first edge of large cluster
-            // last cluster in bank or in sipm
-            if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(*(it + 1)))
-              atomicAdd(hits_module, 1);
-            else {
-              unsigned c2 = *(it + 1);
-              if (SciFi::cSize(c2) && !SciFi::fraction(c2)) {
-                unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
-                if (widthClus > 8)
-                  // number of for loop passes in decoder + one additional
-                  atomicAdd(hits_module, (widthClus - 1) / 4 + 1);
-                else
-                  atomicAdd(hits_module, 1);
-              }
-              else { // FIXME: CORRUPT CLUSTER
-              }
-              ++it;
-            }
-          }
-        }
+        chid = SciFi::SciFiChannelID(ch);
       }
-      // Decoding v7
       else {
-        uint16_t c = *it;
-        const auto chid = SciFi::SciFiChannelID(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c));
-        if (chid.channelID == SciFi::SciFiChannelID::kInvalidChannelID) // FIX
-        {
+        chid = SciFi::SciFiChannelID(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c));
+        if (chid.channelID == SciFi::SciFiChannelID::kInvalidChannelID) /*FIX*/ {
           auto* counter = parameters.link_error_counter + event_number;
           atomicAdd(counter, 1);
           continue;
         }
-        const uint32_t uniqueMat = chid.globalMatIdx_Xorder();
-        unsigned uniqueGroupOrMat;
-        if (uniqueMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
-          uniqueGroupOrMat = uniqueMat / SciFi::Constants::n_mats_per_consec_raw_bank;
-        else
-          uniqueGroupOrMat = uniqueMat - SciFi::Constants::mat_index_substract;
+      }
+      const uint32_t uniqueMat = chid.globalMatIdx_Xorder();
+      unsigned uniqueGroupOrMat;
+      if (uniqueMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
+        uniqueGroupOrMat = uniqueMat / SciFi::Constants::n_mats_per_consec_raw_bank;
+      else
+        uniqueGroupOrMat = uniqueMat - SciFi::Constants::mat_index_substract;
 
-        hits_module = hit_count.mat_offsets_p(uniqueGroupOrMat);
+      hits_module = hit_count.mat_offsets_p(uniqueGroupOrMat);
+
+      if constexpr (decoding_version == 4) {
+        // v4 code does not use a special format for a large clusters, then can be added directly
+        atomicAdd(hits_module, 1);
+      }
+      else if constexpr (decoding_version >= 6) {
         if (!SciFi::cSize(c)) { // Not flagged as large
           atomicAdd(hits_module, 1);
         }
-        else if (SciFi::fraction(c)) { // flagged as first edge of large cluster
+        else { // flagged as first edge of large cluster
+          unsigned c2 = *(it + 1);
           // last cluster in bank or in sipm
-          if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(*(it + 1)))
+          if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2))
             atomicAdd(hits_module, 1);
-          else {
-            unsigned c2 = *(it + 1);
-            if (SciFi::cSize(c2) && !SciFi::fraction(c2)) {
-
-              unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
-              if (widthClus > 8)
-                // number of for loop passes in decoder + one additional
-                atomicAdd(hits_module, (widthClus - 1) / 4 + 1);
-              else
-                atomicAdd(hits_module, 1);
-            }
-            else {
-              // FIXME
-            }
+          else if (SciFi::fraction(c) && SciFi::cSize(c2) && !SciFi::fraction(c2)) {
+            unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
+            if (widthClus > 8)
+              // number of for loop passes in decoder + one additional
+              atomicAdd(hits_module, (widthClus - 1) / 4 + 1);
+            else
+              atomicAdd(hits_module, 1);
             ++it;
+          }
+          else { /* Corrupt cluster */
           }
         }
       }

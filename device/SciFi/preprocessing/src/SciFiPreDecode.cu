@@ -114,33 +114,26 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
           // Single cluster
           store_sorted_fn(0x01, 0x00);
         }
-        else if (SciFi::fraction(c)) {
-          if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(*(it + 1))) {
+        else {
+          const unsigned c2 = *(it + 1);
+          if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2))
             // last cluster in bank or in sipm
             store_sorted_fn(0x02, 0x00);
-          }
-          else {
-            const unsigned c2 = *(it + 1);
-            if (SciFi::cSize(c2) && !SciFi::fraction(c2)) {
-              const unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
-              if (widthClus > 8) {
-                uint16_t j = 0;
-                for (; j < widthClus - 4; j += 4) {
-                  // big cluster(s)
-                  store_sorted_fn(0x03, j);
-                }
-
-                // add the last edge
-                store_sorted_fn(0x04, j);
-              }
-              else {
-                store_sorted_fn(0x05, 0x00);
-              }
+          else if (SciFi::fraction(c) && SciFi::cSize(c2) && !SciFi::fraction(c2)) {
+            const unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
+            if (widthClus > 8) {
+              uint16_t j = 0;
+              for (; j < widthClus - 4; j += 4)
+                // big cluster(s)
+                store_sorted_fn(0x03, j);
+              // add the last edge
+              store_sorted_fn(0x04, j);
             }
-            else {
-              // FIXME: Corrupt cluster
-            }
+            else
+              store_sorted_fn(0x05, 0x00);
             ++it_number;
+          }
+          else { /* FIXME: Corrupt cluster */
           }
         }
       }
