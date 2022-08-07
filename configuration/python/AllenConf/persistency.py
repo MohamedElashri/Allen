@@ -7,7 +7,7 @@ from AllenAlgorithms.algorithms import make_selected_object_lists_t, make_subban
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
-from PyConf.application import register_encoding_dictionary
+from PyConf.filecontent_metadata import register_encoding_dictionary
 from PyConf.tonic import configurable
 
 
