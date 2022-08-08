@@ -659,7 +659,7 @@ class AllenCore():
         # void inline invoke_output_monitor(const char* arg_ref, const RuntimeOptions& runtime_options, const Allen::Context& context) {
         with open(filename, "w") as f:
             f.write(code)
-
+            
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -698,7 +698,8 @@ if __name__ == '__main__':
         choices=["parsed_algorithms", "views",
                  "wrapperlist", "wrappers", "db",
                  "extern_lines",
-                 "extern_lines_nosepcomp"],
+                 "extern_lines_nosepcomp",
+                 "algorithm_headers_list"],
         help="action that will be performed")
 
     args = parser.parse_args()
@@ -740,3 +741,8 @@ if __name__ == '__main__':
         elif args.generate == "extern_lines_nosepcomp":
             # Write extern lines header file, without separable compilation
             AllenCore.write_extern_lines(parsed_algorithms, args.filename, False)
+        elif args.generate == "algorithm_headers_list":
+            # Write list of files including algorithm definitions
+            algorithm_headers_list = [alg.filename for alg in parsed_algorithms]
+            AllenCore.write_algorithm_filename_list(algorithm_headers_list,
+                                                    args.filename)
