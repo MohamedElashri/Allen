@@ -76,7 +76,8 @@ def make_basic_particles(kalman_velo_only,
             dev_number_of_events_t=number_of_events["dev_number_of_events"],
             host_number_of_scifi_tracks_t=long_tracks[
                 "host_number_of_reconstructed_scifi_tracks"],
-            dev_scifi_tracks_view_t=long_tracks["dev_scifi_tracks_view"],
+            dev_long_tracks_view_t=long_tracks[
+                "dev_multi_event_long_tracks_view"],
             dev_is_muon_t=is_muon_result["dev_is_muon"],
             dev_is_electron_t=is_electron_result["dev_track_isElectron"])
         lepton_id = make_lepton_id.dev_lepton_id_t
