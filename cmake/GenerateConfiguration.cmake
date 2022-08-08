@@ -103,7 +103,7 @@ add_custom_command(
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 add_custom_target(algorithm_db_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h")
 add_library(algorithm_db INTERFACE)
-add_dependencies(algorithm_db "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h")
+add_dependencies(algorithm_db algorithm_db_generation "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h")
 target_include_directories(algorithm_db INTERFACE $<BUILD_INTERFACE:${ALLEN_GENERATED_INCLUDE_FILES_DIR}>)
 install(TARGETS algorithm_db
       EXPORT Allen
