@@ -146,6 +146,17 @@ namespace Allen::Store {
   struct property_datatype {
   };
 
+// Note: The following code avoid red herring:
+//       missing return statement at end of non-void function
+#ifdef __CUDACC__
+#pragma push
+#if __CUDACC_VER_MAJOR__ > 11 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 6)
+#pragma nv_diag_suppress = 940
+#else
+#pragma diag_suppress = 940
+#endif
+#endif
+    
   /**
    * @brief Trivially copyable datatype holders can be accessed on either host or device.
    * @details Those types that support conversions to dim3 and std::array<unsigned, 3> can also
@@ -176,6 +187,10 @@ namespace Allen::Store {
   protected:
     t m_value;
   };
+
+#ifdef __CUDACC__
+#pragma pop
+#endif
 
   /**
    * @brief Non-trivially copyable datatype holders can be accessed solely on the host.
