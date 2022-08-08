@@ -261,11 +261,14 @@ namespace Allen::Store {
   struct WrappedTupleDetails<
     Tuple,
     std::index_sequence<I, Is...>,
-    std::enable_if_t<(std::is_base_of_v<device_datatype, boost::pfr::tuple_element_t<I, Tuple>> || std::is_base_of_v<host_datatype, boost::pfr::tuple_element_t<I, Tuple>>) &&!std::
+    std::enable_if_t<(
+      std::is_base_of_v<device_datatype, boost::pfr::tuple_element_t<I, Tuple>> ||
+      std::is_base_of_v<host_datatype, boost::pfr::tuple_element_t<I, Tuple>>) &&!std::
                        is_base_of_v<aggregate_datatype, boost::pfr::tuple_element_t<I, Tuple>>>> {
     using prev_wrapped_tuple = WrappedTupleDetails<Tuple, std::index_sequence<Is...>>;
     using prev_parameters_and_properties_tuple_t = typename prev_wrapped_tuple::parameters_and_properties_tuple_t;
-    using parameters_and_properties_tuple_t = prepend_to_tuple_t<boost::pfr::tuple_element_t<I, Tuple>, prev_parameters_and_properties_tuple_t>;
+    using parameters_and_properties_tuple_t =
+      prepend_to_tuple_t<boost::pfr::tuple_element_t<I, Tuple>, prev_parameters_and_properties_tuple_t>;
     using prev_parameters_tuple_t = typename prev_wrapped_tuple::parameters_tuple_t;
     using parameters_tuple_t = prepend_to_tuple_t<boost::pfr::tuple_element_t<I, Tuple>, prev_parameters_tuple_t>;
     using aggregates_tuple_t = typename prev_wrapped_tuple::aggregates_tuple_t;
@@ -277,10 +280,12 @@ namespace Allen::Store {
     std::index_sequence<I, Is...>,
     std::enable_if_t<std::is_base_of_v<aggregate_datatype, boost::pfr::tuple_element_t<I, Tuple>>>> {
     using prev_wrapped_tuple = WrappedTupleDetails<Tuple, std::index_sequence<Is...>>;
-    using parameters_and_properties_tuple_t =
-      prepend_to_tuple_t<boost::pfr::tuple_element_t<I, Tuple>, typename prev_wrapped_tuple::parameters_and_properties_tuple_t>;
+    using parameters_and_properties_tuple_t = prepend_to_tuple_t<
+      boost::pfr::tuple_element_t<I, Tuple>,
+      typename prev_wrapped_tuple::parameters_and_properties_tuple_t>;
     using parameters_tuple_t = typename prev_wrapped_tuple::parameters_tuple_t;
-    using aggregates_tuple_t = prepend_to_tuple_t<boost::pfr::tuple_element_t<I, Tuple>, typename prev_wrapped_tuple::aggregates_tuple_t>;
+    using aggregates_tuple_t =
+      prepend_to_tuple_t<boost::pfr::tuple_element_t<I, Tuple>, typename prev_wrapped_tuple::aggregates_tuple_t>;
   };
 
   template<typename Tuple, std::size_t I, std::size_t... Is>
@@ -288,11 +293,13 @@ namespace Allen::Store {
     Tuple,
     std::index_sequence<I, Is...>,
     std::enable_if_t<
-      !std::is_base_of_v<device_datatype, boost::pfr::tuple_element_t<I, Tuple>> && !std::is_base_of_v<host_datatype, boost::pfr::tuple_element_t<I, Tuple>> &&
+      !std::is_base_of_v<device_datatype, boost::pfr::tuple_element_t<I, Tuple>> &&
+      !std::is_base_of_v<host_datatype, boost::pfr::tuple_element_t<I, Tuple>> &&
       !std::is_base_of_v<aggregate_datatype, boost::pfr::tuple_element_t<I, Tuple>>>> {
     using prev_wrapped_tuple = WrappedTupleDetails<Tuple, std::index_sequence<Is...>>;
     using prev_parameters_and_properties_tuple_t = typename prev_wrapped_tuple::parameters_and_properties_tuple_t;
-    using parameters_and_properties_tuple_t = prepend_to_tuple_t<boost::pfr::tuple_element_t<I, Tuple>, prev_parameters_and_properties_tuple_t>;
+    using parameters_and_properties_tuple_t =
+      prepend_to_tuple_t<boost::pfr::tuple_element_t<I, Tuple>, prev_parameters_and_properties_tuple_t>;
     using parameters_tuple_t = typename prev_wrapped_tuple::parameters_tuple_t;
     using aggregates_tuple_t = typename prev_wrapped_tuple::aggregates_tuple_t;
   };

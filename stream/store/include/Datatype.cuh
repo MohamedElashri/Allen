@@ -156,7 +156,7 @@ namespace Allen::Store {
 #pragma diag_suppress = 940
 #endif
 #endif
-    
+
   /**
    * @brief Trivially copyable datatype holders can be accessed on either host or device.
    * @details Those types that support conversions to dim3 and std::array<unsigned, 3> can also
