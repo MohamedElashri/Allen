@@ -619,16 +619,6 @@ class AllenCore():
             f.write(code)
 
     @staticmethod
-    def write_struct_to_tuple(algorithms,
-                              output_filename,
-                              struct_to_tuple_folder):
-        max_length = max(len(alg.parameters) + len(alg.properties) for alg in algorithms)
-        from StructToTupleGenerator import StructToTupleGenerator
-        gen = StructToTupleGenerator()
-        gen.generate_file(output_filename, max_length, struct_to_tuple_folder)
-
-
-    @staticmethod
     def write_extern_lines(algorithms,
                            filename,
                            separable_compilation):
@@ -701,19 +691,13 @@ if __name__ == '__main__':
         default="",
         help="location of parsed algorithms")
     parser.add_argument(
-        "--struct_to_tuple_folder",
-        nargs="?",
-        type=str,
-        default="",
-        help="folder containing struct to tuple preamble and postamble")
-    parser.add_argument(
         "--generate",
         nargs="?",
         type=str,
         default="views",
         choices=["parsed_algorithms", "views",
                  "wrapperlist", "wrappers", "db",
-                 "struct_to_tuple", "extern_lines",
+                 "extern_lines",
                  "extern_lines_nosepcomp"],
         help="action that will be performed")
 
@@ -750,10 +734,6 @@ if __name__ == '__main__':
         elif args.generate == "db":
             # Generate Allen algorithms DB
             AllenCore.write_algorithms_db(parsed_algorithms, args.filename)
-        elif args.generate == "struct_to_tuple":
-            # Write struct to tuple to support all parameters and properties
-            # of all existing algorithms
-            AllenCore.write_struct_to_tuple(parsed_algorithms, args.filename, args.struct_to_tuple_folder)
         elif args.generate == "extern_lines":
             # Write extern lines header file
             AllenCore.write_extern_lines(parsed_algorithms, args.filename, True)

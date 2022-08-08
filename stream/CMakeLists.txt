@@ -9,7 +9,6 @@ target_include_directories(Gear INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/gear/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/store/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/sequence/include>)
-target_link_libraries(Gear INTERFACE struct_to_tuple)
 install(TARGETS Gear EXPORT Allen)
 
 file(GLOB stream_src "sequence/src/*cpp")

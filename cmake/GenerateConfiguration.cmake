@@ -103,21 +103,6 @@ install(TARGETS algorithm_db
       EXPORT Allen
       LIBRARY DESTINATION lib)
 
-# Generate StructToTuple.cuh
-add_custom_command(
-  OUTPUT "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh"
-  COMMAND
-    ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate struct_to_tuple --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" --struct_to_tuple_folder "${PROJECT_SOURCE_DIR}/configuration/parser/struct_to_tuple"
-  WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
-  DEPENDS parsed_algorithms)
-add_custom_target(struct_to_tuple_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/StructToTuple.cuh")
-add_library(struct_to_tuple INTERFACE)
-add_dependencies(struct_to_tuple struct_to_tuple_generation)
-target_include_directories(struct_to_tuple INTERFACE $<BUILD_INTERFACE:${ALLEN_GENERATED_INCLUDE_FILES_DIR}>)
-install(TARGETS struct_to_tuple
-      EXPORT Allen
-      LIBRARY DESTINATION lib)
-
 if(SEPARABLE_COMPILATION)
   add_custom_command(
     OUTPUT "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/ExternLines.cuh"
