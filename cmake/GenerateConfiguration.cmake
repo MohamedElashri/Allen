@@ -166,7 +166,7 @@ elseif(STANDALONE)
       OUTPUT "${PROJECT_SEQUENCE_DIR}/PyConf"
       COMMENT "Checking out LHCb project from the LHCb stack"
       COMMAND
-        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb.git ${PROJECT_BINARY_DIR}/external/LHCb &&
+        ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone --depth=1 --branch streamline-hltdaq https://gitlab.cern.ch/lhcb/LHCb.git ${PROJECT_BINARY_DIR}/external/LHCb &&
         ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR}/external/LHCb patch -p1 < ${CMAKE_CURRENT_LIST_DIR}/pyconf-pydot.patch &&
         ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
     add_custom_target(checkout_lhcb DEPENDS "${PROJECT_SEQUENCE_DIR}/PyConf")
