@@ -35,12 +35,12 @@ namespace Allen {
 
     __host__ buffer(Allen::Store::memory_manager_t<S>& mem_manager, const std::string& tag, size_t size) :
       m_mem_manager(mem_manager), m_tag(tag),
-      m_span(reinterpret_cast<T*>(m_mem_manager.reserve(m_tag, size * sizeof(T))), size),
-      m_allocated(true)
+      m_span(reinterpret_cast<T*>(m_mem_manager.reserve(m_tag, size * sizeof(T))), size), m_allocated(true)
     {}
 
     // Allow to move the object
-    __host__ buffer(buffer&& o) : m_mem_manager(o.m_mem_manager), m_tag(o.m_tag), m_span(o.m_span), m_allocated(o.m_allocated)
+    __host__ buffer(buffer&& o) :
+      m_mem_manager(o.m_mem_manager), m_tag(o.m_tag), m_span(o.m_span), m_allocated(o.m_allocated)
     {
       // Set o span to empty to avoid the data being freed in the destructor of o
       o.m_span = gsl::span<T> {};
