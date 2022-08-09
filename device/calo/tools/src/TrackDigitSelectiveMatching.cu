@@ -43,7 +43,6 @@ __global__ void track_digit_selective_matching::track_digit_selective_matching(
   const char* raw_ecal_geometry)
 {
 
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   // Long tracks.
   const auto long_tracks = parameters.dev_long_tracks_view->container(event_number);
@@ -111,6 +110,6 @@ __global__ void track_digit_selective_matching::track_digit_selective_matching(
       sum_cell_E * fabsf(long_track.qop());
     // Bit shift by 1 so this can be combined with the muon ID to create a single lepton ID object.
     parameters.dev_track_isElectron[track_index + event_offset] =
-      (parameters.dev_track_Eop[track_index + event_offset] > 0.7f) << 1;
+      (parameters.dev_track_Eop[track_index + event_offset] > 0.7f);
   }
 }

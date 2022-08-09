@@ -34,7 +34,7 @@ void track_matching_veloSciFi::track_matching_veloSciFi_t::operator()(
 __device__ track_matching::MatchingResult getChi2Match(
   const MiniState velo_state,
   const MiniState scifi_state,
-  track_matching_veloSciFi::Parameters parameters,
+  track_matching_veloSciFi::Parameters,
   const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization)
 {
 
@@ -103,7 +103,7 @@ __device__ float computeQoverP(const float txV, const float tyV, const float txT
   const float coef =
     1.21352f + 0.626691f * txT2 - 0.202483f * txT4 + 0.426262f * txT * txV + 2.47057f * tyV2 - 13.2917f * tyV4;
 
-  const float proj = sqrt((1.f + txV2 + tyV2) / (1.f + txV2));
+  const float proj = sqrtf((1.f + txV2 + tyV2) / (1.f + txV2));
   const float scaleFactor = 1.f; // FIXME magnet sign
 
   return (txV - txT) / (coef * 1000.f * proj * scaleFactor);
@@ -114,14 +114,12 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
   const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Velo views
   const auto velo_tracks = parameters.dev_velo_tracks_view[event_number];
   const auto velo_states = parameters.dev_velo_states_view[event_number];
 
   const unsigned event_velo_seeds_offset = velo_tracks.offset();
-  const unsigned number_of_velo_seeds = velo_states.size();
 
   // filtered velo tracks
   const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
@@ -158,7 +156,6 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
     for (unsigned ivelo = 0; ivelo < ut_number_of_selected_tracks; ivelo++) {
 
       const auto velo_track_index = ut_selected_velo_tracks[ivelo];
-      const auto velo_track = velo_tracks.track(velo_track_index);
       const auto endvelo_state = velo_states.state(velo_track_index);
       auto matchingInfo = getChi2Match(endvelo_state, scifi_state, parameters, dev_magnet_parametrization);
       if (matchingInfo.chi2 < BestMatch.chi2) {

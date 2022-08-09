@@ -45,7 +45,7 @@ void seed_confirmTracks::seed_confirmTracks_t::set_arguments_size(
 void seed_confirmTracks::seed_confirmTracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   HostBuffers&,
   const Allen::Context& context) const
 {
@@ -95,7 +95,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
     unsigned zone_offset[6];
     // Load the hits in shared:
     unsigned totalHits = 0;
-    for (int iLayer = 0; iLayer < nLayers; iLayer++) {
+    for (unsigned int iLayer = 0; iLayer < nLayers; iLayer++) {
       hits.size[iLayer] = scifi_hit_count.zone_number_of_hits(uvCodes[iLayer]);
       totalHits += hits.size[iLayer];
     }
@@ -110,10 +110,10 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
         hits.data = ptr;
 
         hits.start[0] = 0;
-        for (int iLayer = 0; iLayer < nLayers; iLayer++) {
+        for (unsigned int iLayer = 0; iLayer < nLayers; iLayer++) {
           if (iLayer > 0) hits.start[iLayer] = hits.start[iLayer - 1] + hits.size[iLayer - 1];
           zone_offset[iLayer] = scifi_hit_count.zone_offset(uvCodes[iLayer]);
-          for (int iHit = threadIdx.x; iHit < hits.size[iLayer]; iHit += blockDim.x) {
+          for (unsigned int iHit = threadIdx.x; iHit < hits.size[iLayer]; iHit += blockDim.x) {
             hits.hit(iLayer, iHit) = scifi_hits.x0(zone_offset[iLayer] + iHit);
           }
         }
@@ -144,7 +144,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
           constexpr float TUNING_TOLCHI2 = 100.f; // FIXME
           constexpr float TUNING_TOL = 2.f;       // FIXME
           const auto xTrack = xTracks[iTrack];
-          const int nTarget = TUNING_NHITS - xTrack.number_of_hits;
+          const unsigned int nTarget = TUNING_NHITS - xTrack.number_of_hits;
           // Calculate the predicted x(z) position of the track in all U/V layers
           float xPred[nLayers];
           for (unsigned int iLayer = 0; iLayer < nLayers; iLayer++) {
@@ -155,8 +155,8 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
           float bestChi2Ndof = TUNING_TOLCHI2;
           seed_uv::multiHitCombination bestHitComb;
           // For each hit in first layer and tolerance, look for hit combinations that match that hypothesis
-          int minXPredIdx[nLayers], nIdx[nLayers];
-          for (auto iLayer = 0; iLayer < nLayers; iLayer++) {
+          unsigned int minXPredIdx[nLayers], nIdx[nLayers];
+          for (unsigned int iLayer = 0; iLayer < nLayers; iLayer++) {
             auto minXPred = xPred[iLayer] + dxMin[iLayer];
             auto maxXPred = xPred[iLayer] + dxMax[iLayer];
             minXPredIdx[iLayer] =
@@ -167,7 +167,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
             if (maxXPredIdx != hits.size[iLayer]) nIdx[iLayer]++;
           }
           // First loop
-          for (int iHitFirst = minXPredIdx[0]; iHitFirst < minXPredIdx[0] + nIdx[0]; iHitFirst++) {
+          for (unsigned int iHitFirst = minXPredIdx[0]; iHitFirst < minXPredIdx[0] + nIdx[0]; iHitFirst++) {
             seed_uv::multiHitCombination hitComb;
             // We now have a tY hypothesis. We look in all 5 remaining layers for hits close to expected position
             // this is basically the same thing as looking for the first hit, but with tY in a smaller interval
@@ -191,13 +191,13 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
             }
             if (xTrack.number_of_hits + hitComb.number_of_hits < TUNING_NHITS) continue;
             if (hitComb.number_of_hits < bestHitComb.number_of_hits) continue;
-            auto fitY = fitYZ(hitComb);
+            fitYZ(hitComb);
             if (hitComb.number_of_hits == bestHitComb.number_of_hits && hitComb.chi2 > bestChi2Ndof) continue;
             bestChi2Ndof = hitComb.chi2;
             bestHitComb = hitComb;
           }
           // Second loop
-          for (int iHitFirst = minXPredIdx[1]; iHitFirst < minXPredIdx[1] + nIdx[1]; iHitFirst++) {
+          for (unsigned int iHitFirst = minXPredIdx[1]; iHitFirst < minXPredIdx[1] + nIdx[1]; iHitFirst++) {
             seed_uv::multiHitCombination hitComb;
             // We now have a tY hypothesis. We look in all 5 remaining layers for hits close to expected position
             // this is basically the same thing as looking for the first hit, but with tY in a smaller interval
@@ -221,7 +221,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
               }
             }
             if (xTrack.number_of_hits + hitComb.number_of_hits < TUNING_NHITS) continue;
-            auto fitY = fitYZ(hitComb);
+            fitYZ(hitComb);
             if (hitComb.number_of_hits < bestHitComb.number_of_hits) continue;
             if (hitComb.number_of_hits == bestHitComb.number_of_hits && hitComb.chi2 > bestChi2Ndof) continue;
             bestChi2Ndof = hitComb.chi2;
@@ -235,7 +235,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
             fullTrack.hits[iHit] = xTrack.hits[iHit];
           }
           auto iHit = 0;
-          for (auto iLayer = 0; iLayer < nLayers; iLayer++) {
+          for (unsigned iLayer = 0; iLayer < nLayers; iLayer++) {
             if (bestHitComb.idx[iLayer] == SciFi::Constants::INVALID_IDX) continue;
             fullTrack.hits[xTrack.number_of_hits + iHit] =
               scifi_hit_count.zone_offset(uvCodes[iLayer]) + bestHitComb.idx[iLayer];
@@ -264,7 +264,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
   }
 }
 
-__device__ bool seed_confirmTracks::fitYZ(seed_uv::multiHitCombination& multiHitComb)
+__device__ void seed_confirmTracks::fitYZ(seed_uv::multiHitCombination& multiHitComb)
 {
   float m00 = multiHitComb.number_of_hits;
   float m01 = 0.f;
@@ -274,7 +274,7 @@ __device__ bool seed_confirmTracks::fitYZ(seed_uv::multiHitCombination& multiHit
   float ay = 0.f;
   float by = 0.f;
   // initialize matrix
-  for (int i = 0; i < seed_uv::geomInfo::nLayers; i++) {
+  for (unsigned int i = 0; i < seed_uv::geomInfo::nLayers; i++) {
     if (multiHitComb.idx[i] == SciFi::Constants::INVALID_IDX) continue;
     m01 += seed_uv::geomInfo::dz[i];
     m11 += seed_uv::geomInfo::dz[i] * seed_uv::geomInfo::dz[i];
@@ -286,7 +286,7 @@ __device__ bool seed_confirmTracks::fitYZ(seed_uv::multiHitCombination& multiHit
   ay += (r0 * m11 - r1 * m01) / detM;
   by += (r1 * m00 - r0 * m01) / detM;
   float score = 0.f;
-  for (int i = 0; i < seed_uv::geomInfo::nLayers; i++) {
+  for (unsigned int i = 0; i < seed_uv::geomInfo::nLayers; i++) {
     if (multiHitComb.idx[i] == SciFi::Constants::INVALID_IDX) continue;
     float hit_chi2 = (multiHitComb.y[i] - (ay + by * seed_uv::geomInfo::dz[i]));
     hit_chi2 *= hit_chi2;
@@ -295,5 +295,4 @@ __device__ bool seed_confirmTracks::fitYZ(seed_uv::multiHitCombination& multiHit
   multiHitComb.ay = ay;
   multiHitComb.by = by;
   multiHitComb.chi2 = score;
-  return true;
 }

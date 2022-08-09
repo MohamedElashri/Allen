@@ -71,15 +71,15 @@ __device__ float qop_seeding_calculation(const float magSign, const MiniState se
   const float m_paramsTCubic[4] = {-6.34025, -4.85287, -12.4491, 4.25461e-08};
 
   float qop = 0.f;
-  const auto x0 = x - tx * z;
+  const float x0 = x - tx * z;
   const auto& params = (tCubicFit ? m_paramsTCubic : m_paramsTParab);
   const auto p = params[0] + params[1] * tx * tx + params[2] * ty * ty + params[3] * x0 * x0;
 
-  const auto scale_factor = 1. * magSign; // is there a way to get the scale_factor from the constants?
-  const float denom = p * scale_factor * 1e6 * (-1);
+  const float scale_factor = 1.f * magSign; // is there a way to get the scale_factor from the constants?
+  const float denom = p * scale_factor * powf(10, 6) * (-1.f);
 
-  if (std::abs(scale_factor) < 1e-6) {
-    qop = 0.01 / Gaudi::Units::GeV;
+  if (std::fabs(scale_factor) < powf(10, -6)) {
+    qop = 0.01f / Gaudi::Units::GeV;
   }
   else {
     qop = x0 / denom;
@@ -89,9 +89,9 @@ __device__ float qop_seeding_calculation(const float magSign, const MiniState se
 
 void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_scifi_multi_event_tracks_view_t>(arguments, 0, context);
@@ -120,7 +120,6 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  const unsigned total_number_of_hits = parameters.dev_scifi_hit_count[number_of_events];
   const SciFi::Seeding::Track* event_scifi_seeds =
     parameters.dev_seeding_tracks + event_number * SciFi::Constants::Nmax_seeds;
 
@@ -137,7 +136,6 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
                                           event_number,
                                           number_of_events};
   const unsigned number_of_tracks_event = scifi_seeds.number_of_tracks(event_number);
-  const unsigned event_offset = scifi_hit_count.event_offset();
   float* tracks_qop = parameters.dev_seeding_qop + parameters.dev_atomics_scifi[event_number];
 
   // Loop over tracks.
@@ -161,23 +159,23 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
     auto consolidated_hits = scifi_seeds.get_hits(parameters.dev_seeding_track_hits, i);
 
     // Populate arrays
-    populate(scifiseed, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
+    populate(scifiseed, [&consolidated_hits, &scifi_hits](const unsigned i, const unsigned hit_index) {
       consolidated_hits.x0(i) = scifi_hits.x0(hit_index);
     });
 
-    populate(scifiseed, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
+    populate(scifiseed, [&consolidated_hits, &scifi_hits](const unsigned i, const unsigned hit_index) {
       consolidated_hits.z0(i) = scifi_hits.z0(hit_index);
     });
 
-    populate(scifiseed, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
+    populate(scifiseed, [&consolidated_hits, &scifi_hits](const unsigned i, const unsigned hit_index) {
       consolidated_hits.endPointY(i) = scifi_hits.endPointY(hit_index);
     });
 
-    populate(scifiseed, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
+    populate(scifiseed, [&consolidated_hits, &scifi_hits](const unsigned i, const unsigned hit_index) {
       consolidated_hits.channel(i) = scifi_hits.channel(hit_index);
     });
 
-    populate(scifiseed, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
+    populate(scifiseed, [&consolidated_hits, &scifi_hits](const unsigned i, const unsigned hit_index) {
       consolidated_hits.assembled_datatype(i) = scifi_hits.assembled_datatype(hit_index);
     });
   }

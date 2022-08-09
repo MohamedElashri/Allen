@@ -159,12 +159,12 @@ namespace {
     [[maybe_unused]] unsigned maxTripletPerFirstHit = seeding::Triplet::maxTriplets / hits.size[layers[0]];
     (void) maxTripletPerFirstHit; // TODO: remove if [[maybe_unused]] decides to work someday..
 
-    for (int firstHitIdx = threadIdx.x; firstHitIdx < hits.size[layers[0]]; firstHitIdx += blockDim.x) {
+    for (unsigned int firstHitIdx = threadIdx.x; firstHitIdx < hits.size[layers[0]]; firstHitIdx += blockDim.x) {
       float xFirst = hits.hit(layers[0], firstHitIdx);
       float maxXl = xFirst * currentCase.twoHitScale + currentCase.tol2Hit;
       float minXl = maxXl - 2.f * currentCase.tol2Hit;
 
-      [[maybe_unused]] int nCandidates = 0;
+      [[maybe_unused]] unsigned nCandidates = 0;
       (void) nCandidates; // TODO: remove if [[maybe_unused]] decides to work someday..
 
       // SPEEDUP: cache last layer first hit
@@ -222,7 +222,7 @@ void seed_xz::seed_xz_t::set_arguments_size(
 void seed_xz::seed_xz_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   HostBuffers&,
   const Allen::Context& context) const
 {
@@ -255,7 +255,7 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
   hybrid_seeding::Case Case1(1, 3, 5, 0, 2, 4, 3000.f, 0.01f);
 
   for (unsigned int part = 0; part < SciFi::Constants::n_parts; part++) {
-    __shared__ int nTracksPart;
+    __shared__ unsigned nTracksPart;
     if (threadIdx.x == 0) nTracksPart = 0;
 
     // What space do we need to work with ?
@@ -291,7 +291,7 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
         for (int iLayer = 0; iLayer < 6; iLayer++) {
           if (iLayer > 0) hits.start[iLayer] = hits.start[iLayer - 1] + hits.size[iLayer - 1];
           zone_offset[iLayer] = scifi_hit_count.zone_offset(xLayers[iLayer]);
-          for (int iHit = threadIdx.x; iHit < hits.size[iLayer]; iHit += blockDim.x) {
+          for (unsigned int iHit = threadIdx.x; iHit < hits.size[iLayer]; iHit += blockDim.x) {
             hits.hit(iLayer, iHit) = scifi_hits.x0(zone_offset[iLayer] + iHit);
           }
         }
@@ -326,7 +326,7 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
             __syncthreads();
           }
 
-          for (int tripletIdx = threadIdx.x; tripletIdx < nTriplets; tripletIdx += blockDim.x) {
+          for (unsigned int tripletIdx = threadIdx.x; tripletIdx < nTriplets; tripletIdx += blockDim.x) {
             seeding::Triplet triplet {triplets[tripletIdx]};
             int firstHitIdx = triplet.idx0();
             int secondHitIdx = triplet.idx1();
@@ -379,7 +379,7 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
             multiHitComb.idx[layers[2]] = thirdHitIdx;
             auto score = fitXZ(currentCase, multiHitComb);
 
-            auto idx = atomicAdd(&nTracksPart, 1);
+            unsigned idx = atomicAdd(&nTracksPart, 1);
             if (idx >= maxSeeds) break;
 
             reconstructed_tracksXZ_global[nReconstructedTracks + idx] = make_trackXZ(
@@ -398,24 +398,24 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
 
         // Clone removal
         for (int iLayer = 0; iLayer != 6; iLayer++) {
-          for (int iHit = threadIdx.x; iHit < hits.size[iLayer]; iHit += blockDim.x) {
+          for (unsigned iHit = threadIdx.x; iHit < hits.size[iLayer]; iHit += blockDim.x) {
             hits.hit(iLayer, iHit) = 100000.f;
           }
         }
         __syncthreads();
-        for (int i = threadIdx.x; i < nTracksPart; i += blockDim.x) {
+        for (unsigned int i = threadIdx.x; i < nTracksPart; i += blockDim.x) {
           auto& track = reconstructed_tracksXZ_global[nReconstructedTracks + i];
           for (int iLayer = 0; iLayer < 6; iLayer++) {
             auto hit = track.idx[iLayer];
             if (hit == SciFi::Constants::INVALID_IDX) continue;
-            atomicMin((int*) &hits.hit(iLayer, hit), __float_as_int(track.chi2 * 1000 + track.cx));
+            atomicMin((int*) &hits.hit(iLayer, hit), __float_as_int(track.chi2 * 1000.f + track.cx));
           }
         }
         __shared__ int nFilteredTracks;
         if (threadIdx.x == 0) nFilteredTracks = 0;
         __syncthreads();
 
-        for (int i = 0; i < nTracksPart; i += blockDim.x) {
+        for (unsigned int i = 0; i < nTracksPart; i += blockDim.x) {
           int nHits = 0;
           SciFi::Seeding::TrackXZ track;
           if (i + threadIdx.x < nTracksPart) {
@@ -423,7 +423,7 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
             for (int iLayer = 0; iLayer < 6; iLayer++) {
               auto hit = track.idx[iLayer];
               if (hit == SciFi::Constants::INVALID_IDX) continue;
-              nHits += fabs(hits.hit(iLayer, hit) - (track.chi2 * 1000 + track.cx)) < 0.01f;
+              nHits += std::fabs(hits.hit(iLayer, hit) - (track.chi2 * 1000.f + track.cx)) < 0.01f;
             }
           }
           __syncthreads();

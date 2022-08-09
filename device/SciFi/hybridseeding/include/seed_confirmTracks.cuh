@@ -49,7 +49,7 @@ namespace seed_confirmTracks {
 
   __device__ int findHit(const float tolRem, float predPos, int startPos, int nHits, float* coords);
   __global__ void seed_confirmTracks(Parameters);
-  __device__ bool fitYZ(seed_uv::multiHitCombination& multiHitComb);
+  __device__ void fitYZ(seed_uv::multiHitCombination& multiHitComb);
 
   struct seed_confirmTracks_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(

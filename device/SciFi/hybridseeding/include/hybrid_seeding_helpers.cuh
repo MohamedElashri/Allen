@@ -19,15 +19,19 @@ namespace hybrid_seeding {
   constexpr float dRatio = -0.00028f;
 
   template<typename T>
-  __device__ int binary_search_leftmost_unrolled(const T* array, const unsigned array_size, const T& needle)
+  __device__ unsigned int binary_search_leftmost_unrolled(const T* array, const unsigned array_size, const T& needle)
   {
-    int low = 0;
-    int size = array_size;
+    unsigned int low = 0;
+    unsigned int size = array_size;
 
     // Unroll 9 time to cover arrays of size max 512
+#if defined(__clang__)
 #pragma unroll
-    for (int step = 0; step < 9; step++) {
-      int half = size / 2;
+#elif defined(__GNUC__)
+#pragma GCC unroll 9
+#endif
+    for (unsigned int step = 0; step < 9; step++) {
+      unsigned int half = size / 2;
       low += (array[low + half] < needle) * (size - half);
       size = half;
     } // while (size > 0);
@@ -61,7 +65,7 @@ namespace seed_xz {
   };
 
   inline int intIndex(int part, int event_number) { return part + SciFi::Constants::n_parts * event_number; };
-  inline int trackIndex(int part, int event_number) { return event_number * SciFi::Constants::Nmax_seed_xz; };
+  inline int trackIndex(int event_number) { return event_number * SciFi::Constants::Nmax_seed_xz; };
 } // namespace seed_xz
 
 namespace seed_uv {

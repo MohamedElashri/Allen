@@ -247,7 +247,7 @@ void run_stream(
   unsigned n_reps,
   bool mep_layout,
   uint inject_mem_fail,
-  bool prefer_shared)
+  [[maybe_unused]] bool prefer_shared)
 {
   Allen::set_device(device_id, stream_id);
 

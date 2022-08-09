@@ -53,9 +53,9 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::set_arguments_s
 
 void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  HostBuffers& host_buffers,
+  const RuntimeOptions&,
+  const Constants&,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(matching_consolidate_tracks)(
@@ -68,7 +68,6 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
   matching_consolidate_tracks::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   const SciFi::MatchedTrack* event_matched_tracks =
     parameters.dev_matched_tracks + event_number * TrackMatchingConsts::max_num_tracks;
