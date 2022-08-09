@@ -131,7 +131,7 @@ private:
 DECLARE_COMPONENT(DumpMuonGeometry)
 
 DumpMuonGeometry::DumpMuonGeometry(const std::string& name, ISvcLocator* svcLoc) :
-  Dumper(name, svcLoc, {KeyValue {"MuonGeometryLocation", "AlgorithmSpecific-" + name + "-geometry"}})
+  Dumper(name, svcLoc, {KeyValue {"MuonGeometryLocation", location(name, "geometry")}})
 {}
 
 StatusCode DumpMuonGeometry::initialize()

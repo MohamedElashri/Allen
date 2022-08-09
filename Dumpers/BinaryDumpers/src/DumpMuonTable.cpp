@@ -205,7 +205,7 @@ private:
 DECLARE_COMPONENT(DumpMuonTable)
 
 DumpMuonTable::DumpMuonTable(const std::string& name, ISvcLocator* svcLoc) :
-  Dumper(name, svcLoc, {KeyValue {"MuonTableLocation", "AlgorithmSpecific-" + name + "-table"}})
+  Dumper(name, svcLoc, {KeyValue {"MuonTableLocation", location(name, "table")}})
 {}
 
 StatusCode DumpMuonTable::initialize()

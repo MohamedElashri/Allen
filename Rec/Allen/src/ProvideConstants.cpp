@@ -115,7 +115,7 @@ StatusCode ProvideConstants::initialize()
 
   // Allen Consumers
   register_consumers(
-    m_updater, m_constants, {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::ECal, BankTypes::MUON});
+    m_updater, m_constants, {BankTypes::VP, BankTypes::FT, BankTypes::MUON});
 
   return StatusCode::SUCCESS;
 }
