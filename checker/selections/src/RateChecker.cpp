@@ -18,9 +18,9 @@ void RateChecker::accumulate(const char* line_names, const unsigned* dec_reports
 
   for (auto i = 0u; i < number_of_events; ++i) {
     bool any_line_fired = false;
-    auto const* decs = dec_reports + (2 + number_of_lines) * i;
+    auto const* decs = dec_reports + (3 + number_of_lines) * i;
     for (auto j = 0u; j < number_of_lines; ++j) {
-      HltDecReport dec_report(decs[2 + j]);
+      HltDecReport dec_report(decs[3 + j]);
       if (dec_report.decision()) {
         ++m_counters[j];
         any_line_fired = true;
