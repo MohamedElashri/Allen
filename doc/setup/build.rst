@@ -115,6 +115,11 @@ Finally, Allen can be built and run as on any other platform::
     make
     ./Allen --sequence hlt1_pp_validation
 
+Purging / rebuilding
+--------------------
+
+In few cases a `purge` command followed by a rebuild may be required. The cases where this is necessary are described here :ref:`_building_newly_defined_algorithm`.
+
 Compilation options
 -------------------
 

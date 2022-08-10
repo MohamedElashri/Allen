@@ -71,8 +71,7 @@ namespace Allen {
       else if constexpr (
         std::is_base_of_v<Allen::Store::device_datatype, A> && std::is_base_of_v<Allen::Store::host_datatype, B>)
         return Allen::memcpyHostToDevice;
-      else
-        return Allen::memcpyDeviceToDevice;
+      return Allen::memcpyDeviceToDevice;
     }();
 
     Allen::copy_async(
@@ -206,8 +205,7 @@ namespace Allen {
         else if constexpr (
           std::is_base_of_v<Allen::Store::device_datatype, A> && std::is_base_of_v<Allen::Store::host_datatype, B>)
           return Allen::memcpyDeviceToHost;
-        else
-          return Allen::memcpyDeviceToDevice;
+        return Allen::memcpyDeviceToDevice;
       }();
 
       unsigned container_offset = 0;
