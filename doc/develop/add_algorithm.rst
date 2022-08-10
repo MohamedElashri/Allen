@@ -370,6 +370,8 @@ In other words, in the code above:
 * `parameters.dev_saxpy_output` decays to `float*`.
 * `parameters.saxpy_scale_factor` decays to `float`, and has default value `2.f`.
 
+.. _building_newly_defined_algorithm:
+
 Building with a newly defined algorithm
 ---------------------------------------
 
@@ -377,7 +379,7 @@ If a new algorithm was defined, or if an algorithm was removed, it is required t
 
 This is due to a parsing of all Allen header files that occurs upon running cmake for the first time.
 
-Separately, modifying existing algorithms in any way, such as changing its parameters or its source code do not necessitate a purge.
+Separately, modifying existing algorithms in any way such as changing its parameters or its source code does not necessitate a purge.
 
 How to access current event within algorithm
 --------------------------------------------------
