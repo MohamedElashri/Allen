@@ -227,6 +227,8 @@ void calo_decode::calo_decode_t::operator()(
   Allen::memset_async<dev_ecal_digits_t>(arguments, 0x7F, context);
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 
+  if (bank_version < 0) return; // no Calo banks present in data
+
   // Ensure the bank version is supported
   if (bank_version > 5) {
     throw StrException("Calo bank version not supported (" + std::to_string(bank_version) + ")");
