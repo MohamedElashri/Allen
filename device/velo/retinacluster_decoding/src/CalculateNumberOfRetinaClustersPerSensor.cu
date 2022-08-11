@@ -32,7 +32,7 @@ __global__ void calculate_number_of_retinaclusters_each_sensor_pair_kernel(
                                                   parameters.dev_velo_retina_raw_input_sizes,
                                                   parameters.dev_velo_retina_raw_input_types,
                                                   event_number};
-
+   
   unsigned number_of_raw_banks = velo_raw_event.number_of_raw_banks();
   for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.x) {
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
@@ -79,7 +79,9 @@ operator()(
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_each_sensor_pair_size_t>(arguments, 0, context);
-  unsigned int const bank_version = first<host_raw_bank_version_t>(arguments);
+  const auto bank_version = first<host_raw_bank_version_t>(arguments);
+  
+  if (bank_version < 0) return; // no VP banks present in data 
 
   auto kernel_fn = (bank_version == 2) ?
                      (runtime_options.mep_layout ?
