@@ -126,7 +126,7 @@ public:
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);
 
-    // Start prefetch thread and count bank types one a single buffer
+    // Start prefetch thread and count bank types once a single buffer
     // is available
     {
       // aquire lock
@@ -167,9 +167,8 @@ public:
 
         for (auto allen_type : types()) {
           if (m_mfp_count[to_integral(allen_type)] == 0) {
-            error_cout << "Banks for " << bank_name(allen_type) << " are not present in the file\n";
-            m_read_error = true;
-          }
+            info_cout << "Banks for " << bank_name(allen_type) << " are not present in the file\n";
+	  }
         }
 
         if (!count_success) {
@@ -178,7 +177,7 @@ public:
         }
         else if (!m_read_error) {
           m_sizes_known = true;
-
+       
           // Allocate slice memory that will contain transposed banks ready
           // for processing by the Allen kernels
           auto size_fun = [events_per_slice, this](BankTypes bank_type) -> std::tuple<size_t, size_t, size_t> {
