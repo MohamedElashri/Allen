@@ -64,7 +64,9 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_number_of_candidates_t>(arguments, 0, context);
-  unsigned int const bank_version = first<host_raw_bank_version_t>(arguments);
+  const auto bank_version = first<host_raw_bank_version_t>(arguments);
+
+  if (bank_version < 0) return; // no VP banks present in data
 
   // Enough blocks to cover all events
   const auto grid_size =
