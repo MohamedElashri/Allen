@@ -322,7 +322,7 @@ std::tuple<bool, bool, bool> transpose_event(
 
       // set bank version
       banks_version[to_integral(allen_type)] = b->version();
-      
+
       // Reset bank count
       bank_counter = 1;
       banks_offsets = slice.offsets.data();
@@ -383,7 +383,7 @@ std::tuple<bool, bool, bool> transpose_event(
         assert(banks_version[to_integral(allen_type)] == b->version());
       }
     }
-  
+
     // Write sourceID
     banks_write[bank_offset] = b->sourceID();
 

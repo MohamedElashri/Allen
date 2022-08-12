@@ -155,7 +155,7 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::set_arguments_size(
 {
   // Ensure the bank version is supported
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
-  if (bank_version < 0) return; // no Muon banks present in data 
+  if (bank_version < 0) return; // no Muon banks present in data
   if (bank_version != 2 && bank_version != 3) {
     throw StrException("Muon bank version not supported (" + std::to_string(bank_version) + ")");
   }
@@ -175,8 +175,8 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   const Allen::Context& context) const
 {
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
-  if (bank_version < 0) return; // no Muon banks present in data   
-  
+  if (bank_version < 0) return; // no Muon banks present in data
+
   // FIXME: this should be done as part of the consumers, but
   // currently it cannot. This is because it is not possible to
   // indicate dependencies between Consumer and/or Producers.

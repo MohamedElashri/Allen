@@ -167,7 +167,7 @@ public:
         for (auto allen_type : types()) {
           if (m_mfp_count[to_integral(allen_type)] == 0) {
             info_cout << "WARNING: Banks for " << bank_name(allen_type) << " are not present in the file\n";
-	  }
+          }
         }
 
         if (!count_success) {
@@ -176,7 +176,7 @@ public:
         }
         else if (!m_read_error) {
           m_sizes_known = true;
-       
+
           // Allocate slice memory that will contain transposed banks ready
           // for processing by the Allen kernels
           auto size_fun = [events_per_slice, this](BankTypes bank_type) -> std::tuple<size_t, size_t, size_t> {

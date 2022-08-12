@@ -123,7 +123,7 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
   Allen::memset_async<dev_scifi_link_error_counter_t>(arguments, 0, context);
 
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
-  if (bank_version < 0) return; // no SciFi banks present in data  
+  if (bank_version < 0) return; // no SciFi banks present in data
 
   auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
                      (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<4, true>) :
