@@ -11,33 +11,40 @@ __device__ void store_sorted_cluster_reference(
   SciFi::ConstHitCount& hit_count,
   const uint32_t uniqueMat,
   const uint32_t chan,
-  const uint32_t* shared_mat_offsets,
-  uint32_t* shared_mat_count,
+  const uint32_t mat_offset,
+  uint32_t& mat_count,
   const int raw_bank,
   const int it,
   uint32_t* cluster_references,
   const int condition,
   const int delta)
 {
-  uint32_t uniqueGroupOrMat;
-  // adaptation to hybrid decoding
-  if (uniqueMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
-    uniqueGroupOrMat = uniqueMat / SciFi::Constants::n_mats_per_consec_raw_bank;
-  else
-    uniqueGroupOrMat = uniqueMat - SciFi::Constants::mat_index_substract;
-
-  uint32_t hitIndex = shared_mat_count[uniqueGroupOrMat]++;
+  uint32_t hitIndex = mat_count++;
 
   const SciFi::SciFiChannelID id {chan};
   if (id.reversedZone()) {
-    hitIndex = hit_count.mat_group_or_mat_number_of_hits(uniqueGroupOrMat) - 1 - hitIndex;
+    hitIndex = hit_count.mat_group_or_mat_number_of_hits(uniqueMat) - 1 - hitIndex;
   }
-  assert(hitIndex < hit_count.mat_group_or_mat_number_of_hits(uniqueGroupOrMat));
-  assert(uniqueGroupOrMat < SciFi::Constants::n_mat_groups_and_mats);
-  hitIndex += shared_mat_offsets[uniqueGroupOrMat];
+  assert(hitIndex < hit_count.mat_group_or_mat_number_of_hits(uniqueMat));
+  assert(uniqueMat < SciFi::Constants::n_mat_groups_and_mats);
+  hitIndex += mat_offset;
 
   cluster_references[hitIndex] =
     (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 | (condition & 0x07) << 13 | (delta & 0xFF);
+}
+
+template<typename F>
+__device__ void insertionSort(uint32_t* arr, int n, F&& f)
+{
+  for (int i = 1; i < n; i++) {
+    uint32_t key = arr[i];
+    int j = i - 1;
+    while (j >= 0 && f(arr[j]) > f(key)) {
+      arr[j + 1] = arr[j];
+      j--;
+    }
+    arr[j + 1] = key;
+  }
 }
 
 template<int decoding_version, bool mep_layout>
@@ -53,16 +60,6 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
     event_number);
 
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
-
-  __shared__ uint32_t shared_mat_offsets[SciFi::Constants::n_mat_groups_and_mats];
-  __shared__ uint32_t shared_mat_count[SciFi::Constants::n_mat_groups_and_mats];
-
-  for (unsigned i = threadIdx.x; i < SciFi::Constants::n_mat_groups_and_mats; i += blockDim.x) {
-    shared_mat_offsets[i] = *hit_count.mat_offsets_p(i);
-    shared_mat_count[i] = 0;
-  }
-
-  __syncthreads();
 
   // Main execution loop
   for (unsigned iRawBank = threadIdx.x; iRawBank < scifi_raw_event.number_of_raw_banks(); iRawBank += blockDim.x) {
@@ -80,6 +77,10 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
     if (starting_it >= last || starting_it >= rawbank.last) continue;
 
     const unsigned number_of_iterations = last - starting_it;
+    int last_uniqueMat = -1;
+    unsigned mat_offset = 0;
+    unsigned mat_count = 0;
+    bool reversedZone = false;
     for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {
       auto it = starting_it + it_number;
       const uint16_t c = *it;
@@ -91,14 +92,44 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
         ch = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c);
       }
       const auto chid = SciFi::SciFiChannelID(ch);
-      const uint32_t correctedMat = chid.globalMatIdx_Xorder();
+      uint32_t correctedMat = chid.globalMatIdx_Xorder();
+
+      // adaptation to hybrid decoding
+      if (correctedMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
+        correctedMat = correctedMat / SciFi::Constants::n_mats_per_consec_raw_bank;
+      else
+        correctedMat = correctedMat - SciFi::Constants::mat_index_substract;
+
+      if ((int) correctedMat != last_uniqueMat) {
+        if constexpr (decoding_version == 7) {
+          if (last_uniqueMat != -1) {
+            // array is small and already almost sorted, using an insertion sort is enough
+            if (reversedZone) {
+              insertionSort(parameters.dev_cluster_references + mat_offset, mat_count, [&](uint32_t val) {
+                const uint16_t c = starting_it[((val >> 16) & 0xff)];
+                return -(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
+              });
+            }
+            else {
+              insertionSort(parameters.dev_cluster_references + mat_offset, mat_count, [&](uint32_t val) {
+                const uint16_t c = starting_it[((val >> 16) & 0xff)];
+                return (SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
+              });
+            }
+          }
+        }
+        last_uniqueMat = correctedMat;
+        mat_offset = *hit_count.mat_offsets_p(correctedMat);
+        mat_count = 0;
+        reversedZone = chid.reversedZone();
+      }
       const auto store_sorted_fn = [&](const int condition, const int delta) {
         store_sorted_cluster_reference(
           hit_count,
           correctedMat,
           ch,
-          shared_mat_offsets,
-          shared_mat_count,
+          mat_offset,
+          mat_count,
           iRawBank,
           it_number,
           parameters.dev_cluster_references,
@@ -135,6 +166,23 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
           }
           else { /* FIXME: Corrupt cluster */
           }
+        }
+      }
+    }
+    if constexpr (decoding_version == 7) {
+      if (last_uniqueMat != -1) {
+        // array is small and already almost sorted, using an insertion sort is enough
+        if (reversedZone) {
+          insertionSort(parameters.dev_cluster_references + mat_offset, mat_count, [&](uint32_t val) {
+            const uint16_t c = starting_it[((val >> 16) & 0xff)];
+            return -(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
+          });
+        }
+        else {
+          insertionSort(parameters.dev_cluster_references + mat_offset, mat_count, [&](uint32_t val) {
+            const uint16_t c = starting_it[((val >> 16) & 0xff)];
+            return (SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
+          });
         }
       }
     }
