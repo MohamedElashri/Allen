@@ -14,6 +14,7 @@ target_link_libraries(Validators PRIVATE
   HostEventModel
   EventModel
   SciFi
+  HostRoutingBits
   Gear
   AllenCommon
   Backend)

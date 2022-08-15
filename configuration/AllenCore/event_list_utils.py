@@ -28,6 +28,7 @@ def add_event_list_combiners(order):
     """
 
     from AllenCore.generator import initialize_event_lists
+
     def _make_combiner(inputs, logic):
         # TODO shall we somehow make the name so that parantheses are obvious?
         # here, a combinerfor (A & B) | C gets the same name as A & (B | C)
@@ -63,11 +64,13 @@ def add_event_list_combiners(order):
             if len(m) == 1:
                 output_masks.append(m[0])
             elif len(m) == 0:
-                pass # no mask, no need to do anything
+                pass  # no mask, no need to do anything
             elif len(m) > 1:
                 raise ValueError(f"more than one mask in {n}")
 
-        if len(output_masks) == 1 and logic in [BoolNode.AND, BoolNode.OR]: # one of the algorithms always accepts
+        if len(output_masks) == 1 and logic in [
+                BoolNode.AND, BoolNode.OR
+        ]:  # one of the algorithms always accepts
             return []
 
         return [_make_combiner(inputs=output_masks, logic=logic)]
@@ -85,8 +88,9 @@ def add_event_list_combiners(order):
                 lhs, rhs = node.children
                 combs_lhs = make_combiners_from(lhs)
                 combs_rhs = make_combiners_from(rhs)
-                return combs_lhs + combs_rhs + combine(node.combine_logic, combs_lhs[-1], combs_rhs[-1])
-                
+                return combs_lhs + combs_rhs + combine(
+                    node.combine_logic, combs_lhs[-1], combs_rhs[-1])
+
         else:
             raise ValueError(
                 f"expected input of type NoneType, Algorithm or BoolNode, got {type(node)}"

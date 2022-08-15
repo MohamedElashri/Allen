@@ -42,6 +42,7 @@ public:
     size_t const event_offset,
     gsl::span<bool const> const selected_events,
     gsl::span<uint32_t const> const dec_reports,
+    gsl::span<uint32_t const> const routing_bits,
     gsl::span<uint32_t const> const sel_reports,
     gsl::span<unsigned const> const sel_report_offsets,
     gsl::span<uint32_t const> const lumi_summaries,

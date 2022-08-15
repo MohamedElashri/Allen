@@ -4,6 +4,7 @@
 #pragma once
 
 #include <string>
+#include <map>
 #include <gsl/gsl>
 #include <BackendCommon.h>
 #include <AllenBuffer.cuh>
@@ -18,8 +19,9 @@ public:
   // Buffer for saving events passing Hlt1 selections
   Allen::host_buffer<bool> host_passing_event_list {m_mem_manager, "host_passing_event_list"};
 
-  // Dec / sel reports
+  // Dec / sel reports / routing bits
   Allen::host_buffer<unsigned> host_dec_reports {m_mem_manager, "host_dec_reports"};
+  Allen::host_buffer<unsigned> host_routingbits {m_mem_manager, "host_routingbits"};
   Allen::host_buffer<unsigned> host_sel_reports {m_mem_manager, "host_sel_reports"};
   Allen::host_buffer<unsigned> host_sel_report_offsets {m_mem_manager, "host_sel_report_offsets"};
 

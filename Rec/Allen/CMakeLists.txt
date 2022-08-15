@@ -34,6 +34,7 @@ gaudi_add_module(AllenWrapper
     		   Stream
    		   HostCommon
    		   HostEventModel
+   		   HostRoutingBits
     		   NonEventData
     		   TrackChecking
     		   PVChecking
@@ -77,7 +78,8 @@ gaudi_add_module(AllenAlgorithms
        Backend
            Stream
          HostCommon
-         HostEventModel
+   		   HostEventModel
+   		   HostRoutingBits
            NonEventData
            TrackChecking
            PVChecking

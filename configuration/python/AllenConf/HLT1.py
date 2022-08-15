@@ -13,8 +13,9 @@ from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias
 from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
-from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision
-from AllenConf.validators import rate_validation
+from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer
+
+from AllenConf.validators import rate_validation, routingbits_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 
@@ -421,9 +422,12 @@ def setup_hlt1_node(withMCChecking=False,
 
     gather_selections = make_gather_selections(lines=line_algorithms)
     hlt1_node = CompositeNode(
-        "Allen", [
+        "Allen",
+        [
             lines,
             make_global_decision(lines=line_algorithms),
+            make_routingbits_writer(lines=line_algorithms),
+            #routingbits_validation(lines=line_algorithms),
             *make_sel_report_writer(
                 lines=line_algorithms,
                 forward_tracks=reconstructed_objects["long_track_particles"],

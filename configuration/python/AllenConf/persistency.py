@@ -1,13 +1,68 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import gather_selections_t, dec_reporter_t, global_decision_t
+from AllenAlgorithms.algorithms import gather_selections_t, dec_reporter_t, global_decision_t, host_routingbits_writer_t
 from AllenAlgorithms.algorithms import host_prefix_sum_t, make_selrep_t
 from AllenAlgorithms.algorithms import make_selected_object_lists_t, make_subbanks_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
+
+
+def _build_decision_ids(decision_names, offset=0):
+    """Return a dict of decision names to integer IDs.
+
+    Decision report IDs must not be zero. This method generates IDs starting
+    from offset.
+
+    Args:
+        decision_names (list of str)
+        offset (int): needed so that there are no identical ints in the int->str relations
+        of HltRawBankDecoderBase
+
+    Returns:
+        decision_ids (dict of str to int): Mapping from decision name to ID.
+    """
+    return {name: idx for idx, name in enumerate(decision_names, offset)}
+
+
+# Example routing bits map to be passed as property in the host_routingbits_writer algorithm
+rb_map = {
+    # RB 1 Lumi after HLT1
+    '^Hlt1.*Lumi.*':
+    1,
+    # RB 3 Beam-Gas for Velo alignment
+    'Hlt1(?!BeamGasHighRhoVertices)BeamGas.*':
+    3,
+    # Hlt1ODINBeamGas? RB 4 EXPRESS stream (bypasses Hlt2)
+    'Hlt1(Velo.*|BeamGas.*VeloOpen)':
+    4,
+    #RB 5 Beam-Beam collisions for Velo alignment
+    'Hlt1(TrackMVA|TwoTrackMVA|TwoTrackCatBoost|TrackMuonMVA)':
+    5,
+    # RB 8 Velo (closing) monitoring
+    'Hlt1Velo.*':
+    8,
+    #RB 14 HLT1 physics for monitoring and alignment
+    'Hlt1(?!ODIN)(?!L0)(?!Lumi)(?!Tell1)(?!MB)(?!NZS)(?!Velo)(?!BeamGas)(?!Incident).*':
+    14,
+    #RB 16 NoBias, prescaled
+    'Hlt1.*NoBias':
+    16,
+    # RB 21 Tracker alignment
+    'Hlt1D2KPi':
+    21,
+    #RB 22 RICH mirror alignment
+    'Hlt1RICH.*Alignment':
+    22,
+    #RB 24 Muon alignment
+    'Hlt1CalibMuonAlignJpsi':
+    24,
+    #RB 25 Tell1 Error events
+    'Hlt1Tell1Error':
+    25
+}
 
 
 def make_gather_selections(lines):
@@ -48,6 +103,24 @@ def make_dec_reporter(lines, TCK=0):
         dev_number_of_active_lines_t,
         dev_selections_t=gather_selections.dev_selections_t,
         dev_selections_offsets_t=gather_selections.dev_selections_offsets_t)
+
+
+def make_routingbits_writer(lines):
+    gather_selections = make_gather_selections(lines)
+    dec_reporter = make_dec_reporter(lines)
+    number_of_events = initialize_number_of_events()
+    name_to_decID_map = _build_decision_ids([line.name for line in lines])
+    return make_algorithm(
+        host_routingbits_writer_t,
+        name="host_routingbits_writer",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_active_lines_t=gather_selections.
+        host_number_of_active_lines_t,
+        host_names_of_active_lines_t=gather_selections.
+        host_names_of_active_lines_t,
+        host_dec_reports_t=dec_reporter.host_dec_reports_t,
+        routingbit_map=rb_map,
+        name_to_id_map=name_to_decID_map)
 
 
 def make_global_decision(lines):

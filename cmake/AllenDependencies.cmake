@@ -124,7 +124,7 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
 
   # Boost
   find_package(Boost 1.75 REQUIRED COMPONENTS filesystem iostreams thread regex
-    serialization program_options unit_test_framework)
+    serialization program_options unit_test_framework headers)
 
   if(NOT STANDALONE)
     find_package(Rangev3 REQUIRED)
