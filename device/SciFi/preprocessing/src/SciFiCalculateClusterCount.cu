@@ -39,8 +39,12 @@ __global__ void scifi_calculate_cluster_count_kernel(
       continue;
     }
 
-    uint16_t const* it = rawbank.data + 2; // mstahl: skip header?
+    uint16_t const* it = rawbank.data;
     uint16_t const* last = rawbank.last;
+    // Skip empty raw banks: very unlikely, as there should always be a header. But it has been seen in early data
+    // taking.
+    if (it == last) continue;
+    it += 2; // skip header
     // For details see RawBankDecoder
     if (it != last && *(last - 1) == 0) --last; // Remove padding at the end
     for (; it < last; ++it) {                   // loop over the clusters

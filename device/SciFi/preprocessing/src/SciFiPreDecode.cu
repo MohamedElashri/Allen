@@ -71,8 +71,12 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
     const auto iRowInMap = iSource(geom, sourceID);
     if (iRowInMap == geom.number_of_banks)
       continue; // FIXME: means the source ID is unknown. This should have been caught by the PreDecode error
-    const uint16_t* starting_it = rawbank.data + 2;
-    const uint16_t* last = rawbank.last;
+    uint16_t const* starting_it = rawbank.data;
+    uint16_t const* last = rawbank.last;
+    // Skip empty raw banks: very unlikely, as there should always be a header. But it has been seen in early data
+    // taking.
+    if (starting_it == last) continue;
+    starting_it += 2;                                    // skip header
     if (starting_it != last && *(last - 1) == 0) --last; // Remove padding at the end
     if (starting_it >= last || starting_it >= rawbank.last) continue;
 
