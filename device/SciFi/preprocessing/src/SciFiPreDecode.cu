@@ -84,7 +84,7 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
     int last_uniqueMat = -1;
     unsigned mat_offset = 0;
     unsigned mat_count = 0;
-    bool reversedZone = false;
+    [[maybe_unused]] bool reversedZone = false;
     for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {
       auto it = starting_it + it_number;
       const uint16_t c = *it;
