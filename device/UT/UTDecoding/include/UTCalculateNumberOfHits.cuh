@@ -51,6 +51,7 @@ namespace ut_calculate_number_of_hits {
   template<int decoding_version, bool mep>
   __global__ void ut_calculate_number_of_hits(
     Parameters,
+    const unsigned event_start,
     const char* ut_boards,
     const unsigned* dev_ut_region_offsets,
     const unsigned* dev_unique_x_sector_layer_offsets,

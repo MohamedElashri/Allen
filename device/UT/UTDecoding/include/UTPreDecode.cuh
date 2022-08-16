@@ -27,6 +27,7 @@ namespace ut_pre_decode {
   template<int decoding_version, bool mep>
   __global__ void ut_pre_decode(
     Parameters,
+    const unsigned event_start,
     const char* ut_boards,
     const char* ut_geometry,
     const unsigned* dev_ut_region_offsets,

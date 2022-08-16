@@ -34,6 +34,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
 
   fun(dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers), property<block_dim_t>(), context)(
     arguments,
+    std::get<0>(runtime_options.event_interval),
     constants.dev_ut_boards,
     constants.dev_ut_geometry.data(),
     constants.dev_ut_region_offsets.data(),
@@ -169,6 +170,7 @@ __device__ void decode_raw_bank<4>(
 template<int decoding_version, bool mep>
 __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
   ut_decode_raw_banks_in_order::Parameters parameters,
+  const unsigned event_start,
   const char* ut_boards,
   const char* ut_geometry,
   const unsigned* dev_ut_region_offsets,
@@ -192,7 +194,7 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
   const UTGeometry geometry(ut_geometry);
 
   const UTRawEvent<mep> raw_event {
-    parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, parameters.dev_ut_raw_input_sizes, event_number};
+    parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, parameters.dev_ut_raw_input_sizes, event_number + event_start};
 
   const unsigned layer_offset = ut_hit_offsets.layer_offset(layer_number);
   const unsigned layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);

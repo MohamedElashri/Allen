@@ -28,6 +28,7 @@ namespace ut_decode_raw_banks_in_order {
   template<int decoding_version, bool mep>
   __global__ void ut_decode_raw_banks_in_order(
     Parameters,
+    const unsigned event_start,
     const char* ut_boards,
     const char* ut_geometry,
     const unsigned* dev_ut_region_offsets,
