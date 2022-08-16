@@ -21,6 +21,10 @@ void mc_data_provider::mc_data_provider_t::operator()(
   HostBuffers&,
   const Allen::Context&) const
 {
+  const unsigned start_event = std::get<0>(runtime_options.event_interval);
+
+  debug_cout << "Providing MC data for " << first<host_number_of_events_t>(arguments) << " events starting from " << start_event << "\n";
+
   MCEvents* mc_events = const_cast<MCEvents*>(&runtime_options.mc_events);
   // MCEvents* mc_events = &m_mc_events;
 
@@ -30,7 +34,7 @@ void mc_data_provider::mc_data_provider_t::operator()(
       data<host_mc_particle_banks_t>(arguments)[0].data(),
       first<host_mc_particle_offsets_t>(arguments).data(),
       first<host_mc_particle_sizes_t>(arguments).data(),
-      event_number);
+      event_number + start_event);
 
     auto const number_of_mc_track_raw_banks = mc_track_event.number_of_raw_banks();
 
@@ -38,7 +42,7 @@ void mc_data_provider::mc_data_provider_t::operator()(
       data<host_mc_pv_banks_t>(arguments)[0].data(),
       first<host_mc_pv_offsets_t>(arguments).data(),
       first<host_mc_pv_sizes_t>(arguments).data(),
-      event_number);
+      event_number + start_event);
 
     auto const number_of_mc_pv_raw_banks = mc_pv_event.number_of_raw_banks();
 

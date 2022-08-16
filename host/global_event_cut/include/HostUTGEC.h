@@ -31,7 +31,7 @@ namespace host_ut_gec {
 
   // Templated GEC on the MEP layout
   template<bool mep_layout = true>
-  void host_ut_gec(host_ut_gec::Parameters parameters)
+  void host_ut_gec(host_ut_gec::Parameters parameters, unsigned const event_start)
   {
     auto const ut_offsets = *parameters.ut_offsets;
     auto const ut_sizes = *parameters.ut_sizes;
@@ -41,7 +41,7 @@ namespace host_ut_gec {
     unsigned size_of_list = 0;
 
     for (unsigned event_index = 0; event_index < parameters.host_number_of_events[0]; ++event_index) {
-      unsigned event_number = event_index;
+      unsigned event_number = event_start + event_index;
 
       // Check UT clusters
       unsigned n_clusters = 0;
@@ -80,7 +80,7 @@ namespace host_ut_gec {
       }
 
       if (n_clusters <= parameters.max_clusters && n_clusters >= parameters.min_clusters) {
-        parameters.host_output_event_list[size_of_list++] = event_number;
+        parameters.host_output_event_list[size_of_list++] = event_index;
       }
     }
     parameters.host_number_of_selected_events[0] = size_of_list;
