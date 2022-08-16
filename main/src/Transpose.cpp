@@ -277,9 +277,18 @@ std::tuple<bool, bool, bool> transpose_event(
   // little space to fit this event
   for (auto allen_type : bank_types) {
     auto const ia = to_integral(allen_type);
-    const auto& slice = slices[ia][slice_index];
+    auto& slice = slices[ia][slice_index];
     if ((slice.offsets[slice.n_offsets - 1] + size_per_type[ia]) > slice.fragments_mem_size) {
-      return {true, true, false};
+      char* new_data = nullptr;
+      size_t new_size = 1.5 * (slice.offsets[slice.n_offsets - 1] + size_per_type[ia]);
+      Allen::malloc_host(reinterpret_cast<void**>(&new_data), new_size);
+      if (!slice.fragments.empty() && !slice.fragments[0].empty()) {
+        ::memcpy(new_data, slice.fragments[0].data(), slice.fragments_mem_size);
+        Allen::free_host(slice.fragments[0].data());
+        slice.fragments.clear();
+      }
+      slice.fragments.emplace_back(new_data, new_size);
+      slice.fragments_mem_size = new_size;
     }
   }
   BankTypes prev_type = BankTypes::Unknown;
