@@ -498,6 +498,7 @@ __device__ void rest_of_clusters(
 template<int decoding_version, bool mep_layout>
 __global__ void velo_masked_clustering_kernel(
   velo_masked_clustering::Parameters parameters,
+  const unsigned event_start,
   const VeloGeometry* dev_velo_geometry,
   const uint8_t* dev_velo_sp_patterns,
   const float* dev_velo_sp_fx,
@@ -526,7 +527,7 @@ __global__ void velo_masked_clustering_kernel(
                                                                             parameters.dev_velo_raw_input_offsets,
                                                                             parameters.dev_velo_raw_input_sizes,
                                                                             parameters.dev_velo_raw_input_types,
-                                                                            event_number};
+                                                                            event_number + event_start};
 
   // process no neighbour sp
   for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < velo_raw_event.number_of_raw_banks();
@@ -612,6 +613,7 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
+    std::get<0>(runtime_options.event_interval),
     constants.dev_velo_geometry,
     constants.dev_velo_sp_patterns.data(),
     constants.dev_velo_sp_fx.data(),

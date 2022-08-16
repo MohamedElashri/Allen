@@ -9,7 +9,7 @@ INSTANTIATE_ALGORITHM(velo_calculate_number_of_candidates::velo_calculate_number
 template<int decoding_version, bool mep_layout>
 __global__ void velo_calculate_number_of_candidates_kernel(
   velo_calculate_number_of_candidates::Parameters parameters,
-  const unsigned number_of_events)
+  const unsigned number_of_events, const unsigned event_start)
 {
   for (auto event_index = blockIdx.x * blockDim.x + threadIdx.x; event_index < number_of_events;
        event_index += blockDim.x * gridDim.x) {
@@ -19,7 +19,7 @@ __global__ void velo_calculate_number_of_candidates_kernel(
                                                                               parameters.dev_velo_raw_input_offsets,
                                                                               parameters.dev_velo_raw_input_sizes,
                                                                               parameters.dev_velo_raw_input_types,
-                                                                              event_number};
+                                                                              event_number + event_start};
     unsigned number_of_candidates = 0;
     for (unsigned raw_bank_number = 0; raw_bank_number < velo_raw_event.number_of_raw_banks(); ++raw_bank_number) {
       const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
@@ -82,5 +82,5 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
       (runtime_options.mep_layout ? global_function(velo_calculate_number_of_candidates_kernel<4, true>) :
                                     global_function(velo_calculate_number_of_candidates_kernel<4, false>));
 
-  kernel_fn(grid_size, dim3(property<block_dim_x_t>().get()), context)(arguments, size<dev_event_list_t>(arguments));
+  kernel_fn(grid_size, dim3(property<block_dim_x_t>().get()), context)(arguments, size<dev_event_list_t>(arguments), std::get<0>(runtime_options.event_interval));
 }

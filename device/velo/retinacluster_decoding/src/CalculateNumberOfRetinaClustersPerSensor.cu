@@ -11,7 +11,7 @@ INSTANTIATE_ALGORITHM(
 
 template<int decoding_version, bool mep_layout>
 __global__ void calculate_number_of_retinaclusters_each_sensor_pair_kernel(
-  calculate_number_of_retinaclusters_each_sensor_pair::Parameters parameters)
+  calculate_number_of_retinaclusters_each_sensor_pair::Parameters parameters, const unsigned event_start)
 {
   const auto event_number = parameters.dev_event_list[blockIdx.x];
   unsigned* each_sensor_pair_size = nullptr;
@@ -31,7 +31,7 @@ __global__ void calculate_number_of_retinaclusters_each_sensor_pair_kernel(
                                                   parameters.dev_velo_retina_raw_input_offsets,
                                                   parameters.dev_velo_retina_raw_input_sizes,
                                                   parameters.dev_velo_retina_raw_input_types,
-                                                  event_number};
+                                                  event_number + event_start};
 
   unsigned number_of_raw_banks = velo_raw_event.number_of_raw_banks();
   for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < number_of_raw_banks; raw_bank_number += blockDim.x) {
@@ -94,5 +94,5 @@ operator()(
                         global_function(calculate_number_of_retinaclusters_each_sensor_pair_kernel<4, true>) :
                         global_function(calculate_number_of_retinaclusters_each_sensor_pair_kernel<4, false>));
 
-  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, std::get<0>(runtime_options.event_interval));
 }
