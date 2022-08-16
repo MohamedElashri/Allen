@@ -212,7 +212,9 @@ __device__ void estimate_raw_bank_size(
 }
 
 template<int decoding_version, bool mep_layout>
-__global__ void velo_estimate_input_size_kernel(velo_estimate_input_size::Parameters parameters, unsigned const event_start)
+__global__ void velo_estimate_input_size_kernel(
+  velo_estimate_input_size::Parameters parameters,
+  unsigned const event_start)
 {
   const auto event_number = parameters.dev_event_list[blockIdx.x];
   unsigned* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
@@ -276,5 +278,6 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
                      (runtime_options.mep_layout ? global_function(velo_estimate_input_size_kernel<4, true>) :
                                                    global_function(velo_estimate_input_size_kernel<4, false>));
 
-  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, std::get<0>(runtime_options.event_interval));
+  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    arguments, std::get<0>(runtime_options.event_interval));
 }

@@ -26,7 +26,8 @@ void host_scifi_gec::host_scifi_gec_t::operator()(
   const Allen::Context& context) const
 {
   // Do the host global event cut
-  host_function(runtime_options.mep_layout ? host_scifi_gec<true> : host_scifi_gec<false>)(arguments, std::get<0>(runtime_options.event_interval));
+  host_function(runtime_options.mep_layout ? host_scifi_gec<true> : host_scifi_gec<false>)(
+    arguments, std::get<0>(runtime_options.event_interval));
 
   // Reduce the size of the event lists to the selected events
   reduce_size<host_output_event_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));

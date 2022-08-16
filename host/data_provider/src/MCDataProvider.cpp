@@ -23,7 +23,8 @@ void mc_data_provider::mc_data_provider_t::operator()(
 {
   const unsigned start_event = std::get<0>(runtime_options.event_interval);
 
-  debug_cout << "Providing MC data for " << first<host_number_of_events_t>(arguments) << " events starting from " << start_event << "\n";
+  debug_cout << "Providing MC data for " << first<host_number_of_events_t>(arguments) << " events starting from "
+             << start_event << "\n";
 
   MCEvents* mc_events = const_cast<MCEvents*>(&runtime_options.mc_events);
   // MCEvents* mc_events = &m_mc_events;

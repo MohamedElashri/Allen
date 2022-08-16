@@ -469,7 +469,10 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
                                                     global_function(velo_calculate_sorting_key<4, false>));
 
   kernel_fn1(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_calculate_key_t>().get(), context)(
-    arguments, std::get<0>(runtime_options.event_interval), constants.dev_velo_geometry, dev_module_zero_cluster_num.data());
+    arguments,
+    std::get<0>(runtime_options.event_interval),
+    constants.dev_velo_geometry,
+    dev_module_zero_cluster_num.data());
 
   global_function(runtime_options.mep_layout ? velo_calculate_permutations<true> : velo_calculate_permutations<false>)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_calculate_permutations_t>(), context)(

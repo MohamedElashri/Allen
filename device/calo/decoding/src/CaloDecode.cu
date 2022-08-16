@@ -190,7 +190,8 @@ namespace {
 
 // Decode dispatch
 template<bool mep_layout, int decoding_version>
-__global__ void calo_decode_dispatch(calo_decode::Parameters parameters, const char* raw_ecal_geometry, const unsigned event_start)
+__global__ void
+calo_decode_dispatch(calo_decode::Parameters parameters, const char* raw_ecal_geometry, const unsigned event_start)
 {
   unsigned const event_number = parameters.dev_event_list[blockIdx.x];
 

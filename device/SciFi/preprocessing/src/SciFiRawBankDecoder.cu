@@ -47,7 +47,10 @@ __device__ void make_cluster(
 }
 
 template<int decoding_version, bool mep_layout>
-__global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters parameters, const unsigned event_start, const char* scifi_geometry)
+__global__ void scifi_raw_bank_decoder_kernel(
+  scifi_raw_bank_decoder::Parameters parameters,
+  const unsigned event_start,
+  const char* scifi_geometry)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];

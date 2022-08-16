@@ -48,7 +48,8 @@ __device__ void insertionSort(uint32_t* arr, int n, F&& f)
 }
 
 template<int decoding_version, bool mep_layout>
-__global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned event_start, const char* scifi_geometry)
+__global__ void
+scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned event_start, const char* scifi_geometry)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 

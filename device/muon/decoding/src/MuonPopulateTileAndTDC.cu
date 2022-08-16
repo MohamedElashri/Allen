@@ -214,7 +214,9 @@ __device__ void decode_muon_bank(
 }
 
 template<int decoding_version, bool mep_layout>
-__global__ void muon_populate_tile_and_tdc_kernel(muon_populate_tile_and_tdc::Parameters parameters, const unsigned event_start)
+__global__ void muon_populate_tile_and_tdc_kernel(
+  muon_populate_tile_and_tdc::Parameters parameters,
+  const unsigned event_start)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const auto storage_station_region_quarter_offsets =
@@ -282,7 +284,8 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
                                         (runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<3, true> :
                                                                       muon_populate_tile_and_tdc_kernel<3, false>);
 
-  global_function(populate_tile_and_tdc_kernel)(size<dev_event_list_t>(arguments), dim3(64, 4), context)(arguments, std::get<0>(runtime_options.event_interval));
+  global_function(populate_tile_and_tdc_kernel)(size<dev_event_list_t>(arguments), dim3(64, 4), context)(
+    arguments, std::get<0>(runtime_options.event_interval));
 
   auto calculate_station_ocurrences_kernel =
     bank_version == 2 ? muon_calculate_station_ocurrences_sizes<2> : muon_calculate_station_ocurrences_sizes<3>;

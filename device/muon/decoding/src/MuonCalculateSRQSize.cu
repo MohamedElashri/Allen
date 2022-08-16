@@ -122,7 +122,9 @@ __device__ void calculate_srq_size(
 }
 
 template<int decoding_version, bool mep_layout>
-__global__ void muon_calculate_srq_size_kernel(muon_calculate_srq_size::Parameters parameters, unsigned const event_start)
+__global__ void muon_calculate_srq_size_kernel(
+  muon_calculate_srq_size::Parameters parameters,
+  unsigned const event_start)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -192,5 +194,6 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
                                        (runtime_options.mep_layout ? muon_calculate_srq_size_kernel<3, true> :
                                                                      muon_calculate_srq_size_kernel<3, false>);
 
-  global_function(kernel_fn)(size<dev_event_list_t>(arguments), dim3(64, 4), context)(arguments, std::get<0>(runtime_options.event_interval));
+  global_function(kernel_fn)(size<dev_event_list_t>(arguments), dim3(64, 4), context)(
+    arguments, std::get<0>(runtime_options.event_interval));
 }
