@@ -27,6 +27,8 @@ namespace {
     const CaloGeometry& geometry)
   {
     auto raw_event = RawEvent {data, offsets, sizes, types, event_number};
+    [[maybe_unused]] auto raw_event_fiberCheck = RawEvent {data, offsets, sizes, types, event_number};
+    (void) raw_event_fiberCheck;
 
     for (unsigned bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
       auto raw_bank = raw_event.raw_bank(bank_number);
@@ -94,7 +96,6 @@ namespace {
           continue; // Only decode data banks
         }
 
-        auto raw_event_fiberCheck = RawEvent {data, offsets, sizes, types, event_number};
         auto raw_bank_fiberCheck = raw_event_fiberCheck.raw_bank(bank_number);
 
         auto get_data = [](uint32_t const* raw_data) {
@@ -189,7 +190,7 @@ namespace {
 
 // Decode dispatch
 template<bool mep_layout, int decoding_version>
-__global__ void calo_decode_dispatch(calo_decode::Parameters parameters, const char* raw_ecal_geometry)
+__global__ void calo_decode_dispatch(calo_decode::Parameters parameters, const char* raw_ecal_geometry, const unsigned event_start)
 {
   unsigned const event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -202,7 +203,7 @@ __global__ void calo_decode_dispatch(calo_decode::Parameters parameters, const c
     parameters.dev_ecal_raw_input_offsets,
     parameters.dev_ecal_raw_input_sizes,
     parameters.dev_ecal_raw_input_types,
-    event_number,
+    event_number + event_start,
     &parameters.dev_ecal_digits[ecal_digits_offset],
     parameters.dev_ecal_digits_offsets[event_number + 1] - ecal_digits_offset,
     ecal_geometry);
@@ -259,5 +260,5 @@ void calo_decode::calo_decode_t::operator()(
                            (bank_version == 5 ? calo_decode_dispatch<false, 5> : calo_decode_dispatch<false, 3>) );
 
   global_function(fn)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, constants.dev_ecal_geometry);
+    arguments, constants.dev_ecal_geometry, std::get<0>(runtime_options.event_interval));
 }
