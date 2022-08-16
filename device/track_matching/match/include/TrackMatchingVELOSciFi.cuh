@@ -34,6 +34,7 @@ namespace track_matching_veloSciFi {
   };
   __global__ void track_matching_veloSciFi(
     Parameters,
+    const float* dev_magnet_polarity,
     const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization);
 
   struct track_matching_veloSciFi_t : public DeviceAlgorithm, Parameters {

@@ -27,14 +27,13 @@ void track_matching_veloSciFi::track_matching_veloSciFi_t::operator()(
   Allen::memset_async<dev_atomics_matched_tracks_t>(arguments, 0, context);
 
   global_function(track_matching_veloSciFi)(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(
-    arguments, constants.dev_magnet_parametrization);
+    arguments, constants.dev_magnet_polarity.data(), constants.dev_magnet_parametrization);
 }
 
 // inspired from https://gitlab.cern.ch/lhcb/Rec/-/blob/master/Pr/PrAlgorithms/src/PrMatchNN.cpp
 __device__ track_matching::MatchingResult getChi2Match(
   const MiniState velo_state,
   const MiniState scifi_state,
-  track_matching_veloSciFi::Parameters,
   const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization)
 {
 
@@ -93,7 +92,7 @@ __device__ track_matching::MatchingResult getChi2Match(
 }
 
 // https://gitlab.cern.ch/lhcb/Rec/-/blob/master/Tr/TrackTools/src/FastMomentumEstimate.cpp#L142
-__device__ float computeQoverP(const float txV, const float tyV, const float txT)
+__device__ float computeQoverP(const float txV, const float tyV, const float txT, const float magSign)
 {
   const float txT2 = txT * txT;
   const float txT4 = txT2 * txT2;
@@ -104,13 +103,14 @@ __device__ float computeQoverP(const float txV, const float tyV, const float txT
     1.21352f + 0.626691f * txT2 - 0.202483f * txT4 + 0.426262f * txT * txV + 2.47057f * tyV2 - 13.2917f * tyV4;
 
   const float proj = sqrtf((1.f + txV2 + tyV2) / (1.f + txV2));
-  const float scaleFactor = 1.f; // FIXME magnet sign
+  const float scaleFactor = 1.f * magSign;
 
   return (txV - txT) / (coef * 1000.f * proj * scaleFactor);
 }
 
 __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
   track_matching_veloSciFi::Parameters parameters,
+  const float* dev_magnet_polarity,
   const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -157,7 +157,7 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
 
       const auto velo_track_index = ut_selected_velo_tracks[ivelo];
       const auto endvelo_state = velo_states.state(velo_track_index);
-      auto matchingInfo = getChi2Match(endvelo_state, scifi_state, parameters, dev_magnet_parametrization);
+      auto matchingInfo = getChi2Match(endvelo_state, scifi_state, dev_magnet_parametrization);
       if (matchingInfo.chi2 < BestMatch.chi2) {
         BestMatch = {static_cast<int>(velo_track_index), matchingInfo.chi2};
       }
@@ -177,7 +177,9 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
     matched_track.chi2_matching = BestMatch.chi2;
 
     const auto endvelo_state = velo_states.state(BestMatch.ivelo);
-    matched_track.qop = computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx);
+
+    const auto magSign = dev_magnet_polarity[0];
+    matched_track.qop = computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx, magSign);
   }
   __syncthreads();
 

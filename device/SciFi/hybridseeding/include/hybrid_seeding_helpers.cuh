@@ -25,7 +25,7 @@ namespace hybrid_seeding {
     unsigned int size = array_size;
 
     // Unroll 9 time to cover arrays of size max 512
-#if defined(__clang__)
+#if defined(__clang__) or defined(__NVCC__)
 #pragma unroll
 #elif defined(__GNUC__)
 #pragma GCC unroll 9

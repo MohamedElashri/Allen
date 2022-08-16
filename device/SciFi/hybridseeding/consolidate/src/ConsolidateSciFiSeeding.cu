@@ -76,9 +76,9 @@ __device__ float qop_seeding_calculation(const float magSign, const MiniState se
   const auto p = params[0] + params[1] * tx * tx + params[2] * ty * ty + params[3] * x0 * x0;
 
   const float scale_factor = 1.f * magSign; // is there a way to get the scale_factor from the constants?
-  const float denom = p * scale_factor * powf(10, 6) * (-1.f);
+  const float denom = p * scale_factor * 1e6f * (-1.f);
 
-  if (std::fabs(scale_factor) < powf(10, -6)) {
+  if (std::fabs(scale_factor) < 1e-6f) {
     qop = 0.01f / Gaudi::Units::GeV;
   }
   else {
