@@ -48,7 +48,7 @@ __device__ void insertionSort(uint32_t* arr, int n, F&& f)
 }
 
 template<int decoding_version, bool mep_layout>
-__global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const char* scifi_geometry)
+__global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned event_start, const char* scifi_geometry)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -57,7 +57,7 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
     parameters.dev_scifi_raw_input,
     parameters.dev_scifi_raw_input_offsets,
     parameters.dev_scifi_raw_input_sizes,
-    event_number);
+    event_number + event_start);
 
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
 
@@ -287,5 +287,5 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
                                                    global_function(scifi_pre_decode_kernel<8, false>));
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanksMax), context)(
-    arguments, constants.dev_scifi_geometry);
+    arguments, std::get<0>(runtime_options.event_interval), constants.dev_scifi_geometry);
 }
