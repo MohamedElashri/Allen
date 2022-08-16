@@ -122,7 +122,7 @@ __device__ void calculate_srq_size(
 }
 
 template<int decoding_version, bool mep_layout>
-__global__ void muon_calculate_srq_size_kernel(muon_calculate_srq_size::Parameters parameters)
+__global__ void muon_calculate_srq_size_kernel(muon_calculate_srq_size::Parameters parameters, unsigned const event_start)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -135,7 +135,7 @@ __global__ void muon_calculate_srq_size_kernel(muon_calculate_srq_size::Paramete
                                                                        parameters.dev_muon_raw_offsets,
                                                                        parameters.dev_muon_raw_sizes,
                                                                        parameters.dev_muon_raw_types,
-                                                                       event_number};
+                                                                       event_number + event_start};
 
   for (unsigned bank_index = threadIdx.x; bank_index < raw_event.number_of_raw_banks(); bank_index += blockDim.x) {
     const auto raw_bank = raw_event.raw_bank(bank_index);
@@ -192,5 +192,5 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
                                        (runtime_options.mep_layout ? muon_calculate_srq_size_kernel<3, true> :
                                                                      muon_calculate_srq_size_kernel<3, false>);
 
-  global_function(kernel_fn)(size<dev_event_list_t>(arguments), dim3(64, 4), context)(arguments);
+  global_function(kernel_fn)(size<dev_event_list_t>(arguments), dim3(64, 4), context)(arguments, std::get<0>(runtime_options.event_interval));
 }
