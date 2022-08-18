@@ -330,7 +330,8 @@ def setup_hlt1_node(withMCChecking=False,
             reconstructed_objects["forward_tracks"],
             reconstructed_objects["long_track_particles"],
             reconstructed_objects["secondary_vertices"],
-            reconstructed_objects["calo_matching_objects"] if with_calo else None)
+            reconstructed_objects["calo_matching_objects"]
+            if with_calo else None)
 
     lumiline_name = "Hlt1ODINLumi"
     with line_maker.bind(prefilter=odin_err_filter):
@@ -428,8 +429,7 @@ def setup_hlt1_node(withMCChecking=False,
 
     gather_selections = make_gather_selections(lines=line_algorithms)
     hlt1_node = CompositeNode(
-        "Allen",
-        [
+        "Allen", [
             lines,
             make_global_decision(lines=line_algorithms),
             make_routingbits_writer(lines=line_algorithms),

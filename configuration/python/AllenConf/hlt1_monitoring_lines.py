@@ -62,7 +62,8 @@ def make_odin_event_type_line(odin_event_type: str,
         "NoBias": 0x0004,
         "Lumi": 0x0008,
         "Beam1Gas": 0x0010,
-        "Beam2Gas": 0x0020}
+        "Beam2Gas": 0x0020
+    }
 
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
