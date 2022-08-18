@@ -54,6 +54,7 @@ def make_velo_micro_bias_line(velo_tracks,
 def make_odin_event_type_line(odin_event_type: str,
                               name=None,
                               pre_scaler=1.,
+                              post_scaler=1.,
                               pre_scaler_hash_string=None,
                               post_scaler_hash_string=None):
     type_map = {
@@ -71,8 +72,9 @@ def make_odin_event_type_line(odin_event_type: str,
     line_name = name or 'Hlt1ODIN' + odin_event_type
     return make_algorithm(
         odin_event_type_line_t,
-        name=name,
+        name=line_name,
         pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
         dev_odin_data_t=odin["dev_odin_data"],
         odin_event_type=type_map[odin_event_type],
         host_number_of_events_t=number_of_events["host_number_of_events"],
