@@ -146,7 +146,8 @@ void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  unsigned int const bank_version = first<host_raw_bank_version_t>(arguments);
+  const auto bank_version = first<host_raw_bank_version_t>(arguments);
+  if (bank_version < 0) return; // no SciFi banks present in data
 
   auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
                      (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<4, true>) :

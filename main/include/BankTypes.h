@@ -59,7 +59,7 @@ struct BanksAndOffsets {
   size_t fragments_mem_size = 0;
   gsl::span<unsigned const> sizes;
   gsl::span<unsigned const> types;
-  int version = 0;
+  int version = -1;
 };
 
 struct TransposedBanks {

@@ -214,8 +214,8 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
       // add the lumi summary if one exists
       if (lumi_summary_size > 0) {
-	auto report_offset = 2 * bank_header_size + dec_report_size + routing_bits_size;
-	if (sel_report_size > 0) report_offset += bank_header_size + sel_report_size;
+        auto report_offset = 2 * bank_header_size + dec_report_size + routing_bits_size;
+        if (sel_report_size > 0) report_offset += bank_header_size + sel_report_size;
         Allen::add_raw_bank(
           LHCb::RawBank::HltLumiSummary,
           1u, // TODO version number
@@ -224,7 +224,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
            static_cast<events_size>(lumi_summary_size)},
           event_span.data() + header_size + event_sizes[i] + report_offset);
       }
-      
+
       if (m_checksum) {
         auto const skip = 4 * sizeof(int);
         auto c = LHCb::hash32Checksum(event_span.data() + skip, event_span.size() - skip);

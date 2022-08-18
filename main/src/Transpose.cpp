@@ -289,7 +289,7 @@ std::tuple<bool, bool, bool> transpose_event(
 
     // Allen bank type
     auto const allen_type = sd_from_raw_bank(b);
-  
+
     // Check what to do with this bank
     if (allen_type == BankTypes::ODIN) {
       auto const odin_error = b->type() >= LHCb::RawBank::DaqErrorFragmentThrottled;
@@ -323,7 +323,7 @@ std::tuple<bool, bool, bool> transpose_event(
 
       // set bank version
       banks_version[to_integral(allen_type)] = b->version();
-      
+
       // Reset bank count
       bank_counter = 1;
       banks_offsets = slice.offsets.data();
@@ -380,12 +380,12 @@ std::tuple<bool, bool, bool> transpose_event(
     }
     else {
       ++bank_counter;
-      
+
       if (allen_type != BankTypes::VP) {
         assert(banks_version[to_integral(allen_type)] == b->version());
       }
     }
- 
+
     // Write sourceID
     banks_write[bank_offset] = b->sourceID();
 

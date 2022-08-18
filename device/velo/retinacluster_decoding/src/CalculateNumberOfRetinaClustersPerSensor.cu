@@ -58,6 +58,7 @@ void calculate_number_of_retinaclusters_each_sensor_pair::calculate_number_of_re
     const HostBuffers&) const
 {
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
+  if (bank_version < 0) return; // no VP banks present in data
   unsigned size;
   if (bank_version == 2 || bank_version == 3) {
     size = Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;

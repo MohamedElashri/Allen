@@ -23,6 +23,7 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
   const Allen::Context& context) const
 {
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
+  if (bank_version < 0) return; // no UT banks present in data
 
   auto fun = bank_version == 4 ?
                (runtime_options.mep_layout ? global_function(ut_decode_raw_banks_in_order<4, true>) :
