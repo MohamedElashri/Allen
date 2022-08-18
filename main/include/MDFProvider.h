@@ -125,6 +125,9 @@ public:
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);
 
+    // initialize bank version, needed for banks of subdetectors not present in input data
+    std::fill(m_banks_version.begin(), m_banks_version.end(), -1);
+    
     // Start prefetch thread and count bank types once a single buffer
     // is available
     {

@@ -289,7 +289,7 @@ std::tuple<bool, bool, bool> transpose_event(
 
     // Allen bank type
     auto const allen_type = sd_from_raw_bank(b);
-
+  
     // Check what to do with this bank
     if (allen_type == BankTypes::ODIN) {
       auto const odin_error = b->type() >= LHCb::RawBank::DaqErrorFragmentThrottled;
@@ -312,6 +312,7 @@ std::tuple<bool, bool, bool> transpose_event(
     }
 
     if (!bank_types.count(allen_type)) {
+      warning_cout << "Bank type " << to_integral(allen_type) << " is not in requested bank types " << std::endl;
       prev_type = allen_type;
       continue;
     }
@@ -322,7 +323,7 @@ std::tuple<bool, bool, bool> transpose_event(
 
       // set bank version
       banks_version[to_integral(allen_type)] = b->version();
-
+      
       // Reset bank count
       bank_counter = 1;
       banks_offsets = slice.offsets.data();
@@ -379,11 +380,12 @@ std::tuple<bool, bool, bool> transpose_event(
     }
     else {
       ++bank_counter;
+      
       if (allen_type != BankTypes::VP) {
         assert(banks_version[to_integral(allen_type)] == b->version());
       }
     }
-
+ 
     // Write sourceID
     banks_write[bank_offset] = b->sourceID();
 
@@ -437,9 +439,6 @@ std::tuple<bool, bool, size_t> transpose_events(
 
   std::array<unsigned int, NBankTypes> bank_count;
   bank_count.fill(0);
-
-  // initialize bank version, needed for banks of subdetectors not present in input data
-  std::fill(banks_version.begin(), banks_version.end(), -1);
 
   // Initialize the first size offset from the number of events. The
   // offsets at the start of the array are 32 bit unsigned, while the
