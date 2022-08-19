@@ -66,6 +66,23 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   size_t n_output = 0;
   size_t n_batches = n_events / m_output_batch_size + (n_events % m_output_batch_size != 0);
 
+  // Lambda to add an HLT output bank to the output event
+  auto add_hlt_bank = [](
+                        LHCb::RawBank::BankType bank_type,
+                        unsigned version,
+                        unsigned source_id,
+                        gsl::span<char const> data,
+                        char* output) -> size_t {
+    // add the dec report
+    if (data.empty()) {
+      return 0u;
+    }
+    else {
+      Allen::add_raw_bank(bank_type, version, source_id, data, output);
+      return bank_header_size + data.size_bytes();
+    }
+  };
+
 #ifndef STANDALONE
   if (m_nbatches) (*m_nbatches) += n_batches;
 #endif
@@ -133,21 +150,17 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
         sel_report_offsets.empty() ?
           0 :
           (sel_report_offsets[event_number + 1] - sel_report_offsets[event_number]) * sizeof(uint32_t);
-      unsigned lumi_summary_size = 0;
-      if (!lumi_summary_offsets.empty()) {
-        lumi_summary_size =
+      unsigned lumi_summary_size =
+        lumi_summary_offsets.empty() ?
+          0 :
           (lumi_summary_offsets[event_number + 1] - lumi_summary_offsets[event_number]) * sizeof(uint32_t);
-      }
 
-      // add DecReport and SelReport sizes to the total size (including RawBank headers)
       // event_sizes is indexed in the same way as selected_events
-      size_t event_size =
-        event_sizes[i] + header_size + bank_header_size + dec_report_size + bank_header_size + routing_bits_size;
-      if (sel_report_size > 0) {
-        event_size += bank_header_size + sel_report_size;
-      }
-      if (lumi_summary_size > 0) {
-        event_size += bank_header_size + lumi_summary_size;
+      size_t event_size = event_sizes[i] + header_size;
+      for (auto hlt_bank_size : {dec_report_size, routing_bits_size, sel_report_size, lumi_summary_size}) {
+        if (hlt_bank_size > 0) {
+          event_size += bank_header_size + hlt_bank_size;
+        }
       }
 
       // The memory range in the output buffer for this event
@@ -182,48 +195,42 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
         event_number + start_event,
         {event_span.data() + header_size, static_cast<events_size>(event_sizes[i])});
 
-      // add the dec report
-      Allen::add_raw_bank(
-        LHCb::RawBank::HltDecReports,
-        2u,
-        Hlt1::Constants::sourceID_dec_reports,
-        {reinterpret_cast<char const*>(dec_reports.data()) + dec_report_size * event_number,
-         static_cast<events_size>(dec_report_size)},
-        event_span.data() + header_size + event_sizes[i]);
+      // Starting point of HLT banks
+      char* output = event_span.data() + header_size + event_sizes[i];
 
-      // add the routing bits
-      Allen::add_raw_bank(
-        LHCb::RawBank::HltRoutingBits,
-        0u,
-        Hlt1::Constants::sourceID_dec_reports,
-        {reinterpret_cast<char const*>(routing_bits.data()) + routing_bits_size * event_number,
-         static_cast<events_size>(routing_bits_size)},
-        event_span.data() + header_size + event_sizes[i] + bank_header_size + dec_report_size);
-
-      // add the sel report
-      if (sel_report_size > 0) {
-        Allen::add_raw_bank(
+      using output_bank = std::tuple<LHCb::RawBank::BankType, unsigned, unsigned, gsl::span<char const>>;
+      auto hlt_banks = std::make_tuple(
+        // HltDecReports
+        output_bank {LHCb::RawBank::HltDecReports,
+                     2u,
+                     Hlt1::Constants::sourceID_dec_reports,
+                     {reinterpret_cast<char const*>(dec_reports.data()) + dec_report_size * event_number,
+                      static_cast<events_size>(dec_report_size)}},
+        // HltRoutingBits
+        output_bank {LHCb::RawBank::HltRoutingBits,
+                     0u,
+                     Hlt1::Constants::sourceID_dec_reports,
+                     {reinterpret_cast<char const*>(routing_bits.data()) + routing_bits_size * event_number,
+                      static_cast<events_size>(routing_bits_size)}},
+        // HltSelReports
+        output_bank {
           LHCb::RawBank::HltSelReports,
           11u,
           Hlt1::Constants::sourceID_sel_reports,
           {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[event_number] * sizeof(uint32_t),
-           static_cast<events_size>(sel_report_size)},
-          event_span.data() + header_size + event_sizes[i] + 2 * bank_header_size + dec_report_size +
-            routing_bits_size);
-      }
-
-      // add the lumi summary if one exists
-      if (lumi_summary_size > 0) {
-        auto report_offset = 2 * bank_header_size + dec_report_size + routing_bits_size;
-        if (sel_report_size > 0) report_offset += bank_header_size + sel_report_size;
-        Allen::add_raw_bank(
+           static_cast<events_size>(sel_report_size)}},
+        // HltLumiSummary
+        output_bank {
           LHCb::RawBank::HltLumiSummary,
           1u, // TODO version number
           Hlt1::Constants::sourceID_dec_reports,
           {reinterpret_cast<char const*>(lumi_summaries.data()) + lumi_summary_offsets[event_number] * sizeof(uint32_t),
-           static_cast<events_size>(lumi_summary_size)},
-          event_span.data() + header_size + event_sizes[i] + report_offset);
-      }
+           static_cast<events_size>(lumi_summary_size)}});
+
+      for_each(hlt_banks, [&output, &add_hlt_bank](auto b) {
+        auto t = std::tuple_cat(b, std::tuple {output});
+        output += std::apply(add_hlt_bank, t);
+      });
 
       if (m_checksum) {
         auto const skip = 4 * sizeof(int);
