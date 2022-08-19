@@ -110,6 +110,9 @@ Hlt1VeloMicroBias:                                      2/  1000, (   60.00 +/- 
 Hlt1RICH1Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1RICH2Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1D2KPiAlignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DisplacedDiMuonAlignment:                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1GECPassThrough_LowMult5:                          153/  1000, ( 4590.00 +/-   341.51) kHz
 Hlt1_BESMOG2_NoBias:                                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_BESMOG2_LowMult10:                                 0/  1000, (    0.00 +/-     0.00) kHz
@@ -177,6 +180,9 @@ Hlt1VeloMicroBias:                                      2           0
 Hlt1RICH1Alignment:                                     0           0
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
+Hlt1D2KPiAlignment:                                     0           0
+Hlt1DiMuonHighMassAlignment:                            0           0
+Hlt1DisplacedDiMuonAlignment:                           0           0
 Hlt1GECPassThrough_LowMult5:                          153           0
 Hlt1_BESMOG2_NoBias:                                    0           0
 Hlt1_BESMOG2_LowMult10:                                 0           0
