@@ -106,6 +106,24 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
             make_track_muon_mva_line(
                 forward_tracks, long_track_particles,
                 name="Hlt1TrackMuonMVA")))
+
+    lines.append(
+        line_maker(
+            make_di_muon_no_ip_line(forward_tracks, secondary_vertices)))
+    lines.append(
+        line_maker(
+            make_di_muon_no_ip_line(
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1DiMuonNoIP_ss",
+                pre_scaler_hash_string="di_muon_no_ip_ss_line_pre",
+                post_scaler_hash_string="di_muon_no_ip_ss_line_post",
+                ss_on=True,
+                pre_scaler=.1)))
+
+    if calo_matching_objects is None:
+        return lines
+
     lines.append(
         line_maker(
             make_track_electron_mva_line(
@@ -188,19 +206,6 @@ def default_physics_lines(velo_tracks, forward_tracks, long_track_particles,
         line_maker(
             make_single_high_et_line(
                 velo_tracks, calo_matching_objects, name="Hlt1SingleHighEt")))
-    lines.append(
-        line_maker(
-            make_di_muon_no_ip_line(forward_tracks, secondary_vertices)))
-    lines.append(
-        line_maker(
-            make_di_muon_no_ip_line(
-                forward_tracks,
-                secondary_vertices,
-                name="Hlt1DiMuonNoIP_ss",
-                pre_scaler_hash_string="di_muon_no_ip_ss_line_pre",
-                post_scaler_hash_string="di_muon_no_ip_ss_line_post",
-                ss_on=True,
-                pre_scaler=.1)))
 
     return lines
 
@@ -219,11 +224,11 @@ def event_monitoring_lines(with_lumi, lumiline_name):
         lines.append(
             line_maker(
                 make_odin_event_type_line(
-                    name=lumiline_name, odin_event_type=0x8)))
+                    name=lumiline_name, odin_event_type='Lumi')))
     lines.append(
-        line_maker(
-            make_odin_event_type_line(
-                name="Hlt1ODINNoBias", odin_event_type=0x4)))
+        line_maker(make_odin_event_type_line(odin_event_type="VeloOpen")))
+    lines.append(
+        line_maker(make_odin_event_type_line(odin_event_type="NoBias")))
     return lines
 
 
@@ -308,10 +313,11 @@ def setup_hlt1_node(withMCChecking=False,
                     enableRateValidator=True,
                     with_ut=True,
                     with_lumi=True,
-                    with_odin_filter=True):
+                    with_odin_filter=True,
+                    with_calo=True):
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(
-        add_electron_id=True, with_ut=with_ut)
+        add_electron_id=with_calo, with_ut=with_ut)
 
     gec = [make_gec()] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
@@ -324,7 +330,8 @@ def setup_hlt1_node(withMCChecking=False,
             reconstructed_objects["forward_tracks"],
             reconstructed_objects["long_track_particles"],
             reconstructed_objects["secondary_vertices"],
-            reconstructed_objects["calo_matching_objects"])
+            reconstructed_objects["calo_matching_objects"]
+            if with_calo else None)
 
     lumiline_name = "Hlt1ODINLumi"
     with line_maker.bind(prefilter=odin_err_filter):
@@ -422,12 +429,10 @@ def setup_hlt1_node(withMCChecking=False,
 
     gather_selections = make_gather_selections(lines=line_algorithms)
     hlt1_node = CompositeNode(
-        "Allen",
-        [
+        "Allen", [
             lines,
             make_global_decision(lines=line_algorithms),
             make_routingbits_writer(lines=line_algorithms),
-            #routingbits_validation(lines=line_algorithms),
             *make_sel_report_writer(
                 lines=line_algorithms,
                 forward_tracks=reconstructed_objects["long_track_particles"],

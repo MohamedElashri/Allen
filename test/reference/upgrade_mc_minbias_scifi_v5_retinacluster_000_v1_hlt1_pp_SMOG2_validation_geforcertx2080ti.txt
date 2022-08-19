@@ -87,6 +87,8 @@ Hlt1DiMuonLowMass:                                     13/  1000, (  390.00 +/- 
 Hlt1DiMuonSoft:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowPtDiMuon:                                       19/  1000, (  570.00 +/-   129.52) kHz
 Hlt1TrackMuonMVA:                                       0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DiMuonNoIP:                                         5/  1000, (  150.00 +/-    66.91) kHz
+Hlt1DiMuonNoIP_ss:                                      1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1TrackElectronMVA:                                   4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1SingleHighPtElectron:                               4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1DisplacedDielectron:                                1/  1000, (   30.00 +/-    29.98) kHz
@@ -108,8 +110,6 @@ Hlt1LowMassNoipDielectron_massSlice4_displaced:         0/  1000, (    0.00 +/- 
 Hlt1LowMassNoipDielectron_SS_massSlice4_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DisplacedLeptons:                                   3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighEt:                                       0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1DiMuonNoIP:                                         5/  1000, (  150.00 +/-    66.91) kHz
-Hlt1DiMuonNoIP_ss:                                      1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1Passthrough:                                     1000/  1000, (30000.00 +/-     0.00) kHz
 Hlt1GECPassthrough:                                   951/  1000, (28530.00 +/-   204.79) kHz
 Hlt1NoBeam:                                             0/  1000, (    0.00 +/-     0.00) kHz
@@ -117,6 +117,7 @@ Hlt1BeamOne:                                            0/  1000, (    0.00 +/- 
 Hlt1BeamTwo:                                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BothBeams:                                          3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1ODINLumi:                                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1ODINVeloOpen:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINNoBias:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                      1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1RICH1Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
@@ -153,6 +154,8 @@ Hlt1DiMuonLowMass:                                     13          13
 Hlt1DiMuonSoft:                                         0           0
 Hlt1LowPtDiMuon:                                       19          21
 Hlt1TrackMuonMVA:                                       0           0
+Hlt1DiMuonNoIP:                                         5           6
+Hlt1DiMuonNoIP_ss:                                      1           6
 Hlt1TrackElectronMVA:                                   4           4
 Hlt1SingleHighPtElectron:                               4           5
 Hlt1DisplacedDielectron:                                1           1
@@ -174,8 +177,6 @@ Hlt1LowMassNoipDielectron_massSlice4_displaced:         0           0
 Hlt1LowMassNoipDielectron_SS_massSlice4_displaced:      0           0
 Hlt1DisplacedLeptons:                                   3           0
 Hlt1SingleHighEt:                                       0           0
-Hlt1DiMuonNoIP:                                         5           6
-Hlt1DiMuonNoIP_ss:                                      1           6
 Hlt1Passthrough:                                     1000           0
 Hlt1GECPassthrough:                                   951           0
 Hlt1NoBeam:                                             0           0
@@ -183,6 +184,7 @@ Hlt1BeamOne:                                            0           0
 Hlt1BeamTwo:                                            0           0
 Hlt1BothBeams:                                          3           0
 Hlt1ODINLumi:                                           0           0
+Hlt1ODINVeloOpen:                                       0           0
 Hlt1ODINNoBias:                                         0           0
 Hlt1VeloMicroBias:                                      1           0
 Hlt1RICH1Alignment:                                     0           0
