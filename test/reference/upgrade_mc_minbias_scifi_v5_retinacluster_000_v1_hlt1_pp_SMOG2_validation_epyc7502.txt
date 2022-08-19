@@ -123,6 +123,9 @@ Hlt1VeloMicroBias:                                      1/  1000, (   30.00 +/- 
 Hlt1RICH1Alignment:                                     1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1RICH2Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1D2KPiAlignment:                                     2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DisplacedDiMuonAlignment:                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1GECPassThrough_LowMult5:                            3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1_BESMOG2_NoBias:                                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_BESMOG2_LowMult10:                                 0/  1000, (    0.00 +/-     0.00) kHz
@@ -190,6 +193,9 @@ Hlt1VeloMicroBias:                                      1           0
 Hlt1RICH1Alignment:                                     1           1
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
+Hlt1D2KPiAlignment:                                     2           2
+Hlt1DiMuonHighMassAlignment:                            0           0
+Hlt1DisplacedDiMuonAlignment:                           0           0
 Hlt1GECPassThrough_LowMult5:                            3           0
 Hlt1_BESMOG2_NoBias:                                    0           0
 Hlt1_BESMOG2_LowMult10:                                 0           0
@@ -201,9 +207,9 @@ Hlt1_SMOG2_eta2pp:                                      0           0
 Hlt1_SMOG2_2BodyGeneric:                                0           0
 Hlt1_SMOG2_SingleTrack:                                 0           0
 
-Total decisions: 2275
+Total decisions: 2277
 Total tracks:    517
 Total SVs:       282
 Total hits:      11966
-Total stdinfo:   7539
+Total stdinfo:   7541
 

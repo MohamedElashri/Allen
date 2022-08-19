@@ -106,6 +106,9 @@ Hlt1VeloMicroBias:                                      1/  1000, (   30.00 +/- 
 Hlt1RICH1Alignment:                                     2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1RICH2Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1D2KPiAlignment:                                    22/  1000, (  660.00 +/-   139.16) kHz
+Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DisplacedDiMuonAlignment:                           2/  1000, (   60.00 +/-    42.38) kHz
 Inclusive:                                           1000/  1000, (30000.00 +/-     0.00) kHz
 
 
@@ -163,10 +166,13 @@ Hlt1VeloMicroBias:                                      1           0
 Hlt1RICH1Alignment:                                     2           2
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
+Hlt1D2KPiAlignment:                                    22          23
+Hlt1DiMuonHighMassAlignment:                            0           0
+Hlt1DisplacedDiMuonAlignment:                           2           2
 
-Total decisions: 3048
+Total decisions: 3072
 Total tracks:    1422
 Total SVs:       1097
 Total hits:      29841
-Total stdinfo:   18812
+Total stdinfo:   18836
 

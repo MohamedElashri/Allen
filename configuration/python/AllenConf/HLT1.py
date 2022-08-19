@@ -6,7 +6,7 @@ from AllenConf.odin import make_bxtype, odin_error_filter
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line
-from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line
+from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line
 from AllenConf.hlt1_muon_lines import make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line, make_di_muon_no_ip_line
 from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_lowmass_noip_dielectron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_beam_gas_line
@@ -233,7 +233,8 @@ def event_monitoring_lines(with_lumi, lumiline_name):
 
 
 def alignment_monitoring_lines(velo_tracks, forward_tracks,
-                               long_track_particles, velo_states):
+                               long_track_particles, velo_states,
+                               secondary_vertices):
 
     lines = []
     lines.append(
@@ -258,6 +259,24 @@ def alignment_monitoring_lines(velo_tracks, forward_tracks,
                 velo_states,
                 beam_crossing_type=1,
                 name="Hlt1BeamGas")))
+    lines.append(
+        line_maker(
+            make_d2kpi_line(
+                forward_tracks, secondary_vertices,
+                name="Hlt1D2KPiAlignment")))
+    lines.append(
+        line_maker(
+            make_di_muon_mass_align_line(
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1DiMuonHighMassAlignment")))
+    lines.append(
+        line_maker(
+            make_displaced_dimuon_mass_line(
+                forward_tracks,
+                secondary_vertices,
+                name="Hlt1DisplacedDiMuonAlignment")))
+
     return lines
 
 
@@ -349,7 +368,8 @@ def setup_hlt1_node(withMCChecking=False,
             reconstructed_objects["velo_tracks"],
             reconstructed_objects["forward_tracks"],
             reconstructed_objects["long_track_particles"],
-            reconstructed_objects["velo_states"])
+            reconstructed_objects["velo_states"],
+            reconstructed_objects["secondary_vertices"])
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
