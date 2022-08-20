@@ -199,7 +199,8 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
   Allen::memset_async<dev_storage_tile_id_t>(arguments, 0, context);
   Allen::memset_async<dev_storage_tdc_value_t>(arguments, 0, context);
 
-  const unsigned bank_version = first<host_raw_bank_version_t>(arguments);
+  const auto bank_version = first<host_raw_bank_version_t>(arguments);
+  if (bank_version < 0) return; // no Muon banks present in data
   auto kernel_fn = bank_version == 2 ? (runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<2, true> :
                                                                      muon_populate_tile_and_tdc_kernel<2, false>) :
                                        (runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<3, true> :

@@ -598,6 +598,8 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
 
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 
+  if (bank_version < 0) return; // no VP banks present in data
+
   // Selector from layout
   auto kernel_fn = (bank_version == 2) ?
                      (runtime_options.mep_layout ? global_function(velo_masked_clustering_kernel<2, true>) :

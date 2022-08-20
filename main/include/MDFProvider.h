@@ -103,7 +103,6 @@ public:
     m_buffer_status(n_slices), m_slice_to_buffer(n_slices, {-1, 0}), m_slice_free(n_slices, true), m_mfp_count {0},
     m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
   {
-
     // Preallocate prefetch buffer memory
     m_buffers.resize(n_slices);
     for (auto& [n_filled, event_offsets, buffer, transpose_start] : m_buffers) {
@@ -126,7 +125,10 @@ public:
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);
 
-    // Start prefetch thread and count bank types one a single buffer
+    // initialize bank version, needed for banks of subdetectors not present in input data
+    std::fill(m_banks_version.begin(), m_banks_version.end(), -1);
+
+    // Start prefetch thread and count bank types once a single buffer
     // is available
     {
       // aquire lock
@@ -167,8 +169,7 @@ public:
 
         for (auto allen_type : types()) {
           if (m_mfp_count[to_integral(allen_type)] == 0) {
-            error_cout << "Banks for " << bank_name(allen_type) << " are not present in the file\n";
-            m_read_error = true;
+            info_cout << "WARNING: Banks for " << bank_name(allen_type) << " are not present in the file\n";
           }
         }
 

@@ -409,15 +409,16 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  auto const bank_version = first<host_raw_bank_version_t>(arguments);
+  Allen::memset_async<dev_module_cluster_num_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_module_pair_cluster_t>(arguments, 0, context);
 
   // Ensure the bank version is supported
+  auto const bank_version = first<host_raw_bank_version_t>(arguments);
+  if (bank_version < 0) return; // no VP banks present in data
+
   if (bank_version != 2 && bank_version != 3 && bank_version != 4) {
     throw StrException("Velo cluster bank version not supported (" + std::to_string(bank_version) + ")");
   }
-
-  Allen::memset_async<dev_module_cluster_num_t>(arguments, 0, context);
-  Allen::memset_async<dev_offsets_module_pair_cluster_t>(arguments, 0, context);
 
   const auto grid_dim_x = (size<dev_module_cluster_num_t>(arguments) +
                            Velo::Tracking::block_dim_x_populate_module_pair_offsets_and_sizes - 1) /

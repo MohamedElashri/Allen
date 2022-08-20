@@ -154,7 +154,8 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::set_arguments_size(
   const HostBuffers&) const
 {
   // Ensure the bank version is supported
-  const unsigned bank_version = first<host_raw_bank_version_t>(arguments);
+  const auto bank_version = first<host_raw_bank_version_t>(arguments);
+  if (bank_version < 0) return; // no Muon banks present in data
   if (bank_version != 2 && bank_version != 3) {
     throw StrException("Muon bank version not supported (" + std::to_string(bank_version) + ")");
   }
@@ -173,6 +174,9 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
+  const auto bank_version = first<host_raw_bank_version_t>(arguments);
+  if (bank_version < 0) return; // no Muon banks present in data
+
   // FIXME: this should be done as part of the consumers, but
   // currently it cannot. This is because it is not possible to
   // indicate dependencies between Consumer and/or Producers.
@@ -183,7 +187,6 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
     get<dev_muon_raw_to_hits_t>(arguments), host_muonrawtohits.get(), context, Allen::memcpyHostToDevice);
   Allen::memset_async<dev_storage_station_region_quarter_sizes_t>(arguments, 0, context);
 
-  const unsigned bank_version = first<host_raw_bank_version_t>(arguments);
   auto kernel_fn = bank_version == 2 ? (runtime_options.mep_layout ? muon_calculate_srq_size_kernel<2, true> :
                                                                      muon_calculate_srq_size_kernel<2, false>) :
                                        (runtime_options.mep_layout ? muon_calculate_srq_size_kernel<3, true> :

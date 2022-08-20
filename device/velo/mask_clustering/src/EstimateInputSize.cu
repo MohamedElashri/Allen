@@ -257,6 +257,8 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
 
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 
+  if (bank_version < 0) return; // no VP banks present in data
+
   // Ensure the bank version is supported
   if (bank_version != 2 && bank_version != 3 && bank_version != 4) {
     throw StrException("Velo SP bank version not supported (" + std::to_string(bank_version) + ")");

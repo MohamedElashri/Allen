@@ -28,6 +28,7 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   Allen::memset_async<dev_ut_hit_sizes_t>(arguments, 0, context);
 
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
+  if (bank_version < 0) return; // no UT banks present in data
 
   auto fun = bank_version == 4 ? (runtime_options.mep_layout ? global_function(ut_calculate_number_of_hits<4, true>) :
                                                                global_function(ut_calculate_number_of_hits<4, false>)) :

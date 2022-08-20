@@ -282,7 +282,6 @@ std::tuple<bool, bool, bool> transpose_event(
       return {true, true, false};
     }
   }
-
   BankTypes prev_type = BankTypes::Unknown;
 
   // Loop over all bank data of this event
@@ -313,6 +312,7 @@ std::tuple<bool, bool, bool> transpose_event(
     }
 
     if (!bank_types.count(allen_type)) {
+      warning_cout << "Bank type " << to_integral(allen_type) << " is not in requested bank types " << std::endl;
       prev_type = allen_type;
       continue;
     }
@@ -380,6 +380,7 @@ std::tuple<bool, bool, bool> transpose_event(
     }
     else {
       ++bank_counter;
+
       if (allen_type != BankTypes::VP) {
         assert(banks_version[to_integral(allen_type)] == b->version());
       }
@@ -442,7 +443,7 @@ std::tuple<bool, bool, size_t> transpose_events(
   // Initialize the first size offset from the number of events. The
   // offsets at the start of the array are 32 bit unsigned, while the
   // sizes themselves are 16 bit unsigned. Since the offsets are stored at
-  // the start of the same array they take twice as much spance.
+  // the start of the same array they take twice as much space.
   for (auto allen_type : bank_types) {
     auto const ia = to_integral(allen_type);
     auto& fragment_sizes_offsets = slices[ia][slice_index].sizes;
