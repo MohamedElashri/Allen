@@ -217,7 +217,7 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  unsigned int const bank_version = first<host_raw_bank_version_t>(arguments);
+  auto const bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version < 0) return; // no SciFi banks present in data
 
   // Mapping is:
