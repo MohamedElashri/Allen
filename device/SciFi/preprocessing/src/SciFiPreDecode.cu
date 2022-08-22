@@ -79,7 +79,8 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
     starting_it += 2;                                    // skip header
     if (starting_it != last && *(last - 1) == 0) --last; // Remove padding at the end
     if (starting_it >= last || starting_it >= rawbank.last) continue;
-
+    if ((last-starting_it) > SciFi::SciFiRawBankParams::nbClusMaximum*SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank)
+      continue;//Absurd number of clusters
     const unsigned number_of_iterations = last - starting_it;
     int last_uniqueMat = -1;
     unsigned mat_offset = 0;
@@ -235,6 +236,6 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
                      (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<7, true>) :
                                                    global_function(scifi_pre_decode_kernel<7, false>));
 
-  kernel_fn(dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanks), context)(
+  kernel_fn(dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanksMax), context)(
     arguments, constants.dev_scifi_geometry);
 }

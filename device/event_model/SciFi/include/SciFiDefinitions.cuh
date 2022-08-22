@@ -85,7 +85,11 @@ namespace SciFi {
     static constexpr uint16_t cellMaximum = 127;    // 0 to 127; coded on 7 bits
     static constexpr uint16_t sizeMaximum = 1;      // 1 bits allocated
 
-    enum BankProperties { NbBanks = 240, NbLinksPerBank = 24 };
+    enum BankProperties {     NbBanksMax        = 240,
+			      NbBanksPerQuarter = 5,
+			      NbLinksPerBank    = 24,
+			      NbLinksMax        = NbLinksPerBank * NbBanksMax
+    };
 
     static constexpr uint16_t clusterMaxWidth = 4;
   } // namespace SciFiRawBankParams
