@@ -79,8 +79,10 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
     starting_it += 2;                                    // skip header
     if (starting_it != last && *(last - 1) == 0) --last; // Remove padding at the end
     if (starting_it >= last || starting_it >= rawbank.last) continue;
-    if ((last-starting_it) > SciFi::SciFiRawBankParams::nbClusMaximum*SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank)
-      continue;//Absurd number of clusters
+    if (
+      (last - starting_it) >
+      SciFi::SciFiRawBankParams::nbClusMaximum * SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank)
+      continue; // Absurd number of clusters
     const unsigned number_of_iterations = last - starting_it;
     int last_uniqueMat = -1;
     unsigned mat_offset = 0;
@@ -94,9 +96,10 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
         ch = geom.bank_first_channel[iRawBank] + SciFi::channelInBank(c); //---LoH: only works for versions 4-6
       }
       else { // Decoding v7
-	auto globalSiPM = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c);
-	if (globalSiPM == SciFi::SciFiChannelID::kInvalidChannelID) //Link not found or local link > 24. Should never happen but seen in early data.
-	  continue;
+        auto globalSiPM = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c);
+        if (globalSiPM == SciFi::SciFiChannelID::kInvalidChannelID) // Link not found or local link > 24. Should never
+                                                                    // happen but seen in early data.
+          continue;
         ch = globalSiPM + SciFi::channelInLink(c);
       }
       const auto chid = SciFi::SciFiChannelID(ch);

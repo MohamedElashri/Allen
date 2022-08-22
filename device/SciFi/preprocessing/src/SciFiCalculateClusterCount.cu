@@ -48,9 +48,11 @@ __global__ void scifi_calculate_cluster_count_kernel(
     // For details see RawBankDecoder
     if (it != last && *(last - 1) == 0) --last; // Remove padding at the end
     if (it >= last || it >= rawbank.last) continue;
-    if ((last-it) > SciFi::SciFiRawBankParams::nbClusMaximum*SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank)
-      continue;//Absurd number of clusters
-    for (; it < last; ++it) {                   // loop over the clusters
+    if (
+      (last - it) >
+      SciFi::SciFiRawBankParams::nbClusMaximum * SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank)
+      continue;               // Absurd number of clusters
+    for (; it < last; ++it) { // loop over the clusters
       uint16_t c = *it;
       SciFi::SciFiChannelID chid(SciFi::SciFiChannelID::kInvalidChannelID);
       if constexpr (decoding_version != 7) {

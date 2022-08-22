@@ -85,10 +85,11 @@ namespace SciFi {
     static constexpr uint16_t cellMaximum = 127;    // 0 to 127; coded on 7 bits
     static constexpr uint16_t sizeMaximum = 1;      // 1 bits allocated
 
-    enum BankProperties {     NbBanksMax        = 240,
-			      NbBanksPerQuarter = 5,
-			      NbLinksPerBank    = 24,
-			      NbLinksMax        = NbLinksPerBank * NbBanksMax
+    enum BankProperties {
+      NbBanksMax = 240,
+      NbBanksPerQuarter = 5,
+      NbLinksPerBank = 24,
+      NbLinksMax = NbLinksPerBank * NbBanksMax
     };
 
     static constexpr uint16_t clusterMaxWidth = 4;
@@ -342,11 +343,10 @@ namespace SciFi {
   getGlobalSiPMFromIndex(const SciFi::SciFiGeometry& geom, const unsigned int iRowInDB, const uint16_t c)
   {
     auto localLinkIdx = getLinkInBank(c);
-    if (localLinkIdx >= SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank)
-      {
-	//Corrupted data
-	return SciFi::SciFiChannelID::kInvalidChannelID;
-      }
+    if (localLinkIdx >= SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank) {
+      // Corrupted data
+      return SciFi::SciFiChannelID::kInvalidChannelID;
+    }
     uint32_t globalSipmID =
       geom.bank_sipm_list[iRowInDB * SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank + localLinkIdx];
     return globalSipmID;
