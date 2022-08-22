@@ -42,8 +42,8 @@ namespace Allen {
     __host__ buffer(buffer&& o) :
       m_mem_manager(o.m_mem_manager), m_tag(o.m_tag), m_span(o.m_span), m_allocated(o.m_allocated)
     {
-      // Set o span to empty to avoid the data being freed in the destructor of o
-      o.m_span = gsl::span<T> {};
+      // Set o allocated to false to avoid the data being freed in the destructor of o
+      o.m_allocated = false;
     }
 
     __host__ ~buffer()
