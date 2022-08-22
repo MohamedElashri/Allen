@@ -101,12 +101,10 @@ def default_physics_lines(velo_tracks, long_tracks, long_track_particles,
     lines.append(
         line_maker(
             make_track_muon_mva_line(
-                long_tracks, long_track_particles,
-                name="Hlt1TrackMuonMVA")))
+                long_tracks, long_track_particles, name="Hlt1TrackMuonMVA")))
 
     lines.append(
-        line_maker(
-            make_di_muon_no_ip_line(long_tracks, secondary_vertices)))
+        line_maker(make_di_muon_no_ip_line(long_tracks, secondary_vertices)))
     lines.append(
         line_maker(
             make_di_muon_no_ip_line(
@@ -229,9 +227,8 @@ def event_monitoring_lines(with_lumi, lumiline_name):
     return lines
 
 
-def alignment_monitoring_lines(velo_tracks, long_tracks,
-                               long_track_particles, velo_states,
-                               secondary_vertices):
+def alignment_monitoring_lines(velo_tracks, long_tracks, long_track_particles,
+                               velo_states, secondary_vertices):
 
     lines = []
     lines.append(
@@ -255,8 +252,7 @@ def alignment_monitoring_lines(velo_tracks, long_tracks,
     lines.append(
         line_maker(
             make_d2kpi_line(
-                long_tracks, secondary_vertices,
-                name="Hlt1D2KPiAlignment")))
+                long_tracks, secondary_vertices, name="Hlt1D2KPiAlignment")))
     lines.append(
         line_maker(
             make_di_muon_mass_align_line(

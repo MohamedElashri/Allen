@@ -97,7 +97,7 @@ def make_rich_2_line(long_tracks,
                           pre_scaler_hash_string, post_scaler_hash_string)
 
 
-def make_displaced_dimuon_mass_line(forward_tracks,
+def make_displaced_dimuon_mass_line(long_tracks,
                                     secondary_vertices,
                                     name="Hlt1DisplacedDiMuonAlignment",
                                     pre_scaler=1.0,
@@ -120,7 +120,7 @@ def make_displaced_dimuon_mass_line(forward_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 
 
-def make_di_muon_mass_align_line(forward_tracks,
+def make_di_muon_mass_align_line(long_tracks,
                                  secondary_vertices,
                                  pre_scaler=1.0,
                                  post_scaler=1.0,

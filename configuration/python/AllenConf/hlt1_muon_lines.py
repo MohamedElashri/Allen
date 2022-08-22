@@ -151,7 +151,7 @@ def make_track_muon_mva_line(long_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_di_muon_no_ip_line(forward_tracks,
+def make_di_muon_no_ip_line(long_tracks,
                             secondary_vertices,
                             pre_scaler_hash_string="di_muon_no_ip_line_pre",
                             post_scaler_hash_string="di_muon_no_ip_line_post",
