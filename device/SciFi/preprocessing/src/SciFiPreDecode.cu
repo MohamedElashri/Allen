@@ -93,7 +93,10 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
         ch = geom.bank_first_channel[iRawBank] + SciFi::channelInBank(c); //---LoH: only works for versions 4-6
       }
       else { // Decoding v7
-        ch = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c);
+	auto globalSiPM = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c);
+	if (globalSiPM == SciFi::SciFiChannelID::kInvalidChannelID) //Link not found or local link > 24. Should never happen but seen in early data.
+	  continue;
+        ch = globalSiPM + SciFi::channelInLink(c);
       }
       const auto chid = SciFi::SciFiChannelID(ch);
       uint32_t correctedMat = chid.globalMatIdx_Xorder();

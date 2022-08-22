@@ -84,7 +84,9 @@ __global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters
       cluster_chan = ch;
     }
     else {
-      cluster_chan = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c); //---FIXME
+      auto globalSiPM = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c);
+      if (globalSiPM == SciFi::SciFiChannelID::kInvalidChannelID) continue; //Link not found or local link > 24. Should never happen but seen in early data.
+      cluster_chan = globalSiPM + SciFi::channelInLink(c); //---FIXME
     }
     uint8_t cluster_fraction = SciFi::fraction(c);
 
