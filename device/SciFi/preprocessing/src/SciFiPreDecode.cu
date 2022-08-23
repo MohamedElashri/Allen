@@ -8,16 +8,16 @@
 INSTANTIATE_ALGORITHM(scifi_pre_decode::scifi_pre_decode_t)
 
 __device__ void store_sorted_cluster_reference(
-					       SciFi::ConstHitCount& hit_count,
-					       const uint32_t uniqueMat,
-					       const uint32_t chan,
-					       const uint32_t mat_offset,
-					       uint32_t& mat_count,
-					       const int raw_bank,
-					       const int it,
-					       uint32_t* cluster_references,
-					       const int condition,
-					       const int delta)
+  SciFi::ConstHitCount& hit_count,
+  const uint32_t uniqueMat,
+  const uint32_t chan,
+  const uint32_t mat_offset,
+  uint32_t& mat_count,
+  const int raw_bank,
+  const int it,
+  uint32_t* cluster_references,
+  const int condition,
+  const int delta)
 {
   uint32_t hitIndex = mat_count++;
 
@@ -54,10 +54,10 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
 
   SciFi::SciFiGeometry geom(scifi_geometry);
   const auto scifi_raw_event = SciFi::RawEvent<mep_layout>(
-							   parameters.dev_scifi_raw_input,
-							   parameters.dev_scifi_raw_input_offsets,
-							   parameters.dev_scifi_raw_input_sizes,
-							   event_number);
+    parameters.dev_scifi_raw_input,
+    parameters.dev_scifi_raw_input_offsets,
+    parameters.dev_scifi_raw_input_sizes,
+    event_number);
 
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
 
@@ -80,8 +80,8 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
     if (starting_it != last && *(last - 1) == 0) --last; // Remove padding at the end
     if (starting_it >= last || starting_it >= rawbank.last) continue;
     if (
-	(last - starting_it + 1) >
-	SciFi::SciFiRawBankParams::nbClusMaximum * SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank)
+      (last - starting_it + 1) >
+      SciFi::SciFiRawBankParams::nbClusMaximum * SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank)
       continue; // Absurd number of clusters
     const unsigned number_of_iterations = last - starting_it;
     int last_uniqueMat = -1;
@@ -93,8 +93,8 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
       const uint16_t c = *it;
       uint32_t ch;
       if constexpr (decoding_version == 4 || decoding_version == 6) {
-	  ch = geom.bank_first_channel[iRawBank] + SciFi::channelInBank(c); //---LoH: only works for versions 4-6
-	}
+        ch = geom.bank_first_channel[iRawBank] + SciFi::channelInBank(c); //---LoH: only works for versions 4-6
+      }
       else { // Decoding v7
         auto globalSiPM = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c);
         if (globalSiPM == SciFi::SciFiChannelID::kInvalidChannelID) // Link not found or local link > 24. Should never
@@ -113,22 +113,22 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
 
       if ((int) correctedMat != last_uniqueMat) {
         if constexpr (decoding_version == 7) {
-	    if (last_uniqueMat != -1) {
-	      // array is small and already almost sorted, using an insertion sort is enough
-	      if (reversedZone) {
-		insertionSort(parameters.dev_cluster_references + mat_offset, mat_count, [&](uint32_t val) {
-		    const uint16_t c = starting_it[((val >> 16) & 0xff)];
-		    return -(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
-		  });
-	      }
-	      else {
-		insertionSort(parameters.dev_cluster_references + mat_offset, mat_count, [&](uint32_t val) {
-		    const uint16_t c = starting_it[((val >> 16) & 0xff)];
-		    return (SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
-		  });
-	      }
-	    }
-	  }
+          if (last_uniqueMat != -1) {
+            // array is small and already almost sorted, using an insertion sort is enough
+            if (reversedZone) {
+              insertionSort(parameters.dev_cluster_references + mat_offset, mat_count, [&](uint32_t val) {
+                const uint16_t c = starting_it[((val >> 16) & 0xff)];
+                return -(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
+              });
+            }
+            else {
+              insertionSort(parameters.dev_cluster_references + mat_offset, mat_count, [&](uint32_t val) {
+                const uint16_t c = starting_it[((val >> 16) & 0xff)];
+                return (SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
+              });
+            }
+          }
+        }
         last_uniqueMat = correctedMat;
         mat_offset = *hit_count.mat_offsets_p(correctedMat);
         mat_count = 0;
@@ -136,80 +136,80 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
       }
       const auto store_sorted_fn = [&](const int condition, const int delta) {
         store_sorted_cluster_reference(
-				       hit_count,
-				       correctedMat,
-				       ch,
-				       mat_offset,
-				       mat_count,
-				       iRawBank,
-				       it_number,
-				       parameters.dev_cluster_references,
-				       condition,
-				       delta);
+          hit_count,
+          correctedMat,
+          ch,
+          mat_offset,
+          mat_count,
+          iRawBank,
+          it_number,
+          parameters.dev_cluster_references,
+          condition,
+          delta);
       };
 
       if constexpr (decoding_version == 4) {
-	  store_sorted_fn(0x01, 0x00);
-	}
+        store_sorted_fn(0x01, 0x00);
+      }
       else if constexpr (decoding_version == 6 || decoding_version == 7) {
-	  if (!SciFi::cSize(c)) {
-	    // Single cluster
-	    store_sorted_fn(0x01, 0x00);
-	  }
-	  else {
-	    const unsigned c2 = *(it + 1);
-	    if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2))
-	      // last cluster in bank or in sipm
-	      store_sorted_fn(0x02, 0x00);
-	    else if (SciFi::fraction(c)){
-	      if ( SciFi::cSize(c2) && !SciFi::fraction(c2)) {
-		const unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
-		if (widthClus > 8) {
-		  uint16_t j = 0;
-		  for (; j < widthClus - 4; j += 4)
-		    // big cluster(s)
-		    store_sorted_fn(0x03, j);
-		  // add the last edge
-		  store_sorted_fn(0x04, j);
-		}
-		else
-		  store_sorted_fn(0x05, 0x00);
-		++it_number;
-	      }
-	      else{ /* Corrupt cluster type 1 */
-		++it_number;
-	      }
-	    }
-	    else{ /* Corrupt cluster type 2 */
-	    }
-	  }
-	}
+        if (!SciFi::cSize(c)) {
+          // Single cluster
+          store_sorted_fn(0x01, 0x00);
+        }
+        else {
+          const unsigned c2 = *(it + 1);
+          if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2))
+            // last cluster in bank or in sipm
+            store_sorted_fn(0x02, 0x00);
+          else if (SciFi::fraction(c)) {
+            if (SciFi::cSize(c2) && !SciFi::fraction(c2)) {
+              const unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
+              if (widthClus > 8) {
+                uint16_t j = 0;
+                for (; j < widthClus - 4; j += 4)
+                  // big cluster(s)
+                  store_sorted_fn(0x03, j);
+                // add the last edge
+                store_sorted_fn(0x04, j);
+              }
+              else
+                store_sorted_fn(0x05, 0x00);
+              ++it_number;
+            }
+            else { /* Corrupt cluster type 1 */
+              ++it_number;
+            }
+          }
+          else { /* Corrupt cluster type 2 */
+          }
+        }
+      }
     }
     if constexpr (decoding_version == 7) {
-	if (last_uniqueMat != -1) {
-	  // array is small and already almost sorted, using an insertion sort is enough
-	  if (reversedZone) {
-	    insertionSort(parameters.dev_cluster_references + mat_offset, mat_count, [&](uint32_t val) {
-		const uint16_t c = starting_it[((val >> 16) & 0xff)];
-		return -(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
-	      });
-	  }
-	  else {
-	    insertionSort(parameters.dev_cluster_references + mat_offset, mat_count, [&](uint32_t val) {
-		const uint16_t c = starting_it[((val >> 16) & 0xff)];
-		return (SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
-	      });
-	  }
-	}
+      if (last_uniqueMat != -1) {
+        // array is small and already almost sorted, using an insertion sort is enough
+        if (reversedZone) {
+          insertionSort(parameters.dev_cluster_references + mat_offset, mat_count, [&](uint32_t val) {
+            const uint16_t c = starting_it[((val >> 16) & 0xff)];
+            return -(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
+          });
+        }
+        else {
+          insertionSort(parameters.dev_cluster_references + mat_offset, mat_count, [&](uint32_t val) {
+            const uint16_t c = starting_it[((val >> 16) & 0xff)];
+            return (SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
+          });
+        }
       }
+    }
   }
 }
 
 void scifi_pre_decode::scifi_pre_decode_t::set_arguments_size(
-							      ArgumentReferences<Parameters> arguments,
-							      const RuntimeOptions&,
-							      const Constants&,
-							      const HostBuffers&) const
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const HostBuffers&) const
 {
   // Ensure the bank version is supported
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
@@ -219,15 +219,15 @@ void scifi_pre_decode::scifi_pre_decode_t::set_arguments_size(
   }
 
   set_size<dev_cluster_references_t>(
-				     arguments, first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays);
+    arguments, first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays);
 }
 
 void scifi_pre_decode::scifi_pre_decode_t::operator()(
-						      const ArgumentReferences<Parameters>& arguments,
-						      const RuntimeOptions& runtime_options,
-						      const Constants& constants,
-						      HostBuffers&,
-						      const Allen::Context& context) const
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions& runtime_options,
+  const Constants& constants,
+  HostBuffers&,
+  const Allen::Context& context) const
 {
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version < 0) return; // no SciFi banks present in data
@@ -236,14 +236,14 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
   // * Version 4, version 5: Use v4 decoding
   // * Version 6: Use v6 decoding
   auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
-    (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<4, true>) :
-     global_function(scifi_pre_decode_kernel<4, false>)) :
-    (bank_version == 6) ?
-    (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<6, true>) :
-     global_function(scifi_pre_decode_kernel<6, false>)) :
-    (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<7, true>) :
-     global_function(scifi_pre_decode_kernel<7, false>));
+                     (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<4, true>) :
+                                                   global_function(scifi_pre_decode_kernel<4, false>)) :
+                     (bank_version == 6) ?
+                     (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<6, true>) :
+                                                   global_function(scifi_pre_decode_kernel<6, false>)) :
+                     (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<7, true>) :
+                                                   global_function(scifi_pre_decode_kernel<7, false>));
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanksMax), context)(
-													   arguments, constants.dev_scifi_geometry);
+    arguments, constants.dev_scifi_geometry);
 }
