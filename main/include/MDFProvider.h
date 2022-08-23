@@ -122,6 +122,8 @@ public:
       m_event_ids[n].reserve(events_per_slice);
     }
 
+    m_odins.resize(n_slices);
+
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);
 
@@ -330,9 +332,7 @@ public:
         std::tie(slice_index, n_filled) = m_transposed.front();
         m_transposed.pop_front();
         if (n_filled > 0) {
-          auto bno = banks(BankTypes::ODIN, slice_index);
-          auto ob = odin_bank<false>(bno.fragments[0].data(), bno.offsets.data(), bno.sizes.data(), 0);
-          odin = gsl::span<unsigned const> {ob.data, ob.size};
+          odin = gsl::span<unsigned const> {m_odins[slice_index].data};
         }
       }
     }
@@ -388,6 +388,7 @@ public:
     }
     if (freed) {
       this->debug_output("Freed slice " + std::to_string(slice_index));
+      m_odins[slice_index] = LHCb::ODIN{};
       m_slice_cond.notify_one();
     }
     if (set_writable) {
@@ -551,6 +552,10 @@ private:
       }
       else {
         m_slice_to_buffer[*slice_index] = {static_cast<int>(i_read), std::get<3>(m_buffers[i_read])};
+        auto ib = to_integral(BankTypes::ODIN);
+        auto& slice = m_slices[ib][*slice_index];
+        auto ob = odin_bank<false>(slice.fragments[0].data(), slice.offsets.data(), slice.sizes.data(), 0);
+        m_odins[*slice_index] = MDF::decode_odin({ob.data, ob.size}, m_banks_version[ib]);
       }
 
       // Increment the transpose_start with the number of transposed events
@@ -797,6 +802,7 @@ private:
   // Memory slices, N for each raw bank type
   Allen::Slices m_slices;
   std::vector<std::vector<char>> m_masks;
+  std::vector<LHCb::ODIN> m_odins;
 
   struct SliceToBuffer {
     int buffer_index;
