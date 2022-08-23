@@ -23,7 +23,7 @@ namespace low_occupancy {
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
   };
 
-  __global__ void low_occupancy(Parameters, const unsigned);
+  __global__ void low_occupancy(Parameters, const unsigned, const unsigned);
   struct low_occupancy_t : public DeviceAlgorithm, Parameters {
 
     void set_arguments_size(
