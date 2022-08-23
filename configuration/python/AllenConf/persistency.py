@@ -42,7 +42,7 @@ rb_map = {
     'Hlt1(TrackMVA|TwoTrackMVA|TwoTrackCatBoost|TrackMuonMVA)':
     5,
     # RB 8 Velo (closing) monitoring
-    'Hlt1Velo.*':
+    'Hlt1ODINVelo.*':
     8,
     #RB 14 HLT1 physics for monitoring and alignment
     'Hlt1(?!ODIN)(?!L0)(?!Lumi)(?!Tell1)(?!MB)(?!NZS)(?!Velo)(?!BeamGas)(?!Incident).*':
