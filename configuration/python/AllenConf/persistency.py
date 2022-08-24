@@ -32,14 +32,17 @@ rb_map = {
     # RB 1 Lumi after HLT1
     '^Hlt1.*Lumi.*':
     1,
-    # RB 3 Beam-Gas for Velo alignment
-    'Hlt1(?!BeamGasHighRhoVertices)BeamGas.*':
+    # RB 2 Velo alignment
+    'Hlt1(VeloMicroBias|BeamGas)':
+    2,
+    # RB 3 Tracker alignment
+    'Hlt1(D2KPi|DiMuonHighMass|DisplacedDiMuon)Alignment':
     3,
-    # Hlt1ODINBeamGas? RB 4 EXPRESS stream (bypasses Hlt2)
-    'Hlt1(Velo.*|BeamGas.*VeloOpen)':
+    # RB 4 Muon alignment
+    'Hlt1DiMuonHighMassAlignment':
     4,
-    #RB 5 Beam-Beam collisions for Velo alignment
-    'Hlt1(TrackMVA|TwoTrackMVA|TwoTrackCatBoost|TrackMuonMVA)':
+    #RB 5 RICH alignment
+    'Hlt1RICH(1|2)Alignment':
     5,
     # RB 8 Velo (closing) monitoring
     'Hlt1Velo.*':
@@ -50,15 +53,6 @@ rb_map = {
     #RB 16 NoBias, prescaled
     'Hlt1.*NoBias':
     16,
-    # RB 21 Tracker alignment
-    'Hlt1D2KPi':
-    21,
-    #RB 22 RICH mirror alignment
-    'Hlt1RICH.*Alignment':
-    22,
-    #RB 24 Muon alignment
-    'Hlt1CalibMuonAlignJpsi':
-    24,
     #RB 25 Tell1 Error events
     'Hlt1Tell1Error':
     25
