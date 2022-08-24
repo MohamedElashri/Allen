@@ -156,17 +156,16 @@ namespace {
     const unsigned int* layers)
   {
 
-    [[maybe_unused]] unsigned maxTripletPerFirstHit = seeding::Triplet::maxTriplets / hits.size[layers[0]];
-    (void) maxTripletPerFirstHit; // TODO: remove if [[maybe_unused]] decides to work someday..
+    unsigned maxTripletPerFirstHit = seeding::Triplet::maxTriplets / hits.size[layers[0]];
+    _unused(maxTripletPerFirstHit);
 
     for (unsigned int firstHitIdx = threadIdx.x; firstHitIdx < hits.size[layers[0]]; firstHitIdx += blockDim.x) {
       float xFirst = hits.hit(layers[0], firstHitIdx);
       float maxXl = xFirst * currentCase.twoHitScale + currentCase.tol2Hit;
       float minXl = maxXl - 2.f * currentCase.tol2Hit;
 
-      [[maybe_unused]] unsigned nCandidates = 0;
-      (void) nCandidates; // TODO: remove if [[maybe_unused]] decides to work someday..
-
+      unsigned nCandidates = 0;
+      _unused(nCandidates);
       // SPEEDUP: cache last layer first hit
       auto startSecond =
         hybrid_seeding::binary_search_leftmost_unrolled(hits.layer(layers[1]), hits.size[layers[1]], minXl);
