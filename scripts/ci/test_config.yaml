@@ -77,7 +77,7 @@ full:
       - hlt1_pp_default
     dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
     geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
-    build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
+    build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS+MALLOC_ENGINE=MULTI_ALLOC
     throughput_report: false # don't publish throughput report
 
   # run throughput, no_gec
@@ -230,7 +230,7 @@ full:
     lcg_opt:
       - "opt+g"
       # - "dbg" # FIXME dbg platform not available for x86_64_v3
-    build_options: "BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS"
+    build_options: "BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS+MALLOC_ENGINE=MULTI_ALLOC"
 
   # run physics efficiency, scifi_v6
   - type: "efficiency"
@@ -258,9 +258,19 @@ full:
     dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k_newLHCbID_new_UT_geometry"
     geometry: "upgrade_DC19_01_MinBiasMD_new_UT_geometry"
 
-# efficiency test on 2024 expected sample (with beamline not at 0,0)
+  # efficiency test on 2024 expected sample (with beamline not at 0,0)
   - type: "efficiency"
     sequence:
       - hlt1_pp_forward_then_matching_no_ut_validation
     dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6"
     geometry: "geometry_dddb-20231017_sim-20231017-vc-md100"
+  
+  # run memcheck
+  - type: "run_memcheck"
+    sequence:
+      - hlt1_pp_default
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+    build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS+MALLOC_ENGINE=MULTI_ALLOC
+    allowed_devices:
+      - a5000
