@@ -9,13 +9,14 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
 
-def decode_muon():
+def decode_muon(empty_banks=False):
     number_of_events = initialize_number_of_events()
     host_number_of_events = number_of_events["host_number_of_events"]
     dev_number_of_events = number_of_events["dev_number_of_events"]
 
     muon_banks = make_algorithm(
-        data_provider_t, name="muon_banks", bank_type="Muon")
+        data_provider_t, name="muon_banks", bank_type="Muon",
+        empty=empty_banks)
 
     muon_calculate_srq_size = make_algorithm(
         muon_calculate_srq_size_t,

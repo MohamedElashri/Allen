@@ -37,6 +37,10 @@ void host_data_provider::host_data_provider_t::operator()(
 {
   auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
 
+  if (logger::verbosity() >= logger::debug && property<empty_t>() && bno.version != -1) {
+    debug_cout << "Empty banks configured but data is there\n";
+  }
+
   // memcpy the offsets span directly
   auto const& offsets = bno.offsets;
   ::memcpy(data<host_raw_offsets_t>(arguments), &offsets, sizeof(offsets));

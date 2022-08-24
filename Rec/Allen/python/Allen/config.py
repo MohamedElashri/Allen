@@ -36,8 +36,9 @@ def configured_bank_types(json_filename):
     with open(sequence_json) as json_file:
         j = json.load(json_file)
         for t, n, c in j["sequence"]["configured_algorithms"]:
-            if c == "ProviderAlgorithm":
-                bank_types.add(j[n]['bank_type'])
+            props = j.get(n, {})
+            if c == "ProviderAlgorithm" and not bool(props.get('empty', False)):
+                bank_types.add(props['bank_type'])
     return bank_types
 
 

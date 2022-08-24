@@ -7,6 +7,7 @@
 #include "InputTools.h"
 #include "Tools.h"
 
+
 namespace {
   using std::make_pair;
 }
@@ -194,14 +195,15 @@ std::unordered_set<BankTypes> ConfigurationReader::configured_bank_types() const
 
   for (const auto& provider_alg : provider_algorithms) {
     const auto props = m_params.at(provider_alg);
-    auto it = props.find("bank_type");
-    if (it != props.end()) {
-      auto type = it->second;
+    auto it_type = props.find("bank_type");
+    auto it_empty = props.find("empty");
+    if (it_type != props.end()) {
+      auto type = it_type->second;
       auto const bt = ::bank_type(type);
       if (bt == BankTypes::Unknown) {
         error_cout << "Unknown bank type " << type << " requested.\n";
       }
-      else {
+      else if (it_empty == props.end() || !it_empty->second.get<bool>()) {
         bank_types.emplace(bt);
       }
     }

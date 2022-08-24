@@ -16,6 +16,7 @@ namespace host_data_provider {
     HOST_OUTPUT(host_raw_types_t, gsl::span<unsigned int const>) host_raw_types;
     HOST_OUTPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     PROPERTY(raw_bank_type_t, "bank_type", "type of raw bank to provide", BankTypes) prop_raw_bank_type;
+    PROPERTY(empty_t, "empty", "will provide empty banks", bool) empty;
   };
 
   struct host_data_provider_t : public ProviderAlgorithm, Parameters {
@@ -34,5 +35,6 @@ namespace host_data_provider {
 
   private:
     Property<raw_bank_type_t> m_bank_type {this, BankTypes::ODIN};
+    Property<empty_t> m_empty {this, false};
   };
 } // namespace host_data_provider
