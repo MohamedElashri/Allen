@@ -146,14 +146,17 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
       // size of the SelReport RawBank
       // need the index into the batch here
+      const unsigned sel_report_offset = sel_report_offsets.empty() ? 0 : sel_report_offsets[event_number];
       const unsigned sel_report_size =
         sel_report_offsets.empty() ?
           0 :
-          (sel_report_offsets[event_number + 1] - sel_report_offsets[event_number]) * sizeof(uint32_t);
-      unsigned lumi_summary_size =
+          (sel_report_offsets[event_number + 1] - sel_report_offset) * sizeof(uint32_t);
+
+      const unsigned lumi_summary_offset = lumi_summary_offsets.empty() ? 0 : lumi_summary_offsets[event_number];
+      const unsigned lumi_summary_size =
         lumi_summary_offsets.empty() ?
           0 :
-          (lumi_summary_offsets[event_number + 1] - lumi_summary_offsets[event_number]) * sizeof(uint32_t);
+          (lumi_summary_offsets[event_number + 1] - lumi_summary_offset) * sizeof(uint32_t);
 
       // event_sizes is indexed in the same way as selected_events
       size_t event_size = event_sizes[i] + header_size;
@@ -217,14 +220,14 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
           LHCb::RawBank::HltSelReports,
           11u,
           Hlt1::Constants::sourceID_sel_reports,
-          {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offsets[event_number] * sizeof(uint32_t),
+          {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offset * sizeof(uint32_t),
            static_cast<events_size>(sel_report_size)}},
         // HltLumiSummary
         output_bank {
           LHCb::RawBank::HltLumiSummary,
           1u, // TODO version number
           Hlt1::Constants::sourceID_dec_reports,
-          {reinterpret_cast<char const*>(lumi_summaries.data()) + lumi_summary_offsets[event_number] * sizeof(uint32_t),
+          {reinterpret_cast<char const*>(lumi_summaries.data()) + lumi_summary_offset * sizeof(uint32_t),
            static_cast<events_size>(lumi_summary_size)}});
 
       for_each(hlt_banks, [&output, &add_hlt_bank](auto b) {
