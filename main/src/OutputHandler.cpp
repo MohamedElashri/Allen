@@ -148,9 +148,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       // need the index into the batch here
       const unsigned sel_report_offset = sel_report_offsets.empty() ? 0 : sel_report_offsets[event_number];
       const unsigned sel_report_size =
-        sel_report_offsets.empty() ?
-          0 :
-          (sel_report_offsets[event_number + 1] - sel_report_offset) * sizeof(uint32_t);
+        sel_report_offsets.empty() ? 0 : (sel_report_offsets[event_number + 1] - sel_report_offset) * sizeof(uint32_t);
 
       const unsigned lumi_summary_offset = lumi_summary_offsets.empty() ? 0 : lumi_summary_offsets[event_number];
       const unsigned lumi_summary_size =
@@ -216,19 +214,17 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
                      {reinterpret_cast<char const*>(routing_bits.data()) + routing_bits_size * event_number,
                       static_cast<events_size>(routing_bits_size)}},
         // HltSelReports
-        output_bank {
-          LHCb::RawBank::HltSelReports,
-          11u,
-          Hlt1::Constants::sourceID_sel_reports,
-          {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offset * sizeof(uint32_t),
-           static_cast<events_size>(sel_report_size)}},
+        output_bank {LHCb::RawBank::HltSelReports,
+                     11u,
+                     Hlt1::Constants::sourceID_sel_reports,
+                     {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offset * sizeof(uint32_t),
+                      static_cast<events_size>(sel_report_size)}},
         // HltLumiSummary
-        output_bank {
-          LHCb::RawBank::HltLumiSummary,
-          1u, // TODO version number
-          Hlt1::Constants::sourceID_dec_reports,
-          {reinterpret_cast<char const*>(lumi_summaries.data()) + lumi_summary_offset * sizeof(uint32_t),
-           static_cast<events_size>(lumi_summary_size)}});
+        output_bank {LHCb::RawBank::HltLumiSummary,
+                     1u, // TODO version number
+                     Hlt1::Constants::sourceID_dec_reports,
+                     {reinterpret_cast<char const*>(lumi_summaries.data()) + lumi_summary_offset * sizeof(uint32_t),
+                      static_cast<events_size>(lumi_summary_size)}});
 
       for_each(hlt_banks, [&output, &add_hlt_bank](auto b) {
         auto t = std::tuple_cat(b, std::tuple {output});

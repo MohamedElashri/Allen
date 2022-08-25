@@ -14,7 +14,6 @@ from AllenConf.hlt1_calibration_lines import make_passthrough_line
 from AllenConf.odin import make_bxtype, odin_error_filter
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 
-
 reconstructed_objects = hlt1_reconstruction()
 ecal_clusters = reconstructed_objects["ecal_clusters"]
 
@@ -22,14 +21,18 @@ lines = []
 
 prefilters = [odin_error_filter("odin_error_filter")]
 with line_maker.bind(prefilter=prefilters):
-    lines.append(line_maker(
-        make_single_calo_cluster_line(
-            ecal_clusters, name="Hlt1SingleCaloCluster", minEt=400, pre_scaler=0.001)))
-    lines.append(line_maker(
-        make_passthrough_line(pre_scaler=0.00003)))
-    lines.append(line_maker(
-        make_odin_event_type_line(
-            name="Hlt1ODINLumi", odin_event_type='Lumi')))
+    lines.append(
+        line_maker(
+            make_single_calo_cluster_line(
+                ecal_clusters,
+                name="Hlt1SingleCaloCluster",
+                minEt=400,
+                pre_scaler=0.001)))
+    lines.append(line_maker(make_passthrough_line(pre_scaler=0.00003)))
+    lines.append(
+        line_maker(
+            make_odin_event_type_line(
+                name="Hlt1ODINLumi", odin_event_type='Lumi')))
 
 line_algorithms = [tup[0] for tup in lines]
 
@@ -41,13 +44,13 @@ lines = CompositeNode(
     force_order=False)
 
 calo_sequence = CompositeNode(
-    "CaloClustering",
-    [lines, global_decision,
-     make_routingbits_writer(lines=line_algorithms),
-     rate_validation(lines=line_algorithms)],
+    "CaloClustering", [
+        lines, global_decision,
+        make_routingbits_writer(lines=line_algorithms),
+        rate_validation(lines=line_algorithms)
+    ],
     NodeLogic.NONLAZY_AND,
     force_order=True)
-
 
 gather_selections = make_gather_selections(lines=line_algorithms)
 
