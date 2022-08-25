@@ -34,7 +34,7 @@ export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
 if [ "${TARGET}" = "CUDA" ]; then
   export PATH=$PATH:/usr/local/cuda/bin
   
-  JOB="./toolchain/wrapper /usr/local/cuda/bin/compute-sanitizer ./Allen ${RUN_OPTIONS}"
+  JOB="./toolchain/wrapper /usr/local/cuda/bin/compute-sanitizer --padding 32 ./Allen ${RUN_OPTIONS}"
   GPU_NUMBER=$(nvidia-smi -L | grep "${GPU_UUID}" | awk '{ print $2; }' | sed -e 's/://')
   NUMA_NODE=$(nvidia-smi topo -m | grep "GPU${GPU_NUMBER}" | tail -1 | awk '{ print $NF; }')
   ALLEN="CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB}"
