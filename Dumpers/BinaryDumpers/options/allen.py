@@ -298,6 +298,14 @@ else:
     msg = control.recv()
     assert (msg.decode() == "RUNNING")
     sleep(5)
+    r = control.poll(0)
+    if r == zmq.POLLIN:
+        msg = control.recv()
+        if msg.decode() == "ERROR":
+            print("ERROR from Allen event loop")
+            allen_thread.join()
+            sys.exit(1)
+
     control.send(b"STOP")
     gaudi.stop()
     msg = control.recv()
