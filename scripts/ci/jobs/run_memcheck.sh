@@ -19,7 +19,7 @@ fi
 
 set -euxo pipefail
 
-RUN_OPTIONS="${RUN_OPTIONS} --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE} --params external/ParamFiles/ ${RUN_OPTIONS}"
+RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE} --params external/ParamFiles/ ${RUN_OPTIONS}"
 
 OUTPUT_FOLDER="${TEST_NAME}_output_${SEQUENCE}"
 
@@ -34,7 +34,7 @@ export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
 if [ "${TARGET}" = "CUDA" ]; then
   export PATH=$PATH:/usr/local/cuda/bin
   
-  JOB="./toolchain/wrapper /usr/local/cuda/bin/cuda-memcheck ./Allen ${RUN_OPTIONS}"
+  JOB="./toolchain/wrapper /usr/local/cuda/bin/compute-sanitizer ./Allen ${RUN_OPTIONS}"
   GPU_NUMBER=$(nvidia-smi -L | grep "${GPU_UUID}" | awk '{ print $2; }' | sed -e 's/://')
   NUMA_NODE=$(nvidia-smi topo -m | grep "GPU${GPU_NUMBER}" | tail -1 | awk '{ print $NF; }')
   ALLEN="CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ${JOB}"
