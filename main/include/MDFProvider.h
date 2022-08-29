@@ -843,7 +843,7 @@ private:
   std::vector<std::string> m_connections;
 
   // Storage for the currently open file
-  mutable std::optional<Allen::IO> m_input;
+  mutable std::optional<Allen::IO> m_input = std::nullopt;
 
   // Iterator that points to the filename of the currently open file
   mutable std::vector<std::string>::const_iterator m_current;
