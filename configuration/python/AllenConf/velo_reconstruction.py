@@ -71,10 +71,7 @@ def decode_velo(retina_decoding=True):
         }
     else:
         velo_banks = make_algorithm(
-            data_provider_t,
-            name="velo_banks",
-            bank_type="VP",
-            empty=empty_banks)
+            data_provider_t, name="velo_banks", bank_type="VP")
 
         velo_calculate_number_of_candidates = make_algorithm(
             velo_calculate_number_of_candidates_t,

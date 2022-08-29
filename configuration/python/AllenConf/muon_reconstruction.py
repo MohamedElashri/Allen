@@ -4,7 +4,7 @@
 from AllenAlgorithms.algorithms import (
     data_provider_t, muon_calculate_srq_size_t, host_prefix_sum_t,
     muon_populate_tile_and_tdc_t, muon_add_coords_crossing_maps_t,
-    muon_populate_hits_t, is_muon_t)
+    muon_populate_hits_t, is_muon_t, empty_lepton_id_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
@@ -131,6 +131,22 @@ def is_muon(decoded_muon, long_tracks):
         "long_tracks": long_tracks,
         "dev_is_muon": is_muon.dev_is_muon_t,
         "dev_lepton_id": is_muon.dev_lepton_id_t
+    }
+
+
+def fake_muon_id(forward_tracks):
+    number_of_events = initialize_number_of_events()
+    empty_muon_id = make_algorithm(
+        empty_lepton_id_t,
+        name="empty_muon_id",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_scifi_tracks_t=forward_tracks[
+            "host_number_of_reconstructed_scifi_tracks"])
+
+    return {
+        "forward_tracks": forward_tracks,
+        "dev_is_muon": empty_muon_id.dev_lepton_id_t,
+        "dev_lepton_id": empty_muon_id.dev_lepton_id_t
     }
 
 

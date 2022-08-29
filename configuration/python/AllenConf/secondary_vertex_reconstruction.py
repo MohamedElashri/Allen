@@ -4,7 +4,7 @@
 from AllenAlgorithms.algorithms import (
     velo_pv_ip_t, kalman_velo_only_t, make_lepton_id_t,
     make_long_track_particles_t, filter_tracks_t, host_prefix_sum_t,
-    fit_secondary_vertices_t)
+    fit_secondary_vertices_t, empty_lepton_id_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenCore.generator import make_algorithm
