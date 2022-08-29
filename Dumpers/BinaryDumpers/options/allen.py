@@ -57,7 +57,7 @@ parser.add_argument("-m", dest="reserve", default=1024)
 parser.add_argument("-v", dest="verbosity", default=3)
 parser.add_argument("-p", dest="print_memory", default=0)
 parser.add_argument("--sequence", dest="sequence", default=sequence_default)
-parser.add_argument("-s", dest="slices", default=2)
+parser.add_argument("-s", dest="slices", default=1)
 parser.add_argument("--mdf", dest="mdf", default="")
 parser.add_argument("--mep", dest="mep", default="")
 parser.add_argument(
@@ -150,6 +150,7 @@ if args.simulation and not UseDD4Hep and os.path.exists(online_cond_path):
     options.velo_motion_system_yaml = os.path.join(online_cond_path + '/Conditions/VP/Motion.yml')
     make_odin = allen_odin
 
+
 options.finalize()
 config = ComponentConfig()
 
@@ -202,7 +203,8 @@ ApplicationMgr().ExtSvc += extSvc
 # Copeid from PyConf.application.configure_input
 config.add(
     setup_component(
-        'DDDBConf', Simulation=options.simulation, DataType=options.data_type))
+        'DDDBConf', Simulation=options.simulation, DataType=options.data_type,
+        ConditionsVersion=options.conddb_tag))
 config.add(
     setup_component(
         'CondDB',
