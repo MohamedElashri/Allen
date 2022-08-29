@@ -388,7 +388,7 @@ public:
     }
     if (freed) {
       this->debug_output("Freed slice " + std::to_string(slice_index));
-      m_odins[slice_index] = LHCb::ODIN{};
+      m_odins[slice_index] = LHCb::ODIN {};
       m_slice_cond.notify_one();
     }
     if (set_writable) {

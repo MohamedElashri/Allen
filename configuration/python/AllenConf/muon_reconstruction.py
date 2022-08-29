@@ -15,7 +15,9 @@ def decode_muon(empty_banks=False):
     dev_number_of_events = number_of_events["dev_number_of_events"]
 
     muon_banks = make_algorithm(
-        data_provider_t, name="muon_banks", bank_type="Muon",
+        data_provider_t,
+        name="muon_banks",
+        bank_type="Muon",
         empty=empty_banks)
 
     muon_calculate_srq_size = make_algorithm(

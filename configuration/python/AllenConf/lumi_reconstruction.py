@@ -23,7 +23,10 @@ def findLine(lines, name):
     return -1, False
 
 
-def lumi_reconstruction(gather_selections, lines, lumiline_name, with_muon=True):
+def lumi_reconstruction(gather_selections,
+                        lines,
+                        lumiline_name,
+                        with_muon=True):
     lumiLine_index, found = findLine(lines, lumiline_name)
     if not found:
         return []

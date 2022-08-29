@@ -35,7 +35,10 @@ void low_occupancy::low_occupancy_t::operator()(
   reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 }
 
-__global__ void low_occupancy::low_occupancy(low_occupancy::Parameters parameters, const unsigned number_of_selected_events, const unsigned number_of_events)
+__global__ void low_occupancy::low_occupancy(
+  low_occupancy::Parameters parameters,
+  const unsigned number_of_selected_events,
+  const unsigned number_of_events)
 {
 
   for (unsigned idx = threadIdx.x; idx < number_of_selected_events; idx += blockDim.x) {

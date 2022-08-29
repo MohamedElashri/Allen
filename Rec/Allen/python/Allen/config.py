@@ -37,7 +37,8 @@ def configured_bank_types(json_filename):
         j = json.load(json_file)
         for t, n, c in j["sequence"]["configured_algorithms"]:
             props = j.get(n, {})
-            if c == "ProviderAlgorithm" and not bool(props.get('empty', False)):
+            if c == "ProviderAlgorithm" and not bool(
+                    props.get('empty', False)):
                 bank_types.add(props['bank_type'])
     return bank_types
 
@@ -109,8 +110,9 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     else:
         # Configure those detectors that we need
         from Configurables import LHCb__Det__LbDD4hep__DD4hepSvc as DD4hepSvc
-        DD4hepSvc().DetectorList = ["/world"] + [detector_names.get(det, det)
-                                                 for det in bank_types]
+        DD4hepSvc().DetectorList = ["/world"] + [
+            detector_names.get(det, det) for det in bank_types
+        ]
 
     appMgr.ExtSvc.extend(AllenUpdater(TriggerEventLoop=allen_event_loop))
 

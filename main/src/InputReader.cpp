@@ -7,7 +7,6 @@
 #include "InputTools.h"
 #include "Tools.h"
 
-
 namespace {
   using std::make_pair;
 }
