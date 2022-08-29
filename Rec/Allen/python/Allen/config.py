@@ -86,6 +86,8 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
                  (DumpMuonTable, 'muon_tables')]
     }
 
+    detector_names = {'ECal': 'Ecal', 'FTCluster': 'FT'}
+
     if type(bank_types) == list:
         bank_types = set(bank_types)
     elif bank_types is None:
@@ -104,6 +106,11 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     if not UseDD4Hep:
         # MagneticFieldSvc is required for non-DD4hep builds
         appMgr.ExtSvc.append("MagneticFieldSvc")
+    else:
+        # Configure those detectors that we need
+        from Configurables import LHCb__Det__LbDD4hep__DD4hepSvc as DD4hepSvc
+        DD4hepSvc().DetectorList = ["/world"] + [detector_names.get(det, det)
+                                                 for det in bank_types]
 
     appMgr.ExtSvc.extend(AllenUpdater(TriggerEventLoop=allen_event_loop))
 
