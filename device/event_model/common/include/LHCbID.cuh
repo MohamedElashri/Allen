@@ -21,38 +21,29 @@ namespace lhcb_id {
   enum lhcbIDMasks { IDMask = 0xfffffffL, detectorTypeMask = 0xf0000000L };
 
   enum class LHCbIDType {
-    Plume,
-    VELO = 0x8,
-    UT = 0xb,
-    reserved_magnet_sidestations,
-    FT = 0xa,
-    reserved_mighty_tracker,
-    reserved_torch,
-    Rich,
+    Plume = 0x1,
+    VELO = 0x2,
+    UT,
+    reserved_magnet_sidestations = 0x4,
+    FT = 0x5,
+    reserved_mighty_tracker = 0x6,
+    reserved_torch = 0x7,
+    Rich = 0x8,
     Calo,
     Muon
   };
-  __host__ __device__ inline unsigned detector_type_lhcbid(const unsigned id)
+  inline unsigned detector_type_lhcbid(const unsigned id)
   {
     return (unsigned) ((id & lhcbIDMasks::detectorTypeMask) >> detectorTypeBits);
   }
-  __host__ __device__ inline unsigned set_detector_type_id(LHCbIDType t, const unsigned id)
+  inline unsigned set_detector_type_id(LHCbIDType t, const unsigned id)
   {
     return ((static_cast<unsigned int>(t) << detectorTypeBits) & detectorTypeMask) | (id & IDMask);
   }
 
-  __host__ __device__ inline bool is_velo(const unsigned id)
-  {
-    return detector_type_lhcbid(id) == (unsigned) LHCbIDType::VELO;
-  }
+  inline bool is_velo(const unsigned id) { return detector_type_lhcbid(id) == (unsigned) LHCbIDType::VELO; }
 
-  __host__ __device__ inline bool is_ut(const unsigned id)
-  {
-    return detector_type_lhcbid(id) == (unsigned) LHCbIDType::UT;
-  }
+  inline bool is_ut(const unsigned id) { return detector_type_lhcbid(id) == (unsigned) LHCbIDType::UT; }
 
-  __host__ __device__ inline bool is_scifi(const unsigned id)
-  {
-    return detector_type_lhcbid(id) == (unsigned) LHCbIDType::FT;
-  }
+  inline bool is_scifi(const unsigned id) { return detector_type_lhcbid(id) == (unsigned) LHCbIDType::FT; }
 } // namespace lhcb_id
