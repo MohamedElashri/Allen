@@ -9,6 +9,7 @@ ApplicationMgr                         INFO Application Manager Initialized succ
 Using 2 input slices.
  Enables printing monitoring information (--enable-monitoring-printing): False
  Registers monitoring counters (--register-monitoring-counters): True
+ Configure the device to use more shared than L1 (0: false) (--prefer-shared): 0
 DeFTDetector                           INFO Current FT geometry version =   63
 ApplicationMgr                         INFO Application Manager Started successfully
 DumpFTGeometry                         INFO Conditions DB is compatible with FT bank version 4, 5, 6.
