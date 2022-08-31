@@ -7,6 +7,7 @@
 #include "MuonDefinitions.cuh"
 #include "States.cuh"
 #include "SciFiConsolidated.cuh"
+#include "ParticleTypes.cuh"
 
 enum offset {
   DTS = 0,
@@ -26,6 +27,7 @@ namespace muon_catboost_features_extraction {
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
     DEVICE_INPUT(dev_station_ocurrences_offset_t, unsigned) dev_station_ocurrences_offset;
+    DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
     DEVICE_INPUT(dev_muon_hits_t, char) dev_muon_hits;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;

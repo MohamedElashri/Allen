@@ -35,9 +35,10 @@ void make_lepton_id::make_lepton_id_t::operator()(
 __global__ void make_lepton_id::make_lepton_id(make_lepton_id::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const auto scifi_tracks = parameters.dev_scifi_tracks_view[event_number];
-  const unsigned offset = scifi_tracks.offset();
-  const unsigned n_tracks = scifi_tracks.size();
+  // Long tracks.
+  const auto long_tracks = parameters.dev_long_tracks_view->container(event_number);
+  const unsigned n_tracks = long_tracks.size();
+  const unsigned offset = long_tracks.offset();
   const auto* event_is_muon = parameters.dev_is_muon + offset;
   const auto* event_is_electron = parameters.dev_is_electron + offset;
   auto* event_lepton_id = parameters.dev_lepton_id + offset;

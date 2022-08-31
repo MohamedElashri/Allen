@@ -8,7 +8,7 @@ from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
 
 
-def make_d2kk_line(forward_tracks,
+def make_d2kk_line(long_tracks,
                    secondary_vertices,
                    name="Hlt1D2KK",
                    pre_scaler_hash_string=None,
@@ -26,7 +26,7 @@ def make_d2kk_line(forward_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 
 
-def make_d2pipi_line(forward_tracks,
+def make_d2pipi_line(long_tracks,
                      secondary_vertices,
                      name="Hlt1D2PiPi",
                      pre_scaler_hash_string=None,
@@ -44,7 +44,7 @@ def make_d2pipi_line(forward_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 
 
-def make_two_ks_line(forward_tracks,
+def make_two_ks_line(long_tracks,
                      secondary_vertices,
                      name="Hlt1TwoKs",
                      pre_scaler_hash_string=None,

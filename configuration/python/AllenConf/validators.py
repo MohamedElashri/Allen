@@ -5,10 +5,14 @@ from AllenAlgorithms.algorithms import (
     mc_data_provider_t, host_velo_validator_t, host_velo_ut_validator_t,
     long_track_validator_t, muon_validator_t, host_pv_validator_t,
     host_rate_validator_t, host_routingbits_validator_t, kalman_validator_t,
-    host_data_provider_t, host_sel_report_validator_t)
+    host_seeding_XZ_validator_t, host_seeding_validator_t,
+    host_veloscifi_dump_t, host_data_provider_t, host_sel_report_validator_t)
 from AllenConf.utils import initialize_number_of_events
-from AllenConf.persistency import make_dec_reporter, make_gather_selections, make_routingbits_writer, rb_map
 from AllenCore.generator import make_algorithm
+from AllenConf.persistency import make_dec_reporter, make_gather_selections, make_routingbits_writer, rb_map
+from AllenAlgorithms.algorithms import (host_prefix_sum_t,
+                                        seeding_copy_trackXZ_hit_number_t)
+from AllenConf.scifi_reconstruction import decode_scifi, make_seeding_XZ_tracks
 
 
 def mc_data_provider():
@@ -91,14 +95,107 @@ def long_validation(long_tracks, name="long_validator"):
             "dev_velo_kalman_endvelo_states_view"],
         dev_multi_event_long_tracks_view_t=long_tracks[
             "dev_multi_event_long_tracks_view"],
-        dev_offsets_long_tracks_t=long_tracks["dev_offsets_forward_tracks"])
+        dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"])
+
+
+def seeding_xz_validation(name="seed_xz_validator"):
+    mc_events = mc_data_provider()
+    decoded_scifi = decode_scifi()
+    seeding_tracks = make_seeding_XZ_tracks(decoded_scifi)
+
+    number_of_events = initialize_number_of_events()
+
+    prefix_sum_tracksXZ = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_sum_scifi_trackXZ",
+        dev_input_buffer_t=seeding_tracks["seed_xz_number_of_tracks"])
+
+    seeding_copy_trackXZ_hit_number = make_algorithm(
+        seeding_copy_trackXZ_hit_number_t,
+        name="seeding_copy_trackXZ_hit_number",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_reconstructed_seeding_tracksXZ_t=prefix_sum_tracksXZ.
+        host_total_sum_holder_t,
+        dev_seeding_tracksXZ_t=seeding_tracks["seed_xz_tracks"],
+        dev_seeding_xz_atomics_t=prefix_sum_tracksXZ.dev_output_buffer_t,
+        dev_event_list_t=number_of_events["dev_number_of_events"])
+
+    prefix_sum_trackXZ_hit_number = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_sum_trackXZ_hit_number",
+        dev_input_buffer_t=seeding_copy_trackXZ_hit_number.
+        dev_seeding_trackXZ_hit_number_t)
+
+    return make_algorithm(
+        host_seeding_XZ_validator_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_offsets_scifi_seedsXZ_t=prefix_sum_tracksXZ.dev_output_buffer_t,
+        dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
+        dev_offsets_scifi_seedXZ_hit_number_t=prefix_sum_trackXZ_hit_number.
+        dev_output_buffer_t,
+        dev_scifi_seedsXZ_t=seeding_tracks["seed_xz_tracks"],
+        host_mc_events_t=mc_events.host_mc_events_t)
+
+
+def seeding_validation(seeding_tracks, name="seed_validator"):
+    mc_events = mc_data_provider()
+    #decoded_scifi = decode_scifi("v6")
+    #seeding_tracks = make_seeding_tracks(decoded_scifi)
+
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        host_seeding_validator_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_offsets_scifi_seeds_t=seeding_tracks["dev_offsets_scifi_seeds"],
+        dev_scifi_hits_t=seeding_tracks["dev_seeding_track_hits"],
+        dev_offsets_scifi_seed_hit_number_t=seeding_tracks[
+            "dev_offsets_scifi_seed_hit_number"],
+        dev_scifi_seeds_t=seeding_tracks["seed_tracks"],
+        dev_seeding_states_t=seeding_tracks["dev_seeding_states"],
+        host_mc_events_t=mc_events.host_mc_events_t)
+
+
+def velo_scifi_dump(matched_tracks, name="veloscifi_dump"):
+    mc_events = mc_data_provider()
+
+    velo_tracks = matched_tracks["velo_tracks"]
+    velo_kalman_filter = matched_tracks["velo_kalman_filter"]
+    seeding_tracks = matched_tracks["seeding_tracks"]
+
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        host_veloscifi_dump_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_mc_events_t=mc_events.host_mc_events_t,
+        dev_offsets_all_velo_tracks_t=velo_tracks[
+            "dev_offsets_all_velo_tracks"],
+        dev_offsets_velo_track_hit_number_t=velo_tracks[
+            "dev_offsets_velo_track_hit_number"],
+        dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
+        dev_velo_kalman_states_t=velo_kalman_filter[
+            "dev_velo_kalman_endvelo_states"],
+        dev_ut_number_of_selected_velo_tracks_t=matched_tracks[
+            "dev_ut_number_of_selected_velo_tracks"],
+        dev_ut_selected_velo_tracks_t=matched_tracks[
+            "dev_ut_selected_velo_tracks"],
+        dev_offsets_scifi_seeds_t=seeding_tracks["dev_offsets_scifi_seeds"],
+        dev_scifi_hits_t=seeding_tracks["dev_seeding_track_hits"],
+        dev_offsets_scifi_seed_hit_number_t=seeding_tracks[
+            "dev_offsets_scifi_seed_hit_number"],
+        dev_scifi_seeds_t=seeding_tracks["seed_tracks"],
+        dev_seeding_states_t=seeding_tracks["dev_seeding_states"])
 
 
 def muon_validation(muonID, name="muon_validator"):
     mc_events = mc_data_provider()
     number_of_events = initialize_number_of_events()
 
-    long_tracks = muonID["forward_tracks"]
+    long_tracks = muonID["long_tracks"]
     velo_kalman_filter = long_tracks["velo_kalman_filter"]
 
     return make_algorithm(
@@ -112,7 +209,7 @@ def muon_validation(muonID, name="muon_validator"):
             "dev_velo_kalman_endvelo_states_view"],
         dev_multi_event_long_tracks_view_t=long_tracks[
             "dev_multi_event_long_tracks_view"],
-        dev_offsets_long_tracks_t=long_tracks["dev_offsets_forward_tracks"],
+        dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"],
         dev_is_muon_t=muonID["dev_is_muon"])
 
 
@@ -165,7 +262,7 @@ def kalman_validation(kalman_velo_only, name="kalman_validator"):
     number_of_events = initialize_number_of_events()
     mc_events = mc_data_provider()
 
-    long_tracks = kalman_velo_only["forward_tracks"]
+    long_tracks = kalman_velo_only["long_tracks"]
     velo_kalman_filter = long_tracks["velo_kalman_filter"]
     pvs = kalman_velo_only["pvs"]
 
@@ -181,7 +278,7 @@ def kalman_validation(kalman_velo_only, name="kalman_validator"):
         dev_multi_event_long_tracks_view_t=long_tracks[
             "dev_multi_event_long_tracks_view"],
         dev_kf_tracks_t=kalman_velo_only["dev_kf_tracks"],
-        dev_offsets_long_tracks_t=long_tracks["dev_offsets_forward_tracks"],
+        dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"],
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
         dev_number_of_multi_final_vertices_t=pvs[
             "dev_number_of_multi_final_vertices"])

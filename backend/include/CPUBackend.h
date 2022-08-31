@@ -122,6 +122,41 @@ inline unsigned int atomicInc(unsigned int* address, unsigned int val)
   return old;
 }
 
+template<class T>
+inline T atomicMin(T* address, T val)
+{
+  const int old = *address;
+  *address = std::min(old, val);
+  return old;
+}
+
+template<class T>
+inline T atomicMax(T* address, T val)
+{
+  const T old = *address;
+  *address = std::max(old, val);
+  return old;
+}
+
+inline float __int_as_float(int a)
+{
+  union {
+    int i;
+    float f;
+  } u;
+  u.i = a;
+  return u.f;
+}
+inline int __float_as_int(float a)
+{
+  union {
+    int i;
+    float f;
+  } u;
+  u.f = a;
+  return u.i;
+}
+
 uint16_t __float2half(const float f);
 
 float __half2float(const uint16_t h);

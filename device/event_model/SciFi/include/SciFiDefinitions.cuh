@@ -19,6 +19,9 @@ namespace SciFi {
   // need 3 arrays (size: number_of_events) for copy_and_prefix_sum_scifi_t
   static constexpr int num_atomics = 3;
 
+  // need 1 arrays (size: number_of_events) for seeding, right?
+  static constexpr int num_seeding_atomics = 1;
+
   namespace Constants {
     // Detector description
     // There are three stations with four layers each
@@ -26,7 +29,13 @@ namespace SciFi {
     static constexpr unsigned n_layers_per_station = 4;
     static constexpr unsigned n_zones = 24;
     static constexpr unsigned n_layers = 12;
+    static constexpr unsigned n_xzlayers = 6;
+    static constexpr unsigned n_uvlayers = 6;
     static constexpr unsigned n_mats = 1024;
+    static constexpr unsigned n_parts = 2;
+    static constexpr unsigned max_num_seed_tracks = 6000; // FIXME
+    static constexpr int INVALID_IDX = -1;                // FIXME
+    static constexpr int INVALID_ID = 0;                  // FIXME
 
     /**
      * The following constants are based on the number of modules per quarter.
@@ -59,7 +68,10 @@ namespace SciFi {
     // FIXME_GEOMETRY_HARDCODING
     // todo: use dzdy defined in geometry, read by mat
     static constexpr float dzdy = 0.003601f;
-    static constexpr float ZEndT = 9410.f * Gaudi::Units::mm; // FIXME_GEOMETRY_HARDCODING
+    static constexpr float dRatio = -0.00028f;
+    static constexpr float ZBegT = 7500.f * Gaudi::Units::mm;   // FIXME_GEOMETRY_HARDCODING
+    static constexpr float ZEndT = 9410.f * Gaudi::Units::mm;   // FIXME_GEOMETRY_HARDCODING
+    static constexpr float z_mid_t = 8520.f * Gaudi::Units::mm; // FIXME_GEOMETRY_HARDCODING
 
     // Looking Forward
     static constexpr int max_track_size = n_layers;
@@ -69,6 +81,12 @@ namespace SciFi {
 
     // This constant is for the HostBuffer reserve method, when validating
     static constexpr int max_tracks = 1000;
+
+    // Constants for SciFi seeding
+    static constexpr int Nmax_seed_xz_per_part = 300;
+    static constexpr int Nmax_seed_xz = n_parts * Nmax_seed_xz_per_part;
+    static constexpr int Nmax_seeds_per_part = Nmax_seed_xz_per_part;
+    static constexpr int Nmax_seeds = n_parts * Nmax_seeds_per_part;
   } // namespace Constants
 
   namespace SciFiRawBankParams { // from SciFi/SciFiDAQ/src/SciFiRawBankParams.h

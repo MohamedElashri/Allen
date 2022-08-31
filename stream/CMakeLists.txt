@@ -25,6 +25,7 @@ target_link_libraries(Stream
     HostPrefixSum
     HostRoutingBits
     UT
+    track_matching
     Kalman
     VertexFitter
     SciFi

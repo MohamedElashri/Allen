@@ -35,6 +35,8 @@ namespace Checker {
     };
     struct SciFi {
     };
+    struct SciFiSeeding {
+    };
     struct Muon {
     };
 

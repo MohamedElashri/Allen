@@ -42,6 +42,9 @@ __global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters)
   const unsigned number_of_events = gridDim.x;
   const unsigned i_event = blockIdx.x;
 
+  // Long tracks.
+  const auto long_tracks = parameters.dev_long_tracks_view->container(i_event);
+
   Velo::Consolidated::ConstTracks velo_tracks {
     parameters.dev_atomics_velo, parameters.dev_velo_track_hit_number, i_event, number_of_events};
 
@@ -79,7 +82,7 @@ __global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters)
     auto i_ut_track = scifi_tracks.ut_track(i_scifi_track);
     auto i_velo_track = ut_tracks.velo_track(i_ut_track);
     unsigned i_velo_state = velo_tracks.tracks_offset(i_event) + i_velo_track;
-    const float p = 1.f / fabsf(scifi_tracks.qop(i_scifi_track));
+    const float p = 1.f / fabsf(long_tracks.qop(i_scifi_track));
     const float tx2 = velo_states.tx(i_velo_state) * velo_states.tx(i_velo_state);
     const float ty2 = velo_states.ty(i_velo_state) * velo_states.ty(i_velo_state);
     const float pT = p * sqrtf((tx2 + ty2) / (1.f + tx2 + ty2));

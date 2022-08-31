@@ -13,7 +13,8 @@ namespace Hlt1 {
   template<typename U>
   struct DeviceTraverseLinesImpl<std::tuple<>, U, std::index_sequence<>, void> {
     template<typename F>
-    __device__ constexpr static void traverse(const F&) {}
+    __device__ constexpr static void traverse(const F&)
+    {}
   };
 
   // If the line inherits from U, execute the lambda with the index of the line
@@ -62,7 +63,8 @@ namespace Hlt1 {
   template<typename U>
   struct DeviceTraverseLinesNamesImpl<std::tuple<>, U, std::index_sequence<>, void> {
     template<typename F>
-    __device__ constexpr static void traverse(const F&) {}
+    __device__ constexpr static void traverse(const F&)
+    {}
   };
 
   // If the line inherits from U, execute the lambda with the index of the line
@@ -111,7 +113,8 @@ namespace Hlt1 {
   template<typename U>
   struct DeviceTraverseLinesScaleFactorsImpl<std::tuple<>, U, std::index_sequence<>, void> {
     template<typename F>
-    __device__ constexpr static void traverse(const F&) {}
+    __device__ constexpr static void traverse(const F&)
+    {}
   };
 
   // If the line inherits from U, execute the lambda with the index of the line
@@ -120,12 +123,13 @@ namespace Hlt1 {
     std::tuple<T, OtherLines...>,
     U,
     std::index_sequence<I, Is...>,
-    typename std::enable_if<std::is_base_of<U, T>::value>::type> {\
+    typename std::enable_if<std::is_base_of<U, T>::value>::type> {
     template<typename F>
     __device__ constexpr static void traverse(const F& lambda_fn)
     {
       lambda_fn(I, T::scale_factor);
-      DeviceTraverseLinesScaleFactorsImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(lambda_fn);
+      DeviceTraverseLinesScaleFactorsImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(
+        lambda_fn);
     }
   };
 
@@ -139,7 +143,8 @@ namespace Hlt1 {
     template<typename F>
     __device__ constexpr static void traverse(const F& lambda_fn)
     {
-      DeviceTraverseLinesScaleFactorsImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(lambda_fn);
+      DeviceTraverseLinesScaleFactorsImpl<std::tuple<OtherLines...>, U, std::index_sequence<Is...>>::traverse(
+        lambda_fn);
     }
   };
 
@@ -149,7 +154,8 @@ namespace Hlt1 {
     template<typename F>
     __device__ constexpr static void traverse(const F& lambda_fn)
     {
-      DeviceTraverseLinesScaleFactorsImpl<T, U, std::make_index_sequence<std::tuple_size<T>::value>>::traverse(lambda_fn);
+      DeviceTraverseLinesScaleFactorsImpl<T, U, std::make_index_sequence<std::tuple_size<T>::value>>::traverse(
+        lambda_fn);
     }
   };
 
@@ -182,7 +188,7 @@ namespace Hlt1 {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const unsigned* dev_sel_results_offsets,
-      const unsigned* dev_offsets_forward_tracks,
+      const unsigned* dev_offsets_long_tracks,
       const unsigned* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
@@ -192,7 +198,7 @@ namespace Hlt1 {
       const unsigned number_of_tracks_in_event,
       const unsigned number_of_vertices_in_event)
     {
-      bool* decisions = dev_sel_results + dev_sel_results_offsets[I] + dev_offsets_forward_tracks[event_number];
+      bool* decisions = dev_sel_results + dev_sel_results_offsets[I] + dev_offsets_long_tracks[event_number];
 
       for (unsigned i = threadIdx.x; i < number_of_tracks_in_event; i += blockDim.x) {
         decisions[i] = T::function(event_tracks[i]);
@@ -201,7 +207,7 @@ namespace Hlt1 {
       TraverseImpl<std::tuple<OtherLines...>, std::index_sequence<Is...>>::traverse(
         dev_sel_results,
         dev_sel_results_offsets,
-        dev_offsets_forward_tracks,
+        dev_offsets_long_tracks,
         dev_sv_offsets,
         event_tracks,
         event_vertices,
@@ -221,7 +227,7 @@ namespace Hlt1 {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const unsigned* dev_sel_results_offsets,
-      const unsigned* dev_offsets_forward_tracks,
+      const unsigned* dev_offsets_long_tracks,
       const unsigned* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
@@ -240,7 +246,7 @@ namespace Hlt1 {
       TraverseImpl<std::tuple<OtherLines...>, std::index_sequence<Is...>>::traverse(
         dev_sel_results,
         dev_sel_results_offsets,
-        dev_offsets_forward_tracks,
+        dev_offsets_long_tracks,
         dev_sv_offsets,
         event_tracks,
         event_vertices,
@@ -260,7 +266,7 @@ namespace Hlt1 {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const unsigned* dev_sel_results_offsets,
-      const unsigned* dev_offsets_forward_tracks,
+      const unsigned* dev_offsets_long_tracks,
       const unsigned* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
@@ -279,7 +285,7 @@ namespace Hlt1 {
       TraverseImpl<std::tuple<OtherLines...>, std::index_sequence<Is...>>::traverse(
         dev_sel_results,
         dev_sel_results_offsets,
-        dev_offsets_forward_tracks,
+        dev_offsets_long_tracks,
         dev_sv_offsets,
         event_tracks,
         event_vertices,
@@ -299,7 +305,7 @@ namespace Hlt1 {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const unsigned* dev_sel_results_offsets,
-      const unsigned* dev_offsets_forward_tracks,
+      const unsigned* dev_offsets_long_tracks,
       const unsigned* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
@@ -313,7 +319,7 @@ namespace Hlt1 {
       TraverseImpl<std::tuple<OtherLines...>, std::index_sequence<Is...>>::traverse(
         dev_sel_results,
         dev_sel_results_offsets,
-        dev_offsets_forward_tracks,
+        dev_offsets_long_tracks,
         dev_sv_offsets,
         event_tracks,
         event_vertices,
@@ -330,7 +336,7 @@ namespace Hlt1 {
     __device__ constexpr static void traverse(
       bool* dev_sel_results,
       const unsigned* dev_sel_results_offsets,
-      const unsigned* dev_offsets_forward_tracks,
+      const unsigned* dev_offsets_long_tracks,
       const unsigned* dev_sv_offsets,
       const ParKalmanFilter::FittedTrack* event_tracks,
       const VertexFit::TrackMVAVertex* event_vertices,
@@ -343,7 +349,7 @@ namespace Hlt1 {
       TraverseImpl<T, std::make_index_sequence<std::tuple_size<T>::value>>::traverse(
         dev_sel_results,
         dev_sel_results_offsets,
-        dev_offsets_forward_tracks,
+        dev_offsets_long_tracks,
         dev_sv_offsets,
         event_tracks,
         event_vertices,

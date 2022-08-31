@@ -111,6 +111,7 @@ int allen(
   uint mon_save_period = 0;
   std::string mon_filename;
   bool disable_run_changes = 0;
+  bool prefer_shared = false;
 
   size_t const n_write = output_handler != nullptr ? output_handler->n_threads() : 1;
   size_t const n_io = n_input + n_write;
@@ -194,6 +195,9 @@ int allen(
     }
     else if (flag_in(flag, {"register-monitoring-counters"})) {
       register_monitoring_counters = atoi(arg.c_str());
+    }
+    else if (flag_in(flag, {"prefer-shared"})) {
+      prefer_shared = atoi(arg.c_str());
     }
   }
 
@@ -383,7 +387,8 @@ int allen(
                         root_service.get(),
                         io_conf.number_of_repetitions,
                         input_provider->layout() == IInputProvider::Layout::MEP,
-                        inject_mem_fail};
+                        inject_mem_fail,
+                        prefer_shared};
   };
 
   // Lambda with the execution of the input thread that polls the

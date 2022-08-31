@@ -23,6 +23,12 @@ uint32_t get_num_hits<Checker::Subdetector::SciFi>(const MCParticle& mc_particle
 }
 
 template<>
+uint32_t get_num_hits<Checker::Subdetector::SciFiSeeding>(const MCParticle& mc_particle)
+{
+  return mc_particle.scifi_num_hits;
+}
+
+template<>
 uint32_t get_num_hits_subdetector<Checker::Subdetector::Velo>(const MCParticle& mc_particle)
 {
   return mc_particle.velo_num_hits;
@@ -36,6 +42,12 @@ uint32_t get_num_hits_subdetector<Checker::Subdetector::UT>(const MCParticle& mc
 
 template<>
 uint32_t get_num_hits_subdetector<Checker::Subdetector::SciFi>(const MCParticle& mc_particle)
+{
+  return mc_particle.scifi_num_hits;
+}
+
+template<>
+uint32_t get_num_hits_subdetector<Checker::Subdetector::SciFiSeeding>(const MCParticle& mc_particle)
 {
   return mc_particle.scifi_num_hits;
 }

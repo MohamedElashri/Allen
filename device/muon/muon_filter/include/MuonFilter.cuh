@@ -12,6 +12,7 @@
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "SystemOfUnits.h"
+#include "ParticleTypes.cuh"
 
 namespace MuonFilter {
   struct Parameters {
@@ -25,11 +26,12 @@ namespace MuonFilter {
     DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned) dev_ut_track_hit_number;
     DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
     DEVICE_INPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
-    DEVICE_INPUT(dev_offsets_forward_tracks_t, unsigned) dev_atomics_scifi;
+    DEVICE_INPUT(dev_offsets_long_tracks_t, unsigned) dev_atomics_scifi;
     DEVICE_INPUT(dev_offsets_scifi_track_hit_number, unsigned) dev_scifi_track_hit_number;
     DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
+    DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
     DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
     DEVICE_INPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
     DEVICE_OUTPUT(dev_mf_decisions_t, unsigned) dev_mf_decisions;

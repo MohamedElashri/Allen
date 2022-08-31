@@ -13,7 +13,7 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
 
-def make_d2kpi_line(forward_tracks,
+def make_d2kpi_line(long_tracks,
                     secondary_vertices,
                     name="Hlt1D2KPi",
                     pre_scaler_hash_string=None,
@@ -50,7 +50,7 @@ def make_passthrough_line(name="Hlt1Passthrough",
 
 
 def make_rich_line(line_type,
-                   forward_tracks,
+                   long_tracks,
                    long_track_particles,
                    name,
                    pre_scaler,
@@ -63,7 +63,7 @@ def make_rich_line(line_type,
         line_type,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
+        host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
@@ -73,31 +73,31 @@ def make_rich_line(line_type,
         post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 
 
-def make_rich_1_line(forward_tracks,
+def make_rich_1_line(long_tracks,
                      long_track_particles,
                      name="Hlt1RICH1Alignment",
                      pre_scaler=1.0,
                      post_scaler=1.0,
                      pre_scaler_hash_string=None,
                      post_scaler_hash_string=None):
-    return make_rich_line(rich_1_line_t, forward_tracks, long_track_particles,
+    return make_rich_line(rich_1_line_t, long_tracks, long_track_particles,
                           name, pre_scaler, post_scaler,
                           pre_scaler_hash_string, post_scaler_hash_string)
 
 
-def make_rich_2_line(forward_tracks,
+def make_rich_2_line(long_tracks,
                      long_track_particles,
                      name="Hlt1RICH2Alignment",
                      pre_scaler=1.0,
                      post_scaler=1.0,
                      pre_scaler_hash_string=None,
                      post_scaler_hash_string=None):
-    return make_rich_line(rich_2_line_t, forward_tracks, long_track_particles,
+    return make_rich_line(rich_2_line_t, long_tracks, long_track_particles,
                           name, pre_scaler, post_scaler,
                           pre_scaler_hash_string, post_scaler_hash_string)
 
 
-def make_displaced_dimuon_mass_line(forward_tracks,
+def make_displaced_dimuon_mass_line(long_tracks,
                                     secondary_vertices,
                                     name="Hlt1DisplacedDiMuonAlignment",
                                     pre_scaler=1.0,
@@ -120,7 +120,7 @@ def make_displaced_dimuon_mass_line(forward_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 
 
-def make_di_muon_mass_align_line(forward_tracks,
+def make_di_muon_mass_align_line(long_tracks,
                                  secondary_vertices,
                                  pre_scaler=1.0,
                                  post_scaler=1.0,

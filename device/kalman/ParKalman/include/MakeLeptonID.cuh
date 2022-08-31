@@ -12,6 +12,7 @@
 
 #include "SciFiConsolidated.cuh"
 #include "AlgorithmTypes.cuh"
+#include "ParticleTypes.cuh"
 
 namespace make_lepton_id {
   struct Parameters {
@@ -19,7 +20,7 @@ namespace make_lepton_id {
     HOST_INPUT(host_number_of_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT(dev_scifi_tracks_view_t, Allen::Views::SciFi::Consolidated::Tracks) dev_scifi_tracks_view;
+    DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
     DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
     DEVICE_INPUT(dev_is_electron_t, bool) dev_is_electron;
     DEVICE_OUTPUT(dev_lepton_id_t, uint8_t) dev_lepton_id;

@@ -84,7 +84,8 @@ public:
         (100.0 * static_cast<double>(m_nghosts)) / (static_cast<double>(m_ntracks)));
     }
 
-    if constexpr (std::is_same_v<T, Checker::Subdetector::SciFi>) {
+    if constexpr (
+      std::is_same_v<T, Checker::Subdetector::SciFi> || std::is_same_v<T, Checker::Subdetector::SciFiSeeding>) {
       std::printf(
         "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
         "for P>3GeV,Pt>0.5GeV",
@@ -288,6 +289,8 @@ public:
           subdetector_counter = id_counter.second.n_ut;
         else if constexpr (std::is_same_v<T, Checker::Subdetector::SciFi>)
           subdetector_counter = id_counter.second.n_scifi;
+        else if constexpr (std::is_same_v<T, Checker::Subdetector::SciFiSeeding>)
+          subdetector_counter = id_counter.second.n_scifi;
         const float weight = ((float) counter_sum) / ((float) n_meas);
         const MCAssociator::TrackWithWeight track_weight = {i_track, weight, subdetector_counter};
         assoc_table[(mc_assoc.m_mcps[id_counter.first]).key].push_back(track_weight);
@@ -409,7 +412,7 @@ public:
       }
       // fill histogram of momentum resolution
       if (
-        (std::is_same_v<T, Checker::Subdetector::SciFi> ||
+        (std::is_same_v<T, Checker::Subdetector::SciFi> || std::is_same_v<T, Checker::Subdetector::SciFiSeeding> ||
          std::is_same_v<T, Checker::Subdetector::Muon>) &&mcp.hasVelo &&
         mcp.hasUT && mcp.hasSciFi) {
         m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
@@ -506,4 +509,6 @@ public:
 using TrackCheckerVelo = TrackChecker<Checker::Subdetector::Velo>;
 using TrackCheckerVeloUT = TrackChecker<Checker::Subdetector::UT>;
 using TrackCheckerLong = TrackChecker<Checker::Subdetector::SciFi>;
+using TrackCheckerSeeding = TrackChecker<Checker::Subdetector::SciFiSeeding>;
+using TrackCheckerSeedingXZ = TrackChecker<Checker::Subdetector::SciFiSeeding>;
 using TrackCheckerMuon = TrackChecker<Checker::Subdetector::Muon>;

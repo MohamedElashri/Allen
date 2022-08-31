@@ -240,6 +240,9 @@ __global__ void kalman_filter::kalman_filter(
                                                  event_number,
                                                  number_of_events};
 
+  // Long tracks.
+  const auto event_long_tracks = parameters.dev_long_tracks_view->container(event_number);
+
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
 
   // Loop over SciFi tracks and get associated UT and VELO tracks.
@@ -256,7 +259,8 @@ __global__ void kalman_filter::kalman_filter(
     const int i_velo_track = ut_tracks.velo_track(i_ut_track);
     Velo::Consolidated::ConstHits velo_hits = velo_tracks.get_hits(parameters.dev_velo_track_hits, i_velo_track);
     const unsigned n_velo_hits = velo_tracks.number_of_hits(i_velo_track);
-    const KalmanFloat init_qop = (KalmanFloat) scifi_tracks.qop(i_scifi_track);
+    const auto long_track = event_long_tracks.track(i_scifi_track);
+    const KalmanFloat init_qop = (KalmanFloat) long_track.qop();
     fit(
       velo_hits,
       n_velo_hits,

@@ -287,9 +287,146 @@ namespace SciFi {
         }
         return ids;
       }
-    }; // namespace Consolidated
+
+    }; // struct Tracks
 
     typedef const Tracks_t<const char> ConstTracks;
     typedef Tracks_t<char> Tracks;
+
+    //---------------------------------------------------------
+    // Struct for holding consolidated SciFi seed information.
+    //---------------------------------------------------------
+    template<typename T>
+    struct Seeds_t : public ::Consolidated::Tracks {
+    private:
+      typename ForwardType<T, MiniState>::t* m_states;
+
+    public:
+      __host__ __device__ Seeds_t(
+        const unsigned* atomics_base_pointer,
+        const unsigned* track_hit_number_base_pointer,
+        typename ForwardType<T, MiniState>::t* states_base_pointer,
+        const unsigned current_event_number,
+        const unsigned number_of_events) :
+        ::Consolidated::Tracks(
+          atomics_base_pointer,
+          track_hit_number_base_pointer,
+          current_event_number,
+          number_of_events),
+        m_states(states_base_pointer + tracks_offset(current_event_number))
+      {}
+
+      __host__ __device__ MiniState states(const unsigned index) const { return m_states[index]; }
+
+      __host__ __device__ MiniState& states(const unsigned index) { return m_states[index]; }
+
+      __host__ __device__ Hits get_hits(char* hits_base_pointer, const unsigned track_number) const
+      {
+        return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+      }
+
+      __host__ __device__ ConstHits get_hits(const char* hits_base_pointer, const unsigned track_number) const
+      {
+        return ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+      }
+
+      __host__ __device__ ExtendedHits get_hits(
+        char* hits_base_pointer,
+        const unsigned track_number,
+        const SciFiGeometry* geom,
+        const float* inv_clus_res) const
+      {
+        return ExtendedHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
+      }
+
+      __host__ __device__ ConstExtendedHits get_hits(
+        const char* hits_base_pointer,
+        const unsigned track_number,
+        const SciFiGeometry* geom,
+        const float* inv_clus_res) const
+      {
+        return ConstExtendedHits {
+          hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
+      }
+
+      __host__ std::vector<unsigned> get_lhcbids_for_track(const char* hits_base_pointer, const unsigned track_number)
+        const
+      {
+        std::vector<unsigned> ids;
+        const auto hits = ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+        for (unsigned i = 0; i < number_of_hits(track_number); ++i) {
+          ids.push_back(hits.id(i));
+        }
+        return ids;
+      }
+
+    }; // struct Seeds
+
+    typedef const Seeds_t<const char> ConstSeeds;
+    typedef Seeds_t<char> Seeds;
+
+    //---------------------------------------------------------
+    // Struct for holding consolidated SciFi seedXZ information.
+    //---------------------------------------------------------
+    template<typename T>
+    struct SeedsXZ_t : public ::Consolidated::Tracks {
+
+    public:
+      __host__ __device__ SeedsXZ_t(
+        const unsigned* atomics_base_pointer,
+        const unsigned* track_hit_number_base_pointer,
+        const unsigned current_event_number,
+        const unsigned number_of_events) :
+        ::Consolidated::Tracks(
+          atomics_base_pointer,
+          track_hit_number_base_pointer,
+          current_event_number,
+          number_of_events)
+      {}
+
+      __host__ __device__ Hits get_hits(char* hits_base_pointer, const unsigned track_number) const
+      {
+        return Hits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+      }
+
+      __host__ __device__ ConstHits get_hits(const char* hits_base_pointer, const unsigned track_number) const
+      {
+        return ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+      }
+
+      __host__ __device__ ExtendedHits get_hits(
+        char* hits_base_pointer,
+        const unsigned track_number,
+        const SciFiGeometry* geom,
+        const float* inv_clus_res) const
+      {
+        return ExtendedHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
+      }
+
+      __host__ __device__ ConstExtendedHits get_hits(
+        const char* hits_base_pointer,
+        const unsigned track_number,
+        const SciFiGeometry* geom,
+        const float* inv_clus_res) const
+      {
+        return ConstExtendedHits {
+          hits_base_pointer, track_offset(track_number), m_total_number_of_hits, inv_clus_res, geom};
+      }
+
+      __host__ std::vector<unsigned> get_lhcbids_for_track(const char* hits_base_pointer, const unsigned track_number)
+        const
+      {
+        std::vector<unsigned> ids;
+        const auto hits = ConstHits {hits_base_pointer, track_offset(track_number), m_total_number_of_hits};
+        for (unsigned i = 0; i < number_of_hits(track_number); ++i) {
+          ids.push_back(hits.id(i));
+        }
+        return ids;
+      }
+
+    }; // struct SeedsXZ
+
+    typedef const SeedsXZ_t<const char> ConstSeedsXZ;
+    typedef SeedsXZ_t<char> SeedsXZ;
   } // namespace Consolidated
 } // end namespace SciFi

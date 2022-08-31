@@ -10,12 +10,12 @@ from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenCore.generator import make_algorithm
 
 
-def make_kalman_velo_only(forward_tracks,
+def make_kalman_velo_only(long_tracks,
                           pvs,
                           is_muon_result,
                           is_electron_result=None):
     number_of_events = initialize_number_of_events()
-    velo_tracks = forward_tracks["velo_tracks"]
+    velo_tracks = long_tracks["velo_tracks"]
     velo_states = run_velo_kalman_filter(velo_tracks)
 
     velo_pv_ip = make_algorithm(
@@ -40,12 +40,10 @@ def make_kalman_velo_only(forward_tracks,
         name="kalman_velo_only",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
+        host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_scifi_tracks_view_t=forward_tracks[
-            "dev_multi_event_long_tracks_view"],
-        dev_offsets_forward_tracks_t=forward_tracks[
-            "dev_offsets_forward_tracks"],
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"],
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
         dev_number_of_multi_final_vertices_t=pvs[
             "dev_number_of_multi_final_vertices"],
@@ -53,7 +51,7 @@ def make_kalman_velo_only(forward_tracks,
     )
 
     return {
-        "forward_tracks": forward_tracks,
+        "long_tracks": long_tracks,
         "pvs": pvs,
         "dev_kf_tracks": kalman_velo_only.dev_kf_tracks_t,
         "dev_kalman_pv_ipchi2": kalman_velo_only.dev_kalman_pv_ipchi2_t,
@@ -67,7 +65,7 @@ def make_basic_particles(kalman_velo_only,
                          is_muon_result,
                          is_electron_result=None):
     number_of_events = initialize_number_of_events()
-    forward_tracks = kalman_velo_only["forward_tracks"]
+    long_tracks = kalman_velo_only["long_tracks"]
     pvs = kalman_velo_only["pvs"]
 
     if is_electron_result is not None:
@@ -76,9 +74,10 @@ def make_basic_particles(kalman_velo_only,
             name="make_lepton_id",
             host_number_of_events_t=number_of_events["host_number_of_events"],
             dev_number_of_events_t=number_of_events["dev_number_of_events"],
-            host_number_of_scifi_tracks_t=forward_tracks[
+            host_number_of_scifi_tracks_t=long_tracks[
                 "host_number_of_reconstructed_scifi_tracks"],
-            dev_scifi_tracks_view_t=forward_tracks["dev_scifi_tracks_view"],
+            dev_long_tracks_view_t=long_tracks[
+                "dev_multi_event_long_tracks_view"],
             dev_is_muon_t=is_muon_result["dev_is_muon"],
             dev_is_electron_t=is_electron_result["dev_track_isElectron"])
         lepton_id = make_lepton_id.dev_lepton_id_t
@@ -90,12 +89,11 @@ def make_basic_particles(kalman_velo_only,
         name="make_long_track_particles",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
+        host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
-        dev_multi_event_long_tracks_t=forward_tracks[
+        dev_multi_event_long_tracks_t=long_tracks[
             "dev_multi_event_long_tracks_ptr"],
-        dev_offsets_forward_tracks_t=forward_tracks[
-            "dev_offsets_forward_tracks"],
+        dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"],
         dev_kalman_states_view_t=kalman_velo_only["dev_kalman_states_view"],
         dev_kalman_pv_tables_t=kalman_velo_only["dev_kalman_pv_tables"],
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
@@ -108,16 +106,15 @@ def make_basic_particles(kalman_velo_only,
     }
 
 
-def fit_secondary_vertices(forward_tracks, pvs, kalman_velo_only,
+def fit_secondary_vertices(long_tracks, pvs, kalman_velo_only,
                            long_track_particles):
     number_of_events = initialize_number_of_events()
-    velo_tracks = forward_tracks["velo_tracks"]
 
     filter_tracks = make_algorithm(
         filter_tracks_t,
         name="filter_tracks",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_tracks_t=forward_tracks[
+        host_number_of_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_long_track_particles_t=long_track_particles[

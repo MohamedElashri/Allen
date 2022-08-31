@@ -25,25 +25,25 @@ with line_maker.bind(prefilter=gec):
     lines.append(
         line_maker(
             make_track_mva_line(
-                restricted_hlt1_reconstruction["forward_tracks"],
+                restricted_hlt1_reconstruction["long_tracks"],
                 restricted_hlt1_reconstruction["long_track_particles"],
                 name="Hlt1TrackMVA_Restricted")))
     lines.append(
         line_maker(
             make_two_track_mva_line(
-                restricted_hlt1_reconstruction["forward_tracks"],
+                restricted_hlt1_reconstruction["long_tracks"],
                 restricted_hlt1_reconstruction["secondary_vertices"],
                 name="Hlt1TwoTrackMVA_Restricted")))
     lines.append(
         line_maker(
             make_track_mva_line(
-                non_restricted_hlt1_reconstruction["forward_tracks"],
+                non_restricted_hlt1_reconstruction["long_tracks"],
                 non_restricted_hlt1_reconstruction["long_track_particles"],
                 name="Hlt1TrackMVA_Non_Restricted")))
     lines.append(
         line_maker(
             make_two_track_mva_line(
-                non_restricted_hlt1_reconstruction["forward_tracks"],
+                non_restricted_hlt1_reconstruction["long_tracks"],
                 non_restricted_hlt1_reconstruction["secondary_vertices"],
                 name="Hlt1TwoTrackMVA_Non_Restricted")))
 
@@ -80,13 +80,12 @@ validators_leaf = CompositeNode(
                               "non-restricted_veloUT_validator")),
         make_composite_node_with_gec(
             "restricted_long_validator",
-            long_validation(restricted_hlt1_reconstruction["forward_tracks"],
+            long_validation(restricted_hlt1_reconstruction["long_tracks"],
                             "restricted_long_validator")),
         make_composite_node_with_gec(
             "non-restricted_long_validator",
-            long_validation(
-                non_restricted_hlt1_reconstruction["forward_tracks"],
-                "non-restricted_long_validator")),
+            long_validation(non_restricted_hlt1_reconstruction["long_tracks"],
+                            "non-restricted_long_validator")),
         make_composite_node_with_gec(
             "restricted_muon_validation",
             muon_validation(restricted_hlt1_reconstruction["muonID"],

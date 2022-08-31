@@ -43,28 +43,29 @@ __global__ void track_digit_selective_matching::track_digit_selective_matching(
   const char* raw_ecal_geometry)
 {
 
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  // Long tracks.
+  const auto long_tracks = parameters.dev_long_tracks_view->container(event_number);
 
-  // Create SciFi tracks
-  SciFi::Consolidated::ConstTracks scifi_tracks {parameters.dev_atomics_scifi,
-                                                 parameters.dev_scifi_track_hit_number,
-                                                 parameters.dev_scifi_qop,
-                                                 parameters.dev_scifi_states,
-                                                 parameters.dev_scifi_track_ut_indices,
-                                                 event_number,
-                                                 number_of_events};
+  const unsigned n_long_tracks = long_tracks.size();
+  const unsigned event_offset = long_tracks.offset();
+
+  // SciFi tracks
+  const auto scifi_tracks_view = parameters.dev_scifi_tracks_view[event_number];
+  const auto scifi_states = parameters.dev_scifi_states + scifi_tracks_view.offset();
 
   // Get ECAL digits
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   const unsigned digits_offset = parameters.dev_ecal_digits_offsets[event_number];
   auto const* digits = parameters.dev_ecal_digits + digits_offset;
 
-  // Loop over the SciFi tracks in parallel
-  for (unsigned track_index = threadIdx.x; track_index < scifi_tracks.number_of_tracks(event_number);
-       track_index += blockDim.x) {
+  // Loop over the long tracks in parallel
+  for (unsigned track_index = threadIdx.x; track_index < n_long_tracks; track_index += blockDim.x) {
+    const auto long_track = long_tracks.track(track_index);
+    const auto scifi_track = long_track.track_segment<Allen::Views::Physics::Track::segment::scifi>();
+    const auto scifi_track_id = scifi_track.track_index();
     // SciFi state
-    const auto& scifi_state = scifi_tracks.states(track_index);
+    const auto& scifi_state = scifi_states[scifi_track_id];
 
     // Get z positions of intersection of the track and front, showermax and back planes
     float z_front = ecal_geometry.getZFromTrackToCaloplaneIntersection(scifi_state, 0);
@@ -100,13 +101,12 @@ __global__ void track_digit_selective_matching::track_digit_selective_matching(
       sum_cell_E,
       digit_indices);
 
-    parameters.dev_matched_ecal_energy[track_index + scifi_tracks.tracks_offset(event_number)] = sum_cell_E;
-    parameters.dev_matched_ecal_digits[track_index + scifi_tracks.tracks_offset(event_number)] = digit_indices;
-    parameters.dev_matched_ecal_digits_size[track_index + scifi_tracks.tracks_offset(event_number)] = N_matched_digits;
-    parameters.dev_track_inEcalAcc[track_index + scifi_tracks.tracks_offset(event_number)] = inAcc;
-    parameters.dev_track_Eop[track_index + scifi_tracks.tracks_offset(event_number)] =
-      sum_cell_E * fabsf(scifi_tracks.qop(track_index));
-    parameters.dev_track_isElectron[track_index + scifi_tracks.tracks_offset(event_number)] =
-      parameters.dev_track_Eop[track_index + scifi_tracks.tracks_offset(event_number)] > 0.7f;
+    parameters.dev_matched_ecal_energy[track_index + event_offset] = sum_cell_E;
+    parameters.dev_matched_ecal_digits[track_index + event_offset] = digit_indices;
+    parameters.dev_matched_ecal_digits_size[track_index + event_offset] = N_matched_digits;
+    parameters.dev_track_inEcalAcc[track_index + event_offset] = inAcc;
+    parameters.dev_track_Eop[track_index + event_offset] = sum_cell_E * fabsf(long_track.qop());
+    parameters.dev_track_isElectron[track_index + event_offset] =
+      parameters.dev_track_Eop[track_index + event_offset] > 0.7f;
   }
 }

@@ -7,6 +7,7 @@
 #include "ClusteringDefinitions.cuh"
 #include "KalmanParametrizations.cuh"
 #include "LookingForwardConstants.cuh"
+#include "TrackMatchingConstants.cuh"
 #include "MuonDefinitions.cuh"
 #include "MuonGeometry.cuh"
 #include "MuonTables.cuh"
@@ -16,6 +17,7 @@ void Constants::reserve_constants()
   Allen::malloc((void**) &dev_inv_clus_res, host_inv_clus_res.size() * sizeof(float));
   Allen::malloc((void**) &dev_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations));
   Allen::malloc((void**) &dev_looking_forward_constants, sizeof(LookingForward::Constants));
+  Allen::malloc((void**) &dev_magnet_parametrization, sizeof(TrackMatchingConsts::MagnetParametrization));
   Allen::malloc((void**) &dev_muon_foi, sizeof(Muon::Constants::FieldOfInterest));
   Allen::malloc((void**) &dev_muon_momentum_cuts, 3 * sizeof(float));
   Allen::malloc((void**) &dev_muonmatch_search_muon_chambers, sizeof(MatchUpstreamMuon::MuonChambers));
@@ -47,6 +49,14 @@ void Constants::initialize_constants(
     dev_looking_forward_constants,
     host_looking_forward_constants,
     sizeof(LookingForward::Constants),
+    Allen::memcpyHostToDevice);
+
+  // Track matching constants
+  host_magnet_parametrization = new TrackMatchingConsts::MagnetParametrization {};
+  Allen::memcpy(
+    dev_magnet_parametrization,
+    host_magnet_parametrization,
+    sizeof(TrackMatchingConsts::MagnetParametrization),
     Allen::memcpyHostToDevice);
 
   // Muon constants

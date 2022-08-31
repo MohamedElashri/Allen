@@ -58,6 +58,12 @@ for P>3GeV,Pt>0.5GeV                              :       611/    18326   3.33% 
 10_long_fromB_electrons_P>5GeV                    :         3/        5  60.00% ( 60.00%),         0 (  0.00%) clones, pur  98.41%, hit eff  94.44%
 long_P>5GeV_AND_Pt>1GeV                           :      5680/     6583  86.28% ( 88.63%),        39 (  0.68%) clones, pur  99.27%, hit eff  96.76%
 long_fromB_P>5GeV_AND_Pt>1GeV                     :        14/       16  87.50% ( 83.33%),         0 (  0.00%) clones, pur  98.45%, hit eff  99.02%
+11_noVelo_UT                                      :         0/     5489   0.00% (  0.00%),         0 (  0.00%) clones, pur   -nan%, hit eff   -nan%
+12_noVelo_UT_P>5GeV                               :         0/     2204   0.00% (  0.00%),         0 (  0.00%) clones, pur   -nan%, hit eff   -nan%
+13_long_PT>2GeV                                   :      1059/     1201  88.18% ( 88.68%),         5 (  0.47%) clones, pur  99.30%, hit eff  97.16%
+14_long_from_B_PT>2GeV                            :         6/        7  85.71% ( 75.00%),         0 (  0.00%) clones, pur  99.17%, hit eff  98.61%
+15_long_strange_P>5GeV                            :       750/     1380  54.35% ( 56.16%),         7 (  0.92%) clones, pur  99.08%, hit eff  96.71%
+16_long_strange_P>5GeV_PT>500MeV                  :       431/      526  81.94% ( 82.71%),         3 (  0.69%) clones, pur  99.10%, hit eff  96.82%
 
 
 muon_validator validation:

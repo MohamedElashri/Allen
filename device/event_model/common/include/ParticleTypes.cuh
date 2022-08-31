@@ -60,6 +60,7 @@ namespace Allen {
         const Allen::Views::Velo::Consolidated::Track* m_velo_segment = nullptr;
         const Allen::Views::UT::Consolidated::Track* m_ut_segment = nullptr;
         const Allen::Views::SciFi::Consolidated::Track* m_scifi_segment = nullptr;
+        const float* m_qop = nullptr;
 
       public:
         Track() = default;
@@ -67,10 +68,12 @@ namespace Allen {
         __host__ __device__ Track(
           const Allen::Views::Velo::Consolidated::Track* velo_segment,
           const Allen::Views::UT::Consolidated::Track* ut_segment,
-          const Allen::Views::SciFi::Consolidated::Track* scifi_segment) :
+          const Allen::Views::SciFi::Consolidated::Track* scifi_segment,
+          const float* qop) :
           m_velo_segment(velo_segment),
-          m_ut_segment(ut_segment), m_scifi_segment(scifi_segment)
+          m_ut_segment(ut_segment), m_scifi_segment(scifi_segment), m_qop(qop)
         {}
+        __host__ __device__ float qop() const { return *m_qop; }
 
         enum struct segment { velo, ut, scifi };
 
@@ -154,11 +157,10 @@ namespace Allen {
         __host__ __device__ LongTrack(
           const Allen::Views::Velo::Consolidated::Track* velo_segment,
           const Allen::Views::UT::Consolidated::Track* ut_segment,
-          const Allen::Views::SciFi::Consolidated::Track* scifi_segment) :
-          Track {velo_segment, ut_segment, scifi_segment}
+          const Allen::Views::SciFi::Consolidated::Track* scifi_segment,
+          const float* qop) :
+          Track {velo_segment, ut_segment, scifi_segment, qop}
         {}
-
-        __host__ __device__ float qop() const { return m_scifi_segment->qop(); }
       };
 
       struct LongTracks : ILHCbIDContainer<LongTracks> {
@@ -188,6 +190,8 @@ namespace Allen {
         {}
 
         __host__ __device__ unsigned size() const { return m_size; }
+
+        __host__ __device__ float qop(const unsigned index) const { return m_track[index].qop(); }
 
         __host__ __device__ const LongTrack& track(const unsigned index) const { return id_sequence_impl(index); }
 

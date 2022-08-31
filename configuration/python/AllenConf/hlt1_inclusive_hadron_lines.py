@@ -8,7 +8,7 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
 
-def make_kstopipi_line(forward_tracks,
+def make_kstopipi_line(long_tracks,
                        secondary_vertices,
                        pre_scaler_hash_string=None,
                        post_scaler_hash_string=None,
@@ -26,7 +26,7 @@ def make_kstopipi_line(forward_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_track_mva_line(forward_tracks,
+def make_track_mva_line(long_tracks,
                         long_track_particles,
                         pre_scaler_hash_string=None,
                         post_scaler_hash_string=None,
@@ -37,7 +37,7 @@ def make_track_mva_line(forward_tracks,
         track_mva_line_t,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
+        host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
@@ -45,7 +45,7 @@ def make_track_mva_line(forward_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_two_track_mva_line(forward_tracks,
+def make_two_track_mva_line(long_tracks,
                             secondary_vertices,
                             pre_scaler_hash_string=None,
                             post_scaler_hash_string=None,
@@ -72,7 +72,7 @@ def make_two_track_mva_line(forward_tracks,
         dev_two_track_mva_evaluation_t)
 
 
-def make_two_track_line_ks(forward_tracks,
+def make_two_track_line_ks(long_tracks,
                            secondary_vertices,
                            pre_scaler_hash_string=None,
                            post_scaler_hash_string=None,
