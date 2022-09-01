@@ -336,7 +336,7 @@ def setup_hlt1_node(withMCChecking=False,
     else:
         reconstructed_objects = hlt1_reconstruction_matching()
 
-    gec = [make_gec()] if EnableGEC else []
+    gec = [make_gec(count_ut=with_ut)] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
                        ] if with_odin_filter else []
     prefilters = gec + odin_err_filter

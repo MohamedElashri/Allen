@@ -31,11 +31,14 @@ def line_maker(line_algorithm, prefilter=None):
 
 
 @configurable
-def make_gec(gec_name='gec', min_scifi_clusters=0, max_scifi_clusters=9750):
+def make_gec(gec_name='gec', count_scifi=True, count_ut=True,
+             min_clusters=0, max_clusters=9750):
     return gec(
         name=gec_name,
-        min_scifi_clusters=min_scifi_clusters,
-        max_scifi_clusters=max_scifi_clusters)
+        count_scifi=count_scifi,
+        count_ut=count_ut,
+        min_clusters=min_clusters,
+        max_clusters=max_clusters)
 
 
 @configurable
@@ -60,11 +63,14 @@ def initialize_number_of_events():
     }
 
 
-def gec(name="gec", min_scifi_clusters=0, max_scifi_clusters=9750):
-    number_of_events = initialize_number_of_events()
-
+def gec(name="gec", count_scifi=True, count_ut=True,
+        min_ut_clusters=0, max_ut_clusters=9750,
+        min_scifi_clusters=0, max_scifi_clusters=9750,
+        min_total_clusters=0, max_total_clusters=9750):
     host_scifi_banks = make_algorithm(
         host_data_provider_t, name="host_scifi_banks", bank_type="FTCluster")
+    host_ut_banks = make_algorithm(
+        host_data_provider_t, name="host_ut_banks", bank_type="UT")
 
     gec = make_algorithm(
         host_global_event_cut_t,
@@ -73,8 +79,20 @@ def gec(name="gec", min_scifi_clusters=0, max_scifi_clusters=9750):
         host_scifi_raw_offsets_t=host_scifi_banks.host_raw_offsets_t,
         host_scifi_raw_sizes_t=host_scifi_banks.host_raw_sizes_t,
         host_scifi_raw_types_t=host_scifi_banks.host_raw_types_t,
+        host_scifi_raw_bank_version_t=host_scifi_banks.host_raw_bank_version_t,
+        host_ut_raw_banks_t=host_ut_banks.host_raw_banks_t,
+        host_ut_raw_offsets_t=host_ut_banks.host_raw_offsets_t,
+        host_ut_raw_sizes_t=host_ut_banks.host_raw_sizes_t,
+        host_ut_raw_types_t=host_ut_banks.host_raw_types_t,
+        host_ut_raw_bank_version_t=host_ut_banks.host_raw_bank_version_t,
+        count_scifi=count_scifi,
+        count_ut=count_ut,
         min_scifi_clusters=min_scifi_clusters,
-        max_scifi_clusters=max_scifi_clusters)
+        max_scifi_clusters=max_scifi_clusters,
+        min_ut_clusters=min_ut_clusters,
+        max_ut_clusters=max_ut_clusters,
+        min_total_clusters=min_total_clusters,
+        max_total_clusters=max_total_clusters)
 
     return gec
 
