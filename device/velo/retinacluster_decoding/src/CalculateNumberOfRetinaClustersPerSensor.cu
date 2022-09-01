@@ -57,16 +57,11 @@ void calculate_number_of_retinaclusters_each_sensor_pair::calculate_number_of_re
     const Constants&,
     const HostBuffers&) const
 {
-  auto const bank_version = first<host_raw_bank_version_t>(arguments);
-  if (bank_version < 0) return; // no VP banks present in data
-  unsigned size;
-  if (bank_version == 2 || bank_version == 3) {
-    size = Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
+  const auto bank_version = first<host_raw_bank_version_t>(arguments);
+  unsigned size = Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
+  if (bank_version != 2 && bank_version != 3) {
+    size /= 2;
   }
-  else {
-    size = Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module / 2;
-  }
-
   set_size<dev_each_sensor_pair_size_t>(arguments, first<host_number_of_events_t>(arguments) * size);
   set_size<dev_retina_bank_index_t>(arguments, size); // divide by 2 for sensor pair
 }
@@ -82,7 +77,10 @@ operator()(
   Allen::memset_async<dev_each_sensor_pair_size_t>(arguments, 0, context);
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
 
-  if (bank_version < 0) return; // no VP banks present in data
+  if (bank_version < 0) {
+    Allen::memset_async<dev_retina_bank_index_t>(arguments, 0, context);
+    return; // no VP banks present in data
+  }
 
   auto kernel_fn = (bank_version == 2) ?
                      (runtime_options.mep_layout ?

@@ -48,12 +48,18 @@ Allen::Slices allocate_slices(
   std::function<std::tuple<size_t, size_t, size_t>(BankTypes)> size_fun)
 {
   Allen::Slices slices;
+
+  // Create empty slices for all subdetectors
+  for (auto& bank_slices : slices) {
+    bank_slices.resize(n_slices);
+  }
+
+  // Allocate memory only for those subdetectors that are requested
   for (auto bank_type : bank_types) {
     auto [n_bytes, n_sizes, n_offsets] = size_fun(bank_type);
 
     auto ib = to_integral(bank_type);
     auto& bank_slices = slices[ib];
-    bank_slices.reserve(n_slices);
     for (size_t i = 0; i < n_slices; ++i) {
       char* events_mem = nullptr;
       unsigned* sizes_mem = nullptr;
@@ -79,12 +85,12 @@ Allen::Slices allocate_slices(
         bank_spans.emplace_back(events_mem, n_bytes);
       }
 
-      bank_slices.emplace_back(Allen::Slice {std::move(bank_spans),
-                                             offsets_span {offsets_mem, static_cast<offsets_size>(n_offsets + 1)},
-                                             n_bytes,
-                                             1,
-                                             offsets_span {sizes_mem, static_cast<offsets_size>(n_sizes)},
-                                             offsets_span {types_mem, static_cast<offsets_size>(n_sizes)}});
+      bank_slices[i] = Allen::Slice {std::move(bank_spans),
+                                     offsets_span {offsets_mem, static_cast<offsets_size>(n_offsets + 1)},
+                                     n_bytes,
+                                     1,
+                                     offsets_span {sizes_mem, static_cast<offsets_size>(n_sizes)},
+                                     offsets_span {types_mem, static_cast<offsets_size>(n_sizes)}};
     }
   }
   return slices;

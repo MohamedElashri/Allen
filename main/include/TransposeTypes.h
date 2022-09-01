@@ -34,7 +34,7 @@ namespace Allen {
     std::vector<gsl::span<char>> fragments;
     gsl::span<unsigned int> offsets;
     size_t fragments_mem_size = 0;
-    size_t n_offsets;
+    size_t n_offsets = 0;
     gsl::span<unsigned int> sizes;
     gsl::span<unsigned int> types;
   };

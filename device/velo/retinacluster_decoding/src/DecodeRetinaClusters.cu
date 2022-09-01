@@ -331,6 +331,8 @@ __global__ void decode_retinaclusters_sorted(
     parameters.dev_velo_clusters[event_number] = velo_cluster_container;
   }
 
+  __syncthreads();
+
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;
 
@@ -414,7 +416,15 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
 
   // Ensure the bank version is supported
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
-  if (bank_version < 0) return; // no VP banks present in data
+  if (bank_version < 0) {
+    Allen::memset_async<dev_velo_cluster_container_t>(arguments, 0, context);
+    Allen::memset_async<dev_hit_permutations_t>(arguments, 0, context);
+    Allen::memset_async<dev_hit_sorting_key_t>(arguments, 0, context);
+
+    // FIXME, do valid initialization
+    Allen::memset_async<dev_velo_clusters_t>(arguments, 0, context);
+    return; // no VP banks present in data
+  }
 
   if (bank_version != 2 && bank_version != 3 && bank_version != 4) {
     throw StrException("Velo cluster bank version not supported (" + std::to_string(bank_version) + ")");
