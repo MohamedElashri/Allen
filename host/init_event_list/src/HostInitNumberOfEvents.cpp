@@ -38,5 +38,4 @@ void host_init_number_of_events::host_init_number_of_events_t::operator()(
   Allen::copy_async<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
 
   host_buffers.host_number_of_events = number_of_events;
-  host_buffers.host_number_of_selected_events = number_of_events;
 }

@@ -25,7 +25,7 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   const auto event_start = std::get<0>(runtime_options.event_interval);
@@ -45,6 +45,4 @@ void host_global_event_cut::host_global_event_cut_t::operator()(
   // Copy data to the device
   Allen::copy_async<dev_number_of_events_t, host_number_of_events_t>(arguments, context);
   Allen::copy_async<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
-
-  host_buffers.host_number_of_selected_events = first<host_number_of_selected_events_t>(arguments);
 }
