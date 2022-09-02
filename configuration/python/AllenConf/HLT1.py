@@ -3,7 +3,7 @@
 ###############################################################################
 from AllenConf.utils import line_maker, make_gec, make_checkPV, make_lowmult
 from AllenConf.odin import make_bxtype, odin_error_filter
-from AllenConf.hlt1_reconstruction import hlt1_reconstruction, hlt1_reconstruction_matching, validator_node, validator_node_matching
+from AllenConf.hlt1_reconstruction import hlt1_reconstruction, hlt1_reconstruction_matching, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line
@@ -491,13 +491,8 @@ def setup_hlt1_node(withMCChecking=False,
     if not withMCChecking:
         return hlt1_node
     else:
-        if not matching:
-            validation_node = validator_node(reconstructed_objects,
-                                             line_algorithms, with_ut)
-        else:
-            validation_node = validator_node_matching(reconstructed_objects,
-                                                      line_algorithms)
-
+        validation_node = validator_node(reconstructed_objects,
+                                         line_algorithms, matching, with_ut)
         node = CompositeNode(
             "AllenWithValidators", [hlt1_node, validation_node],
             NodeLogic.NONLAZY_AND,

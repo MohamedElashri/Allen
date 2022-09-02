@@ -2,12 +2,13 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.matching_reconstruction import velo_scifi_matching
-from AllenConf.utils import gec
+from AllenConf.utils import make_gec
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate
 
 velo_scifi_matching_sequence = CompositeNode(
-    "Matching", [gec("gec"), velo_scifi_matching()],
+    "Matching", [make_gec("gec", count_ut=False),
+                 velo_scifi_matching()],
     NodeLogic.LAZY_AND,
     force_order=True)
 

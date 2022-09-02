@@ -1,7 +1,6 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import gec
 from AllenConf.scifi_reconstruction import decode_scifi
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate

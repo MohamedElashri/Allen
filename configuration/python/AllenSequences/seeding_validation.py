@@ -14,8 +14,10 @@ seed = seeding_validation(seeding_tracks)
 seed_xz = seeding_xz_validation()
 seeding_sequence = CompositeNode(
     "Validators", [
-        make_composite_node_with_gec("seedingXZValidation", seed_xz),
-        make_composite_node_with_gec("seedingValidation", seed)
+        make_composite_node_with_gec(
+            "seedingXZValidation", seed_xz, with_scifi=True, with_ut=False),
+        make_composite_node_with_gec(
+            "seedingValidation", seed, with_scifi=True, with_ut=False)
     ],
     NodeLogic.NONLAZY_AND,
     force_order=True)

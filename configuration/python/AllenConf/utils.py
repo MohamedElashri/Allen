@@ -1,10 +1,10 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenCore.generator import make_algorithm
+from AllenCore.generator import make_algorithm, initialize_event_lists
 from AllenAlgorithms.algorithms import (
-    host_init_number_of_events_t, host_data_provider_t,
-    host_global_event_cut_t, layout_provider_t, check_pvs_t, low_occupancy_t)
+    host_init_number_of_events_t, host_data_provider_t, host_scifi_gec_t,
+    host_ut_gec_t, layout_provider_t, check_pvs_t, low_occupancy_t)
 from PyConf.tonic import configurable
 from PyConf.control_flow import NodeLogic, CompositeNode
 
@@ -30,15 +30,71 @@ def line_maker(line_algorithm, prefilter=None):
     return line_algorithm, node
 
 
-@configurable
-def make_gec(gec_name='gec', count_scifi=True, count_ut=True,
-             min_clusters=0, max_clusters=9750):
-    return gec(
-        name=gec_name,
-        count_scifi=count_scifi,
-        count_ut=count_ut,
+def ut_gec(name="ut_gec", min_clusters=0, max_clusters=9750):
+    event_lists = initialize_event_lists()
+    number_of_events = initialize_number_of_events()
+    host_ut_banks = make_algorithm(
+        host_data_provider_t, name="host_ut_banks", bank_type="UT")
+
+    return make_algorithm(
+        host_ut_gec_t,
+        name=name,
+        host_event_list_t=event_lists.host_event_list_output_t,
+        host_number_of_events_t=number_of_events['host_number_of_events'],
+        host_ut_raw_banks_t=host_ut_banks.host_raw_banks_t,
+        host_ut_raw_offsets_t=host_ut_banks.host_raw_offsets_t,
+        host_ut_raw_sizes_t=host_ut_banks.host_raw_sizes_t,
+        host_ut_raw_types_t=host_ut_banks.host_raw_types_t,
+        host_ut_raw_bank_version_t=host_ut_banks.host_raw_bank_version_t,
         min_clusters=min_clusters,
         max_clusters=max_clusters)
+
+
+def scifi_gec(name="scifi_gec", min_clusters=0, max_clusters=9750):
+    event_lists = initialize_event_lists()
+    number_of_events = initialize_number_of_events()
+    host_scifi_banks = make_algorithm(
+        host_data_provider_t, name="host_scifi_banks", bank_type="FTCluster")
+
+    return make_algorithm(
+        host_scifi_gec_t,
+        name=name,
+        host_event_list_t=event_lists.host_event_list_output_t,
+        host_number_of_events_t=number_of_events['host_number_of_events'],
+        host_scifi_raw_banks_t=host_scifi_banks.host_raw_banks_t,
+        host_scifi_raw_offsets_t=host_scifi_banks.host_raw_offsets_t,
+        host_scifi_raw_sizes_t=host_scifi_banks.host_raw_sizes_t,
+        host_scifi_raw_types_t=host_scifi_banks.host_raw_types_t,
+        min_clusters=min_clusters,
+        max_clusters=max_clusters)
+
+
+@configurable
+def make_gec(gec_name='gec',
+             count_scifi=True,
+             count_ut=True,
+             min_scifi_clusters=0,
+             max_scifi_clusters=9750,
+             min_ut_clusters=0,
+             max_ut_clusters=9750):
+    algos = []
+    if count_scifi:
+        algos += [
+            scifi_gec(
+                'scifi_' + gec_name,
+                min_clusters=min_scifi_clusters,
+                max_clusters=max_scifi_clusters)
+        ]
+    if count_ut:
+        algos += [
+            ut_gec(
+                'ut_' + gec_name,
+                min_clusters=min_ut_clusters,
+                max_clusters=max_ut_clusters)
+        ]
+
+    return CompositeNode(
+        gec_name + "_node", algos, NodeLogic.LAZY_AND, force_order=False)
 
 
 @configurable
@@ -61,40 +117,6 @@ def initialize_number_of_events():
         "dev_number_of_events":
         initialize_number_of_events.dev_number_of_events_t,
     }
-
-
-def gec(name="gec", count_scifi=True, count_ut=True,
-        min_ut_clusters=0, max_ut_clusters=9750,
-        min_scifi_clusters=0, max_scifi_clusters=9750,
-        min_total_clusters=0, max_total_clusters=9750):
-    host_scifi_banks = make_algorithm(
-        host_data_provider_t, name="host_scifi_banks", bank_type="FTCluster")
-    host_ut_banks = make_algorithm(
-        host_data_provider_t, name="host_ut_banks", bank_type="UT")
-
-    gec = make_algorithm(
-        host_global_event_cut_t,
-        name=name,
-        host_scifi_raw_banks_t=host_scifi_banks.host_raw_banks_t,
-        host_scifi_raw_offsets_t=host_scifi_banks.host_raw_offsets_t,
-        host_scifi_raw_sizes_t=host_scifi_banks.host_raw_sizes_t,
-        host_scifi_raw_types_t=host_scifi_banks.host_raw_types_t,
-        host_scifi_raw_bank_version_t=host_scifi_banks.host_raw_bank_version_t,
-        host_ut_raw_banks_t=host_ut_banks.host_raw_banks_t,
-        host_ut_raw_offsets_t=host_ut_banks.host_raw_offsets_t,
-        host_ut_raw_sizes_t=host_ut_banks.host_raw_sizes_t,
-        host_ut_raw_types_t=host_ut_banks.host_raw_types_t,
-        host_ut_raw_bank_version_t=host_ut_banks.host_raw_bank_version_t,
-        count_scifi=count_scifi,
-        count_ut=count_ut,
-        min_scifi_clusters=min_scifi_clusters,
-        max_scifi_clusters=max_scifi_clusters,
-        min_ut_clusters=min_ut_clusters,
-        max_ut_clusters=max_ut_clusters,
-        min_total_clusters=min_total_clusters,
-        max_total_clusters=max_total_clusters)
-
-    return gec
 
 
 def mep_layout():

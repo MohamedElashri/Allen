@@ -18,7 +18,7 @@ with make_ut_tracks.bind(restricted=False):
     non_restricted_hlt1_reconstruction = hlt1_reconstruction()
 
 restricted_hlt1_reconstruction = hlt1_reconstruction()
-gec = make_gec()
+gec = make_gec(count_scifi=True, count_ut=True)
 
 lines = []
 with line_maker.bind(prefilter=gec):
@@ -69,39 +69,57 @@ validators_leaf = CompositeNode(
     "Validators", [
         make_composite_node_with_gec(
             "velo_validator",
-            velo_validation(restricted_hlt1_reconstruction["velo_tracks"])),
+            velo_validation(restricted_hlt1_reconstruction["velo_tracks"]),
+            with_scifi=True,
+            with_ut=True),
         make_composite_node_with_gec(
             "restricted_veloUT_validator",
             veloUT_validation(restricted_hlt1_reconstruction["ut_tracks"],
-                              "restricted_veloUT_validator")),
+                              "restricted_veloUT_validator"),
+            with_scifi=True,
+            with_ut=True),
         make_composite_node_with_gec(
             "non-restricted_veloUT_validator",
             veloUT_validation(non_restricted_hlt1_reconstruction["ut_tracks"],
-                              "non-restricted_veloUT_validator")),
+                              "non-restricted_veloUT_validator"),
+            with_scifi=True,
+            with_ut=True),
         make_composite_node_with_gec(
             "restricted_long_validator",
             long_validation(restricted_hlt1_reconstruction["long_tracks"],
-                            "restricted_long_validator")),
+                            "restricted_long_validator"),
+            with_scifi=True,
+            with_ut=True),
         make_composite_node_with_gec(
             "non-restricted_long_validator",
             long_validation(non_restricted_hlt1_reconstruction["long_tracks"],
-                            "non-restricted_long_validator")),
+                            "non-restricted_long_validator"),
+            with_scifi=True,
+            with_ut=True),
         make_composite_node_with_gec(
             "restricted_muon_validation",
             muon_validation(restricted_hlt1_reconstruction["muonID"],
-                            "restricted_muon_validation")),
+                            "restricted_muon_validation"),
+            with_scifi=True,
+            with_ut=True),
         make_composite_node_with_gec(
             "non-restricted_muon_validation",
             muon_validation(non_restricted_hlt1_reconstruction["muonID"],
-                            "non-restricted_muon_validation")),
+                            "non-restricted_muon_validation"),
+            with_scifi=True,
+            with_ut=True),
         make_composite_node_with_gec(
             "pv_validation",
-            pv_validation(restricted_hlt1_reconstruction["pvs"])),
+            pv_validation(restricted_hlt1_reconstruction["pvs"]),
+            with_scifi=True,
+            with_ut=True),
         make_composite_node_with_gec(
             "restricted_kalman_validation",
             kalman_validation(
                 restricted_hlt1_reconstruction["kalman_velo_only"],
-                "restricted_kalman_validation"))
+                "restricted_kalman_validation"),
+            with_scifi=True,
+            with_ut=True)
     ],
     NodeLogic.NONLAZY_AND,
     force_order=False)

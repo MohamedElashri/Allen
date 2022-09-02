@@ -23,12 +23,19 @@ matched_tracks = make_velo_scifi_matches(velo_tracks, velo_states,
 velo_scifi = long_validation(matched_tracks)
 velo_scifi_matching_sequence = CompositeNode(
     "Validators", [
-        make_composite_node_with_gec("veloValidation", velo),
-        make_composite_node_with_gec("veloSciFiDump",
-                                     velo_scifi_dump(matched_tracks)),
-        make_composite_node_with_gec("seedingXZValidation", seed_xz),
-        make_composite_node_with_gec("seedingValidation", seed),
-        make_composite_node_with_gec("veloSciFiValidation", velo_scifi)
+        make_composite_node_with_gec(
+            "veloValidation", velo, with_scifi=True, with_ut=False),
+        make_composite_node_with_gec(
+            "veloSciFiDump",
+            velo_scifi_dump(matched_tracks),
+            with_scifi=True,
+            with_ut=False),
+        make_composite_node_with_gec(
+            "seedingXZValidation", seed_xz, with_scifi=True, with_ut=False),
+        make_composite_node_with_gec(
+            "seedingValidation", seed, with_scifi=True, with_ut=False),
+        make_composite_node_with_gec(
+            "veloSciFiValidation", velo_scifi, with_scifi=True, with_ut=False)
     ],
     NodeLogic.NONLAZY_AND,
     force_order=True)
