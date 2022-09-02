@@ -10,6 +10,7 @@
 #include <cstring>
 #include "Logger.h"
 #include "VeloDefinitions.cuh"
+#include "LHCbID.cuh"
 #include <MEPTools.h>
 
 namespace VeloClustering {
@@ -37,12 +38,8 @@ namespace Allen {
       orfyMask = 0x4000000L,
       orfxMask = 0x8000000L
     };
-
-    enum channelIDtype { Velo = 1, TT, IT, OT, Rich, Calo, Muon, VP, FT = 10, UT, HC };
   } // namespace VPChannelID
 
-  /// Offsets of bitfield lhcbID
-  enum lhcbIDBits { IDBits = 0, detectorTypeBits = 28 };
 } // namespace Allen
 
 namespace VP {
@@ -215,5 +212,5 @@ __device__ __host__ inline uint32_t get_channel_id(
 
 __device__ __host__ inline int32_t get_lhcb_id(const int32_t cid)
 {
-  return (Allen::VPChannelID::VP << Allen::detectorTypeBits) + cid;
+  return lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::VELO, cid);
 }

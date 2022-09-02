@@ -2,7 +2,7 @@
 * (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #include "DecodeRetinaClusters.cuh"
-#include "LHCbID.h"
+#include "LHCbID.cuh"
 
 void decode_retinaclusters::cluster_container_checks::operator()(
   const ArgumentReferences<Parameters>& arguments,

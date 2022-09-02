@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 #include "States.cuh"
+#include "LHCbID.cuh"
 #include "SciFiDefinitions.cuh"
 
 namespace SciFi {
@@ -249,7 +250,10 @@ namespace SciFi {
       return reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(m_base_pointer)[4 * m_total_number_of_hits + index];
     }
 
-    __host__ __device__ inline unsigned id(const unsigned index) const { return (10u << 28) + channel(index); };
+    __host__ __device__ inline unsigned id(const unsigned index) const
+    {
+      return lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::FT, channel(index));
+    }
 
     __host__ __device__ inline unsigned mat(const unsigned index) const { return assembled_datatype(index) & 0x7ff; };
 

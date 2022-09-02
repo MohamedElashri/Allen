@@ -17,7 +17,7 @@
 #include <array>
 #include <cstdint>
 
-#include "LHCbID.h"
+#include "LHCbID.cuh"
 
 namespace Checker {
   struct Track {
