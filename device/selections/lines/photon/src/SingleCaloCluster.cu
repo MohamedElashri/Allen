@@ -5,8 +5,6 @@
 #include <ROOTHeaders.h>
 #include "CaloConstants.cuh"
 
-#define SQUARE(x) (x * x)
-
 // Explicit instantiation
 INSTANTIATE_LINE(single_calo_cluster_line::single_calo_cluster_line_t, single_calo_cluster_line::Parameters)
 
@@ -58,7 +56,8 @@ __device__ bool single_calo_cluster_line::single_calo_cluster_line_t::select(
   const float z = Calo::Constants::z; // mm
 
   const float sintheta = sqrtf(
-    (SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y)) / (SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y) + SQUARE(z)));
+    (ecal_cluster.x * ecal_cluster.x + ecal_cluster.y * ecal_cluster.y) /
+    (ecal_cluster.x * ecal_cluster.x + ecal_cluster.y * ecal_cluster.y + z * z));
   const float E_T = ecal_cluster.e * sintheta;
   const float decision = (E_T > parameters.minEt && E_T < parameters.maxEt);
 
@@ -85,17 +84,23 @@ __device__ void single_calo_cluster_line::single_calo_cluster_line_t::monitor(
 {
   const auto& ecal_cluster = std::get<0>(input);
   const float& z = Calo::Constants::z; // mm
-  const float& sintheta = sqrtf(
-    (SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y)) / (SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y) + SQUARE(z)));
-  const float& cosphi = ecal_cluster.x / sqrtf(SQUARE(ecal_cluster.x) + SQUARE(ecal_cluster.y));
-  const float& E_T = ecal_cluster.e * sintheta;
+  const float sintheta = sqrtf(
+    (ecal_cluster.x * ecal_cluster.x + ecal_cluster.y * ecal_cluster.y) /
+    (ecal_cluster.x * ecal_cluster.x + ecal_cluster.y * ecal_cluster.y + z * z));
+  const float cosphi = ecal_cluster.x / sqrtf(ecal_cluster.x * ecal_cluster.x + ecal_cluster.y * ecal_cluster.y);
+  const float E_T = ecal_cluster.e * sintheta;
+  const float eta = -logf(tanf(asinf(sintheta) / 2.f));
+  float phi = acosf(cosphi);
+  if (ecal_cluster.y < 0) {
+    phi = -phi;
+  }
 
   if (sel) {
     parameters.dev_clusters_x[index] = ecal_cluster.x;
     parameters.dev_clusters_y[index] = ecal_cluster.y;
     parameters.dev_clusters_Et[index] = E_T;
-    parameters.dev_clusters_Eta[index] = asinf(sintheta);
-    parameters.dev_clusters_Phi[index] = acosf(cosphi);
+    parameters.dev_clusters_Eta[index] = eta;
+    parameters.dev_clusters_Phi[index] = phi;
   }
 }
 
@@ -121,18 +126,14 @@ void single_calo_cluster_line::single_calo_cluster_line_t::output_monitor(
   float Phi = 0.f;
   float x = 0.f;
   float y = 0.f;
-  size_t ev = 0;
 
   handler.branch(tree, "x", x);
   handler.branch(tree, "y", y);
   handler.branch(tree, "Et", Et);
   handler.branch(tree, "Eta", Eta);
   handler.branch(tree, "Phi", Phi);
-  handler.branch(tree, "ev", ev);
 
   unsigned n_clusters = size<host_clusters_Et_t>(arguments);
-
-  size_t i0 = tree->GetEntries();
 
   for (unsigned i = 0; i < n_clusters; i++) {
 
@@ -149,7 +150,6 @@ void single_calo_cluster_line::single_calo_cluster_line_t::output_monitor(
       Et = clusters_Et[0];
       Eta = clusters_Eta[0];
       Phi = clusters_Phi[0];
-      ev = i0 + i;
 
       tree->Fill();
     }

@@ -161,7 +161,8 @@ namespace Allen {
     constexpr __host__ const T& operator[](int i) const
     {
       if constexpr (std::is_same_v<std::decay_t<T>, bool>) {
-        return Allen::forward_type_t<const T&, bool>(m_vector[i]);
+        auto p = reinterpret_cast<const bool*>(m_vector.data());
+        return p[i];
       }
       else {
         return m_vector[i];

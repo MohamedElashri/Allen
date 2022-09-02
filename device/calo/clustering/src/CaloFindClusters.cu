@@ -24,6 +24,7 @@ __device__ void simple_clusters(
   for (unsigned c = threadIdx.x; c < num_clusters; c += blockDim.x) {
     auto const& seed_cluster = seed_clusters[c];
     auto& cluster = clusters[c];
+    cluster = CaloCluster();
     cluster.center_id = seed_cluster.id;
     cluster.e = calo.getE(seed_cluster.id, seed_cluster.adc);
     cluster.x = seed_cluster.x;
@@ -32,8 +33,11 @@ __device__ void simple_clusters(
     uint16_t const* neighbors = &(calo.neighbors[seed_cluster.id * Calo::Constants::max_neighbours]);
     for (uint16_t n = 0; n < Calo::Constants::max_neighbours; n++) {
       auto const n_id = neighbors[n];
+      if (n_id == USHRT_MAX) {
+        continue;
+      }
       auto const digit = digits[n_id];
-      if (n_id != USHRT_MAX && digit.is_valid() && (digit.adc > min_adc)) {
+      if (digit.is_valid() && (digit.adc > min_adc)) {
         cluster.e += calo.getE(n_id, digit.adc);
         cluster.digits[n] = n_id;
       }
@@ -44,13 +48,18 @@ __device__ void simple_clusters(
 
     for (uint16_t n = 0; n < Calo::Constants::max_neighbours; n++) {
       auto const n_id = neighbors[n];
+      if (n_id == USHRT_MAX) {
+        continue;
+      }
       auto const digit = digits[n_id];
-      if (n_id != USHRT_MAX && digit.is_valid() && (digit.adc > min_adc)) {
+      if (digit.is_valid() && (digit.adc > min_adc)) {
         float const adc_frac = float(digit.adc) / float(cluster.e);
         cluster.x += adc_frac * (calo.getX(n_id) - seed_cluster.x);
         cluster.y += adc_frac * (calo.getY(n_id) - seed_cluster.y);
       }
     }
+    cluster.CalcEt();
+    cluster.CaloNeutralE19 = calo.getE(seed_cluster.id, seed_cluster.adc) / cluster.e;
   }
 }
 
@@ -62,10 +71,9 @@ __global__ void calo_find_clusters::calo_find_clusters(
   // Get proper geometry.
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
 
-  unsigned const event_number = parameters.dev_event_list[blockIdx.x];
-
   // Build simple 3x3 clusters from seed clusters
   // Ecal
+  unsigned const event_number = parameters.dev_event_list[blockIdx.x];
   unsigned const ecal_digits_offset = parameters.dev_ecal_digits_offsets[event_number];
   unsigned const ecal_clusters_offset = parameters.dev_ecal_cluster_offsets[event_number];
   unsigned const ecal_num_clusters = parameters.dev_ecal_cluster_offsets[event_number + 1] - ecal_clusters_offset;
@@ -95,8 +103,6 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
   Allen::Context const& context) const
 {
   // Find clusters.
-  Allen::memset_async<dev_ecal_clusters_t>(arguments, SHRT_MAX, context);
-
   global_function(calo_find_clusters)(
     dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
     arguments, constants.dev_ecal_geometry, property<ecal_min_adc_t>().get());

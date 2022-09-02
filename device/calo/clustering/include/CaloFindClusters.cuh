@@ -8,6 +8,7 @@
 #include "CaloDigit.cuh"
 #include "CaloCluster.cuh"
 #include "AlgorithmTypes.cuh"
+#include <cfloat>
 
 namespace calo_find_clusters {
   struct Parameters {
@@ -18,8 +19,9 @@ namespace calo_find_clusters {
     DEVICE_INPUT(dev_ecal_seed_clusters_t, CaloSeedCluster) dev_ecal_seed_clusters;
     DEVICE_INPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
     DEVICE_OUTPUT(dev_ecal_clusters_t, CaloCluster) dev_ecal_clusters;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
-    PROPERTY(ecal_min_adc_t, "ecal_min_adc", "ECal seed cluster minimum ADC", int16_t) ecal_min_adc;
+    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
+    PROPERTY(block_dim_y_t, "block_dim_y", "block dimension Y", unsigned) block_dim_y;
+    PROPERTY(ecal_min_adc_t, "ecal_min_adc", "cluster neighbors' minimum ADC", int16_t) ecal_min_adc;
   };
 
   // Global function
@@ -38,7 +40,8 @@ namespace calo_find_clusters {
       Allen::Context const&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 32};
+    Property<block_dim_x_t> m_block_dim_x {this, 64};
+    Property<block_dim_y_t> m_block_dim_y {this, 16};
     Property<ecal_min_adc_t> m_ecal_min_adc {this, 50};
   };
 } // namespace calo_find_clusters

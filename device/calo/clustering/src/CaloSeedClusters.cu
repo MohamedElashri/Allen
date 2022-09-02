@@ -23,14 +23,18 @@ __device__ void seed_clusters(
   // Loop over all CellIDs.
   for (unsigned i = threadIdx.x; i < num_digits; i += blockDim.x) {
     const auto digit = digits[i];
-    if (!digit.is_valid() || digit.adc < min_adc) {
+    if (digit.adc < min_adc || !digit.is_valid()) {
       continue;
     }
     uint16_t* neighbors = &(geometry.neighbors[i * Calo::Constants::max_neighbours]);
     bool is_max = true;
     for (unsigned n = 0; n < Calo::Constants::max_neighbours; n++) {
+      auto const neighbor_id = neighbors[n];
+      if (neighbor_id == USHRT_MAX) {
+        continue;
+      }
       auto const neighbor_digit = digits[neighbors[n]];
-      is_max = is_max && (neighbors[n] == USHRT_MAX || !neighbor_digit.is_valid() || digit.adc > neighbor_digit.adc);
+      is_max = is_max && (digit.adc > neighbor_digit.adc || !neighbor_digit.is_valid());
     }
     if (is_max) {
       auto const id = atomicAdd(num_clusters, 1);

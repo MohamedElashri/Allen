@@ -41,7 +41,7 @@ namespace calo_seed_clusters {
       Allen::Context const&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 32};
-    Property<ecal_min_adc_t> m_ecal_min_adc {this, 10};
+    Property<block_dim_x_t> m_block_dim_x {this, 128};
+    Property<ecal_min_adc_t> m_ecal_min_adc {this, 50};
   };
 } // namespace calo_seed_clusters
