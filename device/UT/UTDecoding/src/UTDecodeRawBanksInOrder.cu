@@ -3,6 +3,7 @@
 \*****************************************************************************/
 #include <MEPTools.h>
 #include <UTDecodeRawBanksInOrder.cuh>
+#include "LHCbID.cuh"
 
 INSTANTIATE_ALGORITHM(ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t)
 
@@ -100,7 +101,7 @@ __device__ void decode_raw_bank<3>(
   const float zAtYEq0 = fabsf(p0Z) + numstrips * dp0diZ;
   const float xAtYEq0 = p0X + numstrips * dp0diX;
   const float weight = 12.f / (pitch * pitch);
-  const uint32_t LHCbID = (((uint32_t) 0xB) << 28) | (chanID + stripID);
+  const uint32_t LHCbID = lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::UT, (chanID + stripID));
 
   ut_hits.yBegin(hit_index) = yBegin;
   ut_hits.yEnd(hit_index) = yEnd;
@@ -155,7 +156,7 @@ __device__ void decode_raw_bank<4>(
   const float zAtYEq0 = fabsf(p0Z) + numstrips * dp0diZ;
   const float xAtYEq0 = p0X + numstrips * dp0diX;
   const float weight = 12.f / (pitch * pitch);
-  const uint32_t LHCbID = (((uint32_t) 0xB) << 28) | (chanID + stripID + 1);
+  const uint32_t LHCbID = lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::UT, (chanID + stripID + 1));
 
   ut_hits.yBegin(hit_index) = yBegin;
   ut_hits.yEnd(hit_index) = yEnd;

@@ -24,7 +24,7 @@
 #include "MCParticle.h"
 #include "Common.h"
 #include "Logger.h"
-#include "LHCbID.h"
+#include "LHCbID.cuh"
 #include "MCVertex.h"
 
 struct MCEvent {

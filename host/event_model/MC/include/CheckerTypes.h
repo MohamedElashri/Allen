@@ -16,7 +16,7 @@
 #include <array>
 #include <cstdint>
 
-#include "LHCbID.h"
+#include "LHCbID.cuh"
 #include "MCEvent.h"
 #include "MCAssociator.h"
 #include "CheckerTracks.cuh"

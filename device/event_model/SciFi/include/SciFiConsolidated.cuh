@@ -43,7 +43,10 @@ namespace Allen {
             return reinterpret_cast<const unsigned*>(m_base_pointer)[3 * m_total_number_of_hits + m_index];
           }
 
-          __host__ __device__ unsigned id() const { return (10u << 28) + channel(); }
+          __host__ __device__ unsigned id() const
+          {
+            return lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::FT, channel());
+          }
 
           __host__ __device__ unsigned mat() const { return assembled_datatype() & 0x7ff; }
 

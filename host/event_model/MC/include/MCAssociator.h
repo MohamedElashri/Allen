@@ -18,7 +18,7 @@
 #include <utility>
 #include <algorithm>
 #include <numeric>
-#include "LHCbID.h"
+#include "LHCbID.cuh"
 #include "MCParticle.h"
 #include "Logger.h"
 
