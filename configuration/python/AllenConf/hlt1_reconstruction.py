@@ -18,11 +18,21 @@ from AllenConf.persistency import make_gather_selections, make_sel_report_writer
 from AllenConf.utils import make_gec
 
 
-def hlt1_reconstruction(matching=False, add_electron_id=True, with_ut=True, with_muon=True):
+def hlt1_reconstruction(matching=False,
+                        with_calo=True,
+                        with_ut=True,
+                        with_muon=True):
     decoded_velo = decode_velo()
+    decoded_scifi = decode_scifi()
     velo_tracks = make_velo_tracks(decoded_velo)
     velo_states = run_velo_kalman_filter(velo_tracks)
     pvs = make_pvs(velo_tracks)
+
+    output = {
+        "velo_tracks": velo_tracks,
+        "velo_states": velo_states,
+        "pvs": pvs
+    }
 
     if matching:
         decoded_scifi = decode_scifi()
@@ -30,11 +40,14 @@ def hlt1_reconstruction(matching=False, add_electron_id=True, with_ut=True, with
         seed_tracks = make_seeding_tracks(decoded_scifi, seed_xz_tracks)
         long_tracks = make_velo_scifi_matches(velo_tracks, velo_states,
                                               seed_tracks)
+        output.update({"seeding_tracks": seed_tracks})
     else:
         if with_ut:
             decoded_ut = decode_ut()
             ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
             input_tracks = ut_tracks
+            output.update({"ut_tracks": input_tracks})
+
         else:
             input_tracks = velo_tracks
         decoded_scifi = decode_scifi()
@@ -48,28 +61,26 @@ def hlt1_reconstruction(matching=False, add_electron_id=True, with_ut=True, with
         muonID = fake_muon_id(long_tracks)
     kalman_velo_only = make_kalman_velo_only(long_tracks, pvs, muonID)
 
-    output = {
-        "velo_tracks": velo_tracks,
-        "velo_states": velo_states,
-        "pvs": pvs,
-        "ut_tracks": input_tracks,
+    output.update({
         "long_tracks": long_tracks,
         "muonID": muonID,
-        "kalman_velo_only": kalman_velo_only,
-    }
+        "kalman_velo_only": kalman_velo_only
+    })
 
-    if add_electron_id:
+    if with_calo:
         decoded_calo = decode_calo()
         ecal_clusters = make_ecal_clusters(decoded_calo)
 
-        calo_matching_objects = make_track_matching(
-            decoded_calo, velo_tracks, velo_states, long_tracks, kalman_velo_only)
+        calo_matching_objects = make_track_matching(decoded_calo, velo_tracks,
+                                                    velo_states, long_tracks,
+                                                    kalman_velo_only)
         long_track_particles = make_basic_particles(kalman_velo_only, muonID,
                                                     calo_matching_objects)
         output.update({
             "decoded_calo": decoded_calo,
             "calo_matching_objects": calo_matching_objects,
-            "ecal_clusters": ecal_clusters})
+            "ecal_clusters": ecal_clusters
+        })
     else:
         long_track_particles = make_basic_particles(kalman_velo_only, muonID)
 
@@ -78,10 +89,10 @@ def hlt1_reconstruction(matching=False, add_electron_id=True, with_ut=True, with
 
     output.update({
         "long_track_particles": long_track_particles,
-        "secondary_vertices": secondary_vertices})
+        "secondary_vertices": secondary_vertices
+    })
 
     return output
-
 
 
 def make_composite_node_with_gec(alg_name,
@@ -95,7 +106,8 @@ def make_composite_node_with_gec(alg_name,
         force_order=True)
 
 
-def validator_node(reconstructed_objects, line_algorithms, matching, with_ut, with_muon):
+def validator_node(reconstructed_objects, line_algorithms, matching, with_ut,
+                   with_muon):
 
     validators = [
         make_composite_node_with_gec(

@@ -467,10 +467,7 @@ def forward_tracking(with_ut=True):
         input_tracks = velo_tracks
     decoded_scifi = decode_scifi()
 
-    long_tracks = make_forward_tracks(
-        decoded_scifi, input_tracks, with_ut=with_ut)
-    alg = long_tracks["dev_scifi_track_hits"].producer
-    return alg
+    return make_forward_tracks(decoded_scifi, input_tracks, with_ut=with_ut)
 
 
 def seeding_xz():
