@@ -112,7 +112,8 @@ parser.add_argument(
 )
 parser.add_argument(
     "--tags", dest="tags", default="dddb-20171122,sim-20180530-vc-md100")
-parser.add_argument("--simulation", dest="simulation", default=True)
+parser.add_argument("--real-data", dest="simulation", action="store_false",
+                    default=True)
 parser.add_argument(
     "--enable-monitoring-printing",
     dest="enable_monitoring_printing",
@@ -144,7 +145,7 @@ options.dddb_tag = dddb_tag
 options.conddb_tag = conddb_tag
 
 online_cond_path = '/group/online/hlt/conditions.run3/lhcb-conditions-database'
-if args.simulation and not UseDD4Hep and os.path.exists(online_cond_path):
+if not args.simulation and not UseDD4Hep and os.path.exists(online_cond_path):
     options.velo_motion_system_yaml = os.path.join(online_cond_path +
                                                    '/Conditions/VP/Motion.yml')
     make_odin = allen_odin
