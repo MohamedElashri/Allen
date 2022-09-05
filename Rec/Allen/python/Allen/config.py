@@ -87,7 +87,8 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
                  (DumpMuonTable, 'muon_tables')]
     }
 
-    detector_names = {'ECal': 'Ecal', 'FTCluster': 'FT'}
+    detector_names = {'ECal': 'Ecal', 'FTCluster': 'FT',
+                      'PVs': None, 'tracks': None}
 
     if type(bank_types) == list:
         bank_types = set(bank_types)
@@ -110,9 +111,9 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     else:
         # Configure those detectors that we need
         from Configurables import LHCb__Det__LbDD4hep__DD4hepSvc as DD4hepSvc
-        DD4hepSvc().DetectorList = ["/world"] + [
+        DD4hepSvc().DetectorList = ["/world"] + list(filter(lambda d: d is not None, [
             detector_names.get(det, det) for det in bank_types
-        ]
+        ]))
 
     appMgr.ExtSvc.extend(AllenUpdater(TriggerEventLoop=allen_event_loop))
 
