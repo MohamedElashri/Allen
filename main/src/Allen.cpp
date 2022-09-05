@@ -726,7 +726,13 @@ int allen(
         if (stream_ready.count() == number_of_threads) {
           debug_cout << "Run number changing from " << current_run_number << " to " << next_odin->runNumber()
                      << std::endl;
-          updater->update(next_odin->data);
+          try {
+            updater->update(next_odin->data);
+          } catch (...) {
+            error_cout << "Non-event data update failed\n";
+            ++error_count;
+            goto loop_error;
+          }
           current_run_number = next_odin->runNumber();
           next_odin.reset();
           run_change = false;
@@ -754,6 +760,7 @@ int allen(
               auto bno_tracks = input_provider->banks(BankTypes::MCTracks, *slice_index);
               if (bno_pvs.offsets.size() == 1 || bno_tracks.offsets.size() == 1) {
                 error_cout << "No raw bank containing MC information found in input file" << std::endl;
+                ++error_count;
                 goto loop_error;
               }
             }
@@ -823,6 +830,7 @@ int allen(
           else {
             assert(msg == "ERROR");
             error_cout << "I/O provider failed to decode events into slice.\n";
+            ++error_count;
             io_done = true;
             goto loop_error;
           }
@@ -1060,7 +1068,7 @@ loop_error:
   Allen::device_reset();
 
   if (allen_control) {
-    zmqSvc->send(*allen_control, "NOT_READY");
+    zmqSvc->send(*allen_control, (error_count ? "ERROR" : "NOT_READY"));
   }
 
   return 0;
