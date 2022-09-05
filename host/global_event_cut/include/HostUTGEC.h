@@ -18,7 +18,6 @@ namespace host_ut_gec {
     HOST_INPUT(host_ut_raw_sizes_t, gsl::span<unsigned int const>) ut_sizes;
     HOST_INPUT(host_ut_raw_types_t, gsl::span<unsigned int const>) ut_types;
     HOST_INPUT(host_ut_raw_bank_version_t, int) ut_raw_bank_version;
-    HOST_INPUT(host_event_list_t, unsigned) host_event_list;
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_OUTPUT(host_output_event_list_t, unsigned) host_output_event_list;
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
@@ -32,7 +31,7 @@ namespace host_ut_gec {
 
   // Templated GEC on the MEP layout
   template<bool mep_layout = true>
-  void host_ut_gec(host_ut_gec::Parameters parameters, unsigned number_of_events)
+  void host_ut_gec(host_ut_gec::Parameters parameters)
   {
     auto const ut_offsets = *parameters.ut_offsets;
     auto const ut_sizes = *parameters.ut_sizes;
@@ -41,8 +40,8 @@ namespace host_ut_gec {
 
     unsigned size_of_list = 0;
 
-    for (unsigned event_index = 0; event_index < number_of_events; ++event_index) {
-      unsigned event_number = parameters.host_event_list[event_index];
+    for (unsigned event_index = 0; event_index < parameters.host_number_of_events[0]; ++event_index) {
+      unsigned event_number = event_index;
 
       // Check UT clusters
       unsigned n_clusters = 0;

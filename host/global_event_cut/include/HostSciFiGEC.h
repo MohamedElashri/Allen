@@ -16,7 +16,6 @@ namespace host_scifi_gec {
     HOST_INPUT(host_scifi_raw_offsets_t, gsl::span<unsigned int const>) scifi_offsets;
     HOST_INPUT(host_scifi_raw_sizes_t, gsl::span<unsigned int const>) scifi_sizes;
     HOST_INPUT(host_scifi_raw_types_t, gsl::span<unsigned int const>) scifi_types;
-    HOST_INPUT(host_event_list_t, unsigned) host_event_list;
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_OUTPUT(host_output_event_list_t, unsigned) host_output_event_list;
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
@@ -29,15 +28,15 @@ namespace host_scifi_gec {
 
   // Templated GEC on the MEP layout
   template<bool mep_layout = true>
-  void host_scifi_gec(host_scifi_gec::Parameters parameters, unsigned number_of_events)
+  void host_scifi_gec(host_scifi_gec::Parameters parameters)
   {
     auto const scifi_offsets = *parameters.scifi_offsets;
     auto const scifi_sizes = *parameters.scifi_sizes;
     auto const scifi_types = *parameters.scifi_types;
 
     unsigned size_of_list = 0;
-    for (unsigned event_index = 0; event_index < number_of_events; ++event_index) {
-      unsigned event_number = parameters.host_event_list[event_index];
+    for (unsigned event_index = 0; event_index < parameters.host_number_of_events[0]; ++event_index) {
+      unsigned event_number = event_index;
 
       // Check SciFi clusters
       unsigned n_SciFi_clusters = 0;
