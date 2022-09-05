@@ -717,30 +717,8 @@ target_link_libraries(Allen PRIVATE AllenLib NonEventData Gear)
 
 
 if (NOT STANDALONE)
-    find_package(Git REQUIRED)
-    # set(_REPO_URL "ssh://.../filerepo....git" CACHE STRING "URL for the git repository")
-    set(MDR_SSH_URL ssh://git@gitlab.cern.ch:7999/lhcb-conddb/file-content-metadata.git)
-    set(MDR_URLS ${MDR_SSH_URL}
-                 https://gitlab.cern.ch/lhcb-conddb/file-content-metadata.git
-                 /cvmfs/lhcb-condb.cern.ch/git-conddb/file-content-metadata.git  )
-    set( LHCBFILECONTENTMETADATAREPO "${CMAKE_CURRENT_BINARY_DIR}/external/file-content-metadata/" )
-    while(NOT EXISTS ${LHCBFILECONTENTMETADATAREPO} AND MDR_URLS)
-        list(POP_FRONT MDR_URLS url)
-        message(STATUS "trying to clone " ${url} )
-        execute_process(COMMAND ${GIT_EXECUTABLE} clone ${url} ${LHCBFILECONTENTMETADATAREPO} ERROR_QUIET)
-        if ( NOT ${url} MATCHES ".*gitlab\.cern\.ch.*" )
-           execute_process(COMMAND ${GIT_EXECUTABLE} --git-dir  ${LHCBFILECONTENTMETADATAREPO}/.git remote set-url ${MDR_SSH_URL} )
-        endif()
-    endwhile()
-    if (NOT EXISTS ${LHCBFILECONTENTMETADATAREPO})
-        message(STATUS "still no meta repo -- creating one from scratch " )
-        execute_process(COMMAND ${GIT_EXECUTABLE} init ${LHCBFILECONTENTMETADATAREPO})
-        execute_process(COMMAND ${GIT_EXECUTABLE} --git-dir  ${LHCBFILECONTENTMETADATAREPO}/.git remote add origin ${MDR_SSH_URL} )
-        execute_process(COMMAND ${GIT_EXECUTABLE} --git-dir  ${LHCBFILECONTENTMETADATAREPO}/.git commit --allow-empty -m "initial commit" )
-    endif()
-    if (EXISTS ${LHCBFILECONTENTMETADATAREPO})
-        lhcb_env(PRIVATE SET LHCbFileContentMetaDataRepo "${LHCBFILECONTENTMETADATAREPO}/.git")
-    endif()
+    include(FileContentMetadataRepository)
+    lhcb_create_local_filecontent_metadata_repo( "${CMAKE_CURRENT_BINARY_DIR}/external/file-content-metadata/" )
 endif()
 
 
