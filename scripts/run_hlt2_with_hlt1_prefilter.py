@@ -30,9 +30,6 @@ options.set_input_from_testfiledb('upgrade_DC19_01_MinBiasMD')
 options.set_conds_from_testfiledb('upgrade_DC19_01_MinBiasMD')
 # set param dir in provideconstants to match conditions
 
-from RecoConf.hlt1_tracking import default_ft_decoding_version
-default_ft_decoding_version.global_bind(value=6)
-
 from Allen.config import setup_allen_non_event_data_service
 from PyConf.application import configure_input, configure
 
