@@ -112,8 +112,8 @@ parser.add_argument(
 )
 parser.add_argument(
     "--tags", dest="tags", default="dddb-20171122,sim-20180530-vc-md100")
-parser.add_argument("--real-data", dest="simulation", action="store_false",
-                    default=True)
+parser.add_argument(
+    "--real-data", dest="simulation", action="store_false", default=True)
 parser.add_argument(
     "--enable-monitoring-printing",
     dest="enable_monitoring_printing",
