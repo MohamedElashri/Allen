@@ -39,11 +39,13 @@ MDF files for Allen standalone running are produced by running Moore. The MDF fi
 The easiest is to use as input files from the TestFileDB, then only the key has to be specified. The output will be located in a directory, whose name is the TestFileDB key. This directory will contain two subdirectories: `mdf` with the MDF file containing the raw banks and `geometry_dddb-tag_sim-tag` with binary files containing the geometry information required for Allen.
 Call Moore in a _stack_setup like so::
 
-  ./Moore/run gaudirun.py Moore/Hlt/RecoConf/options/mdf_for_standalone_Allen.py
+  ./Moore/run gaudirun.py Moore/Hlt/RecoConf/options/mdf_for_standalone_Allen_retinacluster.py
 
 If you would like to dump a large amount of events into MDF files, it is convenient to produce several MDF output files to avoid too large single files. A special script is provided for this use case. Again, the TestFileDB entry is used to specify the input. The output MDF files combine a number of input files, configurable with `n_files_per_chunk`::
 
-  ./Moore/run gaudirun.py Moore/Hlt/RecoConf/scripts/mdf_split_for_standalone_Allen.py
+  ./Moore/run gaudirun.py Moore/Hlt/RecoConf/scripts/mdf_split_for_standalone_Allen_retinacluster.py
+  
+Variants of the previous two scripts are also available to run without RetinaClusters (`mdf_for_standalone_Allen.py` and `mdf_split_for_standalone_Allen_retinacluster.py`).
 
 DIGI files containing RetinaClusters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -58,29 +60,19 @@ How to add RetinaClusters to existing DIGI files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 To add RetinaClusters to a (X)DIGI file call Moore in a _stack_setup like so::
 
-  ./Moore/run gaudirun.py runLLAApp.py LLASequence.py
+  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/input_add_retina_clusters.py Moore/Hlt/RecoConf/options/add_retina_clusters_to_digi.py
 
-where |runLLAApp.py| and |LLASequence.py| are option files available under `Hlt/RecoConf/options/` within the `add_veloclusters_to_digi` Moore branch.
-
-.. |runLLAApp.py| raw:: html
-
-   <a href="https://gitlab.cern.ch/lhcb/Moore/-/blob/add_veloclusters_to_digi/Hlt/RecoConf/options/runLLAApp.py" target="_blank">runLLAApp.py</a>
-
-.. |LLASequence.py| raw:: html
-
-   <a href="https://gitlab.cern.ch/lhcb/Moore/-/blob/add_veloclusters_to_digi/Hlt/RecoConf/options/LLASequence.py" target="_blank">LLASequence.py</a>
-
-Input (X)DIGI files, together with their DDDB and CondDB tags, should be specified within `runLLAApp.py`.
+Input (X)DIGI files, together with their DDDB and CondDB tags, should be specified within `input_add_retina_clusters.py`.
 In the same option file an appropriate name for the output (X)DIGI file containing RetinaClusters should also be specified.
-Starting from an (X)DIGI file containing RetinaClusters, the corresponding MDF file can be obtained with the `mdf_for_standalone_Allen.py` script.
+Starting from an (X)DIGI file containing RetinaClusters, the corresponding MDF file can be obtained with the `mdf_for_standalone_Allen_retinacluster.py` script.
 
 Run Allen without RetinaClusters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 If XDIGI or MDF input files containing RetinaClusters are not available for a specific use case or RetinaCluster cannot be added to pre-existing files, it is still possible to run the reconstruction using the `hlt1_pp_veloSP` sequence.
 This sequence performs VELO clustering within Allen, not requiring the VPRetinaCluster RawBank to be present in the input file.
-The `hlt1_pp_veloSP` sequence can be set in the option file using the following lines::
+When running Allen within Gaudi the switch from RetinaClusters to VeloSP can be done using the following lines::
 
-  from RecoConf.hlt1_allen import sequence, make_transposed_raw_banks
-
-  with sequence.bind(sequence="hlt1_pp_veloSP"):
-      #call reconstruction as before
+  from AllenConf.velo_reconstruction import decode_velo
+    
+  with decode_velo.bind(retina_decoding=False):
+    #call reconstruction as before
