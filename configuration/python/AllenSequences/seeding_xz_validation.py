@@ -3,13 +3,13 @@
 ###############################################################################
 from AllenConf.scifi_reconstruction import decode_scifi, seeding_xz, make_seeding_XZ_tracks
 from AllenConf.validators import seeding_xz_validation
-from AllenConf.utils import gec
+from AllenConf.utils import make_gec
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate
 
 seed_xz = seeding_xz_validation()
 seeding_sequence = CompositeNode(
-    "SeedingXZValidation", [gec("gec"), seed_xz],
+    "SeedingXZValidation", [make_gec("gec", count_ut=False), seed_xz],
     NodeLogic.LAZY_AND,
     force_order=True)
 

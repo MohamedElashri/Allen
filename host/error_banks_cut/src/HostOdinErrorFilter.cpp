@@ -19,10 +19,9 @@ void host_odin_error_filter::host_odin_error_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   data<host_number_of_selected_events_t>(arguments)[0] = size<dev_event_mask_t>(arguments);
   Allen::copy_async<dev_event_list_output_t, dev_event_mask_t>(arguments, context);
-  host_buffers.host_number_of_selected_events = size<dev_event_mask_t>(arguments);
 }

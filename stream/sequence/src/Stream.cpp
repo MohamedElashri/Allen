@@ -58,19 +58,6 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
         // Visit all algorithms in configured sequence
         scheduler->run(runtime_options, constants, *host_buffers, m_context);
 
-        // deterministic injection of ~random memory failures
-        if (runtime_options.inject_mem_fail > 0) {
-          // compare the least significant N bits of two ~unrelated buffers
-          // test should fire one time in 2^N slices on average
-          // limit ourselves to a maximum of 15-bit comparison (1/2 - ~1/32k of slices)
-          uint test_mask = (1 << 15) - 1;
-          if (runtime_options.inject_mem_fail < 15) test_mask = (1 << runtime_options.inject_mem_fail) - 1;
-          if (
-            (host_buffers->host_number_of_selected_events & test_mask) ==
-            (host_buffers->host_passing_event_list[0] & test_mask))
-            throw MemoryException("Test : Injected fake memory exception to test failure handling");
-        }
-
         // Synchronize device
         Allen::synchronize(m_context);
       } catch (const MemoryException& e) {

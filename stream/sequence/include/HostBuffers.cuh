@@ -38,7 +38,6 @@ public:
 
   // Selections
   unsigned host_number_of_events = 0;
-  unsigned host_number_of_selected_events = 0;
   std::string host_names_of_lines = "";
   unsigned host_number_of_lines = 0;
 };

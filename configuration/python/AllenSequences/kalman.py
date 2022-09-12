@@ -8,14 +8,14 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenConf.utils import gec
+from AllenConf.utils import make_gec
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate
 
 kalman_sequence = CompositeNode(
     "KalmanSequence", [
-        gec("gec"),
+        make_gec("gec"),
         hlt1_reconstruction()["secondary_vertices"]["dev_two_track_particles"].
         producer
     ],
