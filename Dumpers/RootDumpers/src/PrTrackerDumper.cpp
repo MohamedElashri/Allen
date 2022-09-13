@@ -757,7 +757,7 @@ LHCb::RawEvent PrTrackerDumper::operator()(
     // probably if fullInfo ==0 skip does the same , to check
     fullInfo = trackInfo.fullInfo(mcparticle);
     hasSciFi = trackInfo.hasT(mcparticle);
-    hasUT = trackInfo.hasTT(mcparticle);
+    hasUT = trackInfo.hasUT(mcparticle);
     hasVelo = trackInfo.hasVelo(mcparticle);
     isDown = hasSciFi && hasUT;
     isDown_noVelo = hasSciFi && hasUT && !hasVelo;
