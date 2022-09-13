@@ -96,7 +96,39 @@ __global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters
       uint8_t pseudoSize = SciFi::cSize(c) ? 0 : 4;
       make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
     }
-    else if constexpr (decoding_version == 6 || decoding_version == 7) {
+    else if constexpr (decoding_version == 7) {
+      const int condition = (cluster_reference >> 13) & 0x07; // FIXME
+      uint8_t pseudoSize = 4;
+
+      assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
+
+      if (condition == 0x02) {
+        pseudoSize = 0;
+      }
+      else if (condition > 0x02) {
+        const auto c2 = *(it + 1);
+        const auto widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
+        const int delta_parameter = cluster_reference & 0xFF;
+
+        if (condition == 0x03) {
+          pseudoSize = 0;
+          cluster_fraction = 1;
+          cluster_chan += delta_parameter;
+        }
+        else if (condition == 0x04) {
+          pseudoSize = 0;
+          cluster_fraction = (widthClus - 1) % 2;
+          cluster_chan += delta_parameter + (widthClus - delta_parameter - 1) / 2 - 1;
+        }
+        else if (condition == 0x05) {
+          pseudoSize = widthClus;
+          cluster_fraction = (widthClus - 1) % 2;
+          cluster_chan += (widthClus - 1) / 2 - 1;
+        }
+      }
+      make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
+    }
+    else if constexpr (decoding_version == 6 || decoding_version == 8) {
       const int condition = (cluster_reference >> 13) & 0x07; // FIXME
       uint8_t pseudoSize = 4;
 
@@ -158,8 +190,11 @@ void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::operator()(
                      (bank_version == 6) ?
                      (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<6, true>) :
                                                    global_function(scifi_raw_bank_decoder_kernel<6, false>)) :
+                     (bank_version == 7) ?
                      (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<7, true>) :
-                                                   global_function(scifi_raw_bank_decoder_kernel<7, false>));
+                                                   global_function(scifi_raw_bank_decoder_kernel<7, false>)) :
+                     (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<8, true>) :
+                                                   global_function(scifi_raw_bank_decoder_kernel<8, false>));
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_scifi_geometry);

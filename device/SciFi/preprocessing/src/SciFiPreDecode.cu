@@ -95,7 +95,7 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
       if constexpr (decoding_version == 4 || decoding_version == 6) {
         ch = geom.bank_first_channel[iRawBank] + SciFi::channelInBank(c); //---LoH: only works for versions 4-6
       }
-      else { // Decoding v7
+      else { // Decoding v7 and v8
         auto globalSiPM = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c);
         if (globalSiPM == SciFi::SciFiChannelID::kInvalidChannelID) // Link not found or local link > 24. Should never
                                                                     // happen but seen in early data.
@@ -112,7 +112,7 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
         correctedMat = correctedMat - SciFi::Constants::mat_index_substract;
 
       if ((int) correctedMat != last_uniqueMat) {
-        if constexpr (decoding_version == 7) {
+        if constexpr (decoding_version == 7 || decoding_version == 8) {
           if (last_uniqueMat != -1) {
             // array is small and already almost sorted, using an insertion sort is enough
             if (reversedZone) {
@@ -151,7 +151,40 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
       if constexpr (decoding_version == 4) {
         store_sorted_fn(0x01, 0x00);
       }
-      else if constexpr (decoding_version == 6 || decoding_version == 7) {
+      else if constexpr (decoding_version == 7) {
+        if (!SciFi::cSize(c)) {
+          // Single cluster
+          store_sorted_fn(0x01, 0x00);
+        }
+        else {
+          const unsigned c2 = *(it + 1);
+          if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2))
+            // last cluster in bank or in sipm
+            store_sorted_fn(0x02, 0x00);
+          else if (SciFi::fraction(c)) {
+            if (SciFi::cSize(c2) && !SciFi::fraction(c2)) {
+              const unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
+              if (widthClus > 8) {
+                uint16_t j = 0;
+                for (; j < widthClus - 4; j += 4)
+                  // big cluster(s)
+                  store_sorted_fn(0x03, j);
+                // add the last edge
+                store_sorted_fn(0x04, j);
+              }
+              else
+                store_sorted_fn(0x05, 0x00);
+              ++it_number;
+            }
+            else { /* Corrupt cluster type 1 */
+              ++it_number;
+            }
+          }
+          else { /* Corrupt cluster type 2 */
+          }
+        }
+      }
+      else if constexpr (decoding_version == 6 || decoding_version == 8) {
         if (!SciFi::cSize(c)) {
           // Single cluster
           store_sorted_fn(0x01, 0x00);
@@ -185,7 +218,7 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
         }
       }
     }
-    if constexpr (decoding_version == 7) {
+    if constexpr (decoding_version == 7 || decoding_version == 8) {
       if (last_uniqueMat != -1) {
         // array is small and already almost sorted, using an insertion sort is enough
         if (reversedZone) {
@@ -241,8 +274,11 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
                      (bank_version == 6) ?
                      (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<6, true>) :
                                                    global_function(scifi_pre_decode_kernel<6, false>)) :
+                     (bank_version == 7) ?
                      (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<7, true>) :
-                                                   global_function(scifi_pre_decode_kernel<7, false>));
+                                                   global_function(scifi_pre_decode_kernel<7, false>)) :
+                     (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<8, true>) :
+                                                   global_function(scifi_pre_decode_kernel<8, false>));
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanksMax), context)(
     arguments, constants.dev_scifi_geometry);

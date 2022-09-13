@@ -55,7 +55,7 @@ __global__ void scifi_calculate_cluster_count_kernel(
     for (; it < last; ++it) { // loop over the clusters
       uint16_t c = *it;
       SciFi::SciFiChannelID chid(SciFi::SciFiChannelID::kInvalidChannelID);
-      if constexpr (decoding_version != 7) {
+      if constexpr (decoding_version != 7 && decoding_version != 8) {
         uint32_t ch = geom.bank_first_channel[iRawBank] + SciFi::channelInBank(c);
         chid = SciFi::SciFiChannelID(ch);
       }
@@ -103,8 +103,6 @@ __global__ void scifi_calculate_cluster_count_kernel(
               ++it;
             }
           }
-          else { /* Corrupt cluster type 2 */
-          }
         }
       }
     }
@@ -141,8 +139,11 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
                      (bank_version == 6) ?
                      (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<6, true>) :
                                                    global_function(scifi_calculate_cluster_count_kernel<6, false>)) :
+                     (bank_version == 7) ?
                      (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<7, true>) :
-                                                   global_function(scifi_calculate_cluster_count_kernel<7, false>));
+                                                   global_function(scifi_calculate_cluster_count_kernel<7, false>)) :
+                     (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<8, true>) :
+                                                   global_function(scifi_calculate_cluster_count_kernel<8, false>));
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_scifi_geometry);
