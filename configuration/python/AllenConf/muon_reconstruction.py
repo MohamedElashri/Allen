@@ -145,7 +145,7 @@ def fake_muon_id(forward_tracks):
 
     return {
         "forward_tracks": forward_tracks,
-        "dev_is_muon": empty_muon_id.dev_lepton_id_t,
+        "dev_is_muon": empty_muon_id.dev_is_lepton_t,
         "dev_lepton_id": empty_muon_id.dev_lepton_id_t
     }
 
