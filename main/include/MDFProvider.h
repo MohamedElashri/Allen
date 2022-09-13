@@ -292,12 +292,21 @@ public:
     auto const offsets = slice.offsets;
     auto const offsets_size = slice.n_offsets;
 
-    gsl::span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
-    gsl::span<unsigned int const> s {slice.sizes.data(), slice.sizes.size()};
-    gsl::span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
-    gsl::span<unsigned int const> t {slice.types.data(), slice.types.size()};
-    return BanksAndOffsets {
-      {std::move(b)}, std::move(o), offsets[offsets_size - 1], std::move(s), std::move(t), m_banks_version[ib]};
+    auto const version = m_banks_version[ib];
+
+    if (version == -1) {
+      BanksAndOffsets bno{};
+      bno.version = version;
+      return bno;
+    }
+    else {
+      gsl::span<char const> b {banks[0].data(), offsets[offsets_size - 1]};
+      gsl::span<unsigned int const> s {slice.sizes.data(), slice.sizes.size()};
+      gsl::span<unsigned int const> o {offsets.data(), static_cast<::offsets_size>(offsets_size)};
+      gsl::span<unsigned int const> t {slice.types.data(), slice.types.size()};
+      return BanksAndOffsets {
+        {std::move(b)}, std::move(o), offsets[offsets_size - 1], std::move(s), std::move(t), version};
+    }
   }
 
   /**
