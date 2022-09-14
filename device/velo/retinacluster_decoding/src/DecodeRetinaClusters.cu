@@ -28,12 +28,9 @@ __global__ void populate_module_pair_offsets_and_sizes(
        i += blockDim.x) {
     const auto element = blockIdx.x * Velo::Tracking::block_dim_x_populate_module_pair_offsets_and_sizes + i;
     if (element < module_pair_cluster_num_size) {
-      //       const auto current_offset_index = element * step_size;
       const auto next_offset_index = (element + 1) * step_size;
 
       parameters.dev_offsets_module_pair_cluster[element + 1] = offsets[next_offset_index];
-      //       parameters.dev_module_pair_cluster_num[element] = offsets[next_offset_index] -
-      //       offsets[current_offset_index];
     }
   }
 }
@@ -46,10 +43,12 @@ __global__ void velo_calculate_permutations(decode_retinaclusters::Parameters pa
     parameters.dev_offsets_module_pair_cluster + event_number * Velo::Constants::n_module_pairs;
   const unsigned* module_pair_hit_num =
     parameters.dev_module_pair_cluster_num + event_number * Velo::Constants::n_module_pairs;
+  const unsigned* module_pair_zero_hit_num =
+    parameters.dev_module_pair_zero_cluster_num + event_number * Velo::Constants::n_module_pairs;
 
   for (unsigned module_pair = threadIdx.x; module_pair < Velo::Constants::n_module_pairs; module_pair += blockDim.x) {
     const auto hit_start = module_pair_hit_start[module_pair];
-    const auto hit_num = module_pair_hit_num[module_pair];
+    const auto hit_num = module_pair_hit_num[module_pair] + module_pair_zero_hit_num[module_pair];
 
     // Decrease divergences
     __syncthreads();
@@ -68,7 +67,7 @@ __global__ void velo_calculate_permutations(decode_retinaclusters::Parameters pa
         const auto other_key = parameters.dev_hit_sorting_key[other_hit_index];
 
         // Ensure sorting is reproducible
-        position += key > other_key;
+        position += key >= other_key;
       }
 
       // Store it in hit permutations
@@ -87,7 +86,8 @@ __device__ void populate_sorting_key(
   const unsigned raw_bank_sensor_index1,
   const unsigned raw_bank_sourceID,
   const unsigned raw_bank_word,
-  unsigned* module_pair_cluster_num)
+  unsigned* module_pair_cluster_num,
+  unsigned* module_pair_zero_cluster_num)
 {
   unsigned raw_bank_sensor_index;
   if constexpr (decoding_version == 2 || decoding_version == 3) {
@@ -102,6 +102,8 @@ __device__ void populate_sorting_key(
 
   if (raw_bank_word != 0) {
     atomicAdd(module_pair_cluster_num + raw_bank_sensor_index / 8, 1);
+  } else {
+    atomicAdd(module_pair_zero_cluster_num + raw_bank_sensor_index / 8, 1);
   }
 
   const float* ltg = g.ltg + g.n_trans * raw_bank_sensor_index;
@@ -145,9 +147,9 @@ __device__ void populate_sorting_key(
   const int16_t phi = hit_phi_16(gx, gy);
 
   // Create sorting key
-  int64_t sorting_key = 0xFFFFFFFF;
+  int64_t sorting_key = 0x7FFFFFFFFFFFFFFF;
   if (raw_bank_word != 0) {
-    sorting_key = static_cast<int64_t>(phi) << 48 | id;
+    sorting_key = (static_cast<int64_t>(phi) << 48) | id;
   }
 
   hit_sorting_key[cluster_index] = sorting_key;
@@ -170,6 +172,9 @@ __global__ void velo_calculate_sorting_key(
 
   unsigned* module_pair_cluster_num =
     parameters.dev_module_pair_cluster_num + event_number * Velo::Constants::n_module_pairs;
+    
+  unsigned* module_pair_zero_cluster_num =
+    parameters.dev_module_pair_zero_cluster_num + event_number * Velo::Constants::n_module_pairs;
 
   const unsigned* sensor_pair_offsets = parameters.dev_offsets_each_sensor_pair_size + offset;
 
@@ -225,7 +230,8 @@ __global__ void velo_calculate_sorting_key(
         raw_bank.sensor_index1(),
         raw_bank.sourceID,
         raw_bank.word[index_within_raw_bank],
-        module_pair_cluster_num);
+        module_pair_cluster_num,
+        module_pair_zero_cluster_num);
     }
   }
 }
@@ -395,6 +401,8 @@ void decode_retinaclusters::decode_retinaclusters_t::set_arguments_size(
 {
   set_size<dev_module_cluster_num_t>(
     arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs);
+  set_size<dev_module_zero_cluster_num_t>(
+    arguments, first<host_total_number_of_velo_clusters_t>(arguments));
   set_size<dev_velo_cluster_container_t>(
     arguments, first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size);
   set_size<dev_offsets_module_pair_cluster_t>(

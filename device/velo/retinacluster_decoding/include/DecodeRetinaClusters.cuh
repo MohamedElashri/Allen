@@ -24,6 +24,7 @@ namespace decode_retinaclusters {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_module_cluster_num_t, unsigned) dev_module_pair_cluster_num;
+    DEVICE_OUTPUT(dev_module_zero_cluster_num_t, unsigned) dev_module_pair_zero_cluster_num;
     DEVICE_OUTPUT(dev_offsets_module_pair_cluster_t, unsigned) dev_offsets_module_pair_cluster;
     DEVICE_OUTPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
     DEVICE_OUTPUT(dev_hit_permutations_t, unsigned) dev_hit_permutations;
@@ -33,6 +34,7 @@ namespace decode_retinaclusters {
       DEPENDENCIES(
         dev_velo_cluster_container_t,
         dev_module_cluster_num_t,
+        dev_module_zero_cluster_num_t,
         dev_number_of_events_t,
         dev_offsets_module_pair_cluster_t),
       Velo::Clusters)
