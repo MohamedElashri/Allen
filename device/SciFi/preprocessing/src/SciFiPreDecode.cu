@@ -197,9 +197,9 @@ __global__ void scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters,
           if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2))
             // last cluster in bank or in sipm
             store_sorted_fn(0x02, 0x00);
-          else if (SciFi::cell(c2) < SciFi::cell(c)) { /* Misordered clusters */
-            ++it_number;
-          }
+          //          else if (SciFi::cell(c2) < SciFi::cell(c)) { /* Misordered clusters */
+          //            ++it_number;
+          //          }
           else if (SciFi::fraction(c)) {
             if (SciFi::cSize(c2) && !SciFi::fraction(c2)) {
               const unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
