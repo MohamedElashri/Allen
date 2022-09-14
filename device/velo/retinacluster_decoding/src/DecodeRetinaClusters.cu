@@ -102,7 +102,8 @@ __device__ void populate_sorting_key(
 
   if (raw_bank_word != 0) {
     atomicAdd(module_pair_cluster_num + raw_bank_sensor_index / 8, 1);
-  } else {
+  }
+  else {
     atomicAdd(module_pair_zero_cluster_num + raw_bank_sensor_index / 8, 1);
   }
 
@@ -172,7 +173,7 @@ __global__ void velo_calculate_sorting_key(
 
   unsigned* module_pair_cluster_num =
     parameters.dev_module_pair_cluster_num + event_number * Velo::Constants::n_module_pairs;
-    
+
   unsigned* module_pair_zero_cluster_num =
     parameters.dev_module_pair_zero_cluster_num + event_number * Velo::Constants::n_module_pairs;
 
@@ -401,8 +402,7 @@ void decode_retinaclusters::decode_retinaclusters_t::set_arguments_size(
 {
   set_size<dev_module_cluster_num_t>(
     arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs);
-  set_size<dev_module_zero_cluster_num_t>(
-    arguments, first<host_total_number_of_velo_clusters_t>(arguments));
+  set_size<dev_module_zero_cluster_num_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
   set_size<dev_velo_cluster_container_t>(
     arguments, first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Clusters::element_size);
   set_size<dev_offsets_module_pair_cluster_t>(

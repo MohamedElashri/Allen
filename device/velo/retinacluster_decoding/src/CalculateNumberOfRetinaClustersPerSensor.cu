@@ -41,7 +41,6 @@ __global__ void calculate_number_of_retinaclusters_each_sensor_pair_kernel(
         each_sensor_pair_size[raw_bank.sourceID] = raw_bank.count;
       }
       else {
-        printf("Sensor pair %i, %i clusters\n", raw_bank.sensor_pair(), raw_bank.size / 4);
         each_sensor_pair_size[raw_bank.sensor_pair()] = raw_bank.size / 4;
       }
       if (blockIdx.x == 0) {
