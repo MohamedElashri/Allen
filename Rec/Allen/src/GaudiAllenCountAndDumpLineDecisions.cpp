@@ -8,16 +8,62 @@
 * granted to it by virtue of its status as an Intergovernmental Organization  *
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
+// Gaudi
+#include "GaudiAlg/Consumer.h"
+#include "GaudiKernel/StdArrayAsProperty.h"
 
-#include "GaudiAllenCountAndDumpLineDecisions.h"
+// LHCb
+#include "Event/RawEvent.h"
+#include "Kernel/STLExtensions.h"
 
 // Allen
 #include "SelectionsEventModel.cuh"
 
-// LHCb
-#include "Kernel/STLExtensions.h"
-
+// Standard
+#include <vector>
+#include <deque>
 #include <algorithm>
+
+struct GaudiAllenCountAndDumpLineDecisions final : public Gaudi::Functional::Consumer<void(
+                                                     const std::vector<unsigned>&,
+                                                     const std::vector<char>&,
+                                                     const std::vector<char>&,
+                                                     const std::vector<unsigned>&)> {
+  // Standard constructor
+  GaudiAllenCountAndDumpLineDecisions(const std::string& name, ISvcLocator* pSvcLocator);
+
+  void operator()(
+    const std::vector<unsigned>& allen_number_of_active_lines,
+    const std::vector<char>& allen_names_of_active_lines,
+    const std::vector<char>& allen_selections,
+    const std::vector<unsigned>& allen_selections_offsets) const override;
+
+private:
+  bool check_line_names(const std::vector<char>&) const;
+
+  // Counters for HLT1 selection rates
+  mutable std::deque<Gaudi::Accumulators::BinomialCounter<uint32_t>> m_hlt1_line_rates {};
+
+  Gaudi::Property<bool> m_check_names {this,
+                                       "CheckLineNamesAndOrder",
+                                       true,
+                                       "Flag to perform line name check for each event."};
+  Gaudi::Property<std::vector<std::string>> m_line_names {
+    this,
+    "Hlt1LineNames",
+    {},
+    [this](const auto&) {
+      m_hlt1_line_rates.clear();
+      for (const auto& name : m_line_names) {
+        m_hlt1_line_rates.emplace_back(this, "Selected by " + name);
+
+        if (msgLevel(MSG::DEBUG)) {
+          debug() << "Added counter for line name " << name << endmsg;
+        }
+      }
+    },
+    "Ordered list of Allen line names"};
+};
 
 DECLARE_COMPONENT(GaudiAllenCountAndDumpLineDecisions)
 
@@ -33,25 +79,6 @@ GaudiAllenCountAndDumpLineDecisions::GaudiAllenCountAndDumpLineDecisions(
      KeyValue {"allen_selections", ""},
      KeyValue {"allen_selections_offsets", ""}})
 {}
-
-StatusCode GaudiAllenCountAndDumpLineDecisions::initialize()
-{
-  auto sc = Consumer::initialize();
-  if (sc.isFailure()) return sc;
-  if (msgLevel(MSG::DEBUG)) {
-    debug() << "==> Initialize" << endmsg;
-  }
-
-  for (const auto& name : m_line_names) {
-    m_hlt1_line_rates.emplace_back(this, "Selected by " + name);
-
-    if (msgLevel(MSG::DEBUG)) {
-      debug() << "Added counter for line name " << name << endmsg;
-    }
-  }
-
-  return StatusCode::SUCCESS;
-}
 
 void GaudiAllenCountAndDumpLineDecisions::operator()(
   const std::vector<unsigned>& allen_number_of_active_lines,
@@ -77,16 +104,13 @@ void GaudiAllenCountAndDumpLineDecisions::operator()(
   for (unsigned line_index = 0; line_index < allen_number_of_active_lines[0]; line_index++) {
     bool line_dec = false;
     auto decs = selections.get_span(line_index, i_event);
-    for (unsigned idec = 0; idec < decs.size(); idec++) {
+    for (unsigned idec = 0; idec < decs.size(); idec++)
       line_dec |= decs[idec];
-    }
-    m_hlt1_line_rates[line_index] += int(line_dec);
+    m_hlt1_line_rates[line_index] += line_dec;
   }
-
-  return;
 }
 
-// Check that the line names in the property m_line_names matche the Allen
+// Check that the line names in the property m_line_names match the Allen
 // internal list of line names.
 bool GaudiAllenCountAndDumpLineDecisions::check_line_names(const std::vector<char>& allen_names) const
 {
@@ -118,8 +142,8 @@ bool GaudiAllenCountAndDumpLineDecisions::check_line_names(const std::vector<cha
     }
 
     if (msgLevel(MSG::DEBUG)) {
-      std::string comp = (m_line_names[i] == gs_name) ? " == " : " != ";
-      debug() << "Line name check " << i << ": " << m_line_names[i] << comp << gs_name << endmsg;
+      debug() << "Line name check " << i << ": " << m_line_names[i] << (m_line_names[i] == gs_name ? " == " : " != ")
+              << gs_name << endmsg;
     }
   }
 

@@ -7,7 +7,51 @@ from AllenAlgorithms.algorithms import make_selected_object_lists_t, make_subban
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
+from PyConf.filecontent_metadata import register_encoding_dictionary
 from PyConf.tonic import configurable
+
+
+def build_decision_ids(lines, offset=1):
+    """Return a dict of decision names to integer IDs.
+
+    Decision report IDs must not be zero. This method generates IDs starting
+    from offset.
+
+    Args:
+        decision_names (list of str)
+        offset (int): needed so that there are no identical ints in the int->str relations
+        of HltRawBankDecoderBase
+
+    Returns:
+        decision_ids (dict of str to int): Mapping from decision name to ID.
+    """
+
+    append_decision = lambda x: x if x.endswith('Decision') else '{}Decision'.format(x)
+
+    return {
+        append_decision(name): idx
+        for idx, name in enumerate(lines, offset)
+    }
+
+
+def register_decision_ids(ids):
+    if not all(k.endswith('Decision') for k in ids.keys()):
+        raise RuntimeError(
+            'Not all decision ids end in \'Decision\': {}'.format(ids))
+
+    return int(
+        register_encoding_dictionary(
+            'Hlt1SelectionID', {
+                'Hlt1SelectionID': {v: k
+                                    for k, v in ids.items()},
+                'InfoID': {},
+                'version': '0'
+            }), 16)  # TODO unsigned? Stick to hex string?
+
+
+def register_allen_encoding_table(lines):
+    ids = build_decision_ids([l.name for l in lines])
+    return register_decision_ids(ids)
 
 
 def _build_decision_ids(decision_names, offset=0):
@@ -86,10 +130,13 @@ def make_dec_reporter(lines, TCK=0):
     gather_selections = make_gather_selections(lines)
     number_of_events = initialize_number_of_events()
 
+    key = register_allen_encoding_table(lines)
+
     return make_algorithm(
         dec_reporter_t,
         name="dec_reporter",
         tck=TCK,
+        encoding_key=key,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_active_lines_t=gather_selections.
         host_number_of_active_lines_t,

@@ -2,7 +2,7 @@
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 
-cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
 # For STANDALONE and cmake versions under 3.21, allow using
 # the env var CMAKE_TOOLCHAIN_FILE to specify the toolchain
@@ -714,6 +714,13 @@ endif()
 allen_add_executable(Allen main/src/main.cpp)
 
 target_link_libraries(Allen PRIVATE AllenLib NonEventData Gear)
+
+
+if (NOT STANDALONE)
+    include(FileContentMetadataRepository)
+    lhcb_create_local_filecontent_metadata_repo( "${CMAKE_CURRENT_BINARY_DIR}/external/file-content-metadata/" )
+endif()
+
 
 if (NOT STANDALONE)
   target_link_libraries(Allen PRIVATE fmt::fmt)

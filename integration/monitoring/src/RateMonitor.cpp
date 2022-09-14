@@ -29,7 +29,7 @@ void RateMonitor::fill(unsigned i_buf, bool useWallTime)
   unsigned nevt = buf->host_number_of_events;
 
   for (unsigned ievt = 0; ievt < nevt; ++ievt) {
-    auto dec_reports = buf->host_dec_reports.data() + 2 + ievt * (2 + buf->host_number_of_lines);
+    auto dec_reports = buf->host_dec_reports.data() + ievt * (3 + buf->host_number_of_lines);
 
     bool pass(false);
 
