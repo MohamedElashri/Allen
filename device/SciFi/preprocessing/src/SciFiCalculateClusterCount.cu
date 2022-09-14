@@ -89,18 +89,41 @@ __global__ void scifi_calculate_cluster_count_kernel(
           // last cluster in bank or in sipm
           if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2))
             atomicAdd(hits_module, 1);
-          else if (SciFi::fraction(c)) {
-            if (SciFi::cSize(c2) && !SciFi::fraction(c2)) {
-              unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
-              if (widthClus > 8)
-                // number of for loop passes in decoder + one additional
-                atomicAdd(hits_module, (widthClus - 1) / 4 + 1);
-              else
-                atomicAdd(hits_module, 1);
-              ++it;
+          else if (SciFi::cell(c2) < SciFi::cell(c)) { /* Misordered clusters*/
+            ++it;
+          }
+          else {
+            if constexpr (decoding_version == 6 || decoding_version == 8) {
+              if (SciFi::fraction(c)) {
+                if (SciFi::cSize(c2) && !SciFi::fraction(c2)) {
+                  unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
+                  if (widthClus > 8)
+                    // number of for loop passes in decoder + one additional
+                    atomicAdd(hits_module, (widthClus - 1) / 4 + 1);
+                  else
+                    atomicAdd(hits_module, 1);
+                  ++it;
+                }
+                else { /* Corrupt cluster type 1 */
+                  ++it;
+                }
+              }
             }
-            else { /* Corrupt cluster type 1 */
-              ++it;
+            else {
+              if (!SciFi::fraction(c)) {
+                if (SciFi::cSize(c2)) {
+                  unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
+                  if (widthClus > 8)
+                    // number of for loop passes in decoder + one additional
+                    atomicAdd(hits_module, (widthClus - 1) / 4 + 1);
+                  else
+                    atomicAdd(hits_module, 1);
+                  ++it;
+                }
+                else { /* Corrupt cluster type 1 */
+                  ++it;
+                }
+              }
             }
           }
         }
