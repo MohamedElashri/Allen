@@ -256,8 +256,8 @@ namespace Allen::Store {
 
   public:
     MemoryManager() = default;
-
-    MemoryManager(std::string name) : m_name {std::move(name)} {}
+    MemoryManager(const std::string& name) : m_name {name} {}
+    MemoryManager(const std::string& name, const size_t, const unsigned) : m_name {name} {}
 
     /**
      * @brief This MultiAlloc MemoryManager does not reserve memory upon startup.
@@ -298,7 +298,7 @@ namespace Allen::Store {
      */
     void reserve(BaseArgument& argument) { argument.set_pointer(reserve(argument.name(), argument.sizebytes())); }
 
-    void free(const std::string& tag, void* pointer)
+    void free(const std::string& tag)
     {
       // Verify the pointer existed in the memory segments map
       const auto it = m_memory_segments.find(tag);
@@ -312,7 +312,7 @@ namespace Allen::Store {
         verbose_cout << "MemoryManager: Requested to free tag " << tag << std::endl;
       }
 
-      MemoryManagerAllocator<S>::free(pointer);
+      MemoryManagerAllocator<S>::free(it->second.pointer);
 
       m_total_memory_required -= it->second.size;
 
@@ -322,7 +322,7 @@ namespace Allen::Store {
     /**
      * @brief Frees the requested argument.
      */
-    void free(BaseArgument& argument) { free(argument.name(), argument.pointer()); }
+    void free(BaseArgument& argument) { free(argument.name()); }
 
     /**
      * @brief Frees all memory segments, effectively resetting the
@@ -331,7 +331,7 @@ namespace Allen::Store {
     void free_all()
     {
       for (const auto& it : m_memory_segments) {
-        free(it.second.pointer);
+        MemoryManagerAllocator<S>::free(it.second.pointer);
       }
       m_memory_segments.clear();
     }

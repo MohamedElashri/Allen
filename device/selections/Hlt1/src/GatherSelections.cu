@@ -88,7 +88,7 @@ namespace gather_selections {
     const auto number_of_events = gridDim.x;
     const auto event_number = blockIdx.x;
 
-    __shared__ bool event_decision;
+    __shared__ int event_decision;
 
     if (threadIdx.x == 0) {
       // Initialize event decision
