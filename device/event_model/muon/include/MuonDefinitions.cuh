@@ -43,7 +43,7 @@ namespace Muon {
     static constexpr unsigned n_catboost_features = 5 * n_stations;
 
     // Safe margin to account for hit crossings
-    static constexpr unsigned compact_hit_allocate_factor = 2;
+    static constexpr unsigned compact_hit_allocate_factor = 3;
 
     // Number of layouts
     static constexpr unsigned n_layouts = 2;
