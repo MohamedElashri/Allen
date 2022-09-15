@@ -424,8 +424,8 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
   Allen::memset_async<dev_module_cluster_num_t>(arguments, 0, context);
   Allen::memset_async<dev_offsets_module_pair_cluster_t>(arguments, 0, context);
 
-  auto dev_module_zero_cluster_num =
-    make_device_buffer<unsigned>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
+  auto dev_module_zero_cluster_num = make_device_buffer<unsigned>(
+    arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs);
   Allen::memset_async(
     dev_module_zero_cluster_num.data(), 0, dev_module_zero_cluster_num.size() * sizeof(unsigned), context);
 
