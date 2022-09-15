@@ -276,14 +276,17 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
 
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version < 0) return; // no Muon banks present in data
-  auto populate_tile_and_tdc_kernel = bank_version == 2 ? (runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<2, true> :
-                                                                     muon_populate_tile_and_tdc_kernel<2, false>) :
-                                       (runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<3, true> :
-                                                                     muon_populate_tile_and_tdc_kernel<3, false>);
+  auto populate_tile_and_tdc_kernel = bank_version == 2 ?
+                                        (runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<2, true> :
+                                                                      muon_populate_tile_and_tdc_kernel<2, false>) :
+                                        (runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<3, true> :
+                                                                      muon_populate_tile_and_tdc_kernel<3, false>);
 
   global_function(populate_tile_and_tdc_kernel)(size<dev_event_list_t>(arguments), dim3(64, 4), context)(arguments);
 
-  auto calculate_station_ocurrences_kernel = bank_version == 2 ? muon_calculate_station_ocurrences_sizes<2> : muon_calculate_station_ocurrences_sizes<3>;
+  auto calculate_station_ocurrences_kernel =
+    bank_version == 2 ? muon_calculate_station_ocurrences_sizes<2> : muon_calculate_station_ocurrences_sizes<3>;
 
-  global_function(calculate_station_ocurrences_kernel)(dim3(size<dev_event_list_t>(arguments)), dim3(64), context)(arguments);
+  global_function(calculate_station_ocurrences_kernel)(dim3(size<dev_event_list_t>(arguments)), dim3(64), context)(
+    arguments);
 }

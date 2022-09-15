@@ -66,10 +66,10 @@ def decode_muon():
         dev_storage_tile_id_t=muon_populate_tile_and_tdc.dev_storage_tile_id_t,
         dev_muon_raw_to_hits_t=muon_calculate_srq_size.dev_muon_raw_to_hits_t,
         host_raw_bank_version_t=muon_banks.host_raw_bank_version_t,
-        dev_muon_tile_used_t = muon_populate_tile_and_tdc.dev_muon_tile_used_t,
+        dev_muon_tile_used_t=muon_populate_tile_and_tdc.dev_muon_tile_used_t,
         dev_station_ocurrences_offset_t=muon_station_ocurrence_prefix_sum.
         dev_output_buffer_t,
-        host_muon_total_number_of_hits_t = muon_station_ocurrence_prefix_sum.
+        host_muon_total_number_of_hits_t=muon_station_ocurrence_prefix_sum.
         host_total_sum_holder_t)
 
     muon_populate_hits = make_algorithm(

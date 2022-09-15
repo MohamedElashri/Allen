@@ -19,7 +19,8 @@ __global__ void muon_add_coords_crossing_maps_kernel(muon_add_coords_crossing_ma
   auto current_hit_index = parameters.dev_atomics_index_insert + event_number;
   auto used = parameters.dev_muon_tile_used + event_offset;
   auto storage_tile_id = parameters.dev_storage_tile_id + event_offset;
-  auto station_ocurrences_offsets = parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
+  auto station_ocurrences_offsets =
+    parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
   auto muon_compact_hit = parameters.dev_muon_compact_hit + station_ocurrences_offsets[0];
 
   for (unsigned i = 0; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
@@ -127,7 +128,7 @@ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::operator()(
 {
   Allen::memset_async<dev_muon_compact_hit_t>(arguments, 0, context);
   Allen::memset_async<dev_atomics_index_insert_t>(arguments, 0, context);
-  
+
   const unsigned bank_version = first<host_raw_bank_version_t>(arguments);
   auto kernel_fn =
     bank_version == 2 ? muon_add_coords_crossing_maps_kernel<2> : muon_add_coords_crossing_maps_kernel<3>;
