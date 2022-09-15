@@ -87,10 +87,11 @@ __global__ void scifi_calculate_cluster_count_kernel(
         else { // flagged as first edge of large cluster
           unsigned c2 = *(it + 1);
           // last cluster in bank or in sipm
-          if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2)) atomicAdd(hits_module, 1);
-          //          else if (SciFi::cell(c2) < SciFi::cell(c)) { /* Misordered clusters*/
-          //            ++it;
-          //          }
+          if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2))
+            atomicAdd(hits_module, 1);
+          else if (SciFi::cell(c2) < SciFi::cell(c)) { /* Misordered clusters*/
+            ++it;
+          }
           else {
             if constexpr (decoding_version == 6 || decoding_version == 8) {
               if (SciFi::fraction(c)) {
