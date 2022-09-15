@@ -19,8 +19,9 @@ namespace muon_add_coords_crossing_maps {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_atomics_index_insert_t, unsigned) dev_atomics_index_insert;
     DEVICE_OUTPUT(dev_muon_compact_hit_t, uint64_t) dev_muon_compact_hit;
-    DEVICE_OUTPUT(dev_muon_tile_used_t, bool) dev_muon_tile_used;
-    DEVICE_OUTPUT(dev_station_ocurrences_sizes_t, unsigned) dev_station_ocurrences_sizes;
+    DEVICE_INPUT(dev_muon_tile_used_t, bool) dev_muon_tile_used;
+    DEVICE_INPUT(dev_station_ocurrences_offset_t, unsigned) dev_station_ocurrences_offset;
+    HOST_INPUT(host_muon_total_number_of_hits_t, unsigned) host_muon_total_number_of_hits;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

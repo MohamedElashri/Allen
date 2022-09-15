@@ -17,10 +17,10 @@ __global__ void muon_add_coords_crossing_maps_kernel(muon_add_coords_crossing_ma
   const auto event_offset = storage_station_region_quarter_offsets[0];
 
   auto current_hit_index = parameters.dev_atomics_index_insert + event_number;
-  auto muon_compact_hit = parameters.dev_muon_compact_hit + Muon::Constants::compact_hit_allocate_factor * event_offset;
-  auto used = parameters.dev_muon_tile_used + Muon::Constants::compact_hit_allocate_factor * event_offset;
+  auto used = parameters.dev_muon_tile_used + event_offset;
   auto storage_tile_id = parameters.dev_storage_tile_id + event_offset;
-  auto station_ocurrences_sizes = parameters.dev_station_ocurrences_sizes + event_number * Muon::Constants::n_stations;
+  auto station_ocurrences_offsets = parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
+  auto muon_compact_hit = parameters.dev_muon_compact_hit + station_ocurrences_offsets[0];
 
   for (unsigned i = 0; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
        i++) {
@@ -44,7 +44,6 @@ __global__ void muon_add_coords_crossing_maps_kernel(muon_add_coords_crossing_ma
 
       if (pad && threadIdx.x == 0) {
         const int localCurrentHitIndex = atomicAdd(current_hit_index, 1);
-        atomicAdd(station_ocurrences_sizes + station, 1);
 
         const uint64_t compact_hit =
           (((uint64_t)(start_index & 0x7FFF)) << 48) | (((uint64_t)(start_index & 0xFFFF)) << 32) |
@@ -52,7 +51,6 @@ __global__ void muon_add_coords_crossing_maps_kernel(muon_add_coords_crossing_ma
           (((tile.id() & Muon::MuonBase::MaskStation) >> Muon::MuonBase::ShiftStation) & 0xF);
 
         muon_compact_hit[localCurrentHitIndex] = compact_hit;
-        used[start_index] = true;
       }
     }
 
@@ -71,7 +69,6 @@ __global__ void muon_add_coords_crossing_maps_kernel(muon_add_coords_crossing_ma
           if (keyX == candidateX && keyY == candidateY) {
             Muon::MuonTileID padTile(storage_tile_id[digitsOneIndex]);
             const int localCurrentHitIndex = atomicAdd(current_hit_index, 1);
-            atomicAdd(&station_ocurrences_sizes[tile.station()], 1);
 
             const uint64_t compact_hit =
               (((uint64_t)(digitsOneIndex & 0x7FFF)) << 48) | (((uint64_t)(digitsTwoIndex & 0xFFFF)) << 32) |
@@ -79,13 +76,10 @@ __global__ void muon_add_coords_crossing_maps_kernel(muon_add_coords_crossing_ma
               (((padTile.id() & Muon::MuonBase::MaskStation) >> Muon::MuonBase::ShiftStation) & 0xF);
 
             muon_compact_hit[localCurrentHitIndex] = compact_hit;
-            used[digitsOneIndex] = used[digitsTwoIndex] = true;
           }
         }
       }
     }
-
-    __syncthreads(); // for used
 
     for (auto index = start_index + threadIdx.x; index < end_index; index += blockDim.x) {
       if (!used[index]) {
@@ -102,12 +96,12 @@ __global__ void muon_add_coords_crossing_maps_kernel(muon_add_coords_crossing_ma
         }
 
         const int localCurrentHitIndex = atomicAdd(current_hit_index, 1);
-        atomicAdd(&station_ocurrences_sizes[tile.station()], 1);
 
         const unsigned int uncrossed = 1;
         const uint64_t compact_hit =
           (((uint64_t)(uncrossed & 0x1)) << 63) | (((uint64_t)(index & 0x7FFF)) << 48) | (condition << 4) |
           (((tile.id() & Muon::MuonBase::MaskStation) >> Muon::MuonBase::ShiftStation) & 0xF);
+
         muon_compact_hit[localCurrentHitIndex] = compact_hit;
       }
     }
@@ -120,15 +114,7 @@ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::set_argumen
   const Constants&,
   const HostBuffers&) const
 {
-  // Note: It is not known at this time how many muon hits will be created, considering crossings.
-  //       We therefore allocate a safe margin of Muon::Constants::compact_hit_allocate_factor times
-  //       the space.
-  set_size<dev_muon_compact_hit_t>(
-    arguments, Muon::Constants::compact_hit_allocate_factor * first<host_muon_total_number_of_tiles_t>(arguments));
-  set_size<dev_muon_tile_used_t>(
-    arguments, Muon::Constants::compact_hit_allocate_factor * first<host_muon_total_number_of_tiles_t>(arguments));
-  set_size<dev_station_ocurrences_sizes_t>(
-    arguments, first<host_number_of_events_t>(arguments) * Muon::Constants::n_stations);
+  set_size<dev_muon_compact_hit_t>(arguments, first<host_muon_total_number_of_hits_t>(arguments));
   set_size<dev_atomics_index_insert_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
@@ -140,10 +126,8 @@ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::operator()(
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_muon_compact_hit_t>(arguments, 0, context);
-  Allen::memset_async<dev_muon_tile_used_t>(arguments, 0, context);
-  Allen::memset_async<dev_station_ocurrences_sizes_t>(arguments, 0, context);
   Allen::memset_async<dev_atomics_index_insert_t>(arguments, 0, context);
-
+  
   const unsigned bank_version = first<host_raw_bank_version_t>(arguments);
   auto kernel_fn =
     bank_version == 2 ? muon_add_coords_crossing_maps_kernel<2> : muon_add_coords_crossing_maps_kernel<3>;

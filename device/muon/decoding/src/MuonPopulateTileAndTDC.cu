@@ -8,6 +8,76 @@
 INSTANTIATE_ALGORITHM(muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t)
 
 template<int decoding_version>
+__global__ void muon_calculate_station_ocurrences_sizes(muon_populate_tile_and_tdc::Parameters parameters)
+{
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+
+  const auto storage_station_region_quarter_offsets =
+    parameters.dev_storage_station_region_quarter_offsets + event_number * Muon::Constants::n_layouts *
+                                                              Muon::Constants::n_stations * Muon::Constants::n_regions *
+                                                              Muon::Constants::n_quarters;
+  const auto event_offset = storage_station_region_quarter_offsets[0];
+  auto used = parameters.dev_muon_tile_used + event_offset;
+  auto storage_tile_id = parameters.dev_storage_tile_id + event_offset;
+  auto station_ocurrences_sizes = parameters.dev_station_ocurrences_sizes + event_number * Muon::Constants::n_stations;
+
+  for (unsigned i = 0; i < Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::Constants::n_quarters;
+       i++) {
+
+    // Note: The location of the indices depends on n_layouts.
+    const auto start_index = storage_station_region_quarter_offsets[2 * i] - event_offset;
+    const auto mid_index = storage_station_region_quarter_offsets[2 * i + 1] - event_offset;
+    const auto end_index = storage_station_region_quarter_offsets[2 * i + 2] - event_offset;
+
+    if (start_index == end_index) continue;
+    const auto tile = Muon::MuonTileID(storage_tile_id[start_index]);
+    const auto layout1 = getLayout(parameters.dev_muon_raw_to_hits.get()->muonTables, tile)[0];
+    const auto layout2 = getLayout(parameters.dev_muon_raw_to_hits.get()->muonTables, tile)[1];
+    bool pad = false;
+
+    if constexpr (decoding_version == 3) {
+      const auto station = tile.station();
+      const auto region = tile.region();
+      pad = (station == 0 && region > 1) || (station == 2 && region == 0) || (station == 3 && region == 0) ||
+            (station == 3 && region == 3);
+
+      if (pad && threadIdx.x == 0) {
+        atomicAdd(station_ocurrences_sizes + station, 1);
+        used[start_index] = true;
+      }
+    }
+
+    if (!pad) {
+      for (unsigned digitsOneIndex = start_index + threadIdx.x; digitsOneIndex < mid_index;
+           digitsOneIndex += blockDim.x) {
+        const unsigned int keyX =
+          Muon::MuonTileID::nX(storage_tile_id[digitsOneIndex]) * layout2.xGrid() / layout1.xGrid();
+        const unsigned int keyY = Muon::MuonTileID::nY(storage_tile_id[digitsOneIndex]);
+
+        for (unsigned digitsTwoIndex = mid_index; digitsTwoIndex < end_index; digitsTwoIndex++) {
+          const unsigned int candidateX = Muon::MuonTileID::nX(storage_tile_id[digitsTwoIndex]);
+          const unsigned int candidateY =
+            Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]) * layout1.yGrid() / layout2.yGrid();
+
+          if (keyX == candidateX && keyY == candidateY) {
+            atomicAdd(station_ocurrences_sizes + tile.station(), 1);
+            used[digitsOneIndex] = used[digitsTwoIndex] = true;
+          }
+        }
+      }
+    }
+
+    __syncthreads(); // for used
+
+    for (auto index = start_index + threadIdx.x; index < end_index; index += blockDim.x) {
+      if (!used[index]) {
+        atomicAdd(station_ocurrences_sizes + tile.station(), 1);
+      }
+    }
+  }
+}
+
+template<int decoding_version>
 __device__ void decode_muon_bank(
   Muon::MuonRawToHits const* muon_raw_to_hits,
   Muon::MuonRawBank<decoding_version> const& raw_bank,
@@ -186,6 +256,9 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::set_arguments_siz
     arguments,
     first<host_number_of_events_t>(arguments) * 2 * Muon::Constants::n_stations * Muon::Constants::n_regions *
       Muon::Constants::n_quarters);
+  set_size<dev_muon_tile_used_t>(arguments, first<host_muon_total_number_of_tiles_t>(arguments));
+  set_size<dev_station_ocurrences_sizes_t>(
+    arguments, first<host_number_of_events_t>(arguments) * Muon::Constants::n_stations);
 }
 
 void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
@@ -198,13 +271,19 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
   Allen::memset_async<dev_atomics_muon_t>(arguments, 0, context);
   Allen::memset_async<dev_storage_tile_id_t>(arguments, 0, context);
   Allen::memset_async<dev_storage_tdc_value_t>(arguments, 0, context);
+  Allen::memset_async<dev_muon_tile_used_t>(arguments, 0, context);
+  Allen::memset_async<dev_station_ocurrences_sizes_t>(arguments, 0, context);
 
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version < 0) return; // no Muon banks present in data
-  auto kernel_fn = bank_version == 2 ? (runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<2, true> :
+  auto populate_tile_and_tdc_kernel = bank_version == 2 ? (runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<2, true> :
                                                                      muon_populate_tile_and_tdc_kernel<2, false>) :
                                        (runtime_options.mep_layout ? muon_populate_tile_and_tdc_kernel<3, true> :
                                                                      muon_populate_tile_and_tdc_kernel<3, false>);
 
-  global_function(kernel_fn)(size<dev_event_list_t>(arguments), dim3(64, 4), context)(arguments);
+  global_function(populate_tile_and_tdc_kernel)(size<dev_event_list_t>(arguments), dim3(64, 4), context)(arguments);
+
+  auto calculate_station_ocurrences_kernel = bank_version == 2 ? muon_calculate_station_ocurrences_sizes<2> : muon_calculate_station_ocurrences_sizes<3>;
+
+  global_function(calculate_station_ocurrences_kernel)(dim3(size<dev_event_list_t>(arguments)), dim3(64), context)(arguments);
 }
