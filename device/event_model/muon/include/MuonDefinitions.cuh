@@ -42,9 +42,6 @@ namespace Muon {
     /*Muon Catboost model uses 5 features for each station: Delta time, Time, Crossed, X residual, Y residual*/
     static constexpr unsigned n_catboost_features = 5 * n_stations;
 
-    // Safe margin to account for hit crossings
-    static constexpr unsigned compact_hit_allocate_factor = 2;
-
     // Number of layouts
     static constexpr unsigned n_layouts = 2;
 

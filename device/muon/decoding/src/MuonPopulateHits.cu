@@ -48,8 +48,7 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
                                                               Muon::Constants::n_quarters;
   const auto event_offset_tiles = storage_station_region_quarter_offsets[0];
 
-  const auto muon_compact_hit =
-    parameters.dev_muon_compact_hit + Muon::Constants::compact_hit_allocate_factor * event_offset_tiles;
+  auto muon_compact_hit = parameters.dev_muon_compact_hit + event_offset_hits;
   const auto storage_tile_id = parameters.dev_storage_tile_id + event_offset_tiles;
   const auto storage_tdc_value = parameters.dev_storage_tdc_value + event_offset_tiles;
 

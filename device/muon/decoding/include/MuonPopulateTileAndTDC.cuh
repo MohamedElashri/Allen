@@ -23,6 +23,8 @@ namespace muon_populate_tile_and_tdc {
     DEVICE_OUTPUT(dev_storage_tile_id_t, unsigned) dev_storage_tile_id;
     DEVICE_OUTPUT(dev_storage_tdc_value_t, unsigned) dev_storage_tdc_value;
     DEVICE_OUTPUT(dev_atomics_muon_t, unsigned) dev_atomics_muon;
+    DEVICE_OUTPUT(dev_muon_tile_used_t, bool) dev_muon_tile_used;
+    DEVICE_OUTPUT(dev_station_ocurrences_sizes_t, unsigned) dev_station_ocurrences_sizes;
   };
 
   struct muon_populate_tile_and_tdc_t : public DeviceAlgorithm, Parameters {
