@@ -52,11 +52,7 @@ epyc7502:
   extends:
     - .epyc7502
     - .run_job
-epyc7502-run-changes:
-  extends:
-    - .epyc7502
-    - .run_toggle_run_changes
-  stage: run
+
   
 .device-jobs:
   dependencies:
@@ -84,7 +80,6 @@ run-changes:
     - .test_run_changes
     - .default_rules_always_run
   dependencies:
-    - epyc7502-run-changes
     - a5000-run-changes
 
 
