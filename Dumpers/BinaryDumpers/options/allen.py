@@ -105,7 +105,7 @@ parser.add_argument(
     dest="runtime",
     type=int,
     default=300,
-    help="How long to run when reusing MEPs",
+    help="How long to run when reusing MEPs [s]",
 )
 parser.add_argument(
     "--tags", dest="tags", default="dddb-20171122,sim-20180530-vc-md100")

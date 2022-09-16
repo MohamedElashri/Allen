@@ -666,13 +666,23 @@ int allen(
     }
   };
 
+  // Start monitoring aggregation in a synchronised way
+  if (!error_count) {
+    for (auto& worker : agg_workers) {
+      zmqSvc->send(std::get<1>(worker), "START");
+      zmqSvc->receive<bool>(std::get<1>(worker));
+    }
+  }
+
   if (!allen_control && !error_count) {
+    // Start InputProvider
     for (size_t i = 0; i < n_input; ++i) {
       auto& socket = std::get<1>(io_workers[i]);
       zmqSvc->send(socket, "START");
     }
   }
   else if (allen_control) {
+    // Tell steering process we're ready
     zmqSvc->send(*allen_control, (error_count ? "ERROR" : "READY"));
   }
 
