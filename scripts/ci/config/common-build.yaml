@@ -20,7 +20,7 @@
           - "x86_64_v3-centos7-clang12"
         LCG_OPTIMIZATION: [opt, dbg]
         OPTIONS:
-          - BUILD_TESTING+ENABLE_CONTRACTS
+          - BUILD_TESTING+ENABLE_CONTRACTS+MALLOC_ENGINE=MULTI_ALLOC
 
       # debug builds with GCC, Clang with various additional cmake options
       - LCG_SYSTEM:
