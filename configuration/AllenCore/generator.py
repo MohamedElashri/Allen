@@ -14,6 +14,16 @@ from AllenCore.AllenSequenceGenerator import generate_allen_sequence
 from AllenCore.allen_benchmarks import benchmark_weights, benchmark_efficiencies
 from AllenAlgorithms.algorithms import host_init_event_list_t
 from PyConf.components import Algorithm
+from PyConf.filecontent_metadata import key_registry
+import contextlib
+
+@contextlib.contextmanager
+def flush_key_registry():
+    try:
+        yield
+    finally:
+        key_registry.flush_to_git()
+
 
 
 def make_algorithm(alg_type, name, **kwargs):
@@ -58,17 +68,19 @@ def initialize_event_lists(**kwargs):
 
 def generate(root):
     """Generates an Allen sequence out of a root node."""
-    best_order, score = get_execution_list_for(root)
-    final_seq = add_event_list_combiners(best_order)
 
-    print("Generated sequence represented as algorithms with execution masks:")
-    for alg, mask_in in final_seq:
-        if mask_in == None:
-            mask_in_str = ""
-        elif isinstance(mask_in, Algorithm):
-            mask_in_str = f" in:{str(mask_in).split('/')[1]}"
-        elif isinstance(mask_in, BoolNode):
-            mask_in_str = f" in:{mask_in}"
-        print(f"  {alg}{mask_in_str}")
+    with flush_key_registry() :
+        best_order, score = get_execution_list_for(root)
+        final_seq = add_event_list_combiners(best_order)
 
-    return generate_allen_sequence([alg for (alg, _) in final_seq])
+        print("Generated sequence represented as algorithms with execution masks:")
+        for alg, mask_in in final_seq:
+            if mask_in == None:
+                mask_in_str = ""
+            elif isinstance(mask_in, Algorithm):
+                mask_in_str = f" in:{str(mask_in).split('/')[1]}"
+            elif isinstance(mask_in, BoolNode):
+                mask_in_str = f" in:{mask_in}"
+            print(f"  {alg}{mask_in_str}")
+
+        return generate_allen_sequence([alg for (alg, _) in final_seq])
