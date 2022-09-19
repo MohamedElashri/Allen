@@ -26,7 +26,8 @@ void host_ut_gec::host_ut_gec_t::operator()(
   const Allen::Context& context) const
 {
   // Do the host global event cut
-  host_function(runtime_options.mep_layout ? host_ut_gec<true> : host_ut_gec<false>)(arguments);
+  host_function(runtime_options.mep_layout ? host_ut_gec<true> : host_ut_gec<false>)(
+    arguments, std::get<0>(runtime_options.event_interval));
 
   // Reduce the size of the event lists to the selected events
   reduce_size<host_output_event_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));

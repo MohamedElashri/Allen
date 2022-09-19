@@ -16,6 +16,7 @@ INSTANTIATE_ALGORITHM(scifi_calculate_cluster_count::scifi_calculate_cluster_cou
 template<int decoding_version, bool mep_layout>
 __global__ void scifi_calculate_cluster_count_kernel(
   scifi_calculate_cluster_count::Parameters parameters,
+  const unsigned event_start,
   const char* scifi_geometry)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -24,7 +25,7 @@ __global__ void scifi_calculate_cluster_count_kernel(
     parameters.dev_scifi_raw_input,
     parameters.dev_scifi_raw_input_offsets,
     parameters.dev_scifi_raw_input_sizes,
-    event_number);
+    event_number + event_start);
   const SciFi::SciFiGeometry geom(scifi_geometry);
   SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
   for (unsigned iRawBank = threadIdx.x; iRawBank < scifi_raw_event.number_of_raw_banks(); iRawBank += blockDim.x) {
@@ -169,5 +170,5 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
                                                    global_function(scifi_calculate_cluster_count_kernel<8, false>));
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, constants.dev_scifi_geometry);
+    arguments, std::get<0>(runtime_options.event_interval), constants.dev_scifi_geometry);
 }

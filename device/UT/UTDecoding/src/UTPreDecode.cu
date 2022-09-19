@@ -38,6 +38,7 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
 
   fun(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
+    std::get<0>(runtime_options.event_interval),
     constants.dev_ut_boards,
     constants.dev_ut_geometry.data(),
     constants.dev_ut_region_offsets.data(),
@@ -245,6 +246,7 @@ __device__ void pre_decode_raw_bank<4>(
 template<int decoding_version, bool mep>
 __global__ void ut_pre_decode::ut_pre_decode(
   ut_pre_decode::Parameters parameters,
+  const unsigned event_start,
   const char* ut_boards,
   const char* ut_geometry,
   const unsigned* dev_ut_region_offsets,
@@ -264,8 +266,10 @@ __global__ void ut_pre_decode::ut_pre_decode(
   const UTGeometry geometry(ut_geometry);
   const UTBoards boards(ut_boards);
 
-  const UTRawEvent<mep> raw_event {
-    parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, parameters.dev_ut_raw_input_sizes, event_number};
+  const UTRawEvent<mep> raw_event {parameters.dev_ut_raw_input,
+                                   parameters.dev_ut_raw_input_offsets,
+                                   parameters.dev_ut_raw_input_sizes,
+                                   event_number + event_start};
   for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks();
        raw_bank_index += blockDim.x)
     pre_decode_raw_bank(

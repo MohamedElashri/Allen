@@ -36,6 +36,7 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
                                                                global_function(ut_calculate_number_of_hits<3, false>));
   fun(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
+    std::get<0>(runtime_options.event_interval),
     constants.dev_ut_boards,
     constants.dev_ut_region_offsets.data(),
     constants.dev_unique_x_sector_layer_offsets.data(),
@@ -123,6 +124,7 @@ __device__ void calculate_number_of_hits<4>(
 template<int decoding_version, bool mep>
 __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   ut_calculate_number_of_hits::Parameters parameters,
+  const unsigned event_start,
   const char* ut_boards,
   const unsigned* dev_ut_region_offsets,
   const unsigned* dev_unique_x_sector_layer_offsets,
@@ -133,8 +135,10 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   uint32_t* hit_offsets = parameters.dev_ut_hit_sizes + event_number * number_of_unique_x_sectors;
   const UTBoards boards {ut_boards};
-  const UTRawEvent<mep> raw_event {
-    parameters.dev_ut_raw_input, parameters.dev_ut_raw_input_offsets, parameters.dev_ut_raw_input_sizes, event_number};
+  const UTRawEvent<mep> raw_event {parameters.dev_ut_raw_input,
+                                   parameters.dev_ut_raw_input_offsets,
+                                   parameters.dev_ut_raw_input_sizes,
+                                   event_number + event_start};
   for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks();
        raw_bank_index += blockDim.x) {
     UTRawBank<decoding_version> bank = raw_event.template raw_bank<decoding_version>(raw_bank_index);

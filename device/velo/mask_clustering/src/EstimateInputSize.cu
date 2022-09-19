@@ -212,18 +212,23 @@ __device__ void estimate_raw_bank_size(
 }
 
 template<int decoding_version, bool mep_layout>
-__global__ void velo_estimate_input_size_kernel(velo_estimate_input_size::Parameters parameters)
+__global__ void velo_estimate_input_size_kernel(
+  velo_estimate_input_size::Parameters parameters,
+  unsigned const event_start)
 {
   const auto event_number = parameters.dev_event_list[blockIdx.x];
   unsigned* estimated_input_size = parameters.dev_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
   unsigned* event_candidate_num = parameters.dev_module_candidate_num + event_number;
   uint32_t* cluster_candidates = parameters.dev_cluster_candidates + parameters.dev_candidates_offsets[event_number];
 
+  // The event number is with respect to the start of the batch, but
+  // the raw data is not organised like that, so the event start is
+  // needed.
   const auto velo_raw_event = Velo::RawEvent<decoding_version, mep_layout> {parameters.dev_velo_raw_input,
                                                                             parameters.dev_velo_raw_input_offsets,
                                                                             parameters.dev_velo_raw_input_sizes,
                                                                             parameters.dev_velo_raw_input_types,
-                                                                            event_number};
+                                                                            event_number + event_start};
   for (unsigned raw_bank_number = threadIdx.y; raw_bank_number < velo_raw_event.number_of_raw_banks();
        raw_bank_number += blockDim.y) {
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
@@ -273,5 +278,6 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
                      (runtime_options.mep_layout ? global_function(velo_estimate_input_size_kernel<4, true>) :
                                                    global_function(velo_estimate_input_size_kernel<4, false>));
 
-  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    arguments, std::get<0>(runtime_options.event_interval));
 }

@@ -28,7 +28,7 @@ namespace host_scifi_gec {
 
   // Templated GEC on the MEP layout
   template<bool mep_layout = true>
-  void host_scifi_gec(host_scifi_gec::Parameters parameters)
+  void host_scifi_gec(host_scifi_gec::Parameters parameters, unsigned const event_start)
   {
     auto const scifi_offsets = *parameters.scifi_offsets;
     auto const scifi_sizes = *parameters.scifi_sizes;
@@ -36,7 +36,7 @@ namespace host_scifi_gec {
 
     unsigned size_of_list = 0;
     for (unsigned event_index = 0; event_index < parameters.host_number_of_events[0]; ++event_index) {
-      unsigned event_number = event_index;
+      unsigned event_number = event_start + event_index;
 
       // Check SciFi clusters
       unsigned n_SciFi_clusters = 0;
@@ -57,7 +57,7 @@ namespace host_scifi_gec {
       n_SciFi_clusters = (n_SciFi_clusters / 2) - 2;
 
       if (n_SciFi_clusters <= parameters.max_clusters && n_SciFi_clusters >= parameters.min_clusters) {
-        parameters.host_output_event_list[size_of_list++] = event_number;
+        parameters.host_output_event_list[size_of_list++] = event_index;
       }
     }
     parameters.host_number_of_selected_events[0] = size_of_list;

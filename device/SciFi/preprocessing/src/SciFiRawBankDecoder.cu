@@ -47,7 +47,10 @@ __device__ void make_cluster(
 }
 
 template<int decoding_version, bool mep_layout>
-__global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters parameters, const char* scifi_geometry)
+__global__ void scifi_raw_bank_decoder_kernel(
+  scifi_raw_bank_decoder::Parameters parameters,
+  const unsigned event_start,
+  const char* scifi_geometry)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -57,7 +60,7 @@ __global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters
     parameters.dev_scifi_raw_input,
     parameters.dev_scifi_raw_input_offsets,
     parameters.dev_scifi_raw_input_sizes,
-    event_number);
+    event_number + event_start);
 
   SciFi::Hits hits {parameters.dev_scifi_hits,
                     parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
@@ -197,5 +200,5 @@ void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::operator()(
                                                    global_function(scifi_raw_bank_decoder_kernel<8, false>));
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, constants.dev_scifi_geometry);
+    arguments, std::get<0>(runtime_options.event_interval), constants.dev_scifi_geometry);
 }

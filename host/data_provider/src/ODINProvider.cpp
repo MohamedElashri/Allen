@@ -37,6 +37,7 @@ void odin_provider::odin_provider_t::operator()(
   using namespace std::string_literals;
 
   auto bno = runtime_options.input_provider->banks(BankTypes::ODIN, runtime_options.slice_index);
+  const unsigned event_start = std::get<0>(runtime_options.event_interval);
 
   auto const& blocks = bno.fragments;
   auto const* sizes = bno.sizes.data();
@@ -49,8 +50,9 @@ void odin_provider::odin_provider_t::operator()(
   }
 
   for (unsigned event = 0; event < first<host_number_of_events_t>(arguments); ++event) {
-    auto const event_odin = mep_layout ? odin_bank<true>(blocks[0].data(), offsets, sizes, event) :
-                                         odin_bank<false>(blocks[0].data(), offsets, sizes, event);
+    // blocks[0].data works because there is only ever a single ODIN bank
+    auto const event_odin = mep_layout ? odin_bank<true>(blocks[0].data(), offsets, sizes, event + event_start) :
+                                         odin_bank<false>(blocks[0].data(), offsets, sizes, event + event_start);
     auto* output = data<host_odin_data_t>(arguments) + event;
     if (version == 6) {
       *output = LHCb::ODIN::from_version<6>({event_odin.data, event_odin.size}).data;
@@ -65,7 +67,7 @@ void odin_provider::odin_provider_t::operator()(
   auto buffer = make_host_buffer<unsigned>(arguments, first<host_number_of_events_t>(arguments));
   unsigned size_of_list = 0;
   for (unsigned event_number = 0; event_number < first<host_number_of_events_t>(arguments); ++event_number) {
-    if (event_mask_odin[event_number] == 1) {
+    if (event_mask_odin[event_number + event_start] == 1) {
       buffer[size_of_list++] = event_number;
     }
   }

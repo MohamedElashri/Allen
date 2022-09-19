@@ -161,6 +161,7 @@ __device__ void populate_sorting_key(
 template<int decoding_version, bool mep_layout>
 __global__ void velo_calculate_sorting_key(
   decode_retinaclusters::Parameters parameters,
+  const unsigned event_start,
   const VeloGeometry* dev_velo_geometry,
   unsigned* dev_module_pair_zero_cluster_num)
 {
@@ -191,7 +192,7 @@ __global__ void velo_calculate_sorting_key(
                                                   parameters.dev_velo_retina_raw_input_offsets,
                                                   parameters.dev_velo_retina_raw_input_sizes,
                                                   parameters.dev_velo_retina_raw_input_types,
-                                                  event_number};
+                                                  event_number + event_start};
 
   // Populate retina clusters
   const auto event_clusters_offset = sensor_pair_offsets[0];
@@ -308,6 +309,7 @@ __device__ void populate_retinacluster(
 template<int decoding_version, bool mep_layout>
 __global__ void decode_retinaclusters_sorted(
   decode_retinaclusters::Parameters parameters,
+  const unsigned event_start,
   const VeloGeometry* dev_velo_geometry)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -352,7 +354,7 @@ __global__ void decode_retinaclusters_sorted(
                                                   parameters.dev_velo_retina_raw_input_offsets,
                                                   parameters.dev_velo_retina_raw_input_sizes,
                                                   parameters.dev_velo_retina_raw_input_types,
-                                                  event_number};
+                                                  event_number + event_start};
 
   // Populate retina clusters
   const auto event_clusters_offset = sensor_pair_offsets[0];
@@ -467,7 +469,10 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
                                                     global_function(velo_calculate_sorting_key<4, false>));
 
   kernel_fn1(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_calculate_key_t>().get(), context)(
-    arguments, constants.dev_velo_geometry, dev_module_zero_cluster_num.data());
+    arguments,
+    std::get<0>(runtime_options.event_interval),
+    constants.dev_velo_geometry,
+    dev_module_zero_cluster_num.data());
 
   global_function(runtime_options.mep_layout ? velo_calculate_permutations<true> : velo_calculate_permutations<false>)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_calculate_permutations_t>(), context)(
@@ -483,7 +488,7 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
                                                     global_function(decode_retinaclusters_sorted<4, false>));
 
   kernel_fn3(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_decode_retina_t>().get(), context)(
-    arguments, constants.dev_velo_geometry);
+    arguments, std::get<0>(runtime_options.event_interval), constants.dev_velo_geometry);
 
   if (property<verbosity_t>() >= logger::debug) {
     info_cout << "VELO clusters after decode_retina_clusters:\n";
