@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import initialize_number_of_events, mep_layout, gec
+from AllenConf.utils import initialize_number_of_events, mep_layout, make_gec
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_calibration_lines import make_passthrough_line, make_rich_1_line, make_rich_2_line
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_beam_gas_line
@@ -20,7 +20,7 @@ def make_line_composite_node_with_gec(line_name,
                                       line_algorithm,
                                       gec_name="gec"):
     return CompositeNode(
-        line_name, [gec(name=gec_name), line_algorithm],
+        line_name, [make_gec(gec_name), line_algorithm],
         NodeLogic.LAZY_AND,
         force_order=True)
 
@@ -78,7 +78,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
         line_maker(
             "Hlt1ODINLumi",
             make_odin_event_type_line(
-                odin_event_type=0x8,
+                odin_event_type='Lumi',
                 pre_scaler_hash_string="odin_lumi_line_pre",
                 post_scaler_hash_string="odin_lumi_line_post"),
             enableGEC=False))
@@ -86,7 +86,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
         line_maker(
             "Hlt1ODINNoBias",
             make_odin_event_type_line(
-                odin_event_type=0x4,
+                odin_event_type='NoBias',
                 pre_scaler_hash_string="odin_no_bias_pre",
                 post_scaler_hash_string="odin_no_bias_post"),
             enableGEC=False))
@@ -155,7 +155,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
     calo_decoding = decode_calo()
 
     lines = default_lines(reconstructed_objects["velo_tracks"],
-                          reconstructed_objects["forward_tracks"],
+                          reconstructed_objects["long_tracks"],
                           reconstructed_objects["long_track_particles"],
                           reconstructed_objects["velo_states"], calo_decoding,
                           reconstructed_objects["pvs"])
@@ -175,7 +175,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
             rate_validation(lines=line_algorithms),
             *make_sel_report_writer(
                 lines=line_algorithms,
-                forward_tracks=reconstructed_objects["long_track_particles"],
+                long_tracks=reconstructed_objects["long_track_particles"],
                 secondary_vertices=reconstructed_objects["secondary_vertices"])
             ["algorithms"],
         ],
