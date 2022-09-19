@@ -371,24 +371,38 @@ void run_aggregation(
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
 
   Timer t;
+  bool started = false;
 
   while (true) {
     // Run timer to attempt to keep aggregation out of sync with any sinks
     t.restart();
 
-    // Run the aggregator and printer
-    if (aggregator) aggregator->process();
-    if (printer) printer->process();
-
-    // Check for signal to terminate
-    // Otherwise continue processing
-    if (zmqSvc->poll(&items[0], 1, 0) > 0) {
+    // Check for signal to start, explictly aggregate or terminate and
+    // otherwise continue processing
+    if (zmqSvc->poll(&items[0], 1, started ? 0 : -1) > 0) {
       if (items[0].revents & zmq::POLLIN) {
         auto msg = zmqSvc->receive<std::string>(control);
-        if (msg == "DONE") {
+        if (msg == "START") {
+          if (aggregator) aggregator->start();
+          zmqSvc->send(control, true);
+          started = true;
+        }
+        else if (msg == "AGGREGATE") {
+          // Run the aggregator and printer
+          if (aggregator) aggregator->process();
+          if (printer) printer->process();
+          zmqSvc->send(control, true);
+        }
+        else if (msg == "DONE") {
+          started = false;
           break;
         }
       }
+    }
+    else {
+      // Run the aggregator and printer
+      if (aggregator) aggregator->process();
+      if (printer) printer->process();
     }
 
     // Sleep

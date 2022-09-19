@@ -27,6 +27,7 @@
 
 #ifdef ALLEN_STANDALONE
 struct MonitoringAggregator {
+  void start() {}
   void process() {}
 };
 #else
@@ -38,7 +39,7 @@ struct MonitoringAggregator : public Gaudi::Monitoring::Hub::Sink {
     std::deque<Entity> sources;
   };
 
-  virtual void registerEntity(Entity ent) override { m_incoming_entities.push(ent); }
+  virtual void registerEntity(Entity ent) override { m_incoming_entities.push_back(ent); }
 
   virtual void removeEntity(Entity const& ent) override
   {
@@ -69,44 +70,37 @@ struct MonitoringAggregator : public Gaudi::Monitoring::Hub::Sink {
 
   virtual ~MonitoringAggregator() {}
 
-  void process()
+  void start()
   {
-    for (auto agg : m_aggregations) {
-      for (auto it = agg.second.sources.begin() + 1; it != agg.second.sources.end(); ++it) {
-        agg.second.sources.front().mergeAndReset(*it);
+    for (auto const& ent : m_incoming_entities) {
+
+      auto idStr = ent.type + ":" + ent.component + ":" + ent.name;
+      debug_cout << "DEBUG in MonitoringAggregator::registerEntity : Registering entity " << idStr << std::endl;
+
+      auto it = m_aggregations.find(idStr);
+      if (it != m_aggregations.end()) {
+        auto& aggregation = it->second;
+        aggregation.sources.push_back(ent);
+      }
+      else {
+        m_aggregations[idStr].sources.push_back(ent);
+        m_hub->registerEntity(ent);
       }
     }
+    m_incoming_entities.clear();
+  }
 
-    // Now check for incoming entities
-    while (m_number_incoming_to_process > 0) {
-      processNextIncomingEntity();
-      --m_number_incoming_to_process;
+  void process()
+  {
+    for (auto& [i, agg] : m_aggregations) {
+      for (auto it = agg.sources.begin() + 1; it != agg.sources.end(); ++it) {
+        agg.sources.front().mergeAndReset(*it);
+      }
     }
-    m_number_incoming_to_process = m_incoming_entities.size();
   }
 
 private:
-  void processNextIncomingEntity()
-  {
-    auto ent = m_incoming_entities.front();
-
-    auto idStr = ent.type + ":" + ent.component + ":" + ent.name;
-    debug_cout << "DEBUG in MonitoringAggregator::registerEntity : Registering entity " << idStr << std::endl;
-
-    auto it = m_aggregations.find(idStr);
-    if (it != m_aggregations.end()) {
-      auto aggregation = (*it).second;
-      aggregation.sources.push_back(ent);
-    }
-    else {
-      m_aggregations[idStr].sources.push_back(ent);
-      m_hub->registerEntity(ent);
-    }
-    m_incoming_entities.pop();
-  }
-
-  std::queue<Entity> m_incoming_entities;
-  unsigned int m_number_incoming_to_process {0};
+  std::deque<Entity> m_incoming_entities;
 
   std::map<std::string, Aggregation> m_aggregations;
 
