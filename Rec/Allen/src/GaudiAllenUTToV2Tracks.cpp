@@ -67,7 +67,7 @@ GaudiAllenUTToV2Tracks::GaudiAllenUTToV2Tracks(const std::string& name, ISvcLoca
     pSvcLocator,
     // Inputs
     {KeyValue {"offsets_all_velo_tracks", ""},
-     KeyValue {"velo_track_hit_number", ""},
+     KeyValue {"offsets_velo_track_hit_number", ""},
      KeyValue {"velo_track_hits", ""},
      KeyValue {"velo_kalman_beamline_states", ""},
      KeyValue {"velo_kalman_endvelo_states", ""},
@@ -82,7 +82,7 @@ GaudiAllenUTToV2Tracks::GaudiAllenUTToV2Tracks(const std::string& name, ISvcLoca
 
 std::vector<LHCb::Event::v2::Track> GaudiAllenUTToV2Tracks::operator()(
   const std::vector<unsigned>& offsets_all_velo_tracks,
-  const std::vector<unsigned>& velo_track_hit_number,
+  const std::vector<unsigned>& offsets_velo_track_hit_number,
   const std::vector<char>& velo_track_hits,
   const std::vector<char>& velo_kalman_beamline_states,
   const std::vector<char>& velo_kalman_endvelo_states,
@@ -98,7 +98,7 @@ std::vector<LHCb::Event::v2::Track> GaudiAllenUTToV2Tracks::operator()(
   const unsigned number_of_events = 1;
 
   const Velo::Consolidated::Tracks velo_tracks {
-    offsets_all_velo_tracks.data(), velo_track_hit_number.data(), i_event, number_of_events};
+    offsets_all_velo_tracks.data(), offsets_velo_track_hit_number.data(), i_event, number_of_events};
   const Velo::Consolidated::ConstStates velo_beamline_states(
     velo_kalman_beamline_states.data(), velo_tracks.total_number_of_tracks());
   const Velo::Consolidated::ConstStates velo_endvelo_states(
