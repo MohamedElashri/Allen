@@ -27,10 +27,10 @@ Clones               :  0.000 (     0/  5507)
 
 
 long_validator validation:
-TrackChecker output                               :      1493/    20678   7.22% ghosts
-for P>3GeV,Pt>0.5GeV                              :      1493/    20678   7.22% ghosts
-01_long                                           :     18285/    68385  26.74% ( 27.22%),       155 (  0.84%) clones, pur  99.71%, hit eff  98.52%
-02_long_P>5GeV                                    :     18180/    47620  38.18% ( 38.67%),       154 (  0.84%) clones, pur  99.71%, hit eff  98.54%
+TrackChecker output                               :      1493/    20680   7.22% ghosts
+for P>3GeV,Pt>0.5GeV                              :      1493/    20680   7.22% ghosts
+01_long                                           :     18287/    68385  26.74% ( 27.22%),       155 (  0.84%) clones, pur  99.71%, hit eff  98.52%
+02_long_P>5GeV                                    :     18182/    47620  38.18% ( 38.67%),       154 (  0.84%) clones, pur  99.71%, hit eff  98.53%
 03_long_strange                                   :       249/     3579   6.96% (  6.50%),         3 (  1.19%) clones, pur  99.57%, hit eff  97.99%
 04_long_strange_P>5GeV                            :       248/     1710  14.50% ( 14.29%),         3 (  1.20%) clones, pur  99.60%, hit eff  98.05%
 05_long_fromB                                     :      2514/     4705  53.43% ( 56.58%),        19 (  0.75%) clones, pur  99.71%, hit eff  99.01%
@@ -51,11 +51,11 @@ long_fromB_P>5GeV_AND_Pt>1GeV                     :      2260/     2487  90.87% 
 
 muon_validator validation:
 Muon fraction in all MCPs:                                              13578/  1005942   0.01% 
-Muon fraction in MCPs to which a track(s) was matched:                    175/    22498   0.01% 
+Muon fraction in MCPs to which a track(s) was matched:                    175/    22500   0.01% 
 Correctly identified muons with isMuon:                                   161/      175  92.00% 
 Correctly identified muons from strange decays with isMuon:                 0/        0   -nan% 
 Correctly identified muons from B decays with isMuon:                      56/       60  93.33% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:      1065/    22323   4.77% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:      1065/    22325   4.77% 
 Ghost tracks identified as muon with isMuon:                               37/     1493   2.48% 
 
 
