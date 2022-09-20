@@ -103,8 +103,7 @@ __global__ void scifi_raw_bank_decoder_kernel(
       const int condition = (cluster_reference >> 13) & 0x07; // FIXME
       uint8_t pseudoSize = 4;
 
-      //      assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding
-      //      mismatch.");
+      assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
 
       if (condition == 0x02) {
         pseudoSize = 0;
@@ -136,8 +135,7 @@ __global__ void scifi_raw_bank_decoder_kernel(
       const int condition = (cluster_reference >> 13) & 0x07; // FIXME
       uint8_t pseudoSize = 4;
 
-      //      assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding
-      //      mismatch.");
+      assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
 
       if (condition == 0x02) {
         pseudoSize = 0;

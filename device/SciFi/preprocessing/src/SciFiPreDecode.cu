@@ -117,7 +117,8 @@ scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned 
 
       if ((int) correctedMat != last_uniqueMat) {
         if constexpr (decoding_version == 7 || decoding_version == 8) {
-          if (last_uniqueMat != -1) {
+          if (
+            last_uniqueMat != -1 && n_hits_in_mat[iMat] == hit_count.mat_group_or_mat_number_of_hits(last_uniqueMat)) {
             // array is small and already almost sorted, using an insertion sort is enough
             if (reversedZone) {
               insertionSort(parameters.dev_cluster_references + mat_offset, n_hits_in_mat[iMat], [&](uint32_t val) {
@@ -239,7 +240,7 @@ scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned 
       }
     }
     if constexpr (decoding_version == 7 || decoding_version == 8) {
-      if (last_uniqueMat != -1) {
+      if (last_uniqueMat != -1 && hit_count.mat_group_or_mat_number_of_hits(last_uniqueMat)) {
         // array is small and already almost sorted, using an insertion sort is enough
         if (reversedZone) {
           insertionSort(parameters.dev_cluster_references + mat_offset, n_hits_in_mat[iMat], [&](uint32_t val) {
