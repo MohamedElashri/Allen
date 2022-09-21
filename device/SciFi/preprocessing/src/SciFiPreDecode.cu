@@ -23,10 +23,10 @@ __device__ void store_sorted_cluster_reference(
   uint32_t hitIndex = mat_count++;
 
   const SciFi::SciFiChannelID id {chan};
+  assert(hitIndex < hit_count.mat_group_or_mat_number_of_hits(uniqueMat));
   if (id.reversedZone()) {
     hitIndex = hit_count.mat_group_or_mat_number_of_hits(uniqueMat) - 1 - hitIndex;
   }
-  assert(hitIndex < hit_count.mat_group_or_mat_number_of_hits(uniqueMat));
   assert(uniqueMat < SciFi::Constants::n_mat_groups_and_mats);
   hitIndex += mat_offset;
 
@@ -53,9 +53,10 @@ __global__ void scifi_pre_decode_kernel(
   scifi_pre_decode::Parameters parameters,
   const unsigned event_start,
   const char* scifi_geometry,
-  unsigned* n_hits_in_mat)
+  unsigned* n_hits_in_mat_all_evts)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  unsigned* n_hits_in_mat = n_hits_in_mat_all_evts + event_number * SciFi::Constants::max_corrected_mat;
 
   SciFi::SciFiGeometry geom(scifi_geometry);
   const auto scifi_raw_event = SciFi::RawEvent<mep_layout>(
@@ -113,7 +114,6 @@ __global__ void scifi_pre_decode_kernel(
         correctedMat = correctedMat / SciFi::Constants::n_mats_per_consec_raw_bank;
       else
         correctedMat = correctedMat - SciFi::Constants::mat_index_substract;
-
       if ((int) correctedMat != last_uniqueMat) {
         if constexpr (decoding_version == 7 || decoding_version == 8) {
           if (
@@ -282,8 +282,10 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
   // Mapping is:
   // * Version 4, version 5: Use v4 decoding
   // * Version 6: Use v6 decoding
-  auto n_hits_in_mat =
-    Allen::ArgumentOperations::make_device_buffer<unsigned>(arguments, SciFi::Constants::max_corrected_mat);
+  auto n_hits_in_mat = Allen::ArgumentOperations::make_device_buffer<unsigned>(
+    arguments, first<host_number_of_events_t>(arguments) * SciFi::Constants::max_corrected_mat);
+  Allen::memset_async(n_hits_in_mat.data(), 0, n_hits_in_mat.size() * sizeof(unsigned), context);
+
   auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
                      (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<4, true>) :
                                                    global_function(scifi_pre_decode_kernel<4, false>)) :
