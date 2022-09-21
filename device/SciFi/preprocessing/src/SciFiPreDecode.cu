@@ -2,6 +2,7 @@
  * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "SciFiPreDecode.cuh"
+#include "ArgumentOps.cuh"
 #include <MEPTools.h>
 #include "assert.h"
 
@@ -48,8 +49,11 @@ __device__ void insertionSort(uint32_t* arr, int n, F&& f)
 }
 
 template<int decoding_version, bool mep_layout>
-__global__ void
-scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned event_start, const char* scifi_geometry)
+__global__ void scifi_pre_decode_kernel(
+  scifi_pre_decode::Parameters parameters,
+  const unsigned event_start,
+  const char* scifi_geometry,
+  unsigned* n_hits_in_mat)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -83,12 +87,8 @@ scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned 
     if (
       (last - starting_it + 1) >
       SciFi::SciFiRawBankParams::nbClusMaximum * SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank)
-      continue;                                // Absurd number of clusters
-    constexpr unsigned max_mats_per_bank = 10; // FIXME: hardcoded, unreasonably large number
+      continue; // Absurd number of clusters
     const unsigned number_of_iterations = last - starting_it;
-    unsigned n_hits_in_mat[max_mats_per_bank] = {0};
-    unsigned found_mats[max_mats_per_bank] = {0};
-    unsigned iMat(0), nMats(0);
     int last_uniqueMat = -1;
     unsigned mat_offset = 0;
     [[maybe_unused]] bool reversedZone = false;
@@ -118,36 +118,28 @@ scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned 
       if ((int) correctedMat != last_uniqueMat) {
         if constexpr (decoding_version == 7 || decoding_version == 8) {
           if (
-            last_uniqueMat != -1 && n_hits_in_mat[iMat] == hit_count.mat_group_or_mat_number_of_hits(last_uniqueMat)) {
+            last_uniqueMat != -1 &&
+            n_hits_in_mat[correctedMat] == hit_count.mat_group_or_mat_number_of_hits(last_uniqueMat)) {
             // array is small and already almost sorted, using an insertion sort is enough
             if (reversedZone) {
-              insertionSort(parameters.dev_cluster_references + mat_offset, n_hits_in_mat[iMat], [&](uint32_t val) {
-                const uint16_t c = starting_it[((val >> 16) & 0xff)];
-                return -(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
-              });
+              insertionSort(
+                parameters.dev_cluster_references + mat_offset, n_hits_in_mat[correctedMat], [&](uint32_t val) {
+                  const uint16_t c = starting_it[((val >> 16) & 0xff)];
+                  return -(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
+                });
             }
             else {
-              insertionSort(parameters.dev_cluster_references + mat_offset, n_hits_in_mat[iMat], [&](uint32_t val) {
-                const uint16_t c = starting_it[((val >> 16) & 0xff)];
-                return (SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
-              });
+              insertionSort(
+                parameters.dev_cluster_references + mat_offset, n_hits_in_mat[correctedMat], [&](uint32_t val) {
+                  const uint16_t c = starting_it[((val >> 16) & 0xff)];
+                  return (SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
+                });
             }
           }
         }
         last_uniqueMat = correctedMat;
         mat_offset = *hit_count.mat_offsets_p(correctedMat);
         reversedZone = chid.reversedZone();
-        // Update n_hits_in_mats
-        for (iMat = 0; iMat < nMats; iMat++)
-          if (found_mats[iMat] == correctedMat) break;
-        if (iMat == nMats) {
-          nMats++;
-          found_mats[iMat] = correctedMat;
-          n_hits_in_mat[iMat] = 0;
-        }
-        assert(
-          nMats <= max_mats_per_bank &&
-          "Found too many mats per bank. This should never happen (look at the link map)");
       }
       const auto store_sorted_fn = [&](const int condition, const int delta) {
         store_sorted_cluster_reference(
@@ -155,7 +147,7 @@ scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned 
           correctedMat,
           ch,
           mat_offset,
-          n_hits_in_mat[iMat],
+          n_hits_in_mat[correctedMat],
           iRawBank,
           it_number,
           parameters.dev_cluster_references,
@@ -243,16 +235,18 @@ scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned 
       if (last_uniqueMat != -1 && hit_count.mat_group_or_mat_number_of_hits(last_uniqueMat)) {
         // array is small and already almost sorted, using an insertion sort is enough
         if (reversedZone) {
-          insertionSort(parameters.dev_cluster_references + mat_offset, n_hits_in_mat[iMat], [&](uint32_t val) {
-            const uint16_t c = starting_it[((val >> 16) & 0xff)];
-            return -(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
-          });
+          insertionSort(
+            parameters.dev_cluster_references + mat_offset, n_hits_in_mat[last_uniqueMat], [&](uint32_t val) {
+              const uint16_t c = starting_it[((val >> 16) & 0xff)];
+              return -(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
+            });
         }
         else {
-          insertionSort(parameters.dev_cluster_references + mat_offset, n_hits_in_mat[iMat], [&](uint32_t val) {
-            const uint16_t c = starting_it[((val >> 16) & 0xff)];
-            return (SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
-          });
+          insertionSort(
+            parameters.dev_cluster_references + mat_offset, n_hits_in_mat[last_uniqueMat], [&](uint32_t val) {
+              const uint16_t c = starting_it[((val >> 16) & 0xff)];
+              return (SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
+            });
         }
       }
     }
@@ -289,6 +283,7 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
   // Mapping is:
   // * Version 4, version 5: Use v4 decoding
   // * Version 6: Use v6 decoding
+  auto n_hits_in_mat = Allen::ArgumentOperations::make_device_buffer<unsigned>(arguments, 1024);
   auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
                      (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<4, true>) :
                                                    global_function(scifi_pre_decode_kernel<4, false>)) :
@@ -302,5 +297,5 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
                                                    global_function(scifi_pre_decode_kernel<8, false>));
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::SciFiRawBankParams::NbBanksMax), context)(
-    arguments, std::get<0>(runtime_options.event_interval), constants.dev_scifi_geometry);
+    arguments, std::get<0>(runtime_options.event_interval), constants.dev_scifi_geometry, n_hits_in_mat.data());
 }
