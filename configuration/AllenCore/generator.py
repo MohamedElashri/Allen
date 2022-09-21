@@ -14,16 +14,17 @@ from AllenCore.AllenSequenceGenerator import generate_allen_sequence
 from AllenCore.allen_benchmarks import benchmark_weights, benchmark_efficiencies
 from AllenAlgorithms.algorithms import host_init_event_list_t
 from PyConf.components import Algorithm
-from PyConf.filecontent_metadata import key_registry
+from PyConf.filecontent_metadata import flush_key_registry
+from os.path import exists
 import contextlib
 
-@contextlib.contextmanager
-def flush_key_registry():
-    try:
-        yield
-    finally:
-        key_registry.flush_to_git()
 
+def is_allen_standalone():
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option("--standalone", dest="standalone", default=0)
+    (options, _) = parser.parse_args()
+    return options.standalone == "1"
 
 
 def make_algorithm(alg_type, name, **kwargs):
@@ -68,7 +69,6 @@ def initialize_event_lists(**kwargs):
 
 def generate(root):
     """Generates an Allen sequence out of a root node."""
-
     with flush_key_registry() :
         best_order, score = get_execution_list_for(root)
         final_seq = add_event_list_combiners(best_order)
@@ -82,5 +82,4 @@ def generate(root):
             elif isinstance(mask_in, BoolNode):
                 mask_in_str = f" in:{mask_in}"
             print(f"  {alg}{mask_in_str}")
-
         return generate_allen_sequence([alg for (alg, _) in final_seq])

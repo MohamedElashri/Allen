@@ -14,12 +14,12 @@ from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
 from AllenConf.hlt1_photon_lines import make_bs2gammagamma_line
-from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer
+from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer, make_dec_reporter
 from AllenConf.validators import rate_validation, routingbits_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
-
 from AllenConf.lumi_reconstruction import lumi_reconstruction
+from AllenCore.generator import is_allen_standalone
 
 
 def default_physics_lines(velo_tracks, long_tracks, long_track_particles, pvs,

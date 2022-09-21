@@ -38,6 +38,10 @@ def get_constants():
     return ProvideConstants(ODINLocation=make_odin())
 
 
+def is_allen_standalone():
+    return False
+
+
 # Gaudi configuration wrapper
 def make_algorithm(algorithm, name, *args, **kwargs):
 
