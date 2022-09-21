@@ -135,7 +135,7 @@ def make_dec_reporter(lines, TCK=0):
         key = 0
     else:
         key = register_allen_encoding_table(lines)
-    
+
     return make_algorithm(
         dec_reporter_t,
         name="dec_reporter",
