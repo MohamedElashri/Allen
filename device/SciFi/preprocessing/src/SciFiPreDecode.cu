@@ -108,7 +108,6 @@ __global__ void scifi_pre_decode_kernel(
       }
       const auto chid = SciFi::SciFiChannelID(ch);
       uint32_t correctedMat = chid.globalMatIdx_Xorder();
-
       // adaptation to hybrid decoding
       if (correctedMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
         correctedMat = correctedMat / SciFi::Constants::n_mats_per_consec_raw_bank;
@@ -283,7 +282,8 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
   // Mapping is:
   // * Version 4, version 5: Use v4 decoding
   // * Version 6: Use v6 decoding
-  auto n_hits_in_mat = Allen::ArgumentOperations::make_device_buffer<unsigned>(arguments, 1024);
+  auto n_hits_in_mat =
+    Allen::ArgumentOperations::make_device_buffer<unsigned>(arguments, SciFi::Constants::max_corrected_mat);
   auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
                      (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<4, true>) :
                                                    global_function(scifi_pre_decode_kernel<4, false>)) :
