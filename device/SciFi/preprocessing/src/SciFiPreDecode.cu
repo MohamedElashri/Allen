@@ -282,7 +282,7 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
   // Mapping is:
   // * Version 4, version 5: Use v4 decoding
   // * Version 6: Use v6 decoding
-  auto n_hits_in_mat = Allen::ArgumentOperations::make_device_buffer<unsigned>(
+  auto n_hits_in_mat = make_device_buffer<unsigned>(
     arguments, first<host_number_of_events_t>(arguments) * SciFi::Constants::max_corrected_mat);
   Allen::memset_async(n_hits_in_mat.data(), 0, n_hits_in_mat.size() * sizeof(unsigned), context);
 
