@@ -110,7 +110,7 @@ __device__ inline void find_l0_l2_layers(
       }
       else {
         const auto shared_index = atomicAdd(shared_number_of_elements, number_of_pairs);
-        if (shared_index + number_of_pairs < maximum_number_of_triplets_per_warp) {
+        if (shared_index + number_of_pairs <= maximum_number_of_triplets_per_warp) {
           int n_found = 0;
           for (unsigned i = 0; i < found.size(); ++i) {
             if (found[i]) {
