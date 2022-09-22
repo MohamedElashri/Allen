@@ -2,7 +2,6 @@
  * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "SciFiPreDecode.cuh"
-#include "ArgumentOps.cuh"
 #include <MEPTools.h>
 #include "assert.h"
 
