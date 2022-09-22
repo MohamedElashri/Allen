@@ -295,7 +295,7 @@ public:
     auto const version = m_banks_version[ib];
 
     if (version == -1) {
-      BanksAndOffsets bno{};
+      BanksAndOffsets bno {};
       bno.version = version;
       return bno;
     }
