@@ -49,11 +49,11 @@ struct ProduceSingleParameter<
 template<typename ArgMan, typename T>
 struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<std::is_base_of_v<Allen::Store::aggregate_datatype, T>>> {
   constexpr static auto produce(
-    const ArgMan& arguments,
+    const ArgMan&,
     const std::map<std::string, Allen::BaseProperty*>&,
     const Allen::KernelInvocationConfiguration&)
   {
-    return arguments.template input_aggregate<T>();
+    return T{};
   }
 };
 

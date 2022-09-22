@@ -32,19 +32,13 @@ std::vector<std::string> split(const std::string& s, char delim)
 
 namespace gather_selections {
   __global__ void run_lines(
-    unsigned* line_fn_indices,
-    char** parameters,
-    bool* dev_decisions,
-    unsigned* dev_decisions_offsets,
-    Allen::IMultiEventContainer** dev_particle_container_ptr,
-    const ODINData* dev_odin_data,
+    gather_selections::Parameters params,
     const unsigned number_of_events,
-    const unsigned number_of_lines,
-    const unsigned* line_offsets)
+    const unsigned number_of_lines)
   {
     // Process each event with a different block
     // ODIN data
-    LHCb::ODIN odin {dev_odin_data[blockIdx.x]};
+    LHCb::ODIN odin {params.dev_odin_data[blockIdx.x]};
 
     const uint32_t run_no = odin.runNumber();
     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
@@ -54,34 +48,28 @@ namespace gather_selections {
 
     for (unsigned i = threadIdx.y; i < number_of_lines; i += blockDim.y) {
       invoke_line_functions(
-        line_fn_indices[i],
-        parameters[i],
-        dev_decisions + line_offsets[i],
-        dev_decisions_offsets + i * number_of_events,
-        dev_particle_container_ptr + i,
+        params.dev_fn_indices[i],
+        params.dev_fn_parameter_pointers[i],
+        params.dev_selections + params.dev_selections_lines_offsets[i],
+        params.dev_selections_offsets + i * number_of_events,
+        params.dev_particle_containers + i,
         run_no,
         evt_hi,
         evt_lo,
         gps_hi,
         gps_lo,
-        line_offsets[i],
+        params.dev_selections_lines_offsets[i],
         number_of_events);
     }
 
     if (blockIdx.x == 0 && threadIdx.x == 0 && threadIdx.y == 0) {
-      dev_decisions_offsets[number_of_lines * number_of_events] = line_offsets[number_of_lines];
+      params.dev_selections_offsets[number_of_lines * number_of_events] = params.dev_selections_lines_offsets[number_of_lines];
     }
   }
 
   __global__ void postscaler(
-    bool* dev_selections,
-    const unsigned* dev_selections_offsets,
-    const ODINData* dev_odin_data,
-    const float* scale_factors,
-    const uint32_t* scale_hashes,
+    gather_selections::Parameters params,
     const unsigned number_of_lines,
-    mask_t* dev_event_list_output,
-    unsigned* dev_event_list_output_size,
     bool* dev_decisions_per_event_line,
     bool* dev_postscaled_decisions_per_event_line)
   {
@@ -97,9 +85,9 @@ namespace gather_selections {
 
     __syncthreads();
 
-    Selections::Selections sels {dev_selections, dev_selections_offsets, number_of_events};
+    Selections::Selections sels {params.dev_selections, params.dev_selections_offsets, number_of_events};
 
-    LHCb::ODIN odin {dev_odin_data[event_number]};
+    LHCb::ODIN odin {params.dev_odin_data[event_number]};
 
     const uint32_t run_no = odin.runNumber();
     const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
@@ -118,7 +106,7 @@ namespace gather_selections {
       }
 
       deterministic_post_scaler(
-        scale_hashes[i], scale_factors[i], span.size(), span.data(), run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+        params.dev_post_scale_hashes[i], params.dev_post_scale_factors[i], span.size(), span.data(), run_no, evt_hi, evt_lo, gps_hi, gps_lo);
 
       for (unsigned j = 0; j < span.size(); ++j) {
         if (span[j]) {
@@ -132,8 +120,8 @@ namespace gather_selections {
     __syncthreads();
 
     if (threadIdx.x == 0 && event_decision) {
-      const auto index = atomicAdd(dev_event_list_output_size, 1);
-      dev_event_list_output[index] = mask_t {event_number};
+      const auto index = atomicAdd(params.dev_event_list_output_size.get(), 1);
+      params.dev_event_list_output[index] = mask_t {event_number};
     }
   }
 } // namespace gather_selections
@@ -260,15 +248,9 @@ void gather_selections::gather_selections_t::operator()(
   // * Run all selections in one go
   global_function(gather_selections::run_lines)(
     first<host_number_of_events_t>(arguments), dim3(warp_size, 256 / warp_size), context)(
-    data<dev_fn_indices_t>(arguments),
-    data<dev_fn_parameter_pointers_t>(arguments),
-    data<dev_selections_t>(arguments),
-    data<dev_selections_offsets_t>(arguments),
-    data<dev_particle_containers_t>(arguments),
-    data<dev_odin_data_t>(arguments),
+    arguments,
     first<host_number_of_events_t>(arguments),
-    first<host_number_of_active_lines_t>(arguments),
-    data<dev_selections_lines_offsets_t>(arguments));
+    first<host_number_of_active_lines_t>(arguments));
 
   // Run monitoring if configured
   for (unsigned i = 0; i < m_indices_active_line_algorithms.size(); ++i) {
@@ -307,14 +289,8 @@ void gather_selections::gather_selections_t::operator()(
 
   // Run the postscaler
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
-    data<dev_selections_t>(arguments),
-    data<dev_selections_offsets_t>(arguments),
-    data<dev_odin_data_t>(arguments),
-    data<dev_post_scale_factors_t>(arguments),
-    data<dev_post_scale_hashes_t>(arguments),
+    arguments,
     first<host_number_of_active_lines_t>(arguments),
-    data<dev_event_list_output_t>(arguments),
-    data<dev_event_list_output_size_t>(arguments),
     dev_decisions_per_event_line.data(),
     dev_postscaled_decisions_per_event_line.data());
 
