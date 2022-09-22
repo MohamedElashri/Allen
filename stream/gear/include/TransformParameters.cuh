@@ -53,7 +53,7 @@ struct ProduceSingleParameter<ArgMan, T, std::enable_if_t<std::is_base_of_v<Alle
     const std::map<std::string, Allen::BaseProperty*>&,
     const Allen::KernelInvocationConfiguration&)
   {
-    return T{};
+    return T {};
   }
 };
 

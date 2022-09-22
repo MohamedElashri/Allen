@@ -31,10 +31,8 @@ std::vector<std::string> split(const std::string& s, char delim)
 }
 
 namespace gather_selections {
-  __global__ void run_lines(
-    gather_selections::Parameters params,
-    const unsigned number_of_events,
-    const unsigned number_of_lines)
+  __global__ void
+  run_lines(gather_selections::Parameters params, const unsigned number_of_events, const unsigned number_of_lines)
   {
     // Process each event with a different block
     // ODIN data
@@ -63,7 +61,8 @@ namespace gather_selections {
     }
 
     if (blockIdx.x == 0 && threadIdx.x == 0 && threadIdx.y == 0) {
-      params.dev_selections_offsets[number_of_lines * number_of_events] = params.dev_selections_lines_offsets[number_of_lines];
+      params.dev_selections_offsets[number_of_lines * number_of_events] =
+        params.dev_selections_lines_offsets[number_of_lines];
     }
   }
 
@@ -106,7 +105,15 @@ namespace gather_selections {
       }
 
       deterministic_post_scaler(
-        params.dev_post_scale_hashes[i], params.dev_post_scale_factors[i], span.size(), span.data(), run_no, evt_hi, evt_lo, gps_hi, gps_lo);
+        params.dev_post_scale_hashes[i],
+        params.dev_post_scale_factors[i],
+        span.size(),
+        span.data(),
+        run_no,
+        evt_hi,
+        evt_lo,
+        gps_hi,
+        gps_lo);
 
       for (unsigned j = 0; j < span.size(); ++j) {
         if (span[j]) {
@@ -248,9 +255,7 @@ void gather_selections::gather_selections_t::operator()(
   // * Run all selections in one go
   global_function(gather_selections::run_lines)(
     first<host_number_of_events_t>(arguments), dim3(warp_size, 256 / warp_size), context)(
-    arguments,
-    first<host_number_of_events_t>(arguments),
-    first<host_number_of_active_lines_t>(arguments));
+    arguments, first<host_number_of_events_t>(arguments), first<host_number_of_active_lines_t>(arguments));
 
   // Run monitoring if configured
   for (unsigned i = 0; i < m_indices_active_line_algorithms.size(); ++i) {
