@@ -49,21 +49,21 @@ A run of the Allen program with the help option `-h` will let you know the basic
 Here are some examples for run options::
 
     # Run on an MDF input file shipped with Allen once
-    ./Allen --sequence hlt1_pp_default --mdf ../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf
+    ./toolchain/wrapper ./Allen --sequence hlt1_pp_default --mdf ../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf
 
     # Run a total of 1000 events once with validation
-    ./Allen --sequence hlt1_pp_validation -n 1000 --mdf /path/to/mdf/input/file
+    ./toolchain/wrapper ./Allen --sequence hlt1_pp_validation -n 1000 --mdf /path/to/mdf/input/file
 
     # Run four streams, each with 4000 events and 20 repetitions
-    ./Allen --sequence hlt1_pp_default -t 4 -n 4000 -r 20 --mdf /path/to/mdf/input/file
+    ./toolchain/wrapper ./Allen --sequence hlt1_pp_default -t 4 -n 4000 -r 20 --mdf /path/to/mdf/input/file
 
     # Run one stream with 5000 events and print all memory allocations
-    ./Allen --sequence hlt1_pp_default -n 5000 -p 1 --mdf /path/to/mdf/input/file
+    ./toolchain/wrapper ./Allen --sequence hlt1_pp_default -n 5000 -p 1 --mdf /path/to/mdf/input/file
 
     # Run on all events in all files listed in file.lst; four streams
     # with batches of 1000 events
     find /some/directory/with/files -type f | sort > files.lst
-    ./Allen --sequence hlt1_pp_default -t 4 --events-per-slice 1000 --mdf /path/to/files.lst
+    ./toolchain/wrapper ./Allen --sequence hlt1_pp_default -t 4 --events-per-slice 1000 --mdf /path/to/files.lst
 
 .. _run_allen_in_gaudi_moore_eventloop:
 
