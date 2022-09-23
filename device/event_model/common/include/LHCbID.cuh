@@ -32,18 +32,27 @@ namespace lhcb_id {
     Calo,
     Muon
   };
-  inline unsigned detector_type_lhcbid(const unsigned id)
+  __host__ __device__ inline unsigned detector_type_lhcbid(const unsigned id)
   {
     return (unsigned) ((id & lhcbIDMasks::detectorTypeMask) >> detectorTypeBits);
   }
-  inline unsigned set_detector_type_id(LHCbIDType t, const unsigned id)
+  __host__ __device__ inline unsigned set_detector_type_id(LHCbIDType t, const unsigned id)
   {
     return ((static_cast<unsigned int>(t) << detectorTypeBits) & detectorTypeMask) | (id & IDMask);
   }
 
-  inline bool is_velo(const unsigned id) { return detector_type_lhcbid(id) == (unsigned) LHCbIDType::VELO; }
+  __host__ __device__ inline bool is_velo(const unsigned id)
+  {
+    return detector_type_lhcbid(id) == (unsigned) LHCbIDType::VELO;
+  }
 
-  inline bool is_ut(const unsigned id) { return detector_type_lhcbid(id) == (unsigned) LHCbIDType::UT; }
+  __host__ __device__ inline bool is_ut(const unsigned id)
+  {
+    return detector_type_lhcbid(id) == (unsigned) LHCbIDType::UT;
+  }
 
-  inline bool is_scifi(const unsigned id) { return detector_type_lhcbid(id) == (unsigned) LHCbIDType::FT; }
+  __host__ __device__ inline bool is_scifi(const unsigned id)
+  {
+    return detector_type_lhcbid(id) == (unsigned) LHCbIDType::FT;
+  }
 } // namespace lhcb_id
