@@ -6,7 +6,7 @@ from AllenAlgorithms.algorithms import host_prefix_sum_t, make_selrep_t
 from AllenAlgorithms.algorithms import make_selected_object_lists_t, make_subbanks_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events
-from AllenCore.generator import make_algorithm
+from AllenCore.generator import make_algorithm, is_allen_standalone
 from PyConf.filecontent_metadata import register_encoding_dictionary
 from PyConf.tonic import configurable
 
@@ -130,7 +130,11 @@ def make_dec_reporter(lines, TCK=0):
     gather_selections = make_gather_selections(lines)
     number_of_events = initialize_number_of_events()
 
-    key = register_allen_encoding_table(lines)
+    # When in standalone, do not register keys in make dec reporter
+    if is_allen_standalone():
+        key = 0
+    else:
+        key = register_allen_encoding_table(lines)
 
     return make_algorithm(
         dec_reporter_t,
