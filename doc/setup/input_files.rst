@@ -35,17 +35,17 @@ For development purposes, MDF files can also be used when running as a Gaudi pro
 
 Produce MDF files for standalone Allen
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-MDF files for Allen standalone running are produced by running Moore. The MDF files will contain raw banks with the raw data from the sub-detectors and raw banks containing MC information about tracks and vertices required for the physics checks inside Allen.
-The easiest is to use as input files from the TestFileDB, then only the key has to be specified. The output will be located in a directory, whose name is the TestFileDB key. This directory will contain two subdirectories: `mdf` with the MDF file containing the raw banks and `geometry_dddb-tag_sim-tag` with binary files containing the geometry information required for Allen.
+MDF files for Allen standalone running are produced by running Moore. The MDF files will contain raw banks with the raw data from the sub-detectors and raw banks containing MC information about tracks and vertices required for the physics checks inside Allen. The `mdf_for_standalone_Allen.py <https://gitlab.cern.ch/lhcb/Moore/-/blob/master/Hlt/RecoConf/options/mdf_for_standalone_Allen.py>`_ script is provided in Moore for this purpose. Within the script you can specify whether Retina clusters should be used for the Velo pixel information by setting `with_retina_clusters` to `True` or `False`. Also the MDF file name and output directory name can be changed. This directory will contain two subdirectories: `mdf` with the MDF file containing the raw banks and `geometry_dddb-tag_sim-tag` with binary files containing the geometry information required for Allen. Input is defined with a separate script, as typically used in Moore, for example `this one <https://gitlab.cern.ch/lhcb/Moore/-/blob/master/Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py>`_.
+
 Call Moore in a _stack_setup like so::
 
-  ./Moore/run gaudirun.py Moore/Hlt/RecoConf/options/mdf_for_standalone_Allen_retinacluster.py
+  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/RecoConf/options/mdf_for_standalone_Allen.py
 
-If you would like to dump a large amount of events into MDF files, it is convenient to produce several MDF output files to avoid too large single files. A special script is provided for this use case. Again, the TestFileDB entry is used to specify the input. The output MDF files combine a number of input files, configurable with `n_files_per_chunk`::
+If you would like to dump a large amount of events into MDF files, it is convenient to produce several MDF output files to avoid too large single files. A special script is provided for this use case. In this case, TestFileDB entry is specified within the script to select the input. The output MDF files combine a number of input files, configurable with `n_files_per_chunk`::
 
-  ./Moore/run gaudirun.py Moore/Hlt/RecoConf/scripts/mdf_split_for_standalone_Allen_retinacluster.py
+  ./Moore/run gaudirun.py Moore/Hlt/RecoConf/scripts/mdf_split_for_standalone_Allen.py
   
-Variants of the previous two scripts are also available to run without RetinaClusters (`mdf_for_standalone_Allen.py` and `mdf_split_for_standalone_Allen_retinacluster.py`).
+The splitting script calls as options script `multiple_mdf_for_standalone_Allen.py <https://gitlab.cern.ch/lhcb/Moore/-/blob/master/Hlt/RecoConf/scripts/multiple_mdf_for_standalone_Allen.py>`_, where the usage of Retina clusters can be specified as in the script `mdf_for_standalone_Allen.py <https://gitlab.cern.ch/lhcb/Moore/-/blob/master/Hlt/RecoConf/options/mdf_for_standalone_Allen.py>`_.
 
 DIGI files containing RetinaClusters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
