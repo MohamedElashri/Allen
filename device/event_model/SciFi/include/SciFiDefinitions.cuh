@@ -59,6 +59,7 @@ namespace SciFi {
      * "mat groups" (the first 160 raw banks, since the offset of the group is enough).
      * However, for the last sector, every mat offset is stored individually.
      */
+    static constexpr unsigned max_corrected_mat = 1024; // FIXME: probably smaller.
     static constexpr unsigned n_consecutive_raw_banks = 160;
     static constexpr unsigned n_mats_per_consec_raw_bank = 4;
     static constexpr unsigned n_mat_groups_and_mats = 544;
@@ -276,6 +277,7 @@ namespace SciFi {
     {
       // Returns global mat ID in ascending x order without any gaps.
       // Geometry dependent. No idea how to not hardcode this.
+      assert(globalModuleIdx() * 4 + (reversedZone() ? 3 - mat() : mat() < SciFi::Constants::max_corrected_mat));
       return globalModuleIdx() * 4 + (reversedZone() ? 3 - mat() : mat());
     }
 
