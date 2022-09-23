@@ -117,12 +117,13 @@ namespace Muon {
     __device__ unsigned int get_number_of_readout_fibers(
       Allen::device::span<const uint8_t> span_banks,
       unsigned int active_links,
-      unsigned int* map_connected_fibers)
+      unsigned int* map_connected_fibers,
+      unsigned int align_info)
     {
 
       unsigned int number_of_readout_fibers;
 
-      if (!((span_banks[0] & 0x20) >> 5)) {
+      if (!align_info) {
         for (unsigned int i = 0; i < active_links; i++) {
           map_connected_fibers[i] = i;
         }
@@ -130,7 +131,7 @@ namespace Muon {
       }
       else {
         auto range_fiber = span_banks.subspan(1, 3);
-        bool align_vector[24] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        bool align_vector[24] = {};
         unsigned int readout_fibers = 0;
         for (int i = 0; i < 8; i++) {
           if ((range_fiber[0] >> i) & 0x1) {

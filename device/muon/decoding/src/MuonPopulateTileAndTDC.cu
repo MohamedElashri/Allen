@@ -120,6 +120,12 @@ __device__ void decode_muon_bank(
     }
   }
   else {
+    const auto* p = raw_bank.data;
+    unsigned synch_evt = (*p & 0x10) >> 4;
+    if (synch_evt) return;
+    const unsigned align_info = (*p & 0x20) >> 5;
+    const unsigned link_start_pointer = align_info ? 3 : 0;
+
     const auto tell_pci = raw_bank.sourceID & 0x00FF;
     const auto tell_number = tell_pci / 2 + 1;
     const auto pci_number = tell_pci % 2;
@@ -127,86 +133,109 @@ __device__ void decode_muon_bank(
     const auto active_links = muon_raw_to_hits->muonGeometry->NumberOfActiveLink(tell_number, pci_number);
 
     const Allen::device::span<const uint8_t> range8 {raw_bank.data, (raw_bank.last - raw_bank.data) / sizeof(uint8_t)};
-    auto range_data = range8.subspan(1);
-    unsigned link_start_pointer = (range8[0] & 0x20) >> 5 ? 3 : 0;
-    unsigned map_connected_fibers[24] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    unsigned synch_evt = (range8[0] & 0x10) >> 4;
-    if (!synch_evt) {
-      unsigned number_of_readout_fibers =
-        muon_raw_to_hits->muonGeometry->get_number_of_readout_fibers(range8, active_links, map_connected_fibers);
+    if (range8.empty()) return;
 
-      for (unsigned link = threadIdx.y; link < number_of_readout_fibers; link += blockDim.y) {
-        unsigned reroutered_link = map_connected_fibers[link];
+    const auto range_data = range8.subspan(1);
+    if (range8.size() < 1 + 3 * align_info or range8.size() < active_links + 1) return;
 
-        auto regionOfLink = muon_raw_to_hits->muonGeometry->RegionOfLink(tell_number, pci_number, reroutered_link);
-        auto quarterOfLink = muon_raw_to_hits->muonGeometry->QuarterOfLink(tell_number, pci_number, reroutered_link);
+    unsigned map_connected_fibers[24] = {};
+    unsigned number_of_readout_fibers = muon_raw_to_hits->muonGeometry->get_number_of_readout_fibers(
+      range8, active_links, map_connected_fibers, align_info);
+    if (range8.size() < number_of_readout_fibers + 1 + 3 * align_info) return;
 
-        unsigned current_pointer = link_start_pointer;
-        auto size_of_link = (static_cast<unsigned>(range_data[current_pointer]) >> 4) + 1;
-        for (unsigned j = 0; j < link; ++j) {
-          current_pointer += size_of_link;
-          size_of_link = (static_cast<unsigned>(range_data[current_pointer]) >> 4) + 1;
+    bool corrupted = false;
+    for (unsigned link = threadIdx.y; link < number_of_readout_fibers; link += blockDim.y) {
+      unsigned current_pointer = link_start_pointer;
+      auto size_of_link = (static_cast<unsigned>(range_data[current_pointer] & 0xF0) >> 4) + 1;
+      for (unsigned j = 0; j < link; ++j) {
+        current_pointer += size_of_link;
+        if (current_pointer >= range_data.size()) {
+          size_of_link = 0;
+          corrupted = true;
+          break;
         }
+        else {
+          size_of_link = (static_cast<unsigned>(range_data[current_pointer] & 0xF0) >> 4) + 1;
+        }
+      }
+      if (
+        size_of_link < 1 or (size_of_link > 1 and size_of_link <= 6) or
+        (current_pointer + size_of_link) > range_data.size())
+        corrupted = true;
+    }
+    if (corrupted) return;
 
-        if (size_of_link > 1) {
-          auto range_link_HitsMap = range_data.subspan(current_pointer, 7);
-          auto range_link_TDC = range_data.subspan(current_pointer + 6, size_of_link - 6);
+    __syncthreads();
+    for (unsigned link = threadIdx.y; link < number_of_readout_fibers; link += blockDim.y) {
+      unsigned reroutered_link = map_connected_fibers[link];
+      auto regionOfLink = muon_raw_to_hits->muonGeometry->RegionOfLink(tell_number, pci_number, reroutered_link);
+      auto quarterOfLink = muon_raw_to_hits->muonGeometry->QuarterOfLink(tell_number, pci_number, reroutered_link);
 
-          bool first_hitmap_byte = false;
-          bool last_hitmap_byte = true;
-          unsigned count_byte = 0;
-          unsigned pos_in_link = 0;
-          unsigned nSynch_hits_number = 0;
-          unsigned TDC_counter = range_link_TDC.size() * 2 - 1;
+      unsigned current_pointer = link_start_pointer;
+      auto size_of_link = (static_cast<unsigned>(range_data[current_pointer] & 0xF0) >> 4) + 1;
 
-          for (auto r = range_link_HitsMap.rbegin(); r < range_link_HitsMap.rend(); r++) {
-            // loop in reverse mode hits map is 47->0
-            count_byte++;
-            if (count_byte == 7) first_hitmap_byte = true;
-            if (count_byte > 7) break;
-            for (unsigned bit_pos_1 = 8; bit_pos_1 > 0; --bit_pos_1) {
-              unsigned bit_pos = bit_pos_1 - 1;
+      for (unsigned j = 0; j < link; ++j) {
+        current_pointer += size_of_link;
+        size_of_link = (static_cast<unsigned>(range_data[current_pointer] & 0xF0) >> 4) + 1;
+      }
 
-              if (first_hitmap_byte && bit_pos < 4) continue;
-              if (last_hitmap_byte && bit_pos > 3) continue;
-              if (*r & Muon::Constants::single_bit_position()[bit_pos]) {
-                auto tileId =
-                  muon_raw_to_hits->muonGeometry->TileInTell40(tell_number, pci_number, reroutered_link, pos_in_link);
+      if (size_of_link > 1) {
+        auto range_link_HitsMap = range_data.subspan(current_pointer, 7);
+        auto range_link_TDC = range_data.subspan(current_pointer + 6, size_of_link - 6);
 
-                if (tileId != 0) {
-                  const auto tile = Muon::MuonTileID(tileId);
-                  const auto layout1 = getLayout(muon_raw_to_hits->muonTables, tile)[0];
+        bool first_hitmap_byte = false;
+        bool last_hitmap_byte = true;
+        unsigned count_byte = 0;
+        unsigned pos_in_link = 0;
+        unsigned nSynch_hits_number = 0;
+        unsigned TDC_counter = range_link_TDC.size() * 2 - 1;
 
-                  unsigned tdc_value = 0;
-                  if (nSynch_hits_number < TDC_counter) {
-                    if (nSynch_hits_number == 0)
-                      tdc_value = range_link_TDC[0] & 0x0F;
-                    else {
-                      auto mask = nSynch_hits_number % 2 == 0 ? 0x0F : 0xF0;
-                      auto shift = nSynch_hits_number % 2 == 0 ? 0 : 4;
-                      tdc_value = range_link_TDC[1 + (nSynch_hits_number - 1) / 2] & mask >> shift;
-                    }
-                  }
+        for (auto r = range_link_HitsMap.rbegin(); r < range_link_HitsMap.rend(); r++) {
+          // loop in reverse mode hits map is 47->0
+          count_byte++;
+          if (count_byte == 7) first_hitmap_byte = true;
+          if (count_byte > 7) break;
+          for (unsigned bit_pos_1 = 8; bit_pos_1 > 0; --bit_pos_1) {
+            unsigned bit_pos = bit_pos_1 - 1;
 
-                  nSynch_hits_number++;
+            if (first_hitmap_byte && bit_pos < 4) continue;
+            if (last_hitmap_byte && bit_pos > 3) continue;
+            if (*r & Muon::Constants::single_bit_position()[bit_pos]) {
+              auto tileId =
+                muon_raw_to_hits->muonGeometry->TileInTell40(tell_number, pci_number, reroutered_link, pos_in_link);
 
-                  // Store tiles according to their station, region, quarter and layout,
-                  // to prepare data for easy process in muonaddcoordscrossingmaps.
-                  if (tell_station * 16 + regionOfLink * 4 + quarterOfLink < 64) {
-                    const auto storage_srq_layout =
-                      Muon::Constants::n_layouts * tile.stationRegionQuarter() + (tile.layout() != layout1);
-                    const auto insert_index = atomicAdd(atomics_muon + storage_srq_layout, 1);
-                    dev_storage_tile_id[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] =
-                      tileId;
-                    dev_storage_tdc_value[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] =
-                      tdc_value;
+              if (tileId != 0) {
+                const auto tile = Muon::MuonTileID(tileId);
+                const auto layout1 = getLayout(muon_raw_to_hits->muonTables, tile)[0];
+
+                unsigned tdc_value = 0;
+                if (nSynch_hits_number < TDC_counter) {
+                  if (nSynch_hits_number == 0)
+                    tdc_value = range_link_TDC[0] & 0x0F;
+                  else {
+                    auto mask = nSynch_hits_number % 2 == 0 ? 0x0F : 0xF0;
+                    auto shift = nSynch_hits_number % 2 == 0 ? 0 : 4;
+                    tdc_value = range_link_TDC[1 + (nSynch_hits_number - 1) / 2] & mask >> shift;
                   }
                 }
+                nSynch_hits_number++;
+
+                // Store tiles according to their station, region, quarter and layout,
+                // to prepare data for easy process in muonaddcoordscrossingmaps.
+                if (tell_station * 16 + regionOfLink * 4 + quarterOfLink < 64) {
+                  const auto storage_srq_layout =
+                    Muon::Constants::n_layouts * tile.stationRegionQuarter() + (tile.layout() != layout1);
+                  const auto insert_index = atomicAdd(atomics_muon + storage_srq_layout, 1);
+                  dev_storage_tile_id[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] =
+                    tileId;
+                  dev_storage_tdc_value[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] =
+                    tdc_value;
+                }
               }
-              pos_in_link++;
             }
-            last_hitmap_byte = false;
+            pos_in_link++;
           }
+          last_hitmap_byte = false;
         }
       }
     }
