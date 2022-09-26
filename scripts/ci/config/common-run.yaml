@@ -10,10 +10,10 @@
       # run_throughput tests for default sequence
       - TEST_NAME: "run_efficiency_throughput"
         RUN_EFFICIENCY_SEQUENCE: ["hlt1_pp_validation"]
-        RUN_EFFICIENCY_DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
+        RUN_EFFICIENCY_DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1_newLHCbID"]
 
         RUN_THROUGHPUT_SEQUENCE: ["hlt1_pp_default"]
-        RUN_THROUGHPUT_DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
+        RUN_THROUGHPUT_DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"]
 
 .run_matrix_jobs_full: 
   variables:
