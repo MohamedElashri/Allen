@@ -6,7 +6,7 @@ HLTControlFlowMgr                      INFO Concurrency level information:
 HLTControlFlowMgr                      INFO  o Number of events slots: 1
 HLTControlFlowMgr                      INFO  o TBB thread pool size:  'ThreadPoolSize':1
 ApplicationMgr                         INFO Application Manager Initialized successfully
-Using 2 input slices.
+Setting number of slices to 2
  Enables printing monitoring information (--enable-monitoring-printing): False
  Registers monitoring counters (--register-monitoring-counters): True
  Configure the device to use more shared than L1 (0: false) (--prefer-shared): 0
@@ -20,11 +20,12 @@ HLTControlFlowMgr                      INFO
 HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #passed
 LAZY_AND: allen_non_event_data                #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  NONLAZY_OR: allen_non_event_data_converters  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  AllenODINProducer/AllenODINProducer         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpBeamline/DumpBeamline                   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpVPGeometry/DumpVPGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpUTGeometry/DumpUTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpUTLookupTables/DumpUTLookupTables       #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpCaloGeometry/DumpCaloGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpVPGeometry/DumpVPGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpMagneticField/DumpMagneticField         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpFTGeometry/DumpFTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpMuonGeometry/DumpMuonGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
