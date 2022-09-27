@@ -8,194 +8,213 @@
   parallel:
     matrix:
       # run_throughput tests for default sequence
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["hlt1_pp_default"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
+      - TEST_NAME: "run_efficiency_throughput"
+        RUN_EFFICIENCY_SEQUENCE: ["hlt1_pp_validation"]
+        RUN_EFFICIENCY_DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
 
-      # efficiency tests for default sequence
-      - TEST_NAME: "run_physics_efficiency"
-        SEQUENCE: ["hlt1_pp_validation"]
-        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
+        RUN_THROUGHPUT_SEQUENCE: ["hlt1_pp_default"]
+        RUN_THROUGHPUT_DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
 
+.run_matrix_jobs_full: 
+  variables:
+    TEST_NAME: "run_efficiency_throughput"
 
-.run_matrix_jobs_full:
   parallel:
     matrix:
+      
+      # Contracts
+      - RUN_EFFICIENCY: "NO_EFFICIENCY"
 
+        RUN_THROUGHPUT_SEQUENCE: 
+          - "hlt1_pp_default"
+          - "hlt1_pp_matching"
+        RUN_THROUGHPUT_DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
+
+        OPTIONS: BUILD_TESTING+ENABLE_CONTRACTS
+        TPUT_REPORT: "NO_REPORT"
+
+
+      # SMOG (Default)
+      - RUN_EFFICIENCY_SEQUENCE: hlt1_pp_validation
+        RUN_EFFICIENCY_DATA_TAG: SMOG2_pHe_5k_retinacluster_v1
+        RUN_EFFICIENCY_GEOMETRY: SMOG2_pppHe
+
+        RUN_THROUGHPUT_SEQUENCE: hlt1_pp_default
+        RUN_THROUGHPUT_DATA_TAG: SMOG2_pppHe_retinacluster_v1
+        RUN_THROUGHPUT_GEOMETRY: SMOG2_pppHe
+
+      # SMOG2
+      - RUN_EFFICIENCY_SEQUENCE: hlt1_pp_SMOG2_validation
+        RUN_EFFICIENCY_DATA_TAG: SMOG2_pHe_5k_retinacluster_v1
+        RUN_EFFICIENCY_GEOMETRY: SMOG2_pppHe
+
+        RUN_THROUGHPUT_SEQUENCE: hlt1_pp_SMOG2_default
+        RUN_THROUGHPUT_DATA_TAG: SMOG2_pppHe_retinacluster_v1
+        RUN_THROUGHPUT_GEOMETRY: SMOG2_pppHe
+
+      # SMOG (Matching sequence)
+      - RUN_EFFICIENCY_SEQUENCE: hlt1_pp_matching_validation
+        RUN_EFFICIENCY_DATA_TAG: SMOG2_pHe_5k_retinacluster_v1
+        RUN_EFFICIENCY_GEOMETRY: SMOG2_pppHe
+
+        RUN_THROUGHPUT_SEQUENCE: hlt1_pp_matching
+        RUN_THROUGHPUT_DATA_TAG: SMOG2_pppHe_retinacluster_v1
+        RUN_THROUGHPUT_GEOMETRY: SMOG2_pppHe
+
+      # No GEC (no eff)
+
+      # No UT, No GEC (no eff)
+
+      # Matching (no eff)
+
+      # 
+      # - TEST_NAME: "run_physics_efficiency"
+        # SEQUENCE: 
+        #   - hlt1_pp_validation
+        #   - hlt1_pp_no_ut_validation
+        #   - hlt1_pp_matching_validation
+        # DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1"]
+        # GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
+
+
+
+
+# run_throughput jobs go in this matrix.
+.run_matrix_jobs_full_throughput:
+  variables:
+    TEST_NAME: "run_throughput"
+  parallel:
+    matrix:
       # run throughput, contracts enabled
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["hlt1_pp_default", "hlt1_pp_matching"]
+      - SEQUENCE: ["hlt1_pp_default", "hlt1_pp_matching"]
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
         OPTIONS: [BUILD_TESTING+ENABLE_CONTRACTS]
-        AVOID_HIP: "1" # This shouldn't have multiple values
         TPUT_REPORT: "NO_REPORT" # don't publish throughput report
 
-
       # run throughput, no_gec
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["hlt1_pp_no_gec"]
+      - SEQUENCE: 
+          - hlt1_pp_no_gec
+          - hlt1_pp_no_gec_no_ut
+          - hlt1_pp_SMOG2_default
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
         #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"]
 
-      # run throughput, no_gec, no ut
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["hlt1_pp_no_gec_no_ut"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
-        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"]
-
-      # run throughput, default, SMOG2_pppHe
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["hlt1_pp_default", "hlt1_pp_matching"]
-        DATA_TAG: ["SMOG2_pppHe_retinacluster_v1"]
-        GEOMETRY: ["SMOG2_pppHe"]
+      # # run throughput, default, SMOG2_pppHe
+      # - SEQUENCE: 
+      #     - hlt1_pp_default
+      #     - hlt1_pp_matching
+      #     - hlt1_pp_SMOG2_default
+      #   DATA_TAG: ["SMOG2_pppHe_retinacluster_v1"]
+      #   GEOMETRY: ["SMOG2_pppHe"]
 
       # Allen clustering jobs
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["hlt1_pp_veloSP"]
+      - SEQUENCE: ["hlt1_pp_veloSP"]
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000"]
-        AVOID_HIP: "1" # This shouldn't have multiple values FIXME
 
-      - TEST_NAME: "run_physics_efficiency"
-        SEQUENCE: ["hlt1_pp_veloSP_validation"]
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k"]
+      # run throughput, scifi_v6
+      - SEQUENCE: ["hlt1_pp_default", "hlt1_pp_matching"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1"]
         GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
-        AVOID_HIP: "1" # This shouldn't have multiple values FIXME
 
-      # run throughput, pp_SMOG2_default, SMOG2_pppHe
-      - TEST_NAME: "run_throughput"
-        BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_SMOG2_default"]
-        DATA_TAG: ["SMOG2_pppHe_retinacluster_v1"]
-        GEOMETRY: ["SMOG2_pppHe"]
+      # run throughput, calov4
+      - SEQUENCE: ["calo"]
+        DATA_TAG: ["sim-20190912-vc-md100-FTv7-calov4"]
+        GEOMETRY: ["MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4"]
+        TPUT_REPORT: "NO_REPORT" # don't publish throughput report
 
-      # run throughput, pp_SMOG2_default, minbias_scifi_v5
-      - TEST_NAME: "run_throughput"
-        BUILD_TYPE: ["RelWithDebInfo"]
-        SEQUENCE: ["hlt1_pp_SMOG2_default"]
+      # run throughput, scifiv7
+      - SEQUENCE: ["scifi_decoding"]
+        DATA_TAG: ["SciFiV7_not_compressed"]
+        GEOMETRY: ["MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7"]
+        TPUT_REPORT: "NO_REPORT" # don't publish throughput report
+
+      # run throughput, muonv3
+      - SEQUENCE: ["muon_decoding"]
+        DATA_TAG: ["Run_0000232759_20220605-105749-418_MCEB02"]
+        GEOMETRY: ["MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7_muonv3"]
+        TPUT_REPORT: "NO_REPORT" # don't publish throughput report
+
+      - SEQUENCE: 
+         - hlt1_pp_default
+         - hlt1_pp_matching
+        DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1"]
+        GEOMETRY: ["upgrade-magdown-sim10-up08-11102202-digi"]
+
+      # run throughput, forward no ut, matching
+      - SEQUENCE: 
+          - hlt1_pp_matching
+          - hlt1_pp_no_ut
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
 
+
+# efficiency and other tests go here
+.run_matrix_jobs_full_efficiency:
+  parallel:
+    matrix:
       # run physics efficiency, pp_SMOG2_default, minbias_scifi_v5
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_SMOG2_validation"]
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
 
-      # run throughput, scifi_v6
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["hlt1_pp_default", "hlt1_pp_matching"]
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1"]
-        GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
-
-      # run physics efficiency, scifi_v6
-      - TEST_NAME: "run_physics_efficiency"
-        SEQUENCE: ["hlt1_pp_validation", "hlt1_pp_matching_validation"]
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1"]
-        GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
-
-      # efficiency tests, SMOG2 pHe
-      - TEST_NAME: "run_physics_efficiency"
-        SEQUENCE: ["hlt1_pp_validation", "hlt1_pp_matching_validation"]
-        DATA_TAG: ["SMOG2_pHe_5k_retinacluster_v1"]
-        GEOMETRY: ["SMOG2_pppHe"]
-
-      # run throughput, pp_SMOG2_default, SMOG2_pHe
-      - TEST_NAME: "run_physics_efficiency"
-        SEQUENCE: ["hlt1_pp_SMOG2_validation"]
-        DATA_TAG: ["SMOG2_pHe_5k_retinacluster_v1"]
-        GEOMETRY: ["SMOG2_pppHe"]
-
-      # run throughput, calov4
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["calo"]
-        DATA_TAG: ["sim-20190912-vc-md100-FTv7-calov4"]
-        GEOMETRY: ["MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4"]
-        TPUT_REPORT: "NO_REPORT" # don't publish throughput report
-
-      # run throughput, scifiv7
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["scifi_decoding"]
-        DATA_TAG: ["SciFiV7_not_compressed"]
-        GEOMETRY: ["MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7"]
-        TPUT_REPORT: "NO_REPORT" # don't publish throughput report
-
-      # run throughput, muonv3
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["muon_decoding"]
-        DATA_TAG: ["Run_0000232759_20220605-105749-418_MCEB02"]
-        GEOMETRY: ["MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7_muonv3"]
-        TPUT_REPORT: "NO_REPORT" # don't publish throughput report
-
-      # FIXME
-      # - TEST_NAME: "run_physics_efficiency"
-      #   LCG_OPTIMIZATION: ["dbg"]
-      #   OPTIONS: ["USE_ROOT"]
-      #   SEQUENCE: ["hlt1_pp_validation"]
-      #   DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster"]
-
       - TEST_NAME: "run_built_tests"
         LCG_OPTIMIZATION: [opt, dbg]
         OPTIONS: [BUILD_TESTING+ENABLE_CONTRACTS]
         SEQUENCE: ["hlt1_pp_default"]
 
-      # run physics efficiency, complex_validation
+      # run physics efficiency, scifi_v6
+      # forward no ut, scifi v6
       - TEST_NAME: "run_physics_efficiency"
-        SEQUENCE: ["hlt1_complex_validation"]
-        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
-
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["hlt1_pp_default", "hlt1_pp_matching"]
-        DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1"]
-        GEOMETRY: ["upgrade-magdown-sim10-up08-11102202-digi"]
-
-      # run throughput, forward no ut
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["hlt1_pp_no_ut"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
-
-      # run physics efficiency, forward no ut, scifi v4
-      - TEST_NAME: "run_physics_efficiency"
-        SEQUENCE: ["hlt1_pp_no_ut_validation"]
-        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
-
-      # run physics efficiency, no gec, forward no ut, scifi v4
-      - TEST_NAME: "run_physics_efficiency"
-        SEQUENCE: ["hlt1_pp_no_gec_no_ut_validation"]
-        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
-
-      # run physics efficiency, forward no ut, scifi v6
-      - TEST_NAME: "run_physics_efficiency"
-        SEQUENCE: ["hlt1_pp_no_ut_validation"]
+        SEQUENCE: 
+          - hlt1_pp_validation
+          - hlt1_pp_no_ut_validation
+          - hlt1_pp_matching_validation
         DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1"]
         GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
-        
-      # run_throughput tests for seeding & matching sequence
-      - TEST_NAME: "run_throughput"
-        SEQUENCE: ["hlt1_pp_matching"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
 
-      # efficiency tests for seeding & matching sequence 
+      # # efficiency tests, SMOG2 pHe
+      # - TEST_NAME: "run_physics_efficiency"
+      #   SEQUENCE: 
+      #     - hlt1_pp_validation
+      #     - hlt1_pp_SMOG2_validation
+      #     - hlt1_pp_matching_validation
+      #   DATA_TAG: ["SMOG2_pHe_5k_retinacluster_v1"]
+      #   GEOMETRY: ["SMOG2_pppHe"]
+
       - TEST_NAME: "run_physics_efficiency"
-        SEQUENCE: ["hlt1_pp_matching_validation"]
-        DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
+        SEQUENCE: ["hlt1_pp_veloSP_validation"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k"]
+        GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
+
+
+
+## End of test matrices
 
 
 .run_jobs:
   extends:
-    - .base_job
+    # - .base_job
     - .default_rules
-
+  stage: "run full"
   tags: ['$DEVICE_ID']
 
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
     LCG_SYSTEM: "x86_64_v3-centos7-clang12"
     LCG_OPTIMIZATION: "opt"
+    TEST_GROUP: "full"
 
-  retry: 2
+  script:
+    - python -m venv .venv && source .venv/bin/activate && pip install colorlog pyyaml tabulate
+    - python scripts/ci/run_tests.py --allen-wrapper scripts/ci/allen_wrapper.sh --test-config scripts/ci/test_config.yaml --test-group ${TEST_GROUP}
+
+  retry: 1
 
   artifacts:
     expire_in: 1 day
+    when: always
     paths:
+      - AllenCI_full.log
       - output_*
       - run_*_output_*
       - validation_output*/*
@@ -208,16 +227,10 @@
 .run_jobs_minimal:
   extends:
     - .run_jobs
-    - .run_matrix_jobs_minimal
+    # - .run_matrix_jobs_minimal
+  variables:
+    TEST_GROUP: "minimal"
   stage: "run"
-
-.run_jobs_full:
-  extends:
-    - .run_jobs
-    - .run_matrix_jobs_full
-    - .default_rules_always_run
-  stage: "run full"
-
 
 .run_toggle_run_changes:
   extends:
@@ -228,7 +241,6 @@
       - TEST_NAME: "run_toggle_run_changes"
         SEQUENCE: ["hlt1_pp_validation", "hlt1_pp_matching_validation"]
         DATA_TAG: "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"
-        RUN_CHANGES: ["ON", "OFF"]
   artifacts:
     expire_in: 1 day
     paths:

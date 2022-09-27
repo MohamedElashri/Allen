@@ -1,0 +1,171 @@
+###############################################################################
+# (c) Copyright 2018-2022 CERN for the benefit of the LHCb Collaboration      #
+###############################################################################
+
+config:
+  default_timeout: 1200 # seconds
+  profile_device: "a5000"
+
+  # args added for specific test keys
+  args:
+    # Added to Allen command always
+    base: "--run-from-json 1 --params external/ParamFiles/"
+
+    # added if "dataset:" specified
+    dataset: "--mdf /scratch/allen_data/mdf_input/{dataset}.mdf"
+
+    # added if "sequence:" specified
+    sequence: "--sequence {sequence}"
+
+    # added if "geometry:" specified
+    geometry: "-g /scratch/allen_geometries/{geometry}"
+
+    # added if "disable-run-changes" specified
+    disable_run_changes: "--disable-run-changes {disable_run_changes}"
+  
+  # args added for specific specific test types
+  test_args:
+    throughput: "" # handled by target_args
+    efficiency: " -n 1000 -m 1100"  # TODO incr to 10k
+    run_changes: "-n 1000 -m 1000 "
+  
+  # args added for specific device targets
+  target_args:
+    throughput:
+      CUDA: "-n 500 -m 500 -r 1000 -t 16"
+      CUDAPROF: "-n 500 -m 500 -r 1 -t 1"
+      HIP: "-n 2800 --events-per-slice 2800 -m 2800 -t 10 -r 100"
+      CPU: "-n 100 -m 100 -r 100"
+
+# NOT GITLAB CI YAML !
+
+minimal:
+  - type: "throughput"
+    sequence: "hlt1_pp_default"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"
+
+  - type: "efficiency"
+    sequence: "hlt1_pp_validation"
+    dataset: "Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"
+
+  # FIXME run_changes needs re-adding
+  # - type: "run_changes"
+  #   sequence: 
+  #     - "hlt1_pp_validation"
+  #     - "hlt1_pp_matching_validation"
+  #   dataset: "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"
+  #   disable_run_changes: ["1"] # TODO FIXME Fix disable-run-changes 0 case!!!
+  #   timeout: 600
+  #   allowed_devices:
+  #     - epyc7502
+  #     - a5000
+
+full:
+  - type: "throughput"
+    sequence:
+      - hlt1_pp_default
+      - hlt1_pp_matching
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"
+    build_options: BUILD_TESTING+ENABLE_CONTRACTS
+    throughput_report: false # don't publish throughput report
+
+  # run throughput, no_gec
+  - type: "throughput"
+    sequence: 
+      - hlt1_pp_no_gec
+      - hlt1_pp_no_gec_no_ut
+      - hlt1_pp_SMOG2_default
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"
+
+  # run throughput, default, SMOG2_pppHe
+  - type: "throughput"
+    sequence: 
+      - hlt1_pp_default
+      - hlt1_pp_matching
+      - hlt1_pp_SMOG2_default
+    dataset: "SMOG2_pppHe_retinacluster_v1"
+    geometry: "SMOG2_pppHe"
+
+  # Allen clustering jobs
+  - type: "throughput"
+    sequence: "hlt1_pp_veloSP"
+    dataset: "upgrade_mc_minbias_scifi_v5_000"
+
+  # run throughput, scifi_v6
+  - type: "throughput"
+    sequence: 
+      - hlt1_pp_default
+      - hlt1_pp_matching
+    dataset: "SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1"
+    geometry: "upgrade_DC19_01_MinBiasMD"
+
+  # run throughput, calov4
+  - type: "throughput"
+    sequence: "calo"
+    dataset: "sim-20190912-vc-md100-FTv7-calov4"
+    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4"
+    throughput_report: false # don't publish throughput report
+
+  # run throughput, scifiv7
+  - type: "throughput"
+    sequence: "scifi_decoding"
+    dataset: "SciFiV7_not_compressed"
+    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7"
+    throughput_report: false # don't publish throughput report
+
+  # run throughput, muonv3
+  - type: "throughput"
+    sequence: "muon_decoding"
+    dataset: "Run_0000232759_20220605-105749-418_MCEB02"
+    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7_muonv3"
+    throughput_report: false # don't publish throughput report
+
+  - type: "throughput"
+    sequence: 
+      - hlt1_pp_default
+      - hlt1_pp_matching
+    dataset: "upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1"
+    geometry: "upgrade-magdown-sim10-up08-11102202-digi"
+
+  # run throughput, forward no ut, matching
+  - type: "throughput"
+    sequence: 
+      - hlt1_pp_matching
+      - hlt1_pp_no_ut
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"
+
+  # Efficiency tests
+
+  - type: "efficiency"
+    sequence: "hlt1_pp_SMOG2_validation"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"
+
+  - type: "run_built_tests"
+    lcg_opt:
+      - "opt"
+      - "dbg"
+    build_options: "BUILD_TESTING+ENABLE_CONTRACTS"
+
+  # run physics efficiency, scifi_v6
+  # forward no ut, scifi v6
+  - type: "efficiency"
+    sequence: 
+      - hlt1_pp_validation
+      - hlt1_pp_no_ut_validation
+      - hlt1_pp_matching_validation
+    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1"
+    geometry: "upgrade_DC19_01_MinBiasMD"
+
+  # efficiency tests, SMOG2 pHe
+  - type: "efficiency"
+    sequence: 
+      - hlt1_pp_validation
+      - hlt1_pp_SMOG2_validation
+      - hlt1_pp_matching_validation
+    dataset: "SMOG2_pHe_5k_retinacluster_v1"
+    geometry: "SMOG2_pppHe"
+
+  - type: "efficiency"
+    sequence: "hlt1_pp_veloSP_validation"
+    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k"
+    geometry: "upgrade_DC19_01_MinBiasMD"

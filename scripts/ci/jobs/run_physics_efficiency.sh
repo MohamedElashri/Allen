@@ -4,13 +4,14 @@
 ###############################################################################
 
 if [ ${TARGET} = "HIP" ]; then
-  exit 0
+  echo "Not supported"
+  exit 1
 fi
 
 check_build_exists
 
 
-RUN_OPTIONS="-n 1000 -m 1100 --run-from-json 1"
+RUN_OPTIONS="-n 10000 -m 1100 --run-from-json 1"
 
 # Configure the input files (--mdf) and geometry (-g)
 set +x; set +u
