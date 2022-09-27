@@ -7,7 +7,6 @@
 
 #include <ctime>
 
-#ifdef WITH_ROOT
 void MonitorBase::saveHistograms() const
 {
   auto* dir = m_manager->directory();
@@ -18,10 +17,6 @@ void MonitorBase::saveHistograms() const
       dir->WriteTObject(h, h->GetName(), "overwrite");
     }
   }
-#else
-void MonitorBase::saveHistograms() const
-{
-#endif
 }
 
 unsigned MonitorBase::getWallTimeBin()

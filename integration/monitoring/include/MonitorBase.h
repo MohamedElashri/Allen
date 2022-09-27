@@ -60,10 +60,7 @@ protected:
 
   MonitorManager* m_manager = nullptr;
   std::string m_name;
-
-#ifdef WITH_ROOT
   std::map<unsigned, std::unique_ptr<TH1>> m_histograms;
-#endif
 
   unsigned m_time_step {};
   unsigned m_offset {};

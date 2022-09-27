@@ -14,10 +14,8 @@ MonitorManager::MonitorManager(
   int time_step,
   int offset)
 {
-#ifdef WITH_ROOT
   m_rsvc = rsvc;
   m_dir = rsvc->handle("Monitors").directory();
-#endif
 
   meta_mon = std::make_unique<MetaMonitor>(this, time_step, offset);
   for (unsigned i = 0; i < n_mon_thread; ++i) {
@@ -40,9 +38,7 @@ void MonitorManager::fill(unsigned i_mon, unsigned i_buf, bool useWallTime)
 
 void MonitorManager::saveHistograms()
 {
-#ifdef WITH_ROOT
   [[maybe_unused]] auto handle = m_rsvc->handle("Monitors");
-#endif
   meta_mon->saveHistograms();
   for (auto& mons : m_monitors) {
     for (auto& mon : mons) {

@@ -7,9 +7,7 @@
 
 class PVCheckerHistos {
 public:
-#ifdef WITH_ROOT
   TFile* m_file;
-#endif
   std::string const m_directory;
 
   PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file, std::string const& directory);
@@ -39,7 +37,6 @@ public:
   void write();
 
 private:
-#ifdef WITH_ROOT
   std::unique_ptr<TTree> m_tree;
   std::unique_ptr<TTree> m_mctree;
   std::unique_ptr<TTree> m_allPV;
@@ -80,5 +77,4 @@ private:
   int const m_bins_norm_z = 50;
   int const m_bins_norm_mult = 25;
   int const m_bins_fake_mult = 20;
-#endif
 };

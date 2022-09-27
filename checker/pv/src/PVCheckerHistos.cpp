@@ -3,11 +3,9 @@
 \*****************************************************************************/
 #include "PVCheckerHistos.h"
 
-#ifdef WITH_ROOT
 namespace {
   double binomial_error(double k, double N) { return sqrt(k * (1 - k / N)) / N; }
 } // namespace
-#endif
 
 PVCheckerHistos::PVCheckerHistos(
   CheckerInvoker const* invoker,
@@ -15,7 +13,6 @@ PVCheckerHistos::PVCheckerHistos(
   std::string const& directory) :
   m_directory {directory}
 {
-#ifdef WITH_ROOT
   m_file = invoker->root_file(root_file);
   auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
   if (!dir) {
@@ -65,10 +62,6 @@ PVCheckerHistos::PVCheckerHistos(
   m_allPV->Branch("erry", &m_erry);
   m_allPV->Branch("errz", &m_errz);
   m_allPV->Branch("isFake", &m_isFake);
-#else
-  _unused(invoker);
-  _unused(root_file);
-#endif
 }
 
 void PVCheckerHistos::accumulate(
@@ -93,7 +86,6 @@ void PVCheckerHistos::accumulate(
   gsl::span<const double> vec_mc_y,
   gsl::span<const double> vec_mc_z)
 {
-#ifdef WITH_ROOT
   // save information about matched reconstructed PVs for pulls distributions
   for (size_t i = 0; i < vec_diff_x.size(); i++) {
     m_nmcpv = vec_n_mcpv[i];
@@ -178,33 +170,10 @@ void PVCheckerHistos::accumulate(
     m_isFake = rec_pv.indexMCPVInfo < 0;
     m_allPV->Fill();
   }
-#else
-  _unused(vec_all_rec);
-  _unused(vec_rec_x);
-  _unused(vec_rec_y);
-  _unused(vec_rec_z);
-  _unused(vec_diff_x);
-  _unused(vec_diff_y);
-  _unused(vec_diff_z);
-  _unused(vec_err_x);
-  _unused(vec_err_y);
-  _unused(vec_err_z);
-  _unused(vec_n_trinmcpv);
-  _unused(vec_n_mcpv);
-  _unused(vec_mcpv_recd);
-  _unused(vec_recpv_fake);
-  _unused(vec_mcpv_mult);
-  _unused(vec_recpv_mult);
-  _unused(vec_mcpv_zpos);
-  _unused(vec_mc_x);
-  _unused(vec_mc_y);
-  _unused(vec_mc_z);
-#endif
 }
 
 void PVCheckerHistos::write()
 {
-#ifdef WITH_ROOT
   auto* dir = static_cast<TDirectory*>(m_file->Get(m_directory.c_str()));
   std::tuple to_write {std::ref(m_tree),
                        std::ref(m_mctree),
@@ -221,5 +190,4 @@ void PVCheckerHistos::write()
     o.get()->SetDirectory(nullptr);
     dir->WriteTObject(o.get().get());
   });
-#endif
 }

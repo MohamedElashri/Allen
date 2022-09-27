@@ -86,7 +86,6 @@ void rich_1_line::rich_1_line_t::output_monitor(
   [[maybe_unused]] const RuntimeOptions& runtime_options,
   [[maybe_unused]] const Allen::Context& context) const
 {
-#ifdef WITH_ROOT
   auto handler = runtime_options.root_service->handle(name());
   auto tree = handler.tree("monitor_tree");
   if (tree == nullptr) return;
@@ -142,7 +141,6 @@ void rich_1_line::rich_1_line_t::output_monitor(
     ev = i0 + i;
     tree->Fill();
   }
-#endif
 }
 
 __device__ bool rich_1_line::rich_1_line_t::passes(

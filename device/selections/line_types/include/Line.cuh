@@ -9,10 +9,8 @@
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
 #include <tuple>
-#ifdef WITH_ROOT
 #include <ROOTHeaders.h>
 #include "ROOTService.h"
-#endif
 
 // Helper macro to explicitly instantiate lines
 #define INSTANTIATE_LINE(DERIVED, PARAMETERS)                                                                  \
@@ -165,7 +163,6 @@ public:
     std::get<N>(l) = std::get<N>(r)[index];
   }
 
-#ifdef WITH_ROOT
   template<std::size_t N, typename ValueType>
   void make_branch(
     handleROOTSvc& handler,
@@ -205,7 +202,6 @@ public:
       }
     }
   }
-#endif
 
   void output_monitor(
     [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
@@ -213,12 +209,10 @@ public:
     [[maybe_unused]] const Allen::Context& context) const
   {
     if constexpr (Allen::has_monitoring_types<Derived>::value) {
-#ifdef WITH_ROOT
       std::make_index_sequence<std::tuple_size<typename Derived::monitoring_types>::value> sequence;
       auto derived_instance = static_cast<const Derived*>(this);
       auto handler = runtime_options.root_service->handle(derived_instance->name());
       do_monitoring(arguments, handler, sequence, context);
-#endif
     }
   }
 };

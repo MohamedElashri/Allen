@@ -36,9 +36,6 @@ if (NOT STANDALONE)
   find_package(fmt REQUIRED)
   find_package(TBB REQUIRED)
 
-  #Always enable ROOT for LHCb stack builds
-  set(USE_ROOT ON)
-
   # Detect device target from binary tag
   set(target_hip FALSE)
   set(target_cuda FALSE)
@@ -132,29 +129,22 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
   endif()
 endif()
 
-# ROOT
-if (USE_ROOT)
-  set(ALLEN_ROOT_DEFINITIONS WITH_ROOT)
-
-  if (STANDALONE)
-    # Support for STANDALONE without CMAKE_PREFIX_PATH
-    if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
-      set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-    elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
-      set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
-    elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
-      set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
-    endif()
+if (STANDALONE)
+  # Support for STANDALONE without CMAKE_PREFIX_PATH
+  if(EXISTS $ENV{ROOTSYS}/cmake/ROOTConfig.cmake) # ROOT was compiled with cmake
+    set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
+  elseif(EXISTS $ENV{ROOTSYS}/ROOTConfig.cmake)
+    set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS})
+  elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
+    set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
   endif()
-
-  find_package(ROOT REQUIRED HINTS ${ALLEN_ROOT_CMAKE} COMPONENTS RIO Core Cling Hist Tree)
-  if (NOT ROOT_FOUND)
-    message(FATAL_ERROR "ROOT could not be found, please either set ROOTSYS or alternatively add the ROOT path to the CMAKE_PREFIX_PATH")
-  endif()
-  message(STATUS "Found ROOT: " ${ROOT_INCLUDE_DIRS})
-
-  find_package(TBB REQUIRED)
-  message(STATUS "Found TBB version " ${TBB_VERSION})
-else()
-   message(STATUS "Compiling without ROOT")
 endif()
+
+find_package(ROOT REQUIRED HINTS ${ALLEN_ROOT_CMAKE} COMPONENTS RIO Core Cling Hist Tree)
+if (NOT ROOT_FOUND)
+  message(FATAL_ERROR "ROOT could not be found, please either set ROOTSYS or alternatively add the ROOT path to the CMAKE_PREFIX_PATH")
+endif()
+message(STATUS "Found ROOT: " ${ROOT_INCLUDE_DIRS})
+
+find_package(TBB REQUIRED)
+message(STATUS "Found TBB version " ${TBB_VERSION})

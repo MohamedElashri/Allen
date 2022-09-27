@@ -13,11 +13,6 @@
 #include <ROOTHeaders.h>
 
 struct handleROOTSvc; // forward declarations
-#ifndef WITH_ROOT
-struct ROOTService {
-  ROOTService(std::string) {}
-};
-#else
 
 struct ROOTService {
 
@@ -87,4 +82,3 @@ private:
   ROOTService* m_rsvc = nullptr;
   std::string const m_name;
 };
-#endif

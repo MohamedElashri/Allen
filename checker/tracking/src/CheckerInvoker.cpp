@@ -10,17 +10,14 @@
 
 CheckerInvoker::~CheckerInvoker()
 {
-#ifdef WITH_ROOT
   for (auto entry : m_files) {
     delete entry.second;
   }
-#endif
 }
 
 TFile* CheckerInvoker::root_file(std::string const& root_file) const
 {
   if (root_file.empty()) return nullptr;
-#ifdef WITH_ROOT
   if (!fs::exists(m_output_dir)) {
     fs::create_directory(m_output_dir);
   }
@@ -31,9 +28,6 @@ TFile* CheckerInvoker::root_file(std::string const& root_file) const
     it = std::get<0>(r);
   }
   return it->second;
-#else
-  return nullptr;
-#endif
 }
 
 MCEvents CheckerInvoker::load(
@@ -107,9 +101,7 @@ void CheckerInvoker::report(size_t n_events) const
     it->second->report(n_events);
   }
 
-#ifdef WITH_ROOT
   for (auto const& entry : m_files) {
     entry.second->Close();
   }
-#endif
 }

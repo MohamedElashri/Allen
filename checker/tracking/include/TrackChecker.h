@@ -147,9 +147,7 @@ public:
     printf("\n");
 
     // write histograms to file
-#ifdef WITH_ROOT
     m_histos->write();
-#endif
   }
 
   void accumulate(const MCEvents& mc_events, gsl::span<Checker::Tracks> tracks, gsl::span<const mask_t> event_list)

@@ -19,10 +19,7 @@
 #include "raw_helpers.hpp"
 
 #include <Common.h>
-
-#ifdef WITH_ROOT
 #include "root_mdf.hpp"
-#endif
 
 namespace {
   using gsl::span;
@@ -37,12 +34,7 @@ namespace {
 Allen::IO MDF::open(std::string const& filepath, int flags, int mode)
 {
   if (::strncmp(filepath.c_str(), "root:", 5) == 0) {
-#ifdef WITH_ROOT
     return ROOT::open(filepath, flags);
-#else
-    cout << "Allen was not compiled with ROOT support\n";
-    return {};
-#endif
   }
   else {
     int fd = ::open(filepath.c_str(), flags, mode);
@@ -176,12 +168,6 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     auto* ptr = reinterpret_cast<unsigned char*>(buffer.data()) + bnkSize;
     size_t space_size = buffer.size() - bnkSize;
     size_t new_len = 0;
-
-#ifndef WITH_ROOT
-    if (compress != 0) {
-      cerr << "Support for reading compressed MDF data not available, build with -DUSE_ROOT=ON to enable it\n";
-    }
-#endif
 
     // decompress payload
     if (LHCb::decompressBuffer(compress, ptr, space_size, src, hdr->size(), new_len)) {

@@ -103,7 +103,6 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::set_arguments
   const HostBuffers& host_buffers) const
 {
   static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
-#ifdef WITH_ROOT
   set_size<dev_die_masses_raw_t>(
     arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_die_masses_bremcorr_t>(
@@ -120,16 +119,6 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::set_arguments
     arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_die_ip_t>(
     arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
-#else
-  set_size<dev_die_masses_raw_t>(arguments, 1);
-  set_size<dev_die_masses_bremcorr_t>(arguments, 1);
-  set_size<dev_die_pts_raw_t>(arguments, 1);
-  set_size<dev_die_pts_bremcorr_t>(arguments, 1);
-  set_size<dev_e_minpts_raw_t>(arguments, 1);
-  set_size<dev_e_minpt_bremcorr_t>(arguments, 1);
-  set_size<dev_die_minipchi2_t>(arguments, 1);
-  set_size<dev_die_ip_t>(arguments, 1);
-#endif
 }
 
 void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::init_monitor(
@@ -181,7 +170,6 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::output_monito
   [[maybe_unused]] const RuntimeOptions& runtime_options,
   [[maybe_unused]] const Allen::Context& context) const
 {
-#ifdef WITH_ROOT
   const auto v_die_masses_raw = make_host_buffer<dev_die_masses_raw_t>(arguments, context);
   const auto v_die_masses_bremcorr = make_host_buffer<dev_die_masses_bremcorr_t>(arguments, context);
   const auto v_die_pts_raw = make_host_buffer<dev_die_pts_raw_t>(arguments, context);
@@ -228,5 +216,4 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::output_monito
     }
   }
   tree->Write(0, TObject::kOverwrite);
-#endif
 }

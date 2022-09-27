@@ -3,10 +3,7 @@
 \*****************************************************************************/
 #include <cstring>
 #include "raw_helpers.hpp"
-
-#ifdef WITH_ROOT
 #include <RZip.h>
-#endif
 
 /// one-at-time hash function
 // Public domain code from https://burtleburtle.net/bob/hash/doobs.html
@@ -34,9 +31,7 @@ bool LHCb::decompressBuffer(
   size_t src_len,
   size_t& new_len)
 {
-#ifdef WITH_ROOT
   int in_len = 0, out_len = 0, res_len = 0;
-#endif
   switch (algtype) {
   case 0:
     if (tar != src && tar_len >= src_len) {
@@ -54,7 +49,6 @@ bool LHCb::decompressBuffer(
   case 7:
   case 8:
   case 9:
-#ifdef WITH_ROOT
     in_len = static_cast<int>(src_len);
     out_len = static_cast<int>(tar_len);
     res_len = 0;
@@ -63,7 +57,6 @@ bool LHCb::decompressBuffer(
       new_len = static_cast<size_t>(res_len);
       return true;
     }
-#endif
     break;
   default: break;
   }
