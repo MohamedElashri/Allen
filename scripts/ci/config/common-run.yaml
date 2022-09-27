@@ -10,10 +10,10 @@
       # run_throughput tests for default sequence
       - TEST_NAME: "run_efficiency_throughput"
         RUN_EFFICIENCY_SEQUENCE: ["hlt1_pp_validation"]
-        RUN_EFFICIENCY_DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1_newLHCbID"]
+        RUN_EFFICIENCY_DATA_TAG: ["Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"]
 
         RUN_THROUGHPUT_SEQUENCE: ["hlt1_pp_default"]
-        RUN_THROUGHPUT_DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"]
+        RUN_THROUGHPUT_DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
 
 .run_matrix_jobs_full: 
   variables:
@@ -28,7 +28,7 @@
         RUN_THROUGHPUT_SEQUENCE: 
           - "hlt1_pp_default"
           - "hlt1_pp_matching"
-        RUN_THROUGHPUT_DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"]
+        RUN_THROUGHPUT_DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
 
         OPTIONS: BUILD_TESTING+ENABLE_CONTRACTS
         TPUT_REPORT: "NO_REPORT"
@@ -36,29 +36,29 @@
 
       # SMOG (Default)
       - RUN_EFFICIENCY_SEQUENCE: hlt1_pp_validation
-        RUN_EFFICIENCY_DATA_TAG: SMOG2_pHe_5k_retinacluster_v1_newLHCbID
+        RUN_EFFICIENCY_DATA_TAG: SMOG2_pHe_5k_retinacluster_v1
         RUN_EFFICIENCY_GEOMETRY: SMOG2_pppHe
 
         RUN_THROUGHPUT_SEQUENCE: hlt1_pp_default
-        RUN_THROUGHPUT_DATA_TAG: SMOG2_pppHe_retinacluster_v1_newLHCbID
+        RUN_THROUGHPUT_DATA_TAG: SMOG2_pppHe_retinacluster_v1
         RUN_THROUGHPUT_GEOMETRY: SMOG2_pppHe
 
       # SMOG2
       - RUN_EFFICIENCY_SEQUENCE: hlt1_pp_SMOG2_validation
-        RUN_EFFICIENCY_DATA_TAG: SMOG2_pHe_5k_retinacluster_v1_newLHCbID
+        RUN_EFFICIENCY_DATA_TAG: SMOG2_pHe_5k_retinacluster_v1
         RUN_EFFICIENCY_GEOMETRY: SMOG2_pppHe
 
         RUN_THROUGHPUT_SEQUENCE: hlt1_pp_SMOG2_default
-        RUN_THROUGHPUT_DATA_TAG: SMOG2_pppHe_retinacluster_v1_newLHCbID
+        RUN_THROUGHPUT_DATA_TAG: SMOG2_pppHe_retinacluster_v1
         RUN_THROUGHPUT_GEOMETRY: SMOG2_pppHe
 
       # SMOG (Matching sequence)
       - RUN_EFFICIENCY_SEQUENCE: hlt1_pp_matching_validation
-        RUN_EFFICIENCY_DATA_TAG: SMOG2_pHe_5k_retinacluster_v1_newLHCbID
+        RUN_EFFICIENCY_DATA_TAG: SMOG2_pHe_5k_retinacluster_v1
         RUN_EFFICIENCY_GEOMETRY: SMOG2_pppHe
 
         RUN_THROUGHPUT_SEQUENCE: hlt1_pp_matching
-        RUN_THROUGHPUT_DATA_TAG: SMOG2_pppHe_retinacluster_v1_newLHCbID
+        RUN_THROUGHPUT_DATA_TAG: SMOG2_pppHe_retinacluster_v1
         RUN_THROUGHPUT_GEOMETRY: SMOG2_pppHe
 
       # No GEC (no eff)
@@ -73,7 +73,7 @@
         #   - hlt1_pp_validation
         #   - hlt1_pp_no_ut_validation
         #   - hlt1_pp_matching_validation
-        # DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID"]
+        # DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1"]
         # GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
 
 
@@ -87,7 +87,7 @@
     matrix:
       # run throughput, contracts enabled
       - SEQUENCE: ["hlt1_pp_default", "hlt1_pp_matching"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
         OPTIONS: [BUILD_TESTING+ENABLE_CONTRACTS]
         TPUT_REPORT: "NO_REPORT" # don't publish throughput report
 
@@ -96,15 +96,15 @@
           - hlt1_pp_no_gec
           - hlt1_pp_no_gec_no_ut
           - hlt1_pp_SMOG2_default
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"]
-        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1_newLHCbID"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
+        #DATA_TAG: ["MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"]
 
       # # run throughput, default, SMOG2_pppHe
       # - SEQUENCE: 
       #     - hlt1_pp_default
       #     - hlt1_pp_matching
       #     - hlt1_pp_SMOG2_default
-      #   DATA_TAG: ["SMOG2_pppHe_retinacluster_v1_newLHCbID"]
+      #   DATA_TAG: ["SMOG2_pppHe_retinacluster_v1"]
       #   GEOMETRY: ["SMOG2_pppHe"]
 
       # run throughput, PbPb, MB PbPb
@@ -114,11 +114,11 @@
 
       # Allen clustering jobs
       - SEQUENCE: ["hlt1_pp_veloSP"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000_newLHCbID"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000"]
 
       # run throughput, scifi_v6
       - SEQUENCE: ["hlt1_pp_default", "hlt1_pp_matching"]
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1_newLHCbID"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1"]
         GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
 
       # run throughput, calov4
@@ -142,14 +142,15 @@
       - SEQUENCE: 
          - hlt1_pp_default
          - hlt1_pp_matching
-        DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1_newLHCbID"]
+        DATA_TAG: ["upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1"]
         GEOMETRY: ["upgrade-magdown-sim10-up08-11102202-digi"]
 
       # run throughput, forward no ut, matching
       - SEQUENCE: 
           - hlt1_pp_matching
           - hlt1_pp_no_ut
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
+
 
 # efficiency and other tests go here
 .run_matrix_jobs_full_efficiency:
@@ -159,7 +160,7 @@
       - TEST_NAME: "run_physics_efficiency"
         BUILD_TYPE: ["RelWithDebInfo"]
         SEQUENCE: ["hlt1_pp_SMOG2_validation"]
-        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"]
+        DATA_TAG: ["upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"]
 
       - TEST_NAME: "run_built_tests"
         LCG_OPTIMIZATION: [opt, dbg]
@@ -173,7 +174,7 @@
           - hlt1_pp_validation
           - hlt1_pp_no_ut_validation
           - hlt1_pp_matching_validation
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1"]
         GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
 
       # # efficiency tests, SMOG2 pHe
@@ -187,7 +188,7 @@
 
       - TEST_NAME: "run_physics_efficiency"
         SEQUENCE: ["hlt1_pp_veloSP_validation"]
-        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k_newLHCbID"]
+        DATA_TAG: ["SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k"]
         GEOMETRY: ["upgrade_DC19_01_MinBiasMD"]
 
 
@@ -244,7 +245,7 @@
     matrix:
       - TEST_NAME: "run_toggle_run_changes"
         SEQUENCE: ["hlt1_pp_validation", "hlt1_pp_matching_validation"]
-        DATA_TAG: "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1_newLHCbID"
+        DATA_TAG: "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"
   artifacts:
     expire_in: 1 day
     paths:
