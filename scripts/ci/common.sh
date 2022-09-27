@@ -118,6 +118,6 @@ set -u; set -x
 
 BUILD_FOLDER="build_${LCG_PLATFORM}_${BUILD_SEQUENCES}_${OPTIONS}"
 
-ls -la
+# ls -la
 
 export PS4=" > "
