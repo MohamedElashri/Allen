@@ -10,10 +10,13 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
 
-def decode_calo():
+def decode_calo(empty_banks=False):
     number_of_events = initialize_number_of_events()
     ecal_banks = make_algorithm(
-        data_provider_t, name="ecal_banks", bank_type="ECal")
+        data_provider_t,
+        name="ecal_banks",
+        bank_type="ECal",
+        empty=empty_banks)
 
     calo_count_digits = make_algorithm(
         calo_count_digits_t,

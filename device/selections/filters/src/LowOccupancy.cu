@@ -30,15 +30,18 @@ void low_occupancy::low_occupancy_t::operator()(
   Allen::memset_async<dev_event_list_output_t>(arguments, 0, context);
 
   global_function(low_occupancy)(dim3(1), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, size<dev_event_list_t>(arguments));
+    arguments, size<dev_event_list_t>(arguments), first<host_number_of_events_t>(arguments));
   Allen::copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);
   reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 }
 
-__global__ void low_occupancy::low_occupancy(low_occupancy::Parameters parameters, const unsigned number_of_events)
+__global__ void low_occupancy::low_occupancy(
+  low_occupancy::Parameters parameters,
+  const unsigned number_of_selected_events,
+  const unsigned number_of_events)
 {
 
-  for (unsigned idx = threadIdx.x; idx < number_of_events; idx += blockDim.x) {
+  for (unsigned idx = threadIdx.x; idx < number_of_selected_events; idx += blockDim.x) {
 
     auto event_number = parameters.dev_event_list[idx];
     Velo::Consolidated::ConstTracks velo_tracks {

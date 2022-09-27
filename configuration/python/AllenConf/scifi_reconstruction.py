@@ -453,18 +453,21 @@ def make_seeding_tracks(decoded_scifi, xz_tracks):
     }
 
 
-def forward_tracking():
+def forward_tracking(with_ut=True):
     from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
     from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
 
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
-    decoded_ut = decode_ut()
-    ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
+    if with_ut:
+        decoded_ut = decode_ut()
+        ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
+        input_tracks = ut_tracks
+    else:
+        input_tracks = velo_tracks
     decoded_scifi = decode_scifi()
-    long_tracks = make_forward_tracks(decoded_scifi, ut_tracks)
-    alg = long_tracks["dev_scifi_track_hits"].producer
-    return alg
+
+    return make_forward_tracks(decoded_scifi, input_tracks, with_ut=with_ut)
 
 
 def seeding_xz():

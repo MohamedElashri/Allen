@@ -57,8 +57,7 @@ DumpUTLookupTables::DumpUTLookupTables(const std::string& name, ISvcLocator* svc
   Dumper(
     name,
     svcLoc,
-    {KeyValue {"LookupTableLocation", "AlgorithmSpecific-" + name + "-tables"},
-     KeyValue {"Magnet", LHCb::Det::Magnet::det_path}})
+    {KeyValue {"LookupTableLocation", location(name, "tables")}, KeyValue {"Magnet", LHCb::Det::Magnet::det_path}})
 {}
 
 StatusCode DumpUTLookupTables::initialize()

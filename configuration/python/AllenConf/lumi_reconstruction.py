@@ -23,7 +23,10 @@ def findLine(lines, name):
     return -1, False
 
 
-def lumi_reconstruction(gather_selections, lines, lumiline_name):
+def lumi_reconstruction(gather_selections,
+                        lines,
+                        lumiline_name,
+                        with_muon=True):
     lumiLine_index, found = findLine(lines, lumiline_name)
     if not found:
         return []
@@ -34,7 +37,7 @@ def lumi_reconstruction(gather_selections, lines, lumiline_name):
     velo_tracks = make_velo_tracks(decoded_velo)
     decoded_scifi = decode_scifi()
     pvs = make_pvs(velo_tracks)
-    decoded_muon = decode_muon()
+    decoded_muon = decode_muon(empty_banks=not with_muon)
 
     calc_lumi_sum_size = make_algorithm(
         calc_lumi_sum_size_t,

@@ -56,6 +56,10 @@ private:
     "ParamDir",
     "${PARAMFILESROOT}"}; // set this explicitly, must match with the Condition tags.
   Gaudi::Property<std::string> m_updaterName {this, "UpdaterName", "AllenUpdater"};
+
+  Gaudi::Property<std::vector<std::string>> m_bankTypeNames {this,
+                                                             "BankTypes",
+                                                             {"VP", "UT", "FTCluster", "ECal", "Muon"}};
 };
 
 ProvideConstants::ProvideConstants(const std::string& name, ISvcLocator* pSvcLocator) :
@@ -72,6 +76,18 @@ StatusCode ProvideConstants::initialize()
 {
   auto sc = Transformer::initialize();
   if (sc.isFailure()) return sc;
+
+  std::unordered_set<BankTypes> bankTypes;
+  for (auto type : m_bankTypeNames.value()) {
+    auto bt = ::bank_type(type);
+    if (bt == BankTypes::Unknown) {
+      error() << "Failed to obtain bank type for " << type << endmsg;
+      return StatusCode::FAILURE;
+    }
+    else {
+      bankTypes.insert(bt);
+    }
+  }
 
   // initialize Allen Constants
   // Get updater service and register all consumers
@@ -114,8 +130,7 @@ StatusCode ProvideConstants::initialize()
     two_track_mva_model_reader.lambda());
 
   // Allen Consumers
-  register_consumers(
-    m_updater, m_constants, {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::ECal, BankTypes::MUON});
+  register_consumers(m_updater, m_constants, bankTypes);
 
   return StatusCode::SUCCESS;
 }

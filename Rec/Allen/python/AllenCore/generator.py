@@ -33,9 +33,10 @@ def get_runtime_options(rawbank_list):
             rawbank_list=rawbank_list))
 
 
-def get_constants():
+@configurable
+def get_constants(consumer_types=["VP", "UT", "FTCluster", "ECal", "Muon"]):
     from PyConf.application import make_odin
-    return ProvideConstants(ODINLocation=make_odin())
+    return ProvideConstants(ODINLocation=make_odin(), BankTypes=consumer_types)
 
 
 def is_allen_standalone():

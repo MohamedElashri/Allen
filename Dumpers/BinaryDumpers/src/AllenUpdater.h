@@ -91,5 +91,5 @@ private:
   SmartIF<Gaudi::Interfaces::IQueueingEventProcessor> m_evtProc;
 
   std::mutex m_odinMutex;
-  std::optional<LHCb::ODIN> m_odin;
+  std::optional<LHCb::ODIN> m_odin = std::nullopt;
 };

@@ -60,7 +60,8 @@ lumi_with_prefilter = CompositeNode(
         lumi_reconstruction(
             gather_selections=gather_selections,
             lines=line_algorithms,
-            lumiline_name="Hlt1ODINLumi")
+            lumiline_name="Hlt1ODINLumi",
+            with_muon=False)
     ],
     NodeLogic.LAZY_AND,
     force_order=True)

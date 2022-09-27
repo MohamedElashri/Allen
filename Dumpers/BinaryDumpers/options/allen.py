@@ -5,11 +5,14 @@
 import os
 import sys
 import zmq
+import json
 from Configurables import ApplicationMgr
 from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
-from Allen.config import setup_allen_non_event_data_service
+from Allen.config import (setup_allen_non_event_data_service, allen_odin,
+                          configured_bank_types)
 from PyConf.application import (configure, setup_component, ComponentConfig,
-                                ApplicationOptions)
+                                ApplicationOptions, make_odin)
+from DDDB.CheckDD4Hep import UseDD4Hep
 from threading import Thread
 from time import sleep
 import ctypes
@@ -54,7 +57,7 @@ parser.add_argument("-m", dest="reserve", default=1024)
 parser.add_argument("-v", dest="verbosity", default=3)
 parser.add_argument("-p", dest="print_memory", default=0)
 parser.add_argument("--sequence", dest="sequence", default=sequence_default)
-parser.add_argument("-s", dest="slices", default=2)
+parser.add_argument("-s", dest="slices", default=1)
 parser.add_argument("--mdf", dest="mdf", default="")
 parser.add_argument("--mep", dest="mep", default="")
 parser.add_argument(
@@ -110,6 +113,8 @@ parser.add_argument(
 parser.add_argument(
     "--tags", dest="tags", default="dddb-20171122,sim-20180530-vc-md100")
 parser.add_argument(
+    "--real-data", dest="simulation", action="store_false", default=True)
+parser.add_argument(
     "--enable-monitoring-printing",
     dest="enable_monitoring_printing",
     type=int,
@@ -133,11 +138,17 @@ if args.profile == "CUDA":
 dddb_tag, conddb_tag = args.tags.split(',')
 
 options = ApplicationOptions(_enabled=False)
-options.simulation = True
+options.simulation = args.simulation
 options.data_type = 'Upgrade'
 options.input_type = 'MDF'
 options.dddb_tag = dddb_tag
 options.conddb_tag = conddb_tag
+
+online_cond_path = '/group/online/hlt/conditions.run3/lhcb-conditions-database'
+if not args.simulation and not UseDD4Hep and os.path.exists(online_cond_path):
+    options.velo_motion_system_yaml = os.path.join(online_cond_path +
+                                                   '/Conditions/VP/Motion.yml')
+    make_odin = allen_odin
 
 options.finalize()
 config = ComponentConfig()
@@ -191,7 +202,10 @@ ApplicationMgr().ExtSvc += extSvc
 # Copeid from PyConf.application.configure_input
 config.add(
     setup_component(
-        'DDDBConf', Simulation=options.simulation, DataType=options.data_type))
+        'DDDBConf',
+        Simulation=options.simulation,
+        DataType=options.data_type,
+        ConditionsVersion=options.conddb_tag))
 config.add(
     setup_component(
         'CondDB',
@@ -201,8 +215,10 @@ config.add(
             'SIMCOND': options.conddb_tag,
         }))
 
-cf_node = setup_allen_non_event_data_service(allen_event_loop=True)
-config.update(configure(options, cf_node))
+bank_types = configured_bank_types(args.sequence)
+cf_node = setup_allen_non_event_data_service(
+    allen_event_loop=True, bank_types=bank_types)
+config.update(configure(options, cf_node, make_odin=make_odin))
 
 # Start Gaudi and get the AllenUpdater service
 gaudi = AppMgr()

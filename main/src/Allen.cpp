@@ -998,6 +998,13 @@ int allen(
         buffers_manager->buffersEmpty() &&
         (!io_conf.async_io || (io_conf.async_io && count_status(SliceStatus::Empty) == io_conf.number_of_slices))) {
         info_cout << "Processing complete\n";
+
+        // Trigger an aggregation
+        for (auto& worker : agg_workers) {
+          zmqSvc->send(std::get<1>(worker), "AGGREGATE");
+          zmqSvc->receive<bool>(std::get<1>(worker));
+        }
+
         if (allen_control && stop) {
           stop = false;
           t_stop.reset();
