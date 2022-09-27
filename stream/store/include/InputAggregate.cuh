@@ -64,19 +64,10 @@ namespace Allen::Store {
   }
 
 // Macro
-#define INPUT_AGGREGATE(HOST_DEVICE, ARGUMENT_NAME, ...)                                                           \
-  struct ARGUMENT_NAME : public Allen::Store::aggregate_datatype, HOST_DEVICE {                                    \
-    using type = Allen::Store::InputAggregate<__VA_ARGS__>;                                                        \
-    void parameter(__VA_ARGS__) const;                                                                             \
-    ARGUMENT_NAME() = default;                                                                                     \
-    ARGUMENT_NAME(const type& input_aggregate) : m_value(input_aggregate) {}                                       \
-    template<typename... Ts>                                                                                       \
-    ARGUMENT_NAME(std::tuple<Ts&...> value) : m_value(Allen::Store::makeInputAggregate<__VA_ARGS__, Ts...>(value)) \
-    {}                                                                                                             \
-    const type& value() const { return m_value; }                                                                  \
-                                                                                                                   \
-  private:                                                                                                         \
-    type m_value {};                                                                                               \
+#define INPUT_AGGREGATE(HOST_OR_DEVICE, ARGUMENT_NAME, ...)                        \
+  struct ARGUMENT_NAME : public Allen::Store::aggregate_datatype, HOST_OR_DEVICE { \
+    using type = Allen::Store::InputAggregate<__VA_ARGS__>;                        \
+    void parameter(__VA_ARGS__) const;                                             \
   }
 
 #define HOST_INPUT_AGGREGATE(ARGUMENT_NAME, ...) \

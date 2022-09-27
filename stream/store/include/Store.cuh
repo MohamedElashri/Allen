@@ -133,6 +133,23 @@ namespace Allen::Store {
   };
 
   /**
+   * @brief Metaprogramming to extract ::type from each aggregated type.
+   */
+  template<typename Tuple>
+  struct AggregateTypes;
+
+  template<>
+  struct AggregateTypes<std::tuple<>> {
+    using aggregates_tuple_type_t = std::tuple<>;
+  };
+
+  template<typename T, typename... Ts>
+  struct AggregateTypes<std::tuple<T, Ts...>> {
+    using aggregates_tuple_type_t =
+      prepend_to_tuple_t<typename T::type, typename AggregateTypes<std::tuple<Ts...>>::aggregates_tuple_type_t>;
+  };
+
+  /**
    * @brief Manager of argument references for every handler.
    */
   template<
@@ -145,7 +162,7 @@ namespace Allen::Store {
     using parameters_and_properties_tuple_t = ParametersAndPropertiesTuple;
     using parameters_tuple_t = ParameterTuple;
     using parameters_struct_t = ParameterStruct;
-    using input_aggregates_t = InputAggregatesTuple;
+    using input_aggregates_t = typename AggregateTypes<InputAggregatesTuple>::aggregates_tuple_type_t;
     using arguments_t = std::array<std::reference_wrapper<BaseArgument>, std::tuple_size_v<parameters_tuple_t>>;
 
   private:
@@ -238,7 +255,7 @@ namespace Allen::Store {
     template<typename T, std::enable_if_t<std::is_base_of_v<aggregate_datatype, T>, bool> = true>
     auto input_aggregate() const
     {
-      return std::get<T>(m_input_aggregates).value();
+      return std::get<index_of_v<T, InputAggregatesTuple>>(m_input_aggregates);
     }
   };
 
