@@ -16,7 +16,3 @@ if (NOT STANDALONE)
   target_compile_definitions(Monitoring PUBLIC GAUDI_BUILD)
   target_link_libraries(Monitoring PRIVATE Gaudi::GaudiUtilsLib)
 endif()
-
-# TODO: Remove
-# Locally suppress float->double promotion warnings caused by ROOT TH interfaces
-string(APPEND CMAKE_CXX_FLAGS " -Wno-double-promotion ")

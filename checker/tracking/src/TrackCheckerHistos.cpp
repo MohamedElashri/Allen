@@ -275,16 +275,16 @@ void TrackCheckerHistos::fillReconstructibleHistos(const MCParticles& mcps, cons
   const std::string docaz_name = category.m_name + "_docaz_reconstructible";
   for (auto mcp : mcps) {
     if (category.m_accept(mcp)) {
-      h_reconstructible_eta[eta_name]->Fill(mcp.eta);
-      h_reconstructible_p[p_name]->Fill(mcp.p);
-      h_reconstructible_pt[pt_name]->Fill(mcp.pt);
-      h_reconstructible_phi[phi_name]->Fill(mcp.phi);
-      h_reconstructible_nPV[nPV_name]->Fill(mcp.nPV);
-      h_reconstructible_eta_phi[eta_phi_name]->Fill(mcp.eta, mcp.phi);
+      h_reconstructible_eta[eta_name]->Fill(static_cast<double>(mcp.eta));
+      h_reconstructible_p[p_name]->Fill(static_cast<double>(mcp.p));
+      h_reconstructible_pt[pt_name]->Fill(static_cast<double>(mcp.pt));
+      h_reconstructible_phi[phi_name]->Fill(static_cast<double>(mcp.phi));
+      h_reconstructible_nPV[nPV_name]->Fill(static_cast<double>(mcp.nPV));
+      h_reconstructible_eta_phi[eta_phi_name]->Fill(static_cast<double>(mcp.eta), static_cast<double>(mcp.phi));
       float tx = std::cos(mcp.phi) / std::sinh(mcp.eta);
       float ty = std::sin(mcp.phi) / std::sinh(mcp.eta);
       float docaz = std::abs(ty * mcp.ovtx_x - tx * mcp.ovtx_y) / std::sqrt(tx * tx + ty * ty);
-      h_reconstructible_docaz[docaz_name]->Fill(docaz);
+      h_reconstructible_docaz[docaz_name]->Fill(static_cast<double>(docaz));
     }
   }
 }
@@ -299,16 +299,16 @@ void TrackCheckerHistos::fillReconstructedHistos(const MCParticle& mcp, HistoCat
   const std::string nPV_name = category.m_name + "_nPV_reconstructed";
   const std::string eta_phi_name = category.m_name + "_Eta_Phi_reconstructed";
   const std::string docaz_name = category.m_name + "_docaz_reconstructed";
-  h_reconstructed_eta[eta_name]->Fill(mcp.eta);
-  h_reconstructed_p[p_name]->Fill(mcp.p);
-  h_reconstructed_pt[pt_name]->Fill(mcp.pt);
-  h_reconstructed_phi[phi_name]->Fill(mcp.phi);
-  h_reconstructed_nPV[nPV_name]->Fill(mcp.nPV);
-  h_reconstructed_eta_phi[eta_phi_name]->Fill(mcp.eta, mcp.phi);
+  h_reconstructed_eta[eta_name]->Fill(static_cast<double>(mcp.eta));
+  h_reconstructed_p[p_name]->Fill(static_cast<double>(mcp.p));
+  h_reconstructed_pt[pt_name]->Fill(static_cast<double>(mcp.pt));
+  h_reconstructed_phi[phi_name]->Fill(static_cast<double>(mcp.phi));
+  h_reconstructed_nPV[nPV_name]->Fill(static_cast<double>(mcp.nPV));
+  h_reconstructed_eta_phi[eta_phi_name]->Fill(static_cast<double>(mcp.eta), static_cast<double>(mcp.phi));
   float tx = std::cos(mcp.phi) / std::sinh(mcp.eta);
   float ty = std::sin(mcp.phi) / std::sinh(mcp.eta);
   float docaz = std::abs(ty * mcp.ovtx_x - tx * mcp.ovtx_y) / std::sqrt(tx * tx + ty * ty);
-  h_reconstructed_docaz[docaz_name]->Fill(docaz);
+  h_reconstructed_docaz[docaz_name]->Fill(static_cast<double>(docaz));
 }
 
 void TrackCheckerHistos::fillTotalHistos(double nPV, double eta)
@@ -326,93 +326,93 @@ void TrackCheckerHistos::fillGhostHistos(double nPV, double eta)
 void TrackCheckerHistos::fillMomentumResolutionHisto(const MCParticle& mcp, const float p, const float qop)
 {
   float mc_qop = mcp.charge / mcp.p;
-  h_dp_versus_p->Fill(mcp.p, (mcp.p - p));
-  h_momentum_resolution->Fill(mcp.p, (mcp.p - p) / mcp.p);
-  h_qop_resolution->Fill(mc_qop, (mc_qop - qop) / mc_qop);
-  h_dqop_versus_qop->Fill(mc_qop, mc_qop - qop);
-  h_momentum_matched->Fill(mcp.p);
+  h_dp_versus_p->Fill(static_cast<double>(mcp.p), static_cast<double>(mcp.p - p));
+  h_momentum_resolution->Fill(static_cast<double>(mcp.p), static_cast<double>((mcp.p - p) / mcp.p));
+  h_qop_resolution->Fill(static_cast<double>(mc_qop), static_cast<double>((mc_qop - qop) / mc_qop));
+  h_dqop_versus_qop->Fill(static_cast<double>(mc_qop), static_cast<double>(mc_qop - qop));
+  h_momentum_matched->Fill(static_cast<double>(mcp.p));
 }
 
 void TrackCheckerHistos::fillMuonReconstructedMatchedIsMuon(const MCParticle& mcp)
 {
-  h_matched_isMuon_Eta_reconstructed->Fill(mcp.eta);
-  h_matched_isMuon_P_reconstructed->Fill(mcp.p);
-  h_matched_isMuon_Pt_reconstructed->Fill(mcp.pt);
-  h_matched_isMuon_Phi_reconstructed->Fill(mcp.phi);
-  h_matched_isMuon_nPV_reconstructed->Fill(mcp.nPV);
+  h_matched_isMuon_Eta_reconstructed->Fill(static_cast<double>(mcp.eta));
+  h_matched_isMuon_P_reconstructed->Fill(static_cast<double>(mcp.p));
+  h_matched_isMuon_Pt_reconstructed->Fill(static_cast<double>(mcp.pt));
+  h_matched_isMuon_Phi_reconstructed->Fill(static_cast<double>(mcp.phi));
+  h_matched_isMuon_nPV_reconstructed->Fill(static_cast<double>(mcp.nPV));
 }
 
 void TrackCheckerHistos::fillMuonFromSReconstructedMatchedIsMuon(const MCParticle& mcp)
 {
-  h_matched_FromS_isMuon_Eta_reconstructed->Fill(mcp.eta);
-  h_matched_FromS_isMuon_P_reconstructed->Fill(mcp.p);
-  h_matched_FromS_isMuon_Pt_reconstructed->Fill(mcp.pt);
-  h_matched_FromS_isMuon_Phi_reconstructed->Fill(mcp.phi);
-  h_matched_FromS_isMuon_nPV_reconstructed->Fill(mcp.nPV);
+  h_matched_FromS_isMuon_Eta_reconstructed->Fill(static_cast<double>(mcp.eta));
+  h_matched_FromS_isMuon_P_reconstructed->Fill(static_cast<double>(mcp.p));
+  h_matched_FromS_isMuon_Pt_reconstructed->Fill(static_cast<double>(mcp.pt));
+  h_matched_FromS_isMuon_Phi_reconstructed->Fill(static_cast<double>(mcp.phi));
+  h_matched_FromS_isMuon_nPV_reconstructed->Fill(static_cast<double>(mcp.nPV));
 }
 
 void TrackCheckerHistos::fillMuonFromBReconstructedMatchedIsMuon(const MCParticle& mcp)
 {
-  h_matched_FromB_isMuon_Eta_reconstructed->Fill(mcp.eta);
-  h_matched_FromB_isMuon_P_reconstructed->Fill(mcp.p);
-  h_matched_FromB_isMuon_Pt_reconstructed->Fill(mcp.pt);
-  h_matched_FromB_isMuon_Phi_reconstructed->Fill(mcp.phi);
-  h_matched_FromB_isMuon_nPV_reconstructed->Fill(mcp.nPV);
+  h_matched_FromB_isMuon_Eta_reconstructed->Fill(static_cast<double>(mcp.eta));
+  h_matched_FromB_isMuon_P_reconstructed->Fill(static_cast<double>(mcp.p));
+  h_matched_FromB_isMuon_Pt_reconstructed->Fill(static_cast<double>(mcp.pt));
+  h_matched_FromB_isMuon_Phi_reconstructed->Fill(static_cast<double>(mcp.phi));
+  h_matched_FromB_isMuon_nPV_reconstructed->Fill(static_cast<double>(mcp.nPV));
 }
 
 void TrackCheckerHistos::fillMuonReconstructedNotMatchedIsMuon(const MCParticle& mcp)
 {
-  h_not_matched_isMuon_Eta_reconstructed->Fill(mcp.eta);
-  h_not_matched_isMuon_P_reconstructed->Fill(mcp.p);
-  h_not_matched_isMuon_Pt_reconstructed->Fill(mcp.pt);
-  h_not_matched_isMuon_Phi_reconstructed->Fill(mcp.phi);
-  h_not_matched_isMuon_nPV_reconstructed->Fill(mcp.nPV);
+  h_not_matched_isMuon_Eta_reconstructed->Fill(static_cast<double>(mcp.eta));
+  h_not_matched_isMuon_P_reconstructed->Fill(static_cast<double>(mcp.p));
+  h_not_matched_isMuon_Pt_reconstructed->Fill(static_cast<double>(mcp.pt));
+  h_not_matched_isMuon_Phi_reconstructed->Fill(static_cast<double>(mcp.phi));
+  h_not_matched_isMuon_nPV_reconstructed->Fill(static_cast<double>(mcp.nPV));
 }
 
 void TrackCheckerHistos::fillMuonReconstructible(const MCParticle& mcp)
 {
   if (std::abs(mcp.pid) == 13) {
-    h_muon_Eta_reconstructible->Fill(mcp.eta);
-    h_muon_P_reconstructible->Fill(mcp.p);
-    h_muon_Pt_reconstructible->Fill(mcp.pt);
-    h_muon_Phi_reconstructible->Fill(mcp.phi);
-    h_muon_nPV_reconstructible->Fill(mcp.nPV);
+    h_muon_Eta_reconstructible->Fill(static_cast<double>(mcp.eta));
+    h_muon_P_reconstructible->Fill(static_cast<double>(mcp.p));
+    h_muon_Pt_reconstructible->Fill(static_cast<double>(mcp.pt));
+    h_muon_Phi_reconstructible->Fill(static_cast<double>(mcp.phi));
+    h_muon_nPV_reconstructible->Fill(static_cast<double>(mcp.nPV));
   }
   else {
-    h_not_muon_Eta_reconstructible->Fill(mcp.eta);
-    h_not_muon_P_reconstructible->Fill(mcp.p);
-    h_not_muon_Pt_reconstructible->Fill(mcp.pt);
-    h_not_muon_Phi_reconstructible->Fill(mcp.phi);
-    h_not_muon_nPV_reconstructible->Fill(mcp.nPV);
+    h_not_muon_Eta_reconstructible->Fill(static_cast<double>(mcp.eta));
+    h_not_muon_P_reconstructible->Fill(static_cast<double>(mcp.p));
+    h_not_muon_Pt_reconstructible->Fill(static_cast<double>(mcp.pt));
+    h_not_muon_Phi_reconstructible->Fill(static_cast<double>(mcp.phi));
+    h_not_muon_nPV_reconstructible->Fill(static_cast<double>(mcp.nPV));
   }
 }
 
 void TrackCheckerHistos::fillMuonGhostHistos(double nPV, double eta)
 {
-  h_ghost_isMuon_nPV_reconstructed->Fill(nPV);
-  h_ghost_isMuon_Eta_reconstructed->Fill(eta);
+  h_ghost_isMuon_nPV_reconstructed->Fill(static_cast<double>(nPV));
+  h_ghost_isMuon_Eta_reconstructed->Fill(static_cast<double>(eta));
 }
 
 void TrackCheckerHistos::fillMuonIDMatchedHistos(const Checker::Track& track, const MCParticle& mcp)
 {
   if (std::abs(mcp.pid) == 13) {
-    h_muon_catboost_output_matched_muon->Fill(track.muon_catboost_output);
-    h_is_muon_matched_muon->Fill(track.is_muon);
+    h_muon_catboost_output_matched_muon->Fill(static_cast<double>(track.muon_catboost_output));
+    h_is_muon_matched_muon->Fill(static_cast<double>(track.is_muon));
     if (track.is_muon == true) {
-      h_muon_catboost_output_matched_muon_ismuon_true->Fill(track.muon_catboost_output);
+      h_muon_catboost_output_matched_muon_ismuon_true->Fill(static_cast<double>(track.muon_catboost_output));
     }
     else {
-      h_muon_catboost_output_matched_muon_ismuon_false->Fill(track.muon_catboost_output);
+      h_muon_catboost_output_matched_muon_ismuon_false->Fill(static_cast<double>(track.muon_catboost_output));
     }
   }
   else {
-    h_muon_catboost_output_matched_notMuon->Fill(track.muon_catboost_output);
-    h_is_muon_matched_notMuon->Fill(track.is_muon);
+    h_muon_catboost_output_matched_notMuon->Fill(static_cast<double>(track.muon_catboost_output));
+    h_is_muon_matched_notMuon->Fill(static_cast<double>(track.is_muon));
     if (track.is_muon == true) {
-      h_muon_catboost_output_matched_notMuon_ismuon_true->Fill(track.muon_catboost_output);
+      h_muon_catboost_output_matched_notMuon_ismuon_true->Fill(static_cast<double>(track.muon_catboost_output));
     }
     else {
-      h_muon_catboost_output_matched_notMuon_ismuon_false->Fill(track.muon_catboost_output);
+      h_muon_catboost_output_matched_notMuon_ismuon_false->Fill(static_cast<double>(track.muon_catboost_output));
     }
   }
 }
