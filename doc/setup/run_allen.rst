@@ -46,24 +46,24 @@ A run of the Allen program with the help option `-h` will let you know the basic
      --disable-run-changes {Ignore signals to update non-event data with each run change}=1
      -h {show this help}
 
-Here are some examples for run options::
+Here are some examples for run options. Note that if Allen was :ref:`built with cvmfs<build with cvmfs>`, one can prepend `./toolchain/wrapper` to all the following commands to execute in the correct environment.  ::
 
     # Run on an MDF input file shipped with Allen once
-    ./toolchain/wrapper ./Allen --sequence hlt1_pp_default --mdf ../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf
+    ./Allen --sequence hlt1_pp_default --mdf ../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf
 
     # Run a total of 1000 events once with validation
-    ./toolchain/wrapper ./Allen --sequence hlt1_pp_validation -n 1000 --mdf /path/to/mdf/input/file
+    ./Allen --sequence hlt1_pp_validation -n 1000 --mdf /path/to/mdf/input/file
 
     # Run four streams, each with 4000 events and 20 repetitions
-    ./toolchain/wrapper ./Allen --sequence hlt1_pp_default -t 4 -n 4000 -r 20 --mdf /path/to/mdf/input/file
+    ./Allen --sequence hlt1_pp_default -t 4 -n 4000 -r 20 --mdf /path/to/mdf/input/file
 
     # Run one stream with 5000 events and print all memory allocations
-    ./toolchain/wrapper ./Allen --sequence hlt1_pp_default -n 5000 -p 1 --mdf /path/to/mdf/input/file
+    ./Allen --sequence hlt1_pp_default -n 5000 -p 1 --mdf /path/to/mdf/input/file
 
     # Run on all events in all files listed in file.lst; four streams
     # with batches of 1000 events
     find /some/directory/with/files -type f | sort > files.lst
-    ./toolchain/wrapper ./Allen --sequence hlt1_pp_default -t 4 --events-per-slice 1000 --mdf /path/to/files.lst
+    ./Allen --sequence hlt1_pp_default -t 4 --events-per-slice 1000 --mdf /path/to/files.lst
 
 .. _run_allen_in_gaudi_moore_eventloop:
 
