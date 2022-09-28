@@ -391,7 +391,6 @@ public:
           // start to 0.
           std::get<0>(m_buffers[i_read]) = 0;
           std::get<3>(m_buffers[i_read]) = 0;
-          m_transpose_done = m_done && m_prefetched.empty();
         }
       }
     }
@@ -402,6 +401,20 @@ public:
     }
     if (set_writable) {
       this->debug_output("Set buffer " + std::to_string(i_read) + " writable");
+      bool work_done = false;
+      if (m_done && m_prefetched.empty()) {
+        std::unique_lock<std::mutex> lock {m_prefetch_mut};
+        work_done =
+          std::accumulate(m_buffer_status.begin(), m_buffer_status.end(), 0u, [](size_t s, BufferStatus const& status) {
+            return s + status.work_counter;
+          }) == 0;
+      }
+      if (work_done && !m_transpose_done) {
+        this->debug_output("Transpose done", 0);
+        m_transpose_done = true;
+        m_slice_cond.notify_all();
+      }
+
       m_prefetch_cond.notify_one();
     }
   }
@@ -490,14 +503,9 @@ private:
       {
         std::unique_lock<std::mutex> lock {m_prefetch_mut};
         if (m_prefetched.empty() && !m_transpose_done) {
-          m_prefetch_cond.wait(
-            lock, [this] { return !m_prefetched.empty() || m_transpose_done || (m_prefetched.empty() && m_done); });
+          m_prefetch_cond.wait(lock, [this] { return !m_prefetched.empty() || m_transpose_done; });
         }
-        if (m_prefetched.empty() || m_transpose_done) {
-          this->debug_output(
-            "Transpose done: " + std::to_string(m_transpose_done) + " " + std::to_string(m_prefetched.empty()),
-            thread_id);
-          m_transpose_done = true;
+        if (m_transpose_done) {
           break;
         }
         i_read = m_prefetched.front();
