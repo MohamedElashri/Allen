@@ -320,14 +320,14 @@ class AllenCore():
             f"  arg_data_{agg.typename}.emplace_back(w);\n" + f"}}\n"
             for agg, typ in zip(aggregates, aggregate_types)))
 
-        aggregate_types_no_type = [
-            f"{algorithm.namespace}::Parameters::{agg.typename}"
+        aggregate_types = [
+            f"{algorithm.namespace}::Parameters::{agg.typename}::type"
             for agg in aggregates
         ]
         arg_data_agg_typenames = [
             f"arg_data_{agg.typename}" for agg in aggregates
         ]
-        code += "std::tuple<" + ",".join(aggregate_types_no_type) + \
+        code += "std::tuple<" + ",".join(aggregate_types) + \
             "> input_aggregates_tuple {" + \
                 ",".join(arg_data_agg_typenames) + "};"
 
