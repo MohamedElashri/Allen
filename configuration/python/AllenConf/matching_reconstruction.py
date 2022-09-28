@@ -52,8 +52,7 @@ def make_velo_scifi_matches(velo_tracks, velo_kalman_filter, seeding_tracks):
         .host_total_sum_holder_t,
         dev_matched_tracks_t=matched_tracks.dev_matched_tracks_t,
         dev_offsets_matched_tracks_t=prefix_sum_matched_tracks.
-        dev_output_buffer_t,
-        dev_event_list_t=number_of_events["dev_number_of_events"])
+        dev_output_buffer_t)
 
     prefix_sum_matched_track_hit_number = make_algorithm(
         host_prefix_sum_t,

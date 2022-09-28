@@ -27,7 +27,7 @@ For local throughput measurements, we recommend the following settings in Allen 
 
   ./Allen --sequence hlt1_pp_default --mdf /scratch/allen_data/mdf_input/upgrade_mc_minbias_scifi_v5_retinacluster_000_v1.mdf -n 500 -m 500 -r 1000 -t 16
 
-For other input files, please see the section on :ref:`input_files`. 
+For other input files, please see the section on :ref:`input_files`.
 
 
 Physics performance
@@ -35,22 +35,22 @@ Physics performance
 
 Physics quantities, such as track and vertex reconstruction efficiencies and the momentum resolution, can be determined both within Allen compiled in standalone mode and when calling Allen from Moore.
 
-Allen also provides a :ref:`root_service`, with which physics quantities used in HLT1 lines can be stored in ROOT files for performance studies. 
+Allen also provides a :ref:`root_service`, with which physics quantities used in HLT1 lines can be stored in ROOT files for performance studies.
 
 Scripts for standalone Allen
 --------------------------------
 Create the directory Allen/output, then the ROOT file PrCheckerPlots.root will be saved there when running the a validation sequence.
 
 * Efficiency plots: Histograms of reconstructible and reconstructed tracks are saved in `Allen/output/PrCheckerPlots.root`.
-  Plots of efficiencies versus various kinematic variables can be created by running `efficiency_plots.py <../../checker/plotting/tracking/efficiency_plots.py>` in the directory 
+  Plots of efficiencies versus various kinematic variables can be created by running `efficiency_plots.py <../../checker/plotting/tracking/efficiency_plots.py>` in the directory
   `checker/plotting/tracking`. The resulting ROOT file `efficiency_plots.root` with graphs of efficiencies is saved in the directory `plotsfornote_root`.
-* Momentum resolution plots: A 2D histogram of momentum resolution versus momentum is also stored in `Allen/output/PrCheckerPlots.root` for Upstream and Forward tracks. 
-  Velo tracks are straight lines, so no momentum resolution is calculated. Running the script `momentum_resolution.py <../../checker/plotting/tracking/momentum_resolution.py>` in the directory `checker/plotting/tracking` 
-  will produce a plot of momentum resolution versus momentum in the ROOT file `momentum_resolution.root` in the directory `plotsfornote_root`. 
-  In this script, the 2D histogram of momentum resolution versus momentum is projected onto the momentum resolution axis in slices of the momentum. 
-  The resulting 1D histograms are fitted with a Gaussian function if they have more than 100 entries. The Gaussian fit is constrained to the region [-0.05,0.05] in 
+* Momentum resolution plots: A 2D histogram of momentum resolution versus momentum is also stored in `Allen/output/PrCheckerPlots.root` for Upstream and Forward tracks.
+  Velo tracks are straight lines, so no momentum resolution is calculated. Running the script `momentum_resolution.py <../../checker/plotting/tracking/momentum_resolution.py>` in the directory `checker/plotting/tracking`
+  will produce a plot of momentum resolution versus momentum in the ROOT file `momentum_resolution.root` in the directory `plotsfornote_root`.
+  In this script, the 2D histogram of momentum resolution versus momentum is projected onto the momentum resolution axis in slices of the momentum.
+  The resulting 1D histograms are fitted with a Gaussian function if they have more than 100 entries. The Gaussian fit is constrained to the region [-0.05,0.05] in
   the case of Forward tracks and to [-0.5, 0.5] for Upstream tracks respectively to avoid the non-Gaussian tails.
-  The mean and sigma of the Gaussian are used as value and uncertainty in the momentum resolution versus momentum plot. 
+  The mean and sigma of the Gaussian are used as value and uncertainty in the momentum resolution versus momentum plot.
   The plot is only generated if at least one momentum slice histogram has more than 100 entries.
 
 .. _moore_performance_scripts:
@@ -59,7 +59,7 @@ Scripts in Moore
 -------------------
 Call the executable from within the stack directory as in the following example: ::
 
-  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_track_reconstruction.py
+  ./Moore/run gaudirun.py Moore/Hlt/RecoConf/tests/qmtest/allen_gaudi_forward_with_mcchecking.qmt
 
 This will call the configured Allen sequence, convert reconstructed tracks to Rec objects and run the MC checkers for track reconstruction efficiencies.
 

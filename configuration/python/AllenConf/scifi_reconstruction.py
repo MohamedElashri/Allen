@@ -401,8 +401,7 @@ def make_seeding_tracks(decoded_scifi, xz_tracks):
         host_number_of_reconstructed_seeding_tracks_t=prefix_sum_seeding_tracks
         .host_total_sum_holder_t,
         dev_seeding_tracks_t=seed_tracks.dev_seeding_tracks_t,
-        dev_seeding_atomics_t=prefix_sum_seeding_tracks.dev_output_buffer_t,
-        dev_event_list_t=number_of_events["dev_number_of_events"])
+        dev_seeding_atomics_t=prefix_sum_seeding_tracks.dev_output_buffer_t)
 
     prefix_sum_seeding_track_hit_number = make_algorithm(
         host_prefix_sum_t,
