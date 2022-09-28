@@ -32,10 +32,8 @@ public:
   void report(size_t n_events) const override;
 
 private:
-#ifdef WITH_ROOT
   TTree* m_tree = nullptr;
   TFile* m_file = nullptr;
-#endif
 
   std::mutex m_mutex;
   float m_trk_z = 0.f;

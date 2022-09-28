@@ -8,7 +8,6 @@
 #include "CheckerInvoker.h"
 
 struct TrackCheckerHistos {
-#ifdef WITH_ROOT
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_eta;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_p;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_pt;
@@ -79,7 +78,6 @@ struct TrackCheckerHistos {
 
   TFile* m_file = nullptr;
   void write();
-#endif
 
   std::string const m_directory;
 

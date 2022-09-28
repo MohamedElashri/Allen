@@ -18,7 +18,6 @@ project(Allen VERSION 2.2
 # ---------------
 
 option(BUILD_TESTING "Build test programs" OFF)
-option(USE_ROOT "Build with ROOT" OFF)
 option(USE_KALMAN_DOUBLE_PRECISION "Use double precision Kalman filter" OFF)
 option(CPU_USE_REAL_HALF "Use half_t with uint16_t backend" OFF)
 option(STANDALONE "Build Allen standalone" OFF)
@@ -701,11 +700,7 @@ target_link_libraries(AllenLib
 
 # To propagate filesystem includes/libs
 target_link_libraries(AllenLib PRIVATE AllenFS)
-
-if (USE_ROOT)
-  target_link_libraries(AllenCommon INTERFACE ROOT::RIO ROOT::Core ROOT::Cling ROOT::Hist ROOT::Tree TBB::tbb)
-  target_compile_definitions(AllenCommon INTERFACE ${ALLEN_ROOT_DEFINITIONS})
-endif()
+target_link_libraries(AllenCommon INTERFACE ROOT::RIO ROOT::Core ROOT::Cling ROOT::Hist ROOT::Tree TBB::tbb)
 
 if (NOT STANDALONE)
   target_link_libraries(AllenLib PRIVATE AIDA::aida)

@@ -11,8 +11,6 @@ namespace {
   using namespace std::string_literals;
 }
 
-#ifdef WITH_ROOT
-
 ROOTService::ROOTService(std::string filename)
 {
   if (!filename.empty()) {
@@ -82,4 +80,3 @@ void ROOTService::enter_service() { m_mutex.lock(); }
 void ROOTService::exit_service() { m_mutex.unlock(); }
 
 handleROOTSvc ROOTService::handle(std::string const& name) { return handleROOTSvc {this, name}; }
-#endif

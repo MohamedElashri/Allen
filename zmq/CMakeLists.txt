@@ -31,10 +31,7 @@ else()
     ${PROJECT_SOURCE_DIR}/main/include)
   target_compile_definitions(AllenZMQ PUBLIC STANDALONE)
   target_link_libraries(AllenZMQ PUBLIC PkgConfig::zmq PkgConfig::sodium Boost::headers LHCbEvent)
-
-  if (WITH_ROOT AND USE_ROOT)
-    target_include_directories(AllenZMQ SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
-  endif()
+  target_include_directories(AllenZMQ SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
 endif()
 
 function(zmq_program)

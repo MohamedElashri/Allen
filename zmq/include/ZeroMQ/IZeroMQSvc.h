@@ -53,11 +53,9 @@
 #endif
 
 // ROOT
-#if defined(WITH_ROOT)
 #include <TH1.h>
 #include <TClass.h>
 #include <TBufferFile.h>
-#endif
 
 // ZeroMQ
 #include <zmq/zmq.hpp>
@@ -69,7 +67,6 @@
 
 namespace Detail {
 
-#if defined(WITH_ROOT)
   template<class T>
   struct ROOTHisto {
     constexpr static bool value = std::is_base_of<TH1, T>::value;
@@ -79,13 +76,6 @@ namespace Detail {
   struct ROOTObject {
     constexpr static bool value = std::is_base_of<TObject, T>::value;
   };
-#else
-  template<class T>
-  using ROOTHisto = std::false_type;
-
-  template<class T>
-  using ROOTObject = std::false_type;
-#endif
 
 #ifndef STANDALONE
   template<class T>
@@ -212,7 +202,6 @@ public:
     return r;
   }
 
-#if defined(WITH_ROOT)
   // decode ZMQ message, ROOT version
   template<
     class T,
@@ -233,7 +222,6 @@ public:
     }
     return histo;
   }
-#endif
 
   // receiving AIDA histograms and and profiles is not possible, because the classes that
   // would allow either serialization of the Gaudi implemenation of AIDA histograms, or
@@ -376,7 +364,6 @@ public:
 
   zmq::message_t encode(const std::string& item) const { return encode(item.c_str()); }
 
-#if defined(WITH_ROOT)
   zmq::message_t encode(const TObject& item) const
   {
     auto deleteBuffer = [](void* data, void * /* hint */) -> void { delete[](char*) data; };
@@ -390,7 +377,6 @@ public:
 
     return message;
   }
-#endif
 
 #ifndef STANDALONE
   zmq::message_t encode(const AIDA::IHistogram& item) const
@@ -497,7 +483,6 @@ private:
     return t;
   }
 
-#if defined(WITH_ROOT)
   // Receive ROOT serialized object of type T with ZMQ
   template<class T>
   std::unique_ptr<T> decodeROOT(const zmq::message_t& msg) const
@@ -518,7 +503,6 @@ private:
     }
     return r;
   }
-#endif
 };
 
 #endif // ZEROMQ_IZEROMQSVC_H

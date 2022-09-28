@@ -29,15 +29,11 @@ struct MonitorManager {
   std::optional<size_t> getFreeMonitor();
   void freeMonitor(size_t i_mon);
 
-#ifdef WITH_ROOT
   TDirectory* directory() { return m_dir; }
-#endif
 
 private:
-#ifdef WITH_ROOT
   ROOTService* m_rsvc = nullptr;
   TDirectory* m_dir = nullptr;
-#endif
 
   std::vector<std::vector<std::unique_ptr<BufferMonitor>>> m_monitors;
   std::queue<size_t> free_monitors;

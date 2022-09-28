@@ -3,8 +3,6 @@
 \*****************************************************************************/
 #pragma once
 
-#ifdef WITH_ROOT
-
 #include <TDirectory.h>
 #include <TFile.h>
 #include <TTree.h>
@@ -14,5 +12,3 @@
 #include <TBufferFile.h>
 #include <TArrayI.h>
 #include <TROOT.h>
-
-#endif

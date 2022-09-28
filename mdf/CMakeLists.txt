@@ -33,9 +33,7 @@ set(mdf_sources
     src/write_mdf.cpp
 	$<TARGET_OBJECTS:odin>)
 
-if (USE_ROOT)
-  list(APPEND mdf_sources src/root_mdf.cpp)
-endif()
+list(APPEND mdf_sources src/root_mdf.cpp)
 
 allen_add_host_library(mdf STATIC ${mdf_sources})
 target_include_directories (mdf PUBLIC

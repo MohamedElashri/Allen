@@ -71,13 +71,11 @@ namespace di_muon_no_ip_line {
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
-#ifdef WITH_ROOT
     __device__ static void monitor(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
-#endif
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

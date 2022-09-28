@@ -8,7 +8,6 @@
 KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& root_file, const std::string& name) :
   m_directory {name}
 {
-#ifdef WITH_ROOT
   // Setup the TTree.
   m_file = invoker->root_file(root_file);
   auto* dir = static_cast<TDirectory*>(m_file->Get(name.c_str()));
@@ -48,11 +47,6 @@ KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& r
   m_tree->Branch("ndofT", &m_trk_ndofT);
   m_tree->Branch("ghost", &m_trk_ghost);
   m_tree->Branch("mcp_p", &m_mcp_p);
-#else
-  _unused(invoker);
-  _unused(root_file);
-  _unused(name);
-#endif
 }
 
 void KalmanChecker::accumulate(
@@ -110,17 +104,13 @@ void KalmanChecker::accumulate(
       float sint =
         std::sqrt((m_trk_tx * m_trk_tx + m_trk_ty * m_trk_ty) / (1.f + m_trk_tx * m_trk_tx + m_trk_ty * m_trk_ty));
       m_trk_best_pt = sint / std::abs(track.best_qop);
-#ifdef WITH_ROOT
       m_tree->Fill();
-#endif
     }
   }
 }
 
 void KalmanChecker::report(size_t) const
 {
-#ifdef WITH_ROOT
   auto* dir = m_file->Get<TDirectory>(m_directory.c_str());
   dir->WriteTObject(m_tree);
-#endif
 }

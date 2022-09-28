@@ -25,6 +25,7 @@ The following packages are required in order to be able to compile Allen. Packag
 * python3
 * catch2
 * umesimd (https://github.com/edanor/umesimd)
+* ROOT (https://root.cern/)
 
 The following python3 packages are also needed, which can be installed with pip, conda, or the package manager:
 
@@ -133,7 +134,6 @@ Alternatively, cmake options can be passed with `-D` when invoking the cmake com
 * `TARGET_DEVICE` - Selects the target device architecture. Options are `CPU`, `CUDA` and `HIP`.
 * `SEQUENCES` - Either a regex or `all`, if a regex is passed and the pattern is found in a sequence name, it will be built. For a complete list of sequences available, check `configuration/sequences/`. The name of a sequence is given by its filename without the `.py` extension.
 * `CMAKE_BUILD_TYPE` - Build type, which is either of `RelWithDebInfo`, `Release` or `Debug`.
-* `USE_ROOT` - Configure to run with / without ROOT. `OFF` by default. Histograms and trees can be written to ROOT files if this option is enabled. More information on Allen's ROOT service can be found in :ref:`root_service`.
 * `CUDA_ARCH` - Selects the architecture to target for `CUDA` compilation.
 * `HIP_ARCH` - Selects the architecture to target with `HIP` compilation.
 

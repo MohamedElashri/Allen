@@ -47,11 +47,6 @@ target_link_libraries(Selections PRIVATE
   extern_lines
   SelectionsHost)
 
-if(USE_ROOT)
-  # Locally suppress float->double promotion warnings caused by ROOT TH interfaces
-  string(APPEND CMAKE_CXX_FLAGS " -Wno-double-promotion ")
-endif()
-
 target_include_directories(Selections PUBLIC
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/configuration/sequences>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Hlt1/include>

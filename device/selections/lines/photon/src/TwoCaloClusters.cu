@@ -56,7 +56,6 @@ void two_calo_clusters_line::two_calo_clusters_line_t::output_monitor(
   [[maybe_unused]] const RuntimeOptions& runtime_options,
   [[maybe_unused]] const Allen::Context& context) const
 {
-#ifdef WITH_ROOT
   auto handler = runtime_options.root_service->handle(name());
 
   // Distributions per dicluster
@@ -130,5 +129,4 @@ void two_calo_clusters_line::two_calo_clusters_line_t::output_monitor(
       }
     }
   }
-#endif
 }

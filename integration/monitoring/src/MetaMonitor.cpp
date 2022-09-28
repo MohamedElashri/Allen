@@ -3,7 +3,6 @@
 \*****************************************************************************/
 #include "MetaMonitor.h"
 
-#ifdef WITH_ROOT
 void MetaMonitor::fill(bool successful, unsigned monitoringLevel)
 {
   unsigned time = getWallTimeBin();
@@ -52,8 +51,3 @@ void MetaMonitor::init()
     kv.second->SetDirectory(nullptr);
   }
 }
-#else
-void MetaMonitor::fill(bool, unsigned) {}
-void MetaMonitor::fillSplit() {}
-void MetaMonitor::init() {}
-#endif

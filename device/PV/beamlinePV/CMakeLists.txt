@@ -14,11 +14,9 @@ target_link_libraries(PV_beamline PRIVATE PVCommon AllenCommon Backend HostEvent
 
 target_include_directories(PV_beamline PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
-if(USE_ROOT)
-  add_library(PV_monitoring STATIC src/pv_beamline_monitoring.cpp)
-  install(TARGETS PV_monitoring EXPORT Allen)
+add_library(PV_monitoring STATIC src/pv_beamline_monitoring.cpp)
+install(TARGETS PV_monitoring EXPORT Allen)
 
-  target_include_directories(PV_monitoring PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
-  target_link_libraries(PV_monitoring PRIVATE PVCommon AllenCommon)
-  target_link_libraries(PV_beamline PRIVATE PV_monitoring)
-endif()
+target_include_directories(PV_monitoring PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+target_link_libraries(PV_monitoring PRIVATE PVCommon AllenCommon)
+target_link_libraries(PV_beamline PRIVATE PV_monitoring)

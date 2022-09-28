@@ -7,7 +7,6 @@
 #include "Logger.h"
 #include "HltDecReport.cuh"
 
-#ifdef WITH_ROOT
 void RateMonitor::fill(unsigned i_buf, bool useWallTime)
 {
   HostBuffers* buf = m_buffers_manager->getBuffers(i_buf);
@@ -71,17 +70,3 @@ void RateMonitor::initialize_histograms(const unsigned host_number_of_active_lin
 
   m_histograms_initialized = true;
 }
-
-#else
-void RateMonitor::fill(unsigned, bool) {}
-
-void RateMonitor::init()
-{
-  _unused(m_buffers_manager);
-  _unused(m_histograms_initialized);
-  _unused(m_nBins);
-  _unused(m_max);
-}
-
-void RateMonitor::initialize_histograms(const unsigned) {}
-#endif

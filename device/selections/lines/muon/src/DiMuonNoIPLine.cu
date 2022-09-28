@@ -41,7 +41,6 @@ __device__ bool di_muon_no_ip_line::di_muon_no_ip_line_t::select(
          vertex.vertex().pt() > parameters.minPt;
 }
 
-#ifdef WITH_ROOT
 __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -75,4 +74,3 @@ __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
     parameters.dev_trk1Chi2[index] = -1.f;
   }
 }
-#endif

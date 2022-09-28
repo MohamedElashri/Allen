@@ -39,7 +39,6 @@ Allen also provides a :ref:`root_service`, with which physics quantities used in
 
 Scripts for standalone Allen
 --------------------------------
-For producing plots of efficiencies etc., Allen needs to be compiled with ROOT (option `USE_ROOT` in the standalone build). 
 Create the directory Allen/output, then the ROOT file PrCheckerPlots.root will be saved there when running the a validation sequence.
 
 * Efficiency plots: Histograms of reconstructible and reconstructed tracks are saved in `Allen/output/PrCheckerPlots.root`.
