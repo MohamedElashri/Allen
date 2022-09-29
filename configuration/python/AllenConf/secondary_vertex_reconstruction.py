@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import (
+from AllenCore.algorithms import (
     velo_pv_ip_t, kalman_velo_only_t, make_lepton_id_t,
     make_long_track_particles_t, filter_tracks_t, host_prefix_sum_t,
     fit_secondary_vertices_t, empty_lepton_id_t, sv_combiner_t, filter_svs_t,

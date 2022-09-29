@@ -35,7 +35,7 @@ As an example, let us add the SAXPY algorithm to a custom sequence. Start by inc
 
 .. code-block:: python
 
-  from AllenAlgorithms.algorithms import saxpy_t
+  from AllenCore.algorithms import saxpy_t
   from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
   from AllenConf.utils import initialize_number_of_events
   from PyConf.control_flow import CompositeNode
@@ -88,7 +88,7 @@ The final configuration file is therefore:
 
 .. code-block:: python
 
-  from AllenAlgorithms.algorithms import saxpy_t
+  from AllenCore.algorithms import saxpy_t
   from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
   from AllenConf.utils import initialize_number_of_events
   from PyConf.control_flow import CompositeNode

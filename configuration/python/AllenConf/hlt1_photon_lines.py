@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import single_calo_cluster_line_t, two_calo_clusters_line_t
+from AllenCore.algorithms import single_calo_cluster_line_t, two_calo_clusters_line_t
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
 

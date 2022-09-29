@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import (
+from AllenCore.algorithms import (
     data_provider_t, host_prefix_sum_t, scifi_calculate_cluster_count_t,
     scifi_pre_decode_t, scifi_raw_bank_decoder_t, ut_select_velo_tracks_t,
     lf_search_initial_windows_t, lf_triplet_seeding_t, lf_create_tracks_t,

@@ -19,7 +19,6 @@ from AllenConf.validators import rate_validation, routingbits_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.lumi_reconstruction import lumi_reconstruction
-from AllenCore.generator import is_allen_standalone
 
 
 def default_physics_lines(reconstructed_objects, with_calo, with_muon):

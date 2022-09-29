@@ -12,7 +12,7 @@ set(ALLEN_ALGORITHMS_DIR ${PROJECT_SEQUENCE_DIR}/AllenAlgorithms)
 set(ALLEN_GENERATED_INCLUDE_FILES_DIR ${PROJECT_SEQUENCE_DIR}/include)
 set(ALLEN_CORE_DIR ${PROJECT_SEQUENCE_DIR}/AllenCore)
 set(ALLEN_PARSER_DIR ${PROJECT_SEQUENCE_DIR}/parser)
-set(ALGORITHMS_OUTPUTFILE ${ALLEN_ALGORITHMS_DIR}/algorithms.py)
+set(ALGORITHMS_OUTPUTFILE ${ALLEN_ALGORITHMS_DIR}/allen_standalone_algorithms.py)
 set(PARSED_ALGORITHMS_OUTPUTFILE ${CODE_GENERATION_DIR}/parsed_algorithms.pickle)
 set(ALGORITHMS_GENERATION_SCRIPT ${PROJECT_SOURCE_DIR}/configuration/parser/ParseAlgorithms.py)
 
@@ -80,11 +80,11 @@ add_custom_command(
   COMMENT "Making symlink of sequence definitions and configuration utilities"
   COMMAND
     ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
-    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}"
-  DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf" "${PROJECT_SOURCE_DIR}/configuration/AllenCore")
+    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore" "${ALLEN_CORE_DIR}"
+  DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf" "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore")
 add_custom_target(generate_conf_core DEPENDS "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
 
-# Generate algorithms.py
+# Generate allen standalone algorithms file
 add_custom_command(
   OUTPUT "${ALGORITHMS_OUTPUTFILE}"
   COMMAND
@@ -93,6 +93,7 @@ add_custom_command(
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}" "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
 add_custom_target(generate_algorithms_view DEPENDS "${ALGORITHMS_OUTPUTFILE}")
+install(FILES "${ALGORITHMS_OUTPUTFILE}" DESTINATION python/AllenAlgorithms)
 
 # Generate Allen AlgorithmDB
 add_custom_command(
@@ -199,24 +200,20 @@ endif()
 function(generate_sequence sequence)
   set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
   file(MAKE_DIRECTORY ${sequence_dir})
-  if(NOT STANDALONE)
-    configure_file(${PROJECT_SOURCE_DIR}/scripts/generate_script.sh.in ${sequence_dir}/generate_${sequence}.sh @ONLY)
-    add_custom_command(
-      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
-      COMMAND
-        ${CMAKE_BINARY_DIR}/run bash ${sequence_dir}/generate_${sequence}.sh &&
-        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}"
-      WORKING_DIRECTORY ${sequence_dir})
+  if(STANDALONE)
+    set(allen_configuration_options "--standalone" "1" "--register-keys" "0")
   else()
-    add_custom_command(
-      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
-      COMMAND
-        ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "--standalone" "1" &&
-        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" "${PROJECT_SEQUENCE_DIR}/GaudiKernel" "${PROJECT_SEQUENCE_DIR}/PyConf"
-      WORKING_DIRECTORY ${sequence_dir})
+    set(allen_configuration_options "--standalone" "0" "--register-keys" "1")
   endif()
+
+  add_custom_command(
+    OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
+    COMMAND
+      ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" ${allen_configuration_options} &&
+      ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
+    DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" "${PROJECT_SEQUENCE_DIR}/GaudiKernel" "${PROJECT_SEQUENCE_DIR}/PyConf"
+    WORKING_DIRECTORY ${sequence_dir})
+
   add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
   add_dependencies(Stream sequence_${sequence})
   install(FILES "${PROJECT_BINARY_DIR}/${sequence}.json" DESTINATION constants)

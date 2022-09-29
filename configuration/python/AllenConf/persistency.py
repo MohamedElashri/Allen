@@ -1,12 +1,13 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import gather_selections_t, dec_reporter_t, global_decision_t, host_routingbits_writer_t
-from AllenAlgorithms.algorithms import host_prefix_sum_t, make_selrep_t
-from AllenAlgorithms.algorithms import make_selected_object_lists_t, make_subbanks_t
+from AllenCore.algorithms import gather_selections_t, dec_reporter_t, global_decision_t, host_routingbits_writer_t
+from AllenCore.algorithms import host_prefix_sum_t, make_selrep_t
+from AllenCore.algorithms import make_selected_object_lists_t, make_subbanks_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events
-from AllenCore.generator import make_algorithm, is_allen_standalone
+from AllenCore.generator import make_algorithm
+from AllenCore.ConfigurationOptions import allen_configuration_options
 from PyConf.filecontent_metadata import register_encoding_dictionary
 from PyConf.tonic import configurable
 
@@ -130,11 +131,10 @@ def make_dec_reporter(lines, TCK=0):
     gather_selections = make_gather_selections(lines)
     number_of_events = initialize_number_of_events()
 
-    # When in standalone, do not register keys in make dec reporter
-    if is_allen_standalone():
-        key = 0
-    else:
+    if allen_configuration_options.register_keys:
         key = register_allen_encoding_table(lines)
+    else:
+        key = 0
 
     return make_algorithm(
         dec_reporter_t,

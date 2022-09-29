@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import (
+from AllenCore.algorithms import (
     single_high_pt_muon_line_t, single_high_pt_muon_no_muid_line_t,
     low_pt_muon_line_t, di_muon_mass_line_t, di_muon_soft_line_t,
     low_pt_di_muon_line_t, track_muon_mva_line_t, di_muon_no_ip_line_t,

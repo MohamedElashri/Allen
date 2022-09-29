@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import (
+from AllenCore.algorithms import (
     d2kk_line_t, d2pipi_line_t, two_ks_line_t, two_track_mva_charm_xsec_line_t,
     two_track_mva_evaluator_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout

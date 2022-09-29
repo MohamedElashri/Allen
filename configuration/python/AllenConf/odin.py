@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import odin_provider_t, odin_beamcrossingtype_t, host_odin_error_filter_t
+from AllenCore.algorithms import odin_provider_t, odin_beamcrossingtype_t, host_odin_error_filter_t
 from AllenCore.generator import make_algorithm
 from AllenConf.utils import mep_layout, initialize_number_of_events
 from PyConf.tonic import configurable

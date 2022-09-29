@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import (
+from AllenCore.algorithms import (
     pv_beamline_extrapolate_t, pv_beamline_histo_t, pv_beamline_peak_t,
     pv_beamline_calculate_denom_t, pv_beamline_multi_fitter_t,
     pv_beamline_cleanup_t)
