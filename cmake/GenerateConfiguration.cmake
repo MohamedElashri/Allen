@@ -48,15 +48,8 @@ endif()
 
 message(STATUS "Found libclang at ${LIBCLANG_LIBDIR}")
 
-# Macos requires DYLD_LIBRARY_PATH, otherwise LD_LIBRARY_PATH
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(LIBRARY_PATH_VARNAME "DYLD_LIBRARY_PATH")
-else()
-  set(LIBRARY_PATH_VARNAME "LD_LIBRARY_PATH")
-endif()
-
 # We will invoke the parser a few times, set its required environment in a variable
-set(PARSER_ENV PYTHONPATH=$ENV{PYTHONPATH}:${PROJECT_SOURCE_DIR}/scripts ${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH})
+set(PARSER_ENV PYTHONPATH=$ENV{PYTHONPATH}:${PROJECT_SOURCE_DIR}/scripts LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH})
 
 # Parse Allen algorithms
 # Parsing should depend on ALL algorithm headers (which include the Parameters section)
@@ -211,7 +204,7 @@ function(generate_sequence sequence)
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
     COMMAND
-      ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" ${allen_configuration_options} &&
+      ${CMAKE_COMMAND} -E env "LD_LIBRARY_PATH=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" ${allen_configuration_options} &&
       ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
     DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" ${additional_depends}
     WORKING_DIRECTORY ${sequence_dir})
