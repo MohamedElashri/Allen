@@ -91,13 +91,13 @@ long_fromB_P>5GeV_AND_Pt>1GeV                     :      2200/     2487  88.46% 
 
 
 muon_validator validation:
-Muon fraction in all MCPs:                                              13578/  1005942   0.01% 
-Muon fraction in MCPs to which a track(s) was matched:                    634/    60004   0.01% 
-Correctly identified muons with isMuon:                                   569/      634  89.75% 
-Correctly identified muons from strange decays with isMuon:                 2/        2 100.00% 
-Correctly identified muons from B decays with isMuon:                     110/      119  92.44% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:      6982/    59370  11.76% 
-Ghost tracks identified as muon with isMuon:                              819/     4243  19.30% 
+Muon fraction in all MCPs:                                              13578/  1005942   0.01%
+Muon fraction in MCPs to which a track(s) was matched:                    634/    60004   0.01%
+Correctly identified muons with isMuon:                                   569/      634  89.75%
+Correctly identified muons from strange decays with isMuon:                 2/        2 100.00%
+Correctly identified muons from B decays with isMuon:                     110/      119  92.44%
+Tracks identified as muon with isMuon, but matched to non-muon MCP:      6982/    59370  11.76%
+Ghost tracks identified as muon with isMuon:                              819/     4243  19.30%
 
 
 rate_validator validation:
@@ -109,6 +109,7 @@ Hlt1TwoTrackKs:                                         3/  1000, (   90.00 +/- 
 Hlt1D2KK:                                              21/  1000, (  630.00 +/-   136.03) kHz
 Hlt1D2KPi:                                             36/  1000, ( 1080.00 +/-   176.73) kHz
 Hlt1D2PiPi:                                            37/  1000, ( 1110.00 +/-   179.08) kHz
+Hlt1TwoKs:                                              1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1SingleHighPtMuon:                                   3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuonNoMuID:                             5/  1000, (  150.00 +/-    66.91) kHz
 Hlt1LowPtMuon:                                        312/  1000, ( 9360.00 +/-   439.53) kHz
@@ -170,6 +171,7 @@ Hlt1TwoTrackKs:                                         3           3
 Hlt1D2KK:                                              21          23
 Hlt1D2KPi:                                             36          38
 Hlt1D2PiPi:                                            37          38
+Hlt1TwoKs:                                              1           1
 Hlt1SingleHighPtMuon:                                   3           3
 Hlt1SingleHighPtMuonNoMuID:                             5           5
 Hlt1LowPtMuon:                                        312         417

@@ -68,12 +68,12 @@ Hlt1TwoTrackKs:                                         4/  1000, (  120.00 +/- 
 Hlt1D2KK:                                              22/  1000, (  660.00 +/-   139.16) kHz
 Hlt1D2KPi:                                             33/  1000, (  990.00 +/-   169.47) kHz
 Hlt1D2PiPi:                                            27/  1000, (  810.00 +/-   153.77) kHz
+Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                                   3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuonNoMuID:                             7/  1000, (  210.00 +/-    79.09) kHz
 Hlt1LowPtMuon:                                         18/  1000, (  540.00 +/-   126.13) kHz
 Hlt1DiMuonHighMass:                                    21/  1000, (  630.00 +/-   136.03) kHz
 Hlt1DiMuonLowMass:                                     14/  1000, (  420.00 +/-   111.46) kHz
-Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowPtDiMuon:                                        2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1TrackMuonMVA:                                      14/  1000, (  420.00 +/-   111.46) kHz
@@ -130,12 +130,12 @@ Hlt1TwoTrackKs:                                         4           4
 Hlt1D2KK:                                              22          25
 Hlt1D2KPi:                                             33          34
 Hlt1D2PiPi:                                            27          29
+Hlt1TwoKs:                                              0           0
 Hlt1SingleHighPtMuon:                                   3           3
 Hlt1SingleHighPtMuonNoMuID:                             7           7
 Hlt1LowPtMuon:                                         18          18
 Hlt1DiMuonHighMass:                                    21          27
 Hlt1DiMuonLowMass:                                     14          17
-Hlt1TwoKs:                                              0           0
 Hlt1DiMuonSoft:                                         0           0
 Hlt1LowPtDiMuon:                                        2           2
 Hlt1TrackMuonMVA:                                      14          14
