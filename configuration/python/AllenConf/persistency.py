@@ -7,7 +7,7 @@ from AllenCore.algorithms import make_selected_object_lists_t, make_subbanks_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
-from AllenCore.ConfigurationOptions import allen_configuration_options
+from AllenCore.configuration_options import allen_configuration_options
 from PyConf.filecontent_metadata import register_encoding_dictionary
 from PyConf.tonic import configurable
 
