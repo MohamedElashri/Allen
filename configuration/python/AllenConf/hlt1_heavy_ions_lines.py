@@ -19,17 +19,18 @@ def make_heavy_ion_event_line(velo_tracks,
                               calo_decoding,
                               pre_scaler_hash_string="heavy_ion_pre",
                               post_scaler_hash_string="heavy_ion_post",
-                              min_velo_tracks_PbPb=1,
+                              min_velo_tracks_PbPb=-1,
                               max_velo_tracks_PbPb=-1,
-                              min_velo_tracks_SMOG=0,
+                              min_velo_tracks_SMOG=-1,
                               max_velo_tracks_SMOG=-1,
-                              min_pvs_PbPb=1,
+                              min_pvs_PbPb=-1,
                               max_pvs_PbPb=-1,
-                              min_pvs_SMOG=0,
-                              max_pvs_SMOG=0,
+                              min_pvs_SMOG=-1,
+                              max_pvs_SMOG=-1,
                               min_ecal_e=0.,
                               max_ecal_e=-1.,
-                              name="Hlt1HeavyIon"):
+                              name="Hlt1HeavyIon",
+                              pre_scaler = 1.):
 
     velo_states = run_velo_kalman_filter(velo_tracks)
     number_of_events = initialize_number_of_events()
@@ -57,4 +58,5 @@ def make_heavy_ion_event_line(velo_tracks,
         min_pvs_SMOG=min_pvs_SMOG,
         max_pvs_SMOG=max_pvs_SMOG,
         min_ecal_e=min_ecal_e,
-        max_ecal_e=max_ecal_e)
+        max_ecal_e=max_ecal_e,
+        pre_scaler = pre_scaler)

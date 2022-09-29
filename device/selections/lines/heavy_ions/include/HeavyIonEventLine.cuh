@@ -49,6 +49,7 @@ namespace heavy_ion_event_line {
     PROPERTY(max_pvs_SMOG_t, "max_pvs_SMOG", "Maximum number of PVs in the SMOG region", int) max_pvs_SMOG;
     PROPERTY(min_ecal_e_t, "min_ecal_e", "Minimum ECAL energy", float) min_ecal_e;
     PROPERTY(max_ecal_e_t, "max_ecal_e", "Maximum ECAL energy", float) max_ecal_e;
+
   };
 
   struct heavy_ion_event_line_t : public SelectionAlgorithm, Parameters, EventLine<heavy_ion_event_line_t, Parameters> {
@@ -78,7 +79,7 @@ namespace heavy_ion_event_line {
     Property<max_pvs_PbPb_t> m_max_pvs_PbPb {this, -1};
     Property<min_pvs_SMOG_t> m_min_pvs_SMOG {this, 0};
     Property<max_pvs_SMOG_t> m_max_pvs_SMOG {this, -1};
-    Property<min_ecal_e_t> m_min_ecal_e {this, 0.f};
+    Property<min_ecal_e_t> m_min_ecal_e {this,  0.f};
     Property<max_ecal_e_t> m_max_ecal_e {this, -1.f};
   };
 } // namespace heavy_ion_event_line

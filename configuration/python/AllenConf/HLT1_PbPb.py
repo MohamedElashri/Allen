@@ -20,7 +20,7 @@ def make_line_composite_node_with_gec(line_name,
                                       line_algorithm,
                                       gec_name="gec"):
     return CompositeNode(
-        line_name, [make_gec(gec_name), line_algorithm],
+        line_name, [make_gec(max_scifi_clusters=30000,count_ut=False), line_algorithm],
         NodeLogic.LAZY_AND,
         force_order=True)
 
@@ -113,7 +113,8 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
                 velo_states,
                 pre_scaler_hash_string="no_beam_line_pre",
                 post_scaler_hash_string="no_beam_line_post",
-                beam_crossing_type=1),
+                beam_crossing_type=1,
+                pre_scaler = 1.),
             enableGEC=True))
 
     lines.append(
@@ -122,27 +123,113 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
             make_passthrough_line(
                 name="Hlt1GECPassthrough",
                 pre_scaler_hash_string="passthrough_with_gec_line_pre",
-                post_scaler_hash_string="passthrough_with_gec_line_post")))
+                post_scaler_hash_string="passthrough_with_gec_line_post",
+                pre_scaler = 1.)))
 
     lines.append(
         line_maker(
             "Hlt1PbPbMicroBiasVelo",
             make_heavy_ion_event_line(
                 name="Hlt1HeavyIonPbPbMicroBias",
+                pre_scaler_hash_string="PbPbMicroBias_line_pre",
+                post_scaler_hash_string="PbPbMicroBias_line_post",
                 velo_tracks=velo_tracks,
                 pvs=pvs,
-                calo_decoding=calo_decoding),
+                min_pvs_PbPb=1,
+                max_pvs_SMOG=0,
+                pre_scaler = 1,
+                calo_decoding=calo_decoding,
+                pre_scaler = 0.1),
+            enableGEC=False))
+
+    lines.append(
+        line_maker(
+            "Hlt1PbPbMBOneTrack",
+            make_heavy_ion_event_line(
+                name="Hlt1PbPbMBOneTrack",
+                pre_scaler_hash_string="PbPbMBOneTrack_line_pre",
+                post_scaler_hash_string="PbPbMBOneTrack_line_post",
+                velo_tracks=velo_tracks,
+                pvs=pvs,
+                calo_decoding=calo_decoding,
+                min_velo_tracks_PbPb=1,
+                max_pvs_PbPb=0,
+                pre_scaler=0.01),
             enableGEC=False))
 
     lines.append(
         line_maker(
             "Hlt1PbPbUPC",
             make_heavy_ion_event_line(
-                name="Hlt1HeavyIonPbPbUPC",
+                name="Hlt1PbSMOGMicroBias",
+                pre_scaler_hash_string ="PbSMOGMicroBias_line_pre",
+                post_scaler_hash_string="PbSMOGMicroBias_line_post",
                 velo_tracks=velo_tracks,
                 pvs=pvs,
                 calo_decoding=calo_decoding,
-                max_ecal_e=94.
+                max_pvs_PbPb=0,
+                min_pvs_SMOG=1),
+            enableGEC=False))
+
+    lines.append(
+        line_maker(
+            "Hlt1PbSMOGMBOneTrack",
+            make_heavy_ion_event_line(
+                name="Hlt1PbSMOGMBOneTrack",
+                pre_scaler_hash_string ="PbSMOGOneTrack_line_pre",
+                post_scaler_hash_string="PbSMOGOneTrack_line_post",
+                velo_tracks=velo_tracks,
+                pvs=pvs,
+                calo_decoding=calo_decoding,
+                min_velo_tracks_SMOG=1,
+                max_pvs_PbPb=0,
+                pre_scaler=0.01),
+            enableGEC=False))
+
+    lines.append(
+        line_maker(
+            "Hlt1PbPbPeriph",
+            make_heavy_ion_event_line(
+                name="Hlt1HeavyIonPbPbPeripheral",
+                pre_scaler_hash_string ="PbPbPeripheral_line_pre",
+                post_scaler_hash_string="PbPbPeripheral_line_post",
+                velo_tracks=velo_tracks,
+                pvs=pvs,
+                calo_decoding=calo_decoding,
+                max_pvs_SMOG=0,
+                min_pvs_PbPb=1,
+                min_ecal_e=310000,
+                max_ecal_e=14860000),
+            enableGEC=False))
+
+    lines.append(
+        line_maker(
+            "Hlt1PbPbCent",
+            make_heavy_ion_event_line(
+                name="Hlt1HeavyIonPbPbCentral",
+                pre_scaler_hash_string ="PbPbCentral_line_pre",
+                post_scaler_hash_string="PbPbCentral_line_post",
+                velo_tracks=velo_tracks,
+                pvs=pvs,
+                calo_decoding=calo_decoding,
+                max_pvs_SMOG=0,
+                min_pvs_PbPb=1,
+                min_ecal_e=14860000),
+            enableGEC=False))
+
+    lines.append(
+        line_maker(
+            "Hlt1PbPbUPCMB",
+            make_heavy_ion_event_line(
+                name="Hlt1HeavyIonPbPbUPCMB",
+                pre_scaler_hash_string ="PbPbUPCMB_line_pre",
+                post_scaler_hash_string="PbPbUPCMB_line_post",
+                velo_tracks=velo_tracks,
+                pvs=pvs,
+                calo_decoding=calo_decoding,
+                max_ecal_e=94000,
+                max_pvs_PbPb=1,
+                max_pvs_SMOG=0,
             ),  #treat it as random number for now as we're still trying to convert ADC to energy
             enableGEC=False))
 
@@ -166,7 +253,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
     line_nodes = [tup[1] for tup in lines]
 
     lines = CompositeNode(
-        "AllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
+        "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
     hlt1_node = CompositeNode(
         "Allen", [
