@@ -204,7 +204,7 @@ function(generate_sequence sequence)
     set(allen_configuration_options "--standalone" "1" "--register-keys" "0")
     set(additional_depends "${PROJECT_SEQUENCE_DIR}/GaudiKernel" "${PROJECT_SEQUENCE_DIR}/PyConf")
   else()
-    set(allen_configuration_options "--standalone" "0" "--register-keys" "1")
+    set(allen_configuration_options "--standalone" "1" "--register-keys" "1")
     set(additional_depends "")
   endif()
 
