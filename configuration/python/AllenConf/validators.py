@@ -11,7 +11,7 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenConf.persistency import make_dec_reporter, make_gather_selections, make_routingbits_writer, rb_map
 from AllenCore.algorithms import (host_prefix_sum_t,
-                                        seeding_copy_trackXZ_hit_number_t)
+                                  seeding_copy_trackXZ_hit_number_t)
 from AllenConf.scifi_reconstruction import decode_scifi, make_seeding_XZ_tracks
 
 

@@ -1,9 +1,9 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenCore.algorithms import (
-    beam_crossing_line_t, velo_micro_bias_line_t, odin_event_type_line_t,
-    calo_digits_minADC_t, beam_gas_line_t)
+from AllenCore.algorithms import (beam_crossing_line_t, velo_micro_bias_line_t,
+                                  odin_event_type_line_t, calo_digits_minADC_t,
+                                  beam_gas_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenConf.odin import decode_odin
 from AllenCore.generator import make_algorithm
