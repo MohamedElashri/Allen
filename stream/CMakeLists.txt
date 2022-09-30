@@ -51,8 +51,8 @@ target_link_libraries(Stream
 # even if SEQUENCES was empty.
 if(STANDALONE)
   add_dependencies(Stream checkout_lhcb checkout_gaudi generate_algorithms_view)
+  
+  foreach(sequence ${BUILD_SEQUENCES})
+    generate_sequence(${sequence})
+  endforeach()
 endif()
-
-foreach(sequence ${BUILD_SEQUENCES})
-  generate_sequence(${sequence})
-endforeach()
