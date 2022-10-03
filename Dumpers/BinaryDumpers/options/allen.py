@@ -159,7 +159,7 @@ rootSvc = RootCnvSvc("RootCnvSvc", EnableIncident=1)
 ApplicationMgr().ExtSvc += ["Gaudi::IODataManager/IODataManager", rootSvc]
 
 # Generate json sequence
-sys.argv += ["--standalone", "1"]
+sys.argv += ["--standalone"]
 importlib.import_module(f"AllenSequences.{args.sequence}")
 generated_json_sequence = os.path.join(os.getcwd(), "Sequence.json")
 

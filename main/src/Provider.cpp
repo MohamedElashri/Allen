@@ -62,14 +62,14 @@ std::tuple<std::string, bool> Allen::sequence_conf(std::map<std::string, std::st
   }
   else if (!generated) {
 #ifdef ALLEN_STANDALONE
-    const std::string allen_configuration_options = "--standalone 1 --register-keys 0";
+    const std::string allen_configuration_options = "--no-register-keys";
 #else
-    const std::string allen_configuration_options = "--standalone 1 --register-keys 1";
+    const std::string allen_configuration_options = "";
 #endif
 
     int error =
       system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/python/AllenSequences/" +
-              sequence + ".py " + allen_configuration_options)
+              sequence + ".py --standalone " + allen_configuration_options)
                .c_str());
     if (error) {
       throw std::runtime_error("sequence generation failed");

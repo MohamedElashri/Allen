@@ -13,14 +13,13 @@ from PyConf.tonic import configurable
 
 class AllenConfigurationOptions:
     def __init__(self):
-        from argparse import ArgumentParser
+        from argparse import ArgumentParser, BooleanOptionalAction
         parser = ArgumentParser()
-        parser.add_argument("--standalone", dest="standalone", default="0")
-        parser.add_argument(
-            "--register-keys", dest="register_keys", default="1")
+        parser.add_argument("--standalone", action="store_true", dest="standalone", default=False)
+        parser.add_argument("--no-register-keys", action="store_false", dest="register_keys", default=True)
         args, _ = parser.parse_known_args()
-        self.standalone = args.standalone == "1"
-        self.register_keys = args.register_keys == "1"
+        self.standalone = args.standalone
+        self.register_keys = args.register_keys
 
 
 allen_configuration_options = AllenConfigurationOptions()
