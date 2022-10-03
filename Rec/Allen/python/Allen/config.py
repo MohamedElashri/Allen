@@ -42,7 +42,6 @@ def configured_bank_types(sequence_json):
     return bank_types
 
 
-
 def setup_allen_non_event_data_service(allen_event_loop=False,
                                        bank_types=None):
     """Setup Allen non-event data

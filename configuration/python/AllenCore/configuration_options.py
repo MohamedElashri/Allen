@@ -16,7 +16,8 @@ class AllenConfigurationOptions:
         from argparse import ArgumentParser
         parser = ArgumentParser()
         parser.add_argument("--standalone", dest="standalone", default="0")
-        parser.add_argument("--register-keys", dest="register_keys", default="1")
+        parser.add_argument(
+            "--register-keys", dest="register_keys", default="1")
         args, _ = parser.parse_known_args()
         self.standalone = args.standalone == "1"
         self.register_keys = args.register_keys == "1"
