@@ -8,15 +8,18 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
+from PyConf.tonic import configurable
+
+
 class AllenConfigurationOptions:
     def __init__(self):
-        from optparse import OptionParser
-        parser = OptionParser()
-        parser.add_option("--standalone", dest="standalone", default="0")
-        parser.add_option("--register-keys", dest="register_keys", default="1")
-        (options, _) = parser.parse_args()
-        self.standalone = options.standalone == "1"
-        self.register_keys = options.register_keys == "1"
+        from argparse import ArgumentParser
+        parser = ArgumentParser()
+        parser.add_argument("--standalone", dest="standalone", default="0")
+        parser.add_argument("--register-keys", dest="register_keys", default="1")
+        args, _ = parser.parse_known_args()
+        self.standalone = args.standalone == "1"
+        self.register_keys = args.register_keys == "1"
 
 
 allen_configuration_options = AllenConfigurationOptions()

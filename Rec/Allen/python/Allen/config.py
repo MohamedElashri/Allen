@@ -30,8 +30,7 @@ def allen_odin():
     return AllenODINProducer().ODIN
 
 
-def configured_bank_types(json_filename):
-    _, sequence_json = allen_json_sequence(None, json_filename)
+def configured_bank_types(sequence_json):
     bank_types = set()
     with open(sequence_json) as json_file:
         j = json.load(json_file)
@@ -42,31 +41,6 @@ def configured_bank_types(json_filename):
                 bank_types.add(props['bank_type'])
     return bank_types
 
-
-@configurable
-def allen_json_sequence(sequence="hlt1_pp_default", json=None):
-    """Provide the name of the Allen sequence and the json configuration file
-
-    Args:
-        sequence (string): name of the Allen sequence to run
-        json: (string): path the JSON file to be used to configure the chosen Allen sequence. If `None`, a default file that corresponds to the sequence will be used.
-    """
-    if sequence is None and json is not None:
-        sequence = os.path.splitext(os.path.basename(json))[0]
-
-    config_path = "${ALLEN_INSTALL_DIR}/constants"
-    json_dir = os.path.join(
-        os.path.expandvars('${ALLEN_INSTALL_DIR}'), 'constants')
-    available_sequences = [
-        os.path.splitext(json_file)[0] for json_file in os.listdir(json_dir)
-    ]
-    if sequence not in available_sequences:
-        raise AttributeError("Sequence {} was not built in to Allen;"
-                             "available sequences: {}".format(
-                                 sequence, ' '.join(available_sequences)))
-    if json is None:
-        json = os.path.join(config_path, "{}.json".format(sequence))
-    return (sequence, json)
 
 
 def setup_allen_non_event_data_service(allen_event_loop=False,
