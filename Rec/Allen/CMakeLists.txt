@@ -59,7 +59,6 @@ gaudi_add_module(AllenWrapper
                    LHCb::UTKernelLib
                    LHCb::CaloDetLib
                    LHCb::FTDetLib
-                   LHCb::HltDAQLib
                    LHCb::MCEvent
                    Rec::PrKernel)
 
@@ -103,7 +102,6 @@ gaudi_add_module(AllenAlgorithms
                    LHCb::UTKernelLib
                    LHCb::CaloDetLib
                    LHCb::FTDetLib
-                   LHCb::HltDAQLib
                    LHCb::MCEvent
                    Rec::PrKernel)
 
