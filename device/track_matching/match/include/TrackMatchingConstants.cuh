@@ -13,16 +13,15 @@ namespace TrackMatchingConsts {
   constexpr float z_match = 5240.0f; // FIXME_GEOMETRY_HARDCODING
   constexpr float zMatchY = 10000.f; // in mm
 
-  constexpr float dxTol = 8.f;       // in mm  // to scan
-  constexpr float dxTolSlope = 80.f; // in mm // to scan
+  constexpr float dxTol = 10.12f;     // in mm
+  constexpr float dxTolSlope = 101.f; // in mm
 
-  constexpr float dyTol = 6.f;        // in mm  // to scan
-  constexpr float dyTolSlope = 300.f; // in mm // to scan
-  constexpr float fastYTol = 250.f;   // to scan
+  constexpr float dyTol = 1.59f;       // in mm
+  constexpr float dyTolSlope = 212.1f; // in mm
+  constexpr float fastYTol = 250.f;    // to scan
   // The main cut values
-  // constexpr float maxChi2 = 15.f; // to scan
-  constexpr float maxChi2 = 2.5f; // to scan
-  constexpr float minNN = 0.25f;  // not used so far
+  constexpr float maxChi2 = 2.f;
+  constexpr float minNN = 0.25f; // not used so far
 
   // Magnetic parametrization from Velo + SciFi tracks
   struct MagnetParametrization {

@@ -80,13 +80,14 @@ __device__ track_matching::MatchingResult getChi2Match(
                      teta2 * TrackMatchingConsts::dyTolSlope * TrackMatchingConsts::dyTolSlope;
   const float fdX = 0.8f;
   const float fdY = 0.2f; // Reduced the importance of dY info until y issue is fixed
-  const float fdty = 1.5f;
+  const float fdty = 937.5f;
+  const float fdtx = 2.f;
 
   float chi2 = (tolX != 0.f and tolY != 0.f ? fdX * distX * distX / tolX + fdY * distY * distY / tolY : 9999.f);
   // float chi2 = ( tolX != 0 and tolY != 0 ? distX * distX / tolX : 9999. );
 
-  chi2 += fdty * dSlopeY * dSlopeY * 10000.f * 0.0625f;
-  chi2 += dSlopeX * dSlopeX * 10.f;
+  chi2 += fdty * dSlopeY * dSlopeY;
+  chi2 += fdtx * dSlopeX * dSlopeX;
 
   return {dSlopeX, dSlopeY, distX, distY, zForX, chi2};
 }
