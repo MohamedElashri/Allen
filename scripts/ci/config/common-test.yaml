@@ -4,7 +4,7 @@
 
 
 .test_physics_efficiency:
-  extends: 
+  extends:
     - .base_job
     - .default_rules
   variables:
@@ -18,14 +18,13 @@
     expire_in: 2 hours
     when: always
     paths:
-      - ./run_physics_efficiency_output_*/*.diff
       - ./run_physics_efficiency_output_*/efficiency_*
       - ./generated_reference_files/*
-
+      - update-references.patch
 
 
 .test_run_changes:
-  extends: 
+  extends:
     - .base_job
     - .default_rules
   variables:
@@ -37,7 +36,7 @@
 
 .publish_test_throughput:
   stage: publish
-  extends: 
+  extends:
     - .base_job
     - .default_rules
   variables:
