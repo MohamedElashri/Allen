@@ -32,7 +32,7 @@ MCAssociator::MCAssociator(const MCParticles& mcps) : m_mcps(mcps)
   // sort map by LHCbID for fast lookups
   std::sort(
     m_map.begin(), m_map.end(), [](const LHCbIDWithIndex& a, const LHCbIDWithIndex& b) noexcept {
-      return a.first < b.first;
+      return a.first < b.first || (a.first == b.first && a.second < b.second);
     });
 }
 
