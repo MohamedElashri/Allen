@@ -117,7 +117,7 @@ full:
   - type: "throughput"
     sequence: "muon_decoding"
     dataset: "Run_0000232759_20220605-105749-418_MCEB02"
-    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7_muonv3_newLHCbID"
+    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7_muonv3"
     throughput_report: false # don't publish throughput report
 
   - type: "throughput"
