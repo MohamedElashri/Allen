@@ -4,7 +4,8 @@
 from AllenAlgorithms.algorithms import (
     velo_pv_ip_t, kalman_velo_only_t, make_lepton_id_t,
     make_long_track_particles_t, filter_tracks_t, host_prefix_sum_t,
-    fit_secondary_vertices_t, empty_lepton_id_t)
+    fit_secondary_vertices_t, empty_lepton_id_t, sv_combiner_t, filter_svs_t,
+    calc_max_combos_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenCore.generator import make_algorithm
@@ -143,6 +144,50 @@ def fit_secondary_vertices(long_tracks, pvs, kalman_velo_only,
         dev_sv_offsets_t=prefix_sum_secondary_vertices.dev_output_buffer_t,
         dev_sv_poca_t=filter_tracks.dev_sv_poca_t)
 
+    calc_max_combos = make_algorithm(
+        calc_max_combos_t,
+        name="calc_max_combos",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_input_agg_t=[
+            fit_secondary_vertices.dev_multi_event_composites_ptr_t
+        ])
+
+    prefix_sum_max_combos = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_sum_max_combos",
+        dev_input_buffer_t=calc_max_combos.dev_max_combos_t)
+
+    filter_svs = make_algorithm(
+        filter_svs_t,
+        name="filter_svs",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_max_combos_t=prefix_sum_max_combos.host_total_sum_holder_t,
+        host_number_of_svs_t=prefix_sum_secondary_vertices.
+        host_total_sum_holder_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_max_combo_offsets_t=prefix_sum_max_combos.dev_output_buffer_t,
+        dev_secondary_vertices_t=fit_secondary_vertices.
+        dev_multi_event_composites_view_t)
+
+    prefix_sum_sv_combos = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_sum_sv_combos",
+        dev_input_buffer_t=filter_svs.dev_combo_number_t,
+    )
+
+    combine_svs = make_algorithm(
+        sv_combiner_t,
+        name="svs_pair_candidate",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_combos_t=prefix_sum_sv_combos.host_total_sum_holder_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_combo_offsets_t=prefix_sum_sv_combos.dev_output_buffer_t,
+        dev_max_combo_offsets_t=prefix_sum_max_combos.dev_output_buffer_t,
+        dev_secondary_vertices_t=fit_secondary_vertices.
+        dev_multi_event_composites_view_t,
+        dev_child1_idx_t=filter_svs.dev_child1_idx_t,
+        dev_child2_idx_t=filter_svs.dev_child2_idx_t)
+
     return {
         "dev_consolidated_svs":
         fit_secondary_vertices.dev_consolidated_svs_t,
@@ -150,6 +195,8 @@ def fit_secondary_vertices(long_tracks, pvs, kalman_velo_only,
         kalman_velo_only["dev_kf_tracks"],
         "host_number_of_svs":
         prefix_sum_secondary_vertices.host_total_sum_holder_t,
+        "host_number_of_sv_pairs":
+        prefix_sum_sv_combos.host_total_sum_holder_t,
         "dev_sv_offsets":
         prefix_sum_secondary_vertices.dev_output_buffer_t,
         "dev_svs_trk1_idx":
@@ -161,5 +208,7 @@ def fit_secondary_vertices(long_tracks, pvs, kalman_velo_only,
         "dev_multi_event_composites":
         fit_secondary_vertices.dev_multi_event_composites_view_t,
         "dev_multi_event_composites_ptr":
-        fit_secondary_vertices.dev_multi_event_composites_ptr_t
+        fit_secondary_vertices.dev_multi_event_composites_ptr_t,
+        "dev_multi_event_sv_combos_view":
+        combine_svs.dev_multi_event_combos_view_t
     }

@@ -312,10 +312,12 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       // Store pt, (dipion) mass, FD, FD chi2
       i_word = svs_start_word + i_sv;
       float* float_info = reinterpret_cast<float*>(event_rb_stdinfo);
-      float_info[i_word] = sv_ptr->vertex().x();
-      float_info[i_word + 1] = sv_ptr->vertex().y();
-      float_info[i_word + 2] = sv_ptr->vertex().z();
-      float_info[i_word + 3] = sv_ptr->vertex().chi2();
+      if (sv_ptr->has_vertex()) {
+        float_info[i_word] = sv_ptr->vertex().x();
+        float_info[i_word + 1] = sv_ptr->vertex().y();
+        float_info[i_word + 2] = sv_ptr->vertex().z();
+        float_info[i_word + 3] = sv_ptr->vertex().chi2();
+      }
     }
 
     // Add track information to the beginning of the bank.

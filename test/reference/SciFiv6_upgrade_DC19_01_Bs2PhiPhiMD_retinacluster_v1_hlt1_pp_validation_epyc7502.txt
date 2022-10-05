@@ -85,6 +85,7 @@ Hlt1TwoTrackKs:                                         4/  1000, (  120.00 +/- 
 Hlt1D2KK:                                              21/  1000, (  630.00 +/-   136.03) kHz
 Hlt1D2KPi:                                             39/  1000, ( 1170.00 +/-   183.66) kHz
 Hlt1D2PiPi:                                            30/  1000, (  900.00 +/-   161.83) kHz
+Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                                   2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1SingleHighPtMuonNoMuID:                             4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1LowPtMuon:                                        157/  1000, ( 4710.00 +/-   345.13) kHz
@@ -146,6 +147,7 @@ Hlt1TwoTrackKs:                                         4           4
 Hlt1D2KK:                                              21          24
 Hlt1D2KPi:                                             39          42
 Hlt1D2PiPi:                                            30          33
+Hlt1TwoKs:                                              0           0
 Hlt1SingleHighPtMuon:                                   2           2
 Hlt1SingleHighPtMuonNoMuID:                             4           4
 Hlt1LowPtMuon:                                        157         182

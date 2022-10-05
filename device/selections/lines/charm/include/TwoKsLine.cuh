@@ -49,12 +49,9 @@ namespace two_ks_line {
   };
 
   struct two_ks_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_ks_line_t, Parameters> {
-    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
-
     __device__ static bool select(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned> input);
+      std::tuple<const Allen::Views::Physics::CompositeParticle> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};

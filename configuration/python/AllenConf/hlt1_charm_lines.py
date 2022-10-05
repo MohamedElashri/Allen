@@ -55,9 +55,9 @@ def make_two_ks_line(long_tracks,
         two_ks_line_t,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
+        host_number_of_svs_t=secondary_vertices["host_number_of_sv_pairs"],
         dev_particle_container_t=secondary_vertices[
-            "dev_multi_event_composites"],
+            "dev_multi_event_sv_combos_view"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
         post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 

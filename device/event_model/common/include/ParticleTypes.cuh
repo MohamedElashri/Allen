@@ -437,7 +437,13 @@ namespace Allen {
           return m_children[i];
         }
 
-        __host__ __device__ SecondaryVertex vertex() const { return m_vertices->vertex(m_index); }
+        __host__ __device__ bool has_vertex() const { return m_vertices != nullptr; }
+
+        __host__ __device__ SecondaryVertex vertex() const
+        {
+          assert(has_vertex());
+          return m_vertices->vertex(m_index);
+        }
 
         // TODO: Some of these quantities are expensive to calculate, so it
         // might be a good idea to store them in an "extra info" array. Need to
@@ -734,6 +740,11 @@ namespace Allen {
         __host__ __device__ const CompositeParticle& particle(unsigned particle_index) const
         {
           return m_particle[particle_index];
+        }
+
+        __host__ __device__ const CompositeParticle* particle_pointer(const unsigned particle_index) const
+        {
+          return static_cast<const CompositeParticle*>(m_particle) + particle_index;
         }
 
         __host__ __device__ unsigned offset() const { return m_offset; }

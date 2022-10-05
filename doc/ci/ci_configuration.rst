@@ -2,7 +2,7 @@ Allen CI configuration
 ==========================
 
 The scripts to configure Allen's CI pipeline are located in `scripts/ci/config <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/scripts/ci/config>`_
-Two pipelines are defined and used as follows: Every commit to a merge request triggers the "minimal" pipeline. Before merging a merge request, the "full pipeline" with a larger varietey of build options and data sets is triggered manually from the merge request page. 
+Two pipelines are defined and used as follows: Every commit to a merge request triggers the "minimal" pipeline. Before merging a merge request, the "full pipeline" with a larger varietey of build options and data sets is triggered manually from the merge request page.
 
 Adding new devices
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -86,11 +86,19 @@ Adding new efficiency reference files
 -----------------------------------------
 Create the reference file with the format `test/reference/${DATA_TAG}_${DEVICE_ID}.txt`.
 
+Updating efficiency reference files
+-----------------------------------------
+If the changes introduced in a MR are expected to have an impact on the physics efficiency, the job will fail, pointing to the need of updating the reference files.
+Make sure that the differences reported in the make sense.
+If in doubt, or for any significant changes, flag it up on your MR.
+
+The failing CI job will produce a patch file and provide instructions on how to commit at the bottom.
+
 Adding new builds
 ---------------------
 The `parallel:matrix:` keys will need to be modified in either `.build_job_minimal_matrix` or `.build_job_additional_matrix`.
 
-N.B. 
+N.B.
 
 * `$LCG_QUALIFIER` does not need to be set in `parallel:matrix:` for the full builds, but it will need to be for the minimal builds.
 * `$OPTIONS` can be left blank or undefined. If options need to be passed to CMake e.g. `-DBUILD_TESTING=ON -DENABLE_CONTRACTS=ON`, then `$OPTIONS` can be set to `BUILD_TESTING+ENABLE_CONTRACTS` which will set both CMake options to `ON` by default. If you need this to be something other than `ON`, then you can do `BUILD_TESTING=OFF+ENABLE_CONTRACTS=OFF`, for example.
