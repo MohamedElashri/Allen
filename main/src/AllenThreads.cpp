@@ -28,6 +28,15 @@ namespace {
   using namespace std::string_literals;
 } // namespace
 
+void set_current_thread_name(const std::string& thread_name)
+{
+#ifdef __linux__
+  pthread_setname_np(pthread_self(), thread_name.c_str());
+#else
+  pthread_setname_np(thread_name.c_str());
+#endif
+}
+
 std::string connection(const size_t id, std::string suffix)
 {
   auto con = std::string {"inproc://control_"} + std::to_string(id);
@@ -91,7 +100,7 @@ void run_output(
 {
   // Set thread name for easier debugging
   auto thread_name = std::string {"output_"} + std::to_string(output_id);
-  pthread_setname_np(pthread_self(), thread_name.c_str());
+  set_current_thread_name(thread_name);
 
   auto* client_socket = output_handler ? output_handler->client_socket() : nullptr;
 
@@ -176,10 +185,9 @@ void run_output(
  */
 void run_slices(const size_t thread_id, IZeroMQSvc* zmqSvc, IInputProvider* input_provider)
 {
-
   // Set thread name for easier debugging
   auto thread_name = std::string {"slices_"} + std::to_string(thread_id);
-  pthread_setname_np(pthread_self(), thread_name.c_str());
+  set_current_thread_name(thread_name);
 
   // Create a control socket and connect it.
   zmq::socket_t control = make_control(thread_id, zmqSvc);
@@ -262,7 +270,7 @@ void run_stream(
 
   // Set thread name for easier debugging
   auto thread_name = std::string {"stream_"} + std::to_string(stream_id);
-  pthread_setname_np(pthread_self(), thread_name.c_str());
+  set_current_thread_name(thread_name);
 
 #if defined(TARGET_DEVICE_CUDA)
   if (prefer_shared) {
@@ -344,10 +352,9 @@ void run_stream(
  */
 void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* monitor_manager, unsigned i_monitor)
 {
-
   // Set thread name for easier debugging
   auto thread_name = std::string {"monitoring_"} + std::to_string(mon_id);
-  pthread_setname_np(pthread_self(), thread_name.c_str());
+  set_current_thread_name(thread_name);
 
   zmq::socket_t control = make_control(mon_id, zmqSvc);
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
@@ -387,7 +394,7 @@ void run_aggregation(
 {
   // Set thread name for easier debugging
   auto thread_name = std::string {"aggregation_"} + std::to_string(thread_id);
-  pthread_setname_np(pthread_self(), thread_name.c_str());
+  set_current_thread_name(thread_name);
 
   zmq::socket_t control = make_control(thread_id, zmqSvc);
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
