@@ -89,7 +89,7 @@ Create the reference file with the format `test/reference/${DATA_TAG}_${DEVICE_I
 Updating efficiency reference files
 -----------------------------------------
 If the changes introduced in a MR are expected to have an impact on the physics efficiency, the job will fail, pointing to the need of updating the reference files.
-Make sure that the differences reported in the make sense.
+Make sure that the differences reported in the failing job make sense.
 If in doubt, or for any significant changes, flag it up on your MR.
 
 The failing CI job will produce a patch file and provide instructions on how to commit at the bottom.
