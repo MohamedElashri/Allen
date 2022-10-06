@@ -4,7 +4,7 @@
 # Date:   2022-10-06
 # Description: This script is to build Allen on UC sleepy Machine
 # Path: build_sleepy.sh
-
+# Usage: chmod +x build_sleepy.sh && ./build_sleepy.sh
 
 # First check if the OS is centos7 x64 machine only
 if [ -f /etc/os-release ]; then
@@ -30,7 +30,16 @@ git clone https://gitlab.cern.ch/Allen/Allen.git Allen
 cd Allen
 mkdir build
 cd build
-cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake ..
+
+# Choose if build is for CPU or GPU
+echo "Do you want to build Allen for CPU or GPU?"
+select yn in "CPU" "GPU"; do
+    case $yn in
+        CPU ) cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake ..
+; break;;
+        GPU ) cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12+cuda11_4-opt.cmake ..; break;;
+    esac
+done
 
 # Build the project
 make -j 16
