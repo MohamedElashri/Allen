@@ -14,10 +14,10 @@ def algorithm_dict(*algorithms):
 
 class host_init_event_list_t(AllenAlgorithm):
     __slots__ = OrderedDict(
-        host_event_list_output_t=AllenDataHandle("device", [], "host_event_list_output_t",
-                                                 "W", "unsigned int"),
-        dev_event_list_output_t=AllenDataHandle("device", [], "dev_event_list_output_t", "W",
-                                                "mask_t"),
+        host_event_list_output_t=AllenDataHandle(
+            "device", [], "host_event_list_output_t", "W", "unsigned int"),
+        dev_event_list_output_t=AllenDataHandle(
+            "device", [], "dev_event_list_output_t", "W", "mask_t"),
         verbosity="")
     aggregates = ()
 
@@ -46,18 +46,18 @@ class host_init_event_list_t(AllenAlgorithm):
 
 class event_list_intersection_t(AllenAlgorithm):
     __slots__ = OrderedDict(
-        dev_event_list_a_t=AllenDataHandle("device", [], "dev_event_list_a_t", "R",
-                                           "mask_t"),
-        dev_event_list_b_t=AllenDataHandle("device", [], "dev_event_list_b_t", "R",
-                                           "mask_t"),
-        host_event_list_a_t=AllenDataHandle("device", [], "host_event_list_a_t", "W",
-                                            "unsigned int"),
-        host_event_list_b_t=AllenDataHandle("device", [], "host_event_list_b_t", "W",
-                                            "unsigned int"),
-        host_event_list_output_t=AllenDataHandle("device", [], "host_event_list_output_t",
-                                                 "W", "unsigned int"),
-        dev_event_list_output_t=AllenDataHandle("device", [], "dev_event_list_output_t", "W",
-                                                "mask_t"),
+        dev_event_list_a_t=AllenDataHandle("device", [], "dev_event_list_a_t",
+                                           "R", "mask_t"),
+        dev_event_list_b_t=AllenDataHandle("device", [], "dev_event_list_b_t",
+                                           "R", "mask_t"),
+        host_event_list_a_t=AllenDataHandle(
+            "device", [], "host_event_list_a_t", "W", "unsigned int"),
+        host_event_list_b_t=AllenDataHandle(
+            "device", [], "host_event_list_b_t", "W", "unsigned int"),
+        host_event_list_output_t=AllenDataHandle(
+            "device", [], "host_event_list_output_t", "W", "unsigned int"),
+        dev_event_list_output_t=AllenDataHandle(
+            "device", [], "dev_event_list_output_t", "W", "mask_t"),
         verbosity="")
     aggregates = ()
 
@@ -86,18 +86,18 @@ class event_list_intersection_t(AllenAlgorithm):
 
 class event_list_union_t(AllenAlgorithm):
     __slots__ = OrderedDict(
-        dev_event_list_a_t=AllenDataHandle("device", [], "dev_event_list_a_t", "R",
-                                           "mask_t"),
-        dev_event_list_b_t=AllenDataHandle("device", [], "dev_event_list_b_t", "R",
-                                           "mask_t"),
-        host_event_list_a_t=AllenDataHandle("device", [], "host_event_list_a_t", "W",
-                                            "unsigned int"),
-        host_event_list_b_t=AllenDataHandle("device", [], "host_event_list_b_t", "W",
-                                            "unsigned int"),
-        host_event_list_output_t=AllenDataHandle("device", [], "host_event_list_output_t",
-                                                 "W", "unsigned int"),
-        dev_event_list_output_t=AllenDataHandle("device", [], "dev_event_list_output_t", "W",
-                                                "mask_t"),
+        dev_event_list_a_t=AllenDataHandle("device", [], "dev_event_list_a_t",
+                                           "R", "mask_t"),
+        dev_event_list_b_t=AllenDataHandle("device", [], "dev_event_list_b_t",
+                                           "R", "mask_t"),
+        host_event_list_a_t=AllenDataHandle(
+            "device", [], "host_event_list_a_t", "W", "unsigned int"),
+        host_event_list_b_t=AllenDataHandle(
+            "device", [], "host_event_list_b_t", "W", "unsigned int"),
+        host_event_list_output_t=AllenDataHandle(
+            "device", [], "host_event_list_output_t", "W", "unsigned int"),
+        dev_event_list_output_t=AllenDataHandle(
+            "device", [], "dev_event_list_output_t", "W", "mask_t"),
         verbosity="")
     aggregates = ()
 
@@ -126,14 +126,14 @@ class event_list_union_t(AllenAlgorithm):
 
 class event_list_inversion_t(AllenAlgorithm):
     __slots__ = OrderedDict(
-        dev_event_list_input_t=AllenDataHandle("device", [], "dev_event_list_input_t", "R",
-                                               "mask_t"),
-        host_event_list_t=AllenDataHandle("device", [], "host_event_list_t", "W",
-                                          "unsigned int"),
-        host_event_list_output_t=AllenDataHandle("device", [], "host_event_list_output_t",
-                                                 "W", "unsigned int"),
-        dev_event_list_output_t=AllenDataHandle("device", [], "dev_event_list_output_t", "W",
-                                                "mask_t"),
+        dev_event_list_input_t=AllenDataHandle(
+            "device", [], "dev_event_list_input_t", "R", "mask_t"),
+        host_event_list_t=AllenDataHandle("device", [], "host_event_list_t",
+                                          "W", "unsigned int"),
+        host_event_list_output_t=AllenDataHandle(
+            "device", [], "host_event_list_output_t", "W", "unsigned int"),
+        dev_event_list_output_t=AllenDataHandle(
+            "device", [], "dev_event_list_output_t", "W", "mask_t"),
         verbosity="")
     aggregates = ()
 
@@ -188,7 +188,8 @@ class generic_algorithm_t(AllenAlgorithm):
 
 
 class producer_1_t(generic_algorithm_t):
-    __slots__ = OrderedDict(a_t=AllenDataHandle("device", [], "a_t", "W", "int"), conf="")
+    __slots__ = OrderedDict(
+        a_t=AllenDataHandle("device", [], "a_t", "W", "int"), conf="")
 
     @classmethod
     def getType(cls):
@@ -207,7 +208,8 @@ class producer_2_t(generic_algorithm_t):
 
 
 class consumer_1_t(generic_algorithm_t):
-    __slots__ = OrderedDict(a_t=AllenDataHandle("device", [], "a_t", "R", "int"), conf="")
+    __slots__ = OrderedDict(
+        a_t=AllenDataHandle("device", [], "a_t", "R", "int"), conf="")
 
     @classmethod
     def getType(cls):
@@ -226,7 +228,8 @@ class consumer_2_t(generic_algorithm_t):
 
 
 class decider_1_t(generic_algorithm_t):
-    __slots__ = OrderedDict(a_t=AllenDataHandle("device", [], "a_t", "W", "mask_t"), conf="")
+    __slots__ = OrderedDict(
+        a_t=AllenDataHandle("device", [], "a_t", "W", "mask_t"), conf="")
 
     @classmethod
     def getType(cls):
