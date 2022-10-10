@@ -14,13 +14,13 @@
 TEST_DIR=$(mktemp -d)
 cp -r ${1}/tests ${TEST_DIR}/
 cp -r ${1}/python/AllenConf ${TEST_DIR}/tests/
-mkdir ${TEST_DIR}/tests/AllenAlgorithms
-touch ${TEST_DIR}/tests/AllenAlgorithms/__init__.py
-cp ${1}/tests/test_algorithms.py ${TEST_DIR}/tests/AllenCore.algorithms.py
 cp -r ${1}/python/AllenCore ${TEST_DIR}/tests/
+cp ${1}/tests/test_algorithms.py ${TEST_DIR}/tests/AllenCore/algorithms.py
+cp -r ${1}/python/AllenCore/allen_standalone_generator.py ${TEST_DIR}/tests/AllenCore/generator.py
 rm ${TEST_DIR}/tests/test_algorithms.py ${TEST_DIR}/tests/test_configuration.sh
 
 # Run tests
+echo $TEST_DIR
 pytest -s ${TEST_DIR}/tests
 
 # Cleanup and exit
