@@ -50,7 +50,7 @@ if not isinstance(streams, dict):
     streams = dict(default=streams)
 lines = list(itertools.chain(*streams.values()))
 # Combine all lines and output in a global control flow.
-top_cf_node, barriers = moore_control_flow(options, streams, 'hlt2', False)
+top_cf_node = moore_control_flow(options, streams, 'hlt2', False)
 
 #allen stuff -------------------------
 setup_allen_non_event_data_service()
@@ -83,24 +83,9 @@ def gather_algs(node):
     ])
 
 
-def get_barriers(node):
-    algs = gather_algs(node)
-    barriers = []
-    for alg in algs:
-        props = alg.type.getDefaultProperties()
-        if props.get("hasOptionals"):
-            barriers += [alg]
-    return barriers
-
-
 # add allen to processing, before everything else
 # this means that all the other stuff (hlt2) will only run if the hlt1 node passes
 top_cf_node.children = (hlt1_node, ) + top_cf_node.children
 # end of allen stuff ---------------------------------
 
-config.update(
-    configure(
-        options,
-        top_cf_node,
-        public_tools=public_tools,
-        barrier_algorithms=barriers + get_barriers(hlt1_node)))
+config.update(configure(options, top_cf_node, public_tools=public_tools))
