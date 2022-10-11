@@ -19,6 +19,7 @@ namespace Muon {
     static constexpr unsigned n_stations = 4;
     static constexpr unsigned n_regions = 4;
     static constexpr unsigned n_quarters = 4;
+    static constexpr int M2 {0}, M3 {1}, M4 {2}, M5 {3};
 
     // v3 geometry
     static constexpr unsigned maxTell40Number = 22;
@@ -95,8 +96,92 @@ namespace Muon {
 
       __host__ __device__ const float* params_begin_const() const { return reinterpret_cast<const float*>(m_params); }
     };
+    struct MatchWindows {
+      float Xmax[16] = {
+        //   R1  R2   R3   R4
+        100.,
+        200.,
+        300.,
+        400., // M2
+        100.,
+        200.,
+        300.,
+        400., // M3
+        400.,
+        400.,
+        400.,
+        400., // M4
+        400.,
+        400.,
+        400.,
+        400.}; // M5
+
+      float Ymax[16] = {
+        //  R1   R2   R3   R4
+        60.,
+        120.,
+        180.,
+        240., // M2
+        60.,
+        120.,
+        240.,
+        240., // M3
+        60.,
+        120.,
+        240.,
+        480., // M4
+        60.,
+        120.,
+        240.,
+        480., // M5
+
+      };
+
+      float z_station[4] {15205.f, 16400.f, 17700.f, 18850.f};
+    };
+    static constexpr unsigned max_number_of_tracks = 120;
   } // namespace Constants
 } // namespace Muon
+
+struct MuonTrack {
+  int m_hits[4] {-1, -1, -1, -1};
+  uint8_t m_number_of_hits = 0;
+  float m_tx;
+  float m_ty;
+  float m_ax;
+  float m_ay;
+  float m_chi2x;
+  float m_chi2y;
+  int m_state_muon_index;
+
+  __host__ __device__ MuonTrack() {}
+
+  __host__ __device__ void add_hit_to_station(const unsigned hit_index, const int station_index)
+  {
+    ++m_number_of_hits;
+    m_hits[station_index] = hit_index;
+  }
+
+  __host__ __device__ int hit(const int station_index) const { return m_hits[station_index]; }
+
+  __host__ __device__ uint8_t number_of_hits() const { return m_number_of_hits; }
+
+  __host__ __device__ float& tx() { return m_tx; }
+  __host__ __device__ float& ty() { return m_ty; }
+  __host__ __device__ float& ax() { return m_ax; }
+  __host__ __device__ float& ay() { return m_ay; }
+  __host__ __device__ float& chi2x() { return m_chi2x; }
+  __host__ __device__ float& chi2y() { return m_chi2y; }
+  __host__ __device__ int& state() { return m_state_muon_index; }
+
+  __host__ __device__ float tx() const { return m_tx; }
+  __host__ __device__ float ty() const { return m_ty; }
+  __host__ __device__ float ax() const { return m_ax; }
+  __host__ __device__ float ay() const { return m_ay; }
+  __host__ __device__ float chi2x() const { return m_chi2x; }
+  __host__ __device__ float chi2y() const { return m_chi2y; }
+  __host__ __device__ int state() const { return m_state_muon_index; }
+};
 
 namespace MatchUpstreamMuon {
   static constexpr float kickOffset = 338.92f * Gaudi::Units::MeV; // KickOffset

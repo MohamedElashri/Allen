@@ -4,9 +4,32 @@
 from AllenAlgorithms.algorithms import (
     single_high_pt_muon_line_t, single_high_pt_muon_no_muid_line_t,
     low_pt_muon_line_t, di_muon_mass_line_t, di_muon_soft_line_t,
-    low_pt_di_muon_line_t, track_muon_mva_line_t, di_muon_no_ip_line_t)
+    low_pt_di_muon_line_t, track_muon_mva_line_t, di_muon_no_ip_line_t,
+    one_muon_track_line_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
+
+
+def make_one_muon_track_line(number_of_muon_tracks,
+                             muon_tracks,
+                             dev_output_buffer,
+                             host_total_sum_holder,
+                             name="Hlt1OneMuonTrack",
+                             pre_scaler_hash_string=None,
+                             post_scaler_hash_string=None):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        one_muon_track_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        dev_muon_number_of_tracks_t=number_of_muon_tracks,
+        dev_muon_tracks_t=muon_tracks,
+        host_muon_total_number_of_tracks_t=host_total_sum_holder,
+        dev_muon_tracks_offsets_t=dev_output_buffer)
 
 
 def make_single_high_pt_muon_line(long_tracks,
