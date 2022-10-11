@@ -4,7 +4,8 @@
 from AllenAlgorithms.algorithms import (
     data_provider_t, muon_calculate_srq_size_t, host_prefix_sum_t,
     muon_populate_tile_and_tdc_t, muon_add_coords_crossing_maps_t,
-    muon_populate_hits_t, is_muon_t, empty_lepton_id_t)
+    muon_populate_hits_t, is_muon_t, empty_lepton_id_t, find_muon_hits_t,
+    consolidate_muon_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
@@ -165,3 +166,44 @@ def muon_id():
     muonID = is_muon(decoded_muon, long_tracks)
     alg = muonID["dev_is_muon"].producer
     return alg
+
+
+def make_muon_stubs(monitoring=False):
+    number_of_events = initialize_number_of_events()
+    decoded_muon = decode_muon()
+
+    find_muon_hits = make_algorithm(
+        find_muon_hits_t,
+        name='find_muon_hits',
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_station_ocurrences_offset_t=decoded_muon[
+            "dev_station_ocurrences_offset"],
+        dev_muon_hits_t=decoded_muon["dev_muon_hits"],
+        enable_monitoring=monitoring)
+    prefix_sum_muon_tracks = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_sum_muon_tracks_find_hits",
+        dev_input_buffer_t=find_muon_hits.dev_muon_number_of_tracks_t)
+
+    consolidate_muon = make_algorithm(
+        consolidate_muon_t,
+        name='consolidate_muon_t',
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_muon_tracks_input_t=find_muon_hits.dev_muon_tracks_t,
+        dev_muon_number_of_tracks_t=find_muon_hits.dev_muon_number_of_tracks_t,
+        dev_muon_tracks_offsets_t=prefix_sum_muon_tracks.dev_output_buffer_t,
+        host_muon_total_number_of_tracks_t=prefix_sum_muon_tracks.
+        host_total_sum_holder_t,
+    )
+
+    return {
+        "dev_muon_tracks_output": consolidate_muon.dev_muon_tracks_output_t,
+        "dev_muon_number_of_tracks":
+        find_muon_hits.dev_muon_number_of_tracks_t,
+        "consolidated_muon_tracks": consolidate_muon.dev_muon_tracks_output_t,
+        "host_total_sum_holder":
+        prefix_sum_muon_tracks.host_total_sum_holder_t,
+        "dev_output_buffer": prefix_sum_muon_tracks.dev_output_buffer_t
+    }

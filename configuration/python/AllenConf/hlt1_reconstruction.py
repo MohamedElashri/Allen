@@ -5,7 +5,7 @@ from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_vel
 from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
 from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
-from AllenConf.muon_reconstruction import decode_muon, is_muon, fake_muon_id
+from AllenConf.muon_reconstruction import decode_muon, is_muon, fake_muon_id, make_muon_stubs
 from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, make_basic_particles, fit_secondary_vertices
@@ -27,11 +27,13 @@ def hlt1_reconstruction(matching=False,
     velo_tracks = make_velo_tracks(decoded_velo)
     velo_states = run_velo_kalman_filter(velo_tracks)
     pvs = make_pvs(velo_tracks)
+    muon_stubs = make_muon_stubs()
 
     output = {
         "velo_tracks": velo_tracks,
         "velo_states": velo_states,
-        "pvs": pvs
+        "pvs": pvs,
+        "muon_stubs": muon_stubs,
     }
 
     if matching:
@@ -86,10 +88,9 @@ def hlt1_reconstruction(matching=False,
 
     secondary_vertices = fit_secondary_vertices(
         long_tracks, pvs, kalman_velo_only, long_track_particles)
-
     output.update({
         "long_track_particles": long_track_particles,
-        "secondary_vertices": secondary_vertices
+        "secondary_vertices": secondary_vertices,
     })
 
     return output

@@ -22,6 +22,7 @@ void Constants::reserve_constants()
   Allen::malloc((void**) &dev_muon_momentum_cuts, 3 * sizeof(float));
   Allen::malloc((void**) &dev_muonmatch_search_muon_chambers, sizeof(MatchUpstreamMuon::MuonChambers));
   Allen::malloc((void**) &dev_muonmatch_search_windows, sizeof(MatchUpstreamMuon::SearchWindows));
+  Allen::malloc((void**) &dev_match_windows, sizeof(Muon::Constants::MatchWindows));
 
   host_ut_region_offsets.resize(UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1);
   host_ut_dxDy.resize(UT::Constants::n_layers);
@@ -69,6 +70,11 @@ void Constants::initialize_constants(
 
   Allen::memcpy(dev_muon_momentum_cuts, &Muon::Constants::momentum_cuts, 3 * sizeof(float), Allen::memcpyHostToDevice);
   Allen::memcpy(dev_muon_foi, &host_muon_foi, sizeof(Muon::Constants::FieldOfInterest), Allen::memcpyHostToDevice);
+
+  // VeloMuon
+  Muon::Constants::MatchWindows host_match_windows;
+  Allen::memcpy(
+    dev_match_windows, &host_match_windows, sizeof(Muon::Constants::MatchWindows), Allen::memcpyHostToDevice);
 
   // Velo-UT-muon
   MatchUpstreamMuon::MuonChambers host_muonmatch_search_muon_chambers;

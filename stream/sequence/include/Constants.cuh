@@ -20,7 +20,8 @@ namespace Muon {
   class MuonTables;
   namespace Constants {
     struct FieldOfInterest;
-  }
+    struct MatchWindows;
+  } // namespace Constants
 } // namespace Muon
 namespace LookingForward {
   struct Constants;
@@ -100,6 +101,7 @@ struct Constants {
   std::vector<char> host_muon_lookup_tables_raw;
   Muon::MuonGeometry* dev_muon_geometry = nullptr;
   Muon::MuonTables* dev_muon_tables = nullptr;
+  Muon::Constants::MatchWindows* dev_match_windows = nullptr;
 
   // Velo-UT-muon
   MatchUpstreamMuon::MuonChambers* dev_muonmatch_search_muon_chambers = nullptr;
