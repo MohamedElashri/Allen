@@ -7,7 +7,7 @@ from AllenCore.algorithms import make_selected_object_lists_t, make_subbanks_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
-from AllenCore.configuration_options import allen_configuration_options
+from AllenCore.configuration_options import allen_register_keys
 from PyConf.filecontent_metadata import register_encoding_dictionary
 from PyConf.tonic import configurable
 
@@ -131,7 +131,7 @@ def make_dec_reporter(lines, TCK=0):
     gather_selections = make_gather_selections(lines)
     number_of_events = initialize_number_of_events()
 
-    if allen_configuration_options.register_keys:
+    if allen_register_keys():
         key = register_allen_encoding_table(lines)
     else:
         key = 0

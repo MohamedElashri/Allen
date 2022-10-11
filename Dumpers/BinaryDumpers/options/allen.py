@@ -6,6 +6,10 @@ import os
 import sys
 import zmq
 import json
+
+from AllenCore.configuration_options import is_allen_standalone
+is_allen_standalone.global_bind(standalone=True)
+
 from Configurables import ApplicationMgr
 from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
 from Allen.config import (setup_allen_non_event_data_service, allen_odin,
@@ -159,7 +163,6 @@ rootSvc = RootCnvSvc("RootCnvSvc", EnableIncident=1)
 ApplicationMgr().ExtSvc += ["Gaudi::IODataManager/IODataManager", rootSvc]
 
 # Generate json sequence
-sys.argv += ["--standalone"]
 importlib.import_module(f"AllenSequences.{args.sequence}")
 generated_json_sequence = os.path.join(os.getcwd(), "Sequence.json")
 

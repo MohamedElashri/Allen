@@ -8,10 +8,10 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenCore.configuration_options import allen_configuration_options
+from AllenCore.configuration_options import is_allen_standalone
 
 from sys import modules
-if allen_configuration_options.standalone:
+if is_allen_standalone():
     from AllenCore import allen_standalone_generator
     modules[__name__] = allen_standalone_generator
 else:
