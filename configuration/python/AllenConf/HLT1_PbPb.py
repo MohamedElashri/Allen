@@ -159,7 +159,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
 
     lines.append(
         line_maker(
-            "Hlt1PbPbUPC",
+            "Hlt1PbSMOGMB",
             make_heavy_ion_event_line(
                 name="Hlt1PbSMOGMicroBias",
                 pre_scaler_hash_string ="PbSMOGMicroBias_line_pre",
