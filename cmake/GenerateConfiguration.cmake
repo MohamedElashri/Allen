@@ -197,7 +197,7 @@ function(generate_sequence sequence)
   add_custom_command(
     OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
     COMMAND
-      ${CMAKE_COMMAND} -E env "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "--standalone" "1" "--register-keys" "0" &&
+      ${CMAKE_COMMAND} -E env "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore/gen_allen_json.py" "--no-register-keys" "--seqpath" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" &&
       ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
     DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" "${PROJECT_SEQUENCE_DIR}/GaudiKernel" "${PROJECT_SEQUENCE_DIR}/PyConf"
     WORKING_DIRECTORY ${sequence_dir})
