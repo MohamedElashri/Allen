@@ -10,7 +10,7 @@ from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenConf.hlt1_reconstruction import validator_node
 from AllenConf.validators import rate_validation
 
-muon_stubs = make_muon_stubs(monitoring=True)
+muon_stubs = make_muon_stubs(monitoring=False)
 lines = [
     line_maker(
         make_one_muon_track_line(
