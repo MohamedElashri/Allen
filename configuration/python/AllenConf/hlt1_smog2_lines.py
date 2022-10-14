@@ -37,7 +37,6 @@ def make_SMOG2_minimum_bias_line(velo_tracks,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_velo_tracks_t=velo_tracks[
             "host_number_of_reconstructed_velo_tracks"],
-        dev_number_of_events_t=number_of_events["dev_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         dev_tracks_container_t=velo_tracks["dev_velo_tracks_view"],

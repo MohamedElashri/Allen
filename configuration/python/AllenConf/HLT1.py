@@ -290,7 +290,7 @@ def setup_hlt1_node(withMCChecking=False,
     gec = [make_gec(count_ut=with_ut)] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
                        ] if with_odin_filter else []
-    prefilters = gec + odin_err_filter
+    prefilters = odin_err_filter + gec
 
     with line_maker.bind(prefilter=prefilters):
         physics_lines = default_physics_lines(reconstructed_objects, with_calo,
