@@ -49,10 +49,7 @@ ProvideRuntimeOptions::ProvideRuntimeOptions(const std::string& name, ISvcLocato
     KeyValue {"RuntimeOptionsLocation", "Allen/Stream/RuntimeOptions"})
 {}
 
-StatusCode ProvideRuntimeOptions::initialize()
-{
-  return Transformer::initialize();
-}
+StatusCode ProvideRuntimeOptions::initialize() { return Transformer::initialize(); }
 
 RuntimeOptions ProvideRuntimeOptions::operator()(
   std::array<TransposedBanks, LHCb::RawBank::LastType> const& allen_banks) const
