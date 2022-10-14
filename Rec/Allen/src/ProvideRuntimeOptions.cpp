@@ -51,8 +51,7 @@ ProvideRuntimeOptions::ProvideRuntimeOptions(const std::string& name, ISvcLocato
 
 StatusCode ProvideRuntimeOptions::initialize()
 {
-  return Transformer::initialize().andThen(
-    [&] { m_root_service = std::make_unique<ROOTService>(m_monitorFile.value()); });
+  return Transformer::initialize();
 }
 
 RuntimeOptions ProvideRuntimeOptions::operator()(
