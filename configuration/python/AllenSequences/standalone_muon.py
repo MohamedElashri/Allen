@@ -10,7 +10,7 @@ from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenConf.hlt1_reconstruction import validator_node
 from AllenConf.validators import rate_validation
 
-muon_stubs = make_muon_stubs(monitoring=True)
+muon_stubs = make_muon_stubs(monitoring=False)
 lines = [
     line_maker(
         make_one_muon_track_line(
@@ -24,6 +24,8 @@ lines = [
 line_algorithms = [tup[0] for tup in lines]
 line_nodes = [tup[1] for tup in lines]
 
+global_decision = make_global_decision(lines=line_algorithms)
+
 lines = CompositeNode(
     "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
@@ -31,17 +33,9 @@ gather_selections = make_gather_selections(lines=line_algorithms)
 hlt1_node = CompositeNode(
     "StandaloneMuon", [
         lines,
-        make_global_decision(lines=line_algorithms),
+        make_routingbits_writer(lines=line_algorithms), global_decision,
+        rate_validation(lines=line_algorithms)
     ],
     NodeLogic.NONLAZY_AND,
     force_order=True)
-
-hlt1_node = CompositeNode(
-    "StandaloneMuonWithValidation", [
-        hlt1_node,
-        rate_validation(lines=line_algorithms),
-    ],
-    NodeLogic.NONLAZY_AND,
-    force_order=True)
-
 generate(hlt1_node)
