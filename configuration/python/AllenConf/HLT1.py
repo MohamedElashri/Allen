@@ -1,15 +1,21 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import line_maker, make_gec, make_checkPV, make_lowmult
+from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
+                             make_checkCylPV)
 from AllenConf.odin import make_bxtype, odin_error_filter
+from AllenConf.velo_reconstruction import decode_velo
+from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line, make_two_ks_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line
 from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line, make_di_muon_no_ip_line
 from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_lowmass_noip_dielectron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
-from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_beam_gas_line
+from AllenConf.hlt1_monitoring_lines import (
+    make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line,
+    make_beam_gas_line, make_velo_clusters_micro_bias_line,
+    make_calo_digits_minADC_line)
 from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
@@ -268,7 +274,122 @@ def default_smog2_lines(velo_tracks,
     return [line_maker(line) for line in lines]
 
 
-def setup_hlt1_node(withMCChecking=False,
+def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
+    """
+    Detector activity lines for BGI data collection.
+    """
+    bx_NoBB = make_bxtype("BX_NoBeamBeam", bx_type=3, invert=True)
+    lines = [
+        line_maker(
+            make_velo_clusters_micro_bias_line(
+                decoded_velo,
+                name="Hlt1BGIVeloClustersMicroBias",
+                min_velo_clusters=1),
+            prefilter=prefilter + [bx_NoBB]),
+        line_maker(
+            make_calo_digits_minADC_line(
+                decoded_calo, name="Hlt1BGICaloDigits"),
+            prefilter=prefilter + [bx_NoBB])
+    ]
+    return lines
+
+
+def default_bgi_pvs_lines(pvs, prefilter=[]):
+    """
+    Primary vertex lines for various bunch crossing types composed from
+    new PV filters and beam crossing lines.
+    """
+    mm = 1.0  # from SystemOfUnits.h
+    max_cyl_rad_sq = (3 * mm)**2
+    bx_NoBB = make_bxtype("BX_NoBeamBeam", bx_type=3, invert=True)
+    pvs_z_all = make_checkCylPV(
+        pvs,
+        name="BGIPVsCylAll",
+        min_vtx_z=-2000.,
+        max_vtz_z=2000.,
+        max_vtx_rho_sq=max_cyl_rad_sq,
+        min_vtx_nTracks=10.)
+    lines = []
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPVsCylNoBeam",
+                beam_crossing_type=0,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [bx_NoBB, pvs_z_all]),
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPVsCylBeamOne",
+                beam_crossing_type=1,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [bx_NoBB, pvs_z_all]),
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPVsCylBeamTwo",
+                beam_crossing_type=2,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [bx_NoBB, pvs_z_all])
+    ]
+
+    pvs_z_up = make_checkCylPV(
+        pvs,
+        name="BGIPVsCylUp",
+        min_vtx_z=-2000.,
+        max_vtz_z=-250.,
+        max_vtx_rho_sq=max_cyl_rad_sq,
+        min_vtx_nTracks=10.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPVsCylUpBeamBeam",
+                beam_crossing_type=3,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [pvs_z_up])
+    ]
+
+    pvs_z_down = make_checkCylPV(
+        pvs,
+        name="BGIPVsCylDown",
+        min_vtx_z=250.,
+        max_vtz_z=2000.,
+        max_vtx_rho_sq=max_cyl_rad_sq,
+        min_vtx_nTracks=10.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPVsCylDownBeamBeam",
+                beam_crossing_type=3,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [pvs_z_down])
+    ]
+
+    pvs_z_ir = make_checkCylPV(
+        pvs,
+        name="BGIPVsCylIR",
+        min_vtx_z=-250.,
+        max_vtz_z=250.,
+        max_vtx_rho_sq=max_cyl_rad_sq,
+        min_vtx_nTracks=28.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPVsCylIRBeamBeam",
+                beam_crossing_type=3,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [pvs_z_ir])
+    ]
+
+    return lines
+
+
+def setup_hlt1_node(enablePhysics=True,
+                    withMCChecking=False,
                     EnableGEC=True,
                     withSMOG2=False,
                     enableRateValidator=True,
@@ -277,7 +398,8 @@ def setup_hlt1_node(withMCChecking=False,
                     with_odin_filter=True,
                     with_calo=True,
                     with_muon=True,
-                    matching=False):
+                    matching=False,
+                    enableBGI=False):
 
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(
@@ -291,9 +413,11 @@ def setup_hlt1_node(withMCChecking=False,
                        ] if with_odin_filter else []
     prefilters = odin_err_filter + gec
 
-    with line_maker.bind(prefilter=prefilters):
-        physics_lines = default_physics_lines(reconstructed_objects, with_calo,
-                                              with_muon)
+    physics_lines = []
+    if enablePhysics:
+        with line_maker.bind(prefilter=prefilters):
+            physics_lines += default_physics_lines(reconstructed_objects,
+                                                   with_calo, with_muon)
 
     lumiline_name = "Hlt1ODINLumi"
     with line_maker.bind(prefilter=odin_err_filter):
@@ -305,6 +429,12 @@ def setup_hlt1_node(withMCChecking=False,
             physics_lines += [
                 line_maker(make_passthrough_line(name="Hlt1GECPassthrough"))
             ]
+
+    if enableBGI:
+        physics_lines += default_bgi_activity_lines(decode_velo(),
+                                                    decode_calo(), prefilters)
+        physics_lines += default_bgi_pvs_lines(reconstructed_objects["pvs"],
+                                               prefilters)
 
     with line_maker.bind(prefilter=prefilters):
         monitoring_lines += alignment_monitoring_lines(reconstructed_objects,
