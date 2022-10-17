@@ -46,8 +46,8 @@ __global__ void check_cyl_pvs::check_cyl_pvs(check_cyl_pvs::Parameters parameter
   for (unsigned i = threadIdx.x; i < parameters.dev_number_of_multi_final_vertices[event_number]; i += blockDim.x) {
     const auto& pv = vertices[i];
     const auto rho_sq = pv.position.x * pv.position.x + pv.position.y * pv.position.y;
-    const bool dec = pv.nTracks >= parameters.min_nTracks and pv.position.z >= parameters.minZ and
-                     pv.position.z < parameters.maxZ and rho_sq < parameters.max_rho_sq;
+    const bool dec = pv.nTracks >= parameters.min_vtx_nTracks and pv.position.z >= parameters.min_vtx_z and
+                     pv.position.z < parameters.max_vtz_z and rho_sq < parameters.max_vtx_rho_sq;
     if (dec) atomicOr(&event_decision, dec);
   }
 

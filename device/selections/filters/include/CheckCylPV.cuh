@@ -18,20 +18,20 @@ namespace check_cyl_pvs {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
 
-    PROPERTY(minZ_t, "minZ", "min z coordinate to accept a reconstructed primary vertex", float) minZ;
-    PROPERTY(maxZ_t, "maxZ", "max z coordinate to accept a reconstructed primary vertex", float) maxZ;
+    PROPERTY(min_vtx_z_t, "min_vtx_z", "min z coordinate to accept a reconstructed primary vertex", float) min_vtx_z;
+    PROPERTY(max_vtz_z_t, "max_vtz_z", "max z coordinate to accept a reconstructed primary vertex", float) max_vtz_z;
     PROPERTY(
-      max_rho_sq_t,
-      "max_rho_sq",
+      max_vtx_rho_sq_t,
+      "max_vtx_rho_sq",
       "max square of cylindrical radius coordinate to accept a reconstructed primary vertex",
       float)
-    max_rho_sq;
+    max_vtx_rho_sq;
     PROPERTY(
-      min_nTracks_t,
-      "min_nTracks",
+      min_vtx_nTracks_t,
+      "min_vtx_nTracks",
       "min number of tracks in the PV to accept a reconstructed primary vertex",
       float)
-    min_nTracks;
+    min_vtx_nTracks;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
@@ -53,10 +53,10 @@ namespace check_cyl_pvs {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
-    Property<minZ_t> m_minZ {this, -99999.};
-    Property<maxZ_t> m_maxZ {this, 99999.};
-    Property<max_rho_sq_t> m_max_rho_sq {this, 99999.};
-    Property<min_nTracks_t> m_min_nTracks {this, 10.};
+    Property<min_vtx_z_t> m_min_vtx_z {this, -99999.};
+    Property<max_vtz_z_t> m_max_vtz_z {this, 99999.};
+    Property<max_vtx_rho_sq_t> m_max_vtx_rho_sq {this, 99999.};
+    Property<min_vtx_nTracks_t> m_min_vtx_nTracks {this, 10.};
   }; // check_cyl_pvs_t
 
 } // namespace check_cyl_pvs

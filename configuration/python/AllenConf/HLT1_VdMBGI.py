@@ -52,10 +52,10 @@ def default_bgi_pvs_lines(pvs, prefilter=[]):
     pvs_z_all = make_checkCylPV(
         pvs,
         name="BGIPVsCylAll",
-        minZ=-2000.,
-        maxZ=2000.,
-        max_rho_sq=max_cyl_rad_sq,
-        min_nTracks=10.)
+        min_vtx_z=-2000.,
+        max_vtz_z=2000.,
+        max_vtx_rho_sq=max_cyl_rad_sq,
+        min_vtx_nTracks=10.)
     lines = []
     lines += [
         line_maker(
@@ -84,10 +84,10 @@ def default_bgi_pvs_lines(pvs, prefilter=[]):
     pvs_z_up = make_checkCylPV(
         pvs,
         name="BGIPVsCylUp",
-        minZ=-2000.,
-        maxZ=-250.,
-        max_rho_sq=max_cyl_rad_sq,
-        min_nTracks=10.)
+        min_vtx_z=-2000.,
+        max_vtz_z=-250.,
+        max_vtx_rho_sq=max_cyl_rad_sq,
+        min_vtx_nTracks=10.)
     lines += [
         line_maker(
             make_beam_line(
@@ -101,10 +101,10 @@ def default_bgi_pvs_lines(pvs, prefilter=[]):
     pvs_z_down = make_checkCylPV(
         pvs,
         name="BGIPVsCylDown",
-        minZ=250.,
-        maxZ=2000.,
-        max_rho_sq=max_cyl_rad_sq,
-        min_nTracks=10.)
+        min_vtx_z=250.,
+        max_vtz_z=2000.,
+        max_vtx_rho_sq=max_cyl_rad_sq,
+        min_vtx_nTracks=10.)
     lines += [
         line_maker(
             make_beam_line(
@@ -118,10 +118,10 @@ def default_bgi_pvs_lines(pvs, prefilter=[]):
     pvs_z_ir = make_checkCylPV(
         pvs,
         name="BGIPVsCylIR",
-        minZ=-250.,
-        maxZ=250.,
-        max_rho_sq=max_cyl_rad_sq,
-        min_nTracks=28.)
+        min_vtx_z=-250.,
+        max_vtz_z=250.,
+        max_vtx_rho_sq=max_cyl_rad_sq,
+        min_vtx_nTracks=28.)
     lines += [
         line_maker(
             make_beam_line(

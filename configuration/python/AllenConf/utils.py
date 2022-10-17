@@ -102,17 +102,17 @@ def make_checkPV(pvs, name='check_PV', minZ=-9999999, maxZ=99999999):
 @configurable
 def make_checkCylPV(pvs,
                     name='check_PV',
-                    minZ=-9999999.,
-                    maxZ=99999999.,
-                    max_rho_sq=99999999.,
-                    min_nTracks=1.):
+                    min_vtx_z=-9999999.,
+                    max_vtz_z=99999999.,
+                    max_vtx_rho_sq=99999999.,
+                    min_vtx_nTracks=1.):
     return checkCylPV(
         pvs,
         name=name,
-        minZ=minZ,
-        maxZ=maxZ,
-        max_rho_sq=max_rho_sq,
-        min_nTracks=min_nTracks)
+        min_vtx_z=min_vtx_z,
+        max_vtz_z=max_vtz_z,
+        max_vtx_rho_sq=max_vtx_rho_sq,
+        min_vtx_nTracks=min_vtx_nTracks)
 
 
 @configurable
@@ -156,10 +156,10 @@ def checkPV(pvs, name='checkPV', minZ=-999999, maxZ=99999):
 
 def checkCylPV(pvs,
                name='checkCylPV',
-               minZ=-999999.,
-               maxZ=99999.,
-               max_rho_sq=99999.,
-               min_nTracks=10.):
+               min_vtx_z=-999999.,
+               max_vtz_z=99999.,
+               max_vtx_rho_sq=99999.,
+               min_vtx_nTracks=10.):
 
     number_of_events = initialize_number_of_events()
     return make_algorithm(
@@ -169,10 +169,10 @@ def checkCylPV(pvs,
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
         dev_number_of_multi_final_vertices_t=pvs[
             "dev_number_of_multi_final_vertices"],
-        minZ=minZ,
-        maxZ=maxZ,
-        max_rho_sq=max_rho_sq,
-        min_nTracks=min_nTracks)
+        min_vtx_z=min_vtx_z,
+        max_vtz_z=max_vtz_z,
+        max_vtx_rho_sq=max_vtx_rho_sq,
+        min_vtx_nTracks=min_vtx_nTracks)
 
 
 def lowMult(velo_tracks, name='LowMult', minTracks=0, maxTracks=99999):
