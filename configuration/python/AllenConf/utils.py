@@ -5,7 +5,7 @@ from AllenCore.generator import make_algorithm
 from AllenCore.algorithms import (
     host_init_number_of_events_t, host_data_provider_t, host_scifi_gec_t,
     host_ut_gec_t, layout_provider_t, check_pvs_t, check_cyl_pvs_t,
-    low_occupancy_t)
+    low_occupancy_t, event_list_inversion_t)
 from PyConf.tonic import configurable
 from PyConf.control_flow import NodeLogic, CompositeNode
 
@@ -119,6 +119,14 @@ def make_checkCylPV(pvs,
 def make_lowmult(velo_tracks, name="lowMult", minTracks=0, maxTracks=9999999):
     return lowMult(
         velo_tracks, name=name, minTracks=minTracks, maxTracks=maxTracks)
+
+
+def make_invert_event_list(
+        alg, name, alg_output_event_list_name="dev_event_list_output_t"):
+    return make_algorithm(
+        event_list_inversion_t,
+        name=name,
+        dev_event_list_input_t=getattr(alg, alg_output_event_list_name))
 
 
 def initialize_number_of_events():

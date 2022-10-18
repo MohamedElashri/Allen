@@ -2,7 +2,7 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
-                             make_checkCylPV)
+                             make_checkCylPV, make_invert_event_list)
 from AllenConf.odin import make_bxtype, odin_error_filter
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
@@ -278,7 +278,8 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
     """
     Detector activity lines for BGI data collection.
     """
-    bx_NoBB = make_bxtype("BX_NoBeamBeam", bx_type=3, invert=True)
+    bx_BB = make_bxtype("BX_BeamBeam", bx_type=3)
+    bx_NoBB = make_invert_event_list(bx_BB, name="BX_NoBeamBeam")
     lines = [
         line_maker(
             make_velo_clusters_micro_bias_line(
@@ -301,7 +302,8 @@ def default_bgi_pvs_lines(pvs, prefilter=[]):
     """
     mm = 1.0  # from SystemOfUnits.h
     max_cyl_rad_sq = (3 * mm)**2
-    bx_NoBB = make_bxtype("BX_NoBeamBeam", bx_type=3, invert=True)
+    bx_BB = make_bxtype("BX_BeamBeam", bx_type=3)
+    bx_NoBB = make_invert_event_list(bx_BB, name="BX_NoBeamBeam")
     pvs_z_all = make_checkCylPV(
         pvs,
         name="BGIPVsCylAll",
