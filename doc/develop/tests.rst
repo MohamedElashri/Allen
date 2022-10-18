@@ -1,43 +1,13 @@
 Test Allen algorithms
 ========================
 
-Within Gaudi
+Within Gaudi, calling Allen from Moore
 ^^^^^^^^^^^^^^^^
-To test Allen algorithms in Gaudi, the data produced by an Allen
-algorithm must be copied from memory managed by Allen's memory manager
-to a members of the `HostBuffers` object. The `HostBuffers` will be
-put in the TES by the `RunAllen` algorithm that wraps the entire Allen
-sequence.
+When calling Allen from Moore, Allen algorithms are called as Gaudi algorithms and therefore run in the same way as other Gaudi algorithms. Any output produced by such a Gaudi-Allen algorithm is stored on the Transient Event Store (TES) can then be used as input for other Gaudi algorithms implementing tests. 
 
 An example for the Velo clusters can be seen in
-`HostBuffers.cuh <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/stream/sequence/include/HostBuffers.cuh>`_
-and `MaskedVeloClustering.cu <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/velo/mask_clustering/src/MaskedVeloClustering.cu>`_,
-where additional members have been added to the `HostBuffers` and data
-produced by the `velo_masked_clustering` algorithm is copied there.
-
-The `TestVeloClusters` algorithm implements an example algorithm that
-recreates the required Allen event model object - in this case
-`Velo::ConstClusters` - from the data in `HostBuffers` and loops over
-the clusters.
-
-An example options file to run `TestVeloClusters` as a test can be
-found in `hlt1_velo_decoding.qmt <https://gitlab.cern.ch/lhcb/Moore/-/blob/master/Hlt/RecoConf/tests/qmtest/decoding.qms/hlt1_velo_decoding.qmt>`_.
-
-
-Future Developments for tests
--------------------------------
-
-Developments are ongoing to allow Allen algorithms to be directly run
-as Gaudi algorithms through automatically generated wrappers. All data
-produced by Allen algorithm will then be directly stored in the TES
-when running with the CPU backend. The following merge requests tracks
-the work in progress:
-
-Once that work is completed and merged, Allen algorithms will no
-longer need to copy data into the `HostBuffers` object and any Gaudi
-algorithms used for testing will have to be updated to obtain their
-data directly from the TES instead of from `HostBuffers`.
-
+`hlt1_velo_clusters.py <https://gitlab.cern.ch/lhcb/Moore/-/blob/master/Hlt/RecoConf/options/hlt1_velo_clusters.py>`_,
+where the clusters produced by the Allen velo decoding (translated to Gaudi-Allen algorithms) are passed on to the Gaudi algorithm `TestVeloClusters <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/Rec/Allen/src/TestVeloClusters.cpp>`_. 
 
 Within Allen: Contracts
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

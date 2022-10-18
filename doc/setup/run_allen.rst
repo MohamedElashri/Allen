@@ -78,23 +78,9 @@ To run Allen as the HLT1 trigger application, call the following options script 
 To run a different sequence, the function call that sets up the
 control flow can be wrapped using a `with` statement::
 
-  with sequence.bind(sequence="hlt1_pp_no_gec"):
+  from RecoConf.hlt1_allen import allen_gaudi_node_barriers
+  with allen_gaudi_node_barriers.bind(sequence="hlt1_pp_no_gec"):
     run_allen(options)
-
-A different set of configuration parameters can be configured in the
-same way::
-
-  with sequence.bind(json="/path/to/custom/config.json"):
-    run_allen(options)
-
-To obtain a JSON file that contains all configurable parameters, the
-following can be used::
-
-  ./Moore/run Allen --write-configuration 1
-
-This will write a file `config.json` in the current working
-directory, which can be modified to rerun with a different set of cuts
-without rebuilding.
 
 How to study the HLT1 physics performance within Moore is described in :ref:`moore_performance_scripts`.
 
@@ -103,7 +89,12 @@ How to study the HLT1 physics performance within Moore is described in :ref:`moo
 As Gaudi project, event loop steered by Allen (data-taking)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Use Gaudi to update non-event data such as alignment and configuration constants and use Allen to steer the event loop, where batches of events (O(1000)) are processed together (this method will be used for data-taking).::
+Use Gaudi to update non-event data such as alignment and configuration constants and use Allen to steer the event loop, where batches of events (O(1000)) are processed together (this method will be used for data-taking).
 
-  cd Allen
-  ./build.${CMTCONFIG}/run bindings/Allen.py
+When using MDF files as input, call from the Allen environment::
+
+  ./Allen/build.${ARCHITECTURE}/run python Dumpers/BinaryDumpers/options/allen.py --mdf Allen/input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf
+ 
+When using MEP files as input, call from the MooreOnline environment, as MEP handling is implemented there::
+
+  ./MooreOnline/build.${ARCHITECTURE}/run python Allen/Dumpers/BinaryDumpers/options/allen.py --sequence=Allen/InstallArea/${ARCHITECTURE}/constants/hlt1_pp_default.json --tags="dddb_tag,simcond_tag" --mep mep_file.mep

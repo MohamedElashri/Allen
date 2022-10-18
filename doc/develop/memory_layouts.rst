@@ -4,14 +4,14 @@ Memory layout of raw data in Allen
 ====================================
 
 Algorithms that process raw detector data must support input of that
-data in two different layouts: Allen layout and MEP layout.
+data in two different layouts: Allen layout and MEP layout. Both layouts store the raw data for many events one after each other, i.e. in Structure of Array (SoA) formats.
+The main difference between Allen and MEP layout is the definition of the SoAs. In MEP layout one array contains the raw data for all events coming from one TELL40. In Allen layout one array contains the raw data for all TELL40s of one sub-detector for all events. MDF input files are converted to Allen layout. 
 
 Raw data consists of for pieces of information: the data itself -
 usually referred to as the fragment, the size of the fragment in
 bytes, the type of the fragment and the source ID of the
 fragment. The meaning of the fragment type and source ID are defined
-in <a href="https://edms.cern.ch/document/2100937"
-target="_blank">this EDMS document</a>.
+in `this EDMS document <https://edms.cern.ch/document/2100937>`_.
 
 The raw data is provided as four arrays:
 
@@ -29,8 +29,8 @@ In Allen layout the fragments for a given event are contiguous
 in memory. The fragment offsets are indexed by event number and
 a given offset is used to obtain a block of data from the fragment
 data. This block contains the following information:
-* ``4`` bytes: the number of fragments (``n_frag``),
-* ``(n_frag + 1) * 4`` bytes: the relative offset to each fragment
+* `4` bytes: the number of fragments (`n_frag`),
+* `(n_frag + 1) * 4` bytes: the relative offset to each fragment
 * the fragments
 
 For the size and types offsets arrays the sizes and types themselves
