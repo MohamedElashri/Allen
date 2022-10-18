@@ -57,6 +57,7 @@
       - build*/code_generation/sequences
       - build*/external/LHCb/PyConf/python/PyConf
       - build*/external/Gaudi/GaudiKernel/python/GaudiKernel
+      - build*/external/ParamFiles
       - build*/*Allen*
       - build*/sequences/libStream_*.so
       - build*/CTestTestfile.cmake
