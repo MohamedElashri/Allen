@@ -10,7 +10,7 @@ Types of selections
 Selections are fully configurable algorithms in Allen. Lines that select events
 based on basic or composite particles must have a device input
 `dev_particle_container_t` that is an `Allen::MultiEventContainer
-<https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/event_model/common/include/MultiEventContainer.cuh>`.
+<https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/event_model/common/include/MultiEventContainer.cuh>`_.
 For convenience, there are some predefined line types.
 
 OneTrackLine
@@ -19,7 +19,7 @@ These lines trigger on basic particles with no decay products. In most cases,
 this means triggering on Kalman-filtered long tracks. The input
 `dev_particle_container_t` must be an `Allen::MultiEventBasicParticles`. Basic
 particle properties are accessed via the `BasicParticle
-<https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/event_model/common/include/ParticleTypes.cuh>`
+<https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/event_model/common/include/ParticleTypes.cuh>`_
 view. This view provides access to the track state (including
 momentum), lepton ID, and the associated PV (including e.g. IP, IP chi2).
 
@@ -29,11 +29,10 @@ These lines trigger on composite particles composed of other basic or composite
 particles. In most cases, this means triggering on 2-track secondary vertices.
 The input `dev_particle_container_t` must be an
 `Allen::MultiEventCompositeParticles`. Composite particle properties are
-accessed via the `CompositeParticle
-<https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/event_model/common/include/ParticleTypes.cuh>`
+accessed via the `CompositeParticle <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/event_model/common/include/ParticleTypes.cuh>`_
 view. This view provides access to vertex fit results, the associated PV
-(including e.g. FD, FD chi2), and the child particles (`BasicParticle`s and/or
-`CompositeParticle`s).
+(including e.g. FD, FD chi2), and the child particles (`BasicParticle` s and/or
+`CompositeParticle` s).
 
 EventLine
 -------------
@@ -69,7 +68,7 @@ Every sub-directory contains a `include` and a `src` directory where the header 
 
 Creating a selection
 ----------------------
-Selections are `SelectionAlgorithm`s, that must in addition inherit from a line type.
+Selections are of type `SelectionAlgorithm`, that must in addition inherit from a line type.
 Like with any other `Algorithm`, a `SelectionAlgorithm` can have inputs,
 outputs and properties. However, certain inputs and outputs are assumed and must be defined:
 
@@ -132,7 +131,7 @@ A `SelectionAlgorithm` can contain the following:
 
    using iteration_t = LineIteration::event_iteration_tag;
 
- Used if each selection is to be applied exactly once per event (eg. a lumi line).
+Used if each selection is to be applied exactly once per event (eg. a lumi line).
 
 .. code-block:: c++
 
@@ -337,7 +336,7 @@ EventLine example
 Now we'll define a line that selects events with at least 1 reconstructed VELO track. This line runs once per event, so it inherits from `EventLine`.
 This time, we will need to define not only the `select` function, but also the `get_input` function, as we need custom data to feed into our line (the number of tracks in an event).
 
-The header `monitoring/include/VeloMicroBiasLine.cuh <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/device/selections/lines>`_ is as follows:
+The header `monitoring/include/VeloMicroBiasLine.cuh <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/selections/lines/monitoring/include/VeloMicroBiasLine.cuh>`_ is as follows:
 
 .. code-block:: c++
 
@@ -563,7 +562,7 @@ Let us first look at the default sequence definition in `hlt1_pp_default.py
   hlt1_node = setup_hlt1_node()
   generate(hlt1_node)
 
-The CompositeNode containing the default HLT1 selections `setup_hlt1_node` is defined in `HLT1.py <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/configuration/python/AllenConf>`_ and contains the following code:
+The CompositeNode containing the default HLT1 selections `setup_hlt1_node` is defined in `HLT1.py <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/HLT1.py>`_ and contains the following code:
 
 .. code-block:: python
 
@@ -797,4 +796,4 @@ The training procedure for the TwoTrackMVA is found in `https://github.com/nikla
 
 The event types used for training can be seen in `here <https://github.com/niklasnolte/HLT_2Track/blob/main/hlt2trk/utils/config.py#L384>`_.
 
-The model exported from there goes into `Allen/input/parameters/two_track_mva_model.json <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/input/parameters/two_track_mva_model.json>`_
+The model exported from there goes into `Allen/input/parameters/two_track_mva_model.json <https://gitlab.cern.ch/lhcb-datapkg/ParamFiles/-/blob/master/data/allen_two_track_mva_model_June22.json>`_

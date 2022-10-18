@@ -39,7 +39,7 @@ Allen also provides a :ref:`root_service`, with which physics quantities used in
 
 Scripts for standalone Allen
 --------------------------------
-Create the directory Allen/output, then the ROOT file PrCheckerPlots.root will be saved there when running the a validation sequence.
+Create the directory Allen/output, then the ROOT file PrCheckerPlots.root will be saved there when running a validation sequence.
 
 * Efficiency plots: Histograms of reconstructible and reconstructed tracks are saved in `Allen/output/PrCheckerPlots.root`.
   Plots of efficiencies versus various kinematic variables can be created by running `efficiency_plots.py <../../checker/plotting/tracking/efficiency_plots.py>` in the directory
@@ -61,33 +61,7 @@ Call the executable from within the stack directory as in the following example:
 
   ./Moore/run gaudirun.py Moore/Hlt/RecoConf/tests/qmtest/allen_gaudi_forward_with_mcchecking.qmt
 
-This will call the configured Allen sequence, convert reconstructed tracks to Rec objects and run the MC checkers for track reconstruction efficiencies.
-
-If you want to run the PV checker, you need to use |moore_pv_branch| in Rec and the following executable::
-
-  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_pvchecker.py
-
-.. |moore_pv_branch| raw:: html
-
-   <a href="https://gitlab.cern.ch/lhcb/Rec/tree/dovombru_twojton_pvchecker" target="_blank">this branch</a>
-
-To check the IP resolution::
-
-  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_IPresolution.py
-
-To check the track momentum resolution::
-
-  ./Moore/run gaudirun.py Moore/Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/RecoConf/options/hlt1_reco_allen_trackresolution.py
-
-To check the muon identification efficiency and misID efficiency::
-
-  ./Moore/run gaudirun.py Hlt/Moore/tests/options/default_input_and_conds_hlt1_retinacluster.py Moore/Hlt/RecoConf/options/Moore/hlt1_reco_allen_muonid_efficiency.py
-
-The scripts in |moore_scripts| can be used to produce plots of the various efficiencies and resolutions from the ROOT files produced by one of the previous calls to Moore.
-
-.. |moore_scripts| raw:: html
-
-   <a href="https://gitlab.cern.ch/lhcb/Moore/-/tree/master/Hlt/RecoConf/scripts" target="_blank">Moore/Hlt/RecoConf/scripts</a>
+This will call the configured Allen algorithms, convert reconstructed tracks to Rec objects and run the MC checkers for track reconstruction efficiencies.
 
 HltEfficiencyChecker in MooreAnalysis
 ----------------------------------------

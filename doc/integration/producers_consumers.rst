@@ -1,7 +1,8 @@
 Writing Producers and Consumers
 ===================================
 
-All headers and source files are relative to the directory `integration/non_event_data <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/integration/non_event_data>`_.
+Producers and Consumers translate the geometry and condition information required for HLT1 processing into formats that can easily be copied to and used on the GPU.
+All headers and source files are relative to the directory `integration/non_event_data <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/integration/non_event_data>`_.
 
 
 Identifiers

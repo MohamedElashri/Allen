@@ -18,5 +18,5 @@ If you don't have CVMFS available, you should set the `CMAKE_BUILD_TYPE` to `Deb
 
 For some materials on gdb, some recommended reading:
 
-* <a href="https://www.cs.cmu.edu/~gilpin/tutorial/" target="_blank">gdb tutorial</a>
-* <a href="https://docs.nvidia.com/cuda/cuda-gdb/index.html#getting-started" target="_blank">cuda-gdb documentation</a>
+* `gdb tutorial <https://www.cs.cmu.edu/~gilpin/tutorial/>`_
+* `cuda-gdb documentation <https://docs.nvidia.com/cuda/cuda-gdb/index.html#getting-started>`_

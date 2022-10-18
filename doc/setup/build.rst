@@ -119,7 +119,7 @@ Finally, Allen can be built and run as on any other platform::
 Purging / rebuilding
 --------------------
 
-In few cases a `purge` command followed by a rebuild may be required. The cases where this is necessary are described here :ref:`_building_newly_defined_algorithm`.
+In few cases a `purge` command followed by a rebuild may be required. The cases where this is necessary are described here :ref:`building_newly_defined_algorithm`.
 
 Compilation options
 -------------------
@@ -170,18 +170,18 @@ Follow the instructions in the |stack_setup| to set up the software stack.
 
    <a href="https://gitlab.cern.ch/rmatev/lb-stack-setup" target="_blank">stack setup</a>
 
-To compile an Allen sequence other than the default sequence (hlt1_pp_default), compile for example with::
+To compile Allen and its depending projects call
 
-  make Allen CMAKEFLAGS="-DSEQUENCES=.*"
+  make Allen
 
-You can also set the CMAKEFLAGS variable for Allen in `utils/config.json`, the default settings of the stack setup are defined in `utils/default-config.json`.
+By default, all configured sequences available in `configuration/python/AllenSequences <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/configuration/python/AllenSequences` are built and the json configuration files are stored inside the `Allen/InstallArea/${ARCHITECTURE}/constants/` directory.
 
 As a Gaudi/LHCb cmake project
 -------------------------------
-It then depends on Rec. To build Allen like this, is the same as building
-any other Gaudi/LHCb project::
+To build Allen like this, is the same as building
+any other Gaudi/LHCb project. Allen depends on Rec and all projects that Rec depends on. So either clone them locally or add the path to a valid nightly build to `CMAKE_PREFIX_PATH` (check the |nightly_builds|). Then do::
 
-    LbLogin -c x86_64-centos7-gcc9-opt
+    LbLogin -c x86_64-centos7-clang12-opt
     cd Allen
     lb-project-init
     make configure
@@ -205,33 +205,7 @@ other Gaudi/LHCb projects can be used::
   cd Allen
   ./build.${BINARY_TAG}/run Allen ...
 
-
-Using the nightlies
----------------------
-Create a new directory ``Allen_Gaudi_integration`` and clone both Allen and Moore into this new directory. If a specific version of another repository is needed, that ones needs to be checked out and compiled as well.
-Note that this setup uses the nightlies from Tuesday. Adopt the day of the nightly build according to when you are building and check that the nightly build was successful |nightly_builds|::
-
-  lb-set-platform x86_64-centos7-gcc9-opt
-  export CMAKE_PREFIX_PATH=/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/Tue/:$CMAKE_PREFIX_PATH
-  source /cvmfs/projects.cern.ch/intelsw/psxe/linux/all-setup.sh
-
-  ls Allen_Gaudi_integration
-  Allen Moore
-  export CMAKE_PREFIX_PATH=/path/to/user/directory/Allen_Gaudi_integration:$CMAKE_PREFIX_PATH
-
-
 .. |nightly_builds| raw:: html
 
    <a href="https://lhcb-nightlies.web.cern.ch/nightly/" target="_blank">here</a>
 
-Compile both Allen and Moore::
-
-  cd Allen
-  lb-project-init
-  make configure
-  make install
-
-  cd ../Moore
-  lb-project-init
-  make configure
-  make install

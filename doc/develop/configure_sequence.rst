@@ -7,7 +7,7 @@ Allen centers around the idea of running a *sequence of algorithms* on input eve
 
 The sequence can be configured with python. Existing configurations can be browsed under `configuration/sequences`. The sequence name is the name of each individual file, without the `.py` extension, in that folder. For instance, some sequence names are `velo`, `veloUT`, or `hlt1_pp_default`.
 
-The sequence can be chosen at runtime with the option `--sequence`. For instance:
+The sequence can be chosen at runtime with the option `--sequence`. For instance::
 
     # Configure the VELO sequence
     ./Allen --sequence velo
@@ -23,9 +23,9 @@ The rest of this readme explains the workflow to generate a new sequence.
 Creating a new sequence
 -----------------------
 
-In order to create a new sequence, head to `configuration/sequences` and create a new sequence file with extension `.py`.
+In order to create a new sequence, head to `configuration/python/AllenSequences/` and create a new sequence file with extension `.py`.
 
-You may reuse what exists already in `python/AllenConf` and extend that. In order to create a new sequence, you should:
+You may reuse what exists already in `configuration/python/AllenConf/` and extend that. In order to create a new sequence, you should:
 
 * Instantiate algorithms. Algorithm inputs must be assigned other algorithm outputs.
 * Generate at least one CompositeNode with the algorithms we want to run.
@@ -48,7 +48,7 @@ As an example, let us add the SAXPY algorithm to a custom sequence. Start by inc
 `initialize_number_of_events`, `decode_velo` and `make_velo_tracks` are already defined functions that instantiate the relevant algorithms that
 we will need for our example.
 
-We should now add the SAXPY algorithm. We can use the interactive session to explore what it requires::
+We should now add the SAXPY algorithm. We can use an interactive session to explore what it requires::
 
   >>> algorithms.saxpy_t.getDefaultProperties()
   OrderedDict([('host_number_of_events_t',
@@ -109,11 +109,11 @@ The final configuration file is therefore:
   saxpy_sequence = CompositeNode("Saxpy", [saxpy])
   generate(saxpy_sequence)
 
-Now, we can save this configuration as `configuration/sequences/saxpy.py` and run it:
+Now, we can save this configuration as `configuration/python/AllenSequences/saxpy.py` and run it::
 
   ./Allen --sequence saxpy
 
-The following text should appear as part of the run of the program, which indicates the algorithms that will be executed and the order in which they will run:
+The following text should appear as part of the run of the program, which indicates the algorithms that will be executed and the order in which they will run::
 
   Generated sequence represented as algorithms with execution masks:
     host_init_event_list_t/initialize_event_lists

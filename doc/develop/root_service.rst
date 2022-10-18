@@ -3,7 +3,7 @@
 ROOT Service
 ====================================================
 
-This tutorial will help you use the ROOT Service`](main/include/ROOTService.h) utility to monitor  algorithms in general and, in particular, `Lines`. The code of the service is located `here <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/main/include/ROOTService.h>`_.
+This tutorial will help you use the ROOTService utility to monitor  algorithms in general and, in particular, `Lines`. The code of the service is located `here <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/main/include/ROOTService.h>`_.
 
 Monitoring Lines with ROOT
 ------------------------------
