@@ -53,10 +53,11 @@
     expire_in: 1 day
     paths:
       - input
-      - build*/external/ParamFiles/*
+      - configuration/python
+      - build*/code_generation/sequences
+      - build*/external
       - build*/*Allen*
       - build*/sequences/libStream_*.so
-      - build*/*.json
       - build*/CTestTestfile.cmake
       - build*/test/unit_tests/unit_tests
       - build*/test/unit_tests/*cmake

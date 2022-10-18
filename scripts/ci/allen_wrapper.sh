@@ -19,6 +19,7 @@ set -u;
 
 cd ${BUILD_FOLDER} # && ls
 export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
+export PYTHONPATH=${PWD}/configuration/python:${BUILD_FOLDER}/code_generation/sequences:${PYTHONPATH:-default}
 
 # Configure job for target device.
 if [ "${TARGET}" = "CPU" ]; then

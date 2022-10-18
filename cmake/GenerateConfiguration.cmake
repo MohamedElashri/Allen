@@ -68,12 +68,14 @@ add_custom_command(
 add_custom_target(parsed_algorithms DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 
 # Symlink Allen build directories
+file(RELATIVE_PATH PROJECT_SOURCE_DIR_RELPATH ${PROJECT_SEQUENCE_DIR} ${PROJECT_SOURCE_DIR})
+message(STATUS "Set project source dir to: ${PROJECT_SOURCE_DIR_RELPATH}")
 add_custom_command(
   OUTPUT "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}"
   COMMENT "Making symlink of sequence definitions and configuration utilities"
   COMMAND
-    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
-    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore" "${ALLEN_CORE_DIR}"
+    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR_RELPATH}/configuration/python/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
+    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR_RELPATH}/configuration/python/AllenCore" "${ALLEN_CORE_DIR}"
   DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf" "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore")
 add_custom_target(generate_conf_core DEPENDS "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
 
@@ -156,13 +158,14 @@ elseif(STANDALONE)
     find_package(Git REQUIRED)
     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/external/LHCb")
     set(LHCBROOT "${PROJECT_BINARY_DIR}/external/LHCb")
+    file(RELATIVE_PATH LHCBROOT_RELPATH ${PROJECT_SEQUENCE_DIR} ${LHCBROOT})
     add_custom_command(
       OUTPUT "${PROJECT_SEQUENCE_DIR}/PyConf"
       COMMENT "Checking out LHCb project from the LHCb stack"
       COMMAND
         ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb.git ${PROJECT_BINARY_DIR}/external/LHCb &&
         ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR}/external/LHCb patch -p1 < ${CMAKE_CURRENT_LIST_DIR}/pyconf-pydot.patch &&
-        ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
+        ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT_RELPATH}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
     add_custom_target(checkout_lhcb DEPENDS "${PROJECT_SEQUENCE_DIR}/PyConf")
     message(STATUS "LHCBROOT set to ${LHCBROOT}")
   endif()
@@ -179,30 +182,14 @@ elseif(STANDALONE)
     find_package(Git REQUIRED)
     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/external/Gaudi")
     set(GAUDIROOT "${PROJECT_BINARY_DIR}/external/Gaudi")
+    file(RELATIVE_PATH GAUDIROOT_RELPATH ${PROJECT_SEQUENCE_DIR} ${GAUDIROOT})
     add_custom_command(
       OUTPUT "${PROJECT_SEQUENCE_DIR}/GaudiKernel"
       COMMENT "Checking out Gaudi project from the LHCb stack"
       COMMAND
         ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/gaudi/Gaudi.git ${PROJECT_BINARY_DIR}/external/Gaudi &&
-        ${CMAKE_COMMAND} -E create_symlink ${GAUDIROOT}/GaudiKernel/python/GaudiKernel ${PROJECT_SEQUENCE_DIR}/GaudiKernel)
+        ${CMAKE_COMMAND} -E create_symlink ${GAUDIROOT_RELPATH}/GaudiKernel/python/GaudiKernel ${PROJECT_SEQUENCE_DIR}/GaudiKernel)
     add_custom_target(checkout_gaudi DEPENDS "${PROJECT_SEQUENCE_DIR}/GaudiKernel")
-    message(STATUS "GAUDIROOT set to ${GAUDIROOT}")
+    message(STATUS "GAUDIROOT set to ${GAUDIROOT_RELPATH}")
   endif()
 endif()
-
-function(generate_sequence sequence)
-  set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
-  file(MAKE_DIRECTORY ${sequence_dir})
-
-  add_custom_command(
-    OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
-    COMMAND
-      ${CMAKE_COMMAND} -E env "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore/gen_allen_json.py" "--no-register-keys" "--seqpath" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" &&
-      ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-    DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" "${PROJECT_SEQUENCE_DIR}/GaudiKernel" "${PROJECT_SEQUENCE_DIR}/PyConf"
-    WORKING_DIRECTORY ${sequence_dir})
-
-  add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
-  add_dependencies(Stream sequence_${sequence})
-  install(FILES "${PROJECT_BINARY_DIR}/${sequence}.json" DESTINATION constants)
-endfunction()

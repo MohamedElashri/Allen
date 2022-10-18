@@ -86,8 +86,6 @@ if [ -z ${TPUT_REPORT+x} ]; then
     export TPUT_REPORT="1" # avoid unbound variable errors
 fi
 
-export BUILD_SEQUENCES="all"
-
 TOPLEVEL=${PWD}
 PREVIOUS_IFS=${IFS}
 IFS=':' read -ra JOB_NAME_SPLIT <<< "${CI_JOB_NAME}"
@@ -116,7 +114,7 @@ echo "TARGET device is ${TARGET}"
 
 set -u; set -x
 
-BUILD_FOLDER="build_${LCG_PLATFORM}_${BUILD_SEQUENCES}_${OPTIONS}"
+BUILD_FOLDER="build_${LCG_PLATFORM}_${OPTIONS}"
 
 # ls -la
 

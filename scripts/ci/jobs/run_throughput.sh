@@ -17,7 +17,7 @@ if [ ! -z ${GEOMETRY+x} ]; then
   RUN_OPTIONS="$RUN_OPTIONS -g /scratch/allen_geometries/${GEOMETRY}"
 fi
 
-RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}  --run-from-json 1 --params external/ParamFiles/ ${RUN_OPTIONS}"
+RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE} --params external/ParamFiles/ ${RUN_OPTIONS}"
 
 
 if [ "${AVOID_HIP}" = "1" ]; then 

@@ -9,7 +9,7 @@ config:
   # args added for specific test keys
   args:
     # Added to Allen command always
-    base: "--run-from-json 1 --params external/ParamFiles/"
+    base: "--params external/ParamFiles/"
 
     # added if "dataset:" specified
     dataset: "--mdf /scratch/allen_data/mdf_input/{dataset}.mdf"
