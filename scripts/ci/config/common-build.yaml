@@ -55,7 +55,8 @@
       - input
       - configuration/python
       - build*/code_generation/sequences
-      - build*/external
+      - build*/external/LHCb/PyConf/python/PyConf
+      - build*/external/Gaudi/GaudiKernel/python/GaudiKernel
       - build*/*Allen*
       - build*/sequences/libStream_*.so
       - build*/CTestTestfile.cmake
