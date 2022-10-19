@@ -6,12 +6,12 @@ import os
 import sys
 import zmq
 import json
+from Configurables import ApplicationMgr
+from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
 
 from AllenCore.configuration_options import is_allen_standalone
 is_allen_standalone.global_bind(standalone=True)
 
-from Configurables import ApplicationMgr
-from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
 from Allen.config import (setup_allen_non_event_data_service, allen_odin,
                           configured_bank_types)
 from PyConf.application import (configure, setup_component, ComponentConfig,
@@ -22,7 +22,6 @@ from time import sleep
 import ctypes
 import argparse
 from GaudiPython.Bindings import AppMgr, gbl
-import importlib
 
 # Load Allen entry point and helpers
 gbl.gSystem.Load("libAllenLib")
@@ -36,6 +35,9 @@ interpreter.Declare("#include <Dumpers/IUpdater.h>")
 interpreter.Declare("#include <Allen/Allen.h>")
 interpreter.Declare("#include <Allen/Provider.h>")
 interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
+
+sequence_default = os.path.join(os.environ['ALLEN_INSTALL_DIR'], 'constants',
+                                'hlt1_pp_default.json')
 
 
 def cast_service(return_type, svc):
@@ -58,7 +60,7 @@ parser.add_argument("-r", dest="repetitions", default=1)
 parser.add_argument("-m", dest="reserve", default=1024)
 parser.add_argument("-v", dest="verbosity", default=3)
 parser.add_argument("-p", dest="print_memory", default=0)
-parser.add_argument("--sequence", dest="sequence", default="hlt1_pp_default")
+parser.add_argument("--sequence", dest="sequence", default=sequence_default)
 parser.add_argument("-s", dest="slices", default=1)
 parser.add_argument("--mdf", dest="mdf", default="")
 parser.add_argument("--mep", dest="mep", default="")
@@ -162,16 +164,12 @@ extSvc = ["ToolSvc", "AuditorSvc", "ZeroMQSvc"]
 rootSvc = RootCnvSvc("RootCnvSvc", EnableIncident=1)
 ApplicationMgr().ExtSvc += ["Gaudi::IODataManager/IODataManager", rootSvc]
 
-# Generate json sequence
-importlib.import_module(f"AllenSequences.{args.sequence}")
-generated_json_sequence = os.path.join(os.getcwd(), "Sequence.json")
-
 if args.mep:
     extSvc += ["AllenConfiguration", "MEPProvider"]
     from Configurables import MEPProvider, AllenConfiguration
 
     allen_conf = AllenConfiguration("AllenConfiguration")
-    allen_conf.JSON = generated_json_sequence
+    allen_conf.JSON = args.sequence
     allen_conf.OutputLevel = 3
 
     mep_provider = MEPProvider()
@@ -221,7 +219,7 @@ config.add(
             'SIMCOND': options.conddb_tag,
         }))
 
-bank_types = configured_bank_types(generated_json_sequence)
+bank_types = configured_bank_types(args.sequence)
 cf_node = setup_allen_non_event_data_service(
     allen_event_loop=True, bank_types=bank_types)
 config.update(configure(options, cf_node, make_odin=make_odin))
@@ -246,7 +244,7 @@ for flag, value in [("g", args.det_folder),
                     ("output-batch-size", args.output_batch_size),
                     ("m", args.reserve), ("v", args.verbosity),
                     ("p", args.print_memory),
-                    ("sequence", os.path.expandvars(generated_json_sequence)),
+                    ("sequence", os.path.expandvars(args.sequence)),
                     ("s", args.slices), ("mdf", os.path.expandvars(args.mdf)),
                     ("disable-run-changes", int(not args.enable_run_changes)),
                     ("monitoring-save-period", args.mon_save_period),
