@@ -46,7 +46,7 @@ A run of the Allen program with the help option `-h` will let you know the basic
      --disable-run-changes {Ignore signals to update non-event data with each run change}=1
      -h {show this help}
 
-Here are some examples for run options::
+Here are some examples for run options. Note that if Allen was :ref:`built with cvmfs<build with cvmfs>`, one can prepend `./toolchain/wrapper` to all the following commands to execute in the correct environment.  ::
 
     # Run on an MDF input file shipped with Allen once
     ./Allen --sequence hlt1_pp_default --mdf ../input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf

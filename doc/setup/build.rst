@@ -10,6 +10,8 @@ There are two options for building Allen: Either as standalone project or as par
 As standalone project
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. _requisites
+
 Requisites
 ----------------
 
@@ -35,6 +37,8 @@ The following python3 packages are also needed, which can be installed with pip,
 * sympy
 
 Further requirements depend on the device chosen as target. Allen supports targets CPU (default), CUDA and HIP. The CUDA target requires a CUDA installation, whereas the HIP target requires a ROCm installation.
+
+.. _build with cvmfs:
 
 Building with CVMFS
 -------------------
