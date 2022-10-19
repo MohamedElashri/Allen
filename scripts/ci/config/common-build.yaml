@@ -53,13 +53,10 @@
     expire_in: 1 day
     paths:
       - input
-      - configuration/python
-      - build*/code_generation/sequences
-      - build*/external/LHCb/PyConf/python/PyConf
-      - build*/external/Gaudi/GaudiKernel/python/GaudiKernel
-      - build*/external/ParamFiles
+      - build*/external/ParamFiles/*
       - build*/*Allen*
       - build*/sequences/libStream_*.so
+      - build*/*.json
       - build*/CTestTestfile.cmake
       - build*/test/unit_tests/unit_tests
       - build*/test/unit_tests/*cmake

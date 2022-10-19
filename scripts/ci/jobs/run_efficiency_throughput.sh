@@ -50,7 +50,7 @@ if [ "${RUN_THROUGHPUT}" != "NO_THROUGHPUT" ]; then
     RUN_OPTIONS="$RUN_OPTIONS -g /scratch/allen_geometries/${GEOMETRY}"
     fi
 
-    RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE} --params external/ParamFiles/ ${RUN_OPTIONS}"
+    RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}  --run-from-json 1 --params external/ParamFiles/ ${RUN_OPTIONS}"
 
     set -euxo pipefail
     OUTPUT_FOLDER_REL="${TEST_NAME}_output_${SEQUENCE}_${DATA_TAG}${OPTIONS}/${DEVICE_ID}"
@@ -182,7 +182,7 @@ if [ "${RUN_EFFICIENCY}" != "NO_EFFICIENCY" ]; then
 
     check_build_exists
 
-    EFF_RUN_OPTIONS="-n 10000 -m 1100"
+    EFF_RUN_OPTIONS="-n 10000 -m 1100 --run-from-json 1"
 
     # Configure the input files (--mdf) and geometry (-g)
     set +x; set +u

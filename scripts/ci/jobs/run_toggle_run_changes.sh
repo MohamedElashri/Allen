@@ -7,7 +7,7 @@ set -euxo pipefail
 
 check_build_exists
 
-RUN_OPTIONS="-n 1000 -m 1000 --params external/ParamFiles/"
+RUN_OPTIONS="-n 1000 -m 1000 --run-from-json 1 --params external/ParamFiles/"
 JOB="./toolchain/wrapper ./Allen --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE} ${RUN_OPTIONS}"
 
 for RUN_CHANGES in ON OFF; do

@@ -193,3 +193,21 @@ elseif(STANDALONE)
     message(STATUS "GAUDIROOT set to ${GAUDIROOT_RELPATH}")
   endif()
 endif()
+
+function(generate_sequence sequence)
+  set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
+  file(MAKE_DIRECTORY ${sequence_dir})
+  if(STANDALONE)
+    set(ADDITIONAL_OPTIONS "--no-register-keys")
+  endif()
+  add_custom_command(
+    OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
+    COMMAND
+      ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore/gen_allen_json.py" "--seqpath" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ADDITIONAL_OPTIONS}" &&
+      ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
+    DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" "${PROJECT_SEQUENCE_DIR}/GaudiKernel" "${PROJECT_SEQUENCE_DIR}/PyConf"
+    WORKING_DIRECTORY ${sequence_dir})
+  add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
+  add_dependencies(Stream sequence_${sequence})
+  install(FILES "${PROJECT_BINARY_DIR}/${sequence}.json" DESTINATION constants)
+endfunction()
