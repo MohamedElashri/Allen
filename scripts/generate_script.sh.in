@@ -1,0 +1,5 @@
+#!/usr/bin/bash
+###############################################################################
+# (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
+###############################################################################
+PYTHONPATH=@PROJECT_SEQUENCE_DIR@:${PYTHONPATH} @Python_EXECUTABLE@ @PROJECT_SOURCE_DIR@/configuration/python/AllenCore/gen_allen_json.py --seqpath @PROJECT_SOURCE_DIR@/configuration/python/AllenSequences/@sequence@.py > /dev/null

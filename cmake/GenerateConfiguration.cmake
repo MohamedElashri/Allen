@@ -197,16 +197,24 @@ endif()
 function(generate_sequence sequence)
   set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
   file(MAKE_DIRECTORY ${sequence_dir})
-  if(STANDALONE)
-    set(ADDITIONAL_OPTIONS "--no-register-keys")
+  if(NOT STANDALONE)
+    configure_file(${PROJECT_SOURCE_DIR}/scripts/generate_script.sh.in ${sequence_dir}/generate_${sequence}.sh @ONLY)
+    add_custom_command(
+      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
+      COMMAND
+        ${CMAKE_BINARY_DIR}/run bash ${sequence_dir}/generate_${sequence}.sh &&
+        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
+      DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}"
+      WORKING_DIRECTORY ${sequence_dir})
+  else()
+    add_custom_command(
+      OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
+      COMMAND
+        ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore/gen_allen_json.py" "--seqpath" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "--no-register-keys" &&
+        ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
+      DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" "${PROJECT_SEQUENCE_DIR}/GaudiKernel" "${PROJECT_SEQUENCE_DIR}/PyConf"
+      WORKING_DIRECTORY ${sequence_dir})
   endif()
-  add_custom_command(
-    OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
-    COMMAND
-      ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore/gen_allen_json.py" "--seqpath" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ADDITIONAL_OPTIONS}" &&
-      ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-    DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" "${PROJECT_SEQUENCE_DIR}/GaudiKernel" "${PROJECT_SEQUENCE_DIR}/PyConf"
-    WORKING_DIRECTORY ${sequence_dir})
   add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
   add_dependencies(Stream sequence_${sequence})
   install(FILES "${PROJECT_BINARY_DIR}/${sequence}.json" DESTINATION constants)
