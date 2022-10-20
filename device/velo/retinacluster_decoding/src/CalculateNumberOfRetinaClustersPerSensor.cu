@@ -44,9 +44,9 @@ __global__ void calculate_number_of_retinaclusters_each_sensor_pair_kernel(
       else {
         each_sensor_pair_size[raw_bank.sensor_pair()] = raw_bank.size / 4;
       }
-      if (blockIdx.x == 0) {
-        parameters.dev_retina_bank_index[raw_bank.sensor_pair()] = raw_bank_number;
-      }
+    }
+    if (blockIdx.x == 0) {
+      parameters.dev_retina_bank_index[raw_bank.sensor_pair()] = raw_bank_number;
     }
   }
 }
