@@ -8,6 +8,10 @@ import zmq
 import json
 from Configurables import ApplicationMgr
 from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
+
+from AllenCore.configuration_options import is_allen_standalone
+is_allen_standalone.global_bind(standalone=True)
+
 from Allen.config import (setup_allen_non_event_data_service, allen_odin,
                           configured_bank_types)
 from PyConf.application import (configure, setup_component, ComponentConfig,

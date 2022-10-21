@@ -39,10 +39,6 @@ def get_constants(consumer_types=["VP", "UT", "FTCluster", "ECal", "Muon"]):
     return ProvideConstants(ODINLocation=make_odin(), BankTypes=consumer_types)
 
 
-def is_allen_standalone():
-    return False
-
-
 # Gaudi configuration wrapper
 def make_algorithm(algorithm, name, *args, **kwargs):
 

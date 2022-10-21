@@ -12,7 +12,7 @@ set(ALLEN_ALGORITHMS_DIR ${PROJECT_SEQUENCE_DIR}/AllenAlgorithms)
 set(ALLEN_GENERATED_INCLUDE_FILES_DIR ${PROJECT_SEQUENCE_DIR}/include)
 set(ALLEN_CORE_DIR ${PROJECT_SEQUENCE_DIR}/AllenCore)
 set(ALLEN_PARSER_DIR ${PROJECT_SEQUENCE_DIR}/parser)
-set(ALGORITHMS_OUTPUTFILE ${ALLEN_ALGORITHMS_DIR}/algorithms.py)
+set(ALGORITHMS_OUTPUTFILE ${ALLEN_ALGORITHMS_DIR}/allen_standalone_algorithms.py)
 set(PARSED_ALGORITHMS_OUTPUTFILE ${CODE_GENERATION_DIR}/parsed_algorithms.pickle)
 set(ALGORITHMS_GENERATION_SCRIPT ${PROJECT_SOURCE_DIR}/configuration/parser/ParseAlgorithms.py)
 
@@ -48,15 +48,8 @@ endif()
 
 message(STATUS "Found libclang at ${LIBCLANG_LIBDIR}")
 
-# Macos requires DYLD_LIBRARY_PATH, otherwise LD_LIBRARY_PATH
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  set(LIBRARY_PATH_VARNAME "DYLD_LIBRARY_PATH")
-else()
-  set(LIBRARY_PATH_VARNAME "LD_LIBRARY_PATH")
-endif()
-
 # We will invoke the parser a few times, set its required environment in a variable
-set(PARSER_ENV PYTHONPATH=$ENV{PYTHONPATH}:${PROJECT_SOURCE_DIR}/scripts ${LIBRARY_PATH_VARNAME}=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH})
+set(PARSER_ENV PYTHONPATH=$ENV{PYTHONPATH}:${PROJECT_SOURCE_DIR}/scripts LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH})
 
 # Parse Allen algorithms
 # Parsing should depend on ALL algorithm headers (which include the Parameters section)
@@ -75,16 +68,18 @@ add_custom_command(
 add_custom_target(parsed_algorithms DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 
 # Symlink Allen build directories
+file(RELATIVE_PATH PROJECT_SOURCE_DIR_RELPATH ${PROJECT_SEQUENCE_DIR} ${PROJECT_SOURCE_DIR})
+message(STATUS "Set project source dir to: ${PROJECT_SOURCE_DIR_RELPATH}")
 add_custom_command(
   OUTPUT "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}"
   COMMENT "Making symlink of sequence definitions and configuration utilities"
   COMMAND
-    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
-    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR}/configuration/AllenCore" "${ALLEN_CORE_DIR}"
-  DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf" "${PROJECT_SOURCE_DIR}/configuration/AllenCore")
+    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR_RELPATH}/configuration/python/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
+    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR_RELPATH}/configuration/python/AllenCore" "${ALLEN_CORE_DIR}"
+  DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf" "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore")
 add_custom_target(generate_conf_core DEPENDS "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
 
-# Generate algorithms.py
+# Generate allen standalone algorithms file
 add_custom_command(
   OUTPUT "${ALGORITHMS_OUTPUTFILE}"
   COMMAND
@@ -93,6 +88,7 @@ add_custom_command(
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
   DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}" "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
 add_custom_target(generate_algorithms_view DEPENDS "${ALGORITHMS_OUTPUTFILE}")
+install(FILES "${ALGORITHMS_OUTPUTFILE}" DESTINATION python/AllenAlgorithms)
 
 # Generate Allen AlgorithmDB
 add_custom_command(
@@ -162,13 +158,14 @@ elseif(STANDALONE)
     find_package(Git REQUIRED)
     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/external/LHCb")
     set(LHCBROOT "${PROJECT_BINARY_DIR}/external/LHCb")
+    file(RELATIVE_PATH LHCBROOT_RELPATH ${PROJECT_SEQUENCE_DIR} ${LHCBROOT})
     add_custom_command(
       OUTPUT "${PROJECT_SEQUENCE_DIR}/PyConf"
       COMMENT "Checking out LHCb project from the LHCb stack"
       COMMAND
         ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb.git ${PROJECT_BINARY_DIR}/external/LHCb &&
         ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR}/external/LHCb patch -p1 < ${CMAKE_CURRENT_LIST_DIR}/pyconf-pydot.patch &&
-        ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
+        ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT_RELPATH}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
     add_custom_target(checkout_lhcb DEPENDS "${PROJECT_SEQUENCE_DIR}/PyConf")
     message(STATUS "LHCBROOT set to ${LHCBROOT}")
   endif()
@@ -185,14 +182,15 @@ elseif(STANDALONE)
     find_package(Git REQUIRED)
     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/external/Gaudi")
     set(GAUDIROOT "${PROJECT_BINARY_DIR}/external/Gaudi")
+    file(RELATIVE_PATH GAUDIROOT_RELPATH ${PROJECT_SEQUENCE_DIR} ${GAUDIROOT})
     add_custom_command(
       OUTPUT "${PROJECT_SEQUENCE_DIR}/GaudiKernel"
       COMMENT "Checking out Gaudi project from the LHCb stack"
       COMMAND
         ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/gaudi/Gaudi.git ${PROJECT_BINARY_DIR}/external/Gaudi &&
-        ${CMAKE_COMMAND} -E create_symlink ${GAUDIROOT}/GaudiKernel/python/GaudiKernel ${PROJECT_SEQUENCE_DIR}/GaudiKernel)
+        ${CMAKE_COMMAND} -E create_symlink ${GAUDIROOT_RELPATH}/GaudiKernel/python/GaudiKernel ${PROJECT_SEQUENCE_DIR}/GaudiKernel)
     add_custom_target(checkout_gaudi DEPENDS "${PROJECT_SEQUENCE_DIR}/GaudiKernel")
-    message(STATUS "GAUDIROOT set to ${GAUDIROOT}")
+    message(STATUS "GAUDIROOT set to ${GAUDIROOT_RELPATH}")
   endif()
 endif()
 
@@ -212,7 +210,7 @@ function(generate_sequence sequence)
     add_custom_command(
       OUTPUT "${PROJECT_BINARY_DIR}/${sequence}.json"
       COMMAND
-        ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "--standalone" "1" &&
+        ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore/gen_allen_json.py" "--seqpath" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "--no-register-keys" &&
         ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
       DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" "${PROJECT_SEQUENCE_DIR}/GaudiKernel" "${PROJECT_SEQUENCE_DIR}/PyConf"
       WORKING_DIRECTORY ${sequence_dir})

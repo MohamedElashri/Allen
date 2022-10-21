@@ -6,7 +6,7 @@ from AllenCore.generator import generate, make_algorithm
 from AllenConf.hlt1_calibration_lines import make_passthrough_line
 from AllenConf.persistency import make_global_decision
 from AllenConf.odin import decode_odin
-from AllenAlgorithms.algorithms import data_provider_t
+from AllenCore.algorithms import data_provider_t
 from AllenConf.utils import line_maker
 from AllenConf.validators import rate_validation
 

@@ -1,9 +1,9 @@
 ###############################################################################
 # (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import data_provider_t, host_prefix_sum_t
-from AllenAlgorithms.algorithms import calc_lumi_sum_size_t, make_lumi_summary_t
-from AllenAlgorithms.algorithms import muon_calculate_srq_size_t
+from AllenCore.algorithms import data_provider_t, host_prefix_sum_t
+from AllenCore.algorithms import calc_lumi_sum_size_t, make_lumi_summary_t
+from AllenCore.algorithms import muon_calculate_srq_size_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm

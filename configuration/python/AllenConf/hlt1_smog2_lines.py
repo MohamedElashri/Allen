@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import SMOG2_minimum_bias_line_t, SMOG2_dimuon_highmass_line_t, SMOG2_ditrack_line_t, SMOG2_singletrack_line_t
+from AllenCore.algorithms import SMOG2_minimum_bias_line_t, SMOG2_dimuon_highmass_line_t, SMOG2_ditrack_line_t, SMOG2_singletrack_line_t
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
 from AllenConf.odin import decode_odin

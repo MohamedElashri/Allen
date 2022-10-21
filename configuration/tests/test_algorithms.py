@@ -1,10 +1,8 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from PyConf.dataflow import GaudiDataHandle
-from AllenCore.AllenKernel import AllenAlgorithm
+from AllenCore.AllenKernel import AllenAlgorithm, AllenDataHandle
 from collections import OrderedDict
-from enum import Enum
 
 
 def algorithm_dict(*algorithms):
@@ -14,26 +12,18 @@ def algorithm_dict(*algorithms):
     return d
 
 
-class AlgorithmCategory(Enum):
-    HostAlgorithm = 0
-    DeviceAlgorithm = 1
-    SelectionAlgorithm = 2
-    HostDataProvider = 3
-    DataProvider = 4
-
-
 class host_init_event_list_t(AllenAlgorithm):
     __slots__ = OrderedDict(
-        host_event_list_output_t=GaudiDataHandle("host_event_list_output_t",
-                                                 "W", "unsigned int"),
-        dev_event_list_output_t=GaudiDataHandle("dev_event_list_output_t", "W",
-                                                "mask_t"),
+        host_event_list_output_t=AllenDataHandle(
+            "device", [], "host_event_list_output_t", "W", "unsigned int"),
+        dev_event_list_output_t=AllenDataHandle(
+            "device", [], "dev_event_list_output_t", "W", "mask_t"),
         verbosity="")
     aggregates = ()
 
     @staticmethod
     def category():
-        return AlgorithmCategory.HostAlgorithm
+        return "HostAlgorithm"
 
     def __new__(self, name, **kwargs):
         instance = AllenAlgorithm.__new__(self, name)
@@ -56,24 +46,24 @@ class host_init_event_list_t(AllenAlgorithm):
 
 class event_list_intersection_t(AllenAlgorithm):
     __slots__ = OrderedDict(
-        dev_event_list_a_t=GaudiDataHandle("dev_event_list_a_t", "R",
-                                           "mask_t"),
-        dev_event_list_b_t=GaudiDataHandle("dev_event_list_b_t", "R",
-                                           "mask_t"),
-        host_event_list_a_t=GaudiDataHandle("host_event_list_a_t", "W",
-                                            "unsigned int"),
-        host_event_list_b_t=GaudiDataHandle("host_event_list_b_t", "W",
-                                            "unsigned int"),
-        host_event_list_output_t=GaudiDataHandle("host_event_list_output_t",
-                                                 "W", "unsigned int"),
-        dev_event_list_output_t=GaudiDataHandle("dev_event_list_output_t", "W",
-                                                "mask_t"),
+        dev_event_list_a_t=AllenDataHandle("device", [], "dev_event_list_a_t",
+                                           "R", "mask_t"),
+        dev_event_list_b_t=AllenDataHandle("device", [], "dev_event_list_b_t",
+                                           "R", "mask_t"),
+        host_event_list_a_t=AllenDataHandle(
+            "device", [], "host_event_list_a_t", "W", "unsigned int"),
+        host_event_list_b_t=AllenDataHandle(
+            "device", [], "host_event_list_b_t", "W", "unsigned int"),
+        host_event_list_output_t=AllenDataHandle(
+            "device", [], "host_event_list_output_t", "W", "unsigned int"),
+        dev_event_list_output_t=AllenDataHandle(
+            "device", [], "dev_event_list_output_t", "W", "mask_t"),
         verbosity="")
     aggregates = ()
 
     @staticmethod
     def category():
-        return AlgorithmCategory.HostAlgorithm
+        return "HostAlgorithm"
 
     def __new__(self, name, **kwargs):
         instance = AllenAlgorithm.__new__(self, name)
@@ -96,24 +86,24 @@ class event_list_intersection_t(AllenAlgorithm):
 
 class event_list_union_t(AllenAlgorithm):
     __slots__ = OrderedDict(
-        dev_event_list_a_t=GaudiDataHandle("dev_event_list_a_t", "R",
-                                           "mask_t"),
-        dev_event_list_b_t=GaudiDataHandle("dev_event_list_b_t", "R",
-                                           "mask_t"),
-        host_event_list_a_t=GaudiDataHandle("host_event_list_a_t", "W",
-                                            "unsigned int"),
-        host_event_list_b_t=GaudiDataHandle("host_event_list_b_t", "W",
-                                            "unsigned int"),
-        host_event_list_output_t=GaudiDataHandle("host_event_list_output_t",
-                                                 "W", "unsigned int"),
-        dev_event_list_output_t=GaudiDataHandle("dev_event_list_output_t", "W",
-                                                "mask_t"),
+        dev_event_list_a_t=AllenDataHandle("device", [], "dev_event_list_a_t",
+                                           "R", "mask_t"),
+        dev_event_list_b_t=AllenDataHandle("device", [], "dev_event_list_b_t",
+                                           "R", "mask_t"),
+        host_event_list_a_t=AllenDataHandle(
+            "device", [], "host_event_list_a_t", "W", "unsigned int"),
+        host_event_list_b_t=AllenDataHandle(
+            "device", [], "host_event_list_b_t", "W", "unsigned int"),
+        host_event_list_output_t=AllenDataHandle(
+            "device", [], "host_event_list_output_t", "W", "unsigned int"),
+        dev_event_list_output_t=AllenDataHandle(
+            "device", [], "dev_event_list_output_t", "W", "mask_t"),
         verbosity="")
     aggregates = ()
 
     @staticmethod
     def category():
-        return AlgorithmCategory.HostAlgorithm
+        return "HostAlgorithm"
 
     def __new__(self, name, **kwargs):
         instance = AllenAlgorithm.__new__(self, name)
@@ -136,20 +126,20 @@ class event_list_union_t(AllenAlgorithm):
 
 class event_list_inversion_t(AllenAlgorithm):
     __slots__ = OrderedDict(
-        dev_event_list_input_t=GaudiDataHandle("dev_event_list_input_t", "R",
-                                               "mask_t"),
-        host_event_list_t=GaudiDataHandle("host_event_list_t", "W",
-                                          "unsigned int"),
-        host_event_list_output_t=GaudiDataHandle("host_event_list_output_t",
-                                                 "W", "unsigned int"),
-        dev_event_list_output_t=GaudiDataHandle("dev_event_list_output_t", "W",
-                                                "mask_t"),
+        dev_event_list_input_t=AllenDataHandle(
+            "device", [], "dev_event_list_input_t", "R", "mask_t"),
+        host_event_list_t=AllenDataHandle("device", [], "host_event_list_t",
+                                          "W", "unsigned int"),
+        host_event_list_output_t=AllenDataHandle(
+            "device", [], "host_event_list_output_t", "W", "unsigned int"),
+        dev_event_list_output_t=AllenDataHandle(
+            "device", [], "dev_event_list_output_t", "W", "mask_t"),
         verbosity="")
     aggregates = ()
 
     @staticmethod
     def category():
-        return AlgorithmCategory.HostAlgorithm
+        return "HostAlgorithm"
 
     def __new__(self, name, **kwargs):
         instance = AllenAlgorithm.__new__(self, name)
@@ -176,7 +166,7 @@ class generic_algorithm_t(AllenAlgorithm):
 
     @staticmethod
     def category():
-        return AlgorithmCategory.HostAlgorithm
+        return "HostAlgorithm"
 
     def __new__(self, name, **kwargs):
         instance = AllenAlgorithm.__new__(self, name)
@@ -198,7 +188,8 @@ class generic_algorithm_t(AllenAlgorithm):
 
 
 class producer_1_t(generic_algorithm_t):
-    __slots__ = OrderedDict(a_t=GaudiDataHandle("a_t", "W", "int"), conf="")
+    __slots__ = OrderedDict(
+        a_t=AllenDataHandle("device", [], "a_t", "W", "int"), conf="")
 
     @classmethod
     def getType(cls):
@@ -207,8 +198,8 @@ class producer_1_t(generic_algorithm_t):
 
 class producer_2_t(generic_algorithm_t):
     __slots__ = OrderedDict(
-        a_t=GaudiDataHandle("a_t", "W", "int"),
-        b_t=GaudiDataHandle("b_t", "W", "int"),
+        a_t=AllenDataHandle("device", [], "a_t", "W", "int"),
+        b_t=AllenDataHandle("device", [], "b_t", "W", "int"),
         conf="")
 
     @classmethod
@@ -217,7 +208,8 @@ class producer_2_t(generic_algorithm_t):
 
 
 class consumer_1_t(generic_algorithm_t):
-    __slots__ = OrderedDict(a_t=GaudiDataHandle("a_t", "R", "int"), conf="")
+    __slots__ = OrderedDict(
+        a_t=AllenDataHandle("device", [], "a_t", "R", "int"), conf="")
 
     @classmethod
     def getType(cls):
@@ -226,8 +218,8 @@ class consumer_1_t(generic_algorithm_t):
 
 class consumer_2_t(generic_algorithm_t):
     __slots__ = OrderedDict(
-        a_t=GaudiDataHandle("a_t", "R", "int"),
-        b_t=GaudiDataHandle("b_t", "R", "int"),
+        a_t=AllenDataHandle("device", [], "a_t", "R", "int"),
+        b_t=AllenDataHandle("device", [], "b_t", "R", "int"),
         conf="")
 
     @classmethod
@@ -236,7 +228,8 @@ class consumer_2_t(generic_algorithm_t):
 
 
 class decider_1_t(generic_algorithm_t):
-    __slots__ = OrderedDict(a_t=GaudiDataHandle("a_t", "W", "mask_t"), conf="")
+    __slots__ = OrderedDict(
+        a_t=AllenDataHandle("device", [], "a_t", "W", "mask_t"), conf="")
 
     @classmethod
     def getType(cls):
@@ -245,8 +238,8 @@ class decider_1_t(generic_algorithm_t):
 
 class consumer_decider_1_t(generic_algorithm_t):
     __slots__ = OrderedDict(
-        a_t=GaudiDataHandle("a_t", "W", "mask_t"),
-        b_t=GaudiDataHandle("b_t", "R", "int"),
+        a_t=AllenDataHandle("device", [], "a_t", "W", "mask_t"),
+        b_t=AllenDataHandle("device", [], "b_t", "R", "int"),
         conf="")
 
     @classmethod

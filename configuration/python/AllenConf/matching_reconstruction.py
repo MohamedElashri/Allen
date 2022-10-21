@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import host_prefix_sum_t, track_matching_veloSciFi_t, matching_copy_track_hit_number_t, matching_consolidate_tracks_t, ut_select_velo_tracks_t
+from AllenCore.algorithms import host_prefix_sum_t, track_matching_veloSciFi_t, matching_copy_track_hit_number_t, matching_consolidate_tracks_t, ut_select_velo_tracks_t
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
 from AllenConf.scifi_reconstruction import decode_scifi, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.utils import initialize_number_of_events

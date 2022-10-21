@@ -12,19 +12,11 @@ from AllenCore.cftree_ops import get_execution_list_for, BoolNode
 from AllenCore.event_list_utils import add_event_list_combiners
 from AllenCore.AllenSequenceGenerator import generate_allen_sequence
 from AllenCore.allen_benchmarks import benchmark_weights, benchmark_efficiencies
-from AllenAlgorithms.algorithms import host_init_event_list_t
+from AllenCore.algorithms import host_init_event_list_t
 from PyConf.components import Algorithm
 from PyConf.filecontent_metadata import flush_key_registry
 from os.path import exists
 import contextlib
-
-
-def is_allen_standalone():
-    from optparse import OptionParser
-    parser = OptionParser()
-    parser.add_option("--standalone", dest="standalone", default=0)
-    (options, _) = parser.parse_args()
-    return options.standalone == "1"
 
 
 def make_algorithm(alg_type, name, **kwargs):

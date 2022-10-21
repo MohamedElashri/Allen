@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenAlgorithms.algorithms import (
+from AllenCore.algorithms import (
     data_provider_t, ut_calculate_number_of_hits_t, host_prefix_sum_t,
     ut_pre_decode_t, ut_find_permutation_t, ut_decode_raw_banks_in_order_t,
     ut_select_velo_tracks_t, ut_search_windows_t,

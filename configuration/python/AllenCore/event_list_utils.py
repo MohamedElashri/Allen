@@ -5,7 +5,7 @@ from PyConf.components import Algorithm
 from PyConf.dataflow import configurable_inputs
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.cftree_ops import get_best_order, BoolNode
-from AllenAlgorithms.algorithms import (
+from AllenCore.algorithms import (
     event_list_intersection_t,
     event_list_union_t,
     event_list_inversion_t,
