@@ -59,13 +59,13 @@ namespace Allen::Store {
     template<typename T>
     operator gsl::span<T>()
     {
-      return gsl::span<T> {cast<T>(), size()};
+      return {cast<T>(), size()};
     }
 
     template<typename T>
     operator gsl::span<const T>() const
     {
-      return gsl::span<T> {cast<const T>(), size()};
+      return {cast<const T>(), size()};
     }
 
     virtual ~BaseArgument() {}

@@ -14,6 +14,7 @@ namespace global_decision {
     DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
     DEVICE_INPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
     DEVICE_OUTPUT(dev_global_decision_t, bool) dev_global_decision;
+    HOST_OUTPUT(host_global_decision_t, bool) host_global_decision;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
   };
 

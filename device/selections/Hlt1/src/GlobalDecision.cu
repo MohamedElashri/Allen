@@ -13,6 +13,7 @@ void global_decision::global_decision_t::set_arguments_size(
   const HostBuffers&) const
 {
   set_size<dev_global_decision_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<host_global_decision_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void global_decision::global_decision_t::operator()(
@@ -27,6 +28,8 @@ void global_decision::global_decision_t::operator()(
     dim3((first<host_number_of_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
 
   global_function(global_decision)(grid_size, dim3(property<block_dim_x_t>().get()), context)(arguments);
+
+  Allen::copy_async<host_global_decision_t, dev_global_decision_t>(arguments, context);
 
   host_buffers.host_passing_event_list.resize(size<dev_global_decision_t>(arguments));
   Allen::copy_async(

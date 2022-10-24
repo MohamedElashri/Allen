@@ -41,6 +41,9 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
 #endif
 
   host_buffers = host_buffers_manager->getBuffers(buf_idx);
+  auto persistent_store = host_buffers_manager->get_persistent_store(buf_idx);
+  persistent_store->free_all();
+
   // The sequence is only run if there are events to run on
   auto event_start = std::get<0>(runtime_options.event_interval);
   auto event_end = std::get<1>(runtime_options.event_interval);
@@ -56,7 +59,7 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
 
       try {
         // Visit all algorithms in configured sequence
-        scheduler->run(runtime_options, constants, *host_buffers, m_context);
+        scheduler->run(runtime_options, constants, *host_buffers, persistent_store, m_context);
 
         // Synchronize device
         Allen::synchronize(m_context);

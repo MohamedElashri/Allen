@@ -25,14 +25,16 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   size_t const thread_id,
   size_t const slice_index,
   size_t const start_event,
-  gsl::span<bool const> const selected_events_bool,
-  gsl::span<uint32_t const> const dec_reports,
-  gsl::span<uint32_t const> const routing_bits,
-  gsl::span<uint32_t const> const sel_reports,
-  gsl::span<unsigned const> const sel_report_offsets,
-  gsl::span<uint32_t const> const lumi_summaries,
-  gsl::span<unsigned const> const lumi_summary_offsets)
+  const Allen::Store::PersistentStore& store)
 {
+  gsl::span<bool const> const selected_events_bool = store.at("global_decision__host_global_decision_t");
+  gsl::span<const unsigned> const dec_reports = store.at("dec_reporter__host_dec_reports_t");
+  gsl::span<uint32_t const> const routing_bits = store.at("host_routingbits_writer__host_routingbits");
+  gsl::span<uint32_t const> const sel_reports = store.at("make_selrep__host_sel_reports_t");
+  gsl::span<unsigned const> const sel_report_offsets = store.at("make_selrep__host_selrep_offsets_t");
+  gsl::span<uint32_t const> const lumi_summaries = store.at("make_lumi_summary__host_lumi_summaries_t");
+  gsl::span<unsigned const> const lumi_summary_offsets = store.at("make_lumi_summary__host_lumi_summary_offsets_t");
+
   auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
   // size of a RawBank header
   const int bank_header_size = 4 * sizeof(short);

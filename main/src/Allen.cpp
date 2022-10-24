@@ -101,6 +101,7 @@ int allen(
   bool write_config = false;
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;
+  size_t reserve_host_temp_mb = 10;
 
   // Input file options
   int device_id = 0;
@@ -151,6 +152,9 @@ int allen(
     }
     else if (flag_in(flag, {"host-memory"})) {
       reserve_host_mb = atoi(arg.c_str());
+    }
+    else if (flag_in(flag, {"host-temp-memory"})) {
+      reserve_host_temp_mb = atoi(arg.c_str());
     }
     else if (flag_in(flag, {"v", "verbosity"})) {
       verbosity = atoi(arg.c_str());
@@ -313,7 +317,7 @@ int allen(
   auto const& configuration = configuration_reader->params();
 
   // create host buffers
-  std::unique_ptr<HostBuffersManager> buffers_manager = std::make_unique<HostBuffersManager>(number_of_buffers);
+  std::unique_ptr<HostBuffersManager> buffers_manager = std::make_unique<HostBuffersManager>(number_of_buffers, reserve_host_mb);
 
   if (print_status) {
     buffers_manager->printStatus();
@@ -336,7 +340,7 @@ int allen(
     auto& sequence = streams.emplace_back(new Stream {configuration_reader->configured_sequence(),
                                                       print_memory_usage,
                                                       reserve_mb,
-                                                      reserve_host_mb,
+                                                      reserve_host_temp_mb,
                                                       device_memory_alignment,
                                                       constants,
                                                       buffers_manager.get()});

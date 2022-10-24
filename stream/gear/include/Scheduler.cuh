@@ -267,8 +267,10 @@ public:
     const RuntimeOptions& runtime_options,
     const Constants& constants,
     HostBuffers& persistent_buffers,
+    Allen::Store::PersistentStore* persistent_store,
     const Allen::Context& context)
   {
+    m_store.set_persistent_store(persistent_store);
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
       run(
         m_sequence[i],
@@ -282,6 +284,7 @@ public:
         context,
         do_print);
     }
+    m_store.set_persistent_store_map();
   }
 
 private:

@@ -22,6 +22,8 @@ void make_lumi_summary::make_lumi_summary_t::set_arguments_size(
   const Constants&,
   const HostBuffers&) const
 {
+  set_size<host_lumi_summary_offsets_t>(arguments, size<dev_lumi_summary_offsets_t>(arguments));
+  set_size<host_lumi_summaries_t>(arguments, first<host_lumi_summaries_size_t>(arguments));
   set_size<dev_lumi_summaries_t>(arguments, first<host_lumi_summaries_size_t>(arguments));
 }
 
@@ -32,20 +34,6 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
   HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-  // do nothing if no lumi event
-  host_buffers.host_lumi_summary_offsets.resize(size<dev_lumi_summary_offsets_t>(arguments));
-  host_buffers.host_lumi_summaries.resize(size<dev_lumi_summaries_t>(arguments));
-  if (first<host_lumi_summaries_size_t>(arguments) == 0) {
-    Allen::copy_async(
-      host_buffers.host_lumi_summary_offsets.get(),
-      get<dev_lumi_summary_offsets_t>(arguments),
-      context,
-      Allen::memcpyDeviceToHost);
-    Allen::copy_async(
-      host_buffers.host_lumi_summaries.get(), get<dev_lumi_summaries_t>(arguments), context, Allen::memcpyDeviceToHost);
-    return;
-  }
-
   Allen::memset_async<dev_lumi_summaries_t>(arguments, 0xffffffff, context);
 
   // info aggregating
@@ -84,13 +72,8 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
     infoSize,
     size_of_aggregate);
 
-  Allen::copy_async(
-    host_buffers.host_lumi_summary_offsets.get(),
-    get<dev_lumi_summary_offsets_t>(arguments),
-    context,
-    Allen::memcpyDeviceToHost);
-  Allen::copy_async(
-    host_buffers.host_lumi_summaries.get(), get<dev_lumi_summaries_t>(arguments), context, Allen::memcpyDeviceToHost);
+  Allen::copy_async<host_lumi_summaries_t, dev_lumi_summaries_t>(arguments, context);
+  Allen::copy_async<host_lumi_summary_offsets_t, dev_lumi_summary_offsets_t>(arguments, context);
 }
 
 __device__ void make_lumi_summary::setField(

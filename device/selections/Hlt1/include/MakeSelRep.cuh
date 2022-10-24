@@ -26,6 +26,8 @@ namespace make_selrep {
     DEVICE_INPUT(dev_rb_substr_t, unsigned) dev_rb_substr;
     DEVICE_INPUT(dev_rb_stdinfo_t, unsigned) dev_rb_stdinfo;
     DEVICE_OUTPUT(dev_sel_reports_t, unsigned) dev_sel_reports;
+    HOST_OUTPUT(host_selrep_offsets_t, unsigned) host_selrep_offsets;
+    HOST_OUTPUT(host_sel_reports_t, unsigned) host_sel_reports;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

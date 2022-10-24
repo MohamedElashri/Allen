@@ -11,6 +11,7 @@
 #include "InputProvider.h"
 #include "BankTypes.h"
 #include "Timer.h"
+#include <Store.cuh>
 
 #ifndef STANDALONE
 #include <GaudiKernel/Service.h>
@@ -40,13 +41,7 @@ public:
     size_t const thread_id,
     size_t const slice_index,
     size_t const event_offset,
-    gsl::span<bool const> const selected_events,
-    gsl::span<uint32_t const> const dec_reports,
-    gsl::span<uint32_t const> const routing_bits,
-    gsl::span<uint32_t const> const sel_reports,
-    gsl::span<unsigned const> const sel_report_offsets,
-    gsl::span<uint32_t const> const lumi_summaries,
-    gsl::span<unsigned const> const lumi_summary_offsets);
+    const Allen::Store::PersistentStore& store);
 
   virtual zmq::socket_t* client_socket() const { return nullptr; }
 
