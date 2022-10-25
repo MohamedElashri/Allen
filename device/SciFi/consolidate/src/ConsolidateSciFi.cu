@@ -94,8 +94,7 @@ __global__ void create_scifi_views(scifi_consolidate_tracks::Parameters paramete
 void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_scifi_track_hits_t>(
     arguments, first<host_accumulated_number_of_hits_in_scifi_tracks_t>(arguments) * sizeof(SciFi::Hit));
@@ -116,7 +115,6 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_scifi_multi_event_tracks_view_t>(arguments, 0, context);

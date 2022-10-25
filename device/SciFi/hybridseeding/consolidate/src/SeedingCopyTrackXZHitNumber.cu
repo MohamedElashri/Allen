@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(seeding_copy_trackXZ_hit_number::seeding_copy_trackXZ_hit_
 void seeding_copy_trackXZ_hit_number::seeding_copy_trackXZ_hit_number_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_seeding_trackXZ_hit_number_t>(
     arguments,
@@ -21,7 +20,6 @@ void seeding_copy_trackXZ_hit_number::seeding_copy_trackXZ_hit_number_t::operato
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(seeding_copy_trackXZ_hit_number)(

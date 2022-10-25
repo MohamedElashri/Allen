@@ -9,8 +9,7 @@ INSTANTIATE_ALGORITHM(ut_select_velo_tracks_with_windows::ut_select_velo_tracks_
 void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_ut_selected_velo_tracks_with_windows_t>(
@@ -21,7 +20,6 @@ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows_t::o
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments, 0, context);

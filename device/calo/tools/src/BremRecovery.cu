@@ -9,8 +9,7 @@ INSTANTIATE_ALGORITHM(brem_recovery::brem_recovery_t)
 void brem_recovery::brem_recovery_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_brem_E_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
   set_size<dev_brem_ET_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
@@ -23,7 +22,6 @@ void brem_recovery::brem_recovery_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   Allen::Context const& context) const
 {
   Allen::memset_async<dev_brem_E_t>(arguments, 0, context);

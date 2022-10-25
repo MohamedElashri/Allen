@@ -9,10 +9,9 @@ INSTANTIATE_LINE(one_muon_track_line::one_muon_track_line_t, one_muon_track_line
 void one_muon_track_line::one_muon_track_line_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
+  const Constants& constants) const
 {
-  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
+  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants);
 }
 // Selection function
 __device__ bool one_muon_track_line::one_muon_track_line_t::select(

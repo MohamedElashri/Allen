@@ -11,8 +11,7 @@ INSTANTIATE_ALGORITHM(odin_provider::odin_provider_t)
 void odin_provider::odin_provider_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
 
   // Device copy of the ODIN banks that is always in v7 format
@@ -31,7 +30,6 @@ void odin_provider::odin_provider_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   using namespace std::string_literals;

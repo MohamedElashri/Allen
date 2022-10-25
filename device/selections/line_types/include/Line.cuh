@@ -18,7 +18,6 @@
     const ArgumentReferences<PARAMETERS>&,                                                                     \
     const RuntimeOptions&,                                                                                     \
     const Constants&,                                                                                          \
-    HostBuffers&,                                                                                              \
     const Allen::Context&) const;                                                                              \
   template __device__ void process_line<DERIVED, PARAMETERS>(                                                  \
     char*,                                                                                                     \
@@ -117,7 +116,6 @@ public:
     const ArgumentReferences<Parameters>&,
     const RuntimeOptions&,
     const Constants&,
-    HostBuffers&,
     const Allen::Context& context) const;
 
   /**
@@ -136,8 +134,7 @@ public:
   void set_arguments_size(
     ArgumentReferences<Parameters> arguments,
     const RuntimeOptions&,
-    const Constants&,
-    const HostBuffers&) const
+    const Constants&) const
   {
     Allen::ArgumentOperations::set_size<typename Parameters::host_decisions_size_t>(arguments, 1);
     Allen::ArgumentOperations::set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
@@ -318,7 +315,6 @@ void Line<Derived, Parameters>::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   [[maybe_unused]] const Allen::Context& context) const
 {
   const auto* derived_instance = static_cast<const Derived*>(this);

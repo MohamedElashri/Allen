@@ -112,8 +112,7 @@ __global__ void muon_add_coords_crossing_maps_kernel(muon_add_coords_crossing_ma
 void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_muon_compact_hit_t>(arguments, first<host_muon_total_number_of_hits_t>(arguments));
   set_size<dev_atomics_index_insert_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -123,7 +122,6 @@ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_muon_compact_hit_t>(arguments, 0, context);

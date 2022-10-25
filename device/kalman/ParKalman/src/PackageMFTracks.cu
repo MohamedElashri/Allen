@@ -9,8 +9,7 @@ INSTANTIATE_ALGORITHM(package_mf_tracks::package_mf_tracks_t)
 void package_mf_tracks::package_mf_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_mf_tracks_t>(arguments, first<host_number_of_mf_tracks_t>(arguments));
 }
@@ -19,7 +18,6 @@ void package_mf_tracks::package_mf_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_mf_tracks_t>(arguments, 0, context);

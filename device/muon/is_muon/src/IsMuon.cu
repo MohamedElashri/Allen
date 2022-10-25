@@ -9,8 +9,7 @@ INSTANTIATE_ALGORITHM(is_muon::is_muon_t)
 void is_muon::is_muon_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_is_muon_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_lepton_id_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
@@ -20,7 +19,6 @@ void is_muon::is_muon_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_is_muon_t>(arguments, 0, context);

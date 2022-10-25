@@ -12,8 +12,7 @@ INSTANTIATE_ALGORITHM(MFVertexFit::fit_mf_vertices_t)
 void MFVertexFit::fit_mf_vertices_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_mf_svs_t>(arguments, first<host_number_of_mf_svs_t>(arguments));
 }
@@ -22,7 +21,6 @@ void MFVertexFit::fit_mf_vertices_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_mf_svs_t>(arguments, 0, context);

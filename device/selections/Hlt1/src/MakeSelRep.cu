@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(make_selrep::make_selrep_t)
 void make_selrep::make_selrep_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<host_selrep_offsets_t>(arguments, size<dev_selrep_offsets_t>(arguments));
   set_size<host_sel_reports_t>(arguments, first<host_selrep_size_t>(arguments));
@@ -20,7 +19,6 @@ void make_selrep::make_selrep_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   // Initialization might not be necessary.

@@ -254,8 +254,7 @@ __global__ void scifi_pre_decode_kernel(
 void scifi_pre_decode::scifi_pre_decode_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   // Ensure the bank version is supported
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
@@ -272,7 +271,6 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   auto const bank_version = first<host_raw_bank_version_t>(arguments);

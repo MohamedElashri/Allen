@@ -34,8 +34,7 @@ __global__ void create_matched_views(matching_consolidate_tracks::Parameters par
 void matching_consolidate_tracks::matching_consolidate_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
 
   set_size<dev_matched_track_hits_t>(
@@ -55,7 +54,6 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(matching_consolidate_tracks)(

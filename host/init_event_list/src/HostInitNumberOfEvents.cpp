@@ -15,8 +15,7 @@ INSTANTIATE_ALGORITHM(host_init_number_of_events::host_init_number_of_events_t)
 void host_init_number_of_events::host_init_number_of_events_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   // Initialize number of events
   set_size<host_number_of_events_t>(arguments, 1);
@@ -27,7 +26,6 @@ void host_init_number_of_events::host_init_number_of_events_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   const auto number_of_events =

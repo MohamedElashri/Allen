@@ -39,8 +39,7 @@ __global__ void create_combo_views(SVCombiner::Parameters parameters)
 void SVCombiner::sv_combiner_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_child_pointers_t>(arguments, first<host_number_of_combos_t>(arguments));
   set_size<dev_combo_view_t>(arguments, first<host_number_of_combos_t>(arguments));
@@ -53,7 +52,6 @@ void SVCombiner::sv_combiner_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(combine_svs)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_filter_t>(), context)(

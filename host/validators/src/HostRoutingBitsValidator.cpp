@@ -10,7 +10,6 @@ void host_routingbits_validator::host_routingbits_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context&) const
 {
   if (runtime_options.checker_invoker == nullptr) return;

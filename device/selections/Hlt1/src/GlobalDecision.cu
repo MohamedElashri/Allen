@@ -9,8 +9,7 @@ INSTANTIATE_ALGORITHM(global_decision::global_decision_t)
 void global_decision::global_decision_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_global_decision_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<host_global_decision_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -20,7 +19,6 @@ void global_decision::global_decision_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   auto const grid_size =

@@ -10,8 +10,7 @@ INSTANTIATE_ALGORITHM(ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order
 void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_ut_hits_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Hits::element_size);
 }
@@ -20,7 +19,6 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   auto const bank_version = first<host_raw_bank_version_t>(arguments);

@@ -13,8 +13,7 @@ INSTANTIATE_ALGORITHM(consolidate_muon::consolidate_muon_t)
 void consolidate_muon::consolidate_muon_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_muon_tracks_output_t>(arguments, first<host_muon_total_number_of_tracks_t>(arguments));
 }
@@ -23,7 +22,6 @@ void consolidate_muon::consolidate_muon_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(consolidate_muon)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_t>(), context)(

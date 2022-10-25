@@ -23,8 +23,7 @@ __global__ void muon_validator::muon_validator(muon_validator::Parameters parame
 void muon_validator::muon_validator_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_muon_checker_tracks_t>(arguments, first<host_number_of_reconstructed_long_tracks_t>(arguments));
 }
@@ -33,7 +32,6 @@ void muon_validator::muon_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(muon_validator)(first<host_number_of_events_t>(arguments), 256, context)(arguments);

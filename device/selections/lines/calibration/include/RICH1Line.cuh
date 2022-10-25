@@ -98,8 +98,7 @@ namespace rich_1_line {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+      const Constants&) const;
 
   private:
     // Commonly required properties

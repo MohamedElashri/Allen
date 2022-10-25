@@ -2,15 +2,13 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "HostBuffersManager.cuh"
-#include "HostBuffers.cuh"
 #include "Logger.h"
 
 void HostBuffersManager::init(size_t nBuffers, size_t host_memory_size)
 {
   m_host_memory_size = host_memory_size;
-  host_buffers.reserve(nBuffers);
+  m_persistent_stores.reserve(nBuffers);
   for (size_t i = 0; i < nBuffers; ++i) {
-    host_buffers.push_back(new HostBuffers());
     m_persistent_stores.push_back(new Allen::Store::PersistentStore(host_memory_size, 64));
     buffer_statuses.push_back(BufferStatus::Empty);
     empty_buffers.push(i);
@@ -22,10 +20,9 @@ size_t HostBuffersManager::assignBufferToFill()
   if (empty_buffers.empty()) {
     warning_cout << "No empty buffers available" << std::endl;
     warning_cout << "Adding new buffers" << std::endl;
-    host_buffers.push_back(new HostBuffers());
     m_persistent_stores.push_back(new Allen::Store::PersistentStore(m_host_memory_size, 64));
     buffer_statuses.push_back(BufferStatus::Filling);
-    return host_buffers.size() - 1;
+    return m_persistent_stores.size() - 1;
   }
 
   auto b = empty_buffers.front();
@@ -105,6 +102,6 @@ void HostBuffersManager::writeSingleEventPassthrough(const size_t/*b*/)
 
 void HostBuffersManager::printStatus() const
 {
-  info_cout << host_buffers.size() << " buffers; " << empty_buffers.size() << " empty; " << filled_buffers.size()
+  info_cout << m_persistent_stores.size() << " stores; " << empty_buffers.size() << " empty; " << filled_buffers.size()
             << " filled." << std::endl;
 }

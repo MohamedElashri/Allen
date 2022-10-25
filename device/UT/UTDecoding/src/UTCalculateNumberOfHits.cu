@@ -10,8 +10,7 @@ INSTANTIATE_ALGORITHM(ut_calculate_number_of_hits::ut_calculate_number_of_hits_t
 void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants& constants,
-  const HostBuffers&) const
+  const Constants& constants) const
 {
   set_size<dev_ut_hit_sizes_t>(
     arguments,
@@ -22,7 +21,6 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_ut_hit_sizes_t>(arguments, 0, context);

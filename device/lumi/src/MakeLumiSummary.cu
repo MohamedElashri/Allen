@@ -19,8 +19,7 @@ INSTANTIATE_ALGORITHM(make_lumi_summary::make_lumi_summary_t)
 void make_lumi_summary::make_lumi_summary_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<host_lumi_summary_offsets_t>(arguments, size<dev_lumi_summary_offsets_t>(arguments));
   set_size<host_lumi_summaries_t>(arguments, first<host_lumi_summaries_size_t>(arguments));
@@ -31,7 +30,6 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_lumi_summaries_t>(arguments, 0xffffffff, context);

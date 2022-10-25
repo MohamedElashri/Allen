@@ -50,8 +50,7 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
 void ut_consolidate_tracks::ut_consolidate_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_ut_track_hits_t>(
     arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Consolidated::Hits::element_size);
@@ -69,7 +68,6 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_ut_multi_event_tracks_view_t>(arguments, 0, context);

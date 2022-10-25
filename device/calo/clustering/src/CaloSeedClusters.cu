@@ -67,8 +67,7 @@ __global__ void calo_seed_clusters::calo_seed_clusters(
 void calo_seed_clusters::calo_seed_clusters_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   auto const n_events = first<host_number_of_events_t>(arguments);
   set_size<dev_ecal_num_clusters_t>(arguments, n_events);
@@ -81,7 +80,6 @@ void calo_seed_clusters::calo_seed_clusters_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   Allen::Context const& context) const
 {
   Allen::memset_async<dev_ecal_num_clusters_t>(arguments, 0, context);

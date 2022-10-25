@@ -43,8 +43,7 @@ __global__ void create_scifi_views(seed_confirmTracks_consolidate::Parameters pa
 void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_seeding_track_hits_t>(
     arguments, first<host_accumulated_number_of_hits_in_scifi_tracks_t>(arguments) * sizeof(SciFi::Hit));
@@ -91,7 +90,6 @@ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::operator(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_scifi_multi_event_tracks_view_t>(arguments, 0, context);

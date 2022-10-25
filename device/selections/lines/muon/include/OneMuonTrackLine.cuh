@@ -36,8 +36,7 @@ namespace one_muon_track_line {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const;
+      const Constants& constants) const;
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {

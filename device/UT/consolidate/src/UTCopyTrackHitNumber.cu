@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(ut_copy_track_hit_number::ut_copy_track_hit_number_t)
 void ut_copy_track_hit_number::ut_copy_track_hit_number_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_ut_track_hit_number_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
 }
@@ -18,7 +17,6 @@ void ut_copy_track_hit_number::ut_copy_track_hit_number_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(ut_copy_track_hit_number)(

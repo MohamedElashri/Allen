@@ -15,8 +15,7 @@ INSTANTIATE_ALGORITHM(event_list_intersection::event_list_intersection_t)
 void event_list_intersection::event_list_intersection_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_event_list_output_t>(arguments, size<dev_event_list_a_t>(arguments));
   set_size<host_event_list_output_t>(arguments, size<dev_event_list_a_t>(arguments));
@@ -28,7 +27,6 @@ void event_list_intersection::event_list_intersection_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::copy_async<host_event_list_a_t, dev_event_list_a_t>(arguments, context);

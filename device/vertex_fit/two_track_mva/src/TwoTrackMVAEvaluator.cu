@@ -58,8 +58,7 @@ namespace {
 void two_track_mva_evaluator::two_track_mva_evaluator_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_two_track_mva_evaluation_t>(arguments, first<host_number_of_svs_t>(arguments));
 }
@@ -68,7 +67,6 @@ void two_track_mva_evaluator::two_track_mva_evaluator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
 

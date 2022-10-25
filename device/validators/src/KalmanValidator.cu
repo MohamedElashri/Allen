@@ -35,8 +35,7 @@ __global__ void create_kalman_tracks_for_checker(kalman_validator::Parameters pa
 void kalman_validator::kalman_validator_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_kalman_checker_tracks_t>(arguments, first<host_number_of_reconstructed_long_tracks_t>(arguments));
 }
@@ -45,7 +44,6 @@ void kalman_validator::kalman_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(create_kalman_tracks_for_checker)(first<host_number_of_events_t>(arguments), 256, context)(arguments);

@@ -278,8 +278,7 @@ __global__ void muon_populate_tile_and_tdc_kernel(
 void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_storage_tile_id_t>(arguments, first<host_muon_total_number_of_tiles_t>(arguments));
   set_size<dev_storage_tdc_value_t>(arguments, first<host_muon_total_number_of_tiles_t>(arguments));
@@ -296,7 +295,6 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_atomics_muon_t>(arguments, 0, context);

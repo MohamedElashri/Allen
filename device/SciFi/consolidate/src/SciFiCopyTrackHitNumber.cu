@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(scifi_copy_track_hit_number::scifi_copy_track_hit_number_t
 void scifi_copy_track_hit_number::scifi_copy_track_hit_number_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_scifi_track_hit_number_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
@@ -18,7 +17,6 @@ void scifi_copy_track_hit_number::scifi_copy_track_hit_number_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(scifi_copy_track_hit_number)(

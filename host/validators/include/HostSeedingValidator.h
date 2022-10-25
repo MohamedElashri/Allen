@@ -25,15 +25,13 @@ namespace host_seeding_validator {
     inline void set_arguments_size(
       ArgumentReferences<Parameters>,
       const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const
+      const Constants&) const
     {}
 
     void operator()(
       const ArgumentReferences<Parameters>&,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers&,
       const Allen::Context&) const;
 
   private:

@@ -9,8 +9,7 @@ INSTANTIATE_ALGORITHM(muon_populate_hits::muon_populate_hits_t)
 void muon_populate_hits::muon_populate_hits_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_muon_hits_t>(arguments, first<host_muon_total_number_of_hits_t>(arguments) * Muon::Hits::element_size);
   set_size<dev_permutation_station_t>(arguments, first<host_muon_total_number_of_hits_t>(arguments));
@@ -20,7 +19,6 @@ void muon_populate_hits::muon_populate_hits_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_permutation_station_t>(arguments, 0, context);

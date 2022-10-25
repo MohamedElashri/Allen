@@ -10,8 +10,7 @@ INSTANTIATE_ALGORITHM(host_routingbits_writer::host_routingbits_writer_t)
 void host_routingbits_writer::host_routingbits_writer_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<host_routingbits_t>(arguments, RoutingBitsDefinition::n_words * first<host_number_of_events_t>(arguments));
 }
@@ -48,7 +47,6 @@ void host_routingbits_writer::host_routingbits_writer_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset<host_routingbits_t>(arguments, 0, context);

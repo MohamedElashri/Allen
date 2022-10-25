@@ -402,8 +402,7 @@ __global__ void decode_retinaclusters_sorted(
 void decode_retinaclusters::decode_retinaclusters_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_module_cluster_num_t>(
     arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs);
@@ -420,7 +419,6 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_module_cluster_num_t>(arguments, 0, context);

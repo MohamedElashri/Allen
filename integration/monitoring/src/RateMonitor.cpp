@@ -2,7 +2,6 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "RateMonitor.h"
-#include "HostBuffers.cuh"
 #include "HostBuffersManager.cuh"
 #include "Logger.h"
 #include "HltDecReport.cuh"

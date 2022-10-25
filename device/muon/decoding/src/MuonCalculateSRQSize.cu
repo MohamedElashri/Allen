@@ -175,8 +175,7 @@ __global__ void muon_calculate_srq_size_kernel(
 void muon_calculate_srq_size::muon_calculate_srq_size_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   // Ensure the bank version is supported
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
@@ -196,7 +195,6 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   const auto bank_version = first<host_raw_bank_version_t>(arguments);

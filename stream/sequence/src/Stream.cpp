@@ -6,7 +6,6 @@
 #include "Stream.h"
 #include "AlgorithmTypes.cuh"
 #include "Scheduler.cuh"
-#include "HostBuffers.cuh"
 #include "HostBuffersManager.cuh"
 
 #ifdef CALLGRIND_PROFILE
@@ -40,7 +39,6 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
   CALLGRIND_START_INSTRUMENTATION;
 #endif
 
-  host_buffers = host_buffers_manager->getBuffers(buf_idx);
   auto persistent_store = host_buffers_manager->get_persistent_store(buf_idx);
   persistent_store->free_all();
 
@@ -56,7 +54,7 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
 
       try {
         // Visit all algorithms in configured sequence
-        scheduler->run(runtime_options, constants, *host_buffers, persistent_store, m_context);
+        scheduler->run(runtime_options, constants, persistent_store, m_context);
 
         // Synchronize device
         Allen::synchronize(m_context);

@@ -9,8 +9,7 @@ INSTANTIATE_ALGORITHM(ut_pre_decode::ut_pre_decode_t)
 void ut_pre_decode::ut_pre_decode_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants& constants,
-  const HostBuffers&) const
+  const Constants& constants) const
 {
   set_size<dev_ut_pre_decoded_hits_t>(
     arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::PreDecodedHits::element_size);
@@ -23,7 +22,6 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_ut_hit_count_t>(arguments, 0, context);

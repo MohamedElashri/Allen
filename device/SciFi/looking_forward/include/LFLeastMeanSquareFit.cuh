@@ -24,14 +24,13 @@ namespace lf_least_mean_square_fit {
   __global__ void lf_least_mean_square_fit(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 
   struct lf_least_mean_square_fit_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&, const HostBuffers&)
+    void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&)
       const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants& constants,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

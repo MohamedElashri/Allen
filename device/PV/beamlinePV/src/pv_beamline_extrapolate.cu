@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(pv_beamline_extrapolate::pv_beamline_extrapolate_t)
 void pv_beamline_extrapolate::pv_beamline_extrapolate_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_pvtracks_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
 }
@@ -18,7 +17,6 @@ void pv_beamline_extrapolate::pv_beamline_extrapolate_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(pv_beamline_extrapolate)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(

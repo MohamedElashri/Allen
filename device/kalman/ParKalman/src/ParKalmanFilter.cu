@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(kalman_filter::kalman_filter_t)
 void kalman_filter::kalman_filter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_kf_tracks_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
@@ -18,7 +17,6 @@ void kalman_filter::kalman_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(kalman_filter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(

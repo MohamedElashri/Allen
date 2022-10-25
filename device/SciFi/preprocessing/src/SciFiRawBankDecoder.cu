@@ -170,8 +170,7 @@ __global__ void scifi_raw_bank_decoder_kernel(
 void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_scifi_hits_t>(
     arguments,
@@ -182,7 +181,6 @@ void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   const auto bank_version = first<host_raw_bank_version_t>(arguments);

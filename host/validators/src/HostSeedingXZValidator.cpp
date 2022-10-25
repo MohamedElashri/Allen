@@ -9,7 +9,6 @@ void host_seeding_XZ_validator::host_seeding_XZ_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   const auto scifi_seedXZ_atomics = make_host_buffer<dev_offsets_scifi_seedsXZ_t>(arguments, context);

@@ -11,8 +11,7 @@ INSTANTIATE_ALGORITHM(lf_search_initial_windows::lf_search_initial_windows_t)
 void lf_search_initial_windows::lf_search_initial_windows_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   const bool with_ut = first<host_track_type_id_t>(arguments) == Allen::TypeIDs::VeloUTTracks;
   set_size<dev_scifi_lf_initial_windows_t>(
@@ -29,7 +28,6 @@ void lf_search_initial_windows::lf_search_initial_windows_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_scifi_lf_initial_windows_t>(arguments, 0, context);

@@ -66,8 +66,7 @@ namespace single_calo_cluster_line {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+      const Constants&) const;
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {

@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(MuonFilter::muon_filter_t)
 void MuonFilter::muon_filter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_event_list_mf_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_selected_events_mf_t>(arguments, 1);
@@ -22,7 +21,6 @@ void MuonFilter::muon_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_event_list_mf_t>(arguments, 0, context);

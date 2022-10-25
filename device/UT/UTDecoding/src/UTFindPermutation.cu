@@ -10,8 +10,7 @@ INSTANTIATE_ALGORITHM(ut_find_permutation::ut_find_permutation_t)
 void ut_find_permutation::ut_find_permutation_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_ut_hit_permutations_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments));
 }
@@ -20,7 +19,6 @@ void ut_find_permutation::ut_find_permutation_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(ut_find_permutation)(

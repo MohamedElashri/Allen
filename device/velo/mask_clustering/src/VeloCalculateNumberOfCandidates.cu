@@ -50,8 +50,7 @@ __global__ void velo_calculate_number_of_candidates_kernel(
 void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_number_of_candidates_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_velo_bank_index_t>(arguments, Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module);
@@ -61,7 +60,6 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_number_of_candidates_t>(arguments, 0, context);

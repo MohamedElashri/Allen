@@ -136,8 +136,7 @@ __global__ void scifi_calculate_cluster_count_kernel(
 void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_scifi_hit_count_t>(
     arguments, first<host_number_of_events_t>(arguments) * SciFi::Constants::n_mat_groups_and_mats);
@@ -148,7 +147,6 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_scifi_hit_count_t>(arguments, 0, context);
