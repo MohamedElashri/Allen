@@ -28,6 +28,14 @@ namespace Allen::Store {
     host_memory_manager_t m_mem_manager;
     std::unordered_map<std::string, AllenArgument> m_store {};
 
+    void reserve(AllenArgument& arg)
+    {
+      if (arg.scope() != Scope::Host) {
+        throw std::runtime_error("Persisted arguments must be scope Host");
+      }
+      m_mem_manager.reserve(arg);
+    }
+
   public:
     PersistentStore(const size_t requested_mb, const unsigned required_memory_alignment) :
       m_mem_manager {"Persistent memory manager", requested_mb * 1000 * 1000, required_memory_alignment}
@@ -38,14 +46,20 @@ namespace Allen::Store {
     PersistentStore(PersistentStore&&) = delete;
     PersistentStore& operator=(PersistentStore&&) = delete;
 
+    AllenArgument& at(const std::string& k)
+    {
+      if (m_store.find(k) != std::end(m_store)) {
+        return m_store.at(k);
+      }
+      throw std::runtime_error("store does not contain key " + k);
+    }
+
     const AllenArgument& at(const std::string& k) const
     {
-      try {
+      if (m_store.find(k) != std::end(m_store)) {
         return m_store.at(k);
-      } catch (std::out_of_range&) {
-        error_cout << "Store: key " << k << " not found\n";
-        throw;
       }
+      throw std::runtime_error("store does not contain key " + k);
     }
 
     template<typename T>
@@ -57,14 +71,20 @@ namespace Allen::Store {
       return {false, {}};
     }
 
-    void reserve(AllenArgument& arg)
-    {
-      if (arg.scope() != Scope::Host) {
-        throw std::runtime_error("Persisted arguments must be scope Host");
+    template<typename T>
+    void inject(const std::string& k, const std::vector<T>& value) {
+      Allen::Store::AllenArgument arg{std::in_place_type<T>, k, Allen::Store::Scope::Host};
+      arg.set_size(value.size());
+      const auto ret = m_store.try_emplace(k, arg);
+      if (!ret.second) {
+        throw std::runtime_error("store register_entry failed, entry already exists");
       }
-      m_mem_manager.reserve(arg);
+      arg = m_store.at(k);
+      reserve(arg);
+      gsl::span<T> arg_span = arg;
+      std::memcpy(arg_span.data(), value.data(), value.size() * sizeof(T));
     }
-
+    
     void free_all() { m_mem_manager.free_all(); }
 
     void print_memory_manager_states() const { m_mem_manager.print(); }

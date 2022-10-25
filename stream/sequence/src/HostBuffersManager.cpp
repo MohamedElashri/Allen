@@ -85,20 +85,17 @@ void HostBuffersManager::returnBufferWritten(size_t b)
   }
 }
 
-// TODO: Inject a single number onto the store
-void HostBuffersManager::writeSingleEventPassthrough(const size_t /*b*/)
+void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
 {
-  // if (b >= m_persistent_stores.size()) {
-  //   error_cout << "Buffer index " << b << " is larger than the number of available buffers: " <<
-  //   m_persistent_stores.size()
-  //              << std::endl;
-  //   return;
-  // }
-  // auto store = m_persistent_stores[b];
+  if (b >= m_persistent_stores.size()) {
+    error_cout << "Buffer index " << b << " is larger than the number of available buffers: " <<
+    m_persistent_stores.size()
+               << std::endl;
+    return;
+  }
+  auto store = m_persistent_stores[b];
 
-  // "host_init_number_of_events__host_number_of_events_t"
-
-  // buf->host_number_of_events = 1u;
+  store->inject("host_init_number_of_events__host_number_of_events_t", std::vector<unsigned>{1});
 }
 
 void HostBuffersManager::printStatus() const
