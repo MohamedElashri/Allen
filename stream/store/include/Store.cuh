@@ -72,8 +72,9 @@ namespace Allen::Store {
     }
 
     template<typename T>
-    void inject(const std::string& k, const std::vector<T>& value) {
-      Allen::Store::AllenArgument arg{std::in_place_type<T>, k, Allen::Store::Scope::Host};
+    void inject(const std::string& k, const std::vector<T>& value)
+    {
+      Allen::Store::AllenArgument arg {std::in_place_type<T>, k, Allen::Store::Scope::Host};
       arg.set_size(value.size());
       const auto ret = m_store.try_emplace(k, arg);
       if (!ret.second) {
@@ -84,7 +85,7 @@ namespace Allen::Store {
       gsl::span<T> arg_span = arg;
       std::memcpy(arg_span.data(), value.data(), value.size() * sizeof(T));
     }
-    
+
     void free_all() { m_mem_manager.free_all(); }
 
     void print_memory_manager_states() const { m_mem_manager.print(); }
