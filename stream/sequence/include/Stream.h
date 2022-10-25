@@ -21,7 +21,6 @@
 #include "Configuration.h"
 #include "nlohmann/json.hpp"
 
-struct HostBuffers;
 struct HostBuffersManager;
 class Scheduler;
 
@@ -38,7 +37,6 @@ private:
 
   // Host buffers
   HostBuffersManager* host_buffers_manager;
-  HostBuffers* host_buffers {0};
 
   // Number of input events
   unsigned number_of_input_events;
