@@ -27,10 +27,7 @@ namespace CalcMaxCombos {
   __global__ void calc_max_combos(Parameters parameters, const unsigned number_of_input_containers);
 
   struct calc_max_combos_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

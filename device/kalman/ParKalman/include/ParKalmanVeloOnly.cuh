@@ -115,10 +115,7 @@ namespace kalman_velo_only {
   __global__ void kalman_pv_ipchi2(Parameters parameters);
 
   struct kalman_velo_only_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

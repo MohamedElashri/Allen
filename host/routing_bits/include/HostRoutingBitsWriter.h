@@ -40,10 +40,7 @@ namespace host_routingbits_writer {
   struct host_routingbits_writer_t : public HostAlgorithm, Parameters {
     void init();
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

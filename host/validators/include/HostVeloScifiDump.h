@@ -35,11 +35,7 @@ namespace host_veloscifi_dump {
   };
 
   struct host_veloscifi_dump_t : public ValidationAlgorithm, Parameters {
-    inline void set_arguments_size(
-      ArgumentReferences<Parameters>,
-      const RuntimeOptions&,
-      const Constants&) const
-    {}
+    inline void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&) const {}
 
     void operator()(
       const ArgumentReferences<Parameters>&,

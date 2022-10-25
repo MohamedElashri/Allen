@@ -15,11 +15,7 @@ namespace host_rate_validator {
   };
 
   struct host_rate_validator_t : public HostAlgorithm, Parameters {
-    inline void set_arguments_size(
-      ArgumentReferences<Parameters>,
-      const RuntimeOptions&,
-      const Constants&) const
-    {}
+    inline void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&) const {}
 
     void operator()(
       const ArgumentReferences<Parameters>&,

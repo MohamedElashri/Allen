@@ -49,10 +49,7 @@ namespace seed_confirmTracks_consolidate {
   __global__ void seed_confirmTracks_consolidate(Parameters, const float* dev_magnet_polarity);
 
   struct seed_confirmTracks_consolidate_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

@@ -22,11 +22,7 @@ namespace host_sel_report_validator {
   };
 
   struct host_sel_report_validator_t : public ValidationAlgorithm, Parameters {
-    inline void set_arguments_size(
-      ArgumentReferences<Parameters>,
-      const RuntimeOptions&,
-      const Constants&) const
-    {}
+    inline void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&) const {}
 
     void operator()(
       const ArgumentReferences<Parameters>&,

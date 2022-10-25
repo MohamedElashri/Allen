@@ -27,10 +27,7 @@ namespace pv_beamline_histo {
   __global__ void pv_beamline_histo(Parameters, float* dev_beamline);
 
   struct pv_beamline_histo_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

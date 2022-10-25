@@ -63,10 +63,7 @@ namespace matching_consolidate_tracks {
   __global__ void matching_consolidate_tracks(Parameters);
 
   struct matching_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

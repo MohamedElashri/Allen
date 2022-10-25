@@ -35,10 +35,8 @@ namespace ut_pre_decode {
     const unsigned* dev_unique_x_sector_offsets);
 
   struct ut_pre_decode_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants& constants) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants& constants)
+      const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

@@ -29,10 +29,7 @@ namespace host_prefix_sum {
       Allen::contract::
         are_equal<host_output_buffer_t, dev_output_buffer_t, Parameters, Allen::contract::Postcondition>>;
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

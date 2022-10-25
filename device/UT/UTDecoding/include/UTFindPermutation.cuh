@@ -22,10 +22,7 @@ namespace ut_find_permutation {
   __global__ void ut_find_permutation(Parameters, const unsigned* dev_unique_x_sector_layer_offsets);
 
   struct ut_find_permutation_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

@@ -43,10 +43,7 @@ namespace lf_quality_filter {
   __global__ void lf_quality_filter(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 
   struct lf_quality_filter_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

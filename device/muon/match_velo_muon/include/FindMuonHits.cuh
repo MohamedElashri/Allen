@@ -31,10 +31,7 @@ namespace find_muon_hits {
   __global__ void find_muon_hits(Parameters, const Muon::Constants::MatchWindows* dev_match_windows);
 
   struct find_muon_hits_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

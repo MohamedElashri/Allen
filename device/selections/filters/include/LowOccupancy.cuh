@@ -26,10 +26,7 @@ namespace low_occupancy {
   __global__ void low_occupancy(Parameters, const unsigned, const unsigned);
   struct low_occupancy_t : public DeviceAlgorithm, Parameters {
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

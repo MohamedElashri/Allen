@@ -86,10 +86,11 @@ void HostBuffersManager::returnBufferWritten(size_t b)
 }
 
 // TODO: Inject a single number onto the store
-void HostBuffersManager::writeSingleEventPassthrough(const size_t/*b*/)
+void HostBuffersManager::writeSingleEventPassthrough(const size_t /*b*/)
 {
   // if (b >= m_persistent_stores.size()) {
-  //   error_cout << "Buffer index " << b << " is larger than the number of available buffers: " << m_persistent_stores.size()
+  //   error_cout << "Buffer index " << b << " is larger than the number of available buffers: " <<
+  //   m_persistent_stores.size()
   //              << std::endl;
   //   return;
   // }

@@ -76,10 +76,7 @@ namespace lowmass_noip_dielectron_line {
       const bool,
       const bool>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
 

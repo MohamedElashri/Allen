@@ -19,7 +19,7 @@
 
 namespace Allen::Store {
   class UnorderedStore;
-  
+
   /**
    * @brief Persistent store that outlives the sequence.
    */
@@ -89,13 +89,9 @@ namespace Allen::Store {
     UnorderedStore(UnorderedStore&&) = delete;
     UnorderedStore& operator=(UnorderedStore&&) = delete;
 
-    void set_persistent_store(PersistentStore* persistent_store) {
-      m_persistent_store = persistent_store;
-    }
+    void set_persistent_store(PersistentStore* persistent_store) { m_persistent_store = persistent_store; }
 
-    void set_persistent_store_map() {
-      m_persistent_store->m_store = m_persistent_store_map;
-    }
+    void set_persistent_store_map() { m_persistent_store->m_store = m_persistent_store_map; }
 
     template<Scope S, typename T>
     auto make_buffer(const size_t size)
@@ -114,7 +110,8 @@ namespace Allen::Store {
     {
       if (m_store.find(k) != std::end(m_store)) {
         return m_store.at(k);
-      } else if (m_persistent_store_map.find(k) != std::end(m_persistent_store_map)) {
+      }
+      else if (m_persistent_store_map.find(k) != std::end(m_persistent_store_map)) {
         return m_persistent_store_map.at(k);
       }
       throw std::runtime_error("store does not contain key " + k);
@@ -124,7 +121,8 @@ namespace Allen::Store {
     {
       if (m_store.find(k) != std::end(m_store)) {
         return m_store.at(k);
-      } else if (m_persistent_store_map.find(k) != std::end(m_persistent_store_map)) {
+      }
+      else if (m_persistent_store_map.find(k) != std::end(m_persistent_store_map)) {
         return m_persistent_store_map.at(k);
       }
       throw std::runtime_error("store does not contain key " + k);
@@ -135,9 +133,11 @@ namespace Allen::Store {
       decltype(m_persistent_store_map.try_emplace(k, std::forward<AllenArgument>(arg))) ret;
       if (arg.scope() == Allen::Store::Scope::Host) {
         ret = m_persistent_store_map.try_emplace(k, std::forward<AllenArgument>(arg));
-      } else if (arg.scope() == Allen::Store::Scope::Device) {
+      }
+      else if (arg.scope() == Allen::Store::Scope::Device) {
         ret = m_store.try_emplace(k, std::forward<AllenArgument>(arg));
-      } else {
+      }
+      else {
         throw std::runtime_error("unsupported allen argument scope");
       }
       if (!ret.second) {

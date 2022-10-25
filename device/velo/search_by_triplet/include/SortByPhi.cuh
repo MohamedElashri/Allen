@@ -42,10 +42,7 @@ namespace velo_sort_by_phi {
   __global__ void velo_sort_by_phi(Parameters);
 
   struct velo_sort_by_phi_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

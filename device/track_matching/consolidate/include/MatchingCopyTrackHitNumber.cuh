@@ -23,10 +23,7 @@ namespace matching_copy_track_hit_number {
   __global__ void matching_copy_track_hit_number(Parameters);
 
   struct matching_copy_track_hit_number_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

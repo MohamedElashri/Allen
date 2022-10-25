@@ -10,7 +10,8 @@ void RateMonitor::fill(unsigned i_buf, bool useWallTime)
 {
   const auto* store = m_buffers_manager->get_persistent_store(i_buf);
   const auto [host_dec_reports_valid, host_dec_reports] = store->try_at<unsigned>("dec_reporter__host_dec_reports_t");
-  const auto [host_number_of_active_lines_valid, host_number_of_active_lines] = store->try_at<unsigned>("gather_selections__host_number_of_active_lines_t");
+  const auto [host_number_of_active_lines_valid, host_number_of_active_lines] =
+    store->try_at<unsigned>("gather_selections__host_number_of_active_lines_t");
 
   if (host_dec_reports_valid && host_number_of_active_lines_valid) {
     if (!m_histograms_initialized) {

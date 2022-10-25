@@ -24,11 +24,7 @@ namespace host_velo_ut_validator {
   };
 
   struct host_velo_ut_validator_t : public ValidationAlgorithm, Parameters {
-    inline void set_arguments_size(
-      ArgumentReferences<Parameters>,
-      const RuntimeOptions&,
-      const Constants&) const
-    {}
+    inline void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&) const {}
 
     void operator()(
       const ArgumentReferences<Parameters>&,

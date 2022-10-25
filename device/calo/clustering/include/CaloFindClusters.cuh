@@ -29,8 +29,7 @@ namespace calo_find_clusters {
 
   // Algorithm
   struct calo_find_clusters_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&)
-      const;
+    void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&) const;
 
     __host__ void operator()(
       const ArgumentReferences<Parameters>& arguments,

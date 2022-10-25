@@ -137,10 +137,7 @@ void run_output(
 
         if (output_handler != nullptr) {
           std::tie(success, n_written) = output_handler->output_selected_events(
-            output_id,
-            slc_idx,
-            first_evt,
-            *buffer_manager->get_persistent_store(buf_idx));
+            output_id, slc_idx, first_evt, *buffer_manager->get_persistent_store(buf_idx));
         }
 
         zmqSvc->send(control, "WRITTEN", send_flags::sndmore);

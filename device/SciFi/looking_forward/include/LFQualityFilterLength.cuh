@@ -34,10 +34,7 @@ namespace lf_quality_filter_length {
   __global__ void lf_quality_filter_length(Parameters);
 
   struct lf_quality_filter_length_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

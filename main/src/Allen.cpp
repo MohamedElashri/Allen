@@ -317,7 +317,8 @@ int allen(
   auto const& configuration = configuration_reader->params();
 
   // create host buffers
-  std::unique_ptr<HostBuffersManager> buffers_manager = std::make_unique<HostBuffersManager>(number_of_buffers, reserve_host_mb);
+  std::unique_ptr<HostBuffersManager> buffers_manager =
+    std::make_unique<HostBuffersManager>(number_of_buffers, reserve_host_mb);
 
   if (print_status) {
     buffers_manager->printStatus();

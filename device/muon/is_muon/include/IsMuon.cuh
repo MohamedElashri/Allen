@@ -29,10 +29,7 @@ namespace is_muon {
   is_muon(Parameters, const Muon::Constants::FieldOfInterest* dev_muon_foi, const float* dev_muon_momentum_cuts);
 
   struct is_muon_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

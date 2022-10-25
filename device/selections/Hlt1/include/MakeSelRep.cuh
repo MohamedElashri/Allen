@@ -34,10 +34,7 @@ namespace make_selrep {
   __global__ void make_selrep_bank(Parameters, const unsigned number_of_events);
 
   struct make_selrep_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

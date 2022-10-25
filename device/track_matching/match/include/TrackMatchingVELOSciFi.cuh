@@ -38,10 +38,7 @@ namespace track_matching_veloSciFi {
     const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization);
 
   struct track_matching_veloSciFi_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

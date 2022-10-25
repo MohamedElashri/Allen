@@ -24,10 +24,7 @@ namespace scifi_copy_track_hit_number {
   __global__ void scifi_copy_track_hit_number(Parameters);
 
   struct scifi_copy_track_hit_number_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

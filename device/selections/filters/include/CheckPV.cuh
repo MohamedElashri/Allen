@@ -26,10 +26,7 @@ namespace check_pvs {
   __global__ void check_pvs(Parameters);
   struct check_pvs_t : public DeviceAlgorithm, Parameters {
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

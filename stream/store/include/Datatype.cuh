@@ -22,15 +22,20 @@ namespace Allen::Store {
   // Struct to hold the types of the dependencies (libClang)
   namespace {
     template<typename... T>
-    struct dependencies {};
+    struct dependencies {
+    };
   } // namespace
 
   // Datatypes can be host, device or aggregates.
   // Note: These structs need to be not templated (libClang).
-  struct host_datatype {};
-  struct device_datatype {};
-  struct aggregate_datatype {};
-  struct optional_datatype {};
+  struct host_datatype {
+  };
+  struct device_datatype {
+  };
+  struct aggregate_datatype {
+  };
+  struct optional_datatype {
+  };
 
   // A generic datatype* data holder.
   template<typename internal_t>
@@ -138,7 +143,8 @@ namespace Allen::Store {
    * @brief A property datatype data holder.
    */
   template<typename T, typename = void>
-  struct property_datatype {};
+  struct property_datatype {
+  };
 
 // Note: The following code avoid red herring:
 //       missing return statement at end of non-void function

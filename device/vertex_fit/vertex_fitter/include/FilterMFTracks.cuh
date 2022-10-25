@@ -37,10 +37,7 @@ namespace FilterMFTracks {
   __global__ void filter_mf_tracks(Parameters, const unsigned number_of_events);
 
   struct filter_mf_tracks_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
