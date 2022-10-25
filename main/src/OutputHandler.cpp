@@ -20,6 +20,7 @@
 #include <OutputHandler.h>
 #include <RoutingBitsDefinition.h>
 #include <HltConstants.cuh>
+#include <Store.cuh>
 
 std::tuple<bool, size_t> OutputHandler::output_selected_events(
   size_t const thread_id,
@@ -27,13 +28,14 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   size_t const start_event,
   const Allen::Store::PersistentStore& store)
 {
-  gsl::span<bool const> const selected_events_bool = store.at("global_decision__host_global_decision_t");
-  gsl::span<const unsigned> const dec_reports = store.at("dec_reporter__host_dec_reports_t");
-  gsl::span<uint32_t const> const routing_bits = store.at("host_routingbits_writer__host_routingbits");
-  gsl::span<uint32_t const> const sel_reports = store.at("make_selrep__host_sel_reports_t");
-  gsl::span<unsigned const> const sel_report_offsets = store.at("make_selrep__host_selrep_offsets_t");
-  gsl::span<uint32_t const> const lumi_summaries = store.at("make_lumi_summary__host_lumi_summaries_t");
-  gsl::span<unsigned const> const lumi_summary_offsets = store.at("make_lumi_summary__host_lumi_summary_offsets_t");
+  // TODO: Use configuration framework to properly configure these tags
+  const auto [selected_events_bool_valid, selected_events_bool] = store.try_at<bool>("global_decision__host_global_decision_t");
+  const auto [dec_reports_valid, dec_reports] = store.try_at<unsigned>("dec_reporter__host_dec_reports_t");
+  const auto [routing_bits_valid, routing_bits] = store.try_at<unsigned>("host_routingbits_writer__host_routingbits_t");
+  const auto [sel_reports_valid, sel_reports] = store.try_at<unsigned>("make_selreps__host_sel_reports_t");
+  const auto [sel_report_offsets_valid, sel_report_offsets] = store.try_at<unsigned>("make_selreps__host_selrep_offsets_t");
+  const auto [lumi_summaries_valid, lumi_summaries] = store.try_at<unsigned>("make_lumi_summary__host_lumi_summaries_t");
+  const auto [lumi_summary_offsets_valid, lumi_summary_offsets] = store.try_at<unsigned>("make_lumi_summary__host_lumi_summary_offsets_t");
 
   auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
   // size of a RawBank header

@@ -18,32 +18,25 @@
 #include <boost/pfr/core.hpp>
 
 namespace Allen::Store {
+  class UnorderedStore;
+  
   /**
    * @brief Persistent store that outlives the sequence.
    */
   class PersistentStore {
+    friend class UnorderedStore;
     host_memory_manager_t m_mem_manager;
     std::unordered_map<std::string, AllenArgument> m_store {};
 
   public:
     PersistentStore(const size_t requested_mb, const unsigned required_memory_alignment) :
-      m_mem_manager{"Persistent memory manager", requested_mb * 1000 * 1000, required_memory_alignment}
+      m_mem_manager {"Persistent memory manager", requested_mb * 1000 * 1000, required_memory_alignment}
     {}
 
     PersistentStore(const PersistentStore&) = delete;
     PersistentStore& operator=(const PersistentStore&) = delete;
     PersistentStore(PersistentStore&&) = delete;
     PersistentStore& operator=(PersistentStore&&) = delete;
-
-    AllenArgument& at(const std::string& k)
-    {
-      try {
-        return m_store.at(k);
-      } catch (std::out_of_range&) {
-        error_cout << "Store: key " << k << " not found\n";
-        throw;
-      }
-    }
 
     const AllenArgument& at(const std::string& k) const
     {
@@ -55,8 +48,13 @@ namespace Allen::Store {
       }
     }
 
-    void set_internal_store(std::unordered_map<std::string, AllenArgument> store) {
-      m_store = store;
+    template<typename T>
+    std::pair<bool, gsl::span<const T>> try_at(const std::string& k) const
+    {
+      if (m_store.find(k) != std::end(m_store)) {
+        return {true, static_cast<gsl::span<const T>>(m_store.at(k))};
+      }
+      return {false, {}};
     }
 
     void reserve(AllenArgument& arg)
@@ -67,15 +65,9 @@ namespace Allen::Store {
       m_mem_manager.reserve(arg);
     }
 
-    void free_all()
-    {
-      m_mem_manager.free_all();
-    }
+    void free_all() { m_mem_manager.free_all(); }
 
-    void print_memory_manager_states() const
-    {
-      m_mem_manager.print();
-    }
+    void print_memory_manager_states() const { m_mem_manager.print(); }
   };
 
   /**
@@ -102,7 +94,7 @@ namespace Allen::Store {
     }
 
     void set_persistent_store_map() {
-      m_persistent_store->set_internal_store(m_persistent_store_map);
+      m_persistent_store->m_store = m_persistent_store_map;
     }
 
     template<Scope S, typename T>

@@ -9,37 +9,40 @@
 
 void RateMonitor::fill(unsigned i_buf, bool useWallTime)
 {
-  HostBuffers* buf = m_buffers_manager->getBuffers(i_buf);
+  const auto* store = m_buffers_manager->get_persistent_store(i_buf);
+  const auto [host_dec_reports_valid, host_dec_reports] = store->try_at<unsigned>("dec_reporter__host_dec_reports_t");
+  const auto [host_number_of_active_lines_valid, host_number_of_active_lines] = store->try_at<unsigned>("gather_selections__host_number_of_active_lines_t");
 
-  if (!m_histograms_initialized) {
-    initialize_histograms(buf->host_number_of_lines);
-  }
-
-  unsigned time(0);
-
-  if (!useWallTime) {
-    warning_cout << "ODIN time histograms not avaiable yet" << std::endl;
-    return;
-  }
-  else {
-    time = getWallTimeBin();
-  }
-
-  unsigned nevt = buf->host_number_of_events;
-
-  for (unsigned ievt = 0; ievt < nevt; ++ievt) {
-    auto dec_reports = buf->host_dec_reports.data() + ievt * (3 + buf->host_number_of_lines);
-
-    bool pass(false);
-
-    for (unsigned i_line = 0; i_line < buf->host_number_of_lines; ++i_line) {
-      if (dec_reports[i_line] & HltDecReport::decisionMask) {
-        m_histograms[LineRatesStart + i_line]->Fill(time, 1. / m_time_step);
-        pass = true;
-      }
+  if (host_dec_reports_valid && host_number_of_active_lines_valid) {
+    if (!m_histograms_initialized) {
+      initialize_histograms(host_number_of_active_lines[0]);
     }
 
-    if (pass) m_histograms[InclusiveRate]->Fill(time, 1. / m_time_step);
+    unsigned time(0);
+
+    if (!useWallTime) {
+      warning_cout << "ODIN time histograms not avaiable yet" << std::endl;
+      return;
+    }
+    else {
+      time = getWallTimeBin();
+    }
+
+    const auto [nevt_valid, nevt] = store->try_at<unsigned>("initialize_number_of_events__host_number_of_events_t");
+    for (unsigned ievt = 0; ievt < nevt[0]; ++ievt) {
+      auto dec_reports = host_dec_reports.data() + ievt * (3 + host_number_of_active_lines[0]);
+
+      bool pass(false);
+
+      for (unsigned i_line = 0; i_line < host_number_of_active_lines[0]; ++i_line) {
+        if (dec_reports[i_line] & HltDecReport::decisionMask) {
+          m_histograms[LineRatesStart + i_line]->Fill(time, 1. / m_time_step);
+          pass = true;
+        }
+      }
+
+      if (pass) m_histograms[InclusiveRate]->Fill(time, 1. / m_time_step);
+    }
   }
 }
 

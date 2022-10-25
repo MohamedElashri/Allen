@@ -8,6 +8,7 @@
 #include "Common.h"
 #include "Logger.h"
 #include "Argument.cuh"
+#include "BackendCommon.h"
 
 namespace Allen::Store {
   // Distinguish between single and multi alloc memory managers
@@ -168,7 +169,7 @@ namespace Allen::Store {
       });
 
       if (it == m_memory_segments.end()) {
-        throw StrException("MemoryManager free: Requested tag could not be found (" + tag + ")");
+        throw std::runtime_error("MemoryManager free: Requested tag could not be found (" + tag + ")");
       }
 
       // Free found tag

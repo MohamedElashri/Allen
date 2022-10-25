@@ -88,39 +88,19 @@ void HostBuffersManager::returnBufferWritten(size_t b)
   }
 }
 
-void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
+// TODO: Inject a single number onto the store
+void HostBuffersManager::writeSingleEventPassthrough(const size_t/*b*/)
 {
-  if (b >= host_buffers.size()) {
-    error_cout << "Buffer index " << b << " is larger than the number of available buffers: " << host_buffers.size()
-               << std::endl;
-    return;
-  }
-  auto buf = host_buffers[b];
+  // if (b >= m_persistent_stores.size()) {
+  //   error_cout << "Buffer index " << b << " is larger than the number of available buffers: " << m_persistent_stores.size()
+  //              << std::endl;
+  //   return;
+  // }
+  // auto store = m_persistent_stores[b];
 
-  buf->host_number_of_events = 1u;
-  buf->host_passing_event_list[0] = true;
-}
+  // "host_init_number_of_events__host_number_of_events_t"
 
-std::tuple<
-  gsl::span<bool>,
-  gsl::span<uint32_t>,
-  gsl::span<uint32_t>,
-  gsl::span<uint32_t>,
-  gsl::span<unsigned>,
-  gsl::span<uint32_t>,
-  gsl::span<unsigned>>
-HostBuffersManager::getBufferOutputData(size_t b)
-{
-  if (b > host_buffers.size()) return {};
-
-  HostBuffers* buf = host_buffers.at(b);
-  return {buf->host_passing_event_list,
-          buf->host_dec_reports,
-          buf->host_routingbits,
-          buf->host_sel_reports,
-          buf->host_sel_report_offsets,
-          buf->host_lumi_summaries,
-          buf->host_lumi_summary_offsets};
+  // buf->host_number_of_events = 1u;
 }
 
 void HostBuffersManager::printStatus() const

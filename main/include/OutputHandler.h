@@ -11,12 +11,15 @@
 #include "InputProvider.h"
 #include "BankTypes.h"
 #include "Timer.h"
-#include <Store.cuh>
 
 #ifndef STANDALONE
 #include <GaudiKernel/Service.h>
 #include <Gaudi/Accumulators.h>
 #endif
+
+namespace Allen::Store {
+  class PersistentStore;
+}
 
 class OutputHandler {
 public:

@@ -31,7 +31,7 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
+  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_lumi_summaries_t>(arguments, 0xffffffff, context);

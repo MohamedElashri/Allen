@@ -51,9 +51,6 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
   number_of_input_events = event_end - event_start;
   if (event_end > event_start) {
     for (unsigned repetition = 0; repetition < runtime_options.number_of_repetitions; ++repetition) {
-      // Initialize selected_number_of_events with requested_number_of_events
-      host_buffers->host_number_of_events = event_end - event_start;
-
       // Free memory
       scheduler->free_all();
 
