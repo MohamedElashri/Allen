@@ -222,7 +222,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
                       static_cast<events_size>(sel_report_size)}},
         // HltLumiSummary
         output_bank {LHCb::RawBank::HltLumiSummary,
-                     1u, // TODO version number
+                     2u,
                      Hlt1::Constants::sourceID,
                      {reinterpret_cast<char const*>(lumi_summaries.data()) + lumi_summary_offset * sizeof(uint32_t),
                       static_cast<events_size>(lumi_summary_size)}});

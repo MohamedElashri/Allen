@@ -156,6 +156,42 @@ struct CaloGeometry {
     return z;
   }
 
+  // get z of the cell on the calo plane according to xy, where 0 is front, 1 is showermax, 2 is back
+  __device__ __host__ inline float getZ(uint16_t cellid, int plane) const
+  {
+    // Get front, showermax or back plane a,b,c,d parameters (A plane in 3D is defined as a*x+b*y+c*z+d=0)
+    float a(0.f), b(0.f), c(0.f), d(0.f);
+    // Front plane
+    if (plane == 0) {
+      a = calo_planes[0];
+      b = calo_planes[1];
+      c = calo_planes[2];
+      d = calo_planes[3];
+    }
+    // Showermax plane
+    else if (plane == 1) {
+      a = calo_planes[4];
+      b = calo_planes[5];
+      c = calo_planes[6];
+      d = calo_planes[7];
+    }
+    // Back plane
+    else if (plane == 2) {
+      a = calo_planes[8];
+      b = calo_planes[9];
+      c = calo_planes[10];
+      d = calo_planes[11];
+    }
+    else {
+      return 99999.f;
+    }
+
+    // get z of the cell
+    float z = (-a * getX(cellid) - b * getY(cellid) - d) / c;
+
+    return z;
+  }
+
   // Get CellID from x,y,z coordinates (only valid for the ECAL)
   __device__ __host__ inline uint16_t getEcalID(float x, float y, float z) const
   {

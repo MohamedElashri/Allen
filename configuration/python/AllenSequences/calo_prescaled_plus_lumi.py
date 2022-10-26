@@ -18,6 +18,7 @@ reconstructed_objects = hlt1_reconstruction()
 ecal_clusters = reconstructed_objects["ecal_clusters"]
 
 lines = []
+lumiline_name = "Hlt1ODINLumi"
 
 prefilters = [odin_error_filter("odin_error_filter")]
 with line_maker.bind(prefilter=prefilters):
@@ -32,7 +33,7 @@ with line_maker.bind(prefilter=prefilters):
     lines.append(
         line_maker(
             make_odin_event_type_line(
-                name="Hlt1ODINLumi", odin_event_type='Lumi')))
+                name=lumiline_name, odin_event_type='Lumi')))
 
 line_algorithms = [tup[0] for tup in lines]
 
@@ -54,15 +55,19 @@ calo_sequence = CompositeNode(
 
 gather_selections = make_gather_selections(lines=line_algorithms)
 
+lumi_node = CompositeNode(
+    "AllenLumiNode",
+    lumi_reconstruction(
+        gather_selections=gather_selections,
+        lines=line_algorithms,
+        lumiline_name=lumiline_name,
+        with_muon=False)["algorithms"],
+    NodeLogic.NONLAZY_AND,
+    force_order=False)
+
 lumi_with_prefilter = CompositeNode(
     "LumiWithPrefilter",
-    prefilters + [
-        lumi_reconstruction(
-            gather_selections=gather_selections,
-            lines=line_algorithms,
-            lumiline_name="Hlt1ODINLumi",
-            with_muon=False)
-    ],
+    prefilters + [lumi_node],
     NodeLogic.LAZY_AND,
     force_order=True)
 
