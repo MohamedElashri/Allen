@@ -101,7 +101,7 @@ int allen(
   bool write_config = false;
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;
-  size_t reserve_host_temp_mb = 10;
+  size_t reserve_host_temp_mb = 100;
 
   // Input file options
   int device_id = 0;
