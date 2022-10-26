@@ -7,5 +7,5 @@
 
 namespace RoutingBitsDefinition {
   static constexpr int bits_size = 32; // 32 routing bits for HLT1
-  static constexpr int n_words = 4;    // 4 words  (HLT1, future use, HLT2, output streams)
+  static constexpr int n_words = 3;    // 3 words  (HLT1, future use, HLT2)
 } // namespace RoutingBitsDefinition

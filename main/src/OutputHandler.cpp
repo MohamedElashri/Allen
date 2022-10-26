@@ -182,8 +182,9 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       header->setDataType(LHCb::MDFHeader::BODY_TYPE_BANKS);
       header->setSpare(0);
       // Fixed triggermask for now
-      // FIXME update when routing bits are implemented
-      header->subHeader().H1->setTriggerMask(routing_bits.data() + RoutingBitsDefinition::n_words * event_number);
+      std::memcpy(
+        &m_trigger_mask[0], routing_bits.data() + RoutingBitsDefinition::n_words * event_number, routing_bits_size);
+      header->subHeader().H1->setTriggerMask(m_trigger_mask.data());
       // Set run number
       // FIXME: get orbit and bunch number from ODIN
       // The batch is offset by start_event with respect to the slice, so we add start_event
