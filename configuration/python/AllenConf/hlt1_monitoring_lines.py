@@ -1,9 +1,9 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenCore.algorithms import (beam_crossing_line_t, velo_micro_bias_line_t,
-                                  odin_event_type_line_t, calo_digits_minADC_t,
-                                  beam_gas_line_t)
+from AllenCore.algorithms import (
+    beam_crossing_line_t, velo_micro_bias_line_t, odin_event_type_line_t,
+    calo_digits_minADC_t, beam_gas_line_t, velo_clusters_micro_bias_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenConf.odin import decode_odin
 from AllenCore.generator import make_algorithm
@@ -11,6 +11,8 @@ from AllenCore.generator import make_algorithm
 
 def make_beam_line(pre_scaler_hash_string=None,
                    post_scaler_hash_string=None,
+                   pre_scaler=1.,
+                   post_scaler=1.e-3,
                    beam_crossing_type=0,
                    name=None):
     name_map = {
@@ -28,6 +30,8 @@ def make_beam_line(pre_scaler_hash_string=None,
         name=line_name,
         beam_crossing_type=beam_crossing_type,
         host_number_of_events_t=number_of_events["host_number_of_events"],
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
         pre_scaler_hash_string=pre_scaler_hash_string or line_name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or line_name + "_post",
         dev_odin_data_t=odin["dev_odin_data"])
@@ -35,6 +39,8 @@ def make_beam_line(pre_scaler_hash_string=None,
 
 def make_velo_micro_bias_line(velo_tracks,
                               name="Hlt1VeloMicroBias",
+                              pre_scaler=1.,
+                              post_scaler=1.e-3,
                               pre_scaler_hash_string=None,
                               post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
@@ -47,6 +53,8 @@ def make_velo_micro_bias_line(velo_tracks,
         dev_offsets_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
@@ -127,3 +135,26 @@ def make_beam_gas_line(velo_tracks,
         dev_odin_data_t=odin["dev_odin_data"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
+
+
+def make_velo_clusters_micro_bias_line(decoded_velo,
+                                       name="Hlt1VeloClustersMicroBias",
+                                       pre_scaler=1.,
+                                       post_scaler=1.,
+                                       pre_scaler_hash_string=None,
+                                       post_scaler_hash_string=None,
+                                       min_velo_clusters=1):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        velo_clusters_micro_bias_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_offsets_estimated_input_size_t=decoded_velo[
+            "dev_offsets_estimated_input_size"],
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        min_velo_clusters=min_velo_clusters)
