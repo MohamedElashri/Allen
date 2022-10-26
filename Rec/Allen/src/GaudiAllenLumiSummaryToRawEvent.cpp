@@ -11,6 +11,8 @@
 
 #include "GaudiAllenLumiSummaryToRawEvent.h"
 
+#include <HltConstants.cuh>
+
 // LHCb
 #include "Kernel/STLExtensions.h"
 
@@ -32,10 +34,8 @@ LHCb::RawEvent GaudiAllenLumiSummaryToRawEvent::operator()(
 {
 
   LHCb::RawEvent raw_event;
-  // TODO: get these hard coded numbers from somewhere else... should be defined in one location only!
-  constexpr auto hlt1SourceID = (1u << 13);
   auto lumi_summaries = LHCb::make_span(&allen_lumi_summaries[0], allen_lumi_summary_offsets[1]);
-  raw_event.addBank(hlt1SourceID, LHCb::RawBank::HltLumiSummary, 1u, lumi_summaries);
+  raw_event.addBank(Hlt1::Constants::sourceID, LHCb::RawBank::HltLumiSummary, 2u, lumi_summaries);
 
   return raw_event;
 }

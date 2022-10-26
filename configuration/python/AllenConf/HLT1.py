@@ -534,15 +534,19 @@ def setup_hlt1_node(enablePhysics=True,
         force_order=True)
 
     if with_lumi:
+        lumi_node = CompositeNode(
+            "AllenLumiNode",
+            lumi_reconstruction(
+                gather_selections=gather_selections,
+                lines=line_algorithms,
+                lumiline_name=lumiline_name,
+                with_muon=with_muon)["algorithms"],
+            NodeLogic.NONLAZY_AND,
+            force_order=False)
+
         lumi_with_prefilter = CompositeNode(
             "LumiWithPrefilter",
-            odin_err_filter + [
-                lumi_reconstruction(
-                    gather_selections=gather_selections,
-                    lines=line_algorithms,
-                    lumiline_name=lumiline_name,
-                    with_muon=with_muon)
-            ],
+            odin_err_filter + [lumi_node],
             NodeLogic.LAZY_AND,
             force_order=True)
 

@@ -42,6 +42,7 @@ target_link_libraries(Stream
     DeviceValidators
     AllenCommon
     algorithm_db
+    HostDummyMaker
     Lumi
   PUBLIC
     Utils

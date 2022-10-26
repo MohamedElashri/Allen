@@ -9,12 +9,10 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "MakeLumiSummary.cuh"
-#include "LumiCounterOffsets.h"
+#include <Event/LumiSummaryOffsets_V2.h>
 
 #include "SelectionsEventModel.cuh"
 #include "Event/ODIN.h"
-
-#include "SciFiDefinitions.cuh"
 
 INSTANTIATE_ALGORITHM(make_lumi_summary::make_lumi_summary_t)
 
@@ -48,10 +46,43 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
     return;
   }
 
-  Allen::memset_async<dev_lumi_summaries_t>(arguments, 0, context);
+  Allen::memset_async<dev_lumi_summaries_t>(arguments, 0xffffffff, context);
+
+  // info aggregating
+  std::array<Lumi::LumiInfo*, 5> lumiInfos = {data<dev_velo_info_t>(arguments),
+                                              data<dev_pv_info_t>(arguments),
+                                              data<dev_scifi_info_t>(arguments),
+                                              data<dev_muon_info_t>(arguments),
+                                              data<dev_calo_info_t>(arguments)};
+  // set the size to 0 for empty dummy input
+  // otherwise set it to the numbers of lumi counters
+  std::array<unsigned, 5> infoSize = {
+    std::min(Lumi::Constants::n_velo_counters, static_cast<unsigned>(size<dev_velo_info_t>(arguments))),
+    std::min(Lumi::Constants::n_pv_counters, static_cast<unsigned>(size<dev_pv_info_t>(arguments))),
+    std::min(Lumi::Constants::n_SciFi_counters, static_cast<unsigned>(size<dev_scifi_info_t>(arguments))),
+    std::min(Lumi::Constants::n_muon_counters, static_cast<unsigned>(size<dev_muon_info_t>(arguments))),
+    std::min(Lumi::Constants::n_calo_counters, static_cast<unsigned>(size<dev_calo_info_t>(arguments)))};
+  unsigned size_of_aggregate = lumiInfos.size();
+  for (unsigned i = 1u; i <= size_of_aggregate; ++i) {
+    if (infoSize[i - 1] == 0u) {
+      // move the items after the empty LumiInfo forward
+      // to replace the empty object
+      for (unsigned j = i; j < size_of_aggregate; ++j) {
+        lumiInfos[j - 1] = lumiInfos[j];
+        infoSize[j - 1] = infoSize[j];
+      }
+      i--;
+      size_of_aggregate--;
+    }
+  }
 
   global_function(make_lumi_summary)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, first<host_number_of_events_t>(arguments), size<dev_event_list_t>(arguments));
+    arguments,
+    first<host_number_of_events_t>(arguments),
+    size<dev_event_list_t>(arguments),
+    lumiInfos,
+    infoSize,
+    size_of_aggregate);
 
   Allen::copy_async(
     host_buffers.host_lumi_summary_offsets.get(),
@@ -63,8 +94,8 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
 }
 
 __device__ void make_lumi_summary::setField(
-  Allen::LumiCounterOffsets::counterOffset offset,
-  Allen::LumiCounterOffsets::counterOffset size,
+  LHCb::LumiSummaryOffsets::V2::counterOffsets offset,
+  LHCb::LumiSummaryOffsets::V2::counterOffsets size,
   unsigned* target,
   unsigned value)
 {
@@ -83,14 +114,17 @@ __device__ void make_lumi_summary::setField(
   }
 
   // Apply the value to the matching bits
-  unsigned mask = ((1 << size) - 1) << bitoffset;
+  unsigned mask = ((1l << size) - 1) << bitoffset;
   target[word] = (target[word] & ~mask) | ((value << bitoffset) & mask);
 }
 
 __global__ void make_lumi_summary::make_lumi_summary(
   make_lumi_summary::Parameters parameters,
   const unsigned number_of_events,
-  const unsigned number_of_events_passed_gec)
+  const unsigned number_of_events_passed_gec,
+  std::array<Lumi::LumiInfo*, 5> lumiInfos,
+  std::array<unsigned, 5> infoSize,
+  const unsigned size_of_aggregate)
 {
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
@@ -99,99 +133,61 @@ __global__ void make_lumi_summary::make_lumi_summary(
     // skip non-lumi event
     if (offset == parameters.dev_lumi_summary_offsets[event_number + 1]) continue;
 
-    const auto lumi_summary = parameters.dev_lumi_summaries + offset;
+    auto* lumi_summary = parameters.dev_lumi_summaries + offset;
+    lumi_summary[0] = parameters.key;
+
     /// ODIN information
     const LHCb::ODIN odin {parameters.dev_odin_data[event_number]};
     uint64_t new_bcid = static_cast<uint32_t>(odin.orbitNumber()) * 3564 + static_cast<uint16_t>(odin.bunchId());
-    uint64_t t0 = static_cast<uint64_t>(odin.gpsTime()) - new_bcid * 1000 / 40079;
+    uint64_t t0 = static_cast<uint64_t>(odin.gpsTime()) - new_bcid * 1000 / 40078;
     // event time
     setField(
-      Allen::LumiCounterOffsets::t0LowOffset,
-      Allen::LumiCounterOffsets::t0LowSize,
+      LHCb::LumiSummaryOffsets::V2::T0LowOffset,
+      LHCb::LumiSummaryOffsets::V2::T0LowSize,
       lumi_summary,
       static_cast<unsigned>(t0 & 0xffffffff));
     setField(
-      Allen::LumiCounterOffsets::t0HighOffset,
-      Allen::LumiCounterOffsets::t0HighSize,
+      LHCb::LumiSummaryOffsets::V2::T0HighOffset,
+      LHCb::LumiSummaryOffsets::V2::T0HighSize,
       lumi_summary,
       static_cast<unsigned>(t0 >> 32));
 
     // gps time offset
     setField(
-      Allen::LumiCounterOffsets::bcidLowOffset,
-      Allen::LumiCounterOffsets::bcidLowSize,
+      LHCb::LumiSummaryOffsets::V2::BCIDLowOffset,
+      LHCb::LumiSummaryOffsets::V2::BCIDLowSize,
       lumi_summary,
       static_cast<unsigned>(new_bcid & 0xffffffff));
     setField(
-      Allen::LumiCounterOffsets::bcidHighOffset,
-      Allen::LumiCounterOffsets::bcidHighSize,
+      LHCb::LumiSummaryOffsets::V2::BCIDHighOffset,
+      LHCb::LumiSummaryOffsets::V2::BCIDHighSize,
       lumi_summary,
       static_cast<unsigned>(new_bcid >> 32));
 
     // bunch crossing type
     setField(
-      Allen::LumiCounterOffsets::bxTypeOffset,
-      Allen::LumiCounterOffsets::bxTypeSize,
+      LHCb::LumiSummaryOffsets::V2::BXTypeOffset,
+      LHCb::LumiSummaryOffsets::V2::BXTypeSize,
       lumi_summary,
       static_cast<unsigned>(odin.bunchCrossingType()));
 
     /// gec counter
     for (unsigned i = 0; i < number_of_events_passed_gec; ++i) {
       if (parameters.dev_event_list[i] == event_number) {
-        setField(Allen::LumiCounterOffsets::GecOffset, Allen::LumiCounterOffsets::GecSize, lumi_summary, true);
+        setField(LHCb::LumiSummaryOffsets::V2::GECOffset, LHCb::LumiSummaryOffsets::V2::GECSize, lumi_summary, true);
         break;
       }
     }
 
-    /// Velo Counters
-    // number of Velo tracks
-    setField(
-      Allen::LumiCounterOffsets::VeloTracksOffset,
-      Allen::LumiCounterOffsets::VeloTracksSize,
-      lumi_summary,
-      parameters.dev_offsets_all_velo_tracks[event_number + 1] - parameters.dev_offsets_all_velo_tracks[event_number]);
-
-    // number of Velo verteces
-    setField(
-      Allen::LumiCounterOffsets::VeloVerticesOffset,
-      Allen::LumiCounterOffsets::VeloVerticesSize,
-      lumi_summary,
-      parameters.dev_number_of_pvs[event_number]);
-
-    /// SciFi Counters
-    setField(
-      Allen::LumiCounterOffsets::SciFiClustersOffset,
-      Allen::LumiCounterOffsets::SciFiClustersSize,
-      lumi_summary,
-      parameters.dev_scifi_hit_offsets[(event_number + 1) * SciFi::Constants::n_mat_groups_and_mats] -
-        parameters.dev_scifi_hit_offsets[event_number * SciFi::Constants::n_mat_groups_and_mats]);
-
-    /// muon Hits in different location
-    const auto muon_hits_offsets = parameters.dev_storage_station_region_quarter_offsets +
-                                   event_number * Muon::Constants::n_layouts * Muon::Constants::n_stations *
-                                     Muon::Constants::n_regions * Muon::Constants::n_quarters;
-    setField(
-      Allen::LumiCounterOffsets::M2R2Offset,
-      Allen::LumiCounterOffsets::M2R2Size,
-      lumi_summary,
-      muon_hits_offsets[Allen::LumiCounterOffsets::M2R3] - muon_hits_offsets[Allen::LumiCounterOffsets::M2R2]);
-
-    setField(
-      Allen::LumiCounterOffsets::M2R3Offset,
-      Allen::LumiCounterOffsets::M2R3Size,
-      lumi_summary,
-      muon_hits_offsets[Allen::LumiCounterOffsets::M2R4] - muon_hits_offsets[Allen::LumiCounterOffsets::M2R3]);
-
-    setField(
-      Allen::LumiCounterOffsets::M3R2Offset,
-      Allen::LumiCounterOffsets::M3R2Size,
-      lumi_summary,
-      muon_hits_offsets[Allen::LumiCounterOffsets::M3R3] - muon_hits_offsets[Allen::LumiCounterOffsets::M3R2]);
-
-    setField(
-      Allen::LumiCounterOffsets::M3R3Offset,
-      Allen::LumiCounterOffsets::M3R3Size,
-      lumi_summary,
-      muon_hits_offsets[Allen::LumiCounterOffsets::M3R4] - muon_hits_offsets[Allen::LumiCounterOffsets::M3R3]);
+    /// write lumi infos to the summary
+    for (unsigned i = 0; i < size_of_aggregate; ++i) {
+      if (infoSize[i] == 0 || lumiInfos[i] == nullptr) continue;
+      unsigned spanOffset = offset / Lumi::Constants::lumi_length * infoSize[i];
+      for (unsigned j = spanOffset;
+           j < parameters.dev_lumi_summary_offsets[event_number + 1] / Lumi::Constants::lumi_length * infoSize[i];
+           ++j) {
+        setField(lumiInfos[i][j].offset, lumiInfos[i][j].size, lumi_summary, lumiInfos[i][j].value);
+      }
+    }
   }
 }

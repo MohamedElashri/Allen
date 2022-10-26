@@ -5,7 +5,7 @@ from AllenCore.generator import make_algorithm
 from AllenCore.algorithms import (
     host_init_number_of_events_t, host_data_provider_t, host_scifi_gec_t,
     host_ut_gec_t, layout_provider_t, check_pvs_t, check_cyl_pvs_t,
-    low_occupancy_t, event_list_inversion_t)
+    low_occupancy_t, event_list_inversion_t, host_dummy_maker_t)
 from PyConf.tonic import configurable
 from PyConf.control_flow import NodeLogic, CompositeNode
 
@@ -195,3 +195,7 @@ def lowMult(velo_tracks, name='LowMult', minTracks=0, maxTracks=99999):
             "dev_offsets_velo_track_hit_number"],
         minTracks=minTracks,
         maxTracks=maxTracks)
+
+
+def make_dummy():
+    return make_algorithm(host_dummy_maker_t, name="host_dummy_maker")
