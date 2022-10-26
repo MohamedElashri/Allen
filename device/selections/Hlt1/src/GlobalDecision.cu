@@ -27,6 +27,8 @@ void global_decision::global_decision_t::operator()(
   global_function(global_decision)(grid_size, dim3(property<block_dim_x_t>().get()), context)(arguments);
 
   Allen::copy_async<host_global_decision_t, dev_global_decision_t>(arguments, context);
+
+  Allen::synchronize(context);
 }
 
 __global__ void global_decision::global_decision(global_decision::Parameters parameters)
