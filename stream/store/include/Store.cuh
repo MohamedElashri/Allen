@@ -211,6 +211,7 @@ namespace Allen::Store {
     void reset()
     {
       m_store.clear();
+      m_persistent_store_map.clear();
       free_all();
     }
 

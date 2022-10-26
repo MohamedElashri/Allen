@@ -40,7 +40,6 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
 #endif
 
   auto persistent_store = host_buffers_manager->get_persistent_store(buf_idx);
-  persistent_store->free_all();
 
   // The sequence is only run if there are events to run on
   auto event_start = std::get<0>(runtime_options.event_interval);
@@ -51,6 +50,7 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
     for (unsigned repetition = 0; repetition < runtime_options.number_of_repetitions; ++repetition) {
       // Free memory
       scheduler->free_all();
+      persistent_store->free_all();
 
       try {
         // Visit all algorithms in configured sequence
