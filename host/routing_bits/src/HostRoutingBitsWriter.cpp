@@ -21,9 +21,14 @@ void host_routingbits_writer::host_routingbits_writer_t::init()
   const auto name_to_id_map = m_name_to_id_map.get_value().get();
   const auto rb_map = m_routingbit_map.get_value().get();
   const auto nlines = name_to_id_map.size();
+  const auto last_bit = RoutingBitsDefinition::n_words * RoutingBitsDefinition::bits_size;
 
   // Find set of decisionIDs that match each routing bit
   for (auto const& [expr, bit] : rb_map) {
+    if (bit >= last_bit) {
+      throw StrException {std::string {"Routing bit defined outside of valid range [0,"} + std::to_string(last_bit) +
+                          "): " + std::to_string(bit) + " " + expr};
+    }
     std::regex rb_regex(expr);
     boost::dynamic_bitset<> rb_bitset(nlines);
     for (auto const& [name, id] : name_to_id_map) {
@@ -85,9 +90,9 @@ void host_routingbits_writer::host_routingbits_impl(
     // set routing bit based on set of decisionIDs that match it
     for (auto const& [bit, line_ids] : rb_ids) {
       auto rb_fired = line_ids.intersects(fired);
-      int word = bit / 32;
+      int word = bit / RoutingBitsDefinition::bits_size;
       if (rb_fired) {
-        bits[word] |= (0x01UL << (bit - 32 * word));
+        bits[word] |= (0x01UL << (bit - RoutingBitsDefinition::bits_size * word));
       }
     }
 
