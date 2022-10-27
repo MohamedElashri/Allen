@@ -18,8 +18,7 @@ INSTANTIATE_ALGORITHM(calo_lumi_counters::calo_lumi_counters_t)
 void calo_lumi_counters::calo_lumi_counters_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   // convert the size of lumi summaries to the size of velo counter infos
   set_size<dev_lumi_infos_t>(
@@ -31,7 +30,6 @@ void calo_lumi_counters::calo_lumi_counters_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   // do nothing if no lumi event

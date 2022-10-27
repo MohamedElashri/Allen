@@ -16,8 +16,7 @@ INSTANTIATE_ALGORITHM(muon_lumi_counters::muon_lumi_counters_t)
 void muon_lumi_counters::muon_lumi_counters_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   // convert the size of lumi summaries to the size of muon counter infos
   set_size<dev_lumi_infos_t>(
@@ -29,7 +28,6 @@ void muon_lumi_counters::muon_lumi_counters_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   // do nothing if no lumi event
