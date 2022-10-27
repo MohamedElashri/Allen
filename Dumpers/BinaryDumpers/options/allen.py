@@ -149,9 +149,17 @@ options.dddb_tag = dddb_tag
 options.conddb_tag = conddb_tag
 
 online_cond_path = '/group/online/hlt/conditions.run3/lhcb-conditions-database'
-if not args.simulation and not UseDD4Hep and os.path.exists(online_cond_path):
-    options.velo_motion_system_yaml = os.path.join(online_cond_path +
-                                                   '/Conditions/VP/Motion.yml')
+if not args.simulation:
+    if os.path.exists(online_cond_path):
+        if UseDD4Hep:
+            from Configurables import LHCb__Det__LbDD4hep__DD4hepSvc as DD4hepSvc
+            dd4hepSvc = DD4hepSvc()
+            dd4hepSvc.ConditionsLocation = 'file://' + online_cond_path
+        else:
+            from Configurables import XmlCnvSvc
+            XmlCnvSvc().OutputLevel = 5
+            options.velo_motion_system_yaml = os.path.join(
+                online_cond_path + '/Conditions/VP/Motion.yml')
     make_odin = allen_odin
 
 options.finalize()
@@ -210,14 +218,15 @@ config.add(
         Simulation=options.simulation,
         DataType=options.data_type,
         ConditionsVersion=options.conddb_tag))
-config.add(
-    setup_component(
-        'CondDB',
-        Upgrade=True,
-        Tags={
-            'DDDB': options.dddb_tag,
-            'SIMCOND': options.conddb_tag,
-        }))
+if not UseDD4Hep:
+    config.add(
+        setup_component(
+            'CondDB',
+            Upgrade=True,
+            Tags={
+                'DDDB': options.dddb_tag,
+                'SIMCOND': options.conddb_tag,
+            }))
 
 bank_types = configured_bank_types(args.sequence)
 cf_node = setup_allen_non_event_data_service(
