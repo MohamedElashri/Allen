@@ -68,7 +68,7 @@ void TestFTClusters::operator()(
     scifi_ids_allen.emplace_back(scifi_hits_allensoa.id(i));
 
   // HLT2: loop cluster hits and fill hit container
-  for (unsigned i {0}; i < PrFTInfo::NFTZones; ++i) {
+  for (unsigned i {0}; i < LHCb::Detector::FT::NFTZones; ++i) {
     for (int quarter = 0; quarter < 2; quarter++)
       for (auto const& clus : ft_lite_clusters.range(i * 2 + quarter)) {
         const auto ft_channel_id = clus.channelID();

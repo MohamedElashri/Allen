@@ -377,7 +377,7 @@ LHCb::RawEvent PrTrackerDumper::operator()(
   // SciFi
   map<const LHCb::MCParticle*, std::vector<PrHit>> FTHits_on_MCParticles;
   vector<PrHit> non_Assoc_FTHits;
-  for (unsigned int zone = 0; PrFTInfo::nbZones() > zone; ++zone) {
+  for (unsigned int zone = 0; LHCb::Detector::FT::nbZones() > zone; ++zone) {
     for (const auto& hit : prFTHitHandler.hits(zone)) {
       // get the LHCbID from the PrHit
       LHCb::LHCbID lhcbid = hit.id();
