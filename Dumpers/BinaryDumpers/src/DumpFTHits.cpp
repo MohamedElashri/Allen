@@ -52,7 +52,7 @@ void DumpFTHits::operator()(const LHCb::ODIN& odin, const PrFTHitHandler<PrHit>&
   auto scifi_hitPlaneCode = std::array<std::vector<int>, n_layers_scifi> {};
   auto scifi_hitZone = std::array<std::vector<int>, n_layers_scifi> {};
 
-  for (unsigned int zone = 0; PrFTInfo::nbZones() > zone; ++zone) {
+  for (unsigned int zone = 0; LHCb::Detector::FT::nbZones() > zone; ++zone) {
     for (const auto& hit : hitHandler.hits(zone)) {
       // get the LHCbID from the PrHit
       LHCb::LHCbID lhcbid = hit.id();
