@@ -5,7 +5,6 @@
 import os
 import sys
 import zmq
-import json
 from Configurables import ApplicationMgr
 from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
 
@@ -16,6 +15,7 @@ from Allen.config import (setup_allen_non_event_data_service, allen_odin,
                           configured_bank_types)
 from PyConf.application import (configure, setup_component, ComponentConfig,
                                 ApplicationOptions, make_odin)
+from GaudiKernel.Constants import ERROR
 from DDDB.CheckDD4Hep import UseDD4Hep
 from threading import Thread
 from time import sleep
@@ -157,7 +157,7 @@ if not args.simulation:
             dd4hepSvc.ConditionsLocation = 'file://' + online_cond_path
         else:
             from Configurables import XmlCnvSvc
-            XmlCnvSvc().OutputLevel = 5
+            XmlCnvSvc().OutputLevel = ERROR
             options.velo_motion_system_yaml = os.path.join(
                 online_cond_path + '/Conditions/VP/Motion.yml')
     make_odin = allen_odin
