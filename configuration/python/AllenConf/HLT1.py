@@ -473,7 +473,7 @@ def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
                 name="Hlt1BGIPseudoPVsIRBeamBeam",
                 beam_crossing_type=3,
                 pre_scaler=1.,
-                post_scaler=1.),
+                post_scaler=0.1),
             prefilter=prefilter + [velo_states_z_ir])
     ]
 
