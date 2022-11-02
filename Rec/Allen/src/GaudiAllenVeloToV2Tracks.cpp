@@ -104,7 +104,13 @@ std::vector<LHCb::Event::v2::Track> GaudiAllenVeloToV2Tracks::operator()(
     closesttobeam_state.setLocation(LHCb::State::Location::ClosestToBeam);
     newTrack.addToStates(closesttobeam_state);
 
-    newTrack.setType(LHCb::Event::v2::Track::Type::Velo); // CHECKME!!!
+    const bool backward = closesttobeam_state.z() > track_hits.z(0);
+
+    if (backward)
+      newTrack.setType(LHCb::Event::v2::Track::Type::VeloBackward);
+    else
+      newTrack.setType(LHCb::Event::v2::Track::Type::Velo);
+
     newTrack.setHistory(LHCb::Event::v2::Track::History::PrPixel);
     newTrack.setPatRecStatus(LHCb::Event::v2::Track::PatRecStatus::PatRecIDs);
     const int firstRow = newTrack.lhcbIDs()[0].channelID();
