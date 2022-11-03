@@ -1,5 +1,5 @@
 ###############################################################################
-# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+# (c) Copyright 2018-2022 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 
 # Interface library for lhcb includes
@@ -53,7 +53,7 @@ if (STANDALONE)
   target_compile_definitions(LHCbEvent INTERFACE ODIN_WITHOUT_GAUDI)
 else()
   target_link_libraries(mdf PUBLIC Boost::filesystem Boost::thread Boost::regex)
-  target_link_libraries(LHCbEvent INTERFACE Gaudi::GaudiKernel LHCb::DAQEventLib)
+  target_link_libraries(LHCbEvent INTERFACE Gaudi::GaudiKernel LHCb::DAQEventLib LHCb::LumiEventLib)
 endif()
 
 set_property(TARGET LHCbEvent PROPERTY PUBLIC_HEADER ${lhcb_public_headers})
