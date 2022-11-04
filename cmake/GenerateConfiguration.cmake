@@ -23,23 +23,6 @@ file(MAKE_DIRECTORY ${ALLEN_PARSER_DIR})
 file(MAKE_DIRECTORY ${ALLEN_GENERATED_INCLUDE_FILES_DIR})
 file(MAKE_DIRECTORY ${ALLEN_ALGORITHMS_DIR})
 
-get_target_property(LIBCLANG_LIBDIR libclang IMPORTED_LOCATION_RELEASE)
-get_filename_component(LIBCLANG_LIBDIR "${LIBCLANG_LIBDIR}" PATH)
-
-if(NOT LIBCLANG_LIBDIR)
-  if(EXISTS /cvmfs/sft.cern.ch)
-    # As a last resort, try a hard-coded directory in cvmfs
-    set(LIBCLANG_LIBDIR /cvmfs/lhcb.cern.ch/lib/lcg/releases/clang/12.0.0/x86_64-centos7/lib)
-    set(LIBCLANG_ALTERNATIVE_FOUND ON)
-    message(AUTHOR_WARNING "Using predefined CVMFS libclang directory")
-  else()
-    message(FATAL_ERROR "No suitable libClang installation found. "
-                        "You may provide a custom path by setting LIBCLANG_LIBDIR manually")
-  endif()
-endif()
-
-message(STATUS "Found libclang at ${LIBCLANG_LIBDIR}")
-
 # We will invoke the parser a few times, set its required environment in a variable
 set(PARSER_ENV PYTHONPATH=$ENV{PYTHONPATH}:${PROJECT_SOURCE_DIR}/scripts LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH})
 
