@@ -113,7 +113,7 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
   find_package(Catch2 REQUIRED)
 
   # Find libClang, required for parsing the Allen codebase
-  find_package(Clang REQUIRED)
+  find_package(Clang)
   if (TARGET libclang)
     get_target_property(LIBCLANG_LIBDIR libclang IMPORTED_LOCATION_RELEASE)
     get_filename_component(LIBCLANG_LIBDIR "${LIBCLANG_LIBDIR}" PATH)
