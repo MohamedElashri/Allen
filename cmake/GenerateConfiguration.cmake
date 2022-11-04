@@ -23,26 +23,18 @@ file(MAKE_DIRECTORY ${ALLEN_PARSER_DIR})
 file(MAKE_DIRECTORY ${ALLEN_GENERATED_INCLUDE_FILES_DIR})
 file(MAKE_DIRECTORY ${ALLEN_ALGORITHMS_DIR})
 
-set(MINIMUM_REQUIRED_LIBCLANG_VERSION 9)
-if(LIBCLANG_FOUND AND "${LIBCLANG_MAJOR_VERSION}" LESS ${MINIMUM_REQUIRED_LIBCLANG_VERSION})
-  message(STATUS "libClang version found (${LIBCLANG_VERSION}) does not meet minimum version requirement (${MINIMUM_REQUIRED_LIBCLANG_VERSION})")
-endif()
+get_target_property(LIBCLANG_LIBDIR libclang IMPORTED_LOCATION_RELEASE)
+get_filename_component(LIBCLANG_LIBDIR "${LIBCLANG_LIBDIR}" PATH)
 
-if(NOT LIBCLANG_FOUND OR "${LIBCLANG_MAJOR_VERSION}" LESS ${MINIMUM_REQUIRED_LIBCLANG_VERSION})
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    # In macOS, libClang typically exists even if llvm-config does not exist.
-    # Attempt default directory
-    set(LIBCLANG_LIBDIR /Library/Developer/CommandLineTools/usr/lib)
+if(NOT LIBCLANG_LIBDIR)
+  if(EXISTS /cvmfs/sft.cern.ch)
+    # As a last resort, try a hard-coded directory in cvmfs
+    set(LIBCLANG_LIBDIR /cvmfs/lhcb.cern.ch/lib/lcg/releases/clang/12.0.0/x86_64-centos7/lib)
     set(LIBCLANG_ALTERNATIVE_FOUND ON)
-    message(STATUS "Using predefined macos libclang directory")
-  elseif(EXISTS /cvmfs/sft.cern.ch)
-    # As a last resource, try a hard-coded directory in cvmfs
-    set(LIBCLANG_LIBDIR /cvmfs/sft.cern.ch/lcg/releases/clang/11.1.0-b24ba/x86_64-centos7/lib)
-    set(LIBCLANG_ALTERNATIVE_FOUND ON)
-    message(STATUS "Using predefined CVMFS libclang directory")
+    message(AUTHOR_WARNING "Using predefined CVMFS libclang directory")
   else()
     message(FATAL_ERROR "No suitable libClang installation found. "
-                        "You may provide a custom path to llvm-config by setting LLVM_CONFIG manually")
+                        "You may provide a custom path by setting LIBCLANG_LIBDIR manually")
   endif()
 endif()
 
