@@ -113,7 +113,9 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
   find_package(Catch2 REQUIRED)
 
   # Find libClang, required for parsing the Allen codebase
-  find_package(LibClang QUIET)
+  find_package(Clang)
+  # ClangCofnig.cmake doesn't set a version, so find LLVM with a minimum version
+  find_package(LLVM 9 QUIET)
 
   # https://github.com/nlohmann/json
   find_package(nlohmann_json REQUIRED)
