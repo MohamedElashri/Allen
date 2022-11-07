@@ -53,8 +53,9 @@ dec_seq.Members = [
 setup_allen_non_event_data_service(dump_binaries=True)
 
 # Dump raw banks and UT, FT and muon hits
-transpose_banks = TransposeRawBanks(
-    BankTypes=["VP", "VPRetinaCluster", "UT", "FTCluster", "Muon", "ODIN"])
+transpose_banks = TransposeRawBanks(BankTypes=[
+    "VP", "VPRetinaCluster", "UT", "FTCluster", "Muon", "ODIN", "Plume"
+])
 dump_banks = DumpRawBanks()
 dump_ut = DumpUTHits()
 dump_ft = DumpFTHits()
