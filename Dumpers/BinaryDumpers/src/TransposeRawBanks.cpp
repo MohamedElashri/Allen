@@ -1,3 +1,5 @@
+
+
 /*****************************************************************************\
 * (c) Copyright 2000-2021 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
@@ -69,7 +71,8 @@ private:
                                                                    LHCb::RawBank::EcalPacked,
                                                                    LHCb::RawBank::Calo,
                                                                    LHCb::RawBank::Muon,
-                                                                   LHCb::RawBank::ODIN}};
+                                                                   LHCb::RawBank::ODIN,
+                                                                   LHCb::RawBank::Plume}};
 
   std::array<AIDA::IHistogram1D*, LHCb::RawBank::types().size()> m_histos;
 };

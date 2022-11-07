@@ -22,7 +22,8 @@ namespace Allen {
     {LHCb::RawBank::EcalPacked, BankTypes::ECal},
     {LHCb::RawBank::Calo, BankTypes::ECal},
     {LHCb::RawBank::OTError, BankTypes::MCVertices}, // used for PV MC info
-    {LHCb::RawBank::OTRaw, BankTypes::MCTracks}};    // used for track MC info
+    {LHCb::RawBank::OTRaw, BankTypes::MCTracks},
+    {LHCb::RawBank::Plume, BankTypes::Plume}}; // used for track MC info
 
   const std::unordered_map<SourceIdSys, BankTypes> subdetectors = {{SourceIdSys::SourceIdSys_ODIN, BankTypes::ODIN},
                                                                    {SourceIdSys::SourceIdSys_VELO_A, BankTypes::VP},
@@ -36,7 +37,8 @@ namespace Allen {
                                                                    {SourceIdSys::SourceIdSys_MUON_A, BankTypes::MUON},
                                                                    {SourceIdSys::SourceIdSys_MUON_C, BankTypes::MUON},
                                                                    {SourceIdSys::SourceIdSys_HCAL, BankTypes::HCal},
-                                                                   {SourceIdSys::SourceIdSys_ECAL, BankTypes::ECal}};
+                                                                   {SourceIdSys::SourceIdSys_ECAL, BankTypes::ECal},
+                                                                   {SourceIdSys::SourceIdSys_PLUME, BankTypes::Plume}};
 
   const unsigned NSourceIdSys = to_integral(SourceIdSys::SourceIdSys_TDET) + 1;
 } // namespace Allen

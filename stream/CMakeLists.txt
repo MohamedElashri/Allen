@@ -44,6 +44,7 @@ target_link_libraries(Stream
     algorithm_db
     HostDummyMaker
     Lumi
+    Plume
   PUBLIC
     Utils
     Selections)

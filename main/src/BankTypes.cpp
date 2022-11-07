@@ -19,6 +19,7 @@ namespace {
                                                       {"Rich2", BankTypes::Rich2},
                                                       {"HCal", BankTypes::HCal},
                                                       {"ECal", BankTypes::ECal},
+                                                      {"Plume", BankTypes::Plume},
                                                       {"tracks", BankTypes::MCTracks},
                                                       {"PVs", BankTypes::MCVertices}};
 }
