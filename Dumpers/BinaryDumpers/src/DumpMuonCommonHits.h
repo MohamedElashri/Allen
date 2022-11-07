@@ -13,7 +13,7 @@
 #include "Event/ODIN.h"
 #include "GaudiAlg/Consumer.h"
 #include "MuonDAQ/CommonMuonHit.h"
-#include "MuonDAQ/MuonHitContainer.h"
+#include "Event/PrHits.h"
 #include "MuonDet/DeMuonDetector.h"
 
 /** @class DumpMuonCommonHits DumpMuonCommonHits.h
