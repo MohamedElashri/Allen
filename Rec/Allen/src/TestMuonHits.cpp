@@ -5,7 +5,7 @@
 #include "GaudiAlg/Consumer.h"
 
 // LHCb
-#include "MuonDAQ/MuonHitContainer.h"
+#include "Event/PrHits.h"
 
 // Allen
 #include "MuonEventModel.cuh"

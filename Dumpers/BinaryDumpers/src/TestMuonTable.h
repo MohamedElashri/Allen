@@ -14,7 +14,7 @@
 #include <Event/MuonCoord.h>
 #include <Event/ODIN.h>
 #include <MuonDet/DeMuonDetector.h>
-#include "MuonDAQ/MuonHitContainer.h"
+#include "Event/PrHits.h"
 #include <DetDesc/GenericConditionAccessorHolder.h>
 #include "LHCbAlgs/Consumer.h"
 #include "MuonDet/MuonNamespace.h"
