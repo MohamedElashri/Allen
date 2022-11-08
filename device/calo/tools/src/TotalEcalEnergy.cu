@@ -56,8 +56,13 @@ __global__ void total_ecal_energy::sum_ecal_energy(
 
   if (threadIdx.x == 0) {
     float e_sum = 0.f;
-    for (unsigned digit_index = 0; digit_index < n_digits; digit_index++)
+    for (unsigned digit_index = 0; digit_index < n_digits; digit_index++) {
+      // check the digits
+      if (digits[digit_index].adc < 0. || !digits[digit_index].is_valid()) {
+        continue;
+      }
       e_sum += event_ecal_digits_e[digit_index];
+    }
     parameters.dev_total_ecal_e[event_number] = e_sum;
   }
 }
