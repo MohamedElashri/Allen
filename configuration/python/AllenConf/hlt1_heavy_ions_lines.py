@@ -30,7 +30,7 @@ def make_heavy_ion_event_line(velo_tracks,
                               min_ecal_e=0.,
                               max_ecal_e=-1.,
                               name="Hlt1HeavyIon",
-                              pre_scaler = 1.):
+                              pre_scaler=1.):
 
     velo_states = run_velo_kalman_filter(velo_tracks)
     number_of_events = initialize_number_of_events()
@@ -59,4 +59,4 @@ def make_heavy_ion_event_line(velo_tracks,
         max_pvs_SMOG=max_pvs_SMOG,
         min_ecal_e=min_ecal_e,
         max_ecal_e=max_ecal_e,
-        pre_scaler = pre_scaler)
+        pre_scaler=pre_scaler)

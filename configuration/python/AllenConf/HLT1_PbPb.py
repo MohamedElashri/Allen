@@ -22,7 +22,8 @@ def make_line_composite_node_with_gec(line_name,
                                       line_algorithm,
                                       gec_name="gec"):
     return CompositeNode(
-        line_name, [make_gec(max_scifi_clusters=30000,count_ut=False), line_algorithm],
+        line_name,
+        [make_gec(max_scifi_clusters=30000, count_ut=False), line_algorithm],
         NodeLogic.LAZY_AND,
         force_order=True)
 
@@ -125,7 +126,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
                 name="Hlt1GECPassthrough",
                 pre_scaler_hash_string="passthrough_with_gec_line_pre",
                 post_scaler_hash_string="passthrough_with_gec_line_post",
-                pre_scaler = 1.)))
+                pre_scaler=1.)))
 
     lines.append(
         line_maker(
@@ -139,7 +140,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
                 min_pvs_PbPb=1,
                 max_pvs_SMOG=0,
                 calo_decoding=calo_decoding,
-                pre_scaler = 0.1),
+                pre_scaler=0.1),
             enableGEC=False))
 
     lines.append(
@@ -162,7 +163,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
             "Hlt1PbSMOGMB",
             make_heavy_ion_event_line(
                 name="Hlt1PbSMOGMicroBias",
-                pre_scaler_hash_string ="PbSMOGMicroBias_line_pre",
+                pre_scaler_hash_string="PbSMOGMicroBias_line_pre",
                 post_scaler_hash_string="PbSMOGMicroBias_line_post",
                 velo_tracks=velo_tracks,
                 pvs=pvs,
@@ -176,7 +177,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
             "Hlt1PbSMOGMBOneTrack",
             make_heavy_ion_event_line(
                 name="Hlt1PbSMOGMBOneTrack",
-                pre_scaler_hash_string ="PbSMOGOneTrack_line_pre",
+                pre_scaler_hash_string="PbSMOGOneTrack_line_pre",
                 post_scaler_hash_string="PbSMOGOneTrack_line_post",
                 velo_tracks=velo_tracks,
                 pvs=pvs,
@@ -191,7 +192,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
             "Hlt1PbPbPeriph",
             make_heavy_ion_event_line(
                 name="Hlt1HeavyIonPbPbPeripheral",
-                pre_scaler_hash_string ="PbPbPeripheral_line_pre",
+                pre_scaler_hash_string="PbPbPeripheral_line_pre",
                 post_scaler_hash_string="PbPbPeripheral_line_post",
                 velo_tracks=velo_tracks,
                 pvs=pvs,
@@ -207,7 +208,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
             "Hlt1PbPbCent",
             make_heavy_ion_event_line(
                 name="Hlt1HeavyIonPbPbCentral",
-                pre_scaler_hash_string ="PbPbCentral_line_pre",
+                pre_scaler_hash_string="PbPbCentral_line_pre",
                 post_scaler_hash_string="PbPbCentral_line_post",
                 velo_tracks=velo_tracks,
                 pvs=pvs,
@@ -222,7 +223,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
             "Hlt1PbPbUPCMB",
             make_heavy_ion_event_line(
                 name="Hlt1HeavyIonPbPbUPCMB",
-                pre_scaler_hash_string ="PbPbUPCMB_line_pre",
+                pre_scaler_hash_string="PbPbUPCMB_line_pre",
                 post_scaler_hash_string="PbPbUPCMB_line_post",
                 velo_tracks=velo_tracks,
                 pvs=pvs,
@@ -236,7 +237,10 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
     return lines
 
 
-def setup_hlt1_node(withMCChecking=False, EnableGEC=True, with_lumi=True, with_odin_filter=True):
+def setup_hlt1_node(withMCChecking=False,
+                    EnableGEC=True,
+                    with_lumi=True,
+                    with_odin_filter=True):
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction()
     calo_decoding = decode_calo()
@@ -255,8 +259,6 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, with_lumi=True, with_o
     lines = CompositeNode(
         "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
-
-
     hlt1_node = CompositeNode(
         "Allen", [
             lines,
@@ -274,7 +276,7 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True, with_lumi=True, with_o
     if with_lumi:
 
         odin_err_filter = [odin_error_filter("odin_error_filter")
-                       ] if with_odin_filter else []
+                           ] if with_odin_filter else []
 
         gather_selections = make_gather_selections(lines=line_algorithms)
         lumiline_name = "Hlt1ODINLumi"
