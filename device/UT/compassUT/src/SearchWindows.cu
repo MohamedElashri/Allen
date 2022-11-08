@@ -174,7 +174,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   int index = static_cast<int>(absSlopeY * 100 + 0.5f);
   // assert(3 + 4 * index < UTMagnetTool::N_dxLay_vals);
   if (3 + 4 * index >= UTMagnetTool::N_dxLay_vals) {
-    index = 2 + 4 * index;
+    index = (UTMagnetTool::N_dxLay_vals - 3) / 4 - 1;
   }
   const float normFact[4] {
     fudge_factors[4 * index], fudge_factors[1 + 4 * index], fudge_factors[2 + 4 * index], fudge_factors[3 + 4 * index]};
