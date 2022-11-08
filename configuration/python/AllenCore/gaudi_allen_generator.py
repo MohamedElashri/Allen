@@ -27,7 +27,19 @@ def make_transposed_raw_banks(rawbank_list, make_raw=default_raw_event):
         BankTypes=rawbank_list).AllenRawInput
 
 
-def get_runtime_options(rawbank_list):
+@configurable
+def allen_runtime_options(rawbank_list, filename="allen_monitor.root"):
+    from Configurables import AllenROOTService
+    rootService = AllenROOTService()
+    prop = "MonitorFile"
+    value = rootService.getProp(prop)
+    if rootService.isPropertySet(prop) and value != filename:
+        raise AttributeError(
+            f"Attempt to set monitoring filename to {filename} after it has already been set to {value}"
+        )
+    elif not rootService.isPropertySet(prop):
+        rootService.MonitorFile = filename
+
     return ProvideRuntimeOptions(
         AllenBanksLocation=make_transposed_raw_banks(
             rawbank_list=rawbank_list))
@@ -52,7 +64,7 @@ def make_algorithm(algorithm, name, *args, **kwargs):
     elif bank_type:
         rawbank_list = [bank_type]
 
-    rto = get_runtime_options(rawbank_list)
+    rto = allen_runtime_options(rawbank_list)
     cs = get_constants()
 
     dev_event_list = host_init_event_list_t(

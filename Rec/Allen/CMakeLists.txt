@@ -24,6 +24,7 @@ gaudi_add_module(AllenWrapper
                    src/GaudiAllenSVsToRecVertexV2.cpp
                    src/GaudiAllenVeloToV2Tracks.cpp
                    src/ProvideConstants.cpp
+                   src/AllenROOTService.cpp
                    src/ProvideRuntimeOptions.cpp
                    src/TestAllenCaloDigits.cpp
                    src/TestMuonHits.cpp
@@ -32,24 +33,24 @@ gaudi_add_module(AllenWrapper
                    src/TestVeloClusters.cpp
                  LINK
                    AllenLib
-		   Backend
-    		   Stream
-   		   HostCommon
-   		   HostEventModel
-   		   HostRoutingBits
-    		   NonEventData
-    		   TrackChecking
-    		   PVChecking
-    		   CheckClustering
-    		   SelChecking
-    		   Monitoring
-    		   HostCombiners
-    		   EventModel
-    		   Gear
-    		   mdf
-    		   LHCbEvent
+                   Backend
+                   Stream
+                   HostCommon
+                   HostEventModel
+                   HostRoutingBits
+                   NonEventData
+                   TrackChecking
+                   PVChecking
+                   CheckClustering
+                   SelChecking
+                   Monitoring
+                   HostCombiners
                    EventModel
-		   MuonCommon
+                   Gear
+                   mdf
+                   LHCbEvent
+                   EventModel
+                   MuonCommon
                    EventModel
                    Gear
                    Gaudi::GaudiAlgLib

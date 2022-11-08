@@ -14,10 +14,10 @@
 #include <GaudiAlg/Transformer.h>
 #include <Event/RawBank.h>
 #include <RuntimeOptions.h>
+#include "AllenROOTService.h"
 
 // Allen
 #include <TESProvider.h>
-#include <ROOTService.h>
 #include <Constants.cuh>
 #include <Logger.h>
 
@@ -34,9 +34,7 @@ public:
   RuntimeOptions operator()(std::array<TransposedBanks, LHCb::RawBank::LastType> const& allen_banks) const override;
 
 private:
-  Gaudi::Property<std::string> m_monitorFile {this, "MonitorFile", "allen_monitor.root"};
-
-  std::unique_ptr<ROOTService> m_root_service {};
+  SmartIF<AllenROOTService> m_rootService;
 };
 
 ProvideRuntimeOptions::ProvideRuntimeOptions(const std::string& name, ISvcLocator* pSvcLocator) :
@@ -51,8 +49,10 @@ ProvideRuntimeOptions::ProvideRuntimeOptions(const std::string& name, ISvcLocato
 
 StatusCode ProvideRuntimeOptions::initialize()
 {
-  return Transformer::initialize().andThen(
-    [&] { m_root_service = std::make_unique<ROOTService>(m_monitorFile.value()); });
+  return Transformer::initialize().andThen([&] {
+    m_rootService = svc<AllenROOTService>("AllenROOTService", true);
+    return m_rootService.isValid();
+  });
 }
 
 RuntimeOptions ProvideRuntimeOptions::operator()(
@@ -78,7 +78,7 @@ RuntimeOptions ProvideRuntimeOptions::operator()(
           mep_layout,
           param_inject_mem_fail,
           nullptr,
-          m_root_service.get()};
+          m_rootService->rootService()};
 }
 
 DECLARE_COMPONENT(ProvideRuntimeOptions)
