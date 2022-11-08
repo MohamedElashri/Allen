@@ -10,9 +10,11 @@ from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.validators import rate_validation
 from AllenCore.generator import make_algorithm
 from PyConf.control_flow import NodeLogic, CompositeNode
+from AllenConf.odin import odin_error_filter
 from PyConf.tonic import configurable
 from AllenConf.odin import decode_odin
 from AllenConf.persistency import make_gather_selections, make_global_decision, make_sel_report_writer
+from AllenConf.lumi_reconstruction import lumi_reconstruction
 
 
 # Helper function to make composite nodes with the gec
@@ -113,8 +115,7 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
                 velo_states,
                 pre_scaler_hash_string="no_beam_line_pre",
                 post_scaler_hash_string="no_beam_line_post",
-                beam_crossing_type=1,
-                pre_scaler = 1.),
+                beam_crossing_type=1),
             enableGEC=True))
 
     lines.append(
@@ -137,7 +138,6 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
                 pvs=pvs,
                 min_pvs_PbPb=1,
                 max_pvs_SMOG=0,
-                pre_scaler = 1,
                 calo_decoding=calo_decoding,
                 pre_scaler = 0.1),
             enableGEC=False))
@@ -236,9 +236,9 @@ def default_lines(velo_tracks, forward_tracks, long_track_particles,
     return lines
 
 
-def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
+def setup_hlt1_node(withMCChecking=False, EnableGEC=True, with_lumi=True, with_odin_filter=True):
     # Reconstruct objects needed as input for selection lines
-    reconstructed_objects = hlt1_reconstruction(add_electron_id=True)
+    reconstructed_objects = hlt1_reconstruction()
     calo_decoding = decode_calo()
 
     lines = default_lines(reconstructed_objects["velo_tracks"],
@@ -255,6 +255,8 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
     lines = CompositeNode(
         "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
+
+
     hlt1_node = CompositeNode(
         "Allen", [
             lines,
@@ -268,6 +270,34 @@ def setup_hlt1_node(withMCChecking=False, EnableGEC=True):
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)
+
+    if with_lumi:
+
+        odin_err_filter = [odin_error_filter("odin_error_filter")
+                       ] if with_odin_filter else []
+
+        gather_selections = make_gather_selections(lines=line_algorithms)
+        lumiline_name = "Hlt1ODINLumi"
+
+        lumi_node = CompositeNode(
+            "AllenLumiNode",
+            lumi_reconstruction(
+                gather_selections=gather_selections,
+                lines=line_algorithms,
+                lumiline_name=lumiline_name)["algorithms"],
+            NodeLogic.NONLAZY_AND,
+            force_order=False)
+
+        lumi_with_prefilter = CompositeNode(
+            "LumiWithPrefilter",
+            odin_err_filter + [lumi_node],
+            NodeLogic.LAZY_AND,
+            force_order=True)
+
+        hlt1_node = CompositeNode(
+            "AllenWithLumi", [hlt1_node, lumi_with_prefilter],
+            NodeLogic.NONLAZY_AND,
+            force_order=False)
 
     if not withMCChecking:
         return hlt1_node

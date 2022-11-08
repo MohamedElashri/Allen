@@ -8,7 +8,7 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenAlgorithms.algorithms import heavy_ion_event_line_t
+from AllenCore.algorithms import heavy_ion_event_line_t
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
