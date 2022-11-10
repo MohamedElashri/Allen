@@ -32,6 +32,9 @@ void make_subbanks::make_subbanks_t::operator()(
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_rb_substr_t>(arguments, 0, context);
+  Allen::memset_async<dev_rb_hits_t>(arguments, 0, context);
+  Allen::memset_async<dev_rb_stdinfo_t>(arguments, 0, context);
+  Allen::memset_async<dev_rb_objtyp_t>(arguments, 0, context);
   global_function(make_rb_substr)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments));
 
@@ -45,6 +48,9 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
 
+    const unsigned n_sels = parameters.dev_sel_count[event_number];
+    if (n_sels == 0) continue;
+
     unsigned* event_rb_substr = parameters.dev_rb_substr + parameters.dev_rb_substr_offsets[event_number];
     const unsigned event_rb_substr_size =
       parameters.dev_rb_substr_offsets[event_number + 1] - parameters.dev_rb_substr_offsets[event_number];
@@ -54,7 +60,6 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
     const unsigned selected_object_offset = n_children * line_object_offsets[0];
     const unsigned n_tracks = parameters.dev_unique_track_count[event_number];
     const unsigned n_svs = parameters.dev_unique_sv_count[event_number];
-    const unsigned n_sels = parameters.dev_sel_count[event_number];
 
     const unsigned sels_start_short = 2;
     const unsigned svs_start_short = sels_start_short + parameters.dev_substr_sel_size[event_number];
