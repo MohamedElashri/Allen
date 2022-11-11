@@ -42,7 +42,7 @@ config:
 minimal:
   - type: "throughput"
     sequence: "hlt1_pp_default"
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
 
   - type: "efficiency"
     sequence: "hlt1_pp_validation"
@@ -53,7 +53,7 @@ minimal:
   #   sequence: 
   #     - "hlt1_pp_validation"
   #     - "hlt1_pp_matching_validation"
-  #   dataset: "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1"
+  #   dataset: "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1_newLHCbID"
   #   disable_run_changes: ["1"] # TODO FIXME Fix disable-run-changes 0 case!!!
   #   timeout: 600
   #   allowed_devices:
@@ -65,7 +65,7 @@ full:
     sequence:
       - hlt1_pp_default
       - hlt1_pp_matching
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
     build_options: BUILD_TESTING+ENABLE_CONTRACTS
     throughput_report: false # don't publish throughput report
 
@@ -75,7 +75,7 @@ full:
       - hlt1_pp_no_gec
       - hlt1_pp_no_gec_no_ut
       - hlt1_pp_SMOG2_default
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
 
   # run throughput, default, SMOG2_pppHe
   - type: "throughput"
@@ -83,20 +83,20 @@ full:
       - hlt1_pp_default
       - hlt1_pp_matching
       - hlt1_pp_SMOG2_default
-    dataset: "SMOG2_pppHe_retinacluster_v1"
+    dataset: "SMOG2_pppHe_retinacluster_v1_newLHCbID"
     geometry: "SMOG2_pppHe"
 
   # Allen clustering jobs
   - type: "throughput"
     sequence: "hlt1_pp_veloSP"
-    dataset: "upgrade_mc_minbias_scifi_v5_000"
+    dataset: "upgrade_mc_minbias_scifi_v5_000_newLHCbID"
 
   # run throughput, scifi_v6
   - type: "throughput"
     sequence: 
       - hlt1_pp_default
       - hlt1_pp_matching
-    dataset: "SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1"
+    dataset: "SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1_newLHCbID"
     geometry: "upgrade_DC19_01_MinBiasMD"
 
   # run throughput, calov4
@@ -124,7 +124,7 @@ full:
     sequence: 
       - hlt1_pp_default
       - hlt1_pp_matching
-    dataset: "upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1"
+    dataset: "upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1_newLHCbID_newLHCbID"
     geometry: "upgrade-magdown-sim10-up08-11102202-digi"
 
   # run throughput, forward no ut, matching
@@ -132,13 +132,13 @@ full:
     sequence: 
       - hlt1_pp_matching
       - hlt1_pp_no_ut
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
 
   # Efficiency tests
 
   - type: "efficiency"
     sequence: "hlt1_pp_SMOG2_validation"
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
 
   - type: "run_built_tests"
     lcg_opt:
@@ -153,7 +153,7 @@ full:
       - hlt1_pp_validation
       - hlt1_pp_no_ut_validation
       - hlt1_pp_matching_validation
-    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1"
+    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID"
     geometry: "upgrade_DC19_01_MinBiasMD"
 
   # efficiency tests, SMOG2 pHe
@@ -162,10 +162,10 @@ full:
       - hlt1_pp_validation
       - hlt1_pp_SMOG2_validation
       - hlt1_pp_matching_validation
-    dataset: "SMOG2_pHe_5k_retinacluster_v1"
+    dataset: "SMOG2_pHe_5k_retinacluster_v1_newLHCbID"
     geometry: "SMOG2_pppHe"
 
   - type: "efficiency"
     sequence: "hlt1_pp_veloSP_validation"
-    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k"
+    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k_newLHCbID"
     geometry: "upgrade_DC19_01_MinBiasMD"
