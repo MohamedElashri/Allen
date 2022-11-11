@@ -16,7 +16,6 @@ variables:
   LCG_OPTIMIZATION: "opt"
 
   LB_NIGHTLY_SLOT: lhcb-head
-  BINARY_TAG: x86_64_v2-centos7-gcc11-opt # FIXME remove if not needed
   NO_LBLOGIN: "1" # prevent lbdocker containers to start LbLogin/LbEnv
 
   AVG_THROUGHPUT_DECREASE_THRESHOLD: "-2.5" # (%); fail throughput check if averaged throughput % change falls below -2.5%
@@ -105,8 +104,6 @@ pages:
   script:
     - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
     # use nightly build for python environment, needed for API reference of python selection functions
-    # if today's nightly build does not exist, use yesterday's
-    - nightly_installation_path="/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/latest/Allen/InstallArea/"$BINARY_TAG
     - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
     - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
     - mv doc/_build/html public
@@ -137,8 +134,6 @@ test_pages:
   script:
     - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
     # use nightly build for python environment, needed for API reference of python selection functions
-    # if today's nightly build does not exist, use yesterday's
-    - nightly_installation_path="/cvmfs/lhcbdev.cern.ch/nightlies/lhcb-head/latest/Allen/InstallArea/"$BINARY_TAG
     - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
     - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
     - mv doc/_build/html test
