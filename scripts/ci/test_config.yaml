@@ -46,7 +46,7 @@ minimal:
 
   - type: "efficiency"
     sequence: "hlt1_pp_validation"
-    dataset: "Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1"
+    dataset: "Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1_newLHCbID"
 
   # FIXME run_changes needs re-adding
   # - type: "run_changes"
@@ -124,7 +124,7 @@ full:
     sequence: 
       - hlt1_pp_default
       - hlt1_pp_matching
-    dataset: "upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1_newLHCbID_newLHCbID"
+    dataset: "upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1_newLHCbID"
     geometry: "upgrade-magdown-sim10-up08-11102202-digi"
 
   # run throughput, forward no ut, matching
