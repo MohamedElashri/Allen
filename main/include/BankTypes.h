@@ -14,7 +14,7 @@
 #include "nlohmann/json.hpp"
 #include "Common.h"
 
-constexpr auto NBankTypes = 11;
+constexpr auto NBankTypes = 12;
 enum class BankTypes { VP, UT, FT, MUON, ODIN, MCTracks, MCVertices, Rich1, Rich2, ECal, Plume, HCal, Unknown };
 
 // Average size of all raw banks of a given type per
