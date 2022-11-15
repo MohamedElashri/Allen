@@ -26,7 +26,7 @@ heavy_ion_event_line::heavy_ion_event_line_t::get_input(
   for (unsigned i_track = 0; i_track < velo_tracks.size(); i_track++) {
     const auto velo_track = velo_tracks.track(i_track);
     const auto velo_state = velo_track.state(velo_states);
-    if (velo_state.z() < -300.f)
+    if (velo_state.z() < -341.f)
       n_velo_tracks_SMOG++;
     else
       n_velo_tracks_PbPb++;
@@ -39,7 +39,7 @@ heavy_ion_event_line::heavy_ion_event_line_t::get_input(
                                              parameters.dev_number_of_pvs[event_number]};
   for (unsigned i_vrt = 0; i_vrt < pvs.size(); i_vrt++) {
     const auto pv = pvs[i_vrt];
-    if (pv.position.z < -300.f)
+    if (pv.position.z < -341.f)
       n_pvs_SMOG++;
     else
       n_pvs_PbPb++;
