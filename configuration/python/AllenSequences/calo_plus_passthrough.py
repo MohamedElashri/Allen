@@ -25,10 +25,7 @@ with line_maker.bind(prefilter=prefilters):
     lines.append(
         line_maker(
             make_single_calo_cluster_line(
-                ecal_clusters,
-                name="Hlt1SingleCaloCluster",
-                minEt=400
-            )))
+                ecal_clusters, name="Hlt1SingleCaloCluster", minEt=400)))
     lines.append(line_maker(make_passthrough_line()))
     lines.append(
         line_maker(
