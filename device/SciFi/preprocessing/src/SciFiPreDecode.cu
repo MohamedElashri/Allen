@@ -260,7 +260,7 @@ void scifi_pre_decode::scifi_pre_decode_t::set_arguments_size(
   // Ensure the bank version is supported
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version < 0) return; // no SciFi banks present in data
-  if (bank_version < 4 || bank_version > 7) {
+  if (bank_version < 4 || bank_version > 8) {
     throw StrException("SciFi bank version not supported (" + std::to_string(bank_version) + ")");
   }
 

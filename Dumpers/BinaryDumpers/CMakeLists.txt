@@ -11,8 +11,10 @@ gaudi_add_library(BinaryDumpers
                     src/lib/Utils.cpp
                   LINK PUBLIC
                     AllenCommon
-		    EventModel
-		    Backend
+                    HostCommon
+                    EventModel
+                    Backend
+                    NonEventData
                     Gaudi::GaudiKernel
                     LHCb::DAQEventLib
                     LHCb::FTDAQLib

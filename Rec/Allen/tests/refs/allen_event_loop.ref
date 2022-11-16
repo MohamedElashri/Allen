@@ -1,21 +1,15 @@
-DetectorPersistencySvc                 INFO Added successfully Conversion service:XmlCnvSvc
-DetectorDataSvc                     SUCCESS Detector description database: git:/lhcb.xml
 HLTControlFlowMgr                      INFO Start initialization
 HLTControlFlowMgr                      INFO Will not use an EventSelector.
 HLTControlFlowMgr                      INFO Concurrency level information:
 HLTControlFlowMgr                      INFO  o Number of events slots: 1
 HLTControlFlowMgr                      INFO  o TBB thread pool size:  'ThreadPoolSize':1
 ApplicationMgr                         INFO Application Manager Initialized successfully
-Setting number of slices to 2
- Enables printing monitoring information (--enable-monitoring-printing): False
- Registers monitoring counters (--register-monitoring-counters): True
- Configure the device to use more shared than L1 (0: false) (--prefer-shared): 0
-DeFTDetector                           INFO Current FT geometry version =   63
+Using 3 input slices.
 ApplicationMgr                         INFO Application Manager Started successfully
-DumpFTGeometry                         INFO Conditions DB is compatible with FT bank version 4, 5, 6.
+DumpFTGeometry                         INFO Conditions DB is compatible with FT bank version 7 and 8.
 Starting timer for throughput measurement
-ApplicationMgr                         INFO Application Manager Stopped successfully
 Input complete
+ApplicationMgr                         INFO Application Manager Stopped successfully
 HLTControlFlowMgr                      INFO
 HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #passed
 LAZY_AND: allen_non_event_data                #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
@@ -23,8 +17,6 @@ LAZY_AND: allen_non_event_data                #=1       Sum=1           Eff=|( 1
   AllenODINProducer/AllenODINProducer         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpBeamline/DumpBeamline                   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpVPGeometry/DumpVPGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpUTGeometry/DumpUTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpUTLookupTables/DumpUTLookupTables       #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpCaloGeometry/DumpCaloGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpMagneticField/DumpMagneticField         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpFTGeometry/DumpFTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
@@ -36,6 +28,5 @@ LAZY_AND: allen_non_event_data                #=1       Sum=1           Eff=|( 1
   AllenTESProducer/AllenTESProducer#2         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   AllenTESProducer/AllenTESProducer#3         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
 HLTControlFlowMgr                      INFO Histograms converted successfully according to request.
-ToolSvc                                INFO Removing all tools created by ToolSvc
 ApplicationMgr                         INFO Application Manager Finalized successfully
 ApplicationMgr                         INFO Application Manager Terminated successfully

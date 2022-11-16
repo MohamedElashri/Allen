@@ -28,6 +28,8 @@ struct shared_wrap {
   }
 };
 
+Allen::NonEventData::IUpdater* binary_updater(std::map<std::string, std::string> const& options);
+
 uintptr_t czmq_context(zmq::context_t& ctx) { return reinterpret_cast<uintptr_t>(ctx.operator void*()); }
 
 // template cast_service<Allen::NonEventData::IUpdater>;
