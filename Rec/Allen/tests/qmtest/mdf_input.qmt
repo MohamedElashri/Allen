@@ -16,17 +16,25 @@
   <argument name="args"><set>
     <text>${BINARYDUMPERSROOT}/options/allen.py</text>
     <text>--monitoring-filename</text><text>mdf_input_hists.root</text>
-    <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/mc/RetinaClusters_FTv4_MDF/00067189_retinaCluster_no63.mdf</text>
+	<text>--mdf</text><text>root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.mdf</text>
+    <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants/hlt1_pp_matching.json</text>
+    <text>--tags=detdesc:dddb-20220705,sim-20220705-vc-md100|dd4hep:trunk,master</text>
+    <text>--events-per-slice</text><text>500</text>
+    <text>--monitoring-filename</text><text>""</text>
+    <text>-m</text><text>600</text>
+    <text>-s</text><text>3</text>
+    <text>-t</text><text>2</text>
     <text>-n</text><text>10000</text>
   </set></argument>
   <argument name="reference"><text>../refs/allen_event_loop.ref</text></argument>
   <argument name="timeout"><integer>600</integer></argument>
+  <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
   <argument name="validator"><text>
 
-from Allen.qmtest.exclusions import preprocessor
+from Allen.qmtest.exclusions import preprocessor, skip_lbdd4hep
 validateWithReference(preproc = preprocessor)
 
-countErrorLines({"FATAL":0,"ERROR":0,"WARNING":0})
+countErrorLines({"FATAL":0,"ERROR":0,"WARNING":0}, stdout=skip_lbdd4hep(stdout))
 
   </text></argument>
 </extension>

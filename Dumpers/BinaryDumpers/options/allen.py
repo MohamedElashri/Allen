@@ -15,6 +15,7 @@ from Allen.config import (setup_allen_non_event_data_service, allen_odin,
                           configured_bank_types)
 from PyConf.application import (configure, setup_component, ComponentConfig,
                                 ApplicationOptions, make_odin)
+from PyConf.control_flow import CompositeNode, NodeLogic
 from GaudiKernel.Constants import ERROR
 from DDDB.CheckDD4Hep import UseDD4Hep
 from threading import Thread
@@ -132,6 +133,13 @@ parser.add_argument(
     default=True,
     help="Enables printing counters information",
 )
+parser.add_argument(
+    "--binary-geometry",
+    dest="binary_geometry",
+    action="store_true",
+    default=False,
+    help="Use binary files as the geometry",
+)
 
 args = parser.parse_args()
 
@@ -139,10 +147,18 @@ runtime_lib = None
 if args.profile == "CUDA":
     runtime_lib = ctypes.CDLL("libcudart.so")
 
-dddb_tag, conddb_tag = args.tags.split(',')
+if args.tags.find('|') != -1:
+    # special case that allows giving tags for both DetDesc and DD4hep
+    tags = {}
+    for entry in args.tags.split('|'):
+        build, t = entry.split(':')
+        tags[build] = t.split(',')
+    dddb_tag, conddb_tag = tags['dd4hep' if UseDD4Hep else 'detdesc']
+else:
+    dddb_tag, conddb_tag = args.tags.split(',')
 
 options = ApplicationOptions(_enabled=False)
-options.simulation = args.simulation
+options.simulation = True if not UseDD4Hep else args.simulation
 options.data_type = 'Upgrade'
 options.input_type = 'MDF'
 options.dddb_tag = dddb_tag
@@ -191,11 +207,19 @@ if args.mep:
     mep_provider.Source = "Files"
     mep_provider.MaskSourceIDTop5 = args.mask_top5
     mep_dir = os.path.expandvars(args.mep)
+    meps = mep_dir.split(',')
     if os.path.isdir(mep_dir):
         mep_provider.Connections = sorted([
             os.path.join(mep_dir, mep_file) for mep_file in os.listdir(mep_dir)
             if mep_file.endswith(".mep")
         ])
+    elif len(meps) == 1 and not meps[0].endswith(".mep"):
+        with open(meps[0]) as list_file:
+            mep_provider.Connections = [
+                m
+                for m in filter(lambda e: len(e) != 0, (mep.strip()
+                                                        for mep in list_file))
+            ]
     else:
         mep_provider.Connections = mep_dir.split(',')
     # mep_provider.Connections = ["/daqarea1/fest/beam_test/Allen_BU_10.mep"]
@@ -212,26 +236,28 @@ ApplicationMgr().EvtSel = "NONE"
 ApplicationMgr().ExtSvc += extSvc
 
 # Copeid from PyConf.application.configure_input
-config.add(
-    setup_component(
-        'DDDBConf',
-        Simulation=options.simulation,
-        DataType=options.data_type,
-        ConditionsVersion=options.conddb_tag))
-if not UseDD4Hep:
+if not args.binary_geometry:
     config.add(
         setup_component(
-            'CondDB',
-            Upgrade=True,
-            Tags={
-                'DDDB': options.dddb_tag,
-                'SIMCOND': options.conddb_tag,
-            }))
+            'DDDBConf',
+            Simulation=options.simulation,
+            DataType=options.data_type,
+            ConditionsVersion=options.conddb_tag))
+    if not UseDD4Hep:
+        config.add(
+            setup_component(
+                'CondDB',
+                Upgrade=True,
+                Tags={
+                    'DDDB': options.dddb_tag,
+                    'SIMCOND': options.conddb_tag,
+                }))
 
-bank_types = configured_bank_types(args.sequence)
-cf_node = setup_allen_non_event_data_service(
-    allen_event_loop=True, bank_types=bank_types)
-config.update(configure(options, cf_node, make_odin=make_odin))
+if not args.binary_geometry:
+    bank_types = configured_bank_types(args.sequence)
+    cf_node = setup_allen_non_event_data_service(
+        allen_event_loop=True, bank_types=bank_types)
+    config.update(configure(options, cf_node, make_odin=make_odin))
 
 # Start Gaudi and get the AllenUpdater service
 gaudi = AppMgr()
@@ -239,10 +265,7 @@ sc = gaudi.initialize()
 if not sc.isSuccess():
     sys.exit("Failed to initialize AppMgr")
 
-svc = gaudi.service("AllenUpdater", interface=gbl.IService)
 zmqSvc = gaudi.service("ZeroMQSvc", interface=gbl.IZeroMQSvc)
-
-updater = cast_service(gbl.Allen.NonEventData.IUpdater, svc)
 
 # options map
 options = gbl.std.map("std::string", "std::string")()
@@ -266,6 +289,12 @@ for flag, value in [("g", args.det_folder),
                      args.register_monitoring_counters)]:
     if value is not None:
         options[flag] = str(value)
+
+if args.binary_geometry:
+    updater = gbl.binary_updater(options)
+else:
+    svc = gaudi.service("AllenUpdater", interface=gbl.IService)
+    updater = cast_service(gbl.Allen.NonEventData.IUpdater, svc)
 
 con = gbl.std.string("")
 
@@ -336,11 +365,11 @@ else:
             sys.exit(1)
 
     control.send(b"STOP")
-    gaudi.stop()
     msg = control.recv()
     assert (msg.decode() == "READY")
     if args.profile == "CUDA":
         runtime_lib.cudaProfilerStop()
+    gaudi.stop()
     gaudi.finalize()
     control.send(b"RESET")
     msg = control.recv()

@@ -27,13 +27,27 @@ remove_throughput = LineSkipper(regexps=[
 skip_config = BlockSkipper("User ApplicationOptions",
                            "Application Manager Configured successfully")
 
-skip_options = BlockSkipper("Requested options:", "Ignore signals to update")
+skip_options = BlockSkipper("Requested options:",
+                            "Configure the device to use more shared")
 
 skip_rates = BlockSkipper("rate_validator validation:", "Inclusive:")
 
-skip_sequence = BlockSkipper("Sequence:", "make_selreps")
+skip_lbdd4hep = LineSkipper(regexps=[
+    r"LHCb::Det::LbDD4hep::DD4hepSvc.*", r"ReserveIOVDD4hep.*", r"XmlCnvSvc.*",
+    r"DeMagnetConditionCall.*", r"MagneticFieldExtension", r"TGeoMixture.*"
+])
 
-preprocessor_with_rates = (LHCbPreprocessor + skip_config + remove_throughput +
-                           skip_options + skip_sequence)
+skip_detdesc = LineSkipper(regexps=[
+    r".*Current FT geometry version.*",
+    r".*Removing all tools created by ToolSvc.*",
+    r".*Detector description database:.*"
+])
+
+skip_sequence = BlockSkipper("Sequence:", "make_lumi_summary") + BlockSkipper(
+    "prefix_sum_max_objects", "make_selreps")
+
+preprocessor_with_rates = (
+    LHCbPreprocessor + skip_config + skip_options + skip_sequence +
+    skip_lbdd4hep + skip_detdesc + remove_throughput)
 
 preprocessor = preprocessor_with_rates + skip_rates

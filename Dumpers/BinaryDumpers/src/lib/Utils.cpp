@@ -5,6 +5,8 @@
 #include <string>
 
 #include <Dumpers/Utils.h>
+#include <Dumpers/IUpdater.h>
+#include <Updater.h>
 
 namespace {
   namespace fs = boost::filesystem;
@@ -35,4 +37,13 @@ size_t MuonUtils::size_index(
   else {
     return index + 4 * tile.nY() - 2 * gridY[idx] + (2 * tile.nX() / gridX[idx]);
   }
+}
+
+Allen::NonEventData::IUpdater* binary_updater(std::map<std::string, std::string> const& options)
+{
+  static std::unique_ptr<Allen::NonEventData::IUpdater> updater;
+  if (!updater) {
+    updater = std::make_unique<Allen::NonEventData::Updater>(options);
+  }
+  return updater.get();
 }

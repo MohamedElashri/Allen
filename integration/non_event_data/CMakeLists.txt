@@ -18,10 +18,5 @@ target_link_libraries(NonEventData PRIVATE
   nlohmann_json::nlohmann_json)
 
 target_include_directories(NonEventData PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
-if (STANDALONE)
-target_include_directories(NonEventData PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/Dumpers/BinaryDumpers/include>)
-else()
-  target_link_libraries(NonEventData PUBLIC BinaryDumpers)
-endif()
