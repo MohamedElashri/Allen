@@ -107,6 +107,11 @@
       #   DATA_TAG: ["SMOG2_pppHe_retinacluster_v1_newLHCbID"]
       #   GEOMETRY: ["SMOG2_pppHe"]
 
+      # run throughput, PbPb, MB PbPb
+      - TEST_NAME: "run_throughput"
+        SEQUENCE: ["hlt1_PbPb_default"]
+        DATA_TAG: ["MB_PbPb_01"]
+
       # Allen clustering jobs
       - SEQUENCE: ["hlt1_pp_veloSP"]
         DATA_TAG: ["upgrade_mc_minbias_scifi_v5_000_newLHCbID"]

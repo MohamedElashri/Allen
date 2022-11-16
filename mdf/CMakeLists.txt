@@ -96,12 +96,10 @@ if (BUILD_TESTING)
   test_program(NAME mdf_bench_read SOURCE test/bench_read.cpp)
   test_program(NAME mdf_bench_provider SOURCE test/bench_provider.cpp)
   test_program(NAME mdf_bench_transpose SOURCE test/bench_transpose.cpp)
-  test_program(NAME mdf_test_transpose SOURCE test/test_mdf_transpose.cpp)
 
   if (NOT STANDALONE)
     test_program(NAME mep_test_banks SOURCE test/test_mep_banks.cpp)
     target_link_libraries(allen_mep_test_banks PRIVATE Gaudi::GaudiKernel)
   endif()
 
-  add_test(NAME allen_mdf_transpose COMMAND allen_mdf_test_transpose --mdf-file root://eoslhcb.cern.ch//eos/lhcb/wg/rta/WP6/Allen/mdf_input/RetinaCluster_samples/upgrade-minbias-magdown-scifi-v5_retinacluster_mdf/upgrade-minbias-magdown-scifi-v5/mdf/upgrade-minbias-magdown-scifi-v5.mdf)
 endif()

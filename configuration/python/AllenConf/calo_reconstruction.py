@@ -5,7 +5,7 @@ from AllenCore.algorithms import (
     data_provider_t, calo_count_digits_t, host_prefix_sum_t, calo_decode_t,
     track_digit_selective_matching_t, brem_recovery_t,
     momentum_brem_correction_t, calo_seed_clusters_t, calo_find_clusters_t,
-    calo_filter_clusters_t, calo_find_twoclusters_t)
+    calo_filter_clusters_t, calo_find_twoclusters_t, total_ecal_energy_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
@@ -43,13 +43,25 @@ def decode_calo(empty_banks=False):
         dev_ecal_digits_offsets_t=prefix_sum_ecal_num_digits.
         dev_output_buffer_t)
 
+    sum_ecal_energy = make_algorithm(
+        total_ecal_energy_t,
+        name="total_ecal_energy",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_ecal_number_of_digits_t=prefix_sum_ecal_num_digits.
+        host_total_sum_holder_t,
+        dev_ecal_digits_offsets_t=prefix_sum_ecal_num_digits.
+        dev_output_buffer_t,
+        dev_ecal_digits_t=calo_decode.dev_ecal_digits_t)
+
     return {
         "host_ecal_number_of_digits":
         prefix_sum_ecal_num_digits.host_total_sum_holder_t,
         "dev_ecal_digits":
         calo_decode.dev_ecal_digits_t,
         "dev_ecal_digits_offsets":
-        prefix_sum_ecal_num_digits.dev_output_buffer_t
+        prefix_sum_ecal_num_digits.dev_output_buffer_t,
+        "dev_total_ecal_e":
+        sum_ecal_energy.dev_total_ecal_e_t
     }
 
 
@@ -199,3 +211,10 @@ def make_ecal_clusters(decoded_calo):
         "dev_ecal_twoclusters":
         calo_find_twoclusters.dev_ecal_twoclusters_t
     }
+
+
+def ecal_cluster_reco():
+    decoded_calo = decode_calo()
+    ecal_clusters = make_ecal_clusters(decoded_calo)
+    alg = ecal_clusters["dev_ecal_clusters"].producer
+    return alg

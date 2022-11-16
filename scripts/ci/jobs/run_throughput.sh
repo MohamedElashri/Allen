@@ -87,15 +87,16 @@ else
     NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
     RUN_OPTIONS="${RUN_OPTIONS} ${RUN_THROUGHPUT_OPTIONS_CPU} -t ${THREADS}"
-
+    
     ALLEN="numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper ./Allen ${RUN_OPTIONS}"
+
   elif [ "${TARGET}" = "CUDA" ]; then
     export PATH=$PATH:/usr/local/cuda/bin
     GPU_UUID=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
     NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
     RUN_OPTIONS="${RUN_OPTIONS} ${RUN_THROUGHPUT_OPTIONS_CUDA}"
-
+    
     ALLEN="CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper ./Allen ${RUN_OPTIONS}"
 
     nvidia-smi
