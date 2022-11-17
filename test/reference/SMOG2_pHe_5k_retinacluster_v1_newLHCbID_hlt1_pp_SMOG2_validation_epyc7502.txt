@@ -27,12 +27,12 @@ MC PV is reconstructible if at least 4 tracks are reconstructed
 MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
 REC and MC vertices matched by dz distance
 
-All                  :  1.027 (   728/   709)
-Isolated             :  1.027 (   728/   709)
+All                  :  1.008 (   715/   709)
+Isolated             :  1.008 (   715/   709)
 Close                :  0.000 (     0/     0)
-False rate           :  0.010 (     7/   735)
-Real false rate      :  0.010 (     7/   735)
-Clones               :  0.000 (     0/   728)
+False rate           :  0.008 (     6/   721)
+Real false rate      :  0.008 (     6/   721)
+Clones               :  0.000 (     0/   715)
 
 
 long_validator validation:
@@ -63,7 +63,7 @@ Ghost tracks identified as muon with isMuon:                                0/  
 
 
 rate_validator validation:
-Hlt1TwoTrackMVACharmXSec:                              17/  1000, (  510.00 +/-   122.64) kHz
+Hlt1TwoTrackMVACharmXSec:                               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1KsToPiPi:                                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMVA:                                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackMVA:                                        0/  1000, (    0.00 +/-     0.00) kHz
@@ -75,7 +75,7 @@ Hlt1TwoKs:                                              0/  1000, (    0.00 +/- 
 Hlt1OneMuonTrackLine:                                  88/  1000, ( 2640.00 +/-   268.76) kHz
 Hlt1SingleHighPtMuon:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:                             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowPtMuon:                                          0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1LowPtMuon:                                          1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1DiMuonHighMass:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonLowMass:                                      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                                         0/  1000, (    0.00 +/-     0.00) kHz
@@ -124,19 +124,19 @@ Hlt1DisplacedDiMuonAlignment:                           0/  1000, (    0.00 +/- 
 Hlt1GECPassThrough_LowMult5:                          153/  1000, ( 4590.00 +/-   341.51) kHz
 Hlt1_BESMOG2_NoBias:                                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_BESMOG2_LowMult10:                                 0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_MinimumBias:                               810/  1000, (24300.00 +/-   372.17) kHz
-Hlt1Passthrough_PV_in_SMOG2:                          732/  1000, (21960.00 +/-   420.19) kHz
+Hlt1_SMOG2_MinimumBias:                               779/  1000, (23370.00 +/-   393.63) kHz
+Hlt1Passthrough_PV_in_SMOG2:                          664/  1000, (19920.00 +/-   448.10) kHz
 Hlt1_SMOG2_D2Kpi:                                       3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1_SMOG2_eta2pp:                                      4/  1000, (  120.00 +/-    59.88) kHz
-Hlt1_SMOG2_2BodyGeneric:                               23/  1000, (  690.00 +/-   142.21) kHz
-Hlt1_SMOG2_SingleTrack:                               160/  1000, ( 4800.00 +/-   347.79) kHz
+Hlt1_SMOG2_2BodyGeneric:                               20/  1000, (  600.00 +/-   132.82) kHz
+Hlt1_SMOG2_SingleTrack:                               145/  1000, ( 4350.00 +/-   334.03) kHz
 Hlt1_SMOG2_DiMuonHighMass:                              0/  1000, (    0.00 +/-     0.00) kHz
 Inclusive:                                           1000/  1000, (30000.00 +/-     0.00) kHz
 
 
 selreport_validator validation:
                                                    Events  Candidates
-Hlt1TwoTrackMVACharmXSec:                              17          32
+Hlt1TwoTrackMVACharmXSec:                               0           0
 Hlt1KsToPiPi:                                           0           0
 Hlt1TrackMVA:                                           0           0
 Hlt1TwoTrackMVA:                                        0           0
@@ -148,7 +148,7 @@ Hlt1TwoKs:                                              0           0
 Hlt1OneMuonTrackLine:                                  88           0
 Hlt1SingleHighPtMuon:                                   0           0
 Hlt1SingleHighPtMuonNoMuID:                             0           0
-Hlt1LowPtMuon:                                          0           0
+Hlt1LowPtMuon:                                          1           1
 Hlt1DiMuonHighMass:                                     0           0
 Hlt1DiMuonLowMass:                                      0           0
 Hlt1DiMuonSoft:                                         0           0
@@ -197,17 +197,17 @@ Hlt1DisplacedDiMuonAlignment:                           0           0
 Hlt1GECPassThrough_LowMult5:                          153           0
 Hlt1_BESMOG2_NoBias:                                    0           0
 Hlt1_BESMOG2_LowMult10:                                 0           0
-Hlt1_SMOG2_MinimumBias:                               810           0
-Hlt1Passthrough_PV_in_SMOG2:                          732           0
+Hlt1_SMOG2_MinimumBias:                               779           0
+Hlt1Passthrough_PV_in_SMOG2:                          664           0
 Hlt1_SMOG2_D2Kpi:                                       3           3
 Hlt1_SMOG2_eta2pp:                                      4           4
-Hlt1_SMOG2_2BodyGeneric:                               23          37
-Hlt1_SMOG2_SingleTrack:                               160         204
+Hlt1_SMOG2_2BodyGeneric:                               20          31
+Hlt1_SMOG2_SingleTrack:                               145         186
 Hlt1_SMOG2_DiMuonHighMass:                              0           0
 
-Total decisions: 3994
-Total tracks:    295
-Total SVs:       71
-Total hits:      8640
-Total stdinfo:   6638
+Total decisions: 3861
+Total tracks:    228
+Total SVs:       33
+Total hits:      6987
+Total stdinfo:   5817
 

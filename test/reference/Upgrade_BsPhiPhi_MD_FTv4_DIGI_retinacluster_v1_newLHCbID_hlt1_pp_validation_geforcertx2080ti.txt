@@ -99,7 +99,7 @@ Hlt1DiMuonNoIP:                                        34/  1000, ( 1020.00 +/- 
 Hlt1DiMuonNoIP_ss:                                      4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1TrackElectronMVA:                                  41/  1000, ( 1230.00 +/-   188.11) kHz
 Hlt1SingleHighPtElectron:                               7/  1000, (  210.00 +/-    79.09) kHz
-Hlt1DisplacedDielectron:                                8/  1000, (  240.00 +/-    84.51) kHz
+Hlt1DisplacedDielectron:                                9/  1000, (  270.00 +/-    89.59) kHz
 Hlt1DisplacedLeptons:                                  33/  1000, (  990.00 +/-   169.47) kHz
 Hlt1SingleHighEt:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Bs2GammaGamma:                                     27/  1000, (  810.00 +/-   153.77) kHz
@@ -162,7 +162,7 @@ Hlt1DiMuonNoIP:                                        34          43
 Hlt1DiMuonNoIP_ss:                                      4           6
 Hlt1TrackElectronMVA:                                  41          42
 Hlt1SingleHighPtElectron:                               7           7
-Hlt1DisplacedDielectron:                                8           8
+Hlt1DisplacedDielectron:                                9           9
 Hlt1DisplacedLeptons:                                  33           0
 Hlt1SingleHighEt:                                       0           0
 Hlt1Bs2GammaGamma:                                     27           0
@@ -199,9 +199,9 @@ Hlt1D2KPiAlignment:                                    31          33
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DisplacedDiMuonAlignment:                           2           2
 
-Total decisions: 4576
+Total decisions: 4577
 Total tracks:    3075
-Total SVs:       2535
+Total SVs:       2536
 Total hits:      76091
-Total stdinfo:   39316
+Total stdinfo:   39321
 

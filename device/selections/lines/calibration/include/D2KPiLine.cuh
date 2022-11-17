@@ -49,6 +49,6 @@ namespace d2kpi_line {
     Property<minTrackPt_t> m_minTrackPt {this, 800.f * Gaudi::Units::MeV};
     Property<massWindow_t> m_massWindow {this, 100.f * Gaudi::Units::MeV};
     Property<minTrackIP_t> m_minTrackIP {this, 0.06f * Gaudi::Units::mm};
-    Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
+    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
   };
 } // namespace d2kpi_line

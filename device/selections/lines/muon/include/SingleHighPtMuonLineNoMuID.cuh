@@ -41,6 +41,6 @@ namespace single_high_pt_muon_no_muid_line {
     Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 100.f};
     Property<singleMinPt_t> m_singleMinPt {this, 8000.f / Gaudi::Units::MeV};
     Property<singleMinP_t> m_singleMinP {this, 6000.f / Gaudi::Units::MeV};
-    Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
+    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
   };
 } // namespace single_high_pt_muon_no_muid_line

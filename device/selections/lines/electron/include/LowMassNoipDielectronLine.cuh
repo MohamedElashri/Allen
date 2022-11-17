@@ -49,6 +49,7 @@ namespace lowmass_noip_dielectron_line {
     PROPERTY(MaxMass_t, "MaxMass", "Max vertex mass", float) maxMass;
     PROPERTY(ss_on_t, "ss_on", "Flag when same-sign candidates should be selected", bool) ss_on;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(MinZ_t, "MinZ", "Min z dielectron coordinate", float) MinZ;
   };
 
   struct lowmass_noip_dielectron_line_t : public SelectionAlgorithm,
@@ -112,5 +113,6 @@ namespace lowmass_noip_dielectron_line {
     Property<MaxMass_t> m_MaxMass {this, 300.f};
     Property<ss_on_t> m_ss_on {this, false};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<MinZ_t> m_MinZ {this, -341.f * Gaudi::Units::mm};
   };
 } // namespace lowmass_noip_dielectron_line

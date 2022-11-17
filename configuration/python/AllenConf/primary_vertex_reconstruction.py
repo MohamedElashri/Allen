@@ -10,7 +10,15 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
 
-def make_pvs(velo_tracks):
+def make_pvs(velo_tracks,
+             zmin=-541.,
+             zmax=307.,
+             Nbins=3392,
+             dz=0.25,
+             SMOG2_pp_separation=-341.,
+             SMOG2_maxTrackZ0Err=10.,
+             pp_maxTrackZ0Err=1.5):
+
     number_of_events = initialize_number_of_events()
     host_number_of_events = number_of_events["host_number_of_events"]
     dev_number_of_events = number_of_events["dev_number_of_events"]
@@ -38,13 +46,26 @@ def make_pvs(velo_tracks):
         name="pv_beamline_histo",
         host_number_of_events_t=host_number_of_events,
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
-        dev_pvtracks_t=pv_beamline_extrapolate.dev_pvtracks_t)
+        dev_pvtracks_t=pv_beamline_extrapolate.dev_pvtracks_t,
+        zmin=zmin,
+        zmax=zmax,
+        dz=dz,
+        Nbins=Nbins,
+        SMOG2_pp_separation=SMOG2_pp_separation,
+        SMOG2_maxTrackZ0Err=SMOG2_maxTrackZ0Err,
+        pp_maxTrackZ0Err=pp_maxTrackZ0Err)
 
     pv_beamline_peak = make_algorithm(
         pv_beamline_peak_t,
         name="pv_beamline_peak",
         host_number_of_events_t=host_number_of_events,
-        dev_zhisto_t=pv_beamline_histo.dev_zhisto_t)
+        dev_zhisto_t=pv_beamline_histo.dev_zhisto_t,
+        zmin=zmin,
+        dz=dz,
+        Nbins=Nbins,
+        SMOG2_pp_separation=SMOG2_pp_separation,
+        SMOG2_maxTrackZ0Err=SMOG2_maxTrackZ0Err,
+        pp_maxTrackZ0Err=pp_maxTrackZ0Err)
 
     pv_beamline_calculate_denom = make_algorithm(
         pv_beamline_calculate_denom_t,
@@ -66,7 +87,10 @@ def make_pvs(velo_tracks):
         dev_pvtracks_t=pv_beamline_extrapolate.dev_pvtracks_t,
         dev_zpeaks_t=pv_beamline_peak.dev_zpeaks_t,
         dev_number_of_zpeaks_t=pv_beamline_peak.dev_number_of_zpeaks_t,
-        dev_pvtracks_denom_t=pv_beamline_calculate_denom.dev_pvtracks_denom_t)
+        dev_pvtracks_denom_t=pv_beamline_calculate_denom.dev_pvtracks_denom_t,
+        zmin=zmin,
+        zmax=zmax,
+        SMOG2_pp_separation=SMOG2_pp_separation)
 
     pv_beamline_cleanup = make_algorithm(
         pv_beamline_cleanup_t,

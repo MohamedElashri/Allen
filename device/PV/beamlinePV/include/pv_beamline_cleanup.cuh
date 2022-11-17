@@ -22,6 +22,7 @@ namespace pv_beamline_cleanup {
     DEVICE_OUTPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
     DEVICE_OUTPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+    PROPERTY(minChi2Dist_t, "minChi2Dist", "minimum chi2 distance", float) minChi2Dist;
   };
 
   __global__ void pv_beamline_cleanup(Parameters);
@@ -42,5 +43,6 @@ namespace pv_beamline_cleanup {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Property<minChi2Dist_t> m_minChi2Dist {this, BeamlinePVConstants::CleanUp::minChi2Dist};
   };
 } // namespace pv_beamline_cleanup

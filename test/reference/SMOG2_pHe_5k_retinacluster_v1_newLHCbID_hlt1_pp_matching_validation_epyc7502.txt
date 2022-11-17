@@ -14,12 +14,12 @@ MC PV is reconstructible if at least 4 tracks are reconstructed
 MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
 REC and MC vertices matched by dz distance
 
-All                  :  1.027 (   728/   709)
-Isolated             :  1.027 (   728/   709)
+All                  :  1.008 (   715/   709)
+Isolated             :  1.008 (   715/   709)
 Close                :  0.000 (     0/     0)
-False rate           :  0.010 (     7/   735)
-Real false rate      :  0.010 (     7/   735)
-Clones               :  0.000 (     0/   728)
+False rate           :  0.008 (     6/   721)
+Real false rate      :  0.008 (     6/   721)
+Clones               :  0.000 (     0/   715)
 
 
 seed_validator validation:
@@ -85,7 +85,7 @@ Ghost tracks identified as muon with isMuon:                                7/  
 
 
 rate_validator validation:
-Hlt1TwoTrackMVACharmXSec:                              15/  1000, (  450.00 +/-   115.31) kHz
+Hlt1TwoTrackMVACharmXSec:                               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1KsToPiPi:                                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMVA:                                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackMVA:                                        0/  1000, (    0.00 +/-     0.00) kHz
@@ -97,7 +97,7 @@ Hlt1TwoKs:                                              0/  1000, (    0.00 +/- 
 Hlt1OneMuonTrackLine:                                  88/  1000, ( 2640.00 +/-   268.76) kHz
 Hlt1SingleHighPtMuon:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:                             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowPtMuon:                                          0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1LowPtMuon:                                          2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1DiMuonHighMass:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonLowMass:                                      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                                         0/  1000, (    0.00 +/-     0.00) kHz
@@ -148,7 +148,7 @@ Inclusive:                                           1000/  1000, (30000.00 +/- 
 
 selreport_validator validation:
                                                    Events  Candidates
-Hlt1TwoTrackMVACharmXSec:                              15          27
+Hlt1TwoTrackMVACharmXSec:                               0           0
 Hlt1KsToPiPi:                                           0           0
 Hlt1TrackMVA:                                           0           0
 Hlt1TwoTrackMVA:                                        0           0
@@ -160,7 +160,7 @@ Hlt1TwoKs:                                              0           0
 Hlt1OneMuonTrackLine:                                  88           0
 Hlt1SingleHighPtMuon:                                   0           0
 Hlt1SingleHighPtMuonNoMuID:                             0           0
-Hlt1LowPtMuon:                                          0           0
+Hlt1LowPtMuon:                                          2           2
 Hlt1DiMuonHighMass:                                     0           0
 Hlt1DiMuonLowMass:                                      0           0
 Hlt1DiMuonSoft:                                         0           0
@@ -207,9 +207,9 @@ Hlt1D2KPiAlignment:                                     0           0
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DisplacedDiMuonAlignment:                           0           0
 
-Total decisions: 2107
-Total tracks:    38
-Total SVs:       27
-Total hits:      678
-Total stdinfo:   2519
+Total decisions: 2094
+Total tracks:    2
+Total SVs:       0
+Total hits:      42
+Total stdinfo:   2110
 

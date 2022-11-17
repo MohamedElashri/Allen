@@ -38,7 +38,7 @@ __device__ bool di_muon_no_ip_line::di_muon_no_ip_line_t::select(
          track1->state().pt() * track2->state().pt() >= parameters.minTrackPtPROD &&
          track1->state().p() >= parameters.minTrackP && track2->state().p() >= parameters.minTrackP &&
          vertex.vertex().chi2() > 0 && vertex.vertex().chi2() <= parameters.maxVertexChi2 &&
-         vertex.vertex().pt() > parameters.minPt;
+         vertex.vertex().pt() > parameters.minPt && vertex.vertex().z() >= parameters.minZ;
 }
 
 __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(

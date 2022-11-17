@@ -45,7 +45,7 @@ namespace SMOG2_singletrack_line {
     Property<minP_t> m_minP {this, 3.f * Gaudi::Units::GeV};
     Property<minPt_t> m_minPt {this, 1.f * Gaudi::Units::GeV};
     Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 4.f};
-    Property<minBPVz_t> m_minBPVz {this, -550.f * Gaudi::Units::mm};
-    Property<maxBPVz_t> m_maxBPVz {this, -300.f * Gaudi::Units::mm};
+    Property<minBPVz_t> m_minBPVz {this, -551.f * Gaudi::Units::mm};
+    Property<maxBPVz_t> m_maxBPVz {this, -331.f * Gaudi::Units::mm};
   };
 } // namespace SMOG2_singletrack_line

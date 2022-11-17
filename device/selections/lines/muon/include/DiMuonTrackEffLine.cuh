@@ -24,6 +24,7 @@ namespace di_muon_track_eff_line {
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
     PROPERTY(DMTrackEffM0_t, "DMTrackEffM0", "DMTrackEffM0 description", float) DMTrackEffM0;
     PROPERTY(DMTrackEffM1_t, "DMTrackEffM1", "DMTrackEffM1 description", float) DMTrackEffM1;
+    PROPERTY(DMTrackEffMinZ_t, "DMTrackEffMinZ", "MinZ for DMTrackEff", float) DMTrackEffMinZ;
   };
 
   struct di_muon_track_eff_line_t : public SelectionAlgorithm,
@@ -39,5 +40,6 @@ namespace di_muon_track_eff_line {
     // Mass window around J/psi meson.
     Property<DMTrackEffM0_t> m_DMTrackEffM0 {this, 2900.f};
     Property<DMTrackEffM1_t> m_DMTrackEffM1 {this, 3100.f};
+    Property<DMTrackEffMinZ_t> m_DMTrackEffMinZ {this, -341.f};
   };
 } // namespace di_muon_track_eff_line

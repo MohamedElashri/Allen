@@ -50,8 +50,8 @@ namespace SMOG2_ditrack_line {
     Property<minTrackP_t> m_minTrackP {this, 3.f * Gaudi::Units::GeV};
     Property<minTrackPt_t> m_minTrackPt {this, 400.f * Gaudi::Units::MeV};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.f};
-    Property<minZ_t> m_minZ {this, -550.f * Gaudi::Units::mm};
-    Property<maxZ_t> m_maxZ {this, -300.f * Gaudi::Units::mm};
+    Property<minZ_t> m_minZ {this, -551.f * Gaudi::Units::mm};
+    Property<maxZ_t> m_maxZ {this, -331.f * Gaudi::Units::mm};
     Property<maxDoca_t> m_maxDoca {this, 0.5f * Gaudi::Units::mm};
     Property<combCharge_t> m_combCharge {this, 0};
     Property<m1_t> m_m1 {this, -1.f * Gaudi::Units::MeV};

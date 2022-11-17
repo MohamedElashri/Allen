@@ -51,6 +51,7 @@ namespace two_track_mva_charm_xsec_line {
     PROPERTY(lowSVpt_t, "lowSVpt", "Value of SV pT in MeV below which the low PT MVA cut is applied.", float) lowSVpt;
     PROPERTY(minMVAhightPt_t, "minMVAhighPt", "Minimum passing MVA response at hight Pt.", float) minMVAhighPt;
     PROPERTY(minMVAlowPt_t, "minMVAlowPt", "Minimum passing MVA response at low Pt.", float) minMVAlowPt;
+    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
   };
 
   struct two_track_mva_charm_xsec_line_t : public SelectionAlgorithm,
@@ -77,5 +78,6 @@ namespace two_track_mva_charm_xsec_line {
     Property<lowSVpt_t> m_lowSVpt {this, 1500.f * Gaudi::Units::MeV};
     Property<minMVAhightPt_t> m_minMVAhighPt {this, 0.92385f};
     Property<minMVAlowPt_t> m_minMVAlowPt {this, 0.7f};
+    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
   };
 } // namespace two_track_mva_charm_xsec_line

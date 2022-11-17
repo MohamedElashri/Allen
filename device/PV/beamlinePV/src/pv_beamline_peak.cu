@@ -30,7 +30,7 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
   auto event_index = blockIdx.x;
   const unsigned event_number = parameters.dev_event_list[event_index];
 
-  const float* zhisto = parameters.dev_zhisto + BeamlinePVConstants::Common::Nbins * event_number;
+  const float* zhisto = parameters.dev_zhisto + parameters.Nbins * event_number;
   float* zpeaks = parameters.dev_zpeaks + PV::max_number_vertices * event_number;
 
   __shared__ Cluster clusters[PV::max_number_of_clusters]; // 200
@@ -44,14 +44,12 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
   uint32_t lanemask_eq = 1 << threadIdx.x;
   uint32_t lanemask_lt = lanemask_eq - 1;
   // Use a warp (32 threads) to process the 3200 bins in 100 iterations:
-  for (auto i = threadIdx.x; i < BeamlinePVConstants::Common::Nbins; i += blockDim.x) {
-    const float zBin = BeamlinePVConstants::Common::zmin + i * BeamlinePVConstants::Common::dz;
-    const float Z0Err = zBin < BeamlinePVConstants::Common::SMOG2_pp_separation ?
-                          BeamlinePVConstants::Common::SMOG2_maxTrackZ0Err :
-                          BeamlinePVConstants::Common::pp_maxTrackZ0Err;
+  for (auto i = threadIdx.x; i < parameters.Nbins; i += blockDim.x) {
+    const float zBin = parameters.zmin + i * parameters.dz;
+    const float Z0Err =
+      zBin < parameters.SMOG2_pp_separation ? parameters.SMOG2_maxTrackZ0Err : parameters.pp_maxTrackZ0Err;
     const float inv_maxTrackZ0Err = 1.f / (10.f * Z0Err);
-    const float threshold =
-      BeamlinePVConstants::Common::dz * inv_maxTrackZ0Err; // need something sensible that depends on binsize
+    const float threshold = parameters.dz * inv_maxTrackZ0Err; // need something sensible that depends on binsize
     bool empty = zhisto[i] < threshold;
 
     uint32_t loop_mask = -1u; // relies on NBins being a multiple of 32 (warp size)
@@ -81,10 +79,9 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
       integral += __shfl_xor_sync(-1u, integral, offset);
     }
 
-    const float zBin = BeamlinePVConstants::Common::zmin + iend * BeamlinePVConstants::Common::dz;
-    const float minInSeed = zBin < BeamlinePVConstants::Common::SMOG2_pp_separation ?
-                              BeamlinePVConstants::Peak::SMOG2_minTracksInSeed :
-                              BeamlinePVConstants::Peak::pp_minTracksInSeed;
+    const float zBin = parameters.zmin + iend * parameters.dz;
+    const float minInSeed =
+      zBin < parameters.SMOG2_pp_separation ? parameters.SMOG2_minTracksInSeed : parameters.pp_minTracksInSeed;
     if (integral > minInSeed) {
       if (threadIdx.x == 0) {
         clusteredges[outIdx] = ibegin;
@@ -100,20 +97,17 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
   // Fallback on non-vectorized version for targets that does not support warp level intrinsics
   bool prevempty = true;
   float integral = zhisto[0];
-  for (BinIndex i = 1; i < BeamlinePVConstants::Common::Nbins; ++i) {
-    const float zBin = BeamlinePVConstants::Common::zmin + i * BeamlinePVConstants::Common::dz;
-    const float Z0Err = zBin < BeamlinePVConstants::Common::SMOG2_pp_separation ?
-                          BeamlinePVConstants::Common::SMOG2_maxTrackZ0Err :
-                          BeamlinePVConstants::Common::pp_maxTrackZ0Err;
+  for (BinIndex i = 1; i < parameters.Nbins; ++i) {
+    const float zBin = parameters.zmin + i * parameters.dz;
+    const float Z0Err =
+      zBin < parameters.SMOG2_pp_separation ? parameters.SMOG2_maxTrackZ0Err : parameters.pp_maxTrackZ0Err;
     const float inv_maxTrackZ0Err = 1.f / (10.f * Z0Err);
-    const float threshold =
-      BeamlinePVConstants::Common::dz * inv_maxTrackZ0Err; // need something sensible that depends on binsize
+    const float threshold = parameters.dz * inv_maxTrackZ0Err; // need something sensible that depends on binsize
     integral += zhisto[i];
     bool empty = zhisto[i] < threshold;
     if (empty != prevempty) {
-      const float minInSeed = zBin < BeamlinePVConstants::Common::SMOG2_pp_separation ?
-                                BeamlinePVConstants::Peak::SMOG2_minTracksInSeed :
-                                BeamlinePVConstants::Peak::pp_minTracksInSeed;
+      const float minInSeed =
+        zBin < parameters.SMOG2_pp_separation ? parameters.SMOG2_minTracksInSeed : parameters.pp_minTracksInSeed;
       if (prevempty || integral > minInSeed) {
         clusteredges[number_of_clusteredges] = i;
         number_of_clusteredges++;
@@ -132,9 +126,8 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
     const BinIndex ibegin = clusteredges[i * 2];
     const BinIndex iend = clusteredges[i * 2 + 1];
     // find the extrema
-    const float mindip =
-      BeamlinePVConstants::Peak::minDipDensity * BeamlinePVConstants::Common::dz; // need to invent something
-    const float minpeak = BeamlinePVConstants::Peak::minDensity * BeamlinePVConstants::Common::dz;
+    const float mindip = parameters.minDipDensity * parameters.dz; // need to invent something
+    const float minpeak = parameters.minDensity * parameters.dz;
 
     Extremum extrema[PV::max_number_vertices];
     int number_of_extrema = 0;
@@ -188,11 +181,9 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
     unsigned number_of_subclusters = 0;
     if (N > 3) {
       for (int i = 1; i < (N / 2) + 1; ++i) {
-        const float z_extrema =
-          BeamlinePVConstants::Common::zmin + extrema[2 * i].index * BeamlinePVConstants::Common::dz;
-        const float minInSeed = z_extrema < BeamlinePVConstants::Common::SMOG2_pp_separation ?
-                                  BeamlinePVConstants::Peak::SMOG2_minTracksInSeed :
-                                  BeamlinePVConstants::Peak::pp_minTracksInSeed;
+        const float z_extrema = parameters.zmin + extrema[2 * i].index * parameters.dz;
+        const float minInSeed =
+          z_extrema < parameters.SMOG2_pp_separation ? parameters.SMOG2_minTracksInSeed : parameters.pp_minTracksInSeed;
         if (extrema[2 * i].integral - extrema[2 * i - 2].integral > minInSeed) {
           subclusters[number_of_subclusters] =
             Cluster(extrema[2 * i - 2].index, extrema[2 * i].index, extrema[2 * i - 1].index);
@@ -220,16 +211,16 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
     }
   }
 
-  auto zClusterMean = [&zhisto](auto izmax) -> float {
+  auto zClusterMean = [&zhisto](auto izmax, auto zmin, auto dz) -> float {
     const float* b = zhisto + izmax;
     float d1 = *b - *(b - 1);
     float d2 = *b - *(b + 1);
     float idz = d1 + d2 > 0 ? 0.5f * (d1 - d2) / (d1 + d2) : 0.0f;
-    return BeamlinePVConstants::Common::zmin + BeamlinePVConstants::Common::dz * (izmax + idz + 0.5f);
+    return zmin + dz * (izmax + idz + 0.5f);
   };
 
   for (unsigned i = threadIdx.x; i < number_of_clusters; i += blockDim.x) {
-    zpeaks[i] = zClusterMean(clusters[i].izmax);
+    zpeaks[i] = zClusterMean(clusters[i].izmax, parameters.zmin, parameters.dz);
   }
 
   if (threadIdx.x == 0) parameters.dev_number_of_zpeaks[event_number] = number_of_clusters;

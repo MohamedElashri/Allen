@@ -62,13 +62,9 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
     float chi2tot = 0.f;
     float sum_weights = 0.f;
     unsigned nselectedtracks = 0;
-    const unsigned minTracks = seed_pos_z <= BeamlinePVConstants::Common::SMOG2_pp_separation ?
-                                 BeamlinePVConstants::MultiFitter::SMOG2_minNumTracksPerVertex :
-                                 BeamlinePVConstants::MultiFitter::pp_minNumTracksPerVertex;
-    for (unsigned iter = 0;
-         (iter < BeamlinePVConstants::MultiFitter::maxFitIter || iter < BeamlinePVConstants::MultiFitter::minFitIter) &&
-         !converged;
-         ++iter) {
+    const unsigned minTracks = seed_pos_z <= parameters.SMOG2_pp_separation ? parameters.SMOG2_minNumTracksPerVertex :
+                                                                              parameters.pp_minNumTracksPerVertex;
+    for (unsigned iter = 0; (iter < parameters.maxFitIter || iter < parameters.minFitIter) && !converged; ++iter) {
       auto halfD2Chi2DX2_00 = 0.f;
       auto halfD2Chi2DX2_11 = 0.f;
       auto halfD2Chi2DX2_20 = 0.f;
@@ -85,14 +81,14 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       for (unsigned i = threadIdx.x; i < velo_tracks_view.size(); i += blockDim.x) {
         // compute the chi2
         const PVTrackInVertex& trk = tracks[i];
-        if (BeamlinePVConstants::Common::zmin >= trk.z && trk.z >= BeamlinePVConstants::Common::zmax) continue;
+        if (parameters.zmin >= trk.z && trk.z >= parameters.zmax) continue;
 
         const auto dz = vtxpos_z - trk.z;
         const float2 res = vtxpos_xy - (trk.x + trk.tx * dz);
         const auto chi2 = res.x * res.x * trk.W_00 + res.y * res.y * trk.W_11;
 
         // compute the weight.
-        if (chi2 < BeamlinePVConstants::MultiFitter::maxChi2) {
+        if (chi2 < parameters.maxChi2) {
           ++nselectedtracks;
           // for more information on the weighted fitting, see e.g.
           // Adaptive Multi-vertex fitting, R. Frühwirth, W. Waltenberger
@@ -106,14 +102,14 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
           // vetices
           const auto nom = expf(chi2 * (-0.5f));
 
-          const auto denom = BeamlinePVConstants::MultiFitter::chi2CutExp + nom;
+          const auto denom = parameters.chi2CutExp + nom;
           // substract this term to avoid double counting
 
           const auto track_weight = nom / (denom + pvtracks_denom[i] - exp_chi2_0);
 
           // unfortunately branchy, but reduces fake rate
           // not cutting on the weights seems to be important for resolution of high multiplicity tracks
-          if (track_weight > BeamlinePVConstants::MultiFitter::minWeight) {
+          if (track_weight > parameters.minWeight) {
             const float3 HWr {
               res.x * trk.W_00, res.y * trk.W_11, -trk.tx.x * res.x * trk.W_00 - trk.tx.y * res.y * trk.W_11};
 
@@ -186,7 +182,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
           // update the position
           vtxpos_xy = vtxpos_xy + delta_xy;
           vtxpos_z = vtxpos_z + delta_z;
-          converged = fabsf(delta_z) < BeamlinePVConstants::MultiFitter::maxDeltaZConverged;
+          converged = fabsf(delta_z) < parameters.maxDeltaZConverged;
         }
         else {
           // Finish loop and do not accept vertex
@@ -214,10 +210,10 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       const auto beamlinedx = vertex.position.x - dev_beamline[0];
       const auto beamlinedy = vertex.position.y - dev_beamline[1];
       const auto beamlinerho2 = beamlinedx * beamlinedx + beamlinedy * beamlinedy;
-      const auto minTracks = vertex.position.z <= BeamlinePVConstants::Common::SMOG2_pp_separation ?
-                               BeamlinePVConstants::MultiFitter::SMOG2_minNumTracksPerVertex :
-                               BeamlinePVConstants::MultiFitter::pp_minNumTracksPerVertex;
-      if (nselectedtracks >= minTracks && beamlinerho2 < BeamlinePVConstants::MultiFitter::maxVertexRho2) {
+      const auto minTracks = vertex.position.z <= parameters.SMOG2_pp_separation ?
+                               parameters.SMOG2_minNumTracksPerVertex :
+                               parameters.pp_minNumTracksPerVertex;
+      if (nselectedtracks >= minTracks && beamlinerho2 < parameters.maxVertexRho2) {
         unsigned vertex_index = atomicAdd(number_of_multi_fit_vertices, 1);
         vertices[vertex_index] = vertex;
       }

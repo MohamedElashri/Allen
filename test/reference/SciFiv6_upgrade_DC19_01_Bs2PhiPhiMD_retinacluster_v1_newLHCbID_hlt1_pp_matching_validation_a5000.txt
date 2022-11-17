@@ -164,7 +164,7 @@ Inclusive:                                           1000/  1000, (30000.00 +/- 
 
 selreport_validator validation:
                                                    Events  Candidates
-Hlt1TwoTrackMVACharmXSec:                             683        1814
+Hlt1TwoTrackMVACharmXSec:                             683        1812
 Hlt1KsToPiPi:                                          50          57
 Hlt1TrackMVA:                                         225         324
 Hlt1TwoTrackMVA:                                      502        1476
@@ -224,8 +224,8 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DisplacedDiMuonAlignment:                           2           2
 
 Total decisions: 5121
-Total tracks:    3913
-Total SVs:       3045
-Total hits:      79317
-Total stdinfo:   48605
+Total tracks:    3911
+Total SVs:       3043
+Total hits:      79273
+Total stdinfo:   48581
 

@@ -56,6 +56,6 @@ namespace displaced_dielectron_line {
     Property<MaxDOCA_t> m_MaxDOCA {this, 0.082f};
     Property<MinPT_t> m_MinPT {this, 500.f};
     Property<MaxVtxChi2_t> m_MaxVtxChi2 {this, 7.4f};
-    Property<MinZ_t> m_MinZ {this, -300.f * Gaudi::Units::mm};
+    Property<MinZ_t> m_MinZ {this, -341.f * Gaudi::Units::mm};
   };
 } // namespace displaced_dielectron_line
