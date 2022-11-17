@@ -496,8 +496,8 @@ def setup_hlt1_node(enablePhysics=True,
             make_checkPV(
                 reconstructed_objects['pvs'],
                 name='check_SMOG2_PV',
-                minZ=-550,
-                maxZ=-300)
+                minZ=-541,
+                maxZ=-341)
         ]
 
         with line_maker.bind(prefilter=odin_err_filter + SMOG2_prefilters):

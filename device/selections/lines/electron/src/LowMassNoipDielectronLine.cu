@@ -75,6 +75,7 @@ __device__ bool lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::se
     const bool,
     const bool> input)
 {
+  const Allen::Views::Physics::CompositeParticle vertex = std::get<0>(input);
   const bool is_dielectron = std::get<1>(input);
   const bool is_same_sign = std::get<2>(input);
   const float brem_corrected_dielectron_mass = std::get<4>(input);
@@ -87,7 +88,7 @@ __device__ bool lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::se
   }
 
   bool decision = (is_same_sign == parameters.ss_on) && brem_corrected_dielectron_mass > parameters.minMass &&
-                  brem_corrected_dielectron_mass < parameters.maxMass;
+                  brem_corrected_dielectron_mass < parameters.maxMass && vertex.vertex().z() >= parameters.MinZ;
 
   // Select prompt or displaced candidates
   decision &=

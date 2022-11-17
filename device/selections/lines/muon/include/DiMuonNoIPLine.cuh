@@ -45,6 +45,7 @@ namespace di_muon_no_ip_line {
     PROPERTY(maxTrChi2_t, "maxTrChi2", "maxTrChi2 description", float) maxTrChi2;
     PROPERTY(ss_on_t, "ss_on", "ss_on description", bool) ss_on;
     PROPERTY(minPt_t, "minPt", "minPt description", float) minPt;
+    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
 
     PROPERTY(make_tuple_t, "make_tuple", "Make tuple for monitoring", bool) make_tuple;
   };
@@ -90,6 +91,7 @@ namespace di_muon_no_ip_line {
     Property<maxTrChi2_t> m_maxTrChi2 {this, 3.f};                                            // run 2 value: 3
     Property<ss_on_t> m_ss_on {this, false};
     Property<minPt_t> m_minPt {this, 1.f * Gaudi::Units::GeV};
+    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
 
     // Switch to create monitoring tuple
     Property<make_tuple_t> m_make_tuple {this, false};

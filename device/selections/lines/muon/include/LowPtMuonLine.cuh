@@ -42,6 +42,6 @@ namespace low_pt_muon_line {
     Property<minPt_t> m_minPt {this, 80.0f * Gaudi::Units::MeV};
     Property<minIP_t> m_minIP {this, 4.f};
     Property<minIPChi2_t> m_minIPChi2 {this, 7.4f};
-    Property<minBPVz_t> m_minBPVz {this, -300.f * Gaudi::Units::mm};
+    Property<minBPVz_t> m_minBPVz {this, -341.f * Gaudi::Units::mm};
   };
 } // namespace low_pt_muon_line

@@ -55,9 +55,10 @@ namespace two_track_mva_charm_xsec_line {
 
     const auto preselection = vertex.chi2() < parameters.maxVertexChi2 && particle.minpt() > parameters.minTrackPt &&
                               particle.minp() > parameters.minTrackP && particle.docamax() < parameters.maxDOCA &&
-                              massDecision() && particle.minipchi2() > parameters.minTrackIPChi2;
+                              massDecision() && particle.minipchi2() > parameters.minTrackIPChi2 &&
+                              vertex.z() >= parameters.minZ && particle.pv().position.z >= parameters.minZ;
 
-    /**
+    /*
      * After a rough selection of genereall intersting tracks and vertices two different MVA response cuts
      * are applied, one for low transverse momentum two-track candidates and one for high transverse momentum ones.
      * This is because the default cut (0.92385) removes all (as far as I can tell from limited MC statistics) low

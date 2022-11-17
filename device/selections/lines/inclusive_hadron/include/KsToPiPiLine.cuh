@@ -61,7 +61,7 @@ namespace kstopipi_line {
     Property<maxIP_t> m_maxIP {this, 0.3f * Gaudi::Units::mm};
     Property<minMass_t> m_minMass {this, 400.f * Gaudi::Units::MeV};
     Property<maxMass_t> m_maxMass {this, 600.f * Gaudi::Units::MeV};
-    Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
+    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
 
     // Switch to create monitoring tuple
     Property<enable_monitoring_t> m_enable_monitoring {this, false};

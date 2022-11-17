@@ -66,6 +66,6 @@ namespace two_track_line_ks {
     Property<maxM_Ks_t> m_maxM_Ks {this, 545.0f / Gaudi::Units::MeV};
     Property<minCosOpening_t> m_minCosOpening {this, 0.99f};
     Property<min_combip_t> m_min_combip {this, 0.72f / Gaudi::Units::mm};
-    Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
+    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
   };
 } // namespace two_track_line_ks

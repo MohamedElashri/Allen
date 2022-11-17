@@ -52,7 +52,7 @@ namespace SMOG2_dimuon_highmass_line {
     Property<CombCharge_t> m_CombCharge {this, 0};
     Property<maxDoca_t> m_maxDoca {this, 0.5f * Gaudi::Units::mm};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.0f};
-    Property<minZ_t> m_minZ {this, -550.f * Gaudi::Units::mm};
-    Property<maxZ_t> m_maxZ {this, -300.f * Gaudi::Units::mm};
+    Property<minZ_t> m_minZ {this, -551.f * Gaudi::Units::mm};
+    Property<maxZ_t> m_maxZ {this, -331.f * Gaudi::Units::mm};
   };
 } // namespace SMOG2_dimuon_highmass_line

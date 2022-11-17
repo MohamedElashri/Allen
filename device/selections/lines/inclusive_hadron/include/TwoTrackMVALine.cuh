@@ -60,7 +60,7 @@ namespace two_track_mva_line {
     Property<maxSVchi2_t> m_maxSVchi2 {this, 20.f};
     Property<maxDOCA_t> m_maxDOCA {this, 0.2f};
     Property<minipchi2_t> m_minipchi2 {this, 4.f}; // this is probably a noop, but better safe than sorry
-    Property<minZ_t> m_minZ {this, -300.f * Gaudi::Units::mm};
+    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
   };
 
 } // namespace two_track_mva_line

@@ -6,13 +6,14 @@
 namespace BeamlinePVConstants {
 
   namespace Common {
-    static constexpr float zmin = -500.f; // unit: mm Min z position of vertex seed
-    static constexpr float zmax = 300.f;  // unit: mm Max z position of vertex seed
-    static constexpr int Nbins = 3200;    // nubmer of bins in the histogram.Make sure that Nbins = (zmax-zmin)/dz
-    static constexpr float dz = 0.25f;    // unit: mm Z histogram bin size
+    static constexpr float zmin = -541.f; // unit: mm Min z position of vertex seed
+    static constexpr float zmax = 307.f;  // unit: mm Max z position of vertex seed
+    static constexpr int Nbins =
+      3392; // nubmer of bins in the histogram. Make sure that Nbins = (zmax-zmin)/dz and a multiple of 32
+    static constexpr float dz = 0.25f;                   // unit: mm Z histogram bin size
     static constexpr float pp_maxTrackZ0Err = 1.5f;      // unit: mm "Max z0-error for adding track to histo" for pp
     static constexpr float SMOG2_maxTrackZ0Err = 10.f;   // unit: mm "Max z0-error for adding track to histo" for SMOG2
-    static constexpr float SMOG2_pp_separation = -300.f; // unit: mm separation between pp and SMOG2 regions
+    static constexpr float SMOG2_pp_separation = -341.f; // unit: mm separation between pp and SMOG2 regions
   }                                                      // namespace Common
 
   namespace Histo {
