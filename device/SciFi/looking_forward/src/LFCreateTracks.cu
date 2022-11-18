@@ -29,9 +29,6 @@ void lf_create_tracks::lf_create_tracks_t::operator()(
   HostBuffers&,
   const Allen::Context& context) const
 {
-  const bool with_ut = first<host_track_type_id_t>(arguments) == Allen::TypeIDs::VeloUTTracks;
-  const auto n_seeds = with_ut ? LookingForward::InputUT::n_seeds : LookingForward::InputVelo::n_seeds;
-
   Allen::memset_async<dev_scifi_lf_total_number_of_found_triplets_t>(arguments, 0, context);
   Allen::memset_async<dev_scifi_lf_atomics_t>(arguments, 0, context);
 
@@ -39,7 +36,7 @@ void lf_create_tracks::lf_create_tracks_t::operator()(
     dim3(size<dev_event_list_t>(arguments)),
     dim3(warp_size, 128 / warp_size),
     context,
-    (128 / warp_size) * property<maximum_number_of_triplets_per_warp_t>() * n_seeds *
+    (128 / warp_size) * property<maximum_number_of_triplets_per_warp_t>() *
       sizeof(SciFi::lf_triplet::t))(arguments, constants.dev_looking_forward_constants);
 
   global_function(lf_calculate_parametrization)(

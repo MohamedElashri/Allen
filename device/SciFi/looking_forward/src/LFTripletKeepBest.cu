@@ -19,7 +19,7 @@ __device__ void triplet_keep_best(
   const auto n_seeds = with_ut ? LookingForward::InputUT::n_seeds : LookingForward::InputVelo::n_seeds;
 
   DYNAMIC_SHARED_MEMORY_BUFFER(unsigned, shared_memory, parameters.config)
-  unsigned* shared_warp_store = shared_memory + threadIdx.y * maximum_number_of_triplets_per_warp * n_seeds;
+  unsigned* shared_warp_store = shared_memory + threadIdx.y * maximum_number_of_triplets_per_warp;
 
   const unsigned number_of_elements_initial_window = with_ut ?
                                                        LookingForward::InputUT::number_of_elements_initial_window :
@@ -51,18 +51,31 @@ __device__ void triplet_keep_best(
       current_input_track_index * maximum_number_of_triplets_per_warp * n_seeds;
 
     const auto number_of_tracks_found = parameters.dev_scifi_lf_number_of_found_triplets[current_input_track_index];
-    for (unsigned i = threadIdx.x; i < number_of_tracks_found; i += blockDim.x) {
-      shared_warp_store[i] = track_scifi_lf_found_triplets[i];
-    }
-
     if (number_of_tracks_found == 0) {
       continue;
     }
 
-    // If the number of tracks is more than the max allowed, sort
+    __syncwarp();
+
     if (number_of_tracks_found > max_triplets_per_input_track) {
-      oddeven_merge_sort<false>(shared_warp_store, number_of_tracks_found);
+      for (unsigned i = threadIdx.x; i < number_of_tracks_found; i += blockDim.x) {
+        unsigned track = track_scifi_lf_found_triplets[i];
+        unsigned position = 0;
+        for (unsigned j = 0; j < number_of_tracks_found; ++j) {
+          position += track > track_scifi_lf_found_triplets[j];
+        }
+        if (position < max_triplets_per_input_track) {
+          shared_warp_store[position] = track;
+        }
+      }
     }
+    else {
+      for (unsigned i = threadIdx.x; i < number_of_tracks_found; i += blockDim.x) {
+        shared_warp_store[i] = track_scifi_lf_found_triplets[i];
+      }
+    }
+
+    __syncwarp();
 
     const auto number_of_tracks_to_store =
       number_of_tracks_found > max_triplets_per_input_track ? max_triplets_per_input_track : number_of_tracks_found;
