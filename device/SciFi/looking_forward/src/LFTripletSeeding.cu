@@ -458,13 +458,21 @@ __device__ void find_triplets(
 
     if (best_h1_rel != -1) {
       const auto address = atomicAdd(scifi_lf_number_of_found_triplets, 1);
-      const auto ichi2 = reinterpret_cast<uint16_t*>(&best_chi2);
+#if defined(TARGET_DEVICE_CPU) && !defined(CPU_USE_REAL_HALF)
+      // If we were compiling for CPU with CPU_USE_REAL_HALF turned off,
+      // best_chi2 would be a float. In that case, convert it to a half prior to
+      // saving the chi2, so that the 12 bits in lf_triplets representing the chi2
+      // are as representative as in other versions.
+      const uint16_t ichi2 = __float2half(best_chi2);
+#else
+      const auto ichi2 = reinterpret_cast<uint16_t*>(&best_chi2)[0];
+#endif
       scifi_lf_found_triplets[address] = SciFi::lf_triplet {static_cast<unsigned>(h0_rel),
                                                             static_cast<unsigned>(best_h1_rel),
                                                             static_cast<unsigned>(h2_rel),
                                                             triplet_seed,
                                                             left_right_side,
-                                                            ichi2[0]};
+                                                            ichi2};
     }
   }
 
