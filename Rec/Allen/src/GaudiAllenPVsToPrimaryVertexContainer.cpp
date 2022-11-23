@@ -23,44 +23,49 @@
 
 using Vertices = LHCb::Event::PV::PrimaryVertexContainer;
 
-class AllenPVsToLHCbPVs final : public Gaudi::Functional::Transformer<Vertices(const HostBuffers&)> {
+class GaudiAllenPVsToPrimaryVertexContainer final
+  : public Gaudi::Functional::Transformer<Vertices(const std::vector<unsigned>&, const std::vector<PV::Vertex>&)> {
 public:
   /// Standard constructor
-  AllenPVsToLHCbPVs(const std::string& name, ISvcLocator* pSvcLocator);
+  GaudiAllenPVsToPrimaryVertexContainer(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// initialization
   StatusCode initialize() override;
 
   /// Algorithm execution
-  Vertices operator()(const HostBuffers&) const override;
+  Vertices operator()(const std::vector<unsigned>&, const std::vector<PV::Vertex>&) const override;
 
 private:
   mutable Gaudi::Accumulators::SummingCounter<unsigned int> m_nbPVsCounter {this, "Nb PVs"};
 };
 
-DECLARE_COMPONENT(AllenPVsToLHCbPVs)
+DECLARE_COMPONENT(GaudiAllenPVsToPrimaryVertexContainer)
 
-AllenPVsToLHCbPVs::AllenPVsToLHCbPVs(const std::string& name, ISvcLocator* pSvcLocator) :
+GaudiAllenPVsToPrimaryVertexContainer::GaudiAllenPVsToPrimaryVertexContainer(
+  const std::string& name,
+  ISvcLocator* pSvcLocator) :
   Transformer(
     name,
     pSvcLocator,
     // Inputs
-    {KeyValue {"AllenOutput", "Allen/Out/HostBuffers"}},
+    {KeyValue {"number_of_multivertex", ""}, KeyValue {"reconstructed_multi_pvs", ""}},
     // Outputs
     {KeyValue {"OutputPVs", "Allen/PVs/PrimaryVertices"}})
 {}
 
-StatusCode AllenPVsToLHCbPVs::initialize()
+StatusCode GaudiAllenPVsToPrimaryVertexContainer::initialize()
 {
   if (msgLevel(MSG::DEBUG)) debug() << "==> Initialize" << endmsg;
   return StatusCode::SUCCESS;
 }
 
-Vertices AllenPVsToLHCbPVs::operator()(const HostBuffers& host_buffers) const
+Vertices GaudiAllenPVsToPrimaryVertexContainer::operator()(
+  const std::vector<unsigned>& number_of_multivertex,
+  const std::vector<PV::Vertex>& reconstructed_multi_pvs) const
 {
 
   const unsigned i_event = 0;
-  const unsigned n_pvs = host_buffers.host_number_of_multivertex[i_event];
+  const unsigned n_pvs = number_of_multivertex[i_event];
 
   if (msgLevel(MSG::DEBUG)) debug() << "Number of PVs to convert = " << n_pvs << endmsg;
 
@@ -69,7 +74,7 @@ Vertices AllenPVsToLHCbPVs::operator()(const HostBuffers& host_buffers) const
   vertices.reserve(n_pvs);
 
   for (unsigned int i = 0; i < n_pvs; i++) {
-    const PV::Vertex& vertex = host_buffers.host_reconstructed_multi_pvs[i_event * PatPV::max_number_vertices + i];
+    const PV::Vertex& vertex = reconstructed_multi_pvs[i_event * PatPV::max_number_vertices + i];
 
     Gaudi::SymMatrix3x3 poscov;
     poscov(0, 0) = vertex.cov00;
