@@ -230,7 +230,8 @@ def lumi_reconstruction(gather_selections,
                         with_plume=False):
     lumiLine_index, found = findLine(lines, lumiline_name)
     if not found:
-        raise Exception("Line name starting with", lumiline_name, "not found in", lines)
+        raise Exception("Line name starting with", lumiline_name,
+                        "not found in", lines)
 
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
