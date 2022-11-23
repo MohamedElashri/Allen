@@ -27,7 +27,7 @@ from AllenConf.plume_reconstruction import decode_plume
 
 def findLine(lines, name):
     for i in range(len(lines)):
-        if lines[i].name == name:
+        if lines[i].name.startswith(name):
             return i, True
     return -1, False
 
@@ -230,7 +230,7 @@ def lumi_reconstruction(gather_selections,
                         with_plume=False):
     lumiLine_index, found = findLine(lines, lumiline_name)
     if not found:
-        return []
+        raise Exception("Line name starting with", lumiline_name, "not found in", lines)
 
     number_of_events = initialize_number_of_events()
     odin = decode_odin()

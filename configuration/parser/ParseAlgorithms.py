@@ -30,7 +30,7 @@ class Parser():
 
     # Pattern sought in every file, prior to parsing the file for an algorithm
     __algorithm_pattern_compiled = re.compile(
-        "(?P<scope>Host|Device|Selection|Validation|Provider)Algorithm")
+        "(?P<scope>Host|Device|Selection|Validation|Provider|Barrier)Algorithm")
 
     # File extensions considered
     __sought_extensions_compiled = [
