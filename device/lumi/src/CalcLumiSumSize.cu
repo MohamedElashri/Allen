@@ -12,7 +12,7 @@
 #include "SelectionsEventModel.cuh"
 
 #include "LumiDefinitions.cuh"
-#include <Event/LumiSummaryOffsets_V2.h>
+#include "LumiSummaryOffsets.h"
 
 INSTANTIATE_ALGORITHM(calc_lumi_sum_size::calc_lumi_sum_size_t)
 

@@ -9,7 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "VeloLumiCounters.cuh"
-#include <Event/LumiSummaryOffsets_V2.h>
+#include "LumiSummaryOffsets.h"
 
 INSTANTIATE_ALGORITHM(velo_lumi_counters::velo_lumi_counters_t)
 
