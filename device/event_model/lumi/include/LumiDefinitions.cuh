@@ -10,7 +10,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include <Event/LumiSummaryOffsets_V2.h>
+#include "LumiSummaryOffsets.h"
 #include "MuonDefinitions.cuh"
 
 namespace Lumi {

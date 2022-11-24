@@ -9,7 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "PVLumiCounters.cuh"
-#include <Event/LumiSummaryOffsets_V2.h>
+#include "LumiSummaryOffsets.h"
 
 INSTANTIATE_ALGORITHM(pv_lumi_counters::pv_lumi_counters_t)
 

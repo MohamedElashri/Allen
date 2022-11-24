@@ -9,7 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "SciFiLumiCounters.cuh"
-#include <Event/LumiSummaryOffsets_V2.h>
+#include "LumiSummaryOffsets.h"
 
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"

@@ -9,7 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "MuonLumiCounters.cuh"
-#include <Event/LumiSummaryOffsets_V2.h>
+#include "LumiSummaryOffsets.h"
 
 INSTANTIATE_ALGORITHM(muon_lumi_counters::muon_lumi_counters_t)
 

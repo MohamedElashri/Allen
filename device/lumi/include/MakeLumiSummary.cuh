@@ -14,7 +14,7 @@
 #include "AlgorithmTypes.cuh"
 #include "GenericContainerContracts.h"
 
-#include <Event/LumiSummaryOffsets_V2.h>
+#include "LumiSummaryOffsets.h"
 #include <LumiDefinitions.cuh>
 #include "ODINBank.cuh"
 
