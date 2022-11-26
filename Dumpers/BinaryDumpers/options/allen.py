@@ -14,7 +14,8 @@ is_allen_standalone.global_bind(standalone=True)
 from Allen.config import (setup_allen_non_event_data_service, allen_odin,
                           configured_bank_types)
 from PyConf.application import (configure, setup_component, ComponentConfig,
-                                ApplicationOptions, make_odin)
+                                ApplicationOptions, make_odin,
+                                default_raw_event)
 from PyConf.control_flow import CompositeNode, NodeLogic
 from GaudiKernel.Constants import ERROR
 from DDDB.CheckDD4Hep import UseDD4Hep
@@ -236,6 +237,7 @@ ApplicationMgr().EvtSel = "NONE"
 ApplicationMgr().ExtSvc += extSvc
 
 # Copeid from PyConf.application.configure_input
+default_raw_event.global_bind(raw_event_format=options.input_raw_format)
 if not args.binary_geometry:
     config.add(
         setup_component(
