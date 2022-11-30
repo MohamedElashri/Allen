@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(velo_copy_track_hit_number::velo_copy_track_hit_number_t)
 void velo_copy_track_hit_number::velo_copy_track_hit_number_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<host_number_of_reconstructed_velo_tracks_t>(arguments, 1);
   set_size<dev_velo_track_hit_number_t>(
@@ -25,7 +24,6 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_offsets_all_velo_tracks_t>(arguments, 0, context);

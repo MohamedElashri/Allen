@@ -23,14 +23,9 @@ namespace {
     Checker::TruthCounter total_counter;
     std::unordered_map<unsigned, Checker::TruthCounter> truth_counters;
     int n_meas = 0;
-    int n_hits_missing = 0; // FIXME
     const auto nhits = track.total_number_of_hits;
     for (unsigned ihit = 0; ihit < nhits; ihit++) {
       const auto id = track.allids[ihit];
-      if (id == 0) {
-        // std::cout << "check SciFi: " << lhcb_id::is_scifi(id) << std::endl;
-        n_hits_missing += 1;
-      }
       if (lhcb_id::is_velo(id)) {
         n_meas++;
         total_counter.n_velo++;
@@ -59,7 +54,6 @@ namespace {
         debug_cout << "ID not matched to any subdetector " << std::hex << id << std::dec << std::endl;
       }
     }
-    // if (n_hits_missing != 0){std::cout << "This track has missing hits: " << n_hits_missing << std::endl;}
 
     // If the Track has total # Velo hits > 2 AND total # SciFi hits > 2, combine matching of mother and daughter
     // particles
@@ -148,7 +142,6 @@ void host_veloscifi_dump::host_veloscifi_dump_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   const auto number_of_events = first<host_number_of_events_t>(arguments);

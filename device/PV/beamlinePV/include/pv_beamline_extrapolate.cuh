@@ -27,17 +27,12 @@ namespace pv_beamline_extrapolate {
   __global__ void pv_beamline_extrapolate(Parameters);
 
   struct pv_beamline_extrapolate_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

@@ -13,8 +13,7 @@ INSTANTIATE_ALGORITHM(velo_pv_ip::velo_pv_ip_t)
 void velo_pv_ip::velo_pv_ip_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   auto n_velo_tracks = first<host_number_of_reconstructed_velo_tracks_t>(arguments);
   set_size<dev_velo_pv_ip_t>(arguments, Associate::Consolidated::table_size(n_velo_tracks));
@@ -24,7 +23,6 @@ void velo_pv_ip::velo_pv_ip_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(velo_pv_ip)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);

@@ -70,17 +70,12 @@ namespace velo_consolidate_tracks {
   struct velo_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
     using contracts = std::tuple<lhcb_id_container_checks>;
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
-      HostBuffers& host_buffers,
       const Allen::Context& context) const;
 
   private:

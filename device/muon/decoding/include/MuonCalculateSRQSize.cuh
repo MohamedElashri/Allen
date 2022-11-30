@@ -23,17 +23,12 @@ namespace muon_calculate_srq_size {
   };
 
   struct muon_calculate_srq_size_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers&,
       const Allen::Context& context) const;
   };
 } // namespace muon_calculate_srq_size

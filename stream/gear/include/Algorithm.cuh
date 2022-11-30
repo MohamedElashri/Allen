@@ -11,7 +11,6 @@
 #include "Contract.h"
 #include "RuntimeOptions.h"
 #include "Constants.cuh"
-#include "HostBuffers.cuh"
 #include "nlohmann/json.hpp"
 #include <any>
 
@@ -116,11 +115,8 @@ namespace Allen {
         std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>,
         std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>>,
         Allen::Store::UnorderedStore&) = nullptr;
-      void (*set_arguments_size)(void*, std::any&, const RuntimeOptions&, const Constants&, const HostBuffers&) =
-        nullptr;
-      void (
-        *invoke)(void const*, std::any&, const RuntimeOptions&, const Constants&, HostBuffers&, const Allen::Context&) =
-        nullptr;
+      void (*set_arguments_size)(void*, std::any&, const RuntimeOptions&, const Constants&) = nullptr;
+      void (*invoke)(void const*, std::any&, const RuntimeOptions&, const Constants&, const Allen::Context&) = nullptr;
       void (*init)(void*) = nullptr;
       void (*set_properties)(void*, const std::map<std::string, nlohmann::json>&) = nullptr;
       std::map<std::string, nlohmann::json> (*get_properties)(void const*) = nullptr;
@@ -174,26 +170,20 @@ namespace Allen {
             input_aggregates, std::make_index_sequence<std::tuple_size_v<input_aggregates_t>> {})};
           return std::any {store_ref_t {store_ref, input_agg_store, store}};
         },
-        [](
-          void* p,
-          std::any& arg_ref_manager,
-          const RuntimeOptions& runtime_options,
-          const Constants& constants,
-          const HostBuffers& host_buffers) {
+        [](void* p, std::any& arg_ref_manager, const RuntimeOptions& runtime_options, const Constants& constants) {
           using store_ref_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           static_cast<ALGORITHM*>(p)->set_arguments_size(
-            std::any_cast<store_ref_t&>(arg_ref_manager), runtime_options, constants, host_buffers);
+            std::any_cast<store_ref_t&>(arg_ref_manager), runtime_options, constants);
         },
         [](
           const void* p,
           std::any& arg_ref_manager,
           const RuntimeOptions& runtime_options,
           const Constants& constants,
-          HostBuffers& host_buffers,
           const Allen::Context& context) {
           using store_ref_t = typename AlgorithmTraits<ALGORITHM>::StoreRefType;
           static_cast<ALGORITHM const*>(p)->operator()(
-            std::any_cast<store_ref_t&>(arg_ref_manager), runtime_options, constants, host_buffers, context);
+            std::any_cast<store_ref_t&>(arg_ref_manager), runtime_options, constants, context);
         },
         [](void* p) {
           if constexpr (Allen::has_init_member_fn<ALGORITHM>::value) {
@@ -276,22 +266,18 @@ namespace Allen {
     {
       return (table.create_ref_store)(name(), std::move(vector_store_ref), std::move(input_aggregates), store);
     }
-    void set_arguments_size(
-      std::any& arg_ref_manager,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers)
+    void
+    set_arguments_size(std::any& arg_ref_manager, const RuntimeOptions& runtime_options, const Constants& constants)
     {
-      (table.set_arguments_size)(instance, arg_ref_manager, runtime_options, constants, host_buffers);
+      (table.set_arguments_size)(instance, arg_ref_manager, runtime_options, constants);
     }
     void invoke(
       std::any& arg_ref_manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers& host_buffers,
       const Allen::Context& context)
     {
-      (table.invoke)(instance, arg_ref_manager, runtime_options, constants, host_buffers, context);
+      (table.invoke)(instance, arg_ref_manager, runtime_options, constants, context);
     }
     void init() { (table.init)(instance); }
     void set_properties(const std::map<std::string, nlohmann::json>& algo_config)

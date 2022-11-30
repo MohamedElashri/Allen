@@ -89,8 +89,7 @@ __global__ void calo_find_clusters::calo_find_clusters(
 void calo_find_clusters::calo_find_clusters_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_ecal_clusters_t>(arguments, first<host_ecal_number_of_clusters_t>(arguments));
 }
@@ -99,7 +98,6 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   Allen::Context const& context) const
 {
   // Find clusters.

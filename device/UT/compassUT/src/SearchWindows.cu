@@ -11,8 +11,7 @@ INSTANTIATE_ALGORITHM(ut_search_windows::ut_search_windows_t)
 void ut_search_windows::ut_search_windows_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_ut_windows_layers_t>(
     arguments,
@@ -23,7 +22,6 @@ void ut_search_windows::ut_search_windows_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_ut_windows_layers_t>(arguments, 0, context);

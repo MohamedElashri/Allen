@@ -8,9 +8,10 @@ INSTANTIATE_ALGORITHM(make_selrep::make_selrep_t)
 void make_selrep::make_selrep_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
+  set_size<host_selrep_offsets_t>(arguments, size<dev_selrep_offsets_t>(arguments));
+  set_size<host_sel_reports_t>(arguments, first<host_selrep_size_t>(arguments));
   set_size<dev_sel_reports_t>(arguments, first<host_selrep_size_t>(arguments));
 }
 
@@ -18,7 +19,6 @@ void make_selrep::make_selrep_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
   // Initialization might not be necessary.
@@ -26,15 +26,8 @@ void make_selrep::make_selrep_t::operator()(
   global_function(make_selrep_bank)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments));
 
-  host_buffers.host_sel_report_offsets.resize(size<dev_selrep_offsets_t>(arguments));
-  host_buffers.host_sel_reports.resize(size<dev_sel_reports_t>(arguments));
-  Allen::copy_async(
-    host_buffers.host_sel_report_offsets.get(),
-    get<dev_selrep_offsets_t>(arguments),
-    context,
-    Allen::memcpyDeviceToHost);
-  Allen::copy_async(
-    host_buffers.host_sel_reports.get(), get<dev_sel_reports_t>(arguments), context, Allen::memcpyDeviceToHost);
+  Allen::copy_async<host_selrep_offsets_t, dev_selrep_offsets_t>(arguments, context);
+  Allen::copy_async<host_sel_reports_t, dev_sel_reports_t>(arguments, context);
 }
 
 __global__ void make_selrep::make_selrep_bank(make_selrep::Parameters parameters, const unsigned number_of_events)

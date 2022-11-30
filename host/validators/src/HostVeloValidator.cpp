@@ -10,7 +10,6 @@ void host_velo_validator::host_velo_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   const auto offsets_all_velo_tracks = make_host_buffer<dev_offsets_all_velo_tracks_t>(arguments, context);

@@ -20,14 +20,12 @@ namespace host_odin_error_filter {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions& runtime_options,
-      const Constants&,
-      const HostBuffers&) const;
+      const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
-      HostBuffers& host_buffers,
       const Allen::Context& context) const;
   };
 } // namespace host_odin_error_filter

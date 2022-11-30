@@ -21,17 +21,12 @@ namespace calculate_number_of_retinaclusters_each_sensor_pair {
   };
 
   struct calculate_number_of_retinaclusters_each_sensor_pair_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

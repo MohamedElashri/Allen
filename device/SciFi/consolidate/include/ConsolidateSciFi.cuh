@@ -82,17 +82,12 @@ namespace scifi_consolidate_tracks {
     const float* dev_magnet_polarity);
 
   struct scifi_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
-      HostBuffers& host_buffers,
       const Allen::Context& context) const;
 
   private:

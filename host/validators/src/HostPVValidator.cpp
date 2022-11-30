@@ -10,7 +10,6 @@ void host_pv_validator::host_pv_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   const auto multi_final_vertices = make_host_buffer<dev_multi_final_vertices_t>(arguments, context);

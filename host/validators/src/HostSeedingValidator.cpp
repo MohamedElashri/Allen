@@ -9,7 +9,6 @@ void host_seeding_validator::host_seeding_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   const auto scifi_seed_atomics = make_host_buffer<dev_offsets_scifi_seeds_t>(arguments, context);

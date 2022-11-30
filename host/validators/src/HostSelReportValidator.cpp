@@ -17,7 +17,6 @@ void host_sel_report_validator::host_sel_report_validator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   const auto sel_reports = make_host_buffer<dev_sel_reports_t>(arguments, context);

@@ -13,26 +13,22 @@
 #include "ROOTService.h"
 
 // Helper macro to explicitly instantiate lines
-#define INSTANTIATE_LINE(DERIVED, PARAMETERS)                                                                  \
-  template void Line<DERIVED, PARAMETERS>::operator()(                                                         \
-    const ArgumentReferences<PARAMETERS>&,                                                                     \
-    const RuntimeOptions&,                                                                                     \
-    const Constants&,                                                                                          \
-    HostBuffers&,                                                                                              \
-    const Allen::Context&) const;                                                                              \
-  template __device__ void process_line<DERIVED, PARAMETERS>(                                                  \
-    char*,                                                                                                     \
-    bool*,                                                                                                     \
-    unsigned*,                                                                                                 \
-    Allen::IMultiEventContainer**,                                                                             \
-    unsigned,                                                                                                  \
-    unsigned,                                                                                                  \
-    unsigned,                                                                                                  \
-    unsigned,                                                                                                  \
-    unsigned,                                                                                                  \
-    unsigned,                                                                                                  \
-    const unsigned);                                                                                           \
-  template void line_output_monitor<DERIVED, PARAMETERS>(char*, const RuntimeOptions&, const Allen::Context&); \
+#define INSTANTIATE_LINE(DERIVED, PARAMETERS)                                                                     \
+  template void Line<DERIVED, PARAMETERS>::operator()(                                                            \
+    const ArgumentReferences<PARAMETERS>&, const RuntimeOptions&, const Constants&, const Allen::Context&) const; \
+  template __device__ void process_line<DERIVED, PARAMETERS>(                                                     \
+    char*,                                                                                                        \
+    bool*,                                                                                                        \
+    unsigned*,                                                                                                    \
+    Allen::IMultiEventContainer**,                                                                                \
+    unsigned,                                                                                                     \
+    unsigned,                                                                                                     \
+    unsigned,                                                                                                     \
+    unsigned,                                                                                                     \
+    unsigned,                                                                                                     \
+    unsigned,                                                                                                     \
+    const unsigned);                                                                                              \
+  template void line_output_monitor<DERIVED, PARAMETERS>(char*, const RuntimeOptions&, const Allen::Context&);    \
   INSTANTIATE_ALGORITHM(DERIVED)
 
 // Type-erased line function type
@@ -117,7 +113,6 @@ public:
     const ArgumentReferences<Parameters>&,
     const RuntimeOptions&,
     const Constants&,
-    HostBuffers&,
     const Allen::Context& context) const;
 
   /**
@@ -133,11 +128,7 @@ public:
     }
   }
 
-  void set_arguments_size(
-    ArgumentReferences<Parameters> arguments,
-    const RuntimeOptions&,
-    const Constants&,
-    const HostBuffers&) const
+  void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const
   {
     Allen::ArgumentOperations::set_size<typename Parameters::host_decisions_size_t>(arguments, 1);
     Allen::ArgumentOperations::set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
@@ -318,7 +309,6 @@ void Line<Derived, Parameters>::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   [[maybe_unused]] const Allen::Context& context) const
 {
   const auto* derived_instance = static_cast<const Derived*>(this);

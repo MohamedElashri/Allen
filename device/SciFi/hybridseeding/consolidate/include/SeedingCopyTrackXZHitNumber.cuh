@@ -21,17 +21,12 @@ namespace seeding_copy_trackXZ_hit_number {
   __global__ void seeding_copy_trackXZ_hit_number(Parameters);
 
   struct seeding_copy_trackXZ_hit_number_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

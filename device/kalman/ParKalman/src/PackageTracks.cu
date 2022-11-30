@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(package_kalman_tracks::package_kalman_tracks_t)
 void package_kalman_tracks::package_kalman_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_kf_tracks_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
@@ -18,7 +17,6 @@ void package_kalman_tracks::package_kalman_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(package_kalman_tracks)(

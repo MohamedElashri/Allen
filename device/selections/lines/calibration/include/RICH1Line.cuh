@@ -95,11 +95,7 @@ namespace rich_1_line {
       const RuntimeOptions& runtime_options,
       const Allen::Context& context) const;
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
   private:
     // Commonly required properties

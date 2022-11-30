@@ -30,17 +30,12 @@ namespace make_lepton_id {
   __global__ void make_lepton_id(Parameters parameters);
 
   struct make_lepton_id_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers& host_buffers,
       const Allen::Context& context) const;
 
   private:

@@ -266,9 +266,10 @@ public:
   void run(
     const RuntimeOptions& runtime_options,
     const Constants& constants,
-    HostBuffers& persistent_buffers,
+    Allen::Store::PersistentStore* persistent_store,
     const Allen::Context& context)
   {
+    m_store.set_persistent_store(persistent_store);
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
       run(
         m_sequence[i],
@@ -278,10 +279,10 @@ public:
         m_store,
         runtime_options,
         constants,
-        persistent_buffers,
         context,
         do_print);
     }
+    m_store.set_persistent_store_map();
   }
 
 private:
@@ -347,12 +348,11 @@ private:
     Allen::Store::UnorderedStore& store,
     const RuntimeOptions& runtime_options,
     const Constants& constants,
-    HostBuffers& persistent_buffers,
     const Allen::Context& context,
     bool do_print)
   {
     // Sets the arguments sizes
-    algorithm.set_arguments_size(argument_ref_manager, runtime_options, constants, persistent_buffers);
+    algorithm.set_arguments_size(argument_ref_manager, runtime_options, constants);
 
     // Setup algorithm, reserving / freeing memory buffers
     setup(algorithm, in_dependencies, out_dependencies, store, do_print);
@@ -364,14 +364,11 @@ private:
 
     try {
       // Invoke the algorithm
-      algorithm.invoke(argument_ref_manager, runtime_options, constants, persistent_buffers, context);
+      algorithm.invoke(argument_ref_manager, runtime_options, constants, context);
     } catch (std::invalid_argument& e) {
       fprintf(stderr, "Execution of algorithm %s raised an exception\n", algorithm.name().c_str());
       throw e;
     }
-
-    // Store persistent buffers
-    // store_persistent_buffers(persistent_buffers);
 
     // Run postconditions
     if constexpr (contracts_enabled) {

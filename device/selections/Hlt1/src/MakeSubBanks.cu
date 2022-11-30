@@ -15,8 +15,7 @@ INSTANTIATE_ALGORITHM(make_subbanks::make_subbanks_t)
 void make_subbanks::make_subbanks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_rb_substr_t>(arguments, first<host_substr_bank_size_t>(arguments));
   set_size<dev_rb_hits_t>(arguments, first<host_hits_bank_size_t>(arguments));
@@ -28,7 +27,6 @@ void make_subbanks::make_subbanks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_rb_substr_t>(arguments, 0, context);

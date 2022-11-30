@@ -92,17 +92,12 @@ namespace VertexFit {
   };
 
   struct fit_secondary_vertices_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers& host_buffers,
       const Allen::Context& context) const;
 
   private:

@@ -19,10 +19,9 @@ INSTANTIATE_LINE(rich_1_line::rich_1_line_t, rich_1_line::Parameters)
 void rich_1_line::rich_1_line_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
+  const Constants& constants) const
 {
-  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
+  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants);
 
   set_size<typename Parameters::dev_decision_t>(arguments, rich_1_line::rich_1_line_t::get_decisions_size(arguments));
   set_size<typename Parameters::host_decision_t>(arguments, rich_1_line::rich_1_line_t::get_decisions_size(arguments));

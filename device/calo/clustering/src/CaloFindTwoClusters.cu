@@ -48,8 +48,7 @@ __global__ void calo_find_twoclusters::calo_find_twoclusters(calo_find_twocluste
 void calo_find_twoclusters::calo_find_twoclusters_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   const unsigned n_clusters_idx = first<host_number_of_twoclusters_t>(arguments);
   set_size<dev_ecal_twoclusters_t>(arguments, n_clusters_idx);
@@ -59,7 +58,6 @@ __host__ void calo_find_twoclusters::calo_find_twoclusters_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   Allen::Context const& context) const
 {
   // Find clusters.

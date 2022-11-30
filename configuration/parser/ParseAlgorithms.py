@@ -371,13 +371,13 @@ class AllenCore():
             "std::tuple<" + ",".join(output_types) + "> output_container {};",
             "// TES wrappers", f"{tes_wrappers}",
             "// Inputs to set_arguments_size and operator()",
-            f"{tes_wrappers_reference}", f"HostBuffers host_buffers{{}};",
+            f"{tes_wrappers_reference}",
             f"Allen::Context context{{}};",
             f"const auto argument_references = ArgumentReferences<{algorithm.namespace}::Parameters>{{tes_wrappers_references, input_aggregates_tuple}};",
             f"// set arguments size invocation",
-            f"m_algorithm.set_arguments_size(argument_references, runtime_options, *constants, host_buffers);",
+            f"m_algorithm.set_arguments_size(argument_references, runtime_options, *constants);",
             f"// algorithm operator() invocation",
-            f"m_algorithm(argument_references, runtime_options, *constants, host_buffers, context);"
+            f"m_algorithm(argument_references, runtime_options, *constants, context);"
         ))
 
         is_filter = "mask_t" in [out.typedef for out in outputs]
@@ -558,12 +558,11 @@ class AllenCore():
             f"{tes_wrappers}",
             "// Inputs to set_arguments_size and operator()",
             f"{tes_wrappers_reference}",
-            f"HostBuffers host_buffers{{}};",
             f"Allen::Context context{{}};",
             f"// set arguments size invocation",
-            f"m_algorithm.set_arguments_size(tes_wrappers_references, runtime_options, *constants, host_buffers);",
+            f"m_algorithm.set_arguments_size(tes_wrappers_references, runtime_options, *constants);",
             f"// algorithm operator() invocation",
-            f"m_algorithm(tes_wrappers_references, runtime_options, *constants, host_buffers, context);",
+            f"m_algorithm(tes_wrappers_references, runtime_options, *constants, context);",
             return_statement,
             f"}}",
             "private:",

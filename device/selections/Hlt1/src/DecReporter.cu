@@ -10,8 +10,7 @@ INSTANTIATE_ALGORITHM(dec_reporter::dec_reporter_t)
 void dec_reporter::dec_reporter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_dec_reports_t>(
     arguments, (3 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
@@ -25,7 +24,6 @@ void dec_reporter::dec_reporter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
   Allen::memset_async<host_dec_reports_t>(arguments, 0, context);
@@ -35,13 +33,6 @@ void dec_reporter::dec_reporter_t::operator()(
     arguments);
 
   Allen::copy_async<host_dec_reports_t, dev_dec_reports_t>(arguments, context);
-
-  host_buffers.host_dec_reports.resize(size<dev_dec_reports_t>(arguments));
-  Allen::copy_async(
-    host_buffers.host_dec_reports.get(), get<dev_dec_reports_t>(arguments), context, Allen::memcpyDeviceToHost);
-
-  // Synchronize copies
-  Allen::synchronize(context);
 }
 
 __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)

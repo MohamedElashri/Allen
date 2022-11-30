@@ -201,8 +201,7 @@ INSTANTIATE_ALGORITHM(seed_xz::seed_xz_t);
 void seed_xz::seed_xz_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_hits_working_mem_t>(arguments, first<host_scifi_hit_count_t>(arguments));
   set_size<dev_count_hits_working_mem_t>(arguments, 1);
@@ -222,7 +221,6 @@ void seed_xz::seed_xz_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_seeding_number_of_tracksXZ_t>(arguments, 0, context);

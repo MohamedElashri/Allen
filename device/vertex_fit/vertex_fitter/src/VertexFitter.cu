@@ -42,8 +42,7 @@ __global__ void create_sv_views(VertexFit::Parameters parameters)
 void VertexFit::fit_secondary_vertices_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_consolidated_svs_t>(arguments, first<host_number_of_svs_t>(arguments));
   set_size<dev_two_track_sv_track_pointers_t>(arguments, first<host_number_of_svs_t>(arguments));
@@ -62,7 +61,6 @@ void VertexFit::fit_secondary_vertices_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_two_track_composite_view_t>(arguments, 0, context);

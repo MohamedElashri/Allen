@@ -58,17 +58,12 @@ namespace make_long_track_particles {
   __global__ void make_particles(Parameters parameters);
 
   struct make_long_track_particles_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers& host_buffers,
       const Allen::Context& context) const;
 
   private:

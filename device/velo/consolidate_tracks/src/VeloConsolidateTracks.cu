@@ -48,8 +48,7 @@ __global__ void create_velo_views(velo_consolidate_tracks::Parameters parameters
 void velo_consolidate_tracks::velo_consolidate_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   const auto total_number_of_velo_tracks = first<host_number_of_reconstructed_velo_tracks_t>(arguments) +
                                            first<host_number_of_three_hit_tracks_filtered_t>(arguments);
@@ -68,7 +67,6 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   // Set all found tracks to accepted

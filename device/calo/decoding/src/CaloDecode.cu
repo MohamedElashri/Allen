@@ -213,8 +213,7 @@ calo_decode_dispatch(calo_decode::Parameters parameters, const char* raw_ecal_ge
 void calo_decode::calo_decode_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_ecal_digits_t>(arguments, first<host_ecal_number_of_digits_t>(arguments));
 }
@@ -223,7 +222,6 @@ void calo_decode::calo_decode_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_ecal_digits_t>(arguments, 0x7F, context);

@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(pv_beamline_histo::pv_beamline_histo_t)
 void pv_beamline_histo::pv_beamline_histo_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_zhisto_t>(
     arguments,
@@ -20,7 +19,6 @@ void pv_beamline_histo::pv_beamline_histo_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_zhisto_t>(arguments, 0, context);

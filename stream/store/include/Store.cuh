@@ -18,13 +18,89 @@
 #include <boost/pfr/core.hpp>
 
 namespace Allen::Store {
+  class UnorderedStore;
+
+  /**
+   * @brief Persistent store that outlives the sequence.
+   */
+  class PersistentStore {
+    friend class UnorderedStore;
+    host_memory_manager_t m_mem_manager;
+    std::unordered_map<std::string, AllenArgument> m_store {};
+
+    void reserve(AllenArgument& arg)
+    {
+      if (arg.scope() != Scope::Host) {
+        throw std::runtime_error("Persisted arguments must be scope Host");
+      }
+      m_mem_manager.reserve(arg);
+    }
+
+  public:
+    PersistentStore(const size_t requested_mb, const unsigned required_memory_alignment) :
+      m_mem_manager {"Persistent memory manager", requested_mb * 1000 * 1000, required_memory_alignment}
+    {}
+
+    PersistentStore(const PersistentStore&) = delete;
+    PersistentStore& operator=(const PersistentStore&) = delete;
+    PersistentStore(PersistentStore&&) = delete;
+    PersistentStore& operator=(PersistentStore&&) = delete;
+
+    AllenArgument& at(const std::string& k)
+    {
+      if (m_store.find(k) != std::end(m_store)) {
+        return m_store.at(k);
+      }
+      throw std::runtime_error("store does not contain key " + k);
+    }
+
+    const AllenArgument& at(const std::string& k) const
+    {
+      if (m_store.find(k) != std::end(m_store)) {
+        return m_store.at(k);
+      }
+      throw std::runtime_error("store does not contain key " + k);
+    }
+
+    template<typename T>
+    std::pair<bool, gsl::span<const T>> try_at(const std::string& k) const
+    {
+      if (m_store.find(k) != std::end(m_store)) {
+        return {true, static_cast<gsl::span<const T>>(m_store.at(k))};
+      }
+      return {false, {}};
+    }
+
+    template<typename T>
+    void inject(const std::string& k, const std::vector<T>& value)
+    {
+      Allen::Store::AllenArgument arg {std::in_place_type<T>, k, Allen::Store::Scope::Host};
+      arg.set_size(value.size());
+      const auto ret = m_store.try_emplace(k, arg);
+      if (!ret.second) {
+        throw std::runtime_error("store register_entry failed, entry already exists");
+      }
+      arg = m_store.at(k);
+      reserve(arg);
+      gsl::span<T> arg_span = arg;
+      std::memcpy(arg_span.data(), value.data(), value.size() * sizeof(T));
+    }
+
+    void free_all() { m_mem_manager.free_all(); }
+
+    void print_memory_manager_states() const { m_mem_manager.print(); }
+  };
+
   /**
    * @brief Allen argument manager
    */
   class UnorderedStore {
-    host_memory_manager_t m_host_memory_manager {"Host memory manager"};
+    // The host memory manager here is only used for temporaries
+    host_memory_manager_t m_host_memory_manager {"Host temporaries memory manager"};
     device_memory_manager_t m_device_memory_manager {"Device memory manager"};
+    PersistentStore* m_persistent_store = nullptr;
     std::unordered_map<std::string, AllenArgument> m_store {};
+    std::unordered_map<std::string, AllenArgument> m_persistent_store_map {};
     unsigned m_temporary_buffer_counter = 0;
 
   public:
@@ -33,6 +109,10 @@ namespace Allen::Store {
     UnorderedStore& operator=(const UnorderedStore&) = delete;
     UnorderedStore(UnorderedStore&&) = delete;
     UnorderedStore& operator=(UnorderedStore&&) = delete;
+
+    void set_persistent_store(PersistentStore* persistent_store) { m_persistent_store = persistent_store; }
+
+    void set_persistent_store_map() { m_persistent_store->m_store = m_persistent_store_map; }
 
     template<Scope S, typename T>
     auto make_buffer(const size_t size)
@@ -49,28 +129,39 @@ namespace Allen::Store {
 
     AllenArgument& at(const std::string& k)
     {
-      try {
+      if (m_store.find(k) != std::end(m_store)) {
         return m_store.at(k);
-      } catch (std::out_of_range&) {
-        error_cout << "Store: key " << k << " not found\n";
-        throw;
       }
+      else if (m_persistent_store_map.find(k) != std::end(m_persistent_store_map)) {
+        return m_persistent_store_map.at(k);
+      }
+      throw std::runtime_error("store does not contain key " + k);
     }
 
     const AllenArgument& at(const std::string& k) const
     {
-      try {
+      if (m_store.find(k) != std::end(m_store)) {
         return m_store.at(k);
-      } catch (std::out_of_range&) {
-        error_cout << "Store: key " << k << " not found\n";
-        throw;
       }
+      else if (m_persistent_store_map.find(k) != std::end(m_persistent_store_map)) {
+        return m_persistent_store_map.at(k);
+      }
+      throw std::runtime_error("store does not contain key " + k);
     }
 
-    void register_entry(const std::string& k, AllenArgument&& t)
+    void register_entry(const std::string& k, AllenArgument&& arg)
     {
-      const auto& [ret, ok] = m_store.try_emplace(k, std::forward<AllenArgument>(t));
-      if (!ok) {
+      decltype(m_persistent_store_map.try_emplace(k, std::forward<AllenArgument>(arg))) ret;
+      if (arg.scope() == Allen::Store::Scope::Host) {
+        ret = m_persistent_store_map.try_emplace(k, std::forward<AllenArgument>(arg));
+      }
+      else if (arg.scope() == Allen::Store::Scope::Device) {
+        ret = m_store.try_emplace(k, std::forward<AllenArgument>(arg));
+      }
+      else {
+        throw std::runtime_error("unsupported allen argument scope");
+      }
+      if (!ret.second) {
         throw std::runtime_error("store register_entry failed, entry already exists");
       }
     }
@@ -78,10 +169,10 @@ namespace Allen::Store {
     void put(const std::string& k)
     {
       AllenArgument& arg = at(k);
-      if (arg.scope() == m_host_memory_manager.scope) {
-        m_host_memory_manager.reserve(arg);
+      if (arg.scope() == Allen::Store::Scope::Host) {
+        m_persistent_store->reserve(arg);
       }
-      else if (arg.scope() == m_device_memory_manager.scope) {
+      else if (arg.scope() == Allen::Store::Scope::Device) {
         m_device_memory_manager.reserve(arg);
       }
       else {
@@ -102,13 +193,10 @@ namespace Allen::Store {
     void free(const std::string& k)
     {
       auto& arg = at(k);
-      // Do not free host arguments
-      if (arg.scope() == m_device_memory_manager.scope) {
+      // Only free device
+      if (arg.scope() == Allen::Store::Scope::Device) {
         m_device_memory_manager.free(arg);
         arg.set_pointer(nullptr);
-      }
-      else if (arg.scope() != m_host_memory_manager.scope) {
-        throw std::runtime_error("argument scope not recognized");
       }
     }
 
@@ -116,12 +204,14 @@ namespace Allen::Store {
     {
       m_host_memory_manager.free_all();
       m_device_memory_manager.free_all();
+      m_persistent_store = nullptr;
       m_temporary_buffer_counter = 0;
     }
 
     void reset()
     {
       m_store.clear();
+      m_persistent_store_map.clear();
       free_all();
     }
 

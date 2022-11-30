@@ -100,10 +100,9 @@ __device__ bool lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::se
 void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
+  const Constants& constants) const
 {
-  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
+  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants);
   set_size<dev_die_masses_raw_t>(
     arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_die_masses_bremcorr_t>(

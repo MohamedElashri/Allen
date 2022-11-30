@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(data_provider::data_provider_t)
 void data_provider::data_provider_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
   set_size<dev_raw_banks_t>(arguments, bno.fragments_mem_size);
@@ -23,7 +22,6 @@ void data_provider::data_provider_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);

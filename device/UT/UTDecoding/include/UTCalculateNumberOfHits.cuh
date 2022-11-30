@@ -31,17 +31,13 @@ namespace ut_calculate_number_of_hits {
     // Register contracts for this algorithm
     using contracts = std::tuple<version_checks>;
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants& constants,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants& constants)
+      const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

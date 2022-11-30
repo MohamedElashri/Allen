@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(FilterMFTracks::filter_mf_tracks_t)
 void FilterMFTracks::filter_mf_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_mf_sv_atomics_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_svs_kf_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
@@ -20,7 +19,6 @@ void FilterMFTracks::filter_mf_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_mf_sv_atomics_t>(arguments, 0, context);

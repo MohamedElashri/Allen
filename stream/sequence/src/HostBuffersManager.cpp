@@ -2,14 +2,14 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "HostBuffersManager.cuh"
-#include "HostBuffers.cuh"
 #include "Logger.h"
 
-void HostBuffersManager::init(size_t nBuffers)
+void HostBuffersManager::init(size_t nBuffers, size_t host_memory_size)
 {
-  host_buffers.reserve(nBuffers);
+  m_host_memory_size = host_memory_size;
+  m_persistent_stores.reserve(nBuffers);
   for (size_t i = 0; i < nBuffers; ++i) {
-    host_buffers.push_back(new HostBuffers());
+    m_persistent_stores.push_back(new Allen::Store::PersistentStore(host_memory_size, 64));
     buffer_statuses.push_back(BufferStatus::Empty);
     empty_buffers.push(i);
   }
@@ -20,9 +20,9 @@ size_t HostBuffersManager::assignBufferToFill()
   if (empty_buffers.empty()) {
     warning_cout << "No empty buffers available" << std::endl;
     warning_cout << "Adding new buffers" << std::endl;
-    host_buffers.push_back(new HostBuffers());
+    m_persistent_stores.push_back(new Allen::Store::PersistentStore(m_host_memory_size, 64));
     buffer_statuses.push_back(BufferStatus::Filling);
-    return host_buffers.size() - 1;
+    return m_persistent_stores.size() - 1;
   }
 
   auto b = empty_buffers.front();
@@ -87,41 +87,18 @@ void HostBuffersManager::returnBufferWritten(size_t b)
 
 void HostBuffersManager::writeSingleEventPassthrough(const size_t b)
 {
-  if (b >= host_buffers.size()) {
-    error_cout << "Buffer index " << b << " is larger than the number of available buffers: " << host_buffers.size()
-               << std::endl;
+  if (b >= m_persistent_stores.size()) {
+    error_cout << "Buffer index " << b
+               << " is larger than the number of available buffers: " << m_persistent_stores.size() << std::endl;
     return;
   }
-  auto buf = host_buffers[b];
+  auto store = m_persistent_stores[b];
 
-  buf->host_number_of_events = 1u;
-  buf->host_passing_event_list[0] = true;
-}
-
-std::tuple<
-  gsl::span<bool>,
-  gsl::span<uint32_t>,
-  gsl::span<uint32_t>,
-  gsl::span<uint32_t>,
-  gsl::span<unsigned>,
-  gsl::span<uint32_t>,
-  gsl::span<unsigned>>
-HostBuffersManager::getBufferOutputData(size_t b)
-{
-  if (b > host_buffers.size()) return {};
-
-  HostBuffers* buf = host_buffers.at(b);
-  return {buf->host_passing_event_list,
-          buf->host_dec_reports,
-          buf->host_routingbits,
-          buf->host_sel_reports,
-          buf->host_sel_report_offsets,
-          buf->host_lumi_summaries,
-          buf->host_lumi_summary_offsets};
+  store->inject("host_init_number_of_events__host_number_of_events_t", std::vector<unsigned> {1});
 }
 
 void HostBuffersManager::printStatus() const
 {
-  info_cout << host_buffers.size() << " buffers; " << empty_buffers.size() << " empty; " << filled_buffers.size()
+  info_cout << m_persistent_stores.size() << " stores; " << empty_buffers.size() << " empty; " << filled_buffers.size()
             << " filled." << std::endl;
 }

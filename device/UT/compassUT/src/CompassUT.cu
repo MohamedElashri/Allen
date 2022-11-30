@@ -11,8 +11,7 @@ INSTANTIATE_ALGORITHM(compass_ut::compass_ut_t)
 void compass_ut::compass_ut_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_ut_tracks_t>(arguments, first<host_number_of_events_t>(arguments) * UT::Constants::max_num_tracks);
   set_size<dev_atomics_ut_t>(arguments, first<host_number_of_events_t>(arguments) * UT::num_atomics);
@@ -22,7 +21,6 @@ void compass_ut::compass_ut_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_atomics_ut_t>(arguments, 0, context);

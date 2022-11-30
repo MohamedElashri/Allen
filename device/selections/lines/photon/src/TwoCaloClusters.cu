@@ -12,10 +12,9 @@ INSTANTIATE_LINE(two_calo_clusters_line::two_calo_clusters_line_t, two_calo_clus
 void two_calo_clusters_line::two_calo_clusters_line_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
+  const Constants& constants) const
 {
-  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
+  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants);
   set_size<dev_local_decisions_t>(arguments, get_decisions_size(arguments));
 }
 

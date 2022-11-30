@@ -9,8 +9,7 @@ INSTANTIATE_ALGORITHM(track_digit_selective_matching::track_digit_selective_matc
 void track_digit_selective_matching::track_digit_selective_matching_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_matched_ecal_energy_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_matched_ecal_digits_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
@@ -24,7 +23,6 @@ void track_digit_selective_matching::track_digit_selective_matching_t::operator(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   Allen::Context const& context) const
 {
   Allen::memset_async<dev_matched_ecal_energy_t>(arguments, 0, context);

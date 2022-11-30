@@ -9,7 +9,6 @@
 #include "BackendCommon.h"
 #include "RuntimeOptions.h"
 #include "Constants.cuh"
-#include "HostBuffers.cuh"
 #include "Datatype.cuh"
 #include "InputAggregate.cuh"
 

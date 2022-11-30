@@ -11,8 +11,7 @@ INSTANTIATE_ALGORITHM(find_muon_hits::find_muon_hits_t)
 void find_muon_hits::find_muon_hits_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_muon_tracks_t>(
     arguments, Muon::Constants::max_number_of_tracks * first<host_number_of_events_t>(arguments));
@@ -105,7 +104,6 @@ void find_muon_hits::find_muon_hits_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_muon_number_of_tracks_t>(arguments, 0, context);

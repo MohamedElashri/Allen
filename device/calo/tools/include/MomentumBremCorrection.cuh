@@ -29,17 +29,12 @@ namespace momentum_brem_correction {
   __global__ void momentum_brem_correction(Parameters);
 
   struct momentum_brem_correction_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

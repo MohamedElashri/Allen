@@ -18,8 +18,7 @@ using namespace Allen::device;
 void velo_search_by_triplet::velo_search_by_triplet_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   const unsigned track_container_size =
     first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster <
@@ -43,7 +42,6 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_atomics_velo_t>(arguments, 0, context);

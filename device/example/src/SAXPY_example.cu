@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(saxpy::saxpy_t)
 void saxpy::saxpy_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_saxpy_output_t>(arguments, first<host_number_of_events_t>(arguments));
 }
@@ -18,7 +17,6 @@ void saxpy::saxpy_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(saxpy)(dim3(1), property<block_dim_t>(), context)(arguments);

@@ -15,8 +15,7 @@ INSTANTIATE_ALGORITHM(CalcMaxCombos::calc_max_combos_t)
 void CalcMaxCombos::calc_max_combos_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   const auto dev_input_agg = input_aggregate<dev_input_agg_t>(arguments);
   set_size<dev_max_combos_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -27,7 +26,6 @@ void CalcMaxCombos::calc_max_combos_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   const auto dev_input_agg = input_aggregate<dev_input_agg_t>(arguments);

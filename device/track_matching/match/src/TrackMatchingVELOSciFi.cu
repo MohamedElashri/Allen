@@ -9,8 +9,7 @@ INSTANTIATE_ALGORITHM(track_matching_veloSciFi::track_matching_veloSciFi_t);
 void track_matching_veloSciFi::track_matching_veloSciFi_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_matched_tracks_t>(
     arguments, first<host_number_of_events_t>(arguments) * TrackMatchingConsts::max_num_tracks);
@@ -21,7 +20,6 @@ void track_matching_veloSciFi::track_matching_veloSciFi_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_atomics_matched_tracks_t>(arguments, 0, context);

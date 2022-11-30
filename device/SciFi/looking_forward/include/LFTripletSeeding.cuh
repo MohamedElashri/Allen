@@ -46,17 +46,12 @@ namespace lf_triplet_seeding {
   __global__ void lf_triplet_seeding(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 
   struct lf_triplet_seeding_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants& constants,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

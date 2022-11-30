@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(pv_beamline_cleanup::pv_beamline_cleanup_t)
 void pv_beamline_cleanup::pv_beamline_cleanup_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_multi_final_vertices_t>(arguments, first<host_number_of_events_t>(arguments) * PV::max_number_vertices);
   set_size<dev_number_of_multi_final_vertices_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -19,7 +18,6 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_number_of_multi_final_vertices_t>(arguments, 0, context);

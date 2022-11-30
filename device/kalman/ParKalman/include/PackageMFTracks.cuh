@@ -33,17 +33,12 @@ namespace package_mf_tracks {
   __global__ void package_mf_tracks(Parameters, const unsigned number_of_events);
 
   struct package_mf_tracks_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

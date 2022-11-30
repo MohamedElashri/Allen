@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(velo_kalman_filter::velo_kalman_filter_t)
 void velo_kalman_filter::velo_kalman_filter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_velo_kalman_beamline_states_t>(
     arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments) * Velo::Consolidated::States::size);
@@ -23,7 +22,6 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(velo_kalman_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(

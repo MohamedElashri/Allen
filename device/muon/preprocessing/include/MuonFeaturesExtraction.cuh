@@ -38,17 +38,12 @@ namespace muon_catboost_features_extraction {
   __global__ void muon_catboost_features_extraction(Parameters);
 
   struct muon_catboost_features_extraction_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

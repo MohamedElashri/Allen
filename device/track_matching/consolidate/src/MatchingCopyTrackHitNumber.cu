@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(matching_copy_track_hit_number::matching_copy_track_hit_nu
 void matching_copy_track_hit_number::matching_copy_track_hit_number_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_matched_track_hit_number_t>(arguments, first<host_number_of_reconstructed_matched_tracks_t>(arguments));
 }
@@ -18,7 +17,6 @@ void matching_copy_track_hit_number::matching_copy_track_hit_number_t::operator(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(matching_copy_track_hit_number)(

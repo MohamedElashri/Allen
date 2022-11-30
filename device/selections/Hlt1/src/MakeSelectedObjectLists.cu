@@ -17,8 +17,7 @@ INSTANTIATE_ALGORITHM(make_selected_object_lists::make_selected_object_lists_t)
 void make_selected_object_lists::make_selected_object_lists_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   // For keeping track of selections.
   set_size<dev_sel_count_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -70,7 +69,6 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_candidate_count_t>(arguments, 0, context);

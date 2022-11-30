@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(host_ut_gec::host_ut_gec_t)
 void host_ut_gec::host_ut_gec_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   auto number_of_events = first<host_number_of_events_t>(arguments);
 
@@ -22,7 +21,6 @@ void host_ut_gec::host_ut_gec_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   // Do the host global event cut

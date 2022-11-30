@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(lf_quality_filter_length::lf_quality_filter_length_t)
 void lf_quality_filter_length::lf_quality_filter_length_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_scifi_lf_length_filtered_tracks_t>(
     arguments,
@@ -27,7 +26,6 @@ void lf_quality_filter_length::lf_quality_filter_length_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_scifi_lf_length_filtered_atomics_t>(arguments, 0, context);

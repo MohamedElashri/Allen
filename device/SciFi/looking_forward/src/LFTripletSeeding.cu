@@ -12,8 +12,7 @@ INSTANTIATE_ALGORITHM(lf_triplet_seeding::lf_triplet_seeding_t)
 void lf_triplet_seeding::lf_triplet_seeding_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   const bool with_ut = first<host_track_type_id_t>(arguments) == Allen::TypeIDs::VeloUTTracks;
   const auto n_seeds = with_ut ? LookingForward::InputUT::n_seeds : LookingForward::InputVelo::n_seeds;
@@ -32,7 +31,6 @@ void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_scifi_lf_number_of_found_triplets_t>(arguments, 0, context);

@@ -40,14 +40,12 @@ namespace calo_decode {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions& runtime_options,
-      const Constants&,
-      const HostBuffers&) const;
+      const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers&,
       Allen::Context const&) const;
 
   private:

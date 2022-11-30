@@ -59,17 +59,12 @@ namespace pv_beamline_multi_fitter {
   __global__ void pv_beamline_multi_fitter(Parameters, const float* dev_beamline);
 
   struct pv_beamline_multi_fitter_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants& constants,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

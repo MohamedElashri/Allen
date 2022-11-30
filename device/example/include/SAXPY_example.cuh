@@ -18,14 +18,12 @@ namespace saxpy {
   };
 
   struct saxpy_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&, const HostBuffers&)
-      const;
+    void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>&,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

@@ -15,8 +15,7 @@ INSTANTIATE_ALGORITHM(event_list_inversion::event_list_inversion_t)
 void event_list_inversion::event_list_inversion_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   const auto number_of_events =
     std::get<1>(runtime_options.event_interval) - std::get<0>(runtime_options.event_interval);
@@ -30,7 +29,6 @@ void event_list_inversion::event_list_inversion_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   const auto number_of_events =

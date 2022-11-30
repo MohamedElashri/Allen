@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(low_occupancy::low_occupancy_t)
 void low_occupancy::low_occupancy_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
 
   set_size<dev_number_of_selected_events_t>(arguments, 1);
@@ -21,7 +20,6 @@ void low_occupancy::low_occupancy_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
 

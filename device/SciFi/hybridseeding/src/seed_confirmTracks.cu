@@ -23,8 +23,7 @@ INSTANTIATE_ALGORITHM(seed_confirmTracks::seed_confirmTracks_t);
 void seed_confirmTracks::seed_confirmTracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   int sizeTracks = first<host_number_of_events_t>(arguments) * SciFi::Constants::Nmax_seeds;
   int sizeInts = first<host_number_of_events_t>(arguments);
@@ -46,7 +45,6 @@ void seed_confirmTracks::seed_confirmTracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_seeding_confirmTracks_atomics_t>(arguments, 0, context);

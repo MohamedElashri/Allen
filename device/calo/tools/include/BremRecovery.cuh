@@ -32,17 +32,12 @@ namespace brem_recovery {
   };
 
   struct brem_recovery_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>&,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers&,
       Allen::Context const&) const;
 
   private:

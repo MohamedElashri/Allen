@@ -16,14 +16,12 @@ namespace host_init_event_list {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions& runtime_options,
-      const Constants& constants,
-      const HostBuffers& host_buffers) const;
+      const Constants& constants) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers& host_buffers,
       const Allen::Context& context) const;
   };
 } // namespace host_init_event_list

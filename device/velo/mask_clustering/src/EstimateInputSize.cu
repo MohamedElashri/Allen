@@ -241,8 +241,7 @@ __global__ void velo_estimate_input_size_kernel(
 void velo_estimate_input_size::velo_estimate_input_size_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_estimated_input_size_t>(
     arguments, first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs);
@@ -254,7 +253,6 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_estimated_input_size_t>(arguments, 0, context);

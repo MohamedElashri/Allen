@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(lf_quality_filter::lf_quality_filter_t)
 void lf_quality_filter::lf_quality_filter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_atomics_scifi_t>(arguments, first<host_number_of_events_t>(arguments) * LookingForward::num_atomics);
   set_size<dev_scifi_tracks_t>(
@@ -33,7 +32,6 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_atomics_scifi_t>(arguments, 0, context);

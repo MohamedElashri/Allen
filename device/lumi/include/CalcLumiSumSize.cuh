@@ -25,17 +25,12 @@ namespace calc_lumi_sum_size {
   __global__ void calc_lumi_sum_size(Parameters, const unsigned number_of_events);
 
   struct calc_lumi_sum_size_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers& host_buffers,
       const Allen::Context& context) const;
 
   private:

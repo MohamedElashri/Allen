@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(lf_create_tracks::lf_create_tracks_t)
 void lf_create_tracks::lf_create_tracks_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_scifi_lf_tracks_t>(
     arguments,
@@ -26,7 +25,6 @@ void lf_create_tracks::lf_create_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_scifi_lf_total_number_of_found_triplets_t>(arguments, 0, context);

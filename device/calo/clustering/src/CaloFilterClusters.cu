@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(calo_filter_clusters::calo_filter_clusters_t)
 void calo_filter_clusters::calo_filter_clusters_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   auto const& n_events = first<host_number_of_events_t>(arguments);
 
@@ -23,7 +22,6 @@ void calo_filter_clusters::calo_filter_clusters_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_cluster_atomics_t>(arguments, 0, context);

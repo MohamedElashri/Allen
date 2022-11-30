@@ -72,17 +72,12 @@ namespace make_selected_object_lists {
   __global__ void calc_rb_sizes(Parameters);
 
   struct make_selected_object_lists_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers& host_buffers,
       const Allen::Context& context) const;
 
   private:

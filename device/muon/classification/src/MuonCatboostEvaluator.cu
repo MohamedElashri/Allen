@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(muon_catboost_evaluator::muon_catboost_evaluator_t)
 void muon_catboost_evaluator::muon_catboost_evaluator_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_muon_catboost_output_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
@@ -18,7 +17,6 @@ void muon_catboost_evaluator::muon_catboost_evaluator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(muon_catboost_evaluator)(

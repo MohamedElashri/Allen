@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(kalman_velo_only::kalman_velo_only_t)
 void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   auto n_scifi_tracks = first<host_number_of_reconstructed_scifi_tracks_t>(arguments);
   set_size<dev_kf_tracks_t>(arguments, n_scifi_tracks);
@@ -23,7 +22,6 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(kalman_velo_only)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(

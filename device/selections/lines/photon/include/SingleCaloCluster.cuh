@@ -63,11 +63,7 @@ namespace single_calo_cluster_line {
 
     __device__ static bool select(const Parameters& ps, std::tuple<const CaloCluster> input);
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {

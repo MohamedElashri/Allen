@@ -37,17 +37,12 @@ namespace ut_search_windows {
     const float* dev_unique_sector_xs);
 
   struct ut_search_windows_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants& constants,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

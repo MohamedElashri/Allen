@@ -22,14 +22,12 @@ namespace data_provider {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions& runtime_options,
-      const Constants&,
-      const HostBuffers&) const;
+      const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants&,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

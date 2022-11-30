@@ -9,8 +9,7 @@ INSTANTIATE_ALGORITHM(velo_three_hit_tracks_filter::velo_three_hit_tracks_filter
 void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   const unsigned track_container_size =
     first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster <
@@ -26,7 +25,6 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_number_of_three_hit_tracks_output_t>(arguments, 0, context);

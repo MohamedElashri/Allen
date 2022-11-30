@@ -20,19 +20,27 @@
 #include <OutputHandler.h>
 #include <RoutingBitsDefinition.h>
 #include <HltConstants.cuh>
+#include <Store.cuh>
 
 std::tuple<bool, size_t> OutputHandler::output_selected_events(
   size_t const thread_id,
   size_t const slice_index,
   size_t const start_event,
-  gsl::span<bool const> const selected_events_bool,
-  gsl::span<uint32_t const> const dec_reports,
-  gsl::span<uint32_t const> const routing_bits,
-  gsl::span<uint32_t const> const sel_reports,
-  gsl::span<unsigned const> const sel_report_offsets,
-  gsl::span<uint32_t const> const lumi_summaries,
-  gsl::span<unsigned const> const lumi_summary_offsets)
+  const Allen::Store::PersistentStore& store)
 {
+  // TODO: Use configuration framework to properly configure these tags
+  const auto [selected_events_bool_valid, selected_events_bool] =
+    store.try_at<bool>("global_decision__host_global_decision_t");
+  const auto [dec_reports_valid, dec_reports] = store.try_at<unsigned>("dec_reporter__host_dec_reports_t");
+  const auto [routing_bits_valid, routing_bits] = store.try_at<unsigned>("host_routingbits_writer__host_routingbits_t");
+  const auto [sel_reports_valid, sel_reports] = store.try_at<unsigned>("make_selreps__host_sel_reports_t");
+  const auto [sel_report_offsets_valid, sel_report_offsets] =
+    store.try_at<unsigned>("make_selreps__host_selrep_offsets_t");
+  const auto [lumi_summaries_valid, lumi_summaries] =
+    store.try_at<unsigned>("make_lumi_summary__host_lumi_summaries_t");
+  const auto [lumi_summary_offsets_valid, lumi_summary_offsets] =
+    store.try_at<unsigned>("make_lumi_summary__host_lumi_summary_offsets_t");
+
   auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
   // size of a RawBank header
   const int bank_header_size = 4 * sizeof(short);

@@ -45,17 +45,12 @@ namespace pv_beamline_peak {
   __global__ void pv_beamline_peak(Parameters);
 
   struct pv_beamline_peak_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers&,
       const Allen::Context& context) const;
 
     Property<SMOG2_pp_separation_t> m_SMOG2_pp_separation {this, BeamlinePVConstants::Common::SMOG2_pp_separation};

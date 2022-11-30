@@ -9,31 +9,26 @@ INSTANTIATE_ALGORITHM(global_decision::global_decision_t)
 void global_decision::global_decision_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_global_decision_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<host_global_decision_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void global_decision::global_decision_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
-
   auto const grid_size =
     dim3((first<host_number_of_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
 
   global_function(global_decision)(grid_size, dim3(property<block_dim_x_t>().get()), context)(arguments);
 
-  host_buffers.host_passing_event_list.resize(size<dev_global_decision_t>(arguments));
-  Allen::copy_async(
-    host_buffers.host_passing_event_list.get(),
-    get<dev_global_decision_t>(arguments),
-    context,
-    Allen::memcpyDeviceToHost);
+  Allen::copy_async<host_global_decision_t, dev_global_decision_t>(arguments, context);
+
+  Allen::synchronize(context);
 }
 
 __global__ void global_decision::global_decision(global_decision::Parameters parameters)

@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(pv_beamline_peak::pv_beamline_peak_t)
 void pv_beamline_peak::pv_beamline_peak_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_zpeaks_t>(arguments, first<host_number_of_events_t>(arguments) * PV::max_number_vertices);
   set_size<dev_number_of_zpeaks_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -19,7 +18,6 @@ void pv_beamline_peak::pv_beamline_peak_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(pv_beamline_peak)(dim3(size<dev_event_list_t>(arguments)), warp_size, context)(arguments);

@@ -245,14 +245,12 @@ An algorithm must define **two methods**: `set_arguments_size` and `operator()`.
     void set_arguments_size(
       ArgumentReferences<Parameters>,
       const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+      const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>&,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:
@@ -284,8 +282,7 @@ In Allen, it is not recommended to use *dynamic memory allocations*. Therefore, 
   void saxpy::saxpy_t::set_arguments_size(
     ArgumentReferences<Parameters> arguments,
     const RuntimeOptions&,
-    const Constants&,
-    const HostBuffers&) const
+    const Constants&) const
   {
     set_size<dev_saxpy_output_t>(arguments, first<host_number_of_events_t>(arguments));
   }
@@ -305,7 +302,6 @@ Next, `operator()` should be defined:
     const ArgumentReferences<Parameters>& arguments,
     const RuntimeOptions&,
     const Constants&,
-    HostBuffers&,
     const Allen::Context& context) const
   {
     global_function(saxpy)(

@@ -11,10 +11,9 @@ INSTANTIATE_LINE(single_calo_cluster_line::single_calo_cluster_line_t, single_ca
 void single_calo_cluster_line::single_calo_cluster_line_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,
-  const Constants& constants,
-  const HostBuffers& host_buffers) const
+  const Constants& constants) const
 {
-  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants, host_buffers);
+  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants);
 
   // must set_size of all output variables
   set_size<dev_clusters_x_t>(

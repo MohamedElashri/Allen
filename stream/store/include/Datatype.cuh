@@ -72,57 +72,57 @@ namespace Allen::Store {
   };
 
 // Inputs / outputs have an additional parsable method required for libclang parsing.
-#define DEVICE_INPUT(ARGUMENT_NAME, ...)                                                                   \
-  struct ARGUMENT_NAME : public Allen::Store::device_datatype, Allen::Store::input_datatype<__VA_ARGS__> { \
-    using Allen::Store::input_datatype<__VA_ARGS__>::input_datatype;                                       \
-    void parameter(__VA_ARGS__) const;                                                                     \
+#define DEVICE_INPUT(ARGUMENT_NAME, ...)                                                            \
+  struct ARGUMENT_NAME : Allen::Store::device_datatype, Allen::Store::input_datatype<__VA_ARGS__> { \
+    using Allen::Store::input_datatype<__VA_ARGS__>::input_datatype;                                \
+    void parameter(__VA_ARGS__) const;                                                              \
   }
 
-#define HOST_INPUT(ARGUMENT_NAME, ...)                                                                   \
-  struct ARGUMENT_NAME : public Allen::Store::host_datatype, Allen::Store::input_datatype<__VA_ARGS__> { \
-    using Allen::Store::input_datatype<__VA_ARGS__>::input_datatype;                                     \
-    void parameter(__VA_ARGS__) const;                                                                   \
+#define HOST_INPUT(ARGUMENT_NAME, ...)                                                            \
+  struct ARGUMENT_NAME : Allen::Store::host_datatype, Allen::Store::input_datatype<__VA_ARGS__> { \
+    using Allen::Store::input_datatype<__VA_ARGS__>::input_datatype;                              \
+    void parameter(__VA_ARGS__) const;                                                            \
   }
 
-#define DEVICE_OUTPUT(ARGUMENT_NAME, ...)                                                                   \
-  struct ARGUMENT_NAME : public Allen::Store::device_datatype, Allen::Store::output_datatype<__VA_ARGS__> { \
-    using Allen::Store::output_datatype<__VA_ARGS__>::output_datatype;                                      \
-    void parameter(__VA_ARGS__);                                                                            \
+#define DEVICE_OUTPUT(ARGUMENT_NAME, ...)                                                            \
+  struct ARGUMENT_NAME : Allen::Store::device_datatype, Allen::Store::output_datatype<__VA_ARGS__> { \
+    using Allen::Store::output_datatype<__VA_ARGS__>::output_datatype;                               \
+    void parameter(__VA_ARGS__);                                                                     \
   }
 
-#define HOST_OUTPUT(ARGUMENT_NAME, ...)                                                                   \
-  struct ARGUMENT_NAME : public Allen::Store::host_datatype, Allen::Store::output_datatype<__VA_ARGS__> { \
-    using Allen::Store::output_datatype<__VA_ARGS__>::output_datatype;                                    \
-    void parameter(__VA_ARGS__);                                                                          \
+#define HOST_OUTPUT(ARGUMENT_NAME, ...)                                                            \
+  struct ARGUMENT_NAME : Allen::Store::host_datatype, Allen::Store::output_datatype<__VA_ARGS__> { \
+    using Allen::Store::output_datatype<__VA_ARGS__>::output_datatype;                             \
+    void parameter(__VA_ARGS__);                                                                   \
   }
 
-#define DEVICE_OUTPUT_WITH_DEPENDENCIES(ARGUMENT_NAME, DEPS, ...)                                           \
-  struct ARGUMENT_NAME : public Allen::Store::device_datatype, Allen::Store::output_datatype<__VA_ARGS__> { \
-    using Allen::Store::output_datatype<__VA_ARGS__>::output_datatype;                                      \
-    DEPS parameter(__VA_ARGS__);                                                                            \
+#define DEVICE_OUTPUT_WITH_DEPENDENCIES(ARGUMENT_NAME, DEPS, ...)                                    \
+  struct ARGUMENT_NAME : Allen::Store::device_datatype, Allen::Store::output_datatype<__VA_ARGS__> { \
+    using Allen::Store::output_datatype<__VA_ARGS__>::output_datatype;                               \
+    DEPS parameter(__VA_ARGS__);                                                                     \
   }
 
-#define HOST_OUTPUT_WITH_DEPENDENCIES(ARGUMENT_NAME, DEPS, ...)                                           \
-  struct ARGUMENT_NAME : public Allen::Store::host_datatype, Allen::Store::output_datatype<__VA_ARGS__> { \
-    using Allen::Store::output_datatype<__VA_ARGS__>::output_datatype;                                    \
-    DEPS parameter(__VA_ARGS__);                                                                          \
+#define HOST_OUTPUT_WITH_DEPENDENCIES(ARGUMENT_NAME, DEPS, ...)                                    \
+  struct ARGUMENT_NAME : Allen::Store::host_datatype, Allen::Store::output_datatype<__VA_ARGS__> { \
+    using Allen::Store::output_datatype<__VA_ARGS__>::output_datatype;                             \
+    DEPS parameter(__VA_ARGS__);                                                                   \
   }
 
-#define MASK_INPUT(ARGUMENT_NAME)                                                                     \
-  struct ARGUMENT_NAME : public Allen::Store::device_datatype, Allen::Store::input_datatype<mask_t> { \
-    using Allen::Store::input_datatype<mask_t>::input_datatype;                                       \
-    void parameter(mask_t) const;                                                                     \
+#define MASK_INPUT(ARGUMENT_NAME)                                                              \
+  struct ARGUMENT_NAME : Allen::Store::device_datatype, Allen::Store::input_datatype<mask_t> { \
+    using Allen::Store::input_datatype<mask_t>::input_datatype;                                \
+    void parameter(mask_t) const;                                                              \
   }
 
-#define MASK_OUTPUT(ARGUMENT_NAME)                                                                     \
-  struct ARGUMENT_NAME : public Allen::Store::device_datatype, Allen::Store::output_datatype<mask_t> { \
-    using Allen::Store::output_datatype<mask_t>::output_datatype;                                      \
-    void parameter(mask_t);                                                                            \
+#define MASK_OUTPUT(ARGUMENT_NAME)                                                              \
+  struct ARGUMENT_NAME : Allen::Store::device_datatype, Allen::Store::output_datatype<mask_t> { \
+    using Allen::Store::output_datatype<mask_t>::output_datatype;                               \
+    void parameter(mask_t);                                                                     \
   }
 
 // Support for optional input aggregates
 #define DEVICE_INPUT_OPTIONAL(ARGUMENT_NAME, ...)                    \
-  struct ARGUMENT_NAME : public Allen::Store::device_datatype,       \
+  struct ARGUMENT_NAME : Allen::Store::device_datatype,              \
                          Allen::Store::optional_datatype,            \
                          Allen::Store::input_datatype<__VA_ARGS__> { \
     using Allen::Store::input_datatype<__VA_ARGS__>::input_datatype; \
@@ -130,7 +130,7 @@ namespace Allen::Store {
   }
 
 #define HOST_INPUT_OPTIONAL(ARGUMENT_NAME, ...)                      \
-  struct ARGUMENT_NAME : public Allen::Store::host_datatype,         \
+  struct ARGUMENT_NAME : Allen::Store::host_datatype,                \
                          Allen::Store::optional_datatype,            \
                          Allen::Store::input_datatype<__VA_ARGS__> { \
     using Allen::Store::input_datatype<__VA_ARGS__>::input_datatype; \

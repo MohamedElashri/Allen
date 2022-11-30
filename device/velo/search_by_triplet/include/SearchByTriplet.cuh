@@ -117,17 +117,12 @@ namespace velo_search_by_triplet {
     // Register contracts for this algorithm
     using contracts = std::tuple<cluster_container_checks, track_container_checks>;
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants& constants,
-      HostBuffers&,
       const Allen::Context& context) const;
 
   private:

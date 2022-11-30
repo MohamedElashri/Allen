@@ -18,18 +18,12 @@ namespace host_velo_validator {
   };
 
   struct host_velo_validator_t : public ValidationAlgorithm, Parameters {
-    inline void set_arguments_size(
-      ArgumentReferences<Parameters>,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const
-    {}
+    inline void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&) const {}
 
     void operator()(
       const ArgumentReferences<Parameters>&,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers&,
       const Allen::Context&) const;
 
   private:

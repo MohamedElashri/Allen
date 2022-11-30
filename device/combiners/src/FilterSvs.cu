@@ -15,8 +15,7 @@ INSTANTIATE_ALGORITHM(FilterSvs::filter_svs_t)
 void FilterSvs::filter_svs_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_sv_filter_decision_t>(arguments, first<host_number_of_svs_t>(arguments));
   set_size<dev_combo_number_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -28,7 +27,6 @@ void FilterSvs::filter_svs_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_combo_number_t>(arguments, 0, context);

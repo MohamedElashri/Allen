@@ -30,8 +30,7 @@ __global__ void calo_count_digits::calo_count_digits(
 void calo_count_digits::calo_count_digits_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_ecal_num_digits_t>(arguments, first<host_number_of_events_t>(arguments));
 }
@@ -40,7 +39,6 @@ void calo_count_digits::calo_count_digits_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_ecal_num_digits_t>(arguments, 0, context);

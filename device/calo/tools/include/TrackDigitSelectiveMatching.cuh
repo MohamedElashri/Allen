@@ -34,17 +34,12 @@ namespace track_digit_selective_matching {
   };
 
   struct track_digit_selective_matching_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>&,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers&,
       Allen::Context const&) const;
 
   private:

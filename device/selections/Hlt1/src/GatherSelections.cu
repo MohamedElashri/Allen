@@ -148,8 +148,7 @@ void gather_selections::gather_selections_t::init()
 void gather_selections::gather_selections_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   // Sum all the sizes from input selections
   const auto host_fn_parameters_agg = input_aggregate<host_fn_parameters_agg_t>(arguments);
@@ -210,7 +209,6 @@ void gather_selections::gather_selections_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   [[maybe_unused]] const Constants& constants,
-  HostBuffers& host_buffers,
   const Allen::Context& context) const
 {
   // Run the selection algorithms
@@ -352,7 +350,4 @@ void gather_selections::gather_selections_t::operator()(
     const float sum = std::accumulate(host_selections.begin(), host_selections.end(), 0);
     std::cout << sum / host_selections.size() << std::endl;
   }
-
-  host_buffers.host_names_of_lines = std::string(property<names_of_active_lines_t>());
-  host_buffers.host_number_of_lines = first<host_number_of_active_lines_t>(arguments);
 }

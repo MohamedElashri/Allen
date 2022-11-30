@@ -38,17 +38,12 @@ namespace check_cyl_pvs {
   __global__ void check_cyl_pvs(Parameters);
   struct check_cyl_pvs_t : public DeviceAlgorithm, Parameters {
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers& host_buffers,
       const Allen::Context&) const;
 
   private:

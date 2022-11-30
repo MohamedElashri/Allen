@@ -31,6 +31,8 @@ namespace make_lumi_summary {
     DEVICE_INPUT(dev_calo_info_t, Lumi::LumiInfo) dev_calo_info;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_lumi_summaries_t, unsigned) dev_lumi_summaries;
+    HOST_OUTPUT(host_lumi_summaries_t, unsigned) host_lumi_summaries;
+    HOST_OUTPUT(host_lumi_summary_offsets_t, unsigned) host_lumi_summary_offsets;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(encoding_key_t, "encoding_key", "encoding key", unsigned) key;
   }; // struct Parameters
@@ -50,17 +52,12 @@ namespace make_lumi_summary {
     unsigned value);
 
   struct make_lumi_summary_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      HostBuffers& host_buffers,
       const Allen::Context& context) const;
 
   private:

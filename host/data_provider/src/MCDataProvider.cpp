@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(mc_data_provider::mc_data_provider_t)
 void mc_data_provider::mc_data_provider_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<host_mc_events_t>(arguments, 1);
 }
@@ -18,7 +17,6 @@ void mc_data_provider::mc_data_provider_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants&,
-  HostBuffers&,
   const Allen::Context&) const
 {
   const unsigned start_event = std::get<0>(runtime_options.event_interval);

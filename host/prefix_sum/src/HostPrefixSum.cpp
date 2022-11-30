@@ -65,8 +65,7 @@ void host_prefix_sum::host_prefix_sum_impl(
 void host_prefix_sum::host_prefix_sum_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   // The total sum holder just holds a single unsigned integer.
   set_size<host_total_sum_holder_t>(arguments, 1);
@@ -78,7 +77,6 @@ void host_prefix_sum::host_prefix_sum_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
 #if defined(TARGET_DEVICE_CPU)

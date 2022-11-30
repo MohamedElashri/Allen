@@ -8,15 +8,13 @@ INSTANTIATE_ALGORITHM(lf_least_mean_square_fit::lf_least_mean_square_fit_t)
 void lf_least_mean_square_fit::lf_least_mean_square_fit_t::set_arguments_size(
   ArgumentReferences<Parameters>,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {}
 
 void lf_least_mean_square_fit::lf_least_mean_square_fit_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(lf_least_mean_square_fit)(

@@ -9,8 +9,7 @@ INSTANTIATE_ALGORITHM(muon_catboost_features_extraction::muon_catboost_features_
 void muon_catboost_features_extraction::muon_catboost_features_extraction_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_muon_catboost_features_t>(
     arguments, Muon::Constants::n_catboost_features * first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
@@ -20,7 +19,6 @@ void muon_catboost_features_extraction::muon_catboost_features_extraction_t::ope
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(muon_catboost_features_extraction)(

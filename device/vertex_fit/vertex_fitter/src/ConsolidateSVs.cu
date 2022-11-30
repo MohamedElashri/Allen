@@ -8,8 +8,7 @@ INSTANTIATE_ALGORITHM(consolidate_svs::consolidate_svs_t)
 void consolidate_svs::consolidate_svs_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_consolidated_svs_t>(arguments, first<host_number_of_svs_t>(arguments));
 }
@@ -18,7 +17,6 @@ void consolidate_svs::consolidate_svs_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   global_function(consolidate_svs)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
