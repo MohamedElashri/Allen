@@ -96,6 +96,20 @@ private:
     }
   };
 
+  /**
+   * @brief Checks if t is all 1s.
+   */
+  template<typename T>
+  bool is_default_value(T t) const {
+    signed char* c = reinterpret_cast<signed char*>(&t);
+    for (unsigned i = 0; i < sizeof(T); ++i) {
+      if (c[i] != -1) {
+        return false;
+      }
+    }
+    return true;
+  }
+
 public:
   void init()
   {
@@ -195,7 +209,7 @@ public:
     handler.branch(tree, "ev", ev);
     auto i0 = tree->GetEntries();
     for (unsigned i = 0; i != std::get<0>(host_v).size(); ++i) {
-      if (std::get<0>(host_v)[i] != -1) {
+      if (!is_default_value(std::get<0>(host_v)[i])) {
         (set_equal<seq_t>(values, host_v, i), ...);
         ev = i0 + i;
         tree->Fill();
