@@ -100,7 +100,8 @@ private:
    * @brief Checks if t is all 1s.
    */
   template<typename T>
-  bool is_default_value(T t) const {
+  bool is_default_value(T t) const
+  {
     signed char* c = reinterpret_cast<signed char*>(&t);
     for (unsigned i = 0; i < sizeof(T); ++i) {
       if (c[i] != -1) {
