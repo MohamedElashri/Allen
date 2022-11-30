@@ -209,8 +209,8 @@
     TEST_GROUP: "full"
 
   script:
-    - python -m venv .venv && source .venv/bin/activate && pip install colorlog pyyaml tabulate
-    - python scripts/ci/run_tests.py --allen-wrapper scripts/ci/allen_wrapper.sh --test-config scripts/ci/test_config.yaml --test-group ${TEST_GROUP}
+    - python3 -m venv .venv && source .venv/bin/activate && pip3 install colorlog pyyaml tabulate
+    - python3 scripts/ci/run_tests.py --allen-wrapper scripts/ci/allen_wrapper.sh --test-config scripts/ci/test_config.yaml --test-group ${TEST_GROUP}
 
   retry: 1
 

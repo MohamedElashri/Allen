@@ -151,7 +151,7 @@ if [ "${RUN_THROUGHPUT}" != "NO_THROUGHPUT" ]; then
 
     THROUGHPUT=$(cat ${OUTPUT_FOLDER}/output.txt | grep --color=none "events/s" | awk '{ print $1; }')
     FULL_DEVICE_NAME=$(cat ${OUTPUT_FOLDER}/output.txt | grep --color=none "select device" | sed 's/.*:\ [0-9]*\,\ //')
-    THROUGHPUT_KHZ=$(python -c "print('%.2f' % (float(${THROUGHPUT}) / 1000.0))")
+    THROUGHPUT_KHZ=$(python3 -c "print('%.2f' % (float(${THROUGHPUT}) / 1000.0))")
     echo "Throughput (Hz): ${THROUGHPUT}"
     echo "Throughput (kHz, 2 d.p.): ${THROUGHPUT_KHZ}"
 

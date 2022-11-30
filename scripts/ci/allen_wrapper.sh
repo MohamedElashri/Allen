@@ -18,7 +18,7 @@ JUNITREPORT=$(realpath "${JUNITREPORT}/")
 set -u;
 
 cd ${BUILD_FOLDER} # && ls
-export LD_LIBRARY_PATH=${PWD}:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+LD_LIBRARY_PATH:}${PWD}"
 
 # Configure job for target device.
 if [ "${TARGET}" = "CPU" ]; then

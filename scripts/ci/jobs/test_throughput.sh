@@ -50,7 +50,7 @@ for SEQUENCE_DATASET in $(ls -1 | grep "run_throughput" | grep -Ei "run_throughp
         fi
 
         RC=0
-        python checker/plotting/check_throughput.py \
+        python3 checker/plotting/check_throughput.py \
             -j "${CI_JOB_NAME}" \
             -t devices_throughputs_${SEQUENCE_DATASET}.csv || RC=$?
 
@@ -69,9 +69,9 @@ for SEQUENCE_DATASET in $(ls -1 | grep "run_throughput" | grep -Ei "run_throughp
 done
 
 if [ "${THROUGHPUT_ALARM}" = "1" ]; then
-    python checker/plotting/update_gitlab.py --throughput-status "decrease"
+    python3 checker/plotting/update_gitlab.py --throughput-status "decrease"
 else
-    python checker/plotting/update_gitlab.py --throughput-status "no-change"
+    python3 checker/plotting/update_gitlab.py --throughput-status "no-change"
 fi
 
 echo ""

@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2018-2022 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import time
 import yaml
@@ -12,7 +12,7 @@ import logging
 import colorlog
 from tabulate import tabulate
 from shutil import copyfile
-from sys import exit
+from sys import exit, stdout
 from os import environ
 from itertools import groupby, product
 from pathlib import Path
@@ -262,7 +262,7 @@ def run_allen_test(wrapper: str, test: dict, config: dict):
     allen_log = "None"
     try:
         start = time.time()
-        allen_log = check_output(allen, shell=True, text=True, timeout=timeout)
+        allen_log = check_output(allen, shell=True, timeout=timeout).decode(stdout.encoding)
         elapsed = time.time() - start
         log.debug("Log output:\n" + allen_log)
         log.info(f"Allen process completed in {elapsed:.2f} sec")
@@ -291,21 +291,21 @@ def run_allen_test(wrapper: str, test: dict, config: dict):
             log.info(f"Running profiler with: {allen_profiler}")
             start = time.time()
             allen_profiler_log = check_output(
-                allen_profiler, shell=True, text=True, timeout=timeout
-            )
+                allen_profiler, shell=True, timeout=timeout
+            ).decode(stdout.encoding)
             elapsed = time.time() - start
             log.debug("Log output:\n" + allen_profiler_log)
             log.info(f"Allen profiling completed in {elapsed:.2f} sec")
 
     except CalledProcessError as e:
-        log.error("\n" + e.output)
+        log.error("\n" + e.output.decode(stdout.encoding))
         log.exception(e)
         log_fail(
             f"Error during {test_name} test {test!r}. See above for output and traceback."
         )
         return False
     except TimeoutExpired as e:
-        log.error("\n" + e.output)
+        log.error("\n" + e.output.decode(stdout.encoding))
         log.exception(e)
         log_fail(
             f"TIMEOUT {timeout} sec expired during {test_name} test {test!r}. See above for output."
