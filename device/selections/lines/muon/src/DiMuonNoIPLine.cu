@@ -70,7 +70,4 @@ __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
     parameters.dev_pt[index] = vertex.vertex().pt();
     parameters.dev_eventNum[index] = -1;
   }
-  else {
-    parameters.dev_trk1Chi2[index] = -1.f;
-  }
 }
