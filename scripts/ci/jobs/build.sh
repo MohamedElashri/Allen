@@ -84,7 +84,7 @@ while [ $TRIES -le $MAXTRIES ] ; do
       # retry at least once starting from the target that failed, after waiting between 60 - 90 seconds.
       # choose the wait time randomly, such that if other jobs on the same runner also fail close to this
       # one we are less likely to retry at the same time
-      WAIT_TIME=$(python -c "import random; print(${TRIES}*random.randint(60,90))")
+      WAIT_TIME=$(python3 -c "import random; print(${TRIES}*random.randint(60,90))")
 
       echo "Warning: likely the build failed due to an OOM problem. Will retry from where we left off in $WAIT_TIME seconds."
       sleep $WAIT_TIME;
