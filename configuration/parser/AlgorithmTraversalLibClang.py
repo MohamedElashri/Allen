@@ -33,10 +33,6 @@ class ParsedAlgorithm():
         assert len(output_masks) <= 1,\
             f"Algorithm {self.name} does not fulfill condition: At most output mask is allowed per algorithm."
 
-        # Check maximum number of parameters does not exceed 40
-        assert len(parameters) <= 40,\
-            f"Algorithm {self.name} does not fulfill condition: At most 40 parameters may be defined per algorithm."
-
     def __repr__(self):
         return self.scope + " " + self.name
 
