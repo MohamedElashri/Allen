@@ -15,8 +15,7 @@ INSTANTIATE_ALGORITHM(total_ecal_energy::total_ecal_energy_t)
 void total_ecal_energy::total_ecal_energy_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_total_ecal_e_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_ecal_digits_e_t>(arguments, first<host_ecal_number_of_digits_t>(arguments));
@@ -26,7 +25,6 @@ void total_ecal_energy::total_ecal_energy_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants& constants,
-  HostBuffers&,
   Allen::Context const& context) const
 {
   Allen::memset_async<dev_total_ecal_e_t>(arguments, 0, context);

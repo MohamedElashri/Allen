@@ -97,8 +97,7 @@ __global__ void plume_decode_kernel(plume_decode::Parameters parameters)
 void plume_decode::plume_decode_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   set_size<dev_plume_t>(arguments, first<host_number_of_events_t>(arguments));
 }
@@ -107,7 +106,6 @@ void plume_decode::plume_decode_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   (void) constants;

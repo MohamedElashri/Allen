@@ -32,14 +32,12 @@ namespace total_ecal_energy {
     void set_arguments_size(
       ArgumentReferences<Parameters> arguments,
       const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+      const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants& constants,
-      HostBuffers&,
       Allen::Context const&) const;
 
   private:
