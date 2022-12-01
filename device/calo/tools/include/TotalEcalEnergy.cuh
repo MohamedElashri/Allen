@@ -29,17 +29,12 @@ namespace total_ecal_energy {
   __global__ void sum_ecal_energy(Parameters parameters, const char* raw_ecal_geometry);
 
   struct total_ecal_energy_t : public DeviceAlgorithm, Parameters {
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants& constants,
-      HostBuffers&,
       Allen::Context const&) const;
 
   private:
