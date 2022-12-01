@@ -9,32 +9,36 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 // Gaudi
-#include "GaudiAlg/Transformer.h"
+#include "LHCbAlgs/Transformer.h"
 #include "Event/RawEvent.h"
 #include <vector>
 #include "Kernel/STLExtensions.h"
 
-struct GaudiAllenReportsToRawEvent final : public Gaudi::Functional::Transformer<LHCb::RawEvent(
-                                             const std::vector<unsigned>&,
-                                             const std::vector<unsigned>&,
-                                             const std::vector<unsigned>&,
-                                             const std::vector<unsigned>&)> {
+class GaudiAllenReportsToRawEvent : public LHCb::Algorithm::MultiTransformer<
+                                      std::tuple<LHCb::RawEvent, LHCb::RawBank::View, LHCb::RawBank::View>(
+                                        const std::vector<unsigned>&,
+                                        const std::vector<unsigned>&,
+                                        const std::vector<unsigned>&,
+                                        const std::vector<unsigned>&),
+                                      LHCb::Algorithm::Traits::writeOnly<LHCb::RawEvent>> {
+public:
   // Standard constructor
   GaudiAllenReportsToRawEvent(const std::string& name, ISvcLocator* pSvcLocator) :
-    Transformer(
-      name,
-      pSvcLocator,
-      // Inputs
-      {KeyValue {"allen_number_of_active_lines", ""},
-       KeyValue {"allen_dec_reports", ""},
-       KeyValue {"allen_selrep_offsets", ""},
-       KeyValue {"allen_sel_reports", ""}},
-      // Outputs
-      {KeyValue {"OutputRawReports", "Allen/Out/RawReports"}})
+    MultiTransformer {name,
+                      pSvcLocator,
+                      // Inputs
+                      {KeyValue {"allen_number_of_active_lines", ""},
+                       KeyValue {"allen_dec_reports", ""},
+                       KeyValue {"allen_selrep_offsets", ""},
+                       KeyValue {"allen_sel_reports", ""}},
+                      // Outputs
+                      {KeyValue {"OutputRawReports", "Allen/Out/RawReports"},
+                       KeyValue {"OutputDecView", "Allen/Out/OutputDecView"},
+                       KeyValue {"OutputSelView", "Allen/Out/OutputSelView"}}}
   {}
 
   // Algorithm execution
-  LHCb::RawEvent operator()(
+  std::tuple<LHCb::RawEvent, LHCb::RawBank::View, LHCb::RawBank::View> operator()(
     const std::vector<unsigned>& allen_number_of_active_lines,
     const std::vector<unsigned>& allen_dec_reports,
     const std::vector<unsigned>& allen_selrep_offsets,
@@ -50,7 +54,11 @@ struct GaudiAllenReportsToRawEvent final : public Gaudi::Functional::Transformer
     raw_event.addBank(hlt1SourceID_old, LHCb::RawBank::HltSelReports, sel_rep_version, sel_reports);
     raw_event.addBank(hlt1SourceID_new, LHCb::RawBank::HltDecReports, dec_rep_version, dec_reports);
 
-    return raw_event;
+    auto dec_view = raw_event.banks(LHCb::RawBank::HltDecReports);
+    auto sel_view = raw_event.banks(LHCb::RawBank::HltSelReports);
+    // without std::move here the RawEvent gets copied which would invalidate the view
+    // View creation must be after RawEvent is made
+    return {std::move(raw_event), std::move(dec_view), std::move(sel_view)};
   }
 };
 
