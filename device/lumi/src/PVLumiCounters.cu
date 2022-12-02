@@ -49,9 +49,31 @@ __global__ void pv_lumi_counters::pv_lumi_counters(
     if (lumi_sum_offset == parameters.dev_lumi_summary_offsets[event_number + 1]) continue;
 
     // number of PVs
-    unsigned info_offset = lumi_sum_offset / Lumi::Constants::lumi_length;
+    unsigned info_offset = Lumi::Constants::n_pv_counters * lumi_sum_offset / Lumi::Constants::lumi_length;
     parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::VeloVerticesSize;
     parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::VeloVerticesOffset;
     parameters.dev_lumi_infos[info_offset].value = parameters.dev_number_of_pvs[event_number];
+
+    if(parameters.dev_number_of_pvs[event_number] > 0) {
+        //select quasi-random PV
+        unsigned index_pv = event_number % parameters.dev_number_of_pvs[event_number];
+        const PV::Vertex* vertices = parameters.dev_multi_final_vertices + event_number * PV::max_number_vertices;
+        auto pv_pos = vertices[index_pv].position;
+
+        ++info_offset;
+        parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::VeloVertexXSize;
+        parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::VeloVertexXOffset;
+        parameters.dev_lumi_infos[info_offset].value = 512.f + 1000.f*pv_pos.x;
+
+        ++info_offset;
+        parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::VeloVertexYSize;
+        parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::VeloVertexYOffset;
+        parameters.dev_lumi_infos[info_offset].value = 512.f + 1000.f*pv_pos.y;
+
+        ++info_offset;
+        parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::VeloVertexZSize;
+        parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::VeloVertexZOffset;
+        parameters.dev_lumi_infos[info_offset].value = 512.f + pv_pos.z;
+    }
   }
 }

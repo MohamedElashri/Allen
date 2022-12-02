@@ -53,7 +53,7 @@ namespace Lumi {
                                              Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
     static constexpr unsigned n_velo_counters = 1u;
-    static constexpr unsigned n_pv_counters = 1u;
+    static constexpr unsigned n_pv_counters = 4u;
     static constexpr unsigned n_SciFi_counters = 6u;
     static constexpr unsigned n_calo_counters = 7u;
     static constexpr unsigned n_muon_counters = 12u;
