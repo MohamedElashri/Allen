@@ -39,13 +39,49 @@ def get_lumi_info(lumiInfos, name):
         return dummy.dev_lumi_dummy_t
 
 
-def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size):
+def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size, key):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
 
+    return make_algorithm(
+        make_lumi_summary_t,
+        name="make_lumi_summary",
+        encoding_key=key,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_lumi_summaries_size_t=prefix_sum_lumi_size.
+        host_total_sum_holder_t,
+        dev_lumi_summary_offsets_t=prefix_sum_lumi_size.dev_output_buffer_t,
+        dev_odin_data_t=odin["dev_odin_data"],
+        dev_velo_info_t=get_lumi_info(lumiInfos, "velo"),
+        dev_pv_info_t=get_lumi_info(lumiInfos, "pv"),
+        dev_scifi_info_t=get_lumi_info(lumiInfos, "scifi"),
+        dev_muon_info_t=get_lumi_info(lumiInfos, "muon"),
+        dev_calo_info_t=get_lumi_info(lumiInfos, "calo"))
+
+
+def lumi_reconstruction(gather_selections,
+                        lines,
+                        lumiline_name,
+                        with_muon=True,
+                        with_velo=True,
+                        with_SciFi=True,
+                        with_calo=True):
+    lumiLine_index, found = findLine(lines, lumiline_name)
+    if not found:
+        return []
+
+    number_of_events = initialize_number_of_events()
+    odin = decode_odin()
+    decoded_velo = decode_velo()
+    velo_tracks = make_velo_tracks(decoded_velo)
+    decoded_scifi = decode_scifi()
+    decoded_calo = decode_calo()
+    pvs = make_pvs(velo_tracks)
+    decoded_muon = decode_muon(empty_banks=not with_muon)
+
     # TODO generate key here, but it does not save the table anywhere
     # so it is not actual usable
-    table = json.dumps({
+    table = {
         "version":
         0,
         "size":
@@ -187,44 +223,9 @@ def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size):
             "offset": 487,
             "size": 7
         }]
-    })
-    key = int(_get_hash_for_text(table)[:8], 16)
-
-    return make_algorithm(
-        make_lumi_summary_t,
-        name="make_lumi_summary",
-        encoding_key=key,
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_lumi_summaries_size_t=prefix_sum_lumi_size.
-        host_total_sum_holder_t,
-        dev_lumi_summary_offsets_t=prefix_sum_lumi_size.dev_output_buffer_t,
-        dev_odin_data_t=odin["dev_odin_data"],
-        dev_velo_info_t=get_lumi_info(lumiInfos, "velo"),
-        dev_pv_info_t=get_lumi_info(lumiInfos, "pv"),
-        dev_scifi_info_t=get_lumi_info(lumiInfos, "scifi"),
-        dev_muon_info_t=get_lumi_info(lumiInfos, "muon"),
-        dev_calo_info_t=get_lumi_info(lumiInfos, "calo"))
-
-
-def lumi_reconstruction(gather_selections,
-                        lines,
-                        lumiline_name,
-                        with_muon=True,
-                        with_velo=True,
-                        with_SciFi=True,
-                        with_calo=True):
-    lumiLine_index, found = findLine(lines, lumiline_name)
-    if not found:
-        return []
-
-    number_of_events = initialize_number_of_events()
-    odin = decode_odin()
-    decoded_velo = decode_velo()
-    velo_tracks = make_velo_tracks(decoded_velo)
-    decoded_scifi = decode_scifi()
-    decoded_calo = decode_calo()
-    pvs = make_pvs(velo_tracks)
-    decoded_muon = decode_muon(empty_banks=not with_muon)
+    }
+    key = int(_get_hash_for_text(json.dumps(table))[:8], 16)
+    schema_for_algorithms = { counter["name"] : (counter["offset"], counter["size"]) for counter in table["counters"]}
 
     calc_lumi_sum_size = make_algorithm(
         calc_lumi_sum_size_t,
@@ -262,7 +263,8 @@ def lumi_reconstruction(gather_selections,
             dev_lumi_summary_offsets_t=prefix_sum_lumi_size.
             dev_output_buffer_t,
             dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
-            dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"])
+            dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"],
+            lumi_counter_schema = schema_for_algorithms)
 
     if with_SciFi:
         lumiInfos["scifi"] = make_algorithm(
@@ -300,7 +302,7 @@ def lumi_reconstruction(gather_selections,
             dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
             dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"])
 
-    make_lumi_summary = lumi_summary_maker(lumiInfos, prefix_sum_lumi_size)
+    make_lumi_summary = lumi_summary_maker(lumiInfos, prefix_sum_lumi_size, key)
 
     return {
         "algorithms":
