@@ -3,6 +3,7 @@ HLT1 selection API
 
 Inclusive hadron lines
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. automodule:: AllenConf.hlt1_inclusive_hadron_lines
   :members:
   :undoc-members:
@@ -28,8 +29,16 @@ Electron lines
   :members:
   :undoc-members:
 
+Photon lines
+^^^^^^^^^^^^^^^
+
+.. automodule:: AllenConf.hlt1_photon_lines
+  :members:
+  :undoc-members:
+
 Calibration lines
 ^^^^^^^^^^^^^^^^^^^^^^
+
 .. automodule:: AllenConf.hlt1_calibration_lines
   :members:
   :undoc-members:
