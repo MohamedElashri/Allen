@@ -22,6 +22,7 @@ from AllenConf.scifi_reconstruction import decode_scifi
 from AllenConf.muon_reconstruction import decode_muon
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.calo_reconstruction import decode_calo
+from AllenConf.lumi_schema_generator import LumiSchemaGenerator
 
 
 def findLine(lines, name):
@@ -79,151 +80,45 @@ def lumi_reconstruction(gather_selections,
     pvs = make_pvs(velo_tracks)
     decoded_muon = decode_muon(empty_banks=not with_muon)
 
-    # TODO generate key here, but it does not save the table anywhere
-    # so it is not actual usable
-    table = {
-        "version":
-        0,
-        "size":
-        64,
-        "counters": [{
-            "name": "encodingKey",
-            "offset": 0,
-            "size": 32
-        }, {
-            "name": "T0Low",
-            "offset": 32,
-            "size": 32
-        }, {
-            "name": "T0High",
-            "offset": 64,
-            "size": 32
-        }, {
-            "name": "BCIDLow",
-            "offset": 96,
-            "size": 32
-        }, {
-            "name": "ECalEInnerTop",
-            "offset": 128,
-            "size": 22
-        }, {
-            "name": "SciFiClustersS1M45",
-            "offset": 150,
-            "size": 10
-        }, {
-            "name": "ECalEInnerBottom",
-            "offset": 160,
-            "size": 22
-        }, {
-            "name": "SciFiClustersS2M45",
-            "offset": 182,
-            "size": 10
-        }, {
-            "name": "ECalET",
-            "offset": 192,
-            "size": 21
-        }, {
-            "name": "VeloTracks",
-            "offset": 213,
-            "size": 11
-        }, {
-            "name": "ECalEMiddleTop",
-            "offset": 224,
-            "size": 21
-        }, {
-            "name": "SciFiClustersS3M45",
-            "offset": 245,
-            "size": 11
-        }, {
-            "name": "ECalEOuterTop",
-            "offset": 256,
-            "size": 21
-        }, {
-            "name": "MuonHitsM2R1",
-            "offset": 277,
-            "size": 10
-        }, {
-            "name": "GEC",
-            "offset": 287,
-            "size": 1
-        }, {
-            "name": "ECalEMiddleBottom",
-            "offset": 288,
-            "size": 21
-        }, {
-            "name": "MuonHitsM2R2",
-            "offset": 309,
-            "size": 10
-        }, {
-            "name": "ECalEOuterBottom",
-            "offset": 320,
-            "size": 21
-        }, {
-            "name": "MuonHitsM2R3",
-            "offset": 341,
-            "size": 9
-        }, {
-            "name": "BXType",
-            "offset": 350,
-            "size": 2
-        }, {
-            "name": "BCIDHigh",
-            "offset": 352,
-            "size": 14
-        }, {
-            "name": "SciFiClusters",
-            "offset": 366,
-            "size": 13
-        }, {
-            "name": "SciFiClustersS2M123",
-            "offset": 384,
-            "size": 13
-        }, {
-            "name": "SciFiClustersS3M123",
-            "offset": 397,
-            "size": 13
-        }, {
-            "name": "VeloVertices",
-            "offset": 410,
-            "size": 6
-        }, {
-            "name": "MuonHitsM3R1",
-            "offset": 416,
-            "size": 9
-        }, {
-            "name": "MuonHitsM4R3",
-            "offset": 425,
-            "size": 9
-        }, {
-            "name": "MuonHitsM2R4",
-            "offset": 434,
-            "size": 8
-        }, {
-            "name": "MuonHitsM3R2",
-            "offset": 448,
-            "size": 8
-        }, {
-            "name": "MuonHitsM3R3",
-            "offset": 456,
-            "size": 8
-        }, {
-            "name": "MuonHitsM4R1",
-            "offset": 464,
-            "size": 8
-        }, {
-            "name": "MuonHitsM4R4",
-            "offset": 472,
-            "size": 8
-        }, {
-            "name": "MuonHitsM3R4",
-            "offset": 480,
-            "size": 7
-        }, {
-            "name": "MuonHitsM4R2",
-            "offset": 487,
-            "size": 7
-        }]
-    }
+    counterSpecs = [
+        ("T0Low", 0xffffffff),
+        ("T0High", 0xffffffff),
+        ("BCIDLow", 0xffffffff),
+        ("BCIDHigh", 0x3fff),
+        ("BXType", 3),
+        ("GEC", 1),
+        ("VeloTracks", 1913),
+        ("VeloVertices", 33),
+        ("SciFiClustersS1M45", 765),
+        ("SciFiClustersS2M45", 805),
+        ("SciFiClustersS3M45", 1405),
+        ("SciFiClusters", 7650),
+        ("SciFiClustersS2M123", 7590),
+        ("SciFiClustersS3M123", 7890),
+        ("ECalET", 1072742),
+        ("ECalEInnerTop", 3797317),
+        ("ECalEMiddleTop", 1478032),
+        ("ECalEOuterTop", 1192952),
+        ("ECalEInnerBottom", 4026243),
+        ("ECalEMiddleBottom", 1492195),
+        ("ECalEOuterBottom", 1384124),
+        ("MuonHitsM2R1", 696),
+        ("MuonHitsM2R2", 593),
+        ("MuonHitsM2R3", 263),
+        ("MuonHitsM2R4", 200),
+        ("MuonHitsM3R1", 478),
+        ("MuonHitsM3R2", 212),
+        ("MuonHitsM3R3", 161),
+        ("MuonHitsM3R4", 102),
+        ("MuonHitsM4R1", 134),
+        ("MuonHitsM4R2", 108),
+        ("MuonHitsM4R3", 409),
+        ("MuonHitsM4R4", 227)
+    ]
+    l = LumiSchemaGenerator(counterSpecs)
+    l.process()
+    table = l.getJSON()
+
     key = int(_get_hash_for_text(json.dumps(table))[:8], 16)
     schema_for_algorithms = {
         counter["name"]: (counter["offset"], counter["size"])
