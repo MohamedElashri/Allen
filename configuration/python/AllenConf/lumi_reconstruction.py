@@ -225,7 +225,10 @@ def lumi_reconstruction(gather_selections,
         }]
     }
     key = int(_get_hash_for_text(json.dumps(table))[:8], 16)
-    schema_for_algorithms = { counter["name"] : (counter["offset"], counter["size"]) for counter in table["counters"]}
+    schema_for_algorithms = {
+        counter["name"]: (counter["offset"], counter["size"])
+        for counter in table["counters"]
+    }
 
     calc_lumi_sum_size = make_algorithm(
         calc_lumi_sum_size_t,
@@ -264,7 +267,7 @@ def lumi_reconstruction(gather_selections,
             dev_output_buffer_t,
             dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
             dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"],
-            lumi_counter_schema = schema_for_algorithms)
+            lumi_counter_schema=schema_for_algorithms)
 
     if with_SciFi:
         lumiInfos["scifi"] = make_algorithm(
@@ -302,7 +305,8 @@ def lumi_reconstruction(gather_selections,
             dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
             dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"])
 
-    make_lumi_summary = lumi_summary_maker(lumiInfos, prefix_sum_lumi_size, key)
+    make_lumi_summary = lumi_summary_maker(lumiInfos, prefix_sum_lumi_size,
+                                           key)
 
     return {
         "algorithms":

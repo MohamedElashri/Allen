@@ -26,11 +26,12 @@ void pv_lumi_counters::pv_lumi_counters_t::set_arguments_size(
 
 void pv_lumi_counters::pv_lumi_counters_t::init()
 {
-  std::map<std::string, std::pair<unsigned,unsigned>> schema = property<lumi_counter_schema_t>();
+  std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
 
-  if(schema.find("VeloVertices")==schema.end()) {
+  if (schema.find("VeloVertices") == schema.end()) {
     std::cout << "LumiSummary schema does not use VeloVertices" << std::endl;
-  } else {
+  }
+  else {
     set_property_value<velo_vertices_offset_t>(schema["VeloVertices"].first);
     set_property_value<velo_vertices_size_t>(schema["VeloVertices"].second);
   }
