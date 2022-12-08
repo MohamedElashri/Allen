@@ -9,7 +9,6 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "MakeLumiSummary.cuh"
-#include "LumiSummaryOffsets.h"
 
 #include "SelectionsEventModel.cuh"
 #include "Event/ODIN.h"
@@ -24,6 +23,53 @@ void make_lumi_summary::make_lumi_summary_t::set_arguments_size(
   set_size<host_lumi_summary_offsets_t>(arguments, size<dev_lumi_summary_offsets_t>(arguments));
   set_size<host_lumi_summaries_t>(arguments, first<host_lumi_summaries_size_t>(arguments));
   set_size<dev_lumi_summaries_t>(arguments, first<host_lumi_summaries_size_t>(arguments));
+}
+
+void make_lumi_summary::make_lumi_summary_t::init()
+{
+  std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+
+  if (schema.find("T0Low") == schema.end()) {
+    std::cout << "LumiSummary schema does not use T0Low" << std::endl;
+  }
+  else {
+    set_property_value<t0_low_offset_and_size_t>(schema["T0Low"]);
+  }
+
+  if (schema.find("T0High") == schema.end()) {
+    std::cout << "LumiSummary schema does not use T0High" << std::endl;
+  }
+  else {
+    set_property_value<t0_high_offset_and_size_t>(schema["T0High"]);
+  }
+
+  if (schema.find("BCIDLow") == schema.end()) {
+    std::cout << "LumiSummary schema does not use BCIDLow" << std::endl;
+  }
+  else {
+    set_property_value<bcid_low_offset_and_size_t>(schema["BCIDLow"]);
+  }
+
+  if (schema.find("BCIDHigh") == schema.end()) {
+    std::cout << "LumiSummary schema does not use BCIDHigh" << std::endl;
+  }
+  else {
+    set_property_value<bcid_high_offset_and_size_t>(schema["BCIDHigh"]);
+  }
+
+  if (schema.find("BXType") == schema.end()) {
+    std::cout << "LumiSummary schema does not use BXType" << std::endl;
+  }
+  else {
+    set_property_value<bx_type_offset_and_size_t>(schema["BXType"]);
+  }
+
+  if (schema.find("GEC") == schema.end()) {
+    std::cout << "LumiSummary schema does not use GEC" << std::endl;
+  }
+  else {
+    set_property_value<gec_offset_and_size_t>(schema["GEC"]);
+  }
 }
 
 void make_lumi_summary::make_lumi_summary_t::operator()(
@@ -75,8 +121,8 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
 }
 
 __device__ void make_lumi_summary::setField(
-  LHCb::LumiSummaryOffsets::V2::counterOffsets offset,
-  LHCb::LumiSummaryOffsets::V2::counterOffsets size,
+  unsigned offset,
+  unsigned size,
   unsigned* target,
   unsigned value)
 {
@@ -123,39 +169,44 @@ __global__ void make_lumi_summary::make_lumi_summary(
     uint64_t t0 = static_cast<uint64_t>(odin.gpsTime()) - new_bcid * 1000 / 40078;
     // event time
     setField(
-      LHCb::LumiSummaryOffsets::V2::T0LowOffset,
-      LHCb::LumiSummaryOffsets::V2::T0LowSize,
+      parameters.t0_low_offset_and_size.get().first,
+      parameters.t0_low_offset_and_size.get().second,
       lumi_summary,
       static_cast<unsigned>(t0 & 0xffffffff));
     setField(
-      LHCb::LumiSummaryOffsets::V2::T0HighOffset,
-      LHCb::LumiSummaryOffsets::V2::T0HighSize,
+      parameters.t0_high_offset_and_size.get().first,
+      parameters.t0_high_offset_and_size.get().second,
       lumi_summary,
       static_cast<unsigned>(t0 >> 32));
 
     // gps time offset
     setField(
-      LHCb::LumiSummaryOffsets::V2::BCIDLowOffset,
-      LHCb::LumiSummaryOffsets::V2::BCIDLowSize,
+      parameters.bcid_low_offset_and_size.get().first,
+      parameters.bcid_low_offset_and_size.get().second,
       lumi_summary,
       static_cast<unsigned>(new_bcid & 0xffffffff));
     setField(
-      LHCb::LumiSummaryOffsets::V2::BCIDHighOffset,
-      LHCb::LumiSummaryOffsets::V2::BCIDHighSize,
+      parameters.bcid_high_offset_and_size.get().first,
+      parameters.bcid_high_offset_and_size.get().second,
       lumi_summary,
       static_cast<unsigned>(new_bcid >> 32));
 
     // bunch crossing type
     setField(
-      LHCb::LumiSummaryOffsets::V2::BXTypeOffset,
-      LHCb::LumiSummaryOffsets::V2::BXTypeSize,
+      parameters.bx_type_offset_and_size.get().first,
+      parameters.bx_type_offset_and_size.get().second,
       lumi_summary,
       static_cast<unsigned>(odin.bunchCrossingType()));
 
     /// gec counter
+    //TODO don't the bits default to '1'? If so, this bit will always be set even if the GEC fails
     for (unsigned i = 0; i < number_of_events_passed_gec; ++i) {
       if (parameters.dev_event_list[i] == event_number) {
-        setField(LHCb::LumiSummaryOffsets::V2::GECOffset, LHCb::LumiSummaryOffsets::V2::GECSize, lumi_summary, true);
+        setField(
+          parameters.gec_offset_and_size.get().first,
+          parameters.gec_offset_and_size.get().second,
+          lumi_summary,
+          true);
         break;
       }
     }
@@ -163,9 +214,9 @@ __global__ void make_lumi_summary::make_lumi_summary(
     /// write lumi infos to the summary
     for (unsigned i = 0; i < size_of_aggregate; ++i) {
       if (infoSize[i] == 0 || lumiInfos[i] == nullptr) continue;
-      unsigned spanOffset = offset / Lumi::Constants::lumi_length * infoSize[i];
+      unsigned spanOffset = offset / parameters.lumi_sum_length * infoSize[i];
       for (unsigned j = spanOffset;
-           j < parameters.dev_lumi_summary_offsets[event_number + 1] / Lumi::Constants::lumi_length * infoSize[i];
+           j < parameters.dev_lumi_summary_offsets[event_number + 1] / parameters.lumi_sum_length * infoSize[i];
            ++j) {
         setField(lumiInfos[i][j].offset, lumiInfos[i][j].size, lumi_summary, lumiInfos[i][j].value);
       }

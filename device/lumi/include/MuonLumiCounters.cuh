@@ -26,12 +26,44 @@ namespace muon_lumi_counters {
     DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, unsigned) dev_storage_station_region_quarter_offsets;
     DEVICE_OUTPUT(dev_lumi_infos_t, Lumi::LumiInfo) dev_lumi_infos;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+    PROPERTY(lumi_sum_length_t, "lumi_sum_length", "LumiSummary length", unsigned) lumi_sum_length;
+    PROPERTY(
+      lumi_counter_schema_t,
+      "lumi_counter_schema",
+      "schema for lumi counters",
+      std::map<std::string, std::pair<unsigned, unsigned>>);
+    PROPERTY(muon_hits_m2r1_offset_and_size_t, "muon_hits_m2r1_offset_and_size", "offset and size in bits of the Muon hits M2R1 counter", std::pair<unsigned, unsigned>)
+    muon_hits_m2r1_offset_and_size;
+    PROPERTY(muon_hits_m2r2_offset_and_size_t, "muon_hits_m2r2_offset_and_size", "offset and size in bits of the Muon hits M2R2 counter", std::pair<unsigned, unsigned>)
+    muon_hits_m2r2_offset_and_size;
+    PROPERTY(muon_hits_m2r3_offset_and_size_t, "muon_hits_m2r3_offset_and_size", "offset and size in bits of the Muon hits M2R3 counter", std::pair<unsigned, unsigned>)
+    muon_hits_m2r3_offset_and_size;
+    PROPERTY(muon_hits_m2r4_offset_and_size_t, "muon_hits_m2r4_offset_and_size", "offset and size in bits of the Muon hits M2R4 counter", std::pair<unsigned, unsigned>)
+    muon_hits_m2r4_offset_and_size;
+    PROPERTY(muon_hits_m3r1_offset_and_size_t, "muon_hits_m3r1_offset_and_size", "offset and size in bits of the Muon hits M3R1 counter", std::pair<unsigned, unsigned>)
+    muon_hits_m3r1_offset_and_size;
+    PROPERTY(muon_hits_m3r2_offset_and_size_t, "muon_hits_m3r2_offset_and_size", "offset and size in bits of the Muon hits M3R2 counter", std::pair<unsigned, unsigned>)
+    muon_hits_m3r2_offset_and_size;
+    PROPERTY(muon_hits_m3r3_offset_and_size_t, "muon_hits_m3r3_offset_and_size", "offset and size in bits of the Muon hits M3R3 counter", std::pair<unsigned, unsigned>)
+    muon_hits_m3r3_offset_and_size;
+    PROPERTY(muon_hits_m3r4_offset_and_size_t, "muon_hits_m3r4_offset_and_size", "offset and size in bits of the Muon hits M3R4 counter", std::pair<unsigned, unsigned>)
+    muon_hits_m3r4_offset_and_size;
+    PROPERTY(muon_hits_m4r1_offset_and_size_t, "muon_hits_m4r1_offset_and_size", "offset and size in bits of the Muon hits M4R1 counter", std::pair<unsigned, unsigned>)
+    muon_hits_m4r1_offset_and_size;
+    PROPERTY(muon_hits_m4r2_offset_and_size_t, "muon_hits_m4r2_offset_and_size", "offset and size in bits of the Muon hits M4R2 counter", std::pair<unsigned, unsigned>)
+    muon_hits_m4r2_offset_and_size;
+    PROPERTY(muon_hits_m4r3_offset_and_size_t, "muon_hits_m4r3_offset_and_size", "offset and size in bits of the Muon hits M4R3 counter", std::pair<unsigned, unsigned>)
+    muon_hits_m4r3_offset_and_size;
+    PROPERTY(muon_hits_m4r4_offset_and_size_t, "muon_hits_m4r4_offset_and_size", "offset and size in bits of the Muon hits M4R4 counter", std::pair<unsigned, unsigned>)
+    muon_hits_m4r4_offset_and_size;
   }; // struct Parameters
 
   __global__ void muon_lumi_counters(Parameters, const unsigned number_of_events);
 
   struct muon_lumi_counters_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+
+    void init();
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -41,5 +73,19 @@ namespace muon_lumi_counters {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
+    Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
+    Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
+    Property<muon_hits_m2r1_offset_and_size_t> m_muon_hits_m2r1_offset_and_size {this, {0u, 0u}};
+    Property<muon_hits_m2r2_offset_and_size_t> m_muon_hits_m2r2_offset_and_size {this, {0u, 0u}};
+    Property<muon_hits_m2r3_offset_and_size_t> m_muon_hits_m2r3_offset_and_size {this, {0u, 0u}};
+    Property<muon_hits_m2r4_offset_and_size_t> m_muon_hits_m2r4_offset_and_size {this, {0u, 0u}};
+    Property<muon_hits_m3r1_offset_and_size_t> m_muon_hits_m3r1_offset_and_size {this, {0u, 0u}};
+    Property<muon_hits_m3r2_offset_and_size_t> m_muon_hits_m3r2_offset_and_size {this, {0u, 0u}};
+    Property<muon_hits_m3r3_offset_and_size_t> m_muon_hits_m3r3_offset_and_size {this, {0u, 0u}};
+    Property<muon_hits_m3r4_offset_and_size_t> m_muon_hits_m3r4_offset_and_size {this, {0u, 0u}};
+    Property<muon_hits_m4r1_offset_and_size_t> m_muon_hits_m4r1_offset_and_size {this, {0u, 0u}};
+    Property<muon_hits_m4r2_offset_and_size_t> m_muon_hits_m4r2_offset_and_size {this, {0u, 0u}};
+    Property<muon_hits_m4r3_offset_and_size_t> m_muon_hits_m4r3_offset_and_size {this, {0u, 0u}};
+    Property<muon_hits_m4r4_offset_and_size_t> m_muon_hits_m4r4_offset_and_size {this, {0u, 0u}};
   }; // struct muon_lumi_counters_t
 } // namespace muon_lumi_counters

@@ -9,7 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "PVLumiCounters.cuh"
-#include "LumiSummaryOffsets.h"
+#include "LumiCommon.cuh"
 
 INSTANTIATE_ALGORITHM(pv_lumi_counters::pv_lumi_counters_t)
 
@@ -21,7 +21,7 @@ void pv_lumi_counters::pv_lumi_counters_t::set_arguments_size(
   // convert the size of lumi summaries to the size of velo counter infos
   set_size<dev_lumi_infos_t>(
     arguments,
-    Lumi::Constants::n_pv_counters * first<host_lumi_summaries_size_t>(arguments) / Lumi::Constants::lumi_length);
+    Lumi::Constants::n_pv_counters * first<host_lumi_summaries_size_t>(arguments) / property<lumi_sum_length_t>());
 }
 
 void pv_lumi_counters::pv_lumi_counters_t::init()
@@ -32,8 +32,7 @@ void pv_lumi_counters::pv_lumi_counters_t::init()
     std::cout << "LumiSummary schema does not use VeloVertices" << std::endl;
   }
   else {
-    set_property_value<velo_vertices_offset_t>(schema["VeloVertices"].first);
-    set_property_value<velo_vertices_size_t>(schema["VeloVertices"].second);
+    set_property_value<velo_vertices_offset_and_size_t>(schema["VeloVertices"]);
   }
 }
 
@@ -61,13 +60,11 @@ __global__ void pv_lumi_counters::pv_lumi_counters(
     // skip non-lumi event
     if (lumi_sum_offset == parameters.dev_lumi_summary_offsets[event_number + 1]) continue;
 
-    unsigned cs = parameters.velo_vertices_size;
-    unsigned co = parameters.velo_vertices_offset;
-
     // number of PVs
-    unsigned info_offset = lumi_sum_offset / Lumi::Constants::lumi_length;
-    parameters.dev_lumi_infos[info_offset].size = static_cast<LHCb::LumiSummaryOffsets::V2::counterOffsets>(cs);
-    parameters.dev_lumi_infos[info_offset].offset = static_cast<LHCb::LumiSummaryOffsets::V2::counterOffsets>(co);
-    parameters.dev_lumi_infos[info_offset].value = parameters.dev_number_of_pvs[event_number];
+    unsigned info_offset = lumi_sum_offset / parameters.lumi_sum_length;
+
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset],
+                 parameters.velo_vertices_offset_and_size,
+                 parameters.dev_number_of_pvs[event_number]);
   }
 }

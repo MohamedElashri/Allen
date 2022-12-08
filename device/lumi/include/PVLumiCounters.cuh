@@ -27,15 +27,14 @@ namespace pv_lumi_counters {
     DEVICE_INPUT(dev_number_of_pvs_t, unsigned) dev_number_of_pvs;
     DEVICE_OUTPUT(dev_lumi_infos_t, Lumi::LumiInfo) dev_lumi_infos;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+    PROPERTY(lumi_sum_length_t, "lumi_sum_length", "LumiSummary length", unsigned) lumi_sum_length;
     PROPERTY(
       lumi_counter_schema_t,
       "lumi_counter_schema",
       "schema for lumi counters",
       std::map<std::string, std::pair<unsigned, unsigned>>);
-    PROPERTY(velo_vertices_offset_t, "velo_vertices_offset", "offset to the velo vertices counter", unsigned)
-    velo_vertices_offset;
-    PROPERTY(velo_vertices_size_t, "velo_vertices_size", "size in bits of the velo vertices counter", unsigned)
-    velo_vertices_size;
+    PROPERTY(velo_vertices_offset_and_size_t, "velo_vertices_offset_and_size", "offset and size in bits of the velo vertices counter", std::pair<unsigned, unsigned>)
+    velo_vertices_offset_and_size;
   }; // struct Parameters
 
   __global__ void pv_lumi_counters(Parameters, const unsigned number_of_events);
@@ -53,8 +52,8 @@ namespace pv_lumi_counters {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
+    Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
-    Property<velo_vertices_offset_t> m_velo_vertices_offset {this, 0u};
-    Property<velo_vertices_size_t> m_velo_vertices_size {this, 0u};
+    Property<velo_vertices_offset_and_size_t> m_velo_vertices_offset_and_size {this, {0u, 0u}};
   }; // struct pv_lumi_counters_t
 } // namespace pv_lumi_counters

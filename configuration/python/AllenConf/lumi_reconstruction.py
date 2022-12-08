@@ -40,7 +40,7 @@ def get_lumi_info(lumiInfos, name):
         return dummy.dev_lumi_dummy_t
 
 
-def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size, key):
+def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size, key, lumi_sum_length, schema):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
 
@@ -57,7 +57,9 @@ def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size, key):
         dev_pv_info_t=get_lumi_info(lumiInfos, "pv"),
         dev_scifi_info_t=get_lumi_info(lumiInfos, "scifi"),
         dev_muon_info_t=get_lumi_info(lumiInfos, "muon"),
-        dev_calo_info_t=get_lumi_info(lumiInfos, "calo"))
+        dev_calo_info_t=get_lumi_info(lumiInfos, "calo"),
+        lumi_sum_length=lumi_sum_length,
+        lumi_counter_schema=schema)
 
 
 def lumi_reconstruction(gather_selections,
@@ -120,6 +122,7 @@ def lumi_reconstruction(gather_selections,
     table = l.getJSON()
 
     key = int(_get_hash_for_text(json.dumps(table))[:8], 16)
+    lumi_sum_length = table["size"]
     schema_for_algorithms = {
         counter["name"]: (counter["offset"], counter["size"])
         for counter in table["counters"]
@@ -131,7 +134,8 @@ def lumi_reconstruction(gather_selections,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_selections_t=gather_selections.dev_selections_t,
         dev_selections_offsets_t=gather_selections.dev_selections_offsets_t,
-        line_index=lumiLine_index)
+        line_index=lumiLine_index,
+        lumi_sum_length=lumi_sum_length)
 
     prefix_sum_lumi_size = make_algorithm(
         host_prefix_sum_t,
@@ -150,7 +154,9 @@ def lumi_reconstruction(gather_selections,
             dev_output_buffer_t,
             dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
             dev_offsets_all_velo_tracks_t=velo_tracks[
-                "dev_offsets_all_velo_tracks"])
+                "dev_offsets_all_velo_tracks"],
+            lumi_sum_length=lumi_sum_length,
+            lumi_counter_schema=schema_for_algorithms)
 
         lumiInfos["pv"] = make_algorithm(
             pv_lumi_counters_t,
@@ -162,6 +168,7 @@ def lumi_reconstruction(gather_selections,
             dev_output_buffer_t,
             dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
             dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"],
+            lumi_sum_length=lumi_sum_length,
             lumi_counter_schema=schema_for_algorithms)
 
     if with_SciFi:
@@ -174,7 +181,9 @@ def lumi_reconstruction(gather_selections,
             dev_lumi_summary_offsets_t=prefix_sum_lumi_size.
             dev_output_buffer_t,
             dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
-            dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"])
+            dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
+            lumi_sum_length=lumi_sum_length,
+            lumi_counter_schema=schema_for_algorithms)
 
     if with_muon:
         lumiInfos["muon"] = make_algorithm(
@@ -186,7 +195,9 @@ def lumi_reconstruction(gather_selections,
             dev_lumi_summary_offsets_t=prefix_sum_lumi_size.
             dev_output_buffer_t,
             dev_storage_station_region_quarter_offsets_t=decoded_muon[
-                "dev_storage_station_region_quarter_offsets"])
+                "dev_storage_station_region_quarter_offsets"],
+            lumi_sum_length=lumi_sum_length,
+            lumi_counter_schema=schema_for_algorithms)
 
     if with_calo:
         lumiInfos["calo"] = make_algorithm(
@@ -198,10 +209,12 @@ def lumi_reconstruction(gather_selections,
             dev_lumi_summary_offsets_t=prefix_sum_lumi_size.
             dev_output_buffer_t,
             dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
-            dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"])
+            dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
+            lumi_sum_length=lumi_sum_length,
+            lumi_counter_schema=schema_for_algorithms)
 
     make_lumi_summary = lumi_summary_maker(lumiInfos, prefix_sum_lumi_size,
-                                           key)
+                                           key, lumi_sum_length, schema_for_algorithms)
 
     return {
         "algorithms":

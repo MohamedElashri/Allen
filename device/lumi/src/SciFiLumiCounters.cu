@@ -9,7 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "SciFiLumiCounters.cuh"
-#include "LumiSummaryOffsets.h"
+#include "LumiCommon.cuh"
 
 #include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
@@ -24,7 +24,11 @@ void scifi_lumi_counters::scifi_lumi_counters_t::set_arguments_size(
   // convert the size of lumi summaries to the size of velo counter infos
   set_size<dev_lumi_infos_t>(
     arguments,
-    Lumi::Constants::n_SciFi_counters * first<host_lumi_summaries_size_t>(arguments) / Lumi::Constants::lumi_length);
+    Lumi::Constants::n_SciFi_counters * first<host_lumi_summaries_size_t>(arguments) / property<lumi_sum_length_t>());
+}
+
+void scifi_lumi_counters::scifi_lumi_counters_t::init()
+{
 }
 
 void scifi_lumi_counters::scifi_lumi_counters_t::operator()(
@@ -72,41 +76,35 @@ __global__ void scifi_lumi_counters::scifi_lumi_counters(
         ++SciFiCounters[id.station() + 2];
     }
 
-    unsigned info_offset = 6 * (lumi_sum_offset / Lumi::Constants::lumi_length);
+    unsigned info_offset = 6 * (lumi_sum_offset / parameters.lumi_sum_length);
 
-    // M123S1
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::SciFiClustersOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::SciFiClustersSize;
-    parameters.dev_lumi_infos[info_offset].value = SciFiCounters[0];
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset],
+                 parameters.scifi_clusters_offset_and_size,
+                 SciFiCounters[0]);
 
     // M123S2
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::SciFiClustersS2M123Offset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::SciFiClustersS2M123Size;
-    parameters.dev_lumi_infos[info_offset].value = SciFiCounters[1];
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset+1],
+                 parameters.scifi_s2m123_offset_and_size,
+                 SciFiCounters[1]);
 
     // M123S3
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::SciFiClustersS3M123Offset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::SciFiClustersS3M123Size;
-    parameters.dev_lumi_infos[info_offset].value = SciFiCounters[2];
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset+2],
+                 parameters.scifi_s3m123_offset_and_size,
+                 SciFiCounters[2]);
 
     // M45S1
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::SciFiClustersS1M45Offset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::SciFiClustersS1M45Size;
-    parameters.dev_lumi_infos[info_offset].value = SciFiCounters[3];
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset+3],
+                 parameters.scifi_s1m45_offset_and_size,
+                 SciFiCounters[3]);
 
     // M45S2
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::SciFiClustersS2M45Offset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::SciFiClustersS2M45Size;
-    parameters.dev_lumi_infos[info_offset].value = SciFiCounters[4];
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset+4],
+                 parameters.scifi_s2m45_offset_and_size,
+                 SciFiCounters[4]);
 
     // M45S3
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::SciFiClustersS3M45Offset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::SciFiClustersS3M45Size;
-    parameters.dev_lumi_infos[info_offset].value = SciFiCounters[5];
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset+5],
+                 parameters.scifi_s3m45_offset_and_size,
+                 SciFiCounters[5]);
   }
 }

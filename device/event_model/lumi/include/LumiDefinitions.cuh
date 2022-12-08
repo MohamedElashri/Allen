@@ -10,7 +10,6 @@
 \*****************************************************************************/
 #pragma once
 
-#include "LumiSummaryOffsets.h"
 #include "MuonDefinitions.cuh"
 
 namespace Lumi {
@@ -57,14 +56,11 @@ namespace Lumi {
     static constexpr unsigned n_SciFi_counters = 6u;
     static constexpr unsigned n_calo_counters = 7u;
     static constexpr unsigned n_muon_counters = 12u;
-
-    // give the length of a lumi summary in unsigned
-    static constexpr unsigned lumi_length = LHCb::LumiSummaryOffsets::V2::TotalSize / 8u / sizeof(unsigned);
   } // namespace Constants
 
   struct LumiInfo {
-    LHCb::LumiSummaryOffsets::V2::counterOffsets size;
-    LHCb::LumiSummaryOffsets::V2::counterOffsets offset;
+    unsigned size;
+    unsigned offset;
     unsigned value;
   };
 } // namespace Lumi

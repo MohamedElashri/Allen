@@ -9,7 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "CaloLumiCounters.cuh"
-#include "LumiSummaryOffsets.h"
+#include "LumiCommon.cuh"
 
 #include "CaloGeometry.cuh"
 
@@ -23,7 +23,61 @@ void calo_lumi_counters::calo_lumi_counters_t::set_arguments_size(
   // convert the size of lumi summaries to the size of velo counter infos
   set_size<dev_lumi_infos_t>(
     arguments,
-    Lumi::Constants::n_calo_counters * first<host_lumi_summaries_size_t>(arguments) / Lumi::Constants::lumi_length);
+    Lumi::Constants::n_calo_counters * first<host_lumi_summaries_size_t>(arguments) / property<lumi_sum_length_t>());
+}
+
+void calo_lumi_counters::calo_lumi_counters_t::init()
+{
+  std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+
+  if (schema.find("ECalET") == schema.end()) {
+    std::cout << "LumiSummary schema does not use ECalET" << std::endl;
+  }
+  else {
+    set_property_value<ecal_et_offset_and_size_t>(schema["ECalET"]);
+  }
+
+  if (schema.find("ECalEOuterTop") == schema.end()) {
+    std::cout << "LumiSummary schema does not use ECalEOuterTop" << std::endl;
+  }
+  else {
+    set_property_value<ecal_e_outer_top_offset_and_size_t>(schema["ECalEOuterTop"]);
+  }
+
+  if (schema.find("ECalEMiddleTop") == schema.end()) {
+    std::cout << "LumiSummary schema does not use ECalEMiddleTop" << std::endl;
+  }
+  else {
+    set_property_value<ecal_e_middle_top_offset_and_size_t>(schema["ECalEMiddleTop"]);
+  }
+
+  if (schema.find("ECalEInnerTop") == schema.end()) {
+    std::cout << "LumiSummary schema does not use ECalEInnerTop" << std::endl;
+  }
+  else {
+    set_property_value<ecal_e_inner_top_offset_and_size_t>(schema["ECalEInnerTop"]);
+  }
+
+  if (schema.find("ECalEOuterBottom") == schema.end()) {
+    std::cout << "LumiSummary schema does not use ECalEOuterBottom" << std::endl;
+  }
+  else {
+    set_property_value<ecal_e_outer_bottom_offset_and_size_t>(schema["ECalEOuterBottom"]);
+  }
+
+  if (schema.find("ECalEMiddleBottom") == schema.end()) {
+    std::cout << "LumiSummary schema does not use ECalEMiddleBottom" << std::endl;
+  }
+  else {
+    set_property_value<ecal_e_middle_bottom_offset_and_size_t>(schema["ECalEMiddleBottom"]);
+  }
+
+  if (schema.find("ECalEInnerBottom") == schema.end()) {
+    std::cout << "LumiSummary schema does not use ECalEInnerBottom" << std::endl;
+  }
+  else {
+    set_property_value<ecal_e_inner_bottom_offset_and_size_t>(schema["ECalEInnerBottom"]);
+  }
 }
 
 void calo_lumi_counters::calo_lumi_counters_t::operator()(
@@ -76,46 +130,40 @@ __global__ void calo_lumi_counters::calo_lumi_counters(
       }
     }
 
-    unsigned info_offset = 7u * lumi_sum_offset / Lumi::Constants::lumi_length;
+    unsigned info_offset = 7u * lumi_sum_offset / parameters.lumi_sum_length;
 
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalETOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalETSize;
-    parameters.dev_lumi_infos[info_offset].value = sumET;
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset],
+                 parameters.ecal_et_offset_and_size,
+                 sumET);
 
     // Outer Top
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalEOuterTopOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalEOuterTopSize;
-    parameters.dev_lumi_infos[info_offset].value = Etot[0];
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset+1],
+                 parameters.ecal_e_outer_top_offset_and_size,
+                 Etot[0]);
 
     // Middle Top
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalEMiddleTopOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalEMiddleTopSize;
-    parameters.dev_lumi_infos[info_offset].value = Etot[1];
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset+2],
+                 parameters.ecal_e_middle_top_offset_and_size,
+                 Etot[1]);
 
     // Inner Top
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalEInnerTopOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalEInnerTopSize;
-    parameters.dev_lumi_infos[info_offset].value = Etot[2];
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset+3],
+                 parameters.ecal_e_inner_top_offset_and_size,
+                 Etot[2]);
 
     // Outer Bottom
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalEOuterBottomOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalEOuterBottomSize;
-    parameters.dev_lumi_infos[info_offset].value = Etot[3];
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset+4],
+                 parameters.ecal_e_outer_bottom_offset_and_size,
+                 Etot[3]);
 
     // Middle Bottom
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalEMiddleBottomOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalEMiddleBottomSize;
-    parameters.dev_lumi_infos[info_offset].value = Etot[4];
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset+5],
+                 parameters.ecal_e_middle_bottom_offset_and_size,
+                 Etot[4]);
 
     // Inner Bottom
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalEInnerBottomOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalEInnerBottomSize;
-    parameters.dev_lumi_infos[info_offset].value = Etot[5];
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset+6],
+                 parameters.ecal_e_inner_bottom_offset_and_size,
+                 Etot[5]);
   }
 }
