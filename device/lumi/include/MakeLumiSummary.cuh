@@ -40,17 +40,41 @@ namespace make_lumi_summary {
       "lumi_counter_schema",
       "schema for lumi counters",
       std::map<std::string, std::pair<unsigned, unsigned>>);
-    PROPERTY(t0_low_offset_and_size_t, "t0_low_offset_and_size", "offset and size in bits of the T0 (low) counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      t0_low_offset_and_size_t,
+      "t0_low_offset_and_size",
+      "offset and size in bits of the T0 (low) counter",
+      std::pair<unsigned, unsigned>)
     t0_low_offset_and_size;
-    PROPERTY(t0_high_offset_and_size_t, "t0_high_offset_and_size", "offset and size in bits of the T0 (high) counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      t0_high_offset_and_size_t,
+      "t0_high_offset_and_size",
+      "offset and size in bits of the T0 (high) counter",
+      std::pair<unsigned, unsigned>)
     t0_high_offset_and_size;
-    PROPERTY(bcid_low_offset_and_size_t, "bcid_low_offset_and_size", "offset and size in bits of the BCID (low) counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      bcid_low_offset_and_size_t,
+      "bcid_low_offset_and_size",
+      "offset and size in bits of the BCID (low) counter",
+      std::pair<unsigned, unsigned>)
     bcid_low_offset_and_size;
-    PROPERTY(bcid_high_offset_and_size_t, "bcid_high_offset_and_size", "offset and size in bits of the BCID (high) counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      bcid_high_offset_and_size_t,
+      "bcid_high_offset_and_size",
+      "offset and size in bits of the BCID (high) counter",
+      std::pair<unsigned, unsigned>)
     bcid_high_offset_and_size;
-    PROPERTY(bx_type_offset_and_size_t, "bx_type_offset_and_size", "offset and size in bits of the BX type counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      bx_type_offset_and_size_t,
+      "bx_type_offset_and_size",
+      "offset and size in bits of the BX type counter",
+      std::pair<unsigned, unsigned>)
     bx_type_offset_and_size;
-    PROPERTY(gec_offset_and_size_t, "gec_offset_and_size", "offset and size in bits of the GEC counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      gec_offset_and_size_t,
+      "gec_offset_and_size",
+      "offset and size in bits of the GEC counter",
+      std::pair<unsigned, unsigned>)
     gec_offset_and_size;
   }; // struct Parameters
 
@@ -62,11 +86,7 @@ namespace make_lumi_summary {
     std::array<unsigned, 5> spanSize,
     const unsigned size_of_aggregate);
 
-  __device__ void setField(
-    unsigned offset,
-    unsigned size,
-    unsigned* target,
-    unsigned value);
+  __device__ void setField(unsigned offset, unsigned size, unsigned* target, unsigned value);
 
   struct make_lumi_summary_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;

@@ -132,38 +132,24 @@ __global__ void calo_lumi_counters::calo_lumi_counters(
 
     unsigned info_offset = 7u * lumi_sum_offset / parameters.lumi_sum_length;
 
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset],
-                 parameters.ecal_et_offset_and_size,
-                 sumET);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset], parameters.ecal_et_offset_and_size, sumET);
 
     // Outer Top
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset+1],
-                 parameters.ecal_e_outer_top_offset_and_size,
-                 Etot[0]);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 1], parameters.ecal_e_outer_top_offset_and_size, Etot[0]);
 
     // Middle Top
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset+2],
-                 parameters.ecal_e_middle_top_offset_and_size,
-                 Etot[1]);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 2], parameters.ecal_e_middle_top_offset_and_size, Etot[1]);
 
     // Inner Top
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset+3],
-                 parameters.ecal_e_inner_top_offset_and_size,
-                 Etot[2]);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 3], parameters.ecal_e_inner_top_offset_and_size, Etot[2]);
 
     // Outer Bottom
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset+4],
-                 parameters.ecal_e_outer_bottom_offset_and_size,
-                 Etot[3]);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 4], parameters.ecal_e_outer_bottom_offset_and_size, Etot[3]);
 
     // Middle Bottom
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset+5],
-                 parameters.ecal_e_middle_bottom_offset_and_size,
-                 Etot[4]);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 5], parameters.ecal_e_middle_bottom_offset_and_size, Etot[4]);
 
     // Inner Bottom
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset+6],
-                 parameters.ecal_e_inner_bottom_offset_and_size,
-                 Etot[5]);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 6], parameters.ecal_e_inner_bottom_offset_and_size, Etot[5]);
   }
 }

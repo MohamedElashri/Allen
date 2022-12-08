@@ -63,8 +63,9 @@ __global__ void pv_lumi_counters::pv_lumi_counters(
     // number of PVs
     unsigned info_offset = lumi_sum_offset / parameters.lumi_sum_length;
 
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset],
-                 parameters.velo_vertices_offset_and_size,
-                 parameters.dev_number_of_pvs[event_number]);
+    fillLumiInfo(
+      parameters.dev_lumi_infos[info_offset],
+      parameters.velo_vertices_offset_and_size,
+      parameters.dev_number_of_pvs[event_number]);
   }
 }

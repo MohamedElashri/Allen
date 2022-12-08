@@ -27,9 +27,7 @@ void scifi_lumi_counters::scifi_lumi_counters_t::set_arguments_size(
     Lumi::Constants::n_SciFi_counters * first<host_lumi_summaries_size_t>(arguments) / property<lumi_sum_length_t>());
 }
 
-void scifi_lumi_counters::scifi_lumi_counters_t::init()
-{
-}
+void scifi_lumi_counters::scifi_lumi_counters_t::init() {}
 
 void scifi_lumi_counters::scifi_lumi_counters_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
@@ -78,33 +76,21 @@ __global__ void scifi_lumi_counters::scifi_lumi_counters(
 
     unsigned info_offset = 6 * (lumi_sum_offset / parameters.lumi_sum_length);
 
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset],
-                 parameters.scifi_clusters_offset_and_size,
-                 SciFiCounters[0]);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset], parameters.scifi_clusters_offset_and_size, SciFiCounters[0]);
 
     // M123S2
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset+1],
-                 parameters.scifi_s2m123_offset_and_size,
-                 SciFiCounters[1]);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 1], parameters.scifi_s2m123_offset_and_size, SciFiCounters[1]);
 
     // M123S3
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset+2],
-                 parameters.scifi_s3m123_offset_and_size,
-                 SciFiCounters[2]);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 2], parameters.scifi_s3m123_offset_and_size, SciFiCounters[2]);
 
     // M45S1
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset+3],
-                 parameters.scifi_s1m45_offset_and_size,
-                 SciFiCounters[3]);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 3], parameters.scifi_s1m45_offset_and_size, SciFiCounters[3]);
 
     // M45S2
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset+4],
-                 parameters.scifi_s2m45_offset_and_size,
-                 SciFiCounters[4]);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 4], parameters.scifi_s2m45_offset_and_size, SciFiCounters[4]);
 
     // M45S3
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset+5],
-                 parameters.scifi_s3m45_offset_and_size,
-                 SciFiCounters[5]);
+    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 5], parameters.scifi_s3m45_offset_and_size, SciFiCounters[5]);
   }
 }

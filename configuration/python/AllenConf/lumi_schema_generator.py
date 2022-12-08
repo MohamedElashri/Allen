@@ -275,11 +275,7 @@ class LumiSchemaGenerator:
             for counter in bucket.counters
         ]
 
-        return {
-            'version': 0,
-            'size': int(self.size / 8),
-            'counters': counters
-        }
+        return {'version': 0, 'size': int(self.size / 8), 'counters': counters}
 
     def printJSON(self):
         """Print a JSON representation of the lumi counter scheme."""
@@ -373,4 +369,3 @@ if __name__ == "__main__":
 
     if args.write_header:
         l.printHeaderFile()
-

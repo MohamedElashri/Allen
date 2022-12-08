@@ -33,7 +33,11 @@ namespace pv_lumi_counters {
       "lumi_counter_schema",
       "schema for lumi counters",
       std::map<std::string, std::pair<unsigned, unsigned>>);
-    PROPERTY(velo_vertices_offset_and_size_t, "velo_vertices_offset_and_size", "offset and size in bits of the velo vertices counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      velo_vertices_offset_and_size_t,
+      "velo_vertices_offset_and_size",
+      "offset and size in bits of the velo vertices counter",
+      std::pair<unsigned, unsigned>)
     velo_vertices_offset_and_size;
   }; // struct Parameters
 

@@ -40,7 +40,8 @@ def get_lumi_info(lumiInfos, name):
         return dummy.dev_lumi_dummy_t
 
 
-def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size, key, lumi_sum_length, schema):
+def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size, key, lumi_sum_length,
+                       schema):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
 
@@ -82,41 +83,23 @@ def lumi_reconstruction(gather_selections,
     pvs = make_pvs(velo_tracks)
     decoded_muon = decode_muon(empty_banks=not with_muon)
 
-    counterSpecs = [
-        ("T0Low", 0xffffffff),
-        ("T0High", 0xffffffff),
-        ("BCIDLow", 0xffffffff),
-        ("BCIDHigh", 0x3fff),
-        ("BXType", 3),
-        ("GEC", 1),
-        ("VeloTracks", 1913),
-        ("VeloVertices", 33),
-        ("SciFiClustersS1M45", 765),
-        ("SciFiClustersS2M45", 805),
-        ("SciFiClustersS3M45", 1405),
-        ("SciFiClusters", 7650),
-        ("SciFiClustersS2M123", 7590),
-        ("SciFiClustersS3M123", 7890),
-        ("ECalET", 1072742),
-        ("ECalEInnerTop", 3797317),
-        ("ECalEMiddleTop", 1478032),
-        ("ECalEOuterTop", 1192952),
-        ("ECalEInnerBottom", 4026243),
-        ("ECalEMiddleBottom", 1492195),
-        ("ECalEOuterBottom", 1384124),
-        ("MuonHitsM2R1", 696),
-        ("MuonHitsM2R2", 593),
-        ("MuonHitsM2R3", 263),
-        ("MuonHitsM2R4", 200),
-        ("MuonHitsM3R1", 478),
-        ("MuonHitsM3R2", 212),
-        ("MuonHitsM3R3", 161),
-        ("MuonHitsM3R4", 102),
-        ("MuonHitsM4R1", 134),
-        ("MuonHitsM4R2", 108),
-        ("MuonHitsM4R3", 409),
-        ("MuonHitsM4R4", 227)
-    ]
+    counterSpecs = [("T0Low", 0xffffffff), ("T0High", 0xffffffff),
+                    ("BCIDLow", 0xffffffff), ("BCIDHigh", 0x3fff),
+                    ("BXType", 3), ("GEC", 1), ("VeloTracks", 1913),
+                    ("VeloVertices", 33), ("SciFiClustersS1M45", 765),
+                    ("SciFiClustersS2M45", 805), ("SciFiClustersS3M45", 1405),
+                    ("SciFiClusters", 7650), ("SciFiClustersS2M123", 7590),
+                    ("SciFiClustersS3M123", 7890), ("ECalET", 1072742),
+                    ("ECalEInnerTop", 3797317), ("ECalEMiddleTop", 1478032),
+                    ("ECalEOuterTop", 1192952), ("ECalEInnerBottom", 4026243),
+                    ("ECalEMiddleBottom", 1492195),
+                    ("ECalEOuterBottom", 1384124), ("MuonHitsM2R1", 696),
+                    ("MuonHitsM2R2", 593), ("MuonHitsM2R3", 263),
+                    ("MuonHitsM2R4", 200), ("MuonHitsM3R1", 478),
+                    ("MuonHitsM3R2", 212), ("MuonHitsM3R3", 161),
+                    ("MuonHitsM3R4", 102), ("MuonHitsM4R1", 134),
+                    ("MuonHitsM4R2", 108), ("MuonHitsM4R3", 409),
+                    ("MuonHitsM4R4", 227)]
     l = LumiSchemaGenerator(counterSpecs)
     l.process()
     table = l.getJSON()
@@ -214,7 +197,8 @@ def lumi_reconstruction(gather_selections,
             lumi_counter_schema=schema_for_algorithms)
 
     make_lumi_summary = lumi_summary_maker(lumiInfos, prefix_sum_lumi_size,
-                                           key, lumi_sum_length, schema_for_algorithms)
+                                           key, lumi_sum_length,
+                                           schema_for_algorithms)
 
     return {
         "algorithms":

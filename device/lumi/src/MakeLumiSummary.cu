@@ -120,11 +120,7 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
   Allen::copy_async<host_lumi_summary_offsets_t, dev_lumi_summary_offsets_t>(arguments, context);
 }
 
-__device__ void make_lumi_summary::setField(
-  unsigned offset,
-  unsigned size,
-  unsigned* target,
-  unsigned value)
+__device__ void make_lumi_summary::setField(unsigned offset, unsigned size, unsigned* target, unsigned value)
 {
   // Check value fits within size bits
   if (size < (8 * sizeof(unsigned)) && value >= (1u << size)) {
@@ -199,14 +195,11 @@ __global__ void make_lumi_summary::make_lumi_summary(
       static_cast<unsigned>(odin.bunchCrossingType()));
 
     /// gec counter
-    //TODO don't the bits default to '1'? If so, this bit will always be set even if the GEC fails
+    // TODO don't the bits default to '1'? If so, this bit will always be set even if the GEC fails
     for (unsigned i = 0; i < number_of_events_passed_gec; ++i) {
       if (parameters.dev_event_list[i] == event_number) {
         setField(
-          parameters.gec_offset_and_size.get().first,
-          parameters.gec_offset_and_size.get().second,
-          lumi_summary,
-          true);
+          parameters.gec_offset_and_size.get().first, parameters.gec_offset_and_size.get().second, lumi_summary, true);
         break;
       }
     }

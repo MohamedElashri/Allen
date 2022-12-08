@@ -31,17 +31,41 @@ namespace scifi_lumi_counters {
       "lumi_counter_schema",
       "schema for lumi counters",
       std::map<std::string, std::pair<unsigned, unsigned>>);
-    PROPERTY(scifi_clusters_offset_and_size_t, "scifi_clusters_offset_and_size", "offset and size in bits of the SciFi clusters counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      scifi_clusters_offset_and_size_t,
+      "scifi_clusters_offset_and_size",
+      "offset and size in bits of the SciFi clusters counter",
+      std::pair<unsigned, unsigned>)
     scifi_clusters_offset_and_size;
-    PROPERTY(scifi_s2m123_offset_and_size_t, "scifi_s2m123_offset_and_size", "offset and size in bits of the SciFi clusters (S2,M123) counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      scifi_s2m123_offset_and_size_t,
+      "scifi_s2m123_offset_and_size",
+      "offset and size in bits of the SciFi clusters (S2,M123) counter",
+      std::pair<unsigned, unsigned>)
     scifi_s2m123_offset_and_size;
-    PROPERTY(scifi_s3m123_offset_and_size_t, "scifi_s3m123_offset_and_size", "offset and size in bits of the SciFi clusters (S3,M123) counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      scifi_s3m123_offset_and_size_t,
+      "scifi_s3m123_offset_and_size",
+      "offset and size in bits of the SciFi clusters (S3,M123) counter",
+      std::pair<unsigned, unsigned>)
     scifi_s3m123_offset_and_size;
-    PROPERTY(scifi_s1m45_offset_and_size_t, "scifi_s1m45_offset_and_size", "offset and size in bits of the SciFi clusters (S1,M45) counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      scifi_s1m45_offset_and_size_t,
+      "scifi_s1m45_offset_and_size",
+      "offset and size in bits of the SciFi clusters (S1,M45) counter",
+      std::pair<unsigned, unsigned>)
     scifi_s1m45_offset_and_size;
-    PROPERTY(scifi_s2m45_offset_and_size_t, "scifi_s2m45_offset_and_size", "offset and size in bits of the SciFi clusters (S2,M45) counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      scifi_s2m45_offset_and_size_t,
+      "scifi_s2m45_offset_and_size",
+      "offset and size in bits of the SciFi clusters (S2,M45) counter",
+      std::pair<unsigned, unsigned>)
     scifi_s2m45_offset_and_size;
-    PROPERTY(scifi_s3m45_offset_and_size_t, "scifi_s3m45_offset_and_size", "offset and size in bits of the SciFi clusters (S3,M45) counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      scifi_s3m45_offset_and_size_t,
+      "scifi_s3m45_offset_and_size",
+      "offset and size in bits of the SciFi clusters (S3,M45) counter",
+      std::pair<unsigned, unsigned>)
     scifi_s3m45_offset_and_size;
   }; // struct Parameters
 

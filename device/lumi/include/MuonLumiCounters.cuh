@@ -32,29 +32,77 @@ namespace muon_lumi_counters {
       "lumi_counter_schema",
       "schema for lumi counters",
       std::map<std::string, std::pair<unsigned, unsigned>>);
-    PROPERTY(muon_hits_m2r1_offset_and_size_t, "muon_hits_m2r1_offset_and_size", "offset and size in bits of the Muon hits M2R1 counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      muon_hits_m2r1_offset_and_size_t,
+      "muon_hits_m2r1_offset_and_size",
+      "offset and size in bits of the Muon hits M2R1 counter",
+      std::pair<unsigned, unsigned>)
     muon_hits_m2r1_offset_and_size;
-    PROPERTY(muon_hits_m2r2_offset_and_size_t, "muon_hits_m2r2_offset_and_size", "offset and size in bits of the Muon hits M2R2 counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      muon_hits_m2r2_offset_and_size_t,
+      "muon_hits_m2r2_offset_and_size",
+      "offset and size in bits of the Muon hits M2R2 counter",
+      std::pair<unsigned, unsigned>)
     muon_hits_m2r2_offset_and_size;
-    PROPERTY(muon_hits_m2r3_offset_and_size_t, "muon_hits_m2r3_offset_and_size", "offset and size in bits of the Muon hits M2R3 counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      muon_hits_m2r3_offset_and_size_t,
+      "muon_hits_m2r3_offset_and_size",
+      "offset and size in bits of the Muon hits M2R3 counter",
+      std::pair<unsigned, unsigned>)
     muon_hits_m2r3_offset_and_size;
-    PROPERTY(muon_hits_m2r4_offset_and_size_t, "muon_hits_m2r4_offset_and_size", "offset and size in bits of the Muon hits M2R4 counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      muon_hits_m2r4_offset_and_size_t,
+      "muon_hits_m2r4_offset_and_size",
+      "offset and size in bits of the Muon hits M2R4 counter",
+      std::pair<unsigned, unsigned>)
     muon_hits_m2r4_offset_and_size;
-    PROPERTY(muon_hits_m3r1_offset_and_size_t, "muon_hits_m3r1_offset_and_size", "offset and size in bits of the Muon hits M3R1 counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      muon_hits_m3r1_offset_and_size_t,
+      "muon_hits_m3r1_offset_and_size",
+      "offset and size in bits of the Muon hits M3R1 counter",
+      std::pair<unsigned, unsigned>)
     muon_hits_m3r1_offset_and_size;
-    PROPERTY(muon_hits_m3r2_offset_and_size_t, "muon_hits_m3r2_offset_and_size", "offset and size in bits of the Muon hits M3R2 counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      muon_hits_m3r2_offset_and_size_t,
+      "muon_hits_m3r2_offset_and_size",
+      "offset and size in bits of the Muon hits M3R2 counter",
+      std::pair<unsigned, unsigned>)
     muon_hits_m3r2_offset_and_size;
-    PROPERTY(muon_hits_m3r3_offset_and_size_t, "muon_hits_m3r3_offset_and_size", "offset and size in bits of the Muon hits M3R3 counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      muon_hits_m3r3_offset_and_size_t,
+      "muon_hits_m3r3_offset_and_size",
+      "offset and size in bits of the Muon hits M3R3 counter",
+      std::pair<unsigned, unsigned>)
     muon_hits_m3r3_offset_and_size;
-    PROPERTY(muon_hits_m3r4_offset_and_size_t, "muon_hits_m3r4_offset_and_size", "offset and size in bits of the Muon hits M3R4 counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      muon_hits_m3r4_offset_and_size_t,
+      "muon_hits_m3r4_offset_and_size",
+      "offset and size in bits of the Muon hits M3R4 counter",
+      std::pair<unsigned, unsigned>)
     muon_hits_m3r4_offset_and_size;
-    PROPERTY(muon_hits_m4r1_offset_and_size_t, "muon_hits_m4r1_offset_and_size", "offset and size in bits of the Muon hits M4R1 counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      muon_hits_m4r1_offset_and_size_t,
+      "muon_hits_m4r1_offset_and_size",
+      "offset and size in bits of the Muon hits M4R1 counter",
+      std::pair<unsigned, unsigned>)
     muon_hits_m4r1_offset_and_size;
-    PROPERTY(muon_hits_m4r2_offset_and_size_t, "muon_hits_m4r2_offset_and_size", "offset and size in bits of the Muon hits M4R2 counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      muon_hits_m4r2_offset_and_size_t,
+      "muon_hits_m4r2_offset_and_size",
+      "offset and size in bits of the Muon hits M4R2 counter",
+      std::pair<unsigned, unsigned>)
     muon_hits_m4r2_offset_and_size;
-    PROPERTY(muon_hits_m4r3_offset_and_size_t, "muon_hits_m4r3_offset_and_size", "offset and size in bits of the Muon hits M4R3 counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      muon_hits_m4r3_offset_and_size_t,
+      "muon_hits_m4r3_offset_and_size",
+      "offset and size in bits of the Muon hits M4R3 counter",
+      std::pair<unsigned, unsigned>)
     muon_hits_m4r3_offset_and_size;
-    PROPERTY(muon_hits_m4r4_offset_and_size_t, "muon_hits_m4r4_offset_and_size", "offset and size in bits of the Muon hits M4R4 counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      muon_hits_m4r4_offset_and_size_t,
+      "muon_hits_m4r4_offset_and_size",
+      "offset and size in bits of the Muon hits M4R4 counter",
+      std::pair<unsigned, unsigned>)
     muon_hits_m4r4_offset_and_size;
   }; // struct Parameters
 

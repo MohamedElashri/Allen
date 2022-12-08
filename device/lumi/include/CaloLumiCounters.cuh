@@ -33,19 +33,47 @@ namespace calo_lumi_counters {
       "lumi_counter_schema",
       "schema for lumi counters",
       std::map<std::string, std::pair<unsigned, unsigned>>);
-    PROPERTY(ecal_et_offset_and_size_t, "ecal_et_offset_and_size", "offset and size in bits of the ECAL ET counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      ecal_et_offset_and_size_t,
+      "ecal_et_offset_and_size",
+      "offset and size in bits of the ECAL ET counter",
+      std::pair<unsigned, unsigned>)
     ecal_et_offset_and_size;
-    PROPERTY(ecal_e_outer_top_offset_and_size_t, "ecal_e_outer_top_offset_and_size", "offset and size in bits of the ECAL E outer top counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      ecal_e_outer_top_offset_and_size_t,
+      "ecal_e_outer_top_offset_and_size",
+      "offset and size in bits of the ECAL E outer top counter",
+      std::pair<unsigned, unsigned>)
     ecal_e_outer_top_offset_and_size;
-    PROPERTY(ecal_e_middle_top_offset_and_size_t, "ecal_e_middle_top_offset_and_size", "offset and size in bits of the ECAL E middle top counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      ecal_e_middle_top_offset_and_size_t,
+      "ecal_e_middle_top_offset_and_size",
+      "offset and size in bits of the ECAL E middle top counter",
+      std::pair<unsigned, unsigned>)
     ecal_e_middle_top_offset_and_size;
-    PROPERTY(ecal_e_inner_top_offset_and_size_t, "ecal_e_inner_top_offset_and_size", "offset and size in bits of the ECAL E inner top counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      ecal_e_inner_top_offset_and_size_t,
+      "ecal_e_inner_top_offset_and_size",
+      "offset and size in bits of the ECAL E inner top counter",
+      std::pair<unsigned, unsigned>)
     ecal_e_inner_top_offset_and_size;
-    PROPERTY(ecal_e_outer_bottom_offset_and_size_t, "ecal_e_outer_bottom_offset_and_size", "offset and size in bits of the ECAL E outer bottom counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      ecal_e_outer_bottom_offset_and_size_t,
+      "ecal_e_outer_bottom_offset_and_size",
+      "offset and size in bits of the ECAL E outer bottom counter",
+      std::pair<unsigned, unsigned>)
     ecal_e_outer_bottom_offset_and_size;
-    PROPERTY(ecal_e_middle_bottom_offset_and_size_t, "ecal_e_middle_bottom_offset_and_size", "offset and size in bits of the ECAL E middle bottom counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      ecal_e_middle_bottom_offset_and_size_t,
+      "ecal_e_middle_bottom_offset_and_size",
+      "offset and size in bits of the ECAL E middle bottom counter",
+      std::pair<unsigned, unsigned>)
     ecal_e_middle_bottom_offset_and_size;
-    PROPERTY(ecal_e_inner_bottom_offset_and_size_t, "ecal_e_inner_bottom_offset_and_size", "offset and size in bits of the ECAL E inner bottom counter", std::pair<unsigned, unsigned>)
+    PROPERTY(
+      ecal_e_inner_bottom_offset_and_size_t,
+      "ecal_e_inner_bottom_offset_and_size",
+      "offset and size in bits of the ECAL E inner bottom counter",
+      std::pair<unsigned, unsigned>)
     ecal_e_inner_bottom_offset_and_size;
   }; // struct Parameters
 

@@ -63,8 +63,9 @@ __global__ void velo_lumi_counters::velo_lumi_counters(
 
     unsigned info_offset = lumi_sum_offset / parameters.lumi_sum_length;
 
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset],
-                 parameters.velo_tracks_offset_and_size,
-                 parameters.dev_offsets_all_velo_tracks[event_number + 1] - parameters.dev_offsets_all_velo_tracks[event_number]);
+    fillLumiInfo(
+      parameters.dev_lumi_infos[info_offset],
+      parameters.velo_tracks_offset_and_size,
+      parameters.dev_offsets_all_velo_tracks[event_number + 1] - parameters.dev_offsets_all_velo_tracks[event_number]);
   }
 }
