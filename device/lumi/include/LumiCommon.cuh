@@ -12,4 +12,4 @@
 
 #include <LumiDefinitions.cuh>
 
-void fillLumiInfo(Lumi::LumiInfo& info, const std::pair<unsigned, unsigned>& offsetAndSize, const unsigned value);
+__global__ void fillLumiInfo(Lumi::LumiInfo& info, const std::pair<unsigned, unsigned>& offsetAndSize, const unsigned value);
