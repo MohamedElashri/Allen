@@ -8,6 +8,7 @@ from AllenCore.algorithms import (velo_lumi_counters_t, pv_lumi_counters_t,
                                   calo_lumi_counters_t, calc_lumi_sum_size_t,
                                   make_lumi_summary_t)
 from AllenCore.algorithms import muon_calculate_srq_size_t
+from AllenCore.configuration_options import allen_register_keys
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events, make_dummy
 from AllenCore.generator import make_algorithm
@@ -15,7 +16,7 @@ from AllenCore.generator import make_algorithm
 from AllenConf.persistency import make_gather_selections
 
 from PyConf.tonic import configurable
-from PyConf.filecontent_metadata import _get_hash_for_text
+from PyConf.filecontent_metadata import register_encoding_dictionary
 
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
 from AllenConf.scifi_reconstruction import decode_scifi
@@ -104,7 +105,12 @@ def lumi_reconstruction(gather_selections,
     l.process()
     table = l.getJSON()
 
-    key = int(_get_hash_for_text(json.dumps(table))[:8], 16)
+    if allen_register_keys():
+        key = int(
+            register_encoding_dictionary("counters", table, directory="luminosity_counters"),
+            16)
+    else:
+        key = 0
     lumi_sum_length = table["size"]
     schema_for_algorithms = {
         counter["name"]: (counter["offset"], counter["size"])
