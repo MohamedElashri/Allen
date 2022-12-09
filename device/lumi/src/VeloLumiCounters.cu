@@ -27,13 +27,20 @@ void velo_lumi_counters::velo_lumi_counters_t::set_arguments_size(
 void velo_lumi_counters::velo_lumi_counters_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+  std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_velo_counters> velo_offsets_and_sizes =
+    property<velo_offsets_and_sizes_t>();
 
-  if (schema.find("VeloTracks") == schema.end()) {
-    std::cout << "LumiSummary schema does not use VeloTracks" << std::endl;
+  unsigned c_idx(0u);
+  for (auto counter_name : Lumi::Constants::velo_counter_names) {
+    if (schema.find(counter_name) == schema.end()) {
+      std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
+    }
+    else {
+      velo_offsets_and_sizes[c_idx] = schema[counter_name];
+    }
+    ++c_idx;
   }
-  else {
-    set_property_value<velo_tracks_offset_and_size_t>(schema["VeloTracks"]);
-  }
+  set_property_value<velo_offsets_and_sizes_t>(velo_offsets_and_sizes);
 }
 
 void velo_lumi_counters::velo_lumi_counters_t::operator()(
@@ -65,7 +72,7 @@ __global__ void velo_lumi_counters::velo_lumi_counters(
 
     fillLumiInfo(
       parameters.dev_lumi_infos[info_offset],
-      parameters.velo_tracks_offset_and_size,
+      parameters.velo_offsets_and_sizes.get()[0],
       parameters.dev_offsets_all_velo_tracks[event_number + 1] - parameters.dev_offsets_all_velo_tracks[event_number]);
   }
 }

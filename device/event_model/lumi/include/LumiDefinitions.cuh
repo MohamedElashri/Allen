@@ -51,12 +51,23 @@ namespace Lumi {
     static constexpr unsigned MuonBankSize = Muon::Constants::n_layouts * Muon::Constants::n_stations *
                                              Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
+    static constexpr unsigned n_basic_counters = 6u;
     static constexpr unsigned n_velo_counters = 1u;
     static constexpr unsigned n_pv_counters = 1u;
-    static constexpr unsigned n_SciFi_counters = 6u;
+    static constexpr unsigned n_scifi_counters = 6u;
     static constexpr unsigned n_calo_counters = 7u;
     static constexpr unsigned n_muon_counters = 12u;
 
+    const std::array<std::string, n_basic_counters> basic_counter_names =
+      {"T0Low", "T0High", "BCIDLow", "BCIDHigh", "BXType", "GEC"};
+    const std::array<std::string, n_velo_counters> velo_counter_names = {"VeloTracks"};
+    const std::array<std::string, n_pv_counters> pv_counter_names = {"VeloVertices"};
+    const std::array<std::string, n_scifi_counters> scifi_counter_names = {"SciFiClusters",
+                                                                           "SciFiClustersS2M123",
+                                                                           "SciFiClustersS3M123",
+                                                                           "SciFiClustersS1M45",
+                                                                           "SciFiClustersS2M45",
+                                                                           "SciFiClustersS3M45"};
     const std::array<std::string, n_calo_counters> calo_counter_names = {"ECalET",
                                                                          "ECalEOuterTop",
                                                                          "ECalEMiddleTop",
@@ -64,6 +75,18 @@ namespace Lumi {
                                                                          "ECalEOuterBottom",
                                                                          "ECalEMiddleBottom",
                                                                          "ECalEInnerBottom"};
+    const std::array<std::string, n_muon_counters> muon_counter_names = {"MuonHitsM2R1",
+                                                                         "MuonHitsM2R2",
+                                                                         "MuonHitsM2R3",
+                                                                         "MuonHitsM2R4",
+                                                                         "MuonHitsM3R1",
+                                                                         "MuonHitsM3R2",
+                                                                         "MuonHitsM3R3",
+                                                                         "MuonHitsM3R4",
+                                                                         "MuonHitsM4R1",
+                                                                         "MuonHitsM4R2",
+                                                                         "MuonHitsM4R3",
+                                                                         "MuonHitsM4R4"};
   } // namespace Constants
 
   struct LumiInfo {

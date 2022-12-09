@@ -32,41 +32,11 @@ namespace scifi_lumi_counters {
       "schema for lumi counters",
       std::map<std::string, std::pair<unsigned, unsigned>>);
     PROPERTY(
-      scifi_clusters_offset_and_size_t,
-      "scifi_clusters_offset_and_size",
-      "offset and size in bits of the SciFi clusters counter",
-      std::pair<unsigned, unsigned>)
-    scifi_clusters_offset_and_size;
-    PROPERTY(
-      scifi_s2m123_offset_and_size_t,
-      "scifi_s2m123_offset_and_size",
-      "offset and size in bits of the SciFi clusters (S2,M123) counter",
-      std::pair<unsigned, unsigned>)
-    scifi_s2m123_offset_and_size;
-    PROPERTY(
-      scifi_s3m123_offset_and_size_t,
-      "scifi_s3m123_offset_and_size",
-      "offset and size in bits of the SciFi clusters (S3,M123) counter",
-      std::pair<unsigned, unsigned>)
-    scifi_s3m123_offset_and_size;
-    PROPERTY(
-      scifi_s1m45_offset_and_size_t,
-      "scifi_s1m45_offset_and_size",
-      "offset and size in bits of the SciFi clusters (S1,M45) counter",
-      std::pair<unsigned, unsigned>)
-    scifi_s1m45_offset_and_size;
-    PROPERTY(
-      scifi_s2m45_offset_and_size_t,
-      "scifi_s2m45_offset_and_size",
-      "offset and size in bits of the SciFi clusters (S2,M45) counter",
-      std::pair<unsigned, unsigned>)
-    scifi_s2m45_offset_and_size;
-    PROPERTY(
-      scifi_s3m45_offset_and_size_t,
-      "scifi_s3m45_offset_and_size",
-      "offset and size in bits of the SciFi clusters (S3,M45) counter",
-      std::pair<unsigned, unsigned>)
-    scifi_s3m45_offset_and_size;
+      scifi_offsets_and_sizes_t,
+      "scifi_offsets_and_sizes",
+      "offsets and sizes in bits for the SciFi counters",
+      std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_scifi_counters>)
+    scifi_offsets_and_sizes;
   }; // struct Parameters
 
   __global__ void scifi_lumi_counters(Parameters, const unsigned number_of_events, const char* scifi_geometry);
@@ -86,11 +56,8 @@ namespace scifi_lumi_counters {
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
-    Property<scifi_clusters_offset_and_size_t> m_scifi_clusters_offset_and_size {this, {0u, 0u}};
-    Property<scifi_s2m123_offset_and_size_t> m_scifi_s2m123_offset_and_size {this, {0u, 0u}};
-    Property<scifi_s3m123_offset_and_size_t> m_scifi_s3m123_offset_and_size {this, {0u, 0u}};
-    Property<scifi_s1m45_offset_and_size_t> m_scifi_s1m45_offset_and_size {this, {0u, 0u}};
-    Property<scifi_s2m45_offset_and_size_t> m_scifi_s2m45_offset_and_size {this, {0u, 0u}};
-    Property<scifi_s3m45_offset_and_size_t> m_scifi_s3m45_offset_and_size {this, {0u, 0u}};
+    Property<scifi_offsets_and_sizes_t> m_scifi_offsets_and_sizes {
+      this,
+      {{{0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}}}};
   }; // struct scifi_lumi_counters_t
 } // namespace scifi_lumi_counters

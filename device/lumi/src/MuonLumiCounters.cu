@@ -27,90 +27,20 @@ void muon_lumi_counters::muon_lumi_counters_t::set_arguments_size(
 void muon_lumi_counters::muon_lumi_counters_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+  std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_muon_counters> muon_offsets_and_sizes =
+    property<muon_offsets_and_sizes_t>();
 
-  if (schema.find("MuonHitsM2R1") == schema.end()) {
-    std::cout << "LumiSummary schema does not use MuonHitsM2R1" << std::endl;
+  unsigned c_idx(0u);
+  for (auto counter_name : Lumi::Constants::muon_counter_names) {
+    if (schema.find(counter_name) == schema.end()) {
+      std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
+    }
+    else {
+      muon_offsets_and_sizes[c_idx] = schema[counter_name];
+    }
+    ++c_idx;
   }
-  else {
-    set_property_value<muon_hits_m2r1_offset_and_size_t>(schema["MuonHitsM2R1"]);
-  }
-
-  if (schema.find("MuonHitsM2R2") == schema.end()) {
-    std::cout << "LumiSummary schema does not use MuonHitsM2R2" << std::endl;
-  }
-  else {
-    set_property_value<muon_hits_m2r2_offset_and_size_t>(schema["MuonHitsM2R2"]);
-  }
-
-  if (schema.find("MuonHitsM2R3") == schema.end()) {
-    std::cout << "LumiSummary schema does not use MuonHitsM2R3" << std::endl;
-  }
-  else {
-    set_property_value<muon_hits_m2r3_offset_and_size_t>(schema["MuonHitsM2R3"]);
-  }
-
-  if (schema.find("MuonHitsM2R4") == schema.end()) {
-    std::cout << "LumiSummary schema does not use MuonHitsM2R4" << std::endl;
-  }
-  else {
-    set_property_value<muon_hits_m2r4_offset_and_size_t>(schema["MuonHitsM2R4"]);
-  }
-
-  if (schema.find("MuonHitsM3R1") == schema.end()) {
-    std::cout << "LumiSummary schema does not use MuonHitsM3R1" << std::endl;
-  }
-  else {
-    set_property_value<muon_hits_m3r1_offset_and_size_t>(schema["MuonHitsM3R1"]);
-  }
-
-  if (schema.find("MuonHitsM3R2") == schema.end()) {
-    std::cout << "LumiSummary schema does not use MuonHitsM3R2" << std::endl;
-  }
-  else {
-    set_property_value<muon_hits_m3r2_offset_and_size_t>(schema["MuonHitsM3R2"]);
-  }
-
-  if (schema.find("MuonHitsM3R3") == schema.end()) {
-    std::cout << "LumiSummary schema does not use MuonHitsM3R3" << std::endl;
-  }
-  else {
-    set_property_value<muon_hits_m3r3_offset_and_size_t>(schema["MuonHitsM3R3"]);
-  }
-
-  if (schema.find("MuonHitsM3R4") == schema.end()) {
-    std::cout << "LumiSummary schema does not use MuonHitsM3R4" << std::endl;
-  }
-  else {
-    set_property_value<muon_hits_m3r4_offset_and_size_t>(schema["MuonHitsM3R4"]);
-  }
-
-  if (schema.find("MuonHitsM4R1") == schema.end()) {
-    std::cout << "LumiSummary schema does not use MuonHitsM4R1" << std::endl;
-  }
-  else {
-    set_property_value<muon_hits_m4r1_offset_and_size_t>(schema["MuonHitsM4R1"]);
-  }
-
-  if (schema.find("MuonHitsM4R2") == schema.end()) {
-    std::cout << "LumiSummary schema does not use MuonHitsM4R2" << std::endl;
-  }
-  else {
-    set_property_value<muon_hits_m4r2_offset_and_size_t>(schema["MuonHitsM4R2"]);
-  }
-
-  if (schema.find("MuonHitsM4R3") == schema.end()) {
-    std::cout << "LumiSummary schema does not use MuonHitsM4R3" << std::endl;
-  }
-  else {
-    set_property_value<muon_hits_m4r3_offset_and_size_t>(schema["MuonHitsM4R3"]);
-  }
-
-  if (schema.find("MuonHitsM4R4") == schema.end()) {
-    std::cout << "LumiSummary schema does not use MuonHitsM4R4" << std::endl;
-  }
-  else {
-    set_property_value<muon_hits_m4r4_offset_and_size_t>(schema["MuonHitsM4R4"]);
-  }
+  set_property_value<muon_offsets_and_sizes_t>(muon_offsets_and_sizes);
 }
 
 void muon_lumi_counters::muon_lumi_counters_t::operator()(
@@ -141,77 +71,26 @@ __global__ void muon_lumi_counters::muon_lumi_counters(
     const auto muon_hits_offsets =
       parameters.dev_storage_station_region_quarter_offsets + event_number * Lumi::Constants::MuonBankSize;
 
-    unsigned muon_info_offset = 12u * lumi_sum_offset / parameters.lumi_sum_length;
-    // M2R1
-    fillLumiInfo(
-      parameters.dev_lumi_infos[muon_info_offset],
-      parameters.muon_hits_m2r1_offset_and_size,
-      muon_hits_offsets[Lumi::Constants::M2R2] - muon_hits_offsets[Lumi::Constants::M2R1]);
+    unsigned info_offset = 12u * lumi_sum_offset / parameters.lumi_sum_length;
 
-    // M2R2
-    fillLumiInfo(
-      parameters.dev_lumi_infos[muon_info_offset + 1],
-      parameters.muon_hits_m2r2_offset_and_size,
-      muon_hits_offsets[Lumi::Constants::M2R3] - muon_hits_offsets[Lumi::Constants::M2R2]);
+    std::array<unsigned, Lumi::Constants::n_muon_counters + 1> muon_offsets = {Lumi::Constants::M2R1,
+                                                                               Lumi::Constants::M2R2,
+                                                                               Lumi::Constants::M2R3,
+                                                                               Lumi::Constants::M2R4,
+                                                                               Lumi::Constants::M3R1,
+                                                                               Lumi::Constants::M3R2,
+                                                                               Lumi::Constants::M3R3,
+                                                                               Lumi::Constants::M3R4,
+                                                                               Lumi::Constants::M4R1,
+                                                                               Lumi::Constants::M4R2,
+                                                                               Lumi::Constants::M4R3,
+                                                                               Lumi::Constants::M4R4,
+                                                                               Lumi::Constants::MuonBankSize};
 
-    // M2R3
-    fillLumiInfo(
-      parameters.dev_lumi_infos[muon_info_offset + 2],
-      parameters.muon_hits_m2r3_offset_and_size,
-      muon_hits_offsets[Lumi::Constants::M2R4] - muon_hits_offsets[Lumi::Constants::M2R3]);
-
-    // M2R4
-    fillLumiInfo(
-      parameters.dev_lumi_infos[muon_info_offset + 3],
-      parameters.muon_hits_m2r4_offset_and_size,
-      muon_hits_offsets[Lumi::Constants::M3R1] - muon_hits_offsets[Lumi::Constants::M2R4]);
-
-    // M3R1
-    fillLumiInfo(
-      parameters.dev_lumi_infos[muon_info_offset + 4],
-      parameters.muon_hits_m3r1_offset_and_size,
-      muon_hits_offsets[Lumi::Constants::M3R2] - muon_hits_offsets[Lumi::Constants::M3R1]);
-
-    // M3R2
-    fillLumiInfo(
-      parameters.dev_lumi_infos[muon_info_offset + 5],
-      parameters.muon_hits_m3r2_offset_and_size,
-      muon_hits_offsets[Lumi::Constants::M3R3] - muon_hits_offsets[Lumi::Constants::M3R2]);
-
-    // M3R3
-    fillLumiInfo(
-      parameters.dev_lumi_infos[muon_info_offset + 6],
-      parameters.muon_hits_m3r3_offset_and_size,
-      muon_hits_offsets[Lumi::Constants::M3R4] - muon_hits_offsets[Lumi::Constants::M3R3]);
-
-    // M3R4
-    fillLumiInfo(
-      parameters.dev_lumi_infos[muon_info_offset + 7],
-      parameters.muon_hits_m3r4_offset_and_size,
-      muon_hits_offsets[Lumi::Constants::M4R1] - muon_hits_offsets[Lumi::Constants::M3R4]);
-
-    // M4R1
-    fillLumiInfo(
-      parameters.dev_lumi_infos[muon_info_offset + 8],
-      parameters.muon_hits_m4r1_offset_and_size,
-      muon_hits_offsets[Lumi::Constants::M4R2] - muon_hits_offsets[Lumi::Constants::M4R1]);
-
-    // M4R2
-    fillLumiInfo(
-      parameters.dev_lumi_infos[muon_info_offset + 9],
-      parameters.muon_hits_m4r2_offset_and_size,
-      muon_hits_offsets[Lumi::Constants::M4R3] - muon_hits_offsets[Lumi::Constants::M4R2]);
-
-    // M4R3
-    fillLumiInfo(
-      parameters.dev_lumi_infos[muon_info_offset + 10],
-      parameters.muon_hits_m4r3_offset_and_size,
-      muon_hits_offsets[Lumi::Constants::M4R4] - muon_hits_offsets[Lumi::Constants::M4R3]);
-
-    // M4R4
-    fillLumiInfo(
-      parameters.dev_lumi_infos[muon_info_offset + 11],
-      parameters.muon_hits_m4r4_offset_and_size,
-      muon_hits_offsets[Lumi::Constants::MuonBankSize] - muon_hits_offsets[Lumi::Constants::M4R4]);
+    for (unsigned i = 0; i < Lumi::Constants::n_muon_counters; ++i) {
+      fillLumiInfo(parameters.dev_lumi_infos[info_offset + i],
+                   parameters.muon_offsets_and_sizes.get()[i],
+                   muon_hits_offsets[muon_offsets[i+1]] - muon_hits_offsets[muon_offsets[i]]);
+    }
   }
 }

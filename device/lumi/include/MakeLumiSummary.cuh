@@ -41,41 +41,11 @@ namespace make_lumi_summary {
       "schema for lumi counters",
       std::map<std::string, std::pair<unsigned, unsigned>>);
     PROPERTY(
-      t0_low_offset_and_size_t,
-      "t0_low_offset_and_size",
-      "offset and size in bits of the T0 (low) counter",
-      std::pair<unsigned, unsigned>)
-    t0_low_offset_and_size;
-    PROPERTY(
-      t0_high_offset_and_size_t,
-      "t0_high_offset_and_size",
-      "offset and size in bits of the T0 (high) counter",
-      std::pair<unsigned, unsigned>)
-    t0_high_offset_and_size;
-    PROPERTY(
-      bcid_low_offset_and_size_t,
-      "bcid_low_offset_and_size",
-      "offset and size in bits of the BCID (low) counter",
-      std::pair<unsigned, unsigned>)
-    bcid_low_offset_and_size;
-    PROPERTY(
-      bcid_high_offset_and_size_t,
-      "bcid_high_offset_and_size",
-      "offset and size in bits of the BCID (high) counter",
-      std::pair<unsigned, unsigned>)
-    bcid_high_offset_and_size;
-    PROPERTY(
-      bx_type_offset_and_size_t,
-      "bx_type_offset_and_size",
-      "offset and size in bits of the BX type counter",
-      std::pair<unsigned, unsigned>)
-    bx_type_offset_and_size;
-    PROPERTY(
-      gec_offset_and_size_t,
-      "gec_offset_and_size",
-      "offset and size in bits of the GEC counter",
-      std::pair<unsigned, unsigned>)
-    gec_offset_and_size;
+      basic_offsets_and_sizes_t,
+      "basic_offsets_and_sizes",
+      "offsets and sizes in bits for the ODIN and GEC counters",
+      std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_basic_counters>)
+    basic_offsets_and_sizes;
   }; // struct Parameters
 
   __global__ void make_lumi_summary(
@@ -104,11 +74,8 @@ namespace make_lumi_summary {
     Property<encoding_key_t> m_key {this, 0};
     Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
-    Property<t0_low_offset_and_size_t> m_t0_low_offset_and_size {this, {0u, 0u}};
-    Property<t0_high_offset_and_size_t> m_t0_high_offset_and_size {this, {0u, 0u}};
-    Property<bcid_low_offset_and_size_t> m_bcid_low_offset_and_size {this, {0u, 0u}};
-    Property<bcid_high_offset_and_size_t> m_bcid_high_offset_and_size {this, {0u, 0u}};
-    Property<bx_type_offset_and_size_t> m_bx_type_offset_and_size {this, {0u, 0u}};
-    Property<gec_offset_and_size_t> m_gec_offset_and_size {this, {0u, 0u}};
+    Property<basic_offsets_and_sizes_t> m_basic_offsets_and_sizes {
+      this,
+      {{{0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}}}};
   }; // struct make_lumi_summary_t
 } // namespace make_lumi_summary

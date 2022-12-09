@@ -28,48 +28,20 @@ void make_lumi_summary::make_lumi_summary_t::set_arguments_size(
 void make_lumi_summary::make_lumi_summary_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+  std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_basic_counters> basic_offsets_and_sizes =
+    property<basic_offsets_and_sizes_t>();
 
-  if (schema.find("T0Low") == schema.end()) {
-    std::cout << "LumiSummary schema does not use T0Low" << std::endl;
+  unsigned c_idx(0u);
+  for (auto counter_name : Lumi::Constants::basic_counter_names) {
+    if (schema.find(counter_name) == schema.end()) {
+      std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
+    }
+    else {
+      basic_offsets_and_sizes[c_idx] = schema[counter_name];
+    }
+    ++c_idx;
   }
-  else {
-    set_property_value<t0_low_offset_and_size_t>(schema["T0Low"]);
-  }
-
-  if (schema.find("T0High") == schema.end()) {
-    std::cout << "LumiSummary schema does not use T0High" << std::endl;
-  }
-  else {
-    set_property_value<t0_high_offset_and_size_t>(schema["T0High"]);
-  }
-
-  if (schema.find("BCIDLow") == schema.end()) {
-    std::cout << "LumiSummary schema does not use BCIDLow" << std::endl;
-  }
-  else {
-    set_property_value<bcid_low_offset_and_size_t>(schema["BCIDLow"]);
-  }
-
-  if (schema.find("BCIDHigh") == schema.end()) {
-    std::cout << "LumiSummary schema does not use BCIDHigh" << std::endl;
-  }
-  else {
-    set_property_value<bcid_high_offset_and_size_t>(schema["BCIDHigh"]);
-  }
-
-  if (schema.find("BXType") == schema.end()) {
-    std::cout << "LumiSummary schema does not use BXType" << std::endl;
-  }
-  else {
-    set_property_value<bx_type_offset_and_size_t>(schema["BXType"]);
-  }
-
-  if (schema.find("GEC") == schema.end()) {
-    std::cout << "LumiSummary schema does not use GEC" << std::endl;
-  }
-  else {
-    set_property_value<gec_offset_and_size_t>(schema["GEC"]);
-  }
+  set_property_value<basic_offsets_and_sizes_t>(basic_offsets_and_sizes);
 }
 
 void make_lumi_summary::make_lumi_summary_t::operator()(
@@ -91,7 +63,7 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
   std::array<unsigned, 5> infoSize = {
     std::min(Lumi::Constants::n_velo_counters, static_cast<unsigned>(size<dev_velo_info_t>(arguments))),
     std::min(Lumi::Constants::n_pv_counters, static_cast<unsigned>(size<dev_pv_info_t>(arguments))),
-    std::min(Lumi::Constants::n_SciFi_counters, static_cast<unsigned>(size<dev_scifi_info_t>(arguments))),
+    std::min(Lumi::Constants::n_scifi_counters, static_cast<unsigned>(size<dev_scifi_info_t>(arguments))),
     std::min(Lumi::Constants::n_muon_counters, static_cast<unsigned>(size<dev_muon_info_t>(arguments))),
     std::min(Lumi::Constants::n_calo_counters, static_cast<unsigned>(size<dev_calo_info_t>(arguments)))};
   unsigned size_of_aggregate = lumiInfos.size();
@@ -165,32 +137,32 @@ __global__ void make_lumi_summary::make_lumi_summary(
     uint64_t t0 = static_cast<uint64_t>(odin.gpsTime()) - new_bcid * 1000 / 40078;
     // event time
     setField(
-      parameters.t0_low_offset_and_size.get().first,
-      parameters.t0_low_offset_and_size.get().second,
+      parameters.basic_offsets_and_sizes.get()[0].first,
+      parameters.basic_offsets_and_sizes.get()[0].second,
       lumi_summary,
       static_cast<unsigned>(t0 & 0xffffffff));
     setField(
-      parameters.t0_high_offset_and_size.get().first,
-      parameters.t0_high_offset_and_size.get().second,
+      parameters.basic_offsets_and_sizes.get()[1].first,
+      parameters.basic_offsets_and_sizes.get()[1].second,
       lumi_summary,
       static_cast<unsigned>(t0 >> 32));
 
     // gps time offset
     setField(
-      parameters.bcid_low_offset_and_size.get().first,
-      parameters.bcid_low_offset_and_size.get().second,
+      parameters.basic_offsets_and_sizes.get()[2].first,
+      parameters.basic_offsets_and_sizes.get()[2].second,
       lumi_summary,
       static_cast<unsigned>(new_bcid & 0xffffffff));
     setField(
-      parameters.bcid_high_offset_and_size.get().first,
-      parameters.bcid_high_offset_and_size.get().second,
+      parameters.basic_offsets_and_sizes.get()[3].first,
+      parameters.basic_offsets_and_sizes.get()[3].second,
       lumi_summary,
       static_cast<unsigned>(new_bcid >> 32));
 
     // bunch crossing type
     setField(
-      parameters.bx_type_offset_and_size.get().first,
-      parameters.bx_type_offset_and_size.get().second,
+      parameters.basic_offsets_and_sizes.get()[4].first,
+      parameters.basic_offsets_and_sizes.get()[4].second,
       lumi_summary,
       static_cast<unsigned>(odin.bunchCrossingType()));
 
@@ -199,7 +171,10 @@ __global__ void make_lumi_summary::make_lumi_summary(
     for (unsigned i = 0; i < number_of_events_passed_gec; ++i) {
       if (parameters.dev_event_list[i] == event_number) {
         setField(
-          parameters.gec_offset_and_size.get().first, parameters.gec_offset_and_size.get().second, lumi_summary, true);
+          parameters.basic_offsets_and_sizes.get()[5].first,
+          parameters.basic_offsets_and_sizes.get()[5].second,
+          lumi_summary,
+          true);
         break;
       }
     }
