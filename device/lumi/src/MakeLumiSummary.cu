@@ -131,22 +131,16 @@ __global__ void make_lumi_summary::make_lumi_summary(
     auto* lumi_summary = parameters.dev_lumi_summaries + offset;
     lumi_summary[0] = parameters.key;
 
-    std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_basic_counters> offsets_and_sizes = parameters.basic_offsets_and_sizes;
+    std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_basic_counters> offsets_and_sizes =
+      parameters.basic_offsets_and_sizes;
     /// ODIN information
     const LHCb::ODIN odin {parameters.dev_odin_data[event_number]};
     uint64_t new_bcid = static_cast<uint32_t>(odin.orbitNumber()) * 3564 + static_cast<uint16_t>(odin.bunchId());
     uint64_t t0 = static_cast<uint64_t>(odin.gpsTime()) - new_bcid * 1000 / 40078;
     // event time
     setField(
-      offsets_and_sizes[0].first,
-      offsets_and_sizes[0].second,
-      lumi_summary,
-      static_cast<unsigned>(t0 & 0xffffffff));
-    setField(
-      offsets_and_sizes[1].first,
-      offsets_and_sizes[1].second,
-      lumi_summary,
-      static_cast<unsigned>(t0 >> 32));
+      offsets_and_sizes[0].first, offsets_and_sizes[0].second, lumi_summary, static_cast<unsigned>(t0 & 0xffffffff));
+    setField(offsets_and_sizes[1].first, offsets_and_sizes[1].second, lumi_summary, static_cast<unsigned>(t0 >> 32));
 
     // gps time offset
     setField(
@@ -155,10 +149,7 @@ __global__ void make_lumi_summary::make_lumi_summary(
       lumi_summary,
       static_cast<unsigned>(new_bcid & 0xffffffff));
     setField(
-      offsets_and_sizes[3].first,
-      offsets_and_sizes[3].second,
-      lumi_summary,
-      static_cast<unsigned>(new_bcid >> 32));
+      offsets_and_sizes[3].first, offsets_and_sizes[3].second, lumi_summary, static_cast<unsigned>(new_bcid >> 32));
 
     // bunch crossing type
     setField(
@@ -171,11 +162,7 @@ __global__ void make_lumi_summary::make_lumi_summary(
     // TODO don't the bits default to '1'? If so, this bit will always be set even if the GEC fails
     for (unsigned i = 0; i < number_of_events_passed_gec; ++i) {
       if (parameters.dev_event_list[i] == event_number) {
-        setField(
-          offsets_and_sizes[5].first,
-          offsets_and_sizes[5].second,
-          lumi_summary,
-          true);
+        setField(offsets_and_sizes[5].first, offsets_and_sizes[5].second, lumi_summary, true);
         break;
       }
     }
