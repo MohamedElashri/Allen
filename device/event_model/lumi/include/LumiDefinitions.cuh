@@ -56,6 +56,14 @@ namespace Lumi {
     static constexpr unsigned n_SciFi_counters = 6u;
     static constexpr unsigned n_calo_counters = 7u;
     static constexpr unsigned n_muon_counters = 12u;
+
+    const std::array<std::string, n_calo_counters> calo_counter_names = {"ECalET",
+                                                                         "ECalEOuterTop",
+                                                                         "ECalEMiddleTop",
+                                                                         "ECalEInnerTop",
+                                                                         "ECalEOuterBottom",
+                                                                         "ECalEMiddleBottom",
+                                                                         "ECalEInnerBottom"};
   } // namespace Constants
 
   struct LumiInfo {

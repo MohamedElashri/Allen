@@ -36,7 +36,7 @@ namespace calc_lumi_sum_size {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
-    Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
     Property<line_index_t> m_line_index {this, 0};
+    Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
   }; // struct calc_lumi_sum_size_t
 } // namespace calc_lumi_sum_size

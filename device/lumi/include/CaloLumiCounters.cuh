@@ -34,47 +34,11 @@ namespace calo_lumi_counters {
       "schema for lumi counters",
       std::map<std::string, std::pair<unsigned, unsigned>>);
     PROPERTY(
-      ecal_et_offset_and_size_t,
-      "ecal_et_offset_and_size",
-      "offset and size in bits of the ECAL ET counter",
-      std::pair<unsigned, unsigned>)
-    ecal_et_offset_and_size;
-    PROPERTY(
-      ecal_e_outer_top_offset_and_size_t,
-      "ecal_e_outer_top_offset_and_size",
-      "offset and size in bits of the ECAL E outer top counter",
-      std::pair<unsigned, unsigned>)
-    ecal_e_outer_top_offset_and_size;
-    PROPERTY(
-      ecal_e_middle_top_offset_and_size_t,
-      "ecal_e_middle_top_offset_and_size",
-      "offset and size in bits of the ECAL E middle top counter",
-      std::pair<unsigned, unsigned>)
-    ecal_e_middle_top_offset_and_size;
-    PROPERTY(
-      ecal_e_inner_top_offset_and_size_t,
-      "ecal_e_inner_top_offset_and_size",
-      "offset and size in bits of the ECAL E inner top counter",
-      std::pair<unsigned, unsigned>)
-    ecal_e_inner_top_offset_and_size;
-    PROPERTY(
-      ecal_e_outer_bottom_offset_and_size_t,
-      "ecal_e_outer_bottom_offset_and_size",
-      "offset and size in bits of the ECAL E outer bottom counter",
-      std::pair<unsigned, unsigned>)
-    ecal_e_outer_bottom_offset_and_size;
-    PROPERTY(
-      ecal_e_middle_bottom_offset_and_size_t,
-      "ecal_e_middle_bottom_offset_and_size",
-      "offset and size in bits of the ECAL E middle bottom counter",
-      std::pair<unsigned, unsigned>)
-    ecal_e_middle_bottom_offset_and_size;
-    PROPERTY(
-      ecal_e_inner_bottom_offset_and_size_t,
-      "ecal_e_inner_bottom_offset_and_size",
-      "offset and size in bits of the ECAL E inner bottom counter",
-      std::pair<unsigned, unsigned>)
-    ecal_e_inner_bottom_offset_and_size;
+      calo_offsets_and_sizes_t,
+      "calo_offsets_and_sizes",
+      "offsets and sizes in bits for the calo counters",
+      std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_calo_counters>)
+    calo_offsets_and_sizes;
   }; // struct Parameters
 
   __global__ void calo_lumi_counters(Parameters, const unsigned number_of_events, const char* raw_ecal_geometry);
@@ -94,12 +58,6 @@ namespace calo_lumi_counters {
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
-    Property<ecal_et_offset_and_size_t> m_ecal_et_offset_and_size {this, {0u, 0u}};
-    Property<ecal_e_outer_top_offset_and_size_t> m_ecal_e_outer_top_offset_and_size {this, {0u, 0u}};
-    Property<ecal_e_middle_top_offset_and_size_t> m_ecal_e_middle_top_offset_and_size {this, {0u, 0u}};
-    Property<ecal_e_inner_top_offset_and_size_t> m_ecal_e_inner_top_offset_and_size {this, {0u, 0u}};
-    Property<ecal_e_outer_bottom_offset_and_size_t> m_ecal_e_outer_bottom_offset_and_size {this, {0u, 0u}};
-    Property<ecal_e_middle_bottom_offset_and_size_t> m_ecal_e_middle_bottom_offset_and_size {this, {0u, 0u}};
-    Property<ecal_e_inner_bottom_offset_and_size_t> m_ecal_e_inner_bottom_offset_and_size {this, {0u, 0u}};
+    Property<calo_offsets_and_sizes_t> m_calo_offsets_and_sizes {this, {{{0u, 0u},{0u, 0u},{0u, 0u},{0u, 0u},{0u, 0u},{0u, 0u},{0u, 0u}}}};
   }; // struct calo_lumi_counters_t
 } // namespace calo_lumi_counters

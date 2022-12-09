@@ -29,55 +29,19 @@ void calo_lumi_counters::calo_lumi_counters_t::set_arguments_size(
 void calo_lumi_counters::calo_lumi_counters_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+  std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_calo_counters> calo_offsets_and_sizes = property<calo_offsets_and_sizes_t>();
 
-  if (schema.find("ECalET") == schema.end()) {
-    std::cout << "LumiSummary schema does not use ECalET" << std::endl;
+  unsigned c_idx(0u);
+  for( auto counter_name : Lumi::Constants::calo_counter_names ) {
+    if (schema.find(counter_name) == schema.end()) {
+      std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
+    }
+    else {
+      calo_offsets_and_sizes[c_idx] = schema[counter_name];
+    }
+    ++c_idx;
   }
-  else {
-    set_property_value<ecal_et_offset_and_size_t>(schema["ECalET"]);
-  }
-
-  if (schema.find("ECalEOuterTop") == schema.end()) {
-    std::cout << "LumiSummary schema does not use ECalEOuterTop" << std::endl;
-  }
-  else {
-    set_property_value<ecal_e_outer_top_offset_and_size_t>(schema["ECalEOuterTop"]);
-  }
-
-  if (schema.find("ECalEMiddleTop") == schema.end()) {
-    std::cout << "LumiSummary schema does not use ECalEMiddleTop" << std::endl;
-  }
-  else {
-    set_property_value<ecal_e_middle_top_offset_and_size_t>(schema["ECalEMiddleTop"]);
-  }
-
-  if (schema.find("ECalEInnerTop") == schema.end()) {
-    std::cout << "LumiSummary schema does not use ECalEInnerTop" << std::endl;
-  }
-  else {
-    set_property_value<ecal_e_inner_top_offset_and_size_t>(schema["ECalEInnerTop"]);
-  }
-
-  if (schema.find("ECalEOuterBottom") == schema.end()) {
-    std::cout << "LumiSummary schema does not use ECalEOuterBottom" << std::endl;
-  }
-  else {
-    set_property_value<ecal_e_outer_bottom_offset_and_size_t>(schema["ECalEOuterBottom"]);
-  }
-
-  if (schema.find("ECalEMiddleBottom") == schema.end()) {
-    std::cout << "LumiSummary schema does not use ECalEMiddleBottom" << std::endl;
-  }
-  else {
-    set_property_value<ecal_e_middle_bottom_offset_and_size_t>(schema["ECalEMiddleBottom"]);
-  }
-
-  if (schema.find("ECalEInnerBottom") == schema.end()) {
-    std::cout << "LumiSummary schema does not use ECalEInnerBottom" << std::endl;
-  }
-  else {
-    set_property_value<ecal_e_inner_bottom_offset_and_size_t>(schema["ECalEInnerBottom"]);
-  }
+  set_property_value<calo_offsets_and_sizes_t>(calo_offsets_and_sizes);
 }
 
 void calo_lumi_counters::calo_lumi_counters_t::operator()(
@@ -110,8 +74,8 @@ __global__ void calo_lumi_counters::calo_lumi_counters(
     const unsigned digits_offset = parameters.dev_ecal_digits_offsets[event_number];
     const unsigned n_digits = parameters.dev_ecal_digits_offsets[event_number + 1] - digits_offset;
     auto const* digits = parameters.dev_ecal_digits + digits_offset;
-    float sumET = 0.f;
-    std::array<float, 6> Etot = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+    //sumET followed by Etot for each region
+    std::array<float, Lumi::Constants::n_calo_counters> E_vals = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
 
     for (unsigned digit_index = 0u; digit_index < n_digits; ++digit_index) {
       float x(0.f), y(0.f), z(0.f), e(0.f);
@@ -120,36 +84,20 @@ __global__ void calo_lumi_counters::calo_lumi_counters(
       z = (ecal_geometry.getZ(digit_index, 0) + ecal_geometry.getZ(digit_index, 2)) / 2.f;
       e = ecal_geometry.getE(digit_index, digits[digit_index].adc);
 
-      sumET += e * sqrtf((x * x + y * y) / (x * x + y * y + z * z));
+      E_vals[0] += e * sqrtf((x * x + y * y) / (x * x + y * y + z * z));
 
       if (y > 0.f) {
-        Etot[ecal_geometry.getECALArea(digit_index)] += e;
+        E_vals[1 + ecal_geometry.getECALArea(digit_index)] += e;
       }
       else {
-        Etot[3 + ecal_geometry.getECALArea(digit_index)] += e;
+        E_vals[4 + ecal_geometry.getECALArea(digit_index)] += e;
       }
     }
 
-    unsigned info_offset = 7u * lumi_sum_offset / parameters.lumi_sum_length;
+    unsigned info_offset = Lumi::Constants::n_calo_counters * lumi_sum_offset / parameters.lumi_sum_length;
 
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset], parameters.ecal_et_offset_and_size, sumET);
-
-    // Outer Top
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 1], parameters.ecal_e_outer_top_offset_and_size, Etot[0]);
-
-    // Middle Top
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 2], parameters.ecal_e_middle_top_offset_and_size, Etot[1]);
-
-    // Inner Top
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 3], parameters.ecal_e_inner_top_offset_and_size, Etot[2]);
-
-    // Outer Bottom
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 4], parameters.ecal_e_outer_bottom_offset_and_size, Etot[3]);
-
-    // Middle Bottom
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 5], parameters.ecal_e_middle_bottom_offset_and_size, Etot[4]);
-
-    // Inner Bottom
-    fillLumiInfo(parameters.dev_lumi_infos[info_offset + 6], parameters.ecal_e_inner_bottom_offset_and_size, Etot[5]);
+    for(unsigned i = 0; i<Lumi::Constants::n_calo_counters; ++i) {
+      fillLumiInfo(parameters.dev_lumi_infos[info_offset + i], parameters.calo_offsets_and_sizes.get()[i], E_vals[i]);
+    }
   }
 }
