@@ -131,38 +131,39 @@ __global__ void make_lumi_summary::make_lumi_summary(
     auto* lumi_summary = parameters.dev_lumi_summaries + offset;
     lumi_summary[0] = parameters.key;
 
+    std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_basic_counters> offsets_and_sizes = parameters.basic_offsets_and_sizes;
     /// ODIN information
     const LHCb::ODIN odin {parameters.dev_odin_data[event_number]};
     uint64_t new_bcid = static_cast<uint32_t>(odin.orbitNumber()) * 3564 + static_cast<uint16_t>(odin.bunchId());
     uint64_t t0 = static_cast<uint64_t>(odin.gpsTime()) - new_bcid * 1000 / 40078;
     // event time
     setField(
-      parameters.basic_offsets_and_sizes.get()[0].first,
-      parameters.basic_offsets_and_sizes.get()[0].second,
+      offsets_and_sizes[0].first,
+      offsets_and_sizes[0].second,
       lumi_summary,
       static_cast<unsigned>(t0 & 0xffffffff));
     setField(
-      parameters.basic_offsets_and_sizes.get()[1].first,
-      parameters.basic_offsets_and_sizes.get()[1].second,
+      offsets_and_sizes[1].first,
+      offsets_and_sizes[1].second,
       lumi_summary,
       static_cast<unsigned>(t0 >> 32));
 
     // gps time offset
     setField(
-      parameters.basic_offsets_and_sizes.get()[2].first,
-      parameters.basic_offsets_and_sizes.get()[2].second,
+      offsets_and_sizes[2].first,
+      offsets_and_sizes[2].second,
       lumi_summary,
       static_cast<unsigned>(new_bcid & 0xffffffff));
     setField(
-      parameters.basic_offsets_and_sizes.get()[3].first,
-      parameters.basic_offsets_and_sizes.get()[3].second,
+      offsets_and_sizes[3].first,
+      offsets_and_sizes[3].second,
       lumi_summary,
       static_cast<unsigned>(new_bcid >> 32));
 
     // bunch crossing type
     setField(
-      parameters.basic_offsets_and_sizes.get()[4].first,
-      parameters.basic_offsets_and_sizes.get()[4].second,
+      offsets_and_sizes[4].first,
+      offsets_and_sizes[4].second,
       lumi_summary,
       static_cast<unsigned>(odin.bunchCrossingType()));
 
@@ -171,8 +172,8 @@ __global__ void make_lumi_summary::make_lumi_summary(
     for (unsigned i = 0; i < number_of_events_passed_gec; ++i) {
       if (parameters.dev_event_list[i] == event_number) {
         setField(
-          parameters.basic_offsets_and_sizes.get()[5].first,
-          parameters.basic_offsets_and_sizes.get()[5].second,
+          offsets_and_sizes[5].first,
+          offsets_and_sizes[5].second,
           lumi_summary,
           true);
         break;
