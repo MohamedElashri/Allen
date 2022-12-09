@@ -111,7 +111,7 @@ def lumi_reconstruction(gather_selections,
             16)
     else:
         key = 0
-    lumi_sum_length = table["size"]
+    lumi_sum_length = table["size"]/4 #algorithms expect length in words not bytes
     schema_for_algorithms = {
         counter["name"]: (counter["offset"], counter["size"])
         for counter in table["counters"]
