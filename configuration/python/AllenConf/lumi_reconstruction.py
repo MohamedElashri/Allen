@@ -107,11 +107,12 @@ def lumi_reconstruction(gather_selections,
 
     if allen_register_keys():
         key = int(
-            register_encoding_dictionary("counters", table, directory="luminosity_counters"),
-            16)
+            register_encoding_dictionary(
+                "counters", table, directory="luminosity_counters"), 16)
     else:
         key = 0
-    lumi_sum_length = table["size"]/4 #algorithms expect length in words not bytes
+    lumi_sum_length = table[
+        "size"] / 4  #algorithms expect length in words not bytes
     schema_for_algorithms = {
         counter["name"]: (counter["offset"], counter["size"])
         for counter in table["counters"]
