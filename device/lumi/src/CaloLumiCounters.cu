@@ -29,10 +29,11 @@ void calo_lumi_counters::calo_lumi_counters_t::set_arguments_size(
 void calo_lumi_counters::calo_lumi_counters_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
-  std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_calo_counters> calo_offsets_and_sizes = property<calo_offsets_and_sizes_t>();
+  std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_calo_counters> calo_offsets_and_sizes =
+    property<calo_offsets_and_sizes_t>();
 
   unsigned c_idx(0u);
-  for( auto counter_name : Lumi::Constants::calo_counter_names ) {
+  for (auto counter_name : Lumi::Constants::calo_counter_names) {
     if (schema.find(counter_name) == schema.end()) {
       std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
     }
@@ -74,7 +75,7 @@ __global__ void calo_lumi_counters::calo_lumi_counters(
     const unsigned digits_offset = parameters.dev_ecal_digits_offsets[event_number];
     const unsigned n_digits = parameters.dev_ecal_digits_offsets[event_number + 1] - digits_offset;
     auto const* digits = parameters.dev_ecal_digits + digits_offset;
-    //sumET followed by Etot for each region
+    // sumET followed by Etot for each region
     std::array<float, Lumi::Constants::n_calo_counters> E_vals = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
 
     for (unsigned digit_index = 0u; digit_index < n_digits; ++digit_index) {
@@ -96,7 +97,7 @@ __global__ void calo_lumi_counters::calo_lumi_counters(
 
     unsigned info_offset = Lumi::Constants::n_calo_counters * lumi_sum_offset / parameters.lumi_sum_length;
 
-    for(unsigned i = 0; i<Lumi::Constants::n_calo_counters; ++i) {
+    for (unsigned i = 0; i < Lumi::Constants::n_calo_counters; ++i) {
       fillLumiInfo(parameters.dev_lumi_infos[info_offset + i], parameters.calo_offsets_and_sizes.get()[i], E_vals[i]);
     }
   }

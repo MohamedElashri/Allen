@@ -58,6 +58,8 @@ namespace calo_lumi_counters {
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
-    Property<calo_offsets_and_sizes_t> m_calo_offsets_and_sizes {this, {{{0u, 0u},{0u, 0u},{0u, 0u},{0u, 0u},{0u, 0u},{0u, 0u},{0u, 0u}}}};
+    Property<calo_offsets_and_sizes_t> m_calo_offsets_and_sizes {
+      this,
+      {{{0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}}}};
   }; // struct calo_lumi_counters_t
 } // namespace calo_lumi_counters
