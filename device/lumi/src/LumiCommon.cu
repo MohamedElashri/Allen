@@ -10,7 +10,7 @@
 \*****************************************************************************/
 #include "LumiCommon.cuh"
 
-__global__ void
+__device__ void
 fillLumiInfo(Lumi::LumiInfo& info, const std::pair<unsigned, unsigned>& offsetAndSize, const unsigned value)
 {
   info.size = offsetAndSize.second;
