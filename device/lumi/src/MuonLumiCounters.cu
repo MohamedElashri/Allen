@@ -88,9 +88,10 @@ __global__ void muon_lumi_counters::muon_lumi_counters(
                                                                                Lumi::Constants::MuonBankSize};
 
     for (unsigned i = 0; i < Lumi::Constants::n_muon_counters; ++i) {
-      fillLumiInfo(parameters.dev_lumi_infos[info_offset + i],
-                   parameters.muon_offsets_and_sizes.get()[i],
-                   muon_hits_offsets[muon_offsets[i+1]] - muon_hits_offsets[muon_offsets[i]]);
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset + i],
+        parameters.muon_offsets_and_sizes.get()[i],
+        muon_hits_offsets[muon_offsets[i + 1]] - muon_hits_offsets[muon_offsets[i]]);
     }
   }
 }

@@ -27,7 +27,8 @@ void scifi_lumi_counters::scifi_lumi_counters_t::set_arguments_size(
     Lumi::Constants::n_scifi_counters * first<host_lumi_summaries_size_t>(arguments) / property<lumi_sum_length_t>());
 }
 
-void scifi_lumi_counters::scifi_lumi_counters_t::init() {
+void scifi_lumi_counters::scifi_lumi_counters_t::init()
+{
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
   std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_scifi_counters> scifi_offsets_and_sizes =
     property<scifi_offsets_and_sizes_t>();
@@ -93,9 +94,8 @@ __global__ void scifi_lumi_counters::scifi_lumi_counters(
     unsigned info_offset = 6 * (lumi_sum_offset / parameters.lumi_sum_length);
 
     for (unsigned i = 0; i < Lumi::Constants::n_scifi_counters; ++i) {
-      fillLumiInfo(parameters.dev_lumi_infos[info_offset + i],
-                   parameters.scifi_offsets_and_sizes.get()[i],
-                   SciFiCounters[i]);
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset + i], parameters.scifi_offsets_and_sizes.get()[i], SciFiCounters[i]);
     }
   }
 }
