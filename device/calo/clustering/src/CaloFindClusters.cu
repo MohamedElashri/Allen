@@ -24,11 +24,7 @@ __device__ void simple_clusters(
   for (unsigned c = threadIdx.x; c < num_clusters; c += blockDim.x) {
     auto const& seed_cluster = seed_clusters[c];
     auto& cluster = clusters[c];
-    cluster = CaloCluster();
-    cluster.center_id = seed_cluster.id;
-    cluster.e = calo.getE(seed_cluster.id, seed_cluster.adc);
-    cluster.x = seed_cluster.x;
-    cluster.y = seed_cluster.y;
+    cluster = CaloCluster(calo, seed_cluster);
 
     uint16_t const* neighbors = &(calo.neighbors[seed_cluster.id * Calo::Constants::max_neighbours]);
     for (uint16_t n = 0; n < Calo::Constants::max_neighbours; n++) {
@@ -40,9 +36,6 @@ __device__ void simple_clusters(
       if (digit.is_valid() && (digit.adc > min_adc)) {
         cluster.e += calo.getE(n_id, digit.adc);
         cluster.digits[n] = n_id;
-      }
-      else {
-        cluster.digits[n] = USHRT_MAX;
       }
     }
 
