@@ -46,9 +46,9 @@ __device__ void simple_clusters(
       }
       auto const digit = digits[n_id];
       if (digit.is_valid() && (digit.adc > min_adc)) {
-        float const adc_frac = float(digit.adc) / float(cluster.e);
-        cluster.x += adc_frac * (calo.getX(n_id) - seed_cluster.x);
-        cluster.y += adc_frac * (calo.getY(n_id) - seed_cluster.y);
+        float const e_frac = calo.getE(n_id, digit.adc) / cluster.e;
+        cluster.x += e_frac * (calo.getX(n_id) - seed_cluster.x);
+        cluster.y += e_frac * (calo.getY(n_id) - seed_cluster.y);
       }
     }
     cluster.CalcEt();
