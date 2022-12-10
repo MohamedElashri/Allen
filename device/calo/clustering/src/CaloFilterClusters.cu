@@ -20,22 +20,15 @@ void calo_filter_clusters::calo_filter_clusters_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  auto twocluster_counts = make_device_buffer<unsigned>(arguments, first<host_ecal_number_of_twoclusters_t>(arguments));
-  Allen::memset_async(twocluster_counts.data(), 0, twocluster_counts.size() * sizeof(unsigned), context);
-
   global_function(calo_filter_clusters)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_filter_t>(), context)(
-    arguments, twocluster_counts.data());
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_filter_t>(), context)(arguments);
 }
 
-__global__ void calo_filter_clusters::calo_filter_clusters(
-  calo_filter_clusters::Parameters parameters,
-  unsigned* twocluster_counts)
+__global__ void calo_filter_clusters::calo_filter_clusters(calo_filter_clusters::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const unsigned ecal_twoclusters_offsets = parameters.dev_ecal_twocluster_offsets[event_number];
-  unsigned* twocluster_count = twocluster_counts + event_number;
   unsigned* event_cluster1_idx = parameters.dev_cluster1_idx + ecal_twoclusters_offsets;
   unsigned* event_cluster2_idx = parameters.dev_cluster2_idx + ecal_twoclusters_offsets;
 
@@ -45,8 +38,9 @@ __global__ void calo_filter_clusters::calo_filter_clusters(
 
   // Loop over pre-filtered clusters.
   for (unsigned i_cluster = threadIdx.x; i_cluster < n_prefltred_clusters; i_cluster += blockDim.x) {
+    const unsigned dicluster_idx_offset = i_cluster * n_prefltred_clusters - ((i_cluster + 1) * i_cluster) / 2;
     for (unsigned j_cluster = threadIdx.y + i_cluster + 1; j_cluster < n_prefltred_clusters; j_cluster += blockDim.y) {
-      unsigned dicluster_idx = atomicAdd(twocluster_count, 1);
+      const unsigned dicluster_idx = dicluster_idx_offset + j_cluster - i_cluster - 1;
       event_cluster1_idx[dicluster_idx] = prefiltered_clusters_idx[i_cluster];
       event_cluster2_idx[dicluster_idx] = prefiltered_clusters_idx[j_cluster];
     }

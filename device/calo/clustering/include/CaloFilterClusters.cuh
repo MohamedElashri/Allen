@@ -31,7 +31,7 @@ namespace calo_filter_clusters {
     block_dim_filter;
   };
 
-  __global__ void calo_filter_clusters(Parameters, unsigned*);
+  __global__ void calo_filter_clusters(Parameters);
 
   struct calo_filter_clusters_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
