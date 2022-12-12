@@ -14,6 +14,8 @@ __device__ bool low_pt_di_muon_line::low_pt_di_muon_line_t::select(
   if (!vertex.is_dimuon()) return false;
   if (vertex.minipchi2() < parameters.minTrackIPChi2) return false;
   if (vertex.minip() < parameters.minTrackIP) return false;
+  const bool opposite_sign = vertex.charge() == 0;
+  if (opposite_sign != parameters.OppositeSign) return false;
 
   const bool decision = vertex.vertex().chi2() > 0 && vertex.mdimu() > parameters.minMass &&
                         vertex.minpt() > parameters.minTrackPt && vertex.minp() > parameters.minTrackP &&
