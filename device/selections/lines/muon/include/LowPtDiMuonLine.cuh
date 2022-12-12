@@ -30,6 +30,7 @@ namespace low_pt_di_muon_line {
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minMass_t, "minMass", "minMass description", float) minMass;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
   };
 
   struct low_pt_di_muon_line_t : public SelectionAlgorithm,
@@ -50,5 +51,6 @@ namespace low_pt_di_muon_line {
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.f};
     Property<minMass_t> m_minMass {this, 220.f};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<OppositeSign_t> m_opposite_sign {this, true};
   };
 } // namespace low_pt_di_muon_line

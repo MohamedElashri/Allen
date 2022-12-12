@@ -25,6 +25,7 @@ namespace di_muon_track_eff_line {
     PROPERTY(DMTrackEffM0_t, "DMTrackEffM0", "DMTrackEffM0 description", float) DMTrackEffM0;
     PROPERTY(DMTrackEffM1_t, "DMTrackEffM1", "DMTrackEffM1 description", float) DMTrackEffM1;
     PROPERTY(DMTrackEffMinZ_t, "DMTrackEffMinZ", "MinZ for DMTrackEff", float) DMTrackEffMinZ;
+    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
   };
 
   struct di_muon_track_eff_line_t : public SelectionAlgorithm,
@@ -41,5 +42,6 @@ namespace di_muon_track_eff_line {
     Property<DMTrackEffM0_t> m_DMTrackEffM0 {this, 2900.f};
     Property<DMTrackEffM1_t> m_DMTrackEffM1 {this, 3100.f};
     Property<DMTrackEffMinZ_t> m_DMTrackEffMinZ {this, -341.f};
+    Property<OppositeSign_t> m_opposite_sign {this, true};
   };
 } // namespace di_muon_track_eff_line

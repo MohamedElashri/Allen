@@ -35,6 +35,7 @@ namespace kstopipi_line {
     PROPERTY(minMass_t, "minMass", "Minimum invariant mass", float) minMass;
     PROPERTY(maxMass_t, "maxMass", "Maximum invariat mass", float) maxMass;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
 
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
@@ -62,6 +63,7 @@ namespace kstopipi_line {
     Property<minMass_t> m_minMass {this, 400.f * Gaudi::Units::MeV};
     Property<maxMass_t> m_maxMass {this, 600.f * Gaudi::Units::MeV};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<OppositeSign_t> m_opposite_sign {this, true};
 
     // Switch to create monitoring tuple
     Property<enable_monitoring_t> m_enable_monitoring {this, false};

@@ -10,6 +10,9 @@ __device__ bool d2kpi_line::d2kpi_line_t::select(
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto particle = std::get<0>(input);
+  const bool opposite_sign = particle.charge() == 0;
+  if (opposite_sign != parameters.OppositeSign) return false;
+
   const auto vertex = particle.vertex();
   if (vertex.chi2() < 0) {
     return false;

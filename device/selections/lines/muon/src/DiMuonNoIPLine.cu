@@ -27,10 +27,7 @@ __device__ bool di_muon_no_ip_line::di_muon_no_ip_line_t::select(
   const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
   const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
 
-  const bool same_sign =
-    !((track1->state().qop() < 0 && track2->state().qop() > 0) ||
-      (track1->state().qop() > 0 && track2->state().qop() < 0));
-
+  const bool same_sign = vertex.charge() != 0;
   return vertex.is_dimuon() && (same_sign == parameters.ss_on) &&
          track1->state().chi2() / track1->state().ndof() <= parameters.maxTrChi2 &&
          track2->state().chi2() / track2->state().ndof() <= parameters.maxTrChi2 && track1->state().chi2() > 0 &&
