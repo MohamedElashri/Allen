@@ -25,8 +25,6 @@ namespace calo_filter_clusters {
     DEVICE_OUTPUT(dev_cluster1_idx_t, unsigned) dev_cluster1_idx;
     DEVICE_OUTPUT(dev_cluster2_idx_t, unsigned) dev_cluster2_idx;
 
-    PROPERTY(minEt_clusters_t, "minEt_clusters", "minEt of each cluster", float) minEt_clusters;
-    PROPERTY(minE19_clusters_t, "minE19_clusters", "min CaloNeutralE19 of each cluster", float) minE19_clusters;
     PROPERTY(block_dim_filter_t, "block_dim_filter", "block dimensions for filter step", DeviceDimensions)
     block_dim_filter;
   };
@@ -43,8 +41,6 @@ namespace calo_filter_clusters {
       const Allen::Context& context) const;
 
   private:
-    Property<minEt_clusters_t> m_minEt_clusters {this, 500.f}; // MeV
-    Property<minE19_clusters_t> m_minE19_clusters {this, 0.6f};
     Property<block_dim_filter_t> m_block_dim_filter {this, {{64, 16, 1}}};
   };
 
