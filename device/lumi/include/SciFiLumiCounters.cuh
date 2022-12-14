@@ -35,7 +35,7 @@ namespace scifi_lumi_counters {
       scifi_offsets_and_sizes_t,
       "scifi_offsets_and_sizes",
       "offsets and sizes in bits for the SciFi counters",
-      std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_scifi_counters>)
+      std::array<unsigned, 2*Lumi::Constants::n_scifi_counters>)
     scifi_offsets_and_sizes;
   }; // struct Parameters
 
@@ -58,6 +58,6 @@ namespace scifi_lumi_counters {
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
     Property<scifi_offsets_and_sizes_t> m_scifi_offsets_and_sizes {
       this,
-      {{{0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}}}};
+      {{0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}};
   }; // struct scifi_lumi_counters_t
 } // namespace scifi_lumi_counters

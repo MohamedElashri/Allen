@@ -27,7 +27,7 @@ void pv_lumi_counters::pv_lumi_counters_t::set_arguments_size(
 void pv_lumi_counters::pv_lumi_counters_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
-  std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_pv_counters> pv_offsets_and_sizes =
+  std::array<unsigned, 2*Lumi::Constants::n_pv_counters> pv_offsets_and_sizes =
     property<pv_offsets_and_sizes_t>();
 
   unsigned c_idx(0u);
@@ -36,7 +36,8 @@ void pv_lumi_counters::pv_lumi_counters_t::init()
       std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
     }
     else {
-      pv_offsets_and_sizes[c_idx] = schema[counter_name];
+      pv_offsets_and_sizes[2*c_idx] = schema[counter_name].first;
+      pv_offsets_and_sizes[2*c_idx+1] = schema[counter_name].second;
     }
     ++c_idx;
   }
@@ -73,6 +74,7 @@ __global__ void pv_lumi_counters::pv_lumi_counters(
     fillLumiInfo(
       parameters.dev_lumi_infos[info_offset],
       parameters.pv_offsets_and_sizes.get()[0],
+      parameters.pv_offsets_and_sizes.get()[1],
       parameters.dev_number_of_pvs[event_number]);
   }
 }

@@ -37,7 +37,7 @@ namespace pv_lumi_counters {
       pv_offsets_and_sizes_t,
       "pv_offsets_and_sizes",
       "offsets and sizes in bits for the PV counters",
-      std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_pv_counters>)
+      std::array<unsigned, 2*Lumi::Constants::n_pv_counters>)
     pv_offsets_and_sizes;
   }; // struct Parameters
 
@@ -58,6 +58,6 @@ namespace pv_lumi_counters {
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
-    Property<pv_offsets_and_sizes_t> m_pv_offsets_and_sizes {this, {{{0u, 0u}}}};
+    Property<pv_offsets_and_sizes_t> m_pv_offsets_and_sizes {this, {{0u, 0u}}};
   }; // struct pv_lumi_counters_t
 } // namespace pv_lumi_counters

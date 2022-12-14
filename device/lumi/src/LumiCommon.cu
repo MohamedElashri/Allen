@@ -11,9 +11,9 @@
 #include "LumiCommon.cuh"
 
 __device__ void
-fillLumiInfo(Lumi::LumiInfo& info, const std::pair<unsigned, unsigned>& offsetAndSize, const unsigned value)
+fillLumiInfo(Lumi::LumiInfo& info, const unsigned offset, const unsigned size, const unsigned value)
 {
-  info.size = offsetAndSize.second;
-  info.offset = offsetAndSize.first;
+  info.size = size;
+  info.offset = offset;
   info.value = value;
 }

@@ -37,7 +37,7 @@ namespace calo_lumi_counters {
       calo_offsets_and_sizes_t,
       "calo_offsets_and_sizes",
       "offsets and sizes in bits for the calo counters",
-      std::array<std::pair<unsigned, unsigned>, Lumi::Constants::n_calo_counters>)
+      std::array<unsigned, 2*Lumi::Constants::n_calo_counters>)
     calo_offsets_and_sizes;
   }; // struct Parameters
 
@@ -60,6 +60,6 @@ namespace calo_lumi_counters {
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
     Property<calo_offsets_and_sizes_t> m_calo_offsets_and_sizes {
       this,
-      {{{0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}, {0u, 0u}}}};
+      {{0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}};
   }; // struct calo_lumi_counters_t
 } // namespace calo_lumi_counters
