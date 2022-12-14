@@ -12,7 +12,8 @@
 
 #include <LumiDefinitions.cuh>
 
-inline __device__ void fillLumiInfo(Lumi::LumiInfo& info, const unsigned offset, const unsigned size, const unsigned value)
+inline __device__ void
+fillLumiInfo(Lumi::LumiInfo& info, const unsigned offset, const unsigned size, const unsigned value)
 {
   info.size = size;
   info.offset = offset;
