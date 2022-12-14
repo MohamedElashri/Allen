@@ -44,7 +44,7 @@ namespace make_lumi_summary {
       basic_offsets_and_sizes_t,
       "basic_offsets_and_sizes",
       "offsets and sizes in bits for the ODIN and GEC counters",
-      std::array<unsigned, 2*Lumi::Constants::n_basic_counters>)
+      std::array<unsigned, 2 * Lumi::Constants::n_basic_counters>)
     basic_offsets_and_sizes;
   }; // struct Parameters
 
@@ -74,8 +74,7 @@ namespace make_lumi_summary {
     Property<encoding_key_t> m_key {this, 0};
     Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
-    Property<basic_offsets_and_sizes_t> m_basic_offsets_and_sizes {
-      this,
-      {{0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}};
+    Property<basic_offsets_and_sizes_t> m_basic_offsets_and_sizes {this,
+                                                                   {{0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}};
   }; // struct make_lumi_summary_t
 } // namespace make_lumi_summary

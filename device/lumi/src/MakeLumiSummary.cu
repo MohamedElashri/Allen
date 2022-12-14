@@ -28,7 +28,7 @@ void make_lumi_summary::make_lumi_summary_t::set_arguments_size(
 void make_lumi_summary::make_lumi_summary_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
-  std::array<unsigned, 2*Lumi::Constants::n_basic_counters> basic_offsets_and_sizes =
+  std::array<unsigned, 2 * Lumi::Constants::n_basic_counters> basic_offsets_and_sizes =
     property<basic_offsets_and_sizes_t>();
 
   unsigned c_idx(0u);
@@ -37,8 +37,8 @@ void make_lumi_summary::make_lumi_summary_t::init()
       std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
     }
     else {
-      basic_offsets_and_sizes[2*c_idx] = schema[counter_name].first;
-      basic_offsets_and_sizes[2*c_idx+1] = schema[counter_name].second;
+      basic_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
+      basic_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
     }
     ++c_idx;
   }
@@ -138,8 +138,15 @@ __global__ void make_lumi_summary::make_lumi_summary(
     uint64_t t0 = static_cast<uint64_t>(odin.gpsTime()) - new_bcid * 1000 / 40078;
     // event time
     setField(
-      parameters.basic_offsets_and_sizes.get()[0], parameters.basic_offsets_and_sizes.get()[1], lumi_summary, static_cast<unsigned>(t0 & 0xffffffff));
-    setField(parameters.basic_offsets_and_sizes.get()[2], parameters.basic_offsets_and_sizes.get()[3], lumi_summary, static_cast<unsigned>(t0 >> 32));
+      parameters.basic_offsets_and_sizes.get()[0],
+      parameters.basic_offsets_and_sizes.get()[1],
+      lumi_summary,
+      static_cast<unsigned>(t0 & 0xffffffff));
+    setField(
+      parameters.basic_offsets_and_sizes.get()[2],
+      parameters.basic_offsets_and_sizes.get()[3],
+      lumi_summary,
+      static_cast<unsigned>(t0 >> 32));
 
     // gps time offset
     setField(
@@ -148,7 +155,10 @@ __global__ void make_lumi_summary::make_lumi_summary(
       lumi_summary,
       static_cast<unsigned>(new_bcid & 0xffffffff));
     setField(
-      parameters.basic_offsets_and_sizes.get()[6], parameters.basic_offsets_and_sizes.get()[7], lumi_summary, static_cast<unsigned>(new_bcid >> 32));
+      parameters.basic_offsets_and_sizes.get()[6],
+      parameters.basic_offsets_and_sizes.get()[7],
+      lumi_summary,
+      static_cast<unsigned>(new_bcid >> 32));
 
     // bunch crossing type
     setField(
@@ -161,7 +171,11 @@ __global__ void make_lumi_summary::make_lumi_summary(
     // TODO don't the bits default to '1'? If so, this bit will always be set even if the GEC fails
     for (unsigned i = 0; i < number_of_events_passed_gec; ++i) {
       if (parameters.dev_event_list[i] == event_number) {
-        setField(parameters.basic_offsets_and_sizes.get()[10], parameters.basic_offsets_and_sizes.get()[11], lumi_summary, true);
+        setField(
+          parameters.basic_offsets_and_sizes.get()[10],
+          parameters.basic_offsets_and_sizes.get()[11],
+          lumi_summary,
+          true);
         break;
       }
     }

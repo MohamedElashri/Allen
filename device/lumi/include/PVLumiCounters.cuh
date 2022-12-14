@@ -37,7 +37,7 @@ namespace pv_lumi_counters {
       pv_offsets_and_sizes_t,
       "pv_offsets_and_sizes",
       "offsets and sizes in bits for the PV counters",
-      std::array<unsigned, 2*Lumi::Constants::n_pv_counters>)
+      std::array<unsigned, 2 * Lumi::Constants::n_pv_counters>)
     pv_offsets_and_sizes;
   }; // struct Parameters
 

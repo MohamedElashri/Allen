@@ -27,7 +27,7 @@ void muon_lumi_counters::muon_lumi_counters_t::set_arguments_size(
 void muon_lumi_counters::muon_lumi_counters_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
-  std::array<unsigned, 2*Lumi::Constants::n_muon_counters> muon_offsets_and_sizes =
+  std::array<unsigned, 2 * Lumi::Constants::n_muon_counters> muon_offsets_and_sizes =
     property<muon_offsets_and_sizes_t>();
 
   unsigned c_idx(0u);
@@ -36,8 +36,8 @@ void muon_lumi_counters::muon_lumi_counters_t::init()
       std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
     }
     else {
-      muon_offsets_and_sizes[2*c_idx] = schema[counter_name].first;
-      muon_offsets_and_sizes[2*c_idx+1] = schema[counter_name].second;
+      muon_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
+      muon_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
     }
     ++c_idx;
   }
@@ -91,8 +91,8 @@ __global__ void muon_lumi_counters::muon_lumi_counters(
     for (unsigned i = 0; i < Lumi::Constants::n_muon_counters; ++i) {
       fillLumiInfo(
         parameters.dev_lumi_infos[info_offset + i],
-        parameters.muon_offsets_and_sizes.get()[2*i],
-        parameters.muon_offsets_and_sizes.get()[2*i+1],
+        parameters.muon_offsets_and_sizes.get()[2 * i],
+        parameters.muon_offsets_and_sizes.get()[2 * i + 1],
         muon_hits_offsets[muon_offsets[i + 1]] - muon_hits_offsets[muon_offsets[i]]);
     }
   }

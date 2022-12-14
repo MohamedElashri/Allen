@@ -37,7 +37,7 @@ namespace velo_lumi_counters {
       velo_offsets_and_sizes_t,
       "velo_offsets_and_sizes",
       "offsets and sizes in bits for the VELO counters",
-      std::array<unsigned, 2*Lumi::Constants::n_velo_counters>)
+      std::array<unsigned, 2 * Lumi::Constants::n_velo_counters>)
     velo_offsets_and_sizes;
   }; // struct Parameters
 

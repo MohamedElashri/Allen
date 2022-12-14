@@ -27,7 +27,7 @@ void velo_lumi_counters::velo_lumi_counters_t::set_arguments_size(
 void velo_lumi_counters::velo_lumi_counters_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
-  std::array<unsigned, 2*Lumi::Constants::n_velo_counters> velo_offsets_and_sizes =
+  std::array<unsigned, 2 * Lumi::Constants::n_velo_counters> velo_offsets_and_sizes =
     property<velo_offsets_and_sizes_t>();
 
   unsigned c_idx(0u);
@@ -36,8 +36,8 @@ void velo_lumi_counters::velo_lumi_counters_t::init()
       std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
     }
     else {
-      velo_offsets_and_sizes[2*c_idx] = schema[counter_name].first;
-      velo_offsets_and_sizes[2*c_idx+1] = schema[counter_name].second;
+      velo_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
+      velo_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
     }
     ++c_idx;
   }
