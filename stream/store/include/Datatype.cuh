@@ -41,7 +41,7 @@ namespace Allen::Store {
   template<typename internal_t>
   struct datatype {
     using type = internal_t;
-    static_assert(Allen::is_trivially_copyable_v<type> && "Allen datatypes must be trivially copyable");
+    static_assert(Allen::is_trivially_copyable_v<std::remove_const_t<type>> && "Allen datatypes must be trivially copyable");
     __host__ __device__ datatype(type* value) : m_value(value) {}
     __host__ __device__ datatype() {}
 
