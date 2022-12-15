@@ -24,7 +24,7 @@
 namespace Allen {
   // Shortcut for type used in input / outputs of Allen - Gaudi wrappers
   template<typename T>
-  using parameter_vector = std::vector<bool_as_char_t<T>>;
+  using parameter_vector = std::vector<bool_as_char_t<std::remove_const_t<T>>>;
 
   /**
    * @brief A wrapper for Allen properties, which provides the syntax employed by Allen.
