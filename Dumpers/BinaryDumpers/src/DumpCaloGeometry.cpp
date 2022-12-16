@@ -19,9 +19,6 @@
 #include <Detector/Calo/CaloCellID.h>
 #include <Detector/Calo/CaloCellCode.h>
 #include <CaloDet/DeCalorimeter.h>
-// #include <DetDesc/Condition.h>
-// #include <DetDesc/ConditionAccessorHolder.h>
-// #include "DetDesc/IConditionDerivationMgr.h"
 
 #include <DetDesc/GenericConditionAccessorHolder.h>
 
@@ -46,10 +43,10 @@ namespace {
     CaloGeometry(std::vector<char>& data, const DeCalorimeter& det)
     {
       DumpUtils::Writer output {};
-      const unsigned geom_version = det.nSourceIDs() == 0 ? 3 : 4;
+      const unsigned geom_version = det.nSourceIDs() == 0 ? 3 : 4; // version 3 for run2, version 4 for run3
 
       const auto [cards_or_febs, feb_indices] = [&]() -> std::array<std::vector<int>, 2> {
-        if (geom_version == 3) {
+        if (geom_version == 3) { // version 3 for run 2
           std::vector<int> cards {};
           // Get all card indices for every source ID.
           for (int i = 0; i < det.nTell1s(); i++) {
@@ -58,7 +55,7 @@ namespace {
           }
           return {cards, std::vector<int> {}};
         }
-        else { // version 4 or 5
+        else { // version 4 for run 3
           using MapType = std::map<int, std::vector<int>>;
           MapType map = det.getSourceIDsMap();
           std::vector<int> vec_febs(750, 0);
