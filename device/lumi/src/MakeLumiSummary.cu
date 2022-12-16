@@ -168,17 +168,18 @@ __global__ void make_lumi_summary::make_lumi_summary(
       static_cast<unsigned>(odin.bunchCrossingType()));
 
     /// gec counter
-    // TODO don't the bits default to '1'? If so, this bit will always be set even if the GEC fails
+    bool passedGEC = false;
     for (unsigned i = 0; i < number_of_events_passed_gec; ++i) {
       if (parameters.dev_event_list[i] == event_number) {
-        setField(
-          parameters.basic_offsets_and_sizes.get()[10],
-          parameters.basic_offsets_and_sizes.get()[11],
-          lumi_summary,
-          true);
+        passedGEC = true;
         break;
       }
     }
+    setField(
+      parameters.basic_offsets_and_sizes.get()[10],
+      parameters.basic_offsets_and_sizes.get()[11],
+      lumi_summary,
+      passedGEC);
 
     /// write lumi infos to the summary
     for (unsigned i = 0; i < size_of_aggregate; ++i) {
