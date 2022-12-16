@@ -293,7 +293,8 @@ def lumi_reconstruction(gather_selections,
             dev_output_buffer_t,
             dev_storage_station_region_quarter_offsets_t=decoded_muon[
                 "dev_storage_station_region_quarter_offsets"],
-            dev_muon_number_of_tracks_t=muon_stubs["dev_muon_number_of_tracks"])
+            dev_muon_number_of_tracks_t=muon_stubs["dev_muon_number_of_tracks"]
+        )
 
     if with_calo:
         lumiInfos["calo"] = make_algorithm(
