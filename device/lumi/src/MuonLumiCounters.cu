@@ -52,7 +52,7 @@ __global__ void muon_lumi_counters::muon_lumi_counters(
     const auto muon_hits_offsets =
       parameters.dev_storage_station_region_quarter_offsets + event_number * Lumi::Constants::MuonBankSize;
 
-    unsigned muon_info_offset = 12u * lumi_sum_offset / Lumi::Constants::lumi_length;
+    unsigned muon_info_offset = 13u * lumi_sum_offset / Lumi::Constants::lumi_length;
     // M2R1
     parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM2R1Size;
     parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM2R1Offset;
@@ -135,5 +135,10 @@ __global__ void muon_lumi_counters::muon_lumi_counters(
     parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM4R4Offset;
     parameters.dev_lumi_infos[muon_info_offset].value =
       muon_hits_offsets[Lumi::Constants::MuonBankSize] - muon_hits_offsets[Lumi::Constants::M4R4];
+
+    ++muon_info_offset;
+    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonTracksSize;
+    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonTracksOffset;
+    parameters.dev_lumi_infos[muon_info_offset].value = parameters.dev_muon_number_of_tracks[event_number];
   }
 }

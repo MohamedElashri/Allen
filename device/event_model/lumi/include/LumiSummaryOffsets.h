@@ -91,6 +91,8 @@ namespace LHCb {
         MuonHitsM3R4Size = 7,
         MuonHitsM4R2Offset = 487,
         MuonHitsM4R2Size = 7,
+        MuonTracksOffset = 494,
+        MuonTracksSize = 7,
         TotalSize = 512
       }; // enum CounterOffsets
     }    // namespace V2

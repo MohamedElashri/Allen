@@ -19,7 +19,7 @@ from PyConf.filecontent_metadata import _get_hash_for_text
 
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
 from AllenConf.scifi_reconstruction import decode_scifi
-from AllenConf.muon_reconstruction import decode_muon
+from AllenConf.muon_reconstruction import decode_muon, make_muon_stubs
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.calo_reconstruction import decode_calo
 
@@ -186,6 +186,10 @@ def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size):
             "name": "MuonHitsM4R2",
             "offset": 487,
             "size": 7
+        }, {
+            "name": "MuonTracks",
+            "offset": 494,
+            "size": 7
         }]
     })
     key = int(_get_hash_for_text(table)[:8], 16)
@@ -225,6 +229,8 @@ def lumi_reconstruction(gather_selections,
     decoded_calo = decode_calo()
     pvs = make_pvs(velo_tracks)
     decoded_muon = decode_muon(empty_banks=not with_muon)
+    if with_muon:
+        muon_stubs = make_muon_stubs()
 
     calc_lumi_sum_size = make_algorithm(
         calc_lumi_sum_size_t,
@@ -286,7 +292,8 @@ def lumi_reconstruction(gather_selections,
             dev_lumi_summary_offsets_t=prefix_sum_lumi_size.
             dev_output_buffer_t,
             dev_storage_station_region_quarter_offsets_t=decoded_muon[
-                "dev_storage_station_region_quarter_offsets"])
+                "dev_storage_station_region_quarter_offsets"],
+            dev_muon_number_of_tracks_t=muon_stubs["dev_muon_number_of_tracks"])
 
     if with_calo:
         lumiInfos["calo"] = make_algorithm(
