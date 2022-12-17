@@ -29,17 +29,13 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   const Allen::Store::PersistentStore& store)
 {
   // TODO: Use configuration framework to properly configure these tags
-  const auto [selected_events_bool_valid, selected_events_bool] =
-    store.try_at<bool>("global_decision__host_global_decision_t");
-  const auto [dec_reports_valid, dec_reports] = store.try_at<unsigned>("dec_reporter__host_dec_reports_t");
-  const auto [routing_bits_valid, routing_bits] = store.try_at<unsigned>("host_routingbits_writer__host_routingbits_t");
-  const auto [sel_reports_valid, sel_reports] = store.try_at<unsigned>("make_selreps__host_sel_reports_t");
-  const auto [sel_report_offsets_valid, sel_report_offsets] =
-    store.try_at<unsigned>("make_selreps__host_selrep_offsets_t");
-  const auto [lumi_summaries_valid, lumi_summaries] =
-    store.try_at<unsigned>("make_lumi_summary__host_lumi_summaries_t");
-  const auto [lumi_summary_offsets_valid, lumi_summary_offsets] =
-    store.try_at<unsigned>("make_lumi_summary__host_lumi_summary_offsets_t");
+  const auto selected_events_bool = store.try_at<bool>("global_decision__host_global_decision_t");
+  const auto dec_reports = store.try_at<unsigned>("dec_reporter__host_dec_reports_t");
+  const auto routing_bits = store.try_at<unsigned>("host_routingbits_writer__host_routingbits_t");
+  const auto sel_reports = store.try_at<unsigned>("make_selreps__host_sel_reports_t");
+  const auto sel_report_offsets = store.try_at<unsigned>("make_selreps__host_selrep_offsets_t");
+  const auto lumi_summaries = store.try_at<unsigned>("make_lumi_summary__host_lumi_summaries_t");
+  const auto lumi_summary_offsets = store.try_at<unsigned>("make_lumi_summary__host_lumi_summary_offsets_t");
 
   auto const header_size = LHCb::MDFHeader::sizeOf(Allen::mdf_header_version);
   // size of a RawBank header
@@ -50,9 +46,9 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
   const unsigned routing_bits_size = RoutingBitsDefinition::n_words * sizeof(uint32_t);
 
   std::vector<unsigned> selected_events;
-  selected_events.reserve(selected_events_bool.size());
-  for (unsigned i = 0; i < selected_events_bool.size(); ++i) {
-    if (selected_events_bool[i]) {
+  selected_events.reserve(selected_events_bool->size());
+  for (unsigned i = 0; i < selected_events_bool->size(); ++i) {
+    if ((*selected_events_bool)[i]) {
       // selected_events is passed to the InputProvider to get the
       // event sizes. The InputProvider doesn't know about slice
       // splitting, so we have to offset by start_event here.
@@ -117,13 +113,13 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       // size of the SelReport RawBank
       // need the index into the batch here
       const unsigned sel_report_size =
-        sel_report_offsets.empty() ?
+        sel_report_offsets->empty() ?
           0 :
-          (sel_report_offsets[event_number + 1] - sel_report_offsets[event_number]) * sizeof(uint32_t);
+          ((*sel_report_offsets)[event_number + 1] - (*sel_report_offsets)[event_number]) * sizeof(uint32_t);
       unsigned lumi_summary_size = 0;
-      if (!lumi_summary_offsets.empty()) {
+      if (!lumi_summary_offsets->empty()) {
         lumi_summary_size =
-          (lumi_summary_offsets[event_number + 1] - lumi_summary_offsets[event_number]) * sizeof(uint32_t);
+          ((*lumi_summary_offsets)[event_number + 1] - (*lumi_summary_offsets)[event_number]) * sizeof(uint32_t);
       }
 
       // add DecReport and SelReport sizes to the total size (including RawBank headers)
@@ -154,15 +150,16 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
       // size of the SelReport RawBank
       // need the index into the batch here
-      const unsigned sel_report_offset = sel_report_offsets.empty() ? 0 : sel_report_offsets[event_number];
+      const unsigned sel_report_offset = sel_report_offsets->empty() ? 0 : (*sel_report_offsets)[event_number];
       const unsigned sel_report_size =
-        sel_report_offsets.empty() ? 0 : (sel_report_offsets[event_number + 1] - sel_report_offset) * sizeof(uint32_t);
+        sel_report_offsets->empty() ? 0 :
+                                      ((*sel_report_offsets)[event_number + 1] - sel_report_offset) * sizeof(uint32_t);
 
-      const unsigned lumi_summary_offset = lumi_summary_offsets.empty() ? 0 : lumi_summary_offsets[event_number];
+      const unsigned lumi_summary_offset = lumi_summary_offsets->empty() ? 0 : (*lumi_summary_offsets)[event_number];
       const unsigned lumi_summary_size =
-        lumi_summary_offsets.empty() ?
+        lumi_summary_offsets->empty() ?
           0 :
-          (lumi_summary_offsets[event_number + 1] - lumi_summary_offset) * sizeof(uint32_t);
+          ((*lumi_summary_offsets)[event_number + 1] - lumi_summary_offset) * sizeof(uint32_t);
 
       // event_sizes is indexed in the same way as selected_events
       size_t event_size = event_sizes[i] + header_size;
@@ -191,7 +188,7 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       header->setSpare(0);
       // Fixed triggermask for now
       std::memcpy(
-        &m_trigger_mask[0], routing_bits.data() + RoutingBitsDefinition::n_words * event_number, routing_bits_size);
+        &m_trigger_mask[0], routing_bits->data() + RoutingBitsDefinition::n_words * event_number, routing_bits_size);
       header->subHeader().H1->setTriggerMask(m_trigger_mask.data());
       // Set run number
       // FIXME: get orbit and bunch number from ODIN
@@ -214,25 +211,25 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
         output_bank {LHCb::RawBank::HltDecReports,
                      3u,
                      Hlt1::Constants::sourceID,
-                     {reinterpret_cast<char const*>(dec_reports.data()) + dec_report_size * event_number,
+                     {reinterpret_cast<char const*>(dec_reports->data()) + dec_report_size * event_number,
                       static_cast<events_size>(dec_report_size)}},
         // HltRoutingBits
         output_bank {LHCb::RawBank::HltRoutingBits,
                      0u,
                      Hlt1::Constants::sourceID,
-                     {reinterpret_cast<char const*>(routing_bits.data()) + routing_bits_size * event_number,
+                     {reinterpret_cast<char const*>(routing_bits->data()) + routing_bits_size * event_number,
                       static_cast<events_size>(routing_bits_size)}},
         // HltSelReports
         output_bank {LHCb::RawBank::HltSelReports,
                      11u, // TODO: change to 12u, update to run3 source ID...
                      Hlt1::Constants::sourceID_sel_reports,
-                     {reinterpret_cast<char const*>(sel_reports.data()) + sel_report_offset * sizeof(uint32_t),
+                     {reinterpret_cast<char const*>(sel_reports->data()) + sel_report_offset * sizeof(uint32_t),
                       static_cast<events_size>(sel_report_size)}},
         // HltLumiSummary
         output_bank {LHCb::RawBank::HltLumiSummary,
                      2u,
                      Hlt1::Constants::sourceID,
-                     {reinterpret_cast<char const*>(lumi_summaries.data()) + lumi_summary_offset * sizeof(uint32_t),
+                     {reinterpret_cast<char const*>(lumi_summaries->data()) + lumi_summary_offset * sizeof(uint32_t),
                       static_cast<events_size>(lumi_summary_size)}});
 
       for_each(hlt_banks, [&output, &add_hlt_bank](auto b) {
