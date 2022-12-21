@@ -35,20 +35,22 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
   Allen::memset_async<dev_lumi_summaries_t>(arguments, 0xffffffff, context);
 
   // info aggregating
-  std::array<Lumi::LumiInfo*, 5> lumiInfos = {data<dev_velo_info_t>(arguments),
-                                              data<dev_pv_info_t>(arguments),
-                                              data<dev_scifi_info_t>(arguments),
-                                              data<dev_muon_info_t>(arguments),
-                                              data<dev_calo_info_t>(arguments)};
+  std::array<Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos = {data<dev_velo_info_t>(arguments),
+                                                                         data<dev_pv_info_t>(arguments),
+                                                                         data<dev_scifi_info_t>(arguments),
+                                                                         data<dev_muon_info_t>(arguments),
+                                                                         data<dev_calo_info_t>(arguments),
+                                                                         data<dev_plume_info_t>(arguments)};
   // set the size to 0 for empty dummy input
   // otherwise set it to the numbers of lumi counters
-  std::array<unsigned, 5> infoSize = {
+  std::array<unsigned, Lumi::Constants::n_sub_infos> infoSize = {
     std::min(Lumi::Constants::n_velo_counters, static_cast<unsigned>(size<dev_velo_info_t>(arguments))),
     std::min(Lumi::Constants::n_pv_counters, static_cast<unsigned>(size<dev_pv_info_t>(arguments))),
     std::min(Lumi::Constants::n_SciFi_counters, static_cast<unsigned>(size<dev_scifi_info_t>(arguments))),
     std::min(Lumi::Constants::n_muon_counters, static_cast<unsigned>(size<dev_muon_info_t>(arguments))),
-    std::min(Lumi::Constants::n_calo_counters, static_cast<unsigned>(size<dev_calo_info_t>(arguments)))};
-  unsigned size_of_aggregate = lumiInfos.size();
+    std::min(Lumi::Constants::n_calo_counters, static_cast<unsigned>(size<dev_calo_info_t>(arguments))),
+    std::min(Lumi::Constants::n_plume_counters, static_cast<unsigned>(size<dev_plume_info_t>(arguments)))};
+  unsigned size_of_aggregate = Lumi::Constants::n_sub_infos;
   for (unsigned i = 1u; i <= size_of_aggregate; ++i) {
     if (infoSize[i - 1] == 0u) {
       // move the items after the empty LumiInfo forward
@@ -62,7 +64,7 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
     }
   }
 
-  global_function(make_lumi_summary)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(make_lumi_summary)(dim3(4u), property<block_dim_t>(), context)(
     arguments,
     first<host_number_of_events_t>(arguments),
     size<dev_event_list_t>(arguments),
@@ -103,8 +105,8 @@ __global__ void make_lumi_summary::make_lumi_summary(
   make_lumi_summary::Parameters parameters,
   const unsigned number_of_events,
   const unsigned number_of_events_passed_gec,
-  std::array<Lumi::LumiInfo*, 5> lumiInfos,
-  std::array<unsigned, 5> infoSize,
+  std::array<Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos,
+  std::array<unsigned, Lumi::Constants::n_sub_infos> infoSize,
   const unsigned size_of_aggregate)
 {
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;

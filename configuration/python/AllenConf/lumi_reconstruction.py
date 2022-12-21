@@ -5,8 +5,8 @@ import json
 from AllenCore.algorithms import data_provider_t, host_prefix_sum_t
 from AllenCore.algorithms import (velo_lumi_counters_t, pv_lumi_counters_t,
                                   muon_lumi_counters_t, scifi_lumi_counters_t,
-                                  calo_lumi_counters_t, calc_lumi_sum_size_t,
-                                  make_lumi_summary_t)
+                                  calo_lumi_counters_t, plume_lumi_counters_t,
+                                  calc_lumi_sum_size_t, make_lumi_summary_t)
 from AllenCore.algorithms import muon_calculate_srq_size_t
 from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events, make_dummy
@@ -22,6 +22,7 @@ from AllenConf.scifi_reconstruction import decode_scifi
 from AllenConf.muon_reconstruction import decode_muon
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.calo_reconstruction import decode_calo
+from AllenConf.plume_reconstruction import decode_plume
 
 
 def findLine(lines, name):
@@ -49,7 +50,7 @@ def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size):
         "version":
         0,
         "size":
-        64,
+        76,
         "counters": [{
             "name": "encodingKey",
             "offset": 0,
@@ -67,125 +68,137 @@ def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size):
             "offset": 96,
             "size": 32
         }, {
-            "name": "ECalEInnerTop",
+            "name": "PlumeLumiOverthrLow",
             "offset": 128,
             "size": 22
         }, {
-            "name": "SciFiClustersS1M45",
+            "name": "MuonHitsM3R2",
             "offset": 150,
             "size": 10
         }, {
-            "name": "ECalEInnerBottom",
+            "name": "PlumeLumiOverthrHigh",
             "offset": 160,
             "size": 22
         }, {
-            "name": "SciFiClustersS2M45",
+            "name": "MuonHitsM4R1",
             "offset": 182,
             "size": 10
         }, {
-            "name": "ECalET",
-            "offset": 192,
-            "size": 21
-        }, {
-            "name": "VeloTracks",
-            "offset": 213,
-            "size": 11
-        }, {
-            "name": "ECalEMiddleTop",
-            "offset": 224,
-            "size": 21
-        }, {
             "name": "SciFiClustersS3M45",
-            "offset": 245,
-            "size": 11
-        }, {
-            "name": "ECalEOuterTop",
-            "offset": 256,
-            "size": 21
-        }, {
-            "name": "MuonHitsM2R1",
-            "offset": 277,
-            "size": 10
-        }, {
-            "name": "GEC",
-            "offset": 287,
-            "size": 1
-        }, {
-            "name": "ECalEMiddleBottom",
-            "offset": 288,
-            "size": 21
-        }, {
-            "name": "MuonHitsM2R2",
-            "offset": 309,
-            "size": 10
-        }, {
-            "name": "ECalEOuterBottom",
-            "offset": 320,
-            "size": 21
-        }, {
-            "name": "MuonHitsM2R3",
-            "offset": 341,
-            "size": 9
-        }, {
-            "name": "BXType",
-            "offset": 350,
-            "size": 2
-        }, {
-            "name": "BCIDHigh",
-            "offset": 352,
-            "size": 14
+            "offset": 192,
+            "size": 16
         }, {
             "name": "SciFiClusters",
-            "offset": 366,
-            "size": 13
+            "offset": 208,
+            "size": 16
         }, {
             "name": "SciFiClustersS2M123",
-            "offset": 384,
-            "size": 13
+            "offset": 224,
+            "size": 16
         }, {
             "name": "SciFiClustersS3M123",
-            "offset": 397,
+            "offset": 240,
+            "size": 16
+        }, {
+            "name": "ECalET",
+            "offset": 256,
+            "size": 16
+        }, {
+            "name": "ECalEInnerTop",
+            "offset": 272,
+            "size": 16
+        }, {
+            "name": "ECalEMiddleTop",
+            "offset": 288,
+            "size": 16
+        }, {
+            "name": "ECalEOuterTop",
+            "offset": 304,
+            "size": 16
+        }, {
+            "name": "ECalEInnerBottom",
+            "offset": 320,
+            "size": 16
+        }, {
+            "name": "ECalEMiddleBottom",
+            "offset": 336,
+            "size": 16
+        }, {
+            "name": "ECalEOuterBottom",
+            "offset": 352,
+            "size": 16
+        }, {
+            "name": "MuonHitsM2R1",
+            "offset": 368,
+            "size": 16
+        }, {
+            "name": "MuonHitsM2R2",
+            "offset": 384,
+            "size": 16
+        }, {
+            "name": "MuonHitsM2R3",
+            "offset": 400,
+            "size": 16
+        }, {
+            "name": "VeloTracks",
+            "offset": 416,
+            "size": 15
+        }, {
+            "name": "BCIDHigh",
+            "offset": 431,
+            "size": 14
+        }, {
+            "name": "BXType",
+            "offset": 445,
+            "size": 2
+        }, {
+            "name": "GEC",
+            "offset": 447,
+            "size": 1
+        }, {
+            "name": "SciFiClustersS1M45",
+            "offset": 448,
+            "size": 13
+        }, {
+            "name": "SciFiClustersS2M45",
+            "offset": 461,
             "size": 13
         }, {
             "name": "VeloVertices",
-            "offset": 410,
+            "offset": 474,
             "size": 6
         }, {
-            "name": "MuonHitsM3R1",
-            "offset": 416,
-            "size": 9
-        }, {
-            "name": "MuonHitsM4R3",
-            "offset": 425,
-            "size": 9
+            "name": "PlumeAvgLumiADC",
+            "offset": 480,
+            "size": 12
         }, {
             "name": "MuonHitsM2R4",
-            "offset": 434,
-            "size": 8
+            "offset": 492,
+            "size": 11
         }, {
-            "name": "MuonHitsM3R2",
-            "offset": 448,
-            "size": 8
+            "name": "MuonHitsM3R1",
+            "offset": 512,
+            "size": 11
         }, {
             "name": "MuonHitsM3R3",
-            "offset": 456,
-            "size": 8
-        }, {
-            "name": "MuonHitsM4R1",
-            "offset": 464,
-            "size": 8
+            "offset": 523,
+            "size": 11
         }, {
             "name": "MuonHitsM4R4",
-            "offset": 472,
-            "size": 8
+            "offset": 534,
+            "size": 10
         }, {
             "name": "MuonHitsM3R4",
-            "offset": 480,
-            "size": 7
+            "offset": 544,
+            "size": 11
         }, {
             "name": "MuonHitsM4R2",
-            "offset": 487,
-            "size": 7
+            "offset": 555,
+            "size": 11
+        }, {
+            "name": "MuonHitsM4R3",
+            "offset": 576,
+            "size": 11
         }]
     })
     key = int(_get_hash_for_text(table)[:8], 16)
@@ -203,7 +216,8 @@ def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size):
         dev_pv_info_t=get_lumi_info(lumiInfos, "pv"),
         dev_scifi_info_t=get_lumi_info(lumiInfos, "scifi"),
         dev_muon_info_t=get_lumi_info(lumiInfos, "muon"),
-        dev_calo_info_t=get_lumi_info(lumiInfos, "calo"))
+        dev_calo_info_t=get_lumi_info(lumiInfos, "calo"),
+        dev_plume_info_t=get_lumi_info(lumiInfos, "plume"))
 
 
 def lumi_reconstruction(gather_selections,
@@ -212,7 +226,8 @@ def lumi_reconstruction(gather_selections,
                         with_muon=True,
                         with_velo=True,
                         with_SciFi=True,
-                        with_calo=True):
+                        with_calo=True,
+                        with_plume=False):
     lumiLine_index, found = findLine(lines, lumiline_name)
     if not found:
         return []
@@ -299,6 +314,18 @@ def lumi_reconstruction(gather_selections,
             dev_output_buffer_t,
             dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
             dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"])
+
+    if with_plume:
+        decoded_plume = decode_plume()
+        lumiInfos["plume"] = make_algorithm(
+            plume_lumi_counters_t,
+            "plume_lumi_counters",
+            host_number_of_events_t=number_of_events["host_number_of_events"],
+            host_lumi_summaries_size_t=prefix_sum_lumi_size.
+            host_total_sum_holder_t,
+            dev_lumi_summary_offsets_t=prefix_sum_lumi_size.
+            dev_output_buffer_t,
+            dev_plume_t=decoded_plume["dev_plume"])
 
     make_lumi_summary = lumi_summary_maker(lumiInfos, prefix_sum_lumi_size)
 
