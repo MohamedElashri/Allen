@@ -24,6 +24,8 @@ namespace seed_confirmTracks_consolidate {
     DEVICE_OUTPUT(dev_seeding_qop_t, float) dev_seeding_qop;
     DEVICE_OUTPUT(dev_seeding_states_t, MiniState) dev_seeding_states;
     DEVICE_OUTPUT(dev_seeding_track_hits_t, char) dev_seeding_track_hits;
+    HOST_INPUT(host_scifi_hit_count_t, unsigned) host_scifi_hit_count;
+    DEVICE_OUTPUT(dev_used_scifi_hits_t, unsigned) dev_used_scifi_hits;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_hits_view_t,
       DEPENDENCIES(dev_seeding_track_hits_t),

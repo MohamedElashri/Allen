@@ -18,7 +18,6 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
     new (parameters.dev_ut_track_view + event_tracks_offset + track_index)
       Allen::Views::UT::Consolidated::Track {parameters.dev_ut_hits_view,
                                              &parameters.dev_velo_tracks_view[event_number].track(velo_track_index),
-                                             parameters.dev_ut_track_velo_indices,
                                              parameters.dev_ut_track_params,
                                              parameters.dev_atomics_ut,
                                              parameters.dev_ut_track_hit_number,

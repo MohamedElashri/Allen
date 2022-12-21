@@ -3,6 +3,8 @@
 ###############################################################################
 from AllenConf.HLT1 import setup_hlt1_node
 from AllenCore.generator import generate
+from AllenConf.enum_types import TrackingType
 
-hlt1_node = setup_hlt1_node(EnableGEC=False, matching=True)
+hlt1_node = setup_hlt1_node(
+    EnableGEC=False, tracking_type=TrackingType.MATCHING)
 generate(hlt1_node)

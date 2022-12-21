@@ -25,6 +25,7 @@ from AllenConf.validators import rate_validation, routingbits_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.lumi_reconstruction import lumi_reconstruction
+from AllenConf.enum_types import TrackingType, includes_matching
 
 
 def default_physics_lines(reconstructed_objects, with_calo, with_muon):
@@ -400,15 +401,15 @@ def setup_hlt1_node(enablePhysics=True,
                     with_odin_filter=True,
                     with_calo=True,
                     with_muon=True,
-                    matching=False,
-                    enableBGI=False):
+                    enableBGI=False,
+                    tracking_type=TrackingType.FORWARD):
 
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(
         with_calo=with_calo,
-        matching=matching,
         with_ut=with_ut,
-        with_muon=with_muon)
+        with_muon=with_muon,
+        tracking_type=tracking_type)
 
     gec = [make_gec(count_ut=with_ut)] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
@@ -567,9 +568,9 @@ def setup_hlt1_node(enablePhysics=True,
     if not withMCChecking:
         return hlt1_node
     else:
-        validation_node = validator_node(reconstructed_objects,
-                                         line_algorithms, matching, with_ut,
-                                         with_muon)
+        validation_node = validator_node(
+            reconstructed_objects, line_algorithms,
+            includes_matching(tracking_type), with_ut, with_muon)
         node = CompositeNode(
             "AllenWithValidators", [hlt1_node, validation_node],
             NodeLogic.NONLAZY_AND,
