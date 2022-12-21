@@ -4,6 +4,5 @@
 from AllenConf.HLT1 import setup_hlt1_node
 from AllenCore.generator import generate
 
-hlt1_node = setup_hlt1_node(
-    matching=False, with_calo=False, with_muon=False, with_ut=False)
+hlt1_node = setup_hlt1_node(with_calo=False, with_muon=False, with_ut=False)
 generate(hlt1_node)

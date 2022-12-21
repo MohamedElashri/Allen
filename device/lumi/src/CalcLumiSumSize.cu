@@ -31,8 +31,7 @@ void calc_lumi_sum_size::calc_lumi_sum_size_t::operator()(
 {
   Allen::memset_async<dev_lumi_sum_sizes_t>(arguments, 0, context);
 
-  global_function(calc_lumi_sum_size)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(calc_lumi_sum_size)(dim3(4u), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments));
 }
 

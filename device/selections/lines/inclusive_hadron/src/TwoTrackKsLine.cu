@@ -17,6 +17,9 @@ __device__ bool two_track_line_ks::two_track_line_ks_t::select(
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto& particle = std::get<0>(input);
+  const bool opposite_sign = particle.charge() == 0;
+
+  if (opposite_sign != parameters.OppositeSign) return false;
   const auto& vertex = particle.vertex();
   if (vertex.chi2() < 0) {
     return false;

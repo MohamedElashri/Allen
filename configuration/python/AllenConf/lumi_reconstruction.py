@@ -5,8 +5,8 @@ import json
 from AllenCore.algorithms import data_provider_t, host_prefix_sum_t
 from AllenCore.algorithms import (velo_lumi_counters_t, pv_lumi_counters_t,
                                   muon_lumi_counters_t, scifi_lumi_counters_t,
-                                  calo_lumi_counters_t, calc_lumi_sum_size_t,
-                                  make_lumi_summary_t)
+                                  calo_lumi_counters_t, plume_lumi_counters_t,
+                                  calc_lumi_sum_size_t, make_lumi_summary_t)
 from AllenCore.algorithms import muon_calculate_srq_size_t
 from AllenCore.configuration_options import allen_register_keys
 from AllenConf.odin import decode_odin
@@ -24,6 +24,7 @@ from AllenConf.muon_reconstruction import decode_muon
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.lumi_schema_generator import LumiSchemaGenerator
+from AllenConf.plume_reconstruction import decode_plume
 
 
 def findLine(lines, name):
@@ -60,6 +61,7 @@ def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size, key, lumi_sum_length,
         dev_scifi_info_t=get_lumi_info(lumiInfos, "scifi"),
         dev_muon_info_t=get_lumi_info(lumiInfos, "muon"),
         dev_calo_info_t=get_lumi_info(lumiInfos, "calo"),
+        dev_plume_info_t=get_lumi_info(lumiInfos, "plume"))
         lumi_sum_length=lumi_sum_length,
         lumi_counter_schema=schema)
 
@@ -70,7 +72,8 @@ def lumi_reconstruction(gather_selections,
                         with_muon=True,
                         with_velo=True,
                         with_SciFi=True,
-                        with_calo=True):
+                        with_calo=True,
+                        with_plume=False):
     lumiLine_index, found = findLine(lines, lumiline_name)
     if not found:
         return []
@@ -100,7 +103,9 @@ def lumi_reconstruction(gather_selections,
                     ("MuonHitsM3R2", 212), ("MuonHitsM3R3", 161),
                     ("MuonHitsM3R4", 102), ("MuonHitsM4R1", 134),
                     ("MuonHitsM4R2", 108), ("MuonHitsM4R3", 409),
-                    ("MuonHitsM4R4", 227)]
+                    ("MuonHitsM4R4", 227), ("PlumeAvgLumiADC", 0xfff),
+                    ("PlumeLumiOverthrLow", 0x3fffff),
+                    ("PlumeLumiOverthrHigh", 0x3fffff)]
     l = LumiSchemaGenerator(counterSpecs)
     l.process()
     table = l.getJSON()
@@ -202,6 +207,18 @@ def lumi_reconstruction(gather_selections,
             dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
             lumi_sum_length=lumi_sum_length,
             lumi_counter_schema=schema_for_algorithms)
+
+    if with_plume:
+        decoded_plume = decode_plume()
+        lumiInfos["plume"] = make_algorithm(
+            plume_lumi_counters_t,
+            "plume_lumi_counters",
+            host_number_of_events_t=number_of_events["host_number_of_events"],
+            host_lumi_summaries_size_t=prefix_sum_lumi_size.
+            host_total_sum_holder_t,
+            dev_lumi_summary_offsets_t=prefix_sum_lumi_size.
+            dev_output_buffer_t,
+            dev_plume_t=decoded_plume["dev_plume"])
 
     make_lumi_summary = lumi_summary_maker(lumiInfos, prefix_sum_lumi_size,
                                            key, lumi_sum_length,

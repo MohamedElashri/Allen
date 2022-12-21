@@ -29,6 +29,7 @@ namespace di_muon_mass_alignment_line {
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+    PROPERTY(DiMuonCharge_t, "DiMuonCharge", "Charge of the dimuon combination", int) DiMuonCharge;
   };
 
   struct di_muon_mass_alignment_line_t : public SelectionAlgorithm,
@@ -48,5 +49,6 @@ namespace di_muon_mass_alignment_line {
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.0f};
     Property<minIPChi2_t> m_minIPChi2 {this, 0.f};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<DiMuonCharge_t> m_dimuon_charge {this, 0};
   };
 } // namespace di_muon_mass_alignment_line

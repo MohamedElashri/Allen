@@ -51,12 +51,19 @@ namespace Lumi {
     static constexpr unsigned MuonBankSize = Muon::Constants::n_layouts * Muon::Constants::n_stations *
                                              Muon::Constants::n_regions * Muon::Constants::n_quarters;
 
+    static constexpr unsigned n_plume_channels = 32u;
+    static constexpr unsigned n_plume_lumi_channels = 22u;
+
     static constexpr unsigned n_basic_counters = 6u;
     static constexpr unsigned n_velo_counters = 1u;
     static constexpr unsigned n_pv_counters = 1u;
     static constexpr unsigned n_scifi_counters = 6u;
     static constexpr unsigned n_calo_counters = 7u;
     static constexpr unsigned n_muon_counters = 12u;
+    static constexpr unsigned n_plume_counters = 3u;
+
+    // number of sub info, used for info aggregating in make_lumi_summary
+    static constexpr unsigned n_sub_infos = 6u;
 
     const std::array<std::string, n_basic_counters> basic_counter_names =
       {"T0Low", "T0High", "BCIDLow", "BCIDHigh", "BXType", "GEC"};

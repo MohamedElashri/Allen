@@ -29,6 +29,7 @@ namespace displaced_di_muon_mass_line {
     PROPERTY(dispMinEta_t, "dispMinEta", "dispMinEta description", float) dispMinEta;
     PROPERTY(dispMaxEta_t, "dispMaxEta", "dispMaxEta description", float) dispMaxEta;
     PROPERTY(minZ_t, "minZ", "minimum vertex z dimuon coordinate", float) minZ;
+    PROPERTY(DiMuonCharge_t, "DiMuonCharge", "Charge of the dimuon combination", int) DiMuonCharge;
   };
 
   struct displaced_di_muon_mass_line_t : public SelectionAlgorithm,
@@ -51,5 +52,6 @@ namespace displaced_di_muon_mass_line {
     Property<dispMinEta_t> m_dispMinEta {this, 2.f};
     Property<dispMaxEta_t> m_dispMaxEta {this, 5.f};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<DiMuonCharge_t> m_dimuon_charge {this, 0};
   };
 } // namespace displaced_di_muon_mass_line

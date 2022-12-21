@@ -49,7 +49,6 @@ public:
     const ConfiguredSequence& configuration,
     const bool param_print_memory_usage,
     const size_t param_reserve_mb,
-    const size_t reserve_host_mb,
     const unsigned required_memory_alignment,
     const Constants& param_constants,
     HostBuffersManager* buffers_manager);

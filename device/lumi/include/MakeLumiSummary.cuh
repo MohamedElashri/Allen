@@ -28,6 +28,7 @@ namespace make_lumi_summary {
     DEVICE_INPUT(dev_scifi_info_t, Lumi::LumiInfo) dev_scifi_info;
     DEVICE_INPUT(dev_muon_info_t, Lumi::LumiInfo) dev_muon_info;
     DEVICE_INPUT(dev_calo_info_t, Lumi::LumiInfo) dev_calo_info;
+    DEVICE_INPUT(dev_plume_info_t, Lumi::LumiInfo) dev_plume_info;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_lumi_summaries_t, unsigned) dev_lumi_summaries;
     HOST_OUTPUT(host_lumi_summaries_t, unsigned) host_lumi_summaries;
@@ -52,8 +53,8 @@ namespace make_lumi_summary {
     Parameters,
     const unsigned number_of_events,
     const unsigned number_of_events_passed_gec,
-    std::array<Lumi::LumiInfo*, 5> lumiInfos,
-    std::array<unsigned, 5> spanSize,
+    std::array<Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos,
+    std::array<unsigned, Lumi::Constants::n_sub_infos> spanSize,
     const unsigned size_of_aggregate);
 
   __device__ void setField(unsigned offset, unsigned size, unsigned* target, unsigned value);

@@ -236,11 +236,24 @@ namespace Allen {
     }
 
     /**
+     * @brief Resizes a container to the specified size.
+     * @details Resizing triggers a free followed by a malloc
+     *          in the custom memory manager. Data that was
+     *          stored in the container is very likely lost.
+     */
+    template<typename Arg, typename Args>
+    static void resize(Args arguments, const size_t size)
+    {
+      arguments.template resize<Arg>(size);
+    }
+
+    /**
      * @brief Reduces the size of the container.
      * @details Reducing the size can be done after the data has
      *          been allocated (such as in the operator() of an
      *          algorithm). It reduces the exposed size of an
-     *          argument.
+     *          argument and does not alter the contents of the buffer
+     *          (ie. function size<T>(arguments) will return this new size).
      *
      *          Note however that this does not impact the amount
      *          of allocated memory of the container, which remains unchanged.
@@ -267,6 +280,15 @@ namespace Allen {
     static auto size(const Args& arguments)
     {
       return arguments.template size<Arg>();
+    }
+
+    /**
+     * @brief Returns the size of a container (length * sizeof(T)).
+     */
+    template<typename Arg, typename Args>
+    static auto size_bytes(const Args& arguments)
+    {
+      return arguments.template size_bytes<Arg>();
     }
 
     /**

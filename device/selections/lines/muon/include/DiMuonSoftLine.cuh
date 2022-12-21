@@ -32,6 +32,7 @@ namespace di_muon_soft_line {
     PROPERTY(DMSoftMaxDOCA_t, "DMSoftMaxDOCA", "DMSoftMaxDOCA description", float) DMSoftMaxDOCA;
     PROPERTY(DMSoftMaxIPDZ_t, "DMSoftMaxIPDZ", "DMSoftMaxIPDZ description", float) DMSoftMaxIPDZ;
     PROPERTY(DMSoftGhost_t, "DMSoftGhost", "DMSoftGhost description", float) DMSoftGhost;
+    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
   };
 
   struct di_muon_soft_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<di_muon_soft_line_t, Parameters> {
@@ -52,5 +53,6 @@ namespace di_muon_soft_line {
     Property<DMSoftMaxDOCA_t> m_DMSoftMaxDOCA {this, 0.1f};
     Property<DMSoftMaxIPDZ_t> m_DMSoftMaxIPDZ {this, 0.04f};
     Property<DMSoftGhost_t> m_DMSoftGhost {this, 4.e-06f};
+    Property<OppositeSign_t> m_opposite_sign {this, true};
   };
 } // namespace di_muon_soft_line

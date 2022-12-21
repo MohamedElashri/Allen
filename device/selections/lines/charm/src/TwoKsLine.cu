@@ -21,6 +21,10 @@ __device__ bool two_ks_line::two_ks_line_t::select(
   const auto ks1 = static_cast<const Allen::Views::Physics::CompositeParticle*>(ks_pair.child(0));
   const auto ks2 = static_cast<const Allen::Views::Physics::CompositeParticle*>(ks_pair.child(1));
 
+  const bool ks1_opposite_sign = ks1->charge() == 0;
+  const bool ks2_opposite_sign = ks2->charge() == 0;
+
+  if (ks1_opposite_sign != parameters.OppositeSign || ks2_opposite_sign != parameters.OppositeSign) return false;
   // Get the first vertex decision.
   // Vertex quality cuts.
   bool dec1 = ks1->vertex().chi2() > 0 && ks1->vertex().chi2() < parameters.maxVertexChi2;

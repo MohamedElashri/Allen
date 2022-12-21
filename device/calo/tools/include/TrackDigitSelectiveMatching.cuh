@@ -17,7 +17,6 @@ namespace track_digit_selective_matching {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     // SciFi tracks
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
-    DEVICE_INPUT(dev_scifi_tracks_view_t, Allen::Views::SciFi::Consolidated::Tracks) dev_scifi_tracks_view;
     DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
     // Calo digits
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;

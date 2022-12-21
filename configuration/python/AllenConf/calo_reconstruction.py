@@ -75,7 +75,6 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
         host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_scifi_states_t=long_tracks["dev_scifi_states"],
-        dev_scifi_tracks_view_t=long_tracks["dev_scifi_tracks_view"],
         dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
