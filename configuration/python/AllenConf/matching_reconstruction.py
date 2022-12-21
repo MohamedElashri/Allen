@@ -6,10 +6,18 @@ from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_vel
 from AllenConf.scifi_reconstruction import decode_scifi, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
+from PyConf.tonic import configurable
 
 
-def make_velo_scifi_matches(velo_tracks, velo_kalman_filter, seeding_tracks):
+@configurable
+def make_velo_scifi_matches(velo_tracks,
+                            velo_kalman_filter,
+                            seeding_tracks,
+                            accepted_velo_tracks=None):
     number_of_events = initialize_number_of_events()
+
+    if not accepted_velo_tracks:
+        accepted_velo_tracks = velo_tracks["dev_accepted_velo_tracks"]
 
     ut_select_velo_tracks = make_algorithm(
         ut_select_velo_tracks_t,
@@ -20,7 +28,7 @@ def make_velo_scifi_matches(velo_tracks, velo_kalman_filter, seeding_tracks):
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_velo_states_view_t=velo_kalman_filter[
             "dev_velo_kalman_beamline_states_view"],
-        dev_accepted_velo_tracks_t=velo_tracks["dev_accepted_velo_tracks"])
+        dev_accepted_velo_tracks_t=accepted_velo_tracks)
 
     matched_tracks = make_algorithm(
         track_matching_veloSciFi_t,
@@ -77,7 +85,8 @@ def make_velo_scifi_matches(velo_tracks, velo_kalman_filter, seeding_tracks):
         dev_scifi_tracks_view_t=seeding_tracks["dev_scifi_tracks_view"],
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_velo_states_view_t=velo_kalman_filter[
-            "dev_velo_kalman_endvelo_states_view"])
+            "dev_velo_kalman_endvelo_states_view"],
+        dev_accepted_velo_tracks_t=accepted_velo_tracks)
 
     return {
         "velo_tracks":
@@ -109,6 +118,8 @@ def make_velo_scifi_matches(velo_tracks, velo_kalman_filter, seeding_tracks):
         matching_consolidate_tracks.dev_multi_event_long_tracks_view_t,
         "dev_multi_event_long_tracks_ptr":
         matching_consolidate_tracks.dev_multi_event_long_tracks_ptr_t,
+        "dev_long_track_view":
+        matching_consolidate_tracks.dev_long_track_view_t,
         # Needed for long track particle dependencies.
         "dev_scifi_track_view":
         seeding_tracks["dev_scifi_track_view"],
@@ -117,7 +128,11 @@ def make_velo_scifi_matches(velo_tracks, velo_kalman_filter, seeding_tracks):
         "dev_ut_number_of_selected_velo_tracks":
         ut_select_velo_tracks.dev_ut_number_of_selected_velo_tracks_t,
         "dev_ut_selected_velo_tracks":
-        ut_select_velo_tracks.dev_ut_selected_velo_tracks_t
+        ut_select_velo_tracks.dev_ut_selected_velo_tracks_t,
+        "dev_used_scifi_hits":
+        seeding_tracks["dev_used_scifi_hits"],
+        "dev_accepted_and_unused_velo_tracks":
+        matching_consolidate_tracks.dev_accepted_and_unused_velo_tracks_t,
     }
 
 

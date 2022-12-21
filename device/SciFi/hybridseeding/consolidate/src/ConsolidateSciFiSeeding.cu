@@ -53,6 +53,7 @@ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::set_argum
   set_size<dev_scifi_track_view_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
   set_size<dev_scifi_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_scifi_multi_event_tracks_view_t>(arguments, 1);
+  set_size<dev_used_scifi_hits_t>(arguments, first<host_scifi_hit_count_t>(arguments));
 }
 
 //===========================================================================================
@@ -94,6 +95,7 @@ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::operator(
 {
   Allen::memset_async<dev_scifi_multi_event_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_scifi_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_used_scifi_hits_t>(arguments, 0, context);
 
   global_function(seed_confirmTracks_consolidate)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
@@ -135,6 +137,7 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
                                           number_of_events};
   const unsigned number_of_tracks_event = scifi_seeds.number_of_tracks(event_number);
   float* tracks_qop = parameters.dev_seeding_qop + parameters.dev_atomics_scifi[event_number];
+  auto* used_scifi_hits = parameters.dev_used_scifi_hits.get();
 
   // Loop over tracks.
   for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
@@ -157,9 +160,11 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
     auto consolidated_hits = scifi_seeds.get_hits(parameters.dev_seeding_track_hits, i);
 
     // Populate arrays
-    populate(scifiseed, [&consolidated_hits, &scifi_hits](const unsigned i, const unsigned hit_index) {
-      consolidated_hits.x0(i) = scifi_hits.x0(hit_index);
-    });
+    populate(
+      scifiseed, [&consolidated_hits, &scifi_hits, &used_scifi_hits](const unsigned i, const unsigned hit_index) {
+        consolidated_hits.x0(i) = scifi_hits.x0(hit_index);
+        used_scifi_hits[hit_index] = 1;
+      });
 
     populate(scifiseed, [&consolidated_hits, &scifi_hits](const unsigned i, const unsigned hit_index) {
       consolidated_hits.z0(i) = scifi_hits.z0(hit_index);

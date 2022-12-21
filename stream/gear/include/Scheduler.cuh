@@ -31,11 +31,18 @@ private:
   std::tuple<std::vector<LifetimeDependencies>, std::vector<LifetimeDependencies>> calculate_lifetime_dependencies(
     const std::vector<ConfiguredAlgorithmArguments>& sequence_arguments,
     const ArgumentDependencies& argument_dependencies,
+    const std::vector<ConfiguredArgument>& configured_arguments,
     const std::vector<Allen::TypeErasedAlgorithm>& sequence)
   {
     std::vector<LifetimeDependencies> in_deps;
     std::vector<LifetimeDependencies> out_deps;
     std::vector<std::string> temp_arguments;
+
+    // Make map of configured arguments
+    std::map<std::string, std::string> configured_arguments_map;
+    for (const auto& conf_arg : configured_arguments) {
+      configured_arguments_map[conf_arg.name] = conf_arg.scope;
+    }
 
     const auto argument_in = [](const std::string& arg, const auto& args) {
       return std::find(std::begin(args), std::end(args), arg) != std::end(args);
@@ -69,6 +76,11 @@ private:
 
       for (const auto& arg : temp_arguments) {
         bool arg_can_be_freed = true;
+
+        // The argument can be freed only if it is not host
+        if (configured_arguments_map[arg] == "host") {
+          arg_can_be_freed = false;
+        }
 
         for (unsigned j = i; j < seq_args.size(); ++j) {
           const auto& alg = seq_args[j];
@@ -129,7 +141,6 @@ public:
     const ConfiguredSequence& configuration,
     const bool param_do_print,
     const size_t device_requested_mb,
-    const size_t host_requested_mb,
     const unsigned required_memory_alignment)
   {
     auto& [configured_algorithms, configured_arguments, sequence_arguments, arg_deps] = configuration;
@@ -143,7 +154,7 @@ public:
 
     // Calculate in and out dependencies of defined sequence
     std::tie(m_in_dependencies, m_out_dependencies) =
-      calculate_lifetime_dependencies(sequence_arguments, arg_deps, m_sequence);
+      calculate_lifetime_dependencies(sequence_arguments, arg_deps, configured_arguments, m_sequence);
 
     // Create ArgumentRefManager of each algorithm
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
@@ -159,8 +170,7 @@ public:
 
     do_print = param_do_print;
 
-    // Reserve memory in managers
-    m_store.reserve_memory_host(host_requested_mb, required_memory_alignment);
+    // Reserve memory
     m_store.reserve_memory_device(device_requested_mb, required_memory_alignment);
   }
 

@@ -16,9 +16,11 @@ from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer
 from AllenConf.utils import make_gec
+from AllenConf.best_track_creator import best_track_creator
+from AllenConf.enum_types import TrackingType
 
 
-def hlt1_reconstruction(matching=False,
+def hlt1_reconstruction(tracking_type=TrackingType.FORWARD,
                         with_calo=True,
                         with_ut=True,
                         with_muon=True):
@@ -36,25 +38,38 @@ def hlt1_reconstruction(matching=False,
         "muon_stubs": muon_stubs,
     }
 
-    if matching:
+    if tracking_type in (TrackingType.FORWARD_THEN_MATCHING,
+                         TrackingType.MATCHING_THEN_FORWARD):
+        if with_ut:
+            decoded_ut = decode_ut()
+            ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
+            input_tracks = ut_tracks
+            output.update({"ut_tracks": input_tracks})
+        long_tracks = best_track_creator(with_ut, tracking_type=tracking_type)
+        output.update({"seeding_tracks": long_tracks["seeding_tracks"]})
+    elif tracking_type == TrackingType.MATCHING:
         decoded_scifi = decode_scifi()
         seed_xz_tracks = make_seeding_XZ_tracks(decoded_scifi)
         seed_tracks = make_seeding_tracks(decoded_scifi, seed_xz_tracks)
         long_tracks = make_velo_scifi_matches(velo_tracks, velo_states,
                                               seed_tracks)
         output.update({"seeding_tracks": seed_tracks})
-    else:
+    elif tracking_type == TrackingType.FORWARD:
         if with_ut:
             decoded_ut = decode_ut()
             ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
             input_tracks = ut_tracks
             output.update({"ut_tracks": input_tracks})
-
         else:
             input_tracks = velo_tracks
         decoded_scifi = decode_scifi()
         long_tracks = make_forward_tracks(
-            decoded_scifi, input_tracks, with_ut=with_ut)
+            decoded_scifi,
+            input_tracks,
+            velo_tracks["dev_accepted_velo_tracks"],
+            with_ut=with_ut)
+    else:
+        raise Exception("Tracking type not supported")
 
     if with_muon:
         decoded_muon = decode_muon()

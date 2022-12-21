@@ -70,13 +70,14 @@ def decode_scifi():
         scifi_raw_bank_decoder.dev_scifi_hits_t,
         "dev_scifi_hit_offsets":
         prefix_sum_scifi_hits.dev_output_buffer_t,
-        "host_number_of_scifi_hits":
-        prefix_sum_scifi_hits.host_total_sum_holder_t
     }
 
 
 @configurable
-def make_forward_tracks(decoded_scifi, input_tracks, with_ut=True):
+def make_forward_tracks(decoded_scifi,
+                        input_tracks,
+                        dev_accepted_velo_tracks,
+                        with_ut=True):
     number_of_events = initialize_number_of_events()
 
     if (with_ut):
@@ -309,7 +310,9 @@ def make_forward_tracks(decoded_scifi, input_tracks, with_ut=True):
         dev_tracks_view_t=input_track_views,
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_velo_states_view_t=velo_states[
-            "dev_velo_kalman_endvelo_states_view"])
+            "dev_velo_kalman_endvelo_states_view"],
+        host_scifi_hit_count_t=decoded_scifi["host_number_of_scifi_hits"],
+        dev_accepted_velo_tracks_t=dev_accepted_velo_tracks)
 
     return {
         "veloUT_tracks":
@@ -342,7 +345,13 @@ def make_forward_tracks(decoded_scifi, input_tracks, with_ut=True):
         "dev_scifi_track_view":
         scifi_consolidate_tracks.dev_scifi_track_view_t,
         "dev_scifi_hits_view":
-        scifi_consolidate_tracks.dev_scifi_hits_view_t
+        scifi_consolidate_tracks.dev_scifi_hits_view_t,
+        "dev_long_track_view":
+        scifi_consolidate_tracks.dev_long_track_view_t,
+        "dev_used_scifi_hits":
+        scifi_consolidate_tracks.dev_used_scifi_hits_t,
+        "dev_accepted_and_unused_velo_tracks":
+        scifi_consolidate_tracks.dev_accepted_and_unused_velo_tracks_t,
     }
 
 
@@ -424,7 +433,8 @@ def make_seeding_tracks(decoded_scifi, xz_tracks):
         dev_output_buffer_t,
         dev_offsets_seeding_hit_number_t=prefix_sum_seeding_track_hit_number.
         dev_output_buffer_t,
-        dev_seeding_tracks_t=seed_tracks.dev_seeding_tracks_t)
+        dev_seeding_tracks_t=seed_tracks.dev_seeding_tracks_t,
+        host_scifi_hit_count_t=decoded_scifi["host_number_of_scifi_hits"])
 
     return {
         "seed_tracks":
@@ -448,7 +458,9 @@ def make_seeding_tracks(decoded_scifi, xz_tracks):
         "dev_scifi_track_view":
         seed_confirmTracks_consolidate.dev_scifi_track_view_t,
         "dev_scifi_hits_view":
-        seed_confirmTracks_consolidate.dev_scifi_hits_view_t
+        seed_confirmTracks_consolidate.dev_scifi_hits_view_t,
+        "dev_used_scifi_hits":
+        seed_confirmTracks_consolidate.dev_used_scifi_hits_t,
     }
 
 
@@ -466,7 +478,11 @@ def forward_tracking(with_ut=True):
         input_tracks = velo_tracks
     decoded_scifi = decode_scifi()
 
-    return make_forward_tracks(decoded_scifi, input_tracks, with_ut=with_ut)
+    return make_forward_tracks(
+        decoded_scifi,
+        input_tracks,
+        velo_tracks["dev_accepted_velo_tracks"],
+        with_ut=with_ut)
 
 
 def seeding_xz():

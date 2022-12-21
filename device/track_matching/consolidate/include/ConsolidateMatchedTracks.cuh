@@ -32,6 +32,8 @@ namespace matching_consolidate_tracks {
     DEVICE_OUTPUT(dev_matched_qop_t, float) dev_matched_qop;
     DEVICE_OUTPUT(dev_matched_track_velo_indices_t, unsigned) dev_matched_track_velo_indices;
     DEVICE_OUTPUT(dev_matched_track_scifi_indices_t, unsigned) dev_matched_track_scifi_indices;
+    DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
+    DEVICE_OUTPUT(dev_accepted_and_unused_velo_tracks_t, bool) dev_accepted_and_unused_velo_tracks;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_long_track_view_t,
       DEPENDENCIES(
