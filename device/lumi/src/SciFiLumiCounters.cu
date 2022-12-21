@@ -21,7 +21,7 @@ void scifi_lumi_counters::scifi_lumi_counters_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  // convert the size of lumi summaries to the size of velo counter infos
+  // the total size of output info is proportional to the lumi summaries
   set_size<dev_lumi_infos_t>(
     arguments,
     Lumi::Constants::n_SciFi_counters * first<host_lumi_summaries_size_t>(arguments) / Lumi::Constants::lumi_length);
@@ -36,8 +36,7 @@ void scifi_lumi_counters::scifi_lumi_counters_t::operator()(
   // do nothing if no lumi event
   if (first<host_lumi_summaries_size_t>(arguments) == 0) return;
 
-  global_function(scifi_lumi_counters)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(scifi_lumi_counters)(dim3(4u), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments), constants.dev_scifi_geometry);
 }
 
