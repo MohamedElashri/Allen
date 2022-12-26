@@ -13,6 +13,20 @@
 #include <climits>
 #include <BackendCommon.h>
 #include "CaloConstants.cuh"
+#include "CaloGeometry.cuh"
+
+struct CaloSeedCluster {
+  uint16_t id = 0;
+  int16_t adc = 0;
+  float x = 0.f;
+  float y = 0.f;
+
+  __device__ __host__ CaloSeedCluster() {}
+
+  __device__ __host__ CaloSeedCluster(uint16_t cellid, int16_t a, float rX, float rY) :
+    id {cellid}, adc {a}, x {rX}, y {rY}
+  {}
+};
 
 struct CaloCluster {
   float e = 0.f;
@@ -26,6 +40,10 @@ struct CaloCluster {
 
   __device__ __host__ CaloCluster() {}
 
+  __device__ __host__ CaloCluster(const CaloGeometry& calo, const CaloSeedCluster& seed) :
+    e {calo.getE(seed.id, seed.adc)}, x {seed.x}, y {seed.y}, center_id {seed.id}
+  {}
+
   __device__ __host__ void CalcEt()
   {
     // Computes cluster Et
@@ -34,19 +52,6 @@ struct CaloCluster {
     sintheta = sqrtf(sintheta);
     this->et = this->e * sintheta;
   }
-};
-
-struct CaloSeedCluster {
-  uint16_t id = 0;
-  int16_t adc = 0;
-  float x = 0.f;
-  float y = 0.f;
-
-  __device__ __host__ CaloSeedCluster() {}
-
-  __device__ __host__ CaloSeedCluster(uint16_t cellid, int16_t a, float rX, float rY) :
-    id {cellid}, adc {a}, x {rX}, y {rY}
-  {}
 };
 
 struct TwoCaloCluster {

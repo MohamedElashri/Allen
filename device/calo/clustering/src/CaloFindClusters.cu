@@ -24,11 +24,7 @@ __device__ void simple_clusters(
   for (unsigned c = threadIdx.x; c < num_clusters; c += blockDim.x) {
     auto const& seed_cluster = seed_clusters[c];
     auto& cluster = clusters[c];
-    cluster = CaloCluster();
-    cluster.center_id = seed_cluster.id;
-    cluster.e = calo.getE(seed_cluster.id, seed_cluster.adc);
-    cluster.x = seed_cluster.x;
-    cluster.y = seed_cluster.y;
+    cluster = CaloCluster(calo, seed_cluster);
 
     uint16_t const* neighbors = &(calo.neighbors[seed_cluster.id * Calo::Constants::max_neighbours]);
     for (uint16_t n = 0; n < Calo::Constants::max_neighbours; n++) {
@@ -41,22 +37,17 @@ __device__ void simple_clusters(
         cluster.e += calo.getE(n_id, digit.adc);
         cluster.digits[n] = n_id;
       }
-      else {
-        cluster.digits[n] = USHRT_MAX;
-      }
     }
 
     for (uint16_t n = 0; n < Calo::Constants::max_neighbours; n++) {
-      auto const n_id = neighbors[n];
+      auto const n_id = cluster.digits[n];
       if (n_id == USHRT_MAX) {
         continue;
       }
       auto const digit = digits[n_id];
-      if (digit.is_valid() && (digit.adc > min_adc)) {
-        float const adc_frac = float(digit.adc) / float(cluster.e);
-        cluster.x += adc_frac * (calo.getX(n_id) - seed_cluster.x);
-        cluster.y += adc_frac * (calo.getY(n_id) - seed_cluster.y);
-      }
+      float const e_frac = calo.getE(n_id, digit.adc) / cluster.e;
+      cluster.x += e_frac * (calo.getX(n_id) - seed_cluster.x);
+      cluster.y += e_frac * (calo.getY(n_id) - seed_cluster.y);
     }
     cluster.CalcEt();
     cluster.CaloNeutralE19 = calo.getE(seed_cluster.id, seed_cluster.adc) / cluster.e;

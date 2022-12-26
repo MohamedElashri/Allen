@@ -32,15 +32,14 @@ __global__ void calo_find_twoclusters::calo_find_twoclusters(calo_find_twocluste
 {
   unsigned const event_number = parameters.dev_event_list[blockIdx.x];
   unsigned const ecal_clusters_offset = parameters.dev_ecal_cluster_offsets[event_number];
-  unsigned const ecal_clusters_idx_offset = event_number * Calo::Constants::max_ndiclusters;
   unsigned const ecal_twoclusters_offset = parameters.dev_ecal_twocluster_offsets[event_number];
   unsigned const ecal_num_clusters_idx =
     parameters.dev_ecal_twocluster_offsets[event_number + 1] - ecal_twoclusters_offset;
 
   twoclusters(
     &parameters.dev_ecal_clusters[ecal_clusters_offset],
-    &parameters.dev_cluster1_idx[ecal_clusters_idx_offset],
-    &parameters.dev_cluster2_idx[ecal_clusters_idx_offset],
+    &parameters.dev_cluster1_idx[ecal_twoclusters_offset],
+    &parameters.dev_cluster2_idx[ecal_twoclusters_offset],
     ecal_num_clusters_idx,
     &parameters.dev_ecal_twoclusters[ecal_twoclusters_offset]);
 }
