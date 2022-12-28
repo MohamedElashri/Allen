@@ -56,6 +56,7 @@ gaudi_add_module(AllenWrapper
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
                    LHCb::DAQKernelLib
+                   LHCb::RecEvent
                    LHCb::VPDetLib
                    LHCb::UTDetLib
                    LHCb::UTKernelLib
