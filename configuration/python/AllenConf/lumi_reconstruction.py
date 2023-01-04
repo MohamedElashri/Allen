@@ -61,7 +61,7 @@ def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size, key, lumi_sum_length,
         dev_scifi_info_t=get_lumi_info(lumiInfos, "scifi"),
         dev_muon_info_t=get_lumi_info(lumiInfos, "muon"),
         dev_calo_info_t=get_lumi_info(lumiInfos, "calo"),
-        dev_plume_info_t=get_lumi_info(lumiInfos, "plume"))
+        dev_plume_info_t=get_lumi_info(lumiInfos, "plume"),
         lumi_sum_length=lumi_sum_length,
         lumi_counter_schema=schema)
 

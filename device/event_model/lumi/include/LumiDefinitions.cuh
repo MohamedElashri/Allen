@@ -94,6 +94,9 @@ namespace Lumi {
                                                                          "MuonHitsM4R2",
                                                                          "MuonHitsM4R3",
                                                                          "MuonHitsM4R4"};
+    const std::array<std::string, n_plume_counters> plume_counter_names = {"PlumeAvgLumiADC",
+                                                                           "PlumeLumiOverthrLow",
+                                                                           "PlumeLumiOverthrHigh"};
   } // namespace Constants
 
   struct LumiInfo {
