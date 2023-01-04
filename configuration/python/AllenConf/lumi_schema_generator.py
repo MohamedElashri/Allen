@@ -2,7 +2,7 @@
 # (c) Copyright 2018-2022 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 from sys import argv, exit
-from random import random, shuffle
+from random import Random
 import math
 import copy
 import json
@@ -65,6 +65,7 @@ MuonHitsM4R4               227
 EOF
 """
 
+lumi_rand = Random("lumi_schema_generator")
 
 class Counter:
     """A single lumi counter"""
@@ -188,7 +189,7 @@ class LumiSchemaGenerator:
                         % (100. * self.sumSizes / self.size, stopThreshold))
                     print("Stopping mutation")
                     break
-                self.mutate(random())
+                self.mutate(lumi_rand.random())
 
     def pack(self, optimise=True):
         for counter in self.inputs:
@@ -234,7 +235,7 @@ class LumiSchemaGenerator:
         for bucket in self.buckets:
             if bucket.bitsRemaining > 0:
                 for counter in list(bucket.counters):
-                    if counter.size < 16 and random() < prob:
+                    if counter.size < 16 and lumi_rand.random() < prob:
                         bucket.counters.remove(counter)
                         bucket.bitsRemaining += counter.size
                         self.sumSizes -= counter.size
@@ -250,7 +251,7 @@ class LumiSchemaGenerator:
             if len(self.inputs) != 0:
                 #rerun the packing with a random ordering
                 print("repacking %d counters" % len(self.inputs))
-                shuffle(self.inputs)
+                lumi_rand.shuffle(self.inputs)
                 self.pack()
                 if originalSize <= self.size:
                     print("No improvement, reverting mutation")
@@ -336,7 +337,7 @@ if __name__ == "__main__":
         "--mutations",
         metavar="N",
         type=int,
-        default=10,
+        default=20,
         help=
         "Number of mutations to perform in the second phase of optimisation")
     parser.add_argument(
