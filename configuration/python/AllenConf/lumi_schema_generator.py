@@ -67,6 +67,7 @@ EOF
 
 lumi_rand = Random("lumi_schema_generator")
 
+
 class Counter:
     """A single lumi counter"""
 
