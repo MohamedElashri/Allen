@@ -27,7 +27,8 @@ void plume_lumi_counters::plume_lumi_counters_t::set_arguments_size(
 void plume_lumi_counters::plume_lumi_counters_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
-  std::array<unsigned, 2 * Lumi::Constants::n_plume_counters> plume_offsets_and_sizes = property<plume_offsets_and_sizes_t>();
+  std::array<unsigned, 2 * Lumi::Constants::n_plume_counters> plume_offsets_and_sizes =
+    property<plume_offsets_and_sizes_t>();
 
   unsigned c_idx(0u);
   for (auto counter_name : Lumi::Constants::plume_counter_names) {
