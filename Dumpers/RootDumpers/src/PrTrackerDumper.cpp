@@ -17,7 +17,6 @@
 #include "Event/RawEvent.h"
 #include "Event/VPLightCluster.h"
 #include "UTDAQ/UTInfo.h"
-#include "Linker/LinkerWithKey.h"
 #include "PrKernel/PrFTHitHandler.h"
 #include "PrKernel/PrHit.h"
 #include "PrKernel/UTHit.h"
