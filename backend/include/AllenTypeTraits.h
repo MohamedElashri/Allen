@@ -230,6 +230,22 @@ namespace Allen {
   struct has_monitoring_types<T, std::void_t<typename T::monitoring_types>> : std::true_type {
   };
 
+  template<typename T1, typename = void>
+  struct has_evtNo : std::false_type {
+  };
+
+  template<typename T1>
+  struct has_evtNo<T1, std::void_t<typename T1::evtNo_t>> : std::true_type {
+  };
+
+  template<typename T1, typename = void>
+  struct has_runNo : std::false_type {
+  };
+  template<typename T1>
+  struct has_runNo<T1, std::void_t<typename T1::runNo_t>> : std::true_type {
+  };
+
+
   template<typename T>
   void initialize_algorithm(T& alg)
   {
