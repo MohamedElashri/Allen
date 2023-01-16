@@ -245,7 +245,6 @@ namespace Allen {
   struct has_runNo<T1, std::void_t<typename T1::runNo_t>> : std::true_type {
   };
 
-
   template<typename T>
   void initialize_algorithm(T& alg)
   {
