@@ -27,6 +27,7 @@
     <text>-n</text><text>10000</text>
   </set></argument>
   <argument name="reference"><text>../refs/allen_event_loop.ref</text></argument>
+  <argument name="error_reference"><text>../refs/empty.ref</text></argument>
   <argument name="timeout"><integer>600</integer></argument>
   <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
   <argument name="validator"><text>
