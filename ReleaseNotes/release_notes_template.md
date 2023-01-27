@@ -25,7 +25,7 @@ This version uses
 {{project_deps[:-1]|join(',\n')}} and
 {{project_deps|last}}.
 
-This version is released on `master` branch.
+This version is released on the `{{branch}}` branch.
 Built relative to {{project}} [{{project_prev_tag}}](/../../tags/{{project_prev_tag}}), with the following changes:
 
 ### New features ~"new feature"
