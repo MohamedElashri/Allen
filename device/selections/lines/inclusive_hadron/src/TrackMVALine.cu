@@ -24,17 +24,15 @@ __device__ bool track_mva_line::track_mva_line_t::select(
   return decision;
 }
 
-
 __device__ void track_mva_line::track_mva_line_t::monitor(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::BasicParticle> input,
   unsigned index,
   bool sel)
 {
-  if( sel )
-  {
+  if (sel) {
     const auto track = std::get<0>(input);
     parameters.ipchi2[index] = track.ip_chi2();
-    parameters.pt[index]     = track.state().pt();
+    parameters.pt[index] = track.state().pt();
   }
 }
