@@ -1,6 +1,6 @@
 /*****************************************************************************\
-* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
-\*****************************************************************************/
+ * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+ \*****************************************************************************/
 #pragma once
 
 #include "AlgorithmTypes.cuh"
@@ -17,7 +17,7 @@ namespace track_mva_line {
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
 
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
-    host_fn_parameters;
+      host_fn_parameters;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
@@ -31,12 +31,26 @@ namespace track_mva_line {
     PROPERTY(param3_t, "param3", "param3 description", float) param3;
     PROPERTY(alpha_t, "alpha", "alpha description", float) alpha;
     PROPERTY(minBPVz_t, "minBPVz", "minimum z for the best associated primary vertex", float) minBPVz;
+
+    DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
+
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+
   };
 
   struct track_mva_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<track_mva_line_t, Parameters> {
     __device__ static bool select(const Parameters& ps, std::tuple<const Allen::Views::Physics::BasicParticle> input);
+    __device__ static void monitor(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::BasicParticle> input,
+      unsigned index,
+      bool sel);
 
-  private:
+    using monitoring_types = std::tuple<pt_t, ipchi2_t, evtNo_t, runNo_t>;
+    private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
@@ -50,5 +64,7 @@ namespace track_mva_line {
     Property<param3_t> m_param3 {this, 1.248f};
     Property<alpha_t> m_alpha {this, 296.f * Gaudi::Units::MeV}; // tuned to about 330 kHz (modulo GEC)
     Property<minBPVz_t> m_minBPVz {this, -341.f * Gaudi::Units::mm};
+  
+    Property<enable_monitoring_t> m_enableMonitoring{this, false};
   };
 } // namespace track_mva_line
