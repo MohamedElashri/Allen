@@ -36,17 +36,12 @@ namespace check_localized_beamline_ip {
   __global__ void check_localized_beamline_ip(Parameters);
   struct check_localized_beamline_ip_t : public DeviceAlgorithm, Parameters {
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,
       const Constants&,
-      HostBuffers& host_buffers,
       const Allen::Context&) const;
 
   private:
