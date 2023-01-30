@@ -36,10 +36,10 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
 
   // info aggregating
   std::array<const Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos = {data<dev_velo_info_t>(arguments),
-                                                    data<dev_pv_info_t>(arguments),
-                                                    data<dev_scifi_info_t>(arguments),
-                                                    data<dev_muon_info_t>(arguments),
-                                                    data<dev_calo_info_t>(arguments)};
+                                                                               data<dev_pv_info_t>(arguments),
+                                                                               data<dev_scifi_info_t>(arguments),
+                                                                               data<dev_muon_info_t>(arguments),
+                                                                               data<dev_calo_info_t>(arguments)};
   // set the size to 0 for empty dummy input
   // otherwise set it to the numbers of lumi counters
   std::array<unsigned, Lumi::Constants::n_sub_infos> infoSize = {
