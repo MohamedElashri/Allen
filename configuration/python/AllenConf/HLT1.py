@@ -180,7 +180,19 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
     return [line_maker(line) for line in lines]
 
 
-def event_monitoring_lines(with_lumi, lumiline_name):
+def odin_monitoring_lines(with_lumi, lumiline_name):
+    lines = []
+    if with_lumi:
+        lines.append(
+            line_maker(
+                make_odin_event_type_line(
+                    name=lumiline_name, odin_event_type='Lumi')))
+    lines.append(
+        line_maker(make_odin_event_type_line(odin_event_type="NoBias")))
+    return lines
+
+
+def event_monitoring_lines(lumiline_name):
     lines = []
     lines.append(
         line_maker(make_beam_line(name="Hlt1NoBeam", beam_crossing_type=0)))
@@ -190,15 +202,8 @@ def event_monitoring_lines(with_lumi, lumiline_name):
         line_maker(make_beam_line(name="Hlt1BeamTwo", beam_crossing_type=2)))
     lines.append(
         line_maker(make_beam_line(name="Hlt1BothBeams", beam_crossing_type=3)))
-    if with_lumi:
-        lines.append(
-            line_maker(
-                make_odin_event_type_line(
-                    name=lumiline_name, odin_event_type='Lumi')))
     lines.append(
         line_maker(make_odin_event_type_line(odin_event_type="VeloOpen")))
-    lines.append(
-        line_maker(make_odin_event_type_line(odin_event_type="NoBias")))
     return lines
 
 
@@ -424,7 +429,7 @@ def setup_hlt1_node(enablePhysics=True,
 
     lumiline_name = "Hlt1ODINLumi"
     with line_maker.bind(prefilter=odin_err_filter):
-        monitoring_lines = event_monitoring_lines(with_lumi, lumiline_name)
+        monitoring_lines = odin_monitoring_lines(with_lumi, lumiline_name)
         physics_lines += [line_maker(make_passthrough_line())]
 
     if EnableGEC:
