@@ -113,14 +113,13 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
       // size of the SelReport RawBank
       // need the index into the batch here
       const unsigned sel_report_size =
-        sel_report_offsets->empty() ?
+        (!sel_report_offsets || sel_report_offsets->empty()) ?
           0 :
           ((*sel_report_offsets)[event_number + 1] - (*sel_report_offsets)[event_number]) * sizeof(uint32_t);
-      unsigned lumi_summary_size = 0;
-      if (!lumi_summary_offsets->empty()) {
-        lumi_summary_size =
+      unsigned lumi_summary_size =
+        (!lumi_summary_offsets || lumi_summary_offsets->empty()) ?
+          0 :
           ((*lumi_summary_offsets)[event_number + 1] - (*lumi_summary_offsets)[event_number]) * sizeof(uint32_t);
-      }
 
       // add DecReport and SelReport sizes to the total size (including RawBank headers)
       // event_sizes is indexed in the same way as selected_events
@@ -150,14 +149,17 @@ std::tuple<bool, size_t> OutputHandler::output_selected_events(
 
       // size of the SelReport RawBank
       // need the index into the batch here
-      const unsigned sel_report_offset = sel_report_offsets->empty() ? 0 : (*sel_report_offsets)[event_number];
+      const unsigned sel_report_offset =
+        (!sel_report_offsets || sel_report_offsets->empty()) ? 0 : (*sel_report_offsets)[event_number];
       const unsigned sel_report_size =
-        sel_report_offsets->empty() ? 0 :
-                                      ((*sel_report_offsets)[event_number + 1] - sel_report_offset) * sizeof(uint32_t);
+        (!sel_report_offsets || sel_report_offsets->empty()) ?
+          0 :
+          ((*sel_report_offsets)[event_number + 1] - sel_report_offset) * sizeof(uint32_t);
 
-      const unsigned lumi_summary_offset = lumi_summary_offsets->empty() ? 0 : (*lumi_summary_offsets)[event_number];
+      const unsigned lumi_summary_offset =
+        (!lumi_summary_offsets || lumi_summary_offsets->empty()) ? 0 : (*lumi_summary_offsets)[event_number];
       const unsigned lumi_summary_size =
-        lumi_summary_offsets->empty() ?
+        (!lumi_summary_offsets || lumi_summary_offsets->empty()) ?
           0 :
           ((*lumi_summary_offsets)[event_number + 1] - lumi_summary_offset) * sizeof(uint32_t);
 
