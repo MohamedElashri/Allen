@@ -48,7 +48,6 @@ namespace pv_beamline_multi_fitter {
       float)
     pp_minNumTracksPerVertex;
     PROPERTY(maxVertexRho2_t, "maxVertexRho2", "Maximum vertex Rho2", float) maxVertexRho2;
-    PROPERTY(minFitIter_t, "minFitIter", "minimum fit iteration", float) minFitIter;
     PROPERTY(maxFitIter_t, "maxFitIter", "maximum fit iteration", float) maxFitIter;
     PROPERTY(chi2CutExp_t, "chi2CutExp", "chi2 cut exp", float) chi2CutExp;
     PROPERTY(maxChi2_t, "maxChi2", "Maximum chi2", float) maxChi2;
@@ -79,7 +78,6 @@ namespace pv_beamline_multi_fitter {
       this,
       BeamlinePVConstants::MultiFitter::pp_minNumTracksPerVertex};
     Property<maxVertexRho2_t> m_maxVertexRho2 {this, BeamlinePVConstants::MultiFitter::maxVertexRho2};
-    Property<minFitIter_t> m_minFitIter {this, BeamlinePVConstants::MultiFitter::minFitIter};
     Property<maxFitIter_t> m_maxFitIter {this, BeamlinePVConstants::MultiFitter::maxFitIter};
     Property<chi2CutExp_t> m_chi2CutExp {this, BeamlinePVConstants::MultiFitter::chi2CutExp};
     Property<minWeight_t> m_minWeight {this, BeamlinePVConstants::MultiFitter::minWeight};
