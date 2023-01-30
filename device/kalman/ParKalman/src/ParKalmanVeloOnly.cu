@@ -21,11 +21,11 @@ void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
 void kalman_velo_only::kalman_velo_only_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants&,
+  const Constants& constants,
   const Allen::Context& context) const
 {
   global_function(kalman_velo_only)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+    arguments, constants.dev_beamline.data());
 
   global_function(kalman_pv_ipchi2)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
@@ -347,7 +347,7 @@ __device__ void velo_only_fit(
   track.nhits = n_velo_hits;
 }
 
-__device__ void propagate_to_beamline(FittedTrack& track)
+__device__ void propagate_to_beamline(FittedTrack& track, float* dev_beamline)
 {
   KalmanFloat x = track.state[0];
   KalmanFloat y = track.state[1];
@@ -359,10 +359,9 @@ __device__ void propagate_to_beamline(FittedTrack& track)
   KalmanFloat zBeam = track.z;
   KalmanFloat denom = t2 * t2;
   const KalmanFloat tol = (KalmanFloat) 0.001;
-  zBeam = (denom < tol * tol) ? zBeam : track.z - (x * tx + y * ty) / denom;
+  zBeam = (denom < tol * tol) ? zBeam : track.z + ((dev_beamline[0] - x) * tx + (dev_beamline[1] - y) * ty) / denom;
   const KalmanFloat dz = zBeam - track.z;
   KalmanFloat qop = track.state[4];
-
   // Propagate the covariance matrix.
   const KalmanFloat dz2 = dz * dz;
   track.cov(0, 0) += dz2 * track.cov(2, 2) + 2 * dz * track.cov(0, 2);
@@ -417,7 +416,8 @@ __device__ void propagate_to_beamline(FittedTrack& track)
 __device__ void simplified_fit(
   const Allen::Views::Velo::Consolidated::Track& velo_track,
   const KalmanFloat init_qop,
-  FittedTrack& track)
+  FittedTrack& track,
+  float* dev_beamline)
 {
   const auto n_velo_hits = velo_track.number_of_hits();
   int first_hit_number = 0;
@@ -495,7 +495,7 @@ __device__ void simplified_fit(
   track.nhits = n_velo_hits;
 
   // Propagate track to beamline.
-  propagate_to_beamline(track);
+  propagate_to_beamline(track, dev_beamline);
 }
 
 __host__ __device__ void set_fit_result(
@@ -523,7 +523,7 @@ __host__ __device__ void set_fit_result(
   return;
 }
 
-__global__ void kalman_velo_only::kalman_velo_only(kalman_velo_only::Parameters parameters)
+__global__ void kalman_velo_only::kalman_velo_only(kalman_velo_only::Parameters parameters, float* dev_beamline)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -543,7 +543,7 @@ __global__ void kalman_velo_only::kalman_velo_only(kalman_velo_only::Parameters 
     const auto velo_track = long_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
     const KalmanFloat init_qop = (KalmanFloat) long_track.qop();
     ParKalmanFilter::FittedTrack kalman_track;
-    simplified_fit(velo_track, init_qop, kalman_track);
+    simplified_fit(velo_track, init_qop, kalman_track, dev_beamline);
 
     set_fit_result(event_long_tracks.offset() + i_long_track, kalman_track, kalman_states);
     parameters.dev_kf_tracks[event_long_tracks.offset() + i_long_track] = kalman_track;
