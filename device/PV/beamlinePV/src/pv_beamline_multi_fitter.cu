@@ -62,7 +62,8 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
     unsigned nselectedtracks = 0;
     const unsigned minTracks = seed_pos_z <= parameters.SMOG2_pp_separation ? parameters.SMOG2_minNumTracksPerVertex :
                                                                               parameters.pp_minNumTracksPerVertex;
-    for (unsigned iter = 0; (iter < parameters.maxFitIter || iter < parameters.minFitIter) && !converged; ++iter) {
+
+    for (unsigned iter = 0; iter < parameters.maxFitIter && !converged; ++iter) {
       auto halfD2Chi2DX2_00 = 0.f;
       auto halfD2Chi2DX2_11 = 0.f;
       auto halfD2Chi2DX2_20 = 0.f;
@@ -79,7 +80,7 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       for (unsigned i = threadIdx.x; i < velo_tracks_view.size(); i += blockDim.x) {
         // compute the chi2
         const PVTrackInVertex& trk = tracks[i];
-        if (parameters.zmin >= trk.z && trk.z >= parameters.zmax) continue;
+        if (trk.z < parameters.zmin || trk.z >= parameters.zmax) continue;
 
         const auto dz = vtxpos_z - trk.z;
         const float2 res = vtxpos_xy - (trk.x + trk.tx * dz);
@@ -146,7 +147,6 @@ __global__ void pv_beamline_multi_fitter::pv_beamline_multi_fitter(
       if (threadIdx.x == 0) {
         chi2tot += local_chi2tot;
         sum_weights += local_sum_weights;
-        // printf("sum weights %f\n", sum_weights);
         if (nselectedtracks >= minTracks) {
           // compute the new vertex covariance using analytical inversion
           // dividing matrix elements not important for resoltuon of high mult pvs
