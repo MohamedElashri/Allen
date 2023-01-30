@@ -277,10 +277,11 @@ namespace Allen::Store {
     template<Scope S, typename T>
     auto make_buffer(const size_t size) const
     {
+      using type = std::remove_const_t<T>;
 #if defined(ALLEN_STANDALONE) || !defined(TARGET_DEVICE_CPU)
-      return m_store->make_buffer<S, T>(size);
+      return m_store->make_buffer<S, type>(size);
 #else
-      return Allen::buffer<Allen::Store::Scope::Host, T> {size};
+      return Allen::buffer<Allen::Store::Scope::Host, type> {size};
 #endif
     }
 
