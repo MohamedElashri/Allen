@@ -35,12 +35,11 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
   Allen::memset_async<dev_lumi_summaries_t>(arguments, 0xffffffff, context);
 
   // info aggregating
-  std::array<Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos = {data<dev_velo_info_t>(arguments),
-                                                                         data<dev_pv_info_t>(arguments),
-                                                                         data<dev_scifi_info_t>(arguments),
-                                                                         data<dev_muon_info_t>(arguments),
-                                                                         data<dev_calo_info_t>(arguments),
-                                                                         data<dev_plume_info_t>(arguments)};
+  std::array<const Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos = {data<dev_velo_info_t>(arguments),
+                                                    data<dev_pv_info_t>(arguments),
+                                                    data<dev_scifi_info_t>(arguments),
+                                                    data<dev_muon_info_t>(arguments),
+                                                    data<dev_calo_info_t>(arguments)};
   // set the size to 0 for empty dummy input
   // otherwise set it to the numbers of lumi counters
   std::array<unsigned, Lumi::Constants::n_sub_infos> infoSize = {
@@ -105,7 +104,7 @@ __global__ void make_lumi_summary::make_lumi_summary(
   make_lumi_summary::Parameters parameters,
   const unsigned number_of_events,
   const unsigned number_of_events_passed_gec,
-  std::array<Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos,
+  std::array<const Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos,
   std::array<unsigned, Lumi::Constants::n_sub_infos> infoSize,
   const unsigned size_of_aggregate)
 {

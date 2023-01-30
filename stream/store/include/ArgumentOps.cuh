@@ -37,7 +37,7 @@ namespace Allen {
     if (kind == memcpyHostToHost) {
       std::memcpy(
         static_cast<void*>(container_a.data() + offset_a),
-        static_cast<void*>(container_b.data() + offset_b),
+        static_cast<const void*>(container_b.data() + offset_b),
         elements_to_copy * sizeof(T));
     }
     else {
