@@ -2,7 +2,8 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
-                             make_checkCylPV, make_invert_event_list)
+                             make_checkCylPV, make_checkPseudoPV,
+                             make_invert_event_list)
 from AllenConf.odin import make_bxtype, odin_error_filter
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
@@ -301,7 +302,7 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
     return lines
 
 
-def default_bgi_pvs_lines(pvs, prefilter=[]):
+def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
     """
     Primary vertex lines for various bunch crossing types composed from
     new PV filters and beam crossing lines.
@@ -393,6 +394,89 @@ def default_bgi_pvs_lines(pvs, prefilter=[]):
             prefilter=prefilter + [pvs_z_ir])
     ]
 
+    # Alternate version based on track beamline states
+    velo_states_z_all = make_checkPseudoPV(
+        velo_states,
+        name="BGIPseudoPVsAll",
+        min_state_z=-2000.,
+        max_state_z=2000.,
+        max_state_rho_sq=max_cyl_rad_sq,
+        min_local_nTracks=10.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPseudoPVsNoBeam",
+                beam_crossing_type=0,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [bx_NoBB, velo_states_z_all]),
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPseudoPVsBeamOne",
+                beam_crossing_type=1,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [bx_NoBB, velo_states_z_all]),
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPseudoPVsBeamTwo",
+                beam_crossing_type=2,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [bx_NoBB, velo_states_z_all])
+    ]
+
+    velo_states_z_up = make_checkPseudoPV(
+        velo_states,
+        name="BGIPseudoPVsUp",
+        min_state_z=-2000.,
+        max_state_z=-250.,
+        max_state_rho_sq=max_cyl_rad_sq,
+        min_local_nTracks=10.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPseudoPVsUpBeamBeam",
+                beam_crossing_type=3,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [velo_states_z_up])
+    ]
+
+    velo_states_z_down = make_checkPseudoPV(
+        velo_states,
+        name="BGIPseudoPVsDown",
+        min_state_z=250.,
+        max_state_z=2000.,
+        max_state_rho_sq=max_cyl_rad_sq,
+        min_local_nTracks=10.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPseudoPVsDownBeamBeam",
+                beam_crossing_type=3,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [velo_states_z_down])
+    ]
+
+    velo_states_z_ir = make_checkPseudoPV(
+        velo_states,
+        name="BGIPseudoPVsIR",
+        min_state_z=-250.,
+        max_state_z=250.,
+        max_state_rho_sq=max_cyl_rad_sq,
+        min_local_nTracks=28.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPseudoPVsIRBeamBeam",
+                beam_crossing_type=3,
+                pre_scaler=1.,
+                post_scaler=0.1),
+            prefilter=prefilter + [velo_states_z_ir])
+    ]
+
     return lines
 
 
@@ -441,8 +525,9 @@ def setup_hlt1_node(enablePhysics=True,
     if enableBGI:
         physics_lines += default_bgi_activity_lines(decode_velo(),
                                                     decode_calo(), prefilters)
-        physics_lines += default_bgi_pvs_lines(reconstructed_objects["pvs"],
-                                               prefilters)
+        physics_lines += default_bgi_pvs_lines(
+            reconstructed_objects["pvs"], reconstructed_objects["velo_states"],
+            prefilters)
 
     with line_maker.bind(prefilter=prefilters):
         monitoring_lines += alignment_monitoring_lines(reconstructed_objects,
