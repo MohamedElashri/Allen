@@ -41,7 +41,8 @@ namespace Allen::Store {
   template<typename internal_t>
   struct datatype {
     using type = internal_t;
-    static_assert(Allen::is_trivially_copyable_v<type> && "Allen datatypes must be trivially copyable");
+    static_assert(
+      Allen::is_trivially_copyable_v<std::remove_const_t<type>> && "Allen datatypes must be trivially copyable");
     __host__ __device__ datatype(type* value) : m_value(value) {}
     __host__ __device__ datatype() {}
 
@@ -51,19 +52,19 @@ namespace Allen::Store {
 
   // Input datatypes have read-only accessors.
   template<typename T>
-  struct input_datatype : datatype<T> {
-    using type = typename datatype<T>::type;
+  struct input_datatype : datatype<const T> {
+    using type = const T;
     __host__ __device__ input_datatype() {}
-    __host__ __device__ input_datatype(type* value) : datatype<T>(value) {}
-    __host__ __device__ operator const type*() const { return const_cast<const type*>(this->m_value); }
-    __host__ __device__ const type* get() const { return const_cast<const type*>(this->m_value); }
-    __host__ __device__ const type* operator->() const { return this->m_value; }
+    __host__ __device__ input_datatype(type* value) : datatype<type>(value) {}
+    __host__ __device__ operator type*() const { return this->m_value; }
+    __host__ __device__ type* get() const { return this->m_value; }
+    __host__ __device__ type* operator->() const { return this->m_value; }
   };
 
   // Output datatypes return pointers that can be modified.
   template<typename T>
   struct output_datatype : datatype<T> {
-    using type = typename datatype<T>::type;
+    using type = T;
     __host__ __device__ output_datatype() {}
     __host__ __device__ output_datatype(type* value) : datatype<T>(value) {}
     __host__ __device__ operator type*() const { return this->m_value; }
