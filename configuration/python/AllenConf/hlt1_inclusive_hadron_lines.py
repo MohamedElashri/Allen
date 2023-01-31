@@ -12,7 +12,7 @@ def make_kstopipi_line(long_tracks,
                        secondary_vertices,
                        pre_scaler_hash_string=None,
                        post_scaler_hash_string=None,
-                       name="Hlt1KsToPiPi"):
+                       name='Hlt1KsToPiPi_{hash}'):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -30,7 +30,7 @@ def make_track_mva_line(long_tracks,
                         long_track_particles,
                         pre_scaler_hash_string=None,
                         post_scaler_hash_string=None,
-                        name="Hlt1TrackMVA"):
+                        name='Hlt1TrackMVA_{hash}'):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -49,12 +49,12 @@ def make_two_track_mva_line(long_tracks,
                             secondary_vertices,
                             pre_scaler_hash_string=None,
                             post_scaler_hash_string=None,
-                            name="Hlt1TwoTrackMVA"):
+                            name='Hlt1TwoTrackMVA_{hash}'):
     number_of_events = initialize_number_of_events()
 
     two_track_mva_evaluator = make_algorithm(
         two_track_mva_evaluator_t,
-        name="two_track_mva_evaluator",
+        name='two_track_mva_evaluator_{hash}',
         dev_consolidated_svs_t=secondary_vertices["dev_consolidated_svs"],
         dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"])
@@ -76,7 +76,7 @@ def make_two_track_line_ks(long_tracks,
                            secondary_vertices,
                            pre_scaler_hash_string=None,
                            post_scaler_hash_string=None,
-                           name="Hlt1TwoTrackKs"):
+                           name='Hlt1TwoTrackKs_{hash}'):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(

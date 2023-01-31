@@ -68,7 +68,7 @@ def make_algorithm(algorithm, name, *args, **kwargs):
     cs = get_constants()
 
     dev_event_list = host_init_event_list_t(
-        name="make_event_list", runtime_options_t=rto,
+        name="make_event_list_{hash}", runtime_options_t=rto,
         constants_t=cs).dev_event_list_output_t
     # Pass dev_event_list to inputs that are of type dev_event_list
     event_list_names = [

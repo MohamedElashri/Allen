@@ -21,7 +21,7 @@ def make_velo_scifi_matches(velo_tracks,
 
     ut_select_velo_tracks = make_algorithm(
         ut_select_velo_tracks_t,
-        name="ut_select_velo_tracks",
+        name="ut_select_velo_tracks_{hash}",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_velo_tracks_t=velo_tracks[
             "host_number_of_reconstructed_velo_tracks"],
@@ -32,7 +32,7 @@ def make_velo_scifi_matches(velo_tracks,
 
     matched_tracks = make_algorithm(
         track_matching_veloSciFi_t,
-        name="track_matching_veloSciFi",
+        name='track_matching_veloSciFi_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_velo_tracks_t=velo_tracks[
@@ -49,12 +49,12 @@ def make_velo_scifi_matches(velo_tracks,
 
     prefix_sum_matched_tracks = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_matched_tracks",
+        name='prefix_sum_matched_tracks_{hash}',
         dev_input_buffer_t=matched_tracks.dev_atomics_matched_tracks_t)
 
     matching_copy_track_hit_number = make_algorithm(
         matching_copy_track_hit_number_t,
-        name="matching_copy_track_hit_number",
+        name='matching_copy_track_hit_number_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_matched_tracks_t=prefix_sum_matched_tracks
         .host_total_sum_holder_t,
@@ -64,13 +64,13 @@ def make_velo_scifi_matches(velo_tracks,
 
     prefix_sum_matched_track_hit_number = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_matched_track_hit_number",
+        name='prefix_sum_matched_track_hit_number_{hash}',
         dev_input_buffer_t=matching_copy_track_hit_number.
         dev_matched_track_hit_number_t)
 
     matching_consolidate_tracks = make_algorithm(
         matching_consolidate_tracks_t,
-        name="matching_consolidate_tracks",
+        name='matching_consolidate_tracks_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_hits_in_matched_tracks_t=
