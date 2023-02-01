@@ -4,7 +4,7 @@
 from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
                              make_checkCylPV, make_checkPseudoPV,
                              make_invert_event_list)
-from AllenConf.odin import make_bxtype, odin_error_filter
+from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
@@ -491,7 +491,8 @@ def setup_hlt1_node(enablePhysics=True,
                     with_calo=True,
                     with_muon=True,
                     enableBGI=False,
-                    tracking_type=TrackingType.FORWARD):
+                    tracking_type=TrackingType.FORWARD,
+                    tae_passthrough=False):
 
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(
@@ -515,6 +516,14 @@ def setup_hlt1_node(enablePhysics=True,
     with line_maker.bind(prefilter=odin_err_filter):
         monitoring_lines = odin_monitoring_lines(with_lumi, lumiline_name)
         physics_lines += [line_maker(make_passthrough_line())]
+
+    if tae_passthrough:
+        with line_maker.bind(prefilter=prefilters + [tae_filter()]):
+            physics_lines += [
+                line_maker(
+                    make_passthrough_line(
+                        name="Hlt1TAEPassthrough", pre_scaler=1))
+            ]
 
     if EnableGEC:
         with line_maker.bind(prefilter=prefilters):
@@ -615,11 +624,7 @@ def setup_hlt1_node(enablePhysics=True,
             lines,
             make_global_decision(lines=line_algorithms),
             make_routingbits_writer(lines=line_algorithms),
-            *make_sel_report_writer(
-                lines=line_algorithms,
-                long_tracks=reconstructed_objects["long_track_particles"],
-                secondary_vertices=reconstructed_objects["secondary_vertices"])
-            ["algorithms"],
+            *make_sel_report_writer(lines=line_algorithms)["algorithms"],
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)

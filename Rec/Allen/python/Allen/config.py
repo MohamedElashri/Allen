@@ -41,18 +41,22 @@ def allen_json_sequence(sequence="hlt1_pp_default", json=None):
     if sequence is None and json is not None:
         sequence = os.path.splitext(os.path.basename(json))[0]
 
-    config_path = "${ALLEN_INSTALL_DIR}/constants"
-    json_dir = os.path.join(
-        os.path.expandvars('${ALLEN_INSTALL_DIR}'), 'constants')
-    available_sequences = [
-        os.path.splitext(json_file)[0] for json_file in os.listdir(json_dir)
-    ]
-    if sequence not in available_sequences:
-        raise AttributeError("Sequence {} was not built in to Allen;"
-                             "available sequences: {}".format(
-                                 sequence, ' '.join(available_sequences)))
     if json is None:
+        config_path = "${ALLEN_INSTALL_DIR}/constants"
+        json_dir = os.path.join(
+            os.path.expandvars('${ALLEN_INSTALL_DIR}'), 'constants')
+        available_sequences = [
+            os.path.splitext(json_file)[0]
+            for json_file in os.listdir(json_dir)
+        ]
+        if sequence not in available_sequences:
+            raise AttributeError("Sequence {} was not built in to Allen;"
+                                 "available sequences: {}".format(
+                                     sequence, ' '.join(available_sequences)))
         json = os.path.join(config_path, "{}.json".format(sequence))
+    elif not os.path.exists(json):
+        raise OSError("JSON file does not exist")
+
     return (sequence, json)
 
 
