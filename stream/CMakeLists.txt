@@ -18,33 +18,34 @@ allen_add_host_library(Stream STATIC ${stream_src})
 
 target_link_libraries(Stream
   PRIVATE
-    Associate
-    Velo
-    PV_beamline
     HostClustering
+    HostDataProvider
+    HostDummyMaker
+    HostErrorBanks
+    HostGEC
+    HostInitEventList
     HostPrefixSum
     HostRoutingBits
-    UT
-    track_matching
-    Kalman
-    VertexFitter
-    SciFi
-    HostGEC
-    HostErrorBanks
-    Calo
-    Muon
-    Combiners
-    Examples
-    HostDataProvider
-    HostInitEventList
-    Backend
-    Validators
-    DeviceValidators
+    HostTAEFilter
     AllenCommon
-    algorithm_db
-    HostDummyMaker
+    Associate
+    Backend
+    Calo
+    Combiners
+    DeviceValidators
+    Examples
+    Kalman
     Lumi
+    Muon
+    PV_beamline
     Plume
+    SciFi
+    UT
+    Validators
+    Velo
+    VertexFitter
+    algorithm_db
+    track_matching
   PUBLIC
     Utils
     Selections)

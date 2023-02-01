@@ -9,8 +9,9 @@ from AllenCore.algorithms import (
     displaced_di_muon_mass_line_t,
     di_muon_mass_alignment_line_t,
 )
-from AllenConf.utils import initialize_number_of_events
+from AllenConf.utils import initialize_number_of_events, line_maker
 from AllenCore.generator import make_algorithm
+from PyConf.tonic import configurable
 
 
 def make_d2kpi_line(long_tracks,
@@ -150,3 +151,13 @@ def make_di_muon_mass_align_line(long_tracks,
         maxDoca=maxDoca,
         maxVertexChi2=maxVertexChi2,
         minIPChi2=minIPChi2)
+
+
+@configurable
+def make_tae_line(prefilters, accept_sub_events=True, pre_scaler=1):
+    from .odin import tae_filter
+    tf = tae_filter(accept_sub_events=accept_sub_events)
+    return line_maker(
+        make_passthrough_line(
+            name="Hlt1TAEPassthrough", pre_scaler=pre_scaler),
+        prefilter=prefilters + [tf])

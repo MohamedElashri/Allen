@@ -11,7 +11,7 @@ from AllenConf.hlt1_photon_lines import make_single_calo_cluster_line
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction
 from AllenConf.hlt1_monitoring_lines import make_calo_digits_minADC_line, make_odin_event_type_line, make_velo_micro_bias_line
 from AllenConf.hlt1_calibration_lines import make_passthrough_line
-from AllenConf.odin import make_bxtype, odin_error_filter
+from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 
 reconstructed_objects = hlt1_reconstruction()
@@ -33,7 +33,13 @@ with line_maker.bind(prefilter=prefilters):
     lines.append(
         line_maker(
             make_odin_event_type_line(
-                name=lumiline_name, odin_event_type='Lumi')))
+                name=lumiline_name, odin_event_type='Lumi',
+                pre_scaler=0.0001)))
+
+with line_maker.bind(prefilter=prefilters + [tae_filter()]):
+    lines.append(
+        line_maker(
+            make_passthrough_line(name="Hlt1TAEPassthrough", pre_scaler=1)))
 
 line_algorithms = [tup[0] for tup in lines]
 

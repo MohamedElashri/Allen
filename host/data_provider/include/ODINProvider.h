@@ -18,6 +18,7 @@ namespace odin_provider {
     DEVICE_OUTPUT(dev_odin_data_t, ODINData) dev_odin_data;
     HOST_OUTPUT(host_odin_data_t, ODINData) host_odin_data;
     HOST_OUTPUT(host_raw_bank_version_t, int) host_raw_bank_version;
+    HOST_OUTPUT(host_event_list_t, unsigned) host_event_list;
     DEVICE_OUTPUT(dev_event_mask_t, unsigned) dev_event_mask;
   };
 

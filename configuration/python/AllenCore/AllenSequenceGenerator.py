@@ -123,9 +123,7 @@ def generate_json_configuration(algorithms, filename):
 
 
 def generate_allen_sequence(algorithms,
-                            sequence_filename="Sequence.h",
-                            json_configuration_filename="Sequence.json",
-                            prefix_includes=""):
+                            json_configuration_filename="Sequence.json"):
     """Generates an Allen valid sequence.
 
     * json_configuration_filename: JSON configuration that can be changed at runtime to change
