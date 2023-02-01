@@ -3,6 +3,14 @@
 \*****************************************************************************/
 #include <Transpose.h>
 
+namespace {
+  std::unordered_set<LHCb::RawBank::BankType> dont_count = {LHCb::RawBank::DAQ,
+                                                            LHCb::RawBank::HltDecReports,
+                                                            LHCb::RawBank::HltSelReports,
+                                                            LHCb::RawBank::HltRoutingBits,
+                                                            LHCb::RawBank::HltLumiSummary};
+}
+
 std::array<int, LHCb::NBankTypes> Allen::bank_ids()
 {
   // Cache the mapping of LHCb::RawBank::BankType to Allen::BankType
@@ -35,10 +43,7 @@ bool check_sourceIDs(gsl::span<char const> bank_data)
   while (bank < bank_data.data() + bank_data.size()) {
 
     const auto* b = reinterpret_cast<const LHCb::RawBank*>(bank);
-
-    if (
-      b->type() != LHCb::RawBank::DAQ && b->type() != LHCb::RawBank::HltDecReports &&
-      b->type() != LHCb::RawBank::HltSelReports) {
+    if (!dont_count.count(b->type())) {
       has_top5 += (SourceId_sys(static_cast<short>(b->sourceID())) != 0);
       ++n_banks;
     }
@@ -80,7 +85,7 @@ BankTypes sd_from_sourceID(LHCb::RawBank const* raw_bank)
   auto sd = SourceId_sys(raw_bank->sourceID());
   auto it = Allen::subdetectors.find(static_cast<SourceIdSys>(sd));
   auto source_type = (it == Allen::subdetectors.end()) ? BankTypes::Unknown : it->second;
-  if (source_type == BankTypes::ODIN && raw_bank->type() == LHCb::RawBank::DAQ) {
+  if (dont_count.count(raw_bank->type())) {
     return BankTypes::Unknown;
   }
   else {
@@ -117,7 +122,7 @@ std::tuple<bool, bool, size_t> read_events(
   // Keep track of where to write and the end of the prefetch buffer
   size_t n_bytes = 0;
   bool eof = false, error = false;
-  gsl::span<char> bank_span;
+  gsl::span<const char> bank_span;
 
   // Loop until the requested number of events is prefetched, the
   // maximum number of events per prefetch buffer is hit, an error
