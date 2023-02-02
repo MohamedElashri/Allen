@@ -36,6 +36,19 @@ Photon lines
   :members:
   :undoc-members:
 
+Heavy ion lines
+^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: AllenConf.hlt1_heavy_ions_lines
+  :members:
+  :undoc-members:
+
+SMOG2 lines
+^^^^^^^^^^^^^^^
+.. automodule:: AllenConf.hlt1_smog2_lines
+  :members:
+  :undoc-members:
+
 Calibration lines
 ^^^^^^^^^^^^^^^^^^^^^^
 
