@@ -18,7 +18,6 @@ gaudi_add_module(AllenWrapper
                    src/GaudiAllenCaloToCaloClusters.cpp
                    src/GaudiAllenCountAndDumpLineDecisions.cpp
                    src/GaudiAllenForwardToV2Tracks.cpp
-                   src/GaudiAllenSeedAndMatchNoUTToV2Tracks.cpp
                    src/GaudiAllenReportsToRawEvent.cpp
                    src/GaudiAllenLumiSummaryToRawEvent.cpp
                    src/GaudiAllenSVsToRecVertexV2.cpp
