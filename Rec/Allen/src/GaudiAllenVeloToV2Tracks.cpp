@@ -12,26 +12,23 @@
 // Allen
 #include "Logger.h"
 #include "VeloConsolidated.cuh"
+#include "States.cuh"
 
 /**
  * Convert Velo::Consolidated::Tracks into LHCb::Event::v2::Track
  */
 
 class GaudiAllenVeloToV2Tracks final : public Gaudi::Functional::Transformer<std::vector<LHCb::Event::v2::Track>(
-                                         const std::vector<unsigned>&,
-                                         const std::vector<unsigned>&,
-                                         const std::vector<char>&,
-                                         const std::vector<char>&)> {
+                                         const std::vector<Allen::IMultiEventContainer*>&,
+                                         const std::vector<Allen::Views::Physics::KalmanStates>&)> {
 public:
   /// Standard constructor
   GaudiAllenVeloToV2Tracks(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
   std::vector<LHCb::Event::v2::Track> operator()(
-    const std::vector<unsigned>& allen_velo_track_atomics,
-    const std::vector<unsigned>& allen_velo_track_offsets,
-    const std::vector<char>& allen_velo_track_hits,
-    const std::vector<char>& allen_velo_kalman_states) const override;
+    const std::vector<Allen::IMultiEventContainer*>& allen_velo_tracks_mec,
+    const std::vector<Allen::Views::Physics::KalmanStates>& allen_velo_kalman_states) const override;
 
 private:
   Gaudi::Property<float> m_ptVelo {this, "ptVelo", 400 * Gaudi::Units::MeV, "Default pT for Velo tracks"};
@@ -44,30 +41,21 @@ GaudiAllenVeloToV2Tracks::GaudiAllenVeloToV2Tracks(const std::string& name, ISvc
     name,
     pSvcLocator,
     // Inputs
-    {KeyValue {"AllenVeloTrackOffsets", ""},
-     KeyValue {"AllenVeloTrackHitOffsets", ""},
-     KeyValue {"AllenVeloTrackHits", ""},
-     KeyValue {"AllenVeloKalmanStates", ""}},
+    {KeyValue {"allen_velo_tracks_mec", ""}, KeyValue {"allen_velo_states_view", ""}},
     // Outputs
     {KeyValue {"OutputTracks", "Allen/Track/v2/Velo"}})
 {}
 
 std::vector<LHCb::Event::v2::Track> GaudiAllenVeloToV2Tracks::operator()(
-  const std::vector<unsigned>& allen_velo_track_offsets,
-  const std::vector<unsigned>& allen_velo_track_hit_offsets,
-  const std::vector<char>& allen_velo_track_hits,
-  const std::vector<char>& allen_velo_kalman_states) const
+  const std::vector<Allen::IMultiEventContainer*>& allen_velo_tracks_mec,
+  const std::vector<Allen::Views::Physics::KalmanStates>& allen_velo_kalman_states) const
 {
   // Make the consolidated tracks.
   const unsigned i_event = 0;
-  const unsigned number_of_events = 1;
-  const Velo::Consolidated::Tracks velo_tracks {
-    allen_velo_track_offsets.data(), allen_velo_track_hit_offsets.data(), i_event, number_of_events};
-  const Velo::Consolidated::ConstStates velo_states(
-    allen_velo_kalman_states.data(), velo_tracks.total_number_of_tracks());
-  const unsigned event_tracks_offset = velo_tracks.tracks_offset(i_event);
+  const auto velo_tracks_view =
+    static_cast<Allen::Views::Velo::Consolidated::MultiEventTracks*>(allen_velo_tracks_mec[0])->container(i_event);
+  const unsigned number_of_tracks = velo_tracks_view.size();
 
-  const unsigned number_of_tracks = velo_tracks.number_of_tracks(i_event);
   std::vector<LHCb::Event::v2::Track> output;
   output.reserve(number_of_tracks);
 
@@ -77,34 +65,29 @@ std::vector<LHCb::Event::v2::Track> GaudiAllenVeloToV2Tracks::operator()(
     auto& newTrack = output.emplace_back();
 
     // add Velo hits
-    Velo::Consolidated::ConstHits track_hits = velo_tracks.get_hits(allen_velo_track_hits.data(), t);
-    for (unsigned i = 0; i < velo_tracks.number_of_hits(t); ++i) {
-      const auto id = track_hits.id(i);
+    const auto track = velo_tracks_view.track(t);
+    const unsigned n_hits = track.number_of_ids();
+    for (unsigned i = 0; i < n_hits; ++i) {
+      const auto id = track.id(i);
       const LHCb::LHCbID lhcbid {id};
       newTrack.addToLhcbIDs(lhcbid);
       if (msgLevel(MSG::DEBUG)) debug() << "Adding LHCbID " << std::hex << id << std::dec << endmsg;
     }
 
     // set state at beamline
-    const unsigned current_track_offset = event_tracks_offset + t;
+    const auto state = track.state(allen_velo_kalman_states[0]);
     LHCb::State closesttobeam_state;
-    closesttobeam_state.setState(
-      velo_states.x(current_track_offset),
-      velo_states.y(current_track_offset),
-      velo_states.z(current_track_offset),
-      velo_states.tx(current_track_offset),
-      velo_states.ty(current_track_offset),
-      0.f);
-    closesttobeam_state.covariance()(0, 0) = velo_states.c00(current_track_offset);
-    closesttobeam_state.covariance()(1, 1) = velo_states.c11(current_track_offset);
-    closesttobeam_state.covariance()(0, 2) = velo_states.c20(current_track_offset);
-    closesttobeam_state.covariance()(2, 2) = velo_states.c22(current_track_offset);
-    closesttobeam_state.covariance()(1, 3) = velo_states.c31(current_track_offset);
-    closesttobeam_state.covariance()(3, 3) = velo_states.c33(current_track_offset);
+    closesttobeam_state.setState(state.x(), state.y(), state.z(), state.tx(), state.ty(), 0.f);
+    closesttobeam_state.covariance()(0, 0) = state.c00();
+    closesttobeam_state.covariance()(1, 1) = state.c11();
+    closesttobeam_state.covariance()(0, 2) = state.c20();
+    closesttobeam_state.covariance()(2, 2) = state.c22();
+    closesttobeam_state.covariance()(1, 3) = state.c31();
+    closesttobeam_state.covariance()(3, 3) = state.c33();
     closesttobeam_state.setLocation(LHCb::State::Location::ClosestToBeam);
     newTrack.addToStates(closesttobeam_state);
 
-    const bool backward = closesttobeam_state.z() > track_hits.z(0);
+    const bool backward = closesttobeam_state.z() > track.hit(0).z();
 
     if (backward)
       newTrack.setType(LHCb::Event::v2::Track::Type::VeloBackward);
