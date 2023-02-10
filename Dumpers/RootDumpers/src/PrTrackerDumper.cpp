@@ -173,6 +173,7 @@ public:
     const bool fromBeautyDecay,
     const bool fromCharmDecay,
     const bool fromStrangeDecay,
+    const bool fromSignal,
     const int mother_key,
     const int mother_pid,
     const int DecayOriginMother_key,
@@ -257,6 +258,7 @@ void PrTrackerDumper::write_MCP_info(
   const bool fromBeautyDecay,
   const bool fromCharmDecay,
   const bool fromStrangeDecay,
+  const bool fromSignal,
   const int mother_key,
   const int mother_pid,
   const int DecayOriginMother_key,
@@ -287,6 +289,7 @@ void PrTrackerDumper::write_MCP_info(
   out_buffer.write(fromBeautyDecay);
   out_buffer.write(fromCharmDecay);
   out_buffer.write(fromStrangeDecay);
+  out_buffer.write(fromSignal);
   out_buffer.write(mother_key);
   out_buffer.write(mother_pid);
   out_buffer.write(DecayOriginMother_key);
@@ -359,14 +362,12 @@ LHCb::RawEvent PrTrackerDumper::operator()(
     (m_outputDirectory.value() + "/DumperFTUTHits_runNb_" + to_string(odin.runNumber()) + "_evtNb_" +
      to_string(odin.eventNumber()) + ".root");
   std::optional<TFile> file;
+  std::optional<TTree*> tree;
+
   if (m_writeROOT) { // save one ROOT file per event
     file.emplace(filename.c_str(), "RECREATE");
+    tree.emplace(new TTree("Hits_detectors", "Hits_detectors"));
   }
-  else { // write to temporary ROOT file, overwrite with next event
-    file.emplace("tmp.root", "RECREATE");
-  }
-  TTree* tree = new TTree("Hits_detectors", "Hits_detectors");
-
   if (msgLevel(MSG::DEBUG)) {
     debug() << "Loaded VPClusters , N hits " << VPClusters.size() << endmsg;
     debug() << "Loaded FTHits     , N hits " << prFTHitHandler.hits().size() << endmsg;
@@ -469,21 +470,9 @@ LHCb::RawEvent PrTrackerDumper::operator()(
     debug() << "--- Creating branches in TTree ---" << endmsg;
   }
 
-  tree->Branch("nbHits_in_Velo", &nbHits_in_Velo);
-  tree->Branch("nbHits_in_UT", &nbHits_in_UT);
-  tree->Branch("nbHits_in_SciFi", &nbHits_in_SciFi);
   nbHits_in_Velo = VPClusters.size();
   nbHits_in_UT = computeNbUTHits(prUTHitHandler);
   nbHits_in_SciFi = (int) prFTHitHandler.hits().size();
-
-  tree->Branch("nVeloHits", &nVeloHits);
-  tree->Branch("Velo_x", &Velo_x);
-  tree->Branch("Velo_y", &Velo_y);
-  tree->Branch("Velo_z", &Velo_z);
-  tree->Branch("Velo_Module", &Velo_Module);
-  tree->Branch("Velo_Sensor", &Velo_Sensor);
-  tree->Branch("Velo_Station", &Velo_Station);
-  tree->Branch("Velo_lhcbID", &Velo_lhcbID);
 
   // SciFi
   vector<float> FT_hitx;
@@ -498,18 +487,6 @@ LHCb::RawEvent PrTrackerDumper::operator()(
   vector<unsigned int> FT_lhcbID;
 
   int nFTHits;
-  tree->Branch("nFTHits", &nFTHits);
-  tree->Branch("FT_x", &FT_hitx);
-  tree->Branch("FT_z", &FT_hitz);
-  tree->Branch("FT_w", &FT_hitw);
-  tree->Branch("FT_dxdy", &FT_hitDXDY);
-  tree->Branch("FT_dzdy", &FT_hitDZDY);
-  tree->Branch("FT_YMin", &FT_hitYMin);
-  tree->Branch("FT_YMax", &FT_hitYMax);
-  tree->Branch("FT_hitPlaneCode", &FT_hitPlaneCode);
-  tree->Branch("FT_hitzone", &FT_hitzone);
-  tree->Branch("FT_lhcbID", &FT_lhcbID);
-
   // UT info
   vector<float> UT_cos;
   vector<float> UT_cosT;
@@ -533,28 +510,6 @@ LHCb::RawEvent PrTrackerDumper::operator()(
   vector<float> UT_zAtYEq0;
 
   int nUTHits;
-  tree->Branch("nUTHits", &nUTHits);
-  tree->Branch("UT_cos", &UT_cos);
-  tree->Branch("UT_cosT", &UT_cosT);
-  tree->Branch("UT_dxDy", &UT_dxDy);
-  tree->Branch("UT_lhcbID", &UT_lhcbID);
-  tree->Branch("UT_planeCode", &UT_planeCode);
-  tree->Branch("UT_sinT", &UT_sinT);
-  tree->Branch("UT_size", &UT_size);
-  tree->Branch("UT_tanT", &UT_tanT);
-  tree->Branch("UT_weight", &UT_weight);
-  tree->Branch("UT_xAtYEq0", &UT_xAtYEq0);
-  tree->Branch("UT_xAtYMid", &UT_xAtYMid);
-  tree->Branch("UT_xMax", &UT_xMax);
-  tree->Branch("UT_xMin", &UT_xMin);
-  tree->Branch("UT_xT", &UT_xT);
-  tree->Branch("UT_yBegin", &UT_yBegin);
-  tree->Branch("UT_yEnd", &UT_yEnd);
-  tree->Branch("UT_yMax", &UT_yMax);
-  tree->Branch("UT_yMid", &UT_yMid);
-  tree->Branch("UT_yMin", &UT_yMin);
-  tree->Branch("UT_zAtYEq0", &UT_zAtYEq0);
-
   bool fullInfo;
   bool hasSciFi;
   bool hasUT;
@@ -581,33 +536,76 @@ LHCb::RawEvent PrTrackerDumper::operator()(
   float DecayOriginMother_pt;
   float DecayOriginMother_tau;
   float charge;
-
-  tree->Branch("fullInfo", &fullInfo);
-  tree->Branch("hasSciFi", &hasSciFi);
-  tree->Branch("hasUT", &hasUT);
-  tree->Branch("hasVelo", &hasVelo);
-  tree->Branch("isDown", &isDown);
-  tree->Branch("isDown_noVelo", &isDown_noVelo);
-  tree->Branch("isLong", &isLong);
-  tree->Branch("key", &key);
-  tree->Branch("isLong_andUT", &isLong_andUT);
-  tree->Branch("p", &p);
-  tree->Branch("pt", &pt);
-  tree->Branch("pid", &pid);
-  tree->Branch("eta", &eta);
-  tree->Branch("phi", &phi);
-  tree->Branch("ovtx_x", &ovtx_x);
-  tree->Branch("ovtx_y", &ovtx_y);
-  tree->Branch("ovtx_z", &ovtx_z);
-  tree->Branch("fromBeautyDecay", &fromBeautyDecay);
-  tree->Branch("fromCharmDecay", &fromCharmDecay);
-  tree->Branch("fromStrangeDecay", &fromStrangeDecay);
-  tree->Branch("DecayOriginMother_pid", &DecayOriginMother_pid);
-  tree->Branch("DecayOriginMother_key", &DecayOriginMother_key);
-  tree->Branch("DecayOriginMother_pt", &DecayOriginMother_pt);
-  tree->Branch("DecayOriginMother_tau", &DecayOriginMother_tau);
-  tree->Branch("charge", &charge);
-
+  if (tree) {
+    (*tree)->Branch("nbHits_in_Velo", &nbHits_in_Velo);
+    (*tree)->Branch("nbHits_in_UT", &nbHits_in_UT);
+    (*tree)->Branch("nbHits_in_SciFi", &nbHits_in_SciFi);
+    (*tree)->Branch("nVeloHits", &nVeloHits);
+    (*tree)->Branch("Velo_x", &Velo_x);
+    (*tree)->Branch("Velo_y", &Velo_y);
+    (*tree)->Branch("Velo_z", &Velo_z);
+    (*tree)->Branch("Velo_Module", &Velo_Module);
+    (*tree)->Branch("Velo_Sensor", &Velo_Sensor);
+    (*tree)->Branch("Velo_Station", &Velo_Station);
+    (*tree)->Branch("Velo_lhcbID", &Velo_lhcbID);
+    (*tree)->Branch("nFTHits", &nFTHits);
+    (*tree)->Branch("FT_x", &FT_hitx);
+    (*tree)->Branch("FT_z", &FT_hitz);
+    (*tree)->Branch("FT_w", &FT_hitw);
+    (*tree)->Branch("FT_dxdy", &FT_hitDXDY);
+    (*tree)->Branch("FT_dzdy", &FT_hitDZDY);
+    (*tree)->Branch("FT_YMin", &FT_hitYMin);
+    (*tree)->Branch("FT_YMax", &FT_hitYMax);
+    (*tree)->Branch("FT_hitPlaneCode", &FT_hitPlaneCode);
+    (*tree)->Branch("FT_hitzone", &FT_hitzone);
+    (*tree)->Branch("FT_lhcbID", &FT_lhcbID);
+    (*tree)->Branch("nUTHits", &nUTHits);
+    (*tree)->Branch("UT_cos", &UT_cos);
+    (*tree)->Branch("UT_cosT", &UT_cosT);
+    (*tree)->Branch("UT_dxDy", &UT_dxDy);
+    (*tree)->Branch("UT_lhcbID", &UT_lhcbID);
+    (*tree)->Branch("UT_planeCode", &UT_planeCode);
+    (*tree)->Branch("UT_sinT", &UT_sinT);
+    (*tree)->Branch("UT_size", &UT_size);
+    (*tree)->Branch("UT_tanT", &UT_tanT);
+    (*tree)->Branch("UT_weight", &UT_weight);
+    (*tree)->Branch("UT_xAtYEq0", &UT_xAtYEq0);
+    (*tree)->Branch("UT_xAtYMid", &UT_xAtYMid);
+    (*tree)->Branch("UT_xMax", &UT_xMax);
+    (*tree)->Branch("UT_xMin", &UT_xMin);
+    (*tree)->Branch("UT_xT", &UT_xT);
+    (*tree)->Branch("UT_yBegin", &UT_yBegin);
+    (*tree)->Branch("UT_yEnd", &UT_yEnd);
+    (*tree)->Branch("UT_yMax", &UT_yMax);
+    (*tree)->Branch("UT_yMid", &UT_yMid);
+    (*tree)->Branch("UT_yMin", &UT_yMin);
+    (*tree)->Branch("UT_zAtYEq0", &UT_zAtYEq0);
+    (*tree)->Branch("fullInfo", &fullInfo);
+    (*tree)->Branch("hasSciFi", &hasSciFi);
+    (*tree)->Branch("hasUT", &hasUT);
+    (*tree)->Branch("hasVelo", &hasVelo);
+    (*tree)->Branch("isDown", &isDown);
+    (*tree)->Branch("isDown_noVelo", &isDown_noVelo);
+    (*tree)->Branch("isLong", &isLong);
+    (*tree)->Branch("key", &key);
+    (*tree)->Branch("isLong_andUT", &isLong_andUT);
+    (*tree)->Branch("p", &p);
+    (*tree)->Branch("pt", &pt);
+    (*tree)->Branch("pid", &pid);
+    (*tree)->Branch("eta", &eta);
+    (*tree)->Branch("phi", &phi);
+    (*tree)->Branch("ovtx_x", &ovtx_x);
+    (*tree)->Branch("ovtx_y", &ovtx_y);
+    (*tree)->Branch("ovtx_z", &ovtx_z);
+    (*tree)->Branch("fromBeautyDecay", &fromBeautyDecay);
+    (*tree)->Branch("fromCharmDecay", &fromCharmDecay);
+    (*tree)->Branch("fromStrangeDecay", &fromStrangeDecay);
+    (*tree)->Branch("DecayOriginMother_pid", &DecayOriginMother_pid);
+    (*tree)->Branch("DecayOriginMother_key", &DecayOriginMother_key);
+    (*tree)->Branch("DecayOriginMother_pt", &DecayOriginMother_pt);
+    (*tree)->Branch("DecayOriginMother_tau", &DecayOriginMother_tau);
+    (*tree)->Branch("charge", &charge);
+  }
   // Count number of reconstructible primary vertices
   LHCb::MCVertices* mcVert = getIfExists<LHCb::MCVertices>(LHCb::MCVertexLocation::Default);
   if (mcVert == nullptr) {
@@ -847,7 +845,7 @@ LHCb::RawEvent PrTrackerDumper::operator()(
       mother_key = mcparticle->originVertex()->mother()->key();
       mother_pid = mcparticle->originVertex()->mother()->particleID().pid();
     }
-
+    bool fromSignal = mcparticle->fromSignal();
     // boost::interprocess::basic_vectorstream<std::vector<char>> m_buffer;
     // std::ostream* raw = &rawBuffer;
     write_MCP_info(
@@ -868,6 +866,7 @@ LHCb::RawEvent PrTrackerDumper::operator()(
       fromBeautyDecay,
       fromCharmDecay,
       fromStrangeDecay,
+      fromSignal,
       mother_key,
       mother_pid,
       DecayOriginMother_key,
@@ -880,13 +879,13 @@ LHCb::RawEvent PrTrackerDumper::operator()(
       FT_lhcbID,
       nPrim,
       rawBuffer);
-    tree->Fill();
+    if (tree) (*tree)->Fill();
   } // MCParticles
 
   // write rawBuffer to rawEvent
   constexpr int bankSize = 64512;
   for (const auto [sourceID, data] : LHCb::range::enumerate(LHCb::range::chunk(rawBuffer.buffer(), bankSize))) {
-    rawEvent.addBank(sourceID, m_bankType, 1, data);
+    rawEvent.addBank(sourceID, m_bankType, 2, data);
   }
 
   if (msgLevel(MSG::DEBUG)) {
@@ -1033,11 +1032,11 @@ LHCb::RawEvent PrTrackerDumper::operator()(
   ovtx_y = -9999999999999.;
   ovtx_z = -9999999999999.;
   key = -999999;
-  tree->Fill();
-
-  file->Write();
-  file->Close();
-
+  if (tree) {
+    (*tree)->Fill();
+    file->Write();
+    file->Close();
+  }
   return rawEvent;
 }
 

@@ -19,6 +19,7 @@ namespace mc_data_provider {
     HOST_INPUT(host_mc_pv_offsets_t, gsl::span<unsigned int const>) mc_pv_offsets;
     HOST_INPUT(host_mc_pv_sizes_t, gsl::span<unsigned int const>) mc_pv_sizes;
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_bank_version_t, int) host_bank_version;
     HOST_OUTPUT(host_mc_events_t, const MCEvents*) host_mc_events;
   };
 
