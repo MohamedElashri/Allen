@@ -32,6 +32,7 @@ namespace calo_lumi_counters {
   __global__ void calo_lumi_counters(Parameters, const unsigned number_of_events, const char* raw_ecal_geometry);
 
   struct calo_lumi_counters_t : public DeviceAlgorithm, Parameters {
+
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
@@ -42,5 +43,6 @@ namespace calo_lumi_counters {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
+
   }; // struct calo_lumi_counters_t
 } // namespace calo_lumi_counters
