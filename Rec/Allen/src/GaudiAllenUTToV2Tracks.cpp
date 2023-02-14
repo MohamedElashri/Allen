@@ -103,11 +103,11 @@ std::vector<LHCb::Event::v2::Track> GaudiAllenUTToV2Tracks::operator()(
     LHCb::State closesttobeam_state;
     const float qop = track.qop();
     closesttobeam_state.setState(
-      velo_beamline_state.x(),
-      velo_beamline_state.y(),
-      velo_beamline_state.z(),
-      velo_beamline_state.tx(),
-      velo_beamline_state.ty(),
+      velo_beamline_state.x,
+      velo_beamline_state.y,
+      velo_beamline_state.z,
+      velo_beamline_state.tx,
+      velo_beamline_state.ty,
       qop);
     closesttobeam_state.setLocation(LHCb::State::Location::ClosestToBeam);
     newTrack.addToStates(closesttobeam_state);
@@ -116,11 +116,11 @@ std::vector<LHCb::Event::v2::Track> GaudiAllenUTToV2Tracks::operator()(
     const auto velo_endvelo_state = velo_track.state(allen_endvelo_states[0]);
     LHCb::State endvelo_state;
     endvelo_state.setState(
-      velo_endvelo_state.x(),
-      velo_endvelo_state.y(),
-      velo_endvelo_state.z(),
-      velo_endvelo_state.tx(),
-      velo_endvelo_state.ty(),
+      velo_endvelo_state.x,
+      velo_endvelo_state.y,
+      velo_endvelo_state.z,
+      velo_endvelo_state.tx,
+      velo_endvelo_state.ty,
       qop);
     endvelo_state.setLocation(LHCb::State::Location::EndVelo);
     newTrack.addToStates(endvelo_state);

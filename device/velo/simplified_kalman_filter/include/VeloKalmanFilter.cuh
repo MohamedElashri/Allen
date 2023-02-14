@@ -61,9 +61,9 @@ namespace velo_kalman_filter {
   __device__ KalmanVeloState simplified_fit(
     const Allen::Views::Velo::Consolidated::Track& track,
     const MiniState& stateAtBeamLine,
-    float* dev_beamline)
+    float* dev_beamline,
+    bool backward)
   {
-    const bool backward = stateAtBeamLine.z > track.hit(0).z();
     const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
     const float noise2PerLayer =
       1e-8f + 7e-6f * (stateAtBeamLine.tx * stateAtBeamLine.tx + stateAtBeamLine.ty * stateAtBeamLine.ty);
@@ -158,6 +158,7 @@ namespace velo_kalman_filter {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_offsets_all_velo_tracks;
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
+    DEVICE_OUTPUT(dev_is_backward_t, bool) dev_is_backward;
     DEVICE_OUTPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
     DEVICE_OUTPUT(dev_velo_kalman_endvelo_states_t, char) dev_velo_kalman_endvelo_states;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
@@ -171,12 +172,18 @@ namespace velo_kalman_filter {
       Allen::Views::Physics::KalmanStates)
     dev_velo_kalman_endvelo_states_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   __global__ void velo_kalman_filter(Parameters, float* dev_beamline);
 
   struct velo_kalman_filter_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+
+    void output_monitor(
+      const ArgumentReferences<Parameters>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Allen::Context& context) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -186,5 +193,6 @@ namespace velo_kalman_filter {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<enable_monitoring_t> m_enable_monitoring {this, false};
   };
 } // namespace velo_kalman_filter

@@ -10,6 +10,7 @@
 #include "ConsolidatedTypes.cuh"
 #include "MultiEventContainer.cuh"
 #include "BackendCommon.h"
+#include "KinUtils.cuh"
 
 namespace Allen {
   namespace Views {
@@ -241,10 +242,16 @@ namespace Allen {
             return m_hits->hit(m_offset + index);
           }
 
-          __host__ __device__ Allen::Views::Physics::KalmanState state(
-            const Allen::Views::Physics::KalmanStates& states_view) const
+          __host__ __device__ KalmanVeloState state(const Allen::Views::Physics::KalmanStates& states_view) const
           {
-            return states_view.state(m_track_index);
+            return static_cast<KalmanVeloState>(states_view.state(m_track_index));
+          }
+
+          __host__ __device__ float eta(const Allen::Views::Physics::KalmanStates& states_view, bool backward) const
+          {
+            const auto tx = state(states_view).tx;
+            const auto ty = state(states_view).ty;
+            return eta_from_rho_z(std::sqrt(tx * tx + ty * ty), backward ? -1.f : 1.f);
           }
         };
 

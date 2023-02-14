@@ -316,11 +316,11 @@ __device__ void scifi_consolidate_tracks_impl(
     // Update qop of the track
     const auto magSign = dev_magnet_polarity[0];
     const auto z0 = LookingForward::z_mid_t;
-    const auto xVelo = velo_state.x();
-    const auto yVelo = velo_state.y();
-    const auto zVelo = velo_state.z();
-    const auto txO = velo_state.tx();
-    const auto tyO = velo_state.ty();
+    const auto xVelo = velo_state.x;
+    const auto yVelo = velo_state.y;
+    const auto zVelo = velo_state.z;
+    const auto txO = velo_state.tx;
+    const auto tyO = velo_state.ty;
 
     // QoP for scifi tracks
     scifi_tracks.qop(i) =

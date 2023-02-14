@@ -77,13 +77,13 @@ std::vector<LHCb::Event::v2::Track> GaudiAllenVeloToV2Tracks::operator()(
     // set state at beamline
     const auto state = track.state(allen_velo_kalman_states[0]);
     LHCb::State closesttobeam_state;
-    closesttobeam_state.setState(state.x(), state.y(), state.z(), state.tx(), state.ty(), 0.f);
-    closesttobeam_state.covariance()(0, 0) = state.c00();
-    closesttobeam_state.covariance()(1, 1) = state.c11();
-    closesttobeam_state.covariance()(0, 2) = state.c20();
-    closesttobeam_state.covariance()(2, 2) = state.c22();
-    closesttobeam_state.covariance()(1, 3) = state.c31();
-    closesttobeam_state.covariance()(3, 3) = state.c33();
+    closesttobeam_state.setState(state.x, state.y, state.z, state.tx, state.ty, 0.f);
+    closesttobeam_state.covariance()(0, 0) = state.c00;
+    closesttobeam_state.covariance()(1, 1) = state.c11;
+    closesttobeam_state.covariance()(0, 2) = state.c20;
+    closesttobeam_state.covariance()(2, 2) = state.c22;
+    closesttobeam_state.covariance()(1, 3) = state.c31;
+    closesttobeam_state.covariance()(3, 3) = state.c33;
     closesttobeam_state.setLocation(LHCb::State::Location::ClosestToBeam);
     newTrack.addToStates(closesttobeam_state);
 
