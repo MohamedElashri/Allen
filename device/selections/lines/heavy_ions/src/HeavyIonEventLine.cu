@@ -26,7 +26,7 @@ heavy_ion_event_line::heavy_ion_event_line_t::get_input(
   for (unsigned i_track = 0; i_track < velo_tracks.size(); i_track++) {
     const auto velo_track = velo_tracks.track(i_track);
     const auto velo_state = velo_track.state(velo_states);
-    if (velo_state.z() < -341.f)
+    if (velo_state.z < -341.f)
       n_velo_tracks_SMOG++;
     else
       n_velo_tracks_PbPb++;

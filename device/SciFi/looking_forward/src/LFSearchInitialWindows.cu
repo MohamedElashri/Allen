@@ -104,8 +104,8 @@ __device__ void search_windows(
       }
       else {
         const auto velo_state = input_track.state(velo_states_view);
-        const float input_tx = velo_state.tx();
-        const float input_ty = velo_state.ty();
+        const float input_tx = velo_state.tx;
+        const float input_ty = velo_state.ty;
         // if I assume pt = 1 GeV , then I can calculate p from tx and ty of the Velo input track
         const float momentum_from_pt =
           parameters.input_pt / cosf(atanf(1 / sqrtf(input_tx * input_tx + input_ty * input_ty)));
@@ -125,7 +125,7 @@ __device__ void search_windows(
         const float input_z = input_track.z();
         const auto velo_track = input_track.velo_track();
         const auto velo_state = velo_track.state(velo_states_view);
-        const float input_ty = velo_state.ty();
+        const float input_ty = velo_state.ty;
         const MiniState start_input_state {
           input_x, LookingForward::y_at_z(velo_state, input_z), input_z, input_tx, input_ty};
         return LookingForward::state_at_z(start_input_state, LookingForward::z_last_UT_plane);
@@ -133,10 +133,10 @@ __device__ void search_windows(
       else {
         // Get everything from the velo state
         const auto velo_state = input_track.state(velo_states_view);
-        const float input_x = velo_state.x();
-        const float input_tx = velo_state.tx();
-        const float input_z = velo_state.z();
-        const float input_ty = velo_state.ty();
+        const float input_x = velo_state.x;
+        const float input_tx = velo_state.tx;
+        const float input_z = velo_state.z;
+        const float input_ty = velo_state.ty;
         const MiniState start_input_state {
           input_x, LookingForward::y_at_z(velo_state, input_z), input_z, input_tx, input_ty};
         return LookingForward::state_at_z(start_input_state, LookingForward::z_last_UT_plane);
