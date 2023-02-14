@@ -69,7 +69,7 @@ __device__ void calculate_parametrization(
     const auto z3_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(2)];
 
     // Updated d_ratio
-    const auto track_y_ref = velo_state.y() + velo_state.ty() * (z2_noref - velo_state.z());
+    const auto track_y_ref = velo_state.y + velo_state.ty * (z2_noref - velo_state.z);
     const auto radius_position = sqrtf((5.f * 5.f * 1.e-8f * x2 * x2 + 1e-6f * track_y_ref * track_y_ref));
     const auto d_ratio = -1.f * (LookingForward::d_ratio_par_0 + LookingForward::d_ratio_par_1 * radius_position +
                                  LookingForward::d_ratio_par_2 * radius_position * radius_position);

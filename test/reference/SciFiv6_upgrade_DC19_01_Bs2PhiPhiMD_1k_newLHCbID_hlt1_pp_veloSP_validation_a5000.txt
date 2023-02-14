@@ -13,7 +13,7 @@ TrackChecker output                               :      1839/   264840   0.69% 
 
 
 veloUT_validator validation:
-TrackChecker output                               :      3641/    66844   5.45% ghosts
+TrackChecker output                               :      3640/    66843   5.45% ghosts
 01_velo                                           :     59289/   115180  51.48% ( 51.92%),       454 (  0.76%) clones, pur  99.54%, hit eff  96.13%
 02_velo+UT                                        :     59189/   100511  58.89% ( 59.34%),       453 (  0.76%) clones, pur  99.56%, hit eff  96.13%
 03_velo+UT_P>5GeV                                 :     45118/    57333  78.69% ( 79.24%),       339 (  0.75%) clones, pur  99.63%, hit eff  96.55%
