@@ -7,18 +7,6 @@
 
 INSTANTIATE_LINE(di_muon_no_ip_line::di_muon_no_ip_line_t, di_muon_no_ip_line::Parameters)
 
-__device__ std::tuple<const Allen::Views::Physics::CompositeParticle>
-di_muon_no_ip_line::di_muon_no_ip_line_t::get_input(
-  const Parameters& parameters,
-  const unsigned event_number,
-  const unsigned i)
-{
-  const auto event_vertices = parameters.dev_particle_container->container(event_number);
-  const auto vertex = event_vertices.particle(i);
-
-  return std::forward_as_tuple(vertex);
-}
-
 __device__ bool di_muon_no_ip_line::di_muon_no_ip_line_t::select(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
