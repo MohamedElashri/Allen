@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
 
   bool eof = false, error = false;
 
-  gsl::span<const char> bank_span;
+  std::vector<std::tuple<int, gsl::span<const char>>> event_span;
 
   auto input = MDF::open(filename.c_str(), O_RDONLY);
   if (input.good) {
@@ -139,20 +139,22 @@ int main(int argc, char* argv[])
     }
 
     if (n == 0) {
-      std::tie(eof, error, bank_span) = MDF::read_event(input, header, read_buffer, decompression_buffer, true);
+      std::tie(eof, error, event_span) = MDF::read_event(input, header, read_buffer, decompression_buffer, true);
       if (eof || error) {
         break;
       }
 
-      // Send event. Use the fact that the reading first creates a
-      // status bank that contains the header as payload. By starting
-      // there, the whole event can be read in one go.
-      auto const* status_bank = reinterpret_cast<LHCb::RawBank const*>(bank_span.data());
-      auto const event_size = bank_span.size() - status_bank->hdrSize();
-      zmq::message_t msg(event_size);
-      memcpy(msg.data(), status_bank->data(), event_size);
-      zmqSvc->send(*data_socket, "EVENT", send_flags::sndmore);
-      zmqSvc->send(*data_socket, msg);
+      for (auto [bx, bank_span] : event_span) {
+        // Send event. Use the fact that the reading first creates a
+        // status bank that contains the header as payload. By starting
+        // there, the whole event can be read in one go.
+        auto const* status_bank = reinterpret_cast<LHCb::RawBank const*>(bank_span.data());
+        auto const event_size = bank_span.size() - status_bank->hdrSize();
+        zmq::message_t msg(event_size);
+        memcpy(msg.data(), status_bank->data(), event_size);
+        zmqSvc->send(*data_socket, "EVENT", send_flags::sndmore);
+        zmqSvc->send(*data_socket, msg);
+      }
     }
   }
 

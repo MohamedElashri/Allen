@@ -53,7 +53,7 @@ namespace make_lumi_summary {
     Parameters,
     const unsigned number_of_events,
     const unsigned number_of_events_passed_gec,
-    std::array<Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos,
+    std::array<const Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos,
     std::array<unsigned, Lumi::Constants::n_sub_infos> spanSize,
     const unsigned size_of_aggregate);
 

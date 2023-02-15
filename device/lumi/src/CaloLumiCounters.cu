@@ -55,7 +55,7 @@ void calo_lumi_counters::calo_lumi_counters_t::operator()(
   // do nothing if no lumi event
   if (first<host_lumi_summaries_size_t>(arguments) == 0) return;
 
-  global_function(calo_lumi_counters)(dim3(4u), property<block_dim_t>(), context)(
+  global_function(calo_lumi_counters)(dim3(2), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments), constants.dev_ecal_geometry);
 }
 
@@ -75,23 +75,27 @@ __global__ void calo_lumi_counters::calo_lumi_counters(
     const unsigned digits_offset = parameters.dev_ecal_digits_offsets[event_number];
     const unsigned n_digits = parameters.dev_ecal_digits_offsets[event_number + 1] - digits_offset;
     auto const* digits = parameters.dev_ecal_digits + digits_offset;
-    // sumET followed by Etot for each region
+    // sumET followed by ET for each region
     std::array<float, Lumi::Constants::n_calo_counters> E_vals = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
 
     for (unsigned digit_index = 0u; digit_index < n_digits; ++digit_index) {
-      float x(0.f), y(0.f), z(0.f), e(0.f);
-      x = ecal_geometry.getX(digit_index);
-      y = ecal_geometry.getY(digit_index);
-      z = (ecal_geometry.getZ(digit_index, 0) + ecal_geometry.getZ(digit_index, 2)) / 2.f;
-      e = ecal_geometry.getE(digit_index, digits[digit_index].adc);
+      if (!digits[digit_index].is_valid()) continue;
 
-      E_vals[0] += e * sqrtf((x * x + y * y) / (x * x + y * y + z * z));
+      auto x = ecal_geometry.getX(digit_index);
+      auto y = ecal_geometry.getY(digit_index);
+      // Use Z at shower max
+      auto z = ecal_geometry.getZ(digit_index, 1);
+      auto e = ecal_geometry.getE(digit_index, digits[digit_index].adc);
 
+      auto sin_theta = sqrtf((x * x + y * y) / (x * x + y * y + z * z));
+      E_vals[0] += e * sin_theta;
+
+      auto const area = ecal_geometry.getECALArea(digit_index);
       if (y > 0.f) {
-        E_vals[1 + ecal_geometry.getECALArea(digit_index)] += e;
+        E_vals[1 + area] += e * sin_theta;
       }
       else {
-        E_vals[4 + ecal_geometry.getECALArea(digit_index)] += e;
+        E_vals[4 + area] += e * sin_theta;
       }
     }
 

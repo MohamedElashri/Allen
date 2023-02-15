@@ -153,7 +153,7 @@ full:
       - hlt1_pp_no_ut_validation
       - hlt1_pp_matching_validation
       - hlt1_pp_forward_then_matching_no_gec_validation
-    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID"
+    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID_v2"
     geometry: "upgrade_DC19_01_MinBiasMD"
 
   # efficiency tests, SMOG2 pHe

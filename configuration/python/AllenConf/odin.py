@@ -1,7 +1,8 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenCore.algorithms import odin_provider_t, odin_beamcrossingtype_t, host_odin_error_filter_t
+from AllenCore.algorithms import (odin_provider_t, odin_beamcrossingtype_t,
+                                  host_odin_error_filter_t, host_tae_filter_t)
 from AllenCore.generator import make_algorithm
 from AllenConf.utils import mep_layout, initialize_number_of_events
 from PyConf.tonic import configurable
@@ -19,6 +20,7 @@ def decode_odin():
         "dev_odin_data": odin_banks.dev_odin_data_t,
         "host_odin_data": odin_banks.host_odin_data_t,
         "host_odin_version": odin_banks.host_raw_bank_version_t,
+        "host_event_list": odin_banks.host_event_list_t,
         "dev_event_mask": odin_banks.dev_event_mask_t
     }
 
@@ -48,3 +50,16 @@ def odin_error_filter(name="odin_error_filter"):
         name="odin_error_filter",
         dev_event_mask_t=decode_odin()["dev_event_mask"])
     return odin_error_filter
+
+
+def tae_filter(name="tae_filter", accept_sub_events=True):
+    number_of_events = initialize_number_of_events()
+    odin = decode_odin()
+    host_tae_filter = make_algorithm(
+        host_tae_filter_t,
+        name="tae_filter",
+        host_event_list_t=odin["host_event_list"],
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_odin_data_t=odin["host_odin_data"],
+        accept_sub_events=accept_sub_events)
+    return host_tae_filter

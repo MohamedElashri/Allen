@@ -86,34 +86,6 @@ namespace Velo {
   };
 
   /**
-   * @brief Structure to save final track
-   * Contains information needed later on in the HLT chain
-   * and / or for truth matching.
-   */
-  struct Track { // 4 + 26 * 16 = 420 B
-    Hit hits[Velo::Constants::max_track_size];
-    uint8_t hitsNum;
-    bool backward;
-
-    __host__ __device__ Track() { hitsNum = 0; }
-
-    __host__ __device__ void addHit(const Hit& _h)
-    {
-      hits[hitsNum] = _h;
-      hitsNum++;
-    }
-  };
-
-  /**
-   * @brief Means square fit parameters
-   *        required for Kalman fit (Velo)
-   */
-  struct TrackFitParameters {
-    float tx, ty;
-    bool backward;
-  };
-
-  /**
    * @brief Structure to access VELO clusters.
    */
   template<typename T>

@@ -37,7 +37,7 @@ namespace Allen {
     if (kind == memcpyHostToHost) {
       std::memcpy(
         static_cast<void*>(container_a.data() + offset_a),
-        static_cast<void*>(container_b.data() + offset_b),
+        static_cast<const void*>(container_b.data() + offset_b),
         elements_to_copy * sizeof(T));
     }
     else {
@@ -119,7 +119,11 @@ namespace Allen {
    * @brief Sets count bytes in T using asynchronous memset.
    * @details T may be a host or device argument.
    */
-  template<typename T, typename Args>
+  template<
+    typename T,
+    typename Args,
+    typename std::
+      enable_if_t<std::is_pod_v<typename T::type> || !std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
   void memset_async(
     const Args& arguments,
     const int value,
@@ -130,16 +134,40 @@ namespace Allen {
     assert(count == 0 || count <= arguments.template size<T>() - offset);
 
     const auto s = count == 0 ? arguments.template size<T>() - offset : count;
-    if constexpr (std::is_base_of_v<Allen::Store::host_datatype, T>)
+    if constexpr (std::is_base_of_v<Allen::Store::host_datatype, T>) {
       std::memset(arguments.template data<T>() + offset, value, s * sizeof(typename T::type));
-    else
+    }
+    else {
       Allen::memset_async(arguments.template data<T>() + offset, value, s * sizeof(typename T::type), context);
+    }
+  }
+
+  template<
+    typename T,
+    typename Args,
+    typename std::
+      enable_if_t<!std::is_pod_v<typename T::type> && std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
+  void memset_async(
+    const Args& arguments,
+    const typename T::type value,
+    const Allen::Context&,
+    const size_t count = 0,
+    const size_t offset = 0)
+  {
+    assert(count == 0 || count <= arguments.template size<T>() - offset);
+
+    const auto s = count == 0 ? arguments.template size<T>() - offset : count;
+    std::fill_n(arguments.template data<T>() + offset, s, value);
   }
 
   /**
    * @brief Synchronous memset of T.
    */
-  template<typename T, typename Args>
+  template<
+    typename T,
+    typename Args,
+    typename std::
+      enable_if_t<std::is_pod_v<typename T::type> || !std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
   void memset(
     const Args& arguments,
     const int value,
@@ -151,6 +179,24 @@ namespace Allen {
     if constexpr (!std::is_base_of_v<Allen::Store::host_datatype, T>) {
       synchronize(context);
     }
+  }
+
+  /**
+   * @brief Synchronous memset of T.
+   */
+  template<
+    typename T,
+    typename Args,
+    typename std::
+      enable_if_t<!std::is_pod_v<typename T::type> && std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
+  void memset(
+    const Args& arguments,
+    const typename T::type value,
+    const Allen::Context& context,
+    const size_t count = 0,
+    const size_t offset = 0)
+  {
+    memset_async<T>(arguments, value, context, count, offset);
   }
 
   /**

@@ -38,15 +38,21 @@ Allen::IO MDF::open(std::string const& filepath, int flags, int mode)
   }
   else {
     int fd = ::open(filepath.c_str(), flags, mode);
-    return {true,
-            [fd](char* ptr, size_t size) { return ::read(fd, ptr, size); },
-            [fd](char const* ptr, size_t size) { return ::write(fd, ptr, size); },
-            [fd] { return ::close(fd); }};
+    if (fd < 0) {
+      cerr << "Failed to open file " << filepath << ": " << strerror(errno) << "\n";
+      return {};
+    }
+    else {
+      return {true,
+              [fd](char* ptr, size_t size) { return ::read(fd, ptr, size); },
+              [fd](char const* ptr, size_t size) { return ::write(fd, ptr, size); },
+              [fd] { return ::close(fd); }};
+    }
   }
 }
 
 // return eof, error, span that covers all banks in the event
-std::tuple<bool, bool, gsl::span<char>> MDF::read_event(
+std::tuple<bool, bool, std::vector<std::tuple<int, gsl::span<const char>>>> MDF::read_event(
   Allen::IO& input,
   LHCb::MDFHeader& h,
   gsl::span<char> buffer,
@@ -54,12 +60,44 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_event(
   bool checkChecksum,
   bool dbg)
 {
-  int rawSize = sizeof(LHCb::MDFHeader);
+  int raw_size = sizeof(LHCb::MDFHeader);
+  std::vector<std::tuple<int, span<const char>>> events;
 
   // Read the first part directly into the header
-  ssize_t n_bytes = input.read(reinterpret_cast<char*>(&h), rawSize);
+  ssize_t n_bytes = input.read(reinterpret_cast<char*>(&h), raw_size);
   if (n_bytes > 0) {
-    return read_banks(input, h, buffer, decompression_buffer, checkChecksum, dbg);
+    auto [eof, error, bank_span] = read_banks(input, h, buffer, decompression_buffer, checkChecksum, dbg);
+    char const* payload = bank_span.data();
+    auto const* first_bank = reinterpret_cast<LHCb::RawBank const*>(payload);
+    if (first_bank->magic() != LHCb::RawBank::MagicPattern) {
+      cout << "Bad magic in first bank.\n";
+      return {false, true, {}};
+    }
+    else if (first_bank->type() == LHCb::RawBank::DAQ && first_bank->version() == DAQ_STATUS_BANK) {
+      // skip the DAQ status bank
+      payload += first_bank->totalSize();
+      first_bank = reinterpret_cast<LHCb::RawBank const*>(payload);
+    }
+    if (first_bank->type() != LHCb::RawBank::TAEHeader) {
+      events.emplace_back(0, bank_span);
+      return {eof, error, events};
+    }
+    else {
+      size_t n_blocks = first_bank->size() / sizeof(int) / 3;
+      events.reserve(n_blocks);
+      int const* block = reinterpret_cast<int const*>(first_bank);
+      block += 2;                         // skip bank header
+      payload += first_bank->totalSize(); // skip TAE bank body
+      for (size_t i = 0; i < n_blocks; ++i) {
+        int bx = *block++;
+        int offset = *block++;
+        int size = *block++;
+        events.emplace_back(
+          bx, gsl::span<const char> {payload + offset, static_cast<gsl::span<const char>::size_type>(size)});
+      }
+      assert(events.size() == n_blocks);
+      return {eof, error, events};
+    }
   }
   else if (n_bytes == 0) {
     cout << "Cannot read more data (Header). End-of-File reached.\n";
@@ -72,7 +110,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_event(
 }
 
 // return eof, error, span that covers all banks in the event
-std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
+std::tuple<bool, bool, gsl::span<const char>> MDF::read_banks(
   Allen::IO& input,
   const LHCb::MDFHeader& h,
   gsl::span<char> buffer,
@@ -80,21 +118,21 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
   bool checkChecksum,
   bool dbg)
 {
-  size_t rawSize = LHCb::MDFHeader::sizeOf(h.headerVersion());
+  size_t raw_size = LHCb::MDFHeader::sizeOf(h.headerVersion());
   unsigned int checksum = h.checkSum();
   int compress = h.compression() & 0xF;
   int expand = (h.compression() >> 4) + 1;
   int hdrSize = h.subheaderLength();
-  size_t readSize = h.recordSize() - rawSize;
+  size_t readSize = h.recordSize() - raw_size;
   int chkSize = h.recordSize() - 4 * sizeof(int);
-  int alloc_len = (2 * rawSize + readSize + sizeof(LHCb::RawBank) + sizeof(int) + (compress ? expand * readSize : 0));
+  int alloc_len = (2 * raw_size + readSize + sizeof(LHCb::RawBank) + sizeof(int) + (compress ? expand * readSize : 0));
 
   // Build the DAQ status bank that contains the header
-  auto build_bank = [rawSize, &h](char* address) {
+  auto build_bank = [raw_size, &h](char* address) {
     auto* b = reinterpret_cast<LHCb::RawBank*>(address);
     b->setMagic();
     b->setType(LHCb::RawBank::DAQ);
-    b->setSize(rawSize);
+    b->setSize(raw_size);
     b->setVersion(DAQ_STATUS_BANK);
     b->setSourceID(0);
     ::memcpy(b->data(), &h, sizeof(LHCb::MDFHeader));
@@ -142,13 +180,13 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
 
   // Decompress or read uncompressed data directly
   if (compress != 0) {
-    decompression_buffer.reserve(readSize + rawSize);
+    decompression_buffer.reserve(readSize + raw_size);
 
     // Need to copy header and subheader to get checksum right
-    ::memcpy(decompression_buffer.data(), hdr, rawSize);
+    ::memcpy(decompression_buffer.data(), hdr, raw_size);
 
     // Read compressed data
-    ssize_t n_bytes = input.read(decompression_buffer.data() + rawSize, readSize);
+    ssize_t n_bytes = input.read(decompression_buffer.data() + raw_size, readSize);
     if (n_bytes == 0) {
       cout << "Cannot read more data (Header). End-of-File reached.\n";
       return {true, false, {}};
@@ -164,7 +202,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
     }
 
     // compressed data starts after the MDFHeader and SubHeader
-    auto* src = reinterpret_cast<unsigned char*>(decompression_buffer.data()) + rawSize;
+    auto* src = reinterpret_cast<unsigned char*>(decompression_buffer.data()) + raw_size;
     auto* ptr = reinterpret_cast<unsigned char*>(buffer.data()) + bnkSize;
     size_t space_size = buffer.size() - bnkSize;
     size_t new_len = 0;
@@ -183,7 +221,7 @@ std::tuple<bool, bool, gsl::span<char>> MDF::read_banks(
   }
   else {
     // Read uncompressed data from file
-    ssize_t n_bytes = input.read(bptr + rawSize, readSize);
+    ssize_t n_bytes = input.read(bptr + raw_size, readSize);
     if (n_bytes == 0) {
       cout << "Cannot read more data (Header). End-of-File reached.\n";
       return {true, false, {}};
@@ -215,24 +253,24 @@ LHCb::ODIN MDF::decode_odin(gsl::span<unsigned const> data, unsigned const versi
   }
 }
 
-void MDF::dump_hex(const char* start, int size)
+void MDF::dump_hex(const char* start, int size, std::ostream& out)
 {
   const auto* content = start;
   size_t m = 0;
-  cout << std::hex << std::setw(7) << m << " ";
-  auto prev = cout.fill();
-  auto flags = cout.flags();
+  out << std::hex << std::setw(7) << m << " ";
+  auto prev = out.fill();
+  auto flags = out.flags();
   while (content < start + size) {
     if (m % 32 == 0 && m != 0) {
-      cout << "\n" << std::setw(7) << m << " ";
+      out << "\n" << std::setw(7) << m << " ";
     }
-    cout << std::setw(2) << std::setfill('0') << ((int) (*content) & 0xff);
+    out << std::setw(2) << std::setfill('0') << ((int) (*content) & 0xff);
     ++m;
     if (m % 2 == 0) {
-      cout << " ";
+      out << " ";
     }
     ++content;
   }
-  cout << std::dec << std::setfill(prev) << "\n";
-  cout.setf(flags);
+  out << std::dec << std::setfill(prev) << "\n";
+  out.setf(flags);
 }

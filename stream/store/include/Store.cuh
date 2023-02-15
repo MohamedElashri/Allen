@@ -6,6 +6,7 @@
 #include <tuple>
 #include <gsl/gsl>
 #include <vector>
+#include <optional>
 #include <cstring>
 #include <unordered_map>
 #include "BackendCommon.h"
@@ -52,27 +53,24 @@ namespace Allen::Store {
 
     AllenArgument& at(const std::string& k)
     {
-      if (m_store.find(k) != std::end(m_store)) {
-        return m_store.at(k);
-      }
-      throw std::runtime_error("store does not contain key " + k);
+      auto i = m_store.find(k);
+      if (i == end(m_store)) throw std::runtime_error(std::string {"store does not contain key "}.append(k));
+      return i->second;
     }
 
     const AllenArgument& at(const std::string& k) const
     {
-      if (m_store.find(k) != std::end(m_store)) {
-        return m_store.at(k);
-      }
-      throw std::runtime_error("store does not contain key " + k);
+      auto i = m_store.find(k);
+      if (i == end(m_store)) throw std::runtime_error(std::string {"store does not contain key "}.append(k));
+      return i->second;
     }
 
     template<typename T>
-    std::pair<bool, gsl::span<const T>> try_at(const std::string& k) const
+    std::optional<gsl::span<const T>> try_at(const std::string& k) const
     {
-      if (m_store.find(k) != std::end(m_store)) {
-        return {true, static_cast<gsl::span<const T>>(m_store.at(k))};
-      }
-      return {false, {}};
+      auto i = m_store.find(k);
+      if (i == end(m_store)) return std::nullopt;
+      return static_cast<gsl::span<const T>>(i->second);
     }
 
     template<typename T>
@@ -80,11 +78,11 @@ namespace Allen::Store {
     {
       Allen::Store::AllenArgument arg {std::in_place_type<T>, k, Allen::Store::Scope::Host};
       arg.set_size(value.size());
-      const auto ret = m_store.try_emplace(k, arg);
-      if (!ret.second) {
+      const auto& [i, ok] = m_store.try_emplace(k, arg);
+      if (!ok) {
         throw std::runtime_error("store register_entry failed, entry already exists");
       }
-      arg = m_store.at(k);
+      arg = i->second;
       reserve(arg);
       gsl::span<T> arg_span = arg;
       std::memcpy(arg_span.data(), value.data(), value.size() * sizeof(T));
@@ -277,10 +275,11 @@ namespace Allen::Store {
     template<Scope S, typename T>
     auto make_buffer(const size_t size) const
     {
+      using type = std::remove_const_t<T>;
 #if defined(ALLEN_STANDALONE) || !defined(TARGET_DEVICE_CPU)
-      return m_store->make_buffer<S, T>(size);
+      return m_store->make_buffer<S, type>(size);
 #else
-      return Allen::buffer<Allen::Store::Scope::Host, T> {size};
+      return Allen::buffer<Allen::Store::Scope::Host, type> {size};
 #endif
     }
 

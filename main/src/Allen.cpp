@@ -1088,5 +1088,5 @@ loop_error:
     zmqSvc->send(*allen_control, (error_count ? "ERROR" : "NOT_READY"));
   }
 
-  return 0;
+  return error_count;
 }

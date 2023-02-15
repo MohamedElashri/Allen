@@ -177,11 +177,8 @@ def validator_node(reconstructed_objects, line_algorithms, matching, with_ut,
             with_scifi=True,
             with_ut=with_ut),
         selreport_validation(
-            make_sel_report_writer(
-                lines=line_algorithms,
-                long_tracks=reconstructed_objects["long_track_particles"],
-                secondary_vertices=reconstructed_objects["secondary_vertices"]
-            ), make_gather_selections(lines=line_algorithms))
+            make_sel_report_writer(lines=line_algorithms),
+            make_gather_selections(lines=line_algorithms))
     ]
 
     return CompositeNode(

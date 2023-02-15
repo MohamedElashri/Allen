@@ -16,7 +16,6 @@
 #include "Event/RawEvent.h"
 #include "Event/RawBank.h"
 #include "GaudiAlg/Transformer.h"
-#include "Linker/LinkerWithKey.h"
 
 #include "Associators/Associators.h"
 

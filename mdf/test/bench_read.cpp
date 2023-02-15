@@ -62,10 +62,12 @@ int main(int argc, char* argv[])
       gsl::span<char> buffer_span {buffer.data() + offset, static_cast<::events_size>(buffer.size() - offset)};
 
       ++n_filled;
-      auto r = MDF::read_event(input, header, buffer_span, decompression_buffer, false);
-      size_t event_size = std::get<2>(r).size() + LHCb::MDFHeader::sizeOf(3);
+      auto [eof, error, event_span] = MDF::read_event(input, header, buffer_span, decompression_buffer, false);
+      size_t event_size = std::accumulate(
+        event_span.begin(), event_span.end(), 0u, [](size_t s, std::tuple<int, gsl::span<const char>> e) {
+          return s + std::get<1>(e).size() + LHCb::MDFHeader::sizeOf(3);
+        });
       n_bytes += event_size;
-      eof = std::get<0>(r);
       offset += event_size;
       if (buffer.size() - offset < 2 * 1024 * 1024) {
         offset = 0;
