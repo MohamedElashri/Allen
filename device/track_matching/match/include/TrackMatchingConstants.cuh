@@ -27,6 +27,14 @@ namespace TrackMatchingConsts {
   struct MagnetParametrization {
     float zMagnetParamsMatch[5] {5287.6f, -7.98878f, 317.683f, 0.0119379f, -1418.42f};
     float bendYParams[2] {-347.801f, -42663.6f};
+    float momentumParams[8] {1239.4073749458162,
+                             486.05664058906814,
+                             6.7158701518424815,
+                             632.7283787142547,
+                             2358.5758035677504,
+                             -9256.27946160669,
+                             241.4601040854867,
+                             42.04859549174048};
   };
 
   //// Magnetic parametrization from UT + SciFi tracks - KstMuMu sample
