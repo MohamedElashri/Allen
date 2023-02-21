@@ -28,6 +28,7 @@ This site documents various aspects of Allen.
    integration/producers_consumers
    monitoring/monitoring_allen
    ci/ci_configuration
+   develop/documenting
 
 Get in touch
 ^^^^^^^^^^^^^
