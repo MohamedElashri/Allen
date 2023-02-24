@@ -121,7 +121,7 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
     # As a last resort, try a hard-coded directory in cvmfs
     set(LIBCLANG_LIBDIR /cvmfs/lhcb.cern.ch/lib/lcg/releases/clang/12.0.0/x86_64-${LCG_OS}/lib)
     set(LIBCLANG_ALTERNATIVE_FOUND ON)
-    message(AUTHOR_WARNING "Using predefined CVMFS libclang directory")
+    message(STATUS "Using predefined CVMFS libclang directory")
   else()
     message(FATAL_ERROR "No suitable libClang installation found. "
                         "You may provide a custom path by setting LIBCLANG_LIBDIR manually")
