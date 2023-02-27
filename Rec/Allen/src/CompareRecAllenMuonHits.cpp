@@ -12,20 +12,20 @@
 #include "MuonDefinitions.cuh"
 #include "Logger.h"
 
-class TestMuonHits final : public Gaudi::Functional::Consumer<
+class CompareRecAllenMuonHits final : public Gaudi::Functional::Consumer<
                              void(const std::vector<unsigned>&, const std::vector<char>&, const MuonHitContainer&)> {
 
 public:
   /// Standard constructor
-  TestMuonHits(const std::string& name, ISvcLocator* pSvcLocator);
+  CompareRecAllenMuonHits(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
   void operator()(const std::vector<unsigned>&, const std::vector<char>&, const MuonHitContainer&) const override;
 };
 
-DECLARE_COMPONENT(TestMuonHits)
+DECLARE_COMPONENT(CompareRecAllenMuonHits)
 
-TestMuonHits::TestMuonHits(const std::string& name, ISvcLocator* pSvcLocator) :
+CompareRecAllenMuonHits::CompareRecAllenMuonHits(const std::string& name, ISvcLocator* pSvcLocator) :
   Consumer(
     name,
     pSvcLocator,
@@ -34,7 +34,7 @@ TestMuonHits::TestMuonHits(const std::string& name, ISvcLocator* pSvcLocator) :
      KeyValue {"MuonHitsLocation", MuonHitContainerLocation::Default}})
 {}
 
-void TestMuonHits::operator()(
+void CompareRecAllenMuonHits::operator()(
   const std::vector<unsigned>& muon_hit_offsets,
   const std::vector<char>& muon_hits,
   const MuonHitContainer& muon_hit_container) const
@@ -48,8 +48,8 @@ void TestMuonHits::operator()(
   size_t n_hits_total_rec = 0;
   for (unsigned station = 0; station < Muon::Constants::n_stations; station++)
     n_hits_total_rec += muon_hit_container.station(station).hits().size();
-  debug() << "Number of UT hits (Allen) in this event " << n_hits_total_allen << endmsg;
-  debug() << "Number of UT hits (Rec) in this event   " << n_hits_total_rec << endmsg;
+  debug() << "Number of Muon hits (Allen) in this event " << n_hits_total_allen << endmsg;
+  debug() << "Number of Muon hits (Rec) in this event   " << n_hits_total_rec << endmsg;
 
   // loop Muon Hits per station and fill hit containers
   for (unsigned station = 0; station < Muon::Constants::n_stations; station++) {

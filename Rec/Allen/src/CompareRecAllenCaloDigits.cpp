@@ -15,12 +15,12 @@
 #include <Event/CaloDigit.h>
 #include <Event/CaloDigits_v2.h>
 
-class TestAllenCaloDigits final
+class CompareRecAllenCaloDigits final
   : public Gaudi::Functional::Consumer<void(const std::vector<CaloDigit>&, LHCb::Event::Calo::Digits const&)> {
 
 public:
   /// Standard constructor
-  TestAllenCaloDigits(const std::string& name, ISvcLocator* pSvcLocator);
+  CompareRecAllenCaloDigits(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
   void operator()(const std::vector<CaloDigit>&, LHCb::Event::Calo::Digits const&) const override;
@@ -29,9 +29,9 @@ private:
   void compare(std::vector<CaloDigit> const& allenDigits, LHCb::Event::Calo::Digits const& lhcbDigits) const;
 };
 
-DECLARE_COMPONENT(TestAllenCaloDigits)
+DECLARE_COMPONENT(CompareRecAllenCaloDigits)
 
-TestAllenCaloDigits::TestAllenCaloDigits(const std::string& name, ISvcLocator* pSvcLocator) :
+CompareRecAllenCaloDigits::CompareRecAllenCaloDigits(const std::string& name, ISvcLocator* pSvcLocator) :
   Consumer(
     name,
     pSvcLocator,
@@ -39,7 +39,7 @@ TestAllenCaloDigits::TestAllenCaloDigits(const std::string& name, ISvcLocator* p
     {KeyValue {"ecal_digits", ""}, KeyValue {"EcalDigits", LHCb::CaloDigitLocation::Ecal}})
 {}
 
-void TestAllenCaloDigits::operator()(
+void CompareRecAllenCaloDigits::operator()(
   const std::vector<CaloDigit>& ecal_digits,
   LHCb::Event::Calo::Digits const& ecalDigits) const
 {
@@ -48,7 +48,7 @@ void TestAllenCaloDigits::operator()(
   }
 }
 
-void TestAllenCaloDigits::compare(
+void CompareRecAllenCaloDigits::compare(
   std::vector<CaloDigit> const& allenDigits,
   LHCb::Event::Calo::Digits const& lhcbDigits) const
 {

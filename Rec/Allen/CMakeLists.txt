@@ -23,10 +23,10 @@ gaudi_add_module(AllenWrapper
                    src/GaudiAllenTrackViewsToV3Tracks.cpp
                    src/AllenROOTService.cpp
                    src/ProvideRuntimeOptions.cpp
-                   src/TestAllenCaloDigits.cpp
-                   src/TestMuonHits.cpp
-                   src/TestUTHits.cpp
-                   src/TestFTClusters.cpp
+                   src/CompareRecAllenCaloDigits.cpp
+                   src/CompareRecAllenMuonHits.cpp
+                   src/CompareRecAllenUTHits.cpp
+                   src/CompareRecAllenFTClusters.cpp
                    src/TestVeloClusters.cpp
                  LINK
                    AllenLib

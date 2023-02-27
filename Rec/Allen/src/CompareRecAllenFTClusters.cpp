@@ -17,13 +17,13 @@
 #include "SciFiEventModel.cuh"
 #include "Logger.h"
 
-class TestFTClusters final
+class CompareRecAllenFTClusters final
   : public Gaudi::Functional::Consumer<
       void(const std::vector<unsigned>&, const std::vector<char>&, const LHCb::FTLiteCluster::FTLiteClusters&)> {
 
 public:
   /// Standard constructor
-  TestFTClusters(const std::string& name, ISvcLocator* pSvcLocator);
+  CompareRecAllenFTClusters(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
   void operator()(const std::vector<unsigned>&, const std::vector<char>&, const LHCb::FTLiteCluster::FTLiteClusters&)
@@ -35,9 +35,9 @@ private:
   mutable Gaudi::Accumulators::Counter<> m_lonelyRec {this, "onlyRec hits"};
 };
 
-DECLARE_COMPONENT(TestFTClusters)
+DECLARE_COMPONENT(CompareRecAllenFTClusters)
 
-TestFTClusters::TestFTClusters(const std::string& name, ISvcLocator* pSvcLocator) :
+CompareRecAllenFTClusters::CompareRecAllenFTClusters(const std::string& name, ISvcLocator* pSvcLocator) :
   Consumer(
     name,
     pSvcLocator,
@@ -46,7 +46,7 @@ TestFTClusters::TestFTClusters(const std::string& name, ISvcLocator* pSvcLocator
      KeyValue {"FTClusterLocation", LHCb::FTLiteClusterLocation::Default}})
 {}
 
-void TestFTClusters::operator()(
+void CompareRecAllenFTClusters::operator()(
   const std::vector<unsigned>& scifi_offsets,
   const std::vector<char>& scifi_hits,
   LHCb::FTLiteCluster::FTLiteClusters const& ft_lite_clusters) const
