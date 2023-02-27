@@ -12,7 +12,7 @@ from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line, make_two_ks_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line
 from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line, make_di_muon_no_ip_line
-from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_lowmass_noip_dielectron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
+from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_lowmass_noip_dielectron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line, make_di_electron_soft_line
 from AllenConf.hlt1_monitoring_lines import (
     make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line,
     make_beam_gas_line, make_velo_clusters_micro_bias_line,
@@ -125,6 +125,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 long_track_particles,
                 calo_matching_objects,
                 name="Hlt1DisplacedLeptons"),
+            make_di_electron_soft_line(
+                long_tracks, secondary_vertices, name="Hlt1DiElectronSoft"),
             make_single_high_et_line(
                 velo_tracks, calo_matching_objects, name="Hlt1SingleHighEt"),
             make_bs2gammagamma_line(ecal_clusters, name="Hlt1Bs2GammaGamma")

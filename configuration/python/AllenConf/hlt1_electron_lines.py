@@ -5,7 +5,7 @@ from AllenCore.algorithms import (
     track_electron_mva_line_t, single_high_pt_electron_line_t,
     displaced_dielectron_line_t, displaced_leptons_line_t,
     single_high_et_line_t, prompt_vertex_evaluator_t,
-    lowmass_noip_dielectron_line_t)
+    lowmass_noip_dielectron_line_t, di_electron_soft_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
@@ -169,3 +169,24 @@ def make_lowmass_noip_dielectron_line(
         dev_vertex_passes_prompt_selection_t,
         dev_vertex_passes_displaced_selection_t=prompt_vertex_evaluator.
         dev_vertex_passes_displaced_selection_t)
+
+
+def make_di_electron_soft_line(long_tracks,
+                           secondary_vertices,
+                           name="Hlt1DiElectronSoft",
+                           pre_scaler_hash_string=None,
+                           post_scaler_hash_string=None):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        di_electron_soft_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
+        dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
+
+
+
