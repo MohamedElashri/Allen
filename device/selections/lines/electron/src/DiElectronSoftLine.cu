@@ -16,13 +16,33 @@ __device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
   if (vertex.minipchi2() < parameters.DESoftMinIPChi2) return false;
   if (opposite_sign != parameters.OppositeSign) return false;
 
-  // brem correction missing still
+  // Bremsstrahlung Correction
 
-  const float brem_corrected_dielectron_mass = vertex.m12(0.510999f, 0.510999f); 
-  const float dipion_mass = vertex.m12(139.57039f, 139.57039f); 
+  const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
+  const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
 
+  const float brem_corrected_pt1 = parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + track1->get_index()];
 
-  // KS pipi misid veto -- needs tuning!
+  const float brem_corrected_pt2 = parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + track2->get_index()];
+
+  const float raw_pt1 = track1->state().pt();
+  const float raw_pt2 = track2->state().pt();
+
+  float brem_p_correction_ratio_trk1 = 0.f;
+  float brem_p_correction_ratio_trk2 = 0.f;
+
+  if (track1->state().p() > 0.f) {
+    brem_p_correction_ratio_trk1 = brem_corrected_pt1 / raw_pt1;
+  }
+  if (track2->state().p() > 0.f) {
+    brem_p_correction_ratio_trk2 = brem_corrected_pt2 / raw_pt2;
+  }
+
+  const float brem_corrected_dielectron_mass = vertex.m12(0.510999f, 0.510999f) * brem_p_correction_ratio_trk1 * brem_p_correction_ratio_trk2; 
+
+  // KS2pipi misID veto
+  const float dipion_mass = vertex.m12(139.57039f, 139.57039f);
+
   const bool decision =
     vertex.vertex().chi2() > 0 && (dipion_mass < parameters.DESoftM0 || dipion_mass > parameters.DESoftM1) &&
     (brem_corrected_dielectron_mass < parameters.DESoftM2) && vertex.eta() > 0 &&
