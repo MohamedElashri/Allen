@@ -53,13 +53,11 @@ def odin_error_filter(name="odin_error_filter"):
 
 
 def tae_filter(name="tae_filter", accept_sub_events=True):
-    number_of_events = initialize_number_of_events()
     odin = decode_odin()
     host_tae_filter = make_algorithm(
         host_tae_filter_t,
         name="tae_filter",
         host_event_list_t=odin["host_event_list"],
-        host_number_of_events_t=number_of_events["host_number_of_events"],
         host_odin_data_t=odin["host_odin_data"],
         accept_sub_events=accept_sub_events)
     return host_tae_filter
