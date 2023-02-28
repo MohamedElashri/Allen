@@ -312,10 +312,10 @@ __device__ void process_line(
       decisions[index] = decision;
       if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
         if (parameters.enable_monitoring) {
-          if constexpr (Allen::has_evtNo<Parameters>::value) {
+          if constexpr (Allen::monitoring_has_evtNo<Parameters>::value) {
             parameters.evtNo[index] = (uint64_t(evt_hi) << 32) + evt_lo;
           }
-          if constexpr (Allen::has_runNo<Parameters>::value) {
+          if constexpr (Allen::monitoring_has_runNo<Parameters>::value) {
             parameters.runNo[index] = run_no;
           }
           Derived::monitor(parameters, input, index, decision);
