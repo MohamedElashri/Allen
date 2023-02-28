@@ -820,7 +820,20 @@ Your selection algorithm should define an additional tuple type that contains th
  using monitoring_types = std::tuple<pt_t, sv_masses_t>
 
 The tuple type is a convenient way to store a parameter pack, which is then used internally (see `Line.cuh <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/selections/line_types/include/Line.cuh>`_ for details) to handle the initialisation of the containers and the transport of the arrays to the nTuple. 
-Then we set up the `monitor` function that will be handled by the kernel in order to retrieve the information that we want to monitor:
+Two useful additional pieces of information to include in the nTuple are the event and run number. 
+These are automatically filled per candidate if the tuple of monitoring types includes the types runNo_t and evtNo_t, which should be declared as DEVICE_OUTPUTs of type uint64_t and unsigned for runNo and evtNo, respectively.
+So in this example, we would add 
+.. code-blocks:: c++
+  struct Parameters {
+    (...)
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
+  }
+and the monitoring types becomes ::
+  using monitoring_types = std::tuple<pt_t, sv_masses_t, evtNo_t, runNo_t>
+
+After all of the values we wish to monitor have been declared, 
+then we set up the `monitor` function that will be handled by the kernel in order to retrieve the information that we want to monitor:
 
 .. code-block:: c++
 
