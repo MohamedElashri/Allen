@@ -6,7 +6,7 @@
 #include "AlgorithmTypes.cuh"
 #include "TwoTrackLine.cuh"
 
-namespace di_muon_soft_line {
+namespace di_electron_soft_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
