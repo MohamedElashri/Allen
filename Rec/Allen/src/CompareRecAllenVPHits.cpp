@@ -18,10 +18,10 @@
 using simd = SIMDWrapper::best::types;
 
 class CompareRecAllenVPHits final : public Gaudi::Functional::Consumer<void(
-									    const std::vector<unsigned>&,
-									    const std::vector<unsigned>&,
-									    const std::vector<char>&,
-									    const LHCb::VPLightClusters&)> {
+                                      const std::vector<unsigned>&,
+                                      const std::vector<unsigned>&,
+                                      const std::vector<char>&,
+                                      const LHCb::VPLightClusters&)> {
 
 public:
   /// Standard constructor

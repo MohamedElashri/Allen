@@ -26,6 +26,7 @@ gaudi_add_module(AllenWrapper
                    src/CompareRecAllenCaloDigits.cpp
                    src/CompareRecAllenMuonHits.cpp
                    src/CompareRecAllenUTHits.cpp
+		   src/CompareRecAllenUTHitsMCCheck.cpp
                    src/CompareRecAllenFTClusters.cpp
                    src/CompareRecAllenVPHits.cpp
                    src/TestVeloClusters.cpp

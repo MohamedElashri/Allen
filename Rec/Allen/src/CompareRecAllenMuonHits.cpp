@@ -12,8 +12,9 @@
 #include "MuonDefinitions.cuh"
 #include "Logger.h"
 
-class CompareRecAllenMuonHits final : public Gaudi::Functional::Consumer<
-                             void(const std::vector<unsigned>&, const std::vector<char>&, const MuonHitContainer&)> {
+class CompareRecAllenMuonHits final
+  : public Gaudi::Functional::Consumer<
+      void(const std::vector<unsigned>&, const std::vector<char>&, const MuonHitContainer&)> {
 
 public:
   /// Standard constructor
