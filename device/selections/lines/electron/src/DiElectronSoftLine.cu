@@ -7,7 +7,7 @@ INSTANTIATE_LINE(di_electron_soft_line::di_electron_soft_line_t, di_electron_sof
 
 
 __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float>
-di_electron_soft::di_electron_soft_t::get_input(
+di_electron_soft_line::di_electron_soft_line_t::get_input(
   const Parameters& parameters,
   const unsigned event_number,
   const unsigned i)
@@ -41,7 +41,6 @@ di_electron_soft::di_electron_soft_t::get_input(
 
   return std::forward_as_tuple(vertex, is_dielectron, brem_corrected_dielectron_mass, dipion_mass);
 }
-
 
 
 __device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
