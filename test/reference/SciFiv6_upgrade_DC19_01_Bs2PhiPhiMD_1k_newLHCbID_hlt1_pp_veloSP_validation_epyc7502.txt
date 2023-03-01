@@ -97,6 +97,10 @@ Hlt1LowPtDiMuon:                                       29/  1000, (  870.00 +/- 
 Hlt1TrackMuonMVA:                                      12/  1000, (  360.00 +/-   103.30) kHz
 Hlt1DiMuonNoIP:                                        45/  1000, ( 1350.00 +/-   196.67) kHz
 Hlt1DiMuonNoIP_ss:                                      8/  1000, (  240.00 +/-    84.51) kHz
+Hlt1DiMuonDrellYan_VLowMass:                            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DiMuonDrellYan_VLowMass_SS:                         0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DiMuonDrellYan:                                     0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DiMuonDrellYan_SS:                                  0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackElectronMVA:                                  48/  1000, ( 1440.00 +/-   202.80) kHz
 Hlt1SingleHighPtElectron:                              16/  1000, (  480.00 +/-   119.04) kHz
 Hlt1DisplacedDielectron:                                7/  1000, (  210.00 +/-    79.09) kHz
@@ -155,6 +159,10 @@ Hlt1LowPtDiMuon:                                       29          34
 Hlt1TrackMuonMVA:                                      12          12
 Hlt1DiMuonNoIP:                                        45          53
 Hlt1DiMuonNoIP_ss:                                      8           8
+Hlt1DiMuonDrellYan_VLowMass:                            0           0
+Hlt1DiMuonDrellYan_VLowMass_SS:                         0           0
+Hlt1DiMuonDrellYan:                                     0           0
+Hlt1DiMuonDrellYan_SS:                                  0           0
 Hlt1TrackElectronMVA:                                  48          51
 Hlt1SingleHighPtElectron:                              16          16
 Hlt1DisplacedDielectron:                                7           8
