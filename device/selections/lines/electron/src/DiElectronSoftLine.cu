@@ -5,36 +5,32 @@
 
 INSTANTIATE_LINE(di_electron_soft_line::di_electron_soft_line_t, di_electron_soft_line::Parameters)
 
-__device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
+
+__device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float>
+di_electron_soft::di_electron_soft_t::get_input(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle> input)
+  const unsigned event_number,
+  const unsigned i)
 {
-  const auto vertex = std::get<0>(input);
-  const bool opposite_sign = vertex.charge() == 0;
+  const auto event_vertices = parameters.dev_particle_container->container(event_number);
+  const auto vertex = event_vertices.particle(i);
+  const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
+  const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
+  const bool is_dielectron = vertex.is_dielectron();
 
-  if (!vertex.is_dielectron()) return false;
-  if (vertex.minipchi2() < parameters.DESoftMinIPChi2) return false;
-  if (opposite_sign != parameters.OppositeSign) return false;
+  const float brem_corrected_pt1 = parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + trk1->get_index()];
+  const float brem_corrected_pt2 = parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + trk2->get_index()];
 
-  // Bremsstrahlung Correction
-
-  const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
-  const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
-
-  const float brem_corrected_pt1 = parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + track1->get_index()];
-
-  const float brem_corrected_pt2 = parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + track2->get_index()];
-
-  const float raw_pt1 = track1->state().pt();
-  const float raw_pt2 = track2->state().pt();
+  const float raw_pt1 = trk1->state().pt();
+  const float raw_pt2 = trk2->state().pt();
 
   float brem_p_correction_ratio_trk1 = 0.f;
   float brem_p_correction_ratio_trk2 = 0.f;
 
-  if (track1->state().p() > 0.f) {
+  if (trk1->state().p() > 0.f) {
     brem_p_correction_ratio_trk1 = brem_corrected_pt1 / raw_pt1;
   }
-  if (track2->state().p() > 0.f) {
+  if (trk2->state().p() > 0.f) {
     brem_p_correction_ratio_trk2 = brem_corrected_pt2 / raw_pt2;
   }
 
@@ -42,6 +38,26 @@ __device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
 
   // KS2pipi misID veto
   const float dipion_mass = vertex.m12(139.57039f, 139.57039f);
+
+  return std::forward_as_tuple(vertex, is_dielectron, brem_corrected_dielectron_mass, dipion_mass);
+}
+
+
+
+__device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float> input)
+{
+
+  const auto& [vertex, is_dielectron, brem_corrected_dielectron_mass, dipion_mass] = input;
+
+  const bool opposite_sign = vertex.charge() == 0;
+
+  if (!is_dielectron) return false;
+  if (vertex.minipchi2() < parameters.DESoftMinIPChi2) return false;
+  if (opposite_sign != parameters.OppositeSign) return false;
+
+  // Bremsstrahlung Correction
 
   const bool decision =
     vertex.vertex().chi2() > 0 && (dipion_mass < parameters.DESoftM0 || dipion_mass > parameters.DESoftM1) &&

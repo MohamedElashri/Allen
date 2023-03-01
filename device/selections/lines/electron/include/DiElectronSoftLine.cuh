@@ -42,7 +42,11 @@ namespace di_electron_soft_line {
   };
 
   struct di_electron_soft_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<di_electron_soft_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float>);
+
+    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float>
+    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
+
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
