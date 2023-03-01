@@ -5,7 +5,7 @@ from AllenCore.algorithms import (
     single_high_pt_muon_line_t, single_high_pt_muon_no_muid_line_t,
     low_pt_muon_line_t, di_muon_mass_line_t, di_muon_soft_line_t,
     low_pt_di_muon_line_t, track_muon_mva_line_t, di_muon_no_ip_line_t,
-    one_muon_track_line_t)
+    one_muon_track_line_t, di_muon_drell_yan_line_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
 
@@ -205,4 +205,42 @@ def make_di_muon_no_ip_line(long_tracks,
         maxVertexChi2=maxVertexChi2,
         maxTrChi2=maxTrChi2,
         ss_on=ss_on,
+        pre_scaler=pre_scaler)
+
+
+def make_di_muon_drell_yan_line(
+        long_tracks,
+        secondary_vertices,
+        pre_scaler_hash_string="di_muon_drell_yan_line_pre",
+        post_scaler_hash_string="di_muon_drell_yan_line_post",
+        minTrackPt=1200.,
+        minTrackP=15000.,
+        maxTrackEta=4.9,
+        maxDoca=.15,
+        maxVertexChi2=16.,
+        name="Hlt1DiMuonDrellYan",
+        OppositeSign=True,
+        minMass=5000.,
+        maxMass=250000,
+        pre_scaler=1.):
+    number_of_events = initialize_number_of_events()
+    layout = mep_layout()
+
+    return make_algorithm(
+        di_muon_drell_yan_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
+        dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
+        pre_scaler_hash_string=pre_scaler_hash_string,
+        post_scaler_hash_string=post_scaler_hash_string,
+        minTrackP=minTrackP,
+        minTrackPt=minTrackPt,
+        maxTrackEta=maxTrackEta,
+        maxDoca=maxDoca,
+        maxVertexChi2=maxVertexChi2,
+        OppositeSign=OppositeSign,
+        minMass=minMass,
+        maxMass=maxMass,
         pre_scaler=pre_scaler)
