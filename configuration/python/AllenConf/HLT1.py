@@ -126,7 +126,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 calo_matching_objects,
                 name="Hlt1DisplacedLeptons"),
             make_di_electron_soft_line(
-                long_tracks, secondary_vertices, name="Hlt1DiElectronSoft"),
+                long_tracks, secondary_vertices, calo_matching_objects,name="Hlt1DiElectronSoft"),
             make_single_high_et_line(
                 velo_tracks, calo_matching_objects, name="Hlt1SingleHighEt"),
             make_bs2gammagamma_line(ecal_clusters, name="Hlt1Bs2GammaGamma")
