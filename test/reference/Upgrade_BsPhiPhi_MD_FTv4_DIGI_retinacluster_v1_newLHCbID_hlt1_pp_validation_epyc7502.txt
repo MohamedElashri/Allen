@@ -97,6 +97,10 @@ Hlt1LowPtDiMuon:                                       37/  1000, ( 1110.00 +/- 
 Hlt1TrackMuonMVA:                                      15/  1000, (  450.00 +/-   115.31) kHz
 Hlt1DiMuonNoIP:                                        33/  1000, (  990.00 +/-   169.47) kHz
 Hlt1DiMuonNoIP_ss:                                      5/  1000, (  150.00 +/-    66.91) kHz
+Hlt1DiMuonDrellYan_VLowMass:                            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DiMuonDrellYan_VLowMass_SS:                         0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DiMuonDrellYan:                                     1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1DiMuonDrellYan_SS:                                  0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackElectronMVA:                                  42/  1000, ( 1260.00 +/-   190.30) kHz
 Hlt1SingleHighPtElectron:                               7/  1000, (  210.00 +/-    79.09) kHz
 Hlt1DisplacedDielectron:                                3/  1000, (   90.00 +/-    51.88) kHz
@@ -155,6 +159,10 @@ Hlt1LowPtDiMuon:                                       37          46
 Hlt1TrackMuonMVA:                                      15          15
 Hlt1DiMuonNoIP:                                        33          38
 Hlt1DiMuonNoIP_ss:                                      5           7
+Hlt1DiMuonDrellYan_VLowMass:                            0           0
+Hlt1DiMuonDrellYan_VLowMass_SS:                         0           0
+Hlt1DiMuonDrellYan:                                     1           1
+Hlt1DiMuonDrellYan_SS:                                  0           0
 Hlt1TrackElectronMVA:                                  42          43
 Hlt1SingleHighPtElectron:                               7           7
 Hlt1DisplacedDielectron:                                3           4
@@ -189,9 +197,9 @@ Hlt1D2KPiAlignment:                                    19          20
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DisplacedDiMuonAlignment:                           2           2
 
-Total decisions: 4480
+Total decisions: 4481
 Total tracks:    3019
 Total SVs:       2483
 Total hits:      74491
-Total stdinfo:   38564
+Total stdinfo:   38565
 
