@@ -172,11 +172,11 @@ def make_lowmass_noip_dielectron_line(
 
 
 def make_di_electron_soft_line(long_tracks,
-                           secondary_vertices,
-                           calo,
-                           name="Hlt1DiElectronSoft",
-                           pre_scaler_hash_string=None,
-                           post_scaler_hash_string=None):
+                               secondary_vertices,
+                               calo,
+                               name="Hlt1DiElectronSoft",
+                               pre_scaler_hash_string=None,
+                               post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -186,11 +186,8 @@ def make_di_electron_soft_line(long_tracks,
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],    
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
         dev_track_isElectron_t=calo["dev_track_isElectron"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
-
-
-

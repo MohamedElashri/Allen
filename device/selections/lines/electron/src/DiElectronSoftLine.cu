@@ -5,7 +5,6 @@
 
 INSTANTIATE_LINE(di_electron_soft_line::di_electron_soft_line_t, di_electron_soft_line::Parameters)
 
-
 __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float>
 di_electron_soft_line::di_electron_soft_line_t::get_input(
   const Parameters& parameters,
@@ -18,8 +17,10 @@ di_electron_soft_line::di_electron_soft_line_t::get_input(
   const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
   const bool is_dielectron = vertex.is_dielectron();
 
-  const float brem_corrected_pt1 = parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + trk1->get_index()];
-  const float brem_corrected_pt2 = parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + trk2->get_index()];
+  const float brem_corrected_pt1 =
+    parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + trk1->get_index()];
+  const float brem_corrected_pt2 =
+    parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + trk2->get_index()];
 
   const float raw_pt1 = trk1->state().pt();
   const float raw_pt2 = trk2->state().pt();
@@ -34,14 +35,14 @@ di_electron_soft_line::di_electron_soft_line_t::get_input(
     brem_p_correction_ratio_trk2 = brem_corrected_pt2 / raw_pt2;
   }
 
-  const float brem_corrected_dielectron_mass = vertex.m12(0.510999f, 0.510999f) * brem_p_correction_ratio_trk1 * brem_p_correction_ratio_trk2; 
+  const float brem_corrected_dielectron_mass =
+    vertex.m12(0.510999f, 0.510999f) * brem_p_correction_ratio_trk1 * brem_p_correction_ratio_trk2;
 
   // KS2pipi misID veto
   const float dipion_mass = vertex.m12(139.57039f, 139.57039f);
 
   return std::forward_as_tuple(vertex, is_dielectron, brem_corrected_dielectron_mass, dipion_mass);
 }
-
 
 __device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
   const Parameters& parameters,
