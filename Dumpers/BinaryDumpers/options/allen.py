@@ -204,7 +204,6 @@ if args.mep:
     # Number of MEP buffers and number of transpose/offset threads
     mep_provider.BufferConfig = (10, 8)
     mep_provider.TransposeMEPs = False
-    mep_provider.SplitByRun = False
     mep_provider.Source = "Files"
     mep_provider.MaskSourceIDTop5 = args.mask_top5
     mep_dir = os.path.expandvars(args.mep)
