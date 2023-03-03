@@ -24,7 +24,12 @@ file(MAKE_DIRECTORY ${ALLEN_GENERATED_INCLUDE_FILES_DIR})
 file(MAKE_DIRECTORY ${ALLEN_ALGORITHMS_DIR})
 
 # We will invoke the parser a few times, set its required environment in a variable
-set(PARSER_ENV PYTHONPATH=$ENV{PYTHONPATH}:${PROJECT_SOURCE_DIR}/scripts LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH})
+# Add the scripts folder only if we are invoking with a CMAKE_TOOLCHAIN_FILE
+if(CMAKE_TOOLCHAIN_FILE) 
+  set(PARSER_ENV PYTHONPATH=$ENV{PYTHONPATH}:${PROJECT_SOURCE_DIR}/scripts LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH})
+else()
+  set(PARSER_ENV LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH})
+endif()
 
 # Parse Allen algorithms
 # Parsing should depend on ALL algorithm headers (which include the Parameters section)
