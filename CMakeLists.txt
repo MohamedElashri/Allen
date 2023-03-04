@@ -11,7 +11,7 @@ if(STANDALONE AND NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{CMAKE_TOOLCHA
 endif()
 
 project(Allen VERSION 3.5
-        LANGUAGES CXX)
+        LANGUAGES C CXX)
 
 # ---------------
 # Boolean options
