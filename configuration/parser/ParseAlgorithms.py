@@ -58,26 +58,37 @@ class Parser():
                 prefix_project_folder + Parser.__host_folder, Parser.__sought_extensions_compiled)
 
     @staticmethod
-    def parse_all(prefix_project_folder,
-                  algorithm_parser=AlgorithmTraversal()):
-        """Parses all files and traverses algorithm definitions."""
+    def find_algorithm_files(prefix_project_folder):
         all_filenames = Parser.get_all_filenames(prefix_project_folder)
-        algorithms = []
+        algorithm_files = []
+
         for filename in all_filenames:
             with codecs.open(filename, 'r', 'utf-8') as f:
-                try:
-                    s = f.read()
-                    # Invoke the libTooling algorithm parser only if we find the algorithm pattern
-                    has_algorithm = Parser.__algorithm_pattern_compiled.search(
-                        s)
-                    if has_algorithm:
-                        parsed_algorithms = algorithm_parser.traverse(
-                            filename, prefix_project_folder)
-                        if parsed_algorithms:
-                            algorithms += parsed_algorithms
-                except:
-                    print("Parsing file", filename, "failed")
-                    raise
+                s = f.read()
+                # Invoke the libTooling algorithm parser only if we find the algorithm pattern
+                has_algorithm = Parser.__algorithm_pattern_compiled.search(s)
+                if has_algorithm:
+                    algorithm_files.append(filename)
+
+        return algorithm_files
+
+
+    @staticmethod
+    def parse_all(algorithm_files, prefix_project_folder,
+                  algorithm_parser=AlgorithmTraversal()):
+        """Parses all files and traverses algorithm definitions."""
+        algorithms = []
+
+        for algorithm_file in algorithm_files:
+            try:
+                parsed_algorithms = algorithm_parser.traverse(
+                            algorithm_file, prefix_project_folder)
+                if parsed_algorithms:
+                    algorithms += parsed_algorithms
+            except:
+                print("Parsing file", algorithm_file, "failed")
+                raise
+
         return algorithms
 
 
@@ -712,20 +723,26 @@ if __name__ == '__main__':
         help="action that will be performed")
 
     args = parser.parse_args()
+    prefix_folder = args.prefix_project_folder + "/"
     if args.generate == "parsed_algorithms":
-        parsed_algorithms = Parser().parse_all(args.prefix_project_folder +
-                                               "/")
+        algorithm_files = Parser().find_algorithm_files(prefix_folder)
+        parsed_algorithms = Parser().parse_all(algorithm_files, prefix_folder)
         with open(args.filename, "wb") as f:
             pickle.dump(parsed_algorithms, f)
+    elif args.generate == "algorithm_headers_list":
+        # Write list of files including algorithm definitions
+        algorithm_headers_list = Parser().find_algorithm_files(prefix_folder)
+        AllenCore.write_algorithm_filename_list(algorithm_headers_list, args.filename)
     else:
+
         if args.parsed_algorithms:
             # Load pregenerated parsed_algorithms
             with open(args.parsed_algorithms, "rb") as f:
                 parsed_algorithms = pickle.load(f)
         else:
             # Otherwise generate parsed_algorithms on the fly
-            parsed_algorithms = Parser().parse_all(args.prefix_project_folder +
-                                                   "/")
+            algorithm_files = Parser().find_algorithm_files(prefix_folder)
+            parsed_algorithms = Parser().parse_all(algorithm_files, prefix_folder)
 
         if args.generate == "views":
             # Generate algorithm python views
@@ -754,10 +771,3 @@ if __name__ == '__main__':
             # Write extern lines header file, without separable compilation
             AllenCore.write_extern_lines(parsed_algorithms, args.filename,
                                          False)
-        elif args.generate == "algorithm_headers_list":
-            # Write list of files including algorithm definitions
-            algorithm_headers_list = [
-                alg.filename for alg in parsed_algorithms
-            ]
-            AllenCore.write_algorithm_filename_list(algorithm_headers_list,
-                                                    args.filename)
