@@ -39,7 +39,6 @@ namespace di_electron_soft_line {
     DEVICE_OUTPUT(minpt_uncorr_t, float) minpt_uncorr;
     DEVICE_OUTPUT(sv_pt_t, float) sv_pt;
 
-
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
@@ -62,7 +61,8 @@ namespace di_electron_soft_line {
                                    Parameters,
                                    TwoTrackLine<di_electron_soft_line_t, Parameters> {
 
-    using monitoring_types = std::tuple<pipi_masses_t, ee_masses_t, minipchi2_t, sv_rho2_t, sv_z_t, ee_doca_t, sv_ipperdz_t, ee_cloneang_t>;
+    using monitoring_types =
+      std::tuple<pipi_masses_t, ee_masses_t, minipchi2_t, sv_rho2_t, sv_z_t, ee_doca_t, sv_ipperdz_t, ee_cloneang_t>;
 
     __device__ static bool select(
       const Parameters&,

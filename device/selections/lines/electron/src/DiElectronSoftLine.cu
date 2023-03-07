@@ -5,7 +5,6 @@
 #include <ROOTHeaders.h>
 #include "ROOTService.h"
 
-
 INSTANTIATE_LINE(di_electron_soft_line::di_electron_soft_line_t, di_electron_soft_line::Parameters)
 
 __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float>
@@ -73,7 +72,6 @@ __device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
   return decision;
 }
 
-
 __device__ void di_electron_soft_line::di_electron_soft_line_t::monitor(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float> input,
@@ -83,17 +81,15 @@ __device__ void di_electron_soft_line::di_electron_soft_line_t::monitor(
   const auto& [vertex, is_dielectron, brem_corrected_dielectron_mass, dipion_mass] = input;
 
   // if (sel) {
-    parameters.pipi_masses[index] = dipion_mass;
-    parameters.ee_masses[index] = brem_corrected_dielectron_mass;
-    parameters.minipchi2[index] = vertex.minipchi2();
-    parameters.sv_rho2[index] = vertex.vertex().x() * vertex.vertex().x() + vertex.vertex().y() * vertex.vertex().y();
-    parameters.sv_z[index] = vertex.vertex().z();
-    parameters.ee_doca[index] = vertex.doca12();
-    parameters.sv_ipperdz[index] = vertex.ip() / vertex.dz();
-    parameters.ee_cloneang[index] = vertex.clone_sin2();
-    parameters.sv_pt[index] = vertex.vertex().pt();
-    parameters.minpt_uncorr[index] = vertex.minpt();    
+  parameters.pipi_masses[index] = dipion_mass;
+  parameters.ee_masses[index] = brem_corrected_dielectron_mass;
+  parameters.minipchi2[index] = vertex.minipchi2();
+  parameters.sv_rho2[index] = vertex.vertex().x() * vertex.vertex().x() + vertex.vertex().y() * vertex.vertex().y();
+  parameters.sv_z[index] = vertex.vertex().z();
+  parameters.ee_doca[index] = vertex.doca12();
+  parameters.sv_ipperdz[index] = vertex.ip() / vertex.dz();
+  parameters.ee_cloneang[index] = vertex.clone_sin2();
+  parameters.sv_pt[index] = vertex.vertex().pt();
+  parameters.minpt_uncorr[index] = vertex.minpt();
   // }
 }
-
-
