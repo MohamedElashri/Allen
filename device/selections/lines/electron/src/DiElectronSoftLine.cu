@@ -2,6 +2,9 @@
 * (c) Copyright 2023 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #include "DiElectronSoftLine.cuh"
+#include <ROOTHeaders.h>
+#include "ROOTService.h"
+
 
 INSTANTIATE_LINE(di_electron_soft_line::di_electron_soft_line_t, di_electron_soft_line::Parameters)
 
@@ -16,6 +19,8 @@ di_electron_soft_line::di_electron_soft_line_t::get_input(
   const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
   const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
   const bool is_dielectron = vertex.is_dielectron();
+
+  // Bremsstrahlung correction
 
   const float brem_corrected_pt1 =
     parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + trk1->get_index()];
@@ -36,10 +41,10 @@ di_electron_soft_line::di_electron_soft_line_t::get_input(
   }
 
   const float brem_corrected_dielectron_mass =
-    vertex.m12(0.510999f, 0.510999f) * brem_p_correction_ratio_trk1 * brem_p_correction_ratio_trk2;
+    vertex.m12(Allen::mEl, Allen::mEl) * brem_p_correction_ratio_trk1 * brem_p_correction_ratio_trk2;
 
-  // KS2pipi misID veto
-  const float dipion_mass = vertex.m12(139.57039f, 139.57039f);
+  // KS2pipi mass for veto
+  const float dipion_mass = vertex.m12(Allen::mPi, Allen::mPi);
 
   return std::forward_as_tuple(vertex, is_dielectron, brem_corrected_dielectron_mass, dipion_mass);
 }
@@ -57,8 +62,6 @@ __device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
   if (vertex.minipchi2() < parameters.DESoftMinIPChi2) return false;
   if (opposite_sign != parameters.OppositeSign) return false;
 
-  // Bremsstrahlung Correction
-
   const bool decision =
     vertex.vertex().chi2() > 0 && (dipion_mass < parameters.DESoftM0 || dipion_mass > parameters.DESoftM1) &&
     (brem_corrected_dielectron_mass < parameters.DESoftM2) && vertex.eta() > 0 &&
@@ -69,3 +72,28 @@ __device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
     vertex.clone_sin2() > parameters.DESoftGhost;
   return decision;
 }
+
+
+__device__ void di_electron_soft_line::di_electron_soft_line_t::monitor(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float> input,
+  unsigned index,
+  bool sel)
+{
+  const auto& [vertex, is_dielectron, brem_corrected_dielectron_mass, dipion_mass] = input;
+
+  // if (sel) {
+    parameters.pipi_masses[index] = dipion_mass;
+    parameters.ee_masses[index] = brem_corrected_dielectron_mass;
+    parameters.minipchi2[index] = vertex.minipchi2();
+    parameters.sv_rho2[index] = vertex.vertex().x() * vertex.vertex().x() + vertex.vertex().y() * vertex.vertex().y();
+    parameters.sv_z[index] = vertex.vertex().z();
+    parameters.ee_doca[index] = vertex.doca12();
+    parameters.sv_ipperdz[index] = vertex.ip() / vertex.dz();
+    parameters.ee_cloneang[index] = vertex.clone_sin2();
+    parameters.sv_pt[index] = vertex.vertex().pt();
+    parameters.minpt_uncorr[index] = vertex.minpt();    
+  // }
+}
+
+

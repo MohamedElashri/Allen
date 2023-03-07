@@ -5,6 +5,8 @@
 
 #include "AlgorithmTypes.cuh"
 #include "TwoTrackLine.cuh"
+#include "ROOTService.h"
+#include "MassDefinitions.h"
 
 namespace di_electron_soft_line {
   struct Parameters {
@@ -24,6 +26,20 @@ namespace di_electron_soft_line {
 
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
+
+    // Device outputs for monitoring
+    DEVICE_OUTPUT(pipi_masses_t, float) pipi_masses;
+    DEVICE_OUTPUT(ee_masses_t, float) ee_masses;
+    DEVICE_OUTPUT(minipchi2_t, float) minipchi2;
+    DEVICE_OUTPUT(sv_rho2_t, float) sv_rho2;
+    DEVICE_OUTPUT(sv_z_t, float) sv_z;
+    DEVICE_OUTPUT(ee_doca_t, float) ee_doca;
+    DEVICE_OUTPUT(sv_ipperdz_t, float) sv_ipperdz;
+    DEVICE_OUTPUT(ee_cloneang_t, float) ee_cloneang;
+    DEVICE_OUTPUT(minpt_uncorr_t, float) minpt_uncorr;
+    DEVICE_OUTPUT(sv_pt_t, float) sv_pt;
+
+
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
@@ -31,25 +47,35 @@ namespace di_electron_soft_line {
     PROPERTY(DESoftM0_t, "DESoftM0", "lower m(pipi) for KS->pipi veto", float) DESoftM0;
     PROPERTY(DESoftM1_t, "DESoftM1", "higher m(pipi) for KS->pipi veto", float) DESoftM1;
     PROPERTY(DESoftM2_t, "DESoftM2", "upper m(ee)", float) DESoftM2;
-    PROPERTY(DESoftMinIPChi2_t, "DESoftMinIPChi2", "DESoftMinIPChi2 description", float) DESoftMinIPChi2;
-    PROPERTY(DESoftMinRho2_t, "DESoftMinRho2", "DESoftMinRho2 description", float) DESoftMinRho2;
-    PROPERTY(DESoftMinZ_t, "DESoftMinZ", "DESoftMinZ description", float) DESoftMinZ;
-    PROPERTY(DESoftMaxZ_t, "DESoftMaxZ", "DESoftMaxZ description", float) DESoftMaxZ;
-    PROPERTY(DESoftMaxDOCA_t, "DESoftMaxDOCA", "DESoftMaxDOCA description", float) DESoftMaxDOCA;
+    PROPERTY(DESoftMinIPChi2_t, "DESoftMinIPChi2", "min(IPchi2) of the electrons", float) DESoftMinIPChi2;
+    PROPERTY(DESoftMinRho2_t, "DESoftMinRho2", "minimum transverse distance to the beampipe", float) DESoftMinRho2;
+    PROPERTY(DESoftMinZ_t, "DESoftMinZ", "min z", float) DESoftMinZ;
+    PROPERTY(DESoftMaxZ_t, "DESoftMaxZ", "max z", float) DESoftMaxZ;
+    PROPERTY(DESoftMaxDOCA_t, "DESoftMaxDOCA", "max DOCA between electrons", float) DESoftMaxDOCA;
     PROPERTY(DESoftMaxIPDZ_t, "DESoftMaxIPDZ", "DESoftMaxIPDZ description", float) DESoftMaxIPDZ;
-    PROPERTY(DESoftGhost_t, "DESoftGhost", "DESoftGhost description", float) DESoftGhost;
+    PROPERTY(DESoftGhost_t, "DESoftGhost", "min sin2 of angle between electrons (ghost removal)", float) DESoftGhost;
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dielectron combinations", bool) OppositeSign;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct di_electron_soft_line_t : public SelectionAlgorithm,
                                    Parameters,
                                    TwoTrackLine<di_electron_soft_line_t, Parameters> {
+
+    using monitoring_types = std::tuple<pipi_masses_t, ee_masses_t, minipchi2_t, sv_rho2_t, sv_z_t, ee_doca_t, sv_ipperdz_t, ee_cloneang_t>;
+
     __device__ static bool select(
       const Parameters&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float>);
 
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
+
+    __device__ static void monitor(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float> input,
+      unsigned index,
+      bool sel);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -67,5 +93,6 @@ namespace di_electron_soft_line {
     Property<DESoftMaxIPDZ_t> m_DESoftMaxIPDZ {this, 0.04f};
     Property<DESoftGhost_t> m_DESoftGhost {this, 4.e-06f};
     Property<OppositeSign_t> m_opposite_sign {this, true};
+    Property<enable_monitoring_t> m_enable_monitoring {this, true};
   };
 } // namespace di_electron_soft_line
