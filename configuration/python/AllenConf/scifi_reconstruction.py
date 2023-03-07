@@ -19,11 +19,11 @@ from AllenConf.velo_reconstruction import run_velo_kalman_filter
 def decode_scifi():
     number_of_events = initialize_number_of_events()
     scifi_banks = make_algorithm(
-        data_provider_t, name="scifi_banks", bank_type="FTCluster")
+        data_provider_t, name='scifi_banks_{hash}', bank_type="FTCluster")
 
     scifi_calculate_cluster_count = make_algorithm(
         scifi_calculate_cluster_count_t,
-        name="scifi_calculate_cluster_count",
+        name='scifi_calculate_cluster_count_{hash}',
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
         dev_scifi_raw_input_sizes_t=scifi_banks.dev_raw_sizes_t,
@@ -32,12 +32,12 @@ def decode_scifi():
 
     prefix_sum_scifi_hits = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_scifi_hits",
+        name='prefix_sum_scifi_hits_{hash}',
         dev_input_buffer_t=scifi_calculate_cluster_count.dev_scifi_hit_count_t)
 
     scifi_pre_decode = make_algorithm(
         scifi_pre_decode_t,
-        name="scifi_pre_decode",
+        name='scifi_pre_decode_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_accumulated_number_of_scifi_hits_t=prefix_sum_scifi_hits.
         host_total_sum_holder_t,
@@ -49,7 +49,7 @@ def decode_scifi():
 
     scifi_raw_bank_decoder = make_algorithm(
         scifi_raw_bank_decoder_t,
-        name="scifi_raw_bank_decoder",
+        name='scifi_raw_bank_decoder_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_scifi_hits_t=prefix_sum_scifi_hits.
@@ -139,7 +139,7 @@ def make_forward_tracks(decoded_scifi,
     # The preexisting will be deduplicated in UT-ful
     ut_select_velo_tracks = make_algorithm(
         ut_select_velo_tracks_t,
-        name="ut_select_velo_tracks",
+        name='ut_select_velo_tracks_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_velo_tracks_t=
         host_number_of_reconstructed_velo_tracks,
@@ -150,11 +150,11 @@ def make_forward_tracks(decoded_scifi,
 
     # With or without UT (get type if of input_track_views)
     get_type_id = make_algorithm(
-        get_type_id_t, name="get_type_id", dev_imec_t=input_track_views)
+        get_type_id_t, name='get_type_id_{hash}', dev_imec_t=input_track_views)
 
     lf_search_initial_windows = make_algorithm(
         lf_search_initial_windows_t,
-        name="lf_search_initial_windows",
+        name='lf_search_initial_windows_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_input_tracks_t=
@@ -179,7 +179,7 @@ def make_forward_tracks(decoded_scifi,
 
     lf_triplet_seeding = make_algorithm(
         lf_triplet_seeding_t,
-        name="lf_triplet_seeding",
+        name='lf_triplet_seeding_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_input_tracks_t=
@@ -204,7 +204,7 @@ def make_forward_tracks(decoded_scifi,
 
     lf_create_tracks = make_algorithm(
         lf_create_tracks_t,
-        name="lf_create_tracks",
+        name='lf_create_tracks_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_input_tracks_t=
@@ -235,7 +235,7 @@ def make_forward_tracks(decoded_scifi,
 
     lf_quality_filter_length = make_algorithm(
         lf_quality_filter_length_t,
-        name="lf_quality_filter_length",
+        name='lf_quality_filter_length_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_input_tracks_t=
@@ -249,7 +249,7 @@ def make_forward_tracks(decoded_scifi,
 
     lf_quality_filter = make_algorithm(
         lf_quality_filter_t,
-        name="lf_quality_filter",
+        name='lf_quality_filter_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_input_tracks_t=
@@ -269,12 +269,12 @@ def make_forward_tracks(decoded_scifi,
 
     prefix_sum_forward_tracks = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_forward_tracks",
+        name='prefix_sum_forward_tracks_{hash}',
         dev_input_buffer_t=lf_quality_filter.dev_atomics_scifi_t)
 
     scifi_copy_track_hit_number = make_algorithm(
         scifi_copy_track_hit_number_t,
-        name="scifi_copy_track_hit_number",
+        name='scifi_copy_track_hit_number_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=prefix_sum_forward_tracks.
         host_total_sum_holder_t,
@@ -285,13 +285,13 @@ def make_forward_tracks(decoded_scifi,
 
     prefix_sum_scifi_track_hit_number = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_scifi_track_hit_number",
+        name='prefix_sum_scifi_track_hit_number_{hash}',
         dev_input_buffer_t=scifi_copy_track_hit_number.
         dev_scifi_track_hit_number_t)
 
     scifi_consolidate_tracks = make_algorithm(
         scifi_consolidate_tracks_t,
-        name="scifi_consolidate_tracks",
+        name='scifi_consolidate_tracks_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_hits_in_scifi_tracks_t=
@@ -361,7 +361,7 @@ def make_seeding_XZ_tracks(decoded_scifi):
 
     seed_xz_tracks = make_algorithm(
         seed_xz_t,
-        name="seed_xz",
+        name='seed_xz_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_scifi_hit_count_t=decoded_scifi["host_number_of_scifi_hits"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
@@ -386,7 +386,7 @@ def make_seeding_tracks(decoded_scifi, xz_tracks):
 
     seed_tracks = make_algorithm(
         seed_confirmTracks_t,
-        name="seed_confirmTracks",
+        name='seed_confirmTracks_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
@@ -400,12 +400,12 @@ def make_seeding_tracks(decoded_scifi, xz_tracks):
 
     prefix_sum_seeding_tracks = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_seeding_track",
+        name='prefix_sum_seeding_track_{hash}',
         dev_input_buffer_t=seed_tracks.dev_seeding_confirmTracks_atomics_t)
 
     seeding_copy_track_hit_number = make_algorithm(
         seeding_copy_track_hit_number_t,
-        name="seeding_copy_track_hit_number",
+        name='seeding_copy_track_hit_number_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_seeding_tracks_t=prefix_sum_seeding_tracks
         .host_total_sum_holder_t,
@@ -414,13 +414,13 @@ def make_seeding_tracks(decoded_scifi, xz_tracks):
 
     prefix_sum_seeding_track_hit_number = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_seeding_track_hit_number",
+        name='prefix_sum_seeding_track_hit_number_{hash}',
         dev_input_buffer_t=seeding_copy_track_hit_number.
         dev_seeding_track_hit_number_t)
 
     seed_confirmTracks_consolidate = make_algorithm(
         seed_confirmTracks_consolidate_t,
-        name="scifi_consolidate_seeds",
+        name='scifi_consolidate_seeds_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_hits_in_scifi_tracks_t=

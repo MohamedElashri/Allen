@@ -127,7 +127,7 @@ class AlgorithmTraversal():
     # Accepted tokens for algorithm AllenConf
     __algorithm_tokens = [
         "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm",
-        "ValidationAlgorithm", "ProviderAlgorithm"
+        "ValidationAlgorithm", "ProviderAlgorithm", "BarrierAlgorithm"
     ]
 
     # Accepted tokens for parameter parsing

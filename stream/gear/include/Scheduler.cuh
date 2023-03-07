@@ -62,7 +62,7 @@ private:
           selection_arguments.insert(arg);
         }
       }
-      if (sequence[i].name() == "gather_selections") {
+      if (sequence[i].scope() == "BarrierAlgorithm") {
         for (const auto& arg : selection_arguments) {
           seq_args[i].arguments.push_back(arg);
         }

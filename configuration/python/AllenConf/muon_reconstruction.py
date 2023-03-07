@@ -17,13 +17,13 @@ def decode_muon(empty_banks=False):
 
     muon_banks = make_algorithm(
         data_provider_t,
-        name="muon_banks",
+        name="muon_banks_{hash}",
         bank_type="Muon",
         empty=empty_banks)
 
     muon_calculate_srq_size = make_algorithm(
         muon_calculate_srq_size_t,
-        name="muon_calculate_srq_size",
+        name='muon_calculate_srq_size_{hash}',
         host_number_of_events_t=host_number_of_events,
         dev_muon_raw_t=muon_banks.dev_raw_banks_t,
         dev_muon_raw_offsets_t=muon_banks.dev_raw_offsets_t,
@@ -33,14 +33,14 @@ def decode_muon(empty_banks=False):
 
     muon_srq_prefix_sum = make_algorithm(
         host_prefix_sum_t,
-        name="muon_srq_prefix_sum",
+        name='muon_srq_prefix_sum_{hash}',
         dev_input_buffer_t=muon_calculate_srq_size.
         dev_storage_station_region_quarter_sizes_t,
     )
 
     muon_populate_tile_and_tdc = make_algorithm(
         muon_populate_tile_and_tdc_t,
-        name="muon_populate_tile_and_tdc",
+        name='muon_populate_tile_and_tdc_{hash}',
         host_number_of_events_t=host_number_of_events,
         host_muon_total_number_of_tiles_t=muon_srq_prefix_sum.
         host_total_sum_holder_t,
@@ -55,13 +55,13 @@ def decode_muon(empty_banks=False):
 
     muon_station_ocurrence_prefix_sum = make_algorithm(
         host_prefix_sum_t,
-        name="muon_station_ocurrence_prefix_sum",
+        name='muon_station_ocurrence_prefix_sum_{hash}',
         dev_input_buffer_t=muon_populate_tile_and_tdc.
         dev_station_ocurrences_sizes_t)
 
     muon_add_coords_crossing_maps = make_algorithm(
         muon_add_coords_crossing_maps_t,
-        name="muon_add_coords_crossing_maps",
+        name='muon_add_coords_crossing_maps_{hash}',
         host_number_of_events_t=host_number_of_events,
         host_muon_total_number_of_tiles_t=muon_srq_prefix_sum.
         host_total_sum_holder_t,
@@ -78,7 +78,7 @@ def decode_muon(empty_banks=False):
 
     muon_populate_hits = make_algorithm(
         muon_populate_hits_t,
-        name="muon_populate_hits",
+        name='muon_populate_hits_{hash}',
         host_number_of_events_t=host_number_of_events,
         dev_number_of_events_t=dev_number_of_events,
         host_muon_total_number_of_hits_t=muon_station_ocurrence_prefix_sum.
@@ -115,7 +115,7 @@ def is_muon(decoded_muon, long_tracks):
 
     is_muon = make_algorithm(
         is_muon_t,
-        name="is_muon",
+        name='is_muon_{hash}',
         host_number_of_events_t=host_number_of_events,
         dev_number_of_events_t=dev_number_of_events,
         host_number_of_reconstructed_scifi_tracks_t=
@@ -137,7 +137,7 @@ def fake_muon_id(forward_tracks):
     number_of_events = initialize_number_of_events()
     empty_muon_id = make_algorithm(
         empty_lepton_id_t,
-        name="empty_muon_id",
+        name='empty_muon_id_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_scifi_tracks_t=forward_tracks[
             "host_number_of_reconstructed_scifi_tracks"])
@@ -173,7 +173,7 @@ def make_muon_stubs(monitoring=False):
 
     find_muon_hits = make_algorithm(
         find_muon_hits_t,
-        name='find_muon_hits',
+        name='find_muon_hits_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_station_ocurrences_offset_t=decoded_muon[
@@ -182,12 +182,12 @@ def make_muon_stubs(monitoring=False):
         enable_monitoring=monitoring)
     prefix_sum_muon_tracks = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_muon_tracks_find_hits",
+        name='prefix_sum_muon_tracks_find_hits_{hash}',
         dev_input_buffer_t=find_muon_hits.dev_muon_number_of_tracks_t)
 
     consolidate_muon = make_algorithm(
         consolidate_muon_t,
-        name='consolidate_muon_t',
+        name='consolidate_muon_t_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_muon_tracks_input_t=find_muon_hits.dev_muon_tracks_t,
