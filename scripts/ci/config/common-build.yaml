@@ -7,7 +7,6 @@
       - LCG_QUALIFIER:
           - "cpu"
           - cuda11_4
-          - hip5
   allow_failure: true # FIXME remove
 
 # Builds that are considered "additional", can be run in addition to "minimal" tests in certain scenarios
@@ -27,20 +26,17 @@
           - "x86_64_v3-centos7-clang12"
         LCG_OPTIMIZATION: dbg
         OPTIONS:
-          - BUILD_TESTING+ENABLE_CONTRACTS+USE_ROOT
-          - BUILD_TESTING+ENABLE_CONTRACTS+USE_ROOT+TREAT_WARNINGS_AS_ERRORS
+          - BUILD_TESTING+ENABLE_CONTRACTS
           - BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
 
       - LCG_SYSTEM:
           - "x86_64_v3-centos7-gcc11"
         LCG_OPTIMIZATION: dbg
         OPTIONS:
-          - BUILD_TESTING+ENABLE_CONTRACTS+USE_ROOT+TREAT_WARNINGS_AS_ERRORS
-        AVOID_HIP: 1
+          - BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
 
       - LCG_SYSTEM: "x86_64_v3-centos7-clang12"
         LCG_OPTIMIZATION: dbg
-        OPTIONS: ["USE_ROOT"]
 
 .build_job:
   extends: .base_job
