@@ -6,7 +6,8 @@
     matrix:
       - LCG_QUALIFIER:
           - "cpu"
-          - cuda11_4
+          - "cuda11_4"
+          - "hip5"
   allow_failure: true # FIXME remove
 
 # Builds that are considered "additional", can be run in addition to "minimal" tests in certain scenarios
