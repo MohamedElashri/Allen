@@ -67,7 +67,7 @@ full:
     sequence:
       - hlt1_pp_default
     dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
-    build_options: BUILD_TESTING+ENABLE_CONTRACTS
+    build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
     throughput_report: false # don't publish throughput report
 
   # run throughput, no_gec
@@ -143,7 +143,7 @@ full:
     lcg_opt:
       - "opt"
       - "dbg"
-    build_options: "BUILD_TESTING+ENABLE_CONTRACTS"
+    build_options: "BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS"
 
   # run physics efficiency, scifi_v6
   # forward no ut, scifi v6

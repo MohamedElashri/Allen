@@ -19,24 +19,17 @@
           - "x86_64_v3-centos7-clang12"
         LCG_OPTIMIZATION: [opt, dbg]
         OPTIONS:
-          - BUILD_TESTING+ENABLE_CONTRACTS
-
-      # debug builds with GCC, Clang with various additional cmake options
-      - LCG_SYSTEM:
-          - "x86_64_v3-centos7-clang12"
-        LCG_OPTIMIZATION: dbg
-        OPTIONS:
-          - BUILD_TESTING+ENABLE_CONTRACTS
           - BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
+      
+      - LCG_SYSTEM: "x86_64_v3-centos7-clang12"
+        LCG_OPTIMIZATION: dbg
 
+      # debug builds with GCC
       - LCG_SYSTEM:
           - "x86_64_v3-centos7-gcc11"
         LCG_OPTIMIZATION: dbg
         OPTIONS:
           - BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
-
-      - LCG_SYSTEM: "x86_64_v3-centos7-clang12"
-        LCG_OPTIMIZATION: dbg
 
 .build_job:
   extends: .base_job
