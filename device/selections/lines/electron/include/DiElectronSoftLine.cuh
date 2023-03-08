@@ -61,8 +61,17 @@ namespace di_electron_soft_line {
                                    Parameters,
                                    TwoTrackLine<di_electron_soft_line_t, Parameters> {
 
-    using monitoring_types =
-      std::tuple<pipi_masses_t, ee_masses_t, minipchi2_t, sv_rho2_t, sv_z_t, ee_doca_t, sv_ipperdz_t, ee_cloneang_t>;
+    using monitoring_types = std::tuple<
+      pipi_masses_t,
+      ee_masses_t,
+      minipchi2_t,
+      sv_rho2_t,
+      sv_z_t,
+      ee_doca_t,
+      sv_ipperdz_t,
+      ee_cloneang_t,
+      minpt_uncorr_t,
+      sv_pt_t>;
 
     __device__ static bool select(
       const Parameters&,
