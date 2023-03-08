@@ -58,7 +58,7 @@ __device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
   const bool opposite_sign = vertex.charge() == 0;
 
   if (!is_dielectron) return false;
-  if (vertex.minipchi2() < parameters.DESoftMinIPChi2) return false;
+  if (vertex.minip() < parameters.DESoftMinIP) return false;
   if (opposite_sign != parameters.OppositeSign) return false;
 
   const bool decision =
@@ -83,7 +83,7 @@ __device__ void di_electron_soft_line::di_electron_soft_line_t::monitor(
   // if (sel) {
   parameters.pipi_masses[index] = dipion_mass;
   parameters.ee_masses[index] = brem_corrected_dielectron_mass;
-  parameters.minipchi2[index] = vertex.minipchi2();
+  parameters.minip[index] = vertex.minip();
   parameters.sv_rho2[index] = vertex.vertex().x() * vertex.vertex().x() + vertex.vertex().y() * vertex.vertex().y();
   parameters.sv_z[index] = vertex.vertex().z();
   parameters.ee_doca[index] = vertex.doca12();

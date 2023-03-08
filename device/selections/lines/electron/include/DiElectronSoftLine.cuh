@@ -30,7 +30,7 @@ namespace di_electron_soft_line {
     // Device outputs for monitoring
     DEVICE_OUTPUT(pipi_masses_t, float) pipi_masses;
     DEVICE_OUTPUT(ee_masses_t, float) ee_masses;
-    DEVICE_OUTPUT(minipchi2_t, float) minipchi2;
+    DEVICE_OUTPUT(minip_t, float) minip;
     DEVICE_OUTPUT(sv_rho2_t, float) sv_rho2;
     DEVICE_OUTPUT(sv_z_t, float) sv_z;
     DEVICE_OUTPUT(ee_doca_t, float) ee_doca;
@@ -46,7 +46,7 @@ namespace di_electron_soft_line {
     PROPERTY(DESoftM0_t, "DESoftM0", "lower m(pipi) for KS->pipi veto", float) DESoftM0;
     PROPERTY(DESoftM1_t, "DESoftM1", "higher m(pipi) for KS->pipi veto", float) DESoftM1;
     PROPERTY(DESoftM2_t, "DESoftM2", "upper m(ee)", float) DESoftM2;
-    PROPERTY(DESoftMinIPChi2_t, "DESoftMinIPChi2", "min(IPchi2) of the electrons", float) DESoftMinIPChi2;
+    PROPERTY(DESoftMinIP_t, "DESoftMinIP", "min(IP) of the electrons", float) DESoftMinIP;
     PROPERTY(DESoftMinRho2_t, "DESoftMinRho2", "minimum transverse distance to the beampipe", float) DESoftMinRho2;
     PROPERTY(DESoftMinZ_t, "DESoftMinZ", "min z", float) DESoftMinZ;
     PROPERTY(DESoftMaxZ_t, "DESoftMaxZ", "max z", float) DESoftMaxZ;
@@ -64,7 +64,7 @@ namespace di_electron_soft_line {
     using monitoring_types = std::tuple<
       pipi_masses_t,
       ee_masses_t,
-      minipchi2_t,
+      minip_t,
       sv_rho2_t,
       sv_z_t,
       ee_doca_t,
@@ -91,10 +91,10 @@ namespace di_electron_soft_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<DESoftM0_t> m_DESoftM0 {this, 460.f};
-    Property<DESoftM1_t> m_DESoftM1 {this, 536.f};
+    Property<DESoftM0_t> m_DESoftM0 {this, 465.f};
+    Property<DESoftM1_t> m_DESoftM1 {this, 530.f};
     Property<DESoftM2_t> m_DESoftM2 {this, 600.f};
-    Property<DESoftMinIPChi2_t> m_DESoftMinIPChi2 {this, 100.f};
+    Property<DESoftMinIP_t> m_DESoftMinIP {this, 0.5f};
     Property<DESoftMinRho2_t> m_DESoftMinRho2 {this, 9.f};
     Property<DESoftMinZ_t> m_DESoftMinZ {this, -375.f};
     Property<DESoftMaxZ_t> m_DESoftMaxZ {this, 635.f};
