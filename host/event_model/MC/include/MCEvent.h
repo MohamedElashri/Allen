@@ -34,7 +34,7 @@ struct MCEvent {
   uint32_t size;
 
   // Constructor
-  MCEvent() {};
+  MCEvent() {}
   MCEvent(
     std::vector<char> const& _particles,
     std::vector<char> const& _vertices,
