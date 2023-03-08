@@ -175,7 +175,7 @@ int main(int argc, char* argv[])
                                   &banks_version,
                                   &event_ids,
                                   &event_masks] {
-      auto& read_buffer = read_buffers[i];
+      auto& buffer = read_buffers[i];
       for (size_t rep = 0; rep < n_reps; ++rep) {
 
         // Reset the slice
@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
 
         // Transpose events
         auto [success, transpose_full, n_transposed] = transpose_events(
-          read_buffer,
+          buffer,
           slices,
           i,
           {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN},

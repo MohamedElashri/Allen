@@ -431,7 +431,7 @@ namespace Allen {
         const auto data = arguments.template get<Arg>();
         info_cout << arguments.template name<Arg>() << ": ";
         for (unsigned i = 0; i < data.size(); ++i) {
-          info_cout << ((int) data[i]) << ", ";
+          info_cout << static_cast<int>(data[i]) << ", ";
         }
         info_cout << "\n";
       }

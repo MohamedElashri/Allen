@@ -34,7 +34,7 @@ namespace lhcb_id {
   };
   __host__ __device__ inline unsigned detector_type_lhcbid(const unsigned id)
   {
-    return (unsigned) ((id & lhcbIDMasks::detectorTypeMask) >> detectorTypeBits);
+    return static_cast<unsigned>((id & lhcbIDMasks::detectorTypeMask) >> detectorTypeBits);
   }
   __host__ __device__ inline unsigned set_detector_type_id(LHCbIDType t, const unsigned id)
   {
@@ -43,16 +43,16 @@ namespace lhcb_id {
 
   __host__ __device__ inline bool is_velo(const unsigned id)
   {
-    return detector_type_lhcbid(id) == (unsigned) LHCbIDType::VELO;
+    return detector_type_lhcbid(id) == static_cast<unsigned>(LHCbIDType::VELO);
   }
 
   __host__ __device__ inline bool is_ut(const unsigned id)
   {
-    return detector_type_lhcbid(id) == (unsigned) LHCbIDType::UT;
+    return detector_type_lhcbid(id) == static_cast<unsigned>(LHCbIDType::UT);
   }
 
   __host__ __device__ inline bool is_scifi(const unsigned id)
   {
-    return detector_type_lhcbid(id) == (unsigned) LHCbIDType::FT;
+    return detector_type_lhcbid(id) == static_cast<unsigned>(LHCbIDType::FT);
   }
 } // namespace lhcb_id

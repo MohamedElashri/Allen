@@ -93,14 +93,14 @@ namespace LHCb {
       /// Accessor: event type identifier
       unsigned char eventType() const { return m_evType; }
       /// Update the event type
-      void setEventType(unsigned int val) { m_evType = (unsigned char) val; }
+      void setEventType(unsigned int val) { m_evType = static_cast<unsigned char>(val); }
       /// Accessor: L0 trigger number of the event
       long long triggerNumber() const { return (int_64_t(m_trH) << 32) + m_trL; }
       /// Update the L0 trigger number of the event
       void setTriggerNumber(int_64_t val)
       {
         m_trH = char(0xFF & (val >> 32));
-        m_trL = (unsigned int) (0xFFFFFFFFLL & (val & 0xFFFFFFFFLL));
+        m_trL = static_cast<unsigned int>(0xFFFFFFFFLL & (val & 0xFFFFFFFFLL));
       }
       /// Accessor: Number of bits in the trigger mask
       unsigned int maskBits() const { return sizeof(m_trMask) * 8; }
@@ -189,19 +189,19 @@ namespace LHCb {
     /// Accessor: Identifier of the compression method
     unsigned char compression() const { return m_compression; }
     /// Update the identifier of the compression method
-    void setCompression(unsigned int val) { m_compression = (unsigned char) val; }
+    void setCompression(unsigned int val) { m_compression = static_cast<unsigned char>(val); }
     /// Accessor: length of the event header
     unsigned int subheaderLength() const { return (m_hdr & 0x0F) * sizeof(int); }
     /// Update the length of the event header
     void setSubheaderLength(unsigned int l)
     {
       l = (l % sizeof(int)) ? (l / sizeof(int)) + 1 : l / sizeof(int);
-      m_hdr = (unsigned char) ((0xF0 & m_hdr) + (0x0F & l));
+      m_hdr = static_cast<unsigned char>((0xF0 & m_hdr) + (0x0F & l));
     }
     /// Accessor: version of the event header
     unsigned int headerVersion() const { return m_hdr >> 4; }
     /// Update the version of the event header
-    void setHeaderVersion(unsigned int vsn) { m_hdr = (unsigned char) (((vsn << 4) + (m_hdr & 0xF)) & 0xFF); }
+    void setHeaderVersion(unsigned int vsn) { m_hdr = static_cast<unsigned char>(((vsn << 4) + (m_hdr & 0xF)) & 0xFF); }
     /// Accessor: hdr field
     unsigned char hdr() const { return m_hdr; }
     /// Update hdr field
@@ -213,9 +213,9 @@ namespace LHCb {
     /// Set spare word
     void setSpare(unsigned char val) { m_spare[0] = val; }
     /// Access to data payload (Header MUST be initialized)
-    char* data() { return ((char*) this) + sizeOf(headerVersion()); }
+    char* data() { return reinterpret_cast<char*>(this) + sizeOf(headerVersion()); }
     /// Access to data payload (Header MUST be initialized)
-    const char* data() const { return ((char*) this) + sizeOf(headerVersion()); }
+    const char* data() const { return reinterpret_cast<const char*>(this) + sizeOf(headerVersion()); }
 
     /// Access to sub-headers
     SubHeader subHeader0() { return SubHeader(m_spare - 1); }

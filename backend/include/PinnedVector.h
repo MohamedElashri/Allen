@@ -36,7 +36,7 @@ namespace Allen {
       using other = pinned_allocator<U>;
     };
 
-    pinned_allocator() noexcept {};
+    pinned_allocator() noexcept {}
 
     template<class U>
     pinned_allocator(const pinned_allocator<U>&) noexcept
