@@ -1,27 +1,3 @@
-velo_validator validation:
-TrackChecker output                               :        94/    13749   0.68% ghosts
-01_velo                                           :      7660/     7805  98.14% ( 98.12%),       248 (  3.14%) clones, pur  99.60%, hit eff  95.77%
-02_long                                           :      4466/     4511  99.00% ( 98.92%),       123 (  2.68%) clones, pur  99.74%, hit eff  96.55%
-03_long_P>5GeV                                    :      2925/     2941  99.46% ( 99.35%),        70 (  2.34%) clones, pur  99.81%, hit eff  97.16%
-04_long_strange                                   :       214/      218  98.17% ( 98.02%),         6 (  2.73%) clones, pur  99.58%, hit eff  95.93%
-05_long_strange_P>5GeV                            :       113/      116  97.41% ( 96.88%),         1 (  0.88%) clones, pur  99.93%, hit eff  97.60%
-08_long_electrons                                 :       583/      596  97.82% ( 98.16%),        23 (  3.80%) clones, pur  98.31%, hit eff  95.94%
-
-
-pv_validator validation:
-REC and MC vertices matched by dz distance
-MC PV is reconstructible if at least 4 tracks are reconstructed
-MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
-REC and MC vertices matched by dz distance
-
-All                  :  1.004 (   712/   709)
-Isolated             :  1.004 (   712/   709)
-Close                :  0.000 (     0/     0)
-False rate           :  0.008 (     6/   718)
-Real false rate      :  0.008 (     6/   718)
-Clones               :  0.000 (     0/   712)
-
-
 seed_validator validation:
 TrackChecker output                               :        24/     6951   0.35% ghosts
 for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% ghosts
@@ -57,6 +33,16 @@ for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% 
 22_long_strange_P>5GeV_PT>500MeV                  :        22/       23  95.65% ( 95.65%),         0 (  0.00%) clones, pur  99.59%, hit eff  99.24%
 
 
+velo_validator validation:
+TrackChecker output                               :        94/    13749   0.68% ghosts
+01_velo                                           :      7660/     7805  98.14% ( 98.12%),       248 (  3.14%) clones, pur  99.60%, hit eff  95.77%
+02_long                                           :      4466/     4511  99.00% ( 98.92%),       123 (  2.68%) clones, pur  99.74%, hit eff  96.55%
+03_long_P>5GeV                                    :      2925/     2941  99.46% ( 99.35%),        70 (  2.34%) clones, pur  99.81%, hit eff  97.16%
+04_long_strange                                   :       214/      218  98.17% ( 98.02%),         6 (  2.73%) clones, pur  99.58%, hit eff  95.93%
+05_long_strange_P>5GeV                            :       113/      116  97.41% ( 96.88%),         1 (  0.88%) clones, pur  99.93%, hit eff  97.60%
+08_long_electrons                                 :       583/      596  97.82% ( 98.16%),        23 (  3.80%) clones, pur  98.31%, hit eff  95.94%
+
+
 long_validator validation:
 TrackChecker output                               :       132/     3862   3.42% ghosts
 for P>3GeV,Pt>0.5GeV                              :         5/     1261   0.40% ghosts
@@ -82,6 +68,20 @@ Correctly identified muons from strange decays with isMuon:                 0/  
 Correctly identified muons from B decays with isMuon:                       0/        0   -nan% 
 Tracks identified as muon with isMuon, but matched to non-muon MCP:       134/     4338   3.09% 
 Ghost tracks identified as muon with isMuon:                                7/      132   5.30% 
+
+
+pv_validator validation:
+REC and MC vertices matched by dz distance
+MC PV is reconstructible if at least 4 tracks are reconstructed
+MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
+REC and MC vertices matched by dz distance
+
+All                  :  1.004 (   712/   709)
+Isolated             :  1.004 (   712/   709)
+Close                :  0.000 (     0/     0)
+False rate           :  0.008 (     6/   718)
+Real false rate      :  0.008 (     6/   718)
+Clones               :  0.000 (     0/   712)
 
 
 rate_validator validation:

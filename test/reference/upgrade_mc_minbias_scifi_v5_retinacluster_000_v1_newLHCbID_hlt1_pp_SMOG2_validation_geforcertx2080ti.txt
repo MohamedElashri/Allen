@@ -29,20 +29,6 @@ TrackChecker output                               :      3423/    51819   6.61% 
 13_long_fromB_electrons_P>5GeV                    :         4/        5  80.00% ( 80.00%),         0 (  0.00%) clones, pur 100.00%, hit eff 100.00%
 
 
-pv_validator validation:
-REC and MC vertices matched by dz distance
-MC PV is reconstructible if at least 4 tracks are reconstructed
-MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
-REC and MC vertices matched by dz distance
-
-All                  :  0.938 (  4882/  5202)
-Isolated             :  0.972 (  2705/  2783)
-Close                :  0.900 (  2177/  2419)
-False rate           :  0.005 (    25/  4907)
-Real false rate      :  0.005 (    25/  4907)
-Clones               :  0.000 (     0/  4882)
-
-
 long_validator validation:
 TrackChecker output                               :      1203/    33436   3.60% ghosts
 for P>3GeV,Pt>0.5GeV                              :       625/    20832   3.00% ghosts
@@ -74,6 +60,20 @@ Correctly identified muons from strange decays with isMuon:                 0/  
 Correctly identified muons from B decays with isMuon:                       0/        0   -nan% 
 Tracks identified as muon with isMuon, but matched to non-muon MCP:      2295/    36995   6.20% 
 Ghost tracks identified as muon with isMuon:                              126/     1203  10.47% 
+
+
+pv_validator validation:
+REC and MC vertices matched by dz distance
+MC PV is reconstructible if at least 4 tracks are reconstructed
+MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
+REC and MC vertices matched by dz distance
+
+All                  :  0.938 (  4882/  5202)
+Isolated             :  0.972 (  2705/  2783)
+Close                :  0.900 (  2177/  2419)
+False rate           :  0.005 (    25/  4907)
+Real false rate      :  0.005 (    25/  4907)
+Clones               :  0.000 (     0/  4882)
 
 
 rate_validator validation:
