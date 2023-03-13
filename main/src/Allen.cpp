@@ -28,6 +28,7 @@
 #include <memory>
 #include <tuple>
 #include <stdio.h>
+#include <filesystem>
 
 #include <zmq/zmq.hpp>
 #include <ZeroMQ/IZeroMQSvc.h>
@@ -251,10 +252,11 @@ int allen(
     info_cout << "Local copy of param files is used: " << folder_parameters << std::endl;
 #endif
   }
-  if (folder_parameters == "") {
-    error_cout << "Parameters file path is empty!" << std::endl;
-  }
+
   folder_parameters += "/data/";
+  if (!std::filesystem::is_directory(folder_parameters)) {
+    error_cout << "Parameters path " << folder_parameters << " could not be accessed." << std::endl;
+  }
 
   // Read the Muon catboost model
   muon_catboost_model_reader =
