@@ -12,7 +12,6 @@
 #include "SelectionsEventModel.cuh"
 
 #include "LumiDefinitions.cuh"
-#include "LumiSummaryOffsets.h"
 
 INSTANTIATE_ALGORITHM(calc_lumi_sum_size::calc_lumi_sum_size_t)
 
@@ -49,8 +48,6 @@ __global__ void calc_lumi_sum_size::calc_lumi_sum_size(
     const auto sel_span = selections.get_span(parameters.line_index, event_number);
     if (sel_span.empty() || !sel_span[0]) continue;
 
-    // the unit of LHCb::LumiSummaryOffsets::V2::TotalSize is bit
-    // convert it to be unsigned int
-    parameters.dev_lumi_sum_sizes[event_number] = Lumi::Constants::lumi_length;
+    parameters.dev_lumi_sum_sizes[event_number] = parameters.lumi_sum_length;
   }
 }

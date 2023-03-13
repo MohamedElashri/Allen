@@ -10,7 +10,6 @@
 \*****************************************************************************/
 #pragma once
 
-#include "LumiSummaryOffsets.h"
 #include "MuonDefinitions.cuh"
 
 namespace Lumi {
@@ -55,9 +54,10 @@ namespace Lumi {
     static constexpr unsigned n_plume_channels = 32u;
     static constexpr unsigned n_plume_lumi_channels = 22u;
 
+    static constexpr unsigned n_basic_counters = 6u;
     static constexpr unsigned n_velo_counters = 1u;
     static constexpr unsigned n_pv_counters = 1u;
-    static constexpr unsigned n_SciFi_counters = 6u;
+    static constexpr unsigned n_scifi_counters = 6u;
     static constexpr unsigned n_calo_counters = 7u;
     static constexpr unsigned n_muon_counters = 12u;
     static constexpr unsigned n_plume_counters = 3u;
@@ -65,13 +65,43 @@ namespace Lumi {
     // number of sub info, used for info aggregating in make_lumi_summary
     static constexpr unsigned n_sub_infos = 6u;
 
-    // give the length of a lumi summary in unsigned
-    static constexpr unsigned lumi_length = LHCb::LumiSummaryOffsets::V2::TotalSize / 8u / sizeof(unsigned);
+    const std::array<std::string, n_basic_counters> basic_counter_names =
+      {"T0Low", "T0High", "BCIDLow", "BCIDHigh", "BXType", "GEC"};
+    const std::array<std::string, n_velo_counters> velo_counter_names = {"VeloTracks"};
+    const std::array<std::string, n_pv_counters> pv_counter_names = {"VeloVertices"};
+    const std::array<std::string, n_scifi_counters> scifi_counter_names = {"SciFiClusters",
+                                                                           "SciFiClustersS2M123",
+                                                                           "SciFiClustersS3M123",
+                                                                           "SciFiClustersS1M45",
+                                                                           "SciFiClustersS2M45",
+                                                                           "SciFiClustersS3M45"};
+    const std::array<std::string, n_calo_counters> calo_counter_names = {"ECalET",
+                                                                         "ECalEOuterTop",
+                                                                         "ECalEMiddleTop",
+                                                                         "ECalEInnerTop",
+                                                                         "ECalEOuterBottom",
+                                                                         "ECalEMiddleBottom",
+                                                                         "ECalEInnerBottom"};
+    const std::array<std::string, n_muon_counters> muon_counter_names = {"MuonHitsM2R1",
+                                                                         "MuonHitsM2R2",
+                                                                         "MuonHitsM2R3",
+                                                                         "MuonHitsM2R4",
+                                                                         "MuonHitsM3R1",
+                                                                         "MuonHitsM3R2",
+                                                                         "MuonHitsM3R3",
+                                                                         "MuonHitsM3R4",
+                                                                         "MuonHitsM4R1",
+                                                                         "MuonHitsM4R2",
+                                                                         "MuonHitsM4R3",
+                                                                         "MuonHitsM4R4"};
+    const std::array<std::string, n_plume_counters> plume_counter_names = {"PlumeAvgLumiADC",
+                                                                           "PlumeLumiOverthrLow",
+                                                                           "PlumeLumiOverthrHigh"};
   } // namespace Constants
 
   struct LumiInfo {
-    LHCb::LumiSummaryOffsets::V2::counterOffsets size;
-    LHCb::LumiSummaryOffsets::V2::counterOffsets offset;
+    unsigned size;
+    unsigned offset;
     unsigned value;
   };
 } // namespace Lumi

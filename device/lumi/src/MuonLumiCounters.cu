@@ -9,7 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "MuonLumiCounters.cuh"
-#include "LumiSummaryOffsets.h"
+#include "LumiCommon.cuh"
 
 INSTANTIATE_ALGORITHM(muon_lumi_counters::muon_lumi_counters_t)
 
@@ -21,7 +21,27 @@ void muon_lumi_counters::muon_lumi_counters_t::set_arguments_size(
   // the total size of output info is proportional to the lumi summaries
   set_size<dev_lumi_infos_t>(
     arguments,
-    Lumi::Constants::n_muon_counters * first<host_lumi_summaries_size_t>(arguments) / Lumi::Constants::lumi_length);
+    Lumi::Constants::n_muon_counters * first<host_lumi_summaries_size_t>(arguments) / property<lumi_sum_length_t>());
+}
+
+void muon_lumi_counters::muon_lumi_counters_t::init()
+{
+  std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+  std::array<unsigned, 2 * Lumi::Constants::n_muon_counters> muon_offsets_and_sizes =
+    property<muon_offsets_and_sizes_t>();
+
+  unsigned c_idx(0u);
+  for (auto counter_name : Lumi::Constants::muon_counter_names) {
+    if (schema.find(counter_name) == schema.end()) {
+      std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
+    }
+    else {
+      muon_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
+      muon_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
+    }
+    ++c_idx;
+  }
+  set_property_value<muon_offsets_and_sizes_t>(muon_offsets_and_sizes);
 }
 
 void muon_lumi_counters::muon_lumi_counters_t::operator()(
@@ -51,88 +71,28 @@ __global__ void muon_lumi_counters::muon_lumi_counters(
     const auto muon_hits_offsets =
       parameters.dev_storage_station_region_quarter_offsets + event_number * Lumi::Constants::MuonBankSize;
 
-    unsigned muon_info_offset = 12u * lumi_sum_offset / Lumi::Constants::lumi_length;
-    // M2R1
-    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM2R1Size;
-    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM2R1Offset;
-    parameters.dev_lumi_infos[muon_info_offset].value =
-      muon_hits_offsets[Lumi::Constants::M2R2] - muon_hits_offsets[Lumi::Constants::M2R1];
+    unsigned info_offset = 12u * lumi_sum_offset / parameters.lumi_sum_length;
 
-    // M2R2
-    ++muon_info_offset;
-    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM2R2Size;
-    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM2R2Offset;
-    parameters.dev_lumi_infos[muon_info_offset].value =
-      muon_hits_offsets[Lumi::Constants::M2R3] - muon_hits_offsets[Lumi::Constants::M2R2];
+    std::array<unsigned, Lumi::Constants::n_muon_counters + 1> muon_offsets = {Lumi::Constants::M2R1,
+                                                                               Lumi::Constants::M2R2,
+                                                                               Lumi::Constants::M2R3,
+                                                                               Lumi::Constants::M2R4,
+                                                                               Lumi::Constants::M3R1,
+                                                                               Lumi::Constants::M3R2,
+                                                                               Lumi::Constants::M3R3,
+                                                                               Lumi::Constants::M3R4,
+                                                                               Lumi::Constants::M4R1,
+                                                                               Lumi::Constants::M4R2,
+                                                                               Lumi::Constants::M4R3,
+                                                                               Lumi::Constants::M4R4,
+                                                                               Lumi::Constants::MuonBankSize};
 
-    // M2R3
-    ++muon_info_offset;
-    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM2R3Size;
-    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM2R3Offset;
-    parameters.dev_lumi_infos[muon_info_offset].value =
-      muon_hits_offsets[Lumi::Constants::M2R4] - muon_hits_offsets[Lumi::Constants::M2R3];
-
-    // M2R4
-    ++muon_info_offset;
-    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM2R4Size;
-    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM2R4Offset;
-    parameters.dev_lumi_infos[muon_info_offset].value =
-      muon_hits_offsets[Lumi::Constants::M3R1] - muon_hits_offsets[Lumi::Constants::M2R4];
-
-    // M3R1
-    ++muon_info_offset;
-    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM3R1Size;
-    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM3R1Offset;
-    parameters.dev_lumi_infos[muon_info_offset].value =
-      muon_hits_offsets[Lumi::Constants::M3R2] - muon_hits_offsets[Lumi::Constants::M3R1];
-
-    // M3R2
-    ++muon_info_offset;
-    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM3R2Size;
-    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM3R2Offset;
-    parameters.dev_lumi_infos[muon_info_offset].value =
-      muon_hits_offsets[Lumi::Constants::M3R3] - muon_hits_offsets[Lumi::Constants::M3R2];
-
-    // M3R3
-    ++muon_info_offset;
-    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM3R3Size;
-    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM3R3Offset;
-    parameters.dev_lumi_infos[muon_info_offset].value =
-      muon_hits_offsets[Lumi::Constants::M3R4] - muon_hits_offsets[Lumi::Constants::M3R3];
-
-    // M3R4
-    ++muon_info_offset;
-    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM3R4Size;
-    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM3R4Offset;
-    parameters.dev_lumi_infos[muon_info_offset].value =
-      muon_hits_offsets[Lumi::Constants::M4R1] - muon_hits_offsets[Lumi::Constants::M3R4];
-
-    // M4R1
-    ++muon_info_offset;
-    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM4R1Size;
-    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM4R1Offset;
-    parameters.dev_lumi_infos[muon_info_offset].value =
-      muon_hits_offsets[Lumi::Constants::M4R2] - muon_hits_offsets[Lumi::Constants::M4R1];
-
-    // M4R2
-    ++muon_info_offset;
-    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM4R2Size;
-    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM4R2Offset;
-    parameters.dev_lumi_infos[muon_info_offset].value =
-      muon_hits_offsets[Lumi::Constants::M4R3] - muon_hits_offsets[Lumi::Constants::M4R2];
-
-    // M4R3
-    ++muon_info_offset;
-    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM4R3Size;
-    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM4R3Offset;
-    parameters.dev_lumi_infos[muon_info_offset].value =
-      muon_hits_offsets[Lumi::Constants::M4R4] - muon_hits_offsets[Lumi::Constants::M3R3];
-
-    // M4R4
-    ++muon_info_offset;
-    parameters.dev_lumi_infos[muon_info_offset].size = LHCb::LumiSummaryOffsets::V2::MuonHitsM4R4Size;
-    parameters.dev_lumi_infos[muon_info_offset].offset = LHCb::LumiSummaryOffsets::V2::MuonHitsM4R4Offset;
-    parameters.dev_lumi_infos[muon_info_offset].value =
-      muon_hits_offsets[Lumi::Constants::MuonBankSize] - muon_hits_offsets[Lumi::Constants::M4R4];
+    for (unsigned i = 0; i < Lumi::Constants::n_muon_counters; ++i) {
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset + i],
+        parameters.muon_offsets_and_sizes.get()[2 * i],
+        parameters.muon_offsets_and_sizes.get()[2 * i + 1],
+        muon_hits_offsets[muon_offsets[i + 1]] - muon_hits_offsets[muon_offsets[i]]);
+    }
   }
 }

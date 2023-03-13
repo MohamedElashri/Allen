@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "PlumeLumiCounters.cuh"
+#include "LumiCommon.cuh"
 
 INSTANTIATE_ALGORITHM(plume_lumi_counters::plume_lumi_counters_t)
 
@@ -20,7 +21,27 @@ void plume_lumi_counters::plume_lumi_counters_t::set_arguments_size(
   // the total size of output info is proportional to the lumi summaries
   set_size<dev_lumi_infos_t>(
     arguments,
-    Lumi::Constants::n_plume_counters * first<host_lumi_summaries_size_t>(arguments) / Lumi::Constants::lumi_length);
+    Lumi::Constants::n_plume_counters * first<host_lumi_summaries_size_t>(arguments) / property<lumi_sum_length_t>());
+}
+
+void plume_lumi_counters::plume_lumi_counters_t::init()
+{
+  std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+  std::array<unsigned, 2 * Lumi::Constants::n_plume_counters> plume_offsets_and_sizes =
+    property<plume_offsets_and_sizes_t>();
+
+  unsigned c_idx(0u);
+  for (auto counter_name : Lumi::Constants::plume_counter_names) {
+    if (schema.find(counter_name) == schema.end()) {
+      std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
+    }
+    else {
+      plume_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
+      plume_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
+    }
+    ++c_idx;
+  }
+  set_property_value<plume_offsets_and_sizes_t>(plume_offsets_and_sizes);
 }
 
 void plume_lumi_counters::plume_lumi_counters_t::operator()(
@@ -61,20 +82,13 @@ __global__ void plume_lumi_counters::plume_lumi_counters(
     // get average
     plume_counters[0] = plume_counters[0] / 2u / Lumi::Constants::n_plume_lumi_channels;
 
-    std::array<LHCb::LumiSummaryOffsets::V2::counterOffsets, Lumi::Constants::n_plume_counters> counter_offsets = {
-      LHCb::LumiSummaryOffsets::V2::PlumeAvgLumiADCOffset,
-      LHCb::LumiSummaryOffsets::V2::PlumeLumiOverthrLowOffset,
-      LHCb::LumiSummaryOffsets::V2::PlumeLumiOverthrHighOffset};
-    std::array<LHCb::LumiSummaryOffsets::V2::counterOffsets, Lumi::Constants::n_plume_counters> counter_sizes = {
-      LHCb::LumiSummaryOffsets::V2::PlumeAvgLumiADCSize,
-      LHCb::LumiSummaryOffsets::V2::PlumeLumiOverthrLowSize,
-      LHCb::LumiSummaryOffsets::V2::PlumeLumiOverthrHighSize};
-    auto* lumi_info =
-      parameters.dev_lumi_infos + Lumi::Constants::n_plume_counters * lumi_sum_offset / Lumi::Constants::lumi_length;
-    for (unsigned info_index = 0u; info_index < Lumi::Constants::n_plume_counters; ++info_index) {
-      lumi_info[info_index].offset = counter_offsets[info_index];
-      lumi_info[info_index].size = counter_sizes[info_index];
-      lumi_info[info_index].value = plume_counters[info_index];
+    unsigned info_offset = Lumi::Constants::n_plume_counters * lumi_sum_offset / parameters.lumi_sum_length;
+    for (unsigned i = 0u; i < Lumi::Constants::n_plume_counters; ++i) {
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset + i],
+        parameters.plume_offsets_and_sizes.get()[2 * i],
+        parameters.plume_offsets_and_sizes.get()[2 * i + 1],
+        plume_counters[i]);
     }
   }
 }
