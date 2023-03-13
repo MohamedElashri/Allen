@@ -273,8 +273,7 @@ zmqSvc = gaudi.service("ZeroMQSvc", interface=gbl.IZeroMQSvc)
 options = gbl.std.map("std::string", "std::string")()
 params = args.params if args.params != "" else os.getenv("PARAMFILESROOT")
 
-for flag, value in [("g", args.det_folder),
-                    ("params", params),
+for flag, value in [("g", args.det_folder), ("params", params),
                     ("n", args.n_events), ("t", args.threads),
                     ("r", args.repetitions), ("output-file", args.output_file),
                     ("output-batch-size", args.output_batch_size),
