@@ -58,6 +58,7 @@ parser.add_argument(
     default=os.path.join(allen_dir, "input", "detector_configuration"))
 parser.add_argument("-n", dest="n_events", default=0)
 parser.add_argument("-t", dest="threads", default=1)
+parser.add_argument("--params", dest="params", default="")
 parser.add_argument("-r", dest="repetitions", default=1)
 parser.add_argument("-m", dest="reserve", default=1024)
 parser.add_argument("-v", dest="verbosity", default=3)
@@ -270,8 +271,9 @@ zmqSvc = gaudi.service("ZeroMQSvc", interface=gbl.IZeroMQSvc)
 
 # options map
 options = gbl.std.map("std::string", "std::string")()
-for flag, value in [("g", args.det_folder),
-                    ("params", os.getenv("PARAMFILESROOT")),
+params = args.params if args.params != "" else os.getenv("PARAMFILESROOT")
+
+for flag, value in [("g", args.det_folder), ("params", params),
                     ("n", args.n_events), ("t", args.threads),
                     ("r", args.repetitions), ("output-file", args.output_file),
                     ("output-batch-size", args.output_batch_size),
