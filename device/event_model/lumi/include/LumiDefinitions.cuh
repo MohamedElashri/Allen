@@ -50,7 +50,7 @@ namespace Lumi {
       3 * Muon::Constants::n_layouts * Muon::Constants::n_quarters;
     static constexpr unsigned MuonBankSize = Muon::Constants::n_layouts * Muon::Constants::n_stations *
                                              Muon::Constants::n_regions * Muon::Constants::n_quarters;
-    static constexpr unsigned n_muon_station_regions = Muon::Constants::n_stations * Muon::Constants::n_regions;
+    static constexpr unsigned n_muon_station_regions = 12u;
 
     static constexpr unsigned n_plume_channels = 32u;
     static constexpr unsigned n_plume_lumi_channels = 22u;
