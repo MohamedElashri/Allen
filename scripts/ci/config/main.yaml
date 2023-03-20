@@ -158,10 +158,10 @@ CUDA:
   variables:
     LCG_QUALIFIER: cuda11_4
 
-HIP:
-  extends: .full-build
-  variables:
-    LCG_QUALIFIER: hip5
+# HIP:
+#   extends: .full-build
+#   variables:
+#     LCG_QUALIFIER: hip5
 
 
 
@@ -184,10 +184,10 @@ HIP:
   variables:
     LCG_QUALIFIER: cuda11_4
 
-.hip_run_job:
-  dependencies: [HIP, build]
-  variables:
-    LCG_QUALIFIER: hip5
+# .hip_run_job:
+#   dependencies: [HIP, build]
+#   variables:
+#     LCG_QUALIFIER: hip5
 
 
 # CPU

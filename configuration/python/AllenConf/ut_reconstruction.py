@@ -15,11 +15,12 @@ from PyConf.tonic import configurable
 
 def decode_ut():
     number_of_events = initialize_number_of_events()
-    ut_banks = make_algorithm(data_provider_t, name="ut_banks", bank_type="UT")
+    ut_banks = make_algorithm(
+        data_provider_t, name='ut_banks_{hash}', bank_type="UT")
 
     ut_calculate_number_of_hits = make_algorithm(
         ut_calculate_number_of_hits_t,
-        name="ut_calculate_number_of_hits",
+        name='ut_calculate_number_of_hits_{hash}',
         dev_ut_raw_input_t=ut_banks.dev_raw_banks_t,
         dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
         dev_ut_raw_input_sizes_t=ut_banks.dev_raw_sizes_t,
@@ -28,12 +29,12 @@ def decode_ut():
 
     prefix_sum_ut_hits = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_ut_hits",
+        name='prefix_sum_ut_hits_{hash}',
         dev_input_buffer_t=ut_calculate_number_of_hits.dev_ut_hit_sizes_t)
 
     ut_pre_decode = make_algorithm(
         ut_pre_decode_t,
-        name="ut_pre_decode",
+        name='ut_pre_decode_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_ut_hits_t=prefix_sum_ut_hits.
@@ -46,7 +47,7 @@ def decode_ut():
 
     ut_find_permutation = make_algorithm(
         ut_find_permutation_t,
-        name="ut_find_permutation",
+        name='ut_find_permutation_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_ut_hits_t=prefix_sum_ut_hits.
@@ -56,7 +57,7 @@ def decode_ut():
 
     ut_decode_raw_banks_in_order = make_algorithm(
         ut_decode_raw_banks_in_order_t,
-        name="ut_decode_raw_banks_in_order",
+        name='ut_decode_raw_banks_in_order_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_ut_hits_t=prefix_sum_ut_hits.
@@ -94,7 +95,7 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
 
     ut_select_velo_tracks = make_algorithm(
         ut_select_velo_tracks_t,
-        name="ut_select_velo_tracks",
+        name='ut_select_velo_tracks_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_velo_tracks_t=
         host_number_of_reconstructed_velo_tracks_t,
@@ -118,7 +119,7 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
 
     ut_search_windows = make_algorithm(
         ut_search_windows_t,
-        name="ut_search_windows",
+        name='ut_search_windows_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_velo_tracks_t=
@@ -137,7 +138,7 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
 
     ut_select_velo_tracks_with_windows = make_algorithm(
         ut_select_velo_tracks_with_windows_t,
-        name="ut_select_velo_tracks_with_windows",
+        name='ut_select_velo_tracks_with_windows_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_velo_tracks_t=
         host_number_of_reconstructed_velo_tracks_t,
@@ -151,7 +152,7 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
 
     compass_ut = make_algorithm(
         compass_ut_t,
-        name="compass_ut",
+        name='compass_ut_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_ut_hits_t=decoded_ut["dev_ut_hits"],
@@ -172,12 +173,12 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
 
     prefix_sum_ut_tracks = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_ut_tracks",
+        name='prefix_sum_ut_tracks_{hash}',
         dev_input_buffer_t=compass_ut.dev_atomics_ut_t)
 
     ut_copy_track_hit_number = make_algorithm(
         ut_copy_track_hit_number_t,
-        name="ut_copy_track_hit_number",
+        name='ut_copy_track_hit_number_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_ut_tracks_t=prefix_sum_ut_tracks.
         host_total_sum_holder_t,
@@ -186,12 +187,12 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
 
     prefix_sum_ut_track_hit_number = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_ut_track_hit_number",
+        name='prefix_sum_ut_track_hit_number_{hash}',
         dev_input_buffer_t=ut_copy_track_hit_number.dev_ut_track_hit_number_t)
 
     ut_consolidate_tracks = make_algorithm(
         ut_consolidate_tracks_t,
-        name="ut_consolidate_tracks",
+        name='ut_consolidate_tracks_{hash}',
         host_accumulated_number_of_ut_hits_t=decoded_ut[
             "host_accumulated_number_of_ut_hits"],
         host_number_of_reconstructed_ut_tracks_t=prefix_sum_ut_tracks.

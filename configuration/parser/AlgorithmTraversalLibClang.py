@@ -127,7 +127,7 @@ class AlgorithmTraversal():
     # Accepted tokens for algorithm AllenConf
     __algorithm_tokens = [
         "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm",
-        "ValidationAlgorithm", "ProviderAlgorithm"
+        "ValidationAlgorithm", "ProviderAlgorithm", "BarrierAlgorithm"
     ]
 
     # Accepted tokens for parameter parsing
@@ -142,7 +142,7 @@ class AlgorithmTraversal():
     __ignored_namespaces = ["std", "__gnu_cxx", "__cxxabiv1", "__gnu_debug"]
 
     # Arguments to pass to compiler
-    __compile_flags = ["-x", "c++", "-std=c++17"]
+    __compile_flags = ["-x", "c++", "-std=c++17", "-nostdinc++"]
 
     # Clang index
     __index = cindex.Index.create()

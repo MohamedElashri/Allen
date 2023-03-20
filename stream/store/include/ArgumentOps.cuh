@@ -37,7 +37,7 @@ namespace Allen {
     if (kind == memcpyHostToHost) {
       std::memcpy(
         static_cast<void*>(container_a.data() + offset_a),
-        static_cast<void*>(container_b.data() + offset_b),
+        static_cast<const void*>(container_b.data() + offset_b),
         elements_to_copy * sizeof(T));
     }
     else {
@@ -119,7 +119,11 @@ namespace Allen {
    * @brief Sets count bytes in T using asynchronous memset.
    * @details T may be a host or device argument.
    */
-  template<typename T, typename Args>
+  template<
+    typename T,
+    typename Args,
+    typename std::
+      enable_if_t<std::is_pod_v<typename T::type> || !std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
   void memset_async(
     const Args& arguments,
     const int value,
@@ -130,16 +134,40 @@ namespace Allen {
     assert(count == 0 || count <= arguments.template size<T>() - offset);
 
     const auto s = count == 0 ? arguments.template size<T>() - offset : count;
-    if constexpr (std::is_base_of_v<Allen::Store::host_datatype, T>)
+    if constexpr (std::is_base_of_v<Allen::Store::host_datatype, T>) {
       std::memset(arguments.template data<T>() + offset, value, s * sizeof(typename T::type));
-    else
+    }
+    else {
       Allen::memset_async(arguments.template data<T>() + offset, value, s * sizeof(typename T::type), context);
+    }
+  }
+
+  template<
+    typename T,
+    typename Args,
+    typename std::
+      enable_if_t<!std::is_pod_v<typename T::type> && std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
+  void memset_async(
+    const Args& arguments,
+    const typename T::type value,
+    const Allen::Context&,
+    const size_t count = 0,
+    const size_t offset = 0)
+  {
+    assert(count == 0 || count <= arguments.template size<T>() - offset);
+
+    const auto s = count == 0 ? arguments.template size<T>() - offset : count;
+    std::fill_n(arguments.template data<T>() + offset, s, value);
   }
 
   /**
    * @brief Synchronous memset of T.
    */
-  template<typename T, typename Args>
+  template<
+    typename T,
+    typename Args,
+    typename std::
+      enable_if_t<std::is_pod_v<typename T::type> || !std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
   void memset(
     const Args& arguments,
     const int value,
@@ -151,6 +179,24 @@ namespace Allen {
     if constexpr (!std::is_base_of_v<Allen::Store::host_datatype, T>) {
       synchronize(context);
     }
+  }
+
+  /**
+   * @brief Synchronous memset of T.
+   */
+  template<
+    typename T,
+    typename Args,
+    typename std::
+      enable_if_t<!std::is_pod_v<typename T::type> && std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
+  void memset(
+    const Args& arguments,
+    const typename T::type value,
+    const Allen::Context& context,
+    const size_t count = 0,
+    const size_t offset = 0)
+  {
+    memset_async<T>(arguments, value, context, count, offset);
   }
 
   /**
@@ -236,11 +282,24 @@ namespace Allen {
     }
 
     /**
+     * @brief Resizes a container to the specified size.
+     * @details Resizing triggers a free followed by a malloc
+     *          in the custom memory manager. Data that was
+     *          stored in the container is very likely lost.
+     */
+    template<typename Arg, typename Args>
+    static void resize(Args arguments, const size_t size)
+    {
+      arguments.template resize<Arg>(size);
+    }
+
+    /**
      * @brief Reduces the size of the container.
      * @details Reducing the size can be done after the data has
      *          been allocated (such as in the operator() of an
      *          algorithm). It reduces the exposed size of an
-     *          argument.
+     *          argument and does not alter the contents of the buffer
+     *          (ie. function size<T>(arguments) will return this new size).
      *
      *          Note however that this does not impact the amount
      *          of allocated memory of the container, which remains unchanged.
@@ -267,6 +326,15 @@ namespace Allen {
     static auto size(const Args& arguments)
     {
       return arguments.template size<Arg>();
+    }
+
+    /**
+     * @brief Returns the size of a container (length * sizeof(T)).
+     */
+    template<typename Arg, typename Args>
+    static auto size_bytes(const Args& arguments)
+    {
+      return arguments.template size_bytes<Arg>();
     }
 
     /**
@@ -363,7 +431,7 @@ namespace Allen {
         const auto data = arguments.template get<Arg>();
         info_cout << arguments.template name<Arg>() << ": ";
         for (unsigned i = 0; i < data.size(); ++i) {
-          info_cout << ((int) data[i]) << ", ";
+          info_cout << static_cast<int>(data[i]) << ", ";
         }
         info_cout << "\n";
       }

@@ -405,7 +405,7 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
           for (int iLayer = 0; iLayer < 6; iLayer++) {
             auto hit = track.idx[iLayer];
             if (hit == SciFi::Constants::INVALID_IDX) continue;
-            atomicMin((int*) &hits.hit(iLayer, hit), __float_as_int(track.chi2 * 1000.f + track.cx));
+            atomicMin((int*) &hits.hit(iLayer, hit), __float_as_int(track.chi2 * 1000.f + std::fabs(track.cx)));
           }
         }
         __shared__ int nFilteredTracks;
@@ -420,7 +420,7 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
             for (int iLayer = 0; iLayer < 6; iLayer++) {
               auto hit = track.idx[iLayer];
               if (hit == SciFi::Constants::INVALID_IDX) continue;
-              nHits += std::fabs(hits.hit(iLayer, hit) - (track.chi2 * 1000.f + track.cx)) < 0.01f;
+              nHits += std::fabs(hits.hit(iLayer, hit) - (track.chi2 * 1000.f + std::fabs(track.cx))) < 0.01f;
             }
           }
           __syncthreads();

@@ -28,6 +28,7 @@
 #include <memory>
 #include <tuple>
 #include <stdio.h>
+#include <filesystem>
 
 #include <zmq/zmq.hpp>
 #include <ZeroMQ/IZeroMQSvc.h>
@@ -101,7 +102,6 @@ int allen(
   bool write_config = false;
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;
-  size_t reserve_host_temp_mb = 100;
 
   // Input file options
   int device_id = 0;
@@ -152,9 +152,6 @@ int allen(
     }
     else if (flag_in(flag, {"host-memory"})) {
       reserve_host_mb = atoi(arg.c_str());
-    }
-    else if (flag_in(flag, {"host-temp-memory"})) {
-      reserve_host_temp_mb = atoi(arg.c_str());
     }
     else if (flag_in(flag, {"v", "verbosity"})) {
       verbosity = atoi(arg.c_str());
@@ -255,10 +252,11 @@ int allen(
     info_cout << "Local copy of param files is used: " << folder_parameters << std::endl;
 #endif
   }
-  if (folder_parameters == "") {
-    error_cout << "Parameters file path is empty!" << std::endl;
-  }
+
   folder_parameters += "/data/";
+  if (!std::filesystem::is_directory(folder_parameters)) {
+    error_cout << "Parameters path " << folder_parameters << " could not be accessed." << std::endl;
+  }
 
   // Read the Muon catboost model
   muon_catboost_model_reader =
@@ -341,7 +339,6 @@ int allen(
     auto& sequence = streams.emplace_back(new Stream {configuration_reader->configured_sequence(),
                                                       print_memory_usage,
                                                       reserve_mb,
-                                                      reserve_host_temp_mb,
                                                       device_memory_alignment,
                                                       constants,
                                                       buffers_manager.get()});
@@ -1093,5 +1090,5 @@ loop_error:
     zmqSvc->send(*allen_control, (error_count ? "ERROR" : "NOT_READY"));
   }
 
-  return 0;
+  return error_count;
 }

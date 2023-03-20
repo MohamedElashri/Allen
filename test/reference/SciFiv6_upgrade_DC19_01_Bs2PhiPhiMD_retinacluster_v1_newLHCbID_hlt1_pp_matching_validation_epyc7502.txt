@@ -126,7 +126,7 @@ Hlt1SingleHighPtElectron:                              16/  1000, (  480.00 +/- 
 Hlt1DisplacedDielectron:                                7/  1000, (  210.00 +/-    79.09) kHz
 Hlt1DisplacedLeptons:                                  52/  1000, ( 1560.00 +/-   210.63) kHz
 Hlt1SingleHighEt:                                       0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1Bs2GammaGamma:                                    103/  1000, ( 3090.00 +/-   288.36) kHz
+Hlt1Bs2GammaGamma:                                    122/  1000, ( 3660.00 +/-   310.49) kHz
 Hlt1LowMassNoipDielectron_massSlice1_prompt:            1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice2_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
@@ -145,12 +145,7 @@ Hlt1LowMassNoipDielectron_massSlice4_displaced:         3/  1000, (   90.00 +/- 
 Hlt1LowMassNoipDielectron_SS_massSlice4_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Passthrough:                                     1000/  1000, (30000.00 +/-     0.00) kHz
 Hlt1GECPassthrough:                                   991/  1000, (29730.00 +/-    89.59) kHz
-Hlt1NoBeam:                                             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1BeamOne:                                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1BeamTwo:                                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1BothBeams:                                          1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1ODINLumi:                                           0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1ODINVeloOpen:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINNoBias:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                      2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1RICH1Alignment:                                     5/  1000, (  150.00 +/-    66.91) kHz
@@ -189,7 +184,7 @@ Hlt1SingleHighPtElectron:                              16          16
 Hlt1DisplacedDielectron:                                7           8
 Hlt1DisplacedLeptons:                                  52           0
 Hlt1SingleHighEt:                                       0           0
-Hlt1Bs2GammaGamma:                                    103           0
+Hlt1Bs2GammaGamma:                                    122           0
 Hlt1LowMassNoipDielectron_massSlice1_prompt:            1           1
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0           0
 Hlt1LowMassNoipDielectron_massSlice2_prompt:            0           0
@@ -208,12 +203,7 @@ Hlt1LowMassNoipDielectron_massSlice4_displaced:         3           3
 Hlt1LowMassNoipDielectron_SS_massSlice4_displaced:      0           0
 Hlt1Passthrough:                                     1000           0
 Hlt1GECPassthrough:                                   991           0
-Hlt1NoBeam:                                             0           0
-Hlt1BeamOne:                                            0           0
-Hlt1BeamTwo:                                            0           0
-Hlt1BothBeams:                                          1           0
 Hlt1ODINLumi:                                           0           0
-Hlt1ODINVeloOpen:                                       0           0
 Hlt1ODINNoBias:                                         0           0
 Hlt1VeloMicroBias:                                      2           0
 Hlt1RICH1Alignment:                                     5           6
@@ -223,9 +213,9 @@ Hlt1D2KPiAlignment:                                    23          24
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DisplacedDiMuonAlignment:                           1           1
 
-Total decisions: 4965
+Total decisions: 4983
 Total tracks:    3808
 Total SVs:       2955
 Total hits:      76995
-Total stdinfo:   47249
+Total stdinfo:   47267
 

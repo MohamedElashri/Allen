@@ -41,18 +41,20 @@ config:
 
 minimal:
   - type: "throughput"
-    sequence: "hlt1_pp_default"
+    sequence: 
+      - hlt1_pp_default
+      - hlt1_pp_forward_then_matching_no_gec
     dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
 
   - type: "efficiency"
-    sequence: "hlt1_pp_validation"
+    sequence: 
+      - hlt1_pp_validation
     dataset: "Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1_newLHCbID"
 
   # FIXME run_changes needs re-adding
   # - type: "run_changes"
   #   sequence: 
   #     - "hlt1_pp_validation"
-  #     - "hlt1_pp_matching_validation"
   #   dataset: "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1_newLHCbID"
   #   disable_run_changes: ["1"] # TODO FIXME Fix disable-run-changes 0 case!!!
   #   timeout: 600
@@ -64,9 +66,8 @@ full:
   - type: "throughput"
     sequence:
       - hlt1_pp_default
-      - hlt1_pp_matching
     dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
-    build_options: BUILD_TESTING+ENABLE_CONTRACTS
+    build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
     throughput_report: false # don't publish throughput report
 
   # run throughput, no_gec
@@ -81,7 +82,6 @@ full:
   - type: "throughput"
     sequence: 
       - hlt1_pp_default
-      - hlt1_pp_matching
       - hlt1_pp_SMOG2_default
     dataset: "SMOG2_pppHe_retinacluster_v1_newLHCbID"
     geometry: "SMOG2_pppHe"
@@ -95,7 +95,6 @@ full:
   - type: "throughput"
     sequence: 
       - hlt1_pp_default
-      - hlt1_pp_matching
     dataset: "SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1_newLHCbID"
     geometry: "upgrade_DC19_01_MinBiasMD"
 
@@ -123,7 +122,6 @@ full:
   - type: "throughput"
     sequence: 
       - hlt1_pp_default
-      - hlt1_pp_matching
     dataset: "upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1_newLHCbID"
     geometry: "upgrade-magdown-sim10-up08-11102202-digi"
 
@@ -132,6 +130,7 @@ full:
     sequence: 
       - hlt1_pp_matching
       - hlt1_pp_no_ut
+      - hlt1_pp_forward_then_matching_no_gec
     dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
 
   # Efficiency tests
@@ -144,7 +143,7 @@ full:
     lcg_opt:
       - "opt"
       - "dbg"
-    build_options: "BUILD_TESTING+ENABLE_CONTRACTS"
+    build_options: "BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS"
 
   # run physics efficiency, scifi_v6
   # forward no ut, scifi v6
@@ -153,7 +152,8 @@ full:
       - hlt1_pp_validation
       - hlt1_pp_no_ut_validation
       - hlt1_pp_matching_validation
-    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID"
+      - hlt1_pp_forward_then_matching_no_gec_validation
+    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID_v2"
     geometry: "upgrade_DC19_01_MinBiasMD"
 
   # efficiency tests, SMOG2 pHe
@@ -162,6 +162,7 @@ full:
       - hlt1_pp_validation
       - hlt1_pp_SMOG2_validation
       - hlt1_pp_matching_validation
+      - hlt1_pp_forward_then_matching_no_gec_validation
     dataset: "SMOG2_pHe_5k_retinacluster_v1_newLHCbID"
     geometry: "SMOG2_pppHe"
 

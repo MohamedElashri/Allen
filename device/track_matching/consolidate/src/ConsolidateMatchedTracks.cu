@@ -17,6 +17,11 @@ __global__ void create_matched_views(matching_consolidate_tracks::Parameters par
     const auto scifi_track_index = parameters.dev_matched_track_scifi_indices + event_tracks_offset + track_index;
     const auto* velo_track = &parameters.dev_velo_tracks_view[event_number].track(*velo_track_index);
     const auto* scifi_track = &parameters.dev_scifi_tracks_view[event_number].track(*scifi_track_index);
+
+    // Mark velo tracks as used
+    parameters.dev_accepted_and_unused_velo_tracks[velo_track->track_container_offset() + velo_track->track_index()] =
+      0;
+
     new (parameters.dev_long_track_view + event_tracks_offset + track_index) Allen::Views::Physics::LongTrack {
       velo_track, nullptr, scifi_track, parameters.dev_matched_qop + event_tracks_offset + track_index};
   }
@@ -48,6 +53,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::set_arguments_s
   set_size<dev_long_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_multi_event_long_tracks_view_t>(arguments, 1);
   set_size<dev_multi_event_long_tracks_ptr_t>(arguments, 1);
+  set_size<dev_accepted_and_unused_velo_tracks_t>(arguments, size<dev_accepted_velo_tracks_t>(arguments));
 }
 
 void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
@@ -56,6 +62,8 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
+  Allen::copy_async<dev_accepted_and_unused_velo_tracks_t, dev_accepted_velo_tracks_t>(arguments, context);
+
   global_function(matching_consolidate_tracks)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 

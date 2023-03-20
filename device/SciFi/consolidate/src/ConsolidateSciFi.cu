@@ -109,6 +109,8 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
   set_size<dev_long_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_multi_event_long_tracks_view_t>(arguments, 1);
   set_size<dev_multi_event_long_tracks_ptr_t>(arguments, 1);
+  set_size<dev_used_scifi_hits_t>(arguments, first<host_scifi_hit_count_t>(arguments));
+  set_size<dev_accepted_and_unused_velo_tracks_t>(arguments, size<dev_accepted_velo_tracks_t>(arguments));
 }
 
 void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
@@ -119,6 +121,8 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
 {
   Allen::memset_async<dev_scifi_multi_event_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_scifi_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_used_scifi_hits_t>(arguments, 0, context);
+  Allen::copy_async<dev_accepted_and_unused_velo_tracks_t, dev_accepted_velo_tracks_t>(arguments, context);
 
   global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
@@ -257,6 +261,9 @@ __device__ void scifi_consolidate_tracks_impl(
   const unsigned event_offset = scifi_hit_count.event_offset();
   float* tracks_qop = parameters.dev_scifi_qop + parameters.dev_atomics_scifi[event_number];
 
+  auto* used_scifi_hits = parameters.dev_used_scifi_hits.get();
+  auto* accepted_velo_tracks = parameters.dev_accepted_and_unused_velo_tracks.get();
+
   // Loop over tracks.
   for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
 
@@ -265,10 +272,12 @@ __device__ void scifi_consolidate_tracks_impl(
       if constexpr (with_ut) {
         const auto ut_track = input_tracks_view.track(event_scifi_tracks[i].input_track_index);
         const auto velo_track = ut_track.velo_track();
+        accepted_velo_tracks[velo_track.track_container_offset() + velo_track.track_index()] = false;
         return velo_track.state(velo_states_view);
       }
       else {
         const auto velo_track = input_tracks_view.track(event_scifi_tracks[i].input_track_index);
+        accepted_velo_tracks[velo_track.track_container_offset() + velo_track.track_index()] = false;
         return velo_track.state(velo_states_view);
       }
     }();
@@ -307,11 +316,11 @@ __device__ void scifi_consolidate_tracks_impl(
     // Update qop of the track
     const auto magSign = dev_magnet_polarity[0];
     const auto z0 = LookingForward::z_mid_t;
-    const auto xVelo = velo_state.x();
-    const auto yVelo = velo_state.y();
-    const auto zVelo = velo_state.z();
-    const auto txO = velo_state.tx();
-    const auto tyO = velo_state.ty();
+    const auto xVelo = velo_state.x;
+    const auto yVelo = velo_state.y;
+    const auto zVelo = velo_state.z;
+    const auto txO = velo_state.tx;
+    const auto tyO = velo_state.ty;
 
     // QoP for scifi tracks
     scifi_tracks.qop(i) =
@@ -322,9 +331,12 @@ __device__ void scifi_consolidate_tracks_impl(
       qop_calculation(dev_looking_forward_constants, magSign, z0, x0, y0, xVelo, yVelo, zVelo, txO, tyO, tx, ty);
 
     // Populate arrays
-    populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
-      consolidated_hits.x0(i) = scifi_hits.x0(event_offset + hit_index);
-    });
+    populate(
+      track,
+      [&consolidated_hits, &scifi_hits, &event_offset, &used_scifi_hits](const unsigned i, const unsigned hit_index) {
+        consolidated_hits.x0(i) = scifi_hits.x0(event_offset + hit_index);
+        used_scifi_hits[event_offset + hit_index] = 1;
+      });
 
     populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
       consolidated_hits.z0(i) = scifi_hits.z0(event_offset + hit_index);

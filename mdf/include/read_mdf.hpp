@@ -38,9 +38,9 @@ namespace MDF {
 
   Allen::IO open(std::string const& filepath, int flags, int mode = 0);
 
-  void dump_hex(const char* start, int size);
+  void dump_hex(const char* start, int size, std::ostream& out = std::cout);
 
-  std::tuple<bool, bool, gsl::span<char>> read_event(
+  std::tuple<bool, bool, std::vector<std::tuple<int, gsl::span<const char>>>> read_event(
     Allen::IO& input,
     LHCb::MDFHeader& h,
     gsl::span<char> buffer,
@@ -48,7 +48,7 @@ namespace MDF {
     bool checkChecksum = true,
     bool dbg = false);
 
-  std::tuple<bool, bool, gsl::span<char>> read_banks(
+  std::tuple<bool, bool, gsl::span<const char>> read_banks(
     Allen::IO& input,
     const LHCb::MDFHeader& h,
     gsl::span<char> buffer,

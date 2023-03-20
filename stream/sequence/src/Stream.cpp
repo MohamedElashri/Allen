@@ -19,15 +19,13 @@ Stream::Stream(
   const ConfiguredSequence& configuration,
   const bool param_do_print_memory_manager,
   const size_t reserve_mb,
-  const size_t reserve_host_mb,
   const unsigned required_memory_alignment,
   const Constants& param_constants,
   HostBuffersManager* buffers_manager) :
   do_print_memory_manager {param_do_print_memory_manager},
   host_buffers_manager {buffers_manager}, constants {param_constants}
 {
-  scheduler =
-    new Scheduler {configuration, do_print_memory_manager, reserve_mb, reserve_host_mb, required_memory_alignment};
+  scheduler = new Scheduler {configuration, do_print_memory_manager, reserve_mb, required_memory_alignment};
 
   // Initialize context
   m_context.initialize();

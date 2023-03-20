@@ -79,9 +79,10 @@ __device__ void velo_only_fit(
 __device__ void simplified_fit(
   const Allen::Views::Velo::Consolidated::Track& velo_track,
   const KalmanFloat init_qop,
-  FittedTrack& track);
+  FittedTrack& track,
+  float* dev_beamline);
 
-__device__ void propagate_to_beamline(FittedTrack& track);
+__device__ void propagate_to_beamline(FittedTrack& track, float* dev_beamline);
 
 namespace kalman_velo_only {
   struct Parameters {
@@ -110,7 +111,7 @@ namespace kalman_velo_only {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void kalman_velo_only(Parameters parameters);
+  __global__ void kalman_velo_only(Parameters parameters, float* dev_beamline);
 
   __global__ void kalman_pv_ipchi2(Parameters parameters);
 

@@ -89,22 +89,28 @@ __device__ track_matching::MatchingResult getChi2Match(
 
   return {dSlopeX, dSlopeY, distX, distY, zForX, chi2};
 }
-
-// https://gitlab.cern.ch/lhcb/Rec/-/blob/master/Tr/TrackTools/src/FastMomentumEstimate.cpp#L142
-__device__ float computeQoverP(const float txV, const float tyV, const float txT, const float magSign)
+// Parametrization from SciFiTrackForwarding.cpp , found to work better than FastMomentumEstimate.cpp
+// https://gitlab.cern.ch/lhcb/Rec/-/blob/master/Pr/SciFiTrackForwarding/src/SciFiTrackForwarding.cpp#L321
+//
+__device__ float computeQoverP(
+  const float txV,
+  const float tyV,
+  const float txT,
+  const float magSign,
+  const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization)
 {
   const float txT2 = txT * txT;
-  const float txT4 = txT2 * txT2;
-  const float txV2 = txV * txV;
   const float tyV2 = tyV * tyV;
-  const float tyV4 = tyV2 * tyV2;
   const float coef =
-    1.21352f + 0.626691f * txT2 - 0.202483f * txT4 + 0.426262f * txT * txV + 2.47057f * tyV2 - 13.2917f * tyV4;
+    (dev_magnet_parametrization->momentumParams[0] +
+     txT2 * (dev_magnet_parametrization->momentumParams[1] + dev_magnet_parametrization->momentumParams[2] * txT2) +
+     dev_magnet_parametrization->momentumParams[3] * txT * txV +
+     tyV2 * (dev_magnet_parametrization->momentumParams[4] + dev_magnet_parametrization->momentumParams[5] * tyV2) +
+     dev_magnet_parametrization->momentumParams[6] * txV * txV);
 
-  const float proj = sqrtf((1.f + txV2 + tyV2) / (1.f + txV2));
-  const float scaleFactor = 1.f * magSign;
-
-  return (txV - txT) / (coef * 1000.f * proj * scaleFactor);
+  const float factor = std::copysign(magSign, txV - txT);
+  const float cp = (magSign * coef) / (txT - txV) + factor * dev_magnet_parametrization->momentumParams[7];
+  return 1.f / cp;
 }
 
 __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
@@ -178,7 +184,8 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
     const auto endvelo_state = velo_states.state(BestMatch.ivelo);
 
     const auto magSign = dev_magnet_polarity[0];
-    matched_track.qop = computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx, magSign);
+    matched_track.qop =
+      computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx, magSign, dev_magnet_parametrization);
   }
   __syncthreads();
 

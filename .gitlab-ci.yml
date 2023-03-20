@@ -3,6 +3,7 @@
 ###############################################################################
 
 variables:
+  FF_ENABLE_JOB_CLEANUP: 1  # clean up directories on our custom runners
   GIT_SUBMODULE_STRATEGY: recursive
   TARGET_BRANCH: master
 

@@ -113,7 +113,20 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
   find_package(Catch2 REQUIRED)
 
   # Find libClang, required for parsing the Allen codebase
-  find_package(LibClang QUIET)
+  find_package(Clang QUIET)
+  if (TARGET libclang)
+    get_target_property(LIBCLANG_LIBDIR libclang IMPORTED_LOCATION_RELEASE)
+    get_filename_component(LIBCLANG_LIBDIR "${LIBCLANG_LIBDIR}" PATH)
+  elseif(EXISTS /cvmfs/sft.cern.ch)
+    # As a last resort, try a hard-coded directory in cvmfs
+    set(LIBCLANG_LIBDIR /cvmfs/lhcb.cern.ch/lib/lcg/releases/clang/12.0.0/x86_64-${LCG_OS}/lib)
+    set(LIBCLANG_ALTERNATIVE_FOUND ON)
+    message(STATUS "Using predefined CVMFS libclang directory")
+  else()
+    message(FATAL_ERROR "No suitable libClang installation found. "
+                        "You may provide a custom path by setting LIBCLANG_LIBDIR manually")
+  endif()
+  message(STATUS "Found libclang at ${LIBCLANG_LIBDIR}")
 
   # https://github.com/nlohmann/json
   find_package(nlohmann_json REQUIRED)

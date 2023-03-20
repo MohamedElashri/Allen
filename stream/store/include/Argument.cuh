@@ -68,7 +68,9 @@ namespace Allen::Store {
       return {cast<const T>(), size()};
     }
 
-    virtual ~BaseArgument() {}
+    virtual ~BaseArgument() = default;
+    BaseArgument(BaseArgument const&) = default;
+
     virtual void set_pointer(void* pointer) = 0;
     virtual void set_size(size_t size) = 0;
   };

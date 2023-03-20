@@ -32,7 +32,7 @@ public:
   };
 
   /// Desctructor
-  virtual ~IInputProvider() {};
+  virtual ~IInputProvider() {}
 
   /**
    * @brief      Are slices provided in MEP layout or not

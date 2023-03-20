@@ -26,8 +26,17 @@ namespace {
     Plume_* pl)
   {
 
-    auto bit_shif = [&](uint32_t w) {
+    auto bit_shift = [&](uint32_t w) {
       return ((w & 0xFF) << 24) | ((w & 0xFF00) << 8) | ((w & 0xFF0000) >> 8) | ((w & 0xFF000000) >> 24);
+    };
+
+    auto bit_reverse = [&](uint32_t n) {
+      uint32_t ans = 0;
+      for (int i = 31; i >= 0; i--) {
+        ans |= (n & 1) << i;
+        n >>= 1;
+      }
+      return ans;
     };
 
     auto raw_event = RawEvent {data, offsets, sizes, types, event_number};
@@ -44,14 +53,18 @@ namespace {
       if (source_id != 0x5001) continue;
 
       uint32_t word = *(raw_bank.data);
-      auto new_word = bit_shif(word);
-      pl->ovr_th = pl->ovr_th << 32;
-      pl->ovr_th |= new_word;
+      auto new_word = bit_shift(word);
+      new_word = bit_reverse(new_word);
+
+      pl->ovr_th[0] = new_word;
+
       raw_bank.data += 1;
+
       uint32_t word2 = *(raw_bank.data);
-      auto new_word2 = bit_shif(word2);
-      pl->ovr_th = pl->ovr_th << 32;
-      pl->ovr_th |= new_word2;
+      auto new_word2 = bit_shift(word2);
+      new_word2 = bit_reverse(new_word2);
+
+      pl->ovr_th[1] = new_word2;
 
       raw_bank.data += 1;
 
@@ -62,7 +75,7 @@ namespace {
 
       for (int wrd = 0; wrd < 24; wrd++) {
         uint32_t elem = *(raw_bank.data);
-        auto new_elem = bit_shif(elem);
+        auto new_elem = bit_shift(elem);
 
         for (int e = 0; e < 32; e++) {
           board_ch[(31 - e) + 32 * wrd].one = ((new_elem & (1 << (e))) >> (e));
@@ -91,7 +104,7 @@ __global__ void plume_decode_kernel(plume_decode::Parameters parameters)
     parameters.dev_plume_raw_input_sizes,
     parameters.dev_plume_raw_input_types,
     event_number,
-    &parameters.dev_plume[0]);
+    &parameters.dev_plume[event_number]);
 }
 
 void plume_decode::plume_decode_t::set_arguments_size(
