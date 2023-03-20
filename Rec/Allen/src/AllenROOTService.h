@@ -39,6 +39,12 @@ public:
 
   AllenROOTService(std::string name, ISvcLocator* loc);
 
+  StatusCode finalize() override
+  {
+    m_rootService.reset();
+    return StatusCode();
+  };
+
   StatusCode initialize() override;
 
   /**

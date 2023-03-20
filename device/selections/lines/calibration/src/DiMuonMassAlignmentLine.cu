@@ -10,6 +10,8 @@ __device__ bool di_muon_mass_alignment_line::di_muon_mass_alignment_line_t::sele
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto vertex = std::get<0>(input);
+  if (vertex.charge() != parameters.DiMuonCharge) return false;
+
   return vertex.is_dimuon() && vertex.minipchi2() >= parameters.minIPChi2 && vertex.doca12() <= parameters.maxDoca &&
          vertex.mdimu() >= parameters.minMass && vertex.minpt() >= parameters.minHighMassTrackPt &&
          vertex.minp() >= parameters.minHighMassTrackP && vertex.vertex().chi2() > 0 &&

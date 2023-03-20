@@ -10,9 +10,11 @@ __device__ bool di_muon_soft_line::di_muon_soft_line_t::select(
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto vertex = std::get<0>(input);
+  const bool opposite_sign = vertex.charge() == 0;
 
   if (!vertex.is_dimuon()) return false;
   if (vertex.minipchi2() < parameters.DMSoftMinIPChi2) return false;
+  if (opposite_sign != parameters.OppositeSign) return false;
 
   // KS pipi misid veto
   const bool decision =

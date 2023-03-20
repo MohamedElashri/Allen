@@ -34,6 +34,8 @@ __device__ bool displaced_dielectron_line::displaced_dielectron_line_t::select(
   if (!is_dielectron) {
     return false;
   }
+  const bool opposite_sign = vertex.charge() == 0;
+  if (opposite_sign != parameters.OppositeSign) return false;
 
   const bool decision = vertex.minipchi2() > parameters.minIPChi2 && vertex.doca12() < parameters.maxDOCA &&
                         brem_corrected_minpt > parameters.minPT && vertex.vertex().chi2() < parameters.maxVtxChi2 &&

@@ -34,8 +34,12 @@ struct MCEvent {
   uint32_t size;
 
   // Constructor
-  MCEvent() {};
-  MCEvent(std::vector<char> const& _particles, std::vector<char> const& _vertices, const bool checkFile = true);
+  MCEvent() {}
+  MCEvent(
+    std::vector<char> const& _particles,
+    std::vector<char> const& _vertices,
+    const bool checkFile = true,
+    const uint32_t bankVersion = 1);
 
   // Checks if a LHCb ID is in a particular subdetector
   bool is_subdetector_impl(const LHCbID (&array)[42], const LHCbID& id) const;
@@ -48,9 +52,9 @@ struct MCEvent {
   void check_mcp(const MCParticle& mcp);
 
 private:
-  void load_particles(std::vector<char> const& particles);
+  void load_particles(std::vector<char> const& particles, const uint32_t bankVersion = 1);
 
-  void load_vertices(std::vector<char> const& vertices);
+  void load_vertices(std::vector<char> const& vertices, const uint32_t bankVersion = 1);
 };
 
 using MCEvents = std::vector<MCEvent>;

@@ -34,6 +34,7 @@ namespace displaced_dielectron_line {
     PROPERTY(MinPT_t, "MinPT", "Min PT", float) minPT;
     PROPERTY(MaxVtxChi2_t, "MaxVtxChi2", "Max vertex chi2", float) maxVtxChi2;
     PROPERTY(MinZ_t, "MinZ", "Min z dielectron coordinate", float) minZ;
+    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dielectron combinations", bool) OppositeSign;
   };
 
   struct displaced_dielectron_line_t : public SelectionAlgorithm,
@@ -57,5 +58,6 @@ namespace displaced_dielectron_line {
     Property<MinPT_t> m_MinPT {this, 500.f};
     Property<MaxVtxChi2_t> m_MaxVtxChi2 {this, 7.4f};
     Property<MinZ_t> m_MinZ {this, -341.f * Gaudi::Units::mm};
+    Property<OppositeSign_t> m_opposite_sign {this, true};
   };
 } // namespace displaced_dielectron_line

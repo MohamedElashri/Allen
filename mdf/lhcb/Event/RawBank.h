@@ -227,7 +227,7 @@ namespace LHCb {
     /// Set the bank type
     RawBank& setType(BankType val)
     {
-      m_type = (unsigned char) (char(val) & 0xFF);
+      m_type = static_cast<unsigned char>(char(val) & 0xFF);
       return *this;
     }
 
@@ -237,7 +237,7 @@ namespace LHCb {
     /// Set the version information of this bank
     RawBank& setVersion(int val)
     {
-      m_version = (unsigned char) (val & 0xFF);
+      m_version = static_cast<unsigned char>(val & 0xFF);
       return *this;
     }
 
@@ -247,7 +247,7 @@ namespace LHCb {
     /// Set the source ID of this bank (TELL1 board ID)
     RawBank& setSourceID(int val)
     {
-      m_sourceID = (unsigned short) (val & 0xFFFF);
+      m_sourceID = static_cast<unsigned short>(val & 0xFFFF);
       return *this;
     }
 

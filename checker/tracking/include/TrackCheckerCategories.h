@@ -78,6 +78,10 @@ namespace Categories {
          [](MCParticles::const_reference& mcp) {
            return mcp.isLong && mcp.isElectron() && mcp.fromBeautyDecay && mcp.p > 5e3f && mcp.inEta2_5();
          },
+       }),
+       TrackEffReport({
+         "11_long_fromSignal",
+         [](MCParticles::const_reference& mcp) { return mcp.isLong && mcp.fromSignal && mcp.inEta2_5(); },
        })}};
   }
 
@@ -773,6 +777,10 @@ namespace Categories {
           return mcp.isLong && !mcp.isElectron() && mcp.fromStrangeDecay && mcp.p > 5e3f && mcp.inEta2_5() &&
                  mcp.pt > 5e2f;
         },
+      }),
+      TrackEffReport({
+        "17_long_fromSignal",
+        [](MCParticles::const_reference& mcp) { return mcp.isLong && mcp.fromSignal && mcp.inEta2_5(); },
       }),
 
       /* TrackEffReport({ */

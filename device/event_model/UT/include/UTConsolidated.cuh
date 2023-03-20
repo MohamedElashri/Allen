@@ -100,10 +100,10 @@ namespace Allen {
         private:
           const Hits* m_hits = nullptr;
           const Allen::Views::Velo::Consolidated::Track* m_velo_track = nullptr;
-          const unsigned* m_velo_track_indices = nullptr;
           const float* m_track_params = nullptr;
           unsigned m_number_of_tracks_event = 0;
           unsigned m_track_index = 0;
+          unsigned m_track_container_offset = 0;
           unsigned m_offset = 0;
           unsigned m_number_of_hits = 0;
 
@@ -117,7 +117,6 @@ namespace Allen {
           __host__ __device__ Track(
             const Hits* hits,
             const Allen::Views::Velo::Consolidated::Track* velo_track,
-            const unsigned* velo_track_indices,
             const float* track_params,
             const unsigned* offset_tracks,
             const unsigned* offset_track_hit_number,
@@ -125,10 +124,10 @@ namespace Allen {
             const unsigned track_index,
             const unsigned event_number) :
             m_hits(hits + event_number),
-            m_velo_track(velo_track), m_velo_track_indices(velo_track_indices + offset_tracks[event_number]),
-            m_track_params(track_params + 4 * offset_tracks[event_number]),
+            m_velo_track(velo_track), m_track_params(track_params + 4 * offset_tracks[event_number]),
             m_number_of_tracks_event(number_of_tracks_event), m_track_index(track_index)
           {
+            m_track_container_offset = offset_tracks[event_number];
             const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
             m_offset = offset_event[track_index] - offset_event[0];
             m_number_of_hits = offset_event[track_index + 1] - offset_event[track_index];
@@ -136,7 +135,7 @@ namespace Allen {
 
           __host__ __device__ unsigned track_index() const { return m_track_index; }
 
-          __host__ __device__ unsigned velo_track_index() const { return m_velo_track_indices[m_track_index]; }
+          __host__ __device__ unsigned track_container_offset() const { return m_track_container_offset; }
 
           __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
           {

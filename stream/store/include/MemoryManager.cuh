@@ -122,7 +122,7 @@ namespace Allen::Store {
       // Complain if no space was available
       if (it == m_memory_segments.end()) {
         warning_cout << "Reserve: Requested size for argument " + tag + " could not be met (" +
-                          std::to_string(((float) aligned_request) / (1000.f * 1000.f)) + " MB)\n";
+                          std::to_string(static_cast<float>(aligned_request) / (1000.f * 1000.f)) + " MB)\n";
         print();
         throw MemoryException("not enough memory to meet request");
       }
@@ -228,9 +228,10 @@ namespace Allen::Store {
       info_cout << m_name << " segments (MB):" << std::endl;
       for (auto& segment : m_memory_segments) {
         std::string name = segment.tag == "" ? "unused" : segment.tag;
-        info_cout << name << " (" << ((float) segment.size) / (1000.f * 1000.f) << "), ";
+        info_cout << name << " (" << static_cast<float>(segment.size) / (1000.f * 1000.f) << "), ";
       }
-      info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / (1000.f * 1000.f)) << " MB"
+      info_cout << "\nMax memory required: " << (static_cast<float>(m_total_memory_required) / (1000.f * 1000.f))
+                << " MB"
                 << "\n\n";
     }
   };
@@ -346,9 +347,10 @@ namespace Allen::Store {
     {
       info_cout << m_name << " segments (MB):" << std::endl;
       for (auto const& [name, segment] : m_memory_segments) {
-        info_cout << name << " (" << ((float) segment.size) / (1000.f * 1000.f) << "), ";
+        info_cout << name << " (" << static_cast<float>(segment.size) / (1000.f * 1000.f) << "), ";
       }
-      info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / (1000.f * 1000.f)) << " MB"
+      info_cout << "\nMax memory required: " << (static_cast<float>(m_total_memory_required) / (1000.f * 1000.f))
+                << " MB"
                 << "\n\n";
     }
   };

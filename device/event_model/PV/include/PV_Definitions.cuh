@@ -75,7 +75,7 @@ namespace PV {
 
   class Vertex {
   public:
-    __host__ __device__ Vertex() {};
+    __host__ __device__ Vertex() {}
     float3 position;
     float chi2;
     int ndof;

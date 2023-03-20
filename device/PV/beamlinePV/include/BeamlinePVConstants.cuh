@@ -31,7 +31,6 @@ namespace BeamlinePVConstants {
 
   namespace MultiFitter {
     static constexpr float maxVertexRho2 = 0.3f;  // unit:: mm^2 "Maximum distance squared of vertex to beam line"
-    static constexpr unsigned int minFitIter = 3; // "Minimum number of iterations for vertex fit"
     static constexpr unsigned int maxFitIter = 7; // "Maximum number of iterations for vertex fit"
     static constexpr float maxChi2 = 12.f;        // Maximum chi2 for track to be used in fit
     static constexpr float minWeight =

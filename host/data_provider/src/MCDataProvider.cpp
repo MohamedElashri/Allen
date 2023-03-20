@@ -27,6 +27,7 @@ void mc_data_provider::mc_data_provider_t::operator()(
   MCEvents* mc_events = const_cast<MCEvents*>(&runtime_options.mc_events);
   // MCEvents* mc_events = &m_mc_events;
 
+  uint32_t bankVersion = *(uint32_t*) (data<host_bank_version_t>(arguments));
   for (unsigned event_number = 0; event_number < first<host_number_of_events_t>(arguments); ++event_number) {
     // get # of raw banks
     const MCRawEvent mc_track_event(
@@ -63,7 +64,7 @@ void mc_data_provider::mc_data_provider_t::operator()(
       std::copy(payload, payload + size, std::back_inserter(mc_pv_info_vec));
     }
     // Fill MC Events
-    mc_events->emplace_back(mc_track_info_vec, mc_pv_info_vec, false);
+    mc_events->emplace_back(mc_track_info_vec, mc_pv_info_vec, false, bankVersion);
   }
 
   data<host_mc_events_t>(arguments)[0] = mc_events;

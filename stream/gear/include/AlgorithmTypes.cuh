@@ -31,3 +31,7 @@ struct ValidationAlgorithm : public Allen::Algorithm {
 struct ProviderAlgorithm : public Allen::Algorithm {
   constexpr static auto algorithm_scope = "ProviderAlgorithm";
 };
+
+struct BarrierAlgorithm : public Allen::Algorithm {
+  constexpr static auto algorithm_scope = "BarrierAlgorithm";
+};

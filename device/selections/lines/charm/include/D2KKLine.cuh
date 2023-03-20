@@ -32,6 +32,7 @@ namespace d2kk_line {
     PROPERTY(massWindow_t, "massWindow", "massWindow description", float) massWindow;
     PROPERTY(minTrackIP_t, "minTrackIP", "minTrackIP description", float) minTrackIP;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dibody combinations", bool) OppositeSign;
   };
 
   struct d2kk_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<d2kk_line_t, Parameters> {
@@ -51,5 +52,6 @@ namespace d2kk_line {
     Property<massWindow_t> m_massWindow {this, 100.f * Gaudi::Units::MeV};
     Property<minTrackIP_t> m_minTrackIP {this, 0.06f * Gaudi::Units::mm};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<OppositeSign_t> m_opposite_sign {this, true};
   };
 } // namespace d2kk_line

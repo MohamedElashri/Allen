@@ -59,7 +59,7 @@ def initialize_event_lists(**kwargs):
     return initialize_lists
 
 
-def generate(root):
+def generate(root, json_configuration_filename="Sequence.json"):
     """Generates an Allen sequence out of a root node."""
     with flush_key_registry() :
         best_order, score = get_execution_list_for(root)
@@ -74,4 +74,4 @@ def generate(root):
             elif isinstance(mask_in, BoolNode):
                 mask_in_str = f" in:{mask_in}"
             print(f"  {alg}{mask_in_str}")
-        return generate_allen_sequence([alg for (alg, _) in final_seq])
+        return generate_allen_sequence([alg for (alg, _) in final_seq], json_configuration_filename)

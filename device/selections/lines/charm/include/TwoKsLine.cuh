@@ -46,6 +46,7 @@ namespace two_ks_line {
     PROPERTY(minCosOpening_t, "minCosOpening", "minCosOpening description", float) minCosOpening;
     PROPERTY(min_combip_t, "min_combip", "min_combip description", float) min_combip;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dibody combinations", bool) OppositeSign;
   };
 
   struct two_ks_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_ks_line_t, Parameters> {
@@ -71,5 +72,6 @@ namespace two_ks_line {
     Property<minCosOpening_t> m_minCosOpening {this, 0.99f};
     Property<min_combip_t> m_min_combip {this, 0.23f / Gaudi::Units::mm};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<OppositeSign_t> m_opposite_sign {this, true};
   };
 } // namespace two_ks_line

@@ -13,7 +13,7 @@
 #include "UTDefinitions.cuh"
 #include "VeloConsolidated.cuh"
 #include "VeloEventModel.cuh"
-#include "CopyTrackParameters.cuh"
+#include "KinUtils.cuh"
 #include "ROOTHeaders.h"
 #include <random>
 

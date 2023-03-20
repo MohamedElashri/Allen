@@ -19,13 +19,13 @@
 struct StrException : public std::exception {
   std::string s;
   StrException(std::string ss) : s(ss) {}
-  ~StrException() throw() {} // Updated
-  const char* what() const throw() override { return s.c_str(); }
+  ~StrException() noexcept {} // Updated
+  const char* what() const noexcept override { return s.c_str(); }
 };
 
 struct MemoryException : public StrException {
   MemoryException(std::string s) : StrException(s) {}
-  ~MemoryException() throw() {}
+  ~MemoryException() noexcept {}
 };
 
 using EventID = std::tuple<unsigned int, unsigned long>;

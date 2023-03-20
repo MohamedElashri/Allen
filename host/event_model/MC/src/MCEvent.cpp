@@ -26,20 +26,23 @@ void MCEvent::check_mcp(const MCParticle& mcp [[maybe_unused]])
   assert(!std::isinf(mcp.eta));
 }
 
-MCEvent::MCEvent(std::vector<char> const& particles, std::vector<char> const& vertices, const bool checkEvent)
+MCEvent::MCEvent(
+  std::vector<char> const& particles,
+  std::vector<char> const& vertices,
+  const bool checkEvent,
+  const uint32_t bankVersion)
 {
-  load_particles(particles);
-
+  load_particles(particles, bankVersion);
   if (checkEvent) {
     for (const auto& mcp : m_mcps) {
       check_mcp(mcp);
     }
   }
 
-  load_vertices(vertices);
+  load_vertices(vertices, bankVersion);
 }
 
-void MCEvent::load_particles(const std::vector<char>& particles)
+void MCEvent::load_particles(const std::vector<char>& particles, const uint32_t bankVersion)
 {
   uint8_t* input = (uint8_t*) particles.data();
 
@@ -84,6 +87,10 @@ void MCEvent::load_particles(const std::vector<char>& particles)
     input += sizeof(int8_t);
     p.fromStrangeDecay = (bool) *((int8_t*) input);
     input += sizeof(int8_t);
+    if (bankVersion >= 2) {
+      p.fromSignal = (bool) *((int8_t*) input);
+      input += sizeof(int8_t);
+    }
     p.motherKey = *((int*) input);
     input += sizeof(int);
     p.mother_pid = *((int*) input);
@@ -129,7 +136,6 @@ void MCEvent::load_particles(const std::vector<char>& particles)
       m_mcps.push_back(p);
     }
   }
-
   size = input - (uint8_t*) particles.data();
 
   if (size != particles.size()) {
@@ -138,7 +144,7 @@ void MCEvent::load_particles(const std::vector<char>& particles)
   }
 }
 
-void MCEvent::load_vertices(const std::vector<char>& vertices)
+void MCEvent::load_vertices(const std::vector<char>& vertices, const uint32_t /*bankVersion*/)
 {
   // collect true PV vertices in a event
   uint8_t* input = (uint8_t*) vertices.data();

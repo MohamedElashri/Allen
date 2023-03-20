@@ -2,15 +2,16 @@
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
-                             make_checkCylPV, make_invert_event_list)
-from AllenConf.odin import make_bxtype, odin_error_filter
+                             make_checkCylPV, make_checkPseudoPV,
+                             make_invert_event_list)
+from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line, make_two_ks_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line
-from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line, make_di_muon_no_ip_line
+from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line, make_di_muon_no_ip_line, make_di_muon_drell_yan_line
 from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_lowmass_noip_dielectron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
 from AllenConf.hlt1_monitoring_lines import (
     make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line,
@@ -25,6 +26,7 @@ from AllenConf.validators import rate_validation, routingbits_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.lumi_reconstruction import lumi_reconstruction
+from AllenConf.enum_types import TrackingType, includes_matching
 
 
 def default_physics_lines(reconstructed_objects, with_calo, with_muon):
@@ -95,7 +97,44 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 pre_scaler_hash_string="di_muon_no_ip_ss_line_pre",
                 post_scaler_hash_string="di_muon_no_ip_ss_line_post",
                 ss_on=True,
-                pre_scaler=.1)
+                pre_scaler=.1),
+            make_di_muon_drell_yan_line(
+                long_tracks,
+                secondary_vertices,
+                name="Hlt1DiMuonDrellYan_VLowMass",
+                pre_scaler_hash_string="di_muon_drell_yan_vlow_mass_line_pre",
+                post_scaler_hash_string="di_muon_drell_yan_vlow_mass_line_post",
+                minMass=2900.,
+                maxMass=5000.,
+                pre_scaler=.2),
+            make_di_muon_drell_yan_line(
+                long_tracks,
+                secondary_vertices,
+                name="Hlt1DiMuonDrellYan_VLowMass_SS",
+                pre_scaler_hash_string=
+                "di_muon_drell_yan_vlow_mass_SS_line_pre",
+                post_scaler_hash_string=
+                "di_muon_drell_yan_vlow_mass_SS_line_post",
+                minMass=2900.,  # low enough to capture the J/psi
+                maxMass=5000.,
+                pre_scaler=.2,
+                OppositeSign=False),
+            make_di_muon_drell_yan_line(
+                long_tracks,
+                secondary_vertices,
+                name="Hlt1DiMuonDrellYan",
+                pre_scaler_hash_string="di_muon_drell_yan_line_pre",
+                post_scaler_hash_string="di_muon_drell_yan_line_post",
+                minMass=5000.),
+            make_di_muon_drell_yan_line(
+                long_tracks,
+                secondary_vertices,
+                name="Hlt1DiMuonDrellYan_SS",
+                pre_scaler_hash_string="di_muon_drell_yan_SS_line_pre",
+                post_scaler_hash_string="di_muon_drell_yan_SS_line_post",
+                minMass=5000.,
+                OppositeSign=False,
+            )
         ]
 
     if with_calo:
@@ -179,7 +218,19 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
     return [line_maker(line) for line in lines]
 
 
-def event_monitoring_lines(with_lumi, lumiline_name):
+def odin_monitoring_lines(with_lumi, lumiline_name):
+    lines = []
+    if with_lumi:
+        lines.append(
+            line_maker(
+                make_odin_event_type_line(
+                    name=lumiline_name, odin_event_type='Lumi')))
+    lines.append(
+        line_maker(make_odin_event_type_line(odin_event_type="NoBias")))
+    return lines
+
+
+def event_monitoring_lines(lumiline_name):
     lines = []
     lines.append(
         line_maker(make_beam_line(name="Hlt1NoBeam", beam_crossing_type=0)))
@@ -189,15 +240,8 @@ def event_monitoring_lines(with_lumi, lumiline_name):
         line_maker(make_beam_line(name="Hlt1BeamTwo", beam_crossing_type=2)))
     lines.append(
         line_maker(make_beam_line(name="Hlt1BothBeams", beam_crossing_type=3)))
-    if with_lumi:
-        lines.append(
-            line_maker(
-                make_odin_event_type_line(
-                    name=lumiline_name, odin_event_type='Lumi')))
     lines.append(
         line_maker(make_odin_event_type_line(odin_event_type="VeloOpen")))
-    lines.append(
-        line_maker(make_odin_event_type_line(odin_event_type="NoBias")))
     return lines
 
 
@@ -295,7 +339,7 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
     return lines
 
 
-def default_bgi_pvs_lines(pvs, prefilter=[]):
+def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
     """
     Primary vertex lines for various bunch crossing types composed from
     new PV filters and beam crossing lines.
@@ -387,6 +431,89 @@ def default_bgi_pvs_lines(pvs, prefilter=[]):
             prefilter=prefilter + [pvs_z_ir])
     ]
 
+    # Alternate version based on track beamline states
+    velo_states_z_all = make_checkPseudoPV(
+        velo_states,
+        name="BGIPseudoPVsAll",
+        min_state_z=-2000.,
+        max_state_z=2000.,
+        max_state_rho_sq=max_cyl_rad_sq,
+        min_local_nTracks=10.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPseudoPVsNoBeam",
+                beam_crossing_type=0,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [bx_NoBB, velo_states_z_all]),
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPseudoPVsBeamOne",
+                beam_crossing_type=1,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [bx_NoBB, velo_states_z_all]),
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPseudoPVsBeamTwo",
+                beam_crossing_type=2,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [bx_NoBB, velo_states_z_all])
+    ]
+
+    velo_states_z_up = make_checkPseudoPV(
+        velo_states,
+        name="BGIPseudoPVsUp",
+        min_state_z=-2000.,
+        max_state_z=-250.,
+        max_state_rho_sq=max_cyl_rad_sq,
+        min_local_nTracks=10.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPseudoPVsUpBeamBeam",
+                beam_crossing_type=3,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [velo_states_z_up])
+    ]
+
+    velo_states_z_down = make_checkPseudoPV(
+        velo_states,
+        name="BGIPseudoPVsDown",
+        min_state_z=250.,
+        max_state_z=2000.,
+        max_state_rho_sq=max_cyl_rad_sq,
+        min_local_nTracks=10.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPseudoPVsDownBeamBeam",
+                beam_crossing_type=3,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [velo_states_z_down])
+    ]
+
+    velo_states_z_ir = make_checkPseudoPV(
+        velo_states,
+        name="BGIPseudoPVsIR",
+        min_state_z=-250.,
+        max_state_z=250.,
+        max_state_rho_sq=max_cyl_rad_sq,
+        min_local_nTracks=28.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPseudoPVsIRBeamBeam",
+                beam_crossing_type=3,
+                pre_scaler=1.,
+                post_scaler=0.1),
+            prefilter=prefilter + [velo_states_z_ir])
+    ]
+
     return lines
 
 
@@ -400,15 +527,16 @@ def setup_hlt1_node(enablePhysics=True,
                     with_odin_filter=True,
                     with_calo=True,
                     with_muon=True,
-                    matching=False,
-                    enableBGI=False):
+                    enableBGI=False,
+                    tracking_type=TrackingType.FORWARD,
+                    tae_passthrough=False):
 
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(
         with_calo=with_calo,
-        matching=matching,
         with_ut=with_ut,
-        with_muon=with_muon)
+        with_muon=with_muon,
+        tracking_type=tracking_type)
 
     gec = [make_gec(count_ut=with_ut)] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
@@ -423,8 +551,16 @@ def setup_hlt1_node(enablePhysics=True,
 
     lumiline_name = "Hlt1ODINLumi"
     with line_maker.bind(prefilter=odin_err_filter):
-        monitoring_lines = event_monitoring_lines(with_lumi, lumiline_name)
+        monitoring_lines = odin_monitoring_lines(with_lumi, lumiline_name)
         physics_lines += [line_maker(make_passthrough_line())]
+
+    if tae_passthrough:
+        with line_maker.bind(prefilter=prefilters + [tae_filter()]):
+            physics_lines += [
+                line_maker(
+                    make_passthrough_line(
+                        name="Hlt1TAEPassthrough", pre_scaler=1))
+            ]
 
     if EnableGEC:
         with line_maker.bind(prefilter=prefilters):
@@ -435,8 +571,9 @@ def setup_hlt1_node(enablePhysics=True,
     if enableBGI:
         physics_lines += default_bgi_activity_lines(decode_velo(),
                                                     decode_calo(), prefilters)
-        physics_lines += default_bgi_pvs_lines(reconstructed_objects["pvs"],
-                                               prefilters)
+        physics_lines += default_bgi_pvs_lines(
+            reconstructed_objects["pvs"], reconstructed_objects["velo_states"],
+            prefilters)
 
     with line_maker.bind(prefilter=prefilters):
         monitoring_lines += alignment_monitoring_lines(reconstructed_objects,
@@ -524,11 +661,7 @@ def setup_hlt1_node(enablePhysics=True,
             lines,
             make_global_decision(lines=line_algorithms),
             make_routingbits_writer(lines=line_algorithms),
-            *make_sel_report_writer(
-                lines=line_algorithms,
-                long_tracks=reconstructed_objects["long_track_particles"],
-                secondary_vertices=reconstructed_objects["secondary_vertices"])
-            ["algorithms"],
+            *make_sel_report_writer(lines=line_algorithms)["algorithms"],
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)
@@ -567,9 +700,9 @@ def setup_hlt1_node(enablePhysics=True,
     if not withMCChecking:
         return hlt1_node
     else:
-        validation_node = validator_node(reconstructed_objects,
-                                         line_algorithms, matching, with_ut,
-                                         with_muon)
+        validation_node = validator_node(
+            reconstructed_objects, line_algorithms,
+            includes_matching(tracking_type), with_ut, with_muon)
         node = CompositeNode(
             "AllenWithValidators", [hlt1_node, validation_node],
             NodeLogic.NONLAZY_AND,

@@ -10,6 +10,7 @@
 #include "ConsolidatedTypes.cuh"
 #include "MultiEventContainer.cuh"
 #include "BackendCommon.h"
+#include "KinUtils.cuh"
 
 namespace Allen {
   namespace Views {
@@ -202,6 +203,7 @@ namespace Allen {
         private:
           const Hits* m_hits = nullptr;
           unsigned m_track_index = 0;
+          unsigned m_track_container_offset = 0;
           unsigned m_offset = 0;
           unsigned m_number_of_hits = 0;
 
@@ -221,12 +223,15 @@ namespace Allen {
             m_hits(hits + event_number),
             m_track_index(track_index)
           {
-            const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
+            m_track_container_offset = offset_tracks[event_number];
+            const auto offset_event = offset_track_hit_number + m_track_container_offset;
             m_offset = offset_event[track_index] - offset_event[0];
             m_number_of_hits = offset_event[track_index + 1] - offset_event[track_index];
           }
 
           __host__ __device__ unsigned track_index() const { return m_track_index; }
+
+          __host__ __device__ unsigned track_container_offset() const { return m_track_container_offset; }
 
           __host__ __device__ unsigned number_of_hits() const { return m_number_of_hits; }
 
@@ -237,10 +242,16 @@ namespace Allen {
             return m_hits->hit(m_offset + index);
           }
 
-          __host__ __device__ Allen::Views::Physics::KalmanState state(
-            const Allen::Views::Physics::KalmanStates& states_view) const
+          __host__ __device__ KalmanVeloState state(const Allen::Views::Physics::KalmanStates& states_view) const
           {
-            return states_view.state(m_track_index);
+            return static_cast<KalmanVeloState>(states_view.state(m_track_index));
+          }
+
+          __host__ __device__ float eta(const Allen::Views::Physics::KalmanStates& states_view, bool backward) const
+          {
+            const auto tx = state(states_view).tx;
+            const auto ty = state(states_view).ty;
+            return eta_from_rho_z(std::sqrt(tx * tx + ty * ty), backward ? -1.f : 1.f);
           }
         };
 

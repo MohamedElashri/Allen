@@ -21,7 +21,7 @@ def make_kalman_velo_only(long_tracks,
 
     velo_pv_ip = make_algorithm(
         velo_pv_ip_t,
-        name="velo_pv_ip",
+        name='velo_pv_ip_{hash}',
         host_number_of_reconstructed_velo_tracks_t=velo_tracks[
             "host_number_of_reconstructed_velo_tracks"],
         host_number_of_events_t=number_of_events["host_number_of_events"],
@@ -38,7 +38,7 @@ def make_kalman_velo_only(long_tracks,
 
     kalman_velo_only = make_algorithm(
         kalman_velo_only_t,
-        name="kalman_velo_only",
+        name='kalman_velo_only_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=long_tracks[
@@ -73,7 +73,7 @@ def make_basic_particles(kalman_velo_only,
     if is_electron_result is not None:
         make_lepton_id = make_algorithm(
             make_lepton_id_t,
-            name="make_lepton_id",
+            name='make_lepton_id_{hash}',
             host_number_of_events_t=number_of_events["host_number_of_events"],
             dev_number_of_events_t=number_of_events["dev_number_of_events"],
             host_number_of_scifi_tracks_t=long_tracks[
@@ -88,7 +88,7 @@ def make_basic_particles(kalman_velo_only,
 
     make_long_track_particles = make_algorithm(
         make_long_track_particles_t,
-        name="make_long_track_particles",
+        name='make_long_track_particles_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=long_tracks[
@@ -114,7 +114,7 @@ def fit_secondary_vertices(long_tracks, pvs, kalman_velo_only,
 
     filter_tracks = make_algorithm(
         filter_tracks_t,
-        name="filter_tracks",
+        name='filter_tracks_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
@@ -124,13 +124,13 @@ def fit_secondary_vertices(long_tracks, pvs, kalman_velo_only,
 
     prefix_sum_secondary_vertices = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_secondary_vertices",
+        name='prefix_sum_secondary_vertices_{hash}',
         dev_input_buffer_t=filter_tracks.dev_sv_atomics_t,
     )
 
     fit_secondary_vertices = make_algorithm(
         fit_secondary_vertices_t,
-        name="fit_secondary_vertices",
+        name='fit_secondary_vertices_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_svs_t=prefix_sum_secondary_vertices.
@@ -147,7 +147,7 @@ def fit_secondary_vertices(long_tracks, pvs, kalman_velo_only,
 
     calc_max_combos = make_algorithm(
         calc_max_combos_t,
-        name="calc_max_combos",
+        name='calc_max_combos_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_input_agg_t=[
             fit_secondary_vertices.dev_multi_event_composites_ptr_t
@@ -155,12 +155,12 @@ def fit_secondary_vertices(long_tracks, pvs, kalman_velo_only,
 
     prefix_sum_max_combos = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_max_combos",
+        name='prefix_sum_max_combos_{hash}',
         dev_input_buffer_t=calc_max_combos.dev_max_combos_t)
 
     filter_svs = make_algorithm(
         filter_svs_t,
-        name="filter_svs",
+        name='filter_svs_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_max_combos_t=prefix_sum_max_combos.host_total_sum_holder_t,
         host_number_of_svs_t=prefix_sum_secondary_vertices.
@@ -172,13 +172,13 @@ def fit_secondary_vertices(long_tracks, pvs, kalman_velo_only,
 
     prefix_sum_sv_combos = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_sv_combos",
+        name='prefix_sum_sv_combos_{hash}',
         dev_input_buffer_t=filter_svs.dev_combo_number_t,
     )
 
     combine_svs = make_algorithm(
         sv_combiner_t,
-        name="svs_pair_candidate",
+        name='svs_pair_candidate_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_combos_t=prefix_sum_sv_combos.host_total_sum_holder_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],

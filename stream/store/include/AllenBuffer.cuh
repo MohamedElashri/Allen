@@ -67,7 +67,7 @@ namespace Allen {
 
     constexpr __host__ size_t size() const { return m_span.size(); }
 
-    constexpr __host__ size_t sizebytes() const { return m_span.size() * sizeof(T); }
+    constexpr __host__ size_t size_bytes() const { return m_span.size_bytes(); }
 
     constexpr __host__ T* data() const { return m_span.data(); }
 
@@ -128,7 +128,7 @@ namespace Allen {
 
     constexpr __host__ size_t size() const { return m_vector.size(); }
 
-    constexpr __host__ size_t sizebytes() const { return m_vector.size() * sizeof(T); }
+    constexpr __host__ size_t size_bytes() const { return m_vector.size() * sizeof(T); }
 
     constexpr __host__ auto data() const { return reinterpret_cast<const T*>(m_vector.data()); }
 

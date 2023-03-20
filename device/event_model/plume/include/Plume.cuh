@@ -18,7 +18,10 @@ struct Plume_ {
     unsigned x : 12;
   };
 
-  int64_t ovr_th = 0; // overthreshold bits in a 64 bit word
+  int32_t ovr_th[2] = {
+    0u,
+    0u}; // overthreshold bits feb0=ovr_th[0] and feb1=ovr_th[1], first left bit of the 32 bit word is ch.0
 
-  bit_field ADC_counts[64]; // N=64 objects of type bitset 12 (12 bit word) for N ADC counts
+  bit_field ADC_counts[64]; // N=64 objects of type bitset 12 (12 bit word) for N ADC counts. From 0 to 31 Feb0, from 32
+                            // to 63 Feb1; [0]=ch.0
 };

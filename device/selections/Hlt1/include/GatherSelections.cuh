@@ -58,7 +58,7 @@ namespace gather_selections {
       std::string);
   };
 
-  struct gather_selections_t : public HostAlgorithm, Parameters {
+  struct gather_selections_t : public BarrierAlgorithm, Parameters {
     void init();
 
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;

@@ -89,6 +89,9 @@ rb_map = {
     #RB 5 RICH alignment
     'Hlt1RICH(1|2)Alignment':
     5,
+    #RB 6 TAE passthrough
+    'Hlt1TAEPassthrough':
+    6,
     # RB 8 Velo (closing) monitoring
     'Hlt1ODINVelo.*':
     8,
@@ -185,7 +188,7 @@ def make_global_decision(lines):
         dev_dec_reports_t=dec_reporter.dev_dec_reports_t)
 
 
-def make_sel_report_writer(lines, long_tracks, secondary_vertices):
+def make_sel_report_writer(lines):
     gather_selections = make_gather_selections(lines)
     dec_reporter = make_dec_reporter(lines)
     number_of_events = initialize_number_of_events()

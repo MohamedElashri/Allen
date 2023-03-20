@@ -33,6 +33,10 @@ namespace scifi_consolidate_tracks {
     DEVICE_OUTPUT(dev_scifi_qop_t, float) dev_scifi_qop;
     DEVICE_OUTPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_OUTPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
+    HOST_INPUT(host_scifi_hit_count_t, unsigned) host_scifi_hit_count;
+    DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
+    DEVICE_OUTPUT(dev_used_scifi_hits_t, unsigned) dev_used_scifi_hits;
+    DEVICE_OUTPUT(dev_accepted_and_unused_velo_tracks_t, bool) dev_accepted_and_unused_velo_tracks;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_hits_view_t,
       DEPENDENCIES(dev_scifi_track_hits_t),
