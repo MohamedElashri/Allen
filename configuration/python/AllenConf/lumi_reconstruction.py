@@ -195,7 +195,8 @@ def lumi_reconstruction(gather_selections,
             dev_output_buffer_t,
             dev_storage_station_region_quarter_offsets_t=decoded_muon[
                 "dev_storage_station_region_quarter_offsets"],
-            dev_muon_number_of_tracks_t=muon_stubs["dev_muon_number_of_tracks"],
+            dev_muon_number_of_tracks_t=muon_stubs[
+                "dev_muon_number_of_tracks"],
             lumi_sum_length=lumi_sum_length,
             lumi_counter_schema=schema_for_algorithms)
 
