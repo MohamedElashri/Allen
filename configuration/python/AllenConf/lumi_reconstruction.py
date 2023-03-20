@@ -89,9 +89,10 @@ def lumi_reconstruction(gather_selections,
     decoded_muon = decode_muon(empty_banks=not with_muon)
 
     counterSpecs = [("T0Low", 0xffffffff), ("T0High", 0xffffffff),
-                    ("BCIDLow", 0xffffffff), ("BCIDHigh", 0x3fff),
-                    ("BXType", 3), ("GEC", 1), ("VeloTracks", 1913),
-                    ("VeloVertices", 33), ("VeloVertexX", 1023), ("VeloVertexY", 1023), 
+                    ("BCIDLow", 0xffffffff), ("BCIDHigh", 0x3fff), ("BXType",
+                                                                    3),
+                    ("GEC", 1), ("VeloTracks", 1913), ("VeloVertices", 33),
+                    ("VeloVertexX", 1023), ("VeloVertexY", 1023),
                     ("VeloVertexZ", 1023), ("SciFiClustersS1M45", 765),
                     ("SciFiClustersS2M45", 805), ("SciFiClustersS3M45", 1405),
                     ("SciFiClusters", 7650), ("SciFiClustersS2M123", 7590),
