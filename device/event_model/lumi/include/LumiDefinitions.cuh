@@ -48,6 +48,8 @@ namespace Lumi {
     static constexpr unsigned M4R4 =
       MatchUpstreamMuon::M4 * Muon::Constants::n_layouts * Muon::Constants::n_regions * Muon::Constants::n_quarters +
       3 * Muon::Constants::n_layouts * Muon::Constants::n_quarters;
+    static constexpr unsigned M5R1 =
+      MatchUpstreamMuon::M5 * Muon::Constants::n_layouts * Muon::Constants::n_regions * Muon::Constants::n_quarters;
     static constexpr unsigned MuonBankSize = Muon::Constants::n_layouts * Muon::Constants::n_stations *
                                              Muon::Constants::n_regions * Muon::Constants::n_quarters;
     static constexpr unsigned n_muon_station_regions = 12u;
