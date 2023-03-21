@@ -176,7 +176,7 @@ public:
     }
   }
 
-  std::tuple<bool, MCParticles::const_iterator> match_track_to_MCPs(
+  bool match_track_to_MCPs(
     const MCAssociator& mc_assoc,
     const Checker::Tracks& tracks,
     const int i_track,
@@ -256,9 +256,7 @@ public:
     }
 
     bool match = false;
-    auto track_best_matched_MCP = mc_assoc.m_mcps.cend();
 
-    float max_weight = 1e9f;
     for (const auto& id_counter : truth_counters) {
       bool velo_ok = true;
       bool scifi_ok = true;
@@ -293,11 +291,6 @@ public:
         const MCAssociator::TrackWithWeight track_weight = {i_track, weight, subdetector_counter};
         assoc_table[(mc_assoc.m_mcps[id_counter.first]).key].push_back(track_weight);
         match = true;
-
-        if (weight < max_weight) {
-          max_weight = weight;
-          track_best_matched_MCP = mc_assoc.m_mcps.begin() + id_counter.first;
-        }
       }
     }
 
@@ -315,7 +308,7 @@ public:
     //   }
     // }
 
-    return {match, track_best_matched_MCP};
+    return match;
   }
 
   void accumulate_impl(const Checker::Tracks& tracks, const MCEvent& mc_event)
@@ -347,7 +340,7 @@ public:
       const auto& track = tracks[i_track];
       m_histos->fillTotalHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, static_cast<double>(track.eta));
 
-      auto [match, track_best_matched_MCP] = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
+      auto match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
 
       ++ntracksperevt;
 
