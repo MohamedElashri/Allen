@@ -21,7 +21,6 @@
 
 #include <GaudiKernel/Bootstrap.h>
 #include "GaudiKernel/ISvcLocator.h"
-#include <GAUDI_VERSION.h>
 #endif
 
 #include <deque>
@@ -39,13 +38,6 @@ struct MonitoringAggregator : public Gaudi::Monitoring::Hub::Sink {
   struct Aggregation {
     std::deque<Entity> sources;
   };
-
-#if GAUDI_MAJOR_VERSION < 37
-  static void mergeAndReset(Gaudi::Monitoring::Hub::Entity& ent, Gaudi::Monitoring::Hub::Entity& other)
-  {
-    ent.mergeAndReset(other);
-  }
-#endif
 
   virtual void registerEntity(Entity ent) override { m_incoming_entities.push_back(ent); }
 
