@@ -68,12 +68,40 @@ __global__ void pv_lumi_counters::pv_lumi_counters(
     if (lumi_sum_offset == parameters.dev_lumi_summary_offsets[event_number + 1]) continue;
 
     // number of PVs
-    unsigned info_offset = lumi_sum_offset / parameters.lumi_sum_length;
+    unsigned info_offset = Lumi::Constants::n_pv_counters * lumi_sum_offset / parameters.lumi_sum_length;
 
     fillLumiInfo(
       parameters.dev_lumi_infos[info_offset],
       parameters.pv_offsets_and_sizes.get()[0],
       parameters.pv_offsets_and_sizes.get()[1],
       parameters.dev_number_of_pvs[event_number]);
+
+    if (parameters.dev_number_of_pvs[event_number] > 0) {
+      // select quasi-random PV
+      unsigned index_pv = event_number % parameters.dev_number_of_pvs[event_number];
+      const PV::Vertex* vertices = parameters.dev_multi_final_vertices + event_number * PV::max_number_vertices;
+      auto pv_pos = vertices[index_pv].position;
+
+      ++info_offset;
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset],
+        parameters.pv_offsets_and_sizes.get()[2],
+        parameters.pv_offsets_and_sizes.get()[3],
+        512.f + 1000.f * pv_pos.x);
+
+      ++info_offset;
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset],
+        parameters.pv_offsets_and_sizes.get()[4],
+        parameters.pv_offsets_and_sizes.get()[5],
+        512.f + 1000.f * pv_pos.y);
+
+      ++info_offset;
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset],
+        parameters.pv_offsets_and_sizes.get()[6],
+        parameters.pv_offsets_and_sizes.get()[7],
+        512.f + pv_pos.z);
+    }
   }
 }
