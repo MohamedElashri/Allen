@@ -59,7 +59,7 @@ namespace Lumi {
 
     static constexpr unsigned n_basic_counters = 6u;
     static constexpr unsigned n_velo_counters = 1u;
-    static constexpr unsigned n_pv_counters = 1u;
+    static constexpr unsigned n_pv_counters = 4u;
     static constexpr unsigned n_scifi_counters = 6u;
     static constexpr unsigned n_calo_counters = 7u;
     static constexpr unsigned n_muon_counters = 13u;
@@ -71,7 +71,10 @@ namespace Lumi {
     const std::array<std::string, n_basic_counters> basic_counter_names =
       {"T0Low", "T0High", "BCIDLow", "BCIDHigh", "BXType", "GEC"};
     const std::array<std::string, n_velo_counters> velo_counter_names = {"VeloTracks"};
-    const std::array<std::string, n_pv_counters> pv_counter_names = {"VeloVertices"};
+    const std::array<std::string, n_pv_counters> pv_counter_names = {"VeloVertices",
+                                                                     "VeloVertexX",
+                                                                     "VeloVertexY",
+                                                                     "VeloVertexZ"};
     const std::array<std::string, n_scifi_counters> scifi_counter_names = {"SciFiClusters",
                                                                            "SciFiClustersS2M123",
                                                                            "SciFiClustersS3M123",
