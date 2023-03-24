@@ -58,20 +58,33 @@ namespace Lumi {
     static constexpr unsigned n_plume_lumi_channels = 22u;
 
     static constexpr unsigned n_basic_counters = 6u;
-    static constexpr unsigned n_velo_counters = 1u;
-    static constexpr unsigned n_pv_counters = 4u;
+    static constexpr unsigned n_velo_counters = 10u;
+    static constexpr unsigned n_pv_counters = 5u;
     static constexpr unsigned n_scifi_counters = 6u;
-    static constexpr unsigned n_calo_counters = 7u;
+    static constexpr unsigned n_calo_counters = 8u;
     static constexpr unsigned n_muon_counters = 13u;
     static constexpr unsigned n_plume_counters = 3u;
+
+    // number of velo eta bins edges
+    static constexpr unsigned n_velo_eta_bin_edges = 7u;
 
     // number of sub info, used for info aggregating in make_lumi_summary
     static constexpr unsigned n_sub_infos = 6u;
 
     const std::array<std::string, n_basic_counters> basic_counter_names =
       {"T0Low", "T0High", "BCIDLow", "BCIDHigh", "BXType", "GEC"};
-    const std::array<std::string, n_velo_counters> velo_counter_names = {"VeloTracks"};
+    const std::array<std::string, n_velo_counters> velo_counter_names = {"VeloTracks",
+                                                                         "VeloFiducialTracks",
+                                                                         "VeloTracksEtaBin0",
+                                                                         "VeloTracksEtaBin1",
+                                                                         "VeloTracksEtaBin2",
+                                                                         "VeloTracksEtaBin3",
+                                                                         "VeloTracksEtaBin4",
+                                                                         "VeloTracksEtaBin5",
+                                                                         "VeloTracksEtaBin6",
+                                                                         "VeloTracksEtaBin7"};
     const std::array<std::string, n_pv_counters> pv_counter_names = {"VeloVertices",
+                                                                     "FiducialVeloVertices",
                                                                      "VeloVertexX",
                                                                      "VeloVertexY",
                                                                      "VeloVertexZ"};
@@ -82,12 +95,13 @@ namespace Lumi {
                                                                            "SciFiClustersS2M45",
                                                                            "SciFiClustersS3M45"};
     const std::array<std::string, n_calo_counters> calo_counter_names = {"ECalET",
-                                                                         "ECalEOuterTop",
-                                                                         "ECalEMiddleTop",
-                                                                         "ECalEInnerTop",
-                                                                         "ECalEOuterBottom",
-                                                                         "ECalEMiddleBottom",
-                                                                         "ECalEInnerBottom"};
+                                                                         "ECalEtot",
+                                                                         "ECalETOuterTop",
+                                                                         "ECalETMiddleTop",
+                                                                         "ECalETInnerTop",
+                                                                         "ECalETOuterBottom",
+                                                                         "ECalETMiddleBottom",
+                                                                         "ECalETInnerBottom"};
     const std::array<std::string, n_muon_counters> muon_counter_names = {"MuonHitsM2R1",
                                                                          "MuonHitsM2R2",
                                                                          "MuonHitsM2R3",

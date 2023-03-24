@@ -75,8 +75,8 @@ __global__ void calo_lumi_counters::calo_lumi_counters(
     const unsigned digits_offset = parameters.dev_ecal_digits_offsets[event_number];
     const unsigned n_digits = parameters.dev_ecal_digits_offsets[event_number + 1] - digits_offset;
     auto const* digits = parameters.dev_ecal_digits + digits_offset;
-    // sumET followed by ET for each region
-    std::array<float, Lumi::Constants::n_calo_counters> E_vals = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+    // first 2 reserved for sum et and sum e, followed by ET for each region
+    std::array<float, Lumi::Constants::n_calo_counters> E_vals = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
 
     for (unsigned digit_index = 0u; digit_index < n_digits; ++digit_index) {
       if (!digits[digit_index].is_valid()) continue;
@@ -89,13 +89,14 @@ __global__ void calo_lumi_counters::calo_lumi_counters(
 
       auto sin_theta = sqrtf((x * x + y * y) / (x * x + y * y + z * z));
       E_vals[0] += e * sin_theta;
+      E_vals[1] += e;
 
       auto const area = ecal_geometry.getECALArea(digit_index);
       if (y > 0.f) {
-        E_vals[1 + area] += e * sin_theta;
+        E_vals[2 + area] += e * sin_theta;
       }
       else {
-        E_vals[4 + area] += e * sin_theta;
+        E_vals[5 + area] += e * sin_theta;
       }
     }
 

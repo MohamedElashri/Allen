@@ -68,12 +68,45 @@ __global__ void velo_lumi_counters::velo_lumi_counters(
     // skip non-lumi event
     if (lumi_sum_offset == parameters.dev_lumi_summary_offsets[event_number + 1]) continue;
 
-    unsigned info_offset = lumi_sum_offset / parameters.lumi_sum_length;
+    std::array<unsigned, 10> velo_counters = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
 
-    fillLumiInfo(
-      parameters.dev_lumi_infos[info_offset],
-      parameters.velo_offsets_and_sizes.get()[0],
-      parameters.velo_offsets_and_sizes.get()[1],
-      parameters.dev_offsets_all_velo_tracks[event_number + 1] - parameters.dev_offsets_all_velo_tracks[event_number]);
+    const auto velo_states = parameters.dev_velo_states_view[event_number];
+    // first counter is the total velo tracks
+    const unsigned track_offset = parameters.dev_offsets_all_velo_tracks[event_number];
+    velo_counters[0] = parameters.dev_offsets_all_velo_tracks[event_number + 1] - track_offset;
+
+    for (unsigned track_index = 0u; track_index < velo_counters[0]; ++track_index) {
+      const auto velo_state = velo_states.state(track_index);
+
+      // fiducial cut: doca<3 mm && |poca|<300 mm
+      if (velo_state.z() > -300.f && velo_state.z() < 300.f) {
+        if (velo_DOCAz(velo_state) < 3.f * Gaudi::Units::mm) {
+          ++velo_counters[1];
+        }
+      }
+
+      // fill eta bins
+      float eta = velo_eta(velo_state, parameters.dev_is_backward[track_offset + track_index]);
+      if (eta > parameters.tracks_eta_bins.get()[Lumi::Constants::n_velo_eta_bin_edges - 1u] * Gaudi::Units::mm) {
+        ++velo_counters[9];
+        continue;
+      }
+      for (unsigned eta_bin = 0; eta_bin < Lumi::Constants::n_velo_eta_bin_edges; ++eta_bin) {
+        if (eta < parameters.tracks_eta_bins.get()[eta_bin] * Gaudi::Units::mm) {
+          ++velo_counters[2u + eta_bin];
+          break;
+        }
+      }
+    }
+
+    unsigned info_offset = Lumi::Constants::n_velo_counters * lumi_sum_offset / parameters.lumi_sum_length;
+
+    for (unsigned info_index = 0u; info_index < Lumi::Constants::n_velo_counters; ++info_index) {
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset + info_index],
+        parameters.velo_offsets_and_sizes.get()[info_index * 2],
+        parameters.velo_offsets_and_sizes.get()[info_index * 2 + 1],
+        velo_counters[info_index]);
+    }
   }
 }
