@@ -18,7 +18,7 @@ from AllenConf.persistency import make_gather_selections
 from PyConf.tonic import configurable
 from PyConf.filecontent_metadata import register_encoding_dictionary
 
-from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
+from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
 from AllenConf.scifi_reconstruction import decode_scifi
 from AllenConf.muon_reconstruction import decode_muon
 from AllenConf.primary_vertex_reconstruction import make_pvs
@@ -89,18 +89,24 @@ def lumi_reconstruction(gather_selections,
     decoded_muon = decode_muon(empty_banks=not with_muon)
 
     counterSpecs = [("T0Low", 0xffffffff), ("T0High", 0xffffffff),
-                    ("BCIDLow", 0xffffffff), ("BCIDHigh", 0x3fff), ("BXType",
-                                                                    3),
-                    ("GEC", 1), ("VeloTracks", 1913), ("VeloVertices", 33),
+                    ("BCIDLow", 0xffffffff),
+                    ("BCIDHigh", 0x3fff), ("BXType", 3), ("GEC", 1),
+                    ("VeloTracks", 1913), ("VeloFiducialTracks", 1913),
+                    ("VeloTracksEtaBin0", 68), ("VeloTracksEtaBin1", 294),
+                    ("VeloTracksEtaBin2", 302), ("VeloTracksEtaBin3", 287),
+                    ("VeloTracksEtaBin4", 471), ("VeloTracksEtaBin5", 427),
+                    ("VeloTracksEtaBin6", 328), ("VeloTracksEtaBin7", 81),
+                    ("VeloVertices", 33), ("FiducialVeloVertices", 33),
                     ("VeloVertexX", 1023), ("VeloVertexY", 1023),
                     ("VeloVertexZ", 1023), ("SciFiClustersS1M45", 765),
                     ("SciFiClustersS2M45", 805), ("SciFiClustersS3M45", 1405),
                     ("SciFiClusters", 7650), ("SciFiClustersS2M123", 7590),
                     ("SciFiClustersS3M123", 7890), ("ECalET", 1072742),
-                    ("ECalEInnerTop", 3797317), ("ECalEMiddleTop", 1478032),
-                    ("ECalEOuterTop", 1192952), ("ECalEInnerBottom", 4026243),
-                    ("ECalEMiddleBottom", 1492195),
-                    ("ECalEOuterBottom", 1384124), ("MuonHitsM2R1", 696),
+                    ("ECalEtot", 1072742), ("ECalETInnerTop", 3797317),
+                    ("ECalETMiddleTop", 1478032), ("ECalETOuterTop", 1192952),
+                    ("ECalETInnerBottom", 4026243),
+                    ("ECalETMiddleBottom", 1492195),
+                    ("ECalETOuterBottom", 1384124), ("MuonHitsM2R1", 696),
                     ("MuonHitsM2R2", 593), ("MuonHitsM2R3", 263),
                     ("MuonHitsM2R4", 200), ("MuonHitsM3R1", 478),
                     ("MuonHitsM3R2", 212), ("MuonHitsM3R3", 161),
@@ -142,6 +148,7 @@ def lumi_reconstruction(gather_selections,
 
     lumiInfos = {}
     if with_velo:
+        velo_states = run_velo_kalman_filter(velo_tracks)
         lumiInfos["velo"] = make_algorithm(
             velo_lumi_counters_t,
             name="velo_total_tracks",
@@ -151,6 +158,9 @@ def lumi_reconstruction(gather_selections,
             dev_lumi_summary_offsets_t=prefix_sum_lumi_size.
             dev_output_buffer_t,
             dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
+            dev_is_backward_t=velo_states["dev_is_backward"],
+            dev_velo_states_view_t=velo_states[
+                "dev_velo_kalman_beamline_states_view"],
             dev_offsets_all_velo_tracks_t=velo_tracks[
                 "dev_offsets_all_velo_tracks"],
             lumi_sum_length=lumi_sum_length,

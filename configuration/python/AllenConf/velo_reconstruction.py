@@ -314,6 +314,8 @@ def run_velo_kalman_filter(velo_tracks):
         velo_kalman_filter.dev_velo_kalman_beamline_states_view_t,
         "dev_velo_kalman_endvelo_states_view":
         velo_kalman_filter.dev_velo_kalman_endvelo_states_view_t,
+        "dev_is_backward":
+        velo_kalman_filter.dev_is_backward_t
     }
 
 
