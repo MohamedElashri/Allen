@@ -10,7 +10,7 @@ from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line, make_two_ks_line
-from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line
+from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line, make_lambda2ppi_line
 from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line, make_di_muon_no_ip_line, make_di_muon_drell_yan_line
 from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_lowmass_noip_dielectron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
 from AllenConf.hlt1_monitoring_lines import (
@@ -21,10 +21,9 @@ from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
 from AllenConf.hlt1_photon_lines import make_bs2gammagamma_line
-from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer, make_dec_reporter
-from AllenConf.validators import rate_validation, routingbits_validation
+from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer
+from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
-from PyConf.tonic import configurable
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.enum_types import TrackingType, includes_matching
 
@@ -51,7 +50,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
         make_d2kk_line(long_tracks, secondary_vertices, name="Hlt1D2KK"),
         make_d2kpi_line(long_tracks, secondary_vertices, name="Hlt1D2KPi"),
         make_d2pipi_line(long_tracks, secondary_vertices, name="Hlt1D2PiPi"),
-        make_two_ks_line(long_tracks, secondary_vertices, name="Hlt1TwoKs")
+        make_two_ks_line(long_tracks, secondary_vertices, name="Hlt1TwoKs"),
+        make_lambda2ppi_line(secondary_vertices, name="Hlt1L02PPi")
     ]
 
     if with_muon:

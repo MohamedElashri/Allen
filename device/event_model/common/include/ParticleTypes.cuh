@@ -532,6 +532,16 @@ namespace Allen {
           return vertex().z() - pv().position.z;
         }
 
+        __host__ __device__ float drho() const
+        {
+          if (!has_pv()) return -1.f;
+          const auto primary = pv();
+          const auto vrt = vertex();
+          const float dx = vrt.x() - primary.position.x;
+          const float dy = vrt.y() - primary.position.y;
+          return sqrtf(dx * dx + dy * dy);
+        }
+
         __host__ __device__ float eta() const
         {
           if (!has_pv()) return 0.f;
