@@ -80,14 +80,15 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     data (geometries etc.)
     """
     converter_types = {
-        'VP': [(DumpBeamline, 'beamline'), (DumpVPGeometry, 'velo_geometry')],
-        'UT': [(DumpUTGeometry, 'ut_geometry'),
-               (DumpUTLookupTables, 'ut_tables')],
-        'ECal': [(DumpCaloGeometry, 'ecal_geometry')],
-        'Magnet': [(DumpMagneticField, 'polarity')],
-        'FTCluster': [(DumpFTGeometry, 'scifi_geometry')],
-        'Muon': [(DumpMuonGeometry, 'muon_geometry'),
-                 (DumpMuonTable, 'muon_tables')]
+        'VP': [(DumpBeamline, 'DumpBeamline', 'beamline'),
+               (DumpVPGeometry, 'DumpVPGeometry', 'velo_geometry')],
+        'UT': [(DumpUTGeometry, 'DumpUTGeometry', 'ut_geometry'),
+               (DumpUTLookupTables, 'DumpUTLookupTables', 'ut_tables')],
+        'ECal': [(DumpCaloGeometry, 'DumpCaloGeometry', 'ecal_geometry')],
+        'Magnet': [(DumpMagneticField, 'DumpMagneticField', 'polarity')],
+        'FTCluster': [(DumpFTGeometry, 'DumpFTGeometry', 'scifi_geometry')],
+        'Muon': [(DumpMuonGeometry, 'DumpMuonGeometry', 'muon_geometry'),
+                 (DumpMuonTable, 'DumpMuonTable', 'muon_tables')]
     }
 
     detector_names = {
@@ -130,14 +131,15 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     if allen_event_loop:
         algorithm_converters.append(AllenODINProducer())
 
-    converters = chain.from_iterable(
-        convs for bt, convs in converter_types.items() if bt in bank_types)
-    for converter_type, filename in converters:
+    converters = [(bt, t, tn, f) for bt, convs in converter_types.items()
+                  for t, tn, f in convs if bt in bank_types]
+    for bt, converter_type, converter_name, filename in converters:
         converter_id = converter_type.getDefaultProperties().get('ID', None)
         if converter_id is not None:
             converter = converter_type()
             # An algorithm that needs a TESProducer
             producer = AllenTESProducer(
+                name='AllenTESProducer_%s' % bt,
                 Filename=filename if dump_geometry else "",
                 OutputDirectory=out_dir,
                 InputID=converter.OutputID,
@@ -146,7 +148,9 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
             algorithm_producers.append(producer)
         else:
             converter = converter_type(
-                DumpToFile=dump_geometry, OutputDirectory=out_dir)
+                name=converter_name,
+                DumpToFile=dump_geometry,
+                OutputDirectory=out_dir)
         algorithm_converters.append(converter)
 
     converters_node = CompositeNode(
