@@ -15,18 +15,18 @@ HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #pass
 LAZY_AND: allen_non_event_data                  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  NONLAZY_OR: allen_non_event_data_converters    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   AllenODINProducer/AllenODINProducer_e608fece  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpBeamline/DumpBeamline_59a2f4db            #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpBeamline/DumpBeamline                     #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpVPGeometry/DumpVPGeometry_2afa7777        #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpCaloGeometry/DumpCaloGeometry_472f6a19    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpMagneticField/DumpMagneticField_a4d14417  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   DumpFTGeometry/DumpFTGeometry_94b0d61a        #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpMuonGeometry/DumpMuonGeometry_adf0e381    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpMuonTable/DumpMuonTable_d607e681          #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpMuonGeometry/DumpMuonGeometry             #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpMuonTable/DumpMuonTable                   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  NONLAZY_OR: allen_non_event_data_producers     #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  AllenTESProducer/AllenTESProducer_36963b42    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  AllenTESProducer/AllenTESProducer_13e63f8d    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  AllenTESProducer/AllenTESProducer_7ed6eb60    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  AllenTESProducer/AllenTESProducer_8a05ad50    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  AllenTESProducer/AllenTESProducer_VP          #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  AllenTESProducer/AllenTESProducer_ECal        #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  AllenTESProducer/AllenTESProducer_Magnet      #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  AllenTESProducer/AllenTESProducer_FTCluster   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
 HLTControlFlowMgr                      INFO Histograms converted successfully according to request.
 ApplicationMgr                         INFO Application Manager Finalized successfully
 ApplicationMgr                         INFO Application Manager Terminated successfully
