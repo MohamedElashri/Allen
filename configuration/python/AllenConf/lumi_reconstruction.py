@@ -20,7 +20,7 @@ from PyConf.filecontent_metadata import register_encoding_dictionary
 
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
 from AllenConf.scifi_reconstruction import decode_scifi
-from AllenConf.muon_reconstruction import decode_muon
+from AllenConf.muon_reconstruction import decode_muon, make_muon_stubs
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.lumi_schema_generator import LumiSchemaGenerator
@@ -87,6 +87,8 @@ def lumi_reconstruction(gather_selections,
     decoded_calo = decode_calo()
     pvs = make_pvs(velo_tracks)
     decoded_muon = decode_muon(empty_banks=not with_muon)
+    if with_muon:
+        muon_stubs = make_muon_stubs()
 
     counterSpecs = [("T0Low", 0xffffffff), ("T0High", 0xffffffff),
                     ("BCIDLow", 0xffffffff),
@@ -112,7 +114,8 @@ def lumi_reconstruction(gather_selections,
                     ("MuonHitsM3R2", 212), ("MuonHitsM3R3", 161),
                     ("MuonHitsM3R4", 102), ("MuonHitsM4R1", 134),
                     ("MuonHitsM4R2", 108), ("MuonHitsM4R3", 409),
-                    ("MuonHitsM4R4", 227), ("PlumeAvgLumiADC", 0xfff),
+                    ("MuonHitsM4R4", 227), ("MuonTracks", 127),
+                    ("PlumeAvgLumiADC", 0xfff),
                     ("PlumeLumiOverthrLow", 0x3fffff),
                     ("PlumeLumiOverthrHigh", 0x3fffff)]
     l = LumiSchemaGenerator(counterSpecs)
@@ -204,6 +207,8 @@ def lumi_reconstruction(gather_selections,
             dev_output_buffer_t,
             dev_storage_station_region_quarter_offsets_t=decoded_muon[
                 "dev_storage_station_region_quarter_offsets"],
+            dev_muon_number_of_tracks_t=muon_stubs[
+                "dev_muon_number_of_tracks"],
             lumi_sum_length=lumi_sum_length,
             lumi_counter_schema=schema_for_algorithms)
 

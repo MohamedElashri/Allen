@@ -71,28 +71,34 @@ __global__ void muon_lumi_counters::muon_lumi_counters(
     const auto muon_hits_offsets =
       parameters.dev_storage_station_region_quarter_offsets + event_number * Lumi::Constants::MuonBankSize;
 
-    unsigned info_offset = 12u * lumi_sum_offset / parameters.lumi_sum_length;
+    unsigned info_offset = Lumi::Constants::n_muon_counters * lumi_sum_offset / parameters.lumi_sum_length;
 
-    std::array<unsigned, Lumi::Constants::n_muon_counters + 1> muon_offsets = {Lumi::Constants::M2R1,
-                                                                               Lumi::Constants::M2R2,
-                                                                               Lumi::Constants::M2R3,
-                                                                               Lumi::Constants::M2R4,
-                                                                               Lumi::Constants::M3R1,
-                                                                               Lumi::Constants::M3R2,
-                                                                               Lumi::Constants::M3R3,
-                                                                               Lumi::Constants::M3R4,
-                                                                               Lumi::Constants::M4R1,
-                                                                               Lumi::Constants::M4R2,
-                                                                               Lumi::Constants::M4R3,
-                                                                               Lumi::Constants::M4R4,
-                                                                               Lumi::Constants::MuonBankSize};
+    std::array<unsigned, Lumi::Constants::n_muon_station_regions + 1> muon_offsets = {Lumi::Constants::M2R1,
+                                                                                      Lumi::Constants::M2R2,
+                                                                                      Lumi::Constants::M2R3,
+                                                                                      Lumi::Constants::M2R4,
+                                                                                      Lumi::Constants::M3R1,
+                                                                                      Lumi::Constants::M3R2,
+                                                                                      Lumi::Constants::M3R3,
+                                                                                      Lumi::Constants::M3R4,
+                                                                                      Lumi::Constants::M4R1,
+                                                                                      Lumi::Constants::M4R2,
+                                                                                      Lumi::Constants::M4R3,
+                                                                                      Lumi::Constants::M4R4,
+                                                                                      Lumi::Constants::M5R1};
 
-    for (unsigned i = 0; i < Lumi::Constants::n_muon_counters; ++i) {
+    for (unsigned i = 0; i < Lumi::Constants::n_muon_station_regions; ++i) {
       fillLumiInfo(
         parameters.dev_lumi_infos[info_offset + i],
         parameters.muon_offsets_and_sizes.get()[2 * i],
         parameters.muon_offsets_and_sizes.get()[2 * i + 1],
         muon_hits_offsets[muon_offsets[i + 1]] - muon_hits_offsets[muon_offsets[i]]);
     }
+
+    fillLumiInfo(
+      parameters.dev_lumi_infos[info_offset + Lumi::Constants::n_muon_station_regions],
+      parameters.muon_offsets_and_sizes.get()[2 * Lumi::Constants::n_muon_station_regions],
+      parameters.muon_offsets_and_sizes.get()[2 * Lumi::Constants::n_muon_station_regions + 1],
+      parameters.dev_muon_number_of_tracks[event_number]);
   }
 }

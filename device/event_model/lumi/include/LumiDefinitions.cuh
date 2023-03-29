@@ -48,8 +48,11 @@ namespace Lumi {
     static constexpr unsigned M4R4 =
       MatchUpstreamMuon::M4 * Muon::Constants::n_layouts * Muon::Constants::n_regions * Muon::Constants::n_quarters +
       3 * Muon::Constants::n_layouts * Muon::Constants::n_quarters;
+    static constexpr unsigned M5R1 =
+      MatchUpstreamMuon::M5 * Muon::Constants::n_layouts * Muon::Constants::n_regions * Muon::Constants::n_quarters;
     static constexpr unsigned MuonBankSize = Muon::Constants::n_layouts * Muon::Constants::n_stations *
                                              Muon::Constants::n_regions * Muon::Constants::n_quarters;
+    static constexpr unsigned n_muon_station_regions = 12u;
 
     static constexpr unsigned n_plume_channels = 32u;
     static constexpr unsigned n_plume_lumi_channels = 22u;
@@ -59,7 +62,7 @@ namespace Lumi {
     static constexpr unsigned n_pv_counters = 5u;
     static constexpr unsigned n_scifi_counters = 6u;
     static constexpr unsigned n_calo_counters = 8u;
-    static constexpr unsigned n_muon_counters = 12u;
+    static constexpr unsigned n_muon_counters = 13u;
     static constexpr unsigned n_plume_counters = 3u;
 
     // number of velo eta bins edges
@@ -110,7 +113,8 @@ namespace Lumi {
                                                                          "MuonHitsM4R1",
                                                                          "MuonHitsM4R2",
                                                                          "MuonHitsM4R3",
-                                                                         "MuonHitsM4R4"};
+                                                                         "MuonHitsM4R4",
+                                                                         "MuonTracks"};
     const std::array<std::string, n_plume_counters> plume_counter_names = {"PlumeAvgLumiADC",
                                                                            "PlumeLumiOverthrLow",
                                                                            "PlumeLumiOverthrHigh"};
