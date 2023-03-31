@@ -36,12 +36,23 @@ namespace di_muon_drell_yan_line {
 
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+
+    DEVICE_OUTPUT(mass_t, float) mass;
+    DEVICE_OUTPUT(transverse_momentum_t, float) transverse_momentum;
+
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
   };
 
   struct di_muon_drell_yan_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     TwoTrackLine<di_muon_drell_yan_line_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+
+    __device__ static void
+    monitor(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>, unsigned, bool);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -61,5 +72,9 @@ namespace di_muon_drell_yan_line {
 
     Property<OppositeSign_t> m_only_select_opposite_sign {this, true};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+
+    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+
+    using monitoring_types = std::tuple<transverse_momentum_t, mass_t, evtNo_t, runNo_t>;
   };
 } // namespace di_muon_drell_yan_line
