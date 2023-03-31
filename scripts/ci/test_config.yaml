@@ -119,6 +119,13 @@ full:
     geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7_muonv3"
     throughput_report: false # don't publish throughput report
 
+  # run throughput, 50% lumi events
+  - type: "throughput"
+    sequence:
+      - hlt1_pp_lumi
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
+    throughput_report: false # don't publish throughput report
+
   - type: "throughput"
     sequence: 
       - hlt1_pp_default
