@@ -43,3 +43,19 @@ __device__ bool di_muon_drell_yan_line::di_muon_drell_yan_line_t::select(
 
   return decision;
 }
+
+__device__ void di_muon_drell_yan_line::di_muon_drell_yan_line_t::monitor(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+  unsigned index,
+  bool sel)
+{
+  const auto& vertex = std::get<0>(input);
+  if (sel) {
+    const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
+    const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
+
+    parameters.mass[index] = vertex.mdimu();
+    parameters.transverse_momentum[index] = std::min(trk1->state().pt(), trk2->state().pt());
+  }
+}
