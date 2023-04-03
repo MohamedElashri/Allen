@@ -39,3 +39,12 @@ __device__ bool two_track_mva_line::two_track_mva_line_t::select(
   if (vertex.has_pv()) presel = presel && vertex.pv().position.z >= parameters.minZ;
   return presel && response > parameters.minMVA;
 }
+
+__device__ void two_track_mva_line::two_track_mva_line_t::monitor(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+  unsigned index,
+  bool sel)
+{
+  if (sel) parameters.mva[index] = std::get<1>(input);
+}

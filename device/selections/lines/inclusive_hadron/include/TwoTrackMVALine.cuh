@@ -35,6 +35,12 @@ namespace two_track_mva_line {
     PROPERTY(maxDOCA_t, "maxDOCA", "Maximum DOCA between two tracks", float) maxDOCA;
     PROPERTY(minipchi2_t, "minipchi2", "minimum ipchi2 of the tracks", float) minipchi2;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+
+    DEVICE_OUTPUT(mva_t, float) mva;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
+
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct two_track_mva_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_mva_line_t, Parameters> {
@@ -44,6 +50,14 @@ namespace two_track_mva_line {
     __device__ static bool select(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input);
+
+    __device__ static void monitor(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+      unsigned index,
+      bool sel);
+
+    using monitoring_types = std::tuple<mva_t, evtNo_t, runNo_t>;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -61,6 +75,8 @@ namespace two_track_mva_line {
     Property<maxDOCA_t> m_maxDOCA {this, 0.2f};
     Property<minipchi2_t> m_minipchi2 {this, 4.f}; // this is probably a noop, but better safe than sorry
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+
+    Property<enable_monitoring_t> m_enableMonitoring {this, false};
   };
 
 } // namespace two_track_mva_line
