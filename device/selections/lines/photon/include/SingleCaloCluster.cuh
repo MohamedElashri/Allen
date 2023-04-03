@@ -24,20 +24,11 @@ namespace single_calo_cluster_line {
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
     // monitoring
-    DEVICE_OUTPUT(dev_clusters_x_t, float) dev_clusters_x;
-    HOST_OUTPUT(host_clusters_x_t, float) host_clusters_x;
-
-    DEVICE_OUTPUT(dev_clusters_y_t, float) dev_clusters_y;
-    HOST_OUTPUT(host_clusters_y_t, float) host_clusters_y;
-
-    DEVICE_OUTPUT(dev_clusters_Et_t, float) dev_clusters_Et;
-    HOST_OUTPUT(host_clusters_Et_t, float) host_clusters_Et;
-
-    DEVICE_OUTPUT(dev_clusters_Eta_t, float) dev_clusters_Eta;
-    HOST_OUTPUT(host_clusters_Eta_t, float) host_clusters_Eta;
-
-    DEVICE_OUTPUT(dev_clusters_Phi_t, float) dev_clusters_Phi;
-    HOST_OUTPUT(host_clusters_Phi_t, float) host_clusters_Phi;
+    DEVICE_OUTPUT(clusters_x_t, float) clusters_x;
+    DEVICE_OUTPUT(clusters_y_t, float) clusters_y;
+    DEVICE_OUTPUT(clusters_Et_t, float) clusters_Et;
+    DEVICE_OUTPUT(clusters_Eta_t, float) clusters_Eta;
+    DEVICE_OUTPUT(clusters_Phi_t, float) clusters_Phi;
     //
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
@@ -53,17 +44,10 @@ namespace single_calo_cluster_line {
                                       Parameters,
                                       Line<single_calo_cluster_line_t, Parameters> {
 
-    void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
-
     __device__ static void
     monitor(const Parameters& parameters, std::tuple<const CaloCluster> input, unsigned index, bool sel);
 
-    void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
-      const;
-
     __device__ static bool select(const Parameters& ps, std::tuple<const CaloCluster> input);
-
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {
@@ -74,7 +58,6 @@ namespace single_calo_cluster_line {
     {
       return parameters.dev_ecal_cluster_offsets[event_number + 1] - parameters.dev_ecal_cluster_offsets[event_number];
     }
-
     __device__ static std::tuple<const CaloCluster>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
     {

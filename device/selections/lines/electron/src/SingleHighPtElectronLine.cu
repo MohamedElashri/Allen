@@ -41,3 +41,12 @@ __device__ bool single_high_pt_electron_line::single_high_pt_electron_line_t::se
                         track.state().z() >= parameters.minZ;
   return decision;
 }
+
+__device__ void single_high_pt_electron_line::single_high_pt_electron_line_t::monitor(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input,
+  unsigned index,
+  bool sel)
+{
+  if (sel) parameters.pt_corrected[index] = std::get<2>(input);
+}

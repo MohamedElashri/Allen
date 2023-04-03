@@ -43,3 +43,24 @@ __device__ bool two_track_line_ks::two_track_line_ks_t::select(
 
   return decision;
 }
+
+__device__ void two_track_line_ks::two_track_line_ks_t::monitor(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+  unsigned index,
+  bool sel)
+{
+  if (sel) {
+    const auto& particle = std::get<0>(input);
+    const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(0));
+    const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(1));
+    const auto& vertex = particle.vertex();
+    parameters.pt_ks[index] = vertex.pt();
+    parameters.eta_ks[index] = particle.eta();
+    parameters.comb_ip[index] = trk1->ip() * trk2->ip() / particle.ip();
+    parameters.min_pt[index] = particle.minpt();
+    parameters.min_ipchi2[index] = particle.minipchi2();
+    parameters.min_p[index] = particle.minp();
+    parameters.mass[index] = particle.m12(Allen::mPi, Allen::mPi);
+  }
+}

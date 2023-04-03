@@ -17,3 +17,12 @@ __device__ bool single_high_pt_muon_line::single_high_pt_muon_line_t::select(
 
   return decision;
 }
+
+__device__ void single_high_pt_muon_line::single_high_pt_muon_line_t::monitor(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::BasicParticle> input,
+  unsigned index,
+  bool sel)
+{
+  if (sel) parameters.pt[index] = std::get<0>(input).state().pt();
+}

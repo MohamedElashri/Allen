@@ -36,7 +36,8 @@ def make_single_high_pt_muon_line(long_tracks,
                                   long_track_particles,
                                   name="Hlt1SingleHighPtMuon",
                                   pre_scaler_hash_string=None,
-                                  post_scaler_hash_string=None):
+                                  post_scaler_hash_string=None,
+                                  enable_monitoring=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -48,7 +49,8 @@ def make_single_high_pt_muon_line(long_tracks,
         host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
-            "dev_multi_event_basic_particles"])
+            "dev_multi_event_basic_particles"],
+        enable_monitoring=enable_monitoring)
 
 
 def make_single_high_pt_muon_no_muid_line(long_tracks,
@@ -159,7 +161,8 @@ def make_track_muon_mva_line(long_tracks,
                              long_track_particles,
                              name="Hlt1TrackMuonMVA",
                              pre_scaler_hash_string=None,
-                             post_scaler_hash_string=None):
+                             post_scaler_hash_string=None,
+                             enable_monitoring=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -171,7 +174,8 @@ def make_track_muon_mva_line(long_tracks,
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
-        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        enable_monitoring=enable_monitoring)
 
 
 def make_di_muon_no_ip_line(long_tracks,

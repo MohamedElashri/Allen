@@ -804,33 +804,41 @@ First we need to add the additional `Parameters` that will carry our arrays to o
 
 .. code-block:: c++
 
-   namespace kstopipi_line {
-     struct Parameters {
-       (...)
+  namespace kstopipi_line {
+   struct Parameters {
+     (...)
 
-       DEVICE_OUTPUT(sv_masses_t, float) sv_masses;
-       DEVICE_OUTPUT(pt_t, float) pt;
+     DEVICE_OUTPUT(sv_masses_t, float) sv_masses;
+     DEVICE_OUTPUT(pt_t, float) pt;
 
-       PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-     };
+     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     };
+  };
 
 Your selection algorithm should define an additional tuple type that contains the types of the quantities to monitor, so in this example::
 
- using monitoring_types = std::tuple<pt_t, sv_masses_t>
+.. code-block:: c++
+
+ using monitoring_types = std::tuple<pt_t, sv_masses_t>;
 
 The tuple type is a convenient way to store a parameter pack, which is then used internally (see `Line.cuh <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/selections/line_types/include/Line.cuh>`_ for details) to handle the initialisation of the containers and the transport of the arrays to the nTuple. 
 Two useful additional pieces of information to include in the nTuple are the event and run number. 
 These are automatically filled per candidate if the tuple of monitoring types includes the types runNo_t and evtNo_t, which should be declared as DEVICE_OUTPUTs of type uint64_t and unsigned for runNo and evtNo, respectively.
-So in this example, we would add 
-.. code-blocks:: c++
+So in this example, we would add
+
+.. code-block:: c++
+
   struct Parameters {
     (...)
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
-  }
-and the monitoring types becomes ::
-  using monitoring_types = std::tuple<pt_t, sv_masses_t, evtNo_t, runNo_t>
+  };
+
+and the monitoring types becomes 
+
+.. code-block:: c++ 
+
+  using monitoring_types = std::tuple<pt_t, sv_masses_t, evtNo_t, runNo_t>;
 
 After all of the values we wish to monitor have been declared, 
 then we set up the `monitor` function that will be handled by the kernel in order to retrieve the information that we want to monitor:

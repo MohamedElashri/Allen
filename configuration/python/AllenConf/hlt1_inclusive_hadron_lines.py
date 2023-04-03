@@ -12,7 +12,8 @@ def make_kstopipi_line(long_tracks,
                        secondary_vertices,
                        pre_scaler_hash_string=None,
                        post_scaler_hash_string=None,
-                       name='Hlt1KsToPiPi_{hash}'):
+                       name='Hlt1KsToPiPi_{hash}',
+                       enable_monitoring=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -30,7 +31,8 @@ def make_track_mva_line(long_tracks,
                         long_track_particles,
                         pre_scaler_hash_string=None,
                         post_scaler_hash_string=None,
-                        name='Hlt1TrackMVA_{hash}'):
+                        name='Hlt1TrackMVA_{hash}',
+                        enable_monitoring=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -42,14 +44,16 @@ def make_track_mva_line(long_tracks,
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
-        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        enable_monitoring=enable_monitoring)
 
 
 def make_two_track_mva_line(long_tracks,
                             secondary_vertices,
                             pre_scaler_hash_string=None,
                             post_scaler_hash_string=None,
-                            name='Hlt1TwoTrackMVA_{hash}'):
+                            name='Hlt1TwoTrackMVA_{hash}',
+                            enable_monitoring=False):
     number_of_events = initialize_number_of_events()
 
     two_track_mva_evaluator = make_algorithm(
@@ -69,14 +73,16 @@ def make_two_track_mva_line(long_tracks,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         dev_two_track_mva_evaluation_t=two_track_mva_evaluator.
-        dev_two_track_mva_evaluation_t)
+        dev_two_track_mva_evaluation_t,
+        enable_monitoring=enable_monitoring)
 
 
 def make_two_track_line_ks(long_tracks,
                            secondary_vertices,
                            pre_scaler_hash_string=None,
                            post_scaler_hash_string=None,
-                           name='Hlt1TwoTrackKs_{hash}'):
+                           name='Hlt1TwoTrackKs_{hash}',
+                           enable_monitoring=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -87,4 +93,5 @@ def make_two_track_line_ks(long_tracks,
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
-        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        enable_monitoring=enable_monitoring)
