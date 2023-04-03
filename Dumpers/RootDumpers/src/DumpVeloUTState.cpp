@@ -31,7 +31,7 @@ void DumpVeloUTState::operator()(const std::vector<LHCb::Event::v2::Track>& utTr
 {
   auto tup = m_tupleTool->nTuple(string {"veloUT_tracks"});
   for (const auto& track : utTracks) {
-    for (auto loc : {LHCb::State::Location::AtTT, LHCb::State::Location::EndVelo}) {
+    for (auto loc : {LHCb::State::Location::AtUT, LHCb::State::Location::EndVelo}) {
       if (track.hasStateAt(loc)) {
         auto const* state = track.stateAt(loc);
         auto sc = tup->column("qop", state->qOverP());
