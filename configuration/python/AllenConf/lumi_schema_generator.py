@@ -105,7 +105,7 @@ class LumiSchemaGenerator:
      a single counter may not span more than one integer.
   """
 
-    def __init__(self, inputs=[]):
+    def __init__(self, inputs=[], verbose=False):
         """Optionally, provide counters as the argument "input" in the form [(counterName1, MAXENTRIES1), (counterName2, MAXENTRIES2) ... ]
     """
         self.inputs = [Counter("encodingKey", 0xffffffff)]
@@ -114,6 +114,7 @@ class LumiSchemaGenerator:
         self.buckets = []
         self.size = 0
         self.sumSizes = 0
+        self.verbose = verbose
 
     def readInput(self, inputFileName):
         """Append the contents of the input file to the list of requested counters.
@@ -147,7 +148,8 @@ class LumiSchemaGenerator:
                 exit()
             (name, maxEntry) = line
             self.inputs.append(Counter(name, int(maxEntry, 0)))
-        print("Found %d counters in %s" % (len(lines), inputFileName))
+        if self.verbose:
+            print("Found %d counters in %s" % (len(lines), inputFileName))
 
     def processWithoutOptimisation(self):
         """Pack counters into 32-bit bins sequentially without running any optimisation.
@@ -185,10 +187,12 @@ class LumiSchemaGenerator:
         if runMutationStep:
             for i in range(mutationAttempts):
                 if 100. * self.sumSizes / self.size >= stopThreshold:
-                    print(
-                        "Packing efficiency of %.1f%% has reached or exceeded %.1f%%"
-                        % (100. * self.sumSizes / self.size, stopThreshold))
-                    print("Stopping mutation")
+                    if self.verbose:
+                        print(
+                            "Packing efficiency of %.1f%% has reached or exceeded %.1f%%"
+                            % (100. * self.sumSizes / self.size,
+                               stopThreshold))
+                        print("Stopping mutation")
                     break
                 self.mutate(lumi_rand.random())
 
@@ -222,13 +226,15 @@ class LumiSchemaGenerator:
         self.sumSizes = math.ceil(self.sumSizes / 32) * 32
         self.size = math.ceil(
             (32 * bucket.pos + counter.offset + counter.size) / 32) * 32
-        print("Packed %d counters into %d bytes" % (self.nInputs,
-                                                    self.size / 8.))
-        print("Counter packing is %.1f%% efficient" %
-              (100 * self.sumSizes / self.size))
+        if self.verbose:
+            print("Packed %d counters into %d bytes" % (self.nInputs,
+                                                        self.size / 8.))
+            print("Counter packing is %.1f%% efficient" %
+                  (100 * self.sumSizes / self.size))
 
     def mutate(self, prob):
-        print("Mutating with a %.1f%% removal rate" % (prob * 100.))
+        if self.verbose:
+            print("Mutating with a %.1f%% removal rate" % (prob * 100.))
         originalBuckets = copy.deepcopy(self.buckets)
         originalSize = self.size
         originalSumSizes = self.sumSizes
@@ -251,19 +257,23 @@ class LumiSchemaGenerator:
         if runMutation:
             if len(self.inputs) != 0:
                 #rerun the packing with a random ordering
-                print("repacking %d counters" % len(self.inputs))
+                if self.verbose:
+                    print("repacking %d counters" % len(self.inputs))
                 lumi_rand.shuffle(self.inputs)
                 self.pack()
                 if originalSize <= self.size:
-                    print("No improvement, reverting mutation")
+                    if self.verbose:
+                        print("No improvement, reverting mutation")
                     self.buckets = originalBuckets
                     self.size = originalSize
                     self.sumSizes = originalSumSizes
                 else:
-                    print("Improvement found, retaining mutation")
+                    if self.verbose:
+                        print("Improvement found, retaining mutation")
         else:
             self.inputs = []
-            print("No improvement possible, skipping mutation")
+            if self.verbose:
+                print("No improvement possible, skipping mutation")
             self.buckets = originalBuckets
             self.size = originalSize
             self.sumSizes = originalSumSizes
@@ -356,9 +366,16 @@ if __name__ == "__main__":
         const=True,
         default=False,
         help="Generate a header file for the legacy enum interface")
+    parser.add_argument(
+        "--verbose",
+        metavar="0/1",
+        nargs='?',
+        const=True,
+        default=False,
+        help="Turn on verbose printing")
     args = parser.parse_args()
 
-    l = LumiSchemaGenerator()
+    l = LumiSchemaGenerator(verbose=args.verbose)
     l.readInput(args.input)
 
     if args.no_opt:
