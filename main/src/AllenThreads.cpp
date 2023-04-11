@@ -203,10 +203,11 @@ void run_slices(const size_t thread_id, IZeroMQSvc* zmqSvc, IInputProvider* inpu
       if (a.has_value()) {
         auto odin_data = std::any_cast<gsl::span<unsigned const>>(a);
         LHCb::ODIN odin {odin_data};
-	if (odin.runNumber() == 0) {
-	  info_cout << "ODIN run number 0, skipping \n";
-	  continue;
-	} else if (odin.runNumber() != current_run_number) {
+        if (odin.runNumber() == 0) {
+          info_cout << "ODIN run number 0, skipping \n";
+          continue;
+        }
+        else if (odin.runNumber() != current_run_number) {
           current_run_number = odin.runNumber();
           zmqSvc->send(control, "RUN", send_flags::sndmore);
           zmqSvc->send(control, odin.data);
