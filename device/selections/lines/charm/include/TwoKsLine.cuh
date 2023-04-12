@@ -33,6 +33,71 @@ namespace two_ks_line {
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
+
+    // Monitoring
+    DEVICE_OUTPUT(dev_decision_t, bool) dev_decision;
+    DEVICE_OUTPUT(dev_pt_pi1_ks1_t, float) dev_pt_pi1_ks1;
+    DEVICE_OUTPUT(dev_pt_pi2_ks1_t, float) dev_pt_pi2_ks1;
+    DEVICE_OUTPUT(dev_p_pi1_ks1_t, float) dev_p_pi1_ks1;
+    DEVICE_OUTPUT(dev_p_pi2_ks1_t, float) dev_p_pi2_ks1;
+    DEVICE_OUTPUT(dev_ipchi2_pi1_ks1_t, float) dev_ipchi2_pi1_ks1;
+    DEVICE_OUTPUT(dev_ipchi2_pi2_ks1_t, float) dev_ipchi2_pi2_ks1;
+    DEVICE_OUTPUT(dev_ip_pi1_ks1_t, float) dev_ip_pi1_ks1;
+    DEVICE_OUTPUT(dev_ip_pi2_ks1_t, float) dev_ip_pi2_ks1;
+    DEVICE_OUTPUT(dev_pt_pi1_ks2_t, float) dev_pt_pi1_ks2;
+    DEVICE_OUTPUT(dev_pt_pi2_ks2_t, float) dev_pt_pi2_ks2;
+    DEVICE_OUTPUT(dev_p_pi1_ks2_t, float) dev_p_pi1_ks2;
+    DEVICE_OUTPUT(dev_p_pi2_ks2_t, float) dev_p_pi2_ks2;
+    DEVICE_OUTPUT(dev_ipchi2_pi1_ks2_t, float) dev_ipchi2_pi1_ks2;
+    DEVICE_OUTPUT(dev_ipchi2_pi2_ks2_t, float) dev_ipchi2_pi2_ks2;
+    DEVICE_OUTPUT(dev_ip_pi1_ks2_t, float) dev_ip_pi1_ks2;
+    DEVICE_OUTPUT(dev_ip_pi2_ks2_t, float) dev_ip_pi2_ks2;
+    DEVICE_OUTPUT(dev_cos_open_pi_ks1_t, float) dev_cos_open_pi_ks1;
+    DEVICE_OUTPUT(dev_ip_ks1_t, float) dev_ip_ks1;
+    DEVICE_OUTPUT(dev_ip_comb_ks1_t, float) dev_ip_comb_ks1;
+    DEVICE_OUTPUT(dev_pt_ks1_t, float) dev_pt_ks1;
+    DEVICE_OUTPUT(dev_chi2vtx_ks1_t, float) dev_chi2vtx_ks1;
+    DEVICE_OUTPUT(dev_ipchi2_ks1_t, float) dev_ipchi2_ks1;
+    DEVICE_OUTPUT(dev_dira_ks1_t, float) dev_dira_ks1;
+    DEVICE_OUTPUT(dev_eta_ks1_t, float) dev_eta_ks1;
+    DEVICE_OUTPUT(dev_mks1_t, float) dev_mks1;
+    DEVICE_OUTPUT(dev_cos_open_pi_ks2_t, float) dev_cos_open_pi_ks2;
+    DEVICE_OUTPUT(dev_ip_ks2_t, float) dev_ip_ks2;
+    DEVICE_OUTPUT(dev_ip_comb_ks2_t, float) dev_ip_comb_ks2;
+    DEVICE_OUTPUT(dev_pt_ks2_t, float) dev_pt_ks2;
+    DEVICE_OUTPUT(dev_chi2vtx_ks2_t, float) dev_chi2vtx_ks2;
+    DEVICE_OUTPUT(dev_ipchi2_ks2_t, float) dev_ipchi2_ks2;
+    DEVICE_OUTPUT(dev_dira_ks2_t, float) dev_dira_ks2;
+    DEVICE_OUTPUT(dev_eta_ks2_t, float) dev_eta_ks2;
+    DEVICE_OUTPUT(dev_mks2_t, float) dev_mks2;
+    DEVICE_OUTPUT(dev_mks_pair_t, float) dev_mks_pair;
+    DEVICE_OUTPUT(dev_pv1x_t, float) dev_pv1x;
+    DEVICE_OUTPUT(dev_pv1y_t, float) dev_pv1y;
+    DEVICE_OUTPUT(dev_pv1z_t, float) dev_pv1z;
+    DEVICE_OUTPUT(dev_pv2x_t, float) dev_pv2x;
+    DEVICE_OUTPUT(dev_pv2y_t, float) dev_pv2y;
+    DEVICE_OUTPUT(dev_pv2z_t, float) dev_pv2z;
+    DEVICE_OUTPUT(dev_sv1x_t, float) dev_sv1x;
+    DEVICE_OUTPUT(dev_sv1y_t, float) dev_sv1y;
+    DEVICE_OUTPUT(dev_sv1z_t, float) dev_sv1z;
+    DEVICE_OUTPUT(dev_sv2x_t, float) dev_sv2x;
+    DEVICE_OUTPUT(dev_sv2y_t, float) dev_sv2y;
+    DEVICE_OUTPUT(dev_sv2z_t, float) dev_sv2z;
+    DEVICE_OUTPUT(dev_doca1_pi_t, float) dev_doca1_pi;
+    DEVICE_OUTPUT(dev_doca2_pi_t, float) dev_doca2_pi;
+    DEVICE_OUTPUT(dev_px_ks1_t, float) dev_px_ks1;
+    DEVICE_OUTPUT(dev_py_ks1_t, float) dev_py_ks1;
+    DEVICE_OUTPUT(dev_pz_ks1_t, float) dev_pz_ks1;
+    DEVICE_OUTPUT(dev_px_ks2_t, float) dev_px_ks2;
+    DEVICE_OUTPUT(dev_py_ks2_t, float) dev_py_ks2;
+    DEVICE_OUTPUT(dev_pz_ks2_t, float) dev_pz_ks2;
+    DEVICE_OUTPUT(dev_chi2trk_pi1_ks1_t, float) dev_chi2trk_pi1_ks1;
+    DEVICE_OUTPUT(dev_chi2trk_pi2_ks1_t, float) dev_chi2trk_pi2_ks1;
+    DEVICE_OUTPUT(dev_chi2trk_pi1_ks2_t, float) dev_chi2trk_pi1_ks2;
+    DEVICE_OUTPUT(dev_chi2trk_pi2_ks2_t, float) dev_chi2trk_pi2_ks2;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
+
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minComboPt_Ks_t, "minComboPt_Ks", "minComboPt Ks description", float) minComboPt_Ks;
     PROPERTY(minCosDira_t, "minCosDira", "minCosDira description", float) minCosDira;
@@ -47,9 +112,87 @@ namespace two_ks_line {
     PROPERTY(min_combip_t, "min_combip", "min_combip description", float) min_combip;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dibody combinations", bool) OppositeSign;
+
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct two_ks_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_ks_line_t, Parameters> {
+
+    using monitoring_types = std::tuple<
+      dev_decision_t,
+      dev_pt_pi1_ks1_t,
+      dev_pt_pi2_ks1_t,
+      dev_p_pi1_ks1_t,
+      dev_p_pi2_ks1_t,
+      dev_ipchi2_pi1_ks1_t,
+      dev_ipchi2_pi2_ks1_t,
+      dev_ip_pi1_ks1_t,
+      dev_ip_pi2_ks1_t,
+      dev_pt_pi1_ks2_t,
+      dev_pt_pi2_ks2_t,
+      dev_p_pi1_ks2_t,
+      dev_p_pi2_ks2_t,
+      dev_ipchi2_pi1_ks2_t,
+      dev_ipchi2_pi2_ks2_t,
+      dev_ip_pi1_ks2_t,
+      dev_ip_pi2_ks2_t,
+      dev_cos_open_pi_ks1_t,
+      dev_ip_ks1_t,
+      dev_ip_comb_ks1_t,
+      dev_pt_ks1_t,
+      dev_chi2vtx_ks1_t,
+      dev_ipchi2_ks1_t,
+      dev_dira_ks1_t,
+      dev_eta_ks1_t,
+      dev_mks1_t,
+      dev_cos_open_pi_ks2_t,
+      dev_ip_ks2_t,
+      dev_ip_comb_ks2_t,
+      dev_pt_ks2_t,
+      dev_chi2vtx_ks2_t,
+      dev_ipchi2_ks2_t,
+      dev_dira_ks2_t,
+      dev_eta_ks2_t,
+      dev_mks2_t,
+      dev_mks_pair_t,
+      dev_pv1x_t,
+      dev_pv1y_t,
+      dev_pv1z_t,
+      dev_pv2x_t,
+      dev_pv2y_t,
+      dev_pv2z_t,
+      dev_sv1x_t,
+      dev_sv1y_t,
+      dev_sv1z_t,
+      dev_sv2x_t,
+      dev_sv2y_t,
+      dev_sv2z_t,
+      dev_doca1_pi_t,
+      dev_doca2_pi_t,
+      dev_px_ks1_t,
+      dev_py_ks1_t,
+      dev_pz_ks1_t,
+      dev_px_ks2_t,
+      dev_py_ks2_t,
+      dev_pz_ks2_t,
+      dev_chi2trk_pi1_ks1_t,
+      dev_chi2trk_pi2_ks1_t,
+      dev_chi2trk_pi1_ks2_t,
+      dev_chi2trk_pi2_ks2_t,
+      evtNo_t,
+      runNo_t>;
+
+    __device__ static void monitor(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+      unsigned index,
+      bool sel);
+
+    // Get the invariant mass of a pair of vertices
+    __device__ static float m(
+      const Allen::Views::Physics::CompositeParticle& vertex1,
+      const Allen::Views::Physics::CompositeParticle& vertex2);
+
     __device__ static bool select(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input);
@@ -73,5 +216,8 @@ namespace two_ks_line {
     Property<min_combip_t> m_min_combip {this, 0.23f / Gaudi::Units::mm};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
     Property<OppositeSign_t> m_opposite_sign {this, true};
+
+    // Switch to create monitoring tuple
+    Property<enable_monitoring_t> m_enable_monitoring {this, false};
   };
 } // namespace two_ks_line
