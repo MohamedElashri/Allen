@@ -107,7 +107,8 @@ __global__ void calo_lumi_counters::calo_lumi_counters(
         parameters.dev_lumi_infos[info_offset + i],
         parameters.calo_offsets_and_sizes.get()[2 * i],
         parameters.calo_offsets_and_sizes.get()[2 * i + 1],
-        E_vals[i]);
+        E_vals[i],
+        1e6);
     }
   }
 }
