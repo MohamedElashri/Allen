@@ -33,8 +33,7 @@ with line_maker.bind(prefilter=prefilters):
     lines.append(
         line_maker(
             make_odin_event_type_line(
-                name=lumiline_name, odin_event_type='Lumi',
-                pre_scaler=0.0001)))
+                name=lumiline_name, odin_event_type='Lumi')))
 
 with line_maker.bind(prefilter=prefilters + [tae_filter()]):
     lines.append(
