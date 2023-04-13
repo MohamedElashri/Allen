@@ -20,6 +20,11 @@ fillLumiInfo(Lumi::LumiInfo& info, const unsigned offset, const unsigned size, c
   info.value = value;
 }
 
+// fills a lumi counter of [size] bits
+// the values 0 and 2^[size] - 1 are reserved for under/overflow
+// minimum = (1 - [shift]) / [multiplier]
+// maximum = (2^[size] - [shift] - 1) / [multiplier]
+// resolution = [multiplier]
 inline __device__ void fillLumiInfo(
   Lumi::LumiInfo& info,
   const unsigned offset,
@@ -30,10 +35,10 @@ inline __device__ void fillLumiInfo(
 {
   float scaled_value = shift + value * multiplier;
 
-  if (scaled_value < 0.f) {
+  if (scaled_value < 1.f) {
     fillLumiInfo(info, offset, size, 0u);
   }
-  else if (scaled_value >= (1ul << size)) {
+  else if (scaled_value >= (1ul << size) - 1u) {
     fillLumiInfo(info, offset, size, (1ul << size) - 1u);
   }
   else {
