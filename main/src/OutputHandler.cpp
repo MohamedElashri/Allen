@@ -110,8 +110,8 @@ std::tuple<bool, size_t> OutputHandler::output_single_events(
       auto const event_number = i + start_event;
       selected_events.push_back(event_number);
     }
-    if (output_tae && tae_index < (tae_events.size() - 1)) {
-      tae_index += tae_events[tae_index].central;
+    if (output_tae && tae_index < (tae_events.size() - 1) && tae_events[tae_index].central == i) {
+      ++tae_index;
     }
   }
 
