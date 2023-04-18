@@ -66,7 +66,8 @@ lumi_node = CompositeNode(
         gather_selections=gather_selections,
         lines=line_algorithms,
         lumiline_name=lumiline_name,
-        with_muon=False)["algorithms"],
+        with_muon=False,
+        with_plume=True)["algorithms"],
     NodeLogic.NONLAZY_AND,
     force_order=False)
 

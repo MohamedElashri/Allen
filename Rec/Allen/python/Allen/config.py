@@ -95,7 +95,8 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
         'ECal': 'Ecal',
         'FTCluster': 'FT',
         'PVs': None,
-        'tracks': None
+        'tracks': None,
+        'Plume': None,
     }
 
     if type(bank_types) == list:
