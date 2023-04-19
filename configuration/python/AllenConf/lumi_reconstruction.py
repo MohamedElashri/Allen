@@ -236,7 +236,9 @@ def lumi_reconstruction(gather_selections,
             host_total_sum_holder_t,
             dev_lumi_summary_offsets_t=prefix_sum_lumi_size.
             dev_output_buffer_t,
-            dev_plume_t=decoded_plume["dev_plume"])
+            dev_plume_t=decoded_plume["dev_plume"],
+            lumi_sum_length=lumi_sum_length,
+            lumi_counter_schema=schema_for_algorithms)
 
     make_lumi_summary = lumi_summary_maker(lumiInfos, prefix_sum_lumi_size,
                                            key, lumi_sum_length,

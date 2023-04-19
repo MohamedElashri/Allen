@@ -76,7 +76,7 @@ __global__ void plume_lumi_counters::plume_lumi_counters(
       for (unsigned channel = 0; channel < Lumi::Constants::n_plume_lumi_channels; ++channel) {
         plume_counters[0] += static_cast<unsigned>(pl->ADC_counts[channel_offset + channel].x & 0xffffffff);
         // get the corresonding overthreshold bit
-        plume_counters[1 + feb] |= ((pl->ovr_th[feb]) & (1u << (31 - channel)));
+        plume_counters[1 + feb] |= ((pl->ovr_th[feb]) & (1u << (21 - channel)));
       }
     }
     // get average
