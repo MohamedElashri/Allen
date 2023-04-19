@@ -3,7 +3,8 @@
 ###############################################################################
 from AllenCore.algorithms import (
     beam_crossing_line_t, velo_micro_bias_line_t, odin_event_type_line_t,
-    calo_digits_minADC_t, beam_gas_line_t, velo_clusters_micro_bias_line_t)
+    calo_digits_minADC_t, beam_gas_line_t, velo_clusters_micro_bias_line_t,
+    n_displaced_velo_track_line_t, n_materialvertex_seed_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenConf.odin import decode_odin
 from AllenCore.generator import make_algorithm
@@ -158,3 +159,49 @@ def make_velo_clusters_micro_bias_line(decoded_velo,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         min_velo_clusters=min_velo_clusters)
+
+
+def make_n_displaced_velo_line(filtered_velo_tracks,
+                               n_tracks=6,
+                               name="Hlt1NVELODisplacedTrack",
+                               pre_scaler_hash_string=None,
+                               post_scaler_hash_string=None,
+                               pre_scaler=1.,
+                               post_scaler=1.):
+
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        n_displaced_velo_track_line_t,
+        name=name,
+        dev_number_of_filtered_tracks_t=filtered_velo_tracks[
+            "dev_number_of_filtered_velo_tracks"],
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        min_filtered_velo_tracks=n_tracks)
+
+
+def make_n_materialvertex_seed_line(filtered_velo_tracks,
+                                    name="Hlt1NMaterialVertexSeeds",
+                                    n_seeds=2,
+                                    pre_scaler=1.,
+                                    post_scaler=1.,
+                                    pre_scaler_hash_string=None,
+                                    post_scaler_hash_string=None):
+
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        n_materialvertex_seed_line_t,
+        name=name,
+        dev_number_of_materialvertex_seeds_t=filtered_velo_tracks[
+            "dev_number_of_close_track_pairs"],
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        min_materialvertex_seeds=n_seeds,
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post")

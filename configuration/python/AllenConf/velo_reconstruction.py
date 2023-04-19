@@ -6,7 +6,7 @@ from AllenCore.algorithms import (
     velo_estimate_input_size_t, velo_masked_clustering_t, velo_sort_by_phi_t,
     velo_search_by_triplet_t, velo_three_hit_tracks_filter_t,
     velo_copy_track_hit_number_t, velo_consolidate_tracks_t,
-    velo_kalman_filter_t,
+    velo_kalman_filter_t, filter_velo_tracks_t,
     calculate_number_of_retinaclusters_each_sensor_pair_t,
     decode_retinaclusters_t)
 from AllenConf.utils import initialize_number_of_events
@@ -316,6 +316,34 @@ def run_velo_kalman_filter(velo_tracks):
         velo_kalman_filter.dev_velo_kalman_endvelo_states_view_t,
         "dev_is_backward":
         velo_kalman_filter.dev_is_backward_t
+    }
+
+
+def filter_tracks_for_material_interactions(velo_tracks,
+                                            velo_states,
+                                            beam_r_distance=3.5,
+                                            close_doca=0.5):
+
+    number_of_events = initialize_number_of_events()
+
+    filter_velo_tracks = make_algorithm(
+        filter_velo_tracks_t,
+        name="filter_velo_tracks",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_reconstructed_velo_tracks_t=velo_tracks[
+            "host_number_of_reconstructed_velo_tracks"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
+        dev_velo_states_view_t=velo_states[
+            "dev_velo_kalman_beamline_states_view"],
+        beamdoca_r=beam_r_distance,
+        max_doca_for_close_track_pairs=close_doca)
+
+    return {
+        "dev_number_of_filtered_velo_tracks":
+        filter_velo_tracks.dev_number_of_filtered_tracks_t,
+        "dev_number_of_close_track_pairs":
+        filter_velo_tracks.dev_number_of_close_track_pairs_t
     }
 
 
