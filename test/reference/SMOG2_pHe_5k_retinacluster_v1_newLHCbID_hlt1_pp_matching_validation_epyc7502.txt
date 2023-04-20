@@ -34,24 +34,24 @@ for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% 
 
 
 velo_validator validation:
-TrackChecker output                               :        90/    13752   0.65% ghosts
+TrackChecker output                               :        90/    13755   0.65% ghosts
 01_velo                                           :      7660/     7805  98.14% ( 98.16%),       247 (  3.12%) clones, pur  99.61%, hit eff  95.81%
 02_long                                           :      4466/     4511  99.00% ( 98.92%),       123 (  2.68%) clones, pur  99.75%, hit eff  96.55%
 03_long_P>5GeV                                    :      2925/     2941  99.46% ( 99.35%),        70 (  2.34%) clones, pur  99.81%, hit eff  97.16%
 04_long_strange                                   :       214/      218  98.17% ( 98.02%),         6 (  2.73%) clones, pur  99.58%, hit eff  95.93%
 05_long_strange_P>5GeV                            :       113/      116  97.41% ( 96.88%),         1 (  0.88%) clones, pur  99.93%, hit eff  97.60%
-08_long_electrons                                 :       583/      596  97.82% ( 98.11%),        21 (  3.48%) clones, pur  98.35%, hit eff  96.22%
+08_long_electrons                                 :       583/      596  97.82% ( 98.11%),        22 (  3.64%) clones, pur  98.32%, hit eff  96.07%
 
 
 long_validator validation:
-TrackChecker output                               :       137/     3857   3.55% ghosts
+TrackChecker output                               :       136/     3859   3.52% ghosts
 for P>3GeV,Pt>0.5GeV                              :         5/     1260   0.40% ghosts
 01_long                                           :      3311/     4511  73.40% ( 72.94%),         0 (  0.00%) clones, pur  99.92%, hit eff  99.58%
 02_long_P>5GeV                                    :      2642/     2941  89.83% ( 90.68%),         0 (  0.00%) clones, pur  99.94%, hit eff  99.67%
 03_long_strange                                   :       143/      218  65.60% ( 65.79%),         0 (  0.00%) clones, pur  99.91%, hit eff  99.70%
 04_long_strange_P>5GeV                            :       101/      116  87.07% ( 87.50%),         0 (  0.00%) clones, pur  99.91%, hit eff  99.67%
-07_long_electrons                                 :       200/      596  33.56% ( 33.23%),         0 (  0.00%) clones, pur  99.22%, hit eff  99.37%
-08_long_electrons_P>5GeV                          :       161/      336  47.92% ( 48.61%),         0 (  0.00%) clones, pur  99.18%, hit eff  99.37%
+07_long_electrons                                 :       203/      596  34.06% ( 33.70%),         0 (  0.00%) clones, pur  99.24%, hit eff  99.38%
+08_long_electrons_P>5GeV                          :       163/      336  48.51% ( 48.84%),         0 (  0.00%) clones, pur  99.19%, hit eff  99.38%
 long_P>5GeV_AND_Pt>1GeV                           :       205/      220  93.18% ( 93.68%),         0 (  0.00%) clones, pur  99.91%, hit eff  99.92%
 11_noVelo_UT                                      :         0/      608   0.00% (  0.00%),         0 (  0.00%) clones, pur   -nan%, hit eff   -nan%
 12_noVelo_UT_P>5GeV                               :         0/      260   0.00% (  0.00%),         0 (  0.00%) clones, pur   -nan%, hit eff   -nan%
@@ -62,12 +62,12 @@ long_P>5GeV_AND_Pt>1GeV                           :       205/      220  93.18% 
 
 muon_validator validation:
 Muon fraction in all MCPs:                                                917/    68484   0.01% 
-Muon fraction in MCPs to which a track(s) was matched:                     39/     4363   0.01% 
+Muon fraction in MCPs to which a track(s) was matched:                     39/     4367   0.01% 
 Correctly identified muons with isMuon:                                    38/       39  97.44% 
 Correctly identified muons from strange decays with isMuon:                 0/        0   -nan% 
 Correctly identified muons from B decays with isMuon:                       0/        0   -nan% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:       135/     4324   3.12% 
-Ghost tracks identified as muon with isMuon:                                7/      137   5.11% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:       135/     4328   3.12% 
+Ghost tracks identified as muon with isMuon:                                7/      136   5.15% 
 
 
 pv_validator validation:
@@ -76,12 +76,12 @@ MC PV is reconstructible if at least 4 tracks are reconstructed
 MC PV is isolated if dz to closest reconstructible MC PV > 10.00 mm
 REC and MC vertices matched by dz distance
 
-All                  :  1.008 (   715/   709)
-Isolated             :  1.008 (   715/   709)
+All                  :  1.007 (   714/   709)
+Isolated             :  1.007 (   714/   709)
 Close                :  0.000 (     0/     0)
-False rate           :  0.008 (     6/   721)
-Real false rate      :  0.008 (     6/   721)
-Clones               :  0.000 (     0/   715)
+False rate           :  0.007 (     5/   719)
+Real false rate      :  0.007 (     5/   719)
+Clones               :  0.000 (     0/   714)
 
 
 rate_validator validation:

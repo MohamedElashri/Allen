@@ -43,7 +43,7 @@ Further requirements depend on the device chosen as target. Allen supports targe
 Building with CVMFS
 -------------------
 
-We show a proposed development setup with the CVMFS filesystem and CentOS 7 that automatically provides all the aforementioned requisites:
+We show a proposed development setup with the CVMFS filesystem and RHEL 9 that automatically provides all the aforementioned requisites:
 
 First source the LHCb environment::
 
@@ -55,17 +55,17 @@ The build process is the standard cmake procedure. You should specify a `CMAKE_T
 
     mkdir build
     cd build
-    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake ..
+    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_103/x86_64-centos9-gcc12-opt.cmake ..
     make
 
 * CUDA target::
 
     mkdir build
     cd build
-    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12+cuda11_4-opt.cmake ..
+    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_103/x86_64_v3-el9-gcc12+cuda12_1-opt.cmake ..
     make
 
-* HIP target::
+* HIP target (the following is a CentOS 7 configuration, a RHEL 9 one will soon be provided)::
 
     mkdir build
     cd build

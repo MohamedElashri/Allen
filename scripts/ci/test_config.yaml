@@ -148,7 +148,7 @@ full:
 
   - type: "run_built_tests"
     lcg_opt:
-      - "opt"
+      - "opt+g"
       - "dbg"
     build_options: "BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS"
 

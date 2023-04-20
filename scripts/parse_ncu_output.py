@@ -43,7 +43,7 @@ for k in kernel_dict.keys():
         return cast_lambda(kernel_dict[k][metric][name])
 
     custom_metric_1 = get_metric("SM Active Cycles") * \
-        get_metric("Compute (SM) [%]")
+        get_metric("Compute (SM) Throughput")
     algorithm_list.append((k, custom_metric_1))
 
 total_sum = sum([a[1] for a in algorithm_list])

@@ -6,26 +6,26 @@
 .geforcertx3090:
   variables:
     DEVICE_ID: "geforcertx3090"
-    LCG_QUALIFIER: "cuda11_4"
+    LCG_QUALIFIER: "cuda12_1"
 
 
 .geforcertx2080ti:
   variables:
     DEVICE_ID: "geforcertx2080ti"
-    LCG_QUALIFIER: "cuda11_4"
+    LCG_QUALIFIER: "cuda12_1"
 
 
 .a6000:
   variables:
     DEVICE_ID: "a6000"
-    LCG_QUALIFIER: "cuda11_4"
+    LCG_QUALIFIER: "cuda12_1"
 
 
 .a5000:
   variables:
     DEVICE_ID: "a5000"
 
-    LCG_QUALIFIER: "cuda11_4"
+    LCG_QUALIFIER: "cuda12_1"
 
 .mi100:
   variables:

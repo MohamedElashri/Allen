@@ -43,7 +43,7 @@ SOURCE_FOLDER=$(realpath ${PWD})
 mkdir -p ${BUILD_FOLDER}
 cd ${BUILD_FOLDER}
 
-yum install -y numactl-libs
+dnf install -y numactl-libs glibc-devel
 
 setupViews
 
