@@ -156,7 +156,7 @@ CPU:
 CUDA:
   extends: .full-build
   variables:
-    LCG_QUALIFIER: cuda11_4
+    LCG_QUALIFIER: "cuda12_1"
 
 # HIP:
 #   extends: .full-build
@@ -182,7 +182,7 @@ CUDA:
 .cuda_run_job:
   dependencies: [CUDA, build]
   variables:
-    LCG_QUALIFIER: cuda11_4
+    LCG_QUALIFIER: cuda12_1
 
 # .hip_run_job:
 #   dependencies: [HIP, build]

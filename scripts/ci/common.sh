@@ -20,6 +20,8 @@ function setupViews() {
     # start building platform string
     LCG_PLATFORM="${LCG_SYSTEM}"
 
+    export ADDITIONAL_OPTIONS=""
+
     if [ -z ${LCG_QUALIFIER+x} ] || [ "$LCG_QUALIFIER" = "" ]; then
         echo "Error: LCG_QUALIFIER is unset or empty"
         exit 1

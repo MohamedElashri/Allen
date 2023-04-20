@@ -4,11 +4,11 @@
 .build_job_minimal_matrix:
   parallel:
     matrix:
+      # If you change these, don't forget to change the qualifiers in main.yaml as well.
       - LCG_QUALIFIER:
           - "cpu"
-          - "cuda11_4"
-          - "hip5"
-  allow_failure: true # FIXME remove
+          - "cuda12_1"
+          # - "hip5"
 
 # Builds that are considered "additional", can be run in addition to "minimal" tests in certain scenarios
 # This is run for each device type cpu/cuda/hip (see main.yaml)
@@ -17,24 +17,29 @@
     matrix:
       # build jobs (with tests)
       - LCG_SYSTEM:
-          - "x86_64_v3-centos7-clang12"
-        LCG_OPTIMIZATION: [opt, dbg]
+          - "x86_64_v3-el9-gcc12" # FIXME gcc12->clang12 (?)
+        LCG_OPTIMIZATION: 
+          - "opt+g"
         OPTIONS:
           - BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
       
-      - LCG_SYSTEM: "x86_64_v3-centos7-clang12"
-        LCG_OPTIMIZATION: dbg
-
-      # debug builds with GCC
-      - LCG_SYSTEM:
-          - "x86_64_v3-centos7-gcc11"
-        LCG_OPTIMIZATION: dbg
+      - LCG_SYSTEM: "x86_64_v3-el9-gcc12"
+        LCG_OPTIMIZATION: "dbg"
+        LCG_QUALIFIER: "cuda12_1"
         OPTIONS:
           - BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
+
+      # # debug builds with GCC
+      # - LCG_SYSTEM:
+      #     - "x86_64_v3-el9-gcc12"
+      #   LCG_OPTIMIZATION: dbg
+      #   OPTIONS:
+      #     - BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
 
 .build_job:
   extends: .base_job
 
+  image: gitlab-registry.cern.ch/linuxsupport/alma9-base
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
     TEST_NAME: "build"
@@ -53,6 +58,6 @@
       - build*/toolchain/*
   tags:
     - cvmfs
-  retry: 2
+  # retry: 2
   allow_failure:
     exit_codes: 54

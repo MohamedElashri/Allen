@@ -15,8 +15,8 @@
 
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
-    LCG_SYSTEM: "x86_64_v3-centos7-clang12"
-    LCG_OPTIMIZATION: "opt"
+    LCG_SYSTEM: "x86_64_v3-el9-gcc12"
+    LCG_OPTIMIZATION: "opt+g"
     TEST_GROUP: "full"
 
   script:
@@ -33,6 +33,7 @@
       - output_*
       - run_*_output_*
       - validation_output*/*
+      - run_profiler_*/
       - ./*-unit-tests.xml
     reports:
       junit:

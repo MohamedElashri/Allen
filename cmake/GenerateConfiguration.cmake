@@ -138,13 +138,13 @@ elseif(STANDALONE)
     find_package(Git REQUIRED)
     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/external/LHCb")
     set(LHCBROOT "${PROJECT_BINARY_DIR}/external/LHCb")
-    file(RELATIVE_PATH LHCBROOT_RELPATH ${PROJECT_SEQUENCE_DIR} ${LHCBROOT})
+    file(RELATIVE_PATH LHCBROOT_RELPATH ${PROJECT_SEQUENCE_DIR} ${LHCBROOT}) 
+
     add_custom_command(
       OUTPUT "${PROJECT_SEQUENCE_DIR}/PyConf"
       COMMENT "Checking out LHCb project from the LHCb stack"
       COMMAND
         ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb.git ${PROJECT_BINARY_DIR}/external/LHCb &&
-        ${CMAKE_COMMAND} -E chdir ${PROJECT_BINARY_DIR}/external/LHCb patch -p1 < ${CMAKE_CURRENT_LIST_DIR}/pyconf-pydot.patch &&
         ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT_RELPATH}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
     add_custom_target(checkout_lhcb DEPENDS "${PROJECT_SEQUENCE_DIR}/PyConf")
     message(STATUS "LHCBROOT set to ${LHCBROOT}")
