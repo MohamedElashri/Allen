@@ -34,8 +34,9 @@ def make_d2kpi_line(long_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 
 
+@configurable
 def make_passthrough_line(name="Hlt1Passthrough",
-                          pre_scaler=1.,
+                          pre_scaler=0.0016,
                           pre_scaler_hash_string=None,
                           post_scaler_hash_string=None):
 
