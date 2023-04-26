@@ -132,8 +132,8 @@ Hlt1LowMassNoipDielectron_massSlice3_displaced:         0/  1000, (    0.00 +/- 
 Hlt1LowMassNoipDielectron_SS_massSlice3_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice4_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice4_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1Passthrough:                                     1000/  1000, (30000.00 +/-     0.00) kHz
-Hlt1GECPassthrough:                                  1000/  1000, (30000.00 +/-     0.00) kHz
+Hlt1Passthrough:                                        1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1GECPassthrough:                                     1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1ODINLumi:                                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINNoBias:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                      2/  1000, (   60.00 +/-    42.38) kHz
@@ -143,7 +143,7 @@ Hlt1BeamGas:                                            0/  1000, (    0.00 +/- 
 Hlt1D2KPiAlignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DisplacedDiMuonAlignment:                           0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                           1000/  1000, (30000.00 +/-     0.00) kHz
+Inclusive:                                             92/  1000, ( 2760.00 +/-   274.19) kHz
 
 
 selreport_validator validation:
@@ -195,8 +195,8 @@ Hlt1LowMassNoipDielectron_massSlice3_displaced:         0           0
 Hlt1LowMassNoipDielectron_SS_massSlice3_displaced:      0           0
 Hlt1LowMassNoipDielectron_massSlice4_displaced:         0           0
 Hlt1LowMassNoipDielectron_SS_massSlice4_displaced:      0           0
-Hlt1Passthrough:                                     1000           0
-Hlt1GECPassthrough:                                  1000           0
+Hlt1Passthrough:                                        1           0
+Hlt1GECPassthrough:                                     1           0
 Hlt1ODINLumi:                                           0           0
 Hlt1ODINNoBias:                                         0           0
 Hlt1VeloMicroBias:                                      2           0
@@ -207,9 +207,9 @@ Hlt1D2KPiAlignment:                                     0           0
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DisplacedDiMuonAlignment:                           0           0
 
-Total decisions: 2093
+Total decisions: 95
 Total tracks:    4
 Total SVs:       1
 Total hits:      74
-Total stdinfo:   2129
+Total stdinfo:   131
 

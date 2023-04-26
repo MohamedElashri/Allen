@@ -18,7 +18,7 @@ for det, bt in (("velo", "VP"), ("scifi", "FTCluster"), ("muon", "Muon"),
     bank_providers.append(
         make_algorithm(data_provider_t, name=det + "_banks", bank_type=bt))
 
-passthrough_line = line_maker(make_passthrough_line())
+passthrough_line = line_maker(make_passthrough_line(pre_scaler=1))
 line_algorithms = [passthrough_line[0]]
 
 global_decision = make_global_decision(lines=line_algorithms)
@@ -31,8 +31,8 @@ lines = CompositeNode(
 
 passthrough_sequence = CompositeNode(
     "Passthrough", [
-        providers, lines,
-        make_routingbits_writer(lines=line_algorithms), global_decision,
+        providers, lines, global_decision,
+        make_routingbits_writer(lines=line_algorithms),
         rate_validation(lines=line_algorithms)
     ],
     NodeLogic.NONLAZY_AND,
