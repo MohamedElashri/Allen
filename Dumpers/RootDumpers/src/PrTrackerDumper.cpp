@@ -29,6 +29,7 @@
 #include <Dumpers/Utils.h>
 
 #include "GaudiAlg/Transformer.h"
+#include "GaudiAlg/FunctionalUtilities.h"
 #include "GaudiKernel/PhysicalConstants.h"
 #include "GaudiKernel/Vector3DTypes.h"
 
@@ -144,6 +145,8 @@ namespace {
 #endif
 } // namespace
 
+using Gaudi::Functional::Traits::useLegacyGaudiAlgorithm;
+
 /** @class PrTrackerDumper PrTrackerDumper.h
  *  TupleTool storing all VPClusters position on tracks (dummy track for noise ones)
  *
@@ -151,13 +154,15 @@ namespace {
  *  @date   2017-11-06
  */
 
-class PrTrackerDumper : public Gaudi::Functional::Transformer<LHCb::RawEvent(
-                          const LHCb::MCParticles&,
-                          const std::vector<LHCb::VPLightCluster>&,
-                          const PrFTHitHandler<PrHit>&,
-                          const UT::HitHandler&,
-                          const LHCb::ODIN&,
-                          const LHCb::LinksByKey&)> {
+class PrTrackerDumper : public Gaudi::Functional::Transformer<
+                          LHCb::RawEvent(
+                            const LHCb::MCParticles&,
+                            const std::vector<LHCb::VPLightCluster>&,
+                            const PrFTHitHandler<PrHit>&,
+                            const UT::HitHandler&,
+                            const LHCb::ODIN&,
+                            const LHCb::LinksByKey&),
+                          useLegacyGaudiAlgorithm> {
 public:
   /// Standard constructor
   PrTrackerDumper(const std::string& name, ISvcLocator* pSvcLocator);

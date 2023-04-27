@@ -546,6 +546,7 @@ class AllenCore():
             f"#include \"AlgorithmConversionTools.h\"",
             f"#include <{algorithm.filename}>",
             f"#include <GaudiAlg/{include_file}>",
+            "#include <GaudiAlg/FunctionalUtilities.h>",
             "#include <vector>",
             "// output type",
             f"using output_t = {output_type};",

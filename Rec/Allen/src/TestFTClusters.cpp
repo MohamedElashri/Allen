@@ -3,6 +3,7 @@
 \*****************************************************************************/
 // Gaudi
 #include "GaudiAlg/Consumer.h"
+#include "Gaudi/Accumulators.h"
 
 // Detector
 #include "Detector/FT/FTChannelID.h"

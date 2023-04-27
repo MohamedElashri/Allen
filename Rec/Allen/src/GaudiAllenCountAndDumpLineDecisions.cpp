@@ -11,6 +11,7 @@
 // Gaudi
 #include "GaudiAlg/Consumer.h"
 #include "GaudiKernel/StdArrayAsProperty.h"
+#include "Gaudi/Accumulators.h"
 
 // LHCb
 #include "Event/RawEvent.h"

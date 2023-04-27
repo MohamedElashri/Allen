@@ -10,6 +10,7 @@
 \*****************************************************************************/
 // Gaudi
 #include "GaudiAlg/FilterPredicate.h"
+#include "Gaudi/Accumulators.h"
 
 // Standard
 #include <vector>
