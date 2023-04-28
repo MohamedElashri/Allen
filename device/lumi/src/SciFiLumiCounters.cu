@@ -23,15 +23,17 @@ void scifi_lumi_counters::scifi_lumi_counters_t::set_arguments_size(
 {
   // the total size of output info is proportional to the lumi summaries
   set_size<dev_lumi_infos_t>(
-    arguments,
-    Lumi::Constants::n_scifi_counters * first<host_lumi_summaries_size_t>(arguments) / property<lumi_sum_length_t>());
+    arguments, Lumi::Constants::n_scifi_counters * first<host_lumi_summaries_count_t>(arguments));
 }
 
 void scifi_lumi_counters::scifi_lumi_counters_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+  std::map<std::string, std::pair<float, float>> shifts_and_scales = property<lumi_counter_shifts_and_scales_t>();
   std::array<unsigned, 2 * Lumi::Constants::n_scifi_counters> scifi_offsets_and_sizes =
     property<scifi_offsets_and_sizes_t>();
+  std::array<float, 2 * Lumi::Constants::n_scifi_counters> scifi_shifts_and_scales =
+    property<scifi_shifts_and_scales_t>();
 
   unsigned c_idx(0u);
   for (auto counter_name : Lumi::Constants::scifi_counter_names) {
@@ -42,9 +44,18 @@ void scifi_lumi_counters::scifi_lumi_counters_t::init()
       scifi_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
       scifi_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
     }
+    if (shifts_and_scales.find(counter_name) == shifts_and_scales.end()) {
+      scifi_shifts_and_scales[2 * c_idx] = 0.f;
+      scifi_shifts_and_scales[2 * c_idx + 1] = 1.f;
+    }
+    else {
+      scifi_shifts_and_scales[2 * c_idx] = shifts_and_scales[counter_name].first;
+      scifi_shifts_and_scales[2 * c_idx + 1] = shifts_and_scales[counter_name].second;
+    }
     ++c_idx;
   }
   set_property_value<scifi_offsets_and_sizes_t>(scifi_offsets_and_sizes);
+  set_property_value<scifi_shifts_and_scales_t>(scifi_shifts_and_scales);
 }
 
 void scifi_lumi_counters::scifi_lumi_counters_t::operator()(
@@ -54,7 +65,7 @@ void scifi_lumi_counters::scifi_lumi_counters_t::operator()(
   const Allen::Context& context) const
 {
   // do nothing if no lumi event
-  if (first<host_lumi_summaries_size_t>(arguments) == 0) return;
+  if (first<host_lumi_summaries_count_t>(arguments) == 0) return;
 
   global_function(scifi_lumi_counters)(dim3(4u), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments), constants.dev_scifi_geometry);
@@ -67,10 +78,10 @@ __global__ void scifi_lumi_counters::scifi_lumi_counters(
 {
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
-    unsigned lumi_sum_offset = parameters.dev_lumi_summary_offsets[event_number];
+    unsigned lumi_evt_index = parameters.dev_lumi_event_indices[event_number];
 
     // skip non-lumi event
-    if (lumi_sum_offset == parameters.dev_lumi_summary_offsets[event_number + 1]) continue;
+    if (lumi_evt_index == parameters.dev_lumi_event_indices[event_number + 1]) continue;
 
     const SciFi::SciFiGeometry geom {scifi_geometry};
 
@@ -79,10 +90,14 @@ __global__ void scifi_lumi_counters::scifi_lumi_counters(
       parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
     SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
 
-    std::array<unsigned, 6> SciFiCounters = {0u, 0u, 0u, 0u, 0u, 0u};
+    std::array<unsigned, 38> SciFiCounters = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+                                              0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+                                              0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
 
     for (unsigned hit_index = 0u; hit_index < hit_count.event_number_of_hits(); ++hit_index) {
       const SciFi::SciFiChannelID id {hits.channel(hit_count.event_offset() + hit_index)};
+      unsigned counter_id = 6 + 10 * (id.station() - 1) + 2 * id.module() + (id.quarter() % 2);
+      ++SciFiCounters[counter_id];
       if (id.module() == 0u) continue;
       // SciFi::SciFiChannelID::station() starts from 1
       if (id.module() < 4)
@@ -91,14 +106,16 @@ __global__ void scifi_lumi_counters::scifi_lumi_counters(
         ++SciFiCounters[id.station() + 2];
     }
 
-    unsigned info_offset = 6 * (lumi_sum_offset / parameters.lumi_sum_length);
+    unsigned info_offset = Lumi::Constants::n_scifi_counters * lumi_evt_index;
 
     for (unsigned i = 0; i < Lumi::Constants::n_scifi_counters; ++i) {
       fillLumiInfo(
         parameters.dev_lumi_infos[info_offset + i],
         parameters.scifi_offsets_and_sizes.get()[2 * i],
         parameters.scifi_offsets_and_sizes.get()[2 * i + 1],
-        SciFiCounters[i]);
+        SciFiCounters[i],
+        parameters.scifi_shifts_and_scales.get()[2 * i],
+        parameters.scifi_shifts_and_scales.get()[2 * i + 1]);
     }
   }
 }

@@ -12,6 +12,7 @@
 
 #include <LumiDefinitions.cuh>
 
+// fills a lumi counter of [size] bits
 inline __device__ void
 fillLumiInfo(Lumi::LumiInfo& info, const unsigned offset, const unsigned size, const unsigned value)
 {
@@ -21,27 +22,92 @@ fillLumiInfo(Lumi::LumiInfo& info, const unsigned offset, const unsigned size, c
 }
 
 // fills a lumi counter of [size] bits
+// shifts and scales are primarily intended for counters
+// based on floats but may, in principle, be used for integer
+// counters - supported explicitly to avoid loss of precision
+// due to implicit casting to float and back to unsigned
+inline __device__ void fillLumiInfo(
+  Lumi::LumiInfo& info,
+  const unsigned offset,
+  const unsigned size,
+  const unsigned value,
+  const float shift,
+  const float scale = 1.f)
+{
+  if (shift == 0.f && scale == 1.f) {
+    fillLumiInfo(info, offset, size, value);
+  }
+  else if (shift + value * scale > 0.f) {
+    fillLumiInfo(info, offset, size, static_cast<unsigned>(shift + value * scale));
+  }
+  else {
+    fillLumiInfo(info, offset, size, 0u);
+  }
+}
+
+// fills a lumi counter of [size] bits
+// shifts and scales are primarily intended for counters
+// based on floats but may, in principle, be used for integer
+// counters - supported explicitly to avoid implicit casting
+inline __device__ void fillLumiInfo(
+  Lumi::LumiInfo& info,
+  const unsigned offset,
+  const unsigned size,
+  const int value,
+  const float shift,
+  const float scale = 1.f)
+{
+  if (shift == 0.f && scale == 1.f) {
+    fillLumiInfo(info, offset, size, static_cast<unsigned>(value));
+  }
+  else {
+    int scaled_value = static_cast<int>(shift + value * scale);
+
+    if (scaled_value <= 0) {
+      fillLumiInfo(info, offset, size, 0u);
+    }
+    else if (scaled_value >= (1l << size) - 1) {
+      fillLumiInfo(info, offset, size, static_cast<unsigned>((1ul << size) - 1u));
+    }
+    else {
+      fillLumiInfo(info, offset, size, static_cast<unsigned>(scaled_value));
+    }
+  }
+}
+
+// fills a lumi counter of [size] bits
 // the values 0 and 2^[size] - 1 are reserved for under/overflow
-// minimum = (1 - [shift]) / [multiplier]
-// maximum = (2^[size] - [shift] - 1) / [multiplier]
-// resolution = [multiplier]
+// may represent values in the range [minimum,maximum) with
+// minimum = (1 - [shift]) / [scale]
+// maximum = (2^[size] - [shift] - 1) / [scale]
+// resolution = [scale]
 inline __device__ void fillLumiInfo(
   Lumi::LumiInfo& info,
   const unsigned offset,
   const unsigned size,
   const float value,
-  const float shift,
-  const float multiplier = 1.f)
+  const float shift = 0.f,
+  const float scale = 1.f)
 {
-  float scaled_value = shift + value * multiplier;
+  float scaled_value = shift + value * scale;
 
   if (scaled_value < 1.f) {
     fillLumiInfo(info, offset, size, 0u);
   }
   else if (scaled_value >= (1ul << size) - 1u) {
-    fillLumiInfo(info, offset, size, (1ul << size) - 1u);
+    fillLumiInfo(info, offset, size, static_cast<unsigned>((1ul << size) - 1u));
   }
   else {
     fillLumiInfo(info, offset, size, static_cast<unsigned>(scaled_value));
   }
 }
+
+// avoid any implicit casts of the type of value
+template<class T>
+inline __device__ void fillLumiInfo(
+  Lumi::LumiInfo& info,
+  const unsigned offset,
+  const unsigned size,
+  const T value,
+  const float shift = 0.f,
+  const float scale = 1.f) = delete;

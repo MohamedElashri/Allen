@@ -15,8 +15,8 @@ from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_single_high
 from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_lowmass_noip_dielectron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
 from AllenConf.hlt1_monitoring_lines import (
     make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line,
-    make_beam_gas_line, make_velo_clusters_micro_bias_line,
-    make_calo_digits_minADC_line)
+    make_odin_event_and_orbit_line, make_beam_gas_line,
+    make_velo_clusters_micro_bias_line, make_calo_digits_minADC_line)
 from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
@@ -218,13 +218,20 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
     return [line_maker(line) for line in lines]
 
 
-def odin_monitoring_lines(with_lumi, lumiline_name):
+def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name):
     lines = []
     if with_lumi:
         lines.append(
             line_maker(
                 make_odin_event_type_line(
                     name=lumiline_name, odin_event_type='Lumi')))
+        lines.append(
+            line_maker(
+                make_odin_event_and_orbit_line(
+                    name=lumilinefull_name,
+                    odin_event_type='Lumi',
+                    odin_orbit_modulo=30,
+                    odin_orbit_remainder=1)))
     lines.append(
         line_maker(make_odin_event_type_line(odin_event_type="NoBias")))
     return lines
@@ -550,8 +557,10 @@ def setup_hlt1_node(enablePhysics=True,
                                                    with_calo, with_muon)
 
     lumiline_name = "Hlt1ODINLumi"
+    lumilinefull_name = "Hlt1ODIN1kHzLumi"
     with line_maker.bind(prefilter=odin_err_filter):
-        monitoring_lines = odin_monitoring_lines(with_lumi, lumiline_name)
+        monitoring_lines = odin_monitoring_lines(with_lumi, lumiline_name,
+                                                 lumilinefull_name)
         physics_lines += [line_maker(make_passthrough_line())]
 
     if tae_passthrough:
@@ -673,6 +682,7 @@ def setup_hlt1_node(enablePhysics=True,
                 gather_selections=gather_selections,
                 lines=line_algorithms,
                 lumiline_name=lumiline_name,
+                lumilinefull_name=lumilinefull_name,
                 with_muon=with_muon)["algorithms"],
             NodeLogic.NONLAZY_AND,
             force_order=False)

@@ -127,6 +127,7 @@ Hlt1LowMassNoipDielectron_SS_massSlice4_displaced:      0/  1000, (    0.00 +/- 
 Hlt1Passthrough:                                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1GECPassthrough:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINLumi:                                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1ODIN1kHzLumi:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINNoBias:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                      1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1RICH1Alignment:                                     3/  1000, (   90.00 +/-    51.88) kHz
@@ -190,6 +191,7 @@ Hlt1LowMassNoipDielectron_SS_massSlice4_displaced:      0           0
 Hlt1Passthrough:                                        0           0
 Hlt1GECPassthrough:                                     0           0
 Hlt1ODINLumi:                                           0           0
+Hlt1ODIN1kHzLumi:                                       0           0
 Hlt1ODINNoBias:                                         0           0
 Hlt1VeloMicroBias:                                      1           0
 Hlt1RICH1Alignment:                                     3           4
