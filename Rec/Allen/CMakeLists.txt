@@ -14,15 +14,13 @@ include(GenerateConfiguration)
 gaudi_add_module(AllenWrapper
                  SOURCES
                    src/GaudiAllenPVsToRecVertexV2.cpp
-                   src/GaudiAllenUTToV2Tracks.cpp
                    src/GaudiAllenCaloToCaloClusters.cpp
                    src/GaudiAllenCountAndDumpLineDecisions.cpp
                    src/GaudiAllenFilterEventsLineDecisions.cpp
-                   src/GaudiAllenForwardToV2Tracks.cpp
                    src/GaudiAllenReportsToRawEvent.cpp
                    src/GaudiAllenLumiSummaryToRawEvent.cpp
                    src/GaudiAllenSVsToRecVertexV2.cpp
-                   src/GaudiAllenVeloToV2Tracks.cpp
+                   src/GaudiAllenTrackViewsToV3Tracks.cpp
                    src/ProvideConstants.cpp
                    src/AllenROOTService.cpp
                    src/ProvideRuntimeOptions.cpp
