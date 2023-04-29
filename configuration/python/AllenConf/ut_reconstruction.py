@@ -228,6 +228,8 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         ut_consolidate_tracks.dev_ut_track_velo_indices_t,
         "dev_ut_tracks_view":
         ut_consolidate_tracks.dev_ut_tracks_view_t,
+        "dev_ut_multi_event_tracks_view":
+        ut_consolidate_tracks.dev_ut_multi_event_tracks_view_t,
         "dev_imec_ut_tracks":
         ut_consolidate_tracks.dev_imec_ut_tracks_t,
 
