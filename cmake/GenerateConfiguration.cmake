@@ -174,6 +174,8 @@ elseif(STANDALONE)
   endif()
 endif()
 
+file(GLOB python_allen_conf "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf/*py")
+file(GLOB python_allen_core "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore/*py")
 function(generate_sequence sequence)
   set(sequence_dir ${PROJECT_SEQUENCE_DIR}/${sequence})
   file(MAKE_DIRECTORY ${sequence_dir})
@@ -184,7 +186,7 @@ function(generate_sequence sequence)
       COMMAND
         ${CMAKE_BINARY_DIR}/run bash ${sequence_dir}/generate_${sequence}.sh &&
         ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}"
+      DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" ${python_allen_conf} ${python_allen_core}
       WORKING_DIRECTORY ${sequence_dir})
   else()
     add_custom_command(
@@ -192,7 +194,7 @@ function(generate_sequence sequence)
       COMMAND
         ${CMAKE_COMMAND} -E env "${LIBRARY_PATH_VARNAME}=$ENV{LD_LIBRARY_PATH}" "PYTHONPATH=${PROJECT_SEQUENCE_DIR}:$ENV{PYTHONPATH}" "${Python_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore/gen_allen_json.py" "--seqpath" "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "--no-register-keys" &&
         ${CMAKE_COMMAND} -E rename "${sequence_dir}/Sequence.json" "${PROJECT_BINARY_DIR}/${sequence}.json"
-      DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" "${PROJECT_SEQUENCE_DIR}/GaudiKernel" "${PROJECT_SEQUENCE_DIR}/PyConf"
+      DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenSequences/${sequence}.py" "${ALGORITHMS_OUTPUTFILE}" "${PROJECT_SEQUENCE_DIR}/GaudiKernel" "${PROJECT_SEQUENCE_DIR}/PyConf" ${python_allen_conf} ${python_allen_core}
       WORKING_DIRECTORY ${sequence_dir})
   endif()
   add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
