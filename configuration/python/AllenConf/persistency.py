@@ -78,7 +78,7 @@ rb_map = {
     '^Hlt1.*Lumi.*':
     1,
     # RB 2 Velo alignment
-    'Hlt1(VeloMicroBias|BeamGas)':
+    'Hlt1(VeloMicroBias|BeamGas|NMaterialVertexSeeds|NVELODisplacedTrack)':
     2,
     # RB 3 Tracker alignment
     'Hlt1(D2KPi|DiMuonHighMass|DisplacedDiMuon)Alignment':

@@ -244,7 +244,9 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name):
                     odin_orbit_modulo=30,
                     odin_orbit_remainder=1)))
     lines.append(
-        line_maker(make_odin_event_type_line(odin_event_type="NoBias")))
+        line_maker(
+            make_odin_event_type_line(
+                odin_event_type="NoBias", pre_scaler=0.001)))
     return lines
 
 
@@ -553,7 +555,7 @@ def setup_hlt1_node(enablePhysics=True,
                     with_muon=True,
                     enableBGI=False,
                     tracking_type=TrackingType.FORWARD,
-                    tae_passthrough=False):
+                    tae_passthrough=True):
 
     hlt1_config = {}
 
