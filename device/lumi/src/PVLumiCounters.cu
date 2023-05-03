@@ -19,15 +19,15 @@ void pv_lumi_counters::pv_lumi_counters_t::set_arguments_size(
   const Constants&) const
 {
   // the total size of output info is proportional to the lumi summaries
-  set_size<dev_lumi_infos_t>(
-    arguments,
-    Lumi::Constants::n_pv_counters * first<host_lumi_summaries_size_t>(arguments) / property<lumi_sum_length_t>());
+  set_size<dev_lumi_infos_t>(arguments, Lumi::Constants::n_pv_counters * first<host_lumi_summaries_count_t>(arguments));
 }
 
 void pv_lumi_counters::pv_lumi_counters_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+  std::map<std::string, std::pair<float, float>> shifts_and_scales = property<lumi_counter_shifts_and_scales_t>();
   std::array<unsigned, 2 * Lumi::Constants::n_pv_counters> pv_offsets_and_sizes = property<pv_offsets_and_sizes_t>();
+  std::array<float, 2 * Lumi::Constants::n_pv_counters> pv_shifts_and_scales = property<pv_shifts_and_scales_t>();
 
   unsigned c_idx(0u);
   for (auto counter_name : Lumi::Constants::pv_counter_names) {
@@ -38,9 +38,18 @@ void pv_lumi_counters::pv_lumi_counters_t::init()
       pv_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
       pv_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
     }
+    if (shifts_and_scales.find(counter_name) == shifts_and_scales.end()) {
+      pv_shifts_and_scales[2 * c_idx] = 0.f;
+      pv_shifts_and_scales[2 * c_idx + 1] = 1.f;
+    }
+    else {
+      pv_shifts_and_scales[2 * c_idx] = shifts_and_scales[counter_name].first;
+      pv_shifts_and_scales[2 * c_idx + 1] = shifts_and_scales[counter_name].second;
+    }
     ++c_idx;
   }
   set_property_value<pv_offsets_and_sizes_t>(pv_offsets_and_sizes);
+  set_property_value<pv_shifts_and_scales_t>(pv_shifts_and_scales);
 }
 
 void pv_lumi_counters::pv_lumi_counters_t::operator()(
@@ -50,7 +59,7 @@ void pv_lumi_counters::pv_lumi_counters_t::operator()(
   const Allen::Context& context) const
 {
   // do nothing if no lumi event
-  if (first<host_lumi_summaries_size_t>(arguments) == 0) return;
+  if (first<host_lumi_summaries_count_t>(arguments) == 0) return;
 
   global_function(pv_lumi_counters)(dim3(4u), property<block_dim_t>(), context)(
     arguments, first<host_number_of_events_t>(arguments));
@@ -62,13 +71,13 @@ __global__ void pv_lumi_counters::pv_lumi_counters(
 {
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
-    unsigned lumi_sum_offset = parameters.dev_lumi_summary_offsets[event_number];
+    unsigned lumi_evt_index = parameters.dev_lumi_event_indices[event_number];
 
     // skip non-lumi event
-    if (lumi_sum_offset == parameters.dev_lumi_summary_offsets[event_number + 1]) continue;
+    if (lumi_evt_index == parameters.dev_lumi_event_indices[event_number + 1]) continue;
 
     // number of PVs
-    std::array<unsigned, Lumi::Constants::n_pv_counters> pv_counters = {0u, 0u, 0u, 0u, 0u};
+    std::array<float, Lumi::Constants::n_pv_counters> pv_counters = {0u, 0u, 0u, 0u, 0u};
     pv_counters[0] = parameters.dev_number_of_pvs[event_number];
 
     if (parameters.dev_number_of_pvs[event_number] > 0) {
@@ -76,9 +85,9 @@ __global__ void pv_lumi_counters::pv_lumi_counters(
       unsigned index_pv = event_number % parameters.dev_number_of_pvs[event_number];
       const PV::Vertex* vertices = parameters.dev_multi_final_vertices + event_number * PV::max_number_vertices;
       auto pv_pos = vertices[index_pv].position;
-      pv_counters[2] = 512.f + 1000.f * pv_pos.x;
-      pv_counters[3] = 512.f + 1000.f * pv_pos.y;
-      pv_counters[4] = 512.f + pv_pos.z;
+      pv_counters[2] = pv_pos.x;
+      pv_counters[3] = pv_pos.y;
+      pv_counters[4] = pv_pos.z;
 
       // count vertices in fiducial volume
       for (unsigned pv_index = 0u; pv_index < pv_counters[0]; ++pv_index) {
@@ -89,13 +98,15 @@ __global__ void pv_lumi_counters::pv_lumi_counters(
       }
     }
 
-    unsigned info_offset = Lumi::Constants::n_pv_counters * lumi_sum_offset / parameters.lumi_sum_length;
+    unsigned info_offset = Lumi::Constants::n_pv_counters * lumi_evt_index;
     for (unsigned i = 0; i < Lumi::Constants::n_pv_counters; ++i) {
       fillLumiInfo(
         parameters.dev_lumi_infos[info_offset + i],
         parameters.pv_offsets_and_sizes.get()[2 * i],
         parameters.pv_offsets_and_sizes.get()[2 * i + 1],
-        pv_counters[i]);
+        pv_counters[i],
+        parameters.pv_shifts_and_scales.get()[2 * i],
+        parameters.pv_shifts_and_scales.get()[2 * i + 1]);
     }
   }
 }

@@ -98,6 +98,24 @@ class Bucket:
         return True
 
 
+def concatinate_lumi_schemata(schemata):
+    total_size = 0
+    all_counters = []
+    mk_counter = lambda s,c : { 'name' : c['name'], 'offset' : 8 * s + c['offset'], 'size' : c['size'] }
+
+    for schema in schemata:
+        for counter in schema['counters']:
+            all_counters.append(mk_counter(total_size, counter))
+            if 'shift' in counter:
+                all_counters[-1]['shift'] = counter['shift']
+            if 'scale' in counter:
+                all_counters[-1]['scale'] = counter['scale']
+
+        total_size += schema['size']
+
+    return {'version': 0, 'size': total_size, 'counters': all_counters}
+
+
 class LumiSchemaGenerator:
     """Class to produce a JSON representation of a LumiSummary bank layout.
      Counter names are associated with a size and an offset within the bank.
@@ -105,15 +123,22 @@ class LumiSchemaGenerator:
      a single counter may not span more than one integer.
   """
 
-    def __init__(self, inputs=[], verbose=False):
+    def __init__(self,
+                 inputs=[],
+                 shiftsAndScales={},
+                 addEncodingKey=True,
+                 verbose=False):
         """Optionally, provide counters as the argument "input" in the form [(counterName1, MAXENTRIES1), (counterName2, MAXENTRIES2) ... ]
     """
-        self.inputs = [Counter("encodingKey", 0xffffffff)]
+        self.inputs = []
+        if addEncodingKey:
+            self.inputs.append(Counter("encodingKey", 0xffffffff))
         for name, maxEntry in inputs:
             self.inputs.append(Counter(name, maxEntry))
         self.buckets = []
         self.size = 0
         self.sumSizes = 0
+        self.shiftsAndScales = shiftsAndScales
         self.verbose = verbose
 
     def readInput(self, inputFileName):
@@ -197,6 +222,8 @@ class LumiSchemaGenerator:
                 self.mutate(lumi_rand.random())
 
     def pack(self, optimise=True):
+        if len(self.inputs) == 0:
+            return
         for counter in self.inputs:
             bucketFound = False
             if optimise:
@@ -286,6 +313,12 @@ class LumiSchemaGenerator:
             mk_counter(bucket, counter) for bucket in self.buckets
             for counter in bucket.counters
         ]
+
+        for c in counters:
+            if c['name'] in self.shiftsAndScales:
+                s_s = self.shiftsAndScales[c['name']]
+                c["shift"] = s_s[0]
+                c["scale"] = s_s[1]
 
         return {'version': 0, 'size': int(self.size / 8), 'counters': counters}
 

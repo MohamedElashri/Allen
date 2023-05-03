@@ -95,7 +95,8 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
   Allen::copy_async<host_lumi_summary_offsets_t, dev_lumi_summary_offsets_t>(arguments, context);
 }
 
-__device__ void make_lumi_summary::setField(unsigned offset, unsigned size, unsigned* target, unsigned value)
+__device__ void
+make_lumi_summary::setField(unsigned offset, unsigned size, unsigned* target, unsigned value, unsigned summary_length)
 {
   // Check value fits within size bits
   if (size < (8 * sizeof(unsigned)) && value >= (1u << size)) {
@@ -106,6 +107,10 @@ __device__ void make_lumi_summary::setField(unsigned offset, unsigned size, unsi
   unsigned word = offset / (8 * sizeof(unsigned));
   unsigned bitoffset = offset % (8 * sizeof(unsigned));
 
+  // Check offset within allowed size
+  if (word >= summary_length) {
+    return;
+  }
   // Check size and offset line up with word boundaries
   if (bitoffset + size > (8 * sizeof(unsigned))) {
     return;
@@ -127,12 +132,19 @@ __global__ void make_lumi_summary::make_lumi_summary(
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
     unsigned offset = parameters.dev_lumi_summary_offsets[event_number];
+    unsigned evt_index = parameters.dev_lumi_event_indices[event_number];
 
     // skip non-lumi event
-    if (offset == parameters.dev_lumi_summary_offsets[event_number + 1]) continue;
+    unsigned sum_length = parameters.dev_lumi_summary_offsets[event_number + 1] - offset;
+    if (sum_length == 0u) continue;
 
     auto* lumi_summary = parameters.dev_lumi_summaries + offset;
-    lumi_summary[0] = parameters.key;
+    if (sum_length > parameters.lumi_sum_length) {
+      lumi_summary[0] = parameters.key_full;
+    }
+    else {
+      lumi_summary[0] = parameters.key;
+    }
 
     /// ODIN information
     const LHCb::ODIN odin {parameters.dev_odin_data[event_number]};
@@ -143,31 +155,36 @@ __global__ void make_lumi_summary::make_lumi_summary(
       parameters.basic_offsets_and_sizes.get()[0],
       parameters.basic_offsets_and_sizes.get()[1],
       lumi_summary,
-      static_cast<unsigned>(t0 & 0xffffffff));
+      static_cast<unsigned>(t0 & 0xffffffff),
+      sum_length);
     setField(
       parameters.basic_offsets_and_sizes.get()[2],
       parameters.basic_offsets_and_sizes.get()[3],
       lumi_summary,
-      static_cast<unsigned>(t0 >> 32));
+      static_cast<unsigned>(t0 >> 32),
+      sum_length);
 
     // gps time offset
     setField(
       parameters.basic_offsets_and_sizes.get()[4],
       parameters.basic_offsets_and_sizes.get()[5],
       lumi_summary,
-      static_cast<unsigned>(new_bcid & 0xffffffff));
+      static_cast<unsigned>(new_bcid & 0xffffffff),
+      sum_length);
     setField(
       parameters.basic_offsets_and_sizes.get()[6],
       parameters.basic_offsets_and_sizes.get()[7],
       lumi_summary,
-      static_cast<unsigned>(new_bcid >> 32));
+      static_cast<unsigned>(new_bcid >> 32),
+      sum_length);
 
     // bunch crossing type
     setField(
       parameters.basic_offsets_and_sizes.get()[8],
       parameters.basic_offsets_and_sizes.get()[9],
       lumi_summary,
-      static_cast<unsigned>(odin.bunchCrossingType()));
+      static_cast<unsigned>(odin.bunchCrossingType()),
+      sum_length);
 
     /// gec counter
     bool passedGEC = false;
@@ -181,16 +198,15 @@ __global__ void make_lumi_summary::make_lumi_summary(
       parameters.basic_offsets_and_sizes.get()[10],
       parameters.basic_offsets_and_sizes.get()[11],
       lumi_summary,
-      passedGEC);
+      passedGEC,
+      sum_length);
 
     /// write lumi infos to the summary
     for (unsigned i = 0; i < size_of_aggregate; ++i) {
       if (infoSize[i] == 0 || lumiInfos[i] == nullptr) continue;
-      unsigned spanOffset = offset / parameters.lumi_sum_length * infoSize[i];
-      for (unsigned j = spanOffset;
-           j < parameters.dev_lumi_summary_offsets[event_number + 1] / parameters.lumi_sum_length * infoSize[i];
-           ++j) {
-        setField(lumiInfos[i][j].offset, lumiInfos[i][j].size, lumi_summary, lumiInfos[i][j].value);
+      unsigned spanOffset = evt_index * infoSize[i];
+      for (unsigned j = spanOffset; j < parameters.dev_lumi_event_indices[event_number + 1] * infoSize[i]; ++j) {
+        setField(lumiInfos[i][j].offset, lumiInfos[i][j].size, lumi_summary, lumiInfos[i][j].value, sum_length);
       }
     }
   }

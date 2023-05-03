@@ -3,8 +3,9 @@
 ###############################################################################
 from AllenCore.algorithms import (
     beam_crossing_line_t, velo_micro_bias_line_t, odin_event_type_line_t,
-    calo_digits_minADC_t, beam_gas_line_t, velo_clusters_micro_bias_line_t,
-    n_displaced_velo_track_line_t, n_materialvertex_seed_line_t)
+    odin_event_and_orbit_line_t, calo_digits_minADC_t, beam_gas_line_t,
+    velo_clusters_micro_bias_line_t, n_displaced_velo_track_line_t,
+    n_materialvertex_seed_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenConf.odin import decode_odin
 from AllenCore.generator import make_algorithm
@@ -86,6 +87,41 @@ def make_odin_event_type_line(odin_event_type: str,
         post_scaler=post_scaler,
         dev_odin_data_t=odin["dev_odin_data"],
         odin_event_type=type_map[odin_event_type],
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        pre_scaler_hash_string=pre_scaler_hash_string or line_name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or line_name + "_post")
+
+
+def make_odin_event_and_orbit_line(odin_event_type: str,
+                                   odin_orbit_modulo,
+                                   odin_orbit_remainder,
+                                   name=None,
+                                   pre_scaler=1.,
+                                   post_scaler=1.,
+                                   pre_scaler_hash_string=None,
+                                   post_scaler_hash_string=None):
+    type_map = {
+        "VeloOpen": 0x0001,
+        "Physics": 0x0002,
+        "NoBias": 0x0004,
+        "Lumi": 0x0008,
+        "Beam1Gas": 0x0010,
+        "Beam2Gas": 0x0020
+    }
+
+    number_of_events = initialize_number_of_events()
+    odin = decode_odin()
+
+    line_name = name or 'Hlt1ODINEventAndOrbit' + odin_event_type
+    return make_algorithm(
+        odin_event_and_orbit_line_t,
+        name=line_name,
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        dev_odin_data_t=odin["dev_odin_data"],
+        odin_event_type=type_map[odin_event_type],
+        odin_orbit_modulo=odin_orbit_modulo,
+        odin_orbit_remainder=odin_orbit_remainder,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or line_name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or line_name + "_post")

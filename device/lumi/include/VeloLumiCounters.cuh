@@ -22,8 +22,8 @@
 namespace velo_lumi_counters {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_lumi_summaries_size_t, unsigned) host_lumi_summaries_size;
-    DEVICE_INPUT(dev_lumi_summary_offsets_t, unsigned) dev_lumi_summary_offsets;
+    HOST_INPUT(host_lumi_summaries_count_t, unsigned) host_lumi_summaries_count;
+    DEVICE_INPUT(dev_lumi_event_indices_t, unsigned) dev_lumi_event_indices;
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_INPUT(dev_is_backward_t, bool) dev_is_backward;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
@@ -36,18 +36,30 @@ namespace velo_lumi_counters {
       std::array<float, Lumi::Constants::n_velo_eta_bin_edges>)
     tracks_eta_bins;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(lumi_sum_length_t, "lumi_sum_length", "LumiSummary length", unsigned) lumi_sum_length;
     PROPERTY(
       lumi_counter_schema_t,
       "lumi_counter_schema",
       "schema for lumi counters",
-      std::map<std::string, std::pair<unsigned, unsigned>>);
+      std::map<std::string, std::pair<unsigned, unsigned>>)
+    lumi_counter_schema;
+    PROPERTY(
+      lumi_counter_shifts_and_scales_t,
+      "lumi_counter_shifts_and_scales",
+      "shifts and scales extracted from the schema for lumi counters",
+      std::map<std::string, std::pair<float, float>>)
+    lumi_counter_shifts_and_scales;
     PROPERTY(
       velo_offsets_and_sizes_t,
       "velo_offsets_and_sizes",
       "offsets and sizes in bits for the VELO counters",
       std::array<unsigned, 2 * Lumi::Constants::n_velo_counters>)
     velo_offsets_and_sizes;
+    PROPERTY(
+      velo_shifts_and_scales_t,
+      "velo_shifts_and_scales",
+      "shifts and scales for the VELO counters",
+      std::array<float, 2 * Lumi::Constants::n_velo_counters>)
+    velo_shifts_and_scales;
   }; // struct Parameters
 
   __global__ void velo_lumi_counters(Parameters, const unsigned number_of_events);
@@ -85,8 +97,12 @@ namespace velo_lumi_counters {
   private:
     Property<tracks_eta_bins_t> m_tracks_eta_bins {this, {-4.f, -3.f, -2.f, 2.f, 3.f, 4.f, 5.f}};
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
-    Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
-    Property<velo_offsets_and_sizes_t> m_velo_offsets_and_sizes {this, {{0u, 0u}}};
+    Property<lumi_counter_shifts_and_scales_t> m_lumi_counter_shifts_and_scales {this, {}};
+    Property<velo_offsets_and_sizes_t> m_velo_offsets_and_sizes {this, {{0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+                                                                         0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}};
+    Property<velo_shifts_and_scales_t> m_velo_shifts_and_scales {
+      this,
+      {{0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f}}};
   }; // struct velo_lumi_counters_t
 } // namespace velo_lumi_counters
