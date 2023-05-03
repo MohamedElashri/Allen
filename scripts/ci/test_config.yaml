@@ -149,7 +149,7 @@ full:
   - type: "run_built_tests"
     lcg_opt:
       - "opt+g"
-      - "dbg"
+      # - "dbg" # FIXME dbg platform not available for x86_64_v3
     build_options: "BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS"
 
   # run physics efficiency, scifi_v6
