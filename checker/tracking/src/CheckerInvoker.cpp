@@ -71,10 +71,7 @@ MCEvents CheckerInvoker::load(
   }
 
   std::vector<char> raw_particles, raw_pvs;
-  int readFiles = 0;
   for (size_t i = 0; i < events.size(); ++i) {
-    readFiles++;
-
     raw_particles.clear();
     raw_pvs.clear();
 
