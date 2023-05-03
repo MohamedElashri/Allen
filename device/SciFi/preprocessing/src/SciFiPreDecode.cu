@@ -29,8 +29,7 @@ __device__ void store_sorted_cluster_reference(
   assert(uniqueMat < SciFi::Constants::n_mat_groups_and_mats);
   hitIndex += mat_offset;
 
-  cluster_references[hitIndex] =
-    (raw_bank & 0xFF) << 24 | (it & 0xFF) << 16 | (condition & 0x07) << 13 | (delta & 0xFF);
+  cluster_references[hitIndex] = SciFi::ClusterReference::makeClusterReference(raw_bank, it, condition, delta);
 }
 
 template<typename F>
@@ -68,26 +67,12 @@ __global__ void scifi_pre_decode_kernel(
 
   // Main execution loop
   for (unsigned iRawBank = threadIdx.x; iRawBank < scifi_raw_event.number_of_raw_banks(); iRawBank += blockDim.x) {
-    // In decoding < 7, (continuous index) -> (x ordered continuous index)
-    // Could be a lookup table where index is i (x ordered index) and value is the source ID. lookup[i] is the sourceID
-    // of the i-th bank, x ordered
     auto rawbank = scifi_raw_event.raw_bank(iRawBank);
-    const auto sourceID = rawbank.sourceID;
-    const auto iRowInMap = iSource(geom, sourceID);
-    if (iRowInMap == geom.number_of_banks)
-      continue; // FIXME: means the source ID is unknown. This should have been caught by the PreDecode error
-    uint16_t const* starting_it = rawbank.data;
-    uint16_t const* last = rawbank.last;
-    // Skip empty raw banks: very unlikely, as there should always be a header. But it has been seen in early data
-    // taking.
-    if (starting_it == last) continue;
-    starting_it += 2;                                    // skip header
-    if (starting_it != last && *(last - 1) == 0) --last; // Remove padding at the end
-    if (starting_it >= last || starting_it >= rawbank.last) continue;
-    if (
-      (last - starting_it + 1) >
-      SciFi::SciFiRawBankParams::nbClusMaximum * SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank)
-      continue; // Absurd number of clusters
+    const auto iRowInMap = SciFi::getRowInMap(rawbank, geom);
+    if (iRowInMap == geom.number_of_banks) continue;
+    const auto [starting_it_2, last] = SciFi::readAndCheckRawBank(rawbank);
+    if (last == starting_it_2) continue;
+    const auto starting_it = starting_it_2; // FIXME: necessary due to lambda capture issues
     const unsigned number_of_iterations = last - starting_it;
     int last_uniqueMat = -1;
     unsigned mat_offset = 0;
@@ -122,14 +107,14 @@ __global__ void scifi_pre_decode_kernel(
             if (reversedZone) {
               insertionSort(
                 parameters.dev_cluster_references + mat_offset, n_hits_in_mat[correctedMat], [&](uint32_t val) {
-                  const uint16_t c = starting_it[((val >> 16) & 0xff)];
+                  const uint16_t c = starting_it[SciFi::ClusterReference::getICluster(val)];
                   return -(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
                 });
             }
             else {
               insertionSort(
                 parameters.dev_cluster_references + mat_offset, n_hits_in_mat[correctedMat], [&](uint32_t val) {
-                  const uint16_t c = starting_it[((val >> 16) & 0xff)];
+                  const uint16_t c = starting_it[SciFi::ClusterReference::getICluster(val)];
                   return (SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
                 });
             }
@@ -154,77 +139,42 @@ __global__ void scifi_pre_decode_kernel(
       };
 
       if constexpr (decoding_version == 4) {
-        store_sorted_fn(0x01, 0x00);
+        store_sorted_fn(SciFi::ClusterTypes::SmallCluster, 0x00);
       }
-      else if constexpr (decoding_version == 7) {
+      else if constexpr (decoding_version >= 6) {
         if (!SciFi::cSize(c)) {
           // Single cluster
-          store_sorted_fn(0x01, 0x00);
+          store_sorted_fn(SciFi::ClusterTypes::SmallCluster, 0x00);
         }
         else {
           const unsigned c2 = *(it + 1);
-          if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2))
+          if (SciFi::lastClusterSiPM(c, c2, it, last))
             // last cluster in bank or in sipm
-            store_sorted_fn(0x02, 0x00);
-          else if (SciFi::cell(c2) < SciFi::cell(c)) { /* Misordered clusters */
-            ++it_number;
-          }
-          else if (!SciFi::fraction(c)) {
-            if (SciFi::cSize(c2)) {
+            store_sorted_fn(SciFi::ClusterTypes::LastCluster, 0x00);
+          else if (SciFi::wellOrdered(c, c2) && SciFi::startLargeCluster<decoding_version>(c)) {
+            if (SciFi::endLargeCluster<decoding_version>(c2)) {
               const unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
               if (widthClus > 8) {
                 uint16_t j = 0;
                 for (; j < widthClus - 4; j += 4)
                   // big cluster(s)
-                  store_sorted_fn(0x03, j);
+                  store_sorted_fn(SciFi::ClusterTypes::BigCluster, j);
                 // add the last edge
-                store_sorted_fn(0x04, j);
+                store_sorted_fn(SciFi::ClusterTypes::EdgeCluster, j);
               }
               else
-                store_sorted_fn(0x05, 0x00);
+                store_sorted_fn(SciFi::ClusterTypes::SizeLt8Cluster, 0x00);
               ++it_number;
             }
             else { /* Corrupt cluster type 1 */
               ++it_number;
             }
           }
-          else { /* Corrupt cluster type 2 */
-          }
-        }
-      }
-      else if constexpr (decoding_version == 6 || decoding_version == 8) {
-        if (!SciFi::cSize(c)) {
-          // Single cluster
-          store_sorted_fn(0x01, 0x00);
-        }
-        else {
-          const unsigned c2 = *(it + 1);
-          if (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2))
-            // last cluster in bank or in sipm
-            store_sorted_fn(0x02, 0x00);
-          else if (SciFi::cell(c2) < SciFi::cell(c)) { /* Misordered clusters */
-            ++it_number;
-          }
-          else if (SciFi::fraction(c)) {
-            if (SciFi::cSize(c2) && !SciFi::fraction(c2)) {
-              const unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
-              if (widthClus > 8) {
-                uint16_t j = 0;
-                for (; j < widthClus - 4; j += 4)
-                  // big cluster(s)
-                  store_sorted_fn(0x03, j);
-                // add the last edge
-                store_sorted_fn(0x04, j);
-              }
-              else
-                store_sorted_fn(0x05, 0x00);
+          else { /* ERROR */
+            if (!SciFi::wellOrdered(c, c2))
               ++it_number;
+            else {
             }
-            else { /* Corrupt cluster type 1 */
-              ++it_number;
-            }
-          }
-          else { /* Corrupt cluster type 2 */
           }
         }
       }
@@ -235,14 +185,14 @@ __global__ void scifi_pre_decode_kernel(
         if (reversedZone) {
           insertionSort(
             parameters.dev_cluster_references + mat_offset, n_hits_in_mat[last_uniqueMat], [&](uint32_t val) {
-              const uint16_t c = starting_it[((val >> 16) & 0xff)];
+              const uint16_t c = starting_it[SciFi::ClusterReference::getICluster(val)];
               return -(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
             });
         }
         else {
           insertionSort(
             parameters.dev_cluster_references + mat_offset, n_hits_in_mat[last_uniqueMat], [&](uint32_t val) {
-              const uint16_t c = starting_it[((val >> 16) & 0xff)];
+              const uint16_t c = starting_it[SciFi::ClusterReference::getICluster(val)];
               return (SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c) + SciFi::channelInLink(c));
             });
         }

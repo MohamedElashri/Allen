@@ -372,4 +372,65 @@ namespace SciFi {
     return globalSipmID;
   }
 
+  namespace ClusterTypes {
+    constexpr unsigned int NullCluster = 0x00;
+    constexpr unsigned int SmallCluster = 0x01;
+    constexpr unsigned int LastCluster = 0x02;
+    constexpr unsigned int BigCluster = 0x03;
+    constexpr unsigned int EdgeCluster = 0x04;
+    constexpr unsigned int SizeLt8Cluster = 0x05;
+  }; // namespace ClusterTypes
+
+  namespace ClusterReference {
+    static constexpr uint32_t maxRawBank = 0xFF;
+    static constexpr uint32_t maxICluster = 0xFF;
+    static constexpr uint32_t maxCond = 0x07;
+    static constexpr uint32_t maxDelta = 0xFF;
+    static constexpr int rawBankShift = 24;
+    static constexpr int iClusterShift = 16;
+    static constexpr int condShift = 13;
+    __device__ inline uint32_t
+    makeClusterReference(const int raw_bank, const int it, const int condition, const int delta)
+    {
+      return (raw_bank & maxRawBank) << rawBankShift | (it & maxICluster) << iClusterShift |
+             (condition & maxCond) << condShift | (delta & maxDelta);
+    };
+    __device__ inline int getRawBank(uint32_t cluster_reference)
+    {
+      return (cluster_reference >> rawBankShift) & maxRawBank;
+    }
+    __device__ inline int getICluster(uint32_t cluster_reference)
+    {
+      return (cluster_reference >> iClusterShift) & maxICluster;
+    }
+    __device__ inline int getCond(uint32_t cluster_reference) { return (cluster_reference >> condShift) & maxCond; }
+    __device__ inline int getDelta(uint32_t cluster_reference) { return (cluster_reference) &maxDelta; }
+
+  }; // namespace ClusterReference
+
+  __device__ inline bool lastClusterSiPM(unsigned c, unsigned c2, const uint16_t* it, const uint16_t* last)
+  {
+    return (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2));
+  }
+
+  template<int decoding_version>
+  __device__ inline bool startLargeCluster(unsigned c)
+  {
+    if constexpr (decoding_version == 7) {
+      return SciFi::cSize(c) && !SciFi::fraction(c);
+    }
+    return SciFi::cSize(c) && SciFi::fraction(c);
+  }
+
+  template<int decoding_version>
+  __device__ inline bool endLargeCluster(unsigned c)
+  {
+    if constexpr (decoding_version == 7) {
+      return SciFi::cSize(c);
+    }
+    return SciFi::cSize(c) && !SciFi::fraction(c);
+  }
+
+  __device__ inline bool wellOrdered(unsigned c, unsigned c2) { return SciFi::cell(c) < SciFi::cell(c2); }
+
 } // namespace SciFi

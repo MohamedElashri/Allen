@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <BackendCommon.h>
 #include <MEPTools.h>
+#include "SciFiDefinitions.cuh"
 
 namespace SciFi {
   struct SciFiRawBank {
@@ -114,7 +115,38 @@ namespace SciFi {
     const unsigned k = index % 10; // Rawbank relative to zone
     // Reverse rawbank order when on the left side of a zone (because module order is M4–M0)
     const bool reverse_raw_bank_order = k < 5;
-    // if reversed: index = offset(5 rb/zone) + reversed index within zone
     return reverse_raw_bank_order ? 5 * (index / 5) + (4 - index % 5) : index;
   }
+
+  //  template<>
+  __device__ inline unsigned int getRowInMap(const SciFi::SciFiRawBank rawbank, const SciFi::SciFiGeometry& geom)
+  {
+    unsigned int iRowInMap = iSource(geom, rawbank.sourceID);
+    if (iRowInMap == geom.number_of_banks) return iRowInMap; // HACK: to be replaced by proper error treatment
+    return iRowInMap;
+  }
+
+  __device__ inline std::pair<uint16_t const*, uint16_t const*> readAndCheckRawBank(const SciFi::SciFiRawBank rawbank)
+  {
+    // FIXME: This should be included in contracts. See Allen#
+    uint16_t const* starting_it = rawbank.data;
+    uint16_t const* last = rawbank.last;
+    // Skip empty raw banks: very unlikely, as there should always be a header. But it has been seen in early data
+    // taking.
+    if (last - starting_it < 2) {
+      return std::make_pair(rawbank.last, rawbank.last);
+    }
+    starting_it += 2;                                    // skip header
+    if (starting_it != last && *(last - 1) == 0) --last; // Remove padding at the end
+    if (starting_it >= last || starting_it >= rawbank.last) {
+      return std::make_pair(rawbank.last, rawbank.last);
+    }
+    if (
+      (last - starting_it + 1) >
+      SciFi::SciFiRawBankParams::nbClusMaximum * SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank) {
+      return std::make_pair(rawbank.last, rawbank.last);
+    }
+    return std::make_pair(starting_it, last);
+  }
+
 } // namespace SciFi

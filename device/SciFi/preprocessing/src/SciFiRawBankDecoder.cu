@@ -68,16 +68,15 @@ __global__ void scifi_raw_bank_decoder_kernel(
   const unsigned number_of_hits_in_event = hit_count.event_number_of_hits();
   for (unsigned i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
     const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.event_offset() + i];
-    const int raw_bank_number = (cluster_reference >> 24) & 0xFF;
-    const int it_number = (cluster_reference >> 16) & 0xFF;
+    const int raw_bank_number = SciFi::ClusterReference::getRawBank(cluster_reference);
+    const int it_number = SciFi::ClusterReference::getICluster(cluster_reference);
 
     const auto rawbank = scifi_raw_event.raw_bank(raw_bank_number);
-    const auto iRowInMap = SciFi::iSource(geom, rawbank.sourceID);
-    if (iRowInMap == geom.number_of_banks)
-      continue; // FIXME: means the source ID is unknown. This should have been caught by the PreDecode error
-    const uint16_t* it = rawbank.data + 2;
-    it += it_number;
-
+    const auto iRowInMap = SciFi::getRowInMap(rawbank, geom);
+    if (iRowInMap == geom.number_of_banks) continue;
+    const auto [starting_it, last] = SciFi::readAndCheckRawBank(rawbank);
+    if (last == starting_it) continue;
+    auto it = starting_it + it_number;
     const uint16_t c = *it;
 
     // Call parameters for make_cluster
@@ -100,30 +99,32 @@ __global__ void scifi_raw_bank_decoder_kernel(
       make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
     }
     else if constexpr (decoding_version == 7) {
-      const int condition = (cluster_reference >> 13) & 0x07; // FIXME
+      const unsigned int condition = SciFi::ClusterReference::getCond(cluster_reference); // FIXME
       uint8_t pseudoSize = 4;
 
-      assert(condition != 0x00 && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
+      assert(
+        condition != SciFi::ClusterTypes::NullCluster &&
+        "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
 
-      if (condition == 0x02) {
+      if (condition == SciFi::ClusterTypes::LastCluster) {
         pseudoSize = 0;
       }
-      else if (condition > 0x02) {
+      else if (condition > SciFi::ClusterTypes::LastCluster) {
         const auto c2 = *(it + 1);
         const auto widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
-        const int delta_parameter = cluster_reference & 0xFF;
+        const int delta_parameter = SciFi::ClusterReference::getDelta(cluster_reference);
 
-        if (condition == 0x03) {
+        if (condition == SciFi::ClusterTypes::BigCluster) {
           pseudoSize = 0;
           cluster_fraction = 1;
           cluster_chan += delta_parameter;
         }
-        else if (condition == 0x04) {
+        else if (condition == SciFi::ClusterTypes::EdgeCluster) {
           pseudoSize = 0;
           cluster_fraction = (widthClus - 1) % 2;
           cluster_chan += delta_parameter + (widthClus - delta_parameter - 1) / 2 - 1;
         }
-        else if (condition == 0x05) {
+        else if (condition == SciFi::ClusterTypes::SizeLt8Cluster) {
           pseudoSize = widthClus;
           cluster_fraction = (widthClus - 1) % 2;
           cluster_chan += (widthClus - 1) / 2 - 1;
@@ -132,31 +133,32 @@ __global__ void scifi_raw_bank_decoder_kernel(
       make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
     }
     else if constexpr (decoding_version == 6 || decoding_version == 8) {
-      const int condition = (cluster_reference >> 13) & 0x07; // FIXME
+      const unsigned int condition = SciFi::ClusterReference::getCond(cluster_reference); // FIXME
       uint8_t pseudoSize = 4;
 
-      if (condition == 0x00) {
-        continue; // && "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
-      }
-      else if (condition == 0x02) {
+      assert(
+        condition != SciFi::ClusterTypes::NullCluster &&
+        "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
+
+      if (condition == SciFi::ClusterTypes::LastCluster) {
         pseudoSize = 0;
       }
-      else if (condition > 0x02) {
+      else if (condition > SciFi::ClusterTypes::LastCluster) {
         const auto c2 = *(it + 1);
         const auto widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
-        const int delta_parameter = cluster_reference & 0xFF;
+        const int delta_parameter = SciFi::ClusterReference::getDelta(cluster_reference);
 
-        if (condition == 0x03) {
+        if (condition == SciFi::ClusterTypes::BigCluster) {
           pseudoSize = 0;
           cluster_fraction = 1;
           cluster_chan += delta_parameter;
         }
-        else if (condition == 0x04) {
+        else if (condition == SciFi::ClusterTypes::EdgeCluster) {
           pseudoSize = 0;
           cluster_fraction = (widthClus - 1) % 2;
           cluster_chan += delta_parameter + (widthClus - delta_parameter - 1) / 2 - 1;
         }
-        else if (condition == 0x05) {
+        else if (condition == SciFi::ClusterTypes::SizeLt8Cluster) {
           pseudoSize = widthClus;
           cluster_fraction = (widthClus - 1) % 2;
           cluster_chan += (widthClus - 1) / 2 - 1;
