@@ -86,7 +86,7 @@ Hlt1D2KK:                                               0/  1000, (    0.00 +/- 
 Hlt1D2KPi:                                              1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1D2PiPi:                                             1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1L02PPi:                                            18/  1000, (  540.00 +/-   126.13) kHz
+Hlt1L02PPi:                                             7/  1000, (  210.00 +/-    79.09) kHz
 Hlt1OneMuonTrackLine:                                 535/  1000, (16050.00 +/-   473.18) kHz
 Hlt1SingleHighPtMuon:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:                             1/  1000, (   30.00 +/-    29.98) kHz
@@ -145,7 +145,7 @@ Hlt1_SMOG2_eta2pp:                                      0/  1000, (    0.00 +/- 
 Hlt1_SMOG2_2BodyGeneric:                                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_SingleTrack:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_DiMuonHighMass:                              0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                            623/  1000, (18690.00 +/-   459.77) kHz
+Inclusive:                                            621/  1000, (18630.00 +/-   460.24) kHz
 
 
 selreport_validator validation:
@@ -159,7 +159,7 @@ Hlt1D2KK:                                               0           0
 Hlt1D2KPi:                                              1           1
 Hlt1D2PiPi:                                             1           1
 Hlt1TwoKs:                                              0           0
-Hlt1L02PPi:                                            18          18
+Hlt1L02PPi:                                             7           7
 Hlt1OneMuonTrackLine:                                 535           0
 Hlt1SingleHighPtMuon:                                   0           0
 Hlt1SingleHighPtMuonNoMuID:                             1           1
@@ -219,9 +219,9 @@ Hlt1_SMOG2_2BodyGeneric:                                0           0
 Hlt1_SMOG2_SingleTrack:                                 0           0
 Hlt1_SMOG2_DiMuonHighMass:                              0           0
 
-Total decisions: 892
-Total tracks:    583
-Total SVs:       322
-Total hits:      13527
-Total stdinfo:   6844
+Total decisions: 881
+Total tracks:    577
+Total SVs:       319
+Total hits:      13390
+Total stdinfo:   6773
 
