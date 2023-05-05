@@ -16,7 +16,6 @@
 #include "Event/PrimaryVertices.h"
 
 // Allen
-#include "HostBuffers.cuh"
 #include "Logger.h"
 #include "PV_Definitions.cuh"
 #include "patPV_Definitions.cuh"
