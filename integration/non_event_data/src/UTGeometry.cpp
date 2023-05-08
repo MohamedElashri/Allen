@@ -31,10 +31,10 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
 
   // region offsets
   auto& host_ut_region_offsets = m_constants.get().host_ut_region_offsets;
-  auto& dev_ut_region_offsets = m_constants.get().dev_ut_region_offsets;
+  //   auto& dev_ut_region_offsets = m_constants.get().dev_ut_region_offsets;
   // FIXME_GEOMETRY_HARDCODING
   host_ut_region_offsets = {0, 84, 164, 248, 332, 412, 496, 594, 674, 772, 870, 950, 1048};
-  alloc_and_copy(host_ut_region_offsets, dev_ut_region_offsets);
+  //   alloc_and_copy(host_ut_region_offsets, dev_ut_region_offsets);
 
   auto& host_ut_dxDy = m_constants.get().host_ut_dxDy;
   // FIXME_GEOMETRY_HARDCODING

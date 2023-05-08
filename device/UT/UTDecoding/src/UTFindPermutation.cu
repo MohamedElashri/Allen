@@ -23,6 +23,7 @@ void ut_find_permutation::ut_find_permutation_t::operator()(
 {
   global_function(ut_find_permutation)(
     dim3(size<dev_event_list_t>(arguments), constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers]),
+    // dim3(size<dev_event_list_t>(arguments), 2304),
     property<block_dim_t>(),
     context)(arguments, constants.dev_unique_x_sector_layer_offsets.data());
 }

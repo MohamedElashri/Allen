@@ -4,6 +4,7 @@
 #include <MEPTools.h>
 #include <UTCalculateNumberOfHits.cuh>
 #include <UTRaw.cuh>
+#include <UTUniqueID.cuh>
 
 INSTANTIATE_ALGORITHM(ut_calculate_number_of_hits::ut_calculate_number_of_hits_t)
 
@@ -32,11 +33,11 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
                                                                global_function(ut_calculate_number_of_hits<4, false>)) :
                                  (runtime_options.mep_layout ? global_function(ut_calculate_number_of_hits<3, true>) :
                                                                global_function(ut_calculate_number_of_hits<3, false>));
+
   fun(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
     std::get<0>(runtime_options.event_interval),
     constants.dev_ut_boards,
-    constants.dev_ut_region_offsets.data(),
     constants.dev_unique_x_sector_layer_offsets.data(),
     constants.dev_unique_x_sector_offsets.data());
 }
@@ -46,17 +47,12 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   ("virtual" structure for optimized processing; a group of sectors where the start X is of a certain value).
  */
 template<int decoding_version>
-__device__ void calculate_number_of_hits(
-  unsigned const*,
-  unsigned const*,
-  uint32_t*,
-  UTBoards const&,
-  UTRawBank<decoding_version> const&)
+__device__ void
+calculate_number_of_hits(unsigned const*, uint32_t*, UTBoards const&, UTRawBank<decoding_version> const&)
 {}
 
 template<>
 __device__ void calculate_number_of_hits<3>(
-  unsigned const* dev_ut_region_offsets,
   unsigned const* dev_unique_x_sector_offsets,
   uint32_t* hit_offsets,
   UTBoards const& boards,
@@ -69,23 +65,21 @@ __device__ void calculate_number_of_hits<3>(
     const uint32_t index = channelID / m_nStripsPerHybrid;
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + index;
     if (fullChanIndex >= boards.number_of_channels) continue;
-    const uint32_t station = boards.stations[fullChanIndex] - 1;
-    const uint32_t layer = boards.layers[fullChanIndex] - 1;
-    const uint32_t detRegion = boards.detRegions[fullChanIndex] - 1;
-    const uint32_t sector = boards.sectors[fullChanIndex] - 1;
+    const uint32_t side = boards.sides[fullChanIndex];
+    const uint32_t layer = boards.layers[fullChanIndex];
+    const uint32_t stave = boards.staves[fullChanIndex];
+    const uint32_t face = boards.faces[fullChanIndex];
+    const uint32_t module = boards.modules[fullChanIndex];
+    const uint32_t sector = boards.sectors[fullChanIndex];
 
-    // Calculate the index to get the geometry of the board
-    const uint32_t idx = station * UT::Decoding::ut_number_of_sectors_per_board + layer * 3 + detRegion;
-    const uint32_t idx_offset = dev_ut_region_offsets[idx] + sector;
-
-    unsigned* hits_sector_group = hit_offsets + dev_unique_x_sector_offsets[idx_offset];
+    int sec = sector_unique_id(side, layer, stave, face, module, sector);
+    unsigned* hits_sector_group = hit_offsets + dev_unique_x_sector_offsets[sec];
     atomicAdd(hits_sector_group, 1);
   }
 }
 
 template<>
 __device__ void calculate_number_of_hits<4>(
-  unsigned const* dev_ut_region_offsets,
   unsigned const* dev_unique_x_sector_offsets,
   uint32_t* hit_offsets,
   UTBoards const& boards,
@@ -97,21 +91,20 @@ __device__ void calculate_number_of_hits<4>(
     // find the sector group to which these hits are added
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane;
     assert(fullChanIndex < boards.number_of_channels);
-    const uint32_t s = boards.stations[fullChanIndex];
-    if (s == 0) continue;
+    // const uint32_t s = boards.stations[fullChanIndex];
+    // if (s == 0) continue;
     // Looking downstream, there are 2 stations UTa with X and U layer and UTb with V and X layer
-    const uint32_t station = s - 1;
-    const uint32_t layer = boards.layers[fullChanIndex] - 1;
     // The region corresponds to the 3 types of staves that mount the
     // 4 different sensor types (A in the outer, B in the central, C and D in the inner region).
-    const uint32_t detRegion = boards.detRegions[fullChanIndex] - 1;
-    const uint32_t sector = boards.sectors[fullChanIndex] - 1;
+    const uint32_t side = boards.sides[fullChanIndex];
+    const uint32_t layer = boards.layers[fullChanIndex];
+    const uint32_t stave = boards.staves[fullChanIndex];
+    const uint32_t face = boards.faces[fullChanIndex];
+    const uint32_t module = boards.modules[fullChanIndex];
+    const uint32_t sector = boards.sectors[fullChanIndex];
 
-    // add the hits to the global counters and offsets
-    const uint32_t idx = station * UT::Decoding::ut_number_of_sectors_per_board + layer * 3 + detRegion;
-    assert(idx < UT::Decoding::v5::max_region_index);
-    const uint32_t idx_offset = dev_ut_region_offsets[idx] + sector;
-    unsigned* hits_sector_group = hit_offsets + dev_unique_x_sector_offsets[idx_offset];
+    int sec = sector_unique_id(side, layer, stave, face, module, sector);
+    unsigned* hits_sector_group = hit_offsets + dev_unique_x_sector_offsets[sec];
     atomicAdd(hits_sector_group, raw_bank.number_of_hits[lane]);
   }
 }
@@ -124,7 +117,6 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   ut_calculate_number_of_hits::Parameters parameters,
   const unsigned event_start,
   const char* ut_boards,
-  const unsigned* dev_ut_region_offsets,
   const unsigned* dev_unique_x_sector_layer_offsets,
   const unsigned* dev_unique_x_sector_offsets)
 {
@@ -140,6 +132,6 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks();
        raw_bank_index += blockDim.x) {
     UTRawBank<decoding_version> bank = raw_event.template raw_bank<decoding_version>(raw_bank_index);
-    calculate_number_of_hits(dev_ut_region_offsets, dev_unique_x_sector_offsets, hit_offsets, boards, bank);
+    calculate_number_of_hits(dev_unique_x_sector_offsets, hit_offsets, boards, bank);
   }
 }

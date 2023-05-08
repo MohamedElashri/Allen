@@ -4,6 +4,7 @@
 #include <MEPTools.h>
 #include <UTDecodeRawBanksInOrder.cuh>
 #include "LHCbID.cuh"
+#include <UTUniqueID.cuh>
 
 INSTANTIATE_ALGORITHM(ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t)
 
@@ -35,7 +36,6 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
     std::get<0>(runtime_options.event_interval),
     constants.dev_ut_boards,
     constants.dev_ut_geometry.data(),
-    constants.dev_ut_region_offsets.data(),
     constants.dev_unique_x_sector_layer_offsets.data());
 }
 
@@ -44,7 +44,6 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
  */
 template<int decoding_version>
 __device__ void decode_raw_bank(
-  unsigned const*,
   UTGeometry const&,
   UTBoards const&,
   UTRawBank<decoding_version> const&,
@@ -55,7 +54,6 @@ __device__ void decode_raw_bank(
 
 template<>
 __device__ void decode_raw_bank<3>(
-  unsigned const* dev_ut_region_offsets,
   UTGeometry const& geometry,
   UTBoards const& boards,
   UTRawBank<3> const& raw_bank,
@@ -76,23 +74,24 @@ __device__ void decode_raw_bank<3>(
   const uint32_t stripID = channelID - (index * nStripsPerHybrid) + 1;
   const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + index;
 
-  const uint32_t station = boards.stations[fullChanIndex] - 1;
-  const uint32_t layer = boards.layers[fullChanIndex] - 1;
-  const uint32_t detRegion = boards.detRegions[fullChanIndex] - 1;
-  const uint32_t sector = boards.sectors[fullChanIndex] - 1;
+  const uint32_t side = boards.sides[fullChanIndex];
+  const uint32_t layer = boards.layers[fullChanIndex];
+  const uint32_t stave = boards.staves[fullChanIndex];
+  const uint32_t face = boards.faces[fullChanIndex];
+  const uint32_t module = boards.modules[fullChanIndex];
+  const uint32_t sector = boards.sectors[fullChanIndex];
   const uint32_t chanID = boards.chanIDs[fullChanIndex];
-  const uint32_t idx = station * UT::Decoding::ut_number_of_sectors_per_board + layer * 3 + detRegion;
-  const uint32_t idx_offset = dev_ut_region_offsets[idx] + sector;
+  int sec = sector_unique_id(side, layer, stave, face, module, sector);
 
-  const float pitch = geometry.pitch[idx_offset];
-  const uint32_t firstStrip = geometry.firstStrip[idx_offset];
-  const float dy = geometry.dy[idx_offset];
-  const float dp0diX = geometry.dp0diX[idx_offset];
-  const float dp0diY = geometry.dp0diY[idx_offset];
-  const float dp0diZ = geometry.dp0diZ[idx_offset];
-  const float p0X = geometry.p0X[idx_offset];
-  const float p0Y = geometry.p0Y[idx_offset];
-  const float p0Z = geometry.p0Z[idx_offset];
+  const float pitch = geometry.pitch[sec];
+  const uint32_t firstStrip = geometry.firstStrip[sec];
+  const float dy = geometry.dy[sec];
+  const float dp0diX = geometry.dp0diX[sec];
+  const float dp0diY = geometry.dp0diY[sec];
+  const float dp0diZ = geometry.dp0diZ[sec];
+  const float p0X = geometry.p0X[sec];
+  const float p0Y = geometry.p0Y[sec];
+  const float p0Z = geometry.p0Z[sec];
   const float numstrips = 0.25f * fracStrip + stripID - firstStrip;
 
   const float yBegin = p0Y + numstrips * dp0diY;
@@ -100,7 +99,7 @@ __device__ void decode_raw_bank<3>(
   const float zAtYEq0 = fabsf(p0Z) + numstrips * dp0diZ;
   const float xAtYEq0 = p0X + numstrips * dp0diX;
   const float weight = 12.f / (pitch * pitch);
-  const uint32_t LHCbID = lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::UT, (chanID + stripID));
+  const uint32_t LHCbID = lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::UT, (chanID + stripID - 1));
 
   ut_hits.yBegin(hit_index) = yBegin;
   ut_hits.yEnd(hit_index) = yEnd;
@@ -112,7 +111,6 @@ __device__ void decode_raw_bank<3>(
 
 template<>
 __device__ void decode_raw_bank<4>(
-  unsigned const* dev_ut_region_offsets,
   UTGeometry const& geometry,
   UTBoards const& boards,
   UTRawBank<4> const& raw_bank,
@@ -131,23 +129,24 @@ __device__ void decode_raw_bank<4>(
   assert(lane <= 6);
   const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane;
 
-  const uint32_t station = boards.stations[fullChanIndex] - 1;
-  const uint32_t layer = boards.layers[fullChanIndex] - 1;
-  const uint32_t detRegion = boards.detRegions[fullChanIndex] - 1;
-  const uint32_t sector = boards.sectors[fullChanIndex] - 1;
+  const uint32_t side = boards.sides[fullChanIndex];
+  const uint32_t layer = boards.layers[fullChanIndex];
+  const uint32_t stave = boards.staves[fullChanIndex];
+  const uint32_t face = boards.faces[fullChanIndex];
+  const uint32_t module = boards.modules[fullChanIndex];
+  const uint32_t sector = boards.sectors[fullChanIndex];
   const uint32_t chanID = boards.chanIDs[fullChanIndex];
-  const uint32_t idx = station * UT::Decoding::ut_number_of_sectors_per_board + layer * 3 + detRegion;
-  const uint32_t idx_offset = dev_ut_region_offsets[idx] + sector;
+  int sec = sector_unique_id(side, layer, stave, face, module, sector);
 
-  const float pitch = geometry.pitch[idx_offset];
-  const uint32_t firstStrip = geometry.firstStrip[idx_offset];
-  const float dy = geometry.dy[idx_offset];
-  const float dp0diX = geometry.dp0diX[idx_offset];
-  const float dp0diY = geometry.dp0diY[idx_offset];
-  const float dp0diZ = geometry.dp0diZ[idx_offset];
-  const float p0X = geometry.p0X[idx_offset];
-  const float p0Y = geometry.p0Y[idx_offset];
-  const float p0Z = geometry.p0Z[idx_offset];
+  const float pitch = geometry.pitch[sec];
+  const uint32_t firstStrip = geometry.firstStrip[sec];
+  const float dy = geometry.dy[sec];
+  const float dp0diX = geometry.dp0diX[sec];
+  const float dp0diY = geometry.dp0diY[sec];
+  const float dp0diZ = geometry.dp0diZ[sec];
+  const float p0X = geometry.p0X[sec];
+  const float p0Y = geometry.p0Y[sec];
+  const float p0Z = geometry.p0Z[sec];
   const float numstrips = p0Z < 0 ? nStripsPerHybrid - stripID - firstStrip : stripID;
 
   const float yBegin = p0Y + numstrips * dp0diY;
@@ -155,7 +154,7 @@ __device__ void decode_raw_bank<4>(
   const float zAtYEq0 = fabsf(p0Z) + numstrips * dp0diZ;
   const float xAtYEq0 = p0X + numstrips * dp0diX;
   const float weight = 12.f / (pitch * pitch);
-  const uint32_t LHCbID = lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::UT, (chanID + stripID + 1));
+  const uint32_t LHCbID = lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::UT, (chanID + stripID));
 
   ut_hits.yBegin(hit_index) = yBegin;
   ut_hits.yEnd(hit_index) = yEnd;
@@ -171,17 +170,16 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
   const unsigned event_start,
   const char* ut_boards,
   const char* ut_geometry,
-  const unsigned* dev_ut_region_offsets,
   const unsigned* dev_unique_x_sector_layer_offsets)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned layer_number = blockIdx.y;
-
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 
   const UT::HitOffsets ut_hit_offsets {
     parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+
   UT::Hits ut_hits {parameters.dev_ut_hits,
                     parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
@@ -198,11 +196,12 @@ __global__ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order(
 
   const unsigned layer_offset = ut_hit_offsets.layer_offset(layer_number);
   const unsigned layer_number_of_hits = ut_hit_offsets.layer_number_of_hits(layer_number);
+
   for (unsigned i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
     const unsigned hit_index = layer_offset + i;
     const unsigned raw_bank_hit_index = ut_pre_decoded_hits.index(parameters.dev_ut_hit_permutations[hit_index]);
     const unsigned raw_bank_index = raw_bank_hit_index >> 24;
     const auto raw_bank = raw_event.template raw_bank<decoding_version>(raw_bank_index);
-    decode_raw_bank(dev_ut_region_offsets, geometry, boards, raw_bank, hit_index, raw_bank_hit_index, ut_hits);
+    decode_raw_bank(geometry, boards, raw_bank, hit_index, raw_bank_hit_index, ut_hits);
   }
 }

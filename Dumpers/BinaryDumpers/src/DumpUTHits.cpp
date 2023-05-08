@@ -9,6 +9,16 @@
 #include <Dumpers/Utils.h>
 
 namespace fs = boost::filesystem;
+#ifdef USE_DD4HEP
+namespace {
+  constexpr int NBSIDE = 2;
+  constexpr int NBHALFLAYER = 4;
+  constexpr int NBSTAVE = 9;
+  constexpr int NBFACE = 2;
+  constexpr int NBMODULE = 8;
+  constexpr int NBSUBSECTOR = 2;
+} // namespace
+#endif
 
 // Declaration of the Algorithm Factory
 DECLARE_COMPONENT(DumpUTHits)
@@ -50,21 +60,25 @@ void DumpUTHits::operator()(const LHCb::ODIN& odin, const UT::HitHandler& hitHan
   auto ut_highThreshold = std::array<std::vector<int>, n_layers_ut> {};
   auto ut_LHCbID = std::array<std::vector<unsigned int>, n_layers_ut> {};
 
-  for (int iStation = 1; iStation < 3; ++iStation) {
-    for (int iLayer = 1; iLayer < 3; ++iLayer) {
-      for (int iRegion = 1; iRegion < 4; ++iRegion) {
-        for (int iSector = 1; iSector < 99; ++iSector) {
-          for (const auto& hit : hitHandler.hits(iStation, iLayer, iRegion, iSector)) {
-            /* For GPU input */
-            ut_cos[hit.planeCode()].push_back(hit.cos());
-            ut_yBegin[hit.planeCode()].push_back(hit.yBegin());
-            ut_yEnd[hit.planeCode()].push_back(hit.yEnd());
-            ut_dxDy[hit.planeCode()].push_back(hit.dxDy());
-            ut_zAtYEq0[hit.planeCode()].push_back(hit.zAtYEq0());
-            ut_xAtYEq0[hit.planeCode()].push_back(hit.xAtYEq0());
-            ut_weight[hit.planeCode()].push_back(hit.weight());
-            ut_highThreshold[hit.planeCode()].push_back(hit.highThreshold());
-            ut_LHCbID[hit.planeCode()].push_back(hit.lhcbID().lhcbID());
+  for (int iSide = 0; iSide < NBSIDE; ++iSide) {
+    for (int iLayer = 0; iLayer < NBHALFLAYER; ++iLayer) {
+      for (int iStave = 0; iStave < NBSTAVE; ++iStave) {
+        for (int iFace = 0; iFace < NBFACE; ++iFace) {
+          for (int iModule = 0; iModule < NBMODULE; ++iModule) {
+            for (int iSector = 0; iSector < NBSUBSECTOR; ++iSector) {
+              for (const auto& hit : hitHandler.hits(iSide, iLayer, iStave, iFace, iModule, iSector)) {
+                /* For GPU input */
+                ut_cos[hit.planeCode()].push_back(hit.cos());
+                ut_yBegin[hit.planeCode()].push_back(hit.yBegin());
+                ut_yEnd[hit.planeCode()].push_back(hit.yEnd());
+                ut_dxDy[hit.planeCode()].push_back(hit.dxDy());
+                ut_zAtYEq0[hit.planeCode()].push_back(hit.zAtYEq0());
+                ut_xAtYEq0[hit.planeCode()].push_back(hit.xAtYEq0());
+                ut_weight[hit.planeCode()].push_back(hit.weight());
+                ut_highThreshold[hit.planeCode()].push_back(hit.highThreshold());
+                ut_LHCbID[hit.planeCode()].push_back(hit.lhcbID().lhcbID());
+              }
+            }
           }
         }
       }

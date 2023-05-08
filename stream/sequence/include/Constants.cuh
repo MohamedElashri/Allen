@@ -66,7 +66,7 @@ struct Constants {
   gsl::span<float> dev_ut_dxDy;
   gsl::span<unsigned> dev_unique_x_sector_layer_offsets;
   gsl::span<unsigned> dev_unique_x_sector_offsets;
-  gsl::span<unsigned> dev_ut_region_offsets;
+  //   gsl::span<unsigned> dev_ut_region_offsets;
   gsl::span<float> dev_unique_sector_xs;
   char* dev_ut_boards;
   UTMagnetTool* dev_ut_magnet_tool = nullptr;

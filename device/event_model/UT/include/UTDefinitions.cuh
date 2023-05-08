@@ -84,10 +84,13 @@ struct UTBoards {
   uint32_t number_of_channels;
   uint32_t version;
   uint32_t* stripsPerHybrids;
-  uint32_t* stations;
-  uint32_t* layers;
-  uint32_t* detRegions;
   uint32_t* sectors;
+  uint32_t* modules;
+  uint32_t* faces;
+  uint32_t* staves;
+  uint32_t* layers;
+  uint32_t* sides;
+  uint32_t* types;
   uint32_t* chanIDs;
 
   __device__ __host__ UTBoards(const char* ut_boards)
@@ -100,13 +103,19 @@ struct UTBoards {
     p += 1;
     stripsPerHybrids = p;
     p += number_of_boards;
-    stations = p;
+    sectors = p;
+    p += number_of_channels;
+    modules = p;
+    p += number_of_channels;
+    faces = p;
+    p += number_of_channels;
+    staves = p;
     p += number_of_channels;
     layers = p;
     p += number_of_channels;
-    detRegions = p;
+    sides = p;
     p += number_of_channels;
-    sectors = p;
+    types = p;
     p += number_of_channels;
     chanIDs = p;
     p += number_of_channels;

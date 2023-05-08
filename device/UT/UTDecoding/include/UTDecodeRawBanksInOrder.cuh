@@ -31,7 +31,6 @@ namespace ut_decode_raw_banks_in_order {
     const unsigned event_start,
     const char* ut_boards,
     const char* ut_geometry,
-    const unsigned* dev_ut_region_offsets,
     const unsigned* dev_unique_x_sector_layer_offsets);
 
   struct ut_decode_raw_banks_in_order_t : public DeviceAlgorithm, Parameters {
