@@ -13,10 +13,10 @@
 INSTANTIATE_ALGORITHM(calo_seed_clusters::calo_seed_clusters_t)
 
 __device__ void seed_clusters(
-  CaloDigit const* digits,
+  Allen::device::span<CaloDigit const> digits,
   unsigned const num_digits,
-  CaloSeedCluster* clusters,
-  unsigned* num_clusters,
+  Allen::device::span<CaloSeedCluster> clusters,
+  Allen::device::span<unsigned> num_clusters,
   const CaloGeometry& geometry,
   const int16_t min_adc)
 {
@@ -37,7 +37,7 @@ __device__ void seed_clusters(
       is_max = is_max && (digit.adc > neighbor_digit.adc || !neighbor_digit.is_valid());
     }
     if (is_max) {
-      auto const id = atomicAdd(num_clusters, 1);
+      auto const id = atomicAdd(num_clusters.data(), 1);
       clusters[id] = CaloSeedCluster(i, digits[i].adc, geometry.getX(i), geometry.getY(i));
     }
   }
@@ -56,10 +56,10 @@ __global__ void calo_seed_clusters::calo_seed_clusters(
   // ECal
   auto const ecal_digits_offset = parameters.dev_ecal_digits_offsets[event_number];
   seed_clusters(
-    &parameters.dev_ecal_digits[ecal_digits_offset],
+    parameters.dev_ecal_digits.subspan(ecal_digits_offset),
     parameters.dev_ecal_digits_offsets[event_number + 1] - ecal_digits_offset,
-    &parameters.dev_ecal_seed_clusters[Calo::Constants::ecal_max_index / 8 * event_number],
-    &parameters.dev_ecal_num_clusters[event_number],
+    parameters.dev_ecal_seed_clusters.subspan(Calo::Constants::ecal_max_index / 8 * event_number),
+    parameters.dev_ecal_num_clusters.subspan(event_number),
     ecal_geometry,
     ecal_min_adc);
 }

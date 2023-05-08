@@ -13,11 +13,11 @@
 INSTANTIATE_ALGORITHM(calo_find_twoclusters::calo_find_twoclusters_t)
 
 __device__ void twoclusters(
-  const CaloCluster* clusters,
-  const unsigned* clusters1_idx,
-  const unsigned* clusters2_idx,
+  Allen::device::span<const CaloCluster> clusters,
+  Allen::device::span<const unsigned> clusters1_idx,
+  Allen::device::span<const unsigned> clusters2_idx,
   const unsigned num_clusters_idx,
-  TwoCaloCluster* twoclusters)
+  Allen::device::span<TwoCaloCluster> twoclusters)
 {
   for (unsigned c = threadIdx.x; c < num_clusters_idx; c += blockDim.x) {
     const unsigned& cluster1_idx = clusters1_idx[c];
@@ -37,11 +37,11 @@ __global__ void calo_find_twoclusters::calo_find_twoclusters(calo_find_twocluste
     parameters.dev_ecal_twocluster_offsets[event_number + 1] - ecal_twoclusters_offset;
 
   twoclusters(
-    &parameters.dev_ecal_clusters[ecal_clusters_offset],
-    &parameters.dev_cluster1_idx[ecal_twoclusters_offset],
-    &parameters.dev_cluster2_idx[ecal_twoclusters_offset],
+    parameters.dev_ecal_clusters.subspan(ecal_clusters_offset),
+    parameters.dev_cluster1_idx.subspan(ecal_twoclusters_offset),
+    parameters.dev_cluster2_idx.subspan(ecal_twoclusters_offset),
     ecal_num_clusters_idx,
-    &parameters.dev_ecal_twoclusters[ecal_twoclusters_offset]);
+    parameters.dev_ecal_twoclusters.subspan(ecal_twoclusters_offset));
 }
 
 void calo_find_twoclusters::calo_find_twoclusters_t::set_arguments_size(

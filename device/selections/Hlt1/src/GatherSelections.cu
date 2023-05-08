@@ -127,7 +127,7 @@ namespace gather_selections {
     __syncthreads();
 
     if (threadIdx.x == 0 && event_decision) {
-      const auto index = atomicAdd(params.dev_event_list_output_size.get(), 1);
+      const auto index = atomicAdd(params.dev_event_list_output_size.data(), 1);
       params.dev_event_list_output[index] = mask_t {event_number};
     }
   }

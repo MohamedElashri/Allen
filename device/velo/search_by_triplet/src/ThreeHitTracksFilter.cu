@@ -109,8 +109,8 @@ __device__ float means_square_fit_chi2(Velo::ConstClusters& velo_cluster_contain
 __device__ void three_hit_tracks_filter_impl(
   const Velo::TrackletHits* input_tracks,
   const unsigned number_of_input_tracks,
-  Velo::TrackletHits* output_tracks,
-  unsigned* number_of_output_tracks,
+  Allen::device::span<Velo::TrackletHits> output_tracks,
+  Allen::device::span<unsigned> number_of_output_tracks,
   const bool* hit_used,
   Velo::ConstClusters& velo_cluster_container,
   const float max_chi2)
@@ -123,7 +123,7 @@ __device__ void three_hit_tracks_filter_impl(
 
     // Store them in the tracks container
     if (!any_used && chi2 < max_chi2) {
-      const unsigned track_insert_number = atomicAdd(number_of_output_tracks, 1);
+      const unsigned track_insert_number = atomicAdd(number_of_output_tracks.data(), 1);
       output_tracks[track_insert_number] = t;
     }
   }
@@ -155,8 +155,8 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
     parameters.dev_atomics_velo[event_number * Velo::num_atomics + Velo::Tracking::atomics::number_of_three_hit_tracks];
 
   // Output containers
-  Velo::TrackletHits* output_tracks = parameters.dev_three_hit_tracks_output.get() + tracks_offset;
-  unsigned* number_of_output_tracks = parameters.dev_number_of_three_hit_tracks_output.get() + event_number;
+  auto output_tracks = parameters.dev_three_hit_tracks_output.get().subspan(tracks_offset);
+  auto number_of_output_tracks = parameters.dev_number_of_three_hit_tracks_output.get().subspan(event_number);
 
   three_hit_tracks_filter_impl(
     input_tracks,

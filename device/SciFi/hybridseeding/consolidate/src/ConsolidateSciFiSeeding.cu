@@ -137,7 +137,7 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
                                           number_of_events};
   const unsigned number_of_tracks_event = scifi_seeds.number_of_tracks(event_number);
   float* tracks_qop = parameters.dev_seeding_qop + parameters.dev_atomics_scifi[event_number];
-  auto* used_scifi_hits = parameters.dev_used_scifi_hits.get();
+  auto used_scifi_hits = parameters.dev_used_scifi_hits.get();
 
   // Loop over tracks.
   for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {

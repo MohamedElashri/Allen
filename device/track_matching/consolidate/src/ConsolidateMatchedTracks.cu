@@ -32,7 +32,7 @@ __global__ void create_matched_views(matching_consolidate_tracks::Parameters par
   if (blockIdx.x == 0 && threadIdx.x == 0) {
     new (parameters.dev_multi_event_long_tracks_view)
       Allen::Views::Physics::MultiEventLongTracks {parameters.dev_long_tracks_view, number_of_events};
-    parameters.dev_multi_event_long_tracks_ptr[0] = parameters.dev_multi_event_long_tracks_view.get();
+    parameters.dev_multi_event_long_tracks_ptr[0] = parameters.dev_multi_event_long_tracks_view.data();
   }
 }
 

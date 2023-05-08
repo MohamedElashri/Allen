@@ -541,8 +541,8 @@ __device__ void triplet_seeding(
       padded_size,
       shared_xs_size,
       shared_xs,
-      parameters.dev_global_xs.get(),
-      parameters.dev_global_count.get(),
+      parameters.dev_global_xs.data(),
+      parameters.dev_global_count.data(),
       [&](half_t* __restrict__ xs) {
         for (int i = 0; i < LookingForward::number_of_x_layers; ++i) {
           for (unsigned i_hit = threadIdx.x * blockDim.y + threadIdx.y;

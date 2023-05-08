@@ -37,17 +37,27 @@ namespace Allen::Store {
   struct optional_datatype {
   };
 
-  // A generic datatype* data holder.
+  // A generic datatype data holder.
   template<typename internal_t>
   struct datatype {
     using type = internal_t;
     static_assert(
       Allen::is_trivially_copyable_v<std::remove_const_t<type>> && "Allen datatypes must be trivially copyable");
-    __host__ __device__ datatype(type* value) : m_value(value) {}
+    __host__ __device__ datatype(Allen::device::span<type> value) : m_value(value) {}
     __host__ __device__ datatype() {}
+    __host__ __device__ auto get() const { return m_value; }
+    __host__ __device__ auto data() const { return m_value.data(); }
+    __host__ __device__ auto operator->() const { return data(); }
+    __host__ __device__ operator type*() const { return data(); }
+    constexpr __device__ __host__ auto subspan(const std::size_t offset) const {
+      return get().subspan(offset);
+    }
+    constexpr __device__ __host__ auto subspan(const std::size_t offset, const std::size_t count) const {
+      return get().subspan(offset, count);
+    }
 
   protected:
-    type* m_value;
+    Allen::device::span<type> m_value;
   };
 
   // Input datatypes have read-only accessors.
@@ -55,10 +65,8 @@ namespace Allen::Store {
   struct input_datatype : datatype<const T> {
     using type = const T;
     __host__ __device__ input_datatype() {}
-    __host__ __device__ input_datatype(type* value) : datatype<type>(value) {}
-    __host__ __device__ operator type*() const { return this->m_value; }
-    __host__ __device__ type* get() const { return this->m_value; }
-    __host__ __device__ type* operator->() const { return this->m_value; }
+    __host__ __device__ input_datatype(Allen::device::span<type> value) : datatype<type>(value) {}
+    __host__ __device__ type operator[] (const unsigned index) const { return this->get()[index]; }
   };
 
   // Output datatypes return pointers that can be modified.
@@ -66,10 +74,8 @@ namespace Allen::Store {
   struct output_datatype : datatype<T> {
     using type = T;
     __host__ __device__ output_datatype() {}
-    __host__ __device__ output_datatype(type* value) : datatype<T>(value) {}
-    __host__ __device__ operator type*() const { return this->m_value; }
-    __host__ __device__ type* get() const { return this->m_value; }
-    __host__ __device__ type* operator->() const { return this->m_value; }
+    __host__ __device__ output_datatype(Allen::device::span<type> value) : datatype<type>(value) {}
+    __host__ __device__ type& operator[] (const unsigned index) { return this->get()[index]; }
   };
 
 // Inputs / outputs have an additional parsable method required for libclang parsing.

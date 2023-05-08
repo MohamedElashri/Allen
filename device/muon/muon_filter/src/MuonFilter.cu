@@ -65,7 +65,7 @@ __global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters)
 
   const unsigned event_offset = scifi_tracks.tracks_offset(i_event);
   const unsigned number_of_tracks_event = scifi_tracks.number_of_tracks(i_event);
-  unsigned* event_mf_decision = parameters.dev_mf_decisions.get() + i_event;
+  unsigned* event_mf_decision = parameters.dev_mf_decisions.data() + i_event;
 
   Associate::Consolidated::ConstTable kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2,
                                                         scifi_tracks.total_number_of_tracks()};
@@ -103,7 +103,7 @@ __global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters)
 
   // Passed cut.
   if (threadIdx.x == 0 && event_mf_decision[0]) {
-    const auto selected_event = atomicAdd(parameters.dev_selected_events_mf.get(), 1);
+    const auto selected_event = atomicAdd(parameters.dev_selected_events_mf.data(), 1);
     parameters.dev_event_list_mf[selected_event] = i_event;
     parameters.dev_mf_track_atomics[i_event] = ut_tracks.number_of_tracks(i_event);
   }

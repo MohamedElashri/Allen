@@ -50,7 +50,7 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
   const auto storage_tile_id = parameters.dev_storage_tile_id + event_offset_tiles;
   const auto storage_tdc_value = parameters.dev_storage_tdc_value + event_offset_tiles;
 
-  auto permutation_station = parameters.dev_permutation_station.get() + event_offset_hits;
+  auto permutation_station = parameters.dev_permutation_station.data() + event_offset_hits;
   auto event_muon_hits = Muon::Hits {parameters.dev_muon_hits, total_number_of_hits, event_offset_hits};
 
   // Create a permutation according to station
@@ -89,7 +89,7 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
       padTile.setY(Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]));
       padTile.setLayout(Muon::MuonLayout(thisGridX, otherGridY_condition));
 
-      Muon::calcTilePos(parameters.dev_muon_raw_to_hits.get()->muonTables, padTile, x, dx, y, dy, z);
+      Muon::calcTilePos(parameters.dev_muon_raw_to_hits->muonTables, padTile, x, dx, y, dy, z);
       region = padTile.region();
       id = padTile.id();
       delta_time = storage_tdc_value[digitsOneIndex_index] - storage_tdc_value[digitsTwoIndex];
@@ -98,13 +98,13 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
       const auto tile = Muon::MuonTileID(storage_tile_id[digitsOneIndex_index]);
       region = tile.region();
       if (otherGridY_condition == 0) {
-        calcTilePos(parameters.dev_muon_raw_to_hits.get()->muonTables, tile, x, dx, y, dy, z);
+        calcTilePos(parameters.dev_muon_raw_to_hits->muonTables, tile, x, dx, y, dy, z);
       }
       else if (otherGridY_condition == 1) {
-        calcStripXPos(parameters.dev_muon_raw_to_hits.get()->muonTables, tile, x, dx, y, dy, z);
+        calcStripXPos(parameters.dev_muon_raw_to_hits->muonTables, tile, x, dx, y, dy, z);
       }
       else {
-        calcStripYPos(parameters.dev_muon_raw_to_hits.get()->muonTables, tile, x, dx, y, dy, z);
+        calcStripYPos(parameters.dev_muon_raw_to_hits->muonTables, tile, x, dx, y, dy, z);
       }
       id = tile.id();
       delta_time = storage_tdc_value[digitsOneIndex_index];

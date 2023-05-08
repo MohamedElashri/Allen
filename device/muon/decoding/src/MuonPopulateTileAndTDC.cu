@@ -31,8 +31,8 @@ __global__ void muon_calculate_station_ocurrences_sizes(muon_populate_tile_and_t
 
     if (start_index == end_index) continue;
     const auto tile = Muon::MuonTileID(storage_tile_id[start_index]);
-    const auto layout1 = getLayout(parameters.dev_muon_raw_to_hits.get()->muonTables, tile)[0];
-    const auto layout2 = getLayout(parameters.dev_muon_raw_to_hits.get()->muonTables, tile)[1];
+    const auto layout1 = getLayout(parameters.dev_muon_raw_to_hits->muonTables, tile)[0];
+    const auto layout2 = getLayout(parameters.dev_muon_raw_to_hits->muonTables, tile)[1];
     bool pad = false;
 
     if constexpr (decoding_version == 3) {
