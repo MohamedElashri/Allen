@@ -47,12 +47,11 @@ namespace Allen::Store {
     __host__ __device__ datatype() {}
     __host__ __device__ auto get() const { return m_value; }
     __host__ __device__ auto data() const { return m_value.data(); }
-    __host__ __device__ auto operator->() const { return data(); }
+    __host__ __device__ auto operator-> () const { return data(); }
     __host__ __device__ operator type*() const { return data(); }
-    constexpr __device__ __host__ auto subspan(const std::size_t offset) const {
-      return get().subspan(offset);
-    }
-    constexpr __device__ __host__ auto subspan(const std::size_t offset, const std::size_t count) const {
+    constexpr __device__ __host__ auto subspan(const std::size_t offset) const { return get().subspan(offset); }
+    constexpr __device__ __host__ auto subspan(const std::size_t offset, const std::size_t count) const
+    {
       return get().subspan(offset, count);
     }
 
@@ -66,7 +65,7 @@ namespace Allen::Store {
     using type = const T;
     __host__ __device__ input_datatype() {}
     __host__ __device__ input_datatype(Allen::device::span<type> value) : datatype<type>(value) {}
-    __host__ __device__ type operator[] (const unsigned index) const { return this->get()[index]; }
+    __host__ __device__ type operator[](const unsigned index) const { return this->get()[index]; }
   };
 
   // Output datatypes return pointers that can be modified.
@@ -75,7 +74,7 @@ namespace Allen::Store {
     using type = T;
     __host__ __device__ output_datatype() {}
     __host__ __device__ output_datatype(Allen::device::span<type> value) : datatype<type>(value) {}
-    __host__ __device__ type& operator[] (const unsigned index) { return this->get()[index]; }
+    __host__ __device__ type& operator[](const unsigned index) { return this->get()[index]; }
   };
 
 // Inputs / outputs have an additional parsable method required for libclang parsing.
