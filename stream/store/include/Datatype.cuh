@@ -66,18 +66,18 @@ namespace Allen::Store {
   template<typename T>
   struct input_datatype : datatype<const T> {
     using type = const T;
-    __host__ __device__ input_datatype() {}
-    __host__ __device__ input_datatype(Allen::device::span<type> value) : datatype<type>(value) {}
-    __host__ __device__ type operator[](const unsigned index) const { return this->get()[index]; }
+    constexpr __host__ __device__ input_datatype() {}
+    constexpr __host__ __device__ input_datatype(Allen::device::span<type> value) : datatype<type>(value) {}
+    constexpr __host__ __device__ type operator[](const unsigned index) const { return this->get()[index]; }
   };
 
   // Output datatypes return pointers that can be modified.
   template<typename T>
   struct output_datatype : datatype<T> {
     using type = T;
-    __host__ __device__ output_datatype() {}
-    __host__ __device__ output_datatype(Allen::device::span<type> value) : datatype<type>(value) {}
-    __host__ __device__ type& operator[](const unsigned index) { return this->get()[index]; }
+    constexpr __host__ __device__ output_datatype() {}
+    constexpr __host__ __device__ output_datatype(Allen::device::span<type> value) : datatype<type>(value) {}
+    constexpr __host__ __device__ type& operator[](const unsigned index) { return this->get()[index]; }
   };
 
 // Inputs / outputs have an additional parsable method required for libclang parsing.
