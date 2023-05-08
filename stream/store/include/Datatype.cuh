@@ -43,16 +43,19 @@ namespace Allen::Store {
     using type = internal_t;
     static_assert(
       Allen::is_trivially_copyable_v<std::remove_const_t<type>> && "Allen datatypes must be trivially copyable");
-    __host__ __device__ datatype(Allen::device::span<type> value) : m_value(value) {}
-    __host__ __device__ datatype() {}
-    __host__ __device__ auto get() const { return m_value; }
-    __host__ __device__ auto data() const { return m_value.data(); }
-    __host__ __device__ auto operator-> () const { return data(); }
-    __host__ __device__ operator type*() const { return data(); }
-    constexpr __device__ __host__ auto subspan(const std::size_t offset) const { return get().subspan(offset); }
-    constexpr __device__ __host__ auto subspan(const std::size_t offset, const std::size_t count) const
+    constexpr __host__ __device__ datatype(Allen::device::span<type> value) : m_value(value) {}
+    constexpr __host__ __device__ datatype() {}
+    constexpr __host__ __device__ auto get() const { return m_value; }
+    constexpr __host__ __device__ auto data() const { return m_value.data(); }
+    constexpr __host__ __device__ auto operator-> () const { return data(); }
+    constexpr __host__ __device__ operator type*() const { return data(); }
+    constexpr __host__ __device__ auto empty() const { return m_value.empty(); }
+    constexpr __host__ __device__ auto size() const { return m_value.size(); }
+    constexpr __host__ __device__ auto size_bytes() const { return m_value.size_bytes(); }
+    constexpr __host__ __device__ auto subspan(const std::size_t offset) const { return m_value.subspan(offset); }
+    constexpr __host__ __device__ auto subspan(const std::size_t offset, const std::size_t count) const
     {
-      return get().subspan(offset, count);
+      return m_value.subspan(offset, count);
     }
 
   protected:
