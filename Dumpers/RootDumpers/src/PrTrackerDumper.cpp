@@ -133,6 +133,15 @@ namespace {
   using std::vector;
 
   namespace fs = boost::filesystem;
+
+#ifdef USE_DD4HEP
+  constexpr int NBSIDE = 2;
+  constexpr int NBHALFLAYER = 4;
+  constexpr int NBSTAVE = 9;
+  constexpr int NBFACE = 2;
+  constexpr int NBMODULE = 8;
+  constexpr int NBSUBSECTOR = 2;
+#endif
 } // namespace
 
 /** @class PrTrackerDumper PrTrackerDumper.h
@@ -318,11 +327,15 @@ void PrTrackerDumper::write_MCP_info(
 int computeNbUTHits(const UT::HitHandler& prUTHitHandler)
 {
   int nbHits = 0;
-  for (int iStation = 1; iStation < 3; ++iStation) {
-    for (int iLayer = 1; iLayer < 3; ++iLayer) {
-      for (int iRegion = 1; iRegion < 4; ++iRegion) {
-        for (int iSector = 1; iSector < 99; ++iSector) {
-          nbHits += prUTHitHandler.hits(iStation, iLayer, iRegion, iSector).size();
+  for (int iSide = 0; iSide < NBSIDE; ++iSide) {
+    for (int iLayer = 0; iLayer < NBHALFLAYER; ++iLayer) {
+      for (int iStave = 0; iStave < NBSTAVE; ++iStave) {
+        for (int iFace = 0; iFace < NBFACE; ++iFace) {
+          for (int iModule = 0; iModule < NBMODULE; ++iModule) {
+            for (int iSector = 0; iSector < NBSUBSECTOR; ++iSector) {
+              nbHits += prUTHitHandler.hits(iSide, iLayer, iStave, iFace, iModule, iSector).size();
+            }
+          }
         }
       }
     }
@@ -403,21 +416,25 @@ LHCb::RawEvent PrTrackerDumper::operator()(
   // See Pr/PrKernel/UTHit definitions to know the info to store
   map<const LHCb::MCParticle*, vector<UT::Hit>> UTHits_on_MCParticles;
   vector<UT::Hit> non_Assoc_UTHits;
-  for (int iStation = 1; iStation < 3; ++iStation) {
-    for (int iLayer = 1; iLayer < 3; ++iLayer) {
-      for (int iRegion = 1; iRegion < 4; ++iRegion) {
-        for (int iSector = 1; iSector < 99; ++iSector) {
-          for (auto& hit : prUTHitHandler.hits(iStation, iLayer, iRegion, iSector)) {
-            LHCb::LHCbID lhcbid = hit.lhcbID();
-            auto mcparticlesrelations = HitMCParticleLinks.from(lhcbid.lhcbID());
-            if (mcparticlesrelations.empty()) {
-              non_Assoc_UTHits.push_back(hit);
-            }
-            else {
-              for (const auto& mcp : mcparticlesrelations) {
-                auto MCP = mcp.to();
-                //---> weightassociation = mcp.weight();
-                UTHits_on_MCParticles[MCP].push_back(hit);
+  for (int iSide = 0; iSide < NBSIDE; ++iSide) {
+    for (int iLayer = 0; iLayer < NBHALFLAYER; ++iLayer) {
+      for (int iStave = 0; iStave < NBSTAVE; ++iStave) {
+        for (int iFace = 0; iFace < NBFACE; ++iFace) {
+          for (int iModule = 0; iModule < NBMODULE; ++iModule) {
+            for (int iSector = 0; iSector < NBSUBSECTOR; ++iSector) {
+              for (auto& hit : prUTHitHandler.hits(iSide, iLayer, iStave, iFace, iModule, iSector)) {
+                LHCb::LHCbID lhcbid = hit.lhcbID();
+                auto mcparticlesrelations = HitMCParticleLinks.from(lhcbid.lhcbID());
+                if (mcparticlesrelations.empty()) {
+                  non_Assoc_UTHits.push_back(hit);
+                }
+                else {
+                  for (const auto& mcp : mcparticlesrelations) {
+                    auto MCP = mcp.to();
+                    //---> weightassociation = mcp.weight();
+                    UTHits_on_MCParticles[MCP].push_back(hit);
+                  }
+                }
               }
             }
           }

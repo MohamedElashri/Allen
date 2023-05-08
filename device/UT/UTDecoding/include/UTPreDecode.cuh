@@ -30,7 +30,6 @@ namespace ut_pre_decode {
     const unsigned event_start,
     const char* ut_boards,
     const char* ut_geometry,
-    const unsigned* dev_ut_region_offsets,
     const unsigned* dev_unique_x_sector_layer_offsets,
     const unsigned* dev_unique_x_sector_offsets);
 

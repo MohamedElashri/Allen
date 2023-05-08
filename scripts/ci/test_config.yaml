@@ -22,13 +22,13 @@ config:
 
     # added if "disable-run-changes" specified
     disable_run_changes: "--disable-run-changes {disable_run_changes}"
-  
+
   # args added for specific specific test types
   test_args:
     throughput: "" # handled by target_args
     efficiency: " -n 1000 -m 1100"  # TODO incr to 10k
     run_changes: "-n 1000 -m 1000 "
-  
+
   # args added for specific device targets
   target_args:
     throughput:
@@ -41,19 +41,21 @@ config:
 
 minimal:
   - type: "throughput"
-    sequence: 
+    sequence:
       - hlt1_pp_default
       - hlt1_pp_forward_then_matching_no_gec
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
 
   - type: "efficiency"
-    sequence: 
+    sequence:
       - hlt1_pp_validation
-    dataset: "Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1_newLHCbID"
+    dataset: "Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
 
   # FIXME run_changes needs re-adding
   # - type: "run_changes"
-  #   sequence: 
+  #   sequence:
   #     - "hlt1_pp_validation"
   #   dataset: "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1_newLHCbID"
   #   disable_run_changes: ["1"] # TODO FIXME Fix disable-run-changes 0 case!!!
@@ -66,37 +68,40 @@ full:
   - type: "throughput"
     sequence:
       - hlt1_pp_default
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
     build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
     throughput_report: false # don't publish throughput report
 
   # run throughput, no_gec
   - type: "throughput"
-    sequence: 
+    sequence:
       - hlt1_pp_no_gec
       - hlt1_pp_no_gec_no_ut
       - hlt1_pp_SMOG2_default
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
 
   # run throughput, default, SMOG2_pppHe
   - type: "throughput"
-    sequence: 
+    sequence:
       - hlt1_pp_default
       - hlt1_pp_SMOG2_default
-    dataset: "SMOG2_pppHe_retinacluster_v1_newLHCbID"
-    geometry: "SMOG2_pppHe"
+    dataset: "SMOG2_pppHe_retinacluster_v1_newLHCbID_new_UT_geometry"
+    geometry: "SMOG2_pppHe_new_UT_geometry"
 
   # Allen clustering jobs
   - type: "throughput"
     sequence: "hlt1_pp_veloSP"
-    dataset: "upgrade_mc_minbias_scifi_v5_000_newLHCbID"
+    dataset: "upgrade_mc_minbias_scifi_v5_000_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
 
   # run throughput, scifi_v6
   - type: "throughput"
-    sequence: 
+    sequence:
       - hlt1_pp_default
-    dataset: "SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1_newLHCbID"
-    geometry: "upgrade_DC19_01_MinBiasMD"
+    dataset: "SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1_newLHCbID_new_UT_geometry"
+    geometry: "upgrade_DC19_01_MinBiasMD_new_UT_geometry"
 
   # run throughput, calov4
   - type: "throughput"
@@ -123,28 +128,31 @@ full:
   - type: "throughput"
     sequence:
       - hlt1_pp_lumi
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
     throughput_report: false # don't publish throughput report
 
   - type: "throughput"
-    sequence: 
+    sequence:
       - hlt1_pp_default
-    dataset: "upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1_newLHCbID"
-    geometry: "upgrade-magdown-sim10-up08-11102202-digi"
+    dataset: "upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1_newLHCbID_new_UT_geometry"
+    geometry: "upgrade-magdown-sim10-up08-11102202-digi_new_UT_geometry"
 
   # run throughput, forward no ut, matching
   - type: "throughput"
-    sequence: 
+    sequence:
       - hlt1_pp_matching
       - hlt1_pp_no_ut
       - hlt1_pp_forward_then_matching_no_gec
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
 
   # Efficiency tests
 
   - type: "efficiency"
     sequence: "hlt1_pp_SMOG2_validation"
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
 
   - type: "run_built_tests"
     lcg_opt:
@@ -155,25 +163,25 @@ full:
   # run physics efficiency, scifi_v6
   # forward no ut, scifi v6
   - type: "efficiency"
-    sequence: 
+    sequence:
       - hlt1_pp_validation
       - hlt1_pp_no_ut_validation
       - hlt1_pp_matching_validation
       - hlt1_pp_forward_then_matching_no_gec_validation
-    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID_v2"
-    geometry: "upgrade_DC19_01_MinBiasMD"
+    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID_v2_new_UT_geometry"
+    geometry: "upgrade_DC19_01_MinBiasMD_new_UT_geometry"
 
   # efficiency tests, SMOG2 pHe
   - type: "efficiency"
-    sequence: 
+    sequence:
       - hlt1_pp_validation
       - hlt1_pp_SMOG2_validation
       - hlt1_pp_matching_validation
       - hlt1_pp_forward_then_matching_no_gec_validation
-    dataset: "SMOG2_pHe_5k_retinacluster_v1_newLHCbID"
-    geometry: "SMOG2_pppHe"
+    dataset: "SMOG2_pHe_5k_retinacluster_v1_newLHCbID_new_UT_geometry"
+    geometry: "SMOG2_pppHe_new_UT_geometry"
 
   - type: "efficiency"
     sequence: "hlt1_pp_veloSP_validation"
-    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k_newLHCbID"
-    geometry: "upgrade_DC19_01_MinBiasMD"
+    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k_newLHCbID_new_UT_geometry"
+    geometry: "upgrade_DC19_01_MinBiasMD_new_UT_geometry"

@@ -23,7 +23,7 @@ namespace lhcb_id {
   enum class LHCbIDType {
     Plume = 0x1,
     VELO = 0x2,
-    UT,
+    UT = 0x3,
     reserved_magnet_sidestations = 0x4,
     FT = 0x5,
     reserved_mighty_tracker = 0x6,

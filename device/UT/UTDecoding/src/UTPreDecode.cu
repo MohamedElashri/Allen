@@ -3,6 +3,7 @@
 \*****************************************************************************/
 #include <MEPTools.h>
 #include <UTPreDecode.cuh>
+#include <UTUniqueID.cuh>
 
 INSTANTIATE_ALGORITHM(ut_pre_decode::ut_pre_decode_t)
 
@@ -39,7 +40,6 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
     std::get<0>(runtime_options.event_interval),
     constants.dev_ut_boards,
     constants.dev_ut_geometry.data(),
-    constants.dev_ut_region_offsets.data(),
     constants.dev_unique_x_sector_layer_offsets.data(),
     constants.dev_unique_x_sector_offsets.data());
 }
@@ -53,7 +53,6 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
 template<int decoding_version>
 __device__ void pre_decode_raw_bank(
   unsigned const*,
-  unsigned const*,
   uint32_t const*,
   UTGeometry const&,
   UTBoards const&,
@@ -65,7 +64,6 @@ __device__ void pre_decode_raw_bank(
 
 template<>
 __device__ void pre_decode_raw_bank<3>(
-  unsigned const* dev_ut_region_offsets,
   unsigned const* dev_unique_x_sector_offsets,
   uint32_t const* hit_offsets,
   UTGeometry const& geometry,
@@ -88,19 +86,20 @@ __device__ void pre_decode_raw_bank<3>(
 
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + index;
     if (fullChanIndex >= boards.number_of_channels) continue;
-    const uint32_t station = boards.stations[fullChanIndex] - 1;
-    const uint32_t layer = boards.layers[fullChanIndex] - 1;
-    const uint32_t detRegion = boards.detRegions[fullChanIndex] - 1;
-    const uint32_t sector = boards.sectors[fullChanIndex] - 1;
+    const uint32_t side = boards.sides[fullChanIndex];
+    const uint32_t layer = boards.layers[fullChanIndex];
+    const uint32_t stave = boards.staves[fullChanIndex];
+    const uint32_t face = boards.faces[fullChanIndex];
+    const uint32_t module = boards.modules[fullChanIndex];
+    const uint32_t sector = boards.sectors[fullChanIndex];
 
     // Calculate the index to get the geometry of the board
-    const uint32_t idx = station * UT::Decoding::ut_number_of_sectors_per_board + layer * 3 + detRegion;
-    const uint32_t idx_offset = dev_ut_region_offsets[idx] + sector;
+    int sec = sector_unique_id(side, layer, stave, face, module, sector);
 
-    const uint32_t firstStrip = geometry.firstStrip[idx_offset];
-    const float dp0diX = geometry.dp0diX[idx_offset];
-    const float dp0diY = geometry.dp0diY[idx_offset];
-    const float p0Y = geometry.p0Y[idx_offset];
+    const uint32_t firstStrip = geometry.firstStrip[sec];
+    const float dp0diX = geometry.dp0diX[sec];
+    const float dp0diY = geometry.dp0diY[sec];
+    const float p0Y = geometry.p0Y[sec];
     const float numstrips = 0.25f * fracStrip + strip - firstStrip;
 
     // Make a composed value made out of:
@@ -134,7 +133,7 @@ __device__ void pre_decode_raw_bank<3>(
     const int composed_value = (composed_0_shifted & 0xFFFF0000) | (composed_1 & 0x0000FFFF);
     const float* composed_value_float = reinterpret_cast<const float*>(&composed_value);
 
-    const unsigned base_sector_group_offset = dev_unique_x_sector_offsets[idx_offset];
+    const unsigned base_sector_group_offset = dev_unique_x_sector_offsets[sec];
     unsigned* hits_count_sector_group = hit_count + base_sector_group_offset;
 
     const unsigned current_hit_count = atomicAdd(hits_count_sector_group, 1);
@@ -153,7 +152,6 @@ __device__ void pre_decode_raw_bank<3>(
 
 template<>
 __device__ void pre_decode_raw_bank<4>(
-  unsigned const* dev_ut_region_offsets,
   unsigned const* dev_unique_x_sector_offsets,
   uint32_t const* hit_offsets,
   UTGeometry const& geometry,
@@ -169,19 +167,21 @@ __device__ void pre_decode_raw_bank<4>(
     if (raw_bank.number_of_hits[lane] == 0) continue;
     // we can do some things that only depend on lane and sourceID before decoding individual hits
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane;
-    const uint32_t s = boards.stations[fullChanIndex];
-    if (s == 0) continue;
-    const uint32_t station = boards.stations[fullChanIndex] - 1;
-    const uint32_t layer = boards.layers[fullChanIndex] - 1;
-    const uint32_t detRegion = boards.detRegions[fullChanIndex] - 1;
-    const uint32_t sector = boards.sectors[fullChanIndex] - 1;
-    const uint32_t idx = station * UT::Decoding::ut_number_of_sectors_per_board + layer * 3 + detRegion;
-    const uint32_t idx_offset = dev_ut_region_offsets[idx] + sector;
-    const uint32_t firstStrip = geometry.firstStrip[idx_offset];
-    const float dp0diX = geometry.dp0diX[idx_offset];
-    const float dp0diY = geometry.dp0diY[idx_offset];
-    const float p0Y = geometry.p0Y[idx_offset];
-    const float p0Z = geometry.p0Z[idx_offset];
+    // const uint32_t s = boards.stations[fullChanIndex];
+    // if (s == 0) continue;
+    const uint32_t side = boards.sides[fullChanIndex];
+    const uint32_t layer = boards.layers[fullChanIndex];
+    const uint32_t stave = boards.staves[fullChanIndex];
+    const uint32_t face = boards.faces[fullChanIndex];
+    const uint32_t module = boards.modules[fullChanIndex];
+    const uint32_t sector = boards.sectors[fullChanIndex];
+
+    int sec = sector_unique_id(side, layer, stave, face, module, sector);
+    const uint32_t firstStrip = geometry.firstStrip[sec];
+    const float dp0diX = geometry.dp0diX[sec];
+    const float dp0diY = geometry.dp0diY[sec];
+    const float p0Y = geometry.p0Y[sec];
+    const float p0Z = geometry.p0Z[sec];
 
     // Now we can start decoding hits from the v5 RawBank. The RawBank header (64 bits) tells you how many hits there
     // are. The RawBank data itself contains lane-wise zero-padded "words". When casting to 32 bits, this looks like
@@ -215,7 +215,8 @@ __device__ void pre_decode_raw_bank<4>(
       const float* composed_value_float = reinterpret_cast<const float*>(&composed_value);
 
       // Finally we need to fill the global containers correctly
-      const unsigned base_sector_group_offset = dev_unique_x_sector_offsets[idx_offset];
+      const unsigned base_sector_group_offset =
+        dev_unique_x_sector_offsets[sec]; // idx; //dev_unique_x_sector_offsets[idx_offset];
       unsigned* hits_count_sector_group = hit_count + base_sector_group_offset;
 
       const unsigned current_hit_count = atomicAdd(hits_count_sector_group, 1);
@@ -247,7 +248,6 @@ __global__ void ut_pre_decode::ut_pre_decode(
   const unsigned event_start,
   const char* ut_boards,
   const char* ut_geometry,
-  const unsigned* dev_ut_region_offsets,
   const unsigned* dev_unique_x_sector_layer_offsets,
   const unsigned* dev_unique_x_sector_offsets)
 {
@@ -271,7 +271,6 @@ __global__ void ut_pre_decode::ut_pre_decode(
   for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks();
        raw_bank_index += blockDim.x)
     pre_decode_raw_bank(
-      dev_ut_region_offsets,
       dev_unique_x_sector_offsets,
       hit_offsets,
       geometry,
