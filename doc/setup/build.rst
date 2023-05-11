@@ -10,7 +10,7 @@ There are two options for building Allen: Either as standalone project or as par
 As standalone project
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. _requisites
+.. _requisites:
 
 Requisites
 ----------------

@@ -2,7 +2,7 @@ Test Allen algorithms
 ========================
 
 Within Gaudi, calling Allen from Moore
-^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 When calling Allen from Moore, Allen algorithms are called as Gaudi algorithms and therefore run in the same way as other Gaudi algorithms. Any output produced by such a Gaudi-Allen algorithm is stored on the Transient Event Store (TES) can then be used as input for other Gaudi algorithms implementing tests. 
 
 An example for the Velo clusters can be seen in
