@@ -45,6 +45,15 @@ namespace FilterTracks {
     PROPERTY(track_muon_max_chi2ndof_t, "track_muon_max_chi2ndof", "max muon chi2/ndof", float)
     track_muon_max_chi2ndof;
     PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float) max_assoc_ipchi2;
+    PROPERTY(L_p_MIPCHI2_min_t, "L_p_MIPCHI2_min", "proton min ip chi^2 for Lambda LL", float) L_p_MIPCHI2_min;
+    PROPERTY(L_pi_MIPCHI2_min_t, "L_pi_MIPCHI2_min", "pion min ip chi^2 for Lambda LL", float) L_pi_MIPCHI2_min;
+    PROPERTY(L_p_MIP_min_t, "L_p_MIP_min", "proton min ip for Lambda LL", float) L_p_MIP_min;
+    PROPERTY(L_pi_MIP_min_t, "L_pi_MIP_min", "pion min ip for Lambda LL", float) L_pi_MIP_min;
+    PROPERTY(L_p_PT_min_t, "L_p_PT_min", "proton min pT for Lambda LL", float) L_p_PT_min;
+    PROPERTY(L_pi_PT_min_t, "L_pi_PT_min", "pion min pT for Lambda LL", float) L_pi_PT_min;
+    PROPERTY(L_DOCA_max_t, "L_DOCA_max", "max p,pi DOCA for Lambda LL", float) L_DOCA_max;
+    PROPERTY(L_PT2_min_t, "L_PT2_min", "min pT of Lambda LL", float) L_PT2_min;
+    PROPERTY(L_M_max_t, "L_M_max", "max mass for Lambda LL", float) L_M_max;
     PROPERTY(block_dim_prefilter_t, "block_dim_prefilter", "block dimensions for prefilter step", DeviceDimensions)
     block_dim_prefilter;
     PROPERTY(block_dim_filter_t, "block_dim_filter", "block dimensions for filter step", DeviceDimensions)
@@ -74,6 +83,15 @@ namespace FilterTracks {
     Property<track_max_chi2ndof_t> m_maxchi2ndof {this, 2.5f};
     Property<track_muon_max_chi2ndof_t> m_muonmaxchi2ndof {this, 100.f};
     Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this, 16.0f};
+    Property<L_p_MIPCHI2_min_t> m_L_p_MIPCHI2_min {this, 12.f};
+    Property<L_pi_MIPCHI2_min_t> m_L_pi_MIPCHI2_min {this, 32.f};
+    Property<L_p_MIP_min_t> m_L_p_MIP_min {this, 80.f * Gaudi::Units::um};
+    Property<L_pi_MIP_min_t> m_L_pi_MIP_min {this, 200.f * Gaudi::Units::um};
+    Property<L_p_PT_min_t> m_L_p_PT_min {this, 450.f * Gaudi::Units::MeV};
+    Property<L_pi_PT_min_t> m_L_pi_PT_min {this, 80.f * Gaudi::Units::MeV};
+    Property<L_DOCA_max_t> m_DOCA_max {this, 500.f * Gaudi::Units::um};
+    Property<L_PT2_min_t> m_PT2_min {this, 500.f * 500.f * Gaudi::Units::MeV* Gaudi::Units::MeV};
+    Property<L_M_max_t> m_M_max {this, 1140.f * Gaudi::Units::MeV};
     Property<block_dim_prefilter_t> m_block_dim_prefilter {this, {{256, 1, 1}}};
     Property<block_dim_filter_t> m_block_dim_filter {this, {{16, 16, 1}}};
   };
