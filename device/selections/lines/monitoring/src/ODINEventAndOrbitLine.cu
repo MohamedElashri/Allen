@@ -10,7 +10,7 @@ INSTANTIATE_LINE(odin_event_and_orbit_line::odin_event_and_orbit_line_t, odin_ev
 
 __device__ bool odin_event_and_orbit_line::odin_event_and_orbit_line_t::select(
   const Parameters& parameters,
-  std::tuple<const ODINData&> input)
+  std::tuple<const ODINData> input)
 {
   const auto event_type = LHCb::ODIN {std::get<0>(input)}.eventType();
   const auto orbit_number = LHCb::ODIN {std::get<0>(input)}.orbitNumber();
