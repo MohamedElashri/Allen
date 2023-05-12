@@ -13,7 +13,7 @@ include(GenerateConfiguration)
 
 gaudi_add_module(AllenWrapper
                  SOURCES
-                   src/GaudiAllenPVsToRecVertexV2.cpp
+                   src/GaudiAllenPVsToPrimaryVertexContainer.cpp
                    src/GaudiAllenCaloToCaloClusters.cpp
                    src/GaudiAllenCountAndDumpLineDecisions.cpp
                    src/GaudiAllenFilterEventsLineDecisions.cpp
@@ -60,8 +60,8 @@ gaudi_add_module(AllenWrapper
                    LHCb::UTKernelLib
                    LHCb::CaloDetLib
                    LHCb::FTDetLib
-                   LHCb::RecEvent
                    LHCb::MCEvent
+		               LHCb::RecEvent
                    Rec::PrKernel)
 
 target_include_directories(AllenWrapper PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
