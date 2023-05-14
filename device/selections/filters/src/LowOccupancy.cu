@@ -47,7 +47,7 @@ __global__ void low_occupancy::low_occupancy(
     const unsigned number_of_velo_tracks = velo_tracks.number_of_tracks(event_number);
 
     if (number_of_velo_tracks >= parameters.minTracks && number_of_velo_tracks < parameters.maxTracks) {
-      const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.get(), 1);
+      const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.data(), 1);
       parameters.dev_event_list_output[current_event] = mask_t {event_number};
     }
   }

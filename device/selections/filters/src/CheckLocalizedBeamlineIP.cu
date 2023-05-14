@@ -54,7 +54,7 @@ __global__ void check_localized_beamline_ip::check_localized_beamline_ip(
   __syncthreads();
 
   if (threadIdx.x == 0 && local_nTracks >= parameters.min_local_nTracks) {
-    const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.get(), 1);
+    const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.data(), 1);
     parameters.dev_event_list_output[current_event] = mask_t {event_number};
   }
 }

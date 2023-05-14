@@ -73,7 +73,7 @@ __device__ void create_scifi_views_impl(const scifi_consolidate_tracks::Paramete
       Allen::Views::SciFi::Consolidated::MultiEventTracks {parameters.dev_scifi_tracks_view, number_of_events};
     new (parameters.dev_multi_event_long_tracks_view)
       Allen::Views::Physics::MultiEventLongTracks {parameters.dev_long_tracks_view, number_of_events};
-    parameters.dev_multi_event_long_tracks_ptr[0] = parameters.dev_multi_event_long_tracks_view.get();
+    parameters.dev_multi_event_long_tracks_ptr[0] = parameters.dev_multi_event_long_tracks_view.data();
   }
 }
 
@@ -261,8 +261,8 @@ __device__ void scifi_consolidate_tracks_impl(
   const unsigned event_offset = scifi_hit_count.event_offset();
   float* tracks_qop = parameters.dev_scifi_qop + parameters.dev_atomics_scifi[event_number];
 
-  auto* used_scifi_hits = parameters.dev_used_scifi_hits.get();
-  auto* accepted_velo_tracks = parameters.dev_accepted_and_unused_velo_tracks.get();
+  auto used_scifi_hits = parameters.dev_used_scifi_hits.get();
+  auto accepted_velo_tracks = parameters.dev_accepted_and_unused_velo_tracks.get();
 
   // Loop over tracks.
   for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {

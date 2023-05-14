@@ -39,7 +39,7 @@ struct ProduceSingleParameter<
     const std::map<std::string, Allen::BaseProperty*>&,
     const Allen::KernelInvocationConfiguration&)
   {
-    return arguments.template data<T>();
+    return arguments.template get<T>();
   }
 };
 
