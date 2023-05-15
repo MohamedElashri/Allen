@@ -99,6 +99,12 @@ extern thread_local BlockIndices blockIdx;
 constexpr BlockDimensions blockDim {1, 1, 1};
 constexpr ThreadIndices threadIdx {0, 0, 0};
 
+/**
+ * @brief Emulates atomic operations so they work on the CPU backend.
+ * @details The CPU backend executes sequentially, so there
+ *          is no need to provide atomicity in any of the
+ *          implementations below.
+ */
 template<class T, class S>
 T atomicAdd(T* address, S val)
 {
