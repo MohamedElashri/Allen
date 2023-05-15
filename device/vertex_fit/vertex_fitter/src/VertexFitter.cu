@@ -50,7 +50,7 @@ void VertexFit::fit_secondary_vertices_t::set_arguments_size(
   set_size<dev_two_track_composites_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_multi_event_composites_view_t>(arguments, 1);
   set_size<dev_multi_event_composites_ptr_t>(arguments, 1);
-  set_size<dev_sv_pv_ipchi2_t>(arguments, Associate::Consolidated::table_size(first<host_number_of_svs_t>(arguments)));
+  set_size<dev_sv_pv_ip_t>(arguments, Associate::Consolidated::table_size(first<host_number_of_svs_t>(arguments)));
   set_size<dev_sv_pv_tables_t>(arguments, first<host_number_of_events_t>(arguments));
   // TODO: Clean this up.
   set_size<dev_sv_fit_results_view_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -125,10 +125,10 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
   // SV -> PV table.
   const unsigned total_number_of_svs = parameters.dev_sv_offsets[number_of_events];
   // TODO: Don't use two different types of PV table.
-  Associate::Consolidated::Table sv_pv_ipchi2 {parameters.dev_sv_pv_ipchi2, total_number_of_svs};
-  Associate::Consolidated::EventTable pv_table = sv_pv_ipchi2.event_table(sv_offset, n_svs);
+  Associate::Consolidated::Table sv_pv_ip {parameters.dev_sv_pv_ip, total_number_of_svs};
+  Associate::Consolidated::EventTable pv_table = sv_pv_ip.event_table(sv_offset, n_svs);
   parameters.dev_sv_pv_tables[event_number] =
-    Allen::Views::Physics::PVTable {parameters.dev_sv_pv_ipchi2, sv_offset, total_number_of_svs, n_svs};
+    Allen::Views::Physics::PVTable {parameters.dev_sv_pv_ip, sv_offset, total_number_of_svs, n_svs};
 
   parameters.dev_sv_fit_results_view[event_number] = Allen::Views::Physics::SecondaryVertices {
     parameters.dev_sv_fit_results, parameters.dev_sv_offsets, event_number, number_of_events};
@@ -140,6 +140,7 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
     tmp_sv.y = event_poca[3 * i_sv + 1];
     tmp_sv.z = event_poca[3 * i_sv + 2];
     tmp_sv.chi2 = -1;
+    tmp_sv.fdchi2 = -1;
     tmp_sv.minipchi2 = 0;
     auto i_track = event_svs_trk1_idx[i_sv];
     auto j_track = event_svs_trk2_idx[i_sv];

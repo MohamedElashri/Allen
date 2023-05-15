@@ -17,6 +17,7 @@
 #include "ParticleTypes.cuh"
 #include "PV_Definitions.cuh"
 #include "MassDefinitions.h"
+#include <limits>
 
 namespace VertexFit {
 
@@ -369,57 +370,52 @@ namespace VertexFit {
     sv.ntrks16 = (trackA.ip_chi2() < max_assoc_ipchi2) + (trackB.ip_chi2() < max_assoc_ipchi2);
 
     const unsigned n_pvs = pvs.size();
-    float minfdchi2 = -1.;
+    float minip = std::numeric_limits<float>::quiet_NaN();
     int pv_idx = -1;
 
     for (unsigned ipv = 0; ipv < n_pvs; ipv++) {
       auto pv = pvs[ipv];
-
-      // Get PV-SV separation.
-      const float dx = sv.x - pv.position.x;
-      const float dy = sv.y - pv.position.y;
-      const float dz = sv.z - pv.position.z;
-
-      // Get covariance and FD chi2.
-      const float cov00 = sv.cov00 + pv.cov00;
-      const float cov10 = sv.cov10 + pv.cov10;
-      const float cov11 = sv.cov11 + pv.cov11;
-      const float cov20 = sv.cov20 + pv.cov20;
-      const float cov21 = sv.cov21 + pv.cov21;
-      const float cov22 = sv.cov22 + pv.cov22;
-      const float invdet = 1.f / (2.f * cov10 * cov20 * cov21 - cov11 * cov20 * cov20 - cov00 * cov21 * cov21 +
-                                  cov00 * cov11 * cov22 - cov22 * cov10 * cov10);
-      const float invcov00 = (cov11 * cov22 - cov21 * cov21) * invdet;
-      const float invcov10 = (cov20 * cov21 - cov10 * cov22) * invdet;
-      const float invcov11 = (cov00 * cov22 - cov20 * cov20) * invdet;
-      const float invcov20 = (cov10 * cov21 - cov11 * cov20) * invdet;
-      const float invcov21 = (cov10 * cov20 - cov00 * cov21) * invdet;
-      const float invcov22 = (cov00 * cov11 - cov10 * cov10) * invdet;
-      const float fdchi2 = invcov00 * dx * dx + invcov11 * dy * dy + invcov22 * dz * dz + 2.f * invcov20 * dx * dz +
-                           2.f * invcov21 * dy * dz + 2.f * invcov10 * dx * dy;
-      if (fdchi2 < minfdchi2 || pv_idx < 0) {
-        minfdchi2 = fdchi2;
+      const auto tmp_svip =
+        ip(pv.position.x, pv.position.y, pv.position.z, sv.x, sv.y, sv.z, sv.px / sv.pz, sv.py / sv.pz);
+      if (tmp_svip < minip || pv_idx < 0) {
+        minip = tmp_svip;
         pv_idx = ipv;
       }
     }
 
     if (pv_idx < 0) return -1;
 
+    sv.vertex_ip = minip;
+
     // Get PV-SV separation.
-    sv.fdchi2 = minfdchi2;
     auto pv = pvs[pv_idx];
     const float dx = sv.x - pv.position.x;
     const float dy = sv.y - pv.position.y;
     const float dz = sv.z - pv.position.z;
     const float fd = sqrtf(dx * dx + dy * dy + dz * dz);
 
+    // Get covariance and FD chi2.
+    const float cov00 = sv.cov00 + pv.cov00;
+    const float cov10 = sv.cov10 + pv.cov10;
+    const float cov11 = sv.cov11 + pv.cov11;
+    const float cov20 = sv.cov20 + pv.cov20;
+    const float cov21 = sv.cov21 + pv.cov21;
+    const float cov22 = sv.cov22 + pv.cov22;
+    const float invdet = 1.f / (2.f * cov10 * cov20 * cov21 - cov11 * cov20 * cov20 - cov00 * cov21 * cov21 +
+                                cov00 * cov11 * cov22 - cov22 * cov10 * cov10);
+    const float invcov00 = (cov11 * cov22 - cov21 * cov21) * invdet;
+    const float invcov10 = (cov20 * cov21 - cov10 * cov22) * invdet;
+    const float invcov11 = (cov00 * cov22 - cov20 * cov20) * invdet;
+    const float invcov20 = (cov10 * cov21 - cov11 * cov20) * invdet;
+    const float invcov21 = (cov10 * cov20 - cov00 * cov21) * invdet;
+    const float invcov22 = (cov00 * cov11 - cov10 * cov10) * invdet;
+    sv.fdchi2 = invcov00 * dx * dx + invcov11 * dy * dy + invcov22 * dz * dz + 2.f * invcov20 * dx * dz +
+                2.f * invcov21 * dy * dz + 2.f * invcov10 * dx * dy;
+
     // PV-SV eta.
     sv.eta = atanhf(dz / fd);
     // SVz - PVz
     sv.dz = dz;
-
-    // SV IP
-    sv.vertex_ip = ip(pv.position.x, pv.position.y, pv.position.z, sv.x, sv.y, sv.z, sv.px / sv.pz, sv.py / sv.pz);
 
     if (sv.is_dimuon) {
       const float txA = trackA.state().tx();
