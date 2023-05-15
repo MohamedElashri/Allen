@@ -7,7 +7,7 @@
 // Warning #940-D: missing return statement at end of non-void function "LHCb::ODINImplementation::details::get_bits"
 #ifdef __CUDACC__
 #pragma push
-#if __CUDACC_VER_MAJOR__ > 11 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 6)
+#if __CUDACC_VER_MAJOR__ > 11 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 5)
 #pragma nv_diag_suppress = 940
 #else
 #pragma diag_suppress = 940
