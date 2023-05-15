@@ -72,9 +72,24 @@ The build process is the standard cmake procedure. You should specify a `CMAKE_T
     cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12+hip5-opt.cmake ..
     make
 
+Note: CUDA builds with CVMFS outside CERN network still require a local CUDA installation. If `cmake` reports that "No CMAKE_CUDA_COMPILER could be found", it is unable to find the local installation of `nvcc` CUDA compiler. You can do either one of the following three:
+
+* Specify `CMAKE_CUDA_COMPILER` when invoking `cmake`::
+
+    cmake -DSTANDALONE=ON -DCMAKE_CUDA_COMPILER=</path/to/nvcc> -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_103/x86_64_v3-el9-gcc12+cuda12_1-opt.cmake ..
+
+* Add `nvcc` directory to `PATH` (typically `/usr/local/cuda-X.Y/bin`)::
+
+    export PATH=$PATH:</directory/containing/nvcc>
+
+* Set the environment variable `CUDACXX`::
+
+    export CUDACXX=</path/to/nvcc>
+
 In order to run, use the generated wrapper::
 
     ./toolchain/wrapper ./Allen --sequence hlt1_pp_validation
+
 
 Building without CVMFS
 ----------------------

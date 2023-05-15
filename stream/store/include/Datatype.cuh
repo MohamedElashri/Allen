@@ -151,7 +151,7 @@ namespace Allen::Store {
 //       missing return statement at end of non-void function
 #ifdef __CUDACC__
 #pragma push
-#if __CUDACC_VER_MAJOR__ > 11 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 6)
+#if __CUDACC_VER_MAJOR__ > 11 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 5)
 #pragma nv_diag_suppress = 940
 #else
 #pragma diag_suppress = 940
