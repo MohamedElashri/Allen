@@ -156,7 +156,7 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
 
   // Output containers
   auto output_tracks = parameters.dev_three_hit_tracks_output.subspan(tracks_offset);
-  auto number_of_output_tracks = parameters.dev_number_of_three_hit_tracks_output.data() + event_number;
+  auto* number_of_output_tracks = &parameters.dev_number_of_three_hit_tracks_output[event_number];
 
   three_hit_tracks_filter_impl(
     input_tracks,
