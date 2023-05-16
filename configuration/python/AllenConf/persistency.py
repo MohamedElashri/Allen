@@ -84,7 +84,7 @@ rb_map = {
     'Hlt1(D2KPi|DiMuonHighMass|DisplacedDiMuon)Alignment':
     3,
     # RB 4 Muon alignment
-    'Hlt1DiMuonHighMassAlignment':
+    'Hlt1DiMuon(High|Jpsi)MassAlignment':
     4,
     # RB 5 RICH1 alignment
     'Hlt1RICH1Alignment':
