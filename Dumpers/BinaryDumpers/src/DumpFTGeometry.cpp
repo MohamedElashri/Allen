@@ -51,16 +51,14 @@ namespace {
  *  This Class is basically an instation of a Gaudi algorithm with specific inputs and outputs:
  *  The role of this class is to get data from TES to Allen for the SciFi
  */
-class DumpFTGeometry final
-  : public LHCb::Algorithm::MultiTransformer<
-      std::tuple<std::vector<char>, std::string>(const DeFT&, const FTReadoutMap<DumpFTGeometry>&),
-      LHCb::DetDesc::usesBaseAndConditions<GaudiAlgorithm, FTReadoutMap<DumpFTGeometry>, DeFT>> {
+class DumpFTGeometry final : public LHCb::Algorithm::MultiTransformer<
+                               std::tuple<std::vector<char>, std::string>(const DeFT&, const FTReadoutMap&),
+                               LHCb::DetDesc::usesBaseAndConditions<GaudiAlgorithm, FTReadoutMap, DeFT>> {
 public:
   DumpFTGeometry(const std::string& name, ISvcLocator* pSvcLocator);
 
-  std::tuple<std::vector<char>, std::string> operator()(
-    const DeFT& DeFT,
-    const FTReadoutMap<DumpFTGeometry>& readoutMap) const override;
+  std::tuple<std::vector<char>, std::string> operator()(const DeFT& DeFT, const FTReadoutMap& readoutMap)
+    const override;
 
   StatusCode initialize() override;
 
@@ -83,14 +81,13 @@ DumpFTGeometry::DumpFTGeometry(const std::string& name, ISvcLocator* pSvcLocator
 StatusCode DumpFTGeometry::initialize()
 {
   return MultiTransformer::initialize().andThen(
-    [&] { FTReadoutMap<DumpFTGeometry>::addConditionDerivation(this, inputLocation<FTReadoutMap<DumpFTGeometry>>()); });
+    [&] { FTReadoutMap::addConditionDerivation(this, inputLocation<FTReadoutMap>()); });
 }
 
 // operator() call
 
-std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(
-  const DeFT& det,
-  const FTReadoutMap<DumpFTGeometry>& readoutMap) const
+std::tuple<std::vector<char>, std::string> DumpFTGeometry::operator()(const DeFT& det, const FTReadoutMap& readoutMap)
+  const
 {
 
   // Detector and mat geometry
