@@ -35,6 +35,8 @@ def make_bs2gammagamma_line(calo,
                             velo_tracks,
                             pvs,
                             name="Hlt1Bs2GammaGamma",
+                            pre_scaler=1.,
+                            post_scaler=1.,
                             pre_scaler_hash_string=None,
                             post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
@@ -46,6 +48,8 @@ def make_bs2gammagamma_line(calo,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
         dev_offsets_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
