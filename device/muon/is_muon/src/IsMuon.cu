@@ -109,9 +109,6 @@ __global__ void is_muon::is_muon(
   const unsigned event_offset = long_tracks.offset();
 
   for (unsigned track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
-    const auto long_track = long_tracks.track(track_id);
-    const auto scifi_track = long_track.track_segment<Allen::Views::Physics::Track::segment::scifi>();
-    const auto scifi_track_id = scifi_track.track_index();
     const float momentum = 1.f / fabsf(long_tracks.qop(track_id));
     const auto& state = parameters.dev_scifi_states[event_offset + track_id];
 

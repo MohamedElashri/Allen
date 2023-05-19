@@ -85,7 +85,7 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
   const unsigned event_scifi_seeds_offset = scifi_seeds.offset();
   const auto* seeding_states = parameters.dev_seeding_states + event_scifi_seeds_offset;
 
-  //output SciFi states for matched long tracks
+  // output SciFi states for matched long tracks
   MiniState* scifi_states = parameters.dev_scifi_states + parameters.dev_atomics_matched[event_number];
 
   float* tracks_qop = parameters.dev_matched_qop + parameters.dev_atomics_matched[event_number];
