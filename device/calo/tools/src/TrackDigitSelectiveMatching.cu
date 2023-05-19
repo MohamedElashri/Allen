@@ -59,7 +59,7 @@ __global__ void track_digit_selective_matching::track_digit_selective_matching(
     const auto scifi_track = long_track.track_segment<Allen::Views::Physics::Track::segment::scifi>();
     const auto scifi_track_id = scifi_track.track_index();
     // SciFi state
-    const auto& scifi_state = parameters.dev_scifi_states[scifi_track.track_container_offset() + scifi_track_id];
+    const auto& scifi_state = parameters.dev_scifi_states[event_offset + track_index];
 
     // Get z positions of intersection of the track and front, showermax and back planes
     float z_front = ecal_geometry.getZFromTrackToCaloplaneIntersection(scifi_state, 0);

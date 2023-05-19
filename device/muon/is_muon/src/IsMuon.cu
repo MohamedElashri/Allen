@@ -113,7 +113,7 @@ __global__ void is_muon::is_muon(
     const auto scifi_track = long_track.track_segment<Allen::Views::Physics::Track::segment::scifi>();
     const auto scifi_track_id = scifi_track.track_index();
     const float momentum = 1.f / fabsf(long_tracks.qop(track_id));
-    const auto& state = parameters.dev_scifi_states[scifi_track.track_container_offset() + scifi_track_id];
+    const auto& state = parameters.dev_scifi_states[event_offset + track_id];
 
     if (momentum < dev_muon_momentum_cuts[0]) {
       continue;

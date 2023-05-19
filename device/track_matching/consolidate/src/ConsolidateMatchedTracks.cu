@@ -45,6 +45,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::set_arguments_s
   set_size<dev_matched_track_hits_t>(
     arguments, first<host_accumulated_number_of_hits_in_matched_tracks_t>(arguments) * sizeof(SciFi::Hit));
   set_size<dev_matched_qop_t>(arguments, first<host_number_of_reconstructed_matched_tracks_t>(arguments));
+  set_size<dev_scifi_states_t>(arguments, first<host_number_of_reconstructed_matched_tracks_t>(arguments));
   set_size<dev_matched_track_velo_indices_t>(
     arguments, first<host_number_of_reconstructed_matched_tracks_t>(arguments));
   set_size<dev_matched_track_scifi_indices_t>(
@@ -78,6 +79,15 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
   const SciFi::MatchedTrack* event_matched_tracks =
     parameters.dev_matched_tracks + event_number * TrackMatchingConsts::max_num_tracks;
 
+  // SciFi seed views
+  const auto scifi_seeds = parameters.dev_scifi_tracks_view[event_number];
+
+  const unsigned event_scifi_seeds_offset = scifi_seeds.offset();
+  const auto* seeding_states = parameters.dev_seeding_states + event_scifi_seeds_offset;
+
+  //output SciFi states for matched long tracks
+  MiniState* scifi_states = parameters.dev_scifi_states + parameters.dev_atomics_matched[event_number];
+
   float* tracks_qop = parameters.dev_matched_qop + parameters.dev_atomics_matched[event_number];
   unsigned int* tracks_velo_indices =
     parameters.dev_matched_track_velo_indices + parameters.dev_atomics_matched[event_number];
@@ -85,10 +95,13 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
     parameters.dev_matched_track_scifi_indices + parameters.dev_atomics_matched[event_number];
   const unsigned number_of_tracks_event =
     parameters.dev_atomics_matched[event_number + 1] - parameters.dev_atomics_matched[event_number];
+
   for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
     const SciFi::MatchedTrack& track = event_matched_tracks[i];
     tracks_qop[i] = track.qop;
     tracks_velo_indices[i] = track.velo_track_index;
     tracks_scifi_indices[i] = track.scifi_track_index;
+
+    scifi_states[i] = seeding_states[track.scifi_track_index];
   }
 }
