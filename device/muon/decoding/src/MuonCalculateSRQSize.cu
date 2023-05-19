@@ -197,6 +197,8 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
+  Allen::memset_async<dev_storage_station_region_quarter_sizes_t>(arguments, 0, context);
+  Allen::memset_async<dev_muon_raw_to_hits_t>(arguments, 0, context);
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version < 0) return; // no Muon banks present in data
 
@@ -207,7 +209,6 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   host_muonrawtohits[0] = Muon::MuonRawToHits {constants.dev_muon_tables, constants.dev_muon_geometry};
 
   Allen::copy(get<dev_muon_raw_to_hits_t>(arguments), host_muonrawtohits.get(), context, Allen::memcpyHostToDevice);
-  Allen::memset_async<dev_storage_station_region_quarter_sizes_t>(arguments, 0, context);
 
   auto kernel_fn = bank_version == 2 ? (runtime_options.mep_layout ? muon_calculate_srq_size_kernel<2, true> :
                                                                      muon_calculate_srq_size_kernel<2, false>) :
