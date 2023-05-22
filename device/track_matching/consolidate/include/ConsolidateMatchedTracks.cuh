@@ -28,8 +28,10 @@ namespace matching_consolidate_tracks {
     DEVICE_INPUT(dev_offsets_matched_tracks_t, unsigned) dev_atomics_matched;
     DEVICE_INPUT(dev_offsets_matched_hit_number_t, unsigned) dev_matched_track_hit_number; // fishy
     DEVICE_INPUT(dev_matched_tracks_t, SciFi::MatchedTrack) dev_matched_tracks;
+    DEVICE_INPUT(dev_seeding_states_t, MiniState) dev_seeding_states;
     DEVICE_OUTPUT(dev_matched_track_hits_t, char) dev_matched_track_hits;
     DEVICE_OUTPUT(dev_matched_qop_t, float) dev_matched_qop;
+    DEVICE_OUTPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_OUTPUT(dev_matched_track_velo_indices_t, unsigned) dev_matched_track_velo_indices;
     DEVICE_OUTPUT(dev_matched_track_scifi_indices_t, unsigned) dev_matched_track_scifi_indices;
     DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;

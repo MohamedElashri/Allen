@@ -63,11 +63,11 @@ long_P>5GeV_AND_Pt>1GeV                           :       214/      220  97.27% 
 muon_validator validation:
 Muon fraction in all MCPs:                                                917/    68484   0.01% 
 Muon fraction in MCPs to which a track(s) was matched:                     46/     4627   0.01% 
-Correctly identified muons with isMuon:                                     3/       46   6.52% 
+Correctly identified muons with isMuon:                                    40/       46  86.96% 
 Correctly identified muons from strange decays with isMuon:                 0/        0   -nan% 
 Correctly identified muons from B decays with isMuon:                       0/        0   -nan% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:       362/     4581   7.90% 
-Ghost tracks identified as muon with isMuon:                               15/      143  10.49% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:       136/     4581   2.97% 
+Ghost tracks identified as muon with isMuon:                                7/      143   4.90% 
 
 
 pv_validator validation:
@@ -98,11 +98,11 @@ Hlt1L02PPi:                                             0/  1000, (    0.00 +/- 
 Hlt1OneMuonTrackLine:                                  88/  1000, ( 2640.00 +/-   268.76) kHz
 Hlt1SingleHighPtMuon:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:                             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowPtMuon:                                          4/  1000, (  120.00 +/-    59.88) kHz
+Hlt1LowPtMuon:                                          2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1DiMuonHighMass:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonLowMass:                                      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                                         0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowPtDiMuon:                                        1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1LowPtDiMuon:                                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMuonMVA:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonNoIP:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonNoIP_ss:                                      0/  1000, (    0.00 +/-     0.00) kHz
@@ -143,7 +143,7 @@ Hlt1BeamGas:                                            0/  1000, (    0.00 +/- 
 Hlt1D2KPiAlignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DisplacedDiMuonAlignment:                           0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                             93/  1000, ( 2790.00 +/-   275.53) kHz
+Inclusive:                                             91/  1000, ( 2730.00 +/-   272.85) kHz
 
 
 selreport_validator validation:
@@ -161,11 +161,11 @@ Hlt1L02PPi:                                             0           0
 Hlt1OneMuonTrackLine:                                  88           0
 Hlt1SingleHighPtMuon:                                   0           0
 Hlt1SingleHighPtMuonNoMuID:                             0           0
-Hlt1LowPtMuon:                                          4           4
+Hlt1LowPtMuon:                                          2           2
 Hlt1DiMuonHighMass:                                     0           0
 Hlt1DiMuonLowMass:                                      0           0
 Hlt1DiMuonSoft:                                         0           0
-Hlt1LowPtDiMuon:                                        1           1
+Hlt1LowPtDiMuon:                                        0           0
 Hlt1TrackMuonMVA:                                       0           0
 Hlt1DiMuonNoIP:                                         0           0
 Hlt1DiMuonNoIP_ss:                                      0           0
@@ -207,9 +207,9 @@ Hlt1D2KPiAlignment:                                     0           0
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DisplacedDiMuonAlignment:                           0           0
 
-Total decisions: 96
-Total tracks:    6
-Total SVs:       1
-Total hits:      139
-Total stdinfo:   148
+Total decisions: 93
+Total tracks:    2
+Total SVs:       0
+Total hits:      46
+Total stdinfo:   109
 
