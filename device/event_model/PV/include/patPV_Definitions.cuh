@@ -54,8 +54,8 @@ namespace PatPV {
     float x = 0.;
     float y = 0.;
     float z = 0.;
-    float chi2;
-    int ndof;
+    float chi2 = 0.;
+    int ndof = 0;
 
     float cov00 = 0.;
     float cov10 = 0.;

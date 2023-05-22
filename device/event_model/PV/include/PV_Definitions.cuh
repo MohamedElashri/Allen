@@ -77,8 +77,8 @@ namespace PV {
   public:
     __host__ __device__ Vertex() {}
     float3 position;
-    float chi2;
-    int ndof;
+    float chi2 = 0.f;
+    int ndof = 0;
 
     float cov00 = 0.f;
     float cov10 = 0.f;
@@ -103,7 +103,7 @@ namespace PV {
       cov21 = m_cov[4];
       cov22 = m_cov[5];
     }
-    float nTracks = 0; // float since weights are getting added
+    float nTracks = 0.f; // float since weights are getting added
   };
 
 } // namespace PV
