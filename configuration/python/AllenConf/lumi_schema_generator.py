@@ -6,6 +6,7 @@ from random import Random
 import math
 import copy
 import json
+import logging
 """Script to generate a LumiSummary bank layout for a set of counters specified in
    the input files. The script produces a JSON representation of the layout, which is used
    to encode and decode the luminosity summary counters. If the PyConf module  is available
@@ -64,6 +65,8 @@ MuonHitsM4R3               409
 MuonHitsM4R4               227
 EOF
 """
+
+log = logging.getLogger(__name__)
 
 lumi_rand = Random("lumi_schema_generator")
 
@@ -173,8 +176,7 @@ class LumiSchemaGenerator:
                 exit()
             (name, maxEntry) = line
             self.inputs.append(Counter(name, int(maxEntry, 0)))
-        if self.verbose:
-            print("Found %d counters in %s" % (len(lines), inputFileName))
+            log.debug("Found %d counters in %s" % (len(lines), inputFileName))
 
     def processWithoutOptimisation(self):
         """Pack counters into 32-bit bins sequentially without running any optimisation.
@@ -212,12 +214,10 @@ class LumiSchemaGenerator:
         if runMutationStep:
             for i in range(mutationAttempts):
                 if 100. * self.sumSizes / self.size >= stopThreshold:
-                    if self.verbose:
-                        print(
-                            "Packing efficiency of %.1f%% has reached or exceeded %.1f%%"
-                            % (100. * self.sumSizes / self.size,
-                               stopThreshold))
-                        print("Stopping mutation")
+                    log.debug(
+                        "Packing efficiency of %.1f%% has reached or exceeded %.1f%%"
+                        % (100. * self.sumSizes / self.size, stopThreshold))
+                    log.debug("Stopping mutation")
                     break
                 self.mutate(lumi_rand.random())
 
@@ -253,15 +253,13 @@ class LumiSchemaGenerator:
         self.sumSizes = math.ceil(self.sumSizes / 32) * 32
         self.size = math.ceil(
             (32 * bucket.pos + counter.offset + counter.size) / 32) * 32
-        if self.verbose:
-            print("Packed %d counters into %d bytes" % (self.nInputs,
+        log.debug("Packed %d counters into %d bytes" % (self.nInputs,
                                                         self.size / 8.))
-            print("Counter packing is %.1f%% efficient" %
+        log.debug("Counter packing is %.1f%% efficient" %
                   (100 * self.sumSizes / self.size))
 
     def mutate(self, prob):
-        if self.verbose:
-            print("Mutating with a %.1f%% removal rate" % (prob * 100.))
+        log.debug("Mutating with a %.1f%% removal rate" % (prob * 100.))
         originalBuckets = copy.deepcopy(self.buckets)
         originalSize = self.size
         originalSumSizes = self.sumSizes
@@ -284,23 +282,19 @@ class LumiSchemaGenerator:
         if runMutation:
             if len(self.inputs) != 0:
                 #rerun the packing with a random ordering
-                if self.verbose:
-                    print("repacking %d counters" % len(self.inputs))
+                log.debug("repacking %d counters" % len(self.inputs))
                 lumi_rand.shuffle(self.inputs)
                 self.pack()
                 if originalSize <= self.size:
-                    if self.verbose:
-                        print("No improvement, reverting mutation")
+                    log.debug("No improvement, reverting mutation")
                     self.buckets = originalBuckets
                     self.size = originalSize
                     self.sumSizes = originalSumSizes
                 else:
-                    if self.verbose:
-                        print("Improvement found, retaining mutation")
+                    log.debug("Improvement found, retaining mutation")
         else:
             self.inputs = []
-            if self.verbose:
-                print("No improvement possible, skipping mutation")
+            log.debug("No improvement possible, skipping mutation")
             self.buckets = originalBuckets
             self.size = originalSize
             self.sumSizes = originalSumSizes

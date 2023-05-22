@@ -12,10 +12,9 @@ from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenConf.persistency import make_gather_selections, make_global_decision
 from AllenConf.HLT1 import line_maker
 from AllenConf.validators import rate_validation
-from AllenConf.calo_reconstruction import decode_calo
-from AllenConf.hlt1_reconstruction import hlt1_reconstruction
 from AllenConf.hlt1_photon_lines import make_single_calo_cluster_line
 from AllenConf.hlt1_monitoring_lines import make_calo_digits_minADC_line
+from AllenConf.calo_reconstruction import decode_calo, make_ecal_clusters
 
 
 def calo_cosmics_lines(ecal_clusters):
@@ -33,9 +32,14 @@ def calo_cosmics_lines(ecal_clusters):
 
 
 def setup_hlt1_node(enableRateValidator=True):
+
+    hlt1_config = {}
+
     # Reconstruct objects needed as input for selection lines
-    reconstructed_objects = hlt1_reconstruction()
-    ecal_clusters = reconstructed_objects["ecal_clusters"]
+    decoded_calo = decode_calo()
+    ecal_clusters = make_ecal_clusters(decoded_calo)
+
+    hlt1_config['reconstruction'] = {'ecal_clusters': ecal_clusters}
 
     cosmics_lines = calo_cosmics_lines(ecal_clusters)
 
@@ -48,18 +52,24 @@ def setup_hlt1_node(enableRateValidator=True):
     lines = CompositeNode(
         "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
+    gather_selections = make_gather_selections(lines=line_algorithms)
+    global_decision = make_global_decision(lines=line_algorithms)
+
+    hlt1_config['gather_selections'] = gather_selections
+    hlt1_config['global_decision'] = global_decision
+
     gather_selections_node = CompositeNode(
-        "RunAllLines",
-        [lines, make_gather_selections(lines=line_algorithms)],
+        "RunAllLines", [lines, gather_selections],
         NodeLogic.NONLAZY_AND,
         force_order=True)
 
     hlt1_node = CompositeNode(
-        "Cosmics",
-        [gather_selections_node,
-         make_global_decision(lines=line_algorithms)],
+        "Cosmics", [gather_selections_node, global_decision],
         NodeLogic.NONLAZY_AND,
         force_order=True)
+
+    hlt1_config['line_nodes'] = line_nodes
+    hlt1_config['line_algorithms'] = line_algorithms
 
     if enableRateValidator:
         hlt1_node = CompositeNode(
@@ -70,4 +80,5 @@ def setup_hlt1_node(enableRateValidator=True):
             NodeLogic.NONLAZY_AND,
             force_order=True)
 
-    return hlt1_node
+    hlt1_config['control_flow_node'] = hlt1_node
+    return hlt1_config

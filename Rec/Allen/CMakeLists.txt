@@ -21,7 +21,6 @@ gaudi_add_module(AllenWrapper
                    src/GaudiAllenLumiSummaryToRawEvent.cpp
                    src/GaudiAllenSVsToRecVertexV2.cpp
                    src/GaudiAllenTrackViewsToV3Tracks.cpp
-                   src/ProvideConstants.cpp
                    src/AllenROOTService.cpp
                    src/ProvideRuntimeOptions.cpp
                    src/TestAllenCaloDigits.cpp
@@ -77,25 +76,25 @@ gaudi_add_module(AllenAlgorithms
                    ${WRAPPED_ALGORITHM_SOURCES}
                  LINK
                    AllenLib
-       Backend
-           Stream
-         HostCommon
-   		   HostEventModel
-   		   HostRoutingBits
-           NonEventData
-           TrackChecking
-           PVChecking
-           CheckClustering
-           SelChecking
-           Monitoring
-           HostCombiners
-           EventModel
-           Gear
-           mdf
-           LHCbEvent
+                   Backend
+                   Stream
+                   HostCommon
+                   HostEventModel
+                   HostRoutingBits
+                   NonEventData
+                   TrackChecking
+                   PVChecking
+                   CheckClustering
+                   SelChecking
+                   Monitoring
+                   HostCombiners
                    EventModel
-       MuonCommon
-       WrapperInterface
+                   Gear
+                   mdf
+                   LHCbEvent
+                   EventModel
+                   MuonCommon
+                   WrapperInterface
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
                    LHCb::DAQKernelLib

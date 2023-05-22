@@ -12,8 +12,11 @@ import os
 import json
 from itertools import chain
 from Configurables import ApplicationMgr, AllenUpdater
+from collections import OrderedDict
 from PyConf import configurable
 from PyConf.control_flow import CompositeNode, NodeLogic
+from PyConf.application import all_nodes_and_algs
+from PyConf.application import configure_input, configure
 from PyConf.Algorithms import (
     AllenTESProducer, DumpBeamline, DumpCaloGeometry, DumpMagneticField,
     DumpVPGeometry, DumpFTGeometry, DumpUTGeometry, DumpUTLookupTables,
@@ -58,6 +61,34 @@ def allen_json_sequence(sequence="hlt1_pp_default", json=None):
         raise OSError("JSON file does not exist")
 
     return (sequence, json)
+
+
+def allen_detectors(allen_node):
+    # Rather hacky, but there is currently no other way to figure out
+    # which bank types are needed, and thus which geometry providers
+    # should be added. This can be removed once the UT initializes
+    # with DD4hep
+    nodes, algs = all_nodes_and_algs(allen_node)
+    config = OrderedDict()
+    for alg in algs:
+        config.update(alg.configuration())
+
+    bank_types = chain.from_iterable([
+        v['BankTypes'] for k, v in config.items()
+        if k[0].getType() == 'TransposeRawBanks'
+    ])
+    bank_types = set(bank_types)
+    bank_types.discard('ODIN')
+
+    def _swap(bt, other):
+        if bt in bank_types:
+            bank_types.remove(bt)
+            bank_types.add(other)
+
+    for bt, other in [('Calo', 'ECal'), ('EcalPacked', 'ECal')]:
+        _swap(bt, other)
+
+    return bank_types
 
 
 def configured_bank_types(sequence_json):
@@ -124,7 +155,12 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
             filter(lambda d: d is not None,
                    [detector_names.get(det, det) for det in bank_types]))
 
-    appMgr.ExtSvc.extend(AllenUpdater(TriggerEventLoop=allen_event_loop))
+    data_bank_types = bank_types.copy()
+    data_bank_types.remove('Magnet')
+    appMgr.ExtSvc.extend(
+        AllenUpdater(
+            TriggerEventLoop=allen_event_loop,
+            BankTypes=list(data_bank_types)))
 
     algorithm_converters = []
     algorithm_producers = []
@@ -173,3 +209,36 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
         force_order=True)
 
     return cf_node
+
+
+def run_allen_reconstruction(options, make_reconstruction, public_tools=[]):
+    """Configure the Allen reconstruction data flow
+
+    Convenience function that configures all services and creates a data flow.
+
+    Args:
+        options (ApplicationOptions): holder of application options
+        make_reconstruction: function returning a single CompositeNode object
+        public_tools (list): list of public `Tool` instances to configure
+
+    """
+    from Allen.config import setup_allen_non_event_data_service
+
+    config = configure_input(options)
+
+    reconstruction = make_reconstruction()
+    reco_node = reconstruction if not hasattr(reconstruction,
+                                              "node") else reconstruction.node
+
+    detectors = allen_detectors(reco_node)
+    non_event_data_node = setup_allen_non_event_data_service(
+        bank_types=detectors)
+
+    allen_node = CompositeNode(
+        'allen_reconstruction',
+        combine_logic=NodeLogic.NONLAZY_OR,
+        children=[non_event_data_node, reco_node],
+        force_order=True)
+
+    config.update(configure(options, allen_node, public_tools=public_tools))
+    return config

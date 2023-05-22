@@ -43,6 +43,18 @@ StatusCode AllenUpdater::initialize()
       return StatusCode::FAILURE;
     }
   }
+
+  for (auto type : m_bankTypes.value()) {
+    auto bt = ::bank_type(type);
+    if (bt == BankTypes::Unknown) {
+      error() << "Failed to obtain bank type for " << type << endmsg;
+      return StatusCode::FAILURE;
+    }
+    else {
+      m_types.insert(bt);
+    }
+  }
+
   return StatusCode::SUCCESS;
 }
 

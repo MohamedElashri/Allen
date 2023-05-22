@@ -65,7 +65,7 @@ StatusCode Allen::TESProducer::initialize()
   using namespace std::string_literals;
   m_bytesWritten.emplace(this, "BytesWritten_"s + m_id.value());
 
-  auto updater = service<AllenUpdater>("AllenUpdater", false);
+  auto updater = service<AllenUpdater>("AllenUpdater", true);
   if (!updater) {
     error() << "Failed to retrieve AllenUpdater" << endmsg;
     return StatusCode::FAILURE;

@@ -21,9 +21,10 @@ from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
 from AllenConf.hlt1_photon_lines import make_bs2gammagamma_line
-from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer
+from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer, make_dec_reporter
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
+from PyConf.tonic import configurable
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.enum_types import TrackingType, includes_matching
 
@@ -524,6 +525,7 @@ def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
     return lines
 
 
+@configurable
 def setup_hlt1_node(enablePhysics=True,
                     withMCChecking=False,
                     EnableGEC=True,
@@ -538,12 +540,16 @@ def setup_hlt1_node(enablePhysics=True,
                     tracking_type=TrackingType.FORWARD,
                     tae_passthrough=False):
 
+    hlt1_config = {}
+
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(
         with_calo=with_calo,
         with_ut=with_ut,
         with_muon=with_muon,
         tracking_type=tracking_type)
+
+    hlt1_config['reconstruction'] = reconstructed_objects
 
     gec = [make_gec(count_ut=with_ut)] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
@@ -665,15 +671,27 @@ def setup_hlt1_node(enablePhysics=True,
         "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
     gather_selections = make_gather_selections(lines=line_algorithms)
+    global_decision = make_global_decision(lines=line_algorithms)
+    dec_reporter = make_dec_reporter(lines=line_algorithms)
+    sel_reports = make_sel_report_writer(lines=line_algorithms)
+
     hlt1_node = CompositeNode(
         "Allen", [
             lines,
-            make_global_decision(lines=line_algorithms),
+            dec_reporter,
+            global_decision,
             make_routingbits_writer(lines=line_algorithms),
-            *make_sel_report_writer(lines=line_algorithms)["algorithms"],
+            *sel_reports["algorithms"],
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)
+
+    hlt1_config['line_nodes'] = line_nodes
+    hlt1_config['line_algorithms'] = line_algorithms
+    hlt1_config['gather_selections'] = gather_selections
+    hlt1_config['dec_reporter'] = dec_reporter
+    hlt1_config['sel_reports'] = sel_reports
+    hlt1_config['global_decision'] = global_decision
 
     if with_lumi:
         lumi_node = CompositeNode(
@@ -693,6 +711,8 @@ def setup_hlt1_node(enablePhysics=True,
             NodeLogic.LAZY_AND,
             force_order=True)
 
+        hlt1_config['lumi_node'] = lumi_with_prefilter
+
         hlt1_node = CompositeNode(
             "AllenWithLumi", [hlt1_node, lumi_with_prefilter],
             NodeLogic.NONLAZY_AND,
@@ -708,13 +728,17 @@ def setup_hlt1_node(enablePhysics=True,
             force_order=True)
 
     if not withMCChecking:
-        return hlt1_node
+        hlt1_config['control_flow_node'] = hlt1_node
     else:
         validation_node = validator_node(
             reconstructed_objects, line_algorithms,
             includes_matching(tracking_type), with_ut, with_muon)
+        hlt1_config['validator_node'] = validation_node
+
         node = CompositeNode(
             "AllenWithValidators", [hlt1_node, validation_node],
             NodeLogic.NONLAZY_AND,
             force_order=False)
-        return node
+        hlt1_config['control_flow_node'] = node
+
+    return hlt1_config
