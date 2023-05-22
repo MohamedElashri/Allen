@@ -18,41 +18,41 @@ HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #pass
 NONLAZY_OR: allen_reconstruction                 #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  LAZY_AND: allen_non_event_data                  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   NONLAZY_OR: allen_non_event_data_converters    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-   DumpBeamline/DumpBeamline_6f0d1cbb            #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   DumpBeamline/DumpBeamline                     #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
    DumpVPGeometry/DumpVPGeometry_2afa7777        #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
    DumpCaloGeometry/DumpCaloGeometry_472f6a19    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
    DumpMagneticField/DumpMagneticField_a4d14417  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
    DumpFTGeometry/DumpFTGeometry_94b0d61a        #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-   DumpMuonGeometry/DumpMuonGeometry_a9928867    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-   DumpMuonTable/DumpMuonTable_cb886402          #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   DumpMuonGeometry/DumpMuonGeometry             #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   DumpMuonTable/DumpMuonTable                   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   NONLAZY_OR: allen_non_event_data_producers     #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-   AllenTESProducer/AllenTESProducer_fca692bd    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-   AllenTESProducer/AllenTESProducer_5ea3b108    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-   AllenTESProducer/AllenTESProducer_4ac9dd3c    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-   AllenTESProducer/AllenTESProducer_570c4150    #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   AllenTESProducer/AllenTESProducer_VP          #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   AllenTESProducer/AllenTESProducer_ECal        #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   AllenTESProducer/AllenTESProducer_Magnet      #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+   AllenTESProducer/AllenTESProducer_FTCluster   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  NONLAZY_OR: dump_geometry                       #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
   TransposeRawBanks/TransposeRawBanks_e567a3bc   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
 HLTControlFlowMgr                      INFO Histograms converted successfully according to request.
 ApplicationMgr                         INFO Application Manager Finalized successfully
 ApplicationMgr                         INFO Application Manager Terminated successfully
-AllenTESProducer_4ac9dd3c              INFO Number of counters : 1
- |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "BytesWritten_MagneticField"                    |         4 |
-AllenTESProducer_570c4150              INFO Number of counters : 1
- |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "BytesWritten_SciFiGeometry"                    |    104104 |
-AllenTESProducer_5ea3b108              INFO Number of counters : 1
+AllenTESProducer_ECal                  INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_EcalGeometry"                     |    198684 |
-AllenTESProducer_fca692bd              INFO Number of counters : 1
+AllenTESProducer_FTCluster             INFO Number of counters : 1
+ |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
+ | "BytesWritten_SciFiGeometry"                    |    104004 |
+AllenTESProducer_Magnet                INFO Number of counters : 1
+ |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
+ | "BytesWritten_MagneticField"                    |         4 |
+AllenTESProducer_VP                    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_VeloGeometry"                     |     16376 |
-DumpBeamline_6f0d1cbb                  INFO Number of counters : 1
+DumpBeamline                           INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_Beamline"                         |         8 |
-DumpMuonGeometry_a9928867              INFO Number of counters : 1
+DumpMuonGeometry                       INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_MuonGeometry"                     |    211468 |
-DumpMuonTable_cb886402                 INFO Number of counters : 1
+DumpMuonTable                          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_MuonLookupTables"                 |   1116340 |
