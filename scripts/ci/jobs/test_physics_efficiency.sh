@@ -32,10 +32,13 @@ for OUTPUT_FOLDER in run_physics_efficiency_output_*/ ; do
     NLINES=`wc -l ${i} | awk '{ print $1; }'`
     tail -n$((${NLINES}-${FIRST}-1)) ${i} | head -n$((${NLINES}-${FIRST}-3)) > efficiency_${i}
     cp efficiency_${i} ${TOPLEVEL}/generated_reference_files/${i}
+    EXTRA_REASON=""
 
     if [ ! -f "${TOPLEVEL}/test/reference/${i}" ]; then
-      echo "Reference : NOT FOUND - continue."
-      continue
+      echo "Reference : NOT FOUND - please, add a reference file!"
+      touch "${TOPLEVEL}/test/reference/${i}"
+      EXTRA_REASON="A reference file was not found. Please, create one!"
+      echo ""
     else
       echo "Reference : test/reference/${i}"
       echo ""
@@ -44,12 +47,12 @@ for OUTPUT_FOLDER in run_physics_efficiency_output_*/ ; do
 
     if ! diff -u -B -Z ${TOPLEVEL}/test/reference/${i} efficiency_${i}; then
       echo "***"
-      echo "*** A difference was found."
+      echo "*** A difference was found. ${EXTRA_REASON}"
       echo "***"
       cp efficiency_${i} ${TOPLEVEL}/test/reference/${i}
       DIFF_FOUND=1
       DIFFS_THISFOLDER="${DIFFS_THISFOLDER}
-      - ${OUTPUT_FOLDER}: ${i}"
+      - ${OUTPUT_FOLDER}: ${i} ${EXTRA_REASON}"
     else
       echo "*** No differences found"
     fi
