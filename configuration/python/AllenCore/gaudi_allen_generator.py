@@ -45,10 +45,9 @@ def allen_runtime_options(rawbank_list, filename="allen_monitor.root"):
             rawbank_list=rawbank_list))
 
 
-@configurable
-def get_constants(consumer_types=["VP", "UT", "FTCluster", "ECal", "Muon"]):
+def get_constants():
     from PyConf.application import make_odin
-    return ProvideConstants(ODINLocation=make_odin(), BankTypes=consumer_types)
+    return ProvideConstants(ODINLocation=make_odin())
 
 
 # Gaudi configuration wrapper

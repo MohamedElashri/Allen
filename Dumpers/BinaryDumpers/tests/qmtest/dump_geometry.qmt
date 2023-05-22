@@ -1,0 +1,29 @@
+<?xml version="1.0" ?><!DOCTYPE extension  PUBLIC '-//QM/2.3/Extension//EN'  'http://www.codesourcery.com/qm/dtds/2.3/-//qm/2.3/extension//en.dtd'>
+<!--
+    (c) Copyright 2023 CERN for the benefit of the LHCb Collaboration
+-->
+<!--
+#######################################################
+# SUMMARY OF THIS TEST
+# ...................
+# Author: Roel Aaij
+# Purpose: Test dumping of geometry in binary format
+#######################################################
+-->
+<extension class="GaudiTest.GaudiExeTest" kind="test">
+  <argument name="program"><text>gaudirun.py</text></argument>
+  <argument name="args"><set>
+    <text>$BINARYDUMPERSROOT/options/mdf_input.py</text>
+    <text>$BINARYDUMPERSROOT/options/dump_geometry.py</text>
+  </set></argument>
+  <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
+  <argument name="reference"><text>../refs/dump_geometry.ref</text></argument>
+  <argument name="timeout"><integer>600</integer></argument>
+  <argument name="validator"><text>
+from Allen.qmtest.exclusions import preprocessor
+
+validateWithReference(preproc=preprocessor)
+
+countErrorLines({"FATAL": 0, "ERROR": 0, "WARNING": 0})
+</text></argument>
+</extension>

@@ -59,10 +59,12 @@ def initialize_event_lists(**kwargs):
     return initialize_lists
 
 
-def generate(root, json_configuration_filename="Sequence.json", verbose=True):
+def generate(node, json_configuration_filename="Sequence.json", verbose=True):
     """Generates an Allen sequence out of a root node."""
+    if type(node) == dict:
+        node = node['control_flow_node']
     with flush_key_registry() :
-        best_order, score = get_execution_list_for(root)
+        best_order, score = get_execution_list_for(node)
         final_seq = add_event_list_combiners(best_order)
 
         if verbose:

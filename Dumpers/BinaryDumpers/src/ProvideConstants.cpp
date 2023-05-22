@@ -13,12 +13,15 @@
 #include "GaudiAlg/Transformer.h"
 
 // Allen
-#include <Allen.h>
 #include <Dumpers/IUpdater.h>
 #include "InputTools.h"
 #include "InputReader.h"
+#include "RegisterConsumers.h"
 #include "Constants.cuh"
+#include "BankTypes.h"
 #include "Logger.h"
+
+#include "AllenUpdater.h"
 
 namespace {
   std::string resolveEnvVars(std::string s)
@@ -47,7 +50,7 @@ public:
   Constants const* operator()(LHCb::ODIN const& odin) const override;
 
 private:
-  Allen::NonEventData::IUpdater* m_updater = nullptr;
+  SmartIF<AllenUpdater> m_updater;
 
   Constants m_constants;
 
@@ -56,10 +59,6 @@ private:
     "ParamDir",
     "${PARAMFILESROOT}"}; // set this explicitly, must match with the Condition tags.
   Gaudi::Property<std::string> m_updaterName {this, "UpdaterName", "AllenUpdater"};
-
-  Gaudi::Property<std::vector<std::string>> m_bankTypeNames {this,
-                                                             "BankTypes",
-                                                             {"VP", "UT", "FTCluster", "ECal", "Muon"}};
 };
 
 ProvideConstants::ProvideConstants(const std::string& name, ISvcLocator* pSvcLocator) :
@@ -77,31 +76,14 @@ StatusCode ProvideConstants::initialize()
   auto sc = Transformer::initialize();
   if (sc.isFailure()) return sc;
 
-  std::unordered_set<BankTypes> bankTypes;
-  for (auto type : m_bankTypeNames.value()) {
-    auto bt = ::bank_type(type);
-    if (bt == BankTypes::Unknown) {
-      error() << "Failed to obtain bank type for " << type << endmsg;
-      return StatusCode::FAILURE;
-    }
-    else {
-      bankTypes.insert(bt);
-    }
+  // Get updater service and register all consumers
+  m_updater = service<AllenUpdater>("AllenUpdater", true);
+  if (!m_updater) {
+    error() << "Failed to retrieve AllenUpdater" << endmsg;
+    return StatusCode::FAILURE;
   }
 
   // initialize Allen Constants
-  // Get updater service and register all consumers
-  auto svc = service(m_updaterName);
-  if (!svc) {
-    error() << "Failed get updater " << m_updaterName.value() << endmsg;
-    return StatusCode::FAILURE;
-  }
-  m_updater = dynamic_cast<Allen::NonEventData::IUpdater*>(svc.get());
-  if (!m_updater) {
-    error() << "Failed cast updater " << m_updaterName.value() << " to Allen::NonEventData::IUpdater " << endmsg;
-    return StatusCode::FAILURE;
-  }
-
   std::string geometry_path = resolveEnvVars(m_paramDir) + "/data";
 
   std::vector<float> muon_field_of_interest_params;
@@ -130,7 +112,7 @@ StatusCode ProvideConstants::initialize()
     two_track_mva_model_reader.lambda());
 
   // Allen Consumers
-  register_consumers(m_updater, m_constants, bankTypes);
+  register_consumers(m_updater.get(), m_constants, m_updater->bankTypes());
 
   return StatusCode::SUCCESS;
 }

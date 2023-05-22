@@ -43,6 +43,7 @@ gaudi_add_module(BinaryDumpersModule
                    src/DumpUTLookupTables.cpp
                    src/DumpVPGeometry.cpp
                    src/PVDumper.cpp
+                   src/ProvideConstants.cpp
                    src/TestMuonTable.cpp
                    src/TransposeRawBanks.cpp
                    src/TESProducer.cpp
