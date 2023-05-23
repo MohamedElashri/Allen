@@ -31,6 +31,31 @@ void compass_ut::compass_ut_t::operator()(
     constants.dev_magnet_polarity.data(),
     constants.dev_ut_dxDy.data(),
     constants.dev_unique_x_sector_layer_offsets.data());
+
+  if (property<verbosity_t>() >= logger::debug) {
+    auto host_ut_tracks = make_host_buffer<dev_ut_tracks_t>(arguments, context);
+    auto host_atomics_ut = make_host_buffer<dev_atomics_ut_t>(arguments, context);
+
+    // Make a container just with valid tracks
+    std::vector<UT::TrackHits> valid_tracks;
+    for (unsigned i = 0; i < first<host_number_of_events_t>(arguments); ++i) {
+      auto offset = i * UT::Constants::max_num_tracks;
+      auto size = host_atomics_ut[i];
+      for (unsigned j = offset; j < offset + size; ++j) {
+        valid_tracks.push_back(host_ut_tracks[j]);
+      }
+    }
+
+    // Sort it
+    std::sort(valid_tracks.begin(), valid_tracks.end(), [](UT::TrackHits a, UT::TrackHits b) {
+      return a.x < b.x || (a.x == b.x && a.z < b.z) || (a.x == b.x && a.z == b.z && a.tx < b.tx);
+    });
+
+    // Print it
+    for (unsigned i = 0; i < valid_tracks.size(); ++i) {
+      debug_cout << valid_tracks[i] << "\n";
+    }
+  }
 }
 
 __global__ void compass_ut::compass_ut(

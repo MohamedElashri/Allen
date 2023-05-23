@@ -144,25 +144,6 @@ inline T atomicMax(T* address, T val)
   return old;
 }
 
-inline float __int_as_float(int a)
-{
-  union {
-    int i;
-    float f;
-  } u;
-  u.i = a;
-  return u.f;
-}
-inline int __float_as_int(float a)
-{
-  union {
-    int i;
-    float f;
-  } u;
-  u.f = a;
-  return u.i;
-}
-
 uint16_t __float2half(const float f);
 
 float __half2float(const uint16_t h);
@@ -278,6 +259,24 @@ namespace Allen {
   void inline print_device_memory_consumption() {}
 
   std::tuple<bool, int> inline get_device_id(const std::string&) { return {true, 0}; }
+
+  namespace device {
+    template<class To, class From>
+    std::enable_if_t<
+      sizeof(To) == sizeof(From) && alignof(To) == alignof(From) && std::is_trivially_copyable_v<From> &&
+        std::is_trivially_copyable_v<To>,
+      To>
+    bit_cast(const From& src) noexcept
+    {
+      To dst;
+      std::memcpy(&dst, &src, sizeof(To));
+      return dst;
+    }
+  } // namespace device
 } // namespace Allen
+
+inline float __int_as_float(int a) { return Allen::device::bit_cast<float>(a); }
+
+inline int __float_as_int(float a) { return Allen::device::bit_cast<int>(a); }
 
 #endif

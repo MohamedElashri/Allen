@@ -37,6 +37,17 @@ void ut_decode_raw_banks_in_order::ut_decode_raw_banks_in_order_t::operator()(
     constants.dev_ut_boards,
     constants.dev_ut_geometry.data(),
     constants.dev_unique_x_sector_layer_offsets.data());
+
+  if (property<verbosity_t>() >= logger::debug) {
+    auto host_ut_hits = make_host_buffer<dev_ut_hits_t>(arguments, context);
+    auto host_ut_hit_offsets = make_host_buffer<dev_ut_hit_offsets_t>(arguments, context);
+    auto hits_view = UT::Hits {host_ut_hits.data(), first<host_accumulated_number_of_ut_hits_t>(arguments)};
+
+    for (unsigned i = 0; i < first<host_accumulated_number_of_ut_hits_t>(arguments); ++i) {
+      debug_cout << hits_view.id(i) << ", ";
+    }
+    debug_cout << "\n";
+  }
 }
 
 /**
