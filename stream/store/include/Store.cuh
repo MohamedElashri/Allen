@@ -251,7 +251,7 @@ namespace Allen::Store {
   private:
     mutable arguments_t m_arguments;
     input_aggregates_t m_input_aggregates;
-    UnorderedStore* m_store;
+    UnorderedStore* m_store = nullptr;
 
     template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
     decltype(m_arguments[index_of_v<T, parameters_tuple_t>].get()) arg() const
@@ -276,11 +276,12 @@ namespace Allen::Store {
     auto make_buffer(const size_t size) const
     {
       using type = std::remove_const_t<T>;
-#if defined(ALLEN_STANDALONE) || !defined(TARGET_DEVICE_CPU)
-      return m_store->make_buffer<S, type>(size);
-#else
-      return Allen::buffer<Allen::Store::Scope::Host, type> {size};
-#endif
+      if (m_store) {
+        return m_store->make_buffer<S, type>(size);
+      }
+      else {
+        return Allen::buffer<S, type> {size};
+      }
     }
 
     template<typename T>
@@ -327,13 +328,13 @@ namespace Allen::Store {
     void resize(const size_t size) const
     {
       static_assert(!Allen::is_template_base_of_v<input_datatype, T> && "resize can only be used on output datatypes");
-#if defined(ALLEN_STANDALONE) || !defined(TARGET_DEVICE_CPU)
-      m_store->free(name<T>());
+      if (m_store) {
+        m_store->free(name<T>());
+      }
       arg<T>().set_size(size);
-      m_store->put(name<T>());
-#else
-      arg<T>().set_size(size);
-#endif
+      if (m_store) {
+        m_store->put(name<T>());
+      }
     }
 
     /**
