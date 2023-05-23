@@ -425,13 +425,13 @@ namespace Allen {
      *          considerable slowdown.
      */
     template<typename Arg, typename Args>
-    static void print(const Args& arguments)
+    static void print(const Args& arguments, const std::string sep = ", ")
     {
       if constexpr (std::is_base_of_v<Allen::Store::host_datatype, Arg>) {
         const auto data = arguments.template get<Arg>();
         info_cout << arguments.template name<Arg>() << ": ";
         for (unsigned i = 0; i < data.size(); ++i) {
-          info_cout << static_cast<int>(data[i]) << ", ";
+          info_cout << static_cast<int>(data[i]) << sep;
         }
         info_cout << "\n";
       }
@@ -448,10 +448,10 @@ namespace Allen {
           if constexpr (
             std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
             std::is_same_v<typename Arg::type, unsigned char> || std::is_same_v<typename Arg::type, signed char>) {
-            info_cout << static_cast<int>(i) << ", ";
+            info_cout << static_cast<int>(i) << sep;
           }
           else {
-            info_cout << i << ", ";
+            info_cout << i << sep;
           }
         }
         info_cout << "\n";

@@ -186,4 +186,15 @@ namespace Allen {
     hipCheck(hipHostRegister(ptr, size, convert_allen_to_hip_host_register_kind(flags)));
   }
 
+  namespace device {
+    template<class To, class From>
+    __host__ __device__ std::enable_if_t<
+      sizeof(To) == sizeof(From) && alignof(To) == alignof(From) && std::is_trivially_copyable_v<From> &&
+        std::is_trivially_copyable_v<To>,
+      To>
+    bit_cast(const From& src) noexcept
+    {
+      return *reinterpret_cast<const To*>(&src);
+    }
+  } // namespace device
 } // namespace Allen

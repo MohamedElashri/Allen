@@ -45,8 +45,30 @@ void ut_pre_decode::ut_pre_decode_t::operator()(
 }
 
 /**
+ * @brief Makes an unsigned key out of a float, where
+ *        float order is preserved. Unsigned order can be composed
+ *        to one another as opposed to float order (sign-magnitude).
+ */
+__device__ uint32_t generate_sort_key(const float a)
+{
+  int32_t i = Allen::device::bit_cast<int32_t>(a);
+  return i < 0 ? -i & 0x7FFFFFFF : (1u << 31) | (i & 0x7FFFFFFF);
+}
+
+/**
+ * @brief Makes a composed key value made out of:
+ *        (u32 representation of yBegin) (u32 representation of xAtYEq0)
+ */
+__device__ uint64_t generate_sort_key(const float xAtYEq0, const float yBegin)
+{
+  auto yBegin_u = generate_sort_key(yBegin);
+  auto xAtYEq0_u = generate_sort_key(xAtYEq0);
+  return static_cast<uint64_t>(yBegin_u) << 32 | xAtYEq0_u;
+}
+
+/**
  * @details Given a RawBank, this function partly decodes the hits to sort them by yBegin.
- *          In case hits have the same yBegin, they are sorted by x (xAtYEq0_local).
+ *          In case hits have the same yBegin, they are sorted by x (xAtYEq0).
  *          Hit indices in the RawBank are persisted along with the variable for sorting
  *          to enable a loop over hits later on.
  */
@@ -99,39 +121,13 @@ __device__ void pre_decode_raw_bank<3>(
     const uint32_t firstStrip = geometry.firstStrip[sec];
     const float dp0diX = geometry.dp0diX[sec];
     const float dp0diY = geometry.dp0diY[sec];
+    const float p0X = geometry.p0X[sec];
     const float p0Y = geometry.p0Y[sec];
     const float numstrips = 0.25f * fracStrip + strip - firstStrip;
 
-    // Make a composed value made out of:
-    // (first 16 bits of yBegin) | (first 16 bits of xAtYEq0_local)
-    //
-    // Rationale:
-    // Sorting in floats is done the same way as for ints,
-    // the bigger the binary number, the bigger the float (it's a designed property
-    // of the float format). Also, the format of a float is as follows:
-    // * 1 bit: sign
-    // * 8 bits: exponent
-    // * 23 bits: mantissa
-    // By using the first 16 bits of each, we get the sign, exponent and 7 bits
-    // of the mantissa, for both Y and X, which is enough to account for the
-    // cases where yBegin was repeated.
-    const auto yBegin = __float2half(p0Y + numstrips * dp0diY);
-    const auto xAtYEq0_local = __float2half(numstrips * dp0diX);
-    const int16_t* yBegin_p = reinterpret_cast<const int16_t*>(&yBegin);
-    const int16_t* xAtYEq0_local_p = reinterpret_cast<const int16_t*>(&xAtYEq0_local);
-
-    // The second value needs to be changed its sign using the 2's complement logic (operator-),
-    // if the signs of both values differ.
-    const int16_t composed_0 = yBegin_p[0];
-    int16_t composed_1 = xAtYEq0_local_p[0];
-    const bool sign_0 = composed_0 & 0x8000;
-    const bool sign_1 = composed_1 & 0x8000;
-    if (sign_0 ^ sign_1) {
-      composed_1 = -composed_1;
-    }
-    const auto composed_0_shifted = sign_0 ? -(abs(composed_0) << 16) : composed_0 << 16;
-    const int composed_value = (composed_0_shifted & 0xFFFF0000) | (composed_1 & 0x0000FFFF);
-    const float* composed_value_float = reinterpret_cast<const float*>(&composed_value);
+    const auto yBegin = p0Y + numstrips * dp0diY;
+    const auto xAtYEq0 = p0X + numstrips * dp0diX;
+    const auto key = generate_sort_key(xAtYEq0, yBegin);
 
     const unsigned base_sector_group_offset = dev_unique_x_sector_offsets[sec];
     unsigned* hits_count_sector_group = hit_count + base_sector_group_offset;
@@ -140,7 +136,7 @@ __device__ void pre_decode_raw_bank<3>(
     assert(current_hit_count < hit_offsets[base_sector_group_offset + 1] - hit_offsets[base_sector_group_offset]);
 
     const unsigned hit_index = hit_offsets[base_sector_group_offset] + current_hit_count;
-    ut_pre_decoded_hits.sort_key(hit_index) = composed_value_float[0];
+    ut_pre_decoded_hits.sort_key(hit_index) = key;
 
     // Raw bank hit index:
     // [raw bank 8 bits] [hit id inside raw bank 24 bits]
@@ -180,6 +176,7 @@ __device__ void pre_decode_raw_bank<4>(
     const uint32_t firstStrip = geometry.firstStrip[sec];
     const float dp0diX = geometry.dp0diX[sec];
     const float dp0diY = geometry.dp0diY[sec];
+    const float p0X = geometry.p0X[sec];
     const float p0Y = geometry.p0Y[sec];
     const float p0Z = geometry.p0Z[sec];
 
@@ -197,22 +194,8 @@ __device__ void pre_decode_raw_bank<4>(
       // we need to know whether or not a "stripflip" canges the numbering
       const auto numstrips = p0Z < 0 ? m_nStripsPerHybrid - (stripID - firstStrip) - 1 : stripID - firstStrip;
 
-      // The magic of combining yBegin and xAtYEq0_local has been explained in the v4 code above.
-      const auto yBegin = __float2half(p0Y + numstrips * dp0diY);
-      const auto xAtYEq0_local = __float2half(numstrips * dp0diX);
-      const int16_t* yBegin_p = reinterpret_cast<const int16_t*>(&yBegin);
-      const int16_t* xAtYEq0_local_p = reinterpret_cast<const int16_t*>(&xAtYEq0_local);
-      const int16_t composed_0 = yBegin_p[0];
-      int16_t composed_1 = xAtYEq0_local_p[0];
-      const bool sign_0 = composed_0 & 0x8000;
-      const bool sign_1 = composed_1 & 0x8000;
-      if (sign_0 ^ sign_1) {
-        composed_1 = -composed_1;
-      }
-
-      const auto composed_0_shifted = sign_0 ? -(abs(composed_0) << 16) : composed_0 << 16;
-      const int composed_value = (composed_0_shifted & 0xFFFF0000) | (composed_1 & 0x0000FFFF);
-      const float* composed_value_float = reinterpret_cast<const float*>(&composed_value);
+      // The magic of combining yBegin and xAtYEq0 has been explained in the v4 code above.
+      const auto key = generate_sort_key(p0X + numstrips * dp0diX, p0Y + numstrips * dp0diY);
 
       // Finally we need to fill the global containers correctly
       const unsigned base_sector_group_offset =
@@ -223,7 +206,7 @@ __device__ void pre_decode_raw_bank<4>(
       assert(current_hit_count < hit_offsets[base_sector_group_offset + 1] - hit_offsets[base_sector_group_offset]);
 
       const unsigned hit_index = hit_offsets[base_sector_group_offset] + current_hit_count;
-      ut_pre_decoded_hits.sort_key(hit_index) = composed_value_float[0];
+      ut_pre_decoded_hits.sort_key(hit_index) = key;
 
       // Raw bank hit index (encodes in which RawBank the hit is, and where it is inside that RawBank):
       // [raw bank 8 bits] [hit id inside raw bank 24 bits]
