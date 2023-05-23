@@ -12,6 +12,7 @@
 
 // Gaudi
 #include <GaudiAlg/Transformer.h>
+#include <GaudiAlg/FunctionalUtilities.h>
 #include <Event/RawBank.h>
 #include <RuntimeOptions.h>
 #include "AllenROOTService.h"
@@ -21,8 +22,11 @@
 #include <Constants.cuh>
 #include <Logger.h>
 
-class ProvideRuntimeOptions final
-  : public Gaudi::Functional::Transformer<RuntimeOptions(std::array<TransposedBanks, LHCb::RawBank::LastType> const&)> {
+using Gaudi::Functional::Traits::useLegacyGaudiAlgorithm;
+
+class ProvideRuntimeOptions final : public Gaudi::Functional::Transformer<
+                                      RuntimeOptions(std::array<TransposedBanks, LHCb::RawBank::LastType> const&),
+                                      useLegacyGaudiAlgorithm> {
 
 public:
   /// Standard constructor
