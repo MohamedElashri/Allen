@@ -11,6 +11,7 @@
 
 // Gaudi
 #include "GaudiAlg/Transformer.h"
+#include "Gaudi/Accumulators.h"
 
 // LHCb
 #include "Event/PrimaryVertices.h"
