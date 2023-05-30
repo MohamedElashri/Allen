@@ -13,7 +13,7 @@
 <extension class="GaudiTest.GaudiExeTest" kind="test">
   <argument name="program"><text>gaudirun.py</text></argument>
   <argument name="args"><set>
-    <text>$BINARYDUMPERSROOT/options/mdf_input.py</text>
+    <text>$BINARYDUMPERSROOT/options/sim10aU1_input.py</text>
     <text>$BINARYDUMPERSROOT/options/dump_geometry.py</text>
   </set></argument>
   <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
