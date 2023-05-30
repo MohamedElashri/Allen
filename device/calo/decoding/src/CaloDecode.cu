@@ -174,6 +174,7 @@ namespace {
             adc -= 256;
             ++nADC;
 
+            if (index_code == 9999) continue; // Skip 'empty' FEB slots
             uint16_t index = geometry.channels[(index_code) *geometry.card_channels + bitNum];
             // Ignore cells with invalid indices; these include LED diodes.
             if (index < number_of_digits && !isFiberOff && code != 0) {
