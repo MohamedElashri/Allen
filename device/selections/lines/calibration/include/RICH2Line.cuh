@@ -106,7 +106,7 @@ namespace rich_2_line {
 
     // RICH 2 Line-specific properties
     Property<minPt_t> m_minPt {this, 500.0f / Gaudi::Units::MeV};
-    Property<minP_t> m_minP {this, 40000.0f / Gaudi::Units::MeV};
+    Property<minP_t> m_minP {this, 60000.0f / Gaudi::Units::MeV};
     Property<maxTrChi2_t> m_maxTrChi2 {this, 2.0f};
 
     Property<minEta_t> m_minEta {this, {2.65}};
