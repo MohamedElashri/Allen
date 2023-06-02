@@ -4,6 +4,8 @@
 #include <tuple>
 #include <vector>
 
+#include "GaudiKernel/StdArrayAsProperty.h"
+
 #include <DetDesc/GenericConditionAccessorHolder.h>
 #include <VPDet/DeVP.h>
 
@@ -18,13 +20,13 @@ namespace {
 
     Beamline() {}
 
-    Beamline(std::vector<char>& data, DeVP const& velo)
+    Beamline(std::vector<char>& data, DeVP const& velo, std::array<float, 2> offset)
     {
       DumpUtils::Writer output;
 
       auto const beamSpot = velo.beamSpot();
-      float x = static_cast<float>(beamSpot.x());
-      float y = static_cast<float>(beamSpot.y());
+      float x = static_cast<float>(beamSpot.x()) + offset[0];
+      float y = static_cast<float>(beamSpot.y()) + offset[1];
       output.write(x, y);
       data = output.buffer();
     }
@@ -47,6 +49,8 @@ public:
   StatusCode initialize() override;
 
 private:
+  Gaudi::Property<std::array<float, 2>> m_offset {this, "Offset", {0.f, 0.f}, "Beamline offset"};
+
   std::vector<char> m_data;
 };
 
@@ -61,7 +65,7 @@ StatusCode DumpBeamline::initialize()
   return Dumper::initialize().andThen([&] {
     register_producer(Allen::NonEventData::Beamline::id, "beamline", m_data);
     addConditionDerivation({DeVPLocation::Default}, inputLocation<Beamline>(), [&](DeVP const& velo) {
-      auto beamline = Beamline {m_data, velo};
+      auto beamline = Beamline {m_data, velo, m_offset};
       dump();
       return beamline;
     });
