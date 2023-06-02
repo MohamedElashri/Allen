@@ -130,7 +130,7 @@ Hlt1ODINLumi:                                           0/  1000, (    0.00 +/- 
 Hlt1ODIN1kHzLumi:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINNoBias:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                      1/  1000, (   30.00 +/-    29.98) kHz
-Hlt1RICH1Alignment:                                     1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1RICH1Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1RICH2Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPiAlignment:                                     1/  1000, (   30.00 +/-    29.98) kHz
@@ -204,7 +204,7 @@ Hlt1ODINLumi:                                           0           0
 Hlt1ODIN1kHzLumi:                                       0           0
 Hlt1ODINNoBias:                                         0           0
 Hlt1VeloMicroBias:                                      1           0
-Hlt1RICH1Alignment:                                     1           1
+Hlt1RICH1Alignment:                                     0           0
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
 Hlt1D2KPiAlignment:                                     1           1
