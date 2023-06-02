@@ -16,7 +16,6 @@
 #include <Datatype.cuh>
 
 // configuration for PV checker -> check values
-static constexpr int nTracksToBeRecble = 4;
 static constexpr double dzIsolated = 10.; // mm
 static constexpr bool matchByTracks = false;
 
@@ -32,7 +31,8 @@ public:
     MCEvents const& mc_events,
     gsl::span<const PV::Vertex> rec_vertex,
     gsl::span<const unsigned> number_of_vertex,
-    gsl::span<const mask_t> event_list);
+    gsl::span<const mask_t> event_list,
+    const int nTracksToBeRecble);
 
   void report(size_t n_events) const override;
 
@@ -53,6 +53,7 @@ private:
   int sum_nFalsePV_real = 0;
   int sum_clones = 0;
   int sum_norm_clones = 0;
+  int m_nTracksToBeRecble = 0;
 };
 
 void match_mc_vertex_by_distance(int ipv, std::vector<RecPVInfo>& rinfo, std::vector<MCPVInfo>& mcpvvec);
