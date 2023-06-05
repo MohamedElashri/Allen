@@ -4,13 +4,11 @@ HLTControlFlowMgr                      INFO  o Number of events slots: 1
 HLTControlFlowMgr                      INFO  o TBB thread pool size:  'ThreadPoolSize':1
 ApplicationMgr                         INFO Application Manager Initialized successfully
 ApplicationMgr                         INFO Application Manager Started successfully
-EventSelector                          INFO Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='mdf:root://eoslhcb.cern.ch//eos/lhcb/hlt2/LHCb/0000248711/Run_0000248711_HLT20840_20221011-113809-426.mdf' SVC='LHCb::MDFSelector' OPT='READ' IgnoreChecksum='YES'
+EventPersistencySvc                    INFO Added successfully Conversion service:RootCnvSvc
+EventSelector                          INFO Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.xdigi' SVC='Gaudi::RootEvtSelector' OPT='READ' IgnoreChecksum='YES'
 HLTControlFlowMgr                      INFO Will measure time between events 0 and 0 (stop might be some events later)
 HLTControlFlowMgr                      INFO Starting loop on events
-EventSelector.DataStreamTool_1         INFO Compression:0 Checksum:0
 EventSelector                       SUCCESS Reading Event record 1. Record number within stream 1: 1
-EventPersistencySvc                    INFO Added successfully Conversion service:RootCnvSvc
-EventPersistencySvc                    INFO Added successfully Conversion service:LHCb::RawDataCnvSvc
 DumpFTGeometry_94b0d61a                INFO Conditions DB is compatible with FT bank version 7 and 8.
 ApplicationMgr                         INFO Application Manager Stopped successfully
 HLTControlFlowMgr                      INFO
@@ -40,7 +38,7 @@ AllenTESProducer_ECal                  INFO Number of counters : 1
  | "BytesWritten_EcalGeometry"                     |    198684 |
 AllenTESProducer_FTCluster             INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "BytesWritten_SciFiGeometry"                    |    104004 |
+ | "BytesWritten_SciFiGeometry"                    |    104104 |
 AllenTESProducer_Magnet                INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_MagneticField"                    |         4 |
