@@ -219,7 +219,7 @@ void PVChecker::accumulate(
 
     for (itmc = rblemcpv.begin(); rblemcpv.end() != itmc; itmc++) {
       // Counters for performance plots
-      if (itmc->nRecTracks > nTracksToBeRecble) {
+      if (itmc->nRecTracks >= nTracksToBeRecble) {
         vec_mcpv_mult.push_back(itmc->pMCPV->numberTracks);
         vec_mcpv_zpos.push_back(itmc->pMCPV->z);
         if (itmc->indexRecPVInfo > -1) {
