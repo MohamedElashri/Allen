@@ -9,18 +9,22 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 // Gaudi
-#include "LHCbAlgs/Transformer.h"
-#include "Event/RawEvent.h"
-#include <vector>
-#include "Kernel/STLExtensions.h"
+#include <LHCbAlgs/Transformer.h>
+#include <Event/RawEvent.h>
+#include <Kernel/STLExtensions.h>
+#include <HltDecReport.cuh>
+#include <HltConstants.cuh>
+#include <RoutingBitsDefinition.h>
 
-class GaudiAllenReportsToRawEvent : public LHCb::Algorithm::MultiTransformer<
-                                      std::tuple<LHCb::RawEvent, LHCb::RawBank::View, LHCb::RawBank::View>(
-                                        const std::vector<unsigned>&,
-                                        const std::vector<unsigned>&,
-                                        const std::vector<unsigned>&,
-                                        const std::vector<unsigned>&),
-                                      LHCb::Algorithm::Traits::writeOnly<LHCb::RawEvent>> {
+class GaudiAllenReportsToRawEvent
+  : public LHCb::Algorithm::MultiTransformer<
+      std::tuple<LHCb::RawEvent, LHCb::RawBank::View, LHCb::RawBank::View, LHCb::RawBank::View>(
+        const std::vector<unsigned>&,
+        const std::vector<unsigned>&,
+        const std::vector<unsigned>&,
+        const std::vector<unsigned>&,
+        const std::vector<unsigned>&),
+      LHCb::Algorithm::Traits::writeOnly<LHCb::RawEvent>> {
 public:
   // Standard constructor
   GaudiAllenReportsToRawEvent(const std::string& name, ISvcLocator* pSvcLocator) :
@@ -30,19 +34,22 @@ public:
                       {KeyValue {"allen_number_of_active_lines", ""},
                        KeyValue {"allen_dec_reports", ""},
                        KeyValue {"allen_selrep_offsets", ""},
-                       KeyValue {"allen_sel_reports", ""}},
+                       KeyValue {"allen_sel_reports", ""},
+                       KeyValue {"allen_routing_bits", ""}},
                       // Outputs
                       {KeyValue {"OutputRawReports", "Allen/Out/RawReports"},
                        KeyValue {"OutputDecView", "Allen/Out/OutputDecView"},
-                       KeyValue {"OutputSelView", "Allen/Out/OutputSelView"}}}
+                       KeyValue {"OutputSelView", "Allen/Out/OutputSelView"},
+                       KeyValue {"OutputRoutingBitsView", "Allen/Out/OutputRoutingBitsView"}}}
   {}
 
   // Algorithm execution
-  std::tuple<LHCb::RawEvent, LHCb::RawBank::View, LHCb::RawBank::View> operator()(
+  std::tuple<LHCb::RawEvent, LHCb::RawBank::View, LHCb::RawBank::View, LHCb::RawBank::View> operator()(
     const std::vector<unsigned>& allen_number_of_active_lines,
     const std::vector<unsigned>& allen_dec_reports,
     const std::vector<unsigned>& allen_selrep_offsets,
-    const std::vector<unsigned>& allen_sel_reports) const override
+    const std::vector<unsigned>& allen_sel_reports,
+    const std::vector<unsigned>& allen_routing_bits) const override
   {
     LHCb::RawEvent raw_event;
     // TODO: get these hard coded numbers from somewhere else... should be defined in one location only!
@@ -51,14 +58,17 @@ public:
     constexpr auto sel_rep_version = 9u, dec_rep_version = 3u;
     auto dec_reports = LHCb::span {allen_dec_reports}.first(3 + allen_number_of_active_lines[0]);
     auto sel_reports = LHCb::span {allen_sel_reports}.first(allen_selrep_offsets[1]);
+    auto routing_bits = LHCb::span {allen_routing_bits}.first(RoutingBitsDefinition::n_words);
     raw_event.addBank(hlt1SourceID_old, LHCb::RawBank::HltSelReports, sel_rep_version, sel_reports);
     raw_event.addBank(hlt1SourceID_new, LHCb::RawBank::HltDecReports, dec_rep_version, dec_reports);
+    raw_event.addBank(hlt1SourceID_new, LHCb::RawBank::HltRoutingBits, 0u, routing_bits);
 
     auto dec_view = raw_event.banks(LHCb::RawBank::HltDecReports);
     auto sel_view = raw_event.banks(LHCb::RawBank::HltSelReports);
+    auto rb_view = raw_event.banks(LHCb::RawBank::HltRoutingBits);
     // without std::move here the RawEvent gets copied which would invalidate the view
     // View creation must be after RawEvent is made
-    return {std::move(raw_event), std::move(dec_view), std::move(sel_view)};
+    return {std::move(raw_event), std::move(dec_view), std::move(sel_view), std::move(rb_view)};
   }
 };
 
