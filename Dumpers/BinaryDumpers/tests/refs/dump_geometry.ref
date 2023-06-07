@@ -29,7 +29,7 @@ NONLAZY_OR: allen_reconstruction                 #=1       Sum=1           Eff=|
    AllenTESProducer/AllenTESProducer_Magnet      #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
    AllenTESProducer/AllenTESProducer_FTCluster   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  NONLAZY_OR: dump_geometry                       #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  TransposeRawBanks/TransposeRawBanks_e567a3bc   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  TransposeRawBanks/TransposeRawBanks_becb8877   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
 HLTControlFlowMgr                      INFO Histograms converted successfully according to request.
 ApplicationMgr                         INFO Application Manager Finalized successfully
 ApplicationMgr                         INFO Application Manager Terminated successfully
