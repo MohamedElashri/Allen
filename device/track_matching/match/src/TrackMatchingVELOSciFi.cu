@@ -183,7 +183,7 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
 
     const auto endvelo_state = velo_states.state(BestMatch.ivelo);
 
-    const auto magSign = dev_magnet_polarity[0];
+    const auto magSign = -dev_magnet_polarity[0];
     matched_track.qop =
       computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx, magSign, dev_magnet_parametrization);
   }
