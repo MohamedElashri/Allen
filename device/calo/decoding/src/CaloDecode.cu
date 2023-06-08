@@ -126,7 +126,6 @@ namespace {
           bool isFiberOff = false;
           uint16_t code = geometry.getFEB(source_id, ifeb);
           uint16_t index_code = geometry.getFEBindex(source_id, ifeb);
-          if (code == 0) continue; // No FEB linked to the TELL40 slot
 
           // ... and readout data
           for (unsigned int bitNum = 0; 32 > bitNum; bitNum++) {
@@ -175,10 +174,10 @@ namespace {
             adc -= 256;
             ++nADC;
 
+            if (index_code == 9999) continue; // Skip 'empty' FEB slots
             uint16_t index = geometry.channels[(index_code) *geometry.card_channels + bitNum];
-
             // Ignore cells with invalid indices; these include LED diodes.
-            if (index < number_of_digits && !isFiberOff) {
+            if (index < number_of_digits && !isFiberOff && code != 0) {
               digits[index].adc = adc;
             }
           }
