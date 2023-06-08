@@ -5,7 +5,7 @@ from AllenCore.algorithms import (
     beam_crossing_line_t, velo_micro_bias_line_t, odin_event_type_line_t,
     odin_event_and_orbit_line_t, calo_digits_minADC_t, beam_gas_line_t,
     velo_clusters_micro_bias_line_t, n_displaced_velo_track_line_t,
-    n_materialvertex_seed_line_t)
+    n_materialvertex_seed_line_t, plume_activity_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenConf.odin import decode_odin
 from AllenCore.generator import make_algorithm
@@ -241,3 +241,27 @@ def make_n_materialvertex_seed_line(filtered_velo_tracks,
         post_scaler=post_scaler,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
+
+
+def make_plume_activity_line(decoded_plume,
+                             name="Hlt1PlumeActivity",
+                             pre_scaler=1.,
+                             post_scaler=1.,
+                             pre_scaler_hash_string=None,
+                             post_scaler_hash_string=None,
+                             min_plume_adc=1,
+                             min_number_plume_adcs_over_min=1):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        plume_activity_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_plume_t=decoded_plume["dev_plume"],
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        min_plume_adc=min_plume_adc,
+        min_number_plume_adcs_over_min=min_number_plume_adcs_over_min)

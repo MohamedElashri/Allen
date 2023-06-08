@@ -16,7 +16,8 @@ from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_sin
 from AllenConf.hlt1_monitoring_lines import (
     make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line,
     make_odin_event_and_orbit_line, make_beam_gas_line,
-    make_velo_clusters_micro_bias_line, make_calo_digits_minADC_line)
+    make_velo_clusters_micro_bias_line, make_calo_digits_minADC_line,
+    make_plume_activity_line)
 from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
@@ -26,6 +27,7 @@ from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.lumi_reconstruction import lumi_reconstruction
+from AllenConf.plume_reconstruction import decode_plume
 from AllenConf.enum_types import TrackingType, includes_matching
 
 
@@ -350,6 +352,7 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
     """
     Detector activity lines for BGI data collection.
     """
+    decoded_plume = decode_plume()
     bx_BB = make_bxtype("BX_BeamBeam", bx_type=3)
     bx_NoBB = make_invert_event_list(bx_BB, name="BX_NoBeamBeam")
     lines = [
@@ -362,7 +365,10 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
         line_maker(
             make_calo_digits_minADC_line(
                 decoded_calo, name="Hlt1BGICaloDigits"),
-            prefilter=prefilter + [bx_NoBB])
+            prefilter=prefilter + [bx_NoBB]),
+        line_maker(
+            make_plume_activity_line(
+                decoded_plume, name="Hlt1BGIPlumeActivity"))
     ]
     return lines
 
