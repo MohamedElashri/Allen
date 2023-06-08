@@ -280,6 +280,11 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
                 long_tracks,
                 secondary_vertices,
                 name="Hlt1DiMuonHighMassAlignment"),
+            make_di_muon_mass_align_line(
+                long_tracks,
+                secondary_vertices,
+                minMass=2500.,
+                name="Hlt1DiMuonJpsiMassAlignment"),
             make_displaced_dimuon_mass_line(
                 long_tracks,
                 secondary_vertices,

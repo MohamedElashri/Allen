@@ -133,6 +133,7 @@ def make_di_muon_mass_align_line(long_tracks,
                                  maxDoca=0.2,
                                  maxVertexChi2=25.,
                                  minIPChi2=0.,
+                                 minMass=9000.,
                                  name="Hlt1DiMuonHighMassAlignment"):
     number_of_events = initialize_number_of_events()
 
@@ -151,6 +152,7 @@ def make_di_muon_mass_align_line(long_tracks,
         minHighMassTrackP=minHighMassTrackP,
         maxDoca=maxDoca,
         maxVertexChi2=maxVertexChi2,
+        minMass=minMass,
         minIPChi2=minIPChi2)
 
 

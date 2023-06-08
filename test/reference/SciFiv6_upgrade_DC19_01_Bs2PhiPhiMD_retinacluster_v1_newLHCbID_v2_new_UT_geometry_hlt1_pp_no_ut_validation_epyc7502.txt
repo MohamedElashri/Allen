@@ -120,6 +120,7 @@ Hlt1RICH2Alignment:                                     0/  1000, (    0.00 +/- 
 Hlt1BeamGas:                                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPiAlignment:                                    20/  1000, (  600.00 +/-   132.82) kHz
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DiMuonJpsiMassAlignment:                           22/  1000, (  660.00 +/-   139.16) kHz
 Hlt1DisplacedDiMuonAlignment:                           1/  1000, (   30.00 +/-    29.98) kHz
 Inclusive:                                            873/  1000, (26190.00 +/-   315.89) kHz
 
@@ -184,11 +185,12 @@ Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
 Hlt1D2KPiAlignment:                                    20          21
 Hlt1DiMuonHighMassAlignment:                            0           0
+Hlt1DiMuonJpsiMassAlignment:                           22          23
 Hlt1DisplacedDiMuonAlignment:                           1           1
 
-Total decisions: 2340
-Total tracks:    1954
-Total SVs:       1538
-Total hits:      40444
-Total stdinfo:   24124
+Total decisions: 2362
+Total tracks:    1965
+Total SVs:       1545
+Total hits:      40668
+Total stdinfo:   24262
 
