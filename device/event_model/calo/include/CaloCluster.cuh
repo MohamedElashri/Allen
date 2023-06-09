@@ -68,7 +68,8 @@ struct TwoCaloCluster {
   float CaloNeutralE19_2 = -1.f;
 
   float Mass = 0.f;
-  float Et = 0.f;
+  float Pt = 0.f;
+  float Eta = 0.f;
   float Distance = 0.f;
 
   __device__ __host__ TwoCaloCluster() {}
@@ -86,6 +87,7 @@ private:
   {
     const float& z = Calo::Constants::z; // mm
 
+    // Cluster 1
     float sintheta = sqrtf((c1.x * c1.x + c1.y * c1.y) / (c1.x * c1.x + c1.y * c1.y + z * z));
     float cosPhi = c1.x / sqrtf(c1.x * c1.x + c1.y * c1.y);
     float sinPhi = c1.y / sqrtf(c1.x * c1.x + c1.y * c1.y);
@@ -93,6 +95,7 @@ private:
     const float E1_y = c1.e * sintheta * sinPhi;
     const float E1_z = c1.e * z / sqrtf(c1.x * c1.x + c1.y * c1.y + z * z);
 
+    // Cluster 2
     sintheta = sqrtf((c2.x * c2.x + c2.y * c2.y) / (c2.x * c2.x + c2.y * c2.y + z * z));
     cosPhi = c2.x / sqrtf(c2.x * c2.x + c2.y * c2.y);
     sinPhi = c2.y / sqrtf(c2.x * c2.x + c2.y * c2.y);
@@ -100,10 +103,13 @@ private:
     const float E2_y = c2.e * sintheta * sinPhi;
     const float E2_z = c2.e * z / sqrtf(c2.x * c2.x + c2.y * c2.y + z * z);
 
-    this->Et = sqrtf((E1_x + E2_x) * (E1_x + E2_x) + (E1_y + E2_y) * (E1_y + E2_y));
-    this->Mass = sqrtf(
-      (c2.e + c1.e) * (c2.e + c1.e) - (E1_x + E2_x) * (E1_x + E2_x) - (E1_y + E2_y) * (E1_y + E2_y) -
-      (E1_z + E2_z) * (E1_z + E2_z));
+    // TwoCluster
+    // Note: for photons, \vec{p} = \vec{E}
+    const float Pt2 = (E1_x + E2_x) * (E1_x + E2_x) + (E1_y + E2_y) * (E1_y + E2_y);
+    const float P2 = Pt2 + (E1_z + E2_z) * (E1_z + E2_z);
+    this->Pt = sqrtf(Pt2);
+    this->Mass = sqrtf((c2.e + c1.e) * (c2.e + c1.e) - P2);
+    this->Eta = atanhf((E1_z + E2_z) / sqrtf(P2));
   }
 
   __device__ __host__ void CalcDistance(const CaloCluster& c1, const CaloCluster& c2)

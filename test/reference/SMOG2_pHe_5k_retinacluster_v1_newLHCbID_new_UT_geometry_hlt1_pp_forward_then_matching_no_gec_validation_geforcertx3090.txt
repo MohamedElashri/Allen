@@ -116,6 +116,7 @@ Hlt1DisplacedDielectron:                                0/  1000, (    0.00 +/- 
 Hlt1DisplacedLeptons:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighEt:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Bs2GammaGamma:                                      0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1Pi02GammaGamma:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice1_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice2_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
@@ -180,6 +181,7 @@ Hlt1DisplacedDielectron:                                0           0
 Hlt1DisplacedLeptons:                                   0           0
 Hlt1SingleHighEt:                                       0           0
 Hlt1Bs2GammaGamma:                                      0           0
+Hlt1Pi02GammaGamma:                                     0           0
 Hlt1LowMassNoipDielectron_massSlice1_prompt:            0           0
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0           0
 Hlt1LowMassNoipDielectron_massSlice2_prompt:            0           0

@@ -43,7 +43,7 @@ namespace calo_prefilter_clusters {
       const Allen::Context& context) const;
 
   private:
-    Property<minEt_clusters_t> m_minEt_clusters {this, 500.f}; // MeV
+    Property<minEt_clusters_t> m_minEt_clusters {this, 400.f}; // MeV
     Property<minE19_clusters_t> m_minE19_clusters {this, 0.6f};
     Property<block_dim_prefilter_t> m_block_dim_prefilter {this, {{256, 1, 1}}};
   };

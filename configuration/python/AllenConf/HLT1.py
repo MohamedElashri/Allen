@@ -10,7 +10,7 @@ from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks, make_lambda2ppi_line
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line, make_two_ks_line
-from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line
+from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line, make_pi02gammagamma_line
 from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line, make_di_muon_no_ip_line, make_di_muon_drell_yan_line
 from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_lowmass_noip_dielectron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line
 from AllenConf.hlt1_monitoring_lines import (
@@ -34,6 +34,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
     velo_tracks = reconstructed_objects["velo_tracks"]
     long_tracks = reconstructed_objects["long_tracks"]
     long_track_particles = reconstructed_objects["long_track_particles"]
+    pvs = reconstructed_objects["pvs"]
     secondary_vertices = reconstructed_objects["secondary_vertices"]
     muon_stubs = reconstructed_objects["muon_stubs"]
 
@@ -165,7 +166,16 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 name="Hlt1DisplacedLeptons"),
             make_single_high_et_line(
                 velo_tracks, calo_matching_objects, name="Hlt1SingleHighEt"),
-            make_bs2gammagamma_line(ecal_clusters, name="Hlt1Bs2GammaGamma")
+            make_bs2gammagamma_line(
+                ecal_clusters, velo_tracks, pvs, name="Hlt1Bs2GammaGamma"),
+            make_pi02gammagamma_line(
+                ecal_clusters,
+                velo_tracks,
+                pvs,
+                name="Hlt1Pi02GammaGamma",
+                pre_scaler_hash_string="p02gammagamma_line_pre",
+                post_scaler_hash_string="p02gammagamma_line_post",
+                pre_scaler=0.05),
         ]
 
         line_slices_mass = {
