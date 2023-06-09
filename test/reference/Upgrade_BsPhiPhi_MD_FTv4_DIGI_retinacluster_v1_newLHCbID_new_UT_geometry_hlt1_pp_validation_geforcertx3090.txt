@@ -110,6 +110,7 @@ Hlt1DisplacedDielectron:                                3/  1000, (   90.00 +/- 
 Hlt1DisplacedLeptons:                                  33/  1000, (  990.00 +/-   169.47) kHz
 Hlt1SingleHighEt:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Bs2GammaGamma:                                     31/  1000, (  930.00 +/-   164.42) kHz
+Hlt1Pi02GammaGamma:                                     1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassNoipDielectron_massSlice1_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice2_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
@@ -175,6 +176,7 @@ Hlt1DisplacedDielectron:                                3           3
 Hlt1DisplacedLeptons:                                  33           0
 Hlt1SingleHighEt:                                       0           0
 Hlt1Bs2GammaGamma:                                     31           0
+Hlt1Pi02GammaGamma:                                     1           0
 Hlt1LowMassNoipDielectron_massSlice1_prompt:            0           0
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0           0
 Hlt1LowMassNoipDielectron_massSlice2_prompt:            0           0
@@ -205,9 +207,9 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           15          16
 Hlt1DisplacedDiMuonAlignment:                           1           1
 
-Total decisions: 2504
+Total decisions: 2505
 Total tracks:    3002
 Total SVs:       2472
 Total hits:      74220
-Total stdinfo:   36408
+Total stdinfo:   36409
 

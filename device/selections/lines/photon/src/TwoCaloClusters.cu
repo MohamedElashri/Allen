@@ -20,16 +20,22 @@ void two_calo_clusters_line::two_calo_clusters_line_t::set_arguments_size(
 
 __device__ bool two_calo_clusters_line::two_calo_clusters_line_t::select(
   const Parameters& parameters,
-  std::tuple<const TwoCaloCluster> input)
+  std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned> input)
 {
+  const auto number_of_velo_tracks = std::get<1>(input);
+  const auto ecal_number_of_clusters = std::get<2>(input);
+  const auto n_pvs = std::get<3>(input);
   const auto dicluster = std::get<0>(input);
 
   bool decision = (dicluster.Mass > parameters.minMass) && (dicluster.Mass < parameters.maxMass) &&
-                  (dicluster.Et > parameters.minEt) &&
+                  (dicluster.Pt > parameters.minPt) && (dicluster.Pt > parameters.minPtEta * (10 - dicluster.Eta)) &&
                   (dicluster.et1 > parameters.minEt_clusters && dicluster.et2 > parameters.minEt_clusters) &&
                   (dicluster.et1 + dicluster.et2 > parameters.minSumEt_clusters) &&
                   (dicluster.CaloNeutralE19_1 > parameters.minE19_clusters &&
-                   dicluster.CaloNeutralE19_2 > parameters.minE19_clusters);
+                   dicluster.CaloNeutralE19_2 > parameters.minE19_clusters) &&
+                  (number_of_velo_tracks <= parameters.max_velo_tracks) &&
+                  (ecal_number_of_clusters <= parameters.max_ecal_clusters) && (n_pvs <= parameters.max_n_pvs) &&
+                  (dicluster.Eta < parameters.eta_max);
 
   return decision;
 }
@@ -43,7 +49,7 @@ void two_calo_clusters_line::two_calo_clusters_line_t::init_monitor(
 
 __device__ void two_calo_clusters_line::two_calo_clusters_line_t::monitor(
   const Parameters& parameters,
-  std::tuple<const TwoCaloCluster>,
+  std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned>,
   unsigned index,
   bool sel)
 {
@@ -70,7 +76,7 @@ void two_calo_clusters_line::two_calo_clusters_line_t::output_monitor(
   const auto host_local_decisions = make_host_buffer<dev_local_decisions_t>(arguments, context);
 
   float Mass = 0.f;
-  float Et = 0.f;
+  float Pt = 0.f;
   float Distance = 0.f;
   float x1 = 0.f;
   float x2 = 0.f;
@@ -84,7 +90,7 @@ void two_calo_clusters_line::two_calo_clusters_line_t::output_monitor(
   unsigned event_number = 0u;
 
   handler.branch(tree_twoclusters, "Mass", Mass);
-  handler.branch(tree_twoclusters, "Et", Et);
+  handler.branch(tree_twoclusters, "Pt", Pt);
   handler.branch(tree_twoclusters, "Distance", Distance);
   handler.branch(tree_twoclusters, "x1", x1);
   handler.branch(tree_twoclusters, "x2", x2);
@@ -114,7 +120,7 @@ void two_calo_clusters_line::two_calo_clusters_line_t::output_monitor(
 
         Mass = dicluster.Mass;
         Distance = dicluster.Distance;
-        Et = dicluster.Et;
+        Pt = dicluster.Pt;
         x1 = dicluster.x1;
         x2 = dicluster.x2;
         y1 = dicluster.y1;

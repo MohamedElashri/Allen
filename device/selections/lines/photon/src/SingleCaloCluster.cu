@@ -10,23 +10,25 @@ INSTANTIATE_LINE(single_calo_cluster_line::single_calo_cluster_line_t, single_ca
 
 __device__ bool single_calo_cluster_line::single_calo_cluster_line_t::select(
   const Parameters& parameters,
-  std::tuple<const CaloCluster> input)
+  std::tuple<const CaloCluster, const unsigned> input)
 {
   const auto& ecal_cluster = std::get<0>(input);
+  const auto ecal_number_of_clusters = std::get<1>(input);
   const float z = Calo::Constants::z; // mm
 
   const float sintheta = sqrtf(
     (ecal_cluster.x * ecal_cluster.x + ecal_cluster.y * ecal_cluster.y) /
     (ecal_cluster.x * ecal_cluster.x + ecal_cluster.y * ecal_cluster.y + z * z));
   const float E_T = ecal_cluster.e * sintheta;
-  const float decision = (E_T > parameters.minEt && E_T < parameters.maxEt);
+  const float decision =
+    (E_T > parameters.minEt && E_T < parameters.maxEt && ecal_number_of_clusters <= parameters.max_ecal_clusters);
 
   return decision;
 }
 
 __device__ void single_calo_cluster_line::single_calo_cluster_line_t::monitor(
   const Parameters& parameters,
-  std::tuple<const CaloCluster> input,
+  std::tuple<const CaloCluster, const unsigned> input,
   unsigned index,
   bool sel)
 {

@@ -14,6 +14,7 @@ namespace single_calo_cluster_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_ecal_number_of_clusters_t, unsigned) host_ecal_number_of_clusters;
+    DEVICE_INPUT(dev_ecal_number_of_clusters_t, unsigned) dev_ecal_number_of_clusters;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ecal_clusters_t, CaloCluster) dev_ecal_clusters;
     DEVICE_INPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
@@ -37,6 +38,7 @@ namespace single_calo_cluster_line {
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
     PROPERTY(minEt_t, "minEt", "minEt description", float) minEt;
     PROPERTY(maxEt_t, "maxEt", "maxEt description", float) maxEt;
+    PROPERTY(max_ecal_clusters_t, "max_ecal_clusters", "Maximum number of VELO tracks", unsigned) max_ecal_clusters;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
@@ -44,10 +46,13 @@ namespace single_calo_cluster_line {
                                       Parameters,
                                       Line<single_calo_cluster_line_t, Parameters> {
 
-    __device__ static void
-    monitor(const Parameters& parameters, std::tuple<const CaloCluster> input, unsigned index, bool sel);
+    __device__ static void monitor(
+      const Parameters& parameters,
+      std::tuple<const CaloCluster, const unsigned> input,
+      unsigned index,
+      bool sel);
 
-    __device__ static bool select(const Parameters& ps, std::tuple<const CaloCluster> input);
+    __device__ static bool select(const Parameters& ps, std::tuple<const CaloCluster, const unsigned> input);
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {
@@ -58,12 +63,14 @@ namespace single_calo_cluster_line {
     {
       return parameters.dev_ecal_cluster_offsets[event_number + 1] - parameters.dev_ecal_cluster_offsets[event_number];
     }
-    __device__ static std::tuple<const CaloCluster>
+
+    __device__ static std::tuple<const CaloCluster, const unsigned>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
     {
+      const unsigned ecal_number_of_clusters = parameters.dev_ecal_number_of_clusters[event_number];
       const CaloCluster event_ecal_clusters =
         parameters.dev_ecal_clusters[parameters.dev_ecal_cluster_offsets[event_number] + i];
-      return std::forward_as_tuple(event_ecal_clusters);
+      return std::forward_as_tuple(event_ecal_clusters, ecal_number_of_clusters);
     }
 
     static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
@@ -78,6 +85,7 @@ namespace single_calo_cluster_line {
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<minEt_t> m_minEt {this, 200.0f};   // MeV
     Property<maxEt_t> m_maxEt {this, 10000.0f}; // MeV
+    Property<max_ecal_clusters_t> m_max_ecal_clusters {this, UINT_MAX};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
   };
 } // namespace single_calo_cluster_line
