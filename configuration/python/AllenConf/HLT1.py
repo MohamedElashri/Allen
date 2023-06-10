@@ -55,7 +55,6 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
         make_two_ks_line(long_tracks, secondary_vertices, name="Hlt1TwoKs"),
         make_lambda2ppi_line(secondary_vertices, name="Hlt1L02PPi")
     ]
-
     if with_muon:
         lines += [
             make_one_muon_track_line(
@@ -63,7 +62,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 muon_stubs["consolidated_muon_tracks"],
                 muon_stubs["dev_output_buffer"],
                 muon_stubs["host_total_sum_holder"],
-                name="Hlt1OneMuonTrackLine"),
+                name="Hlt1OneMuonTrackLine",
+                post_scaler=0.001),
             make_single_high_pt_muon_line(
                 long_tracks, long_track_particles,
                 name="Hlt1SingleHighPtMuon"),
@@ -244,7 +244,9 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name):
                     odin_orbit_modulo=30,
                     odin_orbit_remainder=1)))
     lines.append(
-        line_maker(make_odin_event_type_line(odin_event_type="NoBias")))
+        line_maker(
+            make_odin_event_type_line(
+                odin_event_type="NoBias", pre_scaler=0.0001)))
     return lines
 
 
@@ -553,7 +555,7 @@ def setup_hlt1_node(enablePhysics=True,
                     with_muon=True,
                     enableBGI=False,
                     tracking_type=TrackingType.FORWARD,
-                    tae_passthrough=False):
+                    tae_passthrough=True):
 
     hlt1_config = {}
 

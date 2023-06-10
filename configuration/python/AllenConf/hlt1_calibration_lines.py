@@ -67,7 +67,7 @@ def make_d2kpi_line(long_tracks,
 
 @configurable
 def make_passthrough_line(name="Hlt1Passthrough",
-                          pre_scaler=0.0016,
+                          pre_scaler=0.0001,
                           pre_scaler_hash_string=None,
                           post_scaler_hash_string=None):
 

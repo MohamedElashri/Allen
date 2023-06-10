@@ -17,9 +17,10 @@ def make_one_muon_track_line(number_of_muon_tracks,
                              dev_output_buffer,
                              host_total_sum_holder,
                              name="Hlt1OneMuonTrack",
+                             pre_scaler=1.,
+                             post_scaler=1.,
                              pre_scaler_hash_string=None,
-                             post_scaler_hash_string=None,
-                             pre_scaler=1.):
+                             post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -30,6 +31,7 @@ def make_one_muon_track_line(number_of_muon_tracks,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
         dev_muon_number_of_tracks_t=number_of_muon_tracks,
         dev_muon_tracks_t=muon_tracks,
         host_muon_total_number_of_tracks_t=host_total_sum_holder,
@@ -86,9 +88,10 @@ def make_single_high_pt_muon_no_muid_line(long_tracks,
 def make_low_pt_muon_line(long_tracks,
                           long_track_particles,
                           name="Hlt1LowPtMuon",
+                          pre_scaler=1.,
+                          post_scaler=1.,
                           pre_scaler_hash_string=None,
-                          post_scaler_hash_string=None,
-                          pre_scaler=1.):
+                          post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -98,6 +101,7 @@ def make_low_pt_muon_line(long_tracks,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
         host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[

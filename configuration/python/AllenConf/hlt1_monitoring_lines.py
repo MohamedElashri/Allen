@@ -42,7 +42,7 @@ def make_beam_line(pre_scaler_hash_string=None,
 def make_velo_micro_bias_line(velo_tracks,
                               name="Hlt1VeloMicroBias",
                               pre_scaler=1.,
-                              post_scaler=1.e-3,
+                              post_scaler=1.e-4,
                               pre_scaler_hash_string=None,
                               post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
