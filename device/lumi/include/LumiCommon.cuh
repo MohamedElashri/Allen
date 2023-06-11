@@ -38,7 +38,7 @@ inline __device__ void fillLumiInfo(
     fillLumiInfo(info, offset, size, value);
   }
   else if (shift + value * scale > 0.f) {
-    fillLumiInfo(info, offset, size, static_cast<unsigned>(shift + value * scale));
+    fillLumiInfo(info, offset, size, static_cast<unsigned>(std::round(shift + value * scale)));
   }
   else {
     fillLumiInfo(info, offset, size, 0u);
