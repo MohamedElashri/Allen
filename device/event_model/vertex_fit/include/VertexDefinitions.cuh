@@ -6,6 +6,7 @@
 #include "SciFiDefinitions.cuh"
 #include "ParKalmanMath.cuh"
 #include "BackendCommon.h"
+#include <limits.h>
 
 namespace VertexFit {
 
@@ -33,8 +34,7 @@ namespace VertexFit {
     float p2 = 0.f;
     float cos = 1.f;
 
-    // Variables for dimuon lines
-    float vertex_ip = 0.0f;
+    float vertex_ip = std::numeric_limits<float>::quiet_NaN();
     float dz = 0.0f;
     float doca = -1.f;
     float vertex_clone_sin2 = 0.0f;
@@ -43,7 +43,7 @@ namespace VertexFit {
     // Sum of track pT.
     float sumpt = 0.0f;
     // FD chi2.
-    float fdchi2 = 0.0f;
+    float fdchi2 = std::numeric_limits<float>::quiet_NaN();
     // Mass assuming dimuon hypothesis.
     float mdimu = 0.0f;
     // Corrected mass.
