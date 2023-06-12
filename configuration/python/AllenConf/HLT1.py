@@ -368,7 +368,8 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
             prefilter=prefilter + [bx_NoBB]),
         line_maker(
             make_plume_activity_line(
-                decoded_plume, name="Hlt1BGIPlumeActivity"))
+                decoded_plume, name="Hlt1BGIPlumeActivity"),
+            prefilter=prefilter + [bx_NoBB])
     ]
     return lines
 
