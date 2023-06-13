@@ -17,13 +17,13 @@
 
 using simd = SIMDWrapper::best::types;
 
-class TestUTHits final
+class CompareRecAllenUTHitsMCCheck final
   : public Gaudi::Functional::Consumer<
       void(const std::vector<unsigned>&, const std::vector<char>&, const LHCb::MCHits&, const LHCb::Pr::UT::Hits&)> {
 
 public:
   /// Standard constructor
-  TestUTHits(const std::string& name, ISvcLocator* pSvcLocator);
+  CompareRecAllenUTHitsMCCheck(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
   void operator()(
@@ -37,9 +37,9 @@ private:
   mutable Gaudi::Accumulators::BinomialCounter<> m_rec_hit_eff {this, "CPU UT Hit efficiency"};
 };
 
-DECLARE_COMPONENT(TestUTHits)
+DECLARE_COMPONENT(CompareRecAllenUTHitsMCCheck)
 
-TestUTHits::TestUTHits(const std::string& name, ISvcLocator* pSvcLocator) :
+CompareRecAllenUTHitsMCCheck::CompareRecAllenUTHitsMCCheck(const std::string& name, ISvcLocator* pSvcLocator) :
   Consumer(
     name,
     pSvcLocator,
@@ -49,12 +49,13 @@ TestUTHits::TestUTHits(const std::string& name, ISvcLocator* pSvcLocator) :
      KeyValue {"UTHitsLocation", UTInfo::HitLocation}})
 {}
 
-void TestUTHits::operator()(
+void CompareRecAllenUTHitsMCCheck::operator()(
   const std::vector<unsigned>& ut_hit_offsets,
   const std::vector<char>& ut_hits,
   LHCb::MCHits const& mc_hits,
   LHCb::Pr::UT::Hits const& hit_handler) const
 {
+
   // read in offsets and hits from the buffer
   const auto n_hits_total_allen = ut_hit_offsets[ut_hit_offsets.size() - 1];
   const auto n_hits_total_rec = hit_handler.nHits();
