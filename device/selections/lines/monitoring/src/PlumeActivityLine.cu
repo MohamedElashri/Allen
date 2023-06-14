@@ -17,7 +17,7 @@ __device__ std::tuple<const uint64_t> plume_activity_line::plume_activity_line_t
   uint64_t channels_over_thresh = 0ull;
   for (unsigned i = 0; i < n_channel; i++) {
     auto adc = static_cast<unsigned>(pl->ADC_counts[i].x & 0xffffffff);
-    channels_over_thresh |= static_cast<uint64_t>(adc > parameters.min_plume_adc) << i;
+    channels_over_thresh |= static_cast<uint64_t>(adc >= parameters.min_plume_adc) << i;
   }
 
   return std::forward_as_tuple(channels_over_thresh);

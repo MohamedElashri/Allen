@@ -32,7 +32,7 @@ namespace plume_activity_line {
       "Number of ADCs over configured threshold",
       unsigned)
     min_number_plume_adcs_over_min;
-    PROPERTY(plume_channel_mask_t, "plume_channel_mask_t", "PLUME channel mask as a 64-bit bitset", uint64_t)
+    PROPERTY(plume_channel_mask_t, "plume_channel_mask", "PLUME channel mask as a 64-bit bitset", uint64_t)
     plume_channel_mask;
   };
 
