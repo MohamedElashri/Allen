@@ -32,13 +32,15 @@ namespace plume_activity_line {
       "Number of ADCs over configured threshold",
       unsigned)
     min_number_plume_adcs_over_min;
+    PROPERTY(plume_channel_mask_t, "plume_channel_mask_t", "PLUME channel mask as a 64-bit bitset", uint64_t)
+    plume_channel_mask;
   };
 
   struct plume_activity_line_t : public SelectionAlgorithm, Parameters, EventLine<plume_activity_line_t, Parameters> {
-    __device__ static std::tuple<const unsigned>
+    __device__ static std::tuple<const uint64_t>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned);
 
-    __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input);
+    __device__ static bool select(const Parameters& parameters, std::tuple<const uint64_t> input);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -47,5 +49,6 @@ namespace plume_activity_line {
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<min_plume_adc_t> m_min_plume_adc {this, 1};
     Property<min_number_plume_adcs_over_min_t> m_min_number_plume_adcs_over_min {this, 1};
+    Property<plume_channel_mask_t> plume_channel_mask {this, 0x003FFFFF003FFFFF};
   };
 } // namespace plume_activity_line
