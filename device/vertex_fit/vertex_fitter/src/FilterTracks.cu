@@ -48,8 +48,11 @@ __global__ void FilterTracks::prefilter_tracks(FilterTracks::Parameters paramete
     const auto state = track.state();
     const float pt = state.pt();
     const float ipchi2 = track.ip_chi2();
+    const float ip = track.ip();
     const float chi2ndof = track.chi2() / track.ndof();
-    const bool dec = pt > parameters.track_min_pt && (ipchi2 > parameters.track_min_ipchi2 || track.is_lepton()) &&
+    const bool dec = pt > parameters.track_min_pt &&
+                     (ipchi2 > parameters.track_min_ipchi2 || ip > parameters.track_min_high_ip || track.is_lepton() ||
+                      (ip > parameters.track_min_low_ip && pt > parameters.track_min_pt_low_ip)) &&
                      ((chi2ndof < parameters.track_max_chi2ndof && !track.is_lepton()) ||
                       (chi2ndof < parameters.track_muon_max_chi2ndof && track.is_lepton()));
     event_prefilter_result[i_track] = dec ? ipchi2 : -1.f;
