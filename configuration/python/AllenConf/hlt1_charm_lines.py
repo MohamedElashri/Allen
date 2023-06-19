@@ -12,7 +12,8 @@ def make_d2kk_line(long_tracks,
                    secondary_vertices,
                    name='Hlt1D2KK_{hash}',
                    pre_scaler_hash_string=None,
-                   post_scaler_hash_string=None):
+                   post_scaler_hash_string=None,
+                   enable_monitoring=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -30,7 +31,8 @@ def make_d2pipi_line(long_tracks,
                      secondary_vertices,
                      name='Hlt1D2PiPi_{hash}',
                      pre_scaler_hash_string=None,
-                     post_scaler_hash_string=None):
+                     post_scaler_hash_string=None,
+                     enable_monitoring=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
