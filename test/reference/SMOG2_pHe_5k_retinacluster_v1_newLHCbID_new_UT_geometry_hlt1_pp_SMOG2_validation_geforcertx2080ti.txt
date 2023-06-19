@@ -130,9 +130,9 @@ Hlt1_BESMOG2_NoBias:                                    0/  1000, (    0.00 +/- 
 Hlt1_BESMOG2_LowMult10:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_MinimumBias:                               778/  1000, (23340.00 +/-   394.26) kHz
 Hlt1Passthrough_PV_in_SMOG2:                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_D2Kpi:                                       3/  1000, (   90.00 +/-    51.88) kHz
-Hlt1_SMOG2_eta2pp:                                      3/  1000, (   90.00 +/-    51.88) kHz
-Hlt1_SMOG2_2BodyGeneric:                               19/  1000, (  570.00 +/-   129.52) kHz
+Hlt1_SMOG2_D2Kpi:                                       8/  1000, (  240.00 +/-    84.51) kHz
+Hlt1_SMOG2_eta2pp:                                      9/  1000, (  270.00 +/-    89.59) kHz
+Hlt1_SMOG2_2BodyGeneric:                               48/  1000, ( 1440.00 +/-   202.80) kHz
 Hlt1_SMOG2_SingleTrack:                               143/  1000, ( 4290.00 +/-   332.11) kHz
 Hlt1_SMOG2_DiMuonHighMass:                              0/  1000, (    0.00 +/-     0.00) kHz
 Inclusive:                                            778/  1000, (23340.00 +/-   394.26) kHz
@@ -207,15 +207,15 @@ Hlt1_BESMOG2_NoBias:                                    0           0
 Hlt1_BESMOG2_LowMult10:                                 0           0
 Hlt1_SMOG2_MinimumBias:                               778           0
 Hlt1Passthrough_PV_in_SMOG2:                            0           0
-Hlt1_SMOG2_D2Kpi:                                       3           3
-Hlt1_SMOG2_eta2pp:                                      3           3
-Hlt1_SMOG2_2BodyGeneric:                               19          29
+Hlt1_SMOG2_D2Kpi:                                       8           8
+Hlt1_SMOG2_eta2pp:                                      9           9
+Hlt1_SMOG2_2BodyGeneric:                               48          93
 Hlt1_SMOG2_SingleTrack:                               143         184
 Hlt1_SMOG2_DiMuonHighMass:                              0           0
 
-Total decisions: 947
-Total tracks:    221
-Total SVs:       30
-Total hits:      6851
-Total stdinfo:   2835
+Total decisions: 987
+Total tracks:    289
+Total SVs:       96
+Total hits:      8769
+Total stdinfo:   3683
 

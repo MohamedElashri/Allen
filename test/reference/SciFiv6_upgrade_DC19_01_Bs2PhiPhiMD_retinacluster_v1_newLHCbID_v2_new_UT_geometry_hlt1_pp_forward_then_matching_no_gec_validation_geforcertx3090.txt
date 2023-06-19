@@ -108,7 +108,7 @@ Hlt1KsToPiPi:                                          64/  1000, ( 1920.00 +/- 
 Hlt1TrackMVA:                                         260/  1000, ( 7800.00 +/-   416.12) kHz
 Hlt1TwoTrackMVA:                                      552/  1000, (16560.00 +/-   471.77) kHz
 Hlt1TwoTrackKs:                                         3/  1000, (   90.00 +/-    51.88) kHz
-Hlt1D2KK:                                              15/  1000, (  450.00 +/-   115.31) kHz
+Hlt1D2KK:                                              16/  1000, (  480.00 +/-   119.04) kHz
 Hlt1D2KPi:                                             24/  1000, (  720.00 +/-   145.20) kHz
 Hlt1D2PiPi:                                            21/  1000, (  630.00 +/-   136.03) kHz
 Hlt1TwoKs:                                              1/  1000, (   30.00 +/-    29.98) kHz
@@ -174,7 +174,7 @@ Hlt1KsToPiPi:                                          64          68
 Hlt1TrackMVA:                                         260         392
 Hlt1TwoTrackMVA:                                      552        1886
 Hlt1TwoTrackKs:                                         3           3
-Hlt1D2KK:                                              15          15
+Hlt1D2KK:                                              16          16
 Hlt1D2KPi:                                             24          25
 Hlt1D2PiPi:                                            21          22
 Hlt1TwoKs:                                              1           1
@@ -231,9 +231,9 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           42          52
 Hlt1DisplacedDiMuonAlignment:                           2           2
 
-Total decisions: 2693
-Total tracks:    4656
-Total SVs:       3853
-Total hits:      108869
-Total stdinfo:   55353
+Total decisions: 2694
+Total tracks:    4658
+Total SVs:       3854
+Total hits:      108909
+Total stdinfo:   55374
 
