@@ -78,7 +78,7 @@ Clones               :  0.000 (     0/  4882)
 
 rate_validator validation:
 Hlt1TwoTrackMVACharmXSec:                             140/  1000, ( 4200.00 +/-   329.18) kHz
-Hlt1KsToPiPi:                                          19/  1000, (  570.00 +/-   129.52) kHz
+Hlt1KsToPiPi:                                          49/  1000, ( 1470.00 +/-   204.79) kHz
 Hlt1TrackMVA:                                          16/  1000, (  480.00 +/-   119.04) kHz
 Hlt1TwoTrackMVA:                                       23/  1000, (  690.00 +/-   142.21) kHz
 Hlt1TwoTrackKs:                                         2/  1000, (   60.00 +/-    42.38) kHz
@@ -149,13 +149,13 @@ Hlt1_SMOG2_eta2pp:                                      0/  1000, (    0.00 +/- 
 Hlt1_SMOG2_2BodyGeneric:                                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_SingleTrack:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_DiMuonHighMass:                              0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                            244/  1000, ( 7320.00 +/-   407.45) kHz
+Inclusive:                                            259/  1000, ( 7770.00 +/-   415.60) kHz
 
 
 selreport_validator validation:
                                                    Events  Candidates
 Hlt1TwoTrackMVACharmXSec:                             140         262
-Hlt1KsToPiPi:                                          19          19
+Hlt1KsToPiPi:                                          49          50
 Hlt1TrackMVA:                                          16          17
 Hlt1TwoTrackMVA:                                       23          40
 Hlt1TwoTrackKs:                                         2           2
@@ -227,9 +227,9 @@ Hlt1_SMOG2_2BodyGeneric:                                0           0
 Hlt1_SMOG2_SingleTrack:                                 0           0
 Hlt1_SMOG2_DiMuonHighMass:                              0           0
 
-Total decisions: 348
-Total tracks:    583
-Total SVs:       322
-Total hits:      13519
-Total stdinfo:   6300
+Total decisions: 378
+Total tracks:    625
+Total SVs:       346
+Total hits:      14440
+Total stdinfo:   6762
 

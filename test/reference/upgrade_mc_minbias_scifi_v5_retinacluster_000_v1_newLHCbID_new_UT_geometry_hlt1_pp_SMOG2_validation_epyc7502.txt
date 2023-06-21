@@ -78,7 +78,7 @@ Clones               :  0.000 (     0/  4884)
 
 rate_validator validation:
 Hlt1TwoTrackMVACharmXSec:                             150/  1000, ( 4500.00 +/-   338.75) kHz
-Hlt1KsToPiPi:                                          22/  1000, (  660.00 +/-   139.16) kHz
+Hlt1KsToPiPi:                                          54/  1000, ( 1620.00 +/-   214.42) kHz
 Hlt1TrackMVA:                                          15/  1000, (  450.00 +/-   115.31) kHz
 Hlt1TwoTrackMVA:                                       25/  1000, (  750.00 +/-   148.11) kHz
 Hlt1TwoTrackKs:                                         2/  1000, (   60.00 +/-    42.38) kHz
@@ -149,15 +149,15 @@ Hlt1_SMOG2_eta2pp:                                      0/  1000, (    0.00 +/- 
 Hlt1_SMOG2_2BodyGeneric:                                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_SingleTrack:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_DiMuonHighMass:                              0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                            251/  1000, ( 7530.00 +/-   411.34) kHz
+Inclusive:                                            268/  1000, ( 8040.00 +/-   420.19) kHz
 
 
 selreport_validator validation:
                                                    Events  Candidates
-Hlt1TwoTrackMVACharmXSec:                             150         269
-Hlt1KsToPiPi:                                          22          22
+Hlt1TwoTrackMVACharmXSec:                             150         270
+Hlt1KsToPiPi:                                          54          55
 Hlt1TrackMVA:                                          15          16
-Hlt1TwoTrackMVA:                                       25          42
+Hlt1TwoTrackMVA:                                       25          41
 Hlt1TwoTrackKs:                                         2           2
 Hlt1D2KK:                                               0           0
 Hlt1D2KPi:                                              1           1
@@ -227,9 +227,9 @@ Hlt1_SMOG2_2BodyGeneric:                                0           0
 Hlt1_SMOG2_SingleTrack:                                 0           0
 Hlt1_SMOG2_DiMuonHighMass:                              0           0
 
-Total decisions: 364
-Total tracks:    607
-Total SVs:       332
-Total hits:      13975
-Total stdinfo:   6548
+Total decisions: 396
+Total tracks:    651
+Total SVs:       357
+Total hits:      14947
+Total stdinfo:   7032
 
