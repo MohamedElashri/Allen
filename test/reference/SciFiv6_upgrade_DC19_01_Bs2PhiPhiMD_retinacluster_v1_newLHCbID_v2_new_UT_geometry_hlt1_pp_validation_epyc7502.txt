@@ -88,7 +88,7 @@ Hlt1D2KK:                                              13/  1000, (  390.00 +/- 
 Hlt1D2KPi:                                             21/  1000, (  630.00 +/-   136.03) kHz
 Hlt1D2PiPi:                                            16/  1000, (  480.00 +/-   119.04) kHz
 Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1L02PPi:                                            18/  1000, (  540.00 +/-   126.13) kHz
+Hlt1L02PPi:                                            12/  1000, (  360.00 +/-   103.30) kHz
 Hlt1OneMuonTrackLine:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                                   2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1SingleHighPtMuonNoMuID:                             2/  1000, (   60.00 +/-    42.38) kHz
@@ -141,7 +141,7 @@ Hlt1D2KPiAlignment:                                    21/  1000, (  630.00 +/- 
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                           28/  1000, (  840.00 +/-   156.51) kHz
 Hlt1DisplacedDiMuonAlignment:                           0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                            817/  1000, (24510.00 +/-   366.82) kHz
+Inclusive:                                            816/  1000, (24480.00 +/-   367.60) kHz
 
 
 selreport_validator validation:
@@ -155,7 +155,7 @@ Hlt1D2KK:                                              13          13
 Hlt1D2KPi:                                             21          21
 Hlt1D2PiPi:                                            16          16
 Hlt1TwoKs:                                              0           0
-Hlt1L02PPi:                                            18          19
+Hlt1L02PPi:                                            12          12
 Hlt1OneMuonTrackLine:                                   0           0
 Hlt1SingleHighPtMuon:                                   2           2
 Hlt1SingleHighPtMuonNoMuID:                             2           2
@@ -209,9 +209,9 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           28          31
 Hlt1DisplacedDiMuonAlignment:                           0           0
 
-Total decisions: 2118
-Total tracks:    3446
-Total SVs:       2943
-Total hits:      84175
-Total stdinfo:   41458
+Total decisions: 2112
+Total tracks:    3443
+Total SVs:       2941
+Total hits:      84117
+Total stdinfo:   41420
 
