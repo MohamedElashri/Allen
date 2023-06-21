@@ -27,12 +27,16 @@ namespace FilterSvs {
     // Set all properties to filter svs
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "Max child vertex chi2", float) maxVertexChi2;
     PROPERTY(minComboPt_t, "minComboPt", "Minimum combo pT", float) minComboPt;
+    PROPERTY(minComboPtHighIP_t, "minComboPtHighIP", "Minimum combo pT high IP", float) minComboPtHighIP;
     PROPERTY(minCosDira_t, "minChildCosDira", "Minimum child DIRA", float) minCosDira;
     PROPERTY(minChildEta_t, "minChildEta", "Minimum child eta", float) minChildEta;
     PROPERTY(maxChildEta_t, "maxChildEta", "Maximum child eta", float) maxChildEta;
     PROPERTY(minTrackPt_t, "minTrackPt", "Minimum track pT", float) minTrackPt;
+    PROPERTY(minTrackPtLowIP_t, "minTrackPtLowIP", "Minimum track pT Low IP", float) minTrackPtLowIP;
     PROPERTY(minTrackP_t, "minTrackP", "Minimum track p", float) minTrackP;
     PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "Minimum track IP chi2", float) minTrackIPChi2;
+    PROPERTY(minTrackHighIP_t, "minTrackHighIP", "Minimum track high IP", float) minTrackHighIP;
+    PROPERTY(minTrackLowIP_t, "minTrackLowIP", "Minimum track low IP", float) minTrackLowIP;
     PROPERTY(block_dim_filter_t, "block_dim_filter", "block dimensions for filter step", DeviceDimensions)
     block_dim_filter;
   };
@@ -50,15 +54,19 @@ namespace FilterSvs {
 
   private:
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 30.f};
-    Property<minComboPt_t> m_minComboPt {this, 500.f / Gaudi::Units::MeV};
+    Property<minComboPt_t> m_minComboPt {this, 500.f * Gaudi::Units::MeV};
+    Property<minComboPtHighIP_t> m_minComboPtHighIP {this, 200.f * Gaudi::Units::MeV};
     // Momenta of SVs from displaced decays won't point back to a PV, so don't
     // make a DIRA cut here by default.
     Property<minCosDira_t> m_minCosDira {this, 0.0f};
     Property<minChildEta_t> m_minChildEta {this, 2.f};
     Property<maxChildEta_t> m_maxChildEta {this, 5.f};
-    Property<minTrackPt_t> m_minTrackPt {this, 300.f / Gaudi::Units::MeV};
-    Property<minTrackP_t> m_minTrackP {this, 1000.f / Gaudi::Units::MeV};
+    Property<minTrackPt_t> m_minTrackPt {this, 200.f * Gaudi::Units::MeV};
+    Property<minTrackPtLowIP_t> m_minTrackPtLowIP {this, 500.f * Gaudi::Units::MeV};
+    Property<minTrackP_t> m_minTrackP {this, 1000.f * Gaudi::Units::MeV};
     Property<minTrackIPChi2_t> m_minTrackIPChi2 {this, 4.f};
+    Property<minTrackHighIP_t> m_minTrackHighIP {this, 0.2f * Gaudi::Units::mm};
+    Property<minTrackLowIP_t> m_minTrackLowIP {this, 0.06f * Gaudi::Units::mm};
     Property<block_dim_filter_t> m_block_dim_filter {this, {{128, 1, 1}}};
   };
 } // namespace FilterSvs

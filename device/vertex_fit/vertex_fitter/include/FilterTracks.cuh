@@ -36,9 +36,10 @@ namespace FilterTracks {
     DEVICE_OUTPUT(dev_svs_trk2_idx_t, unsigned) dev_svs_trk2_idx;
     DEVICE_OUTPUT(dev_sv_poca_t, float) dev_sv_poca;
     PROPERTY(track_min_pt_t, "track_min_pt", "minimum track pT", float) track_min_pt;
-    PROPERTY(track_min_pt_charm_t, "track_min_pt_charm", "minimum track pT Charm", float) track_min_pt_charm;
+    PROPERTY(track_min_pt_low_ip_t, "track_min_pt_low_ip", "minimum track pT for low IP", float) track_min_pt_low_ip;
     PROPERTY(track_min_ipchi2_t, "track_min_ipchi2", "minimum track IP chi2", float) track_min_ipchi2;
-    PROPERTY(track_min_ip_t, "track_min_ip", "minimum track IP", float) track_min_ip;
+    PROPERTY(track_min_high_ip_t, "track_min_high_ip", "minimum track high IP", float) track_min_high_ip;
+    PROPERTY(track_min_low_ip_t, "track_min_low_ip", "minimum track low IP", float) track_min_low_ip;
     PROPERTY(track_muon_min_ipchi2_t, "track_muon_min_ipchi2", "minimum muon IP chi2", float) track_muon_min_ipchi2;
     PROPERTY(track_max_chi2ndof_t, "track_max_chi2ndof", "max track chi2/ndof", float) track_max_chi2ndof;
     PROPERTY(track_muon_max_chi2ndof_t, "track_muon_max_chi2ndof", "max muon chi2/ndof", float)
@@ -64,10 +65,11 @@ namespace FilterTracks {
       const Allen::Context& context) const;
 
   private:
-    Property<track_min_pt_t> m_minpt {this, 200.0f};
-    Property<track_min_pt_charm_t> m_minpt_charm {this, 500.0f};
+    Property<track_min_pt_t> m_minpt {this, 200.0f * Gaudi::Units::MeV};
+    Property<track_min_pt_low_ip_t> m_minptlowip {this, 500.0f * Gaudi::Units::MeV};
     Property<track_min_ipchi2_t> m_minipchi2 {this, 4.0f};
-    Property<track_min_ip_t> m_minip {this, 0.06f * Gaudi::Units::mm};
+    Property<track_min_high_ip_t> m_minhighip {this, 0.2f * Gaudi::Units::mm};
+    Property<track_min_low_ip_t> m_minlowip {this, 0.06f * Gaudi::Units::mm};
     Property<track_muon_min_ipchi2_t> m_minmuipchi2 {this, 4.0f};
     Property<track_max_chi2ndof_t> m_maxchi2ndof {this, 2.5f};
     Property<track_muon_max_chi2ndof_t> m_muonmaxchi2ndof {this, 100.f};

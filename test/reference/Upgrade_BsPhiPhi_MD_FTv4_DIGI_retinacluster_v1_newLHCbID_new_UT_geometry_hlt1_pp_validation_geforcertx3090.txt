@@ -152,8 +152,8 @@ Hlt1TrackMVA:                                         207         316
 Hlt1TwoTrackMVA:                                      473        1344
 Hlt1TwoTrackKs:                                         6           6
 Hlt1D2KK:                                              13          14
-Hlt1D2KPi:                                             19          20
-Hlt1D2PiPi:                                            12          12
+Hlt1D2KPi:                                             19          21
+Hlt1D2PiPi:                                            12          13
 Hlt1TwoKs:                                              0           0
 Hlt1L02PPi:                                             7           7
 Hlt1OneMuonTrackLine:                                   1           0
@@ -204,14 +204,14 @@ Hlt1VeloMicroBias:                                      0           0
 Hlt1RICH1Alignment:                                     1           2
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
-Hlt1D2KPiAlignment:                                    19          20
+Hlt1D2KPiAlignment:                                    19          21
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           15          16
 Hlt1DisplacedDiMuonAlignment:                           1           1
 
 Total decisions: 1830
-Total tracks:    3002
-Total SVs:       2472
-Total hits:      74220
-Total stdinfo:   35734
+Total tracks:    3003
+Total SVs:       2473
+Total hits:      74241
+Total stdinfo:   35746
 

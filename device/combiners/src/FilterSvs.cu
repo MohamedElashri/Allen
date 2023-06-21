@@ -58,14 +58,24 @@ __global__ void FilterSvs::filter_svs(FilterSvs::Parameters parameters)
     // Set decision
     dec = vertex.vertex().chi2() > 0 && vertex.vertex().chi2() < parameters.maxVertexChi2;
     // Kinematic cuts.
-    dec &= vertex.minpt() > parameters.minTrackPt;
     dec &= vertex.minp() > parameters.minTrackP;
-    dec &= vertex.vertex().pt() > parameters.minComboPt;
     dec &= vertex.eta() > parameters.minChildEta;
     dec &= vertex.eta() < parameters.maxChildEta;
-    dec &= vertex.minipchi2() > parameters.minTrackIPChi2;
     dec &= vertex.dira() > parameters.minCosDira;
-    event_sv_filter_decision[i_sv] = dec;
+    // Kinematic cuts - IPchi2(dec2), IPlow(dec3) and IPhigh(dec4)
+    bool dec2 = true;
+    dec2 &= vertex.minpt() > parameters.minTrackPt;
+    dec2 &= vertex.vertex().pt() > parameters.minComboPt;
+    dec2 &= vertex.minipchi2() > parameters.minTrackIPChi2;
+    bool dec3 = true;
+    dec3 &= vertex.minpt() > parameters.minTrackPtLowIP;
+    dec3 &= vertex.vertex().pt() > parameters.minComboPt;
+    dec3 &= vertex.minip() > parameters.minTrackLowIP;
+    bool dec4 = true;
+    dec4 &= vertex.minpt() > parameters.minTrackPt;
+    dec4 &= vertex.vertex().pt() > parameters.minComboPtHighIP;
+    dec4 &= vertex.minip() > parameters.minTrackHighIP;
+    event_sv_filter_decision[i_sv] = dec & (dec2 | dec3 | dec4);
   }
 
   __syncthreads();
