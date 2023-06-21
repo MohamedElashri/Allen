@@ -71,7 +71,7 @@ Hlt1D2KK:                                              14/  1000, (  420.00 +/- 
 Hlt1D2KPi:                                             18/  1000, (  540.00 +/-   126.13) kHz
 Hlt1D2PiPi:                                            15/  1000, (  450.00 +/-   115.31) kHz
 Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1L02PPi:                                             1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1L02PPi:                                             0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1OneMuonTrackLine:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                                   3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuonNoMuID:                             6/  1000, (  180.00 +/-    73.26) kHz
@@ -138,7 +138,7 @@ Hlt1D2KK:                                              14          14
 Hlt1D2KPi:                                             18          19
 Hlt1D2PiPi:                                            15          15
 Hlt1TwoKs:                                              0           0
-Hlt1L02PPi:                                             1           1
+Hlt1L02PPi:                                             0           0
 Hlt1OneMuonTrackLine:                                   0           0
 Hlt1SingleHighPtMuon:                                   3           3
 Hlt1SingleHighPtMuonNoMuID:                             6           6
@@ -192,9 +192,9 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           22          23
 Hlt1DisplacedDiMuonAlignment:                           1           1
 
-Total decisions: 1666
+Total decisions: 1665
 Total tracks:    1965
 Total SVs:       1544
 Total hits:      40664
-Total stdinfo:   23562
+Total stdinfo:   23561
 

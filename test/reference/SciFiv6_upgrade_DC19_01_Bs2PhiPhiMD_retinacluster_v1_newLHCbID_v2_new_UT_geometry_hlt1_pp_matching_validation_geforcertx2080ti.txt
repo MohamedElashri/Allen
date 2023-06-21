@@ -104,7 +104,7 @@ Clones               :  0.000 (     0/  5507)
 
 rate_validator validation:
 Hlt1TwoTrackMVACharmXSec:                             683/  1000, (20490.00 +/-   441.43) kHz
-Hlt1KsToPiPi:                                          50/  1000, ( 1500.00 +/-   206.76) kHz
+Hlt1KsToPiPi:                                          51/  1000, ( 1530.00 +/-   208.71) kHz
 Hlt1TrackMVA:                                         234/  1000, ( 7020.00 +/-   401.65) kHz
 Hlt1TwoTrackMVA:                                      506/  1000, (15180.00 +/-   474.31) kHz
 Hlt1TwoTrackKs:                                         2/  1000, (   60.00 +/-    42.38) kHz
@@ -112,7 +112,7 @@ Hlt1D2KK:                                              12/  1000, (  360.00 +/- 
 Hlt1D2KPi:                                             18/  1000, (  540.00 +/-   126.13) kHz
 Hlt1D2PiPi:                                            15/  1000, (  450.00 +/-   115.31) kHz
 Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1L02PPi:                                            30/  1000, (  900.00 +/-   161.83) kHz
+Hlt1L02PPi:                                            31/  1000, (  930.00 +/-   164.42) kHz
 Hlt1OneMuonTrackLine:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                                   3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuonNoMuID:                             5/  1000, (  150.00 +/-    66.91) kHz
@@ -165,13 +165,13 @@ Hlt1D2KPiAlignment:                                    18/  1000, (  540.00 +/- 
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                           29/  1000, (  870.00 +/-   159.20) kHz
 Hlt1DisplacedDiMuonAlignment:                           2/  1000, (   60.00 +/-    42.38) kHz
-Inclusive:                                            853/  1000, (25590.00 +/-   335.93) kHz
+Inclusive:                                            854/  1000, (25620.00 +/-   334.99) kHz
 
 
 selreport_validator validation:
                                                    Events  Candidates
 Hlt1TwoTrackMVACharmXSec:                             683        1824
-Hlt1KsToPiPi:                                          50          54
+Hlt1KsToPiPi:                                          51          55
 Hlt1TrackMVA:                                         234         338
 Hlt1TwoTrackMVA:                                      506        1497
 Hlt1TwoTrackKs:                                         2           2
@@ -179,7 +179,7 @@ Hlt1D2KK:                                              12          12
 Hlt1D2KPi:                                             18          18
 Hlt1D2PiPi:                                            15          15
 Hlt1TwoKs:                                              0           0
-Hlt1L02PPi:                                            30          31
+Hlt1L02PPi:                                            31          31
 Hlt1OneMuonTrackLine:                                   0           0
 Hlt1SingleHighPtMuon:                                   3           3
 Hlt1SingleHighPtMuonNoMuID:                             5           5
@@ -233,9 +233,9 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           29          30
 Hlt1DisplacedDiMuonAlignment:                           2           2
 
-Total decisions: 2375
-Total tracks:    3848
-Total SVs:       2979
-Total hits:      77917
-Total stdinfo:   45075
+Total decisions: 2377
+Total tracks:    3853
+Total SVs:       2981
+Total hits:      77963
+Total stdinfo:   45125
 
