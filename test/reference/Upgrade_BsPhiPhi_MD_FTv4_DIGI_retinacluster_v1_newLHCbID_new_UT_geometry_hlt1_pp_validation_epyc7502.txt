@@ -85,7 +85,7 @@ Hlt1TrackMVA:                                         211/  1000, ( 6330.00 +/- 
 Hlt1TwoTrackMVA:                                      476/  1000, (14280.00 +/-   473.79) kHz
 Hlt1TwoTrackKs:                                         6/  1000, (  180.00 +/-    73.26) kHz
 Hlt1D2KK:                                              11/  1000, (  330.00 +/-    98.95) kHz
-Hlt1D2KPi:                                             19/  1000, (  570.00 +/-   129.52) kHz
+Hlt1D2KPi:                                             17/  1000, (  510.00 +/-   122.64) kHz
 Hlt1D2PiPi:                                            11/  1000, (  330.00 +/-    98.95) kHz
 Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1L02PPi:                                             8/  1000, (  240.00 +/-    84.51) kHz
@@ -137,7 +137,7 @@ Hlt1VeloMicroBias:                                      0/  1000, (    0.00 +/- 
 Hlt1RICH1Alignment:                                     1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1RICH2Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1D2KPiAlignment:                                    19/  1000, (  570.00 +/-   129.52) kHz
+Hlt1D2KPiAlignment:                                    17/  1000, (  510.00 +/-   122.64) kHz
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                           14/  1000, (  420.00 +/-   111.46) kHz
 Hlt1DisplacedDiMuonAlignment:                           2/  1000, (   60.00 +/-    42.38) kHz
@@ -152,7 +152,7 @@ Hlt1TrackMVA:                                         211         331
 Hlt1TwoTrackMVA:                                      476        1383
 Hlt1TwoTrackKs:                                         6           6
 Hlt1D2KK:                                              11          12
-Hlt1D2KPi:                                             19          21
+Hlt1D2KPi:                                             17          19
 Hlt1D2PiPi:                                            11          12
 Hlt1TwoKs:                                              0           0
 Hlt1L02PPi:                                             8           8
@@ -204,14 +204,14 @@ Hlt1VeloMicroBias:                                      0           0
 Hlt1RICH1Alignment:                                     1           2
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
-Hlt1D2KPiAlignment:                                    19          21
+Hlt1D2KPiAlignment:                                    17          19
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           14          14
 Hlt1DisplacedDiMuonAlignment:                           2           2
 
-Total decisions: 1845
-Total tracks:    3026
-Total SVs:       2509
-Total hits:      74683
-Total stdinfo:   36089
+Total decisions: 1841
+Total tracks:    3024
+Total SVs:       2508
+Total hits:      74636
+Total stdinfo:   36065
 

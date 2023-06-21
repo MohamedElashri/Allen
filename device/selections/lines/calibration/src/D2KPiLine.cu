@@ -23,8 +23,24 @@ __device__ bool d2kpi_line::d2kpi_line_t::select(
                         particle.eta() > parameters.minEta && particle.eta() < parameters.maxEta &&
                         particle.doca12() < parameters.maxDOCA && particle.minpt() > parameters.minTrackPt &&
                         particle.minip() > parameters.minTrackIP &&
+                        particle.ctau(Allen::mDz) > parameters.ctIPScale * parameters.minTrackIP &&
                         min(fabsf(m1 - Allen::mDz), fabsf(m2 - Allen::mDz)) < parameters.massWindow &&
                         vertex.z() >= parameters.minZ && particle.pv().position.z >= parameters.minZ;
 
   return decision;
+}
+
+__device__ void d2kpi_line::d2kpi_line_t::monitor(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+  unsigned index,
+  bool sel)
+{
+  if (sel) {
+    const auto& particle = std::get<0>(input);
+    // Use the following variables in bandwidth division
+    parameters.min_pt[index] = particle.minpt(); // This should range in [800., 2000.]
+    parameters.min_ip[index] = particle.minip(); // This should range in [0.06, 0.15]
+    parameters.D0_ct[index] = particle.ctau(Allen::mDz);
+  }
 }

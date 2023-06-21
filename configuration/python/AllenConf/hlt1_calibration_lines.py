@@ -50,7 +50,8 @@ def make_d2kpi_line(long_tracks,
                     secondary_vertices,
                     name="Hlt1D2KPi",
                     pre_scaler_hash_string=None,
-                    post_scaler_hash_string=None):
+                    post_scaler_hash_string=None,
+                    enable_monitoring=False):
 
     number_of_events = initialize_number_of_events()
 

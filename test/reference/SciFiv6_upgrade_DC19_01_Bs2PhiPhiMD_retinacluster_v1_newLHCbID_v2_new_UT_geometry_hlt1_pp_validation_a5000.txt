@@ -85,8 +85,8 @@ Hlt1TrackMVA:                                         236/  1000, ( 7080.00 +/- 
 Hlt1TwoTrackMVA:                                      506/  1000, (15180.00 +/-   474.31) kHz
 Hlt1TwoTrackKs:                                         3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1D2KK:                                              14/  1000, (  420.00 +/-   111.46) kHz
-Hlt1D2KPi:                                             22/  1000, (  660.00 +/-   139.16) kHz
-Hlt1D2PiPi:                                            18/  1000, (  540.00 +/-   126.13) kHz
+Hlt1D2KPi:                                             20/  1000, (  600.00 +/-   132.82) kHz
+Hlt1D2PiPi:                                            16/  1000, (  480.00 +/-   119.04) kHz
 Hlt1TwoKs:                                              1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1L02PPi:                                            19/  1000, (  570.00 +/-   129.52) kHz
 Hlt1OneMuonTrackLine:                                   0/  1000, (    0.00 +/-     0.00) kHz
@@ -137,11 +137,11 @@ Hlt1VeloMicroBias:                                      0/  1000, (    0.00 +/- 
 Hlt1RICH1Alignment:                                     1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1RICH2Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1D2KPiAlignment:                                    22/  1000, (  660.00 +/-   139.16) kHz
+Hlt1D2KPiAlignment:                                    20/  1000, (  600.00 +/-   132.82) kHz
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                           29/  1000, (  870.00 +/-   159.20) kHz
 Hlt1DisplacedDiMuonAlignment:                           0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                            813/  1000, (24390.00 +/-   369.90) kHz
+Inclusive:                                            814/  1000, (24420.00 +/-   369.14) kHz
 
 
 selreport_validator validation:
@@ -152,8 +152,8 @@ Hlt1TrackMVA:                                         236         354
 Hlt1TwoTrackMVA:                                      506        1583
 Hlt1TwoTrackKs:                                         3           3
 Hlt1D2KK:                                              14          14
-Hlt1D2KPi:                                             22          22
-Hlt1D2PiPi:                                            18          18
+Hlt1D2KPi:                                             20          20
+Hlt1D2PiPi:                                            16          16
 Hlt1TwoKs:                                              1           1
 Hlt1L02PPi:                                            19          20
 Hlt1OneMuonTrackLine:                                   0           0
@@ -204,14 +204,14 @@ Hlt1VeloMicroBias:                                      0           0
 Hlt1RICH1Alignment:                                     1           2
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
-Hlt1D2KPiAlignment:                                    22          22
+Hlt1D2KPiAlignment:                                    20          20
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           29          34
 Hlt1DisplacedDiMuonAlignment:                           0           0
 
-Total decisions: 2141
-Total tracks:    3456
-Total SVs:       2918
-Total hits:      84412
-Total stdinfo:   41461
+Total decisions: 2135
+Total tracks:    3458
+Total SVs:       2919
+Total hits:      84456
+Total stdinfo:   41475
 
