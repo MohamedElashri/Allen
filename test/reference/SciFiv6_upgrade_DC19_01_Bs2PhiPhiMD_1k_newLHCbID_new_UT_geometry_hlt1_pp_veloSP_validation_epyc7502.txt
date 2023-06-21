@@ -84,9 +84,9 @@ Hlt1KsToPiPi:                                          47/  1000, ( 1410.00 +/- 
 Hlt1TrackMVA:                                         233/  1000, ( 6990.00 +/-   401.05) kHz
 Hlt1TwoTrackMVA:                                      508/  1000, (15240.00 +/-   474.28) kHz
 Hlt1TwoTrackKs:                                         3/  1000, (   90.00 +/-    51.88) kHz
-Hlt1D2KK:                                              15/  1000, (  450.00 +/-   115.31) kHz
-Hlt1D2KPi:                                             25/  1000, (  750.00 +/-   148.11) kHz
-Hlt1D2PiPi:                                            19/  1000, (  570.00 +/-   129.52) kHz
+Hlt1D2KK:                                              13/  1000, (  390.00 +/-   107.46) kHz
+Hlt1D2KPi:                                             22/  1000, (  660.00 +/-   139.16) kHz
+Hlt1D2PiPi:                                            17/  1000, (  510.00 +/-   122.64) kHz
 Hlt1TwoKs:                                              2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1L02PPi:                                            18/  1000, (  540.00 +/-   126.13) kHz
 Hlt1OneMuonTrackLine:                                   0/  1000, (    0.00 +/-     0.00) kHz
@@ -137,11 +137,11 @@ Hlt1VeloMicroBias:                                      0/  1000, (    0.00 +/- 
 Hlt1RICH1Alignment:                                     1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1RICH2Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1D2KPiAlignment:                                    25/  1000, (  750.00 +/-   148.11) kHz
+Hlt1D2KPiAlignment:                                    22/  1000, (  660.00 +/-   139.16) kHz
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                           28/  1000, (  840.00 +/-   156.51) kHz
 Hlt1DisplacedDiMuonAlignment:                           0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                            814/  1000, (24420.00 +/-   369.14) kHz
+Inclusive:                                            815/  1000, (24450.00 +/-   368.37) kHz
 
 
 selreport_validator validation:
@@ -151,9 +151,9 @@ Hlt1KsToPiPi:                                          47          48
 Hlt1TrackMVA:                                         233         352
 Hlt1TwoTrackMVA:                                      508        1615
 Hlt1TwoTrackKs:                                         3           3
-Hlt1D2KK:                                              15          15
-Hlt1D2KPi:                                             25          25
-Hlt1D2PiPi:                                            19          19
+Hlt1D2KK:                                              13          13
+Hlt1D2KPi:                                             22          22
+Hlt1D2PiPi:                                            17          17
 Hlt1TwoKs:                                              2           2
 Hlt1L02PPi:                                            18          18
 Hlt1OneMuonTrackLine:                                   0           0
@@ -204,14 +204,14 @@ Hlt1VeloMicroBias:                                      0           0
 Hlt1RICH1Alignment:                                     1           2
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
-Hlt1D2KPiAlignment:                                    25          25
+Hlt1D2KPiAlignment:                                    22          22
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           28          31
 Hlt1DisplacedDiMuonAlignment:                           0           0
 
-Total decisions: 2133
-Total tracks:    3448
-Total SVs:       2938
-Total hits:      84203
-Total stdinfo:   41469
+Total decisions: 2123
+Total tracks:    3452
+Total SVs:       2940
+Total hits:      84297
+Total stdinfo:   41499
 
