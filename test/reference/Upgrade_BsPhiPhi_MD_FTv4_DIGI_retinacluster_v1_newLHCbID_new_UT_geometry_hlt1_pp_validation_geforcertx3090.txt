@@ -80,9 +80,9 @@ Clones               :  0.000 (     0/  5598)
 
 rate_validator validation:
 Hlt1TwoTrackMVACharmXSec:                             634/  1000, (19020.00 +/-   456.99) kHz
-Hlt1KsToPiPi:                                          32/  1000, (  960.00 +/-   166.97) kHz
+Hlt1KsToPiPi:                                          57/  1000, ( 1710.00 +/-   219.95) kHz
 Hlt1TrackMVA:                                         207/  1000, ( 6210.00 +/-   384.36) kHz
-Hlt1TwoTrackMVA:                                      473/  1000, (14190.00 +/-   473.65) kHz
+Hlt1TwoTrackMVA:                                      483/  1000, (14490.00 +/-   474.07) kHz
 Hlt1TwoTrackKs:                                         6/  1000, (  180.00 +/-    73.26) kHz
 Hlt1D2KK:                                              11/  1000, (  330.00 +/-    98.95) kHz
 Hlt1D2KPi:                                             16/  1000, (  480.00 +/-   119.04) kHz
@@ -141,15 +141,15 @@ Hlt1D2KPiAlignment:                                    16/  1000, (  480.00 +/- 
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                           15/  1000, (  450.00 +/-   115.31) kHz
 Hlt1DisplacedDiMuonAlignment:                           1/  1000, (   30.00 +/-    29.98) kHz
-Inclusive:                                            742/  1000, (22260.00 +/-   415.08) kHz
+Inclusive:                                            745/  1000, (22350.00 +/-   413.49) kHz
 
 
 selreport_validator validation:
                                                    Events  Candidates
-Hlt1TwoTrackMVACharmXSec:                             634        1524
-Hlt1KsToPiPi:                                          32          32
+Hlt1TwoTrackMVACharmXSec:                             634        1528
+Hlt1KsToPiPi:                                          57          58
 Hlt1TrackMVA:                                         207         316
-Hlt1TwoTrackMVA:                                      473        1344
+Hlt1TwoTrackMVA:                                      483        1408
 Hlt1TwoTrackKs:                                         6           6
 Hlt1D2KK:                                              11          12
 Hlt1D2KPi:                                             16          17
@@ -209,9 +209,9 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           15          16
 Hlt1DisplacedDiMuonAlignment:                           1           1
 
-Total decisions: 1821
-Total tracks:    2998
-Total SVs:       2470
-Total hits:      74124
-Total stdinfo:   35685
+Total decisions: 1856
+Total tracks:    3044
+Total SVs:       2544
+Total hits:      75263
+Total stdinfo:   36384
 
