@@ -48,20 +48,20 @@ namespace two_calo_clusters_line {
     PROPERTY(max_velo_tracks_t, "max_velo_tracks", "Maximum number of VELO tracks", unsigned) max_velo_tracks;
     PROPERTY(max_ecal_clusters_t, "max_ecal_clusters", "Maximum number of ECAL clusters", unsigned) max_ecal_clusters;
     PROPERTY(max_n_pvs_t, "max_n_pvs", "Maximum number of PVs", unsigned) max_n_pvs;
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
   };
 
   struct two_calo_clusters_line_t : public SelectionAlgorithm, Parameters, Line<two_calo_clusters_line_t, Parameters> {
 
-    void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
+    void init_tuples(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
 
-    __device__ static void monitor(
+    __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned>,
       unsigned index,
       bool sel);
 
-    void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
+    void output_tuples(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
       const;
 
     __device__ static bool select(
@@ -120,6 +120,6 @@ namespace two_calo_clusters_line {
     Property<max_velo_tracks_t> m_max_velo_tracks {this, UINT_MAX};
     Property<max_ecal_clusters_t> m_max_ecal_clusters {this, UINT_MAX};
     Property<max_n_pvs_t> m_max_n_pvs {this, UINT_MAX};
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
   };
 } // namespace two_calo_clusters_line

@@ -40,7 +40,7 @@ namespace two_track_mva_line {
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
 
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
   };
 
   struct two_track_mva_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_mva_line_t, Parameters> {
@@ -51,7 +51,7 @@ namespace two_track_mva_line {
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input);
 
-    __device__ static void monitor(
+    __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
@@ -76,7 +76,7 @@ namespace two_track_mva_line {
     Property<minipchi2_t> m_minipchi2 {this, 4.f}; // this is probably a noop, but better safe than sorry
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
 
-    Property<enable_monitoring_t> m_enableMonitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
   };
 
 } // namespace two_track_mva_line

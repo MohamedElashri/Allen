@@ -9,7 +9,10 @@ from AllenCore.generator import generate
 
 decoded_scifi = decode_scifi()
 seeding_xz_tracks = make_seeding_XZ_tracks(decoded_scifi)
-seeding_tracks = make_seeding_tracks(decoded_scifi, seeding_xz_tracks)
+seeding_tracks = make_seeding_tracks(
+    decoded_scifi,
+    seeding_xz_tracks,
+    scifi_consolidate_seeds_name='seeding_sequence_scifi_consolidate_seeds')
 seed = seeding_validation(seeding_tracks)
 seed_xz = seeding_xz_validation()
 seeding_sequence = CompositeNode(

@@ -39,7 +39,7 @@ namespace track_electron_mva_line {
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
 
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enables monitoring ntuple", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enables monitoring ntuple", bool) enable_tupling;
   };
 
   struct track_electron_mva_line_t : public SelectionAlgorithm,
@@ -49,7 +49,7 @@ namespace track_electron_mva_line {
       const Parameters& ps,
       std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input);
 
-    __device__ static void monitor(
+    __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input,
       unsigned index,
@@ -75,6 +75,6 @@ namespace track_electron_mva_line {
     Property<alpha_t> m_alpha {this, 0.f};
     Property<minBPVz_t> m_minBPVz {this, -341.f * Gaudi::Units::mm};
 
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
   };
 } // namespace track_electron_mva_line

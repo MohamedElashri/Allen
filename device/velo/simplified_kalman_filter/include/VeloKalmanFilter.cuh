@@ -11,6 +11,12 @@
 #include "VeloConsolidated.cuh"
 #include "ParticleTypes.cuh"
 #include "patPV_Definitions.cuh"
+#include "CopyTrackParameters.cuh"
+
+#ifndef ALLEN_STANDALONE
+#include <Gaudi/Accumulators.h>
+#include "GaudiMonitoring.h"
+#endif
 
 namespace velo_kalman_filter {
   /**
@@ -173,17 +179,71 @@ namespace velo_kalman_filter {
     dev_velo_kalman_endvelo_states_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+
+    PROPERTY(
+      histogram_velo_track_eta_min_t,
+      "histogram_velo_track_eta_min",
+      "histogram_velo_track_eta_min description",
+      float)
+    histogram_velo_track_eta_min;
+    PROPERTY(
+      histogram_velo_track_eta_max_t,
+      "histogram_velo_track_eta_max",
+      "histogram_velo_track_eta_max description",
+      float)
+    histogram_velo_track_eta_max;
+    PROPERTY(
+      histogram_velo_track_eta_nbins_t,
+      "histogram_velo_track_eta_nbins",
+      "histogram_velo_track_eta_nbins description",
+      unsigned int)
+    histogram_velo_track_eta_nbins;
+
+    PROPERTY(
+      histogram_velo_track_phi_min_t,
+      "histogram_velo_track_phi_min",
+      "histogram_velo_track_phi_min description",
+      float)
+    histogram_velo_track_phi_min;
+    PROPERTY(
+      histogram_velo_track_phi_max_t,
+      "histogram_velo_track_phi_max",
+      "histogram_velo_track_phi_max description",
+      float)
+    histogram_velo_track_phi_max;
+    PROPERTY(
+      histogram_velo_track_phi_nbins_t,
+      "histogram_velo_track_phi_nbins",
+      "histogram_velo_track_phi_nbins description",
+      unsigned int)
+    histogram_velo_track_phi_nbins;
+
+    PROPERTY(
+      histogram_velo_track_nhits_min_t,
+      "histogram_velo_track_nhits_min",
+      "histogram_velo_track_nhits_min description",
+      float)
+    histogram_velo_track_nhits_min;
+    PROPERTY(
+      histogram_velo_track_nhits_max_t,
+      "histogram_velo_track_nhits_max",
+      "histogram_velo_track_nhits_max description",
+      float)
+    histogram_velo_track_nhits_max;
+    PROPERTY(
+      histogram_velo_track_nhits_nbins_t,
+      "histogram_velo_track_nhits_nbins",
+      "histogram_velo_track_nhits_nbins description",
+      unsigned int)
+    histogram_velo_track_nhits_nbins;
   };
 
-  __global__ void velo_kalman_filter(Parameters, float* dev_beamline);
-
+  __global__ void
+  velo_kalman_filter(Parameters, float* dev_beamline, gsl::span<unsigned>, gsl::span<unsigned>, gsl::span<unsigned>);
   struct velo_kalman_filter_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
-    void output_monitor(
-      const ArgumentReferences<Parameters>& arguments,
-      const RuntimeOptions& runtime_options,
-      const Allen::Context& context) const;
+    void init();
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -191,8 +251,37 @@ namespace velo_kalman_filter {
       const Constants& constants,
       const Allen::Context& context) const;
 
+    __device__ static void monitor(
+      const velo_kalman_filter::Parameters& parameters,
+      Allen::Views::Velo::Consolidated::Track velo_track,
+      KalmanVeloState beamline_state,
+      gsl::span<unsigned>,
+      gsl::span<unsigned>,
+      gsl::span<unsigned>);
+
+    void output_monitor(
+      const ArgumentReferences<Parameters>& arguments,
+      const RuntimeOptions& runtime_options,
+      const Allen::Context& context) const;
+
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<histogram_velo_track_eta_min_t> m_histogramVeloEtaMin {this, -10.f};
+    Property<histogram_velo_track_eta_max_t> m_histogramVeloEtaMax {this, 10.f};
+    Property<histogram_velo_track_eta_nbins_t> m_histogramVeloEtaNBins {this, 40u};
+    Property<histogram_velo_track_phi_min_t> m_histogramVeloPhiMin {this, -4.f};
+    Property<histogram_velo_track_phi_max_t> m_histogramVeloPhiMax {this, 4.f};
+    Property<histogram_velo_track_phi_nbins_t> m_histogramVeloPhiNBins {this, 16u};
+    Property<histogram_velo_track_nhits_min_t> m_histogramVeloNhitsMin {this, 0.f};
+    Property<histogram_velo_track_nhits_max_t> m_histogramVeloNhitsMax {this, 50.f};
+    Property<histogram_velo_track_nhits_nbins_t> m_histogramVeloNhitsNBins {this, 50u};
+
+#ifndef ALLEN_STANDALONE
+  private:
+    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_track_eta;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_track_phi;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_track_nhits;
+#endif
   };
 } // namespace velo_kalman_filter

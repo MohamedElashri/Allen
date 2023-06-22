@@ -14,7 +14,8 @@ from AllenConf.hlt1_calibration_lines import make_passthrough_line
 from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 
-reconstructed_objects = hlt1_reconstruction()
+reconstructed_objects = hlt1_reconstruction(
+    algorithm_name='calo_prescaled_plus_lumi_sequence')
 ecal_clusters = reconstructed_objects["ecal_clusters"]
 
 lines = []

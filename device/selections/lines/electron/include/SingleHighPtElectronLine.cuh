@@ -33,7 +33,7 @@ namespace single_high_pt_electron_line {
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
 
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
   };
 
   struct single_high_pt_electron_line_t : public SelectionAlgorithm,
@@ -46,7 +46,7 @@ namespace single_high_pt_electron_line {
     __device__ static std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
-    __device__ static void monitor(
+    __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input,
       unsigned index,
@@ -62,6 +62,6 @@ namespace single_high_pt_electron_line {
     Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 100.f};
     Property<singleMinPt_t> m_singleMinPt {this, 6000.f / Gaudi::Units::MeV};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
-    Property<enable_monitoring_t> m_enableMonitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
   };
 } // namespace single_high_pt_electron_line

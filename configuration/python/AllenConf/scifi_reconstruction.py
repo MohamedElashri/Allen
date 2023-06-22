@@ -74,10 +74,12 @@ def decode_scifi():
 
 
 @configurable
-def make_forward_tracks(decoded_scifi,
-                        input_tracks,
-                        dev_accepted_velo_tracks,
-                        with_ut=True):
+def make_forward_tracks(
+        decoded_scifi,
+        input_tracks,
+        dev_accepted_velo_tracks,
+        with_ut=True,
+        scifi_consolidate_tracks_name='scifi_consolidate_tracks'):
     number_of_events = initialize_number_of_events()
 
     if (with_ut):
@@ -291,7 +293,7 @@ def make_forward_tracks(decoded_scifi,
 
     scifi_consolidate_tracks = make_algorithm(
         scifi_consolidate_tracks_t,
-        name='scifi_consolidate_tracks_{hash}',
+        name=str(scifi_consolidate_tracks_name),
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_hits_in_scifi_tracks_t=
@@ -381,7 +383,10 @@ def make_seeding_XZ_tracks(decoded_scifi):
 
 
 @configurable
-def make_seeding_tracks(decoded_scifi, xz_tracks):
+def make_seeding_tracks(
+        decoded_scifi,
+        xz_tracks,
+        scifi_consolidate_seeds_name='scifi_consolidate_seeds'):
     number_of_events = initialize_number_of_events()
 
     seed_tracks = make_algorithm(
@@ -420,7 +425,7 @@ def make_seeding_tracks(decoded_scifi, xz_tracks):
 
     seed_confirmTracks_consolidate = make_algorithm(
         seed_confirmTracks_consolidate_t,
-        name='scifi_consolidate_seeds_{hash}',
+        name=str(scifi_consolidate_seeds_name),
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_hits_in_scifi_tracks_t=
@@ -496,5 +501,5 @@ def seeding():
     decoded_scifi = decode_scifi()
     seeding_xz_tracks = make_seeding_XZ_tracks(decoded_scifi)
     seeding_tracks = make_seeding_tracks(decoded_scifi, seeding_xz_tracks)
-    alg = seeding_tracks["seed_tracks"]
+    alg = seeding_tracks["dev_scifi_tracks_view"]
     return alg

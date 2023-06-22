@@ -61,7 +61,7 @@ namespace rich_1_line {
     PROPERTY(minPhi_t, "minPhi", "minimum azi angle", std::array<float, 4>) minPhi;
     PROPERTY(maxPhi_t, "maxPhi", "maximum azi angle", std::array<float, 4>) maxPhi;
 
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
 
   // SelectionAlgorithm definition
@@ -82,15 +82,15 @@ namespace rich_1_line {
       std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
     // Stuff for monitoring hists
-    void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
+    void init_tuples(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
 
-    __device__ static void monitor(
+    __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::BasicParticle> input,
       unsigned index,
       bool sel);
 
-    void output_monitor(
+    void output_tuples(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Allen::Context& context) const;
@@ -115,7 +115,7 @@ namespace rich_1_line {
     Property<maxPhi_t> m_maxPhi {this, {-2.30, -0.50, 0.80, 2.65}};
 
     // Switch to create monitoring tuple
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
   };
 
 } // namespace rich_1_line

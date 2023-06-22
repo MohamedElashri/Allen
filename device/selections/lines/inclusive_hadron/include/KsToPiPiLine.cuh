@@ -8,6 +8,11 @@
 #include "ROOTService.h"
 #include "MassDefinitions.h"
 
+#ifndef ALLEN_STANDALONE
+#include "GaudiMonitoring.h"
+#include <Gaudi/Accumulators.h>
+#endif
+
 namespace kstopipi_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -24,6 +29,8 @@ namespace kstopipi_line {
     DEVICE_OUTPUT(sv_masses_t, float) sv_masses;
     DEVICE_OUTPUT(pt_t, float) pt;
     DEVICE_OUTPUT(mipchi2_t, float) mipchi2;
+    DEVICE_OUTPUT(dev_histogram_ks_mass_t, unsigned) dev_histogram_ks_mass;
+    DEVICE_OUTPUT(dev_histogram_ks_pt_t, unsigned) dev_histogram_ks_pt;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -37,6 +44,19 @@ namespace kstopipi_line {
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
 
+    PROPERTY(histogram_ks_mass_min_t, "histogram_ks_mass_min", "histogram_ks_mass_min description", float)
+    histogram_ks_mass_min;
+    PROPERTY(histogram_ks_mass_max_t, "histogram_ks_mass_max", "histogram_ks_mass_max description", float)
+    histogram_ks_mass_max;
+    PROPERTY(histogram_ks_mass_nbins_t, "histogram_ks_mass_nbins", "histogram_ks_mass_nbins description", unsigned int)
+    histogram_ks_mass_nbins;
+    PROPERTY(histogram_ks_pt_min_t, "histogram_ks_pt_min", "histogram_ks_pt_min description", float)
+    histogram_ks_pt_min;
+    PROPERTY(histogram_ks_pt_max_t, "histogram_ks_pt_max", "histogram_ks_pt_max description", float)
+    histogram_ks_pt_max;
+    PROPERTY(histogram_ks_pt_nbins_t, "histogram_ks_pt_nbins", "histogram_ks_pt_nbins description", unsigned int)
+    histogram_ks_pt_nbins;
+
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
@@ -46,11 +66,20 @@ namespace kstopipi_line {
 
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
+    void init();
+
+    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
+
     __device__ static void monitor(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
+
+    __host__ void
+    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
+
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -65,7 +94,17 @@ namespace kstopipi_line {
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
     Property<OppositeSign_t> m_opposite_sign {this, true};
 
+    Property<histogram_ks_mass_min_t> m_histogramksMassMin {this, 400.f};
+    Property<histogram_ks_mass_max_t> m_histogramksMassMax {this, 600.f};
+    Property<histogram_ks_mass_nbins_t> m_histogramksMassNBins {this, 100u};
+    Property<histogram_ks_pt_min_t> m_histogramksPtMin {this, 0.f};
+    Property<histogram_ks_pt_max_t> m_histogramksPtMax {this, 1e4};
+    Property<histogram_ks_pt_nbins_t> m_histogramksPtNBins {this, 100u};
     // Switch to create monitoring tuple
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
+#ifndef ALLEN_STANDALONE
+    gaudi_monitoring::Lockable_Histogram<>* histogram_ks_mass;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_ks_pt;
+#endif
   };
 } // namespace kstopipi_line

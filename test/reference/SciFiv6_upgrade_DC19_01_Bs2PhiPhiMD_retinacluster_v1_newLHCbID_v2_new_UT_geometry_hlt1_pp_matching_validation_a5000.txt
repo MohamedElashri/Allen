@@ -122,8 +122,8 @@ Hlt1DiMuonLowMass:                                     33/  1000, (  990.00 +/- 
 Hlt1DiMuonSoft:                                         1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowPtDiMuon:                                       84/  1000, ( 2520.00 +/-   263.15) kHz
 Hlt1TrackMuonMVA:                                      14/  1000, (  420.00 +/-   111.46) kHz
-Hlt1DiMuonNoIP:                                        45/  1000, ( 1350.00 +/-   196.67) kHz
-Hlt1DiMuonNoIP_ss:                                      8/  1000, (  240.00 +/-    84.51) kHz
+Hlt1DiMuonNoIP:                                        46/  1000, ( 1380.00 +/-   198.73) kHz
+Hlt1DiMuonNoIP_ss:                                      7/  1000, (  210.00 +/-    79.09) kHz
 Hlt1DiMuonDrellYan_VLowMass:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_VLowMass_SS:                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan:                                     0/  1000, (    0.00 +/-     0.00) kHz
@@ -139,9 +139,9 @@ Hlt1LowMassNoipDielectron_massSlice1_prompt:            1/  1000, (   30.00 +/- 
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice2_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice2_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassNoipDielectron_massSlice3_prompt:            1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1LowMassNoipDielectron_massSlice3_prompt:            2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice3_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassNoipDielectron_massSlice4_prompt:            2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1LowMassNoipDielectron_massSlice4_prompt:            1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice4_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice1_displaced:         2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice1_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
@@ -189,8 +189,8 @@ Hlt1DiMuonLowMass:                                     33          40
 Hlt1DiMuonSoft:                                         1           1
 Hlt1LowPtDiMuon:                                       84         109
 Hlt1TrackMuonMVA:                                      14          14
-Hlt1DiMuonNoIP:                                        45          53
-Hlt1DiMuonNoIP_ss:                                      8           8
+Hlt1DiMuonNoIP:                                        46          54
+Hlt1DiMuonNoIP_ss:                                      7           7
 Hlt1DiMuonDrellYan_VLowMass:                            0           0
 Hlt1DiMuonDrellYan_VLowMass_SS:                         0           0
 Hlt1DiMuonDrellYan:                                     0           0
@@ -206,9 +206,9 @@ Hlt1LowMassNoipDielectron_massSlice1_prompt:            1           1
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0           0
 Hlt1LowMassNoipDielectron_massSlice2_prompt:            0           0
 Hlt1LowMassNoipDielectron_SS_massSlice2_prompt:         0           0
-Hlt1LowMassNoipDielectron_massSlice3_prompt:            1           1
+Hlt1LowMassNoipDielectron_massSlice3_prompt:            2           2
 Hlt1LowMassNoipDielectron_SS_massSlice3_prompt:         0           0
-Hlt1LowMassNoipDielectron_massSlice4_prompt:            2           2
+Hlt1LowMassNoipDielectron_massSlice4_prompt:            1           1
 Hlt1LowMassNoipDielectron_SS_massSlice4_prompt:         0           0
 Hlt1LowMassNoipDielectron_massSlice1_displaced:         2           2
 Hlt1LowMassNoipDielectron_SS_massSlice1_displaced:      0           0
@@ -234,8 +234,8 @@ Hlt1DiMuonJpsiMassAlignment:                           29          30
 Hlt1DisplacedDiMuonAlignment:                           3           3
 
 Total decisions: 2463
-Total tracks:    3954
+Total tracks:    3953
 Total SVs:       3088
-Total hits:      79941
-Total stdinfo:   46447
+Total hits:      79919
+Total stdinfo:   46439
 

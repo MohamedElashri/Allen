@@ -5,6 +5,9 @@
 
 #include "CaloCluster.cuh"
 #include "AlgorithmTypes.cuh"
+#ifndef ALLEN_STANDALONE
+#include "Gaudi/Accumulators.h"
+#endif
 
 namespace calo_filter_clusters {
 
@@ -33,6 +36,7 @@ namespace calo_filter_clusters {
 
   struct calo_filter_clusters_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+    void init();
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -42,6 +46,10 @@ namespace calo_filter_clusters {
 
   private:
     Property<block_dim_filter_t> m_block_dim_filter {this, {{64, 16, 1}}};
+#ifndef ALLEN_STANDALONE
+  private:
+    mutable std::unique_ptr<Gaudi::Accumulators::Counter<>> m_calo_clusters;
+#endif
   };
 
 } // namespace calo_filter_clusters

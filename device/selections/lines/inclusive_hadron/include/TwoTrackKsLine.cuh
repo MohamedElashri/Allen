@@ -55,12 +55,12 @@ namespace two_track_line_ks {
     DEVICE_OUTPUT(mass_t, float) mass;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
   };
 
   struct two_track_line_ks_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_line_ks_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
-    __device__ static void monitor(
+    __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
@@ -89,6 +89,6 @@ namespace two_track_line_ks {
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
     Property<OppositeSign_t> m_opposite_sign {this, true};
 
-    Property<enable_monitoring_t> m_enableMonitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
   };
 } // namespace two_track_line_ks

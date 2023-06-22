@@ -61,6 +61,17 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::set_arguments_size(
   set_size<dev_velo_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_velo_multi_event_tracks_view_t>(arguments, 1);
   set_size<dev_imec_velo_tracks_t>(arguments, 1);
+  set_size<dev_imec_velo_tracks_t>(arguments, 1);
+}
+
+void velo_consolidate_tracks::velo_consolidate_tracks_t::init()
+{
+#ifndef ALLEN_STANDALONE
+  m_velo_tracks = new Gaudi::Accumulators::Counter<>(this, "n_velo_tracks");
+
+  histogram_n_velo_tracks = new gaudi_monitoring::Lockable_Histogram<> {
+    {this, "n_velo_tracks_event", "n_velo_tracks_event", {100, 0, 500}}, {}};
+#endif
 }
 
 void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
@@ -76,10 +87,25 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
   Allen::memset_async<dev_velo_multi_event_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_velo_tracks_view_t>(arguments, 0, context);
 
+  auto dev_number_of_tracks_histo = make_device_buffer<unsigned>(arguments, 100u);
+  auto dev_tracks_counter = make_device_buffer<unsigned>(arguments, 1u);
+  Allen::memset_async(
+    dev_number_of_tracks_histo.data(), 0, dev_number_of_tracks_histo.size() * sizeof(unsigned), context);
+  Allen::memset_async(dev_tracks_counter.data(), 0, dev_tracks_counter.size() * sizeof(unsigned), context);
+
   global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
-    arguments);
+    arguments, dev_number_of_tracks_histo.get(), dev_tracks_counter.get());
 
   global_function(create_velo_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
+
+#ifndef ALLEN_STANDALONE
+  // Monitoring
+  gaudi_monitoring::fill(
+    arguments,
+    context,
+    std::tuple {std::tuple {dev_number_of_tracks_histo.get(), histogram_n_velo_tracks, 0, 500},
+                std::tuple {dev_tracks_counter.get(), m_velo_tracks}});
+#endif
 }
 
 template<typename F>
@@ -91,7 +117,10 @@ __device__ void populate(const Velo::TrackHits* track, const unsigned number_of_
   }
 }
 
-__global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidate_tracks::Parameters parameters)
+__global__ void velo_consolidate_tracks::velo_consolidate_tracks(
+  velo_consolidate_tracks::Parameters parameters,
+  gsl::span<unsigned> dev_number_of_tracks_histo,
+  gsl::span<unsigned> dev_tracks_counter)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -105,12 +134,17 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
                                           event_number,
                                           number_of_events};
   const unsigned event_total_number_of_tracks = velo_tracks.number_of_tracks(event_number);
-
   const auto event_number_of_three_hit_tracks_filtered =
     parameters.dev_offsets_number_of_three_hit_tracks_filtered[event_number + 1] -
     parameters.dev_offsets_number_of_three_hit_tracks_filtered[event_number];
   const auto event_number_of_tracks_in_main_track_container =
     event_total_number_of_tracks - event_number_of_three_hit_tracks_filtered;
+
+  if (event_total_number_of_tracks < 500) {
+    unsigned bin = std::floor(event_total_number_of_tracks / 5);
+    dev_number_of_tracks_histo[bin]++;
+  }
+  dev_tracks_counter[0] += event_total_number_of_tracks;
 
   // Pointers to data within event
   const unsigned total_estimated_number_of_clusters =

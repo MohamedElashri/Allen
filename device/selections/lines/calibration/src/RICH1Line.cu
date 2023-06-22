@@ -46,7 +46,7 @@ void rich_1_line::rich_1_line_t::set_arguments_size(
 /*
  * Documented in ExampleOneTrackLine.cuh
  */
-void rich_1_line::rich_1_line_t::init_monitor(
+void rich_1_line::rich_1_line_t::init_tuples(
   const ArgumentReferences<Parameters>& arguments,
   const Allen::Context& context) const
 {
@@ -61,7 +61,7 @@ void rich_1_line::rich_1_line_t::init_monitor(
 /*
  * Documented in ExampleOneTrackLine.cuh
  */
-__device__ void rich_1_line::rich_1_line_t::monitor(
+__device__ void rich_1_line::rich_1_line_t::fill_tuples(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::BasicParticle> input,
   unsigned index,
@@ -80,7 +80,7 @@ __device__ void rich_1_line::rich_1_line_t::monitor(
   parameters.dev_decision[index] = sel;
 }
 
-void rich_1_line::rich_1_line_t::output_monitor(
+void rich_1_line::rich_1_line_t::output_tuples(
   [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
   [[maybe_unused]] const RuntimeOptions& runtime_options,
   [[maybe_unused]] const Allen::Context& context) const

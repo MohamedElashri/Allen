@@ -74,7 +74,10 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
             make_low_pt_muon_line(
                 long_tracks, long_track_particles, name="Hlt1LowPtMuon"),
             make_di_muon_mass_line(
-                long_tracks, secondary_vertices, name="Hlt1DiMuonHighMass"),
+                long_tracks,
+                secondary_vertices,
+                name="Hlt1DiMuonHighMass",
+                enable_monitoring=True),
             make_di_muon_mass_line(
                 long_tracks,
                 secondary_vertices,
@@ -99,7 +102,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 pre_scaler_hash_string="di_muon_no_ip_ss_line_pre",
                 post_scaler_hash_string="di_muon_no_ip_ss_line_post",
                 ss_on=True,
-                pre_scaler=.1),
+                post_scaler=.1),
             make_di_muon_drell_yan_line(
                 long_tracks,
                 secondary_vertices,
@@ -186,7 +189,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
         }
         for subSample in ["prompt", "displaced"]:
             for label, limits in line_slices_mass.items():
-                prescale_os = 0.3 if subSample == "prompt" else 1.0
+                postscale_os = 0.3 if subSample == "prompt" else 1.0
                 lines.append(
                     make_lowmass_noip_dielectron_line(
                         long_tracks,
@@ -203,7 +206,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                         pre_scaler_hash_string=
                         "lowmass_noip_dielectron_massSlice{}_{}_pre".format(
                             label, subSample),
-                        pre_scaler=prescale_os))
+                        post_scaler=postscale_os))
                 lines.append(
                     make_lowmass_noip_dielectron_line(
                         long_tracks,
@@ -221,7 +224,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                         pre_scaler_hash_string=
                         "lowmass_noip_dielectron_SS_massSlice{}_{}_pre".format(
                             label, subSample),
-                        pre_scaler=0.02,
+                        post_scaler=0.02,
                         post_scaler_hash_string=
                         "lowmass_noip_dielectron_SS_massSlice{}_{}_post".
                         format(label, subSample)))

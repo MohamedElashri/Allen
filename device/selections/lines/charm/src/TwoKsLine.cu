@@ -42,7 +42,7 @@ __device__ float two_ks_line::two_ks_line_t::m(
   return sqrtf(Dz_E * Dz_E - Dz_px * Dz_px - Dz_py * Dz_py - Dz_pz * Dz_pz);
 }
 
-__device__ void two_ks_line::two_ks_line_t::monitor(
+__device__ void two_ks_line::two_ks_line_t::fill_tuples(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,

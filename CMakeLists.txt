@@ -616,6 +616,7 @@ foreach(header
     FileSystem.h
     TransposeTypes.h
     InputReader.h
+    GaudiMonitoring.h
     Configuration.h)
   list(APPEND AllenHeaders main/include/${header})
 endforeach()

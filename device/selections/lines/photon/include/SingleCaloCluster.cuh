@@ -39,14 +39,14 @@ namespace single_calo_cluster_line {
     PROPERTY(minEt_t, "minEt", "minEt description", float) minEt;
     PROPERTY(maxEt_t, "maxEt", "maxEt description", float) maxEt;
     PROPERTY(max_ecal_clusters_t, "max_ecal_clusters", "Maximum number of VELO tracks", unsigned) max_ecal_clusters;
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
   };
 
   struct single_calo_cluster_line_t : public SelectionAlgorithm,
                                       Parameters,
                                       Line<single_calo_cluster_line_t, Parameters> {
 
-    __device__ static void monitor(
+    __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const CaloCluster, const unsigned> input,
       unsigned index,
@@ -86,6 +86,6 @@ namespace single_calo_cluster_line {
     Property<minEt_t> m_minEt {this, 200.0f};   // MeV
     Property<maxEt_t> m_maxEt {this, 10000.0f}; // MeV
     Property<max_ecal_clusters_t> m_max_ecal_clusters {this, UINT_MAX};
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
   };
 } // namespace single_calo_cluster_line

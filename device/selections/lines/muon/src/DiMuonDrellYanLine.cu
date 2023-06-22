@@ -12,6 +12,33 @@
 
 INSTANTIATE_LINE(di_muon_drell_yan_line::di_muon_drell_yan_line_t, di_muon_drell_yan_line::Parameters)
 
+void di_muon_drell_yan_line::di_muon_drell_yan_line_t::init()
+{
+#ifndef ALLEN_STANDALONE
+  histogram_Z_mass = new gaudi_monitoring::Lockable_Histogram<> {
+    {this,
+     "Z_mass",
+     "m(mu+mu-)",
+     {property<histogram_Z_mass_nbins_t>(), property<histogram_Z_mass_min_t>(), property<histogram_Z_mass_max_t>()}},
+    {}};
+  histogram_Z_mass_ss = new gaudi_monitoring::Lockable_Histogram<> {
+    {this,
+     "Z_mass_ss",
+     "m(mu+mu+)",
+     {property<histogram_Z_mass_nbins_t>(), property<histogram_Z_mass_min_t>(), property<histogram_Z_mass_max_t>()}},
+    {}};
+#endif
+}
+
+void di_muon_drell_yan_line::di_muon_drell_yan_line_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions& ro,
+  const Constants& c) const
+{
+  static_cast<Line const*>(this)->set_arguments_size(arguments, ro, c);
+  set_size<typename Parameters::dev_histogram_Z_mass_t>(arguments, 100u);
+}
+
 __device__ bool di_muon_drell_yan_line::di_muon_drell_yan_line_t::select(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
@@ -44,18 +71,71 @@ __device__ bool di_muon_drell_yan_line::di_muon_drell_yan_line_t::select(
   return decision;
 }
 
+void di_muon_drell_yan_line::di_muon_drell_yan_line_t::init_monitor(
+  const ArgumentReferences<Parameters>& arguments,
+  const Allen::Context& context)
+{
+  Allen::memset_async<dev_histogram_Z_mass_t>(arguments, 0, context);
+}
+
 __device__ void di_muon_drell_yan_line::di_muon_drell_yan_line_t::monitor(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+  unsigned,
+  bool sel)
+{
+  if (sel) {
+    const auto& vertex = std::get<0>(input);
+    const auto m = vertex.mdimu();
+    if (m > parameters.histogram_Z_mass_min && m < parameters.histogram_Z_mass_max) {
+      const unsigned int bin = static_cast<unsigned int>(
+        (m - parameters.histogram_Z_mass_min) * parameters.histogram_Z_mass_nbins /
+        (parameters.histogram_Z_mass_max - parameters.histogram_Z_mass_min));
+      ++parameters.dev_histogram_Z_mass[bin];
+    }
+  }
+}
+
+__device__ void di_muon_drell_yan_line::di_muon_drell_yan_line_t::fill_tuples(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,
   bool sel)
 {
-  const auto& vertex = std::get<0>(input);
   if (sel) {
+    const auto& vertex = std::get<0>(input);
     const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
     const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
 
-    parameters.mass[index] = vertex.mdimu();
+    const auto m = vertex.mdimu();
+    parameters.mass[index] = m;
     parameters.transverse_momentum[index] = std::min(trk1->state().pt(), trk2->state().pt());
   }
+}
+
+void di_muon_drell_yan_line::di_muon_drell_yan_line_t::output_monitor(
+  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  [[maybe_unused]] const Allen::Context& context) const
+{
+#ifndef ALLEN_STANDALONE
+  if (property<OppositeSign_t>()) {
+    gaudi_monitoring::fill(
+      arguments,
+      context,
+      std::tuple {get<dev_histogram_Z_mass_t>(arguments),
+                  histogram_Z_mass,
+                  property<histogram_Z_mass_min_t>(),
+                  property<histogram_Z_mass_max_t>()});
+  }
+  else {
+    gaudi_monitoring::fill(
+      arguments,
+      context,
+      std::tuple {get<dev_histogram_Z_mass_t>(arguments),
+                  histogram_Z_mass_ss,
+                  property<histogram_Z_mass_min_t>(),
+                  property<histogram_Z_mass_max_t>()});
+  }
+#endif
 }

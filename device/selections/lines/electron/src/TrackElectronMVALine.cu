@@ -52,7 +52,7 @@ __device__ bool track_electron_mva_line::track_electron_mva_line_t::select(
   return decision;
 }
 
-__device__ void track_electron_mva_line::track_electron_mva_line_t::monitor(
+__device__ void track_electron_mva_line::track_electron_mva_line_t::fill_tuples(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input,
   unsigned index,

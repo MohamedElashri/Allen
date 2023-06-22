@@ -20,6 +20,34 @@ void velo_kalman_filter::velo_kalman_filter_t::set_arguments_size(
   set_size<dev_velo_kalman_endvelo_states_view_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
+void velo_kalman_filter::velo_kalman_filter_t::init()
+{
+#ifndef ALLEN_STANDALONE
+  histogram_velo_track_eta = new gaudi_monitoring::Lockable_Histogram<> {{this,
+                                                                          "velo_track_eta",
+                                                                          "#eta",
+                                                                          {property<histogram_velo_track_eta_nbins_t>(),
+                                                                           property<histogram_velo_track_eta_min_t>(),
+                                                                           property<histogram_velo_track_eta_max_t>()}},
+                                                                         {}};
+  histogram_velo_track_phi = new gaudi_monitoring::Lockable_Histogram<> {{this,
+                                                                          "velo_track_phi",
+                                                                          "#phi",
+                                                                          {property<histogram_velo_track_phi_nbins_t>(),
+                                                                           property<histogram_velo_track_phi_min_t>(),
+                                                                           property<histogram_velo_track_phi_max_t>()}},
+                                                                         {}};
+  histogram_velo_track_nhits =
+    new gaudi_monitoring::Lockable_Histogram<> {{this,
+                                                 "velo_track_nhits",
+                                                 "N. hits / track",
+                                                 {property<histogram_velo_track_nhits_nbins_t>(),
+                                                  property<histogram_velo_track_nhits_min_t>(),
+                                                  property<histogram_velo_track_nhits_max_t>()}},
+                                                {}};
+#endif
+}
+
 void velo_kalman_filter::velo_kalman_filter_t::output_monitor(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
@@ -73,13 +101,46 @@ void velo_kalman_filter::velo_kalman_filter_t::output_monitor(
 
 void velo_kalman_filter::velo_kalman_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants& constants,
   const Allen::Context& context) const
 {
+  auto dev_histogram_velo_track_eta =
+    make_device_buffer<unsigned>(arguments, property<histogram_velo_track_eta_nbins_t>());
+  auto dev_histogram_velo_track_phi =
+    make_device_buffer<unsigned>(arguments, property<histogram_velo_track_phi_nbins_t>());
+  auto dev_histogram_velo_track_nhits =
+    make_device_buffer<unsigned>(arguments, property<histogram_velo_track_nhits_nbins_t>());
+  Allen::memset_async(
+    dev_histogram_velo_track_eta.data(), 0, dev_histogram_velo_track_eta.size() * sizeof(unsigned), context);
+  Allen::memset_async(
+    dev_histogram_velo_track_phi.data(), 0, dev_histogram_velo_track_phi.size() * sizeof(unsigned), context);
+  Allen::memset_async(
+    dev_histogram_velo_track_nhits.data(), 0, dev_histogram_velo_track_nhits.size() * sizeof(unsigned), context);
   global_function(velo_kalman_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, constants.dev_beamline.data());
-  if (property<enable_monitoring_t>()) output_monitor(arguments, runtime_options, context);
+    arguments,
+    constants.dev_beamline.data(),
+    dev_histogram_velo_track_eta.get(),
+    dev_histogram_velo_track_phi.get(),
+    dev_histogram_velo_track_nhits.get());
+
+#ifndef ALLEN_STANDALONE
+  gaudi_monitoring::fill(
+    arguments,
+    context,
+    std::tuple {std::tuple {dev_histogram_velo_track_eta.get(),
+                            histogram_velo_track_eta,
+                            property<histogram_velo_track_eta_min_t>(),
+                            property<histogram_velo_track_eta_max_t>()},
+                std::tuple {dev_histogram_velo_track_phi.get(),
+                            histogram_velo_track_phi,
+                            property<histogram_velo_track_phi_min_t>(),
+                            property<histogram_velo_track_phi_max_t>()},
+                std::tuple {dev_histogram_velo_track_nhits.get(),
+                            histogram_velo_track_nhits,
+                            property<histogram_velo_track_nhits_min_t>(),
+                            property<histogram_velo_track_nhits_max_t>()}});
+#endif
 }
 
 /**
@@ -162,7 +223,12 @@ __device__ MiniState linear_fit(const Allen::Views::Velo::Consolidated::Track& t
   return state;
 }
 
-__global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Parameters parameters, float* dev_beamline)
+__global__ void velo_kalman_filter::velo_kalman_filter(
+  velo_kalman_filter::Parameters parameters,
+  float* dev_beamline,
+  gsl::span<unsigned> dev_histogram_velo_track_eta,
+  gsl::span<unsigned> dev_histogram_velo_track_phi,
+  gsl::span<unsigned> dev_histogram_velo_track_nhits)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -197,5 +263,56 @@ __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Param
 
     kalman_beamline_states.set(velo_tracks_view.offset() + i, kalman_beamline_state);
     kalman_endvelo_states.set(velo_tracks_view.offset() + i, kalman_endvelo_state);
+
+    velo_kalman_filter::velo_kalman_filter_t::monitor(
+      parameters,
+      track,
+      kalman_beamline_state,
+      dev_histogram_velo_track_eta,
+      dev_histogram_velo_track_phi,
+      dev_histogram_velo_track_nhits);
+  }
+}
+
+__device__ void velo_kalman_filter::velo_kalman_filter_t::monitor(
+  const velo_kalman_filter::Parameters& parameters,
+  Allen::Views::Velo::Consolidated::Track velo_track,
+  KalmanVeloState beamline_state,
+  gsl::span<unsigned> dev_histogram_velo_track_eta,
+  gsl::span<unsigned> dev_histogram_velo_track_phi,
+  gsl::span<unsigned> dev_histogram_velo_track_nhits)
+{
+
+  const auto tx = beamline_state.tx;
+  const auto ty = beamline_state.ty;
+  const auto z_beamline = beamline_state.z;
+  const auto first_z = static_cast<::Velo::HitBase>(velo_track.hit(0)).z;
+  const auto backward = z_beamline > first_z;
+  const auto zeta = backward ? -1.f : 1.f;
+
+  const float slope2 = tx * tx + ty * ty;
+  const float rho = std::sqrt(slope2);
+  const auto nhits = velo_track.number_of_hits();
+  const auto eta = eta_from_rho_z(rho, zeta);
+  const auto phi = std::atan2(ty, tx);
+  // printf("tx %.4f , ty %.4f, nhits: %d \n", tx,ty,nhits);
+
+  if (eta > parameters.histogram_velo_track_eta_min && eta < parameters.histogram_velo_track_eta_max) {
+    const unsigned int bin = static_cast<unsigned int>(
+      (eta - parameters.histogram_velo_track_eta_min) * parameters.histogram_velo_track_eta_nbins /
+      (parameters.histogram_velo_track_eta_max - parameters.histogram_velo_track_eta_min));
+    ++dev_histogram_velo_track_eta[bin];
+  }
+  if (phi > parameters.histogram_velo_track_phi_min && phi < parameters.histogram_velo_track_phi_max) {
+    const unsigned int bin = static_cast<unsigned int>(
+      (phi - parameters.histogram_velo_track_phi_min) * parameters.histogram_velo_track_phi_nbins /
+      (parameters.histogram_velo_track_phi_max - parameters.histogram_velo_track_phi_min));
+    ++dev_histogram_velo_track_phi[bin];
+  }
+  if (nhits > parameters.histogram_velo_track_nhits_min && nhits < parameters.histogram_velo_track_nhits_max) {
+    const unsigned int bin = static_cast<unsigned int>(
+      (nhits - parameters.histogram_velo_track_nhits_min) * parameters.histogram_velo_track_nhits_nbins /
+      (parameters.histogram_velo_track_nhits_max - parameters.histogram_velo_track_nhits_min));
+    ++dev_histogram_velo_track_nhits[bin];
   }
 }

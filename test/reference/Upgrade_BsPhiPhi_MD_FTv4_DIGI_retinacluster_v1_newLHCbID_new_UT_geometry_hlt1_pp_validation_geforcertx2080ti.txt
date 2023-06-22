@@ -115,9 +115,9 @@ Hlt1LowMassNoipDielectron_massSlice1_prompt:            0/  1000, (    0.00 +/- 
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice2_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice2_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassNoipDielectron_massSlice3_prompt:            1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1LowMassNoipDielectron_massSlice3_prompt:            3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice3_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassNoipDielectron_massSlice4_prompt:            2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1LowMassNoipDielectron_massSlice4_prompt:            1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice4_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice1_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice1_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
@@ -141,7 +141,7 @@ Hlt1D2KPiAlignment:                                    16/  1000, (  480.00 +/- 
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                           15/  1000, (  450.00 +/-   115.31) kHz
 Hlt1DisplacedDiMuonAlignment:                           1/  1000, (   30.00 +/-    29.98) kHz
-Inclusive:                                            745/  1000, (22350.00 +/-   413.49) kHz
+Inclusive:                                            746/  1000, (22380.00 +/-   412.96) kHz
 
 
 selreport_validator validation:
@@ -166,7 +166,7 @@ Hlt1DiMuonSoft:                                         0           0
 Hlt1LowPtDiMuon:                                       40          47
 Hlt1TrackMuonMVA:                                      15          15
 Hlt1DiMuonNoIP:                                        34          43
-Hlt1DiMuonNoIP_ss:                                      4           6
+Hlt1DiMuonNoIP_ss:                                      4           5
 Hlt1DiMuonDrellYan_VLowMass:                            0           0
 Hlt1DiMuonDrellYan_VLowMass_SS:                         0           0
 Hlt1DiMuonDrellYan:                                     1           1
@@ -182,9 +182,9 @@ Hlt1LowMassNoipDielectron_massSlice1_prompt:            0           0
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0           0
 Hlt1LowMassNoipDielectron_massSlice2_prompt:            0           0
 Hlt1LowMassNoipDielectron_SS_massSlice2_prompt:         0           0
-Hlt1LowMassNoipDielectron_massSlice3_prompt:            1           1
+Hlt1LowMassNoipDielectron_massSlice3_prompt:            3           3
 Hlt1LowMassNoipDielectron_SS_massSlice3_prompt:         0           0
-Hlt1LowMassNoipDielectron_massSlice4_prompt:            2           2
+Hlt1LowMassNoipDielectron_massSlice4_prompt:            1           1
 Hlt1LowMassNoipDielectron_SS_massSlice4_prompt:         0           0
 Hlt1LowMassNoipDielectron_massSlice1_displaced:         0           0
 Hlt1LowMassNoipDielectron_SS_massSlice1_displaced:      0           0
@@ -209,9 +209,9 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           15          16
 Hlt1DisplacedDiMuonAlignment:                           1           1
 
-Total decisions: 1856
-Total tracks:    3044
-Total SVs:       2544
-Total hits:      75263
-Total stdinfo:   36384
+Total decisions: 1857
+Total tracks:    3042
+Total SVs:       2543
+Total hits:      75229
+Total stdinfo:   36365
 

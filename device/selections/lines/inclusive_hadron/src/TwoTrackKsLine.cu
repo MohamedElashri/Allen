@@ -44,7 +44,7 @@ __device__ bool two_track_line_ks::two_track_line_ks_t::select(
   return decision;
 }
 
-__device__ void two_track_line_ks::two_track_line_ks_t::monitor(
+__device__ void two_track_line_ks::two_track_line_ks_t::fill_tuples(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,

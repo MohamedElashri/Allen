@@ -28,7 +28,7 @@ def make_single_calo_cluster_line(calo,
         dev_ecal_number_of_clusters_t=calo["dev_ecal_num_clusters"],
         minEt=minEt,
         maxEt=maxEt,
-        enable_monitoring=False)
+        enable_tupling=False)
 
 
 def make_bs2gammagamma_line(calo,
@@ -66,4 +66,4 @@ def make_bs2gammagamma_line(calo,
         minEt_clusters=2500,
         minSumEt_clusters=0,
         minE19_clusters=0.6,
-        enable_monitoring=False)
+        enable_tupling=False)

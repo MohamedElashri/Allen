@@ -15,11 +15,19 @@ velo_states = run_velo_kalman_filter(velo_tracks)
 velo = velo_validation(velo_tracks)
 decoded_scifi = decode_scifi()
 seeding_xz_tracks = make_seeding_XZ_tracks(decoded_scifi)
-seeding_tracks = make_seeding_tracks(decoded_scifi, seeding_xz_tracks)
+seeding_tracks = make_seeding_tracks(
+    decoded_scifi,
+    seeding_xz_tracks,
+    scifi_consolidate_seeds_name=
+    'velo_scifi_matching_sequence_scifi_consolidate_seeds')
 seed = seeding_validation(seeding_tracks)
 seed_xz = seeding_xz_validation()
-matched_tracks = make_velo_scifi_matches(velo_tracks, velo_states,
-                                         seeding_tracks)
+matched_tracks = make_velo_scifi_matches(
+    velo_tracks,
+    velo_states,
+    seeding_tracks,
+    matching_consolidate_tracks_name=
+    'velo_scifi_matching_sequence_matching_consolidate_tracks')
 velo_scifi = long_validation(matched_tracks)
 velo_scifi_matching_sequence = CompositeNode(
     "Validators", [

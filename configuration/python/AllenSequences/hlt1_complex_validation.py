@@ -15,9 +15,11 @@ from AllenCore.generator import generate
 
 # Reconstructed objects
 with make_ut_tracks.bind(restricted=False):
-    non_restricted_hlt1_reconstruction = hlt1_reconstruction()
+    non_restricted_hlt1_reconstruction = hlt1_reconstruction(
+        algorithm_name='hlt1_complex_validation_non_restricted_sequence')
 
-restricted_hlt1_reconstruction = hlt1_reconstruction()
+restricted_hlt1_reconstruction = hlt1_reconstruction(
+    algorithm_name='hlt1_complex_validation_restricted_sequence')
 gec = make_gec(count_scifi=True, count_ut=True)
 
 lines = []
