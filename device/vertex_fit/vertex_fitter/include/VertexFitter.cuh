@@ -9,6 +9,11 @@
 #include "States.cuh"
 #include "AlgorithmTypes.cuh"
 
+#ifndef ALLEN_STANDALONE
+#include <Gaudi/Accumulators.h>
+#include "GaudiMonitoring.h"
+#endif
+
 namespace VertexFit {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -70,7 +75,7 @@ namespace VertexFit {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void fit_secondary_vertices(Parameters);
+  __global__ void fit_secondary_vertices(Parameters, gsl::span<unsigned>);
 
   struct vertex_fit_checks : public Allen::contract::Postcondition {
     void operator()(
@@ -81,6 +86,7 @@ namespace VertexFit {
   };
 
   struct fit_secondary_vertices_t : public DeviceAlgorithm, Parameters {
+    void init();
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
@@ -92,5 +98,9 @@ namespace VertexFit {
   private:
     Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this, 16.0f};
     Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+
+#ifndef ALLEN_STANDALONE
+    gaudi_monitoring::Lockable_Histogram<>* histogram_nsvs;
+#endif
   };
 } // namespace VertexFit

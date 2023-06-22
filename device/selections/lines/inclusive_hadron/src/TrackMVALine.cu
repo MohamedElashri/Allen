@@ -24,7 +24,7 @@ __device__ bool track_mva_line::track_mva_line_t::select(
   return decision;
 }
 
-__device__ void track_mva_line::track_mva_line_t::monitor(
+__device__ void track_mva_line::track_mva_line_t::fill_tuples(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::BasicParticle> input,
   unsigned index,

@@ -29,7 +29,7 @@ __device__ bool lambda2ppi_line::lambda2ppi_line_t::select(
          Lambda.dira() > parameters.L_BPVDIRA_min;
 }
 
-__device__ void lambda2ppi_line::lambda2ppi_line_t::monitor(
+__device__ void lambda2ppi_line::lambda2ppi_line_t::fill_tuples(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,

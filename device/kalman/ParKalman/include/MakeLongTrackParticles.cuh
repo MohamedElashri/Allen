@@ -15,6 +15,11 @@
 #include "States.cuh"
 #include "AlgorithmTypes.cuh"
 
+#ifndef ALLEN_STANDALONE
+#include "GaudiMonitoring.h"
+#include "Gaudi/Accumulators/Histogram.h"
+#endif
+
 namespace make_long_track_particles {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -55,10 +60,16 @@ namespace make_long_track_particles {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void make_particles(Parameters parameters);
+  __global__ void make_particles(
+    Parameters parameters,
+    gsl::span<unsigned> dev_histogram_n_trks,
+    gsl::span<unsigned> dev_histogram_trk_eta,
+    gsl::span<unsigned> dev_histogram_trk_phi,
+    gsl::span<unsigned> dev_histogram_trk_pt);
 
   struct make_long_track_particles_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+    void init();
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -68,6 +79,13 @@ namespace make_long_track_particles {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+#ifndef ALLEN_STANDALONE
+  private:
+    gaudi_monitoring::Lockable_Histogram<>* histogram_n_trks;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_trk_eta;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_trk_phi;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_trk_pt;
+#endif
   };
 
 } // namespace make_long_track_particles

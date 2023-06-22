@@ -11,6 +11,12 @@
 #include "AlgorithmTypes.cuh"
 #include "LookingForwardConstants.cuh"
 #include "ParticleTypes.cuh"
+#include "CopyTrackParameters.cuh"
+
+#ifndef ALLEN_STANDALONE
+#include <Gaudi/Accumulators.h>
+#include "GaudiMonitoring.h"
+#endif
 
 namespace scifi_consolidate_tracks {
   struct Parameters {
@@ -78,15 +84,75 @@ namespace scifi_consolidate_tracks {
       Allen::IMultiEventContainer*)
     dev_multi_event_long_tracks_ptr;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+
+    PROPERTY(
+      histogram_long_track_forward_eta_min_t,
+      "histogram_long_track_forward_eta_min",
+      "histogram_long_track_forward_eta_min description",
+      float)
+    histogram_long_track_forward_eta_min;
+    PROPERTY(
+      histogram_long_track_forward_eta_max_t,
+      "histogram_long_track_forward_eta_max",
+      "histogram_long_track_forward_eta_max description",
+      float)
+    histogram_long_track_forward_eta_max;
+    PROPERTY(
+      histogram_long_track_forward_eta_nbins_t,
+      "histogram_long_track_forward_eta_nbins",
+      "histogram_long_track_forward_eta_nbins description",
+      unsigned int)
+    histogram_long_track_forward_eta_nbins;
+
+    PROPERTY(
+      histogram_long_track_forward_phi_min_t,
+      "histogram_long_track_forward_phi_min",
+      "histogram_long_track_forward_phi_min description",
+      float)
+    histogram_long_track_forward_phi_min;
+    PROPERTY(
+      histogram_long_track_forward_phi_max_t,
+      "histogram_long_track_forward_phi_max",
+      "histogram_long_track_forward_phi_max description",
+      float)
+    histogram_long_track_forward_phi_max;
+    PROPERTY(
+      histogram_long_track_forward_phi_nbins_t,
+      "histogram_long_track_forward_phi_nbins",
+      "histogram_long_track_forward_phi_nbins description",
+      unsigned int)
+    histogram_long_track_forward_phi_nbins;
+
+    PROPERTY(
+      histogram_long_track_forward_nhits_min_t,
+      "histogram_long_track_forward_nhits_min",
+      "histogram_long_track_forward_nhits_min description",
+      float)
+    histogram_long_track_forward_nhits_min;
+    PROPERTY(
+      histogram_long_track_forward_nhits_max_t,
+      "histogram_long_track_forward_nhits_max",
+      "histogram_long_track_forward_nhits_max description",
+      float)
+    histogram_long_track_forward_nhits_max;
+    PROPERTY(
+      histogram_long_track_forward_nhits_nbins_t,
+      "histogram_long_track_forward_nhits_nbins",
+      "histogram_long_track_forward_nhits_nbins description",
+      unsigned int)
+    histogram_long_track_forward_nhits_nbins;
   };
 
   __global__ void scifi_consolidate_tracks(
     Parameters,
     const LookingForward::Constants* dev_looking_forward_constants,
-    const float* dev_magnet_polarity);
+    const float* dev_magnet_polarity,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>);
 
   struct scifi_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+    void init();
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -94,7 +160,34 @@ namespace scifi_consolidate_tracks {
       const Constants&,
       const Allen::Context& context) const;
 
+    __device__ static void monitor(
+      const scifi_consolidate_tracks::Parameters& parameters,
+      const Allen::Views::Physics::LongTrack long_track,
+      const Allen::Views::Physics::KalmanState velo_state,
+      gsl::span<unsigned>,
+      gsl::span<unsigned>,
+      gsl::span<unsigned>);
+
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<histogram_long_track_forward_eta_min_t> m_histogramLongEtaMin {this, 0.f};
+    Property<histogram_long_track_forward_eta_max_t> m_histogramLongEtaMax {this, 10.f};
+    Property<histogram_long_track_forward_eta_nbins_t> m_histogramLongEtaNBins {this, 40u};
+    Property<histogram_long_track_forward_phi_min_t> m_histogramLongPhiMin {this, -4.f};
+    Property<histogram_long_track_forward_phi_max_t> m_histogramLongPhiMax {this, 4.f};
+    Property<histogram_long_track_forward_phi_nbins_t> m_histogramLongPhiNBins {this, 16u};
+    Property<histogram_long_track_forward_nhits_min_t> m_histogramLongNhitsMin {this, 0.f};
+    Property<histogram_long_track_forward_nhits_max_t> m_histogramLongNhitsMax {this, 50.f};
+    Property<histogram_long_track_forward_nhits_nbins_t> m_histogramLongNhitsNBins {this, 50u};
+
+#ifndef ALLEN_STANDALONE
+  private:
+    Gaudi::Accumulators::Counter<>* m_long_tracks_forward;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_n_long_tracks_forward;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_long_track_forward_eta;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_long_track_forward_phi;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_long_track_forward_nhits;
+#endif
   };
+
 } // namespace scifi_consolidate_tracks

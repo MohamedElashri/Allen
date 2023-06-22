@@ -8,6 +8,7 @@ from AllenCore.algorithms import (
 from AllenConf.utils import initialize_number_of_events, line_maker
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
+from AllenCore.configuration_options import is_allen_standalone
 
 
 def make_pi02gammagamma_line(calo,
@@ -43,21 +44,24 @@ def make_pi02gammagamma_line(calo,
         minE19_clusters=0.7,
         minPtEta=200,  #Pi0Pt>minPtEta*(10-Pi0Eta)
         max_n_pvs=1,
-        enable_monitoring=False)
+        enable_tupling=False)
 
 
 def make_d2kpi_line(long_tracks,
                     secondary_vertices,
                     name="Hlt1D2KPi",
+                    enable_monitoring=True,
                     pre_scaler_hash_string=None,
                     post_scaler_hash_string=None,
-                    enable_monitoring=False):
+                    enable_tupling=False):
 
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
         d2kpi_line_t,
         name=name,
+        enable_monitoring=is_allen_standalone() and enable_monitoring,
+        enable_tupling=enable_tupling,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[

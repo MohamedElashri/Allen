@@ -40,14 +40,14 @@ __device__ bool two_calo_clusters_line::two_calo_clusters_line_t::select(
   return decision;
 }
 
-void two_calo_clusters_line::two_calo_clusters_line_t::init_monitor(
+void two_calo_clusters_line::two_calo_clusters_line_t::init_tuples(
   const ArgumentReferences<Parameters>& arguments,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_local_decisions_t>(arguments, false, context);
 }
 
-__device__ void two_calo_clusters_line::two_calo_clusters_line_t::monitor(
+__device__ void two_calo_clusters_line::two_calo_clusters_line_t::fill_tuples(
   const Parameters& parameters,
   std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned>,
   unsigned index,
@@ -56,7 +56,7 @@ __device__ void two_calo_clusters_line::two_calo_clusters_line_t::monitor(
   parameters.dev_local_decisions[index] = sel;
 }
 
-void two_calo_clusters_line::two_calo_clusters_line_t::output_monitor(
+void two_calo_clusters_line::two_calo_clusters_line_t::output_tuples(
   [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
   [[maybe_unused]] const RuntimeOptions& runtime_options,
   [[maybe_unused]] const Allen::Context& context) const

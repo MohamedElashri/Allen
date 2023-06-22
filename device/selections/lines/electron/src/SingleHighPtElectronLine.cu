@@ -42,7 +42,7 @@ __device__ bool single_high_pt_electron_line::single_high_pt_electron_line_t::se
   return decision;
 }
 
-__device__ void single_high_pt_electron_line::single_high_pt_electron_line_t::monitor(
+__device__ void single_high_pt_electron_line::single_high_pt_electron_line_t::fill_tuples(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input,
   unsigned index,

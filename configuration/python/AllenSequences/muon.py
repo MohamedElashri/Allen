@@ -7,7 +7,9 @@ from AllenCore.generator import generate
 from PyConf.control_flow import NodeLogic, CompositeNode
 
 muon_id_sequence = CompositeNode(
-    "MuonIDWithGEC", [make_gec("gec"), muon_id()],
+    "MuonIDWithGEC",
+    [make_gec("gec"),
+     muon_id(algorithm_name='muon_id_sequence')],
     NodeLogic.LAZY_AND,
     force_order=True)
 

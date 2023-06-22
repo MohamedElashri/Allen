@@ -20,7 +20,8 @@ from AllenConf.best_track_creator import best_track_creator
 from AllenConf.enum_types import TrackingType
 
 
-def hlt1_reconstruction(tracking_type=TrackingType.FORWARD,
+def hlt1_reconstruction(algorithm_name='',
+                        tracking_type=TrackingType.FORWARD,
                         with_calo=True,
                         with_ut=True,
                         with_muon=True):
@@ -38,6 +39,9 @@ def hlt1_reconstruction(tracking_type=TrackingType.FORWARD,
         "muon_stubs": muon_stubs,
     }
 
+    if algorithm_name != '':
+        algorithm_name = algorithm_name + '_'
+
     if tracking_type in (TrackingType.FORWARD_THEN_MATCHING,
                          TrackingType.MATCHING_THEN_FORWARD):
         if with_ut:
@@ -45,14 +49,25 @@ def hlt1_reconstruction(tracking_type=TrackingType.FORWARD,
             ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
             input_tracks = ut_tracks
             output.update({"ut_tracks": input_tracks})
-        long_tracks = best_track_creator(with_ut, tracking_type=tracking_type)
+        long_tracks = best_track_creator(
+            with_ut,
+            tracking_type=tracking_type,
+            algorithm_name=algorithm_name)
         output.update({"seeding_tracks": long_tracks["seeding_tracks"]})
     elif tracking_type == TrackingType.MATCHING:
         decoded_scifi = decode_scifi()
         seed_xz_tracks = make_seeding_XZ_tracks(decoded_scifi)
-        seed_tracks = make_seeding_tracks(decoded_scifi, seed_xz_tracks)
-        long_tracks = make_velo_scifi_matches(velo_tracks, velo_states,
-                                              seed_tracks)
+        seed_tracks = make_seeding_tracks(
+            decoded_scifi,
+            seed_xz_tracks,
+            scifi_consolidate_seeds_name=algorithm_name +
+            'scifi_consolidate_seeds_matching')
+        long_tracks = make_velo_scifi_matches(
+            velo_tracks,
+            velo_states,
+            seed_tracks,
+            matching_consolidate_tracks_name=algorithm_name +
+            'matching_consolidate_tracks_matching')
         output.update({"seeding_tracks": seed_tracks})
     elif tracking_type == TrackingType.FORWARD:
         if with_ut:
@@ -67,7 +82,9 @@ def hlt1_reconstruction(tracking_type=TrackingType.FORWARD,
             decoded_scifi,
             input_tracks,
             velo_tracks["dev_accepted_velo_tracks"],
-            with_ut=with_ut)
+            with_ut=with_ut,
+            scifi_consolidate_tracks_name=algorithm_name +
+            'scifi_consolidate_tracks_forward')
     else:
         raise Exception("Tracking type not supported")
 
@@ -91,18 +108,30 @@ def hlt1_reconstruction(tracking_type=TrackingType.FORWARD,
         calo_matching_objects = make_track_matching(decoded_calo, velo_tracks,
                                                     velo_states, long_tracks,
                                                     kalman_velo_only)
-        long_track_particles = make_basic_particles(kalman_velo_only, muonID,
-                                                    calo_matching_objects)
+        long_track_particles = make_basic_particles(
+            kalman_velo_only,
+            muonID,
+            make_long_track_particles_name=algorithm_name +
+            'make_long_track_particles',
+            is_electron_result=calo_matching_objects)
         output.update({
             "decoded_calo": decoded_calo,
             "calo_matching_objects": calo_matching_objects,
             "ecal_clusters": ecal_clusters
         })
     else:
-        long_track_particles = make_basic_particles(kalman_velo_only, muonID)
+        long_track_particles = make_basic_particles(
+            kalman_velo_only,
+            muonID,
+            make_long_track_particles_name=algorithm_name +
+            'make_long_track_particles_no_calo')
 
     secondary_vertices = fit_secondary_vertices(
-        long_tracks, pvs, kalman_velo_only, long_track_particles)
+        long_tracks,
+        pvs,
+        kalman_velo_only,
+        long_track_particles,
+        fit_secondary_vertices_name=algorithm_name + 'fit_secondary_vertices')
     output.update({
         "long_track_particles": long_track_particles,
         "secondary_vertices": secondary_vertices,

@@ -5,6 +5,16 @@
 
 INSTANTIATE_LINE(lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t, lowmass_noip_dielectron_line::Parameters)
 
+void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::init()
+{
+#ifndef ALLEN_STANDALONE
+  histogram_dielectron_masses = new gaudi_monitoring::Lockable_Histogram<> {
+    {this, "dielectron_mass_counts", "dielectron masses", {750, 0, 1500}}, {}};
+  histogram_dielectron_masses_brem = new gaudi_monitoring::Lockable_Histogram<> {
+    {this, "dielectron_mass_counts_brem", "dielectron masses with brem", {750, 0, 1500}}, {}};
+#endif
+}
+
 __device__ std::tuple<
   const Allen::Views::Physics::CompositeParticle,
   const bool,
@@ -94,6 +104,21 @@ __device__ bool lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::se
   decision &=
     ((parameters.selectPrompt && passes_prompt_selection) || (!parameters.selectPrompt && passes_displaced_selection));
 
+#ifndef ALLEN_STANDALONE
+  bool decision_no_mass_prompt_only = (is_same_sign == parameters.ss_on) && vertex.vertex().z() >= parameters.MinZ &&
+                                      parameters.selectPrompt && passes_prompt_selection;
+  if (decision_no_mass_prompt_only) {
+    if (vertex.m12(0.510999, 0.510999) < 1500) {
+      unsigned bin = std::floor(vertex.m12(0.510999, 0.510999) / 2);
+      parameters.dev_masses_histo[bin]++;
+    }
+    if (brem_corrected_dielectron_mass < 1500) {
+      unsigned bin = std::floor(brem_corrected_dielectron_mass / 2);
+      parameters.dev_masses_brem_histo[bin]++;
+    }
+  }
+#endif
+
   return decision;
 }
 
@@ -119,9 +144,19 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::set_arguments
     arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_die_ip_t>(
     arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
+  set_size<dev_masses_histo_t>(arguments, 750);
+  set_size<dev_masses_brem_histo_t>(arguments, 750);
 }
 
 void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::init_monitor(
+  const ArgumentReferences<Parameters>& arguments,
+  const Allen::Context& context) const
+{
+  Allen::memset_async<dev_masses_histo_t>(arguments, 0, context);
+  Allen::memset_async<dev_masses_brem_histo_t>(arguments, 0, context);
+}
+
+void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::init_tuples(
   const ArgumentReferences<Parameters>& arguments,
   const Allen::Context& context) const
 {
@@ -135,7 +170,7 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::init_monitor(
   Allen::memset_async<dev_e_minpt_bremcorr_t>(arguments, -1, context);
 }
 
-__device__ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::monitor(
+__device__ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::fill_tuples(
   const Parameters& parameters,
   std::tuple<
     const Allen::Views::Physics::CompositeParticle,
@@ -166,6 +201,20 @@ __device__ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::mo
 }
 
 void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::output_monitor(
+  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+  [[maybe_unused]] const RuntimeOptions& runtime_options,
+  [[maybe_unused]] const Allen::Context& context) const
+{
+#ifndef ALLEN_STANDALONE
+  gaudi_monitoring::fill(
+    arguments,
+    context,
+    std::tuple {std::tuple {get<dev_masses_brem_histo_t>(arguments), histogram_dielectron_masses_brem, 0, 1500},
+                std::tuple {get<dev_masses_histo_t>(arguments), histogram_dielectron_masses, 0, 1500}});
+#endif
+}
+
+void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::output_tuples(
   [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
   [[maybe_unused]] const RuntimeOptions& runtime_options,
   [[maybe_unused]] const Allen::Context& context) const

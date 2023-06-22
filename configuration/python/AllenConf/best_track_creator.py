@@ -100,7 +100,10 @@ def combine_long_containers(long_tracks_0, long_tracks_1):
 
 
 def best_track_creator(with_ut=True,
-                       tracking_type=TrackingType.FORWARD_THEN_MATCHING):
+                       tracking_type=TrackingType.FORWARD_THEN_MATCHING,
+                       algorithm_name=''):
+    if algorithm_name != '':
+        algorithm_name = algorithm_name + '_'
     if tracking_type == TrackingType.FORWARD_THEN_MATCHING:
         forward_tracks = forward_tracking(with_ut)
         reduced_scifi_hit_container = create_reduced_scifi_container(
@@ -110,20 +113,35 @@ def best_track_creator(with_ut=True,
         velo_tracks = make_velo_tracks(decoded_velo)
         velo_kalman_filter = run_velo_kalman_filter(velo_tracks)
         seeding_xz_tracks = make_seeding_XZ_tracks(reduced_scifi_hit_container)
-        seeding_tracks = make_seeding_tracks(reduced_scifi_hit_container,
-                                             seeding_xz_tracks)
+        seeding_tracks = make_seeding_tracks(
+            reduced_scifi_hit_container,
+            seeding_xz_tracks,
+            scifi_consolidate_seeds_name=algorithm_name +
+            'scifi_consolidate_seeds')
         matched_tracks = make_velo_scifi_matches(
-            velo_tracks, velo_kalman_filter, seeding_tracks,
-            forward_tracks["dev_accepted_and_unused_velo_tracks"])
+            velo_tracks,
+            velo_kalman_filter,
+            seeding_tracks,
+            forward_tracks["dev_accepted_and_unused_velo_tracks"],
+            matching_consolidate_tracks_name=algorithm_name +
+            'matching_consolidate_tracks')
     elif tracking_type == TrackingType.MATCHING_THEN_FORWARD:
         decoded_velo = decode_velo()
         velo_tracks = make_velo_tracks(decoded_velo)
         velo_kalman_filter = run_velo_kalman_filter(velo_tracks)
         decoded_scifi = decode_scifi()
         seeding_xz_tracks = make_seeding_XZ_tracks(decoded_scifi)
-        seeding_tracks = make_seeding_tracks(decoded_scifi, seeding_xz_tracks)
+        seeding_tracks = make_seeding_tracks(
+            decoded_scifi,
+            seeding_xz_tracks,
+            scifi_consolidate_seeds_name=algorithm_name +
+            'scifi_consolidate_seeds')
         matched_tracks = make_velo_scifi_matches(
-            velo_tracks, velo_kalman_filter, seeding_tracks)
+            velo_tracks,
+            velo_kalman_filter,
+            seeding_tracks,
+            matching_consolidate_tracks_name=algorithm_name +
+            'matching_consolidate_tracks')
 
         reduced_scifi_hit_container = create_reduced_scifi_container(
             matched_tracks["dev_used_scifi_hits"])
@@ -136,8 +154,12 @@ def best_track_creator(with_ut=True,
             input_tracks = velo_tracks
 
         forward_tracks = make_forward_tracks(
-            reduced_scifi_hit_container, input_tracks,
-            matched_tracks["dev_accepted_and_unused_velo_tracks"], with_ut)
+            reduced_scifi_hit_container,
+            input_tracks,
+            matched_tracks["dev_accepted_and_unused_velo_tracks"],
+            with_ut,
+            scifi_consolidate_tracks_name=algorithm_name +
+            'scifi_consolidate_tracks')
     else:
         raise Exception("Tracking type not supported")
 

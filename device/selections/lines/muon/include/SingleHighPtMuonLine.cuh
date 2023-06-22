@@ -31,7 +31,7 @@ namespace single_high_pt_muon_line {
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
 
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
   };
 
   struct single_high_pt_muon_line_t : public SelectionAlgorithm,
@@ -39,7 +39,7 @@ namespace single_high_pt_muon_line {
                                       OneTrackLine<single_high_pt_muon_line_t, Parameters> {
     __device__ static bool select(const Parameters& ps, std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
-    __device__ static void monitor(
+    __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::BasicParticle> input,
       unsigned index,
@@ -56,6 +56,6 @@ namespace single_high_pt_muon_line {
     Property<singleMinPt_t> m_singleMinPt {this, 6000.f / Gaudi::Units::MeV};
     Property<singleMinP_t> m_singleMinP {this, 6000.f / Gaudi::Units::MeV};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
-    Property<enable_monitoring_t> m_enableMonitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
   };
 } // namespace single_high_pt_muon_line

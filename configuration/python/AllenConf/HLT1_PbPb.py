@@ -259,7 +259,9 @@ def setup_hlt1_node(withMCChecking=False,
 
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(
-        with_ut=with_ut, tracking_type=tracking_type)
+        algorithm_name='pbpb_setup_hlt1_node',
+        with_ut=with_ut,
+        tracking_type=tracking_type)
 
     hlt1_config['reconstruction'] = reconstructed_objects
 

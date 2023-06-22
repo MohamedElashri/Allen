@@ -13,6 +13,11 @@
 #include "FloatOperations.cuh"
 #include <cstdint>
 
+#ifndef ALLEN_STANDALONE
+#include <Gaudi/Accumulators.h>
+#include "GaudiMonitoring.h"
+#endif
+
 namespace pv_beamline_cleanup {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -25,9 +30,16 @@ namespace pv_beamline_cleanup {
     PROPERTY(minChi2Dist_t, "minChi2Dist", "minimum chi2 distance", float) minChi2Dist;
   };
 
-  __global__ void pv_beamline_cleanup(Parameters);
+  __global__ void pv_beamline_cleanup(
+    Parameters,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>);
 
   struct pv_beamline_cleanup_t : public DeviceAlgorithm, Parameters {
+    void init();
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
@@ -39,5 +51,13 @@ namespace pv_beamline_cleanup {
   private:
     Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
     Property<minChi2Dist_t> m_minChi2Dist {this, BeamlinePVConstants::CleanUp::minChi2Dist};
+
+#ifndef ALLEN_STANDALONE
+    Gaudi::Accumulators::AveragingCounter<>* m_pvs;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_n_pvs;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_pv_x;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_pv_y;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_pv_z;
+#endif
   };
 } // namespace pv_beamline_cleanup

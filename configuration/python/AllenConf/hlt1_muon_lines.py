@@ -9,6 +9,7 @@ from AllenCore.algorithms import (
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
+from AllenCore.configuration_options import is_allen_standalone
 
 
 @configurable
@@ -44,7 +45,7 @@ def make_single_high_pt_muon_line(long_tracks,
                                   name="Hlt1SingleHighPtMuon",
                                   pre_scaler_hash_string=None,
                                   post_scaler_hash_string=None,
-                                  enable_monitoring=False,
+                                  enable_tupling=False,
                                   pre_scaler=1.):
     number_of_events = initialize_number_of_events()
 
@@ -59,7 +60,7 @@ def make_single_high_pt_muon_line(long_tracks,
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
-        enable_monitoring=enable_monitoring)
+        enable_tupling=enable_tupling)
 
 
 @configurable
@@ -113,6 +114,7 @@ def make_di_muon_mass_line(long_tracks,
                            secondary_vertices,
                            pre_scaler_hash_string=None,
                            post_scaler_hash_string=None,
+                           enable_monitoring=False,
                            minHighMassTrackPt=300.,
                            minHighMassTrackP=6000.,
                            minMass=2700.,
@@ -126,6 +128,7 @@ def make_di_muon_mass_line(long_tracks,
     return make_algorithm(
         di_muon_mass_line_t,
         name=name,
+        enable_monitoring=is_allen_standalone() and enable_monitoring,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
@@ -189,7 +192,7 @@ def make_track_muon_mva_line(long_tracks,
                              name="Hlt1TrackMuonMVA",
                              pre_scaler_hash_string=None,
                              post_scaler_hash_string=None,
-                             enable_monitoring=False,
+                             enable_tupling=False,
                              pre_scaler=1.):
     number_of_events = initialize_number_of_events()
 
@@ -203,7 +206,7 @@ def make_track_muon_mva_line(long_tracks,
             "dev_multi_event_basic_particles"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
-        enable_monitoring=enable_monitoring,
+        enable_tupling=enable_tupling,
         pre_scaler=pre_scaler)
 
 
@@ -214,18 +217,23 @@ def make_di_muon_no_ip_line(long_tracks,
                             post_scaler_hash_string="di_muon_no_ip_line_post",
                             minTrackPtPROD=1000000.,
                             minTrackP=5000.,
-                            maxDoca=.1,
+                            maxDoca=.3,
                             maxVertexChi2=9.,
                             maxTrChi2=3.,
                             minPt=1000.,
                             name="Hlt1DiMuonNoIP",
                             ss_on=False,
-                            pre_scaler=1.):
+                            enable_monitoring=True,
+                            enable_tupling=False,
+                            pre_scaler=1.,
+                            post_scaler=1.):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
         di_muon_no_ip_line_t,
         name=name,
+        enable_monitoring=is_allen_standalone() and enable_monitoring,
+        enable_tupling=enable_tupling,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
@@ -238,7 +246,8 @@ def make_di_muon_no_ip_line(long_tracks,
         maxVertexChi2=maxVertexChi2,
         maxTrChi2=maxTrChi2,
         ss_on=ss_on,
-        pre_scaler=pre_scaler)
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler)
 
 
 def make_di_muon_drell_yan_line(
@@ -253,6 +262,8 @@ def make_di_muon_drell_yan_line(
         maxVertexChi2=16.,
         name="Hlt1DiMuonDrellYan",
         OppositeSign=True,
+        enable_monitoring=False,
+        enable_tupling=False,
         minMass=5000.,
         maxMass=250000,
         pre_scaler=1.):
@@ -274,6 +285,8 @@ def make_di_muon_drell_yan_line(
         maxDoca=maxDoca,
         maxVertexChi2=maxVertexChi2,
         OppositeSign=OppositeSign,
+        enable_monitoring=is_allen_standalone() and enable_monitoring,
+        enable_tupling=enable_tupling,
         minMass=minMass,
         maxMass=maxMass,
         pre_scaler=pre_scaler)

@@ -22,7 +22,7 @@ namespace lambda2ppi_line {
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
     PROPERTY(L_p_MIPCHI2_min_t, "L_p_MIPCHI2_min", "proton min ip chi^2 for Lambda LL", float) L_p_MIPCHI2_min;
     PROPERTY(L_pi_MIPCHI2_min_t, "L_pi_MIPCHI2_min", "pion min ip chi^2 for Lambda LL", float) L_pi_MIPCHI2_min;
     PROPERTY(L_p_MIP_min_t, "L_p_MIP_min", "proton min ip for Lambda LL", float) L_p_MIP_min;
@@ -79,7 +79,7 @@ namespace lambda2ppi_line {
   struct lambda2ppi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<lambda2ppi_line_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
-    __device__ static void monitor(
+    __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle>,
       unsigned index,
@@ -114,7 +114,7 @@ namespace lambda2ppi_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<enable_monitoring_t> m_enableMonitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
     Property<L_p_MIPCHI2_min_t> m_L_p_MIPCHI2_min {this, 12.f};
     Property<L_pi_MIPCHI2_min_t> m_L_pi_MIPCHI2_min {this, 32.f};
     Property<L_p_MIP_min_t> m_L_p_MIP_min {this, 80.f * Gaudi::Units::um};

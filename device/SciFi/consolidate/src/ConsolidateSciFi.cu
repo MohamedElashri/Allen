@@ -6,7 +6,12 @@
 INSTANTIATE_ALGORITHM(scifi_consolidate_tracks::scifi_consolidate_tracks_t)
 
 template<bool with_ut, typename T>
-__device__ void create_scifi_views_impl(const scifi_consolidate_tracks::Parameters& parameters, const T* tracks)
+__device__ void create_scifi_views_impl(
+  const scifi_consolidate_tracks::Parameters& parameters,
+  const T* tracks,
+  gsl::span<unsigned> dev_histogram_long_track_forward_eta,
+  gsl::span<unsigned> dev_histogram_long_track_forward_phi,
+  gsl::span<unsigned> dev_histogram_long_track_forward_nhits)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = blockIdx.x;
@@ -51,6 +56,16 @@ __device__ void create_scifi_views_impl(const scifi_consolidate_tracks::Paramete
                                           parameters.dev_scifi_track_view + event_tracks_offset + track_index,
                                           parameters.dev_scifi_qop + event_tracks_offset + track_index};
     }
+
+    const auto long_track = parameters.dev_long_track_view[event_tracks_offset + track_index];
+    const auto velo_state = parameters.dev_velo_states_view[event_number].state(input_track_index);
+    scifi_consolidate_tracks::scifi_consolidate_tracks_t::monitor(
+      parameters,
+      long_track,
+      velo_state,
+      dev_histogram_long_track_forward_eta,
+      dev_histogram_long_track_forward_phi,
+      dev_histogram_long_track_forward_nhits);
   }
 
   if (threadIdx.x == 0) {
@@ -67,7 +82,6 @@ __device__ void create_scifi_views_impl(const scifi_consolidate_tracks::Paramete
     new (parameters.dev_long_tracks_view + event_number)
       Allen::Views::Physics::LongTracks {parameters.dev_long_track_view, parameters.dev_atomics_scifi, event_number};
   }
-
   if (blockIdx.x == 0 && threadIdx.x == 0) {
     new (parameters.dev_scifi_multi_event_tracks_view)
       Allen::Views::SciFi::Consolidated::MultiEventTracks {parameters.dev_scifi_tracks_view, number_of_events};
@@ -77,17 +91,31 @@ __device__ void create_scifi_views_impl(const scifi_consolidate_tracks::Paramete
   }
 }
 
-__global__ void create_scifi_views(scifi_consolidate_tracks::Parameters parameters)
+__global__ void create_scifi_views(
+  scifi_consolidate_tracks::Parameters parameters,
+  gsl::span<unsigned> dev_histogram_long_track_forward_eta,
+  gsl::span<unsigned> dev_histogram_long_track_forward_phi,
+  gsl::span<unsigned> dev_histogram_long_track_forward_nhits)
 {
   const auto* ut_tracks =
     Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    create_scifi_views_impl<true>(parameters, ut_tracks);
+    create_scifi_views_impl<true>(
+      parameters,
+      ut_tracks,
+      dev_histogram_long_track_forward_eta,
+      dev_histogram_long_track_forward_phi,
+      dev_histogram_long_track_forward_nhits);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    create_scifi_views_impl<false>(parameters, velo_tracks);
+    create_scifi_views_impl<false>(
+      parameters,
+      velo_tracks,
+      dev_histogram_long_track_forward_eta,
+      dev_histogram_long_track_forward_phi,
+      dev_histogram_long_track_forward_nhits);
   }
 }
 
@@ -113,6 +141,39 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
   set_size<dev_accepted_and_unused_velo_tracks_t>(arguments, size<dev_accepted_velo_tracks_t>(arguments));
 }
 
+void scifi_consolidate_tracks::scifi_consolidate_tracks_t::init()
+{
+#ifndef ALLEN_STANDALONE
+  m_long_tracks_forward = new Gaudi::Accumulators::Counter<>(this, "n_long_tracks_forward");
+  histogram_n_long_tracks_forward = new gaudi_monitoring::Lockable_Histogram<> {
+    {this, "n_long_tracks_forward_event", "n_long_tracks_forward_event", {80, 0, 200, {}, {}}}, {}};
+  histogram_long_track_forward_eta =
+    new gaudi_monitoring::Lockable_Histogram<> {{this,
+                                                 "long_track_forward_eta",
+                                                 "#eta",
+                                                 {property<histogram_long_track_forward_eta_nbins_t>(),
+                                                  property<histogram_long_track_forward_eta_min_t>(),
+                                                  property<histogram_long_track_forward_eta_max_t>()}},
+                                                {}};
+  histogram_long_track_forward_phi =
+    new gaudi_monitoring::Lockable_Histogram<> {{this,
+                                                 "long_track_forward_phi",
+                                                 "#phi",
+                                                 {property<histogram_long_track_forward_phi_nbins_t>(),
+                                                  property<histogram_long_track_forward_phi_min_t>(),
+                                                  property<histogram_long_track_forward_phi_max_t>()}},
+                                                {}};
+  histogram_long_track_forward_nhits =
+    new gaudi_monitoring::Lockable_Histogram<> {{this,
+                                                 "long_track_forward_nhits",
+                                                 "N. hits / track",
+                                                 {property<histogram_long_track_forward_nhits_nbins_t>(),
+                                                  property<histogram_long_track_forward_nhits_min_t>(),
+                                                  property<histogram_long_track_forward_nhits_max_t>()}},
+                                                {}};
+#endif
+}
+
 void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
@@ -124,10 +185,69 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   Allen::memset_async<dev_used_scifi_hits_t>(arguments, 0, context);
   Allen::copy_async<dev_accepted_and_unused_velo_tracks_t, dev_accepted_velo_tracks_t>(arguments, context);
 
-  global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
+  auto dev_histogram_long_track_forward_eta =
+    make_device_buffer<unsigned>(arguments, property<histogram_long_track_forward_eta_nbins_t>());
+  auto dev_histogram_long_track_forward_phi =
+    make_device_buffer<unsigned>(arguments, property<histogram_long_track_forward_phi_nbins_t>());
+  auto dev_histogram_long_track_forward_nhits =
+    make_device_buffer<unsigned>(arguments, property<histogram_long_track_forward_nhits_nbins_t>());
+  auto dev_histogram_n_long_tracks_forward = make_device_buffer<unsigned>(arguments, 80u);
+  auto dev_n_long_tracks_forward_counter = make_device_buffer<unsigned>(arguments, 1u);
+  Allen::memset_async(
+    dev_histogram_long_track_forward_eta.data(),
+    0,
+    dev_histogram_long_track_forward_eta.size() * sizeof(unsigned),
+    context);
+  Allen::memset_async(
+    dev_histogram_long_track_forward_phi.data(),
+    0,
+    dev_histogram_long_track_forward_phi.size() * sizeof(unsigned),
+    context);
+  Allen::memset_async(
+    dev_histogram_long_track_forward_nhits.data(),
+    0,
+    dev_histogram_long_track_forward_nhits.size() * sizeof(unsigned),
+    context);
+  Allen::memset_async(
+    dev_histogram_n_long_tracks_forward.data(),
+    0,
+    dev_histogram_n_long_tracks_forward.size() * sizeof(unsigned),
+    context);
+  Allen::memset_async(
+    dev_n_long_tracks_forward_counter.data(), 0, dev_n_long_tracks_forward_counter.size() * sizeof(unsigned), context);
 
-  global_function(create_scifi_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
+  global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    arguments,
+    constants.dev_looking_forward_constants,
+    constants.dev_magnet_polarity.data(),
+    dev_histogram_n_long_tracks_forward.get(),
+    dev_n_long_tracks_forward_counter.get());
+
+  global_function(create_scifi_views)(first<host_number_of_events_t>(arguments), 256, context)(
+    arguments,
+    dev_histogram_long_track_forward_eta.get(),
+    dev_histogram_long_track_forward_phi.get(),
+    dev_histogram_long_track_forward_nhits.get());
+
+#ifndef ALLEN_STANDALONE
+  gaudi_monitoring::fill(
+    arguments,
+    context,
+    std::tuple {std::tuple {dev_histogram_long_track_forward_eta.get(),
+                            histogram_long_track_forward_eta,
+                            property<histogram_long_track_forward_eta_min_t>(),
+                            property<histogram_long_track_forward_eta_max_t>()},
+                std::tuple {dev_histogram_long_track_forward_phi.get(),
+                            histogram_long_track_forward_phi,
+                            property<histogram_long_track_forward_phi_min_t>(),
+                            property<histogram_long_track_forward_phi_max_t>()},
+                std::tuple {dev_histogram_long_track_forward_nhits.get(),
+                            histogram_long_track_forward_nhits,
+                            property<histogram_long_track_forward_nhits_min_t>(),
+                            property<histogram_long_track_forward_nhits_max_t>()},
+                std::tuple {dev_histogram_n_long_tracks_forward.get(), histogram_n_long_tracks_forward, 0, 200},
+                std::tuple {dev_n_long_tracks_forward_counter.get(), m_long_tracks_forward}});
+#endif
 }
 
 template<typename F>
@@ -226,7 +346,9 @@ __device__ void scifi_consolidate_tracks_impl(
   const scifi_consolidate_tracks::Parameters& parameters,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity,
-  const T* tracks)
+  const T* tracks,
+  gsl::span<unsigned> dev_histogram_n_long_tracks_forward,
+  gsl::span<unsigned> dev_n_long_tracks_forward_counter)
 {
 
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -263,6 +385,12 @@ __device__ void scifi_consolidate_tracks_impl(
 
   auto used_scifi_hits = parameters.dev_used_scifi_hits.get();
   auto accepted_velo_tracks = parameters.dev_accepted_and_unused_velo_tracks.get();
+
+  if (number_of_tracks_event < 200) {
+    unsigned bin = std::floor(number_of_tracks_event / 2.5);
+    dev_histogram_n_long_tracks_forward[bin]++;
+  }
+  dev_n_long_tracks_forward_counter[0] += number_of_tracks_event;
 
   // Loop over tracks.
   for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
@@ -359,16 +487,70 @@ __device__ void scifi_consolidate_tracks_impl(
 __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
   scifi_consolidate_tracks::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants,
-  const float* dev_magnet_polarity)
+  const float* dev_magnet_polarity,
+  gsl::span<unsigned> dev_histogram_n_long_tracks_forward,
+  gsl::span<unsigned> dev_n_long_tracks_forward_counter)
 {
   const auto* ut_tracks =
     Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    scifi_consolidate_tracks_impl<true>(parameters, dev_looking_forward_constants, dev_magnet_polarity, ut_tracks);
+    scifi_consolidate_tracks_impl<true>(
+      parameters,
+      dev_looking_forward_constants,
+      dev_magnet_polarity,
+      ut_tracks,
+      dev_histogram_n_long_tracks_forward,
+      dev_n_long_tracks_forward_counter);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    scifi_consolidate_tracks_impl<false>(parameters, dev_looking_forward_constants, dev_magnet_polarity, velo_tracks);
+    scifi_consolidate_tracks_impl<false>(
+      parameters,
+      dev_looking_forward_constants,
+      dev_magnet_polarity,
+      velo_tracks,
+      dev_histogram_n_long_tracks_forward,
+      dev_n_long_tracks_forward_counter);
+  }
+}
+__device__ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::monitor(
+  const scifi_consolidate_tracks::Parameters& parameters,
+  const Allen::Views::Physics::LongTrack long_track,
+  const Allen::Views::Physics::KalmanState velo_state,
+  gsl::span<unsigned> dev_histogram_long_track_forward_eta,
+  gsl::span<unsigned> dev_histogram_long_track_forward_phi,
+  gsl::span<unsigned> dev_histogram_long_track_forward_nhits)
+{
+
+  const auto tx = velo_state.tx();
+  const auto ty = velo_state.ty();
+  const float slope2 = tx * tx + ty * ty;
+  const float rho = std::sqrt(slope2);
+  const auto nhits = long_track.number_of_hits();
+  const auto eta = eta_from_rho(rho);
+  const auto phi = std::atan2(ty, tx);
+  // printf("tx %.4f , ty %.4f, nhits: %d \n", tx,ty,nhits);
+
+  if (eta > parameters.histogram_long_track_forward_eta_min && eta < parameters.histogram_long_track_forward_eta_max) {
+    const unsigned int bin = static_cast<unsigned int>(
+      (eta - parameters.histogram_long_track_forward_eta_min) * parameters.histogram_long_track_forward_eta_nbins /
+      (parameters.histogram_long_track_forward_eta_max - parameters.histogram_long_track_forward_eta_min));
+    ++dev_histogram_long_track_forward_eta[bin];
+  }
+  if (phi > parameters.histogram_long_track_forward_phi_min && phi < parameters.histogram_long_track_forward_phi_max) {
+    const unsigned int bin = static_cast<unsigned int>(
+      (phi - parameters.histogram_long_track_forward_phi_min) * parameters.histogram_long_track_forward_phi_nbins /
+      (parameters.histogram_long_track_forward_phi_max - parameters.histogram_long_track_forward_phi_min));
+    ++dev_histogram_long_track_forward_phi[bin];
+  }
+  if (
+    nhits > parameters.histogram_long_track_forward_nhits_min &&
+    nhits < parameters.histogram_long_track_forward_nhits_max) {
+    const unsigned int bin = static_cast<unsigned int>(
+      (nhits - parameters.histogram_long_track_forward_nhits_min) *
+      parameters.histogram_long_track_forward_nhits_nbins /
+      (parameters.histogram_long_track_forward_nhits_max - parameters.histogram_long_track_forward_nhits_min));
+    ++dev_histogram_long_track_forward_nhits[bin];
   }
 }

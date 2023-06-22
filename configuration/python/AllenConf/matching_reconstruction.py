@@ -10,10 +10,12 @@ from PyConf.tonic import configurable
 
 
 @configurable
-def make_velo_scifi_matches(velo_tracks,
-                            velo_kalman_filter,
-                            seeding_tracks,
-                            accepted_velo_tracks=None):
+def make_velo_scifi_matches(
+        velo_tracks,
+        velo_kalman_filter,
+        seeding_tracks,
+        accepted_velo_tracks=None,
+        matching_consolidate_tracks_name='matching_consolidate_tracks'):
     number_of_events = initialize_number_of_events()
 
     if not accepted_velo_tracks:
@@ -70,7 +72,7 @@ def make_velo_scifi_matches(velo_tracks,
 
     matching_consolidate_tracks = make_algorithm(
         matching_consolidate_tracks_t,
-        name='matching_consolidate_tracks_{hash}',
+        name=str(matching_consolidate_tracks_name),
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_hits_in_matched_tracks_t=
@@ -137,13 +139,21 @@ def make_velo_scifi_matches(velo_tracks,
     }
 
 
-def velo_scifi_matching():
+def velo_scifi_matching(algorithm_name=''):
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     velo_kalman_filter = run_velo_kalman_filter(velo_tracks)
     decoded_scifi = decode_scifi()
     seeding_xz_tracks = make_seeding_XZ_tracks(decoded_scifi)
-    seeding_tracks = make_seeding_tracks(decoded_scifi, seeding_xz_tracks)
-    matched_tracks = make_velo_scifi_matches(velo_tracks, velo_kalman_filter,
-                                             seeding_tracks)
+    seeding_tracks = make_seeding_tracks(
+        decoded_scifi,
+        seeding_xz_tracks,
+        scifi_consolidate_seeds_name=algorithm_name +
+        '_scifi_consolidate_seeds_velo_scifi_matching')
+    matched_tracks = make_velo_scifi_matches(
+        velo_tracks,
+        velo_kalman_filter,
+        seeding_tracks,
+        matching_consolidate_tracks_name=algorithm_name +
+        '_matching_consolidate_tracks_velo_scifi_matching')
     return matched_tracks["matched_tracks"]

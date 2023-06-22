@@ -63,9 +63,11 @@ def make_kalman_velo_only(long_tracks,
     }
 
 
-def make_basic_particles(kalman_velo_only,
-                         is_muon_result,
-                         is_electron_result=None):
+def make_basic_particles(
+        kalman_velo_only,
+        is_muon_result,
+        make_long_track_particles_name='make_long_track_particles',
+        is_electron_result=None):
     number_of_events = initialize_number_of_events()
     long_tracks = kalman_velo_only["long_tracks"]
     pvs = kalman_velo_only["pvs"]
@@ -88,7 +90,7 @@ def make_basic_particles(kalman_velo_only,
 
     make_long_track_particles = make_algorithm(
         make_long_track_particles_t,
-        name='make_long_track_particles_{hash}',
+        name=str(make_long_track_particles_name),
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_scifi_tracks_t=long_tracks[
@@ -108,8 +110,12 @@ def make_basic_particles(kalman_velo_only,
     }
 
 
-def fit_secondary_vertices(long_tracks, pvs, kalman_velo_only,
-                           long_track_particles):
+def fit_secondary_vertices(
+        long_tracks,
+        pvs,
+        kalman_velo_only,
+        long_track_particles,
+        fit_secondary_vertices_name='fit_secondary_vertices'):
     number_of_events = initialize_number_of_events()
 
     filter_tracks = make_algorithm(
@@ -130,7 +136,7 @@ def fit_secondary_vertices(long_tracks, pvs, kalman_velo_only,
 
     fit_secondary_vertices = make_algorithm(
         fit_secondary_vertices_t,
-        name='fit_secondary_vertices_{hash}',
+        name=str(fit_secondary_vertices_name),
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_svs_t=prefix_sum_secondary_vertices.

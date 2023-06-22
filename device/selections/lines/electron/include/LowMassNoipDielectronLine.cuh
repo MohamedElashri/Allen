@@ -9,6 +9,11 @@
 #include "ROOTService.h"
 #include <ROOTHeaders.h>
 
+#ifndef ALLEN_STANDALONE
+#include "GaudiMonitoring.h"
+#include <Gaudi/Accumulators.h>
+#endif
+
 namespace lowmass_noip_dielectron_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -38,6 +43,9 @@ namespace lowmass_noip_dielectron_line {
     DEVICE_OUTPUT(dev_e_minpt_bremcorr_t, float) dev_e_minpt_bremcorr;
     DEVICE_OUTPUT(dev_die_minipchi2_t, float) dev_die_minipchi2;
     DEVICE_OUTPUT(dev_die_ip_t, float) dev_die_ip;
+    // outputs for Gaudi histogram
+    DEVICE_OUTPUT(dev_masses_histo_t, unsigned) dev_masses_histo;
+    DEVICE_OUTPUT(dev_masses_brem_histo_t, unsigned) dev_masses_brem_histo;
     // Properties
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -49,6 +57,7 @@ namespace lowmass_noip_dielectron_line {
     PROPERTY(MaxMass_t, "MaxMass", "Max vertex mass", float) maxMass;
     PROPERTY(ss_on_t, "ss_on", "Flag when same-sign candidates should be selected", bool) ss_on;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
     PROPERTY(MinZ_t, "MinZ", "Min z dielectron coordinate", float) MinZ;
   };
 
@@ -80,8 +89,9 @@ namespace lowmass_noip_dielectron_line {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
+    void init_tuples(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
 
-    __device__ static void monitor(
+    __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<
         const Allen::Views::Physics::CompositeParticle,
@@ -97,6 +107,10 @@ namespace lowmass_noip_dielectron_line {
 
     void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
       const;
+    void output_tuples(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
+      const;
+
+    void init();
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -109,6 +123,12 @@ namespace lowmass_noip_dielectron_line {
     Property<MaxMass_t> m_MaxMass {this, 300.f};
     Property<ss_on_t> m_ss_on {this, false};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
     Property<MinZ_t> m_MinZ {this, -341.f * Gaudi::Units::mm};
+
+#ifndef ALLEN_STANDALONE
+    gaudi_monitoring::Lockable_Histogram<>* histogram_dielectron_masses;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_dielectron_masses_brem;
+#endif
   };
 } // namespace lowmass_noip_dielectron_line

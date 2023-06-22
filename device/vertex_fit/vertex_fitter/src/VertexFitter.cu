@@ -5,6 +5,14 @@
 
 INSTANTIATE_ALGORITHM(VertexFit::fit_secondary_vertices_t)
 
+void VertexFit::fit_secondary_vertices_t::init()
+{
+#ifndef ALLEN_STANDALONE
+  histogram_nsvs = new gaudi_monitoring::Lockable_Histogram<> {
+    {this, "number_of_svs", "NSVs", {VertexFit::max_svs, 0, VertexFit::max_svs}}, {}};
+#endif
+}
+
 __global__ void create_sv_views(VertexFit::Parameters parameters)
 {
   // const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -63,13 +71,21 @@ void VertexFit::fit_secondary_vertices_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
+  auto dev_histogram_nsvs = make_device_buffer<unsigned>(arguments, VertexFit::max_svs);
+  Allen::memset_async(dev_histogram_nsvs.data(), 0, dev_histogram_nsvs.size() * sizeof(unsigned), context);
+
   Allen::memset_async<dev_two_track_composite_view_t>(arguments, 0, context);
 
   global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+    arguments, dev_histogram_nsvs.get());
 
   global_function(create_sv_views)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
+
+#ifndef ALLEN_STANDALONE
+  gaudi_monitoring::fill(
+    arguments, context, std::tuple {dev_histogram_nsvs.get(), histogram_nsvs, 0u, VertexFit::max_svs});
+#endif
 }
 
 __host__ __device__ void fill_sv_fit_result(
@@ -99,7 +115,9 @@ __host__ __device__ void fill_sv_fit_result(
   return;
 }
 
-__global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters parameters)
+__global__ void VertexFit::fit_secondary_vertices(
+  VertexFit::Parameters parameters,
+  gsl::span<unsigned> dev_histogram_nsvs)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -110,6 +128,8 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
   const unsigned* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
   const unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
   const float* event_poca = parameters.dev_sv_poca + 3 * idx_offset;
+
+  if (n_svs < VertexFit::max_svs) ++dev_histogram_nsvs[n_svs];
 
   // Tracks.
   const auto long_track_particles = parameters.dev_long_track_particles->container(event_number);

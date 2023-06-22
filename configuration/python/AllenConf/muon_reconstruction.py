@@ -149,7 +149,7 @@ def fake_muon_id(forward_tracks):
     }
 
 
-def muon_id():
+def muon_id(algorithm_name=''):
     from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
     from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
     from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks
@@ -159,8 +159,12 @@ def muon_id():
     decoded_ut = decode_ut()
     ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
     decoded_scifi = decode_scifi()
-    long_tracks = make_forward_tracks(decoded_scifi, ut_tracks,
-                                      velo_tracks["dev_accepted_velo_tracks"])
+    long_tracks = make_forward_tracks(
+        decoded_scifi,
+        ut_tracks,
+        velo_tracks["dev_accepted_velo_tracks"],
+        scifi_consolidate_tracks_name=algorithm_name +
+        '_scifi_consolidate_tracks_muon_id')
     decoded_muon = decode_muon()
     muonID = is_muon(decoded_muon, long_tracks)
     alg = muonID["dev_is_muon"].producer
@@ -179,7 +183,7 @@ def make_muon_stubs(monitoring=False):
         dev_station_ocurrences_offset_t=decoded_muon[
             "dev_station_ocurrences_offset"],
         dev_muon_hits_t=decoded_muon["dev_muon_hits"],
-        enable_monitoring=monitoring)
+        enable_tupling=monitoring)
     prefix_sum_muon_tracks = make_algorithm(
         host_prefix_sum_t,
         name='prefix_sum_muon_tracks_find_hits_{hash}',

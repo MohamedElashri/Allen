@@ -133,7 +133,7 @@ public:
   /**
    * @brief Default monitor function.
    */
-  void init_monitor(
+  void init_tuples(
     [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
     [[maybe_unused]] const Allen::Context& context) const
   {
@@ -161,6 +161,9 @@ public:
 
   template<typename T>
   static __device__ void monitor(const Parameters&, T, unsigned, bool)
+  {}
+  template<typename T>
+  static __device__ void fill_tuples(const Parameters&, T, unsigned, bool)
   {}
 
   template<std::size_t N, typename lv, typename rv>
@@ -209,7 +212,7 @@ public:
     }
   }
 
-  void output_monitor(
+  void output_tuples(
     [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
     [[maybe_unused]] const RuntimeOptions& runtime_options,
     [[maybe_unused]] const Allen::Context& context) const
@@ -232,6 +235,15 @@ void line_output_monitor(char* input, const RuntimeOptions& runtime_options, con
       auto derived_instance = std::get<4>(type_casted_input);
       if (derived_instance->template property<typename Parameters::enable_monitoring_t>()) {
         derived_instance->output_monitor(std::get<3>(type_casted_input), runtime_options, context);
+      }
+    }
+  }
+  if constexpr (Allen::has_enable_tupling<Parameters>::value) {
+    if (input != nullptr) {
+      const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
+      auto derived_instance = std::get<4>(type_casted_input);
+      if (derived_instance->template property<typename Parameters::enable_tupling_t>()) {
+        derived_instance->output_tuples(std::get<3>(type_casted_input), runtime_options, context);
       }
     }
   }
@@ -312,13 +324,18 @@ __device__ void process_line(
       decisions[index] = decision;
       if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
         if (parameters.enable_monitoring) {
+          Derived::monitor(parameters, input, index, decision);
+        }
+      }
+      if constexpr (Allen::has_enable_tupling<Parameters>::value) {
+        if (parameters.enable_tupling) {
           if constexpr (Allen::monitoring_has_evtNo<Parameters>::value) {
             parameters.evtNo[index] = (uint64_t(evt_hi) << 32) + evt_lo;
           }
           if constexpr (Allen::monitoring_has_runNo<Parameters>::value) {
             parameters.runNo[index] = run_no;
           }
-          Derived::monitor(parameters, input, index, decision);
+          Derived::fill_tuples(parameters, input, index, decision);
         }
       }
     }
@@ -359,6 +376,11 @@ void Line<Derived, Parameters>::operator()(
   if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
     if (derived_instance->template property<typename Parameters::enable_monitoring_t>()) {
       derived_instance->init_monitor(arguments, context);
+    }
+  }
+  if constexpr (Allen::has_enable_tupling<Parameters>::value) {
+    if (derived_instance->template property<typename Parameters::enable_tupling_t>()) {
+      derived_instance->init_tuples(arguments, context);
     }
   }
 }

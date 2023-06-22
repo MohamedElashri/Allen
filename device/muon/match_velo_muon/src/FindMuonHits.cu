@@ -18,7 +18,7 @@ void find_muon_hits::find_muon_hits_t::set_arguments_size(
   set_size<dev_muon_number_of_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
-void find_muon_hits::find_muon_hits_t::output_monitor(
+void find_muon_hits::find_muon_hits_t::output_tuples(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Allen::Context& context) const
@@ -110,7 +110,7 @@ void find_muon_hits::find_muon_hits_t::operator()(
 
   global_function(find_muon_hits)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_t>(), context)(
     arguments, constants.dev_match_windows);
-  if (property<enable_monitoring_t>()) output_monitor(arguments, runtime_options, context);
+  if (property<enable_tupling_t>()) output_tuples(arguments, runtime_options, context);
 }
 
 __device__ bool applyWeightedFit(MuonTrack& muon_track, Muon::ConstHits& muon_hits, bool xz)

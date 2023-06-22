@@ -11,7 +11,8 @@ from AllenConf.hlt1_photon_lines import make_single_calo_cluster_line
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction
 from AllenConf.hlt1_monitoring_lines import make_calo_digits_minADC_line
 
-reconstructed_objects = hlt1_reconstruction()
+reconstructed_objects = hlt1_reconstruction(
+    algorithm_name='calo_clustering_sequence')
 ecal_clusters = reconstructed_objects["ecal_clusters"]
 
 calo_cluster_line = line_maker(

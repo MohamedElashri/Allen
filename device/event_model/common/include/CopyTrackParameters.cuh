@@ -6,6 +6,8 @@
 #include "ParKalmanMath.cuh"
 #include "PV_Definitions.cuh"
 #include "patPV_Definitions.cuh"
+#include "CheckerTracks.cuh"
+#include "ParticleTypes.cuh"
 
 __device__ inline void prepare_long_tracks(
   const Allen::Views::Physics::LongTracks event_long_tracks,

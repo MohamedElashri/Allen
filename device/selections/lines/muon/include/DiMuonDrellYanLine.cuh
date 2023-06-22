@@ -7,6 +7,11 @@
 #include "TwoTrackLine.cuh"
 #include "ROOTService.h"
 
+#ifndef ALLEN_STANDALONE
+#include "GaudiMonitoring.h"
+#include <Gaudi/Accumulators.h>
+#endif
+
 namespace di_muon_drell_yan_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -38,6 +43,15 @@ namespace di_muon_drell_yan_line {
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
 
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
+    DEVICE_OUTPUT(dev_histogram_Z_mass_t, unsigned) dev_histogram_Z_mass;
+    DEVICE_OUTPUT(dev_histogram_Z_mass_ss_t, unsigned) dev_histogram_Z_mass_ss;
+    PROPERTY(histogram_Z_mass_min_t, "histogram_Z_mass_min", "histogram_Z_mass_min description", float)
+    histogram_Z_mass_min;
+    PROPERTY(histogram_Z_mass_max_t, "histogram_Z_mass_max", "histogram_Z_mass_max description", float)
+    histogram_Z_mass_max;
+    PROPERTY(histogram_Z_mass_nbins_t, "histogram_Z_mass_nbins", "histogram_Z_mass_nbins description", unsigned int)
+    histogram_Z_mass_nbins;
 
     DEVICE_OUTPUT(mass_t, float) mass;
     DEVICE_OUTPUT(transverse_momentum_t, float) transverse_momentum;
@@ -50,9 +64,16 @@ namespace di_muon_drell_yan_line {
                                     Parameters,
                                     TwoTrackLine<di_muon_drell_yan_line_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    void init();
+    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
 
     __device__ static void
     monitor(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>, unsigned, bool);
+    __device__ static void
+    fill_tuples(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>, unsigned, bool);
+    __host__ void
+    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -73,7 +94,16 @@ namespace di_muon_drell_yan_line {
     Property<OppositeSign_t> m_only_select_opposite_sign {this, true};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
 
+    Property<histogram_Z_mass_min_t> m_histogramZMassMin {this, 60000.f};
+    Property<histogram_Z_mass_max_t> m_histogramZMassMax {this, 120000.f};
+    Property<histogram_Z_mass_nbins_t> m_histogramZMassNBins {this, 100u};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
+
+#ifndef ALLEN_STANDALONE
+    gaudi_monitoring::Lockable_Histogram<>* histogram_Z_mass;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_Z_mass_ss;
+#endif
 
     using monitoring_types = std::tuple<transverse_momentum_t, mass_t, evtNo_t, runNo_t>;
   };
