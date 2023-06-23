@@ -360,15 +360,22 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
             make_velo_clusters_micro_bias_line(
                 decoded_velo,
                 name="Hlt1BGIVeloClustersMicroBias",
-                min_velo_clusters=1),
+                min_velo_clusters=30,
+            ),
             prefilter=prefilter + [bx_NoBB]),
         line_maker(
             make_calo_digits_minADC_line(
-                decoded_calo, name="Hlt1BGICaloDigits"),
+                decoded_calo,
+                name="Hlt1BGICaloDigits",
+                minADC=100,
+            ),
             prefilter=prefilter + [bx_NoBB]),
         line_maker(
             make_plume_activity_line(
-                decoded_plume, name="Hlt1BGIPlumeActivity"),
+                decoded_plume,
+                name="Hlt1BGIPlumeActivity",
+                min_plume_adc=406,
+            ),
             prefilter=prefilter + [bx_NoBB])
     ]
     return lines

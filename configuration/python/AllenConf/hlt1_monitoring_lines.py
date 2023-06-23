@@ -249,7 +249,7 @@ def make_plume_activity_line(decoded_plume,
                              post_scaler=1.,
                              pre_scaler_hash_string=None,
                              post_scaler_hash_string=None,
-                             min_plume_adc=1,
+                             min_plume_adc=406,
                              min_number_plume_adcs_over_min=1):
     number_of_events = initialize_number_of_events()
 
