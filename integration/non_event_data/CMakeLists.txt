@@ -13,8 +13,7 @@ target_link_libraries(NonEventData PRIVATE
   Gear
   Backend
   MuonCommon
-  TrackChecking
-  UT
+  UTCommon
   nlohmann_json::nlohmann_json)
 
 target_include_directories(NonEventData PUBLIC
