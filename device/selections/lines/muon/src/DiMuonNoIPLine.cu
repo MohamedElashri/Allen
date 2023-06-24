@@ -106,34 +106,6 @@ __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
   }
 }
 
-__device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::fill_tuples(
-  const Parameters&,
-  std::tuple<const Allen::Views::Physics::CompositeParticle>,
-  unsigned,
-  bool)
-{
-  // const auto vertex = std::get<0>(input);
-  // const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
-  // const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
-  // const bool same_sign = vertex.charge() != 0;
-
-  // if (vertex.is_dimuon()) {
-  //  parameters.dev_trk1Chi2[index] = track1->state().chi2() / track1->state().ndof();
-  //  parameters.dev_trk2Chi2[index] = track2->state().chi2() / track2->state().ndof();
-  //  parameters.dev_doca[index] = vertex.doca12();
-  //  parameters.dev_trk1pt[index] = track1->state().pt();
-  //  parameters.dev_trk2pt[index] = track2->state().pt();
-  //  parameters.dev_p1[index] = track1->state().p();
-  //  parameters.dev_p2[index] = track2->state().p();
-  //  parameters.dev_vChi2[index] = vertex.vertex().chi2();
-  //  parameters.dev_is_dimuon[index] = vertex.is_dimuon();
-  //  parameters.dev_same_sign[index] = same_sign;
-  //  parameters.dev_same_sign_on[index] = parameters.ss_on;
-  //  parameters.dev_pt[index] = vertex.vertex().pt();
-  //  parameters.dev_eventNum[index] = -1;
-  // }
-}
-
 void di_muon_no_ip_line::di_muon_no_ip_line_t::output_monitor(
   [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
