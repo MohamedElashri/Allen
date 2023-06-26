@@ -108,7 +108,7 @@ __device__ float computeQoverP(
      tyV2 * (dev_magnet_parametrization->momentumParams[4] + dev_magnet_parametrization->momentumParams[5] * tyV2) +
      dev_magnet_parametrization->momentumParams[6] * txV * txV);
 
-  const float factor = std::copysign(magSign, txV - txT);
+  const float factor = std::copysign(magSign, txT - txV);
   const float cp = (magSign * coef) / (txT - txV) + factor * dev_magnet_parametrization->momentumParams[7];
   return 1.f / cp;
 }
