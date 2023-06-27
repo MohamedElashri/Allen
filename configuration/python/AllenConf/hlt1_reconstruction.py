@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
+from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter, filter_tracks_for_material_interactions
 from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
 from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
@@ -29,12 +29,15 @@ def hlt1_reconstruction(algorithm_name='',
     decoded_scifi = decode_scifi()
     velo_tracks = make_velo_tracks(decoded_velo)
     velo_states = run_velo_kalman_filter(velo_tracks)
+    material_interaction_tracks = filter_tracks_for_material_interactions(
+        velo_tracks, velo_states, beam_r_distance=18.0, close_doca=0.5)
     pvs = make_pvs(velo_tracks)
     muon_stubs = make_muon_stubs()
 
     output = {
         "velo_tracks": velo_tracks,
         "velo_states": velo_states,
+        "material_interaction_tracks": material_interaction_tracks,
         "pvs": pvs,
         "muon_stubs": muon_stubs,
     }

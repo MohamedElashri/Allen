@@ -17,7 +17,8 @@ from AllenConf.hlt1_monitoring_lines import (
     make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line,
     make_odin_event_and_orbit_line, make_beam_gas_line,
     make_velo_clusters_micro_bias_line, make_calo_digits_minADC_line,
-    make_plume_activity_line)
+    make_plume_activity_line, make_n_displaced_velo_line,
+    make_n_materialvertex_seed_line)
 from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
@@ -273,6 +274,8 @@ def event_monitoring_lines(lumiline_name):
 def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
+    material_interaction_tracks = reconstructed_objects[
+        "material_interaction_tracks"]
     long_tracks = reconstructed_objects["long_tracks"]
     long_track_particles = reconstructed_objects["long_track_particles"]
     velo_states = reconstructed_objects["velo_states"]
@@ -288,7 +291,9 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
             velo_tracks, velo_states, beam_crossing_type=1,
             name="Hlt1BeamGas"),
         make_d2kpi_line(
-            long_tracks, secondary_vertices, name="Hlt1D2KPiAlignment")
+            long_tracks, secondary_vertices, name="Hlt1D2KPiAlignment"),
+        make_n_displaced_velo_line(material_interaction_tracks, n_tracks=3),
+        make_n_materialvertex_seed_line(material_interaction_tracks)
     ]
 
     if with_muon:
