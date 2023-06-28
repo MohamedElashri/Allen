@@ -130,7 +130,13 @@ if(TREAT_WARNINGS_AS_ERRORS)
 endif()
 
 # Choice of malloc engine
-set(MALLOC_ENGINE SINGLE_ALLOC CACHE STRING "Malloc engine")
+
+set(_default_malloc_engine SINGLE_ALLOC)
+if(CMAKE_BUILD_TYPE MATCHES ".*San$")
+  # In sanitizer builds we do individual allocs to spot illegal accesses
+  set(_default_malloc_engine MULTI_ALLOC)
+endif()
+set(MALLOC_ENGINE ${_default_malloc_engine} CACHE STRING "Malloc engine")
 set_property(CACHE MALLOC_ENGINE PROPERTY STRINGS SINGLE_ALLOC MULTI_ALLOC)
 message(STATUS "Memory manager: " ${MALLOC_ENGINE})
 add_compile_definitions(MEMORY_MANAGER_${MALLOC_ENGINE})
