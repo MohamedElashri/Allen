@@ -104,6 +104,7 @@ Hlt1DiMuonDrellYan_VLowMass:                            0/  1000, (    0.00 +/- 
 Hlt1DiMuonDrellYan_VLowMass_SS:                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan:                                     1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1DiMuonDrellYan_SS:                                  0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DisplacedDiMuon:                                   14/  1000, (  420.00 +/-   111.46) kHz
 Hlt1TrackElectronMVA:                                  41/  1000, ( 1230.00 +/-   188.11) kHz
 Hlt1SingleHighPtElectron:                               8/  1000, (  240.00 +/-    84.51) kHz
 Hlt1DisplacedDielectron:                                3/  1000, (   90.00 +/-    51.88) kHz
@@ -173,6 +174,7 @@ Hlt1DiMuonDrellYan_VLowMass:                            0           0
 Hlt1DiMuonDrellYan_VLowMass_SS:                         0           0
 Hlt1DiMuonDrellYan:                                     1           1
 Hlt1DiMuonDrellYan_SS:                                  0           0
+Hlt1DisplacedDiMuon:                                   14          16
 Hlt1TrackElectronMVA:                                  41          42
 Hlt1SingleHighPtElectron:                               8           8
 Hlt1DisplacedDielectron:                                3           4
@@ -213,9 +215,9 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           14          14
 Hlt1DisplacedDiMuonAlignment:                           2           2
 
-Total decisions: 2006
-Total tracks:    3070
-Total SVs:       2580
-Total hits:      75790
-Total stdinfo:   36886
+Total decisions: 2020
+Total tracks:    3074
+Total SVs:       2586
+Total hits:      75893
+Total stdinfo:   36956
 
