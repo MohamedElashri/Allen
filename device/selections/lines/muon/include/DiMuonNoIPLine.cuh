@@ -72,11 +72,6 @@ namespace di_muon_no_ip_line {
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
-    __device__ static void fill_tuples(
-      const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
-      unsigned index,
-      bool sel);
     void init();
     static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
