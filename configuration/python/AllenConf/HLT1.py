@@ -132,6 +132,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 name="Hlt1DiMuonDrellYan",
                 pre_scaler_hash_string="di_muon_drell_yan_line_pre",
                 post_scaler_hash_string="di_muon_drell_yan_line_post",
+                enable_monitoring=True,
                 minMass=5000.),
             make_di_muon_drell_yan_line(
                 long_tracks,
@@ -140,6 +141,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 pre_scaler_hash_string="di_muon_drell_yan_SS_line_pre",
                 post_scaler_hash_string="di_muon_drell_yan_SS_line_post",
                 minMass=5000.,
+                enable_monitoring=True,
                 OppositeSign=False,
             )
         ]
