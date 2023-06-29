@@ -238,8 +238,18 @@ namespace velo_kalman_filter {
     histogram_velo_track_nhits_nbins;
   };
 
-  __global__ void
-  velo_kalman_filter(Parameters, float* dev_beamline, gsl::span<unsigned>, gsl::span<unsigned>, gsl::span<unsigned>);
+  __global__ void velo_kalman_filter(
+    Parameters,
+    float* dev_beamline,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>);
   struct velo_kalman_filter_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
@@ -255,6 +265,12 @@ namespace velo_kalman_filter {
       const velo_kalman_filter::Parameters& parameters,
       Allen::Views::Velo::Consolidated::Track velo_track,
       KalmanVeloState beamline_state,
+      gsl::span<unsigned>,
+      gsl::span<unsigned>,
+      gsl::span<unsigned>,
+      gsl::span<unsigned>,
+      gsl::span<unsigned>,
+      gsl::span<unsigned>,
       gsl::span<unsigned>,
       gsl::span<unsigned>,
       gsl::span<unsigned>);
@@ -279,9 +295,15 @@ namespace velo_kalman_filter {
 
 #ifndef ALLEN_STANDALONE
   private:
-    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_track_eta;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_track_phi;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_track_nhits;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_total_track_eta;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_total_track_phi;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_total_track_nhits;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_forward_track_eta;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_forward_track_phi;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_forward_track_nhits;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_backward_track_eta;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_backward_track_phi;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_velo_backward_track_nhits;
 #endif
   };
 } // namespace velo_kalman_filter
