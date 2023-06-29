@@ -136,6 +136,8 @@ Hlt1RICH1Alignment:                                     0/  1000, (    0.00 +/- 
 Hlt1RICH2Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPiAlignment:                                     1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1NVELODisplacedTrack:                              110/  1000, ( 3300.00 +/-   296.83) kHz
+Hlt1NMaterialVertexSeeds:                              21/  1000, (  630.00 +/-   136.03) kHz
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                            6/  1000, (  180.00 +/-    73.26) kHz
 Hlt1DisplacedDiMuonAlignment:                           0/  1000, (    0.00 +/-     0.00) kHz
@@ -149,7 +151,7 @@ Hlt1_SMOG2_eta2pp:                                      0/  1000, (    0.00 +/- 
 Hlt1_SMOG2_2BodyGeneric:                                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_SingleTrack:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_DiMuonHighMass:                              0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                            270/  1000, ( 8100.00 +/-   421.18) kHz
+Inclusive:                                            345/  1000, (10350.00 +/-   450.97) kHz
 
 
 selreport_validator validation:
@@ -213,6 +215,8 @@ Hlt1RICH1Alignment:                                     0           0
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
 Hlt1D2KPiAlignment:                                     1           1
+Hlt1NVELODisplacedTrack:                              110           0
+Hlt1NMaterialVertexSeeds:                              21           0
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                            6           6
 Hlt1DisplacedDiMuonAlignment:                           0           0
@@ -227,9 +231,9 @@ Hlt1_SMOG2_2BodyGeneric:                                0           0
 Hlt1_SMOG2_SingleTrack:                                 0           0
 Hlt1_SMOG2_DiMuonHighMass:                              0           0
 
-Total decisions: 397
+Total decisions: 528
 Total tracks:    651
 Total SVs:       356
 Total hits:      14956
-Total stdinfo:   7029
+Total stdinfo:   7160
 
