@@ -161,10 +161,12 @@ Hlt1RICH1Alignment:                                     1/  1000, (   30.00 +/- 
 Hlt1RICH2Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPiAlignment:                                    22/  1000, (  660.00 +/-   139.16) kHz
+Hlt1NVELODisplacedTrack:                              129/  1000, ( 3870.00 +/-   318.00) kHz
+Hlt1NMaterialVertexSeeds:                              23/  1000, (  690.00 +/-   142.21) kHz
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                           43/  1000, ( 1290.00 +/-   192.45) kHz
 Hlt1DisplacedDiMuonAlignment:                           3/  1000, (   90.00 +/-    51.88) kHz
-Inclusive:                                            894/  1000, (26820.00 +/-   292.04) kHz
+Inclusive:                                            904/  1000, (27120.00 +/-   279.47) kHz
 
 
 selreport_validator validation:
@@ -227,13 +229,15 @@ Hlt1RICH1Alignment:                                     1           2
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
 Hlt1D2KPiAlignment:                                    22          22
+Hlt1NVELODisplacedTrack:                              129           0
+Hlt1NMaterialVertexSeeds:                              23           0
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           43          54
 Hlt1DisplacedDiMuonAlignment:                           3           3
 
-Total decisions: 2794
+Total decisions: 2946
 Total tracks:    4803
 Total SVs:       3997
 Total hits:      112001
-Total stdinfo:   57206
+Total stdinfo:   57358
 

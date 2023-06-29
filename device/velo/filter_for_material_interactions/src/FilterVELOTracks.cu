@@ -100,7 +100,8 @@ __global__ void FilterVELOTracks::filter_velo_tracks(FilterVELOTracks::Parameter
       auto trackB = velo_tracks.track(event_velo_filtered_idx[jdx]);
 
       auto tracks_doca = velo_doca(trackA.state(velo_states), trackB.state(velo_states));
-      if (tracks_doca < parameters.max_doca_for_close_track_pairs) atomicAdd(&shared_number_of_close_track_pairs, 1);
+      if (tracks_doca > 0.f && tracks_doca < parameters.max_doca_for_close_track_pairs)
+        atomicAdd(&shared_number_of_close_track_pairs, 1);
     }
   }
 
