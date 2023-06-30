@@ -26,7 +26,7 @@ def make_pvs(velo_tracks, velo_open=False):
 
     else:
         pp_minNumTracksPerVertex = 3.
-        maxChi2 = 100.
+        maxChi2 = 25.
         maxTrackBlChi2 = 300.
         zmin = -541.
         zmax = 307.
