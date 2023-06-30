@@ -10,7 +10,7 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
 
-def make_pvs(velo_tracks, velo_open=False):
+def make_pvs(velo_tracks, velo_open=False, pv_name=""):
 
     if not velo_open:
         pp_minNumTracksPerVertex = 4.
@@ -60,7 +60,7 @@ def make_pvs(velo_tracks, velo_open=False):
 
     pv_beamline_histo = make_algorithm(
         pv_beamline_histo_t,
-        name="pv_beamline_histo_{hash}",
+        name="pv_beamline_histo",
         host_number_of_events_t=host_number_of_events,
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_pvtracks_t=pv_beamline_extrapolate.dev_pvtracks_t,
@@ -75,7 +75,7 @@ def make_pvs(velo_tracks, velo_open=False):
 
     pv_beamline_peak = make_algorithm(
         pv_beamline_peak_t,
-        name="pv_beamline_peak_{hash}",
+        name="pv_beamline_peak",
         host_number_of_events_t=host_number_of_events,
         dev_zhisto_t=pv_beamline_histo.dev_zhisto_t,
         zmin=zmin,
@@ -87,7 +87,7 @@ def make_pvs(velo_tracks, velo_open=False):
 
     pv_beamline_calculate_denom = make_algorithm(
         pv_beamline_calculate_denom_t,
-        name="pv_beamline_calculate_denom_{hash}",
+        name="pv_beamline_calculate_denom",
         host_number_of_reconstructed_velo_tracks_t=
         host_number_of_reconstructed_velo_tracks,
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
@@ -97,7 +97,7 @@ def make_pvs(velo_tracks, velo_open=False):
 
     pv_beamline_multi_fitter = make_algorithm(
         pv_beamline_multi_fitter_t,
-        name="pv_beamline_multi_fitter_{hash}",
+        name="pv_beamline_multi_fitter",
         host_number_of_events_t=host_number_of_events,
         host_number_of_reconstructed_velo_tracks_t=
         host_number_of_reconstructed_velo_tracks,
@@ -114,7 +114,7 @@ def make_pvs(velo_tracks, velo_open=False):
 
     pv_beamline_cleanup = make_algorithm(
         pv_beamline_cleanup_t,
-        name="pv_beamline_cleanup_{hash}",
+        name="pv_beamline_cleanup",
         host_number_of_events_t=host_number_of_events,
         dev_multi_fit_vertices_t=pv_beamline_multi_fitter.
         dev_multi_fit_vertices_t,
