@@ -42,7 +42,13 @@ __device__ bool kstopipi_line::kstopipi_line_t::select(
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto vertex = std::get<0>(input);
+  const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
+  const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
+
   const bool opposite_sign = vertex.charge() == 0;
+  const bool double_muon_misid =
+    (vertex.is_dimuon() && track1->state().p() >= 10000.f && track2->state().p() >= 10000.f);
+  if (parameters.double_muon_misid && !double_muon_misid) return false;
 
   const bool decision = vertex.minipchi2() > parameters.minIPChi2 && opposite_sign == parameters.OppositeSign &&
                         vertex.vertex().chi2() < parameters.maxVertexChi2 && vertex.ip() < parameters.maxIP &&

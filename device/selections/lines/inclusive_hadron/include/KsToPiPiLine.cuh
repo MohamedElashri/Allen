@@ -43,6 +43,7 @@ namespace kstopipi_line {
     PROPERTY(maxMass_t, "maxMass", "Maximum invariat mass", float) maxMass;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
+    PROPERTY(double_muon_misid_t, "double_muon_misid", "Selects dimuon combinations", bool) double_muon_misid;
 
     PROPERTY(histogram_ks_mass_min_t, "histogram_ks_mass_min", "histogram_ks_mass_min description", float)
     histogram_ks_mass_min;
@@ -93,6 +94,7 @@ namespace kstopipi_line {
     Property<maxMass_t> m_maxMass {this, 600.f * Gaudi::Units::MeV};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
     Property<OppositeSign_t> m_opposite_sign {this, true};
+    Property<double_muon_misid_t> m_double_muon_misid {this, false};
 
     Property<histogram_ks_mass_min_t> m_histogramksMassMin {this, 400.f};
     Property<histogram_ks_mass_max_t> m_histogramksMassMax {this, 600.f};
