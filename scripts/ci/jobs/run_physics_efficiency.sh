@@ -11,7 +11,7 @@ fi
 check_build_exists
 
 
-RUN_OPTIONS="-n 10000 -m 1100 --run-from-json 1"
+RUN_OPTIONS="-n 10000 -m 1100"
 
 # Configure the input files (--mdf) and geometry (-g)
 set +x; set +u
@@ -21,7 +21,7 @@ fi
 
 set -euxo pipefail
 
-RUN_OPTIONS=" --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE} --params external/ParamFiles/ ${RUN_OPTIONS}"
+RUN_OPTIONS=" --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}.json --params external/ParamFiles/ ${RUN_OPTIONS}"
 
 OUTPUT_FOLDER="${TEST_NAME}_output_${SEQUENCE}"
 

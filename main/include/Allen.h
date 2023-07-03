@@ -15,6 +15,7 @@ struct Constants;
 
 int allen(
   std::map<std::string, std::string> options,
+  std::string_view configuration,
   Allen::NonEventData::IUpdater* updater,
   std::shared_ptr<IInputProvider> input_provider,
   OutputHandler* output_handler,

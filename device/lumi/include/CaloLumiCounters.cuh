@@ -39,21 +39,17 @@ namespace calo_lumi_counters {
       "shifts and scales extracted from the schema for lumi counters",
       std::map<std::string, std::pair<float, float>>)
     lumi_counter_shifts_and_scales;
-    PROPERTY(
-      calo_offsets_and_sizes_t,
-      "calo_offsets_and_sizes",
-      "offsets and sizes in bits for the calo counters",
-      std::array<unsigned, 2 * Lumi::Constants::n_calo_counters>)
-    calo_offsets_and_sizes;
-    PROPERTY(
-      calo_shifts_and_scales_t,
-      "calo_shifts_and_scales",
-      "shifts and scales for the calo counters",
-      std::array<float, 2 * Lumi::Constants::n_calo_counters>)
-    calo_shifts_and_scales;
   }; // struct Parameters
 
-  __global__ void calo_lumi_counters(Parameters, const unsigned number_of_events, const char* raw_ecal_geometry);
+  using offsets_and_sizes_t = std::array<unsigned, 2 * Lumi::Constants::n_calo_counters>;
+  using shifts_and_scales_t = std::array<float, 2 * Lumi::Constants::n_calo_counters>;
+
+  __global__ void calo_lumi_counters(
+    Parameters,
+    const unsigned number_of_events,
+    const offsets_and_sizes_t offsets_and_sizes,
+    const shifts_and_scales_t shifts_and_scales,
+    const char* raw_ecal_geometry);
 
   struct calo_lumi_counters_t : public DeviceAlgorithm, Parameters {
 
@@ -71,12 +67,9 @@ namespace calo_lumi_counters {
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
     Property<lumi_counter_shifts_and_scales_t> m_lumi_counter_shifts_and_scales {this, {}};
-    Property<calo_offsets_and_sizes_t> m_calo_offsets_and_sizes {
-      this,
-      {{0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}};
-    Property<calo_shifts_and_scales_t> m_calo_shifts_and_scales {
-      this,
-      {{0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f}}};
+
+    offsets_and_sizes_t m_offsets_and_sizes = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+    shifts_and_scales_t m_shifts_and_scales = {0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f};
 
   }; // struct calo_lumi_counters_t
 } // namespace calo_lumi_counters

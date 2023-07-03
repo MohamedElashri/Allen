@@ -53,7 +53,6 @@ std::vector<ProgramOption> allen_program_options()
     {{"v", "verbosity"}, "verbosity [0-5]", "3", "info"},
     {{"p", "print-memory"}, "print memory usage", "0"},
     {{"sequence"}, "sequence to run", ""},
-    {{"run-from-json"}, "run from json configuration file", "0"},
     {{"output-file"}, "Write selected event to output file", ""},
     {{"output-batch-size"}, "Write output in batches of N events", "10"},
     {{"device"}, "select device to use", "0"},

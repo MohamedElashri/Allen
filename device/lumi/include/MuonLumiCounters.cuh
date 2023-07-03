@@ -39,21 +39,16 @@ namespace muon_lumi_counters {
       "shifts and scales extracted from the schema for lumi counters",
       std::map<std::string, std::pair<float, float>>)
     lumi_counter_shifts_and_scales;
-    PROPERTY(
-      muon_offsets_and_sizes_t,
-      "muon_offsets_and_sizes",
-      "offsets and sizes in bits for the muon counters",
-      std::array<unsigned, 2 * Lumi::Constants::n_muon_counters>)
-    muon_offsets_and_sizes;
-    PROPERTY(
-      muon_shifts_and_scales_t,
-      "muon_shifts_and_scales",
-      "shifts and scales for the muon counters",
-      std::array<float, 2 * Lumi::Constants::n_muon_counters>)
-    muon_shifts_and_scales;
   }; // struct Parameters
 
-  __global__ void muon_lumi_counters(Parameters, const unsigned number_of_events);
+  using offsets_and_sizes_t = std::array<unsigned, 2 * Lumi::Constants::n_muon_counters>;
+  using shifts_and_scales_t = std::array<float, 2 * Lumi::Constants::n_muon_counters>;
+
+  __global__ void muon_lumi_counters(
+    Parameters,
+    const unsigned number_of_events,
+    const offsets_and_sizes_t offsets_and_sizes,
+    const shifts_and_scales_t shifts_and_scales);
 
   struct muon_lumi_counters_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -70,11 +65,10 @@ namespace muon_lumi_counters {
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
     Property<lumi_counter_shifts_and_scales_t> m_lumi_counter_shifts_and_scales {this, {}};
-    Property<muon_offsets_and_sizes_t> m_muon_offsets_and_sizes {
-      this,
-      {{0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}};
-    Property<muon_shifts_and_scales_t> m_muon_shifts_and_scales {this, {{0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f,
-                                                                         0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f,
-                                                                         0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f}}};
+
+    offsets_and_sizes_t m_offsets_and_sizes = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+                                               0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+    shifts_and_scales_t m_shifts_and_scales = {0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f,
+                                               0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f};
   }; // struct muon_lumi_counters_t
 } // namespace muon_lumi_counters

@@ -1,8 +1,6 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
-include(GenerateConfiguration)
-
 # Gear interface library
 add_library(Gear INTERFACE)
 target_include_directories(Gear INTERFACE
@@ -12,45 +10,23 @@ target_include_directories(Gear INTERFACE
 target_link_libraries(Gear INTERFACE Boost::boost)
 install(TARGETS Gear EXPORT Allen)
 
+include(GenerateConfiguration)
+
 file(GLOB stream_src "sequence/src/*cpp")
 
 allen_add_host_library(Stream STATIC ${stream_src})
 
 target_link_libraries(Stream
   PRIVATE
-    HostClustering
-    HostDataProvider
-    HostDummyMaker
-    HostErrorBanks
-    HostGEC
-    HostInitEventList
-    HostPrefixSum
-    HostRoutingBits
-    HostTAEFilter
-    AllenCommon
-    Associate
+    HostEventModel
+    EventModel
     Backend
-    Calo
-    Combiners
-    DeviceValidators
-    Examples
-    Kalman
-    Lumi
-    Muon
-    PV_beamline
-    Plume
-    SciFi
-    UT
-    Validators
-    Velo
-    VertexFitter
-    algorithm_db
+    AllenCommon
+    Gear
     track_matching
-  PUBLIC
-    Utils
-    Selections)
+    MuonCommon
+  )
 
-add_dependencies(Stream generate_algorithms_view)
 if(STANDALONE)
   add_dependencies(Stream checkout_lhcb checkout_gaudi)
 endif()

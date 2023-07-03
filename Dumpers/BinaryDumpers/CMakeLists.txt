@@ -10,11 +10,13 @@ gaudi_add_library(BinaryDumpers
                     src/lib/TestUTBoards.cpp
                     src/lib/Utils.cpp
                   LINK PUBLIC
+                    NonEventDataHeaders
+                    Gear
                     AllenCommon
                     HostCommon
                     EventModel
-                    Backend
-                    NonEventData
+                    AllenRuntime
+                    AllenLib
                     Gaudi::GaudiKernel
                     LHCb::DAQEventLib
                     LHCb::FTDAQLib

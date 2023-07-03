@@ -34,14 +34,17 @@ namespace Allen {
 
   std::tuple<bool, bool> velo_decoding_type(const ConfigurationReader& configuration_reader);
 
-  std::tuple<std::string, bool> sequence_conf(std::map<std::string, std::string> const& options);
+  std::string sequence_conf(std::map<std::string, std::string> const& options);
 
-  std::shared_ptr<IInputProvider> make_provider(std::map<std::string, std::string> const& options);
+  std::shared_ptr<IInputProvider> make_provider(
+    std::map<std::string, std::string> const& options,
+    std::string_view configuration);
 
   std::unique_ptr<OutputHandler> output_handler(
     IInputProvider* input_provider,
     IZeroMQSvc* zmq_svc,
-    std::map<std::string, std::string> const& options);
+    std::map<std::string, std::string> const& options,
+    std::string_view configuration);
 
   Allen::IOConf io_configuration(
     unsigned number_of_slices,

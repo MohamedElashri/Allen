@@ -120,7 +120,13 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
 
   // We have to deal with the fact that calo banks can come in different types
   for (auto bt : m_bankTypes.value()) {
-    if (bt == LHCb::RawBank::EcalPacked || bt == LHCb::RawBank::HcalPacked) {
+    if (bt == LHCb::RawBank::VP || bt == LHCb::RawBank::VPRetinaCluster) {
+      if (rawBanks[LHCb::RawBank::VP].empty() && rawBanks[LHCb::RawBank::VPRetinaCluster].empty()) {
+        // Both VP and Retina banks are empty
+        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
+      }
+    }
+    else if (bt == LHCb::RawBank::EcalPacked || bt == LHCb::RawBank::HcalPacked) {
       if (rawBanks[bt].empty() && rawBanks[LHCb::RawBank::Calo].empty()) {
         // Old-style calo banks empty and new-style calo banks also empty
         throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};

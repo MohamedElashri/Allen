@@ -13,7 +13,6 @@ if (NOT STANDALONE)
     Gaudi::GaudiKernel
     LHCb::ZMQLib
     LHCbEvent
-    ${ALLEN_ROOT_LIBRARIES}
     PRIVATE
     EventModel
     AllenCommon)
@@ -22,7 +21,7 @@ if (NOT STANDALONE)
   install(TARGETS AllenZMQ EXPORT Allen)
   target_link_libraries(AllenZMQ INTERFACE ZMQSvc LHCb::ZMQLib)
 else()
-  allen_add_host_library(AllenZMQ src/functions.cpp src/svc.cpp)
+  allen_add_host_library(AllenZMQ SHARED src/functions.cpp src/svc.cpp)
   target_include_directories(AllenZMQ PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/serialize>
@@ -30,8 +29,7 @@ else()
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/svc>
     ${PROJECT_SOURCE_DIR}/main/include)
   target_compile_definitions(AllenZMQ PUBLIC STANDALONE)
-  target_link_libraries(AllenZMQ PUBLIC PkgConfig::zmq PkgConfig::sodium Boost::headers LHCbEvent)
-  target_include_directories(AllenZMQ SYSTEM PUBLIC ${ROOT_INCLUDE_DIRS})
+  target_link_libraries(AllenZMQ PUBLIC AllenCommon PkgConfig::zmq PkgConfig::sodium Boost::headers LHCbEvent)
 endif()
 
 function(zmq_program)

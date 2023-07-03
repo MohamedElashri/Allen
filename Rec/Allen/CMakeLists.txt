@@ -36,7 +36,6 @@ gaudi_add_module(AllenWrapper
                    HostCommon
                    HostEventModel
                    HostRoutingBits
-                   NonEventData
                    TrackChecking
                    PVChecking
                    CheckClustering
@@ -78,24 +77,26 @@ gaudi_add_module(AllenAlgorithms
                  LINK
                    AllenLib
                    Backend
-                   Stream
+                   CheckClustering
+                   EventModel
+                   Gear
+                   HostCombiners
                    HostCommon
                    HostEventModel
                    HostRoutingBits
-                   NonEventData
-                   TrackChecking
-                   PVChecking
-                   CheckClustering
-                   SelChecking
-                   Monitoring
-                   HostCombiners
-                   EventModel
-                   Gear
-                   mdf
                    LHCbEvent
-                   EventModel
+                   Monitoring
                    MuonCommon
+                   NonEventData
+                   PVChecking
+                   SelChecking
+                   SelectionsHeaders
+                   Stream
+                   TrackChecking
+                   UTCommon
+                   Utils
                    WrapperInterface
+                   mdf
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
                    LHCb::DAQKernelLib

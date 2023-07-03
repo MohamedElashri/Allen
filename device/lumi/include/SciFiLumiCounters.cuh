@@ -37,21 +37,17 @@ namespace scifi_lumi_counters {
       "shifts and scales extracted from the schema for lumi counters",
       std::map<std::string, std::pair<float, float>>)
     lumi_counter_shifts_and_scales;
-    PROPERTY(
-      scifi_offsets_and_sizes_t,
-      "scifi_offsets_and_sizes",
-      "offsets and sizes in bits for the SciFi counters",
-      std::array<unsigned, 2 * Lumi::Constants::n_scifi_counters>)
-    scifi_offsets_and_sizes;
-    PROPERTY(
-      scifi_shifts_and_scales_t,
-      "scifi_shifts_and_scales",
-      "shifts and scales for the SciFi counters",
-      std::array<float, 2 * Lumi::Constants::n_scifi_counters>)
-    scifi_shifts_and_scales;
   }; // struct Parameters
 
-  __global__ void scifi_lumi_counters(Parameters, const unsigned number_of_events, const char* scifi_geometry);
+  using offsets_and_sizes_t = std::array<unsigned, 2 * Lumi::Constants::n_scifi_counters>;
+  using shifts_and_scales_t = std::array<float, 2 * Lumi::Constants::n_scifi_counters>;
+
+  __global__ void scifi_lumi_counters(
+    Parameters,
+    const unsigned number_of_events,
+    const offsets_and_sizes_t offsets_and_sizes,
+    const shifts_and_scales_t shifts_and_scales,
+    const char* scifi_geometry);
 
   struct scifi_lumi_counters_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -68,10 +64,8 @@ namespace scifi_lumi_counters {
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
     Property<lumi_counter_shifts_and_scales_t> m_lumi_counter_shifts_and_scales {this, {}};
-    Property<scifi_offsets_and_sizes_t> m_scifi_offsets_and_sizes {this,
-                                                                   {{0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}};
-    Property<scifi_shifts_and_scales_t> m_scifi_shifts_and_scales {
-      this,
-      {{0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f}}};
+
+    offsets_and_sizes_t m_offsets_and_sizes = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+    shifts_and_scales_t m_shifts_and_scales = {0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f};
   }; // struct scifi_lumi_counters_t
 } // namespace scifi_lumi_counters

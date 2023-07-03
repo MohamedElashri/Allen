@@ -85,6 +85,7 @@ namespace {
  */
 int allen(
   std::map<std::string, std::string> options,
+  std::string_view config,
   Allen::NonEventData::IUpdater* updater,
   std::shared_ptr<IInputProvider> input_provider,
   OutputHandler* output_handler,
@@ -207,7 +208,6 @@ int allen(
   logger::setVerbosity(verbosity);
 
   auto io_conf = Allen::io_configuration(n_slices, n_repetitions, number_of_threads);
-  auto const [json_configuration_file, run_from_json] = Allen::sequence_conf(options);
 
   // Set device for main thread
   auto [device_set, device_name, device_memory_alignment] = Allen::set_device(device_id, 0);
@@ -240,7 +240,7 @@ int allen(
   }
   //
   // Load constant parameters from JSON
-  configuration_reader = std::make_unique<ConfigurationReader>(json_configuration_file);
+  configuration_reader = std::make_unique<ConfigurationReader>(config);
 
   // Get the path to the parameter folder: different for standalone and Gaudi build
   // Only in case of standalone gitlab CI pipepline the parameters folder path is passed as runtime argument
@@ -345,10 +345,8 @@ int allen(
     sequence->configure_algorithms(configuration);
   }
 
-  if (run_from_json) {
-    // Print configured sequence
-    streams.front()->print_configured_sequence();
-  }
+  // Print configured sequence
+  streams.front()->print_configured_sequence();
 
   // Interrogate stream configured sequence for validation algorithms
   const auto sequence_contains_validation_algorithms = streams.front()->contains_validation_algorithms();

@@ -20,7 +20,6 @@
     <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants/hlt1_pp_matching.json</text>
     <text>--tags=detdesc:dddb-20220705,sim-20220705-vc-md100|dd4hep:trunk,master</text>
     <text>--events-per-slice</text><text>500</text>
-    <text>--monitoring-filename</text><text>""</text>
     <text>-m</text><text>600</text>
     <text>-s</text><text>3</text>
     <text>-t</text><text>2</text>

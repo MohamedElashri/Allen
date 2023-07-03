@@ -29,31 +29,26 @@ void calo_lumi_counters::calo_lumi_counters_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
   std::map<std::string, std::pair<float, float>> shifts_and_scales = property<lumi_counter_shifts_and_scales_t>();
-  std::array<unsigned, 2 * Lumi::Constants::n_calo_counters> calo_offsets_and_sizes =
-    property<calo_offsets_and_sizes_t>();
-  std::array<float, 2 * Lumi::Constants::n_calo_counters> calo_shifts_and_scales = property<calo_shifts_and_scales_t>();
 
-  unsigned c_idx(0u);
+  unsigned c_idx = 0u;
   for (auto counter_name : Lumi::Constants::calo_counter_names) {
     if (schema.find(counter_name) == schema.end()) {
       std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
     }
     else {
-      calo_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
-      calo_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
+      m_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
+      m_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
     }
     if (shifts_and_scales.find(counter_name) == shifts_and_scales.end()) {
-      calo_shifts_and_scales[2 * c_idx] = 0.f;
-      calo_shifts_and_scales[2 * c_idx + 1] = 1.f;
+      m_shifts_and_scales[2 * c_idx] = 0.f;
+      m_shifts_and_scales[2 * c_idx + 1] = 1.f;
     }
     else {
-      calo_shifts_and_scales[2 * c_idx] = shifts_and_scales[counter_name].first;
-      calo_shifts_and_scales[2 * c_idx + 1] = shifts_and_scales[counter_name].second;
+      m_shifts_and_scales[2 * c_idx] = shifts_and_scales[counter_name].first;
+      m_shifts_and_scales[2 * c_idx + 1] = shifts_and_scales[counter_name].second;
     }
     ++c_idx;
   }
-  set_property_value<calo_offsets_and_sizes_t>(calo_offsets_and_sizes);
-  set_property_value<calo_shifts_and_scales_t>(calo_shifts_and_scales);
 }
 
 void calo_lumi_counters::calo_lumi_counters_t::operator()(
@@ -66,12 +61,18 @@ void calo_lumi_counters::calo_lumi_counters_t::operator()(
   if (first<host_lumi_summaries_count_t>(arguments) == 0) return;
 
   global_function(calo_lumi_counters)(dim3(2), property<block_dim_t>(), context)(
-    arguments, first<host_number_of_events_t>(arguments), constants.dev_ecal_geometry);
+    arguments,
+    first<host_number_of_events_t>(arguments),
+    m_offsets_and_sizes,
+    m_shifts_and_scales,
+    constants.dev_ecal_geometry);
 }
 
 __global__ void calo_lumi_counters::calo_lumi_counters(
   calo_lumi_counters::Parameters parameters,
   const unsigned number_of_events,
+  const offsets_and_sizes_t offsets_and_sizes,
+  const shifts_and_scales_t shifts_and_scales,
   const char* raw_ecal_geometry)
 {
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
@@ -115,11 +116,11 @@ __global__ void calo_lumi_counters::calo_lumi_counters(
     for (unsigned i = 0; i < Lumi::Constants::n_calo_counters; ++i) {
       fillLumiInfo(
         parameters.dev_lumi_infos[info_offset + i],
-        parameters.calo_offsets_and_sizes.get()[2 * i],
-        parameters.calo_offsets_and_sizes.get()[2 * i + 1],
+        offsets_and_sizes[2 * i],
+        offsets_and_sizes[2 * i + 1],
         E_vals[i],
-        parameters.calo_shifts_and_scales.get()[2 * i],
-        parameters.calo_shifts_and_scales.get()[2 * i + 1]);
+        shifts_and_scales[2 * i],
+        shifts_and_scales[2 * i + 1]);
     }
   }
 }

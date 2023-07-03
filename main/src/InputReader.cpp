@@ -117,14 +117,9 @@ TwoTrackMVAModelReader::TwoTrackMVAModelReader(const std::string& file_name)
   m_n_layers = m_layer_sizes.size();
 }
 
-ConfigurationReader::ConfigurationReader(const std::string& file_name)
+ConfigurationReader::ConfigurationReader(std::string_view configuration)
 {
-  if (!exists_test(file_name)) {
-    throw StrException("Configuration JSON file " + file_name + " does not exist.");
-  }
-  std::ifstream i(file_name);
-  nlohmann::json j;
-  i >> j;
+  nlohmann::json j = nlohmann::json::parse(configuration);
   for (auto& el : j.items()) {
     std::string component = el.key();
     if (component == "sequence") {
@@ -174,9 +169,15 @@ std::map<std::string, nlohmann::json> ConfigurationReader::get_sequence() const 
 
 void ConfigurationReader::save(std::string file_name)
 {
-  nlohmann::json j(m_params);
+  using json_float = nlohmann::basic_json<std::map, std::vector, std::string, bool, std::int32_t, std::uint32_t, float>;
+  json_float j;
+  for (auto [alg, props] : m_params) {
+    for (auto [k, v] : props) {
+      j[alg][k] = v;
+    }
+  }
   std::ofstream o(file_name);
-  o << j.dump(4);
+  o << std::setw(4) << j;
   o.close();
 }
 

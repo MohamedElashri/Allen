@@ -43,18 +43,15 @@ namespace make_lumi_summary {
       "lumi_counter_schema",
       "schema for lumi counters",
       std::map<std::string, std::pair<unsigned, unsigned>>);
-    PROPERTY(
-      basic_offsets_and_sizes_t,
-      "basic_offsets_and_sizes",
-      "offsets and sizes in bits for the ODIN and GEC counters",
-      std::array<unsigned, 2 * Lumi::Constants::n_basic_counters>)
-    basic_offsets_and_sizes;
   }; // struct Parameters
+
+  using offsets_and_sizes_t = std::array<unsigned, 2 * Lumi::Constants::n_basic_counters>;
 
   __global__ void make_lumi_summary(
     Parameters,
     const unsigned number_of_events,
     const unsigned number_of_events_passed_gec,
+    const offsets_and_sizes_t offsets_and_sizes,
     std::array<const Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos,
     std::array<unsigned, Lumi::Constants::n_sub_infos> spanSize,
     const unsigned size_of_aggregate);
@@ -78,7 +75,8 @@ namespace make_lumi_summary {
     Property<encoding_key_full_t> m_key_full {this, 0};
     Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
-    Property<basic_offsets_and_sizes_t> m_basic_offsets_and_sizes {this,
-                                                                   {{0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}};
+
+    offsets_and_sizes_t m_offsets_and_sizes {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+
   }; // struct make_lumi_summary_t
 } // namespace make_lumi_summary

@@ -60,6 +60,8 @@ def make_algorithm(algorithm, name, *args, **kwargs):
         rawbank_list = ["ODIN"]
     elif bank_type == "ECal":
         rawbank_list = ["Calo", "EcalPacked"]
+    elif bank_type == "VP":
+        rawbank_list = ["VP", "VPRetinaCluster"]
     elif bank_type:
         rawbank_list = [bank_type]
 
