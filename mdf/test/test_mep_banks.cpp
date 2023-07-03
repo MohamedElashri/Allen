@@ -77,7 +77,7 @@ namespace Allen {
   }
 } // namespace Allen
 
-fs::path write_json(std::unordered_set<BankTypes> const& bank_types, bool velo_sp)
+fs::path write_json(std::unordered_set<BankTypes> const& bank_types, bool velo_sp, bool transpose)
 {
 
   // Write a JSON file that can be fed to AllenConfiguration to
@@ -96,7 +96,7 @@ fs::path write_json(std::unordered_set<BankTypes> const& bank_types, bool velo_s
   }
   bank_types_json["sequence"]["configured_algorithms"] = configured_algorithms;
 
-  auto bt_filename = fs::canonical(fs::current_path()) / "bank_types.json";
+  auto bt_filename = fs::canonical(fs::current_path()) / ("bank_types"s + (transpose ? "_transpose" : "") + ".json");
   std::ofstream bt_json(bt_filename.string());
   if (!bt_json.is_open()) {
     std::cerr << "Failed to open json file for bank types configuration"
@@ -204,7 +204,7 @@ int main(int argc, char* argv[])
         s_config.sds.emplace(bt);
       }
     }
-    auto json_file = write_json(s_config.sds, velo_sp);
+    auto json_file = write_json(s_config.sds, velo_sp, s_config.transpose_mep);
 
     // Allocate providers and get slices
     std::map<std::string, std::string> options = {{"s", std::to_string(s_config.n_slices)},
@@ -212,11 +212,11 @@ int main(int argc, char* argv[])
                                                   {"v", std::to_string(s_config.debug ? 4 : 3)},
                                                   {"mdf", s_config.mdf_files},
                                                   {"sequence", json_file.string()},
-                                                  {"run-from-json", "1"},
                                                   {"events-per-slice", std::to_string(s_config.eps)},
                                                   {"disable-run-changes", "1"}};
 
-    mdf = Allen::make_provider(options);
+    auto configuration = Allen::sequence_conf(options);
+    mdf = Allen::make_provider(options, configuration);
     if (!mdf) {
       std::cerr << "Failed to obtain MDFProvider\n";
       return 1;

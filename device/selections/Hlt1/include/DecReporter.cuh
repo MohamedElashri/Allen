@@ -35,7 +35,7 @@ namespace dec_reporter {
   private:
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<tck_t> m_tck {this, 0};
-    Property<encoding_key_t> m_key {this, 0xDEADBEEF}; // FIXME
+    Property<encoding_key_t> m_key {this, 0xDEADBEEF};
     Property<task_id_t> m_taskID {this, 1};
   };
 } // namespace dec_reporter

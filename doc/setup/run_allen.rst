@@ -33,7 +33,6 @@ A run of the Allen program with the help option `-h` will let you know the basic
      -v, --verbosity {verbosity [0-5]}=3 (info)
      -p, --print-memory {print memory usage}=0
      --sequence {sequence to run}
-     --run-from-json {run from json configuration file}=0
      --output-file {Write selected event to output file}
      --device {select device to use}=0
      --non-stop {Runs the program indefinitely}=0
@@ -94,7 +93,7 @@ Use Gaudi to update non-event data such as alignment and configuration constants
 When using MDF files as input, call from the Allen environment::
 
   ./Allen/build.${ARCHITECTURE}/run python Dumpers/BinaryDumpers/options/allen.py --mdf Allen/input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf
- 
+
 When using MEP files as input, call from the MooreOnline environment, as MEP handling is implemented there::
 
   ./MooreOnline/build.${ARCHITECTURE}/run python Allen/Dumpers/BinaryDumpers/options/allen.py --sequence=Allen/InstallArea/${ARCHITECTURE}/constants/hlt1_pp_default.json --tags="dddb_tag,simcond_tag" --mep mep_file.mep

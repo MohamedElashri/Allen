@@ -19,21 +19,26 @@ else()
   )
 endif()
 
+add_library(SelectionsHeaders INTERFACE)
+target_include_directories(SelectionsHeaders INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Hlt1/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/line_types/include>)
+install(TARGETS SelectionsHeaders EXPORT Allen)
+
 target_link_libraries(Selections PRIVATE
   AllenCommon
   Backend
   HostEventModel
-  HostCommon
   EventModel
   Utils
   LHCbEvent
   Kalman
   VertexFitter
-  extern_lines)
+  extern_lines
+  SelectionsHeaders)
 
 target_include_directories(Selections PUBLIC
   $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/configuration/sequences>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Hlt1/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/filters/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/calibration/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/monitoring/include>
@@ -43,5 +48,4 @@ target_include_directories(Selections PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/electron/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/photon/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/SMOG2/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/heavy_ions/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/line_types/include>)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lines/heavy_ions/include>)

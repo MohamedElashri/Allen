@@ -104,10 +104,13 @@ find_package(umesimd REQUIRED)
 find_package(PkgConfig)
 pkg_check_modules(zmq libzmq REQUIRED IMPORTED_TARGET)
 pkg_check_modules(sodium libsodium REQUIRED IMPORTED_TARGET)
+if(NOT STANDALONE)
+  pkg_check_modules(git2 libgit2 REQUIRED IMPORTED_TARGET)  # for GitEntityResolver
+endif()
 
 if(WITH_Allen_PRIVATE_DEPENDENCIES)
   # We need a Python 3 interpreter
-  find_package(Python 3 REQUIRED Interpreter)
+  find_package(Python 3 REQUIRED Interpreter Development.Module)
 
   # Catch2 for tests
   find_package(Catch2 REQUIRED)
@@ -139,6 +142,13 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
   if(NOT STANDALONE)
     find_package(Rangev3 REQUIRED)
     find_package(yaml-cpp REQUIRED)
+
+    # pybind11 is available in LCG, but it's installed with setup.py,
+    # so the CMake files are in a non-standard location and we have to
+    # make sure we can find them
+    execute_process(COMMAND ${Python_EXECUTABLE} -c "import pybind11; print(pybind11.get_cmake_dir(), end=\"\");" OUTPUT_VARIABLE PYBIND11_CMAKE_DIR)
+    list(APPEND CMAKE_PREFIX_PATH ${PYBIND11_CMAKE_DIR})
+    find_package(pybind11 CONFIG REQUIRED)
   endif()
 endif()
 
@@ -151,6 +161,8 @@ if (STANDALONE)
   elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
     set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
   endif()
+else()
+  set(Allen_PERSISTENT_OPTIONS TARGET_DEVICE)
 endif()
 
 find_package(ROOT REQUIRED HINTS ${ALLEN_ROOT_CMAKE} COMPONENTS RIO Core Cling Hist Tree)

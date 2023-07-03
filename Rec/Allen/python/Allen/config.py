@@ -92,14 +92,12 @@ def allen_detectors(allen_node):
 
 
 def configured_bank_types(sequence_json):
+    sequence_json = json.loads(sequence_json)
     bank_types = set()
-    with open(sequence_json) as json_file:
-        j = json.load(json_file)
-        for t, n, c in j["sequence"]["configured_algorithms"]:
-            props = j.get(n, {})
-            if c == "ProviderAlgorithm" and not bool(
-                    props.get('empty', False)):
-                bank_types.add(props['bank_type'])
+    for t, n, c in sequence_json["sequence"]["configured_algorithms"]:
+        props = sequence_json.get(n, {})
+        if c == "ProviderAlgorithm" and not bool(props.get('empty', False)):
+            bank_types.add(props['bank_type'])
     return bank_types
 
 

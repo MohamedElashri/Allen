@@ -1,0 +1,21 @@
+<?xml version="1.0" ?><!DOCTYPE extension  PUBLIC '-//QM/2.3/Extension//EN'  'http://www.codesourcery.com/qm/dtds/2.3/-//qm/2.3/extension//en.dtd'>
+<!--
+    (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration
+-->
+<!--
+#######################################################
+# SUMMARY OF THIS TEST
+# ...................
+# Author: Roel Aaij
+# Purpose: Use ROOT python bindings to obtain the geometry directly
+#          from the stack and run the Allen event loop
+#######################################################
+-->
+<extension class="GaudiTest.GaudiExeTest" kind="test">
+  <argument name="program"><text>python</text></argument>
+  <argument name="args"><set>
+    <text>${ALLENROOT}/tests/options/create_hlt1_tcks.py</text>
+  </set></argument>
+  <argument name="timeout"><integer>600</integer></argument>
+  <argument name="use_temp_dir"><enumeral>per-test</enumeral></argument>
+</extension>

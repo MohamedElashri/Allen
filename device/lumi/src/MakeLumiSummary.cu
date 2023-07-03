@@ -28,8 +28,6 @@ void make_lumi_summary::make_lumi_summary_t::set_arguments_size(
 void make_lumi_summary::make_lumi_summary_t::init()
 {
   std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
-  std::array<unsigned, 2 * Lumi::Constants::n_basic_counters> basic_offsets_and_sizes =
-    property<basic_offsets_and_sizes_t>();
 
   unsigned c_idx(0u);
   for (auto counter_name : Lumi::Constants::basic_counter_names) {
@@ -37,12 +35,11 @@ void make_lumi_summary::make_lumi_summary_t::init()
       std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
     }
     else {
-      basic_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
-      basic_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
+      m_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
+      m_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
     }
     ++c_idx;
   }
-  set_property_value<basic_offsets_and_sizes_t>(basic_offsets_and_sizes);
 }
 
 void make_lumi_summary::make_lumi_summary_t::operator()(
@@ -87,6 +84,7 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
     arguments,
     first<host_number_of_events_t>(arguments),
     size<dev_event_list_t>(arguments),
+    m_offsets_and_sizes,
     lumiInfos,
     infoSize,
     size_of_aggregate);
@@ -125,6 +123,7 @@ __global__ void make_lumi_summary::make_lumi_summary(
   make_lumi_summary::Parameters parameters,
   const unsigned number_of_events,
   const unsigned number_of_events_passed_gec,
+  const offsets_and_sizes_t offsets_and_sizes,
   std::array<const Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos,
   std::array<unsigned, Lumi::Constants::n_sub_infos> infoSize,
   const unsigned size_of_aggregate)
@@ -152,36 +151,23 @@ __global__ void make_lumi_summary::make_lumi_summary(
     uint64_t t0 = static_cast<uint64_t>(odin.gpsTime()) - new_bcid * 1000 / 40078;
     // event time
     setField(
-      parameters.basic_offsets_and_sizes.get()[0],
-      parameters.basic_offsets_and_sizes.get()[1],
-      lumi_summary,
-      static_cast<unsigned>(t0 & 0xffffffff),
-      sum_length);
-    setField(
-      parameters.basic_offsets_and_sizes.get()[2],
-      parameters.basic_offsets_and_sizes.get()[3],
-      lumi_summary,
-      static_cast<unsigned>(t0 >> 32),
-      sum_length);
+      offsets_and_sizes[0], offsets_and_sizes[1], lumi_summary, static_cast<unsigned>(t0 & 0xffffffff), sum_length);
+    setField(offsets_and_sizes[2], offsets_and_sizes[3], lumi_summary, static_cast<unsigned>(t0 >> 32), sum_length);
 
     // gps time offset
     setField(
-      parameters.basic_offsets_and_sizes.get()[4],
-      parameters.basic_offsets_and_sizes.get()[5],
+      offsets_and_sizes[4],
+      offsets_and_sizes[5],
       lumi_summary,
       static_cast<unsigned>(new_bcid & 0xffffffff),
       sum_length);
     setField(
-      parameters.basic_offsets_and_sizes.get()[6],
-      parameters.basic_offsets_and_sizes.get()[7],
-      lumi_summary,
-      static_cast<unsigned>(new_bcid >> 32),
-      sum_length);
+      offsets_and_sizes[6], offsets_and_sizes[7], lumi_summary, static_cast<unsigned>(new_bcid >> 32), sum_length);
 
     // bunch crossing type
     setField(
-      parameters.basic_offsets_and_sizes.get()[8],
-      parameters.basic_offsets_and_sizes.get()[9],
+      offsets_and_sizes[8],
+      offsets_and_sizes[9],
       lumi_summary,
       static_cast<unsigned>(odin.bunchCrossingType()),
       sum_length);
@@ -194,12 +180,7 @@ __global__ void make_lumi_summary::make_lumi_summary(
         break;
       }
     }
-    setField(
-      parameters.basic_offsets_and_sizes.get()[10],
-      parameters.basic_offsets_and_sizes.get()[11],
-      lumi_summary,
-      passedGEC,
-      sum_length);
+    setField(offsets_and_sizes[10], offsets_and_sizes[11], lumi_summary, passedGEC, sum_length);
 
     /// write lumi infos to the summary
     for (unsigned i = 0; i < size_of_aggregate; ++i) {

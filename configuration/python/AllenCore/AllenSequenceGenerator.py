@@ -1,9 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from collections import OrderedDict
 from PyConf.dataflow import GaudiDataHandle
-from json import dump
 
 
 def clean_prefix(s):
@@ -22,13 +20,17 @@ def add_deps_and_transitive_deps(dep, arg_deps, parameter_dependencies_set):
             parameter_dependencies_set.add(transitive_dep)
 
 
-def generate_json_configuration(algorithms, filename):
+def generate_json_configuration(algorithms):
     """Generates runtime configuration (JSON)."""
     sequence_json = {}
     # Add properties for each algorithm
     for algorithm in algorithms:
+        sequence_json[algorithm.name] = {
+            str(k): v
+            for k, v in algorithm.type.getDefaultProperties().items()
+            if not isinstance(v, GaudiDataHandle)
+        }
         if len(algorithm.properties):
-            sequence_json[algorithm.name] = {}
             for k, v in algorithm.properties.items():
                 sequence_json[algorithm.name][str(k)] = v
 
@@ -118,15 +120,4 @@ def generate_json_configuration(algorithms, filename):
         "configured_sequence_arguments": configured_sequence_arguments,
         "argument_dependencies": argument_dependencies
     }
-    with open(filename, 'w') as outfile:
-        dump(sequence_json, outfile, indent=4, sort_keys=True)
-
-
-def generate_allen_sequence(algorithms,
-                            json_configuration_filename="Sequence.json"):
-    """Generates an Allen valid sequence.
-
-    * json_configuration_filename: JSON configuration that can be changed at runtime to change
-                                   values of properties.
-    """
-    generate_json_configuration(algorithms, json_configuration_filename)
+    return sequence_json

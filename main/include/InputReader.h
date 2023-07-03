@@ -76,7 +76,7 @@ private:
 };
 
 struct ConfigurationReader {
-  ConfigurationReader(const std::string& file_name);
+  ConfigurationReader(std::string_view configuration);
   ConfigurationReader(const std::map<std::string, std::map<std::string, nlohmann::json>>& params) : m_params(params) {}
 
   std::map<std::string, nlohmann::json> params(std::string key) const

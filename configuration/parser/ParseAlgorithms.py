@@ -11,6 +11,7 @@ from collections import OrderedDict
 from AlgorithmTraversalLibClang import AlgorithmTraversal
 import argparse
 import pickle
+import json
 
 
 def get_clang_so_location():
@@ -30,7 +31,8 @@ class Parser():
 
     # Pattern sought in every file, prior to parsing the file for an algorithm
     __algorithm_pattern_compiled = re.compile(
-        "(?P<scope>Host|Device|Selection|Validation|Provider|Barrier)Algorithm")
+        "(?P<scope>Host|Device|Selection|Validation|Provider|Barrier)Algorithm"
+    )
 
     # File extensions considered
     __sought_extensions_compiled = [
@@ -72,9 +74,9 @@ class Parser():
 
         return algorithm_files
 
-
     @staticmethod
-    def parse_all(algorithm_files, prefix_project_folder,
+    def parse_all(algorithm_files,
+                  prefix_project_folder,
                   algorithm_parser=AlgorithmTraversal()):
         """Parses all files and traverses algorithm definitions."""
         algorithms = []
@@ -82,7 +84,7 @@ class Parser():
         for algorithm_file in algorithm_files:
             try:
                 parsed_algorithms = algorithm_parser.traverse(
-                            algorithm_file, prefix_project_folder)
+                    algorithm_file, prefix_project_folder)
                 if parsed_algorithms:
                     algorithms += parsed_algorithms
             except:
@@ -114,7 +116,7 @@ class AllenCore():
         return s
 
     @staticmethod
-    def write_algorithm_code(algorithm, i=0):
+    def write_algorithm_code(algorithm, default_properties, i=0):
         s = AllenCore.prefix(
             i) + "class " + algorithm.name + "(AllenAlgorithm):\n"
         i += 1
@@ -132,9 +134,23 @@ class AllenCore():
             s += AllenCore.prefix(i) + param.typename + " = AllenDataHandle(\"" + param.scope + "\", " + dependencies + ", \"" + param.typename + "\", \"" \
                 + AllenCore.create_var_type(param.kind) + \
                 "\", \"" + str(param.typedef) + "\"),\n"
+
+        # Properties
         for prop in algorithm.properties:
-            s += AllenCore.prefix(i) + prop.name[1:-1] + " = \"\",\n"
-        s = s[:-2]
+            # Use the python JSON parser to turn the JSON
+            # representation of default values into appropriate Python
+            # objects
+            pn = prop.name[1:-1]
+            dv = json.loads(default_properties[pn])
+
+            # Quotes have to be added for properties that hold a string
+            if type(dv) is str:
+                dv = f'"{dv}"'
+
+            # Write the code for the property and include the C++ type
+            # as a comment
+            s += f'{AllenCore.prefix(i)}{pn} = {dv}, # {prop.typedef}\n'
+        s = s[:-1]
         i -= 1
         s += "\n" + AllenCore.prefix(i) + ")\n"
 
@@ -382,8 +398,7 @@ class AllenCore():
             "std::tuple<" + ",".join(output_types) + "> output_container {};",
             "// TES wrappers", f"{tes_wrappers}",
             "// Inputs to set_arguments_size and operator()",
-            f"{tes_wrappers_reference}",
-            f"Allen::Context context{{}};",
+            f"{tes_wrappers_reference}", f"Allen::Context context{{}};",
             f"const auto argument_references = ArgumentReferences<{algorithm.namespace}::Parameters>{{tes_wrappers_references, input_aggregates_tuple}};",
             f"// set arguments size invocation",
             f"m_algorithm.set_arguments_size(argument_references, runtime_options, *constants);",
@@ -587,10 +602,32 @@ class AllenCore():
         return code
 
     @staticmethod
-    def write_algorithms_view(algorithms, filename):
+    def write_algorithms_view(algorithms, filename, default_properties):
+        from subprocess import (PIPE, run)
+
+        # Run the default_properties executable to get a JSON
+        # representation of the default values of all properties of
+        # all algorithms
+        p = run(
+            [default_properties],
+            stdout=PIPE,
+            input=';'.join([
+                "{}::{}".format(a.namespace, a.name) for a in parsed_algorithms
+            ]),
+            encoding='ascii')
+
+        default_properties = None
+        if p.returncode == 0:
+            default_properties = json.loads(p.stdout)
+        else:
+            print("Failed to obtain default property values")
+            sys.exit(-1)
+
         s = AllenCore.write_preamble()
         for algorithm in parsed_algorithms:
-            s += AllenCore.write_algorithm_code(algorithm)
+            tn = "{}::{}".format(algorithm.namespace, algorithm.name)
+            s += AllenCore.write_algorithm_code(algorithm,
+                                                default_properties[tn])
         with open(filename, "w") as f:
             f.write(s)
 
@@ -624,8 +661,7 @@ class AllenCore():
 
     @staticmethod
     def write_algorithms_db(algorithms, filename):
-        code = "\n".join(("#pragma once", "", "#include <Configuration.h>",
-                          "\n"))
+        code = "\n".join(("#include <AlgorithmDB.h>", "\n"))
         for alg in algorithms:
             code += f"namespace {alg.namespace} {{ struct {alg.name}; }}\n"
         code += "\nAllen::TypeErasedAlgorithm instantiate_allen_algorithm(const ConfiguredAlgorithm& alg) {\n"
@@ -713,6 +749,12 @@ if __name__ == '__main__':
         default="",
         help="location of parsed algorithms")
     parser.add_argument(
+        "--default_properties",
+        nargs="?",
+        type=str,
+        default="",
+        help="location of default_properties executable")
+    parser.add_argument(
         "--generate",
         nargs="?",
         type=str,
@@ -733,7 +775,8 @@ if __name__ == '__main__':
     elif args.generate == "algorithm_headers_list":
         # Write list of files including algorithm definitions
         algorithm_headers_list = Parser().find_algorithm_files(prefix_folder)
-        AllenCore.write_algorithm_filename_list(algorithm_headers_list, args.filename)
+        AllenCore.write_algorithm_filename_list(algorithm_headers_list,
+                                                args.filename)
     else:
 
         if args.parsed_algorithms:
@@ -743,11 +786,13 @@ if __name__ == '__main__':
         else:
             # Otherwise generate parsed_algorithms on the fly
             algorithm_files = Parser().find_algorithm_files(prefix_folder)
-            parsed_algorithms = Parser().parse_all(algorithm_files, prefix_folder)
+            parsed_algorithms = Parser().parse_all(algorithm_files,
+                                                   prefix_folder)
 
         if args.generate == "views":
             # Generate algorithm python views
-            AllenCore.write_algorithms_view(parsed_algorithms, args.filename)
+            AllenCore.write_algorithms_view(parsed_algorithms, args.filename,
+                                            args.default_properties)
         elif args.generate == "wrapperlist":
             # Generate Gaudi wrapper filenames
             gaudi_wrapper_filenames = AllenCore.write_gaudi_algorithms(

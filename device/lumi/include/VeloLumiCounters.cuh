@@ -48,21 +48,16 @@ namespace velo_lumi_counters {
       "shifts and scales extracted from the schema for lumi counters",
       std::map<std::string, std::pair<float, float>>)
     lumi_counter_shifts_and_scales;
-    PROPERTY(
-      velo_offsets_and_sizes_t,
-      "velo_offsets_and_sizes",
-      "offsets and sizes in bits for the VELO counters",
-      std::array<unsigned, 2 * Lumi::Constants::n_velo_counters>)
-    velo_offsets_and_sizes;
-    PROPERTY(
-      velo_shifts_and_scales_t,
-      "velo_shifts_and_scales",
-      "shifts and scales for the VELO counters",
-      std::array<float, 2 * Lumi::Constants::n_velo_counters>)
-    velo_shifts_and_scales;
   }; // struct Parameters
 
-  __global__ void velo_lumi_counters(Parameters, const unsigned number_of_events);
+  using offsets_and_sizes_t = std::array<unsigned, 2 * Lumi::Constants::n_velo_counters>;
+  using shifts_and_scales_t = std::array<float, 2 * Lumi::Constants::n_velo_counters>;
+
+  __global__ void velo_lumi_counters(
+    Parameters,
+    const unsigned number_of_events,
+    const offsets_and_sizes_t offsets_and_sizes,
+    const shifts_and_scales_t shifts_and_scales);
 
   // doca and eta copied from device/event_model/common/include/CopyTrackParameters.cuh
   // to avoid extra header files requirements
@@ -99,10 +94,10 @@ namespace velo_lumi_counters {
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
     Property<lumi_counter_shifts_and_scales_t> m_lumi_counter_shifts_and_scales {this, {}};
-    Property<velo_offsets_and_sizes_t> m_velo_offsets_and_sizes {this, {{0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
-                                                                         0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u}}};
-    Property<velo_shifts_and_scales_t> m_velo_shifts_and_scales {
-      this,
-      {{0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f}}};
+
+    offsets_and_sizes_t m_offsets_and_sizes = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+                                               0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+    shifts_and_scales_t m_shifts_and_scales = {0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f,
+                                               0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f};
   }; // struct velo_lumi_counters_t
 } // namespace velo_lumi_counters

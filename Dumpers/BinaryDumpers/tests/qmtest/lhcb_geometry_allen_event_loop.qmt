@@ -18,6 +18,7 @@
     <text>--tags=dd4hep:trunk,master|detdesc:dddb-20220705,sim-20220705-vc-md100</text>
     <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3337_dddb-20220705_sim-20220705-vc-md100.mdf</text>
     <text>--sequence</text><text>$ALLEN_INSTALL_DIR/constants/hlt1_pp_no_ut.json</text>
+    <text>--monitoring-filename</text><text>allen_event_loop.root</text>
     <text>-n</text><text>10000</text>
   </set></argument>
   <arguement name="timeout"><integer>600</integer></arguement>

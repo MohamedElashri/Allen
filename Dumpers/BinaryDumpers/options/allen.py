@@ -5,6 +5,7 @@
 import os
 import sys
 import zmq
+import re
 from Configurables import ApplicationMgr
 from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
 
@@ -142,6 +143,13 @@ parser.add_argument(
     default=False,
     help="Use binary files as the geometry",
 )
+parser.add_argument(
+    "--tck-no-bindings",
+    help="Avoid using python bindings to TCK utils",
+    dest="bindings",
+    action="store_false",
+    default=True
+)
 
 args = parser.parse_args()
 
@@ -190,12 +198,44 @@ extSvc = ["ToolSvc", "AuditorSvc", "ZeroMQSvc"]
 rootSvc = RootCnvSvc("RootCnvSvc", EnableIncident=1)
 ApplicationMgr().ExtSvc += ["Gaudi::IODataManager/IODataManager", rootSvc]
 
+# Get Allen JSON configuration
+sequence = os.path.expandvars(args.sequence)
+sequence_json = ""
+tck_option = re.compile(r"([^:]+):(0x[a-fA-F0-9]{8})")
+if (m := tck_option.match(sequence)):
+    from Allen.tck import sequence_from_git, dependencies_from_build_manifest
+    import json
+
+    repo = m.group(1)
+    tck = m.group(2)
+    sequence_json, tck_info = sequence_from_git(repo, tck, use_bindings=args.bindings)
+    tck_deps = tck_info["metadata"]["dependencies"]
+    if not sequence_json or sequence_json == 'null':
+        print(
+            f"Failed to obtain configuration for TCK {tck} from repository {repo}"
+        )
+        sys.exit(1)
+    elif (deps :=
+          dependencies_from_build_manifest()) != tck_deps:
+        print(
+            f"TCK {tck} is compatible with Allen release {deps}, not with {tck_deps}."
+        )
+        sys.exit(1)
+    else:
+        print(
+            f"Loaded TCK {tck} with sequence type {tck_info['type']} and label {tck_info['label']}."
+        )
+else:
+    with open(sequence) as f:
+        sequence_json = f.read()
+
 if args.mep:
     extSvc += ["AllenConfiguration", "MEPProvider"]
     from Configurables import MEPProvider, AllenConfiguration
 
     allen_conf = AllenConfiguration("AllenConfiguration")
-    allen_conf.JSON = args.sequence
+    # Newlines in a string property cause issues
+    allen_conf.JSON = sequence_json.replace('\n', '')
     allen_conf.OutputLevel = 3
 
     mep_provider = MEPProvider()
@@ -255,8 +295,7 @@ if not args.binary_geometry:
                     'SIMCOND': options.conddb_tag,
                 }))
 
-if not args.binary_geometry:
-    bank_types = configured_bank_types(args.sequence)
+    bank_types = configured_bank_types(sequence_json)
     cf_node = setup_allen_non_event_data_service(
         allen_event_loop=True, bank_types=bank_types)
     config.update(configure(options, cf_node, make_odin=make_odin))
@@ -278,14 +317,13 @@ for flag, value in [("g", args.det_folder), ("params", params),
                     ("r", args.repetitions), ("output-file", args.output_file),
                     ("output-batch-size", args.output_batch_size),
                     ("m", args.reserve), ("v", args.verbosity),
-                    ("p", args.print_memory),
-                    ("sequence", os.path.expandvars(args.sequence)),
+                    ("p", args.print_memory), ("sequence", sequence),
                     ("s", args.slices), ("mdf", os.path.expandvars(args.mdf)),
                     ("disable-run-changes", int(not args.enable_run_changes)),
                     ("monitoring-save-period", args.mon_save_period),
                     ("monitoring-filename", args.mon_filename),
                     ("events-per-slice", args.events_per_slice),
-                    ("device", args.device), ("run-from-json", "1"),
+                    ("device", args.device),
                     ("enable-monitoring-printing",
                      args.enable_monitoring_printing),
                     ("register-monitoring-counters",
@@ -306,8 +344,9 @@ if args.mep:
     mep_provider = gaudi.service("MEPProvider", interface=gbl.IService)
     provider = cast_service(gbl.IInputProvider, mep_provider)
 else:
-    provider = gbl.Allen.make_provider(options)
-output_handler = gbl.Allen.output_handler(provider, zmqSvc, options)
+    provider = gbl.Allen.make_provider(options, sequence_json)
+output_handler = gbl.Allen.output_handler(provider, zmqSvc, options,
+                                          sequence_json)
 
 # run Allen
 gbl.allen.__release_gil__ = 1
@@ -336,8 +375,9 @@ def allen_thread():
     if args.profile == "CUDA":
         runtime_lib.cudaProfilerStart()
 
-    gbl.allen(options, updater, shared_wrap(gbl.IInputProvider, provider),
-              output_handler, zmqSvc, con.c_str())
+    gbl.allen(options, sequence_json, updater,
+              shared_wrap(gbl.IInputProvider, provider), output_handler,
+              zmqSvc, con.c_str())
 
     if args.profile == "CUDA":
         runtime_lib.cudaProfilerStop()

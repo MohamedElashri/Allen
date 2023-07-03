@@ -9,13 +9,13 @@ config:
   # args added for specific test keys
   args:
     # Added to Allen command always
-    base: "--run-from-json 1 --params external/ParamFiles/"
+    base: "--params external/ParamFiles/"
 
     # added if "dataset:" specified
     dataset: "--mdf /scratch/allen_data/mdf_input/{dataset}.mdf"
 
     # added if "sequence:" specified
-    sequence: "--sequence {sequence}"
+    sequence: "--sequence {sequence}.json"
 
     # added if "geometry:" specified
     geometry: "-g /scratch/allen_geometries/{geometry}"

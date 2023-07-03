@@ -15,6 +15,7 @@ set(ALLEN_PARSER_DIR ${PROJECT_SEQUENCE_DIR}/parser)
 set(ALGORITHMS_OUTPUTFILE ${ALLEN_ALGORITHMS_DIR}/allen_standalone_algorithms.py)
 set(PARSED_ALGORITHMS_OUTPUTFILE ${CODE_GENERATION_DIR}/parsed_algorithms.pickle)
 set(ALGORITHMS_GENERATION_SCRIPT ${PROJECT_SOURCE_DIR}/configuration/parser/ParseAlgorithms.py)
+set(DEFAULT_PROPERTIES_SRC ${PROJECT_SOURCE_DIR}/configuration/src/default_properties.cpp)
 
 include_guard(GLOBAL)
 
@@ -25,7 +26,7 @@ file(MAKE_DIRECTORY ${ALLEN_ALGORITHMS_DIR})
 
 # We will invoke the parser a few times, set its required environment in a variable
 # Add the scripts folder only if we are invoking with a CMAKE_TOOLCHAIN_FILE
-if(CMAKE_TOOLCHAIN_FILE) 
+if(CMAKE_TOOLCHAIN_FILE)
   set(PARSER_ENV PYTHONPATH=$ENV{PYTHONPATH}:${PROJECT_SOURCE_DIR}/scripts LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH})
 else()
   set(PARSER_ENV PYTHONPATH=$ENV{PYTHONPATH}:${LIBCLANG_LIBDIR}/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages LD_LIBRARY_PATH=${LIBCLANG_LIBDIR}:$ENV{LD_LIBRARY_PATH})
@@ -59,31 +60,40 @@ add_custom_command(
   DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf" "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore")
 add_custom_target(generate_conf_core DEPENDS "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
 
+# Generate Allen AlgorithmDB
+add_custom_command(
+  OUTPUT "${CODE_GENERATION_DIR}/AlgorithmDB.cpp"
+  COMMENT "Generating AlgorithmDB"
+  COMMAND ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate db --filename "${CODE_GENERATION_DIR}/AlgorithmDB.cpp" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
+  WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
+  DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
+add_custom_target(algorithm_db_generation DEPENDS "${CODE_GENERATION_DIR}/AlgorithmDB.cpp")
+add_library(algorithm_db OBJECT "${CODE_GENERATION_DIR}/AlgorithmDB.cpp")
+add_dependencies(algorithm_db algorithm_db_generation)
+target_link_libraries(algorithm_db
+  PUBLIC
+    EventModel
+    HostEventModel
+    Backend
+    AllenCommon
+    Gear)
+
+add_executable(default_properties ${DEFAULT_PROPERTIES_SRC})
+target_link_libraries(default_properties PRIVATE AllenLib HostEventModel EventModel)
+
 # Generate allen standalone algorithms file
 add_custom_command(
   OUTPUT "${ALGORITHMS_OUTPUTFILE}"
   COMMAND
-    ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate views --filename "${ALGORITHMS_OUTPUTFILE}" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" &&
+    ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate views --filename "${ALGORITHMS_OUTPUTFILE}" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" --default_properties $<TARGET_FILE:default_properties> &&
     ${CMAKE_COMMAND} -E touch ${ALLEN_ALGORITHMS_DIR}/__init__.py
   WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
-  DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}" "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
+  DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}" "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}" default_properties)
 add_custom_target(generate_algorithms_view DEPENDS "${ALGORITHMS_OUTPUTFILE}")
 install(FILES "${ALGORITHMS_OUTPUTFILE}" DESTINATION python/AllenAlgorithms)
 
-# Generate Allen AlgorithmDB
-add_custom_command(
-  OUTPUT "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h"
-  COMMENT "Generating AlgorithmDB"
-  COMMAND ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate db --filename "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h" --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}"
-  WORKING_DIRECTORY ${ALLEN_PARSER_DIR}
-  DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
-add_custom_target(algorithm_db_generation DEPENDS "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h")
-add_library(algorithm_db INTERFACE)
-add_dependencies(algorithm_db algorithm_db_generation "${ALLEN_GENERATED_INCLUDE_FILES_DIR}/AlgorithmDB.h")
-target_include_directories(algorithm_db INTERFACE $<BUILD_INTERFACE:${ALLEN_GENERATED_INCLUDE_FILES_DIR}>)
-install(TARGETS algorithm_db
-      EXPORT Allen
-      LIBRARY DESTINATION lib)
+# Target that the generation of the sequences can depend on
+add_custom_target(Sequences DEPENDS generate_algorithms_view)
 
 if(SEPARABLE_COMPILATION)
   add_custom_command(
@@ -198,6 +208,6 @@ function(generate_sequence sequence)
       WORKING_DIRECTORY ${sequence_dir})
   endif()
   add_custom_target(sequence_${sequence} DEPENDS "${PROJECT_BINARY_DIR}/${sequence}.json")
-  add_dependencies(Stream sequence_${sequence})
+  add_dependencies(Sequences sequence_${sequence})
   install(FILES "${PROJECT_BINARY_DIR}/${sequence}.json" DESTINATION constants)
 endfunction()

@@ -4,18 +4,23 @@
 file(GLOB SOURCES "src/*.cpp")
 
 allen_add_host_library(NonEventData STATIC ${SOURCES})
+add_library(NonEventDataHeaders INTERFACE)
+target_include_directories(NonEventDataHeaders INTERFACE
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/Dumpers/BinaryDumpers/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
+install(TARGETS NonEventDataHeaders EXPORT Allen)
 
-target_link_libraries(NonEventData PRIVATE
-  HostClustering
-  Backend
-  AllenCommon
-  EventModel
-  Gear
-  Backend
-  MuonCommon
-  UTCommon
-  nlohmann_json::nlohmann_json)
-
-target_include_directories(NonEventData PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/Dumpers/BinaryDumpers/include>)
+target_link_libraries(NonEventData
+  PRIVATE
+    HostClustering
+    AllenRuntime
+    AllenCommon
+    HostCommon
+    EventModel
+    Gear
+    MuonCommon
+    UTCommon
+    nlohmann_json::nlohmann_json
+  PUBLIC
+    NonEventDataHeaders
+  )

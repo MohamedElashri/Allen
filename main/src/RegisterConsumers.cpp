@@ -1,8 +1,9 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
-#include "RegisterConsumers.h"
-#include "Common.h"
+#include <RegisterConsumers.h>
+#include <Common.h>
+#include <Updater.h>
 
 /**
  * @brief      Register all consumers of non-event data
@@ -85,4 +86,13 @@ void register_consumers(
     using id_t = typename std::remove_reference_t<decltype(std::get<0>(c))>;
     updater->registerConsumer<id_t>(std::get<1>(c)());
   });
+}
+
+Allen::NonEventData::IUpdater* binary_updater(std::map<std::string, std::string> const& options)
+{
+  static std::unique_ptr<Allen::NonEventData::IUpdater> updater;
+  if (!updater) {
+    updater = std::make_unique<Allen::NonEventData::Updater>(options);
+  }
+  return updater.get();
 }

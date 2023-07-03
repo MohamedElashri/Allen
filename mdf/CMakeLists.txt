@@ -41,7 +41,11 @@ target_include_directories (mdf PUBLIC
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/main/include>)
 target_link_libraries(mdf PUBLIC LHCbEvent)
 
-set(lhcb_public_headers include/write_mdf.hpp include/read_mdf.hpp include/mdf_header.hpp daq40/sourceid.h)
+set(lhcb_public_headers
+  include/write_mdf.hpp
+  include/read_mdf.hpp
+  include/mdf_header.hpp
+  daq40/sourceid.h)
 target_include_directories(LHCbEvent INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/daq40>)
 
 if (STANDALONE)
@@ -52,16 +56,28 @@ if (STANDALONE)
     ${PROJECT_BINARY_DIR}/sequences/Gaudi/GaudiKernel/include)
   target_compile_definitions(LHCbEvent INTERFACE ODIN_WITHOUT_GAUDI)
 else()
-  target_link_libraries(mdf PUBLIC Boost::filesystem Boost::thread Boost::regex)
-  target_link_libraries(LHCbEvent INTERFACE Gaudi::GaudiKernel LHCb::DAQEventLib LHCb::LumiEventLib)
+  target_link_libraries(mdf
+    PUBLIC
+      Boost::filesystem
+      Boost::thread
+      Boost::regex)
+  target_link_libraries(LHCbEvent
+    INTERFACE
+      Gaudi::GaudiKernel
+      LHCb::DAQEventLib
+      LHCb::LumiEventLib)
 endif()
 
 set_property(TARGET LHCbEvent PROPERTY PUBLIC_HEADER ${lhcb_public_headers})
 install(TARGETS LHCbEvent EXPORT Allen
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Allen)
 
-target_link_libraries(
-  mdf PRIVATE Gear Backend AllenCommon LHCbEvent)
+target_link_libraries(mdf
+  PRIVATE
+    Gear
+    Backend
+    AllenCommon
+    LHCbEvent)
 
 # These tests don't need CUDA
 remove_definitions(-DTARGET_DEVICE_CUDA)
@@ -74,7 +90,14 @@ function(test_program)
 
   find_package(Threads REQUIRED)
 
-  target_link_libraries(${test_name} PRIVATE Transpose Threads::Threads EventModel AllenZMQ Catch2::Catch2 Boost::program_options)
+  target_link_libraries(${test_name}
+    PRIVATE
+      Transpose
+      Threads::Threads
+      EventModel
+      AllenZMQ
+      Catch2::Catch2
+      Boost::program_options)
   target_compile_definitions(${test_name} PRIVATE ODIN_WITHOUT_GAUDI)
   if (NOT STANDALONE)
     find_package(fmt REQUIRED)
@@ -90,7 +113,15 @@ if (BUILD_TESTING)
     ${PROJECT_SOURCE_DIR}/main/src/Provider.cpp
     ${PROJECT_SOURCE_DIR}/main/src/ZMQOutputSender.cpp)
   target_compile_definitions(Transpose PRIVATE ODIN_WITHOUT_GAUDI)
-  target_link_libraries(Transpose PUBLIC HostCommon Backend mdf LHCbEvent AllenZMQ EventModel AllenFS)
+  target_link_libraries(Transpose
+    PUBLIC
+      HostCommon
+      Backend
+      mdf
+      LHCbEvent
+      AllenZMQ
+      EventModel
+      AllenFS)
 
   test_program(NAME mdf_test_read SOURCE test/test_read.cpp)
   test_program(NAME mdf_bench_read SOURCE test/bench_read.cpp)
@@ -100,6 +131,7 @@ if (BUILD_TESTING)
   if (NOT STANDALONE)
     test_program(NAME mep_test_banks SOURCE test/test_mep_banks.cpp)
     target_link_libraries(allen_mep_test_banks PRIVATE Gaudi::GaudiKernel)
+    target_link_libraries(Transpose PUBLIC Configuration)
   endif()
 
 endif()

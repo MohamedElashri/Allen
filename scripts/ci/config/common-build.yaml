@@ -18,11 +18,11 @@
       # build jobs (with tests)
       - LCG_SYSTEM:
           - "x86_64_v3-el9-gcc12" # FIXME gcc12->clang12 (?)
-        LCG_OPTIMIZATION: 
+        LCG_OPTIMIZATION:
           - "opt+g"
         OPTIONS:
           - BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS
-      
+
       - LCG_SYSTEM: "x86_64_v3-el9-gcc12"
         LCG_OPTIMIZATION: "dbg"
         LCG_QUALIFIER: "cuda12_1"
@@ -50,7 +50,9 @@
       - input
       - build*/external/ParamFiles/*
       - build*/*Allen*
-      - build*/sequences/libStream_*.so
+      - build*/libHostCommon.so
+      - build*/zmq/libAllenZMQ.so
+      - build*/integration/non_event_data/libNonEventData.so
       - build*/*.json
       - build*/CTestTestfile.cmake
       - build*/test/unit_tests/unit_tests

@@ -26,14 +26,14 @@ if [ "${RUN_THROUGHPUT}" != "NO_THROUGHPUT" ]; then
     fi
     # overwrite GEOMETRY if RUN_THROUGHPUT_GEOMETRY defined
     if [ ! -z ${RUN_THROUGHPUT_GEOMETRY+x} ]; then
-        GEOMETRY="${RUN_THROUGHPUT_GEOMETRY}"   
+        GEOMETRY="${RUN_THROUGHPUT_GEOMETRY}"
     # else
     #     echo "RUN_THROUGHPUT_GEOMETRY not set - abort throughput test"
     #     exit 1
     fi
     # overwrite DATA_TAG if RUN_THROUGHPUT_DATA_TAG defined
     if [ ! -z ${RUN_THROUGHPUT_DATA_TAG+x} ]; then
-        DATA_TAG="${RUN_THROUGHPUT_DATA_TAG}"   
+        DATA_TAG="${RUN_THROUGHPUT_DATA_TAG}"
     else
         echo "RUN_THROUGHPUT_DATA_TAG not set - abort throughput test"
         exit 1
@@ -50,7 +50,7 @@ if [ "${RUN_THROUGHPUT}" != "NO_THROUGHPUT" ]; then
     RUN_OPTIONS="$RUN_OPTIONS -g /scratch/allen_geometries/${GEOMETRY}"
     fi
 
-    RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}  --run-from-json 1 --params external/ParamFiles/ ${RUN_OPTIONS}"
+    RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}.json --params external/ParamFiles/ ${RUN_OPTIONS}"
 
     set -euxo pipefail
     OUTPUT_FOLDER_REL="${TEST_NAME}_output_${SEQUENCE}_${DATA_TAG}${OPTIONS}/${DEVICE_ID}"
@@ -164,7 +164,7 @@ if [ "${RUN_THROUGHPUT}" != "NO_THROUGHPUT" ]; then
     # write metric to display on MR
     echo "throughput_kHz{device=\"${DEVICE_ID}\",sequence=\"${SEQUENCE}\",dataset=\"${DATA_TAG}\"} ${THROUGHPUT_KHZ}" >> "${OUTPUT_FOLDER}/metrics.txt"
 
-    if [ "${TPUT_REPORT}" = "NO_REPORT" ]; then 
+    if [ "${TPUT_REPORT}" = "NO_REPORT" ]; then
     echo "TPUT_REPORT is set to ${TPUT_REPORT} - throughput will not be reported."
 
     touch "${OUTPUT_FOLDER}/no_throughput_report.txt"
@@ -182,28 +182,28 @@ if [ "${RUN_EFFICIENCY}" != "NO_EFFICIENCY" ]; then
 
     check_build_exists
 
-    EFF_RUN_OPTIONS="-n 10000 -m 1100 --run-from-json 1"
+    EFF_RUN_OPTIONS="-n 10000 -m 1100"
 
     # Configure the input files (--mdf) and geometry (-g)
     set +x; set +u
 
     # overwrite SEQUENCE if RUN_EFFICIENCY_SEQUENCE defined
     if [ ! -z ${RUN_EFFICIENCY_SEQUENCE+x} ]; then
-        SEQUENCE="${RUN_EFFICIENCY_SEQUENCE}"   
+        SEQUENCE="${RUN_EFFICIENCY_SEQUENCE}"
     else
         echo "RUN_EFFICIENCY_SEQUENCE not set - abort efficiency test"
         exit 1
     fi
     # overwrite GEOMETRY if RUN_EFFICIENCY_GEOMETRY defined
     if [ ! -z ${RUN_EFFICIENCY_GEOMETRY+x} ]; then
-        GEOMETRY="${RUN_EFFICIENCY_GEOMETRY}"   
+        GEOMETRY="${RUN_EFFICIENCY_GEOMETRY}"
     # else
     #     echo "RUN_EFFICIENCY_GEOMETRY not set - abort efficiency test"
     #     exit 1
     fi
     # overwrite DATA_TAG if RUN_EFFICIENCY_DATA_TAG defined
     if [ ! -z ${RUN_EFFICIENCY_DATA_TAG+x} ]; then
-        DATA_TAG="${RUN_EFFICIENCY_DATA_TAG}"   
+        DATA_TAG="${RUN_EFFICIENCY_DATA_TAG}"
     else
         echo "RUN_EFFICIENCY_DATA_TAG not set - abort efficiency test"
         exit 1
@@ -215,7 +215,7 @@ if [ "${RUN_EFFICIENCY}" != "NO_EFFICIENCY" ]; then
 
     set -euxo pipefail
 
-    EFF_RUN_OPTIONS=" --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE} --params external/ParamFiles/ ${EFF_RUN_OPTIONS}"
+    EFF_RUN_OPTIONS=" --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}.json --params external/ParamFiles/ ${EFF_RUN_OPTIONS}"
 
     OUTPUT_FOLDER="${TEST_NAME}_output_${SEQUENCE}"
 
