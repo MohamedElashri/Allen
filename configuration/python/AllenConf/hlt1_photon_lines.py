@@ -31,10 +31,10 @@ def make_single_calo_cluster_line(calo,
         enable_tupling=False)
 
 
-def make_bs2gammagamma_line(calo,
+def make_diphotonhighmass_line(calo,
                             velo_tracks,
                             pvs,
-                            name="Hlt1Bs2GammaGamma",
+                            name="Hlt1DiPhotonHighMass",
                             pre_scaler=1.,
                             post_scaler=1.,
                             pre_scaler_hash_string=None,
@@ -60,10 +60,10 @@ def make_bs2gammagamma_line(calo,
         host_ecal_number_of_twoclusters_t=calo[
             "host_ecal_number_of_twoclusters"],
         dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"],
-        minMass=3000,  #MeV
-        maxMass=8000,  #MeV
-        minPt=1000,
+        minMass=4200,  #MeV
+        maxMass=21000,  #MeV
+        minPt=3000,
         minEt_clusters=2500,
-        minSumEt_clusters=0,
+        minSumEt_clusters=6000,
         minE19_clusters=0.6,
         enable_tupling=False)
