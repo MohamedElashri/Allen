@@ -22,7 +22,7 @@ from AllenConf.hlt1_monitoring_lines import (
 from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
-from AllenConf.hlt1_photon_lines import make_bs2gammagamma_line
+from AllenConf.hlt1_photon_lines import make_diphotonhighmass_line
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer, make_dec_reporter
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
@@ -174,8 +174,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 name="Hlt1DisplacedLeptons"),
             make_single_high_et_line(
                 velo_tracks, calo_matching_objects, name="Hlt1SingleHighEt"),
-            make_bs2gammagamma_line(
-                ecal_clusters, velo_tracks, pvs, name="Hlt1Bs2GammaGamma"),
+            make_diphotonhighmass_line(
+                ecal_clusters, velo_tracks, pvs, name="Hlt1DiPhotonHighMass"),
             make_pi02gammagamma_line(
                 ecal_clusters,
                 velo_tracks,
