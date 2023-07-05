@@ -103,24 +103,24 @@ Clones               :  0.000 (     0/  5518)
 
 
 rate_validator validation:
-Hlt1TwoTrackMVACharmXSec:                             687/  1000, (20610.00 +/-   439.92) kHz
-Hlt1KsToPiPi:                                         116/  1000, ( 3480.00 +/-   303.79) kHz
+Hlt1TwoTrackMVACharmXSec:                             705/  1000, (21150.00 +/-   432.64) kHz
 Hlt1TrackMVA:                                         234/  1000, ( 7020.00 +/-   401.65) kHz
-Hlt1TwoTrackMVA:                                      529/  1000, (15870.00 +/-   473.54) kHz
+Hlt1TwoTrackMVA:                                      541/  1000, (16230.00 +/-   472.74) kHz
+Hlt1D2KK:                                              15/  1000, (  450.00 +/-   115.31) kHz
+Hlt1D2KPi:                                             20/  1000, (  600.00 +/-   132.82) kHz
+Hlt1D2PiPi:                                            15/  1000, (  450.00 +/-   115.31) kHz
+Hlt1KsToPiPi:                                         114/  1000, ( 3420.00 +/-   301.50) kHz
 Hlt1TwoTrackKs:                                         3/  1000, (   90.00 +/-    51.88) kHz
-Hlt1D2KK:                                              13/  1000, (  390.00 +/-   107.46) kHz
-Hlt1D2KPi:                                             18/  1000, (  540.00 +/-   126.13) kHz
-Hlt1D2PiPi:                                            14/  1000, (  420.00 +/-   111.46) kHz
 Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1L02PPi:                                            33/  1000, (  990.00 +/-   169.47) kHz
+Hlt1L02PPi:                                            40/  1000, ( 1200.00 +/-   185.90) kHz
 Hlt1OneMuonTrackLine:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                                   3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuonNoMuID:                             5/  1000, (  150.00 +/-    66.91) kHz
 Hlt1LowPtMuon:                                        315/  1000, ( 9450.00 +/-   440.68) kHz
-Hlt1DiMuonHighMass:                                    18/  1000, (  540.00 +/-   126.13) kHz
-Hlt1DiMuonLowMass:                                     28/  1000, (  840.00 +/-   156.51) kHz
+Hlt1DiMuonHighMass:                                    17/  1000, (  510.00 +/-   122.64) kHz
+Hlt1DiMuonLowMass:                                     27/  1000, (  810.00 +/-   153.77) kHz
 Hlt1DiMuonSoft:                                         1/  1000, (   30.00 +/-    29.98) kHz
-Hlt1LowPtDiMuon:                                       86/  1000, ( 2580.00 +/-   265.98) kHz
+Hlt1LowPtDiMuon:                                       81/  1000, ( 2430.00 +/-   258.83) kHz
 Hlt1TrackMuonMVA:                                      14/  1000, (  420.00 +/-   111.46) kHz
 Hlt1DiMuonNoIP:                                        48/  1000, ( 1440.00 +/-   202.80) kHz
 Hlt1DiMuonNoIP_ss:                                      6/  1000, (  180.00 +/-    73.26) kHz
@@ -131,7 +131,7 @@ Hlt1DiMuonDrellYan_SS:                                  0/  1000, (    0.00 +/- 
 Hlt1DisplacedDiMuon:                                   26/  1000, (  780.00 +/-   150.97) kHz
 Hlt1TrackElectronMVA:                                  42/  1000, ( 1260.00 +/-   190.30) kHz
 Hlt1SingleHighPtElectron:                              16/  1000, (  480.00 +/-   119.04) kHz
-Hlt1DisplacedDielectron:                                9/  1000, (  270.00 +/-    89.59) kHz
+Hlt1DisplacedDielectron:                                8/  1000, (  240.00 +/-    84.51) kHz
 Hlt1DisplacedLeptons:                                  53/  1000, ( 1590.00 +/-   212.54) kHz
 Hlt1SingleHighEt:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Bs2GammaGamma:                                    122/  1000, ( 3660.00 +/-   310.49) kHz
@@ -146,7 +146,7 @@ Hlt1LowMassNoipDielectron_massSlice4_prompt:            1/  1000, (   30.00 +/- 
 Hlt1LowMassNoipDielectron_SS_massSlice4_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice1_displaced:         1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice1_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassNoipDielectron_massSlice2_displaced:         1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1LowMassNoipDielectron_massSlice2_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice2_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice3_displaced:         1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice3_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
@@ -162,35 +162,35 @@ Hlt1VeloMicroBias:                                      0/  1000, (    0.00 +/- 
 Hlt1RICH1Alignment:                                     1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1RICH2Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1D2KPiAlignment:                                    18/  1000, (  540.00 +/-   126.13) kHz
+Hlt1D2KPiAlignment:                                    20/  1000, (  600.00 +/-   132.82) kHz
 Hlt1NVELODisplacedTrack:                              129/  1000, ( 3870.00 +/-   318.00) kHz
 Hlt1NMaterialVertexSeeds:                              25/  1000, (  750.00 +/-   148.11) kHz
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1DiMuonJpsiMassAlignment:                           32/  1000, (  960.00 +/-   166.97) kHz
+Hlt1DiMuonJpsiMassAlignment:                           31/  1000, (  930.00 +/-   164.42) kHz
 Hlt1DisplacedDiMuonAlignment:                           3/  1000, (   90.00 +/-    51.88) kHz
-Inclusive:                                            881/  1000, (26430.00 +/-   307.17) kHz
+Inclusive:                                            887/  1000, (26610.00 +/-   300.35) kHz
 
 
 selreport_validator validation:
                                                    Events  Candidates
-Hlt1TwoTrackMVACharmXSec:                             687        1854
-Hlt1KsToPiPi:                                         116         128
+Hlt1TwoTrackMVACharmXSec:                             705        2012
 Hlt1TrackMVA:                                         234         347
-Hlt1TwoTrackMVA:                                      529        1611
+Hlt1TwoTrackMVA:                                      541        1647
+Hlt1D2KK:                                              15          15
+Hlt1D2KPi:                                             20          20
+Hlt1D2PiPi:                                            15          15
+Hlt1KsToPiPi:                                         114         122
 Hlt1TwoTrackKs:                                         3           3
-Hlt1D2KK:                                              13          13
-Hlt1D2KPi:                                             18          18
-Hlt1D2PiPi:                                            14          14
 Hlt1TwoKs:                                              0           0
-Hlt1L02PPi:                                            33          33
+Hlt1L02PPi:                                            40          40
 Hlt1OneMuonTrackLine:                                   0           0
 Hlt1SingleHighPtMuon:                                   3           3
 Hlt1SingleHighPtMuonNoMuID:                             5           5
 Hlt1LowPtMuon:                                        315         417
-Hlt1DiMuonHighMass:                                    18          19
-Hlt1DiMuonLowMass:                                     28          34
+Hlt1DiMuonHighMass:                                    17          17
+Hlt1DiMuonLowMass:                                     27          33
 Hlt1DiMuonSoft:                                         1           1
-Hlt1LowPtDiMuon:                                       86         109
+Hlt1LowPtDiMuon:                                       81         103
 Hlt1TrackMuonMVA:                                      14          14
 Hlt1DiMuonNoIP:                                        48          61
 Hlt1DiMuonNoIP_ss:                                      6           7
@@ -201,7 +201,7 @@ Hlt1DiMuonDrellYan_SS:                                  0           0
 Hlt1DisplacedDiMuon:                                   26          30
 Hlt1TrackElectronMVA:                                  42          43
 Hlt1SingleHighPtElectron:                              16          16
-Hlt1DisplacedDielectron:                                9          10
+Hlt1DisplacedDielectron:                                8           9
 Hlt1DisplacedLeptons:                                  53           0
 Hlt1SingleHighEt:                                       0           0
 Hlt1Bs2GammaGamma:                                    122           0
@@ -216,7 +216,7 @@ Hlt1LowMassNoipDielectron_massSlice4_prompt:            1           1
 Hlt1LowMassNoipDielectron_SS_massSlice4_prompt:         0           0
 Hlt1LowMassNoipDielectron_massSlice1_displaced:         1           1
 Hlt1LowMassNoipDielectron_SS_massSlice1_displaced:      0           0
-Hlt1LowMassNoipDielectron_massSlice2_displaced:         1           1
+Hlt1LowMassNoipDielectron_massSlice2_displaced:         0           0
 Hlt1LowMassNoipDielectron_SS_massSlice2_displaced:      0           0
 Hlt1LowMassNoipDielectron_massSlice3_displaced:         1           1
 Hlt1LowMassNoipDielectron_SS_massSlice3_displaced:      0           0
@@ -232,16 +232,16 @@ Hlt1VeloMicroBias:                                      0           0
 Hlt1RICH1Alignment:                                     1           2
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
-Hlt1D2KPiAlignment:                                    18          18
+Hlt1D2KPiAlignment:                                    20          20
 Hlt1NVELODisplacedTrack:                              129           0
 Hlt1NMaterialVertexSeeds:                              25           0
 Hlt1DiMuonHighMassAlignment:                            0           0
-Hlt1DiMuonJpsiMassAlignment:                           32          33
+Hlt1DiMuonJpsiMassAlignment:                           31          31
 Hlt1DisplacedDiMuonAlignment:                           3           3
 
-Total decisions: 2658
-Total tracks:    4031
-Total SVs:       3158
-Total hits:      81431
-Total stdinfo:   47538
+Total decisions: 2690
+Total tracks:    4207
+Total SVs:       3397
+Total hits:      84842
+Total stdinfo:   49934
 

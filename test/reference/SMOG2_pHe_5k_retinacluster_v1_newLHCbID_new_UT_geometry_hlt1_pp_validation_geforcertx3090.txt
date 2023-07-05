@@ -63,14 +63,14 @@ Clones               :  0.000 (     0/   712)
 
 
 rate_validator validation:
-Hlt1TwoTrackMVACharmXSec:                               0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1KsToPiPi:                                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1TwoTrackMVACharmXSec:                               1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1TrackMVA:                                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackMVA:                                        0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1TwoTrackKs:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KK:                                               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPi:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2PiPi:                                             0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1KsToPiPi:                                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1TwoTrackKs:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1L02PPi:                                             0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1OneMuonTrackLine:                                   0/  1000, (    0.00 +/-     0.00) kHz
@@ -133,14 +133,14 @@ Inclusive:                                             14/  1000, (  420.00 +/- 
 
 selreport_validator validation:
                                                    Events  Candidates
-Hlt1TwoTrackMVACharmXSec:                               0           0
-Hlt1KsToPiPi:                                           0           0
+Hlt1TwoTrackMVACharmXSec:                               1           2
 Hlt1TrackMVA:                                           0           0
 Hlt1TwoTrackMVA:                                        0           0
-Hlt1TwoTrackKs:                                         0           0
 Hlt1D2KK:                                               0           0
 Hlt1D2KPi:                                              0           0
 Hlt1D2PiPi:                                             0           0
+Hlt1KsToPiPi:                                           0           0
+Hlt1TwoTrackKs:                                         0           0
 Hlt1TwoKs:                                              0           0
 Hlt1L02PPi:                                             0           0
 Hlt1OneMuonTrackLine:                                   0           0
@@ -199,9 +199,9 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                            0           0
 Hlt1DisplacedDiMuonAlignment:                           0           0
 
-Total decisions: 19
-Total tracks:    1
-Total SVs:       0
-Total hits:      31
-Total stdinfo:   27
+Total decisions: 20
+Total tracks:    3
+Total SVs:       2
+Total hits:      87
+Total stdinfo:   52
 

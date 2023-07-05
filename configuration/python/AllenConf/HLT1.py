@@ -32,32 +32,39 @@ from AllenConf.plume_reconstruction import decode_plume
 from AllenConf.enum_types import TrackingType, includes_matching
 
 
-def default_physics_lines(reconstructed_objects, with_calo, with_muon):
+def default_physics_lines(reconstructed_objects, with_calo, with_muon,
+                          with_v0s):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
     long_tracks = reconstructed_objects["long_tracks"]
     long_track_particles = reconstructed_objects["long_track_particles"]
     pvs = reconstructed_objects["pvs"]
-    secondary_vertices = reconstructed_objects["secondary_vertices"]
+    dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
+    dileptons = reconstructed_objects["dilepton_secondary_vertices"]
+    v0s = reconstructed_objects["v0_secondary_vertices"]
+    v0_pairs = reconstructed_objects["v0_pairs"]
     muon_stubs = reconstructed_objects["muon_stubs"]
 
     lines = [
         make_two_track_mva_charm_xsec_line(
-            long_tracks, secondary_vertices, name="Hlt1TwoTrackMVACharmXSec"),
-        make_kstopipi_line(
-            long_tracks, secondary_vertices, name="Hlt1KsToPiPi"),
+            long_tracks, dihadrons, name="Hlt1TwoTrackMVACharmXSec"),
         make_track_mva_line(
             long_tracks, long_track_particles, name="Hlt1TrackMVA"),
         make_two_track_mva_line(
-            long_tracks, secondary_vertices, name="Hlt1TwoTrackMVA"),
-        make_two_track_line_ks(
-            long_tracks, secondary_vertices, name="Hlt1TwoTrackKs"),
-        make_d2kk_line(long_tracks, secondary_vertices, name="Hlt1D2KK"),
-        make_d2kpi_line(long_tracks, secondary_vertices, name="Hlt1D2KPi"),
-        make_d2pipi_line(long_tracks, secondary_vertices, name="Hlt1D2PiPi"),
-        make_two_ks_line(long_tracks, secondary_vertices, name="Hlt1TwoKs"),
-        make_lambda2ppi_line(secondary_vertices, name="Hlt1L02PPi")
+            long_tracks, dihadrons, name="Hlt1TwoTrackMVA"),
+        make_d2kk_line(long_tracks, dihadrons, name="Hlt1D2KK"),
+        make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPi"),
+        make_d2pipi_line(long_tracks, dihadrons, name="Hlt1D2PiPi"),
     ]
+
+    if with_v0s:
+        lines += [
+            make_kstopipi_line(long_tracks, v0s, name="Hlt1KsToPiPi"),
+            make_two_track_line_ks(long_tracks, v0s, name="Hlt1TwoTrackKs"),
+            make_two_ks_line(long_tracks, v0_pairs, name="Hlt1TwoKs"),
+            make_lambda2ppi_line(v0s, name="Hlt1L02PPi")
+        ]
+
     if with_muon:
         lines += [
             make_one_muon_track_line(
@@ -77,13 +84,10 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
             make_low_pt_muon_line(
                 long_tracks, long_track_particles, name="Hlt1LowPtMuon"),
             make_di_muon_mass_line(
-                long_tracks,
-                secondary_vertices,
-                name="Hlt1DiMuonHighMass",
-                enable_monitoring=True),
+                long_tracks, dileptons, name="Hlt1DiMuonHighMass"),
             make_di_muon_mass_line(
                 long_tracks,
-                secondary_vertices,
+                dileptons,
                 name="Hlt1DiMuonLowMass",
                 minHighMassTrackPt=500.,
                 minHighMassTrackP=3000.,
@@ -92,15 +96,15 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 maxVertexChi2=25.,
                 minIPChi2=4.),
             make_di_muon_soft_line(
-                long_tracks, secondary_vertices, name="Hlt1DiMuonSoft"),
+                long_tracks, dileptons, name="Hlt1DiMuonSoft"),
             make_low_pt_di_muon_line(
-                long_tracks, secondary_vertices, name="Hlt1LowPtDiMuon"),
+                long_tracks, dileptons, name="Hlt1LowPtDiMuon"),
             make_track_muon_mva_line(
                 long_tracks, long_track_particles, name="Hlt1TrackMuonMVA"),
-            make_di_muon_no_ip_line(long_tracks, secondary_vertices),
+            make_di_muon_no_ip_line(long_tracks, dileptons),
             make_di_muon_no_ip_line(
                 long_tracks,
-                secondary_vertices,
+                dileptons,
                 name="Hlt1DiMuonNoIP_ss",
                 pre_scaler_hash_string="di_muon_no_ip_ss_line_pre",
                 post_scaler_hash_string="di_muon_no_ip_ss_line_post",
@@ -108,7 +112,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 post_scaler=.1),
             make_di_muon_drell_yan_line(
                 long_tracks,
-                secondary_vertices,
+                dileptons,
                 name="Hlt1DiMuonDrellYan_VLowMass",
                 pre_scaler_hash_string="di_muon_drell_yan_vlow_mass_line_pre",
                 post_scaler_hash_string="di_muon_drell_yan_vlow_mass_line_post",
@@ -117,7 +121,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 pre_scaler=.2),
             make_di_muon_drell_yan_line(
                 long_tracks,
-                secondary_vertices,
+                dileptons,
                 name="Hlt1DiMuonDrellYan_VLowMass_SS",
                 pre_scaler_hash_string=
                 "di_muon_drell_yan_vlow_mass_SS_line_pre",
@@ -129,7 +133,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 OppositeSign=False),
             make_di_muon_drell_yan_line(
                 long_tracks,
-                secondary_vertices,
+                dileptons,
                 name="Hlt1DiMuonDrellYan",
                 pre_scaler_hash_string="di_muon_drell_yan_line_pre",
                 post_scaler_hash_string="di_muon_drell_yan_line_post",
@@ -137,14 +141,14 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 enable_monitoring=True),
             make_di_muon_drell_yan_line(
                 long_tracks,
-                secondary_vertices,
+                dileptons,
                 name="Hlt1DiMuonDrellYan_SS",
                 pre_scaler_hash_string="di_muon_drell_yan_SS_line_pre",
                 post_scaler_hash_string="di_muon_drell_yan_SS_line_post",
                 minMass=5000.,
                 OppositeSign=False,
                 enable_monitoring=True),
-            make_displaced_dimuon_line(long_tracks, secondary_vertices)
+            make_displaced_dimuon_line(long_tracks, dileptons)
         ]
 
     if with_calo:
@@ -164,7 +168,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 name="Hlt1SingleHighPtElectron"),
             make_displaced_dielectron_line(
                 long_tracks,
-                secondary_vertices,
+                dileptons,
                 calo_matching_objects,
                 name="Hlt1DisplacedDielectron"),
             make_displaced_leptons_line(
@@ -198,7 +202,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 lines.append(
                     make_lowmass_noip_dielectron_line(
                         long_tracks,
-                        secondary_vertices,
+                        dileptons,
                         calo_matching_objects,
                         minMass=limits[0],
                         maxMass=limits[1],
@@ -215,7 +219,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon):
                 lines.append(
                     make_lowmass_noip_dielectron_line(
                         long_tracks,
-                        secondary_vertices,
+                        dileptons,
                         calo_matching_objects,
                         is_same_sign=True,
                         minMass=limits[0],
@@ -281,7 +285,8 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
     long_tracks = reconstructed_objects["long_tracks"]
     long_track_particles = reconstructed_objects["long_track_particles"]
     velo_states = reconstructed_objects["velo_states"]
-    secondary_vertices = reconstructed_objects["secondary_vertices"]
+    dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
+    dileptons = reconstructed_objects["dilepton_secondary_vertices"]
 
     lines = [
         make_velo_micro_bias_line(velo_tracks, name="Hlt1VeloMicroBias"),
@@ -292,8 +297,7 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
         make_beam_gas_line(
             velo_tracks, velo_states, beam_crossing_type=1,
             name="Hlt1BeamGas"),
-        make_d2kpi_line(
-            long_tracks, secondary_vertices, name="Hlt1D2KPiAlignment"),
+        make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPiAlignment"),
         make_n_displaced_velo_line(material_interaction_tracks, n_tracks=3),
         make_n_materialvertex_seed_line(material_interaction_tracks)
     ]
@@ -301,18 +305,14 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
     if with_muon:
         lines += [
             make_di_muon_mass_align_line(
-                long_tracks,
-                secondary_vertices,
-                name="Hlt1DiMuonHighMassAlignment"),
+                long_tracks, dileptons, name="Hlt1DiMuonHighMassAlignment"),
             make_di_muon_mass_align_line(
                 long_tracks,
-                secondary_vertices,
+                dileptons,
                 minMass=2500.,
                 name="Hlt1DiMuonJpsiMassAlignment"),
             make_displaced_dimuon_mass_line(
-                long_tracks,
-                secondary_vertices,
-                name="Hlt1DisplacedDiMuonAlignment")
+                long_tracks, dileptons, name="Hlt1DisplacedDiMuonAlignment")
         ]
 
     return [line_maker(line) for line in lines]
@@ -321,28 +321,27 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
 def default_smog2_lines(velo_tracks,
                         long_tracks,
                         long_track_particles,
-                        secondary_vertices,
+                        dihadrons,
+                        dileptons,
                         with_muon=True):
 
     lines = [
         make_SMOG2_ditrack_line(
-            secondary_vertices,
+            dihadrons,
             m1=139.57,
             m2=493.68,
             mMother=1864.83,
             mWindow=150.,
             name="Hlt1_SMOG2_D2Kpi"),
         make_SMOG2_ditrack_line(
-            secondary_vertices,
+            dihadrons,
             m1=938.27,
             m2=938.27,
             mMother=2983.6,
             mWindow=150.,
             name="Hlt1_SMOG2_eta2pp"),
         make_SMOG2_ditrack_line(
-            secondary_vertices,
-            minTrackPt=800.,
-            name="Hlt1_SMOG2_2BodyGeneric"),
+            dihadrons, minTrackPt=800., name="Hlt1_SMOG2_2BodyGeneric"),
         make_SMOG2_singletrack_line(
             long_tracks, long_track_particles, name="Hlt1_SMOG2_SingleTrack")
     ]
@@ -350,7 +349,7 @@ def default_smog2_lines(velo_tracks,
     if with_muon:
         lines.append(
             make_SMOG2_dimuon_highmass_line(
-                secondary_vertices, name="Hlt1_SMOG2_DiMuonHighMass"))
+                dileptons, name="Hlt1_SMOG2_DiMuonHighMass"))
 
     return [line_maker(line) for line in lines]
 
@@ -577,6 +576,7 @@ def setup_hlt1_node(enablePhysics=True,
                     with_odin_filter=True,
                     with_calo=True,
                     with_muon=True,
+                    with_v0s=True,
                     enableBGI=False,
                     tracking_type=TrackingType.FORWARD,
                     tae_passthrough=True):
@@ -600,8 +600,8 @@ def setup_hlt1_node(enablePhysics=True,
     physics_lines = []
     if enablePhysics:
         with line_maker.bind(prefilter=prefilters):
-            physics_lines += default_physics_lines(reconstructed_objects,
-                                                   with_calo, with_muon)
+            physics_lines += default_physics_lines(
+                reconstructed_objects, with_calo, with_muon, with_v0s)
 
     lumiline_name = "Hlt1ODINLumi"
     lumilinefull_name = "Hlt1ODIN1kHzLumi"
@@ -703,7 +703,9 @@ def setup_hlt1_node(enablePhysics=True,
                 reconstructed_objects["velo_tracks"],
                 reconstructed_objects["long_tracks"],
                 reconstructed_objects["long_track_particles"],
-                reconstructed_objects["secondary_vertices"], with_muon)
+                reconstructed_objects["dihadron_secondary_vertices"],
+                reconstructed_objects["dilepton_secondary_vertices"],
+                with_muon)
 
         line_algorithms += [tup[0] for tup in SMOG2_lines]
         line_nodes += [tup[1] for tup in SMOG2_lines]

@@ -8,7 +8,7 @@ from AllenConf.matching_reconstruction import make_velo_scifi_matches
 from AllenConf.muon_reconstruction import decode_muon, is_muon, fake_muon_id, make_muon_stubs
 from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters
 from AllenConf.primary_vertex_reconstruction import make_pvs
-from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, make_basic_particles, fit_secondary_vertices
+from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, make_basic_particles, fit_secondary_vertices, make_sv_pairs
 from AllenConf.validators import (
     velo_validation, veloUT_validation, seeding_validation, long_validation,
     muon_validation, pv_validation, kalman_validation, selreport_validation)
@@ -129,15 +129,57 @@ def hlt1_reconstruction(algorithm_name='',
             make_long_track_particles_name=algorithm_name +
             'make_long_track_particles_no_calo')
 
-    secondary_vertices = fit_secondary_vertices(
+    # Dihadron SVs are constructed from displaced tracks and have no requirement
+    # on lepton ID.
+    dihadrons = fit_secondary_vertices(
         long_tracks,
         pvs,
         kalman_velo_only,
         long_track_particles,
-        fit_secondary_vertices_name=algorithm_name + 'fit_secondary_vertices')
+        fit_secondary_vertices_name=algorithm_name +
+        'fit_dihadron_secondary_vertices')
+
+    # Dileptons SV reconstruction should be independent of PV reconstruction to
+    # avoid lifetime biases.
+    dileptons = fit_secondary_vertices(
+        long_tracks,
+        pvs,
+        kalman_velo_only,
+        long_track_particles,
+        fit_secondary_vertices_name=algorithm_name +
+        'fit_dilepton_secondary_vertices',
+        track_min_ipchi2_both=-999.,
+        track_min_ipchi2_either=-999.,
+        track_min_ip_both=-999.,
+        track_min_ip_either=-999.,
+        require_same_pv=False,
+        require_lepton=True)
+
+    # V0s are highly displaced and have opposite-sign charged tracks.
+    v0s = fit_secondary_vertices(
+        long_tracks,
+        pvs,
+        kalman_velo_only,
+        long_track_particles,
+        fit_secondary_vertices_name=algorithm_name +
+        'fit_v0_secondary_vertices',
+        track_min_ipchi2_both=12.,
+        track_min_ipchi2_either=32.,
+        track_min_ip_both=0.08,
+        track_min_ip_either=0.2,
+        track_min_pt_both=80.,
+        track_min_pt_either=450.,
+        max_doca=0.5,
+        require_os_pair=True)
+
+    v0_pairs = make_sv_pairs(v0s)
+
     output.update({
         "long_track_particles": long_track_particles,
-        "secondary_vertices": secondary_vertices,
+        "dihadron_secondary_vertices": dihadrons,
+        "dilepton_secondary_vertices": dileptons,
+        "v0_secondary_vertices": v0s,
+        "v0_pairs": v0_pairs
     })
 
     return output

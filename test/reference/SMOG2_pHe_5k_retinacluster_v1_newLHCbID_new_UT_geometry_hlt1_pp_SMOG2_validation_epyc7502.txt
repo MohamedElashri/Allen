@@ -63,14 +63,14 @@ Clones               :  0.000 (     0/   714)
 
 
 rate_validator validation:
-Hlt1TwoTrackMVACharmXSec:                               0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1KsToPiPi:                                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1TwoTrackMVACharmXSec:                               1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1TrackMVA:                                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackMVA:                                        0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1TwoTrackKs:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KK:                                               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPi:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2PiPi:                                             0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1KsToPiPi:                                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1TwoTrackKs:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1L02PPi:                                             0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1OneMuonTrackLine:                                   0/  1000, (    0.00 +/-     0.00) kHz
@@ -133,9 +133,9 @@ Hlt1_BESMOG2_NoBias:                                    0/  1000, (    0.00 +/- 
 Hlt1_BESMOG2_LowMult10:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_MinimumBias:                               779/  1000, (23370.00 +/-   393.63) kHz
 Hlt1Passthrough_PV_in_SMOG2:                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_D2Kpi:                                       8/  1000, (  240.00 +/-    84.51) kHz
-Hlt1_SMOG2_eta2pp:                                      8/  1000, (  240.00 +/-    84.51) kHz
-Hlt1_SMOG2_2BodyGeneric:                               46/  1000, ( 1380.00 +/-   198.73) kHz
+Hlt1_SMOG2_D2Kpi:                                       2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1_SMOG2_eta2pp:                                      1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1_SMOG2_2BodyGeneric:                                9/  1000, (  270.00 +/-    89.59) kHz
 Hlt1_SMOG2_SingleTrack:                               145/  1000, ( 4350.00 +/-   334.03) kHz
 Hlt1_SMOG2_DiMuonHighMass:                              0/  1000, (    0.00 +/-     0.00) kHz
 Inclusive:                                            779/  1000, (23370.00 +/-   393.63) kHz
@@ -143,14 +143,14 @@ Inclusive:                                            779/  1000, (23370.00 +/- 
 
 selreport_validator validation:
                                                    Events  Candidates
-Hlt1TwoTrackMVACharmXSec:                               0           0
-Hlt1KsToPiPi:                                           0           0
+Hlt1TwoTrackMVACharmXSec:                               1           1
 Hlt1TrackMVA:                                           0           0
 Hlt1TwoTrackMVA:                                        0           0
-Hlt1TwoTrackKs:                                         0           0
 Hlt1D2KK:                                               0           0
 Hlt1D2KPi:                                              0           0
 Hlt1D2PiPi:                                             0           0
+Hlt1KsToPiPi:                                           0           0
+Hlt1TwoTrackKs:                                         0           0
 Hlt1TwoKs:                                              0           0
 Hlt1L02PPi:                                             0           0
 Hlt1OneMuonTrackLine:                                   0           0
@@ -213,15 +213,15 @@ Hlt1_BESMOG2_NoBias:                                    0           0
 Hlt1_BESMOG2_LowMult10:                                 0           0
 Hlt1_SMOG2_MinimumBias:                               779           0
 Hlt1Passthrough_PV_in_SMOG2:                            0           0
-Hlt1_SMOG2_D2Kpi:                                       8           8
-Hlt1_SMOG2_eta2pp:                                      8           9
-Hlt1_SMOG2_2BodyGeneric:                               46          80
+Hlt1_SMOG2_D2Kpi:                                       2           2
+Hlt1_SMOG2_eta2pp:                                      1           1
+Hlt1_SMOG2_2BodyGeneric:                                9          15
 Hlt1_SMOG2_SingleTrack:                               145         186
 Hlt1_SMOG2_DiMuonHighMass:                              0           0
 
-Total decisions: 1005
-Total tracks:    279
-Total SVs:       83
-Total hits:      8447
-Total stdinfo:   3569
+Total decisions: 956
+Total tracks:    207
+Total SVs:       17
+Total hits:      6367
+Total stdinfo:   2680
 
