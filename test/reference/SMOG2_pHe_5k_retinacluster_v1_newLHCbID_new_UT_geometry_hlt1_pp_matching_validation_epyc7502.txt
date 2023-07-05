@@ -85,14 +85,14 @@ Clones               :  0.000 (     0/   714)
 
 
 rate_validator validation:
-Hlt1TwoTrackMVACharmXSec:                               0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1KsToPiPi:                                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1TwoTrackMVACharmXSec:                               1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1TrackMVA:                                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackMVA:                                        0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1TwoTrackKs:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KK:                                               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPi:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2PiPi:                                             0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1KsToPiPi:                                           1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1TwoTrackKs:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1L02PPi:                                             0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1OneMuonTrackLine:                                   0/  1000, (    0.00 +/-     0.00) kHz
@@ -150,19 +150,19 @@ Hlt1NMaterialVertexSeeds:                               5/  1000, (  150.00 +/- 
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DisplacedDiMuonAlignment:                           0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                             14/  1000, (  420.00 +/-   111.46) kHz
+Inclusive:                                             15/  1000, (  450.00 +/-   115.31) kHz
 
 
 selreport_validator validation:
                                                    Events  Candidates
-Hlt1TwoTrackMVACharmXSec:                               0           0
-Hlt1KsToPiPi:                                           0           0
+Hlt1TwoTrackMVACharmXSec:                               1           2
 Hlt1TrackMVA:                                           0           0
 Hlt1TwoTrackMVA:                                        0           0
-Hlt1TwoTrackKs:                                         0           0
 Hlt1D2KK:                                               0           0
 Hlt1D2KPi:                                              0           0
 Hlt1D2PiPi:                                             0           0
+Hlt1KsToPiPi:                                           1           1
+Hlt1TwoTrackKs:                                         0           0
 Hlt1TwoKs:                                              0           0
 Hlt1L02PPi:                                             0           0
 Hlt1OneMuonTrackLine:                                   0           0
@@ -221,9 +221,9 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                            0           0
 Hlt1DisplacedDiMuonAlignment:                           0           0
 
-Total decisions: 20
-Total tracks:    2
-Total SVs:       0
-Total hits:      42
-Total stdinfo:   36
+Total decisions: 22
+Total tracks:    6
+Total SVs:       3
+Total hits:      153
+Total stdinfo:   82
 

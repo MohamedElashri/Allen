@@ -13,16 +13,21 @@ __device__ bool lambda2ppi_line::lambda2ppi_line_t::select(
   const auto L_vx = Lambda.vertex();
   // Proton is always first child for anything that passes the cuts below (see FilterTracks -- the ordering is
   // propagated through VertexFitter)
-  const auto proton = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda.child(0)),
-             pion = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda.child(1));
+  const auto c0 = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda.child(0)),
+             c1 = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda.child(1));
+  const auto proton = c0->state().p() > c1->state().p() ? c0 : c1;
+  const auto pion = c0->state().p() > c1->state().p() ? c1 : c0;
+  const auto lambda_mass =
+    c0->state().p() > c1->state().p() ? Lambda.m12(Allen::mP, Allen::mPi) : Lambda.m12(Allen::mPi, Allen::mP);
   const auto proton_state = proton->state(), pion_state = pion->state();
+
   // Repeat stuff from FilterTracks, TODO: have container with lambda-prfilter decisions (will be needed so that
   // Lambda+track combinatorics doesn't explode)
   const bool track_filter = proton_state.charge() != pion_state.charge() && proton_state.pt() > parameters.L_p_PT_min &&
                             proton->ip_chi2() > parameters.L_p_MIPCHI2_min && proton->ip() > parameters.L_p_MIP_min &&
                             pion_state.pt() > parameters.L_pi_PT_min && pion->ip_chi2() > parameters.L_pi_MIPCHI2_min &&
                             pion->ip() > parameters.L_pi_MIP_min && Lambda.doca12() < parameters.L_DOCA_max &&
-                            L_vx.pt() > parameters.L_PT_min && Lambda.m12(Allen::mP, Allen::mPi) < parameters.L_M_max;
+                            L_vx.pt() > parameters.L_PT_min && lambda_mass < parameters.L_M_max;
   return track_filter && L_vx.chi2() < parameters.L_VCHI2_max && parameters.L_VZ_min < L_vx.z() &&
          L_vx.z() < parameters.L_VZ_max && Lambda.dz() > parameters.L_BPVVDZ_min &&
          Lambda.drho() > parameters.L_BPVVDRHO_min && Lambda.fdchi2() > parameters.L_BPVVDCHI2_min &&
@@ -39,12 +44,15 @@ __device__ void lambda2ppi_line::lambda2ppi_line_t::fill_tuples(
     const auto Lambda = std::get<0>(input);
     const auto vertex = Lambda.vertex();
     // Proton is always first child (see FilterTracks -- the ordering is propagated through VertexFitter)
-    const auto proton = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda.child(0)),
-               pion = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda.child(1));
+    const auto c0 = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda.child(0)),
+               c1 = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda.child(1));
+    const auto proton = c0->state().p() > c1->state().p() ? c0 : c1;
+    const auto pion = c0->state().p() > c1->state().p() ? c1 : c0;
     const auto proton_state = proton->state(), pion_state = pion->state();
 
     // tunable if needed be down to 1135 MeV
-    parameters.L_M[index] = Lambda.m12(Allen::mP, Allen::mPi);
+    parameters.L_M[index] =
+      c0->state().p() > c1->state().p() ? Lambda.m12(Allen::mP, Allen::mPi) : Lambda.m12(Allen::mPi, Allen::mP);
     parameters.p_P[index] = proton_state.p();
     parameters.p_PT[index] = proton_state.pt();
     // tunable up to 16, should be significantly smaller than pi_MIPCHI2. best to tune them together pi up to 42
