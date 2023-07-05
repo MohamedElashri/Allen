@@ -38,15 +38,16 @@ __device__ void two_calo_clusters_line::two_calo_clusters_line_t::fill_tuples(
   bool sel)
 {
   const auto& [dicluster, n_velotracks, n_caloclusters, n_pvs] = input;
-  if(sel){
+  if (sel) {
     parameters.diphoton_mass[index] = dicluster.Mass;
     parameters.diphoton_et[index] = dicluster.Pt;
     parameters.diphoton_eta[index] = dicluster.Eta;
-    parameters.diphoton_min_photonet[index] = min(dicluster.et1, dicluster.et2); // can be used in bandwidth division, [2000,4500] GeV
+    parameters.diphoton_min_photonet[index] =
+      min(dicluster.et1, dicluster.et2); // can be used in bandwidth division, [2000,4500] GeV
     parameters.diphoton_distance[index] = dicluster.Distance;
     parameters.photon1_x[index] = dicluster.x1;
     parameters.photon1_y[index] = dicluster.y1;
-    parameters.photon1_et[index] = dicluster.et1; 
+    parameters.photon1_et[index] = dicluster.et1;
     parameters.photon1_e19[index] = dicluster.CaloNeutralE19_1;
     parameters.photon2_x[index] = dicluster.x2;
     parameters.photon2_y[index] = dicluster.y2;

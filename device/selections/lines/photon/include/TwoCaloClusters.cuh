@@ -36,7 +36,7 @@ namespace two_calo_clusters_line {
     DEVICE_OUTPUT(eta_t, float) diphoton_eta;
     DEVICE_OUTPUT(minet_t, float) diphoton_min_photonet; // use this in bandwidth division
     DEVICE_OUTPUT(distance_t, float) diphoton_distance;
-    DEVICE_OUTPUT(et1_t, float) photon1_et; 
+    DEVICE_OUTPUT(et1_t, float) photon1_et;
     DEVICE_OUTPUT(et2_t, float) photon2_et;
     DEVICE_OUTPUT(x1_t, float) photon1_x;
     DEVICE_OUTPUT(x2_t, float) photon2_x;
@@ -78,7 +78,23 @@ namespace two_calo_clusters_line {
       const Parameters& parameters,
       std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned> input);
 
-    using monitoring_types = std::tuple<mass_t, et_t, eta_t, minet_t, distance_t, et1_t, et2_t, x1_t, x2_t, y1_t, y2_t, e19_1_t, e19_2_t, nvelotracks_t, necalclusters_t, npvs_t>;
+    using monitoring_types = std::tuple<
+      mass_t,
+      et_t,
+      eta_t,
+      minet_t,
+      distance_t,
+      et1_t,
+      et2_t,
+      x1_t,
+      x2_t,
+      y1_t,
+      y2_t,
+      e19_1_t,
+      e19_2_t,
+      nvelotracks_t,
+      necalclusters_t,
+      npvs_t>;
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {
@@ -116,10 +132,10 @@ namespace two_calo_clusters_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minMass_t> m_minMass {this, 4200.0f};                   // MeV
+    Property<minMass_t> m_minMass {this, 4200.0f};                    // MeV
     Property<maxMass_t> m_maxMass {this, 21000.0f};                   // MeV
-    Property<minPt_t> m_minPt {this, 2000.0f};                          // MeV
-    Property<minPtEta_t> m_minPtEta {this, 0.0f};                    // MeV
+    Property<minPt_t> m_minPt {this, 2000.0f};                        // MeV
+    Property<minPtEta_t> m_minPtEta {this, 0.0f};                     // MeV
     Property<minEt_clusters_t> m_minEt_clusters {this, 2000.f};       // MeV
     Property<minSumEt_clusters_t> m_minSumEt_clusters {this, 4000.f}; // MeV
     Property<minE19_clusters_t> m_minE19_clusters {this, 0.6f};
