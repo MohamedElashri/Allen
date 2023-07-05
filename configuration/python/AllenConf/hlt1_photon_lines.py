@@ -32,13 +32,13 @@ def make_single_calo_cluster_line(calo,
 
 
 def make_diphotonhighmass_line(calo,
-                            velo_tracks,
-                            pvs,
-                            name="Hlt1DiPhotonHighMass",
-                            pre_scaler=1.,
-                            post_scaler=1.,
-                            pre_scaler_hash_string=None,
-                            post_scaler_hash_string=None):
+                               velo_tracks,
+                               pvs,
+                               name="Hlt1DiPhotonHighMass",
+                               pre_scaler=1.,
+                               post_scaler=1.,
+                               pre_scaler_hash_string=None,
+                               post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
