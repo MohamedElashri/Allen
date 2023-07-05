@@ -4,9 +4,10 @@
 		"context": "..",
 		"dockerfile": "Dockerfile"
 	},
-	"mounts": [
-		"source=/home/casch/allen_data/,target=/data/,type=bind,consistency=cached"
-	],
+	// Uncomment this and change the path to use your own data
+	// "mounts": [
+	// 	"source=/home/user/allen_data/,target=/data/,type=bind,consistency=cached"
+	// ],
 	"runArgs": ["--env-file",".devcontainer/devcontainer.env",
 							"--gpus", "all"],
 	"postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
