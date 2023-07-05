@@ -30,8 +30,23 @@ namespace two_calo_clusters_line {
 
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
-    // Monitoring
-    DEVICE_OUTPUT(dev_local_decisions_t, bool) dev_local_decisions;
+    // Device outputs for monitoring
+    DEVICE_OUTPUT(mass_t, float) diphoton_mass;
+    DEVICE_OUTPUT(et_t, float) diphoton_et;
+    DEVICE_OUTPUT(eta_t, float) diphoton_eta;
+    DEVICE_OUTPUT(minet_t, float) diphoton_min_photonet; // use this in bandwidth division
+    DEVICE_OUTPUT(distance_t, float) diphoton_distance;
+    DEVICE_OUTPUT(et1_t, float) photon1_et; 
+    DEVICE_OUTPUT(et2_t, float) photon2_et;
+    DEVICE_OUTPUT(x1_t, float) photon1_x;
+    DEVICE_OUTPUT(x2_t, float) photon2_x;
+    DEVICE_OUTPUT(y1_t, float) photon1_y;
+    DEVICE_OUTPUT(y2_t, float) photon2_y;
+    DEVICE_OUTPUT(e19_1_t, float) photon1_e19;
+    DEVICE_OUTPUT(e19_2_t, float) photon2_e19;
+    DEVICE_OUTPUT(nvelotracks_t, unsigned) nvelotracks;
+    DEVICE_OUTPUT(necalclusters_t, unsigned) necalclusters;
+    DEVICE_OUTPUT(npvs_t, unsigned) npvs;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -53,25 +68,17 @@ namespace two_calo_clusters_line {
 
   struct two_calo_clusters_line_t : public SelectionAlgorithm, Parameters, Line<two_calo_clusters_line_t, Parameters> {
 
-    void init_tuples(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
-
     __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned>,
       unsigned index,
       bool sel);
 
-    void output_tuples(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
-      const;
-
     __device__ static bool select(
       const Parameters& parameters,
       std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned> input);
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants) const;
+    using monitoring_types = std::tuple<mass_t, et_t, eta_t, minet_t, distance_t, et1_t, et2_t, x1_t, x2_t, y1_t, y2_t, e19_1_t, e19_2_t, nvelotracks_t, necalclusters_t, npvs_t>;
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {
