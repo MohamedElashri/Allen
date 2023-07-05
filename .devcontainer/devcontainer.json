@@ -1,0 +1,33 @@
+{
+	"name": "Allen",
+	"build": {
+		"context": "..",
+		"dockerfile": "Dockerfile"
+	},
+	"mounts": [
+		"source=/home/casch/allen_data/,target=/data/,type=bind,consistency=cached"
+	],
+	"runArgs": ["--env-file",".devcontainer/devcontainer.env",
+							"--gpus", "all"],
+	"postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"tdennis4496.cmantic",
+				"ms-vscode.cpptools",
+				"ms-vscode.cpptools-extension-pack",
+				"xaver.clang-format",
+				"llvm-vs-code-extensions.vscode-clangd",
+				"twxs.cmake",
+				"ms-vscode.cmake-tools",
+				"cheshirekow.cmake-format",
+				"eamodio.gitlens",
+				"ajshort.include-autocomplete",
+				"ms-python.python"
+			],
+			"settings": [
+				
+			]
+		}
+	}
+}
