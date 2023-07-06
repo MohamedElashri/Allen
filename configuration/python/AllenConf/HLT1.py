@@ -60,6 +60,12 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     if with_v0s:
         lines += [
             make_kstopipi_line(long_tracks, v0s, name="Hlt1KsToPiPi"),
+            make_kstopipi_line(
+                long_tracks,
+                v0s,
+                name="Hlt1KsToPiPiDoubleMuonMisID",
+                double_muon_misid=True,
+                enable_monitoring=True),
             make_two_track_line_ks(long_tracks, v0s, name="Hlt1TwoTrackKs"),
             make_two_ks_line(long_tracks, v0_pairs, name="Hlt1TwoKs"),
             make_lambda2ppi_line(v0s, name="Hlt1L02PPi")
