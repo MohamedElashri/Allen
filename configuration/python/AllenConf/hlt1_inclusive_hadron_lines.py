@@ -13,6 +13,7 @@ def make_kstopipi_line(long_tracks,
                        secondary_vertices,
                        pre_scaler_hash_string=None,
                        post_scaler_hash_string=None,
+                       post_scaler=1.0,
                        name='Hlt1KsToPiPi_{hash}',
                        double_muon_misid=False,
                        enable_monitoring=True):
@@ -28,7 +29,8 @@ def make_kstopipi_line(long_tracks,
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
-        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        post_scaler=post_scaler)
 
 
 def make_track_mva_line(long_tracks,

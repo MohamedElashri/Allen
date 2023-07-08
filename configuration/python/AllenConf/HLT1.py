@@ -48,7 +48,10 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
 
     lines = [
         make_two_track_mva_charm_xsec_line(
-            long_tracks, dihadrons, name="Hlt1TwoTrackMVACharmXSec"),
+            long_tracks,
+            dihadrons,
+            name="Hlt1TwoTrackMVACharmXSec",
+            pre_scaler=0.01),
         make_track_mva_line(
             long_tracks, long_track_particles, name="Hlt1TrackMVA"),
         make_two_track_mva_line(
@@ -60,7 +63,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
 
     if with_v0s:
         lines += [
-            make_kstopipi_line(long_tracks, v0s, name="Hlt1KsToPiPi"),
+            make_kstopipi_line(
+                long_tracks, v0s, name="Hlt1KsToPiPi", post_scaler=0.001),
             make_kstopipi_line(
                 long_tracks,
                 v0s,
@@ -198,7 +202,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 name="Hlt1Pi02GammaGamma",
                 pre_scaler_hash_string="p02gammagamma_line_pre",
                 post_scaler_hash_string="p02gammagamma_line_post",
-                pre_scaler=0.05),
+                pre_scaler=0.005),
         ]
 
         line_slices_mass = {
@@ -309,8 +313,10 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
             velo_tracks, velo_states, beam_crossing_type=1,
             name="Hlt1BeamGas"),
         make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPiAlignment"),
-        make_n_displaced_velo_line(material_interaction_tracks, n_tracks=3),
-        make_n_materialvertex_seed_line(material_interaction_tracks)
+        make_n_displaced_velo_line(
+            material_interaction_tracks, n_tracks=3, pre_scaler=0.001),
+        make_n_materialvertex_seed_line(
+            material_interaction_tracks, pre_scaler=0.001)
     ]
 
     if with_muon:
@@ -655,7 +661,6 @@ def setup_hlt1_node(enablePhysics=True,
                     make_passthrough_line(
                         name="Hlt1TAEPassthrough", pre_scaler=1))
             ]
-
     if EnableGEC:
         with line_maker.bind(prefilter=prefilters):
             physics_lines += [
