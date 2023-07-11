@@ -47,6 +47,8 @@ namespace two_calo_clusters_line {
     DEVICE_OUTPUT(nvelotracks_t, unsigned) nvelotracks;
     DEVICE_OUTPUT(necalclusters_t, unsigned) necalclusters;
     DEVICE_OUTPUT(npvs_t, unsigned) npvs;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -94,7 +96,9 @@ namespace two_calo_clusters_line {
       e19_2_t,
       nvelotracks_t,
       necalclusters_t,
-      npvs_t>;
+      npvs_t,
+      evtNo_t,
+      runNo_t>;
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {
@@ -134,10 +138,10 @@ namespace two_calo_clusters_line {
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<minMass_t> m_minMass {this, 4200.0f};                    // MeV
     Property<maxMass_t> m_maxMass {this, 21000.0f};                   // MeV
-    Property<minPt_t> m_minPt {this, 2000.0f};                        // MeV
+    Property<minPt_t> m_minPt {this, 0.0f};                        // MeV
     Property<minPtEta_t> m_minPtEta {this, 0.0f};                     // MeV
-    Property<minEt_clusters_t> m_minEt_clusters {this, 2000.f};       // MeV
-    Property<minSumEt_clusters_t> m_minSumEt_clusters {this, 4000.f}; // MeV
+    Property<minEt_clusters_t> m_minEt_clusters {this, 200.f};       // MeV
+    Property<minSumEt_clusters_t> m_minSumEt_clusters {this, 400.f}; // MeV
     Property<minE19_clusters_t> m_minE19_clusters {this, 0.6f};
     Property<eta_max_t> m_eta_max {this, 10.f};
     Property<max_velo_tracks_t> m_max_velo_tracks {this, UINT_MAX};

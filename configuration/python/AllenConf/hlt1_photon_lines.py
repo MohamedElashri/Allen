@@ -38,7 +38,8 @@ def make_diphotonhighmass_line(calo,
                                pre_scaler=1.,
                                post_scaler=1.,
                                pre_scaler_hash_string=None,
-                               post_scaler_hash_string=None):
+                               post_scaler_hash_string=None,
+                               enable_monitoring=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -66,4 +67,4 @@ def make_diphotonhighmass_line(calo,
         minEt_clusters=2500,
         minSumEt_clusters=6000,
         minE19_clusters=0.6,
-        enable_tupling=False)
+        enable_tupling=enable_monitoring)
