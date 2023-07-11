@@ -136,10 +136,10 @@ namespace two_calo_clusters_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minMass_t> m_minMass {this, 4200.0f};                    // MeV
-    Property<maxMass_t> m_maxMass {this, 21000.0f};                   // MeV
-    Property<minPt_t> m_minPt {this, 0.0f};                        // MeV
-    Property<minPtEta_t> m_minPtEta {this, 0.0f};                     // MeV
+    Property<minMass_t> m_minMass {this, 4200.0f};                   // MeV
+    Property<maxMass_t> m_maxMass {this, 21000.0f};                  // MeV
+    Property<minPt_t> m_minPt {this, 0.0f};                          // MeV
+    Property<minPtEta_t> m_minPtEta {this, 0.0f};                    // MeV
     Property<minEt_clusters_t> m_minEt_clusters {this, 200.f};       // MeV
     Property<minSumEt_clusters_t> m_minSumEt_clusters {this, 400.f}; // MeV
     Property<minE19_clusters_t> m_minE19_clusters {this, 0.6f};
