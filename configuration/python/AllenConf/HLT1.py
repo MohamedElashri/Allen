@@ -185,7 +185,11 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             make_single_high_et_line(
                 velo_tracks, calo_matching_objects, name="Hlt1SingleHighEt"),
             make_diphotonhighmass_line(
-                ecal_clusters, velo_tracks, pvs, name="Hlt1DiPhotonHighMass", enable_monitoring=True),
+                ecal_clusters,
+                velo_tracks,
+                pvs,
+                name="Hlt1DiPhotonHighMass",
+                enable_monitoring=True),
             make_pi02gammagamma_line(
                 ecal_clusters,
                 velo_tracks,
