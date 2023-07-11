@@ -584,6 +584,7 @@ def setup_hlt1_node(enablePhysics=True,
                     with_muon=True,
                     with_v0s=True,
                     enableBGI=False,
+                    velo_open=False,
                     tracking_type=TrackingType.FORWARD,
                     tae_passthrough=True):
 
@@ -594,7 +595,8 @@ def setup_hlt1_node(enablePhysics=True,
         with_calo=with_calo,
         with_ut=with_ut,
         with_muon=with_muon,
-        tracking_type=tracking_type)
+        tracking_type=tracking_type,
+        velo_open=velo_open)
 
     hlt1_config['reconstruction'] = reconstructed_objects
 
@@ -750,7 +752,8 @@ def setup_hlt1_node(enablePhysics=True,
                 lines=line_algorithms,
                 lumiline_name=lumiline_name,
                 lumilinefull_name=lumilinefull_name,
-                with_muon=with_muon)["algorithms"],
+                with_muon=with_muon,
+                velo_open=velo_open)["algorithms"],
             NodeLogic.NONLAZY_AND,
             force_order=False)
 

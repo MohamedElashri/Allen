@@ -5,6 +5,7 @@
 
 #include "BackendCommon.h"
 #include "AlgorithmTypes.cuh"
+#include "BeamlinePVConstants.cuh"
 
 namespace host_pv_validator {
   struct Parameters {
@@ -13,6 +14,12 @@ namespace host_pv_validator {
     DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;
     PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
+    PROPERTY(
+      pp_minNumTracksPerVertex_t,
+      "pp_minNumTracksPerVertex",
+      "Min number of tracks to accpet a pp vertex",
+      float)
+    pp_minNumTracksPerVertex;
   };
 
   struct host_pv_validator_t : public ValidationAlgorithm, Parameters {
@@ -26,5 +33,8 @@ namespace host_pv_validator {
 
   private:
     Property<root_output_filename_t> m_root_output_filename {this, "PrCheckerPlots.root"};
+    Property<pp_minNumTracksPerVertex_t> m_pp_minNumTracksPerVertex {
+      this,
+      BeamlinePVConstants::MultiFitter::pp_minNumTracksPerVertex};
   };
 } // namespace host_pv_validator

@@ -223,7 +223,8 @@ def pv_validation(pvs, name="pv_validator"):
         host_mc_events_t=mc_events.host_mc_events_t,
         dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
         dev_number_of_multi_final_vertices_t=pvs[
-            "dev_number_of_multi_final_vertices"])
+            "dev_number_of_multi_final_vertices"],
+        pp_minNumTracksPerVertex=pvs["pp_minNumTracksPerVertex"])
 
 
 def rate_validation(lines, name="rate_validator"):

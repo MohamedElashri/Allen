@@ -11,6 +11,7 @@ target_link_libraries(Validators PRIVATE
   TrackChecking
   SelChecking
   PVChecking
+  PV_beamline
   HostEventModel
   EventModel
   SciFi

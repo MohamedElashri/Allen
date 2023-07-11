@@ -14,7 +14,8 @@ void PVChecker::accumulate(
   MCEvents const& mc_events,
   gsl::span<const PV::Vertex> rec_vertex,
   gsl::span<const unsigned> number_of_vertex,
-  gsl::span<const mask_t> event_list)
+  gsl::span<const mask_t> event_list,
+  const int nTracksToBeRecble)
 {
   std::lock_guard<std::mutex> guard(m_mutex);
   passed += event_list.size();
@@ -53,6 +54,7 @@ void PVChecker::accumulate(
   std::vector<double> vec_mc_y;
   std::vector<double> vec_mc_z;
 
+  m_nTracksToBeRecble = nTracksToBeRecble;
   // loop over selected events
   for (unsigned event_index = 0; event_index < event_list.size(); ++event_index) {
     const auto event_number = event_list[event_index];
@@ -217,7 +219,7 @@ void PVChecker::accumulate(
 
     for (itmc = rblemcpv.begin(); rblemcpv.end() != itmc; itmc++) {
       // Counters for performance plots
-      if (itmc->nRecTracks > nTracksToBeRecble) {
+      if (itmc->nRecTracks >= nTracksToBeRecble) {
         vec_mcpv_mult.push_back(itmc->pMCPV->numberTracks);
         vec_mcpv_zpos.push_back(itmc->pMCPV->z);
         if (itmc->indexRecPVInfo > -1) {
@@ -316,7 +318,7 @@ void PVChecker::report(size_t) const
     "MC PV is reconstructible if at least %i tracks are reconstructed\n\
 MC PV is isolated if dz to closest reconstructible MC PV > %2.2f mm\n\
 REC and MC vertices matched %s\n\n",
-    nTracksToBeRecble,
+    m_nTracksToBeRecble,
     dzIsolated,
     ff.c_str());
 
