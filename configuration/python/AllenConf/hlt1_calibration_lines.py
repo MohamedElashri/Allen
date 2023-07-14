@@ -11,6 +11,7 @@ from PyConf.tonic import configurable
 from AllenCore.configuration_options import is_allen_standalone
 
 
+@configurable
 def make_pi02gammagamma_line(calo,
                              velo_tracks,
                              pvs,
