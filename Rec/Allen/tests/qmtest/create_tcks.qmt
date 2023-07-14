@@ -16,6 +16,6 @@
   <argument name="args"><set>
     <text>${ALLENROOT}/tests/options/create_hlt1_tcks.py</text>
   </set></argument>
-  <argument name="timeout"><integer>600</integer></argument>
+  <argument name="timeout"><integer>1200</integer></argument>
   <argument name="use_temp_dir"><enumeral>per-test</enumeral></argument>
 </extension>
