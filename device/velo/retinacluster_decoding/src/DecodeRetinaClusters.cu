@@ -152,7 +152,10 @@ __device__ void populate_sorting_key(
   // Create sorting key
   int64_t sorting_key = 0x7FFFFFFFFFFFFFFF;
   if (raw_bank_word != 0) {
-    sorting_key = (static_cast<int64_t>(phi) << 48) | id;
+    // By interpreting phi as uint16, the sign bit is preserved after converting to int64 (it is on the 16 rightmost
+    // bit) and 48 left bit shift
+    const uint16_t* phi_16bit = reinterpret_cast<const uint16_t*>(&phi);
+    sorting_key = (static_cast<int64_t>(*phi_16bit) << 48) | id;
   }
 
   hit_sorting_key[cluster_index] = sorting_key;

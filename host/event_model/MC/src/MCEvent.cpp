@@ -51,28 +51,26 @@ void MCEvent::load_particles(const std::vector<char>& particles, const uint32_t 
   debug_cout << "num MCPs = " << number_mcp << std::endl;
   for (uint32_t i = 0; i < number_mcp; ++i) {
     MCParticle p;
-    p.key = *((uint32_t*) input);
+    std::memcpy(&(p.key), input, sizeof(uint32_t));
     input += sizeof(uint32_t);
-    p.pid = *((uint32_t*) input);
+    std::memcpy(&(p.pid), input, sizeof(uint32_t));
     input += sizeof(uint32_t);
-    p.p = *((float*) input);
+    std::memcpy(&(p.p), input, sizeof(float));
     input += sizeof(float);
-    p.pt = *((float*) input);
+    std::memcpy(&(p.pt), input, sizeof(float));
     input += sizeof(float);
-    p.eta = *((float*) input);
+    std::memcpy(&(p.eta), input, sizeof(float));
     input += sizeof(float);
-    p.phi = *((float*) input);
+    std::memcpy(&(p.phi), input, sizeof(float));
     input += sizeof(float);
-    p.ovtx_x = *((float*) input);
+    std::memcpy(&(p.ovtx_x), input, sizeof(float));
     input += sizeof(float);
-    p.ovtx_y = *((float*) input);
+    std::memcpy(&(p.ovtx_y), input, sizeof(float));
     input += sizeof(float);
-    p.ovtx_z = *((float*) input);
+    std::memcpy(&(p.ovtx_z), input, sizeof(float));
     input += sizeof(float);
     p.isLong = (bool) *((int8_t*) input);
     input += sizeof(int8_t);
-    // debug_cout << " at MCP " << i << ": key = " << p.key << ", pid = " << p.pid << ", p = " << p.p << ", isLong = "
-    // << p.isLong << std::endl;
     p.isDown = (bool) *((int8_t*) input);
     input += sizeof(int8_t);
     p.hasVelo = (bool) *((int8_t*) input);
@@ -91,45 +89,47 @@ void MCEvent::load_particles(const std::vector<char>& particles, const uint32_t 
       p.fromSignal = (bool) *((int8_t*) input);
       input += sizeof(int8_t);
     }
-    p.motherKey = *((int*) input);
+
+    std::memcpy(&(p.motherKey), input, sizeof(int));
     input += sizeof(int);
-    p.mother_pid = *((int*) input);
+    std::memcpy(&(p.mother_pid), input, sizeof(int));
     input += sizeof(int);
-    p.DecayOriginMother_key = *((int*) input);
+    std::memcpy(&(p.DecayOriginMother_key), input, sizeof(int));
     input += sizeof(int);
-    p.DecayOriginMother_pid = *((int*) input);
+    std::memcpy(&(p.DecayOriginMother_pid), input, sizeof(int));
     input += sizeof(int);
-    p.DecayOriginMother_pt = *((float*) input);
+    std::memcpy(&(p.DecayOriginMother_pt), input, sizeof(float));
     input += sizeof(float);
-    p.DecayOriginMother_tau = *((float*) input);
+    std::memcpy(&(p.DecayOriginMother_tau), input, sizeof(float));
     input += sizeof(float);
-    p.charge = *((float*) input);
+    std::memcpy(&(p.charge), input, sizeof(float));
     input += sizeof(float);
-    p.nPV = *((uint32_t*) input);
+    std::memcpy(&(p.nPV), input, sizeof(uint32_t));
     input += sizeof(uint32_t);
 
-    const auto num_Velo_hits = *((uint32_t*) input);
+    std::memcpy(&(p.velo_num_hits), input, sizeof(uint32_t));
+    const auto num_Velo_hits = p.velo_num_hits;
     input += sizeof(uint32_t);
-    std::vector<uint32_t> hits;
-    std::copy_n((uint32_t*) input, num_Velo_hits, std::back_inserter(hits));
+    std::vector<uint32_t> hits(num_Velo_hits);
+    if (num_Velo_hits > 0) std::memcpy(hits.data(), input, sizeof(uint32_t) * num_Velo_hits);
     input += sizeof(uint32_t) * num_Velo_hits;
 
-    p.velo_num_hits = (unsigned) hits.size();
-
-    const auto num_UT_hits = *((uint32_t*) input);
+    std::memcpy(&(p.ut_num_hits), input, sizeof(uint32_t));
+    const auto num_UT_hits = p.ut_num_hits;
     input += sizeof(uint32_t);
-    std::copy_n((uint32_t*) input, num_UT_hits, std::back_inserter(hits));
+    hits.resize(num_Velo_hits + num_UT_hits);
+    if (num_UT_hits > 0) std::memcpy(hits.data() + num_Velo_hits, input, sizeof(uint32_t) * num_UT_hits);
     input += sizeof(uint32_t) * num_UT_hits;
 
-    p.ut_num_hits = (unsigned) hits.size() - p.velo_num_hits;
-
-    const auto num_SciFi_hits = *((uint32_t*) input);
+    std::memcpy(&(p.scifi_num_hits), input, sizeof(uint32_t));
+    const auto num_SciFi_hits = p.scifi_num_hits;
     input += sizeof(uint32_t);
-    std::copy_n((uint32_t*) input, num_SciFi_hits, std::back_inserter(hits));
+    hits.resize(num_Velo_hits + num_UT_hits + num_SciFi_hits);
+    if (num_SciFi_hits > 0)
+      std::memcpy(hits.data() + num_Velo_hits + num_UT_hits, input, sizeof(uint32_t) * num_SciFi_hits);
     input += sizeof(uint32_t) * num_SciFi_hits;
 
     // Add the mcp to mcps
-    p.scifi_num_hits = (unsigned) hits.size() - p.ut_num_hits - p.velo_num_hits;
     p.numHits = (unsigned) hits.size();
     p.hits = hits;
     if (num_Velo_hits > 0 || num_UT_hits > 0 || num_SciFi_hits > 0) {
@@ -158,11 +158,12 @@ void MCEvent::load_vertices(const std::vector<char>& vertices, const uint32_t /*
     int VertexNumberOfTracks = *((int*) input);
     input += sizeof(int);
     mc_vertex.numberTracks = VertexNumberOfTracks;
-    mc_vertex.x = *((double*) input);
+
+    std::memcpy(&(mc_vertex.x), input, sizeof(double));
     input += sizeof(double);
-    mc_vertex.y = *((double*) input);
+    std::memcpy(&(mc_vertex.y), input, sizeof(double));
     input += sizeof(double);
-    mc_vertex.z = *((double*) input);
+    std::memcpy(&(mc_vertex.z), input, sizeof(double));
     input += sizeof(double);
 
     // if(mc_vertex.numberTracks >= 4) vertices.push_back(mc_vertex);
