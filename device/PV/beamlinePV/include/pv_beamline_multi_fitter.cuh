@@ -44,7 +44,7 @@ namespace pv_beamline_multi_fitter {
     PROPERTY(
       pp_minNumTracksPerVertex_t,
       "pp_minNumTracksPerVertex",
-      "Min number of tracks to accpet a SMOG2 vertex",
+      "Min number of tracks to accpet a pp vertex",
       float)
     pp_minNumTracksPerVertex;
     PROPERTY(maxVertexRho2_t, "maxVertexRho2", "Maximum vertex Rho2", float) maxVertexRho2;

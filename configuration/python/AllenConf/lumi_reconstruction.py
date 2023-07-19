@@ -79,6 +79,7 @@ def lumi_reconstruction(
         with_SciFi=True,
         with_calo=True,
         with_plume=False,
+        velo_open=False,
         counterSpecs=[("T0Low", 0xffffffff), ("T0High", 0xffffffff),
                       ("BCIDLow", 0xffffffff), ("BCIDHigh", 0x3fff),
                       ("BXType", 3), ("GEC", 1), ("VeloTracks", 1913),
@@ -217,7 +218,7 @@ def lumi_reconstruction(
     velo_tracks = make_velo_tracks(decoded_velo)
     decoded_scifi = decode_scifi()
     decoded_calo = decode_calo()
-    pvs = make_pvs(velo_tracks)
+    pvs = make_pvs(velo_tracks, velo_open)
     decoded_muon = decode_muon(empty_banks=not with_muon)
     if with_muon:
         muon_stubs = make_muon_stubs()

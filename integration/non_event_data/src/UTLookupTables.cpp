@@ -28,11 +28,13 @@ void Consumers::UTLookupTables::consume(std::vector<char> const& data)
   assert(nBins[0] == 3);
   assert(nBins[1] == 30);
   p += nVar * sizeof(int);
-  size_t const* table_size = reinterpret_cast<size_t const*>(p);
-  assert(table_size[0] == 124);
+
+  size_t table_size;
+  std::memcpy(&table_size, p, sizeof(size_t));
+  assert(table_size == 124);
   p += sizeof(size_t);
   float const* deflection = reinterpret_cast<float const*>(p);
-  p += table_size[0] * sizeof(float);
+  p += table_size * sizeof(float);
 
   layout = reinterpret_cast<int const*>(p);
   p += sizeof(int);
@@ -44,11 +46,13 @@ void Consumers::UTLookupTables::consume(std::vector<char> const& data)
   assert(nBins[1] == 10);
   assert(nBins[2] == 10);
   p += nVar * sizeof(int);
-  table_size = reinterpret_cast<size_t const*>(p);
-  assert(table_size[0] == 3751);
+
+  std::memcpy(&table_size, p, sizeof(size_t));
+  assert(table_size == 3751);
   p += sizeof(size_t);
+
   float const* bdl = reinterpret_cast<float const*>(p);
-  p += table_size[0] * sizeof(float);
+  p += table_size * sizeof(float);
 
   if (!m_tool) {
     Allen::malloc((void**) &m_tool.get(), sizeof(UTMagnetTool));

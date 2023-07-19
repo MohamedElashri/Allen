@@ -17,7 +17,7 @@ kalman_sequence = CompositeNode(
     "KalmanSequence", [
         make_gec("gec"),
         hlt1_reconstruction(algorithm_name='kalman_sequence')
-        ["secondary_vertices"]["dev_two_track_particles"].producer
+        ["dihadron_secondary_vertices"]["dev_two_track_particles"].producer
     ],
     NodeLogic.LAZY_AND,
     force_order=True)
