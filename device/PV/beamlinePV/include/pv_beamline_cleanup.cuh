@@ -28,10 +28,17 @@ namespace pv_beamline_cleanup {
     DEVICE_OUTPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(minChi2Dist_t, "minChi2Dist", "minimum chi2 distance", float) minChi2Dist;
+
+    PROPERTY(nbins_histo_smogpvz_t, "nbins_histo_smogpvz", "Number of bins for SMOGPVz histogram", unsigned)
+    nbins_histo_smogpvz;
+    PROPERTY(min_histo_smogpvz_t, "min_histo_smogpvz", "Minimum of SMOGPVz histogram", float) min_histo_smogpvz;
+    PROPERTY(max_histo_smogpvz_t, "max_histo_smogpvz", "Maximum of SMOGPVz histogram", float) max_histo_smogpvz;
   };
 
   __global__ void pv_beamline_cleanup(
     Parameters,
+    gsl::span<unsigned>,
+    gsl::span<unsigned>,
     gsl::span<unsigned>,
     gsl::span<unsigned>,
     gsl::span<unsigned>,
@@ -51,13 +58,18 @@ namespace pv_beamline_cleanup {
   private:
     Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
     Property<minChi2Dist_t> m_minChi2Dist {this, BeamlinePVConstants::CleanUp::minChi2Dist};
+    Property<nbins_histo_smogpvz_t> m_nbins_histo_smogpvz {this, 100};
+    Property<min_histo_smogpvz_t> m_min_histo_smogpvz {this, -600.f};
+    Property<max_histo_smogpvz_t> m_max_histo_smogpvz {this, -200.f};
 
 #ifndef ALLEN_STANDALONE
     Gaudi::Accumulators::AveragingCounter<>* m_pvs;
     gaudi_monitoring::Lockable_Histogram<>* histogram_n_pvs;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_n_smogpvs;
     gaudi_monitoring::Lockable_Histogram<>* histogram_pv_x;
     gaudi_monitoring::Lockable_Histogram<>* histogram_pv_y;
     gaudi_monitoring::Lockable_Histogram<>* histogram_pv_z;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_smogpv_z;
 #endif
   };
 } // namespace pv_beamline_cleanup
