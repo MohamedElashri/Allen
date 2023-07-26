@@ -119,7 +119,9 @@ def make_pvs(velo_tracks, velo_open=False, pv_name=""):
         dev_multi_fit_vertices_t=pv_beamline_multi_fitter.
         dev_multi_fit_vertices_t,
         dev_number_of_multi_fit_vertices_t=pv_beamline_multi_fitter.
-        dev_number_of_multi_fit_vertices_t)
+        dev_number_of_multi_fit_vertices_t,
+        min_histo_smogpvz=zmin - 20.,
+        max_histo_smogpvz=SMOG2_pp_separation + 20.)
 
     return {
         "dev_number_of_zpeaks":

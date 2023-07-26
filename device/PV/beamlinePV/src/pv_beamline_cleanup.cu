@@ -13,6 +13,15 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::init()
   histogram_pv_x = new gaudi_monitoring::Lockable_Histogram<> {{this, "pv_x", "pv_x", {100, -2.f, 2.f}}, {}};
   histogram_pv_y = new gaudi_monitoring::Lockable_Histogram<> {{this, "pv_y", "pv_y", {100, -2.f, 2.f}}, {}};
   histogram_pv_z = new gaudi_monitoring::Lockable_Histogram<> {{this, "pv_z", "pv_z", {100, -200.f, 200.f}}, {}};
+
+  histogram_n_smogpvs =
+    new gaudi_monitoring::Lockable_Histogram<> {{this, "n_smog2_PVs", "n_smog2_PVs", {10, -0.5f, 9.5f}}, {}};
+  histogram_smogpv_z = new gaudi_monitoring::Lockable_Histogram<> {
+    {this,
+     "smogpv_z",
+     "smogpv_z",
+     {property<nbins_histo_smogpvz_t>(), property<min_histo_smogpvz_t>(), property<max_histo_smogpvz_t>()}},
+    {}};
 #endif
 }
 
@@ -33,14 +42,20 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
 {
   auto dev_n_pvs_counter = make_device_buffer<unsigned>(arguments, 1u);
   auto dev_n_pvs_histo = make_device_buffer<unsigned>(arguments, 20u);
+  auto dev_n_smogpvs_histo = make_device_buffer<unsigned>(arguments, 10u);
+
   auto dev_pv_x_histo = make_device_buffer<unsigned>(arguments, 100u);
   auto dev_pv_y_histo = make_device_buffer<unsigned>(arguments, 100u);
   auto dev_pv_z_histo = make_device_buffer<unsigned>(arguments, 100u);
+  auto dev_smogpv_z_histo = make_device_buffer<unsigned>(arguments, property<nbins_histo_smogpvz_t>());
+
   Allen::memset_async(dev_n_pvs_counter.data(), 0, dev_n_pvs_counter.size() * sizeof(unsigned), context);
   Allen::memset_async(dev_n_pvs_histo.data(), 0, dev_n_pvs_histo.size() * sizeof(unsigned), context);
+  Allen::memset_async(dev_n_smogpvs_histo.data(), 0, dev_n_smogpvs_histo.size() * sizeof(unsigned), context);
   Allen::memset_async(dev_pv_x_histo.data(), 0, dev_pv_x_histo.size() * sizeof(unsigned), context);
   Allen::memset_async(dev_pv_y_histo.data(), 0, dev_pv_y_histo.size() * sizeof(unsigned), context);
   Allen::memset_async(dev_pv_z_histo.data(), 0, dev_pv_z_histo.size() * sizeof(unsigned), context);
+  Allen::memset_async(dev_smogpv_z_histo.data(), 0, dev_smogpv_z_histo.size() * sizeof(unsigned), context);
 
   Allen::memset_async<dev_number_of_multi_final_vertices_t>(arguments, 0, context);
 
@@ -48,19 +63,26 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
     arguments,
     dev_n_pvs_counter.get(),
     dev_n_pvs_histo.get(),
+    dev_n_smogpvs_histo.get(),
     dev_pv_x_histo.get(),
     dev_pv_y_histo.get(),
-    dev_pv_z_histo.get());
+    dev_pv_z_histo.get(),
+    dev_smogpv_z_histo.get());
 
 #ifndef ALLEN_STANDALONE
   gaudi_monitoring::fill(
     arguments,
     context,
-    std::tuple {std::tuple {dev_n_pvs_histo.get(), histogram_n_pvs, 0, 20},
+    std::tuple {std::tuple {dev_n_pvs_counter.get(), m_pvs},
+                std::tuple {dev_n_pvs_histo.get(), histogram_n_pvs, 0, 20},
+                std::tuple {dev_n_smogpvs_histo.get(), histogram_n_smogpvs, -0.5f, 9.5f},
                 std::tuple {dev_pv_x_histo.get(), histogram_pv_x, -2, 2},
                 std::tuple {dev_pv_y_histo.get(), histogram_pv_y, -2, 2},
                 std::tuple {dev_pv_z_histo.get(), histogram_pv_z, -200, 200},
-                std::tuple {dev_n_pvs_counter.get(), m_pvs}});
+                std::tuple {dev_smogpv_z_histo.get(),
+                            histogram_smogpv_z,
+                            property<min_histo_smogpvz_t>(),
+                            property<max_histo_smogpvz_t>()}});
 #endif
 }
 
@@ -68,13 +90,17 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(
   pv_beamline_cleanup::Parameters parameters,
   gsl::span<unsigned> dev_n_pvs_counter,
   gsl::span<unsigned> dev_n_pvs_histo,
+  gsl::span<unsigned> dev_n_smogpvs_histo,
   gsl::span<unsigned> dev_pv_x_histo,
   gsl::span<unsigned> dev_pv_y_histo,
-  gsl::span<unsigned> dev_pv_z_histo)
+  gsl::span<unsigned> dev_pv_z_histo,
+  gsl::span<unsigned> dev_smogpv_z_histo)
 {
 
   __shared__ unsigned tmp_number_vertices[1];
+  __shared__ unsigned tmp_number_SMOG_vertices[1];
   *tmp_number_vertices = 0;
+  *tmp_number_SMOG_vertices = 0;
 
   __syncthreads();
 
@@ -105,11 +131,11 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(
       final_vertices[vtx_index] = vertex1;
 
       // monitoring
-      if (-2 < vertex1.position.x && vertex1.position.x < 2) {
+      if (-2 < vertex1.position.x && vertex1.position.x < 2 && -200 < vertex1.position.z && vertex1.position.z < 200) {
         unsigned x_bin = std::floor(vertex1.position.x / 0.04f) + 50;
         ++dev_pv_x_histo[x_bin];
       }
-      if (-2 < vertex1.position.y && vertex1.position.y < 2) {
+      if (-2 < vertex1.position.y && vertex1.position.y < 2 && -200 < vertex1.position.z && vertex1.position.z < 200) {
         unsigned y_bin = std::floor(vertex1.position.y / 0.04f) + 50;
         ++dev_pv_y_histo[y_bin];
       }
@@ -117,11 +143,21 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(
         unsigned z_bin = std::floor(vertex1.position.z / 4) + 50;
         ++dev_pv_z_histo[z_bin];
       }
+      if (parameters.min_histo_smogpvz < vertex1.position.z && vertex1.position.z < parameters.max_histo_smogpvz) {
+        unsigned z_bin = std::floor(
+          (vertex1.position.z - parameters.min_histo_smogpvz) * parameters.nbins_histo_smogpvz /
+          (parameters.max_histo_smogpvz - parameters.min_histo_smogpvz));
+        ++dev_smogpv_z_histo[z_bin];
+
+        atomicAdd(tmp_number_SMOG_vertices, 1);
+      }
     }
   }
   __syncthreads();
   parameters.dev_number_of_multi_final_vertices[event_number] = *tmp_number_vertices;
 
   if (*tmp_number_vertices < 20) ++dev_n_pvs_histo[*tmp_number_vertices];
+  if (*tmp_number_SMOG_vertices < 10) ++dev_n_smogpvs_histo[*tmp_number_SMOG_vertices];
+
   dev_n_pvs_counter[0] += *tmp_number_vertices;
 }
