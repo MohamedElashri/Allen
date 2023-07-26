@@ -25,7 +25,11 @@ namespace {
 
   using namespace ranges;
 
+#ifdef USE_DD4HEP
+  const static std::string readoutLocation = "/world/BeforeMagnetRegion/UT:ReadoutMap";
+#else
   const static std::string readoutLocation = "/dd/Conditions/ReadoutConf/UT/ReadoutMap";
+#endif
 } // namespace
 
 namespace {
