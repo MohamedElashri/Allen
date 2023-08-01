@@ -20,7 +20,7 @@ DumpFTHits::DumpFTHits(const std::string& name, ISvcLocator* pSvcLocator) :
   Consumer(
     name,
     pSvcLocator,
-    {KeyValue {"ODINLocation", LHCb::ODINLocation::Default}, KeyValue {"FTHitsLocation", PrFTInfo::FTHitsLocation}})
+    {KeyValue {"ODINLocation", LHCb::ODINLocation::Default}, KeyValue {"FTHitsLocation", PrFTInfo::SciFiHitsLocation}})
 {}
 
 StatusCode DumpFTHits::initialize()
@@ -32,7 +32,7 @@ StatusCode DumpFTHits::initialize()
   return StatusCode::SUCCESS;
 }
 
-void DumpFTHits::operator()(const LHCb::ODIN& odin, const PrFTHitHandler<PrHit>& hitHandler) const
+void DumpFTHits::operator()(const LHCb::ODIN& odin, const LHCb::Pr::FT::Hits& ftHits) const
 {
 
   /*Write SciFi variables for GPU to binary file */
@@ -52,23 +52,24 @@ void DumpFTHits::operator()(const LHCb::ODIN& odin, const PrFTHitHandler<PrHit>&
   auto scifi_hitPlaneCode = std::array<std::vector<int>, n_layers_scifi> {};
   auto scifi_hitZone = std::array<std::vector<int>, n_layers_scifi> {};
 
-  for (unsigned int zone = 0; LHCb::Detector::FT::nbZones() > zone; ++zone) {
-    for (const auto& hit : hitHandler.hits(zone)) {
+  for (unsigned int zone = 0; LHCb::Detector::FT::nZonesTotal > zone; ++zone) {
+    const auto [begIndex, endIndex] = ftHits.getZoneIndices(zone);
+    for (auto i = begIndex; i < endIndex; i++) {
       // get the LHCbID from the PrHit
-      LHCb::LHCbID lhcbid = hit.id();
+      LHCb::LHCbID lhcbid = ftHits.lhcbid(i);
 
       // Fill the info for the eventual binary
-      int code = 2 * hit.planeCode() + hit.zone();
-      scifi_x[code].push_back(hit.x());
-      scifi_z[code].push_back(hit.z());
-      scifi_w[code].push_back(hit.w());
-      scifi_dxdy[code].push_back(hit.dxDy());
-      scifi_dzdy[code].push_back(hit.dzDy());
-      scifi_YMin[code].push_back(hit.yMin());
-      scifi_YMax[code].push_back(hit.yMax());
+      int code = zone; // Unsure if this is correct
+      scifi_x[code].push_back(ftHits.x(i));
+      scifi_z[code].push_back(ftHits.z(i));
+      scifi_w[code].push_back(ftHits.w(i));
+      scifi_dxdy[code].push_back(ftHits.dxDy(i));
+      scifi_dzdy[code].push_back(ftHits.dzDy(i));
+      scifi_YMin[code].push_back(ftHits.coldHitInfo(i).yMin);
+      scifi_YMax[code].push_back(ftHits.coldHitInfo(i).yMax);
       scifi_LHCbID[code].push_back(lhcbid.lhcbID());
-      scifi_hitPlaneCode[code].push_back(hit.planeCode());
-      scifi_hitZone[code].push_back(hit.zone());
+      scifi_hitPlaneCode[code].push_back(ftHits.planeCode(i));
+      scifi_hitZone[code].push_back(zone);
     }
   }
 
