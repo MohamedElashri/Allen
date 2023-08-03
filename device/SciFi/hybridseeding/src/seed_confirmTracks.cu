@@ -246,6 +246,8 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
           fullTrack.ax = xTrack.ax;
           fullTrack.bx = xTrack.bx;
           fullTrack.cx = xTrack.cx;
+          fullTrack.chi2Y = bestChi2Ndof;
+          fullTrack.chi2X = xTrack.chi2;
           auto startIndex = SciFi::Constants::Nmax_seeds * event_number + shiftCaseTracks;
           auto idx = atomicAdd(&nTracksPerPart, 1);
           if (idx >= SciFi::Constants::Nmax_seeds_per_part) break;

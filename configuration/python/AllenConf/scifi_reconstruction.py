@@ -466,6 +466,8 @@ def make_seeding_tracks(
         seed_confirmTracks_consolidate.dev_scifi_hits_view_t,
         "dev_used_scifi_hits":
         seed_confirmTracks_consolidate.dev_used_scifi_hits_t,
+        "dev_scifi_multi_event_tracks_view":
+        seed_confirmTracks_consolidate.dev_scifi_multi_event_tracks_view_t,
     }
 
 
