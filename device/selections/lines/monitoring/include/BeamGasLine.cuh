@@ -48,11 +48,6 @@ namespace beam_gas_line {
       return first<typename Parameters::host_number_of_reconstructed_velo_tracks_t>(arguments);
     }
 
-    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number)
-    {
-      return parameters.dev_offsets_velo_tracks[event_number + 1] - parameters.dev_offsets_velo_tracks[event_number];
-    }
-
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {
       return parameters.dev_offsets_velo_tracks[event_number];

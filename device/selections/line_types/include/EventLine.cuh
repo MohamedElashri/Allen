@@ -12,8 +12,6 @@ template<typename Derived, typename Parameters>
 struct EventLine : public Line<Derived, Parameters> {
   __device__ static unsigned offset(const Parameters&, const unsigned event_number) { return event_number; }
 
-  __device__ static unsigned input_size(const Parameters&, const unsigned) { return 1; }
-
   /**
    * @brief Decision size is the number of events.
    */

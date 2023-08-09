@@ -78,12 +78,6 @@ namespace two_calo_clusters_line {
       return parameters.dev_ecal_twocluster_offsets[event_number];
     }
 
-    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number)
-    {
-      return parameters.dev_ecal_twocluster_offsets[event_number + 1] -
-             parameters.dev_ecal_twocluster_offsets[event_number];
-    }
-
     __device__ static std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
     {
