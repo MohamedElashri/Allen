@@ -33,8 +33,8 @@ float bin_size(float q)
 }
 
 void di_muon_no_ip_line::di_muon_no_ip_line_t::init_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
+  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+  [[maybe_unused]] const Allen::Context& context)
 {
 #ifndef ALLEN_STANDALONE
   Allen::memset_async<dev_array_prompt_q_t>(arguments, 0, context);
@@ -82,8 +82,8 @@ __device__ bool di_muon_no_ip_line::di_muon_no_ip_line_t::select(
 }
 
 __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
-  const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+  [[maybe_unused]] const Parameters& parameters,
+  [[maybe_unused]] std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned,
   bool sel)
 {

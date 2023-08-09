@@ -37,8 +37,6 @@ namespace single_high_et_line {
     // Offset function
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
 
-    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number);
-
     // Get decision size function
     static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments);
 

@@ -36,11 +36,6 @@ namespace t_track_cosmic_line {
       return parameters.dev_seeding_offsets[event_number];
     }
 
-    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number)
-    {
-      return parameters.dev_seeding_offsets[event_number + 1] - parameters.dev_seeding_offsets[event_number];
-    }
-
     __device__ static std::tuple<const SciFi::Seeding::Track>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
     {
