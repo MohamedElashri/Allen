@@ -54,3 +54,6 @@ DumpMuonGeometry                       INFO Number of counters : 1
 DumpMuonTable                          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_MuonLookupTables"                 |   1116340 |
+HLTControlFlowMgr                      INFO Number of counters : 1
+ |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
+ | "Processed events"                              |         1 |
