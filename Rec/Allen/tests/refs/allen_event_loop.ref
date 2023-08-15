@@ -30,3 +30,6 @@ LAZY_AND: allen_non_event_data                  #=1       Sum=1           Eff=|(
 HLTControlFlowMgr                      INFO Histograms converted successfully according to request.
 ApplicationMgr                         INFO Application Manager Finalized successfully
 ApplicationMgr                         INFO Application Manager Terminated successfully
+HLTControlFlowMgr                      INFO Number of counters : 1
+ |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
+ | "Processed events"                              |         1 |
