@@ -16,5 +16,5 @@ __device__ bool di_muon_mass_alignment_line::di_muon_mass_alignment_line_t::sele
          vertex.mdimu() >= parameters.minMass && vertex.minpt() >= parameters.minHighMassTrackPt &&
          vertex.minp() >= parameters.minHighMassTrackP && vertex.vertex().chi2() > 0 &&
          vertex.vertex().chi2() < parameters.maxVertexChi2 && vertex.vertex().z() >= parameters.minZ &&
-         vertex.pv().position.z >= parameters.minZ;
+         vertex.has_pv() && vertex.pv().position.z >= parameters.minZ;
 }
