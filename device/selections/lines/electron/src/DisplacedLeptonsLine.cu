@@ -33,9 +33,9 @@ __device__ bool displaced_leptons_line::displaced_leptons_line_t::select(
     const auto track = tracks.particle(i);
 
     if (
-      ((track.is_electron() && track.ip_chi2() > parameters.min_ipchi2 && brem_corrected_pts[i] > parameters.min_pt) ||
-       (track.is_muon() && track.ip_chi2() > parameters.min_ipchi2 && track.state().pt() > parameters.min_pt)) &&
-      track.pv().position.z > parameters.minBPVz) {
+      (track.has_pv() && track.ip_chi2() > parameters.min_ipchi2 && track.pv().position.z > parameters.minBPVz) &&
+      ((track.is_electron() && brem_corrected_pts[i] > parameters.min_pt) ||
+       (track.is_muon() && track.state().pt() > parameters.min_pt))) {
       N_good_leptons += 1;
     }
   }
