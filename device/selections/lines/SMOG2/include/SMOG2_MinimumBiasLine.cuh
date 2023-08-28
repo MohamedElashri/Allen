@@ -42,7 +42,10 @@ namespace SMOG2_minimum_bias_line {
     static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments);
 
     // Get input size function
-    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number);
+    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number)
+    {
+      return parameters.dev_tracks_container[event_number].size();
+    }
 
     // Get input function
     __device__ static std::tuple<const unsigned, const float>

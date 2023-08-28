@@ -23,13 +23,6 @@ unsigned SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::get_decisions_size(
   return first<host_number_of_reconstructed_velo_tracks_t>(arguments);
 }
 
-__device__ unsigned SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::input_size(
-  const Parameters& parameters,
-  const unsigned event_number)
-{
-  return parameters.dev_tracks_container[event_number].size();
-}
-
 // Get input function
 __device__ std::tuple<const unsigned, const float> SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::get_input(
   const Parameters& parameters,

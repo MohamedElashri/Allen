@@ -224,6 +224,11 @@ public:
       do_monitoring(arguments, handler, sequence, context);
     }
   }
+
+  __device__ static unsigned input_size(const Parameters& parameters, unsigned event_number)
+  {
+    return Derived::offset(parameters, event_number + 1) - Derived::offset(parameters, event_number);
+  }
 };
 
 template<typename Derived, typename Parameters>

@@ -209,7 +209,7 @@ if (m := tck_option.match(sequence)):
     repo = m.group(1)
     tck = m.group(2)
     sequence_json, tck_info = sequence_from_git(repo, tck, use_bindings=args.bindings)
-    tck_deps = tck_info["metadata"]["dependencies"]
+    tck_deps = tck_info["metadata"]["stack"]["projects"]
     if not sequence_json or sequence_json == 'null':
         print(
             f"Failed to obtain configuration for TCK {tck} from repository {repo}"

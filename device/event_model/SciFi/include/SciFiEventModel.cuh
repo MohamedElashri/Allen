@@ -540,6 +540,7 @@ namespace SciFi {
       int number_of_hits = 0;
       // unsigned int ids[SciFi::Constants::n_layers] = {SciFi::Constants::INVALID_ID};
       unsigned int hits[SciFi::Constants::n_layers] = {SciFi::Constants::INVALID_ID};
+      float chi2X, chi2Y;
       float ax;
       float bx;
       float cx;

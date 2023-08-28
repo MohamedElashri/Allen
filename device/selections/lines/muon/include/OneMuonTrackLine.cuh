@@ -59,11 +59,6 @@ namespace one_muon_track_line {
       return std::forward_as_tuple(muon_tracks[track_index]);
     }
 
-    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number)
-    {
-      return parameters.dev_muon_number_of_tracks[event_number];
-    }
-
     __device__ static bool select(const Parameters& parameters, std::tuple<const MuonTrack> input);
 
   private:

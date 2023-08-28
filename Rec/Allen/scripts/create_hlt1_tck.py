@@ -18,7 +18,7 @@ from PyConf.filecontent_metadata import flush_key_registry, retrieve_encoding_di
 from Allen.tck import sequence_to_git, sequence_from_python
 from pathlib import Path
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 parser = argparse.ArgumentParser(description="""
 Persist an Allen configuration in a git repository identified by a TCK
@@ -35,7 +35,7 @@ parser.add_argument("sequence")
 parser.add_argument("repository")
 parser.add_argument("tck", help="A 32-bit hexadecimal number")
 parser.add_argument(
-    "-t,--hlt1-type",
+    "-t", "--hlt1-type",
     type=str,
     help=
     "Sequence type to use; also used as branch name in the Git repository.",

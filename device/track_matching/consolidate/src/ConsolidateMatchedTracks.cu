@@ -166,11 +166,11 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
 
 __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
   matching_consolidate_tracks::Parameters parameters,
-  gsl::span<unsigned> dev_histogram_long_track_matching_eta,
-  gsl::span<unsigned> dev_histogram_long_track_matching_phi,
-  gsl::span<unsigned> dev_histogram_long_track_matching_nhits,
-  gsl::span<unsigned> dev_histogram_n_long_tracks_matching,
-  gsl::span<unsigned> dev_n_long_tracks_matching_counter)
+  [[maybe_unused]] gsl::span<unsigned> dev_histogram_long_track_matching_eta,
+  [[maybe_unused]] gsl::span<unsigned> dev_histogram_long_track_matching_phi,
+  [[maybe_unused]] gsl::span<unsigned> dev_histogram_long_track_matching_nhits,
+  [[maybe_unused]] gsl::span<unsigned> dev_histogram_n_long_tracks_matching,
+  [[maybe_unused]] gsl::span<unsigned> dev_n_long_tracks_matching_counter)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
