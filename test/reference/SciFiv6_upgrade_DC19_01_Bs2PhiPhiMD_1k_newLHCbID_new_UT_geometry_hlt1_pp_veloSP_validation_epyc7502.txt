@@ -111,7 +111,7 @@ Hlt1SingleHighPtElectron:                              16/  1000, (  480.00 +/- 
 Hlt1DisplacedDielectron:                                6/  1000, (  180.00 +/-    73.26) kHz
 Hlt1DisplacedLeptons:                                  57/  1000, ( 1710.00 +/-   219.95) kHz
 Hlt1SingleHighEt:                                       0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1Bs2GammaGamma:                                    122/  1000, ( 3660.00 +/-   310.49) kHz
+Hlt1DiPhotonHighMass:                                  76/  1000, ( 2280.00 +/-   251.40) kHz
 Hlt1Pi02GammaGamma:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice1_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
@@ -145,7 +145,7 @@ Hlt1NMaterialVertexSeeds:                              25/  1000, (  750.00 +/- 
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                           28/  1000, (  840.00 +/-   156.51) kHz
 Hlt1DisplacedDiMuonAlignment:                           0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                            841/  1000, (25230.00 +/-   346.91) kHz
+Inclusive:                                            834/  1000, (25020.00 +/-   352.99) kHz
 
 
 selreport_validator validation:
@@ -182,7 +182,7 @@ Hlt1SingleHighPtElectron:                              16          16
 Hlt1DisplacedDielectron:                                6           7
 Hlt1DisplacedLeptons:                                  57           0
 Hlt1SingleHighEt:                                       0           0
-Hlt1Bs2GammaGamma:                                    122           0
+Hlt1DiPhotonHighMass:                                  76           0
 Hlt1Pi02GammaGamma:                                     0           0
 Hlt1LowMassNoipDielectron_massSlice1_prompt:            0           0
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0           0
@@ -217,9 +217,9 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           28          31
 Hlt1DisplacedDiMuonAlignment:                           0           0
 
-Total decisions: 2366
+Total decisions: 2320
 Total tracks:    3661
 Total SVs:       3214
 Total hits:      89366
-Total stdinfo:   44510
+Total stdinfo:   44464
 
