@@ -24,11 +24,12 @@ __device__ bool lambda2ppi_line::lambda2ppi_line_t::select(
   // Repeat stuff from FilterTracks, TODO: have container with lambda-prfilter decisions (will be needed so that
   // Lambda+track combinatorics doesn't explode)
   const bool track_filter = proton_state.charge() != pion_state.charge() && proton_state.pt() > parameters.L_p_PT_min &&
-                            proton->ip_chi2() > parameters.L_p_MIPCHI2_min && proton->ip() > parameters.L_p_MIP_min &&
-                            pion_state.pt() > parameters.L_pi_PT_min && pion->ip_chi2() > parameters.L_pi_MIPCHI2_min &&
-                            pion->ip() > parameters.L_pi_MIP_min && Lambda.doca12() < parameters.L_DOCA_max &&
-                            L_vx.pt() > parameters.L_PT_min && lambda_mass < parameters.L_M_max;
-  return track_filter && L_vx.chi2() < parameters.L_VCHI2_max && parameters.L_VZ_min < L_vx.z() &&
+                            proton->has_pv() && proton->ip_chi2() > parameters.L_p_MIPCHI2_min &&
+                            proton->ip() > parameters.L_p_MIP_min && pion_state.pt() > parameters.L_pi_PT_min &&
+                            pion->ip_chi2() > parameters.L_pi_MIPCHI2_min && pion->ip() > parameters.L_pi_MIP_min &&
+                            Lambda.doca12() < parameters.L_DOCA_max && L_vx.pt() > parameters.L_PT_min &&
+                            lambda_mass < parameters.L_M_max;
+  return track_filter && Lambda.has_pv() && L_vx.chi2() < parameters.L_VCHI2_max && parameters.L_VZ_min < L_vx.z() &&
          L_vx.z() < parameters.L_VZ_max && Lambda.dz() > parameters.L_BPVVDZ_min &&
          Lambda.drho() > parameters.L_BPVVDRHO_min && Lambda.fdchi2() > parameters.L_BPVVDCHI2_min &&
          Lambda.dira() > parameters.L_BPVDIRA_min;

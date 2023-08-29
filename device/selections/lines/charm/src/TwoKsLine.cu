@@ -163,6 +163,7 @@ __device__ bool two_ks_line::two_ks_line_t::select(
   dec1 &= ks1->mdipi() > parameters.minM_Ks;
   dec1 &= ks1->mdipi() < parameters.maxM_Ks;
   dec1 &= ks1->vertex().pt() > parameters.minComboPt_Ks;
+  dec1 &= ks1->has_pv() && ks2->has_pv();
   if (!dec1) return false;
   // PV cuts.
   dec1 &= ks1->eta() > parameters.minEta_Ks;
