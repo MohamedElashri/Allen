@@ -50,6 +50,7 @@ namespace {
   __device__ int findRemainingHit(const float tolRem, float& predPos, int nHits, float* hits)
   {
     auto minIdx = seeding::searchBin(predPos, hits, nHits);
+    if (minIdx == nHits) return SciFi::Constants::INVALID_IDX;
     predPos -= hits[minIdx];
     if (std::fabs(predPos) > tolRem) return SciFi::Constants::INVALID_IDX;
     return minIdx;
