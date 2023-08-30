@@ -155,8 +155,10 @@ namespace {
     seeding::HitCache& hits,
     const unsigned int* layers)
   {
-
-    unsigned maxTripletPerFirstHit = seeding::Triplet::maxTriplets / hits.size[layers[0]];
+    unsigned maxTripletPerFirstHit = 0;
+    if (hits.size[layers[0]] > 0) {
+      maxTripletPerFirstHit = seeding::Triplet::maxTriplets / hits.size[layers[0]];
+    }
     _unused(maxTripletPerFirstHit);
 
     for (unsigned int firstHitIdx = threadIdx.x; firstHitIdx < hits.size[layers[0]]; firstHitIdx += blockDim.x) {
