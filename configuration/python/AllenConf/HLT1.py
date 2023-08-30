@@ -21,7 +21,8 @@ from AllenConf.hlt1_monitoring_lines import (
     make_n_materialvertex_seed_line)
 from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
-    make_SMOG2_ditrack_line, make_SMOG2_singletrack_line)
+    make_SMOG2_ditrack_line, make_SMOG2_singletrack_line,
+    make_SMOG2_single_muon_line, make_SMOG2_kstopipi_line)
 from AllenConf.hlt1_photon_lines import make_bs2gammagamma_line
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer, make_dec_reporter
 from AllenConf.validators import rate_validation
@@ -324,12 +325,15 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
     return [line_maker(line) for line in lines]
 
 
-def default_smog2_lines(velo_tracks,
+@configurable
+def default_SMOG2_lines(velo_tracks,
                         long_tracks,
                         long_track_particles,
                         dihadrons,
                         dileptons,
-                        with_muon=True):
+                        with_muon=True,
+                        min_z=-541.,
+                        max_z=-341.):
 
     lines = [
         make_SMOG2_ditrack_line(
@@ -338,6 +342,8 @@ def default_smog2_lines(velo_tracks,
             m2=493.68,
             mMother=1864.83,
             mWindow=150.,
+            min_z=min_z,
+            max_z=max_z,
             name="Hlt1_SMOG2_D2Kpi"),
         make_SMOG2_ditrack_line(
             dihadrons,
@@ -345,17 +351,37 @@ def default_smog2_lines(velo_tracks,
             m2=938.27,
             mMother=2983.6,
             mWindow=150.,
+            min_z=min_z,
+            max_z=max_z,
             name="Hlt1_SMOG2_eta2pp"),
+        make_SMOG2_kstopipi_line(
+            dihadrons, min_z=min_z, max_z=max_z, name="Hlt1_SMOG2_KsToPiPi"),
         make_SMOG2_ditrack_line(
-            dihadrons, minTrackPt=800., name="Hlt1_SMOG2_2BodyGeneric"),
+            dihadrons,
+            minTrackPt=800.,
+            min_z=min_z,
+            max_z=max_z,
+            name="Hlt1_SMOG2_2BodyGeneric",
+            post_scaler=0.5),
         make_SMOG2_singletrack_line(
-            long_tracks, long_track_particles, name="Hlt1_SMOG2_SingleTrack")
+            long_tracks,
+            long_track_particles,
+            name="Hlt1_SMOG2_SingleTrack",
+            post_scaler=0.5,
+            min_z=min_z,
+            max_z=max_z)
     ]
 
     if with_muon:
-        lines.append(
+        lines += [
             make_SMOG2_dimuon_highmass_line(
-                dileptons, name="Hlt1_SMOG2_DiMuonHighMass"))
+                dileptons, name="Hlt1_SMOG2_DiMuonHighMass"),
+            make_SMOG2_single_muon_line(
+                long_tracks,
+                long_track_particles,
+                name="Hlt1_SMOG2_SingleMuon",
+                post_scaler=0.5)
+        ]
 
     return [line_maker(line) for line in lines]
 
@@ -661,13 +687,16 @@ def setup_hlt1_node(enablePhysics=True,
         with line_maker.bind(prefilter=prefilters + [lowMult_5]):
             SMOG2_lines += [
                 line_maker(
-                    make_passthrough_line(name="Hlt1GECPassThrough_LowMult5"))
+                    make_passthrough_line(
+                        name="Hlt1GECPassThrough_LowMult5", pre_scaler=0.01))
             ]
 
         bx_BE = make_bxtype("BX_BeamEmpty", bx_type=1)
         with line_maker.bind(prefilter=odin_err_filter + [bx_BE]):
             SMOG2_lines += [
-                line_maker(make_passthrough_line(name="Hlt1_BESMOG2_NoBias"))
+                line_maker(
+                    make_passthrough_line(
+                        name="Hlt1_BESMOG2_NoBias", pre_scaler=1.e-6))
             ]
 
         lowMult_10 = make_lowmult(
@@ -678,7 +707,8 @@ def setup_hlt1_node(enablePhysics=True,
         with line_maker.bind(prefilter=odin_err_filter + [bx_BE, lowMult_10]):
             SMOG2_lines += [
                 line_maker(
-                    make_passthrough_line(name="Hlt1_BESMOG2_LowMult10"))
+                    make_passthrough_line(
+                        name="Hlt1_BESMOG2_LowMult10", pre_scaler=1.e-4))
             ]
 
         if EnableGEC:
@@ -690,24 +720,22 @@ def setup_hlt1_node(enablePhysics=True,
                     make_SMOG2_minimum_bias_line(
                         reconstructed_objects["velo_tracks"],
                         reconstructed_objects["velo_states"],
-                        name="Hlt1_SMOG2_MinimumBias"))
+                        name="Hlt1_SMOG2_MinimumBias",
+                        pre_scaler=0.05))
             ]
 
         SMOG2_prefilters += [
-            make_checkPV(
-                reconstructed_objects['pvs'],
-                name='check_SMOG2_PV',
-                minZ=-541,
-                maxZ=-341)
+            make_checkPV(reconstructed_objects['pvs'], name='check_SMOG2_PV')
         ]
 
         with line_maker.bind(prefilter=odin_err_filter + SMOG2_prefilters):
             SMOG2_lines += [
                 line_maker(
-                    make_passthrough_line(name="Hlt1Passthrough_PV_in_SMOG2"))
+                    make_passthrough_line(
+                        name="Hlt1Passthrough_PV_in_SMOG2", pre_scaler=0.02))
             ]
 
-            SMOG2_lines += default_smog2_lines(
+            SMOG2_lines += default_SMOG2_lines(
                 reconstructed_objects["velo_tracks"],
                 reconstructed_objects["long_tracks"],
                 reconstructed_objects["long_track_particles"],

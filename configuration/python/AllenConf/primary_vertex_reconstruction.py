@@ -8,33 +8,30 @@ from AllenCore.algorithms import (
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
+from PyConf.tonic import configurable
 
 
-def make_pvs(velo_tracks, velo_open=False, pv_name=""):
+@configurable
+def make_pvs(velo_tracks,
+             velo_open=False,
+             pv_name="",
+             zmin=-541.,
+             zmax=307.,
+             SMOG2_pp_separation=-341.,
+             Nbins=3392):
 
-    if not velo_open:
-        pp_minNumTracksPerVertex = 4.
-        maxChi2 = 12.
-        maxTrackBlChi2 = 10.
-        zmin = -541.
-        zmax = 307.
-        Nbins = 3392
-        dz = 0.25
-        SMOG2_pp_separation = -341.
-        SMOG2_maxTrackZ0Err = 10.
-        pp_maxTrackZ0Err = 1.5
+    dz = 0.25
+    pp_maxTrackZ0Err = 1.5
+    SMOG2_maxTrackZ0Err = 10.
 
-    else:
+    if velo_open:
         pp_minNumTracksPerVertex = 3.
         maxChi2 = 25.
         maxTrackBlChi2 = 300.
-        zmin = -541.
-        zmax = 307.
-        Nbins = 3392
-        dz = 0.25
-        SMOG2_pp_separation = -341.
-        SMOG2_maxTrackZ0Err = 10.
-        pp_maxTrackZ0Err = 1.5
+    else:
+        pp_minNumTracksPerVertex = 4.
+        maxChi2 = 12.
+        maxTrackBlChi2 = 10.
 
     number_of_events = initialize_number_of_events()
     host_number_of_events = number_of_events["host_number_of_events"]
