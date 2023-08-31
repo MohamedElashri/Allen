@@ -189,7 +189,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 velo_tracks,
                 pvs,
                 name="Hlt1DiPhotonHighMass",
-                enable_monitoring=True),
+                enable_tupling=False),
             make_pi02gammagamma_line(
                 ecal_clusters,
                 velo_tracks,
