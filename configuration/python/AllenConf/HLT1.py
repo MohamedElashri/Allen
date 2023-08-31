@@ -23,7 +23,7 @@ from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line,
     make_SMOG2_single_muon_line, make_SMOG2_kstopipi_line)
-from AllenConf.hlt1_photon_lines import make_bs2gammagamma_line
+from AllenConf.hlt1_photon_lines import make_diphotonhighmass_line
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer, make_dec_reporter
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
