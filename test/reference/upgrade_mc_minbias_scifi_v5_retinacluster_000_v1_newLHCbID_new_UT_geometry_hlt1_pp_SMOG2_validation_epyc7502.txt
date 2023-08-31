@@ -239,9 +239,9 @@ Hlt1_SMOG2_SingleTrack:                                 0           0
 Hlt1_SMOG2_DiMuonHighMass:                              0           0
 Hlt1_SMOG2_SingleMuon:                                  0           0
 
-Total decisions: 565
+Total decisions: 567
 Total tracks:    774
 Total SVs:       455
 Total hits:      17864
-Total stdinfo:   8577
+Total stdinfo:   8579
 
