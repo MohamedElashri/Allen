@@ -28,7 +28,8 @@ __device__ bool SMOG2_ditrack_line::SMOG2_ditrack_line_t::select(
                   trk1->chi2() / trk1->ndof() < parameters.maxTrackChi2Ndf &&
                   trk2->chi2() / trk2->ndof() < parameters.maxTrackChi2Ndf &&
                   vtx.vertex().chi2() < parameters.maxVertexChi2 && vtx.doca12() <= parameters.maxDoca && mass_decision;
-  if (vtx.has_pv()) decision = decision && vtx.pv().position.z < parameters.maxZ;
+  if (vtx.has_pv())
+    decision = decision && vtx.pv().position.z < parameters.maxZ && vtx.pv().position.z >= parameters.minZ;
 
   return decision;
 }

@@ -20,8 +20,8 @@ namespace Velo {
     static constexpr float z_endVelo = 770; // FIXME_GEOMETRY_HARDCODING
 
     // Constants for requested storage on device
-    static constexpr float max_number_of_tracks_per_cluster = 0.3f; // Maximum one track every three clusters
-    static constexpr unsigned minimum_container_size = 10;          // Lower bound for the track container size
+    static constexpr float max_number_of_tracks_per_cluster = 0.34f; // Maximum one track every three clusters
+    static constexpr unsigned minimum_container_size = 10;           // Lower bound for the track container size
     static constexpr unsigned max_track_size = 26;
     static constexpr unsigned max_tracks_to_follow = 2048;
 

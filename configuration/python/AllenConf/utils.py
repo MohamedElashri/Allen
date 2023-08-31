@@ -96,8 +96,8 @@ def make_gec(gec_name='gec',
 
 
 @configurable
-def make_checkPV(pvs, name='check_PV', minZ=-9999999, maxZ=99999999):
-    return checkPV(pvs, name=name, minZ=minZ, maxZ=maxZ)
+def make_checkPV(pvs, name='check_PV', min_z=-541., max_z=-341.):
+    return checkPV(pvs, name=name, minZ=min_z, maxZ=max_z)
 
 
 @configurable

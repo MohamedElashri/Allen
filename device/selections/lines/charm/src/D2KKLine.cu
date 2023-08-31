@@ -49,7 +49,7 @@ __device__ bool d2kk_line::d2kk_line_t::select(
   const bool decision = vertex.pt() > parameters.minComboPt && vertex.chi2() < parameters.maxVertexChi2 &&
                         particle.eta() > parameters.minEta && particle.eta() < parameters.maxEta &&
                         particle.doca12() < parameters.maxDOCA && particle.minpt() > parameters.minTrackPt &&
-                        particle.minip() > parameters.minTrackIP &&
+                        particle.has_pv() && particle.minip() > parameters.minTrackIP &&
                         particle.ctau(Allen::mDz) > parameters.ctIPScale * parameters.minTrackIP &&
                         fabsf(particle.m12(Allen::mK, Allen::mK) - Allen::mDz) < parameters.massWindow &&
                         vertex.z() >= parameters.minZ && particle.pv().position.z >= parameters.minZ;

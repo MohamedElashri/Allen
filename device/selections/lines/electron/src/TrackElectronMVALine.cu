@@ -32,7 +32,7 @@ __device__ bool track_electron_mva_line::track_electron_mva_line_t::select(
   const auto& corrected_pt = std::get<2>(input);
 
   // Electron ID
-  if (!is_electron) {
+  if (!is_electron || !track.has_pv()) {
     return false;
   }
 

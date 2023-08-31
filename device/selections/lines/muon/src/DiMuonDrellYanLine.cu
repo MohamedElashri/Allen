@@ -66,7 +66,7 @@ __device__ bool di_muon_drell_yan_line::di_muon_drell_yan_line_t::select(
 
                         && particle.mdimu() >= parameters.minMass && particle.mdimu() <= parameters.maxMass
 
-                        && particle.pv().position.z >= parameters.minZ;
+                        && particle.has_pv() && particle.pv().position.z >= parameters.minZ;
 
   return decision;
 }

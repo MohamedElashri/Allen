@@ -50,9 +50,9 @@ __device__ bool kstopipi_line::kstopipi_line_t::select(
     (vertex.is_dimuon() && track1->state().p() >= 10000.f && track2->state().p() >= 10000.f);
   if (parameters.double_muon_misid && !double_muon_misid) return false;
 
-  const bool decision = vertex.minipchi2() > parameters.minIPChi2 && opposite_sign == parameters.OppositeSign &&
-                        vertex.vertex().chi2() < parameters.maxVertexChi2 && vertex.ip() < parameters.maxIP &&
-                        vertex.m12(Allen::mPi, Allen::mPi) > parameters.minMass &&
+  const bool decision = vertex.has_pv() && vertex.minipchi2() > parameters.minIPChi2 &&
+                        opposite_sign == parameters.OppositeSign && vertex.vertex().chi2() < parameters.maxVertexChi2 &&
+                        vertex.ip() < parameters.maxIP && vertex.m12(Allen::mPi, Allen::mPi) > parameters.minMass &&
                         vertex.m12(Allen::mPi, Allen::mPi) < parameters.maxMass &&
                         vertex.pv().position.z >= parameters.minZ && vertex.vertex().z() >= parameters.minZ;
 

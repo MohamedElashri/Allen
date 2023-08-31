@@ -54,9 +54,10 @@ namespace two_track_mva_charm_xsec_line {
     };
 
     const auto preselection = vertex.chi2() < parameters.maxVertexChi2 && particle.minpt() > parameters.minTrackPt &&
-                              particle.minp() > parameters.minTrackP && particle.docamax() < parameters.maxDOCA &&
-                              massDecision() && particle.minipchi2() > parameters.minTrackIPChi2 &&
-                              vertex.z() >= parameters.minZ && particle.pv().position.z >= parameters.minZ;
+                              particle.has_pv() && particle.minp() > parameters.minTrackP &&
+                              particle.docamax() < parameters.maxDOCA && massDecision() &&
+                              particle.minipchi2() > parameters.minTrackIPChi2 && vertex.z() >= parameters.minZ &&
+                              particle.pv().position.z >= parameters.minZ;
 
     /*
      * After a rough selection of genereall intersting tracks and vertices two different MVA response cuts

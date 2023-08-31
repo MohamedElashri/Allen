@@ -2,6 +2,7 @@
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #include "LFQualityFilter.cuh"
+#include <climits>
 
 INSTANTIATE_ALGORITHM(lf_quality_filter::lf_quality_filter_t)
 
@@ -153,8 +154,8 @@ __device__ void quality_filter(
 
   for (int i = threadIdx.x; i < event_number_of_tracks; i += blockDim.x) {
     float best_quality = LookingForward::quality_filter_max_quality;
-    short best_track_index = -1;
-
+    int best_track_index = -1;
+    assert(number_of_tracks < INT_MAX); // assertion to make sure best_track_index is in range
     for (unsigned j = 0; j < number_of_tracks; j++) {
       const auto index = event_tracks_offset * maximum_number_of_candidates_per_ut_track + j;
       const auto track_quality = parameters.dev_scifi_quality_of_tracks[index];
