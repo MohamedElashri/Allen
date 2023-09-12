@@ -1,5 +1,5 @@
 ###############################################################################
-# (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
+# (c) Copyright 2023 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 from AllenConf.ut_reconstruction import decode_ut
 from PyConf.control_flow import NodeLogic, CompositeNode
