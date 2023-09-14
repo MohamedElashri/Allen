@@ -120,16 +120,23 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
   if (TARGET libclang)
     get_target_property(LIBCLANG_LIBDIR libclang IMPORTED_LOCATION_RELEASE)
     get_filename_component(LIBCLANG_LIBDIR "${LIBCLANG_LIBDIR}" PATH)
-  elseif(EXISTS /cvmfs/sft.cern.ch)
-    # As a last resort, try a hard-coded directory in cvmfs
-    set(LIBCLANG_LIBDIR /cvmfs/lhcb.cern.ch/lib/lcg/releases/clang/12.0.0/x86_64-${LCG_OS}/lib)
+  else()
+    # As a last resort, try from a number of hard-coded directory in cvmfs
+    set(LIBCLANG_LIBDIR_x86_64_centos7  /cvmfs/lhcb.cern.ch/lib/lcg/releases/clang/12.0.0/x86_64-centos7)
+    set(LIBCLANG_LIBDIR_x86_64_el9      /cvmfs/lhcb.cern.ch/lib/lcg/releases/clang/16.0.3-9dda8/x86_64-el9)
+    set(LIBCLANG_LIBDIR_aarch64_centos7 /cvmfs/sft.cern.ch/lcg/releases/clang/13.0.1-721c8/aarch64-centos7)
+    set(LIBCLANG_LIBDIR_aarch64_el9     /cvmfs/lhcb.cern.ch/lib/lcg/releases/clang/16.0.3-9dda8/aarch64-el9)
+
+    set(LIBCLANG_LIBDIR ${LIBCLANG_LIBDIR_${CMAKE_SYSTEM_PROCESSOR}_${LCG_OS}}/lib)
     set(LIBCLANG_ALTERNATIVE_FOUND ON)
-    message(STATUS "Using predefined CVMFS libclang directory")
+    message(STATUS "Trying predefined CVMFS libclang directory")
+  endif()
+  if(LIBCLANG_LIBDIR AND EXISTS "${LIBCLANG_LIBDIR}")
+    message(STATUS "Found libclang at ${LIBCLANG_LIBDIR}")
   else()
     message(FATAL_ERROR "No suitable libClang installation found. "
                         "You may provide a custom path by setting LIBCLANG_LIBDIR manually")
   endif()
-  message(STATUS "Found libclang at ${LIBCLANG_LIBDIR}")
 
   # https://github.com/nlohmann/json
   find_package(nlohmann_json REQUIRED)
