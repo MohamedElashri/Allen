@@ -21,6 +21,7 @@
 
 #include <GaudiKernel/Bootstrap.h>
 #include "GaudiKernel/ISvcLocator.h"
+#include <GAUDI_VERSION.h>
 #endif
 
 #include <deque>
@@ -39,6 +40,13 @@ struct MonitoringAggregator : public Gaudi::Monitoring::Hub::Sink {
     std::deque<Entity> sources;
   };
 
+#if GAUDI_MAJOR_VERSION < 37
+  static void mergeAndReset(Gaudi::Monitoring::Hub::Entity& ent, Gaudi::Monitoring::Hub::Entity& other)
+  {
+    ent.mergeAndReset(other);
+  }
+#endif
+
   virtual void registerEntity(Entity ent) override { m_incoming_entities.push_back(ent); }
 
   virtual void removeEntity(Entity const& ent) override
@@ -54,7 +62,7 @@ struct MonitoringAggregator : public Gaudi::Monitoring::Hub::Sink {
       if (it2 != aggregation.sources.end()) {
         if (it2 == aggregation.sources.begin() && aggregation.sources.size() > 1) {
           // if removing the first source then we must preserve the aggregation in the next one
-          aggregation.sources.at(1).mergeAndReset(ent);
+          mergeAndReset(aggregation.sources.at(1), *it2);
           m_hub->removeEntity(aggregation.sources.front());
           m_hub->registerEntity(aggregation.sources.at(1));
         }
@@ -67,8 +75,6 @@ struct MonitoringAggregator : public Gaudi::Monitoring::Hub::Sink {
       }
     }
   }
-
-  virtual ~MonitoringAggregator() {}
 
   void start()
   {
@@ -94,7 +100,7 @@ struct MonitoringAggregator : public Gaudi::Monitoring::Hub::Sink {
   {
     for (auto& [i, agg] : m_aggregations) {
       for (auto it = agg.sources.begin() + 1; it != agg.sources.end(); ++it) {
-        agg.sources.front().mergeAndReset(*it);
+        mergeAndReset(agg.sources.front(), *it);
       }
     }
   }
