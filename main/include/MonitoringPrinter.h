@@ -15,6 +15,7 @@
 #ifndef ALLEN_STANDALONE
 #include "Gaudi/Accumulators.h"
 #include "Gaudi/MonitoringHub.h"
+#include <GAUDI_VERSION.h>
 #endif
 
 #include <deque>
@@ -44,7 +45,12 @@ struct MonitoringPrinter : public Gaudi::Monitoring::Hub::Sink {
     if (m_print && (++m_delayCount >= m_printPeriod || forcePrint)) {
       m_delayCount = 0;
       for (auto entity : m_entities) {
-        auto json = entity.toJSON();
+        nlohmann::json json =
+#if GAUDI_MAJOR_VERSION >= 37
+          entity;
+#else
+          entity.toJSON();
+#endif
         info_cout << entity.component << ":" << entity.name;
         if (json.count("nEntries")) {
           info_cout << "\tEntries: " << json["nEntries"];
