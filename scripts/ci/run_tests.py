@@ -346,8 +346,12 @@ def build_allen_args(config, test, target):
 
     # now add args by device target
     target_args_cfg = config["target_args"]
-    if test["type"] in target_args_cfg and target in target_args_cfg[test["type"]]:
-        args.append(target_args_cfg[test["type"]][target])
+    if "collision_type" in test:
+        collision_type =  test["collision_type"]
+    else:
+        collision_type = "pp"
+    if test["type"] in target_args_cfg and target in target_args_cfg[test["type"]][collision_type]:
+        args.append(target_args_cfg[test["type"]][collision_type][target])
 
     return " ".join(args)
 

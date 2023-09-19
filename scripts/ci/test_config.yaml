@@ -32,10 +32,16 @@ config:
   # args added for specific device targets
   target_args:
     throughput:
-      CUDA: "-n 500 -m 500 -r 1000 -t 16"
-      CUDAPROF: "-n 500 -m 500 -r 1 -t 1"
-      HIP: "-n 2800 --events-per-slice 2800 -m 2800 -t 10 -r 100"
-      CPU: "-n 100 -m 100 -r 100"
+      pp:
+        CUDA: "-n 500 -m 500 -r 1000 -t 16"
+        CUDAPROF: "-n 500 -m 500 -r 1 -t 1"
+        HIP: "-n 2800 --events-per-slice 2800 -m 2800 -t 10 -r 100"
+        CPU: "-n 100 -m 100 -r 100"
+      PbPb:
+        CUDA: "-n 500 -m 3000 -r 200 -t 8 --events-per-slice 300"
+        CUDAPROF: "-n 500 -m 3000 -r 1 -t 1 --events-per-slice 300"
+        HIP: "-n 2800 --events-per-slice 840 -m 8400 -t 5 -r 20"
+        CPU: "-n 100 -m 1000 -r 10"
 
 # NOT GITLAB CI YAML !
 
@@ -52,6 +58,7 @@ minimal:
       - hlt1_pp_validation
     dataset: "Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1_newLHCbID_new_UT_geometry"
     geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+
 
   # FIXME run_changes needs re-adding
   # - type: "run_changes"
@@ -146,6 +153,45 @@ full:
       - hlt1_pp_forward_then_matching_no_gec
     dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
     geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+
+  # run throughput, PbPb samples, 2023 default PbPb sequence
+  - type: "throughput"
+    sequence:
+      - hlt1_PbPb_PbSMOG_no_ut
+    dataset: "upgrade-official-PbPb-EPOS-b-8_22-VELO-23.5mm"
+    geometry: "geometry_dddb-20230313_sim-20230626-vc-md100"
+    timeout: 2400
+    collision_type: "PbPb"
+    allowed_devices:
+      - epyc7502
+      - a5000
+      - geforcertx3090
+
+# run throughput, PbPb samples, 2023 no-gec PbPb sequence
+  - type: "throughput"
+    sequence:
+      - hlt1_PbPb_PbSMOG_no_ut_veloSP
+    dataset: "upgrade-official-PbPb-EPOS-b-8_22-VELO-23.5mm"
+    geometry: "geometry_dddb-20230313_sim-20230626-vc-md100"
+    timeout: 2400
+    collision_type: "PbPb"
+    allowed_devices:
+      - epyc7502
+      - a5000
+      - geforcertx3090
+
+# run throughput, PbPb samples, 2023 no-gec PbPb sequence, retina clusters
+  - type: "throughput"
+    sequence:
+      - hlt1_PbPb_PbSMOG_no_ut_no_gec
+    dataset: "upgrade-official-PbPb-EPOS-b-8_22-VELO-23.5mm"
+    geometry: "geometry_dddb-20230313_sim-20230626-vc-md100"
+    timeout: 2400
+    collision_type: "PbPb"
+    allowed_devices:
+      - epyc7502
+      - a5000
+      - geforcertx3090
 
   # Efficiency tests
 
