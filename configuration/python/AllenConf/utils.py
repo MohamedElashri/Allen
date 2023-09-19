@@ -6,7 +6,7 @@ from AllenCore.algorithms import (
     host_init_number_of_events_t, host_data_provider_t, host_scifi_gec_t,
     host_ut_gec_t, layout_provider_t, check_pvs_t, check_cyl_pvs_t,
     low_occupancy_t, event_list_inversion_t, host_dummy_maker_t,
-    check_localized_beamline_ip_t)
+    check_localized_beamline_ip_t, check_ecal_energy_t)
 from PyConf.tonic import configurable
 from PyConf.control_flow import NodeLogic, CompositeNode
 
@@ -139,6 +139,15 @@ def make_lowmult(velo_tracks, name="lowMult", minTracks=0, maxTracks=9999999):
         velo_tracks, name=name, minTracks=minTracks, maxTracks=maxTracks)
 
 
+@configurable
+def make_checkEcalEnergy(ecal_energy,
+                         name='CheckEcalEnergy',
+                         ecalCut=310000.,
+                         cutHigh=True):
+    return checkEcalEnergy(
+        ecal_energy, name=name, ecalCut=ecalCut, cutHigh=cutHigh)
+
+
 def make_invert_event_list(
         alg, name, alg_output_event_list_name="dev_event_list_output_t"):
     return make_algorithm(
@@ -233,6 +242,20 @@ def lowMult(velo_tracks, name='LowMult', minTracks=0, maxTracks=99999):
             "dev_offsets_velo_track_hit_number"],
         minTracks=minTracks,
         maxTracks=maxTracks)
+
+
+def checkEcalEnergy(ecal_energy,
+                    name='CheckEcalEnergy',
+                    ecalCut=310000.,
+                    cutHigh=True):
+    number_of_events = initialize_number_of_events()
+    return make_algorithm(
+        check_ecal_energy_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_total_ecal_e_t=ecal_energy,
+        ecalCut=ecalCut,
+        cutHigh=cutHigh)
 
 
 def make_dummy():
