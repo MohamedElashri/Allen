@@ -112,6 +112,34 @@ rb_map = {
     25
 }
 
+#routing bits for Heavy ions
+rb_map_PbPb = {
+    # RB 1 Lumi after HLT1
+    '^Hlt1.*Lumi.*': 1,
+    # RB 2 Velo alignment
+    'Hlt1(VeloMicroBias|BeamGas|NMaterialVertexSeeds|NVELODisplacedTrack)': 2,
+    # RB 3 Tracker alignment
+    'Hlt1(D2KPi|DiMuonHighMass|DisplacedDiMuon)Alignment': 3,
+    # RB 4 Muon alignment
+    'Hlt1DiMuon(High|Jpsi)MassAlignment': 4,
+    # RB 5 RICH1 alignment
+    'Hlt1RICH1Alignment': 5,
+    # RB 6 TAE passthrough
+    'Hlt1TAEPassthrough': 6,
+    # RB 7 RICH2 alignment
+    'Hlt1RICH2Alignment': 7,
+    # RB 8 Velo (closing) monitoring
+    'Hlt1ODINVelo.*': 8,
+    # RB 9 ECAL pi0 calibration
+    'Hlt1Pi02GammaGamma': 9,
+    # RB 14 HLT1 physics for monitoring and alignment
+    'Hlt1(HeavyIonPbPbPeripheral|HeavyIonPbPbCentral|GECCentPassthrough)': 14,
+    # RB 16 NoBias, prescaled
+    'Hlt1.*NoBias': 16,
+    # RB 25 Tell1 Error events
+    'Hlt1Tell1Error': 25
+}
+
 
 def make_gather_selections(lines):
     number_of_events = initialize_number_of_events()
@@ -159,7 +187,8 @@ def make_dec_reporter(lines, TCK=0):
         dev_selections_offsets_t=gather_selections.dev_selections_offsets_t)
 
 
-def make_routingbits_writer(lines):
+@configurable
+def make_routingbits_writer(lines, rb_map=rb_map):
     gather_selections = make_gather_selections(lines)
     dec_reporter = make_dec_reporter(lines)
     number_of_events = initialize_number_of_events()
