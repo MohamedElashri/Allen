@@ -13,14 +13,16 @@ from AllenCore.generator import generate
 from AllenConf.utils import make_gec
 from AllenConf.enum_types import TrackingType
 from AllenConf.velo_reconstruction import decode_velo
+from AllenConf.persistency import make_routingbits_writer, rb_map_PbPb
 
 with make_gec.bind(max_scifi_clusters=30000, count_ut=False):
-    hlt1_node = setup_hlt1_node(
-        with_ut=False,
-        EnableGEC=True,
-        max_ecal_upc=800000,
-        min_ecal_hadro=94000,
-        tracking_type=TrackingType.FORWARD_THEN_MATCHING,
-        bx_type=[1, 3],
-        mini=True)
-    generate(hlt1_node)
+    with make_routingbits_writer.bind(rb_map=rb_map_PbPb):
+        hlt1_node = setup_hlt1_node(
+            with_ut=False,
+            EnableGEC=True,
+            max_ecal_upc=800000,
+            min_ecal_hadro=94000,
+            tracking_type=TrackingType.FORWARD_THEN_MATCHING,
+            bx_type=[1, 3],
+            mini=True)
+        generate(hlt1_node)
