@@ -58,7 +58,7 @@ namespace Lumi {
     static constexpr unsigned n_plume_lumi_channels = 22u;
 
     static constexpr unsigned n_basic_counters = 6u;
-    static constexpr unsigned n_velo_counters = 10u;
+    static constexpr unsigned n_velo_counters = 70u;
     static constexpr unsigned n_pv_counters = 5u;
     static constexpr unsigned n_scifi_counters = 38u;
     static constexpr unsigned n_calo_counters = 8u;
@@ -67,6 +67,9 @@ namespace Lumi {
 
     // number of velo eta bins edges
     static constexpr unsigned n_velo_eta_bin_edges = 7u;
+    // number of velo counters requires reconstruction
+    constexpr unsigned n_velo_reco_counters = 3u + n_velo_eta_bin_edges;
+    constexpr unsigned n_velo_cluster_counters = n_velo_counters - n_velo_reco_counters;
 
     // number of sub info, used for info aggregating in make_lumi_summary
     static constexpr unsigned n_sub_infos = 6u;
@@ -82,7 +85,67 @@ namespace Lumi {
                                                                          "VeloTracksEtaBin4",
                                                                          "VeloTracksEtaBin5",
                                                                          "VeloTracksEtaBin6",
-                                                                         "VeloTracksEtaBin7"};
+                                                                         "VeloTracksEtaBin7",
+                                                                         "VeloClustersInnerS00",
+                                                                         "VeloClustersOuterS00",
+                                                                         "VeloClustersInnerS01",
+                                                                         "VeloClustersOuterS01",
+                                                                         "VeloClustersInnerS02",
+                                                                         "VeloClustersOuterS02",
+                                                                         "VeloClustersInnerS03",
+                                                                         "VeloClustersOuterS03",
+                                                                         "VeloClustersInnerS04",
+                                                                         "VeloClustersOuterS04",
+                                                                         "VeloClustersInnerS05",
+                                                                         "VeloClustersOuterS05",
+                                                                         "VeloClustersInnerS06",
+                                                                         "VeloClustersOuterS06",
+                                                                         "VeloClustersInnerS07",
+                                                                         "VeloClustersOuterS07",
+                                                                         "VeloClustersInnerS08",
+                                                                         "VeloClustersOuterS08",
+                                                                         "VeloClustersInnerS09",
+                                                                         "VeloClustersOuterS09",
+                                                                         "VeloClustersInnerS10",
+                                                                         "VeloClustersOuterS10",
+                                                                         "VeloClustersInnerS11",
+                                                                         "VeloClustersOuterS11",
+                                                                         "VeloClustersInnerS12",
+                                                                         "VeloClustersOuterS12",
+                                                                         "VeloClustersInnerS13",
+                                                                         "VeloClustersOuterS13",
+                                                                         "VeloClustersInnerS14",
+                                                                         "VeloClustersOuterS14",
+                                                                         "VeloClustersInnerS15",
+                                                                         "VeloClustersOuterS15",
+                                                                         "VeloClustersInnerS16",
+                                                                         "VeloClustersOuterS16",
+                                                                         "VeloClustersInnerS17",
+                                                                         "VeloClustersOuterS17",
+                                                                         "VeloClustersInnerS18",
+                                                                         "VeloClustersOuterS18",
+                                                                         "VeloClustersInnerS19",
+                                                                         "VeloClustersOuterS19",
+                                                                         "VeloClustersInnerS20",
+                                                                         "VeloClustersOuterS20",
+                                                                         "VeloClustersInnerS21",
+                                                                         "VeloClustersOuterS21",
+                                                                         "VeloClustersInnerS22",
+                                                                         "VeloClustersOuterS22",
+                                                                         "VeloClustersInnerS23",
+                                                                         "VeloClustersOuterS23",
+                                                                         "VeloClustersInnerS24",
+                                                                         "VeloClustersOuterS24",
+                                                                         "VeloClustersInnerS25",
+                                                                         "VeloClustersOuterS25",
+                                                                         "VeloClustersInnerBin00",
+                                                                         "VeloClustersOuterBin00",
+                                                                         "VeloClustersInnerBin01",
+                                                                         "VeloClustersOuterBin01",
+                                                                         "VeloClustersInnerBin02",
+                                                                         "VeloClustersOuterBin02",
+                                                                         "VeloClustersInnerBin03",
+                                                                         "VeloClustersOuterBin03"};
     const std::array<std::string, n_pv_counters> pv_counter_names = {"VeloVertices",
                                                                      "FiducialVeloVertices",
                                                                      "VeloVertexX",
