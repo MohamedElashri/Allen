@@ -102,7 +102,7 @@ namespace gather_selections {
       for (unsigned j = 0; j < span.size(); ++j) {
         if (span[j]) {
           dev_decisions_per_event_line[event_number * number_of_lines + i] = true;
-          dev_histo_line_passes[i]++;
+          atomicAdd(&dev_histo_line_passes[i], 1);
           break;
         }
       }
@@ -121,7 +121,7 @@ namespace gather_selections {
       for (unsigned j = 0; j < span.size(); ++j) {
         if (span[j]) {
           dev_postscaled_decisions_per_event_line[event_number * number_of_lines + i] = true;
-          dev_histo_line_rates[i]++;
+          atomicAdd(&dev_histo_line_rates[i], 1);
           event_decision = true;
           break;
         }

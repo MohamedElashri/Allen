@@ -129,7 +129,7 @@ __global__ void VertexFit::fit_secondary_vertices(
   const unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
   const float* event_poca = parameters.dev_sv_poca + 3 * idx_offset;
 
-  if (n_svs < VertexFit::max_svs) ++dev_histogram_nsvs[n_svs];
+  if (n_svs < VertexFit::max_svs) atomicAdd(&dev_histogram_nsvs[n_svs], 1);
 
   // Tracks.
   const auto long_track_particles = parameters.dev_long_track_particles->container(event_number);

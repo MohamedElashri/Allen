@@ -96,7 +96,7 @@ __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
       float q = sqrtf(vertex.m() * vertex.m() - 4 * Allen::mMu * Allen::mMu);
       if (q < parameters.dev_q_bin_boundaries[n_bins]) {
         unsigned bin = binary_search_rightmost(&parameters.dev_q_bin_boundaries[0], n_bins, q);
-        parameters.dev_array_prompt_q[bin]++;
+        atomicAdd(&parameters.dev_array_prompt_q[bin], 1);
       }
     }
 #endif

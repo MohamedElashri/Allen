@@ -61,7 +61,7 @@ __device__ void di_muon_mass_line::di_muon_mass_line_t::monitor(
       const unsigned int bin = static_cast<unsigned int>(
         (m - parameters.histogram_Jpsi_mass_min) * parameters.histogram_Jpsi_mass_nbins /
         (parameters.histogram_Jpsi_mass_max - parameters.histogram_Jpsi_mass_min));
-      ++parameters.dev_histogram_Jpsi_mass[bin];
+      atomicAdd(&parameters.dev_histogram_Jpsi_mass[bin], 1);
     }
   }
 }

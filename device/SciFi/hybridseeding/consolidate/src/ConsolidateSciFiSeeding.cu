@@ -226,7 +226,7 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
 
   if (number_of_tracks_event < 200) {
     unsigned bin = std::floor(number_of_tracks_event / 2.5);
-    dev_histogram_scifi_n_tracks[bin]++;
+    atomicAdd(&dev_histogram_scifi_n_tracks[bin], 1);
   }
   dev_scifi_n_tracks_counter[0] += number_of_tracks_event;
 
@@ -303,18 +303,18 @@ __device__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t
     const unsigned int bin = static_cast<unsigned int>(
       (eta - parameters.histogram_scifi_track_eta_min) * parameters.histogram_scifi_track_eta_nbins /
       (parameters.histogram_scifi_track_eta_max - parameters.histogram_scifi_track_eta_min));
-    ++dev_histogram_scifi_track_eta[bin];
+    atomicAdd(&dev_histogram_scifi_track_eta[bin], 1);
   }
   if (phi > parameters.histogram_scifi_track_phi_min && phi < parameters.histogram_scifi_track_phi_max) {
     const unsigned int bin = static_cast<unsigned int>(
       (phi - parameters.histogram_scifi_track_phi_min) * parameters.histogram_scifi_track_phi_nbins /
       (parameters.histogram_scifi_track_phi_max - parameters.histogram_scifi_track_phi_min));
-    ++dev_histogram_scifi_track_phi[bin];
+    atomicAdd(&dev_histogram_scifi_track_phi[bin], 1);
   }
   if (nhits > parameters.histogram_scifi_track_nhits_min && nhits < parameters.histogram_scifi_track_nhits_max) {
     const unsigned int bin = static_cast<unsigned int>(
       (nhits - parameters.histogram_scifi_track_nhits_min) * parameters.histogram_scifi_track_nhits_nbins /
       (parameters.histogram_scifi_track_nhits_max - parameters.histogram_scifi_track_nhits_min));
-    ++dev_histogram_scifi_track_nhits[bin];
+    atomicAdd(&dev_histogram_scifi_track_nhits[bin], 1);
   }
 }
