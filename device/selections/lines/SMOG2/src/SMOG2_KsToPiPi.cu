@@ -96,13 +96,13 @@ __device__ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::monitor(
       const unsigned int bin = static_cast<unsigned int>(
         (m - parameters.histogram_smogks_mass_min) * parameters.histogram_smogks_mass_nbins /
         (parameters.histogram_smogks_mass_max - parameters.histogram_smogks_mass_min));
-      ++parameters.dev_histogram_smogks_mass[bin];
+      atomicAdd(&parameters.dev_histogram_smogks_mass[bin], 1);
     }
     if (svz > parameters.histogram_smogks_svz_min && svz < parameters.histogram_smogks_svz_max) {
       const unsigned int bin = static_cast<unsigned int>(
         (svz - parameters.histogram_smogks_svz_min) * parameters.histogram_smogks_svz_nbins /
         (parameters.histogram_smogks_svz_max - parameters.histogram_smogks_svz_min));
-      ++parameters.dev_histogram_smogks_svz[bin];
+      atomicAdd(&parameters.dev_histogram_smogks_svz[bin], 1);
     }
   }
 }

@@ -87,7 +87,7 @@ void __global__ make_long_track_particles::make_particles(
   const unsigned number_of_tracks = event_long_tracks.size();
   const auto pv_table = parameters.dev_kalman_pv_tables[event_number];
 
-  if (number_of_tracks < UT::Constants::max_num_tracks) ++dev_histogram_n_trks[number_of_tracks];
+  if (number_of_tracks < UT::Constants::max_num_tracks) atomicAdd(&dev_histogram_n_trks[number_of_tracks], 1);
 
   for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     const auto* long_track = &(event_long_tracks.track(i));
@@ -102,11 +102,11 @@ void __global__ make_long_track_particles::make_particles(
 
     auto state = (parameters.dev_kalman_states_view + event_number)->state(i);
     const unsigned etabin = max(0u, min(99u, static_cast<unsigned>(state.eta() * 20)));
-    ++dev_histogram_trk_eta[etabin];
+    atomicAdd(&dev_histogram_trk_eta[etabin], 1);
     const unsigned phibin = max(0u, min(99u, static_cast<unsigned>(std::atan2(state.ty(), state.tx()) * 15.625f + 50)));
-    ++dev_histogram_trk_phi[phibin];
+    atomicAdd(&dev_histogram_trk_phi[phibin], 1);
     const unsigned ptbin = min(99u, static_cast<unsigned>(state.pt() * 0.01f));
-    ++dev_histogram_trk_pt[ptbin];
+    atomicAdd(&dev_histogram_trk_pt[ptbin], 1);
   }
 
   if (threadIdx.x == 0) {

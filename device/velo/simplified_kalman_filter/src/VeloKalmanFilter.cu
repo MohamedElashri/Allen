@@ -451,35 +451,35 @@ __device__ void velo_kalman_filter::velo_kalman_filter_t::monitor(
       (eta - parameters.histogram_velo_track_eta_min) * parameters.histogram_velo_track_eta_nbins /
       (parameters.histogram_velo_track_eta_max - parameters.histogram_velo_track_eta_min));
     if (backward) {
-      ++dev_histogram_velo_backward_track_eta[bin];
+      atomicAdd(&dev_histogram_velo_backward_track_eta[bin], 1);
     }
     else {
-      ++dev_histogram_velo_forward_track_eta[bin];
+      atomicAdd(&dev_histogram_velo_forward_track_eta[bin], 1);
     }
-    ++dev_histogram_velo_total_track_eta[bin];
+    atomicAdd(&dev_histogram_velo_total_track_eta[bin], 1);
   }
   if (phi > parameters.histogram_velo_track_phi_min && phi < parameters.histogram_velo_track_phi_max) {
     const unsigned int bin = static_cast<unsigned int>(
       (phi - parameters.histogram_velo_track_phi_min) * parameters.histogram_velo_track_phi_nbins /
       (parameters.histogram_velo_track_phi_max - parameters.histogram_velo_track_phi_min));
     if (backward) {
-      ++dev_histogram_velo_backward_track_phi[bin];
+      atomicAdd(&dev_histogram_velo_backward_track_phi[bin], 1);
     }
     else {
-      ++dev_histogram_velo_forward_track_phi[bin];
+      atomicAdd(&dev_histogram_velo_forward_track_phi[bin], 1);
     }
-    ++dev_histogram_velo_total_track_phi[bin];
+    atomicAdd(&dev_histogram_velo_total_track_phi[bin], 1);
   }
   if (nhits > parameters.histogram_velo_track_nhits_min && nhits < parameters.histogram_velo_track_nhits_max) {
     const unsigned int bin = static_cast<unsigned int>(
       (nhits - parameters.histogram_velo_track_nhits_min) * parameters.histogram_velo_track_nhits_nbins /
       (parameters.histogram_velo_track_nhits_max - parameters.histogram_velo_track_nhits_min));
     if (backward) {
-      ++dev_histogram_velo_backward_track_nhits[bin];
+      atomicAdd(&dev_histogram_velo_backward_track_nhits[bin], 1);
     }
     else {
-      ++dev_histogram_velo_forward_track_nhits[bin];
+      atomicAdd(&dev_histogram_velo_forward_track_nhits[bin], 1);
     }
-    ++dev_histogram_velo_total_track_nhits[bin];
+    atomicAdd(&dev_histogram_velo_total_track_nhits[bin], 1);
   }
 }

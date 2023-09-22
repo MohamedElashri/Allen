@@ -388,7 +388,7 @@ __device__ void scifi_consolidate_tracks_impl(
 
   if (number_of_tracks_event < 200) {
     unsigned bin = std::floor(number_of_tracks_event / 2.5);
-    dev_histogram_n_long_tracks_forward[bin]++;
+    atomicAdd(&dev_histogram_n_long_tracks_forward[bin], 1);
   }
   dev_n_long_tracks_forward_counter[0] += number_of_tracks_event;
 
@@ -536,13 +536,13 @@ __device__ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::monitor(
     const unsigned int bin = static_cast<unsigned int>(
       (eta - parameters.histogram_long_track_forward_eta_min) * parameters.histogram_long_track_forward_eta_nbins /
       (parameters.histogram_long_track_forward_eta_max - parameters.histogram_long_track_forward_eta_min));
-    ++dev_histogram_long_track_forward_eta[bin];
+    atomicAdd(&dev_histogram_long_track_forward_eta[bin], 1);
   }
   if (phi > parameters.histogram_long_track_forward_phi_min && phi < parameters.histogram_long_track_forward_phi_max) {
     const unsigned int bin = static_cast<unsigned int>(
       (phi - parameters.histogram_long_track_forward_phi_min) * parameters.histogram_long_track_forward_phi_nbins /
       (parameters.histogram_long_track_forward_phi_max - parameters.histogram_long_track_forward_phi_min));
-    ++dev_histogram_long_track_forward_phi[bin];
+    atomicAdd(&dev_histogram_long_track_forward_phi[bin], 1);
   }
   if (
     nhits > parameters.histogram_long_track_forward_nhits_min &&
@@ -551,6 +551,6 @@ __device__ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::monitor(
       (nhits - parameters.histogram_long_track_forward_nhits_min) *
       parameters.histogram_long_track_forward_nhits_nbins /
       (parameters.histogram_long_track_forward_nhits_max - parameters.histogram_long_track_forward_nhits_min));
-    ++dev_histogram_long_track_forward_nhits[bin];
+    atomicAdd(&dev_histogram_long_track_forward_nhits[bin], 1);
   }
 }

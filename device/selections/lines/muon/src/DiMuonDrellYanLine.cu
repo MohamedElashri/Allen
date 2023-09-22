@@ -91,7 +91,7 @@ __device__ void di_muon_drell_yan_line::di_muon_drell_yan_line_t::monitor(
       const unsigned int bin = static_cast<unsigned int>(
         (m - parameters.histogram_Z_mass_min) * parameters.histogram_Z_mass_nbins /
         (parameters.histogram_Z_mass_max - parameters.histogram_Z_mass_min));
-      ++parameters.dev_histogram_Z_mass[bin];
+      atomicAdd(&parameters.dev_histogram_Z_mass[bin], 1);
     }
   }
 }

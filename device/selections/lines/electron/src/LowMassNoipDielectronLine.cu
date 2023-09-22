@@ -110,11 +110,11 @@ __device__ bool lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::se
   if (decision_no_mass_prompt_only) {
     if (vertex.m12(0.510999, 0.510999) < 1500) {
       unsigned bin = std::floor(vertex.m12(0.510999, 0.510999) / 2);
-      parameters.dev_masses_histo[bin]++;
+      atomicAdd(&parameters.dev_masses_histo[bin], 1);
     }
     if (brem_corrected_dielectron_mass < 1500) {
       unsigned bin = std::floor(brem_corrected_dielectron_mass / 2);
-      parameters.dev_masses_brem_histo[bin]++;
+      atomicAdd(&parameters.dev_masses_brem_histo[bin], 1);
     }
   }
 #endif

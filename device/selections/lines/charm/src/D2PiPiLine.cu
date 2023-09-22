@@ -80,13 +80,13 @@ __device__ void d2pipi_line::d2pipi_line_t::monitor(
       const unsigned int bin = static_cast<unsigned int>(
         (m1 - parameters.histogram_d02pipi_mass_min) * parameters.histogram_d02pipi_mass_nbins /
         (parameters.histogram_d02pipi_mass_max - parameters.histogram_d02pipi_mass_min));
-      ++parameters.dev_histogram_d02pipi_mass[bin];
+      atomicAdd(&parameters.dev_histogram_d02pipi_mass[bin], 1);
     }
     if (pt > parameters.histogram_d02pipi_pt_min && pt < parameters.histogram_d02pipi_pt_max) {
       const unsigned int bin = static_cast<unsigned int>(
         (pt - parameters.histogram_d02pipi_pt_min) * parameters.histogram_d02pipi_pt_nbins /
         (parameters.histogram_d02pipi_pt_max - parameters.histogram_d02pipi_pt_min));
-      ++parameters.dev_histogram_d02pipi_pt[bin];
+      atomicAdd(&parameters.dev_histogram_d02pipi_pt[bin], 1);
     }
   }
 }

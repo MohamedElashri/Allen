@@ -63,7 +63,7 @@ __device__ void displaced_di_muon_line::displaced_di_muon_line_t::monitor(
       const unsigned int bin = static_cast<unsigned int>(
         (m - parameters.histogram_mass_min) * parameters.histogram_mass_nbins /
         (parameters.histogram_mass_max - parameters.histogram_mass_min));
-      ++parameters.dev_histogram_mass[bin];
+      atomicAdd(&parameters.dev_histogram_mass[bin], 1);
     }
   }
 }

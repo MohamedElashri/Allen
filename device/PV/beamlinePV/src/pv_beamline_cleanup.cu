@@ -133,21 +133,21 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(
       // monitoring
       if (-2 < vertex1.position.x && vertex1.position.x < 2 && -200 < vertex1.position.z && vertex1.position.z < 200) {
         unsigned x_bin = std::floor(vertex1.position.x / 0.04f) + 50;
-        ++dev_pv_x_histo[x_bin];
+        atomicAdd(&dev_pv_x_histo[x_bin], 1);
       }
       if (-2 < vertex1.position.y && vertex1.position.y < 2 && -200 < vertex1.position.z && vertex1.position.z < 200) {
         unsigned y_bin = std::floor(vertex1.position.y / 0.04f) + 50;
-        ++dev_pv_y_histo[y_bin];
+        atomicAdd(&dev_pv_y_histo[y_bin], 1);
       }
       if (-200 < vertex1.position.z && vertex1.position.z < 200) {
         unsigned z_bin = std::floor(vertex1.position.z / 4) + 50;
-        ++dev_pv_z_histo[z_bin];
+        atomicAdd(&dev_pv_z_histo[z_bin], 1);
       }
       if (parameters.min_histo_smogpvz < vertex1.position.z && vertex1.position.z < parameters.max_histo_smogpvz) {
         unsigned z_bin = std::floor(
           (vertex1.position.z - parameters.min_histo_smogpvz) * parameters.nbins_histo_smogpvz /
           (parameters.max_histo_smogpvz - parameters.min_histo_smogpvz));
-        ++dev_smogpv_z_histo[z_bin];
+        atomicAdd(&dev_smogpv_z_histo[z_bin], 1);
 
         atomicAdd(tmp_number_SMOG_vertices, 1);
       }
@@ -156,8 +156,8 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(
   __syncthreads();
   parameters.dev_number_of_multi_final_vertices[event_number] = *tmp_number_vertices;
 
-  if (*tmp_number_vertices < 20) ++dev_n_pvs_histo[*tmp_number_vertices];
-  if (*tmp_number_SMOG_vertices < 10) ++dev_n_smogpvs_histo[*tmp_number_SMOG_vertices];
+  if (*tmp_number_vertices < 20) atomicAdd(&dev_n_pvs_histo[*tmp_number_vertices], 1);
+  if (*tmp_number_SMOG_vertices < 10) atomicAdd(&dev_n_smogpvs_histo[*tmp_number_SMOG_vertices], 1);
 
   dev_n_pvs_counter[0] += *tmp_number_vertices;
 }

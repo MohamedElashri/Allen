@@ -214,7 +214,7 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
 
     if (number_of_tracks_event < 200) {
       unsigned bin = std::floor(number_of_tracks_event / 2.5);
-      dev_histogram_n_long_tracks_matching[bin]++;
+      atomicAdd(&dev_histogram_n_long_tracks_matching[bin], 1);
     }
     dev_n_long_tracks_matching_counter[0] += number_of_tracks_event;
 #endif
@@ -245,14 +245,14 @@ __device__ void matching_consolidate_tracks::matching_consolidate_tracks_t::moni
     const unsigned int bin = static_cast<unsigned int>(
       (eta - parameters.histogram_long_track_matching_eta_min) * parameters.histogram_long_track_matching_eta_nbins /
       (parameters.histogram_long_track_matching_eta_max - parameters.histogram_long_track_matching_eta_min));
-    ++dev_histogram_long_track_matching_eta[bin];
+    atomicAdd(&dev_histogram_long_track_matching_eta[bin], 1);
   }
   if (
     phi > parameters.histogram_long_track_matching_phi_min && phi < parameters.histogram_long_track_matching_phi_max) {
     const unsigned int bin = static_cast<unsigned int>(
       (phi - parameters.histogram_long_track_matching_phi_min) * parameters.histogram_long_track_matching_phi_nbins /
       (parameters.histogram_long_track_matching_phi_max - parameters.histogram_long_track_matching_phi_min));
-    ++dev_histogram_long_track_matching_phi[bin];
+    atomicAdd(&dev_histogram_long_track_matching_phi[bin], 1);
   }
   if (
     nhits > parameters.histogram_long_track_matching_nhits_min &&
@@ -261,6 +261,6 @@ __device__ void matching_consolidate_tracks::matching_consolidate_tracks_t::moni
       (nhits - parameters.histogram_long_track_matching_nhits_min) *
       parameters.histogram_long_track_matching_nhits_nbins /
       (parameters.histogram_long_track_matching_nhits_max - parameters.histogram_long_track_matching_nhits_min));
-    ++dev_histogram_long_track_matching_nhits[bin];
+    atomicAdd(&dev_histogram_long_track_matching_nhits[bin], 1);
   }
 }
