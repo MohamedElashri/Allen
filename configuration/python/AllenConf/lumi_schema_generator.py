@@ -272,12 +272,20 @@ class LumiSchemaGenerator:
                         bucket.bitsRemaining += counter.size
                         self.sumSizes -= counter.size
                         self.inputs.append(counter)
+                offset = 0
+                #re-pack remaining counters from the start of the bucket
+                for counter in bucket.counters:
+                    counter.offset = offset
+                    offset += counter.size
         #remove any buckets that are now empty
         runMutation = False
         for bucket in list(self.buckets):
             if len(bucket.counters) == 0:
                 self.buckets.remove(bucket)
                 runMutation = True
+        #renumber buckets if one has been removed
+        for i, bucket in enumerate(self.buckets):
+            bucket.pos = i
         #size can only be reduced if a bucket is removed so skip if no empty buckets
         if runMutation:
             if len(self.inputs) != 0:
