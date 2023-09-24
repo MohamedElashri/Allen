@@ -239,7 +239,7 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
                      (bank_version == 6) ?
                      (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<6, true>) :
                                                    global_function(scifi_pre_decode_kernel<6, false>)) :
-                     (bank_version == 7) ?
+                     (bank_version == 7 || (bank_version == 8 && property<decode_v8_as_v7_t>())) ?
                      (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<7, true>) :
                                                    global_function(scifi_pre_decode_kernel<7, false>)) :
                      (runtime_options.mep_layout ? global_function(scifi_pre_decode_kernel<8, true>) :

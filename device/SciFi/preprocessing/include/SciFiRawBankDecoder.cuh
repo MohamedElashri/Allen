@@ -22,6 +22,12 @@ namespace scifi_raw_bank_decoder {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+    PROPERTY(
+      decode_v8_as_v7_t,
+      "decode_v8_as_v7",
+      "Decode v8 banks as v7 to reproduce a bug in July 2023 (MC only)",
+      bool)
+    decode_v8_as_v7;
   };
 
   struct scifi_raw_bank_decoder_t : public DeviceAlgorithm, Parameters {
@@ -35,5 +41,6 @@ namespace scifi_raw_bank_decoder {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<decode_v8_as_v7_t> m_decode_v8_as_v7 {this, {false}};
   };
 } // namespace scifi_raw_bank_decoder
