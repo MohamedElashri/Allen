@@ -4,7 +4,7 @@
 from AllenConf.utils import make_gec, line_maker, make_checkEcalEnergy
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_calibration_lines import make_passthrough_line, make_rich_1_line, make_rich_2_line
-from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_odin_event_and_orbit_line, make_beam_gas_line
+from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_odin_event_type_with_decoding_line, make_odin_event_and_orbit_line, make_beam_gas_line
 from AllenConf.hlt1_heavy_ions_lines import make_heavy_ion_event_line
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.validators import rate_validation
@@ -15,14 +15,14 @@ from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.enum_types import TrackingType, includes_matching
 
 
-def default_physics_lines( reconstructed_objects, prescale):
+def default_physics_lines(reconstructed_objects, prescale):
 
-    velo_tracks          =  reconstructed_objects["velo_tracks"]
-    long_track_particles =  reconstructed_objects["long_track_particles"]
-    decoded_calo         = reconstructed_objects["decoded_calo"]
-    pvs                  = reconstructed_objects["pvs"]
+    velo_tracks = reconstructed_objects["velo_tracks"]
+    long_track_particles = reconstructed_objects["long_track_particles"]
+    decoded_calo = reconstructed_objects["decoded_calo"]
+    pvs = reconstructed_objects["pvs"]
 
-    lines = [ 
+    lines = [
         make_heavy_ion_event_line(
             name="Hlt1HeavyIonPbPbMicroBias",
             velo_tracks=velo_tracks,
@@ -32,7 +32,6 @@ def default_physics_lines( reconstructed_objects, prescale):
             max_pvs_SMOG=0,
             decoded_calo=decoded_calo,
             pre_scaler=0.01 if prescale else 1),
-
         make_heavy_ion_event_line(
             name="Hlt1HeavyIonPbPbMBOneTrack",
             velo_tracks=velo_tracks,
@@ -42,7 +41,6 @@ def default_physics_lines( reconstructed_objects, prescale):
             min_velo_tracks_PbPb=1,
             max_pvs_PbPb=0,
             pre_scaler=0.01 if prescale else 1),
-
         make_heavy_ion_event_line(
             name="Hlt1PbSMOGMicroBias",
             velo_tracks=velo_tracks,
@@ -52,7 +50,6 @@ def default_physics_lines( reconstructed_objects, prescale):
             max_pvs_PbPb=0,
             min_pvs_SMOG=1,
             pre_scaler=0.01 if prescale else 1),
-
         make_heavy_ion_event_line(
             name="Hlt1PbSMOGMBOneTrack",
             velo_tracks=velo_tracks,
@@ -62,7 +59,6 @@ def default_physics_lines( reconstructed_objects, prescale):
             min_velo_tracks_SMOG=1,
             max_pvs_PbPb=0,
             pre_scaler=0.01 if prescale else 1),
-
         make_heavy_ion_event_line(
             name="Hlt1HeavyIonPbPbPeripheral",
             velo_tracks=velo_tracks,
@@ -72,8 +68,7 @@ def default_physics_lines( reconstructed_objects, prescale):
             max_pvs_SMOG=0,
             min_pvs_PbPb=1,
             min_ecal_e=310000,
-            max_ecal_e=14860000 ),
-
+            max_ecal_e=14860000),
         make_heavy_ion_event_line(
             name="Hlt1HeavyIonPbPbCentral",
             velo_tracks=velo_tracks,
@@ -84,7 +79,6 @@ def default_physics_lines( reconstructed_objects, prescale):
             min_pvs_PbPb=1,
             min_ecal_e=14860000,
             pre_scaler=0.01 if prescale else 1),
-
         make_heavy_ion_event_line(
             name="Hlt1HeavyIonPbPbUPCMB",
             velo_tracks=velo_tracks,
@@ -96,22 +90,22 @@ def default_physics_lines( reconstructed_objects, prescale):
             max_pvs_SMOG=0,
             min_long_tracks=1,
             min_velo_tracks_PbPb=2,
-            pre_scaler=0.8 if prescale else 1) ]
+            pre_scaler=0.8 if prescale else 1)
+    ]
 
     return [line_maker(line) for line in lines]
 
 
 def mini_physics_lines(reconstructed_objects):
 
-    velo_tracks          =  reconstructed_objects["velo_tracks"]
-    long_track_particles =  reconstructed_objects["long_track_particles"]
-    decoded_calo         = reconstructed_objects["decoded_calo"]
-    pvs                  = reconstructed_objects["pvs"]
-    ecal_clusters        = reconstructed_objects["ecal_clusters"]
+    velo_tracks = reconstructed_objects["velo_tracks"]
+    long_track_particles = reconstructed_objects["long_track_particles"]
+    decoded_calo = reconstructed_objects["decoded_calo"]
+    pvs = reconstructed_objects["pvs"]
+    ecal_clusters = reconstructed_objects["ecal_clusters"]
 
     # default ion lines
-    lines = [ 
-
+    lines = [
         make_heavy_ion_event_line(
             name="Hlt1HeavyIonPbPbUPCMB",
             velo_tracks=velo_tracks,
@@ -129,12 +123,21 @@ def mini_physics_lines(reconstructed_objects):
     return [line_maker(line) for line in lines]
 
 
-def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name):
+def odin_monitoring_lines(with_lumi,
+                          lumiline_name,
+                          lumilinefull_name,
+                          with_gec=False):
     lines = []
     if with_lumi:
-        lines.append(
-            make_odin_event_type_line(
-                name=lumiline_name, odin_event_type='Lumi'))
+        if with_gec:
+            #explicitly require decoding of subdetectors outside of the GEC
+            lines.append(
+                make_odin_event_type_with_decoding_line(
+                    name=lumiline_name, odin_event_type='Lumi'))
+        else:
+            lines.append(
+                make_odin_event_type_line(
+                    name=lumiline_name, odin_event_type='Lumi'))
         lines.append(
             make_odin_event_and_orbit_line(
                 name=lumilinefull_name,
@@ -176,8 +179,8 @@ def setup_hlt1_node(withMCChecking=False,
                     tracking_type=TrackingType.FORWARD,
                     with_ut=True,
                     prescale=False,
-                    with_muon=True, 
-                    bx_type = None,
+                    with_muon=True,
+                    bx_type=None,
                     tae_passthrough=True,
                     mini=False):
 
@@ -192,77 +195,90 @@ def setup_hlt1_node(withMCChecking=False,
 
     # GEC for UPC events
     decoded_calo = decode_calo()
-    gec_ecal_upc = [make_checkEcalEnergy(
-        decoded_calo['dev_total_ecal_e'], 
-        name='CheckEcalEnergyUPC', 
-        ecalCut=max_ecal_upc,
-        cutHigh=True)]
-    
-    gec_ecal_periph = [make_checkEcalEnergy(
-        decoded_calo['dev_total_ecal_e'], 
-        name='CheckEcalEnergyHadronic', 
-        ecalCut=min_ecal_hadro,
-        cutHigh=False)]
+    gec_ecal_upc = [
+        make_checkEcalEnergy(
+            decoded_calo['dev_total_ecal_e'],
+            name='CheckEcalEnergyUPC',
+            ecalCut=max_ecal_upc,
+            cutHigh=True)
+    ]
+
+    gec_ecal_periph = [
+        make_checkEcalEnergy(
+            decoded_calo['dev_total_ecal_e'],
+            name='CheckEcalEnergyHadronic',
+            ecalCut=min_ecal_hadro,
+            cutHigh=False)
+    ]
 
     gec = [make_gec()] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
                        ] if with_odin_filter else []
     prefilters = odin_err_filter + gec
-    prefilter_upc = prefilters +  gec_ecal_upc
-    prefilter_hadronic = prefilters +  gec_ecal_periph
-
+    prefilter_upc = prefilters + gec_ecal_upc
+    prefilter_hadronic = prefilters + gec_ecal_periph
 
     if bx_type is not None:
         if not isinstance(bx_type, list): bx_type = [bx_type]
-        prefilters +=[ 
-            CompositeNode(
-                "bx_selection", 
-                [make_bxtype(name = f"BX_{ibx_type}", bx_type=ibx_type) for ibx_type in bx_type],
-                NodeLogic.NONLAZY_OR) ]
+        prefilters += [
+            CompositeNode("bx_selection", [
+                make_bxtype(name=f"BX_{ibx_type}", bx_type=ibx_type)
+                for ibx_type in bx_type
+            ], NodeLogic.NONLAZY_OR)
+        ]
 
     # Setup physics lines.
     physics_lines = []
     if mini:
         with line_maker.bind(prefilter=prefilter_upc):
             physics_lines = mini_physics_lines(reconstructed_objects)
-            
+
         with line_maker.bind(prefilter=prefilter_hadronic):
             physics_lines += [
-                    line_maker(make_passthrough_line(name = "Hlt1GECCentPassthrough", pre_scaler=1))]
+                line_maker(
+                    make_passthrough_line(
+                        name="Hlt1GECCentPassthrough", pre_scaler=1))
+            ]
         with line_maker.bind(prefilter=prefilter_upc):
             physics_lines += [
-                    line_maker(make_passthrough_line(name = "Hlt1GECUPCPassthrough"))]
+                line_maker(
+                    make_passthrough_line(name="Hlt1GECUPCPassthrough"))
+            ]
         with line_maker.bind(prefilter=prefilters):
             physics_lines += [
-                    line_maker(make_passthrough_line(name = "Hlt1GECSciFiPassthrough"))]
+                line_maker(
+                    make_passthrough_line(name="Hlt1GECSciFiPassthrough"))
+            ]
     else:
         with line_maker.bind(prefilter=prefilters):
-            physics_lines = default_physics_lines(reconstructed_objects, prescale)
+            physics_lines = default_physics_lines(reconstructed_objects,
+                                                  prescale)
 
             if EnableGEC:
                 physics_lines += [
-                    line_maker(make_passthrough_line(name = "Hlt1GECPassthrough"))]
-
+                    line_maker(
+                        make_passthrough_line(name="Hlt1GECPassthrough"))
+                ]
 
     lumiline_name = "Hlt1ODINLumi"
     lumilinefull_name = "Hlt1ODIN1kHzLumi"
     # decoding based lumi line
     with line_maker.bind(prefilter=odin_err_filter):
         monitoring_lines = odin_monitoring_lines(with_lumi, lumiline_name,
-                                                lumilinefull_name)
+                                                 lumilinefull_name, EnableGEC)
 
         physics_lines += [line_maker(make_passthrough_line())]
-    
+
     if mini:
-        # reco based lumi line with GEC
+        # alignment lines within the GEC
         with line_maker.bind(prefilter=prefilter_upc):
-            monitoring_lines += alignment_monitoring_lines(reconstructed_objects,
-                                                        with_muon)        
+            monitoring_lines += alignment_monitoring_lines(
+                reconstructed_objects, with_muon)
     else:
-        # alignment lines within the GEC 
+        # alignment lines within the GEC
         with line_maker.bind(prefilter=prefilters):
-            monitoring_lines += alignment_monitoring_lines(reconstructed_objects,
-                                                        with_muon)
+            monitoring_lines += alignment_monitoring_lines(
+                reconstructed_objects, with_muon)
 
     if tae_passthrough:
         with line_maker.bind(prefilter=odin_err_filter + [tae_filter()]):
@@ -318,7 +334,7 @@ def setup_hlt1_node(withMCChecking=False,
 
         lumi_with_prefilter = CompositeNode(
             "LumiWithPrefilter",
-            odin_err_filter + [lumi_node],
+            prefilters + [lumi_node],
             NodeLogic.LAZY_AND,
             force_order=True)
 
@@ -351,5 +367,5 @@ def setup_hlt1_node(withMCChecking=False,
             NodeLogic.NONLAZY_AND,
             force_order=False)
         hlt1_config['control_flow_node'] = node
-        
+
     return hlt1_config

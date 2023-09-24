@@ -184,13 +184,15 @@ __global__ void velo_lumi_counters::velo_lumi_counters(
       }
     }
 
-    unsigned info_offset = Lumi::Constants::n_velo_counters * lumi_evt_index + Lumi::Constants::n_velo_reco_counters;
-    for (unsigned info_index = 0u; info_index < Lumi::Constants::n_velo_cluster_counters; ++info_index) {
+    unsigned info_offset = Lumi::Constants::n_velo_counters * lumi_evt_index;
+    for (unsigned info_index = Lumi::Constants::n_velo_reco_counters;
+         info_index < Lumi::Constants::n_velo_reco_counters + Lumi::Constants::n_velo_cluster_counters;
+         ++info_index) {
       fillLumiInfo(
         parameters.dev_lumi_infos[info_offset + info_index],
         offsets_and_sizes[info_index * 2],
         offsets_and_sizes[info_index * 2 + 1],
-        cluster_counters[info_index],
+        cluster_counters[info_index - Lumi::Constants::n_velo_reco_counters],
         shifts_and_scales[2 * info_index],
         shifts_and_scales[2 * info_index + 1]);
     }
