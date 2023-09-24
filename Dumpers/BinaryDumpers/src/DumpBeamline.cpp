@@ -7,7 +7,7 @@
 #include "GaudiKernel/StdArrayAsProperty.h"
 
 #include <DetDesc/GenericConditionAccessorHolder.h>
-#include <VPDet/DeVP.h>
+#include <LHCbDet/InteractionRegion.h>
 
 #include <Dumpers/Identifiers.h>
 #include <Dumpers/Utils.h>
@@ -20,17 +20,29 @@ namespace {
 
     Beamline() {}
 
-    Beamline(std::vector<char>& data, DeVP const& velo, std::array<float, 2> offset)
+    Beamline(std::vector<char>& data, LHCb::Conditions::InteractionRegion const& region)
     {
       DumpUtils::Writer output;
 
-      auto const beamSpot = velo.beamSpot();
-      float x = static_cast<float>(beamSpot.x()) + offset[0];
-      float y = static_cast<float>(beamSpot.y()) + offset[1];
-      output.write(x, y);
+      std::vector<double> pos(3);
+      region.avgPosition.GetCoordinates(pos.begin(), pos.end());
+
+      std::vector<double> sprd(region.spread.begin(), region.spread.end());
+
+      auto as_float = [](auto const& vd) {
+        std::vector<float> vf(vd.size());
+        std::transform(vd.begin(), vd.end(), vf.begin(), [](double v) { return static_cast<float>(v); });
+        return vf;
+      };
+
+      // version 1, position, spread
+      output.write(1u, as_float(pos), as_float(sprd));
       data = output.buffer();
     }
   };
+
+  using IR = LHCb::Conditions::InteractionRegion;
+
 } // namespace
 
 /** @class DumpBeamline
@@ -49,23 +61,28 @@ public:
   StatusCode initialize() override;
 
 private:
-  Gaudi::Property<std::array<float, 2>> m_offset {this, "Offset", {0.f, 0.f}, "Beamline offset"};
-
   std::vector<char> m_data;
 };
 
 DECLARE_COMPONENT(DumpBeamline)
 
 DumpBeamline::DumpBeamline(const std::string& name, ISvcLocator* svcLoc) :
-  Dumper(name, svcLoc, {KeyValue {"BeamSpotLocation", location(name, "beamspot")}})
+  Dumper(name, svcLoc, {KeyValue {"BeamlineLocation", location(name, "beamline")}})
 {}
 
 StatusCode DumpBeamline::initialize()
 {
   return Dumper::initialize().andThen([&] {
     register_producer(Allen::NonEventData::Beamline::id, "beamline", m_data);
-    addConditionDerivation({DeVPLocation::Default}, inputLocation<Beamline>(), [&](DeVP const& velo) {
-      auto beamline = Beamline {m_data, velo, m_offset};
+
+    auto ir_loc = location(name(), "interaction_region");
+
+    // First register a derivation on the interaction region
+    IR::addConditionDerivation(this, ir_loc);
+
+    // Then derived the interaction region to create the device representation
+    addConditionDerivation({ir_loc}, inputLocation<Beamline>(), [&](LHCb::Conditions::InteractionRegion const& ir) {
+      auto beamline = Beamline {m_data, ir};
       dump();
       return beamline;
     });

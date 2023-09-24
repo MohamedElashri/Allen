@@ -20,10 +20,11 @@ gaudi_add_library(BinaryDumpers
                     Gaudi::GaudiKernel
                     LHCb::DAQEventLib
                     LHCb::FTDAQLib
-                    LHCb::MagnetLib
                     LHCb::FTDetLib
-                    LHCb::RecEvent
-                    LHCb::MuonDAQLib)
+                    LHCb::LHCbDetLib
+                    LHCb::MagnetLib
+                    LHCb::MuonDAQLib
+                    LHCb::RecEvent)
 
 gaudi_add_module(BinaryDumpersModule
                  SOURCES
