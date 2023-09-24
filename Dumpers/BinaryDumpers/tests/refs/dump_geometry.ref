@@ -47,7 +47,7 @@ AllenTESProducer_VP                    INFO Number of counters : 1
  | "BytesWritten_VeloGeometry"                     |     16376 |
 DumpBeamline                           INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "BytesWritten_Beamline"                         |         8 |
+ | "BytesWritten_Beamline"                         |        40 |
 DumpMuonGeometry                       INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_MuonGeometry"                     |    211468 |
