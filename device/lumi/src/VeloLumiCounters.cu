@@ -153,14 +153,9 @@ __global__ void velo_lumi_counters::velo_lumi_counters(
         Allen::VPChannelID::sensorBits;
       unsigned station_id = sensor_id / 8;
 
-      // sensor id out of range
-      // set all clusters related counters to 0xffffffff
+      // sensor id out of range - skip
       if (station_id >= Velo::Constants::n_module_pairs) {
-        for (unsigned id = 0; id < Velo::Constants::n_module_pairs; ++id) {
-          cluster_counters[id * 2] = 0xffffffff;
-          cluster_counters[id * 2 + 1] = 0xffffffff;
-        }
-        break;
+        continue;
       }
 
       // even id for inner; odd id for outer
