@@ -115,29 +115,44 @@ rb_map = {
 #routing bits for Heavy ions
 rb_map_PbPb = {
     # RB 1 Lumi after HLT1
-    '^Hlt1.*Lumi.*': 1,
+    '^Hlt1.*Lumi.*':
+    1,
     # RB 2 Velo alignment
-    'Hlt1(VeloMicroBias|BeamGas|NMaterialVertexSeeds|NVELODisplacedTrack)': 2,
+    'Hlt1(VeloMicroBias|BeamGas|NMaterialVertexSeeds|NVELODisplacedTrack)':
+    2,
     # RB 3 Tracker alignment
-    'Hlt1(D2KPi|DiMuonHighMass|DisplacedDiMuon)Alignment': 3,
+    'Hlt1(D2KPi|DiMuonHighMass|DisplacedDiMuon)Alignment':
+    3,
     # RB 4 Muon alignment
-    'Hlt1DiMuon(High|Jpsi)MassAlignment': 4,
+    'Hlt1DiMuon(High|Jpsi)MassAlignment':
+    4,
     # RB 5 RICH1 alignment
-    'Hlt1RICH1Alignment': 5,
+    'Hlt1RICH1Alignment':
+    5,
     # RB 6 TAE passthrough
-    'Hlt1TAEPassthrough': 6,
+    'Hlt1TAEPassthrough':
+    6,
     # RB 7 RICH2 alignment
-    'Hlt1RICH2Alignment': 7,
+    'Hlt1RICH2Alignment':
+    7,
     # RB 8 Velo (closing) monitoring
-    'Hlt1ODINVelo.*': 8,
+    'Hlt1ODINVelo.*':
+    8,
     # RB 9 ECAL pi0 calibration
-    'Hlt1Pi02GammaGamma': 9,
-    # RB 14 HLT1 physics for monitoring and alignment
-    'Hlt1(HeavyIonPbPbPeripheral|HeavyIonPbPbCentral|GECCentPassthrough)': 14,
+    'Hlt1Pi02GammaGamma':
+    9,
+    # RB 14 HLT1 beam-beam physics for monitoring and alignment
+    'Hlt1(HeavyIonPbPbPeripheral|HeavyIonPbPbCentral|HeavyIonPbPbUPCMB|GECCentPassthrough)':
+    14,
+    # RB 15 HLT1 beam-gas physics for monitoring and alignment
+    'Hlt1(HeavyIonPbSMOGHadronic|GECCentPassthrough)':
+    15,
     # RB 16 NoBias, prescaled
-    'Hlt1.*NoBias': 16,
+    'Hlt1.*NoBias':
+    16,
     # RB 25 Tell1 Error events
-    'Hlt1Tell1Error': 25
+    'Hlt1Tell1Error':
+    25
 }
 
 
