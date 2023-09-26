@@ -60,6 +60,8 @@ void calo_lumi_counters::calo_lumi_counters_t::operator()(
   // do nothing if no lumi event
   if (first<host_lumi_summaries_count_t>(arguments) == 0) return;
 
+  Allen::memset_async<dev_lumi_infos_t>(arguments, 0, context);
+
   global_function(calo_lumi_counters)(dim3(2), property<block_dim_t>(), context)(
     arguments,
     first<host_number_of_events_t>(arguments),

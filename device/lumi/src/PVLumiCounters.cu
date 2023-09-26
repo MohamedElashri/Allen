@@ -56,6 +56,7 @@ void pv_lumi_counters::pv_lumi_counters_t::operator()(
 {
   // do nothing if no lumi event
   if (first<host_lumi_summaries_count_t>(arguments) == 0) return;
+  Allen::memset_async<dev_lumi_infos_t>(arguments, 0, context);
 
   global_function(pv_lumi_counters)(dim3(4u), property<block_dim_t>(), context)(
     arguments, size<dev_event_list_t>(arguments), m_offsets_and_sizes, m_shifts_and_scales);
