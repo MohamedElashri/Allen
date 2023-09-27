@@ -3,9 +3,12 @@
 ###############################################################################
 from AllenConf.utils import make_gec, line_maker, make_checkEcalEnergy
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
-from AllenConf.hlt1_calibration_lines import make_passthrough_line, make_rich_1_line, make_rich_2_line
+from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line, make_pi02gammagamma_line
 from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_odin_event_type_with_decoding_line, make_odin_event_and_orbit_line, make_beam_gas_line
 from AllenConf.hlt1_heavy_ions_lines import make_heavy_ion_event_line
+from AllenConf.hlt1_inclusive_hadron_lines import make_kstopipi_line, make_lambda2ppi_line
+from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
+from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_di_muon_mass_line, make_displaced_dimuon_line
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
@@ -15,12 +18,19 @@ from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.enum_types import TrackingType, includes_matching
 
 
-def default_physics_lines(reconstructed_objects, prescale):
+def default_physics_lines(reconstructed_objects, prescale, reco_particles,
+                          with_muon):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
+    long_tracks = reconstructed_objects["long_tracks"]
     long_track_particles = reconstructed_objects["long_track_particles"]
     decoded_calo = reconstructed_objects["decoded_calo"]
     pvs = reconstructed_objects["pvs"]
+    dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
+    dileptons = reconstructed_objects["dilepton_secondary_vertices"]
+    v0s = reconstructed_objects["v0_secondary_vertices"]
+    v0_pairs = reconstructed_objects["v0_pairs"]
+    muon_stubs = reconstructed_objects["muon_stubs"]
 
     lines = [
         make_heavy_ion_event_line(
@@ -92,6 +102,36 @@ def default_physics_lines(reconstructed_objects, prescale):
             min_velo_tracks_PbPb=2,
             pre_scaler=0.8 if prescale else 1)
     ]
+    if reco_particles:
+        lines += [
+            make_kstopipi_line(long_tracks, v0s, name="Hlt1KsToPiPi"),
+            make_d2kk_line(long_tracks, dihadrons, name="Hlt1D2KK"),
+            make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPi"),
+            make_d2pipi_line(long_tracks, dihadrons, name="Hlt1D2PiPi"),
+            make_lambda2ppi_line(v0s, name="Hlt1L02PPi")
+        ]
+        if with_muon:
+            lines += [
+                make_one_muon_track_line(
+                    muon_stubs["dev_muon_number_of_tracks"],
+                    muon_stubs["consolidated_muon_tracks"],
+                    muon_stubs["dev_output_buffer"],
+                    muon_stubs["host_total_sum_holder"],
+                    name="Hlt1OneMuonTrackLine",
+                    post_scaler=0.001),
+                make_di_muon_mass_line(
+                    long_tracks, dileptons, name="Hlt1DiMuonHighMass"),
+                make_di_muon_mass_line(
+                    long_tracks,
+                    dileptons,
+                    name="Hlt1DiMuonLowMass",
+                    minHighMassTrackPt=500.,
+                    minHighMassTrackP=3000.,
+                    minMass=0.,
+                    maxDoca=0.2,
+                    maxVertexChi2=25.,
+                    minIPChi2=4.)
+            ]
 
     return [line_maker(line) for line in lines]
 
@@ -147,12 +187,16 @@ def odin_monitoring_lines(with_lumi,
     return [line_maker(line) for line in lines]
 
 
-def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
+def alignment_monitoring_lines(reconstructed_objects,
+                               reco_particles,
+                               with_muon=True):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
     long_tracks = reconstructed_objects["long_tracks"]
     long_track_particles = reconstructed_objects["long_track_particles"]
     velo_states = reconstructed_objects["velo_states"]
+    dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
+    dileptons = reconstructed_objects["dilepton_secondary_vertices"]
 
     lines = [
         make_velo_micro_bias_line(velo_tracks, name="Hlt1VeloMicroBias"),
@@ -163,6 +207,26 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
         make_beam_gas_line(
             velo_tracks, velo_states, beam_crossing_type=1, name="Hlt1BeamGas")
     ]
+
+    if reco_particles:
+        lines += [
+            make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPiAlignment")
+        ]
+        if with_muon:
+            lines += [
+                make_di_muon_mass_align_line(
+                    long_tracks, dileptons,
+                    name="Hlt1DiMuonHighMassAlignment"),
+                make_di_muon_mass_align_line(
+                    long_tracks,
+                    dileptons,
+                    minMass=2500.,
+                    name="Hlt1DiMuonJpsiMassAlignment"),
+                make_displaced_dimuon_mass_line(
+                    long_tracks,
+                    dileptons,
+                    name="Hlt1DisplacedDiMuonAlignment")
+            ]
 
     return [line_maker(line) for line in lines]
 
@@ -178,6 +242,7 @@ def setup_hlt1_node(withMCChecking=False,
                     with_ut=True,
                     prescale=False,
                     with_muon=True,
+                    reco_particles=True,
                     bx_type=None,
                     tae_passthrough=True,
                     mini=False):
@@ -249,8 +314,8 @@ def setup_hlt1_node(withMCChecking=False,
             ]
     else:
         with line_maker.bind(prefilter=prefilters):
-            physics_lines = default_physics_lines(reconstructed_objects,
-                                                  prescale)
+            physics_lines = default_physics_lines(
+                reconstructed_objects, prescale, reco_particles, with_muon)
 
             if EnableGEC:
                 physics_lines += [
@@ -271,12 +336,12 @@ def setup_hlt1_node(withMCChecking=False,
         # alignment lines within the GEC
         with line_maker.bind(prefilter=prefilter_upc):
             monitoring_lines += alignment_monitoring_lines(
-                reconstructed_objects, with_muon)
+                reconstructed_objects, reco_particles, with_muon)
     else:
         # alignment lines within the GEC
         with line_maker.bind(prefilter=prefilters):
             monitoring_lines += alignment_monitoring_lines(
-                reconstructed_objects, with_muon)
+                reconstructed_objects, reco_particles, with_muon)
 
     if tae_passthrough:
         with line_maker.bind(prefilter=odin_err_filter + [tae_filter()]):
