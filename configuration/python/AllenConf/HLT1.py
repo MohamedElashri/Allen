@@ -401,7 +401,7 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
     Detector activity lines for BGI data collection.
     """
     decoded_plume = decode_plume()
-    bx_BB = make_bxtype("BX_BeamBeam", bx_type=3)
+    bx_BB = make_bxtype(bx_type=3)
     bx_NoBB = make_invert_event_list(bx_BB, name="BX_NoBeamBeam")
     lines = [
         line_maker(
@@ -437,7 +437,7 @@ def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
     """
     mm = 1.0  # from SystemOfUnits.h
     max_cyl_rad_sq = (3 * mm)**2
-    bx_BB = make_bxtype("BX_BeamBeam", bx_type=3)
+    bx_BB = make_bxtype(bx_type=3)
     bx_NoBB = make_invert_event_list(bx_BB, name="BX_NoBeamBeam")
     pvs_z_all = make_checkCylPV(
         pvs,
@@ -701,7 +701,7 @@ def setup_hlt1_node(enablePhysics=True,
                         name="Hlt1GECPassThrough_LowMult5", pre_scaler=0.01))
             ]
 
-        bx_BE = make_bxtype("BX_BeamEmpty", bx_type=1)
+        bx_BE = make_bxtype(bx_type=1)
         with line_maker.bind(prefilter=odin_err_filter + [bx_BE]):
             SMOG2_lines += [
                 line_maker(

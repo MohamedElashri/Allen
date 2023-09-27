@@ -9,6 +9,7 @@ from AllenConf.hlt1_heavy_ions_lines import make_heavy_ion_event_line
 from AllenConf.hlt1_inclusive_hadron_lines import make_kstopipi_line, make_lambda2ppi_line
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
 from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_di_muon_mass_line, make_displaced_dimuon_line
+from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
@@ -16,6 +17,7 @@ from AllenConf.odin import odin_error_filter, make_bxtype, tae_filter
 from AllenConf.persistency import make_gather_selections, make_global_decision, make_sel_report_writer, make_routingbits_writer, make_dec_reporter
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.enum_types import TrackingType, includes_matching
+from .HLT1 import default_bgi_activity_lines, default_bgi_pvs_lines
 
 
 def default_physics_lines(reconstructed_objects, prescale, reco_particles,
@@ -235,6 +237,7 @@ def setup_hlt1_node(withMCChecking=False,
                     max_ecal_upc=94000,
                     min_ecal_hadro=94000,
                     EnableGEC=False,
+                    enableBGI=True,
                     enableRateValidator=True,
                     with_lumi=True,
                     with_odin_filter=True,
@@ -284,10 +287,10 @@ def setup_hlt1_node(withMCChecking=False,
     if bx_type is not None:
         if not isinstance(bx_type, list): bx_type = [bx_type]
         prefilters += [
-            CompositeNode("bx_selection", [
-                make_bxtype(name=f"BX_{ibx_type}", bx_type=ibx_type)
-                for ibx_type in bx_type
-            ], NodeLogic.NONLAZY_OR)
+            CompositeNode(
+                "bx_selection",
+                [make_bxtype(bx_type=ibx_type)
+                 for ibx_type in bx_type], NodeLogic.NONLAZY_OR)
         ]
 
     # Setup physics lines.
@@ -350,6 +353,16 @@ def setup_hlt1_node(withMCChecking=False,
                     make_passthrough_line(
                         name="Hlt1TAEPassthrough", pre_scaler=1))
             ]
+
+    if enableBGI:
+        monitoring_lines += default_bgi_activity_lines(
+            decoded_velo=decode_velo(),
+            decoded_calo=decoded_calo,
+            prefilter=(prefilter_upc if mini else prefilters))
+        monitoring_lines += default_bgi_pvs_lines(
+            reconstructed_objects["pvs"],
+            reconstructed_objects["velo_states"],
+            prefilter=(prefilter_upc if mini else prefilters))
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines

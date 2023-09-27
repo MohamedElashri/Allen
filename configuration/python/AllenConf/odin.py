@@ -26,7 +26,14 @@ def decode_odin():
 
 
 @configurable
-def make_bxtype(name="BunchCrossing_Type", bx_type=3, invert=False):
+def make_bxtype(name=None, bx_type=3, invert=False):
+    if name is None:
+        name = {
+            0: "BX_EmptyEmpty",
+            1: "BX_BeamEmpty",
+            2: "BX_EmptyBeam",
+            3: "BX_BeamBeam",
+        }[bx_type]
     return ODIN_BeamXtype(name=name, bxtype=bx_type, invert=invert)
 
 
