@@ -31,6 +31,7 @@ namespace velo_lumi_counters {
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_offsets_all_velo_tracks;
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, unsigned) dev_offsets_estimated_input_size;
+    DEVICE_INPUT(dev_module_cluster_num_t, unsigned) dev_module_cluster_num;
     DEVICE_INPUT(dev_velo_clusters_t, Velo::Clusters) dev_velo_clusters;
     DEVICE_OUTPUT(dev_lumi_infos_t, Lumi::LumiInfo) dev_lumi_infos;
     PROPERTY(

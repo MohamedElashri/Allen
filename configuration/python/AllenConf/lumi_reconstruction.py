@@ -294,6 +294,7 @@ def lumi_reconstruction(
                 "dev_offsets_all_velo_tracks"],
             dev_offsets_estimated_input_size_t=decoded_velo[
                 "dev_offsets_estimated_input_size"],
+            dev_module_cluster_num_t=decoded_velo["dev_module_cluster_num"],
             dev_velo_clusters_t=decoded_velo["dev_velo_clusters"],
             lumi_counter_schema=schema_for_algorithms,
             lumi_counter_shifts_and_scales=shifts_and_scales_for_algorithms)

@@ -146,52 +146,54 @@ __global__ void velo_lumi_counters::velo_lumi_counters(
     const unsigned* module_pair_cluster_start =
       parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
     const auto velo_cluster_container = parameters.dev_velo_clusters[event_number];
+    const unsigned* module_hit_num = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_module_pairs;
 
-    for (unsigned hit_index = module_pair_cluster_start[0];
-         hit_index < module_pair_cluster_start[Velo::Constants::n_module_pairs];
-         ++hit_index) {
-      unsigned sensor_id =
-        ((velo_cluster_container.id(hit_index) & lhcb_id::IDMask) & Allen::VPChannelID::sensorMask) >>
-        Allen::VPChannelID::sensorBits;
-      unsigned station_id = sensor_id / 8;
+    for (auto module_index = 0u; module_index < Velo::Constants::n_module_pairs; ++module_index) {
+      auto hit_offset = module_pair_cluster_start[module_index];
+      for (auto hit_index = 0u; hit_index < module_hit_num[module_index]; ++hit_index) {
+        unsigned sensor_id =
+          ((velo_cluster_container.id(hit_offset + hit_index) & lhcb_id::IDMask) & Allen::VPChannelID::sensorMask) >>
+          Allen::VPChannelID::sensorBits;
+        unsigned station_id = sensor_id / 8;
 
-      // sensor id out of range - skip
-      if (station_id >= Velo::Constants::n_module_pairs) {
-        continue;
+        // sensor id out of range - skip
+        if (station_id >= Velo::Constants::n_module_pairs) {
+          continue;
+        }
+
+        // even id for inner; odd id for outer
+        if (sensor_id % 2u == 0u) {
+          ++cluster_counters[station_id * 2];
+        }
+        else {
+          ++cluster_counters[station_id * 2 + 1];
+        }
       }
 
-      // even id for inner; odd id for outer
-      if (sensor_id % 2u == 0u) {
-        ++cluster_counters[station_id * 2];
-      }
-      else {
-        ++cluster_counters[station_id * 2 + 1];
-      }
-    }
+      // fill station bins consecutively
+      unsigned station_bin = 0;
+      for (unsigned station_id = 0; station_id < Velo::Constants::n_module_pairs; ++station_id) {
+        cluster_counters[52 + station_bin * 2] += cluster_counters[station_id * 2];
+        cluster_counters[53 + station_bin * 2] += cluster_counters[station_id * 2 + 1];
 
-    // fill station bins consecutively
-    unsigned station_bin = 0;
-    for (unsigned station_id = 0; station_id < Velo::Constants::n_module_pairs; ++station_id) {
-      cluster_counters[52 + station_bin * 2] += cluster_counters[station_id * 2];
-      cluster_counters[53 + station_bin * 2] += cluster_counters[station_id * 2 + 1];
-
-      // go to next bin
-      if (station_id == parameters.clusters_station_bin_edges.get()[station_bin]) {
-        ++station_bin;
+        // go to next bin
+        if (station_id == parameters.clusters_station_bin_edges.get()[station_bin]) {
+          ++station_bin;
+        }
       }
-    }
 
-    unsigned info_offset = Lumi::Constants::n_velo_counters * lumi_evt_index;
-    for (unsigned info_index = Lumi::Constants::n_velo_reco_counters;
-         info_index < Lumi::Constants::n_velo_reco_counters + Lumi::Constants::n_velo_cluster_counters;
-         ++info_index) {
-      fillLumiInfo(
-        parameters.dev_lumi_infos[info_offset + info_index],
-        offsets_and_sizes[info_index * 2],
-        offsets_and_sizes[info_index * 2 + 1],
-        cluster_counters[info_index - Lumi::Constants::n_velo_reco_counters],
-        shifts_and_scales[2 * info_index],
-        shifts_and_scales[2 * info_index + 1]);
+      unsigned info_offset = Lumi::Constants::n_velo_counters * lumi_evt_index;
+      for (unsigned info_index = Lumi::Constants::n_velo_reco_counters;
+           info_index < Lumi::Constants::n_velo_reco_counters + Lumi::Constants::n_velo_cluster_counters;
+           ++info_index) {
+        fillLumiInfo(
+          parameters.dev_lumi_infos[info_offset + info_index],
+          offsets_and_sizes[info_index * 2],
+          offsets_and_sizes[info_index * 2 + 1],
+          cluster_counters[info_index - Lumi::Constants::n_velo_reco_counters],
+          shifts_and_scales[2 * info_index],
+          shifts_and_scales[2 * info_index + 1]);
+      }
     }
   }
 }
