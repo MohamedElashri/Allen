@@ -335,16 +335,10 @@ def setup_hlt1_node(withMCChecking=False,
 
         physics_lines += [line_maker(make_passthrough_line())]
 
-    if mini:
-        # alignment lines within the GEC
-        with line_maker.bind(prefilter=prefilter_upc):
-            monitoring_lines += alignment_monitoring_lines(
-                reconstructed_objects, reco_particles, with_muon)
-    else:
-        # alignment lines within the GEC
-        with line_maker.bind(prefilter=prefilters):
-            monitoring_lines += alignment_monitoring_lines(
-                reconstructed_objects, reco_particles, with_muon)
+    # alignment lines within the GEC
+    with line_maker.bind(prefilter=(prefilter_upc if mini else prefilters)):
+        monitoring_lines += alignment_monitoring_lines(
+            reconstructed_objects, reco_particles, with_muon)
 
     if tae_passthrough:
         with line_maker.bind(prefilter=odin_err_filter + [tae_filter()]):
