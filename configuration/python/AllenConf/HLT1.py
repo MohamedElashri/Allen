@@ -408,7 +408,7 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
             make_velo_clusters_micro_bias_line(
                 decoded_velo,
                 name="Hlt1BGIVeloClustersMicroBias",
-                min_velo_clusters=2,
+                min_velo_clusters=5,
             ),
             prefilter=prefilter + [bx_NoBB]),
         line_maker(
