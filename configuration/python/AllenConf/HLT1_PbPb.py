@@ -104,7 +104,8 @@ def default_physics_lines(reconstructed_objects, prescale, reco_particles,
     ]
     if reco_particles:
         lines += [
-            make_kstopipi_line(long_tracks, v0s, name="Hlt1KsToPiPi"),
+            make_kstopipi_line(
+                long_tracks, v0s, name="Hlt1KsToPiPi", post_scaler=0.001),
             make_d2kk_line(long_tracks, dihadrons, name="Hlt1D2KK"),
             make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPi"),
             make_d2pipi_line(long_tracks, dihadrons, name="Hlt1D2PiPi"),
