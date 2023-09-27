@@ -182,7 +182,6 @@ def odin_monitoring_lines(with_lumi,
                 odin_event_type='Lumi',
                 odin_orbit_modulo=30,
                 odin_orbit_remainder=1))
-    lines.append(make_odin_event_type_line(odin_event_type="NoBias"))
 
     return [line_maker(line) for line in lines]
 
