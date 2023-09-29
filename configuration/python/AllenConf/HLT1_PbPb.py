@@ -280,18 +280,23 @@ def setup_hlt1_node(withMCChecking=False,
     gec = [make_gec()] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
                        ] if with_odin_filter else []
-    prefilters = odin_err_filter + gec
-    prefilter_upc = prefilters + gec_ecal_upc
-    prefilter_hadronic = prefilters + gec_ecal_periph
 
+    # the filters for the BGI lines must exclude the BX filters
+    prefilters_bgi = odin_err_filter + gec
+    prefilter_upc_bgi = prefilters_bgi + gec_ecal_upc
+
+    # all PbPb and PbSMOG lines will filter on bx types
+    prefilters = odin_err_filter + gec
     if bx_type is not None:
         if not isinstance(bx_type, list): bx_type = [bx_type]
-        prefilters += [
+        prefilters = prefilters + [
             CompositeNode(
                 "bx_selection",
                 [make_bxtype(bx_type=ibx_type)
                  for ibx_type in bx_type], NodeLogic.NONLAZY_OR)
         ]
+    prefilter_upc = prefilters + gec_ecal_upc
+    prefilter_hadronic = prefilters + gec_ecal_periph
 
     # Setup physics lines.
     physics_lines = []
@@ -352,11 +357,11 @@ def setup_hlt1_node(withMCChecking=False,
         monitoring_lines += default_bgi_activity_lines(
             decoded_velo=decode_velo(),
             decoded_calo=decoded_calo,
-            prefilter=(prefilter_upc if mini else prefilters))
+            prefilter=(prefilter_upc_bgi if mini else prefilters_bgi))
         monitoring_lines += default_bgi_pvs_lines(
             reconstructed_objects["pvs"],
             reconstructed_objects["velo_states"],
-            prefilter=(prefilter_upc if mini else prefilters))
+            prefilter=(prefilter_upc_bgi if mini else prefilters_bgi))
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
