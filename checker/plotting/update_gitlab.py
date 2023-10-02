@@ -7,10 +7,9 @@ import gitlab
 
 import argparse
 
-
 parser = argparse.ArgumentParser(
-    description="Update the current GitLab merge request with throughput CI results."
-)
+    description=
+    "Update the current GitLab merge request with throughput CI results.")
 
 parser.add_argument(
     "--throughput-status",
@@ -30,8 +29,7 @@ def get_merge_request():
         )
 
     gl = gitlab.Gitlab(
-        "https://gitlab.cern.ch", private_token=os.environ[f"ALLENCI_PAT"]
-    )
+        "https://gitlab.cern.ch", private_token=os.environ[f"ALLENCI_PAT"])
 
     gl.auth()
 
@@ -54,17 +52,14 @@ def toggle_label(mr, name, enabled):
 
 def main():
     if "CI_MERGE_REQUEST_IID" not in os.environ:
-        print(
-            "Environment variable CI_MERGE_REQUEST_IID is not set. "
-            "Probably not testing a merge request - quit."
-        )
+        print("Environment variable CI_MERGE_REQUEST_IID is not set. "
+              "Probably not testing a merge request - quit.")
         return
 
     mr = get_merge_request()
     if args.throughput_status != "nothing":
-        toggle_label(
-            mr, "hlt1-throughput-decreased", args.throughput_status == "decrease"
-        )
+        toggle_label(mr, "hlt1-throughput-decreased",
+                     args.throughput_status == "decrease")
         # toggle_label(
         #     mr, "hlt1-throughput-increased", args.throughput_status == "increase"
         # )

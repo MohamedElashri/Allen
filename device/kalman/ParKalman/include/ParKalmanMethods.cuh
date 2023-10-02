@@ -191,8 +191,12 @@ __device__ inline void PredictStateT(
 
 //----------------------------------------------------------------------
 // Predict T(fixed z=7783) <-> first T layer.
-__device__ inline void
-PredictStateTFT(SciFi::Consolidated::ConstExtendedHits& hits, Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz, trackInfo& tI);
+__device__ inline void PredictStateTFT(
+  SciFi::Consolidated::ConstExtendedHits& hits,
+  Vector5& x,
+  SymMatrix5x5& C,
+  KalmanFloat& lastz,
+  trackInfo& tI);
 
 //----------------------------------------------------------------------
 // Predict T(fixed z=7783) <-> first T layer.

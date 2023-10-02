@@ -25,12 +25,18 @@ for mdf_file in sorted(os.listdir(mdf_dir)):
 for input_files, i in chunks(mdf_files, 150):
     output_basename = 'hlt1_00146080_%08d_1' % i
     cmd = [
-        'python', 'Allen/Dumpers/BinaryDumpers/options/allen.py',
-        '--mdf', ','.join(input_files), #'/daqarea1/fest/202110/mdf/30000000/00146082_00000009_1.mdf',
-        '--output-file', f'/daqarea1/fest/202110/mdf_hlt1/10000000/{output_basename}.mdf',  #'/daqarea1/fest/202110/mdf_hlt1/30000000/output_test_with_tck.mdf',
-        '--monitoring-filename', f'/daqarea1/fest/202110/mdf_hlt1/10000000/histos/{output_basename}.root' #'/daqarea1/fest/202110/mdf_hlt1/30000000/histos/test_histo.root'
+        'python',
+        'Allen/Dumpers/BinaryDumpers/options/allen.py',
+        '--mdf',
+        ','.
+        join(input_files
+             ),  #'/daqarea1/fest/202110/mdf/30000000/00146082_00000009_1.mdf',
+        '--output-file',
+        f'/daqarea1/fest/202110/mdf_hlt1/10000000/{output_basename}.mdf',  #'/daqarea1/fest/202110/mdf_hlt1/30000000/output_test_with_tck.mdf',
+        '--monitoring-filename',
+        f'/daqarea1/fest/202110/mdf_hlt1/10000000/histos/{output_basename}.root'  #'/daqarea1/fest/202110/mdf_hlt1/30000000/histos/test_histo.root'
     ]
-    
+
     # cmd = [
     #     'Allen', '-g', '/daqarea1/fest/allen/fest_geometry', '--mdf',
     #     ','.join(input_files), '--events-per-slice', '1000', '-m', '1000',

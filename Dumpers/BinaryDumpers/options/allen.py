@@ -148,8 +148,7 @@ parser.add_argument(
     help="Avoid using python bindings to TCK utils",
     dest="bindings",
     action="store_false",
-    default=True
-)
+    default=True)
 
 args = parser.parse_args()
 
@@ -208,15 +207,15 @@ if (m := tck_option.match(sequence)):
 
     repo = m.group(1)
     tck = m.group(2)
-    sequence_json, tck_info = sequence_from_git(repo, tck, use_bindings=args.bindings)
+    sequence_json, tck_info = sequence_from_git(
+        repo, tck, use_bindings=args.bindings)
     tck_deps = tck_info["metadata"]["stack"]["projects"]
     if not sequence_json or sequence_json == 'null':
         print(
             f"Failed to obtain configuration for TCK {tck} from repository {repo}"
         )
         sys.exit(1)
-    elif (deps :=
-          dependencies_from_build_manifest()) != tck_deps:
+    elif (deps := dependencies_from_build_manifest()) != tck_deps:
         print(
             f"TCK {tck} is compatible with Allen release {deps}, not with {tck_deps}."
         )
