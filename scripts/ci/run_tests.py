@@ -18,7 +18,6 @@ from itertools import groupby, product
 from pathlib import Path
 from subprocess import CalledProcessError, TimeoutExpired, check_output
 
-
 PASS = 1000
 logging.addLevelName(PASS, "PASS")
 
@@ -56,15 +55,15 @@ handler.setFormatter(
         },
         secondary_log_colors={},
         style="%",
-    )
-)
+    ))
 
 handler.setLevel("INFO")
 log.addHandler(handler)
 
 fh = logging.FileHandler("AllenCI_full.log", mode="w")
 fh.setLevel(logging.DEBUG)
-fh.setFormatter(logging.Formatter("%(asctime)s:%(name)s:%(levelname)s:%(message)s"))
+fh.setFormatter(
+    logging.Formatter("%(asctime)s:%(name)s:%(levelname)s:%(message)s"))
 log.addHandler(fh)
 
 device_id = environ["DEVICE_ID"]
@@ -84,29 +83,21 @@ else:
         "LCG_QUALIFIER does not contain cpu, hip, or cuda. Cannot determine target."
     )
 
-log.info(
-    "Environment variables used: "
-    + "; ".join(
-        [
-            f'{x}="{environ[x]}"'
-            for x in [
-                "DEVICE_ID",
-                "LCG_SYSTEM",
-                "LCG_QUALIFIER",
-                "CI_COMMIT_SHORT_SHA",
-            ]
-        ]
-    )
-)
+log.info("Environment variables used: " + "; ".join([
+    f'{x}="{environ[x]}"' for x in [
+        "DEVICE_ID",
+        "LCG_SYSTEM",
+        "LCG_QUALIFIER",
+        "CI_COMMIT_SHORT_SHA",
+    ]
+]))
 
 
 def expand_dict(data: dict):
     data = {k: [v] if not isinstance(v, list) else v for k, v in data.items()}
     grouped = [a for a, b in data.items() if isinstance(b, list)]
-    p = [
-        [a, list(b)]
-        for a, b in groupby(product(*[data[i] for i in grouped]), key=lambda x: x[0])
-    ]
+    p = [[a, list(b)] for a, b in groupby(
+        product(*[data[i] for i in grouped]), key=lambda x: x[0])]
     return [tuple({**data, **dict(zip(grouped, i))} for i in c) for _, c in p]
 
 
@@ -120,9 +111,10 @@ def write_text(filename: Path, text: str):
     log.debug(f"Written {filename}.")
 
 
-def post_proc_throughput(
-    test, log_output, run_profiler_output: Path = None, allen_profiler_log: str = None
-):
+def post_proc_throughput(test,
+                         log_output,
+                         run_profiler_output: Path = None,
+                         allen_profiler_log: str = None):
     build_options = test.get("build_options", "")
     output_directory = Path(
         f"run_throughput_output_{test['sequence']}_{test['dataset']}{build_options}/{device_id}"
@@ -131,8 +123,7 @@ def post_proc_throughput(
 
     # look for throughput measure
     throughput_srch = re.search(
-        r"^([0-9\.]+)\s+events\/s$", log_output, flags=re.MULTILINE
-    )
+        r"^([0-9\.]+)\s+events\/s$", log_output, flags=re.MULTILINE)
     full_device_name_srch = re.search(
         r"^\s+select device to use \(--device\): .*?, ([A-Za-z0-9\-\s]+)$",
         log_output,
@@ -158,7 +149,8 @@ def post_proc_throughput(
     # if "TPUT_REPORT" in environ and environ["TPUT_REPORT"] == "NO_REPORT":
     if "throughput_report" in test and test["throughput_report"] == False:
         log.info("No throughput report will be written for this test.")
-        write_text(output_directory / "no_throughput_report.txt", "No report please")
+        write_text(output_directory / "no_throughput_report.txt",
+                   "No report please")
 
     log.debug(
         f"Device {full_device_name} has throughput {float(throughput)*1e-3:.2f} kHz"
@@ -176,7 +168,8 @@ def post_proc_throughput(
                 run_profiler_output / fn,
                 output_directory / fn,
             )
-        write_text(output_directory / "profiler_output.log", allen_profiler_log)
+        write_text(output_directory / "profiler_output.log",
+                   allen_profiler_log)
         log.info(
             f"Profiler log file can be found at {output_directory}/profiler_output.log."
         )
@@ -187,18 +180,18 @@ def post_proc_throughput(
 
 
 def post_proc_efficiency(
-    test: dict,
-    log_output: str,
-    run_profiler_output: Path = None,
-    allen_profiler_log: str = None,
+        test: dict,
+        log_output: str,
+        run_profiler_output: Path = None,
+        allen_profiler_log: str = None,
 ):
     build_options = test.get("build_options", "")
     output_directory = Path(
-        f"run_physics_efficiency_output_{test['sequence']}{build_options}"
-    )
+        f"run_physics_efficiency_output_{test['sequence']}{build_options}")
     output_directory.mkdir(parents=True, exist_ok=True)
     write_text(
-        output_directory / f"{test['dataset']}_{test['sequence']}_{device_id}.txt",
+        output_directory /
+        f"{test['dataset']}_{test['sequence']}_{device_id}.txt",
         log_output,
     )
 
@@ -206,17 +199,19 @@ def post_proc_efficiency(
 
 
 def post_proc_run_changes(
-    test: dict,
-    log_output: str,
-    run_profiler_output: Path = None,
-    allen_profiler_log: str = None,
+        test: dict,
+        log_output: str,
+        run_profiler_output: Path = None,
+        allen_profiler_log: str = None,
 ):
     disable_run_changes = int(test["disable_run_changes"])
     output_directory = None
     if disable_run_changes == 1:
-        output_directory = Path(f"run_no_run_changes_output_{test['sequence']}")
+        output_directory = Path(
+            f"run_no_run_changes_output_{test['sequence']}")
     elif disable_run_changes == 0:
-        output_directory = Path(f"run_with_run_changes_output_{test['sequence']}")
+        output_directory = Path(
+            f"run_with_run_changes_output_{test['sequence']}")
     else:
         raise ValueError("disable_run_changes must be 0 or 1.")
     output_directory.mkdir(parents=True, exist_ok=True)
@@ -226,10 +221,10 @@ def post_proc_run_changes(
 
 
 def post_proc_run_built_tests(
-    test: dict,
-    log_output: str,
-    run_profiler_output: Path = None,
-    allen_profiler_log: str = None,
+        test: dict,
+        log_output: str,
+        run_profiler_output: Path = None,
+        allen_profiler_log: str = None,
 ):
     log.debug("run_built_tests finished with output\n" + log_output)
 
@@ -262,7 +257,8 @@ def run_allen_test(wrapper: str, test: dict, config: dict):
     allen_log = "None"
     try:
         start = time.time()
-        allen_log = check_output(allen, shell=True, timeout=timeout).decode(stdout.encoding)
+        allen_log = check_output(
+            allen, shell=True, timeout=timeout).decode(stdout.encoding)
         elapsed = time.time() - start
         log.debug("Log output:\n" + allen_log)
         log.info(f"Allen process completed in {elapsed:.2f} sec")
@@ -273,7 +269,8 @@ def run_allen_test(wrapper: str, test: dict, config: dict):
         # Only run for throughput tests, and for a specific device.
         if profile_device == device_id and test_name == "throughput":
             # create a directory for the profiler output to go
-            profile_output_dir = Path(f"run_profiler_{device_id}_{int(time.time())}")
+            profile_output_dir = Path(
+                f"run_profiler_{device_id}_{int(time.time())}")
             profile_output_dir.mkdir(exist_ok=False)
 
             # build profiler command
@@ -291,8 +288,8 @@ def run_allen_test(wrapper: str, test: dict, config: dict):
             log.info(f"Running profiler with: {allen_profiler}")
             start = time.time()
             allen_profiler_log = check_output(
-                allen_profiler, shell=True, timeout=timeout
-            ).decode(stdout.encoding)
+                allen_profiler, shell=True,
+                timeout=timeout).decode(stdout.encoding)
             elapsed = time.time() - start
             log.debug("Log output:\n" + allen_profiler_log)
             log.info(f"Allen profiling completed in {elapsed:.2f} sec")
@@ -347,10 +344,11 @@ def build_allen_args(config, test, target):
     # now add args by device target
     target_args_cfg = config["target_args"]
     if "collision_type" in test:
-        collision_type =  test["collision_type"]
+        collision_type = test["collision_type"]
     else:
         collision_type = "pp"
-    if test["type"] in target_args_cfg and target in target_args_cfg[test["type"]][collision_type]:
+    if test["type"] in target_args_cfg and target in target_args_cfg[
+            test["type"]][collision_type]:
         args.append(target_args_cfg[test["type"]][collision_type][target])
 
     return " ".join(args)
@@ -421,15 +419,11 @@ def main():
                 log.info(f"- {test!r}")
 
     def summarise_tests(tests):
-        table_hdr = ["type"] + list(
-            {
-                t_key
-                for t in tests
-                for t_key in t.keys()
-                if t_key
-                not in ["timeout", "allowed_devices", "type", "throughput_report"]
-            }
-        )
+        table_hdr = ["type"] + list({
+            t_key
+            for t in tests for t_key in t.keys() if t_key not in
+            ["timeout", "allowed_devices", "type", "throughput_report"]
+        })
 
         table = [[t[k] if k in t else "--" for k in table_hdr] for t in tests]
 
@@ -445,37 +439,26 @@ def main():
         else:
             bad += [test]
 
-    table_hdr = ["type"] + list(
-        {
-            badtest_key
-            for badtest in bad + ok + skip
-            for badtest_key in badtest.keys()
-            if badtest_key
-            not in ["timeout", "allowed_devices", "type", "throughput_report"]
-        }
-    )
+    table_hdr = ["type"] + list({
+        badtest_key
+        for badtest in bad + ok + skip
+        for badtest_key in badtest.keys() if badtest_key not in
+        ["timeout", "allowed_devices", "type", "throughput_report"]
+    })
 
     table = (
-        [
-            ["FAIL"] + [badtest[k] if k in badtest else "--" for k in table_hdr]
-            for badtest in bad
-        ]
-        + [
-            ["pass"] + [test[k] if k in test else "--" for k in table_hdr]
-            for test in ok
-        ]
-        + [
-            ["skip"] + [test[k] if k in test else "--" for k in table_hdr]
-            for test in skip
-        ]
-    )
+        [["FAIL"] + [badtest[k] if k in badtest else "--" for k in table_hdr]
+         for badtest in bad] + [
+             ["pass"] + [test[k] if k in test else "--" for k in table_hdr]
+             for test in ok
+         ] + [["skip"] + [test[k] if k in test else "--" for k in table_hdr]
+              for test in skip])
 
     log.info("\n" + tabulate(table, headers=["result"] + table_hdr))
 
     log.info(
         f"{len(ok)} / {total} tests passed ({len(skip)} skipped), and "
-        f"{len(bad)} failed. See AllenCI_full.log for full logging output."
-    )
+        f"{len(bad)} failed. See AllenCI_full.log for full logging output.")
     if len(bad) > 0:
         log.error("Some tests failed! See above for log output.")
 

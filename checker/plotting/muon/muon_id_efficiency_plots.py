@@ -65,7 +65,6 @@ def muonCategoryDict():
 #      ROOT.TFile.Open("../../../output/Z2MuMu/PrCheckerPLots-Z2MuMu.root", "read"),
 # ]
 
-
 f = [ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")]
 outputfile = ROOT.TFile(
     "../../../plotsfornote_root/muon_id_efficiency_plots.root", "recreate")
@@ -143,14 +142,15 @@ for category in muonCategories:
         # Draw second y axis
         low = 0
         high = 1.05
-        axis = ROOT.TGaxis(gPad.GetUxmax(), gPad.GetUymin(),gPad.GetUxmax(),gPad.GetUymax(),low,high,510,"+L")
+        axis = ROOT.TGaxis(gPad.GetUxmax(), gPad.GetUymin(), gPad.GetUxmax(),
+                           gPad.GetUymax(), low, high, 510, "+L")
         axis.SetTitleFont(132)
         axis.SetTitleSize(0.06)
         axis.SetTitleOffset(0.55)
         axis.SetTitle("Number of events [a.u.]")
         axis.SetLabelSize(0)
         axis.Draw()
-        
+
         canvas.Write()
         cleantitle = muonCatDict[category]["title"].replace(" ", "").replace(
             ",", "_").replace("<", "_")

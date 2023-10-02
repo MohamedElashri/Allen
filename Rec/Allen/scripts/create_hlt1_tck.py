@@ -35,7 +35,8 @@ parser.add_argument("sequence")
 parser.add_argument("repository")
 parser.add_argument("tck", help="A 32-bit hexadecimal number")
 parser.add_argument(
-    "-t", "--hlt1-type",
+    "-t",
+    "--hlt1-type",
     type=str,
     help=
     "Sequence type to use; also used as branch name in the Git repository.",

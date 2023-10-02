@@ -29,8 +29,6 @@ hist_z = f.Get("eff_vs_z")
 # hist_z_close = f.Get("eff_vs_z_close")
 hist_mult = f.Get("eff_vs_mult")
 
-
-
 hist_z.GetXaxis().SetTitle("z position of MC PV [mm]")
 hist_z.GetYaxis().SetTitle("Reconstruction Eff (%/100)")
 
@@ -53,11 +51,9 @@ canvas.cd(2)
 hist_mult.SetLineColor(1)
 hist_mult.Draw()
 
-
 if not os.path.isdir("../../../plotsfornote"):
-  os.mkdir("../../../plotsfornote")
+    os.mkdir("../../../plotsfornote")
 canvas.SaveAs("../../../plotsfornote/PVEfficiencies.pdf")
-
 
 # canvas.cd(1)
 # hist_z_iso.SetLineColor(1)
@@ -67,7 +63,6 @@ canvas.SaveAs("../../../plotsfornote/PVEfficiencies.pdf")
 # hist_z_close.SetLineColor(1)
 # hist_z_close.Draw()
 # canvas.SaveAs("../../../plotsfornote/PVEfficiencies_isoclose.pdf")
-
 
 # hist_norm = f.Get("eff_norm")
 # hist_norm_iso = f.Get("eff_norm_iso")

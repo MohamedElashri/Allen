@@ -114,7 +114,10 @@ class Reader:
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--fname', action='store', dest='fname', default='../../output/SelCheckerTuple.root')
+        '--fname',
+        action='store',
+        dest='fname',
+        default='../../output/SelCheckerTuple.root')
     parser.add_argument(
         '--signal', action='store', dest='signal', type=int, default=0)
     parser.add_argument(
