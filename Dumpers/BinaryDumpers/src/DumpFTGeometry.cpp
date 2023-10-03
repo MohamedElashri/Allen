@@ -53,7 +53,7 @@ namespace {
  */
 class DumpFTGeometry final : public LHCb::Algorithm::MultiTransformer<
                                std::tuple<std::vector<char>, std::string>(const DeFT&, const FTReadoutMap&),
-                               LHCb::DetDesc::usesBaseAndConditions<GaudiAlgorithm, FTReadoutMap, DeFT>> {
+                               LHCb::Algorithm::Traits::usesConditions<FTReadoutMap, DeFT>> {
 public:
   DumpFTGeometry(const std::string& name, ISvcLocator* pSvcLocator);
 
@@ -62,6 +62,7 @@ public:
 
   StatusCode initialize() override;
 
+  ServiceHandle<IDataProviderSvc> m_dataSvc {this, "DataService", "DetectorDataSvc", "The detector data service"};
   Gaudi::Property<std::string> m_id {this, "ID", Allen::NonEventData::SciFiGeometry::id};
 };
 
@@ -81,7 +82,7 @@ DumpFTGeometry::DumpFTGeometry(const std::string& name, ISvcLocator* pSvcLocator
 StatusCode DumpFTGeometry::initialize()
 {
   return MultiTransformer::initialize().andThen(
-    [&] { FTReadoutMap::addConditionDerivation(this, inputLocation<FTReadoutMap>()); });
+    [&] { FTReadoutMap::addConditionDerivation(this, &*m_dataSvc, inputLocation<FTReadoutMap>()); });
 }
 
 // operator() call
