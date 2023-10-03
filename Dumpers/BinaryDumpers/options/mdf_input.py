@@ -21,5 +21,5 @@ options.input_type = 'MDF'
 options.conddb_tag = "upgrade/master"
 options.dddb_tag = "upgrade/master"
 options.conditions_version = "alignment2022"
-options.geometry_version = "trunk"
+options.geometry_version = "run3/trunk"
 options.simulation = not UseDD4Hep
