@@ -63,7 +63,7 @@ Clones               :  0.000 (     0/   714)
 
 
 rate_validator validation:
-Hlt1TwoTrackMVACharmXSec:                               1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1TwoTrackMVACharmXSec:                               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMVA:                                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackMVA:                                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KK:                                               0/  1000, (    0.00 +/-     0.00) kHz
@@ -124,8 +124,8 @@ Hlt1RICH1Alignment:                                     0/  1000, (    0.00 +/- 
 Hlt1RICH2Alignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPiAlignment:                                     0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1NVELODisplacedTrack:                               13/  1000, (  390.00 +/-   107.46) kHz
-Hlt1NMaterialVertexSeeds:                               5/  1000, (  150.00 +/-    66.91) kHz
+Hlt1NVELODisplacedTrack:                                0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1NMaterialVertexSeeds:                               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DisplacedDiMuonAlignment:                           0/  1000, (    0.00 +/-     0.00) kHz
@@ -141,12 +141,12 @@ Hlt1_SMOG2_2BodyGeneric:                                3/  1000, (   90.00 +/- 
 Hlt1_SMOG2_SingleTrack:                                83/  1000, ( 2490.00 +/-   261.72) kHz
 Hlt1_SMOG2_DiMuonHighMass:                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_SingleMuon:                                  9/  1000, (  270.00 +/-    89.59) kHz
-Inclusive:                                            144/  1000, ( 4320.00 +/-   333.07) kHz
+Inclusive:                                            134/  1000, ( 4020.00 +/-   323.17) kHz
 
 
 selreport_validator validation:
                                                    Events  Candidates
-Hlt1TwoTrackMVACharmXSec:                               1           1
+Hlt1TwoTrackMVACharmXSec:                               0           0
 Hlt1TrackMVA:                                           0           0
 Hlt1TwoTrackMVA:                                        0           0
 Hlt1D2KK:                                               0           0
@@ -207,8 +207,8 @@ Hlt1RICH1Alignment:                                     0           0
 Hlt1RICH2Alignment:                                     0           0
 Hlt1BeamGas:                                            0           0
 Hlt1D2KPiAlignment:                                     0           0
-Hlt1NVELODisplacedTrack:                               13           0
-Hlt1NMaterialVertexSeeds:                               5           0
+Hlt1NVELODisplacedTrack:                                0           0
+Hlt1NMaterialVertexSeeds:                               0           0
 Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                            0           0
 Hlt1DisplacedDiMuonAlignment:                           0           0
@@ -225,9 +225,9 @@ Hlt1_SMOG2_SingleTrack:                                83         112
 Hlt1_SMOG2_DiMuonHighMass:                              0           0
 Hlt1_SMOG2_SingleMuon:                                  9           9
 
-Total decisions: 168
-Total tracks:    134
-Total SVs:       9
-Total hits:      4091
-Total stdinfo:   1276
+Total decisions: 149
+Total tracks:    133
+Total SVs:       8
+Total hits:      4064
+Total stdinfo:   1245
 
