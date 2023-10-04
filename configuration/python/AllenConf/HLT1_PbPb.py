@@ -4,7 +4,14 @@
 from AllenConf.utils import make_gec, line_maker, make_checkEcalEnergy
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line, make_pi02gammagamma_line
-from AllenConf.hlt1_monitoring_lines import make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line, make_odin_event_type_with_decoding_line, make_odin_event_and_orbit_line, make_beam_gas_line
+from AllenConf.hlt1_monitoring_lines import (
+    make_velo_micro_bias_line,
+    make_odin_event_type_line,
+    make_odin_event_type_with_decoding_line,
+    make_odin_event_and_orbit_line,
+    make_beam_gas_line,
+    make_velo_clusters_micro_bias_line,
+)
 from AllenConf.hlt1_heavy_ions_lines import make_heavy_ion_event_line
 from AllenConf.hlt1_inclusive_hadron_lines import make_kstopipi_line, make_lambda2ppi_line
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
@@ -354,10 +361,11 @@ def setup_hlt1_node(withMCChecking=False,
             ]
 
     if enableBGI:
-        monitoring_lines += default_bgi_activity_lines(
-            decoded_velo=decode_velo(),
-            decoded_calo=decoded_calo,
-            prefilter=(prefilter_upc_bgi if mini else prefilters_bgi))
+        with make_velo_clusters_micro_bias_line.bind(pre_scaler=0.01):
+            monitoring_lines += default_bgi_activity_lines(
+                decoded_velo=decode_velo(),
+                decoded_calo=decoded_calo,
+                prefilter=(prefilter_upc_bgi if mini else prefilters_bgi))
         monitoring_lines += default_bgi_pvs_lines(
             reconstructed_objects["pvs"],
             reconstructed_objects["velo_states"],
