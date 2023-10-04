@@ -8,7 +8,7 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenCore.algorithms import heavy_ion_event_line_t
+from AllenCore.algorithms import heavy_ion_event_line_t, single_calo_cluster_line_t, two_calo_clusters_line_t
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
@@ -16,6 +16,70 @@ from PyConf.tonic import configurable
 
 # constants
 __PbPb_SMOG_Z_SEPERATION = -341.
+
+
+def make_photon_lowmult_line(calo,
+                             name="Hlt1PhotonLowMult",
+                             pre_scaler=1.,
+                             pre_scaler_hash_string=None,
+                             post_scaler_hash_string=None,
+                             minEt=200.0,
+                             max_ecal_clusters=999999):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        single_calo_cluster_line_t,
+        name=name,
+        pre_scaler=pre_scaler,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        dev_ecal_clusters_t=calo["dev_ecal_clusters"],
+        dev_ecal_cluster_offsets_t=calo["dev_ecal_cluster_offsets"],
+        host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"],
+        dev_ecal_number_of_clusters_t=calo["dev_ecal_num_clusters"],
+        minEt=minEt,
+        max_ecal_clusters=max_ecal_clusters,
+        enable_tupling=False)
+
+
+def make_diphoton_lowmult_line(calo,
+                               velo_tracks,
+                               pvs,
+                               name="Hlt1DiPhotonLowMult",
+                               pre_scaler=1.,
+                               post_scaler=1.,
+                               pre_scaler_hash_string=None,
+                               post_scaler_hash_string=None,
+                               minMass=50,
+                               minEt_clusters=200,
+                               max_velo_tracks=999999,
+                               max_ecal_clusters=999999):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        two_calo_clusters_line_t,
+        name=name,
+        pre_scaler=pre_scaler,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        dev_offsets_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
+        dev_offsets_velo_track_hit_number_t=velo_tracks[
+            "dev_offsets_velo_track_hit_number"],
+        host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"],
+        dev_ecal_number_of_clusters_t=calo["dev_ecal_num_clusters"],
+        dev_ecal_twoclusters_t=calo["dev_ecal_twoclusters"],
+        dev_ecal_twocluster_offsets_t=calo["dev_ecal_twocluster_offsets"],
+        host_ecal_number_of_twoclusters_t=calo[
+            "host_ecal_number_of_twoclusters"],
+        dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"],
+        minMass=minMass,  #MeV
+        minEt_clusters=minEt_clusters,  #MeV
+        max_velo_tracks=max_velo_tracks,
+        max_ecal_clusters=max_ecal_clusters,
+        enable_tupling=False)
 
 
 @configurable
