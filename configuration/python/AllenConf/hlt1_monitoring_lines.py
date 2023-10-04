@@ -293,7 +293,7 @@ def make_n_materialvertex_seed_line(filtered_velo_tracks,
 
 def make_plume_activity_line(decoded_plume,
                              name="Hlt1PlumeActivity",
-                             pre_scaler=0.,
+                             pre_scaler=1.,
                              post_scaler=1.,
                              pre_scaler_hash_string=None,
                              post_scaler_hash_string=None,

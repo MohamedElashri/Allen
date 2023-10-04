@@ -400,7 +400,7 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
     """
     Detector activity lines for BGI data collection.
     """
-    decoded_plume = decode_plume()
+    # decoded_plume = decode_plume()
     bx_BB = make_bxtype(bx_type=3)
     bx_NoBB = make_invert_event_list(bx_BB, name="BX_NoBeamBeam")
     lines = [
@@ -418,14 +418,16 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
                 minADC=60,
             ),
             prefilter=prefilter + [bx_NoBB]),
-        line_maker(
-            make_plume_activity_line(
-                decoded_plume,
-                name="Hlt1BGIPlumeActivity",
-                min_number_plume_adcs_over_min=1,
-                min_plume_adc=276,
-            ),
-            prefilter=prefilter + [bx_NoBB])
+        # line_maker(
+        #     make_plume_activity_line(
+        #         decoded_plume,
+        #         name="Hlt1BGIPlumeActivity",
+        #         min_number_plume_adcs_over_min=1,
+        #         min_plume_adc=276,
+        #     ),
+        #     prefilter=prefilter + [bx_NoBB]),
+        # FIXME Hlt1BGIPlumeActivity can be re-enabled when v2 support
+        #       is implemented in the Plume decoding.
     ]
     return lines
 
