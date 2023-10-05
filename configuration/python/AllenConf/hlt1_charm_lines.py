@@ -75,7 +75,8 @@ def make_two_track_mva_charm_xsec_line(long_tracks,
                                        secondary_vertices,
                                        name='Hlt1TwoTrackMVACharmXSec_{hash}',
                                        pre_scaler_hash_string=None,
-                                       post_scaler_hash_string=None):
+                                       post_scaler_hash_string=None,
+                                       pre_scaler=1.0):
     number_of_events = initialize_number_of_events()
 
     two_track_mva_evaluator = make_algorithm(
@@ -94,6 +95,7 @@ def make_two_track_mva_charm_xsec_line(long_tracks,
             "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
+        pre_scaler=pre_scaler,
         dev_two_track_mva_evaluation_t=two_track_mva_evaluator.
         dev_two_track_mva_evaluation_t,
     )

@@ -1,6 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
+from PyConf.tonic import configurable
 from AllenCore.algorithms import (
     beam_crossing_line_t, velo_micro_bias_line_t, odin_event_type_line_t,
     odin_event_type_with_decoding_line_t, odin_event_and_orbit_line_t,
@@ -222,6 +223,7 @@ def make_beam_gas_line(velo_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
+@configurable
 def make_velo_clusters_micro_bias_line(decoded_velo,
                                        name="Hlt1VeloClustersMicroBias",
                                        pre_scaler=1.,

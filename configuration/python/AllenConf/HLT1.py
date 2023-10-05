@@ -48,7 +48,10 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
 
     lines = [
         make_two_track_mva_charm_xsec_line(
-            long_tracks, dihadrons, name="Hlt1TwoTrackMVACharmXSec"),
+            long_tracks,
+            dihadrons,
+            name="Hlt1TwoTrackMVACharmXSec",
+            pre_scaler=0.01),
         make_track_mva_line(
             long_tracks, long_track_particles, name="Hlt1TrackMVA"),
         make_two_track_mva_line(
@@ -60,7 +63,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
 
     if with_v0s:
         lines += [
-            make_kstopipi_line(long_tracks, v0s, name="Hlt1KsToPiPi"),
+            make_kstopipi_line(
+                long_tracks, v0s, name="Hlt1KsToPiPi", post_scaler=0.001),
             make_kstopipi_line(
                 long_tracks,
                 v0s,
@@ -198,7 +202,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 name="Hlt1Pi02GammaGamma",
                 pre_scaler_hash_string="p02gammagamma_line_pre",
                 post_scaler_hash_string="p02gammagamma_line_post",
-                pre_scaler=0.05),
+                pre_scaler=0.005),
         ]
 
         line_slices_mass = {
@@ -309,8 +313,10 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
             velo_tracks, velo_states, beam_crossing_type=1,
             name="Hlt1BeamGas"),
         make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPiAlignment"),
-        make_n_displaced_velo_line(material_interaction_tracks, n_tracks=3),
-        make_n_materialvertex_seed_line(material_interaction_tracks)
+        make_n_displaced_velo_line(
+            material_interaction_tracks, n_tracks=3, pre_scaler=0.001),
+        make_n_materialvertex_seed_line(
+            material_interaction_tracks, pre_scaler=0.001)
     ]
 
     if with_muon:
@@ -394,31 +400,34 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
     """
     Detector activity lines for BGI data collection.
     """
-    decoded_plume = decode_plume()
-    bx_BB = make_bxtype("BX_BeamBeam", bx_type=3)
+    # decoded_plume = decode_plume()
+    bx_BB = make_bxtype(bx_type=3)
     bx_NoBB = make_invert_event_list(bx_BB, name="BX_NoBeamBeam")
     lines = [
         line_maker(
             make_velo_clusters_micro_bias_line(
                 decoded_velo,
                 name="Hlt1BGIVeloClustersMicroBias",
-                min_velo_clusters=30,
+                min_velo_clusters=5,
             ),
             prefilter=prefilter + [bx_NoBB]),
         line_maker(
             make_calo_digits_minADC_line(
                 decoded_calo,
                 name="Hlt1BGICaloDigits",
-                minADC=100,
+                minADC=60,
             ),
             prefilter=prefilter + [bx_NoBB]),
-        line_maker(
-            make_plume_activity_line(
-                decoded_plume,
-                name="Hlt1BGIPlumeActivity",
-                min_plume_adc=406,
-            ),
-            prefilter=prefilter + [bx_NoBB])
+        # line_maker(
+        #     make_plume_activity_line(
+        #         decoded_plume,
+        #         name="Hlt1BGIPlumeActivity",
+        #         min_number_plume_adcs_over_min=1,
+        #         min_plume_adc=276,
+        #     ),
+        #     prefilter=prefilter + [bx_NoBB]),
+        # FIXME Hlt1BGIPlumeActivity can be re-enabled when v2 support
+        #       is implemented in the Plume decoding.
     ]
     return lines
 
@@ -430,7 +439,7 @@ def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
     """
     mm = 1.0  # from SystemOfUnits.h
     max_cyl_rad_sq = (3 * mm)**2
-    bx_BB = make_bxtype("BX_BeamBeam", bx_type=3)
+    bx_BB = make_bxtype(bx_type=3)
     bx_NoBB = make_invert_event_list(bx_BB, name="BX_NoBeamBeam")
     pvs_z_all = make_checkCylPV(
         pvs,
@@ -655,7 +664,6 @@ def setup_hlt1_node(enablePhysics=True,
                     make_passthrough_line(
                         name="Hlt1TAEPassthrough", pre_scaler=1))
             ]
-
     if EnableGEC:
         with line_maker.bind(prefilter=prefilters):
             physics_lines += [
@@ -695,7 +703,7 @@ def setup_hlt1_node(enablePhysics=True,
                         name="Hlt1GECPassThrough_LowMult5", pre_scaler=0.01))
             ]
 
-        bx_BE = make_bxtype("BX_BeamEmpty", bx_type=1)
+        bx_BE = make_bxtype(bx_type=1)
         with line_maker.bind(prefilter=odin_err_filter + [bx_BE]):
             SMOG2_lines += [
                 line_maker(
