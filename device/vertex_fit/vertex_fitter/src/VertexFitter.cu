@@ -124,7 +124,7 @@ __global__ void VertexFit::fit_secondary_vertices(
 
   const unsigned sv_offset = parameters.dev_sv_offsets[event_number];
   const unsigned n_svs = parameters.dev_sv_offsets[event_number + 1] - sv_offset;
-  const unsigned idx_offset = 10 * VertexFit::max_svs * event_number;
+  const unsigned idx_offset = VertexFit::max_svs * event_number;
   const unsigned* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
   const unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
   const float* event_poca = parameters.dev_sv_poca + 3 * idx_offset;

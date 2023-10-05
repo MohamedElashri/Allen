@@ -131,7 +131,7 @@ inline unsigned int atomicInc(unsigned int* address, unsigned int val)
 template<class T>
 inline T atomicMin(T* address, T val)
 {
-  const int old = *address;
+  const T old = *address;
   *address = std::min(old, val);
   return old;
 }
