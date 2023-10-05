@@ -3,7 +3,14 @@
 ###############################################################################
 from AllenConf.utils import make_gec, line_maker, make_checkEcalEnergy
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
-from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line, make_pi02gammagamma_line
+from AllenConf.hlt1_calibration_lines import (
+    make_d2kpi_line,
+    make_passthrough_line,
+    make_rich_1_line,
+    make_rich_2_line,
+    make_displaced_dimuon_mass_line,
+    make_di_muon_mass_align_line,
+)
 from AllenConf.hlt1_monitoring_lines import (
     make_velo_micro_bias_line,
     make_odin_event_type_line,
@@ -12,16 +19,25 @@ from AllenConf.hlt1_monitoring_lines import (
     make_beam_gas_line,
     make_velo_clusters_micro_bias_line,
 )
-from AllenConf.hlt1_heavy_ions_lines import make_heavy_ion_event_line
+from AllenConf.hlt1_heavy_ions_lines import (
+    make_heavy_ion_event_line,
+    make_photon_lowmult_line,
+)
 from AllenConf.hlt1_inclusive_hadron_lines import make_kstopipi_line, make_lambda2ppi_line
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
-from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_di_muon_mass_line, make_displaced_dimuon_line
+from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_di_muon_mass_line
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenConf.odin import odin_error_filter, make_bxtype, tae_filter
-from AllenConf.persistency import make_gather_selections, make_global_decision, make_sel_report_writer, make_routingbits_writer, make_dec_reporter
+from AllenConf.persistency import (
+    make_gather_selections,
+    make_global_decision,
+    make_sel_report_writer,
+    make_routingbits_writer,
+    make_dec_reporter,
+)
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.enum_types import TrackingType, includes_matching
 from .HLT1 import default_bgi_activity_lines, default_bgi_pvs_lines
@@ -34,11 +50,11 @@ def default_physics_lines(reconstructed_objects, prescale, reco_particles,
     long_tracks = reconstructed_objects["long_tracks"]
     long_track_particles = reconstructed_objects["long_track_particles"]
     decoded_calo = reconstructed_objects["decoded_calo"]
+    ecal_clusters = reconstructed_objects["ecal_clusters"]
     pvs = reconstructed_objects["pvs"]
     dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
     dileptons = reconstructed_objects["dilepton_secondary_vertices"]
     v0s = reconstructed_objects["v0_secondary_vertices"]
-    v0_pairs = reconstructed_objects["v0_pairs"]
     muon_stubs = reconstructed_objects["muon_stubs"]
 
     lines = [
@@ -109,7 +125,17 @@ def default_physics_lines(reconstructed_objects, prescale, reco_particles,
             max_ecal_e=94000,
             min_long_tracks=1,
             min_velo_tracks_PbPb=2,
-            pre_scaler=0.8 if prescale else 1)
+            pre_scaler=0.8 if prescale else 1),
+        make_photon_lowmult_line(
+            name="Hlt1HeavyIonPbPbUPCPhoton",
+            calo=ecal_clusters,
+            max_ecal_clusters=10,
+            pre_scaler=0.02),
+        make_photon_lowmult_line(
+            name="Hlt1HeavyIonPbPbUPCPhoton_HighEt",
+            calo=ecal_clusters,
+            minEt=800,
+            max_ecal_clusters=10)
     ]
     if reco_particles:
         lines += [
@@ -166,6 +192,12 @@ def mini_physics_lines(reconstructed_objects):
             min_long_tracks=1,
             min_velo_tracks_PbPb=2,
             pre_scaler=1),
+        make_photon_lowmult_line(
+            name="Hlt1HeavyIonPbPbUPCPhoton",
+            pre_scaler_hash_string="PbPbUPCPhoton_line_pre",
+            post_scaler_hash_string="PbPbUPCPhoton_line_post",
+            calo=ecal_clusters,
+            max_ecal_clusters=10)
     ]
 
     return [line_maker(line) for line in lines]
@@ -264,6 +296,7 @@ def setup_hlt1_node(withMCChecking=False,
         algorithm_name='PbPb_hlt1_reconstruction',
         with_ut=with_ut,
         tracking_type=tracking_type)
+
     hlt1_config['reconstruction'] = reconstructed_objects
 
     # GEC for UPC events
@@ -310,7 +343,6 @@ def setup_hlt1_node(withMCChecking=False,
     if mini:
         with line_maker.bind(prefilter=prefilter_upc):
             physics_lines = mini_physics_lines(reconstructed_objects)
-
         with line_maker.bind(prefilter=prefilter_hadronic):
             physics_lines += [
                 line_maker(

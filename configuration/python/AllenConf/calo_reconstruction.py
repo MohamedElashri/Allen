@@ -9,6 +9,7 @@ from AllenCore.algorithms import (
     total_ecal_energy_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
+from PyConf.tonic import configurable
 
 
 def decode_calo(empty_banks=False):
@@ -138,12 +139,18 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
     }
 
 
-def make_ecal_clusters(decoded_calo):
+@configurable
+def make_ecal_clusters(decoded_calo,
+                       seed_min_adc=50,
+                       neighbour_min_adc=10,
+                       min_et=400,
+                       min_e19=0.6):
     number_of_events = initialize_number_of_events()
 
     calo_seed_clusters = make_algorithm(
         calo_seed_clusters_t,
         name='calo_seed_clusters_{hash}',
+        ecal_min_adc=seed_min_adc,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"])
@@ -156,6 +163,7 @@ def make_ecal_clusters(decoded_calo):
     calo_find_clusters = make_algorithm(
         calo_find_clusters_t,
         name='calo_find_clusters_{hash}',
+        ecal_min_adc=neighbour_min_adc,
         host_ecal_number_of_clusters_t=prefix_sum_ecal_num_clusters.
         host_total_sum_holder_t,
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
@@ -167,6 +175,8 @@ def make_ecal_clusters(decoded_calo):
     calo_prefilter_clusters = make_algorithm(
         calo_prefilter_clusters_t,
         name='calo_prefilter_clusters_{hash}',
+        minEt_clusters=min_et,
+        minE19_clusters=min_e19,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_ecal_number_of_clusters_t=prefix_sum_ecal_num_clusters.
