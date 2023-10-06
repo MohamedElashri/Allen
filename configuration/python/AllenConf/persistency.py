@@ -118,10 +118,10 @@ rb_map_PbPb = {
     '^Hlt1.*Lumi.*':
     1,
     # RB 2 Velo alignment
-    'Hlt1(VeloMicroBias|BeamGas|NMaterialVertexSeeds|NVELODisplacedTrack)':
+    'Hlt1(VeloMicroBias|BeamGas|NMaterialVertexSeeds|NVELODisplacedTrack|HeavyIonPbPbMBOneTrack)':
     2,
     # RB 3 Tracker alignment
-    'Hlt1(D2KPi|DiMuonHighMass|DisplacedDiMuon)Alignment':
+    'Hlt1(D2KPi|DiMuonHighMass|DisplacedDiMuon)Alignment|Hlt1HeavyIonPbPbUPCMB':
     3,
     # RB 4 Muon alignment
     'Hlt1DiMuon(High|Jpsi)MassAlignment':
