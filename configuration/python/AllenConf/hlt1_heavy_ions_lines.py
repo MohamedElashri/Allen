@@ -52,9 +52,12 @@ def make_diphoton_lowmult_line(calo,
                                pre_scaler_hash_string=None,
                                post_scaler_hash_string=None,
                                minMass=50,
+                               maxPt=999999,
                                minEt_clusters=200,
                                max_velo_tracks=999999,
-                               max_ecal_clusters=999999):
+                               max_ecal_clusters=999999,
+                               enable_monitoring=True,
+                               mass_histogram_range=[0, 2000]):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -76,10 +79,14 @@ def make_diphoton_lowmult_line(calo,
             "host_ecal_number_of_twoclusters"],
         dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"],
         minMass=minMass,  #MeV
+        maxPt=maxPt,  #MeV
         minEt_clusters=minEt_clusters,  #MeV
         max_velo_tracks=max_velo_tracks,
         max_ecal_clusters=max_ecal_clusters,
-        enable_tupling=False)
+        enable_tupling=False,
+        enable_monitoring=enable_monitoring,
+        histogram_diphoton_mass_min=mass_histogram_range[0],
+        histogram_diphoton_mass_max=mass_histogram_range[1])
 
 
 @configurable

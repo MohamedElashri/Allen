@@ -9,6 +9,12 @@
 #include "ParticleTypes.cuh"
 #include <CaloCluster.cuh>
 #include <cfloat>
+
+#ifndef ALLEN_STANDALONE
+#include "GaudiMonitoring.h"
+#include <Gaudi/Accumulators.h>
+#endif
+
 namespace two_calo_clusters_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -31,6 +37,9 @@ namespace two_calo_clusters_line {
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
     // Device outputs for monitoring
+    DEVICE_OUTPUT(dev_histogram_diphoton_mass_t, unsigned) dev_histogram_diphoton_mass;
+    DEVICE_OUTPUT(dev_histogram_diphoton_pt_t, unsigned) dev_histogram_diphoton_pt;
+
     DEVICE_OUTPUT(mass_t, float) diphoton_mass;
     DEVICE_OUTPUT(et_t, float) diphoton_et;
     DEVICE_OUTPUT(eta_t, float) diphoton_eta;
@@ -58,6 +67,7 @@ namespace two_calo_clusters_line {
     PROPERTY(minEt_clusters_t, "minEt_clusters", "min Et of each cluster", float) minEt_clusters;
     PROPERTY(minSumEt_clusters_t, "minSumEt_clusters", "min SumEt of clusters", float) minSumEt_clusters;
     PROPERTY(minPt_t, "minPt", "min Pt of the twocluster", float) minPt;
+    PROPERTY(maxPt_t, "maxPt", "min Pt of the twocluster", float) maxPt;
     PROPERTY(minPtEta_t, "minPtEta", "Pt > (minPtEta * (10-Eta)) of the twocluster", float) minPtEta;
     PROPERTY(minMass_t, "minMass", "min Mass of the two cluster", float) minMass;
     PROPERTY(maxMass_t, "maxMass", "max Mass of the two cluster", float) maxMass;
@@ -65,7 +75,37 @@ namespace two_calo_clusters_line {
     PROPERTY(max_velo_tracks_t, "max_velo_tracks", "Maximum number of VELO tracks", unsigned) max_velo_tracks;
     PROPERTY(max_ecal_clusters_t, "max_ecal_clusters", "Maximum number of ECAL clusters", unsigned) max_ecal_clusters;
     PROPERTY(max_n_pvs_t, "max_n_pvs", "Maximum number of PVs", unsigned) max_n_pvs;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
+
+    PROPERTY(
+      histogram_diphoton_mass_min_t,
+      "histogram_diphoton_mass_min",
+      "histogram_diphoton_mass_min description",
+      float)
+    histogram_diphoton_mass_min;
+    PROPERTY(
+      histogram_diphoton_mass_max_t,
+      "histogram_diphoton_mass_max",
+      "histogram_diphoton_mass_max description",
+      float)
+    histogram_diphoton_mass_max;
+    PROPERTY(
+      histogram_diphoton_mass_nbins_t,
+      "histogram_diphoton_mass_nbins",
+      "histogram_diphoton_mass_nbins description",
+      unsigned int)
+    histogram_diphoton_mass_nbins;
+    PROPERTY(histogram_diphoton_pt_min_t, "histogram_diphoton_pt_min", "histogram_diphoton_pt_min description", float)
+    histogram_diphoton_pt_min;
+    PROPERTY(histogram_diphoton_pt_max_t, "histogram_diphoton_pt_max", "histogram_diphoton_pt_max description", float)
+    histogram_diphoton_pt_max;
+    PROPERTY(
+      histogram_diphoton_pt_nbins_t,
+      "histogram_diphoton_pt_nbins",
+      "histogram_diphoton_pt_nbins description",
+      unsigned int)
+    histogram_diphoton_pt_nbins;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct two_calo_clusters_line_t : public SelectionAlgorithm, Parameters, Line<two_calo_clusters_line_t, Parameters> {
@@ -125,6 +165,21 @@ namespace two_calo_clusters_line {
       return first<typename Parameters::host_ecal_number_of_twoclusters_t>(arguments);
     }
 
+    void init();
+
+    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
+
+    __device__ static void monitor(
+      const Parameters& parameters,
+      std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned>,
+      unsigned index,
+      bool sel);
+
+    __host__ void
+    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
+
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
     Property<post_scaler_t> m_post_scaler {this, 1.f};
@@ -133,6 +188,7 @@ namespace two_calo_clusters_line {
     Property<minMass_t> m_minMass {this, 4200.0f};                   // MeV
     Property<maxMass_t> m_maxMass {this, 21000.0f};                  // MeV
     Property<minPt_t> m_minPt {this, 0.0f};                          // MeV
+    Property<maxPt_t> m_maxPt {this, 999999.f};                      // MeV
     Property<minPtEta_t> m_minPtEta {this, 0.0f};                    // MeV
     Property<minEt_clusters_t> m_minEt_clusters {this, 200.f};       // MeV
     Property<minSumEt_clusters_t> m_minSumEt_clusters {this, 400.f}; // MeV
@@ -142,5 +198,17 @@ namespace two_calo_clusters_line {
     Property<max_ecal_clusters_t> m_max_ecal_clusters {this, UINT_MAX};
     Property<max_n_pvs_t> m_max_n_pvs {this, UINT_MAX};
     Property<enable_tupling_t> m_enable_tupling {this, false};
+
+    Property<histogram_diphoton_mass_min_t> m_histogramdiphotonMassMin {this, 0.f};
+    Property<histogram_diphoton_mass_max_t> m_histogramdiphotonMassMax {this, 2000.f};
+    Property<histogram_diphoton_mass_nbins_t> m_histogramdiphotonMassNBins {this, 100u};
+    Property<histogram_diphoton_pt_min_t> m_histogramdiphotonPtMin {this, 0.f};
+    Property<histogram_diphoton_pt_max_t> m_histogramdiphotonPtMax {this, 2e3};
+    Property<histogram_diphoton_pt_nbins_t> m_histogramdiphotonPtNBins {this, 100u};
+    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+#ifndef ALLEN_STANDALONE
+    gaudi_monitoring::Lockable_Histogram<>* histogram_diphoton_mass;
+    gaudi_monitoring::Lockable_Histogram<>* histogram_diphoton_pt;
+#endif
   };
 } // namespace two_calo_clusters_line
