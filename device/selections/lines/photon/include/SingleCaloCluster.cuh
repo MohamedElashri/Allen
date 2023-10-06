@@ -79,7 +79,7 @@ namespace single_calo_cluster_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<minEt_t> m_minEt {this, 200.0f};   // MeV
-    Property<maxEt_t> m_maxEt {this, 10000.0f}; // MeV
+    Property<maxEt_t> m_maxEt {this, 999999.f}; // MeV
     Property<max_ecal_clusters_t> m_max_ecal_clusters {this, UINT_MAX};
     Property<enable_tupling_t> m_enable_tupling {this, false};
   };

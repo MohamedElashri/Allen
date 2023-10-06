@@ -693,6 +693,7 @@ def setup_hlt1_node(enablePhysics=True,
 
         lowMult_5 = make_lowmult(
             reconstructed_objects['velo_tracks'],
+            reconstructed_objects["ecal_clusters"],
             name="LowMult_5",
             minTracks=1,
             maxTracks=5)
@@ -713,6 +714,7 @@ def setup_hlt1_node(enablePhysics=True,
 
         lowMult_10 = make_lowmult(
             reconstructed_objects['velo_tracks'],
+            reconstructed_objects["ecal_clusters"],
             name="LowMult_10",
             minTracks=1,
             maxTracks=10)

@@ -134,9 +134,21 @@ def make_checkPseudoPV(velo_states,
 
 
 @configurable
-def make_lowmult(velo_tracks, name="lowMult", minTracks=0, maxTracks=9999999):
+def make_lowmult(velo_tracks,
+                 calo,
+                 name="lowMult",
+                 minTracks=0,
+                 maxTracks=9999999,
+                 min_ecal_clusters=0,
+                 max_ecal_clusters=9999999):
     return lowMult(
-        velo_tracks, name=name, minTracks=minTracks, maxTracks=maxTracks)
+        velo_tracks,
+        calo,
+        name=name,
+        minTracks=minTracks,
+        maxTracks=maxTracks,
+        min_ecal_clusters=min_ecal_clusters,
+        max_ecal_clusters=max_ecal_clusters)
 
 
 @configurable
@@ -230,7 +242,13 @@ def checkPseudoPV(velo_states,
         min_local_nTracks=min_local_nTracks)
 
 
-def lowMult(velo_tracks, name='LowMult', minTracks=0, maxTracks=99999):
+def lowMult(velo_tracks,
+            calo,
+            name='LowMult',
+            minTracks=0,
+            maxTracks=99999,
+            min_ecal_clusters=0,
+            max_ecal_clusters=999999):
 
     number_of_events = initialize_number_of_events()
     return make_algorithm(
@@ -240,8 +258,12 @@ def lowMult(velo_tracks, name='LowMult', minTracks=0, maxTracks=99999):
         dev_offsets_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
+        host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"],
+        dev_ecal_number_of_clusters_t=calo["dev_ecal_num_clusters"],
         minTracks=minTracks,
-        maxTracks=maxTracks)
+        maxTracks=maxTracks,
+        min_ecal_clusters=min_ecal_clusters,
+        max_ecal_clusters=max_ecal_clusters)
 
 
 def checkEcalEnergy(ecal_energy,

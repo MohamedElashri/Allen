@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import make_gec, line_maker, make_checkEcalEnergy
+from AllenConf.utils import make_gec, line_maker, make_checkEcalEnergy, make_lowmult
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_calibration_lines import (
     make_d2kpi_line,
@@ -22,6 +22,7 @@ from AllenConf.hlt1_monitoring_lines import (
 from AllenConf.hlt1_heavy_ions_lines import (
     make_heavy_ion_event_line,
     make_photon_lowmult_line,
+    make_diphoton_lowmult_line,
 )
 from AllenConf.hlt1_inclusive_hadron_lines import make_kstopipi_line, make_lambda2ppi_line
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
@@ -125,17 +126,7 @@ def default_physics_lines(reconstructed_objects, prescale, reco_particles,
             max_ecal_e=94000,
             min_long_tracks=1,
             min_velo_tracks_PbPb=2,
-            pre_scaler=0.8 if prescale else 1),
-        make_photon_lowmult_line(
-            name="Hlt1HeavyIonPbPbUPCPhoton",
-            calo=ecal_clusters,
-            max_ecal_clusters=10,
-            pre_scaler=0.02),
-        make_photon_lowmult_line(
-            name="Hlt1HeavyIonPbPbUPCPhoton_HighEt",
-            calo=ecal_clusters,
-            minEt=800,
-            max_ecal_clusters=10)
+            pre_scaler=0.8 if prescale else 1)
     ]
     if reco_particles:
         lines += [
@@ -169,6 +160,47 @@ def default_physics_lines(reconstructed_objects, prescale, reco_particles,
                     minIPChi2=4.)
             ]
 
+    return [line_maker(line) for line in lines]
+
+
+def upc_physics_lines(reconstructed_objects):
+
+    pvs = reconstructed_objects["pvs"]
+    velo_tracks = reconstructed_objects["velo_tracks"]
+    ecal_clusters = reconstructed_objects["ecal_clusters"]
+
+    # upc photon lines
+    lines = [
+        make_diphoton_lowmult_line(
+            name="Hlt1HeavyIonPbPbUPCDiPhoton_LowPt",
+            calo=ecal_clusters,
+            velo_tracks=velo_tracks,
+            pvs=pvs,
+            max_velo_tracks=10,
+            max_ecal_clusters=10,
+            maxPt=500),
+        make_photon_lowmult_line(
+            name="Hlt1HeavyIonPbPbUPCPhoton",
+            calo=ecal_clusters,
+            max_ecal_clusters=10,
+            pre_scaler=0.02),
+        make_diphoton_lowmult_line(
+            name="Hlt1HeavyIonPbPbUPCDiPhoton_HighMass",
+            calo=ecal_clusters,
+            velo_tracks=velo_tracks,
+            pvs=pvs,
+            minMass=1300,
+            minEt_clusters=500,
+            maxPt=2000,
+            max_velo_tracks=10,
+            max_ecal_clusters=10,
+            mass_histogram_range=[1300, 4000]),
+        make_photon_lowmult_line(
+            name="Hlt1HeavyIonPbPbUPCPhoton_HighEt",
+            calo=ecal_clusters,
+            minEt=800,
+            max_ecal_clusters=10)
+    ]
     return [line_maker(line) for line in lines]
 
 
@@ -307,6 +339,15 @@ def setup_hlt1_node(withMCChecking=False,
             cutHigh=True)
     ]
 
+    gec_photon_nvelo_upc = [
+        make_lowmult(
+            reconstructed_objects["velo_tracks"],
+            reconstructed_objects["ecal_clusters"],
+            name="CheckPhotonUPC",
+            maxTracks=10,
+            max_ecal_clusters=10)
+    ]
+
     gec_ecal_periph = [
         make_checkEcalEnergy(
             decoded_calo['dev_total_ecal_e'],
@@ -318,13 +359,15 @@ def setup_hlt1_node(withMCChecking=False,
     gec = [make_gec()] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
                        ] if with_odin_filter else []
+    prefilters = odin_err_filter + gec
+    prefilter_upc = prefilters + gec_ecal_upc
+    prefilter_photon_velo_upc = prefilters + gec_photon_nvelo_upc
+    prefilter_hadronic = prefilters + gec_ecal_periph
 
     # the filters for the BGI lines must exclude the BX filters
     prefilters_bgi = odin_err_filter + gec
     prefilter_upc_bgi = prefilters_bgi + gec_ecal_upc
 
-    # all PbPb and PbSMOG lines will filter on bx types
-    prefilters = odin_err_filter + gec
     if bx_type is not None:
         if not isinstance(bx_type, list): bx_type = [bx_type]
         prefilters = prefilters + [
@@ -333,8 +376,6 @@ def setup_hlt1_node(withMCChecking=False,
                 [make_bxtype(bx_type=ibx_type)
                  for ibx_type in bx_type], NodeLogic.NONLAZY_OR)
         ]
-    prefilter_upc = prefilters + gec_ecal_upc
-    prefilter_hadronic = prefilters + gec_ecal_periph
 
     # Setup physics lines.
     physics_lines = []
@@ -361,6 +402,8 @@ def setup_hlt1_node(withMCChecking=False,
         with line_maker.bind(prefilter=prefilters):
             physics_lines = default_physics_lines(
                 reconstructed_objects, prescale, reco_particles, with_muon)
+        with line_maker.bind(prefilter=prefilter_photon_velo_upc):
+            physics_lines += upc_physics_lines(reconstructed_objects)
 
             if EnableGEC:
                 physics_lines += [
