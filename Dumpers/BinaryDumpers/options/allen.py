@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 ###############################################################################
-# (c) Copyright 2018-2021 CERN for the benefit of the LHCb Collaboration      #
+# (c) Copyright 2018-2023 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 import os
 import sys
@@ -37,7 +37,19 @@ allen_dir = os.environ["ALLEN_PROJECT_ROOT"]
 interpreter.Declare("#include <Dumpers/IUpdater.h>")
 interpreter.Declare("#include <Allen/Allen.h>")
 interpreter.Declare("#include <Allen/Provider.h>")
-interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
+interpreter.Declare("""
+#include <GaudiKernel/IService.h>
+#include <Allen/InputProvider.h>
+#include <zmq/zmq.hpp>
+// Helper function to cast the LHCb-implementation of the Allen
+// non-event data manager to its shared interface
+template<typename TO>
+struct cast_service { TO* operator()(IService* svc) { return dynamic_cast<TO*>(svc); } };
+template<typename T>
+struct shared_wrap { std::shared_ptr<T> operator()(T* t) { return {t, [](T*) {}}; } };
+Allen::NonEventData::IUpdater* binary_updater(std::map<std::string, std::string> const& options);
+uintptr_t czmq_context(zmq::context_t& ctx) { return reinterpret_cast<uintptr_t>(ctx.operator void*()); }
+""")
 
 sequence_default = os.path.join(os.environ['ALLEN_INSTALL_DIR'], 'constants',
                                 'hlt1_pp_default.json')
