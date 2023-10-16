@@ -74,7 +74,7 @@ def default_physics_lines(reconstructed_objects, prescale, reco_particles,
             pvs=pvs,
             decoded_calo=decoded_calo,
             min_velo_tracks_PbPb=1,
-            pre_scaler=0.01 if prescale else 1),
+            pre_scaler=0.1),
         make_heavy_ion_event_line(
             name="Hlt1HeavyIonPbSMOGMicroBias",
             velo_tracks=velo_tracks,
