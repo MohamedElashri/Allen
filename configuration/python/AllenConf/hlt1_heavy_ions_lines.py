@@ -79,8 +79,10 @@ def make_diphoton_lowmult_line(calo,
             "host_ecal_number_of_twoclusters"],
         dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"],
         minMass=minMass,  #MeV
+        maxMass=999999,  #MeV
         maxPt=maxPt,  #MeV
         minEt_clusters=minEt_clusters,  #MeV
+        minE19_clusters=0.4,
         max_velo_tracks=max_velo_tracks,
         max_ecal_clusters=max_ecal_clusters,
         enable_tupling=False,
