@@ -74,7 +74,7 @@ def default_physics_lines(reconstructed_objects, prescale, reco_particles,
             pvs=pvs,
             decoded_calo=decoded_calo,
             min_velo_tracks_PbPb=1,
-            pre_scaler=0.01 if prescale else 1),
+            pre_scaler=0.1),
         make_heavy_ion_event_line(
             name="Hlt1HeavyIonPbSMOGMicroBias",
             velo_tracks=velo_tracks,
@@ -132,6 +132,12 @@ def default_physics_lines(reconstructed_objects, prescale, reco_particles,
         lines += [
             make_kstopipi_line(
                 long_tracks, v0s, name="Hlt1KsToPiPi", post_scaler=0.001),
+            make_kstopipi_line(
+                long_tracks,
+                v0s,
+                name="Hlt1KsToPiPiDoubleMuonMisID",
+                double_muon_misid=True,
+            ),
             make_d2kk_line(long_tracks, dihadrons, name="Hlt1D2KK"),
             make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPi"),
             make_d2pipi_line(long_tracks, dihadrons, name="Hlt1D2PiPi"),
