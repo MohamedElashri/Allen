@@ -139,7 +139,7 @@ rb_map_PbPb = {
     'Hlt1ODINVelo.*':
     8,
     # RB 9 ECAL pi0 calibration
-    'Hlt1Pi02GammaGamma':
+    'Hlt1HeavyIonPbPbUPCDiPhoton_LowPt':
     9,
     # RB 14 HLT1 beam-beam physics for monitoring and alignment
     'Hlt1(HeavyIonPbPbPeripheral|HeavyIonPbPbCentral|HeavyIonPbPbUPCMB|GECCentPassthrough)':
