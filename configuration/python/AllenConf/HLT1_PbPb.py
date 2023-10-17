@@ -364,6 +364,12 @@ def setup_hlt1_node(withMCChecking=False,
     prefilter_photon_velo_upc = prefilters + gec_photon_nvelo_upc
     prefilter_hadronic = prefilters + gec_ecal_periph
 
+    # The lumi filter should be the same as for the physics lines but without the bx_type filter
+    prefilters_lumi = odin_err_filter
+    if mini:
+        prefilters_lumi = prefilters_lumi + gec_ecal_upc
+    else:
+        prefilters_lumi = prefilters_lumi + gec
     # the filters for the BGI lines must exclude the BX filters
     prefilters_bgi = odin_err_filter + gec
     prefilter_upc_bgi = prefilters_bgi + gec_ecal_upc
@@ -490,7 +496,7 @@ def setup_hlt1_node(withMCChecking=False,
 
         lumi_with_prefilter = CompositeNode(
             "LumiWithPrefilter",
-            prefilters + [lumi_node],
+            prefilters_lumi + [lumi_node],
             NodeLogic.LAZY_AND,
             force_order=True)
 
