@@ -33,5 +33,6 @@ with decode_velo.bind(retina_decoding=False):
                             with_ut=False,
                             EnableGEC=True,
                             bx_type=[1, 3],
+                            reco_particles=True,
                             tracking_type=TrackingType.FORWARD_THEN_MATCHING)
                         generate(hlt1_node)
