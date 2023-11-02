@@ -42,13 +42,11 @@
  *  The role of this class is to get data from TES to Allen for the Velo Geometry
  */
 
-namespace {
-  inline const std::string VPGeoCond = DeVPLocation::Default;
+namespace Dumpers {
+  struct VP {
 
-  struct VPGeometry {
-
-    VPGeometry() = default;
-    VPGeometry(std::vector<char>& data, const DeVP& det)
+    VP() = default;
+    VP(std::vector<char>& data, const DeVP& det)
     {
       DumpUtils::Writer output {};
       const size_t sensorPerModule = 4;
@@ -57,27 +55,27 @@ namespace {
         zs[sensor.module()] += boost::numeric_cast<float>(sensor.z() / sensorPerModule);
       });
 
-      output.write(zs.size(), zs, size_t {VP::NSensorColumns});
-      for (unsigned int i = 0; i < VP::NSensorColumns; i++)
+      output.write(zs.size(), zs, size_t {::VP::NSensorColumns});
+      for (unsigned int i = 0; i < ::VP::NSensorColumns; i++)
         output.write(det.local_x(i));
-      output.write(size_t {VP::NSensorColumns});
-      for (unsigned int i = 0; i < VP::NSensorColumns; i++)
+      output.write(size_t {::VP::NSensorColumns});
+      for (unsigned int i = 0; i < ::VP::NSensorColumns; i++)
         output.write(det.x_pitch(i));
-      output.write(size_t {VP::NSensors}, size_t {12});
-      for (unsigned int i = 0; i < VP::NSensors; i++)
+      output.write(size_t {::VP::NSensors}, size_t {12});
+      for (unsigned int i = 0; i < ::VP::NSensors; i++)
         output.write(det.ltg(LHCb::Detector::VPChannelID::SensorID {i}));
 
       data = output.buffer();
     }
   };
-} // namespace
+} // namespace Dumpers
 
 class DumpVPGeometry final
-  : public Allen::Dumpers::Dumper<void(VPGeometry const&), LHCb::DetDesc::usesConditions<VPGeometry>> {
+  : public Allen::Dumpers::Dumper<void(Dumpers::VP const&), LHCb::DetDesc::usesConditions<Dumpers::VP>> {
 public:
   DumpVPGeometry(const std::string& name, ISvcLocator* svcLoc);
 
-  void operator()(const VPGeometry& VPGeo) const override;
+  void operator()(const Dumpers::VP& VP) const override;
 
   StatusCode initialize() override;
 
@@ -90,19 +88,19 @@ DECLARE_COMPONENT(DumpVPGeometry)
 // Add the multitransformer call
 
 DumpVPGeometry::DumpVPGeometry(const std::string& name, ISvcLocator* svcLoc) :
-  Dumper(name, svcLoc, {KeyValue {"VPGeometryLocation", location(name, "geometry")}})
+  Dumper(name, svcLoc, {KeyValue {"VPLocation", location(name, "geometry")}})
 {}
 
 StatusCode DumpVPGeometry::initialize()
 {
   return Dumper::initialize().andThen([&] {
     register_producer(Allen::NonEventData::VeloGeometry::id, "VP_geometry", m_data);
-    addConditionDerivation({VPGeoCond}, inputLocation<VPGeometry>(), [&](DeVP const& det) {
-      auto VPGeo = VPGeometry {m_data, det};
+    addConditionDerivation({DeVPLocation::Default}, inputLocation<Dumpers::VP>(), [&](DeVP const& det) {
+      auto geo = Dumpers::VP {m_data, det};
       dump();
-      return VPGeo;
+      return geo;
     });
   });
 }
 
-void DumpVPGeometry::operator()(const VPGeometry&) const {}
+void DumpVPGeometry::operator()(const Dumpers::VP&) const {}

@@ -30,19 +30,30 @@
 #include <Dumpers/Utils.h>
 #include "Dumper.h"
 
-namespace {
-  inline const std::string CaloGeoCond = DeCalorimeterLocation::Ecal;
-  const std::map<std::string, std::string> ids = {{"EcalDet", Allen::NonEventData::ECalGeometry::id},
-                                                  {"HcalDet", Allen::NonEventData::HCalGeometry::id}};
-  using namespace std::string_literals;
+namespace Dumpers {
+
   constexpr unsigned max_neighbors = 9;
 
-  struct CaloGeometry {
+  struct Calo {
 
-    CaloGeometry() = default;
-    CaloGeometry(std::vector<char>& data, const DeCalorimeter& det)
+    Calo() = default;
+    Calo(std::vector<char>& data, const DeCalorimeter& det)
     {
-      DumpUtils::Writer output {};
+      // Detector and mat geometry
+
+      // SourceID to feCards: tell1ToCards for 0 - det.nTell1s   Returns tell1Param which has .feCards int vector.
+      // Bank header code to card using cardCode() function which operates on CardParam which has card code and
+      // channels. check codes in Python; check feCards to code if this is standard somehow.
+
+      // 192 cards -> 192 codes.
+      // Could maintain list of sourceID to number of cards and then use this to get index of code respective to
+      // sourceID. Or use max size (which is 8 now, but should be considered a variable) and use this to find code
+      // index.
+      //
+      // Idea: use code as index (technically code - min(codes) * 32). The 32 channels associated with this card
+      // start at this index. Using the num we can further index these 32 channels.
+      // Wasted space: 32 * 16 bits per missing card code
+
       const unsigned geom_version = det.nSourceIDs() == 0 ? 3 : 4; // version 3 for run2, version 4 for run3
 
       const auto [cards_or_febs, feb_indices] = [&]() -> std::array<std::vector<int>, 2> {
@@ -209,7 +220,7 @@ namespace {
       }
 
       // Write all the parameters to the geometry file
-      // DumpUtils::Writer output {};
+      DumpUtils::Writer output {};
       output.write(static_cast<uint32_t>(geom_version));
       output.write(static_cast<uint32_t>(min));
       output.write(static_cast<uint32_t>(max_channels));
@@ -242,7 +253,7 @@ namespace {
       data = output.buffer();
     }
   };
-} // namespace
+} // namespace Dumpers
 
 /** @class DumpCaloGeometry
  *  Dump Calo Geometry.
@@ -256,11 +267,11 @@ namespace {
  */
 
 class DumpCaloGeometry final
-  : public Allen::Dumpers::Dumper<void(CaloGeometry const&), LHCb::DetDesc::usesConditions<CaloGeometry>> {
+  : public Allen::Dumpers::Dumper<void(Dumpers::Calo const&), LHCb::DetDesc::usesConditions<Dumpers::Calo>> {
 public:
   DumpCaloGeometry(const std::string& name, ISvcLocator* svcLoc);
 
-  void operator()(const CaloGeometry& CaloGeo) const override;
+  void operator()(const Dumpers::Calo&) const override;
 
   StatusCode initialize() override;
 
@@ -278,19 +289,13 @@ StatusCode DumpCaloGeometry::initialize()
 {
   return Dumper::initialize().andThen([&] {
     register_producer(Allen::NonEventData::ECalGeometry::id, "ecal_geometry", m_data);
-    addConditionDerivation({CaloGeoCond}, inputLocation<CaloGeometry>(), [&](DeCalorimeter const& det) {
-      auto CaloGeo = CaloGeometry {m_data, det};
-
-      // Gaudi Exception handling (uses variable name, separated from struct declaration)
-      auto id = ids.find(det.caloName());
-      if (id == ids.end()) {
-        throw GaudiException {"Cannot find "s + det.caloName(), name(), StatusCode::FAILURE};
-      }
-
-      dump();
-      return CaloGeo;
-    });
+    addConditionDerivation(
+      {DeCalorimeterLocation::Ecal}, inputLocation<Dumpers::Calo>(), [&](DeCalorimeter const& det) {
+        auto calo = Dumpers::Calo {m_data, det};
+        dump();
+        return calo;
+      });
   });
 }
 
-void DumpCaloGeometry::operator()(const CaloGeometry&) const {}
+void DumpCaloGeometry::operator()(const Dumpers::Calo&) const {}

@@ -39,12 +39,8 @@
  *  This Class is basically an instation of a Gaudi algorithm with specific inputs and outputs:
  *  The role of this class is to get data from TES to Allen for the Magnetic Field
  */
-namespace {
-
-  inline const std::string MagFieldCond = LHCb::Det::Magnet::det_path;
-
+namespace Dumpers {
   struct MagneticField {
-    MagneticField() {};
     MagneticField(std::vector<char>& data, const DeMagnet& magField)
     {
       DumpUtils::Writer output {};
@@ -53,14 +49,15 @@ namespace {
       data = output.buffer();
     }
   };
-} // namespace
+} // namespace Dumpers
 
 class DumpMagneticField final
-  : public Allen::Dumpers::Dumper<void(MagneticField const&), LHCb::DetDesc::usesConditions<MagneticField>> {
+  : public Allen::Dumpers::
+      Dumper<void(Dumpers::MagneticField const&), LHCb::DetDesc::usesConditions<Dumpers::MagneticField>> {
 public:
   DumpMagneticField(const std::string& name, ISvcLocator* svcLoc);
 
-  void operator()(const MagneticField& magneticField) const override;
+  void operator()(const Dumpers::MagneticField&) const override;
 
   StatusCode initialize() override;
 
@@ -80,14 +77,15 @@ StatusCode DumpMagneticField::initialize()
 {
   return Dumper::initialize().andThen([&] {
     register_producer(Allen::NonEventData::MagneticField::id, "polarity", m_data);
-    addConditionDerivation({MagFieldCond}, inputLocation<MagneticField>(), [&](DeMagnet const& magField) {
-      auto Polarity = MagneticField {m_data, magField};
-      dump();
-      return Polarity;
-    });
+    addConditionDerivation(
+      {LHCb::Det::Magnet::det_path}, inputLocation<Dumpers::MagneticField>(), [&](DeMagnet const& magField) {
+        auto polarity = Dumpers::MagneticField {m_data, magField};
+        dump();
+        return polarity;
+      });
   });
 }
 
-void DumpMagneticField::operator()(const MagneticField&) const {}
+void DumpMagneticField::operator()(const Dumpers::MagneticField&) const {}
 
 #endif // DUMPMAGNETICFIELD_H
