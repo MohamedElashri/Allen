@@ -26,6 +26,7 @@ This site documents various aspects of Allen.
    develop/memory_layouts
    develop/debugging
    integration/producers_consumers
+   integration/geometry
    monitoring/monitoring_allen
    ci/ci_configuration
    develop/documenting
