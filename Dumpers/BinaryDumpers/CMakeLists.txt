@@ -49,7 +49,6 @@ gaudi_add_module(BinaryDumpersModule
                    src/ProvideConstants.cpp
                    src/TestMuonTable.cpp
                    src/TransposeRawBanks.cpp
-                   src/TESProducer.cpp
                  LINK
                    Rangev3::rangev3
                    TBB::tbb
