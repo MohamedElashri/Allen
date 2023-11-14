@@ -35,7 +35,7 @@ ApplicationMgr                         INFO Application Manager Finalized succes
 ApplicationMgr                         INFO Application Manager Terminated successfully
 AllenTESProducer_ECal                  INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "BytesWritten_EcalGeometry"                     |    198684 |
+ | "BytesWritten_EcalGeometry"                     |    202524 |
 AllenTESProducer_FTCluster             INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_SciFiGeometry"                    |    104104 |
