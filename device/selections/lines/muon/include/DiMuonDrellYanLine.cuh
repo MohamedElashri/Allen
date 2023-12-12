@@ -40,7 +40,7 @@ namespace di_muon_drell_yan_line {
     PROPERTY(maxMass_t, "maxMass", "Max mass of the composite", float) maxMass;
 
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+    PROPERTY(minZ_t, "minZ", "minimum dimuon vertex z coordinate", float) minZ;
 
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;

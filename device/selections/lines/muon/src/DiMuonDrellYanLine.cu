@@ -64,9 +64,8 @@ __device__ bool di_muon_drell_yan_line::di_muon_drell_yan_line_t::select(
                         && trk2->state().pt() >= parameters.minTrackPt && trk2->state().p() >= parameters.minTrackP &&
                         trk2->state().eta() <= parameters.maxTrackEta
 
-                        && particle.mdimu() >= parameters.minMass && particle.mdimu() <= parameters.maxMass
-
-                        && particle.has_pv() && particle.pv().position.z >= parameters.minZ;
+                        && particle.mdimu() >= parameters.minMass && particle.mdimu() <= parameters.maxMass &&
+                        vertex.z() >= parameters.minZ;
 
   return decision;
 }
