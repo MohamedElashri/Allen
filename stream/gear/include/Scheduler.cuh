@@ -18,6 +18,141 @@ constexpr bool contracts_enabled = true;
 constexpr bool contracts_enabled = false;
 #endif
 
+namespace Allen {
+  struct ScheduledSequence {
+    std::vector<Allen::TypeErasedAlgorithm> sequence;
+    std::tuple<std::vector<LifetimeDependencies>, std::vector<LifetimeDependencies>> dependencies;
+
+    ScheduledSequence(const ConfiguredSequence& configuration)
+    {
+      const auto& [configured_algorithms, configured_arguments, sequence_arguments, arg_deps] = configuration;
+      sequence = instantiate_sequence(configured_algorithms);
+      dependencies = calculate_lifetime_dependencies(sequence_arguments, arg_deps, configured_arguments, sequence);
+    }
+
+    static std::vector<Allen::TypeErasedAlgorithm> instantiate_sequence(
+      const std::vector<ConfiguredAlgorithm>& configured_algorithms)
+    {
+      std::vector<Allen::TypeErasedAlgorithm> sequence;
+      sequence.reserve(configured_algorithms.size());
+      for (const auto& alg : configured_algorithms) {
+        sequence.emplace_back(instantiate_allen_algorithm(alg));
+      }
+      return sequence;
+    }
+
+  private:
+    std::tuple<std::vector<LifetimeDependencies>, std::vector<LifetimeDependencies>> calculate_lifetime_dependencies(
+      const std::vector<ConfiguredAlgorithmArguments>& sequence_arguments,
+      const ArgumentDependencies& argument_dependencies,
+      const std::vector<ConfiguredArgument>& configured_arguments,
+      const std::vector<Allen::TypeErasedAlgorithm>& sequence)
+    {
+      std::vector<LifetimeDependencies> in_deps;
+      std::vector<LifetimeDependencies> out_deps;
+      std::vector<std::string> temp_arguments;
+
+      // Make map of configured arguments
+      std::map<std::string, std::string> configured_arguments_map;
+      for (const auto& conf_arg : configured_arguments) {
+        configured_arguments_map[conf_arg.name] = conf_arg.scope;
+      }
+
+      const auto argument_in = [](const std::string& arg, const auto& args) {
+        return std::find(std::begin(args), std::end(args), arg) != std::end(args);
+      };
+
+      const auto argument_in_map = [](const std::string& arg, const auto& args) {
+        return args.find(arg) != std::end(args);
+      };
+
+      auto seq_args = sequence_arguments;
+
+      // Add all dependencies from all SelectionAlgorithms to in_deps of algorithm gather_selections
+      std::set<std::string> selection_arguments;
+      for (unsigned i = 0; i < seq_args.size(); ++i) {
+        if (sequence[i].scope() == "SelectionAlgorithm") {
+          for (const auto& arg : seq_args[i].arguments) {
+            selection_arguments.insert(arg);
+          }
+        }
+        if (sequence[i].scope() == "BarrierAlgorithm") {
+          for (const auto& arg : selection_arguments) {
+            seq_args[i].arguments.push_back(arg);
+          }
+        }
+      }
+
+      for (unsigned i = 0; i < seq_args.size(); ++i) {
+        // Calculate out_dep for this algorithm
+        LifetimeDependencies out_dep;
+        std::vector<std::string> next_temp_arguments;
+
+        for (const auto& arg : temp_arguments) {
+          bool arg_can_be_freed = true;
+
+          // The argument can be freed only if it is not host
+          if (configured_arguments_map[arg] == "host") {
+            arg_can_be_freed = false;
+          }
+
+          for (unsigned j = i; j < seq_args.size(); ++j) {
+            const auto& alg = seq_args[j];
+            if (argument_in(arg, alg.arguments)) {
+              arg_can_be_freed = false;
+            }
+
+            // dependencies
+            for (const auto& alg_arg : alg.arguments) {
+              if (
+                argument_in_map(alg_arg, argument_dependencies) &&
+                argument_in(arg, argument_dependencies.at(alg_arg))) {
+                arg_can_be_freed = false;
+                break;
+              }
+            }
+
+            // input aggregates
+            for (const auto& input_aggregate : alg.input_aggregates) {
+              if (argument_in(arg, input_aggregate)) {
+                arg_can_be_freed = false;
+                break;
+              }
+            }
+
+            if (!arg_can_be_freed) {
+              break;
+            }
+          }
+
+          if (arg_can_be_freed) {
+            out_dep.arguments.push_back(arg);
+          }
+          else {
+            next_temp_arguments.push_back(arg);
+          }
+        }
+        out_deps.emplace_back(out_dep);
+
+        // Update temp_arguments
+        temp_arguments = next_temp_arguments;
+
+        // Calculate in_dep for this algorithm
+        LifetimeDependencies in_dep;
+        for (const auto& arg : seq_args[i].arguments) {
+          if (!argument_in(arg, temp_arguments)) {
+            temp_arguments.push_back(arg);
+            in_dep.arguments.push_back(arg);
+          }
+        }
+        in_deps.emplace_back(in_dep);
+      }
+
+      return {in_deps, out_deps};
+    }
+  };
+} // namespace Allen
+
 class Scheduler {
   std::vector<Allen::TypeErasedAlgorithm> m_sequence;
   Allen::Store::UnorderedStore m_store;
@@ -26,135 +161,26 @@ class Scheduler {
   std::vector<LifetimeDependencies> m_out_dependencies;
   bool do_print = false;
 
-private:
-  // Get in and out dependencies
-  std::tuple<std::vector<LifetimeDependencies>, std::vector<LifetimeDependencies>> calculate_lifetime_dependencies(
-    const std::vector<ConfiguredAlgorithmArguments>& sequence_arguments,
-    const ArgumentDependencies& argument_dependencies,
-    const std::vector<ConfiguredArgument>& configured_arguments,
-    const std::vector<Allen::TypeErasedAlgorithm>& sequence)
-  {
-    std::vector<LifetimeDependencies> in_deps;
-    std::vector<LifetimeDependencies> out_deps;
-    std::vector<std::string> temp_arguments;
-
-    // Make map of configured arguments
-    std::map<std::string, std::string> configured_arguments_map;
-    for (const auto& conf_arg : configured_arguments) {
-      configured_arguments_map[conf_arg.name] = conf_arg.scope;
-    }
-
-    const auto argument_in = [](const std::string& arg, const auto& args) {
-      return std::find(std::begin(args), std::end(args), arg) != std::end(args);
-    };
-
-    const auto argument_in_map = [](const std::string& arg, const auto& args) {
-      return args.find(arg) != std::end(args);
-    };
-
-    auto seq_args = sequence_arguments;
-
-    // Add all dependencies from all SelectionAlgorithms to in_deps of algorithm gather_selections
-    std::set<std::string> selection_arguments;
-    for (unsigned i = 0; i < seq_args.size(); ++i) {
-      if (sequence[i].scope() == "SelectionAlgorithm") {
-        for (const auto& arg : seq_args[i].arguments) {
-          selection_arguments.insert(arg);
-        }
-      }
-      if (sequence[i].scope() == "BarrierAlgorithm") {
-        for (const auto& arg : selection_arguments) {
-          seq_args[i].arguments.push_back(arg);
-        }
-      }
-    }
-
-    for (unsigned i = 0; i < seq_args.size(); ++i) {
-      // Calculate out_dep for this algorithm
-      LifetimeDependencies out_dep;
-      std::vector<std::string> next_temp_arguments;
-
-      for (const auto& arg : temp_arguments) {
-        bool arg_can_be_freed = true;
-
-        // The argument can be freed only if it is not host
-        if (configured_arguments_map[arg] == "host") {
-          arg_can_be_freed = false;
-        }
-
-        for (unsigned j = i; j < seq_args.size(); ++j) {
-          const auto& alg = seq_args[j];
-          if (argument_in(arg, alg.arguments)) {
-            arg_can_be_freed = false;
-          }
-
-          // dependencies
-          for (const auto& alg_arg : alg.arguments) {
-            if (
-              argument_in_map(alg_arg, argument_dependencies) && argument_in(arg, argument_dependencies.at(alg_arg))) {
-              arg_can_be_freed = false;
-              break;
-            }
-          }
-
-          // input aggregates
-          for (const auto& input_aggregate : alg.input_aggregates) {
-            if (argument_in(arg, input_aggregate)) {
-              arg_can_be_freed = false;
-              break;
-            }
-          }
-
-          if (!arg_can_be_freed) {
-            break;
-          }
-        }
-
-        if (arg_can_be_freed) {
-          out_dep.arguments.push_back(arg);
-        }
-        else {
-          next_temp_arguments.push_back(arg);
-        }
-      }
-      out_deps.emplace_back(out_dep);
-
-      // Update temp_arguments
-      temp_arguments = next_temp_arguments;
-
-      // Calculate in_dep for this algorithm
-      LifetimeDependencies in_dep;
-      for (const auto& arg : seq_args[i].arguments) {
-        if (!argument_in(arg, temp_arguments)) {
-          temp_arguments.push_back(arg);
-          in_dep.arguments.push_back(arg);
-        }
-      }
-      in_deps.emplace_back(in_dep);
-    }
-
-    return {in_deps, out_deps};
-  }
-
 public:
   Scheduler(
     const ConfiguredSequence& configuration,
+    const Allen::ScheduledSequence& sched_seq,
     const bool param_do_print,
     const size_t device_requested_mb,
-    const unsigned required_memory_alignment)
+    const unsigned required_memory_alignment,
+    const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
   {
     auto& [configured_algorithms, configured_arguments, sequence_arguments, arg_deps] = configuration;
     assert(configured_algorithms.size() == sequence_arguments.size());
 
-    // Generate type erased sequence
-    instantiate_sequence(configured_algorithms);
+    // Instantiate the type erased algorithms that conform the sequence
+    m_sequence = Allen::ScheduledSequence::instantiate_sequence(configured_algorithms);
 
     // Create and populate store
     initialize_store(configured_arguments, sequence_arguments);
 
     // Calculate in and out dependencies of defined sequence
-    std::tie(m_in_dependencies, m_out_dependencies) =
-      calculate_lifetime_dependencies(sequence_arguments, arg_deps, configured_arguments, m_sequence);
+    std::tie(m_in_dependencies, m_out_dependencies) = sched_seq.dependencies;
 
     // Create ArgumentRefManager of each algorithm
     for (unsigned i = 0; i < m_sequence.size(); ++i) {
@@ -172,6 +198,9 @@ public:
 
     // Reserve memory
     m_store.reserve_memory_device(device_requested_mb, required_memory_alignment);
+
+    // Configure the algorithms according to the properties' values
+    configure_algorithms(m_sequence, config);
   }
 
   Scheduler(const Scheduler&) = delete;
@@ -179,15 +208,17 @@ public:
   Scheduler(Scheduler&&) = delete;
   Scheduler& operator=(Scheduler&&) = delete;
 
-  /**
-   * @brief Instantiates all algorithms in the configured sequence
-   */
-  void instantiate_sequence(const std::vector<ConfiguredAlgorithm>& configured_algorithms)
+  // Configure constants for algorithms in the sequence
+  static void configure_algorithms(
+    std::vector<Allen::TypeErasedAlgorithm>& sequence,
+    const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
   {
-    // Reserve the size of the sequence to avoid calls to the copy constructor when emplacing to this vector
-    m_sequence.reserve(configured_algorithms.size());
-    for (const auto& alg : configured_algorithms) {
-      m_sequence.emplace_back(instantiate_allen_algorithm(alg));
+    for (unsigned i = 0; i < sequence.size(); ++i) {
+      Allen::TypeErasedAlgorithm& algorithm = sequence[i];
+      auto c = config.find(algorithm.name());
+      if (c != config.end()) algorithm.set_properties(c->second);
+      // * Invoke void initialize() const, iff it exists
+      algorithm.init();
     }
   }
 
@@ -234,14 +265,6 @@ public:
    * @brief Free the memory managers.
    */
   void free_all() { m_store.free_all(); }
-
-  // Configure constants for algorithms in the sequence
-  void configure_algorithms(const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
-  {
-    for (unsigned i = 0; i < m_sequence.size(); ++i) {
-      configure(m_sequence[i], config);
-    }
-  }
 
   // Return constants for algorithms in the sequence
   auto get_algorithm_configuration() const
@@ -296,16 +319,6 @@ public:
   }
 
 private:
-  static void configure(
-    Allen::TypeErasedAlgorithm& algorithm,
-    const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
-  {
-    auto c = config.find(algorithm.name());
-    if (c != config.end()) algorithm.set_properties(c->second);
-    // * Invoke void initialize() const, iff it exists
-    algorithm.init();
-  }
-
   static void get_configuration(
     const Allen::TypeErasedAlgorithm& algorithm,
     std::map<std::string, std::map<std::string, nlohmann::json>>& config)

@@ -334,15 +334,20 @@ int allen(
   }
 
   // Create all the streams
+
+  // Instantiate and configure sequence once to get dependencies
+  Allen::ScheduledSequence sched_seq {configuration_reader->configured_sequence()};
+
   std::vector<std::unique_ptr<Stream>> streams;
   for (unsigned t = 0; t < number_of_threads; ++t) {
-    auto& sequence = streams.emplace_back(new Stream {configuration_reader->configured_sequence(),
-                                                      print_memory_usage,
-                                                      reserve_mb,
-                                                      device_memory_alignment,
-                                                      constants,
-                                                      buffers_manager.get()});
-    sequence->configure_algorithms(configuration);
+    streams.emplace_back(new Stream {configuration_reader->configured_sequence(),
+                                     sched_seq,
+                                     print_memory_usage,
+                                     reserve_mb,
+                                     device_memory_alignment,
+                                     constants,
+                                     buffers_manager.get(),
+                                     configuration});
   }
 
   // Print configured sequence
