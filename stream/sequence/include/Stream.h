@@ -20,9 +20,9 @@
 #include "CheckerInvoker.h"
 #include "Configuration.h"
 #include "nlohmann/json.hpp"
+#include "Scheduler.cuh"
 
 struct HostBuffersManager;
-class Scheduler;
 
 struct Stream {
 private:
@@ -47,15 +47,15 @@ private:
 public:
   Stream(
     const ConfiguredSequence& configuration,
-    const bool param_print_memory_usage,
-    const size_t param_reserve_mb,
+    const Allen::ScheduledSequence& sched_seq,
+    const bool param_do_print_memory_manager,
+    const size_t reserve_mb,
     const unsigned required_memory_alignment,
     const Constants& param_constants,
-    HostBuffersManager* buffers_manager);
+    HostBuffersManager* buffers_manager,
+    const std::map<std::string, std::map<std::string, nlohmann::json>>& config);
 
   Allen::error run(const unsigned buf_idx, RuntimeOptions const& runtime_options);
-
-  void configure_algorithms(const std::map<std::string, std::map<std::string, nlohmann::json>>& config);
 
   void print_configured_sequence();
 

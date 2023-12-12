@@ -17,15 +17,18 @@
  */
 Stream::Stream(
   const ConfiguredSequence& configuration,
+  const Allen::ScheduledSequence& sched_seq,
   const bool param_do_print_memory_manager,
   const size_t reserve_mb,
   const unsigned required_memory_alignment,
   const Constants& param_constants,
-  HostBuffersManager* buffers_manager) :
+  HostBuffersManager* buffers_manager,
+  const std::map<std::string, std::map<std::string, nlohmann::json>>& config) :
   do_print_memory_manager {param_do_print_memory_manager},
   host_buffers_manager {buffers_manager}, constants {param_constants}
 {
-  scheduler = new Scheduler {configuration, do_print_memory_manager, reserve_mb, required_memory_alignment};
+  scheduler =
+    new Scheduler {configuration, sched_seq, do_print_memory_manager, reserve_mb, required_memory_alignment, config};
 
   // Initialize context
   m_context.initialize();
@@ -75,11 +78,6 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
  * @brief Print the type and name of the algorithms in the sequence
  */
 void Stream::print_configured_sequence() { scheduler->print_sequence(); }
-
-void Stream::configure_algorithms(const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
-{
-  scheduler->configure_algorithms(config);
-}
 
 std::map<std::string, std::map<std::string, nlohmann::json>> Stream::get_algorithm_configuration() const
 {
