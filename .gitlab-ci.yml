@@ -134,8 +134,8 @@ test_pages:
   script:
     - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
     # use nightly build for python environment, needed for API reference of python selection functions
-    - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
-    - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
+    - lb-run --nightly lhcb-master/latest Allen/master make -C doc linkcheck || reasons+='ERROR failed link check\n'
+    - lb-run --nightly lhcb-master/latest Allen/master make -C doc html || reasons+='ERROR failed html generation\n'
     - mv doc/_build/html test
     - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
   allow_failure:
