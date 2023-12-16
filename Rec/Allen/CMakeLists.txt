@@ -115,6 +115,9 @@ add_custom_target(gaudi_wrappers_of_allen_algorithms DEPENDS ${WRAPPED_ALGORITHM
 target_include_directories(AllenAlgorithms PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
 add_dependencies(AllenAlgorithms gaudi_wrappers_of_allen_algorithms)
 target_compile_definitions(AllenAlgorithms PRIVATE -D${TARGET_DEFINITION})
+# We cannot fix use of lambda capture `[=]` (C++17) or `[=,this]` (C++20) at the same time
+# so we hide the warning when we use C++17.
+target_compile_options(AllenAlgorithms PRIVATE -Wno-c++20-extensions)
 
 endif()
 
