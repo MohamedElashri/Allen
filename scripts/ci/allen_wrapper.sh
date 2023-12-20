@@ -15,7 +15,6 @@ BUILD_FOLDER=$(realpath "${BUILD_FOLDER}")
 set +u;
 RUN_PROFILER_OUTPUT=$(realpath "${RUN_PROFILER_OUTPUT}/")
 JUNITREPORT=$(realpath "${JUNITREPORT}/")
-set -u;
 
 cd ${BUILD_FOLDER} # && ls
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+LD_LIBRARY_PATH:}${PWD}"
@@ -72,7 +71,6 @@ elif [ "${TARGET}" = "HIP" ]; then
 fi
 
 
-set +u; # Avoid RUN_PROFILER unbound error
 
 if [ "${RUN_UNIT_TESTS}" = "1" ]; then 
     BUILD_DIR=`cat CTestTestfile.cmake | grep "# Build directory:" | awk '{ print $4 }'`
