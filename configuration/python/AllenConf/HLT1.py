@@ -341,8 +341,10 @@ def default_SMOG2_lines(velo_tracks,
                         long_tracks,
                         long_track_particles,
                         dihadrons,
+                        v0s,
                         dileptons,
                         with_muon=True,
+                        with_v0s=True,
                         min_z=-541.,
                         max_z=-341.):
 
@@ -392,6 +394,12 @@ def default_SMOG2_lines(velo_tracks,
                 long_track_particles,
                 name="Hlt1_SMOG2_SingleMuon",
                 post_scaler=0.5)
+        ]
+
+    if with_v0s:
+        lines += [
+            make_lambda2ppi_line(
+                v0s, name="Hlt1_SMOG2_L02PPi", minPVZ=min_z, maxPVZ=max_z)
         ]
 
     return [line_maker(line) for line in lines]
@@ -756,8 +764,9 @@ def setup_hlt1_node(enablePhysics=True,
                 reconstructed_objects["long_tracks"],
                 reconstructed_objects["long_track_particles"],
                 reconstructed_objects["dihadron_secondary_vertices"],
+                reconstructed_objects["v0_secondary_vertices"],
                 reconstructed_objects["dilepton_secondary_vertices"],
-                with_muon)
+                with_muon, with_v0s)
 
         line_algorithms += [tup[0] for tup in SMOG2_lines]
         line_nodes += [tup[1] for tup in SMOG2_lines]

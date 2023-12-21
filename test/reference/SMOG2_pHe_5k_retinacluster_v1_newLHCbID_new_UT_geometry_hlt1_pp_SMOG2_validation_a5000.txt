@@ -141,6 +141,7 @@ Hlt1_SMOG2_2BodyGeneric:                                2/  1000, (   60.00 +/- 
 Hlt1_SMOG2_SingleTrack:                                83/  1000, ( 2490.00 +/-   261.72) kHz
 Hlt1_SMOG2_DiMuonHighMass:                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_SingleMuon:                                  9/  1000, (  270.00 +/-    89.59) kHz
+Hlt1_SMOG2_L02PPi:                                      0/  1000, (    0.00 +/-     0.00) kHz
 Inclusive:                                            136/  1000, ( 4080.00 +/-   325.20) kHz
 
 
@@ -224,6 +225,7 @@ Hlt1_SMOG2_2BodyGeneric:                                2           3
 Hlt1_SMOG2_SingleTrack:                                83         112
 Hlt1_SMOG2_DiMuonHighMass:                              0           0
 Hlt1_SMOG2_SingleMuon:                                  9           9
+Hlt1_SMOG2_L02PPi:                                      0           0
 
 Total decisions: 150
 Total tracks:    133

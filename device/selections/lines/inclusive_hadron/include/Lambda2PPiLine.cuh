@@ -51,6 +51,8 @@ namespace lambda2ppi_line {
     L_BPVVDRHO_min;
     PROPERTY(L_BPVDIRA_min_t, "L_BPVDIRA_min", "min cosine of direction angle of Lambda w.r.t. its best PV", float)
     L_BPVDIRA_min;
+    PROPERTY(minPVZ_t, "minPVZ", "minimum PV z coordinate", float) minPVZ;
+    PROPERTY(maxPVZ_t, "maxPVZ", "maximum PV z coordinate", float) maxPVZ;
 
     DEVICE_OUTPUT(L_M_t, float) L_M;
     DEVICE_OUTPUT(p_P_t, float) p_P;
@@ -131,5 +133,7 @@ namespace lambda2ppi_line {
     Property<L_BPVVDZ_min_t> m_L_BPVVDZ_min {this, 12.f * Gaudi::Units::mm};
     Property<L_BPVVDRHO_min_t> m_L_BPVVDRHO_min {this, 2.f * Gaudi::Units::mm};
     Property<L_BPVDIRA_min_t> m_L_BPVDIRA_min {this, 0.9997};
+    Property<minPVZ_t> m_minPVZ {this, -200.f * Gaudi::Units::mm};
+    Property<maxPVZ_t> m_maxPVZ {this, 200.f * Gaudi::Units::mm};
   };
 } // namespace lambda2ppi_line
