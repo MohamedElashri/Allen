@@ -10,6 +10,9 @@ __device__ bool lambda2ppi_line::lambda2ppi_line_t::select(
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto Lambda = std::get<0>(input);
+  const bool pv_filter =
+    Lambda.has_pv() && Lambda.pv().position.z >= parameters.minPVZ && Lambda.pv().position.z < parameters.maxPVZ;
+
   const auto L_vx = Lambda.vertex();
   // Proton is always first child for anything that passes the cuts below (see FilterTracks -- the ordering is
   // propagated through VertexFitter)
@@ -29,7 +32,8 @@ __device__ bool lambda2ppi_line::lambda2ppi_line_t::select(
                             pion->ip_chi2() > parameters.L_pi_MIPCHI2_min && pion->ip() > parameters.L_pi_MIP_min &&
                             Lambda.doca12() < parameters.L_DOCA_max && L_vx.pt() > parameters.L_PT_min &&
                             lambda_mass < parameters.L_M_max;
-  return track_filter && Lambda.has_pv() && L_vx.chi2() < parameters.L_VCHI2_max && parameters.L_VZ_min < L_vx.z() &&
+
+  return pv_filter && track_filter && L_vx.chi2() < parameters.L_VCHI2_max && parameters.L_VZ_min < L_vx.z() &&
          L_vx.z() < parameters.L_VZ_max && Lambda.dz() > parameters.L_BPVVDZ_min &&
          Lambda.drho() > parameters.L_BPVVDRHO_min && Lambda.fdchi2() > parameters.L_BPVVDCHI2_min &&
          Lambda.dira() > parameters.L_BPVDIRA_min;
