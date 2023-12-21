@@ -28,6 +28,9 @@ namespace seed_confirmTracks_consolidate {
     DEVICE_INPUT(dev_offsets_seeding_hit_number_t, unsigned) dev_seeding_hit_number; // fishy
     DEVICE_INPUT(dev_seeding_tracks_t, SciFi::Seeding::Track) dev_seeding_tracks;
     DEVICE_OUTPUT(dev_seeding_qop_t, float) dev_seeding_qop;
+    DEVICE_OUTPUT(dev_seeding_chi2Y_t, float) dev_seeding_chi2Y;
+    // DEVICE_OUTPUT(dev_seeding_chi2X_t, float) dev_seeding_chi2X;
+    // DEVICE_OUTPUT(dev_seeding_nY_t, int) dev_seeding_nY;
     DEVICE_OUTPUT(dev_seeding_states_t, MiniState) dev_seeding_states;
     DEVICE_OUTPUT(dev_seeding_track_hits_t, char) dev_seeding_track_hits;
     HOST_INPUT(host_scifi_hit_count_t, unsigned) host_scifi_hit_count;

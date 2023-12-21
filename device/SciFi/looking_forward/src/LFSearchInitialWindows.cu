@@ -414,7 +414,7 @@ __global__ void lf_search_initial_windows::lf_search_initial_windows(
   const float* dev_magnet_polarity)
 {
   const auto* ut_tracks =
-    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
     search_windows<true>(parameters, dev_scifi_geometry, dev_looking_forward_constants, dev_magnet_polarity, ut_tracks);
   }

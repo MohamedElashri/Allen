@@ -18,6 +18,10 @@ __global__ void create_matched_views(matching_consolidate_tracks::Parameters par
     const auto* velo_track = &parameters.dev_velo_tracks_view[event_number].track(*velo_track_index);
     const auto* scifi_track = &parameters.dev_scifi_tracks_view[event_number].track(*scifi_track_index);
 
+    // Mark scifi track as used
+    parameters.dev_matched_is_scifi_track_used[scifi_track->track_container_offset() + scifi_track->track_index()] =
+      true;
+
     // Mark velo tracks as used
     parameters.dev_accepted_and_unused_velo_tracks[velo_track->track_container_offset() + velo_track->track_index()] =
       0;
@@ -54,6 +58,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::set_arguments_s
   set_size<dev_multi_event_long_tracks_view_t>(arguments, 1);
   set_size<dev_multi_event_long_tracks_ptr_t>(arguments, 1);
   set_size<dev_accepted_and_unused_velo_tracks_t>(arguments, size<dev_accepted_velo_tracks_t>(arguments));
+  set_size<dev_matched_is_scifi_track_used_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
 
 void matching_consolidate_tracks::matching_consolidate_tracks_t::init()
@@ -95,6 +100,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
+  Allen::memset_async<dev_matched_is_scifi_track_used_t>(arguments, 0, context);
   Allen::copy_async<dev_accepted_and_unused_velo_tracks_t, dev_accepted_velo_tracks_t>(arguments, context);
 
   auto dev_histogram_long_track_matching_eta =

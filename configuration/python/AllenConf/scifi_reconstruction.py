@@ -452,6 +452,12 @@ def make_seeding_tracks(
         seed_confirmTracks_consolidate.dev_seeding_states_t,
         "dev_seeding_qop":
         seed_confirmTracks_consolidate.dev_seeding_qop_t,
+        "dev_seeding_chi2Y":
+        seed_confirmTracks_consolidate.dev_seeding_chi2Y_t,
+        # "dev_seeding_chi2X":
+        # seed_confirmTracks_consolidate.dev_seeding_chi2X_t,
+        # "dev_seeding_nY":
+        # seed_confirmTracks_consolidate.dev_seeding_nY_t,
         "host_number_of_reconstructed_seeding_tracks":
         prefix_sum_seeding_tracks.host_total_sum_holder_t,
         "dev_offsets_scifi_seeds":

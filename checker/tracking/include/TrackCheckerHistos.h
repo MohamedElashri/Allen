@@ -32,6 +32,10 @@ struct TrackCheckerHistos {
   std::unique_ptr<TH2D> h_qop_resolution;
   std::unique_ptr<TH2D> h_dqop_versus_qop;
   std::unique_ptr<TH1D> h_momentum_matched;
+  std::unique_ptr<TH1D> h_ghost_p;
+  std::unique_ptr<TH1D> h_total_p;
+  std::unique_ptr<TH1D> h_ghost_pt;
+  std::unique_ptr<TH1D> h_total_pt;
 
   std::unique_ptr<TH1D> h_muon_catboost_output_matched_muon;
   std::unique_ptr<TH1D> h_muon_catboost_output_matched_notMuon;
@@ -89,8 +93,8 @@ struct TrackCheckerHistos {
 
   void fillReconstructibleHistos(const MCParticles& mcps, const Checker::HistoCategory& category);
   void fillReconstructedHistos(const MCParticle& mcp, Checker::HistoCategory& category);
-  void fillTotalHistos(double nPV, double eta);
-  void fillGhostHistos(double nPV, double eta);
+  void fillTotalHistos(double nPV, double eta, double p, double pt);
+  void fillGhostHistos(double nPV, double eta, double p, double pt);
   void fillMomentumResolutionHisto(const MCParticle& mcp, const float p, const float qop);
   void fillMuonIDHistos(const Checker::Track& track);
   void fillMuonIDMatchedHistos(const Checker::Track& track, const MCParticle& mcp);

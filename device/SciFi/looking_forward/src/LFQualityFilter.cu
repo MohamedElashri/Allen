@@ -213,7 +213,7 @@ __global__ void lf_quality_filter::lf_quality_filter(
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   const auto* ut_tracks =
-    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
     quality_filter<true>(parameters, dev_looking_forward_constants, ut_tracks);
   }

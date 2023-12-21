@@ -15,6 +15,7 @@ __global__ void long_track_validator::long_track_validator(long_track_validator:
   Checker::Track* long_checker_tracks_event = parameters.dev_long_checker_tracks + offset_long_tracks;
 
   prepare_long_tracks(event_long_tracks, endvelo_states, long_checker_tracks_event);
+  __syncthreads();
 }
 
 void long_track_validator::long_track_validator_t::set_arguments_size(

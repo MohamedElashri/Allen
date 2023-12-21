@@ -17,6 +17,7 @@
 #include <tuple>
 #include <string>
 #include <cassert>
+#include <cmath>
 #include <array>
 #include <gsl/gsl>
 #include "AllenTypeTraits.h"
@@ -181,3 +182,37 @@ public:
 };
 
 __device__ inline float signselect(const float& s, const float& a, const float& b) { return (s > 0) ? a : b; }
+
+__device__ inline auto compress_float_to_16_bits(const float f)
+{
+#if defined(TARGET_DEVICE_CPU)
+  return __float_to_uint16(f);
+#else
+  return __float2half(f);
+#endif
+}
+
+// Numeric limits
+namespace Allen {
+  template<typename T>
+  struct numeric_limits;
+
+  template<>
+  struct numeric_limits<float> {
+    __host__ __device__ static constexpr float invalid() noexcept { return INFINITY; };
+    __host__ __device__ static constexpr float infinity() noexcept { return INFINITY; };
+    __host__ __device__ static constexpr float quiet_NaN() noexcept { return NAN; };
+  };
+
+  template<>
+  struct numeric_limits<double> {
+    __host__ __device__ static constexpr double invalid() noexcept { return static_cast<double>(INFINITY); };
+    __host__ __device__ static constexpr double infinity() noexcept { return static_cast<double>(INFINITY); };
+    __host__ __device__ static constexpr double quiet_NaN() noexcept { return static_cast<double>(NAN); };
+  };
+
+  template<>
+  struct numeric_limits<ushort> {
+    __host__ __device__ static constexpr ushort invalid() noexcept { return USHRT_MAX; };
+  };
+} // namespace Allen

@@ -21,6 +21,22 @@ target_link_libraries(Stream
     HostEventModel
     EventModel
     Backend
+    Calo
+    Combiners
+    DeviceValidators
+    Examples
+    Kalman
+    Lumi
+    Muon
+    PV_beamline
+    Plume
+    SciFi
+    UT
+    Downstream
+    Validators
+    Velo
+    VertexFitter
+    algorithm_db
     AllenCommon
     Gear
     track_matching

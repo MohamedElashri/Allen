@@ -180,6 +180,8 @@ namespace Allen {
 
         __host__ __device__ float eta() const { return atanhf(pz() / p()); }
 
+        __host__ __device__ float rho() const { return sqrtf(tx() * tx() + ty() * ty()); }
+
         __host__ __device__ operator MiniState() const { return MiniState {x(), y(), z(), tx(), ty()}; }
 
         __host__ __device__ operator KalmanVeloState() const

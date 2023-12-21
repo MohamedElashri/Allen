@@ -5,13 +5,15 @@ from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_vel
 from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
 from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
+from AllenConf.downstream_reconstruction import make_downstream
 from AllenConf.muon_reconstruction import decode_muon, is_muon, fake_muon_id, make_muon_stubs
 from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, make_basic_particles, fit_secondary_vertices, make_sv_pairs
 from AllenConf.validators import (
     velo_validation, veloUT_validation, seeding_validation, long_validation,
-    muon_validation, pv_validation, kalman_validation, selreport_validation)
+    muon_validation, pv_validation, kalman_validation, selreport_validation,
+    downstream_validation)
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer
@@ -25,7 +27,8 @@ def hlt1_reconstruction(algorithm_name='',
                         with_calo=True,
                         with_ut=True,
                         with_muon=True,
-                        velo_open=False):
+                        velo_open=False,
+                        enableDownstream=False):
     decoded_velo = decode_velo()
     decoded_scifi = decode_scifi()
     velo_tracks = make_velo_tracks(decoded_velo)
@@ -49,14 +52,26 @@ def hlt1_reconstruction(algorithm_name='',
     if tracking_type in (TrackingType.FORWARD_THEN_MATCHING,
                          TrackingType.MATCHING_THEN_FORWARD):
         if with_ut:
+            # VeloUT tracking
             decoded_ut = decode_ut()
             ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
             input_tracks = ut_tracks
             output.update({"ut_tracks": input_tracks})
+
         long_tracks = best_track_creator(
             with_ut,
             tracking_type=tracking_type,
             algorithm_name=algorithm_name)
+
+        if with_ut and enableDownstream:
+            # Downstream tracking
+            downstream_tracks = make_downstream(
+                decoded_ut=decoded_ut,
+                # ut_tracks=ut_tracks,
+                scifi_seeds=long_tracks["seeding_tracks"],
+                velo_scifi_matches=long_tracks['matched_tracks'])
+            output.update({"downstream_tracks": downstream_tracks})
+
         output.update({"seeding_tracks": long_tracks["seeding_tracks"]})
     elif tracking_type == TrackingType.MATCHING:
         decoded_scifi = decode_scifi()
@@ -73,6 +88,14 @@ def hlt1_reconstruction(algorithm_name='',
             matching_consolidate_tracks_name=algorithm_name +
             'matching_consolidate_tracks_matching')
         output.update({"seeding_tracks": seed_tracks})
+        if with_ut and enableDownstream:
+            decoded_ut = decode_ut()
+            downstream_tracks = make_downstream(
+                decoded_ut=decoded_ut,
+                scifi_seeds=seed_tracks,
+                velo_scifi_matches=long_tracks)
+            output.update({"downstream_tracks": downstream_tracks})
+
     elif tracking_type == TrackingType.FORWARD:
         if with_ut:
             decoded_ut = decode_ut()
@@ -221,6 +244,16 @@ def validator_node(reconstructed_objects, line_algorithms, matching, with_ut,
             make_composite_node_with_gec(
                 "veloUT_validation",
                 veloUT_validation(reconstructed_objects["ut_tracks"]),
+                with_scifi=True,
+                with_ut=with_ut)
+        ]
+
+    if 'downstream_tracks' in reconstructed_objects:
+        validators += [
+            make_composite_node_with_gec(
+                "downstream_validation",
+                downstream_validation(
+                    reconstructed_objects["downstream_tracks"]),
                 with_scifi=True,
                 with_ut=with_ut)
         ]

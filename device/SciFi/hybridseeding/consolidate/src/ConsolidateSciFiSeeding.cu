@@ -49,6 +49,9 @@ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::set_argum
   set_size<dev_seeding_track_hits_t>(
     arguments, first<host_accumulated_number_of_hits_in_scifi_tracks_t>(arguments) * sizeof(SciFi::Hit));
   set_size<dev_seeding_qop_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
+  set_size<dev_seeding_chi2Y_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
+  // set_size<dev_seeding_chi2X_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
+  // set_size<dev_seeding_nY_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
   set_size<dev_seeding_states_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
   set_size<dev_scifi_hits_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_scifi_track_view_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
@@ -222,6 +225,9 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
                                           number_of_events};
   const unsigned number_of_tracks_event = scifi_seeds.number_of_tracks(event_number);
   float* tracks_qop = parameters.dev_seeding_qop + parameters.dev_atomics_scifi[event_number];
+  // float* tracks_chi2X = parameters.dev_seeding_chi2X + parameters.dev_atomics_scifi[event_number];
+  float* tracks_chi2Y = parameters.dev_seeding_chi2Y + parameters.dev_atomics_scifi[event_number];
+  // int  * tracks_nY = parameters.dev_seeding_nY + parameters.dev_atomics_scifi[event_number];
   auto used_scifi_hits = parameters.dev_used_scifi_hits.get();
 
   if (number_of_tracks_event < 200) {
@@ -247,6 +253,9 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
 
     const auto magSign = dev_magnet_polarity[0];
     tracks_qop[i] = qop_seeding_calculation(magSign, seeding_state, true);
+    // tracks_chi2X[i] = scifiseed.chi2X;
+    tracks_chi2Y[i] = scifiseed.chi2Y;
+    // tracks_nY[i] = scifiseed.nY;
 
     auto consolidated_hits = scifi_seeds.get_hits(parameters.dev_seeding_track_hits, i);
 

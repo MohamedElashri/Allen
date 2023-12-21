@@ -1,0 +1,60 @@
+/*****************************************************************************\
+* (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration          *
+\*****************************************************************************/
+#pragma once
+
+// Basic
+#include "AlgorithmTypes.cuh"
+
+// Event Model
+#include "UTDefinitions.cuh"
+#include "UTEventModel.cuh"
+#include "SciFiEventModel.cuh"
+#include "SciFiConsolidated.cuh"
+#include "UTConsolidated.cuh"
+#include "AlgorithmTypes.cuh"
+
+// Local
+#include "DownstreamConstants.cuh"
+#include "DownstreamStructs.cuh"
+#include "DownstreamExtrapolation.cuh"
+#include "DownstreamCache.cuh"
+#include "DownstreamFindHits.cuh"
+#include "DownstreamCreateTracks.cuh"
+
+/**
+ * @brief This is definition file for downstream_copy_hit_number algorithm.
+ * implementation is in downstream_copy_hit_number.cu
+ *
+ */
+
+namespace downstream_copy_hit_number {
+  struct Parameters {
+    // Basic
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    // Size of downstream tracks
+    HOST_INPUT(host_number_of_downstream_tracks_t, unsigned) host_number_of_downstream_tracks;
+    // Downstream tracks
+    DEVICE_INPUT(dev_offsets_downstream_tracks_t, unsigned) dev_offsets_downstream_tracks;
+    DEVICE_INPUT(dev_downstream_tracks_t, char) dev_downstream_tracks;
+    // Output
+    DEVICE_OUTPUT(dev_downstream_track_hit_number_t, unsigned) dev_downstream_track_hit_number;
+    // Property
+    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+  };
+
+  __global__ void downstream_copy_hit_number(Parameters);
+
+  struct downstream_copy_hit_number_t : public DeviceAlgorithm, Parameters {
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+
+    void operator()(
+      const ArgumentReferences<Parameters>& arguments,
+      const RuntimeOptions&,
+      const Constants&,
+      const Allen::Context& context) const;
+
+  private:
+    Property<block_dim_t> m_block_dim {this, {{512, 1, 1}}};
+  };
+} // namespace downstream_copy_hit_number

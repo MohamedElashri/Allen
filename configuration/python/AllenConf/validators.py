@@ -6,7 +6,9 @@ from AllenCore.algorithms import (
     long_track_validator_t, muon_validator_t, host_pv_validator_t,
     host_rate_validator_t, host_routingbits_validator_t, kalman_validator_t,
     host_seeding_XZ_validator_t, host_seeding_validator_t,
-    host_veloscifi_dump_t, host_data_provider_t, host_sel_report_validator_t)
+    host_downstream_dump_t, downstream_validator_t, host_veloscifi_dump_t,
+    host_data_provider_t, host_sel_report_validator_t,
+    host_unmatched_seeding_validator_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenConf.persistency import make_dec_reporter, make_gather_selections, make_routingbits_writer, rb_map
@@ -99,6 +101,28 @@ def long_validation(long_tracks, name="long_validator"):
         dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"])
 
 
+def downstream_validation(downstream_tracks, name="downstream_validator"):
+    mc_events = mc_data_provider()
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        downstream_validator_t,
+        name=name,
+        # Basic
+        host_mc_events_t=mc_events.host_mc_events_t,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        # Downstream output
+        host_number_of_downstream_tracks_t=downstream_tracks[
+            'host_number_of_downstream_tracks'],
+        dev_offsets_downstream_tracks_t=downstream_tracks[
+            'dev_offsets_downstream_tracks'],
+        dev_multi_event_downstream_tracks_view_t=downstream_tracks[
+            'dev_multi_event_downstream_tracks_view'],
+        dev_downstream_track_states_view_t=downstream_tracks[
+            'dev_downstream_track_states_view'])
+
+
 def seeding_xz_validation(name="seed_xz_validator"):
     mc_events = mc_data_provider()
     decoded_scifi = decode_scifi()
@@ -157,6 +181,82 @@ def seeding_validation(seeding_tracks, name="seed_validator"):
         dev_scifi_seeds_t=seeding_tracks["seed_tracks"],
         dev_seeding_states_t=seeding_tracks["dev_seeding_states"],
         host_mc_events_t=mc_events.host_mc_events_t)
+
+
+def seeding_unmatched_validation(seeding_tracks,
+                                 velo_scifi_matches,
+                                 name="unmached_seed_validator"):
+    mc_events = mc_data_provider()
+    #decoded_scifi = decode_scifi("v6")
+    #seeding_tracks = make_seeding_tracks(decoded_scifi)
+
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        host_unmatched_seeding_validator_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_offsets_scifi_seeds_t=seeding_tracks["dev_offsets_scifi_seeds"],
+        dev_scifi_hits_t=seeding_tracks["dev_seeding_track_hits"],
+        dev_offsets_scifi_seed_hit_number_t=seeding_tracks[
+            "dev_offsets_scifi_seed_hit_number"],
+        dev_scifi_seeds_t=seeding_tracks["seed_tracks"],
+        dev_seeding_states_t=seeding_tracks["dev_seeding_states"],
+        dev_matched_is_scifi_track_used_t=velo_scifi_matches[
+            "dev_matched_is_scifi_track_used"],
+        host_mc_events_t=mc_events.host_mc_events_t)
+
+
+def downstream_dump(downstream_tracks,
+                    dump_scifi=True,
+                    dump_ut_hits=False,
+                    dump_downstream=False,
+                    dump_mcps=False,
+                    output_folder='dump_output'):
+    mc_events = mc_data_provider()
+    number_of_events = initialize_number_of_events()
+    ut_hits = downstream_tracks['decode_ut']
+    velo_scifi_matches = downstream_tracks['velo_scifi_matches']
+    seeding_tracks = downstream_tracks['scifi_seeds']
+    return make_algorithm(
+        host_downstream_dump_t,
+        name='DownstreamDump',
+        # Basic
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_mc_events_t=mc_events.host_mc_events_t,
+        # UT
+        dev_ut_hits_t=ut_hits['dev_ut_hits'],
+        dev_ut_hit_offsets_t=ut_hits['dev_ut_hit_offsets'],
+        # Scifi
+        dev_seeding_qop_t=seeding_tracks["dev_seeding_qop"],
+        # dev_seeding_chi2X_t=seeding_tracks["dev_seeding_chi2X"],
+        dev_seeding_chi2Y_t=seeding_tracks["dev_seeding_chi2Y"],
+        # dev_seeding_nY_t=seeding_tracks["dev_seeding_nY"],
+        dev_offsets_scifi_seeds_t=seeding_tracks["dev_offsets_scifi_seeds"],
+        dev_scifi_hits_t=seeding_tracks["dev_seeding_track_hits"],
+        dev_offsets_scifi_seed_hit_number_t=seeding_tracks[
+            "dev_offsets_scifi_seed_hit_number"],
+        dev_scifi_seeds_t=seeding_tracks["seed_tracks"],
+        dev_seeding_states_t=seeding_tracks["dev_seeding_states"],
+        # VeloScifi
+        dev_matched_is_scifi_track_used_t=velo_scifi_matches[
+            "dev_matched_is_scifi_track_used"],
+        # Downstream
+        dev_offsets_downstream_hit_numbers_t=downstream_tracks[
+            'dev_offsets_downstream_hit_numbers'],
+        dev_offsets_downstream_tracks_t=downstream_tracks[
+            'dev_offsets_downstream_tracks'],
+        dev_downstream_track_scifi_idx_t=downstream_tracks[
+            'dev_downstream_track_scifi_idx'],
+        dev_downstream_track_hits_t=downstream_tracks[
+            'dev_downstream_track_hits'],
+        dev_downstream_track_states_t=downstream_tracks[
+            'dev_downstream_track_states'],
+        dump_scifi=dump_scifi,
+        dump_ut_hits=dump_ut_hits,
+        dump_downstream=dump_downstream,
+        dump_mcps=dump_mcps,
+        output_folder=output_folder)
 
 
 def velo_scifi_dump(matched_tracks, name="veloscifi_dump"):

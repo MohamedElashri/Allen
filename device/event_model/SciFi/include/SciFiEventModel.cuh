@@ -538,6 +538,8 @@ namespace SciFi {
 
     struct Track {
       int number_of_hits = 0;
+      // int nY;
+      // int nX;
       // unsigned int ids[SciFi::Constants::n_layers] = {SciFi::Constants::INVALID_ID};
       unsigned int hits[SciFi::Constants::n_layers] = {SciFi::Constants::INVALID_ID};
       float chi2X, chi2Y;

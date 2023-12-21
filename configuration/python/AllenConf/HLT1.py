@@ -611,7 +611,6 @@ def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
     return lines
 
 
-@configurable
 def setup_hlt1_node(enablePhysics=True,
                     withMCChecking=False,
                     EnableGEC=True,
@@ -625,6 +624,7 @@ def setup_hlt1_node(enablePhysics=True,
                     with_v0s=True,
                     enableBGI=False,
                     velo_open=False,
+                    enableDownstream=False,
                     tracking_type=TrackingType.FORWARD,
                     tae_passthrough=True):
 
@@ -635,6 +635,7 @@ def setup_hlt1_node(enablePhysics=True,
         with_calo=with_calo,
         with_ut=with_ut,
         with_muon=with_muon,
+        enableDownstream=enableDownstream,
         tracking_type=tracking_type,
         velo_open=velo_open)
 
@@ -779,6 +780,23 @@ def setup_hlt1_node(enablePhysics=True,
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)
+
+    # This is used to measure the effect of downstream reconstruction on the final throughput. It should be removed once the real downstream line is implemented.
+    if enableDownstream:
+        hlt1_node = CompositeNode(
+            "AllenWithDownstream", [
+                hlt1_node,
+                CompositeNode(
+                    "DownstreamReconstruction",
+                    prefilters + [
+                        reconstructed_objects["downstream_tracks"]
+                        ["dev_downstream_track_particles_view"]
+                    ],
+                    NodeLogic.LAZY_AND,
+                    force_order=True)
+            ],
+            NodeLogic.NONLAZY_AND,
+            force_order=False)
 
     hlt1_config['line_nodes'] = line_nodes
     hlt1_config['line_algorithms'] = line_algorithms

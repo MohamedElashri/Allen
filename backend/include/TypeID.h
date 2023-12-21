@@ -27,6 +27,7 @@ namespace Allen {
     SciFiTracks,
     VeloUTTracks,
     LongTracks,
+    DownstreamTracks,
     BasicParticle,
     CompositeParticle,
     BasicParticles,
