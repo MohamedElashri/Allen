@@ -31,6 +31,12 @@ for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% 
 19_long_PT>2GeV                                   :         7/        8  87.50% ( 87.50%),         0 (  0.00%) clones, pur 100.00%, hit eff 100.00%
 21_long_strange_P>5GeV                            :       110/      116  94.83% ( 95.83%),         0 (  0.00%) clones, pur  99.77%, hit eff  99.61%
 22_long_strange_P>5GeV_PT>500MeV                  :        22/       23  95.65% ( 95.65%),         0 (  0.00%) clones, pur  99.59%, hit eff  99.24%
+24_noVelo+UT+T_fromKs0                            :        65/       92  70.65% ( 68.21%),         0 (  0.00%) clones, pur 100.00%, hit eff  99.49%
+25_noVelo+UT+T_fromLambda                         :        30/       37  81.08% ( 81.48%),         0 (  0.00%) clones, pur  99.70%, hit eff  98.86%
+27_noVelo+UT+T_fromKs0_P>5GeV                     :        48/       49  97.96% ( 97.67%),         0 (  0.00%) clones, pur 100.00%, hit eff  99.83%
+28_noVelo+UT+T_fromLambda_P>5GeV                  :        22/       22 100.00% (100.00%),         0 (  0.00%) clones, pur  99.59%, hit eff  98.83%
+30_noVelo+UT+T_fromKs0_P>5GeV_PT>500MeV           :        20/       20 100.00% (100.00%),         0 (  0.00%) clones, pur 100.00%, hit eff 100.00%
+31_noVelo+UT+T_fromLambda_P>5GeV_PT>500MeV        :         9/        9 100.00% (100.00%),         0 (  0.00%) clones, pur 100.00%, hit eff  98.99%
 
 
 velo_validator validation:

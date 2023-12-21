@@ -61,6 +61,7 @@ struct Constants {
   std::vector<unsigned> host_unique_x_sector_offsets;
   std::vector<float> host_unique_sector_xs;
   std::vector<char> host_ut_boards;
+  std::vector<float> host_mean_ut_layer_zs;
 
   gsl::span<char> dev_ut_geometry;
   gsl::span<float> dev_ut_dxDy;
@@ -68,6 +69,7 @@ struct Constants {
   gsl::span<unsigned> dev_unique_x_sector_offsets;
   //   gsl::span<unsigned> dev_ut_region_offsets;
   gsl::span<float> dev_unique_sector_xs;
+  gsl::span<float> dev_mean_ut_layer_zs;
   char* dev_ut_boards;
   UTMagnetTool* dev_ut_magnet_tool = nullptr;
 

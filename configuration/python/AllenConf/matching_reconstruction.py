@@ -75,6 +75,8 @@ def make_velo_scifi_matches(
         name=str(matching_consolidate_tracks_name),
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        host_number_of_reconstructed_scifi_tracks_t=seeding_tracks[
+            'host_number_of_reconstructed_seeding_tracks'],
         host_accumulated_number_of_hits_in_matched_tracks_t=
         prefix_sum_matched_track_hit_number.host_total_sum_holder_t,
         host_number_of_reconstructed_matched_tracks_t=prefix_sum_matched_tracks
@@ -108,6 +110,8 @@ def make_velo_scifi_matches(
         matching_consolidate_tracks.dev_scifi_states_t,
         "dev_scifi_track_ut_indices":
         matching_consolidate_tracks.dev_matched_track_velo_indices_t,
+        "dev_matched_is_scifi_track_used":
+        matching_consolidate_tracks.dev_matched_is_scifi_track_used_t,
         "host_number_of_reconstructed_scifi_tracks":
         prefix_sum_matched_tracks.host_total_sum_holder_t,
         "dev_offsets_long_tracks":

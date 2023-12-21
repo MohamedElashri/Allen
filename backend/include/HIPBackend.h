@@ -5,6 +5,7 @@
 
 #include <Logger.h>
 #include "BackendCommonInterface.h"
+#include <hip/hip_runtime.h>
 
 #if !defined(__HCC__) && !defined(__HIP__)
 #define __HIP_PLATFORM_HCC__
@@ -46,6 +47,9 @@
 #include <iomanip>
 #include <hip/hip_fp16.h>
 #define half_t half
+
+#define __fdividef __hip_fast_dividef
+#define __expf __hip_fast_expf
 
 // Intrinsics
 constexpr int warp_size = 64;

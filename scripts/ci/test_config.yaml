@@ -193,6 +193,26 @@ full:
       - a5000
       - geforcertx3090
 
+  # run throughput to assess the impact of adding downstream reconstruction
+  - type: "throughput"
+    sequence:
+      # Impact to VeloScifi matching
+      - trackmatching_veloscifi
+      - trackmatching_veloscifi_and_utdecoding
+      - downstream_no_gec
+      # Impact to full forward then matching sequence
+      - hlt1_pp_forward_then_matching_and_downstream_no_gec
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+  
+  # run physics efficiency for downstream reconstruction
+  - type: "efficiency"
+    sequence:
+      - downstream_no_gec_validation
+      - hlt1_pp_forward_then_matching_and_downstream_no_gec_validation
+    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID_v2_new_UT_geometry"
+    geometry: "upgrade_DC19_01_MinBiasMD_new_UT_geometry"
+
   # Efficiency tests
 
   - type: "efficiency"

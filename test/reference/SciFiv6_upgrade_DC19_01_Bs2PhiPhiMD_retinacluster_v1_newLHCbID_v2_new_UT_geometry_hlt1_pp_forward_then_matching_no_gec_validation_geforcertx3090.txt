@@ -52,6 +52,17 @@ for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% 
 20_long_from_B_PT>2GeV                            :        44/     1098   4.01% (  4.03%),         0 (  0.00%) clones, pur  99.77%, hit eff  97.74%
 21_long_strange_P>5GeV                            :       587/     1710  34.33% ( 34.72%),         0 (  0.00%) clones, pur  99.21%, hit eff  97.23%
 22_long_strange_P>5GeV_PT>500MeV                  :        73/      723  10.10% (  9.92%),         0 (  0.00%) clones, pur  98.91%, hit eff  96.46%
+23_noVelo+UT+T_fromSignal                         :       209/      336  62.20% ( 62.69%),         0 (  0.00%) clones, pur  99.15%, hit eff  97.89%
+24_noVelo+UT+T_fromKs0                            :      1548/     2199  70.40% ( 70.32%),         0 (  0.00%) clones, pur  99.23%, hit eff  97.30%
+25_noVelo+UT+T_fromLambda                         :       924/     1405  65.77% ( 67.39%),         0 (  0.00%) clones, pur  98.97%, hit eff  97.10%
+26_noVelo+UT+T_fromSignal_P>5GeV                  :       136/      154  88.31% ( 89.64%),         0 (  0.00%) clones, pur  99.10%, hit eff  98.15%
+27_noVelo+UT+T_fromKs0_P>5GeV                     :      1084/     1219  88.93% ( 88.94%),         0 (  0.00%) clones, pur  99.20%, hit eff  97.25%
+28_noVelo+UT+T_fromLambda_P>5GeV                  :       669/      763  87.68% ( 87.27%),         0 (  0.00%) clones, pur  99.10%, hit eff  97.23%
+29_noVelo+UT+T_fromSignal_P>5GeV_PT>500MeV        :       103/      114  90.35% ( 89.92%),         0 (  0.00%) clones, pur  99.05%, hit eff  97.81%
+30_noVelo+UT+T_fromKs0_P>5GeV_PT>500MeV           :       590/      673  87.67% ( 88.12%),         0 (  0.00%) clones, pur  99.20%, hit eff  97.32%
+31_noVelo+UT+T_fromLambda_P>5GeV_PT>500MeV        :       446/      511  87.28% ( 87.75%),         0 (  0.00%) clones, pur  99.06%, hit eff  97.22%
+32_noVelo+UT+T_fromSignal_P>5GeV_PT>500MeV_electrons:         1/        1 100.00% (100.00%),         0 (  0.00%) clones, pur 100.00%, hit eff 100.00%
+33_noVelo+UT+T_fromKs0_P>5GeV_PT>500MeV_electrons :         1/        1 100.00% (100.00%),         0 (  0.00%) clones, pur  90.91%, hit eff  83.33%
 
 
 long_validator validation:

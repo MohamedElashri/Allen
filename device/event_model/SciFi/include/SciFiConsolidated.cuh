@@ -5,7 +5,6 @@
 
 #include "ConsolidatedTypes.cuh"
 #include "SciFiEventModel.cuh"
-#include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
 #include <stdint.h>
 

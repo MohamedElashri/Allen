@@ -144,6 +144,61 @@ namespace Allen {
         }
       };
 
+      struct DownstreamTrack : ILHCbIDSequence<DownstreamTrack>, Track {
+        friend ILHCbIDSequence<DownstreamTrack>;
+
+      private:
+        __host__ __device__ unsigned number_of_ids_impl() const { return number_of_hits(); }
+
+        __host__ __device__ unsigned id_impl(const unsigned index) const { return get_id(index); }
+
+      public:
+        DownstreamTrack() = default;
+
+        __host__ __device__ DownstreamTrack(
+          const Allen::Views::UT::Consolidated::Track* ut_segment,
+          const Allen::Views::SciFi::Consolidated::Track* scifi_segment,
+          const float* qop) :
+          Track {nullptr, ut_segment, scifi_segment, qop}
+        {}
+      };
+
+      struct DownstreamTracks : ILHCbIDContainer<DownstreamTracks> {
+        friend Allen::ILHCbIDContainer<DownstreamTracks>;
+        constexpr static auto TypeID = TypeIDs::DownstreamTracks;
+
+      private:
+        const DownstreamTrack* m_track;
+        unsigned m_size = 0;
+        unsigned m_offset = 0;
+
+        __host__ __device__ unsigned number_of_id_sequences_impl() const { return m_size; }
+
+        __host__ __device__ const DownstreamTrack& id_sequence_impl(const unsigned index) const
+        {
+          assert(index < number_of_id_sequences_impl());
+          return m_track[index];
+        }
+
+      public:
+        DownstreamTracks() = default;
+
+        __host__ __device__
+        DownstreamTracks(const DownstreamTrack* track, const unsigned* offset_tracks, const unsigned event_number) :
+          m_track(track + offset_tracks[event_number]),
+          m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]), m_offset(offset_tracks[event_number])
+        {}
+
+        __host__ __device__ unsigned size() const { return m_size; }
+
+        __host__ __device__ float qop(const unsigned index) const { return m_track[index].qop(); }
+
+        __host__ __device__ const DownstreamTrack& track(const unsigned index) const { return id_sequence_impl(index); }
+
+        __host__ __device__ unsigned offset() const { return m_offset; }
+      };
+      using MultiEventDownstreamTracks = Allen::MultiEventContainer<DownstreamTracks>;
+
       struct LongTrack : ILHCbIDSequence<LongTrack>, Track {
         friend ILHCbIDSequence<LongTrack>;
 

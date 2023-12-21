@@ -85,7 +85,8 @@ public:
     }
 
     if constexpr (
-      std::is_same_v<T, Checker::Subdetector::SciFi> || std::is_same_v<T, Checker::Subdetector::SciFiSeeding>) {
+      std::is_same_v<T, Checker::Subdetector::Downstream> || std::is_same_v<T, Checker::Subdetector::SciFi> ||
+      std::is_same_v<T, Checker::Subdetector::SciFiSeeding>) {
       std::printf(
         "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
         "for P>3GeV,Pt>0.5GeV",
@@ -287,6 +288,8 @@ public:
           subdetector_counter = id_counter.second.n_scifi;
         else if constexpr (std::is_same_v<T, Checker::Subdetector::SciFiSeeding>)
           subdetector_counter = id_counter.second.n_scifi;
+        else if constexpr (std::is_same_v<T, Checker::Subdetector::Downstream>)
+          subdetector_counter = id_counter.second.n_ut + id_counter.second.n_scifi;
         const float weight = ((float) counter_sum) / ((float) n_meas);
         const MCAssociator::TrackWithWeight track_weight = {i_track, weight, subdetector_counter};
         assoc_table[(mc_assoc.m_mcps[id_counter.first]).key].push_back(track_weight);
@@ -338,7 +341,11 @@ public:
     std::size_t ntrackstriggerperevt = 0;
     for (size_t i_track = 0; i_track < tracks.size(); ++i_track) {
       const auto& track = tracks[i_track];
-      m_histos->fillTotalHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, static_cast<double>(track.eta));
+      m_histos->fillTotalHistos(
+        mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV,
+        static_cast<double>(track.eta),
+        static_cast<double>(track.p),
+        static_cast<double>(track.pt));
 
       auto match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
 
@@ -350,7 +357,11 @@ public:
       }
       if (!match) {
         ++nghostsperevt;
-        m_histos->fillGhostHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, static_cast<double>(track.eta));
+        m_histos->fillGhostHistos(
+          mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV,
+          static_cast<double>(track.eta),
+          static_cast<double>(track.p),
+          static_cast<double>(track.pt));
         if (triggerCondition) ++nghoststriggerperevt;
         if (track.is_muon) {
           m_histos->fillMuonGhostHistos(
@@ -409,6 +420,9 @@ public:
         m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
       }
       if (std::is_same_v<T, Checker::Subdetector::UT> && mcp.hasVelo && mcp.hasUT) {
+        m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
+      }
+      if (std::is_same_v<T, Checker::Subdetector::Downstream> && !mcp.hasVelo && mcp.hasUT && mcp.hasSciFi) {
         m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
       }
     }
@@ -503,3 +517,4 @@ using TrackCheckerLong = TrackChecker<Checker::Subdetector::SciFi>;
 using TrackCheckerSeeding = TrackChecker<Checker::Subdetector::SciFiSeeding>;
 using TrackCheckerSeedingXZ = TrackChecker<Checker::Subdetector::SciFiSeeding>;
 using TrackCheckerMuon = TrackChecker<Checker::Subdetector::Muon>;
+using TrackCheckerDownstream = TrackChecker<Checker::Subdetector::Downstream>;

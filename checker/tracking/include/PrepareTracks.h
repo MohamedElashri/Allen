@@ -40,6 +40,16 @@ std::vector<Checker::Tracks> prepareUTTracks(
   gsl::span<const float> ut_qop,
   gsl::span<const mask_t> event_list);
 
+std::vector<Checker::Tracks> prepareUnmatchedSeedingTracks(
+  const unsigned number_of_events,
+  gsl::span<const bool> matched_is_scifi_track_used,
+  gsl::span<const unsigned> scifi_seed_atomics,
+  gsl::span<const unsigned> scifi_seed_hit_number,
+  gsl::span<const char> scifi_seed_hits,
+  gsl::span<const SciFi::Seeding::Track> scifi_seeds,
+  gsl::span<const MiniState> seeding_states,
+  gsl::span<const mask_t> event_list);
+
 std::vector<Checker::Tracks> prepareSeedingTracks(
   const unsigned number_of_events,
   gsl::span<const unsigned> scifi_seed_atomics,

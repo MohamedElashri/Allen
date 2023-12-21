@@ -3,6 +3,7 @@
 \*****************************************************************************/
 #include <string>
 #include <vector>
+#include <set>
 #include <BackendCommon.h>
 #include <Common.h>
 #include <Consumers.h>
@@ -59,21 +60,23 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
   auto& host_unique_x_sector_layer_offsets = m_constants.get().host_unique_x_sector_layer_offsets;
   auto& host_unique_x_sector_offsets = m_constants.get().host_unique_x_sector_offsets;
   auto& host_unique_sector_xs = m_constants.get().host_unique_sector_xs;
+  auto& host_mean_ut_layer_zs = m_constants.get().host_mean_ut_layer_zs;
   host_unique_x_sector_layer_offsets[0] = 0;
 
   for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
     const auto offset = offsets[i];
     const auto size = offsets[i + 1] - offsets[i];
 
-    // Copy elements into xs vector
-    std::vector<float> xs(size);
+    // Copy elements into xs vector and zs vector
+    std::vector<float> xs(size), zs(size);
     std::copy_n(geometry.p0X + offset, size, xs.begin());
+    std::copy_n(geometry.p0Z + offset, size, zs.begin());
 
     // Create permutation
     std::vector<int> permutation(xs.size());
     std::iota(permutation.begin(), permutation.end(), 0);
 
-    // Sort permutation according to xs
+    // Sort permutation according to xs and zs
     std::stable_sort(
       permutation.begin(), permutation.end(), [&xs](const int& a, const int& b) { return xs[a] < xs[b]; });
 
@@ -103,6 +106,14 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
       unique_permutation.emplace_back(permutation_repeated[position]);
     }
 
+    // Find the not repeated zs
+    std::set<float> set_zs;
+    std::transform(zs.begin(), zs.end(), std::inserter(set_zs, set_zs.begin()), [](float i) { return fabsf(i); });
+
+    // Fill the average z of each layer
+    const auto mean_z = std::accumulate(set_zs.begin(), set_zs.end(), 0.f) / set_zs.size();
+    host_mean_ut_layer_zs.push_back(mean_z);
+
     // Fill in host_unique_sector_xs
     std::vector<float> temp_unique_elements(number_of_unique_elements);
     for (size_t j = 0; j < size; ++j) {
@@ -128,6 +139,7 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
     std::tuple {std::cref(host_unique_x_sector_layer_offsets),
                 std::ref(m_constants.get().dev_unique_x_sector_layer_offsets)},
     std::tuple {std::cref(host_unique_x_sector_offsets), std::ref(m_constants.get().dev_unique_x_sector_offsets)},
+    std::tuple {std::cref(host_mean_ut_layer_zs), std::ref(m_constants.get().dev_mean_ut_layer_zs)},
     std::tuple {std::cref(host_unique_sector_xs), std::ref(m_constants.get().dev_unique_sector_xs)}};
 
   for_each(

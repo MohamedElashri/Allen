@@ -98,7 +98,7 @@ __global__ void create_scifi_views(
   gsl::span<unsigned> dev_histogram_long_track_forward_nhits)
 {
   const auto* ut_tracks =
-    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
     create_scifi_views_impl<true>(
       parameters,
@@ -492,7 +492,7 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
   gsl::span<unsigned> dev_n_long_tracks_forward_counter)
 {
   const auto* ut_tracks =
-    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
     scifi_consolidate_tracks_impl<true>(
       parameters,

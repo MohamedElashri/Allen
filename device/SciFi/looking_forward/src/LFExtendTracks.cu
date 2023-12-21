@@ -183,7 +183,7 @@ __global__ void lf_create_tracks::lf_extend_tracks(
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   const auto* ut_tracks =
-    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
     extend_tracks<true>(parameters, dev_looking_forward_constants, ut_tracks);
   }

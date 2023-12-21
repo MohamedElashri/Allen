@@ -76,6 +76,8 @@ def decode_ut():
         ut_decode_raw_banks_in_order.dev_ut_hits_t,
         "dev_ut_hit_offsets":
         prefix_sum_ut_hits.dev_output_buffer_t,
+        "host_ut_hit_offsets":
+        prefix_sum_ut_hits.host_output_buffer_t,
         "host_accumulated_number_of_ut_hits":
         prefix_sum_ut_hits.host_total_sum_holder_t
     }
@@ -216,12 +218,16 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         velo_states,
         "host_number_of_reconstructed_ut_tracks":
         prefix_sum_ut_tracks.host_total_sum_holder_t,
+        "host_number_of_hits_of_reconstructed_ut_tracks":
+        prefix_sum_ut_track_hit_number.host_total_sum_holder_t,
         "dev_offsets_ut_tracks":
         prefix_sum_ut_tracks.dev_output_buffer_t,
         "dev_offsets_ut_track_hit_number":
         prefix_sum_ut_track_hit_number.dev_output_buffer_t,
         "dev_ut_track_hits":
         ut_consolidate_tracks.dev_ut_track_hits_t,
+        "dev_is_ut_hit_used":
+        ut_consolidate_tracks.dev_is_ut_hit_used_t,
         "dev_ut_qop":
         ut_consolidate_tracks.dev_ut_qop_t,
         "dev_ut_track_velo_indices":

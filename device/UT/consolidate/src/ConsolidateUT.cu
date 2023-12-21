@@ -9,21 +9,21 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = blockIdx.x;
-
   const auto event_tracks_offset = parameters.dev_atomics_ut[event_number];
   const auto event_number_of_tracks = parameters.dev_atomics_ut[event_number + 1] - event_tracks_offset;
   const auto event_ut_track_velo_indices = parameters.dev_ut_track_velo_indices + event_tracks_offset;
+
   for (unsigned track_index = threadIdx.x; track_index < event_number_of_tracks; track_index += blockDim.x) {
     const auto velo_track_index = event_ut_track_velo_indices[track_index];
-    new (parameters.dev_ut_track_view + event_tracks_offset + track_index)
-      Allen::Views::UT::Consolidated::Track {parameters.dev_ut_hits_view,
-                                             &parameters.dev_velo_tracks_view[event_number].track(velo_track_index),
-                                             parameters.dev_ut_track_params,
-                                             parameters.dev_atomics_ut,
-                                             parameters.dev_ut_track_hit_number,
-                                             event_number_of_tracks,
-                                             track_index,
-                                             event_number};
+    new (parameters.dev_ut_track_view + event_tracks_offset + track_index) Allen::Views::UT::Consolidated::VeloUTTrack {
+      parameters.dev_ut_hits_view,
+      &parameters.dev_velo_tracks_view[event_number].track(velo_track_index),
+      parameters.dev_ut_track_params,
+      parameters.dev_atomics_ut,
+      parameters.dev_ut_track_hit_number,
+      event_number_of_tracks,
+      track_index,
+      event_number};
   }
 
   if (threadIdx.x == 0) {
@@ -34,13 +34,13 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
                                             event_number,
                                             number_of_events};
 
-    new (parameters.dev_ut_tracks_view + event_number)
-      Allen::Views::UT::Consolidated::Tracks {parameters.dev_ut_track_view, parameters.dev_atomics_ut, event_number};
+    new (parameters.dev_ut_tracks_view + event_number) Allen::Views::UT::Consolidated::VeloUTTracks {
+      parameters.dev_ut_track_view, parameters.dev_atomics_ut, event_number};
   }
 
   if (blockIdx.x == 0 && threadIdx.x == 0) {
     new (parameters.dev_ut_multi_event_tracks_view)
-      Allen::Views::UT::Consolidated::MultiEventTracks {parameters.dev_ut_tracks_view, number_of_events};
+      Allen::Views::UT::Consolidated::MultiEventVeloUTTracks {parameters.dev_ut_tracks_view, number_of_events};
 
     parameters.dev_imec_ut_tracks[0] = parameters.dev_ut_multi_event_tracks_view;
   }
@@ -52,7 +52,8 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::set_arguments_size(
   const Constants&) const
 {
   set_size<dev_ut_track_hits_t>(
-    arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::Consolidated::Hits::element_size);
+    arguments, first<host_accumulated_number_of_hits_in_ut_tracks_t>(arguments) * UT::Consolidated::Hits::element_size);
+  set_size<dev_is_ut_hit_used_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments));
   set_size<dev_ut_track_velo_indices_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
   set_size<dev_ut_qop_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
   set_size<dev_ut_track_params_t>(arguments, 4 * first<host_number_of_reconstructed_ut_tracks_t>(arguments));
@@ -71,7 +72,7 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
 {
   Allen::memset_async<dev_ut_multi_event_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_ut_tracks_view_t>(arguments, 0, context);
-
+  Allen::memset_async<dev_is_ut_hit_used_t>(arguments, 0, context);
   global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
 
@@ -144,6 +145,11 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
     event_ut_track_params[i + 2 * number_of_tracks_event] = track.z;
     event_ut_track_params[i + 3 * number_of_tracks_event] = track.tx;
 
+    // Fill the used hit index
+    populate(track, [&parameters, &event_offset](const unsigned, const unsigned j) {
+      parameters.dev_is_ut_hit_used[j + event_offset] = true;
+    });
+
     UT::Consolidated::Hits consolidated_hits = ut_tracks.get_hits(parameters.dev_ut_track_hits, i);
 
     // Populate the consolidated hits.
@@ -185,8 +191,8 @@ void ut_consolidate_tracks::lhcb_id_container_checks::operator()(
 {
   const auto ut_multi_event_tracks_view =
     make_host_buffer<Parameters::dev_ut_multi_event_tracks_view_t>(arguments, context);
-  const Allen::Views::UT::Consolidated::MultiEventTracks* multiev_id_cont =
-    reinterpret_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(ut_multi_event_tracks_view.data());
+  const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks* multiev_id_cont =
+    reinterpret_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(ut_multi_event_tracks_view.data());
 
   // Conditions to check
   const bool size_is_number_of_events =

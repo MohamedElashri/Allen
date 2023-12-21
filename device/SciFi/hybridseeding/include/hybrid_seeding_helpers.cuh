@@ -97,8 +97,8 @@ namespace seed_uv {
     int number_of_hits {1};
     int idx[SciFi::Constants::n_uvlayers] = {SciFi::Constants::INVALID_IDX};
     float y[SciFi::Constants::n_uvlayers] = {0};
-    float ay;
-    float by;
+    float ay = {0};
+    float by = {0};
     float chi2;
     float p;
     float qop;

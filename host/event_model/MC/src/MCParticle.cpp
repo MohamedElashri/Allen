@@ -51,3 +51,9 @@ uint32_t get_num_hits_subdetector<Checker::Subdetector::SciFiSeeding>(const MCPa
 {
   return mc_particle.scifi_num_hits;
 }
+
+template<>
+uint32_t get_num_hits_subdetector<Checker::Subdetector::Downstream>(const MCParticle& mc_particle)
+{
+  return mc_particle.ut_num_hits + mc_particle.scifi_num_hits;
+}
