@@ -13,9 +13,7 @@
 #include "Logger.h"
 
 #ifndef ALLEN_STANDALONE
-#include "Gaudi/Accumulators.h"
-#include "Gaudi/MonitoringHub.h"
-#include <GAUDI_VERSION.h>
+#include <Gaudi/BaseSink.h>
 #endif
 
 #include <deque>
@@ -26,43 +24,34 @@ struct MonitoringPrinter {
   void process(bool = false) {}
 };
 #else
-struct MonitoringPrinter : public Gaudi::Monitoring::Hub::Sink {
+struct MonitoringPrinter : public Gaudi::Monitoring::BaseSink {
   using Entity = Gaudi::Monitoring::Hub::Entity;
 
-  MonitoringPrinter(unsigned int printPeriod = 10, bool do_print = true) : m_printPeriod(printPeriod), m_print(do_print)
+  MonitoringPrinter(std::string name, ISvcLocator* svcloc, unsigned int printPeriod = 10, bool do_print = true) :
+    BaseSink(name, svcloc), m_printPeriod(printPeriod), m_print(do_print)
   {}
 
-  virtual void registerEntity(Entity ent) override { m_entities.push_back(ent); }
-
-  virtual void removeEntity(Entity const&) override
+  void flush(bool) override
   {
-    // auto it = std::find(begin(m_entities), end(m_entities), ent);
-    // if (it != m_entities.end()) m_entities.erase(it);
+    applyToAllEntities([](auto& entity) {
+      nlohmann::json j = entity;
+      info_cout << entity.component << ":" << entity.name;
+      if (j.count("nEntries")) {
+        info_cout << "\tEntries: " << j["nEntries"];
+      }
+      info_cout << std::endl;
+    });
   }
 
   void process(bool forcePrint = false)
   {
     if (m_print && (++m_delayCount >= m_printPeriod || forcePrint)) {
       m_delayCount = 0;
-      for (auto entity : m_entities) {
-        nlohmann::json json =
-#if GAUDI_MAJOR_VERSION >= 37
-          entity;
-#else
-          entity.toJSON();
-#endif
-        info_cout << entity.component << ":" << entity.name;
-        if (json.count("nEntries")) {
-          info_cout << "\tEntries: " << json["nEntries"];
-        }
-        info_cout << std::endl;
-      }
+      flush(false);
     }
   }
 
 private:
-  std::deque<Entity> m_entities;
-
   unsigned int m_printPeriod;
   unsigned int m_delayCount {0};
   bool m_print;
