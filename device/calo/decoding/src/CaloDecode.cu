@@ -24,7 +24,9 @@ namespace {
     unsigned const event_number,
     CaloDigit* digits,
     unsigned const number_of_digits,
-    const CaloGeometry& geometry)
+    const CaloGeometry& geometry,
+    const int16_t min_seed_adc,
+    const int16_t min_neighbor_adc)
   {
     auto raw_event = RawEvent {data, offsets, sizes, types, event_number};
     [[maybe_unused]] auto raw_event_fiberCheck = RawEvent {data, offsets, sizes, types, event_number};
@@ -182,15 +184,50 @@ namespace {
             }
           }
         }
+
       } // end Run 3 decoding
+    }
+
+    __syncthreads(); // make sure we finished filling digits before reading
+
+    // == Apply 2D zero-suppression
+    for (unsigned i = threadIdx.x; i < number_of_digits; i += blockDim.x) {
+      // if the current cell is a seed, exit to avoid looping through the neighbors
+      if (digits[i].adc >= min_seed_adc) continue;
+
+      // if the current cell is bellow neighbor threshold set it to invalid and go to the next
+      if (digits[i].adc < min_neighbor_adc) {
+        digits[i].adc = CaloDigit::INVALID_ADC;
+        continue;
+      }
+
+      // else we check if at least one of the neighbor is passing the min_seed_adc check
+      bool isNeighbor = false;
+      uint16_t* neighbors = &(geometry.neighbors[i * Calo::Constants::max_neighbours]);
+      for (unsigned n = 0; n < Calo::Constants::max_neighbours; n++) {
+        auto const neighbor_id = neighbors[n];
+        if (neighbor_id == USHRT_MAX) break;
+        auto const neighbor_adc = digits[neighbor_id].adc;
+        if (neighbor_adc != CaloDigit::INVALID_ADC && neighbor_adc >= min_seed_adc) {
+          isNeighbor = true;
+          break;
+        }
+      }
+
+      // set to invalid if no neighbor is a seed and the current cell is not a seed
+      if (!isNeighbor) digits[i].adc = CaloDigit::INVALID_ADC;
     }
   }
 } // namespace
 
 // Decode dispatch
 template<bool mep_layout, int decoding_version>
-__global__ void
-calo_decode_dispatch(calo_decode::Parameters parameters, const char* raw_ecal_geometry, const unsigned event_start)
+__global__ void calo_decode_dispatch(
+  calo_decode::Parameters parameters,
+  const char* raw_ecal_geometry,
+  const unsigned event_start,
+  const int16_t min_seed_adc,
+  const int16_t min_neighbor_adc)
 {
   unsigned const event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -206,7 +243,9 @@ calo_decode_dispatch(calo_decode::Parameters parameters, const char* raw_ecal_ge
     event_number + event_start,
     &parameters.dev_ecal_digits[ecal_digits_offset],
     parameters.dev_ecal_digits_offsets[event_number + 1] - ecal_digits_offset,
-    ecal_geometry);
+    ecal_geometry,
+    min_seed_adc,
+    min_neighbor_adc);
 }
 
 void calo_decode::calo_decode_t::set_arguments_size(
@@ -258,5 +297,9 @@ void calo_decode::calo_decode_t::operator()(
                            (bank_version == 5 ? calo_decode_dispatch<false, 5> : calo_decode_dispatch<false, 3>) );
 
   global_function(fn)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, constants.dev_ecal_geometry, std::get<0>(runtime_options.event_interval));
+    arguments,
+    constants.dev_ecal_geometry,
+    std::get<0>(runtime_options.event_interval),
+    property<ecal_min_seed_adc_t>().get(),
+    property<ecal_min_neighbor_adc_t>().get());
 }
