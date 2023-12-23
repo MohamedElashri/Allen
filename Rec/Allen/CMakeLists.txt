@@ -53,7 +53,6 @@ gaudi_add_module(AllenWrapper
                    Gear
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
-                   LHCb::DAQKernelLib
                    LHCb::RecEvent
                    LHCb::VPDetLib
                    LHCb::UTDetLib
@@ -101,7 +100,6 @@ gaudi_add_module(AllenAlgorithms
                    mdf
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
-                   LHCb::DAQKernelLib
                    LHCb::VPDetLib
                    LHCb::UTDetLib
                    LHCb::UTKernelLib

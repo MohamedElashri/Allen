@@ -59,7 +59,6 @@ gaudi_add_module(BinaryDumpersModule
                    LHCb::LinkerEvent
                    LHCb::MCEvent
                    LHCb::DAQEventLib
-                   LHCb::DAQKernelLib
                    LHCb::RecEvent
                    LHCb::VPDetLib
                    LHCb::UTDetLib
