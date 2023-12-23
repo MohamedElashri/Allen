@@ -17,7 +17,6 @@ gaudi_add_module(RootDumpers
                    Gaudi::GaudiAlgLib
                    LHCb::AssociatorsBase
                    LHCb::DAQEventLib
-                   LHCb::DAQKernelLib
                    LHCb::LinkerEvent
                    LHCb::TrackEvent
                    LHCb::MCEvent
