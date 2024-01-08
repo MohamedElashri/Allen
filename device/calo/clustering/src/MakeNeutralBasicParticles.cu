@@ -15,8 +15,7 @@ INSTANTIATE_ALGORITHM(make_neutral_basic_particles::make_neutral_particles_t)
 void make_neutral_basic_particles::make_neutral_particles_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants&,
-  const HostBuffers&) const
+  const Constants&) const
 {
   auto n_clusters = first<host_number_of_clusters_t>(arguments);
   set_size<dev_neutral_basic_particle_view_t>(arguments, n_clusters);
@@ -29,7 +28,6 @@ void make_neutral_basic_particles::make_neutral_particles_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
-  HostBuffers&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_neutral_basic_particle_view_t>(arguments, 0, context);

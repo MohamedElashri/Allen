@@ -10,11 +10,12 @@ INSTANTIATE_LINE(single_calo_cluster_line::single_calo_cluster_line_t, single_ca
 
 __device__ bool single_calo_cluster_line::single_calo_cluster_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::NeutralBasicParticle> input)
+  std::tuple<const Allen::Views::Physics::NeutralBasicParticle, const unsigned> input)
 {
   const auto calo = std::get<0>(input);
   const auto& ecal_cluster = calo.cluster();
   const float z = Calo::Constants::z; // mm
+  const unsigned ecal_number_of_clusters = std::get<1>(input);
 
   const float sintheta = sqrtf(
     (ecal_cluster.x * ecal_cluster.x + ecal_cluster.y * ecal_cluster.y) /
@@ -28,7 +29,7 @@ __device__ bool single_calo_cluster_line::single_calo_cluster_line_t::select(
 
 __device__ void single_calo_cluster_line::single_calo_cluster_line_t::fill_tuples(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::NeutralBasicParticle> input,
+  std::tuple<const Allen::Views::Physics::NeutralBasicParticle, const unsigned> input,
   unsigned index,
   bool sel)
 {
@@ -36,7 +37,6 @@ __device__ void single_calo_cluster_line::single_calo_cluster_line_t::fill_tuple
   const auto& ecal_cluster = calo.cluster();
   
   if (sel) {
-    const auto& ecal_cluster = std::get<0>(input);
     const float& z = Calo::Constants::z; // mm
     const float sintheta = sqrtf(
       (ecal_cluster.x * ecal_cluster.x + ecal_cluster.y * ecal_cluster.y) /

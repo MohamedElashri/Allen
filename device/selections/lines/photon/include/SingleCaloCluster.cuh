@@ -48,11 +48,19 @@ namespace single_calo_cluster_line {
                                       Parameters,
                                       CaloClusterLine<single_calo_cluster_line_t, Parameters> {
 
+    __device__ static std::tuple<const Allen::Views::Physics::NeutralBasicParticle, const unsigned>
+      get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
+      {
+        const auto calos = parameters.dev_particle_container->container(event_number);
+        const auto calo = calos.particle(i);
+        return std::forward_as_tuple(calo, calos.size());
+      }
+
     void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
 
     __device__ static void monitor(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::NeutralBasicParticle> input,
+      std::tuple<const Allen::Views::Physics::NeutralBasicParticle, const unsigned> input,
       unsigned index,
       bool sel);
 
@@ -61,13 +69,13 @@ namespace single_calo_cluster_line {
 
     __device__ static bool select(
       const Parameters& ps,
-      std::tuple<const Allen::Views::Physics::NeutralBasicParticle> input);
+      std::tuple<const Allen::Views::Physics::NeutralBasicParticle, const unsigned> input);
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions&,
-      const Constants&,
-      const HostBuffers&) const;
+    __device__ static void fill_tuples(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::NeutralBasicParticle, const unsigned> input,
+      unsigned index,
+      bool sel);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
