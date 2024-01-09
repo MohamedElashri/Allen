@@ -414,6 +414,8 @@ namespace Allen {
       };
 
       struct NeutralBasicParticle : IParticle {
+        constexpr static auto TypeID = Allen::TypeIDs::NeutralBasicParticle;
+
       private:
         const CaloCluster* m_calo_cluster;
 
@@ -451,6 +453,12 @@ namespace Allen {
         {}
 
         __host__ __device__ unsigned offset() const { return m_offset; }
+
+        __host__ __device__ const NeutralBasicParticle* particle_pointer(const unsigned index) const
+        {
+          return static_cast<const NeutralBasicParticle*>(m_particle) + index;
+        }
+
       };
 
       struct CompositeParticle : IParticle {
