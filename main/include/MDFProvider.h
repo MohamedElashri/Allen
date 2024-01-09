@@ -100,8 +100,9 @@ public:
     std::unordered_set<BankTypes> const& bank_types,
     MDFProviderConfig config = MDFProviderConfig {}) :
     InputProvider {n_slices, events_per_slice, bank_types, IInputProvider::Layout::Allen, n_events},
-    m_buffer_status(n_slices), m_slice_to_buffer(n_slices, {-1, 0}), m_slice_free(n_slices, true), m_mfp_count {0},
-    m_event_ids {n_slices}, m_connections {std::move(connections)}, m_config {config}
+    m_buffer_status(n_slices), m_slice_to_buffer(n_slices, {-1, 0}), m_banks_version {n_slices},
+    m_slice_free(n_slices, true), m_mfp_count {0}, m_event_ids {n_slices},
+    m_connections {std::move(connections)}, m_config {config}
   {
     // Preallocate prefetch buffer memory
     m_buffers.resize(n_slices);
@@ -120,15 +121,14 @@ public:
     // Allocate space to store event ids
     for (size_t n = 0; n < n_slices; ++n) {
       m_event_ids[n].reserve(events_per_slice);
+      // initialize bank version, needed for banks of subdetectors not present in input data
+      std::fill(m_banks_version[n].begin(), m_banks_version[n].end(), -1);
     }
 
     m_odins.resize(n_slices);
 
     // Reserve 1MB for decompression
     m_compress_buffer.reserve(1u * MB);
-
-    // initialize bank version, needed for banks of subdetectors not present in input data
-    std::fill(m_banks_version.begin(), m_banks_version.end(), -1);
 
     // Start prefetch thread and count bank types once a single buffer
     // is available
@@ -168,12 +168,6 @@ public:
           m_bank_sorter = sort_by_sourceID;
         }
         std::tie(count_success, m_mfp_count) = fill_counts(event_span, m_sd_from_raw, m_config.skip_banks);
-
-        for (auto allen_type : types()) {
-          if (m_mfp_count[to_integral(allen_type)] == 0) {
-            info_cout << "WARNING: Banks for " << bank_name(allen_type) << " are not present in the file\n";
-          }
-        }
 
         if (!count_success) {
           error_cout << "Failed to determine bank counts\n";
@@ -292,7 +286,7 @@ public:
     auto const offsets = slice.offsets;
     auto const offsets_size = slice.n_offsets;
 
-    auto const version = m_banks_version[ib];
+    auto const version = m_banks_version[slice_index][ib];
 
     if (version == -1) {
       BanksAndOffsets bno {};
@@ -554,7 +548,7 @@ private:
         m_bank_sorter,
         m_mfp_count,
         m_config.skip_banks,
-        m_banks_version,
+        m_banks_version[*slice_index],
         m_event_ids[*slice_index],
         m_masks[*slice_index],
         this->events_per_slice(),
@@ -572,7 +566,7 @@ private:
         auto ib = to_integral(BankTypes::ODIN);
         auto& slice = m_slices[ib][*slice_index];
         auto ob = odin_bank<false>(slice.fragments[0].data(), slice.offsets.data(), slice.sizes.data(), 0);
-        m_odins[*slice_index] = MDF::decode_odin({ob.data, ob.size}, m_banks_version[ib]);
+        m_odins[*slice_index] = MDF::decode_odin({ob.data, ob.size}, m_banks_version[*slice_index][ib]);
       }
 
       // Increment the transpose_start with the number of transposed events
@@ -828,7 +822,7 @@ private:
   std::vector<SliceToBuffer> m_slice_to_buffer;
 
   // Array to store the version of banks per bank type
-  mutable std::array<int, NBankTypes> m_banks_version;
+  mutable std::vector<std::array<int, NBankTypes>> m_banks_version;
 
   // Mutex, condition varaible and queue for parallel transposition of slices
   std::mutex m_transpose_mut;

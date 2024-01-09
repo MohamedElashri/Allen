@@ -42,7 +42,7 @@ namespace SciFi {
     uint8_t const* m_raw_bank_types = nullptr;
     char const* m_payload = nullptr;
 
-    __device__ __host__ void initialize(const char* event, const uint16_t* sizes, const uint8_t* types = nullptr)
+    __device__ __host__ void initialize(const char* event, const uint16_t* sizes, const uint8_t* types)
     {
       const char* p = event;
       m_number_of_raw_banks = reinterpret_cast<uint32_t const*>(p)[0];
@@ -55,20 +55,6 @@ namespace SciFi {
     }
 
   public:
-    // FIXME: temporarily keep this one until types is properly propagated everywhere.
-    __device__ __host__ SciFiRawEvent(const char* event, const uint16_t* sizes) { initialize(event, sizes); }
-
-    // FIXME: temporarily keep this one until types is properly propagated everywhere.
-    __device__ __host__ SciFiRawEvent(
-      const char* dev_scifi_raw_input,
-      const unsigned* dev_scifi_raw_input_offsets,
-      const unsigned* dev_scifi_raw_input_sizes,
-      const unsigned event_number)
-    {
-      const uint16_t* sizes = Allen::bank_sizes(dev_scifi_raw_input_sizes, event_number);
-      initialize(dev_scifi_raw_input + dev_scifi_raw_input_offsets[event_number], sizes);
-    }
-
     __device__ __host__ SciFiRawEvent(const char* event, const uint16_t* sizes, const uint8_t* types)
     {
       initialize(event, sizes, types);
@@ -90,18 +76,14 @@ namespace SciFi {
 
     __device__ __host__ SciFiRawBank raw_bank(const unsigned index) const
     {
-      auto type = m_raw_bank_types == nullptr ? uint8_t {0} : m_raw_bank_types[index];
-      return SciFiRawBank {m_payload + m_raw_bank_offset[index], m_raw_bank_sizes[index], type};
+      return SciFiRawBank {m_payload + m_raw_bank_offset[index], m_raw_bank_sizes[index], m_raw_bank_types[index]};
     }
 
     // get bank size in bytes, subtract four bytes for header word
     __device__ __host__ unsigned bank_size(const unsigned index) const { return m_raw_bank_sizes[index] - 4; }
 
     // get bank type
-    __device__ __host__ unsigned bank_type(const unsigned index) const
-    {
-      return m_raw_bank_types == nullptr ? uint8_t {0} : m_raw_bank_types[index];
-    }
+    __device__ __host__ unsigned bank_type(const unsigned index) const { return m_raw_bank_types[index]; }
   };
 
   /**

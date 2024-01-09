@@ -3,7 +3,7 @@
 ###############################################################################
 from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
                              make_checkCylPV, make_checkPseudoPV,
-                             make_invert_event_list)
+                             make_invert_event_list, sd_error_filter)
 from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
@@ -674,6 +674,13 @@ def setup_hlt1_node(enablePhysics=True,
                     make_passthrough_line(
                         name="Hlt1TAEPassthrough", pre_scaler=1))
             ]
+
+    with line_maker.bind(prefilter=[sd_error_filter()]):
+        monitoring_lines += [
+            line_maker(
+                make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.01))
+        ]
+
     if EnableGEC:
         with line_maker.bind(prefilter=prefilters):
             physics_lines += [

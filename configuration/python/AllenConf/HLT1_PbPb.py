@@ -1,7 +1,7 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenConf.utils import make_gec, line_maker, make_checkEcalEnergy, make_lowmult
+from AllenConf.utils import make_gec, line_maker, make_checkEcalEnergy, make_lowmult, sd_error_filter
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_calibration_lines import (
     make_d2kpi_line,
@@ -456,6 +456,12 @@ def setup_hlt1_node(withMCChecking=False,
             reconstructed_objects["pvs"],
             reconstructed_objects["velo_states"],
             prefilter=(prefilter_upc_bgi if mini else prefilters_bgi))
+
+    with line_maker.bind(prefilter=[sd_error_filter()]):
+        physics_lines += [
+            line_maker(
+                make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.01))
+        ]
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines

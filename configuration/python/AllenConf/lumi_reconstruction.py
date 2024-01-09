@@ -2,7 +2,7 @@
 # (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
 import json
-from AllenCore.algorithms import data_provider_t, host_prefix_sum_t
+from AllenCore.algorithms import host_prefix_sum_t
 from AllenCore.algorithms import (velo_lumi_counters_t, pv_lumi_counters_t,
                                   muon_lumi_counters_t, scifi_lumi_counters_t,
                                   calo_lumi_counters_t, plume_lumi_counters_t,

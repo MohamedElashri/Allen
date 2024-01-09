@@ -27,6 +27,7 @@ def decode_scifi():
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
         dev_scifi_raw_input_sizes_t=scifi_banks.dev_raw_sizes_t,
+        dev_scifi_raw_input_types_t=scifi_banks.dev_raw_types_t,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
 
@@ -44,6 +45,7 @@ def decode_scifi():
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
         dev_scifi_raw_input_sizes_t=scifi_banks.dev_raw_sizes_t,
+        dev_scifi_raw_input_types_t=scifi_banks.dev_raw_types_t,
         dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t,
         host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
 
@@ -57,6 +59,7 @@ def decode_scifi():
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
         dev_scifi_raw_input_sizes_t=scifi_banks.dev_raw_sizes_t,
+        dev_scifi_raw_input_types_t=scifi_banks.dev_raw_types_t,
         dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t,
         dev_cluster_references_t=scifi_pre_decode.dev_cluster_references_t,
         host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)

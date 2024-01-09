@@ -10,7 +10,7 @@
 ###############################################################################
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenConf.persistency import make_gather_selections, make_global_decision, make_dec_reporter, make_sel_report_writer, make_routingbits_writer
-from AllenConf.HLT1 import line_maker
+from AllenConf.utils import line_maker, sd_error_filter
 from AllenConf.validators import rate_validation
 from AllenConf.hlt1_photon_lines import make_single_calo_cluster_line
 from AllenConf.hlt1_monitoring_lines import make_calo_digits_minADC_line, make_t_cosmic_line, make_velo_micro_bias_line
@@ -19,6 +19,7 @@ from AllenConf.calo_reconstruction import decode_calo, make_ecal_clusters
 from AllenConf.scifi_reconstruction import decode_scifi, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.muon_reconstruction import make_muon_stubs
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
+from AllenConf.hlt1_calibration_lines import make_passthrough_line
 
 
 def calo_cosmics_lines(ecal_clusters):
@@ -62,6 +63,13 @@ def alignment_monitoring_lines(velo_tracks):
         line_maker(
             make_velo_micro_bias_line(velo_tracks, name="Hlt1VeloMicroBias"))
     ]
+
+    with line_maker.bind(prefilter=[sd_error_filter()]):
+        lines += [
+            line_maker(
+                make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.01))
+        ]
+
     return lines
 
 
