@@ -54,6 +54,15 @@ namespace Allen {
     return bank_types(types_offsets, event)[bank];
   }
 
+  __host__ __device__ inline unsigned int
+  number_of_banks(char const* data, unsigned const* offsets, unsigned const event_number)
+  {
+    // In Allen layout the offsets are indexed using the event number
+    char const* event_data = data + offsets[event_number];
+    // The first 4 bytes of the event data is the number of banks in the event
+    return reinterpret_cast<unsigned const*>(event_data)[0];
+  }
+
   static constexpr uint8_t LastBankType = static_cast<uint8_t>(to_integral(LHCb::RawBank::LastType));
 } // namespace Allen
 

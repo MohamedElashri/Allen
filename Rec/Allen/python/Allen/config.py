@@ -126,6 +126,7 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
         'PVs': None,
         'tracks': None,
         'Plume': None,
+        'HCal': None,
     }
 
     if type(bank_types) == list:

@@ -15,8 +15,7 @@ from PyConf.tonic import configurable
 
 def decode_ut():
     number_of_events = initialize_number_of_events()
-    ut_banks = make_algorithm(
-        data_provider_t, name='ut_banks_{hash}', bank_type="UT")
+    ut_banks = make_algorithm(data_provider_t, name='ut_banks', bank_type="UT")
 
     ut_calculate_number_of_hits = make_algorithm(
         ut_calculate_number_of_hits_t,

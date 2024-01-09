@@ -60,6 +60,7 @@ __global__ void scifi_raw_bank_decoder_kernel(
     parameters.dev_scifi_raw_input,
     parameters.dev_scifi_raw_input_offsets,
     parameters.dev_scifi_raw_input_sizes,
+    parameters.dev_scifi_raw_input_types,
     event_number + event_start);
 
   SciFi::Hits hits {parameters.dev_scifi_hits,
@@ -72,6 +73,8 @@ __global__ void scifi_raw_bank_decoder_kernel(
     const int it_number = SciFi::ClusterReference::getICluster(cluster_reference);
 
     const auto rawbank = scifi_raw_event.raw_bank(raw_bank_number);
+    if (rawbank.type != LHCb::RawBank::FTCluster) continue;
+
     const auto iRowInMap = SciFi::getRowInMap(rawbank, geom);
     if (iRowInMap == geom.number_of_banks) continue;
     const auto [starting_it, last] = SciFi::readAndCheckRawBank(rawbank);

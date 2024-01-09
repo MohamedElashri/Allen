@@ -1,12 +1,13 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
-from AllenCore.generator import make_algorithm
+from AllenCore.generator import make_algorithm, initialize_event_lists
 from AllenCore.algorithms import (
     host_init_number_of_events_t, host_data_provider_t, host_scifi_gec_t,
     host_ut_gec_t, layout_provider_t, check_pvs_t, check_cyl_pvs_t,
     low_occupancy_t, event_list_inversion_t, host_dummy_maker_t,
-    check_localized_beamline_ip_t, check_ecal_energy_t)
+    check_localized_beamline_ip_t, error_bank_filter_t, data_provider_t,
+    check_ecal_energy_t)
 from PyConf.tonic import configurable
 from PyConf.control_flow import NodeLogic, CompositeNode
 
@@ -19,7 +20,6 @@ def make_line_composite_node(name, algos):
 
 @configurable
 def line_maker(line_algorithm, prefilter=None):
-    #add odin error filter by default
     if prefilter is None:
         node = make_line_composite_node(
             line_algorithm.name, algos=[line_algorithm])
@@ -174,6 +174,8 @@ def initialize_number_of_events():
     return {
         "host_number_of_events":
         initialize_number_of_events.host_number_of_events_t,
+        "host_event_list":
+        initialize_number_of_events.host_number_of_events_t,
         "dev_number_of_events":
         initialize_number_of_events.dev_number_of_events_t,
     }
@@ -282,3 +284,67 @@ def checkEcalEnergy(ecal_energy,
 
 def make_dummy():
     return make_algorithm(host_dummy_maker_t, name="host_dummy_maker")
+
+
+def sd_error_filter():
+    number_of_events = initialize_number_of_events()
+    event_list = initialize_event_lists()
+    layout = mep_layout()
+
+    bank_types = {
+        "ODIN": {
+            "data_types": ["ODIN"]
+        },
+        "VP": {
+            "data_types": ["VP", "VPRetinaCluster"],
+            "error_types": ["VeloError"]
+        },
+        "UT": {
+            "data_types": ["UT", "UTFull"],
+            "other_types": ["UTPedestal", "UTNZS", "UTSpecial"],
+            "error_types": ["UTError"]
+        },
+        "Rich1": {
+            "data_types": ["Rich"],
+            "other_types": ["RichCommissioning"],
+            "error_types": ["RichError"]
+        },
+        "FTCluster": {
+            "data_types": ["FTCluster"],
+            "other_types":
+            ["FTGeneric", "FTCalibration", "FTNZS", "FTSpecial"],
+            "error_types": ["FTError"]
+        },
+        "Rich2": {
+            "data_types": ["Rich"],
+            "other_types": ["RichCommissioning"],
+            "error_types": ["RichError"]
+        },
+        "ECal": {
+            "data_types": ["Calo"],
+            "other_types": ["CaloSpecial"],
+            "error_types": ["CaloError"]
+        },
+        "HCal": {
+            "data_types": ["Calo"],
+            "other_types": ["CaloSpecial"],
+            "error_types": ["CaloError"]
+        },
+        "Muon": {
+            "data_types": ["Muon", "MuonFull"],
+            "other_types": ["MuonSpecial"],
+            "error_types": ["MuonError"]
+        },
+        "Plume": {
+            "data_types": ["Plume"],
+            "other_types": ["PlumeSpecial"],
+            "error_types": ["PlumeError"]
+        }
+    }
+
+    return make_algorithm(
+        error_bank_filter_t,
+        name="error_bank_filter",
+        host_event_list_t=event_list.host_event_list_output_t,
+        mep_layout_t=layout['host_mep_layout'],
+        sd_bank_types=bank_types)

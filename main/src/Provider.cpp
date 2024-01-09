@@ -55,7 +55,10 @@ std::string Allen::sequence_conf(std::map<std::string, std::string> const& optio
 
   std::regex tck_option {"([^:]+):(0x[a-fA-F0-9]{8})"};
   std::smatch tck_match;
-  if (std::regex_match(sequence, tck_match, tck_option)) {
+  if (sequence == "null") {
+    return sequence;
+  }
+  else if (std::regex_match(sequence, tck_match, tck_option)) {
 #ifndef ALLEN_STANDALONE
 
     auto repo = tck_match.str(1);
@@ -235,16 +238,18 @@ std::shared_ptr<IInputProvider> Allen::make_provider(
 
   auto io_conf = io_configuration(number_of_slices, n_repetitions, number_of_threads, true);
 
+  auto data_bank_types = DataBankTypes;
   auto bank_types = configuration_reader.configured_bank_types();
+  bank_types.merge(data_bank_types);
 
   // This is a hack to avoid copying both SP and Retina banks to the device.
   auto [veloSP, retina] = Allen::velo_decoding_type(configuration_reader);
   std::unordered_set<LHCb::RawBank::BankType> skip_banks {};
-  if (!veloSP) {
+  if (!veloSP && retina) {
     skip_banks.insert(LHCb::RawBank::Velo);
     skip_banks.insert(LHCb::RawBank::VP);
   }
-  if (!retina) {
+  else if (veloSP && !retina) {
     skip_banks.insert(LHCb::RawBank::VPRetinaCluster);
   }
 

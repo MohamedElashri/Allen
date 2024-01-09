@@ -184,6 +184,9 @@ options.data_type = 'Upgrade'
 options.input_type = 'MDF'
 options.dddb_tag = dddb_tag
 options.conddb_tag = conddb_tag
+if args.register_monitoring_counters and args.mon_filename:
+    fn, ext = os.path.splitext(args.mon_filename)
+    options.histo_file = fn + "_gaudi" + ext
 
 online_cond_path = '/group/online/hlt/conditions.run3/lhcb-conditions-database'
 if not args.simulation:
