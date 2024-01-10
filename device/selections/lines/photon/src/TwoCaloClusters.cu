@@ -26,6 +26,7 @@ __device__ bool two_calo_clusters_line::two_calo_clusters_line_t::select(
   const float mass = dicluster.diphoton_mass();
   const float pt = dicluster.diphoton_pt();
   const float eta = dicluster.diphoton_eta();
+
   bool decision = (mass > parameters.minMass) && (mass < parameters.maxMass) && (pt > parameters.minPt) &&
                   (pt <= parameters.maxPt) && (pt > parameters.minPtEta * (10 - eta)) &&
                   (child1->et() > parameters.minEt_clusters && child2->et() > parameters.minEt_clusters) &&
