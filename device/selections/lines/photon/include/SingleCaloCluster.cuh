@@ -49,12 +49,12 @@ namespace single_calo_cluster_line {
                                       CaloClusterLine<single_calo_cluster_line_t, Parameters> {
 
     __device__ static std::tuple<const Allen::Views::Physics::NeutralBasicParticle, const unsigned>
-      get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
-      {
-        const auto calos = parameters.dev_particle_container->container(event_number);
-        const auto calo = calos.particle(i);
-        return std::forward_as_tuple(calo, calos.size());
-      }
+    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
+    {
+      const auto calos = parameters.dev_particle_container->container(event_number);
+      const auto calo = calos.particle(i);
+      return std::forward_as_tuple(calo, calos.size());
+    }
 
     void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
 

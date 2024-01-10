@@ -35,7 +35,7 @@ __device__ void single_calo_cluster_line::single_calo_cluster_line_t::fill_tuple
 {
   const auto calo = std::get<0>(input);
   const auto& ecal_cluster = calo.cluster();
-  
+
   if (sel) {
     const float& z = Calo::Constants::z; // mm
     const float sintheta = sqrtf(

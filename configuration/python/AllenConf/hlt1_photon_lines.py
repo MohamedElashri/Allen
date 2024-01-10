@@ -52,9 +52,9 @@ def make_diphotonhighmass_line(calo,
         post_scaler=post_scaler,
         dev_velo_tracks_t=velo_tracks["dev_velo_tracks_view"],
         dev_particle_container_t=calo["dev_multi_event_diphotons"],
-        dev_cluster_particle_container_t=calo["dev_multi_event_neutral_particles"],
-        host_number_of_svs_t=calo[
-            "host_ecal_number_of_twoclusters"],
+        dev_cluster_particle_container_t=calo[
+            "dev_multi_event_neutral_particles"],
+        host_number_of_svs_t=calo["host_ecal_number_of_twoclusters"],
         dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"],
         minMass=4200,  #MeV
         maxMass=21000,  #MeV

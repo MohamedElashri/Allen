@@ -78,7 +78,9 @@ namespace lambda2ppi_line {
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
   };
 
-  struct lambda2ppi_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<lambda2ppi_line_t, Parameters> {
+  struct lambda2ppi_line_t : public SelectionAlgorithm,
+                             Parameters,
+                             CompositeParticleLine<lambda2ppi_line_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     __device__ static void fill_tuples(

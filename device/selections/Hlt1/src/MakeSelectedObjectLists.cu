@@ -158,7 +158,8 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
     }
 
     // Handle lines that select NeutralBasicParticles.
-    const auto neutral_basic_particle_mec = Allen::dyn_cast<const Allen::Views::Physics::MultiEventNeutralBasicParticles*>(mec);
+    const auto neutral_basic_particle_mec =
+      Allen::dyn_cast<const Allen::Views::Physics::MultiEventNeutralBasicParticles*>(mec);
     if (neutral_basic_particle_mec) {
       auto decs = selections.get_span(line_index, event_number);
       const auto event_calos = neutral_basic_particle_mec->container(event_number);
@@ -201,7 +202,8 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
               const auto basic_substr = static_cast<const Allen::Views::Physics::BasicParticle*>(substr);
               parameters.dev_selected_basic_particle_ptrs[selected_object_offset + track_insert_index] =
                 const_cast<Allen::Views::Physics::BasicParticle*>(basic_substr);
-            } else if (substr->type_id() == Allen::TypeIDs::NeutralBasicParticle) {
+            }
+            else if (substr->type_id() == Allen::TypeIDs::NeutralBasicParticle) {
               const unsigned calo_insert_index = atomicAdd(parameters.dev_sel_calo_count + event_number, 1);
               const auto basic_substr = static_cast<const Allen::Views::Physics::NeutralBasicParticle*>(substr);
               parameters.dev_selected_neutral_basic_particle_ptrs[selected_object_offset + calo_insert_index] =
@@ -220,11 +222,11 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
                 const auto subsubstr = composite_substr->child(i_subsubstr);
                 if (subsubstr->type_id() == Allen::TypeIDs::BasicParticle) {
                   const unsigned track_insert_index = atomicAdd(parameters.dev_sel_track_count + event_number, 1);
-                  const auto basic_subsubstr =
-                    static_cast<const Allen::Views::Physics::BasicParticle*>(subsubstr);
+                  const auto basic_subsubstr = static_cast<const Allen::Views::Physics::BasicParticle*>(subsubstr);
                   parameters.dev_selected_basic_particle_ptrs[selected_object_offset + track_insert_index] =
                     const_cast<Allen::Views::Physics::BasicParticle*>(basic_subsubstr);
-                } else if (subsubstr->type_id() == Allen::TypeIDs::NeutralBasicParticle) {
+                }
+                else if (subsubstr->type_id() == Allen::TypeIDs::NeutralBasicParticle) {
                   const unsigned calo_insert_index = atomicAdd(parameters.dev_sel_calo_count + event_number, 1);
                   const auto basic_subsubstr =
                     static_cast<const Allen::Views::Physics::NeutralBasicParticle*>(subsubstr);
@@ -365,10 +367,9 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
 
     // Get the size of the ObjTyp bank. The ObjTyp bank has 1 word defining the
     // bank structure and 1 word for each object type stored.
-    parameters.dev_objtyp_bank_size[event_number] = 1 + (parameters.dev_sel_count[event_number] > 0) +
-                                                    (parameters.dev_unique_track_count[event_number] > 0) +
-                                                    (parameters.dev_unique_calo_count[event_number] > 0) +
-                                                    (parameters.dev_unique_sv_count[event_number] > 0);
+    parameters.dev_objtyp_bank_size[event_number] =
+      1 + (parameters.dev_sel_count[event_number] > 0) + (parameters.dev_unique_track_count[event_number] > 0) +
+      (parameters.dev_unique_calo_count[event_number] > 0) + (parameters.dev_unique_sv_count[event_number] > 0);
 
     // Convert from number of shorts to number of words. Add 2 shorts for bank size info.
     if (parameters.dev_substr_bank_size[event_number] > 0) {
@@ -376,10 +377,9 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     }
 
     // Get the size of the StdInfo bank.
-    const unsigned n_objects = parameters.dev_sel_count[event_number] +
-                               parameters.dev_unique_track_count[event_number] +
-                               parameters.dev_unique_calo_count[event_number] +
-                               parameters.dev_unique_sv_count[event_number];
+    const unsigned n_objects =
+      parameters.dev_sel_count[event_number] + parameters.dev_unique_track_count[event_number] +
+      parameters.dev_unique_calo_count[event_number] + parameters.dev_unique_sv_count[event_number];
 
     // StdInfo contains 1 word giving the structure of the bank, 8
     // bits per object with the number of values saved (with possible

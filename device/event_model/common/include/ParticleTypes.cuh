@@ -427,7 +427,7 @@ namespace Allen {
 
         __host__ __device__ const CaloCluster& cluster() const { return *m_calo_cluster; }
 
-        __host__ __device__ float et() const 
+        __host__ __device__ float et() const
         {
           const auto c = cluster();
           const float r2 = c.x * c.x + c.y * c.y;
@@ -435,7 +435,6 @@ namespace Allen {
           const float sint = sqrtf(r2 / (r2 + z * z));
           return c.e * sint;
         }
-
       };
 
       struct NeutralBasicParticles : IParticleContainer<NeutralBasicParticles> {
@@ -856,7 +855,7 @@ namespace Allen {
           float sin_phi = ca.y / sqrtf(r2);
           const float ea_x = ca.e * sin_theta * cos_phi;
           const float ea_y = ca.e * sin_theta * sin_phi;
-          const float ea_z = ca.e * z / sqrtf(r2 + z*z);
+          const float ea_z = ca.e * z / sqrtf(r2 + z * z);
 
           // Cluster B.
           r2 = cb.x * cb.x + cb.y * cb.y;
@@ -865,13 +864,13 @@ namespace Allen {
           sin_phi = cb.y / sqrtf(r2);
           const float eb_x = cb.e * sin_theta * cos_phi;
           const float eb_y = cb.e * sin_theta * sin_phi;
-          const float eb_z = cb.e * z / sqrtf(r2 + z*z);
+          const float eb_z = cb.e * z / sqrtf(r2 + z * z);
 
-          const float p2 = (ea_x + eb_x) * (ea_x + eb_x) + (ea_y + eb_y) * (ea_y + eb_y) + (ea_z + eb_z) * (ea_z + eb_z);
+          const float p2 =
+            (ea_x + eb_x) * (ea_x + eb_x) + (ea_y + eb_y) * (ea_y + eb_y) + (ea_z + eb_z) * (ea_z + eb_z);
           const float e2 = (ca.e + cb.e) * (ca.e + cb.e);
           return sqrtf(e2 - p2);
         }
-
 
         __host__ __device__ float diphoton_pt() const
         {
@@ -918,7 +917,7 @@ namespace Allen {
           float sin_phi = ca.y / sqrtf(r2);
           const float ea_x = ca.e * sin_theta * cos_phi;
           const float ea_y = ca.e * sin_theta * sin_phi;
-          const float ea_z = ca.e * z / sqrtf(r2 + z*z);
+          const float ea_z = ca.e * z / sqrtf(r2 + z * z);
 
           // Cluster B.
           r2 = cb.x * cb.x + cb.y * cb.y;
@@ -927,9 +926,10 @@ namespace Allen {
           sin_phi = cb.y / sqrtf(r2);
           const float eb_x = cb.e * sin_theta * cos_phi;
           const float eb_y = cb.e * sin_theta * sin_phi;
-          const float eb_z = cb.e * z / sqrtf(r2 + z*z);
+          const float eb_z = cb.e * z / sqrtf(r2 + z * z);
 
-          const float p2 = (ea_x + eb_x) * (ea_x + eb_x) + (ea_y + eb_y) * (ea_y + eb_y) + (ea_z + eb_z) * (ea_z + eb_z);
+          const float p2 =
+            (ea_x + eb_x) * (ea_x + eb_x) + (ea_y + eb_y) * (ea_y + eb_y) + (ea_z + eb_z) * (ea_z + eb_z);
           return atanhf((ea_z + eb_z) / sqrtf(p2));
         }
 

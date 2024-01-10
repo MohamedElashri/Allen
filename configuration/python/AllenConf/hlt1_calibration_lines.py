@@ -31,9 +31,9 @@ def make_pi02gammagamma_line(calo,
         host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"],
         dev_velo_tracks_t=velo_tracks["dev_velo_tracks_view"],
         dev_particle_container_t=calo["dev_multi_event_diphotons"],
-        dev_cluster_particle_container_t=calo["dev_multi_event_neutral_particles"],
-        host_number_of_svs_t=calo[
-            "host_ecal_number_of_twoclusters"],
+        dev_cluster_particle_container_t=calo[
+            "dev_multi_event_neutral_particles"],
+        host_number_of_svs_t=calo["host_ecal_number_of_twoclusters"],
         dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"],
         minMass=50,  #MeV
         maxMass=300,  #MeV

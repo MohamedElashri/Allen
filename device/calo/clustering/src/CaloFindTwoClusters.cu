@@ -18,15 +18,15 @@ __global__ void create_twocluster_views(calo_find_twoclusters::Parameters parame
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned combo_offset = parameters.dev_ecal_twocluster_offsets[event_number];
   const unsigned n_combos = parameters.dev_ecal_twocluster_offsets[event_number + 1] - combo_offset;
-  
+
   for (unsigned i = threadIdx.x; i < n_combos; i += blockDim.x) {
     new (parameters.dev_twocluster_view + combo_offset + i) Allen::Views::Physics::CompositeParticle {
       parameters.dev_child_pointers[combo_offset + i], nullptr, nullptr, 2, i};
   }
 
   if (threadIdx.x == 0) {
-    new (parameters.dev_twoclusters_view + event_number)
-      Allen::Views::Physics::CompositeParticles {parameters.dev_twocluster_view, parameters.dev_ecal_twocluster_offsets, event_number};
+    new (parameters.dev_twoclusters_view + event_number) Allen::Views::Physics::CompositeParticles {
+      parameters.dev_twocluster_view, parameters.dev_ecal_twocluster_offsets, event_number};
   }
 
   if (blockIdx.x == 0 && threadIdx.x == 0) {
@@ -40,8 +40,7 @@ __global__ void calo_find_twoclusters::calo_find_twoclusters(calo_find_twocluste
 {
   unsigned const event_number = parameters.dev_event_list[blockIdx.x];
   unsigned const ecal_twoclusters_offset = parameters.dev_ecal_twocluster_offsets[event_number];
-  unsigned const n_cluster_pairs =
-    parameters.dev_ecal_twocluster_offsets[event_number + 1] - ecal_twoclusters_offset;
+  unsigned const n_cluster_pairs = parameters.dev_ecal_twocluster_offsets[event_number + 1] - ecal_twoclusters_offset;
   const unsigned* event_child1_idx = parameters.dev_cluster1_idx + ecal_twoclusters_offset;
   const unsigned* event_child2_idx = parameters.dev_cluster2_idx + ecal_twoclusters_offset;
 
@@ -75,7 +74,7 @@ __host__ void calo_find_twoclusters::calo_find_twoclusters_t::operator()(
   // Find clusters.
   global_function(calo_find_twoclusters)(
     dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(arguments);
-  
+
   // Make views.
   global_function(create_twocluster_views)(
     dim3(first<host_number_of_events_t>(arguments)), property<block_dim_x_t>(), context)(arguments);

@@ -63,7 +63,9 @@ namespace di_muon_no_ip_line {
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
 
-  struct di_muon_no_ip_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<di_muon_no_ip_line_t, Parameters> {
+  struct di_muon_no_ip_line_t : public SelectionAlgorithm,
+                                Parameters,
+                                CompositeParticleLine<di_muon_no_ip_line_t, Parameters> {
     __device__ static bool select(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input);

@@ -145,7 +145,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
               break;
             }
           }
-        } 
+        }
         else if (neutral_basic_substr) {
           for (unsigned i_calo = 0; i_calo < n_calos; i_calo++) {
             const unsigned calo_index = event_unique_calo_list[i_calo];
@@ -242,8 +242,8 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         for (unsigned i_cand = 0; i_cand < n_cand; i_cand++) {
           const unsigned i_calo = line_candidate_indices[i_cand];
           const unsigned calo_index = parameters.dev_calo_duplicate_map[selected_object_offset + i_calo] >= 0 ?
-                                         parameters.dev_calo_duplicate_map[selected_object_offset + i_calo] :
-                                         i_calo;
+                                        parameters.dev_calo_duplicate_map[selected_object_offset + i_calo] :
+                                        i_calo;
           unsigned obj_index = 0;
           for (unsigned j_calo = 0; j_calo < n_calos; j_calo++) {
             const unsigned test_index = parameters.dev_unique_calo_list[selected_object_offset + j_calo];
@@ -444,7 +444,6 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
     //   float_info[i_word + 2] = calo_cluster.y;
     //   float_info[i_word + 3] = Calo::Constants::z;
     // }
-
   }
 }
 

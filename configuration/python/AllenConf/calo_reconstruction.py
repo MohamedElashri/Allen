@@ -192,7 +192,8 @@ def make_ecal_clusters(decoded_calo,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_ecal_number_of_clusters_t=prefix_sum_ecal_num_clusters.
         host_total_sum_holder_t,
-        dev_neutral_particles_t=make_neutral_particles.dev_multi_event_neutral_particles_view_t)
+        dev_neutral_particles_t=make_neutral_particles.
+        dev_multi_event_neutral_particles_view_t)
 
     prefix_sum_ecal_num_twoclusters = make_algorithm(
         host_prefix_sum_t,
@@ -207,7 +208,8 @@ def make_ecal_clusters(decoded_calo,
         host_total_sum_holder_t,
         host_ecal_number_of_twoclusters_t=prefix_sum_ecal_num_twoclusters.
         host_total_sum_holder_t,
-        dev_neutral_particles_t=make_neutral_particles.dev_multi_event_neutral_particles_view_t,
+        dev_neutral_particles_t=make_neutral_particles.
+        dev_multi_event_neutral_particles_view_t,
         dev_num_prefiltered_clusters_t=calo_prefilter_clusters.
         dev_num_prefiltered_clusters_t,
         dev_ecal_twocluster_offsets_t=prefix_sum_ecal_num_twoclusters.
@@ -222,12 +224,13 @@ def make_ecal_clusters(decoded_calo,
         host_number_of_twoclusters_t=prefix_sum_ecal_num_twoclusters.
         host_total_sum_holder_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        dev_neutral_particles_t=make_neutral_particles.dev_multi_event_neutral_particles_view_t,
+        dev_neutral_particles_t=make_neutral_particles.
+        dev_multi_event_neutral_particles_view_t,
         dev_cluster1_idx_t=calo_filter_clusters.dev_cluster1_idx_t,
         dev_cluster2_idx_t=calo_filter_clusters.dev_cluster2_idx_t,
         dev_ecal_twocluster_offsets_t=prefix_sum_ecal_num_twoclusters.
         dev_output_buffer_t)
-    
+
     return {
         "host_ecal_number_of_clusters":
         prefix_sum_ecal_num_clusters.host_total_sum_holder_t,

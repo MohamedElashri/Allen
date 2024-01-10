@@ -378,7 +378,8 @@ def make_sel_report_writer(lines):
         dev_rb_substr_offsets_t=prefix_sum_substr_size.dev_output_buffer_t,
         dev_substr_sel_size_t=make_selected_object_lists.dev_substr_sel_size_t,
         dev_substr_sv_size_t=make_selected_object_lists.dev_substr_sv_size_t,
-        dev_substr_track_size_t=make_selected_object_lists.dev_substr_track_size_t,
+        dev_substr_track_size_t=make_selected_object_lists.
+        dev_substr_track_size_t,
         dev_rb_hits_offsets_t=prefix_sum_hits_size.dev_output_buffer_t,
         dev_rb_objtyp_offsets_t=prefix_sum_objtyp_size.dev_output_buffer_t,
         dev_rb_stdinfo_offsets_t=prefix_sum_stdinfo_size.dev_output_buffer_t)

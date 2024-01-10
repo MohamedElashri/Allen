@@ -58,7 +58,9 @@ namespace two_track_line_ks {
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
   };
 
-  struct two_track_line_ks_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<two_track_line_ks_t, Parameters> {
+  struct two_track_line_ks_t : public SelectionAlgorithm,
+                               Parameters,
+                               CompositeParticleLine<two_track_line_ks_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
     __device__ static void fill_tuples(
       const Parameters& parameters,

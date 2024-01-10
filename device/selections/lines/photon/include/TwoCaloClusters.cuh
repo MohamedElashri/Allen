@@ -30,7 +30,8 @@ namespace two_calo_clusters_line {
     // DEVICE_INPUT(dev_ecal_twoclusters_t, TwoCaloCluster) dev_ecal_twoclusters;
     // DEVICE_INPUT(dev_ecal_twocluster_offsets_t, unsigned) dev_ecal_twocluster_offsets;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
-    DEVICE_INPUT(dev_cluster_particle_container_t, Allen::Views::Physics::MultiEventNeutralBasicParticles) dev_cluster_particle_container;
+    DEVICE_INPUT(dev_cluster_particle_container_t, Allen::Views::Physics::MultiEventNeutralBasicParticles)
+    dev_cluster_particle_container;
     DEVICE_INPUT(dev_number_of_pvs_t, unsigned) dev_number_of_pvs;
 
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
@@ -112,7 +113,9 @@ namespace two_calo_clusters_line {
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
-  struct two_calo_clusters_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<two_calo_clusters_line_t, Parameters> {
+  struct two_calo_clusters_line_t : public SelectionAlgorithm,
+                                    Parameters,
+                                    CompositeParticleLine<two_calo_clusters_line_t, Parameters> {
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
@@ -144,8 +147,9 @@ namespace two_calo_clusters_line {
       evtNo_t,
       runNo_t>;
 
-    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
+    __device__ static std::
+      tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned>
+      get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
     {
       const auto velo_tracks = parameters.dev_velo_tracks[event_number];
       const unsigned number_of_velo_tracks = velo_tracks.size();

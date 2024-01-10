@@ -43,7 +43,8 @@ namespace make_subbanks {
     DEVICE_INPUT(dev_multi_event_particle_containers_t, Allen::IMultiEventContainer*)
     dev_multi_event_particle_containers;
     DEVICE_INPUT(dev_basic_particle_ptrs_t, Allen::Views::Physics::BasicParticle*) dev_basic_particle_ptrs;
-    DEVICE_INPUT(dev_neutral_basic_particle_ptrs_t, Allen::Views::Physics::NeutralBasicParticle*) dev_neutral_basic_particle_ptrs;
+    DEVICE_INPUT(dev_neutral_basic_particle_ptrs_t, Allen::Views::Physics::NeutralBasicParticle*)
+    dev_neutral_basic_particle_ptrs;
     DEVICE_INPUT(dev_composite_particle_ptrs_t, Allen::Views::Physics::CompositeParticle*) dev_composite_particle_ptrs;
     DEVICE_INPUT(dev_rb_substr_offsets_t, unsigned) dev_rb_substr_offsets;
     DEVICE_INPUT(dev_substr_sel_size_t, unsigned) dev_substr_sel_size;
