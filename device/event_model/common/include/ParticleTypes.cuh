@@ -422,7 +422,8 @@ namespace Allen {
       public:
         NeutralBasicParticle() = default;
 
-        __host__ __device__ NeutralBasicParticle(const CaloCluster* calo_cluster) : IParticle(TypeID), m_calo_cluster(calo_cluster)
+        __host__ __device__ NeutralBasicParticle(const CaloCluster* calo_cluster) :
+          IParticle(TypeID), m_calo_cluster(calo_cluster)
         {
           assert(m_calo_cluster != nullptr);
         }
