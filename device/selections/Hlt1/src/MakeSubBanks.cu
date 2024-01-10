@@ -339,11 +339,11 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~(mask << bits)) | (CLID << bits);
     }
     // CaloClusters.
-    // if (n_calos != 0) {
-    //   unsigned short CLID = 2003;
-    //   event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~mask) | (n_sels + n_svs + n_tracks + n_calos);
-    //   event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~(mask << bits)) | (CLID << bits);
-    // }
+    if (n_calos != 0) {
+      unsigned short CLID = 2003;
+      event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~mask) | (n_sels + n_svs + n_tracks + n_calos);
+      event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~(mask << bits)) | (CLID << bits);
+    }
 
     // Create the StdInfo bank.
     unsigned* event_rb_stdinfo = parameters.dev_rb_stdinfo + parameters.dev_rb_stdinfo_offsets[event_number];
@@ -423,27 +423,27 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       float_info[i_word + 7] = static_cast<float>(track_ptr->state().ndof());
     }
 
-    // const auto calos_start_word = tracks_start_word + 8 * n_tracks;
-    // for (unsigned i_calo = 0; i_calo < n_calos; i_calo++) {
-    //   unsigned i_obj = n_sels + n_svs + n_tracks + i_calo;
-    //   unsigned i_word = 1 + i_obj / 4;
-    //   unsigned i_part = i_obj % 4;
-    //   unsigned bits = 8 * i_part;
-    //   unsigned mask = 0xFFL << bits;
-    //   unsigned n_info = 4;
-    //   event_rb_stdinfo[i_word] = (event_rb_stdinfo[i_word] & ~mask) | (n_info << bits);
+    const auto calos_start_word = tracks_start_word + 8 * n_tracks;
+    for (unsigned i_calo = 0; i_calo < n_calos; i_calo++) {
+      unsigned i_obj = n_sels + n_svs + n_tracks + i_calo;
+      unsigned i_word = 1 + i_obj / 4;
+      unsigned i_part = i_obj % 4;
+      unsigned bits = 8 * i_part;
+      unsigned mask = 0xFFL << bits;
+      unsigned n_info = 4;
+      event_rb_stdinfo[i_word] = (event_rb_stdinfo[i_word] & ~mask) | (n_info << bits);
 
-    //   unsigned calo_index = event_unique_calo_list[i_calo];
-    //   const auto calo_ptr = event_calo_ptrs[calo_index];
-    //   // Store E, X, Y, Z
-    //   i_word = calos_start_word + 4 * i_calo;
-    //   float* float_info = reinterpret_cast<float*>(event_rb_stdinfo);
-    //   const auto calo_cluster = calo_ptr->cluster();
-    //   float_info[i_word] = calo_cluster.e;
-    //   float_info[i_word + 1] = calo_cluster.x;
-    //   float_info[i_word + 2] = calo_cluster.y;
-    //   float_info[i_word + 3] = Calo::Constants::z;
-    // }
+      unsigned calo_index = event_unique_calo_list[i_calo];
+      const auto calo_ptr = event_calo_ptrs[calo_index];
+      // Store E, X, Y, Z
+      i_word = calos_start_word + 4 * i_calo;
+      float* float_info = reinterpret_cast<float*>(event_rb_stdinfo);
+      const auto calo_cluster = calo_ptr->cluster();
+      float_info[i_word] = calo_cluster.e;
+      float_info[i_word + 1] = calo_cluster.x;
+      float_info[i_word + 2] = calo_cluster.y;
+      float_info[i_word + 3] = Calo::Constants::z;
+    }
   }
 }
 
