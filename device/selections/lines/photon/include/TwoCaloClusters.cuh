@@ -39,7 +39,8 @@ namespace two_calo_clusters_line {
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
 
-    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
+    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
+    host_fn_parameters;
 
     // Device outputs for monitoring
     DEVICE_OUTPUT(dev_histogram_diphoton_mass_t, unsigned) dev_histogram_diphoton_mass;
