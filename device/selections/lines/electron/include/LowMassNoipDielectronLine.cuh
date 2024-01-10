@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 #include "ParKalmanFilter.cuh"
 #include "ROOTService.h"
 #include <ROOTHeaders.h>
@@ -63,7 +63,7 @@ namespace lowmass_noip_dielectron_line {
 
   struct lowmass_noip_dielectron_line_t : public SelectionAlgorithm,
                                           Parameters,
-                                          TwoTrackLine<lowmass_noip_dielectron_line_t, Parameters> {
+                                          CompositeParticleLine<lowmass_noip_dielectron_line_t, Parameters> {
     __device__ static bool select(
       const Parameters&,
       std::tuple<

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 #include "ROOTService.h"
 #include "MassDefinitions.h"
 
@@ -61,7 +61,7 @@ namespace kstopipi_line {
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
-  struct kstopipi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<kstopipi_line_t, Parameters> {
+  struct kstopipi_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<kstopipi_line_t, Parameters> {
 
     using monitoring_types = std::tuple<sv_masses_t, pt_t, mipchi2_t>;
 

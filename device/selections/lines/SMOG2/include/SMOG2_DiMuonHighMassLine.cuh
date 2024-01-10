@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 
 #ifndef ALLEN_STANDALONE
 #include "GaudiMonitoring.h"
@@ -87,7 +87,7 @@ namespace SMOG2_dimuon_highmass_line {
 
   struct SMOG2_dimuon_highmass_line_t : public SelectionAlgorithm,
                                         Parameters,
-                                        TwoTrackLine<SMOG2_dimuon_highmass_line_t, Parameters> {
+                                        CompositeParticleLine<SMOG2_dimuon_highmass_line_t, Parameters> {
 
     using monitoring_types = std::tuple<smogdimuon_masses_t, smogdimuon_svz_t>;
 

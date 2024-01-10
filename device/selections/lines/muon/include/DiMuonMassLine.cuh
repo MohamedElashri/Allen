@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 
 #ifndef ALLEN_STANDALONE
 #include "GaudiMonitoring.h"
@@ -50,7 +50,7 @@ namespace di_muon_mass_line {
     histogram_Jpsi_mass_nbins;
   };
 
-  struct di_muon_mass_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<di_muon_mass_line_t, Parameters> {
+  struct di_muon_mass_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<di_muon_mass_line_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
     void init();
     static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);

@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 
 #ifndef ALLEN_STANDALONE
 #include "GaudiMonitoring.h"
@@ -46,7 +46,7 @@ namespace displaced_di_muon_line {
 
   struct displaced_di_muon_line_t : public SelectionAlgorithm,
                                     Parameters,
-                                    TwoTrackLine<displaced_di_muon_line_t, Parameters> {
+                                    CompositeParticleLine<displaced_di_muon_line_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
     void init();
     static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);

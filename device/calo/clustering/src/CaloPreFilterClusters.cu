@@ -34,14 +34,15 @@ void calo_prefilter_clusters::calo_prefilter_clusters_t::operator()(
 __global__ void calo_prefilter_clusters::calo_prefilter_clusters(calo_prefilter_clusters::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned ecal_clusters_offset = parameters.dev_ecal_cluster_offsets[event_number];
-  const CaloCluster* clusters = parameters.dev_ecal_clusters + ecal_clusters_offset;
-  const unsigned ecal_num_clusters = parameters.dev_ecal_cluster_offsets[event_number + 1] - ecal_clusters_offset;
+  const auto event_neutral_particles = parameters.dev_neutral_particles->container(event_number);
+  const unsigned ecal_clusters_offset = event_neutral_particles.offset();
+  const unsigned ecal_num_clusters = event_neutral_particles.size();
   unsigned* prefiltered_clusters_idx = parameters.dev_prefiltered_clusters_idx + ecal_clusters_offset;
   unsigned* num_prefiltered_clusters = parameters.dev_num_prefiltered_clusters + event_number;
 
   for (unsigned i_cluster = threadIdx.x; i_cluster < ecal_num_clusters; i_cluster += blockDim.x) {
-    const CaloCluster& cluster = clusters[i_cluster];
+    const auto particle = event_neutral_particles.particle(i_cluster);
+    const auto cluster = particle.cluster();
     if (cluster.et > parameters.minEt_clusters && cluster.CaloNeutralE19 > parameters.minE19_clusters) {
       const unsigned idx = atomicAdd(num_prefiltered_clusters, 1);
       prefiltered_clusters_idx[idx] = i_cluster;

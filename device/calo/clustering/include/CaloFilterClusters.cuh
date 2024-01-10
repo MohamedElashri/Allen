@@ -5,6 +5,7 @@
 
 #include "CaloCluster.cuh"
 #include "AlgorithmTypes.cuh"
+#include "ParticleTypes.cuh"
 #ifndef ALLEN_STANDALONE
 #include "Gaudi/Accumulators.h"
 #endif
@@ -16,15 +17,12 @@ namespace calo_filter_clusters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_ecal_number_of_clusters_t, unsigned) host_ecal_number_of_clusters;
     HOST_INPUT(host_ecal_number_of_twoclusters_t, unsigned) host_ecal_number_of_twoclusters;
-
     MASK_INPUT(dev_event_list_t) dev_event_list;
 
-    DEVICE_INPUT(dev_ecal_clusters_t, CaloCluster) dev_ecal_clusters;
-    DEVICE_INPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
+    DEVICE_INPUT(dev_neutral_particles_t, Allen::Views::Physics::MultiEventNeutralBasicParticles) dev_neutral_particles;
     DEVICE_INPUT(dev_num_prefiltered_clusters_t, unsigned) dev_num_prefiltered_clusters;
     DEVICE_INPUT(dev_ecal_twocluster_offsets_t, unsigned) dev_ecal_twocluster_offsets;
     DEVICE_INPUT(dev_prefiltered_clusters_idx_t, unsigned) dev_prefiltered_clusters_idx;
-
     DEVICE_OUTPUT(dev_cluster1_idx_t, unsigned) dev_cluster1_idx;
     DEVICE_OUTPUT(dev_cluster2_idx_t, unsigned) dev_cluster2_idx;
 

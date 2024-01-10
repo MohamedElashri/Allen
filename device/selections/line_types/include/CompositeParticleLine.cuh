@@ -8,7 +8,7 @@
 #include "ParticleTypes.cuh"
 
 /**
- * A TwoTrackLine.
+ * A CompositeParticleLine.
  *
  * It assumes an inheriting class will have the following inputs:
  *  HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -21,7 +21,7 @@
  *  __device__ bool select(const Parameters& parameters, std::tuple<const VertexFit::TrackMVAVertex&> input) const;
  */
 template<typename Derived, typename Parameters>
-struct TwoTrackLine : public Line<Derived, Parameters> {
+struct CompositeParticleLine : public Line<Derived, Parameters> {
 
   static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
   {

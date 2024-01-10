@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 
 namespace SMOG2_ditrack_line {
   struct Parameters {
@@ -37,7 +37,7 @@ namespace SMOG2_ditrack_line {
     PROPERTY(mMother_t, "mMother", "resonance mass", float) mMother;
     PROPERTY(massWindow_t, "massWindow", "maximum mass difference wrt mM", float) massWindow;
   };
-  struct SMOG2_ditrack_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<SMOG2_ditrack_line_t, Parameters> {
+  struct SMOG2_ditrack_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<SMOG2_ditrack_line_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
   private:

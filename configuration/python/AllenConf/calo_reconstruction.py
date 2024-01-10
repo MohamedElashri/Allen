@@ -172,6 +172,17 @@ def make_ecal_clusters(decoded_calo,
         dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
         dev_output_buffer_t)
 
+    make_neutral_particles = make_algorithm(
+        make_neutral_particles_t,
+        name="make_neutral_particles",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_clusters_t=prefix_sum_ecal_num_clusters.
+        host_total_sum_holder_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
+        dev_output_buffer_t,
+        dev_ecal_clusters_t=calo_find_clusters.dev_ecal_clusters_t)
+
     calo_prefilter_clusters = make_algorithm(
         calo_prefilter_clusters_t,
         name='calo_prefilter_clusters_{hash}',
@@ -181,9 +192,7 @@ def make_ecal_clusters(decoded_calo,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_ecal_number_of_clusters_t=prefix_sum_ecal_num_clusters.
         host_total_sum_holder_t,
-        dev_ecal_clusters_t=calo_find_clusters.dev_ecal_clusters_t,
-        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
-        dev_output_buffer_t)
+        dev_neutral_particles_t=make_neutral_particles.dev_multi_event_neutral_particles_view_t)
 
     prefix_sum_ecal_num_twoclusters = make_algorithm(
         host_prefix_sum_t,
@@ -198,9 +207,7 @@ def make_ecal_clusters(decoded_calo,
         host_total_sum_holder_t,
         host_ecal_number_of_twoclusters_t=prefix_sum_ecal_num_twoclusters.
         host_total_sum_holder_t,
-        dev_ecal_clusters_t=calo_find_clusters.dev_ecal_clusters_t,
-        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
-        dev_output_buffer_t,
+        dev_neutral_particles_t=make_neutral_particles.dev_multi_event_neutral_particles_view_t,
         dev_num_prefiltered_clusters_t=calo_prefilter_clusters.
         dev_num_prefiltered_clusters_t,
         dev_ecal_twocluster_offsets_t=prefix_sum_ecal_num_twoclusters.
@@ -214,24 +221,12 @@ def make_ecal_clusters(decoded_calo,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_twoclusters_t=prefix_sum_ecal_num_twoclusters.
         host_total_sum_holder_t,
-        dev_ecal_clusters_t=calo_find_clusters.dev_ecal_clusters_t,
-        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
-        dev_output_buffer_t,
+        dev_neutral_particles_t=make_neutral_particles.dev_multi_event_neutral_particles_view_t,
         dev_cluster1_idx_t=calo_filter_clusters.dev_cluster1_idx_t,
         dev_cluster2_idx_t=calo_filter_clusters.dev_cluster2_idx_t,
         dev_ecal_twocluster_offsets_t=prefix_sum_ecal_num_twoclusters.
         dev_output_buffer_t)
-    make_neutral_particles = make_algorithm(
-        make_neutral_particles_t,
-        name="make_neutral_particles",
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_clusters_t=prefix_sum_ecal_num_clusters.
-        host_total_sum_holder_t,
-        dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
-        dev_output_buffer_t,
-        dev_ecal_clusters_t=calo_find_clusters.dev_ecal_clusters_t)
-
+    
     return {
         "host_ecal_number_of_clusters":
         prefix_sum_ecal_num_clusters.host_total_sum_holder_t,
@@ -239,18 +234,14 @@ def make_ecal_clusters(decoded_calo,
         prefix_sum_ecal_num_twoclusters.host_total_sum_holder_t,
         "dev_ecal_cluster_offsets":
         prefix_sum_ecal_num_clusters.dev_output_buffer_t,
-        "dev_ecal_twocluster_offsets":
-        prefix_sum_ecal_num_twoclusters.dev_output_buffer_t,
         "dev_ecal_num_clusters":
         calo_seed_clusters.dev_ecal_num_clusters_t,
-        "dev_ecal_num_twoclusters":
-        calo_prefilter_clusters.dev_ecal_num_twoclusters_t,
         "dev_ecal_clusters":
         calo_find_clusters.dev_ecal_clusters_t,
-        "dev_ecal_twoclusters":
-        calo_find_twoclusters.dev_ecal_twoclusters_t,
         "dev_multi_event_neutral_particles":
-        make_neutral_particles.dev_multi_event_neutral_particles_view_t
+        make_neutral_particles.dev_multi_event_neutral_particles_view_t,
+        "dev_multi_event_diphotons":
+        calo_find_twoclusters.dev_multi_event_twoclusters_view_t
     }
 
 

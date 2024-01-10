@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 
 namespace di_muon_soft_line {
   struct Parameters {
@@ -35,7 +35,7 @@ namespace di_muon_soft_line {
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
   };
 
-  struct di_muon_soft_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<di_muon_soft_line_t, Parameters> {
+  struct di_muon_soft_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<di_muon_soft_line_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
   private:

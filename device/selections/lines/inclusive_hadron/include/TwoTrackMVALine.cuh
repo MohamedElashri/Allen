@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 #include "ParticleTypes.cuh"
 
 namespace two_track_mva_line {
@@ -43,7 +43,7 @@ namespace two_track_mva_line {
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
   };
 
-  struct two_track_mva_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_mva_line_t, Parameters> {
+  struct two_track_mva_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<two_track_mva_line_t, Parameters> {
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 

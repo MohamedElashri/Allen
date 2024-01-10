@@ -11,7 +11,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 #include "VertexDefinitions.cuh"
 #include "MassDefinitions.h"
 #include "ParticleTypes.cuh"
@@ -116,7 +116,7 @@ namespace two_ks_line {
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
 
-  struct two_ks_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_ks_line_t, Parameters> {
+  struct two_ks_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<two_ks_line_t, Parameters> {
 
     using monitoring_types = std::tuple<
       dev_decision_t,

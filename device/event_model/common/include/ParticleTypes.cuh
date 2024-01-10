@@ -426,6 +426,16 @@ namespace Allen {
         }
 
         __host__ __device__ const CaloCluster& cluster() const { return *m_calo_cluster; }
+
+        __host__ __device__ float et() const 
+        {
+          const auto c = cluster();
+          const float r2 = c.x * c.x + c.y * c.y;
+          const float z = Calo::Constants::z;
+          const float sint = sqrtf(r2 / (r2 + z * z));
+          return c.e * sint;
+        }
+
       };
 
       struct NeutralBasicParticles : IParticleContainer<NeutralBasicParticles> {
@@ -458,7 +468,6 @@ namespace Allen {
         {
           return static_cast<const NeutralBasicParticle*>(m_particle) + index;
         }
-
       };
 
       struct CompositeParticle : IParticle {
