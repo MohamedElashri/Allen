@@ -337,12 +337,14 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       unsigned short CLID = 10010;
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~mask) | (n_sels + n_svs + n_tracks);
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~(mask << bits)) | (CLID << bits);
+      i_obj++;
     }
     // CaloClusters.
     if (n_calos != 0) {
       unsigned short CLID = 2003;
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~mask) | (n_sels + n_svs + n_tracks + n_calos);
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~(mask << bits)) | (CLID << bits);
+      i_obj++;
     }
 
     // Create the StdInfo bank.
