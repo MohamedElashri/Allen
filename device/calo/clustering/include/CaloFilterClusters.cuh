@@ -23,6 +23,10 @@ namespace calo_filter_clusters {
     DEVICE_INPUT(dev_num_prefiltered_clusters_t, unsigned) dev_num_prefiltered_clusters;
     DEVICE_INPUT(dev_ecal_twocluster_offsets_t, unsigned) dev_ecal_twocluster_offsets;
     DEVICE_INPUT(dev_prefiltered_clusters_idx_t, unsigned) dev_prefiltered_clusters_idx;
+
+    // The ECAL cluster offsets are only needed for monitoring.
+    DEVICE_INPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
+
     DEVICE_OUTPUT(dev_cluster1_idx_t, unsigned) dev_cluster1_idx;
     DEVICE_OUTPUT(dev_cluster2_idx_t, unsigned) dev_cluster2_idx;
 

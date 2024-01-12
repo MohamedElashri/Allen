@@ -215,7 +215,9 @@ def make_ecal_clusters(decoded_calo,
         dev_ecal_twocluster_offsets_t=prefix_sum_ecal_num_twoclusters.
         dev_output_buffer_t,
         dev_prefiltered_clusters_idx_t=calo_prefilter_clusters.
-        dev_prefiltered_clusters_idx_t)
+        dev_prefiltered_clusters_idx_t,
+        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
+        dev_output_buffer_t)
 
     calo_find_twoclusters = make_algorithm(
         calo_find_twoclusters_t,
