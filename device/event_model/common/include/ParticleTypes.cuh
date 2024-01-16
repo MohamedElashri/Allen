@@ -842,35 +842,38 @@ namespace Allen {
           return true;
         }
 
+        __device__ inline float3 cluster_momentum(const unsigned index) const
+        {
+          const auto particle = dyn_cast<const NeutralBasicParticle*>(child(index));
+          if (!particle) return float3 {0.f, 0.f, 0.f};
+          const auto cluster = particle->cluster();
+          const float z = Calo::Constants::z;
+          const float r2 = cluster.x * cluster.x + cluster.y * cluster.y;
+          const float sin_theta = sqrtf(r2 / (r2 + z * z));
+          const float cos_phi = cluster.x / sqrtf(r2);
+          const float sin_phi = cluster.y / sqrtf(r2);
+          const float ex = cluster.e * sin_theta * cos_phi;
+          const float ey = cluster.e * sin_theta * sin_phi;
+          const float ez = cluster.e * z / sqrtf(r2 + z * z);
+          return float3 {ex, ey, ez};
+        }
+
         __host__ __device__ float diphoton_mass() const
         {
           if (!is_dicluster()) return -1.f;
-          const float z = Calo::Constants::z;
           const auto a = static_cast<const NeutralBasicParticle*>(child(0));
           const auto b = static_cast<const NeutralBasicParticle*>(child(1));
           const auto ca = a->cluster();
           const auto cb = b->cluster();
 
           // Cluster A.
-          float r2 = ca.x * ca.x + ca.y * ca.y;
-          float sin_theta = sqrtf(r2 / (r2 + z * z));
-          float cos_phi = ca.x / sqrtf(r2);
-          float sin_phi = ca.y / sqrtf(r2);
-          const float ea_x = ca.e * sin_theta * cos_phi;
-          const float ea_y = ca.e * sin_theta * sin_phi;
-          const float ea_z = ca.e * z / sqrtf(r2 + z * z);
+          const auto ea = cluster_momentum(0);
 
           // Cluster B.
-          r2 = cb.x * cb.x + cb.y * cb.y;
-          sin_theta = sqrtf(r2 / (r2 + z * z));
-          cos_phi = cb.x / sqrtf(r2);
-          sin_phi = cb.y / sqrtf(r2);
-          const float eb_x = cb.e * sin_theta * cos_phi;
-          const float eb_y = cb.e * sin_theta * sin_phi;
-          const float eb_z = cb.e * z / sqrtf(r2 + z * z);
+          const auto eb = cluster_momentum(1);
 
           const float p2 =
-            (ea_x + eb_x) * (ea_x + eb_x) + (ea_y + eb_y) * (ea_y + eb_y) + (ea_z + eb_z) * (ea_z + eb_z);
+            (ea.x + eb.x) * (ea.x + eb.x) + (ea.y + eb.y) * (ea.y + eb.y) + (ea.z + eb.z) * (ea.z + eb.z);
           const float e2 = (ca.e + cb.e) * (ca.e + cb.e);
           return sqrtf(e2 - p2);
         }
@@ -878,62 +881,30 @@ namespace Allen {
         __host__ __device__ float diphoton_pt() const
         {
           if (!is_dicluster()) return -1.f;
-          const float z = Calo::Constants::z;
-          const auto a = static_cast<const NeutralBasicParticle*>(child(0));
-          const auto b = static_cast<const NeutralBasicParticle*>(child(1));
-          const auto ca = a->cluster();
-          const auto cb = b->cluster();
 
           // Cluster A.
-          float r2 = ca.x * ca.x + ca.y * ca.y;
-          float sin_theta = sqrtf(r2 / (r2 + z * z));
-          float cos_phi = ca.x / sqrtf(r2);
-          float sin_phi = ca.y / sqrtf(r2);
-          const float ea_x = ca.e * sin_theta * cos_phi;
-          const float ea_y = ca.e * sin_theta * sin_phi;
+          const auto ea = cluster_momentum(0);
 
           // Cluster B.
-          r2 = cb.x * cb.x + cb.y * cb.y;
-          sin_theta = sqrtf(r2 / (r2 + z * z));
-          cos_phi = cb.x / sqrtf(r2);
-          sin_phi = cb.y / sqrtf(r2);
-          const float eb_x = cb.e * sin_theta * cos_phi;
-          const float eb_y = cb.e * sin_theta * sin_phi;
+          const auto eb = cluster_momentum(1);
 
-          const float pt2 = (ea_x + eb_x) * (ea_x + eb_x) + (ea_y + eb_y) * (ea_y + eb_y);
+          const float pt2 = (ea.x + eb.x) * (ea.x + eb.x) + (ea.y + eb.y) * (ea.y + eb.y);
           return sqrtf(pt2);
         }
 
         __host__ __device__ float diphoton_eta() const
         {
           if (!is_dicluster()) return -1.f;
-          const float z = Calo::Constants::z;
-          const auto a = static_cast<const NeutralBasicParticle*>(child(0));
-          const auto b = static_cast<const NeutralBasicParticle*>(child(1));
-          const auto ca = a->cluster();
-          const auto cb = b->cluster();
 
           // Cluster A.
-          float r2 = ca.x * ca.x + ca.y * ca.y;
-          float sin_theta = sqrtf(r2 / (r2 + z * z));
-          float cos_phi = ca.x / sqrtf(r2);
-          float sin_phi = ca.y / sqrtf(r2);
-          const float ea_x = ca.e * sin_theta * cos_phi;
-          const float ea_y = ca.e * sin_theta * sin_phi;
-          const float ea_z = ca.e * z / sqrtf(r2 + z * z);
+          const auto ea = cluster_momentum(0);
 
           // Cluster B.
-          r2 = cb.x * cb.x + cb.y * cb.y;
-          sin_theta = sqrtf(r2 / (r2 + z * z));
-          cos_phi = cb.x / sqrtf(r2);
-          sin_phi = cb.y / sqrtf(r2);
-          const float eb_x = cb.e * sin_theta * cos_phi;
-          const float eb_y = cb.e * sin_theta * sin_phi;
-          const float eb_z = cb.e * z / sqrtf(r2 + z * z);
+          const auto eb = cluster_momentum(1);
 
           const float p2 =
-            (ea_x + eb_x) * (ea_x + eb_x) + (ea_y + eb_y) * (ea_y + eb_y) + (ea_z + eb_z) * (ea_z + eb_z);
-          return atanhf((ea_z + eb_z) / sqrtf(p2));
+            (ea.x + eb.x) * (ea.x + eb.x) + (ea.y + eb.y) * (ea.y + eb.y) + (ea.z + eb.z) * (ea.z + eb.z);
+          return atanhf((ea.z + eb.z) / sqrtf(p2));
         }
 
         __host__ __device__ float diphoton_distance() const
