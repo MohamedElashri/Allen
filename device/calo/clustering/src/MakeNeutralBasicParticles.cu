@@ -37,6 +37,9 @@ void make_neutral_basic_particles::make_neutral_particles_t::operator()(
 
 void __global__ make_neutral_basic_particles::make_particles(make_neutral_basic_particles::Parameters parameters)
 {
+  // WARNING: This algorithm creates "NeutralBasicParticle"s for all ECAL clusters,
+  // regardless of whether or not the cluster is matched to a charged track.
+
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = blockIdx.x;
   const unsigned offset = parameters.dev_ecal_cluster_offsets[event_number];
