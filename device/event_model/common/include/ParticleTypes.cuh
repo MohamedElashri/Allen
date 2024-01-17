@@ -842,7 +842,7 @@ namespace Allen {
           return true;
         }
 
-        __device__ inline float3 cluster_momentum(const unsigned index) const
+        __host__ __device__ inline float3 cluster_momentum(const unsigned index) const
         {
           const auto particle = dyn_cast<const NeutralBasicParticle*>(child(index));
           if (!particle) return float3 {0.f, 0.f, 0.f};
