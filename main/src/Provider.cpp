@@ -296,8 +296,7 @@ std::shared_ptr<IInputProvider> Allen::make_provider(
 std::unique_ptr<OutputHandler> Allen::output_handler(
   IInputProvider* input_provider,
   IZeroMQSvc* zmq_svc,
-  std::map<std::string, std::string> const& options,
-  std::string_view config)
+  std::map<std::string, std::string> const& options)
 {
   std::string output_file;
   size_t output_batch_size = 10;
@@ -317,28 +316,14 @@ std::unique_ptr<OutputHandler> Allen::output_handler(
     return {};
   }
 
-  // Load constant parameters from JSON
-  size_t n_lines = 0;
-  ConfigurationReader configuration_reader {config};
-  auto const& configuration = configuration_reader.params();
-  auto conf_it = configuration.find("gather_selections");
-  if (conf_it != configuration.end()) {
-    auto prop_it = conf_it->second.find("names_of_active_lines");
-    if (prop_it != conf_it->second.end()) {
-      auto line_names = split_string(prop_it->second, ",");
-      n_lines = line_names.size();
-    }
-  }
-
   std::unique_ptr<OutputHandler> output_handler;
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler =
-          std::make_unique<ZMQOutputSender>(input_provider, output_file, output_batch_size, n_lines, zmq_svc);
+        output_handler = std::make_unique<ZMQOutputSender>(input_provider, output_file, output_batch_size, zmq_svc);
       }
       else {
-        output_handler = std::make_unique<FileWriter>(input_provider, output_file, output_batch_size, n_lines);
+        output_handler = std::make_unique<FileWriter>(input_provider, output_file, output_batch_size);
       }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";

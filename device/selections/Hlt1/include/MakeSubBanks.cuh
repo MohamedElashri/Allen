@@ -21,7 +21,6 @@ namespace make_subbanks {
     HOST_INPUT(host_objtyp_bank_size_t, unsigned) host_objtyp_bank_size;
     HOST_INPUT(host_stdinfo_bank_size_t, unsigned) host_stdinfo_bank_size;
     DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
-    DEVICE_INPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
     DEVICE_INPUT(dev_selections_t, bool) dev_selections;
     DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
     DEVICE_INPUT(dev_max_objects_offsets_t, unsigned) dev_max_objects_offsets;

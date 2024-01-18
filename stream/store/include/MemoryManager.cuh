@@ -156,7 +156,7 @@ namespace Allen::Store {
      *        If there are no available segments of the requested size,
      *        it throws an exception.
      */
-    void reserve(BaseArgument& argument) { argument.set_pointer(reserve(argument.name(), argument.sizebytes())); }
+    void reserve(BaseArgument& argument) { argument.set_pointer(reserve(argument.name(), argument.size_bytes())); }
 
     void free(const std::string& tag)
     {
@@ -298,7 +298,7 @@ namespace Allen::Store {
     /**
      * @brief Allocates a segment of the requested size.
      */
-    void reserve(BaseArgument& argument) { argument.set_pointer(reserve(argument.name(), argument.sizebytes())); }
+    void reserve(BaseArgument& argument) { argument.set_pointer(reserve(argument.name(), argument.size_bytes())); }
 
     void free(const std::string& tag)
     {

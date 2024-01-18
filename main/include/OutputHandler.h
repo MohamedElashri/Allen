@@ -54,10 +54,9 @@ public:
     std::string const connection,
     size_t const n_threads,
     size_t const output_batch_size,
-    size_t const n_lines,
     bool const checksum)
   {
-    init(input_provider, std::move(connection), n_threads, output_batch_size, n_lines, checksum);
+    init(input_provider, std::move(connection), n_threads, output_batch_size, checksum);
   }
 
   virtual ~OutputHandler() {}
@@ -88,7 +87,6 @@ protected:
     std::string const connection,
     size_t const n_threads,
     size_t const output_batch_size,
-    size_t const n_lines,
     bool const checksum)
   {
     m_input_provider = input_provider;
@@ -98,7 +96,6 @@ protected:
       sizes.resize(input_provider->events_per_slice());
     }
     m_output_batch_size = output_batch_size;
-    m_nlines = n_lines;
     m_checksum = checksum;
     m_nthreads = n_threads;
 
@@ -156,7 +153,6 @@ private:
   std::vector<OutputSizes> m_sizes;
   std::array<uint32_t, 4> m_trigger_mask = {~0u, ~0u, ~0u, ~0u};
   size_t m_output_batch_size = 10;
-  size_t m_nlines = 0;
   bool m_checksum = false;
   size_t m_nthreads = 1;
 

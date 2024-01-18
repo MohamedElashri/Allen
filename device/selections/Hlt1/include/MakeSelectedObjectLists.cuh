@@ -16,10 +16,9 @@
 namespace make_selected_object_lists {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
     HOST_INPUT(host_max_objects_t, unsigned) host_max_objects;
     DEVICE_INPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
-    DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
+    HOST_INPUT(host_dec_reports_t, unsigned) host_dec_reports;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_multi_event_particle_containers_t, Allen::IMultiEventContainer*)
