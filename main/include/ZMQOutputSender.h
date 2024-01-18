@@ -15,7 +15,6 @@ public:
     IInputProvider const* input_provider,
     std::string receiver_connection,
     size_t const m_output_batch_size,
-    size_t const n_lines,
     IZeroMQSvc* zmqSvc,
     bool checksum = true);
 

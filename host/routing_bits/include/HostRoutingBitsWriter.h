@@ -12,7 +12,6 @@
 namespace host_routingbits_writer {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
     HOST_INPUT(host_names_of_active_lines_t, char) host_names_of_active_lines;
     HOST_INPUT(host_dec_reports_t, unsigned) host_dec_reports;
     HOST_OUTPUT(host_routingbits_t, unsigned) host_routingbits;
@@ -32,8 +31,7 @@ namespace host_routingbits_writer {
 
   void host_routingbits_impl(
     unsigned host_number_of_events,
-    unsigned number_of_active_lines,
-    const unsigned* host_dec_reports,
+    gsl::span<const unsigned> host_dec_reports,
     unsigned* host_routing_bits,
     const std::unordered_map<uint32_t, boost::dynamic_bitset<>>& rb_ids);
 

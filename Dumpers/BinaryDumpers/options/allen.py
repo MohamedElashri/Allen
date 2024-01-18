@@ -359,8 +359,7 @@ if args.mep:
     provider = cast_service(gbl.IInputProvider, mep_provider)
 else:
     provider = gbl.Allen.make_provider(options, sequence_json)
-output_handler = gbl.Allen.output_handler(provider, zmqSvc, options,
-                                          sequence_json)
+output_handler = gbl.Allen.output_handler(provider, zmqSvc, options)
 
 # run Allen
 gbl.allen.__release_gil__ = 1
