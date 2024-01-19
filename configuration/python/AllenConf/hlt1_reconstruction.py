@@ -220,74 +220,42 @@ def make_composite_node_with_gec(alg_name,
         force_order=True)
 
 
-def validator_node(reconstructed_objects, line_algorithms, matching, with_ut,
-                   with_muon):
+def validator_node(reconstructed_objects,
+                   line_algorithms,
+                   matching,
+                   with_ut,
+                   with_muon,
+                   prefilters=[]):
 
-    validators = [
-        make_composite_node_with_gec(
-            "velo_validation",
-            velo_validation(reconstructed_objects["velo_tracks"]),
-            with_scifi=True,
-            with_ut=with_ut)
-    ]
+    validators = [velo_validation(reconstructed_objects["velo_tracks"])]
 
     if matching:
         validators += [
-            make_composite_node_with_gec(
-                "seeding_validation",
-                seeding_validation(reconstructed_objects["seeding_tracks"]),
-                with_scifi=True,
-                with_ut=with_ut)
+            seeding_validation(reconstructed_objects["seeding_tracks"])
         ]
     elif not matching and with_ut:
-        validators += [
-            make_composite_node_with_gec(
-                "veloUT_validation",
-                veloUT_validation(reconstructed_objects["ut_tracks"]),
-                with_scifi=True,
-                with_ut=with_ut)
-        ]
+        validators += [veloUT_validation(reconstructed_objects["ut_tracks"])]
 
     if 'downstream_tracks' in reconstructed_objects:
         validators += [
-            make_composite_node_with_gec(
-                "downstream_validation",
-                downstream_validation(
-                    reconstructed_objects["downstream_tracks"]),
-                with_scifi=True,
-                with_ut=with_ut)
+            downstream_validation(reconstructed_objects["downstream_tracks"])
         ]
 
-    validators += [
-        make_composite_node_with_gec(
-            "long_validation",
-            long_validation(reconstructed_objects["long_tracks"]),
-            with_scifi=True,
-            with_ut=with_ut)
-    ]
+    validators += [long_validation(reconstructed_objects["long_tracks"])]
 
     if with_muon:
-        validators += make_composite_node_with_gec(
-            "muon_validation",
-            muon_validation(reconstructed_objects["muonID"]),
-            with_scifi=True,
-            with_ut=with_ut),
+        validators += [muon_validation(reconstructed_objects["muonID"])]
 
     validators += [
-        make_composite_node_with_gec(
-            "pv_validation",
-            pv_validation(reconstructed_objects["pvs"]),
-            with_scifi=True,
-            with_ut=with_ut),
-        make_composite_node_with_gec(
-            "kalman_validation",
-            kalman_validation(reconstructed_objects["kalman_velo_only"]),
-            with_scifi=True,
-            with_ut=with_ut),
+        pv_validation(reconstructed_objects["pvs"]),
+        kalman_validation(reconstructed_objects["kalman_velo_only"]),
         selreport_validation(
             make_sel_report_writer(lines=line_algorithms),
             make_gather_selections(lines=line_algorithms))
     ]
 
     return CompositeNode(
-        "Validators", validators, NodeLogic.NONLAZY_AND, force_order=False)
+        "Validators",
+        prefilters + validators,
+        NodeLogic.NONLAZY_AND,
+        force_order=True)
