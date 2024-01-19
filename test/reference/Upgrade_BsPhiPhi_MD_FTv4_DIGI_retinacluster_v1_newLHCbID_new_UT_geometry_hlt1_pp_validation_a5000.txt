@@ -150,7 +150,7 @@ Hlt1SingleHighPtElectron:                               7           7
 Hlt1DisplacedDielectron:                                3           3
 Hlt1DisplacedLeptons:                                  35           0
 Hlt1SingleHighEt:                                       0           0
-Hlt1DiPhotonHighMass:                                  23           0
+Hlt1DiPhotonHighMass:                                  23          28
 Hlt1Pi02GammaGamma:                                     0           0
 Hlt1LowMassNoipDielectron_massSlice1_prompt:            0           0
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0           0
@@ -185,11 +185,12 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           16          17
 Hlt1DisplacedDiMuonAlignment:                           1           1
 
-Total decisions: 1215
-Total tracks:    2156
-Total SVs:       1641
-Total hits:      53286
-Total stdinfo:   25027
+Total decisions:      1215
+Total tracks:         2156
+Total calos clusters: 51
+Total SVs:            1669
+Total hits:           53286
+Total stdinfo:        25343
 
 
 veloUT_validator validation:
