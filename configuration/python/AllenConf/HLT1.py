@@ -621,7 +621,7 @@ def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
 
 def setup_hlt1_node(enablePhysics=True,
                     withMCChecking=False,
-                    EnableGEC=True,
+                    EnableGEC=False,
                     withSMOG2=False,
                     enableRateValidator=True,
                     with_ut=True,
@@ -861,7 +861,7 @@ def setup_hlt1_node(enablePhysics=True,
     else:
         validation_node = validator_node(
             reconstructed_objects, line_algorithms,
-            includes_matching(tracking_type), with_ut, with_muon)
+            includes_matching(tracking_type), with_ut, with_muon, prefilters)
         hlt1_config['validator_node'] = validation_node
 
         node = CompositeNode(

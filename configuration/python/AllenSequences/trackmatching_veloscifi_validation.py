@@ -3,7 +3,6 @@
 ###############################################################################
 from AllenConf.scifi_reconstruction import decode_scifi, seeding_xz, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
-from AllenConf.hlt1_reconstruction import make_composite_node_with_gec
 from AllenConf.validators import velo_validation, seeding_validation, seeding_xz_validation, long_validation, velo_scifi_dump
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
 from PyConf.control_flow import NodeLogic, CompositeNode
@@ -31,19 +30,22 @@ matched_tracks = make_velo_scifi_matches(
 velo_scifi = long_validation(matched_tracks)
 velo_scifi_matching_sequence = CompositeNode(
     "Validators", [
-        make_composite_node_with_gec(
-            "veloValidation", velo, with_scifi=True, with_ut=False),
-        make_composite_node_with_gec(
-            "veloSciFiDump",
-            velo_scifi_dump(matched_tracks),
-            with_scifi=True,
-            with_ut=False),
-        make_composite_node_with_gec(
-            "seedingXZValidation", seed_xz, with_scifi=True, with_ut=False),
-        make_composite_node_with_gec(
-            "seedingValidation", seed, with_scifi=True, with_ut=False),
-        make_composite_node_with_gec(
-            "veloSciFiValidation", velo_scifi, with_scifi=True, with_ut=False)
+        CompositeNode(
+            "veloValidation", [velo], NodeLogic.LAZY_AND, force_order=True),
+        CompositeNode(
+            "veloSciFiDump", [velo_scifi_dump(matched_tracks)],
+            NodeLogic.LAZY_AND,
+            force_order=True),
+        CompositeNode(
+            "seedingXZValidation", [seed_xz],
+            NodeLogic.LAZY_AND,
+            force_order=True),
+        CompositeNode(
+            "seedingValidation", [seed], NodeLogic.LAZY_AND, force_order=True),
+        CompositeNode(
+            "veloSciFiValidation", [velo_scifi],
+            NodeLogic.LAZY_AND,
+            force_order=True)
     ],
     NodeLogic.NONLAZY_AND,
     force_order=True)
