@@ -20,12 +20,14 @@ namespace {
 
     Beamline() {}
 
-    Beamline(std::vector<char>& data, LHCb::Conditions::InteractionRegion const& region)
+    Beamline(std::vector<char>& data, LHCb::Conditions::InteractionRegion const& region, std::array<float, 2> offset)
     {
       DumpUtils::Writer output;
 
       std::vector<double> pos(3);
       region.avgPosition.GetCoordinates(pos.begin(), pos.end());
+      pos[0] = pos[0] + offset[0];
+      pos[1] = pos[1] + offset[1];
 
       std::vector<double> sprd(region.spread.begin(), region.spread.end());
 
@@ -62,6 +64,7 @@ public:
 
 private:
   std::vector<char> m_data;
+  Gaudi::Property<std::array<float, 2>> m_offset {this, "Offset", {0.f, 0.f}, "Beamline offset"};
 };
 
 DECLARE_COMPONENT(DumpBeamline)
@@ -82,7 +85,7 @@ StatusCode DumpBeamline::initialize()
 
     // Then derived the interaction region to create the device representation
     addConditionDerivation({ir_loc}, inputLocation<Beamline>(), [&](LHCb::Conditions::InteractionRegion const& ir) {
-      auto beamline = Beamline {m_data, ir};
+      auto beamline = Beamline {m_data, ir, m_offset};
       dump();
       return beamline;
     });
