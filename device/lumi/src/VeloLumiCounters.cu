@@ -169,31 +169,32 @@ __global__ void velo_lumi_counters::velo_lumi_counters(
           ++cluster_counters[station_id * 2 + 1];
         }
       }
+    }
 
-      // fill station bins consecutively
-      unsigned station_bin = 0;
-      for (unsigned station_id = 0; station_id < Velo::Constants::n_module_pairs; ++station_id) {
-        cluster_counters[52 + station_bin * 2] += cluster_counters[station_id * 2];
-        cluster_counters[53 + station_bin * 2] += cluster_counters[station_id * 2 + 1];
+    // fill station bins consecutively
+    unsigned station_bin = 0;
+    for (unsigned station_id = 0; station_id < Velo::Constants::n_module_pairs; ++station_id) {
+      unsigned counter_index = Velo::Constants::n_modules + station_bin * 2;
+      cluster_counters[counter_index] += cluster_counters[station_id * 2];
+      cluster_counters[counter_index + 1] += cluster_counters[station_id * 2 + 1];
 
-        // go to next bin
-        if (station_id == parameters.clusters_station_bin_edges.get()[station_bin]) {
-          ++station_bin;
-        }
+      // go to next bin
+      if (station_id == parameters.clusters_station_bin_edges.get()[station_bin]) {
+        ++station_bin;
       }
+    }
 
-      unsigned info_offset = Lumi::Constants::n_velo_counters * lumi_evt_index;
-      for (unsigned info_index = Lumi::Constants::n_velo_reco_counters;
-           info_index < Lumi::Constants::n_velo_reco_counters + Lumi::Constants::n_velo_cluster_counters;
-           ++info_index) {
-        fillLumiInfo(
-          parameters.dev_lumi_infos[info_offset + info_index],
-          offsets_and_sizes[info_index * 2],
-          offsets_and_sizes[info_index * 2 + 1],
-          cluster_counters[info_index - Lumi::Constants::n_velo_reco_counters],
-          shifts_and_scales[2 * info_index],
-          shifts_and_scales[2 * info_index + 1]);
-      }
+    unsigned info_offset = Lumi::Constants::n_velo_counters * lumi_evt_index;
+    for (unsigned info_index = Lumi::Constants::n_velo_reco_counters;
+         info_index < Lumi::Constants::n_velo_reco_counters + Lumi::Constants::n_velo_cluster_counters;
+         ++info_index) {
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset + info_index],
+        offsets_and_sizes[info_index * 2],
+        offsets_and_sizes[info_index * 2 + 1],
+        cluster_counters[info_index - Lumi::Constants::n_velo_reco_counters],
+        shifts_and_scales[2 * info_index],
+        shifts_and_scales[2 * info_index + 1]);
     }
   }
 }
