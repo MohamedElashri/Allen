@@ -49,6 +49,9 @@ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::set_argum
   set_size<dev_seeding_track_hits_t>(
     arguments, first<host_accumulated_number_of_hits_in_scifi_tracks_t>(arguments) * sizeof(SciFi::Hit));
   set_size<dev_seeding_qop_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
+  set_size<dev_seeding_chi2Y_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
+  // set_size<dev_seeding_chi2X_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
+  // set_size<dev_seeding_nY_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
   set_size<dev_seeding_states_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
   set_size<dev_scifi_hits_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_scifi_track_view_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
@@ -222,11 +225,14 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
                                           number_of_events};
   const unsigned number_of_tracks_event = scifi_seeds.number_of_tracks(event_number);
   float* tracks_qop = parameters.dev_seeding_qop + parameters.dev_atomics_scifi[event_number];
+  // float* tracks_chi2X = parameters.dev_seeding_chi2X + parameters.dev_atomics_scifi[event_number];
+  float* tracks_chi2Y = parameters.dev_seeding_chi2Y + parameters.dev_atomics_scifi[event_number];
+  // int  * tracks_nY = parameters.dev_seeding_nY + parameters.dev_atomics_scifi[event_number];
   auto used_scifi_hits = parameters.dev_used_scifi_hits.get();
 
   if (number_of_tracks_event < 200) {
     unsigned bin = std::floor(number_of_tracks_event / 2.5);
-    dev_histogram_scifi_n_tracks[bin]++;
+    atomicAdd(&dev_histogram_scifi_n_tracks[bin], 1);
   }
   dev_scifi_n_tracks_counter[0] += number_of_tracks_event;
 
@@ -247,6 +253,9 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
 
     const auto magSign = dev_magnet_polarity[0];
     tracks_qop[i] = qop_seeding_calculation(magSign, seeding_state, true);
+    // tracks_chi2X[i] = scifiseed.chi2X;
+    tracks_chi2Y[i] = scifiseed.chi2Y;
+    // tracks_nY[i] = scifiseed.nY;
 
     auto consolidated_hits = scifi_seeds.get_hits(parameters.dev_seeding_track_hits, i);
 
@@ -303,18 +312,18 @@ __device__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t
     const unsigned int bin = static_cast<unsigned int>(
       (eta - parameters.histogram_scifi_track_eta_min) * parameters.histogram_scifi_track_eta_nbins /
       (parameters.histogram_scifi_track_eta_max - parameters.histogram_scifi_track_eta_min));
-    ++dev_histogram_scifi_track_eta[bin];
+    atomicAdd(&dev_histogram_scifi_track_eta[bin], 1);
   }
   if (phi > parameters.histogram_scifi_track_phi_min && phi < parameters.histogram_scifi_track_phi_max) {
     const unsigned int bin = static_cast<unsigned int>(
       (phi - parameters.histogram_scifi_track_phi_min) * parameters.histogram_scifi_track_phi_nbins /
       (parameters.histogram_scifi_track_phi_max - parameters.histogram_scifi_track_phi_min));
-    ++dev_histogram_scifi_track_phi[bin];
+    atomicAdd(&dev_histogram_scifi_track_phi[bin], 1);
   }
   if (nhits > parameters.histogram_scifi_track_nhits_min && nhits < parameters.histogram_scifi_track_nhits_max) {
     const unsigned int bin = static_cast<unsigned int>(
       (nhits - parameters.histogram_scifi_track_nhits_min) * parameters.histogram_scifi_track_nhits_nbins /
       (parameters.histogram_scifi_track_nhits_max - parameters.histogram_scifi_track_nhits_min));
-    ++dev_histogram_scifi_track_nhits[bin];
+    atomicAdd(&dev_histogram_scifi_track_nhits[bin], 1);
   }
 }

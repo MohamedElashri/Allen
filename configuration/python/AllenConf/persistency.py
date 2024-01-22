@@ -27,6 +27,45 @@ def build_decision_ids(lines, offset=1):
         decision_ids (dict of str to int): Mapping from decision name to ID.
     """
 
+    return {name: idx for idx, name in enumerate(lines, offset)}
+
+
+def register_decision_ids(ids):
+    # note: as the HltSelRep raw bank does not have its own encoding key just yet, it
+    #       still 'sidesteps' to the decreports raw bank. Hence we stick
+    #       the SelectionID and InfoID into the same encoding table as the decision IDs
+    return int(
+        register_encoding_dictionary(
+            'Hlt1DecisionID', {
+                'Hlt1DecisionID': {v: k
+                                   for k, v in ids.items()},
+                'Hlt1SelectionID': {v: k
+                                    for k, v in ids.items()},
+                'InfoID': {},
+                'version': '0'
+            }), 16)  # TODO unsigned? Stick to hex string?
+
+
+def register_allen_encoding_table(lines):
+    ids = build_decision_ids([l.name for l in lines])
+    return register_decision_ids(ids)
+
+
+def build_decision_ids(lines, offset=1):
+    """Return a dict of decision names to integer IDs.
+
+    Decision report IDs must not be zero. This method generates IDs starting
+    from offset.
+
+    Args:
+        decision_names (list of str)
+        offset (int): needed so that there are no identical ints in the int->str relations
+        of HltRawBankDecoderBase
+
+    Returns:
+        decision_ids (dict of str to int): Mapping from decision name to ID.
+    """
+
     append_decision = lambda x: x if x.endswith('Decision') else '{}Decision'.format(x)
 
     return {
@@ -112,8 +151,54 @@ rb_map = {
     25
 }
 
+#routing bits for Heavy ions
+rb_map_PbPb = {
+    # RB 1 Lumi after HLT1
+    '^Hlt1.*Lumi.*':
+    1,
+    # RB 2 Velo alignment
+    'Hlt1(VeloMicroBias|BeamGas|NMaterialVertexSeeds|NVELODisplacedTrack|HeavyIonPbPbMBOneTrack)':
+    2,
+    # RB 3 Tracker alignment
+    'Hlt1(D2KPi|DiMuonHighMass|DisplacedDiMuon)Alignment|Hlt1HeavyIonPbPbUPCMB':
+    3,
+    # RB 4 Muon alignment
+    'Hlt1DiMuon(High|Jpsi)MassAlignment':
+    4,
+    # RB 5 RICH1 alignment
+    'Hlt1RICH1Alignment':
+    5,
+    # RB 6 TAE passthrough
+    'Hlt1TAEPassthrough':
+    6,
+    # RB 7 RICH2 alignment
+    'Hlt1RICH2Alignment':
+    7,
+    # RB 8 Velo (closing) monitoring
+    'Hlt1ODINVelo.*':
+    8,
+    # RB 9 ECAL pi0 calibration
+    'Hlt1HeavyIonPbPbUPCDiPhoton_LowPt':
+    9,
+    # RB 14 HLT1 beam-beam physics for monitoring and alignment
+    'Hlt1(HeavyIonPbPbPeripheral|HeavyIonPbPbCentral|HeavyIonPbPbUPCMB|GECCentPassthrough)':
+    14,
+    # RB 15 HLT1 beam-gas physics for monitoring and alignment
+    'Hlt1(HeavyIonPbSMOGHadronic|GECCentPassthrough)':
+    15,
+    # RB 16 NoBias, prescaled
+    'Hlt1.*NoBias':
+    16,
+    # RB 25 Tell1 Error events
+    'Hlt1Tell1Error':
+    25
+}
+
 
 def make_gather_selections(lines):
+    if not lines:
+        raise ValueError("make_gather_selections: lines must not be empty")
+
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
 
@@ -159,7 +244,8 @@ def make_dec_reporter(lines, TCK=0):
         dev_selections_offsets_t=gather_selections.dev_selections_offsets_t)
 
 
-def make_routingbits_writer(lines):
+@configurable
+def make_routingbits_writer(lines, rb_map=rb_map):
     gather_selections = make_gather_selections(lines)
     dec_reporter = make_dec_reporter(lines)
     number_of_events = initialize_number_of_events()
@@ -168,8 +254,6 @@ def make_routingbits_writer(lines):
         host_routingbits_writer_t,
         name="host_routingbits_writer",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_active_lines_t=gather_selections.
-        host_number_of_active_lines_t,
         host_names_of_active_lines_t=gather_selections.
         host_names_of_active_lines_t,
         host_dec_reports_t=dec_reporter.host_dec_reports_t,
@@ -186,11 +270,7 @@ def make_global_decision(lines):
         global_decision_t,
         name="global_decision",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_active_lines_t=gather_selections.
-        host_number_of_active_lines_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        dev_number_of_active_lines_t=gather_selections.
-        dev_number_of_active_lines_t,
         dev_dec_reports_t=dec_reporter.dev_dec_reports_t)
 
 
@@ -207,13 +287,10 @@ def make_sel_report_writer(lines):
     make_selected_object_lists = make_algorithm(
         make_selected_object_lists_t,
         name="make_selected_object_lists",
+        host_dec_reports_t=dec_reporter.host_dec_reports_t,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_active_lines_t=gather_selections.
-        host_number_of_active_lines_t,
         host_max_objects_t=prefix_sum_max_objects.host_total_sum_holder_t,
         dev_dec_reports_t=dec_reporter.dev_dec_reports_t,
-        dev_number_of_active_lines_t=gather_selections.
-        dev_number_of_active_lines_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_multi_event_particle_containers_t=gather_selections.
         dev_particle_containers_t,
@@ -262,7 +339,6 @@ def make_sel_report_writer(lines):
         host_total_sum_holder_t,
         dev_number_of_active_lines_t=gather_selections.
         dev_number_of_active_lines_t,
-        dev_dec_reports_t=dec_reporter.dev_dec_reports_t,
         dev_selections_t=gather_selections.dev_selections_t,
         dev_selections_offsets_t=gather_selections.dev_selections_offsets_t,
         dev_max_objects_offsets_t=prefix_sum_max_objects.dev_output_buffer_t,

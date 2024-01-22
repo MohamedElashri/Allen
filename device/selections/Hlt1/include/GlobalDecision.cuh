@@ -9,9 +9,7 @@
 namespace global_decision {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
     DEVICE_INPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
     DEVICE_OUTPUT(dev_global_decision_t, bool) dev_global_decision;
     HOST_OUTPUT(host_global_decision_t, bool) host_global_decision;

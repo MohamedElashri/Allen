@@ -208,7 +208,7 @@ class AllenCore():
             for p in algorithm.properties
         ]
         properties = [
-            f"Gaudi::Property<{p.typedef}> m_{p.typename}{{this, {p.name}, {p.default_value}, [=](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, {p.description} }};"
+            f"Gaudi::Property<{p.typedef}> m_{p.typename}{{this, {p.name}, {p.default_value}, [=,this](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, {p.description} }};"
             for p, init in zip(algorithm.properties, properties_initialization)
         ]
         properties += [
@@ -244,7 +244,7 @@ class AllenCore():
                 f"Gaudi::Property<std::vector<std::string>> m_{agg.typename}_locations",
                 f"#endif",
                 f"{{this, \"{agg.typename}\", {{}},",
-                f"  [=]( Gaudi::Details::PropertyBase& ) {{",
+                f"  [=,this]( Gaudi::Details::PropertyBase& ) {{",
                 f"    this->m_{agg.typename} =",
                 f"      Gaudi::Functional::details::make_vector_of_handles<decltype( this->m_{agg.typename} )>( this, m_{agg.typename}_locations );",
                 f"    std::for_each( this->m_{agg.typename}.begin(), this->m_{agg.typename}.end(),",
@@ -436,7 +436,7 @@ class AllenCore():
             for p in algorithm.properties
         ]
         properties = [
-            f"Gaudi::Property<{p.typedef}> m_{p.typename}{{this, {p.name}, {p.default_value}, [=](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, {p.description} }};"
+            f"Gaudi::Property<{p.typedef}> m_{p.typename}{{this, {p.name}, {p.default_value}, [=,this](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, {p.description} }};"
             for p, init in zip(algorithm.properties, properties_initialization)
         ]
         properties += [

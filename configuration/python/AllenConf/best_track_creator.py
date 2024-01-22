@@ -85,17 +85,6 @@ def combine_long_containers(long_tracks_0, long_tracks_1):
         long_tracks_0["velo_kalman_filter"],
     }
 
-    if "seeding_tracks" in long_tracks_0.keys():
-        combined_tracks.update({
-            "seeding_tracks":
-            long_tracks_0["seeding_tracks"]
-        })
-    elif "seeding_tracks" in long_tracks_1.keys():
-        combined_tracks.update({
-            "seeding_tracks":
-            long_tracks_1["seeding_tracks"]
-        })
-
     return combined_tracks
 
 
@@ -163,4 +152,12 @@ def best_track_creator(with_ut=True,
     else:
         raise Exception("Tracking type not supported")
 
-    return combine_long_containers(forward_tracks, matched_tracks)
+    combined_map = combine_long_containers(forward_tracks, matched_tracks)
+
+    # you can do this because it's python!
+    combined_map.update({
+        "seeding_tracks": seeding_tracks,
+        "matched_tracks": matched_tracks,
+    })
+
+    return combined_map

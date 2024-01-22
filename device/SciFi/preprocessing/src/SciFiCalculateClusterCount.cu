@@ -25,12 +25,16 @@ __global__ void scifi_calculate_cluster_count_kernel(
     parameters.dev_scifi_raw_input,
     parameters.dev_scifi_raw_input_offsets,
     parameters.dev_scifi_raw_input_sizes,
+    parameters.dev_scifi_raw_input_types,
     event_number + event_start);
   const SciFi::SciFiGeometry geom(scifi_geometry);
   SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
   for (unsigned iRawBank = threadIdx.x; iRawBank < scifi_raw_event.number_of_raw_banks(); iRawBank += blockDim.x) {
     uint32_t* hits_module;
+
     auto rawbank = scifi_raw_event.raw_bank(iRawBank);
+    if (rawbank.type != LHCb::RawBank::FTCluster) continue;
+
     const auto iRowInMap = SciFi::getRowInMap(rawbank, geom);
     if (iRowInMap == geom.number_of_banks) continue;
     const auto [starting_it, last] = SciFi::readAndCheckRawBank(rawbank);
@@ -125,7 +129,7 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
                      (bank_version == 6) ?
                      (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<6, true>) :
                                                    global_function(scifi_calculate_cluster_count_kernel<6, false>)) :
-                     (bank_version == 7) ?
+                     (bank_version == 7 || (bank_version == 8 && property<decode_v8_as_v7_t>())) ?
                      (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<7, true>) :
                                                    global_function(scifi_calculate_cluster_count_kernel<7, false>)) :
                      (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<8, true>) :

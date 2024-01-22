@@ -23,6 +23,7 @@
 namespace matching_consolidate_tracks {
   struct Parameters {
     HOST_INPUT(host_number_of_reconstructed_matched_tracks_t, unsigned) host_number_of_reconstructed_matched_tracks;
+    HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_accumulated_number_of_hits_in_matched_tracks_t, unsigned)
     host_accumulated_number_of_hits_in_matched_tracks;
@@ -42,6 +43,7 @@ namespace matching_consolidate_tracks {
     DEVICE_OUTPUT(dev_matched_track_scifi_indices_t, unsigned) dev_matched_track_scifi_indices;
     DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
     DEVICE_OUTPUT(dev_accepted_and_unused_velo_tracks_t, bool) dev_accepted_and_unused_velo_tracks;
+    DEVICE_OUTPUT(dev_matched_is_scifi_track_used_t, bool) dev_matched_is_scifi_track_used;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_long_track_view_t,
       DEPENDENCIES(

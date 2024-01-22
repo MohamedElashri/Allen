@@ -39,6 +39,8 @@ namespace Checker {
     };
     struct Muon {
     };
+    struct Downstream {
+    };
 
     template<typename T>
     using muon_as_scifi_t = std::conditional_t<std::is_same_v<T, Muon>, SciFi, T>;

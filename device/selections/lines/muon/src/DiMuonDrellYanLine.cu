@@ -64,9 +64,8 @@ __device__ bool di_muon_drell_yan_line::di_muon_drell_yan_line_t::select(
                         && trk2->state().pt() >= parameters.minTrackPt && trk2->state().p() >= parameters.minTrackP &&
                         trk2->state().eta() <= parameters.maxTrackEta
 
-                        && particle.mdimu() >= parameters.minMass && particle.mdimu() <= parameters.maxMass
-
-                        && particle.has_pv() && particle.pv().position.z >= parameters.minZ;
+                        && particle.mdimu() >= parameters.minMass && particle.mdimu() <= parameters.maxMass &&
+                        vertex.z() >= parameters.minZ;
 
   return decision;
 }
@@ -91,7 +90,7 @@ __device__ void di_muon_drell_yan_line::di_muon_drell_yan_line_t::monitor(
       const unsigned int bin = static_cast<unsigned int>(
         (m - parameters.histogram_Z_mass_min) * parameters.histogram_Z_mass_nbins /
         (parameters.histogram_Z_mass_max - parameters.histogram_Z_mass_min));
-      ++parameters.dev_histogram_Z_mass[bin];
+      atomicAdd(&parameters.dev_histogram_Z_mass[bin], 1);
     }
   }
 }

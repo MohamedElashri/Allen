@@ -19,14 +19,17 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
   const RuntimeOptions&,
   const Constants&) const
 {
+  // The number of lines is the same for all events and the DecReports
+  // exist for all events too
+  HltDecReports host_dec_reports {get<host_dec_reports_t>(arguments), 0u};
+
   // For keeping track of selections.
   set_size<dev_sel_count_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_sel_list_t>(
-    arguments, first<host_number_of_events_t>(arguments) * first<host_number_of_active_lines_t>(arguments));
+  set_size<dev_sel_list_t>(arguments, first<host_number_of_events_t>(arguments) * host_dec_reports.number_of_lines());
 
   // For keeping track of selected candidates.
   set_size<dev_candidate_count_t>(
-    arguments, first<host_number_of_active_lines_t>(arguments) * first<host_number_of_events_t>(arguments));
+    arguments, host_dec_reports.number_of_lines() * first<host_number_of_events_t>(arguments));
   set_size<dev_sel_track_count_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_sel_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
   // These are effectively 3D arrays. Use the convention: X = candidate, Y = event, Z = line.
@@ -102,23 +105,20 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
   const unsigned total_events)
 {
   const auto event_number = blockIdx.x;
-  const unsigned n_lines = parameters.dev_number_of_active_lines[0];
+  const HltDecReports dec_reports {parameters.dev_dec_reports.get(), event_number};
+
   const unsigned n_children = parameters.max_children_per_object;
-  const unsigned* line_selected_object_offsets = parameters.dev_max_objects_offsets + n_lines * event_number;
+  const unsigned* line_selected_object_offsets =
+    parameters.dev_max_objects_offsets + dec_reports.number_of_lines() * event_number;
   const unsigned selected_object_offset = n_children * line_selected_object_offsets[0];
-  const uint32_t* event_dec_reports =
-    parameters.dev_dec_reports + (3 + parameters.dev_number_of_active_lines[0]) * event_number;
-  unsigned* event_candidate_count =
-    parameters.dev_candidate_count + event_number * parameters.dev_number_of_active_lines[0];
+  unsigned* event_candidate_count = parameters.dev_candidate_count + event_number * dec_reports.number_of_lines();
 
   Selections::ConstSelections selections {parameters.dev_selections, parameters.dev_selections_offsets, total_events};
 
-  for (unsigned line_index = 0; line_index < n_lines; line_index += 1) {
+  for (HltDecReport dec_report : dec_reports) {
+    if (!dec_report.decision()) continue;
 
-    HltDecReport dec_report;
-    dec_report.setDecReport(event_dec_reports[3 + line_index]);
-    if (!dec_report.getDecision()) continue;
-
+    const auto line_index = dec_report.line_index();
     const auto mec = parameters.dev_multi_event_particle_containers[line_index];
 
     // Handle lines that do not select from a particle container.
@@ -127,7 +127,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
     // Handle lines that select BasicParticles.
     const auto basic_particle_mec = Allen::dyn_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(mec);
     if (basic_particle_mec) {
-      auto decs = selections.get_span(line_index, event_number);
+      auto decs = selections.get_span(dec_report.line_index(), event_number);
       const auto event_tracks = basic_particle_mec->container(event_number);
       for (unsigned track_index = threadIdx.x; track_index < event_tracks.size(); track_index += blockDim.x) {
         if (decs[track_index]) {
@@ -146,7 +146,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
     const auto composite_particle_mec =
       Allen::dyn_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(mec);
     if (composite_particle_mec) {
-      auto decs = selections.get_span(line_index, event_number);
+      auto decs = selections.get_span(dec_report.line_index(), event_number);
       const auto event_svs = composite_particle_mec->container(event_number);
       for (unsigned sv_index = threadIdx.x; sv_index < event_svs.size(); sv_index += blockDim.x) {
         if (decs[sv_index]) {
@@ -236,9 +236,12 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
 __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_lists::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
+
+  const HltDecReports dec_reports {parameters.dev_dec_reports, event_number};
+
   const unsigned n_children = parameters.max_children_per_object;
-  const unsigned n_lines = parameters.dev_number_of_active_lines[0];
-  const unsigned* line_selected_object_offsets = parameters.dev_max_objects_offsets + n_lines * event_number;
+  const unsigned* line_selected_object_offsets =
+    parameters.dev_max_objects_offsets + dec_reports.number_of_lines() * event_number;
   const unsigned selected_object_offset = n_children * line_selected_object_offsets[0];
   const auto event_track_ptrs = parameters.dev_selected_basic_particle_ptrs + selected_object_offset;
   const auto event_unique_track_list = parameters.dev_unique_track_list + selected_object_offset;
@@ -246,9 +249,8 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
   const auto event_unique_sv_list = parameters.dev_unique_sv_list + selected_object_offset;
   const auto n_selected_tracks = parameters.dev_unique_track_count[event_number];
   const auto n_selected_svs = parameters.dev_unique_sv_count[event_number];
-  const uint32_t* event_dec_reports = parameters.dev_dec_reports + (3 + n_lines) * event_number;
-  unsigned* event_candidate_count = parameters.dev_candidate_count + event_number * n_lines;
-  unsigned* event_sel_list = parameters.dev_sel_list + event_number * n_lines;
+  unsigned* event_candidate_count = parameters.dev_candidate_count + event_number * dec_reports.number_of_lines();
+  unsigned* event_sel_list = parameters.dev_sel_list + event_number * dec_reports.number_of_lines();
 
   // Calculate the size of the hits bank.
   for (unsigned i_track = threadIdx.x; i_track < n_selected_tracks; i_track += blockDim.x) {
@@ -261,11 +263,9 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
   }
 
   // Calculate the size of the substr bank.
-  for (unsigned line_index = threadIdx.x; line_index < parameters.dev_number_of_active_lines[0];
-       line_index += blockDim.x) {
-    HltDecReport dec_report;
-    dec_report.setDecReport(event_dec_reports[3 + line_index]);
-    if (dec_report.getDecision()) {
+  for (unsigned line_index = threadIdx.x; line_index < dec_reports.number_of_lines(); line_index += blockDim.x) {
+    HltDecReport dec_report = dec_reports.dec_report(line_index);
+    if (dec_report.decision()) {
       atomicAdd(parameters.dev_substr_bank_size + event_number, 1 + event_candidate_count[line_index]);
       atomicAdd(parameters.dev_substr_sel_size + event_number, 1 + event_candidate_count[line_index]);
       unsigned insert_index = atomicAdd(parameters.dev_sel_count + event_number, 1);

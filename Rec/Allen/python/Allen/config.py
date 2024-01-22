@@ -18,9 +18,9 @@ from PyConf.control_flow import CompositeNode, NodeLogic
 from PyConf.application import all_nodes_and_algs
 from PyConf.application import configure_input, configure
 from PyConf.Algorithms import (
-    AllenTESProducer, DumpBeamline, DumpCaloGeometry, DumpMagneticField,
-    DumpVPGeometry, DumpFTGeometry, DumpUTGeometry, DumpUTLookupTables,
-    DumpMuonGeometry, DumpMuonTable, AllenODINProducer)
+    DumpBeamline, DumpCaloGeometry, DumpMagneticField, DumpVPGeometry,
+    DumpFTGeometry, DumpUTGeometry, DumpUTLookupTables, DumpMuonGeometry,
+    DumpMuonTable, AllenODINProducer)
 from DDDB.CheckDD4Hep import UseDD4Hep
 
 
@@ -109,15 +109,15 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     data (geometries etc.)
     """
     converter_types = {
-        'VP': [(DumpBeamline, 'DumpBeamline', 'beamline'),
-               (DumpVPGeometry, 'DumpVPGeometry', 'velo_geometry')],
-        'UT': [(DumpUTGeometry, 'DumpUTGeometry', 'ut_geometry'),
-               (DumpUTLookupTables, 'DumpUTLookupTables', 'ut_tables')],
-        'ECal': [(DumpCaloGeometry, 'DumpCaloGeometry', 'ecal_geometry')],
-        'Magnet': [(DumpMagneticField, 'DumpMagneticField', 'polarity')],
-        'FTCluster': [(DumpFTGeometry, 'DumpFTGeometry', 'scifi_geometry')],
-        'Muon': [(DumpMuonGeometry, 'DumpMuonGeometry', 'muon_geometry'),
-                 (DumpMuonTable, 'DumpMuonTable', 'muon_tables')]
+        'VP': [(DumpBeamline, 'DeviceBeamline', 'beamline'),
+               (DumpVPGeometry, 'DeviceVPGeometry', 'velo_geometry')],
+        'UT': [(DumpUTGeometry, 'DeviceUTGeometry', 'ut_geometry'),
+               (DumpUTLookupTables, 'DeviceUTLookupTables', 'ut_tables')],
+        'ECal': [(DumpCaloGeometry, 'DeviceCaloGeometry', 'ecal_geometry')],
+        'Magnet': [(DumpMagneticField, 'DeviceMagneticField', 'polarity')],
+        'FTCluster': [(DumpFTGeometry, 'DeviceFTGeometry', 'scifi_geometry')],
+        'Muon': [(DumpMuonGeometry, 'DeviceMuonGeometry', 'muon_geometry'),
+                 (DumpMuonTable, 'DeviceMuonTable', 'muon_tables')]
     }
 
     detector_names = {
@@ -126,6 +126,7 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
         'PVs': None,
         'tracks': None,
         'Plume': None,
+        'HCal': None,
     }
 
     if type(bank_types) == list:
@@ -169,44 +170,19 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     converters = [(bt, t, tn, f) for bt, convs in converter_types.items()
                   for t, tn, f in convs if bt in bank_types]
     for bt, converter_type, converter_name, filename in converters:
-        converter_id = converter_type.getDefaultProperties().get('ID', None)
-        if converter_id is not None:
-            converter = converter_type()
-            # An algorithm that needs a TESProducer
-            producer = AllenTESProducer(
-                name='AllenTESProducer_%s' % bt,
-                Filename=filename if dump_geometry else "",
-                OutputDirectory=out_dir,
-                InputID=converter.OutputID,
-                InputData=converter.Converted,
-                ID=converter_id)
-            algorithm_producers.append(producer)
-        else:
-            converter = converter_type(
-                name=converter_name,
-                DumpToFile=dump_geometry,
-                OutputDirectory=out_dir)
+        converter = converter_type(
+            name=converter_name,
+            DumpToFile=dump_geometry,
+            OutputDirectory=out_dir)
         algorithm_converters.append(converter)
 
     converters_node = CompositeNode(
-        "allen_non_event_data_converters",
+        "allen_non_event_data",
         algorithm_converters,
         combine_logic=NodeLogic.NONLAZY_OR,
         force_order=True)
-    producers_node = CompositeNode(
-        "allen_non_event_data_producers",
-        algorithm_producers,
-        combine_logic=NodeLogic.NONLAZY_OR,
-        force_order=True)
 
-    control_flow = [converters_node, producers_node]
-    cf_node = CompositeNode(
-        "allen_non_event_data",
-        control_flow,
-        combine_logic=NodeLogic.LAZY_AND,
-        force_order=True)
-
-    return cf_node
+    return converters_node
 
 
 def run_allen_reconstruction(options, make_reconstruction, public_tools=[]):

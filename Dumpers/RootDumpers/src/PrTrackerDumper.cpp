@@ -722,7 +722,7 @@ LHCb::RawEvent PrTrackerDumper::operator()(
         FT_hitDXDY.push_back(ftHits.dxDy(i));
         FT_hitYMin.push_back(ftHits.coldHitInfo(i).yMin);
         FT_hitYMax.push_back(ftHits.coldHitInfo(i).yMax);
-        FT_lhcbID.push_back(ftHits.lhcbid(i).channelID());
+        FT_lhcbID.push_back(ftHits.lhcbid(i).lhcbID());
       }
     }
 
@@ -953,7 +953,7 @@ LHCb::RawEvent PrTrackerDumper::operator()(
     FT_hitDXDY.push_back(ftHits.dxDy(i));
     FT_hitYMin.push_back(ftHits.coldHitInfo(i).yMin);
     FT_hitYMax.push_back(ftHits.coldHitInfo(i).yMax);
-    FT_lhcbID.push_back(ftHits.lhcbid(i).channelID());
+    FT_lhcbID.push_back(ftHits.lhcbid(i).lhcbID());
   }
 
   if (msgLevel(MSG::DEBUG)) {

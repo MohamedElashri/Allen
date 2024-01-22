@@ -1,14 +1,21 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
 ###############################################################################
+from PyConf.tonic import configurable
 from AllenCore.algorithms import (
     beam_crossing_line_t, velo_micro_bias_line_t, odin_event_type_line_t,
-    odin_event_and_orbit_line_t, calo_digits_minADC_t, beam_gas_line_t,
-    velo_clusters_micro_bias_line_t, n_displaced_velo_track_line_t,
-    n_materialvertex_seed_line_t, plume_activity_line_t, t_track_cosmic_line_t)
+    odin_event_type_with_decoding_line_t, odin_event_and_orbit_line_t,
+    calo_digits_minADC_t, beam_gas_line_t, velo_clusters_micro_bias_line_t,
+    n_displaced_velo_track_line_t, n_materialvertex_seed_line_t,
+    plume_activity_line_t, t_track_cosmic_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenConf.odin import decode_odin
 from AllenCore.generator import make_algorithm
+from AllenConf.velo_reconstruction import decode_velo
+from AllenConf.calo_reconstruction import decode_calo
+from AllenConf.scifi_reconstruction import decode_scifi
+from AllenConf.muon_reconstruction import decode_muon
+from AllenConf.plume_reconstruction import decode_plume
 
 
 def make_beam_line(pre_scaler_hash_string=None,
@@ -86,6 +93,48 @@ def make_odin_event_type_line(odin_event_type: str,
         pre_scaler=pre_scaler,
         post_scaler=post_scaler,
         dev_odin_data_t=odin["dev_odin_data"],
+        odin_event_type=type_map[odin_event_type],
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        pre_scaler_hash_string=pre_scaler_hash_string or line_name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or line_name + "_post")
+
+
+def make_odin_event_type_with_decoding_line(odin_event_type: str,
+                                            name=None,
+                                            pre_scaler=1.,
+                                            post_scaler=1.,
+                                            pre_scaler_hash_string=None,
+                                            post_scaler_hash_string=None):
+    type_map = {
+        "VeloOpen": 0x0001,
+        "Physics": 0x0002,
+        "NoBias": 0x0004,
+        "Lumi": 0x0008,
+        "Beam1Gas": 0x0010,
+        "Beam2Gas": 0x0020
+    }
+
+    number_of_events = initialize_number_of_events()
+    odin = decode_odin()
+    velo = decode_velo()
+    calo = decode_calo()
+    scifi = decode_scifi()
+    muon = decode_muon()
+    plume = decode_plume()
+
+    line_name = name or 'Hlt1ODIN' + odin_event_type
+    return make_algorithm(
+        odin_event_type_with_decoding_line_t,
+        name=line_name,
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        dev_odin_data_t=odin["dev_odin_data"],
+        dev_sorted_velo_cluster_container_t=velo[
+            "dev_sorted_velo_cluster_container"],
+        dev_total_ecal_e_t=calo["dev_total_ecal_e"],
+        dev_scifi_hits_t=scifi["dev_scifi_hits"],
+        dev_muon_hits_t=muon["dev_muon_hits"],
+        dev_plume_t=plume["dev_plume"],
         odin_event_type=type_map[odin_event_type],
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or line_name + "_pre",
@@ -174,6 +223,7 @@ def make_beam_gas_line(velo_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
+@configurable
 def make_velo_clusters_micro_bias_line(decoded_velo,
                                        name="Hlt1VeloClustersMicroBias",
                                        pre_scaler=1.,

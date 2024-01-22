@@ -27,6 +27,7 @@ def decode_scifi():
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
         dev_scifi_raw_input_sizes_t=scifi_banks.dev_raw_sizes_t,
+        dev_scifi_raw_input_types_t=scifi_banks.dev_raw_types_t,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
 
@@ -44,6 +45,7 @@ def decode_scifi():
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
         dev_scifi_raw_input_sizes_t=scifi_banks.dev_raw_sizes_t,
+        dev_scifi_raw_input_types_t=scifi_banks.dev_raw_types_t,
         dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t,
         host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
 
@@ -57,6 +59,7 @@ def decode_scifi():
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
         dev_scifi_raw_input_sizes_t=scifi_banks.dev_raw_sizes_t,
+        dev_scifi_raw_input_types_t=scifi_banks.dev_raw_types_t,
         dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t,
         dev_cluster_references_t=scifi_pre_decode.dev_cluster_references_t,
         host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
@@ -452,6 +455,12 @@ def make_seeding_tracks(
         seed_confirmTracks_consolidate.dev_seeding_states_t,
         "dev_seeding_qop":
         seed_confirmTracks_consolidate.dev_seeding_qop_t,
+        "dev_seeding_chi2Y":
+        seed_confirmTracks_consolidate.dev_seeding_chi2Y_t,
+        # "dev_seeding_chi2X":
+        # seed_confirmTracks_consolidate.dev_seeding_chi2X_t,
+        # "dev_seeding_nY":
+        # seed_confirmTracks_consolidate.dev_seeding_nY_t,
         "host_number_of_reconstructed_seeding_tracks":
         prefix_sum_seeding_tracks.host_total_sum_holder_t,
         "dev_offsets_scifi_seeds":

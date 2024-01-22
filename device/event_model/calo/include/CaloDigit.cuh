@@ -13,7 +13,8 @@
 #include "BackendCommon.h"
 
 struct CaloDigit {
+  static constexpr int16_t INVALID_ADC = 0x7F7F;
   int16_t adc = 0;
 
-  __host__ __device__ bool is_valid() const { return adc != 0x7F7F; }
+  __host__ __device__ bool is_valid() const { return adc != INVALID_ADC; }
 };

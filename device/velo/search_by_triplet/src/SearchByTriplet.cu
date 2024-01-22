@@ -20,11 +20,7 @@ void velo_search_by_triplet::velo_search_by_triplet_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  const unsigned track_container_size =
-    first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster <
-        first<host_number_of_events_t>(arguments) * Velo::Constants::minimum_container_size ?
-      first<host_number_of_events_t>(arguments) * Velo::Constants::minimum_container_size :
-      first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster;
+  const unsigned track_container_size = first<host_total_number_of_velo_clusters_t>(arguments);
 
   set_size<dev_tracks_t>(arguments, track_container_size);
   set_size<dev_three_hit_tracks_t>(arguments, track_container_size);

@@ -124,6 +124,7 @@ void plume_decode::plume_decode_t::operator()(
   (void) constants;
   Allen::memset_async<dev_plume_t>(arguments, 0x7F, context);
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
+  if (bank_version < 0) return;
 
   auto f_plume_decode_kernel =
     runtime_options.mep_layout ?

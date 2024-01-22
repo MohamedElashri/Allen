@@ -60,6 +60,7 @@ void scifi_lumi_counters::scifi_lumi_counters_t::operator()(
 {
   // do nothing if no lumi event
   if (first<host_lumi_summaries_count_t>(arguments) == 0) return;
+  Allen::memset_async<dev_lumi_infos_t>(arguments, 0, context);
 
   global_function(scifi_lumi_counters)(dim3(4u), property<block_dim_t>(), context)(
     arguments,

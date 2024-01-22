@@ -16,6 +16,7 @@
 #include <mdf_header.hpp>
 #include <raw_helpers.hpp>
 
+#include <HltDecReport.cuh>
 #include <InputProvider.h>
 #include <OutputHandler.h>
 #include <RoutingBitsDefinition.h>
@@ -158,7 +159,7 @@ std::tuple<bool, size_t> OutputHandler::output_single_events(
       // event of a batch is start_event in a slice, so we subtract
       // start_event that was added to selected_events to have a direct
       // index into the batch again.
-      auto const event_number = selected_events[i] - start_event;
+      unsigned const event_number = selected_events[i] - start_event;
 
       // event sizes are indexed in the same way as selected_events
       size_t output_event_size = header_size + sizes.input[i] + sizes.hlt[i];
@@ -337,24 +338,24 @@ OutputSizes& OutputHandler::event_sizes(
 
   HLT1Outputs outputs {store};
 
-  // size of the DecReport RawBank
-  const unsigned dec_report_size = (m_nlines + 3) * sizeof(uint32_t);
-
   // Add the HLT bank sizes to event sizes
   for (size_t i = 0; i < selected_events.size(); ++i) {
     auto const event_number = selected_events[i] - start_event;
+
+    HltDecReports dec_reports {outputs.dec_reports, event_number};
+    unsigned const dec_report_size = dec_reports.bank_data().size_bytes();
+
     // size of the SelReport RawBank
     // need the index into the batch here
-    const unsigned sel_report_size =
+    unsigned const sel_report_size =
       outputs.sel_reports_offsets.empty() ?
         0 :
         (outputs.sel_reports_offsets[event_number + 1] - outputs.sel_reports_offsets[event_number]) * sizeof(uint32_t);
-    unsigned lumi_summary_size = 0;
-    if (!outputs.lumi_summary_offsets.empty()) {
-      lumi_summary_size =
+    unsigned const lumi_summary_size =
+      outputs.lumi_summary_offsets.empty() ?
+        0 :
         (outputs.lumi_summary_offsets[event_number + 1] - outputs.lumi_summary_offsets[event_number]) *
-        sizeof(uint32_t);
-    }
+          sizeof(uint32_t);
 
     for (auto hlt_bank_size : {dec_report_size, routing_bits_size, sel_report_size, lumi_summary_size}) {
       if (hlt_bank_size > 0) {
@@ -424,15 +425,15 @@ size_t OutputHandler::add_banks(
 
   HLT1Outputs outputs {store};
 
-  // size of the DecReport RawBank
-  const unsigned dec_report_size = (m_nlines + 3) * sizeof(uint32_t);
-
   // The batch is offset by start_event with respect to the slice, so we add start_event
   m_input_provider->copy_banks(
     slice_index, event_number + start_event, {event_span.data(), static_cast<events_size>(input_size)});
 
   // Starting point of HLT banks
   char* output = event_span.data() + input_size;
+
+  // size of the DecReport RawBank
+  HltDecReports dec_reports {outputs.dec_reports, event_number};
 
   // size of the SelReport RawBank
   // need the index into the batch here
@@ -455,11 +456,7 @@ size_t OutputHandler::add_banks(
   using output_bank = std::tuple<LHCb::RawBank::BankType, unsigned, unsigned, gsl::span<char const>>;
   auto hlt_banks = std::make_tuple(
     // HltDecReports
-    output_bank {LHCb::RawBank::HltDecReports,
-                 3u,
-                 Hlt1::Constants::sourceID,
-                 {reinterpret_cast<char const*>(outputs.dec_reports.data()) + dec_report_size * event_number,
-                  static_cast<events_size>(dec_report_size)}},
+    output_bank {LHCb::RawBank::HltDecReports, dec_reports.version(), dec_reports.source_id(), dec_reports.bank_data()},
     // HltRoutingBits
     output_bank {LHCb::RawBank::HltRoutingBits,
                  0u,
@@ -468,7 +465,7 @@ size_t OutputHandler::add_banks(
                   static_cast<events_size>(routing_bits_size)}},
     // HltSelReports
     output_bank {LHCb::RawBank::HltSelReports,
-                 11u, // TODO: change to 12u, update to run3 source ID...
+                 Hlt1::Constants::version_sel_reports,
                  Hlt1::Constants::sourceID_sel_reports,
                  {reinterpret_cast<char const*>(outputs.sel_reports.data()) + sel_report_offset * sizeof(uint32_t),
                   static_cast<events_size>(sel_report_size)}},

@@ -35,7 +35,8 @@ parser.add_argument("sequence")
 parser.add_argument("repository")
 parser.add_argument("tck", help="A 32-bit hexadecimal number")
 parser.add_argument(
-    "-t", "--hlt1-type",
+    "-t",
+    "--hlt1-type",
     type=str,
     help=
     "Sequence type to use; also used as branch name in the Git repository.",
@@ -85,12 +86,30 @@ if build_metainfo_repo is not None and not local_metainfo_repo.exists():
         sys.exit(1)
 
 
-def dec_reporter_name(conf):
+def output_algorithm_name(conf, algo_type):
     return next(
         (n for t, n, _ in conf["sequence"]["configured_algorithms"]
-         if t == "dec_reporter::dec_reporter_t"),
+         if t == algo_type),
         None,
     )
+
+
+def check_output_algorithms(conf):
+    names = {
+        t.split("::")[1]: output_algorithm_name(conf, t)
+        for t in ("gather_selections::gather_selections_t",
+                  "dec_reporter::dec_reporter_t",
+                  "host_routingbits_writer::host_routingbits_writer_t",
+                  "make_selrep::make_selrep_t")
+    }
+    missing = [e[0] for e in names.items() if e[1] is None]
+    if missing:
+        print(
+            f"Cannot create TCK {hex(tck)} for sequence {type_arg}, because it does not contain {'.'.join(missing)}."
+        )
+        sys.exit(1)
+    else:
+        return names["dec_reporter_t"]
 
 
 sequence = None
@@ -108,30 +127,19 @@ if sequence_arg.suffix in (".py", ""):
         sequence = sequence_from_python(sequence_arg, node_name=args.hlt1_node)
         sequence = json.loads(json.dumps(sequence, sort_keys=True))
 
-    # Check that at least the dec_reporter is part of the sequence,
-    # otherwise it's meaningless to create a TCK for this sequence.
-    dn = dec_reporter_name(sequence)
-    if dn is None:
-        print(
-            f"Cannot create TCK {hex(tck)} for sequence {type_arg}, because it does not contain the dec_reporter"
-        )
-        sys.exit(1)
+    # Check that the persistency algorithms are part of the sequence,
+    # otherwise it's meaningless to create a TCK for it.
+    dn = check_output_algorithms(sequence)
 elif sequence_arg.suffix == ".json":
     # Load the sequence configuration from a JSON file
     sequence, dn = {}, None
     with open(sequence_arg, "r") as sequence_file:
         sequence = json.load(sequence_file)
 
-    # Get the dec reporter and set its TCK property to the right value
-    # before creating the TCK from the configuration
-    dn = dec_reporter_name(sequence)
-    if dn is None:
-        print(
-            f"Cannot create TCK {hex(tck)} for sequence {type_arg}, because it does not contain the dec_reporter"
-        )
-        sys.exit(1)
-    else:
-        sequence[dn]["tck"] = tck
+    # Check that the persistency algorithms are part of the sequence,
+    # otherwise it's meaningless to create a TCK for it.
+    dn = check_output_algorithms(sequence)
+    sequence[dn]["tck"] = tck
 
 # Store the configuration in the Git repository and tag it with the TCK
 try:

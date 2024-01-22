@@ -12,6 +12,7 @@
 #include <cstring>
 #include <algorithm>
 #include <regex>
+#include <limits.h>
 
 #ifdef __linux__
 #include <ext/stdio_filebuf.h>
@@ -38,6 +39,10 @@ using std::signbit;
 #define copysignf_impl copysignf
 #define fmaxf_impl fmaxf
 #define fminf_impl fminf
+// #define CPU_USE_REAL_HALF 1
+#define __fdividef(x, y) ((x) / (y))
+#define __expf expf
+
 constexpr int warp_size = 1;
 
 unsigned inline __ballot_sync(unsigned mask, int predicate) { return predicate & mask; }
@@ -46,6 +51,46 @@ unsigned inline __ballot_sync(unsigned mask, int predicate) { return predicate &
 #define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config)                                                  \
   auto _dynamic_shared_memory_buffer = std::vector<_type>(_config.dynamic_shared_memory_size() / sizeof(_type)); \
   auto _instance = _dynamic_shared_memory_buffer.data();
+
+struct alignas(unsigned long long int) uint2 {
+  unsigned int x;
+  unsigned int y;
+};
+
+inline uint2 make_uint2(unsigned int x, unsigned int y)
+{
+  uint2 out;
+  out.x = x;
+  out.y = y;
+  return out;
+}
+
+struct int2 {
+  int x;
+  int y;
+};
+
+struct char2 {
+  char x;
+  char y;
+};
+
+struct ushort2 {
+  unsigned short x;
+  unsigned short y;
+};
+
+struct ushort4 {
+  unsigned short x;
+  unsigned short y;
+  unsigned short z;
+  unsigned short w;
+};
+
+struct short2 {
+  short x;
+  short y;
+};
 
 struct float3 {
   float x;
@@ -131,7 +176,7 @@ inline unsigned int atomicInc(unsigned int* address, unsigned int val)
 template<class T>
 inline T atomicMin(T* address, T val)
 {
-  const int old = *address;
+  const T old = *address;
   *address = std::min(old, val);
   return old;
 }
@@ -144,14 +189,27 @@ inline T atomicMax(T* address, T val)
   return old;
 }
 
-uint16_t __float2half(const float f);
-
-float __half2float(const uint16_t h);
+template<class T>
+inline T atomicCAS(T* address, T compare, T val)
+{
+  const T old = *address;
+  if (old == compare) {
+    *address = val;
+  }
+  return old;
+}
+// Compress float to uint16
+uint16_t __float_to_uint16(const float f);
+float __uint16_to_float(const uint16_t h);
 
 #ifdef CPU_USE_REAL_HALF
 
+uint16_t __float2half_impl(const float f);
+float __half2float_impl(const uint16_t h);
+
 /**
- * @brief half_t with int16_t backend (real half).
+ * @brief half_t implemented with an int16_t backend (true half-precision).
+ * This is expected to run slower than the fake half-precision implementation.
  */
 struct half_t {
 private:
@@ -161,9 +219,15 @@ public:
   half_t() = default;
   half_t(const half_t&) = default;
 
-  half_t(const float f) { m_value = __float2half(f); }
+  half_t(const float f) { m_value = __float2half_impl(f); }
 
-  inline operator float() const { return __half2float(m_value); }
+  inline auto get() const { return m_value; }
+
+  inline operator float() const { return __half2float_impl(m_value); }
+
+  inline operator int16_t() const { return static_cast<int16_t>(m_value); }
+
+  inline operator uint16_t() const { return m_value; }
 
   inline bool operator<(const half_t& a) const
   {
@@ -179,6 +243,54 @@ public:
     return (sign & sign_a & operator!=(a)) ^ (m_value > a.get());
   }
 
+  half_t& operator+=(const half_t& rhs)
+  {
+    m_value += rhs.m_value;
+    return *this;
+  }
+
+  half_t& operator-=(const half_t& rhs)
+  {
+    m_value -= rhs.m_value;
+    return *this;
+  }
+
+  half_t& operator*=(const half_t& rhs)
+  {
+    m_value *= rhs.m_value;
+    return *this;
+  }
+
+  half_t& operator/=(const half_t& rhs)
+  {
+    m_value /= rhs.m_value;
+    return *this;
+  }
+
+  friend half_t operator+(half_t lhs, const half_t& rhs)
+  {
+    lhs += rhs;
+    return lhs;
+  }
+
+  friend half_t operator-(half_t lhs, const half_t& rhs)
+  {
+    lhs -= rhs;
+    return lhs;
+  }
+
+  friend half_t operator*(half_t lhs, const half_t& rhs)
+  {
+    lhs *= rhs;
+    return lhs;
+  }
+
+  friend half_t operator/(half_t lhs, const half_t& rhs)
+  {
+    lhs /= rhs;
+    return lhs;
+  }
+
   inline bool operator<=(const half_t& a) const { return !operator>(a); }
 
   inline bool operator>=(const half_t& a) const { return !operator<(a); }
@@ -188,12 +300,21 @@ public:
   inline bool operator!=(const half_t& a) const { return !operator==(a); }
 };
 
+half_t __float2half(const float f);
+
+float __half2float(const half_t h);
+
 #else
 
 /**
- * @brief half_t with float backend.
+ * @brief half_t implemented with a float backend.
+ * This is both faster and more precise than the true
+ * half_t implementation when used on a CPU.
  */
 using half_t = float;
+
+half_t __float2half(const float f);
+float __half2float(const half_t h);
 
 #endif
 

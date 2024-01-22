@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 ###############################################################################
-# (c) Copyright 2018-2021 CERN for the benefit of the LHCb Collaboration      #
+# (c) Copyright 2018-2023 CERN for the benefit of the LHCb Collaboration      #
 ###############################################################################
 import os
 import sys
@@ -37,7 +37,19 @@ allen_dir = os.environ["ALLEN_PROJECT_ROOT"]
 interpreter.Declare("#include <Dumpers/IUpdater.h>")
 interpreter.Declare("#include <Allen/Allen.h>")
 interpreter.Declare("#include <Allen/Provider.h>")
-interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
+interpreter.Declare("""
+#include <GaudiKernel/IService.h>
+#include <Allen/InputProvider.h>
+#include <zmq/zmq.hpp>
+// Helper function to cast the LHCb-implementation of the Allen
+// non-event data manager to its shared interface
+template<typename TO>
+struct cast_service { TO* operator()(IService* svc) { return dynamic_cast<TO*>(svc); } };
+template<typename T>
+struct shared_wrap { std::shared_ptr<T> operator()(T* t) { return {t, [](T*) {}}; } };
+Allen::NonEventData::IUpdater* binary_updater(std::map<std::string, std::string> const& options);
+uintptr_t czmq_context(zmq::context_t& ctx) { return reinterpret_cast<uintptr_t>(ctx.operator void*()); }
+""")
 
 sequence_default = os.path.join(os.environ['ALLEN_INSTALL_DIR'], 'constants',
                                 'hlt1_pp_default.json')
@@ -148,8 +160,7 @@ parser.add_argument(
     help="Avoid using python bindings to TCK utils",
     dest="bindings",
     action="store_false",
-    default=True
-)
+    default=True)
 
 args = parser.parse_args()
 
@@ -173,6 +184,9 @@ options.data_type = 'Upgrade'
 options.input_type = 'MDF'
 options.dddb_tag = dddb_tag
 options.conddb_tag = conddb_tag
+if args.register_monitoring_counters and args.mon_filename:
+    fn, ext = os.path.splitext(args.mon_filename)
+    options.histo_file = fn + "_gaudi" + ext
 
 online_cond_path = '/group/online/hlt/conditions.run3/lhcb-conditions-database'
 if not args.simulation:
@@ -208,15 +222,15 @@ if (m := tck_option.match(sequence)):
 
     repo = m.group(1)
     tck = m.group(2)
-    sequence_json, tck_info = sequence_from_git(repo, tck, use_bindings=args.bindings)
+    sequence_json, tck_info = sequence_from_git(
+        repo, tck, use_bindings=args.bindings)
     tck_deps = tck_info["metadata"]["stack"]["projects"]
     if not sequence_json or sequence_json == 'null':
         print(
             f"Failed to obtain configuration for TCK {tck} from repository {repo}"
         )
         sys.exit(1)
-    elif (deps :=
-          dependencies_from_build_manifest()) != tck_deps:
+    elif (deps := dependencies_from_build_manifest()) != tck_deps:
         print(
             f"TCK {tck} is compatible with Allen release {deps}, not with {tck_deps}."
         )
@@ -345,8 +359,7 @@ if args.mep:
     provider = cast_service(gbl.IInputProvider, mep_provider)
 else:
     provider = gbl.Allen.make_provider(options, sequence_json)
-output_handler = gbl.Allen.output_handler(provider, zmqSvc, options,
-                                          sequence_json)
+output_handler = gbl.Allen.output_handler(provider, zmqSvc, options)
 
 # run Allen
 gbl.allen.__release_gil__ = 1

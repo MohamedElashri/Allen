@@ -1,0 +1,56 @@
+/*****************************************************************************\
+* (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration          *
+\*****************************************************************************/
+
+#include "DownstreamCopyHitNumber.cuh"
+
+/**
+ * @file DownstreamCopyHitNumber.cu
+ * @brief Copy the number of hits per track from the downstream tracks to the
+ * downstream track hit number array.
+ * @details This algorithm is used to copy the number of hits per track from the
+ * downstream tracks to the downstream track hit number array. This is needed to be
+ * able to copy the downstream tracks to the host.
+ */
+
+INSTANTIATE_ALGORITHM(downstream_copy_hit_number::downstream_copy_hit_number_t)
+
+void downstream_copy_hit_number::downstream_copy_hit_number_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&) const
+{
+  set_size<dev_downstream_track_hit_number_t>(arguments, first<host_number_of_downstream_tracks_t>(arguments));
+}
+
+void downstream_copy_hit_number::downstream_copy_hit_number_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const Allen::Context& context) const
+{
+  global_function(downstream_copy_hit_number)(
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
+}
+
+__global__ void downstream_copy_hit_number::downstream_copy_hit_number(
+  downstream_copy_hit_number::Parameters parameters)
+{
+  // Basic
+  const auto event_number = blockIdx.x;
+  // Tracks
+  const auto downstream_tracks_memory =
+    parameters.dev_downstream_tracks + event_number * UT::DownstreamTracks::TotalMemorySize;
+  UT::DownstreamTracks_Const downstream_tracks {downstream_tracks_memory};
+  const auto downstream_tracks_offset = parameters.dev_offsets_downstream_tracks[event_number];
+  const auto downstream_tracks_size =
+    parameters.dev_offsets_downstream_tracks[event_number + 1] - downstream_tracks_offset;
+
+  // Output
+  auto downstream_track_hit_number = parameters.dev_downstream_track_hit_number + downstream_tracks_offset;
+
+  // Loop over tracks.
+  for (unsigned idx = threadIdx.x; idx < downstream_tracks_size; idx += blockDim.x) {
+    downstream_track_hit_number[idx] = downstream_tracks.n_hits(idx);
+  }
+}

@@ -27,15 +27,16 @@ void RateMonitor::fill(unsigned i_buf, bool useWallTime)
       time = getWallTimeBin();
     }
 
-    const auto nevt = store->try_at<unsigned>("initialize_number_of_events__host_number_of_events_t");
-    for (unsigned ievt = 0; ievt < (*nevt)[0]; ++ievt) {
-      auto dec_reports = host_dec_reports->data() + ievt * (3 + (*host_number_of_active_lines)[0]);
+    const auto nevt = store->try_at<unsigned>("initialize_number_of_events__host_number_of_events_t")
+                        .value_or(gsl::span<unsigned const> {});
+    for (unsigned ievt = 0; ievt < nevt[0]; ++ievt) {
+      HltDecReports dec_reports {*host_dec_reports, ievt};
 
       bool pass(false);
 
-      for (unsigned i_line = 0; i_line < (*host_number_of_active_lines)[0]; ++i_line) {
-        if (dec_reports[i_line] & HltDecReport::decisionMask) {
-          m_histograms[LineRatesStart + i_line]->Fill(time, 1. / m_time_step);
+      for (HltDecReport dec_report : dec_reports) {
+        if (dec_report.decision()) {
+          m_histograms[LineRatesStart + dec_report.line_index()]->Fill(time, 1. / m_time_step);
           pass = true;
         }
       }

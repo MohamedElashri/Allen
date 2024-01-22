@@ -55,7 +55,10 @@ std::string Allen::sequence_conf(std::map<std::string, std::string> const& optio
 
   std::regex tck_option {"([^:]+):(0x[a-fA-F0-9]{8})"};
   std::smatch tck_match;
-  if (std::regex_match(sequence, tck_match, tck_option)) {
+  if (sequence == "null") {
+    return sequence;
+  }
+  else if (std::regex_match(sequence, tck_match, tck_option)) {
 #ifndef ALLEN_STANDALONE
 
     auto repo = tck_match.str(1);
@@ -235,16 +238,18 @@ std::shared_ptr<IInputProvider> Allen::make_provider(
 
   auto io_conf = io_configuration(number_of_slices, n_repetitions, number_of_threads, true);
 
+  auto data_bank_types = DataBankTypes;
   auto bank_types = configuration_reader.configured_bank_types();
+  bank_types.merge(data_bank_types);
 
   // This is a hack to avoid copying both SP and Retina banks to the device.
   auto [veloSP, retina] = Allen::velo_decoding_type(configuration_reader);
   std::unordered_set<LHCb::RawBank::BankType> skip_banks {};
-  if (!veloSP) {
+  if (!veloSP && retina) {
     skip_banks.insert(LHCb::RawBank::Velo);
     skip_banks.insert(LHCb::RawBank::VP);
   }
-  if (!retina) {
+  else if (veloSP && !retina) {
     skip_banks.insert(LHCb::RawBank::VPRetinaCluster);
   }
 
@@ -291,8 +296,7 @@ std::shared_ptr<IInputProvider> Allen::make_provider(
 std::unique_ptr<OutputHandler> Allen::output_handler(
   IInputProvider* input_provider,
   IZeroMQSvc* zmq_svc,
-  std::map<std::string, std::string> const& options,
-  std::string_view config)
+  std::map<std::string, std::string> const& options)
 {
   std::string output_file;
   size_t output_batch_size = 10;
@@ -312,28 +316,14 @@ std::unique_ptr<OutputHandler> Allen::output_handler(
     return {};
   }
 
-  // Load constant parameters from JSON
-  size_t n_lines = 0;
-  ConfigurationReader configuration_reader {config};
-  auto const& configuration = configuration_reader.params();
-  auto conf_it = configuration.find("gather_selections");
-  if (conf_it != configuration.end()) {
-    auto prop_it = conf_it->second.find("names_of_active_lines");
-    if (prop_it != conf_it->second.end()) {
-      auto line_names = split_string(prop_it->second, ",");
-      n_lines = line_names.size();
-    }
-  }
-
   std::unique_ptr<OutputHandler> output_handler;
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler =
-          std::make_unique<ZMQOutputSender>(input_provider, output_file, output_batch_size, n_lines, zmq_svc);
+        output_handler = std::make_unique<ZMQOutputSender>(input_provider, output_file, output_batch_size, zmq_svc);
       }
       else {
-        output_handler = std::make_unique<FileWriter>(input_provider, output_file, output_batch_size, n_lines);
+        output_handler = std::make_unique<FileWriter>(input_provider, output_file, output_batch_size);
       }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";

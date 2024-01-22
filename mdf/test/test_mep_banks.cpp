@@ -77,39 +77,7 @@ namespace Allen {
   }
 } // namespace Allen
 
-fs::path write_json(std::unordered_set<BankTypes> const& bank_types, bool velo_sp, bool transpose)
-{
-
-  // Write a JSON file that can be fed to AllenConfiguration to
-  // determine the bank types.
-  json bank_types_json;
-  for (auto bt : bank_types) {
-    bank_types_json["provide_"s + bank_name(bt)]["bank_type"] = bank_name(bt);
-  }
-  std::vector<std::array<std::string, 3>> configured_algorithms {
-    {velo_sp ? "velo_masked_clustering::velo_masked_clustering_t" : "decode_retinaclusters::decode_retinaclusters_t",
-     "decode",
-     "DeviceAlgorithm"}};
-  for (auto bt : bank_types) {
-    configured_algorithms.push_back(
-      {"data_provider::data_provider_t", "provide_" + bank_name(bt), "ProviderAlgorithm"});
-  }
-  bank_types_json["sequence"]["configured_algorithms"] = configured_algorithms;
-
-  auto bt_filename = fs::canonical(fs::current_path()) / ("bank_types"s + (transpose ? "_transpose" : "") + ".json");
-  std::ofstream bt_json(bt_filename.string());
-  if (!bt_json.is_open()) {
-    std::cerr << "Failed to open json file for bank types configuration"
-              << "\n";
-    return {};
-  }
-  else {
-    bt_json << std::setw(4) << bank_types_json.dump() << "\n";
-    return bt_filename;
-  }
-}
-
-IInputProvider* mep_provider(std::string json_file)
+IInputProvider* mep_provider()
 {
 
   app = Gaudi::createApplicationMgr();
@@ -123,7 +91,7 @@ IInputProvider* mep_provider(std::string json_file)
   auto allen_conf = sloc->service<IService>("AllenConfiguration");
   if (!allen_conf) return nullptr;
   auto allen_conf_prop = allen_conf.as<IProperty>();
-  sc &= allen_conf_prop->setProperty("JSON", json_file).isSuccess();
+  sc &= allen_conf_prop->setProperty("JSON", "{}").isSuccess();
 
   if (!sc) return nullptr;
 
@@ -204,14 +172,13 @@ int main(int argc, char* argv[])
         s_config.sds.emplace(bt);
       }
     }
-    auto json_file = write_json(s_config.sds, velo_sp, s_config.transpose_mep);
 
     // Allocate providers and get slices
     std::map<std::string, std::string> options = {{"s", std::to_string(s_config.n_slices)},
                                                   {"n", std::to_string(s_config.n_events)},
                                                   {"v", std::to_string(s_config.debug ? 4 : 3)},
                                                   {"mdf", s_config.mdf_files},
-                                                  {"sequence", json_file.string()},
+                                                  {"sequence", "null"},
                                                   {"events-per-slice", std::to_string(s_config.eps)},
                                                   {"disable-run-changes", "1"}};
 
@@ -222,7 +189,7 @@ int main(int argc, char* argv[])
       return 1;
     }
 
-    mep = mep_provider(json_file.string());
+    mep = mep_provider();
     if (mep == nullptr) {
       std::cerr << "Failed to obtain MEPProvider\n";
       return 1;

@@ -83,13 +83,13 @@ __device__ void kstopipi_line::kstopipi_line_t::monitor(
       const unsigned int bin = static_cast<unsigned int>(
         (m - parameters.histogram_ks_mass_min) * parameters.histogram_ks_mass_nbins /
         (parameters.histogram_ks_mass_max - parameters.histogram_ks_mass_min));
-      ++parameters.dev_histogram_ks_mass[bin];
+      atomicAdd(&parameters.dev_histogram_ks_mass[bin], 1);
     }
     if (pt > parameters.histogram_ks_pt_min && pt < parameters.histogram_ks_pt_max) {
       const unsigned int bin = static_cast<unsigned int>(
         (pt - parameters.histogram_ks_pt_min) * parameters.histogram_ks_pt_nbins /
         (parameters.histogram_ks_pt_max - parameters.histogram_ks_pt_min));
-      ++parameters.dev_histogram_ks_pt[bin];
+      atomicAdd(&parameters.dev_histogram_ks_pt[bin], 1);
     }
   }
 }

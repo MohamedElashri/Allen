@@ -16,18 +16,23 @@
 
 #include <LumiDefinitions.cuh>
 
+#include "ClusteringDefinitions.cuh"
 #include <VeloConsolidated.cuh>
 #include "KinUtils.cuh"
 
 namespace velo_lumi_counters {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_INPUT(host_lumi_summaries_count_t, unsigned) host_lumi_summaries_count;
     DEVICE_INPUT(dev_lumi_event_indices_t, unsigned) dev_lumi_event_indices;
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_INPUT(dev_is_backward_t, bool) dev_is_backward;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_offsets_all_velo_tracks;
+    DEVICE_INPUT(dev_offsets_estimated_input_size_t, unsigned) dev_offsets_estimated_input_size;
+    DEVICE_INPUT(dev_module_cluster_num_t, unsigned) dev_module_cluster_num;
+    DEVICE_INPUT(dev_velo_clusters_t, Velo::Clusters) dev_velo_clusters;
     DEVICE_OUTPUT(dev_lumi_infos_t, Lumi::LumiInfo) dev_lumi_infos;
     PROPERTY(
       tracks_eta_bins_t,
@@ -35,6 +40,12 @@ namespace velo_lumi_counters {
       "tracks eta bins",
       std::array<float, Lumi::Constants::n_velo_eta_bin_edges>)
     tracks_eta_bins;
+    PROPERTY(
+      clusters_station_bin_edges_t,
+      "clusters_station_bin_edges",
+      "clusters station bin edges",
+      std::array<unsigned, 4>)
+    clusters_station_bin_edges;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(
       lumi_counter_schema_t,
@@ -56,6 +67,7 @@ namespace velo_lumi_counters {
   __global__ void velo_lumi_counters(
     Parameters,
     const unsigned number_of_events,
+    const unsigned number_of_gec_events,
     const offsets_and_sizes_t offsets_and_sizes,
     const shifts_and_scales_t shifts_and_scales);
 
@@ -91,6 +103,7 @@ namespace velo_lumi_counters {
 
   private:
     Property<tracks_eta_bins_t> m_tracks_eta_bins {this, {-4.f, -3.f, -2.f, 2.f, 3.f, 4.f, 5.f}};
+    Property<clusters_station_bin_edges_t> clusters_station_bin_edges {this, {3, 13, 19, 25}};
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
     Property<lumi_counter_shifts_and_scales_t> m_lumi_counter_shifts_and_scales {this, {}};

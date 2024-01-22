@@ -54,7 +54,7 @@ struct MonitoringAggregator : public Gaudi::Monitoring::Hub::Sink {
       if (it2 != aggregation.sources.end()) {
         if (it2 == aggregation.sources.begin() && aggregation.sources.size() > 1) {
           // if removing the first source then we must preserve the aggregation in the next one
-          aggregation.sources.at(1).mergeAndReset(ent);
+          mergeAndReset(aggregation.sources.at(1), *it2);
           m_hub->removeEntity(aggregation.sources.front());
           m_hub->registerEntity(aggregation.sources.at(1));
         }
@@ -67,8 +67,6 @@ struct MonitoringAggregator : public Gaudi::Monitoring::Hub::Sink {
       }
     }
   }
-
-  virtual ~MonitoringAggregator() {}
 
   void start()
   {
@@ -94,7 +92,7 @@ struct MonitoringAggregator : public Gaudi::Monitoring::Hub::Sink {
   {
     for (auto& [i, agg] : m_aggregations) {
       for (auto it = agg.sources.begin() + 1; it != agg.sources.end(); ++it) {
-        agg.sources.front().mergeAndReset(*it);
+        mergeAndReset(agg.sources.front(), *it);
       }
     }
   }

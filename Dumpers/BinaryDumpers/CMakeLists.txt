@@ -20,10 +20,11 @@ gaudi_add_library(BinaryDumpers
                     Gaudi::GaudiKernel
                     LHCb::DAQEventLib
                     LHCb::FTDAQLib
-                    LHCb::MagnetLib
                     LHCb::FTDetLib
-                    LHCb::RecEvent
-                    LHCb::MuonDAQLib)
+                    LHCb::LHCbDetLib
+                    LHCb::MagnetLib
+                    LHCb::MuonDAQLib
+                    LHCb::RecEvent)
 
 gaudi_add_module(BinaryDumpersModule
                  SOURCES
@@ -48,7 +49,6 @@ gaudi_add_module(BinaryDumpersModule
                    src/ProvideConstants.cpp
                    src/TestMuonTable.cpp
                    src/TransposeRawBanks.cpp
-                   src/TESProducer.cpp
                  LINK
                    Rangev3::rangev3
                    TBB::tbb
@@ -58,7 +58,6 @@ gaudi_add_module(BinaryDumpersModule
                    LHCb::LinkerEvent
                    LHCb::MCEvent
                    LHCb::DAQEventLib
-                   LHCb::DAQKernelLib
                    LHCb::RecEvent
                    LHCb::VPDetLib
                    LHCb::UTDetLib

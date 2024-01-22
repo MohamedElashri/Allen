@@ -9,13 +9,41 @@
 #include "CheckerTracks.cuh"
 #include "ParticleTypes.cuh"
 
+__device__ inline void prepare_downstream_tracks(
+  const Allen::Views::Physics::DownstreamTracks downstream_tracks,
+  const Allen::Views::Physics::KalmanStates downstream_states,
+  Checker::Track* downstream_checker_tracks)
+{
+  const auto number_of_tracks = downstream_tracks.size();
+  for (unsigned track_idx = threadIdx.x; track_idx < number_of_tracks; track_idx += blockDim.x) {
+
+    Checker::Track t;
+    const auto downstream_track = downstream_tracks.track(track_idx);
+    const auto ut_segment = downstream_track.track_segment<Allen::Views::Physics::Track::segment::ut>();
+    const auto downstream_state = downstream_states.state(ut_segment.track_index());
+
+    t.qop = downstream_state.qop();
+    t.p = downstream_state.p();
+    t.pt = downstream_state.pt();
+    t.rho = downstream_state.rho();
+
+    const auto total_number_of_hits = downstream_track.number_of_hits();
+    for (unsigned int ihit = 0; ihit < total_number_of_hits; ihit++) {
+      const auto id = downstream_track.get_id(ihit);
+      t.addId(id);
+    }
+
+    downstream_checker_tracks[track_idx] = t;
+  };
+}
+
 __device__ inline void prepare_long_tracks(
   const Allen::Views::Physics::LongTracks event_long_tracks,
   const Allen::Views::Physics::KalmanStates endvelo_states,
   Checker::Track* long_checker_tracks)
 {
   const unsigned number_of_tracks_event = event_long_tracks.size();
-  for (unsigned i_track = 0; i_track < number_of_tracks_event; i_track++) {
+  for (unsigned i_track = threadIdx.x; i_track < number_of_tracks_event; i_track += blockDim.x) {
     Checker::Track t;
     const auto long_track = event_long_tracks.track(i_track);
 
@@ -49,7 +77,7 @@ __device__ inline void prepare_long_tracks(
 __device__ inline void
 prepare_muons(const unsigned number_of_tracks_event, Checker::Track* long_checker_tracks, const bool* is_muon)
 {
-  for (unsigned i_track = 0; i_track < number_of_tracks_event; i_track++) {
+  for (unsigned i_track = threadIdx.x; i_track < number_of_tracks_event; i_track += blockDim.x) {
     long_checker_tracks[i_track].is_muon = is_muon[i_track];
   }
 }
@@ -205,7 +233,7 @@ __device__ inline void prepare_kalman_tracks(
   const ParKalmanFilter::FittedTrack* kf_tracks,
   Checker::Track* kalman_checker_tracks)
 {
-  for (unsigned i_track = 0; i_track < number_of_tracks; i_track++) {
+  for (unsigned i_track = threadIdx.x; i_track < number_of_tracks; i_track += blockDim.x) {
     ParKalmanFilter::FittedTrack track = kf_tracks[i_track];
     auto t = kalman_checker_tracks[i_track];
     const auto velo_state = endvelo_states.state(t.velo_track_index);

@@ -37,7 +37,7 @@ __global__ void ut_copy_track_hit_number::ut_copy_track_hit_number(ut_copy_track
   unsigned* ut_track_hit_number = parameters.dev_ut_track_hit_number + accumulated_tracks;
 
   // Loop over tracks.
-  for (unsigned element = threadIdx.x; element < number_of_tracks; ++element) {
+  for (unsigned element = threadIdx.x; element < number_of_tracks; element += blockDim.x) {
     ut_track_hit_number[element] = event_tracks[element].hits_num;
   }
 }

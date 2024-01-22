@@ -54,6 +54,11 @@ namespace GaudiAllen::Converters::v3 {
   };
 
   template<>
+  struct v3_hit_container<Allen::Views::UT::Consolidated::VeloUTTrack> {
+    using type = OutTag::UTHits;
+    static inline bool check_id(const LHCb::LHCbID& id) { return id.isUT(); }
+  };
+  template<>
   struct v3_hit_container<Allen::Views::UT::Consolidated::Track> {
     using type = OutTag::UTHits;
     static inline bool check_id(const LHCb::LHCbID& id) { return id.isUT(); }
@@ -104,7 +109,7 @@ namespace GaudiAllen::Converters::v3 {
       if (actual_track.has<segment::scifi>())
         update_seg_lhcb_ids(outTrack, actual_track.track_segment<segment::scifi>());
     }
-    else if constexpr (std::is_same_v<AllenTrack, Allen::Views::UT::Consolidated::Track>) {
+    else if constexpr (std::is_same_v<AllenTrack, Allen::Views::UT::Consolidated::VeloUTTrack>) {
       /// include Velo segment referenced by UT Track
       update_seg_lhcb_ids(outTrack, track);
       update_seg_lhcb_ids(outTrack, track.velo_track());
@@ -128,7 +133,7 @@ namespace GaudiAllen::Converters::v3 {
   };
 
   template<>
-  struct v3_history<Allen::Views::UT::Consolidated::Track> {
+  struct v3_history<Allen::Views::UT::Consolidated::VeloUTTrack> {
     static constexpr auto value = LHCb::Event::Enum::Track::History::PrVeloUT;
   };
 
@@ -212,9 +217,10 @@ namespace GaudiAllen::Converters::v3 {
       return track.hit(track.number_of_ids() - 1);
     }
 
-    /// for UT track, descend to Velo track
+    /// for VeloUT track, descend to Velo track
     template<>
-    auto first_hit<Allen::Views::UT::Consolidated::Track>(const Allen::Views::UT::Consolidated::Track& track)
+    auto first_hit<Allen::Views::UT::Consolidated::VeloUTTrack>(
+      const Allen::Views::UT::Consolidated::VeloUTTrack& track)
     {
       return first_hit(track.velo_track());
     }
@@ -452,7 +458,7 @@ namespace GaudiAllen::Converters::v3 {
       if constexpr (std::is_same_v<AllenTrack, Allen::Views::Velo::Consolidated::Track>) {
         return track;
       }
-      else if constexpr (std::is_same_v<AllenTrack, Allen::Views::UT::Consolidated::Track>) {
+      else if constexpr (std::is_same_v<AllenTrack, Allen::Views::UT::Consolidated::VeloUTTrack>) {
         return track.velo_track();
       }
       else if constexpr (std::is_same_v<AllenTrack, Allen::Views::Physics::Track>) {
@@ -497,7 +503,7 @@ namespace GaudiAllen::Converters::v3 {
   };
 
   template<>
-  struct v3_track_type<Allen::Views::UT::Consolidated::MultiEventTracks> {
+  struct v3_track_type<Allen::Views::UT::Consolidated::MultiEventVeloUTTracks> {
     static constexpr auto value = OutTrackType::Upstream;
   };
 
@@ -712,7 +718,7 @@ namespace GaudiAllen::Converters::v3 {
     std::pair<float, float> qop_and_var(const AllenTrack& track, const States&... input_states) const
     {
       float qop = 0.f;
-      if constexpr (std::is_same_v<AllenTrack, Allen::Views::UT::Consolidated::Track>) {
+      if constexpr (std::is_same_v<AllenTrack, Allen::Views::UT::Consolidated::VeloUTTrack>) {
         // if qop is a track member
         qop = track.qop();
       }
@@ -773,7 +779,9 @@ namespace GaudiAllen::Converters::v3 {
     GaudiAllenTrackViewsToV3Tracks<Allen::Views::Velo::Consolidated::MultiEventTracks, beamline_states>;
   DECLARE_COMPONENT_WITH_ID(GaudiAllenVeloToV3Tracks, "GaudiAllenVeloToV3Tracks")
 
-  using GaudiAllenUTToV3Tracks =
-    GaudiAllenTrackViewsToV3Tracks<Allen::Views::UT::Consolidated::MultiEventTracks, beamline_states, endvelo_states>;
+  using GaudiAllenUTToV3Tracks = GaudiAllenTrackViewsToV3Tracks<
+    Allen::Views::UT::Consolidated::MultiEventVeloUTTracks,
+    beamline_states,
+    endvelo_states>;
   DECLARE_COMPONENT_WITH_ID(GaudiAllenUTToV3Tracks, "GaudiAllenUTToV3Tracks")
 } // namespace GaudiAllen::Converters::v3

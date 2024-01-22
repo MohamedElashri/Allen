@@ -13,6 +13,7 @@ def make_kstopipi_line(long_tracks,
                        secondary_vertices,
                        pre_scaler_hash_string=None,
                        post_scaler_hash_string=None,
+                       post_scaler=1.0,
                        name='Hlt1KsToPiPi_{hash}',
                        double_muon_misid=False,
                        enable_monitoring=True):
@@ -28,7 +29,8 @@ def make_kstopipi_line(long_tracks,
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
-        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        post_scaler=post_scaler)
 
 
 def make_track_mva_line(long_tracks,
@@ -105,6 +107,8 @@ def make_lambda2ppi_line(secondary_vertices,
                          name="Hlt1L02PPi",
                          pre_scaler_hash_string=None,
                          post_scaler_hash_string=None,
+                         minPVZ=-200.,
+                         maxPVZ=200.,
                          enable_tupling=False):
 
     number_of_events = initialize_number_of_events()
@@ -116,6 +120,8 @@ def make_lambda2ppi_line(secondary_vertices,
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
+        minPVZ=minPVZ,
+        maxPVZ=maxPVZ,
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
         enable_tupling=enable_tupling)

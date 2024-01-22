@@ -53,32 +53,31 @@ void host_routingbits_writer::host_routingbits_writer_t::operator()(
 
   host_routingbits_impl(
     first<host_number_of_events_t>(arguments),
-    first<host_number_of_active_lines_t>(arguments),
-    data<host_dec_reports_t>(arguments),
+    get<host_dec_reports_t>(arguments),
     data<host_routingbits_t>(arguments),
     m_rb_ids);
 }
 
 void host_routingbits_writer::host_routingbits_impl(
   unsigned host_number_of_events,
-  unsigned host_number_of_active_lines,
-  const unsigned* host_dec_reports,
+  gsl::span<const unsigned> host_dec_reports,
   unsigned* host_routing_bits,
   const std::unordered_map<uint32_t, boost::dynamic_bitset<>>& rb_ids)
 {
-  boost::dynamic_bitset<> fired(host_number_of_active_lines);
+  boost::dynamic_bitset<> fired {};
   for (unsigned event = 0; event < host_number_of_events; ++event) {
-
-    fired.reset();
 
     unsigned* bits = host_routing_bits + RoutingBitsDefinition::n_words * event;
 
-    unsigned const* dec_reports = host_dec_reports + (3 + host_number_of_active_lines) * event;
-    for (unsigned line_index = 0; line_index < host_number_of_active_lines; ++line_index) {
-      HltDecReport dec_report {dec_reports[3 + line_index]};
-      if (dec_report.decision())
-        fired.set(dec_report.decisionID() - 1); // offset of decisionIDs starts from 1 while dynamic_bitset starts from
-                                                // 0
+    HltDecReports dec_reports {host_dec_reports, event};
+    fired.resize(dec_reports.number_of_lines());
+    fired.reset();
+
+    for (HltDecReport dec_report : dec_reports) {
+      if (dec_report.decision()) {
+        // use the line_index because dynamic_bitset starts from 0
+        fired.set(dec_report.line_index());
+      }
     }
 
     // set routing bit based on set of decisionIDs that match it

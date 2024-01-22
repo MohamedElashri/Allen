@@ -43,8 +43,7 @@ namespace Allen {
   std::unique_ptr<OutputHandler> output_handler(
     IInputProvider* input_provider,
     IZeroMQSvc* zmq_svc,
-    std::map<std::string, std::string> const& options,
-    std::string_view configuration);
+    std::map<std::string, std::string> const& options);
 
   Allen::IOConf io_configuration(
     unsigned number_of_slices,

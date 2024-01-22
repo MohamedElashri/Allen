@@ -87,13 +87,13 @@ __device__ void SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::monito
       const unsigned int bin = static_cast<unsigned int>(
         (m - parameters.histogram_smogdimuon_mass_min) * parameters.histogram_smogdimuon_mass_nbins /
         (parameters.histogram_smogdimuon_mass_max - parameters.histogram_smogdimuon_mass_min));
-      ++parameters.dev_histogram_smogdimuon_mass[bin];
+      atomicAdd(&parameters.dev_histogram_smogdimuon_mass[bin], 1);
     }
     if (svz > parameters.histogram_smogdimuon_svz_min && svz < parameters.histogram_smogdimuon_svz_max) {
       const unsigned int bin = static_cast<unsigned int>(
         (svz - parameters.histogram_smogdimuon_svz_min) * parameters.histogram_smogdimuon_svz_nbins /
         (parameters.histogram_smogdimuon_svz_max - parameters.histogram_smogdimuon_svz_min));
-      ++parameters.dev_histogram_smogdimuon_svz[bin];
+      atomicAdd(&parameters.dev_histogram_smogdimuon_svz[bin], 1);
     }
   }
 }

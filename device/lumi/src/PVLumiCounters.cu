@@ -56,19 +56,21 @@ void pv_lumi_counters::pv_lumi_counters_t::operator()(
 {
   // do nothing if no lumi event
   if (first<host_lumi_summaries_count_t>(arguments) == 0) return;
+  Allen::memset_async<dev_lumi_infos_t>(arguments, 0, context);
 
   global_function(pv_lumi_counters)(dim3(4u), property<block_dim_t>(), context)(
-    arguments, first<host_number_of_events_t>(arguments), m_offsets_and_sizes, m_shifts_and_scales);
+    arguments, size<dev_event_list_t>(arguments), m_offsets_and_sizes, m_shifts_and_scales);
 }
 
 __global__ void pv_lumi_counters::pv_lumi_counters(
   pv_lumi_counters::Parameters parameters,
-  const unsigned number_of_events,
+  const unsigned number_of_gec_events,
   const offsets_and_sizes_t offsets_and_sizes,
   const shifts_and_scales_t shifts_and_scales)
 {
-  for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
-       event_number += blockDim.x * gridDim.x) {
+  for (unsigned event_index = blockIdx.x * blockDim.x + threadIdx.x; event_index < number_of_gec_events;
+       event_index += blockDim.x * gridDim.x) {
+    auto event_number = parameters.dev_event_list[event_index];
     unsigned lumi_evt_index = parameters.dev_lumi_event_indices[event_number];
 
     // skip non-lumi event

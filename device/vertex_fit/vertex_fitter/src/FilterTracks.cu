@@ -15,9 +15,9 @@ void FilterTracks::filter_tracks_t::set_arguments_size(
   const Constants&) const
 {
   set_size<dev_sv_atomics_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_svs_trk1_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
-  set_size<dev_svs_trk2_idx_t>(arguments, 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
-  set_size<dev_sv_poca_t>(arguments, 3 * 10 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
+  set_size<dev_svs_trk1_idx_t>(arguments, VertexFit::max_svs * first<host_number_of_events_t>(arguments));
+  set_size<dev_svs_trk2_idx_t>(arguments, VertexFit::max_svs * first<host_number_of_events_t>(arguments));
+  set_size<dev_sv_poca_t>(arguments, 3 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
   set_size<dev_track_prefilter_result_t>(arguments, first<host_number_of_tracks_t>(arguments));
 }
 
@@ -63,7 +63,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  const unsigned idx_offset = event_number * 10 * VertexFit::max_svs;
+  const unsigned idx_offset = event_number * VertexFit::max_svs;
   unsigned* event_sv_number = parameters.dev_sv_atomics + event_number;
   unsigned* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
   unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
@@ -125,11 +125,28 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
       }
 
       unsigned vertex_idx = atomicAdd(event_sv_number, 1);
+
+      // Leave the loop if the maximum number of SVs is exceeded.
+      if (vertex_idx >= VertexFit::max_svs) break;
+
       event_poca[3 * vertex_idx] = x;
       event_poca[3 * vertex_idx + 1] = y;
       event_poca[3 * vertex_idx + 2] = z;
       event_svs_trk1_idx[vertex_idx] = i_track;
       event_svs_trk2_idx[vertex_idx] = j_track;
+    }
+  }
+
+  __syncthreads();
+
+  // If there were too many SVs in the event, set the number of SVs to zero.
+  if (event_sv_number[0] > VertexFit::max_svs) {
+
+    // We could also set the event_poca and event_svs_trk{1,2}_idx arrays to 0,
+    // but these are never initialized in the first place, and 0 is a meaningful
+    // value all of these arrays.
+    if (threadIdx.x == 0) {
+      event_sv_number[0] = 0;
     }
   }
 }

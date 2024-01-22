@@ -119,6 +119,59 @@ std::vector<Checker::Tracks> prepareUTTracks(
   return checker_tracks;
 }
 
+std::vector<Checker::Tracks> prepareUnmatchedSeedingTracks(
+  const unsigned number_of_events,
+  gsl::span<const bool> matched_is_scifi_track_used,
+  gsl::span<const unsigned> scifi_seed_atomics,
+  gsl::span<const unsigned> scifi_seed_hit_number,
+  gsl::span<const char> scifi_seed_hits,
+  gsl::span<const SciFi::Seeding::Track> scifi_seeds,
+  gsl::span<const MiniState> seeding_states,
+  gsl::span<const mask_t> event_list)
+{
+  /* Tracks to be checked, save in format for checker */
+  std::vector<Checker::Tracks> checker_tracks(event_list.size());
+  for (unsigned i_event = 0; i_event < event_list.size(); i_event++) {
+    const auto event_number = event_list[i_event];
+
+    // Tracks of this event
+    auto& tracks = checker_tracks[i_event];
+    SciFi::Consolidated::ConstSeeds scifi_seeds_consolidated {
+      scifi_seed_atomics.data(), scifi_seed_hit_number.data(), seeding_states.data(), event_number, number_of_events};
+
+    const SciFi::Seeding::Track* event_scifi_seeds = scifi_seeds.data() + event_number * SciFi::Constants::Nmax_seeds;
+    const unsigned number_of_tracks_event = scifi_seeds_consolidated.number_of_tracks(event_number);
+
+    // Mark matched events
+    auto is_matched = matched_is_scifi_track_used.data() + scifi_seeds_consolidated.tracks_offset(event_number);
+
+    for (unsigned i_track = 0; i_track < number_of_tracks_event; i_track++) {
+      if (is_matched[i_track]) continue;
+
+      Checker::Track t;
+
+      const SciFi::Seeding::Track& track = event_scifi_seeds[i_track];
+
+      const float tx = track.bx;
+      const float ty = track.by;
+      const float slope2 = tx * tx + ty * ty;
+
+      const float rho = std::sqrt(slope2);
+      const float z = 1.0f;
+
+      t.eta = eta_from_rho_z(rho, z);
+
+      const auto scifi_lhcb_ids = scifi_seeds_consolidated.get_lhcbids_for_track(scifi_seed_hits.data(), i_track);
+      for (const auto id : scifi_lhcb_ids) {
+        t.addId(id);
+      }
+      tracks.push_back(t);
+    } // tracks
+    // checker_tracks.emplace_back(tracks);
+  }
+  return checker_tracks;
+}
+
 std::vector<Checker::Tracks> prepareSeedingTracks(
   const unsigned number_of_events,
   gsl::span<const unsigned> scifi_seed_atomics,

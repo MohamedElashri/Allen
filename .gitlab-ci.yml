@@ -71,18 +71,18 @@ check-copyright:
 check-formatting:
   <<: *active_branches
   stage: check
-  image: gitlab-registry.cern.ch/lhcb-docker/style-checker
+  tags:
+    - cvmfs
+  image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
   script:
-    - |
-      if [ ! -e .clang-format ] ; then
-        curl -o .clang-format "https://gitlab.cern.ch/lhcb-parallelization/Allen/raw/master/.clang-format?inline=false"
-        echo '.clang-format' >> .gitignore
-        git add .gitignore
-      fi
-
+    - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
+    - if [ ! -e .clang-format ] ; then
+    -   curl -o .clang-format "https://gitlab.cern.ch/lhcb-core/LbDevTools/raw/master/LbDevTools/data/default.clang-format?inline=false"
+    -   echo '.clang-format' >> .gitignore
+    -   git add .gitignore
+    - fi
     - curl -o lb-format "https://gitlab.cern.ch/lhcb-core/LbDevTools/raw/master/LbDevTools/SourceTools.py?inline=false"
-
-    - python lb-format --format-patch apply-formatting.patch origin/master
+    - python lb-format --format-patch apply-formatting.patch origin/${TARGET_BRANCH}
   artifacts:
     paths:
       - apply-formatting.patch
@@ -134,8 +134,8 @@ test_pages:
   script:
     - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
     # use nightly build for python environment, needed for API reference of python selection functions
-    - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
-    - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
+    - lb-run --nightly lhcb-master/latest Allen/master make -C doc linkcheck || reasons+='ERROR failed link check\n'
+    - lb-run --nightly lhcb-master/latest Allen/master make -C doc html || reasons+='ERROR failed html generation\n'
     - mv doc/_build/html test
     - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
   allow_failure:

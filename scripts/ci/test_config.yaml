@@ -32,10 +32,16 @@ config:
   # args added for specific device targets
   target_args:
     throughput:
-      CUDA: "-n 500 -m 500 -r 1000 -t 16"
-      CUDAPROF: "-n 500 -m 500 -r 1 -t 1"
-      HIP: "-n 2800 --events-per-slice 2800 -m 2800 -t 10 -r 100"
-      CPU: "-n 100 -m 100 -r 100"
+      pp:
+        CUDA: "-n 500 -m 500 -r 1000 -t 16"
+        CUDAPROF: "-n 500 -m 500 -r 1 -t 1"
+        HIP: "-n 2800 --events-per-slice 2800 -m 2800 -t 10 -r 100"
+        CPU: "-n 100 -m 100 -r 100"
+      PbPb:
+        CUDA: "-n 500 -m 3000 -r 200 -t 8 --events-per-slice 300"
+        CUDAPROF: "-n 500 -m 3000 -r 1 -t 1 --events-per-slice 300"
+        HIP: "-n 2800 --events-per-slice 840 -m 8400 -t 5 -r 20"
+        CPU: "-n 100 -m 1000 -r 10"
 
 # NOT GITLAB CI YAML !
 
@@ -43,7 +49,7 @@ minimal:
   - type: "throughput"
     sequence:
       - hlt1_pp_default
-      - hlt1_pp_forward_then_matching_no_gec
+      - hlt1_pp_forward_then_matching
     dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
     geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
 
@@ -52,6 +58,7 @@ minimal:
       - hlt1_pp_validation
     dataset: "Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1_newLHCbID_new_UT_geometry"
     geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+
 
   # FIXME run_changes needs re-adding
   # - type: "run_changes"
@@ -75,9 +82,7 @@ full:
 
   # run throughput, no_gec
   - type: "throughput"
-    sequence:
-      - hlt1_pp_no_gec
-      - hlt1_pp_no_gec_no_ut
+    sequence: 
       - hlt1_pp_SMOG2_default
     dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
     geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
@@ -143,9 +148,68 @@ full:
     sequence:
       - hlt1_pp_matching
       - hlt1_pp_no_ut
-      - hlt1_pp_forward_then_matching_no_gec
+      - hlt1_pp_forward_then_matching
     dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
     geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+
+  # run throughput, PbPb samples, 2023 default PbPb sequence
+  - type: "throughput"
+    sequence:
+      - hlt1_PbPb_PbSMOG_no_ut
+    dataset: "upgrade-official-PbPb-EPOS-b-8_22-VELO-23.5mm"
+    geometry: "geometry_dddb-20230313_sim-20230626-vc-md100"
+    timeout: 2400
+    collision_type: "PbPb"
+    allowed_devices:
+      - epyc7502
+      - a5000
+      - geforcertx3090
+
+# run throughput, PbPb samples, 2023 no-gec PbPb sequence
+  - type: "throughput"
+    sequence:
+      - hlt1_PbPb_PbSMOG_no_ut_veloSP
+    dataset: "upgrade-official-PbPb-EPOS-b-8_22-VELO-23.5mm"
+    geometry: "geometry_dddb-20230313_sim-20230626-vc-md100"
+    timeout: 2400
+    collision_type: "PbPb"
+    allowed_devices:
+      - epyc7502
+      - a5000
+      - geforcertx3090
+
+# run throughput, PbPb samples, 2023 no-gec PbPb sequence, retina clusters
+  - type: "throughput"
+    sequence:
+      - hlt1_PbPb_PbSMOG_no_ut_no_gec
+    dataset: "upgrade-official-PbPb-EPOS-b-8_22-VELO-23.5mm"
+    geometry: "geometry_dddb-20230313_sim-20230626-vc-md100"
+    timeout: 2400
+    collision_type: "PbPb"
+    allowed_devices:
+      - epyc7502
+      - a5000
+      - geforcertx3090
+
+  # run throughput to assess the impact of adding downstream reconstruction
+  - type: "throughput"
+    sequence:
+      # Impact to VeloScifi matching
+      - trackmatching_veloscifi
+      - trackmatching_veloscifi_and_utdecoding
+      - downstream
+      # Impact to full forward then matching sequence
+      - hlt1_pp_forward_then_matching_and_downstream
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+  
+  # run physics efficiency for downstream reconstruction
+  - type: "efficiency"
+    sequence:
+      - downstream_validation
+      - hlt1_pp_forward_then_matching_and_downstream_validation
+    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID_v2_new_UT_geometry"
+    geometry: "upgrade_DC19_01_MinBiasMD_new_UT_geometry"
 
   # Efficiency tests
 
@@ -166,8 +230,8 @@ full:
     sequence:
       - hlt1_pp_validation
       - hlt1_pp_no_ut_validation
-      - hlt1_pp_matching_validation
-      - hlt1_pp_forward_then_matching_no_gec_validation
+      - hlt1_pp_matching_no_ut_validation
+      - hlt1_pp_forward_then_matching_validation
     dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID_v2_new_UT_geometry"
     geometry: "upgrade_DC19_01_MinBiasMD_new_UT_geometry"
 
@@ -176,8 +240,8 @@ full:
     sequence:
       - hlt1_pp_validation
       - hlt1_pp_SMOG2_validation
-      - hlt1_pp_matching_validation
-      - hlt1_pp_forward_then_matching_no_gec_validation
+      - hlt1_pp_matching_no_ut_validation
+      - hlt1_pp_forward_then_matching_validation
     dataset: "SMOG2_pHe_5k_retinacluster_v1_newLHCbID_new_UT_geometry"
     geometry: "SMOG2_pppHe_new_UT_geometry"
 

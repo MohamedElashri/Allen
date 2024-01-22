@@ -17,6 +17,7 @@ from PyConf.control_flow import CompositeNode, NodeLogic
 from DDDB.CheckDD4Hep import UseDD4Hep
 
 options = ApplicationOptions(_enabled=False)
+options.geometry_version = 'run3/before-rich1-geom-update-26052022'
 options.evt_max = 1
 
 

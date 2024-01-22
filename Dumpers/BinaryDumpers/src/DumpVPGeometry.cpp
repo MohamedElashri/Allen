@@ -29,10 +29,10 @@
 // Allen
 #include <Dumpers/Identifiers.h>
 #include <Dumpers/Utils.h>
-//#include "DumpVPGeometry.h"  , Old header, delted for this class
+#include "Dumper.h"
 
 /** @class DumpVPGeometry
- *  Dump Calo Geometry.
+ *  Dump Velo Geometry.
  *
  *  @author Nabil Garroum
  *  @date   2022-04-15
@@ -42,15 +42,45 @@
  *  The role of this class is to get data from TES to Allen for the Velo Geometry
  */
 
+namespace Dumpers {
+  struct VP {
+
+    VP() = default;
+    VP(std::vector<char>& data, const DeVP& det)
+    {
+      DumpUtils::Writer output {};
+      const size_t sensorPerModule = 4;
+      std::vector<float> zs(det.numberSensors() / sensorPerModule, 0.f);
+      det.runOnAllSensors([&zs](const DeVPSensor& sensor) {
+        zs[sensor.module()] += boost::numeric_cast<float>(sensor.z() / sensorPerModule);
+      });
+
+      output.write(zs.size(), zs, size_t {::VP::NSensorColumns});
+      for (unsigned int i = 0; i < ::VP::NSensorColumns; i++)
+        output.write(det.local_x(i));
+      output.write(size_t {::VP::NSensorColumns});
+      for (unsigned int i = 0; i < ::VP::NSensorColumns; i++)
+        output.write(det.x_pitch(i));
+      output.write(size_t {::VP::NSensors}, size_t {12});
+      for (unsigned int i = 0; i < ::VP::NSensors; i++)
+        output.write(det.ltg(LHCb::Detector::VPChannelID::SensorID {i}));
+
+      data = output.buffer();
+    }
+  };
+} // namespace Dumpers
+
 class DumpVPGeometry final
-  : public Gaudi::Functional::
-      MultiTransformer<std::tuple<std::vector<char>, std::string>(const DeVP&), LHCb::DetDesc::usesConditions<DeVP>> {
+  : public Allen::Dumpers::Dumper<void(Dumpers::VP const&), LHCb::DetDesc::usesConditions<Dumpers::VP>> {
 public:
   DumpVPGeometry(const std::string& name, ISvcLocator* svcLoc);
 
-  std::tuple<std::vector<char>, std::string> operator()(const DeVP& DeVP) const override;
+  void operator()(const Dumpers::VP& VP) const override;
 
-  Gaudi::Property<std::string> m_id {this, "ID", Allen::NonEventData::VeloGeometry::id};
+  StatusCode initialize() override;
+
+private:
+  std::vector<char> m_data;
 };
 
 DECLARE_COMPONENT(DumpVPGeometry)
@@ -58,38 +88,19 @@ DECLARE_COMPONENT(DumpVPGeometry)
 // Add the multitransformer call
 
 DumpVPGeometry::DumpVPGeometry(const std::string& name, ISvcLocator* svcLoc) :
-  MultiTransformer(
-    name,
-    svcLoc,
-    {KeyValue {"VPLocation", DeVPLocation::Default}},
-    {KeyValue {"Converted", "Allen/NonEventData/DeVP"}, KeyValue {"OutputID", "Allen/NonEventData/DeVPID"}})
+  Dumper(name, svcLoc, {KeyValue {"VPLocation", location(name, "geometry")}})
 {}
 
-// MultiTrasnformer algorithm with 1 input and 2 outputs , cf Gaudi algorithmas taxonomy as reference.
-
-// Add the operator() call
-
-std::tuple<std::vector<char>, std::string> DumpVPGeometry::operator()(const DeVP& det) const
+StatusCode DumpVPGeometry::initialize()
 {
-
-  DumpUtils::Writer output {};
-  const size_t sensorPerModule = 4;
-  std::vector<float> zs(det.numberSensors() / sensorPerModule, 0.f);
-  det.runOnAllSensors([&zs](const DeVPSensor& sensor) {
-    zs[sensor.module()] += boost::numeric_cast<float>(sensor.z() / sensorPerModule);
+  return Dumper::initialize().andThen([&] {
+    register_producer(Allen::NonEventData::VeloGeometry::id, "VP_geometry", m_data);
+    addConditionDerivation({DeVPLocation::Default}, inputLocation<Dumpers::VP>(), [&](DeVP const& det) {
+      auto geo = Dumpers::VP {m_data, det};
+      dump();
+      return geo;
+    });
   });
-
-  output.write(zs.size(), zs, size_t {VP::NSensorColumns});
-  for (unsigned int i = 0; i < VP::NSensorColumns; i++)
-    output.write(det.local_x(i));
-  output.write(size_t {VP::NSensorColumns});
-  for (unsigned int i = 0; i < VP::NSensorColumns; i++)
-    output.write(det.x_pitch(i));
-  output.write(size_t {VP::NSensors}, size_t {12});
-  for (unsigned int i = 0; i < VP::NSensors; i++)
-    output.write(det.ltg(LHCb::Detector::VPChannelID::SensorID {i}));
-
-  // Final data output
-
-  return std::tuple {output.buffer(), m_id};
 }
+
+void DumpVPGeometry::operator()(const Dumpers::VP&) const {}

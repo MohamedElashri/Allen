@@ -461,7 +461,7 @@ __device__ void find_triplets(
       // best_chi2 would be a float. In that case, convert it to a half prior to
       // saving the chi2, so that the 12 bits in lf_triplets representing the chi2
       // are as representative as in other versions.
-      const uint16_t ichi2 = __float2half(best_chi2);
+      const uint16_t ichi2 = compress_float_to_16_bits(best_chi2);
 #else
       const auto ichi2 = reinterpret_cast<uint16_t*>(&best_chi2)[0];
 #endif
@@ -696,7 +696,7 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   const auto* ut_tracks =
-    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
     triplet_seeding<true>(parameters, dev_looking_forward_constants, ut_tracks);
   }

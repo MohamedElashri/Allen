@@ -294,11 +294,11 @@ int allen(
   // Register all consumers
   register_consumers(updater, constants, configuration_reader->configured_bank_types());
 
+#ifndef ALLEN_STANDALONE
   // Set up monitoring sink
   MonitoringAggregator monitoringAggregator;
-  MonitoringPrinter monitoringPrinter {10, enable_monitoring_printing};
+  MonitoringPrinter monitoringPrinter {"MonitoringPrinter", Gaudi::svcLocator(), 10, enable_monitoring_printing};
 
-#ifndef ALLEN_STANDALONE
   if (register_monitoring_counters) {
     // Accumulators from multiple streams must first be aggregated so we run two monitoring hubs
     // The first is internal to Allen and passes all accumulators to the aggregation service
@@ -334,15 +334,20 @@ int allen(
   }
 
   // Create all the streams
+
+  // Instantiate and configure sequence once to get dependencies
+  Allen::ScheduledSequence sched_seq {configuration_reader->configured_sequence()};
+
   std::vector<std::unique_ptr<Stream>> streams;
   for (unsigned t = 0; t < number_of_threads; ++t) {
-    auto& sequence = streams.emplace_back(new Stream {configuration_reader->configured_sequence(),
-                                                      print_memory_usage,
-                                                      reserve_mb,
-                                                      device_memory_alignment,
-                                                      constants,
-                                                      buffers_manager.get()});
-    sequence->configure_algorithms(configuration);
+    streams.emplace_back(new Stream {configuration_reader->configured_sequence(),
+                                     sched_seq,
+                                     print_memory_usage,
+                                     reserve_mb,
+                                     device_memory_alignment,
+                                     constants,
+                                     buffers_manager.get(),
+                                     configuration});
   }
 
   // Print configured sequence
@@ -407,10 +412,12 @@ int allen(
     return std::thread {run_monitoring, thread_id, zmqSvc, monitor_manager.get(), mon_id};
   };
 
+#ifndef ALLEN_STANDALONE
   // Lambda with the execution of the monitoring aggregation
   const auto agg_thread = [&](unsigned thread_id, unsigned) {
     return std::thread {run_aggregation, thread_id, zmqSvc, &monitoringAggregator, &monitoringPrinter};
   };
+#endif
 
   using start_thread = std::function<std::thread(unsigned, unsigned)>;
 
@@ -473,11 +480,14 @@ int allen(
                                                               static_cast<unsigned>(n_mon),
                                                               std::string("Mon"),
                                                               handle_ready {handle_default_ready}},
+#ifndef ALLEN_STANDALONE
                                                   std::tuple {&agg_workers,
                                                               start_thread {agg_thread},
                                                               static_cast<unsigned>(n_agg),
                                                               std::string("Agg"),
-                                                              handle_ready {handle_default_ready}}}) {
+                                                              handle_ready {handle_default_ready}}
+#endif
+       }) {
     size_t n_ready = 0;
     for (unsigned i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc->socket(zmq::PAIR);

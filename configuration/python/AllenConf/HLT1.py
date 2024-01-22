@@ -3,7 +3,7 @@
 ###############################################################################
 from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
                              make_checkCylPV, make_checkPseudoPV,
-                             make_invert_event_list)
+                             make_invert_event_list, sd_error_filter)
 from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
@@ -23,7 +23,7 @@ from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line,
     make_SMOG2_single_muon_line, make_SMOG2_kstopipi_line)
-from AllenConf.hlt1_photon_lines import make_bs2gammagamma_line
+from AllenConf.hlt1_photon_lines import make_diphotonhighmass_line
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer, make_dec_reporter
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
@@ -48,7 +48,10 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
 
     lines = [
         make_two_track_mva_charm_xsec_line(
-            long_tracks, dihadrons, name="Hlt1TwoTrackMVACharmXSec"),
+            long_tracks,
+            dihadrons,
+            name="Hlt1TwoTrackMVACharmXSec",
+            pre_scaler=0.01),
         make_track_mva_line(
             long_tracks, long_track_particles, name="Hlt1TrackMVA"),
         make_two_track_mva_line(
@@ -60,7 +63,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
 
     if with_v0s:
         lines += [
-            make_kstopipi_line(long_tracks, v0s, name="Hlt1KsToPiPi"),
+            make_kstopipi_line(
+                long_tracks, v0s, name="Hlt1KsToPiPi", post_scaler=0.001),
             make_kstopipi_line(
                 long_tracks,
                 v0s,
@@ -96,6 +100,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 long_tracks,
                 dileptons,
                 name="Hlt1DiMuonLowMass",
+                enable_monitoring=False,
                 minHighMassTrackPt=500.,
                 minHighMassTrackP=3000.,
                 minMass=0.,
@@ -185,8 +190,12 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 name="Hlt1DisplacedLeptons"),
             make_single_high_et_line(
                 velo_tracks, calo_matching_objects, name="Hlt1SingleHighEt"),
-            make_bs2gammagamma_line(
-                ecal_clusters, velo_tracks, pvs, name="Hlt1Bs2GammaGamma"),
+            make_diphotonhighmass_line(
+                ecal_clusters,
+                velo_tracks,
+                pvs,
+                name="Hlt1DiPhotonHighMass",
+                enable_tupling=False),
             make_pi02gammagamma_line(
                 ecal_clusters,
                 velo_tracks,
@@ -194,7 +203,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 name="Hlt1Pi02GammaGamma",
                 pre_scaler_hash_string="p02gammagamma_line_pre",
                 post_scaler_hash_string="p02gammagamma_line_post",
-                pre_scaler=0.05),
+                pre_scaler=0.005),
         ]
 
         line_slices_mass = {
@@ -305,8 +314,10 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
             velo_tracks, velo_states, beam_crossing_type=1,
             name="Hlt1BeamGas"),
         make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPiAlignment"),
-        make_n_displaced_velo_line(material_interaction_tracks, n_tracks=3),
-        make_n_materialvertex_seed_line(material_interaction_tracks)
+        make_n_displaced_velo_line(
+            material_interaction_tracks, n_tracks=3, pre_scaler=0.001),
+        make_n_materialvertex_seed_line(
+            material_interaction_tracks, pre_scaler=0.001)
     ]
 
     if with_muon:
@@ -330,8 +341,10 @@ def default_SMOG2_lines(velo_tracks,
                         long_tracks,
                         long_track_particles,
                         dihadrons,
+                        v0s,
                         dileptons,
                         with_muon=True,
+                        with_v0s=True,
                         min_z=-541.,
                         max_z=-341.):
 
@@ -383,6 +396,12 @@ def default_SMOG2_lines(velo_tracks,
                 post_scaler=0.5)
         ]
 
+    if with_v0s:
+        lines += [
+            make_lambda2ppi_line(
+                v0s, name="Hlt1_SMOG2_L02PPi", minPVZ=min_z, maxPVZ=max_z)
+        ]
+
     return [line_maker(line) for line in lines]
 
 
@@ -390,31 +409,34 @@ def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
     """
     Detector activity lines for BGI data collection.
     """
-    decoded_plume = decode_plume()
-    bx_BB = make_bxtype("BX_BeamBeam", bx_type=3)
+    # decoded_plume = decode_plume()
+    bx_BB = make_bxtype(bx_type=3)
     bx_NoBB = make_invert_event_list(bx_BB, name="BX_NoBeamBeam")
     lines = [
         line_maker(
             make_velo_clusters_micro_bias_line(
                 decoded_velo,
                 name="Hlt1BGIVeloClustersMicroBias",
-                min_velo_clusters=30,
+                min_velo_clusters=5,
             ),
             prefilter=prefilter + [bx_NoBB]),
         line_maker(
             make_calo_digits_minADC_line(
                 decoded_calo,
                 name="Hlt1BGICaloDigits",
-                minADC=100,
+                minADC=60,
             ),
             prefilter=prefilter + [bx_NoBB]),
-        line_maker(
-            make_plume_activity_line(
-                decoded_plume,
-                name="Hlt1BGIPlumeActivity",
-                min_plume_adc=406,
-            ),
-            prefilter=prefilter + [bx_NoBB])
+        # line_maker(
+        #     make_plume_activity_line(
+        #         decoded_plume,
+        #         name="Hlt1BGIPlumeActivity",
+        #         min_number_plume_adcs_over_min=1,
+        #         min_plume_adc=276,
+        #     ),
+        #     prefilter=prefilter + [bx_NoBB]),
+        # FIXME Hlt1BGIPlumeActivity can be re-enabled when v2 support
+        #       is implemented in the Plume decoding.
     ]
     return lines
 
@@ -426,7 +448,7 @@ def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
     """
     mm = 1.0  # from SystemOfUnits.h
     max_cyl_rad_sq = (3 * mm)**2
-    bx_BB = make_bxtype("BX_BeamBeam", bx_type=3)
+    bx_BB = make_bxtype(bx_type=3)
     bx_NoBB = make_invert_event_list(bx_BB, name="BX_NoBeamBeam")
     pvs_z_all = make_checkCylPV(
         pvs,
@@ -597,10 +619,9 @@ def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
     return lines
 
 
-@configurable
 def setup_hlt1_node(enablePhysics=True,
                     withMCChecking=False,
-                    EnableGEC=True,
+                    EnableGEC=False,
                     withSMOG2=False,
                     enableRateValidator=True,
                     with_ut=True,
@@ -611,6 +632,7 @@ def setup_hlt1_node(enablePhysics=True,
                     with_v0s=True,
                     enableBGI=False,
                     velo_open=False,
+                    enableDownstream=False,
                     tracking_type=TrackingType.FORWARD,
                     tae_passthrough=True):
 
@@ -621,6 +643,7 @@ def setup_hlt1_node(enablePhysics=True,
         with_calo=with_calo,
         with_ut=with_ut,
         with_muon=with_muon,
+        enableDownstream=enableDownstream,
         tracking_type=tracking_type,
         velo_open=velo_open)
 
@@ -652,6 +675,12 @@ def setup_hlt1_node(enablePhysics=True,
                         name="Hlt1TAEPassthrough", pre_scaler=1))
             ]
 
+    with line_maker.bind(prefilter=[sd_error_filter()]):
+        monitoring_lines += [
+            line_maker(
+                make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.01))
+        ]
+
     if EnableGEC:
         with line_maker.bind(prefilter=prefilters):
             physics_lines += [
@@ -681,6 +710,7 @@ def setup_hlt1_node(enablePhysics=True,
 
         lowMult_5 = make_lowmult(
             reconstructed_objects['velo_tracks'],
+            reconstructed_objects["ecal_clusters"],
             name="LowMult_5",
             minTracks=1,
             maxTracks=5)
@@ -691,7 +721,7 @@ def setup_hlt1_node(enablePhysics=True,
                         name="Hlt1GECPassThrough_LowMult5", pre_scaler=0.01))
             ]
 
-        bx_BE = make_bxtype("BX_BeamEmpty", bx_type=1)
+        bx_BE = make_bxtype(bx_type=1)
         with line_maker.bind(prefilter=odin_err_filter + [bx_BE]):
             SMOG2_lines += [
                 line_maker(
@@ -701,6 +731,7 @@ def setup_hlt1_node(enablePhysics=True,
 
         lowMult_10 = make_lowmult(
             reconstructed_objects['velo_tracks'],
+            reconstructed_objects["ecal_clusters"],
             name="LowMult_10",
             minTracks=1,
             maxTracks=10)
@@ -740,8 +771,9 @@ def setup_hlt1_node(enablePhysics=True,
                 reconstructed_objects["long_tracks"],
                 reconstructed_objects["long_track_particles"],
                 reconstructed_objects["dihadron_secondary_vertices"],
+                reconstructed_objects["v0_secondary_vertices"],
                 reconstructed_objects["dilepton_secondary_vertices"],
-                with_muon)
+                with_muon, with_v0s)
 
         line_algorithms += [tup[0] for tup in SMOG2_lines]
         line_nodes += [tup[1] for tup in SMOG2_lines]
@@ -765,6 +797,23 @@ def setup_hlt1_node(enablePhysics=True,
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)
+
+    # This is used to measure the effect of downstream reconstruction on the final throughput. It should be removed once the real downstream line is implemented.
+    if enableDownstream:
+        hlt1_node = CompositeNode(
+            "AllenWithDownstream", [
+                hlt1_node,
+                CompositeNode(
+                    "DownstreamReconstruction",
+                    prefilters + [
+                        reconstructed_objects["downstream_tracks"]
+                        ["dev_downstream_track_particles_view"]
+                    ],
+                    NodeLogic.LAZY_AND,
+                    force_order=True)
+            ],
+            NodeLogic.NONLAZY_AND,
+            force_order=False)
 
     hlt1_config['line_nodes'] = line_nodes
     hlt1_config['line_algorithms'] = line_algorithms
@@ -817,7 +866,7 @@ def setup_hlt1_node(enablePhysics=True,
     else:
         validation_node = validator_node(
             reconstructed_objects, line_algorithms,
-            includes_matching(tracking_type), with_ut, with_muon)
+            includes_matching(tracking_type), with_ut, with_muon, prefilters)
         hlt1_config['validator_node'] = validation_node
 
         node = CompositeNode(

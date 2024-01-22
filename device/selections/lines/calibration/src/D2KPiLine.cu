@@ -83,19 +83,19 @@ __device__ void d2kpi_line::d2kpi_line_t::monitor(
       const unsigned int bin = static_cast<unsigned int>(
         (m1 - parameters.histogram_d0_mass_min) * parameters.histogram_d0_mass_nbins /
         (parameters.histogram_d0_mass_max - parameters.histogram_d0_mass_min));
-      ++parameters.dev_histogram_d0_mass[bin];
+      atomicAdd(&parameters.dev_histogram_d0_mass[bin], 1);
     }
     if (m2 > parameters.histogram_d0_mass_min && m2 < parameters.histogram_d0_mass_max) {
       const unsigned int bin = static_cast<unsigned int>(
         (m2 - parameters.histogram_d0_mass_min) * parameters.histogram_d0_mass_nbins /
         (parameters.histogram_d0_mass_max - parameters.histogram_d0_mass_min));
-      ++parameters.dev_histogram_d0_mass[bin];
+      atomicAdd(&parameters.dev_histogram_d0_mass[bin], 1);
     }
     if (pt > parameters.histogram_d0_pt_min && pt < parameters.histogram_d0_pt_max) {
       const unsigned int bin = static_cast<unsigned int>(
         (pt - parameters.histogram_d0_pt_min) * parameters.histogram_d0_pt_nbins /
         (parameters.histogram_d0_pt_max - parameters.histogram_d0_pt_min));
-      ++parameters.dev_histogram_d0_pt[bin];
+      atomicAdd(&parameters.dev_histogram_d0_pt[bin], 1);
     }
   }
 }

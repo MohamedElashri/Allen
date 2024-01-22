@@ -16,12 +16,19 @@ namespace scifi_raw_bank_decoder {
     DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, unsigned) dev_scifi_raw_input_offsets;
     DEVICE_INPUT(dev_scifi_raw_input_sizes_t, unsigned) dev_scifi_raw_input_sizes;
+    DEVICE_INPUT(dev_scifi_raw_input_types_t, unsigned) dev_scifi_raw_input_types;
     DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
     DEVICE_INPUT(dev_cluster_references_t, unsigned) dev_cluster_references;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+    PROPERTY(
+      decode_v8_as_v7_t,
+      "decode_v8_as_v7",
+      "Decode v8 banks as v7 to reproduce a bug in July 2023 (MC only)",
+      bool)
+    decode_v8_as_v7;
   };
 
   struct scifi_raw_bank_decoder_t : public DeviceAlgorithm, Parameters {
@@ -35,5 +42,6 @@ namespace scifi_raw_bank_decoder {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<decode_v8_as_v7_t> m_decode_v8_as_v7 {this, {false}};
   };
 } // namespace scifi_raw_bank_decoder

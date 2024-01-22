@@ -142,7 +142,7 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(
 
   if (event_total_number_of_tracks < 500) {
     unsigned bin = std::floor(event_total_number_of_tracks / 5);
-    dev_number_of_tracks_histo[bin]++;
+    atomicAdd(&dev_number_of_tracks_histo[bin], 1);
   }
   dev_tracks_counter[0] += event_total_number_of_tracks;
 

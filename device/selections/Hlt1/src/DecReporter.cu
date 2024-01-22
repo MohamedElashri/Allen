@@ -12,12 +12,12 @@ void dec_reporter::dec_reporter_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
+  auto const n_lines = first<host_number_of_active_lines_t>(arguments);
   set_size<dev_dec_reports_t>(
-    arguments, (3 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
+    arguments, HltDecReports<false>::size(n_lines) * first<host_number_of_events_t>(arguments));
   set_size<host_dec_reports_t>(
-    arguments, (3 + first<host_number_of_active_lines_t>(arguments)) * first<host_number_of_events_t>(arguments));
-  set_size<dev_selected_candidates_counts_t>(
-    arguments, first<host_number_of_active_lines_t>(arguments) * first<host_number_of_events_t>(arguments));
+    arguments, HltDecReports<false>::size(n_lines) * first<host_number_of_events_t>(arguments));
+  set_size<dev_selected_candidates_counts_t>(arguments, n_lines * first<host_number_of_events_t>(arguments));
 }
 
 void dec_reporter::dec_reporter_t::operator()(
@@ -44,22 +44,21 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
   Selections::ConstSelections selections {
     parameters.dev_selections, parameters.dev_selections_offsets, number_of_events};
 
-  uint32_t* event_dec_reports =
-    parameters.dev_dec_reports + (3 + parameters.dev_number_of_active_lines[0]) * event_index;
+  HltDecReports<false> reports(parameters.dev_dec_reports, event_index, parameters.dev_number_of_active_lines[0]);
   unsigned* event_selected_candidates_counts =
     parameters.dev_selected_candidates_counts + event_index * parameters.dev_number_of_active_lines[0];
 
   if (threadIdx.x == 0) {
     // Set TCK and taskID for each event dec report
-    event_dec_reports[0] = parameters.key;
-    event_dec_reports[1] = parameters.tck;
-    event_dec_reports[2] = parameters.task_id;
+    reports.set_number_of_lines(parameters.dev_number_of_active_lines[0]);
+    reports.set_key(parameters.key);
+    reports.set_tck(parameters.tck);
+    reports.set_task_id(parameters.task_id);
   }
 
   __syncthreads();
 
-  for (unsigned line_index = threadIdx.x; line_index < parameters.dev_number_of_active_lines[0];
-       line_index += blockDim.x) {
+  for (unsigned line_index = threadIdx.x; line_index < reports.number_of_lines(); line_index += blockDim.x) {
     // Iterate all elements and get a decision for the current {event, line}
     bool final_decision = false;
     auto decs = selections.get_span(line_index, event_index);
@@ -70,15 +69,13 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
       }
     }
 
-    HltDecReport dec_report;
-    dec_report.setDecision(final_decision);
-
-    // TODO: The following are all placeholder values for now.
-    dec_report.setErrorBits(0);
-    dec_report.setNumberOfCandidates(1);
-    dec_report.setIntDecisionID(line_index + 1);
-    dec_report.setExecutionStage(1);
-
-    event_dec_reports[3 + line_index] = dec_report.getDecReport();
+    reports.set_dec_report(
+      line_index,
+      HltDecReport {final_decision,
+                    std::byte {0},          // error
+                    static_cast<std::byte>( // number of candidates
+                      std::min(event_selected_candidates_counts[line_index], 15U)),
+                    std::byte {1},                                 // execution stage
+                    static_cast<unsigned short>(line_index + 1)}); // decision ID
   }
 }

@@ -68,7 +68,9 @@ def build_sequence(root, verbose=True):
         final_seq = add_event_list_combiners(best_order)
 
     if verbose:
-        print("Generated sequence represented as algorithms with execution masks:")
+        print(
+            "Generated sequence represented as algorithms with execution masks:"
+        )
         for alg, mask_in in final_seq:
             if mask_in == None:
                 mask_in_str = ""
@@ -82,7 +84,10 @@ def build_sequence(root, verbose=True):
 
 
 @configurable
-def generate(root, json_configuration_filename="Sequence.json", noop=False, verbose=True):
+def generate(root,
+             json_configuration_filename="Sequence.json",
+             noop=False,
+             verbose=True):
     """Generates an Allen sequence out of a root node."""
     if noop:
         return

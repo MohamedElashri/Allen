@@ -1,8 +1,9 @@
 /*****************************************************************************\
-* (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      *
+* (c) Copyright 2000-2023 CERN for the benefit of the LHCb Collaboration      *
 \*****************************************************************************/
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 

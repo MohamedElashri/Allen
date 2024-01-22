@@ -21,6 +21,7 @@
 namespace muon_lumi_counters {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_INPUT(host_lumi_summaries_count_t, unsigned) host_lumi_summaries_count;
     DEVICE_INPUT(dev_lumi_event_indices_t, unsigned) dev_lumi_event_indices;
     DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, unsigned) dev_storage_station_region_quarter_offsets;
@@ -47,6 +48,7 @@ namespace muon_lumi_counters {
   __global__ void muon_lumi_counters(
     Parameters,
     const unsigned number_of_events,
+    const unsigned number_of_gec_events,
     const offsets_and_sizes_t offsets_and_sizes,
     const shifts_and_scales_t shifts_and_scales);
 

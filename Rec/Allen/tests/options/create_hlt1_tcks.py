@@ -33,7 +33,6 @@ if '-dbg' in os.environ['BINARY_TAG']:
     random.shuffle(sequences)
     sequences = sequences[:5]
 
-
 for i, seq in enumerate(sequences):
     seq = Path(seq_dir) / seq
     tck = hex(0x10000001 + i)

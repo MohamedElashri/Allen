@@ -60,7 +60,8 @@ public:
       auto bank = static_cast<LHCb::RawBank::BankType>(i);
       const auto allen_bank_index = m_bank_ids_mapping[bank];
       if (allen_bank_index < 0) {
-        std::cout << "ERROR: dumped bank type does not exist in Allen" << std::endl;
+        std::cout << "ERROR: dumped bank type " << LHCb::RawBank::typeName(bank) << " does not exist in Allen"
+                  << std::endl;
         return 1;
       }
 

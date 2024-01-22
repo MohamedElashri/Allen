@@ -54,7 +54,7 @@ namespace Allen::Store {
     std::string name() const { return m_name; }
     Scope scope() const { return m_scope; }
     std::type_index type() const { return m_type_index; }
-    size_t sizebytes() const { return size() * m_type_size; }
+    size_t size_bytes() const { return size() * m_type_size; }
 
     template<typename T>
     operator gsl::span<T>()

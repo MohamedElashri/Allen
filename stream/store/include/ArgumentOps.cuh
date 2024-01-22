@@ -122,8 +122,10 @@ namespace Allen {
   template<
     typename T,
     typename Args,
-    typename std::
-      enable_if_t<std::is_pod_v<typename T::type> || !std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
+    typename std::enable_if_t<
+      (std::is_standard_layout_v<typename T::type> && std::is_trivial_v<typename T::type>) ||
+        !std::is_base_of_v<Allen::Store::host_datatype, T>,
+      bool> = true>
   void memset_async(
     const Args& arguments,
     const int value,
@@ -145,8 +147,10 @@ namespace Allen {
   template<
     typename T,
     typename Args,
-    typename std::
-      enable_if_t<!std::is_pod_v<typename T::type> && std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
+    typename std::enable_if_t<
+      !(std::is_standard_layout_v<typename T::type> &&
+        std::is_trivial_v<typename T::type>) &&std::is_base_of_v<Allen::Store::host_datatype, T>,
+      bool> = true>
   void memset_async(
     const Args& arguments,
     const typename T::type value,
@@ -166,8 +170,10 @@ namespace Allen {
   template<
     typename T,
     typename Args,
-    typename std::
-      enable_if_t<std::is_pod_v<typename T::type> || !std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
+    typename std::enable_if_t<
+      (std::is_standard_layout_v<typename T::type> && std::is_trivial_v<typename T::type>) ||
+        !std::is_base_of_v<Allen::Store::host_datatype, T>,
+      bool> = true>
   void memset(
     const Args& arguments,
     const int value,
@@ -187,8 +193,10 @@ namespace Allen {
   template<
     typename T,
     typename Args,
-    typename std::
-      enable_if_t<!std::is_pod_v<typename T::type> && std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
+    typename std::enable_if_t<
+      !(std::is_standard_layout_v<typename T::type> &&
+        std::is_trivial_v<typename T::type>) &&std::is_base_of_v<Allen::Store::host_datatype, T>,
+      bool> = true>
   void memset(
     const Args& arguments,
     const typename T::type value,

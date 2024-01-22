@@ -87,6 +87,7 @@ MCEvents CheckerInvoker::load(
 
 void CheckerInvoker::report(size_t n_events) const
 {
+  m_report_order.sort();
   for (auto const& entry : m_report_order) {
     auto it = m_checkers.find(std::get<0>(entry));
     // Print stored header if it is not empty

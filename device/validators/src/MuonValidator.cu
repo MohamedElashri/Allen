@@ -17,7 +17,11 @@ __global__ void muon_validator::muon_validator(muon_validator::Parameters parame
 
   prepare_long_tracks(event_long_tracks, endvelo_states, muon_checker_tracks_event);
 
+  __syncthreads();
+
   prepare_muons(event_long_tracks.size(), muon_checker_tracks_event, is_muon);
+
+  __syncthreads();
 }
 
 void muon_validator::muon_validator_t::set_arguments_size(

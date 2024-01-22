@@ -52,6 +52,9 @@ namespace UT {
     static constexpr unsigned max_num_tracks = 400; // to do: what is the best / safest value here?
     static constexpr unsigned max_track_size = 4;
 
+    // Approximate layer position
+    __device__ constexpr float Layer_z[n_layers] = {2317.5f, 2372.5f, 2597.5f, 2652.5f};
+
     // zMidUT is a position of normalization plane which should
     // to be close to z middle of UT ( +- 5 cm ).
     // No need to update with small UT movement.

@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #include "VeloLumiCounters.cuh"
 #include "LumiCommon.cuh"
+#include "LHCbID.cuh"
 
 INSTANTIATE_ALGORITHM(velo_lumi_counters::velo_lumi_counters_t)
 
@@ -58,49 +59,58 @@ void velo_lumi_counters::velo_lumi_counters_t::operator()(
   // do nothing if no lumi event
   if (first<host_lumi_summaries_count_t>(arguments) == 0) return;
 
+  Allen::memset_async<dev_lumi_infos_t>(arguments, 0, context);
+
   global_function(velo_lumi_counters)(dim3(4u), property<block_dim_t>(), context)(
-    arguments, first<host_number_of_events_t>(arguments), m_offsets_and_sizes, m_shifts_and_scales);
+    arguments,
+    first<host_number_of_events_t>(arguments),
+    size<dev_event_list_t>(arguments),
+    m_offsets_and_sizes,
+    m_shifts_and_scales);
 }
 
 __global__ void velo_lumi_counters::velo_lumi_counters(
   velo_lumi_counters::Parameters parameters,
   const unsigned number_of_events,
+  const unsigned number_of_gec_events,
   const offsets_and_sizes_t offsets_and_sizes,
   const shifts_and_scales_t shifts_and_scales)
 {
-  for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
-       event_number += blockDim.x * gridDim.x) {
+  for (unsigned event_index = blockIdx.x * blockDim.x + threadIdx.x; event_index < number_of_gec_events;
+       event_index += blockDim.x * gridDim.x) {
+    auto event_number = parameters.dev_event_list[event_index];
     unsigned lumi_evt_index = parameters.dev_lumi_event_indices[event_number];
 
     // skip non-lumi event
     if (lumi_evt_index == parameters.dev_lumi_event_indices[event_number + 1]) continue;
 
-    std::array<unsigned, 10> velo_counters = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+    std::array<unsigned, Lumi::Constants::n_velo_reco_counters> reco_counters = {
+      0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
 
     const auto velo_states = parameters.dev_velo_states_view[event_number];
     // first counter is the total velo tracks
     const unsigned track_offset = parameters.dev_offsets_all_velo_tracks[event_number];
-    velo_counters[0] = parameters.dev_offsets_all_velo_tracks[event_number + 1] - track_offset;
+    reco_counters[0] = parameters.dev_offsets_all_velo_tracks[event_number + 1] - track_offset;
 
-    for (unsigned track_index = 0u; track_index < velo_counters[0]; ++track_index) {
+    for (unsigned track_index = 0u; track_index < reco_counters[0]; ++track_index) {
       const auto velo_state = velo_states.state(track_index);
 
       // fiducial cut: doca<3 mm && |poca|<300 mm
       if (velo_state.z() > -300.f && velo_state.z() < 300.f) {
         if (velo_DOCAz(velo_state) < 3.f * Gaudi::Units::mm) {
-          ++velo_counters[1];
+          ++reco_counters[1];
         }
       }
 
       // fill eta bins
       float eta = velo_eta(velo_state, parameters.dev_is_backward[track_offset + track_index]);
       if (eta > parameters.tracks_eta_bins.get()[Lumi::Constants::n_velo_eta_bin_edges - 1u] * Gaudi::Units::mm) {
-        ++velo_counters[9];
+        ++reco_counters[2u + Lumi::Constants::n_velo_eta_bin_edges];
         continue;
       }
       for (unsigned eta_bin = 0; eta_bin < Lumi::Constants::n_velo_eta_bin_edges; ++eta_bin) {
         if (eta < parameters.tracks_eta_bins.get()[eta_bin] * Gaudi::Units::mm) {
-          ++velo_counters[2u + eta_bin];
+          ++reco_counters[2u + eta_bin];
           break;
         }
       }
@@ -108,14 +118,82 @@ __global__ void velo_lumi_counters::velo_lumi_counters(
 
     unsigned info_offset = Lumi::Constants::n_velo_counters * lumi_evt_index;
 
-    for (unsigned info_index = 0u; info_index < Lumi::Constants::n_velo_counters; ++info_index) {
+    for (unsigned info_index = 0u; info_index < Lumi::Constants::n_velo_reco_counters; ++info_index) {
       fillLumiInfo(
         parameters.dev_lumi_infos[info_offset + info_index],
         offsets_and_sizes[info_index * 2],
         offsets_and_sizes[info_index * 2 + 1],
-        velo_counters[info_index],
+        reco_counters[info_index],
         shifts_and_scales[2 * info_index],
         shifts_and_scales[2 * info_index + 1]);
+    }
+  }
+
+  // now fill 'decoding' counters, which are available even if the GEC does not pass
+  for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
+       event_number += blockDim.x * gridDim.x) {
+    unsigned lumi_evt_index = parameters.dev_lumi_event_indices[event_number];
+
+    // skip non-lumi event
+    if (lumi_evt_index == parameters.dev_lumi_event_indices[event_number + 1]) continue;
+
+    // velo clusters
+    std::array<unsigned, Lumi::Constants::n_velo_cluster_counters> cluster_counters = {
+      0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+      0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+      0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+
+    const unsigned* module_pair_cluster_start =
+      parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
+    const auto velo_cluster_container = parameters.dev_velo_clusters[event_number];
+    const unsigned* module_hit_num = parameters.dev_module_cluster_num + event_number * Velo::Constants::n_module_pairs;
+
+    for (auto module_index = 0u; module_index < Velo::Constants::n_module_pairs; ++module_index) {
+      auto hit_offset = module_pair_cluster_start[module_index];
+      for (auto hit_index = 0u; hit_index < module_hit_num[module_index]; ++hit_index) {
+        unsigned sensor_id =
+          ((velo_cluster_container.id(hit_offset + hit_index) & lhcb_id::IDMask) & Allen::VPChannelID::sensorMask) >>
+          Allen::VPChannelID::sensorBits;
+        unsigned station_id = sensor_id / 8;
+
+        // sensor id out of range - skip
+        if (station_id >= Velo::Constants::n_module_pairs) {
+          continue;
+        }
+
+        // even id for inner; odd id for outer
+        if (sensor_id % 2u == 0u) {
+          ++cluster_counters[station_id * 2];
+        }
+        else {
+          ++cluster_counters[station_id * 2 + 1];
+        }
+      }
+
+      // fill station bins consecutively
+      unsigned station_bin = 0;
+      for (unsigned station_id = 0; station_id < Velo::Constants::n_module_pairs; ++station_id) {
+        cluster_counters[52 + station_bin * 2] += cluster_counters[station_id * 2];
+        cluster_counters[53 + station_bin * 2] += cluster_counters[station_id * 2 + 1];
+
+        // go to next bin
+        if (station_id == parameters.clusters_station_bin_edges.get()[station_bin]) {
+          ++station_bin;
+        }
+      }
+
+      unsigned info_offset = Lumi::Constants::n_velo_counters * lumi_evt_index;
+      for (unsigned info_index = Lumi::Constants::n_velo_reco_counters;
+           info_index < Lumi::Constants::n_velo_reco_counters + Lumi::Constants::n_velo_cluster_counters;
+           ++info_index) {
+        fillLumiInfo(
+          parameters.dev_lumi_infos[info_offset + info_index],
+          offsets_and_sizes[info_index * 2],
+          offsets_and_sizes[info_index * 2 + 1],
+          cluster_counters[info_index - Lumi::Constants::n_velo_reco_counters],
+          shifts_and_scales[2 * info_index],
+          shifts_and_scales[2 * info_index + 1]);
+      }
     }
   }
 }

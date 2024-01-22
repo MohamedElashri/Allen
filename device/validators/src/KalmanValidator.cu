@@ -23,6 +23,8 @@ __global__ void create_kalman_tracks_for_checker(kalman_validator::Parameters pa
 
   prepare_long_tracks(event_long_tracks, endvelo_states, kalman_checker_tracks_event);
 
+  __syncthreads();
+
   prepare_kalman_tracks(
     number_of_tracks_event,
     number_of_vertices_event,
@@ -30,6 +32,8 @@ __global__ void create_kalman_tracks_for_checker(kalman_validator::Parameters pa
     endvelo_states,
     kf_tracks_event,
     kalman_checker_tracks_event);
+
+  __syncthreads();
 }
 
 void kalman_validator::kalman_validator_t::set_arguments_size(

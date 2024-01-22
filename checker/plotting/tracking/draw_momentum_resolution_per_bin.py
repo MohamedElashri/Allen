@@ -25,7 +25,8 @@ def getTrackers():
 
 nbins = 3
 
-f = ROOT.TFile.Open("../../../plotsfornote_root/momentum_resolution.root", "read")
+f = ROOT.TFile.Open("../../../plotsfornote_root/momentum_resolution.root",
+                    "read")
 
 setLHCbStyle()
 

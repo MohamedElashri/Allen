@@ -77,6 +77,10 @@ TrackCheckerHistos::TrackCheckerHistos(
   h_total_nPV = std::make_unique<TH1D>("nPV_Total", "nPV_Total", 21, -0.5, 20.5);
   h_ghost_eta = std::make_unique<TH1D>("eta_Ghosts", "eta_Ghosts", 20, 0, 7);
   h_total_eta = std::make_unique<TH1D>("eta_Total", "eta_Total", 20, 0, 7);
+  h_ghost_p = std::make_unique<TH1D>("p_Ghosts", "p_Ghosts", 50, 0., 100000.);
+  h_total_p = std::make_unique<TH1D>("p_Total", "p_Total", 50, 0., 100000.);
+  h_ghost_pt = std::make_unique<TH1D>("pt_Ghosts", "pt_Ghosts", 30, 0., 5000.);
+  h_total_pt = std::make_unique<TH1D>("pt_Total", "pt_Total", 30, 0., 5000.);
 
   // histo for momentum resolution
   h_momentum_resolution =
@@ -197,6 +201,10 @@ void TrackCheckerHistos::write()
                          std::ref(h_total_nPV),
                          std::ref(h_ghost_eta),
                          std::ref(h_total_eta),
+                         std::ref(h_ghost_p),
+                         std::ref(h_total_p),
+                         std::ref(h_ghost_pt),
+                         std::ref(h_total_pt),
                          std::ref(h_muon_catboost_output_matched_muon),
                          std::ref(h_muon_catboost_output_matched_notMuon),
                          std::ref(h_muon_catboost_output_matched_muon_ismuon_true),
@@ -311,16 +319,20 @@ void TrackCheckerHistos::fillReconstructedHistos(const MCParticle& mcp, HistoCat
   h_reconstructed_docaz[docaz_name]->Fill(static_cast<double>(docaz));
 }
 
-void TrackCheckerHistos::fillTotalHistos(double nPV, double eta)
+void TrackCheckerHistos::fillTotalHistos(double nPV, double eta, double p, double pt)
 {
   h_total_nPV->Fill(nPV);
   h_total_eta->Fill(eta);
+  h_total_p->Fill(p);
+  h_total_pt->Fill(pt);
 }
 
-void TrackCheckerHistos::fillGhostHistos(double nPV, double eta)
+void TrackCheckerHistos::fillGhostHistos(double nPV, double eta, double p, double pt)
 {
   h_ghost_nPV->Fill(nPV);
   h_ghost_eta->Fill(eta);
+  h_ghost_p->Fill(p);
+  h_ghost_pt->Fill(pt);
 }
 
 void TrackCheckerHistos::fillMomentumResolutionHisto(const MCParticle& mcp, const float p, const float qop)

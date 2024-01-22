@@ -18,6 +18,10 @@ __global__ void create_matched_views(matching_consolidate_tracks::Parameters par
     const auto* velo_track = &parameters.dev_velo_tracks_view[event_number].track(*velo_track_index);
     const auto* scifi_track = &parameters.dev_scifi_tracks_view[event_number].track(*scifi_track_index);
 
+    // Mark scifi track as used
+    parameters.dev_matched_is_scifi_track_used[scifi_track->track_container_offset() + scifi_track->track_index()] =
+      true;
+
     // Mark velo tracks as used
     parameters.dev_accepted_and_unused_velo_tracks[velo_track->track_container_offset() + velo_track->track_index()] =
       0;
@@ -54,6 +58,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::set_arguments_s
   set_size<dev_multi_event_long_tracks_view_t>(arguments, 1);
   set_size<dev_multi_event_long_tracks_ptr_t>(arguments, 1);
   set_size<dev_accepted_and_unused_velo_tracks_t>(arguments, size<dev_accepted_velo_tracks_t>(arguments));
+  set_size<dev_matched_is_scifi_track_used_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
 
 void matching_consolidate_tracks::matching_consolidate_tracks_t::init()
@@ -95,6 +100,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
+  Allen::memset_async<dev_matched_is_scifi_track_used_t>(arguments, 0, context);
   Allen::copy_async<dev_accepted_and_unused_velo_tracks_t, dev_accepted_velo_tracks_t>(arguments, context);
 
   auto dev_histogram_long_track_matching_eta =
@@ -214,7 +220,7 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
 
     if (number_of_tracks_event < 200) {
       unsigned bin = std::floor(number_of_tracks_event / 2.5);
-      dev_histogram_n_long_tracks_matching[bin]++;
+      atomicAdd(&dev_histogram_n_long_tracks_matching[bin], 1);
     }
     dev_n_long_tracks_matching_counter[0] += number_of_tracks_event;
 #endif
@@ -245,14 +251,14 @@ __device__ void matching_consolidate_tracks::matching_consolidate_tracks_t::moni
     const unsigned int bin = static_cast<unsigned int>(
       (eta - parameters.histogram_long_track_matching_eta_min) * parameters.histogram_long_track_matching_eta_nbins /
       (parameters.histogram_long_track_matching_eta_max - parameters.histogram_long_track_matching_eta_min));
-    ++dev_histogram_long_track_matching_eta[bin];
+    atomicAdd(&dev_histogram_long_track_matching_eta[bin], 1);
   }
   if (
     phi > parameters.histogram_long_track_matching_phi_min && phi < parameters.histogram_long_track_matching_phi_max) {
     const unsigned int bin = static_cast<unsigned int>(
       (phi - parameters.histogram_long_track_matching_phi_min) * parameters.histogram_long_track_matching_phi_nbins /
       (parameters.histogram_long_track_matching_phi_max - parameters.histogram_long_track_matching_phi_min));
-    ++dev_histogram_long_track_matching_phi[bin];
+    atomicAdd(&dev_histogram_long_track_matching_phi[bin], 1);
   }
   if (
     nhits > parameters.histogram_long_track_matching_nhits_min &&
@@ -261,6 +267,6 @@ __device__ void matching_consolidate_tracks::matching_consolidate_tracks_t::moni
       (nhits - parameters.histogram_long_track_matching_nhits_min) *
       parameters.histogram_long_track_matching_nhits_nbins /
       (parameters.histogram_long_track_matching_nhits_max - parameters.histogram_long_track_matching_nhits_min));
-    ++dev_histogram_long_track_matching_nhits[bin];
+    atomicAdd(&dev_histogram_long_track_matching_nhits[bin], 1);
   }
 }
