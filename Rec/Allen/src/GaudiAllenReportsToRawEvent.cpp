@@ -28,19 +28,18 @@ class GaudiAllenReportsToRawEvent
 public:
   // Standard constructor
   GaudiAllenReportsToRawEvent(const std::string& name, ISvcLocator* pSvcLocator) :
-    MultiTransformer {
-      name,
-      pSvcLocator,
-      // Inputs
-      {KeyValue {"allen_dec_reports", ""},
-       KeyValue {"allen_selrep_offsets", ""},
-       KeyValue {"allen_sel_reports", ""},
-       KeyValue {"allen_routing_bits", ""}},
-      // Outputs
-      {KeyValue {"OutputRawReports", "Allen/Out/RawReports"},
-       KeyValue {"OutputDecView", "Allen/Out/OutputDecView"},
-       KeyValue {"OutputSelView", "Allen/Out/OutputSelView"},
-       KeyValue {"OutputRoutingBitsView", "Allen/Out/OutputRoutingBitsView"}}}
+    MultiTransformer {name,
+                      pSvcLocator,
+                      // Inputs
+                      {KeyValue {"allen_dec_reports", ""},
+                       KeyValue {"allen_selrep_offsets", ""},
+                       KeyValue {"allen_sel_reports", ""},
+                       KeyValue {"allen_routing_bits", ""}},
+                      // Outputs
+                      {KeyValue {"OutputRawReports", "Allen/Out/RawReports"},
+                       KeyValue {"OutputDecView", "Allen/Out/OutputDecView"},
+                       KeyValue {"OutputSelView", "Allen/Out/OutputSelView"},
+                       KeyValue {"OutputRoutingBitsView", "Allen/Out/OutputRoutingBitsView"}}}
   {}
 
   // Algorithm execution
@@ -61,8 +60,7 @@ public:
       sel_reports);
     raw_event.addBank(
       Hlt1::Constants::sourceID, LHCb::RawBank::HltDecReports, dec_reports.version(), dec_reports.bank_data());
-    raw_event.addBank(
-      Hlt1::Constants::sourceID, LHCb::RawBank::HltRoutingBits, 0u, routing_bits);
+    raw_event.addBank(Hlt1::Constants::sourceID, LHCb::RawBank::HltRoutingBits, 0u, routing_bits);
 
     auto dec_view = raw_event.banks(LHCb::RawBank::HltDecReports);
     auto sel_view = raw_event.banks(LHCb::RawBank::HltSelReports);
