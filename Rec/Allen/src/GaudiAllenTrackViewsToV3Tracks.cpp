@@ -401,10 +401,12 @@ namespace GaudiAllen::Converters::v3 {
       return update_states_impl(
         outTrack, track, states, LHCb::Event::v3::available_states_t<OutTrackType::Upstream> {});
     case OutTrackType::Long:
-      return update_states_impl(outTrack, track, states, LHCb::Event::v3::available_states_t<OutTrackType::Long> {});
-    case OutTrackType::FittedForward:
+      assert(outTrack.fitHistory() == LHCb::Event::Enum::Track::FitHistory::VeloKalman);
       return update_states_impl(
-        outTrack, track, states, LHCb::Event::v3::available_states_t<OutTrackType::FittedForward> {});
+        outTrack,
+        track,
+        states,
+        LHCb::Event::v3::available_states_t<OutTrackType::Long, LHCb::Event::Enum::Track::FitHistory::VeloKalman> {});
     default: throw GaudiException("unknown v3 track type", "GaudiAllenTrackViewsToV3Tracks", StatusCode::FAILURE);
     }
   }
@@ -509,7 +511,7 @@ namespace GaudiAllen::Converters::v3 {
 
   template<>
   struct v3_track_type<Allen::Views::Physics::MultiEventBasicParticles> {
-    static constexpr auto value = OutTrackType::FittedForward;
+    static constexpr auto value = OutTrackType::Long;
   };
 
   template<typename AllenTrack>
@@ -680,7 +682,16 @@ namespace GaudiAllen::Converters::v3 {
       auto zn = Zipping::generateZipIdentifier();
       if constexpr (std::tuple_size_v<OutType> == 2) {
         return {OutTracks(v3_track_type<AllenTrack>::value_fwd, unique_id_gen, zn),
-                OutTracks(v3_track_type<AllenTrack>::value_bwd, true, unique_id_gen, zn)};
+                OutTracks(
+                  v3_track_type<AllenTrack>::value_bwd,
+                  LHCb::Event::Enum::Track::FitHistory::Unknown,
+                  true,
+                  unique_id_gen,
+                  zn)};
+      }
+      else if constexpr (v3_track_type_v<AllenTrack> == LHCb::Event::Enum::Track::Type::Long) {
+        return {OutTracks(
+          v3_track_type_v<AllenTrack>, LHCb::Event::Enum::Track::FitHistory::VeloKalman, false, unique_id_gen, zn)};
       }
       else {
         return {OutTracks(v3_track_type_v<AllenTrack>, unique_id_gen, zn)};
