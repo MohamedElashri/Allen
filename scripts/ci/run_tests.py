@@ -231,11 +231,31 @@ def post_proc_run_built_tests(
     return {}
 
 
+def post_proc_sanitizer(
+        test: dict,
+        log_output: str,
+        run_profiler_output: Path = None,
+        allen_profiler_log: str = None,
+):
+    hazards = int(
+        re.search(
+            r"^========= [A-Z]+ SUMMARY: ([0-9]+)",
+            log_output,
+            flags=re.MULTILINE).group(1))
+    if hazards > 0:
+        log.error(f"Sanitizer found {hazards} hazards. Check logs.")
+        return False
+    return {}
+
+
 test_postproc = {
     "throughput": post_proc_throughput,
     "efficiency": post_proc_efficiency,
     "run_changes": post_proc_run_changes,
     "run_built_tests": post_proc_run_built_tests,
+    "run_memcheck": post_proc_sanitizer,
+    "run_racecheck": post_proc_sanitizer,
+    "run_synccheck": post_proc_sanitizer,
 }
 
 
