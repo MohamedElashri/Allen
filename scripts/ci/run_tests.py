@@ -365,8 +365,9 @@ def build_allen_env(config, test, target, **env_args):
         result["RUN_UNIT_TESTS"] = "1"
         result["JUNITREPORT"] = f"default-{lcg_system}-unit-tests.xml"
 
-    if test_name == "run_memcheck":
-        result["RUN_MEMCHECK"] = "1"
+    if "sanitizer" in test:
+        result["RUN_SANITIZER"] = "1"
+        result["SANITIZER_TOOL"] = test["sanitizer"]
 
     if target.endswith("PROF"):
         result["RUN_PROFILER"] = "1"

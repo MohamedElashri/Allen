@@ -267,6 +267,27 @@ full:
   
   # run memcheck
   - type: "run_memcheck"
+    sanitizer: "memcheck"
+    sequence:
+      - hlt1_pp_default
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+    build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS+MALLOC_ENGINE=MULTI_ALLOC
+    allowed_devices:
+      - a5000
+
+  - type: "run_racecheck"
+    sanitizer: "racecheck"
+    sequence:
+      - hlt1_pp_default
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+    build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS+MALLOC_ENGINE=MULTI_ALLOC
+    allowed_devices:
+      - a5000
+
+  - type: "run_synccheck"
+    sanitizer: "synccheck"
     sequence:
       - hlt1_pp_default
     dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
