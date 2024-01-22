@@ -76,6 +76,7 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
     for (int offset = 16; offset > 0; offset /= 2) {
       integral += __shfl_xor_sync(-1u, integral, offset);
     }
+    __syncwarp();
 
     const float zBin = parameters.zmin + iend * parameters.dz;
     const float minInSeed =
@@ -87,6 +88,7 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
       }
       outIdx += 2;
     }
+    __syncthreads();
   }
   number_of_clusteredges = outIdx;
   __syncthreads();
@@ -208,6 +210,8 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
       }
     }
   }
+
+  __syncthreads();
 
   auto zClusterMean = [&zhisto](auto izmax, auto zmin, auto dz) -> float {
     const float* b = zhisto + izmax;
