@@ -350,24 +350,36 @@ def make_sel_report_writer(lines):
         dev_unique_track_list_t,
         dev_unique_track_count_t=make_selected_object_lists.
         dev_unique_track_count_t,
+        dev_unique_calo_list_t=make_selected_object_lists.
+        dev_unique_calo_list_t,
+        dev_unique_calo_count_t=make_selected_object_lists.
+        dev_unique_calo_count_t,
         dev_unique_sv_list_t=make_selected_object_lists.dev_unique_sv_list_t,
         dev_unique_sv_count_t=make_selected_object_lists.dev_unique_sv_count_t,
         dev_track_duplicate_map_t=make_selected_object_lists.
         dev_track_duplicate_map_t,
+        dev_calo_duplicate_map_t=make_selected_object_lists.
+        dev_calo_duplicate_map_t,
         dev_sv_duplicate_map_t=make_selected_object_lists.
         dev_sv_duplicate_map_t,
         dev_sel_track_indices_t=make_selected_object_lists.
         dev_sel_track_indices_t,
+        dev_sel_calo_indices_t=make_selected_object_lists.
+        dev_sel_calo_indices_t,
         dev_sel_sv_indices_t=make_selected_object_lists.dev_sel_sv_indices_t,
         dev_multi_event_particle_containers_t=gather_selections.
         dev_particle_containers_t,
         dev_basic_particle_ptrs_t=make_selected_object_lists.
         dev_selected_basic_particle_ptrs_t,
+        dev_neutral_basic_particle_ptrs_t=make_selected_object_lists.
+        dev_selected_neutral_basic_particle_ptrs_t,
         dev_composite_particle_ptrs_t=make_selected_object_lists.
         dev_selected_composite_particle_ptrs_t,
         dev_rb_substr_offsets_t=prefix_sum_substr_size.dev_output_buffer_t,
         dev_substr_sel_size_t=make_selected_object_lists.dev_substr_sel_size_t,
         dev_substr_sv_size_t=make_selected_object_lists.dev_substr_sv_size_t,
+        dev_substr_track_size_t=make_selected_object_lists.
+        dev_substr_track_size_t,
         dev_rb_hits_offsets_t=prefix_sum_hits_size.dev_output_buffer_t,
         dev_rb_objtyp_offsets_t=prefix_sum_objtyp_size.dev_output_buffer_t,
         dev_rb_stdinfo_offsets_t=prefix_sum_stdinfo_size.dev_output_buffer_t)

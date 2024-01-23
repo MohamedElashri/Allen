@@ -29,20 +29,27 @@ namespace make_subbanks {
     DEVICE_INPUT(dev_candidate_count_t, unsigned) dev_candidate_count;
     DEVICE_INPUT(dev_candidate_offsets_t, unsigned) dev_candidate_offsets;
     DEVICE_INPUT(dev_unique_track_list_t, unsigned) dev_unique_track_list;
+    DEVICE_INPUT(dev_unique_calo_list_t, unsigned) dev_unique_calo_list;
     DEVICE_INPUT(dev_unique_sv_list_t, unsigned) dev_unique_sv_list;
     DEVICE_INPUT(dev_unique_track_count_t, unsigned) dev_unique_track_count;
+    DEVICE_INPUT(dev_unique_calo_count_t, unsigned) dev_unique_calo_count;
     DEVICE_INPUT(dev_unique_sv_count_t, unsigned) dev_unique_sv_count;
     DEVICE_INPUT(dev_track_duplicate_map_t, int) dev_track_duplicate_map;
+    DEVICE_INPUT(dev_calo_duplicate_map_t, int) dev_calo_duplicate_map;
     DEVICE_INPUT(dev_sv_duplicate_map_t, int) dev_sv_duplicate_map;
     DEVICE_INPUT(dev_sel_track_indices_t, unsigned) dev_sel_track_indices;
+    DEVICE_INPUT(dev_sel_calo_indices_t, unsigned) dev_sel_calo_indices;
     DEVICE_INPUT(dev_sel_sv_indices_t, unsigned) dev_sel_sv_indices;
     DEVICE_INPUT(dev_multi_event_particle_containers_t, Allen::IMultiEventContainer*)
     dev_multi_event_particle_containers;
     DEVICE_INPUT(dev_basic_particle_ptrs_t, Allen::Views::Physics::BasicParticle*) dev_basic_particle_ptrs;
+    DEVICE_INPUT(dev_neutral_basic_particle_ptrs_t, Allen::Views::Physics::NeutralBasicParticle*)
+    dev_neutral_basic_particle_ptrs;
     DEVICE_INPUT(dev_composite_particle_ptrs_t, Allen::Views::Physics::CompositeParticle*) dev_composite_particle_ptrs;
     DEVICE_INPUT(dev_rb_substr_offsets_t, unsigned) dev_rb_substr_offsets;
     DEVICE_INPUT(dev_substr_sel_size_t, unsigned) dev_substr_sel_size;
     DEVICE_INPUT(dev_substr_sv_size_t, unsigned) dev_substr_sv_size;
+    DEVICE_INPUT(dev_substr_track_size_t, unsigned) dev_substr_track_size;
     DEVICE_INPUT(dev_rb_hits_offsets_t, unsigned) dev_rb_hits_offsets;
     DEVICE_INPUT(dev_rb_objtyp_offsets_t, unsigned) dev_rb_objtyp_offsets;
     DEVICE_INPUT(dev_rb_stdinfo_offsets_t, unsigned) dev_rb_stdinfo_offsets;

@@ -11,7 +11,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 #include "VertexDefinitions.cuh"
 #include "MassDefinitions.h"
 #include "ParticleTypes.cuh"
@@ -56,7 +56,7 @@ namespace two_track_mva_charm_xsec_line {
 
   struct two_track_mva_charm_xsec_line_t : public SelectionAlgorithm,
                                            Parameters,
-                                           TwoTrackLine<two_track_mva_charm_xsec_line_t, Parameters> {
+                                           CompositeParticleLine<two_track_mva_charm_xsec_line_t, Parameters> {
 
     __device__ static std::tuple<const CompositeParticle, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);

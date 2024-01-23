@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 #include "ROOTService.h"
 #include "MassDefinitions.h"
 
@@ -70,7 +70,7 @@ namespace SMOG2_kstopipi_line {
 
   struct SMOG2_kstopipi_line_t : public SelectionAlgorithm,
                                  Parameters,
-                                 TwoTrackLine<SMOG2_kstopipi_line_t, Parameters> {
+                                 CompositeParticleLine<SMOG2_kstopipi_line_t, Parameters> {
 
     using monitoring_types = std::tuple<sv_masses_t, svz_t>;
 

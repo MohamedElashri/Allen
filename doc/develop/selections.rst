@@ -23,7 +23,7 @@ particle properties are accessed via the `BasicParticle
 view. This view provides access to the track state (including
 momentum), lepton ID, and the associated PV (including e.g. IP, IP chi2).
 
-TwoTrackLine
+CompositeParticleLine
 ---------------
 These lines trigger on composite particles composed of other basic or composite
 particles. In most cases, this means triggering on 2-track secondary vertices.
@@ -123,7 +123,7 @@ In order to define a selection algorithm, one must define a struct as follows:
 
     struct "name_of_algorithm" : public SelectionAlgorithm, Parameters, "line_type"<"name_of_algorithm", Parameters>
 
-In the above, `"name_of_algorithm"` is the name of the algorithm, and `"line_type"` can be either `Line` for a completely customizable line, or any of the predefined line types (such as `OneTrackLine`, `TwoTrackLine`, `ODINLine`, etc.). Please note that `"name_of_algorithm"` appears twice in the selection algorithm definition.
+In the above, `"name_of_algorithm"` is the name of the algorithm, and `"line_type"` can be either `Line` for a completely customizable line, or any of the predefined line types (such as `OneTrackLine`, `CompositeParticleLine`, `ODINLine`, etc.). Please note that `"name_of_algorithm"` appears twice in the selection algorithm definition.
 
 A `SelectionAlgorithm` can contain the following:
 
@@ -250,17 +250,17 @@ And the then the source:
 Note that since the type of this line was the preexisting (`OneTrackLine`), it was not
 necessary to define any function other than `select`.
 
-TwoTrackLine example
+CompositeParticleLine example
 -----------------------
 Here we'll create an example of a 2-long-track line that selects displaced
-secondary vertices with no postscale. This line inherits from `TwoTrackLine`. We'll create a header with the following contents:
+secondary vertices with no postscale. This line inherits from `CompositeParticleLine`. We'll create a header with the following contents:
 
 .. code-block:: c++
 
   #pragma once
 
   #include "AlgorithmTypes.cuh"
-  #include "TwoTrackLine.cuh"
+  #include "CompositeParticleLine.cuh"
 
   namespace example_two_track_line {
     struct Parameters {
@@ -288,7 +288,7 @@ secondary vertices with no postscale. This line inherits from `TwoTrackLine`. We
     };
 
     // SelectionAlgorithm definition
-    struct example_two_track_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<example_two_track_line_t, Parameters> {
+    struct example_two_track_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<example_two_track_line_t, Parameters> {
       // Selection function.
       __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
@@ -310,7 +310,7 @@ And a source with the following:
 
 .. code-block:: c++
 
-  #include "ExampleTwoTrackLine.cuh"
+  #include "ExampleCompositeParticleLine.cuh"
 
   INSTANTIATE_LINE(example_two_track_line::example_two_track_line_t, example_two_track_line::Parameters)
 

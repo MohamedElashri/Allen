@@ -204,11 +204,12 @@ Hlt1_SMOG2_DiMuonHighMass:                              0           0
 Hlt1_SMOG2_SingleMuon:                                  9           9
 Hlt1_SMOG2_L02PPi:                                      0           0
 
-Total decisions: 149
-Total tracks:    133
-Total SVs:       8
-Total hits:      4064
-Total stdinfo:   1245
+Total decisions:      149
+Total tracks:         133
+Total calos clusters: 0
+Total SVs:            8
+Total hits:           4064
+Total stdinfo:        1245
 
 
 veloUT_validator validation:

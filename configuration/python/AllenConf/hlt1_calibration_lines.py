@@ -28,15 +28,12 @@ def make_pi02gammagamma_line(calo,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
-        dev_offsets_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
-        dev_offsets_velo_track_hit_number_t=velo_tracks[
-            "dev_offsets_velo_track_hit_number"],
         host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"],
-        dev_ecal_number_of_clusters_t=calo["dev_ecal_num_clusters"],
-        dev_ecal_twoclusters_t=calo["dev_ecal_twoclusters"],
-        dev_ecal_twocluster_offsets_t=calo["dev_ecal_twocluster_offsets"],
-        host_ecal_number_of_twoclusters_t=calo[
-            "host_ecal_number_of_twoclusters"],
+        dev_velo_tracks_t=velo_tracks["dev_velo_tracks_view"],
+        dev_particle_container_t=calo["dev_multi_event_diphotons"],
+        dev_cluster_particle_container_t=calo[
+            "dev_multi_event_neutral_particles"],
+        host_number_of_svs_t=calo["host_ecal_number_of_twoclusters"],
         dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"],
         minMass=50,  #MeV
         maxMass=300,  #MeV

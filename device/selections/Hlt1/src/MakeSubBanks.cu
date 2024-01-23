@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "MakeSubBanks.cuh"
+#include "CaloConstants.cuh"
 
 INSTANTIATE_ALGORITHM(make_subbanks::make_subbanks_t)
 
@@ -57,15 +58,19 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
     const unsigned n_children = parameters.max_children_per_object;
     const unsigned selected_object_offset = n_children * line_object_offsets[0];
     const unsigned n_tracks = parameters.dev_unique_track_count[event_number];
+    const unsigned n_calos = parameters.dev_unique_calo_count[event_number];
     const unsigned n_svs = parameters.dev_unique_sv_count[event_number];
 
     const unsigned sels_start_short = 2;
     const unsigned svs_start_short = sels_start_short + parameters.dev_substr_sel_size[event_number];
     const unsigned tracks_start_short = svs_start_short + parameters.dev_substr_sv_size[event_number];
+    const unsigned calos_start_short = tracks_start_short + parameters.dev_substr_track_size[event_number];
 
     const auto event_track_ptrs = parameters.dev_basic_particle_ptrs + selected_object_offset;
+    const auto event_calo_ptrs = parameters.dev_neutral_basic_particle_ptrs + selected_object_offset;
     const auto event_sv_ptrs = parameters.dev_composite_particle_ptrs + selected_object_offset;
     const unsigned* event_unique_track_list = parameters.dev_unique_track_list + selected_object_offset;
+    const unsigned* event_unique_calo_list = parameters.dev_unique_calo_list + selected_object_offset;
     const unsigned* event_unique_sv_list = parameters.dev_unique_sv_list + selected_object_offset;
 
     // Add the track substructures.
@@ -88,9 +93,27 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       }
     }
 
+    // Add the Calo substructures.
+    // For now treat it like a SV with 0 children.
+    unsigned i_short = calos_start_short;
+    for (unsigned i_calo = 0; i_calo < n_calos; i_calo++) {
+      unsigned i_word = i_short / 2;
+      unsigned i_part = i_short % 2;
+      const unsigned mask = 0xFFFFL;
+      const unsigned bits = 16;
+      const unsigned calo_struct = ((0 & 0xFFFF) << 1) | 0;
+      if (i_part == 0) {
+        event_rb_substr[i_word] = (event_rb_substr[i_word] & ~mask) | calo_struct;
+      }
+      else {
+        event_rb_substr[i_word] = (event_rb_substr[i_word] & ~(mask << bits)) | (calo_struct << bits);
+      }
+      i_short++;
+    }
+
     // Add the SV substructures.
     // Each SV substructure has a pointer to each of its constituent particles.
-    unsigned i_short = svs_start_short;
+    i_short = svs_start_short;
     for (unsigned i_sv = 0; i_sv < n_svs; i_sv++) {
       unsigned i_word = i_short / 2;
       unsigned i_part = i_short % 2;
@@ -112,12 +135,22 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
         // Find the location of the substructure in the bank.
         const auto substr = sv->child(i_substr);
         const auto basic_substr = Allen::dyn_cast<const Allen::Views::Physics::BasicParticle*>(substr);
+        const auto neutral_basic_substr = Allen::dyn_cast<const Allen::Views::Physics::NeutralBasicParticle*>(substr);
         unsigned substr_loc;
         if (basic_substr) {
           for (unsigned i_track = 0; i_track < n_tracks; i_track++) {
             const unsigned track_index = event_unique_track_list[i_track];
             if (basic_substr == event_track_ptrs[track_index]) {
               substr_loc = n_sels + n_svs + i_track;
+              break;
+            }
+          }
+        }
+        else if (neutral_basic_substr) {
+          for (unsigned i_calo = 0; i_calo < n_calos; i_calo++) {
+            const unsigned calo_index = event_unique_calo_list[i_calo];
+            if (neutral_basic_substr == event_calo_ptrs[calo_index]) {
+              substr_loc = n_sels + n_svs + n_tracks + i_calo;
               break;
             }
           }
@@ -147,7 +180,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
     }
 
     // Set the banks size.
-    event_rb_substr[0] = (event_rb_substr[0] & ~0xFFFFL) | (unsigned) (n_sels + n_svs + n_tracks);
+    event_rb_substr[0] = (event_rb_substr[0] & ~0xFFFFL) | (unsigned) (n_sels + n_svs + n_tracks + n_calos);
     event_rb_substr[0] = (event_rb_substr[0] & ~(0xFFFL << 16)) | (unsigned) (event_rb_substr_size << 16);
 
     const unsigned* event_candidate_offsets =
@@ -193,6 +226,41 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
           insert_short++;
         }
       }
+
+      // Handle lines that select NeutralBasicParticles.
+      else if (Allen::dyn_cast<const Allen::Views::Physics::MultiEventNeutralBasicParticles*>(mec)) {
+        const unsigned* line_candidate_indices =
+          parameters.dev_sel_calo_indices + n_children * line_object_offsets[line_id];
+        unsigned n_cand = event_candidate_offsets[line_id + 1] - event_candidate_offsets[line_id];
+        unsigned i_word = insert_short / 2;
+        unsigned i_part = insert_short % 2;
+        unsigned bits = 16 * i_part;
+        unsigned mask = 0xFFFFL << bits;
+        unsigned sel_struct = ((n_cand & 0xFFFF) << 1) | 0;
+        event_rb_substr[i_word] = (event_rb_substr[i_word] & ~mask) | (sel_struct << bits);
+        insert_short++;
+        for (unsigned i_cand = 0; i_cand < n_cand; i_cand++) {
+          const unsigned i_calo = line_candidate_indices[i_cand];
+          const unsigned calo_index = parameters.dev_calo_duplicate_map[selected_object_offset + i_calo] >= 0 ?
+                                        parameters.dev_calo_duplicate_map[selected_object_offset + i_calo] :
+                                        i_calo;
+          unsigned obj_index = 0;
+          for (unsigned j_calo = 0; j_calo < n_calos; j_calo++) {
+            const unsigned test_index = parameters.dev_unique_calo_list[selected_object_offset + j_calo];
+            if (calo_index == test_index) {
+              obj_index = n_sels + n_svs + n_tracks + j_calo;
+              break;
+            }
+          }
+          unsigned i_word = insert_short / 2;
+          unsigned i_part = insert_short % 2;
+          unsigned bits = 16 * i_part;
+          unsigned mask = 0xFFFFL << bits;
+          event_rb_substr[i_word] = (event_rb_substr[i_word] & ~mask) | (obj_index << bits);
+          insert_short++;
+        }
+      }
+
       // Handle lines that select CompositeParticles.
       else if (Allen::dyn_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(mec)) {
         const unsigned* line_candidate_indices =
@@ -269,19 +337,27 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       unsigned short CLID = 10010;
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~mask) | (n_sels + n_svs + n_tracks);
       event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~(mask << bits)) | (CLID << bits);
+      i_obj++;
+    }
+    // CaloClusters.
+    if (n_calos != 0) {
+      unsigned short CLID = 2003;
+      event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~mask) | (n_sels + n_svs + n_tracks + n_calos);
+      event_rb_objtyp[i_obj] = (event_rb_objtyp[i_obj] & ~(mask << bits)) | (CLID << bits);
+      i_obj++;
     }
 
     // Create the StdInfo bank.
     unsigned* event_rb_stdinfo = parameters.dev_rb_stdinfo + parameters.dev_rb_stdinfo_offsets[event_number];
     const unsigned stdinfo_size =
       parameters.dev_rb_stdinfo_offsets[event_number + 1] - parameters.dev_rb_stdinfo_offsets[event_number];
-    const unsigned sels_start_word = 1 + (3 + n_tracks + n_svs + n_sels) / 4;
+    const unsigned sels_start_word = 1 + (3 + n_calos + n_tracks + n_svs + n_sels) / 4;
 
     // Skip events with an empty StdInfo bank.
     if (stdinfo_size == 0) continue;
 
     // Number of objects stored in the less significant short.
-    event_rb_stdinfo[0] = (event_rb_stdinfo[0] & ~0xFFFFu) | ((unsigned) (n_tracks + n_svs + n_sels));
+    event_rb_stdinfo[0] = (event_rb_stdinfo[0] & ~0xFFFFu) | ((unsigned) (n_calos + n_tracks + n_svs + n_sels));
     // Bank size in words in the more significant short.
     event_rb_stdinfo[0] = (event_rb_stdinfo[0] & ~(0xFFFFu << 16)) | ((unsigned) (stdinfo_size << 16));
 
@@ -313,7 +389,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       unsigned sv_index = event_unique_sv_list[i_sv];
       const auto sv_ptr = event_sv_ptrs[sv_index];
       // Store pt, (dipion) mass, FD, FD chi2
-      i_word = svs_start_word + i_sv;
+      i_word = svs_start_word + 4 * i_sv;
       float* float_info = reinterpret_cast<float*>(event_rb_stdinfo);
       if (sv_ptr->has_vertex()) {
         float_info[i_word] = sv_ptr->vertex().x();
@@ -337,7 +413,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       unsigned track_index = event_unique_track_list[i_track];
       const auto track_ptr = event_track_ptrs[track_index];
       // Store pt, tx, ty, IP, IP chi2, muon ID, electron ID
-      i_word = tracks_start_word + i_track;
+      i_word = tracks_start_word + 8 * i_track;
       float* float_info = reinterpret_cast<float*>(event_rb_stdinfo);
       float_info[i_word] = track_ptr->state().z();
       float_info[i_word + 1] = track_ptr->state().x();
@@ -347,6 +423,28 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       float_info[i_word + 5] = track_ptr->state().qop();
       float_info[i_word + 6] = track_ptr->state().chi2() / track_ptr->state().ndof();
       float_info[i_word + 7] = static_cast<float>(track_ptr->state().ndof());
+    }
+
+    const auto calos_start_word = tracks_start_word + 8 * n_tracks;
+    for (unsigned i_calo = 0; i_calo < n_calos; i_calo++) {
+      unsigned i_obj = n_sels + n_svs + n_tracks + i_calo;
+      unsigned i_word = 1 + i_obj / 4;
+      unsigned i_part = i_obj % 4;
+      unsigned bits = 8 * i_part;
+      unsigned mask = 0xFFL << bits;
+      unsigned n_info = 4;
+      event_rb_stdinfo[i_word] = (event_rb_stdinfo[i_word] & ~mask) | (n_info << bits);
+
+      unsigned calo_index = event_unique_calo_list[i_calo];
+      const auto calo_ptr = event_calo_ptrs[calo_index];
+      // Store E, X, Y, Z
+      i_word = calos_start_word + 4 * i_calo;
+      float* float_info = reinterpret_cast<float*>(event_rb_stdinfo);
+      const auto calo_cluster = calo_ptr->cluster();
+      float_info[i_word] = calo_cluster.e;
+      float_info[i_word + 1] = calo_cluster.x;
+      float_info[i_word + 2] = calo_cluster.y;
+      float_info[i_word + 3] = Calo::Constants::z;
     }
   }
 }
