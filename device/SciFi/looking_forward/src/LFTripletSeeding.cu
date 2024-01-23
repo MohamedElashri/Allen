@@ -395,6 +395,7 @@ __device__ void find_triplets(
   // If we found too many tracks the result would be non-deterministic.
   // In that very unlikely case, take the hit and make the result deterministic.
   if (shared_number_of_elements[0] > maximum_number_of_triplets_per_warp) {
+    __syncwarp();
     if (threadIdx.x == 0) {
       shared_number_of_elements[0] = 0;
     }
