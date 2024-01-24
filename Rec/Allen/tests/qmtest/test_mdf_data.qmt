@@ -6,7 +6,7 @@
      #######################################################
 # SUMMARY OF THIS TEST
 # ...................
-# Author: Kate Richardson 
+# Author: Kate Richardson
 # Purpose: Test running Allen through MooreOnline with
 # the passthrough sequence
 #######################################################
@@ -15,13 +15,14 @@
   <argument name="program"><text>python</text></argument>
   <argument name="args"><set>
     <text>${BINARYDUMPERSROOT}/options/allen.py</text>
+    <text>--monitoring-filename</text><text>mdf_data_hists.root</text>
     <text>-n</text><text>1000</text>
-    <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants/hlt1_pp_default.json</text>
-    <text>--tags</text><text>dddb-20210617,sim-20210617-vc-md100</text>
-    <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/mc/RetinaClusters_FTv4_MDF/00067189_retinaCluster_no63.mdf</text>
+    <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants//hlt1_pp_forward_then_matching_no_ut.json</text>
+    <text>--tags=detdesc:dddb-20210617,sim-20210617-vc-md100|dd4hep:trunk,master</text>
+    <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/data/2023_raw_hlt1_269138/Run_0000269138_20230706-083945-793_PLEB01_1930.mdf</text>
   </set></argument>
   <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
-  <argument name="timeout"><integer>3000</integer></argument>
+  <argument name="timeout"><integer>60000</integer></argument>
   <argument name="validator"><text>
 
 countErrorLines({"FATAL" : 0, "ERROR" : 0, "WARNING" : 0})
