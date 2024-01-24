@@ -5,35 +5,31 @@
 # Interface library for lhcb includes
 add_library(LHCbEvent INTERFACE)
 
-if (STANDALONE)
-  set(odin_files "src/ODIN.cpp" "include/Event/ODIN.h")
-else()
-  set(odin_files "src/ODIN.cpp")
-endif()
-
-foreach(odin_file ${odin_files})
-  if (NOT EXISTS "${PROJECT_BINARY_DIR}/imported_${odin_file}")
-    file(DOWNLOAD "https://gitlab.cern.ch/lhcb/LHCb/-/raw/master/Event/DAQEvent/${odin_file}"
-      "${PROJECT_BINARY_DIR}/imported_${odin_file}"
-      STATUS ODIN_DOWNLOAD_STATUS)
-    list(POP_FRONT ODIN_DOWNLOAD_STATUS_CODE ODIN_DOWNLOAD_STATUS_MSG)
-    if(ODIN_DOWNLOAD_STATUS_CODE)
-      message(FATAL_ERROR "Failed to get ${odin_file} copy: ${ODIN_DOWNLOAD_STATUS_MSG}")
-    endif()
-  endif()
-endforeach()
-
-add_library(odin OBJECT ${PROJECT_BINARY_DIR}/imported_src/ODIN.cpp)
-target_link_libraries(odin PRIVATE LHCbEvent cppgsl::cppgsl)
-target_compile_definitions(odin PRIVATE ODIN_WITHOUT_GAUDI)
-
 set(mdf_sources
     src/raw_helpers.cpp
     src/read_mdf.cpp
     src/write_mdf.cpp
-	$<TARGET_OBJECTS:odin>)
+    src/root_mdf.cpp)
 
-list(APPEND mdf_sources src/root_mdf.cpp)
+
+if (STANDALONE)
+  foreach(odin_file  "src/ODIN.cpp" "include/Event/ODIN.h")
+    if (NOT EXISTS "${PROJECT_BINARY_DIR}/imported_${odin_file}")
+      file(DOWNLOAD "https://gitlab.cern.ch/lhcb/LHCb/-/raw/master/Event/DAQEvent/${odin_file}"
+        "${PROJECT_BINARY_DIR}/imported_${odin_file}"
+        STATUS ODIN_DOWNLOAD_STATUS)
+      list(POP_FRONT ODIN_DOWNLOAD_STATUS_CODE ODIN_DOWNLOAD_STATUS_MSG)
+      if(ODIN_DOWNLOAD_STATUS_CODE)
+        message(FATAL_ERROR "Failed to get ${odin_file} copy: ${ODIN_DOWNLOAD_STATUS_MSG}")
+      endif()
+    endif()
+  endforeach()
+
+  add_library(odin OBJECT ${PROJECT_BINARY_DIR}/imported_src/ODIN.cpp)
+  target_link_libraries(odin PRIVATE LHCbEvent cppgsl::cppgsl)
+  target_compile_definitions(odin PRIVATE ODIN_WITHOUT_GAUDI)
+  list(APPEND mdf_sources $<TARGET_OBJECTS:odin>)
+endif()
 
 allen_add_host_library(mdf STATIC ${mdf_sources})
 target_include_directories (mdf PUBLIC
