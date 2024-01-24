@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 
 namespace displaced_di_muon_mass_line {
   struct Parameters {
@@ -34,7 +34,7 @@ namespace displaced_di_muon_mass_line {
 
   struct displaced_di_muon_mass_line_t : public SelectionAlgorithm,
                                          Parameters,
-                                         TwoTrackLine<displaced_di_muon_mass_line_t, Parameters> {
+                                         CompositeParticleLine<displaced_di_muon_mass_line_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
   private:

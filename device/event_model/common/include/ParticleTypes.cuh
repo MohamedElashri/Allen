@@ -22,6 +22,7 @@
 #include "SciFiConsolidated.cuh"
 #include "PV_Definitions.cuh"
 #include "MassDefinitions.h"
+#include "CaloCluster.cuh"
 
 namespace Allen {
   namespace Views {
@@ -412,6 +413,65 @@ namespace Allen {
         __host__ __device__ unsigned offset() const { return m_offset; }
       };
 
+      struct NeutralBasicParticle : IParticle {
+        constexpr static auto TypeID = Allen::TypeIDs::NeutralBasicParticle;
+
+      private:
+        const CaloCluster* m_calo_cluster;
+
+      public:
+        NeutralBasicParticle() = default;
+
+        __host__ __device__ NeutralBasicParticle(const CaloCluster* calo_cluster) :
+          IParticle(TypeID), m_calo_cluster(calo_cluster)
+        {
+          assert(m_calo_cluster != nullptr);
+        }
+
+        __host__ __device__ const CaloCluster& cluster() const { return *m_calo_cluster; }
+
+        __host__ __device__ float et() const
+        {
+          const auto c = cluster();
+          const float r2 = c.x * c.x + c.y * c.y;
+          const float z = Calo::Constants::z;
+          const float sint = sqrtf(r2 / (r2 + z * z));
+          return c.e * sint;
+        }
+      };
+
+      struct NeutralBasicParticles : IParticleContainer<NeutralBasicParticles> {
+        friend IParticleContainer<NeutralBasicParticles>;
+        constexpr static auto TypeID = Allen::TypeIDs::NeutralBasicParticles;
+
+      private:
+        const NeutralBasicParticle* m_particle;
+        unsigned m_size = 0;
+        unsigned m_offset = 0;
+
+        __host__ __device__ unsigned size_impl() const { return m_size; }
+
+        __host__ __device__ const NeutralBasicParticle& particle_impl(const unsigned i) const { return m_particle[i]; }
+
+      public:
+        NeutralBasicParticles() = default;
+
+        __host__ __device__ NeutralBasicParticles(
+          const NeutralBasicParticle* particle,
+          const unsigned* offsets,
+          const unsigned event_number) :
+          m_particle(particle + offsets[event_number]),
+          m_size(offsets[event_number + 1] - offsets[event_number]), m_offset(offsets[event_number])
+        {}
+
+        __host__ __device__ unsigned offset() const { return m_offset; }
+
+        __host__ __device__ const NeutralBasicParticle* particle_pointer(const unsigned index) const
+        {
+          return static_cast<const NeutralBasicParticle*>(m_particle) + index;
+        }
+      };
+
       struct CompositeParticle : IParticle {
         // TODO: Get these masses from somewhere else.
         static constexpr float mPi = 139.57f;
@@ -774,6 +834,89 @@ namespace Allen {
           return is_di([](const BasicParticle* a) { return a->is_lepton(); });
         }
 
+        __host__ __device__ bool is_dicluster() const
+        {
+          const auto a = dyn_cast<const NeutralBasicParticle*>(child(0));
+          const auto b = dyn_cast<const NeutralBasicParticle*>(child(1));
+          if (!a || !b) return false;
+          return true;
+        }
+
+        __host__ __device__ inline float3 cluster_momentum(const unsigned index) const
+        {
+          const auto particle = dyn_cast<const NeutralBasicParticle*>(child(index));
+          if (!particle) return float3 {0.f, 0.f, 0.f};
+          const auto cluster = particle->cluster();
+          const float z = Calo::Constants::z;
+          const float r2 = cluster.x * cluster.x + cluster.y * cluster.y;
+          const float sin_theta = sqrtf(r2 / (r2 + z * z));
+          const float cos_phi = cluster.x / sqrtf(r2);
+          const float sin_phi = cluster.y / sqrtf(r2);
+          const float ex = cluster.e * sin_theta * cos_phi;
+          const float ey = cluster.e * sin_theta * sin_phi;
+          const float ez = cluster.e * z / sqrtf(r2 + z * z);
+          return float3 {ex, ey, ez};
+        }
+
+        __host__ __device__ float diphoton_mass() const
+        {
+          if (!is_dicluster()) return -1.f;
+          const auto a = static_cast<const NeutralBasicParticle*>(child(0));
+          const auto b = static_cast<const NeutralBasicParticle*>(child(1));
+          const auto ca = a->cluster();
+          const auto cb = b->cluster();
+
+          // Cluster A.
+          const auto ea = cluster_momentum(0);
+
+          // Cluster B.
+          const auto eb = cluster_momentum(1);
+
+          const float p2 =
+            (ea.x + eb.x) * (ea.x + eb.x) + (ea.y + eb.y) * (ea.y + eb.y) + (ea.z + eb.z) * (ea.z + eb.z);
+          const float e2 = (ca.e + cb.e) * (ca.e + cb.e);
+          return sqrtf(e2 - p2);
+        }
+
+        __host__ __device__ float diphoton_pt() const
+        {
+          if (!is_dicluster()) return -1.f;
+
+          // Cluster A.
+          const auto ea = cluster_momentum(0);
+
+          // Cluster B.
+          const auto eb = cluster_momentum(1);
+
+          const float pt2 = (ea.x + eb.x) * (ea.x + eb.x) + (ea.y + eb.y) * (ea.y + eb.y);
+          return sqrtf(pt2);
+        }
+
+        __host__ __device__ float diphoton_eta() const
+        {
+          if (!is_dicluster()) return -1.f;
+
+          // Cluster A.
+          const auto ea = cluster_momentum(0);
+
+          // Cluster B.
+          const auto eb = cluster_momentum(1);
+
+          const float p2 =
+            (ea.x + eb.x) * (ea.x + eb.x) + (ea.y + eb.y) * (ea.y + eb.y) + (ea.z + eb.z) * (ea.z + eb.z);
+          return atanhf((ea.z + eb.z) / sqrtf(p2));
+        }
+
+        __host__ __device__ float diphoton_distance() const
+        {
+          if (!is_dicluster()) return -1.f;
+          const auto a = static_cast<const NeutralBasicParticle*>(child(0));
+          const auto b = static_cast<const NeutralBasicParticle*>(child(1));
+          const auto ca = a->cluster();
+          const auto cb = b->cluster();
+          return sqrtf((ca.x - cb.x) * (ca.x - cb.x) + (ca.y - cb.y) * (ca.y - cb.y));
+        }
+
         __host__ __device__ float clone_sin2() const
         {
           const auto state1 = static_cast<const BasicParticle*>(child(0))->state();
@@ -835,6 +978,7 @@ namespace Allen {
       };
 
       using MultiEventBasicParticles = Allen::MultiEventContainer<BasicParticles>;
+      using MultiEventNeutralBasicParticles = Allen::MultiEventContainer<NeutralBasicParticles>;
       using MultiEventCompositeParticles = Allen::MultiEventContainer<CompositeParticles>;
     } // namespace Physics
   }   // namespace Views

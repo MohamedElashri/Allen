@@ -25,7 +25,7 @@ namespace pv_beamline_calculate_denom {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void pv_beamline_calculate_denom(Parameters);
+  __global__ void pv_beamline_calculate_denom(Parameters, const float*);
 
   struct pv_beamline_calculate_denom_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;

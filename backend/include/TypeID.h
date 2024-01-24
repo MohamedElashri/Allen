@@ -29,8 +29,10 @@ namespace Allen {
     LongTracks,
     DownstreamTracks,
     BasicParticle,
+    NeutralBasicParticle,
     CompositeParticle,
     BasicParticles,
+    NeutralBasicParticles,
     CompositeParticles
   };
 

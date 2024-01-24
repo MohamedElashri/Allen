@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 #include "ROOTService.h"
 #include "MassDefinitions.h"
 
@@ -84,7 +84,7 @@ namespace d2pipi_line {
     histogram_d02pipi_pt_nbins;
   };
 
-  struct d2pipi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<d2pipi_line_t, Parameters> {
+  struct d2pipi_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<d2pipi_line_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
     void init();
 

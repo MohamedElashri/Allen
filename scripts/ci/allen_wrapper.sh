@@ -15,7 +15,6 @@ BUILD_FOLDER=$(realpath "${BUILD_FOLDER}")
 set +u;
 RUN_PROFILER_OUTPUT=$(realpath "${RUN_PROFILER_OUTPUT}/")
 JUNITREPORT=$(realpath "${JUNITREPORT}/")
-set -u;
 
 cd ${BUILD_FOLDER} # && ls
 export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+LD_LIBRARY_PATH:}${PWD}"
@@ -27,6 +26,10 @@ if [ "${TARGET}" = "CPU" ]; then
     NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
 
+    if [ "${RUN_SANITIZER}" = "1" ]; then
+        echo "Error - environment variable RUN_SANITIZER is 1 but unsupported for TARGET device CPU (only cuda_memcheck is supported)."
+    fi
+
     CMDPREFIX="numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper"
     ALLEN="./Allen -t ${THREADS}"
 elif [ "${TARGET}" = "CUDA" ]; then
@@ -35,6 +38,11 @@ elif [ "${TARGET}" = "CUDA" ]; then
     GPU_NUMBER=$(nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://')
     NUMA_NODE=$(nvidia-smi topo --id ${GPU_UUID} --get-numa-id-of-nearby-cpu | awk '{ print $NF; }')
     CMDPREFIX="CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper"
+
+
+    if [ "${RUN_SANITIZER}" = "1" ]; then
+        CMDPREFIX="${CMDPREFIX} /usr/local/cuda/bin/compute-sanitizer --tool ${SANITIZER_TOOL} --padding 32"
+    fi
 
     ALLEN="./Allen"
 
@@ -52,13 +60,17 @@ elif [ "${TARGET}" = "HIP" ]; then
 
     CMDPREFIX="HSA_NO_SCRATCH_RECLAIM=1 GPU_MAX_HW_QUEUES=8 HIP_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper"
 
+
+    if [ "${RUN_SANITIZER}" = "1" ]; then
+        echo "Error - environment variable RUN_SANITIZER is 1 but unsupported for TARGET device HIP."
+    fi
+
     ALLEN="./Allen"
 
     rocm-smi || echo "error occurred during rocm-smi; it will be ignored"
 fi
 
 
-set +u; # Avoid RUN_PROFILER unbound error
 
 if [ "${RUN_UNIT_TESTS}" = "1" ]; then 
     BUILD_DIR=`cat CTestTestfile.cmake | grep "# Build directory:" | awk '{ print $4 }'`

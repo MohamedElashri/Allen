@@ -219,11 +219,12 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                            0           0
 Hlt1DisplacedDiMuonAlignment:                           0           0
 
-Total decisions: 2
-Total tracks:    2
-Total SVs:       0
-Total hits:      42
-Total stdinfo:   18
+Total decisions:      2
+Total tracks:         2
+Total calos clusters: 0
+Total SVs:            0
+Total hits:           42
+Total stdinfo:        18
 
 
 velo_validator validation:

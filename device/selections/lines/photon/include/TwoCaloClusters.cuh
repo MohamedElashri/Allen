@@ -7,7 +7,8 @@
 #include "ROOTService.h"
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
-#include <CaloCluster.cuh>
+#include "VeloConsolidated.cuh"
+#include "CompositeParticleLine.cuh"
 #include <cfloat>
 
 #ifndef ALLEN_STANDALONE
@@ -19,14 +20,13 @@ namespace two_calo_clusters_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    HOST_INPUT(host_ecal_number_of_twoclusters_t, unsigned) host_ecal_number_of_twoclusters;
+    HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned) dev_offsets_velo_tracks;
-    DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_offsets_velo_track_hit_number;
+    DEVICE_INPUT(dev_velo_tracks_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks;
     HOST_INPUT(host_ecal_number_of_clusters_t, unsigned) host_ecal_number_of_clusters;
-    DEVICE_INPUT(dev_ecal_number_of_clusters_t, unsigned) dev_ecal_number_of_clusters;
-    DEVICE_INPUT(dev_ecal_twoclusters_t, TwoCaloCluster) dev_ecal_twoclusters;
-    DEVICE_INPUT(dev_ecal_twocluster_offsets_t, unsigned) dev_ecal_twocluster_offsets;
+    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
+    DEVICE_INPUT(dev_cluster_particle_container_t, Allen::Views::Physics::MultiEventNeutralBasicParticles)
+    dev_cluster_particle_container;
     DEVICE_INPUT(dev_number_of_pvs_t, unsigned) dev_number_of_pvs;
 
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
@@ -34,7 +34,8 @@ namespace two_calo_clusters_line {
     HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
     HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
 
-    HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
+    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
+    host_fn_parameters;
 
     // Device outputs for monitoring
     DEVICE_OUTPUT(dev_histogram_diphoton_mass_t, unsigned) dev_histogram_diphoton_mass;
@@ -108,17 +109,19 @@ namespace two_calo_clusters_line {
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
-  struct two_calo_clusters_line_t : public SelectionAlgorithm, Parameters, Line<two_calo_clusters_line_t, Parameters> {
+  struct two_calo_clusters_line_t : public SelectionAlgorithm,
+                                    Parameters,
+                                    CompositeParticleLine<two_calo_clusters_line_t, Parameters> {
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
-      std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned>,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned>,
       unsigned index,
       bool sel);
 
     __device__ static bool select(
       const Parameters& parameters,
-      std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned> input);
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned> input);
 
     using monitoring_types = std::tuple<
       mass_t,
@@ -140,29 +143,18 @@ namespace two_calo_clusters_line {
       evtNo_t,
       runNo_t>;
 
-    __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
+    __device__ static std::
+      tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned>
+      get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
     {
-      return parameters.dev_ecal_twocluster_offsets[event_number];
-    }
-
-    __device__ static std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i)
-    {
-      Velo::Consolidated::ConstTracks velo_tracks {parameters.dev_offsets_velo_tracks,
-                                                   parameters.dev_offsets_velo_track_hit_number,
-                                                   event_number,
-                                                   parameters.dev_number_of_events[0]};
-      const unsigned number_of_velo_tracks = velo_tracks.number_of_tracks(event_number);
-      const unsigned ecal_number_of_clusters = parameters.dev_ecal_number_of_clusters[event_number];
+      const auto velo_tracks = parameters.dev_velo_tracks[event_number];
+      const unsigned number_of_velo_tracks = velo_tracks.size();
+      const auto cluster_particles = parameters.dev_cluster_particle_container->container(event_number);
+      const unsigned ecal_number_of_clusters = cluster_particles.size();
       const unsigned n_pvs = parameters.dev_number_of_pvs[event_number];
-      const TwoCaloCluster event_ecal_twoclusters =
-        parameters.dev_ecal_twoclusters[parameters.dev_ecal_twocluster_offsets[event_number] + i];
-      return std::forward_as_tuple(event_ecal_twoclusters, number_of_velo_tracks, ecal_number_of_clusters, n_pvs);
-    }
-
-    static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
-    {
-      return first<typename Parameters::host_ecal_number_of_twoclusters_t>(arguments);
+      const auto particles = parameters.dev_particle_container->container(event_number);
+      const auto particle = particles.particle(i);
+      return std::forward_as_tuple(particle, number_of_velo_tracks, ecal_number_of_clusters, n_pvs);
     }
 
     void init();
@@ -171,7 +163,7 @@ namespace two_calo_clusters_line {
 
     __device__ static void monitor(
       const Parameters& parameters,
-      std::tuple<const TwoCaloCluster, const unsigned, const unsigned, const unsigned>,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned>,
       unsigned index,
       bool sel);
 

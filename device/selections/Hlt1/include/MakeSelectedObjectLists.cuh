@@ -29,13 +29,18 @@ namespace make_selected_object_lists {
     DEVICE_OUTPUT(dev_candidate_count_t, unsigned) dev_candidate_count;
     DEVICE_OUTPUT(dev_sel_track_count_t, unsigned) dev_sel_track_count;
     DEVICE_OUTPUT(dev_sel_track_indices_t, unsigned) dev_sel_track_indices;
+    DEVICE_OUTPUT(dev_sel_calo_count_t, unsigned) dev_sel_calo_count;
+    DEVICE_OUTPUT(dev_sel_calo_indices_t, unsigned) dev_sel_calo_indices;
     DEVICE_OUTPUT(dev_sel_sv_count_t, unsigned) dev_sel_sv_count;
     DEVICE_OUTPUT(dev_sel_sv_indices_t, unsigned) dev_sel_sv_indices;
     DEVICE_OUTPUT(dev_track_duplicate_map_t, int) dev_track_duplicate_map;
+    DEVICE_OUTPUT(dev_calo_duplicate_map_t, int) dev_calo_duplicate_map;
     DEVICE_OUTPUT(dev_sv_duplicate_map_t, int) dev_sv_duplicate_map;
     DEVICE_OUTPUT(dev_unique_track_list_t, unsigned) dev_unique_track_list;
+    DEVICE_OUTPUT(dev_unique_calo_list_t, unsigned) dev_unique_calo_list;
     DEVICE_OUTPUT(dev_unique_sv_list_t, unsigned) dev_unique_sv_list;
     DEVICE_OUTPUT(dev_unique_track_count_t, unsigned) dev_unique_track_count;
+    DEVICE_OUTPUT(dev_unique_calo_count_t, unsigned) dev_unique_calo_count;
     DEVICE_OUTPUT(dev_unique_sv_count_t, unsigned) dev_unique_sv_count;
     DEVICE_OUTPUT(dev_sel_count_t, unsigned) dev_sel_count;
     DEVICE_OUTPUT(dev_sel_list_t, unsigned) dev_sel_list;
@@ -43,6 +48,7 @@ namespace make_selected_object_lists {
     DEVICE_OUTPUT(dev_substr_bank_size_t, unsigned) dev_substr_bank_size;
     DEVICE_OUTPUT(dev_substr_sel_size_t, unsigned) dev_substr_sel_size;
     DEVICE_OUTPUT(dev_substr_sv_size_t, unsigned) dev_substr_sv_size;
+    DEVICE_OUTPUT(dev_substr_track_size_t, unsigned) dev_substr_track_size;
     DEVICE_OUTPUT(dev_stdinfo_bank_size_t, unsigned) dev_stdinfo_bank_size;
     DEVICE_OUTPUT(dev_objtyp_bank_size_t, unsigned) dev_objtyp_bank_size;
     DEVICE_OUTPUT(dev_selrep_size_t, unsigned) dev_selrep_size;
@@ -52,6 +58,11 @@ namespace make_selected_object_lists {
       DEPENDENCIES(dev_multi_event_particle_containers_t),
       Allen::Views::Physics::BasicParticle*)
     dev_selected_basic_particle_ptrs;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_selected_neutral_basic_particle_ptrs_t,
+      DEPENDENCIES(dev_multi_event_particle_containers_t),
+      Allen::Views::Physics::NeutralBasicParticle*)
+    dev_selected_neutral_basic_particle_ptrs;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_selected_composite_particle_ptrs_t,
       DEPENDENCIES(dev_multi_event_particle_containers_t),

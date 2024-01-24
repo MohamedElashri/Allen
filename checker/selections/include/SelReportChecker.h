@@ -29,6 +29,7 @@ private:
   unsigned m_hits_counter;
   unsigned m_dec_counter;
   unsigned m_track_counter;
+  unsigned m_calo_counter;
   unsigned m_sv_counter;
   std::mutex m_mutex;
 

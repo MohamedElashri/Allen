@@ -5,6 +5,7 @@
 
 #include "CaloCluster.cuh"
 #include "AlgorithmTypes.cuh"
+#include "ParticleTypes.cuh"
 
 namespace calo_prefilter_clusters {
 
@@ -16,8 +17,7 @@ namespace calo_prefilter_clusters {
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
 
-    DEVICE_INPUT(dev_ecal_clusters_t, CaloCluster) dev_ecal_clusters;
-    DEVICE_INPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
+    DEVICE_INPUT(dev_neutral_particles_t, Allen::Views::Physics::MultiEventNeutralBasicParticles) dev_neutral_particles;
 
     DEVICE_OUTPUT(dev_prefiltered_clusters_idx_t, unsigned) dev_prefiltered_clusters_idx;
     DEVICE_OUTPUT(dev_num_prefiltered_clusters_t, unsigned) dev_num_prefiltered_clusters;
