@@ -81,6 +81,11 @@ control flow can be wrapped using a `with` statement::
   with allen_gaudi_node_barriers.bind(sequence="hlt1_pp_no_gec"):
     run_allen(options)
 
+When Allen is compiled in non-standalone mode, every Allen algorithm is automatically translated into a Gaudi algorithm, ready to be run natively in the LHCb stack.
+Other examples of Moore options files can be found [here](https://gitlab.cern.ch/lhcb/Moore/-/tree/master/Hlt/RecoConf/options?ref_type=heads). Call with
+```
+Moore/run gaudirun.py Moore/Hlt/RecoConf/options/an_allen_gaudi_option.py
+```
 How to study the HLT1 physics performance within Moore is described in :ref:`moore_performance_scripts`.
 
 .. _run_allen_in_gaudi_allen_eventloop:
