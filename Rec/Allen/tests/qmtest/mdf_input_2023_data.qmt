@@ -16,9 +16,8 @@
   <argument name="args"><set>
     <text>${BINARYDUMPERSROOT}/options/allen.py</text>
     <text>--monitoring-filename</text><text>mdf_data_hists.root</text>
-    <text>-n</text><text>1000</text>
     <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants//hlt1_pp_forward_then_matching_no_ut.json</text>
-    <text>--tags=detdesc:dddb-20210617,sim-20210617-vc-md100|dd4hep:trunk,master</text>
+    <text>--tags=run3/trunk,master</text>
     <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/data/2023_raw_hlt1_269138/Run_0000269138_20230706-083945-793_PLEB01_1930.mdf</text>
   </set></argument>
   <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
