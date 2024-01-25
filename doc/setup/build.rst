@@ -151,7 +151,7 @@ Alternatively, cmake options can be passed with `-D` when invoking the cmake com
 
 * `STANDALONE` - Selects whether to build Allen standalone or as part of the Gaudi stack. Defaults to `OFF`.
 * `TARGET_DEVICE` - Selects the target device architecture. Options are `CPU`, `CUDA` and `HIP`.
-* `SEQUENCES` - Either a regex or `all`, if a regex is passed and the pattern is found in a sequence name, it will be built. For a complete list of sequences available, check `configuration/sequences/`. The name of a sequence is given by its filename without the `.py` extension.
+* `SEQUENCES` - Either a regex or `all`, if a regex is passed and the pattern is found in a sequence name, it will be built. For a complete list of sequences available, check `configuration/sequences/`. The name of a sequence is given by its filename without the `.py` extension. Note that sequences are by default generated during runtime, when specified through --sequence. Requesting sequences here causes them to be pregenerated into a json file (in the build directory).
 * `CMAKE_BUILD_TYPE` - Build type, which is either of `RelWithDebInfo`, `Release` or `Debug`.
 * `CUDA_ARCH` - Selects the architecture to target for `CUDA` compilation.
 * `HIP_ARCH` - Selects the architecture to target with `HIP` compilation.
