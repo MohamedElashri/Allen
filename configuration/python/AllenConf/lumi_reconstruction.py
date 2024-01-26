@@ -380,5 +380,9 @@ def lumi_reconstruction(
         "dev_lumi_summary_offsets":
         prefix_sum_lumi_size.dev_output_buffer_t,
         "dev_lumi_summaries":
-        make_lumi_summary.dev_lumi_summaries_t
+        make_lumi_summary.dev_lumi_summaries_t,
+        "host_lumi_summary_offsets":
+        make_lumi_summary.host_lumi_summary_offsets_t,
+        "host_lumi_summaries":
+        make_lumi_summary.host_lumi_summaries_t
     }

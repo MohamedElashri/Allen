@@ -785,13 +785,14 @@ def setup_hlt1_node(enablePhysics=True,
     global_decision = make_global_decision(lines=line_algorithms)
     dec_reporter = make_dec_reporter(lines=line_algorithms)
     sel_reports = make_sel_report_writer(lines=line_algorithms)
+    rb_writer = make_routingbits_writer(lines=line_algorithms)
 
     hlt1_node = CompositeNode(
         "Allen", [
             lines,
             dec_reporter,
             global_decision,
-            make_routingbits_writer(lines=line_algorithms),
+            rb_writer,
             *sel_reports["algorithms"],
         ],
         NodeLogic.NONLAZY_AND,
@@ -819,18 +820,21 @@ def setup_hlt1_node(enablePhysics=True,
     hlt1_config['gather_selections'] = gather_selections
     hlt1_config['dec_reporter'] = dec_reporter
     hlt1_config['sel_reports'] = sel_reports
+    hlt1_config['routing_bits'] = rb_writer
     hlt1_config['global_decision'] = global_decision
 
     if with_lumi:
+        lumi_reco = lumi_reconstruction(
+            gather_selections=gather_selections,
+            lines=line_algorithms,
+            lumiline_name=lumiline_name,
+            lumilinefull_name=lumilinefull_name,
+            with_muon=with_muon,
+            velo_open=velo_open)
+
         lumi_node = CompositeNode(
             "AllenLumiNode",
-            lumi_reconstruction(
-                gather_selections=gather_selections,
-                lines=line_algorithms,
-                lumiline_name=lumiline_name,
-                lumilinefull_name=lumilinefull_name,
-                with_muon=with_muon,
-                velo_open=velo_open)["algorithms"],
+            lumi_reco["algorithms"],
             NodeLogic.NONLAZY_AND,
             force_order=False)
 
@@ -840,6 +844,7 @@ def setup_hlt1_node(enablePhysics=True,
             NodeLogic.LAZY_AND,
             force_order=True)
 
+        hlt1_config['lumi_reconstruction'] = lumi_reco
         hlt1_config['lumi_node'] = lumi_with_prefilter
 
         hlt1_node = CompositeNode(
