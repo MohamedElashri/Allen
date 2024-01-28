@@ -208,7 +208,7 @@ Total decisions:      150
 Total tracks:         133
 Total calos clusters: 0
 Total SVs:            8
-Total hits:           4079
+Total hits:           4173
 Total stdinfo:        1246
 
 

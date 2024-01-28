@@ -70,6 +70,12 @@ namespace GaudiAllen::Converters::v3 {
     static inline bool check_id(const LHCb::LHCbID& id) { return id.isFT(); }
   };
 
+  template<>
+  struct v3_hit_container<Allen::Views::Muon::Consolidated::Track> {
+    using type = OutTag::MuonHits;
+    static inline bool check_id(const LHCb::LHCbID& id) { return id.isMuon(); }
+  };
+
   template<typename AllenTrack>
   using v3_hit_container_t = typename v3_hit_container<AllenTrack>::type;
 
@@ -108,6 +114,7 @@ namespace GaudiAllen::Converters::v3 {
       if (actual_track.has<segment::ut>()) update_seg_lhcb_ids(outTrack, actual_track.track_segment<segment::ut>());
       if (actual_track.has<segment::scifi>())
         update_seg_lhcb_ids(outTrack, actual_track.track_segment<segment::scifi>());
+      if (actual_track.has<segment::muon>()) update_seg_lhcb_ids(outTrack, actual_track.track_segment<segment::muon>());
     }
     else if constexpr (std::is_same_v<AllenTrack, Allen::Views::UT::Consolidated::VeloUTTrack>) {
       /// include Velo segment referenced by UT Track

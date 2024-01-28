@@ -21,7 +21,7 @@
 
 namespace Checker {
   struct Track {
-    LHCbID allids[42];
+    LHCbID allids[46];
     unsigned total_number_of_hits = 0;
     // SciFi information
     unsigned velo_track_index = 0;
@@ -41,7 +41,7 @@ namespace Checker {
     bool is_muon = false;
 
     __device__ __host__ void addId(LHCbID id)
-    { // 0-26 VELO , 26-30 UT, 30 - 42 SciFi
+    { // 0-26 VELO , 26-30 UT, 30 - 42 SciFi, 42-46 Muon
       allids[total_number_of_hits] = id;
       total_number_of_hits++;
     }

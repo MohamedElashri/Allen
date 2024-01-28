@@ -34,6 +34,7 @@ namespace Muon {
 
     /* Cut-offs */
     static constexpr unsigned max_numhits_per_event = 600 * n_stations;
+    static constexpr unsigned max_hits_per_track = 4;
 
     static constexpr float SQRT3 = 1.7320508075688772;
     static constexpr float INVSQRT3 = 0.5773502691896258;

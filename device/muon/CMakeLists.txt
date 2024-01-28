@@ -8,7 +8,7 @@ file(GLOB muon_decoding "decoding/src/*cu")
 file(GLOB muon_upstream_filtering "match_upstream_muon/src/*cu")
 file(GLOB muon_velo_filtering "match_velo_muon/src/*cu")
 file(GLOB muon_filter "muon_filter/src/*cu")
-file(GLOB consolidate_muon "consolidate_muon/src/*cu")
+file(GLOB consolidate_muon "consolidate_tracks/src/*cu")
 
 
 
@@ -40,4 +40,5 @@ target_include_directories(Muon PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/classification/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/decoding/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/match_velo_muon/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/consolidate_tracks/include>
   )
