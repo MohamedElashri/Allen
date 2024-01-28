@@ -55,4 +55,9 @@ namespace lhcb_id {
   {
     return detector_type_lhcbid(id) == static_cast<unsigned>(LHCbIDType::FT);
   }
+
+  __host__ __device__ inline bool is_muon(const unsigned id)
+  {
+    return detector_type_lhcbid(id) == static_cast<unsigned>(LHCbIDType::Muon);
+  }
 } // namespace lhcb_id

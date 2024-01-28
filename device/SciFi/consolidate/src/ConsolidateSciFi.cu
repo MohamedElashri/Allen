@@ -37,6 +37,7 @@ __device__ void create_scifi_views_impl(
         Allen::Views::Physics::LongTrack {velo_track,
                                           ut_track,
                                           parameters.dev_scifi_track_view + event_tracks_offset + track_index,
+                                          nullptr,
                                           parameters.dev_scifi_qop + event_tracks_offset + track_index};
     }
     else {
@@ -54,6 +55,7 @@ __device__ void create_scifi_views_impl(
         Allen::Views::Physics::LongTrack {velo_track,
                                           nullptr,
                                           parameters.dev_scifi_track_view + event_tracks_offset + track_index,
+                                          nullptr,
                                           parameters.dev_scifi_qop + event_tracks_offset + track_index};
     }
 

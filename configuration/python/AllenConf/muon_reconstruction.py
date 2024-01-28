@@ -5,7 +5,7 @@ from AllenCore.algorithms import (
     data_provider_t, muon_calculate_srq_size_t, host_prefix_sum_t,
     muon_populate_tile_and_tdc_t, muon_add_coords_crossing_maps_t,
     muon_populate_hits_t, is_muon_t, empty_lepton_id_t, find_muon_hits_t,
-    consolidate_muon_t)
+    consolidate_muon_t, muon_consolidate_tracks_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
@@ -126,10 +126,51 @@ def is_muon(decoded_muon, long_tracks):
             "dev_station_ocurrences_offset"],
         dev_muon_hits_t=decoded_muon["dev_muon_hits"])
 
+    muon_hit_count_prefix_sum = make_algorithm(
+        host_prefix_sum_t,
+        name='muon_hit_count_prefix_sum_{hash}',
+        dev_input_buffer_t=is_muon.dev_muon_hit_counts_t)
+
+    muon_consolidate_tracks = make_algorithm(
+        muon_consolidate_tracks_t,
+        name='consolidate_is_muon_{hash}',
+        host_number_of_events_t=host_number_of_events,
+        host_number_of_hits_in_muon_tracks_t=muon_hit_count_prefix_sum.
+        host_total_sum_holder_t,
+        host_number_of_tracks_t=long_tracks[
+            "host_number_of_reconstructed_scifi_tracks"],
+        dev_number_of_events_t=dev_number_of_events,
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
+        dev_muon_idxs_t=is_muon.dev_muon_idxs_t,
+        dev_muon_hits_data_t=decoded_muon["dev_muon_hits"],
+        dev_station_ocurrences_offset_t=decoded_muon[
+            "dev_station_ocurrences_offset"],
+        dev_muon_hit_offsets_t=muon_hit_count_prefix_sum.dev_output_buffer_t)
+
+    # Update long tracks.
+    long_tracks[
+        "dev_multi_event_long_tracks_view"] = muon_consolidate_tracks.dev_multi_event_muon_long_tracks_view_t
+    long_tracks[
+        "dev_multi_event_long_tracks_ptr"] = muon_consolidate_tracks.dev_multi_event_muon_long_tracks_ptr_t
+    long_tracks[
+        "dev_multi_event_long_track_view"] = muon_consolidate_tracks.dev_muon_long_track_view_t
+
     return {
-        "long_tracks": long_tracks,
-        "dev_is_muon": is_muon.dev_is_muon_t,
-        "dev_lepton_id": is_muon.dev_lepton_id_t
+        "long_tracks":
+        long_tracks,
+        "dev_is_muon":
+        is_muon.dev_is_muon_t,
+        "dev_lepton_id":
+        is_muon.dev_lepton_id_t,
+        "dev_muon_hits_view":
+        muon_consolidate_tracks.dev_muon_hits_view_t,
+        "dev_muon_track_view":
+        muon_consolidate_tracks.dev_muon_track_view_t,
+        "dev_muon_tracks_view":
+        muon_consolidate_tracks.dev_muon_tracks_view_t,
+        "dev_muon_multi_event_tracks_view":
+        muon_consolidate_tracks.dev_muon_multi_event_tracks_view_t
     }
 
 

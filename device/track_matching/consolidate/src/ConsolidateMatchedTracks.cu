@@ -27,7 +27,7 @@ __global__ void create_matched_views(matching_consolidate_tracks::Parameters par
       0;
 
     new (parameters.dev_long_track_view + event_tracks_offset + track_index) Allen::Views::Physics::LongTrack {
-      velo_track, nullptr, scifi_track, parameters.dev_matched_qop + event_tracks_offset + track_index};
+      velo_track, nullptr, scifi_track, nullptr, parameters.dev_matched_qop + event_tracks_offset + track_index};
   }
   if (threadIdx.x == 0) {
     new (parameters.dev_long_tracks_view + event_number)

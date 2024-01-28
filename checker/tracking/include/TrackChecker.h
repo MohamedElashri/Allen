@@ -218,6 +218,9 @@ public:
           truth_counters[it->second].n_scifi++;
         }
       }
+      else if (lhcb_id::is_muon(id)) {
+        // Ignore muon hits.
+      }
       else {
         debug_cout << "ID not matched to any subdetector " << std::hex << id << std::dec << std::endl;
       }

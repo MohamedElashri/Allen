@@ -25,6 +25,7 @@ namespace Allen {
     VeloTracks,
     UTTracks,
     SciFiTracks,
+    MuonTracks,
     VeloUTTracks,
     LongTracks,
     DownstreamTracks,

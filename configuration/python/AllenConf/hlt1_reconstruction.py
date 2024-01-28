@@ -118,6 +118,8 @@ def hlt1_reconstruction(algorithm_name='',
     if with_muon:
         decoded_muon = decode_muon()
         muonID = is_muon(decoded_muon, long_tracks)
+        # Replace long tracks with those containing muon hits.
+        long_tracks = muonID["long_tracks"]
     else:
         muonID = fake_muon_id(long_tracks)
     kalman_velo_only = make_kalman_velo_only(long_tracks, pvs, muonID)

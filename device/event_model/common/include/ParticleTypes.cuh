@@ -20,6 +20,7 @@
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "SciFiConsolidated.cuh"
+#include "MuonConsolidated.cuh"
 #include "PV_Definitions.cuh"
 #include "MassDefinitions.h"
 #include "CaloCluster.cuh"
@@ -62,6 +63,7 @@ namespace Allen {
         const Allen::Views::Velo::Consolidated::Track* m_velo_segment = nullptr;
         const Allen::Views::UT::Consolidated::Track* m_ut_segment = nullptr;
         const Allen::Views::SciFi::Consolidated::Track* m_scifi_segment = nullptr;
+        const Allen::Views::Muon::Consolidated::Track* m_muon_segment = nullptr;
         const float* m_qop = nullptr;
 
       public:
@@ -71,13 +73,14 @@ namespace Allen {
           const Allen::Views::Velo::Consolidated::Track* velo_segment,
           const Allen::Views::UT::Consolidated::Track* ut_segment,
           const Allen::Views::SciFi::Consolidated::Track* scifi_segment,
+          const Allen::Views::Muon::Consolidated::Track* muon_segment,
           const float* qop) :
           m_velo_segment(velo_segment),
-          m_ut_segment(ut_segment), m_scifi_segment(scifi_segment), m_qop(qop)
+          m_ut_segment(ut_segment), m_scifi_segment(scifi_segment), m_muon_segment(muon_segment), m_qop(qop)
         {}
         __host__ __device__ float qop() const { return *m_qop; }
 
-        enum struct segment { velo, ut, scifi };
+        enum struct segment { velo, ut, scifi, muon };
 
         template<segment t>
         __host__ __device__ bool has() const
@@ -88,8 +91,11 @@ namespace Allen {
           else if constexpr (t == segment::ut) {
             return m_ut_segment != nullptr;
           }
-          else {
+          else if constexpr (t == segment::scifi) {
             return m_scifi_segment != nullptr;
+          }
+          else {
+            return m_muon_segment != nullptr;
           }
         }
 
@@ -103,8 +109,32 @@ namespace Allen {
           else if constexpr (t == segment::ut) {
             return *m_ut_segment;
           }
-          else {
+          else if constexpr (t == segment::scifi) {
             return *m_scifi_segment;
+          }
+          else {
+            return *m_muon_segment;
+          }
+        }
+
+        // Expose the pointers so the long track can be copied. Useful for
+        // adding segments later.
+        __host__ __device__ const float* qop_ptr() const { return m_qop; }
+
+        template<segment t>
+        __host__ __device__ auto track_segment_ptr() const
+        {
+          if constexpr (t == segment::velo) {
+            return m_velo_segment;
+          }
+          else if constexpr (t == segment::ut) {
+            return m_ut_segment;
+          }
+          else if constexpr (t == segment::scifi) {
+            return m_scifi_segment;
+          }
+          else {
+            return m_muon_segment;
           }
         }
 
@@ -118,15 +148,18 @@ namespace Allen {
           else if constexpr (t == segment::ut) {
             return m_ut_segment->number_of_ut_hits();
           }
-          else {
+          else if constexpr (t == segment::scifi) {
             return m_scifi_segment->number_of_scifi_hits();
+          }
+          else {
+            return m_muon_segment->number_of_hits();
           }
         }
 
         __host__ __device__ unsigned number_of_hits() const
         {
           return number_of_segment_hits<segment::velo>() + number_of_segment_hits<segment::ut>() +
-                 number_of_segment_hits<segment::scifi>();
+                 number_of_segment_hits<segment::scifi>() + number_of_segment_hits<segment::muon>();
         }
 
         __host__ __device__ unsigned get_id(const unsigned index) const
@@ -138,9 +171,16 @@ namespace Allen {
           else if (index < number_of_segment_hits<segment::velo>() + number_of_segment_hits<segment::ut>()) {
             return m_ut_segment->id(index - number_of_segment_hits<segment::velo>());
           }
-          else {
+          else if (
+            index < number_of_segment_hits<segment::velo>() + number_of_segment_hits<segment::ut>() +
+                      number_of_segment_hits<segment::scifi>()) {
             return m_scifi_segment->id(
               index - number_of_segment_hits<segment::velo>() - number_of_segment_hits<segment::ut>());
+          }
+          else {
+            return m_muon_segment->id(
+              index - number_of_segment_hits<segment::velo>() - number_of_segment_hits<segment::ut>() -
+              number_of_segment_hits<segment::scifi>());
           }
         }
       };
@@ -160,7 +200,7 @@ namespace Allen {
           const Allen::Views::UT::Consolidated::Track* ut_segment,
           const Allen::Views::SciFi::Consolidated::Track* scifi_segment,
           const float* qop) :
-          Track {nullptr, ut_segment, scifi_segment, qop}
+          Track {nullptr, ut_segment, scifi_segment, nullptr, qop}
         {}
       };
 
@@ -215,8 +255,9 @@ namespace Allen {
           const Allen::Views::Velo::Consolidated::Track* velo_segment,
           const Allen::Views::UT::Consolidated::Track* ut_segment,
           const Allen::Views::SciFi::Consolidated::Track* scifi_segment,
+          const Allen::Views::Muon::Consolidated::Track* muon_segment,
           const float* qop) :
-          Track {velo_segment, ut_segment, scifi_segment, qop}
+          Track {velo_segment, ut_segment, scifi_segment, muon_segment, qop}
         {}
       };
 

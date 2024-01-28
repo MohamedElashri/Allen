@@ -12,6 +12,9 @@ void is_muon::is_muon_t::set_arguments_size(
   const Constants&) const
 {
   set_size<dev_is_muon_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_muon_hit_counts_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_muon_idxs_t>(
+    arguments, Muon::Constants::max_hits_per_track * first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_lepton_id_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
 
@@ -23,6 +26,7 @@ void is_muon::is_muon_t::operator()(
 {
   Allen::memset_async<dev_is_muon_t>(arguments, 0, context);
   Allen::memset_async<dev_lepton_id_t>(arguments, 0, context);
+  Allen::memset_async<dev_muon_hit_counts_t>(arguments, 0, context);
 
   global_function(is_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
     arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
@@ -118,15 +122,21 @@ __global__ void is_muon::is_muon(
 
     unsigned occupancies[Muon::Constants::n_stations];
 
+    unsigned* track_muon_hit_count = parameters.dev_muon_hit_counts + event_offset + track_id;
+    unsigned* track_muon_idxs =
+      parameters.dev_muon_idxs + (event_offset + track_id) * Muon::Constants::max_hits_per_track;
     for (unsigned station_id = 0; station_id < Muon::Constants::n_stations; ++station_id) {
       occupancies[station_id] = 0;
       const int number_of_hits = station_ocurrences_offset[station_id + 1] - station_ocurrences_offset[station_id];
+
+      // Keep track of the minimum distance between hits and the extrapolation.
+      float min_norm_d2 = -1;
 
       for (int i_hit = 0; i_hit < number_of_hits; ++i_hit) {
         const int idx = station_ocurrences_offset[station_id] + i_hit;
         const float extrapolation_x = state.x + state.tx * (muon_hits.z(idx) - state.z);
         const float extrapolation_y = state.y + state.ty * (muon_hits.z(idx) - state.z);
-        occupancies[station_id] += is_in_window(
+        bool hit_in_window = is_in_window(
           muon_hits.x(idx),
           muon_hits.y(idx),
           muon_hits.dx(idx),
@@ -137,6 +147,20 @@ __global__ void is_muon::is_muon(
           momentum,
           extrapolation_x,
           extrapolation_y);
+        occupancies[station_id] += hit_in_window;
+
+        // Keep the hit closest to the extrapolated track normalized by the tile dimensions.
+        float norm_dx2 = (extrapolation_x - muon_hits.x(idx)) * (extrapolation_x - muon_hits.x(idx));
+        float norm_dy2 = 2 * (extrapolation_y - muon_hits.y(idx)) * (extrapolation_y - muon_hits.y(idx));
+        float norm_d2 = norm_dx2 + norm_dy2;
+        if (hit_in_window && (norm_d2 < min_norm_d2 || min_norm_d2 < 0)) {
+          track_muon_idxs[*track_muon_hit_count] = idx;
+          min_norm_d2 = norm_d2;
+        }
+      }
+
+      if (occupancies[station_id] > 0) {
+        *track_muon_hit_count += 1;
       }
     }
 
