@@ -20,7 +20,7 @@ A basic code for dumping non-event data into Allen follows the following structu
 
 
 
-Dumper struct definition for data 
+Dumper struct definition for data
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Producers and Consumers are identified by a simple struct in the header `include/Dumpers/Identifiers.h`:
 
@@ -39,9 +39,9 @@ For every geometry or conditions data that should be converted from the conditio
 
 The following elments are mandatory for the definition if each struct:
 
-  * A first default constructor 
-  * A second constructor that takes an ::`std::vector<char>&data`:: as the first argument, followed by const references to the input detector elements or conditions. 
-  * At the end of the second constructor, the binary container produced by calling `write` as often as needed and assigned to `data`. 
+  * A first default constructor
+  * A second constructor that takes an ::`std::vector<char>&data`:: as the first argument, followed by const references to the input detector elements or conditions.
+  * At the end of the second constructor, the binary container produced by calling `write` as often as needed and assigned to `data`.
 
 
 A simple dumper for detector geometry:
@@ -62,7 +62,7 @@ A simple dumper for detector geometry:
 A more complex dumper using two derived conditions and a regular condition as input :
 
 .. code-block:: c++
-  
+
   struct Boards {
     Boards() = default;
     Boards(
@@ -83,7 +83,7 @@ Derivation from Dumper base class
 
 A specific dumper is defined buy inheriting from Dumper (header Dumper.h), with a function signature that is `void(derived_cond1, derived_cond2, ...)`.
 
-Each derived condition should be tagged with `LHCb::DetDesc::usesConditions` for example: 
+Each derived condition should be tagged with `LHCb::DetDesc::usesConditions` for example:
 
 .. code-block:: c++
 
@@ -98,19 +98,20 @@ Add an `std::vector<char>` data member for each derived condition.
 An initilization function has to be defined in the class such as `StatusCode initialize() override`, this is done buy adding a block that does three things (`andThen` can be used):
 
   * call register_producer with as arguments: the Allen ID, the filename of the dumped binary file and the respective `std::vector<char>` data member.
-  
+
   * call addConditionDerivation with as arguments: an `std::array<std::string>` containing the locations of all input detector elements or (derived) conditions; the storage location of the derived condition being created; and a lambda that takes const references to the required detector elements and (derived) conditions as arguments.
-  
+
   * Inside the lambda, create an instance of the derived condition then call `dump()` and finally return the instance of the derived condition just created.
 
 
 
 Initialiazing the dumper
 ^^^^^^^^^^^^^^^^^^^^^^^^
-The dumper is initialised buy the `initialize()`function and buy registering the producer.
+The dumper is initialised buy the `initialize()` function and buy registering the producer.
 
 .. code-block:: c++
-  StatusCode DumpUTGeometry::initialize()
+
+	StatusCode DumpUTGeometry::initialize()
     register_producer(Allen::NonEventData::UTGeometry::id, "ut_geometry", m_geomData);
     addConditionDerivation({DeUTDetLocation::location()}, inputLocation<Geometry>(), [&](DeUTDetector const& det) {
       Geometry geometry {m_geomData, det};
@@ -118,7 +119,7 @@ The dumper is initialised buy the `initialize()`function and buy registering the
       return geometry;
     });
 
-Remarqs : 
+Remarks :
 
     * If a tool is needed, a `ToolHandle` must be used to access it.
     * All the Gaudi expetion must be handeled at the dumper initilaization step (and not in the class definition step)
@@ -132,4 +133,3 @@ A `KeyValue` is added for each derived condition that is being created when call
     {KeyValue {"UTGeomLocation", "AlgorithmSpecific-" + name + "-geometry"},
     KeyValue {"UTBoardsLocation", "AlgorithmSpecific-" + name + "-boards"}})
   {}
-
