@@ -18,16 +18,19 @@ __device__ void seed_clusters(
   Allen::device::span<CaloSeedCluster> clusters,
   Allen::device::span<unsigned> num_clusters,
   const CaloGeometry& geometry,
-  const int16_t min_adc)
+  const int16_t min_adc,
+  unsigned* digit_is_seed)
 {
   // Loop over all CellIDs.
   for (unsigned i = threadIdx.x; i < num_digits; i += blockDim.x) {
     const auto digit = digits[i];
+    digit_is_seed[i] = 0;
     if (digit.adc < min_adc || !digit.is_valid()) {
       continue;
     }
     uint16_t* neighbors = &(geometry.neighbors[i * Calo::Constants::max_neighbours]);
     bool is_max = true;
+    float energy = geometry.getE(i, digit.adc);
     for (unsigned n = 0; n < Calo::Constants::max_neighbours; n++) {
       auto const neighbor_id = neighbors[n];
       if (neighbor_id == USHRT_MAX) {
@@ -35,10 +38,12 @@ __device__ void seed_clusters(
       }
       auto const neighbor_digit = digits[neighbors[n]];
       is_max = is_max && (digit.adc > neighbor_digit.adc || !neighbor_digit.is_valid());
+      if (neighbor_digit.is_valid()) energy += geometry.getE(neighbor_id, neighbor_digit.adc);
     }
     if (is_max) {
       auto const id = atomicAdd(num_clusters.data(), 1);
-      clusters[id] = CaloSeedCluster(i, digits[i].adc, geometry.getX(i), geometry.getY(i));
+      clusters[id] = CaloSeedCluster(i, digits[i].adc, geometry.getX(i), geometry.getY(i), energy);
+      digit_is_seed[i] = id;
     }
   }
 }
@@ -61,7 +66,8 @@ __global__ void calo_seed_clusters::calo_seed_clusters(
     parameters.dev_ecal_seed_clusters.subspan(Calo::Constants::ecal_max_index / 8 * event_number),
     parameters.dev_ecal_num_clusters.subspan(event_number),
     ecal_geometry,
-    ecal_min_adc);
+    ecal_min_adc,
+    parameters.dev_ecal_digit_is_seed + Calo::Constants::ecal_max_index * event_number);
 }
 
 void calo_seed_clusters::calo_seed_clusters_t::set_arguments_size(
@@ -74,6 +80,7 @@ void calo_seed_clusters::calo_seed_clusters_t::set_arguments_size(
 
   // TODO: get this from the geometry too
   set_size<dev_ecal_seed_clusters_t>(arguments, Calo::Constants::ecal_max_index / 8 * n_events);
+  set_size<dev_ecal_digit_is_seed_t>(arguments, Calo::Constants::ecal_max_index * n_events);
 }
 
 void calo_seed_clusters::calo_seed_clusters_t::operator()(

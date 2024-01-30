@@ -18,6 +18,7 @@ namespace calo_find_clusters {
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
     DEVICE_INPUT(dev_ecal_seed_clusters_t, CaloSeedCluster) dev_ecal_seed_clusters;
     DEVICE_INPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
+    DEVICE_INPUT(dev_ecal_corrections_t, float) dev_ecal_corrections;
     DEVICE_OUTPUT(dev_ecal_clusters_t, CaloCluster) dev_ecal_clusters;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
     PROPERTY(block_dim_y_t, "block_dim_y", "block dimension Y", unsigned) block_dim_y;

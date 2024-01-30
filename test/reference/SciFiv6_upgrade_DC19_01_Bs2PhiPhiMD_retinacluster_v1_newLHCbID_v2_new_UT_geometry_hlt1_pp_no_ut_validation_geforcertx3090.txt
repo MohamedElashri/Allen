@@ -113,7 +113,7 @@ Hlt1NMaterialVertexSeeds:                               0/  1000, (    0.00 +/- 
 Hlt1DiMuonHighMassAlignment:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                           22/  1000, (  660.00 +/-   139.16) kHz
 Hlt1DisplacedDiMuonAlignment:                           2/  1000, (   60.00 +/-    42.38) kHz
-Inclusive:                                            623/  1000, (18690.00 +/-   459.77) kHz
+Inclusive:                                            621/  1000, (18630.00 +/-   460.24) kHz
 
 
 selreport_validator validation:
