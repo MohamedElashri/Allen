@@ -14,7 +14,7 @@ based on basic or composite particles must have a device input
 For convenience, there are some predefined line types.
 
 OneTrackLine
---------------
+------------
 These lines trigger on basic particles with no decay products. In most cases,
 this means triggering on Kalman-filtered long tracks. The input
 `dev_particle_container_t` must be an `Allen::MultiEventBasicParticles`. Basic
@@ -24,7 +24,7 @@ view. This view provides access to the track state (including
 momentum), lepton ID, and the associated PV (including e.g. IP, IP chi2).
 
 CompositeParticleLine
----------------
+---------------------
 These lines trigger on composite particles composed of other basic or composite
 particles. In most cases, this means triggering on 2-track secondary vertices.
 The input `dev_particle_container_t` must be an
@@ -35,22 +35,22 @@ view. This view provides access to vertex fit results, the associated PV
 `CompositeParticle` s).
 
 EventLine
--------------
+---------
 A line that executes once per event.
 
 ODINLine
--------------
+--------
 An EventLine that selects events based on information from the ODIN raw bank.
 
 Custom line
---------------
+-----------
 A custom selection can trigger on any input data, and can either be based on
 event-level information, or on more specific information.
 
 Adding a new selection
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
 Choosing the right directory
---------------------------------
+----------------------------
 HLT1 selection lines live in the directory  `device/selections/lines <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/device/selections/lines>`_ and are grouped into directories based on the selection purpose. Currently, the following subdirectories exist:
 
 * SMOG2
@@ -67,7 +67,7 @@ If your new selection fits into any of these categories, please add it in the re
 Every sub-directory contains a `include` and a `src` directory where the header and source files are placed.
 
 Creating a selection
-----------------------
+--------------------
 Selections are of type `SelectionAlgorithm`, that must in addition inherit from a line type.
 Like with any other `Algorithm`, a `SelectionAlgorithm` can have inputs,
 outputs and properties. However, certain inputs and outputs are assumed and must be defined:
@@ -178,7 +178,7 @@ Lines are automatically parallelized with `threadIdx.x` (see the default setting
 Below are four examples of lines.
 
 OneTrackLine example
-----------------------
+--------------------
 As an example, we'll create a line that triggers on highly displaced,
 high-pT single long tracks. It will be of type `OneTrackLine`. We will first create the
 header.
@@ -251,7 +251,7 @@ Note that since the type of this line was the preexisting (`OneTrackLine`), it w
 necessary to define any function other than `select`.
 
 CompositeParticleLine example
------------------------
+-----------------------------
 Here we'll create an example of a 2-long-track line that selects displaced
 secondary vertices with no postscale. This line inherits from `CompositeParticleLine`. We'll create a header with the following contents:
 
@@ -332,7 +332,7 @@ And a source with the following:
   }
 
 EventLine example
---------------------
+-----------------
 Now we'll define a line that selects events with at least 1 reconstructed VELO track. This line runs once per event, so it inherits from `EventLine`.
 This time, we will need to define not only the `select` function, but also the `get_input` function, as we need custom data to feed into our line (the number of tracks in an event).
 
@@ -418,7 +418,7 @@ The source file `monitoring/src/VeloMicroBiasLine.cu` looks as follows:
 `get_input` gets the number of VELO tracks and returns it, and `select` will select only events with VELO tracks.
 
 CustomLine example
---------------------
+------------------
 Finally, we'll define a line that runs on every velo track. Since this is a completely custom line, we need to define all the functions of the line, i.e. `select`, `get_input`, `get_decisions_size` and `offset`.
 In addition, we also need to add some properties to the line.
 
@@ -546,7 +546,7 @@ It is important that the return type of `get_input` is the same as the input typ
 
 
 Adding your selection to the Allen sequence
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 After creating the selection source code, the selection can either be added to
 an existing sequence or a new sequence is generated. Selections are added to the
 Allen sequence similarly as algorithms, described in :ref:`configure_sequence`,
@@ -864,10 +864,10 @@ The source files that implement these examples correspond to the `KsToPiPiLine` 
 
 
 ML models in selections
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 TwoTrackMVA
-----------------
+-----------
 
 The training procedure for the TwoTrackMVA is found in `https://github.com/niklasnolte/HLT_2Track`.
 

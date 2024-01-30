@@ -126,7 +126,7 @@ test_pages:
       - schedules
       - merge_requests
   stage: test
-  image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
+  image: gitlab-registry.cern.ch/lhcb-docker/os-base/alma9-devel:latest
   tags:
     - cvmfs
   variables:
