@@ -19,7 +19,8 @@ __device__ void simple_clusters(
   CaloCluster* clusters,
   unsigned const num_clusters,
   const CaloGeometry& calo,
-  const int16_t min_adc)
+  const int16_t min_adc,
+  float const* corrections)
 {
   for (unsigned c = threadIdx.x; c < num_clusters; c += blockDim.x) {
     auto const& seed_cluster = seed_clusters[c];
@@ -38,6 +39,7 @@ __device__ void simple_clusters(
         cluster.digits[n] = n_id;
       }
     }
+    cluster.e -= corrections[c];
 
     for (uint16_t n = 0; n < Calo::Constants::max_neighbours; n++) {
       auto const n_id = cluster.digits[n];
@@ -74,7 +76,8 @@ __global__ void calo_find_clusters::calo_find_clusters(
     parameters.dev_ecal_clusters + ecal_clusters_offset,
     ecal_num_clusters,
     ecal_geometry,
-    min_adc);
+    min_adc,
+    parameters.dev_ecal_corrections + ecal_clusters_offset);
 }
 
 void calo_find_clusters::calo_find_clusters_t::set_arguments_size(

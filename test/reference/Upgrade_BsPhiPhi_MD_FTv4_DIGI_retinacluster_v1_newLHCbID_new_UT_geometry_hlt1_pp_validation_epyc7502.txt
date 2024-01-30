@@ -79,7 +79,7 @@ Hlt1SingleHighPtElectron:                               8/  1000, (  240.00 +/- 
 Hlt1DisplacedDielectron:                                3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1DisplacedLeptons:                                  37/  1000, ( 1110.00 +/-   179.08) kHz
 Hlt1SingleHighEt:                                       0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1DiPhotonHighMass:                                  23/  1000, (  690.00 +/-   142.21) kHz
+Hlt1DiPhotonHighMass:                                  24/  1000, (  720.00 +/-   145.20) kHz
 Hlt1Pi02GammaGamma:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_massSlice1_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
@@ -150,7 +150,7 @@ Hlt1SingleHighPtElectron:                               8           8
 Hlt1DisplacedDielectron:                                3           4
 Hlt1DisplacedLeptons:                                  37           0
 Hlt1SingleHighEt:                                       0           0
-Hlt1DiPhotonHighMass:                                  23          28
+Hlt1DiPhotonHighMass:                                  24          31
 Hlt1Pi02GammaGamma:                                     0           0
 Hlt1LowMassNoipDielectron_massSlice1_prompt:            0           0
 Hlt1LowMassNoipDielectron_SS_massSlice1_prompt:         0           0
@@ -185,12 +185,12 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           14          14
 Hlt1DisplacedDiMuonAlignment:                           2           2
 
-Total decisions:      1229
+Total decisions:      1230
 Total tracks:         2167
-Total calos clusters: 51
-Total SVs:            1684
+Total calos clusters: 54
+Total SVs:            1687
 Total hits:           56327
-Total stdinfo:        25505
+Total stdinfo:        25530
 
 
 veloUT_validator validation:
