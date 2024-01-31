@@ -32,8 +32,6 @@ from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.plume_reconstruction import decode_plume
 from AllenConf.enum_types import TrackingType, includes_matching
 
-from AllenConf.calo_reconstruction import make_ecal_clusters, decode_calo
-
 
 def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                           with_v0s):
@@ -791,7 +789,6 @@ def setup_hlt1_node(enablePhysics=True,
 
     hlt1_node = CompositeNode(
         "Allen", [
-            make_ecal_clusters(decode_calo())["dev_ecal_clusters"].producer,
             lines,
             dec_reporter,
             global_decision,

@@ -17,7 +17,6 @@ namespace calo_seed_clusters {
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
     DEVICE_OUTPUT(dev_ecal_num_clusters_t, unsigned) dev_ecal_num_clusters;
     DEVICE_OUTPUT(dev_ecal_seed_clusters_t, CaloSeedCluster) dev_ecal_seed_clusters;
-    DEVICE_OUTPUT(dev_ecal_digit_is_seed_t, unsigned) dev_ecal_digit_is_seed;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
     PROPERTY(ecal_min_adc_t, "ecal_min_adc", "ECal seed cluster minimum ADC", int16_t) ecal_min_adc;
   };
