@@ -72,7 +72,8 @@ private:
                                                                    LHCb::RawBank::Calo,
                                                                    LHCb::RawBank::Muon,
                                                                    LHCb::RawBank::ODIN,
-                                                                   LHCb::RawBank::Plume}};
+                                                                   LHCb::RawBank::Plume,
+                                                                   LHCb::RawBank::Rich}};
 
   std::array<AIDA::IHistogram1D*, LHCb::RawBank::types().size()> m_histos;
 };

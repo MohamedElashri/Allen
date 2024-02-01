@@ -28,7 +28,8 @@ def hlt1_reconstruction(algorithm_name='',
                         with_ut=True,
                         with_muon=True,
                         velo_open=False,
-                        enableDownstream=False):
+                        enableDownstream=False,
+                        with_rich=False):
     decoded_velo = decode_velo()
     decoded_scifi = decode_scifi()
     velo_tracks = make_velo_tracks(decoded_velo)
@@ -207,6 +208,10 @@ def hlt1_reconstruction(algorithm_name='',
         "v0_secondary_vertices": v0s,
         "v0_pairs": v0_pairs
     })
+
+    if with_rich:
+        from AllenConf.rich_reconstruction import decode_rich
+        output.update({"decoded_rich": decode_rich()})
 
     return output
 

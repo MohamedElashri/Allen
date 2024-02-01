@@ -20,7 +20,8 @@ from PyConf.application import configure_input, configure
 from PyConf.Algorithms import (
     DumpBeamline, DumpCaloGeometry, DumpMagneticField, DumpVPGeometry,
     DumpFTGeometry, DumpUTGeometry, DumpUTLookupTables, DumpMuonGeometry,
-    DumpMuonTable, AllenODINProducer)
+    DumpMuonTable, AllenODINProducer, DumpRichPDMDBMapping,
+    DumpRichCableMapping)
 from DDDB.CheckDD4Hep import UseDD4Hep
 
 
@@ -109,15 +110,25 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     data (geometries etc.)
     """
     converter_types = {
-        'VP': [(DumpBeamline, 'DeviceBeamline', 'beamline'),
-               (DumpVPGeometry, 'DeviceVPGeometry', 'velo_geometry')],
-        'UT': [(DumpUTGeometry, 'DeviceUTGeometry', 'ut_geometry'),
-               (DumpUTLookupTables, 'DeviceUTLookupTables', 'ut_tables')],
-        'ECal': [(DumpCaloGeometry, 'DeviceCaloGeometry', 'ecal_geometry')],
-        'Magnet': [(DumpMagneticField, 'DeviceMagneticField', 'polarity')],
-        'FTCluster': [(DumpFTGeometry, 'DeviceFTGeometry', 'scifi_geometry')],
-        'Muon': [(DumpMuonGeometry, 'DeviceMuonGeometry', 'muon_geometry'),
-                 (DumpMuonTable, 'DeviceMuonTable', 'muon_tables')]
+        frozenset({'VP'}): [(DumpBeamline, 'DeviceBeamline', 'beamline'),
+                            (DumpVPGeometry, 'DeviceVPGeometry',
+                             'velo_geometry')],
+        frozenset({'UT'}):
+        [(DumpUTGeometry, 'DeviceUTGeometry', 'ut_geometry'),
+         (DumpUTLookupTables, 'DeviceUTLookupTables', 'ut_tables')],
+        frozenset({'ECal'}): [(DumpCaloGeometry, 'DeviceCaloGeometry',
+                               'ecal_geometry')],
+        frozenset({'Magnet'}): [(DumpMagneticField, 'DeviceMagneticField',
+                                 'polarity')],
+        frozenset({'FTCluster'}): [(DumpFTGeometry, 'DeviceFTGeometry',
+                                    'scifi_geometry')],
+        frozenset({'Muon'}): [(DumpMuonGeometry, 'DeviceMuonGeometry',
+                               'muon_geometry'),
+                              (DumpMuonTable, 'DeviceMuonTable',
+                               'muon_tables')],
+        frozenset({'Rich1', 'Rich2'}):
+        [(DumpRichPDMDBMapping, 'DeviceRichPDMDBMapping', 'rich_pdmdbmaps'),
+         (DumpRichCableMapping, 'DeviceRichCableMapping', 'rich_tel40maps')],
     }
 
     detector_names = {
@@ -132,7 +143,9 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     if type(bank_types) == list:
         bank_types = set(bank_types)
     elif bank_types is None:
-        bank_types = set(converter_types.keys())
+        bank_types = set()
+        for ibt in converter_types.keys():
+            bank_types.update(set(ibt))
 
     if 'VPRetinaCluster' in bank_types:
         bank_types.remove('VPRetinaCluster')
@@ -167,8 +180,9 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     if allen_event_loop:
         algorithm_converters.append(AllenODINProducer())
 
-    converters = [(bt, t, tn, f) for bt, convs in converter_types.items()
-                  for t, tn, f in convs if bt in bank_types]
+    converters = {(bts, t, tn, f)
+                  for bts, convs in converter_types.items()
+                  for t, tn, f in convs if bts.intersection(bank_types)}
     for bt, converter_type, converter_name, filename in converters:
         converter = converter_type(
             name=converter_name,

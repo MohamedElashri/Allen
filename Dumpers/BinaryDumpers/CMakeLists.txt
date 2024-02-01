@@ -24,7 +24,8 @@ gaudi_add_library(BinaryDumpers
                     LHCb::LHCbDetLib
                     LHCb::MagnetLib
                     LHCb::MuonDAQLib
-                    LHCb::RecEvent)
+                    LHCb::RecEvent
+                    LHCb::RichFutureDAQLib)
 
 gaudi_add_module(BinaryDumpersModule
                  SOURCES
@@ -45,6 +46,8 @@ gaudi_add_module(BinaryDumpersModule
                    src/DumpUTHits.cpp
                    src/DumpUTLookupTables.cpp
                    src/DumpVPGeometry.cpp
+                   src/DumpRichCableMapping.cpp
+                   src/DumpRichPDMDBMapping.cpp
                    src/PVDumper.cpp
                    src/ProvideConstants.cpp
                    src/TestMuonTable.cpp

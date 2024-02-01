@@ -41,7 +41,10 @@ target_link_libraries(Stream
     Gear
     track_matching
     MuonCommon
-  )
+    Rich
+  PUBLIC
+    Utils
+    Selections)
 
 if(STANDALONE)
   add_dependencies(Stream checkout_lhcb checkout_gaudi)

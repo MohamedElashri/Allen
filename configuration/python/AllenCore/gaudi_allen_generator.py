@@ -66,6 +66,8 @@ def make_algorithm(algorithm, name, *args, **kwargs):
         rawbank_list = ["Calo", "EcalPacked"]
     elif bank_type == "VP":
         rawbank_list = ["VP", "VPRetinaCluster"]
+    elif "Rich" in bank_type:
+        rawbank_list = ["Rich"]
     elif bank_type:
         rawbank_list = [bank_type]
 

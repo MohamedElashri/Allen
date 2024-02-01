@@ -17,7 +17,14 @@ std::array<int, LHCb::NBankTypes> Allen::bank_ids()
   std::array<int, LHCb::NBankTypes> ids;
   for (auto bt : LHCb::RawBank::types()) {
     auto it = Allen::bank_mapping.find(bt);
-    ids[bt] = (it != Allen::bank_mapping.end() ? to_integral(it->second) : -1);
+    if (it != Allen::bank_mapping.end()) {
+      for (auto allen_bt : it->second) {
+        ids[bt] = static_cast<int>(allen_bt);
+      }
+    }
+    else {
+      ids[bt] = -1;
+    }
   }
   return ids;
 }

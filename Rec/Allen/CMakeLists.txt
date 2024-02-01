@@ -29,6 +29,7 @@ gaudi_add_module(AllenWrapper
                    src/CompareRecAllenFTClusters.cpp
                    src/CompareRecAllenVPHits.cpp
                    src/TestVeloClusters.cpp
+                   src/TestAllenRichPixels.cpp
                  LINK
                    AllenLib
                    Backend
@@ -51,6 +52,7 @@ gaudi_add_module(AllenWrapper
                    MuonCommon
                    EventModel
                    Gear
+                   Rich
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
                    LHCb::RecEvent
@@ -60,7 +62,7 @@ gaudi_add_module(AllenWrapper
                    LHCb::CaloDetLib
                    LHCb::FTDetLib
                    LHCb::MCEvent
-		               LHCb::RecEvent
+		   LHCb::RecEvent
                    Rec::PrKernel)
 
 target_include_directories(AllenWrapper PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
@@ -98,6 +100,7 @@ gaudi_add_module(AllenAlgorithms
                    Utils
                    WrapperInterface
                    mdf
+                   Rich
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
                    LHCb::VPDetLib
