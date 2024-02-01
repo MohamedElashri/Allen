@@ -24,7 +24,6 @@
 #include <SciFiRaw.cuh>
 #include <UTRaw.cuh>
 #include <MuonRaw.cuh>
-#include <CaloRawEvent.cuh>
 #include <ODINBank.cuh>
 
 #include <GaudiKernel/Bootstrap.h>
@@ -241,6 +240,44 @@ int main(int argc, char* argv[])
 
 template<BankTypes BT, bool transpose_mep>
 struct compare {
+  void operator()(
+    const int,
+    gsl::span<char const> mep_fragments,
+    gsl::span<unsigned const> mep_offsets,
+    gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const> mep_types,
+    gsl::span<char const> allen_banks,
+    gsl::span<unsigned const> allen_offsets,
+    gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const> allen_types,
+    unsigned const i_event)
+  {
+
+    const auto allen_raw_event =
+      Allen::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
+    const auto mep_raw_event = Allen::RawEvent<!transpose_mep>(
+      mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
+    auto const mep_n_banks = mep_raw_event.number_of_raw_banks;
+
+    REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
+
+    for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
+      // Read raw bank
+      auto const mep_bank = mep_raw_event.raw_bank(bank);
+      auto const allen_bank = allen_raw_event.raw_bank(bank);
+      auto mep_len = mep_bank.size;
+      auto allen_len = allen_bank.size;
+      REQUIRE(mep_len == allen_len);
+
+      REQUIRE(mep_bank.type == allen_bank.type);
+
+      auto top5_mask = (allen_bank.source_id >> 11 == 0) ? 0x7FF : 0xFFFF;
+      REQUIRE((mep_bank.source_id & top5_mask) == allen_bank.source_id);
+      for (long j = 0; j < mep_len; ++j) {
+        REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+      }
+    }
+  }
 };
 
 template<bool transpose_mep>
@@ -456,48 +493,6 @@ struct compare<BankTypes::MUON, transpose_mep> {
   }
 };
 
-template<bool transpose_mep>
-struct compare<BankTypes::ECal, transpose_mep> {
-  void operator()(
-    const int,
-    gsl::span<char const> mep_fragments,
-    gsl::span<unsigned const> mep_offsets,
-    gsl::span<unsigned const> mep_sizes,
-    gsl::span<unsigned const> mep_types,
-    gsl::span<char const> allen_banks,
-    gsl::span<unsigned const> allen_offsets,
-    gsl::span<unsigned const> allen_sizes,
-    gsl::span<unsigned const> allen_types,
-    unsigned const i_event)
-  {
-
-    const auto allen_raw_event =
-      Calo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
-    const auto mep_raw_event = Calo::RawEvent<!transpose_mep>(
-      mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
-    auto const mep_n_banks = mep_raw_event.number_of_raw_banks;
-
-    REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
-
-    for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
-      // Read raw bank
-      auto const mep_bank = mep_raw_event.raw_bank(bank);
-      auto const allen_bank = allen_raw_event.raw_bank(bank);
-      auto mep_len = mep_bank.end - mep_bank.data;
-      auto allen_len = allen_bank.end - allen_bank.data;
-      REQUIRE(mep_len == allen_len);
-
-      REQUIRE(mep_bank.type == allen_bank.type);
-
-      auto top5_mask = (allen_bank.source_id >> 11 == 0) ? 0x7FF : 0xFFFF;
-      REQUIRE((mep_bank.source_id & top5_mask) == allen_bank.source_id);
-      for (long j = 0; j < mep_len; ++j) {
-        REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
-      }
-    }
-  }
-};
-
 template<BankTypes BT_>
 struct BTTag {
   inline static const BankTypes BT = BT_;
@@ -509,6 +504,8 @@ using SciFiTag = BTTag<BankTypes::FT>;
 using UTTag = BTTag<BankTypes::UT>;
 using MuonTag = BTTag<BankTypes::MUON>;
 using ECalTag = BTTag<BankTypes::ECal>;
+using Rich1Tag = BTTag<BankTypes::Rich1>;
+using Rich2Tag = BTTag<BankTypes::Rich2>;
 
 /**
  * @brief      Check banks
@@ -576,7 +573,7 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
 
 // Main test case, multiple bank types are checked
 // VeloTag, UTTag, SciFiTag,
-TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ECalTag, MuonTag, VeloTag, SciFiTag, ODINTag)
+TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ECalTag, MuonTag, VeloTag, SciFiTag, ODINTag, Rich1Tag, Rich2Tag)
 {
   if (!s_config.run) return;
 

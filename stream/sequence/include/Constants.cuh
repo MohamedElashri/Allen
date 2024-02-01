@@ -36,6 +36,10 @@ namespace MatchUpstreamMuon {
 namespace TrackMatchingConsts {
   struct MagnetParametrization;
 }
+namespace Rich::Future::DAQ::Allen {
+  class PDMDBDecodeMapping;
+  class Tel40CableMapping;
+} // namespace Rich::Future::DAQ::Allen
 
 /**
  * @brief Struct intended as a singleton with constants defined on GPU.
@@ -47,7 +51,6 @@ namespace TrackMatchingConsts {
  *          The pointers are hard-coded. Feel free to write more as needed.
  */
 struct Constants {
-
   gsl::span<uint8_t> dev_velo_candidate_ks;
   gsl::span<uint8_t> dev_velo_sp_patterns;
   gsl::span<float> dev_velo_sp_fx;
@@ -136,6 +139,12 @@ struct Constants {
 
   // Kalman filter
   ParKalmanFilter::KalmanParametrizations* dev_kalman_params = nullptr;
+
+  // Rich
+  std::vector<char> host_rich_pdmdb_mapping;
+  std::vector<char> host_rich_cable_mapping;
+  char* dev_rich_pdmdb_mapping;
+  char* dev_rich_cable_mapping;
 
   /**
    * @brief Reserves and initializes constants.

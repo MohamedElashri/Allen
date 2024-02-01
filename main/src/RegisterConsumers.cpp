@@ -68,7 +68,35 @@ void register_consumers(
         return std::make_unique<Consumers::MuonLookupTables>(
           constants.host_muon_lookup_tables_raw, constants.dev_muon_lookup_tables_raw, constants.dev_muon_tables);
       },
-      BankTypes::MUON));
+      BankTypes::MUON),
+    std::make_tuple(
+      Allen::NonEventData::RichPDMDBMapping {},
+      [&constants]() {
+        return std::make_unique<Consumers::HostDeviceGeometry>(
+          constants.host_rich_pdmdb_mapping, constants.dev_rich_pdmdb_mapping);
+      },
+      BankTypes::Rich1),
+    std::make_tuple(
+      Allen::NonEventData::RichCableMapping {},
+      [&constants]() {
+        return std::make_unique<Consumers::HostDeviceGeometry>(
+          constants.host_rich_cable_mapping, constants.dev_rich_cable_mapping);
+      },
+      BankTypes::Rich1),
+    std::make_tuple(
+      Allen::NonEventData::RichPDMDBMapping {},
+      [&constants]() {
+        return std::make_unique<Consumers::HostDeviceGeometry>(
+          constants.host_rich_pdmdb_mapping, constants.dev_rich_pdmdb_mapping);
+      },
+      BankTypes::Rich2),
+    std::make_tuple(
+      Allen::NonEventData::RichCableMapping {},
+      [&constants]() {
+        return std::make_unique<Consumers::HostDeviceGeometry>(
+          constants.host_rich_cable_mapping, constants.dev_rich_cable_mapping);
+      },
+      BankTypes::Rich2));
 
   const auto unconditional_consumers =
     std::make_tuple(std::make_tuple(Allen::NonEventData::MagneticField {}, [&constants]() {

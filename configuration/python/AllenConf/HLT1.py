@@ -630,6 +630,7 @@ def setup_hlt1_node(enablePhysics=True,
                     with_calo=True,
                     with_muon=True,
                     with_v0s=True,
+                    with_rich=False,
                     enableBGI=False,
                     velo_open=False,
                     enableDownstream=False,
@@ -645,7 +646,8 @@ def setup_hlt1_node(enablePhysics=True,
         with_muon=with_muon,
         enableDownstream=enableDownstream,
         tracking_type=tracking_type,
-        velo_open=velo_open)
+        velo_open=velo_open,
+        with_rich=with_rich)
 
     hlt1_config['reconstruction'] = reconstructed_objects
 
@@ -851,6 +853,15 @@ def setup_hlt1_node(enablePhysics=True,
             "AllenWithLumi", [hlt1_node, lumi_with_prefilter],
             NodeLogic.NONLAZY_AND,
             force_order=False)
+
+    if with_rich:
+        hlt1_node = CompositeNode(
+            "AllenWithRich", [
+                hlt1_node,
+                reconstructed_objects["decoded_rich"]["dev_smart_ids"].producer
+            ],
+            NodeLogic.NONLAZY_AND,
+            force_order=True)
 
     if enableRateValidator:
         hlt1_node = CompositeNode(

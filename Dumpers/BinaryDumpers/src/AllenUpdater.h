@@ -83,7 +83,9 @@ public:
 
 private:
   Gaudi::Property<bool> m_triggerEventLoop {this, "TriggerEventLoop", false};
-  Gaudi::Property<std::vector<std::string>> m_bankTypes {this, "BankTypes", {"VP", "UT", "FTCluster", "ECal", "Muon"}};
+  Gaudi::Property<std::vector<std::string>> m_bankTypes {this,
+                                                         "BankTypes",
+                                                         {"VP", "UT", "FTCluster", "ECal", "Muon", "Rich1", "Rich2"}};
   std::map<
     std::string,
     std::tuple<Allen::NonEventData::Producer, std::vector<std::unique_ptr<Allen::NonEventData::Consumer>>>>

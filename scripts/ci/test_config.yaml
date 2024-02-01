@@ -211,6 +211,13 @@ full:
     dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6"
     geometry: "geometry_dddb-20231017_sim-20231017-vc-md100"
 
+  #throughput test with RICH decoding -> medium/long term development
+  - type: "throughput"
+    sequence: 
+      - hlt1_pp_rich_no_ut
+    dataset: "Run_0000248711_HLT20840_20221011-113809-426"
+    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7_muonv3_RICH"
+
   # run physics efficiency for downstream reconstruction
   - type: "efficiency"
     sequence:
