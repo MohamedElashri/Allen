@@ -84,7 +84,8 @@ __device__ void decode_muon_bank(
   const unsigned* storage_station_region_quarter_offsets,
   unsigned* atomics_muon,
   unsigned* dev_storage_tile_id,
-  unsigned* dev_storage_tdc_value)
+  unsigned* dev_storage_tdc_value,
+  unsigned short* dev_muon_tell_number)
 {
   if constexpr (decoding_version == 2) {
     for (unsigned batch_index = threadIdx.y; batch_index < Muon::batches_per_bank; batch_index += blockDim.y) {
@@ -115,6 +116,7 @@ __device__ void decode_muon_bank(
           const auto insert_index = atomicAdd(atomics_muon + storage_srq_layout, 1);
           dev_storage_tile_id[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] = tileId;
           dev_storage_tdc_value[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] = tdc_value;
+          dev_muon_tell_number[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] = tell_number;
         }
       }
     }
@@ -233,6 +235,8 @@ __device__ void decode_muon_bank(
                     tileId;
                   dev_storage_tdc_value[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] =
                     tdc_value;
+                  dev_muon_tell_number[storage_station_region_quarter_offsets[storage_srq_layout] + insert_index] =
+                    tell_number;
                 }
               }
             }
@@ -275,7 +279,8 @@ __global__ void muon_populate_tile_and_tdc_kernel(
       storage_station_region_quarter_offsets,
       atomics_muon,
       parameters.dev_storage_tile_id,
-      parameters.dev_storage_tdc_value);
+      parameters.dev_storage_tdc_value,
+      parameters.dev_muon_tell_number);
   }
 }
 
@@ -293,6 +298,7 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::set_arguments_siz
   set_size<dev_muon_tile_used_t>(arguments, first<host_muon_total_number_of_tiles_t>(arguments));
   set_size<dev_station_ocurrences_sizes_t>(
     arguments, first<host_number_of_events_t>(arguments) * Muon::Constants::n_stations);
+  set_size<dev_muon_tell_number_t>(arguments, first<host_muon_total_number_of_tiles_t>(arguments));
 }
 
 void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
@@ -306,6 +312,7 @@ void muon_populate_tile_and_tdc::muon_populate_tile_and_tdc_t::operator()(
   Allen::memset_async<dev_storage_tdc_value_t>(arguments, 0, context);
   Allen::memset_async<dev_muon_tile_used_t>(arguments, 0, context);
   Allen::memset_async<dev_station_ocurrences_sizes_t>(arguments, 0, context);
+  Allen::memset_async<dev_muon_tell_number_t>(arguments, 0xffff, context);
 
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version < 0) return; // no Muon banks present in data

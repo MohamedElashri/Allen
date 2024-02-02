@@ -16,16 +16,19 @@
 
 #include <LumiDefinitions.cuh>
 
-#include <VeloConsolidated.cuh>
+#include "MuonDefinitions.cuh"
+#include "MuonEventModel.cuh"
 
 namespace muon_lumi_counters {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_INPUT(host_lumi_summaries_count_t, unsigned) host_lumi_summaries_count;
+    HOST_INPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     DEVICE_INPUT(dev_lumi_event_indices_t, unsigned) dev_lumi_event_indices;
     DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, unsigned) dev_storage_station_region_quarter_offsets;
     DEVICE_INPUT(dev_muon_number_of_tracks_t, unsigned) dev_muon_number_of_tracks;
+    DEVICE_INPUT(dev_muon_tell_number_t, unsigned short) dev_muon_tell_number;
     DEVICE_OUTPUT(dev_lumi_infos_t, Lumi::LumiInfo) dev_lumi_infos;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(
@@ -49,6 +52,7 @@ namespace muon_lumi_counters {
     Parameters,
     const unsigned number_of_events,
     const unsigned number_of_gec_events,
+    const int decoding_version,
     const offsets_and_sizes_t offsets_and_sizes,
     const shifts_and_scales_t shifts_and_scales);
 

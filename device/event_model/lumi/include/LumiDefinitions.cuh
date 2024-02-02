@@ -62,7 +62,8 @@ namespace Lumi {
     static constexpr unsigned n_pv_counters = 5u;
     static constexpr unsigned n_scifi_counters = 38u;
     static constexpr unsigned n_calo_counters = 8u;
-    static constexpr unsigned n_muon_counters = 13u;
+    // 1u for muon tracks
+    static constexpr unsigned n_muon_counters = n_muon_station_regions + 1u + Muon::Constants::maxTell40Number;
     static constexpr unsigned n_plume_counters = 47u;
 
     // number of velo eta bins edges
@@ -166,19 +167,13 @@ namespace Lumi {
                                                                          "ECalETOuterBottom",
                                                                          "ECalETMiddleBottom",
                                                                          "ECalETInnerBottom"};
-    const std::array<std::string, n_muon_counters> muon_counter_names = {"MuonHitsM2R1",
-                                                                         "MuonHitsM2R2",
-                                                                         "MuonHitsM2R3",
-                                                                         "MuonHitsM2R4",
-                                                                         "MuonHitsM3R1",
-                                                                         "MuonHitsM3R2",
-                                                                         "MuonHitsM3R3",
-                                                                         "MuonHitsM3R4",
-                                                                         "MuonHitsM4R1",
-                                                                         "MuonHitsM4R2",
-                                                                         "MuonHitsM4R3",
-                                                                         "MuonHitsM4R4",
-                                                                         "MuonTracks"};
+    const std::array<std::string, n_muon_counters> muon_counter_names = {
+      "MuonHitsM2R1",   "MuonHitsM2R2",   "MuonHitsM2R3",   "MuonHitsM2R4",   "MuonHitsM3R1",   "MuonHitsM3R2",
+      "MuonHitsM3R3",   "MuonHitsM3R4",   "MuonHitsM4R1",   "MuonHitsM4R2",   "MuonHitsM4R3",   "MuonHitsM4R4",
+      "MuonTracks",     "MuonHitsTell01", "MuonHitsTell02", "MuonHitsTell03", "MuonHitsTell04", "MuonHitsTell05",
+      "MuonHitsTell06", "MuonHitsTell07", "MuonHitsTell08", "MuonHitsTell09", "MuonHitsTell10", "MuonHitsTell11",
+      "MuonHitsTell12", "MuonHitsTell13", "MuonHitsTell14", "MuonHitsTell15", "MuonHitsTell16", "MuonHitsTell17",
+      "MuonHitsTell18", "MuonHitsTell19", "MuonHitsTell20", "MuonHitsTell21", "MuonHitsTell22"};
     const std::array<std::string, n_plume_counters> plume_counter_names = {
       "PlumeAvgLumiADC", "PlumeLumiOverthrLow", "PlumeLumiOverthrHigh", "PlumeLumiADC00", "PlumeLumiADC01",
       "PlumeLumiADC02",  "PlumeLumiADC03",      "PlumeLumiADC04",       "PlumeLumiADC05", "PlumeLumiADC06",
