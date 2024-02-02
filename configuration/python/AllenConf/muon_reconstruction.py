@@ -100,7 +100,11 @@ def decode_muon(empty_banks=False):
         "dev_muon_hits":
         muon_populate_hits.dev_muon_hits_t,
         "dev_station_ocurrences_offset":
-        muon_station_ocurrence_prefix_sum.dev_output_buffer_t
+        muon_station_ocurrence_prefix_sum.dev_output_buffer_t,
+        "host_raw_bank_version":
+        muon_banks.host_raw_bank_version_t,
+        "dev_muon_tell_number":
+        muon_populate_tile_and_tdc.dev_muon_tell_number_t
     }
 
 

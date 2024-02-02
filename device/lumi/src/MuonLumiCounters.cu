@@ -64,6 +64,7 @@ void muon_lumi_counters::muon_lumi_counters_t::operator()(
     arguments,
     first<host_number_of_events_t>(arguments),
     size<dev_event_list_t>(arguments),
+    first<host_raw_bank_version_t>(arguments),
     m_offsets_and_sizes,
     m_shifts_and_scales);
 }
@@ -72,6 +73,7 @@ __global__ void muon_lumi_counters::muon_lumi_counters(
   muon_lumi_counters::Parameters parameters,
   const unsigned number_of_events,
   const unsigned number_of_gec_events,
+  const int decoding_version,
   const offsets_and_sizes_t offsets_and_sizes,
   const shifts_and_scales_t shifts_and_scales)
 {
@@ -85,6 +87,7 @@ __global__ void muon_lumi_counters::muon_lumi_counters(
 
     const auto muon_hits_offsets =
       parameters.dev_storage_station_region_quarter_offsets + event_number * Lumi::Constants::MuonBankSize;
+    const auto event_number_of_hits = muon_hits_offsets[Lumi::Constants::MuonBankSize] - muon_hits_offsets[0];
 
     unsigned info_offset = Lumi::Constants::n_muon_counters * lumi_evt_index;
 
@@ -108,6 +111,31 @@ __global__ void muon_lumi_counters::muon_lumi_counters(
         offsets_and_sizes[2 * i],
         offsets_and_sizes[2 * i + 1],
         muon_hits_offsets[muon_offsets[i + 1]] - muon_hits_offsets[muon_offsets[i]],
+        shifts_and_scales[2 * i],
+        shifts_and_scales[2 * i + 1]);
+    }
+
+    const auto tell_number = parameters.dev_muon_tell_number + muon_hits_offsets[0];
+    std::array<unsigned, Muon::Constants::maxTell40Number> hits_per_tell = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+                                                                            0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+    unsigned firstTell = 1u;
+    // tell number starts from 0 for decoding version 2
+    // and only 10 tell numbers defined
+    if (decoding_version == 2) {
+      firstTell = 0u;
+      for (unsigned i = 10u; i < Muon::Constants::maxTell40Number; ++i)
+        hits_per_tell[i] = 0xffffffff;
+    }
+    for (unsigned i = 0; i < event_number_of_hits; ++i) {
+      assert(tell_number[i] <= Muon::Constants::maxTell40Number);
+      ++hits_per_tell[tell_number[i] - firstTell];
+    }
+    for (unsigned i = Lumi::Constants::n_muon_station_regions + 1u; i < Lumi::Constants::n_muon_counters; ++i) {
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset + i],
+        offsets_and_sizes[2 * i],
+        offsets_and_sizes[2 * i + 1],
+        hits_per_tell[i - Lumi::Constants::n_muon_station_regions - 1u],
         shifts_and_scales[2 * i],
         shifts_and_scales[2 * i + 1]);
     }

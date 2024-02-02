@@ -180,7 +180,18 @@ def lumi_reconstruction(
             ("VeloClustersInnerS22", 3000), ("VeloClustersOuterS22", 3000),
             ("VeloClustersInnerS23", 3000), ("VeloClustersOuterS23", 3000),
             ("VeloClustersInnerS24", 3000), ("VeloClustersOuterS24", 3000),
-            ("VeloClustersInnerS25", 3000), ("VeloClustersOuterS25", 3000)
+            ("VeloClustersInnerS25", 3000), ("VeloClustersOuterS25", 3000),
+            ("MuonHitsTell01", 400), ("MuonHitsTell02", 400),
+            ("MuonHitsTell03", 400), ("MuonHitsTell04", 400),
+            ("MuonHitsTell05", 400), ("MuonHitsTell06", 400),
+            ("MuonHitsTell07", 400), ("MuonHitsTell08", 400),
+            ("MuonHitsTell09", 400), ("MuonHitsTell10", 400),
+            ("MuonHitsTell11", 400), ("MuonHitsTell12", 400),
+            ("MuonHitsTell13", 400), ("MuonHitsTell14", 400),
+            ("MuonHitsTell15", 400), ("MuonHitsTell16", 400),
+            ("MuonHitsTell17", 400), ("MuonHitsTell18", 400),
+            ("MuonHitsTell19", 400), ("MuonHitsTell20", 400),
+            ("MuonHitsTell21", 400), ("MuonHitsTell22", 400)
         ],
         counterFactors={
             "ECalET": (0x10000, 0.2),
@@ -333,12 +344,14 @@ def lumi_reconstruction(
             host_number_of_events_t=number_of_events["host_number_of_events"],
             host_lumi_summaries_count_t=prefix_sum_lumi_present.
             host_total_sum_holder_t,
+            host_raw_bank_version_t=decoded_muon["host_raw_bank_version"],
             dev_lumi_event_indices_t=prefix_sum_lumi_present.
             dev_output_buffer_t,
             dev_storage_station_region_quarter_offsets_t=decoded_muon[
                 "dev_storage_station_region_quarter_offsets"],
             dev_muon_number_of_tracks_t=muon_stubs[
                 "dev_muon_number_of_tracks"],
+            dev_muon_tell_number_t=decoded_muon["dev_muon_tell_number"],
             lumi_counter_schema=schema_for_algorithms,
             lumi_counter_shifts_and_scales=shifts_and_scales_for_algorithms)
 

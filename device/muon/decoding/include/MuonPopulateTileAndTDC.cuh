@@ -25,6 +25,7 @@ namespace muon_populate_tile_and_tdc {
     DEVICE_OUTPUT(dev_atomics_muon_t, unsigned) dev_atomics_muon;
     DEVICE_OUTPUT(dev_muon_tile_used_t, bool) dev_muon_tile_used;
     DEVICE_OUTPUT(dev_station_ocurrences_sizes_t, unsigned) dev_station_ocurrences_sizes;
+    DEVICE_OUTPUT(dev_muon_tell_number_t, unsigned short) dev_muon_tell_number;
   };
 
   struct muon_populate_tile_and_tdc_t : public DeviceAlgorithm, Parameters {
