@@ -3,7 +3,8 @@
 ###############################################################################
 from AllenCore.algorithms import (
     kstopipi_line_t, track_mva_line_t, two_track_mva_line_t,
-    two_track_mva_evaluator_t, two_track_line_ks_t, lambda2ppi_line_t)
+    two_track_mva_evaluator_t, two_track_line_ks_t, lambda2ppi_line_t,
+    lambda_ll_detached_track_line_t, xi_omega_lll_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenCore.configuration_options import is_allen_standalone
@@ -104,7 +105,7 @@ def make_two_track_line_ks(long_tracks,
 
 
 def make_lambda2ppi_line(secondary_vertices,
-                         name="Hlt1L02PPi",
+                         name,
                          pre_scaler_hash_string=None,
                          post_scaler_hash_string=None,
                          minPVZ=-200.,
@@ -125,3 +126,45 @@ def make_lambda2ppi_line(secondary_vertices,
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
         enable_tupling=enable_tupling)
+
+
+def make_lambda_ll_detached_track_line(sv_track_candidates,
+                                       name,
+                                       pre_scaler_hash_string=None,
+                                       post_scaler_hash_string=None,
+                                       enable_monitoring=False):
+
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        lambda_ll_detached_track_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=sv_track_candidates[
+            "host_number_of_sv_track_combinations"],
+        dev_particle_container_t=sv_track_candidates[
+            "dev_sv_track_combination"],
+        pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post',
+        enable_monitoring=enable_monitoring)
+
+
+def make_xi_omega_lll_line(sv_track_candidates,
+                           name,
+                           pre_scaler_hash_string=None,
+                           post_scaler_hash_string=None,
+                           enable_monitoring=False):
+
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        xi_omega_lll_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=sv_track_candidates[
+            "host_number_of_sv_track_combinations"],
+        dev_particle_container_t=sv_track_candidates[
+            "dev_sv_track_combination"],
+        pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post',
+        enable_monitoring=enable_monitoring)

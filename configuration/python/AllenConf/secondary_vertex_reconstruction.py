@@ -5,7 +5,7 @@ from AllenCore.algorithms import (
     velo_pv_ip_t, kalman_velo_only_t, make_lepton_id_t,
     make_long_track_particles_t, filter_tracks_t, host_prefix_sum_t,
     fit_secondary_vertices_t, empty_lepton_id_t, sv_combiner_t, filter_svs_t,
-    calc_max_combos_t)
+    calc_max_combos_t, filter_sv_track_t, combine_sv_track_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenCore.generator import make_algorithm
@@ -254,4 +254,46 @@ def make_sv_pairs(secondary_vertices):
         prefix_sum_sv_combos.host_total_sum_holder_t,
         "dev_multi_event_sv_combos_view":
         combine_svs.dev_multi_event_combos_view_t
+    }
+
+
+def make_sv_track_pairs(secondary_vertices, long_track_particles, pvs):
+
+    number_of_events = initialize_number_of_events()
+
+    filter_sv_track = make_algorithm(
+        filter_sv_track_t,
+        name='filter_sv_track_{hash}',
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_svs_t=secondary_vertices["dev_multi_event_composites"],
+        dev_tracks_t=long_track_particles["dev_multi_event_basic_particles"])
+
+    prefix_sum_sv_track_combinations = make_algorithm(
+        host_prefix_sum_t,
+        name='prefix_sum_sv_track_combinations_{hash}',
+        dev_input_buffer_t=filter_sv_track.dev_combination_number_t,
+    )
+
+    combine_sv_track = make_algorithm(
+        combine_sv_track_t,
+        name='combine_sv_track_{hash}',
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_combinations_t=prefix_sum_sv_track_combinations.
+        host_total_sum_holder_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_combination_offsets_t=prefix_sum_sv_track_combinations.
+        dev_output_buffer_t,
+        dev_svs_t=secondary_vertices["dev_multi_event_composites"],
+        dev_tracks_t=long_track_particles["dev_multi_event_basic_particles"],
+        dev_sv_idx_t=filter_sv_track.dev_sv_idx_t,
+        dev_track_idx_t=filter_sv_track.dev_track_idx_t,
+        dev_pvs_t=pvs["dev_multi_final_vertices"],
+        dev_npvs_t=pvs["dev_number_of_multi_final_vertices"])
+
+    return {
+        "dev_sv_track_combination":
+        combine_sv_track.dev_multi_event_composites_view_t,
+        "host_number_of_sv_track_combinations":
+        prefix_sum_sv_track_combinations.host_total_sum_holder_t,
     }

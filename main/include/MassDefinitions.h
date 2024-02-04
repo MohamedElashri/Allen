@@ -10,5 +10,6 @@ namespace Allen {
   constexpr float mPi = 139.57018f;
   constexpr float mK = 493.677f;
   constexpr float mP = 938.27203f;
+  constexpr float mL = 1115.683f;
   constexpr float mDz = 1864.83f;
 } // namespace Allen

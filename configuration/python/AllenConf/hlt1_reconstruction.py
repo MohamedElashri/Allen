@@ -9,7 +9,9 @@ from AllenConf.downstream_reconstruction import make_downstream
 from AllenConf.muon_reconstruction import decode_muon, is_muon, fake_muon_id, make_muon_stubs
 from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters
 from AllenConf.primary_vertex_reconstruction import make_pvs
-from AllenConf.secondary_vertex_reconstruction import make_kalman_velo_only, make_basic_particles, fit_secondary_vertices, make_sv_pairs
+from AllenConf.secondary_vertex_reconstruction import (
+    make_kalman_velo_only, make_basic_particles, fit_secondary_vertices,
+    make_sv_track_pairs, make_sv_pairs)
 from AllenConf.validators import (
     velo_validation, veloUT_validation, seeding_validation, long_validation,
     muon_validation, pv_validation, kalman_validation, selreport_validation,
@@ -199,6 +201,8 @@ def hlt1_reconstruction(algorithm_name='',
         max_doca=0.5,
         require_os_pair=True)
 
+    v0_track_pairs = make_sv_track_pairs(v0s, long_track_particles, pvs)
+
     v0_pairs = make_sv_pairs(v0s)
 
     output.update({
@@ -206,6 +210,7 @@ def hlt1_reconstruction(algorithm_name='',
         "dihadron_secondary_vertices": dihadrons,
         "dilepton_secondary_vertices": dileptons,
         "v0_secondary_vertices": v0s,
+        "v0_sv_track_pairs": v0_track_pairs,
         "v0_pairs": v0_pairs
     })
 
