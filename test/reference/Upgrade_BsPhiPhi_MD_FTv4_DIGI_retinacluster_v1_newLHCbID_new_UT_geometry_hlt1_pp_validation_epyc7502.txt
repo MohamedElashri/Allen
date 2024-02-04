@@ -50,7 +50,7 @@ rate_validator validation:
 Hlt1TwoTrackMVACharmXSec:                               6/  1000, (  180.00 +/-    73.26) kHz
 Hlt1TrackMVA:                                         215/  1000, ( 6450.00 +/-   389.74) kHz
 Hlt1TwoTrackMVA:                                      505/  1000, (15150.00 +/-   474.32) kHz
-Hlt1D2KK:                                              10/  1000, (  300.00 +/-    94.39) kHz
+Hlt1D2KK:                                               9/  1000, (  270.00 +/-    89.59) kHz
 Hlt1D2KPi:                                             18/  1000, (  540.00 +/-   126.13) kHz
 Hlt1D2PiPi:                                            11/  1000, (  330.00 +/-    98.95) kHz
 Hlt1KsToPiPi:                                           0/  1000, (    0.00 +/-     0.00) kHz
@@ -58,6 +58,8 @@ Hlt1KsToPiPiDoubleMuonMisID:                            0/  1000, (    0.00 +/- 
 Hlt1TwoTrackKs:                                         7/  1000, (  210.00 +/-    79.09) kHz
 Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1L02PPi:                                             6/  1000, (  180.00 +/-    73.26) kHz
+Hlt1LambdaLLDetachedTrack:                              3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1XiOmegaLLL:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1OneMuonTrackLine:                                   1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1SingleHighPtMuon:                                   3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuonNoMuID:                             3/  1000, (   90.00 +/-    51.88) kHz
@@ -121,7 +123,7 @@ selreport_validator validation:
 Hlt1TwoTrackMVACharmXSec:                               6          23
 Hlt1TrackMVA:                                         215         335
 Hlt1TwoTrackMVA:                                      505        1485
-Hlt1D2KK:                                              10          11
+Hlt1D2KK:                                               9          10
 Hlt1D2KPi:                                             18          20
 Hlt1D2PiPi:                                            11          12
 Hlt1KsToPiPi:                                           0           0
@@ -129,6 +131,8 @@ Hlt1KsToPiPiDoubleMuonMisID:                            0           0
 Hlt1TwoTrackKs:                                         7           7
 Hlt1TwoKs:                                              0           0
 Hlt1L02PPi:                                             6           6
+Hlt1LambdaLLDetachedTrack:                              3           3
+Hlt1XiOmegaLLL:                                         0           0
 Hlt1OneMuonTrackLine:                                   1           0
 Hlt1SingleHighPtMuon:                                   3           3
 Hlt1SingleHighPtMuonNoMuID:                             3           4
@@ -185,12 +189,12 @@ Hlt1DiMuonHighMassAlignment:                            0           0
 Hlt1DiMuonJpsiMassAlignment:                           14          14
 Hlt1DisplacedDiMuonAlignment:                           2           2
 
-Total decisions:      1229
-Total tracks:         2167
+Total decisions:      1231
+Total tracks:         2170
 Total calos clusters: 51
-Total SVs:            1684
-Total hits:           56327
-Total stdinfo:        25505
+Total SVs:            1687
+Total hits:           56404
+Total stdinfo:        25543
 
 
 veloUT_validator validation:

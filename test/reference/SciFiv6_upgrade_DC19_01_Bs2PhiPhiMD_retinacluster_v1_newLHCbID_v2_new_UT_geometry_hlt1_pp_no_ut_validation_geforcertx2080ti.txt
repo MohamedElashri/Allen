@@ -58,6 +58,8 @@ Hlt1KsToPiPiDoubleMuonMisID:                            0/  1000, (    0.00 +/- 
 Hlt1TwoTrackKs:                                         4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1TwoKs:                                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1L02PPi:                                             1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1LambdaLLDetachedTrack:                              0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1XiOmegaLLL:                                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1OneMuonTrackLine:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                                   3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuonNoMuID:                             6/  1000, (  180.00 +/-    73.26) kHz
@@ -129,6 +131,8 @@ Hlt1KsToPiPiDoubleMuonMisID:                            0           0
 Hlt1TwoTrackKs:                                         4           4
 Hlt1TwoKs:                                              0           0
 Hlt1L02PPi:                                             1           1
+Hlt1LambdaLLDetachedTrack:                              0           0
+Hlt1XiOmegaLLL:                                         0           0
 Hlt1OneMuonTrackLine:                                   0           0
 Hlt1SingleHighPtMuon:                                   3           3
 Hlt1SingleHighPtMuonNoMuID:                             6           7

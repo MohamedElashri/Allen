@@ -11,6 +11,7 @@
 namespace VertexFit {
 
   constexpr unsigned max_svs = 1000;
+  constexpr unsigned max_sv_track_combinations = 1000;
 
   struct TrackMVAVertex {
     // Fit results.

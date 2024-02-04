@@ -21,16 +21,9 @@
 
 namespace VertexFit {
 
-  __device__ inline bool poca(
-    const Allen::Views::Physics::BasicParticle& trackA,
-    const Allen::Views::Physics::BasicParticle& trackB,
-    float& x,
-    float& y,
-    float& z);
+  __device__ inline bool poca(const MiniState& trackA, const MiniState& trackB, float& x, float& y, float& z);
 
-  __device__ inline float doca(
-    const Allen::Views::Physics::BasicParticle& trackA,
-    const Allen::Views::Physics::BasicParticle& trackB);
+  __device__ inline float doca(const MiniState& trackA, const MiniState& trackB);
 
   __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
@@ -86,25 +79,18 @@ namespace VertexFit {
 
   //----------------------------------------------------------------------
   // Point of closest approach. Reimplementation from TrackVertexUtils.
-  __device__ bool poca(
-    const Allen::Views::Physics::BasicParticle& trackA,
-    const Allen::Views::Physics::BasicParticle& trackB,
-    float& x,
-    float& y,
-    float& z)
+  __device__ bool poca(const MiniState& stateA, const MiniState& stateB, float& x, float& y, float& z)
   {
-    const Allen::Views::Physics::KalmanState stateA = trackA.state();
-    const Allen::Views::Physics::KalmanState stateB = trackB.state();
-    float zA = stateA.z();
-    float xA = stateA.x();
-    float yA = stateA.y();
-    float txA = stateA.tx();
-    float tyA = stateA.ty();
-    float zB = stateB.z();
-    float xB = stateB.x();
-    float yB = stateB.y();
-    float txB = stateB.tx();
-    float tyB = stateB.ty();
+    float zA = stateA.z;
+    float xA = stateA.x;
+    float yA = stateA.y;
+    float txA = stateA.tx;
+    float tyA = stateA.ty;
+    float zB = stateB.z;
+    float xB = stateB.x;
+    float yB = stateB.y;
+    float txB = stateB.tx;
+    float tyB = stateB.ty;
     float secondAA = txA * txA + tyA * tyA + 1.0f;
     float secondBB = txB * txB + tyB * tyB + 1.0f;
     float secondAB = -txA * txB - tyA * tyB - 1.0f;
@@ -136,20 +122,18 @@ namespace VertexFit {
     return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
   }
 
-  __device__ float doca(
-    const Allen::Views::Physics::BasicParticle& trackA,
-    const Allen::Views::Physics::BasicParticle& trackB)
+  __device__ float doca(const MiniState& stateA, const MiniState& stateB)
   {
-    const float xA = trackA.state().x();
-    const float yA = trackA.state().y();
-    const float zA = trackA.state().z();
-    const float txA = trackA.state().tx();
-    const float tyA = trackA.state().ty();
-    const float xB = trackB.state().x();
-    const float yB = trackB.state().y();
-    const float zB = trackB.state().z();
-    const float txB = trackB.state().tx();
-    const float tyB = trackB.state().ty();
+    const float xA = stateA.x;
+    const float yA = stateA.y;
+    const float zA = stateA.z;
+    const float txA = stateA.tx;
+    const float tyA = stateA.ty;
+    const float xB = stateB.x;
+    const float yB = stateB.y;
+    const float zB = stateB.z;
+    const float txB = stateB.tx;
+    const float tyB = stateB.ty;
     const float secondAA = txA * txA + tyA * tyA + 1.f;
     const float secondBB = txB * txB + tyB * tyB + 1.f;
     const float secondAB = -txA * txB - tyA * tyB - 1.f;
@@ -261,7 +245,7 @@ namespace VertexFit {
     float halfDChi2_1 = 0.f;
     float halfDChi2_2 = 0.f;
     /// Add DOCA
-    vertex.doca = doca(trackA, trackB);
+    vertex.doca = doca(trackA.state().operator MiniState(), trackB.state().operator MiniState());
     vertex.chi2 = addToDerivatives(
       trackA,
       vertex.x,

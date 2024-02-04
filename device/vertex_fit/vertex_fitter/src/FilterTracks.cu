@@ -112,15 +112,18 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
       // Check the sum of pt.
       if (ptA + ptB < parameters.sum_pt_min) continue;
 
+      const auto trackA_ministate = trackA.state().operator MiniState(),
+                 trackB_ministate = trackB.state().operator MiniState();
+
       // Check the DOCA.
-      const float doca = VertexFit::doca(trackA, trackB);
+      const float doca = VertexFit::doca(trackA_ministate, trackB_ministate);
       if (doca > parameters.doca_max) continue;
 
       // Check the POCA.
       float x;
       float y;
       float z;
-      if (!VertexFit::poca(trackA, trackB, x, y, z)) {
+      if (!VertexFit::poca(trackA_ministate, trackB_ministate, x, y, z)) {
         continue;
       }
 

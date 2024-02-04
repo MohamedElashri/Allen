@@ -48,7 +48,7 @@ __device__ void lambda2ppi_line::lambda2ppi_line_t::fill_tuples(
   if (sel) {
     const auto Lambda = std::get<0>(input);
     const auto vertex = Lambda.vertex();
-    // Proton is always first child (see FilterTracks -- the ordering is propagated through VertexFitter)
+    // Proton is always the child with larger momentum
     const auto c0 = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda.child(0)),
                c1 = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda.child(1));
     const auto proton = c0->state().p() > c1->state().p() ? c0 : c1;

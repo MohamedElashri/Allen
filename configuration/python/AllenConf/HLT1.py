@@ -8,7 +8,7 @@ from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
-from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks, make_lambda2ppi_line
+from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks, make_lambda2ppi_line, make_lambda_ll_detached_track_line, make_xi_omega_lll_line
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line, make_two_ks_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line, make_pi02gammagamma_line
 from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line, make_di_muon_no_ip_line, make_di_muon_drell_yan_line, make_displaced_dimuon_line
@@ -43,6 +43,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
     dileptons = reconstructed_objects["dilepton_secondary_vertices"]
     v0s = reconstructed_objects["v0_secondary_vertices"]
+    v0_track_pairs = reconstructed_objects["v0_sv_track_pairs"]
     v0_pairs = reconstructed_objects["v0_pairs"]
     muon_stubs = reconstructed_objects["muon_stubs"]
 
@@ -73,7 +74,10 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 enable_monitoring=True),
             make_two_track_line_ks(long_tracks, v0s, name="Hlt1TwoTrackKs"),
             make_two_ks_line(long_tracks, v0_pairs, name="Hlt1TwoKs"),
-            make_lambda2ppi_line(v0s, name="Hlt1L02PPi")
+            make_lambda2ppi_line(v0s, name="Hlt1L02PPi"),
+            make_lambda_ll_detached_track_line(
+                v0_track_pairs, name="Hlt1LambdaLLDetachedTrack"),
+            make_xi_omega_lll_line(v0_track_pairs, name="Hlt1XiOmegaLLL"),
         ]
 
     if with_muon:

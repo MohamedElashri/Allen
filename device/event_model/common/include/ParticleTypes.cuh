@@ -631,14 +631,20 @@ namespace Allen {
 
         __host__ __device__ float m12(const float m1, const float m2) const
         {
-          float energy = 0.f;
-          const auto a = dyn_cast<const BasicParticle*>(child(0));
-          const auto b = dyn_cast<const BasicParticle*>(child(1));
-          if (!a || !b) {
-            return 0.f;
-          }
-          energy += a->state().e(m1);
-          energy += b->state().e(m2);
+
+          auto get_p2 = [](auto particle) -> float {
+            auto basicp = dyn_cast<const BasicParticle*>(particle);
+            if (basicp) {
+              const auto mom = basicp->state().p();
+              return mom * mom;
+            }
+            else {
+              auto compp = static_cast<const CompositeParticle*>(particle);
+              return compp->vertex().p2();
+            }
+          };
+
+          const auto energy = sqrtf(get_p2(child(0)) + m1 * m1) + sqrtf(get_p2(child(1)) + m2 * m2);
           return sqrtf(energy * energy - vertex().p2());
         }
 
