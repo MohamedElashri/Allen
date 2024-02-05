@@ -1,5 +1,12 @@
 ###############################################################################
 # (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration           #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenConf.velo_reconstruction import make_velo_tracks, decode_velo, run_velo_kalman_filter, filter_tracks_for_material_interactions
 from AllenConf.hlt1_monitoring_lines import make_n_displaced_velo_line, make_velo_micro_bias_line, make_n_materialvertex_seed_line
