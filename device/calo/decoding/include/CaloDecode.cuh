@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include "CaloRawEvent.cuh"
 #include "CaloGeometry.cuh"
 #include "CaloDigit.cuh"
 #include "AlgorithmTypes.cuh"
