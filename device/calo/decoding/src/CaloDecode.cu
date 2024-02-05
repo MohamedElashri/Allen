@@ -34,30 +34,31 @@ namespace {
 
     for (unsigned bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
       auto raw_bank = raw_event.raw_bank(bank_number);
+      auto raw_bank_data_u32 = reinterpret_cast<const uint32_t*>(raw_bank.data);
 
       if constexpr (decoding_version < 4) { // old decoding
 
-        while (raw_bank.data < raw_bank.end) {
-          uint32_t word = *raw_bank.data;
+        const auto raw_bank_end = reinterpret_cast<const uint32_t*>(raw_bank.data + raw_bank.size);
+        while (raw_bank_data_u32 < raw_bank_end) {
+          uint32_t word = *raw_bank_data_u32;
           uint16_t trig_size = word & 0x7F;
           uint16_t code = (word >> 14) & 0x1FF;
 
           // Skip header and trigger words
-          raw_bank.data += 1 + (trig_size + 3) / 4;
+          raw_bank_data_u32 += 1 + (trig_size + 3) / 4;
 
           // pattern bits
-          unsigned int pattern = *raw_bank.data;
-          // Loop over all cards in this front-env sub-bank.
-          uint32_t last_data = *(raw_bank.data + 1);
-          raw_bank.data += 2;
+          unsigned int pattern = *raw_bank_data_u32;
+          uint32_t last_data = *(raw_bank_data_u32 + 1);
+          raw_bank_data_u32 += 2;
 
           int16_t offset = 0;
 
           for (unsigned int bit_num = 0; 32 > bit_num; ++bit_num) {
             if (31 < offset) {
               offset -= 32;
-              last_data = *raw_bank.data;
-              raw_bank.data += 1;
+              last_data = *raw_bank_data_u32;
+              raw_bank_data_u32 += 1;
             }
             int adc;
             if (0 == (pattern & (1 << bit_num))) { //.. short coding
@@ -70,8 +71,8 @@ namespace {
               if (28 == offset) adc &= 0xF; //== clean-up extra bits
               offset += 12;
               if (32 < offset) { //.. get the extra bits on next word
-                last_data = *raw_bank.data;
-                raw_bank.data += 1;
+                last_data = *raw_bank_data_u32;
+                raw_bank_data_u32 += 1;
                 offset -= 32;
                 int temp = (last_data << (12 - offset)) & 0xFFF;
                 adc += temp;
@@ -99,16 +100,17 @@ namespace {
         }
 
         auto raw_bank_fiberCheck = raw_event_fiberCheck.raw_bank(bank_number);
+        auto raw_bank_fiberCheck_data_u32 = reinterpret_cast<const uint32_t*>(raw_bank_fiberCheck.data);
 
-        auto get_data = [](uint32_t const* raw_data) {
-          auto d = *raw_data;
+        auto get_data = [](uint32_t const* raw_data_u32) {
+          auto d = *raw_data_u32;
           if constexpr (decoding_version == 4) { // big endian
             d = ((d >> 24) & 0x000000FF) | ((d >> 8) & 0x0000FF00) | ((d << 8) & 0x00FF0000) | ((d << 24) & 0xFF000000);
           }
           return d;
         };
 
-        uint32_t pattern = *(raw_bank.data);
+        uint32_t pattern = *(raw_bank_data_u32);
 
         int offset = 0;
         uint32_t lastData = pattern;
@@ -119,10 +121,10 @@ namespace {
         for (int ifeb = 0; ifeb < 3; ifeb++) {
           // First, remove 3 LLTs
           if (ifeb == 0) {
-            raw_bank.data += 3;
-            raw_bank_fiberCheck.data += 3;
+            raw_bank_data_u32 += 3;
+            raw_bank_fiberCheck_data_u32 += 3;
           }
-          lastData = get_data(raw_bank.data);
+          lastData = get_data(raw_bank_data_u32);
 
           int nADC = 0;
           bool isFiberOff = false;
@@ -132,12 +134,12 @@ namespace {
           // ... and readout data
           for (unsigned int bitNum = 0; 32 > bitNum; bitNum++) {
             if (nADC % 8 == 0) { // Check fibers pattern, 1 fiber corresponds to 8 ADC (96b)
-              if (offset == 32) raw_bank_fiberCheck.data += 1;
-              uint32_t pattern1 = get_data(raw_bank_fiberCheck.data);
-              raw_bank_fiberCheck.data += 1;
-              uint32_t pattern2 = get_data(raw_bank_fiberCheck.data);
-              raw_bank_fiberCheck.data += 1;
-              uint32_t pattern3 = get_data(raw_bank_fiberCheck.data);
+              if (offset == 32) raw_bank_fiberCheck_data_u32 += 1;
+              uint32_t pattern1 = get_data(raw_bank_fiberCheck_data_u32);
+              raw_bank_fiberCheck_data_u32 += 1;
+              uint32_t pattern2 = get_data(raw_bank_fiberCheck_data_u32);
+              raw_bank_fiberCheck_data_u32 += 1;
+              uint32_t pattern3 = get_data(raw_bank_fiberCheck_data_u32);
               if (pattern1 == fibMask1 && pattern2 == fibMask2 && pattern3 == fibMask3)
                 isFiberOff = true;
               else
@@ -145,8 +147,8 @@ namespace {
             }
             if (31 < offset) {
               offset -= 32;
-              raw_bank.data += 1;
-              lastData = get_data(raw_bank.data);
+              raw_bank_data_u32 += 1;
+              lastData = get_data(raw_bank_data_u32);
             }
 
             int adc = 0;
@@ -158,16 +160,16 @@ namespace {
               adc = ((lastData >> (20 - offset)) & 0xfff);
 
             if (28 == offset) { //.. get the extra bits on next word
-              raw_bank.data += 1;
-              lastData = get_data(raw_bank.data);
+              raw_bank_data_u32 += 1;
+              lastData = get_data(raw_bank_data_u32);
 
               int temp = (lastData >> (offset - 4)) & 0xFF;
               offset -= 32;
               adc = (adc << 8) + temp;
             }
             if (24 == offset) { //.. get the extra bits on next word
-              raw_bank.data += 1;
-              lastData = get_data(raw_bank.data);
+              raw_bank_data_u32 += 1;
+              lastData = get_data(raw_bank_data_u32);
               int temp = (lastData >> (offset + 4)) & 0xF;
               offset -= 32;
               adc = (adc << 4) + temp;
@@ -235,7 +237,7 @@ __global__ void calo_decode_dispatch(
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   auto const ecal_digits_offset = parameters.dev_ecal_digits_offsets[event_number];
 
-  decode<Calo::RawEvent<mep_layout>, decoding_version>(
+  decode<Allen::RawEvent<mep_layout>, decoding_version>(
     parameters.dev_ecal_raw_input,
     parameters.dev_ecal_raw_input_offsets,
     parameters.dev_ecal_raw_input_sizes,
