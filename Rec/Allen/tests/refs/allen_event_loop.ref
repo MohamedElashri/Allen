@@ -14,13 +14,13 @@ HLTControlFlowMgr                      INFO
 HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #passed
 NONLAZY_OR: allen_non_event_data               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  AllenODINProducer/AllenODINProducer_e608fece  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
- DumpCaloGeometry/DeviceCaloGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
- DumpMuonTable/DeviceMuonTable                 #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
- DumpMagneticField/DeviceMagneticField         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
- DumpMuonGeometry/DeviceMuonGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpBeamline/DeviceBeamline                   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpVPGeometry/DeviceVPGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+ DumpCaloGeometry/DeviceCaloGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+ DumpMagneticField/DeviceMagneticField         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpFTGeometry/DeviceFTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+ DumpMuonGeometry/DeviceMuonGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+ DumpMuonTable/DeviceMuonTable                 #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
 HLTControlFlowMgr                      INFO Histograms converted successfully according to request.
 ApplicationMgr                         INFO Application Manager Finalized successfully
 ApplicationMgr                         INFO Application Manager Terminated successfully
