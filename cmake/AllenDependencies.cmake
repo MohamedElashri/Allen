@@ -118,7 +118,8 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
   # Find libClang, required for parsing the Allen codebase
   find_package(Clang QUIET)
   if (TARGET libclang)
-    get_target_property(LIBCLANG_LIBDIR libclang IMPORTED_LOCATION_RELEASE)
+    get_target_property(LIBCLANG_CONFIG libclang IMPORTED_CONFIGURATIONS)
+    get_target_property(LIBCLANG_LIBDIR libclang IMPORTED_LOCATION_${LIBCLANG_CONFIG})
     get_filename_component(LIBCLANG_LIBDIR "${LIBCLANG_LIBDIR}" PATH)
   else()
     # As a last resort, try from a number of hard-coded directory in cvmfs
