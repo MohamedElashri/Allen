@@ -89,16 +89,6 @@ __global__ void downstream_consolidate::downstream_create_tracks_view(
       Allen::Views::Physics::DownstreamTrack {&parameters.dev_downstream_ut_track_view[downstream_track_index],
                                               &parameters.dev_scifi_tracks_view[event_number].track(scifi_track_index),
                                               &parameters.dev_downstream_track_qops[downstream_track_index]};
-    //
-    // Fill monitoring
-    //
-    downstream_consolidate::downstream_consolidate_t::monitor(
-      parameters,
-      parameters.dev_downstream_track_view[downstream_track_index],
-      parameters.dev_downstream_track_states_view[event_number].state(track_index),
-      dev_histogram_downstream_track_eta,
-      dev_histogram_downstream_track_phi,
-      dev_histogram_downstream_track_nhits);
   }
 
   if (threadIdx.x == 0) {
@@ -110,6 +100,21 @@ __global__ void downstream_consolidate::downstream_create_tracks_view(
     new (parameters.dev_multi_event_downstream_tracks_view)
       Allen::Views::Physics::MultiEventDownstreamTracks {parameters.dev_downstream_tracks_view, number_of_events};
     parameters.dev_multi_event_downstream_tracks_view_ptr[0] = parameters.dev_multi_event_downstream_tracks_view;
+  }
+
+  __syncthreads();
+  //
+  // Fill monitoring
+  //
+  for (unsigned track_index = threadIdx.x; track_index < downstream_tracks_size; track_index += blockDim.x) {
+    const auto downstream_track_index = downstream_tracks_offset + track_index;
+    downstream_consolidate::downstream_consolidate_t::monitor(
+      parameters,
+      parameters.dev_downstream_track_view[downstream_track_index],
+      parameters.dev_downstream_track_states_view[event_number].state(track_index),
+      dev_histogram_downstream_track_eta,
+      dev_histogram_downstream_track_phi,
+      dev_histogram_downstream_track_nhits);
   }
 }
 
@@ -298,7 +303,7 @@ __global__ void downstream_consolidate::downstream_consolidate(
   //
   if (downstream_tracks_size < 200) {
     unsigned bin = std::floor(downstream_tracks_size / 2.5);
-    dev_histogram_n_downstream_tracks[bin]++;
+    atomicAdd(dev_histogram_n_downstream_tracks.data() + bin, 1u);
   }
   dev_n_downstream_tracks_counter[0] += downstream_tracks_size;
 
@@ -382,13 +387,13 @@ __device__ void downstream_consolidate::downstream_consolidate_t::monitor(
     const unsigned int bin = static_cast<unsigned int>(
       (eta - parameters.histogram_downstream_track_eta_min) * parameters.histogram_downstream_track_eta_nbins /
       (parameters.histogram_downstream_track_eta_max - parameters.histogram_downstream_track_eta_min));
-    ++dev_histogram_downstream_track_eta[bin];
+    atomicAdd(dev_histogram_downstream_track_eta.data() + bin, 1u);
   }
   if (phi > parameters.histogram_downstream_track_phi_min && phi < parameters.histogram_downstream_track_phi_max) {
     const unsigned int bin = static_cast<unsigned int>(
       (phi - parameters.histogram_downstream_track_phi_min) * parameters.histogram_downstream_track_phi_nbins /
       (parameters.histogram_downstream_track_phi_max - parameters.histogram_downstream_track_phi_min));
-    ++dev_histogram_downstream_track_phi[bin];
+    atomicAdd(dev_histogram_downstream_track_phi.data() + bin, 1u);
   }
   if (
     nhits > parameters.histogram_downstream_track_nhits_min &&
@@ -396,6 +401,6 @@ __device__ void downstream_consolidate::downstream_consolidate_t::monitor(
     const unsigned int bin = static_cast<unsigned int>(
       (nhits - parameters.histogram_downstream_track_nhits_min) * parameters.histogram_downstream_track_nhits_nbins /
       (parameters.histogram_downstream_track_nhits_max - parameters.histogram_downstream_track_nhits_min));
-    ++dev_histogram_downstream_track_nhits[bin];
+    atomicAdd(dev_histogram_downstream_track_nhits.data() + bin, 1u);
   }
 }
