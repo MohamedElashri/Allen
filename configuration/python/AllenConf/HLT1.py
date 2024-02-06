@@ -303,7 +303,10 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name):
     return lines
 
 
-def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
+def alignment_monitoring_lines(reconstructed_objects,
+                               prefilters_bx,
+                               prefilters_no_bx,
+                               with_muon=True):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
     material_interaction_tracks = reconstructed_objects[
@@ -320,9 +323,6 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
             long_tracks, long_track_particles, name="Hlt1RICH1Alignment"),
         make_rich_2_line(
             long_tracks, long_track_particles, name="Hlt1RICH2Alignment"),
-        make_beam_gas_line(
-            velo_tracks, velo_states, beam_crossing_type=1,
-            name="Hlt1BeamGas"),
         make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPiAlignment"),
         make_n_displaced_velo_line(
             material_interaction_tracks, n_tracks=3, pre_scaler=0.001),
@@ -343,7 +343,20 @@ def alignment_monitoring_lines(reconstructed_objects, with_muon=True):
                 long_tracks, dileptons, name="Hlt1DisplacedDiMuonAlignment")
         ]
 
-    return [line_maker(line) for line in lines]
+    with line_maker.bind(prefilter=prefilters_bx):
+        lines = [line_maker(line) for line in lines]
+
+    with line_maker.bind(prefilter=prefilters_no_bx):
+        lines += [
+            line_maker(
+                make_beam_gas_line(
+                    velo_tracks,
+                    velo_states,
+                    beam_crossing_type=1,
+                    name="Hlt1BeamGas"))
+        ]
+
+    return lines
 
 
 @configurable
@@ -681,6 +694,9 @@ def setup_hlt1_node(enablePhysics=True,
     with line_maker.bind(prefilter=odin_err_filter):
         monitoring_lines = odin_monitoring_lines(with_lumi, lumiline_name,
                                                  lumilinefull_name)
+        monitoring_lines += [
+            line_maker(make_odin_calib_line(name="Hlt1ODINCalib"))
+        ]
         physics_lines += [line_maker(make_passthrough_line())]
 
     if tae_passthrough:
@@ -721,10 +737,6 @@ def setup_hlt1_node(enablePhysics=True,
                     post_scaler=3.e-2))
         ]
 
-    monitoring_lines += [
-        line_maker(make_odin_calib_line(name="Hlt1ODINCalib"))
-    ]
-
     if EnableGEC:
         with line_maker.bind(prefilter=prefilters):
             physics_lines += [
@@ -739,9 +751,8 @@ def setup_hlt1_node(enablePhysics=True,
             reconstructed_objects["pvs"], reconstructed_objects["velo_states"],
             bgi_prefilters)
 
-    with line_maker.bind(prefilter=prefilters):
-        monitoring_lines += alignment_monitoring_lines(reconstructed_objects,
-                                                       with_muon)
+    monitoring_lines += alignment_monitoring_lines(
+        reconstructed_objects, prefilters, odin_err_filter + gec, with_muon)
 
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
