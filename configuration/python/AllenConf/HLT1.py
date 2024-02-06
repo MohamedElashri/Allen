@@ -18,7 +18,7 @@ from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node, make_dq_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks, make_lambda2ppi_line, make_lambda_ll_detached_track_line, make_xi_omega_lll_line
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line, make_two_ks_line
-from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line, make_pi02gammagamma_line
+from AllenConf.hlt1_calibration_lines import make_odin_calib_line, make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line, make_pi02gammagamma_line
 from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_single_high_pt_muon_line, make_single_high_pt_muon_no_muid_line, make_low_pt_muon_line, make_di_muon_mass_line, make_di_muon_soft_line, make_low_pt_di_muon_line, make_track_muon_mva_line, make_di_muon_no_ip_line, make_di_muon_drell_yan_line, make_displaced_dimuon_line
 from AllenConf.hlt1_electron_lines import make_track_electron_mva_line, make_single_high_pt_electron_line, make_lowmass_dielectron_line, make_displaced_dielectron_line, make_displaced_leptons_line, make_single_high_et_line, make_highmass_dielectron_line
 from AllenConf.hlt1_monitoring_lines import (
@@ -667,7 +667,8 @@ def setup_hlt1_node(enablePhysics=True,
     gec = [make_gec(count_ut=with_ut)] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
                        ] if with_odin_filter else []
-    prefilters = odin_err_filter + gec
+    beam_beam_filter = [make_bxtype(bx_type=3)]
+    prefilters = odin_err_filter + beam_beam_filter + gec
 
     physics_lines = []
     if enablePhysics:
@@ -697,7 +698,7 @@ def setup_hlt1_node(enablePhysics=True,
         else:
             tae_filters = tae_filter()
 
-        with line_maker.bind(prefilter=prefilters + [tae_filters]):
+        with line_maker.bind(prefilter=odin_err_filter + [tae_filters]):
             physics_lines += [
                 line_maker(
                     make_passthrough_line(
@@ -720,6 +721,10 @@ def setup_hlt1_node(enablePhysics=True,
                     post_scaler=3.e-2))
         ]
 
+    monitoring_lines += [
+        line_maker(make_odin_calib_line(name="Hlt1ODINCalib"))
+    ]
+
     if EnableGEC:
         with line_maker.bind(prefilter=prefilters):
             physics_lines += [
@@ -727,11 +732,12 @@ def setup_hlt1_node(enablePhysics=True,
             ]
 
     if enableBGI:
-        physics_lines += default_bgi_activity_lines(decode_velo(),
-                                                    decode_calo(), prefilters)
+        bgi_prefilters = odin_err_filter + gec
+        physics_lines += default_bgi_activity_lines(
+            decode_velo(), decode_calo(), bgi_prefilters)
         physics_lines += default_bgi_pvs_lines(
             reconstructed_objects["pvs"], reconstructed_objects["velo_states"],
-            prefilters)
+            bgi_prefilters)
 
     with line_maker.bind(prefilter=prefilters):
         monitoring_lines += alignment_monitoring_lines(reconstructed_objects,

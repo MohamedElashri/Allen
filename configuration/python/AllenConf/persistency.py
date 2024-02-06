@@ -148,6 +148,9 @@ rb_map = {
     # RB 9 ECAL pi0 calibration
     'Hlt1Pi02GammaGamma':
     9,
+    # RB 10 ODIN calibration triggers
+    'Hlt1ODINCalib':
+    10,
     # RB 14 HLT1 physics for monitoring and alignment
     'Hlt1(?!ODIN)(?!Lumi)(?!Error)(?!MB)(?!NZS)(?!Velo)(?!BeamGas)(?!Incident).*':
     14,

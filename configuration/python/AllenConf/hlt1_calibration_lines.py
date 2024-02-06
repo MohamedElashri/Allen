@@ -11,8 +11,9 @@
 from AllenCore.algorithms import (
     d2kpi_line_t, passthrough_line_t, rich_1_line_t, rich_2_line_t,
     displaced_di_muon_mass_line_t, di_muon_mass_alignment_line_t,
-    two_calo_clusters_line_t)
+    two_calo_clusters_line_t, odin_calib_line_t)
 from AllenConf.utils import initialize_number_of_events, line_maker
+from AllenConf.odin import decode_odin
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
 from AllenCore.configuration_options import is_allen_standalone
@@ -205,3 +206,23 @@ def make_tae_line(prefilters, accept_sub_events=False, pre_scaler=1):
         make_passthrough_line(
             name="Hlt1TAEPassthrough", pre_scaler=pre_scaler),
         prefilter=prefilters + [tf])
+
+
+@configurable
+def make_odin_calib_line(pre_scaler=1.,
+                         post_scaler=1.,
+                         pre_scaler_hash_string=None,
+                         post_scaler_hash_string=None,
+                         name="Hlt1ODINCalib"):
+    number_of_events = initialize_number_of_events()
+    odin = decode_odin()
+
+    return make_algorithm(
+        odin_calib_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_odin_data_t=odin["dev_odin_data"],
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
