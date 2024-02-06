@@ -738,7 +738,7 @@ def setup_hlt1_node(enablePhysics=True,
         ]
 
     if EnableGEC:
-        with line_maker.bind(prefilter=prefilters):
+        with line_maker.bind(prefilter=odin_err_filter + gec):
             physics_lines += [
                 line_maker(make_passthrough_line(name="Hlt1GECPassthrough"))
             ]
@@ -770,7 +770,7 @@ def setup_hlt1_node(enablePhysics=True,
             name="LowMult_5",
             minTracks=1,
             maxTracks=5)
-        with line_maker.bind(prefilter=prefilters + [lowMult_5]):
+        with line_maker.bind(prefilter=odin_err_filter + gec + [lowMult_5]):
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(
