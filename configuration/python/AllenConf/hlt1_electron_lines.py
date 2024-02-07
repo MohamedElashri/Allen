@@ -11,8 +11,7 @@
 from AllenCore.algorithms import (
     track_electron_mva_line_t, single_high_pt_electron_line_t,
     displaced_dielectron_line_t, displaced_leptons_line_t,
-    single_high_et_line_t, prompt_vertex_evaluator_t,
-    lowmass_noip_dielectron_line_t)
+    single_high_et_line_t, lowmass_dielectron_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenCore.configuration_options import is_allen_standalone
@@ -69,7 +68,7 @@ def make_single_high_pt_electron_line(long_tracks,
 def make_displaced_dielectron_line(long_tracks,
                                    secondary_vertices,
                                    calo,
-                                   name="Hlt1DisplacedDielectron",
+                                   name="Hlt1DisplacedDiElectron",
                                    pre_scaler_hash_string=None,
                                    post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
@@ -128,7 +127,7 @@ def make_single_high_et_line(velo_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_lowmass_noip_dielectron_line(
+def make_lowmass_dielectron_line(
         long_tracks,
         secondary_vertices,
         calo,
@@ -136,52 +135,37 @@ def make_lowmass_noip_dielectron_line(
         maxMass,
         minPTprompt,
         minPTdisplaced,
-        minIPChi2Threshold,
+        trackIPChi2Threshold,
         selectPrompt=True,
         is_same_sign=False,
         enable_monitoring=True,
         enable_tupling=False,
-        name="Hlt1LowMassNoipDielectron",
-        pre_scaler_hash_string="lowmass_noip_dielectron_line_pre",
+        name="Hlt1LowMassDiElectron",
+        pre_scaler_hash_string="lowmass_dielectron_line_pre",
         pre_scaler=1.,
         post_scaler=1.,
-        post_scaler_hash_string="lowmass_noip_dielectron_line_post"):
+        post_scaler_hash_string="lowmass_dielectron_line_post"):
     number_of_events = initialize_number_of_events()
 
-    prompt_vertex_evaluator = make_algorithm(
-        prompt_vertex_evaluator_t,
-        name="prompt_vertex_evaluator",
-        dev_consolidated_svs_t=secondary_vertices["dev_consolidated_svs"],
-        dev_sv_offsets_t=secondary_vertices["dev_sv_offsets"],
-        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
-        dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
-        host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
-        MinIPChi2Threshold=minIPChi2Threshold,
-        MinPTprompt=minPTprompt,
-        MinPTdisplaced=minPTdisplaced,
-    )
-
     return make_algorithm(
-        lowmass_noip_dielectron_line_t,
+        lowmass_dielectron_line_t,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
-        dev_track_isElectron_t=calo["dev_track_isElectron"],
-        dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
+        dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
         pre_scaler=pre_scaler,
         post_scaler=post_scaler,
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string,
+        selectPrompt=selectPrompt,
         MinMass=minMass,
         MaxMass=maxMass,
-        selectPrompt=selectPrompt,
         ss_on=is_same_sign,
         enable_monitoring=is_allen_standalone() and enable_monitoring,
         enable_tupling=enable_tupling,
-        dev_vertex_passes_prompt_selection_t=prompt_vertex_evaluator.
-        dev_vertex_passes_prompt_selection_t,
-        dev_vertex_passes_displaced_selection_t=prompt_vertex_evaluator.
-        dev_vertex_passes_displaced_selection_t)
+        MinPTprompt=minPTprompt,
+        MinPTdisplaced=minPTdisplaced,
+        TrackIPChi2Threshold=trackIPChi2Threshold)

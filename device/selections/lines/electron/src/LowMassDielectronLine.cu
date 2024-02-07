@@ -8,11 +8,11 @@
 * granted to it by virtue of its status as an Intergovernmental Organization  *
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
-#include "LowMassNoipDielectronLine.cuh"
+#include "LowMassDielectronLine.cuh"
 
-INSTANTIATE_LINE(lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t, lowmass_noip_dielectron_line::Parameters)
+INSTANTIATE_LINE(lowmass_dielectron_line::lowmass_dielectron_line_t, lowmass_dielectron_line::Parameters)
 
-void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::init()
+void lowmass_dielectron_line::lowmass_dielectron_line_t::init()
 {
 #ifndef ALLEN_STANDALONE
   histogram_dielectron_masses = new gaudi_monitoring::Lockable_Histogram<> {
@@ -31,7 +31,7 @@ __device__ std::tuple<
   const float,
   const bool,
   const bool>
-lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_input(
+lowmass_dielectron_line::lowmass_dielectron_line_t::get_input(
   const Parameters& parameters,
   const unsigned event_number,
   const unsigned i)
@@ -61,13 +61,23 @@ lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_input(
   const float brem_corrected_dielectron_mass =
     vertex.m12(0.510999f, 0.510999f) * sqrtf(brem_p_correction_ratio_trk1 * brem_p_correction_ratio_trk2);
 
+  const float brem_corrected_dielectron_pt = brem_corrected_pt1 + brem_corrected_pt2;
+
+  const float brem_corrected_minpt = min(brem_corrected_pt1, brem_corrected_pt2);
+
   const bool is_same_sign = (track1->state().qop() * track2->state().qop()) > 0;
 
-  const bool passes_prompt_selection = parameters.dev_vertex_passes_prompt_selection[event_vertices.offset() + i];
-  const bool passes_displaced_selection = parameters.dev_vertex_passes_displaced_selection[event_vertices.offset() + i];
+  bool passes_common_selection = vertex.doca12() < parameters.maxDOCA &&
+                                 vertex.vertex().chi2() < parameters.maxVtxChi2 &&
+                                 brem_corrected_dielectron_pt > parameters.minDielectronPT;
 
-  double brem_corrected_minpt = 0.;
-  double brem_corrected_dielectron_pt = 0.;
+  bool passes_prompt_selection = passes_common_selection && brem_corrected_minpt > parameters.minPTprompt &&
+                                 track1->ip_chi2() < parameters.trackIPChi2Threshold &&
+                                 track2->ip_chi2() < parameters.trackIPChi2Threshold;
+
+  bool passes_displaced_selection = passes_common_selection && brem_corrected_minpt > parameters.minPTdisplaced &&
+                                    track1->ip_chi2() > parameters.trackIPChi2Threshold &&
+                                    track2->ip_chi2() > parameters.trackIPChi2Threshold;
 
   return std::forward_as_tuple(
     vertex,
@@ -80,7 +90,7 @@ lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_input(
     passes_displaced_selection);
 }
 
-__device__ bool lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::select(
+__device__ bool lowmass_dielectron_line::lowmass_dielectron_line_t::select(
   const Parameters& parameters,
   std::tuple<
     const Allen::Views::Physics::CompositeParticle,
@@ -129,33 +139,32 @@ __device__ bool lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::se
   return decision;
 }
 
-void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::set_arguments_size(
+void lowmass_dielectron_line::lowmass_dielectron_line_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions& runtime_options,
   const Constants& constants) const
 {
   static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants);
   set_size<dev_die_masses_raw_t>(
-    arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
+    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_die_masses_bremcorr_t>(
-    arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
+    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_die_pts_raw_t>(
-    arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
+    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_die_pts_bremcorr_t>(
-    arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
+    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_e_minpts_raw_t>(
-    arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
+    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_e_minpt_bremcorr_t>(
-    arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
+    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_die_minipchi2_t>(
-    arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
-  set_size<dev_die_ip_t>(
-    arguments, lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::get_decisions_size(arguments));
+    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
+  set_size<dev_die_ip_t>(arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_masses_histo_t>(arguments, 750);
   set_size<dev_masses_brem_histo_t>(arguments, 750);
 }
 
-void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::init_monitor(
+void lowmass_dielectron_line::lowmass_dielectron_line_t::init_monitor(
   const ArgumentReferences<Parameters>& arguments,
   const Allen::Context& context) const
 {
@@ -163,7 +172,7 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::init_monitor(
   Allen::memset_async<dev_masses_brem_histo_t>(arguments, 0, context);
 }
 
-void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::init_tuples(
+void lowmass_dielectron_line::lowmass_dielectron_line_t::init_tuples(
   const ArgumentReferences<Parameters>& arguments,
   const Allen::Context& context) const
 {
@@ -177,7 +186,7 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::init_tuples(
   Allen::memset_async<dev_e_minpt_bremcorr_t>(arguments, -1, context);
 }
 
-__device__ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::fill_tuples(
+__device__ void lowmass_dielectron_line::lowmass_dielectron_line_t::fill_tuples(
   const Parameters& parameters,
   std::tuple<
     const Allen::Views::Physics::CompositeParticle,
@@ -207,7 +216,7 @@ __device__ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::fi
   }
 }
 
-void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::output_monitor(
+void lowmass_dielectron_line::lowmass_dielectron_line_t::output_monitor(
   [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
   [[maybe_unused]] const RuntimeOptions& runtime_options,
   [[maybe_unused]] const Allen::Context& context) const
@@ -221,7 +230,7 @@ void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::output_monito
 #endif
 }
 
-void lowmass_noip_dielectron_line::lowmass_noip_dielectron_line_t::output_tuples(
+void lowmass_dielectron_line::lowmass_dielectron_line_t::output_tuples(
   [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
   [[maybe_unused]] const RuntimeOptions& runtime_options,
   [[maybe_unused]] const Allen::Context& context) const

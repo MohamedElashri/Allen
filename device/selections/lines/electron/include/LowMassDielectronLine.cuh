@@ -21,21 +21,14 @@
 #include <Gaudi/Accumulators.h>
 #endif
 
-namespace lowmass_noip_dielectron_line {
+namespace lowmass_dielectron_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    // Prompt/secondary vertex evaluator
-    DEVICE_INPUT(dev_vertex_passes_prompt_selection_t, float) dev_vertex_passes_prompt_selection;
-    DEVICE_INPUT(dev_vertex_passes_displaced_selection_t, float) dev_vertex_passes_displaced_selection;
-    // Kalman fitted tracks
     DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
-    // ECAL
-    DEVICE_INPUT(dev_track_isElectron_t, bool) dev_track_isElectron;
     DEVICE_INPUT(dev_brem_corrected_pt_t, float) dev_brem_corrected_pt;
-    // Outputs
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
@@ -66,11 +59,17 @@ namespace lowmass_noip_dielectron_line {
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
     PROPERTY(MinZ_t, "MinZ", "Min z dielectron coordinate", float) MinZ;
+    PROPERTY(TrackIPChi2Threshold_t, "TrackIPChi2Threshold", "Track IP Chi2 threshold", float) trackIPChi2Threshold;
+    PROPERTY(MaxDOCA_t, "MaxDOCA", "Max DOCA", float) maxDOCA;
+    PROPERTY(MaxVtxChi2_t, "MaxVtxChi2", "Max vertex chi2", float) maxVtxChi2;
+    PROPERTY(MinPTprompt_t, "MinPTprompt", "Min PTprompt", float) minPTprompt;
+    PROPERTY(MinPTdisplaced_t, "MinPTdisplaced", "Min PTdisplaced", float) minPTdisplaced;
+    PROPERTY(MinDielectronPT_t, "MinDielectronPT", "Min dielectron PT", float) minDielectronPT;
   };
 
-  struct lowmass_noip_dielectron_line_t : public SelectionAlgorithm,
-                                          Parameters,
-                                          CompositeParticleLine<lowmass_noip_dielectron_line_t, Parameters> {
+  struct lowmass_dielectron_line_t : public SelectionAlgorithm,
+                                     Parameters,
+                                     CompositeParticleLine<lowmass_dielectron_line_t, Parameters> {
     __device__ static bool select(
       const Parameters&,
       std::tuple<
@@ -124,7 +123,6 @@ namespace lowmass_noip_dielectron_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    // Low-mass no-IP dielectron selections.
     Property<selectPrompt_t> m_selectPrompt {this, true};
     Property<MinMass_t> m_MinMass {this, 5.f};
     Property<MaxMass_t> m_MaxMass {this, 300.f};
@@ -132,10 +130,17 @@ namespace lowmass_noip_dielectron_line {
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<enable_tupling_t> m_enable_tupling {this, false};
     Property<MinZ_t> m_MinZ {this, -341.f * Gaudi::Units::mm};
-
+    Property<TrackIPChi2Threshold_t> m_TrackIPChi2Threshold {
+      this,
+      2.0f}; // threshold to split 'prompt' and 'displaced' candidates
+    Property<MaxDOCA_t> m_MaxDOCA {this, 0.082f};
+    Property<MinPTprompt_t> m_MinPTprompt {this, 0.f};
+    Property<MinPTdisplaced_t> m_MinPTdisplaced {this, 0.f};
+    Property<MaxVtxChi2_t> m_MaxVtxChi2 {this, 7.4f};
+    Property<MinDielectronPT_t> m_MinDielectronPT {this, 1000.f};
 #ifndef ALLEN_STANDALONE
     gaudi_monitoring::Lockable_Histogram<>* histogram_dielectron_masses;
     gaudi_monitoring::Lockable_Histogram<>* histogram_dielectron_masses_brem;
 #endif
   };
-} // namespace lowmass_noip_dielectron_line
+} // namespace lowmass_dielectron_line
