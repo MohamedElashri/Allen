@@ -66,7 +66,7 @@ def odin_error_filter(name="odin_error_filter"):
     return odin_error_filter
 
 
-def tae_filter(name="tae_filter", accept_sub_events=True):
+def tae_filter(name="tae_filter", accept_sub_events=False):
     odin = decode_odin()
     host_tae_filter = make_algorithm(
         host_tae_filter_t,

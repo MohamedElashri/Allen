@@ -30,7 +30,7 @@ lines.append(passthrough_line)
 
 prefilters = [odin_error_filter("odin_error_filter")]
 with line_maker.bind(
-        prefilter=prefilters + [tae_filter(accept_sub_events=False)]):
+        prefilter=prefilters + [tae_filter(accept_sub_events=True)]):
     lines.append(
         line_maker(
             make_passthrough_line(name="Hlt1TAEPassthrough", pre_scaler=1)))
