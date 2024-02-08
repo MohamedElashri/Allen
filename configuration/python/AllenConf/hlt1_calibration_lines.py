@@ -191,7 +191,7 @@ def make_di_muon_mass_align_line(long_tracks,
 
 
 @configurable
-def make_tae_line(prefilters, accept_sub_events=True, pre_scaler=1):
+def make_tae_line(prefilters, accept_sub_events=False, pre_scaler=1):
     from .odin import tae_filter
     tf = tae_filter(accept_sub_events=accept_sub_events)
     return line_maker(
