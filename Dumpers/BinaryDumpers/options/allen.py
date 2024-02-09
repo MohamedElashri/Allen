@@ -53,7 +53,6 @@ interpreter.Declare("""
 template<typename TO>
 struct cast_service { TO* operator()(IService* svc) { return dynamic_cast<TO*>(svc); } };
 template<typename T>
-struct shared_wrap { std::shared_ptr<T> operator()(T* t) { return {t, [](T*) {}}; } };
 Allen::NonEventData::IUpdater* binary_updater(std::map<std::string, std::string> const& options);
 uintptr_t czmq_context(zmq::context_t& ctx) { return reinterpret_cast<uintptr_t>(ctx.operator void*()); }
 """)
@@ -64,10 +63,6 @@ sequence_default = os.path.join(os.environ['ALLEN_INSTALL_DIR'], 'constants',
 
 def cast_service(return_type, svc):
     return gbl.cast_service(return_type)()(svc)
-
-
-def shared_wrap(return_type, t):
-    return gbl.shared_wrap(return_type)()(t)
 
 
 # Handle commandline arguments
@@ -360,12 +355,12 @@ else:
 
 con = gbl.std.string("")
 
-# Create provider
 if args.mep:
     mep_provider = gaudi.service("MEPProvider", interface=gbl.IService)
     provider = cast_service(gbl.IInputProvider, mep_provider)
 else:
     provider = gbl.Allen.make_provider(options, sequence_json)
+
 output_handler = gbl.Allen.output_handler(provider, zmqSvc, options)
 
 # run Allen
@@ -395,8 +390,7 @@ def allen_thread():
     if args.profile == "CUDA":
         runtime_lib.cudaProfilerStart()
 
-    gbl.allen(options, sequence_json, updater,
-              shared_wrap(gbl.IInputProvider, provider), output_handler,
+    gbl.allen(options, sequence_json, updater, provider, output_handler,
               zmqSvc, con.c_str())
 
     if args.profile == "CUDA":
@@ -414,7 +408,12 @@ else:
     # READY
     msg = control.recv()
     assert (msg.decode() == "READY")
+
+    # Start the fake event loop that takes care of the geometry and
+    # conditions data.
     gaudi.start()
+
+    # Start the Allen event loop
     control.send(b"START")
     msg = control.recv()
     assert (msg.decode() == "RUNNING")

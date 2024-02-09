@@ -159,8 +159,6 @@ public:
 
   std::optional<size_t> const& n_events() const { return m_nevents; }
 
-  bool release_buffers() override { return true; }
-
 protected:
   void init_input(
     size_t n_slices,

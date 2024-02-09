@@ -10,8 +10,7 @@
 ###############################################################################
 from PyConf.application import default_raw_event
 from PyConf.Algorithms import (ProvideConstants, TransposeRawBanks,
-                               ProvideRuntimeOptions, host_init_event_list_t,
-                               odin_provider_t)
+                               ProvideRuntimeOptions)
 from GaudiKernel.DataHandle import DataHandle
 from PyConf import configurable
 
@@ -48,6 +47,7 @@ def get_constants():
 
 
 def initialize_event_lists(**kwargs):
+    from PyConf.Algorithms import host_init_event_list_t
     name = kwargs.pop("name", "make_event_list_{hash}")
     initialize_lists = make_algorithm(
         host_init_event_list_t, name=name, **kwargs)
@@ -56,6 +56,7 @@ def initialize_event_lists(**kwargs):
 
 # Gaudi configuration wrapper
 def make_algorithm(algorithm, name, *args, **kwargs):
+    from PyConf.Algorithms import odin_provider_t, host_init_event_list_t
 
     # Deduce the types requested
     bank_type = kwargs.get('bank_type', '')

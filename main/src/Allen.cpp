@@ -94,7 +94,7 @@ int allen(
   std::map<std::string, std::string> options,
   std::string_view config,
   Allen::NonEventData::IUpdater* updater,
-  std::shared_ptr<IInputProvider> input_provider,
+  IInputProvider* input_provider,
   OutputHandler* output_handler,
   IZeroMQSvc* zmqSvc,
   std::string_view control_connection)
@@ -388,12 +388,16 @@ int allen(
 
   // Lambda with the execution of a thread-stream pair
   const auto stream_thread = [&](unsigned thread_id, unsigned stream_id) {
+    // The InputProvider in RuntimeOptions is a shared_ptr to sort out
+    // memory management for Allen-in-Moore. When called from here it
+    // shouldn't be managed, so provide an empty deleter.
+    std::shared_ptr<IInputProvider> provider {input_provider, [](IInputProvider*) {}};
     return std::thread {run_stream,
                         thread_id,
                         stream_id,
                         device_id,
                         streams[stream_id].get(),
-                        input_provider,
+                        std::move(provider),
                         zmqSvc,
                         checker_invoker.get(),
                         root_service.get(),
@@ -406,7 +410,7 @@ int allen(
   // Lambda with the execution of the input thread that polls the
   // input provider for slices.
   const auto slice_thread = [&](unsigned thread_id, unsigned) {
-    return std::thread {run_slices, thread_id, zmqSvc, input_provider.get()};
+    return std::thread {run_slices, thread_id, zmqSvc, input_provider};
   };
 
   // Lambda with the execution of the output thread
@@ -1096,7 +1100,7 @@ loop_error:
               << output_handler->connection() << "\n";
   }
 
-  input_provider.reset();
+  input_provider->release_buffers();
 
   // Reset device
   Allen::device_reset();
