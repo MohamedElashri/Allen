@@ -151,6 +151,8 @@ public:
 
   void copy_banks(size_t const, unsigned int const, gsl::span<char>) const override {}
 
+  bool release_buffers() override { return true; }
+
 private:
   // Mapping of LHCb::RawBank::BankType to Allen::BankType
   const std::array<int, LHCb::RawBank::types().size()> m_bank_ids_mapping = Allen::bank_ids();

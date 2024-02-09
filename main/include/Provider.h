@@ -43,7 +43,7 @@ namespace Allen {
 
   std::string sequence_conf(std::map<std::string, std::string> const& options);
 
-  std::shared_ptr<IInputProvider> make_provider(
+  std::unique_ptr<IInputProvider> make_provider(
     std::map<std::string, std::string> const& options,
     std::string_view configuration);
 

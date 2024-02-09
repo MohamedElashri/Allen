@@ -107,9 +107,22 @@ void free_slices(Allen::Slices& slices)
 {
   for (auto& bank_slices : slices) {
     for (auto& slice : bank_slices) {
-      if (!slice.fragments.empty() && !slice.fragments[0].empty()) Allen::free_host(slice.fragments[0].data());
-      if (!slice.offsets.empty()) Allen::free_host(slice.offsets.data());
-      if (!slice.sizes.empty()) Allen::free_host(slice.sizes.data());
+      if (!slice.fragments.empty() && !slice.fragments[0].empty()) {
+        Allen::free_host(slice.fragments[0].data());
+        slice.fragments[0] = gsl::span<char> {};
+      }
+      if (!slice.offsets.empty()) {
+        Allen::free_host(slice.offsets.data());
+        slice.offsets = offsets_span {};
+      }
+      if (!slice.sizes.empty()) {
+        Allen::free_host(slice.sizes.data());
+        slice.sizes = offsets_span {};
+      }
+      if (!slice.types.empty()) {
+        Allen::free_host(slice.types.data());
+        slice.types = offsets_span {};
+      }
     }
   }
 }

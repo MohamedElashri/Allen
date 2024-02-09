@@ -66,7 +66,7 @@ struct Config {
 namespace {
   Config s_config;
 
-  std::shared_ptr<IInputProvider> mdf;
+  std::unique_ptr<IInputProvider> mdf;
   SmartIF<IStateful> app;
   IInputProvider* mep;
 

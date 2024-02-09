@@ -250,8 +250,13 @@ public:
     for (auto& thread : m_transpose_threads) {
       thread.join();
     }
+    release_buffers();
+  }
 
+  bool release_buffers() override
+  {
     free_slices(m_slices);
+    return true;
   }
 
   /**

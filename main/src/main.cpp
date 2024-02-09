@@ -139,5 +139,5 @@ int main(int argc, char* argv[])
   auto output_handler = Allen::output_handler(input_provider.get(), zmqSvc, allen_options);
 
   return allen(
-    std::move(allen_options), configuration, &updater, std::move(input_provider), output_handler.get(), zmqSvc, "");
+    std::move(allen_options), configuration, &updater, input_provider.get(), output_handler.get(), zmqSvc, "");
 }

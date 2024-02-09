@@ -164,7 +164,7 @@ Allen::IOConf Allen::io_configuration(
   return io_conf;
 }
 
-std::shared_ptr<IInputProvider> Allen::make_provider(
+std::unique_ptr<IInputProvider> Allen::make_provider(
   std::map<std::string, std::string> const& options,
   std::string_view configuration)
 {
@@ -294,7 +294,7 @@ std::shared_ptr<IInputProvider> Allen::make_provider(
                               io_conf.n_io_reps,         // number of loops over the input files
                               !disable_run_changes,      // Whether to split slices by run number
                               skip_banks};
-    return std::make_shared<MDFProvider>(
+    return std::make_unique<MDFProvider>(
       io_conf.number_of_slices, events_per_slice, n_events, connections, bank_types, config);
   }
   return {};
