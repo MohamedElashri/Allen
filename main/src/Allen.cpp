@@ -126,7 +126,7 @@ int allen(
   size_t const n_io = n_input + n_write;
 
   std::string flag, arg;
-  bool enable_monitoring_printing = false;
+  [[maybe_unused]] bool enable_monitoring_printing = false;
   [[maybe_unused]] bool register_monitoring_counters = true;
 
   // Use flags to populate variables in the program
