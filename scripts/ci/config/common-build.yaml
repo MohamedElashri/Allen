@@ -65,6 +65,7 @@
       - build*/test/unit_tests/unit_tests
       - build*/test/unit_tests/*cmake
       - build*/toolchain/*
+      - build*/build.log
   tags:
     - cvmfs
   # retry: 2

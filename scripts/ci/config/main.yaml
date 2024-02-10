@@ -22,6 +22,18 @@ build:
     - .build_job_minimal_matrix
   stage: build
 
+check-warnings:
+  extends:
+    - .default_rules
+    - .build_job_minimal_matrix
+  stage: check-warnings
+  tags: [cvmfs]
+  script:
+    - source scripts/ci/common.sh
+    - cd "${BUILD_FOLDER}" && ls
+    - "if [[ $(cat build.log | grep warning -i) ]]; then cat build.log | grep warning -i; exit 1; fi"
+  allow_failure: true
+
 .run_job:
   extends: .run_jobs_minimal
   stage: run

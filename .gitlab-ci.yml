@@ -26,6 +26,7 @@ variables:
 stages:
   - check            # Ensures the CI environment is valid
   - build
+  - check-warnings
   - run              # Build and run (throughput, efficiency, etc...)
   - test             # Runs various tests of the software
   - publish          # Publishes the results of the tests and runs in channels and grafana
