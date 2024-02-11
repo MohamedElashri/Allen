@@ -374,7 +374,7 @@ namespace Allen {
         __host__ __device__ float ip_chi2() const
         {
           if (!has_pv()) {
-            return -1.f;
+            return -999.f;
           }
 
           // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
@@ -408,7 +408,7 @@ namespace Allen {
         __host__ __device__ float ip() const
         {
           if (!has_pv()) {
-            return -1.f;
+            return -999.f;
           }
 
           const float tx = state().tx();
@@ -417,6 +417,28 @@ namespace Allen {
           const float dx = state().x() + dz * tx - m_pv->position.x;
           const float dy = state().y() + dz * ty - m_pv->position.y;
           return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
+        }
+
+        __host__ __device__ float ip_x() const
+        {
+          if (!has_pv()) {
+            return -999.f;
+          }
+
+          const float tx = state().tx();
+          const float dz = m_pv->position.z - state().z();
+          return state().x() + dz * tx - m_pv->position.x;
+        }
+
+        __host__ __device__ float ip_y() const
+        {
+          if (!has_pv()) {
+            return -999.f;
+          }
+
+          const float ty = state().ty();
+          const float dz = m_pv->position.z - state().z();
+          return state().y() + dz * ty - m_pv->position.y;
         }
       };
 

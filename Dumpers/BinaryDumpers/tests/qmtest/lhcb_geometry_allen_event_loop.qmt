@@ -28,7 +28,7 @@
     <text>--monitoring-filename</text><text>allen_event_loop.root</text>
     <text>-n</text><text>10000</text>
   </set></argument>
-  <arguement name="timeout"><integer>600</integer></arguement>
+  <argument name="timeout"><integer>600</integer></argument>
   <argument name="validator"><text>
 countErrorLines({"FATAL":0,"ERROR":0,"WARNING":0})
 

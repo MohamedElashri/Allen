@@ -484,6 +484,8 @@ def make_seeding_tracks(
         seed_confirmTracks_consolidate.dev_used_scifi_hits_t,
         "dev_scifi_multi_event_tracks_view":
         seed_confirmTracks_consolidate.dev_scifi_multi_event_tracks_view_t,
+        "dev_scifi_hit_offsets":
+        decoded_scifi["dev_scifi_hit_offsets"]
     }
 
 

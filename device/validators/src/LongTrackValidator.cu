@@ -50,9 +50,9 @@ void long_track_validator::long_track_validator_t::operator()(
     const auto evnum = event_list[i];
     const auto event_offset = event_tracks_offsets[evnum];
     const auto n_tracks = event_tracks_offsets[evnum + 1] - event_offset;
-    std::vector<Checker::Track> event_trakcs = {long_tracks_for_checker.begin() + event_offset,
+    std::vector<Checker::Track> event_tracks = {long_tracks_for_checker.begin() + event_offset,
                                                 long_tracks_for_checker.begin() + event_offset + n_tracks};
-    tracks[i] = event_trakcs;
+    tracks[i] = event_tracks;
   }
 
   auto& checker =
