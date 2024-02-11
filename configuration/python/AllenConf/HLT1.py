@@ -642,6 +642,7 @@ def setup_hlt1_node(enablePhysics=True,
                     with_muon=True,
                     with_v0s=True,
                     with_rich=False,
+                    with_AC_split=False,
                     enableBGI=False,
                     velo_open=False,
                     enableDownstream=False,
@@ -658,6 +659,7 @@ def setup_hlt1_node(enablePhysics=True,
         enableDownstream=enableDownstream,
         tracking_type=tracking_type,
         velo_open=velo_open,
+        with_AC_split=with_AC_split,
         with_rich=with_rich)
 
     hlt1_config['reconstruction'] = reconstructed_objects
@@ -888,7 +890,8 @@ def setup_hlt1_node(enablePhysics=True,
     else:
         validation_node = validator_node(
             reconstructed_objects, line_algorithms,
-            includes_matching(tracking_type), with_ut, with_muon, prefilters)
+            includes_matching(tracking_type), with_ut, with_muon,
+            with_AC_split, prefilters)
         hlt1_config['validator_node'] = validation_node
 
         node = CompositeNode(

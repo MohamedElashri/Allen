@@ -13,7 +13,8 @@ from AllenCore.algorithms import (
     velo_estimate_input_size_t, velo_masked_clustering_t, velo_sort_by_phi_t,
     velo_search_by_triplet_t, velo_three_hit_tracks_filter_t,
     velo_copy_track_hit_number_t, velo_consolidate_tracks_t,
-    velo_kalman_filter_t, filter_velo_tracks_t,
+    tracks_ACsplit_counters_t, tracks_ACsplit_t, velo_kalman_filter_t,
+    filter_velo_tracks_t,
     calculate_number_of_retinaclusters_each_sensor_pair_t,
     decode_retinaclusters_t)
 from AllenConf.utils import initialize_number_of_events
@@ -171,16 +172,17 @@ def decode_velo(retina_decoding=True):
         }
 
 
-def make_velo_tracks(decoded_velo):
+def make_pr_velo_tracks(decoded_velo):
+
     number_of_events = initialize_number_of_events()
-    dev_sorted_velo_cluster_container = decoded_velo[
-        "dev_sorted_velo_cluster_container"]
     dev_module_cluster_num = decoded_velo["dev_module_cluster_num"]
-    dev_offsets_estimated_input_size = decoded_velo[
-        "dev_offsets_estimated_input_size"]
+    dev_velo_clusters = decoded_velo["dev_velo_clusters"]
     host_total_number_of_velo_clusters = decoded_velo[
         "host_total_number_of_velo_clusters"]
-    dev_velo_clusters = decoded_velo["dev_velo_clusters"]
+    dev_sorted_velo_cluster_container = decoded_velo[
+        "dev_sorted_velo_cluster_container"]
+    dev_offsets_estimated_input_size = decoded_velo[
+        "dev_offsets_estimated_input_size"]
 
     velo_search_by_triplet = make_algorithm(
         velo_search_by_triplet_t,
@@ -239,12 +241,39 @@ def make_velo_tracks(decoded_velo):
         prefix_sum_offsets_number_of_three_hit_tracks_filtered.
         dev_output_buffer_t,
     )
+    return {
+        "dev_velo_track_hit_number":
+        velo_copy_track_hit_number.dev_velo_track_hit_number_t,
+        "host_number_of_reconstructed_velo_tracks":
+        velo_copy_track_hit_number.host_number_of_reconstructed_velo_tracks_t,
+        "host_number_of_three_hit_tracks_filtered":
+        prefix_sum_offsets_number_of_three_hit_tracks_filtered.
+        host_total_sum_holder_t,
+        "dev_offsets_all_velo_tracks":
+        velo_copy_track_hit_number.dev_offsets_all_velo_tracks_t,
+        "dev_tracks":
+        velo_search_by_triplet.dev_tracks_t,
+        "dev_three_hit_tracks_output":
+        velo_three_hit_tracks_filter.dev_three_hit_tracks_output_t,
+        "dev_offsets_number_of_three_hit_tracks_filtered":
+        prefix_sum_offsets_number_of_three_hit_tracks_filtered.
+        dev_output_buffer_t,
+    }
+
+
+def make_velo_tracks(decoded_velo):
+    number_of_events = initialize_number_of_events()
+    velo_tracks_preparation = make_pr_velo_tracks(decoded_velo)
+    dev_sorted_velo_cluster_container = decoded_velo[
+        "dev_sorted_velo_cluster_container"]
+    dev_offsets_estimated_input_size = decoded_velo[
+        "dev_offsets_estimated_input_size"]
 
     prefix_sum_offsets_velo_track_hit_number = make_algorithm(
         host_prefix_sum_t,
         name="prefix_sum_offsets_velo_track_hit_number",
-        dev_input_buffer_t=velo_copy_track_hit_number.
-        dev_velo_track_hit_number_t,
+        dev_input_buffer_t=velo_tracks_preparation[
+            "dev_velo_track_hit_number"],
     )
 
     velo_consolidate_tracks = make_algorithm(
@@ -252,34 +281,33 @@ def make_velo_tracks(decoded_velo):
         name="velo_consolidate_tracks",
         host_accumulated_number_of_hits_in_velo_tracks_t=
         prefix_sum_offsets_velo_track_hit_number.host_total_sum_holder_t,
-        host_number_of_reconstructed_velo_tracks_t=velo_copy_track_hit_number.
-        host_number_of_reconstructed_velo_tracks_t,
-        host_number_of_three_hit_tracks_filtered_t=
-        prefix_sum_offsets_number_of_three_hit_tracks_filtered.
-        host_total_sum_holder_t,
+        host_number_of_reconstructed_velo_tracks_t=velo_tracks_preparation[
+            "host_number_of_reconstructed_velo_tracks"],
+        host_number_of_three_hit_tracks_filtered_t=velo_tracks_preparation[
+            "host_number_of_three_hit_tracks_filtered"],
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_offsets_all_velo_tracks_t=velo_copy_track_hit_number.
-        dev_offsets_all_velo_tracks_t,
-        dev_tracks_t=velo_search_by_triplet.dev_tracks_t,
+        dev_offsets_all_velo_tracks_t=velo_tracks_preparation[
+            "dev_offsets_all_velo_tracks"],
+        dev_tracks_t=velo_tracks_preparation["dev_tracks"],
         dev_offsets_velo_track_hit_number_t=
         prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t,
         dev_sorted_velo_cluster_container_t=dev_sorted_velo_cluster_container,
         dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
-        dev_three_hit_tracks_output_t=velo_three_hit_tracks_filter.
-        dev_three_hit_tracks_output_t,
+        dev_three_hit_tracks_output_t=velo_tracks_preparation[
+            "dev_three_hit_tracks_output"],
         dev_offsets_number_of_three_hit_tracks_filtered_t=
-        prefix_sum_offsets_number_of_three_hit_tracks_filtered.
-        dev_output_buffer_t,
+        velo_tracks_preparation[
+            "dev_offsets_number_of_three_hit_tracks_filtered"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
     )
 
     return {
         "host_number_of_reconstructed_velo_tracks":
-        velo_copy_track_hit_number.host_number_of_reconstructed_velo_tracks_t,
+        velo_tracks_preparation["host_number_of_reconstructed_velo_tracks"],
         "dev_velo_track_hits":
         velo_consolidate_tracks.dev_velo_track_hits_t,
         "dev_offsets_all_velo_tracks":
-        velo_copy_track_hit_number.dev_offsets_all_velo_tracks_t,
+        velo_tracks_preparation["dev_offsets_all_velo_tracks"],
         "dev_offsets_velo_track_hit_number":
         prefix_sum_offsets_velo_track_hit_number.dev_output_buffer_t,
         "dev_accepted_velo_tracks":
@@ -299,12 +327,213 @@ def make_velo_tracks(decoded_velo):
     }
 
 
+def make_velo_tracks_ACsplit(decoded_velo):
+
+    number_of_events = initialize_number_of_events()
+    velo_tracks_preparation = make_pr_velo_tracks(decoded_velo)
+
+    host_total_number_of_velo_clusters = decoded_velo[
+        "host_total_number_of_velo_clusters"]
+    dev_sorted_velo_cluster_container = decoded_velo[
+        "dev_sorted_velo_cluster_container"]
+    dev_offsets_estimated_input_size = decoded_velo[
+        "dev_offsets_estimated_input_size"]
+
+    tracks_ACsplit_counters = make_algorithm(
+        tracks_ACsplit_counters_t,
+        name="tracks_ACsplit_counters",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_tracks_t=velo_tracks_preparation["dev_tracks"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_three_hit_tracks_output_t=velo_tracks_preparation[
+            "dev_three_hit_tracks_output"],
+        dev_offsets_all_velo_tracks_t=velo_tracks_preparation[
+            "dev_offsets_all_velo_tracks"],
+        dev_offsets_number_of_three_hit_tracks_filtered_t=
+        velo_tracks_preparation[
+            "dev_offsets_number_of_three_hit_tracks_filtered"],
+        dev_sorted_velo_cluster_container_t=dev_sorted_velo_cluster_container,
+        dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
+        splitting_algorithm="A/C split")
+
+    prefix_sum_offsets_number_of_three_hit_tracks_filtered_A_side = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_sum_offsets_number_of_three_hit_tracks_A_side_filtered",
+        dev_input_buffer_t=tracks_ACsplit_counters.
+        dev_number_of_three_hit_tracks_filtered_A_side_t,
+    )
+
+    prefix_sum_offsets_velo_tracks_A_side = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_sum_offsets_velo_tracks_A_side",
+        dev_input_buffer_t=tracks_ACsplit_counters.
+        dev_number_of_velo_tracks_A_side_t,
+    )
+
+    prefix_sum_offsets_number_of_three_hit_tracks_filtered_C_side = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_sum_offsets_number_of_three_hit_tracks_C_side_filtered",
+        dev_input_buffer_t=tracks_ACsplit_counters.
+        dev_number_of_three_hit_tracks_filtered_C_side_t,
+    )
+
+    prefix_sum_offsets_velo_tracks_C_side = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_sum_offsets_velo_tracks_C_side",
+        dev_input_buffer_t=tracks_ACsplit_counters.
+        dev_number_of_velo_tracks_C_side_t,
+    )
+    #--------------------Splitting of tracks on A/C sides starts here-----------------------
+
+    tracks_ACsplit = make_algorithm(
+        tracks_ACsplit_t,
+        name="tracks_ACsplit",
+        host_number_of_reconstructed_velo_tracks_A_side_t=
+        prefix_sum_offsets_velo_tracks_A_side.host_total_sum_holder_t,
+        host_number_of_reconstructed_velo_tracks_C_side_t=
+        prefix_sum_offsets_velo_tracks_C_side.host_total_sum_holder_t,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_total_number_of_velo_clusters_t=host_total_number_of_velo_clusters,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_tracks_t=velo_tracks_preparation["dev_tracks"],
+        dev_offsets_all_velo_tracks_t=velo_tracks_preparation[
+            "dev_offsets_all_velo_tracks"],
+        dev_offsets_velo_tracks_A_side_t=prefix_sum_offsets_velo_tracks_A_side.
+        dev_output_buffer_t,
+        dev_offsets_velo_tracks_C_side_t=prefix_sum_offsets_velo_tracks_C_side.
+        dev_output_buffer_t,
+        dev_sorted_velo_cluster_container_t=dev_sorted_velo_cluster_container,
+        dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
+        dev_three_hit_tracks_output_t=velo_tracks_preparation[
+            "dev_three_hit_tracks_output"],
+        dev_offsets_number_of_three_hit_tracks_filtered_t=
+        velo_tracks_preparation[
+            "dev_offsets_number_of_three_hit_tracks_filtered"],
+        splitting_algorithm="A/C split")
+
+    prefix_offsets_velo_track_hit_number_A_side = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_offsets_velo_track_hit_number_A_side",
+        dev_input_buffer_t=tracks_ACsplit.
+        dev_offsets_velo_track_hit_number_A_side_t,
+    )
+
+    prefix_offsets_velo_track_hit_number_C_side = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_offsets_velo_track_hit_number_C_side",
+        dev_input_buffer_t=tracks_ACsplit.
+        dev_offsets_velo_track_hit_number_C_side_t,
+    )
+
+    velo_consolidate_tracks_A_side = make_algorithm(
+        velo_consolidate_tracks_t,
+        name="velo_consolidate_tracks_A_tracks",
+        host_accumulated_number_of_hits_in_velo_tracks_t=
+        prefix_offsets_velo_track_hit_number_A_side.host_total_sum_holder_t,
+        host_number_of_reconstructed_velo_tracks_t=
+        prefix_sum_offsets_velo_tracks_A_side.host_total_sum_holder_t,
+        host_number_of_three_hit_tracks_filtered_t=
+        prefix_sum_offsets_number_of_three_hit_tracks_filtered_A_side.
+        host_total_sum_holder_t,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_offsets_all_velo_tracks_t=prefix_sum_offsets_velo_tracks_A_side.
+        dev_output_buffer_t,
+        dev_tracks_t=tracks_ACsplit.dev_tracks_A_side_t,
+        dev_offsets_velo_track_hit_number_t=
+        prefix_offsets_velo_track_hit_number_A_side.dev_output_buffer_t,
+        dev_sorted_velo_cluster_container_t=dev_sorted_velo_cluster_container,
+        dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
+        dev_three_hit_tracks_output_t=tracks_ACsplit.
+        dev_three_hit_tracks_output_A_side_t,
+        dev_offsets_number_of_three_hit_tracks_filtered_t=
+        prefix_sum_offsets_number_of_three_hit_tracks_filtered_A_side.
+        dev_output_buffer_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+    )
+
+    velo_consolidate_tracks_C_side = make_algorithm(
+        velo_consolidate_tracks_t,
+        name="velo_consolidate_tracks_C_tracks",
+        host_accumulated_number_of_hits_in_velo_tracks_t=
+        prefix_offsets_velo_track_hit_number_C_side.host_total_sum_holder_t,
+        host_number_of_reconstructed_velo_tracks_t=
+        prefix_sum_offsets_velo_tracks_C_side.host_total_sum_holder_t,
+        host_number_of_three_hit_tracks_filtered_t=
+        prefix_sum_offsets_number_of_three_hit_tracks_filtered_C_side.
+        host_total_sum_holder_t,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_offsets_all_velo_tracks_t=prefix_sum_offsets_velo_tracks_C_side.
+        dev_output_buffer_t,
+        dev_tracks_t=tracks_ACsplit.dev_tracks_C_side_t,
+        dev_offsets_velo_track_hit_number_t=
+        prefix_offsets_velo_track_hit_number_C_side.dev_output_buffer_t,
+        dev_sorted_velo_cluster_container_t=dev_sorted_velo_cluster_container,
+        dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
+        dev_three_hit_tracks_output_t=tracks_ACsplit.
+        dev_three_hit_tracks_output_C_side_t,
+        dev_offsets_number_of_three_hit_tracks_filtered_t=
+        prefix_sum_offsets_number_of_three_hit_tracks_filtered_C_side.
+        dev_output_buffer_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+    )
+
+    return (
+        {
+            "host_number_of_reconstructed_velo_tracks":
+            prefix_sum_offsets_velo_tracks_A_side.host_total_sum_holder_t,
+            "dev_velo_track_hits":
+            velo_consolidate_tracks_A_side.dev_velo_track_hits_t,
+            "dev_offsets_all_velo_tracks":
+            prefix_sum_offsets_velo_tracks_A_side.dev_output_buffer_t,
+            "dev_offsets_velo_track_hit_number":
+            prefix_offsets_velo_track_hit_number_A_side.dev_output_buffer_t,
+            "dev_accepted_velo_tracks":
+            velo_consolidate_tracks_A_side.dev_accepted_velo_tracks_t,
+            "dev_velo_tracks_view":
+            velo_consolidate_tracks_A_side.dev_velo_tracks_view_t,
+            "dev_velo_multi_event_tracks_view":
+            velo_consolidate_tracks_A_side.dev_velo_multi_event_tracks_view_t,
+            "dev_imec_velo_tracks":
+            velo_consolidate_tracks_A_side.dev_imec_velo_tracks_t,
+
+            # Needed for long track particles dependencies.
+            "dev_velo_track_view":
+            velo_consolidate_tracks_A_side.dev_velo_track_view_t,
+            "dev_velo_hits_view":
+            velo_consolidate_tracks_A_side.dev_velo_hits_view_t
+        },
+        {
+            "host_number_of_reconstructed_velo_tracks":
+            prefix_sum_offsets_velo_tracks_C_side.host_total_sum_holder_t,
+            "dev_velo_track_hits":
+            velo_consolidate_tracks_C_side.dev_velo_track_hits_t,
+            "dev_offsets_all_velo_tracks":
+            prefix_sum_offsets_velo_tracks_C_side.dev_output_buffer_t,
+            "dev_offsets_velo_track_hit_number":
+            prefix_offsets_velo_track_hit_number_C_side.dev_output_buffer_t,
+            "dev_accepted_velo_tracks":
+            velo_consolidate_tracks_C_side.dev_accepted_velo_tracks_t,
+            "dev_velo_tracks_view":
+            velo_consolidate_tracks_C_side.dev_velo_tracks_view_t,
+            "dev_velo_multi_event_tracks_view":
+            velo_consolidate_tracks_C_side.dev_velo_multi_event_tracks_view_t,
+            "dev_imec_velo_tracks":
+            velo_consolidate_tracks_C_side.dev_imec_velo_tracks_t,
+
+            # Needed for long track particles dependencies.
+            "dev_velo_track_view":
+            velo_consolidate_tracks_C_side.dev_velo_track_view_t,
+            "dev_velo_hits_view":
+            velo_consolidate_tracks_C_side.dev_velo_hits_view_t
+        })
+
+
 def run_velo_kalman_filter(velo_tracks):
     number_of_events = initialize_number_of_events()
 
     velo_kalman_filter = make_algorithm(
         velo_kalman_filter_t,
-        name="velo_kalman_filter",
+        name="velo_kalman_filter_{hash}",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_velo_tracks_t=velo_tracks[

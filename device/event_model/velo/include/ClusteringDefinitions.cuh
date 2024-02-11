@@ -221,3 +221,8 @@ __device__ __host__ inline int32_t get_lhcb_id(const int32_t cid)
 {
   return lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::VELO, cid);
 }
+
+__device__ __host__ inline uint32_t get_module_number(const unsigned lhcb_id)
+{
+  return (((lhcb_id) &Allen::VPChannelID::sensorMask) >> Allen::VPChannelID::sensorBits) / 4;
+}

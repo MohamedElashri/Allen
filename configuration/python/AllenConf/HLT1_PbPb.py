@@ -328,6 +328,7 @@ def setup_hlt1_node(withMCChecking=False,
                     with_odin_filter=True,
                     tracking_type=TrackingType.FORWARD,
                     with_ut=True,
+                    with_AC_split=False,
                     prescale=False,
                     with_muon=True,
                     reco_particles=False,
@@ -339,7 +340,9 @@ def setup_hlt1_node(withMCChecking=False,
 
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(
-        with_ut=with_ut, tracking_type=tracking_type)
+        with_ut=with_ut,
+        tracking_type=tracking_type,
+        with_AC_split=with_AC_split)
 
     hlt1_config['reconstruction'] = reconstructed_objects
 
@@ -541,7 +544,8 @@ def setup_hlt1_node(withMCChecking=False,
     else:
         validation_node = validator_node(
             reconstructed_objects, line_algorithms,
-            includes_matching(tracking_type), with_ut, with_muon, prefilters)
+            includes_matching(tracking_type), with_ut, with_muon,
+            with_AC_split, prefilters)
         hlt1_config['validator_node'] = validation_node
 
         node = CompositeNode(

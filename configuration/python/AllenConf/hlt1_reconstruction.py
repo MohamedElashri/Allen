@@ -8,7 +8,7 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter, filter_tracks_for_material_interactions
+from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter, filter_tracks_for_material_interactions, make_velo_tracks_ACsplit
 from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
 from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
@@ -38,7 +38,8 @@ def hlt1_reconstruction(algorithm_name='',
                         with_muon=True,
                         velo_open=False,
                         enableDownstream=False,
-                        with_rich=False):
+                        with_rich=False,
+                        with_AC_split=False):
     decoded_velo = decode_velo()
     decoded_scifi = decode_scifi()
     velo_tracks = make_velo_tracks(decoded_velo)
@@ -225,6 +226,21 @@ def hlt1_reconstruction(algorithm_name='',
         from AllenConf.rich_reconstruction import decode_rich
         output.update({"decoded_rich": decode_rich()})
 
+    if with_AC_split:
+        velo_tracks_A_side, velo_tracks_C_side = make_velo_tracks_ACsplit(
+            decoded_velo)
+        velo_states_A_side = run_velo_kalman_filter(velo_tracks_A_side)
+        velo_states_C_side = run_velo_kalman_filter(velo_tracks_C_side)
+        pvs_A_side = make_pvs(velo_tracks_A_side, pv_name="_pv_A_side")
+        pvs_C_side = make_pvs(velo_tracks_C_side, pv_name="_pv_C_side")
+        output.update({
+            "velo_tracks_A_side": velo_tracks_A_side,
+            "velo_tracks_C_side": velo_tracks_C_side,
+            "velo_states_A_side": velo_states_A_side,
+            "velo_states_C_side": velo_states_C_side,
+            "pvs_A_side": pvs_A_side,
+            "pvs_C_side": pvs_C_side,
+        })
     return output
 
 
@@ -244,6 +260,7 @@ def validator_node(reconstructed_objects,
                    matching,
                    with_ut,
                    with_muon,
+                   with_AC_split,
                    prefilters=[]):
 
     validators = [velo_validation(reconstructed_objects["velo_tracks"])]
@@ -272,6 +289,44 @@ def validator_node(reconstructed_objects,
             make_sel_report_writer(lines=line_algorithms),
             make_gather_selections(lines=line_algorithms))
     ]
+
+    if with_AC_split:
+        validators += [
+            make_composite_node_with_gec(
+                "velo_validation_A_side",
+                velo_validation(
+                    reconstructed_objects["velo_tracks_A_side"],
+                    name="velo_validator_A_side"),
+                with_scifi=True,
+                with_ut=with_ut)
+        ]
+        validators += [
+            make_composite_node_with_gec(
+                "velo_validation_C_side",
+                velo_validation(
+                    reconstructed_objects["velo_tracks_C_side"],
+                    name="velo_validator_C_side"),
+                with_scifi=True,
+                with_ut=with_ut)
+        ]
+        validators += [
+            make_composite_node_with_gec(
+                "pv_validation_A_side",
+                pv_validation(
+                    reconstructed_objects["pvs_A_side"],
+                    name="pv_validator_A_side"),
+                with_scifi=True,
+                with_ut=with_ut)
+        ]
+        validators += [
+            make_composite_node_with_gec(
+                "pv_validation_C_side",
+                pv_validation(
+                    reconstructed_objects["pvs_C_side"],
+                    name="pv_validator_C_side"),
+                with_scifi=True,
+                with_ut=with_ut)
+        ]
 
     return CompositeNode(
         "Validators",
