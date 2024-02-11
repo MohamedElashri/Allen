@@ -254,6 +254,7 @@ full:
       - hlt1_pp_matching_no_ut_validation
       - hlt1_pp_forward_then_matching_validation
       - hlt1_pp_forward_then_matching_no_ut_validation
+      - velo_ACsplit_validation
     dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID_v2_new_UT_geometry"
     geometry: "upgrade_DC19_01_MinBiasMD_new_UT_geometry"
 
