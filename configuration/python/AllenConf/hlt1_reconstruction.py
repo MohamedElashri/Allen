@@ -22,6 +22,8 @@ from AllenConf.secondary_vertex_reconstruction import (
 from AllenConf.validators import (
     velo_validation, veloUT_validation, seeding_validation, long_validation,
     muon_validation, pv_validation, kalman_validation, selreport_validation,
+    data_quality_validation_long, data_quality_validation_occupancy,
+    data_quality_validation_pv, data_quality_validation_velo,
     downstream_validation)
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
@@ -237,6 +239,86 @@ def make_composite_node_with_gec(alg_name,
         alg_name, [make_gec(count_scifi=with_scifi, count_ut=with_ut), alg],
         NodeLogic.LAZY_AND,
         force_order=True)
+
+
+def make_dq_node(reconstructed_matching,
+                 reconstructed_forward,
+                 line_algorithms,
+                 methods=["forward", "matching", "occupancy", "pv", "velo"]):
+    #N.B. if more 'methods' are added to the ODQV later, make sure to update Allen/Dumpers/BinaryDumpers/tests/qmtest/lhcb_ODQV.qmt line 35
+
+    nodes = [
+        data_quality_node(
+            reconstructed_forward if method == "forward" else
+            reconstructed_matching, line_algorithms, method)
+        for method in methods
+    ]
+
+    return CompositeNode(
+        "AllenWithDataQuality",
+        nodes,
+        NodeLogic.NONLAZY_AND,
+        force_order=False)
+
+
+def data_quality_node(reconstructed_objects=None,
+                      line_algorithms=None,
+                      method=""):
+
+    validators = []
+    if method in ["forward", "matching"]:
+        validators = [
+            CompositeNode(
+                f"data_quality_validation_{method}", [
+                    data_quality_validation_long(
+                        reconstructed_objects["long_tracks"],
+                        reconstructed_objects["long_track_particles"],
+                        f"data_quality_validation_{method}")
+                ],
+                NodeLogic.LAZY_AND,
+                force_order=True)
+        ]
+    elif method == "occupancy":
+        validators = [
+            CompositeNode(
+                f"data_quality_validation_{method}", [
+                    data_quality_validation_occupancy(
+                        f"data_quality_validation_{method}")
+                ],
+                NodeLogic.LAZY_AND,
+                force_order=True)
+        ]
+    elif method == "pv":
+        validators = [
+            CompositeNode(
+                f"data_quality_validation_{method}", [
+                    data_quality_validation_pv(
+                        reconstructed_objects["long_tracks"],
+                        f"data_quality_validation_{method}")
+                ],
+                NodeLogic.LAZY_AND,
+                force_order=True)
+        ]
+    elif method == "velo":
+        validators = [
+            CompositeNode(
+                f"data_quality_validation_{method}", [
+                    data_quality_validation_velo(
+                        reconstructed_objects["long_tracks"],
+                        f"data_quality_validation_{method}")
+                ],
+                NodeLogic.LAZY_AND,
+                force_order=True)
+        ]
+    else:
+        print(
+            f"WARNING : validator with method {method} is not implimented. See file {__file__}"
+        )
+    return CompositeNode(
+        f"DQ_Validators_{method}",
+        validators,
+        NodeLogic.NONLAZY_AND,
+        force_order=False)
 
 
 def validator_node(reconstructed_objects,

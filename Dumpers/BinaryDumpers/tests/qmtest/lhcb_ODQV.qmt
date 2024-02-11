@@ -1,0 +1,78 @@
+<?xml version="1.0" ?><!DOCTYPE extension  PUBLIC '-//QM/2.3/Extension//EN'  'http://www.codesourcery.com/qm/dtds/2.3/-//qm/2.3/extension//en.dtd'>
+<!--
+###############################################################################
+# (c) Copyright 2023-2024 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
+###############################################################################
+-->
+<!--
+#######################################################
+# SUMMARY OF THIS TEST
+# ...................
+# Author: Andy Morris
+# Purpose: Use ROOT python bindings to run Offline
+#          Data Quality Validator (ODQV) from the
+#          stack and run the Allen event loop
+#######################################################
+-->
+<extension class="GaudiTest.GaudiExeTest" kind="test">
+  <argument name="program"><text>python</text></argument>
+  <argument name="args"><set>
+    <text>../../options/allen.py</text>
+    <text>--sequence</text><text>$ALLEN_INSTALL_DIR/constants/hlt1_pp_odqv.json</text>
+    <text>--mdf</text><text>root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.mdf</text>
+    <text>--tags=detdesc:dddb-20220705,sim-20220705-vc-md100|dd4hep:trunk,master</text>
+    <text>-n</text><text>10000</text>
+    <text>--monitoring-filename</text><text>allen_odqv_qmtest.root</text>
+  </set></argument>
+  <argument name="timeout"><integer>1200</integer></argument>
+  <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
+  <argument name="validator"><text>
+
+countErrorLines({"FATAL":0,"ERROR":0,"WARNING":0})
+
+import re
+import os
+
+#Check the output file has been made 
+if not os.path.exists("allen_odqv_qmtest.root"):
+    causes.append("Couldn't find file allen_odqv_qmtest.root!\n")
+
+# Check that lines analogous to the following are present:
+# "  data_quality_validation_(occupancy|velo|forward|matching|pv)" from the list of algorithms
+# Ran test for XXX.XXXXX seconds  
+
+modules = ["occupancy", "velo", "forward", "matching", "pv"]
+algorithm_patterns = [re.compile(rf'^  data_quality_validation_{m}$') for m in modules]
+time_pattern = re.compile(r'Ran test for (\d+\.\d+)\s+seconds')
+
+time = None
+algorithms = [None for m in modules]
+
+for line in stdout.split('\n'):
+    #Check the modules are all there
+    for i, alg in enumerate(algorithm_patterns):
+        match = alg.match(line)
+        if match is not None: algorithms[i] = match
+
+    #Check the time elapsed is there 
+    time_pattern_match = time_pattern.match(line)
+    if time_pattern_match:
+       runtime = float(time_pattern_match.group(1))
+
+#If the messages did not appear, log that and fail the test
+for i, module in enumerate(modules):
+    if algorithms[i] is None:
+        causes.append('could not find module: ' + module + ' in stdout\n')
+
+if runtime is None:
+    causes.append('could not parse runtime from stdout')
+
+  </text></argument>
+</extension>

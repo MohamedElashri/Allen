@@ -24,6 +24,7 @@
 #include <cstdint>
 
 #include "LHCbID.cuh"
+#include "ParticleTypes.cuh"
 
 namespace Checker {
   struct Track {

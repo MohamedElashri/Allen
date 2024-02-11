@@ -14,7 +14,10 @@ from collections import defaultdict
 def good_sequence(s):
     physics = s.startswith('hlt1') and 'validation' not in s
     extra = s in ('calo_prescaled_plus_lumi', 'passthrough')
-    return physics or extra
+    # not all lines produce a tck, list them here
+    lines_not_producing_tcks = ['odqv']
+    bad = any([line in s.lower() for line in lines_not_producing_tcks])
+    return (physics or extra) and not bad
 
 
 def print_sequence_differences(a, b):

@@ -14,7 +14,7 @@ from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
 from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
-from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
+from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node, make_dq_node
 from AllenConf.hlt1_inclusive_hadron_lines import make_track_mva_line, make_two_track_mva_line, make_kstopipi_line, make_two_track_line_ks, make_lambda2ppi_line, make_lambda_ll_detached_track_line, make_xi_omega_lll_line
 from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_two_track_mva_charm_xsec_line, make_two_ks_line
 from AllenConf.hlt1_calibration_lines import make_d2kpi_line, make_passthrough_line, make_rich_1_line, make_rich_2_line, make_displaced_dimuon_mass_line, make_di_muon_mass_align_line, make_pi02gammagamma_line
@@ -646,8 +646,8 @@ def setup_hlt1_node(enablePhysics=True,
                     velo_open=False,
                     enableDownstream=False,
                     tracking_type=TrackingType.FORWARD,
-                    tae_passthrough=True):
-
+                    tae_passthrough=True,
+                    data_quality=False):
     hlt1_config = {}
 
     # Reconstruct objects needed as input for selection lines
@@ -882,6 +882,19 @@ def setup_hlt1_node(enablePhysics=True,
             ],
             NodeLogic.NONLAZY_AND,
             force_order=True)
+
+    if data_quality:
+        # Forward reconstructed long tracks are needed for that module
+        # Matching method is already used in reconstructed_objects
+        reconstructed_objects_forward = hlt1_reconstruction(
+            "ODQV_forward",
+            with_calo=with_calo,
+            with_ut=with_ut,
+            with_muon=with_muon,
+            tracking_type=TrackingType.FORWARD)
+        node = make_dq_node(reconstructed_objects,
+                            reconstructed_objects_forward, line_algorithms)
+        return node
 
     if not withMCChecking:
         hlt1_config['control_flow_node'] = hlt1_node
