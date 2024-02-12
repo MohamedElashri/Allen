@@ -94,13 +94,6 @@ full:
     dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
     geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
 
-  # run throughput, default, SMOG2_pppHe
-  - type: "throughput"
-    sequence:
-      - hlt1_pp_default
-      - hlt1_pp_SMOG2_default
-    dataset: "SMOG2_pppHe_retinacluster_v1_newLHCbID_new_UT_geometry"
-    geometry: "SMOG2_pppHe_new_UT_geometry"
 
   # Allen clustering jobs
   - type: "throughput"
@@ -159,6 +152,23 @@ full:
       - hlt1_pp_forward_then_matching_no_ut
     dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
     geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+
+  # run throughput, default, SMOG2_pppHe, exp 2024 conditions 
+  - type: "throughput"
+    sequence:
+      - hlt1_pp_forward_then_matching_no_ut
+      - hlt1_pp_SMOG2_forward_then_matching_no_ut
+    dataset: "ppHeBeam6800GeVexpected2024MagDownandSMOG2Nu7.6andNu0.2Pythia8andEPOS_Sim10c_30000000_5k"
+    geometry: "SMOG2_exp2024"
+
+
+  # run throughput, default, SMOG2_pppAr, exp 2024 conditions 
+  - type: "throughput"
+    sequence:
+      - hlt1_pp_SMOG2_forward_then_matching_no_ut
+      - hlt1_pp_forward_then_matching_no_ut
+    dataset: "SMOG2_pppAr_exp2024_mdf_sim-20231017-vc-md100_5k"
+    geometry: "SMOG2_exp2024"
 
   # run throughput, PbPb samples, 2023 default PbPb sequence
   - type: "throughput"
@@ -258,15 +268,6 @@ full:
     dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID_v2_new_UT_geometry"
     geometry: "upgrade_DC19_01_MinBiasMD_new_UT_geometry"
 
-  # efficiency tests, SMOG2 pHe
-  - type: "efficiency"
-    sequence:
-      - hlt1_pp_validation
-      - hlt1_pp_SMOG2_validation
-      - hlt1_pp_matching_no_ut_validation
-      - hlt1_pp_forward_then_matching_validation
-    dataset: "SMOG2_pHe_5k_retinacluster_v1_newLHCbID_new_UT_geometry"
-    geometry: "SMOG2_pppHe_new_UT_geometry"
 
   - type: "efficiency"
     sequence: "hlt1_pp_veloSP_validation"
@@ -279,7 +280,22 @@ full:
       - hlt1_pp_forward_then_matching_no_ut_validation
     dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6"
     geometry: "geometry_dddb-20231017_sim-20231017-vc-md100"
-  
+
+
+  # efficiency tests, SMOG2 pHe, exp 2024 conditions
+  - type: "efficiency"
+    sequence:
+      - hlt1_pp_SMOG2_forward_then_matching_no_ut_validation
+    dataset: "pHeBeam6800GeV0GeVexpected2024MagDownSMOG2Nu0.2EPOS_Sim10c_30000000_10k"
+    geometry: "SMOG2_exp2024"
+
+  # efficiency tests, SMOG2 pAr, exp 2024 conditions
+  - type: "efficiency"
+    sequence:
+      - hlt1_pp_SMOG2_forward_then_matching_no_ut_validation
+    dataset: "SMOG2_pAr_exp2024_mdf_sim-20231017-vc-md100_10k"
+    geometry: "SMOG2_exp2024"
+
   # run memcheck
   - type: "run_memcheck"
     sanitizer: "memcheck"
