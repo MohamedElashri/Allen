@@ -25,7 +25,9 @@ namespace scifi_calculate_cluster_count {
     DEVICE_INPUT(dev_scifi_raw_input_sizes_t, unsigned) dev_scifi_raw_input_sizes;
     DEVICE_INPUT(dev_scifi_raw_input_types_t, unsigned) dev_scifi_raw_input_types;
     DEVICE_OUTPUT(dev_scifi_hit_count_t, unsigned) dev_scifi_hit_count;
+    DEVICE_OUTPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
     DEVICE_OUTPUT(dev_scifi_link_error_counter_t, unsigned) link_error_counter;
+    HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(
       decode_v8_as_v7_t,

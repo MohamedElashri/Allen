@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #include <MEPTools.h>
 #include <SciFiCalculateClusterCount.cuh>
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(scifi_calculate_cluster_count::scifi_calculate_cluster_count_t)
 
@@ -35,7 +36,8 @@ __global__ void scifi_calculate_cluster_count_kernel(
     parameters.dev_scifi_raw_input_types,
     event_number + event_start);
   const SciFi::SciFiGeometry geom(scifi_geometry);
-  SciFi::HitCount hit_count {parameters.dev_scifi_hit_count, event_number};
+  uint32_t* hit_count = parameters.dev_scifi_hit_count + event_number * SciFi::Constants::n_sipms;
+
   for (unsigned iRawBank = threadIdx.x; iRawBank < scifi_raw_event.number_of_raw_banks(); iRawBank += blockDim.x) {
     uint32_t* hits_module;
 
@@ -60,14 +62,8 @@ __global__ void scifi_calculate_cluster_count_kernel(
           continue;
         }
       }
-      const uint32_t uniqueMat = chid.globalMatIdx_Xorder();
-      unsigned uniqueGroupOrMat;
-      if (uniqueMat < SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank)
-        uniqueGroupOrMat = uniqueMat / SciFi::Constants::n_mats_per_consec_raw_bank;
-      else
-        uniqueGroupOrMat = uniqueMat - SciFi::Constants::mat_index_substract;
-
-      hits_module = hit_count.mat_offsets_p(uniqueGroupOrMat);
+      const uint32_t uniqueGroupOrMat = chid.globalMatIdx_Xorder();
+      hits_module = &hit_count[uniqueGroupOrMat];
 
       if constexpr (decoding_version == 4) {
         // v4 code does not use a special format for a large clusters, then can be added directly
@@ -108,14 +104,29 @@ __global__ void scifi_calculate_cluster_count_kernel(
   }
 }
 
+__global__ void scifi_compress_hits_offset(scifi_calculate_cluster_count::Parameters parameters)
+{
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  for (unsigned i = threadIdx.x; i < SciFi::Constants::n_zones + 1; i += blockDim.x) { // for cpu backend...
+    auto quarter = i * 2;
+    auto first_sipm_in_zone = (quarter * 5 + (quarter >= 32 ? quarter - 32 : 0)) * SciFi::Constants::n_sipms_per_module;
+    parameters.dev_scifi_hit_offsets[event_number * SciFi::Constants::n_zones + i] =
+      parameters.dev_scifi_hit_count[event_number * SciFi::Constants::n_sipms + first_sipm_in_zone];
+  }
+}
+
 void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_scifi_hit_count_t>(
-    arguments, first<host_number_of_events_t>(arguments) * SciFi::Constants::n_mat_groups_and_mats);
+  set_size<dev_scifi_hit_count_t>(arguments, first<host_number_of_events_t>(arguments) * SciFi::Constants::n_sipms + 1);
+  set_size<dev_scifi_hit_offsets_t>(
+    arguments, first<host_number_of_events_t>(arguments) * SciFi::Constants::n_zones + 1);
   set_size<dev_scifi_link_error_counter_t>(arguments, first<host_number_of_events_t>(arguments));
+
+  // The total sum holder just holds a single unsigned integer.
+  set_size<host_total_sum_holder_t>(arguments, 1);
 }
 
 void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
@@ -144,4 +155,13 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, std::get<0>(runtime_options.event_interval), constants.dev_scifi_geometry);
+
+  unsigned array_size = size<dev_scifi_hit_count_t>(arguments) - 1;
+  PrefixSum::prefix_sum(*this, arguments, context, data<dev_scifi_hit_count_t>(arguments), array_size);
+
+  Allen::copy<host_total_sum_holder_t, dev_scifi_hit_count_t>(
+    arguments, context, 1, 0, size<dev_scifi_hit_count_t>(arguments) - 1);
+
+  global_function(scifi_compress_hits_offset)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::Constants::n_zones + 1), context)(arguments);
 }

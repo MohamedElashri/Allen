@@ -17,14 +17,12 @@ __global__ void create_scifi_hit_container(create_reduced_scifi_hit_container::P
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  SciFi::ConstHits hits_input {
-    parameters.dev_scifi_hits_input,
-    parameters.dev_scifi_hit_offsets_input[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::ConstHits hits_input {parameters.dev_scifi_hits_input,
+                               parameters.dev_scifi_hit_offsets_input[number_of_events * SciFi::Constants::n_zones]};
   SciFi::ConstHitCount hit_count_input {parameters.dev_scifi_hit_offsets_input, event_number};
 
-  SciFi::Hits hits_output {
-    parameters.dev_scifi_hits,
-    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+  SciFi::Hits hits_output {parameters.dev_scifi_hits,
+                           parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_zones]};
 
   const auto event_offset_input = hit_count_input.event_offset();
   for (unsigned i = threadIdx.x; i < hit_count_input.event_number_of_hits(); i += blockDim.x) {

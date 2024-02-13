@@ -86,69 +86,15 @@ namespace SciFi {
   struct HitCount_t {
   private:
     Allen::forward_type_t<T, unsigned>* m_mat_offsets;
-    // TODO: Add "total number of hits" to information of this struct
 
   public:
     __host__ __device__ HitCount_t(Allen::forward_type_t<T, unsigned>* base_pointer, const unsigned event_number) :
-      m_mat_offsets(base_pointer + event_number * SciFi::Constants::n_mat_groups_and_mats)
+      m_mat_offsets(base_pointer + event_number * SciFi::Constants::n_zones)
     {}
-
-    __host__ __device__ void inline set_mat_offsets(const unsigned mat_number, const unsigned value)
-    {
-      assert(mat_number < SciFi::Constants::n_mats);
-      m_mat_offsets[mat_number] = value;
-    }
-
-    __host__ __device__ inline unsigned mat_offsets(const unsigned mat_number) const
-    {
-      assert(
-        mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank &&
-        mat_number < SciFi::Constants::n_mats);
-      const unsigned corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
-      return m_mat_offsets[corrected_mat_number];
-    }
-
-    __host__ __device__ inline Allen::forward_type_t<T, unsigned>* mat_offsets_p(const unsigned mat_number) const
-    {
-      return m_mat_offsets + mat_number;
-    }
-
-    __host__ __device__ inline unsigned mat_number_of_hits(const unsigned mat_number) const
-    {
-      assert(mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank);
-      assert(mat_number < SciFi::Constants::n_mats);
-      const unsigned corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
-      return m_mat_offsets[corrected_mat_number + 1] - m_mat_offsets[corrected_mat_number];
-    }
-
-    __host__ __device__ inline unsigned mat_group_offset(const unsigned mat_group_number) const
-    {
-      assert(mat_group_number < SciFi::Constants::n_consecutive_raw_banks);
-      return m_mat_offsets[mat_group_number];
-    }
-
-    __host__ __device__ inline unsigned mat_group_number_of_hits(const unsigned mat_group_number) const
-    {
-      assert(mat_group_number < SciFi::Constants::n_consecutive_raw_banks);
-      return m_mat_offsets[mat_group_number + 1] - m_mat_offsets[mat_group_number];
-    }
-
-    __host__ __device__ inline unsigned mat_group_or_mat_number_of_hits(const unsigned mat_or_mat_group_number) const
-    {
-      assert(mat_or_mat_group_number < SciFi::Constants::n_mat_groups_and_mats);
-      return m_mat_offsets[mat_or_mat_group_number + 1] - m_mat_offsets[mat_or_mat_group_number];
-    }
 
     __host__ __device__ inline unsigned zone_offset(const unsigned zone_number) const
     {
-      // TODO: Make this a constant
-      // constexpr uint32_t first_corrected_unique_mat_in_zone[] = {
-      //   0, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400, 440, 480, 520, 560, 600, 640,
-      //   688, 736, 784, 832, 880, 928, 976, 1024};
-      constexpr uint32_t first_corrected_unique_mat_in_zone[] = {0,   10,  20,  30,  40,  50,  60,  70,  80,
-                                                                 90,  100, 110, 120, 130, 140, 150, 160, 208,
-                                                                 256, 304, 352, 400, 448, 496, 544};
-      return m_mat_offsets[first_corrected_unique_mat_in_zone[zone_number]];
+      return m_mat_offsets[zone_number];
     }
 
     __host__ __device__ inline unsigned zone_number_of_hits(const unsigned zone_number) const
@@ -158,21 +104,10 @@ namespace SciFi {
 
     __host__ __device__ inline unsigned event_number_of_hits() const
     {
-      return m_mat_offsets[SciFi::Constants::n_mat_groups_and_mats] - m_mat_offsets[0];
-    }
-
-    __host__ __device__ inline unsigned number_of_hits_in_zones_without_mat_groups() const
-    {
-      return m_mat_offsets[SciFi::Constants::n_mat_groups_and_mats] -
-             m_mat_offsets[SciFi::Constants::n_consecutive_raw_banks];
+      return m_mat_offsets[SciFi::Constants::n_zones] - m_mat_offsets[0];
     }
 
     __host__ __device__ inline unsigned event_offset() const { return m_mat_offsets[0]; }
-
-    __host__ __device__ inline unsigned offset_zones_without_mat_groups() const
-    {
-      return m_mat_offsets[SciFi::Constants::n_consecutive_raw_banks];
-    }
   };
 
   typedef const HitCount_t<const char> ConstHitCount;

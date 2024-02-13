@@ -40,8 +40,7 @@ __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
   const auto ut_total_number_of_tracks = parameters.dev_atomics_ut[2 * number_of_events];
 
   // SciFi hits
-  const unsigned total_number_of_hits =
-    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+  const unsigned total_number_of_hits = parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_zones];
 
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};

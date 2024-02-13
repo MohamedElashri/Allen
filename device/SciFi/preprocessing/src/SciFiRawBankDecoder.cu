@@ -53,128 +53,66 @@ __device__ void make_cluster(
   hits.assembled_datatype(hit_index) = fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
 }
 
-template<int decoding_version, bool mep_layout>
-__global__ void scifi_raw_bank_decoder_kernel(
-  scifi_raw_bank_decoder::Parameters parameters,
-  const unsigned event_start,
-  const char* scifi_geometry)
+__global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters parameters, const char* scifi_geometry)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   const SciFi::SciFiGeometry geom {scifi_geometry};
-  const auto scifi_raw_event = SciFi::RawEvent<mep_layout>(
-    parameters.dev_scifi_raw_input,
-    parameters.dev_scifi_raw_input_offsets,
-    parameters.dev_scifi_raw_input_sizes,
-    parameters.dev_scifi_raw_input_types,
-    event_number + event_start);
 
   SciFi::Hits hits {parameters.dev_scifi_hits,
-                    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+                    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_zones]};
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
   const unsigned number_of_hits_in_event = hit_count.event_number_of_hits();
   for (unsigned i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
     const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.event_offset() + i];
-    const int raw_bank_number = SciFi::ClusterReference::getRawBank(cluster_reference);
-    const int it_number = SciFi::ClusterReference::getICluster(cluster_reference);
 
-    const auto rawbank = scifi_raw_event.raw_bank(raw_bank_number);
-    if (rawbank.type != LHCb::RawBank::FTCluster) continue;
+    int cluster_chan = SciFi::ClusterReference::getChanID(cluster_reference);
+    int cluster_fraction = SciFi::ClusterReference::getFraction(cluster_reference);
+    int pseudoSize = SciFi::ClusterReference::getPseudoSize(cluster_reference);
 
-    const auto iRowInMap = SciFi::getRowInMap(rawbank, geom);
-    if (iRowInMap == geom.number_of_banks) continue;
-    const auto [starting_it, last] = SciFi::readAndCheckRawBank(rawbank);
-    if (last == starting_it) continue;
-    auto it = starting_it + it_number;
-    const uint16_t c = *it;
+    make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
+  }
+}
 
-    // Call parameters for make_cluster
-    uint32_t cluster_chan;
-    if constexpr (decoding_version == 4 || decoding_version == 6) {
-      const uint32_t ch = geom.bank_first_channel[rawbank.sourceID] + SciFi::channelInBank(c);
-      cluster_chan = ch;
-    }
-    else {
-      auto globalSiPM = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c);
-      if (globalSiPM == SciFi::SciFiChannelID::kInvalidChannelID)
-        continue; // Link not found or local link > 24. Should never happen but seen in early data.
-      cluster_chan = globalSiPM + SciFi::channelInLink(c); //---FIXME
-    }
-    uint8_t cluster_fraction = SciFi::fraction(c);
+__global__ void scifi_verify_decoding_kernel(scifi_raw_bank_decoder::Parameters parameters, const char* scifi_geometry)
+{
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-    if constexpr (decoding_version == 4) {
-      // In v4 decoding clusters may have pseudosize only equal to 0 or 4
-      uint8_t pseudoSize = SciFi::cSize(c) ? 0 : 4;
-      make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
-    }
-    else if constexpr (decoding_version == 7) {
-      const unsigned int condition = SciFi::ClusterReference::getCond(cluster_reference); // FIXME
-      uint8_t pseudoSize = 4;
+  const SciFi::SciFiGeometry geom {scifi_geometry};
 
-      assert(
-        condition != SciFi::ClusterTypes::NullCluster &&
-        "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
+  SciFi::Hits hits {parameters.dev_scifi_hits,
+                    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_zones]};
+  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
 
-      if (condition == SciFi::ClusterTypes::LastCluster) {
-        pseudoSize = 0;
-      }
-      else if (condition > SciFi::ClusterTypes::LastCluster) {
-        const auto c2 = *(it + 1);
-        const auto widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
-        const int delta_parameter = SciFi::ClusterReference::getDelta(cluster_reference);
+  for (unsigned layer = 0; layer < SciFi::Constants::n_zones; layer++) {
+    auto offset = hit_count.zone_offset(layer);
+    auto size = hit_count.zone_number_of_hits(layer);
+    for (unsigned i = 1; i < size; i++) {
+      auto prev = hits.x0(offset + i - 1);
+      auto cur = hits.x0(offset + i);
 
-        if (condition == SciFi::ClusterTypes::BigCluster) {
-          pseudoSize = 0;
-          cluster_fraction = 1;
-          cluster_chan += delta_parameter;
-        }
-        else if (condition == SciFi::ClusterTypes::EdgeCluster) {
-          pseudoSize = 0;
-          cluster_fraction = (widthClus - 1) % 2;
-          cluster_chan += delta_parameter + (widthClus - delta_parameter - 1) / 2 - 1;
-        }
-        else if (condition == SciFi::ClusterTypes::SizeLt8Cluster) {
-          pseudoSize = widthClus;
-          cluster_fraction = (widthClus - 1) % 2;
-          cluster_chan += (widthClus - 1) / 2 - 1;
+      const auto chid =
+        SciFi::SciFiChannelID(SciFi::ClusterReference::getChanID(parameters.dev_cluster_references[offset + i]));
+
+      if (blockIdx.x == 0) {
+        if (cur < prev) {
+          printf(
+            "X: Layer %d not sorted at %d: %f %f %d q=%d l=%d mod=%d mat=%d sipm=%d reverse=%d !\n",
+            layer,
+            i,
+            (double) prev,
+            (double) cur,
+            chid.globalMatIdx_Xorder(),
+            chid.quarter(),
+            chid.layer(),
+            chid.module(),
+            chid.mat(),
+            chid.sipm(),
+            chid.reversedZone());
         }
       }
-      make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
-    }
-    else if constexpr (decoding_version == 6 || decoding_version == 8) {
-      const unsigned int condition = SciFi::ClusterReference::getCond(cluster_reference); // FIXME
-      uint8_t pseudoSize = 4;
-
-      assert(
-        condition != SciFi::ClusterTypes::NullCluster &&
-        "Invalid cluster condition. Usually empty slot due to counting/decoding mismatch.");
-
-      if (condition == SciFi::ClusterTypes::LastCluster) {
-        pseudoSize = 0;
-      }
-      else if (condition > SciFi::ClusterTypes::LastCluster) {
-        const auto c2 = *(it + 1);
-        const auto widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
-        const int delta_parameter = SciFi::ClusterReference::getDelta(cluster_reference);
-
-        if (condition == SciFi::ClusterTypes::BigCluster) {
-          pseudoSize = 0;
-          cluster_fraction = 1;
-          cluster_chan += delta_parameter;
-        }
-        else if (condition == SciFi::ClusterTypes::EdgeCluster) {
-          pseudoSize = 0;
-          cluster_fraction = (widthClus - 1) % 2;
-          cluster_chan += delta_parameter + (widthClus - delta_parameter - 1) / 2 - 1;
-        }
-        else if (condition == SciFi::ClusterTypes::SizeLt8Cluster) {
-          pseudoSize = widthClus;
-          cluster_fraction = (widthClus - 1) % 2;
-          cluster_chan += (widthClus - 1) / 2 - 1;
-        }
-      }
-      make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
     }
   }
 }
@@ -191,26 +129,18 @@ void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::set_arguments_size(
 
 void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants& constants,
   const Allen::Context& context) const
 {
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version < 0) return; // no SciFi banks present in data
 
-  auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
-                     (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<4, true>) :
-                                                   global_function(scifi_raw_bank_decoder_kernel<4, false>)) :
-                     (bank_version == 6) ?
-                     (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<6, true>) :
-                                                   global_function(scifi_raw_bank_decoder_kernel<6, false>)) :
-                     (bank_version == 7 || (bank_version == 8 && property<decode_v8_as_v7_t>())) ?
-                     (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<7, true>) :
-                                                   global_function(scifi_raw_bank_decoder_kernel<7, false>)) :
+  global_function(scifi_raw_bank_decoder_kernel)(
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_scifi_geometry);
 
-                     (runtime_options.mep_layout ? global_function(scifi_raw_bank_decoder_kernel<8, true>) :
-                                                   global_function(scifi_raw_bank_decoder_kernel<8, false>));
-
-  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, std::get<0>(runtime_options.event_interval), constants.dev_scifi_geometry);
+#if ALLEN_DEBUG
+  global_function(scifi_verify_decoding_kernel)(dim3(size<dev_event_list_t>(arguments)), dim3(1), context)(
+    arguments, constants.dev_scifi_geometry);
+#endif
 }

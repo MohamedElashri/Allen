@@ -39,39 +39,13 @@ namespace SciFi {
     static constexpr unsigned n_xzlayers = 6;
     static constexpr unsigned n_uvlayers = 6;
     static constexpr unsigned n_mats = 1024;
+    static constexpr unsigned n_sipms_per_mat = 4;
+    static constexpr unsigned n_sipms_per_module = 4 * n_sipms_per_mat;
+    static constexpr unsigned n_sipms = n_mats * n_sipms_per_mat;
     static constexpr unsigned n_parts = 2;
     static constexpr unsigned max_num_seed_tracks = 6000; // FIXME
     static constexpr int INVALID_IDX = -1;                // FIXME
     static constexpr int INVALID_ID = 0;                  // FIXME
-
-    /**
-     * The following constants are based on the number of modules per quarter.
-     * There are currently 80 raw banks per SciFi station:
-     *
-     *   The first two stations (first 160 raw banks) encode 4 modules per quarter.//FIXME: WRONG
-     *   The last station (raw banks 161 to 240) encode 5 modules per quarter.//FIXME: WRONG
-     *
-     * The raw data is sorted such that every four consecutive modules are either
-     * monotonically increasing or monotonically decreasing, following a particular pattern.
-     * Thus, it is possible to decode the first 160 raw banks in v4 in parallel since the
-     * position of each hit is known by simply knowing the current iteration in the raw bank,
-     * and using that information as a relative index, given the raw bank offset.
-     * This kind of decoding is what we call "direct decoding".
-     *
-     * However, the last 80 raw banks cannot be decoded in this manner. Therefore, the
-     * previous method is employed for these last raw banks, consisting in a two-step
-     * decoding.
-     *
-     * The constants below capture this idea. The prefix sum needed contains information about
-     * "mat groups" (the first 160 raw banks, since the offset of the group is enough).
-     * However, for the last sector, every mat offset is stored individually.
-     */
-    static constexpr unsigned max_corrected_mat = 1024; // FIXME: probably smaller.
-    static constexpr unsigned n_consecutive_raw_banks = 160;
-    static constexpr unsigned n_mats_per_consec_raw_bank = 4;
-    static constexpr unsigned n_mat_groups_and_mats = 544;
-    static constexpr unsigned mat_index_substract = n_consecutive_raw_banks * 3;
-    static constexpr unsigned n_mats_without_group = n_mats - n_consecutive_raw_banks * n_mats_per_consec_raw_bank;
 
     // FIXME_GEOMETRY_HARDCODING
     // todo: use dzdy defined in geometry, read by mat
@@ -256,8 +230,8 @@ namespace SciFi {
     {
       // Returns local module ID in ascending x order.
       // There may be a faster way to do this.
-      uint32_t module_count = station() >= 3 ? 6 : 5;
-      return (isRight()) ? module_count - 1 - module() : module();
+      uint32_t max_module = station() >= 3 ? 5 : 4;
+      return (isRight()) ? max_module - module() : module();
     }
 
     __device__ __host__ uint32_t quarter() const { return ((channelID & quarterMask) >> quarterBits); }
@@ -284,8 +258,9 @@ namespace SciFi {
     {
       // Returns global mat ID in ascending x order without any gaps.
       // Geometry dependent. No idea how to not hardcode this.
-      assert(globalModuleIdx() * 4 + (reversedZone() ? 3 - mat() : mat() < SciFi::Constants::max_corrected_mat));
-      return globalModuleIdx() * 4 + (reversedZone() ? 3 - mat() : mat());
+      unsigned mat_sipm = mat() * SciFi::Constants::n_sipms_per_mat + sipm();
+      assert(globalModuleIdx() * 16 + (reversedZone() ? 15 - mat_sipm : mat_sipm) < SciFi::Constants::n_sipms);
+      return globalModuleIdx() * 16 + (reversedZone() ? 15 - mat_sipm : mat_sipm);
     }
 
     __device__ __host__ uint32_t die() const { return ((channelID & 0x40) >> 6); }
@@ -294,11 +269,7 @@ namespace SciFi {
 
     __device__ __host__ bool isRight() const { return (quarter() == 0 || quarter() == 2); }
 
-    __device__ __host__ bool reversedZone() const
-    {
-      unsigned zone = ((globalQuarterIdx()) >> 1) % 4;
-      return zone == 1 || zone == 2;
-    }
+    __device__ __host__ bool reversedZone() const { return (layer() % 2) != (quarter() / 2); }
 
     __device__ __host__ SciFiChannelID(const uint32_t channelID) : channelID(channelID) {}
 
@@ -379,39 +350,18 @@ namespace SciFi {
     return globalSipmID;
   }
 
-  namespace ClusterTypes {
-    constexpr unsigned int NullCluster = 0x00;
-    constexpr unsigned int SmallCluster = 0x01;
-    constexpr unsigned int LastCluster = 0x02;
-    constexpr unsigned int BigCluster = 0x03;
-    constexpr unsigned int EdgeCluster = 0x04;
-    constexpr unsigned int SizeLt8Cluster = 0x05;
-  }; // namespace ClusterTypes
-
   namespace ClusterReference {
-    static constexpr uint32_t maxRawBank = 0xFF;
-    static constexpr uint32_t maxICluster = 0xFF;
-    static constexpr uint32_t maxCond = 0x07;
-    static constexpr uint32_t maxDelta = 0xFF;
-    static constexpr int rawBankShift = 24;
-    static constexpr int iClusterShift = 16;
-    static constexpr int condShift = 13;
-    __device__ inline uint32_t
-    makeClusterReference(const int raw_bank, const int it, const int condition, const int delta)
+
+    __device__ inline uint32_t makeClusterReference(const int chanId, const int fraction, const int pseudoSize)
     {
-      return (raw_bank & maxRawBank) << rawBankShift | (it & maxICluster) << iClusterShift |
-             (condition & maxCond) << condShift | (delta & maxDelta);
-    };
-    __device__ inline int getRawBank(uint32_t cluster_reference)
-    {
-      return (cluster_reference >> rawBankShift) & maxRawBank;
+      return (chanId << 5) | ((fraction & 1) << 4) | (pseudoSize & 0xf);
     }
-    __device__ inline int getICluster(uint32_t cluster_reference)
-    {
-      return (cluster_reference >> iClusterShift) & maxICluster;
-    }
-    __device__ inline int getCond(uint32_t cluster_reference) { return (cluster_reference >> condShift) & maxCond; }
-    __device__ inline int getDelta(uint32_t cluster_reference) { return (cluster_reference) &maxDelta; }
+
+    __device__ inline int getChanID(uint32_t cluster_reference) { return cluster_reference >> 5; }
+
+    __device__ inline int getFraction(uint32_t cluster_reference) { return (cluster_reference >> 4) & 1; }
+
+    __device__ inline int getPseudoSize(uint32_t cluster_reference) { return cluster_reference & 0xf; }
 
   }; // namespace ClusterReference
 

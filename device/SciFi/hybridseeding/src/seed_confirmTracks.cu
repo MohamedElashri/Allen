@@ -70,8 +70,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // SciFi hits
-  const uint total_number_of_hits =
-    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+  const uint total_number_of_hits = parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_zones];
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};
 

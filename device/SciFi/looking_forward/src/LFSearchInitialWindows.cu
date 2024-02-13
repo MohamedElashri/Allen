@@ -71,8 +71,7 @@ __device__ void search_windows(
   const unsigned total_number_of_tracks =
     tracks->container(number_of_events - 1).offset() + tracks->container(number_of_events - 1).size();
   // SciFi hits
-  const unsigned total_number_of_hits =
-    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+  const unsigned total_number_of_hits = parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_zones];
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_offsets, event_number};
   const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
   SciFi::ConstHits scifi_hits(parameters.dev_scifi_hits, total_number_of_hits);

@@ -38,22 +38,18 @@ def decode_scifi():
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
 
-    prefix_sum_scifi_hits = make_algorithm(
-        host_prefix_sum_t,
-        name='prefix_sum_scifi_hits_{hash}',
-        dev_input_buffer_t=scifi_calculate_cluster_count.dev_scifi_hit_count_t)
-
     scifi_pre_decode = make_algorithm(
         scifi_pre_decode_t,
         name='scifi_pre_decode_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_accumulated_number_of_scifi_hits_t=prefix_sum_scifi_hits.
+        host_accumulated_number_of_scifi_hits_t=scifi_calculate_cluster_count.
         host_total_sum_holder_t,
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
         dev_scifi_raw_input_sizes_t=scifi_banks.dev_raw_sizes_t,
         dev_scifi_raw_input_types_t=scifi_banks.dev_raw_types_t,
-        dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t,
+        dev_scifi_hit_offsets_t=scifi_calculate_cluster_count.
+        dev_scifi_hit_count_t,
         host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
 
     scifi_raw_bank_decoder = make_algorithm(
@@ -61,25 +57,24 @@ def decode_scifi():
         name='scifi_raw_bank_decoder_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_accumulated_number_of_scifi_hits_t=prefix_sum_scifi_hits.
+        host_accumulated_number_of_scifi_hits_t=scifi_calculate_cluster_count.
         host_total_sum_holder_t,
         dev_scifi_raw_input_t=scifi_banks.dev_raw_banks_t,
         dev_scifi_raw_input_offsets_t=scifi_banks.dev_raw_offsets_t,
         dev_scifi_raw_input_sizes_t=scifi_banks.dev_raw_sizes_t,
         dev_scifi_raw_input_types_t=scifi_banks.dev_raw_types_t,
-        dev_scifi_hit_offsets_t=prefix_sum_scifi_hits.dev_output_buffer_t,
+        dev_scifi_hit_offsets_t=scifi_calculate_cluster_count.
+        dev_scifi_hit_offsets_t,
         dev_cluster_references_t=scifi_pre_decode.dev_cluster_references_t,
         host_raw_bank_version_t=scifi_banks.host_raw_bank_version_t)
 
     return {
-        "dev_scifi_hit_counts":
-        scifi_calculate_cluster_count.dev_scifi_hit_count_t,
         "host_number_of_scifi_hits":
-        prefix_sum_scifi_hits.host_total_sum_holder_t,
+        scifi_calculate_cluster_count.host_total_sum_holder_t,
         "dev_scifi_hits":
         scifi_raw_bank_decoder.dev_scifi_hits_t,
         "dev_scifi_hit_offsets":
-        prefix_sum_scifi_hits.dev_output_buffer_t,
+        scifi_calculate_cluster_count.dev_scifi_hit_offsets_t,
     }
 
 

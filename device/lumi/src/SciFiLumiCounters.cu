@@ -86,9 +86,8 @@ __global__ void scifi_lumi_counters::scifi_lumi_counters(
 
     const SciFi::SciFiGeometry geom {scifi_geometry};
 
-    SciFi::ConstHits hits {
-      parameters.dev_scifi_hits,
-      parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats]};
+    SciFi::ConstHits hits {parameters.dev_scifi_hits,
+                           parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_zones]};
     SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
 
     std::array<unsigned, 38> SciFiCounters = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
