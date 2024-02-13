@@ -148,13 +148,13 @@ rb_map = {
     'Hlt1Pi02GammaGamma':
     9,
     # RB 14 HLT1 physics for monitoring and alignment
-    'Hlt1(?!ODIN)(?!L0)(?!Lumi)(?!Tell1)(?!MB)(?!NZS)(?!Velo)(?!BeamGas)(?!Incident).*':
+    'Hlt1(?!ODIN)(?!Lumi)(?!Error)(?!MB)(?!NZS)(?!Velo)(?!BeamGas)(?!Incident).*':
     14,
     # RB 16 NoBias, prescaled
     'Hlt1.*NoBias':
     16,
-    # RB 25 Tell1 Error events
-    'Hlt1Tell1Error':
+    # RB 25 error banks
+    'Hlt1ErrorBank':
     25
 }
 
@@ -196,8 +196,8 @@ rb_map_PbPb = {
     # RB 16 NoBias, prescaled
     'Hlt1.*NoBias':
     16,
-    # RB 25 Tell1 Error events
-    'Hlt1Tell1Error':
+    # RB 25 error banks
+    'Hlt1ErrorBank':
     25
 }
 
