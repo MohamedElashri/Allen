@@ -64,7 +64,7 @@ void CompareRecAllenFTClusters::operator()(
   std::vector<LHCb::Detector::FTChannelID> scifi_ft_channel_ids;
 
   // read in offsets and hits from the buffer
-  const unsigned n_hits_total_allen = scifi_offsets[SciFi::Constants::n_mat_groups_and_mats];
+  const unsigned n_hits_total_allen = scifi_offsets[SciFi::Constants::n_zones];
   SciFi::ConstHits scifi_hits_allensoa(scifi_hits.data(), n_hits_total_allen);
 
   const auto n_hits_total_rec = ft_lite_clusters.size();

@@ -82,6 +82,13 @@ struct char2 {
   char y;
 };
 
+struct uint4 {
+  unsigned int x;
+  unsigned int y;
+  unsigned int z;
+  unsigned int w;
+};
+
 struct ushort2 {
   unsigned short x;
   unsigned short y;

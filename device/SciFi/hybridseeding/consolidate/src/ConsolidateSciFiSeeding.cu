@@ -219,7 +219,7 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
     parameters.dev_seeding_tracks + event_number * SciFi::Constants::Nmax_seeds;
 
   const unsigned total_number_of_scifi_hits =
-    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_zones];
 
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_scifi_hits};
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};

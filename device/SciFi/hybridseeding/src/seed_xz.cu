@@ -238,8 +238,7 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   // SciFi hits
-  const uint total_number_of_hits =
-    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+  const uint total_number_of_hits = parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_zones];
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};
 
