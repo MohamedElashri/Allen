@@ -72,7 +72,9 @@ namespace compass_ut {
     const unsigned max_considered_before_found,
     const float delta_tx_2,
     const float hit_tol_2,
-    const float sigma_velo_slope);
+    const float sigma_velo_slope,
+    const float min_ld_3_hit,
+    const float min_ld_4_hit);
 
   __host__ __device__ bool velo_track_in_UT_acceptance(const MiniState& state);
 
@@ -95,7 +97,9 @@ namespace compass_ut {
     UT::TrackHits* VeloUT_tracks,
     const int event_hit_offset,
     const float min_momentum_final,
-    const float min_pt_final);
+    const float min_pt_final,
+    const float min_ld_3_hit,
+    const float min_ld_4_hit);
 
   __host__ __device__ int master_index(const int index1, const int index2, const int index3);
 } // namespace compass_ut

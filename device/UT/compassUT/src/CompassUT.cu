@@ -126,7 +126,9 @@ __global__ void compass_ut::compass_ut(
       parameters.max_considered_before_found,
       parameters.delta_tx_2,
       parameters.hit_tol_2,
-      parameters.sigma_velo_slope);
+      parameters.sigma_velo_slope,
+      parameters.min_ld_3_hit,
+      parameters.min_ld_4_hit);
   }
 }
 
@@ -149,7 +151,9 @@ __device__ void compass_ut::compass_ut_tracking(
   const unsigned max_considered_before_found,
   const float delta_tx_2,
   const float hit_tol_2,
-  const float sigma_velo_slope)
+  const float sigma_velo_slope,
+  const float min_ld_3_hit,
+  const float min_ld_4_hit)
 {
   // select velo track to join with UT hits
   const MiniState velo_state = velo_states.state(i_track);
@@ -191,7 +195,9 @@ __device__ void compass_ut::compass_ut_tracking(
       veloUT_tracks_event,
       event_hit_offset,
       min_momentum_final,
-      min_pt_final);
+      min_pt_final,
+      min_ld_3_hit,
+      min_ld_4_hit);
   }
 }
 
@@ -242,7 +248,9 @@ __device__ void compass_ut::save_track(
   UT::TrackHits* VeloUT_tracks, // write the track
   const int event_hit_offset,
   const float min_momentum_final,
-  const float min_pt_final)
+  const float min_pt_final,
+  const float min_ld_3_hit,
+  const float min_ld_4_hit)
 {
   //== Handle states. copy Velo one, add UT.
   const float zOrigin = (fabsf(velo_state.ty) > 0.001f) ? velo_state.z - velo_state.y / velo_state.ty :
@@ -319,7 +327,10 @@ __device__ void compass_ut::save_track(
   }
   const float evalParams[3] = {p, pt, finalParams[3]};
   const float discriminant = evaluateLinearDiscriminant(evalParams, nHits);
-  if (discriminant < UT::Constants::LD3Hits) return;
+
+  const float min_ld = (nHits == 3) ? min_ld_3_hit : min_ld_4_hit;
+  // if (discriminant < UT::Constants::LD3Hits) return;
+  if (discriminant < min_ld) return;
 
   // the track will be added
   unsigned n_tracks = atomicAdd(n_veloUT_tracks, 1u);
