@@ -105,11 +105,14 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
             "dev_velo_kalman_beamline_states_view"],
         dev_accepted_velo_tracks_t=dev_accepted_velo_tracks_t)
 
+    # TODO: Tune min LD parameter
     ut_search_windows_min_momentum = 1250.0
     ut_search_windows_min_pt = 275.0
     compass_ut_max_considered_before_found = 6
     compass_ut_min_momentum_final = 1500.0
     compass_ut_min_pt_final = 400.0
+    compass_ut_min_ld_3_hit = -0.5
+    compass_ut_min_ld_4_hit = -0.5
 
     if not restricted:
         ut_search_windows_min_momentum = 1250.0
@@ -117,6 +120,8 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         compass_ut_max_considered_before_found = 6
         compass_ut_min_momentum_final = 1500.0
         compass_ut_min_pt_final = 250.0
+        compass_ut_min_ld_3_hit = -0.5
+        compass_ut_min_ld_4_hit = -0.5
 
     ut_search_windows = make_algorithm(
         ut_search_windows_t,
@@ -170,7 +175,9 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         dev_ut_selected_velo_tracks_with_windows_t,
         max_considered_before_found=compass_ut_max_considered_before_found,
         min_momentum_final=compass_ut_min_momentum_final,
-        min_pt_final=compass_ut_min_pt_final)
+        min_pt_final=compass_ut_min_pt_final,
+        min_ld_3_hit=compass_ut_min_ld_3_hit,
+        min_ld_4_hit=compass_ut_min_ld_4_hit)
 
     prefix_sum_ut_tracks = make_algorithm(
         host_prefix_sum_t,

@@ -35,6 +35,8 @@ namespace compass_ut {
     PROPERTY(delta_tx_2_t, "delta_tx_2", "delta_tx_2", float) delta_tx_2;
     PROPERTY(max_considered_before_found_t, "max_considered_before_found", "max_considered_before_found", unsigned)
     max_considered_before_found;
+    PROPERTY(min_ld_3_hit_t, "min_ld_3_hit", "min_ld_3_hit", float) min_ld_3_hit;
+    PROPERTY(min_ld_4_hit_t, "min_ld_4_hit", "min_ld_4_hit", float) min_ld_4_hit;
   };
 
   __global__ void compass_ut(
@@ -60,5 +62,7 @@ namespace compass_ut {
     Property<hit_tol_2_t> m_hit_tol_2 {this, 0.8f * Gaudi::Units::mm};
     Property<delta_tx_2_t> m_delta_tx_2 {this, 0.018f};
     Property<max_considered_before_found_t> m_max_considered_before_found {this, 6};
+    Property<min_ld_3_hit_t> m_min_ld_3_hit {this, -0.5f};
+    Property<min_ld_4_hit_t> m_min_ld_4_hit {this, -0.5f};
   };
 } // namespace compass_ut
