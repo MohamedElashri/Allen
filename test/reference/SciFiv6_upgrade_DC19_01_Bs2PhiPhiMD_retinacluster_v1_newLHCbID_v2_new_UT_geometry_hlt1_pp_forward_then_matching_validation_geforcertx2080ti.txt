@@ -83,6 +83,8 @@ Hlt1DisplacedLeptons:                              84/  1000, ( 2520.00 +/-   26
 Hlt1SingleHighEt:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiPhotonHighMass:                              78/  1000, ( 2340.00 +/-   254.41) kHz
 Hlt1Pi02GammaGamma:                                 0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DiElectronHighMass_SameSign:                    3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1DiElectronHighMass:                             0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice1_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice1_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice2_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
@@ -208,6 +210,8 @@ Hlt1DisplacedLeptons:                              84           0
 Hlt1SingleHighEt:                                   0           0
 Hlt1DiPhotonHighMass:                              78         135
 Hlt1Pi02GammaGamma:                                 0           0
+Hlt1DiElectronHighMass_SameSign:                    3           4
+Hlt1DiElectronHighMass:                             0           0
 Hlt1LowMassDiElectron_massSlice1_prompt:            0           0
 Hlt1LowMassDiElectron_SS_massSlice1_prompt:         0           0
 Hlt1LowMassDiElectron_massSlice2_prompt:            0           0
@@ -241,12 +245,12 @@ Hlt1DiMuonHighMassAlignment:                        0           0
 Hlt1DiMuonJpsiMassAlignment:                       42          52
 Hlt1DisplacedDiMuonAlignment:                       3           3
 
-Total decisions:      1928
-Total tracks:         3311
+Total decisions:      1931
+Total tracks:         3315
 Total calos clusters: 201
-Total SVs:            2617
-Total hits:           82121
-Total stdinfo:        39688
+Total SVs:            2621
+Total hits:           82205
+Total stdinfo:        39739
 
 
 velo_validator validation:
