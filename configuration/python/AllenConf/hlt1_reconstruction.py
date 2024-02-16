@@ -13,7 +13,7 @@ from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
 from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
 from AllenConf.downstream_reconstruction import make_downstream
-from AllenConf.muon_reconstruction import decode_muon, is_muon, fake_muon_id, make_muon_stubs
+from AllenConf.muon_reconstruction import decode_muon, is_muon, chi2muon, fake_muon_id, make_muon_stubs
 from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters, make_electronid_nn
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import (
@@ -136,6 +136,8 @@ def hlt1_reconstruction(algorithm_name='',
         muonID = is_muon(decoded_muon, long_tracks)
         # Replace long tracks with those containing muon hits.
         long_tracks = muonID["long_tracks"]
+        chi2Corr = chi2muon(long_tracks, muonID)
+        muonID.update(chi2Corr)
     else:
         muonID = fake_muon_id(long_tracks)
     kalman_velo_only = make_kalman_velo_only(long_tracks, pvs, muonID)
@@ -288,7 +290,7 @@ def make_dq_node(reconstructed_matching,
                  reconstructed_forward,
                  line_algorithms,
                  methods=["forward", "matching", "occupancy", "pv", "velo"]):
-    #N.B. if more 'methods' are added to the ODQV later, make sure to update Allen/Dumpers/BinaryDumpers/tests/qmtest/lhcb_ODQV.qmt line 35
+    # N.B. if more 'methods' are added to the ODQV later, make sure to update Allen/Dumpers/BinaryDumpers/tests/qmtest/lhcb_ODQV.qmt line 35
 
     nodes = [
         data_quality_node(

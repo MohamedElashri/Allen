@@ -20,6 +20,8 @@ namespace empty_lepton_id {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_is_lepton_t, bool) dev_is_lepton;
     DEVICE_OUTPUT(dev_lepton_id_t, uint8_t) dev_lepton_id;
+    DEVICE_OUTPUT(dev_chi2_muon_t, float) dev_chi2_muon;
+    DEVICE_OUTPUT(dev_chi2uncorr_muon_t, float) dev_chi2uncorr_muon;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

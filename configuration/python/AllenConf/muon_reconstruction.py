@@ -12,7 +12,7 @@ from AllenCore.algorithms import (
     data_provider_t, muon_calculate_srq_size_t, host_prefix_sum_t,
     muon_populate_tile_and_tdc_t, muon_add_coords_crossing_maps_t,
     muon_populate_hits_t, is_muon_t, empty_lepton_id_t, find_muon_hits_t,
-    consolidate_muon_t, muon_consolidate_tracks_t)
+    consolidate_muon_t, muon_consolidate_tracks_t, chi2_muon_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
@@ -181,8 +181,30 @@ def is_muon(decoded_muon, long_tracks):
         "dev_muon_tracks_view":
         muon_consolidate_tracks.dev_muon_tracks_view_t,
         "dev_muon_multi_event_tracks_view":
-        muon_consolidate_tracks.dev_muon_multi_event_tracks_view_t
+        muon_consolidate_tracks.dev_muon_multi_event_tracks_view_t,
     }
+
+
+def chi2muon(long_tracks, is_muon):
+    number_of_events = initialize_number_of_events()
+    host_number_of_events = number_of_events["host_number_of_events"]
+    dev_number_of_events = number_of_events["dev_number_of_events"]
+
+    host_number_of_reconstructed_scifi_tracks = long_tracks[
+        "host_number_of_reconstructed_scifi_tracks"]
+    dev_scifi_states = long_tracks["dev_scifi_states"]
+    chi2muon = make_algorithm(
+        chi2_muon_t,
+        name='chi2_muon_{hash}',
+        host_number_of_events_t=host_number_of_events,
+        dev_number_of_events_t=dev_number_of_events,
+        host_number_of_reconstructed_scifi_tracks_t=
+        host_number_of_reconstructed_scifi_tracks,
+        dev_scifi_states_t=dev_scifi_states,
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        dev_is_muon_t=is_muon['dev_is_muon'])
+
+    return {"dev_chi2corr": chi2muon.dev_chi2_muon_t}
 
 
 def fake_muon_id(forward_tracks):
@@ -197,7 +219,8 @@ def fake_muon_id(forward_tracks):
     return {
         "forward_tracks": forward_tracks,
         "dev_is_muon": empty_muon_id.dev_is_lepton_t,
-        "dev_lepton_id": empty_muon_id.dev_lepton_id_t
+        "dev_lepton_id": empty_muon_id.dev_lepton_id_t,
+        "dev_chi2corr": empty_muon_id.dev_chi2_muon_t,
     }
 
 

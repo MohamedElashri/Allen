@@ -23,6 +23,8 @@ namespace di_muon_mass_line {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
+    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+    DEVICE_INPUT(dev_chi2muon_t, float) dev_chi2muon;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
 
@@ -39,6 +41,8 @@ namespace di_muon_mass_line {
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+    PROPERTY(maxChi2Muon_t, "maxChi2Muon", "minimum Chi2Muon evaluation", float) maxChi2Muon;
+
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
@@ -64,12 +68,17 @@ namespace di_muon_mass_line {
   struct di_muon_mass_line_t : public SelectionAlgorithm,
                                Parameters,
                                CompositeParticleLine<di_muon_mass_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+
+    __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float> static get_input(
+      const Parameters& parameters,
+      const unsigned event_number,
+      const unsigned i);
+    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle, float>);
     void init();
     static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
     __device__ static void monitor(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, float> input,
       unsigned index,
       bool sel);
     __host__ void
@@ -78,7 +87,7 @@ namespace di_muon_mass_line {
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, float> input,
       unsigned index,
       bool sel);
 
@@ -96,6 +105,7 @@ namespace di_muon_mass_line {
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.0f};
     Property<minIPChi2_t> m_minIPChi2 {this, 0.f};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<maxChi2Muon_t> m_minChi2Muon {this, 1.8};
     Property<OppositeSign_t> m_opposite_sign {this, true};
 
     Property<histogram_Jpsi_mass_min_t> m_histogramJpsiMassMin {this, 2996.f};

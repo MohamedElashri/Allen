@@ -146,6 +146,7 @@ def default_physics_lines(reconstructed_objects, prescale, reco_particles,
             make_lambda2ppi_line(v0s, name="Hlt1L02PPi")
         ]
         if with_muon:
+            muonid = reconstructed_objects["muonID"]
             lines += [
                 make_one_muon_track_line(
                     muon_stubs["dev_muon_number_of_tracks"],
@@ -155,10 +156,11 @@ def default_physics_lines(reconstructed_objects, prescale, reco_particles,
                     name="Hlt1OneMuonTrackLine",
                     post_scaler=0.001),
                 make_di_muon_mass_line(
-                    long_tracks, dileptons, name="Hlt1DiMuonHighMass"),
+                    long_tracks, dileptons, muonid, name="Hlt1DiMuonHighMass"),
                 make_di_muon_mass_line(
                     long_tracks,
                     dileptons,
+                    muonid,
                     name="Hlt1DiMuonLowMass",
                     enable_monitoring=False,
                     minHighMassTrackPt=500.,
@@ -251,7 +253,7 @@ def odin_monitoring_lines(with_lumi,
     lines = []
     if with_lumi:
         if with_gec:
-            #explicitly require decoding of subdetectors outside of the GEC
+            # explicitly require decoding of subdetectors outside of the GEC
             lines.append(
                 make_odin_event_type_with_decoding_line(
                     name=lumiline_name, odin_event_type='Lumi'))
@@ -388,7 +390,8 @@ def setup_hlt1_node(withMCChecking=False,
     prefilter_upc_bgi = prefilters_bgi + gec_ecal_upc
 
     if bx_type is not None:
-        if not isinstance(bx_type, list): bx_type = [bx_type]
+        if not isinstance(bx_type, list):
+            bx_type = [bx_type]
         prefilters = prefilters + [
             CompositeNode(
                 "bx_selection",

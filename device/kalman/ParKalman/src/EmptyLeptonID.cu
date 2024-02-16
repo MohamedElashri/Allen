@@ -19,6 +19,7 @@ void empty_lepton_id::empty_lepton_id_t::set_arguments_size(
 {
   auto n_scifi_tracks = first<host_number_of_scifi_tracks_t>(arguments);
   set_size<dev_lepton_id_t>(arguments, n_scifi_tracks);
+  set_size<dev_chi2_muon_t>(arguments, n_scifi_tracks);
   set_size<dev_is_lepton_t>(arguments, n_scifi_tracks);
 }
 
@@ -29,5 +30,6 @@ void empty_lepton_id::empty_lepton_id_t::operator()(
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_lepton_id_t>(arguments, 0, context);
+  Allen::memset_async<dev_chi2_muon_t>(arguments, 10, context);
   Allen::memset_async<dev_is_lepton_t>(arguments, 0, context);
 }

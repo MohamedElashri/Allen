@@ -23,6 +23,8 @@ namespace displaced_di_muon_line {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
+    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+    DEVICE_INPUT(dev_chi2muon_t, float) dev_chi2muon;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
@@ -37,6 +39,7 @@ namespace displaced_di_muon_line {
     PROPERTY(dispMinEta_t, "dispMinEta", "dispMinEta description", float) dispMinEta;
     PROPERTY(dispMaxEta_t, "dispMaxEta", "dispMaxEta description", float) dispMaxEta;
     PROPERTY(minZ_t, "minZ", "minimum vertex z dimuon coordinate", float) minZ;
+    PROPERTY(maxChi2Muon_t, "maxChi2Muon", "minimum Chi2Muon evaluation", float) maxChi2Muon;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
 
     DEVICE_OUTPUT(dev_histogram_mass_t, unsigned) dev_histogram_mass;
@@ -51,12 +54,14 @@ namespace displaced_di_muon_line {
   struct displaced_di_muon_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     CompositeParticleLine<displaced_di_muon_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
+    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
+    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle, float>);
     void init();
     static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
     __device__ static void monitor(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, float> input,
       unsigned index,
       bool sel);
     __host__ void
@@ -76,6 +81,7 @@ namespace displaced_di_muon_line {
     Property<dispMinEta_t> m_dispMinEta {this, 2.f};
     Property<dispMaxEta_t> m_dispMaxEta {this, 5.f};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<maxChi2Muon_t> m_minChi2Muon {this, 1.8};
 
     Property<histogram_mass_min_t> m_histogramMassMin {this, 215.f};
     Property<histogram_mass_max_t> m_histogramMassMax {this, 7000.f};
