@@ -11,7 +11,8 @@
 from AllenCore.algorithms import (
     track_electron_mva_line_t, single_high_pt_electron_line_t,
     displaced_dielectron_line_t, displaced_leptons_line_t,
-    single_high_et_line_t, lowmass_dielectron_line_t)
+    single_high_et_line_t, lowmass_dielectron_line_t,
+    highmass_dielectron_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenCore.configuration_options import is_allen_standalone
@@ -169,3 +170,38 @@ def make_lowmass_dielectron_line(
         MinPTprompt=minPTprompt,
         MinPTdisplaced=minPTdisplaced,
         TrackIPChi2Threshold=trackIPChi2Threshold)
+
+
+def make_highmass_dielectron_line(
+        long_tracks,
+        secondary_vertices,
+        calo,
+        minMass=8000,
+        maxMass=140000,
+        is_same_sign=False,
+        enable_monitoring=True,
+        enable_tupling=False,
+        name="Hlt1HighMassDielectron",
+        pre_scaler_hash_string="highmass_dielectron_line_pre",
+        pre_scaler=1.,
+        post_scaler=1.,
+        post_scaler_hash_string="highmass_dielectron_line_post"):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        highmass_dielectron_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
+        dev_track_isElectron_t=calo["dev_track_isElectron"],
+        dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
+        host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
+        dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        pre_scaler_hash_string=pre_scaler_hash_string,
+        post_scaler_hash_string=post_scaler_hash_string,
+        minMass=minMass,
+        maxMass=maxMass,
+        OppositeSign=(not is_same_sign))
