@@ -225,6 +225,12 @@ full:
   - type: "throughput"
     sequence:
       - hlt1_pp_forward_then_matching_no_ut
+      - hlt1_pp_matching_no_ut
+      - hlt1_pp_forward_then_matching_and_downstream
+      - hlt1_pp_forward_then_matching_no_ut_veloSP
+      - hlt1_pp_forward_then_matching_and_downstream_veloSP
+      - hlt1_pp_matching_no_ut_veloSP
+ 
     dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6"
     geometry: "geometry_dddb-20231017_sim-20231017-vc-md100"
 
