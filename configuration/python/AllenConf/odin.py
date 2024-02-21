@@ -9,7 +9,8 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenCore.algorithms import (odin_provider_t, odin_beamcrossingtype_t,
-                                  host_odin_error_filter_t, host_tae_filter_t)
+                                  host_odin_error_filter_t, host_tae_filter_t,
+                                  odin_eventtype_t)
 from AllenCore.generator import make_algorithm
 from AllenConf.utils import mep_layout, initialize_number_of_events
 from PyConf.tonic import configurable
@@ -56,6 +57,36 @@ def ODIN_BeamXtype(name='ODIN_BeamXType', bxtype=3, invert=False):
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_odin_data_t=odin['dev_odin_data'],
         beam_crossing_type=bxtype)
+
+
+@configurable
+def make_event_type(name=None, event_type="VeloOpen"):
+
+    type_map = {
+        "VeloOpen": 0x0001,
+        "Physics": 0x0002,
+        "NoBias": 0x0004,
+        "Lumi": 0x0008,
+        "Beam1Gas": 0x0010,
+        "Beam2Gas": 0x0020
+    }
+
+    return ODIN_event_type(
+        name=name or f"ODIN_EvenType_{event_type}",
+        event_type=type_map[event_type])
+
+
+def ODIN_event_type(name='ODIN_event_type', event_type=0x0001):
+
+    number_of_events = initialize_number_of_events()
+    odin = decode_odin()
+
+    return make_algorithm(
+        odin_eventtype_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_odin_data_t=odin['dev_odin_data'],
+        event_type=event_type)
 
 
 def odin_error_filter(name="odin_error_filter"):

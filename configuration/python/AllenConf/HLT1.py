@@ -11,7 +11,7 @@
 from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
                              make_checkCylPV, make_checkPseudoPV,
                              make_invert_event_list, sd_error_filter)
-from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter
+from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter, make_event_type
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node, make_dq_node
@@ -299,21 +299,6 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name):
         line_maker(
             make_odin_event_type_line(
                 odin_event_type="NoBias", pre_scaler=0.0001)))
-    return lines
-
-
-def event_monitoring_lines(lumiline_name):
-    lines = []
-    lines.append(
-        line_maker(make_beam_line(name="Hlt1NoBeam", beam_crossing_type=0)))
-    lines.append(
-        line_maker(make_beam_line(name="Hlt1BeamOne", beam_crossing_type=1)))
-    lines.append(
-        line_maker(make_beam_line(name="Hlt1BeamTwo", beam_crossing_type=2)))
-    lines.append(
-        line_maker(make_beam_line(name="Hlt1BothBeams", beam_crossing_type=3)))
-    lines.append(
-        line_maker(make_odin_event_type_line(odin_event_type="VeloOpen")))
     return lines
 
 
@@ -707,6 +692,16 @@ def setup_hlt1_node(enablePhysics=True,
         monitoring_lines += [
             line_maker(
                 make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.01))
+        ]
+
+    velo_open_event = make_event_type(event_type="VeloOpen")
+    with line_maker.bind(prefilter=prefilters + [velo_open_event]):
+        monitoring_lines += [
+            line_maker(
+                make_velo_micro_bias_line(
+                    reconstructed_objects["velo_tracks"],
+                    name="Hlt1VeloMicroBiasVeloClosing",
+                    post_scaler=3.e-2))
         ]
 
     if EnableGEC:
