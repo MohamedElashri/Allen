@@ -45,7 +45,7 @@ namespace CombineSVTrack {
     dev_sv_track_pv_tables;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_sv_track_pointers_t,
-      DEPENDENCIES(dev_tracks_t),
+      DEPENDENCIES(dev_tracks_t, dev_svs_t),
       std::array<const Allen::Views::Physics::IParticle*, 4>)
     dev_sv_track_pointers;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
