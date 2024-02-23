@@ -12,6 +12,9 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
+#include <algorithm>
+#include <cmath>
+#include <limits>
 
 #include <range/v3/view/repeat_n.hpp>
 #include "range/v3/range/conversion.hpp"
@@ -31,6 +34,84 @@ namespace {
   using std::vector;
 
   using namespace ranges;
+
+  /// get allen ut sector index
+  inline int get_allen_ut_sector_index(const DeUTSector& ut_sector)
+  {
+    const auto ch = ut_sector.elementID();
+    const auto side = ch.side();
+    const auto layer = ch.layer();
+    const auto stave = ch.stave();
+    const auto face = ch.face();
+    const auto module = ch.module();
+    const auto sector = ch.sector();
+
+    const auto m = (module << 1) | (1 - face);
+    uint32_t st = 7 + (layer >> 1) - stave;
+    if (side == 1) {
+      st = stave;
+    }
+    uint32_t num_sectors_half_layer_a = 124;
+    uint32_t num_sectors_half_layer_b = 138;
+    uint32_t half_layer_unique = (layer << 1) | (side);
+    uint32_t offset_half_layer = 0;
+    if (half_layer_unique < 4) {
+      offset_half_layer = half_layer_unique * num_sectors_half_layer_a;
+    }
+    else {
+      offset_half_layer = 4 * num_sectors_half_layer_a + (half_layer_unique % 4) * num_sectors_half_layer_b;
+    }
+    constexpr auto nb_sectors_in_a_stave = 14;
+    constexpr auto nb_sectors_in_stave_0 = 22;
+    constexpr auto nb_sectors_in_stave_1 = 18;
+    uint32_t nb_staves_outer_region = 6;
+    if (layer > 1) {
+      nb_staves_outer_region = 7;
+    }
+    int sec = -1;
+    if (stave >= 2) {
+      sec = m - (module / 4) * 2 + (1 - side) * st * nb_sectors_in_a_stave +
+            side * (nb_sectors_in_stave_0 + nb_sectors_in_stave_1 + (stave - 2) * nb_sectors_in_a_stave);
+    }
+    else if (stave == 1) {
+      const auto offset = (1 - side) * (nb_staves_outer_region * nb_sectors_in_a_stave) + side * nb_sectors_in_stave_0;
+      sec = offset;
+      if (m < 5) {
+        sec += m;
+      }
+      else if (m >= 5 && m < 9) {
+        const auto base_module = m - 5;
+        sec += 5 + base_module * 2 + sector;
+      }
+      else if (m >= 9 && m < 11) {
+        const auto base_module = m - 9;
+        sec += 9 + base_module * 2 + (1 - sector);
+      }
+      else {
+        sec += 13 + (m - 11);
+      }
+    }
+    else if (stave == 0) {
+      const auto offset = (1 - side) * (nb_staves_outer_region * nb_sectors_in_a_stave + nb_sectors_in_stave_1);
+      sec = offset;
+      if (m < 5) {
+        sec += m;
+      }
+      else if (m >= 5 && m < 8) {
+        const auto base_module = m - 5;
+        sec += 5 + base_module * 2 + sector;
+      }
+      else if (m >= 8 && m < 11) {
+        const auto base_module = m - 8;
+        sec += 11 + base_module * 2 + (1 - sector);
+      }
+      else if (m >= 11) {
+        sec += 17 + (m - 11);
+      }
+    }
+    sec += offset_half_layer;
+    return sec;
+  }
 
 #ifdef USE_DD4HEP
   const static std::string readoutLocation = "/world/BeforeMagnetRegion/UT:ReadoutMap";
@@ -61,31 +142,43 @@ namespace {
       vector<float> p0Y;
       vector<float> p0Z;
 
-      pitch.reserve(number_of_sectors);
-      cos.reserve(number_of_sectors);
-      dy.reserve(number_of_sectors);
-      dp0diX.reserve(number_of_sectors);
-      dp0diY.reserve(number_of_sectors);
-      dp0diZ.reserve(number_of_sectors);
-      p0X.reserve(number_of_sectors);
-      p0Y.reserve(number_of_sectors);
-      p0Z.reserve(number_of_sectors);
+      pitch.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      cos.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      dy.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      dp0diX.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      dp0diY.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      dp0diZ.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      p0X.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      p0Y.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      p0Z.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
 
-      det.applyToAllSectorsAllen([&](DeUTSector const& sector) {
-        pitch.push_back(sector.pitch());
-        cos.push_back(sector.cosAngle());
-        dy.push_back(sector.get_dy());
+      det.applyToAllSectors([&](DeUTSector const& sector) {
+        const auto idx = get_allen_ut_sector_index(sector);
+        pitch[idx] = sector.pitch();
+        cos[idx] = (sector.cosAngle());
+        dy[idx] = (sector.get_dy());
         const auto dp0di = sector.get_dp0di();
-        dp0diX.push_back(dp0di.x());
-        dp0diY.push_back(dp0di.y());
-        dp0diZ.push_back(dp0di.z());
+        dp0diX[idx] = (dp0di.x());
+        dp0diY[idx] = (dp0di.y());
+        dp0diZ[idx] = (dp0di.z());
         const auto p0 = sector.get_p0();
-        p0X.push_back(p0.x());
-        p0Y.push_back(p0.y());
+        p0X[idx] = (p0.x());
+        p0Y[idx] = (p0.y());
         // hack: since p0z is always positive, we can use the signbit to encode whether or not to "stripflip"
-        p0Z.push_back(((sector.xInverted() && sector.getStripflip()) ? -1 : 1) * p0.z());
+        p0Z[idx] = (((sector.xInverted() && sector.getStripflip()) ? -1 : 1) * p0.z());
         // this hack will be used in UTPreDecode.cu and UTDecodeRawBanksInOrder.cu
       });
+
+      // cross check
+      assert(std::all_of(pitch.begin(), pitch.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(cos.begin(), cos.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(dy.begin(), dy.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(dp0diX.begin(), dp0diX.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(dp0diY.begin(), dp0diY.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(dp0diZ.begin(), dp0diZ.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(p0X.begin(), p0X.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(p0Y.begin(), p0Y.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(p0Z.begin(), p0Z.end(), [](auto i) { return !std::isnan(i); }));
 
       output.write(number_of_sectors, firstStrip, pitch, dy, dp0diX, dp0diY, dp0diZ, p0X, p0Y, p0Z, cos);
 
@@ -228,6 +321,7 @@ namespace {
       data = output.buffer();
     }
   };
+
 } // namespace
 
 class DumpUTGeometry final
