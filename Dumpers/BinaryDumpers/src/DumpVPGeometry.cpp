@@ -94,7 +94,7 @@ DumpVPGeometry::DumpVPGeometry(const std::string& name, ISvcLocator* svcLoc) :
 StatusCode DumpVPGeometry::initialize()
 {
   return Dumper::initialize().andThen([&] {
-    register_producer(Allen::NonEventData::VeloGeometry::id, "VP_geometry", m_data);
+    register_producer(Allen::NonEventData::VeloGeometry::id, "velo_geometry", m_data);
     addConditionDerivation({DeVPLocation::Default}, inputLocation<Dumpers::VP>(), [&](DeVP const& det) {
       auto geo = Dumpers::VP {m_data, det};
       dump();
