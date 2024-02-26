@@ -34,7 +34,6 @@ __device__ void estimate_raw_bank_size(
   unsigned found_cluster_candidates = 0;
   for (unsigned sp_index = threadIdx.x; sp_index < n_sp; sp_index += blockDim.x) { // Decode sp
     const uint32_t sp_word = raw_bank.word[sp_index];
-    const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
     const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
     const uint8_t sp = sp_word & 0xFFU;
 
@@ -46,168 +45,133 @@ __device__ void estimate_raw_bank_size(
       sensor_number = (raw_bank.sensor_index0() | ((sp_word >> 23) & 0x1));
     }
 
-    if (no_sp_neighbours) {
-      // The SP does not have any neighbours
-      // The problem is as simple as a lookup pattern
-      // It can be implemented in two operations
+    // Find candidates that follow this condition:
+    // For pixel o, all pixels x should *not* be populated
+    // x x
+    // o x
+    //   x
 
-      // Pattern 0:
-      // (x  x)
-      //  o  o
-      // (x  x
-      //  x  x)
-      //
+    // Load required neighbouring pixels in order to check the condition
+    // x x x
+    // o o x
+    // o o x
+    // o o x
+    // o o x
+    //   x x
+    //
+    // Use an int for storing and calculating
+    // Bit order
+    //
+    // 4 10 16
+    // 3  9 15
+    // 2  8 14
+    // 1  7 13
+    // 0  6 12
+    //    5 11
+    //
+    // Bit masks
+    //
+    // 0x10 0x0400 0x010000
+    // 0x08 0x0200   0x8000
+    // 0x04 0x0100   0x4000
+    // 0x02   0x80   0x2000
+    // 0x01   0x40   0x1000
+    //        0x20   0x0800
+    uint32_t pixels = (sp & 0x0F) | ((sp & 0xF0) << 2);
+
+    // Current row and col
+    const uint32_t sp_row = sp_addr & 0x3FU;
+    const uint32_t sp_col = sp_addr >> 6;
+
+    for (unsigned k = 0; k < n_sp; ++k) {
+      const uint32_t other_sp_word = raw_bank.word[k];
+
+      const uint32_t other_sp_addr = (other_sp_word & 0x007FFF00U) >> 8;
+      const uint32_t other_sp_row = other_sp_addr & 0x3FU;
+      const uint32_t other_sp_col = (other_sp_addr >> 6);
+      const uint8_t other_sp = other_sp_word & 0xFFU;
+
+      // Populate pixels
       // Note: Pixel order in sp
       // 0x08 | 0x80
       // 0x04 | 0x40
       // 0x02 | 0x20
       // 0x01 | 0x10
-      const bool pattern_0 = (sp & 0x88) && !(sp & 0x44) && (sp & 0x33);
+      const bool is_top = other_sp_row == (sp_row + 1) && other_sp_col == sp_col;
+      const bool is_top_right = other_sp_row == (sp_row + 1) && other_sp_col == (sp_col + 1);
+      const bool is_right = other_sp_row == sp_row && other_sp_col == (sp_col + 1);
+      const bool is_right_bottom = other_sp_row == (sp_row - 1) && other_sp_col == (sp_col + 1);
+      const bool is_bottom = other_sp_row == (sp_row - 1) && other_sp_col == sp_col;
 
-      // Pattern 1:
-      // (x  x
-      //  x  x)
-      //  o  o
-      // (x  x)
-      const bool pattern_1 = (sp & 0xCC) && !(sp & 0x22) && (sp & 0x11);
-      const unsigned number_of_clusters = (pattern_0 | pattern_1) ? 2 : 1;
-
-      // Add the found clusters
-      [[maybe_unused]] const unsigned current_estimated_module_pair_size =
-        atomicAdd(estimated_module_pair_size, number_of_clusters);
+      if (is_top || is_top_right || is_right || is_right_bottom || is_bottom) {
+        pixels |= is_top * (((other_sp & 0x01) | ((other_sp & 0x10) << 2)) << 4);
+        pixels |= is_top_right * ((other_sp & 0x01) << 16);
+        pixels |= is_right * ((other_sp & 0x0F) << 12);
+        pixels |= is_right_bottom * ((other_sp & 0x08) << 8);
+        pixels |= is_bottom * ((other_sp & 0x80) >> 2);
+      }
     }
-    else {
-      // Find candidates that follow this condition:
-      // For pixel o, all pixels x should *not* be populated
-      // x x
-      // o x
-      //   x
 
-      // Load required neighbouring pixels in order to check the condition
-      // x x x
-      // o o x
-      // o o x
-      // o o x
-      // o o x
-      //   x x
-      //
-      // Use an int for storing and calculating
-      // Bit order
-      //
-      // 4 10 16
-      // 3  9 15
-      // 2  8 14
-      // 1  7 13
-      // 0  6 12
-      //    5 11
-      //
-      // Bit masks
-      //
-      // 0x10 0x0400 0x010000
-      // 0x08 0x0200   0x8000
-      // 0x04 0x0100   0x4000
-      // 0x02   0x80   0x2000
-      // 0x01   0x40   0x1000
-      //        0x20   0x0800
-      uint32_t pixels = (sp & 0x0F) | ((sp & 0xF0) << 2);
+    // 16 1024 65536
+    //  8  512 32768
+    //  4  256 16384
+    //  2  128  8192
+    //  1   64  4096
+    //      32  2048
+    //
+    // 5 11 17
+    // 4 10 16
+    // 3  9 15
+    // 2  8 14
+    // 1  7 13
+    //    6 12
+    //
+    // Look up pattern
+    // x x
+    // o x
+    //   x
+    //
+    const uint32_t sp_inside_pixel = pixels & 0x3CF;
+    const uint32_t mask =
+      (sp_inside_pixel << 1) | (sp_inside_pixel << 5) | (sp_inside_pixel << 6) | (sp_inside_pixel << 7);
 
-      // Current row and col
-      const uint32_t sp_row = sp_addr & 0x3FU;
-      const uint32_t sp_col = sp_addr >> 6;
+    const uint32_t working_cluster = mask & (~pixels);
+    const uint32_t candidates_temp =
+      (working_cluster >> 1) & (working_cluster >> 5) & (working_cluster >> 6) & (working_cluster >> 7);
 
-      for (unsigned k = 0; k < n_sp; ++k) {
-        const uint32_t other_sp_word = raw_bank.word[k];
-        const uint32_t other_no_sp_neighbours = sp_word & 0x80000000U;
+    const uint32_t candidates = candidates_temp & pixels;
+    const uint32_t candidates_consolidated = (candidates & 0x0F) | ((candidates >> 2) & 0xF0);
 
-        if (!other_no_sp_neighbours) {
-          const uint32_t other_sp_addr = (other_sp_word & 0x007FFF00U) >> 8;
-          const uint32_t other_sp_row = other_sp_addr & 0x3FU;
-          const uint32_t other_sp_col = (other_sp_addr >> 6);
-          const uint8_t other_sp = other_sp_word & 0xFFU;
+    const auto first_candidate = candidates_consolidated & 0x33;
+    const auto second_candidate = candidates_consolidated & 0xCC;
 
-          // Populate pixels
-          // Note: Pixel order in sp
-          // 0x08 | 0x80
-          // 0x04 | 0x40
-          // 0x02 | 0x20
-          // 0x01 | 0x10
-          const bool is_top = other_sp_row == (sp_row + 1) && other_sp_col == sp_col;
-          const bool is_top_right = other_sp_row == (sp_row + 1) && other_sp_col == (sp_col + 1);
-          const bool is_right = other_sp_row == sp_row && other_sp_col == (sp_col + 1);
-          const bool is_right_bottom = other_sp_row == (sp_row - 1) && other_sp_col == (sp_col + 1);
-          const bool is_bottom = other_sp_row == (sp_row - 1) && other_sp_col == sp_col;
+    // Add candidates 0, 1, 4, 5
+    // Only one of those candidates can be flagged at a time
+    if (first_candidate) {
+      // Verify candidates are correctly created
+      assert(__popc(first_candidate) <= 1);
 
-          if (is_top || is_top_right || is_right || is_right_bottom || is_bottom) {
-            pixels |= is_top * (((other_sp & 0x01) | ((other_sp & 0x10) << 2)) << 4);
-            pixels |= is_top_right * ((other_sp & 0x01) << 16);
-            pixels |= is_right * ((other_sp & 0x0F) << 12);
-            pixels |= is_right_bottom * ((other_sp & 0x08) << 8);
-            pixels |= is_bottom * ((other_sp & 0x80) >> 2);
-          }
-        }
-      }
+      // Decode the candidate number (ie. find out the active bit)
+      const auto candidate_pixel = __clz(first_candidate) - 24;
 
-      // 16 1024 65536
-      //  8  512 32768
-      //  4  256 16384
-      //  2  128  8192
-      //  1   64  4096
-      //      32  2048
-      //
-      // 5 11 17
-      // 4 10 16
-      // 3  9 15
-      // 2  8 14
-      // 1  7 13
-      //    6 12
-      //
-      // Look up pattern
-      // x x
-      // o x
-      //   x
-      //
-      const uint32_t sp_inside_pixel = pixels & 0x3CF;
-      const uint32_t mask =
-        (sp_inside_pixel << 1) | (sp_inside_pixel << 5) | (sp_inside_pixel << 6) | (sp_inside_pixel << 7);
+      auto current_cluster_candidate = atomicAdd(event_candidate_num, 1);
+      uint32_t candidate = (sp_index << 11) | (sensor_number << 3) | candidate_pixel;
+      cluster_candidates[current_cluster_candidate] = candidate;
+      ++found_cluster_candidates;
+    }
 
-      const uint32_t working_cluster = mask & (~pixels);
-      const uint32_t candidates_temp =
-        (working_cluster >> 1) & (working_cluster >> 5) & (working_cluster >> 6) & (working_cluster >> 7);
+    // Add candidates 2, 3, 6, 7
+    // Only one of those candidates can be flagged at a time
+    if (second_candidate) {
+      assert(__popc(second_candidate) <= 1);
 
-      const uint32_t candidates = candidates_temp & pixels;
-      const uint32_t candidates_consolidated = (candidates & 0x0F) | ((candidates >> 2) & 0xF0);
+      // Decode the candidate number (ie. find out the active bit)
+      const auto candidate_pixel = __clz(second_candidate) - 24;
 
-      const auto first_candidate = candidates_consolidated & 0x33;
-      const auto second_candidate = candidates_consolidated & 0xCC;
-
-      // Add candidates 0, 1, 4, 5
-      // Only one of those candidates can be flagged at a time
-      if (first_candidate) {
-        // Verify candidates are correctly created
-        assert(__popc(first_candidate) <= 1);
-
-        // Decode the candidate number (ie. find out the active bit)
-        const auto candidate_pixel = __clz(first_candidate) - 24;
-
-        auto current_cluster_candidate = atomicAdd(event_candidate_num, 1);
-        uint32_t candidate = (sp_index << 11) | (sensor_number << 3) | candidate_pixel;
-        cluster_candidates[current_cluster_candidate] = candidate;
-        ++found_cluster_candidates;
-      }
-
-      // Add candidates 2, 3, 6, 7
-      // Only one of those candidates can be flagged at a time
-      if (second_candidate) {
-        assert(__popc(second_candidate) <= 1);
-
-        // Decode the candidate number (ie. find out the active bit)
-        const auto candidate_pixel = __clz(second_candidate) - 24;
-
-        auto current_cluster_candidate = atomicAdd(event_candidate_num, 1);
-        uint32_t candidate = (sp_index << 11) | (sensor_number << 3) | candidate_pixel;
-        cluster_candidates[current_cluster_candidate] = candidate;
-        ++found_cluster_candidates;
-      }
+      auto current_cluster_candidate = atomicAdd(event_candidate_num, 1);
+      uint32_t candidate = (sp_index << 11) | (sensor_number << 3) | candidate_pixel;
+      cluster_candidates[current_cluster_candidate] = candidate;
+      ++found_cluster_candidates;
     }
   }
 

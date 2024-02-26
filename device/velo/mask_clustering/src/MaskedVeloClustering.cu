@@ -136,165 +136,6 @@ __device__ void print_array_64(const uint64_t p, const int row = -1, const int c
 }
 
 template<int decoding_version>
-__device__ void no_neighbour_sp(
-  unsigned const* module_pair_cluster_start,
-  uint8_t const* dev_velo_sp_patterns,
-  Velo::Clusters& velo_cluster_container,
-  unsigned* module_pair_cluster_num,
-  const float* dev_velo_sp_fx,
-  const float* dev_velo_sp_fy,
-  VeloGeometry const& g,
-  int const module_pair_number,
-  unsigned const cluster_start,
-  Velo::VeloRawBank<decoding_version> const& raw_bank)
-{
-  // need to double up as two indedependet sensors in the bank
-  const float* ltg0;
-  uint32_t n_sp;
-
-  if constexpr (decoding_version == 2 || decoding_version == 3) {
-    ltg0 = g.ltg + g.n_trans * raw_bank.sensor_pair();
-    n_sp = raw_bank.count;
-  }
-  else {
-    ltg0 = g.ltg + g.n_trans * raw_bank.sensor_index0();
-    n_sp = raw_bank.size / 4;
-  }
-
-  for (unsigned sp_index = 0; sp_index < n_sp; ++sp_index) {
-    // Decode sp
-    const uint32_t sp_word = raw_bank.word[sp_index];
-    const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
-    const uint32_t no_sp_neighbours = sp_word & 0x80000000U;
-    uint32_t sensor_index;
-
-    if constexpr (decoding_version == 2 || decoding_version == 3) {
-      sensor_index = raw_bank.sourceID;
-    }
-    else {
-      const uint32_t sensorBit = (sp_word & 0x800000U) ? (0x1U << 22) : 0x0U;
-      sensor_index = sensorBit ? raw_bank.sensor_index1() : raw_bank.sensor_index0();
-    }
-
-    // There are no neighbours, so compute the number of pixels of this superpixel
-    if (no_sp_neighbours) {
-      // Look up pre-generated patterns
-      const int32_t sp_row = sp_addr & 0x3FU;
-      const int32_t sp_col = (sp_addr >> 6);
-      const uint8_t sp = sp_word & 0xFFU;
-
-      const uint32_t idx = dev_velo_sp_patterns[sp];
-      const uint32_t chip = sp_col >> (VP::ChipColumns_division - 1);
-
-      {
-        // there is always at least one cluster in the super
-        // pixel. look up the pattern and add it.
-        const uint32_t row = idx & 0x03U;
-        const uint32_t col = (idx >> 2) & 1;
-        const uint32_t cx = sp_col * 2 + col;
-        const uint32_t cy = sp_row * 4 + row;
-
-        const unsigned cid = get_channel_id(sensor_index, chip, cx & VP::ChipColumns_mask, cy);
-
-        const float fx = dev_velo_sp_fx[sp * 2];
-        const float fy = dev_velo_sp_fy[sp * 2];
-        const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-        const float local_y = (cy + 0.5f + fy) * Velo::Constants::pixel_size;
-
-        const unsigned cluster_num = atomicAdd(module_pair_cluster_num + module_pair_number, 1);
-
-#if ALLEN_DEBUG
-        const auto module_estimated_num =
-          module_pair_cluster_start[module_pair_number + 1] - module_pair_cluster_start[module_pair_number];
-        assert(cluster_num <= module_estimated_num);
-#else
-        _unused(module_pair_cluster_start);
-#endif
-
-        float gx, gy, gz;
-        if constexpr (decoding_version == 2 || decoding_version == 3) {
-          gx = (ltg0[0] * local_x + ltg0[1] * local_y + ltg0[9]);
-          gy = (ltg0[3] * local_x + ltg0[4] * local_y + ltg0[10]);
-          gz = (ltg0[6] * local_x + ltg0[7] * local_y + ltg0[11]);
-        }
-        else {
-          const uint32_t sensorBit = (sp_word & 0x800000U) ? (0x1U << 22) : 0x0U;
-          const float* ltg1 = g.ltg + g.n_trans * raw_bank.sensor_index1();
-          if (sensorBit) {
-            gx = (ltg1[0] * local_x + ltg1[1] * local_y + ltg1[9]);
-            gy = (ltg1[3] * local_x + ltg1[4] * local_y + ltg1[10]);
-            gz = (ltg1[6] * local_x + ltg1[7] * local_y + ltg1[11]);
-          }
-          else {
-            gx = (ltg0[0] * local_x + ltg0[1] * local_y + ltg0[9]);
-            gy = (ltg0[3] * local_x + ltg0[4] * local_y + ltg0[10]);
-            gz = (ltg0[6] * local_x + ltg0[7] * local_y + ltg0[11]);
-          }
-        }
-
-        const auto cluster_index = cluster_start + cluster_num;
-        velo_cluster_container.set_id(cluster_index, get_lhcb_id(cid));
-        velo_cluster_container.set_x(cluster_index, gx);
-        velo_cluster_container.set_y(cluster_index, gy);
-        velo_cluster_container.set_z(cluster_index, gz);
-        velo_cluster_container.set_phi(cluster_index, hit_phi_16(gx, gy));
-      }
-
-      // if there is a second cluster for this pattern
-      // add it as well.
-      if (idx & 8) {
-        const uint32_t row = (idx >> 4) & 3;
-        const uint32_t col = (idx >> 6) & 1;
-        const uint32_t cx = sp_col * 2 + col;
-        const uint32_t cy = sp_row * 4 + row;
-
-        unsigned cid = get_channel_id(sensor_index, chip, cx & VP::ChipColumns_mask, cy);
-
-        const float fx = dev_velo_sp_fx[sp * 2 + 1];
-        const float fy = dev_velo_sp_fy[sp * 2 + 1];
-        const float local_x = g.local_x[cx] + fx * g.x_pitch[cx];
-        const float local_y = (cy + 0.5f + fy) * Velo::Constants::pixel_size;
-
-        const unsigned cluster_num = atomicAdd(module_pair_cluster_num + module_pair_number, 1);
-
-#if ALLEN_DEBUG
-        const auto module_estimated_num =
-          module_pair_cluster_start[module_pair_number + 1] - module_pair_cluster_start[module_pair_number];
-        assert(cluster_num <= module_estimated_num);
-#endif
-
-        float gx, gy, gz;
-        if constexpr (decoding_version == 2 || decoding_version == 3) {
-          gx = (ltg0[0] * local_x + ltg0[1] * local_y + ltg0[9]);
-          gy = (ltg0[3] * local_x + ltg0[4] * local_y + ltg0[10]);
-          gz = (ltg0[6] * local_x + ltg0[7] * local_y + ltg0[11]);
-        }
-        else {
-          const uint32_t sensorBit = (sp_word & 0x800000U) ? (0x1U << 22) : 0x0U;
-          const float* ltg1 = g.ltg + g.n_trans * raw_bank.sensor_index1();
-          if (sensorBit) {
-            gx = (ltg1[0] * local_x + ltg1[1] * local_y + ltg1[9]);
-            gy = (ltg1[3] * local_x + ltg1[4] * local_y + ltg1[10]);
-            gz = (ltg1[6] * local_x + ltg1[7] * local_y + ltg1[11]);
-          }
-          else {
-            gx = (ltg0[0] * local_x + ltg0[1] * local_y + ltg0[9]);
-            gy = (ltg0[3] * local_x + ltg0[4] * local_y + ltg0[10]);
-            gz = (ltg0[6] * local_x + ltg0[7] * local_y + ltg0[11]);
-          }
-        }
-        const auto cluster_index = cluster_start + cluster_num;
-        velo_cluster_container.set_id(cluster_index, get_lhcb_id(cid));
-        velo_cluster_container.set_x(cluster_index, gx);
-        velo_cluster_container.set_y(cluster_index, gy);
-        velo_cluster_container.set_z(cluster_index, gz);
-        velo_cluster_container.set_phi(cluster_index, hit_phi_16(gx, gy));
-      }
-    }
-  }
-}
-
-template<int decoding_version>
 __device__ void rest_of_clusters(
   unsigned const* module_pair_cluster_start,
   Velo::Clusters velo_cluster_container,
@@ -367,44 +208,41 @@ __device__ void rest_of_clusters(
   //       no need to add a special case
   for (unsigned k = 0; k < n_sp; ++k) {
     const uint32_t other_sp_word = raw_bank.word[k];
-    const uint32_t other_no_sp_neighbours = other_sp_word & 0x80000000U;
     if constexpr (decoding_version > 3) {
       const uint32_t otherSensorBit = (other_sp_word & 0x800000U) ? (0x1U) : 0x0U;
       // Check if the other SP id from the same sensor in the pair in this bank
       if (otherSensorBit != (sensor_number & 0x1)) continue;
     }
-    if (!other_no_sp_neighbours) {
-      const uint32_t other_sp_addr = (other_sp_word & 0x007FFF00U) >> 8;
-      const int32_t other_sp_row = other_sp_addr & 0x3FU;
-      const int32_t other_sp_col = (other_sp_addr >> 6);
-      const uint8_t other_sp = other_sp_word & 0xFFU;
+    const uint32_t other_sp_addr = (other_sp_word & 0x007FFF00U) >> 8;
+    const int32_t other_sp_row = other_sp_addr & 0x3FU;
+    const int32_t other_sp_col = (other_sp_addr >> 6);
+    const uint8_t other_sp = other_sp_word & 0xFFU;
 
-      if (
-        other_sp_row >= sp_row_lower_limit && other_sp_row <= sp_row_upper_limit &&
-        other_sp_col >= sp_col_lower_limit && other_sp_col <= sp_col_upper_limit) {
-        const int relative_row = other_sp_row - sp_row_lower_limit;
-        const int relative_col = other_sp_col - sp_col_lower_limit;
+    if (
+      other_sp_row >= sp_row_lower_limit && other_sp_row <= sp_row_upper_limit && other_sp_col >= sp_col_lower_limit &&
+      other_sp_col <= sp_col_upper_limit) {
+      const int relative_row = other_sp_row - sp_row_lower_limit;
+      const int relative_col = other_sp_col - sp_col_lower_limit;
 
-        // Note: Order is:
-        // 15 31
-        // 14 30
-        // 13 29
-        // 12 28
-        // 11 27
-        // 10 26
-        //  9 25
-        //  8 24
-        //  7 23
-        //  6 22
-        //  5 21
-        //  4 20
-        //  3 19
-        //  2 18
-        //  1 17
-        //  0 16
-        pixel_array[relative_col] |= (other_sp & 0X0F) << (4 * relative_row) | (other_sp & 0XF0)
-                                                                                 << (12 + 4 * relative_row);
-      }
+      // Note: Order is:
+      // 15 31
+      // 14 30
+      // 13 29
+      // 12 28
+      // 11 27
+      // 10 26
+      //  9 25
+      //  8 24
+      //  7 23
+      //  6 22
+      //  5 21
+      //  4 20
+      //  3 19
+      //  2 18
+      //  1 17
+      //  0 16
+      pixel_array[relative_col] |= (other_sp & 0X0F) << (4 * relative_row) | (other_sp & 0XF0)
+                                                                               << (12 + 4 * relative_row);
     }
   }
 
@@ -536,38 +374,7 @@ __global__ void velo_masked_clustering_kernel(
                                                                             parameters.dev_velo_raw_input_types,
                                                                             event_number + event_start};
 
-  // process no neighbour sp
-  for (unsigned raw_bank_number = threadIdx.x; raw_bank_number < velo_raw_event.number_of_raw_banks();
-       raw_bank_number += blockDim.x) {
-    const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-
-    if (raw_bank.type != LHCb::RawBank::VP && raw_bank.type != LHCb::RawBank::Velo) continue;
-
-    unsigned module_pair_number = 0;
-    if constexpr (decoding_version == 2 || decoding_version == 3) {
-      module_pair_number = raw_bank.sensor_pair() / 8;
-    }
-    else {
-      module_pair_number = raw_bank.sensor_index0() / 8;
-    }
-    const unsigned cluster_start = module_pair_cluster_start[module_pair_number];
-
-    no_neighbour_sp<decoding_version>(
-      module_pair_cluster_start,
-      dev_velo_sp_patterns,
-      velo_cluster_container,
-      module_pair_cluster_num,
-      dev_velo_sp_fx,
-      dev_velo_sp_fy,
-      g,
-      module_pair_number,
-      cluster_start,
-      raw_bank);
-  }
-
-  __syncthreads();
-
-  // Process rest of clusters
+  // Process all clusters
   for (unsigned candidate_number = threadIdx.x; candidate_number < number_of_candidates;
        candidate_number += blockDim.x) {
     const uint32_t candidate = cluster_candidates[candidate_number];
