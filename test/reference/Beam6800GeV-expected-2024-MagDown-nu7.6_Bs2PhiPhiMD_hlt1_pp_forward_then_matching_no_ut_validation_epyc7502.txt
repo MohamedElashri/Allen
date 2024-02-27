@@ -81,7 +81,7 @@ Hlt1SingleHighPtElectron:                           7/  1000, (  210.00 +/-    7
 Hlt1DisplacedDielectron:                           10/  1000, (  300.00 +/-    94.39) kHz
 Hlt1DisplacedLeptons:                              72/  1000, ( 2160.00 +/-   245.22) kHz
 Hlt1SingleHighEt:                                   1/  1000, (   30.00 +/-    29.98) kHz
-Hlt1DiPhotonHighMass:                              11/  1000, (  330.00 +/-    98.95) kHz
+Hlt1DiPhotonHighMass:                              13/  1000, (  390.00 +/-   107.46) kHz
 Hlt1Pi02GammaGamma:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronHighMass_SameSign:                    1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1DiElectronHighMass:                             1/  1000, (   30.00 +/-    29.98) kHz
@@ -208,7 +208,7 @@ Hlt1SingleHighPtElectron:                           7          13
 Hlt1DisplacedDielectron:                           10          13
 Hlt1DisplacedLeptons:                              72           0
 Hlt1SingleHighEt:                                   1           0
-Hlt1DiPhotonHighMass:                              11          18
+Hlt1DiPhotonHighMass:                              13          20
 Hlt1Pi02GammaGamma:                                 0           0
 Hlt1DiElectronHighMass_SameSign:                    1           3
 Hlt1DiElectronHighMass:                             1           6
@@ -246,12 +246,12 @@ Hlt1DiMuonHighMassAlignment:                        0           0
 Hlt1DiMuonJpsiMassAlignment:                       28          39
 Hlt1DisplacedDiMuonAlignment:                       1           1
 
-Total decisions:      1867
+Total decisions:      1869
 Total tracks:         3359
-Total calos clusters: 29
-Total SVs:            2586
+Total calos clusters: 33
+Total SVs:            2588
 Total hits:           73468
-Total stdinfo:        39199
+Total stdinfo:        39225
 
 
 velo_validator validation:

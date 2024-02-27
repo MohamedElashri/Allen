@@ -19,11 +19,13 @@
 namespace calo_seed_clusters {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_ecal_number_of_digits_t, unsigned) host_ecal_number_of_digits;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
     DEVICE_OUTPUT(dev_ecal_num_clusters_t, unsigned) dev_ecal_num_clusters;
     DEVICE_OUTPUT(dev_ecal_seed_clusters_t, CaloSeedCluster) dev_ecal_seed_clusters;
+    DEVICE_OUTPUT(dev_ecal_digit_is_seed_t, unsigned) dev_ecal_digit_is_seed;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
     PROPERTY(ecal_min_adc_t, "ecal_min_adc", "ECal seed cluster minimum ADC", int16_t) ecal_min_adc;
   };

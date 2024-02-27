@@ -20,11 +20,12 @@ struct CaloSeedCluster {
   int16_t adc = 0;
   float x = 0.f;
   float y = 0.f;
+  float e = 0.f;
 
   __device__ __host__ CaloSeedCluster() {}
 
-  __device__ __host__ CaloSeedCluster(uint16_t cellid, int16_t a, float rX, float rY) :
-    id {cellid}, adc {a}, x {rX}, y {rY}
+  __device__ __host__ CaloSeedCluster(uint16_t cellid, int16_t a, float rX, float rY, float energy) :
+    id {cellid}, adc {a}, x {rX}, y {rY}, e {energy}
   {}
 };
 
@@ -43,6 +44,8 @@ struct CaloCluster {
   __device__ __host__ CaloCluster(const CaloGeometry& calo, const CaloSeedCluster& seed) :
     e {calo.getE(seed.id, seed.adc)}, x {seed.x}, y {seed.y}, center_id {seed.id}
   {}
+
+  __device__ __host__ void SetE(float newE) { this->e = newE; }
 
   __device__ __host__ void CalcEt()
   {
@@ -116,4 +119,21 @@ private:
   {
     this->Distance = sqrtf((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y));
   }
+};
+
+struct CaloOverlapCluster {
+  uint16_t id = 0;
+  uint16_t adc = 0;
+  uint16_t seedId_1 = 0;
+  uint16_t clId_1 = 0;
+  uint16_t seedId_2 = 0;
+  uint16_t clId_2 = 0;
+
+  __device__ __host__ CaloOverlapCluster() {}
+
+  __device__ __host__
+  CaloOverlapCluster(uint16_t cellid, uint16_t a, uint16_t seed1, uint16_t cl1, uint16_t seed2, uint16_t cl2) :
+    id {cellid},
+    adc {a}, seedId_1 {seed1}, clId_1 {cl1}, seedId_2 {seed2}, clId_2 {cl2}
+  {}
 };
