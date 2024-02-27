@@ -26,8 +26,10 @@ from DDDB.CheckDD4Hep import UseDD4Hep
 
 
 @configurable
-def allen_non_event_data_config(dump_geometry=False, out_dir="geometry"):
-    return dump_geometry, out_dir
+def allen_non_event_data_config(dump_geometry=False,
+                                out_dir="geometry",
+                                beamline_offset=(0., 0.)):
+    return dump_geometry, out_dir, beamline_offset
 
 
 def allen_odin():
@@ -109,19 +111,26 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     An ExtSvc is added to the ApplicationMgr to provide the Allen non-event
     data (geometries etc.)
     """
+
+    dump_geometry, out_dir, beamline_offset = allen_non_event_data_config()
     converter_types = {
-        'VP': [(DumpBeamline, 'DeviceBeamline', 'beamline'),
-               (DumpVPGeometry, 'DeviceVPGeometry', 'velo_geometry')],
-        'UT': [(DumpUTGeometry, 'DeviceUTGeometry', 'ut_geometry'),
-               (DumpUTLookupTables, 'DeviceUTLookupTables', 'ut_tables')],
-        'ECal': [(DumpCaloGeometry, 'DeviceCaloGeometry', 'ecal_geometry')],
-        'Magnet': [(DumpMagneticField, 'DeviceMagneticField', 'polarity')],
-        'FTCluster': [(DumpFTGeometry, 'DeviceFTGeometry', 'scifi_geometry')],
-        'Muon': [(DumpMuonGeometry, 'DeviceMuonGeometry', 'muon_geometry'),
-                 (DumpMuonTable, 'DeviceMuonTable', 'muon_tables')],
-        'Rich':
-        [(DumpRichPDMDBMapping, 'DeviceRichPDMDBMapping', 'rich_pdmdbmaps'),
-         (DumpRichCableMapping, 'DeviceRichCableMapping', 'rich_tel40maps')]
+        'VP': [(DumpBeamline, 'DeviceBeamline', {
+            "Offset": beamline_offset
+        }, 'beamline'),
+               (DumpVPGeometry, 'DeviceVPGeometry', {}, 'velo_geometry')],
+        'UT': [(DumpUTGeometry, 'DeviceUTGeometry', {}, 'ut_geometry'),
+               (DumpUTLookupTables, 'DeviceUTLookupTables', {}, 'ut_tables')],
+        'ECal': [(DumpCaloGeometry, 'DeviceCaloGeometry', {},
+                  'ecal_geometry')],
+        'Magnet': [(DumpMagneticField, 'DeviceMagneticField', {}, 'polarity')],
+        'FTCluster': [(DumpFTGeometry, 'DeviceFTGeometry', {},
+                       'scifi_geometry')],
+        'Muon': [(DumpMuonGeometry, 'DeviceMuonGeometry', {}, 'muon_geometry'),
+                 (DumpMuonTable, 'DeviceMuonTable', {}, 'muon_tables')],
+        'Rich': [(DumpRichPDMDBMapping, 'DeviceRichPDMDBMapping', {},
+                  'rich_pdmdbmaps'),
+                 (DumpRichCableMapping, 'DeviceRichCableMapping', {},
+                  'rich_tel40maps')]
     }
 
     detector_names = {
@@ -147,8 +156,6 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
 
     # Always include the magnetic field polarity
     bank_types.add('Magnet')
-
-    dump_geometry, out_dir = allen_non_event_data_config()
 
     appMgr = ApplicationMgr()
     if not UseDD4Hep:
@@ -176,14 +183,16 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
 
     bank_types = set(
         [t if not t.startswith('Rich') else 'Rich' for t in bank_types])
-    converters = [(bt, t, tn, f) for bt, convs in converter_types.items()
-                  for t, tn, f in convs if bt in bank_types]
+    converters = [(bt, t, tn, props, f)
+                  for bt, convs in converter_types.items()
+                  for t, tn, props, f in convs if bt in bank_types]
 
-    for bt, converter_type, converter_name, filename in converters:
+    for bt, converter_type, converter_name, properties, filename in converters:
         converter = converter_type(
             name=converter_name,
             DumpToFile=dump_geometry,
-            OutputDirectory=out_dir)
+            OutputDirectory=out_dir,
+            **properties)
         algorithm_converters.append(converter)
 
     converters_node = CompositeNode(
