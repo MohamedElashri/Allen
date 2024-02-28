@@ -35,6 +35,7 @@ void make_selrep::make_selrep_t::operator()(
 
   Allen::copy_async<host_selrep_offsets_t, dev_selrep_offsets_t>(arguments, context);
   Allen::copy_async<host_sel_reports_t, dev_sel_reports_t>(arguments, context);
+  Allen::synchronize(context);
 }
 
 __global__ void make_selrep::make_selrep_bank(make_selrep::Parameters parameters, const unsigned number_of_events)

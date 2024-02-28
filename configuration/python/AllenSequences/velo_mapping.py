@@ -11,7 +11,7 @@
 from AllenConf.velo_reconstruction import make_velo_tracks, decode_velo, run_velo_kalman_filter, filter_tracks_for_material_interactions
 from AllenConf.hlt1_monitoring_lines import make_n_displaced_velo_line, make_velo_micro_bias_line, make_n_materialvertex_seed_line
 from AllenCore.generator import generate
-from AllenConf.persistency import make_global_decision, make_routingbits_writer, make_sel_report_writer
+from AllenConf.persistency import make_persistency
 from AllenConf.utils import line_maker
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenConf.validators import rate_validation
@@ -37,12 +37,13 @@ with line_maker.bind(prefilter=[odin_err_filter]):
         NodeLogic.NONLAZY_OR,
         force_order=False)
 
+    persistency_node, persistency_algorithms = make_persistency(
+        line_algorithms)
+
     velo_line_node = CompositeNode(
         "velo_line_node", [
             line_node,
-            make_global_decision(lines=line_algorithms),
-            make_routingbits_writer(lines=line_algorithms),
-            *make_sel_report_writer(lines=line_algorithms)["algorithms"],
+            persistency_node,
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)

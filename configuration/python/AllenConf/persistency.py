@@ -17,6 +17,7 @@ from AllenCore.generator import make_algorithm
 from AllenCore.configuration_options import allen_register_keys
 from PyConf.filecontent_metadata import register_encoding_dictionary
 from PyConf.tonic import configurable
+from PyConf.control_flow import NodeLogic, CompositeNode
 
 
 def build_decision_ids(lines, offset=1):
@@ -412,3 +413,30 @@ def make_sel_report_writer(lines):
         "dev_sel_reports": make_selreps.dev_sel_reports_t,
         "dev_selrep_offsets": prefix_sum_selrep_size.dev_output_buffer_t
     }
+
+
+def make_persistency(line_algorithms):
+    gather_selections = make_gather_selections(line_algorithms)
+    global_decision = make_global_decision(line_algorithms)
+    dec_reporter = make_dec_reporter(line_algorithms)
+    sel_reports = make_sel_report_writer(line_algorithms)
+    rb_writer = make_routingbits_writer(line_algorithms)
+
+    persistency_algorithms = {
+        'gather_selections': gather_selections,
+        'dec_reporter': dec_reporter,
+        'global_decision': global_decision,
+        'routing_bits': rb_writer,
+        'sel_reports': sel_reports
+    }
+
+    persistency_node = CompositeNode(
+        "Persistency", [
+            dec_reporter,
+            global_decision,
+            rb_writer,
+            *sel_reports["algorithms"],
+        ],
+        NodeLogic.NONLAZY_AND,
+        force_order=True)
+    return persistency_node, persistency_algorithms
