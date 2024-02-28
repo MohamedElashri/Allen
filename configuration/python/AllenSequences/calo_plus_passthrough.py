@@ -10,7 +10,7 @@
 ###############################################################################
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate
-from AllenConf.persistency import make_global_decision, make_gather_selections, make_routingbits_writer
+from AllenConf.persistency import make_persistency
 from AllenConf.utils import line_maker
 from AllenConf.validators import rate_validation
 from AllenConf.calo_reconstruction import decode_calo
@@ -50,23 +50,19 @@ with line_maker.bind(prefilter=prefilters):
 
 line_algorithms = [tup[0] for tup in lines]
 
-global_decision = make_global_decision(lines=line_algorithms)
-
 lines = CompositeNode(
     "AllLines", [tup[1] for tup in lines],
     NodeLogic.NONLAZY_OR,
     force_order=False)
 
+persistency_node, persistency_algorithms = make_persistency(line_algorithms)
+
 calo_sequence = CompositeNode(
-    "CaloClustering", [
-        lines, global_decision,
-        make_routingbits_writer(lines=line_algorithms),
-        rate_validation(lines=line_algorithms)
-    ],
+    "CaloClustering", [lines, persistency_node],
     NodeLogic.NONLAZY_AND,
     force_order=True)
 
-gather_selections = make_gather_selections(lines=line_algorithms)
+gather_selections = persistency_algorithms['gather_selections']
 
 lumi_node = CompositeNode(
     "AllenLumiNode",

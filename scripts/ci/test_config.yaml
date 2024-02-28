@@ -196,25 +196,10 @@ full:
       - a5000
       - geforcertx3090
 
-# run throughput, PbPb samples, 2023 no-gec PbPb sequence, retina clusters
-  - type: "throughput"
-    sequence:
-      - hlt1_PbPb_PbSMOG_no_ut_no_gec
-    dataset: "upgrade-official-PbPb-EPOS-b-8_22-VELO-23.5mm"
-    geometry: "geometry_dddb-20230313_sim-20230626-vc-md100"
-    timeout: 2400
-    collision_type: "PbPb"
-    allowed_devices:
-      - epyc7502
-      - a5000
-      - geforcertx3090
-
   # run throughput to assess the impact of adding downstream reconstruction
   - type: "throughput"
     sequence:
       # Impact to VeloScifi matching
-      - trackmatching_veloscifi
-      - trackmatching_veloscifi_and_utdecoding
       - downstream
       # Impact to full forward then matching sequence
       - hlt1_pp_forward_then_matching_and_downstream

@@ -40,6 +40,7 @@ void dec_reporter::dec_reporter_t::operator()(
     arguments);
 
   Allen::copy_async<host_dec_reports_t, dev_dec_reports_t>(arguments, context);
+  Allen::synchronize(context);
 }
 
 __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)

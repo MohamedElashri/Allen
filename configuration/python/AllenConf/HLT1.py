@@ -31,7 +31,7 @@ from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line,
     make_SMOG2_single_muon_line, make_SMOG2_kstopipi_line)
 from AllenConf.hlt1_photon_lines import make_diphotonhighmass_line
-from AllenConf.persistency import make_gather_selections, make_sel_report_writer, make_global_decision, make_routingbits_writer, make_dec_reporter
+from AllenConf.persistency import make_persistency
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
@@ -804,22 +804,17 @@ def setup_hlt1_node(enablePhysics=True,
     lines = CompositeNode(
         "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
-    gather_selections = make_gather_selections(lines=line_algorithms)
-    global_decision = make_global_decision(lines=line_algorithms)
-    dec_reporter = make_dec_reporter(lines=line_algorithms)
-    sel_reports = make_sel_report_writer(lines=line_algorithms)
-    rb_writer = make_routingbits_writer(lines=line_algorithms)
+    persistency_node, persistency_algorithms = make_persistency(
+        line_algorithms)
 
     hlt1_node = CompositeNode(
-        "Allen", [
-            lines,
-            dec_reporter,
-            global_decision,
-            rb_writer,
-            *sel_reports["algorithms"],
-        ],
+        "Allen", [lines, persistency_node],
         NodeLogic.NONLAZY_AND,
         force_order=True)
+
+    hlt1_config['line_nodes'] = line_nodes
+    hlt1_config['line_algorithms'] = line_algorithms
+    hlt1_config.update(persistency_algorithms)
 
     # This is used to measure the effect of downstream reconstruction on the final throughput. It should be removed once the real downstream line is implemented.
     if enableDownstream:
@@ -838,17 +833,9 @@ def setup_hlt1_node(enablePhysics=True,
             NodeLogic.NONLAZY_AND,
             force_order=False)
 
-    hlt1_config['line_nodes'] = line_nodes
-    hlt1_config['line_algorithms'] = line_algorithms
-    hlt1_config['gather_selections'] = gather_selections
-    hlt1_config['dec_reporter'] = dec_reporter
-    hlt1_config['sel_reports'] = sel_reports
-    hlt1_config['routing_bits'] = rb_writer
-    hlt1_config['global_decision'] = global_decision
-
     if with_lumi:
         lumi_reco = lumi_reconstruction(
-            gather_selections=gather_selections,
+            gather_selections=hlt1_config['gather_selections'],
             lines=line_algorithms,
             lumiline_name=lumiline_name,
             lumilinefull_name=lumilinefull_name,

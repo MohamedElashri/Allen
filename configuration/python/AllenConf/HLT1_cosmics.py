@@ -9,7 +9,7 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenConf.persistency import make_gather_selections, make_global_decision, make_dec_reporter, make_sel_report_writer, make_routingbits_writer
+from AllenConf.persistency import make_persistency
 from AllenConf.utils import line_maker, sd_error_filter
 from AllenConf.validators import rate_validation
 from AllenConf.hlt1_photon_lines import make_single_calo_cluster_line
@@ -118,32 +118,17 @@ def setup_hlt1_node(enableRateValidator=True):
     lines = CompositeNode(
         "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
-    gather_selections = make_gather_selections(lines=line_algorithms)
-    global_decision = make_global_decision(lines=line_algorithms)
-    dec_reporter = make_dec_reporter(lines=line_algorithms)
-    sel_reports = make_sel_report_writer(lines=line_algorithms)
-
-    hlt1_config['gather_selections'] = gather_selections
-    hlt1_config['dec_reporter'] = dec_reporter
-    hlt1_config['sel_reports'] = sel_reports
-    hlt1_config['global_decision'] = global_decision
-
-    gather_selections_node = CompositeNode(
-        "RunAllLines", [
-            lines, dec_reporter, gather_selections,
-            make_routingbits_writer(lines=line_algorithms),
-            *sel_reports["algorithms"]
-        ],
-        NodeLogic.NONLAZY_AND,
-        force_order=True)
+    persistency_node, persistency_algorithms = make_persistency(
+        line_algorithms)
 
     hlt1_node = CompositeNode(
-        "Cosmics", [gather_selections_node, global_decision],
+        "Cosmics", [lines, persistency_node],
         NodeLogic.NONLAZY_AND,
         force_order=True)
 
     hlt1_config['line_nodes'] = line_nodes
     hlt1_config['line_algorithms'] = line_algorithms
+    hlt1_config.update(persistency_algorithms)
 
     if enableRateValidator:
         hlt1_node = CompositeNode(

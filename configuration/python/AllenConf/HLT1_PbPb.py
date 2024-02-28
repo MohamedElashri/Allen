@@ -39,13 +39,7 @@ from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenConf.odin import odin_error_filter, make_bxtype, tae_filter
-from AllenConf.persistency import (
-    make_gather_selections,
-    make_global_decision,
-    make_sel_report_writer,
-    make_routingbits_writer,
-    make_dec_reporter,
-)
+from AllenConf.persistency import make_persistency
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.enum_types import TrackingType, includes_matching
 from .HLT1 import default_bgi_activity_lines, default_bgi_pvs_lines
@@ -483,34 +477,26 @@ def setup_hlt1_node(withMCChecking=False,
     lines = CompositeNode(
         "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
-    global_decision = make_global_decision(lines=line_algorithms)
-    gather_selections = make_gather_selections(lines=line_algorithms)
-    dec_reporter = make_dec_reporter(lines=line_algorithms)
-    sel_reports = make_sel_report_writer(lines=line_algorithms)
+    persistency_node, persistency_algorithms = make_persistency(
+        line_algorithms)
 
     hlt1_node = CompositeNode(
         "Allen", [
             lines,
-            dec_reporter,
-            global_decision,
-            make_routingbits_writer(lines=line_algorithms),
-            *sel_reports["algorithms"],
+            persistency_node,
         ],
         NodeLogic.NONLAZY_AND,
         force_order=True)
 
     hlt1_config['line_nodes'] = line_nodes
     hlt1_config['line_algorithms'] = line_algorithms
-    hlt1_config['global_decision'] = global_decision
-    hlt1_config['gather_selections'] = gather_selections
-    hlt1_config['dec_reporter'] = dec_reporter
-    hlt1_config['sel_reports'] = sel_reports
+    hlt1_config.update(persistency_algorithms)
 
     if with_lumi:
         lumi_node = CompositeNode(
             "AllenLumiNode",
             lumi_reconstruction(
-                gather_selections=gather_selections,
+                gather_selections=hlt1_config['gather_selections'],
                 lines=line_algorithms,
                 lumiline_name=lumiline_name,
                 lumilinefull_name=lumilinefull_name)["algorithms"],
