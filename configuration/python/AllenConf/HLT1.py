@@ -10,7 +10,8 @@
 ###############################################################################
 from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
                              make_checkCylPV, make_checkPseudoPV,
-                             make_invert_event_list, sd_error_filter)
+                             make_invert_event_list, sd_error_filter,
+                             make_tae_activity_filter)
 from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter, make_event_type
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
@@ -646,6 +647,7 @@ def setup_hlt1_node(enablePhysics=True,
                     enableDownstream=False,
                     tracking_type=TrackingType.FORWARD,
                     tae_passthrough=True,
+                    tae_activity=True,
                     data_quality=False):
     hlt1_config = {}
 
@@ -681,7 +683,21 @@ def setup_hlt1_node(enablePhysics=True,
         physics_lines += [line_maker(make_passthrough_line())]
 
     if tae_passthrough:
-        with line_maker.bind(prefilter=prefilters + [tae_filter()]):
+        if tae_activity:
+
+            tae_activity_filter = make_tae_activity_filter(
+                reconstructed_objects["long_tracks"],
+                reconstructed_objects["velo_tracks"])
+
+            tae_filters = CompositeNode(
+                "taefilter_node",
+                [tae_activity_filter, tae_filter()],
+                NodeLogic.LAZY_AND,
+                force_order=True)
+        else:
+            tae_filters = tae_filter()
+
+        with line_maker.bind(prefilter=prefilters + [tae_filters]):
             physics_lines += [
                 line_maker(
                     make_passthrough_line(

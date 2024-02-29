@@ -118,7 +118,7 @@ std::tuple<bool, size_t> OutputHandler::output_single_events(
       auto const event_number = i + start_event;
       selected_events.push_back(event_number);
     }
-    if (output_tae && tae_index < (tae_events.size() - 1) && tae_events[tae_index].central == i) {
+    if (output_tae && tae_index < (tae_events.size() - 1) && tae_events[tae_index].central <= i) {
       ++tae_index;
     }
   }
@@ -232,10 +232,18 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
 
   std::vector<unsigned> selected_events;
   std::vector<unsigned> tae_offsets;
+
   auto& tae_events = outputs.tae_events;
-  selected_events.reserve(tae_events.size() * (2 * tae_events[0].half_window + 1));
-  tae_offsets.reserve(tae_events.size());
+  // for now, set the size to the number of global decisions
+  selected_events.reserve(outputs.selected_events.size() * (2 * tae_events[0].half_window + 1));
+  tae_offsets.reserve(outputs.selected_events.size());
+
+  unsigned n_selected_tae_events = 0;
+
   for (auto tae_event : tae_events) {
+    auto central_tae_in_global_decision = outputs.selected_events[tae_event.central];
+    if (!central_tae_in_global_decision) continue; // tae event not in global decision, skip
+    n_selected_tae_events++;
     tae_offsets.push_back(selected_events.size());
     for (unsigned event_number = tae_event.central - tae_event.half_window;
          event_number <= tae_event.central + tae_event.half_window;
@@ -247,8 +255,11 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
     }
   }
 
+  selected_events.resize(n_selected_tae_events * (2 * tae_events[0].half_window + 1));
+  tae_offsets.resize(n_selected_tae_events);
+
 #ifndef STANDALONE
-  if (m_ntae) (*m_ntae) += tae_events.size();
+  if (m_ntae) (*m_ntae) += n_selected_tae_events;
 #endif
 
   auto event_ids = m_input_provider->event_ids(slice_index);
@@ -258,7 +269,7 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
   auto tae_bank_size = [](unsigned half_window) { return (2 * half_window + 1) * 3 * sizeof(int); };
 
   size_t tae_buffer_size = 0;
-  for (size_t tae_index = 0; tae_index < tae_events.size(); ++tae_index) {
+  for (size_t tae_index = 0; tae_index < n_selected_tae_events; ++tae_index) {
     auto const& tae_event = tae_events[tae_index];
     auto const offset = tae_offsets[tae_index];
     size_t tae_size = header_size + bank_header_size + tae_bank_size(tae_event.half_window);
@@ -269,10 +280,10 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
     sizes.tae[tae_event.central] = tae_size;
   }
 
-  auto tae_buffer = buffer(thread_id, tae_buffer_size, tae_events.size());
+  auto tae_buffer = buffer(thread_id, tae_buffer_size, n_selected_tae_events);
 
   size_t tae_output_offset = 0;
-  for (size_t tae_index = 0; tae_index < tae_events.size(); ++tae_index) {
+  for (size_t tae_index = 0; tae_index < n_selected_tae_events; ++tae_index) {
     auto const& tae_event = tae_events[tae_index];
     auto const offset = tae_offsets[tae_index];
     auto const tae_size = sizes.tae[tae_event.central];
@@ -328,8 +339,7 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
   }
 
   auto output_success = write_buffer(thread_id);
-
-  return {output_success, tae_events.size()};
+  return {output_success, n_selected_tae_events};
 }
 
 OutputSizes& OutputHandler::event_sizes(
