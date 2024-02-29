@@ -14,7 +14,8 @@ from AllenCore.algorithms import (
     host_ut_gec_t, layout_provider_t, check_pvs_t, check_cyl_pvs_t,
     low_occupancy_t, event_list_inversion_t, host_dummy_maker_t,
     check_localized_beamline_ip_t, error_bank_filter_t, data_provider_t,
-    check_ecal_energy_t)
+    check_ecal_energy_t, velo_track_activity_filter_t,
+    long_track_activity_filter_t)
 from PyConf.tonic import configurable
 from PyConf.control_flow import NodeLogic, CompositeNode
 
@@ -100,6 +101,61 @@ def make_gec(gec_name='gec',
 
     return CompositeNode(
         gec_name + "_node", algos, NodeLogic.LAZY_AND, force_order=False)
+
+
+def long_track_activity_filter(long_tracks,
+                               name="long_track_activity_filter",
+                               min_long_tracks=0,
+                               max_long_tracks=99999999):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        long_track_activity_filter_t,
+        name=name,
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        min_long_tracks=min_long_tracks,
+        max_long_tracks=max_long_tracks)
+
+
+def velo_track_activity_filter(velo_tracks,
+                               name="velo_track_activity_filter",
+                               min_velo_tracks=0,
+                               max_velo_tracks=99999999):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        velo_track_activity_filter_t,
+        name=name,
+        host_number_of_events_t=number_of_events['host_number_of_events'],
+        dev_offsets_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
+        dev_offsets_velo_track_hit_number_t=velo_tracks[
+            "dev_offsets_velo_track_hit_number"],
+        min_velo_tracks=min_velo_tracks,
+        max_velo_tracks=max_velo_tracks)
+
+
+@configurable
+def make_tae_activity_filter(
+        long_tracks,
+        velo_tracks,
+        name="tae_activity_filter",
+        use_long_tracks=True,  #if set to false, we use velo tracks instead
+        min_tracks=1,
+        max_tracks=99999999):
+
+    if use_long_tracks:
+        return long_track_activity_filter(
+            long_tracks,
+            name=name,
+            min_long_tracks=min_tracks,
+            max_long_tracks=max_tracks)
+
+    else:
+        return velo_track_activity_filter(
+            velo_tracks,
+            name=name,
+            min_velo_tracks=min_tracks,
+            max_velo_tracks=max_tracks)
 
 
 @configurable

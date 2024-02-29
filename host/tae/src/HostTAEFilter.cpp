@@ -16,7 +16,8 @@ void tae_filter(host_tae_filter::host_tae_filter_t::Parameters parameters, unsig
 {
   unsigned n_tae = 0;
   unsigned event_list_size = 0;
-
+  auto event_list_start = parameters.host_mask_event_list.data();
+  auto const event_list_end = parameters.host_mask_event_list.data() + parameters.host_mask_event_list.size();
   for (unsigned event_index = 0; event_index < number_of_events; ++event_index) {
     auto event_number = parameters.host_event_list[event_index];
     LHCb::ODIN odin {parameters.host_odin_data[event_number]};
@@ -28,8 +29,7 @@ void tae_filter(host_tae_filter::host_tae_filter_t::Parameters parameters, unsig
       unsigned prev_event = 0;
 
       // Loop until an non-TAE event or the end of the batch is encountered
-      for (; event_index < number_of_events; ++event_index) {
-        event_number = parameters.host_event_list[event_index];
+      for (; event_number < number_of_events; ++event_number) {
         odin = LHCb::ODIN {parameters.host_odin_data[event_number]};
 
         if (!odin.isTAE()) {
@@ -44,10 +44,19 @@ void tae_filter(host_tae_filter::host_tae_filter_t::Parameters parameters, unsig
           break;
         }
         else if (odin.timeAlignmentEventCentral()) {
+          // check wether the central event is within the activity mask
+          auto central_tae_in_event_list = std::find(event_list_start, event_list_end, event_number);
+          if (central_tae_in_event_list == event_list_end) { // central TAE event not in input event list
+            break;
+          }
+          else {
+            event_list_start = central_tae_in_event_list; // update start of search to the one that has been found
+          }
           tae_window = event_number - tae_start;
         }
         else if (tae_window != tae_start && (event_number == tae_start + 2 * tae_window)) {
           // fill the event list only once the last event in the tae group is found,
+
           if (parameters.accept_sub_events) {
             // sub events should be output as separate events
             for (unsigned tae_event = tae_start; tae_event <= event_number; ++tae_event) {
@@ -73,13 +82,15 @@ void host_tae_filter::host_tae_filter_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  auto const n_events = size<host_event_list_t>(arguments);
+  auto const n_events =
+    size<host_event_list_t>(arguments); // this is not the full mask, it is only the event list from ODIN
 
   set_size<host_number_of_tae_events_t>(arguments, 1);
   set_size<host_tae_events_t>(arguments, m_accept_sub_events.get_value() ? 0 : TAE::max_tae_events(n_events));
   set_size<host_number_of_selected_events_t>(arguments, 1);
   set_size<host_output_event_list_t>(arguments, n_events);
-  set_size<dev_event_list_t>(arguments, n_events);
+  set_size<host_mask_event_list_t>(arguments, size<dev_event_list_t>(arguments));
+  set_size<dev_event_output_list_t>(arguments, n_events);
 }
 
 void host_tae_filter::host_tae_filter_t::operator()(
@@ -91,14 +102,22 @@ void host_tae_filter::host_tae_filter_t::operator()(
   Allen::memset<host_output_event_list_t>(arguments, 0, context);
   Allen::memset<host_tae_events_t>(arguments, TAE::TAEEvent {}, context);
 
-  host_function(tae_filter)(arguments, size<host_event_list_t>(arguments));
+  auto n_mask = size<dev_event_list_t>(arguments);
+  Allen::copy(
+    get<host_mask_event_list_t>(arguments),
+    get<dev_event_list_t>(arguments),
+    context,
+    Allen::memcpyDeviceToHost,
+    n_mask);
+
+  host_function(tae_filter)(arguments, first<host_number_of_events_t>(arguments));
 
   auto n_selected = first<host_number_of_selected_events_t>(arguments);
   reduce_size<host_tae_events_t>(arguments, first<host_number_of_tae_events_t>(arguments));
   reduce_size<host_output_event_list_t>(arguments, n_selected);
-  reduce_size<dev_event_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));
+  reduce_size<dev_event_output_list_t>(arguments, first<host_number_of_selected_events_t>(arguments));
   Allen::copy(
-    get<dev_event_list_t>(arguments),
+    get<dev_event_output_list_t>(arguments),
     get<host_output_event_list_t>(arguments),
     context,
     Allen::memcpyHostToDevice,
