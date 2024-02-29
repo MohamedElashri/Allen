@@ -59,6 +59,8 @@ namespace Dumpers {
       vector<float> dxdy;
       vector<float> dzdy;
       vector<float> globaldy;
+      vector<float> average_z;
+      vector<float> average_dxdy;
 
       // First uniqueMat is 512, save space by subtracting
       const uint32_t uniqueMatOffset = 512; // FIXME -- hardcoded
@@ -77,12 +79,17 @@ namespace Dumpers {
       dxdy.resize(max_uniqueMat);
       dzdy.resize(max_uniqueMat);
       globaldy.resize(max_uniqueMat);
+      average_z.resize(number_of_layers);
+      average_dxdy.resize(number_of_layers);
 
       std::array<unsigned, number_of_stations> stations = {1, 2, 3};
 
       for (auto i_station : stations) {
         FTChannelID::StationID station_id {i_station};
+
         for (unsigned i_layer = 0; i_layer < number_of_layers_per_station; ++i_layer) {
+          unsigned n_measurements = 0;
+          unsigned index_layer = (i_station - 1) * number_of_layers_per_station + i_layer;
           FTChannelID::LayerID layer_id {i_layer};
           auto const& layer = det.findLayer(FTChannelID {station_id,
                                                          layer_id,
@@ -122,9 +129,14 @@ namespace Dumpers {
                 dxdy[index] = mat->dxdy();
                 dzdy[index] = mat->dzdy();
                 globaldy[index] = mat->globaldy();
+                average_z[index_layer] += (mirrorPoint.z() + mat->dzdy() * mirrorPoint.y());
+                average_dxdy[index_layer] += mat->dxdy();
+                n_measurements += 1;
               }
             }
           }
+          average_z[index_layer] = average_z[index_layer] / n_measurements;
+          average_dxdy[index_layer] = average_dxdy[index_layer] / n_measurements;
         }
       }
 
@@ -150,7 +162,7 @@ namespace Dumpers {
           ::FT::nMats,
           number_of_mats,
           number_of_banks,
-          0,
+          2, // v0 hardcoded, v2 read-in geometry (decoding v4,5,6)
           bank_first_channel,
           ::FT::nMatsMax,
           mirrorPointX,
@@ -165,7 +177,9 @@ namespace Dumpers {
           sipmPitch,
           dxdy,
           dzdy,
-          globaldy);
+          globaldy,
+          average_z,
+          average_dxdy);
       }
       else if (comp.count(7)) {
         constexpr uint32_t nLinksPerBank = 24; // FIXME: change to centralised number
@@ -188,7 +202,7 @@ namespace Dumpers {
           ::FT::nMats,
           number_of_mats,
           number_of_banks,
-          1,
+          3, // v1 hardcoded, v3 read-in geometry (decoding v7,8)
           source_ids,
           linkMap,
           max_uniqueMat,
@@ -204,7 +218,9 @@ namespace Dumpers {
           sipmPitch,
           dxdy,
           dzdy,
-          globaldy);
+          globaldy,
+          average_z,
+          average_dxdy);
       }
       else {
         std::stringstream s;

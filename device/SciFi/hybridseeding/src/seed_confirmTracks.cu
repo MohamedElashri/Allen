@@ -41,6 +41,25 @@ void seed_confirmTracks::seed_confirmTracks_t::set_arguments_size(
   set_size<dev_seeding_confirmTracks_atomics_t>(arguments, sizeInts);
 }
 
+namespace seed_confirmTracks {
+  __constant__ float dev_average_z[seed_uv::geomInfo::nLayers];
+  __constant__ float dev_average_dxdy[seed_uv::geomInfo::nLayers];
+} // namespace seed_confirmTracks
+
+void seed_confirmTracks::seed_confirmTracks_t::update(const Constants& constants) const
+{
+  float host_average_z[seed_uv::geomInfo::nLayers];
+  float host_average_dxdy[seed_uv::geomInfo::nLayers];
+  const SciFi::SciFiGeometry scifi_geometry {constants.host_scifi_geometry};
+  for (int i = 0; i < seed_uv::geomInfo::nLayers; i++) {
+    host_average_z[i] = scifi_geometry.average_z[seed_uv::geomInfo::uv_layers_number[i]];
+    host_average_dxdy[i] = scifi_geometry.average_dxdy[seed_uv::geomInfo::uv_layers_number[i]];
+  }
+
+  Allen::memcpyToSymbol(dev_average_z, &host_average_z, seed_uv::geomInfo::nLayers * sizeof(float));
+  Allen::memcpyToSymbol(dev_average_dxdy, &host_average_dxdy, seed_uv::geomInfo::nLayers * sizeof(float));
+}
+
 void seed_confirmTracks::seed_confirmTracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
@@ -120,8 +139,8 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
         float yEdge = seed_uv::geomInfo::yEdge * partSign;
         float dxMin[nLayers], dxMax[nLayers];
         for (int iLayer = 0; iLayer != nLayers; iLayer++) {
-          float dxCenter = yCenter * seed_uv::geomInfo::dxDy[iLayer];
-          float dxEdge = yEdge * seed_uv::geomInfo::dxDy[iLayer];
+          float dxCenter = yCenter * dev_average_dxdy[iLayer];
+          float dxEdge = yEdge * dev_average_dxdy[iLayer];
           dxMin[iLayer] = min(dxCenter, dxEdge);
           dxMax[iLayer] = max(dxCenter, dxEdge);
         }
@@ -139,14 +158,16 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
         for (int iTrack = startTrack + threadIdx.x; iTrack < endTrack; iTrack += blockDim.x) {
           constexpr int TUNING_NHITS = 10;        // FIXME
           constexpr float TUNING_TOLCHI2 = 100.f; // FIXME
-          constexpr float TUNING_TOL = 2.f;       // FIXME
+          constexpr float TUNING_TOL = 1.f;       // FIXME
           const auto xTrack = xTracks[iTrack];
           const unsigned int nTarget = TUNING_NHITS - xTrack.number_of_hits;
           // Calculate the predicted x(z) position of the track in all U/V layers
+          float dz, dz2;
           float xPred[nLayers];
           for (unsigned int iLayer = 0; iLayer < nLayers; iLayer++) {
-            xPred[iLayer] =
-              xTrack.ax + xTrack.bx * seed_uv::geomInfo::dz[iLayer] + xTrack.cx * seed_uv::geomInfo::dz2[iLayer];
+            dz = dev_average_z[iLayer] - hybrid_seeding::z_ref;
+            dz2 = dz * dz * (1.f + hybrid_seeding::dRatio * dz);
+            xPred[iLayer] = xTrack.ax + xTrack.bx * dz + xTrack.cx * dz2;
           }
           // Collect hits in the first layer and parallelise over them as well. There are up to few tens of them
           float bestChi2Ndof = TUNING_TOLCHI2;
@@ -169,20 +190,21 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
             // We now have a tY hypothesis. We look in all 5 remaining layers for hits close to expected position
             // this is basically the same thing as looking for the first hit, but with tY in a smaller interval
             hitComb.idx[0] = iHitFirst;
-            hitComb.y[0] = (xPred[0] - hits.hit(0, iHitFirst)) / seed_uv::geomInfo::dxDy[0];
-            float ty = hitComb.y[0] / (seed_uv::geomInfo::z[0]);
+            hitComb.y[0] = (xPred[0] - hits.hit(0, iHitFirst)) / dev_average_dxdy[0];
+
+            float ty = hitComb.y[0] / (dev_average_z[0]);
             for (unsigned int iRemaining = 1; iRemaining < nLayers; iRemaining++) {
               // Check if we can even find enough hits
               if (hitComb.number_of_hits + (nLayers - iRemaining) < nTarget) break;
-              float xMeasPred =
-                xPred[iRemaining] - ty * seed_uv::geomInfo::dxDy[iRemaining] * seed_uv::geomInfo::z[iRemaining];
+              float xMeasPred = xPred[iRemaining] - ty * dev_average_dxdy[iRemaining] * dev_average_z[iRemaining];
               hitComb.idx[iRemaining] =
                 findHit(TUNING_TOL, xMeasPred, minXPredIdx[iRemaining], nIdx[iRemaining], hits.layer(iRemaining));
               if (hitComb.idx[iRemaining] != SciFi::Constants::INVALID_IDX) {
-                hitComb.y[iRemaining] = (xPred[iRemaining] - hits.hit(iRemaining, hitComb.idx[iRemaining])) /
-                                        seed_uv::geomInfo::dxDy[iRemaining];
+                hitComb.y[iRemaining] =
+                  (xPred[iRemaining] - hits.hit(iRemaining, hitComb.idx[iRemaining])) / dev_average_dxdy[iRemaining];
+
                 // refine ty:
-                ty = (ty + hitComb.y[iRemaining] / seed_uv::geomInfo::z[iRemaining]) * 0.5f;
+                ty = (ty + hitComb.y[iRemaining] / dev_average_z[iRemaining]) * 0.5f;
                 ++hitComb.number_of_hits;
               }
             }
@@ -200,20 +222,22 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
             // this is basically the same thing as looking for the first hit, but with tY in a smaller interval
             hitComb.idx[0] = SciFi::Constants::INVALID_IDX;
             hitComb.idx[1] = iHitFirst;
-            hitComb.y[1] = (xPred[1] - hits.hit(1, iHitFirst)) / seed_uv::geomInfo::dxDy[1];
-            float ty = hitComb.y[1] / (seed_uv::geomInfo::z[1]);
+            hitComb.y[1] = (xPred[1] - hits.hit(1, iHitFirst)) / dev_average_dxdy[1];
+
+            float ty = hitComb.y[1] / (dev_average_z[1]);
             for (unsigned int iRemaining = 2; iRemaining < nLayers; iRemaining++) {
               // Check if we can even find enough hits
               if (hitComb.number_of_hits + (nLayers - iRemaining) < nTarget) break;
-              float xMeasPred =
-                xPred[iRemaining] - ty * seed_uv::geomInfo::dxDy[iRemaining] * seed_uv::geomInfo::z[iRemaining];
+              float xMeasPred = xPred[iRemaining] - ty * dev_average_dxdy[iRemaining] * dev_average_z[iRemaining];
+
               hitComb.idx[iRemaining] =
                 findHit(TUNING_TOL, xMeasPred, minXPredIdx[iRemaining], nIdx[iRemaining], hits.layer(iRemaining));
               if (hitComb.idx[iRemaining] != SciFi::Constants::INVALID_IDX) {
-                hitComb.y[iRemaining] = (xPred[iRemaining] - hits.hit(iRemaining, hitComb.idx[iRemaining])) /
-                                        seed_uv::geomInfo::dxDy[iRemaining];
+                hitComb.y[iRemaining] =
+                  (xPred[iRemaining] - hits.hit(iRemaining, hitComb.idx[iRemaining])) / dev_average_dxdy[iRemaining];
+
                 // refine ty:
-                ty = (ty + hitComb.y[iRemaining] / seed_uv::geomInfo::z[iRemaining]) * 0.5f;
+                ty = (ty + hitComb.y[iRemaining] / dev_average_z[iRemaining]) * 0.5f;
                 ++hitComb.number_of_hits;
               }
             }
@@ -273,12 +297,14 @@ __device__ void seed_confirmTracks::fitYZ(seed_uv::multiHitCombination& multiHit
   float ay = 0.f;
   float by = 0.f;
   // initialize matrix
+  float dz;
   for (unsigned int i = 0; i < seed_uv::geomInfo::nLayers; i++) {
     if (multiHitComb.idx[i] == SciFi::Constants::INVALID_IDX) continue;
-    m01 += seed_uv::geomInfo::dz[i];
-    m11 += seed_uv::geomInfo::dz[i] * seed_uv::geomInfo::dz[i];
+    dz = dev_average_z[i] - hybrid_seeding::z_ref;
+    m01 += dz;
+    m11 += dz * dz;
     r0 += multiHitComb.y[i];
-    r1 += multiHitComb.y[i] * seed_uv::geomInfo::dz[i];
+    r1 += multiHitComb.y[i] * dz;
   }
   // calculate the determinants and apply Cramer's rule
   float detM = m00 * m11 - m01 * m01; // never 0, no need to test
@@ -287,7 +313,8 @@ __device__ void seed_confirmTracks::fitYZ(seed_uv::multiHitCombination& multiHit
   float score = 0.f;
   for (unsigned int i = 0; i < seed_uv::geomInfo::nLayers; i++) {
     if (multiHitComb.idx[i] == SciFi::Constants::INVALID_IDX) continue;
-    float hit_chi2 = (multiHitComb.y[i] - (ay + by * seed_uv::geomInfo::dz[i]));
+    dz = dev_average_z[i] - hybrid_seeding::z_ref;
+    float hit_chi2 = (multiHitComb.y[i] - (ay + by * dz));
     hit_chi2 *= hit_chi2;
     score += hit_chi2;
   }

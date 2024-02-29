@@ -229,6 +229,13 @@ public:
     }
   }
 
+  void update_algorithms(const Constants& constants)
+  {
+    for (auto& algorithm : m_sequence) {
+      algorithm.update(constants);
+    }
+  }
+
   /**
    * @brief Initializes the store with the configured arguments
    */

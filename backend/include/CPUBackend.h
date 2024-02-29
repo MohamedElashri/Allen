@@ -366,6 +366,12 @@ namespace Allen {
     std::memcpy(dst, src, count);
   }
 
+  template<typename Symbol>
+  void inline memcpyToSymbol(Symbol& symbol, const void* src, size_t count)
+  {
+    std::memcpy(&symbol, src, count);
+  }
+
   void inline memcpy_async(void* dst, const void* src, size_t count, enum Allen::memcpy_kind kind, const Context&)
   {
     memcpy(dst, src, count, kind);

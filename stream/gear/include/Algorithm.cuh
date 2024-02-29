@@ -124,6 +124,7 @@ namespace Allen {
         Allen::Store::UnorderedStore&) = nullptr;
       void (*set_arguments_size)(void*, std::any&, const RuntimeOptions&, const Constants&) = nullptr;
       void (*invoke)(void const*, std::any&, const RuntimeOptions&, const Constants&, const Allen::Context&) = nullptr;
+      void (*update)(void const*, const Constants&) = nullptr;
       void (*init)(void*) = nullptr;
       void (*set_properties)(void*, const std::map<std::string, nlohmann::json>&) = nullptr;
       std::map<std::string, nlohmann::json> (*get_properties)(void const*) = nullptr;
@@ -192,7 +193,9 @@ namespace Allen {
           static_cast<ALGORITHM const*>(p)->operator()(
             std::any_cast<store_ref_t&>(arg_ref_manager), runtime_options, constants, context);
         },
+        [](const void* p, const Constants& constants) { static_cast<ALGORITHM const*>(p)->update(constants); },
         [](void* p) {
+          // static_cast<ALGORITHM*>(p)->init();
           if constexpr (Allen::has_init_member_fn<ALGORITHM>::value) {
             initialize_algorithm(*static_cast<ALGORITHM*>(p));
           }
@@ -286,7 +289,8 @@ namespace Allen {
     {
       (table.invoke)(instance, arg_ref_manager, runtime_options, constants, context);
     }
-    void init() { (table.init)(instance); }
+    void update(const Constants& constants) { (table.update)(instance, constants); }
+    void init() const { (table.init)(instance); }
     void set_properties(const std::map<std::string, nlohmann::json>& algo_config)
     {
       (table.set_properties)(instance, algo_config);
@@ -351,6 +355,9 @@ namespace Allen {
     Algorithm& operator=(const Algorithm&) = delete;
     Algorithm(Algorithm&&) = delete;
     Algorithm& operator=(Algorithm&&) = delete;
+
+    void update(const Constants&) const {}
+    void init() const {}
 
     void set_properties(const std::map<std::string, nlohmann::json>& algo_config) override
     {

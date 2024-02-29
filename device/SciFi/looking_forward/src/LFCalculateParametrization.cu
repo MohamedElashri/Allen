@@ -11,10 +11,7 @@
 #include "LFCreateTracks.cuh"
 
 template<bool with_ut, typename T>
-__device__ void calculate_parametrization(
-  lf_create_tracks::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants,
-  const T* tracks)
+__device__ void calculate_parametrization(lf_create_tracks::Parameters parameters, const T* tracks)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -70,9 +67,9 @@ __device__ void calculate_parametrization(
     const auto x1 = scifi_hits.x0(h1);
     const auto x2 = scifi_hits.x0(h2);
     const auto x3 = scifi_hits.x0(h3);
-    const auto z1_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(0)];
-    const auto z2_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(1)];
-    const auto z3_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(2)];
+    const auto z1_noref = scifi_hits.z0(h1);
+    const auto z2_noref = scifi_hits.z0(h2);
+    const auto z3_noref = scifi_hits.z0(h3);
 
     // Updated d_ratio
     const auto track_y_ref = velo_state.y + velo_state.ty * (z2_noref - velo_state.z);
@@ -112,18 +109,16 @@ __device__ void calculate_parametrization(
   }
 }
 
-__global__ void lf_create_tracks::lf_calculate_parametrization(
-  lf_create_tracks::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants)
+__global__ void lf_create_tracks::lf_calculate_parametrization(lf_create_tracks::Parameters parameters)
 {
   const auto* ut_tracks =
     Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    calculate_parametrization<true>(parameters, dev_looking_forward_constants, ut_tracks);
+    calculate_parametrization<true>(parameters, ut_tracks);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    calculate_parametrization<false>(parameters, dev_looking_forward_constants, velo_tracks);
+    calculate_parametrization<false>(parameters, velo_tracks);
   }
 }

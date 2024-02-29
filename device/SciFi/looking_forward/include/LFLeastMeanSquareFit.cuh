@@ -28,9 +28,10 @@ namespace lf_least_mean_square_fit {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void lf_least_mean_square_fit(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
+  __global__ void lf_least_mean_square_fit(Parameters);
 
   struct lf_least_mean_square_fit_t : public DeviceAlgorithm, Parameters {
+
     void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&) const;
 
     void operator()(

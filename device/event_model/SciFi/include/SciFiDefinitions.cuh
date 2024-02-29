@@ -127,6 +127,8 @@ namespace SciFi {
     float* dxdy;
     float* dzdy;
     float* globaldy;
+    float* average_z;
+    float* average_dxdy;
 
     __device__ __host__ SciFiGeometry() {}
 
@@ -157,11 +159,11 @@ namespace SciFi {
       p += sizeof(uint32_t);
       version = *((uint32_t*) p);
       p += sizeof(uint32_t);
-      if (version == 0) {
+      if (version == 0 || version == 2) { // scifi decoding 4, 5, 6 (0 hardcoded geometry-2 read-in geometry)
         bank_first_channel = (uint32_t*) p;
         p += number_of_banks * sizeof(uint32_t);
       }
-      else {
+      else { // scifi decoding 7, 8 or higher (1 hardcoded geometry-3 read-in geometry)
         source_ids = (uint32_t*) p;
         p += number_of_banks * sizeof(uint32_t);
         bank_sipm_list = (uint32_t*) p;
@@ -195,6 +197,10 @@ namespace SciFi {
       p += sizeof(float) * max_uniqueMat;
       globaldy = (float*) p;
       p += sizeof(float) * max_uniqueMat;
+      average_z = (float*) p;
+      p += sizeof(float) * number_of_layers;
+      average_dxdy = (float*) p;
+      p += sizeof(float) * number_of_layers;
 
       size = p - geometry;
     }
@@ -327,7 +333,7 @@ namespace SciFi {
 
   __device__ inline unsigned int iSource(const SciFi::SciFiGeometry& geom, unsigned int sourceID)
   {
-    if (geom.version == 0) return sourceID;
+    if (geom.version == 0 || geom.version == 2) return sourceID;
     unsigned int output(geom.number_of_banks);
     for (uint32_t i = 0; i < geom.number_of_banks; i++)
       if (geom.source_ids[i] == sourceID) {

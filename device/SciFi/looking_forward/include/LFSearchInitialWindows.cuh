@@ -52,11 +52,12 @@ namespace lf_search_initial_windows {
 
   __global__ void lf_search_initial_windows(
     Parameters,
-    const char* dev_scifi_geometry,
     const LookingForward::Constants* dev_looking_forward_constants,
     const float* dev_magnet_polarity);
 
   struct lf_search_initial_windows_t : public DeviceAlgorithm, Parameters {
+    void update(const Constants& constants) const;
+
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(

@@ -52,6 +52,8 @@ namespace seed_confirmTracks {
   __device__ void fitYZ(seed_uv::multiHitCombination& multiHitComb);
 
   struct seed_confirmTracks_t : public DeviceAlgorithm, Parameters {
+    void update(const Constants& constants) const;
+
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
