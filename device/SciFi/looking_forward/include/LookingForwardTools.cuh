@@ -80,7 +80,8 @@ namespace LookingForward {
     const float qop,
     const int layer,
     const LookingForward::Constants* dev_looking_forward_constants,
-    const float* dev_magnet_polarity)
+    const float* dev_magnet_polarity,
+    const float z)
   {
     // center of the magnet
     const MiniState magnet_state = state_at_z(UT_state, dev_looking_forward_constants->zMagnetParams[0]);
@@ -92,7 +93,7 @@ namespace LookingForward {
 
     final_state.tx = tx_ty_corr * qop * (-1.f) * *dev_magnet_polarity + UT_state.tx;
 
-    state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+    state_at_z_dzdy_corrected(final_state, z);
     // final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
     return final_state;
   }
@@ -106,7 +107,7 @@ namespace LookingForward {
     const float c1,
     const float d_ratio,
     const unsigned event_offset,
-    const LookingForward::Constants* dev_looking_forward_constants)
+    float* average_dxdy)
   {
     // Traverse all UV hits
     float y_values[6];
@@ -117,11 +118,18 @@ namespace LookingForward {
     for (unsigned j = 0; j < number_of_uv_hits; ++j) {
       const auto hit_index = event_offset + track.hits[track.hitsNum - number_of_uv_hits + j];
       const auto plane = scifi_hits.planeCode(hit_index) / 2;
+      // plane 1-2 5-6 9-10
+      // index 0-1 2-3 4-5
+      int index_plane;
+      if (plane % 2 == 1)
+        index_plane = (plane - 1) / 2;
+      else
+        index_plane = plane / 2;
+
       const auto z = scifi_hits.z0(hit_index);
       const auto dz = z - LookingForward::z_mid_t;
       const auto predicted_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
-      const auto y =
-        (predicted_x - scifi_hits.x0(hit_index)) / dev_looking_forward_constants->Zone_dxdy_uvlayers[(plane + 1) % 2];
+      const auto y = (predicted_x - scifi_hits.x0(hit_index)) / average_dxdy[index_plane];
 
       y_values[j] = y;
       z_values[j] = z;

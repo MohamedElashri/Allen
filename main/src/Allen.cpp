@@ -759,6 +759,9 @@ int allen(
                      << std::endl;
           try {
             updater->update(next_odin->data);
+            for (auto& s : streams) {
+              s->update_algorithms();
+            }
           } catch (...) {
             error_cout << "Non-event data update failed\n";
             ++error_count;

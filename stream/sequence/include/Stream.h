@@ -69,4 +69,6 @@ public:
   std::map<std::string, std::map<std::string, nlohmann::json>> get_algorithm_configuration() const;
 
   bool contains_validation_algorithms() const;
+
+  void update_algorithms() { scheduler->update_algorithms(constants); }
 };

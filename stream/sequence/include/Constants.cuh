@@ -86,7 +86,6 @@ struct Constants {
   std::array<float, 9> host_inv_clus_res;
   float* dev_inv_clus_res;
 
-  // Geometry constants
   char* dev_scifi_geometry = nullptr;
   std::vector<char> host_scifi_geometry;
 

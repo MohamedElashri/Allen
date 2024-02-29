@@ -104,6 +104,12 @@ namespace Allen {
     cudaCheck(cudaMemcpy(dst, src, count, convert_allen_to_cuda_kind(kind)));
   }
 
+  template<typename Symbol>
+  void inline memcpyToSymbol(Symbol& symbol, const void* src, size_t count)
+  {
+    cudaCheck(cudaMemcpyToSymbol(symbol, src, count));
+  }
+
 #ifdef SYNCHRONOUS_DEVICE_EXECUTION
   void inline memcpy_async(void* dst, const void* src, size_t count, Allen::memcpy_kind kind, const Context&)
   {

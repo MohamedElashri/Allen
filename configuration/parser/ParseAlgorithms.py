@@ -270,6 +270,7 @@ class AllenCore():
             f"DataObjectReadHandle<{typ}> m_{inp.typename} {{this, \"{inp.typename}\", \"\"}};"
             for inp, typ in zip(inputs, input_types)
         ] + [
+            "DataObjectReadHandle<LHCb::ODIN> m_odin {this, \"ODIN\", \"\"};",
             "DataObjectReadHandle<RuntimeOptions> m_runtime_options {this, \"runtime_options_t\", \"\"};",
             "DataObjectReadHandle<Constants const*> m_constants {this, \"constants_t\", \"\"};",
         ]
@@ -294,6 +295,8 @@ class AllenCore():
             "#include <Gaudi/Algorithm.h>",
             "#include <GaudiAlg/FunctionalDetails.h>",
             "#include <GaudiKernel/FunctionalFilterDecision.h>",
+            "#include <Event/ODIN.h>",
+            "#include <mutex>",
             "#include <vector>",
             "using namespace Gaudi::Functional;",
             f"class {algorithm.name} final : public Gaudi::Algorithm {{",
@@ -313,7 +316,10 @@ class AllenCore():
 
         code += "\n" + "\n".join(input_handles + output_handles +
                                  aggregate_handles + aggregate_input_vectors)
-        code += "\n" + "\n".join(properties)
+        code += "\n" + "\n".join(properties) + "\n"
+        code += "mutable std::optional<unsigned> m_runNumber;\n"
+        code += "mutable std::mutex m_mut;\n"
+
         code += "\n" + "\n".join(
             ("public:",
              "StatusCode execute( const EventContext& ) const override {"))
@@ -337,6 +343,14 @@ class AllenCore():
         code += "\n"
         code += "auto const& runtime_options = *m_runtime_options.get();\n"
         code += "auto const& constants = *m_constants.get();\n"
+        code += "auto const& odin = *m_odin.get();\n"
+
+        # Call update method if needed
+        code += "// Call algorithm update method on first event or if run number changes.\n"
+        code += "{\n  std::scoped_lock{m_mut};\n"
+        code += "  if ( !m_runNumber || *m_runNumber != odin.runNumber() ) {"
+        code += "    m_algorithm.update(*constants); m_runNumber = odin.runNumber();"
+        code += "  }\n}\n"
 
         code += "\n".join((
             f"std::vector<{typ}> empty_vector_tes_wrappers_{agg.typename} {{}};\n"
@@ -521,6 +535,7 @@ class AllenCore():
         ])
 
         input_keyvals = ", ".join(
+            ['KeyValue("ODIN", {""})'] +
             [f'KeyValue("{p.typename}", {{""}})' for p in inputs] + [
                 f"KeyValue(\"{p}\", {{\"\"}})"
                 for p in [a[0] for a in additional_inputs]
@@ -569,11 +584,13 @@ class AllenCore():
             f"#include <{algorithm.filename}>",
             f"#include <GaudiAlg/{include_file}>",
             "#include <GaudiAlg/FunctionalUtilities.h>",
+            "#include <Event/ODIN.h>",
+            "#include <mutex>",
             "#include <vector>",
             "// output type",
             f"using output_t = {output_type};",
             "// algorithm definition",
-            f"using base_class_t = {full_base_type}<output_t(EventContext const&, {inputs_tuple}), Gaudi::Functional::Traits::useAlgorithm>;",
+            f"using base_class_t = {full_base_type}<output_t(EventContext const&, LHCb::ODIN const&, {inputs_tuple}), Gaudi::Functional::Traits::useAlgorithm>;",
             f"struct {algorithm.name} final : base_class_t {{",
             f"StatusCode initialize() override {{",
             f"    const StatusCode sc = base_class_t::initialize();",
@@ -586,13 +603,18 @@ class AllenCore():
             f"{algorithm.name}( std::string const& name, ISvcLocator* pSvc )",
             f"  : {base_type}( name, pSvc, {input_and_output_keyvals} ) {{}}",
             f"// operator()",
-            f"{operator_output_type} operator()(EventContext const&, {operator_inputs}) const override {{",
+            f"{operator_output_type} operator()(EventContext const&, LHCb::ODIN const& odin, {operator_inputs}) const override {{",
             output_container,
             "// TES wrappers",
             f"{tes_wrappers}",
             "// Inputs to set_arguments_size and operator()",
             f"{tes_wrappers_reference}",
             f"Allen::Context context{{}};",
+            "// Call algorithm update method on first event or if run number changes.",
+            "{ std::scoped_lock{m_mut};",
+            "if ( !m_runNumber || *m_runNumber != odin.runNumber() ) {",
+            "  m_algorithm.update(*constants); m_runNumber = odin.runNumber();"
+            "}}",
             f"// set arguments size invocation",
             f"m_algorithm.set_arguments_size(tes_wrappers_references, runtime_options, *constants);",
             f"// algorithm operator() invocation",
@@ -600,6 +622,8 @@ class AllenCore():
             return_statement,
             f"}}",
             "private:",
+            f"mutable std::optional<unsigned> m_runNumber;",
+            f"mutable std::mutex m_mut;",
             f"{algorithm.namespace}::{algorithm.name} m_algorithm{{}};",
             "\n".join(properties),
             f"}};",

@@ -36,16 +36,20 @@ void lf_quality_filter::lf_quality_filter_t::set_arguments_size(
       first<host_number_of_reconstructed_input_tracks_t>(arguments));
 }
 
+namespace geom {
+  __constant__ extern float dev_average_dxdy[LookingForward::number_of_uv_layers];
+} // namespace geom
+
 void lf_quality_filter::lf_quality_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_atomics_scifi_t>(arguments, 0, context);
 
   global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, constants.dev_looking_forward_constants);
+    arguments);
 
   if (property<verbosity_t>() >= logger::debug) {
     print<dev_atomics_scifi_t>(arguments);
@@ -53,10 +57,7 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
 }
 
 template<bool with_ut, typename T>
-__device__ void quality_filter(
-  lf_quality_filter::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants,
-  const T* tracks)
+__device__ void quality_filter(lf_quality_filter::Parameters parameters, const T* tracks)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -115,7 +116,7 @@ __device__ void quality_filter(
 
     // Do Y line fit
     const auto y_lms_fit = LookingForward::least_mean_square_y_fit(
-      track, number_of_uv_hits, scifi_hits, a1, b1, c1, d_ratio, event_offset, dev_looking_forward_constants);
+      track, number_of_uv_hits, scifi_hits, a1, b1, c1, d_ratio, event_offset, geom::dev_average_dxdy);
 
     // Save Y line fit
     parameters.dev_scifi_lf_y_parametrization_length_filter[scifi_track_index] = std::get<1>(y_lms_fit);
@@ -214,18 +215,16 @@ __device__ void quality_filter(
   }
 }
 
-__global__ void lf_quality_filter::lf_quality_filter(
-  lf_quality_filter::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants)
+__global__ void lf_quality_filter::lf_quality_filter(lf_quality_filter::Parameters parameters)
 {
   const auto* ut_tracks =
     Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    quality_filter<true>(parameters, dev_looking_forward_constants, ut_tracks);
+    quality_filter<true>(parameters, ut_tracks);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    quality_filter<false>(parameters, dev_looking_forward_constants, velo_tracks);
+    quality_filter<false>(parameters, velo_tracks);
   }
 }

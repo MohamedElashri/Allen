@@ -11,6 +11,12 @@
 #include "LFCreateTracks.cuh"
 #include "BinarySearch.cuh"
 
+namespace geom {
+  __constant__ extern float dev_average_z_x_layers[LookingForward::number_of_x_layers];
+  __constant__ extern float dev_average_z_uv_layers[LookingForward::number_of_uv_layers];
+  __constant__ extern float dev_average_dxdy[LookingForward::number_of_uv_layers];
+} // namespace geom
+
 template<bool with_ut, typename T>
 __device__ void extend_tracks(
   lf_create_tracks::Parameters parameters,
@@ -20,6 +26,7 @@ __device__ void extend_tracks(
 
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
+
   const unsigned number_of_elements_initial_window = with_ut ?
                                                        LookingForward::InputUT::number_of_elements_initial_window :
                                                        LookingForward::InputVelo::number_of_elements_initial_window;
@@ -77,7 +84,7 @@ __device__ void extend_tracks(
         parameters.dev_scifi_lf_initial_windows
           [current_input_track_index +
            (current_layer * number_of_elements_initial_window + 1 + left_right_side * 2) * total_number_of_tracks];
-      const float z = dev_looking_forward_constants->Zone_zPos_xlayers[current_layer];
+      const float z = geom::dev_average_z_x_layers[current_layer];
 
       const auto dz = z - LookingForward::z_mid_t;
       const auto predicted_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
@@ -114,8 +121,7 @@ __device__ void extend_tracks(
 
     // Add UV hits
     for (int relative_uv_layer = 0; relative_uv_layer < 6; relative_uv_layer++) {
-      const auto layer4 = dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer];
-      const auto z4 = dev_looking_forward_constants->Zone_zPos[layer4];
+      const auto z4 = geom::dev_average_z_uv_layers[relative_uv_layer];
 
       // Use UV windows
       const auto uv_window_start =
@@ -143,8 +149,7 @@ __device__ void extend_tracks(
         z4,
         dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
       // This is the predicted_x in the u/v reference plane (i.e. the actual hit position measured)
-      const auto predicted_x =
-        expected_x - expected_y * dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1];
+      const auto predicted_x = expected_x - expected_y * geom::dev_average_dxdy[relative_uv_layer];
 
       // Pick the best, according to chi2.
       // TODO : This needs some dedicated tuning. We scale the max_chi2 ( i.e the max distance in the x-plane )

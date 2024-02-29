@@ -42,10 +42,7 @@ void register_consumers(
       BankTypes::UT),
     std::make_tuple(
       Allen::NonEventData::SciFiGeometry {},
-      [&constants]() {
-        return std::make_unique<Consumers::HostDeviceGeometry>(
-          constants.host_scifi_geometry, constants.dev_scifi_geometry);
-      },
+      [&constants]() { return std::make_unique<Consumers::SciFiGeometry>(constants); },
       BankTypes::FT),
     std::make_tuple(
       Allen::NonEventData::Beamline {},

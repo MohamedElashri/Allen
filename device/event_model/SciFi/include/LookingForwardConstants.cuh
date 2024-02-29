@@ -40,6 +40,9 @@ namespace LookingForward {
   // ==================================
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
+  constexpr int nLayers = 12;
+  constexpr unsigned x_layers_number[number_of_x_layers] {0, 3, 4, 7, 8, 11};
+  constexpr unsigned uv_layers_number[number_of_uv_layers] {1, 2, 5, 6, 9, 10};
 
   namespace InputUT {
     // Number of ints per track in initial window (xbegin, xend, uvbegin, uvend == 4)

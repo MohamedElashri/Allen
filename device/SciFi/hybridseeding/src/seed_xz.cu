@@ -22,23 +22,27 @@
 namespace {
   // For a given pair of hits, one in the first layer, the other in the second layer, calculate interesting paramaters.
   __device__ seed_xz::TwoHitCombination
-  makeTwoHitCombination(const hybrid_seeding::Case& currentCase, const float firstHit, const float lastHit)
+  makeTwoHitCombination(const hybrid_seeding::CaseLayers& currentCase, const float firstHit, const float lastHit)
   {
     seed_xz::TwoHitCombination hitComb;
-    hitComb.tx = (lastHit - firstHit) * currentCase.invZlZf;  //-LoH: average slope
-    hitComb.xRef = firstHit - currentCase.dz[0] * hitComb.tx; //-LoH: position at z=zRef
-    hitComb.xProj = firstHit - hitComb.tx * currentCase.t1_z; //-LoH: extrapolated position at z=0. Used only for 1/p
-                                                              // calculation. Could be changed for 1 fewer terms
+    hitComb.tx = (lastHit - firstHit) * currentCase.case_data->invZlZf;  //-LoH: average slope
+    hitComb.xRef = firstHit - currentCase.case_data->dz[0] * hitComb.tx; //-LoH: position at z=zRef
+    hitComb.xProj =
+      firstHit - hitComb.tx * currentCase.case_data->t1_z; //-LoH: extrapolated position at z=0. Used only for 1/p
+                                                           // calculation. Could be changed for 1 fewer terms
     float q = copysignf(1.f, -hitComb.xProj);
     hitComb.xProj *= -q; // now absolute value
     // SPEEDUP: is the quadratic term really needed considering our momentum?
     // SPEEDUP: use x0 rather than invP (frees a register)
-    hitComb.invP = hitComb.xProj * (currentCase.invPTerms_1 + currentCase.invPTerms_2 * hitComb.xProj);
-    hitComb.xProj = hitComb.xRef + currentCase.dz[2] * hitComb.tx; // xProj is now the projected x on T2x1
+    hitComb.invP =
+      hitComb.xProj * (currentCase.case_data->invPTerms_1 + currentCase.case_data->invPTerms_2 * hitComb.xProj);
+    hitComb.xProj = hitComb.xRef + currentCase.case_data->dz[2] * hitComb.tx; // xProj is now the projected x on T2x1
 
     // FIXME: This tuning should be improved
-    hitComb.maxPara = hitComb.xProj - q * (currentCase.threeHit0 + hitComb.invP * currentCase.threeHit1);
-    hitComb.minPara = hitComb.xProj - q * (-2.f * currentCase.threeHit0 + hitComb.invP * (currentCase.threeHit1));
+    hitComb.maxPara =
+      hitComb.xProj - q * (currentCase.case_data->threeHit0 + hitComb.invP * currentCase.case_data->threeHit1);
+    hitComb.minPara =
+      hitComb.xProj - q * (-2.f * currentCase.case_data->threeHit0 + hitComb.invP * (currentCase.case_data->threeHit1));
     if (q > 0.f) {
       float temp = hitComb.minPara;
       hitComb.minPara = hitComb.maxPara;
@@ -83,7 +87,7 @@ namespace {
 
   // SPEEDUP: in reality, there are only 4 possible LHS matrices, so we could precalculate them, most of the detMi and
   // detM
-  __device__ float fitXZ(const hybrid_seeding::Case& currentCase, seed_xz::multiHitCombination& hitComb)
+  __device__ float fitXZ(const hybrid_seeding::CaseLayers& currentCase, seed_xz::multiHitCombination& hitComb)
   {
     const unsigned int layers[6] = {currentCase.iFirst,
                                     currentCase.iLast,
@@ -95,20 +99,20 @@ namespace {
     float rhs[3] = {0.f};
     float lhs[6];
     for (auto i = 0; i < 6; i++)
-      lhs[i] = currentCase.startingFitMatrix[i];
+      lhs[i] = currentCase.case_data->startingFitMatrix[i];
     for (auto i = 3; i < 6; i++) {
       if (hitComb.idx[layers[i]] == SciFi::Constants::INVALID_IDX) {
         continue;
       }
       lhs[0]++;
-      lhs[1] += currentCase.dz[i];
-      lhs[2] += currentCase.dz2[i];
-      lhs[3] += currentCase.dz[i] * currentCase.dz[i];
-      lhs[4] += currentCase.dz2[i] * currentCase.dz[i];
-      lhs[5] += currentCase.dz2[i] * currentCase.dz2[i];
+      lhs[1] += currentCase.case_data->dz[i];
+      lhs[2] += currentCase.case_data->dz2[i];
+      lhs[3] += currentCase.case_data->dz[i] * currentCase.case_data->dz[i];
+      lhs[4] += currentCase.case_data->dz2[i] * currentCase.case_data->dz[i];
+      lhs[5] += currentCase.case_data->dz2[i] * currentCase.case_data->dz2[i];
       rhs[0] -= hitComb.delta_x[i];
-      rhs[1] -= hitComb.delta_x[i] * currentCase.dz[i];
-      rhs[2] -= hitComb.delta_x[i] * currentCase.dz2[i];
+      rhs[1] -= hitComb.delta_x[i] * currentCase.case_data->dz[i];
+      rhs[2] -= hitComb.delta_x[i] * currentCase.case_data->dz2[i];
     }
     // Fit x
     // SPEEDUP: if we have enough registers, we could cache these
@@ -133,18 +137,20 @@ namespace {
     // TODO: Refit?
     float score = 0.f;
     for (unsigned i = 0; i < 3; i++) { // SPEEDUP: the division by detM is probably useless
-      float err = (detM0 + detM1 * currentCase.dz[i] + detM2 * currentCase.dz2[i]) / detM;
+      float err = (detM0 + detM1 * currentCase.case_data->dz[i] + detM2 * currentCase.case_data->dz2[i]) / detM;
       score += err * err;
     }
     for (unsigned i = 3; i < 6; i++) { // SPEEDUP: the division by detM is probably useless
       if (hitComb.idx[layers[i]] == SciFi::Constants::INVALID_IDX) continue;
-      float err = hitComb.delta_x[i] + (detM0 + detM1 * currentCase.dz[i] + detM2 * currentCase.dz2[i]) / detM;
+      float err = hitComb.delta_x[i] +
+                  (detM0 + detM1 * currentCase.case_data->dz[i] + detM2 * currentCase.case_data->dz2[i]) / detM;
       score += err * err;
     }
     // Make track
     // FIXME: Hack to make clone selection systematically prefer tracks with more hits
     if (lhs[0] == 5) score *= 10.f;
-    score += currentCase.scoreOffset; // if 2 tracks using the same hits have the same chi2, privilagiate the first case
+    score += currentCase.case_data
+               ->scoreOffset; // if 2 tracks using the same hits have the same chi2, privilagiate the first case
     return score;
   }
 
@@ -152,7 +158,7 @@ namespace {
   __device__ void makeTriplets(
     unsigned* triplets,
     unsigned& nTriplets,
-    const hybrid_seeding::Case& currentCase,
+    const hybrid_seeding::CaseLayers& currentCase,
     seeding::HitCache& hits,
     const unsigned int* layers)
   {
@@ -164,8 +170,8 @@ namespace {
 
     for (unsigned int firstHitIdx = threadIdx.x; firstHitIdx < hits.size[layers[0]]; firstHitIdx += blockDim.x) {
       float xFirst = hits.hit(layers[0], firstHitIdx);
-      float maxXl = xFirst * currentCase.twoHitScale + currentCase.tol2Hit;
-      float minXl = maxXl - 2.f * currentCase.tol2Hit;
+      float maxXl = xFirst * currentCase.case_data->twoHitScale + currentCase.case_data->tol2Hit;
+      float minXl = maxXl - 2.f * currentCase.case_data->tol2Hit;
 
       unsigned nCandidates = 0;
       _unused(nCandidates);
@@ -200,6 +206,25 @@ namespace {
 } // namespace
 
 INSTANTIATE_ALGORITHM(seed_xz::seed_xz_t);
+
+namespace seed_xz {
+  __constant__ hybrid_seeding::Case dev_const_case0;
+  __constant__ hybrid_seeding::Case dev_const_case1;
+} // namespace seed_xz
+
+void seed_xz::seed_xz_t::update(const Constants& constants) const
+{
+  float average_z[seed_xz::geomInfo::nLayers];
+  const SciFi::SciFiGeometry scifi_geometry {constants.host_scifi_geometry};
+  for (int i = 0; i < seed_xz::geomInfo::nLayers; i++) {
+    average_z[i] = scifi_geometry.average_z[seed_xz::geomInfo::x_layers_number[i]];
+  }
+  hybrid_seeding::Case host_Case0(0, 2, 4, 1, 3, 5, 3000.f, 0, average_z);
+  hybrid_seeding::Case host_Case1(1, 3, 5, 0, 2, 4, 3000.f, 0.01f, average_z);
+
+  Allen::memcpyToSymbol(dev_const_case0, &host_Case0, sizeof(hybrid_seeding::Case));
+  Allen::memcpyToSymbol(dev_const_case1, &host_Case1, sizeof(hybrid_seeding::Case));
+}
 
 void seed_xz::seed_xz_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
@@ -250,8 +275,8 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
 
   // Shared between parts
   unsigned nReconstructedTracks = 0;
-  hybrid_seeding::Case Case0(0, 2, 4, 1, 3, 5, 3000.f, 0);
-  hybrid_seeding::Case Case1(1, 3, 5, 0, 2, 4, 3000.f, 0.01f);
+  hybrid_seeding::CaseLayers Case0(0, 2, 4, 1, 3, 5, &dev_const_case0);
+  hybrid_seeding::CaseLayers Case1(1, 3, 5, 0, 2, 4, &dev_const_case1);
 
   for (unsigned int part = 0; part < SciFi::Constants::n_parts; part++) {
     __shared__ unsigned nTracksPart;
@@ -296,7 +321,7 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
         }
         __syncthreads();
 
-        for (auto currentCase : {Case0, Case1}) {
+        for (const auto& currentCase : {Case0, Case1}) {
           const unsigned int layers[6] = {currentCase.iFirst,
                                           currentCase.iLast,
                                           currentCase.iMiddle,
@@ -337,33 +362,33 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
 
             seed_xz::multiHitCombination multiHitComb;
             // -LoH: the curvature is proportional to the error on the 3rd hit projection:
-            multiHitComb.cx = (twoHitComb.xProj - xMiddle) * currentCase.delSeedCorr;
+            multiHitComb.cx = (twoHitComb.xProj - xMiddle) * currentCase.case_data->delSeedCorr;
             // -LoH: the slope parameter is close to the average slope, up to curvature correction:
-            multiHitComb.bx = twoHitComb.tx - multiHitComb.cx * currentCase.txCorr;
+            multiHitComb.bx = twoHitComb.tx - multiHitComb.cx * currentCase.case_data->txCorr;
             // -LoH: the intersect of the track with z=zRef plane is close to 2hit intersect, up to curvature
-            multiHitComb.ax = twoHitComb.xRef - multiHitComb.cx * currentCase.xRefCorr;
-            multiHitComb.delta_x[3] =
-              multiHitComb.ax + currentCase.dz[3] * multiHitComb.bx + currentCase.dz2[3] * multiHitComb.cx;
-            multiHitComb.delta_x[4] =
-              multiHitComb.ax + currentCase.dz[4] * multiHitComb.bx + currentCase.dz2[4] * multiHitComb.cx;
+            multiHitComb.ax = twoHitComb.xRef - multiHitComb.cx * currentCase.case_data->xRefCorr;
+            multiHitComb.delta_x[3] = multiHitComb.ax + currentCase.case_data->dz[3] * multiHitComb.bx +
+                                      currentCase.case_data->dz2[3] * multiHitComb.cx;
+            multiHitComb.delta_x[4] = multiHitComb.ax + currentCase.case_data->dz[4] * multiHitComb.bx +
+                                      currentCase.case_data->dz2[4] * multiHitComb.cx;
 
             // Find the remainings
             multiHitComb.idx[layers[3]] = findRemainingHit(
-              currentCase.tolRem, multiHitComb.delta_x[3], hits.size[layers[3]], hits.layer(layers[3]));
+              currentCase.case_data->tolRem, multiHitComb.delta_x[3], hits.size[layers[3]], hits.layer(layers[3]));
             multiHitComb.idx[layers[4]] = findRemainingHit(
-              currentCase.tolRem, multiHitComb.delta_x[4], hits.size[layers[4]], hits.layer(layers[4]));
+              currentCase.case_data->tolRem, multiHitComb.delta_x[4], hits.size[layers[4]], hits.layer(layers[4]));
 
             // Early stopping: at least 5 hits
             if (
               multiHitComb.idx[layers[3]] == SciFi::Constants::INVALID_IDX &&
               multiHitComb.idx[layers[4]] == SciFi::Constants::INVALID_IDX)
               continue;
-            multiHitComb.delta_x[5] =
-              multiHitComb.ax + currentCase.dz[5] * multiHitComb.bx + currentCase.dz2[5] * multiHitComb.cx;
+            multiHitComb.delta_x[5] = multiHitComb.ax + currentCase.case_data->dz[5] * multiHitComb.bx +
+                                      currentCase.case_data->dz2[5] * multiHitComb.cx;
 
             // T3x2 is responsible for most ghosts: +8% ghosts and +7% efficiency considering it.
             multiHitComb.idx[layers[5]] = findRemainingHit(
-              currentCase.tolRem, multiHitComb.delta_x[5], hits.size[layers[5]], hits.layer(layers[5]));
+              currentCase.case_data->tolRem, multiHitComb.delta_x[5], hits.size[layers[5]], hits.layer(layers[5]));
 
             // Early stopping: at least 5 hits
             if (

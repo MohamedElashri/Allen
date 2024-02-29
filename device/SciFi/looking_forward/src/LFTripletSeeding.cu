@@ -34,6 +34,10 @@ void lf_triplet_seeding::lf_triplet_seeding_t::set_arguments_size(
   set_size<dev_global_xs_t>(arguments, first<host_scifi_hit_count_t>(arguments));
 }
 
+namespace geom {
+  __constant__ extern float dev_average_z_x_layers[LookingForward::number_of_x_layers];
+} // namespace geom
+
 void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
@@ -613,9 +617,9 @@ __device__ void triplet_seeding(
               continue;
             }
 
-            const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_0];
-            const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_1];
-            const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_2];
+            const auto z0 = geom::dev_average_z_x_layers[layer_0];
+            const auto z1 = geom::dev_average_z_x_layers[layer_1];
+            const auto z2 = geom::dev_average_z_x_layers[layer_2];
 
             const int l0_start =
               shared_xs_offsets[triplet_seed] +

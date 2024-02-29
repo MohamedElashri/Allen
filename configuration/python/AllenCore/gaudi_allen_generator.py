@@ -56,6 +56,7 @@ def initialize_event_lists(**kwargs):
 
 # Gaudi configuration wrapper
 def make_algorithm(algorithm, name, *args, **kwargs):
+    from PyConf.application import make_odin
     from PyConf.Algorithms import odin_provider_t, host_init_event_list_t
 
     # Deduce the types requested
@@ -90,9 +91,15 @@ def make_algorithm(algorithm, name, *args, **kwargs):
             kwargs[dev_event_list_name] = dev_event_list
 
         return algorithm(
-            name=name, runtime_options_t=rto, constants_t=cs, *args, **kwargs)
+            name=name,
+            ODIN=make_odin(),
+            runtime_options_t=rto,
+            constants_t=cs,
+            *args,
+            **kwargs)
     else:
-        return algorithm(name=name, runtime_options_t=rto, constants_t=cs)
+        return algorithm(
+            name=name, ODIN=make_odin(), runtime_options_t=rto, constants_t=cs)
 
 
 # Empty generate to support importing Allen sequences in Gaudi-Allen

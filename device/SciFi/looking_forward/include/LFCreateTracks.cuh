@@ -69,13 +69,12 @@ namespace lf_create_tracks {
 
   __global__ void lf_triplet_keep_best(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 
-  __global__ void lf_calculate_parametrization(
-    Parameters,
-    const LookingForward::Constants* dev_looking_forward_constants);
+  __global__ void lf_calculate_parametrization(Parameters);
 
   __global__ void lf_extend_tracks(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
 
   struct lf_create_tracks_t : public DeviceAlgorithm, Parameters {
+
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
