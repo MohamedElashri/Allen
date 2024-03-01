@@ -13,6 +13,8 @@ import os
 import sys
 import zmq
 import re
+import json
+from pathlib import Path
 from Configurables import ApplicationMgr
 from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
 
@@ -163,6 +165,14 @@ parser.add_argument(
     dest="bindings",
     action="store_false",
     default=True)
+parser.add_argument(
+    "--python-hlt1-node",
+    type=str,
+    help=
+    "Name of the variable that stores the configuration in the python module or file",
+    default="hlt1_node",
+    dest="hlt1_node",
+)
 
 args = parser.parse_args()
 
@@ -215,10 +225,10 @@ rootSvc = RootCnvSvc("RootCnvSvc", EnableIncident=1)
 ApplicationMgr().ExtSvc += ["Gaudi::IODataManager/IODataManager", rootSvc]
 
 # Get Allen JSON configuration
-sequence = os.path.expandvars(args.sequence)
+sequence = Path(os.path.expandvars(args.sequence))
 sequence_json = ""
 tck_option = re.compile(r"([^:]+):(0x[a-fA-F0-9]{8})")
-if (m := tck_option.match(sequence)):
+if (m := tck_option.match(str(sequence))):
     from Allen.tck import sequence_from_git, dependencies_from_build_manifest
     import json
 
@@ -241,9 +251,18 @@ if (m := tck_option.match(sequence)):
         print(
             f"Loaded TCK {tck} with sequence type {tck_info['type']} and label {tck_info['label']}."
         )
-else:
-    with open(sequence) as f:
+elif sequence.suffix in (".py", ""):
+    from Allen.tck import sequence_from_python
+    from AllenCore.configuration_options import is_allen_standalone
+    is_allen_standalone.global_bind(standalone=True)
+    sequence_json = json.dumps(
+        sequence_from_python(sequence, node_name=args.hlt1_node, verbose=True),
+        sort_keys=True)
+elif sequence.suffix in (".json", ):
+    with sequence.open() as f:
         sequence_json = f.read()
+else:
+    raise ValueError(f"Unknown type of sequence specified: {str(sequence)}")
 
 if args.mep:
     extSvc += ["AllenConfiguration", "MEPProvider"]

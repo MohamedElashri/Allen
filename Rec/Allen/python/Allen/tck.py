@@ -202,7 +202,9 @@ def json_tck_db(configuration: dict, sequence_type: str, metadata: dict,
     return {"manifest": manifest, digest: tck_config}
 
 
-def sequence_from_python(python_file: Path, node_name="hlt1_node") -> dict:
+def sequence_from_python(python_file: Path,
+                         node_name="hlt1_node",
+                         verbose=False) -> dict:
     """Retrieve an Allen configuration in JSON format from a python module
     """
 
@@ -231,7 +233,7 @@ def sequence_from_python(python_file: Path, node_name="hlt1_node") -> dict:
             f"Failed to get {node_name} from sequence file {str(python_file)}")
         return None
 
-    algorithms = build_sequence(node, verbose=False)
+    algorithms = build_sequence(node, verbose=verbose)
     return generate_json_configuration(algorithms)
 
 
