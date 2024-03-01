@@ -708,7 +708,8 @@ def setup_hlt1_node(enablePhysics=True,
 
             tae_filters = CompositeNode(
                 "taefilter_node",
-                [tae_activity_filter, tae_filter()],
+                beam_beam_filter + [tae_activity_filter,
+                                    tae_filter()],
                 NodeLogic.LAZY_AND,
                 force_order=True)
         else:
