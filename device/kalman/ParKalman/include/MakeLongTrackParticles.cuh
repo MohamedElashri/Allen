@@ -62,6 +62,7 @@ namespace make_long_track_particles {
 
   __global__ void make_particles(
     Parameters parameters,
+    unsigned event_list_size,
     gsl::span<unsigned> dev_histogram_n_trks,
     gsl::span<unsigned> dev_histogram_trk_eta,
     gsl::span<unsigned> dev_histogram_trk_phi,
