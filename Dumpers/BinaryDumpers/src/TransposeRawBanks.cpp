@@ -147,8 +147,14 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
         throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
       }
     }
+
     else if (rawBanks[bt].empty()) {
-      throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
+      if (bt == LHCb::RawBank::Plume) {
+        warning() << "No PLUME bank found, will continue without PLUME decoding" << endmsg;
+      }
+      else {
+        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
+      }
     }
   }
 
