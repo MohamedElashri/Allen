@@ -51,6 +51,16 @@ using std::signbit;
 #define __expf expf
 
 constexpr int warp_size = 1;
+#define __bswap(x) __builtin_bswap32(x)
+
+inline uint32_t __brev(uint32_t x)
+{
+  x = (x >> 16) | (x << 16);
+  x = ((x & 0xFF00FF00) >> 8) | ((x & 0x00FF00FF) << 8);
+  x = ((x & 0xF0F0F0F0) >> 4) | ((x & 0x0F0F0F0F) << 4);
+  x = ((x & 0xCCCCCCCC) >> 2) | ((x & 0x33333333) << 2);
+  return ((x & 0xAAAAAAAA) >> 1) | ((x & 0x55555555) << 1);
+}
 
 unsigned inline __ballot_sync(unsigned mask, int predicate) { return predicate & mask; }
 

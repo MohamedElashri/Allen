@@ -21,6 +21,7 @@
 #include <cuda_fp16.h>
 #define half_t half
 constexpr int warp_size = 32;
+#define __bswap(x) __byte_perm(x, x, 0x0123)
 
 // Support for dynamic shared memory buffers
 #define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config) extern __shared__ _type _instance[];

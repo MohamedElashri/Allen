@@ -32,7 +32,7 @@ namespace plume_activity_line {
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(min_plume_adc_t, "min_plume_adc", "ADC threshold", unsigned) min_plume_adc;
+    PROPERTY(min_plume_adc_t, "min_plume_adc", "ADC threshold", float) min_plume_adc;
     PROPERTY(
       min_number_plume_adcs_over_min_t,
       "min_number_plume_adcs_over_min",
@@ -54,7 +54,7 @@ namespace plume_activity_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<min_plume_adc_t> m_min_plume_adc {this, 1};
+    Property<min_plume_adc_t> m_min_plume_adc {this, 1.f};
     Property<min_number_plume_adcs_over_min_t> m_min_number_plume_adcs_over_min {this, 1};
     Property<plume_channel_mask_t> plume_channel_mask {this, 0x003FFFFF003FFFFF};
   };

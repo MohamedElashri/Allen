@@ -79,29 +79,58 @@ __global__ void plume_lumi_counters::plume_lumi_counters(
 
     // loop over lumi channels
     const Plume_* pl = parameters.dev_plume + event_number;
-    std::array<unsigned, 47> plume_counters = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
-                                               0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
-                                               0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+
+    float plume_counters_ADCsum = 0.f;
+
+    std::array<int32_t, 2> plume_counters_ovt = {0u, 0u};
+
+    std::array<float, 44> plume_counters = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+                                            0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+                                            0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+
     for (unsigned feb = 0; feb < 2; feb++) {
       unsigned channel_offset = feb * Lumi::Constants::n_plume_channels;
       for (unsigned channel = 0; channel < Lumi::Constants::n_plume_lumi_channels; ++channel) {
-        plume_counters[0] += static_cast<unsigned>(pl->ADC_counts[channel_offset + channel].x & 0xffffffff);
-        plume_counters[3 + feb * Lumi::Constants::n_plume_lumi_channels + channel] +=
-          static_cast<unsigned>(pl->ADC_counts[channel_offset + channel].x & 0xffffffff);
+        plume_counters_ADCsum += pl->ADC_counts.at(channel_offset + channel);
+        plume_counters[feb * Lumi::Constants::n_plume_lumi_channels + channel] +=
+          pl->ADC_counts.at(channel_offset + channel);
         // get the corresponding overthreshold bit
-        plume_counters[1 + feb] |= ((pl->ovr_th[feb]) & (1u << (21 - channel)));
       }
+      plume_counters_ovt[feb] = pl->ovr_th[feb] & ((1u << Lumi::Constants::n_plume_lumi_channels) - 1);
     }
     // get average
-    plume_counters[0] = plume_counters[0] / 2u / Lumi::Constants::n_plume_lumi_channels;
+    plume_counters_ADCsum = plume_counters_ADCsum / Lumi::Constants::n_plume_lumi_channels / 2.f;
 
     unsigned info_offset = Lumi::Constants::n_plume_counters * lumi_evt_index;
-    for (unsigned i = 0u; i < Lumi::Constants::n_plume_counters; ++i) {
+
+    // filling ADCsum average
+
+    fillLumiInfo(
+      parameters.dev_lumi_infos[info_offset],
+      offsets_and_sizes[0],
+      offsets_and_sizes[1],
+      plume_counters_ADCsum,
+      shifts_and_scales[0],
+      shifts_and_scales[1]);
+
+    for (unsigned i = 1u; i < 3u; ++i) {
+
+      // filling ovt bits
       fillLumiInfo(
         parameters.dev_lumi_infos[info_offset + i],
         offsets_and_sizes[2 * i],
         offsets_and_sizes[2 * i + 1],
-        plume_counters[i],
+        plume_counters_ovt[i - 1],
+        shifts_and_scales[2 * i],
+        shifts_and_scales[2 * i + 1]);
+    }
+
+    for (unsigned i = 3u; i < Lumi::Constants::n_plume_counters; ++i) {
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset + i],
+        offsets_and_sizes[2 * i],
+        offsets_and_sizes[2 * i + 1],
+        plume_counters[i - 3],
         shifts_and_scales[2 * i],
         shifts_and_scales[2 * i + 1]);
     }

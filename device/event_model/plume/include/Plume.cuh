@@ -14,14 +14,9 @@
 
 struct Plume_ {
 
-  struct bit_field {
-    unsigned x : 12;
-  };
-
   int32_t ovr_th[2] = {
     0u,
     0u}; // overthreshold bits feb0=ovr_th[0] and feb1=ovr_th[1], first left bit of the 32 bit word is ch.0
 
-  bit_field ADC_counts[64]; // N=64 objects of type bitset 12 (12 bit word) for N ADC counts. From 0 to 31 Feb0, from 32
-                            // to 63 Feb1; [0]=ch.0
+  std::array<float, 64> ADC_counts; // N=64 objects of type float for N ADC counts, [0]=channel0.
 };

@@ -320,6 +320,7 @@ def make_plume_activity_line(decoded_plume,
         post_scaler=post_scaler,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        plume_channel_mask=0x003FFFFF003FFFFF,
         min_plume_adc=min_plume_adc,
         min_number_plume_adcs_over_min=min_number_plume_adcs_over_min)
 
