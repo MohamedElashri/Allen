@@ -55,6 +55,7 @@ void make_long_track_particles::make_long_track_particles_t::operator()(
 
   global_function(make_particles)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
+    size<dev_event_list_t>(arguments),
     dev_histogram_n_trks.get(),
     dev_histogram_trk_eta.get(),
     dev_histogram_trk_phi.get(),
@@ -73,45 +74,51 @@ void make_long_track_particles::make_long_track_particles_t::operator()(
 
 void __global__ make_long_track_particles::make_particles(
   make_long_track_particles::Parameters parameters,
+  unsigned event_list_size,
   gsl::span<unsigned> dev_histogram_n_trks,
   gsl::span<unsigned> dev_histogram_trk_eta,
   gsl::span<unsigned> dev_histogram_trk_phi,
   gsl::span<unsigned> dev_histogram_trk_pt)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
-  const unsigned event_number = blockIdx.x;
-  const auto* mec =
-    static_cast<const Allen::Views::Physics::MultiEventLongTracks*>(parameters.dev_multi_event_long_tracks[0]);
-  const auto event_long_tracks = mec->container(event_number);
-  const unsigned offset = event_long_tracks.offset();
-  const unsigned number_of_tracks = event_long_tracks.size();
-  const auto pv_table = parameters.dev_kalman_pv_tables[event_number];
+  const unsigned event_index = blockIdx.x;
 
-  if (number_of_tracks < UT::Constants::max_num_tracks) atomicAdd(&dev_histogram_n_trks[number_of_tracks], 1);
+  if (event_index < event_list_size) {
+    const unsigned event_number = parameters.dev_event_list[event_index];
+    const auto* mec =
+      static_cast<const Allen::Views::Physics::MultiEventLongTracks*>(parameters.dev_multi_event_long_tracks[0]);
+    const auto event_long_tracks = mec->container(event_number);
+    const unsigned offset = event_long_tracks.offset();
+    const unsigned number_of_tracks = event_long_tracks.size();
+    const auto pv_table = parameters.dev_kalman_pv_tables[event_number];
 
-  for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    const auto* long_track = &(event_long_tracks.track(i));
-    const int i_pv = pv_table.pv(i);
-    new (parameters.dev_long_track_particle_view + offset + i) Allen::Views::Physics::BasicParticle {
-      long_track,
-      parameters.dev_kalman_states_view + event_number,
-      i_pv >= 0 ? parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i) :
-                  nullptr,
-      i,
-      parameters.dev_lepton_id[offset + i]};
+    if (number_of_tracks < UT::Constants::max_num_tracks) atomicAdd(&dev_histogram_n_trks[number_of_tracks], 1);
 
-    auto state = (parameters.dev_kalman_states_view + event_number)->state(i);
-    const unsigned etabin = max(0u, min(99u, static_cast<unsigned>(state.eta() * 20)));
-    atomicAdd(&dev_histogram_trk_eta[etabin], 1);
-    const unsigned phibin = max(0u, min(99u, static_cast<unsigned>(std::atan2(state.ty(), state.tx()) * 15.625f + 50)));
-    atomicAdd(&dev_histogram_trk_phi[phibin], 1);
-    const unsigned ptbin = min(99u, static_cast<unsigned>(state.pt() * 0.01f));
-    atomicAdd(&dev_histogram_trk_pt[ptbin], 1);
+    for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+      const auto* long_track = &(event_long_tracks.track(i));
+      const int i_pv = pv_table.pv(i);
+      new (parameters.dev_long_track_particle_view + offset + i) Allen::Views::Physics::BasicParticle {
+        long_track,
+        parameters.dev_kalman_states_view + event_number,
+        i_pv >= 0 ? parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i) :
+                    nullptr,
+        i,
+        parameters.dev_lepton_id[offset + i]};
+
+      auto state = (parameters.dev_kalman_states_view + event_number)->state(i);
+      const unsigned etabin = max(0u, min(99u, static_cast<unsigned>(state.eta() * 20)));
+      atomicAdd(&dev_histogram_trk_eta[etabin], 1);
+      const unsigned phibin =
+        max(0u, min(99u, static_cast<unsigned>(std::atan2(state.ty(), state.tx()) * 15.625f + 50)));
+      atomicAdd(&dev_histogram_trk_phi[phibin], 1);
+      const unsigned ptbin = min(99u, static_cast<unsigned>(state.pt() * 0.01f));
+      atomicAdd(&dev_histogram_trk_pt[ptbin], 1);
+    }
   }
 
   if (threadIdx.x == 0) {
-    new (parameters.dev_long_track_particles_view + event_number) Allen::Views::Physics::BasicParticles {
-      parameters.dev_long_track_particle_view, parameters.dev_atomics_scifi, event_number};
+    new (parameters.dev_long_track_particles_view + event_index) Allen::Views::Physics::BasicParticles {
+      parameters.dev_long_track_particle_view, parameters.dev_atomics_scifi, event_index};
   }
 
   if (blockIdx.x == 0 && threadIdx.x == 0) {

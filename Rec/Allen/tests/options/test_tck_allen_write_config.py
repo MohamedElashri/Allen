@@ -23,7 +23,7 @@ import os
 import json
 from pathlib import Path
 from subprocess import PIPE, run
-from Allen.qmtest.utils import print_sequence_differences
+from Allen.qmtest.utils import sequence_differences
 from Allen.tck import manifest_from_git, sequence_from_git
 
 tck_repo = Path(os.getenv("PREREQUISITE_0", "")) / "config_json.git"
@@ -73,8 +73,10 @@ for info in manifest_entries:
 
         # Compare configurations
         if allen_sequence != tck_sequence:
-            diffs = print_sequence_differences(tck_sequence, allen_sequence)
             print(
                 "Differences between input configuration from TCK and written by Allen:"
             )
-            print(diffs)
+            with open(f"allen_{tck}.diff", "w") as f:
+                f.writelines(
+                    sequence_differences(allen_sequence, tck_sequence,
+                                         f"{tck}_allen", f"{tck}"))

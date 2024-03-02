@@ -22,7 +22,7 @@ configuration.
 import os
 import sys
 import json
-from Allen.qmtest.utils import print_sequence_differences
+from Allen.qmtest.utils import sequence_differences
 from Allen.tck import manifest_from_git, sequence_from_git
 from pathlib import Path
 
@@ -37,17 +37,26 @@ manifest_python = manifest_from_git(python_repo)
 entries_json = sorted(manifest_json.values(), key=lambda v: v["TCK"])
 entries_python = sorted(manifest_python.values(), key=lambda v: v["TCK"])
 
+# Remove digest to avoid hard-to-understand differences
+for entries in (entries_json, entries_python):
+    for e in entries:
+        e['metadata'].pop('digest')
+
 error = entries_json != entries_python
 if error:
     print("ERROR: Manifests are not the same")
-
-for m, suf in ((manifest_json, "json"), (manifest_python, "python")):
-    with open(f"manifest_{suf}.json", "w") as f:
-        json.dump(m, f)
+    with open("manifest.diff", "w") as f:
+        f.writelines(
+            sequence_differences(
+                entries_json,
+                entries_python,
+                fromfile="manifest_json",
+                tofile="manifest_json"))
 
 for info in entries_json:
     sequence_json = json.loads(sequence_from_git(json_repo, info["TCK"])[0])
-    sequence_python = json.loads(sequence_from_git(json_repo, info["TCK"])[0])
+    sequence_python = json.loads(
+        sequence_from_git(python_repo, info["TCK"])[0])
     sequence_type = next(v for v in info["Release2Type"].values())
     sequence_direct = None
     tck = info["TCK"]
@@ -60,15 +69,30 @@ for info in entries_json:
 
     if sequence_json != sequence_python:
         print(
-            f"ERROR: sequences loaded from JSON and python git repos for TCK {tck} are not the same"
+            f"ERROR: sequences loaded from JSON and Python git repos for TCK {tck} are not the same"
         )
+        with open(f"json_python_{tck}.diff", "w") as f:
+            f.writelines(
+                sequence_differences(sequence_json, sequence_python,
+                                     f"{tck}_json", f"{tck}_python"))
         error = True
     if sequence_json != sequence_direct:
         print(
             f"ERROR: sequences loaded directly from JSON and from JSON git repo for {tck} are not the same"
         )
-
-        print_sequence_differences(sequence_direct, sequence_json)
+        with open(f"direct_json_{tck}.diff", "w") as f:
+            f.writelines(
+                sequence_differences(sequence_direct, sequence_json,
+                                     f"{tck}_direct", f"{tck}_json"))
+        error = True
+    if sequence_python != sequence_direct:
+        print(
+            f"ERROR: sequences loaded directly from JSON and from Python git repo for {tck} are not the same"
+        )
+        with open(f"direct_python_{tck}.diff", "w") as f:
+            f.writelines(
+                sequence_differences(sequence_direct, sequence_python,
+                                     f"{tck}_direct", f"{tck}_python"))
         error = True
 
 sys.exit(error)

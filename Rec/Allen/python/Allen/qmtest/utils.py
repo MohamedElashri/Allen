@@ -9,6 +9,9 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from collections import defaultdict
+from io import StringIO
+import json
+import difflib
 
 
 def good_sequence(s):
@@ -20,18 +23,12 @@ def good_sequence(s):
     return (physics or extra) and not bad
 
 
-def print_sequence_differences(a, b):
-    diff_keys = set(a.keys()).symmetric_difference(set(b.keys()))
-    diff = defaultdict(dict)
-    ka = [k for k in a.keys() if k not in diff_keys]
-    for k in ka:
-        props_a = a[k]
-        props_b = b[k]
-        diff_prop_keys = set(props_a.keys()).symmetric_difference(
-            set(props_b.keys()))
-        pka = [k for k in props_a.keys() if k not in diff_prop_keys]
-        for prop_key in pka:
-            if props_a[prop_key] != props_b[prop_key]:
-                diff[k][prop_key] = (props_a[prop_key], props_b[prop_key])
-
-    return dict(diff)
+def sequence_differences(a, b, fromfile, tofile):
+    io = StringIO()
+    json.dump(a, io, indent=4)
+    lines_json = [l + '\n' for l in io.getvalue().split('\n')]
+    io = StringIO()
+    json.dump(b, io, indent=4)
+    lines_python = [l + '\n' for l in io.getvalue().split('\n')]
+    return difflib.unified_diff(
+        lines_json, lines_python, fromfile=fromfile, tofile=tofile)
