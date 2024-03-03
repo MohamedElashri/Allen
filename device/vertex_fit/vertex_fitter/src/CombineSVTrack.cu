@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "CombineSVTrack.cuh"
+#include "States.cuh"
 
 INSTANTIATE_ALGORITHM(CombineSVTrack::combine_sv_track_t)
 
@@ -109,7 +110,7 @@ __global__ void CombineSVTrack::combine_sv_track(CombineSVTrack::Parameters para
     const auto t_s = track.state();
     // Check the POCA and set a reasonable seed position for the decay vertex.
     float svt_vx_x = -999.f, svt_vx_y = -999.f, svt_vx_z = -999.f;
-    VertexFit::poca(sv.get_state(), t_s.operator MiniState(), svt_vx_x, svt_vx_y, svt_vx_z);
+    Allen::Views::Physics::state_poca(sv.get_state(), t_s.operator MiniState(), svt_vx_x, svt_vx_y, svt_vx_z);
     const float svt_vx_px = sv_vx.px() + t_s.px();
     const float svt_vx_py = sv_vx.py() + t_s.py();
     const float svt_vx_pz = sv_vx.pz() + t_s.pz();

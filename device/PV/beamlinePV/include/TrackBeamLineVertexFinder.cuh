@@ -23,7 +23,8 @@ struct PVTrack {
   PVTrack& operator=(const PVTrack&) = default;
 
   __host__ __device__ PVTrack(const KalmanVeloState& state) :
-    z {state.z}, x {state.x, state.y}, tx {state.tx, state.ty}, W_00 {1.f / state.c00}, W_11 {1.f / state.c11}
+    z {state.z()}, x {state.x(), state.y()}, tx {state.tx(), state.ty()}, W_00 {1.f / state.c00()}, W_11 {1.f /
+                                                                                                          state.c11()}
   {}
 
   float z {0};

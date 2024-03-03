@@ -65,8 +65,8 @@ void data_quality_validator_velo::data_quality_validator_velo_t::output_monitor(
 
     for (unsigned i_track = 0; i_track < n_velo_states; i_track++) {
       const auto state = velo_states.get(velo_tracks_offset + i_track);
-      tx = state.tx;
-      ty = state.ty;
+      tx = state.tx();
+      ty = state.ty();
       const float slope2 = tx * tx + ty * ty;
       // Normalised transverse momentum
       rho = std::sqrt(slope2);

@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "FilterSVTrack.cuh"
+#include "States.cuh"
 
 INSTANTIATE_ALGORITHM(FilterSVTrack::filter_sv_track_t)
 
@@ -62,10 +63,10 @@ __global__ void FilterSVTrack::filter_sv_track(FilterSVTrack::Parameters paramet
                                   track.chi2() / track.ndof() < parameters.T_CHI2NDF_max;
       if (!track_decision) continue;
       const auto sv_ministate = sv.get_state(), t_ministate = track.state().operator MiniState();
-      if (VertexFit::doca(sv_ministate, t_ministate) > parameters.SV_T_DOCA_max) continue;
+      if (Allen::Views::Physics::state_doca(sv_ministate, t_ministate) > parameters.SV_T_DOCA_max) continue;
       const auto c0_state = static_cast<const Allen::Views::Physics::BasicParticle*>(sv.child(0))->state(),
                  c1_state = static_cast<const Allen::Views::Physics::BasicParticle*>(sv.child(1))->state();
-      const auto t_tx = t_ministate.tx, t_ty = t_ministate.ty, c0_tx = c0_state.tx(), c1_tx = c1_state.tx(),
+      const auto t_tx = t_ministate.tx(), t_ty = t_ministate.ty(), c0_tx = c0_state.tx(), c1_tx = c1_state.tx(),
                  c0_ty = c0_state.ty(), c1_ty = c1_state.ty();
       const auto c0t_norm = sqrtf((t_tx * t_tx + t_ty * t_ty + 1.f) * (c0_tx * c0_tx + c0_ty * c0_ty + 1.f));
       const auto c0t_arg = (t_tx * c0_tx + t_ty * c0_ty + 1.f) / c0t_norm;

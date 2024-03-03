@@ -132,8 +132,8 @@ __device__ void search_windows(
       }
       else {
         const auto velo_state = input_track.state(velo_states_view);
-        const float input_tx = velo_state.tx;
-        const float input_ty = velo_state.ty;
+        const float input_tx = velo_state.tx();
+        const float input_ty = velo_state.ty();
         // if I assume pt = 1 GeV , then I can calculate p from tx and ty of the Velo input track
         const float momentum_from_pt =
           parameters.input_pt / cosf(atanf(1 / sqrtf(input_tx * input_tx + input_ty * input_ty)));
@@ -153,7 +153,7 @@ __device__ void search_windows(
         const float input_z = input_track.z();
         const auto velo_track = input_track.velo_track();
         const auto velo_state = velo_track.state(velo_states_view);
-        const float input_ty = velo_state.ty;
+        const float input_ty = velo_state.ty();
         const MiniState start_input_state {
           input_x, LookingForward::y_at_z(velo_state, input_z), input_z, input_tx, input_ty};
         return LookingForward::state_at_z(start_input_state, LookingForward::z_last_UT_plane);
@@ -161,10 +161,10 @@ __device__ void search_windows(
       else {
         // Get everything from the velo state
         const auto velo_state = input_track.state(velo_states_view);
-        const float input_x = velo_state.x;
-        const float input_tx = velo_state.tx;
-        const float input_z = velo_state.z;
-        const float input_ty = velo_state.ty;
+        const float input_x = velo_state.x();
+        const float input_tx = velo_state.tx();
+        const float input_z = velo_state.z();
+        const float input_ty = velo_state.ty();
         const MiniState start_input_state {
           input_x, LookingForward::y_at_z(velo_state, input_z), input_z, input_tx, input_ty};
         return LookingForward::state_at_z(start_input_state, LookingForward::z_last_UT_plane);
@@ -194,7 +194,7 @@ __device__ void search_windows(
           dev_looking_forward_constants,
           dev_magnet_polarity,
           geom::dev_average_z_x_layers[i]);
-        const float xInZone = stateInZone.x;
+        const float xInZone = stateInZone.x();
 
         const float xTol =
           LookingForward::initial_window_offset_xtol + LookingForward::initial_window_factor_qop * fabsf(qop);
@@ -242,7 +242,7 @@ __device__ void search_windows(
           const float zZone = geom::dev_average_z_x_layers[i];
           const float this_uv_z = geom::dev_average_z_uv_layers[i];
           const float dz = this_uv_z - zZone;
-          const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx, dz);
+          const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx(), dz);
           const float UvCorr = LookingForward::y_at_z(stateInZone, this_uv_z) * geom::dev_average_dxdy[i];
 
           const float xInUvCorr = xInUv - UvCorr;
@@ -273,21 +273,22 @@ __device__ void search_windows(
         const auto iZone = iZoneStartingPoint + i;
         // simple straight line propagation
         const MiniState stateInZone = LookingForward::state_at_z(input_state, geom::dev_average_z_x_layers[i]);
-        const float xInZone = stateInZone.x;
+        const float xInZone = stateInZone.x();
 
         // this is a term occurring in the polynomial from which the x prediction is deduced
-        const auto term1 = dev_looking_forward_constants->toSciFiExtParams[0] +
-                           input_state.tx * (-dev_looking_forward_constants->toSciFiExtParams[1] +
-                                             dev_looking_forward_constants->toSciFiExtParams[2] * input_state.tx) +
-                           input_state.ty * input_state.ty *
-                             (dev_looking_forward_constants->toSciFiExtParams[3] +
-                              input_state.tx * (dev_looking_forward_constants->toSciFiExtParams[4] +
-                                                dev_looking_forward_constants->toSciFiExtParams[5] * input_state.tx));
+        const auto term1 =
+          dev_looking_forward_constants->toSciFiExtParams[0] +
+          input_state.tx() * (-dev_looking_forward_constants->toSciFiExtParams[1] +
+                              dev_looking_forward_constants->toSciFiExtParams[2] * input_state.tx()) +
+          input_state.ty() * input_state.ty() *
+            (dev_looking_forward_constants->toSciFiExtParams[3] +
+             input_state.tx() * (dev_looking_forward_constants->toSciFiExtParams[4] +
+                                 dev_looking_forward_constants->toSciFiExtParams[5] * input_state.tx()));
 
         //*1000 to make in GeV
         const auto minInvPGeV = fabsf(qop) * 1000.f;
         const auto minPBorder =
-          minInvPGeV * (term1 + minInvPGeV * (dev_looking_forward_constants->toSciFiExtParams[6] * input_state.tx +
+          minInvPGeV * (term1 + minInvPGeV * (dev_looking_forward_constants->toSciFiExtParams[6] * input_state.tx() +
                                               dev_looking_forward_constants->toSciFiExtParams[7] * minInvPGeV));
 
         // window shutters for case without momentum estimate, i.e. velo tracks as input
@@ -353,9 +354,8 @@ __device__ void search_windows(
 
           const float this_uv_z = geom::dev_average_z_uv_layers[i];
           const float dz = this_uv_z - zZone;
-          const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx, dz);
+          const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx(), dz);
           const float UvCorr = LookingForward::y_at_z(stateInZone, this_uv_z) * geom::dev_average_dxdy[i];
-
           const float xInUvCorr = xInUv - UvCorr;
           const float xMinUV = xInUvCorr - parameters.initial_windows_max_offset_uv_window;
           const float xMaxUV = xInUvCorr + parameters.initial_windows_max_offset_uv_window;

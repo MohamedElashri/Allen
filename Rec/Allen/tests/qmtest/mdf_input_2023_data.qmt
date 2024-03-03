@@ -25,6 +25,7 @@
     <text>--monitoring-filename</text><text>mdf_data_hists.root</text>
     <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants//hlt1_pp_forward_then_matching_no_ut.json</text>
     <text>--tags=run3/trunk,master</text>
+    <text>--real-data</text>
     <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/data/2023_raw_hlt1_269138/Run_0000269138_20230706-083945-793_PLEB01_1930.mdf</text>
   </set></argument>
   <argument name="use_temp_dir"><enumeral>true</enumeral></argument>

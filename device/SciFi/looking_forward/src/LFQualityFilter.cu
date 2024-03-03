@@ -125,7 +125,7 @@ __device__ void quality_filter(lf_quality_filter::Parameters parameters, const T
 
     const float y_fit_contribution = std::get<0>(y_lms_fit) / LookingForward::range_y_fit_end;
 
-    const auto in_ty_window = fabsf(std::get<2>(y_lms_fit) - input_state.ty) < max_diff_ty_window;
+    const auto in_ty_window = fabsf(std::get<2>(y_lms_fit) - input_state.ty()) < max_diff_ty_window;
     const bool acceptable = hit_in_T1_UV && hit_in_T2_UV && hit_in_T3_UV &&
                             (track.hitsNum >= LookingForward::min_hits_or_ty_window || in_ty_window);
 

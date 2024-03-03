@@ -70,16 +70,16 @@ namespace velo_kalman_filter {
    * @brief Fit the track with a Kalman filter,
    *        allowing for some scattering at every hit
    */
-  template<bool upstream>
+  template<bool upstream, typename AllenState>
   __device__ KalmanVeloState simplified_fit(
     const Allen::Views::Velo::Consolidated::Track& track,
-    const MiniState& stateAtBeamLine,
+    const AllenState& stateAtBeamLine,
     float* dev_beamline,
     bool backward)
   {
     const int direction = (backward ? 1 : -1) * (upstream ? 1 : -1);
     const float noise2PerLayer =
-      1e-8f + 7e-6f * (stateAtBeamLine.tx * stateAtBeamLine.tx + stateAtBeamLine.ty * stateAtBeamLine.ty);
+      1e-8f + 7e-6f * (stateAtBeamLine.tx() * stateAtBeamLine.tx() + stateAtBeamLine.ty() * stateAtBeamLine.ty());
 
     // assume the hits are sorted,
     // but don't assume anything on the direction of sorting
@@ -97,19 +97,19 @@ namespace velo_kalman_filter {
     // filter first the first hit.
     KalmanVeloState state;
     const auto hit = track.hit(firsthit);
-    state.x = hit.x();
-    state.y = hit.y();
-    state.z = hit.z();
-    state.tx = stateAtBeamLine.tx;
-    state.ty = stateAtBeamLine.ty;
+    state.x() = hit.x();
+    state.y() = hit.y();
+    state.z() = hit.z();
+    state.tx() = stateAtBeamLine.tx();
+    state.ty() = stateAtBeamLine.ty();
 
     // Initialize the covariance matrix
-    state.c00 = Velo::Tracking::param_w_inverted;
-    state.c11 = Velo::Tracking::param_w_inverted;
-    state.c20 = 0.f;
-    state.c31 = 0.f;
-    state.c22 = 1.f;
-    state.c33 = 1.f;
+    state.c00() = Velo::Tracking::param_w_inverted;
+    state.c11() = Velo::Tracking::param_w_inverted;
+    state.c20() = 0.f;
+    state.c31() = 0.f;
+    state.c22() = 1.f;
+    state.c33() = 1.f;
 
     // add remaining hits
     for (auto i = firsthit + dhit; i != lasthit + dhit; i += dhit) {
@@ -119,46 +119,46 @@ namespace velo_kalman_filter {
       const auto hit_z = hit.z();
 
       // add the noise
-      state.c22 += noise2PerLayer;
-      state.c33 += noise2PerLayer;
+      state.c22() += noise2PerLayer;
+      state.c33() += noise2PerLayer;
 
       // filter X and filter Y
       velo_kalman_filter_step(
-        state.z, hit_z, hit_x, Velo::Tracking::param_w, state.x, state.tx, state.c00, state.c20, state.c22);
+        state.z(), hit_z, hit_x, Velo::Tracking::param_w, state.x(), state.tx(), state.c00(), state.c20(), state.c22());
       velo_kalman_filter_step(
-        state.z, hit_z, hit_y, Velo::Tracking::param_w, state.y, state.ty, state.c11, state.c31, state.c33);
+        state.z(), hit_z, hit_y, Velo::Tracking::param_w, state.y(), state.ty(), state.c11(), state.c31(), state.c33());
 
       // update z (not done in the filter, since needed only once)
-      state.z = hit_z;
+      state.z() = hit_z;
     }
 
     // add the noise at the last hit
-    state.c22 += noise2PerLayer;
-    state.c33 += noise2PerLayer;
+    state.c22() += noise2PerLayer;
+    state.c33() += noise2PerLayer;
 
     auto delta_z = 0.f;
 
     if constexpr (upstream) {
       // Propagate to the closest point near the beam line
-      delta_z = (state.tx * (dev_beamline[0] - state.x) + state.ty * (dev_beamline[1] - state.y)) /
-                (state.tx * state.tx + state.ty * state.ty);
+      delta_z = (state.tx() * (dev_beamline[0] - state.x()) + state.ty() * (dev_beamline[1] - state.y())) /
+                (state.tx() * state.tx() + state.ty() * state.ty());
     }
     else {
       // Propagate to the end of the Velo (z=770 mm)
-      delta_z = Velo::Constants::z_endVelo - state.z;
+      delta_z = Velo::Constants::z_endVelo - state.z();
     }
 
     // Propagate the state
-    state.x = state.x + state.tx * delta_z;
-    state.y = state.y + state.ty * delta_z;
-    state.z = state.z + delta_z;
+    state.x() = state.x() + state.tx() * delta_z;
+    state.y() = state.y() + state.ty() * delta_z;
+    state.z() = state.z() + delta_z;
 
     // Propagate the covariance matrix
     const auto dz2 = delta_z * delta_z;
-    state.c00 += dz2 * state.c22 + 2.f * delta_z * state.c20;
-    state.c11 += dz2 * state.c33 + 2.f * delta_z * state.c31;
-    state.c20 += state.c22 * delta_z;
-    state.c31 += state.c33 * delta_z;
+    state.c00() += dz2 * state.c22() + 2.f * delta_z * state.c20();
+    state.c11() += dz2 * state.c33() + 2.f * delta_z * state.c31();
+    state.c20() += state.c22() * delta_z;
+    state.c31() += state.c33() * delta_z;
 
     // finally, store the state
     return state;

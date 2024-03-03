@@ -25,8 +25,7 @@ from AllenConf.hlt1_monitoring_lines import (
     make_beam_line, make_velo_micro_bias_line, make_odin_event_type_line,
     make_odin_event_and_orbit_line, make_beam_gas_line,
     make_velo_clusters_micro_bias_line, make_calo_digits_minADC_line,
-    make_plume_activity_line, make_n_displaced_velo_line,
-    make_n_materialvertex_seed_line)
+    make_plume_activity_line, make_z_range_materialvertex_seed_line)
 from AllenConf.hlt1_smog2_lines import (
     make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line,
     make_SMOG2_ditrack_line, make_SMOG2_singletrack_line,
@@ -324,10 +323,17 @@ def alignment_monitoring_lines(reconstructed_objects,
         make_rich_2_line(
             long_tracks, long_track_particles, name="Hlt1RICH2Alignment"),
         make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPiAlignment"),
-        make_n_displaced_velo_line(
-            material_interaction_tracks, n_tracks=3, pre_scaler=0.001),
-        make_n_materialvertex_seed_line(
-            material_interaction_tracks, pre_scaler=0.001)
+        make_z_range_materialvertex_seed_line(
+            material_interaction_tracks,
+            min_z_materialvertex_seed=300,
+            max_z_materialvertex_seed=1000,
+            name="Hlt1MaterialVertexSeedsDownstreamz",
+            post_scaler=0.02),
+        make_z_range_materialvertex_seed_line(
+            material_interaction_tracks,
+            min_z_materialvertex_seed=700,
+            max_z_materialvertex_seed=1000,
+            name="Hlt1MaterialVertexSeeds_DWFS")
     ]
 
     if with_muon:

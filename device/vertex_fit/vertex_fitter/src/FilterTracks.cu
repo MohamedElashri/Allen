@@ -13,6 +13,7 @@
 #include "VertexDefinitions.cuh"
 #include "ParKalmanMath.cuh"
 #include "ParKalmanDefinitions.cuh"
+#include "States.cuh"
 
 INSTANTIATE_ALGORITHM(FilterTracks::filter_tracks_t)
 
@@ -123,14 +124,14 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
                  trackB_ministate = trackB.state().operator MiniState();
 
       // Check the DOCA.
-      const float doca = VertexFit::doca(trackA_ministate, trackB_ministate);
+      const float doca = Allen::Views::Physics::state_doca(trackA_ministate, trackB_ministate);
       if (doca > parameters.doca_max) continue;
 
       // Check the POCA.
       float x;
       float y;
       float z;
-      if (!VertexFit::poca(trackA_ministate, trackB_ministate, x, y, z)) {
+      if (!Allen::Views::Physics::state_poca(trackA_ministate, trackB_ministate, x, y, z)) {
         continue;
       }
 

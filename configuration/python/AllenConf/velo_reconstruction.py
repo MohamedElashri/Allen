@@ -16,7 +16,7 @@ from AllenCore.algorithms import (
     tracks_ACsplit_counters_t, tracks_ACsplit_t, velo_kalman_filter_t,
     filter_velo_tracks_t,
     calculate_number_of_retinaclusters_each_sensor_pair_t,
-    decode_retinaclusters_t)
+    decode_retinaclusters_t, consolidate_seeds_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
@@ -566,7 +566,7 @@ def filter_tracks_for_material_interactions(velo_tracks,
 
     filter_velo_tracks = make_algorithm(
         filter_velo_tracks_t,
-        name="filter_velo_tracks",
+        name="filter_velo_tracks_{hash}",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_reconstructed_velo_tracks_t=velo_tracks[
             "host_number_of_reconstructed_velo_tracks"],
@@ -577,11 +577,35 @@ def filter_tracks_for_material_interactions(velo_tracks,
         beamdoca_r=beam_r_distance,
         max_doca_for_close_track_pairs=close_doca)
 
+    prefix_sum_interaction_seeds = make_algorithm(
+        host_prefix_sum_t,
+        name='prefix_sum_interaction_seeds_{hash}',
+        dev_input_buffer_t=filter_velo_tracks.dev_number_of_seeds_t)
+
+    consolidate_interaction_seeds = make_algorithm(
+        consolidate_seeds_t,
+        name='consolidate_seeds_t_{hash}',
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_total_number_of_seeds_t=prefix_sum_interaction_seeds.
+        host_total_sum_holder_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
+        dev_interaction_seeds_t=filter_velo_tracks.dev_interaction_seeds_t,
+        dev_number_of_seeds_t=filter_velo_tracks.dev_number_of_seeds_t,
+        dev_interaction_seeds_offsets_t=prefix_sum_interaction_seeds.
+        dev_output_buffer_t)
+
     return {
         "dev_number_of_filtered_velo_tracks":
         filter_velo_tracks.dev_number_of_filtered_tracks_t,
-        "dev_number_of_close_track_pairs":
-        filter_velo_tracks.dev_number_of_close_track_pairs_t
+        "dev_output_buffer":
+        prefix_sum_interaction_seeds.dev_output_buffer_t,
+        "dev_consolidated_interaction_seeds":
+        consolidate_interaction_seeds.dev_consolidated_interaction_seeds_t,
+        "host_total_number_of_seeds":
+        prefix_sum_interaction_seeds.host_total_sum_holder_t,
+        "dev_number_of_seeds":
+        filter_velo_tracks.dev_number_of_seeds_t,
     }
 
 

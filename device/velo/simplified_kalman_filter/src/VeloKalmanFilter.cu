@@ -322,16 +322,16 @@ __device__ MiniState least_means_square_fit(const Allen::Views::Velo::Consolidat
 
   // Calculate tx, ty and backward
   const auto dens = 1.0f / (sz2 * s0 - sz * sz);
-  state.tx = (sxz * s0 - sx * sz) * dens;
-  state.x = (sx * sz2 - sxz * sz) * dens;
+  state.tx() = (sxz * s0 - sx * sz) * dens;
+  state.x() = (sx * sz2 - sxz * sz) * dens;
 
   const auto denu = 1.0f / (uz2 * u0 - uz * uz);
-  state.ty = (uyz * u0 - uy * uz) * denu;
-  state.y = (uy * uz2 - uyz * uz) * denu;
+  state.ty() = (uyz * u0 - uy * uz) * denu;
+  state.y() = (uy * uz2 - uyz * uz) * denu;
 
-  state.z = -(state.x * state.tx + state.y * state.ty) / (state.tx * state.tx + state.ty * state.ty);
-  state.x = state.x + state.tx * state.z;
-  state.y = state.y + state.ty * state.z;
+  state.z() = -(state.x() * state.tx() + state.y() * state.ty()) / (state.tx() * state.tx() + state.ty() * state.ty());
+  state.x() = state.x() + state.tx() * state.z();
+  state.y() = state.y() + state.ty() * state.z();
 
   return state;
 }
@@ -348,15 +348,15 @@ __device__ MiniState linear_fit(const Allen::Views::Velo::Consolidated::Track& t
   const auto last = static_cast<::Velo::HitBase>(track.hit(track.number_of_hits() - 1));
 
   // Calculate tx, ty
-  state.tx = (last.x - first.x) / (last.z - first.z);
-  state.ty = (last.y - first.y) / (last.z - first.z);
+  state.tx() = (last.x - first.x) / (last.z - first.z);
+  state.ty() = (last.y - first.y) / (last.z - first.z);
 
   // Propagate to the beamline
-  auto delta_z = (state.tx * (dev_beamline[0] - last.x) + state.ty * (dev_beamline[1] - last.y)) /
-                 (state.tx * state.tx + state.ty * state.ty);
-  state.x = last.x + state.tx * delta_z;
-  state.y = last.y + state.ty * delta_z;
-  state.z = last.z + delta_z;
+  auto delta_z = (state.tx() * (dev_beamline[0] - last.x) + state.ty() * (dev_beamline[1] - last.y)) /
+                 (state.tx() * state.tx() + state.ty() * state.ty());
+  state.x() = last.x + state.tx() * delta_z;
+  state.y() = last.y + state.ty() * delta_z;
+  state.z() = last.z + delta_z;
 
   return state;
 }
@@ -396,7 +396,7 @@ __global__ void velo_kalman_filter::velo_kalman_filter(
 
     // Get first estimate of the state , changed least means square fit to linear fit between first and last hit
     const auto lin_fit_at_beamline = linear_fit(track, dev_beamline);
-    bool backward = lin_fit_at_beamline.z > track.hit(0).z();
+    bool backward = lin_fit_at_beamline.z() > track.hit(0).z();
     parameters.dev_is_backward[velo_tracks_view.offset() + i] = backward;
 
     // Perform a Kalman fit to obtain state at beamline
@@ -439,9 +439,9 @@ __device__ void velo_kalman_filter::velo_kalman_filter_t::monitor(
   gsl::span<unsigned> dev_histogram_velo_backward_track_nhits)
 {
 
-  const auto tx = beamline_state.tx;
-  const auto ty = beamline_state.ty;
-  const auto z_beamline = beamline_state.z;
+  const auto tx = beamline_state.tx();
+  const auto ty = beamline_state.ty();
+  const auto z_beamline = beamline_state.z();
   const auto first_z = static_cast<::Velo::HitBase>(velo_track.hit(0)).z;
   const auto backward = z_beamline > first_z;
   const auto zeta = backward ? -1.f : 1.f;
