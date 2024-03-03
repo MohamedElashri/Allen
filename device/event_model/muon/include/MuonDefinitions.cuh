@@ -215,17 +215,17 @@ namespace MatchUpstreamMuon {
     /// Build a hit extrapolating the values from a state to the given point.
     __device__ Hit(const KalmanVeloState& state, const float& pz)
     {
-      const float dz = pz - state.z;
+      const float dz = pz - state.z();
 
       const float dz2 = dz * dz;
 
-      x = state.x + dz * state.tx;
+      x = state.x() + dz * state.tx();
 
-      dx2 = state.c00 + dz2 * state.c22;
+      dx2 = state.c00() + dz2 * state.c22();
 
-      y = state.y + dz * state.ty;
+      y = state.y() + dz * state.ty();
 
-      dy2 = state.c11 + dz2 * state.c33;
+      dy2 = state.c11() + dz2 * state.c33();
 
       z = pz;
     };

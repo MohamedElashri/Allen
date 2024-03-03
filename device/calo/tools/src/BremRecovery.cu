@@ -99,8 +99,8 @@ __global__ void brem_recovery::brem_recovery(brem_recovery::Parameters parameter
     parameters.dev_brem_E[track_index_with_offset] = sum_cell_E;
     parameters.dev_brem_ET[track_index_with_offset] =
       sum_cell_E * sqrtf(
-                     (velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty) /
-                     (velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty + 1.f));
+                     (velo_state.tx() * velo_state.tx() + velo_state.ty() * velo_state.ty()) /
+                     (velo_state.tx() * velo_state.tx() + velo_state.ty() * velo_state.ty() + 1.f));
     parameters.dev_brem_inECALacc[track_index_with_offset] = inAcc;
     parameters.dev_brem_ecal_digits[track_index_with_offset] = digit_indices;
     parameters.dev_brem_ecal_digits_size[track_index_with_offset] = N_matched_digits;

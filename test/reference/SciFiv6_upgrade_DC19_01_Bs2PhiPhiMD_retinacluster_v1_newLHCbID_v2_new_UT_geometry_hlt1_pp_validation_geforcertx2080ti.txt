@@ -113,13 +113,13 @@ Hlt1VeloMicroBias:                                  0/  1000, (    0.00 +/-     
 Hlt1RICH1Alignment:                                 1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1RICH2Alignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPiAlignment:                                22/  1000, (  660.00 +/-   139.16) kHz
-Hlt1NVELODisplacedTrack:                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1NMaterialVertexSeeds:                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1MaterialVertexSeedsDownstreamz:                 1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1MaterialVertexSeeds_DWFS:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                       31/  1000, (  930.00 +/-   164.42) kHz
 Hlt1DisplacedDiMuonAlignment:                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                        709/  1000, (21270.00 +/-   430.91) kHz
+Inclusive:                                        710/  1000, (21300.00 +/-   430.48) kHz
 
 
 selreport_validator validation:
@@ -190,19 +190,19 @@ Hlt1VeloMicroBias:                                  0           0
 Hlt1RICH1Alignment:                                 1           2
 Hlt1RICH2Alignment:                                 0           0
 Hlt1D2KPiAlignment:                                22          22
-Hlt1NVELODisplacedTrack:                            0           0
-Hlt1NMaterialVertexSeeds:                           0           0
+Hlt1MaterialVertexSeedsDownstreamz:                 1           0
+Hlt1MaterialVertexSeeds_DWFS:                       1           0
 Hlt1DiMuonHighMassAlignment:                        0           0
 Hlt1DiMuonJpsiMassAlignment:                       31          37
 Hlt1DisplacedDiMuonAlignment:                       0           0
 Hlt1BeamGas:                                        0           0
 
-Total decisions:      1461
+Total decisions:      1463
 Total tracks:         2433
 Total calos clusters: 201
 Total SVs:            2073
 Total hits:           62544
-Total stdinfo:        30021
+Total stdinfo:        30023
 
 
 veloUT_validator validation:

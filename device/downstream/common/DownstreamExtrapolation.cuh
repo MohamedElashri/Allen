@@ -107,23 +107,24 @@ namespace Downstream {
       __device__ ExtrapolateTrack(const MiniState scifi_state, const float scifi_qop, const float magnet_polarity)
       {
         // Calculate Y extrapolation correction
-        const float dty = Corrections::dty(scifi_qop, scifi_state.ty, scifi_state.y);
-        const float dy = Corrections::dy(scifi_qop, scifi_state.ty, scifi_state.y);
-        m_ty = scifi_state.ty + dty;
+        const float dty = Corrections::dty(scifi_qop, scifi_state.ty(), scifi_state.y());
+        const float dy = Corrections::dy(scifi_qop, scifi_state.ty(), scifi_state.y());
+        m_ty = scifi_state.ty() + dty;
 
         // Calculate the extra correction for first hit
         const float dtx = Corrections::dtx(scifi_qop, m_ty);
 
         // Magent point
-        m_zMagnet = MagnetPoint::zMagnet(scifi_state.x, scifi_state.y, scifi_state.tx, scifi_state.ty, scifi_qop);
-        m_xMagnet = scifi_state.x + scifi_state.tx * (m_zMagnet - scifi_state.z);
-        m_yMagnet = (scifi_state.y + dy) + m_ty * (m_zMagnet - scifi_state.z);
+        m_zMagnet =
+          MagnetPoint::zMagnet(scifi_state.x(), scifi_state.y(), scifi_state.tx(), scifi_state.ty(), scifi_qop);
+        m_xMagnet = scifi_state.x() + scifi_state.tx() * (m_zMagnet - scifi_state.z());
+        m_yMagnet = (scifi_state.y() + dy) + m_ty * (m_zMagnet - scifi_state.z());
 
         // Slope
         m_tx = m_xMagnet / m_zMagnet;
 
         // Update momentum
-        m_qop = Physics::qop(m_tx, m_ty, scifi_state.tx, magnet_polarity);
+        m_qop = Physics::qop(m_tx, m_ty, scifi_state.tx(), magnet_polarity);
 
         // Apply the correction for first hit
         m_tx += dtx;

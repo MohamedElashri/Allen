@@ -271,7 +271,7 @@ __global__ void downstream_find_hits::downstream_create_output_table(
         const auto hit_x = hit_cache.xAtYEq0(hit_idx);
 
         const auto new_tx = exTrack.get_new_tx(hit_z, hit_x);
-        const auto new_qop = exTrack.get_new_qop(new_tx, scifi_states[SciFi_idx].tx, *dev_magnet_polarity);
+        const auto new_qop = exTrack.get_new_qop(new_tx, scifi_states[SciFi_idx].tx(), *dev_magnet_polarity);
 
         output_table.x3_hit(offset + x3hits_idx) = hit_idx + hit_cache.HitOffset();
         output_table.tx(offset + x3hits_idx) = new_tx;

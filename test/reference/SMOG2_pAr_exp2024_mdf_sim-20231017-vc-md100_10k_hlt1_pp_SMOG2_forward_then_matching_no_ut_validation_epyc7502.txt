@@ -106,8 +106,8 @@ Hlt1VeloMicroBias:                                  0/  1000, (    0.00 +/-     
 Hlt1RICH1Alignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1RICH2Alignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPiAlignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1NVELODisplacedTrack:                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1NMaterialVertexSeeds:                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1MaterialVertexSeedsDownstreamz:                 0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1MaterialVertexSeeds_DWFS:                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DisplacedDiMuonAlignment:                       0/  1000, (    0.00 +/-     0.00) kHz
@@ -237,8 +237,8 @@ Hlt1VeloMicroBias:                                  0           0
 Hlt1RICH1Alignment:                                 0           0
 Hlt1RICH2Alignment:                                 0           0
 Hlt1D2KPiAlignment:                                 0           0
-Hlt1NVELODisplacedTrack:                            0           0
-Hlt1NMaterialVertexSeeds:                           0           0
+Hlt1MaterialVertexSeedsDownstreamz:                 0           0
+Hlt1MaterialVertexSeeds_DWFS:                       0           0
 Hlt1DiMuonHighMassAlignment:                        0           0
 Hlt1DiMuonJpsiMassAlignment:                        0           0
 Hlt1DisplacedDiMuonAlignment:                       0           0

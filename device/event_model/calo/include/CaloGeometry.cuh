@@ -148,8 +148,8 @@ struct CaloGeometry {
     }
 
     // Compute z position of intersection between the track line and the calo plane
-    float z = (-a * state.x + a * state.tx * state.z - b * state.y + b * state.ty * state.z - d) /
-              (a * state.tx + b * state.ty + c);
+    float z = (-a * state.x() + a * state.tx() * state.z() - b * state.y() + b * state.ty() * state.z() - d) /
+              (a * state.tx() + b * state.ty() + c);
     // float x = state.x + state.tx * (z - state.z);
     // float y = state.y + state.ty * (z - state.z);
 

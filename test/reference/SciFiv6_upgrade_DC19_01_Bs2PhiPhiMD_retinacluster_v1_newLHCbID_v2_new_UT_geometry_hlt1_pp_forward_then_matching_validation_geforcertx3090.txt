@@ -113,8 +113,8 @@ Hlt1VeloMicroBias:                                  0/  1000, (    0.00 +/-     
 Hlt1RICH1Alignment:                                 1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1RICH2Alignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPiAlignment:                                23/  1000, (  690.00 +/-   142.21) kHz
-Hlt1NVELODisplacedTrack:                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1NMaterialVertexSeeds:                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1MaterialVertexSeedsDownstreamz:                 1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1MaterialVertexSeeds_DWFS:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                       44/  1000, ( 1320.00 +/-   194.57) kHz
 Hlt1DisplacedDiMuonAlignment:                       3/  1000, (   90.00 +/-    51.88) kHz
@@ -242,19 +242,19 @@ Hlt1VeloMicroBias:                                  0           0
 Hlt1RICH1Alignment:                                 1           2
 Hlt1RICH2Alignment:                                 0           0
 Hlt1D2KPiAlignment:                                23          23
-Hlt1NVELODisplacedTrack:                            0           0
-Hlt1NMaterialVertexSeeds:                           0           0
+Hlt1MaterialVertexSeedsDownstreamz:                 1           0
+Hlt1MaterialVertexSeeds_DWFS:                       1           0
 Hlt1DiMuonHighMassAlignment:                        0           0
 Hlt1DiMuonJpsiMassAlignment:                       44          53
 Hlt1DisplacedDiMuonAlignment:                       3           3
 Hlt1BeamGas:                                        0           0
 
-Total decisions:      1915
+Total decisions:      1917
 Total tracks:         3260
 Total calos clusters: 201
 Total SVs:            2583
 Total hits:           80966
-Total stdinfo:        39131
+Total stdinfo:        39133
 
 
 velo_validator validation:

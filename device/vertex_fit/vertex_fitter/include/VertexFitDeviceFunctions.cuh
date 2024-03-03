@@ -17,13 +17,10 @@
 #include "ParticleTypes.cuh"
 #include "PV_Definitions.cuh"
 #include "MassDefinitions.h"
+#include "States.cuh"
 #include <limits>
 
 namespace VertexFit {
-
-  __device__ inline bool poca(const MiniState& trackA, const MiniState& trackB, float& x, float& y, float& z);
-
-  __device__ inline float doca(const MiniState& trackA, const MiniState& trackB);
 
   __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
@@ -77,82 +74,12 @@ namespace VertexFit {
     const Allen::Views::Physics::BasicParticle& trackB,
     const float max_assoc_ipchi2);
 
-  //----------------------------------------------------------------------
-  // Point of closest approach. Reimplementation from TrackVertexUtils.
-  __device__ bool poca(const MiniState& stateA, const MiniState& stateB, float& x, float& y, float& z)
-  {
-    float zA = stateA.z;
-    float xA = stateA.x;
-    float yA = stateA.y;
-    float txA = stateA.tx;
-    float tyA = stateA.ty;
-    float zB = stateB.z;
-    float xB = stateB.x;
-    float yB = stateB.y;
-    float txB = stateB.tx;
-    float tyB = stateB.ty;
-    float secondAA = txA * txA + tyA * tyA + 1.0f;
-    float secondBB = txB * txB + tyB * tyB + 1.0f;
-    float secondAB = -txA * txB - tyA * tyB - 1.0f;
-    float det = secondAA * secondBB - secondAB * secondAB;
-    if (fabsf(det) > 0) {
-      float secondinvAA = secondBB / det;
-      float secondinvBB = secondAA / det;
-      float secondinvAB = -secondAB / det;
-      float firstA = txA * (xA - xB) + tyA * (yA - yB) + (zA - zB);
-      float firstB = -txB * (xA - xB) - tyB * (yA - yB) - (zA - zB);
-      float muA = -(secondinvAA * firstA + secondinvAB * firstB);
-      float muB = -(secondinvBB * firstB + secondinvAB * firstA);
-      x = 0.5f * (xA + muA * txA + xB + muB * txB);
-      y = 0.5f * (yA + muA * tyA + yB + muB * tyB);
-      // Because floating point addition is non-associative, the parentheses
-      // below are needed to ensure that z does not depend on the order in which
-      // tracks are passed to the function.
-      z = 0.5f * ((zA + muA) + (zB + muB));
-      return true;
-    }
-    return false;
-  }
-
   __device__ float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty)
   {
     float dz = z0 - z;
     float dx = x + dz * tx - x0;
     float dy = y + dz * ty - y0;
     return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
-  }
-
-  __device__ float doca(const MiniState& stateA, const MiniState& stateB)
-  {
-    const float xA = stateA.x;
-    const float yA = stateA.y;
-    const float zA = stateA.z;
-    const float txA = stateA.tx;
-    const float tyA = stateA.ty;
-    const float xB = stateB.x;
-    const float yB = stateB.y;
-    const float zB = stateB.z;
-    const float txB = stateB.tx;
-    const float tyB = stateB.ty;
-    const float secondAA = txA * txA + tyA * tyA + 1.f;
-    const float secondBB = txB * txB + tyB * tyB + 1.f;
-    const float secondAB = -txA * txB - tyA * tyB - 1.f;
-    const float det = secondAA * secondBB - secondAB * secondAB;
-    float ret = -1.f;
-    if (fabsf(det) > 0) {
-      const float secondinvAA = secondBB / det;
-      const float secondinvBB = secondAA / det;
-      const float secondinvAB = -secondAB / det;
-      const float firstA = txA * (xA - xB) + tyA * (yA - yB) + (zA - zB);
-      const float firstB = -txB * (xA - xB) - tyB * (yA - yB) - (zA - zB);
-      const float muA = -(secondinvAA * firstA + secondinvAB * firstB);
-      const float muB = -(secondinvBB * firstB + secondinvAB * firstA);
-      const float dx = (xA + muA * txA) - (xB + muB * txB);
-      const float dy = (yA + muA * tyA) - (yB + muB * tyB);
-      const float dz = (zA + muA) - (zB + muB);
-      ret = sqrtf(dx * dx + dy * dy + dz * dz);
-    }
-    return ret;
   }
 
   //----------------------------------------------------------------------
@@ -245,7 +172,8 @@ namespace VertexFit {
     float halfDChi2_1 = 0.f;
     float halfDChi2_2 = 0.f;
     /// Add DOCA
-    vertex.doca = doca(trackA.state().operator MiniState(), trackB.state().operator MiniState());
+    vertex.doca =
+      Allen::Views::Physics::state_doca(trackA.state().operator MiniState(), trackB.state().operator MiniState());
     vertex.chi2 = addToDerivatives(
       trackA,
       vertex.x,

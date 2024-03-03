@@ -47,7 +47,10 @@ def hlt1_reconstruction(algorithm_name='',
     velo_tracks = make_velo_tracks(decoded_velo)
     velo_states = run_velo_kalman_filter(velo_tracks)
     material_interaction_tracks = filter_tracks_for_material_interactions(
-        velo_tracks, velo_states, beam_r_distance=18.0, close_doca=0.5)
+        velo_tracks,
+        velo_states,
+        beam_r_distance=18.0 if velo_open else 3.5,
+        close_doca=0.3)
     pvs = make_pvs(velo_tracks, velo_open)
     muon_stubs = make_muon_stubs()
 

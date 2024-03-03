@@ -141,8 +141,8 @@ __global__ void is_muon::is_muon(
 
       for (int i_hit = 0; i_hit < number_of_hits; ++i_hit) {
         const int idx = station_ocurrences_offset[station_id] + i_hit;
-        const float extrapolation_x = state.x + state.tx * (muon_hits.z(idx) - state.z);
-        const float extrapolation_y = state.y + state.ty * (muon_hits.z(idx) - state.z);
+        const float extrapolation_x = state.x() + state.tx() * (muon_hits.z(idx) - state.z());
+        const float extrapolation_y = state.y() + state.ty() * (muon_hits.z(idx) - state.z());
         bool hit_in_window = is_in_window(
           muon_hits.x(idx),
           muon_hits.y(idx),

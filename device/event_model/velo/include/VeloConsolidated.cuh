@@ -256,8 +256,8 @@ namespace Allen {
 
           __host__ __device__ float eta(const Allen::Views::Physics::KalmanStates& states_view, bool backward) const
           {
-            const auto tx = state(states_view).tx;
-            const auto ty = state(states_view).ty;
+            const auto tx = state(states_view).tx();
+            const auto ty = state(states_view).ty();
             return eta_from_rho_z(std::sqrt(tx * tx + ty * ty), backward ? -1.f : 1.f);
           }
         };
@@ -586,29 +586,29 @@ namespace Velo {
       {
         assert(track_number < m_total_number_of_tracks);
 
-        x(track_number) = state.x;
-        y(track_number) = state.y;
-        z(track_number) = state.z;
-        tx(track_number) = state.tx;
-        ty(track_number) = state.ty;
+        x(track_number) = state.x();
+        y(track_number) = state.y();
+        z(track_number) = state.z();
+        tx(track_number) = state.tx();
+        ty(track_number) = state.ty();
 
-        c00(track_number) = state.c00;
-        c20(track_number) = state.c20;
-        c22(track_number) = state.c22;
-        c11(track_number) = state.c11;
-        c31(track_number) = state.c31;
-        c33(track_number) = state.c33;
+        c00(track_number) = state.c00();
+        c20(track_number) = state.c20();
+        c22(track_number) = state.c22();
+        c11(track_number) = state.c11();
+        c31(track_number) = state.c31();
+        c33(track_number) = state.c33();
       }
 
       __host__ __device__ void set(const unsigned track_number, const MiniState& state)
       {
         assert(track_number < m_total_number_of_tracks);
 
-        x(track_number) = state.x;
-        y(track_number) = state.y;
-        z(track_number) = state.z;
-        tx(track_number) = state.tx;
-        ty(track_number) = state.ty;
+        x(track_number) = state.x();
+        y(track_number) = state.y();
+        z(track_number) = state.z();
+        tx(track_number) = state.tx();
+        ty(track_number) = state.ty();
 
         c00(track_number) = 0.f;
         c20(track_number) = 0.f;
@@ -629,18 +629,18 @@ namespace Velo {
 
         KalmanVeloState state;
 
-        state.x = x(track_number);
-        state.y = y(track_number);
-        state.z = z(track_number);
-        state.tx = tx(track_number);
-        state.ty = ty(track_number);
+        state.x() = x(track_number);
+        state.y() = y(track_number);
+        state.z() = z(track_number);
+        state.tx() = tx(track_number);
+        state.ty() = ty(track_number);
 
-        state.c00 = c00(track_number);
-        state.c20 = c20(track_number);
-        state.c22 = c22(track_number);
-        state.c11 = c11(track_number);
-        state.c31 = c31(track_number);
-        state.c33 = c33(track_number);
+        state.c00() = c00(track_number);
+        state.c20() = c20(track_number);
+        state.c22() = c22(track_number);
+        state.c11() = c11(track_number);
+        state.c31() = c31(track_number);
+        state.c33() = c33(track_number);
 
         return state;
       }

@@ -112,8 +112,8 @@ Hlt1VeloMicroBias:                                  0/  1000, (    0.00 +/-     
 Hlt1RICH1Alignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1RICH2Alignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPiAlignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1NVELODisplacedTrack:                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1NMaterialVertexSeeds:                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1MaterialVertexSeedsDownstreamz:                 5/  1000, (  150.00 +/-    66.91) kHz
+Hlt1MaterialVertexSeeds_DWFS:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                        6/  1000, (  180.00 +/-    73.26) kHz
 Hlt1DisplacedDiMuonAlignment:                       0/  1000, (    0.00 +/-     0.00) kHz
@@ -131,7 +131,7 @@ Hlt1_SMOG2_SingleTrack:                             0/  1000, (    0.00 +/-     
 Hlt1_SMOG2_DiMuonHighMass:                          0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_SingleMuon:                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_L02PPi:                                  0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                        156/  1000, ( 4680.00 +/-   344.23) kHz
+Inclusive:                                        160/  1000, ( 4800.00 +/-   347.79) kHz
 
 
 selreport_validator validation:
@@ -202,8 +202,8 @@ Hlt1VeloMicroBias:                                  0           0
 Hlt1RICH1Alignment:                                 0           0
 Hlt1RICH2Alignment:                                 0           0
 Hlt1D2KPiAlignment:                                 0           0
-Hlt1NVELODisplacedTrack:                            0           0
-Hlt1NMaterialVertexSeeds:                           0           0
+Hlt1MaterialVertexSeedsDownstreamz:                 5           0
+Hlt1MaterialVertexSeeds_DWFS:                       1           0
 Hlt1DiMuonHighMassAlignment:                        0           0
 Hlt1DiMuonJpsiMassAlignment:                        6           6
 Hlt1DisplacedDiMuonAlignment:                       0           0
@@ -222,12 +222,12 @@ Hlt1_SMOG2_DiMuonHighMass:                          0           0
 Hlt1_SMOG2_SingleMuon:                              0           0
 Hlt1_SMOG2_L02PPi:                                  0           0
 
-Total decisions:      205
+Total decisions:      211
 Total tracks:         270
 Total calos clusters: 14
 Total SVs:            109
 Total hits:           6753
-Total stdinfo:        2857
+Total stdinfo:        2863
 
 
 veloUT_validator validation:

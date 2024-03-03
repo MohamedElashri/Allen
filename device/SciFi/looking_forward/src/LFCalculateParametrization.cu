@@ -72,7 +72,7 @@ __device__ void calculate_parametrization(lf_create_tracks::Parameters parameter
     const auto z3_noref = scifi_hits.z0(h3);
 
     // Updated d_ratio
-    const auto track_y_ref = velo_state.y + velo_state.ty * (z2_noref - velo_state.z);
+    const auto track_y_ref = velo_state.y() + velo_state.ty() * (z2_noref - velo_state.z());
     const auto radius_position = sqrtf((5.f * 5.f * 1.e-8f * x2 * x2 + 1e-6f * track_y_ref * track_y_ref));
     const auto d_ratio = -1.f * (LookingForward::d_ratio_par_0 + LookingForward::d_ratio_par_1 * radius_position +
                                  LookingForward::d_ratio_par_2 * radius_position * radius_position);

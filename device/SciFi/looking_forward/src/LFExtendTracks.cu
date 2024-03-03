@@ -159,7 +159,8 @@ __device__ void extend_tracks(
       // +-2 mm windows is ok (2^{2}  = 4) . If we have large slope the error on x can be big,  For super peripheral
       // tracks ( delta-slope = 0.3, ty = 0.3) you want to open up up to : sqrt(4+60*0.3+60*0.3) = 6 mm windows. Anyway,
       // we need some retuning of this scaling windows.
-      const float max_chi2 = uv_hits_chi2_factor * fabsf(input_state.ty) + uv_hits_chi2_factor * fabsf(input_state.tx);
+      const float max_chi2 =
+        uv_hits_chi2_factor * fabsf(input_state.ty()) + uv_hits_chi2_factor * fabsf(input_state.tx());
 
       int best_index = -1;
       float best_chi2 = max_chi2;

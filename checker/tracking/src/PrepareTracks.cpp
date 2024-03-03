@@ -102,8 +102,8 @@ std::vector<Checker::Tracks> prepareUTTracks(
       t.p = 1.f / std::abs(qop);
       t.qop = qop;
       // direction at first state -> velo state of track
-      const float tx = velo_state.tx;
-      const float ty = velo_state.ty;
+      const float tx = velo_state.tx();
+      const float ty = velo_state.ty();
       const float slope2 = tx * tx + ty * ty;
       t.pt = std::sqrt(slope2 / (1.f + slope2)) / std::fabs(qop);
       // pseudorapidity

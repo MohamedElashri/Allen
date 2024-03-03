@@ -42,10 +42,10 @@ __device__ track_matching::MatchingResult getChi2Match(
   const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization)
 {
 
-  const float xpos_velo = velo_state.x, ypos_velo = velo_state.y, zpos_velo = velo_state.z, tx_velo = velo_state.tx,
-              ty_velo = velo_state.ty;
-  const float xpos_scifi = scifi_state.x, ypos_scifi = scifi_state.y, zpos_scifi = scifi_state.z,
-              tx_scifi = scifi_state.tx, ty_scifi = scifi_state.ty;
+  const float xpos_velo = velo_state.x(), ypos_velo = velo_state.y(), zpos_velo = velo_state.z(),
+              tx_velo = velo_state.tx(), ty_velo = velo_state.ty();
+  const float xpos_scifi = scifi_state.x(), ypos_scifi = scifi_state.y(), zpos_scifi = scifi_state.z(),
+              tx_scifi = scifi_state.tx(), ty_scifi = scifi_state.ty();
 
   const float dSlopeX = tx_velo - tx_scifi;
   if (std::abs(dSlopeX) > 1.5f)
@@ -192,7 +192,7 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
 
     const auto magSign = -dev_magnet_polarity[0];
     matched_track.qop =
-      computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx, magSign, dev_magnet_parametrization);
+      computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, dev_magnet_parametrization);
   }
   __syncthreads();
 

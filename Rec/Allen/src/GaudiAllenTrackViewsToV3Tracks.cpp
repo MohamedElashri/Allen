@@ -166,16 +166,15 @@ namespace GaudiAllen::Converters::v3 {
      *   to LHCb track states easier.
      */
     struct KalmanVeloStateWithQoP : public KalmanVeloState {
-      float qop, c44;
-
+      float m_qop, m_c44;
       KalmanVeloStateWithQoP() = default;
       KalmanVeloStateWithQoP(const KalmanVeloStateWithQoP&) = default;
       KalmanVeloStateWithQoP& operator=(const KalmanVeloStateWithQoP&) = default;
 
       KalmanVeloStateWithQoP(const KalmanVeloState _s, const float _qop, const float _c44) : KalmanVeloState(_s)
       {
-        qop = _qop;
-        c44 = _c44;
+        m_qop = _qop;
+        m_c44 = _c44;
       }
 
       KalmanVeloStateWithQoP(
@@ -194,9 +193,14 @@ namespace GaudiAllen::Converters::v3 {
         const float _c44) :
         KalmanVeloState(_x, _y, _z, _tx, _ty, _c00, _c20, _c22, _c11, _c31, _c33)
       {
-        qop = _qop;
-        c44 = _c44;
+        m_qop = _qop;
+        m_c44 = _c44;
       }
+
+      float qop() const { return m_qop; }
+      float c44() const { return m_c44; }
+      float& qop() { return m_qop; }
+      float& c44() { return m_c44; }
     };
 
     /**
@@ -307,7 +311,7 @@ namespace GaudiAllen::Converters::v3 {
       }
       /// position of beamline state can only be determined from input
       else if constexpr (L == SL::ClosestToBeam) {
-        return state.z;
+        return state.z();
       }
       /// position of hits on the track
       else if constexpr (L == SL::FirstMeasurement) {
@@ -327,19 +331,19 @@ namespace GaudiAllen::Converters::v3 {
   template<OutTracks::StateLocation L, typename TrackProxy>
   bool update_velo_state(TrackProxy& outTrack, const KalmanVeloStateWithQoP& state)
   {
-    outTrack.template field<OutTag::States>()[outTrack.state_index(L)].setPosition(state.x, state.y, state.z);
-    outTrack.template field<OutTag::States>()[outTrack.state_index(L)].setDirection(state.tx, state.ty);
-    outTrack.template field<OutTag::States>()[outTrack.state_index(L)].setQOverP(state.qop);
+    outTrack.template field<OutTag::States>()[outTrack.state_index(L)].setPosition(state.x(), state.y(), state.z());
+    outTrack.template field<OutTag::States>()[outTrack.state_index(L)].setDirection(state.tx(), state.ty());
+    outTrack.template field<OutTag::States>()[outTrack.state_index(L)].setQOverP(state.qop());
 
     // Transfer state vector covariance
     // ToDo:  Find the right meta-incantation to set individual elements.
     outTrack.template field<OutTag::StateCovs>()[outTrack.state_index(L)].setXCovariance(
-      state.c00, 0.f, state.c20, 0.f, 0.f);
+      state.c00(), 0.f, state.c20(), 0.f, 0.f);
     outTrack.template field<OutTag::StateCovs>()[outTrack.state_index(L)].setYCovariance(
-      state.c11, 0.f, state.c31, 0.f);
-    outTrack.template field<OutTag::StateCovs>()[outTrack.state_index(L)].setTXCovariance(state.c22, 0.f, 0.f);
-    outTrack.template field<OutTag::StateCovs>()[outTrack.state_index(L)].setTYCovariance(state.c33, 0.f);
-    outTrack.template field<OutTag::StateCovs>()[outTrack.state_index(L)].setQoverPCovariance(state.c44);
+      state.c11(), 0.f, state.c31(), 0.f);
+    outTrack.template field<OutTag::StateCovs>()[outTrack.state_index(L)].setTXCovariance(state.c22(), 0.f, 0.f);
+    outTrack.template field<OutTag::StateCovs>()[outTrack.state_index(L)].setTYCovariance(state.c33(), 0.f);
+    outTrack.template field<OutTag::StateCovs>()[outTrack.state_index(L)].setQoverPCovariance(state.c44());
 
     return true;
   }
@@ -353,19 +357,19 @@ namespace GaudiAllen::Converters::v3 {
     {
       KalmanVeloStateWithQoP state(instate);
 
-      const float delta_z = z - state.z;
+      const float delta_z = z - state.z();
 
       // Propagate the state
-      state.x = state.x + state.tx * delta_z;
-      state.y = state.y + state.ty * delta_z;
-      state.z = state.z + delta_z;
+      state.x() += state.tx() * delta_z;
+      state.y() += state.ty() * delta_z;
+      state.z() += delta_z;
 
       // Propagate the covariance matrix
       const auto dz2 = delta_z * delta_z;
-      state.c00 += dz2 * state.c22 + 2.f * delta_z * state.c20;
-      state.c11 += dz2 * state.c33 + 2.f * delta_z * state.c31;
-      state.c20 += state.c22 * delta_z;
-      state.c31 += state.c33 * delta_z;
+      state.c00() += dz2 * state.c22() + 2.f * delta_z * state.c20();
+      state.c11() += dz2 * state.c33() + 2.f * delta_z * state.c31();
+      state.c20() += state.c22() * delta_z;
+      state.c31() += state.c33() * delta_z;
 
       // finally, store the state
       return state;
@@ -374,7 +378,7 @@ namespace GaudiAllen::Converters::v3 {
     KalmanVeloStateWithQoP closest_state(std::vector<KalmanVeloStateWithQoP> states, const float z)
     {
       return *std::min_element(states.begin(), states.end(), [&](auto s1, auto s2) {
-        return std::abs(s1.z - z) < std::abs(s2.z - z) ? true : false;
+        return std::abs(s1.z() - z) < std::abs(s2.z() - z) ? true : false;
       });
     }
 
@@ -676,7 +680,7 @@ namespace GaudiAllen::Converters::v3 {
       for (unsigned int t = 0; t < number_of_tracks; t++) {
         const auto track = get_member(allen_tracks_view, t);
         auto states = get_input_states(track, allen_states_containers...);
-        const bool backward = states[0].z > get_hit_z(last_hit(track));
+        const bool backward = states[0].z() > get_hit_z(last_hit(track));
 
         auto newTrack = get_new_out_track(output, backward);
         convert_track(newTrack, track, states, unique_id_gen);
@@ -763,8 +767,8 @@ namespace GaudiAllen::Converters::v3 {
         const int firstRow = LHCb::LHCbID(velo_track.id(0)).channelID();
         const float charge = (firstRow % 2 == 0 ? -1.f : 1.f);
 
-        const float tx1 = beamline_state.tx;
-        const float ty1 = beamline_state.ty;
+        const float tx1 = beamline_state.tx();
+        const float ty1 = beamline_state.ty();
         const float slope2 = std::max(tx1 * tx1 + ty1 * ty1, 1.e-20f);
         qop = charge / (m_ptVelo * std::sqrt(1.f + 1.f / slope2));
       }

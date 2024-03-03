@@ -32,9 +32,9 @@ __device__ void ecal_scan(
 {
   for (unsigned j = 0; j < N_ecal_positions; ++j) {
     // Extrapolate the track in a straight line to the current z position
-    const float dz_temp = ecal_positions[j] - state.z;
-    float xV_temp = state.x + state.tx * dz_temp;
-    float yV_temp = state.y + state.ty * dz_temp;
+    const float dz_temp = ecal_positions[j] - state.z();
+    float xV_temp = state.x() + state.tx() * dz_temp;
+    float yV_temp = state.y() + state.ty() * dz_temp;
 
     // Convert (x,y) coordinates to cell ID
     unsigned matched_digit_id = ecal_geometry.getEcalID(xV_temp, yV_temp, ecal_positions[j]);

@@ -20,7 +20,7 @@
 /// Get the first estimation of the magnet focal plane position from "tx2".
 __device__ inline MatchUpstreamMuon::Hit magnetFocalPlaneFromTx2(const KalmanVeloState& state)
 {
-  const auto z = MatchUpstreamMuon::za + MatchUpstreamMuon::zb * state.tx * state.tx;
+  const auto z = MatchUpstreamMuon::za + MatchUpstreamMuon::zb * state.tx() * state.tx();
   const MatchUpstreamMuon::Hit hit {state, z};
   return hit;
 }
@@ -60,19 +60,19 @@ __device__ inline int trackTypeFromMomentum(float p)
 __device__ inline float yStraight(const KalmanVeloState& state, float z)
 {
 
-  float dz = z - state.z;
+  float dz = z - state.z();
 
-  return state.y + dz * state.ty;
+  return state.y() + dz * state.ty();
 }
 
 /// Calculate the projection in the magnet for the "y" axis
 __device__ inline std::pair<float, float> yStraightWindow(const KalmanVeloState& state, float z, float yw)
 {
-  float dz = z - state.z;
+  float dz = z - state.z();
 
-  float y = state.y + dz * state.ty;
+  float y = state.y() + dz * state.ty();
 
-  float r = dz * sqrtf(state.c33) + yw;
+  float r = dz * sqrtf(state.c33()) + yw;
 
   return {y - r, y + r};
 }
@@ -156,7 +156,7 @@ __device__ inline std::tuple<float, float, float, float> firstStationWindow(
 
   const int charge = (qop > 0) ? 1 : -1;
 
-  const auto t = state.tx;
+  const auto t = state.tx();
   const auto d = dtx(qop);
 
   const auto slope = charge * magnet_polarity[0] < 0 ? t + d : t - d;

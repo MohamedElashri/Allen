@@ -68,14 +68,16 @@ __global__ void muon_catboost_features_extraction::muon_catboost_features_extrac
     const float station_z = muon_hits.z(muon_event_offset);
     const float station_z0 = muon_hits.z(0);
 
-    const float extrapolation_x = scifi_tracks.states(track_id).x +
-                                  scifi_tracks.states(track_id).tx * (station_z - scifi_tracks.states(track_id).z);
-    const float extrapolation_y = scifi_tracks.states(track_id).y +
-                                  scifi_tracks.states(track_id).ty * (station_z - scifi_tracks.states(track_id).z);
-    const float extrapolation_x0 = scifi_tracks.states(track_id).x +
-                                   scifi_tracks.states(track_id).tx * (station_z0 - scifi_tracks.states(track_id).z);
-    const float extrapolation_y0 = scifi_tracks.states(track_id).y +
-                                   scifi_tracks.states(track_id).ty * (station_z0 - scifi_tracks.states(track_id).z);
+    const float extrapolation_x = scifi_tracks.states(track_id).x() +
+                                  scifi_tracks.states(track_id).tx() * (station_z - scifi_tracks.states(track_id).z());
+    const float extrapolation_y = scifi_tracks.states(track_id).y() +
+                                  scifi_tracks.states(track_id).ty() * (station_z - scifi_tracks.states(track_id).z());
+    const float extrapolation_x0 =
+      scifi_tracks.states(track_id).x() +
+      scifi_tracks.states(track_id).tx() * (station_z0 - scifi_tracks.states(track_id).z());
+    const float extrapolation_y0 =
+      scifi_tracks.states(track_id).y() +
+      scifi_tracks.states(track_id).ty() * (station_z0 - scifi_tracks.states(track_id).z());
 
     for (int i_hit = 0; i_hit < number_of_hits; ++i_hit) {
       const int idx = muon_event_offset + i_hit;

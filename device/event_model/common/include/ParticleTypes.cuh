@@ -840,25 +840,7 @@ namespace Allen {
           const auto sA = get_state(child(index1));
           const auto sB = get_state(child(index2));
 
-          float secondAA = sA.tx * sA.tx + sA.ty * sA.ty + 1.0f;
-          float secondBB = sB.tx * sB.tx + sB.ty * sB.ty + 1.0f;
-          float secondAB = -sA.tx * sB.tx - sA.ty * sB.ty - 1.0f;
-          float det = secondAA * secondBB - secondAB * secondAB;
-          float ret = -1;
-          if (fabsf(det) > 0) {
-            float secondinvAA = secondBB / det;
-            float secondinvBB = secondAA / det;
-            float secondinvAB = -secondAB / det;
-            float firstA = sA.tx * (sA.x - sB.x) + sA.ty * (sA.y - sB.y) + (sA.z - sB.z);
-            float firstB = -sB.tx * (sA.x - sB.x) - sB.ty * (sA.y - sB.y) - (sA.z - sB.z);
-            float muA = -(secondinvAA * firstA + secondinvAB * firstB);
-            float muB = -(secondinvBB * firstB + secondinvAB * firstA);
-            float dx = (sA.x + muA * sA.tx) - (sB.x + muB * sB.tx);
-            float dy = (sA.y + muA * sA.ty) - (sB.y + muB * sB.ty);
-            float dz = (sA.z + muA) - (sB.z + muB);
-            ret = sqrtf(dx * dx + dy * dy + dz * dz);
-          }
-          return ret;
+          return state_doca(sA, sB);
         }
 
         __host__ __device__ float docamax() const

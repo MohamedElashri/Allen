@@ -106,10 +106,10 @@ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::init()
 //===========================================================================================
 __device__ float qop_seeding_calculation(const float magSign, const MiniState seeding_state, bool tCubicFit)
 {
-  const float tx = seeding_state.tx;
-  const float ty = seeding_state.ty;
-  const float x = seeding_state.x;
-  const float z = seeding_state.z;
+  const float tx = seeding_state.tx();
+  const float ty = seeding_state.ty();
+  const float x = seeding_state.x();
+  const float z = seeding_state.z();
 
   const float m_paramsTParab[4] = {-6.30991, -4.83533, -12.9192, 4.23025e-08};
   const float m_paramsTCubic[4] = {-6.34025, -4.85287, -12.4491, 4.25461e-08};
@@ -306,8 +306,8 @@ __device__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t
   gsl::span<unsigned> dev_histogram_scifi_track_nhits)
 {
 
-  const auto tx = scifi_state.tx;
-  const auto ty = scifi_state.ty;
+  const auto tx = scifi_state.tx();
+  const auto ty = scifi_state.ty();
   const float slope2 = tx * tx + ty * ty;
   const float rho = std::sqrt(slope2);
   const unsigned nhits = scifi_track.number_of_hits;

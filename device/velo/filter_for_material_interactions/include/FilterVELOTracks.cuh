@@ -13,6 +13,7 @@
 #include "States.cuh"
 #include "AlgorithmTypes.cuh"
 #include "VeloConsolidated.cuh"
+#include "patPV_Definitions.cuh"
 
 namespace FilterVELOTracks {
 
@@ -28,6 +29,8 @@ namespace FilterVELOTracks {
     DEVICE_OUTPUT(dev_filtered_velo_track_idx_t, unsigned) dev_filtered_velo_track_idx;
     DEVICE_OUTPUT(dev_number_of_filtered_tracks_t, unsigned) dev_number_of_filtered_tracks;
     DEVICE_OUTPUT(dev_number_of_close_track_pairs_t, unsigned) dev_number_of_close_track_pairs;
+    DEVICE_OUTPUT(dev_number_of_seeds_t, unsigned) dev_number_of_seeds;
+    DEVICE_OUTPUT(dev_interaction_seeds_t, PatPV::XYZPoint) dev_interaction_seeds;
 
     PROPERTY(beamdoca_r_t, "beamdoca_r", "radial doca to the beamspot", float) beamdoca_r;
     PROPERTY(
@@ -36,6 +39,7 @@ namespace FilterVELOTracks {
       "doca to define close track pairs",
       float)
     max_doca_for_close_track_pairs;
+
     PROPERTY(block_dim_t, "block_dim", "block dimension", DeviceDimensions) block_dim;
   };
 
