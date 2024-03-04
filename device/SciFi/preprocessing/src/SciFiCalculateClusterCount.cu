@@ -106,7 +106,7 @@ __global__ void scifi_calculate_cluster_count_kernel(
 
 __global__ void scifi_compress_hits_offset(scifi_calculate_cluster_count::Parameters parameters)
 {
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned event_number = blockIdx.x;
   for (unsigned i = threadIdx.x; i < SciFi::Constants::n_zones + 1; i += blockDim.x) { // for cpu backend...
     auto quarter = i * 2;
     auto first_sipm_in_zone = (quarter * 5 + (quarter >= 32 ? quarter - 32 : 0)) * SciFi::Constants::n_sipms_per_module;
@@ -163,5 +163,5 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
     arguments, context, 1, 0, size<dev_scifi_hit_count_t>(arguments) - 1);
 
   global_function(scifi_compress_hits_offset)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(SciFi::Constants::n_zones + 1), context)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), dim3(SciFi::Constants::n_zones + 1), context)(arguments);
 }
