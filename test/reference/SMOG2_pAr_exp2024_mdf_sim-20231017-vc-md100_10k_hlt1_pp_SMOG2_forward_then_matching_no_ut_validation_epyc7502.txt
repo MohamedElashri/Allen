@@ -94,7 +94,7 @@ Hlt1LowMassDiElectron_massSlice3_displaced:         0/  1000, (    0.00 +/-     
 Hlt1LowMassDiElectron_SS_massSlice3_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice4_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1Passthrough:                                    1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1Passthrough:                                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TAEPassthrough:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINLumi:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODIN1kHzLumi:                                   0/  1000, (    0.00 +/-     0.00) kHz
@@ -111,21 +111,21 @@ Hlt1MaterialVertexSeeds_DWFS:                       0/  1000, (    0.00 +/-     
 Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DisplacedDiMuonAlignment:                       0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1BeamGas:                                        3/  1000, (   90.00 +/-    51.88) kHz
-Hlt1GECPassThrough_LowMult5:                        3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1GECPassThrough_LowMult5:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_BESMOG2_NoBias:                                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_BESMOG2_LowMult10:                             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_MinimumBias:                            53/  1000, ( 1590.00 +/-   212.54) kHz
-Hlt1Passthrough_PV_in_SMOG2:                       16/  1000, (  480.00 +/-   119.04) kHz
+Hlt1_SMOG2_MinimumBias:                            46/  1000, ( 1380.00 +/-   198.73) kHz
+Hlt1Passthrough_PV_in_SMOG2:                       14/  1000, (  420.00 +/-   111.46) kHz
 Hlt1_SMOG2_D2Kpi:                                  30/  1000, (  900.00 +/-   161.83) kHz
 Hlt1_SMOG2_eta2pp:                                 31/  1000, (  930.00 +/-   164.42) kHz
 Hlt1_SMOG2_KsToPiPi:                               13/  1000, (  390.00 +/-   107.46) kHz
-Hlt1_SMOG2_2BodyGeneric:                           58/  1000, ( 1740.00 +/-   221.75) kHz
-Hlt1_SMOG2_SingleTrack:                           152/  1000, ( 4560.00 +/-   340.60) kHz
+Hlt1_SMOG2_2BodyGeneric:                           56/  1000, ( 1680.00 +/-   218.12) kHz
+Hlt1_SMOG2_SingleTrack:                           146/  1000, ( 4380.00 +/-   334.99) kHz
 Hlt1_SMOG2_DiMuonHighMass:                          0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_SingleMuon:                             24/  1000, (  720.00 +/-   145.20) kHz
+Hlt1_SMOG2_SingleMuon:                             23/  1000, (  690.00 +/-   142.21) kHz
 Hlt1_SMOG2_L02PPi:                                  5/  1000, (  150.00 +/-    66.91) kHz
-Inclusive:                                        246/  1000, ( 7380.00 +/-   408.58) kHz
+Inclusive:                                        266/  1000, ( 7980.00 +/-   419.19) kHz
 
 
 seed_validator validation:
@@ -225,7 +225,7 @@ Hlt1LowMassDiElectron_massSlice3_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice3_displaced:      0           0
 Hlt1LowMassDiElectron_massSlice4_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0           0
-Hlt1Passthrough:                                    1           0
+Hlt1Passthrough:                                    0           0
 Hlt1TAEPassthrough:                                 0           0
 Hlt1ODINLumi:                                       0           0
 Hlt1ODIN1kHzLumi:                                   0           0
@@ -242,27 +242,27 @@ Hlt1MaterialVertexSeeds_DWFS:                       0           0
 Hlt1DiMuonHighMassAlignment:                        0           0
 Hlt1DiMuonJpsiMassAlignment:                        0           0
 Hlt1DisplacedDiMuonAlignment:                       0           0
-Hlt1BeamGas:                                        3           0
-Hlt1GECPassThrough_LowMult5:                        3           0
+Hlt1BeamGas:                                        0           0
+Hlt1GECPassThrough_LowMult5:                        0           0
 Hlt1_BESMOG2_NoBias:                                0           0
 Hlt1_BESMOG2_LowMult10:                             0           0
-Hlt1_SMOG2_MinimumBias:                            53           0
-Hlt1Passthrough_PV_in_SMOG2:                       16           0
+Hlt1_SMOG2_MinimumBias:                            46           0
+Hlt1Passthrough_PV_in_SMOG2:                       14           0
 Hlt1_SMOG2_D2Kpi:                                  30          39
 Hlt1_SMOG2_eta2pp:                                 31          47
 Hlt1_SMOG2_KsToPiPi:                               13          14
-Hlt1_SMOG2_2BodyGeneric:                           58         233
-Hlt1_SMOG2_SingleTrack:                           152         251
+Hlt1_SMOG2_2BodyGeneric:                           56         262
+Hlt1_SMOG2_SingleTrack:                           146         238
 Hlt1_SMOG2_DiMuonHighMass:                          0           0
-Hlt1_SMOG2_SingleMuon:                             24          26
+Hlt1_SMOG2_SingleMuon:                             23          25
 Hlt1_SMOG2_L02PPi:                                  5           5
 
-Total decisions:      389
-Total tracks:         584
+Total decisions:      364
+Total tracks:         572
 Total calos clusters: 0
-Total SVs:            311
-Total hits:           16514
-Total stdinfo:        6305
+Total SVs:            330
+Total hits:           16206
+Total stdinfo:        6260
 
 
 velo_validator validation:

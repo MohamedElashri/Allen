@@ -195,7 +195,6 @@ namespace Allen {
         },
         [](const void* p, const Constants& constants) { static_cast<ALGORITHM const*>(p)->update(constants); },
         [](void* p) {
-          // static_cast<ALGORITHM*>(p)->init();
           if constexpr (Allen::has_init_member_fn<ALGORITHM>::value) {
             initialize_algorithm(*static_cast<ALGORITHM*>(p));
           }
@@ -357,7 +356,6 @@ namespace Allen {
     Algorithm& operator=(Algorithm&&) = delete;
 
     void update(const Constants&) const {}
-    void init() const {}
 
     void set_properties(const std::map<std::string, nlohmann::json>& algo_config) override
     {

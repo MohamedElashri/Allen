@@ -14,6 +14,7 @@ INSTANTIATE_LINE(d2pipi_line::d2pipi_line_t, d2pipi_line::Parameters)
 
 void d2pipi_line::d2pipi_line_t::init()
 {
+  Line<d2pipi_line::d2pipi_line_t, d2pipi_line::Parameters>::init();
 #ifndef ALLEN_STANDALONE
   histogram_d02pipi_mass = new gaudi_monitoring::Lockable_Histogram<> {{this,
                                                                         "d02pipi_mass",

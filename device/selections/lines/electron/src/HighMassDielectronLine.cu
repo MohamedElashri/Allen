@@ -7,6 +7,7 @@ INSTANTIATE_LINE(highmass_dielectron_line::highmass_dielectron_line_t, highmass_
 
 void highmass_dielectron_line::highmass_dielectron_line_t::init()
 {
+  Line<highmass_dielectron_line::highmass_dielectron_line_t, highmass_dielectron_line::Parameters>::init();
 #ifndef ALLEN_STANDALONE
   histogram_dielectron_Z_mass = new gaudi_monitoring::Lockable_Histogram<> {
     {this,

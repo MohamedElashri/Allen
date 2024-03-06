@@ -14,6 +14,7 @@ INSTANTIATE_LINE(di_muon_mass_line::di_muon_mass_line_t, di_muon_mass_line::Para
 
 void di_muon_mass_line::di_muon_mass_line_t::init()
 {
+  Line<di_muon_mass_line::di_muon_mass_line_t, di_muon_mass_line::Parameters>::init();
 #ifndef ALLEN_STANDALONE
   histogram_Jpsi_mass = new gaudi_monitoring::Lockable_Histogram<> {{this,
                                                                      "Jpsi_mass",

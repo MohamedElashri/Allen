@@ -322,6 +322,16 @@ void gather_selections::gather_selections_t::operator()(
   Allen::memset_async(dev_histo_line_passes.data(), 0, dev_histo_line_passes.size() * sizeof(unsigned), context);
   Allen::memset_async(dev_histo_line_rates.data(), 0, dev_histo_line_rates.size() * sizeof(unsigned), context);
 
+  const auto host_input_post_scale_hashes = input_aggregate<host_input_post_scale_hashes_t>(arguments);
+  for (unsigned i = 0; i < host_input_post_scale_hashes.size_of_aggregate(); ++i) {
+    if (host_input_post_scale_hashes.size(i) > 0 && host_input_post_scale_hashes.first(i) == 0) {
+      std::vector<std::string> names = split(line_names, ',');
+      throw std::runtime_error(
+        "Postscaler hash was not properly initialized for " + names[i] +
+        ". Did you forget to call the line's init() ?");
+    }
+  }
+
   // Run the postscaler
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
     arguments,

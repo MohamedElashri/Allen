@@ -14,6 +14,7 @@ INSTANTIATE_LINE(d2kk_line::d2kk_line_t, d2kk_line::Parameters)
 
 void d2kk_line::d2kk_line_t::init()
 {
+  Line<d2kk_line::d2kk_line_t, d2kk_line::Parameters>::init();
 #ifndef ALLEN_STANDALONE
   histogram_d02kk_mass = new gaudi_monitoring::Lockable_Histogram<> {{this,
                                                                       "d02kk_mass",

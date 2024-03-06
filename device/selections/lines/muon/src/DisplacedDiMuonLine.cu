@@ -14,6 +14,7 @@ INSTANTIATE_LINE(displaced_di_muon_line::displaced_di_muon_line_t, displaced_di_
 
 void displaced_di_muon_line::displaced_di_muon_line_t::init()
 {
+  Line<displaced_di_muon_line::displaced_di_muon_line_t, displaced_di_muon_line::Parameters>::init();
 #ifndef ALLEN_STANDALONE
   histogram_displaced_dimuon_mass = new gaudi_monitoring::Lockable_Histogram<> {
     {this,
