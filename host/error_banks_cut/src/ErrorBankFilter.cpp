@@ -50,6 +50,7 @@ void error_bank_filter::error_bank_filter_t::set_arguments_size(
   set_size<host_number_of_selected_events_t>(arguments, 1);
   set_size<dev_output_event_list_t>(arguments, n_events);
   set_size<host_output_event_list_t>(arguments, n_events);
+  set_size<host_temp_counts_t>(arguments, 4 * LHCb::RawBank::LastType);
 }
 
 void error_bank_filter::error_bank_filter_t::init()
@@ -164,7 +165,7 @@ void error_bank_filter::error_bank_filter_t::operator()(
       runtime_options.input_provider.get(),
       runtime_options.slice_index,
       number_of_events,
-      std::get<0>(runtime_options.event_interval));
+	  std::get<0>(runtime_options.event_interval));
   })(arguments, runtime_options, size<host_event_list_t>(arguments));
 
   auto n_selected = first<host_number_of_selected_events_t>(arguments);
@@ -187,7 +188,24 @@ void error_bank_filter::error_bank_filter_t::error_bank_filter(
 {
   boost::dynamic_bitset<> selected_events {number_of_events};
 
+  // Clear all temporary bin storage
+  auto bin_storage = parameters.host_counts.get();
+  std::memset(bin_storage.data(), 0, bin_storage.size_bytes());
+  auto data_counts = bin_storage.subspan(0, LHCb::RawBank::LastType);
+  auto other_counts = bin_storage.subspan(LHCb::RawBank::LastType, LHCb::RawBank::LastType);
+  auto error_counts = bin_storage.subspan(2 * LHCb::RawBank::LastType, LHCb::RawBank::LastType);
+  auto sd_counts = bin_storage.subspan(3 * LHCb::RawBank::LastType, LHCb::RawBank::LastType);
+
+  auto add_counts = [] (gaudi_histo_t<1, float>& histo, gsl::span<float> counts) {
+	for (size_t i = 0; i < histo.nBins(0); ++i) {
+	  histo[i] += counts[i];
+	}
+  };
+
+
   for (auto& [sd_name, sd_info] : m_sd_info) {
+	std::memset(sd_counts.data(), 0, sd_counts.size_bytes());
+	unsigned error_count = 0, invalid_count = 0;
 
     auto bno = input_provider->banks(sd_info.sd, slice_index);
 
@@ -201,55 +219,86 @@ void error_bank_filter::error_bank_filter_t::error_bank_filter(
     auto const* offsets = bno.offsets.data();
     auto const mep_layout = parameters.mep_layout[0];
 
-#ifndef ALLEN_STANDALONE
     auto const& data_bank_types = sd_info.data_bank_types;
     auto const& other_bank_types = sd_info.other_bank_types;
-#endif
     auto const& error_bank_types = sd_info.error_bank_types;
 
-    for (unsigned event_index = 0; event_index < number_of_events; ++event_index) {
-      auto event_number = parameters.host_event_list[event_index];
-      auto raw_data_event_number = parameters.host_event_list[event_index] + event_start;
-
-      unsigned number_of_banks = mep_layout ? MEP::number_of_banks(offsets) :
-                                              Allen::number_of_banks(blocks[0].data(), offsets, raw_data_event_number);
-
-      for (unsigned bank_index = 0; bank_index < number_of_banks; ++bank_index) {
-        auto bank_type = parameters.mep_layout[0] ? MEP::bank_type(nullptr, types, raw_data_event_number, bank_index) :
-                                                    Allen::bank_type(types, raw_data_event_number, bank_index);
-
-        if (bank_type > LHCb::RawBank::BankType::LastType) {
-#ifndef ALLEN_STANDALONE
-          ++(*sd_info.invalid_type);
-#endif
-          continue;
-        }
-
-#ifndef ALLEN_STANDALONE
-        auto const sd_bin = sd_info.mapping[bank_type];
-        ++(*sd_info.banks)[sd_bin];
-
-        if (data_bank_types.count(bank_type)) {
-          auto const bin = m_data_bin_mapping[bank_type];
-          ++(*m_data_banks)[bin];
-        }
-        else if (other_bank_types.count(bank_type)) {
-          auto const bin = m_other_bin_mapping[bank_type];
-          ++(*m_other_banks)[bin];
-        }
-        else
-#endif
-          if (error_bank_types.count(bank_type)) {
-#ifndef ALLEN_STANDALONE
-          ++(*sd_info.error);
-          auto const bin = m_error_bin_mapping[bank_type];
-          ++(*m_error_banks)[bin];
-#endif
-          selected_events[event_number] = true;
-        }
+	auto count_bank = [this, sd_counts, data_counts, other_counts, error_counts, &error_count,
+                       &invalid_count, &data_bank_types, &other_bank_types, &error_bank_types, &sd_info]
+      (uint8_t const bank_type) {
+      if (bank_type > LHCb::RawBank::BankType::LastType) {
+		++invalid_count;
+		return false;
       }
-    }
+
+      auto const sd_bin = sd_info.mapping[bank_type];
+      ++sd_counts[sd_bin];
+
+      if (data_bank_types.count(bank_type)) {
+		auto const bin = m_data_bin_mapping[bank_type];
+		++data_counts[bin];
+      }
+      else if (other_bank_types.count(bank_type)) {
+		auto const bin = m_other_bin_mapping[bank_type];
+		++other_counts[bin];
+      }
+      else if (error_bank_types.count(bank_type)) {
+		++error_count;
+		auto const bin = m_error_bin_mapping[bank_type];
+		++error_counts[bin];
+		return true;
+      }
+	  return false;
+	};
+
+
+	if (mep_layout) {
+	  // In MEP layout the bank types for a batch of events are
+	  // adjecent to each other in memory, so the inner loop should be
+	  // over events.
+	  unsigned const number_of_banks = MEP::number_of_banks(offsets);
+	  for (unsigned bank_index = 0; bank_index < number_of_banks; ++bank_index) {
+		for (unsigned event_index = 0; event_index < number_of_events; ++event_index) {
+		  auto event_number = parameters.host_event_list[event_index];
+		  auto raw_data_event_number = parameters.host_event_list[event_index] + event_start;
+          auto bank_type = MEP::bank_type(nullptr, types, raw_data_event_number, bank_index);
+		  selected_events[event_number] = count_bank(bank_type);
+		}
+	  }
+	}
+	else {
+	  // In Allen layout the bank types for a given event are
+	  // adjecent to each other in memory, so the inner loop should be
+	  // over banks.
+	  auto const* raw_data = blocks[0].data();
+      for (unsigned event_index = 0; event_index < number_of_events; ++event_index) {
+		auto event_number = parameters.host_event_list[event_index];
+		auto raw_data_event_number = parameters.host_event_list[event_index] + event_start;
+
+		unsigned number_of_banks = Allen::number_of_banks(raw_data, offsets, raw_data_event_number);
+		for (unsigned bank_index = 0; bank_index < number_of_banks; ++bank_index) {
+          auto bank_type = Allen::bank_type(types, raw_data_event_number, bank_index);
+		  selected_events[event_number] = count_bank(bank_type);
+		}
+      }
+	}
+#ifndef ALLEN_STANDALONE
+    *sd_info.invalid_type += invalid_count;
+    *sd_info.error += error_count;
+	add_counts(*sd_info.banks, sd_counts);
+#endif
   }
+
+#ifndef ALLEN_STANDALONE
+  for_each(
+    std::tuple {std::tuple {m_data_banks.get(), data_counts},
+                std::tuple {m_other_banks.get(), other_counts},
+                std::tuple {m_error_banks.get(), error_counts}},
+   [&add_counts](auto entry) {
+	 auto [histo, counts] = entry;
+	 add_counts(*histo, counts);
+   });
+#endif
 
   for (size_t i = 0, e = selected_events.find_first(); i < selected_events.count(); ++i) {
     parameters.host_output_event_list[i] = e;

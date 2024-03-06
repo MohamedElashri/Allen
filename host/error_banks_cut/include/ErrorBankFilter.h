@@ -62,6 +62,7 @@ namespace error_bank_filter {
     MASK_OUTPUT(dev_output_event_list_t) dev_output_event_list;
     HOST_OUTPUT(host_output_event_list_t, unsigned) host_output_event_list;
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
+    HOST_OUTPUT(host_temp_counts_t, float) host_counts;
     PROPERTY(
       sd_bank_types_t,
       "sd_bank_types",
@@ -104,7 +105,6 @@ namespace error_bank_filter {
     mutable std::unique_ptr<gaudi_histo_t<1, float>> m_error_banks;
     mutable bin_mapping_t m_error_bin_mapping;
 #endif
-
     struct sd_info_t {
       sd_info_t() = default;
 
