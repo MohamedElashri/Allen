@@ -14,6 +14,7 @@ INSTANTIATE_LINE(di_muon_drell_yan_line::di_muon_drell_yan_line_t, di_muon_drell
 
 void di_muon_drell_yan_line::di_muon_drell_yan_line_t::init()
 {
+  Line<di_muon_drell_yan_line::di_muon_drell_yan_line_t, di_muon_drell_yan_line::Parameters>::init();
 #ifndef ALLEN_STANDALONE
   histogram_Z_mass = new gaudi_monitoring::Lockable_Histogram<> {
     {this,

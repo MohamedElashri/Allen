@@ -22,6 +22,7 @@ INSTANTIATE_LINE(di_muon_no_ip_line::di_muon_no_ip_line_t, di_muon_no_ip_line::P
 
 void di_muon_no_ip_line::di_muon_no_ip_line_t::init()
 {
+  Line<di_muon_no_ip_line::di_muon_no_ip_line_t, di_muon_no_ip_line::Parameters>::init();
 #ifndef ALLEN_STANDALONE
   float start_q = 0;
   float stop_q = 110e3;

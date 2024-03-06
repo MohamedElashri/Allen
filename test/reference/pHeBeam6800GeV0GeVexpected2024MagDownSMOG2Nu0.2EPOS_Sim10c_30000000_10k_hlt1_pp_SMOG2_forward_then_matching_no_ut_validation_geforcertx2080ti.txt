@@ -111,21 +111,21 @@ Hlt1MaterialVertexSeeds_DWFS:                       0/  1000, (    0.00 +/-     
 Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DisplacedDiMuonAlignment:                       0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1BeamGas:                                        2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1GECPassThrough_LowMult5:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_BESMOG2_NoBias:                                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_BESMOG2_LowMult10:                             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_MinimumBias:                            44/  1000, ( 1320.00 +/-   194.57) kHz
-Hlt1Passthrough_PV_in_SMOG2:                       18/  1000, (  540.00 +/-   126.13) kHz
+Hlt1_SMOG2_MinimumBias:                            39/  1000, ( 1170.00 +/-   183.66) kHz
+Hlt1Passthrough_PV_in_SMOG2:                       14/  1000, (  420.00 +/-   111.46) kHz
 Hlt1_SMOG2_D2Kpi:                                   4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1_SMOG2_eta2pp:                                  4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1_SMOG2_KsToPiPi:                                5/  1000, (  150.00 +/-    66.91) kHz
-Hlt1_SMOG2_2BodyGeneric:                           17/  1000, (  510.00 +/-   122.64) kHz
-Hlt1_SMOG2_SingleTrack:                            88/  1000, ( 2640.00 +/-   268.76) kHz
+Hlt1_SMOG2_2BodyGeneric:                           20/  1000, (  600.00 +/-   132.82) kHz
+Hlt1_SMOG2_SingleTrack:                            84/  1000, ( 2520.00 +/-   263.15) kHz
 Hlt1_SMOG2_DiMuonHighMass:                          0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_SingleMuon:                              9/  1000, (  270.00 +/-    89.59) kHz
+Hlt1_SMOG2_SingleMuon:                              8/  1000, (  240.00 +/-    84.51) kHz
 Hlt1_SMOG2_L02PPi:                                  2/  1000, (   60.00 +/-    42.38) kHz
-Inclusive:                                        140/  1000, ( 4200.00 +/-   329.18) kHz
+Inclusive:                                        158/  1000, ( 4740.00 +/-   346.02) kHz
 
 
 seed_validator validation:
@@ -242,27 +242,27 @@ Hlt1MaterialVertexSeeds_DWFS:                       0           0
 Hlt1DiMuonHighMassAlignment:                        0           0
 Hlt1DiMuonJpsiMassAlignment:                        0           0
 Hlt1DisplacedDiMuonAlignment:                       0           0
-Hlt1BeamGas:                                        2           0
+Hlt1BeamGas:                                        0           0
 Hlt1GECPassThrough_LowMult5:                        0           0
 Hlt1_BESMOG2_NoBias:                                0           0
 Hlt1_BESMOG2_LowMult10:                             0           0
-Hlt1_SMOG2_MinimumBias:                            44           0
-Hlt1Passthrough_PV_in_SMOG2:                       18           0
+Hlt1_SMOG2_MinimumBias:                            39           0
+Hlt1Passthrough_PV_in_SMOG2:                       14           0
 Hlt1_SMOG2_D2Kpi:                                   4           5
 Hlt1_SMOG2_eta2pp:                                  4           4
 Hlt1_SMOG2_KsToPiPi:                                5           5
-Hlt1_SMOG2_2BodyGeneric:                           17          42
-Hlt1_SMOG2_SingleTrack:                            88         107
+Hlt1_SMOG2_2BodyGeneric:                           20          55
+Hlt1_SMOG2_SingleTrack:                            84         100
 Hlt1_SMOG2_DiMuonHighMass:                          0           0
-Hlt1_SMOG2_SingleMuon:                              9          10
+Hlt1_SMOG2_SingleMuon:                              8           9
 Hlt1_SMOG2_L02PPi:                                  2           2
 
-Total decisions:      193
-Total tracks:         169
+Total decisions:      180
+Total tracks:         185
 Total calos clusters: 0
-Total SVs:            54
-Total hits:           4798
-Total stdinfo:        1761
+Total SVs:            66
+Total hits:           5349
+Total stdinfo:        1924
 
 
 velo_validator validation:

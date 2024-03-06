@@ -14,6 +14,7 @@ INSTANTIATE_LINE(lowmass_dielectron_line::lowmass_dielectron_line_t, lowmass_die
 
 void lowmass_dielectron_line::lowmass_dielectron_line_t::init()
 {
+  Line<lowmass_dielectron_line::lowmass_dielectron_line_t, lowmass_dielectron_line::Parameters>::init();
 #ifndef ALLEN_STANDALONE
   histogram_dielectron_masses = new gaudi_monitoring::Lockable_Histogram<> {
     {this, "dielectron_mass_counts", "dielectron masses", {750, 0, 1500}}, {}};
