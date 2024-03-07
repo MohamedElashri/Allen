@@ -179,7 +179,11 @@ def hlt1_reconstruction(algorithm_name='',
         kalman_velo_only,
         long_track_particles,
         fit_secondary_vertices_name=algorithm_name +
-        'fit_dihadron_secondary_vertices')
+        'fit_dihadron_secondary_vertices',
+        track_min_ipchi2_both=-999.,
+        track_min_ipchi2_either=-999.,
+        track_min_ip_both=0.06,
+        track_min_ip_either=0.06)
 
     # Dileptons SV reconstruction should be independent of PV reconstruction to
     # avoid lifetime biases.
