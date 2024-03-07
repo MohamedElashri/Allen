@@ -98,6 +98,7 @@ namespace error_bank_filter {
     using bin_mapping_t = std::array<unsigned, LHCb::RawBank::BankType::LastType>;
 
 #ifndef ALLEN_STANDALONE
+    mutable std::unique_ptr<gaudi_histo_t<1, float>> m_error_per_source;
     mutable std::unique_ptr<gaudi_histo_t<1, float>> m_data_banks;
     mutable bin_mapping_t m_data_bin_mapping;
     mutable std::unique_ptr<gaudi_histo_t<1, float>> m_other_banks;
