@@ -50,9 +50,9 @@ rate_validator validation:
 Hlt1TwoTrackMVACharmXSec:                           3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1TrackMVA:                                     290/  1000, ( 8700.00 +/-   430.48) kHz
 Hlt1TwoTrackMVA:                                  584/  1000, (17520.00 +/-   467.60) kHz
-Hlt1D2KK:                                          20/  1000, (  600.00 +/-   132.82) kHz
-Hlt1D2KPi:                                         22/  1000, (  660.00 +/-   139.16) kHz
-Hlt1D2PiPi:                                        19/  1000, (  570.00 +/-   129.52) kHz
+Hlt1D2KK:                                          22/  1000, (  660.00 +/-   139.16) kHz
+Hlt1D2KPi:                                         24/  1000, (  720.00 +/-   145.20) kHz
+Hlt1D2PiPi:                                        20/  1000, (  600.00 +/-   132.82) kHz
 Hlt1KsToPiPi:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1KsToPiPiDoubleMuonMisID:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackKs:                                     4/  1000, (  120.00 +/-    59.88) kHz
@@ -112,14 +112,14 @@ Hlt1VeloMicroBiasVeloClosing:                       0/  1000, (    0.00 +/-     
 Hlt1VeloMicroBias:                                  0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1RICH1Alignment:                                 1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1RICH2Alignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1D2KPiAlignment:                                22/  1000, (  660.00 +/-   139.16) kHz
+Hlt1D2KPiAlignment:                                24/  1000, (  720.00 +/-   145.20) kHz
 Hlt1MaterialVertexSeedsDownstreamz:                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1MaterialVertexSeeds_DWFS:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                       37/  1000, ( 1110.00 +/-   179.08) kHz
 Hlt1DisplacedDiMuonAlignment:                       3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                        801/  1000, (24030.00 +/-   378.76) kHz
+Inclusive:                                        802/  1000, (24060.00 +/-   378.04) kHz
 
 
 seed_validator validation:
@@ -179,9 +179,9 @@ selreport_validator validation:
 Hlt1TwoTrackMVACharmXSec:                           3           7
 Hlt1TrackMVA:                                     290         441
 Hlt1TwoTrackMVA:                                  584        1995
-Hlt1D2KK:                                          20          20
-Hlt1D2KPi:                                         22          23
-Hlt1D2PiPi:                                        19          21
+Hlt1D2KK:                                          22          22
+Hlt1D2KPi:                                         24          25
+Hlt1D2PiPi:                                        20          22
 Hlt1KsToPiPi:                                       0           0
 Hlt1KsToPiPiDoubleMuonMisID:                        0           0
 Hlt1TwoTrackKs:                                     4           4
@@ -241,7 +241,7 @@ Hlt1VeloMicroBiasVeloClosing:                       0           0
 Hlt1VeloMicroBias:                                  0           0
 Hlt1RICH1Alignment:                                 1           3
 Hlt1RICH2Alignment:                                 0           0
-Hlt1D2KPiAlignment:                                22          23
+Hlt1D2KPiAlignment:                                24          25
 Hlt1MaterialVertexSeedsDownstreamz:                 0           0
 Hlt1MaterialVertexSeeds_DWFS:                       1           0
 Hlt1DiMuonHighMassAlignment:                        0           0
@@ -249,12 +249,12 @@ Hlt1DiMuonJpsiMassAlignment:                       37          42
 Hlt1DisplacedDiMuonAlignment:                       3           3
 Hlt1BeamGas:                                        0           0
 
-Total decisions:      1880
-Total tracks:         3230
+Total decisions:      1887
+Total tracks:         3235
 Total calos clusters: 201
-Total SVs:            2484
-Total hits:           69553
-Total stdinfo:        38460
+Total SVs:            2487
+Total hits:           69639
+Total stdinfo:        38519
 
 
 velo_validator validation:

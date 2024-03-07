@@ -50,8 +50,8 @@ rate_validator validation:
 Hlt1TwoTrackMVACharmXSec:                           3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1TrackMVA:                                     263/  1000, ( 7890.00 +/-   417.67) kHz
 Hlt1TwoTrackMVA:                                  593/  1000, (17790.00 +/-   466.06) kHz
-Hlt1D2KK:                                          29/  1000, (  870.00 +/-   159.20) kHz
-Hlt1D2KPi:                                         37/  1000, ( 1110.00 +/-   179.08) kHz
+Hlt1D2KK:                                          30/  1000, (  900.00 +/-   161.83) kHz
+Hlt1D2KPi:                                         39/  1000, ( 1170.00 +/-   183.66) kHz
 Hlt1D2PiPi:                                        27/  1000, (  810.00 +/-   153.77) kHz
 Hlt1KsToPiPi:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1KsToPiPiDoubleMuonMisID:                        0/  1000, (    0.00 +/-     0.00) kHz
@@ -112,14 +112,14 @@ Hlt1VeloMicroBiasVeloClosing:                       0/  1000, (    0.00 +/-     
 Hlt1VeloMicroBias:                                  0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1RICH1Alignment:                                 2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1RICH2Alignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1D2KPiAlignment:                                37/  1000, ( 1110.00 +/-   179.08) kHz
+Hlt1D2KPiAlignment:                                39/  1000, ( 1170.00 +/-   183.66) kHz
 Hlt1MaterialVertexSeedsDownstreamz:                 1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1MaterialVertexSeeds_DWFS:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1DiMuonHighMassAlignment:                        1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1DiMuonJpsiMassAlignment:                       30/  1000, (  900.00 +/-   161.83) kHz
 Hlt1DisplacedDiMuonAlignment:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                        767/  1000, (23010.00 +/-   401.05) kHz
+Inclusive:                                        768/  1000, (23040.00 +/-   400.45) kHz
 
 
 seed_validator validation:
@@ -178,8 +178,8 @@ selreport_validator validation:
 Hlt1TwoTrackMVACharmXSec:                           3           3
 Hlt1TrackMVA:                                     263         399
 Hlt1TwoTrackMVA:                                  593        2133
-Hlt1D2KK:                                          29          30
-Hlt1D2KPi:                                         37          38
+Hlt1D2KK:                                          30          31
+Hlt1D2KPi:                                         39          40
 Hlt1D2PiPi:                                        27          27
 Hlt1KsToPiPi:                                       0           0
 Hlt1KsToPiPiDoubleMuonMisID:                        0           0
@@ -240,7 +240,7 @@ Hlt1VeloMicroBiasVeloClosing:                       0           0
 Hlt1VeloMicroBias:                                  0           0
 Hlt1RICH1Alignment:                                 2           3
 Hlt1RICH2Alignment:                                 0           0
-Hlt1D2KPiAlignment:                                37          38
+Hlt1D2KPiAlignment:                                39          40
 Hlt1MaterialVertexSeedsDownstreamz:                 1           0
 Hlt1MaterialVertexSeeds_DWFS:                       1           0
 Hlt1DiMuonHighMassAlignment:                        1           1
@@ -248,12 +248,12 @@ Hlt1DiMuonJpsiMassAlignment:                       30          44
 Hlt1DisplacedDiMuonAlignment:                       1           1
 Hlt1BeamGas:                                        0           0
 
-Total decisions:      1820
-Total tracks:         3248
+Total decisions:      1825
+Total tracks:         3251
 Total calos clusters: 33
-Total SVs:            2598
-Total hits:           81525
-Total stdinfo:        38328
+Total SVs:            2600
+Total hits:           81597
+Total stdinfo:        38365
 
 
 velo_validator validation:

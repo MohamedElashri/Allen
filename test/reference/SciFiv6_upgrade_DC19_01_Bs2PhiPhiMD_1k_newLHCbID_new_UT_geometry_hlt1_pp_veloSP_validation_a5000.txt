@@ -50,7 +50,7 @@ rate_validator validation:
 Hlt1TwoTrackMVACharmXSec:                           2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1TrackMVA:                                     242/  1000, ( 7260.00 +/-   406.32) kHz
 Hlt1TwoTrackMVA:                                  538/  1000, (16140.00 +/-   472.97) kHz
-Hlt1D2KK:                                          15/  1000, (  450.00 +/-   115.31) kHz
+Hlt1D2KK:                                          16/  1000, (  480.00 +/-   119.04) kHz
 Hlt1D2KPi:                                         23/  1000, (  690.00 +/-   142.21) kHz
 Hlt1D2PiPi:                                        19/  1000, (  570.00 +/-   129.52) kHz
 Hlt1KsToPiPi:                                       0/  1000, (    0.00 +/-     0.00) kHz
@@ -127,7 +127,7 @@ selreport_validator validation:
 Hlt1TwoTrackMVACharmXSec:                           2           6
 Hlt1TrackMVA:                                     242         357
 Hlt1TwoTrackMVA:                                  538        1716
-Hlt1D2KK:                                          15          15
+Hlt1D2KK:                                          16          16
 Hlt1D2KPi:                                         23          25
 Hlt1D2PiPi:                                        19          21
 Hlt1KsToPiPi:                                       0           0
@@ -197,12 +197,12 @@ Hlt1DiMuonJpsiMassAlignment:                       31          36
 Hlt1DisplacedDiMuonAlignment:                       0           0
 Hlt1BeamGas:                                        0           0
 
-Total decisions:      1450
-Total tracks:         2420
+Total decisions:      1451
+Total tracks:         2422
 Total calos clusters: 201
-Total SVs:            2052
-Total hits:           62134
-Total stdinfo:        29822
+Total SVs:            2053
+Total hits:           62178
+Total stdinfo:        29843
 
 
 veloUT_validator validation:
