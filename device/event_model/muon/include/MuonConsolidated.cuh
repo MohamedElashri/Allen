@@ -42,7 +42,11 @@ namespace Allen {
           __host__ __device__ float y() const { return m_base_pointer[2 * m_total_number_of_hits + m_index]; }
           __host__ __device__ float dy() const { return m_base_pointer[3 * m_total_number_of_hits + m_index]; }
           __host__ __device__ float z() const { return m_base_pointer[4 * m_total_number_of_hits + m_index]; }
-          __host__ __device__ float time() const { return m_base_pointer[5 * m_total_number_of_hits + m_index]; }
+          // We use a float basepointer and reinterpret the bits as the different types that we need to fulfill the API.
+          __host__ __device__ unsigned time() const
+          {
+            return reinterpret_cast<const unsigned*>(m_base_pointer)[5 * m_total_number_of_hits + m_index];
+          }
           __host__ __device__ float tile() const
           {
             return reinterpret_cast<const int*>(m_base_pointer)[6 * m_total_number_of_hits + m_index];
