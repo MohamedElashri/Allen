@@ -40,7 +40,6 @@ Clones               :  0.000 (     0/   746)
 
 
 rate_validator validation:
-Hlt1TwoTrackMVACharmXSec:                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMVA:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackMVA:                                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KK:                                           0/  1000, (    0.00 +/-     0.00) kHz
@@ -56,11 +55,9 @@ Hlt1XiOmegaLLL:                                     0/  1000, (    0.00 +/-     
 Hlt1OneMuonTrackLine:                               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:                         0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowPtMuon:                                      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonHighMass:                                 0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1DiMuonLowMass:                                  0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DiMuonDisplaced:                                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                                     0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowPtDiMuon:                                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMuonMVA:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonNoIP:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonNoIP_ss:                                  0/  1000, (    0.00 +/-     0.00) kHz
@@ -68,12 +65,9 @@ Hlt1DiMuonDrellYan_VLowMass:                        0/  1000, (    0.00 +/-     
 Hlt1DiMuonDrellYan_VLowMass_SS:                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_SS:                              0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1DisplacedDiMuon:                                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackElectronMVA:                               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtElectron:                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DisplacedDielectron:                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1DisplacedLeptons:                               0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1SingleHighEt:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiPhotonHighMass:                               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Pi02GammaGamma:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronHighMass_SameSign:                    0/  1000, (    0.00 +/-     0.00) kHz
@@ -171,7 +165,6 @@ for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% 
 
 selreport_validator validation:
                                                Events  Candidates
-Hlt1TwoTrackMVACharmXSec:                           0           0
 Hlt1TrackMVA:                                       0           0
 Hlt1TwoTrackMVA:                                    0           0
 Hlt1D2KK:                                           0           0
@@ -187,11 +180,9 @@ Hlt1XiOmegaLLL:                                     0           0
 Hlt1OneMuonTrackLine:                               0           0
 Hlt1SingleHighPtMuon:                               0           0
 Hlt1SingleHighPtMuonNoMuID:                         0           0
-Hlt1LowPtMuon:                                      0           0
 Hlt1DiMuonHighMass:                                 0           0
-Hlt1DiMuonLowMass:                                  0           0
+Hlt1DiMuonDisplaced:                                0           0
 Hlt1DiMuonSoft:                                     0           0
-Hlt1LowPtDiMuon:                                    0           0
 Hlt1TrackMuonMVA:                                   0           0
 Hlt1DiMuonNoIP:                                     0           0
 Hlt1DiMuonNoIP_ss:                                  0           0
@@ -199,12 +190,9 @@ Hlt1DiMuonDrellYan_VLowMass:                        0           0
 Hlt1DiMuonDrellYan_VLowMass_SS:                     0           0
 Hlt1DiMuonDrellYan:                                 0           0
 Hlt1DiMuonDrellYan_SS:                              0           0
-Hlt1DisplacedDiMuon:                                0           0
 Hlt1TrackElectronMVA:                               0           0
 Hlt1SingleHighPtElectron:                           0           0
 Hlt1DisplacedDielectron:                            0           0
-Hlt1DisplacedLeptons:                               0           0
-Hlt1SingleHighEt:                                   0           0
 Hlt1DiPhotonHighMass:                               0           0
 Hlt1Pi02GammaGamma:                                 0           0
 Hlt1DiElectronHighMass_SameSign:                    0           0

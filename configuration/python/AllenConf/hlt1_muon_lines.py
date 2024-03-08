@@ -53,7 +53,8 @@ def make_single_high_pt_muon_line(long_tracks,
                                   pre_scaler_hash_string=None,
                                   post_scaler_hash_string=None,
                                   enable_tupling=False,
-                                  pre_scaler=1.):
+                                  pre_scaler=1.,
+                                  singleMinPt=6000):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -67,7 +68,8 @@ def make_single_high_pt_muon_line(long_tracks,
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
-        enable_tupling=enable_tupling)
+        enable_tupling=enable_tupling,
+        singleMinPt=singleMinPt)
 
 
 @configurable
@@ -76,7 +78,8 @@ def make_single_high_pt_muon_no_muid_line(long_tracks,
                                           name="Hlt1SingleHighPtMuonNoMuID",
                                           pre_scaler_hash_string=None,
                                           post_scaler_hash_string=None,
-                                          pre_scaler=0.05):
+                                          pre_scaler=0.05,
+                                          singleMinPt=8000):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -89,7 +92,8 @@ def make_single_high_pt_muon_no_muid_line(long_tracks,
         host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
-            "dev_multi_event_basic_particles"])
+            "dev_multi_event_basic_particles"],
+        singleMinPt=singleMinPt)
 
 
 @configurable
@@ -129,7 +133,8 @@ def make_di_muon_mass_line(long_tracks,
                            maxVertexChi2=25.,
                            minIPChi2=0.,
                            name="Hlt1DiMuonHighMass",
-                           pre_scaler=1.):
+                           pre_scaler=1.,
+                           enable_tupling=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -148,7 +153,8 @@ def make_di_muon_mass_line(long_tracks,
         minMass=minMass,
         maxDoca=maxDoca,
         maxVertexChi2=maxVertexChi2,
-        minIPChi2=minIPChi2)
+        minIPChi2=minIPChi2,
+        enable_tupling=enable_tupling)
 
 
 @configurable
@@ -200,7 +206,8 @@ def make_track_muon_mva_line(long_tracks,
                              pre_scaler_hash_string=None,
                              post_scaler_hash_string=None,
                              enable_tupling=False,
-                             pre_scaler=1.):
+                             pre_scaler=1.,
+                             alpha=0.):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -214,7 +221,8 @@ def make_track_muon_mva_line(long_tracks,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         enable_tupling=enable_tupling,
-        pre_scaler=pre_scaler)
+        pre_scaler=pre_scaler,
+        alpha=alpha)
 
 
 @configurable

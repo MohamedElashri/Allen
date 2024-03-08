@@ -42,6 +42,13 @@ namespace displaced_dielectron_line {
     PROPERTY(MaxVtxChi2_t, "MaxVtxChi2", "Max vertex chi2", float) maxVtxChi2;
     PROPERTY(MinZ_t, "MinZ", "Min z dielectron coordinate", float) minZ;
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dielectron combinations", bool) OppositeSign;
+
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
+
+    DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
   };
 
   struct displaced_dielectron_line_t : public SelectionAlgorithm,
@@ -49,10 +56,18 @@ namespace displaced_dielectron_line {
                                        CompositeParticleLine<displaced_dielectron_line_t, Parameters> {
     __device__ static bool select(
       const Parameters&,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float>);
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
 
-    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float>
+    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
+
+    __device__ static void fill_tuples(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+      unsigned index,
+      bool sel);
+
+    using monitoring_types = std::tuple<pt_t, ipchi2_t, evtNo_t, runNo_t>;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -66,5 +81,6 @@ namespace displaced_dielectron_line {
     Property<MaxVtxChi2_t> m_MaxVtxChi2 {this, 7.4f};
     Property<MinZ_t> m_MinZ {this, -341.f * Gaudi::Units::mm};
     Property<OppositeSign_t> m_opposite_sign {this, true};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
   };
 } // namespace displaced_dielectron_line

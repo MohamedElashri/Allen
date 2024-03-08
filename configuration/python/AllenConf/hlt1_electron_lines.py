@@ -24,7 +24,8 @@ def make_track_electron_mva_line(long_tracks,
                                  name="Hlt1TrackElectronMVA",
                                  pre_scaler_hash_string=None,
                                  post_scaler_hash_string=None,
-                                 enable_tupling=False):
+                                 enable_tupling=False,
+                                 alpha=0.):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -39,7 +40,8 @@ def make_track_electron_mva_line(long_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
         dev_track_isElectron_t=calo["dev_track_isElectron"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
-        enable_tupling=enable_tupling)
+        enable_tupling=enable_tupling,
+        alpha=alpha)
 
 
 def make_single_high_pt_electron_line(long_tracks,
@@ -48,7 +50,8 @@ def make_single_high_pt_electron_line(long_tracks,
                                       name="Hlt1SingleHighPtElectron",
                                       pre_scaler_hash_string=None,
                                       post_scaler_hash_string=None,
-                                      enable_tupling=False):
+                                      enable_tupling=False,
+                                      singleMinPt=6000):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -63,7 +66,8 @@ def make_single_high_pt_electron_line(long_tracks,
             "dev_multi_event_basic_particles"],
         dev_track_isElectron_t=calo["dev_track_isElectron"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
-        enable_tupling=enable_tupling)
+        enable_tupling=enable_tupling,
+        singleMinPt=singleMinPt)
 
 
 def make_displaced_dielectron_line(long_tracks,
@@ -71,7 +75,10 @@ def make_displaced_dielectron_line(long_tracks,
                                    calo,
                                    name="Hlt1DisplacedDiElectron",
                                    pre_scaler_hash_string=None,
-                                   post_scaler_hash_string=None):
+                                   post_scaler_hash_string=None,
+                                   MinPT=500,
+                                   MinIPChi2=7.4,
+                                   enable_tupling=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -85,7 +92,10 @@ def make_displaced_dielectron_line(long_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
         dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
         dev_track_isElectron_t=calo["dev_track_isElectron"],
-        dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"])
+        dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
+        MinPT=MinPT,
+        MinIPChi2=MinIPChi2,
+        enable_tupling=enable_tupling)
 
 
 def make_displaced_leptons_line(long_tracks,

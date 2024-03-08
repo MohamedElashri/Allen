@@ -82,6 +82,8 @@ namespace di_muon_drell_yan_line {
     output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
+    using monitoring_types = std::tuple<transverse_momentum_t, mass_t, evtNo_t, runNo_t>;
+
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
     Property<post_scaler_t> m_post_scaler {this, 1.f};
@@ -111,7 +113,5 @@ namespace di_muon_drell_yan_line {
     gaudi_monitoring::Lockable_Histogram<>* histogram_Z_mass;
     gaudi_monitoring::Lockable_Histogram<>* histogram_Z_mass_ss;
 #endif
-
-    using monitoring_types = std::tuple<transverse_momentum_t, mass_t, evtNo_t, runNo_t>;
   };
 } // namespace di_muon_drell_yan_line

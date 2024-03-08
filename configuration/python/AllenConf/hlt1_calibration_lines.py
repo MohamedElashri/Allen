@@ -52,29 +52,6 @@ def make_pi02gammagamma_line(calo,
         enable_tupling=False)
 
 
-def make_d2kpi_line(long_tracks,
-                    secondary_vertices,
-                    name="Hlt1D2KPi",
-                    enable_monitoring=True,
-                    pre_scaler_hash_string=None,
-                    post_scaler_hash_string=None,
-                    enable_tupling=False):
-
-    number_of_events = initialize_number_of_events()
-
-    return make_algorithm(
-        d2kpi_line_t,
-        name=name,
-        enable_monitoring=is_allen_standalone() and enable_monitoring,
-        enable_tupling=enable_tupling,
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
-        dev_particle_container_t=secondary_vertices[
-            "dev_multi_event_composites"],
-        pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
-        post_scaler_hash_string=post_scaler_hash_string or name + '_post')
-
-
 @configurable
 def make_passthrough_line(name="Hlt1Passthrough",
                           pre_scaler=0.0001,
