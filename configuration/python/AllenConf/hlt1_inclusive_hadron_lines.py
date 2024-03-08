@@ -46,7 +46,8 @@ def make_track_mva_line(long_tracks,
                         pre_scaler_hash_string=None,
                         post_scaler_hash_string=None,
                         name='Hlt1TrackMVA_{hash}',
-                        enable_tupling=False):
+                        enable_tupling=False,
+                        alpha=296):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -59,7 +60,8 @@ def make_track_mva_line(long_tracks,
             "dev_multi_event_basic_particles"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
-        enable_tupling=enable_tupling)
+        enable_tupling=enable_tupling,
+        alpha=alpha)
 
 
 def make_two_track_mva_line(long_tracks,
@@ -67,7 +69,8 @@ def make_two_track_mva_line(long_tracks,
                             pre_scaler_hash_string=None,
                             post_scaler_hash_string=None,
                             name='Hlt1TwoTrackMVA_{hash}',
-                            enable_tupling=False):
+                            enable_tupling=False,
+                            minMVA=0.9569):
     number_of_events = initialize_number_of_events()
 
     two_track_mva_evaluator = make_algorithm(
@@ -88,7 +91,8 @@ def make_two_track_mva_line(long_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         dev_two_track_mva_evaluation_t=two_track_mva_evaluator.
         dev_two_track_mva_evaluation_t,
-        enable_tupling=enable_tupling)
+        enable_tupling=enable_tupling,
+        minMVA=minMVA)
 
 
 def make_two_track_line_ks(long_tracks,
@@ -96,7 +100,13 @@ def make_two_track_line_ks(long_tracks,
                            pre_scaler_hash_string=None,
                            post_scaler_hash_string=None,
                            name='Hlt1TwoTrackKs_{hash}',
-                           enable_tupling=False):
+                           enable_tupling=False,
+                           minTrackPt_piKs=470,
+                           minTrackP_piKs=5000,
+                           minTrackIPChi2_Ks=50,
+                           maxEta_Ks=4.2,
+                           min_combip=0.72,
+                           minComboPt_Ks=100):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -108,6 +118,12 @@ def make_two_track_line_ks(long_tracks,
             "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        minTrackPt_piKs=minTrackPt_piKs,
+        minTrackP_piKs=minTrackP_piKs,
+        minTrackIPChi2_Ks=minTrackIPChi2_Ks,
+        maxEta_Ks=maxEta_Ks,
+        min_combip=min_combip,
+        minComboPt_Ks=minComboPt_Ks,
         enable_tupling=enable_tupling)
 
 
@@ -139,7 +155,8 @@ def make_lambda_ll_detached_track_line(sv_track_candidates,
                                        name,
                                        pre_scaler_hash_string=None,
                                        post_scaler_hash_string=None,
-                                       enable_monitoring=False):
+                                       enable_monitoring=False,
+                                       enable_tupling=False):
 
     number_of_events = initialize_number_of_events()
 
@@ -153,14 +170,16 @@ def make_lambda_ll_detached_track_line(sv_track_candidates,
             "dev_sv_track_combination"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
-        enable_monitoring=enable_monitoring)
+        enable_monitoring=enable_monitoring,
+        enable_tupling=enable_tupling)
 
 
 def make_xi_omega_lll_line(sv_track_candidates,
                            name,
                            pre_scaler_hash_string=None,
                            post_scaler_hash_string=None,
-                           enable_monitoring=False):
+                           enable_monitoring=False,
+                           enable_tupling=False):
 
     number_of_events = initialize_number_of_events()
 
@@ -174,4 +193,5 @@ def make_xi_omega_lll_line(sv_track_candidates,
             "dev_sv_track_combination"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
-        enable_monitoring=enable_monitoring)
+        enable_monitoring=enable_monitoring,
+        enable_tupling=enable_tupling)

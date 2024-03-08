@@ -11,7 +11,6 @@
 from AllenConf.utils import make_gec, line_maker, make_checkEcalEnergy, make_lowmult, sd_error_filter
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_calibration_lines import (
-    make_d2kpi_line,
     make_passthrough_line,
     make_rich_1_line,
     make_rich_2_line,
@@ -31,8 +30,9 @@ from AllenConf.hlt1_heavy_ions_lines import (
     make_photon_lowmult_line,
     make_diphoton_lowmult_line,
 )
+
 from AllenConf.hlt1_inclusive_hadron_lines import make_kstopipi_line, make_lambda2ppi_line
-from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line
+from AllenConf.hlt1_charm_lines import make_d2kk_line, make_d2pipi_line, make_d2kpi_line
 from AllenConf.hlt1_muon_lines import make_one_muon_track_line, make_di_muon_mass_line
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo

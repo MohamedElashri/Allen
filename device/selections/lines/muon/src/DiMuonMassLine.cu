@@ -89,3 +89,16 @@ void di_muon_mass_line::di_muon_mass_line_t::output_monitor(
                 property<histogram_Jpsi_mass_max_t>()});
 #endif
 }
+
+__device__ void di_muon_mass_line::di_muon_mass_line_t::fill_tuples(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+  unsigned index,
+  bool sel)
+{
+  if (sel) {
+    const auto particle = std::get<0>(input);
+    parameters.ipchi2[index] = particle.minipchi2();
+    parameters.pt[index] = particle.minpt();
+  }
+}

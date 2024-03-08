@@ -12,7 +12,7 @@
 
 INSTANTIATE_LINE(displaced_dielectron_line::displaced_dielectron_line_t, displaced_dielectron_line::Parameters)
 
-__device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float>
+__device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
 displaced_dielectron_line::displaced_dielectron_line_t::get_input(
   const Parameters& parameters,
   const unsigned event_number,
@@ -22,23 +22,21 @@ displaced_dielectron_line::displaced_dielectron_line_t::get_input(
   const auto vertex = event_vertices.particle(i);
   const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
   const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
-  const bool is_dielectron = vertex.is_dielectron();
-
-  const float brem_corrected_minpt = min(
+  const float brem_corrected_minpt = std::min(
     parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + trk1->get_index()],
     parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + trk2->get_index()]);
 
-  return std::forward_as_tuple(vertex, is_dielectron, brem_corrected_minpt);
+  return std::forward_as_tuple(vertex, brem_corrected_minpt);
 }
 
 __device__ bool displaced_dielectron_line::displaced_dielectron_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float> input)
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
-  const auto& [vertex, is_dielectron, brem_corrected_minpt] = input;
+  const auto& [vertex, brem_corrected_minpt] = input;
 
   // Electron ID
-  if (!is_dielectron) {
+  if (!vertex.is_dielectron()) {
     return false;
   }
   const bool opposite_sign = vertex.charge() == 0;
@@ -50,4 +48,17 @@ __device__ bool displaced_dielectron_line::displaced_dielectron_line_t::select(
                         vertex.pv().position.z >= parameters.minZ;
 
   return decision;
+}
+
+__device__ void displaced_dielectron_line::displaced_dielectron_line_t::fill_tuples(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+  unsigned index,
+  bool sel)
+{
+  if (sel) {
+    const auto particle = std::get<0>(input);
+    parameters.ipchi2[index] = particle.minipchi2();
+    parameters.pt[index] = std::get<1>(input);
+  }
 }

@@ -8,9 +8,9 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenCore.algorithms import (d2kk_line_t, d2pipi_line_t, two_ks_line_t,
-                                  two_track_mva_charm_xsec_line_t,
-                                  two_track_mva_evaluator_t)
+from AllenCore.algorithms import (
+    d2kk_line_t, d2pipi_line_t, d2kpi_line_t, two_ks_line_t,
+    two_track_mva_charm_xsec_line_t, two_track_mva_evaluator_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
 from AllenCore.configuration_options import is_allen_standalone
@@ -22,7 +22,9 @@ def make_d2kk_line(long_tracks,
                    enable_monitoring=True,
                    pre_scaler_hash_string=None,
                    post_scaler_hash_string=None,
-                   enable_tupling=False):
+                   enable_tupling=False,
+                   charm_track_ip=0.06,
+                   charm_track_pt=800):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -35,7 +37,9 @@ def make_d2kk_line(long_tracks,
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
-        post_scaler_hash_string=post_scaler_hash_string or name + '_post')
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post',
+        minTrackPt=charm_track_pt,
+        minTrackIP=charm_track_ip)
 
 
 def make_d2pipi_line(long_tracks,
@@ -44,7 +48,9 @@ def make_d2pipi_line(long_tracks,
                      enable_monitoring=True,
                      pre_scaler_hash_string=None,
                      post_scaler_hash_string=None,
-                     enable_tupling=False):
+                     enable_tupling=False,
+                     charm_track_ip=0.06,
+                     charm_track_pt=800):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -57,7 +63,36 @@ def make_d2pipi_line(long_tracks,
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
-        post_scaler_hash_string=post_scaler_hash_string or name + '_post')
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post',
+        minTrackPt=charm_track_pt,
+        minTrackIP=charm_track_ip)
+
+
+def make_d2kpi_line(long_tracks,
+                    secondary_vertices,
+                    name="Hlt1D2KPi",
+                    enable_monitoring=True,
+                    pre_scaler_hash_string=None,
+                    post_scaler_hash_string=None,
+                    enable_tupling=False,
+                    charm_track_ip=0.06,
+                    charm_track_pt=800):
+
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        d2kpi_line_t,
+        name=name,
+        enable_monitoring=is_allen_standalone() and enable_monitoring,
+        enable_tupling=enable_tupling,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
+        dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
+        pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post',
+        minTrackPt=charm_track_pt,
+        minTrackIP=charm_track_ip)
 
 
 def make_two_ks_line(long_tracks,

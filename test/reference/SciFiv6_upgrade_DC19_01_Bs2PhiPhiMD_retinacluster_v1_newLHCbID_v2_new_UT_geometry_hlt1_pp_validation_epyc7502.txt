@@ -47,7 +47,6 @@ Clones               :  0.000 (     0/  5603)
 
 
 rate_validator validation:
-Hlt1TwoTrackMVACharmXSec:                           2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1TrackMVA:                                     239/  1000, ( 7170.00 +/-   404.59) kHz
 Hlt1TwoTrackMVA:                                  537/  1000, (16110.00 +/-   473.04) kHz
 Hlt1D2KK:                                          17/  1000, (  510.00 +/-   122.64) kHz
@@ -63,11 +62,9 @@ Hlt1XiOmegaLLL:                                     1/  1000, (   30.00 +/-    2
 Hlt1OneMuonTrackLine:                               0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                               2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1SingleHighPtMuonNoMuID:                         2/  1000, (   60.00 +/-    42.38) kHz
-Hlt1LowPtMuon:                                    165/  1000, ( 4950.00 +/-   352.13) kHz
 Hlt1DiMuonHighMass:                                16/  1000, (  480.00 +/-   119.04) kHz
-Hlt1DiMuonLowMass:                                 15/  1000, (  450.00 +/-   115.31) kHz
+Hlt1DiMuonDisplaced:                               12/  1000, (  360.00 +/-   103.30) kHz
 Hlt1DiMuonSoft:                                     0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowPtDiMuon:                                   25/  1000, (  750.00 +/-   148.11) kHz
 Hlt1TrackMuonMVA:                                  13/  1000, (  390.00 +/-   107.46) kHz
 Hlt1DiMuonNoIP:                                    46/  1000, ( 1380.00 +/-   198.73) kHz
 Hlt1DiMuonNoIP_ss:                                  1/  1000, (   30.00 +/-    29.98) kHz
@@ -75,12 +72,9 @@ Hlt1DiMuonDrellYan_VLowMass:                        0/  1000, (    0.00 +/-     
 Hlt1DiMuonDrellYan_VLowMass_SS:                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_SS:                              0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1DisplacedDiMuon:                               13/  1000, (  390.00 +/-   107.46) kHz
 Hlt1TrackElectronMVA:                              48/  1000, ( 1440.00 +/-   202.80) kHz
 Hlt1SingleHighPtElectron:                          17/  1000, (  510.00 +/-   122.64) kHz
-Hlt1DisplacedDielectron:                            7/  1000, (  210.00 +/-    79.09) kHz
-Hlt1DisplacedLeptons:                              57/  1000, ( 1710.00 +/-   219.95) kHz
-Hlt1SingleHighEt:                                   0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DisplacedDielectron:                           10/  1000, (  300.00 +/-    94.39) kHz
 Hlt1DiPhotonHighMass:                              78/  1000, ( 2340.00 +/-   254.41) kHz
 Hlt1Pi02GammaGamma:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronHighMass_SameSign:                    2/  1000, (   60.00 +/-    42.38) kHz
@@ -119,12 +113,11 @@ Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     
 Hlt1DiMuonJpsiMassAlignment:                       30/  1000, (  900.00 +/-   161.83) kHz
 Hlt1DisplacedDiMuonAlignment:                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                        708/  1000, (21240.00 +/-   431.35) kHz
+Inclusive:                                        638/  1000, (19140.00 +/-   455.92) kHz
 
 
 selreport_validator validation:
                                                Events  Candidates
-Hlt1TwoTrackMVACharmXSec:                           2           6
 Hlt1TrackMVA:                                     239         361
 Hlt1TwoTrackMVA:                                  537        1734
 Hlt1D2KK:                                          17          17
@@ -140,11 +133,9 @@ Hlt1XiOmegaLLL:                                     1           1
 Hlt1OneMuonTrackLine:                               0           0
 Hlt1SingleHighPtMuon:                               2           2
 Hlt1SingleHighPtMuonNoMuID:                         2           2
-Hlt1LowPtMuon:                                    165         191
 Hlt1DiMuonHighMass:                                16          17
-Hlt1DiMuonLowMass:                                 15          17
+Hlt1DiMuonDisplaced:                               12          13
 Hlt1DiMuonSoft:                                     0           0
-Hlt1LowPtDiMuon:                                   25          30
 Hlt1TrackMuonMVA:                                  13          13
 Hlt1DiMuonNoIP:                                    46          56
 Hlt1DiMuonNoIP_ss:                                  1           1
@@ -152,12 +143,9 @@ Hlt1DiMuonDrellYan_VLowMass:                        0           0
 Hlt1DiMuonDrellYan_VLowMass_SS:                     0           0
 Hlt1DiMuonDrellYan:                                 0           0
 Hlt1DiMuonDrellYan_SS:                              0           0
-Hlt1DisplacedDiMuon:                               13          16
 Hlt1TrackElectronMVA:                              48          49
 Hlt1SingleHighPtElectron:                          17          17
-Hlt1DisplacedDielectron:                            7           8
-Hlt1DisplacedLeptons:                              57           0
-Hlt1SingleHighEt:                                   0           0
+Hlt1DisplacedDielectron:                           10          12
 Hlt1DiPhotonHighMass:                              78         135
 Hlt1Pi02GammaGamma:                                 0           0
 Hlt1DiElectronHighMass_SameSign:                    2           3
@@ -197,12 +185,12 @@ Hlt1DiMuonJpsiMassAlignment:                       30          35
 Hlt1DisplacedDiMuonAlignment:                       0           0
 Hlt1BeamGas:                                        0           0
 
-Total decisions:      1438
-Total tracks:         2415
+Total decisions:      1176
+Total tracks:         2185
 Total calos clusters: 201
-Total SVs:            2071
-Total hits:           62047
-Total stdinfo:        29846
+Total SVs:            2031
+Total hits:           56264
+Total stdinfo:        27584
 
 
 veloUT_validator validation:

@@ -43,6 +43,12 @@ namespace di_muon_mass_line {
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
+
+    DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
 
     DEVICE_OUTPUT(dev_histogram_Jpsi_mass_t, unsigned) dev_histogram_Jpsi_mass;
     PROPERTY(histogram_Jpsi_mass_min_t, "histogram_Jpsi_mass_min", "histogram_Jpsi_mass_min description", float)
@@ -72,6 +78,14 @@ namespace di_muon_mass_line {
     output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
+    __device__ static void fill_tuples(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+      unsigned index,
+      bool sel);
+
+    using monitoring_types = std::tuple<pt_t, ipchi2_t, evtNo_t, runNo_t>;
+
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
     Property<post_scaler_t> m_post_scaler {this, 1.f};
@@ -90,6 +104,7 @@ namespace di_muon_mass_line {
     Property<histogram_Jpsi_mass_max_t> m_histogramJpsiMassMax {this, 3196.f};
     Property<histogram_Jpsi_mass_nbins_t> m_histogramJpsiMassNBins {this, 100u};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
 
 #ifndef ALLEN_STANDALONE
     gaudi_monitoring::Lockable_Histogram<>* histogram_Jpsi_mass;
