@@ -101,7 +101,10 @@ StatusCode ProvideConstants::initialize()
     muon_catboost_model_reader.leaf_offsets(),
     muon_catboost_model_reader.split_border(),
     muon_catboost_model_reader.split_feature());
-  TwoTrackMVAModelReader two_track_mva_model_reader {geometry_path + "/allen_two_track_mva_model_June22.json"};
+
+  LipschitzNNModelReader two_track_mva_model_reader {geometry_path + "/allen_two_track_mva_model_June22.json"};
+  LipschitzNNModelReader electronid_mva_model_reader {geometry_path + "/CaloPID/electron_mva_AllenFeb2024.json"};
+
   m_constants.initialize_two_track_mva_model_constants(
     two_track_mva_model_reader.weights(),
     two_track_mva_model_reader.biases(),
@@ -110,6 +113,17 @@ StatusCode ProvideConstants::initialize()
     two_track_mva_model_reader.monotone_constraints(),
     two_track_mva_model_reader.nominal_cut(),
     two_track_mva_model_reader.lambda());
+
+  m_constants.initialize_electronid_mva_model_constants(
+    electronid_mva_model_reader.weights(),
+    electronid_mva_model_reader.biases(),
+    electronid_mva_model_reader.layer_sizes(),
+    electronid_mva_model_reader.n_layers(),
+    electronid_mva_model_reader.monotone_constraints(),
+    electronid_mva_model_reader.min_rescales(),
+    electronid_mva_model_reader.max_rescales(),
+    electronid_mva_model_reader.nominal_cut(),
+    electronid_mva_model_reader.lambda());
 
   // Allen Consumers
   register_consumers(m_updater.get(), m_constants, m_updater->bankTypes());

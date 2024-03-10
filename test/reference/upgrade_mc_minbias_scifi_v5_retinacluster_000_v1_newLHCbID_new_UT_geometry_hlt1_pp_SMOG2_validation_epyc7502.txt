@@ -78,7 +78,7 @@ Hlt1DiPhotonHighMass:                               7/  1000, (  210.00 +/-    7
 Hlt1Pi02GammaGamma:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronHighMass_SameSign:                    1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1DiElectronHighMass:                             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice1_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1LowMassDiElectron_massSlice1_prompt:            1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_SS_massSlice1_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice2_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice2_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
@@ -125,7 +125,7 @@ Hlt1_SMOG2_SingleTrack:                             0/  1000, (    0.00 +/-     
 Hlt1_SMOG2_DiMuonHighMass:                          0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_SingleMuon:                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_L02PPi:                                  0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                         78/  1000, ( 2340.00 +/-   254.41) kHz
+Inclusive:                                         79/  1000, ( 2370.00 +/-   255.90) kHz
 
 
 selreport_validator validation:
@@ -162,7 +162,7 @@ Hlt1DiPhotonHighMass:                               7           7
 Hlt1Pi02GammaGamma:                                 0           0
 Hlt1DiElectronHighMass_SameSign:                    1           1
 Hlt1DiElectronHighMass:                             0           0
-Hlt1LowMassDiElectron_massSlice1_prompt:            0           0
+Hlt1LowMassDiElectron_massSlice1_prompt:            1           1
 Hlt1LowMassDiElectron_SS_massSlice1_prompt:         0           0
 Hlt1LowMassDiElectron_massSlice2_prompt:            0           0
 Hlt1LowMassDiElectron_SS_massSlice2_prompt:         0           0
@@ -210,12 +210,12 @@ Hlt1_SMOG2_DiMuonHighMass:                          0           0
 Hlt1_SMOG2_SingleMuon:                              0           0
 Hlt1_SMOG2_L02PPi:                                  0           0
 
-Total decisions:      108
-Total tracks:         161
+Total decisions:      109
+Total tracks:         163
 Total calos clusters: 14
-Total SVs:            96
-Total hits:           4020
-Total stdinfo:        1836
+Total SVs:            97
+Total hits:           4072
+Total stdinfo:        1857
 
 
 veloUT_validator validation:

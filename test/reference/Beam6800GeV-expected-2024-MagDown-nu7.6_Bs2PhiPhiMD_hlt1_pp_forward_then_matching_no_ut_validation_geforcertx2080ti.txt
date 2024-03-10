@@ -91,7 +91,7 @@ Hlt1LowMassDiElectron_massSlice1_displaced:         0/  1000, (    0.00 +/-     
 Hlt1LowMassDiElectron_SS_massSlice1_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice2_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice2_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice3_displaced:         4/  1000, (  120.00 +/-    59.88) kHz
+Hlt1LowMassDiElectron_massSlice3_displaced:         1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_SS_massSlice3_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice4_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
@@ -113,7 +113,7 @@ Hlt1DiMuonHighMassAlignment:                        1/  1000, (   30.00 +/-    2
 Hlt1DiMuonJpsiMassAlignment:                       27/  1000, (  810.00 +/-   153.77) kHz
 Hlt1DisplacedDiMuonAlignment:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                        694/  1000, (20820.00 +/-   437.18) kHz
+Inclusive:                                        693/  1000, (20790.00 +/-   437.58) kHz
 
 
 seed_validator validation:
@@ -213,7 +213,7 @@ Hlt1LowMassDiElectron_massSlice1_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice1_displaced:      0           0
 Hlt1LowMassDiElectron_massSlice2_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice2_displaced:      0           0
-Hlt1LowMassDiElectron_massSlice3_displaced:         4           5
+Hlt1LowMassDiElectron_massSlice3_displaced:         1           1
 Hlt1LowMassDiElectron_SS_massSlice3_displaced:      0           0
 Hlt1LowMassDiElectron_massSlice4_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0           0
@@ -236,12 +236,12 @@ Hlt1DiMuonJpsiMassAlignment:                       27          37
 Hlt1DisplacedDiMuonAlignment:                       1           1
 Hlt1BeamGas:                                        0           0
 
-Total decisions:      1420
-Total tracks:         2829
+Total decisions:      1417
+Total tracks:         2825
 Total calos clusters: 33
-Total SVs:            2445
-Total hits:           61743
-Total stdinfo:        33964
+Total SVs:            2441
+Total hits:           61662
+Total stdinfo:        33913
 
 
 velo_validator validation:

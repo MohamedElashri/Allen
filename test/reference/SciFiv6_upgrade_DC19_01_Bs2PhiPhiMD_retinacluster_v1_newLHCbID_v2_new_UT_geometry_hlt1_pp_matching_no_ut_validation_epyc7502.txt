@@ -81,19 +81,19 @@ Hlt1DiElectronHighMass_SameSign:                    2/  1000, (   60.00 +/-    4
 Hlt1DiElectronHighMass:                             1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_massSlice1_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice1_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice2_prompt:            1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1LowMassDiElectron_massSlice2_prompt:            2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1LowMassDiElectron_SS_massSlice2_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice3_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice3_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice4_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice4_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice1_displaced:         1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1LowMassDiElectron_massSlice1_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice1_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice2_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice2_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice3_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice3_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice4_displaced:         4/  1000, (  120.00 +/-    59.88) kHz
+Hlt1LowMassDiElectron_massSlice4_displaced:         2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Passthrough:                                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TAEPassthrough:                                 0/  1000, (    0.00 +/-     0.00) kHz
@@ -204,19 +204,19 @@ Hlt1DiElectronHighMass_SameSign:                    2           3
 Hlt1DiElectronHighMass:                             1           1
 Hlt1LowMassDiElectron_massSlice1_prompt:            0           0
 Hlt1LowMassDiElectron_SS_massSlice1_prompt:         0           0
-Hlt1LowMassDiElectron_massSlice2_prompt:            1           1
+Hlt1LowMassDiElectron_massSlice2_prompt:            2           2
 Hlt1LowMassDiElectron_SS_massSlice2_prompt:         0           0
 Hlt1LowMassDiElectron_massSlice3_prompt:            0           0
 Hlt1LowMassDiElectron_SS_massSlice3_prompt:         0           0
 Hlt1LowMassDiElectron_massSlice4_prompt:            0           0
 Hlt1LowMassDiElectron_SS_massSlice4_prompt:         0           0
-Hlt1LowMassDiElectron_massSlice1_displaced:         1           1
+Hlt1LowMassDiElectron_massSlice1_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice1_displaced:      0           0
 Hlt1LowMassDiElectron_massSlice2_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice2_displaced:      0           0
 Hlt1LowMassDiElectron_massSlice3_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice3_displaced:      0           0
-Hlt1LowMassDiElectron_massSlice4_displaced:         4           4
+Hlt1LowMassDiElectron_massSlice4_displaced:         2           2
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0           0
 Hlt1Passthrough:                                    0           0
 Hlt1TAEPassthrough:                                 0           0
@@ -237,12 +237,12 @@ Hlt1DiMuonJpsiMassAlignment:                       32          33
 Hlt1DisplacedDiMuonAlignment:                       3           3
 Hlt1BeamGas:                                        0           0
 
-Total decisions:      1193
-Total tracks:         2176
+Total decisions:      1191
+Total tracks:         2174
 Total calos clusters: 201
-Total SVs:            1912
-Total hits:           47243
-Total stdinfo:        27053
+Total SVs:            1911
+Total hits:           47194
+Total stdinfo:        27031
 
 
 velo_validator validation:

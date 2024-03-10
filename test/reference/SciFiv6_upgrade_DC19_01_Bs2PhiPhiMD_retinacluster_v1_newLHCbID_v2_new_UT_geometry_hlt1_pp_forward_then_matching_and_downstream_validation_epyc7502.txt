@@ -115,15 +115,15 @@ Hlt1LowMassDiElectron_massSlice2_prompt:            1/  1000, (   30.00 +/-    2
 Hlt1LowMassDiElectron_SS_massSlice2_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice3_prompt:            1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_SS_massSlice3_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice4_prompt:            1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1LowMassDiElectron_massSlice4_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice4_prompt:         1/  1000, (   30.00 +/-    29.98) kHz
-Hlt1LowMassDiElectron_massSlice1_displaced:         2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1LowMassDiElectron_massSlice1_displaced:         1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_SS_massSlice1_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice2_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice2_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice3_displaced:         2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1LowMassDiElectron_massSlice3_displaced:         1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_SS_massSlice3_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice4_displaced:         5/  1000, (  150.00 +/-    66.91) kHz
+Hlt1LowMassDiElectron_massSlice4_displaced:         1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Passthrough:                                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TAEPassthrough:                                 0/  1000, (    0.00 +/-     0.00) kHz
@@ -238,15 +238,15 @@ Hlt1LowMassDiElectron_massSlice2_prompt:            1           1
 Hlt1LowMassDiElectron_SS_massSlice2_prompt:         0           0
 Hlt1LowMassDiElectron_massSlice3_prompt:            1           1
 Hlt1LowMassDiElectron_SS_massSlice3_prompt:         0           0
-Hlt1LowMassDiElectron_massSlice4_prompt:            1           1
+Hlt1LowMassDiElectron_massSlice4_prompt:            0           0
 Hlt1LowMassDiElectron_SS_massSlice4_prompt:         1           1
-Hlt1LowMassDiElectron_massSlice1_displaced:         2           2
+Hlt1LowMassDiElectron_massSlice1_displaced:         1           1
 Hlt1LowMassDiElectron_SS_massSlice1_displaced:      0           0
 Hlt1LowMassDiElectron_massSlice2_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice2_displaced:      0           0
-Hlt1LowMassDiElectron_massSlice3_displaced:         2           2
+Hlt1LowMassDiElectron_massSlice3_displaced:         1           1
 Hlt1LowMassDiElectron_SS_massSlice3_displaced:      0           0
-Hlt1LowMassDiElectron_massSlice4_displaced:         5           5
+Hlt1LowMassDiElectron_massSlice4_displaced:         1           1
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0           0
 Hlt1Passthrough:                                    0           0
 Hlt1TAEPassthrough:                                 0           0
@@ -267,12 +267,12 @@ Hlt1DiMuonJpsiMassAlignment:                       42          49
 Hlt1DisplacedDiMuonAlignment:                       3           3
 Hlt1BeamGas:                                        0           0
 
-Total decisions:      1366
-Total tracks:         2657
+Total decisions:      1359
+Total tracks:         2650
 Total calos clusters: 201
-Total SVs:            2437
-Total hits:           66799
-Total stdinfo:        33174
+Total SVs:            2433
+Total hits:           66627
+Total stdinfo:        33095
 
 
 velo_validator validation:

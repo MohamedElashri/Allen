@@ -16,8 +16,10 @@ from AllenCore.algorithms import (
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenCore.configuration_options import is_allen_standalone
+from PyConf.tonic import configurable
 
 
+@configurable
 def make_track_electron_mva_line(long_tracks,
                                  long_track_particles,
                                  calo,
@@ -141,6 +143,7 @@ def make_single_high_et_line(velo_tracks,
 def make_lowmass_dielectron_line(
         long_tracks,
         secondary_vertices,
+        electronid_nn,
         calo,
         minMass,
         maxMass,
@@ -151,6 +154,8 @@ def make_lowmass_dielectron_line(
         is_same_sign=False,
         enable_monitoring=True,
         enable_tupling=False,
+        useNN=False,
+        nnCut=0.7,
         name="Hlt1LowMassDiElectron",
         pre_scaler_hash_string="lowmass_dielectron_line_pre",
         pre_scaler=1.,
@@ -162,11 +167,12 @@ def make_lowmass_dielectron_line(
         lowmass_dielectron_line_t,
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
+        dev_electronid_evaluation_t=electronid_nn["dev_electronid_response"],
+        dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
-        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
-        dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
         pre_scaler=pre_scaler,
         post_scaler=post_scaler,
         pre_scaler_hash_string=pre_scaler_hash_string,
@@ -175,6 +181,8 @@ def make_lowmass_dielectron_line(
         MinMass=minMass,
         MaxMass=maxMass,
         ss_on=is_same_sign,
+        UseNN=useNN,
+        NNCut=nnCut,
         enable_monitoring=is_allen_standalone() and enable_monitoring,
         enable_tupling=enable_tupling,
         MinPTprompt=minPTprompt,

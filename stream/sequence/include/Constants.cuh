@@ -138,6 +138,17 @@ struct Constants {
   float dev_two_track_mva_lambda = 0;
   float dev_two_track_mva_nominal_cut = 0;
 
+  // ElectronID mva constants
+  float* dev_electronid_mva_weights = nullptr;
+  float* dev_electronid_mva_biases = nullptr;
+  int* dev_electronid_mva_layer_sizes = nullptr;
+  int dev_electronid_mva_n_layers = 0;
+  float* dev_electronid_mva_monotone_constraints = nullptr;
+  float* dev_electronid_mva_min_rescales = nullptr;
+  float* dev_electronid_mva_max_rescales = nullptr;
+  float dev_electronid_mva_lambda = 0;
+  float dev_electronid_mva_nominal_cut = 0;
+
   LookingForward::Constants* dev_looking_forward_constants = nullptr;
 
   // TrackMaching
@@ -195,6 +206,17 @@ struct Constants {
     const std::vector<int>& layer_sizes,
     const int n_layers,
     const std::vector<float>& monotone_constraints,
+    float nominal_cut,
+    float lambda);
+
+  void initialize_electronid_mva_model_constants(
+    const std::vector<float>& weights,
+    const std::vector<float>& biases,
+    const std::vector<int>& layer_sizes,
+    const int n_layers,
+    const std::vector<float>& monotone_constraints,
+    const std::vector<float>& min_rescales,
+    const std::vector<float>& max_rescales,
     float nominal_cut,
     float lambda);
 };

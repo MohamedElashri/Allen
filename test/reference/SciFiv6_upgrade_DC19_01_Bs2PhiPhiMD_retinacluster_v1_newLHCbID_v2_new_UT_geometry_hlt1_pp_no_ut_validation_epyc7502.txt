@@ -93,7 +93,7 @@ Hlt1LowMassDiElectron_massSlice2_displaced:         0/  1000, (    0.00 +/-     
 Hlt1LowMassDiElectron_SS_massSlice2_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice3_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice3_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice4_displaced:         2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1LowMassDiElectron_massSlice4_displaced:         1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Passthrough:                                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TAEPassthrough:                                 0/  1000, (    0.00 +/-     0.00) kHz
@@ -164,7 +164,7 @@ Hlt1LowMassDiElectron_massSlice2_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice2_displaced:      0           0
 Hlt1LowMassDiElectron_massSlice3_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice3_displaced:      0           0
-Hlt1LowMassDiElectron_massSlice4_displaced:         2           2
+Hlt1LowMassDiElectron_massSlice4_displaced:         1           1
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0           0
 Hlt1Passthrough:                                    0           0
 Hlt1TAEPassthrough:                                 0           0
@@ -185,12 +185,12 @@ Hlt1DiMuonJpsiMassAlignment:                       22          23
 Hlt1DisplacedDiMuonAlignment:                       2           2
 Hlt1BeamGas:                                        0           0
 
-Total decisions:      1110
+Total decisions:      1109
 Total tracks:         1822
 Total calos clusters: 201
 Total SVs:            1571
 Total hits:           39216
-Total stdinfo:        22774
+Total stdinfo:        22773
 
 
 velo_validator validation:

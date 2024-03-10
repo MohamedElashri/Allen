@@ -164,3 +164,46 @@ void Constants::initialize_two_track_mva_model_constants(
     monotone_constraints.size() * sizeof(float),
     Allen::memcpyHostToDevice);
 }
+
+void Constants::initialize_electronid_mva_model_constants(
+  const std::vector<float>& weights,
+  const std::vector<float>& biases,
+  const std::vector<int>& layer_sizes,
+  const int n_layers,
+  const std::vector<float>& monotone_constraints,
+  const std::vector<float>& min_rescales,
+  const std::vector<float>& max_rescales,
+  float nominal_cut,
+  float lambda)
+{
+  dev_electronid_mva_nominal_cut = nominal_cut;
+  dev_electronid_mva_lambda = lambda;
+  dev_electronid_mva_n_layers = n_layers;
+
+  Allen::malloc((void**) &dev_electronid_mva_weights, weights.size() * sizeof(float));
+  Allen::malloc((void**) &dev_electronid_mva_biases, biases.size() * sizeof(float));
+  Allen::malloc((void**) &dev_electronid_mva_layer_sizes, layer_sizes.size() * sizeof(int));
+  Allen::malloc((void**) &dev_electronid_mva_monotone_constraints, monotone_constraints.size() * sizeof(float));
+  Allen::malloc((void**) &dev_electronid_mva_min_rescales, min_rescales.size() * sizeof(float));
+  Allen::malloc((void**) &dev_electronid_mva_max_rescales, max_rescales.size() * sizeof(float));
+
+  Allen::memcpy(dev_electronid_mva_weights, weights.data(), weights.size() * sizeof(float), Allen::memcpyHostToDevice);
+  Allen::memcpy(dev_electronid_mva_biases, biases.data(), biases.size() * sizeof(float), Allen::memcpyHostToDevice);
+  Allen::memcpy(
+    dev_electronid_mva_layer_sizes, layer_sizes.data(), layer_sizes.size() * sizeof(int), Allen::memcpyHostToDevice);
+  Allen::memcpy(
+    dev_electronid_mva_monotone_constraints,
+    monotone_constraints.data(),
+    monotone_constraints.size() * sizeof(float),
+    Allen::memcpyHostToDevice);
+  Allen::memcpy(
+    dev_electronid_mva_min_rescales,
+    min_rescales.data(),
+    min_rescales.size() * sizeof(float),
+    Allen::memcpyHostToDevice);
+  Allen::memcpy(
+    dev_electronid_mva_max_rescales,
+    max_rescales.data(),
+    max_rescales.size() * sizeof(float),
+    Allen::memcpyHostToDevice);
+}

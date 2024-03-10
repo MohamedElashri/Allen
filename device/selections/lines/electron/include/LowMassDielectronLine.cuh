@@ -29,6 +29,8 @@ namespace lowmass_dielectron_line {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
     DEVICE_INPUT(dev_brem_corrected_pt_t, float) dev_brem_corrected_pt;
+    DEVICE_INPUT(dev_electronid_evaluation_t, float) dev_electronid_evaluation;
+    // Outputs
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
@@ -46,6 +48,7 @@ namespace lowmass_dielectron_line {
     // outputs for Gaudi histogram
     DEVICE_OUTPUT(dev_masses_histo_t, unsigned) dev_masses_histo;
     DEVICE_OUTPUT(dev_masses_brem_histo_t, unsigned) dev_masses_brem_histo;
+    DEVICE_OUTPUT(dev_bin_boundaries_t, float) dev_bin_boundaries;
     // Properties
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -65,6 +68,8 @@ namespace lowmass_dielectron_line {
     PROPERTY(MinPTprompt_t, "MinPTprompt", "Min PTprompt", float) minPTprompt;
     PROPERTY(MinPTdisplaced_t, "MinPTdisplaced", "Min PTdisplaced", float) minPTdisplaced;
     PROPERTY(MinDielectronPT_t, "MinDielectronPT", "Min dielectron PT", float) minDielectronPT;
+    PROPERTY(UseNN_t, "UseNN", "Use NN flag", bool) useNN;
+    PROPERTY(NNCut_t, "NNCut", "NN cut value", float) nnCut;
   };
 
   struct lowmass_dielectron_line_t : public SelectionAlgorithm,
@@ -127,7 +132,7 @@ namespace lowmass_dielectron_line {
     Property<MinMass_t> m_MinMass {this, 5.f};
     Property<MaxMass_t> m_MaxMass {this, 300.f};
     Property<ss_on_t> m_ss_on {this, false};
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<enable_monitoring_t> m_enable_monitoring {this, true};
     Property<enable_tupling_t> m_enable_tupling {this, false};
     Property<MinZ_t> m_MinZ {this, -341.f * Gaudi::Units::mm};
     Property<TrackIPChi2Threshold_t> m_TrackIPChi2Threshold {
@@ -138,6 +143,8 @@ namespace lowmass_dielectron_line {
     Property<MinPTdisplaced_t> m_MinPTdisplaced {this, 0.f};
     Property<MaxVtxChi2_t> m_MaxVtxChi2 {this, 7.4f};
     Property<MinDielectronPT_t> m_MinDielectronPT {this, 1000.f};
+    Property<UseNN_t> m_UseNN {this, false};
+    Property<NNCut_t> m_NNCut {this, 0.7};
 #ifndef ALLEN_STANDALONE
     gaudi_monitoring::Lockable_Histogram<>* histogram_dielectron_masses;
     gaudi_monitoring::Lockable_Histogram<>* histogram_dielectron_masses_brem;

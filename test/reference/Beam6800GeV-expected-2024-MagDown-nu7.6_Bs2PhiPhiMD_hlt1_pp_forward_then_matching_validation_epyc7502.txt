@@ -81,7 +81,7 @@ Hlt1DiElectronHighMass_SameSign:                    1/  1000, (   30.00 +/-    2
 Hlt1DiElectronHighMass:                             1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_massSlice1_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice1_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice2_prompt:            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1LowMassDiElectron_massSlice2_prompt:            1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_SS_massSlice2_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice3_prompt:            1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_SS_massSlice3_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
@@ -89,11 +89,11 @@ Hlt1LowMassDiElectron_massSlice4_prompt:            0/  1000, (    0.00 +/-     
 Hlt1LowMassDiElectron_SS_massSlice4_prompt:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_massSlice1_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice1_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice2_displaced:         1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1LowMassDiElectron_massSlice2_displaced:         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1LowMassDiElectron_SS_massSlice2_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice3_displaced:         3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1LowMassDiElectron_massSlice3_displaced:         1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_SS_massSlice3_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1LowMassDiElectron_massSlice4_displaced:         4/  1000, (  120.00 +/-    59.88) kHz
+Hlt1LowMassDiElectron_massSlice4_displaced:         1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Passthrough:                                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TAEPassthrough:                                 0/  1000, (    0.00 +/-     0.00) kHz
@@ -113,7 +113,7 @@ Hlt1DiMuonHighMassAlignment:                        1/  1000, (   30.00 +/-    2
 Hlt1DiMuonJpsiMassAlignment:                       30/  1000, (  900.00 +/-   161.83) kHz
 Hlt1DisplacedDiMuonAlignment:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                        676/  1000, (20280.00 +/-   443.98) kHz
+Inclusive:                                        675/  1000, (20250.00 +/-   444.34) kHz
 
 
 seed_validator validation:
@@ -203,7 +203,7 @@ Hlt1DiElectronHighMass_SameSign:                    1           5
 Hlt1DiElectronHighMass:                             1           2
 Hlt1LowMassDiElectron_massSlice1_prompt:            0           0
 Hlt1LowMassDiElectron_SS_massSlice1_prompt:         0           0
-Hlt1LowMassDiElectron_massSlice2_prompt:            0           0
+Hlt1LowMassDiElectron_massSlice2_prompt:            1           1
 Hlt1LowMassDiElectron_SS_massSlice2_prompt:         0           0
 Hlt1LowMassDiElectron_massSlice3_prompt:            1           1
 Hlt1LowMassDiElectron_SS_massSlice3_prompt:         0           0
@@ -211,11 +211,11 @@ Hlt1LowMassDiElectron_massSlice4_prompt:            0           0
 Hlt1LowMassDiElectron_SS_massSlice4_prompt:         0           0
 Hlt1LowMassDiElectron_massSlice1_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice1_displaced:      0           0
-Hlt1LowMassDiElectron_massSlice2_displaced:         1           1
+Hlt1LowMassDiElectron_massSlice2_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice2_displaced:      0           0
-Hlt1LowMassDiElectron_massSlice3_displaced:         3           3
+Hlt1LowMassDiElectron_massSlice3_displaced:         1           1
 Hlt1LowMassDiElectron_SS_massSlice3_displaced:      0           0
-Hlt1LowMassDiElectron_massSlice4_displaced:         4           4
+Hlt1LowMassDiElectron_massSlice4_displaced:         1           1
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0           0
 Hlt1Passthrough:                                    0           0
 Hlt1TAEPassthrough:                                 0           0
@@ -236,12 +236,12 @@ Hlt1DiMuonJpsiMassAlignment:                       30          43
 Hlt1DisplacedDiMuonAlignment:                       1           1
 Hlt1BeamGas:                                        0           0
 
-Total decisions:      1350
-Total tracks:         2695
+Total decisions:      1345
+Total tracks:         2690
 Total calos clusters: 33
-Total SVs:            2475
-Total hits:           68403
-Total stdinfo:        32942
+Total SVs:            2470
+Total hits:           68281
+Total stdinfo:        32877
 
 
 velo_validator validation:
