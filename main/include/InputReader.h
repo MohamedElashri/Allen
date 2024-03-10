@@ -62,13 +62,15 @@ private:
   std::vector<int> m_split_feature;
 };
 
-struct TwoTrackMVAModelReader {
-  TwoTrackMVAModelReader(const std::string& file_name);
+struct LipschitzNNModelReader {
+  LipschitzNNModelReader(const std::string& file_name);
   std::vector<float> weights() const { return m_weights; }
   std::vector<float> biases() const { return m_biases; }
   std::vector<int> layer_sizes() const { return m_layer_sizes; }
   int n_layers() const { return m_n_layers; }
   std::vector<float> monotone_constraints() const { return m_monotone_constraints; }
+  std::vector<float> min_rescales() const { return m_min_rescales; }
+  std::vector<float> max_rescales() const { return m_max_rescales; }
   float lambda() const { return m_lambda; }
   float nominal_cut() const { return m_nominal_cut; }
 
@@ -78,6 +80,8 @@ private:
   std::vector<int> m_layer_sizes;
   int m_n_layers;
   std::vector<float> m_monotone_constraints;
+  std::vector<float> m_min_rescales;
+  std::vector<float> m_max_rescales;
   float m_nominal_cut;
   float m_lambda;
 };

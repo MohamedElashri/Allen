@@ -11,6 +11,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
+#include "Datatype.cuh"
 #include "States.cuh"
 #include "SciFiConsolidated.cuh"
 #include "CaloGeometry.cuh"
@@ -34,7 +35,13 @@ namespace track_digit_selective_matching {
     DEVICE_OUTPUT(dev_matched_ecal_digits_t, std::array<unsigned, 6>) dev_matched_ecal_digits;
     DEVICE_OUTPUT(dev_track_inEcalAcc_t, bool) dev_track_inEcalAcc;
     DEVICE_OUTPUT(dev_track_Eop_t, float) dev_track_Eop;
+    DEVICE_OUTPUT(dev_track_Eop3x3_t, float) dev_track_Eop3x3;
     DEVICE_OUTPUT(dev_track_isElectron_t, bool) dev_track_isElectron;
+    DEVICE_OUTPUT(dev_delta_barycenter_t, float) dev_delta_barycenter;
+    DEVICE_OUTPUT(dev_dispersion_x_t, float) dev_dispersion_x;
+    DEVICE_OUTPUT(dev_dispersion_y_t, float) dev_dispersion_y;
+    DEVICE_OUTPUT(dev_dispersion_xy_t, float) dev_dispersion_xy;
+    DEVICE_OUTPUT(dev_track_local_max_t, bool) dev_track_local_max;
     // Properties
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };

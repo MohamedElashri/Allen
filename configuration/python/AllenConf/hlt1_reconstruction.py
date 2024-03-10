@@ -14,7 +14,7 @@ from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks, ma
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
 from AllenConf.downstream_reconstruction import make_downstream
 from AllenConf.muon_reconstruction import decode_muon, is_muon, fake_muon_id, make_muon_stubs
-from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters
+from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters, make_electronid_nn
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import (
     make_kalman_velo_only, make_basic_particles, fit_secondary_vertices,
@@ -153,6 +153,7 @@ def hlt1_reconstruction(algorithm_name='',
         calo_matching_objects = make_track_matching(decoded_calo, velo_tracks,
                                                     velo_states, long_tracks,
                                                     kalman_velo_only)
+        electronid_nn = make_electronid_nn(long_tracks, calo_matching_objects)
         long_track_particles = make_basic_particles(
             kalman_velo_only,
             muonID,
@@ -162,7 +163,8 @@ def hlt1_reconstruction(algorithm_name='',
         output.update({
             "decoded_calo": decoded_calo,
             "calo_matching_objects": calo_matching_objects,
-            "ecal_clusters": ecal_clusters
+            "ecal_clusters": ecal_clusters,
+            "electronid_nn": electronid_nn
         })
     else:
         long_track_particles = make_basic_particles(

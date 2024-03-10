@@ -24,6 +24,7 @@ target_link_libraries(VertexFitter PUBLIC Kalman PRIVATE Backend HostEventModel 
 
 target_include_directories(VertexFitter PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils/nn_propagation/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/two_track_mva/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/vertex_fitter/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/prompt_vertex/include>)

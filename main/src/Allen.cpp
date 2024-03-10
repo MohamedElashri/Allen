@@ -230,7 +230,8 @@ int allen(
   std::unique_ptr<ConfigurationReader> configuration_reader;
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
-  std::unique_ptr<TwoTrackMVAModelReader> two_track_mva_model_reader;
+  std::unique_ptr<LipschitzNNModelReader> two_track_mva_model_reader;
+  std::unique_ptr<LipschitzNNModelReader> electronid_mva_model_reader;
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
@@ -270,11 +271,15 @@ int allen(
     std::make_unique<CatboostModelReader>(folder_parameters + "allen_muon_catboost_model.json");
   // Two Track Model
   two_track_mva_model_reader =
-    std::make_unique<TwoTrackMVAModelReader>(folder_parameters + "allen_two_track_mva_model_June22.json");
+    std::make_unique<LipschitzNNModelReader>(folder_parameters + "allen_two_track_mva_model_June22.json");
 
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
     muon_field_of_interest_params, folder_parameters + "allen_muon_field_of_interest_params.bin");
+
+  // ElectronID model
+  electronid_mva_model_reader =
+    std::make_unique<LipschitzNNModelReader>(folder_parameters + "CaloPID/electron_mva_AllenFeb2024.json");
 
   // Initialize detector constants on GPU
   Constants constants;
@@ -298,6 +303,16 @@ int allen(
     two_track_mva_model_reader->nominal_cut(),
     two_track_mva_model_reader->lambda());
 
+  constants.initialize_electronid_mva_model_constants(
+    electronid_mva_model_reader->weights(),
+    electronid_mva_model_reader->biases(),
+    electronid_mva_model_reader->layer_sizes(),
+    electronid_mva_model_reader->n_layers(),
+    electronid_mva_model_reader->monotone_constraints(),
+    electronid_mva_model_reader->min_rescales(),
+    electronid_mva_model_reader->max_rescales(),
+    electronid_mva_model_reader->nominal_cut(),
+    electronid_mva_model_reader->lambda());
   // Register all consumers
   register_consumers(updater, constants, configuration_reader->configured_bank_types());
 

@@ -12,6 +12,7 @@
 
 #include "AlgorithmTypes.cuh"
 #include "VertexDefinitions.cuh"
+#include "NNPropagation.cuh"
 #include <cmath>
 
 namespace two_track_mva_evaluator {

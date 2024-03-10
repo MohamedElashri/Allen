@@ -61,8 +61,7 @@ CatboostModelReader::CatboostModelReader(const std::string& file_name)
     m_split_feature.insert(std::end(m_split_feature), std::begin(tree_split_features), std::end(tree_split_features));
   }
 }
-
-TwoTrackMVAModelReader::TwoTrackMVAModelReader(const std::string& file_name)
+LipschitzNNModelReader::LipschitzNNModelReader(const std::string& file_name)
 {
   if (!exists_test(file_name)) {
     throw StrException("Two Track MVA model file " + file_name + " does not exist.");
@@ -74,8 +73,26 @@ TwoTrackMVAModelReader::TwoTrackMVAModelReader(const std::string& file_name)
   std::map<int, int> layer_sizes {};
   std::map<int, std::vector<float>> biases {};
   std::map<int, std::vector<float>> weights {};
+  std::vector<float> constraints {1, 1, 0, 1}; // Defaulted to TwoTrackMVA configuration
+  if (j.contains("constraints")) {
+    constraints.clear();
+    for (unsigned i = 0; i < j["constraints"].size(); i++) {
+      auto constraint = j["constraints"][i];
+      constraints.push_back(constraint);
+    }
+  }
+  std::vector<float> min_rescales;
+  std::vector<float> max_rescales;
+  if (j.contains("rescale_min") && j.contains("rescale_max")) {
+    for (unsigned i = 0; i < j["constraints"].size(); i++) {
+      const auto min_rescale = j["rescale_min"][i];
+      const auto max_rescale = j["rescale_max"][i];
+      min_rescales.push_back(min_rescale);
+      max_rescales.push_back(max_rescale);
+    }
+  }
 
-  layer_sizes[0] = 4; // input size hard coded
+  layer_sizes[0] = j.contains("n_features") ? static_cast<int>(j["n_features"]) : 4; // input size hard coded
   for (auto el = j.begin(); el != j.end(); ++el) {
     // map is sorted
     std::vector<std::string> tokens;
@@ -118,7 +135,9 @@ TwoTrackMVAModelReader::TwoTrackMVAModelReader(const std::string& file_name)
   // 0 -> -lambda <= df/dx <= lambda
   // 1 -> 0 <= df/dx <= 2*lambda
   // -1 -> -2*lambda <= df/dx <= 0
-  m_monotone_constraints = std::vector<float> {1, 1, 0, 1};
+  m_monotone_constraints = constraints;
+  m_min_rescales = min_rescales;
+  m_max_rescales = max_rescales;
   m_lambda = j["sigmanet.sigma"][0];
   m_nominal_cut = j["nominal_cut"];
   m_n_layers = m_layer_sizes.size();

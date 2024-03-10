@@ -9,6 +9,11 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "LowMassDielectronLine.cuh"
+#include "BinarySearch.cuh"
+
+namespace {
+  const unsigned n_bins = 123u;
+}
 
 INSTANTIATE_LINE(lowmass_dielectron_line::lowmass_dielectron_line_t, lowmass_dielectron_line::Parameters)
 
@@ -17,9 +22,9 @@ void lowmass_dielectron_line::lowmass_dielectron_line_t::init()
   Line<lowmass_dielectron_line::lowmass_dielectron_line_t, lowmass_dielectron_line::Parameters>::init();
 #ifndef ALLEN_STANDALONE
   histogram_dielectron_masses = new gaudi_monitoring::Lockable_Histogram<> {
-    {this, "dielectron_mass_counts", "dielectron masses", {750, 0, 1500}}, {}};
+    {this, "dielectron_mass_counts", "dielectron masses", {n_bins, 0, 1500}}, {}};
   histogram_dielectron_masses_brem = new gaudi_monitoring::Lockable_Histogram<> {
-    {this, "dielectron_mass_counts_brem", "dielectron masses with brem", {750, 0, 1500}}, {}};
+    {this, "dielectron_mass_counts_brem", "dielectron masses with brem", {n_bins, 0, 1500}}, {}};
 #endif
 }
 
@@ -41,8 +46,15 @@ lowmass_dielectron_line::lowmass_dielectron_line_t::get_input(
   const auto vertex = event_vertices.particle(i);
   const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
   const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
-  const bool is_dielectron = vertex.is_dielectron();
-
+  const float nn_track1 =
+    parameters.dev_electronid_evaluation[parameters.dev_track_offsets[event_number] + track1->get_index()];
+  const float nn_track2 =
+    parameters.dev_electronid_evaluation[parameters.dev_track_offsets[event_number] + track2->get_index()];
+  bool is_dielectron = false;
+  if (parameters.useNN)
+    is_dielectron = nn_track1 > parameters.nnCut && nn_track2 > parameters.nnCut;
+  else
+    is_dielectron = vertex.is_dielectron();
   const float brem_corrected_pt1 =
     parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + track1->get_index()];
   const float brem_corrected_pt2 =
@@ -127,11 +139,11 @@ __device__ bool lowmass_dielectron_line::lowmass_dielectron_line_t::select(
                                       parameters.selectPrompt && passes_prompt_selection;
   if (decision_no_mass_prompt_only) {
     if (vertex.m12(0.510999, 0.510999) < 1500) {
-      unsigned bin = std::floor(vertex.m12(0.510999, 0.510999) / 2);
+      unsigned bin = binary_search_rightmost(&parameters.dev_bin_boundaries[0], n_bins, vertex.m12(0.510999, 0.510999));
       atomicAdd(&parameters.dev_masses_histo[bin], 1);
     }
     if (brem_corrected_dielectron_mass < 1500) {
-      unsigned bin = std::floor(brem_corrected_dielectron_mass / 2);
+      unsigned bin = binary_search_rightmost(&parameters.dev_bin_boundaries[0], n_bins, brem_corrected_dielectron_mass);
       atomicAdd(&parameters.dev_masses_brem_histo[bin], 1);
     }
   }
@@ -161,16 +173,35 @@ void lowmass_dielectron_line::lowmass_dielectron_line_t::set_arguments_size(
   set_size<dev_die_minipchi2_t>(
     arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_die_ip_t>(arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
-  set_size<dev_masses_histo_t>(arguments, 750);
-  set_size<dev_masses_brem_histo_t>(arguments, 750);
+  set_size<dev_masses_histo_t>(arguments, n_bins);
+  set_size<dev_masses_brem_histo_t>(arguments, n_bins);
+  set_size<dev_bin_boundaries_t>(arguments, n_bins + 1);
 }
 
 void lowmass_dielectron_line::lowmass_dielectron_line_t::init_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context) const
+  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
+  [[maybe_unused]] const Allen::Context& context) const
 {
+#ifndef ALLEN_STANDALONE
   Allen::memset_async<dev_masses_histo_t>(arguments, 0, context);
   Allen::memset_async<dev_masses_brem_histo_t>(arguments, 0, context);
+  auto boundaries = make_host_buffer<float>(arguments, n_bins);
+  boundaries[0] = 0.f;
+  boundaries[1] = 0.5f;
+  for (unsigned i = 2; i < n_bins; i++) {
+    float last_bound = boundaries[i - 1];
+    float increment;
+    if (last_bound * .05f < 0.5f) {
+      increment = 0.5;
+    }
+    else {
+      increment = last_bound * 0.05f;
+    }
+    boundaries[i] = (last_bound + increment);
+  }
+  boundaries[n_bins - 1] = 1500.f;
+  Allen::copy(arguments.template get<dev_bin_boundaries_t>(), boundaries.get(), context, Allen::memcpyHostToDevice);
+#endif
 }
 
 void lowmass_dielectron_line::lowmass_dielectron_line_t::init_tuples(

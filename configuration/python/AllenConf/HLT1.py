@@ -218,7 +218,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     if with_calo:
         ecal_clusters = reconstructed_objects["ecal_clusters"]
         calo_matching_objects = reconstructed_objects["calo_matching_objects"]
-
+        electronid_nn = reconstructed_objects["electronid_nn"]
         lines += [
             make_track_electron_mva_line(
                 long_tracks,
@@ -280,13 +280,17 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             "3": (100., 200.),
             "4": (200., 300.)
         }
+        line_slices_postscales = {"1": 1, "2": 1, "3": 0.3, "4": 0.3}
         for subSample in ["prompt", "displaced"]:
             for label, limits in line_slices_mass.items():
-                postscale_os = 0.3 if subSample == "prompt" else 1.0
+                postscale_os = line_slices_postscales[
+                    label] if subSample == "prompt" else 1.0
+                nnCut = 0.90
                 lines.append(
                     make_lowmass_dielectron_line(
                         long_tracks,
                         dileptons,
+                        electronid_nn,
                         calo_matching_objects,
                         minMass=limits[0],
                         maxMass=limits[1],
@@ -294,16 +298,19 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                         minPTdisplaced=0.,
                         trackIPChi2Threshold=2,
                         selectPrompt=True if subSample == "prompt" else False,
+                        useNN=True,
+                        nnCut=nnCut,
                         name="Hlt1LowMassDiElectron_massSlice{}_{}".format(
                             label, subSample),
                         pre_scaler_hash_string=
-                        "lowmass_dielectron_massSlice{}_{}_pre".format(
+                        "lowmass_dielectronNN_massSlice{}_{}_pre".format(
                             label, subSample),
                         post_scaler=postscale_os))
                 lines.append(
                     make_lowmass_dielectron_line(
                         long_tracks,
                         dileptons,
+                        electronid_nn,
                         calo_matching_objects,
                         is_same_sign=True,
                         minMass=limits[0],
@@ -312,6 +319,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                         minPTdisplaced=0.,
                         trackIPChi2Threshold=2,
                         selectPrompt=True if subSample == "prompt" else False,
+                        useNN=True,
+                        nnCut=nnCut,
                         name="Hlt1LowMassDiElectron_SS_massSlice{}_{}".format(
                             label, subSample),
                         pre_scaler_hash_string=

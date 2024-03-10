@@ -13,7 +13,8 @@ from AllenCore.algorithms import (
     track_digit_selective_matching_t, brem_recovery_t,
     momentum_brem_correction_t, calo_seed_clusters_t, calo_find_clusters_t,
     calo_prefilter_clusters_t, calo_filter_clusters_t, calo_find_twoclusters_t,
-    total_ecal_energy_t, make_neutral_particles_t, calo_overlap_clusters_t)
+    total_ecal_energy_t, make_neutral_particles_t, calo_overlap_clusters_t,
+    electronid_nn_t, electronid_features_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
@@ -117,6 +118,16 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
         dev_brem_ET_t=brem_recovery.dev_brem_ET_t)
 
     return {
+        "dev_delta_barycenter":
+        track_digit_selective_matching.dev_delta_barycenter_t,
+        "dev_dispersion_x":
+        track_digit_selective_matching.dev_dispersion_x_t,
+        "dev_dispersion_y":
+        track_digit_selective_matching.dev_dispersion_y_t,
+        "dev_dispersion_xy":
+        track_digit_selective_matching.dev_dispersion_xy_t,
+        "dev_track_local_max":
+        track_digit_selective_matching.dev_track_local_max_t,
         "dev_matched_ecal_energy":
         track_digit_selective_matching.dev_matched_ecal_energy_t,
         "dev_matched_ecal_digits_size":
@@ -127,6 +138,8 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
         track_digit_selective_matching.dev_track_inEcalAcc_t,
         "dev_track_Eop":
         track_digit_selective_matching.dev_track_Eop_t,
+        "dev_track_Eop3x3":
+        track_digit_selective_matching.dev_track_Eop3x3_t,
         "dev_track_isElectron":
         track_digit_selective_matching.dev_track_isElectron_t,
         "dev_brem_E":
@@ -278,3 +291,46 @@ def ecal_cluster_reco():
     ecal_clusters = make_ecal_clusters(decoded_calo)
     alg = ecal_clusters["dev_ecal_clusters"].producer
     return alg
+
+
+def make_electronid_nn(long_tracks, track_matching):
+    number_of_events = initialize_number_of_events()
+    host_number_of_events = number_of_events["host_number_of_events"]
+    dev_number_of_events = number_of_events["dev_number_of_events"]
+
+    host_number_of_reconstructed_scifi_tracks = long_tracks[
+        "host_number_of_reconstructed_scifi_tracks"]
+    dev_scifi_states = long_tracks["dev_scifi_states"]
+    velo_tracks = long_tracks["velo_tracks"]
+    electronid_features = make_algorithm(
+        electronid_features_t,
+        name='electronid_features_{hash}',
+        host_number_of_events_t=host_number_of_events,
+        dev_number_of_events_t=dev_number_of_events,
+        host_number_of_reconstructed_scifi_tracks_t=
+        host_number_of_reconstructed_scifi_tracks,
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        dev_track_Eop_t=track_matching["dev_track_Eop"],
+        dev_track_Eop3x3_t=track_matching["dev_track_Eop3x3"],
+        dev_delta_barycenter_t=track_matching["dev_delta_barycenter"],
+        dev_dispersion_x_t=track_matching["dev_dispersion_x"],
+        dev_dispersion_y_t=track_matching["dev_dispersion_y"],
+        dev_dispersion_xy_t=track_matching["dev_dispersion_xy"],
+        dev_track_local_max_t=track_matching["dev_track_local_max"])
+
+    electronid_nn = make_algorithm(
+        electronid_nn_t,
+        name='electronid_nn_{hash}',
+        dev_track_inEcalAcc_t=track_matching['dev_track_inEcalAcc'],
+        host_number_of_events_t=host_number_of_events,
+        dev_number_of_events_t=dev_number_of_events,
+        host_number_of_reconstructed_scifi_tracks_t=
+        host_number_of_reconstructed_scifi_tracks,
+        dev_electronid_features_t=electronid_features.
+        dev_electronid_features_t,
+        dev_track_Eop_t=track_matching["dev_track_Eop3x3"],
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+    )
+    return {
+        "dev_electronid_response": electronid_nn.dev_electronid_evaluation_t
+    }
