@@ -159,7 +159,7 @@ void error_bank_filter::error_bank_filter_t::init()
       source_names.push_back(s);
     }
     else {
-      source_names.push_back("");
+      source_names.push_back("NOT_USED");
     }
   }
 
