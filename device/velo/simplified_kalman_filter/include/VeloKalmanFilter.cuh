@@ -104,8 +104,8 @@ namespace velo_kalman_filter {
     state.ty() = stateAtBeamLine.ty();
 
     // Initialize the covariance matrix
-    state.c00() = Velo::Tracking::param_w_inverted;
-    state.c11() = Velo::Tracking::param_w_inverted;
+    state.c00() = 100.f;
+    state.c11() = 100.f;
     state.c20() = 0.f;
     state.c31() = 0.f;
     state.c22() = 1.f;
