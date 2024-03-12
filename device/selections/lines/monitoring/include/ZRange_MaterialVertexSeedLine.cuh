@@ -5,7 +5,6 @@
 
 #include "AlgorithmTypes.cuh"
 #include "Line.cuh"
-#include "patPV_Definitions.cuh"
 
 namespace z_range_materialvertex_seed_line {
   struct Parameters {
@@ -17,7 +16,7 @@ namespace z_range_materialvertex_seed_line {
     HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
-    DEVICE_INPUT(dev_consolidated_interaction_seeds_t, PatPV::XYZPoint) dev_consolidated_interaction_seeds;
+    DEVICE_INPUT(dev_consolidated_interaction_seeds_t, float3) dev_consolidated_interaction_seeds;
     DEVICE_INPUT(dev_interaction_seeds_offsets_t, unsigned) dev_interaction_seeds_offsets;
     DEVICE_INPUT(dev_event_number_of_interactions_seeds_t, unsigned) dev_event_number_of_interactions_seeds;
 

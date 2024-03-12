@@ -325,7 +325,7 @@ def make_z_range_materialvertex_seed_line(
         dev_interaction_seeds_offsets_t=filtered_velo_tracks[
             "dev_output_buffer"],
         dev_consolidated_interaction_seeds_t=filtered_velo_tracks[
-            "dev_consolidated_interaction_seeds"],
+            "dev_interaction_seeds"],
         dev_event_number_of_interactions_seeds_t=filtered_velo_tracks[
             "dev_number_of_seeds"],
         min_z_materialvertex_seed=min_z_materialvertex_seed,
