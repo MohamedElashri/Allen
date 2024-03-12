@@ -103,7 +103,6 @@ Hlt1ODINNoBias:                                     0/  1000, (    0.00 +/-     
 Hlt1ODINCalib:                                      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ErrorBank:                                      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBiasVeloClosing:                       0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1VeloMicroBias:                                  0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1RICH1Alignment:                                 1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1RICH2Alignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPiAlignment:                                20/  1000, (  600.00 +/-   132.82) kHz
@@ -113,6 +112,7 @@ Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     
 Hlt1DiMuonJpsiMassAlignment:                       33/  1000, (  990.00 +/-   169.47) kHz
 Hlt1DisplacedDiMuonAlignment:                       3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1VeloMicroBias:                                  0/  1000, (    0.00 +/-     0.00) kHz
 Inclusive:                                        639/  1000, (19170.00 +/-   455.64) kHz
 
 
@@ -226,7 +226,6 @@ Hlt1ODINNoBias:                                     0           0
 Hlt1ODINCalib:                                      0           0
 Hlt1ErrorBank:                                      0           0
 Hlt1VeloMicroBiasVeloClosing:                       0           0
-Hlt1VeloMicroBias:                                  0           0
 Hlt1RICH1Alignment:                                 1           2
 Hlt1RICH2Alignment:                                 0           0
 Hlt1D2KPiAlignment:                                20          20
@@ -236,6 +235,7 @@ Hlt1DiMuonHighMassAlignment:                        0           0
 Hlt1DiMuonJpsiMassAlignment:                       33          34
 Hlt1DisplacedDiMuonAlignment:                       3           3
 Hlt1BeamGas:                                        0           0
+Hlt1VeloMicroBias:                                  0           0
 
 Total decisions:      1195
 Total tracks:         2166

@@ -240,10 +240,12 @@ def hlt1_reconstruction(algorithm_name='',
     if with_AC_split:
         velo_tracks_A_side, velo_tracks_C_side = make_velo_tracks_ACsplit(
             decoded_velo)
-        velo_states_A_side = run_velo_kalman_filter(velo_tracks_A_side)
-        velo_states_C_side = run_velo_kalman_filter(velo_tracks_C_side)
-        pvs_A_side = make_pvs(velo_tracks_A_side, pv_name="_pv_A_side")
-        pvs_C_side = make_pvs(velo_tracks_C_side, pv_name="_pv_C_side")
+        velo_states_A_side = run_velo_kalman_filter(
+            velo_tracks_A_side, name="_A_side")
+        velo_states_C_side = run_velo_kalman_filter(
+            velo_tracks_C_side, name="_C_side")
+        pvs_A_side = make_pvs(velo_tracks_A_side, pv_name="_A_side")
+        pvs_C_side = make_pvs(velo_tracks_C_side, pv_name="_C_side")
         output.update({
             "velo_tracks_A_side": velo_tracks_A_side,
             "velo_tracks_C_side": velo_tracks_C_side,
