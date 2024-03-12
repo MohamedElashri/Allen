@@ -381,7 +381,7 @@ def alignment_monitoring_lines(reconstructed_objects,
             min_z_materialvertex_seed=300,
             max_z_materialvertex_seed=1000,
             name="Hlt1MaterialVertexSeedsDownstreamz",
-            post_scaler=0.02),
+            pre_scaler=0.005),
         make_z_range_materialvertex_seed_line(
             material_interaction_tracks,
             min_z_materialvertex_seed=700,
