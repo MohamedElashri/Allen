@@ -110,7 +110,7 @@ void host_tae_filter::host_tae_filter_t::operator()(
     Allen::memcpyDeviceToHost,
     n_mask);
 
-  host_function(tae_filter)(arguments, first<host_number_of_events_t>(arguments));
+  host_function(tae_filter)(arguments, size<host_event_list_t>(arguments));
 
   auto n_selected = first<host_number_of_selected_events_t>(arguments);
   reduce_size<host_tae_events_t>(arguments, first<host_number_of_tae_events_t>(arguments));

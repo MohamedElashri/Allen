@@ -370,7 +370,6 @@ def alignment_monitoring_lines(reconstructed_objects,
     dileptons = reconstructed_objects["dilepton_secondary_vertices"]
 
     lines = [
-        make_velo_micro_bias_line(velo_tracks, name="Hlt1VeloMicroBias"),
         make_rich_1_line(
             long_tracks, long_track_particles, name="Hlt1RICH1Alignment"),
         make_rich_2_line(
@@ -412,7 +411,10 @@ def alignment_monitoring_lines(reconstructed_objects,
                     velo_tracks,
                     velo_states,
                     beam_crossing_type=1,
-                    name="Hlt1BeamGas"))
+                    name="Hlt1BeamGas")),
+            line_maker(
+                make_velo_micro_bias_line(
+                    velo_tracks, name="Hlt1VeloMicroBias"))
         ]
 
     return lines
@@ -771,8 +773,7 @@ def setup_hlt1_node(enablePhysics=True,
 
             tae_filters = CompositeNode(
                 "taefilter_node",
-                beam_beam_filter + [tae_activity_filter,
-                                    tae_filter()],
+                [tae_activity_filter, tae_filter()],
                 NodeLogic.LAZY_AND,
                 force_order=True)
         else:
@@ -792,7 +793,7 @@ def setup_hlt1_node(enablePhysics=True,
         ]
 
     velo_open_event = make_event_type(event_type="VeloOpen")
-    with line_maker.bind(prefilter=prefilters + [velo_open_event]):
+    with line_maker.bind(prefilter=odin_err_filter + gec + [velo_open_event]):
         monitoring_lines += [
             line_maker(
                 make_velo_micro_bias_line(

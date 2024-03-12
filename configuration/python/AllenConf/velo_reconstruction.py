@@ -529,12 +529,12 @@ def make_velo_tracks_ACsplit(decoded_velo):
         })
 
 
-def run_velo_kalman_filter(velo_tracks):
+def run_velo_kalman_filter(velo_tracks, name=""):
     number_of_events = initialize_number_of_events()
 
     velo_kalman_filter = make_algorithm(
         velo_kalman_filter_t,
-        name="velo_kalman_filter_{hash}",
+        name="velo_kalman_filter" + name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_number_of_reconstructed_velo_tracks_t=velo_tracks[
