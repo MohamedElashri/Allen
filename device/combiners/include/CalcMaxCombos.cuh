@@ -17,7 +17,6 @@ namespace CalcMaxCombos {
 
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT_AGGREGATE(dev_input_agg_t, Allen::IMultiEventContainer*) dev_input_agg;
     DEVICE_OUTPUT(dev_input_containers_t, Allen::IMultiEventContainer*) dev_input_containers;
     DEVICE_OUTPUT(dev_max_combos_t, unsigned) dev_max_combos;
