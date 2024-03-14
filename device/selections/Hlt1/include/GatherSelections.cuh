@@ -30,9 +30,7 @@ namespace gather_selections {
     HOST_OUTPUT(host_selections_offsets_t, unsigned) host_selections_offsets;
     HOST_OUTPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
     HOST_OUTPUT(host_names_of_active_lines_t, char) host_names_of_active_lines;
-    HOST_INPUT_AGGREGATE(host_decisions_sizes_t, unsigned) host_decisions_sizes;
-    HOST_INPUT_AGGREGATE(host_input_post_scale_factors_t, float) host_input_post_scale_factors;
-    HOST_INPUT_AGGREGATE(host_input_post_scale_hashes_t, uint32_t) host_input_post_scale_hashes;
+    HOST_INPUT_AGGREGATE(host_input_line_data_t, LineData) host_input_line_data;
     HOST_INPUT_AGGREGATE(host_fn_parameters_agg_t, char) host_fn_parameters_agg;
     DEVICE_OUTPUT(dev_fn_parameters_t, char) dev_fn_parameters;
     HOST_OUTPUT(host_fn_parameter_pointers_t, char*) host_fn_parameter_pointers;
@@ -41,14 +39,14 @@ namespace gather_selections {
     DEVICE_OUTPUT(dev_fn_indices_t, unsigned) dev_fn_indices;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
     DEVICE_INPUT(dev_odin_data_t, ODINData) dev_odin_data;
-    DEVICE_OUTPUT(dev_selections_t, bool) dev_selections;
+    DEVICE_OUTPUT(dev_selections_t, uint32_t) dev_selections;
     DEVICE_OUTPUT(dev_selections_lines_offsets_t, unsigned) dev_selections_lines_offsets;
     DEVICE_OUTPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
     DEVICE_OUTPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
-    HOST_OUTPUT(host_post_scale_factors_t, float) host_post_scale_factors;
-    HOST_OUTPUT(host_post_scale_hashes_t, uint32_t) host_post_scale_hashes;
-    DEVICE_OUTPUT(dev_post_scale_factors_t, float) dev_post_scale_factors;
-    DEVICE_OUTPUT(dev_post_scale_hashes_t, uint32_t) dev_post_scale_hashes;
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
+    DEVICE_OUTPUT(dev_line_data_t, LineData) dev_line_data;
+    DEVICE_OUTPUT(dev_pre_scale_event_lists_t, unsigned) dev_pre_scale_event_lists;
+    DEVICE_OUTPUT(dev_pre_scale_event_lists_size_t, unsigned) dev_pre_scale_event_lists_size;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_particle_containers_t,
       DEPENDENCIES(host_fn_parameters_agg_t),

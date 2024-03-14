@@ -39,35 +39,75 @@ std::vector<std::string> split(const std::string& s, char delim)
 
 namespace gather_selections {
   __global__ void
+  prescaler(gather_selections::Parameters params, const unsigned number_of_events, const unsigned number_of_lines)
+  {
+    unsigned line = blockIdx.x;
+    auto pre_scaler_hash = params.dev_line_data[line].pre_scaler_hash;
+    auto pre_scaler = params.dev_line_data[line].pre_scaler;
+    auto event_list = params.dev_line_data[line].event_list;
+    auto event_list_size = params.dev_line_data[line].event_list_size;
+
+    if (pre_scaler >= 1.f) { // No prescaler, just copy the event list
+      for (unsigned i = threadIdx.x; i < event_list_size; i += blockDim.x) {
+        auto event_number = event_list[i];
+        params.dev_pre_scale_event_lists[line * number_of_events + i] = event_number;
+      }
+      if (threadIdx.x == 0) params.dev_pre_scale_event_lists_size[line] = event_list_size;
+    }
+    else {
+      for (unsigned i = threadIdx.x; i < event_list_size; i += blockDim.x) {
+        auto event_number = event_list[i];
+        LHCb::ODIN odin {params.dev_odin_data[event_number]};
+
+        const uint32_t run_no = odin.runNumber();
+        const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
+        const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
+        const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
+        const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
+
+        if (deterministic_scaler(pre_scaler_hash, pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo)) {
+          auto index = atomicAdd(&params.dev_pre_scale_event_lists_size[line], 1);
+          params.dev_pre_scale_event_lists[line * number_of_events + index] = event_number;
+        }
+      }
+    }
+
+    if (blockIdx.x == 0) {
+      for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
+        params.dev_particle_containers[i] = params.dev_line_data[i].particle_container_ptr;
+      }
+    }
+  }
+
+  __global__ void
   run_lines(gather_selections::Parameters params, const unsigned number_of_events, const unsigned number_of_lines)
   {
-    // Process each event with a different block
-    // ODIN data
-    LHCb::ODIN odin {params.dev_odin_data[blockIdx.x]};
+    // Process each line with a different block
+    unsigned line = blockIdx.x;
+    char* input = params.dev_fn_parameter_pointers[line];
+    auto line_offset = params.dev_selections_lines_offsets[line];
 
-    const uint32_t run_no = odin.runNumber();
-    const uint32_t evt_hi = static_cast<uint32_t>(odin.eventNumber() >> 32);
-    const uint32_t evt_lo = static_cast<uint32_t>(odin.eventNumber() & 0xffffffff);
-    const uint32_t gps_hi = static_cast<uint32_t>(odin.gpsTime() >> 32);
-    const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
-
-    for (unsigned i = threadIdx.y; i < number_of_lines; i += blockDim.y) {
+    if (input == nullptr) {
+      for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
+        params.dev_selections_offsets[line * number_of_events + i] = line_offset;
+      }
+    }
+    else {
       invoke_line_functions(
-        params.dev_fn_indices[i],
-        params.dev_fn_parameter_pointers[i],
-        params.dev_selections + params.dev_selections_lines_offsets[i],
-        params.dev_selections_offsets + i * number_of_events,
-        params.dev_particle_containers + i,
-        run_no,
-        evt_hi,
-        evt_lo,
-        gps_hi,
-        gps_lo,
-        params.dev_selections_lines_offsets[i],
+        params.dev_fn_indices[line],
+        input,
+        params.dev_selections,
+        params.dev_selections_offsets + line * number_of_events,
+        params.dev_line_data + line,
+        params.dev_odin_data,
+        params.dev_pre_scale_event_lists + line * number_of_events,
+        params.dev_pre_scale_event_lists_size[line],
+        line_offset,
+        line,
         number_of_events);
     }
 
-    if (blockIdx.x == 0 && threadIdx.x == 0 && threadIdx.y == 0) {
+    if (blockIdx.x == 0 && threadIdx.x == 0) {
       params.dev_selections_offsets[number_of_lines * number_of_events] =
         params.dev_selections_lines_offsets[number_of_lines];
     }
@@ -104,34 +144,26 @@ namespace gather_selections {
     const uint32_t gps_lo = static_cast<uint32_t>(odin.gpsTime() & 0xffffffff);
 
     for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
-      auto span = sels.get_span(i, event_number);
-
-      for (unsigned j = 0; j < span.size(); ++j) {
-        if (span[j]) {
-          dev_decisions_per_event_line[event_number * number_of_lines + i] = true;
-          atomicAdd(&dev_histo_line_passes[i], 1);
-          break;
-        }
+      if (!sels.is_span_empty(i, event_number)) {
+        dev_decisions_per_event_line[event_number * number_of_lines + i] = true;
+        atomicAdd(&dev_histo_line_passes[i], 1);
       }
 
-      deterministic_post_scaler(
-        params.dev_post_scale_hashes[i],
-        params.dev_post_scale_factors[i],
-        span.size(),
-        span.data(),
-        run_no,
-        evt_hi,
-        evt_lo,
-        gps_hi,
-        gps_lo);
+      if (!deterministic_scaler(
+            params.dev_line_data[i].post_scaler_hash,
+            params.dev_line_data[i].post_scaler,
+            run_no,
+            evt_hi,
+            evt_lo,
+            gps_hi,
+            gps_lo)) {
+        sels.fill_span(i, event_number, false);
+      }
 
-      for (unsigned j = 0; j < span.size(); ++j) {
-        if (span[j]) {
-          dev_postscaled_decisions_per_event_line[event_number * number_of_lines + i] = true;
-          atomicAdd(&dev_histo_line_rates[i], 1);
-          event_decision = true;
-          break;
-        }
+      if (!sels.is_span_empty(i, event_number)) {
+        dev_postscaled_decisions_per_event_line[event_number * number_of_lines + i] = true;
+        atomicAdd(&dev_histo_line_rates[i], 1);
+        event_decision = true;
       }
     }
 
@@ -187,19 +219,17 @@ void gather_selections::gather_selections_t::set_arguments_size(
     return total_size;
   }();
 
-  const auto host_decisions_sizes = input_aggregate<host_decisions_sizes_t>(arguments);
-  const auto total_size_host_decisions_sizes = [&host_decisions_sizes]() {
+  const auto size_of_aggregates = input_aggregate<host_input_line_data_t>(arguments).size_of_aggregate();
+
+  const auto host_line_data = input_aggregate<host_input_line_data_t>(arguments);
+  const auto total_size_host_decisions_sizes = [&host_line_data]() {
     unsigned sum = 0;
-    for (unsigned i = 0; i < host_decisions_sizes.size_of_aggregate(); ++i) {
-      sum += (host_decisions_sizes.size(i) > 0) ? host_decisions_sizes.first(i) : 0;
+    for (unsigned i = 0; i < host_line_data.size_of_aggregate(); ++i) {
+      sum += (host_line_data.size(i) > 0) ? host_line_data.first(i).decisions_size : 0;
     }
     return sum;
-  }();
+  }() / 32 + size_of_aggregates * first<host_number_of_events_t>(arguments);
 
-  const auto size_of_aggregates = input_aggregate<host_decisions_sizes_t>(arguments).size_of_aggregate();
-
-  assert(input_aggregate<host_input_post_scale_factors_t>(arguments).size_of_aggregate() == size_of_aggregates);
-  assert(input_aggregate<host_input_post_scale_hashes_t>(arguments).size_of_aggregate() == size_of_aggregates);
   assert(m_indices_active_line_algorithms.size() == size_of_aggregates);
 
   set_size<host_number_of_active_lines_t>(arguments, 1);
@@ -210,10 +240,10 @@ void gather_selections::gather_selections_t::set_arguments_size(
   set_size<host_selections_offsets_t>(arguments, first<host_number_of_events_t>(arguments) * size_of_aggregates + 1);
   set_size<dev_selections_offsets_t>(arguments, first<host_number_of_events_t>(arguments) * size_of_aggregates + 1);
   set_size<dev_selections_t>(arguments, total_size_host_decisions_sizes);
-  set_size<host_post_scale_factors_t>(arguments, size_of_aggregates);
-  set_size<host_post_scale_hashes_t>(arguments, size_of_aggregates);
-  set_size<dev_post_scale_factors_t>(arguments, size_of_aggregates);
-  set_size<dev_post_scale_hashes_t>(arguments, size_of_aggregates);
+  set_size<host_line_data_t>(arguments, size_of_aggregates);
+  set_size<dev_line_data_t>(arguments, size_of_aggregates);
+  set_size<dev_pre_scale_event_lists_t>(arguments, first<host_number_of_events_t>(arguments) * size_of_aggregates);
+  set_size<dev_pre_scale_event_lists_size_t>(arguments, size_of_aggregates);
   set_size<dev_particle_containers_t>(arguments, size_of_aggregates);
   set_size<host_fn_parameters_t>(arguments, total_size_host_fn_parameters_agg);
   set_size<dev_fn_parameters_t>(arguments, total_size_host_fn_parameters_agg);
@@ -238,7 +268,21 @@ void gather_selections::gather_selections_t::operator()(
   [[maybe_unused]] const Constants& constants,
   const Allen::Context& context) const
 {
-  // Run the selection algorithms
+  // * Pass the number of lines for posterior algorithms
+  const auto host_line_data = input_aggregate<host_input_line_data_t>(arguments);
+  data<host_number_of_active_lines_t>(arguments)[0] = host_line_data.size_of_aggregate();
+  Allen::copy_async<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, context);
+
+  // === Run the prescalers
+  Allen::aggregate::store_contiguous_async<host_line_data_t, host_input_line_data_t>(arguments, context, true);
+  Allen::copy_async<dev_line_data_t, host_line_data_t>(arguments, context);
+
+  Allen::memset_async<dev_pre_scale_event_lists_size_t>(arguments, 0, context);
+
+  global_function(prescaler)(host_line_data.size_of_aggregate(), property<block_dim_x_t>().get(), context)(
+    arguments, first<host_number_of_events_t>(arguments), first<host_number_of_active_lines_t>(arguments));
+
+  // === Run the selection algorithms
   // * Aggregate parameter fns
   Allen::aggregate::store_contiguous_async<host_fn_parameters_t, host_fn_parameters_agg_t>(arguments, context);
   Allen::copy_async<dev_fn_parameters_t, host_fn_parameters_t>(arguments, context);
@@ -258,16 +302,11 @@ void gather_selections::gather_selections_t::operator()(
   }
   Allen::copy_async<dev_fn_parameter_pointers_t, host_fn_parameter_pointers_t>(arguments, context);
 
-  // * Pass the number of lines for posterior algorithms
-  const auto host_decisions_sizes = input_aggregate<host_decisions_sizes_t>(arguments);
-  data<host_number_of_active_lines_t>(arguments)[0] = host_decisions_sizes.size_of_aggregate();
-  Allen::copy_async<dev_number_of_active_lines_t, host_number_of_active_lines_t>(arguments, context);
-
   // * Calculate prefix sum of host_decisions_sizes_t sizes into host_selections_lines_offsets_t
   auto* container = data<host_selections_lines_offsets_t>(arguments);
   container[0] = 0;
-  for (size_t i = 0; i < host_decisions_sizes.size_of_aggregate(); ++i) {
-    container[i + 1] = container[i] + (host_decisions_sizes.size(i) ? host_decisions_sizes.first(i) : 0);
+  for (size_t i = 0; i < host_line_data.size_of_aggregate(); ++i) {
+    container[i + 1] = container[i] + (host_line_data.size(i) ? host_line_data.first(i).decisions_size : 0);
   }
   Allen::copy_async<dev_selections_lines_offsets_t, host_selections_lines_offsets_t>(arguments, context);
 
@@ -277,9 +316,11 @@ void gather_selections::gather_selections_t::operator()(
   }
   Allen::copy_async<dev_fn_indices_t, host_fn_indices_t>(arguments, context);
 
+  Allen::memset_async<dev_selections_t>(arguments, 0, context); // <<===
+
   // * Run all selections in one go
   global_function(gather_selections::run_lines)(
-    first<host_number_of_events_t>(arguments), dim3(warp_size, 256 / warp_size), context)(
+    host_line_data.size_of_aggregate(), property<block_dim_x_t>().get(), context)(
     arguments, first<host_number_of_events_t>(arguments), first<host_number_of_active_lines_t>(arguments));
 
   // Run monitoring if configured
@@ -293,18 +334,7 @@ void gather_selections::gather_selections_t::operator()(
   const auto line_names = std::string(property<names_of_active_lines_t>());
   line_names.copy(data<host_names_of_active_lines_t>(arguments), line_names.size());
 
-  // Populate host_post_scale_factors_t
-  Allen::aggregate::store_contiguous_async<host_post_scale_factors_t, host_input_post_scale_factors_t>(
-    arguments, context, true);
-
-  // Populate host_post_scale_hashes_t
-  Allen::aggregate::store_contiguous_async<host_post_scale_hashes_t, host_input_post_scale_hashes_t>(
-    arguments, context, true);
-
-  // Copy host_post_scale_factors_t to dev_post_scale_factors_t,
-  // and host_post_scale_hashes_t to dev_post_scale_hashes_t
-  Allen::copy_async<dev_post_scale_factors_t, host_post_scale_factors_t>(arguments, context);
-  Allen::copy_async<dev_post_scale_hashes_t, host_post_scale_hashes_t>(arguments, context);
+  // === Run the postscalers
 
   // Initialize output mask size
   Allen::memset_async<dev_event_list_output_size_t>(arguments, 0, context);
@@ -322,17 +352,6 @@ void gather_selections::gather_selections_t::operator()(
   Allen::memset_async(dev_histo_line_passes.data(), 0, dev_histo_line_passes.size() * sizeof(unsigned), context);
   Allen::memset_async(dev_histo_line_rates.data(), 0, dev_histo_line_rates.size() * sizeof(unsigned), context);
 
-  const auto host_input_post_scale_hashes = input_aggregate<host_input_post_scale_hashes_t>(arguments);
-  for (unsigned i = 0; i < host_input_post_scale_hashes.size_of_aggregate(); ++i) {
-    if (host_input_post_scale_hashes.size(i) > 0 && host_input_post_scale_hashes.first(i) == 0) {
-      std::vector<std::string> names = split(line_names, ',');
-      throw std::runtime_error(
-        "Postscaler hash was not properly initialized for " + names[i] +
-        ". Did you forget to call the line's init() ?");
-    }
-  }
-
-  // Run the postscaler
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
     arguments,
     first<host_number_of_active_lines_t>(arguments),
@@ -368,20 +387,16 @@ void gather_selections::gather_selections_t::operator()(
     const auto host_selections = make_host_buffer<dev_selections_t>(arguments, context);
     Allen::copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 
-    Selections::ConstSelections sels {reinterpret_cast<const bool*>(host_selections.data()),
-                                      data<host_selections_offsets_t>(arguments),
-                                      first<host_number_of_events_t>(arguments)};
+    Selections::ConstSelections sels {
+      host_selections.data(), data<host_selections_offsets_t>(arguments), first<host_number_of_events_t>(arguments)};
 
     std::vector<uint8_t> event_decisions {};
     for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {
       bool dec = false;
       for (auto j = 0u; j < first<host_number_of_active_lines_t>(arguments); ++j) {
         auto decs = sels.get_span(j, i);
-        bool span_decision = false;
-        for (auto k = 0u; k < decs.size(); ++k) {
-          dec |= decs[k];
-          span_decision |= decs[k];
-        }
+        bool span_decision = !sels.is_span_empty(j, i);
+        dec |= span_decision;
         std::cout << "Span (event " << i << ", line " << j << "), size " << decs.size()
                   << ", decision: " << span_decision << "\n";
       }

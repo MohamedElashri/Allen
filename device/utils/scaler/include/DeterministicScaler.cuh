@@ -95,23 +95,4 @@ namespace {
     auto x = mix64(mix32(mix64(initial_value, gps_time_hi, gps_time_lo), run_number), evt_number_hi, evt_number_lo);
     return x < accept_threshold;
   }
-
-  __device__ inline void deterministic_post_scaler(
-    const unsigned initial_value,
-    const float scale_factor,
-    const int n_candidates,
-    bool* results,
-    const uint32_t run_number,
-    const uint32_t evt_number_hi,
-    const uint32_t evt_number_lo,
-    const uint32_t gps_time_hi,
-    const uint32_t gps_time_lo)
-  {
-    if (!deterministic_scaler(
-          initial_value, scale_factor, run_number, evt_number_hi, evt_number_lo, gps_time_hi, gps_time_lo)) {
-      for (auto i_cand = 0; i_cand < n_candidates; ++i_cand) {
-        results[i_cand] = 0;
-      }
-    }
-  }
 } // namespace

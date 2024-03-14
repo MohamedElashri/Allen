@@ -28,7 +28,7 @@
 struct GaudiAllenCountAndDumpLineDecisions final : public Gaudi::Functional::Consumer<void(
                                                      const std::vector<unsigned>&,
                                                      const std::vector<char>&,
-                                                     const std::vector<char>&,
+                                                     const std::vector<unsigned>&,
                                                      const std::vector<unsigned>&)> {
   // Standard constructor
   GaudiAllenCountAndDumpLineDecisions(const std::string& name, ISvcLocator* pSvcLocator);
@@ -36,7 +36,7 @@ struct GaudiAllenCountAndDumpLineDecisions final : public Gaudi::Functional::Con
   void operator()(
     const std::vector<unsigned>& allen_number_of_active_lines,
     const std::vector<char>& allen_names_of_active_lines,
-    const std::vector<char>& allen_selections,
+    const std::vector<unsigned>& allen_selections,
     const std::vector<unsigned>& allen_selections_offsets) const override;
 
 private:
@@ -84,7 +84,7 @@ GaudiAllenCountAndDumpLineDecisions::GaudiAllenCountAndDumpLineDecisions(
 void GaudiAllenCountAndDumpLineDecisions::operator()(
   const std::vector<unsigned>& allen_number_of_active_lines,
   const std::vector<char>& allen_names_of_active_lines,
-  const std::vector<char>& allen_selections,
+  const std::vector<unsigned>& allen_selections,
   const std::vector<unsigned>& allen_selections_offsets) const
 {
   assert(allen_number_of_active_lines[0] == m_hlt1_line_rates.size());
@@ -98,17 +98,13 @@ void GaudiAllenCountAndDumpLineDecisions::operator()(
   const unsigned number_of_events = 1;
 
   // Selections view
-  const Selections::Selections_t<const char> selections {
+  const Selections::ConstSelections selections {
     allen_selections.data(), allen_selections_offsets.data(), number_of_events};
 
   // Increment counters
   bool global_dec = false;
   for (unsigned line_index = 0; line_index < allen_number_of_active_lines[0]; line_index++) {
-    bool line_dec = false;
-    auto decs = selections.get_span(line_index, i_event);
-    for (unsigned idec = 0; idec < decs.size(); idec++)
-      line_dec |= decs[idec];
-
+    bool line_dec = !selections.is_span_empty(line_index, i_event);
     m_hlt1_line_rates[line_index] += line_dec;
     global_dec |= line_dec;
   }

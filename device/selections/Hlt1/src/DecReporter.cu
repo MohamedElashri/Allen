@@ -68,14 +68,9 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
 
   for (unsigned line_index = threadIdx.x; line_index < reports.number_of_lines(); line_index += blockDim.x) {
     // Iterate all elements and get a decision for the current {event, line}
-    bool final_decision = false;
-    auto decs = selections.get_span(line_index, event_index);
-    for (unsigned i = 0; i < decs.size(); ++i) {
-      final_decision |= decs[i];
-      if (decs[i]) {
-        event_selected_candidates_counts[line_index]++;
-      }
-    }
+    auto span_popcount = selections.count_span_population(line_index, event_index);
+    bool final_decision = span_popcount > 0;
+    event_selected_candidates_counts[line_index] = span_popcount;
 
     reports.set_dec_report(
       line_index,

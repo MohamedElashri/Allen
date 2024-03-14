@@ -15,7 +15,7 @@
 namespace calc_lumi_sum_size {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    DEVICE_INPUT(dev_selections_t, bool) dev_selections;
+    DEVICE_INPUT(dev_selections_t, uint32_t) dev_selections;
     DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
     DEVICE_OUTPUT(dev_lumi_sum_sizes_t, unsigned) dev_lumi_sum_sizes;
     DEVICE_OUTPUT(dev_lumi_sum_present_t, unsigned) dev_lumi_sum_present;

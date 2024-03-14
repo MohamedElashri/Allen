@@ -36,11 +36,7 @@ namespace two_calo_clusters_line {
     dev_cluster_particle_container;
     DEVICE_INPUT(dev_number_of_pvs_t, unsigned) dev_number_of_pvs;
 
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
 
