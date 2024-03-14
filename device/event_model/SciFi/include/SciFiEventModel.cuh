@@ -339,6 +339,8 @@ namespace SciFi {
     uint16_t charge_seed;
     uint16_t hits[SciFi::Constants::max_track_size];
     uint8_t hitsNum = 0;
+    uint8_t XhitsNum = 0;
+    uint8_t UVhitsNum = 0;
 
     TrackHits() = default;
     TrackHits(const TrackHits&) = default;
@@ -519,5 +521,6 @@ namespace SciFi {
     int number_of_hits_scifi = 0;
     float chi2_matching;
     float qop;
+    float ghost_probability;
   };
 } // namespace SciFi

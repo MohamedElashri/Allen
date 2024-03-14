@@ -33,8 +33,13 @@ __global__ void create_matched_views(matching_consolidate_tracks::Parameters par
     parameters.dev_accepted_and_unused_velo_tracks[velo_track->track_container_offset() + velo_track->track_index()] =
       0;
 
-    new (parameters.dev_long_track_view + event_tracks_offset + track_index) Allen::Views::Physics::LongTrack {
-      velo_track, nullptr, scifi_track, nullptr, parameters.dev_matched_qop + event_tracks_offset + track_index};
+    new (parameters.dev_long_track_view + event_tracks_offset + track_index)
+      Allen::Views::Physics::LongTrack {velo_track,
+                                        nullptr,
+                                        scifi_track,
+                                        nullptr,
+                                        parameters.dev_matched_qop + event_tracks_offset + track_index,
+                                        parameters.dev_matched_ghost_probability + event_tracks_offset + track_index};
   }
   if (threadIdx.x == 0) {
     new (parameters.dev_long_tracks_view + event_number)
@@ -55,6 +60,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::set_arguments_s
   set_size<dev_matched_track_hits_t>(
     arguments, first<host_accumulated_number_of_hits_in_matched_tracks_t>(arguments) * sizeof(SciFi::Hit));
   set_size<dev_matched_qop_t>(arguments, first<host_number_of_reconstructed_matched_tracks_t>(arguments));
+  set_size<dev_matched_ghost_probability_t>(arguments, first<host_number_of_reconstructed_matched_tracks_t>(arguments));
   set_size<dev_scifi_states_t>(arguments, first<host_number_of_reconstructed_matched_tracks_t>(arguments));
   set_size<dev_matched_track_velo_indices_t>(
     arguments, first<host_number_of_reconstructed_matched_tracks_t>(arguments));
@@ -200,6 +206,8 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
   MiniState* scifi_states = parameters.dev_scifi_states + parameters.dev_atomics_matched[event_number];
 
   float* tracks_qop = parameters.dev_matched_qop + parameters.dev_atomics_matched[event_number];
+  float* tracks_ghsot_probability =
+    parameters.dev_matched_ghost_probability + parameters.dev_atomics_matched[event_number];
   unsigned int* tracks_velo_indices =
     parameters.dev_matched_track_velo_indices + parameters.dev_atomics_matched[event_number];
   unsigned int* tracks_scifi_indices =
@@ -210,6 +218,7 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
   for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
     const SciFi::MatchedTrack& track = event_matched_tracks[i];
     tracks_qop[i] = track.qop;
+    tracks_ghsot_probability[i] = track.ghost_probability;
     tracks_velo_indices[i] = track.velo_track_index;
     tracks_scifi_indices[i] = track.scifi_track_index;
     scifi_states[i] = seeding_states[track.scifi_track_index];

@@ -64,7 +64,8 @@ namespace lf_create_tracks {
       "maximum_number_of_triplets_per_warp",
       unsigned)
     maximum_number_of_triplets_per_warp;
-    PROPERTY(uv_hits_chi2_factor_t, "uv_hits_chi2_factor", "uv_hits_chi2_factor", float) uv_hits_chi2_factor;
+    PROPERTY(uv_hits_chi2_factor_x_t, "uv_hits_chi2_factor_x", "uv_hits_chi2_factor_x", float) uv_hits_chi2_factor_x;
+    PROPERTY(uv_hits_chi2_factor_y_t, "uv_hits_chi2_factor_y", "uv_hits_chi2_factor_y", float) uv_hits_chi2_factor_y;
   };
 
   __global__ void lf_triplet_keep_best(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
@@ -89,6 +90,7 @@ namespace lf_create_tracks {
     Property<max_triplets_per_input_track_t> m_max_triplets_per_input_track {this, 12};
     Property<maximum_number_of_triplets_per_warp_t> m_maximum_number_of_triplets_per_warp {this, 64};
     Property<chi2_max_extrapolation_to_x_layers_single_t> m_chi2_max_extrapolation_to_x_layers_single {this, 2.};
-    Property<uv_hits_chi2_factor_t> m_uv_hits_chi2_factor {this, 50.};
+    Property<uv_hits_chi2_factor_x_t> m_uv_hits_chi2_factor_x {this, 50.};
+    Property<uv_hits_chi2_factor_y_t> m_uv_hits_chi2_factor_y {this, 50.};
   };
 } // namespace lf_create_tracks

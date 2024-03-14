@@ -109,4 +109,25 @@ private:
   ConfiguredSequence m_configured_sequence;
 };
 
+struct SingleLayerFCNNReader {
+  SingleLayerFCNNReader(const std::string& file_name);
+
+  const auto& mean() const { return m_mean; }
+  const auto& std() const { return m_std; }
+  const auto& weights1() const { return m_weights1; }
+  const auto& bias1() const { return m_bias1; }
+  const auto& weights2() const { return m_weights2; }
+  const auto& bias2() const { return m_bias2; }
+
+private:
+  unsigned m_num_node;
+  unsigned m_num_input;
+  std::vector<float> m_mean;
+  std::vector<float> m_std;
+  std::vector<std::vector<float>> m_weights1;
+  std::vector<float> m_bias1;
+  std::vector<float> m_weights2;
+  float m_bias2;
+};
+
 #endif

@@ -84,6 +84,7 @@ def make_forward_tracks(
         input_tracks,
         dev_accepted_velo_tracks,
         with_ut=True,
+        ghost_killer_threshold=0.5,
         scifi_consolidate_tracks_name='scifi_consolidate_tracks'):
     number_of_events = initialize_number_of_events()
 
@@ -108,9 +109,18 @@ def make_forward_tracks(
         #create tracks
         max_triplets_per_input_track = 12
         chi2_max_extrapolation_to_x_layers_single = 2.
-        uv_hits_chi2_factor = 50.
+        uv_hits_chi2_factor_x = 50.
+        uv_hits_chi2_factor_y = 50.
         #quality factor
         max_diff_ty_window = 0.02
+        max_final_quality = 0.5
+        min_tot_scifi_hits = 9
+        min_UV_scifi_hits = 3
+        min_X_scifi_hits = 3
+        factor_9_hits = 5.
+        factor_10_hits = 1.
+        factor_11_hits = 0.8
+        factor_12_hits = 0.5
     else:
         velo_tracks = input_tracks
         dev_offsets_all_velo_tracks = velo_tracks[
@@ -130,13 +140,23 @@ def make_forward_tracks(
         #triplet seeding
         maximum_number_of_triplets_per_warp = 64
         chi2_max_triplet_single = 2.0
-        z_mag_difference = 12.
+        z_mag_difference = 8.
         #create tracks
-        max_triplets_per_input_track = 20
+        max_triplets_per_input_track = 10
         chi2_max_extrapolation_to_x_layers_single = 0.5
-        uv_hits_chi2_factor = 15.
+        uv_hits_chi2_factor_x = 15.
+        uv_hits_chi2_factor_y = 5.
         #quality factor
         max_diff_ty_window = 0.003
+
+        max_final_quality = 0.6
+        min_tot_scifi_hits = 9
+        min_UV_scifi_hits = 4
+        min_X_scifi_hits = 3
+        factor_9_hits = 5.
+        factor_10_hits = 3.
+        factor_11_hits = 2.
+        factor_12_hits = 0.
 
     dev_offsets_all_velo_tracks = velo_tracks["dev_offsets_all_velo_tracks"]
     host_number_of_reconstructed_velo_tracks = velo_tracks[
@@ -231,7 +251,8 @@ def make_forward_tracks(
         dev_scifi_lf_number_of_found_triplets_t,
         chi2_max_extrapolation_to_x_layers_single=
         chi2_max_extrapolation_to_x_layers_single,
-        uv_hits_chi2_factor=uv_hits_chi2_factor,
+        uv_hits_chi2_factor_x=uv_hits_chi2_factor_x,
+        uv_hits_chi2_factor_y=uv_hits_chi2_factor_y,
         max_triplets_per_input_track=max_triplets_per_input_track,
         maximum_number_of_triplets_per_warp=maximum_number_of_triplets_per_warp,
         dev_scifi_lf_number_of_tracks_t=lf_search_initial_windows.
@@ -252,7 +273,10 @@ def make_forward_tracks(
         dev_scifi_lf_atomics_t=lf_create_tracks.dev_scifi_lf_atomics_t,
         dev_scifi_lf_parametrization_t=lf_create_tracks.
         dev_scifi_lf_parametrization_t,
-        maximum_number_of_candidates_per_ut_track=max_triplets_per_input_track)
+        maximum_number_of_candidates_per_ut_track=max_triplets_per_input_track,
+        min_tot_scifi_hits=min_tot_scifi_hits,
+        min_UV_scifi_hits=min_UV_scifi_hits,
+        min_X_scifi_hits=min_X_scifi_hits)
 
     lf_quality_filter = make_algorithm(
         lf_quality_filter_t,
@@ -272,7 +296,13 @@ def make_forward_tracks(
         dev_scifi_lf_parametrization_length_filter_t,
         dev_input_states_t=lf_search_initial_windows.dev_input_states_t,
         maximum_number_of_candidates_per_ut_track=max_triplets_per_input_track,
-        max_diff_ty_window=max_diff_ty_window)
+        max_diff_ty_window=max_diff_ty_window,
+        max_final_quality=max_final_quality,
+        factor_9_hits=factor_9_hits,
+        factor_10_hits=factor_10_hits,
+        factor_11_hits=factor_11_hits,
+        factor_12_hits=factor_12_hits,
+        ghost_killer_threshold=ghost_killer_threshold)
 
     prefix_sum_forward_tracks = make_algorithm(
         host_prefix_sum_t,
@@ -406,6 +436,9 @@ def make_seeding_tracks(
             "seed_xz_tracks_part0"],
         dev_seeding_number_of_tracksXZ_part1_t=xz_tracks[
             "seed_xz_tracks_part1"],
+        tuning_nhits=10,
+        tuning_tol_chi2=100,
+        tuning_tol=0.8,
     )
 
     prefix_sum_seeding_tracks = make_algorithm(

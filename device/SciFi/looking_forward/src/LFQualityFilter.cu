@@ -9,7 +9,6 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "LFQualityFilter.cuh"
-#include <climits>
 
 INSTANTIATE_ALGORITHM(lf_quality_filter::lf_quality_filter_t)
 
@@ -28,7 +27,7 @@ void lf_quality_filter::lf_quality_filter_t::set_arguments_size(
       property<maximum_number_of_candidates_per_ut_track_t>());
   set_size<dev_scifi_lf_parametrization_consolidate_t>(
     arguments,
-    6 * first<host_number_of_reconstructed_input_tracks_t>(arguments) *
+    7 * first<host_number_of_reconstructed_input_tracks_t>(arguments) *
       SciFi::Constants::max_SciFi_tracks_per_UT_track);
   set_size<dev_lf_quality_of_tracks_t>(
     arguments,
@@ -43,21 +42,38 @@ namespace geom {
 void lf_quality_filter::lf_quality_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants&,
+  const Constants& constants,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_atomics_scifi_t>(arguments, 0, context);
 
   global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+    arguments, constants.dev_forward_ghost_killer, constants.dev_forward_no_ut_ghost_killer);
 
   if (property<verbosity_t>() >= logger::debug) {
     print<dev_atomics_scifi_t>(arguments);
   }
 }
 
+namespace {
+
+  __device__ inline MiniState get_scifi_state(float x0, float tx, float curvature, float d_ratio, float y0, float ty)
+  {
+    const auto dz = SciFi::Constants::ZEndT - LookingForward::z_mid_t;
+    return MiniState {x0 + tx * dz + curvature * dz * dz * (1.f + d_ratio * dz),
+                      y0 + ty * SciFi::Constants::ZEndT,
+                      SciFi::Constants::ZEndT,
+                      tx + 2.f * dz * curvature + 3.f * dz * dz * curvature * d_ratio,
+                      ty};
+  }
+
+} // namespace
+
 template<bool with_ut, typename T>
-__device__ void quality_filter(lf_quality_filter::Parameters parameters, const T* tracks)
+__device__ void quality_filter(
+  lf_quality_filter::Parameters parameters,
+  const T* tracks,
+  const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_ghost_killer)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -136,16 +152,16 @@ __device__ void quality_filter(lf_quality_filter::Parameters parameters, const T
 
     // Apply multipliers to quality of tracks depending on number of hits
     if (track.hitsNum == 9) {
-      updated_track_quality *= LookingForward::track_9_hits_quality_multiplier;
+      updated_track_quality *= parameters.factor_9_hits;
     }
     else if (track.hitsNum == 10) {
-      updated_track_quality *= LookingForward::track_10_hits_quality_multiplier;
+      updated_track_quality *= parameters.factor_10_hits;
     }
     else if (track.hitsNum == 11) {
-      updated_track_quality *= LookingForward::track_11_hits_quality_multiplier;
+      updated_track_quality *= parameters.factor_11_hits;
     }
     else if (track.hitsNum == 12) {
-      updated_track_quality *= LookingForward::track_12_hits_quality_multiplier;
+      updated_track_quality *= parameters.factor_12_hits;
     }
 
     parameters.dev_scifi_quality_of_tracks[scifi_track_index] = updated_track_quality;
@@ -160,7 +176,7 @@ __device__ void quality_filter(lf_quality_filter::Parameters parameters, const T
   __syncthreads();
 
   for (int i = threadIdx.x; i < event_number_of_tracks; i += blockDim.x) {
-    float best_quality = LookingForward::quality_filter_max_quality;
+    float best_quality = parameters.max_final_quality;
     int best_track_index = -1;
     assert(number_of_tracks < INT_MAX); // assertion to make sure best_track_index is in range
     for (unsigned j = 0; j < number_of_tracks; j++) {
@@ -176,16 +192,8 @@ __device__ void quality_filter(lf_quality_filter::Parameters parameters, const T
 
     if (best_track_index != -1) {
 
-      const int insert_index = atomicAdd(parameters.dev_atomics_scifi + event_number, 1);
-      assert(insert_index < event_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track);
-
       const auto scifi_track_index = event_tracks_offset * maximum_number_of_candidates_per_ut_track + best_track_index;
       const auto& track = parameters.dev_scifi_lf_length_filtered_tracks[scifi_track_index];
-
-      const auto new_scifi_track_index =
-        event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index;
-      parameters.dev_scifi_tracks[new_scifi_track_index] = track;
-
       // Save track parameters to last container as well
       const auto a1 = parameters.dev_scifi_lf_parametrization_length_filter[scifi_track_index];
       const auto b1 = parameters.dev_scifi_lf_parametrization_length_filter
@@ -199,32 +207,73 @@ __device__ void quality_filter(lf_quality_filter::Parameters parameters, const T
       const auto y_m = parameters.dev_scifi_lf_y_parametrization_length_filter
                          [total_number_of_tracks * maximum_number_of_candidates_per_ut_track + scifi_track_index];
 
-      parameters.dev_scifi_lf_parametrization_consolidate[new_scifi_track_index] = a1;
-      parameters.dev_scifi_lf_parametrization_consolidate
-        [total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = b1;
-      parameters.dev_scifi_lf_parametrization_consolidate
-        [2 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = c1;
-      parameters.dev_scifi_lf_parametrization_consolidate
-        [3 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] =
-        d_ratio;
-      parameters.dev_scifi_lf_parametrization_consolidate
-        [4 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = y_b;
-      parameters.dev_scifi_lf_parametrization_consolidate
-        [5 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = y_m;
+      const auto scifi_state = get_scifi_state(c1, b1, a1, d_ratio, y_b, y_m);
+
+      const auto velo_state = parameters.dev_input_states[event_tracks_offset + track.input_track_index];
+
+      // Prepare inputs for ghost killer
+      constexpr float zMatchY = 10000.f;
+      constexpr float zMatchX = 5000.f;
+      const auto scifi_x0 = scifi_state.x() - scifi_state.tx() * scifi_state.z();
+      const auto velo_x0 = velo_state.x() - velo_state.tx() * velo_state.z();
+      const auto scifi_y0 = scifi_state.y() - scifi_state.ty() * scifi_state.z();
+      const auto velo_y0 = velo_state.y() - velo_state.ty() * velo_state.z();
+      const auto zMagnet = (velo_x0 - scifi_x0) / (scifi_state.tx() - velo_state.tx());
+      const auto distX = (velo_x0 + velo_state.tx() * zMatchX) - (scifi_x0 + scifi_state.tx() * zMatchX);
+      const auto distY = (velo_y0 + velo_state.ty() * zMatchY) - (scifi_y0 + scifi_state.ty() * zMatchY);
+      const auto dSlopeX = scifi_state.tx() - velo_state.tx();
+      const auto dSlopeY = scifi_state.ty() - velo_state.ty();
+      const auto velo_rho = hypotf(velo_state.tx(), velo_state.ty());
+      const auto velo_eta = asinhf(1.f / velo_rho);
+
+      float ghost_killer_inputs[Allen::NeuralNetwork::Model::ForwardGhostKiller::nInput] = {
+        zMagnet, distX, distY, dSlopeX, dSlopeY, velo_eta, logf(best_quality)};
+
+      const auto ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_forward_ghost_killer, ghost_killer_inputs);
+
+      if (ghost_killer_score < parameters.ghost_killer_threshold.get()) {
+        const int insert_index = atomicAdd(parameters.dev_atomics_scifi + event_number, 1);
+        assert(insert_index < event_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track);
+
+        const auto new_scifi_track_index =
+          event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track + insert_index;
+        // track.ghost_probability = ghost_killer_score;
+        parameters.dev_scifi_tracks[new_scifi_track_index] = track;
+
+        // Save track parameters to last container as well
+        parameters.dev_scifi_lf_parametrization_consolidate[new_scifi_track_index] = a1;
+        parameters.dev_scifi_lf_parametrization_consolidate
+          [total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = b1;
+        parameters.dev_scifi_lf_parametrization_consolidate
+          [2 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = c1;
+        parameters.dev_scifi_lf_parametrization_consolidate
+          [3 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] =
+          d_ratio;
+        parameters.dev_scifi_lf_parametrization_consolidate
+          [4 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = y_b;
+        parameters.dev_scifi_lf_parametrization_consolidate
+          [5 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] = y_m;
+        parameters.dev_scifi_lf_parametrization_consolidate
+          [6 * total_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track + new_scifi_track_index] =
+          ghost_killer_score;
+      }
     }
   }
 }
 
-__global__ void lf_quality_filter::lf_quality_filter(lf_quality_filter::Parameters parameters)
+__global__ void lf_quality_filter::lf_quality_filter(
+  lf_quality_filter::Parameters parameters,
+  const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_ghost_killer,
+  const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_no_ut_ghost_killer)
 {
   const auto* ut_tracks =
     Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    quality_filter<true>(parameters, ut_tracks);
+    quality_filter<true>(parameters, ut_tracks, dev_forward_ghost_killer);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    quality_filter<false>(parameters, velo_tracks);
+    quality_filter<false>(parameters, velo_tracks, dev_forward_no_ut_ghost_killer);
   }
 }

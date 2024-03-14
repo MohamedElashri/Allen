@@ -1055,6 +1055,16 @@ namespace Categories {
          [](MCParticles::const_reference& mcp) {
            return mcp.isLong && mcp.fromStrangeDecay && !mcp.isElectron() && mcp.inEta2_5();
          },
+       }),
+       HistoCategory({
+         "Long_fromSignal",
+         [](MCParticles::const_reference& mcp) { return mcp.isLong && mcp.fromSignal && mcp.inEta2_5(); },
+       }),
+       HistoCategory({
+         "Long_fromSignal_notElectrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromSignal && !mcp.isElectron() && mcp.inEta2_5();
+         },
        })}};
   }
 
@@ -1566,6 +1576,16 @@ namespace Categories {
          [](MCParticles::const_reference& mcp) {
            return !mcp.hasVelo && mcp.isDown && abs(mcp.mother_pid) == 3122 && mcp.p > 5e3f && mcp.pt > 5e2f &&
                   mcp.isElectron() && mcp.inEta2_5();
+         },
+       }),
+       HistoCategory({
+         "Long_fromSignal",
+         [](MCParticles::const_reference& mcp) { return mcp.isLong && mcp.fromSignal && mcp.inEta2_5(); },
+       }),
+       HistoCategory({
+         "Long_fromSignal_notElectrons",
+         [](MCParticles::const_reference& mcp) {
+           return mcp.isLong && mcp.fromSignal && !mcp.isElectron() && mcp.inEta2_5();
          },
        })
 

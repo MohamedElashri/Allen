@@ -18,6 +18,7 @@
 #include "InputReader.h"
 #include "RegisterConsumers.h"
 #include "Constants.cuh"
+#include "NeuralNetworkDefinition.cuh"
 #include "BankTypes.h"
 #include "Logger.h"
 
@@ -113,6 +114,38 @@ StatusCode ProvideConstants::initialize()
     two_track_mva_model_reader.monotone_constraints(),
     two_track_mva_model_reader.nominal_cut(),
     two_track_mva_model_reader.lambda());
+
+  // Ghost killers
+  SingleLayerFCNNReader forward_ghostkiller_reader {geometry_path +
+                                                    "/GhostProbability/Hlt1_LongGhostKiller_Forward.json"};
+  m_constants.initialize_forward_ghostkiller_constants(
+    forward_ghostkiller_reader.mean(),
+    forward_ghostkiller_reader.std(),
+    forward_ghostkiller_reader.weights1(),
+    forward_ghostkiller_reader.bias1(),
+    forward_ghostkiller_reader.weights2(),
+    forward_ghostkiller_reader.bias2());
+  SingleLayerFCNNReader forward_no_ut_ghostkiller_reader {geometry_path +
+                                                          "/GhostProbability/Hlt1_LongGhostKiller_noUT_Forward.json"};
+  m_constants.initialize_forward_no_ut_ghostkiller_constants(
+    forward_no_ut_ghostkiller_reader.mean(),
+    forward_no_ut_ghostkiller_reader.std(),
+    forward_no_ut_ghostkiller_reader.weights1(),
+    forward_no_ut_ghostkiller_reader.bias1(),
+    forward_no_ut_ghostkiller_reader.weights2(),
+    forward_no_ut_ghostkiller_reader.bias2());
+  SingleLayerFCNNReader matching_ghostkiller_reader {geometry_path +
+                                                     "/GhostProbability/Hlt1_LongGhostKiller_Matching.json"};
+  m_constants.initialize_matching_ghostkiller_constants(
+    matching_ghostkiller_reader.mean(),
+    matching_ghostkiller_reader.std(),
+    matching_ghostkiller_reader.weights1(),
+    matching_ghostkiller_reader.bias1(),
+    matching_ghostkiller_reader.weights2(),
+    matching_ghostkiller_reader.bias2());
+
+  // std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, matching_no_ut_ghostkiller_reader,
+  // forward_ghostkiller_reader, matching_ghostkiller_reader;
 
   m_constants.initialize_electronid_mva_model_constants(
     electronid_mva_model_reader.weights(),

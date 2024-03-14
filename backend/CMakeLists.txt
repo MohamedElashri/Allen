@@ -35,6 +35,8 @@ target_link_libraries(AllenRuntime INTERFACE umesimd::umesimd)
 # Backend library
 allen_add_host_library(Backend STATIC ${backend_sources})
 target_link_libraries(Backend PUBLIC AllenRuntime Gear AllenCommon)
+install(TARGETS Backend EXPORT Allen)
+
 
 set(BackendHeaders)
 foreach(header

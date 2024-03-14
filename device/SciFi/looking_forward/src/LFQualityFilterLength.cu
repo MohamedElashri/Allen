@@ -60,8 +60,10 @@ __device__ void quality_filter_length(lf_quality_filter_length::Parameters param
   for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     const auto scifi_track_index = event_tracks_offset * maximum_number_of_candidates_per_ut_track + i;
     const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
+    if (
+      track.hitsNum >= parameters.min_tot_scifi_hits && track.UVhitsNum >= parameters.min_UV_scifi_hits &&
+      track.XhitsNum >= parameters.min_X_scifi_hits) {
 
-    if (track.hitsNum >= LookingForward::track_min_hits) {
       const auto insert_index = atomicAdd(parameters.dev_scifi_lf_length_filtered_atomics + event_number, 1);
 
       const auto new_scifi_track_index = event_tracks_offset * maximum_number_of_candidates_per_ut_track + insert_index;

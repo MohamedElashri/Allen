@@ -49,7 +49,7 @@ namespace seed_confirmTracks_consolidate {
     dev_scifi_hits_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_track_view_t,
-      DEPENDENCIES(dev_scifi_hits_view_t),
+      DEPENDENCIES(dev_scifi_hits_view_t, dev_seeding_qop_t),
       Allen::Views::SciFi::Consolidated::Track)
     dev_scifi_track_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(

@@ -31,7 +31,6 @@ __device__ void extend_tracks(
                                                        LookingForward::InputUT::number_of_elements_initial_window :
                                                        LookingForward::InputVelo::number_of_elements_initial_window;
 
-  const unsigned uv_hits_chi2_factor = parameters.uv_hits_chi2_factor;
   const unsigned max_triplets_per_input_track = parameters.max_triplets_per_input_track;
   const float chi2_max_extrapolation_to_x_layers_single = parameters.chi2_max_extrapolation_to_x_layers_single;
 
@@ -98,6 +97,8 @@ __device__ void extend_tracks(
       // Binary search of candidate
       const auto candidate_index = binary_search_leftmost(scifi_hits_x0, window_size, predicted_x);
 
+      track.XhitsNum = 3;
+
       // It is now either candidate_index - 1 or candidate_index
       for (int h4_rel = candidate_index - 1; h4_rel < candidate_index + 1; ++h4_rel) {
         if (h4_rel >= 0 && h4_rel < window_size) {
@@ -113,12 +114,14 @@ __device__ void extend_tracks(
 
       if (best_index != -1) {
         track.add_hit_with_quality((uint16_t)(window_start + best_index), best_chi2);
+        track.XhitsNum += 1;
       }
     }
 
     // Normalize track quality
     track.quality *= (1.f / chi2_max_extrapolation_to_x_layers_single);
 
+    track.UVhitsNum = 0;
     // Add UV hits
     for (int relative_uv_layer = 0; relative_uv_layer < 6; relative_uv_layer++) {
       const auto z4 = geom::dev_average_z_uv_layers[relative_uv_layer];
@@ -159,8 +162,8 @@ __device__ void extend_tracks(
       // +-2 mm windows is ok (2^{2}  = 4) . If we have large slope the error on x can be big,  For super peripheral
       // tracks ( delta-slope = 0.3, ty = 0.3) you want to open up up to : sqrt(4+60*0.3+60*0.3) = 6 mm windows. Anyway,
       // we need some retuning of this scaling windows.
-      const float max_chi2 =
-        uv_hits_chi2_factor * fabsf(input_state.ty()) + uv_hits_chi2_factor * fabsf(input_state.tx());
+      const float max_chi2 = parameters.uv_hits_chi2_factor_y * fabsf(input_state.ty()) +
+                             parameters.uv_hits_chi2_factor_x * fabsf(input_state.tx());
 
       int best_index = -1;
       float best_chi2 = max_chi2;
@@ -185,6 +188,7 @@ __device__ void extend_tracks(
 
       if (best_index != -1) {
         track.add_hit_with_quality((uint16_t) uv_window_start + best_index, best_chi2 / max_chi2);
+        track.UVhitsNum += 1;
       }
     }
   }

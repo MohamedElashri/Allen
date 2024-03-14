@@ -22,6 +22,7 @@ def make_velo_scifi_matches(
         velo_kalman_filter,
         seeding_tracks,
         accepted_velo_tracks=None,
+        ghost_killer_threshold=0.5,
         matching_consolidate_tracks_name='matching_consolidate_tracks'):
     number_of_events = initialize_number_of_events()
 
@@ -54,7 +55,12 @@ def make_velo_scifi_matches(
         dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
         dev_ut_number_of_selected_velo_tracks_t,
         dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
-        dev_ut_selected_velo_tracks_t)
+        dev_ut_selected_velo_tracks_t,
+        multiplication_factor_dX=1.5,
+        multiplication_factor_dY=0.2,
+        multiplication_factor_dty=937.5,
+        multiplication_factor_dtx=2.0,
+        ghost_killer_threshold=ghost_killer_threshold)
 
     prefix_sum_matched_tracks = make_algorithm(
         host_prefix_sum_t,

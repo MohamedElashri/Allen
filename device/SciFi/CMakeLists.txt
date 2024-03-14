@@ -34,3 +34,7 @@ target_include_directories(SciFi PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/looking_forward/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/consolidate/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/track_combiner/include>)
+
+target_include_directories(WrapperInterface INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/consolidate/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/looking_forward/include>)

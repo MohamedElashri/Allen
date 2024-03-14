@@ -156,11 +156,11 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
                                      parameters.dev_seeding_number_of_tracksXZ_part1[event_number];
         endTrack += startTrack;
         for (int iTrack = startTrack + threadIdx.x; iTrack < endTrack; iTrack += blockDim.x) {
-          constexpr int TUNING_NHITS = 10;        // FIXME
-          constexpr float TUNING_TOLCHI2 = 100.f; // FIXME
-          constexpr float TUNING_TOL = 1.f;       // FIXME
+          int tuning_nhits = parameters.tuning_nhits;
+          float tuning_tol_chi2 = parameters.tuning_tol_chi2;
+          float tuning_tol = parameters.tuning_tol;
           const auto xTrack = xTracks[iTrack];
-          const unsigned int nTarget = TUNING_NHITS - xTrack.number_of_hits;
+          const unsigned int nTarget = tuning_nhits - xTrack.number_of_hits;
           // Calculate the predicted x(z) position of the track in all U/V layers
           float dz, dz2;
           float xPred[nLayers];
@@ -170,7 +170,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
             xPred[iLayer] = xTrack.ax + xTrack.bx * dz + xTrack.cx * dz2;
           }
           // Collect hits in the first layer and parallelise over them as well. There are up to few tens of them
-          float bestChi2Ndof = TUNING_TOLCHI2;
+          float bestChi2Ndof = tuning_tol_chi2;
           seed_uv::multiHitCombination bestHitComb;
           // For each hit in first layer and tolerance, look for hit combinations that match that hypothesis
           unsigned int minXPredIdx[nLayers], nIdx[nLayers];
@@ -198,7 +198,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
               if (hitComb.number_of_hits + (nLayers - iRemaining) < nTarget) break;
               float xMeasPred = xPred[iRemaining] - ty * dev_average_dxdy[iRemaining] * dev_average_z[iRemaining];
               hitComb.idx[iRemaining] =
-                findHit(TUNING_TOL, xMeasPred, minXPredIdx[iRemaining], nIdx[iRemaining], hits.layer(iRemaining));
+                findHit(tuning_tol, xMeasPred, minXPredIdx[iRemaining], nIdx[iRemaining], hits.layer(iRemaining));
               if (hitComb.idx[iRemaining] != SciFi::Constants::INVALID_IDX) {
                 hitComb.y[iRemaining] =
                   (xPred[iRemaining] - hits.hit(iRemaining, hitComb.idx[iRemaining])) / dev_average_dxdy[iRemaining];
@@ -208,7 +208,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
                 ++hitComb.number_of_hits;
               }
             }
-            if (xTrack.number_of_hits + hitComb.number_of_hits < TUNING_NHITS) continue;
+            if (xTrack.number_of_hits + hitComb.number_of_hits < tuning_nhits) continue;
             if (hitComb.number_of_hits < bestHitComb.number_of_hits) continue;
             fitYZ(hitComb);
             if (hitComb.number_of_hits == bestHitComb.number_of_hits && hitComb.chi2 > bestChi2Ndof) continue;
@@ -231,7 +231,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
               float xMeasPred = xPred[iRemaining] - ty * dev_average_dxdy[iRemaining] * dev_average_z[iRemaining];
 
               hitComb.idx[iRemaining] =
-                findHit(TUNING_TOL, xMeasPred, minXPredIdx[iRemaining], nIdx[iRemaining], hits.layer(iRemaining));
+                findHit(tuning_tol, xMeasPred, minXPredIdx[iRemaining], nIdx[iRemaining], hits.layer(iRemaining));
               if (hitComb.idx[iRemaining] != SciFi::Constants::INVALID_IDX) {
                 hitComb.y[iRemaining] =
                   (xPred[iRemaining] - hits.hit(iRemaining, hitComb.idx[iRemaining])) / dev_average_dxdy[iRemaining];
@@ -241,7 +241,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
                 ++hitComb.number_of_hits;
               }
             }
-            if (xTrack.number_of_hits + hitComb.number_of_hits < TUNING_NHITS) continue;
+            if (xTrack.number_of_hits + hitComb.number_of_hits < tuning_nhits) continue;
             fitYZ(hitComb);
             if (hitComb.number_of_hits < bestHitComb.number_of_hits) continue;
             if (hitComb.number_of_hits == bestHitComb.number_of_hits && hitComb.chi2 > bestChi2Ndof) continue;
@@ -249,7 +249,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
             bestHitComb = hitComb;
           }
 
-          if (xTrack.number_of_hits + bestHitComb.number_of_hits < TUNING_NHITS) continue;
+          if (xTrack.number_of_hits + bestHitComb.number_of_hits < tuning_nhits) continue;
           // We have found at least one combination that matches the XZ track. Build the full track.
           SciFi::Seeding::Track fullTrack;
           for (auto iHit = 0; iHit < xTrack.number_of_hits; iHit++) {
