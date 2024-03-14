@@ -17,7 +17,7 @@ namespace dec_reporter {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
     DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
-    DEVICE_INPUT(dev_selections_t, bool) dev_selections;
+    DEVICE_INPUT(dev_selections_t, uint32_t) dev_selections;
     DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
     DEVICE_OUTPUT(dev_selected_candidates_counts_t, unsigned) dev_selected_candidates_counts;
     DEVICE_OUTPUT(dev_dec_reports_t, unsigned) dev_dec_reports;

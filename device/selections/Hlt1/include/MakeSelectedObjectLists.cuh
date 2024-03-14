@@ -23,7 +23,7 @@ namespace make_selected_object_lists {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_multi_event_particle_containers_t, Allen::IMultiEventContainer*)
     dev_multi_event_particle_containers;
-    DEVICE_INPUT(dev_selections_t, bool) dev_selections;
+    DEVICE_INPUT(dev_selections_t, uint32_t) dev_selections;
     DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
     DEVICE_INPUT(dev_max_objects_offsets_t, unsigned) dev_max_objects_offsets;
     DEVICE_OUTPUT(dev_candidate_count_t, unsigned) dev_candidate_count;

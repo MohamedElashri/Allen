@@ -5,6 +5,16 @@ Writing selections
 This tutorial will cover adding trigger selections to Allen using the
 main reconstruction sequence.
 
+Line execution
+^^^^^^^^^^^^^^^^^^^^^^^
+
+A line is a function that take some object list as input and returns a decision (boolean) for each object.
+The decision can be prescaled and postscaled per event. The prescaler runs before the line, if the decision
+of the prescaler is false, the line function will not be executed for that event. The postscaler runs after the line,
+it will not affect the line function itself but only the output decision. This distinction is important if the line is
+used for monitoring or filling tuples and for performances. If a line need to run over a lot of objects, tuning
+the prescaler can make a difference in the throughput of the line.
+
 Types of selections
 ^^^^^^^^^^^^^^^^^^^^^^^
 Selections are fully configurable algorithms in Allen. Lines that select events
@@ -80,10 +90,6 @@ Event list to which the selection is applied::
 
   MASK_INPUT(dev_event_list_t);
 
-Size of the decision object::
-
-  HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
-
 Type-erased parameters to be passed to the line functions for delayed line processing::
 
   HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
@@ -92,13 +98,9 @@ In case that the selection algorithm requires a `dev_particle_container_t`, then
 
   HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
 
-Post-scaler factor, such that an upcoming algorithm (usually `gather_selections_t`) can do the post-scaling::
+Line data that will be passed to an upcoming algorithm (usually `gather_selections_t`). It contains copies of various properties and inputs, such as the pre and post scaler::
 
-  HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler;
-
-Hash resulting from applying the hash function to the property "post_scaler_hash_string". Needed such that an upcoming algorithm can do the post-scaling::
-
-  HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash;
+  HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
 
 Pre-scaling factor::
 
@@ -195,9 +197,7 @@ header.
       // Commonly required inputs, outputs and properties
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
-      HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+      HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -267,11 +267,7 @@ secondary vertices with no postscale. This line inherits from `CompositeParticle
       // Commonly required inputs, outputs and properties
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
-      HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+      HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -351,12 +347,8 @@ The header `monitoring/include/VeloMicroBiasLine.cuh <https://gitlab.cern.ch/lhc
       // Commonly required inputs, outputs and properties
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
-      HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+      HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
       HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -437,12 +429,8 @@ The header `ExampleOneVeloTrackLine.cuh` is as follows:
       // Commonly required inputs, outputs and properties
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
-      HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+      HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
       HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)

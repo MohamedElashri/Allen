@@ -722,7 +722,7 @@ class AllenCore():
         code += "\n"
         if separable_compilation:
             for alg in selection_algorithms:
-                code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned, const unsigned);\n"
+                code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, uint32_t*, unsigned*, const LineData*, const ODINData*, const unsigned*, const unsigned, const unsigned, const unsigned, const unsigned);\n"
             code += "\n"
             for alg in selection_algorithms:
                 code += f"extern template void line_output_monitor<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, const RuntimeOptions&, const Allen::Context&);\n"
@@ -732,11 +732,11 @@ class AllenCore():
             if i != len(selection_algorithms) - 1:
                 code += ",\n"
         code += "\n};\n\n"
-        code += "__device__ inline void invoke_line_functions(unsigned index, char* a, bool* b, unsigned* c, Allen::IMultiEventContainer** d, unsigned e, unsigned f, unsigned g, unsigned h, unsigned i, unsigned j, const unsigned k) {\n"
+        code += "__device__ inline void invoke_line_functions(unsigned index, char* a, uint32_t* b, unsigned* c, const LineData* d, const ODINData* e, const unsigned* f, const unsigned g, const unsigned h, const unsigned i, const unsigned j) {\n"
         code += f"  assert(index < {len(selection_algorithms)});\n"
         code += "  switch (index) {\n"
         for i, alg in enumerate(selection_algorithms):
-            code += f"    case {i}: process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(a, b, c, d, e, f, g, h, i, j, k); break;\n"
+            code += f"    case {i}: process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(a, b, c, d, e, f, g, h, i, j); break;\n"
         code += "  }\n}\n\n"
         code += f"constexpr std::array<void(*)(char*, const RuntimeOptions&, const Allen::Context&), {len(selection_algorithms)}> line_output_monitor_functions = {{\n"
         for i, alg in enumerate(selection_algorithms):

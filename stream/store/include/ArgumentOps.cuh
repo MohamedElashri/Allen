@@ -249,9 +249,8 @@ namespace Allen {
     void store_contiguous_async(
       const Args& arguments,
       const Allen::Context& context,
-      bool fill_if_empty_container = false,
-      int fill_value = 0,
-      int fill_count = 1)
+      bool skip_if_empty_container = false,
+      int skip_count = 1)
     {
       auto container = arguments.template get<A>();
       auto aggregate = arguments.template input_aggregate<B>();
@@ -275,9 +274,8 @@ namespace Allen {
           Allen::copy_async(container, aggregate.get(i), context, kind, aggregate.size(i), container_offset);
           container_offset += aggregate.size(i);
         }
-        else if (fill_if_empty_container) {
-          Allen::memset_async<A>(arguments, fill_value, context, fill_count, container_offset);
-          container_offset += fill_count;
+        else if (skip_if_empty_container) {
+          container_offset += skip_count;
         }
       }
     }

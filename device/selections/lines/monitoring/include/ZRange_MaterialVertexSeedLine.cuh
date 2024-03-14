@@ -11,9 +11,7 @@ namespace z_range_materialvertex_seed_line {
     MASK_INPUT(dev_event_list_t) dev_event_list;
 
     HOST_INPUT(host_total_number_of_interaction_seeds_t, unsigned) host_total_number_of_interactions_seeds;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
     DEVICE_INPUT(dev_consolidated_interaction_seeds_t, float3) dev_consolidated_interaction_seeds;
