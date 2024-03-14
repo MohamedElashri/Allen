@@ -31,7 +31,7 @@ void CalcMaxCombos::calc_max_combos_t::operator()(
   const auto dev_input_agg = input_aggregate<dev_input_agg_t>(arguments);
   Allen::memset_async<dev_max_combos_t>(arguments, 0, context);
   Allen::aggregate::store_contiguous_async<dev_input_containers_t, dev_input_agg_t>(arguments, context);
-  global_function(calc_max_combos)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(calc_max_combos)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments, dev_input_agg.size_of_aggregate());
 }
 
@@ -39,7 +39,7 @@ __global__ void CalcMaxCombos::calc_max_combos(
   CalcMaxCombos::Parameters parameters,
   const unsigned number_of_input_containers)
 {
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned event_number = blockIdx.x;
 
   const auto mec1 = parameters.dev_input_containers[0];
   unsigned n_input1 = 0;
