@@ -152,8 +152,11 @@ rb_map = {
     'Hlt1ODINCalib':
     10,
     # RB 14 HLT1 physics for monitoring and alignment
-    'Hlt1(?!ODIN)(?!Lumi)(?!Error)(?!MB)(?!NZS)(?!Velo)(?!BeamGas)(?!Incident).*':
+    'Hlt1(TrackMVA|TwoTrackMVA|SingleHighPtMuon|DiMuonHighMass|TrackMuonMVA|DisplacedDiMuon|TrackElectronMVA|SingleHighPtElectron|DisplacedDielectron|SingleHighEt)':
     14,
+    # RB 15 HLT1 beam-gas physics for monitoring and alignment
+    'Hlt1_SMOG2_(2BodyGeneric|SingleTrack|DiMuonHighMass|SingleMuon)':
+    15,
     # RB 16 NoBias, prescaled
     'Hlt1.*NoBias':
     16,
