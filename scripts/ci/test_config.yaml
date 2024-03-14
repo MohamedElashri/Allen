@@ -108,27 +108,6 @@ full:
     dataset: "SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1_newLHCbID_new_UT_geometry"
     geometry: "upgrade_DC19_01_MinBiasMD_new_UT_geometry"
 
-  # run throughput, calov4
-  - type: "throughput"
-    sequence: "calo"
-    dataset: "sim-20190912-vc-md100-FTv7-calov4"
-    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4"
-    throughput_report: false # don't publish throughput report
-
-  # run throughput, scifiv7
-  - type: "throughput"
-    sequence: "scifi_decoding"
-    dataset: "SciFiV7_not_compressed"
-    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7"
-    throughput_report: false # don't publish throughput report
-
-  # run throughput, muonv3
-  - type: "throughput"
-    sequence: "muon_decoding"
-    dataset: "Run_0000232759_20220605-105749-418_MCEB02"
-    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7_muonv3"
-    throughput_report: false # don't publish throughput report
-
   # run throughput, 50% lumi events
   - type: "throughput"
     sequence:
@@ -195,16 +174,6 @@ full:
       - epyc7502
       - a5000
       - geforcertx3090
-
-  # run throughput to assess the impact of adding downstream reconstruction
-  - type: "throughput"
-    sequence:
-      # Impact to VeloScifi matching
-      - downstream
-      # Impact to full forward then matching sequence
-      - hlt1_pp_forward_then_matching_and_downstream
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
-    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
 
 # throughput test on 2024 expected sample (with beamline not at 0,0)
   - type: "throughput"
