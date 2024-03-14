@@ -43,7 +43,7 @@ namespace Checker {
     float velo_docaz = 0.f;
     float long_ip = 0.f, long_ip_chi2 = 0.f, long_ipx = 0.f, long_ipy = 0.f;
     std::size_t n_matched_total = 0;
-    float p = 0.f, pt = 0.f, eta = 0.f, rho = 0.f;
+    float p = 0.f, pt = 0.f, eta = 0.f, rho = 0.f, phi = 0.f;
     float muon_catboost_output = 0.f;
     bool is_muon = false;
 

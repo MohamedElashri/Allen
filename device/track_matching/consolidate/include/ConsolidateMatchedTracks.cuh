@@ -45,6 +45,7 @@ namespace matching_consolidate_tracks {
     DEVICE_INPUT(dev_seeding_states_t, MiniState) dev_seeding_states;
     DEVICE_OUTPUT(dev_matched_track_hits_t, char) dev_matched_track_hits;
     DEVICE_OUTPUT(dev_matched_qop_t, float) dev_matched_qop;
+    DEVICE_OUTPUT(dev_matched_ghost_probability_t, float) dev_matched_ghost_probability;
     DEVICE_OUTPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_OUTPUT(dev_matched_track_velo_indices_t, unsigned) dev_matched_track_velo_indices;
     DEVICE_OUTPUT(dev_matched_track_scifi_indices_t, unsigned) dev_matched_track_scifi_indices;
@@ -57,6 +58,7 @@ namespace matching_consolidate_tracks {
         dev_scifi_tracks_view_t,
         dev_velo_tracks_view_t,
         dev_matched_qop_t,
+        dev_matched_ghost_probability_t,
         dev_matched_track_velo_indices_t,
         dev_matched_track_scifi_indices_t),
       Allen::Views::Physics::LongTrack)

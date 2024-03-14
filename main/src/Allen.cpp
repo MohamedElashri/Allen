@@ -232,6 +232,8 @@ int allen(
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
   std::unique_ptr<LipschitzNNModelReader> two_track_mva_model_reader;
   std::unique_ptr<LipschitzNNModelReader> electronid_mva_model_reader;
+  std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, matching_no_ut_ghostkiller_reader,
+    forward_ghostkiller_reader, matching_ghostkiller_reader;
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
@@ -273,6 +275,14 @@ int allen(
   two_track_mva_model_reader =
     std::make_unique<LipschitzNNModelReader>(folder_parameters + "allen_two_track_mva_model_June22.json");
 
+  // Ghost killers
+  forward_no_ut_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_noUT_Forward.json");
+  forward_ghostkiller_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_Forward.json");
+  matching_ghostkiller_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_Matching.json");
+
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
     muon_field_of_interest_params, folder_parameters + "allen_muon_field_of_interest_params.bin");
@@ -313,6 +323,30 @@ int allen(
     electronid_mva_model_reader->max_rescales(),
     electronid_mva_model_reader->nominal_cut(),
     electronid_mva_model_reader->lambda());
+
+  constants.initialize_forward_ghostkiller_constants(
+    forward_ghostkiller_reader->mean(),
+    forward_ghostkiller_reader->std(),
+    forward_ghostkiller_reader->weights1(),
+    forward_ghostkiller_reader->bias1(),
+    forward_ghostkiller_reader->weights2(),
+    forward_ghostkiller_reader->bias2());
+  constants.initialize_forward_no_ut_ghostkiller_constants(
+    forward_no_ut_ghostkiller_reader->mean(),
+    forward_no_ut_ghostkiller_reader->std(),
+    forward_no_ut_ghostkiller_reader->weights1(),
+    forward_no_ut_ghostkiller_reader->bias1(),
+    forward_no_ut_ghostkiller_reader->weights2(),
+    forward_no_ut_ghostkiller_reader->bias2());
+
+  constants.initialize_matching_ghostkiller_constants(
+    matching_ghostkiller_reader->mean(),
+    matching_ghostkiller_reader->std(),
+    matching_ghostkiller_reader->weights1(),
+    matching_ghostkiller_reader->bias1(),
+    matching_ghostkiller_reader->weights2(),
+    matching_ghostkiller_reader->bias2());
+
   // Register all consumers
   register_consumers(updater, constants, configuration_reader->configured_bank_types());
 

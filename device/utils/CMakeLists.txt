@@ -27,6 +27,7 @@ target_include_directories(UtilsHeaders INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/memory/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/scaler/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tuple_operations/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/neural_network/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/warp/include>)
 
 allen_add_device_library(Utils STATIC

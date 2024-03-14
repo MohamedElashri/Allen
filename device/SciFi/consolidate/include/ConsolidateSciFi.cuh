@@ -44,6 +44,7 @@ namespace scifi_consolidate_tracks {
     DEVICE_INPUT(dev_scifi_lf_parametrization_consolidate_t, float) dev_scifi_lf_parametrization_consolidate;
     DEVICE_OUTPUT(dev_scifi_track_hits_t, char) dev_scifi_track_hits;
     DEVICE_OUTPUT(dev_scifi_qop_t, float) dev_scifi_qop;
+    DEVICE_OUTPUT(dev_scifi_ghost_probability_t, float) dev_scifi_ghost_probability;
     DEVICE_OUTPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_OUTPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
     HOST_INPUT(host_scifi_hit_count_t, unsigned) host_scifi_hit_count;
@@ -72,7 +73,7 @@ namespace scifi_consolidate_tracks {
     dev_scifi_multi_event_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_long_track_view_t,
-      DEPENDENCIES(dev_scifi_multi_event_tracks_view_t, dev_tracks_view_t),
+      DEPENDENCIES(dev_scifi_multi_event_tracks_view_t, dev_tracks_view_t, dev_scifi_ghost_probability_t),
       Allen::Views::Physics::LongTrack)
     dev_long_track_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(

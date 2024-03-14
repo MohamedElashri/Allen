@@ -45,6 +45,10 @@ namespace seed_confirmTracks {
     DEVICE_OUTPUT(dev_seeding_tracks_t, SciFi::Seeding::Track) dev_seeding_tracks;
     DEVICE_OUTPUT(dev_seeding_number_of_tracks_t, unsigned) dev_seeding_number_of_tracks;
     DEVICE_OUTPUT(dev_seeding_confirmTracks_atomics_t, unsigned) dev_seeding_confirmTracks_atomics;
+
+    PROPERTY(tuning_nhits_t, "tuning_nhits", "tuning_nhits", int) tuning_nhits;
+    PROPERTY(tuning_tol_chi2_t, "tuning_tol_chi2", "tuning_tol_chi2", float) tuning_tol_chi2;
+    PROPERTY(tuning_tol_t, "tuning_tol", "tuning_tol", float) tuning_tol;
   };
 
   __device__ int findHit(const float tolRem, float predPos, int startPos, int nHits, float* coords);
@@ -61,6 +65,11 @@ namespace seed_confirmTracks {
       const RuntimeOptions&,
       const Constants& constants,
       const Allen::Context& context) const;
+
+  private:
+    Property<tuning_nhits_t> m_tuning_nhits {this, 10};
+    Property<tuning_tol_chi2_t> m_tuning_tol_chi2 {this, 100.};
+    Property<tuning_tol_t> m_tuning_tol {this, 2.};
   };
 
 } // namespace seed_confirmTracks

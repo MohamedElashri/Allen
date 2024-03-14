@@ -36,6 +36,9 @@ namespace lf_quality_filter_length {
       "maximum_number_of_candidates_per_ut_track",
       unsigned)
     maximum_number_of_candidates_per_ut_track;
+    PROPERTY(min_tot_scifi_hits_t, "min_tot_scifi_hits", "min_tot_scifi_hits", unsigned) min_tot_scifi_hits;
+    PROPERTY(min_UV_scifi_hits_t, "min_UV_scifi_hits", "min_UV_scifi_hits", unsigned) min_UV_scifi_hits;
+    PROPERTY(min_X_scifi_hits_t, "min_X_scifi_hits", "min_X_scifi_hits", unsigned) min_X_scifi_hits;
   };
 
   __global__ void lf_quality_filter_length(Parameters);
@@ -52,5 +55,8 @@ namespace lf_quality_filter_length {
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
     Property<maximum_number_of_candidates_per_ut_track_t> m_maximum_number_of_candidates_per_ut_track {this, 12};
+    Property<min_tot_scifi_hits_t> m_min_tot_scifi_hits {this, 9};
+    Property<min_UV_scifi_hits_t> m_min_UV_scifi_hits {this, 3};
+    Property<min_X_scifi_hits_t> m_min_X_scifi_hits {this, 3};
   };
 } // namespace lf_quality_filter_length

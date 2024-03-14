@@ -70,6 +70,8 @@ __device__ inline void prepare_long_tracks(
     // pseudorapidity
     const float rho = std::sqrt(slope2);
     t.rho = rho;
+    t.eta = eta_from_rho(rho);
+    t.phi = atan2f(ty, tx);
 
     // add all hits
     const auto total_number_of_hits = long_track.number_of_hits();

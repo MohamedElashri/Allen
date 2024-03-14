@@ -18,6 +18,7 @@
 #include "MuonDefinitions.cuh"
 #include "MuonGeometry.cuh"
 #include "MuonTables.cuh"
+#include "NeuralNetworkDefinition.cuh"
 
 void Constants::reserve_constants()
 {
@@ -206,4 +207,74 @@ void Constants::initialize_electronid_mva_model_constants(
     max_rescales.data(),
     max_rescales.size() * sizeof(float),
     Allen::memcpyHostToDevice);
+}
+namespace {
+  template<typename Model>
+  void fill_single_layer_fcnn_model(
+    Model* model,
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2)
+  {
+    // Alias
+    constexpr auto size_mean = Model::nInput * sizeof(float);
+    constexpr auto size_std = Model::nInput * sizeof(float);
+    constexpr auto size_weights1 = (Model::nNode * Model::nInput) * sizeof(float);
+    constexpr auto size_bias1 = Model::nNode * sizeof(float);
+    constexpr auto size_weights2 = Model::nNode * sizeof(float);
+    constexpr auto size_bias2 = sizeof(float);
+
+    // Flatten 2d array
+    std::vector<float> fweights1;
+    fweights1.reserve(Model::nNode * Model::nInput);
+    for (const auto& innerVec : weights1) {
+      fweights1.insert(fweights1.end(), innerVec.begin(), innerVec.end());
+    }
+    // Copy to device
+    Allen::memcpy(model->mean, mean.data(), size_mean, Allen::memcpyHostToDevice);
+    Allen::memcpy(model->std, std.data(), size_std, Allen::memcpyHostToDevice);
+    Allen::memcpy(model->weights1, fweights1.data(), size_weights1, Allen::memcpyHostToDevice);
+    Allen::memcpy(model->bias1, bias1.data(), size_bias1, Allen::memcpyHostToDevice);
+    Allen::memcpy(model->weights2, weights2.data(), size_weights2, Allen::memcpyHostToDevice);
+    Allen::memcpy(&model->bias2, &bias2, size_bias2, Allen::memcpyHostToDevice);
+  }
+} // namespace
+
+void Constants::initialize_forward_ghostkiller_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc((void**) &dev_forward_ghost_killer, sizeof(Allen::NeuralNetwork::Model::ForwardGhostKiller));
+  fill_single_layer_fcnn_model(dev_forward_ghost_killer, mean, std, weights1, bias1, weights2, bias2);
+}
+
+void Constants::initialize_forward_no_ut_ghostkiller_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc((void**) &dev_forward_no_ut_ghost_killer, sizeof(Allen::NeuralNetwork::Model::ForwardGhostKiller));
+  fill_single_layer_fcnn_model(dev_forward_no_ut_ghost_killer, mean, std, weights1, bias1, weights2, bias2);
+}
+
+void Constants::initialize_matching_ghostkiller_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc((void**) &dev_matching_ghost_killer, sizeof(Allen::NeuralNetwork::Model::MatchingGhostKiller));
+  fill_single_layer_fcnn_model(dev_matching_ghost_killer, mean, std, weights1, bias1, weights2, bias2);
 }

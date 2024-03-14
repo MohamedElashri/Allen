@@ -65,6 +65,7 @@ namespace Allen {
         const Allen::Views::SciFi::Consolidated::Track* m_scifi_segment = nullptr;
         const Allen::Views::Muon::Consolidated::Track* m_muon_segment = nullptr;
         const float* m_qop = nullptr;
+        const float* m_ghost_probability = nullptr;
 
       public:
         Track() = default;
@@ -74,11 +75,14 @@ namespace Allen {
           const Allen::Views::UT::Consolidated::Track* ut_segment,
           const Allen::Views::SciFi::Consolidated::Track* scifi_segment,
           const Allen::Views::Muon::Consolidated::Track* muon_segment,
-          const float* qop) :
+          const float* qop,
+          const float* ghost_probability = nullptr) :
           m_velo_segment(velo_segment),
-          m_ut_segment(ut_segment), m_scifi_segment(scifi_segment), m_muon_segment(muon_segment), m_qop(qop)
+          m_ut_segment(ut_segment), m_scifi_segment(scifi_segment), m_muon_segment(muon_segment), m_qop(qop),
+          m_ghost_probability(ghost_probability)
         {}
         __host__ __device__ float qop() const { return *m_qop; }
+        __host__ __device__ float ghost_probability() const { return *m_ghost_probability; }
 
         enum struct segment { velo, ut, scifi, muon };
 
@@ -120,6 +124,7 @@ namespace Allen {
         // Expose the pointers so the long track can be copied. Useful for
         // adding segments later.
         __host__ __device__ const float* qop_ptr() const { return m_qop; }
+        __host__ __device__ const float* ghost_probability_ptr() const { return m_ghost_probability; }
 
         template<segment t>
         __host__ __device__ auto track_segment_ptr() const
@@ -256,8 +261,9 @@ namespace Allen {
           const Allen::Views::UT::Consolidated::Track* ut_segment,
           const Allen::Views::SciFi::Consolidated::Track* scifi_segment,
           const Allen::Views::Muon::Consolidated::Track* muon_segment,
-          const float* qop) :
-          Track {velo_segment, ut_segment, scifi_segment, muon_segment, qop}
+          const float* qop,
+          const float* ghost_probability = nullptr) :
+          Track {velo_segment, ut_segment, scifi_segment, muon_segment, qop, ghost_probability}
         {}
       };
 

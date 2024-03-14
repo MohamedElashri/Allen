@@ -237,3 +237,29 @@ std::unordered_set<BankTypes> ConfigurationReader::configured_bank_types() const
 
   return bank_types;
 }
+
+SingleLayerFCNNReader::SingleLayerFCNNReader(const std::string& file_name)
+{
+  // Read file
+  std::ifstream input_file(file_name);
+  const auto input_data = nlohmann::json::parse(input_file);
+
+  // Read data
+  using array1d_t = std::vector<float>;
+  using array2d_t = std::vector<array1d_t>;
+  m_num_node = input_data.at("num_node").get<unsigned>();
+  m_num_input = input_data.at("num_input").get<unsigned>();
+  m_mean = input_data.at("mean").get<array1d_t>();
+  m_std = input_data.at("std").get<array1d_t>();
+  m_weights1 = input_data.at("weights1").get<array2d_t>();
+  m_bias1 = input_data.at("bias1").get<array1d_t>();
+  m_weights2 = input_data.at("weights2").get<array1d_t>();
+  m_bias2 = input_data.at("bias2").get<float>();
+
+  // Sanity checks
+  assert(m_mean.size() == m_num_input);
+  assert(m_std.size() == m_num_input);
+  assert(m_weights1.size() == m_num_node && m_weights1.front().size() == m_num_input);
+  assert(m_bias1.size() == m_num_node);
+  assert(m_weights2.size() == m_num_node);
+}

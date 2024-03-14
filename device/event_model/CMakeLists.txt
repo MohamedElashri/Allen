@@ -24,6 +24,7 @@ target_include_directories(EventModel INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/vertex_fit/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/PV/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/plume/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lumi/include>)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lumi/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/neural_network/include>)
 
 target_link_libraries(EventModel INTERFACE AllenCommon)

@@ -42,7 +42,8 @@ __global__ void create_muon_views(muon_consolidate_tracks::Parameters parameters
                                           long_track.track_segment_ptr<Allen::Views::Physics::Track::segment::ut>(),
                                           long_track.track_segment_ptr<Allen::Views::Physics::Track::segment::scifi>(),
                                           parameters.dev_muon_track_view + event_tracks_offset + track_index,
-                                          long_track.qop_ptr()};
+                                          long_track.qop_ptr(),
+                                          long_track.ghost_probability_ptr()};
     }
     else {
       new (parameters.dev_muon_long_track_view + event_tracks_offset + track_index)
@@ -50,7 +51,8 @@ __global__ void create_muon_views(muon_consolidate_tracks::Parameters parameters
                                           long_track.track_segment_ptr<Allen::Views::Physics::Track::segment::ut>(),
                                           long_track.track_segment_ptr<Allen::Views::Physics::Track::segment::scifi>(),
                                           nullptr,
-                                          long_track.qop_ptr()};
+                                          long_track.qop_ptr(),
+                                          long_track.ghost_probability_ptr()};
     }
   }
 

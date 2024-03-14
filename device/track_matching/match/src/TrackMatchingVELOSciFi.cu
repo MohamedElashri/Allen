@@ -32,11 +32,15 @@ void track_matching_veloSciFi::track_matching_veloSciFi_t::operator()(
   Allen::memset_async<dev_atomics_matched_tracks_t>(arguments, 0, context);
 
   global_function(track_matching_veloSciFi)(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(
-    arguments, constants.dev_magnet_polarity.data(), constants.dev_magnet_parametrization);
+    arguments,
+    constants.dev_magnet_polarity.data(),
+    constants.dev_magnet_parametrization,
+    constants.dev_matching_ghost_killer);
 }
 
 // inspired from https://gitlab.cern.ch/lhcb/Rec/-/blob/master/Pr/PrAlgorithms/src/PrMatchNN.cpp
 __device__ track_matching::MatchingResult getChi2Match(
+  track_matching_veloSciFi::Parameters parameters,
   const MiniState velo_state,
   const MiniState scifi_state,
   const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization)
@@ -83,16 +87,19 @@ __device__ track_matching::MatchingResult getChi2Match(
   const float tolX = dxTol2 + dSlopeX * dSlopeX * dxTolSlope2;
   const float tolY = TrackMatchingConsts::dyTol * TrackMatchingConsts::dyTol +
                      teta2 * TrackMatchingConsts::dyTolSlope * TrackMatchingConsts::dyTolSlope;
-  const float fdX = 0.8f;
-  const float fdY = 0.2f; // Reduced the importance of dY info until y issue is fixed
-  const float fdty = 937.5f;
-  const float fdtx = 2.f;
+  const float multiplication_factor_dX = parameters.multiplication_factor_dX;
+  const float multiplication_factor_dY = parameters.multiplication_factor_dY;
+  const float multiplication_factor_dty = parameters.multiplication_factor_dty;
+  const float multiplication_factor_dtx = parameters.multiplication_factor_dtx;
 
-  float chi2 = (tolX != 0.f and tolY != 0.f ? fdX * distX * distX / tolX + fdY * distY * distY / tolY : 9999.f);
+  float chi2 =
+    (tolX != 0.f and tolY != 0.f ?
+       multiplication_factor_dX * distX * distX / tolX + multiplication_factor_dY * distY * distY / tolY :
+       9999.f);
   // float chi2 = ( tolX != 0 and tolY != 0 ? distX * distX / tolX : 9999. );
 
-  chi2 += fdty * dSlopeY * dSlopeY;
-  chi2 += fdtx * dSlopeX * dSlopeX;
+  chi2 += multiplication_factor_dty * dSlopeY * dSlopeY;
+  chi2 += multiplication_factor_dtx * dSlopeX * dSlopeX;
 
   return {dSlopeX, dSlopeY, distX, distY, zForX, chi2};
 }
@@ -123,7 +130,8 @@ __device__ float computeQoverP(
 __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
   track_matching_veloSciFi::Parameters parameters,
   const float* dev_magnet_polarity,
-  const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization)
+  const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization,
+  const Allen::NeuralNetwork::Model::MatchingGhostKiller* dev_matching_ghost_killer)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -169,13 +177,34 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
 
       const auto velo_track_index = ut_selected_velo_tracks[ivelo];
       const auto endvelo_state = velo_states.state(velo_track_index);
-      auto matchingInfo = getChi2Match(endvelo_state, scifi_state, dev_magnet_parametrization);
+      auto matchingInfo = getChi2Match(parameters, endvelo_state, scifi_state, dev_magnet_parametrization);
       if (matchingInfo.chi2 < BestMatch.chi2) {
         BestMatch = {static_cast<int>(velo_track_index), matchingInfo.chi2};
       }
     }
 
     if ((BestMatch.chi2 > TrackMatchingConsts::maxChi2) || (n_matched >= TrackMatchingConsts::max_num_tracks)) continue;
+
+    //
+    // Ghost killing
+    //
+    const auto endvelo_state = velo_states.state(BestMatch.ivelo);
+    const auto matchingInfo = getChi2Match(parameters, endvelo_state, scifi_state, dev_magnet_parametrization);
+
+    const auto magSign = -dev_magnet_polarity[0];
+    const auto qop =
+      computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, dev_magnet_parametrization);
+
+    const auto velo_eta = asinhf(1.f / hypotf(endvelo_state.tx(), endvelo_state.ty()));
+    float ghost_killer_inputs[Allen::NeuralNetwork::Model::MatchingGhostKiller::nInput] = {matchingInfo.zForX,
+                                                                                           matchingInfo.distX,
+                                                                                           matchingInfo.distY,
+                                                                                           matchingInfo.dSlopeX,
+                                                                                           matchingInfo.dSlopeY,
+                                                                                           logf(matchingInfo.chi2),
+                                                                                           velo_eta};
+    const auto ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
+    if (ghost_killer_score > parameters.ghost_killer_threshold.get()) continue;
 
     // Save the result
     auto idx = atomicAdd(&n_matched, 1);
@@ -187,12 +216,8 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
     matched_track.number_of_hits_velo = velo_tracks.track(BestMatch.ivelo).number_of_hits();
     matched_track.number_of_hits_scifi = scifiseed.number_of_scifi_hits();
     matched_track.chi2_matching = BestMatch.chi2;
-
-    const auto endvelo_state = velo_states.state(BestMatch.ivelo);
-
-    const auto magSign = -dev_magnet_polarity[0];
-    matched_track.qop =
-      computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, dev_magnet_parametrization);
+    matched_track.qop = qop;
+    matched_track.ghost_probability = ghost_killer_score;
   }
   __syncthreads();
 
@@ -219,6 +244,7 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
       if (shared_seeds >= 1) {
         // if ( fabs(track_1.chi2 - track_2.chi2) < 0.1 ) continue;
 
+        // if (track_1.ghost_probability <= track_2.ghost_probability) {
         if (track_1.chi2_matching <= track_2.chi2_matching) {
           clone_label[n_track_2] = true;
         }
