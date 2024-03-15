@@ -106,7 +106,7 @@ Hlt1ErrorBank:                                      0/  1000, (    0.00 +/-     
 Hlt1VeloMicroBiasVeloClosing:                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1RICH1Alignment:                                 2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1RICH2Alignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1D2KPiAlignment:                                26/  1000, (  780.00 +/-   150.97) kHz
+Hlt1D2KPiAlignment:                                 7/  1000, (  210.00 +/-    79.09) kHz
 Hlt1MaterialVertexSeedsDownstreamz:                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1MaterialVertexSeeds_DWFS:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1Dst2D0PiAlignment:                              1/  1000, (   30.00 +/-    29.98) kHz
@@ -230,7 +230,7 @@ Hlt1ErrorBank:                                      0           0
 Hlt1VeloMicroBiasVeloClosing:                       0           0
 Hlt1RICH1Alignment:                                 2           2
 Hlt1RICH2Alignment:                                 0           0
-Hlt1D2KPiAlignment:                                26          27
+Hlt1D2KPiAlignment:                                 7           7
 Hlt1MaterialVertexSeedsDownstreamz:                 0           0
 Hlt1MaterialVertexSeeds_DWFS:                       1           0
 Hlt1Dst2D0PiAlignment:                              1           1
@@ -240,12 +240,12 @@ Hlt1DisplacedDiMuonAlignment:                       1           1
 Hlt1BeamGas:                                        0           0
 Hlt1VeloMicroBias:                                  0           0
 
-Total decisions:      1146
+Total decisions:      1127
 Total tracks:         2209
 Total calos clusters: 33
 Total SVs:            1907
 Total hits:           48582
-Total stdinfo:        26578
+Total stdinfo:        26559
 
 
 velo_validator validation:

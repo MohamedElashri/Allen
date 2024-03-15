@@ -47,10 +47,12 @@ namespace d2kpi_line {
     PROPERTY(minEta_t, "minEta", "minEta description", float) minEta;
     PROPERTY(maxEta_t, "maxEta", "maxEta description", float) maxEta;
     PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float) minTrackPt;
+    PROPERTY(minTrackP_t, "minTrackP", "minTrackP description", float) minTrackP;
     PROPERTY(massWindow_t, "massWindow", "massWindow description", float) massWindow;
     PROPERTY(minTrackIP_t, "minTrackIP", "minTrackIP description", float) minTrackIP;
     PROPERTY(ctIPScale_t, "ctIPScale", "D0 ct should be larger than this time minTrackIP", float) ctIPScale;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+    PROPERTY(minDira_t, "minDira", "minimum value of cos(theta_dira)", float) minDira;
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dibody combinations", bool) OppositeSign;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
@@ -105,10 +107,12 @@ namespace d2kpi_line {
     Property<minEta_t> m_minEta {this, 2.0f};
     Property<maxEta_t> m_maxEta {this, 5.0f};
     Property<minTrackPt_t> m_minTrackPt {this, 800.f * Gaudi::Units::MeV};
+    Property<minTrackP_t> m_minTrackP {this, 0.f * Gaudi::Units::MeV};
     Property<massWindow_t> m_massWindow {this, 100.f * Gaudi::Units::MeV};
     Property<minTrackIP_t> m_minTrackIP {this, 0.06f * Gaudi::Units::mm};
     Property<ctIPScale_t> m_ctIPScale {this, 1.f};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<minDira_t> m_minDira {this, 0.f};
     Property<OppositeSign_t> m_opposite_sign {this, true};
     Property<histogram_d0_mass_min_t> m_histogramD0MassMin {this, 1765.f};
     Property<histogram_d0_mass_max_t> m_histogramD0MassMax {this, 1965.f};

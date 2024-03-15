@@ -11,6 +11,7 @@
 from AllenConf.utils import make_gec, line_maker, make_checkEcalEnergy, make_lowmult, sd_error_filter
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_calibration_lines import (
+    make_d2kpi_align_line,
     make_passthrough_line,
     make_rich_1_line,
     make_rich_2_line,
@@ -291,7 +292,8 @@ def alignment_monitoring_lines(reconstructed_objects,
 
     if reco_particles:
         lines += [
-            make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPiAlignment")
+            make_d2kpi_align_line(
+                long_tracks, dihadrons, name="Hlt1D2KPiAlignment")
         ]
         if with_muon:
             lines += [
