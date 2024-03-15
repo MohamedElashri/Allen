@@ -52,13 +52,14 @@ Hlt1TwoTrackMVA:                                  548/  1000, (16440.00 +/-   47
 Hlt1D2KK:                                          18/  1000, (  540.00 +/-   126.13) kHz
 Hlt1D2KPi:                                         26/  1000, (  780.00 +/-   150.97) kHz
 Hlt1D2PiPi:                                        18/  1000, (  540.00 +/-   126.13) kHz
+Hlt1Dst2D0Pi:                                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1KsToPiPi:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1KsToPiPiDoubleMuonMisID:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackKs:                                     6/  1000, (  180.00 +/-    73.26) kHz
 Hlt1TwoKs:                                          1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1L02PPi:                                        44/  1000, ( 1320.00 +/-   194.57) kHz
-Hlt1LambdaLLDetachedTrack:                         19/  1000, (  570.00 +/-   129.52) kHz
-Hlt1XiOmegaLLL:                                     3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1LambdaLLDetachedTrack:                          1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1XiOmegaLLL:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1OneMuonTrackLine:                               2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1SingleHighPtMuon:                               2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1SingleHighPtMuonNoMuID:                         6/  1000, (  180.00 +/-    73.26) kHz
@@ -108,6 +109,7 @@ Hlt1RICH2Alignment:                                 0/  1000, (    0.00 +/-     
 Hlt1D2KPiAlignment:                                26/  1000, (  780.00 +/-   150.97) kHz
 Hlt1MaterialVertexSeedsDownstreamz:                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1MaterialVertexSeeds_DWFS:                       1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1Dst2D0PiAlignment:                              1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                       18/  1000, (  540.00 +/-   126.13) kHz
 Hlt1DisplacedDiMuonAlignment:                       1/  1000, (   30.00 +/-    29.98) kHz
@@ -174,13 +176,14 @@ Hlt1TwoTrackMVA:                                  548        1696
 Hlt1D2KK:                                          18          19
 Hlt1D2KPi:                                         26          27
 Hlt1D2PiPi:                                        18          18
+Hlt1Dst2D0Pi:                                       1           1
 Hlt1KsToPiPi:                                       0           0
 Hlt1KsToPiPiDoubleMuonMisID:                        0           0
 Hlt1TwoTrackKs:                                     6           7
 Hlt1TwoKs:                                          1           1
 Hlt1L02PPi:                                        44          47
-Hlt1LambdaLLDetachedTrack:                         19          24
-Hlt1XiOmegaLLL:                                     3           3
+Hlt1LambdaLLDetachedTrack:                          1           1
+Hlt1XiOmegaLLL:                                     0           0
 Hlt1OneMuonTrackLine:                               2           0
 Hlt1SingleHighPtMuon:                               2           2
 Hlt1SingleHighPtMuonNoMuID:                         6           6
@@ -230,18 +233,19 @@ Hlt1RICH2Alignment:                                 0           0
 Hlt1D2KPiAlignment:                                26          27
 Hlt1MaterialVertexSeedsDownstreamz:                 0           0
 Hlt1MaterialVertexSeeds_DWFS:                       1           0
+Hlt1Dst2D0PiAlignment:                              1           1
 Hlt1DiMuonHighMassAlignment:                        0           0
 Hlt1DiMuonJpsiMassAlignment:                       18          24
 Hlt1DisplacedDiMuonAlignment:                       1           1
 Hlt1BeamGas:                                        0           0
 Hlt1VeloMicroBias:                                  0           0
 
-Total decisions:      1165
-Total tracks:         2229
+Total decisions:      1146
+Total tracks:         2209
 Total calos clusters: 33
-Total SVs:            1933
-Total hits:           49035
-Total stdinfo:        26861
+Total SVs:            1907
+Total hits:           48582
+Total stdinfo:        26578
 
 
 velo_validator validation:

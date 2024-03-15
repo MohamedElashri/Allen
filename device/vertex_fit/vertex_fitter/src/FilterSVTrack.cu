@@ -49,6 +49,13 @@ __global__ void FilterSVTrack::filter_sv_track(FilterSVTrack::Parameters paramet
   const auto tracks = parameters.dev_tracks->container(event_number);
   for (unsigned i_sv = threadIdx.x; i_sv < svs.size(); i_sv += blockDim.x) {
     const auto sv = svs.particle(i_sv);
+
+    // OS pair cut. SV must be made of oppositely charged tracks.
+    // TODO: For now, the SV is assumed to be 2-track, but this should be relaxed in the future.
+    if (parameters.require_os_pair) {
+      if (sv.charge() != 0) continue;
+    }
+
     const auto sv_vx = sv.vertex();
     const auto sv_vxz = sv_vx.z();
     const bool sv_decision = sv_vx.chi2() < parameters.SV_VCHI2_max && parameters.SV_VZ_min < sv_vxz &&
@@ -58,9 +65,29 @@ __global__ void FilterSVTrack::filter_sv_track(FilterSVTrack::Parameters paramet
     if (!sv_decision) continue;
     for (unsigned i_track = threadIdx.y; i_track < tracks.size(); i_track += blockDim.y) {
       const auto track = tracks.particle(i_track);
+      const auto track_ptr = tracks.particle_pointer(i_track);
+
+      // Check for overlap.
+      bool overlap = false;
+      for (unsigned i_child = 0; i_child < sv.number_of_children(); i_child++) {
+        if (static_cast<const Allen::Views::Physics::BasicParticle*>(sv.child(i_child)) == track_ptr) {
+          overlap = true;
+        }
+      }
+      if (overlap) continue;
+
+      // Check if the track and SV have the same PV.
+      // Note this will only make sense if the track and SV are produced promptly.
+      if (parameters.require_same_pv) {
+        if (&(track.pv()) != &(sv.pv())) continue;
+      }
+
       const auto t_s = track.state();
       const bool track_decision = t_s.pt() > parameters.T_PT_min && track.ip_chi2() > parameters.T_MIPCHI2_min &&
+                                  track.ip_chi2() < parameters.T_MIPCHI2_max && track.ip() > parameters.T_MIP_min &&
+                                  track.ip() < parameters.T_MIP_max &&
                                   track.chi2() / track.ndof() < parameters.T_CHI2NDF_max;
+
       if (!track_decision) continue;
       const auto sv_ministate = sv.get_state(), t_ministate = track.state().operator MiniState();
       if (Allen::Views::Physics::state_doca(sv_ministate, t_ministate) > parameters.SV_T_DOCA_max) continue;

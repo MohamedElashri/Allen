@@ -45,6 +45,7 @@ Hlt1TwoTrackMVA:                                    0/  1000, (    0.00 +/-     
 Hlt1D2KK:                                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPi:                                          0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2PiPi:                                         0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1Dst2D0Pi:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1KsToPiPi:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1KsToPiPiDoubleMuonMisID:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackKs:                                     0/  1000, (    0.00 +/-     0.00) kHz
@@ -101,6 +102,7 @@ Hlt1RICH2Alignment:                                 0/  1000, (    0.00 +/-     
 Hlt1D2KPiAlignment:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1MaterialVertexSeedsDownstreamz:                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1MaterialVertexSeeds_DWFS:                       0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1Dst2D0PiAlignment:                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DisplacedDiMuonAlignment:                       0/  1000, (    0.00 +/-     0.00) kHz
@@ -170,6 +172,7 @@ Hlt1TwoTrackMVA:                                    0           0
 Hlt1D2KK:                                           0           0
 Hlt1D2KPi:                                          0           0
 Hlt1D2PiPi:                                         0           0
+Hlt1Dst2D0Pi:                                       0           0
 Hlt1KsToPiPi:                                       0           0
 Hlt1KsToPiPiDoubleMuonMisID:                        0           0
 Hlt1TwoTrackKs:                                     0           0
@@ -226,6 +229,7 @@ Hlt1RICH2Alignment:                                 0           0
 Hlt1D2KPiAlignment:                                 0           0
 Hlt1MaterialVertexSeedsDownstreamz:                 0           0
 Hlt1MaterialVertexSeeds_DWFS:                       0           0
+Hlt1Dst2D0PiAlignment:                              0           0
 Hlt1DiMuonHighMassAlignment:                        0           0
 Hlt1DiMuonJpsiMassAlignment:                        0           0
 Hlt1DisplacedDiMuonAlignment:                       0           0
