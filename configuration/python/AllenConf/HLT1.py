@@ -45,6 +45,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     dileptons = reconstructed_objects["dilepton_secondary_vertices"]
     v0s = reconstructed_objects["v0_secondary_vertices"]
     v0_track_pairs = reconstructed_objects["v0_sv_track_pairs"]
+    dstars = reconstructed_objects["dstars"]
     v0_pairs = reconstructed_objects["v0_pairs"]
     muon_stubs = reconstructed_objects["muon_stubs"]
 
@@ -81,7 +82,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             name="Hlt1D2PiPi",
             enable_tupling=enable_tupling,
             charm_track_ip=thresholds.charm_track_ip,
-            charm_track_pt=thresholds.charm_track_pt)
+            charm_track_pt=thresholds.charm_track_pt),
+        make_dst_line(dstars, name="Hlt1Dst2D0Pi"),
     ]
 
     if with_v0s:
@@ -368,6 +370,7 @@ def alignment_monitoring_lines(reconstructed_objects,
     velo_states = reconstructed_objects["velo_states"]
     dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
     dileptons = reconstructed_objects["dilepton_secondary_vertices"]
+    dstars = reconstructed_objects["dstars"]
 
     lines = [
         make_rich_1_line(
@@ -385,7 +388,8 @@ def alignment_monitoring_lines(reconstructed_objects,
             material_interaction_tracks,
             min_z_materialvertex_seed=700,
             max_z_materialvertex_seed=1000,
-            name="Hlt1MaterialVertexSeeds_DWFS")
+            name="Hlt1MaterialVertexSeeds_DWFS"),
+        make_dst_line(dstars, name="Hlt1Dst2D0PiAlignment")
     ]
 
     if with_muon:

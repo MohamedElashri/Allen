@@ -222,6 +222,21 @@ def hlt1_reconstruction(algorithm_name='',
 
     v0_track_pairs = make_sv_track_pairs(v0s, long_track_particles, pvs)
 
+    # D* -> D0(-> K pi) pi
+    dstars = make_sv_track_pairs(
+        dihadrons,
+        long_track_particles,
+        pvs,
+        min_track_ipchi2=0.,
+        min_track_ip=0.,
+        max_track_ipchi2=4,
+        sv_vz_min=-200,
+        sv_vz_max=650,
+        sv_bpvvdz_min=0.,
+        sv_bpvvdrho_min=0.,
+        sv_track_doca_max=0.2,
+        sv_bpvvdchi2_min=25.)
+
     v0_pairs = make_sv_pairs(v0s)
 
     output.update({
@@ -230,6 +245,7 @@ def hlt1_reconstruction(algorithm_name='',
         "dilepton_secondary_vertices": dileptons,
         "v0_secondary_vertices": v0s,
         "v0_sv_track_pairs": v0_track_pairs,
+        "dstars": dstars,
         "v0_pairs": v0_pairs
     })
 

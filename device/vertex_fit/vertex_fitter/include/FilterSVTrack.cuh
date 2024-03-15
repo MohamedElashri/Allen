@@ -17,6 +17,7 @@
 #include "States.cuh"
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
+#include <limits>
 
 namespace FilterSVTrack {
   struct Parameters {
@@ -42,9 +43,22 @@ namespace FilterSVTrack {
     PROPERTY(T_CHI2NDF_max_t, "T_CHI2NDF_max", "Maximum track chi2 per n.d.f. (VeloKalman)", float) T_CHI2NDF_max;
     PROPERTY(T_PT_min_t, "T_PT_min", "Minimal track pT", float) T_PT_min;
     PROPERTY(T_MIPCHI2_min_t, "T_MIPCHI2_min", "Minimal IP chi^2 of track w.r.t. any PV", float) T_MIPCHI2_min;
+    PROPERTY(T_MIPCHI2_max_t, "T_MIPCHI2_max", "Maximum minimal IP chi^2 of track w.r.t. any PV", float) T_MIPCHI2_max;
+    PROPERTY(T_MIP_min_t, "T_MIP_min", "Minimal IP of track w.r.t. any PV", float) T_MIP_min;
+    PROPERTY(T_MIP_max_t, "T_MIP_max", "Maximum minimal IP of track w.r.t. any PV", float) T_MIP_max;
     PROPERTY(opening_angle_min_t, "opening_angle_min", "min angle between tracks from sv and companion track", float)
     opening_angle_min;
     PROPERTY(SV_T_DOCA_max_t, "SV_T_DOCA_max", "DOCA of sv and track", float) SV_T_DOCA_max;
+
+    PROPERTY(require_same_pv_t, "require_same_pv", "Require track and SV to have the same associated PV.", bool)
+    require_same_pv;
+    PROPERTY(
+      require_os_pair_t,
+      "require_os_pair",
+      "Requires that the SV consists of two tracks with opposite charge.",
+      bool)
+    require_os_pair;
+
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
@@ -70,8 +84,13 @@ namespace FilterSVTrack {
     Property<T_CHI2NDF_max_t> m_T_CHI2NDF_max {this, 10.f};
     Property<T_PT_min_t> m_T_PT_min {this, 150.f * Gaudi::Units::MeV};
     Property<T_MIPCHI2_min_t> m_T_MIPCHI2_min {this, 4.f};
+    Property<T_MIPCHI2_max_t> m_T_MIPCHI2_max {this, std::numeric_limits<float>::max()};
+    Property<T_MIP_min_t> m_T_MIP_min {this, 0.f};
+    Property<T_MIP_max_t> m_T_MIP_max {this, std::numeric_limits<float>::max()};
     Property<opening_angle_min_t> m_opening_angle_min {this, 0.5f * Gaudi::Units::mrad};
     Property<SV_T_DOCA_max_t> m_SV_T_DOCA_max {this, 500.f * Gaudi::Units::um};
+    Property<require_same_pv_t> m_require_same_pv {this, false};
+    Property<require_os_pair_t> m_require_os_pair {this, true};
     Property<block_dim_t> m_block_dim {this, {{4, 64, 1}}};
   };
 } // namespace FilterSVTrack

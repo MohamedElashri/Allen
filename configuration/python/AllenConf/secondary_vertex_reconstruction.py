@@ -264,7 +264,21 @@ def make_sv_pairs(secondary_vertices):
     }
 
 
-def make_sv_track_pairs(secondary_vertices, long_track_particles, pvs):
+def make_sv_track_pairs(secondary_vertices,
+                        long_track_particles,
+                        pvs,
+                        min_track_ipchi2=4.,
+                        max_track_ipchi2=1e16,
+                        min_track_ip=0.6,
+                        max_track_ip=1e16,
+                        sv_bpvvdz_min=12.,
+                        sv_bpvvdrho_min=2.,
+                        sv_vz_min=-80.,
+                        sv_vz_max=650.,
+                        opening_angle_min=0.5e-3,
+                        sv_track_doca_max=0.5,
+                        sv_bpvvdchi2_min=180.0,
+                        sv_bpvdira_min=0.9997):
 
     number_of_events = initialize_number_of_events()
 
@@ -274,7 +288,18 @@ def make_sv_track_pairs(secondary_vertices, long_track_particles, pvs):
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_svs_t=secondary_vertices["dev_multi_event_composites"],
-        dev_tracks_t=long_track_particles["dev_multi_event_basic_particles"])
+        dev_tracks_t=long_track_particles["dev_multi_event_basic_particles"],
+        T_MIPCHI2_min=min_track_ipchi2,
+        T_MIPCHI2_max=max_track_ipchi2,
+        T_MIP_min=min_track_ip,
+        T_MIP_max=max_track_ip,
+        SV_VZ_min=sv_vz_min,
+        SV_VZ_max=sv_vz_max,
+        SV_BPVVDZ_min=sv_bpvvdz_min,
+        SV_BPVVDRHO_min=sv_bpvvdrho_min,
+        SV_T_DOCA_max=sv_track_doca_max,
+        SV_BPVVDCHI2_min=sv_bpvvdchi2_min,
+        SV_BPVDIRA_min=sv_bpvdira_min)
 
     prefix_sum_sv_track_combinations = make_algorithm(
         host_prefix_sum_t,

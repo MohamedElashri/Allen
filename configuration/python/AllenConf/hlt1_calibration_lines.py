@@ -9,9 +9,9 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenCore.algorithms import (
-    d2kpi_line_t, passthrough_line_t, rich_1_line_t, rich_2_line_t,
-    displaced_di_muon_mass_line_t, di_muon_mass_alignment_line_t,
-    two_calo_clusters_line_t, odin_calib_line_t)
+    d2kpi_line_t, dst_d2kpi_line_t, passthrough_line_t, rich_1_line_t,
+    rich_2_line_t, displaced_di_muon_mass_line_t,
+    di_muon_mass_alignment_line_t, two_calo_clusters_line_t, odin_calib_line_t)
 from AllenConf.utils import initialize_number_of_events, line_maker
 from AllenConf.odin import decode_odin
 from AllenCore.generator import make_algorithm
@@ -50,6 +50,27 @@ def make_pi02gammagamma_line(calo,
         minPtEta=200,  #Pi0Pt>minPtEta*(10-Pi0Eta)
         max_n_pvs=1,
         enable_tupling=False)
+
+
+def make_dst_line(dstars,
+                  name="Hlt1DstD0Pi",
+                  enable_monitoring=True,
+                  enable_tupling=False,
+                  pre_scaler_hash_string=None,
+                  post_scaler_hash_string=None):
+
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        dst_d2kpi_line_t,
+        name=name,
+        enable_monitoring=is_allen_standalone() and enable_monitoring,
+        enable_tupling=enable_tupling,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=dstars["host_number_of_sv_track_combinations"],
+        dev_particle_container_t=dstars["dev_sv_track_combination"],
+        pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 
 
 @configurable
