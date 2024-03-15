@@ -16,6 +16,7 @@ from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter, make_even
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node, make_dq_node
+
 from AllenConf.hlt1_inclusive_hadron_lines import *
 from AllenConf.hlt1_charm_lines import *
 from AllenConf.hlt1_calibration_lines import *
@@ -23,6 +24,7 @@ from AllenConf.hlt1_muon_lines import *
 from AllenConf.hlt1_electron_lines import *
 from AllenConf.hlt1_monitoring_lines import *
 from AllenConf.hlt1_smog2_lines import *
+
 from AllenConf.hlt1_photon_lines import make_diphotonhighmass_line
 from AllenConf.persistency import make_persistency
 from AllenConf.validators import rate_validation
@@ -377,7 +379,8 @@ def alignment_monitoring_lines(reconstructed_objects,
             long_tracks, long_track_particles, name="Hlt1RICH1Alignment"),
         make_rich_2_line(
             long_tracks, long_track_particles, name="Hlt1RICH2Alignment"),
-        make_d2kpi_line(long_tracks, dihadrons, name="Hlt1D2KPiAlignment"),
+        make_d2kpi_align_line(
+            long_tracks, dihadrons, name="Hlt1D2KPiAlignment"),
         make_z_range_materialvertex_seed_line(
             material_interaction_tracks,
             min_z_materialvertex_seed=300,

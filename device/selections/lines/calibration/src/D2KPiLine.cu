@@ -56,8 +56,9 @@ __device__ bool d2kpi_line::d2kpi_line_t::select(
   const float m1 = particle.m12(Allen::mK, Allen::mPi);
   const float m2 = particle.m12(Allen::mPi, Allen::mK);
   const bool decision = vertex.pt() > parameters.minComboPt && vertex.chi2() < parameters.maxVertexChi2 &&
-                        particle.eta() > parameters.minEta && particle.eta() < parameters.maxEta &&
-                        particle.doca12() < parameters.maxDOCA && particle.minpt() > parameters.minTrackPt &&
+                        particle.dira() > parameters.minDira && particle.eta() > parameters.minEta &&
+                        particle.eta() < parameters.maxEta && particle.doca12() < parameters.maxDOCA &&
+                        particle.minpt() > parameters.minTrackPt && particle.minp() > parameters.minTrackP &&
                         particle.has_pv() && particle.minip() > parameters.minTrackIP &&
                         particle.ctau(Allen::mDz) > parameters.ctIPScale * parameters.minTrackIP &&
                         min(fabsf(m1 - Allen::mDz), fabsf(m2 - Allen::mDz)) < parameters.massWindow &&
