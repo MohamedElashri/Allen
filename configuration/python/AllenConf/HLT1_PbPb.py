@@ -43,7 +43,7 @@ from AllenConf.odin import odin_error_filter, make_bxtype, tae_filter
 from AllenConf.persistency import make_persistency
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.enum_types import TrackingType, includes_matching
-from .HLT1 import default_bgi_activity_lines, default_bgi_pvs_lines
+from .HLT1 import default_bgi_activity_lines
 
 
 def default_physics_lines(reconstructed_objects, prescale, reco_particles,
@@ -455,13 +455,12 @@ def setup_hlt1_node(withMCChecking=False,
     if enableBGI:
         with make_velo_clusters_micro_bias_line.bind(pre_scaler=0.01):
             monitoring_lines += default_bgi_activity_lines(
+                reconstructed_objects["pvs"],
+                reconstructed_objects["velo_states"],
                 decoded_velo=decode_velo(),
                 decoded_calo=decoded_calo,
-                prefilter=(prefilter_upc_bgi if mini else prefilters_bgi))
-        monitoring_lines += default_bgi_pvs_lines(
-            reconstructed_objects["pvs"],
-            reconstructed_objects["velo_states"],
-            prefilter=(prefilter_upc_bgi if mini else prefilters_bgi))
+                prefilter=(prefilter_upc_bgi if mini else prefilters_bgi),
+                enableBGI_full=True)
 
     with line_maker.bind(prefilter=[sd_error_filter()]):
         physics_lines += [
