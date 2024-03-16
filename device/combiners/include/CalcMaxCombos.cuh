@@ -17,13 +17,13 @@ namespace CalcMaxCombos {
 
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    DEVICE_INPUT_AGGREGATE(dev_input_agg_t, Allen::IMultiEventContainer*) dev_input_agg;
-    DEVICE_OUTPUT(dev_input_containers_t, Allen::IMultiEventContainer*) dev_input_containers;
+    DEVICE_INPUT(dev_input1_t, Allen::IMultiEventContainer*) dev_input1;
+    DEVICE_INPUT(dev_input2_t, Allen::IMultiEventContainer*) dev_input2;
     DEVICE_OUTPUT(dev_max_combos_t, unsigned) dev_max_combos;
     PROPERTY(block_dim_t, "block_dim", "Block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void calc_max_combos(Parameters parameters, const unsigned number_of_input_containers);
+  __global__ void calc_max_combos(Parameters parameters);
 
   struct calc_max_combos_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
