@@ -8,13 +8,14 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenConf.HLT1 import setup_hlt1_node
+from AllenConf.HLT1 import setup_hlt1_node, default_bgi_activity_lines
 from AllenCore.generator import generate
 
-hlt1_node = setup_hlt1_node(
-    enablePhysics=False,
-    withSMOG2=True,
-    enableBGI=True,
-    with_ut=False,
-)
+with default_bgi_activity_lines.bind(enableBGI_full=True):
+    hlt1_node = setup_hlt1_node(
+        enablePhysics=False,
+        withSMOG2=True,
+        enableBGI=True,
+        with_ut=False,
+    )
 generate(hlt1_node)

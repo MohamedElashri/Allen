@@ -91,6 +91,12 @@ Hlt1LowMassDiElectron_massSlice4_displaced:         0/  1000, (    0.00 +/-     
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Passthrough:                                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TAEPassthrough:                                 0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BGIPseudoPVsNoBeam:                             0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BGIPseudoPVsBeamOne:                          727/  1000, (21810.00 +/-   422.64) kHz
+Hlt1BGIPseudoPVsBeamTwo:                            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BGIPseudoPVsUpBeamBeam:                         0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BGIPseudoPVsDownBeamBeam:                       0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1BGIPseudoPVsIRBeamBeam:                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINLumi:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODIN1kHzLumi:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINNoBias:                                     0/  1000, (    0.00 +/-     0.00) kHz
@@ -121,7 +127,7 @@ Hlt1_SMOG2_SingleTrack:                           143/  1000, ( 4290.00 +/-   33
 Hlt1_SMOG2_DiMuonHighMass:                          0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_SingleMuon:                             22/  1000, (  660.00 +/-   139.16) kHz
 Hlt1_SMOG2_L02PPi:                                  5/  1000, (  150.00 +/-    66.91) kHz
-Inclusive:                                        310/  1000, ( 9300.00 +/-   438.76) kHz
+Inclusive:                                        748/  1000, (22440.00 +/-   411.88) kHz
 
 
 seed_validator validation:
@@ -218,6 +224,12 @@ Hlt1LowMassDiElectron_massSlice4_displaced:         0           0
 Hlt1LowMassDiElectron_SS_massSlice4_displaced:      0           0
 Hlt1Passthrough:                                    0           0
 Hlt1TAEPassthrough:                                 0           0
+Hlt1BGIPseudoPVsNoBeam:                             0           0
+Hlt1BGIPseudoPVsBeamOne:                          727           0
+Hlt1BGIPseudoPVsBeamTwo:                            0           0
+Hlt1BGIPseudoPVsUpBeamBeam:                         0           0
+Hlt1BGIPseudoPVsDownBeamBeam:                       0           0
+Hlt1BGIPseudoPVsIRBeamBeam:                         0           0
 Hlt1ODINLumi:                                       0           0
 Hlt1ODIN1kHzLumi:                                   0           0
 Hlt1ODINNoBias:                                     0           0
@@ -249,12 +261,12 @@ Hlt1_SMOG2_DiMuonHighMass:                          0           0
 Hlt1_SMOG2_SingleMuon:                             22          24
 Hlt1_SMOG2_L02PPi:                                  5           5
 
-Total decisions:      473
+Total decisions:      1200
 Total tracks:         970
 Total calos clusters: 0
 Total SVs:            776
 Total hits:           27056
-Total stdinfo:        11337
+Total stdinfo:        12064
 
 
 velo_validator validation:

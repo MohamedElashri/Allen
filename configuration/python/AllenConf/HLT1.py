@@ -496,47 +496,18 @@ def default_SMOG2_lines(velo_tracks,
     return [line_maker(line) for line in lines]
 
 
-def default_bgi_activity_lines(decoded_velo, decoded_calo, prefilter=[]):
-    """
-    Detector activity lines for BGI data collection.
-    """
-    # decoded_plume = decode_plume()
-    bx_BB = make_bxtype(bx_type=3)
-    bx_NoBB = make_invert_event_list(bx_BB, name="BX_NoBeamBeam")
-    lines = [
-        line_maker(
-            make_velo_clusters_micro_bias_line(
-                decoded_velo,
-                name="Hlt1BGIVeloClustersMicroBias",
-                min_velo_clusters=5,
-            ),
-            prefilter=prefilter + [bx_NoBB]),
-        line_maker(
-            make_calo_digits_minADC_line(
-                decoded_calo,
-                name="Hlt1BGICaloDigits",
-                minADC=60,
-            ),
-            prefilter=prefilter + [bx_NoBB]),
-        # line_maker(
-        #     make_plume_activity_line(
-        #         decoded_plume,
-        #         name="Hlt1BGIPlumeActivity",
-        #         min_number_plume_adcs_over_min=1,
-        #         min_plume_adc=276,
-        #     ),
-        #     prefilter=prefilter + [bx_NoBB]),
-        # FIXME Hlt1BGIPlumeActivity can be re-enabled when v2 support
-        #       is implemented in the Plume decoding.
-    ]
-    return lines
-
-
-def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
+@configurable
+def default_bgi_activity_lines(pvs,
+                               velo_states,
+                               decoded_velo,
+                               decoded_calo,
+                               enableBGI_full=False,
+                               prefilter=[]):
     """
     Primary vertex lines for various bunch crossing types composed from
     new PV filters and beam crossing lines.
     """
+
     mm = 1.0  # from SystemOfUnits.h
     max_cyl_rad_sq = (3 * mm)**2
     bx_BB = make_bxtype(bx_type=3)
@@ -549,80 +520,6 @@ def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
         max_vtx_rho_sq=max_cyl_rad_sq,
         min_vtx_nTracks=10.)
     lines = []
-    lines += [
-        line_maker(
-            make_beam_line(
-                name="Hlt1BGIPVsCylNoBeam",
-                beam_crossing_type=0,
-                pre_scaler=1.,
-                post_scaler=1.),
-            prefilter=prefilter + [bx_NoBB, pvs_z_all]),
-        line_maker(
-            make_beam_line(
-                name="Hlt1BGIPVsCylBeamOne",
-                beam_crossing_type=1,
-                pre_scaler=1.,
-                post_scaler=1.),
-            prefilter=prefilter + [bx_NoBB, pvs_z_all]),
-        line_maker(
-            make_beam_line(
-                name="Hlt1BGIPVsCylBeamTwo",
-                beam_crossing_type=2,
-                pre_scaler=1.,
-                post_scaler=1.),
-            prefilter=prefilter + [bx_NoBB, pvs_z_all])
-    ]
-
-    pvs_z_up = make_checkCylPV(
-        pvs,
-        name="BGIPVsCylUp",
-        min_vtx_z=-2000.,
-        max_vtz_z=-250.,
-        max_vtx_rho_sq=max_cyl_rad_sq,
-        min_vtx_nTracks=10.)
-    lines += [
-        line_maker(
-            make_beam_line(
-                name="Hlt1BGIPVsCylUpBeamBeam",
-                beam_crossing_type=3,
-                pre_scaler=1.,
-                post_scaler=1.),
-            prefilter=prefilter + [pvs_z_up])
-    ]
-
-    pvs_z_down = make_checkCylPV(
-        pvs,
-        name="BGIPVsCylDown",
-        min_vtx_z=250.,
-        max_vtz_z=2000.,
-        max_vtx_rho_sq=max_cyl_rad_sq,
-        min_vtx_nTracks=10.)
-    lines += [
-        line_maker(
-            make_beam_line(
-                name="Hlt1BGIPVsCylDownBeamBeam",
-                beam_crossing_type=3,
-                pre_scaler=1.,
-                post_scaler=1.),
-            prefilter=prefilter + [pvs_z_down])
-    ]
-
-    pvs_z_ir = make_checkCylPV(
-        pvs,
-        name="BGIPVsCylIR",
-        min_vtx_z=-250.,
-        max_vtz_z=250.,
-        max_vtx_rho_sq=max_cyl_rad_sq,
-        min_vtx_nTracks=28.)
-    lines += [
-        line_maker(
-            make_beam_line(
-                name="Hlt1BGIPVsCylIRBeamBeam",
-                beam_crossing_type=3,
-                pre_scaler=1.,
-                post_scaler=1.),
-            prefilter=prefilter + [pvs_z_ir])
-    ]
 
     # Alternate version based on track beamline states
     velo_states_z_all = make_checkPseudoPV(
@@ -707,6 +604,112 @@ def default_bgi_pvs_lines(pvs, velo_states, prefilter=[]):
             prefilter=prefilter + [velo_states_z_ir])
     ]
 
+    if not enableBGI_full:
+        return lines
+
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPVsCylNoBeam",
+                beam_crossing_type=0,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [bx_NoBB, pvs_z_all]),
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPVsCylBeamOne",
+                beam_crossing_type=1,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [bx_NoBB, pvs_z_all]),
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPVsCylBeamTwo",
+                beam_crossing_type=2,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [bx_NoBB, pvs_z_all])
+    ]
+
+    pvs_z_up = make_checkCylPV(
+        pvs,
+        name="BGIPVsCylUp",
+        min_vtx_z=-2000.,
+        max_vtz_z=-250.,
+        max_vtx_rho_sq=max_cyl_rad_sq,
+        min_vtx_nTracks=10.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPVsCylUpBeamBeam",
+                beam_crossing_type=3,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [pvs_z_up])
+    ]
+
+    pvs_z_down = make_checkCylPV(
+        pvs,
+        name="BGIPVsCylDown",
+        min_vtx_z=250.,
+        max_vtz_z=2000.,
+        max_vtx_rho_sq=max_cyl_rad_sq,
+        min_vtx_nTracks=10.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPVsCylDownBeamBeam",
+                beam_crossing_type=3,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [pvs_z_down])
+    ]
+
+    pvs_z_ir = make_checkCylPV(
+        pvs,
+        name="BGIPVsCylIR",
+        min_vtx_z=-250.,
+        max_vtz_z=250.,
+        max_vtx_rho_sq=max_cyl_rad_sq,
+        min_vtx_nTracks=28.)
+    lines += [
+        line_maker(
+            make_beam_line(
+                name="Hlt1BGIPVsCylIRBeamBeam",
+                beam_crossing_type=3,
+                pre_scaler=1.,
+                post_scaler=1.),
+            prefilter=prefilter + [pvs_z_ir])
+    ]
+    """
+    Detector activity lines for BGI data collection.
+    """
+    lines += [
+        line_maker(
+            make_velo_clusters_micro_bias_line(
+                decoded_velo,
+                name="Hlt1BGIVeloClustersMicroBias",
+                min_velo_clusters=5,
+            ),
+            prefilter=prefilter + [bx_NoBB]),
+        line_maker(
+            make_calo_digits_minADC_line(
+                decoded_calo,
+                name="Hlt1BGICaloDigits",
+                minADC=60,
+            ),
+            prefilter=prefilter + [bx_NoBB]),
+        # line_maker(
+        #     make_plume_activity_line(
+        #         decoded_plume,
+        #         name="Hlt1BGIPlumeActivity",
+        #         min_number_plume_adcs_over_min=1,
+        #         min_plume_adc=276,
+        #     ),
+        #     prefilter=prefilter + [bx_NoBB]),
+        # FIXME Hlt1BGIPlumeActivity can be re-enabled when v2 support
+        #       is implemented in the Plume decoding.
+    ]
     return lines
 
 
@@ -723,7 +726,7 @@ def setup_hlt1_node(enablePhysics=True,
                     with_v0s=True,
                     with_rich=False,
                     with_AC_split=False,
-                    enableBGI=False,
+                    enableBGI=True,
                     velo_open=False,
                     enableDownstream=False,
                     tracking_type=TrackingType.FORWARD,
@@ -818,10 +821,11 @@ def setup_hlt1_node(enablePhysics=True,
     if enableBGI:
         bgi_prefilters = odin_err_filter + gec
         physics_lines += default_bgi_activity_lines(
-            decode_velo(), decode_calo(), bgi_prefilters)
-        physics_lines += default_bgi_pvs_lines(
-            reconstructed_objects["pvs"], reconstructed_objects["velo_states"],
-            bgi_prefilters)
+            reconstructed_objects["pvs"],
+            reconstructed_objects["velo_states"],
+            decode_velo(),
+            decode_calo(),
+            prefilter=bgi_prefilters)
 
     monitoring_lines += alignment_monitoring_lines(
         reconstructed_objects, prefilters, odin_err_filter + gec, with_muon)
