@@ -17,9 +17,7 @@ void CalcMaxCombos::calc_max_combos_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  const auto dev_input_agg = input_aggregate<dev_input_agg_t>(arguments);
   set_size<dev_max_combos_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_input_containers_t>(arguments, dev_input_agg.size_of_aggregate());
 }
 
 void CalcMaxCombos::calc_max_combos_t::operator()(
@@ -28,20 +26,16 @@ void CalcMaxCombos::calc_max_combos_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  const auto dev_input_agg = input_aggregate<dev_input_agg_t>(arguments);
   Allen::memset_async<dev_max_combos_t>(arguments, 0, context);
-  Allen::aggregate::store_contiguous_async<dev_input_containers_t, dev_input_agg_t>(arguments, context);
   global_function(calc_max_combos)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, dev_input_agg.size_of_aggregate());
+    arguments);
 }
 
-__global__ void CalcMaxCombos::calc_max_combos(
-  CalcMaxCombos::Parameters parameters,
-  const unsigned number_of_input_containers)
+__global__ void CalcMaxCombos::calc_max_combos(CalcMaxCombos::Parameters parameters)
 {
   const unsigned event_number = blockIdx.x;
 
-  const auto mec1 = parameters.dev_input_containers[0];
+  const auto mec1 = parameters.dev_input1[0];
   unsigned n_input1 = 0;
   const auto basic_mec1 = Allen::dyn_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(mec1);
   if (basic_mec1) {
@@ -56,12 +50,12 @@ __global__ void CalcMaxCombos::calc_max_combos(
     }
   }
 
-  if (number_of_input_containers == 1) {
+  const auto mec2 = parameters.dev_input2[0];
+  if (mec1 == mec2) {
     parameters.dev_max_combos[event_number] = n_input1 * (n_input1 - 1) / 2;
     return;
   }
 
-  const auto mec2 = parameters.dev_input_containers[1];
   unsigned n_input2 = 0;
   const auto basic_mec2 = Allen::dyn_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(mec2);
   if (basic_mec2) {

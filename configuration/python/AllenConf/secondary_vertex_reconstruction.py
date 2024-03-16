@@ -220,7 +220,8 @@ def make_sv_pairs(secondary_vertices):
         calc_max_combos_t,
         name='calc_max_combos_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_input_agg_t=[secondary_vertices["dev_multi_event_composites_ptr"]])
+        dev_input1_t=secondary_vertices["dev_multi_event_composites_ptr"],
+        dev_input2_t=secondary_vertices["dev_multi_event_composites_ptr"])
 
     prefix_sum_max_combos = make_algorithm(
         host_prefix_sum_t,
