@@ -716,7 +716,7 @@ def default_bgi_activity_lines(pvs,
 def setup_hlt1_node(enablePhysics=True,
                     withMCChecking=False,
                     EnableGEC=False,
-                    withSMOG2=False,
+                    withSMOG2=True,
                     enableRateValidator=True,
                     with_ut=True,
                     with_lumi=True,
@@ -840,19 +840,6 @@ def setup_hlt1_node(enablePhysics=True,
     if withSMOG2:
         SMOG2_prefilters, SMOG2_lines = [], []
 
-        lowMult_5 = make_lowmult(
-            reconstructed_objects['velo_tracks'],
-            reconstructed_objects["ecal_clusters"],
-            name="LowMult_5",
-            minTracks=1,
-            maxTracks=5)
-        with line_maker.bind(prefilter=odin_err_filter + gec + [lowMult_5]):
-            SMOG2_lines += [
-                line_maker(
-                    make_passthrough_line(
-                        name="Hlt1GECPassThrough_LowMult5", pre_scaler=0.01))
-            ]
-
         bx_BE = make_bxtype(bx_type=1)
         with line_maker.bind(prefilter=odin_err_filter + [bx_BE]):
             SMOG2_lines += [
@@ -861,18 +848,36 @@ def setup_hlt1_node(enablePhysics=True,
                         name="Hlt1_BESMOG2_NoBias", pre_scaler=1.e-6))
             ]
 
-        lowMult_10 = make_lowmult(
-            reconstructed_objects['velo_tracks'],
-            reconstructed_objects["ecal_clusters"],
-            name="LowMult_10",
-            minTracks=1,
-            maxTracks=10)
-        with line_maker.bind(prefilter=odin_err_filter + [bx_BE, lowMult_10]):
-            SMOG2_lines += [
-                line_maker(
-                    make_passthrough_line(
-                        name="Hlt1_BESMOG2_LowMult10", pre_scaler=1.e-4))
-            ]
+        if with_calo:
+            lowMult_5 = make_lowmult(
+                reconstructed_objects['velo_tracks'],
+                reconstructed_objects["ecal_clusters"],
+                name="LowMult_5",
+                minTracks=1,
+                maxTracks=5)
+
+            with line_maker.bind(
+                    prefilter=odin_err_filter + gec + [lowMult_5]):
+                SMOG2_lines += [
+                    line_maker(
+                        make_passthrough_line(
+                            name="Hlt1GECPassThrough_LowMult5",
+                            pre_scaler=0.01))
+                ]
+
+            lowMult_10 = make_lowmult(
+                reconstructed_objects['velo_tracks'],
+                reconstructed_objects["ecal_clusters"],
+                name="LowMult_10",
+                minTracks=1,
+                maxTracks=10)
+            with line_maker.bind(
+                    prefilter=odin_err_filter + [bx_BE, lowMult_10]):
+                SMOG2_lines += [
+                    line_maker(
+                        make_passthrough_line(
+                            name="Hlt1_BESMOG2_LowMult10", pre_scaler=1.e-4))
+                ]
 
         if EnableGEC:
             SMOG2_prefilters += gec
