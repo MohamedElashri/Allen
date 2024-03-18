@@ -12,7 +12,8 @@ from AllenCore.algorithms import (
     single_high_pt_muon_line_t, single_high_pt_muon_no_muid_line_t,
     low_pt_muon_line_t, di_muon_mass_line_t, di_muon_soft_line_t,
     low_pt_di_muon_line_t, track_muon_mva_line_t, di_muon_no_ip_line_t,
-    one_muon_track_line_t, di_muon_drell_yan_line_t, displaced_di_muon_line_t)
+    one_muon_track_line_t, di_muon_drell_yan_line_t, displaced_di_muon_line_t,
+    det_jpsitomumu_tap_line_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
@@ -328,4 +329,56 @@ def make_displaced_dimuon_line(
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string,
         enable_monitoring=is_allen_standalone() and enable_monitoring,
+        pre_scaler=pre_scaler)
+
+
+@configurable
+def make_det_jpsitomumu_tap_line(
+        long_tracks,
+        secondary_vertices,
+        pre_scaler_hash_string="jpsitomumutap_line_pre",
+        post_scaler_hash_string='jpsitomumutap_line_post',
+        name="Hlt1DetJPsiToMuMuTaP",
+        JpsiMaxDoca=1.,
+        JpsiMinFDChi2=50.,
+        JpsiMinCosDira=0.99,
+        JpsiMaxVChi2=15.,
+        JpsiMinPt=1000.,
+        JpsiMinMass=2950.,
+        JpsiMaxMass=3250.,
+        mutagMinP=3000.,
+        mutagMinPt=1200.,
+        mutagMinIPChi2=9.,
+        muprobeMinIPChi2=9.,
+        muprobeMinP=3000.,
+        posTag=True,
+        enable_monitoring=True,
+        enable_tupling=False,
+        pre_scaler=1.):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        det_jpsitomumu_tap_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
+        dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
+        pre_scaler_hash_string=pre_scaler_hash_string,
+        post_scaler_hash_string=post_scaler_hash_string,
+        JpsiMaxDoca=JpsiMaxDoca,
+        JpsiMinFDChi2=JpsiMinFDChi2,
+        JpsiMinCosDira=JpsiMinCosDira,
+        JpsiMaxVChi2=JpsiMaxVChi2,
+        JpsiMinPt=JpsiMinPt,
+        JpsiMinMass=JpsiMinMass,
+        JpsiMaxMass=JpsiMaxMass,
+        mutagMinP=mutagMinP,
+        mutagMinPt=mutagMinPt,
+        mutagMinIPChi2=mutagMinIPChi2,
+        muprobeMinIPChi2=muprobeMinIPChi2,
+        muprobeMinP=muprobeMinP,
+        posTag=posTag,
+        enable_monitoring=is_allen_standalone() and enable_monitoring,
+        enable_tupling=enable_tupling,
         pre_scaler=pre_scaler)

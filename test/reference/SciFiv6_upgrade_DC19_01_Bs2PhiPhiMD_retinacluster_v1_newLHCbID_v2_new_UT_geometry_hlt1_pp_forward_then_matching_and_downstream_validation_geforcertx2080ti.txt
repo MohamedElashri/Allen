@@ -103,6 +103,8 @@ Hlt1DiMuonDrellYan_VLowMass:                        0/  1000, (    0.00 +/-     
 Hlt1DiMuonDrellYan_VLowMass_SS:                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_SS:                              0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DetJpsiToMuMuPosTagLine:                        0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DetJpsiToMuMuNegTagLine:                        1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1TrackElectronMVA:                              56/  1000, ( 1680.00 +/-   218.12) kHz
 Hlt1SingleHighPtElectron:                          18/  1000, (  540.00 +/-   126.13) kHz
 Hlt1DisplacedDielectron:                           14/  1000, (  420.00 +/-   111.46) kHz
@@ -168,7 +170,7 @@ Inclusive:                                        703/  1000, (21090.00 +/-   43
 
 
 seed_validator validation:
-TrackChecker output                               :      2536/    47267   5.37% ghosts
+TrackChecker output                               :      2536/    47268   5.37% ghosts
 for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% ghosts
 00_P>3Gev_Pt>0.5                                  :      3537/    37299   9.48% (  8.49%),         0 (  0.00%) clones, pur  99.33%, hit eff  95.92%
 01_long                                           :     15328/    69811  21.96% ( 21.42%),         1 (  0.01%) clones, pur  99.60%, hit eff  96.91%
@@ -191,9 +193,9 @@ for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% 
 05_long_from_B                                    :       616/     4761  12.94% ( 12.00%),         0 (  0.00%) clones, pur  99.52%, hit eff  97.16%
 06_long_from_B_P>5GeV                             :       394/     3875  10.17% (  9.59%),         0 (  0.00%) clones, pur  99.49%, hit eff  97.41%
 07_long_from_B_P>3GeV                             :       615/     4428  13.89% ( 12.94%),         0 (  0.00%) clones, pur  99.52%, hit eff  97.16%
-08_UT+SciFi                                       :      6004/    10746  55.87% ( 56.22%),         0 (  0.00%) clones, pur  99.50%, hit eff  96.29%
+08_UT+SciFi                                       :      6005/    10746  55.88% ( 56.23%),         0 (  0.00%) clones, pur  99.50%, hit eff  96.29%
 09_UT+SciFi_P>5GeV                                :      3917/     4718  83.02% ( 85.16%),         0 (  0.00%) clones, pur  99.52%, hit eff  96.69%
-10_UT+SciFi_P>3GeV                                :      5969/     7710  77.42% ( 79.07%),         0 (  0.00%) clones, pur  99.50%, hit eff  96.30%
+10_UT+SciFi_P>3GeV                                :      5970/     7710  77.43% ( 79.08%),         0 (  0.00%) clones, pur  99.50%, hit eff  96.30%
 11_UT+SciFi_fromStrange                           :      2500/     3763  66.44% ( 67.62%),         0 (  0.00%) clones, pur  99.52%, hit eff  96.84%
 12_UT+SciFi_fromStrange_P>5GeV                    :      1801/     2101  85.72% ( 87.30%),         0 (  0.00%) clones, pur  99.53%, hit eff  97.15%
 13_UT+SciFi_fromStrange_P>3GeV                    :      2495/     3025  82.48% ( 84.31%),         0 (  0.00%) clones, pur  99.52%, hit eff  96.84%
@@ -247,6 +249,8 @@ Hlt1DiMuonDrellYan_VLowMass:                        0           0
 Hlt1DiMuonDrellYan_VLowMass_SS:                     0           0
 Hlt1DiMuonDrellYan:                                 0           0
 Hlt1DiMuonDrellYan_SS:                              0           0
+Hlt1DetJpsiToMuMuPosTagLine:                        0           0
+Hlt1DetJpsiToMuMuNegTagLine:                        1           1
 Hlt1TrackElectronMVA:                              56          57
 Hlt1SingleHighPtElectron:                          18          18
 Hlt1DisplacedDielectron:                           14          16
@@ -309,12 +313,12 @@ Hlt1_SMOG2_DiMuonHighMass:                          0           0
 Hlt1_SMOG2_SingleMuon:                              0           0
 Hlt1_SMOG2_L02PPi:                                  0           0
 
-Total decisions:      1392
-Total tracks:         2516
+Total decisions:      1393
+Total tracks:         2517
 Total calos clusters: 201
-Total SVs:            2318
-Total hits:           63495
-Total stdinfo:        31596
+Total SVs:            2319
+Total hits:           63522
+Total stdinfo:        31609
 
 
 velo_validator validation:
