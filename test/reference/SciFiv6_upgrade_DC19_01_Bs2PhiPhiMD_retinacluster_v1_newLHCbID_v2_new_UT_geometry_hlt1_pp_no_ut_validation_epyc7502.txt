@@ -73,6 +73,8 @@ Hlt1DiMuonDrellYan_VLowMass:                        0/  1000, (    0.00 +/-     
 Hlt1DiMuonDrellYan_VLowMass_SS:                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan:                                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_SS:                              0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DetJpsiToMuMuPosTagLine:                        0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1DetJpsiToMuMuNegTagLine:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackElectronMVA:                              16/  1000, (  480.00 +/-   119.04) kHz
 Hlt1SingleHighPtElectron:                           2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1DisplacedDielectron:                            0/  1000, (    0.00 +/-     0.00) kHz
@@ -137,7 +139,6 @@ Hlt1_SMOG2_L02PPi:                                  0/  1000, (    0.00 +/-     
 Inclusive:                                        284/  1000, ( 8520.00 +/-   427.80) kHz
 
 
-
 selreport_validator validation:
                                                Events  Candidates
 Hlt1TrackMVA:                                      74          89
@@ -166,6 +167,8 @@ Hlt1DiMuonDrellYan_VLowMass:                        0           0
 Hlt1DiMuonDrellYan_VLowMass_SS:                     0           0
 Hlt1DiMuonDrellYan:                                 0           0
 Hlt1DiMuonDrellYan_SS:                              0           0
+Hlt1DetJpsiToMuMuPosTagLine:                        0           0
+Hlt1DetJpsiToMuMuNegTagLine:                        0           0
 Hlt1TrackElectronMVA:                              16          16
 Hlt1SingleHighPtElectron:                           2           2
 Hlt1DisplacedDielectron:                            0           0

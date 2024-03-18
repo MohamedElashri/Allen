@@ -216,6 +216,20 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 minMass=5000.,
                 OppositeSign=False,
                 enable_monitoring=True,
+                enable_tupling=enable_tupling),
+            make_det_jpsitomumu_tap_line(
+                long_tracks,
+                dihadrons,
+                name="Hlt1DetJpsiToMuMuPosTagLine",
+                posTag=True,
+                enable_monitoring=True,
+                enable_tupling=enable_tupling),
+            make_det_jpsitomumu_tap_line(
+                long_tracks,
+                dihadrons,
+                name="Hlt1DetJpsiToMuMuNegTagLine",
+                posTag=False,
+                enable_monitoring=True,
                 enable_tupling=enable_tupling)
         ]
 
