@@ -64,11 +64,11 @@ Hlt1OneMuonTrackLine:                               1/  1000, (   30.00 +/-    2
 Hlt1SingleHighPtMuon:                               3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuonNoMuID:                         2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1DiMuonHighMass:                                10/  1000, (  300.00 +/-    94.39) kHz
-Hlt1DiMuonDisplaced:                               15/  1000, (  450.00 +/-   115.31) kHz
+Hlt1DiMuonDisplaced:                                3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1DiMuonSoft:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMuonMVA:                                  14/  1000, (  420.00 +/-   111.46) kHz
-Hlt1DiMuonNoIP:                                    35/  1000, ( 1050.00 +/-   174.35) kHz
-Hlt1DiMuonNoIP_ss:                                  6/  1000, (  180.00 +/-    73.26) kHz
+Hlt1DiMuonNoIP:                                     4/  1000, (  120.00 +/-    59.88) kHz
+Hlt1DiMuonNoIP_ss:                                  0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_VLowMass:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_VLowMass_SS:                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan:                                 1/  1000, (   30.00 +/-    29.98) kHz
@@ -136,7 +136,7 @@ Hlt1_SMOG2_SingleTrack:                             0/  1000, (    0.00 +/-     
 Hlt1_SMOG2_DiMuonHighMass:                          0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_SingleMuon:                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_L02PPi:                                  0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                        597/  1000, (17910.00 +/-   465.33) kHz
+Inclusive:                                        586/  1000, (17580.00 +/-   467.27) kHz
 
 
 selreport_validator validation:
@@ -158,11 +158,11 @@ Hlt1OneMuonTrackLine:                               1           0
 Hlt1SingleHighPtMuon:                               3           3
 Hlt1SingleHighPtMuonNoMuID:                         2           3
 Hlt1DiMuonHighMass:                                10          11
-Hlt1DiMuonDisplaced:                               15          17
+Hlt1DiMuonDisplaced:                                3           3
 Hlt1DiMuonSoft:                                     0           0
 Hlt1TrackMuonMVA:                                  14          14
-Hlt1DiMuonNoIP:                                    35          44
-Hlt1DiMuonNoIP_ss:                                  6           8
+Hlt1DiMuonNoIP:                                     4           4
+Hlt1DiMuonNoIP_ss:                                  0           0
 Hlt1DiMuonDrellYan_VLowMass:                        0           0
 Hlt1DiMuonDrellYan_VLowMass_SS:                     0           0
 Hlt1DiMuonDrellYan:                                 1           1
@@ -231,12 +231,12 @@ Hlt1_SMOG2_DiMuonHighMass:                          0           0
 Hlt1_SMOG2_SingleMuon:                              0           0
 Hlt1_SMOG2_L02PPi:                                  0           0
 
-Total decisions:      1036
-Total tracks:         1841
+Total decisions:      987
+Total tracks:         1759
 Total calos clusters: 54
-Total SVs:            1552
-Total hits:           48038
-Total stdinfo:        22188
+Total SVs:            1498
+Total hits:           45611
+Total stdinfo:        21267
 
 
 veloUT_validator validation:
