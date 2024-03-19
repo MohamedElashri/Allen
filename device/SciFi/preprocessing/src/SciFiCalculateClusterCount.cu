@@ -139,22 +139,22 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
   Allen::memset_async<dev_scifi_link_error_counter_t>(arguments, 0, context);
 
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
-  if (bank_version < 0) return; // no SciFi banks present in data
+  if (bank_version >= 0) { // SciFi banks present in data
+    auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
+                       (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<4, true>) :
+                                                     global_function(scifi_calculate_cluster_count_kernel<4, false>)) :
+                       (bank_version == 6) ?
+                       (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<6, true>) :
+                                                     global_function(scifi_calculate_cluster_count_kernel<6, false>)) :
+                       (bank_version == 7 || (bank_version == 8 && property<decode_v8_as_v7_t>())) ?
+                       (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<7, true>) :
+                                                     global_function(scifi_calculate_cluster_count_kernel<7, false>)) :
+                       (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<8, true>) :
+                                                     global_function(scifi_calculate_cluster_count_kernel<8, false>));
 
-  auto kernel_fn = (bank_version == 4 || bank_version == 5) ?
-                     (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<4, true>) :
-                                                   global_function(scifi_calculate_cluster_count_kernel<4, false>)) :
-                     (bank_version == 6) ?
-                     (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<6, true>) :
-                                                   global_function(scifi_calculate_cluster_count_kernel<6, false>)) :
-                     (bank_version == 7 || (bank_version == 8 && property<decode_v8_as_v7_t>())) ?
-                     (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<7, true>) :
-                                                   global_function(scifi_calculate_cluster_count_kernel<7, false>)) :
-                     (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<8, true>) :
-                                                   global_function(scifi_calculate_cluster_count_kernel<8, false>));
-
-  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, std::get<0>(runtime_options.event_interval), constants.dev_scifi_geometry);
+    kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+      arguments, std::get<0>(runtime_options.event_interval), constants.dev_scifi_geometry);
+  }
 
   unsigned array_size = size<dev_scifi_hit_count_t>(arguments) - 1;
   PrefixSum::prefix_sum(*this, arguments, context, data<dev_scifi_hit_count_t>(arguments), array_size);
