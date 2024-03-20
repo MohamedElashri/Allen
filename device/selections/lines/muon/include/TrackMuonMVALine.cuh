@@ -18,6 +18,8 @@ namespace track_muon_mva_line {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_particle_container;
+    DEVICE_INPUT(dev_chi2muon_t, float) dev_chi2muon;
+    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
@@ -35,6 +37,7 @@ namespace track_muon_mva_line {
     PROPERTY(param3_t, "param3", "param3 description", float) param3;
     PROPERTY(alpha_t, "alpha", "alpha description", float) alpha;
     PROPERTY(minBPVz_t, "minBPVz", "minimum z for the best primary vertex associated to the muon", float) minBPVz;
+    PROPERTY(maxChi2Muon_t, "maxChi2Muon", "minimum Chi2Muon evaluation", float) maxChi2Muon;
 
     DEVICE_OUTPUT(pt_t, float) pt;
     DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
@@ -47,11 +50,18 @@ namespace track_muon_mva_line {
   struct track_muon_mva_line_t : public SelectionAlgorithm,
                                  Parameters,
                                  OneTrackLine<track_muon_mva_line_t, Parameters> {
-    __device__ static bool select(const Parameters& ps, std::tuple<const Allen::Views::Physics::BasicParticle> input);
+
+    __device__ std::tuple<const Allen::Views::Physics::BasicParticle, const float> static get_input(
+      const Parameters& parameters,
+      const unsigned event_number,
+      const unsigned i);
+    __device__ static bool select(
+      const Parameters& ps,
+      std::tuple<const Allen::Views::Physics::BasicParticle, const float> input);
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::BasicParticle> input,
+      std::tuple<const Allen::Views::Physics::BasicParticle, const float> input,
       unsigned index,
       bool sel);
 
@@ -71,6 +81,7 @@ namespace track_muon_mva_line {
     Property<param3_t> m_param3 {this, 1.248f};
     Property<alpha_t> m_alpha {this, 0.f};
     Property<minBPVz_t> m_minBPVz {this, -341.f * Gaudi::Units::mm};
+    Property<maxChi2Muon_t> m_minChi2Muon {this, 1.8};
 
     Property<enable_tupling_t> m_enable_tupling {this, false};
   };

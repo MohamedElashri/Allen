@@ -122,6 +122,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
         ]
 
     if with_muon:
+        muonid = reconstructed_objects["muonID"]
         lines += [
             make_one_muon_track_line(
                 muon_stubs["dev_muon_number_of_tracks"],
@@ -144,12 +145,15 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             make_di_muon_mass_line(
                 long_tracks,
                 dileptons,
+                muonid,
+                maxChi2Corr=5,
                 name="Hlt1DiMuonHighMass",
                 enable_tupling=enable_tupling,
                 minHighMassTrackPt=thresholds.highmass_dimuon_pt),
             make_di_muon_mass_line(
                 long_tracks,
                 dileptons,
+                muonid,
                 name="Hlt1DiMuonDisplaced",
                 minHighMassTrackPt=thresholds.displaced_dimuon_pt,
                 minHighMassTrackP=3000.,
@@ -157,19 +161,25 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 maxDoca=0.2,
                 maxVertexChi2=25.,
                 minIPChi2=thresholds.displaced_dimuon_ipchi2,
-                enable_tupling=enable_tupling),
+                enable_tupling=enable_tupling,
+                maxChi2Corr=1.8),
             make_di_muon_soft_line(
                 long_tracks, dileptons, name="Hlt1DiMuonSoft"),
             make_track_muon_mva_line(
                 long_tracks,
                 long_track_particles,
+                muonid,
+                maxChi2Corr=1.8,
                 name="Hlt1TrackMuonMVA",
                 enable_tupling=enable_tupling,
                 alpha=thresholds.alpha_muon),
-            make_di_muon_no_ip_line(long_tracks, dileptons),
+            make_di_muon_no_ip_line(
+                long_tracks, dileptons, muonid, maxChi2Corr=1.3),
             make_di_muon_no_ip_line(
                 long_tracks,
                 dileptons,
+                muonid,
+                maxChi2Corr=1.3,
                 name="Hlt1DiMuonNoIP_ss",
                 pre_scaler_hash_string="di_muon_no_ip_ss_line_pre",
                 post_scaler_hash_string="di_muon_no_ip_ss_line_post",
