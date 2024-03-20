@@ -15,9 +15,9 @@
 
 namespace Hlt1::Constants {
   // Set the 5 most significant bits to 1, as 0s are reserved for ODIN.
-  constexpr short sourceID = (31 << 11) | (1 << 8); // canonical run3 source ID
+  constexpr uint16_t sourceID = (31 << 11) | (1 << 8); // canonical run3 source ID
   // old run2 source ID -- still used for SelReports as version not (yet) increased
-  constexpr short sourceID_sel_reports = (31 << 11) | (1 << 13);
+  constexpr uint16_t sourceID_sel_reports = (31 << 11) | (1 << 13);
   // TODO: change to 12u, update to run3 source ID...
   constexpr short version_sel_reports = 11;
 } // namespace Hlt1::Constants
