@@ -160,6 +160,9 @@ rb_map = {
     # RB 16 NoBias, prescaled
     'Hlt1.*NoBias':
     16,
+    # RB 17 physics for CalibMon
+    'Hlt1(TrackMVA|TwoTrackMVA|TrackMuonMVA|D2KPi|SingleHighPtMuonNoMuID|DetJpsiToMuMuPosTagLine|DetJpsiToMuMuNegTagLine)':
+    17,
     # RB 25 error banks
     'Hlt1ErrorBank':
     25
