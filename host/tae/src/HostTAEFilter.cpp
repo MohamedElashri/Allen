@@ -26,19 +26,14 @@ void tae_filter(host_tae_filter::host_tae_filter_t::Parameters parameters, unsig
     if (odin.timeAlignmentEventFirst()) {
       unsigned tae_start = event_number;
       unsigned tae_window = event_number;
-      unsigned prev_event = 0;
+      unsigned prev_event = event_number;
 
       // Loop until an non-TAE event or the end of the batch is encountered
-      for (; event_number < number_of_events; ++event_number) {
+      for (++event_number; event_number < number_of_events; ++event_number) {
         odin = LHCb::ODIN {parameters.host_odin_data[event_number]};
 
         if (!odin.isTAE()) {
           break;
-        }
-        else if (odin.timeAlignmentEventFirst()) {
-          // back-to-back TAE groups
-          tae_start = event_number;
-          tae_window = event_number;
         }
         else if (event_number - prev_event > 1) {
           break;
@@ -68,6 +63,7 @@ void tae_filter(host_tae_filter::host_tae_filter_t::Parameters parameters, unsig
             parameters.host_output_event_list[event_list_size++] = tae_start + tae_window;
             parameters.host_tae_events[n_tae++] = TAE::TAEEvent {tae_start + tae_window, tae_window};
           }
+          break;
         }
         prev_event = event_number;
       }
