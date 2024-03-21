@@ -11,6 +11,7 @@
 #pragma once
 
 #include "BackendCommon.h"
+#include "HltConstants.cuh"
 
 namespace Hlt1 {
   // Hlt1 TCK.
