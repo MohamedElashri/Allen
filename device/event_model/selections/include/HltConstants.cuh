@@ -19,5 +19,5 @@ namespace Hlt1::Constants {
   // old run2 source ID -- still used for SelReports as version not (yet) increased
   constexpr uint16_t sourceID_sel_reports = (31 << 11) | (1 << 13);
   // TODO: change to 12u, update to run3 source ID...
-  constexpr short version_sel_reports = 11;
+  constexpr short version_sel_reports = 12;
 } // namespace Hlt1::Constants
