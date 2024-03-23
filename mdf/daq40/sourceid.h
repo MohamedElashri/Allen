@@ -38,6 +38,7 @@ typedef enum {
   SourceIdSys_MUON_A = 13,
   SourceIdSys_MUON_C = 14,
   SourceIdSys_TDET = 15,
+  SourceIdSys_HLT = 31,
 } SourceIdSys;
 
 struct __attribute__((__packed__)) SourceId {
@@ -64,6 +65,7 @@ inline const char* SourceId_sysstr(uint16_t bits)
   case SourceIdSys_MUON_A: return "MUON_A";
   case SourceIdSys_MUON_C: return "MUON_C";
   case SourceIdSys_TDET: return "TDET";
+  case SourceIdSys_HLT: return "HLT";
   default: return NULL;
   }
 }

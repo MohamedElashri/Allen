@@ -11,6 +11,7 @@
 #pragma once
 
 #include "BackendCommon.h"
+#include "HltConstants.cuh"
 
 namespace Hlt1 {
   // Hlt1 TCK.
@@ -118,7 +119,7 @@ public:
 
   constexpr static unsigned version() { return 3u; }
 
-  constexpr static unsigned source_id() { return 1 << 8; }
+  constexpr static unsigned source_id() { return Hlt1::Constants::sourceID; }
 
   __device__ __host__ Allen::device::span<char const> bank_data()
   {
