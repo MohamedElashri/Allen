@@ -445,7 +445,10 @@ def alignment_monitoring_lines(reconstructed_objects,
                     name="Hlt1BeamGas")),
             line_maker(
                 make_velo_micro_bias_line(
-                    velo_tracks, name="Hlt1VeloMicroBias"))
+                    velo_tracks,
+                    name="Hlt1VeloMicroBias",
+                    pre_scaler=1.,
+                    post_scaler=1.e-1))
         ]
 
     return lines
@@ -756,7 +759,7 @@ def setup_hlt1_node(enablePhysics=True,
                     tracking_type=TrackingType.FORWARD,
                     threshold_settings=get_thresholds("default"),
                     tae_passthrough=True,
-                    tae_activity=True,
+                    tae_activity=False,
                     enableTupling=False,
                     data_quality=False):
 

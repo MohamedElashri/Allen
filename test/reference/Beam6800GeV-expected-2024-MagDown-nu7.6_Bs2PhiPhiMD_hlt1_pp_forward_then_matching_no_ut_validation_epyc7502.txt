@@ -122,7 +122,7 @@ Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     
 Hlt1DiMuonJpsiMassAlignment:                       18/  1000, (  540.00 +/-   126.13) kHz
 Hlt1DisplacedDiMuonAlignment:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1VeloMicroBias:                                  0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1VeloMicroBias:                                 88/  1000, ( 2640.00 +/-   268.76) kHz
 Hlt1_BESMOG2_NoBias:                                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1GECPassThrough_LowMult5:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_BESMOG2_LowMult10:                             0/  1000, (    0.00 +/-     0.00) kHz
@@ -136,7 +136,7 @@ Hlt1_SMOG2_SingleTrack:                             0/  1000, (    0.00 +/-     
 Hlt1_SMOG2_DiMuonHighMass:                          0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_SingleMuon:                              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1_SMOG2_L02PPi:                                  0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                        675/  1000, (20250.00 +/-   444.34) kHz
+Inclusive:                                        701/  1000, (21030.00 +/-   434.33) kHz
 
 
 seed_validator validation:
@@ -267,7 +267,7 @@ Hlt1DiMuonHighMassAlignment:                        0           0
 Hlt1DiMuonJpsiMassAlignment:                       18          24
 Hlt1DisplacedDiMuonAlignment:                       1           1
 Hlt1BeamGas:                                        0           0
-Hlt1VeloMicroBias:                                  0           0
+Hlt1VeloMicroBias:                                 88           0
 Hlt1_BESMOG2_NoBias:                                0           0
 Hlt1GECPassThrough_LowMult5:                        0           0
 Hlt1_BESMOG2_LowMult10:                             0           0
@@ -282,12 +282,12 @@ Hlt1_SMOG2_DiMuonHighMass:                          0           0
 Hlt1_SMOG2_SingleMuon:                              0           0
 Hlt1_SMOG2_L02PPi:                                  0           0
 
-Total decisions:      1183
+Total decisions:      1271
 Total tracks:         2132
 Total calos clusters: 33
 Total SVs:            1859
 Total hits:           46642
-Total stdinfo:        25807
+Total stdinfo:        25895
 
 
 velo_validator validation:
