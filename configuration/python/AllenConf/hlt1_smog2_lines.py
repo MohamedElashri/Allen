@@ -22,6 +22,8 @@ from AllenCore.configuration_options import is_allen_standalone
 
 @configurable
 def make_SMOG2_dimuon_highmass_line(secondary_vertices,
+                                    long_tracks,
+                                    muonid,
                                     pre_scaler_hash_string=None,
                                     post_scaler_hash_string=None,
                                     name="Hlt1SMOG2_DiMuonHighMassLine",
@@ -29,6 +31,7 @@ def make_SMOG2_dimuon_highmass_line(secondary_vertices,
                                     max_z=-341,
                                     pre_scaler=1.,
                                     post_scaler=1.,
+                                    maxChi2Corr=1.8,
                                     enable_monitoring=True,
                                     histogram_smogdimuon_mass_min=2700.,
                                     histogram_smogdimuon_mass_max=4000.,
@@ -45,12 +48,15 @@ def make_SMOG2_dimuon_highmass_line(secondary_vertices,
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
+        dev_chi2muon_t=muonid["dev_chi2corr"],
         pre_scaler=pre_scaler,
         post_scaler=post_scaler,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         minZ=min_z,
         maxZ=max_z,
+        maxChi2Corr=maxChi2Corr,
         enable_monitoring=is_allen_standalone() and enable_monitoring,
         histogram_smogdimuon_mass_min=histogram_smogdimuon_mass_min,
         histogram_smogdimuon_mass_max=histogram_smogdimuon_mass_max,
@@ -99,10 +105,15 @@ def make_SMOG2_ditrack_line(secondary_vertices,
                             mWindow=150.,
                             minTrackP=3000.,
                             minTrackPt=400.,
+                            minEitherTrackPt=400.,
+                            minTrackIPCHI2=0.,
+                            minFDCHI2=-10.,
+                            maxGhostProb=0.3,
                             min_z=-541.,
                             max_z=-341.,
                             pre_scaler=1.,
-                            post_scaler=1.):
+                            post_scaler=1.,
+                            enable_tupling=False):
 
     number_of_events = initialize_number_of_events()
 
@@ -123,8 +134,13 @@ def make_SMOG2_ditrack_line(secondary_vertices,
         massWindow=mWindow,
         minTrackP=minTrackP,
         minTrackPt=minTrackPt,
+        minTrackIPCHI2=minTrackIPCHI2,
+        minEitherTrackPt=minEitherTrackPt,
         minZ=min_z,
-        maxZ=max_z)
+        maxZ=max_z,
+        minFDCHI2=minFDCHI2,
+        maxGhostProb=maxGhostProb,
+        enable_tupling=enable_tupling)
 
 
 def make_SMOG2_kstopipi_line(secondary_vertices,
@@ -133,9 +149,12 @@ def make_SMOG2_kstopipi_line(secondary_vertices,
                              name="Hlt1_SMOG2_KsPiPi",
                              min_z=-541.,
                              max_z=-341.,
+                             minTrackPt=250.,
+                             minMass=400.,
                              pre_scaler=1.,
                              post_scaler=1.,
-                             enable_monitoring=True):
+                             enable_monitoring=True,
+                             enable_tupling=False):
 
     number_of_events = initialize_number_of_events()
 
@@ -152,7 +171,10 @@ def make_SMOG2_kstopipi_line(secondary_vertices,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         minPVZ=min_z,
         maxPVZ=max_z,
+        minMass=minMass,
+        minTrackPt=minTrackPt,
         enable_monitoring=is_allen_standalone() and enable_monitoring,
+        enable_tupling=enable_tupling,
         histogram_smogks_svz_min=min_z)
 
 
@@ -163,6 +185,8 @@ def make_SMOG2_singletrack_line(long_tracks,
                                 name="Hlt1_SMOG2_SingleTrack",
                                 min_z=-541.,
                                 max_z=-341.,
+                                minPt=1.5,
+                                maxGhostProb=0.3,
                                 pre_scaler=1.,
                                 post_scaler=1.):
 
@@ -180,15 +204,19 @@ def make_SMOG2_singletrack_line(long_tracks,
         post_scaler=post_scaler,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        minPt=minPt,
+        maxGhostProb=maxGhostProb,
         minBPVz=min_z,
         maxBPVz=max_z)
 
 
 def make_SMOG2_single_muon_line(long_tracks,
                                 long_track_particles,
+                                muonid,
                                 pre_scaler_hash_string=None,
                                 post_scaler_hash_string=None,
                                 name="Hlt1_SMOG2_SingleTrack",
+                                maxChi2Corr=1.8,
                                 min_z=-541.,
                                 max_z=-341.,
                                 pre_scaler=1.,
@@ -204,9 +232,12 @@ def make_SMOG2_single_muon_line(long_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         pre_scaler=pre_scaler,
         post_scaler=post_scaler,
+        dev_chi2muon_t=muonid["dev_chi2corr"],
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
         host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
         minBPVz=min_z,
-        maxBPVz=max_z)
+        maxBPVz=max_z,
+        maxChi2Corr=maxChi2Corr)

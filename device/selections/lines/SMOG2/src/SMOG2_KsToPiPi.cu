@@ -19,8 +19,12 @@ __device__ bool SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::select(
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto vertex = std::get<0>(input);
+  const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
+  const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
+
   return vertex.has_pv() && vertex.pv().position.z >= parameters.minPVZ && vertex.pv().position.z < parameters.maxPVZ &&
          vertex.minipchi2() > parameters.minIPChi2 && vertex.charge() == parameters.CombCharge &&
+         track1->state().pt() > parameters.minTrackPt && track2->state().pt() > parameters.minTrackPt &&
          vertex.vertex().chi2() < parameters.maxVertexChi2 && vertex.ip() < parameters.maxIP &&
          vertex.m12(Allen::mPi, Allen::mPi) >= parameters.minMass &&
          vertex.m12(Allen::mPi, Allen::mPi) < parameters.maxMass && vertex.vertex().z() >= parameters.minPVZ;
@@ -46,16 +50,6 @@ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::init()
                                                                        property<histogram_smogks_svz_max_t>()}},
                                                                      {}};
 #endif
-}
-
-void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions& ro,
-  const Constants& c) const
-{
-  static_cast<Line const*>(this)->set_arguments_size(arguments, ro, c);
-  set_size<typename Parameters::dev_histogram_smogks_mass_t>(arguments, 100u);
-  set_size<typename Parameters::dev_histogram_smogks_svz_t>(arguments, 100u);
 }
 
 void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::output_monitor(
@@ -93,9 +87,17 @@ __device__ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::monitor(
   bool sel)
 {
   const auto smogks = std::get<0>(input);
+  const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(smogks.child(0));
+  const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(smogks.child(1));
+
   if (sel) {
     parameters.sv_masses[index] = smogks.m12(Allen::mPi, Allen::mPi);
     parameters.svz[index] = smogks.vertex().z();
+
+    parameters.track1pt[index] = track1->state().pt();
+    parameters.track2pt[index] = track2->state().pt();
+    parameters.minipchi2[index] = smogks.minipchi2();
+    parameters.ip[index] = smogks.ip();
 
     const float svz = smogks.vertex().z();
     const float m = smogks.m12(Allen::mPi, Allen::mPi);
@@ -111,5 +113,25 @@ __device__ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::monitor(
         (parameters.histogram_smogks_svz_max - parameters.histogram_smogks_svz_min));
       atomicAdd(&parameters.dev_histogram_smogks_svz[bin], 1);
     }
+  }
+}
+
+__device__ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::fill_tuples(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+  unsigned index,
+  bool sel)
+{
+  const auto particle = std::get<0>(input);
+  const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(0));
+  const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(1));
+
+  if (sel) {
+    parameters.sv_masses[index] = particle.m12(Allen::mPi, Allen::mPi);
+    parameters.minipchi2[index] = particle.minipchi2();
+    parameters.ip[index] = particle.ip();
+    parameters.svz[index] = particle.vertex().z();
+    parameters.track1pt[index] = trk1->state().pt();
+    parameters.track2pt[index] = trk2->state().pt();
   }
 }

@@ -1,5 +1,5 @@
 /*****************************************************************************\
- * (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration           *
+* (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration           *
 *                                                                             *
 * This software is distributed under the terms of the Apache License          *
 * version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
@@ -23,6 +23,8 @@ namespace SMOG2_dimuon_highmass_line {
     MASK_INPUT(dev_event_list_t) dev_event_list;
 
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
+    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+    DEVICE_INPUT(dev_chi2muon_t, float) dev_chi2muon;
 
     DEVICE_OUTPUT(smogdimuon_masses_t, float) smogdimuon_masses;
     DEVICE_OUTPUT(smogdimuon_svz_t, float) smogdimuon_svz;
@@ -49,6 +51,7 @@ namespace SMOG2_dimuon_highmass_line {
     PROPERTY(minZ_t, "minZ", "minimum vertex z", float) minZ;
     PROPERTY(maxZ_t, "maxZ", "maximum vertex z", float) maxZ;
     PROPERTY(CombCharge_t, "HighMassCombCharge", "Charge of the combination", int) CombCharge;
+    PROPERTY(maxChi2Corr_t, "maxChi2Corr", "maximum Chi2Muon evaluation", float) maxChi2Corr;
 
     PROPERTY(
       histogram_smogdimuon_mass_min_t,
@@ -98,7 +101,9 @@ namespace SMOG2_dimuon_highmass_line {
 
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    __device__ static bool select(
+      const Parameters&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
 
     void init();
 
@@ -106,12 +111,17 @@ namespace SMOG2_dimuon_highmass_line {
 
     __device__ static void monitor(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
 
     __host__ void
     output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
+
+    __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float> static get_input(
+      const Parameters& parameters,
+      const unsigned event_number,
+      const unsigned i);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -127,6 +137,7 @@ namespace SMOG2_dimuon_highmass_line {
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.0f};
     Property<minZ_t> m_minZ {this, -551.f * Gaudi::Units::mm};
     Property<maxZ_t> m_maxZ {this, -331.f * Gaudi::Units::mm};
+    Property<maxChi2Corr_t> m_maxChi2Corr {this, 1.8};
 
     // histogram properties
     Property<histogram_smogdimuon_mass_min_t> m_histogramsmogdimuonMassMin {this, 2700.f};

@@ -20,8 +20,9 @@ __device__ bool SMOG2_singletrack_line::SMOG2_singletrack_line_t::select(
 
   bool decision = track.state().pt() >= parameters.minPt && track.state().p() >= parameters.minP &&
                   track.chi2() / track.ndof() < parameters.maxChi2Ndof && track.state().z() < parameters.maxBPVz &&
-                  track.state().z() >= parameters.minBPVz;
-  if (track.has_pv()) decision = decision && track.pv().position.z < parameters.maxBPVz;
+                  track.state().z() >= parameters.minBPVz && track.has_pv() &&
+                  track.pv().position.z < parameters.maxBPVz && track.pv().position.z >= parameters.minBPVz &&
+                  track.track().ghost_probability() < parameters.maxGhostProb;
 
   return decision;
 }

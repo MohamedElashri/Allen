@@ -57,7 +57,7 @@ Hlt1KsToPiPi:                                       0/  1000, (    0.00 +/-     
 Hlt1KsToPiPiDoubleMuonMisID:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackKs:                                     6/  1000, (  180.00 +/-    73.26) kHz
 Hlt1TwoKs:                                          1/  1000, (   30.00 +/-    29.98) kHz
-Hlt1L02PPi:                                        37/  1000, ( 1110.00 +/-   179.08) kHz
+Hlt1L02PPi:                                        36/  1000, ( 1080.00 +/-   176.73) kHz
 Hlt1LambdaLLDetachedTrack:                          1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1XiOmegaLLL:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1OneMuonTrackLine:                               2/  1000, (   60.00 +/-    42.38) kHz
@@ -123,19 +123,21 @@ Hlt1DiMuonJpsiMassAlignment:                       17/  1000, (  510.00 +/-   12
 Hlt1DisplacedDiMuonAlignment:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                 88/  1000, ( 2640.00 +/-   268.76) kHz
-Hlt1_BESMOG2_NoBias:                                0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1GECPassThrough_LowMult5:                        0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_BESMOG2_LowMult10:                             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_MinimumBias:                             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1Passthrough_PV_in_SMOG2:                        0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_D2Kpi:                                   0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_eta2pp:                                  0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_KsToPiPi:                                0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_2BodyGeneric:                            0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_SingleTrack:                             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_DiMuonHighMass:                          0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_SingleMuon:                              0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1_SMOG2_L02PPi:                                  0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2BENoBias:                                  0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2PassThroughLowMult5:                       0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2BELowMultElectrons:                        0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2MinimumBias:                               0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1PassthroughPVinSMOG2:                           0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2D2Kpi:                                     0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2etacTopp:                                  0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2KsTopipi:                                  0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG22BodyGeneric:                              0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG22BodyGenericLowPt:                         0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2SingleTrackVeryHighPt:                     0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2SingleTrackHighPt:                         0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2DiMuonHighMass:                            0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2SingleMuon:                                0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2L0Toppi:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Inclusive:                                        699/  1000, (20970.00 +/-   435.15) kHz
 
 
@@ -202,7 +204,7 @@ Hlt1KsToPiPi:                                       0           0
 Hlt1KsToPiPiDoubleMuonMisID:                        0           0
 Hlt1TwoTrackKs:                                     6           7
 Hlt1TwoKs:                                          1           1
-Hlt1L02PPi:                                        37          39
+Hlt1L02PPi:                                        36          38
 Hlt1LambdaLLDetachedTrack:                          1           1
 Hlt1XiOmegaLLL:                                     0           0
 Hlt1OneMuonTrackLine:                               2           0
@@ -268,26 +270,28 @@ Hlt1DiMuonJpsiMassAlignment:                       17          22
 Hlt1DisplacedDiMuonAlignment:                       1           1
 Hlt1BeamGas:                                        0           0
 Hlt1VeloMicroBias:                                 88           0
-Hlt1_BESMOG2_NoBias:                                0           0
-Hlt1GECPassThrough_LowMult5:                        0           0
-Hlt1_BESMOG2_LowMult10:                             0           0
-Hlt1_SMOG2_MinimumBias:                             0           0
-Hlt1Passthrough_PV_in_SMOG2:                        0           0
-Hlt1_SMOG2_D2Kpi:                                   0           0
-Hlt1_SMOG2_eta2pp:                                  0           0
-Hlt1_SMOG2_KsToPiPi:                                0           0
-Hlt1_SMOG2_2BodyGeneric:                            0           0
-Hlt1_SMOG2_SingleTrack:                             0           0
-Hlt1_SMOG2_DiMuonHighMass:                          0           0
-Hlt1_SMOG2_SingleMuon:                              0           0
-Hlt1_SMOG2_L02PPi:                                  0           0
+Hlt1SMOG2BENoBias:                                  0           0
+Hlt1SMOG2PassThroughLowMult5:                       0           0
+Hlt1SMOG2BELowMultElectrons:                        0           0
+Hlt1SMOG2MinimumBias:                               0           0
+Hlt1PassthroughPVinSMOG2:                           0           0
+Hlt1SMOG2D2Kpi:                                     0           0
+Hlt1SMOG2etacTopp:                                  0           0
+Hlt1SMOG2KsTopipi:                                  0           0
+Hlt1SMOG22BodyGeneric:                              0           0
+Hlt1SMOG22BodyGenericLowPt:                         0           0
+Hlt1SMOG2SingleTrackVeryHighPt:                     0           0
+Hlt1SMOG2SingleTrackHighPt:                         0           0
+Hlt1SMOG2DiMuonHighMass:                            0           0
+Hlt1SMOG2SingleMuon:                                0           0
+Hlt1SMOG2L0Toppi:                                   0           0
 
-Total decisions:      1256
+Total decisions:      1255
 Total tracks:         2071
 Total calos clusters: 33
-Total SVs:            1793
+Total SVs:            1792
 Total hits:           45432
-Total stdinfo:        25128
+Total stdinfo:        25123
 
 
 velo_validator validation:

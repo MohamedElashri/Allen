@@ -95,5 +95,6 @@ __device__ void lambda2ppi_line::lambda2ppi_line_t::fill_tuples(
     parameters.L_BPVVDRHO[index] = Lambda.drho();
     // tunable up to 0.9998
     parameters.L_BPVDIRA[index] = Lambda.dira();
+    parameters.L_VZ[index] = Lambda.vertex().z();
   }
 }
