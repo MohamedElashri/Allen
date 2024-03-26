@@ -34,6 +34,7 @@ namespace SMOG2_singletrack_line {
     PROPERTY(minP_t, "minP", "minimum P", float) minP;
     PROPERTY(minBPVz_t, "minBPVz", "minimum z for the best associated primary vertex", float) minBPVz;
     PROPERTY(maxBPVz_t, "maxBPVz", "maximum z for the best associated primary vertex", float) maxBPVz;
+    PROPERTY(maxGhostProb_t, "maxGhostProb", "Maximum ghost probability of the tracks", float) maxGhostProb;
   };
   struct SMOG2_singletrack_line_t : public SelectionAlgorithm,
                                     Parameters,
@@ -47,10 +48,11 @@ namespace SMOG2_singletrack_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minP_t> m_minP {this, 3.f * Gaudi::Units::GeV};
-    Property<minPt_t> m_minPt {this, 1.f * Gaudi::Units::GeV};
-    Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 4.f};
+    Property<minP_t> m_minP {this, 5000.f * Gaudi::Units::MeV};
+    Property<minPt_t> m_minPt {this, 1500.f * Gaudi::Units::MeV};
+    Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 3.f};
     Property<minBPVz_t> m_minBPVz {this, -551.f * Gaudi::Units::mm};
     Property<maxBPVz_t> m_maxBPVz {this, -331.f * Gaudi::Units::mm};
+    Property<maxGhostProb_t> m_maxGhostProb {this, 0.5};
   };
 } // namespace SMOG2_singletrack_line

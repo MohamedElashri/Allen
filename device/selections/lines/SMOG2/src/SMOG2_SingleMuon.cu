@@ -15,13 +15,31 @@ INSTANTIATE_LINE(SMOG2_single_muon_line::SMOG2_single_muon_line_t, SMOG2_single_
 
 __device__ bool SMOG2_single_muon_line::SMOG2_single_muon_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::BasicParticle> input)
+  std::tuple<const Allen::Views::Physics::BasicParticle, const float> input)
 {
   const auto track = std::get<0>(input);
-  bool decision = track.is_muon() && track.state().pt() > parameters.MinPt && track.state().p() > parameters.MinP &&
+  const auto chi2corr = std::get<1>(input);
+
+  bool decision = chi2corr < parameters.maxChi2Corr && track.is_muon() && track.state().pt() > parameters.MinPt &&
+                  track.state().p() > parameters.MinP &&
                   track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof &&
                   track.state().z() < parameters.maxBPVz && track.state().z() >= parameters.minBPVz;
   if (track.has_pv()) decision = decision && track.pv().position.z < parameters.maxBPVz;
 
   return decision;
+}
+
+__device__ std::tuple<const Allen::Views::Physics::BasicParticle, const float>
+SMOG2_single_muon_line::SMOG2_single_muon_line_t::get_input(
+  const Parameters& parameters,
+  const unsigned event_number,
+  const unsigned i)
+{
+  const auto event_tracks = static_cast<const Allen::Views::Physics::BasicParticles&>(
+    parameters.dev_particle_container[0].container(event_number));
+  const auto track = event_tracks.particle(i);
+
+  const auto chi2corr = parameters.dev_chi2muon[parameters.dev_track_offsets[event_number] + track.get_index()];
+
+  return std::forward_as_tuple(track, chi2corr);
 }

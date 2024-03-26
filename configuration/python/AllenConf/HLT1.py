@@ -455,16 +455,18 @@ def alignment_monitoring_lines(reconstructed_objects,
 
 
 @configurable
-def default_SMOG2_lines(velo_tracks,
-                        long_tracks,
-                        long_track_particles,
-                        dihadrons,
-                        v0s,
-                        dileptons,
+def default_SMOG2_lines(reconstructed_objects,
                         with_muon=True,
                         with_v0s=True,
                         min_z=-541.,
                         max_z=-341.):
+
+    velo_tracks = reconstructed_objects["velo_tracks"]
+    long_tracks = reconstructed_objects["long_tracks"]
+    long_track_particles = reconstructed_objects["long_track_particles"]
+    dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
+    v0s = reconstructed_objects["v0_secondary_vertices"]
+    dileptons = reconstructed_objects["dilepton_secondary_vertices"]
 
     lines = [
         make_SMOG2_ditrack_line(
@@ -472,52 +474,102 @@ def default_SMOG2_lines(velo_tracks,
             m1=139.57,
             m2=493.68,
             mMother=1864.83,
-            mWindow=150.,
+            mWindow=100.,
             min_z=min_z,
             max_z=max_z,
-            name="Hlt1_SMOG2_D2Kpi"),
+            minEitherTrackPt=800.,
+            minTrackPt=500.,
+            minTrackIPCHI2=7.,
+            minFDCHI2=25.,
+            name="Hlt1SMOG2D2Kpi",
+            pre_scaler=1.),
         make_SMOG2_ditrack_line(
             dihadrons,
             m1=938.27,
             m2=938.27,
-            mMother=2983.6,
-            mWindow=150.,
+            mMother=3000.,
+            mWindow=200.,
             min_z=min_z,
             max_z=max_z,
-            name="Hlt1_SMOG2_eta2pp"),
+            minTrackIPCHI2=0.,
+            minTrackPt=700.,
+            minEitherTrackPt=1100.,
+            name="Hlt1SMOG2etacTopp",
+            pre_scaler=1.),
         make_SMOG2_kstopipi_line(
-            dihadrons, min_z=min_z, max_z=max_z, name="Hlt1_SMOG2_KsToPiPi"),
+            dihadrons,
+            min_z=min_z,
+            max_z=max_z,
+            name="Hlt1SMOG2KsTopipi",
+            minTrackPt=250.,
+            minMass=450.,
+            pre_scaler=0.3),
         make_SMOG2_ditrack_line(
             dihadrons,
             minTrackPt=800.,
+            minEitherTrackPt=1000.,
             min_z=min_z,
             max_z=max_z,
-            name="Hlt1_SMOG2_2BodyGeneric",
-            post_scaler=0.5),
+            name="Hlt1SMOG22BodyGeneric",
+            pre_scaler=0.1),
+        make_SMOG2_ditrack_line(
+            dihadrons,
+            minTrackPt=400.,
+            minEitherTrackPt=400.,
+            min_z=min_z,
+            max_z=max_z,
+            minTrackIPCHI2=5.,
+            name="Hlt1SMOG22BodyGenericLowPt",
+            pre_scaler=0.01),
         make_SMOG2_singletrack_line(
             long_tracks,
             long_track_particles,
-            name="Hlt1_SMOG2_SingleTrack",
-            post_scaler=0.5,
+            name="Hlt1SMOG2SingleTrackVeryHighPt",
+            minPt=2500.,
+            pre_scaler=0.1,
+            min_z=min_z,
+            max_z=max_z),
+        make_SMOG2_singletrack_line(
+            long_tracks,
+            long_track_particles,
+            name="Hlt1SMOG2SingleTrackHighPt",
+            minPt=1500.,
+            pre_scaler=0.01,
             min_z=min_z,
             max_z=max_z)
     ]
 
     if with_muon:
+        muonid = reconstructed_objects["muonID"]
         lines += [
             make_SMOG2_dimuon_highmass_line(
-                dileptons, name="Hlt1_SMOG2_DiMuonHighMass"),
+                dileptons,
+                long_tracks,
+                muonid,
+                maxChi2Corr=9999.,
+                name="Hlt1SMOG2DiMuonHighMass"),
             make_SMOG2_single_muon_line(
                 long_tracks,
                 long_track_particles,
-                name="Hlt1_SMOG2_SingleMuon",
-                post_scaler=0.5)
+                muonid,
+                maxChi2Corr=1.8,
+                name="Hlt1SMOG2SingleMuon",
+                pre_scaler=0.2)
         ]
 
     if with_v0s:
         lines += [
             make_lambda2ppi_line(
-                v0s, name="Hlt1_SMOG2_L02PPi", minPVZ=min_z, maxPVZ=max_z)
+                v0s,
+                name="Hlt1SMOG2L0Toppi",
+                minPVZ=min_z,
+                maxPVZ=max_z,
+                minVZ=min_z,
+                maxVtxChi2=10.,
+                minDIRA=0.99985,
+                minpipchi2=16.,
+                minpiipchi2=42.,
+                minpipt=150.)
         ]
 
     return [line_maker(line) for line in lines]
@@ -872,7 +924,7 @@ def setup_hlt1_node(enablePhysics=True,
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(
-                        name="Hlt1_BESMOG2_NoBias", pre_scaler=1.e-6))
+                        name="Hlt1SMOG2BENoBias", pre_scaler=3.e-4))
             ]
 
         if with_calo:
@@ -882,28 +934,29 @@ def setup_hlt1_node(enablePhysics=True,
                 name="LowMult_5",
                 minTracks=1,
                 maxTracks=5)
-
-            with line_maker.bind(
-                    prefilter=odin_err_filter + gec + [lowMult_5]):
+            with line_maker.bind(prefilter=odin_err_filter + [lowMult_5]):
                 SMOG2_lines += [
                     line_maker(
                         make_passthrough_line(
-                            name="Hlt1GECPassThrough_LowMult5",
-                            pre_scaler=0.01))
+                            name="Hlt1SMOG2PassThroughLowMult5",
+                            pre_scaler=0.001))
                 ]
 
-            lowMult_10 = make_lowmult(
+            lowMultElectrons = make_lowmult(
                 reconstructed_objects['velo_tracks'],
                 reconstructed_objects["ecal_clusters"],
-                name="LowMult_10",
+                name="LowMultElectrons",
                 minTracks=1,
-                maxTracks=10)
+                maxTracks=3,
+                min_ecal_clusters=1,
+                max_ecal_clusters=10)
             with line_maker.bind(
-                    prefilter=odin_err_filter + [bx_BE, lowMult_10]):
+                    prefilter=odin_err_filter + [bx_BE, lowMultElectrons]):
                 SMOG2_lines += [
                     line_maker(
                         make_passthrough_line(
-                            name="Hlt1_BESMOG2_LowMult10", pre_scaler=1.e-4))
+                            name="Hlt1SMOG2BELowMultElectrons",
+                            pre_scaler=0.1))
                 ]
 
         if EnableGEC:
@@ -915,8 +968,8 @@ def setup_hlt1_node(enablePhysics=True,
                     make_SMOG2_minimum_bias_line(
                         reconstructed_objects["velo_tracks"],
                         reconstructed_objects["velo_states"],
-                        name="Hlt1_SMOG2_MinimumBias",
-                        pre_scaler=0.05))
+                        name="Hlt1SMOG2MinimumBias",
+                        pre_scaler=0.00005))
             ]
 
         SMOG2_prefilters += [
@@ -927,17 +980,11 @@ def setup_hlt1_node(enablePhysics=True,
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(
-                        name="Hlt1Passthrough_PV_in_SMOG2", pre_scaler=0.02))
+                        name="Hlt1PassthroughPVinSMOG2", pre_scaler=0.0001))
             ]
 
-            SMOG2_lines += default_SMOG2_lines(
-                reconstructed_objects["velo_tracks"],
-                reconstructed_objects["long_tracks"],
-                reconstructed_objects["long_track_particles"],
-                reconstructed_objects["dihadron_secondary_vertices"],
-                reconstructed_objects["v0_secondary_vertices"],
-                reconstructed_objects["dilepton_secondary_vertices"],
-                with_muon, with_v0s)
+            SMOG2_lines += default_SMOG2_lines(reconstructed_objects,
+                                               with_muon, with_v0s)
 
         line_algorithms += [tup[0] for tup in SMOG2_lines]
         line_nodes += [tup[1] for tup in SMOG2_lines]

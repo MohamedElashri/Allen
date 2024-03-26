@@ -12,9 +12,27 @@
 
 INSTANTIATE_LINE(SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t, SMOG2_dimuon_highmass_line::Parameters)
 
+__device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
+SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::get_input(
+  const Parameters& parameters,
+  const unsigned event_number,
+  const unsigned i)
+{
+  const auto event_tracks = static_cast<const Allen::Views::Physics::CompositeParticles&>(
+    parameters.dev_particle_container[0].container(event_number));
+  const auto particle = event_tracks.particle(i);
+  const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(0));
+  const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(1));
+
+  const auto chi2corr1 = parameters.dev_chi2muon[parameters.dev_track_offsets[event_number] + trk1->get_index()];
+  const auto chi2corr2 = parameters.dev_chi2muon[parameters.dev_track_offsets[event_number] + trk2->get_index()];
+
+  return std::forward_as_tuple(particle, max(chi2corr1, chi2corr2));
+}
+
 __device__ bool SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle> input)
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto& vtx = std::get<0>(input);
   if (vtx.vertex().chi2() < 0) {
@@ -23,9 +41,10 @@ __device__ bool SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::select
 
   const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vtx.child(0));
   const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vtx.child(1));
+  const auto maxchi2muon = std::get<1>(input);
 
-  bool decision = vtx.vertex().z() < parameters.maxZ && vtx.is_dimuon() && vtx.doca12() < parameters.maxDoca &&
-                  trk1->chi2() / trk1->ndof() < parameters.maxTrackChi2Ndf &&
+  bool decision = maxchi2muon < parameters.maxChi2Corr && vtx.vertex().z() < parameters.maxZ && vtx.is_dimuon() &&
+                  vtx.doca12() < parameters.maxDoca && trk1->chi2() / trk1->ndof() < parameters.maxTrackChi2Ndf &&
                   trk2->chi2() / trk2->ndof() < parameters.maxTrackChi2Ndf && vtx.mdimu() >= parameters.minMass &&
                   vtx.minpt() >= parameters.minTrackPt && vtx.minp() >= parameters.minTrackP &&
                   vtx.vertex().chi2() < parameters.maxVertexChi2 && vtx.vertex().z() >= parameters.minZ &&
@@ -79,7 +98,7 @@ void SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::init_monitor(
 
 __device__ void SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::monitor(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned index,
   bool sel)
 {

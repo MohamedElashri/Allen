@@ -12,7 +12,6 @@
 
 #include "AlgorithmTypes.cuh"
 #include "CompositeParticleLine.cuh"
-#include "ROOTService.h"
 #include "MassDefinitions.h"
 
 #ifndef ALLEN_STANDALONE
@@ -32,6 +31,11 @@ namespace SMOG2_kstopipi_line {
 
     DEVICE_OUTPUT(sv_masses_t, float) sv_masses;
     DEVICE_OUTPUT(svz_t, float) svz;
+    DEVICE_OUTPUT(track1pt_t, float) track1pt;
+    DEVICE_OUTPUT(track2pt_t, float) track2pt;
+    DEVICE_OUTPUT(minipchi2_t, float) minipchi2;
+    DEVICE_OUTPUT(ip_t, float) ip;
+
     DEVICE_OUTPUT(dev_histogram_smogks_mass_t, unsigned) dev_histogram_smogks_mass;
     DEVICE_OUTPUT(dev_histogram_smogks_svz_t, unsigned) dev_histogram_smogks_svz;
 
@@ -47,6 +51,7 @@ namespace SMOG2_kstopipi_line {
     PROPERTY(minPVZ_t, "minPVZ", "minimum PV z coordinate", float) minPVZ;
     PROPERTY(maxPVZ_t, "maxPVZ", "maximum PV z coordinate", float) maxPVZ;
     PROPERTY(CombCharge_t, "CombCharge", "Charge of the combination", int) CombCharge;
+    PROPERTY(minTrackPt_t, "minTrackPt", "Minimum final-state particles Pt", float) minTrackPt;
 
     PROPERTY(histogram_smogks_mass_min_t, "histogram_smogks_mass_min", "minimum for smogks mass histogram", float)
     histogram_smogks_mass_min;
@@ -70,15 +75,14 @@ namespace SMOG2_kstopipi_line {
     histogram_smogks_svz_nbins;
 
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
 
   struct SMOG2_kstopipi_line_t : public SelectionAlgorithm,
                                  Parameters,
                                  CompositeParticleLine<SMOG2_kstopipi_line_t, Parameters> {
 
-    using monitoring_types = std::tuple<sv_masses_t, svz_t>;
-
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+    using monitoring_types = std::tuple<sv_masses_t, svz_t, track1pt_t, track2pt_t, minipchi2_t, ip_t>;
 
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
@@ -95,6 +99,12 @@ namespace SMOG2_kstopipi_line {
     __host__ void
     output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
 
+    __device__ static void fill_tuples(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+      unsigned index,
+      bool sel);
+
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
     Property<post_scaler_t> m_post_scaler {this, 1.f};
@@ -104,6 +114,7 @@ namespace SMOG2_kstopipi_line {
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 10.0f};
     Property<maxIP_t> m_maxIP {this, 0.3f * Gaudi::Units::mm};
     Property<minMass_t> m_minMass {this, 400.f * Gaudi::Units::MeV};
+    Property<minTrackPt_t> m_minTrackPt {this, 200.f * Gaudi::Units::MeV};
     Property<maxMass_t> m_maxMass {this, 600.f * Gaudi::Units::MeV};
     Property<minPVZ_t> m_minPVZ {this, -541.f * Gaudi::Units::mm};
     Property<maxPVZ_t> m_maxPVZ {this, -341.f * Gaudi::Units::mm};
@@ -117,6 +128,7 @@ namespace SMOG2_kstopipi_line {
     Property<histogram_smogks_svz_nbins_t> m_histogramsmogkssvzNBins {this, 100u};
     // Switch to create monitoring tuple
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
 #ifndef ALLEN_STANDALONE
     gaudi_monitoring::Lockable_Histogram<>* histogram_smogks_mass;
     gaudi_monitoring::Lockable_Histogram<>* histogram_smogks_svz;

@@ -18,6 +18,9 @@ namespace SMOG2_single_muon_line {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_particle_container;
+    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+    DEVICE_INPUT(dev_chi2muon_t, float) dev_chi2muon;
+
     MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
@@ -31,12 +34,20 @@ namespace SMOG2_single_muon_line {
     PROPERTY(MinP_t, "MinP", "Minimum P", float) MinP;
     PROPERTY(minBPVz_t, "minBPVz", "minimum z for the track BPV", float) minBPVz;
     PROPERTY(maxBPVz_t, "maxBPVz", "maximum z for the track BPV", float) maxBPVz;
+    PROPERTY(maxChi2Corr_t, "maxChi2Corr", "maximum Chi2Muon evaluation", float) maxChi2Corr;
   };
 
   struct SMOG2_single_muon_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     OneTrackLine<SMOG2_single_muon_line_t, Parameters> {
-    __device__ static bool select(const Parameters& ps, std::tuple<const Allen::Views::Physics::BasicParticle> input);
+    __device__ static bool select(
+      const Parameters& ps,
+      std::tuple<const Allen::Views::Physics::BasicParticle, const float> input);
+
+    __device__ std::tuple<const Allen::Views::Physics::BasicParticle, const float> static get_input(
+      const Parameters& parameters,
+      const unsigned event_number,
+      const unsigned i);
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -44,9 +55,10 @@ namespace SMOG2_single_muon_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 100.f};
-    Property<MinPt_t> m_MinPt {this, 500.f / Gaudi::Units::MeV};
+    Property<MinPt_t> m_MinPt {this, 600.f / Gaudi::Units::MeV};
     Property<MinP_t> m_MinP {this, 5000.f / Gaudi::Units::MeV};
     Property<minBPVz_t> m_minBPVz {this, -541.f * Gaudi::Units::mm};
     Property<maxBPVz_t> m_maxBPVz {this, -341.f * Gaudi::Units::mm};
+    Property<maxChi2Corr_t> m_maxChi2Corr {this, 1.8};
   };
 } // namespace SMOG2_single_muon_line

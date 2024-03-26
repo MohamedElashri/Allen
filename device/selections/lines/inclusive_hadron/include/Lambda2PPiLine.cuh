@@ -75,6 +75,7 @@ namespace lambda2ppi_line {
     DEVICE_OUTPUT(p_pi_DOCA_t, float) p_pi_DOCA;
     DEVICE_OUTPUT(L_PT_t, float) L_PT;
     DEVICE_OUTPUT(L_VCHI2_t, float) L_VCHI2;
+    DEVICE_OUTPUT(L_VZ_t, float) L_VZ;
     DEVICE_OUTPUT(L_BPVVDCHI2_t, float) L_BPVVDCHI2;
     DEVICE_OUTPUT(L_BPVVDZ_t, float) L_BPVVDZ;
     DEVICE_OUTPUT(L_BPVVDRHO_t, float) L_BPVVDRHO;
@@ -115,6 +116,7 @@ namespace lambda2ppi_line {
       L_BPVVDZ_t,
       L_BPVVDRHO_t,
       L_BPVDIRA_t,
+      L_VZ_t,
       evtNo_t,
       runNo_t>;
 
