@@ -47,11 +47,6 @@ __global__ void muon_calculate_station_ocurrences_sizes(muon_populate_tile_and_t
       const auto region = tile.region();
       pad = (station == 0 && region > 1) || (station == 2 && region == 0) || (station == 3 && region == 0) ||
             (station == 3 && region == 3);
-
-      if (pad && threadIdx.x == 0) {
-        atomicAdd(station_ocurrences_sizes + station, 1);
-        used[start_index] = true;
-      }
     }
 
     if (!pad) {
@@ -221,13 +216,14 @@ __device__ void decode_muon_bank(
                 const auto layout1 = getLayout(muon_raw_to_hits->muonTables, tile)[0];
 
                 unsigned tdc_value = 0;
-                if (nSynch_hits_number < TDC_counter) {
-                  if (nSynch_hits_number == 0)
+                if (nSynch_hits_number < TDC_counter && nSynch_hits_number <= 11) {
+                  if (nSynch_hits_number == 0) {
                     tdc_value = range_link_TDC[0] & 0x0F;
+                  }
                   else {
                     auto mask = nSynch_hits_number % 2 == 0 ? 0x0F : 0xF0;
                     auto shift = nSynch_hits_number % 2 == 0 ? 0 : 4;
-                    tdc_value = range_link_TDC[1 + (nSynch_hits_number - 1) / 2] & mask >> shift;
+                    tdc_value = (range_link_TDC[1 + (nSynch_hits_number - 1) / 2] & mask) >> shift;
                   }
                 }
                 nSynch_hits_number++;

@@ -54,11 +54,11 @@ long_fromB_P>5GeV_AND_Pt>1GeV                     :      2386/     2500  95.44% 
 muon_validator validation:
 Muon fraction in all MCPs:                                              14960/  1181372   0.01% 
 Muon fraction in MCPs to which a track(s) was matched:                    747/    71644   0.01% 
-Correctly identified muons with isMuon:                                   641/      747  85.81% 
+Correctly identified muons with isMuon:                                   642/      747  85.94% 
 Correctly identified muons from strange decays with isMuon:                 2/        2 100.00% 
 Correctly identified muons from B decays with isMuon:                     118/      128  92.19% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:      7668/    70897  10.82% 
-Ghost tracks identified as muon with isMuon:                              703/     4053  17.35% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:      7747/    70897  10.93% 
+Ghost tracks identified as muon with isMuon:                              712/     4053  17.57% 
 
 
 pv_validator validation:
@@ -92,7 +92,7 @@ Hlt1XiOmegaLLL:                                     0/  1000, (    0.00 +/-     
 Hlt1OneMuonTrackLine:                               2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1SingleHighPtMuon:                               3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuonNoMuID:                         6/  1000, (  180.00 +/-    73.26) kHz
-Hlt1DiMuonHighMass:                                19/  1000, (  570.00 +/-   129.52) kHz
+Hlt1DiMuonHighMass:                                20/  1000, (  600.00 +/-   132.82) kHz
 Hlt1DiMuonDisplaced:                                4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1DiMuonSoft:                                     2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1TrackMuonMVA:                                  17/  1000, (  510.00 +/-   122.64) kHz
@@ -148,7 +148,7 @@ Hlt1MaterialVertexSeedsDownstreamz:                 0/  1000, (    0.00 +/-     
 Hlt1MaterialVertexSeeds_DWFS:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1Dst2D0PiAlignment:                              2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1DiMuonJpsiMassAlignment:                       29/  1000, (  870.00 +/-   159.20) kHz
+Hlt1DiMuonJpsiMassAlignment:                       31/  1000, (  930.00 +/-   164.42) kHz
 Hlt1DisplacedDiMuonAlignment:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                 88/  1000, ( 2640.00 +/-   268.76) kHz
@@ -239,7 +239,7 @@ Hlt1XiOmegaLLL:                                     0           0
 Hlt1OneMuonTrackLine:                               2           0
 Hlt1SingleHighPtMuon:                               3           3
 Hlt1SingleHighPtMuonNoMuID:                         6           6
-Hlt1DiMuonHighMass:                                19          27
+Hlt1DiMuonHighMass:                                20          28
 Hlt1DiMuonDisplaced:                                4           4
 Hlt1DiMuonSoft:                                     2           2
 Hlt1TrackMuonMVA:                                  17          19
@@ -295,7 +295,7 @@ Hlt1MaterialVertexSeedsDownstreamz:                 0           0
 Hlt1MaterialVertexSeeds_DWFS:                       1           0
 Hlt1Dst2D0PiAlignment:                              2           2
 Hlt1DiMuonHighMassAlignment:                        0           0
-Hlt1DiMuonJpsiMassAlignment:                       29          42
+Hlt1DiMuonJpsiMassAlignment:                       31          44
 Hlt1DisplacedDiMuonAlignment:                       1           1
 Hlt1BeamGas:                                        0           0
 Hlt1VeloMicroBias:                                 88           0
@@ -315,12 +315,12 @@ Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 
-Total decisions:      1390
-Total tracks:         2450
+Total decisions:      1393
+Total tracks:         2454
 Total calos clusters: 33
-Total SVs:            2227
-Total hits:           62094
-Total stdinfo:        30030
+Total SVs:            2229
+Total hits:           62212
+Total stdinfo:        30073
 
 
 velo_validator validation:

@@ -28,19 +28,3 @@ bool DumpUtils::createDirectory(fs::path directory)
   }
   return true;
 }
-
-size_t MuonUtils::size_index(
-  std::array<unsigned int, 16> const& offset,
-  std::array<int, 16> const& gridX,
-  std::array<int, 16> const& gridY,
-  LHCb::Detector::Muon::TileID const& tile)
-{
-  auto idx = 4 * tile.station() + tile.region();
-  auto index = offset[idx] + tile.quarter() * gridY[idx] * 6;
-  if (tile.nY() < static_cast<unsigned int>(gridY[idx])) {
-    return index + 2 * tile.nY() + 2 * (tile.nX() - gridX[idx]) / gridX[idx];
-  }
-  else {
-    return index + 4 * tile.nY() - 2 * gridY[idx] + (2 * tile.nX() / gridX[idx]);
-  }
-}

@@ -94,12 +94,4 @@ namespace DumpUtils {
 
 } // namespace DumpUtils
 
-namespace MuonUtils {
-  size_t size_index(
-    std::array<unsigned int, 16> const& sizeXOffset,
-    std::array<int, 16> const& gridX,
-    std::array<int, 16> const& gridY,
-    LHCb::Detector::Muon::TileID const& tile);
-}
-
 #endif

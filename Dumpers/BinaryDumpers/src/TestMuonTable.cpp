@@ -108,7 +108,7 @@ void lookup(
   y = p[1];
   z = p[2];
 
-  auto dxi = MuonUtils::size_index(table.sizeOffset, table.gridX, table.gridY, tile);
+  auto dxi = 4 * tile.station() + tile.region();
   deltax = table.sizeX[dxi];
   deltay = table.sizeY[dxi];
 }
@@ -182,11 +182,6 @@ void read_muon_table(gsl::span<const char> raw_input, MuonTable& pad, MuonTable&
         ++n;
       });
 
-    for (size_t i = 0; i < muonTable.gridY.size() - 1; ++i) {
-      muonTable.sizeOffset[i + 1] = muonTable.sizeOffset[i] + 24 * muonTable.gridY[i];
-    }
-    assert((muonTable.sizeOffset.back() + 24 * muonTable.gridY.back()) == muonTable.sizeX.size());
-
     auto tableSize = pop<size_t>(raw_input);
     assert(tableSize == 4);
 
@@ -230,11 +225,8 @@ void TestMuonTable::operator()(DeMuonDetector const& det, MuonHitContainer const
       auto pos = det.position(hit.tile());
       hit_position(hit.tile(), m_pad, m_stripX, m_stripY, hit.uncrossed(), xt, dxt, yt, dyt, zt);
 
-      array<tuple<char const*, double, double>, 5> values {{{"x ", pos->x(), xt},
-                                                            {"dx", pos->dX(), dxt},
-                                                            {"y ", pos->y(), yt},
-                                                            {"dy", pos->dY(), dyt},
-                                                            {"z ", pos->z(), zt}}};
+      array<tuple<char const*, double, double>, 5> values {
+        {{"x ", pos->x(), xt}, {"y ", pos->y(), yt}, {"z ", pos->z(), zt}}};
 
       boost::format msg {"%|4d| %|8d| %|6s| %|d| %|d| %|d| %|2d| %|2d| %|d| %|5d| %|5d|"};
 
@@ -244,7 +236,7 @@ void TestMuonTable::operator()(DeMuonDetector const& det, MuonHitContainer const
           auto [table, tt] = lookup_table(tile, hit.uncrossed(), m_pad, m_stripX, m_stripY);
           const auto index = lookup_index(table.get(), tile);
 
-          auto dx_index = MuonUtils::size_index(table.get().sizeOffset, table.get().gridX, table.get().gridY, tile);
+          auto dx_index = 4 * tile.station() + tile.region();
 
           // positions are always indexed by station
           error() << (msg % n % static_cast<unsigned int>(tile) % tt % tile.station() % tile.region() % tile.quarter() %

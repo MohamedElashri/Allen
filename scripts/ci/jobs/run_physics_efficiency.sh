@@ -23,7 +23,7 @@ RUN_OPTIONS="-n 10000 -m 1100"
 # Configure the input files (--mdf) and geometry (-g)
 set +x; set +u
 if [ ! -z ${GEOMETRY+x} ]; then
-  RUN_OPTIONS="${RUN_OPTIONS} -g /scratch/allen_geometries/${GEOMETRY}"
+  RUN_OPTIONS="${RUN_OPTIONS} -g ../input/allen_geometries/${GEOMETRY}"
 fi
 
 set -euxo pipefail
