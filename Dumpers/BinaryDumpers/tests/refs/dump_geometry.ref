@@ -44,7 +44,7 @@ DeviceMuonGeometry                     INFO Number of counters : 1
  | "BytesWritten_MuonGeometry"                     |    211468 |
 DeviceMuonTable                        INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "BytesWritten_MuonLookupTables"                 |   1116340 |
+ | "BytesWritten_MuonLookupTables"                 |   1052980 |
 DeviceVPGeometry                       INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_VeloGeometry"                     |     16376 |
