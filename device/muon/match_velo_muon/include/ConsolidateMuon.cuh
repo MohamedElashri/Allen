@@ -11,7 +11,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "MuonDefinitions.cuh"
+#include "MuonEventModel.cuh"
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
 #include "States.cuh"

@@ -15,7 +15,7 @@
 #include "KalmanParametrizations.cuh"
 #include "LookingForwardConstants.cuh"
 #include "TrackMatchingConstants.cuh"
-#include "MuonDefinitions.cuh"
+#include "MuonEventModel.cuh"
 #include "MuonGeometry.cuh"
 #include "MuonTables.cuh"
 #include "NeuralNetworkDefinition.cuh"

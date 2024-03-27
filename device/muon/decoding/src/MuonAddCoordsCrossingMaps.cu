@@ -49,17 +49,6 @@ __global__ void muon_add_coords_crossing_maps_kernel(muon_add_coords_crossing_ma
       const auto region = tile.region();
       pad = (station == 0 && region > 1) || (station == 2 && region == 0) || (station == 3 && region == 0) ||
             (station == 3 && region == 3);
-
-      if (pad && threadIdx.x == 0) {
-        const int localCurrentHitIndex = atomicAdd(current_hit_index, 1);
-
-        const uint64_t compact_hit =
-          (((uint64_t)(start_index & 0x7FFF)) << 48) | (((uint64_t)(start_index & 0xFFFF)) << 32) |
-          ((layout1.xGrid() & 0x3FFF) << 18) | ((layout2.yGrid() & 0x3FFF) << 4) |
-          (((tile.id() & Muon::MuonBase::MaskStation) >> Muon::MuonBase::ShiftStation) & 0xF);
-
-        muon_compact_hit[localCurrentHitIndex] = compact_hit;
-      }
     }
 
     if (!pad) {
@@ -94,7 +83,7 @@ __global__ void muon_add_coords_crossing_maps_kernel(muon_add_coords_crossing_ma
         const auto tile = Muon::MuonTileID(storage_tile_id[index]);
 
         int condition;
-        if (tile.station() > (Muon::Constants::n_stations - 3) && tile.region() == 0) {
+        if (pad) {
           condition = 0;
         }
         else {

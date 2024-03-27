@@ -14,7 +14,7 @@
 #include "VeloDefinitions.cuh"
 #include "VeloEventModel.cuh"
 #include "UTConsolidated.cuh"
-#include "MuonDefinitions.cuh"
+#include "MuonEventModel.cuh"
 #include <string>
 
 /// Get the first estimation of the magnet focal plane position from "tx2".

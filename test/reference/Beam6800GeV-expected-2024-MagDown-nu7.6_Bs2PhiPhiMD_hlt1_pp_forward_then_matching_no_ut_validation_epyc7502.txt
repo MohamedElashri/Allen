@@ -25,11 +25,11 @@ long_fromB_P>5GeV_AND_Pt>1GeV                     :      2239/     2500  89.56% 
 muon_validator validation:
 Muon fraction in all MCPs:                                              14960/  1181372   0.01% 
 Muon fraction in MCPs to which a track(s) was matched:                    600/    61828   0.01% 
-Correctly identified muons with isMuon:                                   547/      600  91.17% 
+Correctly identified muons with isMuon:                                   548/      600  91.33% 
 Correctly identified muons from strange decays with isMuon:                 1/        1 100.00% 
 Correctly identified muons from B decays with isMuon:                     103/      108  95.37% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:      6782/    61228  11.08% 
-Ghost tracks identified as muon with isMuon:                              566/     3320  17.05% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:      6853/    61228  11.19% 
+Ghost tracks identified as muon with isMuon:                              572/     3320  17.23% 
 
 
 pv_validator validation:
@@ -119,7 +119,7 @@ Hlt1MaterialVertexSeedsDownstreamz:                 0/  1000, (    0.00 +/-     
 Hlt1MaterialVertexSeeds_DWFS:                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1Dst2D0PiAlignment:                              1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1DiMuonJpsiMassAlignment:                       18/  1000, (  540.00 +/-   126.13) kHz
+Hlt1DiMuonJpsiMassAlignment:                       19/  1000, (  570.00 +/-   129.52) kHz
 Hlt1DisplacedDiMuonAlignment:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                 88/  1000, ( 2640.00 +/-   268.76) kHz
@@ -266,7 +266,7 @@ Hlt1MaterialVertexSeedsDownstreamz:                 0           0
 Hlt1MaterialVertexSeeds_DWFS:                       0           0
 Hlt1Dst2D0PiAlignment:                              1           1
 Hlt1DiMuonHighMassAlignment:                        0           0
-Hlt1DiMuonJpsiMassAlignment:                       18          24
+Hlt1DiMuonJpsiMassAlignment:                       19          25
 Hlt1DisplacedDiMuonAlignment:                       1           1
 Hlt1BeamGas:                                        0           0
 Hlt1VeloMicroBias:                                 88           0
@@ -286,12 +286,12 @@ Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 
-Total decisions:      1270
-Total tracks:         2132
+Total decisions:      1271
+Total tracks:         2134
 Total calos clusters: 33
-Total SVs:            1858
-Total hits:           46642
-Total stdinfo:        25890
+Total SVs:            1859
+Total hits:           46700
+Total stdinfo:        25911
 
 
 velo_validator validation:

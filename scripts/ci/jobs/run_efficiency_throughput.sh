@@ -54,7 +54,7 @@ if [ "${RUN_THROUGHPUT}" != "NO_THROUGHPUT" ]; then
 
     # if a geometry folder is specified, pass it to Allen.
     if [ ! -z ${GEOMETRY+x} ]; then
-    RUN_OPTIONS="$RUN_OPTIONS -g /scratch/allen_geometries/${GEOMETRY}"
+    RUN_OPTIONS="$RUN_OPTIONS -g ../input/allen_geometries/${GEOMETRY}"
     fi
 
     RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}.json --params external/ParamFiles/ ${RUN_OPTIONS}"
@@ -217,7 +217,7 @@ if [ "${RUN_EFFICIENCY}" != "NO_EFFICIENCY" ]; then
     fi
 
     if [ ! -z ${GEOMETRY+x} ]; then
-    EFF_RUN_OPTIONS="${EFF_RUN_OPTIONS} -g /scratch/allen_geometries/${GEOMETRY}"
+    EFF_RUN_OPTIONS="${EFF_RUN_OPTIONS} -g ../input/allen_geometries/${GEOMETRY}"
     fi
 
     set -euxo pipefail

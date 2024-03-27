@@ -10,7 +10,7 @@
 \*****************************************************************************/
 #pragma once
 
-#include "MuonDefinitions.cuh"
+#include "MuonEventModel.cuh"
 
 namespace Lumi {
   namespace Constants {

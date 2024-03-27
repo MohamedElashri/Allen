@@ -77,7 +77,7 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
     const uint64_t compact_hit = muon_compact_hit[permutation_station[i]];
 
     const uint8_t uncrossed = compact_hit >> 63;
-    const unsigned digitsOneIndex_index = (compact_hit >> 48) & 0x7FFF;
+    const unsigned digitsOneIndex = (compact_hit >> 48) & 0x7FFF;
     const unsigned digitsTwoIndex = (compact_hit >> 32) & 0xFFFF;
     const unsigned thisGridX = (compact_hit >> 18) & 0x3FFF;
     const unsigned otherGridY_condition = (compact_hit >> 4) & 0x3FFF;
@@ -92,17 +92,17 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
     int region;
 
     if (!uncrossed) {
-      Muon::MuonTileID padTile(storage_tile_id[digitsOneIndex_index]);
+      Muon::MuonTileID padTile(storage_tile_id[digitsOneIndex]);
       padTile.setY(Muon::MuonTileID::nY(storage_tile_id[digitsTwoIndex]));
       padTile.setLayout(Muon::MuonLayout(thisGridX, otherGridY_condition));
 
       Muon::calcTilePos(parameters.dev_muon_raw_to_hits->muonTables, padTile, x, dx, y, dy, z);
       region = padTile.region();
       id = padTile.id();
-      delta_time = storage_tdc_value[digitsOneIndex_index] - storage_tdc_value[digitsTwoIndex];
+      delta_time = storage_tdc_value[digitsOneIndex] - storage_tdc_value[digitsTwoIndex];
     }
     else {
-      const auto tile = Muon::MuonTileID(storage_tile_id[digitsOneIndex_index]);
+      const auto tile = Muon::MuonTileID(storage_tile_id[digitsOneIndex]);
       region = tile.region();
       if (otherGridY_condition == 0) {
         calcTilePos(parameters.dev_muon_raw_to_hits->muonTables, tile, x, dx, y, dy, z);
@@ -114,7 +114,7 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
         calcStripYPos(parameters.dev_muon_raw_to_hits->muonTables, tile, x, dx, y, dy, z);
       }
       id = tile.id();
-      delta_time = storage_tdc_value[digitsOneIndex_index];
+      delta_time = storage_tdc_value[digitsOneIndex];
     }
 
     event_muon_hits.x(i) = x;
@@ -122,7 +122,7 @@ __global__ void muon_populate_hits::muon_populate_hits(muon_populate_hits::Param
     event_muon_hits.y(i) = y;
     event_muon_hits.dy(i) = dy;
     event_muon_hits.z(i) = z;
-    event_muon_hits.time(i) = storage_tdc_value[digitsOneIndex_index];
+    event_muon_hits.time(i) = storage_tdc_value[digitsOneIndex];
     event_muon_hits.tile(i) = id;
     event_muon_hits.uncrossed(i) = uncrossed;
     event_muon_hits.delta_time(i) = delta_time;

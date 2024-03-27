@@ -25,7 +25,7 @@ config:
     sequence: "--sequence {sequence}.json"
 
     # added if "geometry:" specified
-    geometry: "-g /scratch/allen_geometries/{geometry}"
+    geometry: "-g ../input/allen_geometries/{geometry}"
 
     # added if "disable-run-changes" specified
     disable_run_changes: "--disable-run-changes {disable_run_changes}"

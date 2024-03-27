@@ -8,27 +8,39 @@
 * granted to it by virtue of its status as an Intergovernmental Organization  *
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
+#include <sstream>
+
 // Gaudi
-#include "GaudiAlg/Consumer.h"
+#include <GaudiAlg/Consumer.h>
+#include <Gaudi/Accumulators.h>
 
 // LHCb
-#include "Event/PrHits.h"
+#include <Event/PrHits.h>
+#include <Event/ODIN.h>
 
 // Allen
-#include "MuonEventModel.cuh"
-#include "MuonDefinitions.cuh"
-#include "Logger.h"
+#include <MuonEventModel.cuh>
+#include <MuonDefinitions.cuh>
+#include <Logger.h>
 
 class CompareRecAllenMuonHits final
   : public Gaudi::Functional::Consumer<
-      void(const std::vector<unsigned>&, const std::vector<char>&, const MuonHitContainer&)> {
+      void(const LHCb::ODIN& odin, const std::vector<unsigned>&, const std::vector<char>&, const MuonHitContainer&)> {
 
 public:
   /// Standard constructor
   CompareRecAllenMuonHits(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
-  void operator()(const std::vector<unsigned>&, const std::vector<char>&, const MuonHitContainer&) const override;
+  void operator()(
+    const LHCb::ODIN& odin,
+    const std::vector<unsigned>&,
+    const std::vector<char>&,
+    const MuonHitContainer&) const override;
+
+private:
+  mutable Gaudi::Accumulators::Counter<> m_matched {this, "Matched HLT1/HLT2 muon hits"};
+  mutable Gaudi::Accumulators::Counter<> m_errors {this, "Not matched HLT1/HLT2 muon hits"};
 };
 
 DECLARE_COMPONENT(CompareRecAllenMuonHits)
@@ -37,12 +49,14 @@ CompareRecAllenMuonHits::CompareRecAllenMuonHits(const std::string& name, ISvcLo
   Consumer(
     name,
     pSvcLocator,
-    {KeyValue {"muon_offsets", ""},
+    {KeyValue {"ODIN", ""},
+     KeyValue {"muon_offsets", ""},
      KeyValue {"muon_hits", ""},
      KeyValue {"MuonHitsLocation", MuonHitContainerLocation::Default}})
 {}
 
 void CompareRecAllenMuonHits::operator()(
+  const LHCb::ODIN& odin,
   const std::vector<unsigned>& muon_hit_offsets,
   const std::vector<char>& muon_hits,
   const MuonHitContainer& muon_hit_container) const
@@ -57,7 +71,7 @@ void CompareRecAllenMuonHits::operator()(
   for (unsigned station = 0; station < Muon::Constants::n_stations; station++)
     n_hits_total_rec += muon_hit_container.station(station).hits().size();
   debug() << "Number of Muon hits (Allen) in this event " << n_hits_total_allen << endmsg;
-  debug() << "Number of Muon hits (Rec) in this event   " << n_hits_total_rec << endmsg;
+  debug() << "Number of Muon hits (Rec)   in this event " << n_hits_total_rec << endmsg;
 
   // loop Muon Hits per station and fill hit containers
   for (unsigned station = 0; station < Muon::Constants::n_stations; station++) {
@@ -93,28 +107,49 @@ void CompareRecAllenMuonHits::operator()(
     }
   }
 
+  std::vector<std::string> errors;
+  errors.reserve(100);
+
   for (const auto& muon_hit_allen : muon_hits_allen) {
     auto tmp_iter = std::remove_if(muon_hits_rec.begin(), muon_hits_rec.end(), [&muon_hit_allen](auto& muon_hit_rec) {
       return muon_hit_rec.tile == muon_hit_allen.tile && fabsf(muon_hit_rec.x - muon_hit_allen.x) < 1e-3 &&
-             fabsf(muon_hit_rec.y - muon_hit_allen.y) < 1e-3 && fabsf(muon_hit_rec.z - muon_hit_allen.z) < 1e-1;
+             fabsf(muon_hit_rec.y - muon_hit_allen.y) < 1e-3 && fabsf(muon_hit_rec.z - muon_hit_allen.z) < 1e-1 &&
+             muon_hit_rec.uncrossed == muon_hit_allen.uncrossed && muon_hit_rec.time == muon_hit_allen.time &&
+             fabsf(muon_hit_rec.dx - muon_hit_allen.dx) < 1e-3 && fabsf(muon_hit_rec.dy - muon_hit_allen.dy) < 1e-3 &&
+             muon_hit_rec.delta_time == muon_hit_allen.delta_time && muon_hit_rec.region == muon_hit_allen.region;
     });
     const auto n_hits_found = std::distance(tmp_iter, muon_hits_rec.end());
     muon_hits_rec.erase(tmp_iter, muon_hits_rec.end());
     if (n_hits_found == 0) {
-      error() << "Could not match this Muon Hit decoded by Allen to a Muon hit decoded by Rec" << endmsg;
-      error() << muon_hit_allen << endmsg;
+      std::stringstream msg;
+      msg << "Lonely Allen hit            " << muon_hit_allen;
+      errors.push_back(msg.str());
     }
     else if (n_hits_found > 1) {
-      error() << "This Muon Hit decoded by Allen has multiple Muon hits decoded by Rec" << endmsg;
-      error() << muon_hit_allen << endmsg;
+      std::stringstream msg;
+      msg << "Multiply matched Allen hit  " << muon_hit_allen;
+      errors.push_back(msg.str());
     }
     else if (n_hits_found == 1) {
-      info() << "Successfully matched hit" << muon_hit_allen << endmsg;
+      ++m_matched;
+      debug() << "Successfully matched hit" << muon_hit_allen << endmsg;
     }
   }
 
   if (!muon_hits_rec.empty()) {
-    for (const auto& muon_hit_rec : muon_hits_rec)
-      error() << "Lonely Rec hit " << muon_hit_rec << endmsg;
+    for (const auto& muon_hit_rec : muon_hits_rec) {
+      std::stringstream msg;
+      msg << "Lonely Rec   hit            " << muon_hit_rec;
+      errors.push_back(msg.str());
+    }
+  }
+
+  if (!errors.empty()) {
+    m_errors += errors.size();
+    error() << std::setw(5) << errors.size() << " mismatches in event " << std::setw(8) << odin.runNumber()
+            << std::setw(15) << odin.eventNumber() << endmsg;
+    for (auto const& msg : errors) {
+      error() << msg << endmsg;
+    }
   }
 }

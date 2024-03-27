@@ -35,16 +35,11 @@ namespace Muon {
     float* sizeX[n_tables];
     float* sizeY[n_tables];
     unsigned int* offset[n_tables];
-    unsigned int sizeOffset[Constants::n_stations * Constants::n_regions * n_tables];
     float* coordinates[n_tables * Constants::n_stations];
 
-    __device__ MuonTables(size_t* allOffsets, char* dev_muon_tables_raw, unsigned int* sizeOffset_, const int version)
+    __device__ MuonTables(size_t* allOffsets, char* dev_muon_tables_raw, const int version)
     {
       m_version = version;
-
-      for (size_t i = 0; i < Constants::n_stations * Constants::n_regions * n_tables; i++) {
-        sizeOffset[i] = sizeOffset_[i];
-      }
 
       size_t currentAllOffsetsIndex = 0;
       for (size_t currentTableNumber = 0; currentTableNumber < n_tables; currentTableNumber++) {
@@ -104,24 +99,6 @@ namespace Muon {
     return index * MuonTables::n_dimensions;
   }
 
-  __device__ inline size_t size_index(MuonTables* muonTables, size_t tableNumber, const Muon::MuonTileID& tile)
-  {
-    const auto idx = Constants::n_regions * tile.station() + tile.region();
-    const auto index = muonTables->sizeOffset[tableNumber * Constants::n_stations * Constants::n_regions + idx] +
-                       tile.quarter() * muonTables->gridY[tableNumber][idx] * 6;
-    if (tile.nY() < static_cast<unsigned int>(muonTables->gridY[tableNumber][idx])) {
-      assert(static_cast<int>(tile.nX()) >= muonTables->gridX[tableNumber][idx]);
-      assert(muonTables->gridX[tableNumber][idx] > 0);
-      return index + 2 * tile.nY() +
-             2 * (tile.nX() - muonTables->gridX[tableNumber][idx]) / muonTables->gridX[tableNumber][idx];
-    }
-    else {
-      assert(muonTables->gridX[tableNumber][idx] > 0);
-      return index + 4 * tile.nY() - 2 * muonTables->gridY[tableNumber][idx] +
-             (2 * tile.nX() / muonTables->gridX[tableNumber][idx]);
-    }
-  }
-
   __device__ inline unsigned int pad_offset(MuonTables* muonTables, const Muon::MuonTileID& tile)
   {
     const auto idx = Constants::n_regions * tile.station() + tile.region();
@@ -171,7 +148,7 @@ namespace Muon {
     y = muonTables->coordinates[tableNumber * Constants::n_stations + station][index + 1];
     z = muonTables->coordinates[tableNumber * Constants::n_stations + station][index + 2];
 
-    const auto dxi = size_index(muonTables, tableNumber, tile);
+    const auto dxi = 4 * tile.station() + tile.region();
     deltax = muonTables->sizeX[tableNumber][dxi];
     deltay = muonTables->sizeY[tableNumber][dxi];
   }
