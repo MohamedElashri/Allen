@@ -187,18 +187,18 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  // Ensure the bank version is supported
-  const auto bank_version = first<host_raw_bank_version_t>(arguments);
-  if (bank_version < 0) return; // no Muon banks present in data
-  if (bank_version != 2 && bank_version != 3) {
-    throw StrException("Muon bank version not supported (" + std::to_string(bank_version) + ")");
-  }
 
   set_size<dev_muon_raw_to_hits_t>(arguments, 1);
   set_size<dev_storage_station_region_quarter_sizes_t>(
     arguments,
     first<host_number_of_events_t>(arguments) * Muon::Constants::n_layouts * Muon::Constants::n_stations *
       Muon::Constants::n_regions * Muon::Constants::n_quarters);
+  // Ensure the bank version is supported
+  const auto bank_version = first<host_raw_bank_version_t>(arguments);
+  if (bank_version < 0) return; // no Muon banks present in data
+  if (bank_version != 2 && bank_version != 3) {
+    throw StrException("Muon bank version not supported (" + std::to_string(bank_version) + ")");
+  }
 }
 
 void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
