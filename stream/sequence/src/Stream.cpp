@@ -14,6 +14,7 @@
 #include "AlgorithmTypes.cuh"
 #include "Scheduler.cuh"
 #include "HostBuffersManager.cuh"
+#include "AllenMonitoring.h"
 
 #ifdef CALLGRIND_PROFILE
 #include <valgrind/callgrind.h>
@@ -23,22 +24,22 @@
  * @brief Sets up the chain that will be executed later.
  */
 Stream::Stream(
+  const unsigned stream_id,
   const ConfiguredSequence& configuration,
   const Allen::ScheduledSequence& sched_seq,
   const bool param_do_print_memory_manager,
   const size_t reserve_mb,
   const unsigned required_memory_alignment,
   const Constants& param_constants,
-  HostBuffersManager* buffers_manager,
-  const std::map<std::string, std::map<std::string, nlohmann::json>>& config) :
-  do_print_memory_manager {param_do_print_memory_manager},
-  host_buffers_manager {buffers_manager}, constants {param_constants}
+  HostBuffersManager* buffers_manager) :
+  stream_id {stream_id},
+  do_print_memory_manager {param_do_print_memory_manager}, host_buffers_manager {buffers_manager}, constants {
+                                                                                                     param_constants}
 {
-  scheduler =
-    new Scheduler {configuration, sched_seq, do_print_memory_manager, reserve_mb, required_memory_alignment, config};
+  scheduler = new Scheduler {configuration, sched_seq, do_print_memory_manager, reserve_mb, required_memory_alignment};
 
   // Initialize context
-  m_context.initialize();
+  m_context.initialize(stream_id);
 }
 
 Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_options)
@@ -61,11 +62,13 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
       persistent_store->free_all();
 
       try {
+        Allen::Monitoring::AccumulatorManager::get()->synchronizeStream(stream_id);
         // Visit all algorithms in configured sequence
         scheduler->run(runtime_options, constants, persistent_store, m_context);
 
         // Synchronize device
         Allen::synchronize(m_context);
+        Allen::Monitoring::AccumulatorManager::get()->streamDone(stream_id);
       } catch (const MemoryException& e) {
         warning_cout << "Insufficient memory to process slice - will sub-divide and retry." << std::endl;
         return Allen::error::errorMemoryAllocation;

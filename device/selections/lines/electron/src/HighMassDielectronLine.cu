@@ -5,27 +5,6 @@
 
 INSTANTIATE_LINE(highmass_dielectron_line::highmass_dielectron_line_t, highmass_dielectron_line::Parameters)
 
-void highmass_dielectron_line::highmass_dielectron_line_t::init()
-{
-  Line<highmass_dielectron_line::highmass_dielectron_line_t, highmass_dielectron_line::Parameters>::init();
-#ifndef ALLEN_STANDALONE
-  histogram_dielectron_Z_mass = new gaudi_monitoring::Lockable_Histogram<> {
-    {this,
-     "dielectron_Z_mass_counts",
-     "dielectron masses w/brem (Z)",
-     {property<histogram_Z_mass_nbins_t>(), property<histogram_Z_mass_min_t>(), property<histogram_Z_mass_max_t>()}},
-    {}};
-  histogram_dielectron_upsilon_mass =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "dielectron_upsilon_mass_counts_ss",
-                                                 "dielectron masses w/brem (Upsilon)",
-                                                 {property<histogram_upsilon_mass_nbins_t>(),
-                                                  property<histogram_upsilon_mass_min_t>(),
-                                                  property<histogram_upsilon_mass_max_t>()}},
-                                                {}};
-#endif
-}
-
 __device__ std::
   tuple<const Allen::Views::Physics::CompositeParticle, const bool, const bool, const float, const float, const float>
   highmass_dielectron_line::highmass_dielectron_line_t::get_input(
@@ -77,6 +56,7 @@ __device__ std::
 
 __device__ bool highmass_dielectron_line::highmass_dielectron_line_t::select(
   const Parameters& parameters,
+  const DeviceAccumulators&,
   std::
     tuple<const Allen::Views::Physics::CompositeParticle, const bool, const bool, const float, const float, const float>
       input)
@@ -105,16 +85,9 @@ __device__ bool highmass_dielectron_line::highmass_dielectron_line_t::select(
   return decision;
 }
 
-void highmass_dielectron_line::highmass_dielectron_line_t::init_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
-{
-  Allen::memset_async<dev_histogram_Z_mass_t>(arguments, 0, context);
-  Allen::memset_async<dev_histogram_upsilon_mass_t>(arguments, 0, context);
-}
-
 __device__ void highmass_dielectron_line::highmass_dielectron_line_t::monitor(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceAccumulators& accumulators,
   std::
     tuple<const Allen::Views::Physics::CompositeParticle, const bool, const bool, const float, const float, const float>
       input,
@@ -123,46 +96,9 @@ __device__ void highmass_dielectron_line::highmass_dielectron_line_t::monitor(
 {
   if (sel) {
     const auto& m = std::get<4>(input);
-    if (m > parameters.histogram_Z_mass_min && m < parameters.histogram_Z_mass_max) {
-      const unsigned int bin = static_cast<unsigned int>(
-        (m - parameters.histogram_Z_mass_min) * parameters.histogram_Z_mass_nbins /
-        (parameters.histogram_Z_mass_max - parameters.histogram_Z_mass_min));
-      atomicAdd(&parameters.dev_histogram_Z_mass[bin], 1);
-    }
-
-    if (m > parameters.histogram_upsilon_mass_min && m < parameters.histogram_upsilon_mass_max) {
-      const unsigned int bin = static_cast<unsigned int>(
-        (m - parameters.histogram_upsilon_mass_min) * parameters.histogram_upsilon_mass_nbins /
-        (parameters.histogram_upsilon_mass_max - parameters.histogram_upsilon_mass_min));
-      atomicAdd(&parameters.dev_histogram_upsilon_mass[bin], 1);
-    }
+    accumulators.histogram_dielectron_Z_mass.increment(m);
+    accumulators.histogram_dielectron_upsilon_mass.increment(m);
   }
-}
-
-void highmass_dielectron_line::highmass_dielectron_line_t::output_monitor(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
-  [[maybe_unused]] const Allen::Context& context) const
-{
-#ifndef ALLEN_STANDALONE
-  if (property<OppositeSign_t>()) {
-    gaudi_monitoring::fill(
-      arguments,
-      context,
-      std::tuple {get<dev_histogram_Z_mass_t>(arguments),
-                  histogram_dielectron_Z_mass,
-                  property<histogram_Z_mass_min_t>(),
-                  property<histogram_Z_mass_max_t>()});
-
-    gaudi_monitoring::fill(
-      arguments,
-      context,
-      std::tuple {get<dev_histogram_upsilon_mass_t>(arguments),
-                  histogram_dielectron_upsilon_mass,
-                  property<histogram_upsilon_mass_min_t>(),
-                  property<histogram_upsilon_mass_max_t>()});
-  }
-#endif
 }
 
 __device__ void highmass_dielectron_line::highmass_dielectron_line_t::fill_tuples(
@@ -177,14 +113,4 @@ __device__ void highmass_dielectron_line::highmass_dielectron_line_t::fill_tuple
     const auto& m = std::get<4>(input);
     parameters.mass[index] = m;
   }
-}
-
-void highmass_dielectron_line::highmass_dielectron_line_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions& ro,
-  const Constants& c) const
-{
-  static_cast<Line const*>(this)->set_arguments_size(arguments, ro, c);
-  set_size<typename Parameters::dev_histogram_Z_mass_t>(arguments, 100u);
-  set_size<typename Parameters::dev_histogram_upsilon_mass_t>(arguments, 100u);
 }

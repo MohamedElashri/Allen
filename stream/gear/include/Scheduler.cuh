@@ -37,6 +37,24 @@ namespace Allen {
       dependencies = calculate_lifetime_dependencies(sequence_arguments, arg_deps, configured_arguments, sequence);
     }
 
+    // Configure constants for algorithms in the sequence
+    void configure_algorithms(const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
+    {
+      for (auto& algorithm : sequence) {
+        auto c = config.find(algorithm.name());
+        if (c != config.end()) algorithm.set_properties(c->second);
+        // * Invoke void initialize() const, iff it exists
+        algorithm.init();
+      }
+    }
+
+    void update_algorithms(const Constants& constants)
+    {
+      for (auto& algorithm : sequence) {
+        algorithm.update(constants);
+      }
+    }
+
     static std::vector<Allen::TypeErasedAlgorithm> instantiate_sequence(
       const std::vector<ConfiguredAlgorithm>& configured_algorithms)
     {
@@ -161,7 +179,7 @@ namespace Allen {
 } // namespace Allen
 
 class Scheduler {
-  std::vector<Allen::TypeErasedAlgorithm> m_sequence;
+  const Allen::ScheduledSequence* m_sched_seq;
   Allen::Store::UnorderedStore m_store;
   std::vector<std::any> m_sequence_ref_stores;
   std::vector<LifetimeDependencies> m_in_dependencies;
@@ -174,14 +192,12 @@ public:
     const Allen::ScheduledSequence& sched_seq,
     const bool param_do_print,
     const size_t device_requested_mb,
-    const unsigned required_memory_alignment,
-    const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
+    const unsigned required_memory_alignment)
   {
     auto& [configured_algorithms, configured_arguments, sequence_arguments, arg_deps] = configuration;
     assert(configured_algorithms.size() == sequence_arguments.size());
 
-    // Instantiate the type erased algorithms that conform the sequence
-    m_sequence = Allen::ScheduledSequence::instantiate_sequence(configured_algorithms);
+    m_sched_seq = &sched_seq;
 
     // Create and populate store
     initialize_store(configured_arguments, sequence_arguments);
@@ -190,13 +206,14 @@ public:
     std::tie(m_in_dependencies, m_out_dependencies) = sched_seq.dependencies;
 
     // Create ArgumentRefManager of each algorithm
-    for (unsigned i = 0; i < m_sequence.size(); ++i) {
+    for (unsigned i = 0; i < m_sched_seq->sequence.size(); ++i) {
       // Generate store references for each algorithm's configured arguments
       auto [alg_arguments, alg_input_aggregates] = generate_algorithm_store_ref(sequence_arguments[i]);
-      m_sequence_ref_stores.emplace_back(m_sequence[i].create_ref_store(alg_arguments, alg_input_aggregates, m_store));
+      m_sequence_ref_stores.emplace_back(
+        m_sched_seq->sequence[i].create_ref_store(alg_arguments, alg_input_aggregates, m_store));
     }
 
-    assert(configured_algorithms.size() == m_sequence.size());
+    assert(configured_algorithms.size() == m_sched_seq->sequence.size());
     assert(configured_algorithms.size() == m_sequence_ref_stores.size());
     assert(configured_algorithms.size() == m_in_dependencies.size());
     assert(configured_algorithms.size() == m_out_dependencies.size());
@@ -205,36 +222,12 @@ public:
 
     // Reserve memory
     m_store.reserve_memory_device(device_requested_mb, required_memory_alignment);
-
-    // Configure the algorithms according to the properties' values
-    configure_algorithms(m_sequence, config);
   }
 
   Scheduler(const Scheduler&) = delete;
   Scheduler& operator=(const Scheduler&) = delete;
   Scheduler(Scheduler&&) = delete;
   Scheduler& operator=(Scheduler&&) = delete;
-
-  // Configure constants for algorithms in the sequence
-  static void configure_algorithms(
-    std::vector<Allen::TypeErasedAlgorithm>& sequence,
-    const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
-  {
-    for (unsigned i = 0; i < sequence.size(); ++i) {
-      Allen::TypeErasedAlgorithm& algorithm = sequence[i];
-      auto c = config.find(algorithm.name());
-      if (c != config.end()) algorithm.set_properties(c->second);
-      // * Invoke void initialize() const, iff it exists
-      algorithm.init();
-    }
-  }
-
-  void update_algorithms(const Constants& constants)
-  {
-    for (auto& algorithm : m_sequence) {
-      algorithm.update(constants);
-    }
-  }
 
   /**
    * @brief Initializes the store with the configured arguments
@@ -243,9 +236,9 @@ public:
     const std::vector<ConfiguredArgument>&,
     const std::vector<ConfiguredAlgorithmArguments>& configured_algorithm_arguments)
   {
-    assert(m_sequence.size() == configured_algorithm_arguments.size());
-    for (unsigned i = 0; i < m_sequence.size(); ++i) {
-      m_sequence[i].emplace_output_arguments(configured_algorithm_arguments[i].arguments, m_store);
+    assert(m_sched_seq->sequence.size() == configured_algorithm_arguments.size());
+    for (unsigned i = 0; i < m_sched_seq->sequence.size(); ++i) {
+      m_sched_seq->sequence[i].emplace_output_arguments(configured_algorithm_arguments[i].arguments, m_store);
     }
   }
 
@@ -284,8 +277,8 @@ public:
   auto get_algorithm_configuration() const
   {
     std::map<std::string, std::map<std::string, nlohmann::json>> config;
-    for (unsigned i = 0; i < m_sequence.size(); ++i) {
-      get_configuration(m_sequence[i], config);
+    for (unsigned i = 0; i < m_sched_seq->sequence.size(); ++i) {
+      get_configuration(m_sched_seq->sequence[i], config);
     }
     return config;
   }
@@ -293,7 +286,7 @@ public:
   void print_sequence() const
   {
     info_cout << "\nSequence:\n";
-    for (const auto& alg : m_sequence) {
+    for (const auto& alg : m_sched_seq->sequence) {
       info_cout << "  " << alg.name() << "\n";
     }
     info_cout << "\n";
@@ -301,7 +294,7 @@ public:
 
   bool contains_validation_algorithms() const
   {
-    for (const auto& alg : m_sequence) {
+    for (const auto& alg : m_sched_seq->sequence) {
       if (alg.scope() == "ValidationAlgorithm") {
         return true;
       }
@@ -317,9 +310,9 @@ public:
     const Allen::Context& context)
   {
     m_store.set_persistent_store(persistent_store);
-    for (unsigned i = 0; i < m_sequence.size(); ++i) {
+    for (unsigned i = 0; i < m_sched_seq->sequence.size(); ++i) {
       run(
-        m_sequence[i],
+        m_sched_seq->sequence[i],
         m_sequence_ref_stores[i],
         m_in_dependencies[i],
         m_out_dependencies[i],
@@ -341,7 +334,7 @@ private:
   }
 
   static void setup(
-    Allen::TypeErasedAlgorithm& algorithm,
+    const Allen::TypeErasedAlgorithm& algorithm,
     const LifetimeDependencies& in_dependencies,
     const LifetimeDependencies& out_dependencies,
     Allen::Store::UnorderedStore& store,
@@ -378,7 +371,7 @@ private:
   }
 
   static void run(
-    Allen::TypeErasedAlgorithm& algorithm,
+    const Allen::TypeErasedAlgorithm& algorithm,
     std::any& argument_ref_manager,
     const LifetimeDependencies& in_dependencies,
     const LifetimeDependencies& out_dependencies,

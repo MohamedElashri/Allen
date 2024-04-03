@@ -14,10 +14,7 @@
 #include "CompositeParticleLine.cuh"
 #include "MassDefinitions.h"
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include <Gaudi/Accumulators.h>
-#endif
+#include "AllenMonitoring.h"
 
 namespace xi_omega_lll_line {
   struct Parameters {
@@ -89,31 +86,25 @@ namespace xi_omega_lll_line {
     DEVICE_OUTPUT(L_BPVDIRA_t, float) L_BPVDIRA;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
-
-    DEVICE_OUTPUT(dev_histogram_Lambda_mass_t, unsigned) dev_histogram_Lambda_mass;
-    PROPERTY(histogram_Lambda_mass_min_t, "histogram_Lambda_mass_min", "", float) histogram_Lambda_mass_min;
-    PROPERTY(histogram_Lambda_mass_max_t, "histogram_Lambda_mass_max", "", float) histogram_Lambda_mass_max;
-    PROPERTY(histogram_Lambda_mass_nbins_t, "histogram_Lambda_mass_nbins", "", unsigned int)
-    histogram_Lambda_mass_nbins;
-
-    DEVICE_OUTPUT(dev_histogram_Xi_mass_t, unsigned) dev_histogram_Xi_mass;
-    PROPERTY(histogram_Xi_mass_min_t, "histogram_Xi_mass_min", "", float) histogram_Xi_mass_min;
-    PROPERTY(histogram_Xi_mass_max_t, "histogram_Xi_mass_max", "", float) histogram_Xi_mass_max;
-    PROPERTY(histogram_Xi_mass_nbins_t, "histogram_Xi_mass_nbins", "", unsigned int) histogram_Xi_mass_nbins;
-
-    DEVICE_OUTPUT(dev_histogram_Omega_mass_t, unsigned) dev_histogram_Omega_mass;
-    PROPERTY(histogram_Omega_mass_min_t, "histogram_Omega_mass_min", "", float) histogram_Omega_mass_min;
-    PROPERTY(histogram_Omega_mass_max_t, "histogram_Omega_mass_max", "", float) histogram_Omega_mass_max;
-    PROPERTY(histogram_Omega_mass_nbins_t, "histogram_Omega_mass_nbins", "", unsigned int) histogram_Omega_mass_nbins;
   };
 
   struct xi_omega_lll_line_t : public SelectionAlgorithm,
                                Parameters,
                                CompositeParticleLine<xi_omega_lll_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_Lambda_mass;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_Xi_mass;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_Omega_mass;
+      DeviceAccumulators(const xi_omega_lll_line_t& algo, const Allen::Context& ctx) :
+        histogram_Lambda_mass(algo.m_histogram_Lambda_mass.data(ctx)),
+        histogram_Xi_mass(algo.m_histogram_Xi_mass.data(ctx)),
+        histogram_Omega_mass(algo.m_histogram_Omega_mass.data(ctx))
+      {}
+    };
 
-    void init();
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
+    __device__ static bool
+    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+
     __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -121,11 +112,10 @@ namespace xi_omega_lll_line {
       bool sel);
     __device__ static void monitor(
       const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
-    __host__ void
-    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
 
     using monitoring_types = std::tuple<
       Xi_M_t,
@@ -186,22 +176,22 @@ namespace xi_omega_lll_line {
     Property<BPVDRHO_min_t> m_BPVDRHO_min {this, 0.5f * Gaudi::Units::mm};
     Property<LVDZ_min_t> m_LVDZ_min {this, 8.f * Gaudi::Units::mm};
     Property<BPVDIRA_min_t> m_BPVDIRA_min {this, 0.99};
-    Property<histogram_Lambda_mass_min_t> m_histogramLambdaMassMin {this, 1077.5f * Gaudi::Units::MeV};
-    Property<histogram_Lambda_mass_max_t> m_histogramLambdaMassMax {this, 1140.f * Gaudi::Units::MeV};
-    Property<histogram_Lambda_mass_nbins_t> m_histogramLambdaMassNBins {this, 125u};
-    Property<histogram_Xi_mass_min_t> m_histogramXiMassMin {this, 1254.f * Gaudi::Units::MeV};
-    Property<histogram_Xi_mass_max_t> m_histogramXiMassMax {this, 1350.f * Gaudi::Units::MeV};
-    Property<histogram_Xi_mass_nbins_t> m_histogramXiMassNBins {this, 96u};
-    Property<histogram_Omega_mass_min_t> m_histogramOmegaMassMin {this, 1610.f * Gaudi::Units::MeV};
-    Property<histogram_Omega_mass_max_t> m_histogramOmegaMassMax {this, 1710.f * Gaudi::Units::MeV};
-    Property<histogram_Omega_mass_nbins_t> m_histogramOmegaMassNBins {this, 100u};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<enable_tupling_t> m_enable_tupling {this, false};
 
-#ifndef ALLEN_STANDALONE
-    gaudi_monitoring::Lockable_Histogram<>* histogram_Lambda_mass;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_Xi_mass;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_Omega_mass;
-#endif
+    Allen::Monitoring::Histogram<> m_histogram_Lambda_mass {
+      this,
+      "Lambda_mass_XiOmegaLLL",
+      "m(p#pi^{#minus}) [MeV]",
+      {125u, 1077.5f * Gaudi::Units::MeV, 1140.f * Gaudi::Units::MeV}};
+    Allen::Monitoring::Histogram<> m_histogram_Xi_mass {this,
+                                                        "Xi_mass",
+                                                        "m(#Lambda#pi^{#minus}) [MeV]",
+                                                        {96u, 1254.f * Gaudi::Units::MeV, 1350.f * Gaudi::Units::MeV}};
+    Allen::Monitoring::Histogram<> m_histogram_Omega_mass {
+      this,
+      "Omega_mass",
+      "m(#LambdaK^{#minus}) [MeV]",
+      {100u, 1610.f * Gaudi::Units::MeV, 1710.f * Gaudi::Units::MeV}};
   };
 } // namespace xi_omega_lll_line

@@ -11,22 +11,7 @@
 #include "LowMassDielectronLine.cuh"
 #include "BinarySearch.cuh"
 
-namespace {
-  const unsigned n_bins = 123u;
-}
-
 INSTANTIATE_LINE(lowmass_dielectron_line::lowmass_dielectron_line_t, lowmass_dielectron_line::Parameters)
-
-void lowmass_dielectron_line::lowmass_dielectron_line_t::init()
-{
-  Line<lowmass_dielectron_line::lowmass_dielectron_line_t, lowmass_dielectron_line::Parameters>::init();
-#ifndef ALLEN_STANDALONE
-  histogram_dielectron_masses = new gaudi_monitoring::Lockable_Histogram<> {
-    {this, "dielectron_mass_counts", "dielectron masses", {n_bins, 0, 1500}}, {}};
-  histogram_dielectron_masses_brem = new gaudi_monitoring::Lockable_Histogram<> {
-    {this, "dielectron_mass_counts_brem", "dielectron masses with brem", {n_bins, 0, 1500}}, {}};
-#endif
-}
 
 __device__ std::tuple<
   const Allen::Views::Physics::CompositeParticle,
@@ -105,6 +90,7 @@ lowmass_dielectron_line::lowmass_dielectron_line_t::get_input(
 
 __device__ bool lowmass_dielectron_line::lowmass_dielectron_line_t::select(
   const Parameters& parameters,
+  const DeviceAccumulators& accumulators,
   std::tuple<
     const Allen::Views::Physics::CompositeParticle,
     const bool,
@@ -134,20 +120,13 @@ __device__ bool lowmass_dielectron_line::lowmass_dielectron_line_t::select(
   decision &=
     ((parameters.selectPrompt && passes_prompt_selection) || (!parameters.selectPrompt && passes_displaced_selection));
 
-#ifndef ALLEN_STANDALONE
   bool decision_no_mass_prompt_only = (is_same_sign == parameters.ss_on) && vertex.vertex().z() >= parameters.MinZ &&
                                       parameters.selectPrompt && passes_prompt_selection;
   if (decision_no_mass_prompt_only) {
-    if (vertex.m12(0.510999, 0.510999) < 1500) {
-      unsigned bin = binary_search_rightmost(&parameters.dev_bin_boundaries[0], n_bins, vertex.m12(0.510999, 0.510999));
-      atomicAdd(&parameters.dev_masses_histo[bin], 1);
-    }
-    if (brem_corrected_dielectron_mass < 1500) {
-      unsigned bin = binary_search_rightmost(&parameters.dev_bin_boundaries[0], n_bins, brem_corrected_dielectron_mass);
-      atomicAdd(&parameters.dev_masses_brem_histo[bin], 1);
-    }
+    auto m12 = vertex.m12(0.510999, 0.510999);
+    accumulators.histogram_dielectron_masses.increment(m12);
+    accumulators.histogram_dielectron_masses_brem.increment(brem_corrected_dielectron_mass);
   }
-#endif
 
   return decision;
 }
@@ -173,35 +152,6 @@ void lowmass_dielectron_line::lowmass_dielectron_line_t::set_arguments_size(
   set_size<dev_die_minipchi2_t>(
     arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
   set_size<dev_die_ip_t>(arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
-  set_size<dev_masses_histo_t>(arguments, n_bins);
-  set_size<dev_masses_brem_histo_t>(arguments, n_bins);
-  set_size<dev_bin_boundaries_t>(arguments, n_bins + 1);
-}
-
-void lowmass_dielectron_line::lowmass_dielectron_line_t::init_monitor(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  [[maybe_unused]] const Allen::Context& context) const
-{
-#ifndef ALLEN_STANDALONE
-  Allen::memset_async<dev_masses_histo_t>(arguments, 0, context);
-  Allen::memset_async<dev_masses_brem_histo_t>(arguments, 0, context);
-  auto boundaries = make_host_buffer<float>(arguments, n_bins);
-  boundaries[0] = 0.f;
-  boundaries[1] = 0.5f;
-  for (unsigned i = 2; i < n_bins; i++) {
-    float last_bound = boundaries[i - 1];
-    float increment;
-    if (last_bound * .05f < 0.5f) {
-      increment = 0.5;
-    }
-    else {
-      increment = last_bound * 0.05f;
-    }
-    boundaries[i] = (last_bound + increment);
-  }
-  boundaries[n_bins - 1] = 1500.f;
-  Allen::copy(arguments.template get<dev_bin_boundaries_t>(), boundaries.get(), context, Allen::memcpyHostToDevice);
-#endif
 }
 
 void lowmass_dielectron_line::lowmass_dielectron_line_t::init_tuples(
@@ -246,20 +196,6 @@ __device__ void lowmass_dielectron_line::lowmass_dielectron_line_t::fill_tuples(
     parameters.dev_e_minpts_raw[index] = vertex.minpt();
     parameters.dev_e_minpt_bremcorr[index] = brem_corrected_minpt;
   }
-}
-
-void lowmass_dielectron_line::lowmass_dielectron_line_t::output_monitor(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  [[maybe_unused]] const RuntimeOptions& runtime_options,
-  [[maybe_unused]] const Allen::Context& context) const
-{
-#ifndef ALLEN_STANDALONE
-  gaudi_monitoring::fill(
-    arguments,
-    context,
-    std::tuple {std::tuple {get<dev_masses_brem_histo_t>(arguments), histogram_dielectron_masses_brem, 0, 1500},
-                std::tuple {get<dev_masses_histo_t>(arguments), histogram_dielectron_masses, 0, 1500}});
-#endif
 }
 
 void lowmass_dielectron_line::lowmass_dielectron_line_t::output_tuples(

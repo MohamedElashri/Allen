@@ -66,7 +66,7 @@
 #include "Provider.h"
 #include "ROOTService.h"
 
-#include "MonitoringAggregator.h"
+#include "AllenMonitoring.h"
 #include "MonitoringPrinter.h"
 #include "ServiceLocator.h"
 
@@ -352,17 +352,9 @@ int allen(
 
 #ifndef ALLEN_STANDALONE
   // Set up monitoring sink
-  MonitoringAggregator monitoringAggregator;
   MonitoringPrinter monitoringPrinter {"MonitoringPrinter", Gaudi::svcLocator(), 10, enable_monitoring_printing};
 
   if (register_monitoring_counters) {
-    // Accumulators from multiple streams must first be aggregated so we run two monitoring hubs
-    // The first is internal to Allen and passes all accumulators to the aggregation service
-    // The aggregation service then passes all aggregated accumulators to the second hub
-    // The second hub is the one provided by Gaudi so can also link to external sinks
-    Gaudi::Monitoring::Hub* firstHub = &StreamServiceLocator::get()->monitoringHub();
-    firstHub->addSink(&monitoringAggregator);
-
     Gaudi::Monitoring::Hub* secondHub = &Gaudi::svcLocator()->monitoringHub();
     secondHub->addSink(&monitoringPrinter);
   }
@@ -394,20 +386,26 @@ int allen(
   // Instantiate and configure sequence once to get dependencies
   Allen::ScheduledSequence sched_seq {configuration_reader->configured_sequence()};
 
+  // Configure the algorithms according to the properties' values
+  sched_seq.configure_algorithms(configuration);
+
   std::vector<std::unique_ptr<Stream>> streams;
   for (unsigned t = 0; t < number_of_threads; ++t) {
-    streams.emplace_back(new Stream {configuration_reader->configured_sequence(),
+    streams.emplace_back(new Stream {t,
+                                     configuration_reader->configured_sequence(),
                                      sched_seq,
                                      print_memory_usage,
                                      reserve_mb,
                                      device_memory_alignment,
                                      constants,
-                                     buffers_manager.get(),
-                                     configuration});
+                                     buffers_manager.get()});
   }
 
   // Print configured sequence
   streams.front()->print_configured_sequence();
+
+  // Init monitoring
+  Allen::Monitoring::AccumulatorManager::get()->initAccumulators(number_of_threads);
 
   // Interrogate stream configured sequence for validation algorithms
   const auto sequence_contains_validation_algorithms = streams.front()->contains_validation_algorithms();
@@ -475,7 +473,7 @@ int allen(
 #ifndef ALLEN_STANDALONE
   // Lambda with the execution of the monitoring aggregation
   const auto agg_thread = [&](unsigned thread_id, unsigned) {
-    return std::thread {run_aggregation, thread_id, zmqSvc, &monitoringAggregator, &monitoringPrinter};
+    return std::thread {run_aggregation, thread_id, zmqSvc, &monitoringPrinter};
   };
 #endif
 
@@ -808,9 +806,7 @@ int allen(
                      << std::endl;
           try {
             updater->update(next_odin->data);
-            for (auto& s : streams) {
-              s->update_algorithms();
-            }
+            sched_seq.update_algorithms(constants);
           } catch (...) {
             error_cout << "Non-event data update failed\n";
             ++error_count;
@@ -1028,6 +1024,7 @@ int allen(
 
       if (msg == "STOP") {
         stop = true;
+
         if (more) {
           stop_timeout = zmqSvc->receive<float>(*allen_control);
           t_stop = Timer {};

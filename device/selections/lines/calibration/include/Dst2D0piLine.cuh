@@ -14,10 +14,7 @@
 #include "CompositeParticleLine.cuh"
 #include "MassDefinitions.h"
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include <Gaudi/Accumulators.h>
-#endif
+#include "AllenMonitoring.h"
 
 namespace dst_d2kpi_line {
   struct Parameters {
@@ -56,39 +53,21 @@ namespace dst_d2kpi_line {
 
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
-
-    DEVICE_OUTPUT(dev_histogram_d0_mass_t, unsigned) dev_histogram_d0_mass;
-    PROPERTY(histogram_d0_mass_min_t, "histogram_d0_mass_min", "histogram_d0_mass_min description", float)
-    histogram_d0_mass_min;
-    PROPERTY(histogram_d0_mass_max_t, "histogram_d0_mass_max", "histogram_d0_mass_max description", float)
-    histogram_d0_mass_max;
-    PROPERTY(histogram_d0_mass_nbins_t, "histogram_d0_mass_nbins", "histogram_d0_mass_nbins description", unsigned int)
-    histogram_d0_mass_nbins;
-
-    DEVICE_OUTPUT(dev_histogram_dst_dm_t, unsigned) dev_histogram_dst_dm;
-    PROPERTY(histogram_dst_dm_min_t, "histogram_dst_dm_min", "histogram_dst_dm_min description", float)
-    histogram_dst_dm_min;
-    PROPERTY(histogram_dst_dm_max_t, "histogram_dst_dm_max", "histogram_dst_dm_max description", float)
-    histogram_dst_dm_max;
-    PROPERTY(histogram_dst_dm_nbins_t, "histogram_dst_dm_nbins", "histogram_dst_dm_nbins description", unsigned int)
-    histogram_dst_dm_nbins;
-
-    DEVICE_OUTPUT(dev_histogram_d0_pt_t, unsigned) dev_histogram_d0_pt;
-    PROPERTY(histogram_d0_pt_min_t, "histogram_d0_pt_min", "histogram_d0_pt_min description", float)
-    histogram_d0_pt_min;
-    PROPERTY(histogram_d0_pt_max_t, "histogram_d0_pt_max", "histogram_d0_pt_max description", float)
-    histogram_d0_pt_max;
-    PROPERTY(histogram_d0_pt_nbins_t, "histogram_d0_pt_nbins", "histogram_d0_pt_nbins description", unsigned int)
-    histogram_d0_pt_nbins;
   };
 
   struct dst_d2kpi_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<dst_d2kpi_line_t, Parameters> {
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_d0_mass;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_d0_pt;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_dst_dm;
+      DeviceAccumulators(const dst_d2kpi_line_t& algo, const Allen::Context& ctx) :
+        histogram_d0_mass(algo.m_histogram_d0_mass.data(ctx)), histogram_d0_pt(algo.m_histogram_d0_pt.data(ctx)),
+        histogram_dst_dm(algo.m_histogram_dst_dm.data(ctx))
+      {}
+    };
 
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
-
-    void init();
-
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
+    __device__ static bool
+    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
@@ -98,14 +77,10 @@ namespace dst_d2kpi_line {
 
     __device__ static void monitor(
       const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
-
-    __host__ void
-    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
-
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     using monitoring_types = std::tuple<min_pt_t, min_ip_t, D0_ct_t, evtNo_t, runNo_t>;
 
@@ -125,23 +100,12 @@ namespace dst_d2kpi_line {
     Property<ctIPScale_t> m_ctIPScale {this, 1.f};
     Property<dmMax_t> m_dmMax {this, 160.f * Gaudi::Units::MeV};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
-    Property<histogram_d0_mass_min_t> m_histogramD0MassMin {this, 1765.f};
-    Property<histogram_d0_mass_max_t> m_histogramD0MassMax {this, 1965.f};
-    Property<histogram_d0_mass_nbins_t> m_histogramD0MassNBins {this, 100u};
-    Property<histogram_d0_pt_min_t> m_histogramD0PtMin {this, 0.f};
-    Property<histogram_d0_pt_max_t> m_histogramD0PtMax {this, 1e4};
-    Property<histogram_d0_pt_nbins_t> m_histogramD0PtNBins {this, 100u};
-    Property<histogram_dst_dm_min_t> m_histogramDstDmMin {this, 139.f};
-    Property<histogram_dst_dm_max_t> m_histogramDstDmMax {this, 160.f};
-    Property<histogram_dst_dm_nbins_t> m_histogramDstDmNBins {this, 84u};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<enable_tupling_t> m_enable_tupling {this, false};
 
-#ifndef ALLEN_STANDALONE
-    gaudi_monitoring::Lockable_Histogram<>* histogram_d0_mass;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_d0_pt;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_dst_dm;
-#endif
+    Allen::Monitoring::Histogram<> m_histogram_d0_mass {this, "d0_mass", "m(D0)", {100u, 1765.f, 1965.f}};
+    Allen::Monitoring::Histogram<> m_histogram_d0_pt {this, "dst_dm", "m(D*)-m(D0)", {84u, 139.f, 160.f}};
+    Allen::Monitoring::Histogram<> m_histogram_dst_dm {this, "d0_pt", "pT(D0)", {100u, 0.f, 1e4f}};
   };
 
 } // namespace dst_d2kpi_line

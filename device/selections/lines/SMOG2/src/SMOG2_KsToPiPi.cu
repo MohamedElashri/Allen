@@ -14,8 +14,22 @@
 
 INSTANTIATE_LINE(SMOG2_kstopipi_line::SMOG2_kstopipi_line_t, SMOG2_kstopipi_line::Parameters)
 
+void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::init()
+{
+  Line<SMOG2_kstopipi_line::SMOG2_kstopipi_line_t, SMOG2_kstopipi_line::Parameters>::init();
+
+  m_histogram_smogks_mass.axis().nBins = property<histogram_smogks_mass_nbins_t>();
+  m_histogram_smogks_mass.axis().minValue = property<histogram_smogks_mass_min_t>();
+  m_histogram_smogks_mass.axis().maxValue = property<histogram_smogks_mass_max_t>();
+
+  m_histogram_smogks_svz.axis().nBins = property<histogram_smogks_svz_nbins_t>();
+  m_histogram_smogks_svz.axis().minValue = property<histogram_smogks_svz_min_t>();
+  m_histogram_smogks_svz.axis().maxValue = property<histogram_smogks_svz_max_t>();
+}
+
 __device__ bool SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::select(
   const Parameters& parameters,
+  const DeviceAccumulators&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto vertex = std::get<0>(input);
@@ -30,58 +44,9 @@ __device__ bool SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::select(
          vertex.m12(Allen::mPi, Allen::mPi) < parameters.maxMass && vertex.vertex().z() >= parameters.minPVZ;
 }
 
-void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::init()
-{
-  Line<SMOG2_kstopipi_line::SMOG2_kstopipi_line_t, SMOG2_kstopipi_line::Parameters>::init();
-#ifndef ALLEN_STANDALONE
-  histogram_smogks_mass = new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                                       "ks_mass",
-                                                                       "M(Ks) [MeV]",
-                                                                       {property<histogram_smogks_mass_nbins_t>(),
-                                                                        property<histogram_smogks_mass_min_t>(),
-                                                                        property<histogram_smogks_mass_max_t>()}},
-                                                                      {}};
-
-  histogram_smogks_svz = new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                                      "smogks_svz",
-                                                                      "SV_z (Ks)",
-                                                                      {property<histogram_smogks_svz_nbins_t>(),
-                                                                       property<histogram_smogks_svz_min_t>(),
-                                                                       property<histogram_smogks_svz_max_t>()}},
-                                                                     {}};
-#endif
-}
-
-void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::output_monitor(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
-  [[maybe_unused]] const Allen::Context& context) const
-{
-#ifndef ALLEN_STANDALONE
-  gaudi_monitoring::fill(
-    arguments,
-    context,
-    std::tuple {std::tuple {get<dev_histogram_smogks_mass_t>(arguments),
-                            histogram_smogks_mass,
-                            property<histogram_smogks_mass_min_t>(),
-                            property<histogram_smogks_mass_max_t>()},
-                std::tuple {get<dev_histogram_smogks_svz_t>(arguments),
-                            histogram_smogks_svz,
-                            property<histogram_smogks_svz_min_t>(),
-                            property<histogram_smogks_svz_max_t>()}});
-#endif
-}
-
-void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::init_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
-{
-  Allen::memset_async<dev_histogram_smogks_mass_t>(arguments, 0, context);
-  Allen::memset_async<dev_histogram_smogks_svz_t>(arguments, 0, context);
-}
-
 __device__ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::monitor(
   const Parameters& parameters,
+  const DeviceAccumulators& accumulators,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,
   bool sel)
@@ -93,26 +58,13 @@ __device__ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::monitor(
   if (sel) {
     parameters.sv_masses[index] = smogks.m12(Allen::mPi, Allen::mPi);
     parameters.svz[index] = smogks.vertex().z();
-
     parameters.track1pt[index] = track1->state().pt();
     parameters.track2pt[index] = track2->state().pt();
     parameters.minipchi2[index] = smogks.minipchi2();
     parameters.ip[index] = smogks.ip();
 
-    const float svz = smogks.vertex().z();
-    const float m = smogks.m12(Allen::mPi, Allen::mPi);
-    if (m > parameters.histogram_smogks_mass_min && m < parameters.histogram_smogks_mass_max) {
-      const unsigned int bin = static_cast<unsigned int>(
-        (m - parameters.histogram_smogks_mass_min) * parameters.histogram_smogks_mass_nbins /
-        (parameters.histogram_smogks_mass_max - parameters.histogram_smogks_mass_min));
-      atomicAdd(&parameters.dev_histogram_smogks_mass[bin], 1);
-    }
-    if (svz > parameters.histogram_smogks_svz_min && svz < parameters.histogram_smogks_svz_max) {
-      const unsigned int bin = static_cast<unsigned int>(
-        (svz - parameters.histogram_smogks_svz_min) * parameters.histogram_smogks_svz_nbins /
-        (parameters.histogram_smogks_svz_max - parameters.histogram_smogks_svz_min));
-      atomicAdd(&parameters.dev_histogram_smogks_svz[bin], 1);
-    }
+    accumulators.histogram_smogks_mass.increment(smogks.m12(Allen::mPi, Allen::mPi));
+    accumulators.histogram_smogks_svz.increment(smogks.vertex().z());
   }
 }
 

@@ -24,10 +24,9 @@ INSTANTIATE_ALGORITHM(downstream_consolidate::downstream_consolidate_t)
 
 __global__ void downstream_consolidate::downstream_create_tracks_view(
   downstream_consolidate::Parameters parameters,
-  // Monitoring
-  gsl::span<unsigned> dev_histogram_downstream_track_eta,
-  gsl::span<unsigned> dev_histogram_downstream_track_phi,
-  gsl::span<unsigned> dev_histogram_downstream_track_nhits)
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_downstream_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_downstream_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_downstream_track_nhits)
 {
   // Basic
   const unsigned event_number = blockIdx.x;
@@ -109,7 +108,6 @@ __global__ void downstream_consolidate::downstream_create_tracks_view(
   for (unsigned track_index = threadIdx.x; track_index < downstream_tracks_size; track_index += blockDim.x) {
     const auto downstream_track_index = downstream_tracks_offset + track_index;
     downstream_consolidate::downstream_consolidate_t::monitor(
-      parameters,
       parameters.dev_downstream_track_view[downstream_track_index],
       parameters.dev_downstream_track_states_view[event_number].state(track_index),
       dev_histogram_downstream_track_eta,
@@ -148,39 +146,6 @@ void downstream_consolidate::downstream_consolidate_t::set_arguments_size(
   set_size<dev_multi_event_downstream_tracks_view_ptr_t>(arguments, 1u);
 }
 
-void downstream_consolidate::downstream_consolidate_t::init()
-{
-#ifndef ALLEN_STANDALONE
-  m_downstream_tracks = new Gaudi::Accumulators::Counter<>(this, "n_downstream_tracks");
-  histogram_n_downstream_tracks = new gaudi_monitoring::Lockable_Histogram<> {
-    {this, "n_downstream_tracks_event", "n_downstream_tracks_event", {80, 0, 200}}, {}};
-  histogram_downstream_track_eta =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "downstream_track_eta",
-                                                 "#eta",
-                                                 {property<histogram_downstream_track_eta_nbins_t>(),
-                                                  property<histogram_downstream_track_eta_min_t>(),
-                                                  property<histogram_downstream_track_eta_max_t>()}},
-                                                {}};
-  histogram_downstream_track_phi =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "downstream_track_phi",
-                                                 "#phi",
-                                                 {property<histogram_downstream_track_phi_nbins_t>(),
-                                                  property<histogram_downstream_track_phi_min_t>(),
-                                                  property<histogram_downstream_track_phi_max_t>()}},
-                                                {}};
-  histogram_downstream_track_nhits =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "downstream_track_nhits",
-                                                 "N. hits / track",
-                                                 {property<histogram_downstream_track_nhits_nbins_t>(),
-                                                  property<histogram_downstream_track_nhits_min_t>(),
-                                                  property<histogram_downstream_track_nhits_max_t>()}},
-                                                {}};
-#endif
-}
-
 void downstream_consolidate::downstream_consolidate_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
@@ -191,82 +156,27 @@ void downstream_consolidate::downstream_consolidate_t::operator()(
   Allen::memset_async<dev_multi_event_downstream_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_downstream_tracks_view_t>(arguments, 0, context);
 
-  //
-  // Create monitoring container
-  //
-  auto dev_histogram_downstream_track_eta =
-    make_device_buffer<unsigned>(arguments, property<histogram_downstream_track_eta_nbins_t>());
-  auto dev_histogram_downstream_track_phi =
-    make_device_buffer<unsigned>(arguments, property<histogram_downstream_track_phi_nbins_t>());
-  auto dev_histogram_downstream_track_nhits =
-    make_device_buffer<unsigned>(arguments, property<histogram_downstream_track_nhits_nbins_t>());
-  auto dev_histogram_n_downstream_tracks = make_device_buffer<unsigned>(arguments, 80u);
-  auto dev_n_downstream_tracks_counter = make_device_buffer<unsigned>(arguments, 1u);
-
-  //
-  // Initialize monitoring container
-  //
-  Allen::memset_async(
-    dev_histogram_downstream_track_eta.data(),
-    0,
-    dev_histogram_downstream_track_eta.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_downstream_track_phi.data(),
-    0,
-    dev_histogram_downstream_track_phi.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_downstream_track_nhits.data(),
-    0,
-    dev_histogram_downstream_track_nhits.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_n_downstream_tracks.data(), 0, dev_histogram_n_downstream_tracks.size() * sizeof(unsigned), context);
-  Allen::memset_async(
-    dev_n_downstream_tracks_counter.data(), 0, dev_n_downstream_tracks_counter.size() * sizeof(unsigned), context);
-
   // Fill the consolidation memory
   global_function(downstream_consolidate)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
     constants.dev_unique_x_sector_layer_offsets.data(),
-    dev_histogram_n_downstream_tracks.get(),
-    dev_n_downstream_tracks_counter.get());
+    m_histogram_n_downstream_tracks.data(context),
+    m_downstream_tracks.data(context));
 
   // Create views
   global_function(downstream_create_tracks_view)(dim3(first<host_number_of_events_t>(arguments)), 256, context)(
     arguments,
-    dev_histogram_downstream_track_eta.get(),
-    dev_histogram_downstream_track_phi.get(),
-    dev_histogram_downstream_track_nhits.get());
-
-#ifndef ALLEN_STANDALONE
-  gaudi_monitoring::fill(
-    arguments,
-    context,
-    std::tuple {std::tuple {dev_histogram_downstream_track_eta.get(),
-                            histogram_downstream_track_eta,
-                            property<histogram_downstream_track_eta_min_t>(),
-                            property<histogram_downstream_track_eta_max_t>()},
-                std::tuple {dev_histogram_downstream_track_phi.get(),
-                            histogram_downstream_track_phi,
-                            property<histogram_downstream_track_phi_min_t>(),
-                            property<histogram_downstream_track_phi_max_t>()},
-                std::tuple {dev_histogram_downstream_track_nhits.get(),
-                            histogram_downstream_track_nhits,
-                            property<histogram_downstream_track_nhits_min_t>(),
-                            property<histogram_downstream_track_nhits_max_t>()},
-                std::tuple {dev_histogram_n_downstream_tracks.get(), histogram_n_downstream_tracks, 0, 200},
-                std::tuple {dev_n_downstream_tracks_counter.get(), m_downstream_tracks}});
-#endif
+    m_histogram_downstream_track_eta.data(context),
+    m_histogram_downstream_track_phi.data(context),
+    m_histogram_downstream_track_nhits.data(context));
 }
 
 __global__ void downstream_consolidate::downstream_consolidate(
   downstream_consolidate::Parameters parameters,
   const unsigned* dev_unique_x_sector_layer_offsets,
   // Monitoring
-  gsl::span<unsigned> dev_histogram_n_downstream_tracks,
-  gsl::span<unsigned> dev_n_downstream_tracks_counter)
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_n_downstream_tracks,
+  Allen::Monitoring::AveragingCounter<>::DeviceType dev_n_downstream_tracks_counter)
 {
   // Basic
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -298,14 +208,11 @@ __global__ void downstream_consolidate::downstream_consolidate(
   const auto event_hit_offset = ut_hit_offsets.event_offset();
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits, event_hit_offset};
 
-  //
   // Monitoring fill
-  //
-  if (downstream_tracks_size < 200) {
-    unsigned bin = std::floor(downstream_tracks_size / 2.5);
-    atomicAdd(dev_histogram_n_downstream_tracks.data() + bin, 1u);
+  if (threadIdx.x == 0) {
+    dev_histogram_n_downstream_tracks.increment(downstream_tracks_size);
+    dev_n_downstream_tracks_counter.add(downstream_tracks_size);
   }
-  dev_n_downstream_tracks_counter[0] += downstream_tracks_size;
 
   // Outputs
   const auto downstream_track_scifi_indices = parameters.dev_downstream_track_scifi_idx + downstream_tracks_offset;
@@ -367,12 +274,11 @@ __global__ void downstream_consolidate::downstream_consolidate(
 }
 
 __device__ void downstream_consolidate::downstream_consolidate_t::monitor(
-  const downstream_consolidate::Parameters& parameters,
   const Allen::Views::Physics::DownstreamTrack downstream_track,
   const Allen::Views::Physics::KalmanState downstream_state,
-  gsl::span<unsigned> dev_histogram_downstream_track_eta,
-  gsl::span<unsigned> dev_histogram_downstream_track_phi,
-  gsl::span<unsigned> dev_histogram_downstream_track_nhits)
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_downstream_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_downstream_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_downstream_track_nhits)
 {
   const auto nhits = downstream_track.number_of_hits();
   const auto tx = downstream_state.tx();
@@ -382,25 +288,7 @@ __device__ void downstream_consolidate::downstream_consolidate_t::monitor(
   const auto eta = eta_from_rho(rho);
   const auto phi = std::atan2(ty, tx);
 
-  // Filling histograms
-  if (eta > parameters.histogram_downstream_track_eta_min && eta < parameters.histogram_downstream_track_eta_max) {
-    const unsigned int bin = static_cast<unsigned int>(
-      (eta - parameters.histogram_downstream_track_eta_min) * parameters.histogram_downstream_track_eta_nbins /
-      (parameters.histogram_downstream_track_eta_max - parameters.histogram_downstream_track_eta_min));
-    atomicAdd(dev_histogram_downstream_track_eta.data() + bin, 1u);
-  }
-  if (phi > parameters.histogram_downstream_track_phi_min && phi < parameters.histogram_downstream_track_phi_max) {
-    const unsigned int bin = static_cast<unsigned int>(
-      (phi - parameters.histogram_downstream_track_phi_min) * parameters.histogram_downstream_track_phi_nbins /
-      (parameters.histogram_downstream_track_phi_max - parameters.histogram_downstream_track_phi_min));
-    atomicAdd(dev_histogram_downstream_track_phi.data() + bin, 1u);
-  }
-  if (
-    nhits > parameters.histogram_downstream_track_nhits_min &&
-    nhits < parameters.histogram_downstream_track_nhits_max) {
-    const unsigned int bin = static_cast<unsigned int>(
-      (nhits - parameters.histogram_downstream_track_nhits_min) * parameters.histogram_downstream_track_nhits_nbins /
-      (parameters.histogram_downstream_track_nhits_max - parameters.histogram_downstream_track_nhits_min));
-    atomicAdd(dev_histogram_downstream_track_nhits.data() + bin, 1u);
-  }
+  dev_histogram_downstream_track_eta.increment(eta);
+  dev_histogram_downstream_track_phi.increment(phi);
+  dev_histogram_downstream_track_nhits.increment(nhits);
 }

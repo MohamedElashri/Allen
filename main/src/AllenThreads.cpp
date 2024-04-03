@@ -27,7 +27,7 @@
 #include <Stream.h>
 #include <Tools.h>
 
-#include "MonitoringAggregator.h"
+#include "AllenMonitoring.h"
 #include "MonitoringPrinter.h"
 
 namespace {
@@ -380,11 +380,7 @@ void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* mon
   }
 }
 
-void run_aggregation(
-  const size_t thread_id,
-  IZeroMQSvc* zmqSvc,
-  MonitoringAggregator* aggregator,
-  MonitoringPrinter* printer)
+void run_aggregation(const size_t thread_id, IZeroMQSvc* zmqSvc, MonitoringPrinter* printer)
 {
   // Set thread name for easier debugging
   auto thread_name = std::string {"aggregation_"} + std::to_string(thread_id);
@@ -406,13 +402,12 @@ void run_aggregation(
       if (items[0].revents & zmq::POLLIN) {
         auto msg = zmqSvc->receive<std::string>(control);
         if (msg == "START") {
-          if (aggregator) aggregator->start();
           zmqSvc->send(control, true);
           started = true;
         }
         else if (msg == "AGGREGATE") {
           // Run the aggregator and printer
-          if (aggregator) aggregator->process();
+          Allen::Monitoring::AccumulatorManager::get()->mergeAndReset();
           if (printer) printer->process();
           zmqSvc->send(control, true);
         }
@@ -424,7 +419,7 @@ void run_aggregation(
     }
     else {
       // Run the aggregator and printer
-      if (aggregator) aggregator->process();
+      Allen::Monitoring::AccumulatorManager::get()->mergeAndReset();
       if (printer) printer->process();
     }
 

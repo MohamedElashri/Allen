@@ -118,8 +118,8 @@ namespace gather_selections {
     const unsigned number_of_lines,
     bool* dev_decisions_per_event_line,
     bool* dev_postscaled_decisions_per_event_line,
-    unsigned* dev_histo_line_passes,
-    unsigned* dev_histo_line_rates)
+    Allen::Monitoring::Histogram<>::DeviceType dev_histo_line_passes,
+    Allen::Monitoring::Histogram<>::DeviceType dev_histo_line_rates)
   {
     const auto number_of_events = gridDim.x;
     const auto event_number = blockIdx.x;
@@ -146,7 +146,7 @@ namespace gather_selections {
     for (unsigned i = threadIdx.x; i < number_of_lines; i += blockDim.x) {
       if (!sels.is_span_empty(i, event_number)) {
         dev_decisions_per_event_line[event_number * number_of_lines + i] = true;
-        atomicAdd(&dev_histo_line_passes[i], 1);
+        dev_histo_line_passes.increment(i);
       }
 
       if (!deterministic_scaler(
@@ -162,7 +162,7 @@ namespace gather_selections {
 
       if (!sels.is_span_empty(i, event_number)) {
         dev_postscaled_decisions_per_event_line[event_number * number_of_lines + i] = true;
-        atomicAdd(&dev_histo_line_rates[i], 1);
+        dev_histo_line_rates.increment(i);
         event_decision = true;
       }
     }
@@ -183,25 +183,30 @@ void gather_selections::gather_selections_t::init()
     const auto it = std::find(std::begin(line_strings), std::end(line_strings), name);
     m_indices_active_line_algorithms.push_back(it - std::begin(line_strings));
   }
-#ifndef ALLEN_STANDALONE
   const auto line_names = std::string(property<names_of_active_lines_t>());
   std::istringstream is(line_names);
   std::string line_name;
   std::vector<std::string> line_labels;
+  unsigned i = 0;
   while (std::getline(is, line_name, ',')) {
+    line_labels.push_back(line_name);
     const std::string pass_counter_name {line_name + "Pass"};
     const std::string rate_counter_name {line_name + "Rate"};
-    m_pass_counters.push_back(std::make_unique<Gaudi::Accumulators::Counter<>>(this, pass_counter_name));
-    m_rate_counters.push_back(std::make_unique<Gaudi::Accumulators::Counter<>>(this, rate_counter_name));
-    line_labels.push_back(line_name);
+    m_pass_counters.push_back(
+      std::make_unique<Allen::Monitoring::HistogramBinAsCounter<Allen::Monitoring::Histogram<>>>(
+        this, pass_counter_name, &m_histogram_line_passes, i));
+    m_rate_counters.push_back(
+      std::make_unique<Allen::Monitoring::HistogramBinAsCounter<Allen::Monitoring::Histogram<>>>(
+        this, rate_counter_name, &m_histogram_line_rates, i));
+    i++;
   }
-  float n_lines = line_labels.size();
+  m_histogram_line_passes.axis().nBins = line_labels.size();
+  m_histogram_line_passes.axis().maxValue = line_labels.size();
+  m_histogram_line_passes.axis().labels = line_labels;
 
-  histogram_line_passes = new gaudi_monitoring::Lockable_Histogram<> {
-    {this, "line_passes", "line passes", {unsigned(n_lines), 0, n_lines, {}, line_labels}}, {}};
-  histogram_line_rates = new gaudi_monitoring::Lockable_Histogram<> {
-    {this, "line_rates", "line rates", {unsigned(n_lines), 0, n_lines, {}, line_labels}}, {}};
-#endif
+  m_histogram_line_rates.axis().nBins = line_labels.size();
+  m_histogram_line_rates.axis().maxValue = line_labels.size();
+  m_histogram_line_rates.axis().labels = line_labels;
 }
 
 void gather_selections::gather_selections_t::set_arguments_size(
@@ -347,37 +352,13 @@ void gather_selections::gather_selections_t::operator()(
   Allen::memset_async(
     dev_postscaled_decisions_per_event_line.data(), 0, dev_decisions_per_event_line.size_bytes(), context);
 
-  auto dev_histo_line_passes = make_device_buffer<unsigned>(arguments, first<host_number_of_active_lines_t>(arguments));
-  auto dev_histo_line_rates = make_device_buffer<unsigned>(arguments, first<host_number_of_active_lines_t>(arguments));
-  Allen::memset_async(dev_histo_line_passes.data(), 0, dev_histo_line_passes.size() * sizeof(unsigned), context);
-  Allen::memset_async(dev_histo_line_rates.data(), 0, dev_histo_line_rates.size() * sizeof(unsigned), context);
-
   global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
     arguments,
     first<host_number_of_active_lines_t>(arguments),
     dev_decisions_per_event_line.data(),
     dev_postscaled_decisions_per_event_line.data(),
-    dev_histo_line_passes.data(),
-    dev_histo_line_rates.data());
-
-#ifndef ALLEN_STANDALONE
-  // Monitoring
-  auto host_histo_line_passes = make_host_buffer<unsigned>(arguments, first<host_number_of_active_lines_t>(arguments));
-  auto host_histo_line_rates = make_host_buffer<unsigned>(arguments, first<host_number_of_active_lines_t>(arguments));
-  Allen::copy_async(host_histo_line_passes.get(), dev_histo_line_passes.get(), context, Allen::memcpyDeviceToHost);
-  Allen::copy_async(host_histo_line_rates.get(), dev_histo_line_rates.get(), context, Allen::memcpyDeviceToHost);
-  Allen::synchronize(context);
-
-  for (unsigned i = 0; i < first<host_number_of_active_lines_t>(arguments); i++) {
-    m_pass_counters[i]->buffer() += host_histo_line_passes[i];
-    m_rate_counters[i]->buffer() += host_histo_line_rates[i];
-  }
-
-  gaudi_monitoring::details::fill_gaudi_histogram(
-    host_histo_line_passes.get(), histogram_line_passes, 0u, first<host_number_of_active_lines_t>(arguments));
-  gaudi_monitoring::details::fill_gaudi_histogram(
-    host_histo_line_rates.get(), histogram_line_rates, 0u, first<host_number_of_active_lines_t>(arguments));
-#endif
+    m_histogram_line_passes.data(context),
+    m_histogram_line_rates.data(context));
 
   // Reduce output mask to its proper size
   Allen::copy<host_event_list_output_size_t, dev_event_list_output_size_t>(arguments, context);

@@ -17,10 +17,9 @@
 #include "Line.cuh"
 #include "ODINBank.cuh"
 
+#include "AllenMonitoring.h"
 #ifndef ALLEN_STANDALONE
 #include "SelectionsEventModel.cuh"
-#include "Gaudi/Accumulators.h"
-#include "GaudiMonitoring.h"
 #endif
 
 namespace gather_selections {
@@ -81,12 +80,11 @@ namespace gather_selections {
     Property<names_of_active_line_algorithms_t> m_names_of_active_line_algorithms {this, ""};
     Property<names_of_active_lines_t> m_names_of_active_lines {this, ""};
 
-#ifndef ALLEN_STANDALONE
-  private:
-    mutable std::vector<std::unique_ptr<Gaudi::Accumulators::Counter<>>> m_pass_counters;
-    mutable std::vector<std::unique_ptr<Gaudi::Accumulators::Counter<>>> m_rate_counters;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_line_passes;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_line_rates;
-#endif
+    std::vector<std::unique_ptr<Allen::Monitoring::HistogramBinAsCounter<Allen::Monitoring::Histogram<>>>>
+      m_pass_counters;
+    std::vector<std::unique_ptr<Allen::Monitoring::HistogramBinAsCounter<Allen::Monitoring::Histogram<>>>>
+      m_rate_counters;
+    Allen::Monitoring::Histogram<> m_histogram_line_passes {this, "line_passes", "line passes", {1, 0, 1}};
+    Allen::Monitoring::Histogram<> m_histogram_line_rates {this, "line_rates", "line rates", {1, 0, 1}};
   };
 } // namespace gather_selections

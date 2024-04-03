@@ -74,39 +74,6 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::set_arguments_s
   set_size<dev_matched_is_scifi_track_used_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
 
-void matching_consolidate_tracks::matching_consolidate_tracks_t::init()
-{
-#ifndef ALLEN_STANDALONE
-  m_long_tracks_matching = new Gaudi::Accumulators::Counter<>(this, "n_long_tracks_matching");
-  histogram_n_long_tracks_matching = new gaudi_monitoring::Lockable_Histogram<> {
-    {this, "n_long_tracks_matching_event", "n_long_tracks_matching_event", {80, 0, 200}}, {}};
-  histogram_long_track_matching_eta =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "long_track_matching_eta",
-                                                 "#eta",
-                                                 {property<histogram_long_track_matching_eta_nbins_t>(),
-                                                  property<histogram_long_track_matching_eta_min_t>(),
-                                                  property<histogram_long_track_matching_eta_max_t>()}},
-                                                {}};
-  histogram_long_track_matching_phi =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "long_track_matching_phi",
-                                                 "#phi",
-                                                 {property<histogram_long_track_matching_phi_nbins_t>(),
-                                                  property<histogram_long_track_matching_phi_min_t>(),
-                                                  property<histogram_long_track_matching_phi_max_t>()}},
-                                                {}};
-  histogram_long_track_matching_nhits =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "long_track_matching_nhits",
-                                                 "N. hits / track",
-                                                 {property<histogram_long_track_matching_nhits_nbins_t>(),
-                                                  property<histogram_long_track_matching_nhits_min_t>(),
-                                                  property<histogram_long_track_matching_nhits_max_t>()}},
-                                                {}};
-#endif
-}
-
 void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
@@ -116,80 +83,25 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
   Allen::memset_async<dev_matched_is_scifi_track_used_t>(arguments, 0, context);
   Allen::copy_async<dev_accepted_and_unused_velo_tracks_t, dev_accepted_velo_tracks_t>(arguments, context);
 
-  auto dev_histogram_long_track_matching_eta =
-    make_device_buffer<unsigned>(arguments, property<histogram_long_track_matching_eta_nbins_t>());
-  auto dev_histogram_long_track_matching_phi =
-    make_device_buffer<unsigned>(arguments, property<histogram_long_track_matching_phi_nbins_t>());
-  auto dev_histogram_long_track_matching_nhits =
-    make_device_buffer<unsigned>(arguments, property<histogram_long_track_matching_nhits_nbins_t>());
-  auto dev_histogram_n_long_tracks_matching = make_device_buffer<unsigned>(arguments, 80u);
-  auto dev_n_long_tracks_matching_counter = make_device_buffer<unsigned>(arguments, 1u);
-  Allen::memset_async(
-    dev_histogram_long_track_matching_eta.data(),
-    0,
-    dev_histogram_long_track_matching_eta.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_long_track_matching_phi.data(),
-    0,
-    dev_histogram_long_track_matching_phi.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_long_track_matching_nhits.data(),
-    0,
-    dev_histogram_long_track_matching_nhits.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_n_long_tracks_matching.data(),
-    0,
-    dev_histogram_n_long_tracks_matching.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_n_long_tracks_matching_counter.data(),
-    0,
-    dev_n_long_tracks_matching_counter.size() * sizeof(unsigned),
-    context);
-
   global_function(matching_consolidate_tracks)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
-    dev_histogram_long_track_matching_eta.get(),
-    dev_histogram_long_track_matching_phi.get(),
-    dev_histogram_long_track_matching_nhits.get(),
-    dev_histogram_n_long_tracks_matching.get(),
-    dev_n_long_tracks_matching_counter.get());
+    m_histogram_long_track_matching_eta.data(context),
+    m_histogram_long_track_matching_phi.data(context),
+    m_histogram_long_track_matching_nhits.data(context),
+    m_histogram_n_long_tracks_matching.data(context),
+    m_long_tracks_matching.data(context));
 
   global_function(create_matched_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
-
-#ifndef ALLEN_STANDALONE
-  // Monitoring
-  gaudi_monitoring::fill(
-    arguments,
-    context,
-    std::tuple {std::tuple {dev_histogram_long_track_matching_eta.get(),
-                            histogram_long_track_matching_eta,
-                            property<histogram_long_track_matching_eta_min_t>(),
-                            property<histogram_long_track_matching_eta_max_t>()},
-                std::tuple {dev_histogram_long_track_matching_phi.get(),
-                            histogram_long_track_matching_phi,
-                            property<histogram_long_track_matching_phi_min_t>(),
-                            property<histogram_long_track_matching_phi_max_t>()},
-                std::tuple {dev_histogram_long_track_matching_nhits.get(),
-                            histogram_long_track_matching_nhits,
-                            property<histogram_long_track_matching_nhits_min_t>(),
-                            property<histogram_long_track_matching_nhits_max_t>()},
-                std::tuple {dev_histogram_n_long_tracks_matching.get(), histogram_n_long_tracks_matching, 0, 200},
-                std::tuple {dev_n_long_tracks_matching_counter.get(), m_long_tracks_matching}});
-#endif
 }
 
 __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
   matching_consolidate_tracks::Parameters parameters,
-  [[maybe_unused]] gsl::span<unsigned> dev_histogram_long_track_matching_eta,
-  [[maybe_unused]] gsl::span<unsigned> dev_histogram_long_track_matching_phi,
-  [[maybe_unused]] gsl::span<unsigned> dev_histogram_long_track_matching_nhits,
-  [[maybe_unused]] gsl::span<unsigned> dev_histogram_n_long_tracks_matching,
-  [[maybe_unused]] gsl::span<unsigned> dev_n_long_tracks_matching_counter)
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_eta,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_phi,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_n_long_tracks_matching,
+  Allen::Monitoring::AveragingCounter<>::DeviceType dev_n_long_tracks_matching_counter)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -215,6 +127,11 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
   const unsigned number_of_tracks_event =
     parameters.dev_atomics_matched[event_number + 1] - parameters.dev_atomics_matched[event_number];
 
+  if (threadIdx.x == 0) {
+    dev_histogram_n_long_tracks_matching.increment(number_of_tracks_event);
+    dev_n_long_tracks_matching_counter.add(number_of_tracks_event);
+  }
+
   for (unsigned i = threadIdx.x; i < number_of_tracks_event; i += blockDim.x) {
     const SciFi::MatchedTrack& track = event_matched_tracks[i];
     tracks_qop[i] = track.qop;
@@ -222,37 +139,27 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
     tracks_velo_indices[i] = track.velo_track_index;
     tracks_scifi_indices[i] = track.scifi_track_index;
     scifi_states[i] = seeding_states[track.scifi_track_index];
-#ifndef ALLEN_STANDALONE
+
     const auto velo_track = parameters.dev_velo_tracks_view[event_number].track(track.velo_track_index);
     const auto velo_state = parameters.dev_velo_states_view[event_number].state(track.velo_track_index);
     matching_consolidate_tracks::matching_consolidate_tracks_t::monitor(
-      parameters,
       track,
       velo_track,
       velo_state,
       dev_histogram_long_track_matching_eta,
       dev_histogram_long_track_matching_phi,
       dev_histogram_long_track_matching_nhits);
-
-    if (number_of_tracks_event < 200) {
-      unsigned bin = std::floor(number_of_tracks_event / 2.5);
-      atomicAdd(&dev_histogram_n_long_tracks_matching[bin], 1);
-    }
-    dev_n_long_tracks_matching_counter[0] += number_of_tracks_event;
-#endif
   }
 }
 
 __device__ void matching_consolidate_tracks::matching_consolidate_tracks_t::monitor(
-  const matching_consolidate_tracks::Parameters& parameters,
   const SciFi::MatchedTrack matched_track,
   const Allen::Views::Velo::Consolidated::Track,
   const Allen::Views::Physics::KalmanState velo_state,
-  gsl::span<unsigned> dev_histogram_long_track_matching_eta,
-  gsl::span<unsigned> dev_histogram_long_track_matching_phi,
-  gsl::span<unsigned> dev_histogram_long_track_matching_nhits)
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_matching_eta,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_matching_phi,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_matching_nhits)
 {
-
   const auto tx = velo_state.tx();
   const auto ty = velo_state.ty();
   const float slope2 = tx * tx + ty * ty;
@@ -262,27 +169,7 @@ __device__ void matching_consolidate_tracks::matching_consolidate_tracks_t::moni
   const auto phi = std::atan2(ty, tx);
   // printf("tx %.4f , ty %.4f, nhits: %d \n", tx,ty,nhits);
 
-  if (
-    eta > parameters.histogram_long_track_matching_eta_min && eta < parameters.histogram_long_track_matching_eta_max) {
-    const unsigned int bin = static_cast<unsigned int>(
-      (eta - parameters.histogram_long_track_matching_eta_min) * parameters.histogram_long_track_matching_eta_nbins /
-      (parameters.histogram_long_track_matching_eta_max - parameters.histogram_long_track_matching_eta_min));
-    atomicAdd(&dev_histogram_long_track_matching_eta[bin], 1);
-  }
-  if (
-    phi > parameters.histogram_long_track_matching_phi_min && phi < parameters.histogram_long_track_matching_phi_max) {
-    const unsigned int bin = static_cast<unsigned int>(
-      (phi - parameters.histogram_long_track_matching_phi_min) * parameters.histogram_long_track_matching_phi_nbins /
-      (parameters.histogram_long_track_matching_phi_max - parameters.histogram_long_track_matching_phi_min));
-    atomicAdd(&dev_histogram_long_track_matching_phi[bin], 1);
-  }
-  if (
-    nhits > parameters.histogram_long_track_matching_nhits_min &&
-    nhits < parameters.histogram_long_track_matching_nhits_max) {
-    const unsigned int bin = static_cast<unsigned int>(
-      (nhits - parameters.histogram_long_track_matching_nhits_min) *
-      parameters.histogram_long_track_matching_nhits_nbins /
-      (parameters.histogram_long_track_matching_nhits_max - parameters.histogram_long_track_matching_nhits_min));
-    atomicAdd(&dev_histogram_long_track_matching_nhits[bin], 1);
-  }
+  dev_histogram_long_track_matching_eta.increment(eta);
+  dev_histogram_long_track_matching_phi.increment(phi);
+  dev_histogram_long_track_matching_nhits.increment(nhits);
 }

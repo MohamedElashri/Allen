@@ -33,6 +33,9 @@ struct HostBuffersManager;
 
 struct Stream {
 private:
+  // Stream id ranging from 0 to N_streams
+  const unsigned stream_id;
+
   // Dynamic scheduler
   Scheduler* scheduler;
 
@@ -53,14 +56,16 @@ private:
 
 public:
   Stream(
+    const unsigned stream_id,
     const ConfiguredSequence& configuration,
     const Allen::ScheduledSequence& sched_seq,
     const bool param_do_print_memory_manager,
     const size_t reserve_mb,
     const unsigned required_memory_alignment,
     const Constants& param_constants,
-    HostBuffersManager* buffers_manager,
-    const std::map<std::string, std::map<std::string, nlohmann::json>>& config);
+    HostBuffersManager* buffers_manager);
+
+  unsigned id() const { return stream_id; }
 
   Allen::error run(const unsigned buf_idx, RuntimeOptions const& runtime_options);
 
@@ -69,6 +74,4 @@ public:
   std::map<std::string, std::map<std::string, nlohmann::json>> get_algorithm_configuration() const;
 
   bool contains_validation_algorithms() const;
-
-  void update_algorithms() { scheduler->update_algorithms(constants); }
 };

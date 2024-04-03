@@ -17,10 +17,7 @@
 #include "MassDefinitions.h"
 #include <array>
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include <Gaudi/Accumulators.h>
-#endif
+#include "AllenMonitoring.h"
 
 namespace di_muon_no_ip_line {
   struct Parameters {
@@ -38,9 +35,6 @@ namespace di_muon_no_ip_line {
     DEVICE_OUTPUT(dev_pt_t, float) dev_pt;
     DEVICE_OUTPUT(dev_eventNum_t, int16_t) dev_eventNum;
 
-    // DEVICE_OUTPUT(dev_q_bin_boundaries_t, std::array<float,20024>) dev_q_bin_boundaries;
-    DEVICE_OUTPUT(dev_q_bin_boundaries_t, float) dev_q_bin_boundaries;
-
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
@@ -50,8 +44,6 @@ namespace di_muon_no_ip_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-
-    DEVICE_OUTPUT(dev_array_prompt_q_t, unsigned) dev_array_prompt_q;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -74,21 +66,32 @@ namespace di_muon_no_ip_line {
   struct di_muon_no_ip_line_t : public SelectionAlgorithm,
                                 Parameters,
                                 CompositeParticleLine<di_muon_no_ip_line_t, Parameters> {
-    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle, float>);
+    struct DeviceAccumulators {
+      Allen::Monitoring::LogHistogram<>::DeviceType histogram_prompt_q;
+      DeviceAccumulators(const di_muon_no_ip_line_t& algo, const Allen::Context& ctx) :
+        histogram_prompt_q(algo.m_histogram_prompt_q.data(ctx))
+      {}
+    };
+    __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float> static get_input(
+      const Parameters& parameters,
+      const unsigned event_number,
+      const unsigned i);
+    __device__ static bool select(
+      const Parameters& parameters,
+      const DeviceAccumulators&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input);
     __device__ static void monitor(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, float> input,
+      const DeviceAccumulators&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
-    void init();
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
-    __host__ void output_monitor(
-      const ArgumentReferences<Parameters>& arguments,
-      const RuntimeOptions&,
-      const Allen::Context& context) const;
+
+  private:
+    Allen::Monitoring::LogHistogram<> m_histogram_prompt_q {this,
+                                                            "dimuon_q",
+                                                            "dimuon q",
+                                                            {10390, 0.f, 70e3, 2.71998658e-03f, 2.34546735e+03f, 1.f}};
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -108,10 +111,5 @@ namespace di_muon_no_ip_line {
 
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<enable_tupling_t> m_enable_tupling {this, false};
-
-  private:
-#ifndef ALLEN_STANDALONE
-    gaudi_monitoring::Lockable_Histogram<>* histogram_prompt_q;
-#endif
   };
 } // namespace di_muon_no_ip_line

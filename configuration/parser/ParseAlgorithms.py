@@ -298,6 +298,7 @@ class AllenCore():
             "#include <Event/ODIN.h>",
             "#include <mutex>",
             "#include <vector>",
+            "#include \"AllenMonitoring.h\"",
             "using namespace Gaudi::Functional;",
             f"class {algorithm.name} final : public Gaudi::Algorithm {{",
             "public:",
@@ -420,11 +421,13 @@ class AllenCore():
             "// TES wrappers", f"{tes_wrappers}",
             "// Inputs to set_arguments_size and operator()",
             f"{tes_wrappers_reference}", f"Allen::Context context{{}};",
+            f"Allen::Monitoring::AccumulatorManager::get()->initAccumulators(1);",
             f"const auto argument_references = ArgumentReferences<{algorithm.namespace}::Parameters>{{tes_wrappers_references, input_aggregates_tuple}};",
             f"// set arguments size invocation",
             f"m_algorithm.set_arguments_size(argument_references, runtime_options, *constants);",
             f"// algorithm operator() invocation",
-            f"m_algorithm(argument_references, runtime_options, *constants, context);"
+            f"m_algorithm(argument_references, runtime_options, *constants, context);",
+            f"Allen::Monitoring::AccumulatorManager::get()->mergeAndReset(true);"
         ))
 
         is_filter = "mask_t" in [out.typedef for out in outputs]
@@ -587,6 +590,7 @@ class AllenCore():
             "#include <Event/ODIN.h>",
             "#include <mutex>",
             "#include <vector>",
+            "#include \"AllenMonitoring.h\"",
             "// output type",
             f"using output_t = {output_type};",
             "// algorithm definition",
@@ -615,10 +619,12 @@ class AllenCore():
             "if ( !m_runNumber || *m_runNumber != odin.runNumber() ) {",
             "  m_algorithm.update(*constants); m_runNumber = odin.runNumber();"
             "}}",
+            f"Allen::Monitoring::AccumulatorManager::get()->initAccumulators(1);",
             f"// set arguments size invocation",
             f"m_algorithm.set_arguments_size(tes_wrappers_references, runtime_options, *constants);",
             f"// algorithm operator() invocation",
             f"m_algorithm(tes_wrappers_references, runtime_options, *constants, context);",
+            f"Allen::Monitoring::AccumulatorManager::get()->mergeAndReset(true);",
             return_statement,
             f"}}",
             "private:",

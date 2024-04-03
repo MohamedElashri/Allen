@@ -5,29 +5,9 @@
 
 INSTANTIATE_LINE(det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t, det_jpsitomumu_tap_line::Parameters)
 
-void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::init()
-{
-#ifndef ALLEN_STANDALONE
-  histogram_det_jpsitomumu_tap_mass = new gaudi_monitoring::Lockable_Histogram<> {
-    {this,
-     "histogram_det_jpsitomumu_tap_mass",
-     "m(jpsi)",
-     {property<histogram_mass_nbins_t>(), property<histogram_mass_min_t>(), property<histogram_mass_max_t>()}},
-    {}};
-#endif
-}
-
-void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions& ro,
-  const Constants& c) const
-{
-  static_cast<Line const*>(this)->set_arguments_size(arguments, ro, c);
-  set_size<typename Parameters::dev_histogram_mass_t>(arguments, property<histogram_mass_nbins_t>());
-}
-
 __device__ bool det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::select(
   const Parameters& parameters,
+  const DeviceAccumulators&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto jpsi = std::get<0>(input);
@@ -54,15 +34,10 @@ __device__ bool det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::select(
 }
 
 // monitoring
-void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::init_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
-{
-  Allen::memset_async<dev_histogram_mass_t>(arguments, 0, context);
-}
 
 __device__ void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::monitor(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceAccumulators& accumulators,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned,
   bool sel)
@@ -70,29 +45,8 @@ __device__ void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::monitor(
   if (sel) {
     const auto jpsi = std::get<0>(input);
     const auto m = jpsi.mdimu();
-    if (m > parameters.histogram_mass_min && m < parameters.histogram_mass_max) {
-      const unsigned int bin = static_cast<unsigned int>(
-        (m - parameters.histogram_mass_min) * parameters.histogram_mass_nbins /
-        (parameters.histogram_mass_max - parameters.histogram_mass_min));
-      atomicAdd(&parameters.dev_histogram_mass[bin], 1);
-    }
+    accumulators.histogram_det_jpsitomumu_tap_mass.increment(m);
   }
-}
-
-void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::output_monitor(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
-  [[maybe_unused]] const Allen::Context& context) const
-{
-#ifndef ALLEN_STANDALONE
-  gaudi_monitoring::fill(
-    arguments,
-    context,
-    std::tuple {get<dev_histogram_mass_t>(arguments),
-                histogram_det_jpsitomumu_tap_mass,
-                property<histogram_mass_min_t>(),
-                property<histogram_mass_max_t>()});
-#endif
 }
 
 __device__ void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::fill_tuples(
