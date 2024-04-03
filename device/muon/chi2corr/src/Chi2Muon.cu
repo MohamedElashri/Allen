@@ -29,8 +29,8 @@ void chi2_muon::chi2_muon_t::operator()(
 {
   Allen::memset_async<dev_chi2_muon_t>(arguments, 10, context);
 
-  global_function(chi2_muon)(
-    dim3(first<host_number_of_events_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(arguments);
+  global_function(chi2_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
+    arguments);
 }
 
 __device__ void invert_matrix(float (&matrix)[4][4], float (&invMatrix)[4][4], unsigned dimension)
@@ -136,7 +136,7 @@ __device__ void invert_matrix(float (&matrix)[4][4], float (&invMatrix)[4][4], u
 }
 __global__ void chi2_muon::chi2_muon(chi2_muon::Parameters parameters)
 {
-  const unsigned event_number = blockIdx.x;
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const auto long_tracks = parameters.dev_long_tracks_view->container(event_number);
 
