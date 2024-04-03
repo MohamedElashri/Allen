@@ -25,7 +25,7 @@
 #include <Gaudi/Parsers/CommonParsers.h>
 #include <GaudiKernel/StatusCode.h>
 #include <Kernel/STLExtensions.h>
-#include <GaudiMonitoring.h>
+#include "Gaudi/Accumulators/Histogram.h"
 #endif
 
 namespace error_bank_filter {
@@ -98,12 +98,12 @@ namespace error_bank_filter {
     using bin_mapping_t = std::array<unsigned, LHCb::RawBank::BankType::LastType>;
 
 #ifndef ALLEN_STANDALONE
-    mutable std::unique_ptr<gaudi_histo_t<1, float>> m_error_per_source;
-    mutable std::unique_ptr<gaudi_histo_t<1, float>> m_data_banks;
+    mutable std::unique_ptr<Gaudi::Accumulators::Histogram<1>> m_error_per_source;
+    mutable std::unique_ptr<Gaudi::Accumulators::Histogram<1>> m_data_banks;
     mutable bin_mapping_t m_data_bin_mapping;
-    mutable std::unique_ptr<gaudi_histo_t<1, float>> m_other_banks;
+    mutable std::unique_ptr<Gaudi::Accumulators::Histogram<1>> m_other_banks;
     mutable bin_mapping_t m_other_bin_mapping;
-    mutable std::unique_ptr<gaudi_histo_t<1, float>> m_error_banks;
+    mutable std::unique_ptr<Gaudi::Accumulators::Histogram<1>> m_error_banks;
     mutable bin_mapping_t m_error_bin_mapping;
 #endif
     struct sd_info_t {
@@ -115,7 +115,7 @@ namespace error_bank_filter {
       std::unordered_set<unsigned char> error_bank_types;
 #ifndef ALLEN_STANDALONE
       bin_mapping_t mapping;
-      std::unique_ptr<gaudi_histo_t<1, float>> banks;
+      std::unique_ptr<Gaudi::Accumulators::Histogram<1>> banks;
       std::unique_ptr<Gaudi::Accumulators::Counter<>> error;
       std::unique_ptr<Gaudi::Accumulators::Counter<>> invalid_type;
 #endif

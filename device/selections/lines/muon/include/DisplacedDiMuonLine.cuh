@@ -13,10 +13,7 @@
 #include "AlgorithmTypes.cuh"
 #include "CompositeParticleLine.cuh"
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include <Gaudi/Accumulators.h>
-#endif
+#include "AllenMonitoring.h"
 
 namespace displaced_di_muon_line {
   struct Parameters {
@@ -41,32 +38,29 @@ namespace displaced_di_muon_line {
     PROPERTY(minZ_t, "minZ", "minimum vertex z dimuon coordinate", float) minZ;
     PROPERTY(maxChi2Muon_t, "maxChi2Muon", "minimum Chi2Muon evaluation", float) maxChi2Muon;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-
-    DEVICE_OUTPUT(dev_histogram_mass_t, unsigned) dev_histogram_mass;
-    PROPERTY(histogram_mass_min_t, "histogram_mass_min", "histogram_mass_min description", float)
-    histogram_mass_min;
-    PROPERTY(histogram_mass_max_t, "histogram_mass_max", "histogram_mass_max description", float)
-    histogram_mass_max;
-    PROPERTY(histogram_mass_nbins_t, "histogram_mass_nbins", "histogram_mass_nbins description", unsigned int)
-    histogram_mass_nbins;
   };
 
   struct displaced_di_muon_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     CompositeParticleLine<displaced_di_muon_line_t, Parameters> {
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_displaced_dimuon_mass;
+      DeviceAccumulators(const displaced_di_muon_line_t& algo, const Allen::Context& ctx) :
+        histogram_displaced_dimuon_mass(algo.m_histogram_displaced_dimuon_mass.data(ctx))
+      {}
+    };
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle, float>);
-    void init();
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
+    __device__ static bool select(
+      const Parameters&,
+      const DeviceAccumulators&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
     __device__ static void monitor(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, float> input,
+      const DeviceAccumulators& accumulators,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
-    __host__ void
-    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -82,14 +76,11 @@ namespace displaced_di_muon_line {
     Property<dispMaxEta_t> m_dispMaxEta {this, 5.f};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
     Property<maxChi2Muon_t> m_minChi2Muon {this, 1.8};
-
-    Property<histogram_mass_min_t> m_histogramMassMin {this, 215.f};
-    Property<histogram_mass_max_t> m_histogramMassMax {this, 7000.f};
-    Property<histogram_mass_nbins_t> m_histogramMassNBins {this, 295u};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
 
-#ifndef ALLEN_STANDALONE
-    gaudi_monitoring::Lockable_Histogram<>* histogram_displaced_dimuon_mass;
-#endif
+    Allen::Monitoring::Histogram<> m_histogram_displaced_dimuon_mass {this,
+                                                                      "displaced_dimuon_mass",
+                                                                      "m(displ)",
+                                                                      {295u, 215.f, 7000.f}};
   };
 } // namespace displaced_di_muon_line

@@ -12,44 +12,9 @@
 
 INSTANTIATE_LINE(xi_omega_lll_line::xi_omega_lll_line_t, xi_omega_lll_line::Parameters)
 
-void xi_omega_lll_line::xi_omega_lll_line_t::init()
-{
-  Line<xi_omega_lll_line::xi_omega_lll_line_t, xi_omega_lll_line::Parameters>::init();
-#ifndef ALLEN_STANDALONE
-  histogram_Lambda_mass = new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                                       "Lambda_mass_XiOmegaLLL",
-                                                                       "m(p#pi^{#minus}) [MeV]",
-                                                                       {property<histogram_Lambda_mass_nbins_t>(),
-                                                                        property<histogram_Lambda_mass_min_t>(),
-                                                                        property<histogram_Lambda_mass_max_t>()}},
-                                                                      {}};
-  histogram_Xi_mass = new gaudi_monitoring::Lockable_Histogram<> {
-    {this,
-     "Xi_mass",
-     "m(#Lambda#pi^{#minus}) [MeV]",
-     {property<histogram_Xi_mass_nbins_t>(), property<histogram_Xi_mass_min_t>(), property<histogram_Xi_mass_max_t>()}},
-    {}};
-  histogram_Omega_mass = new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                                      "Omega_mass",
-                                                                      "m(#LambdaK^{#minus}) [MeV]",
-                                                                      {property<histogram_Omega_mass_nbins_t>(),
-                                                                       property<histogram_Omega_mass_min_t>(),
-                                                                       property<histogram_Omega_mass_max_t>()}},
-                                                                     {}};
-#endif
-}
-
-void xi_omega_lll_line::xi_omega_lll_line_t::init_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
-{
-  Allen::memset_async<dev_histogram_Lambda_mass_t>(arguments, 0, context);
-  Allen::memset_async<dev_histogram_Xi_mass_t>(arguments, 0, context);
-  Allen::memset_async<dev_histogram_Omega_mass_t>(arguments, 0, context);
-}
-
 __device__ bool xi_omega_lll_line::xi_omega_lll_line_t::select(
   const Parameters& parameters,
+  const DeviceAccumulators&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto Lt = std::get<0>(input);
@@ -150,7 +115,8 @@ __device__ void xi_omega_lll_line::xi_omega_lll_line_t::fill_tuples(
 }
 
 __device__ void xi_omega_lll_line::xi_omega_lll_line_t::monitor(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceAccumulators& accumulators,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned,
   bool sel)
@@ -165,41 +131,9 @@ __device__ void xi_omega_lll_line::xi_omega_lll_line_t::monitor(
     const auto mLK = Lt.m12(Allen::mL, Allen::mK);
     const auto mL =
       c0->state().p() > c1->state().p() ? Lambda->m12(Allen::mP, Allen::mPi) : Lambda->m12(Allen::mPi, Allen::mP);
-    const unsigned int L_bin = static_cast<unsigned int>(
-      (mL - parameters.histogram_Lambda_mass_min) * parameters.histogram_Lambda_mass_nbins /
-      (parameters.histogram_Lambda_mass_max - parameters.histogram_Lambda_mass_min));
-    atomicAdd(&parameters.dev_histogram_Lambda_mass[L_bin], 1);
-    const unsigned int Lpi_bin = static_cast<unsigned int>(
-      (mLpi - parameters.histogram_Xi_mass_min) * parameters.histogram_Xi_mass_nbins /
-      (parameters.histogram_Xi_mass_max - parameters.histogram_Xi_mass_min));
-    atomicAdd(&parameters.dev_histogram_Xi_mass[Lpi_bin], 1);
-    const unsigned int LK_bin = static_cast<unsigned int>(
-      (mLK - parameters.histogram_Omega_mass_min) * parameters.histogram_Omega_mass_nbins /
-      (parameters.histogram_Omega_mass_max - parameters.histogram_Omega_mass_min));
-    atomicAdd(&parameters.dev_histogram_Omega_mass[LK_bin], 1);
-  }
-}
 
-void xi_omega_lll_line::xi_omega_lll_line_t::output_monitor(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
-  [[maybe_unused]] const Allen::Context& context) const
-{
-#ifndef ALLEN_STANDALONE
-  gaudi_monitoring::fill(
-    arguments,
-    context,
-    std::tuple {std::tuple {get<dev_histogram_Lambda_mass_t>(arguments),
-                            histogram_Lambda_mass,
-                            property<histogram_Lambda_mass_min_t>(),
-                            property<histogram_Lambda_mass_max_t>()},
-                std::tuple {get<dev_histogram_Xi_mass_t>(arguments),
-                            histogram_Xi_mass,
-                            property<histogram_Xi_mass_min_t>(),
-                            property<histogram_Xi_mass_max_t>()},
-                std::tuple {get<dev_histogram_Omega_mass_t>(arguments),
-                            histogram_Omega_mass,
-                            property<histogram_Omega_mass_min_t>(),
-                            property<histogram_Omega_mass_max_t>()}});
-#endif
+    accumulators.histogram_Lambda_mass.increment(mL);
+    accumulators.histogram_Xi_mass.increment(mLpi);
+    accumulators.histogram_Omega_mass.increment(mLK);
+  }
 }

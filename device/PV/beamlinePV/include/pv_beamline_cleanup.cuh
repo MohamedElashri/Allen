@@ -20,10 +20,7 @@
 #include "FloatOperations.cuh"
 #include <cstdint>
 
-#ifndef ALLEN_STANDALONE
-#include <Gaudi/Accumulators.h>
-#include "GaudiMonitoring.h"
-#endif
+#include "AllenMonitoring.h"
 
 namespace pv_beamline_cleanup {
   struct Parameters {
@@ -35,7 +32,6 @@ namespace pv_beamline_cleanup {
     DEVICE_OUTPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(minChi2Dist_t, "minChi2Dist", "minimum chi2 distance", float) minChi2Dist;
-
     PROPERTY(nbins_histo_smogpvz_t, "nbins_histo_smogpvz", "Number of bins for SMOGPVz histogram", unsigned)
     nbins_histo_smogpvz;
     PROPERTY(min_histo_smogpvz_t, "min_histo_smogpvz", "Minimum of SMOGPVz histogram", float) min_histo_smogpvz;
@@ -44,13 +40,13 @@ namespace pv_beamline_cleanup {
 
   __global__ void pv_beamline_cleanup(
     Parameters,
-    gsl::span<unsigned>,
-    gsl::span<unsigned>,
-    gsl::span<unsigned>,
-    gsl::span<unsigned>,
-    gsl::span<unsigned>,
-    gsl::span<unsigned>,
-    gsl::span<unsigned>);
+    Allen::Monitoring::AveragingCounter<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType);
 
   struct pv_beamline_cleanup_t : public DeviceAlgorithm, Parameters {
     void init();
@@ -69,14 +65,12 @@ namespace pv_beamline_cleanup {
     Property<min_histo_smogpvz_t> m_min_histo_smogpvz {this, -600.f};
     Property<max_histo_smogpvz_t> m_max_histo_smogpvz {this, -200.f};
 
-#ifndef ALLEN_STANDALONE
-    Gaudi::Accumulators::AveragingCounter<>* m_pvs;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_n_pvs;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_n_smogpvs;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_pv_x;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_pv_y;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_pv_z;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_smogpv_z;
-#endif
+    Allen::Monitoring::AveragingCounter<> m_pvs {this, "n_PVs"};
+    Allen::Monitoring::Histogram<> m_histogram_n_pvs {this, "n_pvs_event", "n_pvs_event", {20u, 0.f, 20.f}};
+    Allen::Monitoring::Histogram<> m_histogram_pv_x {this, "pv_x", "pv_x", {100u, -2.f, 2.f}};
+    Allen::Monitoring::Histogram<> m_histogram_pv_y {this, "pv_y", "pv_y", {100u, -2.f, 2.f}};
+    Allen::Monitoring::Histogram<> m_histogram_pv_z {this, "pv_z", "pv_z", {100u, -200.f, 200.f}};
+    Allen::Monitoring::Histogram<> m_histogram_n_smogpvs {this, "n_smog2_PVs", "n_smog2_PVs", {10, -0.5f, 9.5f}};
+    Allen::Monitoring::Histogram<> m_histogram_smogpv_z {this, "smogpv_z", "smogpv_z", {100u, -600.f, -200.f}};
   };
 } // namespace pv_beamline_cleanup

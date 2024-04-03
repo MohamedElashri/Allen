@@ -22,10 +22,7 @@
 #include "AlgorithmTypes.cuh"
 #include "CopyTrackParameters.cuh"
 
-#ifndef ALLEN_STANDALONE
-#include <Gaudi/Accumulators.h>
-#include "GaudiMonitoring.h"
-#endif
+#include "AllenMonitoring.h"
 
 namespace matching_consolidate_tracks {
   struct Parameters {
@@ -79,76 +76,18 @@ namespace matching_consolidate_tracks {
       Allen::IMultiEventContainer*)
     dev_multi_event_long_tracks_ptr;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-
-    PROPERTY(
-      histogram_long_track_matching_eta_min_t,
-      "histogram_long_track_matching_eta_min",
-      "histogram_long_track_matching_eta_min description",
-      float)
-    histogram_long_track_matching_eta_min;
-    PROPERTY(
-      histogram_long_track_matching_eta_max_t,
-      "histogram_long_track_matching_eta_max",
-      "histogram_long_track_matching_eta_max description",
-      float)
-    histogram_long_track_matching_eta_max;
-    PROPERTY(
-      histogram_long_track_matching_eta_nbins_t,
-      "histogram_long_track_matching_eta_nbins",
-      "histogram_long_track_matching_eta_nbins description",
-      unsigned int)
-    histogram_long_track_matching_eta_nbins;
-
-    PROPERTY(
-      histogram_long_track_matching_phi_min_t,
-      "histogram_long_track_matching_phi_min",
-      "histogram_long_track_matching_phi_min description",
-      float)
-    histogram_long_track_matching_phi_min;
-    PROPERTY(
-      histogram_long_track_matching_phi_max_t,
-      "histogram_long_track_matching_phi_max",
-      "histogram_long_track_matching_phi_max description",
-      float)
-    histogram_long_track_matching_phi_max;
-    PROPERTY(
-      histogram_long_track_matching_phi_nbins_t,
-      "histogram_long_track_matching_phi_nbins",
-      "histogram_long_track_matching_phi_nbins description",
-      unsigned int)
-    histogram_long_track_matching_phi_nbins;
-
-    PROPERTY(
-      histogram_long_track_matching_nhits_min_t,
-      "histogram_long_track_matching_nhits_min",
-      "histogram_long_track_matching_nhits_min description",
-      float)
-    histogram_long_track_matching_nhits_min;
-    PROPERTY(
-      histogram_long_track_matching_nhits_max_t,
-      "histogram_long_track_matching_nhits_max",
-      "histogram_long_track_matching_nhits_max description",
-      float)
-    histogram_long_track_matching_nhits_max;
-    PROPERTY(
-      histogram_long_track_matching_nhits_nbins_t,
-      "histogram_long_track_matching_nhits_nbins",
-      "histogram_long_track_matching_nhits_nbins description",
-      unsigned int)
-    histogram_long_track_matching_nhits_nbins;
   };
 
   __global__ void matching_consolidate_tracks(
     Parameters,
-    gsl::span<unsigned>,
-    gsl::span<unsigned>,
-    gsl::span<unsigned>,
-    gsl::span<unsigned>,
-    gsl::span<unsigned>);
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::AveragingCounter<>::DeviceType);
 
   struct matching_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
-    void init();
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -157,33 +96,32 @@ namespace matching_consolidate_tracks {
       const Allen::Context& context) const;
 
     __device__ static void monitor(
-      const matching_consolidate_tracks::Parameters& parameters,
       const SciFi::MatchedTrack matched_track,
       const Allen::Views::Velo::Consolidated::Track velo_track,
       const Allen::Views::Physics::KalmanState velo_state,
-      gsl::span<unsigned>,
-      gsl::span<unsigned>,
-      gsl::span<unsigned>);
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&);
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
-    Property<histogram_long_track_matching_eta_min_t> m_histogramLongEtaMin {this, 0.f};
-    Property<histogram_long_track_matching_eta_max_t> m_histogramLongEtaMax {this, 10.f};
-    Property<histogram_long_track_matching_eta_nbins_t> m_histogramLongEtaNBins {this, 40u};
-    Property<histogram_long_track_matching_phi_min_t> m_histogramLongPhiMin {this, -4.f};
-    Property<histogram_long_track_matching_phi_max_t> m_histogramLongPhiMax {this, 4.f};
-    Property<histogram_long_track_matching_phi_nbins_t> m_histogramLongPhiNBins {this, 16u};
-    Property<histogram_long_track_matching_nhits_min_t> m_histogramLongNhitsMin {this, 0.f};
-    Property<histogram_long_track_matching_nhits_max_t> m_histogramLongNhitsMax {this, 50.f};
-    Property<histogram_long_track_matching_nhits_nbins_t> m_histogramLongNhitsNBins {this, 50u};
 
-#ifndef ALLEN_STANDALONE
-  private:
-    Gaudi::Accumulators::Counter<>* m_long_tracks_matching;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_n_long_tracks_matching;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_long_track_matching_eta;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_long_track_matching_phi;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_long_track_matching_nhits;
-#endif
+    Allen::Monitoring::AveragingCounter<> m_long_tracks_matching {this, "n_long_tracks_matching"};
+    Allen::Monitoring::Histogram<> m_histogram_n_long_tracks_matching {this,
+                                                                       "n_long_tracks_matching_event",
+                                                                       "n_long_tracks_matching_event",
+                                                                       {80u, 0.f, 200.f}};
+    Allen::Monitoring::Histogram<> m_histogram_long_track_matching_eta {this,
+                                                                        "long_track_matching_eta",
+                                                                        "#eta",
+                                                                        {40u, 0.f, 10.f}};
+    Allen::Monitoring::Histogram<> m_histogram_long_track_matching_phi {this,
+                                                                        "long_track_matching_phi",
+                                                                        "#phi",
+                                                                        {16u, -4.f, 4.f}};
+    Allen::Monitoring::Histogram<> m_histogram_long_track_matching_nhits {this,
+                                                                          "long_track_matching_nhits",
+                                                                          "N. hits / track",
+                                                                          {50u, 0.f, 50.f}};
   };
 } // namespace matching_consolidate_tracks

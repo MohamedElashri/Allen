@@ -18,10 +18,7 @@
 #include "UTConsolidated.cuh"
 #include "SciFiConsolidated.cuh"
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include "Gaudi/Accumulators/Histogram.h"
-#endif
+#include "AllenMonitoring.h"
 
 /**
  * @brief This is definition file for downstream_make_particles algorithm.
@@ -74,14 +71,13 @@ namespace downstream_make_particles {
 
   __global__ void downstream_make_particles(
     Parameters,
-    gsl::span<unsigned> dev_histogram_n_trks,
-    gsl::span<unsigned> dev_histogram_trk_eta,
-    gsl::span<unsigned> dev_histogram_trk_phi,
-    gsl::span<unsigned> dev_histogram_trk_pt);
+    Allen::Monitoring::Histogram<>::DeviceType dev_histogram_n_trks,
+    Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_eta,
+    Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_phi,
+    Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_pt);
 
   struct downstream_make_particles_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
-    void init();
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -91,12 +87,14 @@ namespace downstream_make_particles {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
-#ifndef ALLEN_STANDALONE
-  private:
-    gaudi_monitoring::Lockable_Histogram<>* histogram_n_trks;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_trk_eta;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_trk_phi;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_trk_pt;
-#endif
+
+    Allen::Monitoring::Histogram<> m_histogram_n_trks {
+      this,
+      "number_of_trks",
+      "NTrks",
+      {UT::Constants::max_num_tracks, 0, UT::Constants::max_num_tracks}};
+    Allen::Monitoring::Histogram<> m_histogram_trk_eta {this, "trk_eta", "etaTrk", {100u, 0.f, 5.f}};
+    Allen::Monitoring::Histogram<> m_histogram_trk_phi {this, "trk_phi", "phiTrk", {100u, -3.2f, 3.2f}};
+    Allen::Monitoring::Histogram<> m_histogram_trk_pt {this, "trk_pt", "ptTrk", {100u, 0.f, 1e4f}};
   };
 } // namespace downstream_make_particles

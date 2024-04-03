@@ -12,28 +12,6 @@
 
 INSTANTIATE_LINE(di_muon_mass_line::di_muon_mass_line_t, di_muon_mass_line::Parameters)
 
-void di_muon_mass_line::di_muon_mass_line_t::init()
-{
-  Line<di_muon_mass_line::di_muon_mass_line_t, di_muon_mass_line::Parameters>::init();
-#ifndef ALLEN_STANDALONE
-  histogram_Jpsi_mass = new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                                     "Jpsi_mass",
-                                                                     "m(J/Psi)",
-                                                                     {property<histogram_Jpsi_mass_nbins_t>(),
-                                                                      property<histogram_Jpsi_mass_min_t>(),
-                                                                      property<histogram_Jpsi_mass_max_t>()}},
-                                                                    {}};
-#endif
-}
-
-void di_muon_mass_line::di_muon_mass_line_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions& ro,
-  const Constants& c) const
-{
-  static_cast<Line const*>(this)->set_arguments_size(arguments, ro, c);
-  set_size<typename Parameters::dev_histogram_Jpsi_mass_t>(arguments, 100u);
-}
 __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
 di_muon_mass_line::di_muon_mass_line_t::get_input(
   const Parameters& parameters,
@@ -51,9 +29,11 @@ di_muon_mass_line::di_muon_mass_line_t::get_input(
 
   return std::forward_as_tuple(particle, max(chi2corr1, chi2corr2));
 }
+
 __device__ bool di_muon_mass_line::di_muon_mass_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle, float> input)
+  const DeviceAccumulators&,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto vertex = std::get<0>(input);
   const auto maxchi2muon = std::get<1>(input);
@@ -67,50 +47,22 @@ __device__ bool di_muon_mass_line::di_muon_mass_line_t::select(
          vertex.pv().position.z >= parameters.minZ;
 }
 
-void di_muon_mass_line::di_muon_mass_line_t::init_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
-{
-  Allen::memset_async<dev_histogram_Jpsi_mass_t>(arguments, 0, context);
-}
-
 __device__ void di_muon_mass_line::di_muon_mass_line_t::monitor(
-  const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle, float> input,
+  const Parameters&,
+  const DeviceAccumulators& accumulators,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned,
   bool sel)
 {
   if (sel) {
     const auto particle = std::get<0>(input);
-    const auto m = particle.m();
-    if (m > parameters.histogram_Jpsi_mass_min && m < parameters.histogram_Jpsi_mass_max) {
-      const unsigned int bin = static_cast<unsigned int>(
-        (m - parameters.histogram_Jpsi_mass_min) * parameters.histogram_Jpsi_mass_nbins /
-        (parameters.histogram_Jpsi_mass_max - parameters.histogram_Jpsi_mass_min));
-      atomicAdd(&parameters.dev_histogram_Jpsi_mass[bin], 1);
-    }
+    accumulators.histogram_Jpsi_mass.increment(particle.m());
   }
-}
-
-void di_muon_mass_line::di_muon_mass_line_t::output_monitor(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
-  [[maybe_unused]] const Allen::Context& context) const
-{
-#ifndef ALLEN_STANDALONE
-  gaudi_monitoring::fill(
-    arguments,
-    context,
-    std::tuple {get<dev_histogram_Jpsi_mass_t>(arguments),
-                histogram_Jpsi_mass,
-                property<histogram_Jpsi_mass_min_t>(),
-                property<histogram_Jpsi_mass_max_t>()});
-#endif
 }
 
 __device__ void di_muon_mass_line::di_muon_mass_line_t::fill_tuples(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle, float> input,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned index,
   bool sel)
 {

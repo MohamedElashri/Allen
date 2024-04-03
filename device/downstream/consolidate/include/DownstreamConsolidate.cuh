@@ -30,10 +30,7 @@
 #include "DownstreamCache.cuh"
 #include "DownstreamCreateTracks.cuh"
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include "Gaudi/Accumulators/Histogram.h"
-#endif
+#include "AllenMonitoring.h"
 
 /**
  * @brief This is difinition file for downstream consolidation algorithm
@@ -141,75 +138,18 @@ namespace downstream_consolidate {
     dev_multi_event_downstream_tracks_view_ptr;
 
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-
-    //
-    // Monitoring
-    //
-    PROPERTY(
-      histogram_downstream_track_eta_min_t,
-      "histogram_downstream_track_eta_min",
-      "histogram_downstream_track_eta_min description",
-      float)
-    histogram_downstream_track_eta_min;
-    PROPERTY(
-      histogram_downstream_track_eta_max_t,
-      "histogram_downstream_track_eta_max",
-      "histogram_downstream_track_eta_max description",
-      float)
-    histogram_downstream_track_eta_max;
-    PROPERTY(
-      histogram_downstream_track_eta_nbins_t,
-      "histogram_downstream_track_eta_nbins",
-      "histogram_downstream_track_eta_nbins description",
-      unsigned int)
-    histogram_downstream_track_eta_nbins;
-
-    PROPERTY(
-      histogram_downstream_track_phi_min_t,
-      "histogram_downstream_track_phi_min",
-      "histogram_downstream_track_phi_min description",
-      float)
-    histogram_downstream_track_phi_min;
-    PROPERTY(
-      histogram_downstream_track_phi_max_t,
-      "histogram_downstream_track_phi_max",
-      "histogram_downstream_track_phi_max description",
-      float)
-    histogram_downstream_track_phi_max;
-    PROPERTY(
-      histogram_downstream_track_phi_nbins_t,
-      "histogram_downstream_track_phi_nbins",
-      "histogram_downstream_track_phi_nbins description",
-      unsigned int)
-    histogram_downstream_track_phi_nbins;
-
-    PROPERTY(
-      histogram_downstream_track_nhits_min_t,
-      "histogram_downstream_track_nhits_min",
-      "histogram_downstream_track_nhits_min description",
-      float)
-    histogram_downstream_track_nhits_min;
-    PROPERTY(
-      histogram_downstream_track_nhits_max_t,
-      "histogram_downstream_track_nhits_max",
-      "histogram_downstream_track_nhits_max description",
-      float)
-    histogram_downstream_track_nhits_max;
-    PROPERTY(
-      histogram_downstream_track_nhits_nbins_t,
-      "histogram_downstream_track_nhits_nbins",
-      "histogram_downstream_track_nhits_nbins description",
-      unsigned int)
-    histogram_downstream_track_nhits_nbins;
   };
 
   __global__ void downstream_consolidate(
     Parameters,
     const unsigned* dev_unique_x_sector_layer_offsets,
-    gsl::span<unsigned>,
-    gsl::span<unsigned>);
-  __global__ void
-  downstream_create_tracks_view(Parameters, gsl::span<unsigned>, gsl::span<unsigned>, gsl::span<unsigned>);
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::AveragingCounter<>::DeviceType);
+  __global__ void downstream_create_tracks_view(
+    Parameters,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType);
 
   struct lhcb_id_container_checks : public Allen::contract::Postcondition {
     void operator()(
@@ -221,7 +161,6 @@ namespace downstream_consolidate {
 
   struct downstream_consolidate_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
-    void init();
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -230,36 +169,31 @@ namespace downstream_consolidate {
       const Allen::Context& context) const;
 
     __device__ static void monitor(
-      const downstream_consolidate::Parameters& parameters,
       const Allen::Views::Physics::DownstreamTrack downstream_track,
       const Allen::Views::Physics::KalmanState downstream_state,
-      gsl::span<unsigned>,
-      gsl::span<unsigned>,
-      gsl::span<unsigned>);
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&);
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
 
-    //
-    // Monitoring
-    //
-    Property<histogram_downstream_track_eta_min_t> m_histogramDownstreamEtaMin {this, 0.f};
-    Property<histogram_downstream_track_eta_max_t> m_histogramDownstreamEtaMax {this, 10.f};
-    Property<histogram_downstream_track_eta_nbins_t> m_histogramDownstreamEtaNBins {this, 40u};
-    Property<histogram_downstream_track_phi_min_t> m_histogramDownstreamPhiMin {this, -4.f};
-    Property<histogram_downstream_track_phi_max_t> m_histogramDownstreamPhiMax {this, 4.f};
-    Property<histogram_downstream_track_phi_nbins_t> m_histogramDownstreamPhiNBins {this, 16u};
-    Property<histogram_downstream_track_nhits_min_t> m_histogramDownstreamNhitsMin {this, 0.f};
-    Property<histogram_downstream_track_nhits_max_t> m_histogramDownstreamNhitsMax {this, 50.f};
-    Property<histogram_downstream_track_nhits_nbins_t> m_histogramDownstreamNhitsNBins {this, 50u};
-
-#ifndef ALLEN_STANDALONE
-  private:
-    Gaudi::Accumulators::Counter<>* m_downstream_tracks;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_n_downstream_tracks;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_downstream_track_eta;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_downstream_track_phi;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_downstream_track_nhits;
-#endif
+    Allen::Monitoring::AveragingCounter<> m_downstream_tracks {this, "n_downstream_tracks"};
+    Allen::Monitoring::Histogram<> m_histogram_n_downstream_tracks {this,
+                                                                    "n_downstream_tracks_event",
+                                                                    "n_downstream_tracks_event",
+                                                                    {80, 0, 200}};
+    Allen::Monitoring::Histogram<> m_histogram_downstream_track_eta {this,
+                                                                     "downstream_track_eta",
+                                                                     "#eta",
+                                                                     {40u, 0.f, 10.f}};
+    Allen::Monitoring::Histogram<> m_histogram_downstream_track_phi {this,
+                                                                     "downstream_track_phi",
+                                                                     "#phi",
+                                                                     {16u, -4.f, 4.f}};
+    Allen::Monitoring::Histogram<> m_histogram_downstream_track_nhits {this,
+                                                                       "downstream_track_nhits",
+                                                                       "N. hits / track",
+                                                                       {50u, 0.f, 50.f}};
   };
 } // namespace downstream_consolidate

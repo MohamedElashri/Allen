@@ -15,10 +15,7 @@
 #include "ROOTService.h"
 #include "MassDefinitions.h"
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include <Gaudi/Accumulators.h>
-#endif
+#include "AllenMonitoring.h"
 
 namespace d2pipi_line {
   struct Parameters {
@@ -55,54 +52,27 @@ namespace d2pipi_line {
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dibody combinations", bool) OppositeSign;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
-
-    DEVICE_OUTPUT(dev_histogram_d02pipi_mass_t, unsigned) dev_histogram_d02pipi_mass;
-    PROPERTY(
-      histogram_d02pipi_mass_min_t,
-      "histogram_d02pipi_mass_min",
-      "histogram_d02pipi_mass_min description",
-      float)
-    histogram_d02pipi_mass_min;
-    PROPERTY(
-      histogram_d02pipi_mass_max_t,
-      "histogram_d02pipi_mass_max",
-      "histogram_d02pipi_mass_max description",
-      float)
-    histogram_d02pipi_mass_max;
-    PROPERTY(
-      histogram_d02pipi_mass_nbins_t,
-      "histogram_d02pipi_mass_nbins",
-      "histogram_d02pipi_mass_nbins description",
-      unsigned int)
-    histogram_d02pipi_mass_nbins;
-
-    DEVICE_OUTPUT(dev_histogram_d02pipi_pt_t, unsigned) dev_histogram_d02pipi_pt;
-    PROPERTY(histogram_d02pipi_pt_min_t, "histogram_d02pipi_pt_min", "histogram_d02pipi_pt_min description", float)
-    histogram_d02pipi_pt_min;
-    PROPERTY(histogram_d02pipi_pt_max_t, "histogram_d02pipi_pt_max", "histogram_d02pipi_pt_max description", float)
-    histogram_d02pipi_pt_max;
-    PROPERTY(
-      histogram_d02pipi_pt_nbins_t,
-      "histogram_d02pipi_pt_nbins",
-      "histogram_d02pipi_pt_nbins description",
-      unsigned int)
-    histogram_d02pipi_pt_nbins;
   };
 
   struct d2pipi_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<d2pipi_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
-    void init();
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_d02pipi_mass;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_d02pipi_pt;
+      DeviceAccumulators(const d2pipi_line_t& algo, const Allen::Context& ctx) :
+        histogram_d02pipi_mass(algo.m_histogram_d02pipi_mass.data(ctx)),
+        histogram_d02pipi_pt(algo.m_histogram_d02pipi_pt.data(ctx))
+      {}
+    };
 
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
+    __device__ static bool
+    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+
     __device__ static void monitor(
       const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
-    __host__ void
-    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
-
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
@@ -128,18 +98,10 @@ namespace d2pipi_line {
     Property<ctIPScale_t> m_ctIPScale {this, 1.f};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
     Property<OppositeSign_t> m_opposite_sign {this, true};
-    Property<histogram_d02pipi_mass_min_t> m_histogramD0MassMin {this, 1765.f};
-    Property<histogram_d02pipi_mass_max_t> m_histogramD0MassMax {this, 1965.f};
-    Property<histogram_d02pipi_mass_nbins_t> m_histogramD0MassNBins {this, 100u};
-    Property<histogram_d02pipi_pt_min_t> m_histogramD0PtMin {this, 0.f};
-    Property<histogram_d02pipi_pt_max_t> m_histogramD0PtMax {this, 1e4};
-    Property<histogram_d02pipi_pt_nbins_t> m_histogramD0PtNBins {this, 100u};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<enable_tupling_t> m_enable_tupling {this, false};
 
-#ifndef ALLEN_STANDALONE
-    gaudi_monitoring::Lockable_Histogram<>* histogram_d02pipi_mass;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_d02pipi_pt;
-#endif
+    Allen::Monitoring::Histogram<> m_histogram_d02pipi_mass {this, "d02pipi_mass", "m(D0)", {100u, 1765.f, 1965.f}};
+    Allen::Monitoring::Histogram<> m_histogram_d02pipi_pt {this, "d02pipi_pt", "pT(D0)", {100u, 0.f, 1e4f}};
   };
 } // namespace d2pipi_line

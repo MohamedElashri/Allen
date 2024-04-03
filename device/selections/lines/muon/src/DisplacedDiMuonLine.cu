@@ -13,28 +13,6 @@
 
 INSTANTIATE_LINE(displaced_di_muon_line::displaced_di_muon_line_t, displaced_di_muon_line::Parameters)
 
-void displaced_di_muon_line::displaced_di_muon_line_t::init()
-{
-  Line<displaced_di_muon_line::displaced_di_muon_line_t, displaced_di_muon_line::Parameters>::init();
-#ifndef ALLEN_STANDALONE
-  histogram_displaced_dimuon_mass = new gaudi_monitoring::Lockable_Histogram<> {
-    {this,
-     "displaced_dimuon_mass",
-     "m(displ)",
-     {property<histogram_mass_nbins_t>(), property<histogram_mass_min_t>(), property<histogram_mass_max_t>()}},
-    {}};
-#endif
-}
-
-void displaced_di_muon_line::displaced_di_muon_line_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions& ro,
-  const Constants& c) const
-{
-  static_cast<Line const*>(this)->set_arguments_size(arguments, ro, c);
-  set_size<typename Parameters::dev_histogram_mass_t>(arguments, property<histogram_mass_nbins_t>());
-}
-
 __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
 displaced_di_muon_line::displaced_di_muon_line_t::get_input(
   const Parameters& parameters,
@@ -55,7 +33,8 @@ displaced_di_muon_line::displaced_di_muon_line_t::get_input(
 
 __device__ bool displaced_di_muon_line::displaced_di_muon_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle, float> input)
+  const DeviceAccumulators&,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto vertex = std::get<0>(input);
   const auto maxchi2muon = std::get<1>(input);
@@ -72,43 +51,15 @@ __device__ bool displaced_di_muon_line::displaced_di_muon_line_t::select(
   return decision;
 }
 
-void displaced_di_muon_line::displaced_di_muon_line_t::init_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
-{
-  Allen::memset_async<dev_histogram_mass_t>(arguments, 0, context);
-}
-
 __device__ void displaced_di_muon_line::displaced_di_muon_line_t::monitor(
-  const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle, float> input,
+  const Parameters&,
+  const DeviceAccumulators& accumulators,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned,
   bool sel)
 {
   if (sel) {
     const auto vertex = std::get<0>(input);
-    const auto m = vertex.mdimu();
-    if (m > parameters.histogram_mass_min && m < parameters.histogram_mass_max) {
-      const unsigned int bin = static_cast<unsigned int>(
-        (m - parameters.histogram_mass_min) * parameters.histogram_mass_nbins /
-        (parameters.histogram_mass_max - parameters.histogram_mass_min));
-      atomicAdd(&parameters.dev_histogram_mass[bin], 1);
-    }
+    accumulators.histogram_displaced_dimuon_mass.increment(vertex.mdimu());
   }
-}
-
-void displaced_di_muon_line::displaced_di_muon_line_t::output_monitor(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
-  [[maybe_unused]] const Allen::Context& context) const
-{
-#ifndef ALLEN_STANDALONE
-  gaudi_monitoring::fill(
-    arguments,
-    context,
-    std::tuple {get<dev_histogram_mass_t>(arguments),
-                histogram_displaced_dimuon_mass,
-                property<histogram_mass_min_t>(),
-                property<histogram_mass_max_t>()});
-#endif
 }

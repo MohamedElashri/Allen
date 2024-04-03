@@ -39,7 +39,8 @@
   INSTANTIATE_ALGORITHM(DERIVED)
 
 template<typename Derived, typename Parameters>
-using type_erased_tuple_t = std::tuple<Parameters, ArgumentReferences<Parameters>, const Derived*>;
+using type_erased_tuple_t =
+  std::tuple<Parameters, ArgumentReferences<Parameters>, const Derived*, typename Derived::DeviceAccumulators>;
 
 struct LineData {
   float pre_scaler {0};
@@ -165,8 +166,12 @@ public:
     }
   }
 
-  template<typename T>
-  static __device__ void monitor(const Parameters&, T, unsigned, bool)
+  struct DeviceAccumulators {
+    DeviceAccumulators(const Derived&, const Allen::Context&) {}
+  };
+
+  template<typename T, typename U>
+  static __device__ void monitor(const Parameters&, U, T, unsigned, bool)
   {}
   template<typename T>
   static __device__ void fill_tuples(const Parameters&, T, unsigned, bool)
@@ -240,15 +245,6 @@ public:
 template<typename Derived, typename Parameters>
 void line_output_monitor(char* input, const RuntimeOptions& runtime_options, const Allen::Context& context)
 {
-  if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
-    if (input != nullptr) {
-      const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
-      auto derived_instance = std::get<2>(type_casted_input);
-      if (derived_instance->template property<typename Parameters::enable_monitoring_t>()) {
-        derived_instance->output_monitor(std::get<1>(type_casted_input), runtime_options, context);
-      }
-    }
-  }
   if constexpr (Allen::has_enable_tupling<Parameters>::value) {
     if (input != nullptr) {
       const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
@@ -297,7 +293,16 @@ __device__ void process_line(
     const unsigned input_size = Derived::input_size(parameters, event_number);
     for (unsigned i = threadIdx.x % threads_per_event; i < input_size; i += threads_per_event) {
       const auto input = Derived::get_input(parameters, event_number, i);
-      bool decision = Derived::select(parameters, input);
+      bool decision;
+      if constexpr (!std::is_same_v<
+                      typename Line<Derived, Parameters>::DeviceAccumulators,
+                      typename Derived::DeviceAccumulators>) {
+        const auto accumulators = std::get<3>(type_casted_input);
+        decision = Derived::select(parameters, accumulators, input);
+      }
+      else {
+        decision = Derived::select(parameters, input);
+      }
 
       unsigned span_index = line_index * number_of_events + event_number;
       unsigned index = (line_offset + Derived::offset(parameters, event_number)) / 32 + span_index + i / 32;
@@ -306,7 +311,8 @@ __device__ void process_line(
       if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
         if (parameters.enable_monitoring) {
           unsigned index = Derived::offset(parameters, event_number) + i;
-          Derived::monitor(parameters, input, index, decision);
+          const auto accumulators = std::get<3>(type_casted_input);
+          Derived::monitor(parameters, accumulators, input, index, decision);
         }
       }
       if constexpr (Allen::has_enable_tupling<Parameters>::value) {
@@ -357,7 +363,11 @@ void Line<Derived, Parameters>::operator()(
   }
 
   // Delay the execution of the line: Pass the parameters
-  auto parameters = std::make_tuple(derived_instance->make_parameters(1, 1, 0, arguments), arguments, derived_instance);
+  auto parameters = std::make_tuple(
+    derived_instance->make_parameters(1, 1, 0, arguments),
+    arguments,
+    derived_instance,
+    typename Derived::DeviceAccumulators(*derived_instance, context));
 
   assert(sizeof(type_erased_tuple_t<Derived, Parameters>) == sizeof(parameters));
   std::memcpy(
@@ -365,11 +375,6 @@ void Line<Derived, Parameters>::operator()(
     &parameters,
     sizeof(parameters));
 
-  if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
-    if (derived_instance->template property<typename Parameters::enable_monitoring_t>()) {
-      derived_instance->init_monitor(arguments, context);
-    }
-  }
   if constexpr (Allen::has_enable_tupling<Parameters>::value) {
     if (derived_instance->template property<typename Parameters::enable_tupling_t>()) {
       derived_instance->init_tuples(arguments, context);

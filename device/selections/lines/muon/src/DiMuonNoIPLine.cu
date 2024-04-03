@@ -15,60 +15,8 @@
 #include <unistd.h>
 #include "BinarySearch.cuh"
 
-namespace {
-  const unsigned n_bins = 10389u;
-}
-
 INSTANTIATE_LINE(di_muon_no_ip_line::di_muon_no_ip_line_t, di_muon_no_ip_line::Parameters)
 
-void di_muon_no_ip_line::di_muon_no_ip_line_t::init()
-{
-  Line<di_muon_no_ip_line::di_muon_no_ip_line_t, di_muon_no_ip_line::Parameters>::init();
-#ifndef ALLEN_STANDALONE
-  float start_q = 0;
-  float stop_q = 110e3;
-
-  histogram_prompt_q =
-    new gaudi_monitoring::Lockable_Histogram<> {{this, "dimuon_q", "dimuon q", {10390, start_q, stop_q}}, {}};
-#endif
-}
-
-float bin_size(float q)
-{
-  float a = 9.164e-9;
-  float b = 1.488e-4;
-  float c = 0.1208;
-  return a * q * q + b * q + c;
-}
-
-void di_muon_no_ip_line::di_muon_no_ip_line_t::init_monitor(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  [[maybe_unused]] const Allen::Context& context)
-{
-#ifndef ALLEN_STANDALONE
-  Allen::memset_async<dev_array_prompt_q_t>(arguments, 0, context);
-  auto boundaries = make_host_buffer<float>(arguments, n_bins + 1);
-  boundaries[0] = 0.f;
-
-  for (unsigned i = 0; i < n_bins; i++) {
-    float last_bound = boundaries[i];
-    float increment = bin_size(last_bound);
-    boundaries[i + 1] = (last_bound + increment * 2);
-  }
-
-  Allen::copy(arguments.template get<dev_q_bin_boundaries_t>(), boundaries.get(), context, Allen::memcpyHostToDevice);
-#endif
-}
-
-void di_muon_no_ip_line::di_muon_no_ip_line_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions& ro,
-  const Constants& c) const
-{
-  static_cast<Line const*>(this)->set_arguments_size(arguments, ro, c);
-  set_size<dev_q_bin_boundaries_t>(arguments, n_bins + 1);
-  set_size<dev_array_prompt_q_t>(arguments, n_bins);
-}
 __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
 di_muon_no_ip_line::di_muon_no_ip_line_t::get_input(
   const Parameters& parameters,
@@ -84,9 +32,11 @@ di_muon_no_ip_line::di_muon_no_ip_line_t::get_input(
 
   return std::forward_as_tuple(vertex, max(chi2corr1, chi2corr2));
 }
+
 __device__ bool di_muon_no_ip_line::di_muon_no_ip_line_t::select(
   const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::CompositeParticle, float> input)
+  const DeviceAccumulators&,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto vertex = std::get<0>(input);
   const auto maxchi2muon = std::get<1>(input);
@@ -107,34 +57,19 @@ __device__ bool di_muon_no_ip_line::di_muon_no_ip_line_t::select(
 }
 
 __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
-  [[maybe_unused]] const Parameters& parameters,
-  [[maybe_unused]] std::tuple<const Allen::Views::Physics::CompositeParticle, float> input,
+  const Parameters&,
+  const DeviceAccumulators& accumulators,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned,
   bool sel)
 {
   if (sel) {
-#ifndef ALLEN_STANDALONE
     const auto vertex = std::get<0>(input);
     const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
     const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
     if (track1->ip_chi2() < 6 && track2->ip_chi2() < 6) {
       float q = sqrtf(vertex.m() * vertex.m() - 4 * Allen::mMu * Allen::mMu);
-      if (q < parameters.dev_q_bin_boundaries[n_bins]) {
-        unsigned bin = binary_search_rightmost(&parameters.dev_q_bin_boundaries[0], n_bins, q);
-        atomicAdd(&parameters.dev_array_prompt_q[bin], 1);
-      }
+      accumulators.histogram_prompt_q.increment(q);
     }
-#endif
   }
-}
-
-void di_muon_no_ip_line::di_muon_no_ip_line_t::output_monitor(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
-  [[maybe_unused]] const Allen::Context& context) const
-{
-#ifndef ALLEN_STANDALONE
-  gaudi_monitoring::fill(
-    arguments, context, std::tuple {get<dev_array_prompt_q_t>(arguments), histogram_prompt_q, 0, 110e3});
-#endif
 }

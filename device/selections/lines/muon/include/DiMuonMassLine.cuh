@@ -13,10 +13,7 @@
 #include "AlgorithmTypes.cuh"
 #include "CompositeParticleLine.cuh"
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include <Gaudi/Accumulators.h>
-#endif
+#include "AllenMonitoring.h"
 
 namespace di_muon_mass_line {
   struct Parameters {
@@ -51,43 +48,34 @@ namespace di_muon_mass_line {
     DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
-
-    DEVICE_OUTPUT(dev_histogram_Jpsi_mass_t, unsigned) dev_histogram_Jpsi_mass;
-    PROPERTY(histogram_Jpsi_mass_min_t, "histogram_Jpsi_mass_min", "histogram_Jpsi_mass_min description", float)
-    histogram_Jpsi_mass_min;
-    PROPERTY(histogram_Jpsi_mass_max_t, "histogram_Jpsi_mass_max", "histogram_Jpsi_mass_max description", float)
-    histogram_Jpsi_mass_max;
-    PROPERTY(
-      histogram_Jpsi_mass_nbins_t,
-      "histogram_Jpsi_mass_nbins",
-      "histogram_Jpsi_mass_nbins description",
-      unsigned int)
-    histogram_Jpsi_mass_nbins;
   };
 
   struct di_muon_mass_line_t : public SelectionAlgorithm,
                                Parameters,
                                CompositeParticleLine<di_muon_mass_line_t, Parameters> {
-
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_Jpsi_mass;
+      DeviceAccumulators(const di_muon_mass_line_t& algo, const Allen::Context& ctx) :
+        histogram_Jpsi_mass(algo.m_histogram_Jpsi_mass.data(ctx))
+      {}
+    };
     __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float> static get_input(
       const Parameters& parameters,
       const unsigned event_number,
       const unsigned i);
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle, float>);
-    void init();
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
+    __device__ static bool select(
+      const Parameters&,
+      const DeviceAccumulators&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
     __device__ static void monitor(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, float> input,
+      const DeviceAccumulators& accumulators,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
-    __host__ void
-    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
-
     __device__ static void fill_tuples(
       const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, float> input,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
 
@@ -107,15 +95,9 @@ namespace di_muon_mass_line {
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
     Property<maxChi2Muon_t> m_minChi2Muon {this, 1.8};
     Property<OppositeSign_t> m_opposite_sign {this, true};
-
-    Property<histogram_Jpsi_mass_min_t> m_histogramJpsiMassMin {this, 2996.f};
-    Property<histogram_Jpsi_mass_max_t> m_histogramJpsiMassMax {this, 3196.f};
-    Property<histogram_Jpsi_mass_nbins_t> m_histogramJpsiMassNBins {this, 100u};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<enable_tupling_t> m_enable_tupling {this, false};
 
-#ifndef ALLEN_STANDALONE
-    gaudi_monitoring::Lockable_Histogram<>* histogram_Jpsi_mass;
-#endif
+    Allen::Monitoring::Histogram<> m_histogram_Jpsi_mass {this, "Jpsi_mass", "m(J/Psi)", {100u, 2996.f, 3196.f}};
   };
 } // namespace di_muon_mass_line

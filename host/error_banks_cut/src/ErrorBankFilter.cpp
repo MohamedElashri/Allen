@@ -84,7 +84,7 @@ void error_bank_filter::error_bank_filter_t::init()
   auto setup_histogram = [this, &names_to_types](
                            std::vector<std::string>& names,
                            bin_mapping_t& mapping,
-                           std::unique_ptr<gaudi_histo_t<1, float>>& histogram,
+                           std::unique_ptr<Gaudi::Accumulators::Histogram<1>>& histogram,
                            std::string histo_name) {
     auto types = names_to_types(names);
     names.clear();
@@ -96,11 +96,11 @@ void error_bank_filter::error_bank_filter_t::init()
       mapping[types[i]] = i;
     }
 
-    histogram.reset(new gaudi_histo_t<1, float> {
+    histogram.reset(new Gaudi::Accumulators::Histogram<1> {
       this,
       histo_name,
       histo_name,
-      {static_cast<unsigned>(names.size()), -0.5f, names.size() - 0.5f, "Bank Type", names}});
+      {static_cast<unsigned>(names.size()), -0.5, names.size() - 0.5, "Bank Type", names}});
   };
 
   for (auto const& [sd, bank_names] : sd_bank_types) {
@@ -163,11 +163,11 @@ void error_bank_filter::error_bank_filter_t::init()
     }
   }
 
-  m_error_per_source.reset(new gaudi_histo_t<1, float> {
+  m_error_per_source.reset(new Gaudi::Accumulators::Histogram<1> {
     this,
     "error_banks_per_daq_source",
     "error_banks_per_daq_source",
-    {static_cast<unsigned>(source_names.size()), -0.5f, source_names.size() - 0.5f, "DAQ Source", source_names}});
+    {static_cast<unsigned>(source_names.size()), -0.5, source_names.size() - 0.5, "DAQ Source", source_names}});
 #endif
 }
 
@@ -219,7 +219,7 @@ void error_bank_filter::error_bank_filter_t::error_bank_filter(
   // Don't need this many counts, but let's stick with it
   auto source_counts = bin_storage.subspan(4 * LHCb::RawBank::LastType, LHCb::RawBank::LastType);
 
-  auto add_counts = [](gaudi_histo_t<1, float>& histo, gsl::span<float> counts) {
+  auto add_counts = [](Gaudi::Accumulators::Histogram<1>& histo, gsl::span<float> counts) {
     for (size_t i = 0; i < histo.nBins(0); ++i) {
       histo[i] += counts[i];
     }

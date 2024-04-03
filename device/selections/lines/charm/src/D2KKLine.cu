@@ -12,39 +12,9 @@
 
 INSTANTIATE_LINE(d2kk_line::d2kk_line_t, d2kk_line::Parameters)
 
-void d2kk_line::d2kk_line_t::init()
-{
-  Line<d2kk_line::d2kk_line_t, d2kk_line::Parameters>::init();
-#ifndef ALLEN_STANDALONE
-  histogram_d02kk_mass = new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                                      "d02kk_mass",
-                                                                      "m(D0)",
-                                                                      {property<histogram_d02kk_mass_nbins_t>(),
-                                                                       property<histogram_d02kk_mass_min_t>(),
-                                                                       property<histogram_d02kk_mass_max_t>()}},
-                                                                     {}};
-  histogram_d02kk_pt = new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                                    "d02kk_pt",
-                                                                    "pT(D0)",
-                                                                    {property<histogram_d02kk_pt_nbins_t>(),
-                                                                     property<histogram_d02kk_pt_min_t>(),
-                                                                     property<histogram_d02kk_pt_max_t>()}},
-                                                                   {}};
-#endif
-}
-
-void d2kk_line::d2kk_line_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions& ro,
-  const Constants& c) const
-{
-  static_cast<Line const*>(this)->set_arguments_size(arguments, ro, c);
-  set_size<typename Parameters::dev_histogram_d02kk_mass_t>(arguments, 100u);
-  set_size<typename Parameters::dev_histogram_d02kk_pt_t>(arguments, 100u);
-}
-
 __device__ bool d2kk_line::d2kk_line_t::select(
   const Parameters& parameters,
+  const DeviceAccumulators&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto particle = std::get<0>(input);
@@ -65,16 +35,9 @@ __device__ bool d2kk_line::d2kk_line_t::select(
   return decision;
 }
 
-void d2kk_line::d2kk_line_t::init_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context)
-{
-  Allen::memset_async<dev_histogram_d02kk_mass_t>(arguments, 0, context);
-  Allen::memset_async<dev_histogram_d02kk_pt_t>(arguments, 0, context);
-}
-
 __device__ void d2kk_line::d2kk_line_t::monitor(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceAccumulators& accumulators,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned,
   bool sel)
@@ -82,41 +45,9 @@ __device__ void d2kk_line::d2kk_line_t::monitor(
   const auto particle = std::get<0>(input);
   const auto vertex = particle.vertex();
   if (sel) {
-    const float m = particle.m12(Allen::mK, Allen::mK);
-    const float pt = vertex.pt();
-    if (m > parameters.histogram_d02kk_mass_min && m < parameters.histogram_d02kk_mass_max) {
-      const unsigned int bin = static_cast<unsigned int>(
-        (m - parameters.histogram_d02kk_mass_min) * parameters.histogram_d02kk_mass_nbins /
-        (parameters.histogram_d02kk_mass_max - parameters.histogram_d02kk_mass_min));
-      atomicAdd(&parameters.dev_histogram_d02kk_mass[bin], 1);
-    }
-    if (pt > parameters.histogram_d02kk_pt_min && pt < parameters.histogram_d02kk_pt_max) {
-      const unsigned int bin = static_cast<unsigned int>(
-        (pt - parameters.histogram_d02kk_pt_min) * parameters.histogram_d02kk_pt_nbins /
-        (parameters.histogram_d02kk_pt_max - parameters.histogram_d02kk_pt_min));
-      atomicAdd(&parameters.dev_histogram_d02kk_pt[bin], 1);
-    }
+    accumulators.histogram_d02kk_mass.increment(particle.m12(Allen::mK, Allen::mK));
+    accumulators.histogram_d02kk_pt.increment(vertex.pt());
   }
-}
-
-void d2kk_line::d2kk_line_t::output_monitor(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
-  [[maybe_unused]] const Allen::Context& context) const
-{
-#ifndef ALLEN_STANDALONE
-  gaudi_monitoring::fill(
-    arguments,
-    context,
-    std::tuple {std::tuple {get<dev_histogram_d02kk_mass_t>(arguments),
-                            histogram_d02kk_mass,
-                            property<histogram_d02kk_mass_min_t>(),
-                            property<histogram_d02kk_mass_max_t>()},
-                std::tuple {get<dev_histogram_d02kk_pt_t>(arguments),
-                            histogram_d02kk_pt,
-                            property<histogram_d02kk_pt_min_t>(),
-                            property<histogram_d02kk_pt_max_t>()}});
-#endif
 }
 
 __device__ void d2kk_line::d2kk_line_t::fill_tuples(

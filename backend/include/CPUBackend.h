@@ -361,7 +361,8 @@ namespace Allen {
   constexpr static unsigned cpu_alignment = 64;
 
   struct Context {
-    void initialize() {}
+    void initialize(unsigned id) { stream_id = id; }
+    unsigned stream_id {0};
   };
 
   void inline malloc(void** devPtr, size_t size)

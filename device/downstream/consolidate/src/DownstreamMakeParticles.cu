@@ -19,18 +19,6 @@
 
 INSTANTIATE_ALGORITHM(downstream_make_particles::downstream_make_particles_t)
 
-void downstream_make_particles::downstream_make_particles_t::init()
-{
-#ifndef ALLEN_STANDALONE
-  histogram_n_trks = new gaudi_monitoring::Lockable_Histogram<> {
-    {this, "number_of_trks", "NTrks", {UT::Constants::max_num_tracks, 0, UT::Constants::max_num_tracks}}, {}};
-  histogram_trk_eta = new gaudi_monitoring::Lockable_Histogram<> {{this, "trk_eta", "etaTrk", {100, 0, 5}}, {}};
-  histogram_trk_phi = new gaudi_monitoring::Lockable_Histogram<> {{this, "trk_phi", "phiTrk", {100, -3.2, 3.2}}, {}};
-  histogram_trk_pt =
-    new gaudi_monitoring::Lockable_Histogram<> {{this, "trk_pt", "ptTrk", {100, 0, (unsigned) 1e4}}, {}};
-#endif
-}
-
 void downstream_make_particles::downstream_make_particles_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -48,18 +36,6 @@ void downstream_make_particles::downstream_make_particles_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  //
-  // Monitoring
-  //
-  auto dev_histogram_n_trks = make_device_buffer<unsigned>(arguments, UT::Constants::max_num_tracks);
-  auto dev_histogram_trk_eta = make_device_buffer<unsigned>(arguments, 100u);
-  auto dev_histogram_trk_phi = make_device_buffer<unsigned>(arguments, 100u);
-  auto dev_histogram_trk_pt = make_device_buffer<unsigned>(arguments, 100u);
-  Allen::memset_async(dev_histogram_n_trks.data(), 0, dev_histogram_n_trks.size() * sizeof(unsigned), context);
-  Allen::memset_async(dev_histogram_trk_eta.data(), 0, dev_histogram_trk_eta.size() * sizeof(unsigned), context);
-  Allen::memset_async(dev_histogram_trk_phi.data(), 0, dev_histogram_trk_phi.size() * sizeof(unsigned), context);
-  Allen::memset_async(dev_histogram_trk_pt.data(), 0, dev_histogram_trk_pt.size() * sizeof(unsigned), context);
-
   // Initialize container to avoid invalid std::function destructor
   Allen::memset_async<dev_downstream_track_particles_view_t>(arguments, 0, context);
   Allen::memset_async<dev_multi_event_downstream_track_particles_view_t>(arguments, 0, context);
@@ -67,28 +43,18 @@ void downstream_make_particles::downstream_make_particles_t::operator()(
   global_function(downstream_make_particles)(
     dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
-    dev_histogram_n_trks.get(),
-    dev_histogram_trk_eta.get(),
-    dev_histogram_trk_phi.get(),
-    dev_histogram_trk_pt.get());
-
-#ifndef ALLEN_STANDALONE
-  gaudi_monitoring::fill(
-    arguments,
-    context,
-    std::tuple {std::tuple {dev_histogram_n_trks.get(), histogram_n_trks, 0, UT::Constants::max_num_tracks},
-                std::tuple {dev_histogram_trk_eta.get(), histogram_trk_eta, 0, 5},
-                std::tuple {dev_histogram_trk_phi.get(), histogram_trk_phi, -3.2f, 3.2f},
-                std::tuple {dev_histogram_trk_pt.get(), histogram_trk_pt, 0u, unsigned(1e4)}});
-#endif
+    m_histogram_n_trks.data(context),
+    m_histogram_trk_eta.data(context),
+    m_histogram_trk_phi.data(context),
+    m_histogram_trk_pt.data(context));
 }
 
 __global__ void downstream_make_particles::downstream_make_particles(
   downstream_make_particles::Parameters parameters,
-  gsl::span<unsigned> dev_histogram_n_trks,
-  gsl::span<unsigned> dev_histogram_trk_eta,
-  gsl::span<unsigned> dev_histogram_trk_phi,
-  gsl::span<unsigned> dev_histogram_trk_pt)
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_n_trks,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_eta,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_phi,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_pt)
 {
 
   // Basic
@@ -102,11 +68,7 @@ __global__ void downstream_make_particles::downstream_make_particles(
   const unsigned event_downstream_tracks_offset = downstream_tracks.offset();
   const unsigned event_downstream_tracks_size = downstream_tracks.size();
 
-  //
-  // Monitoring
-  //
-  if (event_downstream_tracks_size < UT::Constants::max_num_tracks)
-    ++dev_histogram_n_trks[event_downstream_tracks_size];
+  if (threadIdx.x == 0) dev_histogram_n_trks.increment(event_downstream_tracks_size);
 
   // Create particles
   for (unsigned track_index = threadIdx.x; track_index < event_downstream_tracks_size; track_index += blockDim.x) {
@@ -120,16 +82,10 @@ __global__ void downstream_make_particles::downstream_make_particles(
         0 // TODO: Add downstream PID in the future.
       };
 
-    //
-    // Monitoring
-    //
     auto state = parameters.dev_downstream_track_states_view[event_number].state(track_index);
-    const unsigned etabin = max(0u, min(99u, static_cast<unsigned>(state.eta() * 20)));
-    ++dev_histogram_trk_eta[etabin];
-    const unsigned phibin = max(0u, min(99u, static_cast<unsigned>(std::atan2(state.ty(), state.tx()) * 15.625f + 50)));
-    ++dev_histogram_trk_phi[phibin];
-    const unsigned ptbin = min(99u, static_cast<unsigned>(state.pt() * 0.01f));
-    ++dev_histogram_trk_pt[ptbin];
+    dev_histogram_trk_eta.increment(state.eta());
+    dev_histogram_trk_phi.increment(std::atan2(state.ty(), state.tx()));
+    dev_histogram_trk_pt.increment(state.pt());
   };
 
   if (threadIdx.x == 0) {

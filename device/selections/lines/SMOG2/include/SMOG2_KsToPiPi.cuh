@@ -14,10 +14,7 @@
 #include "CompositeParticleLine.cuh"
 #include "MassDefinitions.h"
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include <Gaudi/Accumulators.h>
-#endif
+#include "AllenMonitoring.h"
 
 namespace SMOG2_kstopipi_line {
   struct Parameters {
@@ -81,23 +78,27 @@ namespace SMOG2_kstopipi_line {
   struct SMOG2_kstopipi_line_t : public SelectionAlgorithm,
                                  Parameters,
                                  CompositeParticleLine<SMOG2_kstopipi_line_t, Parameters> {
-
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_smogks_mass;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_smogks_svz;
+      DeviceAccumulators(const SMOG2_kstopipi_line_t& algo, const Allen::Context& ctx) :
+        histogram_smogks_mass(algo.m_histogram_smogks_mass.data(ctx)),
+        histogram_smogks_svz(algo.m_histogram_smogks_svz.data(ctx))
+      {}
+    };
     using monitoring_types = std::tuple<sv_masses_t, svz_t, track1pt_t, track2pt_t, minipchi2_t, ip_t>;
 
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    __device__ static bool
+    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     void init();
 
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
-
     __device__ static void monitor(
       const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
-
-    __host__ void
-    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
@@ -129,9 +130,8 @@ namespace SMOG2_kstopipi_line {
     // Switch to create monitoring tuple
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<enable_tupling_t> m_enable_tupling {this, false};
-#ifndef ALLEN_STANDALONE
-    gaudi_monitoring::Lockable_Histogram<>* histogram_smogks_mass;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_smogks_svz;
-#endif
+
+    Allen::Monitoring::Histogram<> m_histogram_smogks_mass {this, "ks_mass", "M(Ks) [MeV]", {100u, 400.f, 600.f}};
+    Allen::Monitoring::Histogram<> m_histogram_smogks_svz {this, "smogks_svz", "SV_z (Ks)", {100u, -541.f, 2700.f}};
   };
 } // namespace SMOG2_kstopipi_line

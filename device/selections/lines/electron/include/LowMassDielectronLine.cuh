@@ -16,10 +16,7 @@
 #include "ROOTService.h"
 #include <ROOTHeaders.h>
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include <Gaudi/Accumulators.h>
-#endif
+#include "AllenMonitoring.h"
 
 namespace lowmass_dielectron_line {
   struct Parameters {
@@ -43,10 +40,6 @@ namespace lowmass_dielectron_line {
     DEVICE_OUTPUT(dev_e_minpt_bremcorr_t, float) dev_e_minpt_bremcorr;
     DEVICE_OUTPUT(dev_die_minipchi2_t, float) dev_die_minipchi2;
     DEVICE_OUTPUT(dev_die_ip_t, float) dev_die_ip;
-    // outputs for Gaudi histogram
-    DEVICE_OUTPUT(dev_masses_histo_t, unsigned) dev_masses_histo;
-    DEVICE_OUTPUT(dev_masses_brem_histo_t, unsigned) dev_masses_brem_histo;
-    DEVICE_OUTPUT(dev_bin_boundaries_t, float) dev_bin_boundaries;
     // Properties
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -73,8 +66,18 @@ namespace lowmass_dielectron_line {
   struct lowmass_dielectron_line_t : public SelectionAlgorithm,
                                      Parameters,
                                      CompositeParticleLine<lowmass_dielectron_line_t, Parameters> {
+    struct DeviceAccumulators {
+      Allen::Monitoring::LogHistogram<>::DeviceType histogram_dielectron_masses;
+      Allen::Monitoring::LogHistogram<>::DeviceType histogram_dielectron_masses_brem;
+      DeviceAccumulators(const lowmass_dielectron_line_t& algo, const Allen::Context& ctx) :
+        histogram_dielectron_masses(algo.m_histogram_dielectron_masses.data(ctx)),
+        histogram_dielectron_masses_brem(algo.m_histogram_dielectron_masses_brem.data(ctx))
+      {}
+    };
+
     __device__ static bool select(
       const Parameters&,
+      const DeviceAccumulators&,
       std::tuple<
         const Allen::Views::Physics::CompositeParticle,
         const bool,
@@ -97,7 +100,6 @@ namespace lowmass_dielectron_line {
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
-    void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
     void init_tuples(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
 
     __device__ static void fill_tuples(
@@ -114,12 +116,20 @@ namespace lowmass_dielectron_line {
       unsigned index,
       bool sel);
 
-    void output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
-      const;
     void output_tuples(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
       const;
 
-    void init();
+  private:
+    Allen::Monitoring::LogHistogram<> m_histogram_dielectron_masses {
+      this,
+      "dielectron_mass_counts",
+      "dielectron masses",
+      {200u, 0.f, 1500.f, 0.22842211f, 14.59935056f, 1.f}};
+    Allen::Monitoring::LogHistogram<> m_histogram_dielectron_masses_brem {
+      this,
+      "dielectron_mass_counts_brem",
+      "dielectron masses with brem",
+      {200u, 0.f, 1500.f, 0.22842211f, 14.59935056f, 1.f}};
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -143,9 +153,5 @@ namespace lowmass_dielectron_line {
     Property<MinDielectronPT_t> m_MinDielectronPT {this, 1000.f};
     Property<UseNN_t> m_UseNN {this, false};
     Property<NNCut_t> m_NNCut {this, 0.7};
-#ifndef ALLEN_STANDALONE
-    gaudi_monitoring::Lockable_Histogram<>* histogram_dielectron_masses;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_dielectron_masses_brem;
-#endif
   };
 } // namespace lowmass_dielectron_line

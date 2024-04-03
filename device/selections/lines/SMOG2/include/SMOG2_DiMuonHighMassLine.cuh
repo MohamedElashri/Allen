@@ -13,10 +13,7 @@
 #include "AlgorithmTypes.cuh"
 #include "CompositeParticleLine.cuh"
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include <Gaudi/Accumulators.h>
-#endif
+#include "AllenMonitoring.h"
 
 namespace SMOG2_dimuon_highmass_line {
   struct Parameters {
@@ -28,9 +25,6 @@ namespace SMOG2_dimuon_highmass_line {
 
     DEVICE_OUTPUT(smogdimuon_masses_t, float) smogdimuon_masses;
     DEVICE_OUTPUT(smogdimuon_svz_t, float) smogdimuon_svz;
-
-    DEVICE_OUTPUT(dev_histogram_smogdimuon_mass_t, unsigned) dev_histogram_smogdimuon_mass;
-    DEVICE_OUTPUT(dev_histogram_smogdimuon_svz_t, unsigned) dev_histogram_smogdimuon_svz;
 
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
@@ -96,27 +90,30 @@ namespace SMOG2_dimuon_highmass_line {
   struct SMOG2_dimuon_highmass_line_t : public SelectionAlgorithm,
                                         Parameters,
                                         CompositeParticleLine<SMOG2_dimuon_highmass_line_t, Parameters> {
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_smogdimuon_mass;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_smogdimuon_svz;
+      DeviceAccumulators(const SMOG2_dimuon_highmass_line_t& algo, const Allen::Context& ctx) :
+        histogram_smogdimuon_mass(algo.m_histogram_smogdimuon_mass.data(ctx)),
+        histogram_smogdimuon_svz(algo.m_histogram_smogdimuon_svz.data(ctx))
+      {}
+    };
 
     using monitoring_types = std::tuple<smogdimuon_masses_t, smogdimuon_svz_t>;
 
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+    void init();
 
     __device__ static bool select(
       const Parameters&,
+      const DeviceAccumulators&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
-
-    void init();
-
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
 
     __device__ static void monitor(
       const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
-
-    __host__ void
-    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
 
     __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float> static get_input(
       const Parameters& parameters,
@@ -150,9 +147,13 @@ namespace SMOG2_dimuon_highmass_line {
     // Switch to create monitoring tuple
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
 
-#ifndef ALLEN_STANDALONE
-    gaudi_monitoring::Lockable_Histogram<>* histogram_smogdimuon_mass;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_smogdimuon_svz;
-#endif
+    Allen::Monitoring::Histogram<> m_histogram_smogdimuon_mass {this,
+                                                                "SMOG2_dimuon_mass",
+                                                                "m(#mu#mu)",
+                                                                {100u, 2700.f, 4000.f}};
+    Allen::Monitoring::Histogram<> m_histogram_smogdimuon_svz {this,
+                                                               "smogdimuon_svz",
+                                                               "SV_z(smogdimuon)",
+                                                               {100u, -541.f, -341.f}};
   };
 } // namespace SMOG2_dimuon_highmass_line

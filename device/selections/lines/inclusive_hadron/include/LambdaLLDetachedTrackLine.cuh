@@ -14,10 +14,7 @@
 #include "CompositeParticleLine.cuh"
 #include "MassDefinitions.h"
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include <Gaudi/Accumulators.h>
-#endif
+#include "AllenMonitoring.h"
 
 namespace lambda_ll_detached_track_line {
   struct Parameters {
@@ -86,27 +83,23 @@ namespace lambda_ll_detached_track_line {
     DEVICE_OUTPUT(L_BPVDIRA_t, float) L_BPVDIRA;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
-
-    DEVICE_OUTPUT(dev_histogram_Lambda_mass_t, unsigned) dev_histogram_Lambda_mass;
-    PROPERTY(histogram_Lambda_mass_min_t, "histogram_Lambda_mass_min", "", float) histogram_Lambda_mass_min;
-    PROPERTY(histogram_Lambda_mass_max_t, "histogram_Lambda_mass_max", "", float) histogram_Lambda_mass_max;
-    PROPERTY(histogram_Lambda_mass_nbins_t, "histogram_Lambda_mass_nbins", "", unsigned int)
-    histogram_Lambda_mass_nbins;
-
-    DEVICE_OUTPUT(dev_histogram_LambdaPi_mass_t, unsigned) dev_histogram_LambdaPi_mass;
-    PROPERTY(histogram_LambdaPi_mass_min_t, "histogram_LambdaPi_mass_min", "", float) histogram_LambdaPi_mass_min;
-    PROPERTY(histogram_LambdaPi_mass_max_t, "histogram_LambdaPi_mass_max", "", float) histogram_LambdaPi_mass_max;
-    PROPERTY(histogram_LambdaPi_mass_nbins_t, "histogram_LambdaPi_mass_nbins", "", unsigned int)
-    histogram_LambdaPi_mass_nbins;
   };
 
   struct lambda_ll_detached_track_line_t : public SelectionAlgorithm,
                                            Parameters,
                                            CompositeParticleLine<lambda_ll_detached_track_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_Lambda_mass;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_LambdaPi_mass;
+      DeviceAccumulators(const lambda_ll_detached_track_line_t& algo, const Allen::Context& ctx) :
+        histogram_Lambda_mass(algo.m_histogram_Lambda_mass.data(ctx)),
+        histogram_LambdaPi_mass(algo.m_histogram_LambdaPi_mass.data(ctx))
+      {}
+    };
 
-    void init();
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
+    __device__ static bool
+    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+
     __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -114,11 +107,10 @@ namespace lambda_ll_detached_track_line {
       bool sel);
     __device__ static void monitor(
       const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
-    __host__ void
-    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
 
     using monitoring_types = std::tuple<
       M_t,
@@ -177,18 +169,24 @@ namespace lambda_ll_detached_track_line {
     Property<BPVFD_min_t> m_BPVFD_min {this, 0.2f * Gaudi::Units::mm};
     Property<LVDZ_min_t> m_LVDZ_min {this, 8.f * Gaudi::Units::mm};
     Property<BPVDIRA_min_t> m_BPVDIRA_min {this, 0.9};
-    Property<histogram_Lambda_mass_min_t> m_histogramLambdaMassMin {this, 1077.5f * Gaudi::Units::MeV};
+    /*Property<histogram_Lambda_mass_min_t> m_histogramLambdaMassMin {this, 1077.5f * Gaudi::Units::MeV};
     Property<histogram_Lambda_mass_max_t> m_histogramLambdaMassMax {this, 1140.f * Gaudi::Units::MeV};
     Property<histogram_Lambda_mass_nbins_t> m_histogramLambdaMassNBins {this, 125u};
     Property<histogram_LambdaPi_mass_min_t> m_histogramLambdaPiMassMin {this, 1.25f * Gaudi::Units::GeV};
     Property<histogram_LambdaPi_mass_max_t> m_histogramLambdaPiMassMax {this, 3.f * Gaudi::Units::GeV};
-    Property<histogram_LambdaPi_mass_nbins_t> m_histogramLambdaPiMassNBins {this, 175u};
+    Property<histogram_LambdaPi_mass_nbins_t> m_histogramLambdaPiMassNBins {this, 175u};*/
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<enable_tupling_t> m_enable_tupling {this, false};
 
-#ifndef ALLEN_STANDALONE
-    gaudi_monitoring::Lockable_Histogram<>* histogram_Lambda_mass;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_LambdaPi_mass;
-#endif
+    Allen::Monitoring::Histogram<> m_histogram_Lambda_mass {
+      this,
+      "d0_mass",
+      "m(D0)",
+      {125u, 1077.5f * Gaudi::Units::MeV, 1140.f * Gaudi::Units::MeV}};
+    Allen::Monitoring::Histogram<> m_histogram_LambdaPi_mass {
+      this,
+      "d0_pt",
+      "pT(D0)",
+      {175u, 1.25f * Gaudi::Units::GeV, 3.f * Gaudi::Units::GeV}};
   };
 } // namespace lambda_ll_detached_track_line

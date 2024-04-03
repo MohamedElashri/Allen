@@ -27,84 +27,6 @@ void velo_kalman_filter::velo_kalman_filter_t::set_arguments_size(
   set_size<dev_velo_kalman_endvelo_states_view_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
-void velo_kalman_filter::velo_kalman_filter_t::init()
-{
-#ifndef ALLEN_STANDALONE
-  histogram_velo_total_track_eta =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "velo_total_track_eta",
-                                                 "#total_eta",
-                                                 {property<histogram_velo_track_eta_nbins_t>(),
-                                                  property<histogram_velo_track_eta_min_t>(),
-                                                  property<histogram_velo_track_eta_max_t>()}},
-                                                {}};
-  histogram_velo_total_track_phi =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "velo_total_track_phi",
-                                                 "#total_phi",
-                                                 {property<histogram_velo_track_phi_nbins_t>(),
-                                                  property<histogram_velo_track_phi_min_t>(),
-                                                  property<histogram_velo_track_phi_max_t>()}},
-                                                {}};
-  histogram_velo_total_track_nhits =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "velo_total_track_nhits",
-                                                 "total N. hits / track",
-                                                 {property<histogram_velo_track_nhits_nbins_t>(),
-                                                  property<histogram_velo_track_nhits_min_t>(),
-                                                  property<histogram_velo_track_nhits_max_t>()}},
-                                                {}};
-  histogram_velo_forward_track_eta =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "velo_forward_track_eta",
-                                                 "#forward_eta",
-                                                 {property<histogram_velo_track_eta_nbins_t>(),
-                                                  property<histogram_velo_track_eta_min_t>(),
-                                                  property<histogram_velo_track_eta_max_t>()}},
-                                                {}};
-  histogram_velo_forward_track_phi =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "velo_forward_track_phi",
-                                                 "#forward_phi",
-                                                 {property<histogram_velo_track_phi_nbins_t>(),
-                                                  property<histogram_velo_track_phi_min_t>(),
-                                                  property<histogram_velo_track_phi_max_t>()}},
-                                                {}};
-  histogram_velo_forward_track_nhits =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "velo_forward_track_nhits",
-                                                 "forward N. hits / track",
-                                                 {property<histogram_velo_track_nhits_nbins_t>(),
-                                                  property<histogram_velo_track_nhits_min_t>(),
-                                                  property<histogram_velo_track_nhits_max_t>()}},
-                                                {}};
-  histogram_velo_backward_track_eta =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "velo_backward_track_eta",
-                                                 "#backward_eta",
-                                                 {property<histogram_velo_track_eta_nbins_t>(),
-                                                  property<histogram_velo_track_eta_min_t>(),
-                                                  property<histogram_velo_track_eta_max_t>()}},
-                                                {}};
-  histogram_velo_backward_track_phi =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "velo_backward_track_phi",
-                                                 "#backward_phi",
-                                                 {property<histogram_velo_track_phi_nbins_t>(),
-                                                  property<histogram_velo_track_phi_min_t>(),
-                                                  property<histogram_velo_track_phi_max_t>()}},
-                                                {}};
-  histogram_velo_backward_track_nhits =
-    new gaudi_monitoring::Lockable_Histogram<> {{this,
-                                                 "velo_backward_track_nhits",
-                                                 "backward N. hits / track",
-                                                 {property<histogram_velo_track_nhits_nbins_t>(),
-                                                  property<histogram_velo_track_nhits_min_t>(),
-                                                  property<histogram_velo_track_nhits_max_t>()}},
-                                                {}};
-#endif
-}
-
 void velo_kalman_filter::velo_kalman_filter_t::output_monitor(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
@@ -162,123 +84,18 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  auto dev_histogram_velo_total_track_eta =
-    make_device_buffer<unsigned>(arguments, property<histogram_velo_track_eta_nbins_t>());
-  auto dev_histogram_velo_total_track_phi =
-    make_device_buffer<unsigned>(arguments, property<histogram_velo_track_phi_nbins_t>());
-  auto dev_histogram_velo_total_track_nhits =
-    make_device_buffer<unsigned>(arguments, property<histogram_velo_track_nhits_nbins_t>());
-  auto dev_histogram_velo_forward_track_eta =
-    make_device_buffer<unsigned>(arguments, property<histogram_velo_track_eta_nbins_t>());
-  auto dev_histogram_velo_forward_track_phi =
-    make_device_buffer<unsigned>(arguments, property<histogram_velo_track_phi_nbins_t>());
-  auto dev_histogram_velo_forward_track_nhits =
-    make_device_buffer<unsigned>(arguments, property<histogram_velo_track_nhits_nbins_t>());
-  auto dev_histogram_velo_backward_track_eta =
-    make_device_buffer<unsigned>(arguments, property<histogram_velo_track_eta_nbins_t>());
-  auto dev_histogram_velo_backward_track_phi =
-    make_device_buffer<unsigned>(arguments, property<histogram_velo_track_phi_nbins_t>());
-  auto dev_histogram_velo_backward_track_nhits =
-    make_device_buffer<unsigned>(arguments, property<histogram_velo_track_nhits_nbins_t>());
-  Allen::memset_async(
-    dev_histogram_velo_total_track_eta.data(),
-    0,
-    dev_histogram_velo_total_track_eta.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_velo_total_track_phi.data(),
-    0,
-    dev_histogram_velo_total_track_phi.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_velo_total_track_nhits.data(),
-    0,
-    dev_histogram_velo_total_track_nhits.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_velo_forward_track_eta.data(),
-    0,
-    dev_histogram_velo_forward_track_eta.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_velo_forward_track_phi.data(),
-    0,
-    dev_histogram_velo_forward_track_phi.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_velo_forward_track_nhits.data(),
-    0,
-    dev_histogram_velo_forward_track_nhits.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_velo_backward_track_eta.data(),
-    0,
-    dev_histogram_velo_backward_track_eta.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_velo_backward_track_phi.data(),
-    0,
-    dev_histogram_velo_backward_track_phi.size() * sizeof(unsigned),
-    context);
-  Allen::memset_async(
-    dev_histogram_velo_backward_track_nhits.data(),
-    0,
-    dev_histogram_velo_backward_track_nhits.size() * sizeof(unsigned),
-    context);
   global_function(velo_kalman_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
     constants.dev_beamline.data(),
-    dev_histogram_velo_total_track_eta.get(),
-    dev_histogram_velo_total_track_phi.get(),
-    dev_histogram_velo_total_track_nhits.get(),
-    dev_histogram_velo_forward_track_eta.get(),
-    dev_histogram_velo_forward_track_phi.get(),
-    dev_histogram_velo_forward_track_nhits.get(),
-    dev_histogram_velo_backward_track_eta.get(),
-    dev_histogram_velo_backward_track_phi.get(),
-    dev_histogram_velo_backward_track_nhits.get());
-
-#ifndef ALLEN_STANDALONE
-  gaudi_monitoring::fill(
-    arguments,
-    context,
-    std::tuple {std::tuple {dev_histogram_velo_total_track_eta.get(),
-                            histogram_velo_total_track_eta,
-                            property<histogram_velo_track_eta_min_t>(),
-                            property<histogram_velo_track_eta_max_t>()},
-                std::tuple {dev_histogram_velo_total_track_phi.get(),
-                            histogram_velo_total_track_phi,
-                            property<histogram_velo_track_phi_min_t>(),
-                            property<histogram_velo_track_phi_max_t>()},
-                std::tuple {dev_histogram_velo_total_track_nhits.get(),
-                            histogram_velo_total_track_nhits,
-                            property<histogram_velo_track_nhits_min_t>(),
-                            property<histogram_velo_track_nhits_max_t>()},
-                std::tuple {dev_histogram_velo_forward_track_eta.get(),
-                            histogram_velo_forward_track_eta,
-                            property<histogram_velo_track_eta_min_t>(),
-                            property<histogram_velo_track_eta_max_t>()},
-                std::tuple {dev_histogram_velo_forward_track_phi.get(),
-                            histogram_velo_forward_track_phi,
-                            property<histogram_velo_track_phi_min_t>(),
-                            property<histogram_velo_track_phi_max_t>()},
-                std::tuple {dev_histogram_velo_forward_track_nhits.get(),
-                            histogram_velo_forward_track_nhits,
-                            property<histogram_velo_track_nhits_min_t>(),
-                            property<histogram_velo_track_nhits_max_t>()},
-                std::tuple {dev_histogram_velo_backward_track_eta.get(),
-                            histogram_velo_backward_track_eta,
-                            property<histogram_velo_track_eta_min_t>(),
-                            property<histogram_velo_track_eta_max_t>()},
-                std::tuple {dev_histogram_velo_backward_track_phi.get(),
-                            histogram_velo_backward_track_phi,
-                            property<histogram_velo_track_phi_min_t>(),
-                            property<histogram_velo_track_phi_max_t>()},
-                std::tuple {dev_histogram_velo_backward_track_nhits.get(),
-                            histogram_velo_backward_track_nhits,
-                            property<histogram_velo_track_nhits_min_t>(),
-                            property<histogram_velo_track_nhits_max_t>()}});
-#endif
+    m_histogram_velo_total_track_eta.data(context),
+    m_histogram_velo_total_track_phi.data(context),
+    m_histogram_velo_total_track_nhits.data(context),
+    m_histogram_velo_forward_track_eta.data(context),
+    m_histogram_velo_forward_track_phi.data(context),
+    m_histogram_velo_forward_track_nhits.data(context),
+    m_histogram_velo_backward_track_eta.data(context),
+    m_histogram_velo_backward_track_phi.data(context),
+    m_histogram_velo_backward_track_nhits.data(context));
 }
 
 /**
@@ -364,15 +181,15 @@ __device__ MiniState linear_fit(const Allen::Views::Velo::Consolidated::Track& t
 __global__ void velo_kalman_filter::velo_kalman_filter(
   velo_kalman_filter::Parameters parameters,
   float* dev_beamline,
-  gsl::span<unsigned> dev_histogram_velo_total_track_eta,
-  gsl::span<unsigned> dev_histogram_velo_total_track_phi,
-  gsl::span<unsigned> dev_histogram_velo_total_track_nhits,
-  gsl::span<unsigned> dev_histogram_velo_forward_track_eta,
-  gsl::span<unsigned> dev_histogram_velo_forward_track_phi,
-  gsl::span<unsigned> dev_histogram_velo_forward_track_nhits,
-  gsl::span<unsigned> dev_histogram_velo_backward_track_eta,
-  gsl::span<unsigned> dev_histogram_velo_backward_track_phi,
-  gsl::span<unsigned> dev_histogram_velo_backward_track_nhits)
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_total_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_total_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_total_track_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_forward_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_forward_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_forward_track_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_backward_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_backward_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_backward_track_nhits)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -409,7 +226,6 @@ __global__ void velo_kalman_filter::velo_kalman_filter(
     kalman_endvelo_states.set(velo_tracks_view.offset() + i, kalman_endvelo_state);
 
     velo_kalman_filter::velo_kalman_filter_t::monitor(
-      parameters,
       track,
       kalman_beamline_state,
       dev_histogram_velo_total_track_eta,
@@ -425,18 +241,17 @@ __global__ void velo_kalman_filter::velo_kalman_filter(
 }
 
 __device__ void velo_kalman_filter::velo_kalman_filter_t::monitor(
-  const velo_kalman_filter::Parameters& parameters,
-  Allen::Views::Velo::Consolidated::Track velo_track,
-  KalmanVeloState beamline_state,
-  gsl::span<unsigned> dev_histogram_velo_total_track_eta,
-  gsl::span<unsigned> dev_histogram_velo_total_track_phi,
-  gsl::span<unsigned> dev_histogram_velo_total_track_nhits,
-  gsl::span<unsigned> dev_histogram_velo_forward_track_eta,
-  gsl::span<unsigned> dev_histogram_velo_forward_track_phi,
-  gsl::span<unsigned> dev_histogram_velo_forward_track_nhits,
-  gsl::span<unsigned> dev_histogram_velo_backward_track_eta,
-  gsl::span<unsigned> dev_histogram_velo_backward_track_phi,
-  gsl::span<unsigned> dev_histogram_velo_backward_track_nhits)
+  const Allen::Views::Velo::Consolidated::Track& velo_track,
+  const KalmanVeloState& beamline_state,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_total_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_total_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_total_track_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_forward_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_forward_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_forward_track_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_backward_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_backward_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_backward_track_nhits)
 {
 
   const auto tx = beamline_state.tx();
@@ -453,40 +268,17 @@ __device__ void velo_kalman_filter::velo_kalman_filter_t::monitor(
   const auto phi = std::atan2(ty, tx);
   // printf("tx %.4f , ty %.4f, nhits: %d \n", tx,ty,nhits);
 
-  if (eta > parameters.histogram_velo_track_eta_min && eta < parameters.histogram_velo_track_eta_max) {
-    const unsigned int bin = static_cast<unsigned int>(
-      (eta - parameters.histogram_velo_track_eta_min) * parameters.histogram_velo_track_eta_nbins /
-      (parameters.histogram_velo_track_eta_max - parameters.histogram_velo_track_eta_min));
-    if (backward) {
-      atomicAdd(&dev_histogram_velo_backward_track_eta[bin], 1);
-    }
-    else {
-      atomicAdd(&dev_histogram_velo_forward_track_eta[bin], 1);
-    }
-    atomicAdd(&dev_histogram_velo_total_track_eta[bin], 1);
+  if (backward) {
+    dev_histogram_velo_backward_track_eta.increment(eta);
+    dev_histogram_velo_backward_track_phi.increment(phi);
+    dev_histogram_velo_backward_track_nhits.increment(nhits);
   }
-  if (phi > parameters.histogram_velo_track_phi_min && phi < parameters.histogram_velo_track_phi_max) {
-    const unsigned int bin = static_cast<unsigned int>(
-      (phi - parameters.histogram_velo_track_phi_min) * parameters.histogram_velo_track_phi_nbins /
-      (parameters.histogram_velo_track_phi_max - parameters.histogram_velo_track_phi_min));
-    if (backward) {
-      atomicAdd(&dev_histogram_velo_backward_track_phi[bin], 1);
-    }
-    else {
-      atomicAdd(&dev_histogram_velo_forward_track_phi[bin], 1);
-    }
-    atomicAdd(&dev_histogram_velo_total_track_phi[bin], 1);
+  else {
+    dev_histogram_velo_forward_track_eta.increment(eta);
+    dev_histogram_velo_forward_track_phi.increment(phi);
+    dev_histogram_velo_forward_track_nhits.increment(nhits);
   }
-  if (nhits > parameters.histogram_velo_track_nhits_min && nhits < parameters.histogram_velo_track_nhits_max) {
-    const unsigned int bin = static_cast<unsigned int>(
-      (nhits - parameters.histogram_velo_track_nhits_min) * parameters.histogram_velo_track_nhits_nbins /
-      (parameters.histogram_velo_track_nhits_max - parameters.histogram_velo_track_nhits_min));
-    if (backward) {
-      atomicAdd(&dev_histogram_velo_backward_track_nhits[bin], 1);
-    }
-    else {
-      atomicAdd(&dev_histogram_velo_forward_track_nhits[bin], 1);
-    }
-    atomicAdd(&dev_histogram_velo_total_track_nhits[bin], 1);
-  }
+  dev_histogram_velo_total_track_eta.increment(eta);
+  dev_histogram_velo_total_track_phi.increment(phi);
+  dev_histogram_velo_total_track_nhits.increment(nhits);
 }

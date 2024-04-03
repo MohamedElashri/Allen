@@ -6,10 +6,7 @@
 #include "AlgorithmTypes.cuh"
 #include "CompositeParticleLine.cuh"
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include <Gaudi/Accumulators.h>
-#endif
+#include "AllenMonitoring.h"
 
 namespace det_jpsitomumu_tap_line {
   struct Parameters {
@@ -83,31 +80,27 @@ namespace det_jpsitomumu_tap_line {
     DEVICE_OUTPUT(muprobe_eta_t, float) muprobe_eta;
     // monitoring
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    DEVICE_OUTPUT(dev_histogram_mass_t, unsigned) dev_histogram_mass;
-    PROPERTY(histogram_mass_min_t, "histogram_mass_min", "histogram_mass_min description", float)
-    histogram_mass_min;
-    PROPERTY(histogram_mass_max_t, "histogram_mass_max", "histogram_mass_max description", float)
-    histogram_mass_max;
-    PROPERTY(histogram_mass_nbins_t, "histogram_mass_nbins", "histogram_mass_nbins description", unsigned int)
-    histogram_mass_nbins;
   };
 
   struct det_jpsitomumu_tap_line_t : public SelectionAlgorithm,
                                      Parameters,
                                      CompositeParticleLine<det_jpsitomumu_tap_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
-    void init();
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_det_jpsitomumu_tap_mass;
+      DeviceAccumulators(const det_jpsitomumu_tap_line_t& algo, const Allen::Context& ctx) :
+        histogram_det_jpsitomumu_tap_mass(algo.m_histogram_det_jpsitomumu_tap_mass.data(ctx))
+      {}
+    };
+
+    __device__ static bool
+    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
     // monitoring
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
     __device__ static void monitor(
       const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
-    __host__ void
-    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
-
     __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
@@ -174,14 +167,12 @@ namespace det_jpsitomumu_tap_line {
 
     Property<posTag_t> m_posTag {this, true};
 
-    Property<histogram_mass_min_t> m_histogramMassMin {this, 2950.f};
-    Property<histogram_mass_max_t> m_histogramMassMax {this, 3250.f};
-    Property<histogram_mass_nbins_t> m_histogramMassNBins {this, 60u};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<enable_tupling_t> m_enable_tupling {this, false};
 
-#ifndef ALLEN_STANDALONE
-    gaudi_monitoring::Lockable_Histogram<>* histogram_det_jpsitomumu_tap_mass;
-#endif
+    Allen::Monitoring::Histogram<> m_histogram_det_jpsitomumu_tap_mass {this,
+                                                                        "histogram_det_jpsitomumu_tap_mass",
+                                                                        "m(jpsi)",
+                                                                        {60u, 2950.f, 3250.f}};
   };
 } // namespace det_jpsitomumu_tap_line

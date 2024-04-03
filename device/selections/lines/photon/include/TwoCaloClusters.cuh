@@ -18,10 +18,7 @@
 #include "CompositeParticleLine.cuh"
 #include <cfloat>
 
-#ifndef ALLEN_STANDALONE
-#include "GaudiMonitoring.h"
-#include <Gaudi/Accumulators.h>
-#endif
+#include "AllenMonitoring.h"
 
 namespace two_calo_clusters_line {
   struct Parameters {
@@ -39,10 +36,6 @@ namespace two_calo_clusters_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-
-    // Device outputs for monitoring
-    DEVICE_OUTPUT(dev_histogram_diphoton_mass_t, unsigned) dev_histogram_diphoton_mass;
-    DEVICE_OUTPUT(dev_histogram_diphoton_pt_t, unsigned) dev_histogram_diphoton_pt;
 
     DEVICE_OUTPUT(mass_t, float) diphoton_mass;
     DEVICE_OUTPUT(et_t, float) diphoton_et;
@@ -115,6 +108,14 @@ namespace two_calo_clusters_line {
   struct two_calo_clusters_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     CompositeParticleLine<two_calo_clusters_line_t, Parameters> {
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_diphoton_mass;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_diphoton_pt;
+      DeviceAccumulators(const two_calo_clusters_line_t& algo, const Allen::Context& ctx) :
+        histogram_diphoton_mass(algo.m_histogram_diphoton_mass.data(ctx)),
+        histogram_diphoton_pt(algo.m_histogram_diphoton_pt.data(ctx))
+      {}
+    };
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
@@ -123,7 +124,8 @@ namespace two_calo_clusters_line {
       bool sel);
 
     __device__ static bool select(
-      const Parameters& parameters,
+      const Parameters&,
+      const DeviceAccumulators&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned> input);
 
     using monitoring_types = std::tuple<
@@ -162,18 +164,12 @@ namespace two_calo_clusters_line {
 
     void init();
 
-    static void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context);
-
     __device__ static void monitor(
       const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned>,
       unsigned index,
       bool sel);
-
-    __host__ void
-    output_monitor(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&) const;
-
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -201,9 +197,8 @@ namespace two_calo_clusters_line {
     Property<histogram_diphoton_pt_max_t> m_histogramdiphotonPtMax {this, 2e3};
     Property<histogram_diphoton_pt_nbins_t> m_histogramdiphotonPtNBins {this, 100u};
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
-#ifndef ALLEN_STANDALONE
-    gaudi_monitoring::Lockable_Histogram<>* histogram_diphoton_mass;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_diphoton_pt;
-#endif
+
+    Allen::Monitoring::Histogram<> m_histogram_diphoton_mass {this, "diphoton_mass", "m(diphoton)", {100u, 0.f, 2e3f}};
+    Allen::Monitoring::Histogram<> m_histogram_diphoton_pt {this, "diphoton_pt", "pT(diphoton)", {100u, 0.f, 2e3f}};
   };
 } // namespace two_calo_clusters_line

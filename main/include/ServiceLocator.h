@@ -12,6 +12,8 @@
 
 #ifndef ALLEN_STANDALONE
 #include "Gaudi/MonitoringHub.h"
+#include "Gaudi/Accumulators/Histogram.h"
+#include <GaudiKernel/Bootstrap.h>
 #endif
 
 struct StreamServiceLocator {
@@ -22,15 +24,10 @@ struct StreamServiceLocator {
   }
 
 #ifndef ALLEN_STANDALONE
-  Gaudi::Monitoring::Hub& monitoringHub() { return m_monitoringHub; }
+  Gaudi::Monitoring::Hub& monitoringHub() { return Gaudi::svcLocator()->monitoringHub(); }
 #endif
 
 private:
   StreamServiceLocator() = default;
-
   ~StreamServiceLocator() = default;
-
-#ifndef ALLEN_STANDALONE
-  Gaudi::Monitoring::Hub m_monitoringHub {};
-#endif
 };

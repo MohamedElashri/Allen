@@ -17,10 +17,7 @@
 #include "AlgorithmTypes.cuh"
 #include <cstdint>
 
-#ifndef ALLEN_STANDALONE
-#include <Gaudi/Accumulators.h>
-#include "GaudiMonitoring.h"
-#endif
+#include "AllenMonitoring.h"
 
 namespace velo_consolidate_tracks {
   struct Parameters {
@@ -69,7 +66,10 @@ namespace velo_consolidate_tracks {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void velo_consolidate_tracks(Parameters, gsl::span<unsigned>, gsl::span<unsigned>);
+  __global__ void velo_consolidate_tracks(
+    Parameters,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::AveragingCounter<>::DeviceType);
 
   struct lhcb_id_container_checks : public Allen::contract::Postcondition {
     void operator()(
@@ -80,8 +80,6 @@ namespace velo_consolidate_tracks {
   };
 
   struct velo_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
-    void init();
-
     using contracts = std::tuple<lhcb_id_container_checks>;
 
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -95,10 +93,10 @@ namespace velo_consolidate_tracks {
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
 
-#ifndef ALLEN_STANDALONE
-  private:
-    Gaudi::Accumulators::Counter<>* m_velo_tracks;
-    gaudi_monitoring::Lockable_Histogram<>* histogram_n_velo_tracks;
-#endif
+    Allen::Monitoring::AveragingCounter<> m_velo_tracks {this, "n_velo_tracks"};
+    Allen::Monitoring::Histogram<> m_histogram_n_velo_tracks {this,
+                                                              "n_velo_tracks_event",
+                                                              "n_velo_tracks_event",
+                                                              {100u, 0.f, 500.f}};
   };
 } // namespace velo_consolidate_tracks
