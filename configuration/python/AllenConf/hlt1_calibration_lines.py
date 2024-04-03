@@ -19,11 +19,12 @@ from PyConf.tonic import configurable
 from AllenCore.configuration_options import is_allen_standalone
 
 
+@configurable
 def make_pi02gammagamma_line(calo,
                              velo_tracks,
                              pvs,
                              name="Hlt1Pi02GammaGamma",
-                             pre_scaler=1.,
+                             pre_scaler=0.05,
                              pre_scaler_hash_string=None,
                              post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
