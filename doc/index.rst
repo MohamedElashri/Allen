@@ -21,6 +21,7 @@ This site documents various aspects of Allen.
    develop/add_algorithm
    develop/configure_sequence
    develop/selections
+   develop/combiners
    develop/tests
    develop/root_service
    develop/memory_layouts
