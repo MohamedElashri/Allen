@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "HostTAEFilter.h"
+#include <optional>
 
 INSTANTIATE_ALGORITHM(host_tae_filter::host_tae_filter_t)
 
@@ -25,7 +26,7 @@ void tae_filter(host_tae_filter::host_tae_filter_t::Parameters parameters, unsig
     // Once the start of the TAE group is found, look for the rest
     if (odin.timeAlignmentEventFirst()) {
       unsigned tae_start = event_number;
-      unsigned tae_window = event_number;
+      std::optional<unsigned> tae_window;
       unsigned prev_event = event_number;
 
       // Loop until an non-TAE event or the end of the batch is encountered
@@ -49,7 +50,7 @@ void tae_filter(host_tae_filter::host_tae_filter_t::Parameters parameters, unsig
           }
           tae_window = event_number - tae_start;
         }
-        else if (tae_window != tae_start && (event_number == tae_start + 2 * tae_window)) {
+        else if (tae_window && (event_number == tae_start + 2 * *tae_window)) {
           // fill the event list only once the last event in the tae group is found,
 
           if (parameters.accept_sub_events) {
@@ -60,8 +61,8 @@ void tae_filter(host_tae_filter::host_tae_filter_t::Parameters parameters, unsig
           }
           else {
             // sub events should be output as part of a TAE event, so only accept the central event
-            parameters.host_output_event_list[event_list_size++] = tae_start + tae_window;
-            parameters.host_tae_events[n_tae++] = TAE::TAEEvent {tae_start + tae_window, tae_window};
+            parameters.host_output_event_list[event_list_size++] = tae_start + *tae_window;
+            parameters.host_tae_events[n_tae++] = TAE::TAEEvent {tae_start + *tae_window, *tae_window};
           }
           break;
         }
