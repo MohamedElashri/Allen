@@ -105,3 +105,6 @@ linkcheck_ignore = [
     # really broken, see gaudi/Gaudi#156
     r"http://gaudi\.web\.cern\.ch/gaudi/doxygen/master/index\.html",
 ]
+
+# Disable checks of anchors
+linkcheck_anchors = False

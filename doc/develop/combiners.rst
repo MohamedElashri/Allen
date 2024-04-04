@@ -1,7 +1,7 @@
 .. _combiners:
 
 Particle combiners in Allen
-======
+===========================
 Particle combiners are algorithms that combine `BasicParticle`s,
 `NeutralBasicParticle`, and `CompositeParticle`s to create `CompositeParticle`s.
 Generally, the combiners perform a filtering step on the input particles, count
@@ -9,7 +9,7 @@ the combinations, and create `CompositeParticle` views containing the resulting
 combinations. There are a few combiners currently implemented in Allen:
 
 `Two-track combiner <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/vertex_fit/vertex_fitter/src/VertexFitter.cu>`_
-----
+---------------------------------------------------------------------------------------------------------------------------
 The two-track combiner combines pairs of long tracks to create secondary
 vertices. The two-track combiner also performs a vertex fit, which determines a
 position covariance matrix for the combination. The two-track combiner is
@@ -41,7 +41,7 @@ dilepton tracks have not displacement requirements but must be identified as
 electrons or muons.
 
 `Two-photon combiner <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/calo/clustering/src/CaloFindTwoClusters.cu>_`
-----
+--------------------------------------------------------------------------------------------------------------------------
 The two-photon combiner creates diphoton `CompositeParticle`s from pairs of
 `NeutralBasicParticle`s. Unlike the two-track combiner, no vertex fit is
 performed. The two-photon combiner is configured in
@@ -57,13 +57,13 @@ The arguments of `make_ecal_clusters` that are passed to the prefilter are:
 In the default Allen sequence, only one container of diphotons is created.
 
 `Track+SV combiner <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/vertex_fit/vertex_fitter/src/CombineSVTrack.cu>`_
-----
+----------------------------------------------------------------------------------------------------------------------------
 The Track+SV combiner combines a `BasicParticle` with a `CompositeParticle` to
 create a track+SV `CompositeParticle`. For now, the SV must be a two-track
 secondary vertex, but this requirement will be relaxed in the future to allow
 for more general combinations. No vertex fit is performed, so no covariance
 matrix is available for these combinations. This combiner is configured in
-`configuration/python/AllenConf/secondary_vertex_reconstruction.py
+`configuration/python/AllenConf/secondary_vertex_reconstruction.py L267
 <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/secondary_vertex_reconstruction.py?ref_type=heads#L267>`_.
 The first argument of `make_sv_track_pairs` is the
 `MultiEventCompositeParticles` view containing the input SVs, and the second
@@ -87,10 +87,10 @@ displaced SVs with displaced tracks to form hyperon candidates. It is also used
 to combine displaced SVs with prompt tracks to form D* candidates.
 
 `SV+SV combiner <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/combiners/src/SVCombiner.cu>`_
------
+------------------------------------------------------------------------------------------------------
 The SV+SV combiner is used to create pairs of displaced vertices. The combiner
 is configured in
-`configuration/python/AllenConf/secondary_vertex_reconstruction.py
+`configuration/python/AllenConf/secondary_vertex_reconstruction.py L215
 <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/configuration/python/AllenConf/secondary_vertex_reconstruction.py?ref_type=heads#L215>`_.
 There are currently no configurable parameters for the prefilter, but this will
 change in the future. This combiner is used in the default sequence to create
