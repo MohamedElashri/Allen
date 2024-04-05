@@ -170,7 +170,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
           parameters
             .dev_sel_calo_indices[n_children * line_selected_object_offsets[line_index] + calo_candidate_index] =
             calo_insert_index;
-          parameters.dev_selected_neutral_basic_particle_ptrs[selected_object_offset + calo_candidate_index] =
+          parameters.dev_selected_neutral_basic_particle_ptrs[selected_object_offset + calo_insert_index] =
             const_cast<Allen::Views::Physics::NeutralBasicParticle*>(event_calos.particle_pointer(calo_index));
         }
       }
