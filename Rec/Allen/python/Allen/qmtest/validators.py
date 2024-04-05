@@ -41,3 +41,31 @@ def checkSizes(reference_file, causes, result):
                                              for e in bad_size]) + '\n')
 
     result["validator.output"] = result.Quote(result_str)
+
+
+def check_large_event_histograms(filename):
+    from ROOT import TFile
+    from AllenConf import persistency
+    import re
+
+    rbs = {b: re.compile(k) for k, b in persistency.rb_map.items()}
+
+    mon_file = TFile.Open("large_event_passthrough.root")
+    dr_histo = mon_file.Get("HltDecReportsMonitor/pass_count")
+    rb_histo = mon_file.Get("HltRoutingBitsMonitor/rb_count")
+
+    # The bin labels are the line names
+    pass_counts = {}
+    for i in range(dr_histo.GetNbinsX()):
+        line_name = str(dr_histo.GetXaxis().GetLabels()[i])
+        pass_counts[line_name] = int(dr_histo.GetBinContent(i + 1))
+
+    line_name = None
+    if len(pass_counts) == 1:
+        line_name, n_evt = list(pass_counts.items())[0]
+        matching_bits = [b for b, expr in rbs.items() if expr.match(line_name)]
+        rb_counts = {b: rb_histo.GetBinContent(b + 1) for b in matching_bits}
+    else:
+        rb_counts = {}
+
+    return line_name, pass_counts, rb_counts

@@ -1,0 +1,47 @@
+<?xml version="1.0" ?><!DOCTYPE extension  PUBLIC '-//QM/2.3/Extension//EN'  'http://www.codesourcery.com/qm/dtds/2.3/-//qm/2.3/extension//en.dtd'>
+<!--
+    (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration
+
+    This software is distributed under the terms of the Apache License
+    version 2 (Apache-2.0), copied verbatim in the file "LICENSE".
+
+    In applying this licence, CERN does not waive the privileges and immunities
+    granted to it by virtue of its status as an Intergovernmental Organization
+    or submit itself to any jurisdiction.
+-->
+<!--
+#######################################################
+# SUMMARY OF THIS TEST
+# ...................
+# Author: Daniel Craik
+# Purpose: Test the large-event passthrough pathway
+#          by setting the GPU memory allocation to zero
+#######################################################
+-->
+<extension class="GaudiTest.GaudiExeTest" kind="test">
+  <argument name="program"><text>python</text></argument>
+  <argument name="args"><set>
+    <text>${BINARYDUMPERSROOT}/options/allen.py</text>
+	<text>--mdf</text><text>root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.mdf</text>
+    <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants/hlt1_pp_matching.json</text>
+    <text>--tags=detdesc:dddb-20220705,sim-20220705-vc-md100|dd4hep:run3/trunk,master</text>
+    <text>--events-per-slice</text><text>500</text>
+    <text>-m</text><text>0</text>
+    <text>-s</text><text>1</text>
+    <text>-t</text><text>1</text>
+    <text>-n</text><text>2</text>
+    <text>--output-file</text><text>large_event_passthrough.mdf</text>
+  </set></argument>
+  <argument name="reference"><text>../refs/allen_large_event_passthrough.ref</text></argument>
+  <argument name="error_reference"><text>../refs/empty.ref</text></argument>
+  <argument name="timeout"><integer>600</integer></argument>
+  <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
+  <argument name="validator"><text>
+
+from Allen.qmtest.exclusions import preprocessor, skip_lbdd4hep
+validateWithReference(preproc = preprocessor)
+
+countErrorLines({"FATAL":0,"ERROR":0,"WARNING":0}, stdout=skip_lbdd4hep(stdout))
+
+  </text></argument>
+</extension>

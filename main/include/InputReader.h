@@ -87,14 +87,18 @@ private:
 };
 
 struct ConfigurationReader {
+
+  using Params = std::map<std::string, std::map<std::string, nlohmann::json>>;
+
   ConfigurationReader(std::string_view configuration);
-  ConfigurationReader(const std::map<std::string, std::map<std::string, nlohmann::json>>& params) : m_params(params) {}
+  ConfigurationReader(const Params& params) : m_params(params) {}
 
   std::map<std::string, nlohmann::json> params(std::string key) const
   {
     return (m_params.count(key) > 0 ? m_params.at(key) : std::map<std::string, nlohmann::json>());
   }
-  std::map<std::string, std::map<std::string, nlohmann::json>> params() const { return m_params; }
+
+  Params const& params() const { return m_params; }
   ConfiguredSequence configured_sequence() const { return m_configured_sequence; }
 
   void save(std::string file_name);

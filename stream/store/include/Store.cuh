@@ -85,14 +85,28 @@ namespace Allen::Store {
     {
       Allen::Store::AllenArgument arg {std::in_place_type<T>, k, Allen::Store::Scope::Host};
       arg.set_size(value.size());
+      reserve(arg);
       const auto& [i, ok] = m_store.try_emplace(k, arg);
       if (!ok) {
         throw std::runtime_error("store register_entry failed, entry already exists");
       }
-      arg = i->second;
-      reserve(arg);
       gsl::span<T> arg_span = arg;
       std::memcpy(arg_span.data(), value.data(), value.size() * sizeof(T));
+    }
+
+    void inject(const std::string& k, const std::vector<bool>& value)
+    {
+      Allen::Store::AllenArgument arg {std::in_place_type<bool>, k, Allen::Store::Scope::Host};
+      arg.set_size(value.size());
+      reserve(arg);
+      const auto& [i, ok] = m_store.try_emplace(k, arg);
+      if (!ok) {
+        throw std::runtime_error("store register_entry failed, entry already exists");
+      }
+      gsl::span<bool> arg_span = arg;
+      for (auto i = 0u; i < value.size(); ++i) {
+        arg_span[i] = value[i];
+      }
     }
 
     void free_all() { m_mem_manager.free_all(); }

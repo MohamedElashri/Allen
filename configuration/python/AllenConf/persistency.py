@@ -165,7 +165,10 @@ rb_map = {
     17,
     # RB 25 error banks
     'Hlt1ErrorBank':
-    25
+    25,
+    # RB 26 HLT1 large-event passthrough
+    'Hlt1PassthroughLargeEvent':
+    26
 }
 
 #routing bits for Heavy ions
@@ -211,7 +214,10 @@ rb_map_PbPb = {
     16,
     # RB 25 error banks
     'Hlt1ErrorBank':
-    25
+    25,
+    # RB 26 HLT1 large-event passthrough
+    'Hlt1PassthroughLargeEvent':
+    26
 }
 
 
