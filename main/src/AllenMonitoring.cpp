@@ -64,6 +64,7 @@ namespace Allen::Monitoring {
 
     m_stream_current_buffer.resize(number_of_streams);
     m_stream_done.resize(number_of_streams);
+    std::fill(m_stream_done.begin(), m_stream_done.end(), true);
   }
 
   void AccumulatorManager::mergeAndReset(bool singlethreaded)

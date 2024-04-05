@@ -70,6 +70,7 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
         Allen::synchronize(m_context);
         Allen::Monitoring::AccumulatorManager::get()->streamDone(stream_id);
       } catch (const MemoryException& e) {
+        Allen::Monitoring::AccumulatorManager::get()->streamDone(stream_id);
         warning_cout << "Insufficient memory to process slice - will sub-divide and retry." << std::endl;
         return Allen::error::errorMemoryAllocation;
       }
