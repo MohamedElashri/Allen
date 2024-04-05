@@ -146,6 +146,6 @@ namespace Muon {
 
       float z_station[4] {15205.f, 16400.f, 17700.f, 18850.f};
     };
-    static constexpr unsigned max_number_of_tracks = 120;
+    static constexpr unsigned max_number_of_tracks = 2000;
   } // namespace Constants
 } // namespace Muon

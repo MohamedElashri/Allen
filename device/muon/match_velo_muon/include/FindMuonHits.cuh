@@ -27,6 +27,7 @@ namespace find_muon_hits {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_station_ocurrences_offset_t, unsigned) dev_station_ocurrences_offset;
     DEVICE_OUTPUT(dev_muon_tracks_t, MuonTrack) dev_muon_tracks;
+    DEVICE_OUTPUT(dev_muon_tracks_buffer_t, MuonTrack) dev_muon_tracks_buffer;
     DEVICE_OUTPUT(dev_muon_number_of_tracks_t, unsigned) dev_muon_number_of_tracks;
 
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;

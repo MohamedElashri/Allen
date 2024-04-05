@@ -9,9 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "FindMuonHits.cuh"
-
-#include "Common.h"
-#include <string>
+#include "MuonDefinitions.cuh"
 
 INSTANTIATE_ALGORITHM(find_muon_hits::find_muon_hits_t)
 
@@ -21,6 +19,8 @@ void find_muon_hits::find_muon_hits_t::set_arguments_size(
   const Constants&) const
 {
   set_size<dev_muon_tracks_t>(
+    arguments, Muon::Constants::max_number_of_tracks * first<host_number_of_events_t>(arguments));
+  set_size<dev_muon_tracks_buffer_t>(
     arguments, Muon::Constants::max_number_of_tracks * first<host_number_of_events_t>(arguments));
   set_size<dev_muon_number_of_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
 }
@@ -293,7 +293,12 @@ __device__ void seedAndFind(
       auto fit_result_xz = applyWeightedFit(muon_track, muon_hits, true);
       auto fit_result_yz = applyWeightedFit(muon_track, muon_hits, false);
       if (fit_result_xz && fit_result_yz) {
-        const auto insert_index = atomicAdd(&number_of_muon_tracks_atomic, 1);
+
+        auto insert_index = atomicAdd(&number_of_muon_tracks_atomic, 1);
+        if (number_of_muon_tracks_atomic >= Muon::Constants::max_number_of_tracks) {
+          number_of_muon_tracks_atomic = 0;
+          return;
+        }
         muon_tracks[insert_index] = muon_track;
       }
     }
@@ -324,8 +329,7 @@ __global__ void find_muon_hits::find_muon_hits(
     Muon::Constants::M5, Muon::Constants::M4, Muon::Constants::M3, Muon::Constants::M2};
 
   const auto match_windows = dev_match_windows[0];
-  __shared__ float muon_tracks_shared_container[Muon::Constants::max_number_of_tracks * sizeof(MuonTrack)];
-  MuonTrack* muon_tracks = reinterpret_cast<MuonTrack*>(muon_tracks_shared_container);
+  MuonTrack* muon_tracks = parameters.dev_muon_tracks_buffer + tracks_offset;
   __shared__ unsigned number_of_muon_tracks_atomic;
   if (threadIdx.x == 0) number_of_muon_tracks_atomic = 0;
 
@@ -340,9 +344,7 @@ __global__ void find_muon_hits::find_muon_hits(
     parameters.required_number_of_hits,
     number_of_muon_tracks_atomic,
     muon_tracks);
-
   __syncthreads();
-
   // Clone killing
   const auto is_clone_of = [&](const MuonTrack& track_a, const MuonTrack& track_b) {
     if (
