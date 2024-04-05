@@ -25,7 +25,7 @@ namespace dec_reporter {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(tck_t, "tck", "TCK", unsigned) tck;
     PROPERTY(encoding_key_t, "encoding_key", "encoding key", unsigned) key;
-    PROPERTY(task_id_t, "task_is", "Task ID", unsigned) task_id;
+    PROPERTY(task_id_t, "task_id", "Task ID", unsigned) task_id;
   };
 
   __global__ void dec_reporter(Parameters);

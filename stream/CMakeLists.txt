@@ -51,7 +51,8 @@ target_link_libraries(Stream
     Rich
   PUBLIC
     Utils
-    Selections)
+    Selections
+    SelectionsHeaders)
 
 if(STANDALONE)
   add_dependencies(Stream checkout_lhcb checkout_gaudi)

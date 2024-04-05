@@ -358,13 +358,21 @@ int allen(
     Gaudi::Monitoring::Hub* secondHub = &Gaudi::svcLocator()->monitoringHub();
     secondHub->addSink(&monitoringPrinter);
   }
+
+  // Set up event-loop monitoring
+  auto svc = dynamic_cast<Service const*>(zmqSvc)->service<IService>("AllenIOMon/EventLoop", true);
+  auto* monSvc = dynamic_cast<Service*>(svc.get());
 #endif
 
   auto const& configuration = configuration_reader->params();
 
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffers_manager =
-    std::make_unique<HostBuffersManager>(number_of_buffers, reserve_host_mb);
+    std::make_unique<HostBuffersManager>(number_of_buffers, reserve_host_mb, configuration);
+
+#ifndef ALLEN_STANDALONE
+  buffers_manager->activateMonitoring(monSvc);
+#endif
 
   if (print_status) {
     buffers_manager->printStatus();

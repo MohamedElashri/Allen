@@ -66,6 +66,57 @@ namespace make_subbanks {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
+  __host__ __device__ void make_rb_substr_bank(
+    unsigned* event_rb_substr,
+    const unsigned event_rb_substr_size,
+    const unsigned n_children,
+    const unsigned n_sels,
+    const unsigned n_tracks,
+    const unsigned n_calos,
+    const unsigned n_svs,
+    const unsigned substr_sel_size,
+    const unsigned substr_sv_size,
+    const unsigned substr_track_size,
+    Allen::IMultiEventContainer* const* mecs,
+    Allen::Views::Physics::BasicParticle* const* const event_track_ptrs,
+    Allen::Views::Physics::NeutralBasicParticle* const* const event_calo_ptrs,
+    Allen::Views::Physics::CompositeParticle* const* const event_sv_ptrs,
+    const unsigned* line_object_offsets,
+    const unsigned* event_unique_track_list,
+    const unsigned* event_unique_calo_list,
+    const unsigned* event_unique_sv_list,
+    const unsigned* event_candidate_offsets,
+    const unsigned* event_sel_list,
+    const unsigned* sel_track_indices,
+    const unsigned* sel_calo_indices,
+    const unsigned* sel_sv_indices,
+    const int* track_duplicate_map,
+    const int* calo_duplicate_map,
+    const int* sv_duplicate_map);
+
+  __host__ __device__ void make_rb_objtyp_bank(
+    unsigned* event_rb_objtyp,
+    const unsigned n_objtyps,
+    const unsigned n_sels,
+    const unsigned n_tracks,
+    const unsigned n_calos,
+    const unsigned n_svs);
+
+  __host__ __device__ void make_rb_stdinfo_bank(
+    unsigned* event_rb_stdinfo,
+    const unsigned stdinfo_size,
+    const unsigned n_sels,
+    const unsigned n_tracks,
+    const unsigned n_calos,
+    const unsigned n_svs,
+    const unsigned* event_sel_list,
+    const unsigned* event_unique_track_list,
+    const unsigned* event_unique_calo_list,
+    const unsigned* event_unique_sv_list,
+    Allen::Views::Physics::BasicParticle* const* const event_track_ptrs,
+    Allen::Views::Physics::NeutralBasicParticle* const* const event_calo_ptrs,
+    Allen::Views::Physics::CompositeParticle* const* const event_sv_ptrs);
+
   __global__ void make_rb_substr(Parameters, const unsigned number_of_events);
 
   __global__ void make_rb_hits(Parameters);
