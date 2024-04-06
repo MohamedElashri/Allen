@@ -26,7 +26,7 @@ __device__ bool track_mva_line::track_mva_line_t::select(
       logf(track.ip_chi2()) > parameters.param1 / ((ptShift - parameters.param2) * (ptShift - parameters.param2)) +
                                 (parameters.param3 / parameters.maxPt) * (parameters.maxPt - ptShift) +
                                 logf(parameters.minIPChi2))) &&
-    track.pv().position.z > parameters.minBPVz;
+    track.pv().position.z > parameters.minBPVz && track.track().ghost_probability() < parameters.maxGhostProb;
 
   return decision;
 }
@@ -38,8 +38,9 @@ __device__ void track_mva_line::track_mva_line_t::fill_tuples(
   bool sel)
 {
   if (sel) {
-    const auto track = std::get<0>(input);
+    const auto& track = std::get<0>(input);
     parameters.ipchi2[index] = track.ip_chi2();
     parameters.pt[index] = track.state().pt();
+    parameters.ghostProb[index] = track.track().ghost_probability();
   }
 }

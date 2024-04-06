@@ -35,9 +35,11 @@ namespace track_mva_line {
     PROPERTY(param3_t, "param3", "param3 description", float) param3;
     PROPERTY(alpha_t, "alpha", "alpha description", float) alpha;
     PROPERTY(minBPVz_t, "minBPVz", "minimum z for the best associated primary vertex", float) minBPVz;
+    PROPERTY(maxGhostProb_t, "maxGhostProb", "Maximum ghost probability of the tracks", float) maxGhostProb;
 
     DEVICE_OUTPUT(pt_t, float) pt;
     DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
+    DEVICE_OUTPUT(ghostProb_t, float) ghostProb;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
 
@@ -52,7 +54,7 @@ namespace track_mva_line {
       unsigned index,
       bool sel);
 
-    using monitoring_types = std::tuple<pt_t, ipchi2_t, evtNo_t, runNo_t>;
+    using monitoring_types = std::tuple<pt_t, ipchi2_t, ghostProb_t, evtNo_t, runNo_t>;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -68,6 +70,7 @@ namespace track_mva_line {
     Property<param3_t> m_param3 {this, 1.248f};
     Property<alpha_t> m_alpha {this, 296.f * Gaudi::Units::MeV}; // tuned to about 330 kHz (modulo GEC)
     Property<minBPVz_t> m_minBPVz {this, -341.f * Gaudi::Units::mm};
+    Property<maxGhostProb_t> m_maxGhostProb {this, 0.5};
 
     Property<enable_tupling_t> m_enable_tupling {this, false};
   };

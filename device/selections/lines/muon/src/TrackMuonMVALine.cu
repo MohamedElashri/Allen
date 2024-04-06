@@ -65,5 +65,6 @@ __device__ void track_muon_mva_line::track_muon_mva_line_t::fill_tuples(
     const auto track = std::get<0>(input);
     parameters.ipchi2[index] = track.ip_chi2();
     parameters.pt[index] = track.state().pt();
+    parameters.muonchi2[index] = std::get<1>(input);
   }
 }

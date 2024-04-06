@@ -18,6 +18,7 @@ set(SEQUENCE_DEFINITION_DIR ${PROJECT_SEQUENCE_DIR}/AllenConf)
 set(ALLEN_ALGORITHMS_DIR ${PROJECT_SEQUENCE_DIR}/AllenAlgorithms)
 set(ALLEN_GENERATED_INCLUDE_FILES_DIR ${PROJECT_SEQUENCE_DIR}/include)
 set(ALLEN_CORE_DIR ${PROJECT_SEQUENCE_DIR}/AllenCore)
+set(ALLEN_SEQUENCE_DIR ${PROJECT_SEQUENCE_DIR}/AllenSequences)
 set(ALLEN_PARSER_DIR ${PROJECT_SEQUENCE_DIR}/parser)
 set(ALGORITHMS_OUTPUTFILE ${ALLEN_ALGORITHMS_DIR}/allen_standalone_algorithms.py)
 set(PARSED_ALGORITHMS_OUTPUTFILE ${CODE_GENERATION_DIR}/parsed_algorithms.pickle)
@@ -77,7 +78,8 @@ add_custom_command(
   COMMENT "Making symlink of sequence definitions and configuration utilities"
   COMMAND
     ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR_RELPATH}/configuration/python/AllenConf" "${SEQUENCE_DEFINITION_DIR}" &&
-    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR_RELPATH}/configuration/python/AllenCore" "${ALLEN_CORE_DIR}"
+    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR_RELPATH}/configuration/python/AllenCore" "${ALLEN_CORE_DIR}" &&
+    ${CMAKE_COMMAND} -E create_symlink "${PROJECT_SOURCE_DIR_RELPATH}/configuration/python/AllenSequences" "${ALLEN_SEQUENCE_DIR}"
   DEPENDS "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf" "${PROJECT_SOURCE_DIR}/configuration/python/AllenCore")
 add_custom_target(generate_conf_core DEPENDS "${SEQUENCE_DEFINITION_DIR}" "${ALLEN_CORE_DIR}")
 
