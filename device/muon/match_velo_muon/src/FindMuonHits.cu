@@ -293,15 +293,18 @@ __device__ void seedAndFind(
       auto fit_result_xz = applyWeightedFit(muon_track, muon_hits, true);
       auto fit_result_yz = applyWeightedFit(muon_track, muon_hits, false);
       if (fit_result_xz && fit_result_yz) {
-
         auto insert_index = atomicAdd(&number_of_muon_tracks_atomic, 1);
-        if (number_of_muon_tracks_atomic >= Muon::Constants::max_number_of_tracks) {
-          number_of_muon_tracks_atomic = 0;
-          return;
+        if (insert_index >= Muon::Constants::max_number_of_tracks) {
+          break;
         }
         muon_tracks[insert_index] = muon_track;
       }
     }
+  }
+
+  __syncthreads();
+  if (threadIdx.x == 0 && number_of_muon_tracks_atomic >= Muon::Constants::max_number_of_tracks) {
+    number_of_muon_tracks_atomic = 0; // Ensure the output is deterministic
   }
 }
 
