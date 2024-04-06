@@ -70,5 +70,6 @@ __device__ void di_muon_mass_line::di_muon_mass_line_t::fill_tuples(
     const auto particle = std::get<0>(input);
     parameters.ipchi2[index] = particle.minipchi2();
     parameters.pt[index] = particle.minpt();
+    parameters.muonchi2[index] = std::get<1>(input);
   }
 }

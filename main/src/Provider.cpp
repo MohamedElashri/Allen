@@ -101,14 +101,17 @@ std::string Allen::sequence_conf(std::map<std::string, std::string> const& optio
     else if (!generated) {
 #ifdef ALLEN_STANDALONE
       const std::string allen_configuration_options = "--no-register-keys";
+      const std::string allen_python_dir =
+        (getenv("ALLEN_BUILD_DIR") != nullptr ? getenv("ALLEN_BUILD_DIR") : CMAKE_ALLEN_BUILD_DIR) +
+        std::string("/code_generation/sequences/");
 #else
       const std::string allen_configuration_options = "";
+      const std::string allen_python_dir = getenv("ALLEN_INSTALL_DIR") + std::string("/python/");
 #endif
 
-      int error = system(("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 "
-                          "../configuration/python/AllenCore/gen_allen_json.py " +
-                          allen_configuration_options + " --seqpath ../configuration/python/AllenSequences/" +
-                          sequence + ".py > /dev/null")
+      int error = system(("PYTHONPATH=" + allen_python_dir + ":$PYTHONPATH python3 " + allen_python_dir +
+                          "/AllenCore/gen_allen_json.py " + allen_configuration_options + " --seqpath " +
+                          allen_python_dir + "/AllenSequences/" + sequence + ".py > /dev/null")
                            .c_str());
       if (error) {
         throw std::runtime_error {"sequence generation failed"};

@@ -33,7 +33,8 @@ from PyConf.tonic import configurable
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.plume_reconstruction import decode_plume
 from AllenConf.enum_types import TrackingType, includes_matching
-from AllenConf.thresholds import get_thresholds
+from AllenConf.thresholds.thresholds import Thresholds
+from AllenConf.get_thresholds import get_thresholds
 
 
 def default_physics_lines(reconstructed_objects, with_calo, with_muon,
@@ -57,34 +58,36 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             long_track_particles,
             name="Hlt1TrackMVA",
             enable_tupling=enable_tupling,
-            alpha=thresholds.alpha),
+            alpha=thresholds.TrackMVA_alpha,
+            maxGhostProb=thresholds.TrackMVA_maxGhostProb),
         make_two_track_mva_line(
             long_tracks,
             dihadrons,
             name="Hlt1TwoTrackMVA",
             enable_tupling=enable_tupling,
-            minMVA=thresholds.minMVA),
+            minMVA=thresholds.TwoTrackMVA_minMVA,
+            maxGhostProb=thresholds.TwoTrackMVA_maxGhostProb),
         make_d2kk_line(
             long_tracks,
             dihadrons,
             name="Hlt1D2KK",
             enable_tupling=enable_tupling,
-            charm_track_ip=thresholds.charm_track_ip,
-            charm_track_pt=thresholds.charm_track_pt),
+            charm_track_ip=thresholds.D2HH_track_ip,
+            charm_track_pt=thresholds.D2HH_track_pt),
         make_d2kpi_line(
             long_tracks,
             dihadrons,
             name="Hlt1D2KPi",
             enable_tupling=enable_tupling,
-            charm_track_ip=thresholds.charm_track_ip,
-            charm_track_pt=thresholds.charm_track_pt),
+            charm_track_ip=thresholds.D2HH_track_ip,
+            charm_track_pt=thresholds.D2HH_track_pt),
         make_d2pipi_line(
             long_tracks,
             dihadrons,
             name="Hlt1D2PiPi",
             enable_tupling=enable_tupling,
-            charm_track_ip=thresholds.charm_track_ip,
-            charm_track_pt=thresholds.charm_track_pt),
+            charm_track_ip=thresholds.D2HH_track_ip,
+            charm_track_pt=thresholds.D2HH_track_pt),
         make_dst_line(dstars, name="Hlt1Dst2D0Pi"),
     ]
 
@@ -102,15 +105,13 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 long_tracks,
                 v0s,
                 name="Hlt1TwoTrackKs",
-                minTrackPt_piKs=thresholds.minTrackPt_piKs,
-                minTrackIPChi2_Ks=thresholds.minTrackIPChi2_piKs,
-                maxEta_Ks=thresholds.minEta_Ks,
-                min_combip=thresholds.min_combip,
-                minComboPt_Ks=thresholds.minComboPt_Ks,
+                minTrackPt_piKs=thresholds.TwoTrackKs_minTrackPt_piKs,
+                minTrackIPChi2_Ks=thresholds.TwoTrackKs_minTrackIPChi2_piKs,
+                maxEta_Ks=thresholds.TwoTrackKs_minEta_Ks,
+                min_combip=thresholds.TwoTrackKs_min_combip,
+                minComboPt_Ks=thresholds.TwoTrackKs_minComboPt_Ks,
                 enable_tupling=enable_tupling),
             make_two_ks_line(long_tracks, v0_pairs, name="Hlt1TwoKs"),
-            make_lambda2ppi_line(
-                v0s, name="Hlt1L02PPi", enable_tupling=enable_tupling),
             make_lambda_ll_detached_track_line(
                 v0_track_pairs,
                 name="Hlt1LambdaLLDetachedTrack",
@@ -124,24 +125,17 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     if with_muon:
         muonid = reconstructed_objects["muonID"]
         lines += [
-            make_one_muon_track_line(
-                muon_stubs["dev_muon_number_of_tracks"],
-                muon_stubs["consolidated_muon_tracks"],
-                muon_stubs["dev_output_buffer"],
-                muon_stubs["host_total_sum_holder"],
-                name="Hlt1OneMuonTrackLine",
-                post_scaler=0.001),
             make_single_high_pt_muon_line(
                 long_tracks,
                 long_track_particles,
                 name="Hlt1SingleHighPtMuon",
                 enable_tupling=enable_tupling,
-                singleMinPt=thresholds.singleMinPt),
+                singleMinPt=thresholds.SingleHighPtLepton_pt),
             make_single_high_pt_muon_no_muid_line(
                 long_tracks,
                 long_track_particles,
                 name="Hlt1SingleHighPtMuonNoMuID",
-                singleMinPt=thresholds.singleMinPt_noMuonID),
+                singleMinPt=thresholds.SingleHighPtLepton_pt),
             make_di_muon_mass_line(
                 long_tracks,
                 dileptons,
@@ -149,20 +143,20 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 maxChi2Corr=5,
                 name="Hlt1DiMuonHighMass",
                 enable_tupling=enable_tupling,
-                minHighMassTrackPt=thresholds.highmass_dimuon_pt),
+                minHighMassTrackPt=thresholds.DiMuonHighMass_pt),
             make_di_muon_mass_line(
                 long_tracks,
                 dileptons,
                 muonid,
                 name="Hlt1DiMuonDisplaced",
-                minHighMassTrackPt=thresholds.displaced_dimuon_pt,
+                minHighMassTrackPt=thresholds.DiMuonDisplaced_pt,
                 minHighMassTrackP=3000.,
                 minMass=0.,
                 maxDoca=0.2,
                 maxVertexChi2=25.,
-                minIPChi2=thresholds.displaced_dimuon_ipchi2,
+                minIPChi2=thresholds.DiMuonDisplaced_ipchi2,
                 enable_tupling=enable_tupling,
-                maxChi2Corr=1.8),
+                maxChi2Corr=thresholds.DiMuonDisplaced_maxCorrChi2),
             make_di_muon_soft_line(
                 long_tracks, dileptons, name="Hlt1DiMuonSoft"),
             make_track_muon_mva_line(
@@ -172,7 +166,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 maxChi2Corr=1.8,
                 name="Hlt1TrackMuonMVA",
                 enable_tupling=enable_tupling,
-                alpha=thresholds.alpha_muon),
+                alpha=thresholds.TrackMuonMVA_alpha),
             make_di_muon_no_ip_line(
                 long_tracks, dileptons, muonid, maxChi2Corr=1.3),
             make_di_muon_no_ip_line(
@@ -180,7 +174,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 dileptons,
                 muonid,
                 maxChi2Corr=1.3,
-                name="Hlt1DiMuonNoIP_ss",
+                name="Hlt1DiMuonNoIP_SS",
                 pre_scaler_hash_string="di_muon_no_ip_ss_line_pre",
                 post_scaler_hash_string="di_muon_no_ip_ss_line_post",
                 ss_on=True,
@@ -253,22 +247,22 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 long_track_particles,
                 calo_matching_objects,
                 name="Hlt1TrackElectronMVA",
-                alpha=thresholds.alpha_electron,
+                alpha=thresholds.TrackElectronMVA_alpha,
                 enable_tupling=enable_tupling),
             make_single_high_pt_electron_line(
                 long_tracks,
                 long_track_particles,
                 calo_matching_objects,
                 name="Hlt1SingleHighPtElectron",
-                singleMinPt=thresholds.singleMinPt,
+                singleMinPt=thresholds.SingleHighPtLepton_pt,
                 enable_tupling=enable_tupling),
             make_displaced_dielectron_line(
                 long_tracks,
                 dileptons,
                 calo_matching_objects,
-                name="Hlt1DisplacedDielectron",
-                MinPT=thresholds.displaced_dielectron_pt,
-                MinIPChi2=thresholds.displaced_dielectron_ipchi2,
+                name="Hlt1DiElectronDisplaced",
+                MinPT=thresholds.DiElectronDisplaced_pt,
+                MinIPChi2=thresholds.DiElectronDisplaced_ipchi2,
                 enable_tupling=enable_tupling),
             # make_single_high_et_line(
             #     velo_tracks, calo_matching_objects, name="Hlt1SingleHighEt"),
@@ -278,7 +272,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 pvs,
                 name="Hlt1DiPhotonHighMass",
                 enable_tupling=enable_tupling,
-                minET=thresholds.diphoton_minET),
+                minET=thresholds.DiPhotonHighMass_minET),
             make_pi02gammagamma_line(
                 ecal_clusters,
                 velo_tracks,
@@ -292,7 +286,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 calo_matching_objects,
                 is_same_sign=True,
                 pre_scaler=1.0,
-                name="Hlt1DiElectronHighMass_SameSign"),
+                name="Hlt1DiElectronHighMass_SS"),
             make_highmass_dielectron_line(
                 long_tracks,
                 dileptons,
@@ -312,7 +306,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             for label, limits in line_slices_mass.items():
                 postscale_os = line_slices_postscales[
                     label] if subSample == "prompt" else 1.0
-                nnCut = 0.90
+                nnCut = 0.95
                 lines.append(
                     make_lowmass_dielectron_line(
                         long_tracks,
@@ -327,7 +321,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                         selectPrompt=True if subSample == "prompt" else False,
                         useNN=True,
                         nnCut=nnCut,
-                        name="Hlt1LowMassDiElectron_massSlice{}_{}".format(
+                        name="Hlt1DiElectronLowMass_massSlice{}_{}".format(
                             label, subSample),
                         pre_scaler_hash_string=
                         "lowmass_dielectronNN_massSlice{}_{}_pre".format(
@@ -348,7 +342,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                         selectPrompt=True if subSample == "prompt" else False,
                         useNN=True,
                         nnCut=nnCut,
-                        name="Hlt1LowMassDiElectron_SS_massSlice{}_{}".format(
+                        name="Hlt1DiElectronLowMass_SS_massSlice{}_{}".format(
                             label, subSample),
                         pre_scaler_hash_string=
                         "lowmass_dielectron_SS_massSlice{}_{}_pre".format(
@@ -396,6 +390,7 @@ def alignment_monitoring_lines(reconstructed_objects,
     dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
     dileptons = reconstructed_objects["dilepton_secondary_vertices"]
     dstars = reconstructed_objects["dstars"]
+    muon_stubs = reconstructed_objects["muon_stubs"]
 
     lines = [
         make_rich_1_line(
@@ -404,6 +399,7 @@ def alignment_monitoring_lines(reconstructed_objects,
             long_tracks, long_track_particles, name="Hlt1RICH2Alignment"),
         make_d2kpi_align_line(
             long_tracks, dihadrons, name="Hlt1D2KPiAlignment"),
+        make_dst_line(dstars, name="Hlt1Dst2D0PiAlignment"),
         make_z_range_materialvertex_seed_line(
             material_interaction_tracks,
             min_z_materialvertex_seed=300,
@@ -414,8 +410,7 @@ def alignment_monitoring_lines(reconstructed_objects,
             material_interaction_tracks,
             min_z_materialvertex_seed=700,
             max_z_materialvertex_seed=1000,
-            name="Hlt1MaterialVertexSeeds_DWFS"),
-        make_dst_line(dstars, name="Hlt1Dst2D0PiAlignment")
+            name="Hlt1MaterialVertexSeeds_DWFS")
     ]
 
     if with_muon:
@@ -426,9 +421,15 @@ def alignment_monitoring_lines(reconstructed_objects,
                 long_tracks,
                 dileptons,
                 minMass=2500.,
-                name="Hlt1DiMuonJpsiMassAlignment"),
-            make_displaced_dimuon_mass_line(
-                long_tracks, dileptons, name="Hlt1DisplacedDiMuonAlignment")
+                name="Hlt1DiMuonJpsiMassAlignment",
+                pre_scaler=0.1),
+            make_one_muon_track_line(
+                muon_stubs["dev_muon_number_of_tracks"],
+                muon_stubs["consolidated_muon_tracks"],
+                muon_stubs["dev_output_buffer"],
+                muon_stubs["host_total_sum_holder"],
+                name="Hlt1OneMuonTrackLine",
+                post_scaler=0.001),
         ]
 
     with line_maker.bind(prefilter=prefilters_bx):
@@ -815,7 +816,6 @@ def setup_hlt1_node(enablePhysics=True,
                     data_quality=False):
 
     hlt1_config = {}
-
     # Reconstruct objects needed as input for selection lines
     reconstructed_objects = hlt1_reconstruction(
         with_calo=with_calo,
@@ -834,7 +834,6 @@ def setup_hlt1_node(enablePhysics=True,
                        ] if with_odin_filter else []
     beam_beam_filter = [make_bxtype(bx_type=3)]
     prefilters = odin_err_filter + beam_beam_filter + gec
-
     physics_lines = []
     if enablePhysics:
         with line_maker.bind(prefilter=prefilters):
@@ -1066,7 +1065,6 @@ def setup_hlt1_node(enablePhysics=True,
             ],
             NodeLogic.NONLAZY_AND,
             force_order=True)
-
     if data_quality:
         # Forward reconstructed long tracks are needed for that module
         # Matching method is already used in reconstructed_objects

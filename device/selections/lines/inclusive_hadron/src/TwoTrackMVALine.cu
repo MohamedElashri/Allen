@@ -29,15 +29,19 @@ __device__ bool two_track_mva_line::two_track_mva_line_t::select(
   const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
-  const auto vertex = std::get<0>(input);
+  const auto& vertex = std::get<0>(input);
   const auto& response = std::get<1>(input);
+  const auto a = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
+  const auto b = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
   bool presel =
     (vertex.minpt() > parameters.minPt && vertex.eta() > parameters.minEta && vertex.eta() < parameters.maxEta &&
      vertex.mcor() > parameters.minMcor && vertex.vertex().pt() > parameters.minSVpt &&
      vertex.vertex().chi2() < parameters.maxSVchi2 && vertex.doca12() < parameters.maxDOCA &&
      vertex.vertex().z() >= parameters.minZ && vertex.minipchi2() > parameters.minipchi2);
   if (vertex.has_pv()) presel = presel && vertex.pv().position.z >= parameters.minZ;
-  return presel && response > parameters.minMVA;
+
+  return presel && response > parameters.minMVA && a->track().ghost_probability() < parameters.maxGhostProb &&
+         b->track().ghost_probability() < parameters.maxGhostProb;
 }
 
 __device__ void two_track_mva_line::two_track_mva_line_t::fill_tuples(
@@ -46,5 +50,10 @@ __device__ void two_track_mva_line::two_track_mva_line_t::fill_tuples(
   unsigned index,
   bool sel)
 {
-  if (sel) parameters.mva[index] = std::get<1>(input);
+  if (sel) {
+    const auto a = static_cast<const Allen::Views::Physics::BasicParticle*>(std::get<0>(input).child(0));
+    const auto b = static_cast<const Allen::Views::Physics::BasicParticle*>(std::get<0>(input).child(1));
+    parameters.mva[index] = std::get<1>(input);
+    parameters.maxChildGhostProb[index] = std::max(a->track().ghost_probability(), b->track().ghost_probability());
+  }
 }

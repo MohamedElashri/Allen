@@ -289,12 +289,10 @@ if(TARGET_DEVICE STREQUAL "CPU")
         set_source_files_properties(${arg} PROPERTIES LANGUAGE CXX)
       endif()
     endforeach()
-
     add_library(${ARGV})
 
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
-
     if (${is_static} EQUAL -1)
       install(TARGETS ${ARGV0}
         EXPORT Allen
@@ -371,7 +369,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
 
   function(allen_add_host_library)
     list(FIND ARGV STATIC is_static)
-
+    message(STATUS "Adding host library: ${ARGV0}")
     add_library(${ARGV})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
@@ -684,6 +682,8 @@ allen_add_host_library(AllenLib SHARED
   main/src/ZMQOutputSender.cpp)
 
 target_compile_definitions(AllenLib PUBLIC ${TARGET_DEFINITION})
+target_compile_definitions(AllenLib PUBLIC "CMAKE_ALLEN_BUILD_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"")
+
 target_include_directories(AllenLib PUBLIC
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 

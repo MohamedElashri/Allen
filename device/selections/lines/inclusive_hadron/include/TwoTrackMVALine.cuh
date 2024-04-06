@@ -39,8 +39,10 @@ namespace two_track_mva_line {
     PROPERTY(maxDOCA_t, "maxDOCA", "Maximum DOCA between two tracks", float) maxDOCA;
     PROPERTY(minipchi2_t, "minipchi2", "minimum ipchi2 of the tracks", float) minipchi2;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+    PROPERTY(maxGhostProb_t, "maxGhostProb", "Maximum ghost probability of the tracks", float) maxGhostProb;
 
     DEVICE_OUTPUT(mva_t, float) mva;
+    DEVICE_OUTPUT(maxChildGhostProb_t, float) maxChildGhostProb;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
 
@@ -63,7 +65,7 @@ namespace two_track_mva_line {
       unsigned index,
       bool sel);
 
-    using monitoring_types = std::tuple<mva_t, evtNo_t, runNo_t>;
+    using monitoring_types = std::tuple<mva_t, maxChildGhostProb_t, evtNo_t, runNo_t>;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -81,6 +83,7 @@ namespace two_track_mva_line {
     Property<maxDOCA_t> m_maxDOCA {this, 0.2f};
     Property<minipchi2_t> m_minipchi2 {this, 4.f}; // this is probably a noop, but better safe than sorry
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<maxGhostProb_t> m_maxGhostProb {this, 0.5};
 
     Property<enable_tupling_t> m_enable_tupling {this, false};
   };

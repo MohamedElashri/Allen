@@ -46,6 +46,7 @@ namespace di_muon_mass_line {
 
     DEVICE_OUTPUT(pt_t, float) pt;
     DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
+    DEVICE_OUTPUT(muonchi2_t, float) muonchi2;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
   };
@@ -79,7 +80,7 @@ namespace di_muon_mass_line {
       unsigned index,
       bool sel);
 
-    using monitoring_types = std::tuple<pt_t, ipchi2_t, evtNo_t, runNo_t>;
+    using monitoring_types = std::tuple<pt_t, ipchi2_t, muonchi2_t, evtNo_t, runNo_t>;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
