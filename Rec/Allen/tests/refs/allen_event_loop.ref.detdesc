@@ -30,7 +30,7 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_283cb05d          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 94
+gather_selections                      INFO Number of counters : 92
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Hlt1BGIPseudoPVsDownBeamBeamPass"              |         2 |
  | "Hlt1BGIPseudoPVsDownBeamBeamRate"              |         2 |
@@ -46,54 +46,52 @@ gather_selections                      INFO Number of counters : 94
  | "Hlt1D2PiPiRate"                                |         6 |
  | "Hlt1DetJpsiToMuMuNegTagLinePass"               |         1 |
  | "Hlt1DetJpsiToMuMuNegTagLineRate"               |         1 |
- | "Hlt1DiMuonDisplacedPass"                       |         9 |
- | "Hlt1DiMuonDisplacedRate"                       |         9 |
+ | "Hlt1DiElectronDisplacedPass"                   |        26 |
+ | "Hlt1DiElectronDisplacedRate"                   |        26 |
+ | "Hlt1DiElectronLowMass_SS_massSlice2_displacedPass"|         1 |
+ | "Hlt1DiElectronLowMass_SS_massSlice2_promptPass"|         2 |
+ | "Hlt1DiElectronLowMass_SS_massSlice3_displacedPass"|         4 |
+ | "Hlt1DiElectronLowMass_SS_massSlice3_promptPass"|         7 |
+ | "Hlt1DiElectronLowMass_SS_massSlice3_promptRate"|         1 |
+ | "Hlt1DiElectronLowMass_SS_massSlice4_displacedPass"|         5 |
+ | "Hlt1DiElectronLowMass_SS_massSlice4_displacedRate"|         1 |
+ | "Hlt1DiElectronLowMass_SS_massSlice4_promptPass"|         3 |
+ | "Hlt1DiElectronLowMass_massSlice1_displacedPass"|         3 |
+ | "Hlt1DiElectronLowMass_massSlice1_displacedRate"|         3 |
+ | "Hlt1DiElectronLowMass_massSlice1_promptPass"   |         2 |
+ | "Hlt1DiElectronLowMass_massSlice1_promptRate"   |         2 |
+ | "Hlt1DiElectronLowMass_massSlice2_displacedPass"|         2 |
+ | "Hlt1DiElectronLowMass_massSlice2_displacedRate"|         2 |
+ | "Hlt1DiElectronLowMass_massSlice2_promptPass"   |         2 |
+ | "Hlt1DiElectronLowMass_massSlice2_promptRate"   |         2 |
+ | "Hlt1DiElectronLowMass_massSlice3_displacedPass"|         4 |
+ | "Hlt1DiElectronLowMass_massSlice3_displacedRate"|         4 |
+ | "Hlt1DiElectronLowMass_massSlice3_promptPass"   |         4 |
+ | "Hlt1DiElectronLowMass_massSlice4_displacedPass"|         1 |
+ | "Hlt1DiElectronLowMass_massSlice4_displacedRate"|         1 |
+ | "Hlt1DiElectronLowMass_massSlice4_promptPass"   |         5 |
+ | "Hlt1DiElectronLowMass_massSlice4_promptRate"   |         1 |
+ | "Hlt1DiMuonDisplacedPass"                       |        66 |
+ | "Hlt1DiMuonDisplacedRate"                       |        66 |
  | "Hlt1DiMuonHighMassPass"                        |        56 |
  | "Hlt1DiMuonHighMassRate"                        |        56 |
- | "Hlt1DiMuonJpsiMassAlignmentPass"               |        84 |
- | "Hlt1DiMuonJpsiMassAlignmentRate"               |        84 |
+ | "Hlt1DiMuonJpsiMassAlignmentPass"               |        14 |
+ | "Hlt1DiMuonJpsiMassAlignmentRate"               |        14 |
  | "Hlt1DiMuonNoIPPass"                            |         6 |
  | "Hlt1DiMuonNoIPRate"                            |         6 |
- | "Hlt1DiMuonNoIP_ssPass"                         |         7 |
+ | "Hlt1DiMuonNoIP_SSPass"                         |         7 |
  | "Hlt1DiMuonSoftPass"                            |         5 |
  | "Hlt1DiMuonSoftRate"                            |         5 |
  | "Hlt1DiPhotonHighMassPass"                      |        81 |
  | "Hlt1DiPhotonHighMassRate"                      |        81 |
- | "Hlt1DisplacedDielectronPass"                   |        26 |
- | "Hlt1DisplacedDielectronRate"                   |        26 |
  | "Hlt1Dst2D0PiAlignmentPass"                     |         3 |
  | "Hlt1Dst2D0PiAlignmentRate"                     |         3 |
  | "Hlt1Dst2D0PiPass"                              |         3 |
  | "Hlt1Dst2D0PiRate"                              |         3 |
  | "Hlt1KsToPiPiPass"                              |       685 |
  | "Hlt1KsToPiPiRate"                              |         2 |
- | "Hlt1L02PPiPass"                                |       267 |
- | "Hlt1L02PPiRate"                                |       267 |
  | "Hlt1LambdaLLDetachedTrackPass"                 |         4 |
  | "Hlt1LambdaLLDetachedTrackRate"                 |         4 |
- | "Hlt1LowMassDiElectron_SS_massSlice2_displacedPass"|         1 |
- | "Hlt1LowMassDiElectron_SS_massSlice2_promptPass"|         2 |
- | "Hlt1LowMassDiElectron_SS_massSlice3_displacedPass"|         4 |
- | "Hlt1LowMassDiElectron_SS_massSlice3_promptPass"|        11 |
- | "Hlt1LowMassDiElectron_SS_massSlice3_promptRate"|         1 |
- | "Hlt1LowMassDiElectron_SS_massSlice4_displacedPass"|         6 |
- | "Hlt1LowMassDiElectron_SS_massSlice4_displacedRate"|         1 |
- | "Hlt1LowMassDiElectron_SS_massSlice4_promptPass"|         5 |
- | "Hlt1LowMassDiElectron_massSlice1_displacedPass"|         3 |
- | "Hlt1LowMassDiElectron_massSlice1_displacedRate"|         3 |
- | "Hlt1LowMassDiElectron_massSlice1_promptPass"   |         2 |
- | "Hlt1LowMassDiElectron_massSlice1_promptRate"   |         2 |
- | "Hlt1LowMassDiElectron_massSlice2_displacedPass"|         2 |
- | "Hlt1LowMassDiElectron_massSlice2_displacedRate"|         2 |
- | "Hlt1LowMassDiElectron_massSlice2_promptPass"   |         2 |
- | "Hlt1LowMassDiElectron_massSlice2_promptRate"   |         2 |
- | "Hlt1LowMassDiElectron_massSlice3_displacedPass"|         6 |
- | "Hlt1LowMassDiElectron_massSlice3_displacedRate"|         6 |
- | "Hlt1LowMassDiElectron_massSlice3_promptPass"   |         7 |
- | "Hlt1LowMassDiElectron_massSlice4_displacedPass"|         1 |
- | "Hlt1LowMassDiElectron_massSlice4_displacedRate"|         1 |
- | "Hlt1LowMassDiElectron_massSlice4_promptPass"   |         5 |
- | "Hlt1LowMassDiElectron_massSlice4_promptRate"   |         1 |
  | "Hlt1MaterialVertexSeedsDownstreamzPass"        |         4 |
  | "Hlt1MaterialVertexSeedsDownstreamzRate"        |         4 |
  | "Hlt1MaterialVertexSeeds_DWFSPass"              |         3 |
@@ -106,8 +104,8 @@ gather_selections                      INFO Number of counters : 94
  | "Hlt1RICH1AlignmentRate"                        |         5 |
  | "Hlt1SingleHighPtElectronPass"                  |        11 |
  | "Hlt1SingleHighPtElectronRate"                  |        11 |
- | "Hlt1SingleHighPtMuonNoMuIDPass"                |         9 |
- | "Hlt1SingleHighPtMuonNoMuIDRate"                |         9 |
+ | "Hlt1SingleHighPtMuonNoMuIDPass"                |        19 |
+ | "Hlt1SingleHighPtMuonNoMuIDRate"                |        19 |
  | "Hlt1SingleHighPtMuonPass"                      |         3 |
  | "Hlt1SingleHighPtMuonRate"                      |         3 |
  | "Hlt1TrackElectronMVAPass"                      |        54 |

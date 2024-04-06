@@ -46,8 +46,8 @@ gather_selections                      INFO Number of counters : 22
  | "Hlt1OneMuonTrackLineRate"                      |         3 |
  | "Hlt1Pi02GammaGammaPass"                        |         2 |
  | "Hlt1Pi02GammaGammaRate"                        |         2 |
- | "Hlt1SingleHighPtMuonNoMuIDPass"                |         3 |
- | "Hlt1SingleHighPtMuonNoMuIDRate"                |         3 |
+ | "Hlt1SingleHighPtMuonNoMuIDPass"                |         4 |
+ | "Hlt1SingleHighPtMuonNoMuIDRate"                |         4 |
  | "Hlt1TrackMVAPass"                              |        16 |
  | "Hlt1TrackMVARate"                              |        16 |
  | "Hlt1TwoTrackMVAPass"                           |         1 |
