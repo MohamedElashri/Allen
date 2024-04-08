@@ -89,6 +89,56 @@ namespace Allen::Monitoring {
   // Counters:
 
   template<typename T = unsigned>
+  struct DeviceCounter {
+    __host__ __device__ DeviceCounter(T* data) : m_data(data) {}
+    __device__ T* data() const { return m_data; }
+
+#if defined(TARGET_DEVICE_CUDA) && defined(DEVICE_COMPILER)
+    __device__ void increment() const
+    {
+      unsigned mask = __activemask();
+      unsigned peers = mask;
+      unsigned count = __popc(peers);
+      int rank = __popc(peers & __lanemask_lt());
+      bool is_leader = rank == 0;
+      if (is_leader) {
+        atomicAdd(&m_data[0], count);
+      }
+    }
+#else
+    __device__ void increment() const { __atomic_add_fetch(&m_data[0], 1, __ATOMIC_RELAXED); }
+#endif
+
+  private:
+    T* m_data;
+  };
+
+  template<typename T = unsigned>
+  struct Counter : AccumulatorBase {
+    using type = T;
+    using DeviceType = DeviceCounter<T>;
+
+    Counter(const Allen::Algorithm* owner, std::string name) : AccumulatorBase(owner, name) {}
+    std::size_t size() const override { return 1; }
+    std::size_t elementSize() const override { return sizeof(T); }
+    DeviceType data(const Allen::Context& ctx) const { return reinterpret_cast<T*>(currentDevicePtr(ctx.stream_id)); }
+
+    friend void reset(Counter& c) { c.m_entries = 0.0; }
+    friend void to_json(nlohmann::json& j, Counter const& c)
+    {
+      j = {{"type", "counter:Counter:d"}, {"empty", c.m_entries == 0}, {"nEntries", c.m_entries}};
+    }
+    void registerAccumulator() override
+    {
+#ifndef ALLEN_STANDALONE
+      Gaudi::svcLocator()->monitoringHub().registerEntity(component(), name(), "counter:Counter:d", *this);
+#endif
+    }
+    void fillAccumulator(void* ptr) override { m_entries += reinterpret_cast<T*>(ptr)[0]; }
+    double m_entries = 0.0;
+  };
+
+  template<typename T = unsigned>
   struct DeviceAveragingCounter {
     __host__ __device__ DeviceAveragingCounter(T* data) : m_data(data) {}
     __device__ T* data() const { return m_data; }

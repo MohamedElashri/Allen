@@ -64,14 +64,8 @@ scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned 
       if ((int) correctedMat != last_uniqueMat) {
         last_uniqueMat = correctedMat;
         cluster_reference = parameters.dev_cluster_references + hit_offsets[correctedMat];
-        if (chid.reversedZone()) {
-          direction = -1;
-          mat_count = hit_offsets[correctedMat + 1] - hit_offsets[correctedMat] - 1;
-        }
-        else {
-          direction = 1;
-          mat_count = 0;
-        }
+        direction = chid.reversedZone() ? -1 : 1;
+        mat_count = chid.reversedZone() ? hit_offsets[correctedMat + 1] - hit_offsets[correctedMat] - 1 : 0;
       }
       const auto store_sorted_fn = [&](uint32_t cluster_chan, uint8_t cluster_fraction, uint8_t pseudoSize) {
         cluster_reference[mat_count] =
@@ -136,8 +130,7 @@ void scifi_pre_decode::scifi_pre_decode_t::set_arguments_size(
     throw StrException("SciFi bank version not supported (" + std::to_string(bank_version) + ")");
   }
 
-  set_size<dev_cluster_references_t>(
-    arguments, first<host_accumulated_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays);
+  set_size<dev_cluster_references_t>(arguments, first<host_accumulated_number_of_scifi_hits_t>(arguments));
 }
 
 void scifi_pre_decode::scifi_pre_decode_t::operator()(

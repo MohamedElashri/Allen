@@ -14,6 +14,7 @@
 #include "SciFiRaw.cuh"
 #include "SciFiEventModel.cuh"
 #include "AlgorithmTypes.cuh"
+#include "AllenMonitoring.h"
 
 namespace scifi_raw_bank_decoder {
   struct Parameters {
@@ -50,5 +51,6 @@ namespace scifi_raw_bank_decoder {
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
     Property<decode_v8_as_v7_t> m_decode_v8_as_v7 {this, {false}};
+    Allen::Monitoring::Counter<> m_invalid_chanid {this, "n_invalid_chanid"};
   };
 } // namespace scifi_raw_bank_decoder
