@@ -8,17 +8,17 @@ Setting number of slices to 2
 ApplicationMgr                         INFO Application Manager Started successfully
 DeviceFTGeometry                       INFO Conditions DB is compatible with FT bank version 7 and 8.
 Starting timer for throughput measurement
-Reserve: Requested size for argument initialize_event_lists__dev_event_list_output_t could not be met (0.000064 MB)
+Reserve: Requested size for argument initialize_event_lists__dev_event_list_output_t could not be met (...)
 Device memory manager segments (MB):
 unused (0.000000),
 Max memory required: 0.000000 MB
 Insufficient memory to process slice - will sub-divide and retry.
-Reserve: Requested size for argument initialize_event_lists__dev_event_list_output_t could not be met (0.000064 MB)
+Reserve: Requested size for argument initialize_event_lists__dev_event_list_output_t could not be met (...)
 Device memory manager segments (MB):
 unused (0.000000),
 Max memory required: 0.000000 MB
 Insufficient memory to process slice - will sub-divide and retry.
-Reserve: Requested size for argument initialize_event_lists__dev_event_list_output_t could not be met (0.000064 MB)
+Reserve: Requested size for argument initialize_event_lists__dev_event_list_output_t could not be met (...)
 Device memory manager segments (MB):
 unused (0.000000),
 Max memory required: 0.000000 MB

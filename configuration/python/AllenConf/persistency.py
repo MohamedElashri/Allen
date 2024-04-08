@@ -8,11 +8,6 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenCore.algorithms import gather_selections_t, dec_reporter_t, global_decision_t, host_routingbits_writer_t
-from AllenCore.algorithms import host_prefix_sum_t, make_selrep_t
-from AllenCore.algorithms import make_selected_object_lists_t, make_subbanks_t
-from AllenConf.odin import decode_odin
-from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenCore.configuration_options import allen_register_keys
 from PyConf.filecontent_metadata import register_encoding_dictionary
@@ -222,6 +217,10 @@ rb_map_PbPb = {
 
 
 def make_gather_selections(lines):
+    from AllenConf.odin import decode_odin
+    from AllenConf.utils import initialize_number_of_events
+    from AllenCore.algorithms import gather_selections_t
+
     if not lines:
         raise ValueError("make_gather_selections: lines must not be empty")
 
@@ -242,6 +241,8 @@ def make_gather_selections(lines):
 
 @configurable
 def make_dec_reporter(lines, TCK=0):
+    from AllenConf.utils import initialize_number_of_events
+    from AllenCore.algorithms import dec_reporter_t
     gather_selections = make_gather_selections(lines)
     number_of_events = initialize_number_of_events()
 
@@ -266,6 +267,9 @@ def make_dec_reporter(lines, TCK=0):
 
 @configurable
 def make_routingbits_writer(lines, rb_map=rb_map):
+    from AllenConf.utils import initialize_number_of_events
+    from AllenCore.algorithms import host_routingbits_writer_t
+
     gather_selections = make_gather_selections(lines)
     dec_reporter = make_dec_reporter(lines)
     number_of_events = initialize_number_of_events()
@@ -282,6 +286,9 @@ def make_routingbits_writer(lines, rb_map=rb_map):
 
 
 def make_global_decision(lines):
+    from AllenConf.utils import initialize_number_of_events
+    from AllenCore.algorithms import global_decision_t
+
     gather_selections = make_gather_selections(lines)
     dec_reporter = make_dec_reporter(lines)
     number_of_events = initialize_number_of_events()
@@ -295,6 +302,10 @@ def make_global_decision(lines):
 
 
 def make_sel_report_writer(lines):
+    from AllenConf.utils import initialize_number_of_events
+    from AllenCore.algorithms import host_prefix_sum_t, make_selrep_t
+    from AllenCore.algorithms import make_selected_object_lists_t, make_subbanks_t
+
     gather_selections = make_gather_selections(lines)
     dec_reporter = make_dec_reporter(lines)
     number_of_events = initialize_number_of_events()
