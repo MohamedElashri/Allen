@@ -8,7 +8,7 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from GaudiTesting.BaseTest import LineSkipper
+from GaudiTesting.BaseTest import LineSkipper, RegexpReplacer
 from GaudiConf.QMTest.LHCbTest import BlockSkipper
 from GaudiConf.QMTest.LHCbExclusions import preprocessor as LHCbPreprocessor
 
@@ -32,6 +32,12 @@ skip_options = BlockSkipper("Requested options:",
 
 skip_rates = BlockSkipper("rate_validator validation:", "Inclusive:")
 
+normalize_reserve = RegexpReplacer(  # normalize full path to DBASE or PARAM
+    when="Reserve:",
+    orig=r'[0-9]+(\.[0-9]+)? MB',
+    repl=r'...',
+)
+
 skip_lbdd4hep = LineSkipper(regexps=[
     r"LHCb::Det::LbDD4hep::DD4hepSvc.*", r"ReserveIOVDD4hep.*", r"XmlCnvSvc.*",
     r"DeMagnetConditionCall.*", r"MagneticFieldExtension", r"TGeoMixture.*"
@@ -48,6 +54,6 @@ skip_sequence = BlockSkipper("Sequence:", "make_lumi_summary") + BlockSkipper(
 
 preprocessor_with_rates = (
     LHCbPreprocessor + skip_config + skip_options + skip_sequence +
-    skip_lbdd4hep + skip_detdesc + remove_throughput)
+    normalize_reserve + skip_lbdd4hep + skip_detdesc + remove_throughput)
 
 preprocessor = preprocessor_with_rates + skip_rates
