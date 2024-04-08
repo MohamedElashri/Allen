@@ -25,7 +25,8 @@ template<int decoding_version, bool mep_layout>
 __global__ void scifi_calculate_cluster_count_kernel(
   scifi_calculate_cluster_count::Parameters parameters,
   const unsigned event_start,
-  const char* scifi_geometry)
+  const char* scifi_geometry,
+  Allen::Monitoring::Counter<>::DeviceType link_error_counter)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -57,8 +58,7 @@ __global__ void scifi_calculate_cluster_count_kernel(
       else {
         chid = SciFi::SciFiChannelID(SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c));
         if (chid.channelID == SciFi::SciFiChannelID::kInvalidChannelID) /*FIX*/ {
-          auto* counter = parameters.link_error_counter + event_number;
-          atomicAdd(counter, 1);
+          link_error_counter.increment();
           continue;
         }
       }
@@ -123,7 +123,6 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::set_argumen
   set_size<dev_scifi_hit_count_t>(arguments, first<host_number_of_events_t>(arguments) * SciFi::Constants::n_sipms + 1);
   set_size<dev_scifi_hit_offsets_t>(
     arguments, first<host_number_of_events_t>(arguments) * SciFi::Constants::n_zones + 1);
-  set_size<dev_scifi_link_error_counter_t>(arguments, first<host_number_of_events_t>(arguments));
 
   // The total sum holder just holds a single unsigned integer.
   set_size<host_total_sum_holder_t>(arguments, 1);
@@ -136,7 +135,6 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_scifi_hit_count_t>(arguments, 0, context);
-  Allen::memset_async<dev_scifi_link_error_counter_t>(arguments, 0, context);
 
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version >= 0) { // SciFi banks present in data
@@ -153,7 +151,10 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
                                                      global_function(scifi_calculate_cluster_count_kernel<8, false>));
 
     kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-      arguments, std::get<0>(runtime_options.event_interval), constants.dev_scifi_geometry);
+      arguments,
+      std::get<0>(runtime_options.event_interval),
+      constants.dev_scifi_geometry,
+      m_link_error_counter.data(context));
   }
 
   unsigned array_size = size<dev_scifi_hit_count_t>(arguments) - 1;

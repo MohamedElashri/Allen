@@ -26,7 +26,7 @@ __device__ void make_cluster(
   const SciFi::SciFiChannelID id {chan};
 
   // Offset to save space in geometry structure, see DumpFTGeometry.cpp
-  const uint32_t mat = id.globalMatID_shift();
+  const uint32_t mat = (id.globalMatID() < 512) ? 0 : id.globalMatID_shift();
   const uint32_t planeCode = id.globalLayerIdx();
   const float dxdy = geom.dxdy[mat];
   const float dzdy = geom.dzdy[mat];
@@ -53,7 +53,10 @@ __device__ void make_cluster(
   hits.assembled_datatype(hit_index) = fraction << 20 | plane_code << 15 | pseudoSize << 11 | mat;
 }
 
-__global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters parameters, const char* scifi_geometry)
+__global__ void scifi_raw_bank_decoder_kernel(
+  scifi_raw_bank_decoder::Parameters parameters,
+  const char* scifi_geometry,
+  Allen::Monitoring::Counter<>::DeviceType invalid_chanid)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -70,6 +73,11 @@ __global__ void scifi_raw_bank_decoder_kernel(scifi_raw_bank_decoder::Parameters
     int cluster_chan = SciFi::ClusterReference::getChanID(cluster_reference);
     int cluster_fraction = SciFi::ClusterReference::getFraction(cluster_reference);
     int pseudoSize = SciFi::ClusterReference::getPseudoSize(cluster_reference);
+
+    const SciFi::SciFiChannelID id {(uint32_t) cluster_chan};
+    if (id.station() == 0 || id.globalMatID() < 512) {
+      invalid_chanid.increment();
+    }
 
     make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
   }
@@ -137,7 +145,8 @@ void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::operator()(
   if (bank_version < 0) return; // no SciFi banks present in data
 
   global_function(scifi_raw_bank_decoder_kernel)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_scifi_geometry);
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    arguments, constants.dev_scifi_geometry, m_invalid_chanid.data(context));
 
 #if ALLEN_DEBUG
   global_function(scifi_verify_decoding_kernel)(dim3(size<dev_event_list_t>(arguments)), dim3(1), context)(

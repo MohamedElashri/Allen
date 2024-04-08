@@ -96,6 +96,7 @@ __global__ void scifi_lumi_counters::scifi_lumi_counters(
 
     for (unsigned hit_index = 0u; hit_index < hit_count.event_number_of_hits(); ++hit_index) {
       const SciFi::SciFiChannelID id {hits.channel(hit_count.event_offset() + hit_index)};
+      if (id.station() == 0) continue;
       unsigned counter_id = 6 + 10 * (id.station() - 1) + 2 * id.module() + (id.quarter() % 2);
       ++SciFiCounters[counter_id];
       if (id.module() == 0u) continue;
