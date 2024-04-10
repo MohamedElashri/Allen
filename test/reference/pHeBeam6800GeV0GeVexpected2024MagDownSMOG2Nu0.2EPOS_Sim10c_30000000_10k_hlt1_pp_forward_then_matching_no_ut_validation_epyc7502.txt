@@ -115,21 +115,21 @@ Hlt1OneMuonTrackLine:                               0/  1000, (    0.00 +/-     
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                 80/  1000, ( 2400.00 +/-   257.37) kHz
 Hlt1SMOG2BENoBias:                                  0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1SMOG2PassThroughLowMult5:                       1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1SMOG2PassThroughLowMult5:                      22/  1000, (  660.00 +/-   139.16) kHz
 Hlt1SMOG2BELowMultElectrons:                        3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SMOG2MinimumBias:                               0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1PassthroughPVinSMOG2:                           1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1PassthroughPVinSMOG2:                           0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2D2Kpi:                                     1/  1000, (   30.00 +/-    29.98) kHz
-Hlt1SMOG2etacTopp:                                  3/  1000, (   90.00 +/-    51.88) kHz
+Hlt1SMOG2etacTopp:                                  1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1SMOG2KsTopipi:                                  1/  1000, (   30.00 +/-    29.98) kHz
-Hlt1SMOG22BodyGeneric:                              2/  1000, (   60.00 +/-    42.38) kHz
-Hlt1SMOG22BodyGenericLowPt:                         1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1SMOG22BodyGeneric:                              0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG22BodyGenericPrompt:                        1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1SMOG2SingleTrackVeryHighPt:                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2SingleTrackHighPt:                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2DiMuonHighMass:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2SingleMuon:                                3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SMOG2L0Toppi:                                   2/  1000, (   60.00 +/-    42.38) kHz
-Inclusive:                                        566/  1000, (16980.00 +/-   470.19) kHz
+Inclusive:                                        585/  1000, (17550.00 +/-   467.44) kHz
 
 
 seed_validator validation:
@@ -250,27 +250,27 @@ Hlt1OneMuonTrackLine:                               0           0
 Hlt1BeamGas:                                        0           0
 Hlt1VeloMicroBias:                                 80           0
 Hlt1SMOG2BENoBias:                                  0           0
-Hlt1SMOG2PassThroughLowMult5:                       1           0
+Hlt1SMOG2PassThroughLowMult5:                      22           0
 Hlt1SMOG2BELowMultElectrons:                        3           0
 Hlt1SMOG2MinimumBias:                               0           0
-Hlt1PassthroughPVinSMOG2:                           1           0
+Hlt1PassthroughPVinSMOG2:                           0           0
 Hlt1SMOG2D2Kpi:                                     1           1
-Hlt1SMOG2etacTopp:                                  3           3
+Hlt1SMOG2etacTopp:                                  1           1
 Hlt1SMOG2KsTopipi:                                  1           1
-Hlt1SMOG22BodyGeneric:                              2           2
-Hlt1SMOG22BodyGenericLowPt:                         1           1
+Hlt1SMOG22BodyGeneric:                              0           0
+Hlt1SMOG22BodyGenericPrompt:                        1           1
 Hlt1SMOG2SingleTrackVeryHighPt:                     0           0
 Hlt1SMOG2SingleTrackHighPt:                         0           0
 Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                3           3
 Hlt1SMOG2L0Toppi:                                   2           2
 
-Total decisions:      626
-Total tracks:         21
+Total decisions:      642
+Total tracks:         13
 Total calos clusters: 0
-Total SVs:            9
-Total hits:           490
-Total stdinfo:        830
+Total SVs:            5
+Total hits:           329
+Total stdinfo:        766
 
 
 velo_validator validation:

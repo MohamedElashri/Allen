@@ -465,6 +465,8 @@ def default_SMOG2_lines(reconstructed_objects,
     long_tracks = reconstructed_objects["long_tracks"]
     long_track_particles = reconstructed_objects["long_track_particles"]
     dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
+    prompt_dihadrons = reconstructed_objects[
+        "prompt_dihadron_secondary_vertices"]
     v0s = reconstructed_objects["v0_secondary_vertices"]
     dileptons = reconstructed_objects["dilepton_secondary_vertices"]
 
@@ -484,7 +486,7 @@ def default_SMOG2_lines(reconstructed_objects,
             name="Hlt1SMOG2D2Kpi",
             pre_scaler=1.),
         make_SMOG2_ditrack_line(
-            dihadrons,
+            prompt_dihadrons,
             m1=938.27,
             m2=938.27,
             mMother=3000.,
@@ -492,8 +494,11 @@ def default_SMOG2_lines(reconstructed_objects,
             min_z=min_z,
             max_z=max_z,
             minTrackIPCHI2=0.,
-            minTrackPt=700.,
-            minEitherTrackPt=1100.,
+            maxTrackIPCHI2=5.,
+            maxFDCHI2=20.,
+            minTrackP=25000.,
+            minTrackPt=1000.,
+            minEitherTrackPt=1200.,
             name="Hlt1SMOG2etacTopp",
             pre_scaler=1.),
         make_SMOG2_kstopipi_line(
@@ -506,35 +511,38 @@ def default_SMOG2_lines(reconstructed_objects,
             pre_scaler=0.3),
         make_SMOG2_ditrack_line(
             dihadrons,
-            minTrackPt=800.,
-            minEitherTrackPt=1000.,
+            minTrackPt=500.,
+            minEitherTrackPt=800.,
             min_z=min_z,
             max_z=max_z,
+            minMdipion=1300,
+            minFDCHI2=25.,
+            minTrackIPCHI2=7.,
             name="Hlt1SMOG22BodyGeneric",
-            pre_scaler=0.1),
+            pre_scaler=0.3),
         make_SMOG2_ditrack_line(
-            dihadrons,
+            prompt_dihadrons,
             minTrackPt=400.,
             minEitherTrackPt=400.,
             min_z=min_z,
             max_z=max_z,
-            minTrackIPCHI2=5.,
-            name="Hlt1SMOG22BodyGenericLowPt",
+            minTrackIPCHI2=0.,
+            name="Hlt1SMOG22BodyGenericPrompt",
             pre_scaler=0.01),
         make_SMOG2_singletrack_line(
             long_tracks,
             long_track_particles,
             name="Hlt1SMOG2SingleTrackVeryHighPt",
-            minPt=2500.,
-            pre_scaler=0.1,
+            minPt=5000.,
+            pre_scaler=1,
             min_z=min_z,
             max_z=max_z),
         make_SMOG2_singletrack_line(
             long_tracks,
             long_track_particles,
             name="Hlt1SMOG2SingleTrackHighPt",
-            minPt=1500.,
-            pre_scaler=0.01,
+            minPt=3000.,
+            pre_scaler=0.1,
             min_z=min_z,
             max_z=max_z)
     ]
@@ -553,6 +561,7 @@ def default_SMOG2_lines(reconstructed_objects,
                 long_track_particles,
                 muonid,
                 maxChi2Corr=1.8,
+                MinPt=700,
                 name="Hlt1SMOG2SingleMuon",
                 pre_scaler=0.2)
         ]
@@ -937,7 +946,7 @@ def setup_hlt1_node(enablePhysics=True,
                     line_maker(
                         make_passthrough_line(
                             name="Hlt1SMOG2PassThroughLowMult5",
-                            pre_scaler=0.001))
+                            pre_scaler=0.1))
                 ]
 
             lowMultElectrons = make_lowmult(
@@ -967,7 +976,7 @@ def setup_hlt1_node(enablePhysics=True,
                         reconstructed_objects["velo_tracks"],
                         reconstructed_objects["velo_states"],
                         name="Hlt1SMOG2MinimumBias",
-                        pre_scaler=0.00005))
+                        pre_scaler=0.00003))
             ]
 
         SMOG2_prefilters += [
@@ -978,7 +987,7 @@ def setup_hlt1_node(enablePhysics=True,
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(
-                        name="Hlt1PassthroughPVinSMOG2", pre_scaler=0.0001))
+                        name="Hlt1PassthroughPVinSMOG2", pre_scaler=0.00006))
             ]
 
             SMOG2_lines += default_SMOG2_lines(reconstructed_objects,

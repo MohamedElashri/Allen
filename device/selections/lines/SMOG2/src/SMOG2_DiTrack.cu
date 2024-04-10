@@ -29,12 +29,14 @@ __device__ bool SMOG2_ditrack_line::SMOG2_ditrack_line_t::select(
                              trk1->state().eta() > parameters.minEta && trk1->state().eta() < parameters.maxEta &&
                              trk1->chi2() / trk1->ndof() < parameters.maxTrackChi2Ndf && trk1->has_pv() &&
                              trk1->ip_chi2() > parameters.minTrackIPCHI2 &&
+                             trk1->ip_chi2() < parameters.maxTrackIPCHI2 &&
                              trk1->track().ghost_probability() < parameters.maxGhostProb;
   const bool trk2_decision = trk2->state().z() < parameters.maxZ && trk2->state().z() >= parameters.minZ &&
                              trk2->state().p() > parameters.minTrackP && trk2->state().pt() > parameters.minTrackPt &&
                              trk2->state().eta() > parameters.minEta && trk2->state().eta() < parameters.maxEta &&
                              trk2->chi2() / trk2->ndof() < parameters.maxTrackChi2Ndf && trk2->has_pv() &&
                              trk2->ip_chi2() > parameters.minTrackIPCHI2 &&
+                             trk2->ip_chi2() < parameters.maxTrackIPCHI2 &&
                              trk2->track().ghost_probability() < parameters.maxGhostProb;
 
   if (not trk1_decision or not trk2_decision) {
@@ -51,10 +53,10 @@ __device__ bool SMOG2_ditrack_line::SMOG2_ditrack_line_t::select(
 
   bool decision = mass_decision && vtx.vertex().z() < parameters.maxZ && vtx.vertex().z() >= parameters.minZ &&
                   vtx.maxpt() > parameters.minEitherTrackPt && vtx.vertex().chi2() < parameters.maxVertexChi2 &&
-                  vtx.doca12() <= parameters.maxDoca;
+                  vtx.mdipi() > parameters.minMdipion && vtx.doca12() <= parameters.maxDoca;
   if (vtx.has_pv())
     decision = decision && vtx.pv().position.z < parameters.maxZ && vtx.pv().position.z >= parameters.minZ &&
-               vtx.fdchi2() > parameters.minFDCHI2;
+               vtx.fdchi2() > parameters.minFDCHI2 && vtx.fdchi2() < parameters.maxFDCHI2;
 
   return decision;
 }
