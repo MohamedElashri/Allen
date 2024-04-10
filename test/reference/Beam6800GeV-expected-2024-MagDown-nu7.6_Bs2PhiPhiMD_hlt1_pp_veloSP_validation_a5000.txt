@@ -130,7 +130,7 @@ Hlt1SMOG2D2Kpi:                                     0/  1000, (    0.00 +/-     
 Hlt1SMOG2etacTopp:                                  0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2KsTopipi:                                  0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG22BodyGeneric:                              0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1SMOG22BodyGenericLowPt:                         0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1SMOG22BodyGenericPrompt:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2SingleTrackVeryHighPt:                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2SingleTrackHighPt:                         0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2DiMuonHighMass:                            0/  1000, (    0.00 +/-     0.00) kHz
@@ -224,7 +224,7 @@ Hlt1SMOG2D2Kpi:                                     0           0
 Hlt1SMOG2etacTopp:                                  0           0
 Hlt1SMOG2KsTopipi:                                  0           0
 Hlt1SMOG22BodyGeneric:                              0           0
-Hlt1SMOG22BodyGenericLowPt:                         0           0
+Hlt1SMOG22BodyGenericPrompt:                        0           0
 Hlt1SMOG2SingleTrackVeryHighPt:                     0           0
 Hlt1SMOG2SingleTrackHighPt:                         0           0
 Hlt1SMOG2DiMuonHighMass:                            0           0

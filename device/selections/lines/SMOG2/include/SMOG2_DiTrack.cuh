@@ -39,12 +39,15 @@ namespace SMOG2_ditrack_line {
     PROPERTY(combCharge_t, "combCharge", "Charge of the combination", int) combCharge;
     PROPERTY(m1_t, "m1", "first final-state particle mass", float) m1;
     PROPERTY(m2_t, "m2", "second final-state particle mass", float) m2;
+    PROPERTY(minMdipion_t, "minMdipion", "Minimum mass assuming dipion hypothesis in MeV", float) minMdipion;
     PROPERTY(mMother_t, "mMother", "resonance mass", float) mMother;
     PROPERTY(massWindow_t, "massWindow", "maximum mass difference wrt mM", float) massWindow;
     PROPERTY(minTrackIPCHI2_t, "minTrackIPCHI2", "Min IPCHI2 for the final-state parts", float) minTrackIPCHI2;
+    PROPERTY(maxTrackIPCHI2_t, "maxTrackIPCHI2", "Max IPCHI2 for the final-state parts", float) maxTrackIPCHI2;
     PROPERTY(minEta_t, "minEta", "minimum pseudoirapidity for composite particle", float) minEta;
     PROPERTY(maxEta_t, "maxEta", "maximum pseudoirapidity for composite particle", float) maxEta;
     PROPERTY(minFDCHI2_t, "minFDCHI2", "Min flight distance CHI2 for the final-state part", float) minFDCHI2;
+    PROPERTY(maxFDCHI2_t, "maxFDCHI2", "Max flight distance CHI2 for the final-state part", float) maxFDCHI2;
     PROPERTY(
       minEitherTrackPt_t,
       "minEitherTrackPt",
@@ -96,12 +99,15 @@ namespace SMOG2_ditrack_line {
     Property<maxDoca_t> m_maxDoca {this, 0.2f * Gaudi::Units::mm};
     Property<combCharge_t> m_combCharge {this, 0};
     Property<minTrackIPCHI2_t> m_minTrackIPCHI2 {this, 5.f};
+    Property<maxTrackIPCHI2_t> m_maxTrackIPCHI2 {this, 999999.f};
     Property<m1_t> m_m1 {this, -1.f * Gaudi::Units::MeV};
     Property<m2_t> m_m2 {this, -1.f * Gaudi::Units::MeV};
+    Property<minMdipion_t> m_minMdipion {this, -1.f * Gaudi::Units::MeV};
     Property<mMother_t> m_mMother {this, -1.f * Gaudi::Units::MeV};
     Property<massWindow_t> m_massWindow {this, -1.f * Gaudi::Units::MeV};
     Property<enable_tupling_t> m_enable_tupling {this, false};
     Property<minFDCHI2_t> m_minFDCHI2 {this, -10.f};
+    Property<maxFDCHI2_t> m_maxFDCHI2 {this, 999999.f};
     Property<maxGhostProb_t> m_maxGhostProb {this, 0.5};
   };
 } // namespace SMOG2_ditrack_line
