@@ -30,7 +30,7 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_283cb05d          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 22
+gather_selections                      INFO Number of counters : 24
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Hlt1BGIPseudoPVsDownBeamBeamPass"              |         2 |
  | "Hlt1BGIPseudoPVsDownBeamBeamRate"              |         2 |
@@ -46,6 +46,8 @@ gather_selections                      INFO Number of counters : 22
  | "Hlt1OneMuonTrackLineRate"                      |         3 |
  | "Hlt1Pi02GammaGammaPass"                        |         2 |
  | "Hlt1Pi02GammaGammaRate"                        |         2 |
+ | "Hlt1SMOG2PassThroughLowMult5Pass"              |         3 |
+ | "Hlt1SMOG2PassThroughLowMult5Rate"              |         3 |
  | "Hlt1SingleHighPtMuonNoMuIDPass"                |         4 |
  | "Hlt1SingleHighPtMuonNoMuIDRate"                |         4 |
  | "Hlt1TrackMVAPass"                              |        16 |
