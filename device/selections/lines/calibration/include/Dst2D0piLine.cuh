@@ -104,8 +104,8 @@ namespace dst_d2kpi_line {
     Property<enable_tupling_t> m_enable_tupling {this, false};
 
     Allen::Monitoring::Histogram<> m_histogram_d0_mass {this, "d0_mass", "m(D0)", {100u, 1765.f, 1965.f}};
-    Allen::Monitoring::Histogram<> m_histogram_d0_pt {this, "dst_dm", "m(D*)-m(D0)", {84u, 139.f, 160.f}};
-    Allen::Monitoring::Histogram<> m_histogram_dst_dm {this, "d0_pt", "pT(D0)", {100u, 0.f, 1e4f}};
+    Allen::Monitoring::Histogram<> m_histogram_d0_pt {this, "d0_pt", "pT(D0)", {100u, 0.f, 1e4f}};
+    Allen::Monitoring::Histogram<> m_histogram_dst_dm {this, "dst_dm", "m(D*)-m(D0)", {84u, 139.f, 160.f}};
   };
 
 } // namespace dst_d2kpi_line
