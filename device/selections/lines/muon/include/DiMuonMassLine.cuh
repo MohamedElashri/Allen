@@ -99,6 +99,6 @@ namespace di_muon_mass_line {
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<enable_tupling_t> m_enable_tupling {this, false};
 
-    Allen::Monitoring::Histogram<> m_histogram_Jpsi_mass {this, "Jpsi_mass", "m(J/Psi)", {100u, 2996.f, 3196.f}};
+    Allen::Monitoring::Histogram<> m_histogram_Jpsi_mass {this, "Jpsi_mass", "m(J/Psi)", {300u, 2896.f, 3296.f}};
   };
 } // namespace di_muon_mass_line
