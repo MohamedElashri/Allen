@@ -15,6 +15,7 @@
 #include "States.cuh"
 #include "SciFiConsolidated.cuh"
 #include "ParticleTypes.cuh"
+#include "AllenMonitoring.h"
 
 namespace is_muon {
   struct Parameters {
@@ -26,6 +27,7 @@ namespace is_muon {
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_INPUT(dev_station_ocurrences_offset_t, unsigned) dev_station_ocurrences_offset;
     DEVICE_INPUT(dev_muon_hits_t, char) dev_muon_hits;
+    DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     DEVICE_OUTPUT(dev_is_muon_t, bool) dev_is_muon;
     DEVICE_OUTPUT(dev_muon_idxs_t, unsigned) dev_muon_idxs;
     DEVICE_OUTPUT(dev_muon_hit_counts_t, unsigned) dev_muon_hit_counts;
@@ -33,8 +35,13 @@ namespace is_muon {
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
   };
 
-  __global__ void
-  is_muon(Parameters, const Muon::Constants::FieldOfInterest* dev_muon_foi, const float* dev_muon_momentum_cuts);
+  __global__ void is_muon(
+    Parameters,
+    const Muon::Constants::FieldOfInterest* dev_muon_foi,
+    const float* dev_muon_momentum_cuts,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType);
 
   struct is_muon_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -47,5 +54,8 @@ namespace is_muon {
 
   private:
     Property<block_dim_x_t> m_block_dim_x {this, 128};
+    Allen::Monitoring::Histogram<> m_histogram_n_muons {this, "n_muons", "# muons", {2u, -0.5f, 1.5f}};
+    Allen::Monitoring::Histogram<> m_histogram_muon_n_stations {this, "pv_x", "pv_x", {3u, 1.5f, 4.5f}};
+    Allen::Monitoring::Histogram<> m_histogram_muon_pt {this, "pv_y", "pv_y", {1000u, 0.f, 1e4}};
   };
 } // namespace is_muon

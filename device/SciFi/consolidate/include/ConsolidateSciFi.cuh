@@ -112,7 +112,8 @@ namespace scifi_consolidate_tracks {
       const Allen::Views::Physics::KalmanState velo_state,
       Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_eta,
       Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_phi,
-      Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_nhits);
+      Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_nhits,
+      Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_qop);
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
@@ -122,12 +123,12 @@ namespace scifi_consolidate_tracks {
     Allen::Monitoring::Histogram<> m_histogram_n_long_tracks_forward {this,
                                                                       "n_long_tracks_forward_event",
                                                                       "n_long_tracks_forward_event",
-                                                                      {80, 0, 200}};
+                                                                      {201, -0.5f, 200.5f}};
 
     Allen::Monitoring::Histogram<> m_histogram_long_track_forward_eta {this,
                                                                        "long_track_forward_eta",
                                                                        "#eta",
-                                                                       {40, 0.f, 10.f}};
+                                                                       {400, 0.f, 10.f}};
 
     Allen::Monitoring::Histogram<> m_histogram_long_track_forward_phi {this,
                                                                        "long_track_forward_phi",
@@ -137,7 +138,11 @@ namespace scifi_consolidate_tracks {
     Allen::Monitoring::Histogram<> m_histogram_long_track_forward_nhits {this,
                                                                          "long_track_forward_nhits",
                                                                          "N. hits / track",
-                                                                         {50, 0, 50}};
+                                                                         {51, -0.5f, 50.5f}};
+    Allen::Monitoring::Histogram<> m_histogram_long_track_forward_qop {this,
+                                                                       "long_track_forward_qop",
+                                                                       "q/p",
+                                                                       {200u, -1e-3f, 1e-3f}};
   };
 
 } // namespace scifi_consolidate_tracks

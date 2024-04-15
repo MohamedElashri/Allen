@@ -265,6 +265,16 @@ namespace Allen {
           const float* ghost_probability = nullptr) :
           Track {velo_segment, ut_segment, scifi_segment, muon_segment, qop, ghost_probability}
         {}
+
+        __host__ __device__ float pt(Allen::Views::Physics::KalmanState velo_state) const
+        {
+          const auto qop = *m_qop;
+          const float tx = velo_state.tx();
+          const float ty = velo_state.ty();
+          const float slope2 = tx * tx + ty * ty;
+          const float pt = std::sqrt(slope2 / (1.0f + slope2)) / std::fabs(qop);
+          return pt;
+        }
       };
 
       struct LongTracks : ILHCbIDContainer<LongTracks> {

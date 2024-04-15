@@ -161,6 +161,7 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
 
 @configurable
 def make_ecal_clusters(decoded_calo,
+                       calo_find_clusters_name='calo_find_clusters',
                        seed_min_adc=50,
                        neighbour_min_adc=10,
                        min_et=400,
@@ -196,7 +197,7 @@ def make_ecal_clusters(decoded_calo,
 
     calo_find_clusters = make_algorithm(
         calo_find_clusters_t,
-        name='calo_find_clusters_{hash}',
+        name=str(calo_find_clusters_name),
         ecal_min_adc=neighbour_min_adc,
         host_ecal_number_of_clusters_t=prefix_sum_ecal_num_clusters.
         host_total_sum_holder_t,
@@ -286,9 +287,10 @@ def make_ecal_clusters(decoded_calo,
     }
 
 
-def ecal_cluster_reco():
+def ecal_cluster_reco(calo_find_clusters_name='calo_find_clusters_reco'):
     decoded_calo = decode_calo()
-    ecal_clusters = make_ecal_clusters(decoded_calo)
+    ecal_clusters = make_ecal_clusters(
+        decoded_calo, calo_find_clusters_name=calo_find_clusters_name)
     alg = ecal_clusters["dev_ecal_clusters"].producer
     return alg
 
