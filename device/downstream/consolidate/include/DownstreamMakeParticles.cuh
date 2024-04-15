@@ -93,7 +93,7 @@ namespace downstream_make_particles {
       "number_of_trks",
       "NTrks",
       {UT::Constants::max_num_tracks, 0, UT::Constants::max_num_tracks}};
-    Allen::Monitoring::Histogram<> m_histogram_trk_eta {this, "trk_eta", "etaTrk", {100u, 0.f, 5.f}};
+    Allen::Monitoring::Histogram<> m_histogram_trk_eta {this, "trk_eta", "etaTrk", {400u, 0.f, 10.f}};
     Allen::Monitoring::Histogram<> m_histogram_trk_phi {this, "trk_phi", "phiTrk", {100u, -3.2f, 3.2f}};
     Allen::Monitoring::Histogram<> m_histogram_trk_pt {this, "trk_pt", "ptTrk", {100u, 0.f, 1e4f}};
   };

@@ -79,7 +79,8 @@ def setup_hlt1_node(enableRateValidator=True):
 
     # Reconstruct objects needed as input for selection lines
     decoded_calo = decode_calo()
-    ecal_clusters = make_ecal_clusters(decoded_calo)
+    ecal_clusters = make_ecal_clusters(
+        decoded_calo, calo_find_clusters_name='calo_find_clusters_cosmics')
 
     hlt1_config['reconstruction'] = {'ecal_clusters': ecal_clusters}
 

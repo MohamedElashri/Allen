@@ -68,6 +68,7 @@ namespace seed_confirmTracks_consolidate {
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::AveragingCounter<>::DeviceType);
 
   struct seed_confirmTracks_consolidate_t : public DeviceAlgorithm, Parameters {
@@ -82,6 +83,8 @@ namespace seed_confirmTracks_consolidate {
     __device__ static void monitor(
       SciFi::Seeding::Track scifi_track,
       MiniState scifi_state,
+      float qop,
+      Allen::Monitoring::Histogram<>::DeviceType&,
       Allen::Monitoring::Histogram<>::DeviceType&,
       Allen::Monitoring::Histogram<>::DeviceType&,
       Allen::Monitoring::Histogram<>::DeviceType&);
@@ -93,12 +96,13 @@ namespace seed_confirmTracks_consolidate {
     Allen::Monitoring::Histogram<> m_histogram_n_scifi_seeds {this,
                                                               "n_scifi_seeds_event",
                                                               "n_scifi_seeds_event",
-                                                              {80u, 0, 200}};
-    Allen::Monitoring::Histogram<> m_histogram_scifi_track_eta {this, "scifi_track_eta", "#eta", {40, 0.f, 10.f}};
-    Allen::Monitoring::Histogram<> m_histogram_scifi_track_phi {this, "scifi_track_phi", "#phi", {16, -4.f, 4.f}};
+                                                              {201u, -0.5f, 200.5f}};
+    Allen::Monitoring::Histogram<> m_histogram_scifi_track_eta {this, "scifi_track_eta", "#eta", {400u, 0.f, 10.f}};
+    Allen::Monitoring::Histogram<> m_histogram_scifi_track_phi {this, "scifi_track_phi", "#phi", {160u, -4.f, 4.f}};
     Allen::Monitoring::Histogram<> m_histogram_scifi_track_nhits {this,
                                                                   "scifi_track_nhits",
                                                                   "N. hits / track",
-                                                                  {14, 0, 14.f}};
+                                                                  {15u, -0.5f, 14.5f}};
+    Allen::Monitoring::Histogram<> m_histogram_scifi_track_qop {this, "scifi_track_qop", "q/p", {200u, -1e-3f, 1e-3f}};
   };
 } // namespace seed_confirmTracks_consolidate

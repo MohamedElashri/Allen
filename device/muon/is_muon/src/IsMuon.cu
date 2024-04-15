@@ -36,7 +36,12 @@ void is_muon::is_muon_t::operator()(
   Allen::memset_async<dev_muon_hit_counts_t>(arguments, 0, context);
 
   global_function(is_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
+    arguments,
+    constants.dev_muon_foi,
+    constants.dev_muon_momentum_cuts,
+    m_histogram_n_muons.data(context),
+    m_histogram_muon_n_stations.data(context),
+    m_histogram_muon_pt.data(context));
 }
 
 __device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)
@@ -83,7 +88,10 @@ __device__ bool is_in_window(
 __global__ void is_muon::is_muon(
   is_muon::Parameters parameters,
   const Muon::Constants::FieldOfInterest* dev_muon_foi,
-  const float* dev_muon_momentum_cuts)
+  const float* dev_muon_momentum_cuts,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_n_muons,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_muon_n_stations,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_muon_pt)
 {
   // Put foi parameters in shared memory
   __shared__ int8_t shared_muon_foi_params_content[sizeof(Muon::Constants::FieldOfInterest)];
@@ -124,6 +132,7 @@ __global__ void is_muon::is_muon(
     const auto& state = parameters.dev_scifi_states[event_offset + track_id];
 
     if (momentum < dev_muon_momentum_cuts[0]) {
+      dev_histo_n_muons.increment(0);
       continue;
     }
 
@@ -174,14 +183,62 @@ __global__ void is_muon::is_muon(
     if (occupancies[0] != 0 && occupancies[1] != 0) {
       if (momentum < dev_muon_momentum_cuts[1]) {
         parameters.dev_is_muon[event_offset + track_id] = true;
+
+        // Fill monitoring histograms
+        dev_histo_n_muons.increment(1);
+        const unsigned n_stations = (occupancies[2] != 0) + (occupancies[3] != 0);
+        dev_histo_muon_n_stations.increment(n_stations);
+        const auto long_track = long_tracks.track(track_id);
+        const auto velo_track = long_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
+        const auto velo_track_index = velo_track.track_index();
+        const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+        const auto velo_state = endvelo_states.state(velo_track_index);
+        const float pt = long_track.pt(velo_state);
+        dev_histo_muon_pt.increment(pt);
       }
       else if (momentum < dev_muon_momentum_cuts[2]) {
         parameters.dev_is_muon[event_offset + track_id] = (occupancies[2] != 0) || (occupancies[3] != 0);
+
+        // Fill monitoring histograms
+        if ((occupancies[2] != 0) || (occupancies[3] != 0)) {
+          dev_histo_n_muons.increment(1);
+          const unsigned n_stations = (occupancies[2] != 0) + (occupancies[3] != 0);
+          dev_histo_muon_n_stations.increment(n_stations);
+          const auto long_track = long_tracks.track(track_id);
+          const auto velo_track = long_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
+          const auto velo_track_index = velo_track.track_index();
+          const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+          const auto velo_state = endvelo_states.state(velo_track_index);
+          const float pt = long_track.pt(velo_state);
+          dev_histo_muon_pt.increment(pt);
+        }
+        else {
+          dev_histo_n_muons.increment(0);
+        }
       }
       else {
         parameters.dev_is_muon[event_offset + track_id] = (occupancies[2] != 0) && (occupancies[3] != 0);
+
+        // Fill monitoring histograms
+        if ((occupancies[2] != 0) && (occupancies[3] != 0)) {
+          dev_histo_n_muons.increment(1);
+          dev_histo_muon_n_stations.increment(2);
+          const auto long_track = long_tracks.track(track_id);
+          const auto velo_track = long_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
+          const auto velo_track_index = velo_track.track_index();
+          const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+          const auto velo_state = endvelo_states.state(velo_track_index);
+          const float pt = long_track.pt(velo_state);
+          dev_histo_muon_pt.increment(pt);
+        }
+        else {
+          dev_histo_n_muons.increment(0);
+        }
       }
       parameters.dev_lepton_id[event_offset + track_id] = parameters.dev_is_muon[event_offset + track_id];
+    }
+    else {
+      dev_histo_n_muons.increment(0);
     }
   }
 }

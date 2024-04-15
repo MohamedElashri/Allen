@@ -19,7 +19,8 @@ __device__ void create_scifi_views_impl(
   const T* tracks,
   Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_eta,
   Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_phi,
-  Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_nhits)
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_qop)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = blockIdx.x;
@@ -76,7 +77,8 @@ __device__ void create_scifi_views_impl(
       velo_state,
       dev_histo_long_track_forward_eta,
       dev_histo_long_track_forward_phi,
-      dev_histo_long_track_forward_nhits);
+      dev_histo_long_track_forward_nhits,
+      dev_histo_long_track_forward_qop);
   }
 
   if (threadIdx.x == 0) {
@@ -106,7 +108,8 @@ __global__ void create_scifi_views(
   scifi_consolidate_tracks::Parameters parameters,
   Allen::Monitoring::Histogram<>::DeviceType dev_histo_long_track_forward_eta,
   Allen::Monitoring::Histogram<>::DeviceType dev_histo_long_track_forward_phi,
-  Allen::Monitoring::Histogram<>::DeviceType dev_histo_long_track_forward_nhits)
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_long_track_forward_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_long_track_forward_qop)
 {
   const auto* ut_tracks =
     Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
@@ -116,7 +119,8 @@ __global__ void create_scifi_views(
       ut_tracks,
       dev_histo_long_track_forward_eta,
       dev_histo_long_track_forward_phi,
-      dev_histo_long_track_forward_nhits);
+      dev_histo_long_track_forward_nhits,
+      dev_histo_long_track_forward_qop);
   }
   else {
     const auto* velo_tracks =
@@ -126,7 +130,8 @@ __global__ void create_scifi_views(
       velo_tracks,
       dev_histo_long_track_forward_eta,
       dev_histo_long_track_forward_phi,
-      dev_histo_long_track_forward_nhits);
+      dev_histo_long_track_forward_nhits,
+      dev_histo_long_track_forward_qop);
   }
 }
 
@@ -169,6 +174,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   auto dev_histo_long_track_forward_eta = m_histogram_long_track_forward_eta.data(context);
   auto dev_histo_long_track_forward_phi = m_histogram_long_track_forward_phi.data(context);
   auto dev_histo_long_track_forward_nhits = m_histogram_long_track_forward_nhits.data(context);
+  auto dev_histo_long_track_forward_qop = m_histogram_long_track_forward_qop.data(context);
 
   global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
@@ -178,7 +184,11 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
     dev_counter_long_tracks_forward);
 
   global_function(create_scifi_views)(first<host_number_of_events_t>(arguments), 256, context)(
-    arguments, dev_histo_long_track_forward_eta, dev_histo_long_track_forward_phi, dev_histo_long_track_forward_nhits);
+    arguments,
+    dev_histo_long_track_forward_eta,
+    dev_histo_long_track_forward_phi,
+    dev_histo_long_track_forward_nhits,
+    dev_histo_long_track_forward_qop);
 }
 
 template<typename F>
@@ -375,7 +385,8 @@ __device__ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::monitor(
   const Allen::Views::Physics::KalmanState velo_state,
   Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_eta,
   Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_phi,
-  Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_nhits)
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_qop)
 {
 
   const auto tx = velo_state.tx();
@@ -390,4 +401,5 @@ __device__ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::monitor(
   dev_histo_long_track_forward_eta.increment(eta);
   dev_histo_long_track_forward_phi.increment(phi);
   dev_histo_long_track_forward_nhits.increment(nhits);
+  dev_histo_long_track_forward_qop.increment(long_track.qop());
 }

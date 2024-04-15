@@ -66,10 +66,10 @@ namespace pv_beamline_cleanup {
     Property<max_histo_smogpvz_t> m_max_histo_smogpvz {this, -200.f};
 
     Allen::Monitoring::AveragingCounter<> m_pvs {this, "n_PVs"};
-    Allen::Monitoring::Histogram<> m_histogram_n_pvs {this, "n_pvs_event", "n_pvs_event", {20u, 0.f, 20.f}};
-    Allen::Monitoring::Histogram<> m_histogram_pv_x {this, "pv_x", "pv_x", {100u, -2.f, 2.f}};
-    Allen::Monitoring::Histogram<> m_histogram_pv_y {this, "pv_y", "pv_y", {100u, -2.f, 2.f}};
-    Allen::Monitoring::Histogram<> m_histogram_pv_z {this, "pv_z", "pv_z", {100u, -200.f, 200.f}};
+    Allen::Monitoring::Histogram<> m_histogram_n_pvs {this, "n_pvs_event", "n_pvs_event", {21u, -0.5f, 20.5f}};
+    Allen::Monitoring::Histogram<> m_histogram_pv_x {this, "pv_x", "pv_x", {1000u, -2.f, 2.f}};
+    Allen::Monitoring::Histogram<> m_histogram_pv_y {this, "pv_y", "pv_y", {1000u, -2.f, 2.f}};
+    Allen::Monitoring::Histogram<> m_histogram_pv_z {this, "pv_z", "pv_z", {1000u, -200.f, 200.f}};
     Allen::Monitoring::Histogram<> m_histogram_n_smogpvs {this, "n_smog2_PVs", "n_smog2_PVs", {10, -0.5f, 9.5f}};
     Allen::Monitoring::Histogram<> m_histogram_smogpv_z {this, "smogpv_z", "smogpv_z", {100u, -600.f, -200.f}};
   };

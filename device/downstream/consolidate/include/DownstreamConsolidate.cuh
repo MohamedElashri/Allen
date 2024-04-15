@@ -182,11 +182,11 @@ namespace downstream_consolidate {
     Allen::Monitoring::Histogram<> m_histogram_n_downstream_tracks {this,
                                                                     "n_downstream_tracks_event",
                                                                     "n_downstream_tracks_event",
-                                                                    {80, 0, 200}};
+                                                                    {201u, -0.5f, 200.5f}};
     Allen::Monitoring::Histogram<> m_histogram_downstream_track_eta {this,
                                                                      "downstream_track_eta",
                                                                      "#eta",
-                                                                     {40u, 0.f, 10.f}};
+                                                                     {400u, 0.f, 10.f}};
     Allen::Monitoring::Histogram<> m_histogram_downstream_track_phi {this,
                                                                      "downstream_track_phi",
                                                                      "#phi",

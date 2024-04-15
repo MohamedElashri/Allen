@@ -105,6 +105,6 @@ namespace VertexFit {
     Allen::Monitoring::Histogram<> m_histogram_nsvs {this,
                                                      "number_of_svs",
                                                      "NSVs",
-                                                     {VertexFit::max_svs, 0, VertexFit::max_svs}};
+                                                     {VertexFit::max_svs + 1, -0.5f, VertexFit::max_svs + 0.5}};
   };
 } // namespace VertexFit

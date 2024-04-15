@@ -133,7 +133,8 @@ def hlt1_reconstruction(algorithm_name='',
 
     if with_muon:
         decoded_muon = decode_muon()
-        muonID = is_muon(decoded_muon, long_tracks)
+        muonID = is_muon(
+            decoded_muon, long_tracks, is_muon_name=algorithm_name + 'is_muon')
         # Replace long tracks with those containing muon hits.
         long_tracks = muonID["long_tracks"]
         chi2Corr = chi2muon(long_tracks, muonID)

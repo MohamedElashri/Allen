@@ -116,6 +116,7 @@ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::operator(
     m_histogram_scifi_track_phi.data(context),
     m_histogram_scifi_track_nhits.data(context),
     m_histogram_n_scifi_seeds.data(context),
+    m_histogram_scifi_track_qop.data(context),
     m_seed_tracks.data(context));
 
   global_function(create_scifi_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
@@ -137,6 +138,7 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_scifi_track_phi,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_scifi_track_nhits,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_scifi_n_tracks,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_scifi_track_qop,
   Allen::Monitoring::AveragingCounter<>::DeviceType dev_scifi_n_tracks_counter)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -217,17 +219,21 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
     seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::monitor(
       scifiseed,
       seeding_state,
+      tracks_qop[i],
       dev_histogram_scifi_track_eta,
       dev_histogram_scifi_track_phi,
-      dev_histogram_scifi_track_nhits);
+      dev_histogram_scifi_track_nhits,
+      dev_histogram_scifi_track_qop);
   }
 }
 __device__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::monitor(
   SciFi::Seeding::Track scifi_track,
   MiniState scifi_state,
+  float qop,
   Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_scifi_track_eta,
   Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_scifi_track_phi,
-  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_scifi_track_nhits)
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_scifi_track_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_scifi_track_qop)
 {
 
   const auto tx = scifi_state.tx();
@@ -242,4 +248,5 @@ __device__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t
   dev_histogram_scifi_track_eta.increment(eta);
   dev_histogram_scifi_track_phi.increment(phi);
   dev_histogram_scifi_track_nhits.increment(nhits);
+  dev_histogram_scifi_track_qop.increment(qop);
 }

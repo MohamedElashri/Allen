@@ -90,6 +90,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
     m_histogram_long_track_matching_phi.data(context),
     m_histogram_long_track_matching_nhits.data(context),
     m_histogram_n_long_tracks_matching.data(context),
+    m_histogram_long_track_matching_qop.data(context),
     m_long_tracks_matching.data(context));
 
   global_function(create_matched_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
@@ -101,6 +102,7 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_phi,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_nhits,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_n_long_tracks_matching,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_qop,
   Allen::Monitoring::AveragingCounter<>::DeviceType dev_n_long_tracks_matching_counter)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -148,6 +150,7 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
       velo_state,
       dev_histogram_long_track_matching_eta,
       dev_histogram_long_track_matching_phi,
+      dev_histogram_long_track_matching_qop,
       dev_histogram_long_track_matching_nhits);
   }
 }
@@ -158,6 +161,7 @@ __device__ void matching_consolidate_tracks::matching_consolidate_tracks_t::moni
   const Allen::Views::Physics::KalmanState velo_state,
   Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_matching_eta,
   Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_matching_phi,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_matching_qop,
   Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_matching_nhits)
 {
   const auto tx = velo_state.tx();
@@ -167,9 +171,9 @@ __device__ void matching_consolidate_tracks::matching_consolidate_tracks_t::moni
   const unsigned nhits = matched_track.number_of_hits_velo + matched_track.number_of_hits_scifi;
   const auto eta = eta_from_rho(rho);
   const auto phi = std::atan2(ty, tx);
-  // printf("tx %.4f , ty %.4f, nhits: %d \n", tx,ty,nhits);
 
   dev_histogram_long_track_matching_eta.increment(eta);
   dev_histogram_long_track_matching_phi.increment(phi);
   dev_histogram_long_track_matching_nhits.increment(nhits);
+  dev_histogram_long_track_matching_qop.increment(matched_track.qop);
 }

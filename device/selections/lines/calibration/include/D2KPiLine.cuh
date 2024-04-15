@@ -103,6 +103,6 @@ namespace d2kpi_line {
     Property<enable_tupling_t> m_enable_tupling {this, false};
 
     Allen::Monitoring::Histogram<> m_histogram_d0_mass {this, "d0_mass", "m(D0)", {100u, 1765.f, 1965.f}};
-    Allen::Monitoring::Histogram<> m_histogram_d0_pt {this, "d0_pt", "pT(D0)", {100u, 0.f, 1e4f}};
+    Allen::Monitoring::Histogram<> m_histogram_d0_pt {this, "d0_pt", "pT(D0)", {100u, 800.f, 1e4f}};
   };
 } // namespace d2kpi_line
