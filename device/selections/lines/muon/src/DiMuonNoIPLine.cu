@@ -79,7 +79,7 @@ __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
     const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
     const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
     if (track1->ip_chi2() < 6 && track2->ip_chi2() < 6) {
-      float q = sqrtf(vertex.m() * vertex.m() - 4 * Allen::mMu * Allen::mMu);
+      float q = sqrtf(vertex.mdimu() * vertex.mdimu() - 4 * Allen::mMu * Allen::mMu);
       accumulators.histogram_prompt_q.increment(q);
     }
   }
