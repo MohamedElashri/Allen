@@ -29,6 +29,7 @@ threshold_settings = Thresholds(
     TwoTrackKs_maxEta_Ks=5.,
     TwoTrackKs_min_combip=0.,
     DiMuonHighMass_pt=0.,
+    DiMuonHighMass_maxCorrChi2=10.,
     DiMuonDisplaced_pt=0.,
     DiMuonDisplaced_ipchi2=0.,
     DiMuonDisplaced_maxCorrChi2=10.,
