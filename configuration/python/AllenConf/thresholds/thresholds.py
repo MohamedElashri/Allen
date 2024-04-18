@@ -30,6 +30,7 @@ class Thresholds(NamedTuple):
     TwoTrackKs_maxEta_Ks: float
     TwoTrackKs_min_combip: float
     DiMuonHighMass_pt: float
+    DiMuonHighMass_maxCorrChi2: float
     DiMuonDisplaced_pt: float
     DiMuonDisplaced_ipchi2: float
     DiMuonDisplaced_maxCorrChi2: float
