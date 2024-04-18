@@ -79,7 +79,7 @@ gather_selections                      INFO Number of counters : 94
  | "Hlt1DiMuonJpsiMassAlignmentRate"               |        14 |
  | "Hlt1DiMuonNoIPPass"                            |         6 |
  | "Hlt1DiMuonNoIPRate"                            |         6 |
- | "Hlt1DiMuonNoIP_SSPass"                         |         7 |
+ | "Hlt1DiMuonNoIP_SSPass"                         |         4 |
  | "Hlt1DiMuonSoftPass"                            |         5 |
  | "Hlt1DiMuonSoftRate"                            |         5 |
  | "Hlt1DiPhotonHighMassPass"                      |        81 |
