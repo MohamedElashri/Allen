@@ -369,10 +369,6 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name):
                     odin_event_type='Lumi',
                     odin_orbit_modulo=30,
                     odin_orbit_remainder=1)))
-    lines.append(
-        line_maker(
-            make_odin_event_type_line(
-                odin_event_type="NoBias", pre_scaler=0.0001)))
     return lines
 
 
@@ -448,7 +444,7 @@ def alignment_monitoring_lines(reconstructed_objects,
                     velo_tracks,
                     name="Hlt1VeloMicroBias",
                     pre_scaler=1.,
-                    post_scaler=1.e-1))
+                    post_scaler=1.e-3))
         ]
 
     return lines
@@ -640,7 +636,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsBeamOne",
                 beam_crossing_type=1,
-                pre_scaler=1.,
+                pre_scaler=1e-2,
                 post_scaler=1.),
             prefilter=prefilter + [bx_NoBB, velo_states_z_all]),
         line_maker(
@@ -664,7 +660,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsUpBeamBeam",
                 beam_crossing_type=3,
-                pre_scaler=1.,
+                pre_scaler=1e-3,
                 post_scaler=1.),
             prefilter=prefilter + [velo_states_z_up])
     ]
@@ -681,10 +677,13 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsDownBeamBeam",
                 beam_crossing_type=3,
-                pre_scaler=1.,
+                pre_scaler=0.1,
                 post_scaler=1.),
             prefilter=prefilter + [velo_states_z_down])
     ]
+
+    if not enableBGI_full:
+        return lines
 
     velo_states_z_ir = make_checkPseudoPV(
         velo_states,
@@ -702,9 +701,6 @@ def default_bgi_activity_lines(pvs,
                 post_scaler=0.1),
             prefilter=prefilter + [velo_states_z_ir])
     ]
-
-    if not enableBGI_full:
-        return lines
 
     lines += [
         line_maker(

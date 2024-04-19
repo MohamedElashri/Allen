@@ -120,7 +120,7 @@ rb_map = {
     '^Hlt1.*Lumi.*':
     1,
     # RB 2 Velo alignment
-    'Hlt1(VeloMicroBias|BeamGas|NMaterialVertexSeeds|NVELODisplacedTrack)':
+    'Hlt1(VeloMicroBias|BeamGas)':
     2,
     # RB 3 Tracker alignment
     'Hlt1D2KPiAlignment':
@@ -138,7 +138,7 @@ rb_map = {
     'Hlt1RICH2Alignment':
     7,
     # RB 8 Velo (closing) monitoring
-    'Hlt1ODINVelo.*':
+    'Hlt1VeloMicroBias.*':
     8,
     # RB 9 ECAL pi0 calibration
     'Hlt1Pi02GammaGamma':
@@ -146,17 +146,17 @@ rb_map = {
     # RB 10 ODIN calibration triggers
     'Hlt1ODINCalib':
     10,
+    # RB 11 BGI lines
+    'Hlt1BGI.*':
+    11,
     # RB 14 HLT1 physics for monitoring and alignment
     'Hlt1(TrackMVA|TwoTrackMVA|SingleHighPtMuon|DiMuonHighMass|TrackMuonMVA|DisplacedDiMuon|TrackElectronMVA|SingleHighPtElectron|DisplacedDielectron|SingleHighEt)':
     14,
     # RB 15 HLT1 beam-gas physics for monitoring and alignment
     'Hlt1_SMOG2_(2BodyGeneric|SingleTrack|DiMuonHighMass|SingleMuon)':
     15,
-    # RB 16 NoBias, prescaled
-    'Hlt1.*NoBias':
-    16,
     # RB 17 physics for CalibMon
-    'Hlt1(TrackMVA|TwoTrackMVA|TrackMuonMVA|D2KPi|Dst2D0Pi|SingleHighPtMuonNoMuID|DetJpsiToMuMuPosTagLine|DetJpsiToMuMuNegTagLine)':
+    'Hlt1(Dst2D0Pi|DetJpsiToMuMuPosTagLine|DetJpsiToMuMuNegTagLine)':
     17,
     # RB 25 error banks
     'Hlt1ErrorBank':
@@ -204,9 +204,6 @@ rb_map_PbPb = {
     # RB 15 HLT1 beam-gas physics for monitoring and alignment
     'Hlt1(HeavyIonPbSMOGHadronic|GECCentPassthrough)':
     15,
-    # RB 16 NoBias, prescaled
-    'Hlt1.*NoBias':
-    16,
     # RB 25 error banks
     'Hlt1ErrorBank':
     25,
