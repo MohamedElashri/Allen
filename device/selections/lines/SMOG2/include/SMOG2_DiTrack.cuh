@@ -12,6 +12,7 @@
 
 #include "AlgorithmTypes.cuh"
 #include "CompositeParticleLine.cuh"
+#include "AllenMonitoring.h"
 
 namespace SMOG2_ditrack_line {
   struct Parameters {
@@ -56,22 +57,49 @@ namespace SMOG2_ditrack_line {
     minEitherTrackPt;
     PROPERTY(maxGhostProb_t, "maxGhostProb", "Maximum ghost probability of the tracks", float) maxGhostProb;
 
-    DEVICE_OUTPUT(sv_masses_t, float) sv_masses;
+    DEVICE_OUTPUT(sv_masses_m12_t, float) sv_masses_m12;
+    DEVICE_OUTPUT(sv_masses_m21_t, float) sv_masses_m21;
     DEVICE_OUTPUT(svz_t, float) svz;
     DEVICE_OUTPUT(track1pt_t, float) track1pt;
     DEVICE_OUTPUT(track2pt_t, float) track2pt;
     DEVICE_OUTPUT(minipchi2_t, float) minipchi2;
     DEVICE_OUTPUT(ip_t, float) ip;
+    DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(pvz_t, float) pvz;
 
-    DEVICE_OUTPUT(dev_histogram_smogks_mass_t, unsigned) dev_histogram_smogks_mass;
-    DEVICE_OUTPUT(dev_histogram_smogks_svz_t, unsigned) dev_histogram_smogks_svz;
-
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
   struct SMOG2_ditrack_line_t : public SelectionAlgorithm,
                                 Parameters,
                                 CompositeParticleLine<SMOG2_ditrack_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_smogditrack_mass;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_smogditrack_pt;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_smogditrack_pvz;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_smogditrack_svz;
+
+      DeviceAccumulators(const SMOG2_ditrack_line_t& algo, const Allen::Context& ctx) :
+        histogram_smogditrack_mass(algo.m_histogram_smogditrack_mass.data(ctx)),
+        histogram_smogditrack_pt(algo.m_histogram_smogditrack_pt.data(ctx)),
+        histogram_smogditrack_pvz(algo.m_histogram_smogditrack_pvz.data(ctx)),
+        histogram_smogditrack_svz(algo.m_histogram_smogditrack_svz.data(ctx))
+      {}
+    };
+
+    using monitoring_types =
+      std::tuple<sv_masses_m12_t, sv_masses_m21_t, svz_t, track1pt_t, track2pt_t, minipchi2_t, ip_t, pvz_t, pt_t>;
+
+    __device__ static bool
+    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+
+    __device__ static void monitor(
+      const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
+      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+      unsigned index,
+      bool sel);
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
@@ -79,7 +107,7 @@ namespace SMOG2_ditrack_line {
       unsigned index,
       bool sel);
 
-    using monitoring_types = std::tuple<sv_masses_t, svz_t, track1pt_t, track2pt_t, minipchi2_t, ip_t>;
+    void init();
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -109,5 +137,25 @@ namespace SMOG2_ditrack_line {
     Property<minFDCHI2_t> m_minFDCHI2 {this, -10.f};
     Property<maxFDCHI2_t> m_maxFDCHI2 {this, 999999.f};
     Property<maxGhostProb_t> m_maxGhostProb {this, 0.5};
+
+    // Switch to create monitoring tuple
+    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+
+    Allen::Monitoring::Histogram<> m_histogram_smogditrack_mass {this,
+                                                                 "SMOG2_ditrack_mass",
+                                                                 "mass [MeV]",
+                                                                 {100u, 2700.f, 4000.f}};
+    Allen::Monitoring::Histogram<> m_histogram_smogditrack_pt {this,
+                                                               "SMOG2_ditrack_pt",
+                                                               "pT [MeV]",
+                                                               {100u, 100.f, 8000.f}};
+    Allen::Monitoring::Histogram<> m_histogram_smogditrack_svz {this,
+                                                                "smogditrack_svz",
+                                                                "SV_z [mm]",
+                                                                {100u, -541.f, -300.f}};
+    Allen::Monitoring::Histogram<> m_histogram_smogditrack_pvz {this,
+                                                                "smogditrack_Pvz",
+                                                                "PV_z [mm]",
+                                                                {100u, -541.f, -341.f}};
   };
 } // namespace SMOG2_ditrack_line

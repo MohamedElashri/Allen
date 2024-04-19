@@ -12,7 +12,6 @@
 
 #include "AlgorithmTypes.cuh"
 #include "CompositeParticleLine.cuh"
-
 #include "AllenMonitoring.h"
 
 namespace SMOG2_dimuon_highmass_line {
@@ -23,8 +22,11 @@ namespace SMOG2_dimuon_highmass_line {
     DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
     DEVICE_INPUT(dev_chi2muon_t, float) dev_chi2muon;
 
-    DEVICE_OUTPUT(smogdimuon_masses_t, float) smogdimuon_masses;
-    DEVICE_OUTPUT(smogdimuon_svz_t, float) smogdimuon_svz;
+    DEVICE_OUTPUT(mass_t, float) mass;
+    DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(pvz_t, float) pvz;
+    DEVICE_OUTPUT(svz_t, float) svz;
+    DEVICE_OUTPUT(maxchi2corr_t, float) maxchi2corr;
 
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
@@ -46,45 +48,8 @@ namespace SMOG2_dimuon_highmass_line {
     PROPERTY(maxZ_t, "maxZ", "maximum vertex z", float) maxZ;
     PROPERTY(CombCharge_t, "HighMassCombCharge", "Charge of the combination", int) CombCharge;
     PROPERTY(maxChi2Corr_t, "maxChi2Corr", "maximum Chi2Muon evaluation", float) maxChi2Corr;
-
-    PROPERTY(
-      histogram_smogdimuon_mass_min_t,
-      "histogram_smogdimuon_mass_min",
-      "minimum for smogdimuon mass histogram",
-      float)
-    histogram_smogdimuon_mass_min;
-    PROPERTY(
-      histogram_smogdimuon_mass_max_t,
-      "histogram_smogdimuon_mass_max",
-      "maximum for smogdimuon mass histogram",
-      float)
-    histogram_smogdimuon_mass_max;
-    PROPERTY(
-      histogram_smogdimuon_mass_nbins_t,
-      "histogram_smogdimuon_mass_nbins",
-      "Nbins for smogdimuon mass histogram",
-      unsigned int)
-    histogram_smogdimuon_mass_nbins;
-
-    PROPERTY(
-      histogram_smogdimuon_svz_min_t,
-      "histogram_smogdimuon_svz_min",
-      "minimum for smogdimuon svz histogram",
-      float)
-    histogram_smogdimuon_svz_min;
-    PROPERTY(
-      histogram_smogdimuon_svz_max_t,
-      "histogram_smogdimuon_svz_max",
-      "maximum for smogdimuon svz histogram",
-      float)
-    histogram_smogdimuon_svz_max;
-    PROPERTY(
-      histogram_smogdimuon_svz_nbins_t,
-      "histogram_smogdimuon_svz_nbins",
-      "Nbins for smogdimuon svz histogram",
-      unsigned int)
-    histogram_smogdimuon_svz_nbins;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
 
   struct SMOG2_dimuon_highmass_line_t : public SelectionAlgorithm,
@@ -92,33 +57,39 @@ namespace SMOG2_dimuon_highmass_line {
                                         CompositeParticleLine<SMOG2_dimuon_highmass_line_t, Parameters> {
     struct DeviceAccumulators {
       Allen::Monitoring::Histogram<>::DeviceType histogram_smogdimuon_mass;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_smogdimuon_pt;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_smogdimuon_pvz;
       Allen::Monitoring::Histogram<>::DeviceType histogram_smogdimuon_svz;
+
       DeviceAccumulators(const SMOG2_dimuon_highmass_line_t& algo, const Allen::Context& ctx) :
         histogram_smogdimuon_mass(algo.m_histogram_smogdimuon_mass.data(ctx)),
+        histogram_smogdimuon_pt(algo.m_histogram_smogdimuon_pt.data(ctx)),
+        histogram_smogdimuon_pvz(algo.m_histogram_smogdimuon_pvz.data(ctx)),
         histogram_smogdimuon_svz(algo.m_histogram_smogdimuon_svz.data(ctx))
       {}
     };
 
-    using monitoring_types = std::tuple<smogdimuon_masses_t, smogdimuon_svz_t>;
-
-    void init();
-
+    __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float> static get_input(
+      const Parameters& parameters,
+      const unsigned event_number,
+      const unsigned i);
     __device__ static bool select(
       const Parameters&,
       const DeviceAccumulators&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
-
     __device__ static void monitor(
       const Parameters& parameters,
       const DeviceAccumulators& accumulators,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
-
-    __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float> static get_input(
+    __device__ static void fill_tuples(
       const Parameters& parameters,
-      const unsigned event_number,
-      const unsigned i);
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+      unsigned index,
+      bool sel);
+
+    using monitoring_types = std::tuple<mass_t, svz_t, pvz_t, pt_t, maxchi2corr_t>;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -136,24 +107,23 @@ namespace SMOG2_dimuon_highmass_line {
     Property<maxZ_t> m_maxZ {this, -331.f * Gaudi::Units::mm};
     Property<maxChi2Corr_t> m_maxChi2Corr {this, 1.8};
 
-    // histogram properties
-    Property<histogram_smogdimuon_mass_min_t> m_histogramsmogdimuonMassMin {this, 2700.f};
-    Property<histogram_smogdimuon_mass_max_t> m_histogramsmogdimuonMassMax {this, 4000.f};
-    Property<histogram_smogdimuon_mass_nbins_t> m_histogramsmogdimuonMassNBins {this, 300u};
-
-    Property<histogram_smogdimuon_svz_min_t> m_histogramsmogdimuonSVzMin {this, -541.f};
-    Property<histogram_smogdimuon_svz_max_t> m_histogramsmogdimuonSVzMax {this, -341.f};
-    Property<histogram_smogdimuon_svz_nbins_t> m_histogramsmogdimuonSVzNBins {this, 100u};
-    // Switch to create monitoring tuple
+    // Switch to create monitoring histograms
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    // Switch to create tuple
+    Property<enable_tupling_t> m_enable_tupling {this, false};
 
     Allen::Monitoring::Histogram<> m_histogram_smogdimuon_mass {this,
                                                                 "SMOG2_dimuon_mass",
                                                                 "m(#mu#mu)",
                                                                 {100u, 2700.f, 4000.f}};
+    Allen::Monitoring::Histogram<> m_histogram_smogdimuon_pt {this, "SMOG2_dimuon_pt", "pT", {100u, 100.f, 8000.f}};
     Allen::Monitoring::Histogram<> m_histogram_smogdimuon_svz {this,
                                                                "smogdimuon_svz",
                                                                "SV_z(smogdimuon)",
+                                                               {100u, -541.f, -300.f}};
+    Allen::Monitoring::Histogram<> m_histogram_smogdimuon_pvz {this,
+                                                               "smogdimuon_Pvz",
+                                                               "PV_z (smogdimuon)",
                                                                {100u, -541.f, -341.f}};
   };
 } // namespace SMOG2_dimuon_highmass_line

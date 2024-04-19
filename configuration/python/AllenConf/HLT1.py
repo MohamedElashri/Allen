@@ -459,7 +459,8 @@ def default_SMOG2_lines(reconstructed_objects,
                         with_muon=True,
                         with_v0s=True,
                         min_z=-541.,
-                        max_z=-341.):
+                        max_z=-341.,
+                        enable_tupling=False):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
     long_tracks = reconstructed_objects["long_tracks"]
@@ -484,7 +485,8 @@ def default_SMOG2_lines(reconstructed_objects,
             minTrackIPCHI2=7.,
             minFDCHI2=25.,
             name="Hlt1SMOG2D2Kpi",
-            pre_scaler=1.),
+            pre_scaler=1.,
+            enable_tupling=enable_tupling),
         make_SMOG2_ditrack_line(
             prompt_dihadrons,
             m1=938.27,
@@ -500,7 +502,8 @@ def default_SMOG2_lines(reconstructed_objects,
             minTrackPt=1000.,
             minEitherTrackPt=1200.,
             name="Hlt1SMOG2etacTopp",
-            pre_scaler=1.),
+            pre_scaler=1.,
+            enable_tupling=enable_tupling),
         make_SMOG2_kstopipi_line(
             dihadrons,
             min_z=min_z,
@@ -508,7 +511,8 @@ def default_SMOG2_lines(reconstructed_objects,
             name="Hlt1SMOG2KsTopipi",
             minTrackPt=250.,
             minMass=450.,
-            pre_scaler=0.3),
+            pre_scaler=0.3,
+            enable_tupling=enable_tupling),
         make_SMOG2_ditrack_line(
             dihadrons,
             minTrackPt=500.,
@@ -519,6 +523,8 @@ def default_SMOG2_lines(reconstructed_objects,
             minFDCHI2=25.,
             minTrackIPCHI2=7.,
             name="Hlt1SMOG22BodyGeneric",
+            enable_monitoring=False,
+            enable_tupling=False,
             pre_scaler=0.3),
         make_SMOG2_ditrack_line(
             prompt_dihadrons,
@@ -527,6 +533,8 @@ def default_SMOG2_lines(reconstructed_objects,
             min_z=min_z,
             max_z=max_z,
             minTrackIPCHI2=0.,
+            enable_monitoring=False,
+            enable_tupling=False,
             name="Hlt1SMOG22BodyGenericPrompt",
             pre_scaler=0.01),
         make_SMOG2_singletrack_line(
@@ -555,6 +563,7 @@ def default_SMOG2_lines(reconstructed_objects,
                 long_tracks,
                 muonid,
                 maxChi2Corr=9999.,
+                enable_tupling=enable_tupling,
                 name="Hlt1SMOG2DiMuonHighMass"),
             make_SMOG2_single_muon_line(
                 long_tracks,
@@ -578,7 +587,9 @@ def default_SMOG2_lines(reconstructed_objects,
                 minDIRA=0.99985,
                 minpipchi2=16.,
                 minpiipchi2=42.,
-                minpipt=150.)
+                minpipt=150.,
+                enable_monitoring=True,
+                enable_tupling=enable_tupling)
         ]
 
     return [line_maker(line) for line in lines]
@@ -990,8 +1001,11 @@ def setup_hlt1_node(enablePhysics=True,
                         name="Hlt1PassthroughPVinSMOG2", pre_scaler=0.00006))
             ]
 
-            SMOG2_lines += default_SMOG2_lines(reconstructed_objects,
-                                               with_muon, with_v0s)
+            SMOG2_lines += default_SMOG2_lines(
+                reconstructed_objects,
+                with_muon,
+                with_v0s,
+                enable_tupling=enableTupling)
 
         line_algorithms += [tup[0] for tup in SMOG2_lines]
         line_nodes += [tup[1] for tup in SMOG2_lines]

@@ -143,7 +143,8 @@ def make_lambda2ppi_line(secondary_vertices,
                          minpipchi2=12.,
                          minpiipchi2=32.,
                          minpipt=80.,
-                         enable_tupling=False):
+                         enable_tupling=False,
+                         enable_monitoring=False):
 
     number_of_events = initialize_number_of_events()
 
@@ -164,7 +165,8 @@ def make_lambda2ppi_line(secondary_vertices,
         L_pi_PT_min=minpipt,
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
-        enable_tupling=enable_tupling)
+        enable_tupling=enable_tupling,
+        enable_monitoring=is_allen_standalone() and enable_monitoring)
 
 
 def make_lambda_ll_detached_track_line(sv_track_candidates,

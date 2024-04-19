@@ -30,19 +30,6 @@ SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::get_input(
   return std::forward_as_tuple(particle, max(chi2corr1, chi2corr2));
 }
 
-void SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::init()
-{
-  Line<SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t, SMOG2_dimuon_highmass_line::Parameters>::init();
-
-  m_histogram_smogdimuon_mass.axis().nBins = property<histogram_smogdimuon_mass_nbins_t>();
-  m_histogram_smogdimuon_mass.axis().minValue = property<histogram_smogdimuon_mass_min_t>();
-  m_histogram_smogdimuon_mass.axis().maxValue = property<histogram_smogdimuon_mass_max_t>();
-
-  m_histogram_smogdimuon_svz.axis().nBins = property<histogram_smogdimuon_svz_nbins_t>();
-  m_histogram_smogdimuon_svz.axis().minValue = property<histogram_smogdimuon_svz_min_t>();
-  m_histogram_smogdimuon_svz.axis().maxValue = property<histogram_smogdimuon_svz_max_t>();
-}
-
 __device__ bool SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::select(
   const Parameters& parameters,
   const DeviceAccumulators&,
@@ -62,25 +49,40 @@ __device__ bool SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::select
                   trk2->chi2() / trk2->ndof() < parameters.maxTrackChi2Ndf && vtx.mdimu() >= parameters.minMass &&
                   vtx.minpt() >= parameters.minTrackPt && vtx.minp() >= parameters.minTrackP &&
                   vtx.vertex().chi2() < parameters.maxVertexChi2 && vtx.vertex().z() >= parameters.minZ &&
-                  vtx.charge() == parameters.CombCharge;
-  if (vtx.has_pv()) decision = decision && vtx.pv().position.z < parameters.maxZ;
+                  vtx.charge() == parameters.CombCharge && vtx.has_pv() && vtx.pv().position.z < parameters.maxZ;
 
   return decision;
 }
 
 __device__ void SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::monitor(
-  const Parameters& parameters,
+  const Parameters&,
   const DeviceAccumulators& accumulators,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+  unsigned,
+  bool sel)
+{
+  if (sel) {
+    const auto dimuon = std::get<0>(input);
+    accumulators.histogram_smogdimuon_mass.increment(dimuon.mdimu());
+    accumulators.histogram_smogdimuon_svz.increment(dimuon.vertex().z());
+    accumulators.histogram_smogdimuon_pvz.increment(dimuon.pv().position.z);
+    accumulators.histogram_smogdimuon_pt.increment(dimuon.vertex().pt());
+  }
+}
+
+__device__ void SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::fill_tuples(
+  const Parameters& parameters,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned index,
   bool sel)
 {
-  const auto dimuon = std::get<0>(input);
   if (sel) {
-    parameters.smogdimuon_masses[index] = dimuon.mdimu();
-    parameters.smogdimuon_svz[index] = dimuon.vertex().z();
+    const auto dimuon = std::get<0>(input);
 
-    accumulators.histogram_smogdimuon_mass.increment(dimuon.mdimu());
-    accumulators.histogram_smogdimuon_svz.increment(dimuon.vertex().z());
+    parameters.mass[index] = dimuon.mdimu();
+    parameters.svz[index] = dimuon.vertex().z();
+    parameters.pvz[index] = dimuon.pv().position.z;
+    parameters.pt[index] = dimuon.vertex().pt();
+    parameters.maxchi2corr[index] = std::get<1>(input);
   }
 }
