@@ -33,12 +33,7 @@ def make_SMOG2_dimuon_highmass_line(secondary_vertices,
                                     post_scaler=1.,
                                     maxChi2Corr=1.8,
                                     enable_monitoring=True,
-                                    histogram_smogdimuon_mass_min=2700.,
-                                    histogram_smogdimuon_mass_max=4000.,
-                                    histogram_smogdimuon_mass_nbins=300,
-                                    histogram_smogdimuon_svz_min=-541.,
-                                    histogram_smogdimuon_svz_max=-341.,
-                                    histogram_smogdimuon_svz_nbins=100):
+                                    enable_tupling=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -58,12 +53,7 @@ def make_SMOG2_dimuon_highmass_line(secondary_vertices,
         maxZ=max_z,
         maxChi2Corr=maxChi2Corr,
         enable_monitoring=is_allen_standalone() and enable_monitoring,
-        histogram_smogdimuon_mass_min=histogram_smogdimuon_mass_min,
-        histogram_smogdimuon_mass_max=histogram_smogdimuon_mass_max,
-        histogram_smogdimuon_mass_nbins=histogram_smogdimuon_mass_nbins,
-        histogram_smogdimuon_svz_min=histogram_smogdimuon_svz_min,
-        histogram_smogdimuon_svz_max=histogram_smogdimuon_svz_max,
-        histogram_smogdimuon_svz_nbins=histogram_smogdimuon_svz_nbins)
+        enable_tupling=enable_tupling)
 
 
 @configurable
@@ -95,28 +85,31 @@ def make_SMOG2_minimum_bias_line(velo_tracks,
         maxZ=max_z)
 
 
-def make_SMOG2_ditrack_line(secondary_vertices,
-                            m1=-1.,
-                            m2=-1.,
-                            minMdipion=0.,
-                            mMother=-1.,
-                            pre_scaler_hash_string=None,
-                            post_scaler_hash_string=None,
-                            name="Hlt1_SMOG2_DiTrack",
-                            mWindow=150.,
-                            minTrackP=3000.,
-                            minTrackPt=400.,
-                            minEitherTrackPt=400.,
-                            minTrackIPCHI2=0.,
-                            maxTrackIPCHI2=999999.,
-                            minFDCHI2=-10.,
-                            maxFDCHI2=999999.,
-                            maxGhostProb=0.3,
-                            min_z=-541.,
-                            max_z=-341.,
-                            pre_scaler=1.,
-                            post_scaler=1.,
-                            enable_tupling=False):
+def make_SMOG2_ditrack_line(
+        secondary_vertices,
+        m1=-1.,
+        m2=-1.,
+        minMdipion=0.,
+        mMother=-1.,
+        pre_scaler_hash_string=None,
+        post_scaler_hash_string=None,
+        name="Hlt1_SMOG2_DiTrack",
+        mWindow=150.,
+        minTrackP=3000.,
+        minTrackPt=400.,
+        minEitherTrackPt=400.,
+        minTrackIPCHI2=0.,
+        maxTrackIPCHI2=999999.,
+        minFDCHI2=-10.,
+        maxFDCHI2=999999.,
+        maxGhostProb=0.3,
+        min_z=-541.,
+        max_z=-341.,
+        pre_scaler=1.,
+        post_scaler=1.,
+        enable_tupling=False,
+        enable_monitoring=True,
+):
 
     number_of_events = initialize_number_of_events()
 
@@ -146,7 +139,8 @@ def make_SMOG2_ditrack_line(secondary_vertices,
         minFDCHI2=minFDCHI2,
         maxFDCHI2=maxFDCHI2,
         maxGhostProb=maxGhostProb,
-        enable_tupling=enable_tupling)
+        enable_tupling=enable_tupling,
+        enable_monitoring=is_allen_standalone() and enable_monitoring)
 
 
 def make_SMOG2_kstopipi_line(secondary_vertices,
@@ -180,8 +174,7 @@ def make_SMOG2_kstopipi_line(secondary_vertices,
         minMass=minMass,
         minTrackPt=minTrackPt,
         enable_monitoring=is_allen_standalone() and enable_monitoring,
-        enable_tupling=enable_tupling,
-        histogram_smogks_svz_min=min_z)
+        enable_tupling=enable_tupling)
 
 
 def make_SMOG2_singletrack_line(long_tracks,

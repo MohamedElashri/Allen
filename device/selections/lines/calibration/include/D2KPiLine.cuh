@@ -59,8 +59,14 @@ namespace d2kpi_line {
     struct DeviceAccumulators {
       Allen::Monitoring::Histogram<>::DeviceType histogram_d0_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_d0_pt;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p0_ipx;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p0_ipy;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p1_ipx;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p1_ipy;
       DeviceAccumulators(const d2kpi_line_t& algo, const Allen::Context& ctx) :
-        histogram_d0_mass(algo.m_histogram_d0_mass.data(ctx)), histogram_d0_pt(algo.m_histogram_d0_pt.data(ctx))
+        histogram_d0_mass(algo.m_histogram_d0_mass.data(ctx)), histogram_d0_pt(algo.m_histogram_d0_pt.data(ctx)),
+        histogram_p0_ipx(algo.m_histogram_p0_ipx.data(ctx)), histogram_p0_ipy(algo.m_histogram_p0_ipy.data(ctx)),
+        histogram_p1_ipx(algo.m_histogram_p1_ipx.data(ctx)), histogram_p1_ipy(algo.m_histogram_p1_ipy.data(ctx))
       {}
     };
 
@@ -104,5 +110,9 @@ namespace d2kpi_line {
 
     Allen::Monitoring::Histogram<> m_histogram_d0_mass {this, "d0_mass", "m(D0)", {100u, 1765.f, 1965.f}};
     Allen::Monitoring::Histogram<> m_histogram_d0_pt {this, "d0_pt", "pT(D0)", {100u, 800.f, 1e4f}};
+    Allen::Monitoring::Histogram<> m_histogram_p0_ipx {this, "p0_ipx", "IP_{x}(p0)", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_p0_ipy {this, "p0_ipy", "IP_{y}(p0)", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_p1_ipx {this, "p1_ipx", "IP_{x}(p1)", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_p1_ipy {this, "p1_ipy", "IP_{y}(p1)", {100u, -3.f, 3.f}};
   };
 } // namespace d2kpi_line

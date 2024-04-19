@@ -12,8 +12,17 @@
 
 INSTANTIATE_LINE(SMOG2_ditrack_line::SMOG2_ditrack_line_t, SMOG2_ditrack_line::Parameters)
 
+void SMOG2_ditrack_line::SMOG2_ditrack_line_t::init()
+{
+  Line<SMOG2_ditrack_line::SMOG2_ditrack_line_t, SMOG2_ditrack_line::Parameters>::init();
+
+  m_histogram_smogditrack_mass.axis().minValue = property<mMother_t>() - property<massWindow_t>();
+  m_histogram_smogditrack_mass.axis().maxValue = property<mMother_t>() + property<massWindow_t>();
+}
+
 __device__ bool SMOG2_ditrack_line::SMOG2_ditrack_line_t::select(
   const Parameters& parameters,
+  const DeviceAccumulators&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto& vtx = std::get<0>(input);
@@ -72,15 +81,31 @@ __device__ void SMOG2_ditrack_line::SMOG2_ditrack_line_t::fill_tuples(
   const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(1));
 
   if (sel) {
-    parameters.sv_masses[index] = parameters.mMother < 0.f ?
-                                    true :
-                                    min(
-                                      fabsf(particle.m12(parameters.m1, parameters.m2) - parameters.mMother),
-                                      fabsf(particle.m12(parameters.m2, parameters.m1) - parameters.mMother));
+    parameters.sv_masses_m21[index] = particle.m12(parameters.m2, parameters.m1);
+    parameters.sv_masses_m12[index] = particle.m12(parameters.m1, parameters.m2);
+  }
 
-    parameters.track1pt[index] = track1->state().pt();
-    parameters.track2pt[index] = track2->state().pt();
-    parameters.minipchi2[index] = particle.minipchi2();
-    parameters.ip[index] = particle.ip();
+  parameters.track1pt[index] = track1->state().pt();
+  parameters.track2pt[index] = track2->state().pt();
+  parameters.minipchi2[index] = particle.minipchi2();
+  parameters.ip[index] = particle.ip();
+}
+
+__device__ void SMOG2_ditrack_line::SMOG2_ditrack_line_t::monitor(
+  const Parameters& parameters,
+  const DeviceAccumulators& accumulators,
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+  unsigned,
+  bool sel)
+{
+  const auto ditrack = std::get<0>(input);
+  if (sel) {
+    accumulators.histogram_smogditrack_mass.increment(ditrack.m12(parameters.m1, parameters.m2));
+    if (parameters.m1 != parameters.m2)
+      accumulators.histogram_smogditrack_mass.increment(ditrack.m12(parameters.m2, parameters.m1));
+
+    accumulators.histogram_smogditrack_svz.increment(ditrack.vertex().z());
+    accumulators.histogram_smogditrack_pvz.increment(ditrack.pv().position.z);
+    accumulators.histogram_smogditrack_pt.increment(ditrack.vertex().pt());
   }
 }

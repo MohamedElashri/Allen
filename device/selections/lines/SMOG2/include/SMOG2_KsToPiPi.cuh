@@ -28,13 +28,12 @@ namespace SMOG2_kstopipi_line {
 
     DEVICE_OUTPUT(sv_masses_t, float) sv_masses;
     DEVICE_OUTPUT(svz_t, float) svz;
+    DEVICE_OUTPUT(pvz_t, float) pvz;
     DEVICE_OUTPUT(track1pt_t, float) track1pt;
     DEVICE_OUTPUT(track2pt_t, float) track2pt;
+    DEVICE_OUTPUT(pt_t, float) pt;
     DEVICE_OUTPUT(minipchi2_t, float) minipchi2;
     DEVICE_OUTPUT(ip_t, float) ip;
-
-    DEVICE_OUTPUT(dev_histogram_smogks_mass_t, unsigned) dev_histogram_smogks_mass;
-    DEVICE_OUTPUT(dev_histogram_smogks_svz_t, unsigned) dev_histogram_smogks_svz;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -50,27 +49,6 @@ namespace SMOG2_kstopipi_line {
     PROPERTY(CombCharge_t, "CombCharge", "Charge of the combination", int) CombCharge;
     PROPERTY(minTrackPt_t, "minTrackPt", "Minimum final-state particles Pt", float) minTrackPt;
 
-    PROPERTY(histogram_smogks_mass_min_t, "histogram_smogks_mass_min", "minimum for smogks mass histogram", float)
-    histogram_smogks_mass_min;
-    PROPERTY(histogram_smogks_mass_max_t, "histogram_smogks_mass_max", "maximum for smogks mass histogram", float)
-    histogram_smogks_mass_max;
-    PROPERTY(
-      histogram_smogks_mass_nbins_t,
-      "histogram_smogks_mass_nbins",
-      "nbins for smogks mass histogram",
-      unsigned int)
-    histogram_smogks_mass_nbins;
-    PROPERTY(histogram_smogks_svz_min_t, "histogram_smogks_svz_min", "minimum for smogks svz histogram", float)
-    histogram_smogks_svz_min;
-    PROPERTY(histogram_smogks_svz_max_t, "histogram_smogks_svz_max", "maximum for smogks svz histogram", float)
-    histogram_smogks_svz_max;
-    PROPERTY(
-      histogram_smogks_svz_nbins_t,
-      "histogram_smogks_svz_nbins",
-      "mbins for smogks mass histogram",
-      unsigned int)
-    histogram_smogks_svz_nbins;
-
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
@@ -81,17 +59,19 @@ namespace SMOG2_kstopipi_line {
     struct DeviceAccumulators {
       Allen::Monitoring::Histogram<>::DeviceType histogram_smogks_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_smogks_svz;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_smogks_pvz;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_smogks_pt;
       DeviceAccumulators(const SMOG2_kstopipi_line_t& algo, const Allen::Context& ctx) :
         histogram_smogks_mass(algo.m_histogram_smogks_mass.data(ctx)),
-        histogram_smogks_svz(algo.m_histogram_smogks_svz.data(ctx))
+        histogram_smogks_svz(algo.m_histogram_smogks_svz.data(ctx)),
+        histogram_smogks_pvz(algo.m_histogram_smogks_pvz.data(ctx)),
+        histogram_smogks_pt(algo.m_histogram_smogks_pt.data(ctx))
       {}
     };
     using monitoring_types = std::tuple<sv_masses_t, svz_t, track1pt_t, track2pt_t, minipchi2_t, ip_t>;
 
     __device__ static bool
     select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
-
-    void init();
 
     __device__ static void monitor(
       const Parameters& parameters,
@@ -121,17 +101,23 @@ namespace SMOG2_kstopipi_line {
     Property<maxPVZ_t> m_maxPVZ {this, -341.f * Gaudi::Units::mm};
     Property<CombCharge_t> m_CombCharge {this, 0};
 
-    Property<histogram_smogks_mass_min_t> m_histogramsmogksMassMin {this, 400.f};
-    Property<histogram_smogks_mass_max_t> m_histogramsmogksMassMax {this, 600.f};
-    Property<histogram_smogks_mass_nbins_t> m_histogramsmogksMassNBins {this, 100u};
-    Property<histogram_smogks_svz_min_t> m_histogramsmogkssvzMin {this, -541.f};
-    Property<histogram_smogks_svz_max_t> m_histogramsmogkssvzMax {this, 2700.f};
-    Property<histogram_smogks_svz_nbins_t> m_histogramsmogkssvzNBins {this, 100u};
-    // Switch to create monitoring tuple
+    // Switch to create monitoring plots
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    // Switch to create monitoring tuple
     Property<enable_tupling_t> m_enable_tupling {this, false};
 
-    Allen::Monitoring::Histogram<> m_histogram_smogks_mass {this, "ks_mass", "M(Ks) [MeV]", {100u, 400.f, 600.f}};
-    Allen::Monitoring::Histogram<> m_histogram_smogks_svz {this, "smogks_svz", "SV_z (Ks)", {100u, -541.f, 2700.f}};
+    Allen::Monitoring::Histogram<> m_histogram_smogks_mass {this,
+                                                            "SMOGks_mass",
+                                                            "M (pipi) [MeV]",
+                                                            {100u, 400.f, 600.f}};
+    Allen::Monitoring::Histogram<> m_histogram_smogks_svz {this,
+                                                           "SMOGks_svz",
+                                                           "SV_z (Ks) [mm]",
+                                                           {100u, -541.f, 1000.f}};
+    Allen::Monitoring::Histogram<> m_histogram_smogks_pvz {this,
+                                                           "SMOGks_pvz",
+                                                           "PV_z (Ks) [mm]",
+                                                           {100u, -541.f, -341.f}};
+    Allen::Monitoring::Histogram<> m_histogram_smogks_pt {this, "SMOGks_pt", "pT (Ks)", {100u, 100.f, 8000.f}};
   };
 } // namespace SMOG2_kstopipi_line

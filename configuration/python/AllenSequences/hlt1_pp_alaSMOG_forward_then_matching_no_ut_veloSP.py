@@ -9,7 +9,7 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenConf.HLT1 import setup_hlt1_node, default_SMOG2_lines
-from AllenConf.hlt1_smog2_lines import make_SMOG2_minimum_bias_line, make_SMOG2_dimuon_highmass_line
+from AllenConf.hlt1_smog2_lines import make_SMOG2_minimum_bias_line
 from AllenCore.generator import generate
 from AllenConf.enum_types import TrackingType
 from AllenConf.utils import make_checkPV
@@ -22,14 +22,9 @@ with decode_velo.bind(retina_decoding=False):
             with default_SMOG2_lines.bind(min_z=-717., max_z=-300.):
                 with make_SMOG2_minimum_bias_line.bind(
                         min_z=-717., max_z=-300.):
-                    with make_SMOG2_dimuon_highmass_line.bind(
-                            enable_monitoring=True,
-                            histogram_smogdimuon_svz_min=-717.,
-                            histogram_smogdimuon_svz_max=-300.,
-                            histogram_smogdimuon_svz_nbins=200):
-                        hlt1_node = setup_hlt1_node(
-                            tracking_type=TrackingType.FORWARD_THEN_MATCHING,
-                            with_ut=False,
-                            withSMOG2=True)
+                    hlt1_node = setup_hlt1_node(
+                        tracking_type=TrackingType.FORWARD_THEN_MATCHING,
+                        with_ut=False,
+                        withSMOG2=True)
 
-                        generate(hlt1_node)
+                    generate(hlt1_node)
