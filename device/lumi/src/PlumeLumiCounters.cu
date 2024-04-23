@@ -89,7 +89,7 @@ __global__ void plume_lumi_counters::plume_lumi_counters(
                                             0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
 
     for (unsigned feb = 0; feb < 2; feb++) {
-      unsigned channel_offset = feb * Lumi::Constants::n_plume_channels;
+      unsigned channel_offset = feb * Lumi::Constants::n_plume_lumi_channels;
       for (unsigned channel = 0; channel < Lumi::Constants::n_plume_lumi_channels; ++channel) {
         plume_counters_ADCsum += pl->ADC_counts.at(channel_offset + channel);
         plume_counters[feb * Lumi::Constants::n_plume_lumi_channels + channel] +=

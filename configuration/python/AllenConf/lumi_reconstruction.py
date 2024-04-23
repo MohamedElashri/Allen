@@ -120,7 +120,7 @@ def lumi_reconstruction(
                       ("MuonHitsM3R4", 102), ("MuonHitsM4R1", 134),
                       ("MuonHitsM4R2", 108), ("MuonHitsM4R3", 409),
                       ("MuonHitsM4R4", 227), ("MuonTracks", 127),
-                      ("PlumeAvgLumiADC", 0xfff),
+                      ("PlumeAvgLumiADC", 0x7ffff),
                       ("PlumeLumiOverthrLow", 0x3fffff),
                       ("PlumeLumiOverthrHigh", 0x3fffff)],
         extraCounterSpecs=[
@@ -211,7 +211,8 @@ def lumi_reconstruction(
             "ECalETOuterBottom": (0x4000, 0.2),
             "VeloVertexX": (0x2000, 1638.4),
             "VeloVertexY": (0x2000, 1638.4),
-            "VeloVertexZ": (0x2000, 16.384)
+            "VeloVertexZ": (0x2000, 16.384),
+            "PlumeAvgLumiADC": (0, 128.)
         }):
     lumiLine_index, found = findLine(lines, lumiline_name)
     if not found:
