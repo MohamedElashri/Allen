@@ -665,6 +665,7 @@ allen_add_host_library(HostCommon SHARED
   main/src/SliceUtils.cpp
   main/src/Timer.cpp
   main/src/Tools.cpp
+  main/src/MDFProvider.cpp
   main/src/Transpose.cpp)
 
 target_link_libraries(AllenCommon INTERFACE

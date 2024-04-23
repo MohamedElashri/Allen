@@ -201,5 +201,4 @@ std::tuple<bool, bool, size_t> transpose_events(
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   std::vector<char>& event_mask,
-  size_t n_events,
   bool split_by_run = false);

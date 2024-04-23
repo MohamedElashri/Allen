@@ -95,11 +95,14 @@ function(test_program)
 
   target_link_libraries(${test_name}
     PRIVATE
-      Transpose
+      HostCommon
       Threads::Threads
+      mdf
+      Backend
       EventModel
       AllenZMQ
       Catch2::Catch2
+      AllenLib
       Boost::program_options)
   target_compile_definitions(${test_name} PRIVATE ODIN_WITHOUT_GAUDI)
   if (NOT STANDALONE)
@@ -111,21 +114,6 @@ function(test_program)
 endfunction()
 
 if (BUILD_TESTING)
-  add_library(Transpose STATIC
-    ${PROJECT_SOURCE_DIR}/main/src/Transpose.cpp
-    ${PROJECT_SOURCE_DIR}/main/src/Provider.cpp
-    ${PROJECT_SOURCE_DIR}/main/src/ZMQOutputSender.cpp)
-  target_compile_definitions(Transpose PRIVATE ODIN_WITHOUT_GAUDI)
-  target_link_libraries(Transpose
-    PUBLIC
-      HostCommon
-      Backend
-      mdf
-      LHCbEvent
-      AllenZMQ
-      EventModel
-      AllenFS)
-
   test_program(NAME mdf_test_read SOURCE test/test_read.cpp)
   test_program(NAME mdf_bench_read SOURCE test/bench_read.cpp)
   test_program(NAME mdf_bench_provider SOURCE test/bench_provider.cpp)
@@ -134,7 +122,5 @@ if (BUILD_TESTING)
   if (NOT STANDALONE)
     test_program(NAME mep_test_banks SOURCE test/test_mep_banks.cpp)
     target_link_libraries(allen_mep_test_banks PRIVATE Gaudi::GaudiKernel)
-    target_link_libraries(Transpose PUBLIC Configuration)
   endif()
-
 endif()

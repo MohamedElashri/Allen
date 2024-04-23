@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 
   Timer t;
 
-  MDFProviderConfig mdf_config {false, 3, 10001, 1200, 10, false, {}};
+  MDFProviderConfig mdf_config {false, 3, 1001, 1000, 10, false, {}};
 
   MDFProvider mdf {n_slices, events_per_slice, {}, files, DataBankTypes, mdf_config};
 
