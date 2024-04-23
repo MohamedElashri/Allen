@@ -68,18 +68,19 @@ __global__ void scifi_raw_bank_decoder_kernel(
   SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
   const unsigned number_of_hits_in_event = hit_count.event_number_of_hits();
   for (unsigned i = threadIdx.x; i < number_of_hits_in_event; i += blockDim.x) {
-    const uint32_t cluster_reference = parameters.dev_cluster_references[hit_count.event_offset() + i];
+    const unsigned cluster_reference = parameters.dev_cluster_references[hit_count.event_offset() + i];
 
-    int cluster_chan = SciFi::ClusterReference::getChanID(cluster_reference);
+    unsigned cluster_chan = SciFi::ClusterReference::getChanID(cluster_reference);
     int cluster_fraction = SciFi::ClusterReference::getFraction(cluster_reference);
     int pseudoSize = SciFi::ClusterReference::getPseudoSize(cluster_reference);
 
-    const SciFi::SciFiChannelID id {(uint32_t) cluster_chan};
+    const SciFi::SciFiChannelID id {cluster_chan};
     if (id.station() == 0 || id.globalMatID() < 512) {
       invalid_chanid.increment();
     }
-
-    make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
+    else {
+      make_cluster(hit_count.event_offset() + i, geom, cluster_chan, cluster_fraction, pseudoSize, hits);
+    }
   }
 }
 
@@ -141,6 +142,8 @@ void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
+  Allen::memset_async<dev_scifi_hits_t>(arguments, 0, context);
+
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version < 0) return; // no SciFi banks present in data
 

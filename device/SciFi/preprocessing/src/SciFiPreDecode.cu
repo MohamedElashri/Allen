@@ -45,6 +45,7 @@ scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned 
     uint32_t* cluster_reference = nullptr;
     uint32_t mat_count = 0;
     int direction = 1;
+
     for (unsigned it_number = 0; it_number < number_of_iterations; ++it_number) {
       auto it = starting_it + it_number;
       const uint16_t c = *it;
@@ -54,9 +55,11 @@ scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned 
       }
       else { // Decoding v7 and v8
         auto globalSiPM = SciFi::getGlobalSiPMFromIndex(geom, iRowInMap, c);
-        if (globalSiPM == SciFi::SciFiChannelID::kInvalidChannelID) // Link not found or local link > 24. Should never
-                                                                    // happen but seen in early data.
+        if (globalSiPM == SciFi::SciFiChannelID::kInvalidChannelID) {
+          // Link not found or local link > 24. Should never
+          // happen but seen in early data.
           continue;
+        }
         ch = globalSiPM + SciFi::channelInLink(c);
       }
       const auto chid = SciFi::SciFiChannelID(ch);
@@ -68,6 +71,7 @@ scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned 
         mat_count = chid.reversedZone() ? hit_offsets[correctedMat + 1] - hit_offsets[correctedMat] - 1 : 0;
       }
       const auto store_sorted_fn = [&](uint32_t cluster_chan, uint8_t cluster_fraction, uint8_t pseudoSize) {
+        assert(cluster_chan != 0);
         cluster_reference[mat_count] =
           SciFi::ClusterReference::makeClusterReference(cluster_chan, cluster_fraction, pseudoSize);
         mat_count += direction;
@@ -81,15 +85,19 @@ scifi_pre_decode_kernel(scifi_pre_decode::Parameters parameters, const unsigned 
         store_sorted_fn(ch, cluster_fraction, pseudoSize);
       }
       else if constexpr (decoding_version >= 6) {
-        if (!SciFi::cSize(c)) {
+        if (it != starting_it && SciFi::getLinkInBank(*it) < SciFi::getLinkInBank(*(it - 1))) {
+          continue;
+        }
+        else if (!SciFi::cSize(c)) {
           // Single cluster
           store_sorted_fn(ch, cluster_fraction, 4);
         }
         else {
           const unsigned c2 = *(it + 1);
-          if (SciFi::lastClusterSiPM(c, c2, it, last))
+          if (SciFi::lastClusterSiPM(c, c2, it, last)) {
             // last cluster in bank or in sipm
             store_sorted_fn(ch, cluster_fraction, 0);
+          }
           else if (SciFi::wellOrdered(c, c2) && SciFi::startLargeCluster<decoding_version>(c)) {
             if (SciFi::endLargeCluster<decoding_version>(c2)) {
               const unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
@@ -139,6 +147,9 @@ void scifi_pre_decode::scifi_pre_decode_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
+
+  Allen::memset_async<dev_cluster_references_t>(arguments, 0, context);
+
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version < 0) return; // no SciFi banks present in data
 

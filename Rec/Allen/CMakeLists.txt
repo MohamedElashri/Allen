@@ -150,6 +150,7 @@ if(BUILD_TESTING AND NOT USE_DD4HEP)
     set_property(
         TEST
           Allen.mdf_input_2023_data
+          Allen.mdf_input_2024_data_tae
         PROPERTY
           DISABLED TRUE
     )
