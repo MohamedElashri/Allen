@@ -285,6 +285,7 @@ def make_di_muon_no_ip_line(long_tracks,
 def make_di_muon_drell_yan_line(
         long_tracks,
         secondary_vertices,
+        muonid,
         pre_scaler_hash_string="di_muon_drell_yan_line_pre",
         post_scaler_hash_string="di_muon_drell_yan_line_post",
         minTrackPt=1200.,
@@ -298,6 +299,7 @@ def make_di_muon_drell_yan_line(
         enable_tupling=False,
         minMass=5000.,
         maxMass=250000,
+        maxChi2Corr=2.2,
         pre_scaler=1.):
     number_of_events = initialize_number_of_events()
 
@@ -308,6 +310,8 @@ def make_di_muon_drell_yan_line(
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[
             "dev_multi_event_composites"],
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
+        dev_chi2muon_t=muonid["dev_chi2corr"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string,
         minTrackP=minTrackP,
@@ -315,6 +319,7 @@ def make_di_muon_drell_yan_line(
         maxTrackEta=maxTrackEta,
         maxDoca=maxDoca,
         maxVertexChi2=maxVertexChi2,
+        maxChi2Muon=maxChi2Corr,
         OppositeSign=OppositeSign,
         enable_monitoring=is_allen_standalone() and enable_monitoring,
         enable_tupling=enable_tupling,
