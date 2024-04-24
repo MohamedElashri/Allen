@@ -71,8 +71,8 @@ gather_selections                      INFO Number of counters : 92
  | "Hlt1DiElectronLowMass_massSlice4_displacedRate"|         1 |
  | "Hlt1DiElectronLowMass_massSlice4_promptPass"   |         5 |
  | "Hlt1DiElectronLowMass_massSlice4_promptRate"   |         1 |
- | "Hlt1DiMuonDisplacedPass"                       |        67 |
- | "Hlt1DiMuonDisplacedRate"                       |        67 |
+ | "Hlt1DiMuonDisplacedPass"                       |        66 |
+ | "Hlt1DiMuonDisplacedRate"                       |        66 |
  | "Hlt1DiMuonHighMassPass"                        |        56 |
  | "Hlt1DiMuonHighMassRate"                        |        56 |
  | "Hlt1DiMuonJpsiMassAlignmentPass"               |        14 |
@@ -129,10 +129,10 @@ matching_consolidate_tracks_matc...    INFO Number of counters : 1
  | "n_long_tracks_matching"                        |     10000 |     431912 |     43.191 |
 pv_beamline_cleanup                    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_PVs"                                         |     10000 |      51729 |     5.1729 |
+ | "n_PVs"                                         |     10000 |      51730 |     5.1730 |
 scifi_consolidate_seeds_matching       INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_seed_tracks"                                 |     10000 |     725862 |     72.586 |
 velo_consolidate_tracks                INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_velo_tracks"                                 |     10000 |    2501944 |     250.19 |
+ | "n_velo_tracks"                                 |     10000 |    2501949 |     250.19 |
