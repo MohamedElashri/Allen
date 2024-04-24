@@ -19,7 +19,7 @@ from PyConf import configurable
 @configurable
 def make_transposed_raw_banks(rawbank_list, make_raw=default_raw_event):
     return TransposeRawBanks(
-        RawEventLocations=[make_raw(bank_types=[k]) for k in rawbank_list],
+        RawEventLocations=[make_raw(bank_type=k) for k in rawbank_list],
         BankTypes=rawbank_list).AllenRawInput
 
 
