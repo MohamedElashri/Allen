@@ -13,11 +13,11 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <array>
 
-#include <AIDA/IHistogram1D.h>
+#include "Gaudi/Accumulators/Histogram.h"
 
 #include <GaudiAlg/MergingTransformer.h>
-#include <GaudiAlg/GaudiHistoAlg.h>
 #include <GaudiKernel/GaudiException.h>
 
 #include <Event/ODIN.h>
@@ -38,9 +38,9 @@ using VOC = Gaudi::Functional::vector_of_const_<T>;
 // Once
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // number_of_rawbanks  | uint32_t | 4
-// -----------------------------------------------------------------------------
 // raw_bank_offset     | uint32_t | number_of_rawbanks * 4
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// -----------------------------------------------------------------------------
 // for each raw bank:
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // sourceID            | uint32_t | 4                     |
@@ -54,9 +54,9 @@ using VOC = Gaudi::Functional::vector_of_const_<T>;
  *  @author Roel Aaij
  *  @date   2018-08-27
  */
-class TransposeRawBanks : public Gaudi::Functional::MergingTransformer<
-                            std::array<TransposedBanks, LHCb::RawBank::types().size()>(VOC<LHCb::RawEvent*> const&),
-                            Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
+class TransposeRawBanks
+  : public Gaudi::Functional::MergingTransformer<std::array<TransposedBanks, LHCb::RawBank::types().size()>(
+      VOC<LHCb::RawEvent*> const&)> {
 public:
   /// Standard constructor
   TransposeRawBanks(const std::string& name, ISvcLocator* pSvcLocator);
@@ -80,7 +80,7 @@ private:
                                                                    LHCb::RawBank::Plume,
                                                                    LHCb::RawBank::Rich}};
 
-  std::array<AIDA::IHistogram1D*, LHCb::RawBank::types().size()> m_histos;
+  std::array<std::unique_ptr<Gaudi::Accumulators::Histogram<1>>, LHCb::RawBank::types().size()> m_histos;
 };
 
 TransposeRawBanks::TransposeRawBanks(const std::string& name, ISvcLocator* pSvcLocator) :
@@ -95,8 +95,16 @@ TransposeRawBanks::TransposeRawBanks(const std::string& name, ISvcLocator* pSvcL
 
 StatusCode TransposeRawBanks::initialize()
 {
+  using Axis1D = Gaudi::Accumulators::Axis<double>;
+
   for (auto bt : LHCb::RawBank::types()) {
-    m_histos[bt] = (m_bankTypes.value().count(bt) ? book1D(toString(bt), -0.5, 603.5, 151) : nullptr);
+    if (m_bankTypes.value().count(bt)) {
+      m_histos[bt] = std::make_unique<Gaudi::Accumulators::Histogram<1>>(
+        this, toString(bt), toString(bt), Axis1D {151, -0.5, 603.5});
+    }
+    else {
+      m_histos[bt] = nullptr;
+    }
   }
   return StatusCode::SUCCESS;
 }
@@ -186,12 +194,11 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
       auto bEnd = bank->end<uint32_t>() + (bank->size() % sizeof(uint32_t) != 0);
 
       // Debug/testing histogram with the sizes of the binary data per bank
-      auto histo = m_histos[bt];
-      if (histo == nullptr) {
-        warning() << "No histogram booked for bank type " << toString(bt) << endmsg;
+      if (m_histos[bt]) {
+        ++(*m_histos[bt])[(bEnd - bStart) * sizeof(uint32_t)];
       }
       else {
-        histo->fill((bEnd - bStart) * sizeof(uint32_t));
+        warning() << "No histogram booked for bank type " << toString(bt) << endmsg;
       }
 
       while (bStart != bEnd) {
