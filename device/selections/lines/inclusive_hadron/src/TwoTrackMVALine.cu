@@ -27,6 +27,7 @@ two_track_mva_line::two_track_mva_line_t::get_input(
 
 __device__ bool two_track_mva_line::two_track_mva_line_t::select(
   const Parameters& parameters,
+  const DeviceAccumulators&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto& vertex = std::get<0>(input);
@@ -42,6 +43,27 @@ __device__ bool two_track_mva_line::two_track_mva_line_t::select(
 
   return presel && response > parameters.minMVA && a->track().ghost_probability() < parameters.maxGhostProb &&
          b->track().ghost_probability() < parameters.maxGhostProb;
+}
+
+__device__ void two_track_mva_line::two_track_mva_line_t::monitor(
+  const Parameters&,
+  const DeviceAccumulators& accumulators,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+  unsigned,
+  bool sel)
+{
+  if (sel) {
+    const auto particle = std::get<0>(input);
+    const auto p0 = static_cast<const Allen::Views::Physics::BasicParticle*>(std::get<0>(input).child(0));
+    const auto p1 = static_cast<const Allen::Views::Physics::BasicParticle*>(std::get<0>(input).child(1));
+    accumulators.histogram_p0_ghost_prob.increment(p0->track().ghost_probability());
+    accumulators.histogram_p1_ghost_prob.increment(p1->track().ghost_probability());
+    accumulators.histogram_p0_ip_x.increment(p0->ip_x());
+    accumulators.histogram_p1_ip_x.increment(p1->ip_x());
+    accumulators.histogram_p0_ip_y.increment(p0->ip_y());
+    accumulators.histogram_p1_ip_y.increment(p1->ip_y());
+    accumulators.histogram_d0_mass.increment(particle.m12(Allen::mK, Allen::mPi));
+  }
 }
 
 __device__ void two_track_mva_line::two_track_mva_line_t::fill_tuples(

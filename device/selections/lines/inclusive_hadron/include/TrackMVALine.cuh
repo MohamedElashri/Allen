@@ -12,6 +12,8 @@
 
 #include "AlgorithmTypes.cuh"
 #include "OneTrackLine.cuh"
+#include "AllenMonitoring.h"
+#include "ROOTService.h"
 
 namespace track_mva_line {
   struct Parameters {
@@ -44,12 +46,32 @@ namespace track_mva_line {
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
 
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct track_mva_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<track_mva_line_t, Parameters> {
-    __device__ static bool select(const Parameters& ps, std::tuple<const Allen::Views::Physics::BasicParticle> input);
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_ghost_prob;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_ip_x;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_ip_y;
+      DeviceAccumulators(const track_mva_line_t& algo, const Allen::Context& ctx) :
+        histogram_ghost_prob(algo.m_histogram_ghost_prob.data(ctx)), histogram_ip_x(algo.m_histogram_ip_x.data(ctx)),
+        histogram_ip_y(algo.m_histogram_ip_y.data(ctx))
+      {}
+    };
+
+    __device__ static bool select(
+      const Parameters& ps,
+      const DeviceAccumulators&,
+      std::tuple<const Allen::Views::Physics::BasicParticle> input);
     __device__ static void fill_tuples(
       const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::BasicParticle> input,
+      unsigned index,
+      bool sel);
+    __device__ static void monitor(
+      const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
       std::tuple<const Allen::Views::Physics::BasicParticle> input,
       unsigned index,
       bool sel);
@@ -73,5 +95,10 @@ namespace track_mva_line {
     Property<maxGhostProb_t> m_maxGhostProb {this, 0.5};
 
     Property<enable_tupling_t> m_enable_tupling {this, false};
+    Property<enable_monitoring_t> m_enable_monitoring {this, true};
+
+    Allen::Monitoring::Histogram<> m_histogram_ghost_prob {this, "ghost_prob", "track GhostProb", {100u, 0.f, 0.6f}};
+    Allen::Monitoring::Histogram<> m_histogram_ip_x {this, "ip_x", "IP_{x}", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_ip_y {this, "ip_y", "IP_{y}", {100u, -3.f, 3.f}};
   };
 } // namespace track_mva_line

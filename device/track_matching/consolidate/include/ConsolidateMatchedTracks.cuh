@@ -85,6 +85,7 @@ namespace matching_consolidate_tracks {
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::AveragingCounter<>::DeviceType);
 
   struct matching_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
@@ -100,6 +101,7 @@ namespace matching_consolidate_tracks {
       const SciFi::MatchedTrack matched_track,
       const Allen::Views::Velo::Consolidated::Track velo_track,
       const Allen::Views::Physics::KalmanState velo_state,
+      Allen::Monitoring::Histogram<>::DeviceType&,
       Allen::Monitoring::Histogram<>::DeviceType&,
       Allen::Monitoring::Histogram<>::DeviceType&,
       Allen::Monitoring::Histogram<>::DeviceType&,
@@ -129,5 +131,9 @@ namespace matching_consolidate_tracks {
                                                                         "long_track_matching_qop",
                                                                         "q/p",
                                                                         {200u, -1e-3f, 1e-3f}};
+    Allen::Monitoring::Histogram<> m_histogram_long_track_ghost_prob {this,
+                                                                      "long_track_ghost_prob",
+                                                                      "GhostProb",
+                                                                      {100u, 0.f, 0.6f}};
   };
 } // namespace matching_consolidate_tracks

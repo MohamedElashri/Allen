@@ -47,6 +47,7 @@ def make_track_mva_line(long_tracks,
                         post_scaler_hash_string=None,
                         name='Hlt1TrackMVA_{hash}',
                         enable_tupling=False,
+                        enable_monitoring=True,
                         alpha=296,
                         maxGhostProb=0.5):
     number_of_events = initialize_number_of_events()
@@ -62,6 +63,7 @@ def make_track_mva_line(long_tracks,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         enable_tupling=enable_tupling,
+        enable_monitoring=is_allen_standalone() and enable_monitoring,
         alpha=alpha,
         maxGhostProb=maxGhostProb)
 
@@ -72,6 +74,7 @@ def make_two_track_mva_line(long_tracks,
                             post_scaler_hash_string=None,
                             name='Hlt1TwoTrackMVA_{hash}',
                             enable_tupling=False,
+                            enable_monitoring=True,
                             minMVA=0.9569,
                             maxGhostProb=0.5):
     number_of_events = initialize_number_of_events()
@@ -95,6 +98,7 @@ def make_two_track_mva_line(long_tracks,
         dev_two_track_mva_evaluation_t=two_track_mva_evaluator.
         dev_two_track_mva_evaluation_t,
         enable_tupling=enable_tupling,
+        enable_monitoring=is_allen_standalone() and enable_monitoring,
         minMVA=minMVA,
         maxGhostProb=maxGhostProb)
 
