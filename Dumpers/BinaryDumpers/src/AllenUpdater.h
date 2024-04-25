@@ -48,10 +48,6 @@ public:
 
   StatusCode initialize() override;
 
-  StatusCode start() override;
-
-  StatusCode stop() override;
-
   /**
    * @brief      Update all registered non-event data by calling all
    *             registered Producer and Consumer
