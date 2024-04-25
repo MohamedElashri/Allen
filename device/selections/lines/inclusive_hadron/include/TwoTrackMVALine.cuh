@@ -13,6 +13,8 @@
 #include "AlgorithmTypes.cuh"
 #include "CompositeParticleLine.cuh"
 #include "ParticleTypes.cuh"
+#include "AllenMonitoring.h"
+#include "ROOTService.h"
 
 namespace two_track_mva_line {
   struct Parameters {
@@ -47,6 +49,7 @@ namespace two_track_mva_line {
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
 
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct two_track_mva_line_t : public SelectionAlgorithm,
@@ -55,9 +58,35 @@ namespace two_track_mva_line {
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p0_ghost_prob;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p1_ghost_prob;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p0_ip_x;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p1_ip_x;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p0_ip_y;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p1_ip_y;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_d0_mass;
+      DeviceAccumulators(const two_track_mva_line_t& algo, const Allen::Context& ctx) :
+        histogram_p0_ghost_prob(algo.m_histogram_p0_ghost_prob.data(ctx)),
+        histogram_p1_ghost_prob(algo.m_histogram_p1_ghost_prob.data(ctx)),
+        histogram_p0_ip_x(algo.m_histogram_p0_ip_x.data(ctx)), histogram_p1_ip_x(algo.m_histogram_p1_ip_x.data(ctx)),
+        histogram_p0_ip_y(algo.m_histogram_p0_ip_y.data(ctx)), histogram_p1_ip_y(algo.m_histogram_p1_ip_y.data(ctx)),
+        histogram_d0_mass(algo.m_histogram_d0_mass.data(ctx))
+
+      {}
+    };
+
     __device__ static bool select(
       const Parameters& parameters,
+      const DeviceAccumulators&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input);
+
+    __device__ static void monitor(
+      const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+      unsigned index,
+      bool sel);
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
@@ -86,6 +115,21 @@ namespace two_track_mva_line {
     Property<maxGhostProb_t> m_maxGhostProb {this, 0.5};
 
     Property<enable_tupling_t> m_enable_tupling {this, false};
+    Property<enable_monitoring_t> m_enable_monitoring {this, true};
+
+    Allen::Monitoring::Histogram<> m_histogram_p0_ghost_prob {this,
+                                                              "p0_ghost_prob",
+                                                              "track0 GhostProb",
+                                                              {100u, 0.f, 0.6f}};
+    Allen::Monitoring::Histogram<> m_histogram_p1_ghost_prob {this,
+                                                              "p1_ghost_prob",
+                                                              "track1 GhostProb",
+                                                              {100u, 0.f, 0.6f}};
+    Allen::Monitoring::Histogram<> m_histogram_p0_ip_x {this, "p0_ip_x", "IP_{x}(p0)", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_p1_ip_x {this, "p1_ip_x", "IP_{x}(p1)", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_p0_ip_y {this, "p0_ip_y", "IP_{y}(p0)", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_p1_ip_y {this, "p1_ip_y", "IP_{y}(p1)", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_d0_mass {this, "d0_mass", "m(K#pi)", {100u, 1765.f, 1965.f}};
   };
 
 } // namespace two_track_mva_line

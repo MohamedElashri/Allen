@@ -15,6 +15,7 @@ INSTANTIATE_LINE(track_mva_line::track_mva_line_t, track_mva_line::Parameters)
 
 __device__ bool track_mva_line::track_mva_line_t::select(
   const Parameters& parameters,
+  const DeviceAccumulators&,
   std::tuple<const Allen::Views::Physics::BasicParticle> input)
 {
   const auto track = std::get<0>(input);
@@ -29,6 +30,21 @@ __device__ bool track_mva_line::track_mva_line_t::select(
     track.pv().position.z > parameters.minBPVz && track.track().ghost_probability() < parameters.maxGhostProb;
 
   return decision;
+}
+
+__device__ void track_mva_line::track_mva_line_t::monitor(
+  const Parameters&,
+  const DeviceAccumulators& accumulators,
+  std::tuple<const Allen::Views::Physics::BasicParticle> input,
+  unsigned,
+  bool sel)
+{
+  const auto track = std::get<0>(input);
+  if (sel) {
+    accumulators.histogram_ghost_prob.increment(track.track().ghost_probability());
+    accumulators.histogram_ip_x.increment(track.ip_x());
+    accumulators.histogram_ip_y.increment(track.ip_y());
+  }
 }
 
 __device__ void track_mva_line::track_mva_line_t::fill_tuples(
