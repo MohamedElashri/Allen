@@ -130,7 +130,7 @@ namespace seeding {
   };
 
   struct Triplet {
-    static constexpr unsigned maxTriplets = 3000;
+    static constexpr unsigned maxTriplets = 6000;
     __device__ Triplet(unsigned indices) : indices(indices) {}
     __device__ Triplet(int idx0, int idx1, int idx2) : indices((idx2 << 20) | (idx1 << 10) | idx0) {}
     __device__ int idx0() { return indices & 1023; }
