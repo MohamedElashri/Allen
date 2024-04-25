@@ -65,7 +65,7 @@ namespace SciFi {
     static constexpr int max_tracks = 1000;
 
     // Constants for SciFi seeding
-    static constexpr int Nmax_seed_xz_per_part = 300;
+    static constexpr int Nmax_seed_xz_per_part = 500;
     static constexpr int Nmax_seed_xz = n_parts * Nmax_seed_xz_per_part;
     static constexpr int Nmax_seeds_per_part = Nmax_seed_xz_per_part;
     static constexpr int Nmax_seeds = n_parts * Nmax_seeds_per_part;

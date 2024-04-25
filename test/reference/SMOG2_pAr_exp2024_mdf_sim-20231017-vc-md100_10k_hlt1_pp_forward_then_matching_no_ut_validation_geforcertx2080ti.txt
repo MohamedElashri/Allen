@@ -270,11 +270,11 @@ Total stdinfo:        754
 
 
 velo_validator validation:
-TrackChecker output                               :       244/    27663   0.88% ghosts
-01_velo                                           :     15071/    15383  97.97% ( 98.26%),       679 (  4.31%) clones, pur  99.55%, hit eff  94.46%
-02_long                                           :      9101/     9180  99.14% ( 99.34%),       344 (  3.64%) clones, pur  99.74%, hit eff  95.31%
-03_long_P>5GeV                                    :      5986/     6014  99.53% ( 99.59%),       198 (  3.20%) clones, pur  99.81%, hit eff  96.03%
-04_long_strange                                   :       461/      471  97.88% ( 97.93%),        15 (  3.15%) clones, pur  99.50%, hit eff  95.36%
-05_long_strange_P>5GeV                            :       233/      240  97.08% ( 96.55%),         4 (  1.69%) clones, pur  99.38%, hit eff  97.07%
-08_long_electrons                                 :      1178/     1194  98.66% ( 98.51%),       100 (  7.82%) clones, pur  97.33%, hit eff  93.61%
+TrackChecker output                               :       488/    55326   0.88% ghosts
+01_velo                                           :     30142/    30766  97.97% ( 98.26%),      1358 (  4.31%) clones, pur  99.55%, hit eff  94.46%
+02_long                                           :     18202/    18360  99.14% ( 99.34%),       688 (  3.64%) clones, pur  99.74%, hit eff  95.31%
+03_long_P>5GeV                                    :     11972/    12028  99.53% ( 99.59%),       396 (  3.20%) clones, pur  99.81%, hit eff  96.03%
+04_long_strange                                   :       922/      942  97.88% ( 97.93%),        30 (  3.15%) clones, pur  99.50%, hit eff  95.36%
+05_long_strange_P>5GeV                            :       466/      480  97.08% ( 96.55%),         8 (  1.69%) clones, pur  99.38%, hit eff  97.07%
+08_long_electrons                                 :      2356/     2388  98.66% ( 98.51%),       200 (  7.82%) clones, pur  97.33%, hit eff  93.61%
 
