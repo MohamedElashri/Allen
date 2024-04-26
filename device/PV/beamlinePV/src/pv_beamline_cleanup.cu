@@ -14,9 +14,9 @@ INSTANTIATE_ALGORITHM(pv_beamline_cleanup::pv_beamline_cleanup_t)
 
 void pv_beamline_cleanup::pv_beamline_cleanup_t::init()
 {
-  m_histogram_smogpv_z.axis().nBins = property<nbins_histo_smogpvz_t>();
-  m_histogram_smogpv_z.axis().minValue = property<min_histo_smogpvz_t>();
-  m_histogram_smogpv_z.axis().maxValue = property<max_histo_smogpvz_t>();
+  m_histogram_smogpv_z.x_axis().nBins = property<nbins_histo_smogpvz_t>();
+  m_histogram_smogpv_z.x_axis().minValue = property<min_histo_smogpvz_t>();
+  m_histogram_smogpv_z.x_axis().maxValue = property<max_histo_smogpvz_t>();
 }
 
 void pv_beamline_cleanup::pv_beamline_cleanup_t::set_arguments_size(

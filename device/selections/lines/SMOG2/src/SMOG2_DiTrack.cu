@@ -16,8 +16,8 @@ void SMOG2_ditrack_line::SMOG2_ditrack_line_t::init()
 {
   Line<SMOG2_ditrack_line::SMOG2_ditrack_line_t, SMOG2_ditrack_line::Parameters>::init();
 
-  m_histogram_smogditrack_mass.axis().minValue = property<mMother_t>() - property<massWindow_t>();
-  m_histogram_smogditrack_mass.axis().maxValue = property<mMother_t>() + property<massWindow_t>();
+  m_histogram_smogditrack_mass.x_axis().minValue = property<mMother_t>() - property<massWindow_t>();
+  m_histogram_smogditrack_mass.x_axis().maxValue = property<mMother_t>() + property<massWindow_t>();
 }
 
 __device__ bool SMOG2_ditrack_line::SMOG2_ditrack_line_t::select(

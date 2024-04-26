@@ -219,7 +219,7 @@ namespace Allen::Monitoring {
   template<typename T>
   struct DeviceAxis {
     using InputType = T;
-
+    DeviceAxis() = default;
     DeviceAxis(unsigned nBins, InputType minValue, InputType maxValue) :
       minValue(minValue), maxValue(maxValue), ratio(static_cast<float>(nBins) / (maxValue - minValue))
     {}
@@ -263,7 +263,7 @@ namespace Allen::Monitoring {
 
   struct DeviceLogAxis {
     using InputType = float;
-
+    DeviceLogAxis() = default;
     DeviceLogAxis(unsigned nBins, float _minValue, float _maxValue, float a, float b, float c) : a(a), b(b), c(c)
     {
       minValue = logscale(_minValue, a, b, c);
@@ -335,104 +335,220 @@ namespace Allen::Monitoring {
     std::string title;        // title of this axis
   };
 
-  template<typename AxisT = DeviceAxis<float>, typename T = unsigned>
-  struct DeviceHistogram {
-    using AxisType = AxisT;
+  namespace details {
+    template<class... Args, std::size_t... Is>
+    constexpr auto remove_last_helper(std::tuple<Args...> tp, std::index_sequence<Is...>)
+    {
+      return std::tuple {std::get<Is>(tp)...};
+    }
 
-    __host__ __device__ DeviceHistogram(T* data, AxisType axis) : m_data(data), m_axis(axis) {}
+    template<class... Args>
+    constexpr auto remove_last(std::tuple<Args...> tp)
+    {
+      return remove_last_helper(tp, std::make_index_sequence<sizeof...(Args) - 1> {});
+    }
+  } // namespace details
 
-    __device__ unsigned index(typename AxisType::InputType value) const { return m_axis.index(value); }
-    __device__ bool inAcceptance(typename AxisType::InputType value) const { return m_axis.inAcceptance(value); }
-    __device__ T& operator[](typename AxisType::InputType value) const { return m_data[index(value)]; }
+  template<typename T = unsigned, typename... Types>
+  struct DeviceNDHistogram {
+    __host__ DeviceNDHistogram(T* data, std::tuple<Types...> axis_h) : m_data(data)
+    {
+      std::apply(
+        [&](auto... axis) {
+          unsigned i = 0;
+          ((stride[i] = axis.nBins, i++), ...);
+          for (unsigned i = 0; (i + 2u) < sizeof...(Types); i++) {
+            stride[i + 1] *= stride[i];
+          }
+        },
+        details::remove_last(axis_h));
+      m_axis = (std::apply(
+        [&](auto... axis) { return std::tuple<decltype(axis.deviceAxis())...> {axis.deviceAxis()...}; }, axis_h));
+    }
+
+    template<typename First, typename... InputTypes>
+    __device__ unsigned index(First& first, InputTypes&... values) const
+    {
+      unsigned sum = std::get<0>(m_axis).index(first);
+      std::apply(
+        [&](auto, auto... axis) {
+          unsigned i = 0;
+          ((sum += stride.at(i) * axis.index(values), i++), ...);
+        },
+        m_axis);
+      return sum;
+    }
+
+    template<typename... InputTypes>
+    __device__ bool inAcceptance(InputTypes&... values) const
+    {
+      return std::apply([&](auto... axis) { return (axis.inAcceptance(values) && ...); }, m_axis);
+    }
+
     __device__ T* data() const { return m_data; }
 
 #if defined(TARGET_DEVICE_CUDA) && defined(DEVICE_COMPILER)
-    __device__ void increment(typename AxisType::InputType value) const
+    template<typename... InputTypes>
+    __device__ void increment(InputTypes... values) const
     {
       // Based on https://hal.science/hal-03330414/document
-      if (m_axis.inAcceptance(value)) {
-        unsigned index = m_axis.index(value);
+      if (inAcceptance(values...)) {
+        unsigned index_ = index(values...);
         unsigned active = __activemask();
-        unsigned peers = conflict_mask(active, index);
+        unsigned peers = conflict_mask(active, index_);
         unsigned count = __popc(peers);
         unsigned rank = __popc(peers & __lanemask_lt());
-        if (rank == 0) atomicAdd(&m_data[index], count);
+        if (rank == 0) atomicAdd(&m_data[index_], count);
       }
     }
 #else
-    __device__ void increment(typename AxisType::InputType value) const
+    template<typename... InputTypes>
+    void increment(InputTypes... values) const
     {
-      if (m_axis.inAcceptance(value)) {
-        unsigned index = m_axis.index(value);
-        __atomic_add_fetch(&m_data[index], 1, __ATOMIC_RELAXED);
+      if (inAcceptance(values...)) {
+        unsigned index_ = index(values...);
+        __atomic_add_fetch(&m_data[index_], 1, __ATOMIC_RELAXED);
       }
     }
 #endif
 
   private:
     T* m_data;
-    AxisType m_axis;
+    std::tuple<typename Types::DeviceType...> m_axis;
+    std::array<unsigned, sizeof...(Types) - 1> stride;
   };
 
-  template<typename AxisT = Axis<float>, typename T = unsigned>
-  struct Histogram : AccumulatorBase {
+  template<typename T = unsigned, typename... Types>
+  struct HistogramND : AccumulatorBase {
     using type = T;
-    using AxisType = AxisT;
-    using DeviceType = DeviceHistogram<typename AxisType::DeviceType, T>;
+    using DeviceType = DeviceNDHistogram<T, Types...>;
 
-    Histogram(const Allen::Algorithm* owner, std::string name, std::string title, AxisType axis) :
-      AccumulatorBase(owner, name), m_title(title), m_axis {axis}
+    HistogramND(const Allen::Algorithm* owner, std::string name, std::string title, Types... axis) :
+      AccumulatorBase(owner, name), m_title(title), m_axis(axis...)
     {}
-    std::size_t size() const override { return m_axis.nBins; }
+
+    std::size_t size() const override
+    {
+      return std::apply([&](auto... axis) { return (1 * ... * axis.nBins); }, m_axis);
+    }
+
     std::size_t elementSize() const override { return sizeof(T); }
 
     DeviceType data(const Allen::Context& ctx) const
     {
       T* ptr = reinterpret_cast<T*>(currentDevicePtr(ctx.stream_id));
-      return {ptr, m_axis.deviceAxis()};
+      return DeviceType(ptr, m_axis);
     }
 
-    AxisType& axis() { return m_axis; }
+    auto& x_axis() { return std::get<0>(m_axis); }
 
-    friend void reset(Histogram& c)
+    auto& y_axis() { return std::get<1>(m_axis); }
+
+    auto& z_axis() { return std::get<2>(m_axis); }
+
+    friend void reset(HistogramND& c)
     {
       std::fill(c.m_bins.begin(), c.m_bins.end(), 0.0);
       c.m_totNEntries = 0.0;
     }
-    friend void to_json(nlohmann::json& j, Histogram const& h)
+
+    friend void to_json(nlohmann::json& j, HistogramND const& h)
     {
       j = {{"type", "histogram:Histogram:d"},
            {"title", h.m_title},
-           {"dimension", 1},
+           {"dimension", h.m_allen_stride.size()},
            {"empty", h.m_totNEntries == 0},
            {"nEntries", h.m_totNEntries},
-           {"axis", {h.m_axis}},
+           {"axis", h.axisArray()},
            {"bins", h.m_bins}};
     }
+
     void registerAccumulator() override
     {
-      m_bins.resize(m_axis.nBins + 2);
+      std::apply(
+        [&](auto... axis) {
+          unsigned i = 0;
+          ((m_allen_stride[i] = axis.nBins, i++), ...);
+        },
+        m_axis);
+      for (unsigned i = 1; i < sizeof...(Types); i++) {
+        m_allen_stride[i] *= m_allen_stride[i - 1];
+      }
+
+      std::apply(
+        [&](auto... axis) {
+          unsigned i = 0;
+          ((m_gaudi_stride[i] = (axis.nBins + 2), i++), ...);
+        },
+        m_axis);
+      for (unsigned i = 1; i < sizeof...(Types); i++) {
+        m_gaudi_stride[i] *= m_gaudi_stride[i - 1];
+      }
+
+      m_bins.resize(m_gaudi_stride[sizeof...(Types) - 1]);
       m_totNEntries = 0.0;
 #ifndef ALLEN_STANDALONE
       Gaudi::svcLocator()->monitoringHub().registerEntity(component(), name(), "histogram:Histogram:d", *this);
 #endif
     }
+
     void fillAccumulator(void* ptr) override
     {
-      for (unsigned bin = 0; bin < m_axis.nBins; bin++) {
+      for (unsigned bin = 0; bin < m_allen_stride[sizeof...(Types) - 1]; bin++) {
         auto count = reinterpret_cast<T*>(ptr)[bin];
-        m_bins[bin + 1] += count;
+        unsigned global_bin = convert_allen_bin_to_gaudi_bin(bin);
+        m_bins[global_bin] += count;
         m_totNEntries += count;
       }
     }
-    std::vector<double> m_bins;
-    double m_totNEntries = 0.0;
+
     std::string m_title;
-    AxisType m_axis;
+    double m_totNEntries = 0.0;
+    std::vector<double> m_bins;
+    std::tuple<Types...> m_axis;
+    std::array<std::size_t, sizeof...(Types)> m_allen_stride;
+    std::array<std::size_t, sizeof...(Types)> m_gaudi_stride;
+
+  private:
+    unsigned convert_allen_bin_to_gaudi_bin(unsigned allen_bin) const
+    {
+      std::array<unsigned, sizeof...(Types)> bins;
+      calc_dim_bin(sizeof...(Types) - 1, allen_bin, bins);
+      unsigned bin_index = bins[0] + 1;
+      for (unsigned i = 1; i < bins.size(); i++) {
+        bin_index += (bins[i] + 1) * m_gaudi_stride[i - 1];
+      }
+      return bin_index;
+    }
+
+    void calc_dim_bin(unsigned dim, unsigned allen_bin, std::array<unsigned, sizeof...(Types)>& bins) const
+    {
+      if (dim != 0) {
+        unsigned highest_bin = allen_bin / m_allen_stride[dim - 1];
+        calc_dim_bin(dim - 1, allen_bin % m_allen_stride[dim - 1], bins);
+        bins[dim] = highest_bin;
+      }
+      else {
+        bins[dim] = allen_bin;
+      }
+    }
+
+    constexpr auto axisArray() const
+    {
+      auto axis_arrays = (std::apply([&](auto... axis) { return std::array {axis...}; }, m_axis));
+
+      return axis_arrays;
+    }
   };
 
+  template<typename AxisT = Axis<float>, typename T = unsigned>
+  using Histogram = HistogramND<T, AxisT>;
+
+  template<typename AxisT = Axis<float>, typename AxisT2 = Axis<float>, typename T = unsigned>
+  using Histogram2D = HistogramND<T, AxisT, AxisT2>;
+
   template<typename AxisT = LogAxis, typename T = unsigned>
-  using LogHistogram = Histogram<AxisT, T>;
+  using LogHistogram = HistogramND<T, AxisT>;
 
   template<typename HistogramType>
   struct HistogramBinAsCounter {
@@ -457,5 +573,4 @@ namespace Allen::Monitoring {
     const HistogramType* m_histo;
     unsigned m_bin;
   };
-
 } // namespace Allen::Monitoring
