@@ -295,7 +295,7 @@ void error_bank_filter::error_bank_filter_t::error_bank_filter(
           auto const raw_data_event_number = parameters.host_event_list[event_index] + event_start;
           auto const bank_type = MEP::bank_type(nullptr, types, raw_data_event_number, bank_index);
           auto const source_id = MEP::source_id(offsets, bank_index);
-          selected_events[event_number] = count_bank(bank_type, source_id);
+          selected_events[event_number] |= count_bank(bank_type, source_id);
         }
       }
     }
@@ -311,7 +311,7 @@ void error_bank_filter::error_bank_filter_t::error_bank_filter(
         for (unsigned bank_index = 0; bank_index < number_of_banks; ++bank_index) {
           auto raw_bank = raw_event.raw_bank(bank_index);
           // Allen::bank_type(types, raw_data_event_number, bank_index);
-          selected_events[event_number] = count_bank(raw_bank.type, raw_bank.source_id);
+          selected_events[event_number] |= count_bank(raw_bank.type, raw_bank.source_id);
         }
       }
     }

@@ -363,7 +363,7 @@ namespace SciFi {
       return (chanId << 5) | ((fraction & 1) << 4) | (pseudoSize & 0xf);
     }
 
-    __device__ inline int getChanID(uint32_t cluster_reference) { return cluster_reference >> 5; }
+    __device__ inline uint32_t getChanID(uint32_t cluster_reference) { return cluster_reference >> 5; }
 
     __device__ inline int getFraction(uint32_t cluster_reference) { return (cluster_reference >> 4) & 1; }
 
@@ -394,6 +394,9 @@ namespace SciFi {
     return SciFi::cSize(c) && !SciFi::fraction(c);
   }
 
-  __device__ inline bool wellOrdered(unsigned c, unsigned c2) { return SciFi::cell(c) < SciFi::cell(c2); }
+  __device__ inline bool wellOrdered(unsigned c, unsigned c2)
+  {
+    return SciFi::cell(c) < SciFi::cell(c2) && SciFi::getLinkInBank(c) <= SciFi::getLinkInBank(c2);
+  }
 
 } // namespace SciFi

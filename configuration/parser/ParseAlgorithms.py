@@ -348,7 +348,7 @@ class AllenCore():
 
         # Call update method if needed
         code += "// Call algorithm update method on first event or if run number changes.\n"
-        code += "{\n  std::scoped_lock{m_mut};\n"
+        code += "{\n  std::scoped_lock lock{m_mut};\n"
         code += "  if ( !m_runNumber || *m_runNumber != odin.runNumber() ) {"
         code += "    m_algorithm.update(*constants); m_runNumber = odin.runNumber();"
         code += "  }\n}\n"
@@ -421,14 +421,15 @@ class AllenCore():
             "// TES wrappers", f"{tes_wrappers}",
             "// Inputs to set_arguments_size and operator()",
             f"{tes_wrappers_reference}", f"Allen::Context context{{}};",
+            "{ std::scoped_lock lock{Allen::Monitoring::AccumulatorManager::get()->getMutex()};",
             f"Allen::Monitoring::AccumulatorManager::get()->initAccumulators(1);",
             f"const auto argument_references = ArgumentReferences<{algorithm.namespace}::Parameters>{{tes_wrappers_references, input_aggregates_tuple}};",
             f"// set arguments size invocation",
             f"m_algorithm.set_arguments_size(argument_references, runtime_options, *constants);",
             f"// algorithm operator() invocation",
             f"m_algorithm(argument_references, runtime_options, *constants, context);",
-            f"Allen::Monitoring::AccumulatorManager::get()->mergeAndReset(true);"
-        ))
+            f"Allen::Monitoring::AccumulatorManager::get()->mergeAndReset(true);",
+            "}"))
 
         is_filter = "mask_t" in [out.typedef for out in outputs]
         if is_filter:
@@ -615,16 +616,18 @@ class AllenCore():
             f"{tes_wrappers_reference}",
             f"Allen::Context context{{}};",
             "// Call algorithm update method on first event or if run number changes.",
-            "{ std::scoped_lock{m_mut};",
+            "{ std::scoped_lock lock{m_mut};",
             "if ( !m_runNumber || *m_runNumber != odin.runNumber() ) {",
             "  m_algorithm.update(*constants); m_runNumber = odin.runNumber();"
             "}}",
+            "{ std::scoped_lock lock{Allen::Monitoring::AccumulatorManager::get()->getMutex()};",
             f"Allen::Monitoring::AccumulatorManager::get()->initAccumulators(1);",
             f"// set arguments size invocation",
             f"m_algorithm.set_arguments_size(tes_wrappers_references, runtime_options, *constants);",
             f"// algorithm operator() invocation",
             f"m_algorithm(tes_wrappers_references, runtime_options, *constants, context);",
             f"Allen::Monitoring::AccumulatorManager::get()->mergeAndReset(true);",
+            "}",
             return_statement,
             f"}}",
             "private:",

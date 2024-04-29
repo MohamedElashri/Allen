@@ -26,7 +26,8 @@ __global__ void scifi_calculate_cluster_count_kernel(
   scifi_calculate_cluster_count::Parameters parameters,
   const unsigned event_start,
   const char* scifi_geometry,
-  Allen::Monitoring::Counter<>::DeviceType link_error_counter)
+  Allen::Monitoring::Counter<>::DeviceType link_error_counter,
+  Allen::Monitoring::Counter<>::DeviceType misordered_cluster_counter)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -48,6 +49,7 @@ __global__ void scifi_calculate_cluster_count_kernel(
     const auto iRowInMap = SciFi::getRowInMap(rawbank, geom);
     if (iRowInMap == geom.number_of_banks) continue;
     const auto [starting_it, last] = SciFi::readAndCheckRawBank(rawbank);
+
     for (auto* it = starting_it; it < last; ++it) { // loop over the clusters
       uint16_t c = *it;
       SciFi::SciFiChannelID chid(SciFi::SciFiChannelID::kInvalidChannelID);
@@ -70,14 +72,18 @@ __global__ void scifi_calculate_cluster_count_kernel(
         atomicAdd(hits_module, 1);
       }
       else if constexpr (decoding_version >= 6) {
-        if (!SciFi::cSize(c)) { // Not flagged as large
+        if (it != starting_it && SciFi::getLinkInBank(*it) < SciFi::getLinkInBank(*(it - 1))) {
+          misordered_cluster_counter.increment();
+        }
+        else if (!SciFi::cSize(c)) { // Not flagged as large
           atomicAdd(hits_module, 1);
         }
         else { // flagged as first edge of large cluster
           unsigned c2 = *(it + 1);
-          // last cluster in bank or in sipm
-          if (SciFi::lastClusterSiPM(c, c2, it, last))
+          if (SciFi::lastClusterSiPM(c, c2, it, last)) {
+            // last cluster in bank or in sipm
             atomicAdd(hits_module, 1);
+          }
           else if (SciFi::wellOrdered(c, c2) && SciFi::startLargeCluster<decoding_version>(c)) {
             if (SciFi::endLargeCluster<decoding_version>(c2)) {
               unsigned int widthClus = (SciFi::cell(c2) - SciFi::cell(c) + 2);
@@ -93,9 +99,9 @@ __global__ void scifi_calculate_cluster_count_kernel(
             }
           }
           else { /* ERROR */
-            if (!SciFi::wellOrdered(c, c2))
+            if (!SciFi::wellOrdered(c, c2)) {
+              misordered_cluster_counter.increment();
               ++it;
-            else {
             }
           }
         }
@@ -154,7 +160,8 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
       arguments,
       std::get<0>(runtime_options.event_interval),
       constants.dev_scifi_geometry,
-      m_link_error_counter.data(context));
+      m_link_error_counter.data(context),
+      m_misordered_cluster_counter.data(context));
   }
 
   unsigned array_size = size<dev_scifi_hit_count_t>(arguments) - 1;

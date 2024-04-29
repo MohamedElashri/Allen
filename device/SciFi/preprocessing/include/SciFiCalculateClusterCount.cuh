@@ -50,5 +50,6 @@ namespace scifi_calculate_cluster_count {
     Property<block_dim_t> m_block_dim {this, {{240, 1, 1}}};
     Property<decode_v8_as_v7_t> m_decode_v8_as_v7 {this, {false}};
     Allen::Monitoring::Counter<> m_link_error_counter {this, "n_link_error"};
+    Allen::Monitoring::Counter<> m_misordered_cluster_counter {this, "n_misordered_cluster"};
   };
 } // namespace scifi_calculate_cluster_count

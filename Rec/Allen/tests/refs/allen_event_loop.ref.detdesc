@@ -32,12 +32,8 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_283cb05d          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 92
+gather_selections                      INFO Number of counters : 90
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "Hlt1BGIPseudoPVsDownBeamBeamPass"              |         2 |
- | "Hlt1BGIPseudoPVsDownBeamBeamRate"              |         2 |
- | "Hlt1BGIPseudoPVsIRBeamBeamPass"                |      9855 |
- | "Hlt1BGIPseudoPVsIRBeamBeamRate"                |       968 |
  | "Hlt1D2KKPass"                                  |        13 |
  | "Hlt1D2KKRate"                                  |        13 |
  | "Hlt1D2KPiAlignmentPass"                        |         5 |
@@ -81,7 +77,7 @@ gather_selections                      INFO Number of counters : 92
  | "Hlt1DiMuonJpsiMassAlignmentRate"               |        14 |
  | "Hlt1DiMuonNoIPPass"                            |         6 |
  | "Hlt1DiMuonNoIPRate"                            |         6 |
- | "Hlt1DiMuonNoIP_SSPass"                         |         7 |
+ | "Hlt1DiMuonNoIP_SSPass"                         |         4 |
  | "Hlt1DiMuonSoftPass"                            |         5 |
  | "Hlt1DiMuonSoftRate"                            |         5 |
  | "Hlt1DiPhotonHighMassPass"                      |        81 |
@@ -104,6 +100,8 @@ gather_selections                      INFO Number of counters : 92
  | "Hlt1Pi02GammaGammaRate"                        |         2 |
  | "Hlt1RICH1AlignmentPass"                        |         5 |
  | "Hlt1RICH1AlignmentRate"                        |         5 |
+ | "Hlt1SMOG2PassThroughLowMult5Pass"              |         3 |
+ | "Hlt1SMOG2PassThroughLowMult5Rate"              |         3 |
  | "Hlt1SingleHighPtElectronPass"                  |        11 |
  | "Hlt1SingleHighPtElectronRate"                  |        11 |
  | "Hlt1SingleHighPtMuonNoMuIDPass"                |        19 |
@@ -123,7 +121,7 @@ gather_selections                      INFO Number of counters : 92
  | "Hlt1TwoTrackMVAPass"                           |       250 |
  | "Hlt1TwoTrackMVARate"                           |       250 |
  | "Hlt1VeloMicroBiasPass"                         |      9997 |
- | "Hlt1VeloMicroBiasRate"                         |       959 |
+ | "Hlt1VeloMicroBiasRate"                         |         9 |
  | "Hlt1XiOmegaLLLPass"                            |         4 |
  | "Hlt1XiOmegaLLLRate"                            |         4 |
 matching_consolidate_tracks_matc...    INFO Number of counters : 1

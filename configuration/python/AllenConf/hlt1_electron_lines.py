@@ -222,4 +222,5 @@ def make_highmass_dielectron_line(
         post_scaler_hash_string=post_scaler_hash_string,
         minMass=minMass,
         maxMass=maxMass,
+        enable_monitoring=enable_monitoring,
         OppositeSign=(not is_same_sign))

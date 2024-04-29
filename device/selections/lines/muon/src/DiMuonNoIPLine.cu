@@ -46,14 +46,25 @@ __device__ bool di_muon_no_ip_line::di_muon_no_ip_line_t::select(
 
   const bool same_sign = vertex.charge() != 0;
 
-  return maxchi2muon < parameters.maxChi2Muon && vertex.is_dimuon() && (same_sign == parameters.ss_on) &&
-         track1->state().chi2() / track1->state().ndof() <= parameters.maxTrChi2 &&
-         track2->state().chi2() / track2->state().ndof() <= parameters.maxTrChi2 && track1->state().chi2() > 0 &&
-         track2->state().chi2() > 0 && vertex.doca12() <= parameters.maxDoca &&
-         track1->state().pt() * track2->state().pt() >= parameters.minTrackPtPROD &&
-         track1->state().p() >= parameters.minTrackP && track2->state().p() >= parameters.minTrackP &&
-         vertex.vertex().chi2() > 0 && vertex.vertex().chi2() <= parameters.maxVertexChi2 &&
-         vertex.vertex().pt() > parameters.minPt && vertex.vertex().z() >= parameters.minZ;
+  bool dec = maxchi2muon < parameters.maxChi2Muon && vertex.is_dimuon() && (same_sign == parameters.ss_on) &&
+             track1->state().chi2() / track1->state().ndof() <= parameters.maxTrChi2 &&
+             track2->state().chi2() / track2->state().ndof() <= parameters.maxTrChi2 && track1->state().chi2() > 0 &&
+             track2->state().chi2() > 0 && vertex.doca12() <= parameters.maxDoca &&
+             track1->state().pt() * track2->state().pt() >= parameters.minTrackPtPROD &&
+             track1->state().p() >= parameters.minTrackP && track2->state().p() >= parameters.minTrackP &&
+             vertex.vertex().chi2() > 0 && vertex.vertex().chi2() <= parameters.maxVertexChi2 &&
+             vertex.vertex().pt() > parameters.minPt && vertex.vertex().z() >= parameters.minZ;
+  if (dec) {
+    using segment = Allen::Views::Physics::Track::segment;
+    const auto* muon_segment1 = track1->track().track_segment_ptr<segment::muon>();
+    const auto* muon_segment2 = track2->track().track_segment_ptr<segment::muon>();
+    for (unsigned i = 0; i < muon_segment1->number_of_ids(); i++) {
+      for (unsigned j = 0; j < muon_segment2->number_of_ids(); j++) {
+        dec &= muon_segment1->hit(i).id() != muon_segment2->hit(j).id();
+      }
+    }
+  }
+  return dec;
 }
 
 __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
@@ -68,7 +79,7 @@ __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
     const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
     const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
     if (track1->ip_chi2() < 6 && track2->ip_chi2() < 6) {
-      float q = sqrtf(vertex.m() * vertex.m() - 4 * Allen::mMu * Allen::mMu);
+      float q = sqrtf(vertex.mdimu() * vertex.mdimu() - 4 * Allen::mMu * Allen::mMu);
       accumulators.histogram_prompt_q.increment(q);
     }
   }

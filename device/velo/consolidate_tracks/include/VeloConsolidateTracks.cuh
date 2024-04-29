@@ -97,6 +97,6 @@ namespace velo_consolidate_tracks {
     Allen::Monitoring::Histogram<> m_histogram_n_velo_tracks {this,
                                                               "n_velo_tracks_event",
                                                               "n_velo_tracks_event",
-                                                              {100u, 0.f, 500.f}};
+                                                              {501u, -0.5f, 500.5f}};
   };
 } // namespace velo_consolidate_tracks

@@ -48,10 +48,17 @@ __device__ void d2kpi_line::d2kpi_line_t::monitor(
 {
   const auto particle = std::get<0>(input);
   const auto vertex = particle.vertex();
+  const auto p0 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(0));
+  const auto p1 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(1));
   if (sel) {
     accumulators.histogram_d0_mass.increment(particle.m12(Allen::mK, Allen::mPi));
     accumulators.histogram_d0_mass.increment(particle.m12(Allen::mPi, Allen::mK));
     accumulators.histogram_d0_pt.increment(vertex.pt());
+    // monitor ipx and ipy of D0 daughters
+    accumulators.histogram_p0_ipx.increment(p0->ip_x());
+    accumulators.histogram_p0_ipy.increment(p0->ip_y());
+    accumulators.histogram_p1_ipx.increment(p1->ip_x());
+    accumulators.histogram_p1_ipy.increment(p1->ip_y());
   }
 }
 

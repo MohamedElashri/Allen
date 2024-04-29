@@ -133,7 +133,8 @@ def hlt1_reconstruction(algorithm_name='',
 
     if with_muon:
         decoded_muon = decode_muon()
-        muonID = is_muon(decoded_muon, long_tracks)
+        muonID = is_muon(
+            decoded_muon, long_tracks, is_muon_name=algorithm_name + 'is_muon')
         # Replace long tracks with those containing muon hits.
         long_tracks = muonID["long_tracks"]
         chi2Corr = chi2muon(long_tracks, muonID)
@@ -188,6 +189,24 @@ def hlt1_reconstruction(algorithm_name='',
         track_min_ipchi2_either=-999.,
         track_min_ip_both=0.06,
         track_min_ip_either=0.06)
+
+    # Make prompt SVs with a relatively tight pT cut.
+    prompt_dihadrons = fit_secondary_vertices(
+        long_tracks,
+        pvs,
+        kalman_velo_only,
+        long_track_particles,
+        fit_secondary_vertices_name=algorithm_name +
+        'fit_prompt_dihadron_secondary_vertices',
+        track_min_ipchi2_both=-999.,
+        track_min_ipchi2_either=-999.,
+        track_min_ip_both=-999.,
+        track_min_ip_either=-999.,
+        require_same_pv=True,
+        require_os_pair=True,
+        max_doca=0.1,
+        track_min_pt_both=700.,
+        track_min_pt_either=1100.)
 
     # Dileptons SV reconstruction should be independent of PV reconstruction to
     # avoid lifetime biases.
@@ -244,6 +263,7 @@ def hlt1_reconstruction(algorithm_name='',
     output.update({
         "long_track_particles": long_track_particles,
         "dihadron_secondary_vertices": dihadrons,
+        "prompt_dihadron_secondary_vertices": prompt_dihadrons,
         "dilepton_secondary_vertices": dileptons,
         "v0_secondary_vertices": v0s,
         "v0_sv_track_pairs": v0_track_pairs,

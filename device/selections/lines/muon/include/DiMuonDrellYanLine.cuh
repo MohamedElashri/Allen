@@ -21,6 +21,8 @@ namespace di_muon_drell_yan_line {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
+    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+    DEVICE_INPUT(dev_chi2muon_t, float) dev_chi2muon;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
@@ -43,6 +45,7 @@ namespace di_muon_drell_yan_line {
 
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
     PROPERTY(minZ_t, "minZ", "minimum dimuon vertex z coordinate", float) minZ;
+    PROPERTY(maxChi2Muon_t, "maxChi2Muon", "maximum muonID chi2corr value", float) maxChi2Muon;
 
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
@@ -64,17 +67,27 @@ namespace di_muon_drell_yan_line {
       {}
     };
 
-    __device__ static bool
-    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float> static get_input(
+      const Parameters& parameters,
+      const unsigned event_number,
+      const unsigned i);
+
+    __device__ static bool select(
+      const Parameters&,
+      const DeviceAccumulators&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
 
     __device__ static void monitor(
       const Parameters&,
       const DeviceAccumulators&,
-      std::tuple<const Allen::Views::Physics::CompositeParticle>,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>,
       unsigned,
       bool);
-    __device__ static void
-    fill_tuples(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>, unsigned, bool);
+    __device__ static void fill_tuples(
+      const Parameters&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>,
+      unsigned,
+      bool);
 
     using monitoring_types = std::tuple<transverse_momentum_t, mass_t, evtNo_t, runNo_t>;
 
@@ -96,6 +109,7 @@ namespace di_muon_drell_yan_line {
 
     Property<OppositeSign_t> m_only_select_opposite_sign {this, true};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<maxChi2Muon_t> m_maxChi2Muon {this, 2.2};
 
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<enable_tupling_t> m_enable_tupling {this, false};

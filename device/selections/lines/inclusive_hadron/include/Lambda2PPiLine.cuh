@@ -13,6 +13,7 @@
 #include "AlgorithmTypes.cuh"
 #include "CompositeParticleLine.cuh"
 #include "MassDefinitions.h"
+#include "AllenMonitoring.h"
 
 namespace lambda2ppi_line {
   struct Parameters {
@@ -27,6 +28,7 @@ namespace lambda2ppi_line {
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
     PROPERTY(L_p_MIPCHI2_min_t, "L_p_MIPCHI2_min", "proton min ip chi^2 for Lambda LL", float) L_p_MIPCHI2_min;
     PROPERTY(L_pi_MIPCHI2_min_t, "L_pi_MIPCHI2_min", "pion min ip chi^2 for Lambda LL", float) L_pi_MIPCHI2_min;
@@ -87,11 +89,31 @@ namespace lambda2ppi_line {
   struct lambda2ppi_line_t : public SelectionAlgorithm,
                              Parameters,
                              CompositeParticleLine<lambda2ppi_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_lz_mass;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_lz_pt;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_lz_svz;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_lz_pvz;
+      DeviceAccumulators(const lambda2ppi_line_t& algo, const Allen::Context& ctx) :
+        histogram_lz_mass(algo.m_histogram_lz_mass.data(ctx)), histogram_lz_pt(algo.m_histogram_lz_pt.data(ctx)),
+        histogram_lz_svz(algo.m_histogram_lz_svz.data(ctx)), histogram_lz_pvz(algo.m_histogram_lz_pvz.data(ctx))
+      {}
+    };
+
+    __device__ static bool
+    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::CompositeParticle>,
+      unsigned index,
+      bool sel);
+
+    __device__ static void monitor(
+      const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
+      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
 
@@ -126,6 +148,7 @@ namespace lambda2ppi_line {
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<enable_tupling_t> m_enable_tupling {this, false};
+    Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<L_p_MIPCHI2_min_t> m_L_p_MIPCHI2_min {this, 12.f};
     Property<L_pi_MIPCHI2_min_t> m_L_pi_MIPCHI2_min {this, 32.f};
     Property<L_p_MIP_min_t> m_L_p_MIP_min {this, 80.f * Gaudi::Units::um};
@@ -144,5 +167,10 @@ namespace lambda2ppi_line {
     Property<L_BPVDIRA_min_t> m_L_BPVDIRA_min {this, 0.9997};
     Property<minPVZ_t> m_minPVZ {this, -200.f * Gaudi::Units::mm};
     Property<maxPVZ_t> m_maxPVZ {this, 200.f * Gaudi::Units::mm};
+
+    Allen::Monitoring::Histogram<> m_histogram_lz_mass {this, "lz_mass", "mass", {100u, 1000.f, 1200.f}};
+    Allen::Monitoring::Histogram<> m_histogram_lz_pt {this, "lz_pt", "pT (lz)", {100u, 0.f, 1e4f}};
+    Allen::Monitoring::Histogram<> m_histogram_lz_svz {this, "lz_svz", "SVz (lz)", {100u, -541.f, 1000.f}};
+    Allen::Monitoring::Histogram<> m_histogram_lz_pvz {this, "lz_pvz", "PVz (lz)", {100u, -541.f, -341.f}};
   };
 } // namespace lambda2ppi_line

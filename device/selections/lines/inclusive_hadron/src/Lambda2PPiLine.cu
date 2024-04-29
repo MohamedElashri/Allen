@@ -14,6 +14,7 @@ INSTANTIATE_LINE(lambda2ppi_line::lambda2ppi_line_t, lambda2ppi_line::Parameters
 
 __device__ bool lambda2ppi_line::lambda2ppi_line_t::select(
   const Parameters& parameters,
+  const DeviceAccumulators&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto Lambda = std::get<0>(input);
@@ -96,5 +97,26 @@ __device__ void lambda2ppi_line::lambda2ppi_line_t::fill_tuples(
     // tunable up to 0.9998
     parameters.L_BPVDIRA[index] = Lambda.dira();
     parameters.L_VZ[index] = Lambda.vertex().z();
+  }
+}
+
+__device__ void lambda2ppi_line::lambda2ppi_line_t::monitor(
+  const Parameters&,
+  const DeviceAccumulators& accumulators,
+  std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+  unsigned,
+  bool sel)
+{
+  const auto lz = std::get<0>(input);
+  if (sel) {
+
+    const auto c0 = static_cast<const Allen::Views::Physics::BasicParticle*>(lz.child(0));
+    const auto c1 = static_cast<const Allen::Views::Physics::BasicParticle*>(lz.child(1));
+    const auto mass = c0->state().p() > c1->state().p() ? lz.m12(Allen::mP, Allen::mPi) : lz.m12(Allen::mPi, Allen::mP);
+
+    accumulators.histogram_lz_mass.increment(mass);
+    accumulators.histogram_lz_pt.increment(lz.vertex().pt());
+    accumulators.histogram_lz_svz.increment(lz.vertex().z());
+    accumulators.histogram_lz_pvz.increment(lz.pv().position.z);
   }
 }

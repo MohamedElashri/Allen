@@ -17,7 +17,7 @@ if(STANDALONE AND NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{CMAKE_TOOLCHA
   set(CMAKE_TOOLCHAIN_FILE $ENV{CMAKE_TOOLCHAIN_FILE})
 endif()
 
-project(Allen VERSION 4.6
+project(Allen VERSION 4.7
         LANGUAGES C CXX)
 
 # ---------------
@@ -665,6 +665,7 @@ allen_add_host_library(HostCommon SHARED
   main/src/SliceUtils.cpp
   main/src/Timer.cpp
   main/src/Tools.cpp
+  main/src/MDFProvider.cpp
   main/src/Transpose.cpp)
 
 target_link_libraries(AllenCommon INTERFACE

@@ -107,7 +107,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 name="Hlt1TwoTrackKs",
                 minTrackPt_piKs=thresholds.TwoTrackKs_minTrackPt_piKs,
                 minTrackIPChi2_Ks=thresholds.TwoTrackKs_minTrackIPChi2_piKs,
-                maxEta_Ks=thresholds.TwoTrackKs_minEta_Ks,
+                maxEta_Ks=thresholds.TwoTrackKs_maxEta_Ks,
                 min_combip=thresholds.TwoTrackKs_min_combip,
                 minComboPt_Ks=thresholds.TwoTrackKs_minComboPt_Ks,
                 enable_tupling=enable_tupling),
@@ -140,7 +140,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 long_tracks,
                 dileptons,
                 muonid,
-                maxChi2Corr=5,
+                maxChi2Corr=thresholds.DiMuonHighMass_maxCorrChi2,
                 name="Hlt1DiMuonHighMass",
                 enable_tupling=enable_tupling,
                 minHighMassTrackPt=thresholds.DiMuonHighMass_pt),
@@ -182,16 +182,21 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             make_di_muon_drell_yan_line(
                 long_tracks,
                 dileptons,
+                muonid,
                 name="Hlt1DiMuonDrellYan_VLowMass",
                 pre_scaler_hash_string="di_muon_drell_yan_vlow_mass_line_pre",
                 post_scaler_hash_string="di_muon_drell_yan_vlow_mass_line_post",
                 minMass=2900.,
                 maxMass=5000.,
+                maxChi2Corr=1.8,
+                minTrackP=10000,
+                minTrackPt=1000,
                 pre_scaler=.2,
                 enable_tupling=enable_tupling),
             make_di_muon_drell_yan_line(
                 long_tracks,
                 dileptons,
+                muonid,
                 name="Hlt1DiMuonDrellYan_VLowMass_SS",
                 pre_scaler_hash_string=
                 "di_muon_drell_yan_vlow_mass_SS_line_pre",
@@ -199,25 +204,34 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 "di_muon_drell_yan_vlow_mass_SS_line_post",
                 minMass=2900.,  # low enough to capture the J/psi
                 maxMass=5000.,
+                maxChi2Corr=1.8,
+                minTrackP=10000,
+                minTrackPt=1000,
                 pre_scaler=.2,
                 OppositeSign=False,
                 enable_tupling=enable_tupling),
             make_di_muon_drell_yan_line(
                 long_tracks,
                 dileptons,
+                muonid,
                 name="Hlt1DiMuonDrellYan",
                 pre_scaler_hash_string="di_muon_drell_yan_line_pre",
                 post_scaler_hash_string="di_muon_drell_yan_line_post",
                 minMass=5000.,
+                minTrackP=12500,
+                maxChi2Corr=2.4,
                 enable_monitoring=True,
                 enable_tupling=enable_tupling),
             make_di_muon_drell_yan_line(
                 long_tracks,
                 dileptons,
+                muonid,
                 name="Hlt1DiMuonDrellYan_SS",
                 pre_scaler_hash_string="di_muon_drell_yan_SS_line_pre",
                 post_scaler_hash_string="di_muon_drell_yan_SS_line_post",
                 minMass=5000.,
+                minTrackP=12500,
+                maxChi2Corr=2.4,
                 OppositeSign=False,
                 enable_monitoring=True,
                 enable_tupling=enable_tupling),
@@ -369,10 +383,6 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name):
                     odin_event_type='Lumi',
                     odin_orbit_modulo=30,
                     odin_orbit_remainder=1)))
-    lines.append(
-        line_maker(
-            make_odin_event_type_line(
-                odin_event_type="NoBias", pre_scaler=0.0001)))
     return lines
 
 
@@ -448,7 +458,7 @@ def alignment_monitoring_lines(reconstructed_objects,
                     velo_tracks,
                     name="Hlt1VeloMicroBias",
                     pre_scaler=1.,
-                    post_scaler=1.e-1))
+                    post_scaler=1.e-3))
         ]
 
     return lines
@@ -459,12 +469,15 @@ def default_SMOG2_lines(reconstructed_objects,
                         with_muon=True,
                         with_v0s=True,
                         min_z=-541.,
-                        max_z=-341.):
+                        max_z=-341.,
+                        enable_tupling=False):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
     long_tracks = reconstructed_objects["long_tracks"]
     long_track_particles = reconstructed_objects["long_track_particles"]
     dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
+    prompt_dihadrons = reconstructed_objects[
+        "prompt_dihadron_secondary_vertices"]
     v0s = reconstructed_objects["v0_secondary_vertices"]
     dileptons = reconstructed_objects["dilepton_secondary_vertices"]
 
@@ -482,9 +495,10 @@ def default_SMOG2_lines(reconstructed_objects,
             minTrackIPCHI2=7.,
             minFDCHI2=25.,
             name="Hlt1SMOG2D2Kpi",
-            pre_scaler=1.),
+            pre_scaler=1.,
+            enable_tupling=enable_tupling),
         make_SMOG2_ditrack_line(
-            dihadrons,
+            prompt_dihadrons,
             m1=938.27,
             m2=938.27,
             mMother=3000.,
@@ -492,10 +506,14 @@ def default_SMOG2_lines(reconstructed_objects,
             min_z=min_z,
             max_z=max_z,
             minTrackIPCHI2=0.,
-            minTrackPt=700.,
-            minEitherTrackPt=1100.,
+            maxTrackIPCHI2=5.,
+            maxFDCHI2=20.,
+            minTrackP=25000.,
+            minTrackPt=1000.,
+            minEitherTrackPt=1200.,
             name="Hlt1SMOG2etacTopp",
-            pre_scaler=1.),
+            pre_scaler=1.,
+            enable_tupling=enable_tupling),
         make_SMOG2_kstopipi_line(
             dihadrons,
             min_z=min_z,
@@ -503,38 +521,46 @@ def default_SMOG2_lines(reconstructed_objects,
             name="Hlt1SMOG2KsTopipi",
             minTrackPt=250.,
             minMass=450.,
-            pre_scaler=0.3),
+            pre_scaler=0.3,
+            enable_tupling=enable_tupling),
         make_SMOG2_ditrack_line(
             dihadrons,
-            minTrackPt=800.,
-            minEitherTrackPt=1000.,
+            minTrackPt=500.,
+            minEitherTrackPt=800.,
             min_z=min_z,
             max_z=max_z,
+            minMdipion=1300,
+            minFDCHI2=25.,
+            minTrackIPCHI2=7.,
             name="Hlt1SMOG22BodyGeneric",
-            pre_scaler=0.1),
+            enable_monitoring=False,
+            enable_tupling=False,
+            pre_scaler=0.3),
         make_SMOG2_ditrack_line(
-            dihadrons,
+            prompt_dihadrons,
             minTrackPt=400.,
             minEitherTrackPt=400.,
             min_z=min_z,
             max_z=max_z,
-            minTrackIPCHI2=5.,
-            name="Hlt1SMOG22BodyGenericLowPt",
+            minTrackIPCHI2=0.,
+            enable_monitoring=False,
+            enable_tupling=False,
+            name="Hlt1SMOG22BodyGenericPrompt",
             pre_scaler=0.01),
         make_SMOG2_singletrack_line(
             long_tracks,
             long_track_particles,
             name="Hlt1SMOG2SingleTrackVeryHighPt",
-            minPt=2500.,
-            pre_scaler=0.1,
+            minPt=5000.,
+            pre_scaler=1,
             min_z=min_z,
             max_z=max_z),
         make_SMOG2_singletrack_line(
             long_tracks,
             long_track_particles,
             name="Hlt1SMOG2SingleTrackHighPt",
-            minPt=1500.,
-            pre_scaler=0.01,
+            minPt=3000.,
+            pre_scaler=0.1,
             min_z=min_z,
             max_z=max_z)
     ]
@@ -547,12 +573,14 @@ def default_SMOG2_lines(reconstructed_objects,
                 long_tracks,
                 muonid,
                 maxChi2Corr=9999.,
+                enable_tupling=enable_tupling,
                 name="Hlt1SMOG2DiMuonHighMass"),
             make_SMOG2_single_muon_line(
                 long_tracks,
                 long_track_particles,
                 muonid,
                 maxChi2Corr=1.8,
+                MinPt=700,
                 name="Hlt1SMOG2SingleMuon",
                 pre_scaler=0.2)
         ]
@@ -569,7 +597,9 @@ def default_SMOG2_lines(reconstructed_objects,
                 minDIRA=0.99985,
                 minpipchi2=16.,
                 minpiipchi2=42.,
-                minpipt=150.)
+                minpipt=150.,
+                enable_monitoring=True,
+                enable_tupling=enable_tupling)
         ]
 
     return [line_maker(line) for line in lines]
@@ -620,7 +650,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsBeamOne",
                 beam_crossing_type=1,
-                pre_scaler=1.,
+                pre_scaler=1e-2,
                 post_scaler=1.),
             prefilter=prefilter + [bx_NoBB, velo_states_z_all]),
         line_maker(
@@ -644,7 +674,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsUpBeamBeam",
                 beam_crossing_type=3,
-                pre_scaler=1.,
+                pre_scaler=1e-3,
                 post_scaler=1.),
             prefilter=prefilter + [velo_states_z_up])
     ]
@@ -661,10 +691,13 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsDownBeamBeam",
                 beam_crossing_type=3,
-                pre_scaler=1.,
+                pre_scaler=0.1,
                 post_scaler=1.),
             prefilter=prefilter + [velo_states_z_down])
     ]
+
+    if not enableBGI_full:
+        return lines
 
     velo_states_z_ir = make_checkPseudoPV(
         velo_states,
@@ -682,9 +715,6 @@ def default_bgi_activity_lines(pvs,
                 post_scaler=0.1),
             prefilter=prefilter + [velo_states_z_ir])
     ]
-
-    if not enableBGI_full:
-        return lines
 
     lines += [
         line_maker(
@@ -937,7 +967,7 @@ def setup_hlt1_node(enablePhysics=True,
                     line_maker(
                         make_passthrough_line(
                             name="Hlt1SMOG2PassThroughLowMult5",
-                            pre_scaler=0.001))
+                            pre_scaler=0.1))
                 ]
 
             lowMultElectrons = make_lowmult(
@@ -967,7 +997,7 @@ def setup_hlt1_node(enablePhysics=True,
                         reconstructed_objects["velo_tracks"],
                         reconstructed_objects["velo_states"],
                         name="Hlt1SMOG2MinimumBias",
-                        pre_scaler=0.00005))
+                        pre_scaler=0.00003))
             ]
 
         SMOG2_prefilters += [
@@ -978,11 +1008,14 @@ def setup_hlt1_node(enablePhysics=True,
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(
-                        name="Hlt1PassthroughPVinSMOG2", pre_scaler=0.0001))
+                        name="Hlt1PassthroughPVinSMOG2", pre_scaler=0.00006))
             ]
 
-            SMOG2_lines += default_SMOG2_lines(reconstructed_objects,
-                                               with_muon, with_v0s)
+            SMOG2_lines += default_SMOG2_lines(
+                reconstructed_objects,
+                with_muon,
+                with_v0s,
+                enable_tupling=enableTupling)
 
         line_algorithms += [tup[0] for tup in SMOG2_lines]
         line_nodes += [tup[1] for tup in SMOG2_lines]

@@ -12,6 +12,7 @@ from AllenConf.thresholds.thresholds import Thresholds
 
 threshold_settings = Thresholds(
     TrackMuonMVA_maxCorrChi2=1.8,
+    DiMuonHighMass_maxCorrChi2=1.8,
     DiMuonDisplaced_maxCorrChi2=1.8,
     D2HH_ctIPScale=1.,
     TrackMVA_alpha=700,
@@ -25,9 +26,9 @@ threshold_settings = Thresholds(
     TwoTrackKs_minTrackPt_piKs=1036.56,
     TwoTrackKs_minTrackIPChi2_piKs=80,
     TwoTrackKs_minComboPt_Ks=2500,
-    TwoTrackKs_minEta_Ks=4.2,
+    TwoTrackKs_maxEta_Ks=4.2,
     TwoTrackKs_min_combip=1.90044,
-    DiMuonHighMass_pt=1400,
+    DiMuonHighMass_pt=700,
     DiElectronDisplaced_pt=800,
     DiElectronDisplaced_ipchi2=7,
     DiMuonDisplaced_pt=500,

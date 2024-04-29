@@ -180,13 +180,13 @@ namespace lambda_ll_detached_track_line {
 
     Allen::Monitoring::Histogram<> m_histogram_Lambda_mass {
       this,
-      "d0_mass",
-      "m(D0)",
+      "Lambda_mass_LambdaLLDetachedTrack",
+      "m(p#pi^{#minus}) [MeV]",
       {125u, 1077.5f * Gaudi::Units::MeV, 1140.f * Gaudi::Units::MeV}};
     Allen::Monitoring::Histogram<> m_histogram_LambdaPi_mass {
       this,
-      "d0_pt",
-      "pT(D0)",
+      "LambdaPi_mass",
+      "m(#Lambda#pi^{+}) [MeV]",
       {175u, 1.25f * Gaudi::Units::GeV, 3.f * Gaudi::Units::GeV}};
   };
 } // namespace lambda_ll_detached_track_line

@@ -115,7 +115,7 @@ def decode_muon(empty_banks=False):
     }
 
 
-def is_muon(decoded_muon, long_tracks):
+def is_muon(decoded_muon, long_tracks, is_muon_name='is_muon'):
     number_of_events = initialize_number_of_events()
     host_number_of_events = number_of_events["host_number_of_events"]
     dev_number_of_events = number_of_events["dev_number_of_events"]
@@ -123,10 +123,11 @@ def is_muon(decoded_muon, long_tracks):
     host_number_of_reconstructed_scifi_tracks = long_tracks[
         "host_number_of_reconstructed_scifi_tracks"]
     dev_scifi_states = long_tracks["dev_scifi_states"]
+    velo_kalman_filter = long_tracks["velo_kalman_filter"]
 
     is_muon = make_algorithm(
         is_muon_t,
-        name='is_muon_{hash}',
+        name=str(is_muon_name),
         host_number_of_events_t=host_number_of_events,
         dev_number_of_events_t=dev_number_of_events,
         host_number_of_reconstructed_scifi_tracks_t=
@@ -135,6 +136,8 @@ def is_muon(decoded_muon, long_tracks):
         dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
         dev_station_ocurrences_offset_t=decoded_muon[
             "dev_station_ocurrences_offset"],
+        dev_velo_states_view_t=velo_kalman_filter[
+            "dev_velo_kalman_endvelo_states_view"],
         dev_muon_hits_t=decoded_muon["dev_muon_hits"])
 
     muon_hit_count_prefix_sum = make_algorithm(
@@ -229,6 +232,7 @@ def muon_id(algorithm_name=''):
     from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
     from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks
 
+    if (algorithm_name != ''): algorithm_name = algorithm_name + '_'
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     decoded_ut = decode_ut()
@@ -239,9 +243,10 @@ def muon_id(algorithm_name=''):
         ut_tracks,
         velo_tracks["dev_accepted_velo_tracks"],
         scifi_consolidate_tracks_name=algorithm_name +
-        '_scifi_consolidate_tracks_muon_id')
+        'scifi_consolidate_tracks_muon_id')
     decoded_muon = decode_muon()
-    muonID = is_muon(decoded_muon, long_tracks)
+    muonID = is_muon(
+        decoded_muon, long_tracks, is_muon_name=algorithm_name + 'is_muon')
     alg = muonID["dev_is_muon"].producer
     return alg
 
