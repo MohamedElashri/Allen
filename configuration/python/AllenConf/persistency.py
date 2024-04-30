@@ -153,7 +153,7 @@ rb_map = {
     'Hlt1(TrackMVA|TwoTrackMVA|SingleHighPtMuon|DiMuonHighMass|TrackMuonMVA|DisplacedDiMuon|TrackElectronMVA|SingleHighPtElectron|DisplacedDielectron|SingleHighEt)':
     14,
     # RB 15 HLT1 beam-gas physics for monitoring and alignment
-    'Hlt1_SMOG2_(2BodyGeneric|SingleTrack|DiMuonHighMass|SingleMuon)':
+    'Hlt1SMOG2(2BodyGeneric|2BodyGenericPrompt|SingleTrackVeryHighPt|SingleTrackHighPt|DiMuonHighMass|SingleMuon)':
     15,
     # RB 17 physics for CalibMon
     'Hlt1(Dst2D0Pi|DetJpsiToMuMuPosTagLine|DetJpsiToMuMuNegTagLine)':
