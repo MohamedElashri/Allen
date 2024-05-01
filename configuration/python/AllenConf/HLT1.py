@@ -906,7 +906,7 @@ def setup_hlt1_node(enablePhysics=True,
     with line_maker.bind(prefilter=[sd_error_filter()]):
         monitoring_lines += [
             line_maker(
-                make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.01))
+                make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.0001))
         ]
 
     velo_open_event = make_event_type(event_type="VeloOpen")
