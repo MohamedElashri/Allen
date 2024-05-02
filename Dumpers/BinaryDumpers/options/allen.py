@@ -17,6 +17,7 @@ import json
 from pathlib import Path
 from Configurables import ApplicationMgr
 from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
+from Configurables import DDDBConf
 
 from AllenCore.configuration_options import is_allen_standalone
 is_allen_standalone.global_bind(standalone=True)
@@ -194,8 +195,13 @@ options = ApplicationOptions(_enabled=False)
 options.simulation = True if not UseDD4Hep else args.simulation
 options.data_type = 'Upgrade'
 options.input_type = 'MDF'
-options.dddb_tag = dddb_tag
-options.conddb_tag = conddb_tag
+
+if UseDD4Hep:
+    options.geometry_version = dddb_tag
+    options.conditions_version = conddb_tag
+else:
+    options.dddb_tag = dddb_tag
+    options.conddb_tag = conddb_tag
 if args.register_monitoring_counters and args.mon_filename:
     fn, ext = os.path.splitext(args.mon_filename)
     options.histo_file = fn + "_gaudi" + ext
@@ -314,13 +320,16 @@ ApplicationMgr().ExtSvc += extSvc
 # Copeid from PyConf.application.configure_input
 default_raw_event.global_bind(raw_event_format=options.input_raw_format)
 if not args.binary_geometry:
-    config.add(
-        setup_component(
-            'DDDBConf',
-            Simulation=options.simulation,
-            DataType=options.data_type,
-            ConditionsVersion=options.conddb_tag))
-    if not UseDD4Hep:
+    if UseDD4Hep:
+        config.add(
+            setup_component(
+                'DDDBConf',
+                Simulation=options.simulation,
+                DataType=options.data_type,
+                GeometryVersion=options.geometry_version,
+                ConditionsVersion=options.conditions_version))
+    else:
+        config.add(DDDBConf(Simulation=options.simulation, DataType="Upgrade"))
         config.add(
             setup_component(
                 'CondDB',
