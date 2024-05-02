@@ -406,7 +406,7 @@ namespace Allen {
 
   void inline host_register(void*, size_t, host_register_kind) {}
 
-  std::tuple<bool, std::string, unsigned> set_device(int, size_t);
+  std::tuple<bool, std::string, unsigned, unsigned> set_device(int, size_t);
 
   void inline print_device_memory_consumption() {}
 

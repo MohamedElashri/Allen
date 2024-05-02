@@ -19,6 +19,7 @@
  */
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <cstring>
 #include <exception>
 #include <fstream>
@@ -217,7 +218,7 @@ int allen(
   auto io_conf = Allen::io_configuration(n_slices, n_repetitions, number_of_threads);
 
   // Set device for main thread
-  auto [device_set, device_name, device_memory_alignment] = Allen::set_device(device_id, 0);
+  auto [device_set, device_name, device_memory_alignment, bus_id] = Allen::set_device(device_id, 0);
   if (!device_set) {
     return -1;
   }
@@ -256,9 +257,9 @@ int allen(
   // Only in case of standalone gitlab CI pipepline the parameters folder path is passed as runtime argument
   if (folder_parameters == "") {
 #ifdef ALLEN_STANDALONE
-#define xstr(s) str(s)
-#define str(s) #s
-    folder_parameters = xstr(PARAMFILESROOTPATH);
+#define STRINGIFY(str) #str
+#define DEF_TO_STR(str) STRINGIFY(str)
+    folder_parameters = DEF_TO_STR(PARAMFILESROOTPATH);
     info_cout << "Local copy of param files is used: " << folder_parameters << std::endl;
 #endif
   }
@@ -617,7 +618,9 @@ int allen(
   try {
     throughput_socket = zmqSvc->socket(zmq::PUB);
     zmq::setsockopt(*throughput_socket, zmq::LINGER, 0);
-    std::string con = "ipc:///tmp/allen_throughput_" + std::to_string(device_id);
+    std::stringstream bus_suffix;
+    bus_suffix << std::setfill('0') << std::setw(2) << std::hex << bus_id;
+    std::string con = "ipc:///tmp/allen_throughput_" + bus_suffix.str();
     throughput_socket->bind(con.c_str());
   } catch (zmq::error_t const& e) {
     debug_cout << "Failed to create or bind throughput socket " << e.what() << "\n";
