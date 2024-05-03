@@ -69,7 +69,7 @@ __device__ track_matching::MatchingResult getChi2Match(
   const float xV = xpos_velo + (zForX - zpos_velo) * tx_velo;
   // -- This is the function that calculates the 'bending' in y-direction
   // -- The parametrisation can be derived with the MatchFitParams package
-  const float yV = (ypos_velo + (TrackMatchingConsts::zMatchY - zpos_velo) * ty_velo) * 1.02f;
+  const float yV = ypos_velo + (TrackMatchingConsts::zMatchY - zpos_velo) * ty_velo;
   //+ ty_velo * ( dev_magnet_parametrization->bendYParams[0] * dSlopeX * dSlopeX
   //       + dev_magnet_parametrization->bendYParams[1] * dSlopeY * dSlopeY );
 
