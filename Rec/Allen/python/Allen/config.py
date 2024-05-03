@@ -162,12 +162,6 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     if not UseDD4Hep:
         # MagneticFieldSvc is required for non-DD4hep builds
         appMgr.ExtSvc.append("MagneticFieldSvc")
-    else:
-        # Configure those detectors that we need
-        from Configurables import LHCb__Det__LbDD4hep__DD4hepSvc as DD4hepSvc
-        DD4hepSvc().DetectorList = ["/world"] + list(
-            filter(lambda d: d is not None,
-                   [detector_names.get(det, det) for det in bank_types]))
 
     data_bank_types = bank_types.copy()
     data_bank_types.remove('Magnet')
@@ -177,7 +171,6 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
             BankTypes=list(data_bank_types)))
 
     algorithm_converters = []
-    algorithm_producers = []
 
     if allen_event_loop:
         algorithm_converters.append(AllenODINProducer())
