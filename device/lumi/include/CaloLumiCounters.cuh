@@ -46,7 +46,6 @@ namespace calo_lumi_counters {
 
   __global__ void calo_lumi_counters(
     Parameters,
-    const unsigned number_of_events,
     const offsets_and_sizes_t offsets_and_sizes,
     const shifts_and_scales_t shifts_and_scales,
     const char* raw_ecal_geometry);
