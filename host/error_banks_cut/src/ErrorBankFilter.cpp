@@ -258,7 +258,7 @@ void error_bank_filter::error_bank_filter_t::error_bank_filter(
                        &other_bank_types,
                        &error_bank_types,
                        &sd_info](uint8_t const bank_type, unsigned const source_id) {
-      if (bank_type > LHCb::RawBank::BankType::LastType) {
+      if (bank_type >= LHCb::RawBank::BankType::LastType) {
         ++invalid_count;
         return false;
       }
