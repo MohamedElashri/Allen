@@ -38,6 +38,8 @@ namespace pv_beamline_cleanup {
     PROPERTY(max_histo_smogpvz_t, "max_histo_smogpvz", "Maximum of SMOGPVz histogram", float) max_histo_smogpvz;
   };
 
+  __device__ void sort_pvs_by_z(PV::Vertex* final_vertices, unsigned n_vertices);
+
   __global__ void pv_beamline_cleanup(
     Parameters,
     Allen::Monitoring::AveragingCounter<>::DeviceType,

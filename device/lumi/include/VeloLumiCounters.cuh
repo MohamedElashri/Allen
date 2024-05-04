@@ -64,10 +64,13 @@ namespace velo_lumi_counters {
   using offsets_and_sizes_t = std::array<unsigned, 2 * Lumi::Constants::n_velo_counters>;
   using shifts_and_scales_t = std::array<float, 2 * Lumi::Constants::n_velo_counters>;
 
-  __global__ void velo_lumi_counters(
+  __global__ void velo_lumi_gec_counters(
     Parameters,
-    const unsigned number_of_events,
-    const unsigned number_of_gec_events,
+    const offsets_and_sizes_t offsets_and_sizes,
+    const shifts_and_scales_t shifts_and_scales);
+
+  __global__ void velo_lumi_decoding_counters(
+    Parameters,
     const offsets_and_sizes_t offsets_and_sizes,
     const shifts_and_scales_t shifts_and_scales);
 

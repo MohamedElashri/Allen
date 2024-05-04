@@ -62,7 +62,8 @@ void scifi_lumi_counters::scifi_lumi_counters_t::operator()(
   if (first<host_lumi_summaries_count_t>(arguments) == 0) return;
   Allen::memset_async<dev_lumi_infos_t>(arguments, 0, context);
 
-  global_function(scifi_lumi_counters)(dim3(4u), property<block_dim_t>(), context)(
+  global_function(scifi_lumi_counters)(
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments,
     first<host_number_of_events_t>(arguments),
     m_offsets_and_sizes,
@@ -77,46 +78,51 @@ __global__ void scifi_lumi_counters::scifi_lumi_counters(
   const shifts_and_scales_t shifts_and_scales,
   const char* scifi_geometry)
 {
-  for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
-       event_number += blockDim.x * gridDim.x) {
-    unsigned lumi_evt_index = parameters.dev_lumi_event_indices[event_number];
 
-    // skip non-lumi event
-    if (lumi_evt_index == parameters.dev_lumi_event_indices[event_number + 1]) continue;
+  unsigned event_number = blockIdx.x;
+  unsigned lumi_evt_index = parameters.dev_lumi_event_indices[event_number];
 
-    const SciFi::SciFiGeometry geom {scifi_geometry};
+  // skip non-lumi event
+  if (lumi_evt_index == parameters.dev_lumi_event_indices[event_number + 1]) return;
 
-    SciFi::ConstHits hits {parameters.dev_scifi_hits,
-                           parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_zones]};
-    SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
+  const SciFi::SciFiGeometry geom {scifi_geometry};
 
-    std::array<unsigned, 38> SciFiCounters = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
-                                              0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
-                                              0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+  SciFi::ConstHits hits {parameters.dev_scifi_hits,
+                         parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_zones]};
+  SciFi::ConstHitCount hit_count {parameters.dev_scifi_hit_offsets, event_number};
 
-    for (unsigned hit_index = 0u; hit_index < hit_count.event_number_of_hits(); ++hit_index) {
-      const SciFi::SciFiChannelID id {hits.channel(hit_count.event_offset() + hit_index)};
-      if (id.station() == 0) continue;
-      unsigned counter_id = 6 + 10 * (id.station() - 1) + 2 * id.module() + (id.quarter() % 2);
-      ++SciFiCounters[counter_id];
-      if (id.module() == 0u) continue;
-      // SciFi::SciFiChannelID::station() starts from 1
-      if (id.module() < 4)
-        ++SciFiCounters[id.station() - 1];
-      else
-        ++SciFiCounters[id.station() + 2];
-    }
+  __shared__ unsigned SciFiCounters[Lumi::Constants::n_scifi_counters];
 
-    unsigned info_offset = Lumi::Constants::n_scifi_counters * lumi_evt_index;
+  for (unsigned i = threadIdx.x; i < Lumi::Constants::n_scifi_counters; i += blockDim.x) {
+    SciFiCounters[i] = 0;
+  }
 
-    for (unsigned i = 0; i < Lumi::Constants::n_scifi_counters; ++i) {
-      fillLumiInfo(
-        parameters.dev_lumi_infos[info_offset + i],
-        offsets_and_sizes[2 * i],
-        offsets_and_sizes[2 * i + 1],
-        SciFiCounters[i],
-        shifts_and_scales[2 * i],
-        shifts_and_scales[2 * i + 1]);
-    }
+  __syncthreads();
+
+  for (unsigned hit_index = threadIdx.x; hit_index < hit_count.event_number_of_hits(); hit_index += blockDim.x) {
+    const SciFi::SciFiChannelID id {hits.channel(hit_count.event_offset() + hit_index)};
+    if (id.station() == 0) continue;
+    unsigned counter_id = 6 + 10 * (id.station() - 1) + 2 * id.module() + (id.quarter() % 2);
+    atomicAdd(&SciFiCounters[counter_id], 1);
+    if (id.module() == 0u) continue;
+    // SciFi::SciFiChannelID::station() starts from 1
+    if (id.module() < 4)
+      atomicAdd(&SciFiCounters[id.station() - 1], 1);
+    else
+      atomicAdd(&SciFiCounters[id.station() + 2], 1);
+  }
+
+  __syncthreads();
+
+  unsigned info_offset = Lumi::Constants::n_scifi_counters * lumi_evt_index;
+
+  for (unsigned i = threadIdx.x; i < Lumi::Constants::n_scifi_counters; i += blockDim.x) {
+    fillLumiInfo(
+      parameters.dev_lumi_infos[info_offset + i],
+      offsets_and_sizes[2 * i],
+      offsets_and_sizes[2 * i + 1],
+      SciFiCounters[i],
+      shifts_and_scales[2 * i],
+      shifts_and_scales[2 * i + 1]);
   }
 }

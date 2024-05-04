@@ -47,6 +47,38 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
     m_histogram_smogpv_z.data(context));
 }
 
+__device__ void pv_beamline_cleanup::sort_pvs_by_z(PV::Vertex* final_vertices, unsigned n_vertices)
+{
+  if (n_vertices <= 1) return;
+
+  if (blockDim.x <= n_vertices) { // It can be done in a single pass if there are less items than threads
+    auto pv = final_vertices[threadIdx.x];
+    __syncthreads(); // ensure all threads have read their PV
+
+    unsigned smaller = 0; // No PVs with same Z are saved, so we dont need to check for equality
+    for (unsigned i = 0; i < n_vertices; i++) {
+      smaller += final_vertices[i].position.z < pv.position.z;
+    }
+
+    final_vertices[smaller] = pv;
+
+    return;
+  }
+
+  // else, and since n_vertices is always small, we can use a simple single-threaded insertion sort
+  if (threadIdx.x == 0) {
+    for (unsigned i = 1; i < n_vertices; i++) {
+      PV::Vertex pv = final_vertices[i];
+      int j = i - 1;
+      while (j >= 0 && final_vertices[j].position.z > pv.position.z) {
+        final_vertices[j + 1] = final_vertices[j];
+        j = j - 1;
+      }
+      final_vertices[j + 1] = pv;
+    }
+  }
+}
+
 __global__ void pv_beamline_cleanup::pv_beamline_cleanup(
   pv_beamline_cleanup::Parameters parameters,
   Allen::Monitoring::AveragingCounter<>::DeviceType dev_n_pvs_counter,
@@ -105,6 +137,9 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(
     }
   }
   __syncthreads();
+
+  sort_pvs_by_z(final_vertices, *tmp_number_vertices);
+
   parameters.dev_number_of_multi_final_vertices[event_number] = *tmp_number_vertices;
 
   if (threadIdx.x == 0) {
