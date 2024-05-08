@@ -19,6 +19,7 @@ namespace host_seeding_XZ_validator {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
+    DEVICE_INPUT(dev_scifi_hit_count_t, uint) dev_scifi_hit_count;
     DEVICE_INPUT(dev_scifi_seedsXZ_t, SciFi::Seeding::TrackXZ) dev_scifi_seedsXZ;
     DEVICE_INPUT(dev_offsets_scifi_seedsXZ_t, unsigned) dev_atomics_scifi; // FIXME
     DEVICE_INPUT(dev_offsets_scifi_seedXZ_hit_number_t, unsigned) dev_scifi_seedXZ_hit_number;

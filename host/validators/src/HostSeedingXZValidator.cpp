@@ -21,12 +21,16 @@ void host_seeding_XZ_validator::host_seeding_XZ_validator_t::operator()(
   const auto scifi_seedXZ_atomics = make_host_buffer<dev_offsets_scifi_seedsXZ_t>(arguments, context);
   const auto scifi_seedXZ_hit_number = make_host_buffer<dev_offsets_scifi_seedXZ_hit_number_t>(arguments, context);
   const auto scifi_seedsXZ = make_host_buffer<dev_scifi_seedsXZ_t>(arguments, context);
+  const auto scifi_hits = make_host_buffer<dev_scifi_hits_t>(arguments, context);
+  const auto scifi_hit_count = make_host_buffer<dev_scifi_hit_count_t>(arguments, context);
   const auto event_list = make_host_buffer<dev_event_list_t>(arguments, context);
 
   auto tracks = prepareSeedingTracksXZ(
     first<host_number_of_events_t>(arguments),
     scifi_seedXZ_atomics,
     scifi_seedXZ_hit_number,
+    scifi_hits,
+    scifi_hit_count,
     scifi_seedsXZ,
     event_list);
 

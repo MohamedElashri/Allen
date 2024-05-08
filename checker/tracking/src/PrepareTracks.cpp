@@ -14,6 +14,7 @@
 #include "MCParticle.h"
 #include "SciFiConsolidated.cuh"
 #include "SciFiDefinitions.cuh"
+#include "SciFiEventModel.cuh"
 #include "TrackChecker.h"
 #include "CheckerTypes.h"
 #include "UTConsolidated.cuh"
@@ -183,7 +184,7 @@ std::vector<Checker::Tracks> prepareSeedingTracks(
   const unsigned number_of_events,
   gsl::span<const unsigned> scifi_seed_atomics,
   gsl::span<const unsigned> scifi_seed_hit_number,
-  gsl::span<const char> scifi_seed_hits,              // FIXME: can be removed?
+  gsl::span<const char> scifi_seed_hits,
   gsl::span<const SciFi::Seeding::Track> scifi_seeds, // FIXME
   gsl::span<const MiniState> seeding_states,
   gsl::span<const mask_t> event_list)
@@ -229,6 +230,8 @@ std::vector<Checker::Tracks> prepareSeedingTracksXZ(
   const unsigned number_of_events,
   gsl::span<const unsigned> scifi_seed_atomics,
   gsl::span<const unsigned> scifi_seed_hit_number,
+  gsl::span<const char> raw_scifi_hits,
+  gsl::span<const unsigned> raw_scifi_hit_count,
   gsl::span<const SciFi::Seeding::TrackXZ> scifi_seeds, // FIXME
   gsl::span<const mask_t> event_list)
 {
@@ -237,6 +240,10 @@ std::vector<Checker::Tracks> prepareSeedingTracksXZ(
   std::vector<Checker::Tracks> checker_tracks(event_list.size());
   for (unsigned i_event = 0; i_event < event_list.size(); i_event++) {
     const auto event_number = event_list[i_event];
+
+    const uint total_number_of_hits = raw_scifi_hit_count[number_of_events * SciFi::Constants::n_zones];
+    // SciFi::ConstHitCount scifi_hit_count {raw_scifi_hit_count, event_number};
+    SciFi::ConstHits scifi_hits {raw_scifi_hits.data(), total_number_of_hits};
 
     // Tracks of this event
     auto& tracks = checker_tracks[i_event];
@@ -250,7 +257,7 @@ std::vector<Checker::Tracks> prepareSeedingTracksXZ(
       Checker::Track t;
       const SciFi::Seeding::TrackXZ& track = event_scifi_seeds[i_track];
       for (int i_hit = 0; i_hit != track.number_of_hits; i_hit++) { // FIXME
-        t.addId(track.ids[i_hit]);
+        t.addId(scifi_hits.id(track.hits[i_hit]));
       }
       tracks.push_back(t);
     } // tracks

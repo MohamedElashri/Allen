@@ -170,6 +170,7 @@ def seeding_xz_validation(name="seed_xz_validator"):
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_offsets_scifi_seedsXZ_t=prefix_sum_tracksXZ.dev_output_buffer_t,
         dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
+        dev_scifi_hit_count_t=decoded_scifi["dev_scifi_hit_offsets"],
         dev_offsets_scifi_seedXZ_hit_number_t=prefix_sum_trackXZ_hit_number.
         dev_output_buffer_t,
         dev_scifi_seedsXZ_t=seeding_tracks["seed_xz_tracks"],

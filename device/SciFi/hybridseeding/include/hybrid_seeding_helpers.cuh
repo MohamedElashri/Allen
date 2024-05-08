@@ -59,7 +59,7 @@ namespace seed_xz {
   };
 
   struct multiHitCombination {
-    int idx[SciFi::Constants::n_xzlayers] = {0};
+    unsigned idx[SciFi::Constants::n_xzlayers] = {0};
     float ax;
     float bx;
     float cx;
@@ -81,7 +81,7 @@ namespace seed_uv {
 
   struct multiHitCombination {
     int number_of_hits {1};
-    int idx[SciFi::Constants::n_uvlayers] = {SciFi::Constants::INVALID_IDX};
+    unsigned idx[SciFi::Constants::n_uvlayers] = {SciFi::Constants::INVALID_IDX};
     float y[SciFi::Constants::n_uvlayers] = {0};
     float ay = {0};
     float by = {0};
@@ -130,12 +130,86 @@ namespace seeding {
   };
 
   struct Triplet {
-    static constexpr unsigned maxTriplets = 6000;
+    static constexpr unsigned maxTriplets = 10000;
     __device__ Triplet(unsigned indices) : indices(indices) {}
     __device__ Triplet(int idx0, int idx1, int idx2) : indices((idx2 << 20) | (idx1 << 10) | idx0) {}
     __device__ int idx0() { return indices & 1023; }
     __device__ int idx1() { return (indices >> 10) & 1023; }
     __device__ int idx2() { return (indices >> 20) & 1023; }
     unsigned indices;
+  };
+
+  struct HoughSearch {
+    // uses 12 = 2 * 6 32bits registers
+    uint64_t layers[6];
+
+    // reset all sets and counts to 0
+    __device__ void reset()
+    {
+      for (int i = 0; i < 6; i++) {
+        layers[i] = 0;
+      }
+    }
+
+    // Set a bin in a given layer
+    __device__ void setBin(int layer, int bin) { layers[layer] |= 1ll << bin; }
+
+    // clear a bin in all layers and set the bin count to 0
+    __device__ void clearBin(int bin)
+    {
+      for (int i = 0; i < 3; i++) { // only clear the count part
+        layers[i] &= ~(1ll << bin);
+      }
+    }
+
+    // Count unique layers in all bins in place, count result in first 3 layers
+    __device__ void popcount()
+    {
+      // L0 + L1 (max=2, 2bits)
+      uint64_t c = layers[0] & layers[1];
+      layers[0] ^= layers[1];
+      layers[1] = c;
+
+      // L0+L1+L2 (max=3, 2bits)
+      c = layers[0] & layers[2];
+      layers[0] ^= layers[2];
+      layers[1] ^= c;
+      layers[2] = 0;
+
+      // rest (3bits)
+      for (int layer = 3; layer < 6; layer++) {
+        c = layers[layer];
+        for (int i = 0; i < 3; i++) { // add and propagate carry
+          uint64_t a = layers[i];
+          layers[i] = a ^ c;
+          c = c & a;
+        }
+      }
+    }
+
+    // Return the count for a given bin (debug purpose only)
+    __device__ int count(int bin)
+    {
+      int count = 0;
+      for (int i = 0; i < 3; i++) {
+        count += ((layers[i] >> bin) & 1) << i;
+      }
+      return count;
+    }
+
+    // Get the bin with maximum count
+    __device__ int getBestPos()
+    {
+      uint64_t mask = (uint64_t) -1;
+      for (int i = 2; i >= 0; i--) {
+        if ((layers[i] & mask) == 0) continue; // all 0, no new information, skip
+        mask &= layers[i];
+        if (!(mask & (mask - 1))) { // there is only one bit set
+          return __ffsll(mask) - 1;
+        }
+      }
+      if (mask == (uint64_t) -1) return -1; // no results
+      return __ffsll(mask) - 1;             // multiple equal result, return smallest index
+    }
   };
 } // namespace seeding

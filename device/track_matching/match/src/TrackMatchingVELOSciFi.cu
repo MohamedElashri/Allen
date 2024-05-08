@@ -170,54 +170,45 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
     const auto scifi_state = scifi_states[i];
     auto& scifiseed = scifi_seeds.track(i);
 
-    track_matching::Match BestMatch = {-9999, 1000.f};
-
     // Loop over filtered velo tracks
     for (unsigned ivelo = 0; ivelo < ut_number_of_selected_tracks; ivelo++) {
 
       const auto velo_track_index = ut_selected_velo_tracks[ivelo];
       const auto endvelo_state = velo_states.state(velo_track_index);
       auto matchingInfo = getChi2Match(parameters, endvelo_state, scifi_state, dev_magnet_parametrization);
-      if (matchingInfo.chi2 < BestMatch.chi2) {
-        BestMatch = {static_cast<int>(velo_track_index), matchingInfo.chi2};
+      if (matchingInfo.chi2 < TrackMatchingConsts::maxChi2 && n_matched < TrackMatchingConsts::max_num_tracks) {
+        track_matching::Match BestMatch = {static_cast<int>(velo_track_index), matchingInfo.chi2};
+
+        // Ghost killing
+        const auto magSign = -dev_magnet_polarity[0];
+        const auto qop =
+          computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, dev_magnet_parametrization);
+
+        const auto velo_eta = asinhf(1.f / hypotf(endvelo_state.tx(), endvelo_state.ty()));
+        float ghost_killer_inputs[Allen::NeuralNetwork::Model::MatchingGhostKiller::nInput] = {matchingInfo.zForX,
+                                                                                               matchingInfo.distX,
+                                                                                               matchingInfo.distY,
+                                                                                               matchingInfo.dSlopeX,
+                                                                                               matchingInfo.dSlopeY,
+                                                                                               logf(matchingInfo.chi2),
+                                                                                               velo_eta};
+        const auto ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
+        if (ghost_killer_score > parameters.ghost_killer_threshold.get()) continue;
+
+        // Save the result
+        auto idx = atomicAdd(&n_matched, 1);
+        auto& matched_track = matched_tracks_event[idx];
+
+        matched_track.velo_track_index = BestMatch.ivelo;
+        matched_track.scifi_track_index = i;
+
+        matched_track.number_of_hits_velo = velo_tracks.track(BestMatch.ivelo).number_of_hits();
+        matched_track.number_of_hits_scifi = scifiseed.number_of_scifi_hits();
+        matched_track.chi2_matching = BestMatch.chi2;
+        matched_track.qop = qop;
+        matched_track.ghost_probability = ghost_killer_score;
       }
     }
-
-    if ((BestMatch.chi2 > TrackMatchingConsts::maxChi2) || (n_matched >= TrackMatchingConsts::max_num_tracks)) continue;
-
-    //
-    // Ghost killing
-    //
-    const auto endvelo_state = velo_states.state(BestMatch.ivelo);
-    const auto matchingInfo = getChi2Match(parameters, endvelo_state, scifi_state, dev_magnet_parametrization);
-
-    const auto magSign = -dev_magnet_polarity[0];
-    const auto qop =
-      computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, dev_magnet_parametrization);
-
-    const auto velo_eta = asinhf(1.f / hypotf(endvelo_state.tx(), endvelo_state.ty()));
-    float ghost_killer_inputs[Allen::NeuralNetwork::Model::MatchingGhostKiller::nInput] = {matchingInfo.zForX,
-                                                                                           matchingInfo.distX,
-                                                                                           matchingInfo.distY,
-                                                                                           matchingInfo.dSlopeX,
-                                                                                           matchingInfo.dSlopeY,
-                                                                                           logf(matchingInfo.chi2),
-                                                                                           velo_eta};
-    const auto ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
-    if (ghost_killer_score > parameters.ghost_killer_threshold.get()) continue;
-
-    // Save the result
-    auto idx = atomicAdd(&n_matched, 1);
-    auto& matched_track = matched_tracks_event[idx];
-
-    matched_track.velo_track_index = BestMatch.ivelo;
-    matched_track.scifi_track_index = i;
-
-    matched_track.number_of_hits_velo = velo_tracks.track(BestMatch.ivelo).number_of_hits();
-    matched_track.number_of_hits_scifi = scifiseed.number_of_scifi_hits();
-    matched_track.chi2_matching = BestMatch.chi2;
-    matched_track.qop = qop;
-    matched_track.ghost_probability = ghost_killer_score;
   }
   __syncthreads();
 
@@ -229,7 +220,7 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
   __syncthreads();
 
   for (unsigned n_track_1 = threadIdx.x; n_track_1 < n_matched; n_track_1 += blockDim.x) {
-    if (clone_label[n_track_1] == true) continue;
+    // if (clone_label[n_track_1] == true) continue;
 
     auto& track_1 = matched_tracks_event[n_track_1];
 
@@ -240,17 +231,21 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
       if (track_1.velo_track_index == track_2.velo_track_index) {
         shared_seeds += 1;
       };
+      if (track_1.scifi_track_index == track_2.scifi_track_index) {
+        shared_seeds += 1;
+      };
 
       if (shared_seeds >= 1) {
         // if ( fabs(track_1.chi2 - track_2.chi2) < 0.1 ) continue;
+        if (fabsf(track_1.ghost_probability - track_2.ghost_probability) < 0.05f) continue;
 
-        // if (track_1.ghost_probability <= track_2.ghost_probability) {
-        if (track_1.chi2_matching <= track_2.chi2_matching) {
+        if (track_1.ghost_probability <= track_2.ghost_probability) {
+          // if (track_1.chi2_matching <= track_2.chi2_matching) {
           clone_label[n_track_2] = true;
         }
         else {
           clone_label[n_track_1] = true;
-          break;
+          // break;
         };
       };
     };
