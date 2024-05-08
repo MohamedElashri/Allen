@@ -30,10 +30,10 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_283cb05d          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 20
+gather_selections                      INFO Number of counters : 22
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "Hlt1DiMuonDisplacedPass"                       |         1 |
- | "Hlt1DiMuonDisplacedRate"                       |         1 |
+ | "Hlt1DiMuonDisplacedPass"                       |         3 |
+ | "Hlt1DiMuonDisplacedRate"                       |         3 |
  | "Hlt1DiPhotonHighMassPass"                      |        81 |
  | "Hlt1DiPhotonHighMassRate"                      |        81 |
  | "Hlt1MaterialVertexSeedsDownstreamzPass"        |         4 |
@@ -46,21 +46,23 @@ gather_selections                      INFO Number of counters : 20
  | "Hlt1Pi02GammaGammaRate"                        |         2 |
  | "Hlt1SMOG2PassThroughLowMult5Pass"              |         3 |
  | "Hlt1SMOG2PassThroughLowMult5Rate"              |         3 |
- | "Hlt1SingleHighPtMuonNoMuIDPass"                |         9 |
- | "Hlt1SingleHighPtMuonNoMuIDRate"                |         9 |
- | "Hlt1TrackMVAPass"                              |        31 |
- | "Hlt1TrackMVARate"                              |        31 |
+ | "Hlt1SingleHighPtMuonNoMuIDPass"                |        12 |
+ | "Hlt1SingleHighPtMuonNoMuIDRate"                |        12 |
+ | "Hlt1TrackMVAPass"                              |        59 |
+ | "Hlt1TrackMVARate"                              |        59 |
+ | "Hlt1TwoTrackMVAPass"                           |         8 |
+ | "Hlt1TwoTrackMVARate"                           |         8 |
  | "Hlt1VeloMicroBiasPass"                         |      9997 |
  | "Hlt1VeloMicroBiasRate"                         |         9 |
 matching_consolidate_tracks_matc...    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_long_tracks_matching"                        |     10000 |       1961 |    0.19610 |
+ | "n_long_tracks_matching"                        |     10000 |       3271 |    0.32710 |
 pv_beamline_cleanup                    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_PVs"                                         |     10000 |      51728 |     5.1728 |
 scifi_consolidate_seeds_matching       INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_seed_tracks"                                 |     10000 |      29246 |     2.9246 |
+ | "n_seed_tracks"                                 |     10000 |      45700 |     4.5700 |
 velo_consolidate_tracks                INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_velo_tracks"                                 |     10000 |    2501924 |     250.19 |
