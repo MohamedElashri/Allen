@@ -41,6 +41,7 @@ using std::signbit;
 #define __popc __builtin_popcount
 #define __popcll __builtin_popcountll
 #define __ffs __builtin_ffs
+#define __ffsll __builtin_ffsll
 #define __clz __builtin_clz
 #define __forceinline__ inline
 #define copysignf_impl copysignf

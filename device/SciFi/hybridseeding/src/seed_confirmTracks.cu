@@ -69,16 +69,20 @@ void seed_confirmTracks::seed_confirmTracks_t::operator()(
   Allen::memset_async<dev_seeding_confirmTracks_atomics_t>(arguments, 0, context);
   Allen::memset_async<dev_count_hits_working_mem_t>(arguments, 0, context);
 
-  global_function(seed_confirmTracks)(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(arguments);
+  auto kernel = (m_use_hough_search.get_value()) ? global_function(seed_confirmTracks<true>) :
+                                                   global_function(seed_confirmTracks<false>);
+  kernel(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(arguments);
 }
 
-__device__ int seed_confirmTracks::findHit(const float tolRem, float predPos, int startPos, int nHits, float* coords)
+__device__ unsigned
+seed_confirmTracks::findHit(const float tolRem, float predPos, int startPos, int nHits, float* coords)
 {
   auto minIdx = seeding::searchBin(predPos, coords, startPos, nHits);
   if (std::fabs(coords[minIdx] - predPos) > tolRem) return SciFi::Constants::INVALID_IDX;
   return minIdx;
 }
 
+template<bool use_hough_search>
 __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
 {
   /*
@@ -184,69 +188,115 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
             nIdx[iLayer] = maxXPredIdx - minXPredIdx[iLayer];
             if (maxXPredIdx != hits.size[iLayer]) nIdx[iLayer]++;
           }
-          // First loop
-          for (unsigned int iHitFirst = minXPredIdx[0]; iHitFirst < minXPredIdx[0] + nIdx[0]; iHitFirst++) {
-            seed_uv::multiHitCombination hitComb;
-            // We now have a tY hypothesis. We look in all 5 remaining layers for hits close to expected position
-            // this is basically the same thing as looking for the first hit, but with tY in a smaller interval
-            hitComb.idx[0] = iHitFirst;
-            hitComb.y[0] = (xPred[0] - hits.hit(0, iHitFirst)) / dev_average_dxdy[0];
 
-            float ty = hitComb.y[0] / (dev_average_z[0]);
-            for (unsigned int iRemaining = 1; iRemaining < nLayers; iRemaining++) {
-              // Check if we can even find enough hits
-              if (hitComb.number_of_hits + (nLayers - iRemaining) < nTarget) break;
-              float xMeasPred = xPred[iRemaining] - ty * dev_average_dxdy[iRemaining] * dev_average_z[iRemaining];
-              hitComb.idx[iRemaining] =
-                findHit(tuning_tol, xMeasPred, minXPredIdx[iRemaining], nIdx[iRemaining], hits.layer(iRemaining));
-              if (hitComb.idx[iRemaining] != SciFi::Constants::INVALID_IDX) {
-                hitComb.y[iRemaining] =
-                  (xPred[iRemaining] - hits.hit(iRemaining, hitComb.idx[iRemaining])) / dev_average_dxdy[iRemaining];
-
-                // refine ty:
-                ty = (ty + hitComb.y[iRemaining] / dev_average_z[iRemaining]) * 0.5f;
-                ++hitComb.number_of_hits;
+          if constexpr (use_hough_search) {
+            seeding::HoughSearch search;
+            search.reset();
+            for (unsigned int iLayer = 0; iLayer < nLayers; iLayer++) {
+              for (unsigned int iHit = minXPredIdx[iLayer]; iHit < minXPredIdx[iLayer] + nIdx[iLayer]; iHit++) {
+                float ty =
+                  (xPred[iLayer] - hits.hit(iLayer, iHit)) / (dev_average_dxdy[iLayer] * dev_average_z[iLayer]);
+                int bin = partSign * ty * 64.f / 0.25f;
+                bin = max(0, min(63, bin));
+                search.setBin(iLayer, bin);
               }
             }
-            if (xTrack.number_of_hits + hitComb.number_of_hits < tuning_nhits) continue;
-            if (hitComb.number_of_hits < bestHitComb.number_of_hits) continue;
-            fitYZ(hitComb);
-            if (hitComb.number_of_hits == bestHitComb.number_of_hits && hitComb.chi2 > bestChi2Ndof) continue;
-            bestChi2Ndof = hitComb.chi2;
-            bestHitComb = hitComb;
+            search.popcount();
+            for (int iCandidate = 0; iCandidate < 8; iCandidate++) {
+              int bestBin = search.getBestPos();
+              if (bestBin < 0) break;
+              search.clearBin(bestBin);
+              for (int pos = 0; pos < 9; pos++) {
+                float ty = partSign * (bestBin + pos * 0.125f) * 0.25f / 64.f;
+
+                seed_uv::multiHitCombination hitComb;
+                hitComb.number_of_hits = 0;
+                for (unsigned int iRemaining = 0; iRemaining < nLayers; iRemaining++) {
+                  // Check if we can even find enough hits
+                  if (hitComb.number_of_hits + (nLayers - iRemaining) < nTarget) break;
+                  float xMeasPred = xPred[iRemaining] - ty * dev_average_dxdy[iRemaining] * dev_average_z[iRemaining];
+                  hitComb.idx[iRemaining] =
+                    findHit(tuning_tol, xMeasPred, minXPredIdx[iRemaining], nIdx[iRemaining], hits.layer(iRemaining));
+                  if (hitComb.idx[iRemaining] != SciFi::Constants::INVALID_IDX) {
+                    hitComb.y[iRemaining] = (xPred[iRemaining] - hits.hit(iRemaining, hitComb.idx[iRemaining])) /
+                                            dev_average_dxdy[iRemaining];
+                    ++hitComb.number_of_hits;
+                  }
+                }
+                if (xTrack.number_of_hits + hitComb.number_of_hits < tuning_nhits) continue;
+                if (hitComb.number_of_hits < bestHitComb.number_of_hits) continue;
+                fitYZ(hitComb);
+                if (hitComb.number_of_hits == bestHitComb.number_of_hits && hitComb.chi2 > bestChi2Ndof) continue;
+                bestChi2Ndof = hitComb.chi2;
+                bestHitComb = hitComb;
+              }
+            }
           }
-          // Second loop
-          for (unsigned int iHitFirst = minXPredIdx[1]; iHitFirst < minXPredIdx[1] + nIdx[1]; iHitFirst++) {
-            seed_uv::multiHitCombination hitComb;
-            // We now have a tY hypothesis. We look in all 5 remaining layers for hits close to expected position
-            // this is basically the same thing as looking for the first hit, but with tY in a smaller interval
-            hitComb.idx[0] = SciFi::Constants::INVALID_IDX;
-            hitComb.idx[1] = iHitFirst;
-            hitComb.y[1] = (xPred[1] - hits.hit(1, iHitFirst)) / dev_average_dxdy[1];
+          else {
+            // First loop
+            for (unsigned int iHitFirst = minXPredIdx[0]; iHitFirst < minXPredIdx[0] + nIdx[0]; iHitFirst++) {
+              seed_uv::multiHitCombination hitComb;
+              // We now have a tY hypothesis. We look in all 5 remaining layers for hits close to expected position
+              // this is basically the same thing as looking for the first hit, but with tY in a smaller interval
+              hitComb.idx[0] = iHitFirst;
+              hitComb.y[0] = (xPred[0] - hits.hit(0, iHitFirst)) / dev_average_dxdy[0];
 
-            float ty = hitComb.y[1] / (dev_average_z[1]);
-            for (unsigned int iRemaining = 2; iRemaining < nLayers; iRemaining++) {
-              // Check if we can even find enough hits
-              if (hitComb.number_of_hits + (nLayers - iRemaining) < nTarget) break;
-              float xMeasPred = xPred[iRemaining] - ty * dev_average_dxdy[iRemaining] * dev_average_z[iRemaining];
+              float ty = hitComb.y[0] / (dev_average_z[0]);
+              for (unsigned int iRemaining = 1; iRemaining < nLayers; iRemaining++) {
+                // Check if we can even find enough hits
+                if (hitComb.number_of_hits + (nLayers - iRemaining) < nTarget) break;
+                float xMeasPred = xPred[iRemaining] - ty * dev_average_dxdy[iRemaining] * dev_average_z[iRemaining];
+                hitComb.idx[iRemaining] =
+                  findHit(tuning_tol, xMeasPred, minXPredIdx[iRemaining], nIdx[iRemaining], hits.layer(iRemaining));
+                if (hitComb.idx[iRemaining] != SciFi::Constants::INVALID_IDX) {
+                  hitComb.y[iRemaining] =
+                    (xPred[iRemaining] - hits.hit(iRemaining, hitComb.idx[iRemaining])) / dev_average_dxdy[iRemaining];
 
-              hitComb.idx[iRemaining] =
-                findHit(tuning_tol, xMeasPred, minXPredIdx[iRemaining], nIdx[iRemaining], hits.layer(iRemaining));
-              if (hitComb.idx[iRemaining] != SciFi::Constants::INVALID_IDX) {
-                hitComb.y[iRemaining] =
-                  (xPred[iRemaining] - hits.hit(iRemaining, hitComb.idx[iRemaining])) / dev_average_dxdy[iRemaining];
-
-                // refine ty:
-                ty = (ty + hitComb.y[iRemaining] / dev_average_z[iRemaining]) * 0.5f;
-                ++hitComb.number_of_hits;
+                  // refine ty:
+                  ty = (ty + hitComb.y[iRemaining] / dev_average_z[iRemaining]) * 0.5f;
+                  ++hitComb.number_of_hits;
+                }
               }
+              if (xTrack.number_of_hits + hitComb.number_of_hits < tuning_nhits) continue;
+              if (hitComb.number_of_hits < bestHitComb.number_of_hits) continue;
+              fitYZ(hitComb);
+              if (hitComb.number_of_hits == bestHitComb.number_of_hits && hitComb.chi2 > bestChi2Ndof) continue;
+              bestChi2Ndof = hitComb.chi2;
+              bestHitComb = hitComb;
             }
-            if (xTrack.number_of_hits + hitComb.number_of_hits < tuning_nhits) continue;
-            fitYZ(hitComb);
-            if (hitComb.number_of_hits < bestHitComb.number_of_hits) continue;
-            if (hitComb.number_of_hits == bestHitComb.number_of_hits && hitComb.chi2 > bestChi2Ndof) continue;
-            bestChi2Ndof = hitComb.chi2;
-            bestHitComb = hitComb;
+            // Second loop
+            for (unsigned int iHitFirst = minXPredIdx[1]; iHitFirst < minXPredIdx[1] + nIdx[1]; iHitFirst++) {
+              seed_uv::multiHitCombination hitComb;
+              // We now have a tY hypothesis. We look in all 5 remaining layers for hits close to expected position
+              // this is basically the same thing as looking for the first hit, but with tY in a smaller interval
+              hitComb.idx[0] = SciFi::Constants::INVALID_IDX;
+              hitComb.idx[1] = iHitFirst;
+              hitComb.y[1] = (xPred[1] - hits.hit(1, iHitFirst)) / dev_average_dxdy[1];
+
+              float ty = hitComb.y[1] / (dev_average_z[1]);
+              for (unsigned int iRemaining = 2; iRemaining < nLayers; iRemaining++) {
+                // Check if we can even find enough hits
+                if (hitComb.number_of_hits + (nLayers - iRemaining) < nTarget) break;
+                float xMeasPred = xPred[iRemaining] - ty * dev_average_dxdy[iRemaining] * dev_average_z[iRemaining];
+
+                hitComb.idx[iRemaining] =
+                  findHit(tuning_tol, xMeasPred, minXPredIdx[iRemaining], nIdx[iRemaining], hits.layer(iRemaining));
+                if (hitComb.idx[iRemaining] != SciFi::Constants::INVALID_IDX) {
+                  hitComb.y[iRemaining] =
+                    (xPred[iRemaining] - hits.hit(iRemaining, hitComb.idx[iRemaining])) / dev_average_dxdy[iRemaining];
+
+                  // refine ty:
+                  ty = (ty + hitComb.y[iRemaining] / dev_average_z[iRemaining]) * 0.5f;
+                  ++hitComb.number_of_hits;
+                }
+              }
+              if (xTrack.number_of_hits + hitComb.number_of_hits < tuning_nhits) continue;
+              if (hitComb.number_of_hits < bestHitComb.number_of_hits) continue;
+              fitYZ(hitComb);
+              if (hitComb.number_of_hits == bestHitComb.number_of_hits && hitComb.chi2 > bestChi2Ndof) continue;
+              bestChi2Ndof = hitComb.chi2;
+              bestHitComb = hitComb;
+            }
           }
 
           if (xTrack.number_of_hits + bestHitComb.number_of_hits < tuning_nhits) continue;

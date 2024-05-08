@@ -51,7 +51,7 @@ namespace {
     return hitComb;
   }
 
-  __device__ int findRemainingHit(const float tolRem, float& predPos, int nHits, float* hits)
+  __device__ unsigned findRemainingHit(const float tolRem, float& predPos, int nHits, float* hits)
   {
     auto minIdx = seeding::searchBin(predPos, hits, nHits);
     if (minIdx == nHits) return SciFi::Constants::INVALID_IDX;
@@ -60,22 +60,14 @@ namespace {
     return minIdx;
   }
 
-  __device__ SciFi::Seeding::TrackXZ make_trackXZ(
-    SciFi::ConstHits& scifi_hits,
-    unsigned int* zone_offset,
-    const seed_xz::multiHitCombination& multiHitComb,
-    float chi2ndof)
+  __device__ SciFi::Seeding::TrackXZ make_trackXZ(const seed_xz::multiHitCombination& multiHitComb, float chi2ndof)
   {
     int n_hits = 0;
     SciFi::Seeding::TrackXZ track;
     track.chi2 = chi2ndof;
-
     for (int iLayer = 0; iLayer < 6; iLayer++) {
-      track.idx[iLayer] = multiHitComb.idx[iLayer];
-      if (multiHitComb.idx[iLayer] == SciFi::Constants::INVALID_IDX) continue;
-      auto hit_idx = zone_offset[iLayer] + multiHitComb.idx[iLayer];
-      track.ids[n_hits] = scifi_hits.id(hit_idx);
-      track.hits[n_hits++] = hit_idx;
+      track.hits[iLayer] = multiHitComb.idx[iLayer];
+      if (multiHitComb.idx[iLayer] != SciFi::Constants::INVALID_IDX) n_hits++;
     }
     track.number_of_hits = n_hits;
     track.ax = multiHitComb.ax;
@@ -406,9 +398,9 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
             unsigned idx = atomicAdd(&nTracksPart, 1);
             if (idx >= maxSeeds) break;
 
-            reconstructed_tracksXZ_global[nReconstructedTracks + idx] = make_trackXZ(
-              scifi_hits, zone_offset, multiHitComb, score); // FIXME: inside the track model, score = chi2ndof
-          }                                                  // Closes first layer
+            reconstructed_tracksXZ_global[nReconstructedTracks + idx] =
+              make_trackXZ(multiHitComb, score); // FIXME: inside the track model, score = chi2ndof
+          }                                      // Closes first layer
           __syncthreads();
 
           if (threadIdx.x == 0 && nTracksPart > maxSeeds) {
@@ -430,7 +422,7 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
         for (unsigned int i = threadIdx.x; i < nTracksPart; i += blockDim.x) {
           auto& track = reconstructed_tracksXZ_global[nReconstructedTracks + i];
           for (int iLayer = 0; iLayer < 6; iLayer++) {
-            auto hit = track.idx[iLayer];
+            auto hit = track.hits[iLayer];
             if (hit == SciFi::Constants::INVALID_IDX) continue;
             atomicMin((int*) &hits.hit(iLayer, hit), __float_as_int(track.chi2 * 1000.f + std::fabs(track.cx)));
           }
@@ -445,14 +437,21 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
           if (i + threadIdx.x < nTracksPart) {
             track = reconstructed_tracksXZ_global[nReconstructedTracks + i + threadIdx.x];
             for (int iLayer = 0; iLayer < 6; iLayer++) {
-              auto hit = track.idx[iLayer];
+              auto hit = track.hits[iLayer];
               if (hit == SciFi::Constants::INVALID_IDX) continue;
               nHits += std::fabs(hits.hit(iLayer, hit) - (track.chi2 * 1000.f + std::fabs(track.cx))) < 0.01f;
             }
           }
           __syncthreads();
-          if (nHits > 3) {
+          if (nHits > 2 || (nHits == 2 && track.number_of_hits == 6)) {
             auto idx = atomicAdd(&nFilteredTracks, 1);
+            // Consolidate hits:
+            int n_hits = 0;
+            for (int iLayer = 0; iLayer < 6; iLayer++) {
+              if (track.hits[iLayer] == SciFi::Constants::INVALID_IDX) continue;
+              track.hits[n_hits++] = zone_offset[iLayer] + track.hits[iLayer];
+            }
+            track.number_of_hits = n_hits;
             reconstructed_tracksXZ_global[nReconstructedTracks + idx] = track;
           }
           __syncthreads();
