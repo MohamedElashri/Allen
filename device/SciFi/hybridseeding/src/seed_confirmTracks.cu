@@ -109,7 +109,6 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
     unsigned int uvCodes[nLayers] = {10 + part, 2 + part, 20 + part, 12 + part, 18 + part, 4 + part}; // FIXME
 
     // Storing hits
-    static constexpr unsigned int maxNHits = 300; // FIXME
     __shared__ float hits_shared[nLayers * maxNHits];
     seeding::HitCache hits;
     unsigned zone_offset[6];
