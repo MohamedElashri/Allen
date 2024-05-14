@@ -21,6 +21,17 @@
  */
 
 namespace seed_confirmTracks {
+
+#if defined(TARGET_DEVICE_CUDA)
+#if __CUDA_ARCH__ >= 800 // Ampere
+  __device__ static constexpr unsigned int maxNHits = 600;
+#else // Volta, Turing
+  __device__ static constexpr unsigned int maxNHits = 300;
+#endif
+#else // CPU, HIP
+  __device__ static constexpr unsigned int maxNHits = 300;
+#endif
+
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, uint) host_number_of_events;
 
