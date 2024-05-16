@@ -114,8 +114,7 @@ Hlt1D2KPiAlignment:                                10/  1000, (  300.00 +/-    9
 Hlt1Dst2D0PiAlignment:                              3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1MaterialVertexSeedsDownstreamz:                 0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1MaterialVertexSeeds_DWFS:                       0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1DiMuonHighMassAlignment:                        0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1DiMuonJpsiMassAlignment:                        4/  1000, (  120.00 +/-    59.88) kHz
+Hlt1DiMuonJpsiMassAlignment:                        1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1OneMuonTrackLine:                               2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                  1/  1000, (   30.00 +/-    29.98) kHz
@@ -257,8 +256,7 @@ Hlt1D2KPiAlignment:                                10          10
 Hlt1Dst2D0PiAlignment:                              3           3
 Hlt1MaterialVertexSeedsDownstreamz:                 0           0
 Hlt1MaterialVertexSeeds_DWFS:                       0           0
-Hlt1DiMuonHighMassAlignment:                        0           0
-Hlt1DiMuonJpsiMassAlignment:                        4           8
+Hlt1DiMuonJpsiMassAlignment:                        1           2
 Hlt1OneMuonTrackLine:                               2           0
 Hlt1BeamGas:                                        0           0
 Hlt1VeloMicroBias:                                  1           0
@@ -278,12 +276,12 @@ Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 
-Total decisions:      1148
-Total tracks:         2491
+Total decisions:      1145
+Total tracks:         2489
 Total calos clusters: 33
-Total SVs:            2336
-Total hits:           54941
-Total stdinfo:        30552
+Total SVs:            2335
+Total hits:           54890
+Total stdinfo:        30529
 
 
 velo_validator validation:

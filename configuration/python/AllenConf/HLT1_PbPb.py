@@ -298,14 +298,12 @@ def alignment_monitoring_lines(reconstructed_objects,
                 long_tracks, dihadrons, name="Hlt1D2KPiAlignment")
         ]
         if with_muon:
+            muonid = reconstructed_objects["muonID"]
             lines += [
-                make_di_muon_mass_align_line(
-                    long_tracks, dileptons,
-                    name="Hlt1DiMuonHighMassAlignment"),
                 make_di_muon_mass_align_line(
                     long_tracks,
                     dileptons,
-                    minMass=2500.,
+                    muonid,
                     name="Hlt1DiMuonJpsiMassAlignment"),
                 make_displaced_dimuon_mass_line(
                     long_tracks,
