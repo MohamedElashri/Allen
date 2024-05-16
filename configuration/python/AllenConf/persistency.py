@@ -126,7 +126,7 @@ rb_map = {
     'Hlt1D2KPiAlignment':
     3,
     # RB 4 Muon alignment
-    'Hlt1DiMuon(High|Jpsi)MassAlignment':
+    'Hlt1DiMuonJpsiMassAlignment':
     4,
     # RB 5 RICH1 alignment
     'Hlt1RICH1Alignment':
@@ -175,10 +175,10 @@ rb_map_PbPb = {
     'Hlt1(VeloMicroBias|BeamGas|NMaterialVertexSeeds|NVELODisplacedTrack|HeavyIonPbPbMBOneTrack)':
     2,
     # RB 3 Tracker alignment
-    'Hlt1(D2KPi|DiMuonHighMass|DisplacedDiMuon)Alignment|Hlt1HeavyIonPbPbUPCMB':
+    'Hlt1D2KPiAlignment|Hlt1HeavyIonPbPbUPCMB':
     3,
     # RB 4 Muon alignment
-    'Hlt1DiMuon(High|Jpsi)MassAlignment':
+    'Hlt1DiMuonJpsiMassAlignment':
     4,
     # RB 5 RICH1 alignment
     'Hlt1RICH1Alignment':
