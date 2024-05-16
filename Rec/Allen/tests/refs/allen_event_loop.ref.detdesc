@@ -30,7 +30,7 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_283cb05d          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 98
+gather_selections                      INFO Number of counters : 94
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Hlt1D2KKPass"                                  |        20 |
  | "Hlt1D2KKRate"                                  |        20 |
@@ -75,12 +75,8 @@ gather_selections                      INFO Number of counters : 98
  | "Hlt1DiElectronLowMass_massSlice4_promptRate"   |         1 |
  | "Hlt1DiMuonDisplacedPass"                       |       102 |
  | "Hlt1DiMuonDisplacedRate"                       |       102 |
- | "Hlt1DiMuonHighMassAlignmentPass"               |         2 |
- | "Hlt1DiMuonHighMassAlignmentRate"               |         2 |
  | "Hlt1DiMuonHighMassPass"                        |        79 |
  | "Hlt1DiMuonHighMassRate"                        |        79 |
- | "Hlt1DiMuonJpsiMassAlignmentPass"               |        20 |
- | "Hlt1DiMuonJpsiMassAlignmentRate"               |        20 |
  | "Hlt1DiMuonNoIPPass"                            |         8 |
  | "Hlt1DiMuonNoIPRate"                            |         8 |
  | "Hlt1DiMuonNoIP_SSPass"                         |         5 |
