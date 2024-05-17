@@ -132,7 +132,9 @@ namespace error_bank_filter {
                                                     "DaqErrorFragmentTruncated",
                                                     "DaqErrorIdleBXIDCorrupted",
                                                     "DaqErrorFragmentMalformed",
-                                                    "DaqErrorEVIDJumped"}};
+                                                    "DaqErrorEVIDJumped",
+                                                    "DaqErrorAlignFifoFull",
+                                                    "DaqErrorFEfragSizeWrong"}};
   };
 
 } // namespace error_bank_filter

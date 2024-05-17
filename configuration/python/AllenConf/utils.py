@@ -405,9 +405,18 @@ def sd_error_filter():
         }
     }
 
+    daq_error_types = [
+        "DaqErrorFragmentThrottled", "DaqErrorBXIDCorrupted",
+        "DaqErrorSyncBXIDCorrupted", "DaqErrorFragmentMissing",
+        "DaqErrorFragmentTruncated", "DaqErrorIdleBXIDCorrupted",
+        "DaqErrorFragmentMalformed", "DaqErrorEVIDJumped",
+        "DaqErrorAlignFifoFull", "DaqErrorFEfragSizeWrong"
+    ]
+
     return make_algorithm(
         error_bank_filter_t,
         name="error_bank_filter",
         host_event_list_t=event_list.host_event_list_output_t,
         mep_layout_t=layout['host_mep_layout'],
-        sd_bank_types=bank_types)
+        sd_bank_types=bank_types,
+        daq_error_types=daq_error_types)
