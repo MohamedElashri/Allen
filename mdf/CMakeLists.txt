@@ -9,67 +9,43 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
-# Interface library for lhcb includes
-add_library(LHCbEvent INTERFACE)
-
 set(mdf_sources
     src/raw_helpers.cpp
     src/read_mdf.cpp
     src/write_mdf.cpp
     src/root_mdf.cpp)
 
-
-if (STANDALONE)
-  foreach(odin_file  "src/ODIN.cpp" "include/Event/ODIN.h")
-    if (NOT EXISTS "${PROJECT_BINARY_DIR}/imported_${odin_file}")
-      file(DOWNLOAD "https://gitlab.cern.ch/lhcb/LHCb/-/raw/master/Event/DAQEvent/${odin_file}"
-        "${PROJECT_BINARY_DIR}/imported_${odin_file}"
-        STATUS ODIN_DOWNLOAD_STATUS)
-      list(POP_FRONT ODIN_DOWNLOAD_STATUS_CODE ODIN_DOWNLOAD_STATUS_MSG)
-      if(ODIN_DOWNLOAD_STATUS_CODE)
-        message(FATAL_ERROR "Failed to get ${odin_file} copy: ${ODIN_DOWNLOAD_STATUS_MSG}")
-      endif()
-    endif()
-  endforeach()
-
-  add_library(odin OBJECT ${PROJECT_BINARY_DIR}/imported_src/ODIN.cpp)
-  target_link_libraries(odin PRIVATE LHCbEvent cppgsl::cppgsl)
-  target_compile_definitions(odin PRIVATE ODIN_WITHOUT_GAUDI)
-  list(APPEND mdf_sources $<TARGET_OBJECTS:odin>)
-endif()
-
 allen_add_host_library(mdf STATIC ${mdf_sources})
 target_include_directories (mdf PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/main/include>)
-target_link_libraries(mdf PUBLIC LHCbEvent)
 
 set(lhcb_public_headers
   include/write_mdf.hpp
   include/read_mdf.hpp
   include/mdf_header.hpp
   daq40/sourceid.h)
-target_include_directories(LHCbEvent INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/daq40>)
 
 if (STANDALONE)
-  # Make sure we have a local copy of ODIN.{h,cpp} if building in standalone mode
-  target_include_directories(LHCbEvent INTERFACE
-    lhcb
-    ${PROJECT_BINARY_DIR}/imported_include
-    ${PROJECT_BINARY_DIR}/sequences/Gaudi/GaudiKernel/include)
-  target_compile_definitions(LHCbEvent INTERFACE ODIN_WITHOUT_GAUDI)
+  target_link_libraries(mdf PRIVATE LHCbEvent)
 else()
-  target_link_libraries(mdf
-    PUBLIC
-      Boost::filesystem
-      Boost::thread
-      Boost::regex)
+  # Interface library for lhcb includes
+  add_library(LHCbEvent INTERFACE)
   target_link_libraries(LHCbEvent
     INTERFACE
       Gaudi::GaudiKernel
       LHCb::DAQEventLib
       LHCb::LumiEventLib)
+
+  target_link_libraries(mdf
+    PUBLIC
+      LHCbEvent
+      Boost::filesystem
+      Boost::thread
+      Boost::regex)
 endif()
+
+target_include_directories(LHCbEvent INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/daq40>)
 
 set_property(TARGET LHCbEvent PROPERTY PUBLIC_HEADER ${lhcb_public_headers})
 install(TARGETS LHCbEvent EXPORT Allen
