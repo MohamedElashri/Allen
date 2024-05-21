@@ -30,12 +30,67 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_283cb05d          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 22
+gather_selections                      INFO Number of counters : 93
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "Hlt1DiMuonDisplacedPass"                       |         3 |
- | "Hlt1DiMuonDisplacedRate"                       |         3 |
+ | "Hlt1D2KKPass"                                  |        20 |
+ | "Hlt1D2KKRate"                                  |        20 |
+ | "Hlt1D2KPiAlignmentPass"                        |         7 |
+ | "Hlt1D2KPiAlignmentRate"                        |         7 |
+ | "Hlt1D2KPiPass"                                 |        24 |
+ | "Hlt1D2KPiRate"                                 |        24 |
+ | "Hlt1D2PiPiPass"                                |        10 |
+ | "Hlt1D2PiPiRate"                                |        10 |
+ | "Hlt1DetJpsiToMuMuNegTagLinePass"               |         1 |
+ | "Hlt1DetJpsiToMuMuNegTagLineRate"               |         1 |
+ | "Hlt1DiElectronDisplacedPass"                   |        62 |
+ | "Hlt1DiElectronDisplacedRate"                   |        62 |
+ | "Hlt1DiElectronHighMass_SSPass"                 |         1 |
+ | "Hlt1DiElectronHighMass_SSRate"                 |         1 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_displacedPass"|        74 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_promptPass"|        34 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_promptRate"|         1 |
+ | "Hlt1DiElectronLowMass_SS_massSlice2_displacedPass"|        22 |
+ | "Hlt1DiElectronLowMass_SS_massSlice2_promptPass"|         8 |
+ | "Hlt1DiElectronLowMass_SS_massSlice3_displacedPass"|         8 |
+ | "Hlt1DiElectronLowMass_SS_massSlice3_promptPass"|        11 |
+ | "Hlt1DiElectronLowMass_SS_massSlice3_promptRate"|         1 |
+ | "Hlt1DiElectronLowMass_SS_massSlice4_displacedPass"|         7 |
+ | "Hlt1DiElectronLowMass_SS_massSlice4_displacedRate"|         1 |
+ | "Hlt1DiElectronLowMass_SS_massSlice4_promptPass"|         7 |
+ | "Hlt1DiElectronLowMass_massSlice1_displacedPass"|        17 |
+ | "Hlt1DiElectronLowMass_massSlice1_displacedRate"|        17 |
+ | "Hlt1DiElectronLowMass_massSlice1_promptPass"   |        21 |
+ | "Hlt1DiElectronLowMass_massSlice1_promptRate"   |        21 |
+ | "Hlt1DiElectronLowMass_massSlice2_displacedPass"|         4 |
+ | "Hlt1DiElectronLowMass_massSlice2_displacedRate"|         4 |
+ | "Hlt1DiElectronLowMass_massSlice2_promptPass"   |         5 |
+ | "Hlt1DiElectronLowMass_massSlice2_promptRate"   |         5 |
+ | "Hlt1DiElectronLowMass_massSlice3_displacedPass"|         7 |
+ | "Hlt1DiElectronLowMass_massSlice3_displacedRate"|         7 |
+ | "Hlt1DiElectronLowMass_massSlice3_promptPass"   |         4 |
+ | "Hlt1DiElectronLowMass_massSlice4_displacedPass"|         4 |
+ | "Hlt1DiElectronLowMass_massSlice4_displacedRate"|         4 |
+ | "Hlt1DiElectronLowMass_massSlice4_promptPass"   |         5 |
+ | "Hlt1DiElectronLowMass_massSlice4_promptRate"   |         1 |
+ | "Hlt1DiMuonDisplacedPass"                       |       103 |
+ | "Hlt1DiMuonDisplacedRate"                       |       103 |
+ | "Hlt1DiMuonHighMassPass"                        |        80 |
+ | "Hlt1DiMuonHighMassRate"                        |        80 |
+ | "Hlt1DiMuonNoIPPass"                            |         8 |
+ | "Hlt1DiMuonNoIPRate"                            |         8 |
+ | "Hlt1DiMuonNoIP_SSPass"                         |         5 |
+ | "Hlt1DiMuonSoftPass"                            |         7 |
+ | "Hlt1DiMuonSoftRate"                            |         7 |
  | "Hlt1DiPhotonHighMassPass"                      |        81 |
  | "Hlt1DiPhotonHighMassRate"                      |        81 |
+ | "Hlt1Dst2D0PiAlignmentPass"                     |         8 |
+ | "Hlt1Dst2D0PiAlignmentRate"                     |         8 |
+ | "Hlt1Dst2D0PiPass"                              |         8 |
+ | "Hlt1Dst2D0PiRate"                              |         8 |
+ | "Hlt1KsToPiPiPass"                              |       780 |
+ | "Hlt1KsToPiPiRate"                              |         2 |
+ | "Hlt1LambdaLLDetachedTrackPass"                 |         7 |
+ | "Hlt1LambdaLLDetachedTrackRate"                 |         7 |
  | "Hlt1MaterialVertexSeedsDownstreamzPass"        |         4 |
  | "Hlt1MaterialVertexSeedsDownstreamzRate"        |         4 |
  | "Hlt1MaterialVertexSeeds_DWFSPass"              |         5 |
@@ -44,25 +99,41 @@ gather_selections                      INFO Number of counters : 22
  | "Hlt1OneMuonTrackLineRate"                      |         3 |
  | "Hlt1Pi02GammaGammaPass"                        |         2 |
  | "Hlt1Pi02GammaGammaRate"                        |         2 |
+ | "Hlt1RICH1AlignmentPass"                        |         5 |
+ | "Hlt1RICH1AlignmentRate"                        |         5 |
  | "Hlt1SMOG2PassThroughLowMult5Pass"              |         3 |
  | "Hlt1SMOG2PassThroughLowMult5Rate"              |         3 |
- | "Hlt1SingleHighPtMuonNoMuIDPass"                |        12 |
- | "Hlt1SingleHighPtMuonNoMuIDRate"                |        12 |
- | "Hlt1TrackMVAPass"                              |        59 |
- | "Hlt1TrackMVARate"                              |        59 |
- | "Hlt1TwoTrackMVAPass"                           |         8 |
- | "Hlt1TwoTrackMVARate"                           |         8 |
+ | "Hlt1SingleHighPtElectronPass"                  |        12 |
+ | "Hlt1SingleHighPtElectronRate"                  |        12 |
+ | "Hlt1SingleHighPtMuonNoMuIDPass"                |        32 |
+ | "Hlt1SingleHighPtMuonNoMuIDRate"                |        32 |
+ | "Hlt1SingleHighPtMuonPass"                      |         5 |
+ | "Hlt1SingleHighPtMuonRate"                      |         5 |
+ | "Hlt1TrackElectronMVAPass"                      |        69 |
+ | "Hlt1TrackElectronMVARate"                      |        69 |
+ | "Hlt1TrackMVAPass"                              |       161 |
+ | "Hlt1TrackMVARate"                              |       161 |
+ | "Hlt1TrackMuonMVAPass"                          |         9 |
+ | "Hlt1TrackMuonMVARate"                          |         9 |
+ | "Hlt1TwoKsPass"                                 |         8 |
+ | "Hlt1TwoKsRate"                                 |         8 |
+ | "Hlt1TwoTrackKsPass"                            |        33 |
+ | "Hlt1TwoTrackKsRate"                            |        33 |
+ | "Hlt1TwoTrackMVAPass"                           |       374 |
+ | "Hlt1TwoTrackMVARate"                           |       374 |
  | "Hlt1VeloMicroBiasPass"                         |      9997 |
  | "Hlt1VeloMicroBiasRate"                         |         9 |
+ | "Hlt1XiOmegaLLLPass"                            |         4 |
+ | "Hlt1XiOmegaLLLRate"                            |         4 |
 matching_consolidate_tracks_matc...    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_long_tracks_matching"                        |     10000 |       3273 |    0.32730 |
+ | "n_long_tracks_matching"                        |     10000 |     498329 |     49.833 |
 pv_beamline_cleanup                    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_PVs"                                         |     10000 |      51729 |     5.1729 |
 scifi_consolidate_seeds_matching       INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_seed_tracks"                                 |     10000 |      45698 |     4.5698 |
+ | "n_seed_tracks"                                 |     10000 |     799727 |     79.973 |
 velo_consolidate_tracks                INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_velo_tracks"                                 |     10000 |    2501944 |     250.19 |
