@@ -25,7 +25,7 @@
     <text>--monitoring-filename</text><text>mdf_input_hists.root</text>
 	<text>--mdf</text><text>root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.mdf</text>
     <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants/hlt1_pp_matching.json</text>
-    <text>--tags=detdesc:dddb-20220705,sim-20220705-vc-md100|dd4hep:run3/trunk,master</text>
+    <text>--tags=detdesc:dddb-20220705,sim-20220705-vc-md100|dd4hep:run3/before-rich1-geom-update-26052022,jonrob/all-pmts-active</text>
     <text>--events-per-slice</text><text>500</text>
     <text>-m</text><text>600</text>
     <text>-s</text><text>3</text>
