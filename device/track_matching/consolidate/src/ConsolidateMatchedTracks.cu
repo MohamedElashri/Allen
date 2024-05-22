@@ -89,6 +89,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
     m_histogram_long_track_matching_eta.data(context),
     m_histogram_long_track_matching_phi.data(context),
     m_histogram_long_track_matching_nhits.data(context),
+    m_histogram_long_track_ghost_prob.data(context),
     m_histogram_n_long_tracks_matching.data(context),
     m_histogram_long_track_matching_qop.data(context),
     m_long_tracks_matching.data(context));
@@ -101,6 +102,7 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_eta,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_phi,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_ghost_prob,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_n_long_tracks_matching,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_qop,
   Allen::Monitoring::AveragingCounter<>::DeviceType dev_n_long_tracks_matching_counter)
@@ -151,7 +153,8 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
       dev_histogram_long_track_matching_eta,
       dev_histogram_long_track_matching_phi,
       dev_histogram_long_track_matching_qop,
-      dev_histogram_long_track_matching_nhits);
+      dev_histogram_long_track_matching_nhits,
+      dev_histogram_long_track_ghost_prob);
   }
 }
 
@@ -162,7 +165,8 @@ __device__ void matching_consolidate_tracks::matching_consolidate_tracks_t::moni
   Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_matching_eta,
   Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_matching_phi,
   Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_matching_qop,
-  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_matching_nhits)
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_matching_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_long_track_ghost_prob)
 {
   const auto tx = velo_state.tx();
   const auto ty = velo_state.ty();
@@ -176,4 +180,5 @@ __device__ void matching_consolidate_tracks::matching_consolidate_tracks_t::moni
   dev_histogram_long_track_matching_phi.increment(phi);
   dev_histogram_long_track_matching_nhits.increment(nhits);
   dev_histogram_long_track_matching_qop.increment(matched_track.qop);
+  dev_histogram_long_track_ghost_prob.increment(matched_track.ghost_probability);
 }

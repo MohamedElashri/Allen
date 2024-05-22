@@ -424,15 +424,13 @@ def alignment_monitoring_lines(reconstructed_objects,
     ]
 
     if with_muon:
+        muonid = reconstructed_objects["muonID"]
         lines += [
-            make_di_muon_mass_align_line(
-                long_tracks, dileptons, name="Hlt1DiMuonHighMassAlignment"),
             make_di_muon_mass_align_line(
                 long_tracks,
                 dileptons,
-                minMass=2500.,
-                name="Hlt1DiMuonJpsiMassAlignment",
-                pre_scaler=0.1),
+                muonid,
+                name="Hlt1DiMuonJpsiMassAlignment"),
             make_one_muon_track_line(
                 muon_stubs["dev_muon_number_of_tracks"],
                 muon_stubs["consolidated_muon_tracks"],
@@ -906,7 +904,7 @@ def setup_hlt1_node(enablePhysics=True,
     with line_maker.bind(prefilter=[sd_error_filter()]):
         monitoring_lines += [
             line_maker(
-                make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.01))
+                make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.0001))
         ]
 
     velo_open_event = make_event_type(event_type="VeloOpen")

@@ -85,6 +85,7 @@ namespace matching_consolidate_tracks {
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::AveragingCounter<>::DeviceType);
 
   struct matching_consolidate_tracks_t : public DeviceAlgorithm, Parameters {
@@ -103,6 +104,7 @@ namespace matching_consolidate_tracks {
       Allen::Monitoring::Histogram<>::DeviceType&,
       Allen::Monitoring::Histogram<>::DeviceType&,
       Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&,
       Allen::Monitoring::Histogram<>::DeviceType&);
 
   private:
@@ -112,7 +114,7 @@ namespace matching_consolidate_tracks {
     Allen::Monitoring::Histogram<> m_histogram_n_long_tracks_matching {this,
                                                                        "n_long_tracks_matching_event",
                                                                        "n_long_tracks_matching_event",
-                                                                       {201u, -0.5f, 200.5f}};
+                                                                       {501u, -0.5f, 500.5f}};
     Allen::Monitoring::Histogram<> m_histogram_long_track_matching_eta {this,
                                                                         "long_track_matching_eta",
                                                                         "#eta",
@@ -129,5 +131,9 @@ namespace matching_consolidate_tracks {
                                                                         "long_track_matching_qop",
                                                                         "q/p",
                                                                         {200u, -1e-3f, 1e-3f}};
+    Allen::Monitoring::Histogram<> m_histogram_long_track_ghost_prob {this,
+                                                                      "long_track_ghost_prob",
+                                                                      "GhostProb",
+                                                                      {100u, 0.f, 0.6f}};
   };
 } // namespace matching_consolidate_tracks

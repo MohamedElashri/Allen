@@ -83,13 +83,13 @@ void two_calo_clusters_line::two_calo_clusters_line_t::init()
 {
   Line<two_calo_clusters_line::two_calo_clusters_line_t, two_calo_clusters_line::Parameters>::init();
 
-  m_histogram_diphoton_mass.axis().nBins = property<histogram_diphoton_mass_nbins_t>();
-  m_histogram_diphoton_mass.axis().minValue = property<histogram_diphoton_mass_min_t>();
-  m_histogram_diphoton_mass.axis().maxValue = property<histogram_diphoton_mass_max_t>();
+  m_histogram_diphoton_mass.x_axis().nBins = property<histogram_diphoton_mass_nbins_t>();
+  m_histogram_diphoton_mass.x_axis().minValue = property<histogram_diphoton_mass_min_t>();
+  m_histogram_diphoton_mass.x_axis().maxValue = property<histogram_diphoton_mass_max_t>();
 
-  m_histogram_diphoton_pt.axis().nBins = property<histogram_diphoton_pt_nbins_t>();
-  m_histogram_diphoton_pt.axis().minValue = property<histogram_diphoton_pt_min_t>();
-  m_histogram_diphoton_pt.axis().maxValue = property<histogram_diphoton_pt_max_t>();
+  m_histogram_diphoton_pt.x_axis().nBins = property<histogram_diphoton_pt_nbins_t>();
+  m_histogram_diphoton_pt.x_axis().minValue = property<histogram_diphoton_pt_min_t>();
+  m_histogram_diphoton_pt.x_axis().maxValue = property<histogram_diphoton_pt_max_t>();
 }
 
 __device__ void two_calo_clusters_line::two_calo_clusters_line_t::monitor(

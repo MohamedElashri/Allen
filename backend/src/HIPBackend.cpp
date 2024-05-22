@@ -23,7 +23,7 @@ void Allen::print_device_memory_consumption()
   verbose_cout << "GPU memory: " << free_percent << " percent free, " << used_percent << " percent used " << std::endl;
 }
 
-std::tuple<bool, std::string, unsigned> Allen::set_device(int hip_device, size_t stream_id)
+std::tuple<bool, std::string, unsigned, unsigned> Allen::set_device(int hip_device, size_t stream_id)
 {
   int n_devices = 0;
   hipDeviceProp_t device_properties;
@@ -64,7 +64,7 @@ std::tuple<bool, std::string, unsigned> Allen::set_device(int hip_device, size_t
     return {false, "", 0};
   }
 
-  return {true, device_name, device_properties.textureAlignment};
+  return {true, device_name, device_properties.textureAlignment, device_properties.pciDeviceID};
 }
 
 std::tuple<bool, int> Allen::get_device_id(const std::string& pci_bus_id)

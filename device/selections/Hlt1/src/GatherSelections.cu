@@ -200,13 +200,13 @@ void gather_selections::gather_selections_t::init()
         this, rate_counter_name, &m_histogram_line_rates, i));
     i++;
   }
-  m_histogram_line_passes.axis().nBins = line_labels.size();
-  m_histogram_line_passes.axis().maxValue = line_labels.size();
-  m_histogram_line_passes.axis().labels = line_labels;
+  m_histogram_line_passes.x_axis().nBins = line_labels.size();
+  m_histogram_line_passes.x_axis().maxValue = line_labels.size();
+  m_histogram_line_passes.x_axis().labels = line_labels;
 
-  m_histogram_line_rates.axis().nBins = line_labels.size();
-  m_histogram_line_rates.axis().maxValue = line_labels.size();
-  m_histogram_line_rates.axis().labels = line_labels;
+  m_histogram_line_rates.x_axis().nBins = line_labels.size();
+  m_histogram_line_rates.x_axis().maxValue = line_labels.size();
+  m_histogram_line_rates.x_axis().labels = line_labels;
 }
 
 void gather_selections::gather_selections_t::set_arguments_size(

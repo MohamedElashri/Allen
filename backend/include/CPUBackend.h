@@ -41,6 +41,7 @@ using std::signbit;
 #define __popc __builtin_popcount
 #define __popcll __builtin_popcountll
 #define __ffs __builtin_ffs
+#define __ffsll __builtin_ffsll
 #define __clz __builtin_clz
 #define __forceinline__ inline
 #define copysignf_impl copysignf
@@ -406,7 +407,7 @@ namespace Allen {
 
   void inline host_register(void*, size_t, host_register_kind) {}
 
-  std::tuple<bool, std::string, unsigned> set_device(int, size_t);
+  std::tuple<bool, std::string, unsigned, unsigned> set_device(int, size_t);
 
   void inline print_device_memory_consumption() {}
 

@@ -21,6 +21,17 @@
  */
 
 namespace seed_confirmTracks {
+
+#if defined(TARGET_DEVICE_CUDA)
+#if __CUDA_ARCH__ >= 800 // Ampere
+  __device__ static constexpr unsigned int maxNHits = 600;
+#else // Volta, Turing
+  __device__ static constexpr unsigned int maxNHits = 300;
+#endif
+#else // CPU, HIP
+  __device__ static constexpr unsigned int maxNHits = 300;
+#endif
+
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, uint) host_number_of_events;
 
@@ -49,9 +60,11 @@ namespace seed_confirmTracks {
     PROPERTY(tuning_nhits_t, "tuning_nhits", "tuning_nhits", int) tuning_nhits;
     PROPERTY(tuning_tol_chi2_t, "tuning_tol_chi2", "tuning_tol_chi2", float) tuning_tol_chi2;
     PROPERTY(tuning_tol_t, "tuning_tol", "tuning_tol", float) tuning_tol;
+    PROPERTY(use_hough_search_t, "use_hough_search", "use_hough_search", bool) use_hough_search;
   };
 
-  __device__ int findHit(const float tolRem, float predPos, int startPos, int nHits, float* coords);
+  __device__ unsigned findHit(const float tolRem, float predPos, int startPos, int nHits, float* coords);
+  template<bool use_hough_search>
   __global__ void seed_confirmTracks(Parameters);
   __device__ void fitYZ(seed_uv::multiHitCombination& multiHitComb);
 
@@ -70,6 +83,7 @@ namespace seed_confirmTracks {
     Property<tuning_nhits_t> m_tuning_nhits {this, 10};
     Property<tuning_tol_chi2_t> m_tuning_tol_chi2 {this, 100.};
     Property<tuning_tol_t> m_tuning_tol {this, 2.};
+    Property<use_hough_search_t> m_use_hough_search {this, false};
   };
 
 } // namespace seed_confirmTracks

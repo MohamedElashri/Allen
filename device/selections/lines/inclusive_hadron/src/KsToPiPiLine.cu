@@ -52,5 +52,9 @@ __device__ void kstopipi_line::kstopipi_line_t::monitor(
 
     accumulators.histogram_ks_mass.increment(ks.m12(Allen::mPi, Allen::mPi));
     accumulators.histogram_ks_pt.increment(ks.vertex().pt());
+    const auto p0 = static_cast<const Allen::Views::Physics::BasicParticle*>(std::get<0>(input).child(0));
+    const auto p1 = static_cast<const Allen::Views::Physics::BasicParticle*>(std::get<0>(input).child(1));
+    accumulators.histogram_p0_ghost_prob.increment(p0->track().ghost_probability());
+    accumulators.histogram_p1_ghost_prob.increment(p1->track().ghost_probability());
   }
 }

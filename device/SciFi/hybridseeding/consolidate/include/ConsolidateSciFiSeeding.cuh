@@ -96,7 +96,7 @@ namespace seed_confirmTracks_consolidate {
     Allen::Monitoring::Histogram<> m_histogram_n_scifi_seeds {this,
                                                               "n_scifi_seeds_event",
                                                               "n_scifi_seeds_event",
-                                                              {201u, -0.5f, 200.5f}};
+                                                              {501u, -0.5f, 500.5f}};
     Allen::Monitoring::Histogram<> m_histogram_scifi_track_eta {this, "scifi_track_eta", "#eta", {400u, 0.f, 10.f}};
     Allen::Monitoring::Histogram<> m_histogram_scifi_track_phi {this, "scifi_track_phi", "#phi", {160u, -4.f, 4.f}};
     Allen::Monitoring::Histogram<> m_histogram_scifi_track_nhits {this,

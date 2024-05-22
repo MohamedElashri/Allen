@@ -17,7 +17,7 @@ if(STANDALONE AND NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{CMAKE_TOOLCHA
   set(CMAKE_TOOLCHAIN_FILE $ENV{CMAKE_TOOLCHAIN_FILE})
 endif()
 
-project(Allen VERSION 4.7
+project(Allen VERSION 4.8
         LANGUAGES C CXX)
 
 # ---------------
@@ -596,10 +596,10 @@ add_subdirectory(backend)
 add_subdirectory(host)
 add_subdirectory(device)
 add_subdirectory(checker)
-add_subdirectory(mdf)
 add_subdirectory(integration)
 add_subdirectory(zmq)
 add_subdirectory(stream)
+add_subdirectory(mdf)
 
 if (STANDALONE)
   target_compile_definitions(AllenCommon INTERFACE ALLEN_STANDALONE)

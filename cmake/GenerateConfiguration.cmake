@@ -159,10 +159,15 @@ if(NOT STANDALONE AND TARGET_DEVICE STREQUAL "CPU")
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
     DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
 elseif(STANDALONE)
-  set(LHCBROOT $ENV{LHCBROOT} CACHE STRING "LHCB root directory")
-  if (LHCBROOT)
+  if (DEFINED ENV{LHCBROOT})
+    set(LHCBROOT $ENV{LHCBROOT} CACHE STRING "LHCB root directory")
+    set(LHCBOUTPUTS
+      "${LHCBROOT}/Event/DAQEvent/src/RawBank.cpp"
+      "${LHCBROOT}/Event/DAQEvent/src/ODIN.cpp")
+
     add_custom_command(
       OUTPUT "${PROJECT_SEQUENCE_DIR}/PyConf"
+      BYPRODUCTS ${LHCBOUTPUTS}
       COMMENT "Selecting user-specified LHCBROOT"
       COMMAND ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
     add_custom_target(checkout_lhcb DEPENDS "${PROJECT_SEQUENCE_DIR}/PyConf")
@@ -170,21 +175,27 @@ elseif(STANDALONE)
   else()
     find_package(Git REQUIRED)
     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/external/LHCb")
-    set(LHCBROOT "${PROJECT_BINARY_DIR}/external/LHCb")
-    file(RELATIVE_PATH LHCBROOT_RELPATH ${PROJECT_SEQUENCE_DIR} ${LHCBROOT})
+    set(LHCBROOT "${PROJECT_BINARY_DIR}/external/LHCb" CACHE STRING "LHCB root directory")
+    file(RELATIVE_PATH LHCBROOT_RELBIN ${PROJECT_BINARY_DIR} ${LHCBROOT})
+    file(RELATIVE_PATH LHCBROOT_RELSEQ ${PROJECT_SEQUENCE_DIR} ${LHCBROOT})
+    set(LHCBOUTPUTS
+      "${LHCBROOT}/Event/DAQEvent/src/RawBank.cpp"
+      "${LHCBROOT}/Event/DAQEvent/src/ODIN.cpp")
 
     add_custom_command(
       OUTPUT "${PROJECT_SEQUENCE_DIR}/PyConf"
+      BYPRODUCTS ${LHCBOUTPUTS}
       COMMENT "Checking out LHCb project from the LHCb stack"
       COMMAND
+        ${CMAKE_COMMAND} -E rm -rf ${PROJECT_BINARY_DIR}/external/LHCb/Event &&
         ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/lhcb/LHCb.git ${PROJECT_BINARY_DIR}/external/LHCb &&
-        ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT_RELPATH}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
-    add_custom_target(checkout_lhcb DEPENDS "${PROJECT_SEQUENCE_DIR}/PyConf")
+        ${CMAKE_COMMAND} -E create_symlink ${LHCBROOT_RELSEQ}/PyConf/python/PyConf ${PROJECT_SEQUENCE_DIR}/PyConf)
+    add_custom_target(checkout_lhcb DEPENDS "${PROJECT_SEQUENCE_DIR}/PyConf" ${LHCBOUTPUTS})
     message(STATUS "LHCBROOT set to ${LHCBROOT}")
   endif()
 
-  set(GAUDIROOT $ENV{GAUDIROOT} CACHE STRING "GAUDI root directory")
-  if (GAUDIROOT)
+  if (DEFINED ENV{GAUDIROOT})
+    set(GAUDIROOT $ENV{GAUDIROOT} CACHE STRING "GAUDI root directory")
     add_custom_command(
       OUTPUT "${PROJECT_SEQUENCE_DIR}/GaudiKernel"
       COMMENT "Selecting user-specified GAUDIROOT"
@@ -194,7 +205,7 @@ elseif(STANDALONE)
   else()
     find_package(Git REQUIRED)
     file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/external/Gaudi")
-    set(GAUDIROOT "${PROJECT_BINARY_DIR}/external/Gaudi")
+    set(GAUDIROOT "${PROJECT_BINARY_DIR}/external/Gaudi" CACHE STRING "GAUDI root directory")
     file(RELATIVE_PATH GAUDIROOT_RELPATH ${PROJECT_SEQUENCE_DIR} ${GAUDIROOT})
     add_custom_command(
       OUTPUT "${PROJECT_SEQUENCE_DIR}/GaudiKernel"
@@ -203,8 +214,22 @@ elseif(STANDALONE)
         ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} clone https://gitlab.cern.ch/gaudi/Gaudi.git ${PROJECT_BINARY_DIR}/external/Gaudi &&
         ${CMAKE_COMMAND} -E create_symlink ${GAUDIROOT_RELPATH}/GaudiKernel/python/GaudiKernel ${PROJECT_SEQUENCE_DIR}/GaudiKernel)
     add_custom_target(checkout_gaudi DEPENDS "${PROJECT_SEQUENCE_DIR}/GaudiKernel")
-    message(STATUS "GAUDIROOT set to ${GAUDIROOT_RELPATH}")
+    message(STATUS "GAUDIROOT set to ${GAUDIROOT}")
   endif()
+
+  # Unfortunately this has to be defined here to make the generated
+  # files work. CMake doesn't support doing this in another
+  # directory...
+  add_library(LHCbEvent STATIC ${LHCBOUTPUTS})
+  target_compile_definitions(LHCbEvent PUBLIC ODIN_WITHOUT_GAUDI)
+  add_dependencies(LHCbEvent checkout_lhcb checkout_gaudi)
+  target_link_libraries(LHCbEvent PUBLIC ROOT::Core ROOT::MathCore Boost::headers cppgsl::cppgsl)
+  target_include_directories(
+    LHCbEvent
+    PUBLIC
+    $<BUILD_INTERFACE:${GAUDIROOT}/GaudiKernel/include>
+    $<BUILD_INTERFACE:${LHCBROOT}/Event/DAQEvent/include>
+    $<BUILD_INTERFACE:${LHCBROOT}/Kernel/LHCbMath/include>)
 endif()
 
 file(GLOB python_allen_conf "${PROJECT_SOURCE_DIR}/configuration/python/AllenConf/*py")

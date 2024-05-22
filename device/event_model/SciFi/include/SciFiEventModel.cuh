@@ -471,8 +471,9 @@ namespace SciFi {
   namespace Seeding {
     struct TrackXZ {
       int number_of_hits;
-      unsigned int ids[6];
-      int idx[6];
+      // Warning: this container is reused in the seed_xz algorithm,
+      // first it stored uncompressed layer local idx,
+      // then it is compressed during clone killing to store global idx
       unsigned int hits[6];
       float chi2;
       float ax;
@@ -482,9 +483,6 @@ namespace SciFi {
 
     struct Track {
       int number_of_hits = 0;
-      // int nY;
-      // int nX;
-      // unsigned int ids[SciFi::Constants::n_layers] = {SciFi::Constants::INVALID_ID};
       unsigned int hits[SciFi::Constants::n_layers] = {SciFi::Constants::INVALID_ID};
       float chi2X, chi2Y;
       float ax;

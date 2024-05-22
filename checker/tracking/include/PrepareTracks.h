@@ -70,6 +70,8 @@ std::vector<Checker::Tracks> prepareSeedingTracksXZ(
   const unsigned number_of_events,
   gsl::span<const unsigned> scifi_seed_atomics,
   gsl::span<const unsigned> scifi_seed_hit_number,
+  gsl::span<const char> scifi_hits,
+  gsl::span<const unsigned> scifi_hit_count,
   gsl::span<const SciFi::Seeding::TrackXZ> scifi_seeds,
   gsl::span<const mask_t> event_list);
 

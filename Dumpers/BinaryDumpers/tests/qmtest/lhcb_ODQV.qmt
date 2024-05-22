@@ -27,7 +27,7 @@
     <text>../../options/allen.py</text>
     <text>--sequence</text><text>$ALLEN_INSTALL_DIR/constants/hlt1_pp_odqv.json</text>
     <text>--mdf</text><text>root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.mdf</text>
-    <text>--tags=detdesc:dddb-20220705,sim-20220705-vc-md100|dd4hep:trunk,master</text>
+    <text>--tags=detdesc:dddb-20220705,sim-20220705-vc-md100|dd4hep:run3/trunk,master</text>
     <text>-n</text><text>10000</text>
     <text>--monitoring-filename</text><text>allen_odqv_qmtest.root</text>
   </set></argument>
@@ -40,13 +40,13 @@ countErrorLines({"FATAL":0,"ERROR":0,"WARNING":0})
 import re
 import os
 
-#Check the output file has been made 
+#Check the output file has been made
 if not os.path.exists("allen_odqv_qmtest.root"):
     causes.append("Couldn't find file allen_odqv_qmtest.root!\n")
 
 # Check that lines analogous to the following are present:
 # "  data_quality_validation_(occupancy|velo|forward|matching|pv)" from the list of algorithms
-# Ran test for XXX.XXXXX seconds  
+# Ran test for XXX.XXXXX seconds
 
 modules = ["occupancy", "velo", "forward", "matching", "pv"]
 algorithm_patterns = [re.compile(rf'^  data_quality_validation_{m}$') for m in modules]
@@ -61,7 +61,7 @@ for line in stdout.split('\n'):
         match = alg.match(line)
         if match is not None: algorithms[i] = match
 
-    #Check the time elapsed is there 
+    #Check the time elapsed is there
     time_pattern_match = time_pattern.match(line)
     if time_pattern_match:
        runtime = float(time_pattern_match.group(1))

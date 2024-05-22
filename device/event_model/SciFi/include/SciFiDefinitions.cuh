@@ -43,9 +43,8 @@ namespace SciFi {
     static constexpr unsigned n_sipms_per_module = 4 * n_sipms_per_mat;
     static constexpr unsigned n_sipms = n_mats * n_sipms_per_mat;
     static constexpr unsigned n_parts = 2;
-    static constexpr unsigned max_num_seed_tracks = 6000; // FIXME
-    static constexpr int INVALID_IDX = -1;                // FIXME
-    static constexpr int INVALID_ID = 0;                  // FIXME
+    static constexpr unsigned INVALID_IDX = (unsigned) -1; // FIXME
+    static constexpr unsigned INVALID_ID = 0;              // FIXME
 
     // FIXME_GEOMETRY_HARDCODING
     // todo: use dzdy defined in geometry, read by mat
@@ -65,7 +64,7 @@ namespace SciFi {
     static constexpr int max_tracks = 1000;
 
     // Constants for SciFi seeding
-    static constexpr int Nmax_seed_xz_per_part = 300;
+    static constexpr int Nmax_seed_xz_per_part = 900;
     static constexpr int Nmax_seed_xz = n_parts * Nmax_seed_xz_per_part;
     static constexpr int Nmax_seeds_per_part = Nmax_seed_xz_per_part;
     static constexpr int Nmax_seeds = n_parts * Nmax_seeds_per_part;
