@@ -914,7 +914,7 @@ def setup_hlt1_node(enablePhysics=True,
                 make_velo_micro_bias_line(
                     reconstructed_objects["velo_tracks"],
                     name="Hlt1VeloMicroBiasVeloClosing",
-                    post_scaler=3.e-2))
+                    post_scaler=3.e-3))
         ]
 
     if EnableGEC:
