@@ -31,9 +31,7 @@ from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.lumi_reconstruction import lumi_reconstruction
-from AllenConf.plume_reconstruction import decode_plume
 from AllenConf.enum_types import TrackingType, includes_matching
-from AllenConf.thresholds.thresholds import Thresholds
 from AllenConf.get_thresholds import get_thresholds
 
 
@@ -650,7 +648,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsBeamOne",
                 beam_crossing_type=1,
-                pre_scaler=1e-2,
+                pre_scaler=1. if enableBGI_full else 1e-2,
                 post_scaler=1.),
             prefilter=prefilter + [bx_NoBB, velo_states_z_all]),
         line_maker(
@@ -674,7 +672,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsUpBeamBeam",
                 beam_crossing_type=3,
-                pre_scaler=1e-3,
+                pre_scaler=1. if enableBGI_full else 1e-3,
                 post_scaler=1.),
             prefilter=prefilter + [velo_states_z_up])
     ]
@@ -793,32 +791,32 @@ def default_bgi_activity_lines(pvs,
     """
     Detector activity lines for BGI data collection.
     """
-    lines += [
-        line_maker(
-            make_velo_clusters_micro_bias_line(
-                decoded_velo,
-                name="Hlt1BGIVeloClustersMicroBias",
-                min_velo_clusters=5,
-            ),
-            prefilter=prefilter + [bx_NoBB]),
-        line_maker(
-            make_calo_digits_minADC_line(
-                decoded_calo,
-                name="Hlt1BGICaloDigits",
-                minADC=60,
-            ),
-            prefilter=prefilter + [bx_NoBB]),
-        # line_maker(
-        #     make_plume_activity_line(
-        #         decoded_plume,
-        #         name="Hlt1BGIPlumeActivity",
-        #         min_number_plume_adcs_over_min=1,
-        #         min_plume_adc=276,
-        #     ),
-        #     prefilter=prefilter + [bx_NoBB]),
-        # FIXME Hlt1BGIPlumeActivity can be re-enabled when v2 support
-        #       is implemented in the Plume decoding.
-    ]
+    # lines += [
+    #     line_maker(
+    #         make_velo_clusters_micro_bias_line(
+    #             decoded_velo,
+    #             name="Hlt1BGIVeloClustersMicroBias",
+    #             min_velo_clusters=5,
+    #         ),
+    #         prefilter=prefilter + [bx_NoBB]),
+    #     line_maker(
+    #         make_calo_digits_minADC_line(
+    #             decoded_calo,
+    #             name="Hlt1BGICaloDigits",
+    #             minADC=60,
+    #         ),
+    #         prefilter=prefilter + [bx_NoBB]),
+    #     # line_maker(
+    #     #     make_plume_activity_line(
+    #     #         decoded_plume,
+    #     #         name="Hlt1BGIPlumeActivity",
+    #     #         min_number_plume_adcs_over_min=1,
+    #     #         min_plume_adc=276,
+    #     #     ),
+    #     #     prefilter=prefilter + [bx_NoBB]),
+    #     # FIXME Hlt1BGIPlumeActivity can be re-enabled when v2 support
+    #     #       is implemented in the Plume decoding.
+    # ]
     return lines
 
 

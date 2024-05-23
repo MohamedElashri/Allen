@@ -8,14 +8,17 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenConf.HLT1 import setup_hlt1_node, default_bgi_activity_lines
+from AllenConf.HLT1 import setup_hlt1_node
+from AllenConf.enum_types import TrackingType
+from AllenConf.get_thresholds import get_thresholds
 from AllenCore.generator import generate
+from AllenConf.HLT1 import default_bgi_activity_lines
 
-with default_bgi_activity_lines.bind(enableBGI_full=True):
-    hlt1_node = setup_hlt1_node(
-        enablePhysics=False,
-        withSMOG2=True,
-        enableBGI=True,
-        with_ut=False,
-    )
+default_bgi_activity_lines.global_bind(enableBGI_full=True)
+
+hlt1_node = setup_hlt1_node(
+    tracking_type=TrackingType.MATCHING,
+    threshold_settings=get_thresholds("no_ut_tuned_1000KHz"),
+    with_ut=False)
+
 generate(hlt1_node)

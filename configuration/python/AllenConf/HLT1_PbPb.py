@@ -456,14 +456,13 @@ def setup_hlt1_node(withMCChecking=False,
             ]
 
     if enableBGI:
-        with make_velo_clusters_micro_bias_line.bind(pre_scaler=0.01):
-            monitoring_lines += default_bgi_activity_lines(
-                reconstructed_objects["pvs"],
-                reconstructed_objects["velo_states"],
-                decoded_velo=decode_velo(),
-                decoded_calo=decoded_calo,
-                prefilter=(prefilter_upc_bgi if mini else prefilters_bgi),
-                enableBGI_full=True)
+        monitoring_lines += default_bgi_activity_lines(
+            reconstructed_objects["pvs"],
+            reconstructed_objects["velo_states"],
+            decoded_velo=decode_velo(),
+            decoded_calo=decoded_calo,
+            prefilter=(prefilter_upc_bgi if mini else prefilters_bgi),
+            enableBGI_full=True)
 
     with line_maker.bind(prefilter=[sd_error_filter()]):
         physics_lines += [
