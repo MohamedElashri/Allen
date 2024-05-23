@@ -12,11 +12,10 @@ from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
                              make_checkCylPV, make_checkPseudoPV,
                              make_invert_event_list, sd_error_filter,
                              make_tae_activity_filter)
-from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter, make_event_type
+from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter, make_event_type, make_odin_orbit
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node, make_dq_node
-
 from AllenConf.hlt1_inclusive_hadron_lines import *
 from AllenConf.hlt1_charm_lines import *
 from AllenConf.hlt1_calibration_lines import *
@@ -24,7 +23,6 @@ from AllenConf.hlt1_muon_lines import *
 from AllenConf.hlt1_electron_lines import *
 from AllenConf.hlt1_monitoring_lines import *
 from AllenConf.hlt1_smog2_lines import *
-
 from AllenConf.hlt1_photon_lines import make_diphotonhighmass_line
 from AllenConf.persistency import make_persistency
 from AllenConf.validators import rate_validation
@@ -369,20 +367,38 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     return [line_maker(line) for line in lines]
 
 
-def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name):
+def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
+                          odin_err_filter):
     lines = []
     if with_lumi:
-        lines.append(
+        odin_lumi_event = make_event_type(event_type='Lumi')
+        with line_maker.bind(prefilter=odin_err_filter + [odin_lumi_event]):
+            lines += [
+                line_maker(
+                    make_passthrough_line(name=lumiline_name, pre_scaler=1.))
+            ]
+
+        odin_orbit = make_odin_orbit(
+            odin_orbit_modulo=30, odin_orbit_remainder=1)
+        with line_maker.bind(
+                prefilter=odin_err_filter + [odin_lumi_event, odin_orbit]):
+            lines += [
+                line_maker(
+                    make_passthrough_line(
+                        name=lumilinefull_name, pre_scaler=1.))
+            ]
+
+    with line_maker.bind(prefilter=odin_err_filter):
+        lines += [line_maker(make_odin_calib_line(name="Hlt1ODINCalib"))]
+
+    ee_far_from_activity = make_event_type(event_type="ee_far_from_activity")
+    with line_maker.bind(prefilter=odin_err_filter + [ee_far_from_activity]):
+        lines += [
             line_maker(
-                make_odin_event_type_line(
-                    name=lumiline_name, odin_event_type='Lumi')))
-        lines.append(
-            line_maker(
-                make_odin_event_and_orbit_line(
-                    name=lumilinefull_name,
-                    odin_event_type='Lumi',
-                    odin_orbit_modulo=30,
-                    odin_orbit_remainder=1)))
+                make_passthrough_line(
+                    name="Hlt1ODINeeFarFromActivity", pre_scaler=1.))
+        ]
+
     return lines
 
 
@@ -445,12 +461,6 @@ def alignment_monitoring_lines(reconstructed_objects,
 
     with line_maker.bind(prefilter=prefilters_no_bx):
         lines += [
-            line_maker(
-                make_beam_gas_line(
-                    velo_tracks,
-                    velo_states,
-                    beam_crossing_type=1,
-                    name="Hlt1BeamGas")),
             line_maker(
                 make_velo_micro_bias_line(
                     velo_tracks,
@@ -862,6 +872,7 @@ def setup_hlt1_node(enablePhysics=True,
                        ] if with_odin_filter else []
     beam_beam_filter = [make_bxtype(bx_type=3)]
     prefilters = odin_err_filter + beam_beam_filter + gec
+
     physics_lines = []
     if enablePhysics:
         with line_maker.bind(prefilter=prefilters):
@@ -871,12 +882,11 @@ def setup_hlt1_node(enablePhysics=True,
 
     lumiline_name = "Hlt1ODINLumi"
     lumilinefull_name = "Hlt1ODIN1kHzLumi"
+
+    monitoring_lines = odin_monitoring_lines(
+        with_lumi, lumiline_name, lumilinefull_name, odin_err_filter)
+
     with line_maker.bind(prefilter=odin_err_filter):
-        monitoring_lines = odin_monitoring_lines(with_lumi, lumiline_name,
-                                                 lumilinefull_name)
-        monitoring_lines += [
-            line_maker(make_odin_calib_line(name="Hlt1ODINCalib"))
-        ]
         physics_lines += [line_maker(make_passthrough_line())]
 
     if tae_passthrough:
@@ -935,6 +945,17 @@ def setup_hlt1_node(enablePhysics=True,
     monitoring_lines += alignment_monitoring_lines(
         reconstructed_objects, prefilters, odin_err_filter + gec, with_muon)
 
+    bx_BE = make_bxtype(bx_type=1)
+    with line_maker.bind(prefilter=odin_err_filter + gec + [bx_BE]):
+        monitoring_lines += [
+            line_maker(
+                make_beam_gas_line(
+                    reconstructed_objects["velo_tracks"],
+                    reconstructed_objects["velo_states"],
+                    beam_crossing_type=1,
+                    name="Hlt1BeamGas")),
+        ]
+
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
                        ] + [tup[0] for tup in monitoring_lines]
@@ -944,8 +965,6 @@ def setup_hlt1_node(enablePhysics=True,
 
     if withSMOG2:
         SMOG2_prefilters, SMOG2_lines = [], []
-
-        bx_BE = make_bxtype(bx_type=1)
         with line_maker.bind(prefilter=odin_err_filter + [bx_BE]):
             SMOG2_lines += [
                 line_maker(

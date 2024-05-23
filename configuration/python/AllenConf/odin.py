@@ -10,7 +10,7 @@
 ###############################################################################
 from AllenCore.algorithms import (odin_provider_t, odin_beamcrossingtype_t,
                                   host_odin_error_filter_t, host_tae_filter_t,
-                                  odin_eventtype_t)
+                                  odin_eventtype_t, odin_orbitnumber_t)
 from AllenCore.generator import make_algorithm
 from AllenConf.utils import mep_layout, initialize_number_of_events
 from PyConf.tonic import configurable
@@ -68,7 +68,8 @@ def make_event_type(name=None, event_type="VeloOpen"):
         "NoBias": 0x0004,
         "Lumi": 0x0008,
         "Beam1Gas": 0x0010,
-        "Beam2Gas": 0x0020
+        "Beam2Gas": 0x0020,
+        "ee_far_from_activity": 0x8000
     }
 
     return ODIN_event_type(
@@ -76,7 +77,7 @@ def make_event_type(name=None, event_type="VeloOpen"):
         event_type=type_map[event_type])
 
 
-def ODIN_event_type(name='ODIN_event_type', event_type=0x0001):
+def ODIN_event_type(name, event_type):
 
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
@@ -109,3 +110,26 @@ def tae_filter(name="tae_filter", accept_sub_events=False):
         host_odin_data_t=odin["host_odin_data"],
         accept_sub_events=accept_sub_events)
     return host_tae_filter
+
+
+@configurable
+def make_odin_orbit(name=None, odin_orbit_modulo=30, odin_orbit_remainder=1):
+
+    return ODIN_orbit_number(
+        name=name or f"ODIN_Orbit_{odin_orbit_modulo}_{odin_orbit_remainder}",
+        odin_orbit_modulo=odin_orbit_modulo,
+        odin_orbit_remainder=odin_orbit_remainder)
+
+
+def ODIN_orbit_number(name, odin_orbit_modulo, odin_orbit_remainder):
+
+    number_of_events = initialize_number_of_events()
+    odin = decode_odin()
+
+    return make_algorithm(
+        odin_orbitnumber_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_odin_data_t=odin['dev_odin_data'],
+        odin_orbit_modulo=odin_orbit_modulo,
+        odin_orbit_remainder=odin_orbit_remainder)
