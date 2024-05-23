@@ -16,9 +16,9 @@ from AllenConf.validators import rate_validation
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_photon_lines import make_single_calo_cluster_line
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction
-from AllenConf.hlt1_monitoring_lines import make_calo_digits_minADC_line, make_odin_event_type_line, make_odin_event_and_orbit_line, make_velo_micro_bias_line
+from AllenConf.hlt1_monitoring_lines import make_calo_digits_minADC_line, make_velo_micro_bias_line
 from AllenConf.hlt1_calibration_lines import make_passthrough_line
-from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter
+from AllenConf.odin import odin_error_filter, tae_filter, make_event_type, make_odin_orbit
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 
 reconstructed_objects = hlt1_reconstruction(
@@ -39,17 +39,19 @@ with line_maker.bind(prefilter=prefilters):
                 minEt=400,
                 pre_scaler=0.001)))
     lines.append(line_maker(make_passthrough_line(pre_scaler=0.00003)))
-    lines.append(
+
+odin_lumi_event = make_event_type(event_type='Lumi')
+with line_maker.bind(prefilter=prefilters + [odin_lumi_event]):
+    lines += [
+        line_maker(make_passthrough_line(name=lumiline_name, pre_scaler=1.))
+    ]
+
+odin_orbit = make_odin_orbit(odin_orbit_modulo=30, odin_orbit_remainder=1)
+with line_maker.bind(prefilter=prefilters + [odin_lumi_event, odin_orbit]):
+    lines += [
         line_maker(
-            make_odin_event_type_line(
-                name=lumiline_name, odin_event_type='Lumi')))
-    lines.append(
-        line_maker(
-            make_odin_event_and_orbit_line(
-                name=lumilinefull_name,
-                odin_event_type='Lumi',
-                odin_orbit_modulo=30,
-                odin_orbit_remainder=1)))
+            make_passthrough_line(name=lumilinefull_name, pre_scaler=1.))
+    ]
 
 with line_maker.bind(prefilter=prefilters + [tae_filter()]):
     lines.append(

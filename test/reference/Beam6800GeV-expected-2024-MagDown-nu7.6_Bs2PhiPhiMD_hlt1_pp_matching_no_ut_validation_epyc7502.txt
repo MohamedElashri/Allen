@@ -106,6 +106,7 @@ Hlt1BGIPseudoPVsDownBeamBeam:                       0/  1000, (    0.00 +/-     
 Hlt1ODINLumi:                                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODIN1kHzLumi:                                   0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ODINCalib:                                      0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1ODINeeFarFromActivity:                          0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ErrorBank:                                      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBiasVeloClosing:                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1RICH1Alignment:                                 2/  1000, (   60.00 +/-    42.38) kHz
@@ -116,8 +117,8 @@ Hlt1MaterialVertexSeedsDownstreamz:                 0/  1000, (    0.00 +/-     
 Hlt1MaterialVertexSeeds_DWFS:                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                        1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1OneMuonTrackLine:                               2/  1000, (   60.00 +/-    42.38) kHz
-Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                  1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1BeamGas:                                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2BENoBias:                                  0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2PassThroughLowMult5:                       0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2BELowMultElectrons:                        0/  1000, (    0.00 +/-     0.00) kHz
@@ -248,6 +249,7 @@ Hlt1BGIPseudoPVsDownBeamBeam:                       0           0
 Hlt1ODINLumi:                                       0           0
 Hlt1ODIN1kHzLumi:                                   0           0
 Hlt1ODINCalib:                                      0           0
+Hlt1ODINeeFarFromActivity:                          0           0
 Hlt1ErrorBank:                                      0           0
 Hlt1VeloMicroBiasVeloClosing:                       0           0
 Hlt1RICH1Alignment:                                 2           6
@@ -258,8 +260,8 @@ Hlt1MaterialVertexSeedsDownstreamz:                 0           0
 Hlt1MaterialVertexSeeds_DWFS:                       0           0
 Hlt1DiMuonJpsiMassAlignment:                        1           2
 Hlt1OneMuonTrackLine:                               2           0
-Hlt1BeamGas:                                        0           0
 Hlt1VeloMicroBias:                                  1           0
+Hlt1BeamGas:                                        0           0
 Hlt1SMOG2BENoBias:                                  0           0
 Hlt1SMOG2PassThroughLowMult5:                       0           0
 Hlt1SMOG2BELowMultElectrons:                        0           0
