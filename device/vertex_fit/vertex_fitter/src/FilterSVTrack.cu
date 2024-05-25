@@ -58,30 +58,19 @@ __global__ void FilterSVTrack::filter_sv_track(FilterSVTrack::Parameters paramet
 
     const auto sv_vx = sv.vertex();
     const auto sv_vxz = sv_vx.z();
-    const bool sv_decision = sv_vx.chi2() < parameters.SV_VCHI2_max && parameters.SV_VZ_min < sv_vxz &&
-                             sv_vxz < parameters.SV_VZ_max && sv.fdchi2() > parameters.SV_BPVVDCHI2_min &&
+    const bool sv_decision = parameters.SV_VZ_min < sv_vxz && sv_vxz < parameters.SV_VZ_max &&
                              sv.dz() > parameters.SV_BPVVDZ_min && sv.drho() > parameters.SV_BPVVDRHO_min &&
-                             sv.dira() > parameters.SV_BPVDIRA_min;
+                             sv.ip() > parameters.SV_BPVIP_min && sv.dira() > parameters.SV_BPVDIRA_min;
     if (!sv_decision) continue;
     for (unsigned i_track = threadIdx.y; i_track < tracks.size(); i_track += blockDim.y) {
       const auto track = tracks.particle(i_track);
-      const auto track_ptr = tracks.particle_pointer(i_track);
-
-      // Check for overlap.
-      bool overlap = false;
-      for (unsigned i_child = 0; i_child < sv.number_of_children(); i_child++) {
-        if (static_cast<const Allen::Views::Physics::BasicParticle*>(sv.child(i_child)) == track_ptr) {
-          overlap = true;
-        }
-      }
-      if (overlap) continue;
-
+      // check if track was already used to build SV
+      if (sv.child_in_tree(tracks.particle_pointer(i_track))) continue;
       // Check if the track and SV have the same PV.
       // Note this will only make sense if the track and SV are produced promptly.
       if (parameters.require_same_pv) {
         if (&(track.pv()) != &(sv.pv())) continue;
       }
-
       const auto t_s = track.state();
       const bool track_decision = t_s.pt() > parameters.T_PT_min && track.ip_chi2() > parameters.T_MIPCHI2_min &&
                                   track.ip_chi2() < parameters.T_MIPCHI2_max && track.ip() > parameters.T_MIP_min &&
@@ -91,25 +80,13 @@ __global__ void FilterSVTrack::filter_sv_track(FilterSVTrack::Parameters paramet
       if (!track_decision) continue;
       const auto sv_ministate = sv.get_state(), t_ministate = track.state().operator MiniState();
       if (Allen::Views::Physics::state_doca(sv_ministate, t_ministate) > parameters.SV_T_DOCA_max) continue;
-      const auto c0_state = static_cast<const Allen::Views::Physics::BasicParticle*>(sv.child(0))->state(),
-                 c1_state = static_cast<const Allen::Views::Physics::BasicParticle*>(sv.child(1))->state();
-      const auto t_tx = t_ministate.tx(), t_ty = t_ministate.ty(), c0_tx = c0_state.tx(), c1_tx = c1_state.tx(),
-                 c0_ty = c0_state.ty(), c1_ty = c1_state.ty();
-      const auto c0t_norm = sqrtf((t_tx * t_tx + t_ty * t_ty + 1.f) * (c0_tx * c0_tx + c0_ty * c0_ty + 1.f));
-      const auto c0t_arg = (t_tx * c0_tx + t_ty * c0_ty + 1.f) / c0t_norm;
-      const auto c0t_opening_angle = c0t_arg > 1.f ? 0.f : acosf(c0t_arg);
-      const auto c1t_norm = sqrtf((t_tx * t_tx + t_ty * t_ty + 1.f) * (c1_tx * c1_tx + c1_ty * c1_ty + 1.f));
-      const auto c1t_arg = (t_tx * c1_tx + t_ty * c1_ty + 1.f) / c1t_norm;
-      const auto c1t_opening_angle = c1t_arg > 1.f ? 0.f : acosf(c1t_arg);
-      if (c0t_opening_angle > parameters.opening_angle_min && c1t_opening_angle > parameters.opening_angle_min) {
-        unsigned cmb_idx = atomicAdd(event_combination_number, 1);
+      if (sv.min_opening_angle_in_tree(t_ministate) < parameters.opening_angle_min) continue;
 
-        // Leave the loop if the maximum number of combinations is exceeded.
-        if (cmb_idx >= VertexFit::max_sv_track_combinations) break;
-
-        event_sv_idx[cmb_idx] = i_sv;
-        event_track_idx[cmb_idx] = i_track;
-      }
+      unsigned cmb_idx = atomicAdd(event_combination_number, 1);
+      // Leave the loop if the maximum number of combinations is exceeded.
+      if (cmb_idx >= VertexFit::max_sv_track_combinations) break;
+      event_sv_idx[cmb_idx] = i_sv;
+      event_track_idx[cmb_idx] = i_track;
     }
   }
 

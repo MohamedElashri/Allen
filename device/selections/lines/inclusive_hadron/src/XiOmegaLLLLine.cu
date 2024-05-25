@@ -17,27 +17,38 @@ __device__ bool xi_omega_lll_line::xi_omega_lll_line_t::select(
   const DeviceAccumulators&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
-  const auto Lt = std::get<0>(input);
-  const auto vertex = Lt.vertex();
-  const auto Lambda = Allen::dyn_cast<const Allen::Views::Physics::CompositeParticle*>(Lt.child(0));
+  const auto XimOmmt = std::get<0>(input);
+  const auto XimOmm = Allen::dyn_cast<const Allen::Views::Physics::CompositeParticle*>(XimOmmt.child(0));
+  const auto Lambda = Allen::dyn_cast<const Allen::Views::Physics::CompositeParticle*>(XimOmm->child(0));
+  const auto vertex = XimOmmt.vertex();
+  const auto XimOmm_vx = XimOmm->vertex();
   const auto L_vx = Lambda->vertex();
-  const auto companion = Allen::dyn_cast<const Allen::Views::Physics::BasicParticle*>(Lt.child(1));
+  const auto companion = Allen::dyn_cast<const Allen::Views::Physics::BasicParticle*>(XimOmmt.child(1));
+  const auto XimOmm_track = Allen::dyn_cast<const Allen::Views::Physics::BasicParticle*>(XimOmm->child(1));
   const auto companion_state = companion->state();
+  const auto XimOmm_track_state = XimOmm_track->state();
   // Proton is always the child with larger momentum
   const auto c0 = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda->child(0)),
              c1 = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda->child(1));
   const auto c0_state = c0->state(), c1_state = c1->state();
   const bool c0_is_proton = c0_state.p() > c1_state.p();
   const auto mL = c0_is_proton ? Lambda->m12(Allen::mP, Allen::mPi) : Lambda->m12(Allen::mPi, Allen::mP);
-  const bool companion_and_pion_are_same_charge =
-    c0_is_proton ? companion_state.charge() == c1_state.charge() : companion_state.charge() == c0_state.charge();
-  return mL < parameters.L_M_max && companion_state.pt() > parameters.t_PT_min && companion_and_pion_are_same_charge &&
-         Lt.doca12() < parameters.L_t_DOCA_max &&
-         (Lt.m12(Allen::mL, Allen::mPi) < parameters.Xi_M_max ||
-          Lt.m12(Allen::mL, Allen::mK) < parameters.Omega_M_max) &&
-         L_vx.z() - vertex.z() > parameters.LVDZ_min && Lt.drho() > parameters.BPVDRHO_min &&
-         Lt.dira() > parameters.BPVDIRA_min && parameters.VZ_min < vertex.z() && vertex.z() < parameters.VZ_max &&
-         Lt.dz() > parameters.BPVVDZ_min;
+  const bool charge_requirement =
+    c0_is_proton ? (XimOmm_track_state.charge() == c1_state.charge() && companion_state.charge() == c0_state.charge()) :
+                   (XimOmm_track_state.charge() == c0_state.charge() && companion_state.charge() == c1_state.charge());
+  return parameters.L_M_min < mL && mL < parameters.L_M_max && charge_requirement &&
+         L_vx.chi2() < parameters.L_VCHI2_max && Lambda->doca12() < parameters.L_DOCA_max &&
+         ((parameters.Xi_M_min < XimOmm->m12(Allen::mL, Allen::mPi) &&
+           XimOmm->m12(Allen::mL, Allen::mPi) < parameters.Xi_M_max &&
+           XimOmmt.m12(Allen::mXi, Allen::mMu) < parameters.XimOmmt_M_max) ||
+          (parameters.Omega_M_min < XimOmm->m12(Allen::mL, Allen::mK) &&
+           XimOmm->m12(Allen::mL, Allen::mK) < parameters.Omega_M_max &&
+           XimOmmt.m12(Allen::mOmega, Allen::mMu) < parameters.XimOmmt_M_max)) &&
+         companion_state.pt() > parameters.t_PT_min && companion->ip_chi2() > parameters.t_MIPCHI2_min &&
+         L_vx.z() - XimOmm_vx.z() > parameters.LVDZ_min && XimOmm_vx.z() - vertex.z() > parameters.XimOmmVDZ_min &&
+         parameters.VZ_min < vertex.z() && vertex.z() < parameters.VZ_max &&
+         XimOmmt.pv().position.z > parameters.BPVZ_min && XimOmm->dz() > parameters.BPVVDZ_min &&
+         XimOmm->drho() > parameters.BPVVDRHO_min;
 }
 
 __device__ void xi_omega_lll_line::xi_omega_lll_line_t::fill_tuples(
@@ -47,69 +58,76 @@ __device__ void xi_omega_lll_line::xi_omega_lll_line_t::fill_tuples(
   bool sel)
 {
   if (sel) {
-    const auto Lt = std::get<0>(input);
-    const auto vertex = Lt.vertex();
-    const auto Lambda = Allen::dyn_cast<const Allen::Views::Physics::CompositeParticle*>(Lt.child(0));
-    const auto companion = Allen::dyn_cast<const Allen::Views::Physics::BasicParticle*>(Lt.child(1));
+    const auto XimOmmt = std::get<0>(input);
+    const auto XimOmm = Allen::dyn_cast<const Allen::Views::Physics::CompositeParticle*>(XimOmmt.child(0));
+    const auto Lambda = Allen::dyn_cast<const Allen::Views::Physics::CompositeParticle*>(XimOmm->child(0));
+    const auto vertex = XimOmmt.vertex();
+    const auto XimOmm_vx = XimOmm->vertex();
+    const auto L_vx = Lambda->vertex();
+    const auto companion = Allen::dyn_cast<const Allen::Views::Physics::BasicParticle*>(XimOmmt.child(1));
+    const auto XimOmm_track = Allen::dyn_cast<const Allen::Views::Physics::BasicParticle*>(XimOmm->child(1));
     const auto companion_state = companion->state();
-    parameters.Xi_M[index] = Lt.m12(Allen::mL, Allen::mPi);
-    parameters.Omega_M[index] = Lt.m12(Allen::mL, Allen::mK);
-    parameters.MCORR[index] = Lt.mcor();
+    const auto XimOmm_track_state = XimOmm_track->state();
+    // Proton is always the child with larger momentum
+    const auto c0 = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda->child(0)),
+               c1 = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda->child(1));
+    const bool c0_is_proton = c0->state().p() > c1->state().p();
+    const auto proton = c0_is_proton ? c0 : c1, pion = c0_is_proton ? c1 : c0;
+    const auto proton_state = proton->state(), pion_state = pion->state();
+    const auto mL = c0_is_proton ? Lambda->m12(Allen::mP, Allen::mPi) : Lambda->m12(Allen::mPi, Allen::mP);
+
+    parameters.Xipi_M[index] = XimOmmt.m12(Allen::mXi, Allen::mPi);
+    parameters.Omegapi_M[index] = XimOmmt.m12(Allen::mOmega, Allen::mK);
     parameters.PT[index] = vertex.pt();
-    parameters.DOCA[index] = Lt.doca12();
+    parameters.DOCA[index] = XimOmmt.doca12();
     parameters.VZ[index] = vertex.z();
-    parameters.BPVVDZ[index] = Lt.dz();
-    parameters.BPVVDRHO[index] = Lt.drho();
-    parameters.BPVDIRA[index] = Lt.dira();
-    parameters.BPVIP[index] = Lt.ip();
-    parameters.BPVFD[index] = Lt.fd();
+    parameters.BPVVDZ[index] = XimOmmt.dz();
+    parameters.BPVVDRHO[index] = XimOmmt.drho();
+    parameters.BPVDIRA[index] = XimOmmt.dira();
+    parameters.BPVIP[index] = XimOmmt.ip();
+    parameters.BPVFD[index] = XimOmmt.fd();
+    parameters.Xi_M[index] = XimOmm->m12(Allen::mL, Allen::mPi);
+    parameters.Omega_M[index] = XimOmm->m12(Allen::mL, Allen::mK);
+    parameters.XimOmm_PT[index] = XimOmm_vx.pt();
+    parameters.XimOmm_DOCA[index] = XimOmm->doca12();
+    parameters.XimOmm_VZ[index] = XimOmm_vx.z();
+    parameters.XimOmm_BPVVDZ[index] = XimOmm->dz();
+    parameters.XimOmm_BPVVDRHO[index] = XimOmm->drho();
+    parameters.XimOmm_BPVDIRA[index] = XimOmm->dira();
+    parameters.XimOmm_BPVIP[index] = XimOmm->ip();
+    parameters.XimOmm_BPVFD[index] = XimOmm->fd();
     parameters.t_P[index] = companion_state.p();
     parameters.t_PT[index] = companion_state.pt();
-    // tunable up to 16, should be significantly smaller than pi_MIPCHI2. best to tune them together pi up to 42
     parameters.t_MIPCHI2[index] = companion->ip_chi2();
     parameters.t_MIP[index] = companion->ip();
-    // globally tunable
     parameters.t_CHI2NDF[index] = companion->chi2() / companion->ndof();
     parameters.t_Q[index] = companion_state.charge();
-
-    // copy paste from Lambda2PPiLine
-    const auto L_vx = Lambda->vertex();
-    // Proton is always first child (see LambdaFitter and FilterTracks)
-    const auto proton = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda->child(0)),
-               pion = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda->child(1));
-    const auto proton_state = proton->state(), pion_state = pion->state();
-
-    // tunable if needed be down to 1135 MeV
-    parameters.L_M[index] = Lambda->m12(Allen::mP, Allen::mPi);
+    parameters.XimOmm_t_P[index] = XimOmm_track_state.p();
+    parameters.XimOmm_t_PT[index] = XimOmm_track_state.pt();
+    parameters.XimOmm_t_MIPCHI2[index] = XimOmm_track->ip_chi2();
+    parameters.XimOmm_t_MIP[index] = XimOmm_track->ip();
+    parameters.XimOmm_t_CHI2NDF[index] = XimOmm_track->chi2() / XimOmm_track->ndof();
+    parameters.XimOmm_t_Q[index] = XimOmm_track_state.charge();
+    parameters.L_M[index] = mL;
     parameters.p_P[index] = proton_state.p();
     parameters.p_PT[index] = proton_state.pt();
-    // tunable up to 16, should be significantly smaller than pi_MIPCHI2. best to tune them together pi up to 42
     parameters.p_MIPCHI2[index] = proton->ip_chi2();
     parameters.p_MIP[index] = proton->ip();
-    // globally tunable
     parameters.p_CHI2NDF[index] = proton->chi2() / proton->ndof();
     parameters.p_Q[index] = proton_state.charge();
     parameters.pi_P[index] = pion_state.p();
-    // This is what makes the Lambda line orthogonal to the TrackMVA lines. Tunable (if really needed) to 200 MeV.
     parameters.pi_PT[index] = pion_state.pt();
-    // tunable, should be significantly larger than p_MIPCHI2. best to tune them together
     parameters.pi_MIPCHI2[index] = pion->ip_chi2();
     parameters.pi_MIP[index] = pion->ip();
     parameters.pi_CHI2NDF[index] = pion->chi2() / pion->ndof();
     parameters.pi_Q[index] = pion_state.charge();
-    // tunable down to 8
     parameters.L_VCHI2[index] = L_vx.chi2();
     parameters.L_VZ[index] = L_vx.z();
-    // better not go tighter as we don't have a full blown track propagation and would loose some of the Lambdas where p
-    // and pi only leave hits in the most downstream Velo modules
     parameters.p_pi_DOCA[index] = Lambda->doca12();
     parameters.L_PT[index] = L_vx.pt();
     parameters.L_BPVVDCHI2[index] = Lambda->fdchi2();
-    // tunable up to 40 mm
     parameters.L_BPVVDZ[index] = Lambda->dz();
-    // tunable up to 3.2 mm
     parameters.L_BPVVDRHO[index] = Lambda->drho();
-    // tunable up to 0.9998
     parameters.L_BPVDIRA[index] = Lambda->dira();
   }
 }
@@ -122,13 +140,14 @@ __device__ void xi_omega_lll_line::xi_omega_lll_line_t::monitor(
   bool sel)
 {
   if (sel) {
-    const auto Lt = std::get<0>(input);
-    const auto Lambda = Allen::dyn_cast<const Allen::Views::Physics::CompositeParticle*>(Lt.child(0));
+    const auto XimOmmt = std::get<0>(input);
+    const auto XimOmm = Allen::dyn_cast<const Allen::Views::Physics::CompositeParticle*>(XimOmmt.child(0));
+    const auto Lambda = Allen::dyn_cast<const Allen::Views::Physics::CompositeParticle*>(XimOmm->child(0));
     // Proton is always the child with larger momentum
     const auto c0 = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda->child(0)),
                c1 = static_cast<const Allen::Views::Physics::BasicParticle*>(Lambda->child(1));
-    const auto mLpi = Lt.m12(Allen::mL, Allen::mPi);
-    const auto mLK = Lt.m12(Allen::mL, Allen::mK);
+    const auto mLpi = XimOmm->m12(Allen::mL, Allen::mPi);
+    const auto mLK = XimOmm->m12(Allen::mL, Allen::mK);
     const auto mL =
       c0->state().p() > c1->state().p() ? Lambda->m12(Allen::mP, Allen::mPi) : Lambda->m12(Allen::mPi, Allen::mP);
 

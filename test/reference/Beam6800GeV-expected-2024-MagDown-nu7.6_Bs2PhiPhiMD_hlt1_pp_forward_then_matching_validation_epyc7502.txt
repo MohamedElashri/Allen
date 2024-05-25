@@ -57,7 +57,7 @@ Hlt1KsToPiPi:                                       0/  1000, (    0.00 +/-     
 Hlt1KsToPiPiDoubleMuonMisID:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackKs:                                     8/  1000, (  240.00 +/-    84.51) kHz
 Hlt1TwoKs:                                          2/  1000, (   60.00 +/-    42.38) kHz
-Hlt1LambdaLLDetachedTrack:                          1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1LambdaLLDetachedTrack:                          2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1XiOmegaLLL:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                               3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SingleHighPtMuonNoMuID:                         9/  1000, (  270.00 +/-    89.59) kHz
@@ -134,7 +134,7 @@ Hlt1SMOG2SingleTrackHighPt:                         0/  1000, (    0.00 +/-     
 Hlt1SMOG2DiMuonHighMass:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2SingleMuon:                                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2L0Toppi:                                   0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                                        648/  1000, (19440.00 +/-   453.09) kHz
+Inclusive:                                        647/  1000, (19410.00 +/-   453.38) kHz
 
 
 seed_validator validation:
@@ -200,7 +200,7 @@ Hlt1KsToPiPi:                                       0           0
 Hlt1KsToPiPiDoubleMuonMisID:                        0           0
 Hlt1TwoTrackKs:                                     8           9
 Hlt1TwoKs:                                          2           2
-Hlt1LambdaLLDetachedTrack:                          1           1
+Hlt1LambdaLLDetachedTrack:                          2           2
 Hlt1XiOmegaLLL:                                     0           0
 Hlt1SingleHighPtMuon:                               3           3
 Hlt1SingleHighPtMuonNoMuID:                         9          11
@@ -278,12 +278,12 @@ Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 
-Total decisions:      1164
+Total decisions:      1165
 Total tracks:         2482
 Total calos clusters: 33
-Total SVs:            2311
-Total hits:           62976
-Total stdinfo:        30396
+Total SVs:            2313
+Total hits:           62977
+Total stdinfo:        30405
 
 
 velo_validator validation:

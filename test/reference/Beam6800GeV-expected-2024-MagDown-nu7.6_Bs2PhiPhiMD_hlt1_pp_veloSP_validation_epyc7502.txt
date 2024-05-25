@@ -57,7 +57,7 @@ Hlt1KsToPiPi:                                       0/  1000, (    0.00 +/-     
 Hlt1KsToPiPiDoubleMuonMisID:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackKs:                                     6/  1000, (  180.00 +/-    73.26) kHz
 Hlt1TwoKs:                                          1/  1000, (   30.00 +/-    29.98) kHz
-Hlt1LambdaLLDetachedTrack:                          0/  1000, (    0.00 +/-     0.00) kHz
+Hlt1LambdaLLDetachedTrack:                          1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1XiOmegaLLL:                                     0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                               2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1SingleHighPtMuonNoMuID:                         8/  1000, (  240.00 +/-    84.51) kHz
@@ -149,7 +149,7 @@ Hlt1KsToPiPi:                                       0           0
 Hlt1KsToPiPiDoubleMuonMisID:                        0           0
 Hlt1TwoTrackKs:                                     6           6
 Hlt1TwoKs:                                          1           1
-Hlt1LambdaLLDetachedTrack:                          0           0
+Hlt1LambdaLLDetachedTrack:                          1           1
 Hlt1XiOmegaLLL:                                     0           0
 Hlt1SingleHighPtMuon:                               2           2
 Hlt1SingleHighPtMuonNoMuID:                         8           9
@@ -227,12 +227,12 @@ Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 
-Total decisions:      994
-Total tracks:         1956
+Total decisions:      995
+Total tracks:         1957
 Total calos clusters: 33
-Total SVs:            1751
-Total hits:           51150
-Total stdinfo:        23778
+Total SVs:            1753
+Total hits:           51177
+Total stdinfo:        23795
 
 
 veloUT_validator validation:

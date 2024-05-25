@@ -41,6 +41,7 @@ namespace dst_d2kpi_line {
 
     PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float) minComboPt;
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
+    PROPERTY(minFDChi2_t, "minFDChi2", "minFDChi2 description", float) minFDChi2;
     PROPERTY(maxDOCA_t, "maxDOCA", "maxDOCA description", float) maxDOCA;
     PROPERTY(minEta_t, "minEta", "minEta description", float) minEta;
     PROPERTY(maxEta_t, "maxEta", "maxEta description", float) maxEta;
@@ -91,6 +92,7 @@ namespace dst_d2kpi_line {
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<minComboPt_t> m_minComboPt {this, 500.0f * Gaudi::Units::MeV};
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 20.f};
+    Property<minFDChi2_t> m_minFDChi2 {this, 25.f};
     Property<maxDOCA_t> m_maxDOCA {this, 0.2f * Gaudi::Units::mm};
     Property<minEta_t> m_minEta {this, 2.0f};
     Property<maxEta_t> m_maxEta {this, 5.0f};
