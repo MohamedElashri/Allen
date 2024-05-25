@@ -552,9 +552,6 @@ namespace Allen {
       };
 
       struct CompositeParticle : IParticle {
-        // TODO: Get these masses from somewhere else.
-        static constexpr float mPi = 139.57f;
-        static constexpr float mMu = 105.66f;
         constexpr static auto TypeID = Allen::TypeIDs::CompositeParticle;
 
       private:
@@ -646,7 +643,9 @@ namespace Allen {
         __host__ __device__ float e() const
         {
           return transform_reduce(
-            [](const BasicParticle* p) { return p->state().e(mPi); }, [](float f1, float f2) { return f1 + f2; }, 0.f);
+            [](const BasicParticle* p) { return p->state().e(Allen::mPi); },
+            [](float f1, float f2) { return f1 + f2; },
+            0.f);
         }
 
         __host__ __device__ float sumpt() const
@@ -689,6 +688,62 @@ namespace Allen {
         __host__ __device__ float mdipi() const { return m12(Allen::mPi, Allen::mPi); }
 
         __host__ __device__ float mdimu() const { return m12(Allen::mMu, Allen::mMu); }
+
+        __host__ __device__ bool child_in_tree(const BasicParticle* probe) const
+        {
+          bool overlap = false;
+          for (unsigned i_child = 0; i_child < number_of_children(); i_child++) {
+            auto basicp = dyn_cast<const BasicParticle*>(child(i_child));
+            if (basicp)
+              overlap |= basicp == probe;
+            else {
+              // flatten recursion introduced in 97bd573738f19c2faf3a1c25f52c3d63e4d3456f to fix cuda compiler warning
+              // this issue might be fixed in future cuda versions and the commit can be reverted
+              const auto compp = dyn_cast<const CompositeParticle*>(child(i_child));
+              for (unsigned j_child = 0; j_child < compp->number_of_children(); j_child++) {
+                basicp = dyn_cast<const BasicParticle*>(compp->child(j_child));
+                if (basicp)
+                  overlap |= basicp == probe;
+                else
+                  return true;
+              }
+            }
+          }
+          return overlap;
+        }
+
+        __host__ __device__ float min_opening_angle_in_tree(const MiniState& probe) const
+        {
+          float opening_angle = 6.4f;
+          for (unsigned i_child = 0; i_child < number_of_children(); i_child++) {
+            auto basicp = dyn_cast<const BasicParticle*>(child(i_child));
+            if (basicp) {
+              const auto c_state = basicp->state();
+              const auto t_tx = probe.tx(), t_ty = probe.ty(), c_tx = c_state.tx(), c_ty = c_state.ty();
+              const auto ct_norm = sqrtf((t_tx * t_tx + t_ty * t_ty + 1.f) * (c_tx * c_tx + c_ty * c_ty + 1.f));
+              const auto ct_arg = (t_tx * c_tx + t_ty * c_ty + 1.f) / ct_norm;
+              opening_angle = std::min((ct_arg > 1.f ? 0.f : acosf(ct_arg)), opening_angle);
+            }
+            else {
+              // flatten recursion introduced in 97bd573738f19c2faf3a1c25f52c3d63e4d3456f to fix cuda compiler warning
+              // this issue might be fixed in future cuda versions and the commit can be reverted
+              const auto compp = dyn_cast<const CompositeParticle*>(child(i_child));
+              for (unsigned j_child = 0; j_child < compp->number_of_children(); j_child++) {
+                basicp = dyn_cast<const BasicParticle*>(compp->child(j_child));
+                if (basicp) {
+                  const auto c_state = basicp->state();
+                  const auto t_tx = probe.tx(), t_ty = probe.ty(), c_tx = c_state.tx(), c_ty = c_state.ty();
+                  const auto ct_norm = sqrtf((t_tx * t_tx + t_ty * t_ty + 1.f) * (c_tx * c_tx + c_ty * c_ty + 1.f));
+                  const auto ct_arg = (t_tx * c_tx + t_ty * c_ty + 1.f) / ct_norm;
+                  opening_angle = std::min((ct_arg > 1.f ? 0.f : acosf(ct_arg)), opening_angle);
+                }
+                else
+                  return 0.f;
+              }
+            }
+          }
+          return opening_angle;
+        }
 
         __host__ __device__ float fdchi2() const
         {

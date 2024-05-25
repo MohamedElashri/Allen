@@ -268,18 +268,20 @@ def make_sv_pairs(secondary_vertices):
 def make_sv_track_pairs(secondary_vertices,
                         long_track_particles,
                         pvs,
-                        min_track_ipchi2=4.,
+                        min_track_ipchi2=24.,
                         max_track_ipchi2=1e16,
-                        min_track_ip=0.6,
+                        min_track_ip=0.15,
                         max_track_ip=1e16,
-                        sv_bpvvdz_min=12.,
-                        sv_bpvvdrho_min=2.,
-                        sv_vz_min=-80.,
+                        min_track_pt=100.,
+                        sv_bpvip_min=0.032,
+                        sv_bpvvdz_min=24.,
+                        sv_bpvvdrho_min=3.,
+                        sv_bpvdira_min=0.9999,
+                        sv_vz_min=-180.,
                         sv_vz_max=650.,
+                        sv_track_doca_max=0.15,
                         opening_angle_min=0.5e-3,
-                        sv_track_doca_max=0.5,
-                        sv_bpvvdchi2_min=180.0,
-                        sv_bpvdira_min=0.9997):
+                        require_neutral_sv=True):
 
     number_of_events = initialize_number_of_events()
 
@@ -294,13 +296,16 @@ def make_sv_track_pairs(secondary_vertices,
         T_MIPCHI2_max=max_track_ipchi2,
         T_MIP_min=min_track_ip,
         T_MIP_max=max_track_ip,
+        T_PT_min=min_track_pt,
         SV_VZ_min=sv_vz_min,
         SV_VZ_max=sv_vz_max,
+        SV_BPVIP_min=sv_bpvip_min,
         SV_BPVVDZ_min=sv_bpvvdz_min,
         SV_BPVVDRHO_min=sv_bpvvdrho_min,
+        SV_BPVDIRA_min=sv_bpvdira_min,
         SV_T_DOCA_max=sv_track_doca_max,
-        SV_BPVVDCHI2_min=sv_bpvvdchi2_min,
-        SV_BPVDIRA_min=sv_bpvdira_min)
+        opening_angle_min=opening_angle_min,
+        require_os_pair=require_neutral_sv)
 
     prefix_sum_sv_track_combinations = make_algorithm(
         host_prefix_sum_t,
@@ -325,7 +330,7 @@ def make_sv_track_pairs(secondary_vertices,
         dev_npvs_t=pvs["dev_number_of_multi_final_vertices"])
 
     return {
-        "dev_sv_track_combination":
+        "dev_multi_event_composites":
         combine_sv_track.dev_multi_event_composites_view_t,
         "host_number_of_sv_track_combinations":
         prefix_sum_sv_track_combinations.host_total_sum_holder_t,

@@ -242,6 +242,32 @@ def hlt1_reconstruction(algorithm_name='',
         require_os_pair=True)
 
     v0_track_pairs = make_sv_track_pairs(v0s, long_track_particles, pvs)
+    lambda_track_from_c = make_sv_track_pairs(
+        v0s,
+        long_track_particles,
+        pvs,
+        min_track_ipchi2=12,
+        min_track_ip=0.08,
+        min_track_pt=700,
+        sv_track_doca_max=0.1,
+        sv_bpvdira_min=0.99999,
+        sv_bpvvdrho_min=2,
+        sv_bpvvdz_min=12,
+        sv_bpvip_min=0.0)
+
+    v0_twotrack_pairs = make_sv_track_pairs(
+        v0_track_pairs,
+        long_track_particles,
+        pvs,
+        min_track_ip=0.06,
+        min_track_ipchi2=6,
+        min_track_pt=280,
+        sv_bpvip_min=0.012,
+        sv_bpvvdz_min=12,
+        sv_bpvvdrho_min=0.7,
+        sv_bpvdira_min=0.9997,
+        sv_vz_min=-200,
+        require_neutral_sv=False)
 
     # D* -> D0(-> K pi) pi
     dstars = make_sv_track_pairs(
@@ -251,12 +277,14 @@ def hlt1_reconstruction(algorithm_name='',
         min_track_ipchi2=0.,
         min_track_ip=0.,
         max_track_ipchi2=4,
+        min_track_pt=150.,
+        sv_track_doca_max=0.2,
         sv_vz_min=-200,
         sv_vz_max=650,
+        sv_bpvip_min=0.,
         sv_bpvvdz_min=0.,
-        sv_bpvvdrho_min=0.,
-        sv_track_doca_max=0.2,
-        sv_bpvvdchi2_min=25.)
+        sv_bpvdira_min=0.9997,
+        sv_bpvvdrho_min=0.)
 
     v0_pairs = make_sv_pairs(v0s)
 
@@ -266,7 +294,8 @@ def hlt1_reconstruction(algorithm_name='',
         "prompt_dihadron_secondary_vertices": prompt_dihadrons,
         "dilepton_secondary_vertices": dileptons,
         "v0_secondary_vertices": v0s,
-        "v0_sv_track_pairs": v0_track_pairs,
+        "lambda_track_from_c": lambda_track_from_c,
+        "v0_sv_twotrack_pairs": v0_twotrack_pairs,
         "dstars": dstars,
         "v0_pairs": v0_pairs
     })
