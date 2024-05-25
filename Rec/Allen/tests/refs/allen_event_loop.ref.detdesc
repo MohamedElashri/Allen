@@ -30,7 +30,7 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_283cb05d          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 94
+gather_selections                      INFO Number of counters : 92
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Hlt1D2KKPass"                                  |        20 |
  | "Hlt1D2KKRate"                                  |        20 |
@@ -84,14 +84,14 @@ gather_selections                      INFO Number of counters : 94
  | "Hlt1DiMuonSoftRate"                            |         7 |
  | "Hlt1DiPhotonHighMassPass"                      |        81 |
  | "Hlt1DiPhotonHighMassRate"                      |        81 |
- | "Hlt1Dst2D0PiAlignmentPass"                     |         8 |
- | "Hlt1Dst2D0PiAlignmentRate"                     |         8 |
- | "Hlt1Dst2D0PiPass"                              |         8 |
- | "Hlt1Dst2D0PiRate"                              |         8 |
+ | "Hlt1Dst2D0PiAlignmentPass"                     |         6 |
+ | "Hlt1Dst2D0PiAlignmentRate"                     |         6 |
+ | "Hlt1Dst2D0PiPass"                              |         6 |
+ | "Hlt1Dst2D0PiRate"                              |         6 |
  | "Hlt1KsToPiPiPass"                              |       777 |
  | "Hlt1KsToPiPiRate"                              |         2 |
- | "Hlt1LambdaLLDetachedTrackPass"                 |         7 |
- | "Hlt1LambdaLLDetachedTrackRate"                 |         7 |
+ | "Hlt1LambdaLLDetachedTrackPass"                 |         1 |
+ | "Hlt1LambdaLLDetachedTrackRate"                 |         1 |
  | "Hlt1MaterialVertexSeedsDownstreamzPass"        |         4 |
  | "Hlt1MaterialVertexSeedsDownstreamzRate"        |         4 |
  | "Hlt1MaterialVertexSeeds_DWFSPass"              |         3 |
@@ -124,8 +124,6 @@ gather_selections                      INFO Number of counters : 94
  | "Hlt1TwoTrackMVARate"                           |       374 |
  | "Hlt1VeloMicroBiasPass"                         |      9997 |
  | "Hlt1VeloMicroBiasRate"                         |         9 |
- | "Hlt1XiOmegaLLLPass"                            |         4 |
- | "Hlt1XiOmegaLLLRate"                            |         4 |
 matching_consolidate_tracks_matc...    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_long_tracks_matching"                        |     10000 |     498491 |     49.849 |
