@@ -30,7 +30,7 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_283cb05d          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 92
+gather_selections                      INFO Number of counters : 90
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Hlt1D2KKPass"                                  |        20 |
  | "Hlt1D2KKRate"                                  |        20 |
@@ -94,8 +94,6 @@ gather_selections                      INFO Number of counters : 92
  | "Hlt1LambdaLLDetachedTrackRate"                 |         1 |
  | "Hlt1MaterialVertexSeedsDownstreamzPass"        |         4 |
  | "Hlt1MaterialVertexSeedsDownstreamzRate"        |         4 |
- | "Hlt1MaterialVertexSeeds_DWFSPass"              |         3 |
- | "Hlt1MaterialVertexSeeds_DWFSRate"              |         3 |
  | "Hlt1OneMuonTrackLinePass"                      |      5724 |
  | "Hlt1OneMuonTrackLineRate"                      |         3 |
  | "Hlt1Pi02GammaGammaPass"                        |         2 |

@@ -93,8 +93,8 @@ gather_selections                      INFO Number of counters : 91
  | "Hlt1LambdaLLDetachedTrackRate"                 |         1 |
  | "Hlt1MaterialVertexSeedsDownstreamzPass"        |         4 |
  | "Hlt1MaterialVertexSeedsDownstreamzRate"        |         4 |
- | "Hlt1MaterialVertexSeeds_DWFSPass"              |         5 |
- | "Hlt1MaterialVertexSeeds_DWFSRate"              |         5 |
+ | "Hlt1MaterialVertexSeeds_DWFSPass"              |         1 |
+ | "Hlt1MaterialVertexSeeds_DWFSRate"              |         1 |
  | "Hlt1OneMuonTrackLinePass"                      |      5726 |
  | "Hlt1OneMuonTrackLineRate"                      |         3 |
  | "Hlt1Pi02GammaGammaPass"                        |         2 |
