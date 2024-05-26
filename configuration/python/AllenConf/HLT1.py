@@ -435,7 +435,8 @@ def alignment_monitoring_lines(reconstructed_objects,
             material_interaction_tracks,
             min_z_materialvertex_seed=700,
             max_z_materialvertex_seed=1000,
-            name="Hlt1MaterialVertexSeeds_DWFS")
+            name="Hlt1MaterialVertexSeeds_DWFS",
+            pre_scaler=0.1)
     ]
 
     if with_muon:
