@@ -20,11 +20,11 @@ from AllenConf.secondary_vertex_reconstruction import (
     make_kalman_velo_only, make_basic_particles, fit_secondary_vertices,
     make_sv_track_pairs, make_sv_pairs)
 from AllenConf.validators import (
-    velo_validation, veloUT_validation, seeding_validation, long_validation,
-    muon_validation, pv_validation, kalman_validation, selreport_validation,
-    data_quality_validation_long, data_quality_validation_occupancy,
-    data_quality_validation_pv, data_quality_validation_velo,
-    downstream_validation)
+    velo_validation, veloUT_validation, seeding_validation,
+    seeding_xz_validation, long_validation, muon_validation, pv_validation,
+    kalman_validation, selreport_validation, data_quality_validation_long,
+    data_quality_validation_occupancy, data_quality_validation_pv,
+    data_quality_validation_velo, downstream_validation)
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer
@@ -429,6 +429,7 @@ def validator_node(reconstructed_objects,
         validators += [
             seeding_validation(reconstructed_objects["seeding_tracks"])
         ]
+        validators += [seeding_xz_validation()]
     elif not matching and with_ut:
         validators += [veloUT_validation(reconstructed_objects["ut_tracks"])]
 

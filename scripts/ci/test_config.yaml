@@ -63,7 +63,7 @@ minimal:
   - type: "efficiency"
     sequence:
       - hlt1_pp_validation
-    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD"
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD_nSciFiHits"
     geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
 
   # FIXME run_changes needs re-adding
@@ -168,7 +168,7 @@ full:
     sequence:
       - downstream_validation
       - hlt1_pp_forward_then_matching_and_downstream_validation
-    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD"
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD_nSciFiHits"
     geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
 
   - type: "run_built_tests"
@@ -186,7 +186,7 @@ full:
       - hlt1_pp_forward_then_matching_validation
       - hlt1_pp_forward_then_matching_no_ut_validation
       - velo_ACsplit_validation
-    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD"
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD_nSciFiHits"
     geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
 
 
@@ -194,14 +194,14 @@ full:
   - type: "efficiency"
     sequence:
       - hlt1_pp_forward_then_matching_no_ut_validation
-    dataset: "pHeBeam6800GeV0GeVexpected2024MagDownSMOG2Nu0.2EPOS_Sim10c_30000000_10k"
+    dataset: "pHeBeam6800GeV0GeVexpected2024MagDownSMOG2Nu0.2EPOS_Sim10c_30000000_10k_nSciFiHits"
     geometry: "SMOG2_exp2024"
 
   # efficiency tests, SMOG2 pAr, exp 2024 conditions
   - type: "efficiency"
     sequence:
       - hlt1_pp_forward_then_matching_no_ut_validation
-    dataset: "SMOG2_pAr_exp2024_mdf_sim-20231017-vc-md100_10k"
+    dataset: "SMOG2_pAr_exp2024_mdf_sim-20231017-vc-md100_10k_nSciFiHits"
     geometry: "SMOG2_exp2024"
   
   # run memcheck

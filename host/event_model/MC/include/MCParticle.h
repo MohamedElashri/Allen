@@ -59,6 +59,9 @@ struct MCParticle {
   uint32_t scifi_num_hits;
   uint32_t numHits;
   uint32_t nPV; // # of reconstructible primary vertices in event
+  uint32_t nbHits_in_Velo;
+  uint32_t nbHits_in_UT;
+  uint32_t nbHits_in_SciFi;
   std::vector<uint32_t> hits;
 
   bool isMuon() const { return 13 == std::abs(pid); }
