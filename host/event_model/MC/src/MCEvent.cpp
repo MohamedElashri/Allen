@@ -113,6 +113,14 @@ void MCEvent::load_particles(const std::vector<char>& particles, const uint32_t 
     input += sizeof(float);
     std::memcpy(&(p.nPV), input, sizeof(uint32_t));
     input += sizeof(uint32_t);
+    if (bankVersion >= 3) {
+      std::memcpy(&(p.nbHits_in_Velo), input, sizeof(uint32_t));
+      input += sizeof(uint32_t);
+      std::memcpy(&(p.nbHits_in_UT), input, sizeof(uint32_t));
+      input += sizeof(uint32_t);
+      std::memcpy(&(p.nbHits_in_SciFi), input, sizeof(uint32_t));
+      input += sizeof(uint32_t);
+    }
 
     std::memcpy(&(p.velo_num_hits), input, sizeof(uint32_t));
     const auto num_Velo_hits = p.velo_num_hits;

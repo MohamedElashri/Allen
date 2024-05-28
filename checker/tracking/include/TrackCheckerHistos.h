@@ -20,6 +20,7 @@ struct TrackCheckerHistos {
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_pt;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_phi;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_nPV;
+  std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_nSciFiHits;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_docaz;
   std::map<std::string, std::unique_ptr<TH2D>> h_reconstructible_eta_phi;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_eta;
@@ -27,11 +28,14 @@ struct TrackCheckerHistos {
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_pt;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_phi;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_nPV;
+  std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_nSciFiHits;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_docaz;
   std::map<std::string, std::unique_ptr<TH2D>> h_reconstructed_eta_phi;
 
   std::unique_ptr<TH1D> h_ghost_nPV;
   std::unique_ptr<TH1D> h_total_nPV;
+  std::unique_ptr<TH1D> h_ghost_nSciFiHits;
+  std::unique_ptr<TH1D> h_total_nSciFiHits;
   std::unique_ptr<TH1D> h_ghost_eta;
   std::unique_ptr<TH1D> h_total_eta;
   std::unique_ptr<TH2D> h_dp_versus_p;
@@ -100,8 +104,8 @@ struct TrackCheckerHistos {
 
   void fillReconstructibleHistos(const MCParticles& mcps, const Checker::HistoCategory& category);
   void fillReconstructedHistos(const MCParticle& mcp, Checker::HistoCategory& category);
-  void fillTotalHistos(double nPV, double eta, double p, double pt);
-  void fillGhostHistos(double nPV, double eta, double p, double pt);
+  void fillTotalHistos(double nPV, double nSciFiHits, double eta, double p, double pt);
+  void fillGhostHistos(double nPV, double nSciFiHits, double eta, double p, double pt);
   void fillMomentumResolutionHisto(const MCParticle& mcp, const float p, const float qop);
   void fillMuonIDHistos(const Checker::Track& track);
   void fillMuonIDMatchedHistos(const Checker::Track& track, const MCParticle& mcp);
