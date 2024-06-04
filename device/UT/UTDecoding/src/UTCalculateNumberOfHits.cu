@@ -97,7 +97,7 @@ __device__ void calculate_number_of_hits<4>(
     if (raw_bank.number_of_hits[lane] == 0) continue;
     // find the sector group to which these hits are added
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane;
-    assert(fullChanIndex < boards.number_of_channels);
+    if (fullChanIndex >= boards.number_of_channels) continue;
     // const uint32_t s = boards.stations[fullChanIndex];
     // if (s == 0) continue;
     // Looking downstream, there are 2 stations UTa with X and U layer and UTb with V and X layer
@@ -135,10 +135,12 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   const UTRawEvent<mep> raw_event {parameters.dev_ut_raw_input,
                                    parameters.dev_ut_raw_input_offsets,
                                    parameters.dev_ut_raw_input_sizes,
+                                   parameters.dev_ut_raw_input_types,
                                    event_number + event_start};
   for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks();
        raw_bank_index += blockDim.x) {
     UTRawBank<decoding_version> bank = raw_event.template raw_bank<decoding_version>(raw_bank_index);
+    if (!UT::Decoding::allowed_rawbank_type(bank.type)) continue;
     calculate_number_of_hits(dev_unique_x_sector_offsets, hit_offsets, boards, bank);
   }
 }

@@ -22,6 +22,7 @@ namespace ut_calculate_number_of_hits {
     DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
     DEVICE_INPUT(dev_ut_raw_input_offsets_t, unsigned) dev_ut_raw_input_offsets;
     DEVICE_INPUT(dev_ut_raw_input_sizes_t, unsigned) dev_ut_raw_input_sizes;
+    DEVICE_INPUT(dev_ut_raw_input_types_t, unsigned) dev_ut_raw_input_types;
     DEVICE_OUTPUT(dev_ut_hit_sizes_t, unsigned) dev_ut_hit_sizes;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
@@ -51,6 +52,10 @@ namespace ut_calculate_number_of_hits {
     Property<block_dim_t> m_block_dim {this, {{64, 4, 1}}};
   };
 
+  /**
+   * @brief Calculates the number of UT strips in the event so that we can allocate enough memory to store pre-decoding
+   * information.
+   */
   template<int decoding_version, bool mep>
   __global__ void ut_calculate_number_of_hits(
     Parameters,
