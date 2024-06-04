@@ -20,6 +20,7 @@ struct UTRawBank {
   std::array<uint32_t, 6> number_of_hits {0, 0, 0, 0, 0, 0};
   uint16_t const* data = nullptr;
   uint16_t const size = 0;
+  uint8_t const type = Allen::LastBankType;
 
   static_assert(decoding_version == -1 || decoding_version == 3 || decoding_version == 4);
 
@@ -27,9 +28,9 @@ struct UTRawBank {
     UTRawBank {reinterpret_cast<const uint32_t*>(ut_raw_bank)[0], ut_raw_bank + sizeof(uint32_t), size, type}
   {}
 
-  __device__ __host__ UTRawBank(const uint32_t sID, const char* ut_fragment, const uint16_t s, const uint8_t) :
+  __device__ __host__ UTRawBank(const uint32_t sID, const char* ut_fragment, const uint16_t s, const uint8_t t) :
     sourceID {(sID >> 11) != 0 ? (((sID & 0xFF) - 1) * 2 + ((sID & 0x400) >> 10)) : sID},
-    size {static_cast<uint16_t>(s / sizeof(uint16_t) - decoding_version == 3 ? 2 : 4)}
+    size {static_cast<uint16_t>(s / sizeof(uint16_t) - decoding_version == 3 ? 2 : 4)}, type {t}
   {
     auto p = reinterpret_cast<const uint32_t*>(ut_fragment);
     if constexpr (decoding_version == 3) {
@@ -76,27 +77,35 @@ template<bool mep_layout>
 struct UTRawEvent {
 private:
   using sizes_t = std::conditional_t<mep_layout, uint32_t, uint16_t>;
+  using types_t = std::conditional_t<mep_layout, uint32_t, uint8_t>;
 
   uint32_t m_number_of_raw_banks = 0;
   uint32_t const* m_offsets = nullptr;
   sizes_t const* m_sizes = nullptr;
+  types_t const* m_types = nullptr;
   char const* m_data = nullptr;
   uint32_t const m_event = 0;
 
 public:
-  __device__ __host__
-  UTRawEvent(const char* data, const uint32_t* offsets, const uint32_t* sizes, uint32_t const event) :
+  __device__ __host__ UTRawEvent(
+    const char* data,
+    const uint32_t* offsets,
+    const uint32_t* sizes,
+    const uint32_t* types,
+    uint32_t const event) :
     m_event {event}
   {
     if constexpr (mep_layout) {
       m_data = data;
       m_offsets = offsets;
       m_sizes = sizes;
+      m_types = types;
       m_number_of_raw_banks = MEP::number_of_banks(offsets);
     }
     else {
       m_data = data + offsets[event];
       m_sizes = Allen::bank_sizes(sizes, event);
+      m_types = Allen::bank_types(types, event);
       const char* p = m_data;
       m_number_of_raw_banks = reinterpret_cast<const uint32_t*>(p)[0];
       p += sizeof(uint32_t);
@@ -112,10 +121,10 @@ public:
   __device__ __host__ UTRawBank<decoding_version> raw_bank(uint32_t const bank) const
   {
     if constexpr (mep_layout) {
-      return MEP::raw_bank<UTRawBank<decoding_version>>(m_data, m_offsets, m_sizes, nullptr, m_event, bank);
+      return MEP::raw_bank<UTRawBank<decoding_version>>(m_data, m_offsets, m_sizes, m_types, m_event, bank);
     }
     else {
-      return UTRawBank<decoding_version>(m_data + m_offsets[bank], m_sizes[bank], Allen::LastBankType);
+      return UTRawBank<decoding_version>(m_data + m_offsets[bank], m_sizes[bank], m_types[bank]);
     }
   }
 };

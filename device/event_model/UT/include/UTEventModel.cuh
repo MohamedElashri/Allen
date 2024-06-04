@@ -387,7 +387,7 @@ namespace UT {
     const unsigned m_total_number_of_hits;
 
   public:
-    constexpr static unsigned element_size = sizeof(uint64_t) + sizeof(unsigned);
+    constexpr static unsigned element_size = sizeof(uint64_t) + 2 * sizeof(unsigned) + sizeof(float);
 
     /**
      * @brief Populates the UTHits object pointers to an array of data
@@ -411,16 +411,44 @@ namespace UT {
       return m_base_pointer[index];
     }
 
-    __host__ __device__ unsigned index(const unsigned index) const
+    __host__ __device__ unsigned full_channel_index(const unsigned index) const
     {
       assert(index < m_total_number_of_hits);
       return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer + m_total_number_of_hits)[index];
     }
 
-    __host__ __device__ unsigned& index(const unsigned index)
+    __host__ __device__ unsigned& full_channel_index(const unsigned index)
     {
       assert(index < m_total_number_of_hits);
       return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer + m_total_number_of_hits)[index];
+    }
+
+    __host__ __device__ unsigned id(const unsigned index) const
+    {
+      assert(index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
+        m_base_pointer + m_total_number_of_hits)[m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ unsigned& id(const unsigned index)
+    {
+      assert(index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
+        m_base_pointer + m_total_number_of_hits)[m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ float num_strips(const unsigned index) const
+    {
+      assert(index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, float>::t*>(
+        m_base_pointer + m_total_number_of_hits)[2 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ float& num_strips(const unsigned index)
+    {
+      assert(index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, float>::t*>(
+        m_base_pointer + m_total_number_of_hits)[2 * m_total_number_of_hits + index];
     }
 
     // Pointer accessors for binary search

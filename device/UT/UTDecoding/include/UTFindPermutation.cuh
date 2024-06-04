@@ -17,15 +17,19 @@
 namespace ut_find_permutation {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_accumulated_number_of_ut_hits_t, unsigned) host_accumulated_number_of_ut_hits;
+    HOST_INPUT(host_accumulated_number_of_ut_clusters_t, unsigned) host_accumulated_number_of_ut_clusters;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ut_pre_decoded_hits_t, char) dev_ut_pre_decoded_hits;
     DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
-    DEVICE_OUTPUT(dev_ut_hit_permutations_t, unsigned) dev_ut_hit_permutations;
+    DEVICE_INPUT(dev_ut_clustering_offsets_t, unsigned) dev_ut_clustering_offsets;
+    DEVICE_OUTPUT(dev_ut_permutations_t, unsigned) dev_ut_permutations;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
+  /**
+   * @brief Calculates the sorted index (within a sector group) for each UT hit.
+   */
   __global__ void ut_find_permutation(Parameters, const unsigned* dev_unique_x_sector_layer_offsets);
 
   struct ut_find_permutation_t : public DeviceAlgorithm, Parameters {
