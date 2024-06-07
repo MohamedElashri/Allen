@@ -36,8 +36,8 @@ gather_selections                      INFO Number of counters : 92
  | "Hlt1D2KKRate"                                  |        20 |
  | "Hlt1D2KPiAlignmentPass"                        |         7 |
  | "Hlt1D2KPiAlignmentRate"                        |         7 |
- | "Hlt1D2KPiPass"                                 |        24 |
- | "Hlt1D2KPiRate"                                 |        24 |
+ | "Hlt1D2KPiPass"                                 |        25 |
+ | "Hlt1D2KPiRate"                                 |        25 |
  | "Hlt1D2PiPiPass"                                |        10 |
  | "Hlt1D2PiPiRate"                                |        10 |
  | "Hlt1DetJpsiToMuMuNegTagLinePass"               |         1 |
@@ -46,37 +46,37 @@ gather_selections                      INFO Number of counters : 92
  | "Hlt1DiElectronDisplacedRate"                   |        60 |
  | "Hlt1DiElectronHighMass_SSPass"                 |         1 |
  | "Hlt1DiElectronHighMass_SSRate"                 |         1 |
- | "Hlt1DiElectronLowMass_SS_massSlice1_displacedPass"|        76 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_displacedPass"|        72 |
  | "Hlt1DiElectronLowMass_SS_massSlice1_displacedRate"|         1 |
- | "Hlt1DiElectronLowMass_SS_massSlice1_promptPass"|        50 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_promptPass"|        39 |
  | "Hlt1DiElectronLowMass_SS_massSlice1_promptRate"|         1 |
- | "Hlt1DiElectronLowMass_SS_massSlice2_displacedPass"|        22 |
- | "Hlt1DiElectronLowMass_SS_massSlice2_promptPass"|        10 |
+ | "Hlt1DiElectronLowMass_SS_massSlice2_displacedPass"|        23 |
+ | "Hlt1DiElectronLowMass_SS_massSlice2_promptPass"|         9 |
  | "Hlt1DiElectronLowMass_SS_massSlice3_displacedPass"|         8 |
- | "Hlt1DiElectronLowMass_SS_massSlice3_promptPass"|        10 |
+ | "Hlt1DiElectronLowMass_SS_massSlice3_promptPass"|         9 |
  | "Hlt1DiElectronLowMass_SS_massSlice3_promptRate"|         1 |
  | "Hlt1DiElectronLowMass_SS_massSlice4_displacedPass"|         7 |
  | "Hlt1DiElectronLowMass_SS_massSlice4_displacedRate"|         1 |
- | "Hlt1DiElectronLowMass_SS_massSlice4_promptPass"|         7 |
- | "Hlt1DiElectronLowMass_massSlice1_displacedPass"|        19 |
- | "Hlt1DiElectronLowMass_massSlice1_displacedRate"|        19 |
- | "Hlt1DiElectronLowMass_massSlice1_promptPass"   |        21 |
- | "Hlt1DiElectronLowMass_massSlice1_promptRate"   |        21 |
- | "Hlt1DiElectronLowMass_massSlice2_displacedPass"|         4 |
- | "Hlt1DiElectronLowMass_massSlice2_displacedRate"|         4 |
+ | "Hlt1DiElectronLowMass_SS_massSlice4_promptPass"|         5 |
+ | "Hlt1DiElectronLowMass_massSlice1_displacedPass"|        13 |
+ | "Hlt1DiElectronLowMass_massSlice1_displacedRate"|        13 |
+ | "Hlt1DiElectronLowMass_massSlice1_promptPass"   |        14 |
+ | "Hlt1DiElectronLowMass_massSlice1_promptRate"   |        14 |
+ | "Hlt1DiElectronLowMass_massSlice2_displacedPass"|         5 |
+ | "Hlt1DiElectronLowMass_massSlice2_displacedRate"|         5 |
  | "Hlt1DiElectronLowMass_massSlice2_promptPass"   |         5 |
  | "Hlt1DiElectronLowMass_massSlice2_promptRate"   |         5 |
- | "Hlt1DiElectronLowMass_massSlice3_displacedPass"|         7 |
- | "Hlt1DiElectronLowMass_massSlice3_displacedRate"|         7 |
+ | "Hlt1DiElectronLowMass_massSlice3_displacedPass"|         6 |
+ | "Hlt1DiElectronLowMass_massSlice3_displacedRate"|         6 |
  | "Hlt1DiElectronLowMass_massSlice3_promptPass"   |         4 |
  | "Hlt1DiElectronLowMass_massSlice4_displacedPass"|         4 |
  | "Hlt1DiElectronLowMass_massSlice4_displacedRate"|         4 |
  | "Hlt1DiElectronLowMass_massSlice4_promptPass"   |         5 |
  | "Hlt1DiElectronLowMass_massSlice4_promptRate"   |         1 |
- | "Hlt1DiMuonDisplacedPass"                       |       102 |
- | "Hlt1DiMuonDisplacedRate"                       |       102 |
- | "Hlt1DiMuonHighMassPass"                        |        79 |
- | "Hlt1DiMuonHighMassRate"                        |        79 |
+ | "Hlt1DiMuonDisplacedPass"                       |       101 |
+ | "Hlt1DiMuonDisplacedRate"                       |       101 |
+ | "Hlt1DiMuonHighMassPass"                        |        80 |
+ | "Hlt1DiMuonHighMassRate"                        |        80 |
  | "Hlt1DiMuonNoIPPass"                            |         8 |
  | "Hlt1DiMuonNoIPRate"                            |         8 |
  | "Hlt1DiMuonNoIP_SSPass"                         |         5 |
@@ -88,7 +88,7 @@ gather_selections                      INFO Number of counters : 92
  | "Hlt1Dst2D0PiAlignmentRate"                     |         7 |
  | "Hlt1Dst2D0PiPass"                              |         7 |
  | "Hlt1Dst2D0PiRate"                              |         7 |
- | "Hlt1KsToPiPiPass"                              |       776 |
+ | "Hlt1KsToPiPiPass"                              |       774 |
  | "Hlt1KsToPiPiRate"                              |         2 |
  | "Hlt1LambdaLLDetachedTrackPass"                 |         1 |
  | "Hlt1LambdaLLDetachedTrackRate"                 |         1 |
@@ -110,18 +110,18 @@ gather_selections                      INFO Number of counters : 92
  | "Hlt1SingleHighPtMuonNoMuIDRate"                |        34 |
  | "Hlt1SingleHighPtMuonPass"                      |         5 |
  | "Hlt1SingleHighPtMuonRate"                      |         5 |
- | "Hlt1TrackElectronMVAPass"                      |        69 |
- | "Hlt1TrackElectronMVARate"                      |        69 |
- | "Hlt1TrackMVAPass"                              |       164 |
- | "Hlt1TrackMVARate"                              |       164 |
+ | "Hlt1TrackElectronMVAPass"                      |        66 |
+ | "Hlt1TrackElectronMVARate"                      |        66 |
+ | "Hlt1TrackMVAPass"                              |       163 |
+ | "Hlt1TrackMVARate"                              |       163 |
  | "Hlt1TrackMuonMVAPass"                          |         9 |
  | "Hlt1TrackMuonMVARate"                          |         9 |
  | "Hlt1TwoKsPass"                                 |         7 |
  | "Hlt1TwoKsRate"                                 |         7 |
  | "Hlt1TwoTrackKsPass"                            |        33 |
  | "Hlt1TwoTrackKsRate"                            |        33 |
- | "Hlt1TwoTrackMVAPass"                           |       374 |
- | "Hlt1TwoTrackMVARate"                           |       374 |
+ | "Hlt1TwoTrackMVAPass"                           |       372 |
+ | "Hlt1TwoTrackMVARate"                           |       372 |
  | "Hlt1VeloMicroBiasPass"                         |      9997 |
  | "Hlt1VeloMicroBiasRate"                         |         9 |
 matching_consolidate_tracks_matc...    INFO Number of counters : 1
