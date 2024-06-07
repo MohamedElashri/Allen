@@ -28,7 +28,7 @@ for P>3GeV,Pt>0.5GeV                              :       397/     1854  21.41% 
 
 long_validator validation:
 TrackChecker output                               :      2296/    33512   6.85% ghosts
-for P>3GeV,Pt>0.5GeV                              :       710/    17426   4.07% ghosts
+for P>3GeV,Pt>0.5GeV                              :       710/    17414   4.08% ghosts
 01_long                                           :     28719/    37926  75.72% ( 76.57%),       509 (  1.74%) clones, pur  99.08%, hit eff  97.89%
 02_long_P>5GeV                                    :     22536/    24714  91.19% ( 91.82%),       415 (  1.81%) clones, pur  99.13%, hit eff  98.20%
 03_long_strange                                   :      1122/     1807  62.09% ( 62.71%),        16 (  1.41%) clones, pur  99.05%, hit eff  97.34%
@@ -60,8 +60,8 @@ Muon fraction in MCPs to which a track(s) was matched:                    374/  
 Correctly identified muons with isMuon:                                   311/      374  83.16% 
 Correctly identified muons from strange decays with isMuon:                 1/        1 100.00% 
 Correctly identified muons from B decays with isMuon:                      61/       68  89.71% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:      3895/    35721  10.90% 
-Ghost tracks identified as muon with isMuon:                              379/     2296  16.51% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:      3905/    35721  10.93% 
+Ghost tracks identified as muon with isMuon:                              380/     2296  16.55% 
 
 
 pv_validator validation:
@@ -80,7 +80,7 @@ Clones               :  0.000 (     0/  5538)
 
 rate_validator validation:
 Hlt1TrackMVA:                                     126/   500, ( 7560.00 +/-   582.49) kHz
-Hlt1TwoTrackMVA:                                  308/   500, (18480.00 +/-   652.52) kHz
+Hlt1TwoTrackMVA:                                  307/   500, (18420.00 +/-   653.15) kHz
 Hlt1D2KK:                                          20/   500, ( 1200.00 +/-   262.91) kHz
 Hlt1D2KPi:                                         27/   500, ( 1620.00 +/-   303.23) kHz
 Hlt1D2PiPi:                                        16/   500, (  960.00 +/-   236.13) kHz
@@ -94,7 +94,7 @@ Hlt1XiOmegaLLL:                                     0/   500, (    0.00 +/-     
 Hlt1SingleHighPtMuon:                               2/   500, (  120.00 +/-    84.68) kHz
 Hlt1SingleHighPtMuonNoMuID:                         4/   500, (  240.00 +/-   119.52) kHz
 Hlt1DiMuonHighMass:                                13/   500, (  780.00 +/-   213.50) kHz
-Hlt1DiMuonDisplaced:                               12/   500, (  720.00 +/-   205.34) kHz
+Hlt1DiMuonDisplaced:                               11/   500, (  660.00 +/-   196.80) kHz
 Hlt1DiMuonSoft:                                     0/   500, (    0.00 +/-     0.00) kHz
 Hlt1TrackMuonMVA:                                  10/   500, (  600.00 +/-   187.83) kHz
 Hlt1DiMuonNoIP:                                     1/   500, (   60.00 +/-    59.94) kHz
@@ -166,7 +166,7 @@ Hlt1SMOG2SingleTrackHighPt:                         0/   500, (    0.00 +/-     
 Hlt1SMOG2DiMuonHighMass:                            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2SingleMuon:                                0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2L0Toppi:                                   0/   500, (    0.00 +/-     0.00) kHz
-Inclusive:                                        334/   500, (20040.00 +/-   631.82) kHz
+Inclusive:                                        333/   500, (19980.00 +/-   632.77) kHz
 
 
 seed_validator validation:
@@ -280,7 +280,7 @@ for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% 
 selreport_validator validation:
                                                Events  Candidates
 Hlt1TrackMVA:                                     126         200
-Hlt1TwoTrackMVA:                                  308        1102
+Hlt1TwoTrackMVA:                                  307        1102
 Hlt1D2KK:                                          20          21
 Hlt1D2KPi:                                         27          29
 Hlt1D2PiPi:                                        16          16
@@ -294,7 +294,7 @@ Hlt1XiOmegaLLL:                                     0           0
 Hlt1SingleHighPtMuon:                               2           2
 Hlt1SingleHighPtMuonNoMuID:                         4           6
 Hlt1DiMuonHighMass:                                13          26
-Hlt1DiMuonDisplaced:                               12          16
+Hlt1DiMuonDisplaced:                               11          14
 Hlt1DiMuonSoft:                                     0           0
 Hlt1TrackMuonMVA:                                  10          11
 Hlt1DiMuonNoIP:                                     1           1
@@ -367,12 +367,12 @@ Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 
-Total decisions:      606
-Total tracks:         1285
+Total decisions:      604
+Total tracks:         1284
 Total calos clusters: 20
 Total SVs:            1203
-Total hits:           32848
-Total stdinfo:        15778
+Total hits:           32815
+Total stdinfo:        15768
 
 
 velo_validator validation:

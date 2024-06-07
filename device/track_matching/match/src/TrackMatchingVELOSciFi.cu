@@ -32,105 +32,99 @@ void track_matching_veloSciFi::track_matching_veloSciFi_t::operator()(
   Allen::memset_async<dev_atomics_matched_tracks_t>(arguments, 0, context);
 
   global_function(track_matching_veloSciFi)(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(
-    arguments,
-    constants.dev_magnet_polarity.data(),
-    constants.dev_magnet_parametrization,
-    constants.dev_matching_ghost_killer);
+    arguments, constants.dev_magnet_polarity.data(), constants.dev_matching_ghost_killer);
 }
+namespace {
+  // inspired from https://gitlab.cern.ch/lhcb/Rec/-/blob/master/Pr/PrAlgorithms/src/PrMatchNN.cpp
+  __device__ track_matching::MatchingResult
+  getChi2Match(track_matching_veloSciFi::Parameters parameters, const MiniState velo_state, const MiniState scifi_state)
+  {
+    const float xpos_velo = velo_state.x(), ypos_velo = velo_state.y(), zpos_velo = velo_state.z(),
+                tx_velo = velo_state.tx(), ty_velo = velo_state.ty();
+    const float xpos_scifi = scifi_state.x(), ypos_scifi = scifi_state.y(), zpos_scifi = scifi_state.z(),
+                tx_scifi = scifi_state.tx(), ty_scifi = scifi_state.ty();
 
-// inspired from https://gitlab.cern.ch/lhcb/Rec/-/blob/master/Pr/PrAlgorithms/src/PrMatchNN.cpp
-__device__ track_matching::MatchingResult getChi2Match(
-  track_matching_veloSciFi::Parameters parameters,
-  const MiniState velo_state,
-  const MiniState scifi_state,
-  const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization)
-{
+    const float dSlopeX = tx_velo - tx_scifi;
+    if (std::abs(dSlopeX) > 1.5f)
+      return {
+        9999., 9999., 9999., 9999., 9999., 9999.}; // matching the UT/SciFi slopes in X (bending -> large tolerance)
 
-  const float xpos_velo = velo_state.x(), ypos_velo = velo_state.y(), zpos_velo = velo_state.z(),
-              tx_velo = velo_state.tx(), ty_velo = velo_state.ty();
-  const float xpos_scifi = scifi_state.x(), ypos_scifi = scifi_state.y(), zpos_scifi = scifi_state.z(),
-              tx_scifi = scifi_state.tx(), ty_scifi = scifi_state.ty();
+    const float dSlopeY = ty_velo - ty_scifi;
+    if (std::abs(dSlopeY) > 0.02f)
+      return {9999.f, 9999.f, 9999.f, 9999.f, 9999.f, 9999.f}; // matching the UT/SciFi slopes in Y (no bending)
 
-  const float dSlopeX = tx_velo - tx_scifi;
-  if (std::abs(dSlopeX) > 1.5f)
-    return {9999., 9999., 9999., 9999., 9999., 9999.}; // matching the UT/SciFi slopes in X (bending -> large tolerance)
+    const auto& z_magnet_parameters = parameters.z_magnet_parameters.get();
+    const float zForX = z_magnet_parameters[0] + z_magnet_parameters[1] * std::abs(dSlopeX) +
+                        z_magnet_parameters[2] * dSlopeX * dSlopeX + z_magnet_parameters[3] * std::abs(xpos_scifi) +
+                        z_magnet_parameters[4] * tx_velo * tx_velo;
+    const float dxTol2 = TrackMatchingConsts::dxTol * TrackMatchingConsts::dxTol;
+    const float dxTolSlope2 = TrackMatchingConsts::dxTolSlope * TrackMatchingConsts::dxTolSlope;
+    const float xV = xpos_velo + (zForX - zpos_velo) * tx_velo;
+    // -- This is the function that calculates the 'bending' in y-direction
+    // -- The parametrisation can be derived with the MatchFitParams package
+    const float yV = ypos_velo + (TrackMatchingConsts::zMatchY - zpos_velo) * ty_velo;
+    //+ ty_velo * ( dev_magnet_parametrization->bendYParams[0] * dSlopeX * dSlopeX
+    //       + dev_magnet_parametrization->bendYParams[1] * dSlopeY * dSlopeY );
 
-  const float dSlopeY = ty_velo - ty_scifi;
-  if (std::abs(dSlopeY) > 0.02f)
-    return {9999.f, 9999.f, 9999.f, 9999.f, 9999.f, 9999.f}; // matching the UT/SciFi slopes in Y (no bending)
+    const float xS = xpos_scifi + (zForX - zpos_scifi) * tx_scifi;
+    const float yS = ypos_scifi + (TrackMatchingConsts::zMatchY - zpos_scifi) * ty_scifi;
 
-  const float zForX = dev_magnet_parametrization->zMagnetParamsMatch[0] +
-                      dev_magnet_parametrization->zMagnetParamsMatch[1] * std::abs(dSlopeX) +
-                      dev_magnet_parametrization->zMagnetParamsMatch[2] * dSlopeX * dSlopeX +
-                      dev_magnet_parametrization->zMagnetParamsMatch[3] * std::abs(xpos_scifi) +
-                      dev_magnet_parametrization->zMagnetParamsMatch[4] * tx_velo * tx_velo;
-  const float dxTol2 = TrackMatchingConsts::dxTol * TrackMatchingConsts::dxTol;
-  const float dxTolSlope2 = TrackMatchingConsts::dxTolSlope * TrackMatchingConsts::dxTolSlope;
-  const float xV = xpos_velo + (zForX - zpos_velo) * tx_velo;
-  // -- This is the function that calculates the 'bending' in y-direction
-  // -- The parametrisation can be derived with the MatchFitParams package
-  const float yV = ypos_velo + (TrackMatchingConsts::zMatchY - zpos_velo) * ty_velo;
-  //+ ty_velo * ( dev_magnet_parametrization->bendYParams[0] * dSlopeX * dSlopeX
-  //       + dev_magnet_parametrization->bendYParams[1] * dSlopeY * dSlopeY );
+    const float distX = xS - xV;
+    if (std::abs(distX) > 20.f) return {9999.f, 9999.f, 9999.f, 9999.f, 9999.f, 9999.f}; // to scan
+    const float distY = yS - yV;
+    if (std::abs(distY) > 150.f) return {9999.f, 9999.f, 9999.f, 9999.f, 9999.f, 9999.f}; // to scan
 
-  const float xS = xpos_scifi + (zForX - zpos_scifi) * tx_scifi;
-  const float yS = ypos_scifi + (TrackMatchingConsts::zMatchY - zpos_scifi) * ty_scifi;
+    const float tx2_velo = tx_velo * tx_velo;
+    const float ty2_velo = ty_velo * ty_velo;
+    const float teta2 = tx2_velo + ty2_velo;
+    const float tolX = dxTol2 + dSlopeX * dSlopeX * dxTolSlope2;
+    const float tolY = TrackMatchingConsts::dyTol * TrackMatchingConsts::dyTol +
+                       teta2 * TrackMatchingConsts::dyTolSlope * TrackMatchingConsts::dyTolSlope;
+    const float multiplication_factor_dX = parameters.multiplication_factor_dX;
+    const float multiplication_factor_dY = parameters.multiplication_factor_dY;
+    const float multiplication_factor_dty = parameters.multiplication_factor_dty;
+    const float multiplication_factor_dtx = parameters.multiplication_factor_dtx;
 
-  const float distX = xS - xV;
-  if (std::abs(distX) > 20.f) return {9999.f, 9999.f, 9999.f, 9999.f, 9999.f, 9999.f}; // to scan
-  const float distY = yS - yV;
-  if (std::abs(distY) > 150.f) return {9999.f, 9999.f, 9999.f, 9999.f, 9999.f, 9999.f}; // to scan
+    float chi2 =
+      (tolX != 0.f and tolY != 0.f ?
+         multiplication_factor_dX * distX * distX / tolX + multiplication_factor_dY * distY * distY / tolY :
+         9999.f);
+    // float chi2 = ( tolX != 0 and tolY != 0 ? distX * distX / tolX : 9999. );
 
-  const float tx2_velo = tx_velo * tx_velo;
-  const float ty2_velo = ty_velo * ty_velo;
-  const float teta2 = tx2_velo + ty2_velo;
-  const float tolX = dxTol2 + dSlopeX * dSlopeX * dxTolSlope2;
-  const float tolY = TrackMatchingConsts::dyTol * TrackMatchingConsts::dyTol +
-                     teta2 * TrackMatchingConsts::dyTolSlope * TrackMatchingConsts::dyTolSlope;
-  const float multiplication_factor_dX = parameters.multiplication_factor_dX;
-  const float multiplication_factor_dY = parameters.multiplication_factor_dY;
-  const float multiplication_factor_dty = parameters.multiplication_factor_dty;
-  const float multiplication_factor_dtx = parameters.multiplication_factor_dtx;
+    chi2 += multiplication_factor_dty * dSlopeY * dSlopeY;
+    chi2 += multiplication_factor_dtx * dSlopeX * dSlopeX;
 
-  float chi2 =
-    (tolX != 0.f and tolY != 0.f ?
-       multiplication_factor_dX * distX * distX / tolX + multiplication_factor_dY * distY * distY / tolY :
-       9999.f);
-  // float chi2 = ( tolX != 0 and tolY != 0 ? distX * distX / tolX : 9999. );
+    return {dSlopeX, dSlopeY, distX, distY, zForX, chi2};
+  }
+  // Parametrization from SciFiTrackForwarding.cpp , found to work better than FastMomentumEstimate.cpp
+  // https://gitlab.cern.ch/lhcb/Rec/-/blob/master/Pr/SciFiTrackForwarding/src/SciFiTrackForwarding.cpp#L321
+  //
+  // @jzhuo (24/05/2024): update the same parametrization format with Sim10aU1 MinBias simulation (MD+MU),
+  //                      the term related to txT^4 and tyV^4 are deprecated because it increase the
+  //                      mean square error.
+  __device__ float computeQoverP(
+    const float txV,
+    const float tyV,
+    const float txT,
+    const float magSign,
+    const track_matching_veloSciFi::Parameters::momentum_parameters_t::t& momentum_parameters)
+  {
+    const auto dslope = txT - txV;
+    const auto abs_p = momentum_parameters[0] +
+                       (momentum_parameters[1] + momentum_parameters[2] * (txT * txT) +
+                        momentum_parameters[3] * (txT * txT * txT * txT) + momentum_parameters[4] * (txT * txV) +
+                        momentum_parameters[5] * (tyV * tyV) + momentum_parameters[6] * (tyV * tyV * tyV * tyV) +
+                        momentum_parameters[7] * (txV * txV)) /
+                         fabsf(dslope);
 
-  chi2 += multiplication_factor_dty * dSlopeY * dSlopeY;
-  chi2 += multiplication_factor_dtx * dSlopeX * dSlopeX;
-
-  return {dSlopeX, dSlopeY, distX, distY, zForX, chi2};
-}
-// Parametrization from SciFiTrackForwarding.cpp , found to work better than FastMomentumEstimate.cpp
-// https://gitlab.cern.ch/lhcb/Rec/-/blob/master/Pr/SciFiTrackForwarding/src/SciFiTrackForwarding.cpp#L321
-//
-__device__ float computeQoverP(
-  const float txV,
-  const float tyV,
-  const float txT,
-  const float magSign,
-  const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization)
-{
-  const float txT2 = txT * txT;
-  const float tyV2 = tyV * tyV;
-  const float coef =
-    (dev_magnet_parametrization->momentumParams[0] +
-     txT2 * (dev_magnet_parametrization->momentumParams[1] + dev_magnet_parametrization->momentumParams[2] * txT2) +
-     dev_magnet_parametrization->momentumParams[3] * txT * txV +
-     tyV2 * (dev_magnet_parametrization->momentumParams[4] + dev_magnet_parametrization->momentumParams[5] * tyV2) +
-     dev_magnet_parametrization->momentumParams[6] * txV * txV);
-
-  const float factor = std::copysign(magSign, txT - txV);
-  const float cp = (magSign * coef) / (txT - txV) + factor * dev_magnet_parametrization->momentumParams[7];
-  return 1.f / cp;
-}
+    const auto charge = ((dslope > 0) ? 1.f : -1.f) * magSign;
+    return charge / abs_p;
+  }
+} // namespace
 
 __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
   track_matching_veloSciFi::Parameters parameters,
   const float* dev_magnet_polarity,
-  const TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization,
   const Allen::NeuralNetwork::Model::MatchingGhostKiller* dev_matching_ghost_killer)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -175,14 +169,14 @@ __global__ void track_matching_veloSciFi::track_matching_veloSciFi(
 
       const auto velo_track_index = ut_selected_velo_tracks[ivelo];
       const auto endvelo_state = velo_states.state(velo_track_index);
-      auto matchingInfo = getChi2Match(parameters, endvelo_state, scifi_state, dev_magnet_parametrization);
+      auto matchingInfo = getChi2Match(parameters, endvelo_state, scifi_state);
       if (matchingInfo.chi2 < TrackMatchingConsts::maxChi2 && n_matched < TrackMatchingConsts::max_num_tracks) {
         track_matching::Match BestMatch = {static_cast<int>(velo_track_index), matchingInfo.chi2};
 
         // Ghost killing
         const auto magSign = -dev_magnet_polarity[0];
-        const auto qop =
-          computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, dev_magnet_parametrization);
+        const auto qop = computeQoverP(
+          endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, parameters.momentum_parameters.get());
 
         const auto velo_eta = asinhf(1.f / hypotf(endvelo_state.tx(), endvelo_state.ty()));
         float ghost_killer_inputs[Allen::NeuralNetwork::Model::MatchingGhostKiller::nInput] = {matchingInfo.zForX,

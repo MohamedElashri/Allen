@@ -1,6 +1,6 @@
 long_validator validation:
 TrackChecker output                               :       158/     4045   3.91% ghosts
-for P>3GeV,Pt>0.5GeV                              :        23/     1364   1.69% ghosts
+for P>3GeV,Pt>0.5GeV                              :        23/     1357   1.69% ghosts
 01_long                                           :      3364/     4578  73.48% ( 72.68%),        93 (  2.69%) clones, pur  99.92%, hit eff  98.68%
 02_long_P>5GeV                                    :      2759/     3038  90.82% ( 90.58%),        76 (  2.68%) clones, pur  99.93%, hit eff  99.19%
 03_long_strange                                   :       159/      226  70.35% ( 69.82%),         4 (  2.45%) clones, pur  99.86%, hit eff  98.62%
