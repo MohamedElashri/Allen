@@ -32,7 +32,7 @@ def allen_non_event_data_config(dump_geometry=False,
     return dump_geometry, out_dir, beamline_offset
 
 
-def allen_odin():
+def allen_odin(stream=""):
     return AllenODINProducer().ODIN
 
 
