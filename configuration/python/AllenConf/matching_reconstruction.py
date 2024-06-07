@@ -60,7 +60,10 @@ def make_velo_scifi_matches(
         multiplication_factor_dY=0.2,
         multiplication_factor_dty=937.5,
         multiplication_factor_dtx=2.0,
-        ghost_killer_threshold=ghost_killer_threshold)
+        ghost_killer_threshold=ghost_killer_threshold,
+        momentum_parameters=(0, 1.239076e+03, 5.650170e+02, -7.683592e+01,
+                             6.148917e+02, 2.071115e+03, -6.795680e+03,
+                             4.577582e+02))
 
     prefix_sum_matched_tracks = make_algorithm(
         host_prefix_sum_t,
