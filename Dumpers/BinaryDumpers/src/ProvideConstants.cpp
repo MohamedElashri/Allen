@@ -159,7 +159,11 @@ StatusCode ProvideConstants::initialize()
     electronid_mva_model_reader.lambda());
 
   // Allen Consumers
-  register_consumers(m_updater.get(), m_constants, m_updater->bankTypes());
+  std::unordered_set<BankTypes> subdetectors;
+  for (unsigned bt = 0; bt < NBankTypes; ++bt) {
+    subdetectors.insert(static_cast<BankTypes>(bt));
+  }
+  register_consumers(m_updater.get(), m_constants, subdetectors);
 
   return StatusCode::SUCCESS;
 }

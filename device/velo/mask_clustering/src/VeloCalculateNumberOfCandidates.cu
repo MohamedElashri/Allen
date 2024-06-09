@@ -31,13 +31,13 @@ __global__ void velo_calculate_number_of_candidates_kernel(
     unsigned number_of_candidates = 0;
     for (unsigned raw_bank_number = 0; raw_bank_number < velo_raw_event.number_of_raw_banks(); ++raw_bank_number) {
       const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-      if (raw_bank.type == LHCb::RawBank::VP || raw_bank.type == LHCb::RawBank::Velo) {
-        if constexpr (decoding_version == 2 || decoding_version == 3) {
-          number_of_candidates += raw_bank.count;
-        }
-        else {
-          number_of_candidates += raw_bank.size / 4;
-        }
+      if (raw_bank.type != LHCb::RawBank::VP) continue;
+
+      if constexpr (decoding_version == 2 || decoding_version == 3) {
+        number_of_candidates += raw_bank.count;
+      }
+      else {
+        number_of_candidates += raw_bank.size / 4;
       }
       if (blockIdx.x == 0) {
         if constexpr (decoding_version > 3) {

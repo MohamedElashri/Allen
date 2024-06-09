@@ -356,8 +356,7 @@ int allen(
   MonitoringPrinter monitoringPrinter {"MonitoringPrinter", Gaudi::svcLocator(), 10, enable_monitoring_printing};
 
   if (register_monitoring_counters) {
-    Gaudi::Monitoring::Hub* secondHub = &Gaudi::svcLocator()->monitoringHub();
-    secondHub->addSink(&monitoringPrinter);
+    Gaudi::svcLocator()->monitoringHub().addSink(&monitoringPrinter);
   }
 
   // Set up event-loop monitoring
@@ -1164,6 +1163,12 @@ loop_error:
 
   // Reset device
   Allen::device_reset();
+
+#ifndef ALLEN_STANDALONE
+  if (register_monitoring_counters) {
+    Gaudi::svcLocator()->monitoringHub().removeSink(&monitoringPrinter);
+  }
+#endif
 
   if (allen_control) {
     zmqSvc->send(*allen_control, (error_count ? "ERROR" : "NOT_READY"));

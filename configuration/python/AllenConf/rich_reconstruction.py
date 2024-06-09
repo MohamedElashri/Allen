@@ -13,15 +13,18 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
 
-def decode_rich():
+def decode_rich(rich=1):
+    if rich not in (1, 2):
+        raise ValueError("rich must be 1 or 2")
+
     number_of_events = initialize_number_of_events()
 
     rich_banks = make_algorithm(
-        data_provider_t, name=f"rich_banks", bank_type="Rich1")
+        data_provider_t, name=f"rich{rich}_banks", bank_type=f"Rich{rich}")
 
     rich_decoding = make_algorithm(
         rich_decoding_t,
-        name=f"rich_decoding",
+        name=f"rich{rich}_decoding",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_raw_bank_version_t=rich_banks.host_raw_bank_version_t,
         dev_rich_raw_input_t=rich_banks.dev_raw_banks_t,
