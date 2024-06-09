@@ -13,17 +13,21 @@ DeviceFTGeometry                       INFO Conditions DB is compatible with FT 
 ApplicationMgr                         INFO Application Manager Stopped successfully
 HLTControlFlowMgr                      INFO
 HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #passed
-NONLAZY_OR: allen_reconstruction                #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
- NONLAZY_OR: allen_non_event_data               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpBeamline/DeviceBeamline                   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpVPGeometry/DeviceVPGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpCaloGeometry/DeviceCaloGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpMagneticField/DeviceMagneticField         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpFTGeometry/DeviceFTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpMuonGeometry/DeviceMuonGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  DumpMuonTable/DeviceMuonTable                 #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
- NONLAZY_OR: dump_geometry                      #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
-  TransposeRawBanks/TransposeRawBanks_becb8877  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+NONLAZY_OR: allen_reconstruction               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+ NONLAZY_OR: allen_non_event_data              #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpBeamline/DeviceBeamline                  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpVPGeometry/DeviceVPGeometry              #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpUTGeometry/DeviceUTGeometry              #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpUTLookupTables/DeviceUTLookupTables      #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpCaloGeometry/DeviceCaloGeometry          #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpMagneticField/DeviceMagneticField        #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpFTGeometry/DeviceFTGeometry              #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpMuonGeometry/DeviceMuonGeometry          #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpMuonTable/DeviceMuonTable                #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpRichPDMDBMapping/DeviceRichPDMDBMapping  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  DumpRichCableMapping/DeviceRichCableMapping  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+ NONLAZY_OR: dump_geometry                     #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+  createODIN/Decode_ODIN                       #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
 HLTControlFlowMgr                      INFO Histograms converted successfully according to request.
 ApplicationMgr                         INFO Application Manager Finalized successfully
 ApplicationMgr                         INFO Application Manager Terminated successfully
@@ -45,6 +49,19 @@ DeviceMuonGeometry                     INFO Number of counters : 1
 DeviceMuonTable                        INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_MuonLookupTables"                 |   1052980 |
+DeviceRichCableMapping                 INFO Number of counters : 1
+ |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
+ | "BytesWritten_RichCableMapping"                 |    469512 |
+DeviceRichPDMDBMapping                 INFO Number of counters : 1
+ |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
+ | "BytesWritten_RichPDMDBMapping"                 |      9296 |
+DeviceUTGeometry                       INFO Number of counters : 2
+ |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
+ | "BytesWritten_UTBoards"                         |     84688 |
+ | "BytesWritten_UTGeometry"                       |     41924 |
+DeviceUTLookupTables                   INFO Number of counters : 1
+ |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
+ | "BytesWritten_UTLookupTables"                   |     15544 |
 DeviceVPGeometry                       INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_VeloGeometry"                     |     16376 |
