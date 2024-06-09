@@ -80,3 +80,17 @@ gaudi_add_module(BinaryDumpersModule
                    BinaryDumpers)
 
 gaudi_add_tests(QMTest)
+
+pybind11_add_module(bank_mapping NO_EXTRAS src/lib/bindings.cpp)
+target_link_libraries(bank_mapping
+                      PRIVATE
+                        AllenCommon
+                        HostCommon
+                      PUBLIC
+                        pybind11::pybind11
+                        ${Python_LIBRARIES})
+install(TARGETS bank_mapping
+        EXPORT
+          Allen
+        LIBRARY DESTINATION
+          ${GAUDI_INSTALL_PYTHONDIR}/Allen)

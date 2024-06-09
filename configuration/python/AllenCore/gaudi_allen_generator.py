@@ -8,23 +8,39 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from PyConf.application import default_raw_event
+from PyConf.application import default_raw_banks
 from PyConf.Algorithms import (ProvideConstants, TransposeRawBanks,
                                ProvideRuntimeOptions)
 from GaudiKernel.DataHandle import DataHandle
 from PyConf import configurable
+from functools import cache
+
+
+# Get the LHCb::RawBank::BankTypes that correspond to and HLT1/Allen
+# subdetectors
+@cache
+def lhcb_bank_types(allen_sd):
+    from Allen.bank_mapping import mapping
+    lhcb_bts = set()
+    for lhcb_bt, allen_sds in mapping.items():
+        if allen_sd in allen_sds:
+            lhcb_bts.add(lhcb_bt)
+    return lhcb_bts
 
 
 # Additional algorithms required by every Gaudi-Allen sequence
 @configurable
-def make_transposed_raw_banks(rawbank_list, make_raw=default_raw_event):
+def make_transposed_raw_banks(subdetector, make_raw_banks=default_raw_banks):
+    bank_types = lhcb_bank_types(subdetector)
+
     return TransposeRawBanks(
-        RawEventLocations=[make_raw(bank_types=[k]) for k in rawbank_list],
-        BankTypes=rawbank_list).AllenRawInput
+        RawBankLocations=[make_raw_banks(k) for k in bank_types],
+        BankTypes=[subdetector]
+        if subdetector is not None else []).AllenRawInput
 
 
 @configurable
-def allen_runtime_options(rawbank_list, filename="allen_monitor.root"):
+def allen_runtime_options(subdetector, filename="allen_monitor.root"):
     from Configurables import AllenROOTService
     rootService = AllenROOTService()
     prop = "MonitorFile"
@@ -37,8 +53,7 @@ def allen_runtime_options(rawbank_list, filename="allen_monitor.root"):
         rootService.MonitorFile = filename
 
     return ProvideRuntimeOptions(
-        AllenBanksLocation=make_transposed_raw_banks(
-            rawbank_list=rawbank_list))
+        AllenBanksLocation=make_transposed_raw_banks(subdetector=subdetector))
 
 
 def get_constants():
@@ -59,21 +74,14 @@ def make_algorithm(algorithm, name, *args, **kwargs):
     from PyConf.application import make_odin
     from PyConf.Algorithms import odin_provider_t, host_init_event_list_t
 
-    # Deduce the types requested
-    bank_type = kwargs.get('bank_type', '')
-    rawbank_list = []
+    # Only ODIN has a dedicated provider that doesn't have the
+    # `bank_type` property
     if algorithm.type is odin_provider_t.type:
-        rawbank_list = ["ODIN"]
-    elif bank_type == "ECal":
-        rawbank_list = ["Calo", "EcalPacked"]
-    elif bank_type == "VP":
-        rawbank_list = ["VP", "VPRetinaCluster"]
-    elif "Rich" in bank_type:
-        rawbank_list = ["Rich"]
-    elif bank_type:
-        rawbank_list = [bank_type]
+        subdetector = "ODIN"
+    else:
+        subdetector = kwargs.get('bank_type', None)
 
-    rto = allen_runtime_options(rawbank_list)
+    rto = allen_runtime_options(subdetector)
     cs = get_constants()
 
     # Pass dev_event_list to inputs that are of type dev_event_list

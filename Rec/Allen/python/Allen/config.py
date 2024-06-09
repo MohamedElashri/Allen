@@ -66,34 +66,6 @@ def allen_json_sequence(sequence="hlt1_pp_default", json=None):
     return (sequence, json)
 
 
-def allen_detectors(allen_node):
-    # Rather hacky, but there is currently no other way to figure out
-    # which bank types are needed, and thus which geometry providers
-    # should be added. This can be removed once the UT initializes
-    # with DD4hep
-    nodes, algs = all_nodes_and_algs(allen_node)
-    config = OrderedDict()
-    for alg in algs:
-        config.update(alg.configuration())
-
-    bank_types = chain.from_iterable([
-        v['BankTypes'] for k, v in config.items()
-        if k[0].getType() == 'TransposeRawBanks'
-    ])
-    bank_types = set(bank_types)
-    bank_types.discard('ODIN')
-
-    def _swap(bt, other):
-        if bt in bank_types:
-            bank_types.remove(bt)
-            bank_types.add(other)
-
-    for bt, other in [('Calo', 'ECal'), ('EcalPacked', 'ECal')]:
-        _swap(bt, other)
-
-    return bank_types
-
-
 def configured_bank_types(sequence_json):
     if type(sequence_json) == str:
         sequence_json = json.loads(sequence_json)
@@ -140,9 +112,9 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
         'PVs': None,
         'tracks': None,
         'Plume': None,
-        'HCal': None,
     }
 
+    set_detector_list = bank_types is not None
     if type(bank_types) == list:
         bank_types = set(bank_types)
     elif bank_types is None:
@@ -162,13 +134,16 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     if not UseDD4Hep:
         # MagneticFieldSvc is required for non-DD4hep builds
         appMgr.ExtSvc.append("MagneticFieldSvc")
+    elif set_detector_list:
+        # Configure those detectors that we need
+        from Configurables import LHCb__Det__LbDD4hep__DD4hepSvc as DD4hepSvc
+        DD4hepSvc().DetectorList = ["/world"] + list(
+            filter(lambda d: d is not None,
+                   [detector_names.get(det, det) for det in bank_types]))
 
     data_bank_types = bank_types.copy()
     data_bank_types.remove('Magnet')
-    appMgr.ExtSvc.extend(
-        AllenUpdater(
-            TriggerEventLoop=allen_event_loop,
-            BankTypes=list(data_bank_types)))
+    appMgr.ExtSvc.extend(AllenUpdater(TriggerEventLoop=allen_event_loop))
 
     algorithm_converters = []
 
@@ -217,9 +192,7 @@ def run_allen_reconstruction(options, make_reconstruction, public_tools=[]):
     reco_node = reconstruction if not hasattr(reconstruction,
                                               "node") else reconstruction.node
 
-    detectors = allen_detectors(reco_node)
-    non_event_data_node = setup_allen_non_event_data_service(
-        bank_types=detectors)
+    non_event_data_node = setup_allen_non_event_data_service()
 
     allen_node = CompositeNode(
         'allen_reconstruction',
