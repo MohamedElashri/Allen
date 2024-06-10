@@ -19,7 +19,7 @@ void ut_find_permutation::ut_find_permutation_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_ut_hit_permutations_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments));
+  set_size<dev_ut_permutations_t>(arguments, first<host_accumulated_number_of_ut_clusters_t>(arguments));
 }
 
 void ut_find_permutation::ut_find_permutation_t::operator()(
@@ -44,26 +44,30 @@ __global__ void ut_find_permutation::ut_find_permutation(
   const unsigned sector_group_number = blockIdx.y;
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 
-  const UT::HitOffsets ut_hit_offsets {
-    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-
   UT::ConstPreDecodedHits ut_pre_decoded_hits {
     parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
 
-  const unsigned sector_group_offset = ut_hit_offsets.sector_group_offset(sector_group_number);
-  const unsigned sector_group_number_of_hits = ut_hit_offsets.sector_group_number_of_hits(sector_group_number);
+  const UT::HitOffsets ut_hit_offsets {
+    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  const UT::HitOffsets ut_clustering_offsets {
+    parameters.dev_ut_clustering_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+
+  const unsigned sector_group_hits_offset = ut_hit_offsets.sector_group_offset(sector_group_number);
+  const unsigned sector_group_clustering_offset = ut_clustering_offsets.sector_group_offset(sector_group_number);
+  const unsigned sector_group_number_of_hits = ut_clustering_offsets.sector_group_number_of_hits(sector_group_number);
 
   if (sector_group_number_of_hits > 0) {
     // Sort according to the natural order in s_y_begin
-    // Store the permutation found into parameters.dev_ut_hit_permutations
+    // Store the permutation found into parameters.dev_ut_permutations
     find_permutation(
       0,
-      sector_group_offset,
+      sector_group_hits_offset,
+      sector_group_clustering_offset,
       sector_group_number_of_hits,
-      parameters.dev_ut_hit_permutations,
+      parameters.dev_ut_permutations,
       [&](const int a, const int b) -> int {
-        const auto value_a = ut_pre_decoded_hits.sort_key(sector_group_offset + a);
-        const auto value_b = ut_pre_decoded_hits.sort_key(sector_group_offset + b);
+        const auto value_a = ut_pre_decoded_hits.sort_key(sector_group_hits_offset + a);
+        const auto value_b = ut_pre_decoded_hits.sort_key(sector_group_hits_offset + b);
         return (value_a > value_b) - (value_a < value_b);
       });
   }

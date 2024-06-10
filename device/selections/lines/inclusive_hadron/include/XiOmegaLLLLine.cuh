@@ -31,24 +31,31 @@ namespace xi_omega_lll_line {
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
-
+    PROPERTY(L_DOCA_max_t, "L_DOCA_max", "max p,pi DOCA for Lambda LL", float) L_DOCA_max;
+    PROPERTY(L_VCHI2_max_t, "L_VCHI2_max", "Lambda vertex chi2", float) L_VCHI2_max;
+    PROPERTY(L_M_min_t, "L_M_min", "min mass of Lambda candidate", float) L_M_min;
     PROPERTY(L_M_max_t, "L_M_max", "max mass of Lambda candidate", float) L_M_max;
+    PROPERTY(Xi_M_min_t, "Xi_M_min", "min mass given pion mass hypothesis for tertiary track", float) Xi_M_min;
+    PROPERTY(Xi_M_max_t, "Xi_M_max", "max mass given pion mass hypothesis for tertiary track", float) Xi_M_max;
+    PROPERTY(Omega_M_min_t, "Omega_M_min", "min mass given kaon mass hypothesis for tertiary track", float)
+    Omega_M_min;
+    PROPERTY(Omega_M_max_t, "Omega_M_max", "max mass given kaon mass hypothesis for tertiary track", float)
+    Omega_M_max;
+    PROPERTY(XimOmmt_M_max_t, "XimOmmt_M_max", "max mass given muon mass hypothesis for companion track", float)
+    XimOmmt_M_max;
     PROPERTY(t_PT_min_t, "t_PT_min", "min companion track pT", float) t_PT_min;
     PROPERTY(t_MIPCHI2_min_t, "t_MIPCHI2_min", "min companion track IP chi2", float) t_MIPCHI2_min;
-    PROPERTY(L_t_DOCA_max_t, "L_t_DOCA_max", "DOCA of Lambda and companion track", float) L_t_DOCA_max;
-    PROPERTY(Xi_M_max_t, "Xi_M_max", "max mass given pion mass hypothesis for companion track", float) Xi_M_max;
-    PROPERTY(Omega_M_max_t, "Omega_M_max", "max mass given kaon mass hypothesis for companion track", float)
-    Omega_M_max;
-    PROPERTY(VZ_min_t, "VZ_min", "min vertex z position", float) VZ_min;
-    PROPERTY(VZ_max_t, "VZ_max", "max vertex z position", float) VZ_max;
-    PROPERTY(BPVVDZ_min_t, "BPVVDZ_min", "min distance (in z) to best PV", float) BPVVDZ_min;
-    PROPERTY(LVDZ_min_t, "LVDZ_min", "min distance (in z) to Lambda vertex", float) LVDZ_min;
-    PROPERTY(BPVDIRA_min_t, "BPVDIRA_min", "min DIRA to best PV", float) BPVDIRA_min;
-    PROPERTY(BPVDRHO_min_t, "BPVDRHO_min", "min radial distance to best PV", float) BPVDRHO_min;
 
-    DEVICE_OUTPUT(Xi_M_t, float) Xi_M;
-    DEVICE_OUTPUT(Omega_M_t, float) Omega_M;
-    DEVICE_OUTPUT(MCORR_t, float) MCORR;
+    PROPERTY(LVDZ_min_t, "LVDZ_min", "min distance (in z) of Lambda to Xi/Omega vertex", float) LVDZ_min;
+    PROPERTY(XimOmmVDZ_min_t, "XimOmmVDZ_min", "min distance (in z) of Xi/Omega to charm vertex", float) XimOmmVDZ_min;
+    PROPERTY(BPVZ_min_t, "BPVZ_min", "min primary vertex z position", float) BPVZ_min;
+    PROPERTY(VZ_max_t, "VZ_max", "max vertex z position", float) VZ_max;
+    PROPERTY(VZ_min_t, "VZ_min", "min vertex z position", float) VZ_min;
+    PROPERTY(BPVVDZ_min_t, "BPVVDZ_min", "min distance (in z) to best PV", float) BPVVDZ_min;
+    PROPERTY(BPVVDRHO_min_t, "BPVVDRHO_min", "min radial distance to best PV", float) BPVVDRHO_min;
+
+    DEVICE_OUTPUT(Xipi_M_t, float) Xipi_M;
+    DEVICE_OUTPUT(Omegapi_M_t, float) Omegapi_M;
     DEVICE_OUTPUT(PT_t, float) PT;
     DEVICE_OUTPUT(DOCA_t, float) DOCA;
     DEVICE_OUTPUT(VZ_t, float) VZ;
@@ -57,12 +64,28 @@ namespace xi_omega_lll_line {
     DEVICE_OUTPUT(BPVDIRA_t, float) BPVDIRA;
     DEVICE_OUTPUT(BPVIP_t, float) BPVIP;
     DEVICE_OUTPUT(BPVFD_t, float) BPVFD;
+    DEVICE_OUTPUT(Xi_M_t, float) Xi_M;
+    DEVICE_OUTPUT(Omega_M_t, float) Omega_M;
+    DEVICE_OUTPUT(XimOmm_PT_t, float) XimOmm_PT;
+    DEVICE_OUTPUT(XimOmm_DOCA_t, float) XimOmm_DOCA;
+    DEVICE_OUTPUT(XimOmm_VZ_t, float) XimOmm_VZ;
+    DEVICE_OUTPUT(XimOmm_BPVVDZ_t, float) XimOmm_BPVVDZ;
+    DEVICE_OUTPUT(XimOmm_BPVVDRHO_t, float) XimOmm_BPVVDRHO;
+    DEVICE_OUTPUT(XimOmm_BPVDIRA_t, float) XimOmm_BPVDIRA;
+    DEVICE_OUTPUT(XimOmm_BPVIP_t, float) XimOmm_BPVIP;
+    DEVICE_OUTPUT(XimOmm_BPVFD_t, float) XimOmm_BPVFD;
     DEVICE_OUTPUT(t_P_t, float) t_P;
     DEVICE_OUTPUT(t_PT_t, float) t_PT;
     DEVICE_OUTPUT(t_MIPCHI2_t, float) t_MIPCHI2;
     DEVICE_OUTPUT(t_MIP_t, float) t_MIP;
     DEVICE_OUTPUT(t_CHI2NDF_t, float) t_CHI2NDF;
     DEVICE_OUTPUT(t_Q_t, float) t_Q;
+    DEVICE_OUTPUT(XimOmm_t_P_t, float) XimOmm_t_P;
+    DEVICE_OUTPUT(XimOmm_t_PT_t, float) XimOmm_t_PT;
+    DEVICE_OUTPUT(XimOmm_t_MIPCHI2_t, float) XimOmm_t_MIPCHI2;
+    DEVICE_OUTPUT(XimOmm_t_MIP_t, float) XimOmm_t_MIP;
+    DEVICE_OUTPUT(XimOmm_t_CHI2NDF_t, float) XimOmm_t_CHI2NDF;
+    DEVICE_OUTPUT(XimOmm_t_Q_t, float) XimOmm_t_Q;
     DEVICE_OUTPUT(p_P_t, float) p_P;
     DEVICE_OUTPUT(p_PT_t, float) p_PT;
     DEVICE_OUTPUT(p_MIPCHI2_t, float) p_MIPCHI2;
@@ -118,9 +141,8 @@ namespace xi_omega_lll_line {
       bool sel);
 
     using monitoring_types = std::tuple<
-      Xi_M_t,
-      Omega_M_t,
-      MCORR_t,
+      Xipi_M_t,
+      Omegapi_M_t,
       PT_t,
       DOCA_t,
       VZ_t,
@@ -129,12 +151,28 @@ namespace xi_omega_lll_line {
       BPVDIRA_t,
       BPVIP_t,
       BPVFD_t,
+      Xi_M_t,
+      Omega_M_t,
+      XimOmm_PT_t,
+      XimOmm_DOCA_t,
+      XimOmm_VZ_t,
+      XimOmm_BPVVDZ_t,
+      XimOmm_BPVVDRHO_t,
+      XimOmm_BPVDIRA_t,
+      XimOmm_BPVIP_t,
+      XimOmm_BPVFD_t,
       t_P_t,
       t_PT_t,
       t_MIPCHI2_t,
       t_MIP_t,
       t_CHI2NDF_t,
       t_Q_t,
+      XimOmm_t_P_t,
+      XimOmm_t_PT_t,
+      XimOmm_t_MIPCHI2_t,
+      XimOmm_t_MIP_t,
+      XimOmm_t_CHI2NDF_t,
+      XimOmm_t_Q_t,
       p_P_t,
       p_PT_t,
       p_MIPCHI2_t,
@@ -164,34 +202,40 @@ namespace xi_omega_lll_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
+    Property<L_DOCA_max_t> m_L_DOCA_max {this, 180.f * Gaudi::Units::um};
+    Property<L_VCHI2_max_t> m_L_VCHI2_max {this, 24.f};
+    Property<L_M_min_t> m_L_M_min {this, 1090.f * Gaudi::Units::MeV};
     Property<L_M_max_t> m_L_M_max {this, 1140.f * Gaudi::Units::MeV};
-    Property<t_PT_min_t> m_t_PT_min {this, 80.f * Gaudi::Units::MeV};
-    Property<t_MIPCHI2_min_t> m_t_MIPCHI2_min {this, 9.f};
-    Property<L_t_DOCA_max_t> m_L_t_DOCA_max {this, 500.f * Gaudi::Units::um};
-    Property<VZ_min_t> m_VZ_min {this, -341.f * Gaudi::Units::mm};
+    Property<BPVZ_min_t> m_BPVZ_min {this, -200.f * Gaudi::Units::mm};
+    Property<VZ_min_t> m_VZ_min {this, -200.f * Gaudi::Units::mm};
     Property<VZ_max_t> m_VZ_max {this, 640.f * Gaudi::Units::mm};
-    Property<Xi_M_max_t> m_Xi_M_max {this, 1350.f * Gaudi::Units::MeV};
-    Property<Omega_M_max_t> m_Omega_M_max {this, 1710.f * Gaudi::Units::MeV};
-    Property<BPVVDZ_min_t> m_BPVVDZ_min {this, 4.f * Gaudi::Units::mm};
-    Property<BPVDRHO_min_t> m_BPVDRHO_min {this, 0.5f * Gaudi::Units::mm};
-    Property<LVDZ_min_t> m_LVDZ_min {this, 8.f * Gaudi::Units::mm};
-    Property<BPVDIRA_min_t> m_BPVDIRA_min {this, 0.99};
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<Xi_M_min_t> m_Xi_M_min {this, 1292.f * Gaudi::Units::MeV};
+    Property<Xi_M_max_t> m_Xi_M_max {this, 1352.f * Gaudi::Units::MeV};
+    Property<Omega_M_min_t> m_Omega_M_min {this, 1647.f * Gaudi::Units::MeV};
+    Property<Omega_M_max_t> m_Omega_M_max {this, 1697.f * Gaudi::Units::MeV};
+    Property<t_PT_min_t> m_t_PT_min {this, 280.f * Gaudi::Units::MeV};
+    Property<t_MIPCHI2_min_t> m_t_MIPCHI2_min {this, 6.f};
+    Property<XimOmmt_M_max_t> m_XimOmmt_M_max {this, 6.f * Gaudi::Units::GeV};
+    Property<LVDZ_min_t> m_LVDZ_min {this, 4.f * Gaudi::Units::mm};
+    Property<XimOmmVDZ_min_t> m_XimOmmVDZ_min {this, 4.f * Gaudi::Units::mm};
+    Property<BPVVDZ_min_t> m_BPVVDZ_min {this, 1.f * Gaudi::Units::mm};
+    Property<BPVVDRHO_min_t> m_BPVVDRHO_min {this, 75.f * Gaudi::Units::um};
+    Property<enable_monitoring_t> m_enable_monitoring {this, true};
     Property<enable_tupling_t> m_enable_tupling {this, false};
 
     Allen::Monitoring::Histogram<> m_histogram_Lambda_mass {
       this,
       "Lambda_mass_XiOmegaLLL",
       "m(p#pi^{#minus}) [MeV]",
-      {125u, 1077.5f * Gaudi::Units::MeV, 1140.f * Gaudi::Units::MeV}};
+      {100u, 1090.f * Gaudi::Units::MeV, 1140.f * Gaudi::Units::MeV}};
     Allen::Monitoring::Histogram<> m_histogram_Xi_mass {this,
                                                         "Xi_mass",
                                                         "m(#Lambda#pi^{#minus}) [MeV]",
-                                                        {96u, 1254.f * Gaudi::Units::MeV, 1350.f * Gaudi::Units::MeV}};
+                                                        {60u, 1292.f * Gaudi::Units::MeV, 1352.f * Gaudi::Units::MeV}};
     Allen::Monitoring::Histogram<> m_histogram_Omega_mass {
       this,
       "Omega_mass",
       "m(#LambdaK^{#minus}) [MeV]",
-      {100u, 1610.f * Gaudi::Units::MeV, 1710.f * Gaudi::Units::MeV}};
+      {50u, 1647.f * Gaudi::Units::MeV, 1697.f * Gaudi::Units::MeV}};
   };
 } // namespace xi_omega_lll_line

@@ -38,6 +38,6 @@ namespace host_seeding_XZ_validator {
       const Allen::Context&) const;
 
   private:
-    Property<root_output_filename_t> m_root_output_filename {this, "PrCheckerPlots.root"};
+    Property<root_output_filename_t> m_root_output_filename {this, "PrCheckerPlotsSeedXZ.root"};
   };
 } // namespace host_seeding_XZ_validator

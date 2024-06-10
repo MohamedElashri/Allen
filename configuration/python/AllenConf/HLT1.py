@@ -12,11 +12,10 @@ from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
                              make_checkCylPV, make_checkPseudoPV,
                              make_invert_event_list, sd_error_filter,
                              make_tae_activity_filter)
-from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter, make_event_type
+from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter, make_event_type, make_odin_orbit
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node, make_dq_node
-
 from AllenConf.hlt1_inclusive_hadron_lines import *
 from AllenConf.hlt1_charm_lines import *
 from AllenConf.hlt1_calibration_lines import *
@@ -24,16 +23,13 @@ from AllenConf.hlt1_muon_lines import *
 from AllenConf.hlt1_electron_lines import *
 from AllenConf.hlt1_monitoring_lines import *
 from AllenConf.hlt1_smog2_lines import *
-
 from AllenConf.hlt1_photon_lines import make_diphotonhighmass_line
 from AllenConf.persistency import make_persistency
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.lumi_reconstruction import lumi_reconstruction
-from AllenConf.plume_reconstruction import decode_plume
 from AllenConf.enum_types import TrackingType, includes_matching
-from AllenConf.thresholds.thresholds import Thresholds
 from AllenConf.get_thresholds import get_thresholds
 
 
@@ -47,7 +43,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
     dileptons = reconstructed_objects["dilepton_secondary_vertices"]
     v0s = reconstructed_objects["v0_secondary_vertices"]
-    v0_track_pairs = reconstructed_objects["v0_sv_track_pairs"]
+    lambda_track_from_c = reconstructed_objects["lambda_track_from_c"]
+    v0_twotrack_pairs = reconstructed_objects["v0_sv_twotrack_pairs"]
     dstars = reconstructed_objects["dstars"]
     v0_pairs = reconstructed_objects["v0_pairs"]
     muon_stubs = reconstructed_objects["muon_stubs"]
@@ -113,11 +110,11 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 enable_tupling=enable_tupling),
             make_two_ks_line(long_tracks, v0_pairs, name="Hlt1TwoKs"),
             make_lambda_ll_detached_track_line(
-                v0_track_pairs,
+                lambda_track_from_c,
                 name="Hlt1LambdaLLDetachedTrack",
                 enable_tupling=enable_tupling),
-            make_xi_omega_lll_line(
-                v0_track_pairs,
+            make_detached_xi_omega_lll_line(
+                v0_twotrack_pairs,
                 name="Hlt1XiOmegaLLL",
                 enable_tupling=enable_tupling),
         ]
@@ -369,20 +366,38 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     return [line_maker(line) for line in lines]
 
 
-def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name):
+def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
+                          odin_err_filter):
     lines = []
     if with_lumi:
-        lines.append(
+        odin_lumi_event = make_event_type(event_type='Lumi')
+        with line_maker.bind(prefilter=odin_err_filter + [odin_lumi_event]):
+            lines += [
+                line_maker(
+                    make_passthrough_line(name=lumiline_name, pre_scaler=1.))
+            ]
+
+        odin_orbit = make_odin_orbit(
+            odin_orbit_modulo=30, odin_orbit_remainder=1)
+        with line_maker.bind(
+                prefilter=odin_err_filter + [odin_lumi_event, odin_orbit]):
+            lines += [
+                line_maker(
+                    make_passthrough_line(
+                        name=lumilinefull_name, pre_scaler=1.))
+            ]
+
+    with line_maker.bind(prefilter=odin_err_filter):
+        lines += [line_maker(make_odin_calib_line(name="Hlt1ODINCalib"))]
+
+    ee_far_from_activity = make_event_type(event_type="ee_far_from_activity")
+    with line_maker.bind(prefilter=odin_err_filter + [ee_far_from_activity]):
+        lines += [
             line_maker(
-                make_odin_event_type_line(
-                    name=lumiline_name, odin_event_type='Lumi')))
-        lines.append(
-            line_maker(
-                make_odin_event_and_orbit_line(
-                    name=lumilinefull_name,
-                    odin_event_type='Lumi',
-                    odin_orbit_modulo=30,
-                    odin_orbit_remainder=1)))
+                make_passthrough_line(
+                    name="Hlt1ODINeeFarFromActivity", pre_scaler=1.))
+        ]
+
     return lines
 
 
@@ -420,7 +435,8 @@ def alignment_monitoring_lines(reconstructed_objects,
             material_interaction_tracks,
             min_z_materialvertex_seed=700,
             max_z_materialvertex_seed=1000,
-            name="Hlt1MaterialVertexSeeds_DWFS")
+            name="Hlt1MaterialVertexSeeds_DWFS",
+            pre_scaler=0.1)
     ]
 
     if with_muon:
@@ -445,12 +461,6 @@ def alignment_monitoring_lines(reconstructed_objects,
 
     with line_maker.bind(prefilter=prefilters_no_bx):
         lines += [
-            line_maker(
-                make_beam_gas_line(
-                    velo_tracks,
-                    velo_states,
-                    beam_crossing_type=1,
-                    name="Hlt1BeamGas")),
             line_maker(
                 make_velo_micro_bias_line(
                     velo_tracks,
@@ -648,7 +658,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsBeamOne",
                 beam_crossing_type=1,
-                pre_scaler=1e-2,
+                pre_scaler=1. if enableBGI_full else 1e-2,
                 post_scaler=1.),
             prefilter=prefilter + [bx_NoBB, velo_states_z_all]),
         line_maker(
@@ -672,7 +682,7 @@ def default_bgi_activity_lines(pvs,
             make_beam_line(
                 name="Hlt1BGIPseudoPVsUpBeamBeam",
                 beam_crossing_type=3,
-                pre_scaler=1e-3,
+                pre_scaler=1. if enableBGI_full else 1e-3,
                 post_scaler=1.),
             prefilter=prefilter + [velo_states_z_up])
     ]
@@ -791,32 +801,32 @@ def default_bgi_activity_lines(pvs,
     """
     Detector activity lines for BGI data collection.
     """
-    lines += [
-        line_maker(
-            make_velo_clusters_micro_bias_line(
-                decoded_velo,
-                name="Hlt1BGIVeloClustersMicroBias",
-                min_velo_clusters=5,
-            ),
-            prefilter=prefilter + [bx_NoBB]),
-        line_maker(
-            make_calo_digits_minADC_line(
-                decoded_calo,
-                name="Hlt1BGICaloDigits",
-                minADC=60,
-            ),
-            prefilter=prefilter + [bx_NoBB]),
-        # line_maker(
-        #     make_plume_activity_line(
-        #         decoded_plume,
-        #         name="Hlt1BGIPlumeActivity",
-        #         min_number_plume_adcs_over_min=1,
-        #         min_plume_adc=276,
-        #     ),
-        #     prefilter=prefilter + [bx_NoBB]),
-        # FIXME Hlt1BGIPlumeActivity can be re-enabled when v2 support
-        #       is implemented in the Plume decoding.
-    ]
+    # lines += [
+    #     line_maker(
+    #         make_velo_clusters_micro_bias_line(
+    #             decoded_velo,
+    #             name="Hlt1BGIVeloClustersMicroBias",
+    #             min_velo_clusters=5,
+    #         ),
+    #         prefilter=prefilter + [bx_NoBB]),
+    #     line_maker(
+    #         make_calo_digits_minADC_line(
+    #             decoded_calo,
+    #             name="Hlt1BGICaloDigits",
+    #             minADC=60,
+    #         ),
+    #         prefilter=prefilter + [bx_NoBB]),
+    #     # line_maker(
+    #     #     make_plume_activity_line(
+    #     #         decoded_plume,
+    #     #         name="Hlt1BGIPlumeActivity",
+    #     #         min_number_plume_adcs_over_min=1,
+    #     #         min_plume_adc=276,
+    #     #     ),
+    #     #     prefilter=prefilter + [bx_NoBB]),
+    #     # FIXME Hlt1BGIPlumeActivity can be re-enabled when v2 support
+    #     #       is implemented in the Plume decoding.
+    # ]
     return lines
 
 
@@ -862,6 +872,7 @@ def setup_hlt1_node(enablePhysics=True,
                        ] if with_odin_filter else []
     beam_beam_filter = [make_bxtype(bx_type=3)]
     prefilters = odin_err_filter + beam_beam_filter + gec
+
     physics_lines = []
     if enablePhysics:
         with line_maker.bind(prefilter=prefilters):
@@ -871,12 +882,11 @@ def setup_hlt1_node(enablePhysics=True,
 
     lumiline_name = "Hlt1ODINLumi"
     lumilinefull_name = "Hlt1ODIN1kHzLumi"
+
+    monitoring_lines = odin_monitoring_lines(
+        with_lumi, lumiline_name, lumilinefull_name, odin_err_filter)
+
     with line_maker.bind(prefilter=odin_err_filter):
-        monitoring_lines = odin_monitoring_lines(with_lumi, lumiline_name,
-                                                 lumilinefull_name)
-        monitoring_lines += [
-            line_maker(make_odin_calib_line(name="Hlt1ODINCalib"))
-        ]
         physics_lines += [line_maker(make_passthrough_line())]
 
     if tae_passthrough:
@@ -914,7 +924,7 @@ def setup_hlt1_node(enablePhysics=True,
                 make_velo_micro_bias_line(
                     reconstructed_objects["velo_tracks"],
                     name="Hlt1VeloMicroBiasVeloClosing",
-                    post_scaler=3.e-2))
+                    post_scaler=3.e-3))
         ]
 
     if EnableGEC:
@@ -935,6 +945,17 @@ def setup_hlt1_node(enablePhysics=True,
     monitoring_lines += alignment_monitoring_lines(
         reconstructed_objects, prefilters, odin_err_filter + gec, with_muon)
 
+    bx_BE = make_bxtype(bx_type=1)
+    with line_maker.bind(prefilter=odin_err_filter + gec + [bx_BE]):
+        monitoring_lines += [
+            line_maker(
+                make_beam_gas_line(
+                    reconstructed_objects["velo_tracks"],
+                    reconstructed_objects["velo_states"],
+                    beam_crossing_type=1,
+                    name="Hlt1BeamGas")),
+        ]
+
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in physics_lines
                        ] + [tup[0] for tup in monitoring_lines]
@@ -944,8 +965,6 @@ def setup_hlt1_node(enablePhysics=True,
 
     if withSMOG2:
         SMOG2_prefilters, SMOG2_lines = [], []
-
-        bx_BE = make_bxtype(bx_type=1)
         with line_maker.bind(prefilter=odin_err_filter + [bx_BE]):
             SMOG2_lines += [
                 line_maker(

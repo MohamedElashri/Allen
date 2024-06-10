@@ -69,7 +69,7 @@ def make_dst_line(dstars,
         enable_tupling=enable_tupling,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_svs_t=dstars["host_number_of_sv_track_combinations"],
-        dev_particle_container_t=dstars["dev_sv_track_combination"],
+        dev_particle_container_t=dstars["dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
         post_scaler_hash_string=post_scaler_hash_string or name + '_post')
 

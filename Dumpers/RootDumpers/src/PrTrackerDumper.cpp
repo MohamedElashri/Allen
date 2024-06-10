@@ -198,6 +198,9 @@ public:
     const std::vector<unsigned int> UT_lhcbID,
     const std::vector<unsigned int> SciFi_lhcbID,
     const unsigned int nPrim,
+    const unsigned int nbHits_in_Velo,
+    const unsigned int nbHits_in_UT,
+    const unsigned int nbHits_in_SciFi,
     DumpUtils::Writer& outfile) const;
 
   LHCb::RawEvent operator()(
@@ -283,6 +286,9 @@ void PrTrackerDumper::write_MCP_info(
   const vector<unsigned int> UT_lhcbID,
   const vector<unsigned int> SciFi_lhcbID,
   const unsigned int nPrim,
+  const unsigned int nbHits_in_Velo,
+  const unsigned int nbHits_in_UT,
+  const unsigned int nbHits_in_SciFi,
   DumpUtils::Writer& out_buffer) const
 {
   out_buffer.write(key);
@@ -311,6 +317,9 @@ void PrTrackerDumper::write_MCP_info(
   out_buffer.write(DecayOriginMother_tau);
   out_buffer.write(charge);
   out_buffer.write(nPrim);
+  out_buffer.write(nbHits_in_Velo);
+  out_buffer.write(nbHits_in_UT);
+  out_buffer.write(nbHits_in_SciFi);
   int n_IDs = Velo_lhcbID.size();
   out_buffer.write(n_IDs);
   for (unsigned int velo_id : Velo_lhcbID) {
@@ -900,6 +909,9 @@ LHCb::RawEvent PrTrackerDumper::operator()(
       UT_lhcbID,
       FT_lhcbID,
       nPrim,
+      nbHits_in_Velo,
+      nbHits_in_UT,
+      nbHits_in_SciFi,
       rawBuffer);
     if (tree) (*tree)->Fill();
   } // MCParticles
@@ -907,7 +919,7 @@ LHCb::RawEvent PrTrackerDumper::operator()(
   // write rawBuffer to rawEvent
   constexpr int bankSize = 64512;
   for (const auto [sourceID, data] : LHCb::range::enumerate(LHCb::range::chunk(rawBuffer.buffer(), bankSize))) {
-    rawEvent.addBank(sourceID, m_bankType, 2, data);
+    rawEvent.addBank(sourceID, m_bankType, 3, data);
   }
 
   if (msgLevel(MSG::DEBUG)) {

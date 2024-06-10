@@ -31,16 +31,25 @@ namespace UT {
       static constexpr int thre_offset = 15; // threshold
     }                                        // namespace v4
     namespace v5 {
-      static constexpr int strip_mask = 0xFFE0;
+      static constexpr int strip_mask = 0x3FE0;
       static constexpr int strip_offset = 5;
+      static constexpr int adc_mask = 0x1F;
+      static constexpr int adc_offset = 0;
       static constexpr unsigned n_lanes = 6;
       static constexpr unsigned max_region_index = 12;
     } // namespace v5
+
+    // MaxAdc is unimplemented
+    enum class PositionMethod { AdcWeighting = 0, GeoWeighting = 1 };
 
     static constexpr unsigned ut_number_of_sectors_per_board = 6;
     static constexpr unsigned ut_number_of_geometry_sectors = 1048;
     static constexpr unsigned ut_decoding_in_order_threads_x = 64;
 
+    __host__ __device__ inline bool allowed_rawbank_type(const uint8_t type)
+    {
+      return (type == LHCb::RawBank::UT || type == LHCb::RawBank::UTError);
+    }
   } // namespace Decoding
 
   static constexpr int num_atomics = 3;

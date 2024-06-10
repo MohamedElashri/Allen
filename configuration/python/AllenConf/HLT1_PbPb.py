@@ -11,20 +11,14 @@
 from AllenConf.utils import make_gec, line_maker, make_checkEcalEnergy, make_lowmult, sd_error_filter
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_calibration_lines import (
-    make_d2kpi_align_line,
-    make_passthrough_line,
-    make_rich_1_line,
-    make_rich_2_line,
-    make_displaced_dimuon_mass_line,
-    make_di_muon_mass_align_line,
-)
+    make_d2kpi_align_line, make_passthrough_line, make_rich_1_line,
+    make_rich_2_line, make_displaced_dimuon_mass_line,
+    make_di_muon_mass_align_line, make_odin_calib_line)
 from AllenConf.hlt1_monitoring_lines import (
     make_velo_micro_bias_line,
-    make_odin_event_type_line,
-    make_odin_event_type_with_decoding_line,
-    make_odin_event_and_orbit_line,
     make_beam_gas_line,
     make_velo_clusters_micro_bias_line,
+    make_odin_event_type_with_decoding_line,
 )
 from AllenConf.hlt1_heavy_ions_lines import (
     make_heavy_ion_event_line,
@@ -39,7 +33,7 @@ from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
 from AllenConf.validators import rate_validation
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenConf.odin import odin_error_filter, make_bxtype, tae_filter
+from AllenConf.odin import odin_error_filter, make_bxtype, tae_filter, make_event_type, make_odin_orbit
 from AllenConf.persistency import make_persistency
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.enum_types import TrackingType, includes_matching
@@ -246,29 +240,31 @@ def mini_physics_lines(reconstructed_objects):
     return [line_maker(line) for line in lines]
 
 
-def odin_monitoring_lines(with_lumi,
-                          lumiline_name,
-                          lumilinefull_name,
-                          with_gec=False):
+def odin_monitoring_lines(lumiline_name, lumilinefull_name, with_gec,
+                          odin_err_filter, odin_lumi):
     lines = []
-    if with_lumi:
-        if with_gec:
-            # explicitly require decoding of subdetectors outside of the GEC
-            lines.append(
-                make_odin_event_type_with_decoding_line(
-                    name=lumiline_name, odin_event_type='Lumi'))
-        else:
-            lines.append(
-                make_odin_event_type_line(
-                    name=lumiline_name, odin_event_type='Lumi'))
-        lines.append(
-            make_odin_event_and_orbit_line(
-                name=lumilinefull_name,
-                odin_event_type='Lumi',
-                odin_orbit_modulo=30,
-                odin_orbit_remainder=1))
 
-    return [line_maker(line) for line in lines]
+    if with_gec:
+        with line_maker.bind(prefilter=odin_err_filter):
+            lines.append(
+                line_maker(
+                    make_odin_event_type_with_decoding_line(
+                        name=lumiline_name, odin_event_type='Lumi')))
+    else:
+        with line_maker.bind(prefilter=odin_err_filter + [odin_lumi]):
+            lines += [
+                line_maker(
+                    make_passthrough_line(name=lumiline_name, pre_scaler=1.))
+            ]
+
+    odin_orbit = make_odin_orbit(odin_orbit_modulo=30, odin_orbit_remainder=1)
+    with line_maker.bind(prefilter=odin_err_filter + [odin_lumi, odin_orbit]):
+        lines += [
+            line_maker(
+                make_passthrough_line(name=lumilinefull_name, pre_scaler=1.))
+        ]
+
+    return lines
 
 
 def alignment_monitoring_lines(reconstructed_objects,
@@ -288,8 +284,6 @@ def alignment_monitoring_lines(reconstructed_objects,
             long_tracks, long_track_particles, name="Hlt1RICH1Alignment"),
         make_rich_2_line(
             long_tracks, long_track_particles, name="Hlt1RICH2Alignment"),
-        make_beam_gas_line(
-            velo_tracks, velo_states, beam_crossing_type=1, name="Hlt1BeamGas")
     ]
 
     if reco_particles:
@@ -435,15 +429,36 @@ def setup_hlt1_node(withMCChecking=False,
     lumilinefull_name = "Hlt1ODIN1kHzLumi"
     # decoding based lumi line
     with line_maker.bind(prefilter=odin_err_filter):
-        monitoring_lines = odin_monitoring_lines(with_lumi, lumiline_name,
-                                                 lumilinefull_name, EnableGEC)
-
         physics_lines += [line_maker(make_passthrough_line())]
+
+    monitoring_lines = []
+    if with_lumi:
+        odin_lumi_event = make_event_type(event_type='Lumi')
+        monitoring_lines += odin_monitoring_lines(
+            lumiline_name, lumilinefull_name, EnableGEC, odin_err_filter,
+            odin_lumi_event)
+
+    with line_maker.bind(prefilter=odin_err_filter):
+        monitoring_lines += [
+            line_maker(make_odin_calib_line(name="Hlt1ODINCalib"))
+        ]
 
     # alignment lines within the GEC
     with line_maker.bind(prefilter=(prefilter_upc if mini else prefilters)):
         monitoring_lines += alignment_monitoring_lines(
             reconstructed_objects, reco_particles, with_muon)
+
+    bx_BE = make_bxtype(bx_type=1)
+    with line_maker.bind(
+            prefilter=(prefilter_upc if mini else prefilters) + [bx_BE]):
+        monitoring_lines += [
+            line_maker(
+                make_beam_gas_line(
+                    reconstructed_objects["velo_tracks"],
+                    reconstructed_objects["velo_states"],
+                    beam_crossing_type=1,
+                    name="Hlt1BeamGas"))
+        ]
 
     if tae_passthrough:
         with line_maker.bind(prefilter=odin_err_filter + [tae_filter()]):
@@ -454,14 +469,13 @@ def setup_hlt1_node(withMCChecking=False,
             ]
 
     if enableBGI:
-        with make_velo_clusters_micro_bias_line.bind(pre_scaler=0.01):
-            monitoring_lines += default_bgi_activity_lines(
-                reconstructed_objects["pvs"],
-                reconstructed_objects["velo_states"],
-                decoded_velo=decode_velo(),
-                decoded_calo=decoded_calo,
-                prefilter=(prefilter_upc_bgi if mini else prefilters_bgi),
-                enableBGI_full=True)
+        monitoring_lines += default_bgi_activity_lines(
+            reconstructed_objects["pvs"],
+            reconstructed_objects["velo_states"],
+            decoded_velo=decode_velo(),
+            decoded_calo=decoded_calo,
+            prefilter=(prefilter_upc_bgi if mini else prefilters_bgi),
+            enableBGI_full=True)
 
     with line_maker.bind(prefilter=[sd_error_filter()]):
         physics_lines += [

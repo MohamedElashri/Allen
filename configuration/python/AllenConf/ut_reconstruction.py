@@ -10,17 +10,20 @@
 ###############################################################################
 from AllenCore.algorithms import (
     data_provider_t, ut_calculate_number_of_hits_t, host_prefix_sum_t,
-    ut_pre_decode_t, ut_find_permutation_t, ut_decode_raw_banks_in_order_t,
     ut_select_velo_tracks_t, ut_search_windows_t,
     ut_select_velo_tracks_with_windows_t, compass_ut_t,
-    ut_copy_track_hit_number_t, ut_consolidate_tracks_t)
+    ut_copy_track_hit_number_t, ut_consolidate_tracks_t,
+    ut_cluster_and_pre_decode_t, ut_find_permutation_t, ut_decode_in_order_t)
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
 
 
-def decode_ut():
+def decode_ut(
+        cluster_ut_hits=True,
+        position_method=0,  # 0 = AdcWeighting, 1 = GeoWeighting
+        max_cluster_size=128):
     number_of_events = initialize_number_of_events()
     ut_banks = make_algorithm(data_provider_t, name='ut_banks', bank_type="UT")
 
@@ -30,6 +33,7 @@ def decode_ut():
         dev_ut_raw_input_t=ut_banks.dev_raw_banks_t,
         dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
         dev_ut_raw_input_sizes_t=ut_banks.dev_raw_sizes_t,
+        dev_ut_raw_input_types_t=ut_banks.dev_raw_types_t,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_raw_bank_version_t=ut_banks.host_raw_bank_version_t)
 
@@ -38,9 +42,9 @@ def decode_ut():
         name='prefix_sum_ut_hits_{hash}',
         dev_input_buffer_t=ut_calculate_number_of_hits.dev_ut_hit_sizes_t)
 
-    ut_pre_decode = make_algorithm(
-        ut_pre_decode_t,
-        name='ut_pre_decode_{hash}',
+    ut_cluster_and_pre_decode = make_algorithm(
+        ut_cluster_and_pre_decode_t,
+        name='ut_cluster_and_pre_decode_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_ut_hits_t=prefix_sum_ut_hits.
@@ -48,44 +52,54 @@ def decode_ut():
         dev_ut_raw_input_t=ut_banks.dev_raw_banks_t,
         dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
         dev_ut_raw_input_sizes_t=ut_banks.dev_raw_sizes_t,
+        dev_ut_raw_input_types_t=ut_banks.dev_raw_types_t,
         dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
-        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t)
+        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
+        # UT clustering configurables
+        cluster_ut_hits=cluster_ut_hits,
+        position_method=position_method,
+        max_cluster_size=max_cluster_size,
+        save_clusters_above_max=False)  # False to be consistent with HLT2
+
+    prefix_sum_ut_clusters = make_algorithm(
+        host_prefix_sum_t,
+        name='prefix_sum_ut_clusters_{hash}',
+        dev_input_buffer_t=ut_cluster_and_pre_decode.dev_ut_cluster_count_t)
 
     ut_find_permutation = make_algorithm(
         ut_find_permutation_t,
         name='ut_find_permutation_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_accumulated_number_of_ut_hits_t=prefix_sum_ut_hits.
+        host_accumulated_number_of_ut_clusters_t=prefix_sum_ut_clusters.
         host_total_sum_holder_t,
-        dev_ut_pre_decoded_hits_t=ut_pre_decode.dev_ut_pre_decoded_hits_t,
-        dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t)
+        dev_ut_pre_decoded_hits_t=ut_cluster_and_pre_decode.
+        dev_ut_pre_decoded_hits_t,
+        dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
+        dev_ut_clustering_offsets_t=prefix_sum_ut_clusters.dev_output_buffer_t)
 
-    ut_decode_raw_banks_in_order = make_algorithm(
-        ut_decode_raw_banks_in_order_t,
-        name='ut_decode_raw_banks_in_order_{hash}',
+    ut_decode_in_order = make_algorithm(
+        ut_decode_in_order_t,
+        name='ut_decode_in_order_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_accumulated_number_of_ut_hits_t=prefix_sum_ut_hits.
+        host_accumulated_number_of_ut_clusters_t=prefix_sum_ut_clusters.
         host_total_sum_holder_t,
-        dev_ut_raw_input_t=ut_banks.dev_raw_banks_t,
-        dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
-        dev_ut_raw_input_sizes_t=ut_banks.dev_raw_sizes_t,
+        dev_ut_pre_decoded_hits_t=ut_cluster_and_pre_decode.
+        dev_ut_pre_decoded_hits_t,
         dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
-        dev_ut_pre_decoded_hits_t=ut_pre_decode.dev_ut_pre_decoded_hits_t,
-        dev_ut_hit_permutations_t=ut_find_permutation.
-        dev_ut_hit_permutations_t,
-        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t)
+        dev_ut_permutations_t=ut_find_permutation.dev_ut_permutations_t,
+        dev_ut_clustering_offsets_t=prefix_sum_ut_clusters.dev_output_buffer_t)
 
     return {
         "dev_ut_hits":
-        ut_decode_raw_banks_in_order.dev_ut_hits_t,
+        ut_decode_in_order.dev_ut_hits_t,
         "dev_ut_hit_offsets":
-        prefix_sum_ut_hits.dev_output_buffer_t,
+        prefix_sum_ut_clusters.dev_output_buffer_t,
         "host_ut_hit_offsets":
-        prefix_sum_ut_hits.host_output_buffer_t,
+        prefix_sum_ut_clusters.host_output_buffer_t,
         "host_accumulated_number_of_ut_hits":
-        prefix_sum_ut_hits.host_total_sum_holder_t
+        prefix_sum_ut_clusters.host_total_sum_holder_t
     }
 
 

@@ -82,8 +82,8 @@ def overlap_rect(rect1, rect2):
 def overlap_g(graph, x1, y1, x2, y2):
     x_values = list(graph.GetX())
     y_values = list(graph.GetY())
-    x_err = list(graph.GetEX()) or [0] * len(x_values)
-    y_err = list(graph.GetEY()) or [0] * len(y_values)
+    x_err = [0] * len(x_values)
+    y_err = [0] * len(y_values)
 
     for x, ex, y, ey in zip(x_values, x_err, y_values, y_err):
         # Could maybe be less conservative

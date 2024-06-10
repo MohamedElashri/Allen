@@ -28,6 +28,11 @@ namespace Allen::Monitoring {
     // Algorithms have finished their initializations for all streams
     // This function will init the memory and communicate back pointers to algorithms
 
+    // Allocate memory for buffer here to avoid segfault in sequences that do not use monitoring
+    m_stream_current_buffer.resize(number_of_streams);
+    m_stream_done.resize(number_of_streams);
+    std::fill(m_stream_done.begin(), m_stream_done.end(), true);
+
     if (m_registered_accumulators.empty()) return;
 
     // * Group registered allocator by unique name (they should be registered once per stream)
@@ -61,10 +66,6 @@ namespace Allen::Monitoring {
       // but for convenience, we delegate the creation to the Allen::Accumulator
       acc.owners[0]->registerAccumulator();
     }
-
-    m_stream_current_buffer.resize(number_of_streams);
-    m_stream_done.resize(number_of_streams);
-    std::fill(m_stream_done.begin(), m_stream_done.end(), true);
   }
 
   void AccumulatorManager::mergeAndReset(bool singlethreaded)

@@ -32,7 +32,9 @@ gaudi_add_module(AllenWrapper
                    src/ProvideRuntimeOptions.cpp
                    src/CompareRecAllenCaloDigits.cpp
                    src/CompareRecAllenMuonHits.cpp
-		   src/CompareRecAllenUTHitsMCCheck.cpp
+                   src/CompareRecAllenUTHits.cpp
+                   src/GaudiAllenTransformAllenRecUTHits.cpp
+                   src/MCCheckRecAllenUTHits.cpp
                    src/CompareRecAllenFTClusters.cpp
                    src/CompareRecAllenVPHits.cpp
                    src/TestVeloClusters.cpp

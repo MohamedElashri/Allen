@@ -31,18 +31,25 @@ namespace lambda_ll_detached_track_line {
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
-
+    PROPERTY(pi_PT_min_t, "pi_PT_min", "pT of pion candidate", float) pi_PT_min;
+    PROPERTY(p_PT_min_t, "p_PT_min", "pT of proton candidate", float) p_PT_min;
+    PROPERTY(pi_MIPCHI2_min_t, "pi_MIPCHI2_min", "min IP chi2 of pion candidate", float) pi_MIPCHI2_min;
+    PROPERTY(p_MIPCHI2_min_t, "p_MIPCHI2_min", "min IP chi2 of proton candidate", float) p_MIPCHI2_min;
+    PROPERTY(L_PT_min_t, "L_PT_min", "pT of Lambda candidate", float) L_PT_min;
+    PROPERTY(L_DOCA_max_t, "L_DOCA_max", "DOCA of proton and pion", float) L_DOCA_max;
+    PROPERTY(L_VCHI2_max_t, "L_VCHI2_max", "Lambda vertex chi2", float) L_VCHI2_max;
+    PROPERTY(L_BPVFDCHI2_min_t, "L_BPVFDCHI2_min", "flight distance chi2 of Lambda candidate", float) L_BPVFDCHI2_min;
+    PROPERTY(L_M_min_t, "L_M_min", "min mass of Lambda candidate", float) L_M_min;
     PROPERTY(L_M_max_t, "L_M_max", "max mass of Lambda candidate", float) L_M_max;
-    PROPERTY(t_PT_min_t, "t_PT_min", "min companion track pT", float) t_PT_min;
-    PROPERTY(L_t_DOCA_max_t, "L_t_DOCA_max", "DOCA of Lambda and companion track", float) L_t_DOCA_max;
+    PROPERTY(t_MIPCHI2_min_t, "t_MIPCHI2_min", "min companion track IP chi2", float) t_MIPCHI2_min;
+    PROPERTY(t_PT_min_t, "t_PT_min", "min companion track PT", float) t_PT_min;
     PROPERTY(M_max_t, "M_max", "max mass given pion mass hypothesis for companion track", float) M_max;
-    PROPERTY(PT_min_t, "PT_min", "min combination pT", float) PT_min;
     PROPERTY(VZ_min_t, "VZ_min", "min vertex z position", float) VZ_min;
     PROPERTY(VZ_max_t, "VZ_max", "max vertex z position", float) VZ_max;
     PROPERTY(BPVVDZ_min_t, "BPVVDZ_min", "min distance (in z) to best PV", float) BPVVDZ_min;
+    PROPERTY(BPVVDRHO_min_t, "BPVVDRHO_min", "min distance (in z) to best PV", float) BPVVDRHO_min;
     PROPERTY(LVDZ_min_t, "LVDZ_min", "min distance (in z) to Lambda vertex", float) LVDZ_min;
-    PROPERTY(BPVDIRA_min_t, "BPVDIRA_min", "min DIRA to best PV", float) BPVDIRA_min;
-    PROPERTY(BPVFD_min_t, "BPVFD_min", "min distance to best PV", float) BPVFD_min;
+    PROPERTY(SUMPT_min_t, "SUMPT_min", "sum of Lambda and track pT", float) SUMPT_min;
 
     DEVICE_OUTPUT(M_t, float) M;
     DEVICE_OUTPUT(MCORR_t, float) MCORR;
@@ -158,35 +165,37 @@ namespace lambda_ll_detached_track_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
+    Property<pi_PT_min_t> m_pi_PT_min {this, 130.f * Gaudi::Units::MeV};
+    Property<p_PT_min_t> m_p_PT_min {this, 1200.f * Gaudi::Units::MeV};
+    Property<pi_MIPCHI2_min_t> m_pi_MIPCHI2_min {this, 64.f};
+    Property<p_MIPCHI2_min_t> m_p_MIPCHI2_min {this, 12.f};
+    Property<L_PT_min_t> m_L_PT_min {this, 1400.f * Gaudi::Units::MeV};
+    Property<L_DOCA_max_t> m_L_DOCA_max {this, 100.f * Gaudi::Units::um};
+    Property<L_VCHI2_max_t> m_L_VCHI2_max {this, 16.f};
+    Property<L_BPVFDCHI2_min_t> m_L_BPVFDCHI2_min {this, 240.f};
+    Property<L_M_min_t> m_L_M_min {this, 1090.f * Gaudi::Units::MeV};
     Property<L_M_max_t> m_L_M_max {this, 1140.f * Gaudi::Units::MeV};
-    Property<t_PT_min_t> m_t_PT_min {this, 400.f * Gaudi::Units::MeV};
-    Property<L_t_DOCA_max_t> m_L_t_DOCA_max {this, 200.f * Gaudi::Units::um};
-    Property<VZ_min_t> m_VZ_min {this, -341.f * Gaudi::Units::mm};
-    Property<VZ_max_t> m_VZ_max {this, 400.f * Gaudi::Units::mm};
-    Property<M_max_t> m_M_max {this, 3.0f * Gaudi::Units::GeV};
-    Property<PT_min_t> m_PT_min {this, 1.2f * Gaudi::Units::GeV};
-    Property<BPVVDZ_min_t> m_BPVVDZ_min {this, 0.1f * Gaudi::Units::mm};
-    Property<BPVFD_min_t> m_BPVFD_min {this, 0.2f * Gaudi::Units::mm};
+    Property<t_MIPCHI2_min_t> m_t_MIPCHI2_min {this, 12.f};
+    Property<t_PT_min_t> m_t_PT_min {this, 700.f * Gaudi::Units::MeV};
+    Property<VZ_min_t> m_VZ_min {this, -200.f * Gaudi::Units::mm};
+    Property<VZ_max_t> m_VZ_max {this, 250.f * Gaudi::Units::mm};
+    Property<M_max_t> m_M_max {this, 3.6f * Gaudi::Units::GeV};
+    Property<BPVVDZ_min_t> m_BPVVDZ_min {this, 1.5f * Gaudi::Units::mm};
+    Property<BPVVDRHO_min_t> m_BPVVDRHO_min {this, 120.f * Gaudi::Units::um};
     Property<LVDZ_min_t> m_LVDZ_min {this, 8.f * Gaudi::Units::mm};
-    Property<BPVDIRA_min_t> m_BPVDIRA_min {this, 0.9};
-    /*Property<histogram_Lambda_mass_min_t> m_histogramLambdaMassMin {this, 1077.5f * Gaudi::Units::MeV};
-    Property<histogram_Lambda_mass_max_t> m_histogramLambdaMassMax {this, 1140.f * Gaudi::Units::MeV};
-    Property<histogram_Lambda_mass_nbins_t> m_histogramLambdaMassNBins {this, 125u};
-    Property<histogram_LambdaPi_mass_min_t> m_histogramLambdaPiMassMin {this, 1.25f * Gaudi::Units::GeV};
-    Property<histogram_LambdaPi_mass_max_t> m_histogramLambdaPiMassMax {this, 3.f * Gaudi::Units::GeV};
-    Property<histogram_LambdaPi_mass_nbins_t> m_histogramLambdaPiMassNBins {this, 175u};*/
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<SUMPT_min_t> m_SUMPT_min {this, 2.8f * Gaudi::Units::GeV};
+    Property<enable_monitoring_t> m_enable_monitoring {this, true};
     Property<enable_tupling_t> m_enable_tupling {this, false};
 
     Allen::Monitoring::Histogram<> m_histogram_Lambda_mass {
       this,
       "Lambda_mass_LambdaLLDetachedTrack",
       "m(p#pi^{#minus}) [MeV]",
-      {125u, 1077.5f * Gaudi::Units::MeV, 1140.f * Gaudi::Units::MeV}};
+      {100u, 1090.f * Gaudi::Units::MeV, 1140.f * Gaudi::Units::MeV}};
     Allen::Monitoring::Histogram<> m_histogram_LambdaPi_mass {
       this,
-      "LambdaPi_mass",
+      "LambdaTrack_mass",
       "m(#Lambda#pi^{+}) [MeV]",
-      {175u, 1.25f * Gaudi::Units::GeV, 3.f * Gaudi::Units::GeV}};
+      {94u, 1.25f * Gaudi::Units::GeV, 3.6f * Gaudi::Units::GeV}};
   };
 } // namespace lambda_ll_detached_track_line

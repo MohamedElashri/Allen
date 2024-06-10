@@ -99,7 +99,7 @@ namespace FilterTracks {
     Property<track_min_ip_either_t> m_minip_either {this, 0.06f * Gaudi::Units::mm};
     Property<track_max_chi2ndof_t> m_maxchi2ndof {this, 10.0f};
     Property<doca_max_t> m_maxdoca {this, 1.f * Gaudi::Units::mm};
-    Property<sum_pt_min_t> m_minsumpt {this, 400.0f};
+    Property<sum_pt_min_t> m_minsumpt {this, 400.0f * Gaudi::Units::MeV};
     Property<require_os_pair_t> m_require_os_pair {this, false};
     Property<require_same_pv_t> m_require_same_pv {this, true};
     Property<require_muon_t> m_require_muon {this, false};

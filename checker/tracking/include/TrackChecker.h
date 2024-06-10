@@ -353,6 +353,7 @@ public:
       const auto& track = tracks[i_track];
       m_histos->fillTotalHistos(
         mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV,
+        mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nbHits_in_SciFi,
         static_cast<double>(track.eta),
         static_cast<double>(track.p),
         static_cast<double>(track.pt));
@@ -369,6 +370,7 @@ public:
         ++nghostsperevt;
         m_histos->fillGhostHistos(
           mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV,
+          mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nbHits_in_SciFi,
           static_cast<double>(track.eta),
           static_cast<double>(track.p),
           static_cast<double>(track.pt));

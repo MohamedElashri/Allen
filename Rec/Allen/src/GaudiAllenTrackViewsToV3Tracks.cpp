@@ -408,23 +408,34 @@ namespace GaudiAllen::Converters::v3 {
   template<typename TrackProxy, typename AllenTrack>
   static bool update_states(TrackProxy& outTrack, const AllenTrack& track, std::vector<KalmanVeloStateWithQoP> states)
   {
-
+    using LHCb::Event::Enum::Track::FitHistory;
     switch (outTrack.type()) {
     case OutTrackType::Velo:
-      return update_states_impl(outTrack, track, states, LHCb::Event::v3::available_states_t<OutTrackType::Velo> {});
-    case OutTrackType::VeloBackward:
-      return update_states_impl(
-        outTrack, track, states, LHCb::Event::v3::available_states_t<OutTrackType::VeloBackward> {});
-    case OutTrackType::Upstream:
-      return update_states_impl(
-        outTrack, track, states, LHCb::Event::v3::available_states_t<OutTrackType::Upstream> {});
-    case OutTrackType::Long:
-      assert(outTrack.fitHistory() == LHCb::Event::Enum::Track::FitHistory::VeloKalman);
+      // TODO: The converter builds the same states as the PrKF although the track here is NOT fitted.
+      // This is confusing and should be revised.
       return update_states_impl(
         outTrack,
         track,
         states,
-        LHCb::Event::v3::available_states_t<OutTrackType::Long, LHCb::Event::Enum::Track::FitHistory::VeloKalman> {});
+        LHCb::Event::v3::available_states_t<OutTrackType::Velo, FitHistory::PrKalmanFilter> {});
+    case OutTrackType::VeloBackward:
+      return update_states_impl(
+        outTrack,
+        track,
+        states,
+        LHCb::Event::v3::available_states_t<OutTrackType::VeloBackward, FitHistory::PrKalmanFilter> {});
+    case OutTrackType::Upstream:
+      // TODO: The converter builds the same states as the PrKF although the track here is NOT fitted.
+      // This is confusing and should be revised.
+      return update_states_impl(
+        outTrack,
+        track,
+        states,
+        LHCb::Event::v3::available_states_t<OutTrackType::Upstream, FitHistory::PrKalmanFilter> {});
+    case OutTrackType::Long:
+      assert(outTrack.fitHistory() == FitHistory::VeloKalman);
+      return update_states_impl(
+        outTrack, track, states, LHCb::Event::v3::available_states_t<OutTrackType::Long, FitHistory::VeloKalman> {});
     default: throw GaudiException("unknown v3 track type", "GaudiAllenTrackViewsToV3Tracks", StatusCode::FAILURE);
     }
   }
@@ -697,19 +708,18 @@ namespace GaudiAllen::Converters::v3 {
     template<typename AllenTrack>
     OutType make_output_container(const LHCb::UniqueIDGenerator& unique_id_gen) const
     {
+      using LHCb::Event::Enum::Track::FitHistory;
+      using LHCb::Event::Enum::Track::Type;
       auto zn = Zipping::generateZipIdentifier();
       if constexpr (std::tuple_size_v<OutType> == 2) {
         return {OutTracks(v3_track_type<AllenTrack>::value_fwd, unique_id_gen, zn),
-                OutTracks(
-                  v3_track_type<AllenTrack>::value_bwd,
-                  LHCb::Event::Enum::Track::FitHistory::Unknown,
-                  true,
-                  unique_id_gen,
-                  zn)};
+                OutTracks(v3_track_type<AllenTrack>::value_bwd, FitHistory::PrKalmanFilter, true, unique_id_gen, zn)};
       }
-      else if constexpr (v3_track_type_v<AllenTrack> == LHCb::Event::Enum::Track::Type::Long) {
-        return {OutTracks(
-          v3_track_type_v<AllenTrack>, LHCb::Event::Enum::Track::FitHistory::VeloKalman, false, unique_id_gen, zn)};
+      else if constexpr (v3_track_type_v<AllenTrack> == Type::Long) {
+        return {OutTracks(v3_track_type_v<AllenTrack>, FitHistory::VeloKalman, false, unique_id_gen, zn)};
+      }
+      else if constexpr (v3_track_type_v<AllenTrack> == Type::Upstream) {
+        return {OutTracks(v3_track_type_v<AllenTrack>, unique_id_gen, zn)};
       }
       else {
         return {OutTracks(v3_track_type_v<AllenTrack>, unique_id_gen, zn)};
