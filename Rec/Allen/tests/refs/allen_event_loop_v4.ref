@@ -16,6 +16,8 @@ NONLAZY_OR: allen_non_event_data               #=1       Sum=1           Eff=|( 
  AllenODINProducer/AllenODINProducer_e608fece  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpBeamline/DeviceBeamline                   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpVPGeometry/DeviceVPGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+ DumpUTGeometry/DeviceUTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+ DumpUTLookupTables/DeviceUTLookupTables       #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpCaloGeometry/DeviceCaloGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpMagneticField/DeviceMagneticField         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpFTGeometry/DeviceFTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
