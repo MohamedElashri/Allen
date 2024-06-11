@@ -183,6 +183,7 @@ full:
       - hlt1_pp_no_ut_validation
       - hlt1_pp_veloSP_validation
       - hlt1_pp_matching_no_ut_validation
+      - hlt1_pp_matching_validation
       - hlt1_pp_forward_then_matching_validation
       - hlt1_pp_forward_then_matching_no_ut_validation
       - velo_ACsplit_validation

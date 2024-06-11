@@ -18,7 +18,7 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
 from AllenConf.scifi_reconstruction import decode_scifi, make_seeding_XZ_tracks, make_seeding_tracks
-from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
+from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks, create_reduced_ut_container
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
 from PyConf.tonic import configurable
 
@@ -28,56 +28,12 @@ def make_downstream(decoded_ut,
                     scifi_seeds,
                     velo_scifi_matches,
                     ghost_killer_threshold=0.5,
-                    ut_tracks=None):
+                    dev_used_ut_hits=None):
     number_of_events = initialize_number_of_events()
 
     # Filter used ut hits
-    if ut_tracks is not None:
-        downstream_num_hits_per_sector = make_algorithm(
-            downstream_update_ut_offset_t,
-            name='downstream_update_ut_offset',
-            # Basics
-            host_number_of_events_t=number_of_events["host_number_of_events"],
-            dev_number_of_events_t=number_of_events["dev_number_of_events"],
-            # UT
-            host_accumulated_number_of_ut_hits_t=decoded_ut[
-                "host_accumulated_number_of_ut_hits"],
-            dev_ut_hit_offsets_t=decoded_ut["dev_ut_hit_offsets"],
-            # Compass UT
-            dev_is_ut_hit_used_t=ut_tracks['dev_is_ut_hit_used'])
-        prefix_sum_downstream_num_hits_per_sector = make_algorithm(
-            host_prefix_sum_t,
-            name="prefix_sum_downstream_num_hits_per_sector",
-            dev_input_buffer_t=downstream_num_hits_per_sector.
-            dev_num_hits_per_sector_t)
-
-        filtered_hits = make_algorithm(
-            downstream_ut_filter_t,
-            name='downstream_ut_filter',
-            # Basics
-            host_number_of_events_t=number_of_events["host_number_of_events"],
-            dev_number_of_events_t=number_of_events["dev_number_of_events"],
-            # UT
-            host_accumulated_number_of_ut_hits_t=decoded_ut[
-                "host_accumulated_number_of_ut_hits"],
-            dev_ut_hits_t=decoded_ut["dev_ut_hits"],
-            dev_ut_hit_offsets_t=decoded_ut["dev_ut_hit_offsets"],
-            # Compass UT
-            dev_is_ut_hit_used_t=ut_tracks['dev_is_ut_hit_used'],
-            # New offsets
-            dev_filtered_hits_offsets_t=
-            prefix_sum_downstream_num_hits_per_sector.dev_output_buffer_t,
-            host_total_number_of_filtered_hits_t=
-            prefix_sum_downstream_num_hits_per_sector.host_total_sum_holder_t,
-        )
-        ut_hits = {
-            "dev_ut_hits":
-            filtered_hits.dev_filtered_hits_t,
-            "dev_ut_hit_offsets":
-            prefix_sum_downstream_num_hits_per_sector.dev_output_buffer_t,
-            "host_accumulated_number_of_ut_hits":
-            prefix_sum_downstream_num_hits_per_sector.host_total_sum_holder_t,
-        }
+    if dev_used_ut_hits is not None:
+        ut_hits = create_reduced_ut_container(decoded_ut, dev_used_ut_hits)
     else:
         ut_hits = decoded_ut
 
@@ -264,9 +220,6 @@ def make_downstream(decoded_ut,
         downstream_make_particles.
         dev_multi_event_downstream_track_particles_view_ptr_t,
     }
-
-    if ut_tracks is not None:
-        output_map.update({"ut_tracks": ut_tracks})
 
     return output_map
 

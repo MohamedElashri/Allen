@@ -31,10 +31,10 @@ namespace ut_consolidate_tracks {
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_ut_track_hits_t, char) dev_ut_track_hits;
-    DEVICE_OUTPUT(dev_is_ut_hit_used_t, bool) dev_is_ut_hit_used;
     DEVICE_OUTPUT(dev_ut_track_params_t, float) dev_ut_track_params;
     DEVICE_OUTPUT(dev_ut_qop_t, float) dev_ut_qop;
     DEVICE_OUTPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
+    DEVICE_OUTPUT(dev_used_ut_hits_t, unsigned) dev_used_ut_hits;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_ut_hits_view_t,
       DEPENDENCIES(dev_ut_track_hits_t),

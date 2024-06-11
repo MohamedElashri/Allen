@@ -13,11 +13,43 @@ from AllenCore.algorithms import (
     ut_select_velo_tracks_t, ut_search_windows_t,
     ut_select_velo_tracks_with_windows_t, compass_ut_t,
     ut_copy_track_hit_number_t, ut_consolidate_tracks_t,
-    ut_cluster_and_pre_decode_t, ut_find_permutation_t, ut_decode_in_order_t)
+    ut_cluster_and_pre_decode_t, ut_find_permutation_t, ut_decode_in_order_t,
+    create_reduced_ut_hits_container_t)
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
-from AllenConf.utils import initialize_number_of_events
+from AllenConf.utils import initialize_number_of_events, make_dummy
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
+
+
+def create_reduced_ut_container(decoded_ut, dev_used_ut_hits):
+    number_of_events = initialize_number_of_events()
+
+    prefix_sum_used_ut_hits = make_algorithm(
+        host_prefix_sum_t,
+        name="prefix_sum_used_ut_hits",
+        dev_input_buffer_t=dev_used_ut_hits)
+
+    create_reduced_ut_hit_container = make_algorithm(
+        create_reduced_ut_hits_container_t,
+        name="create_reduced_ut_hit_container",
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_used_ut_hits_offsets_t=prefix_sum_used_ut_hits.dev_output_buffer_t,
+        host_used_ut_hits_offsets_t=prefix_sum_used_ut_hits.
+        host_output_buffer_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_ut_hit_offsets_input_t=decoded_ut["dev_ut_hit_offsets"],
+        dev_ut_hits_input_t=decoded_ut["dev_ut_hits"])
+
+    reduced_ut_hit_container = {
+        "host_accumulated_number_of_ut_hits":
+        create_reduced_ut_hit_container.host_number_of_ut_hits_t,
+        "dev_ut_hits":
+        create_reduced_ut_hit_container.dev_ut_hits_t,
+        "dev_ut_hit_offsets":
+        create_reduced_ut_hit_container.dev_ut_hit_offsets_t,
+    }
+
+    return reduced_ut_hit_container
 
 
 def decode_ut(
@@ -253,8 +285,8 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         prefix_sum_ut_track_hit_number.dev_output_buffer_t,
         "dev_ut_track_hits":
         ut_consolidate_tracks.dev_ut_track_hits_t,
-        "dev_is_ut_hit_used":
-        ut_consolidate_tracks.dev_is_ut_hit_used_t,
+        "dev_used_ut_hits":
+        ut_consolidate_tracks.dev_used_ut_hits_t,
         "dev_ut_qop":
         ut_consolidate_tracks.dev_ut_qop_t,
         "dev_ut_track_velo_indices":
@@ -284,3 +316,15 @@ def ut_tracking():
     ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
     alg = ut_tracks["dev_ut_track_hits"].producer
     return alg
+
+
+def make_dummy_ut_hits():
+
+    dummy = make_dummy()
+
+    return {
+        "dev_ut_hits": dummy.dev_char_dummy_t,
+        "dev_ut_hit_offsets": dummy.dev_unsigned_dummy_t,
+        "host_ut_hit_offsets": dummy.host_unsigned_dummy_t,
+        "host_accumulated_number_of_ut_hits": dummy.host_unsigned_dummy_t
+    }

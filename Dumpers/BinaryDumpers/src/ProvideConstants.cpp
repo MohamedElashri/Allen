@@ -144,6 +144,16 @@ StatusCode ProvideConstants::initialize()
     matching_ghostkiller_reader.weights2(),
     matching_ghostkiller_reader.bias2());
 
+  SingleLayerFCNNReader matching_with_ut_ghostkiller_reader {
+    geometry_path + "/GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT.json"};
+  m_constants.initialize_matching_with_ut_ghostkiller_constants(
+    matching_with_ut_ghostkiller_reader.mean(),
+    matching_with_ut_ghostkiller_reader.std(),
+    matching_with_ut_ghostkiller_reader.weights1(),
+    matching_with_ut_ghostkiller_reader.bias1(),
+    matching_with_ut_ghostkiller_reader.weights2(),
+    matching_with_ut_ghostkiller_reader.bias2());
+
   // std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, matching_no_ut_ghostkiller_reader,
   // forward_ghostkiller_reader, matching_ghostkiller_reader;
 
