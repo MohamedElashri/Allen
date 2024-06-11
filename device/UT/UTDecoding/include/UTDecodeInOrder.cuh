@@ -22,9 +22,8 @@ namespace ut_decode_in_order {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ut_pre_decoded_hits_t, char) dev_ut_pre_decoded_hits;
-    DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
+    DEVICE_INPUT(dev_ut_cluster_offsets_t, unsigned) dev_ut_cluster_offsets;
     DEVICE_INPUT(dev_ut_permutations_t, unsigned) dev_ut_permutations;
-    DEVICE_INPUT(dev_ut_clustering_offsets_t, unsigned) dev_ut_clustering_offsets;
     DEVICE_OUTPUT(dev_ut_hits_t, char) dev_ut_hits;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
@@ -33,11 +32,8 @@ namespace ut_decode_in_order {
    * @brief Fully decodes pre-decoding information into geometry for tracking, storing fully decoded UT hits it in a
    * sorted manner.
    */
-  __global__ void ut_decode_in_order(
-    Parameters,
-    const char* ut_boards,
-    const char* ut_geometry,
-    const unsigned* dev_unique_x_sector_layer_offsets);
+  __global__ void
+  ut_decode_in_order(Parameters, const char* ut_geometry, const unsigned* dev_unique_x_sector_layer_offsets);
 
   struct ut_decode_in_order_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -49,6 +45,6 @@ namespace ut_decode_in_order {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
   };
 } // namespace ut_decode_in_order

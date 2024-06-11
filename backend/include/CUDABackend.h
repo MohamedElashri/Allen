@@ -85,7 +85,8 @@ __attribute__((always_inline, const)) __device__ inline uint32_t __lanemask_ge()
   return mask;
 }
 
-__attribute__((always_inline, const)) inline __device__ uint32_t conflict_mask(uint32_t mask, uint32_t l) noexcept
+template<typename T>
+__attribute__((always_inline, const)) inline __device__ uint32_t conflict_mask(uint32_t mask, T l) noexcept
 {
 #if __CUDA_ARCH__ >= 700
   return __match_any_sync(mask, l);

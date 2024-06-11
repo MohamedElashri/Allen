@@ -19,7 +19,7 @@
 #include "BackendCommon.h"
 #include "Logger.h"
 
-__device__ inline int sector_unique_id(
+__device__ __host__ inline int sector_unique_id(
   const uint32_t& side,
   const uint32_t& layer,
   const uint32_t& stave,

@@ -73,6 +73,7 @@ struct Constants {
   std::vector<float> host_unique_sector_xs;
   std::vector<char> host_ut_boards;
   std::vector<float> host_mean_ut_layer_zs;
+  std::vector<uint16_t> host_ut_board_geometry_map;
 
   gsl::span<char> dev_ut_geometry;
   gsl::span<float> dev_ut_dxDy;
@@ -83,6 +84,7 @@ struct Constants {
   gsl::span<float> dev_mean_ut_layer_zs;
   char* dev_ut_boards;
   UTMagnetTool* dev_ut_magnet_tool = nullptr;
+  gsl::span<uint16_t> dev_ut_board_geometry_map;
 
   std::array<float, 9> host_inv_clus_res;
   float* dev_inv_clus_res;

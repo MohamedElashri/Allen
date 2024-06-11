@@ -28,9 +28,7 @@ void register_consumers(
   const auto consumers = std::make_tuple(
     std::make_tuple(
       Allen::NonEventData::UTBoards {},
-      [&constants]() {
-        return std::make_unique<Consumers::HostDeviceGeometry>(constants.host_ut_boards, constants.dev_ut_boards);
-      },
+      [&constants]() { return std::make_unique<Consumers::UTBoards>(constants); },
       BankTypes::UT),
     std::make_tuple(
       Allen::NonEventData::UTLookupTables {},

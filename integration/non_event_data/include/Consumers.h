@@ -49,6 +49,17 @@ namespace Consumers {
     std::reference_wrapper<Constants> m_constants;
   };
 
+  struct UTBoards final : public Allen::NonEventData::Consumer {
+  public:
+    UTBoards(Constants& constants);
+
+    void consume(std::vector<char> const& data) override;
+
+  private:
+    void initialize(const std::vector<char>& data);
+    std::reference_wrapper<Constants> m_constants;
+  };
+
   struct UTGeometry final : public Allen::NonEventData::Consumer {
   public:
     UTGeometry(Constants& constants);
