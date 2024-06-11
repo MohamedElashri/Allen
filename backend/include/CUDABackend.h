@@ -16,7 +16,6 @@
 #include <cuda_runtime_api.h>
 #endif
 
-#include <cuda_runtime.h>
 #include <iomanip>
 #include <cuda_fp16.h>
 #define half_t half

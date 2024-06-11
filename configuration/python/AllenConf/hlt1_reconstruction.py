@@ -101,6 +101,7 @@ def hlt1_reconstruction(algorithm_name='',
             velo_tracks,
             velo_states,
             seed_tracks,
+            ut_hits=decode_ut() if with_ut else None,
             matching_consolidate_tracks_name=algorithm_name +
             'matching_consolidate_tracks_matching')
         output.update({"seeding_tracks": seed_tracks})
@@ -109,7 +110,8 @@ def hlt1_reconstruction(algorithm_name='',
             downstream_tracks = make_downstream(
                 decoded_ut=decoded_ut,
                 scifi_seeds=seed_tracks,
-                velo_scifi_matches=long_tracks)
+                velo_scifi_matches=long_tracks,
+                dev_used_ut_hits=long_tracks['dev_used_ut_hits'])
             output.update({"downstream_tracks": downstream_tracks})
 
     elif tracking_type == TrackingType.FORWARD:

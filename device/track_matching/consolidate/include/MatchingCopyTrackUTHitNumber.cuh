@@ -9,15 +9,11 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
-
-#include "VeloEventModel.cuh"
-#include "UTDefinitions.cuh"
-#include "SciFiDefinitions.cuh"
 #include "SciFiEventModel.cuh"
 #include "TrackMatchingConstants.cuh"
 #include "AlgorithmTypes.cuh"
 
-namespace matching_copy_track_hit_number {
+namespace matching_copy_track_ut_hit_number {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_matched_tracks_t, unsigned) host_number_of_reconstructed_matched_tracks;
@@ -27,9 +23,9 @@ namespace matching_copy_track_hit_number {
     DEVICE_OUTPUT(dev_matched_track_hit_number_t, unsigned) dev_matched_track_hit_number;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
-  __global__ void matching_copy_track_hit_number(Parameters);
+  __global__ void matching_copy_track_ut_hit_number(Parameters);
 
-  struct matching_copy_track_hit_number_t : public DeviceAlgorithm, Parameters {
+  struct matching_copy_track_ut_hit_number_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
@@ -41,4 +37,4 @@ namespace matching_copy_track_hit_number {
   private:
     Property<block_dim_t> m_block_dim {this, {{512, 1, 1}}};
   };
-} // namespace matching_copy_track_hit_number
+} // namespace matching_copy_track_ut_hit_number

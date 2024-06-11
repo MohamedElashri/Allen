@@ -17,7 +17,7 @@ from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate, make_algorithm
 from AllenCore.algorithms import create_reduced_scifi_hit_container_t, combine_long_track_containers_t, host_prefix_sum_t
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
-from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
+from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks, create_reduced_ut_container
 from AllenConf.enum_types import TrackingType
 
 
@@ -104,6 +104,9 @@ def best_track_creator(with_ut=True,
         forward_tracks = forward_tracking(with_ut)
         reduced_scifi_hit_container = create_reduced_scifi_container(
             forward_tracks["dev_used_scifi_hits"])
+        reduced_ut_hit_container = create_reduced_ut_container(
+            decode_ut(), forward_tracks['veloUT_tracks']
+            ['dev_used_ut_hits']) if with_ut else None
 
         decoded_velo = decode_velo()
         velo_tracks = make_velo_tracks(decoded_velo)
@@ -118,7 +121,9 @@ def best_track_creator(with_ut=True,
             velo_tracks,
             velo_kalman_filter,
             seeding_tracks,
-            forward_tracks["dev_accepted_and_unused_velo_tracks"],
+            accepted_velo_tracks=forward_tracks[
+                "dev_accepted_and_unused_velo_tracks"],
+            ut_hits=reduced_ut_hit_container,
             matching_consolidate_tracks_name=algorithm_name +
             'matching_consolidate_tracks')
     elif tracking_type == TrackingType.MATCHING_THEN_FORWARD:
@@ -136,6 +141,7 @@ def best_track_creator(with_ut=True,
             velo_tracks,
             velo_kalman_filter,
             seeding_tracks,
+            ut_hits=decode_ut() if with_ut else None,
             matching_consolidate_tracks_name=algorithm_name +
             'matching_consolidate_tracks')
 
@@ -143,8 +149,9 @@ def best_track_creator(with_ut=True,
             matched_tracks["dev_used_scifi_hits"])
 
         if with_ut:
-            decoded_ut = decode_ut()
-            ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
+            reduced_ut_hit_container = create_reduced_ut_container(
+                decode_ut(), matched_tracks['dev_used_ut_hits'])
+            ut_tracks = make_ut_tracks(reduced_ut_hit_container, velo_tracks)
             input_tracks = ut_tracks
         else:
             input_tracks = velo_tracks

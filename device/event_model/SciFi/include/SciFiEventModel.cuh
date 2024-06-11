@@ -512,13 +512,14 @@ namespace SciFi {
   } // namespace Seeding
 
   struct MatchedTrack {
+    constexpr static uint16_t InvalidHit = std::numeric_limits<uint16_t>::max();
     uint16_t velo_track_index;
     uint16_t scifi_track_index;
-    int number_of_hits_velo = 0;
-    int number_of_hits_ut = 0;
-    int number_of_hits_scifi = 0;
-    float chi2_matching;
+    uint16_t ut_hits[4];
+    unsigned number_of_hits_ut = 0;
     float qop;
-    float ghost_probability;
+    float gamma;
+    float ut_score;
+    float score;
   };
 } // namespace SciFi

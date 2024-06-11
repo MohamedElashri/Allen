@@ -158,6 +158,7 @@ struct Constants {
   // GhostKillers
   Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_ghost_killer = nullptr;
   Allen::NeuralNetwork::Model::MatchingGhostKiller* dev_matching_ghost_killer = nullptr;
+  Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller* dev_matching_with_ut_ghost_killer = nullptr;
   Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_no_ut_ghost_killer = nullptr;
 
   // Kalman filter
@@ -236,13 +237,6 @@ struct Constants {
     const std::vector<float>& bias1,
     const std::vector<float>& weights2,
     const float& bias2);
-  void initialize_matching_no_ut_ghostkiller_constants(
-    const std::vector<float>& mean,
-    const std::vector<float>& std,
-    const std::vector<std::vector<float>>& weights1,
-    const std::vector<float>& bias1,
-    const std::vector<float>& weights2,
-    const float& bias2);
   void initialize_forward_ghostkiller_constants(
     const std::vector<float>& mean,
     const std::vector<float>& std,
@@ -251,6 +245,14 @@ struct Constants {
     const std::vector<float>& weights2,
     const float& bias2);
   void initialize_matching_ghostkiller_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+
+  void initialize_matching_with_ut_ghostkiller_constants(
     const std::vector<float>& mean,
     const std::vector<float>& std,
     const std::vector<std::vector<float>>& weights1,

@@ -31,6 +31,7 @@ namespace Allen::NeuralNetwork {
 
     using ForwardGhostKiller = SingleLayerFCNN_t<7, 32>;
     using MatchingGhostKiller = SingleLayerFCNN_t<7, 32>;
+    using MatchingWithUTGhostKiller = SingleLayerFCNN_t<11, 32>;
   } // namespace Model
 
 } // namespace Allen::NeuralNetwork

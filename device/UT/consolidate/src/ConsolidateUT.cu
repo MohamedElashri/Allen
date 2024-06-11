@@ -60,7 +60,7 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::set_arguments_size(
 {
   set_size<dev_ut_track_hits_t>(
     arguments, first<host_accumulated_number_of_hits_in_ut_tracks_t>(arguments) * UT::Consolidated::Hits::element_size);
-  set_size<dev_is_ut_hit_used_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments));
+  set_size<dev_used_ut_hits_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments));
   set_size<dev_ut_track_velo_indices_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
   set_size<dev_ut_qop_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
   set_size<dev_ut_track_params_t>(arguments, 4 * first<host_number_of_reconstructed_ut_tracks_t>(arguments));
@@ -79,7 +79,7 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
 {
   Allen::memset_async<dev_ut_multi_event_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_ut_tracks_view_t>(arguments, 0, context);
-  Allen::memset_async<dev_is_ut_hit_used_t>(arguments, 0, context);
+  Allen::memset_async<dev_used_ut_hits_t>(arguments, 0, context);
   global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
 
@@ -154,7 +154,7 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
 
     // Fill the used hit index
     populate(track, [&parameters, &event_offset](const unsigned, const unsigned j) {
-      parameters.dev_is_ut_hit_used[j + event_offset] = true;
+      parameters.dev_used_ut_hits[j + event_offset] = 1;
     });
 
     UT::Consolidated::Hits consolidated_hits = ut_tracks.get_hits(parameters.dev_ut_track_hits, i);
