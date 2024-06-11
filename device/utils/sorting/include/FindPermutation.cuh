@@ -26,7 +26,6 @@
 template<class T>
 __host__ __device__ void find_permutation(
   const unsigned hit_start,
-  const unsigned hit_original_start,
   const unsigned hit_permutations_start,
   const unsigned number_of_hits,
   unsigned* hit_permutations,
@@ -46,21 +45,6 @@ __host__ __device__ void find_permutation(
     assert(position < number_of_hits);
 
     // Store it in hit_permutations
-    hit_permutations[hit_permutations_start + position] = hit_original_start + i;
+    hit_permutations[hit_permutations_start + position] = hit_permutations_start + i;
   }
-}
-
-/**
- * @brief Overload find_permutation for UT decoding where (sorted start) != (unsorted start) due to cluster packing
- */
-template<class T>
-__host__ __device__ void find_permutation(
-  const unsigned hit_start,
-  const unsigned hit_permutations_start,
-  const unsigned number_of_hits,
-  unsigned* hit_permutations,
-  const T& sort_function)
-{
-  find_permutation(
-    hit_start, hit_permutations_start, hit_permutations_start, number_of_hits, hit_permutations, sort_function);
 }

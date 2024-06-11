@@ -8,6 +8,7 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
+from AllenCore.algorithms import ut_compress_and_calculate_keys_t
 from AllenCore.algorithms import (
     data_provider_t, ut_calculate_number_of_hits_t, host_prefix_sum_t,
     ut_select_velo_tracks_t, ut_search_windows_t,
@@ -85,8 +86,12 @@ def decode_ut(
         dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
         dev_ut_raw_input_sizes_t=ut_banks.dev_raw_sizes_t,
         dev_ut_raw_input_types_t=ut_banks.dev_raw_types_t,
-        dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
         host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
+        dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
+        dev_ut_nonempty_channels_t=ut_calculate_number_of_hits.
+        dev_ut_nonempty_channels_t,
+        dev_ut_number_of_nonempty_channels_t=ut_calculate_number_of_hits.
+        dev_ut_number_of_nonempty_channels_t,
         # UT clustering configurables
         cluster_ut_hits=cluster_ut_hits,
         position_method=position_method,
@@ -98,17 +103,26 @@ def decode_ut(
         name='prefix_sum_ut_clusters_{hash}',
         dev_input_buffer_t=ut_cluster_and_pre_decode.dev_ut_cluster_count_t)
 
+    ut_compress_and_calculate_keys = make_algorithm(
+        ut_compress_and_calculate_keys_t,
+        name='ut_compress_and_calculate_keys_{hash}',
+        host_accumulated_number_of_ut_clusters_t=prefix_sum_ut_clusters.
+        host_total_sum_holder_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
+        dev_ut_cluster_offsets_t=prefix_sum_ut_clusters.dev_output_buffer_t,
+        dev_ut_uncompressed_hits_t=ut_cluster_and_pre_decode.
+        dev_ut_pre_decoded_hits_t,
+        dev_ut_tiebreak_t=ut_cluster_and_pre_decode.dev_ut_tiebreak_t)
+
     ut_find_permutation = make_algorithm(
         ut_find_permutation_t,
         name='ut_find_permutation_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_ut_clusters_t=prefix_sum_ut_clusters.
         host_total_sum_holder_t,
-        dev_ut_pre_decoded_hits_t=ut_cluster_and_pre_decode.
-        dev_ut_pre_decoded_hits_t,
-        dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
-        dev_ut_clustering_offsets_t=prefix_sum_ut_clusters.dev_output_buffer_t)
+        dev_ut_sort_keys_t=ut_compress_and_calculate_keys.dev_ut_sort_keys_t,
+        dev_ut_cluster_offsets_t=prefix_sum_ut_clusters.dev_output_buffer_t)
 
     ut_decode_in_order = make_algorithm(
         ut_decode_in_order_t,
@@ -117,11 +131,10 @@ def decode_ut(
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_ut_clusters_t=prefix_sum_ut_clusters.
         host_total_sum_holder_t,
-        dev_ut_pre_decoded_hits_t=ut_cluster_and_pre_decode.
-        dev_ut_pre_decoded_hits_t,
-        dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
+        dev_ut_pre_decoded_hits_t=ut_compress_and_calculate_keys.
+        dev_ut_compressed_hits_t,
         dev_ut_permutations_t=ut_find_permutation.dev_ut_permutations_t,
-        dev_ut_clustering_offsets_t=prefix_sum_ut_clusters.dev_output_buffer_t)
+        dev_ut_cluster_offsets_t=prefix_sum_ut_clusters.dev_output_buffer_t)
 
     return {
         "dev_ut_hits":

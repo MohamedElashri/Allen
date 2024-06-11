@@ -39,35 +39,27 @@ __global__ void ut_find_permutation::ut_find_permutation(
   ut_find_permutation::Parameters parameters,
   const unsigned* dev_unique_x_sector_layer_offsets)
 {
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned sector_group_number = blockIdx.y;
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 
-  UT::ConstPreDecodedHits ut_pre_decoded_hits {
-    parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+  const UT::HitOffsets ut_cluster_offsets {
+    parameters.dev_ut_cluster_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
 
-  const UT::HitOffsets ut_hit_offsets {
-    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-  const UT::HitOffsets ut_clustering_offsets {
-    parameters.dev_ut_clustering_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  const unsigned sector_group_cluster_offset = ut_cluster_offsets.sector_group_offset(sector_group_number);
+  const unsigned sector_group_number_of_clusters = ut_cluster_offsets.sector_group_number_of_hits(sector_group_number);
 
-  const unsigned sector_group_hits_offset = ut_hit_offsets.sector_group_offset(sector_group_number);
-  const unsigned sector_group_clustering_offset = ut_clustering_offsets.sector_group_offset(sector_group_number);
-  const unsigned sector_group_number_of_hits = ut_clustering_offsets.sector_group_number_of_hits(sector_group_number);
-
-  if (sector_group_number_of_hits > 0) {
+  if (sector_group_number_of_clusters > 0) {
     // Sort according to the natural order in s_y_begin
     // Store the permutation found into parameters.dev_ut_permutations
     find_permutation(
       0,
-      sector_group_hits_offset,
-      sector_group_clustering_offset,
-      sector_group_number_of_hits,
+      sector_group_cluster_offset,
+      sector_group_number_of_clusters,
       parameters.dev_ut_permutations,
       [&](const int a, const int b) -> int {
-        const auto value_a = ut_pre_decoded_hits.sort_key(sector_group_hits_offset + a);
-        const auto value_b = ut_pre_decoded_hits.sort_key(sector_group_hits_offset + b);
+        const auto value_a = parameters.dev_ut_sort_keys[sector_group_cluster_offset + a];
+        const auto value_b = parameters.dev_ut_sort_keys[sector_group_cluster_offset + b];
         return (value_a > value_b) - (value_a < value_b);
       });
   }

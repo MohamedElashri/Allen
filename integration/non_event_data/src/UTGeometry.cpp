@@ -96,12 +96,13 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
 
     for (auto p : permutation) {
       // Allow for a configurable window of error
-      constexpr float accepted_error_window = 2.f;
+      constexpr float accepted_error_window = 20.f;
       if (std::abs(current_element - xs[p]) > accepted_error_window) {
         current_element = xs[p];
         current_index++;
         number_of_unique_elements++;
       }
+      if (current_element < xs[p]) current_element = xs[p];
       permutation_repeated.emplace_back(current_index);
     }
 
@@ -123,9 +124,10 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
 
     // Fill in host_unique_sector_xs
     std::vector<float> temp_unique_elements(number_of_unique_elements);
+    std::fill(temp_unique_elements.begin(), temp_unique_elements.end(), Allen::numeric_limits<float>::infinity());
     for (size_t j = 0; j < size; ++j) {
       const int index = unique_permutation[j];
-      temp_unique_elements[index] = xs[j];
+      if (xs[j] < temp_unique_elements[index]) temp_unique_elements[index] = xs[j];
     }
     for (int j = 0; j < number_of_unique_elements; ++j) {
       host_unique_sector_xs.emplace_back(temp_unique_elements[j]);
