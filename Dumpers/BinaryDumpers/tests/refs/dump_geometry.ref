@@ -51,7 +51,7 @@ DeviceMuonTable                        INFO Number of counters : 1
  | "BytesWritten_MuonLookupTables"                 |   1052980 |
 DeviceRichCableMapping                 INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "BytesWritten_RichCableMapping"                 |    462600 |
+ | "BytesWritten_RichCableMapping"                 |    469512 |
 DeviceRichPDMDBMapping                 INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_RichPDMDBMapping"                 |      9296 |
