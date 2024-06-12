@@ -143,9 +143,8 @@ void track_matching::track_matching_t::operator()(
     Allen::memset_async<dev_hit_caching_counter_t>(arguments, 0, context);
 
     // Velo SciFi matching
-    global_function(track_matching_veloSciFi<true>)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-      arguments, constants.dev_magnet_polarity.data(), constants.dev_matching_ghost_killer);
+    global_function(track_matching_veloSciFi<true, void>)(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(
+      arguments, constants.dev_magnet_polarity.data(), nullptr);
 
     // Add UT hits
     global_function(track_matching_add_ut_hits)(
@@ -168,20 +167,30 @@ void track_matching::track_matching_t::operator()(
   }
   else {
     // Velo SciFi matching
-    global_function(track_matching_veloSciFi<false>)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-      arguments, constants.dev_magnet_polarity.data(), constants.dev_matching_ghost_killer);
+    if (property<matching_no_ut_ghost_killer_version_t>() == 1) {
+      global_function(track_matching_veloSciFi<false, Allen::NeuralNetwork::Model::MatchingGhostKiller>)(
+        dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(
+        arguments, constants.dev_magnet_polarity.data(), constants.dev_matching_ghost_killer);
+    }
+    else if (property<matching_no_ut_ghost_killer_version_t>() == 2) {
+      global_function(track_matching_veloSciFi<false, Allen::NeuralNetwork::Model::MatchingNoUTV2GhostKiller>)(
+        dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(
+        arguments, constants.dev_magnet_polarity.data(), constants.dev_matching_no_ut_v2_ghost_killer);
+    }
+    else {
+      throw std::invalid_argument("matching_no_ut_ghost_killer_version can only be [1, 2].");
+    }
     // Clone killing
     global_function(track_matching_clone_killing<false>)(
       dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
   }
 }
 
-template<bool has_ut>
+template<bool has_ut, typename GhostKiller_t>
 __global__ void track_matching::track_matching_veloSciFi(
   track_matching::Parameters parameters,
   const float* dev_magnet_polarity,
-  const Allen::NeuralNetwork::Model::MatchingGhostKiller* dev_matching_ghost_killer)
+  const GhostKiller_t* dev_matching_ghost_killer)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -222,14 +231,30 @@ __global__ void track_matching::track_matching_veloSciFi(
 
       float ghost_killer_score = 0.f;
       if constexpr (!has_ut) {
-        float ghost_killer_inputs[Allen::NeuralNetwork::Model::MatchingGhostKiller::nInput] = {matchingInfo.zForX,
-                                                                                               matchingInfo.distX,
-                                                                                               matchingInfo.distY,
-                                                                                               matchingInfo.dSlopeX,
-                                                                                               matchingInfo.dSlopeY,
-                                                                                               logf(matchingInfo.chi2),
-                                                                                               velo_eta};
-        ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
+        if constexpr (std::is_same_v<GhostKiller_t, Allen::NeuralNetwork::Model::MatchingGhostKiller>) {
+          float ghost_killer_inputs[Allen::NeuralNetwork::Model::MatchingGhostKiller::nInput] = {
+            matchingInfo.zForX,
+            matchingInfo.distX,
+            matchingInfo.distY,
+            matchingInfo.dSlopeX,
+            matchingInfo.dSlopeY,
+            logf(matchingInfo.chi2),
+            velo_eta};
+          ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
+        }
+        else {
+          const auto number_of_scifi_hits = float(scifi_seeds.track(i).number_of_scifi_hits());
+          float ghost_killer_inputs[Allen::NeuralNetwork::Model::MatchingNoUTV2GhostKiller::nInput] = {
+            matchingInfo.zForX,
+            matchingInfo.distX,
+            matchingInfo.distY,
+            matchingInfo.dSlopeX,
+            matchingInfo.dSlopeY,
+            matchingInfo.chi2,
+            velo_eta,
+            number_of_scifi_hits};
+          ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
+        }
 
         if (ghost_killer_score > parameters.ghost_killer_threshold.get()) continue;
       }
