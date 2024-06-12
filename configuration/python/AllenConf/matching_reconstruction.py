@@ -26,6 +26,7 @@ def make_velo_scifi_matches(
         accepted_velo_tracks=None,
         ghost_killer_threshold=0.5,
         force_skip_ut=False,
+        matching_no_ut_ghost_killer_version=2,
         matching_consolidate_tracks_name='matching_consolidate_tracks'):
     number_of_events = initialize_number_of_events()
 
@@ -78,7 +79,9 @@ def make_velo_scifi_matches(
                              4.577582e+02),
         # Dimension tunning (with A5000)
         block_dim=(128, 1, 1),
-        force_skip_ut=force_skip_ut)
+        force_skip_ut=force_skip_ut,
+        matching_no_ut_ghost_killer_version=matching_no_ut_ghost_killer_version
+    )
 
     prefix_sum_matched_tracks = make_algorithm(
         host_prefix_sum_t,

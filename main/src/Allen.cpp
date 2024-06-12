@@ -81,7 +81,6 @@ namespace {
 } // namespace
 
 /**
-=======
  * @brief      Main entry point
  *
  * @param      {key : value} command-line arguments as std::strings
@@ -234,7 +233,7 @@ int allen(
   std::unique_ptr<LipschitzNNModelReader> two_track_mva_model_reader;
   std::unique_ptr<LipschitzNNModelReader> electronid_mva_model_reader;
   std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, forward_ghostkiller_reader,
-    matching_ghostkiller_reader, matching_with_ut_ghostkiller_reader;
+    matching_ghostkiller_reader, matching_with_ut_ghostkiller_reader, matching_no_ut_v2_ghostkiller_reader;
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
@@ -285,6 +284,8 @@ int allen(
     std::make_unique<SingleLayerFCNNReader>(folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_Matching.json");
   matching_with_ut_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
     folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT.json");
+  matching_no_ut_v2_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingNoUT_V2.json");
 
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
@@ -349,6 +350,13 @@ int allen(
     matching_ghostkiller_reader->bias1(),
     matching_ghostkiller_reader->weights2(),
     matching_ghostkiller_reader->bias2());
+  constants.initialize_matching_no_ut_v2_ghostkiller_constants(
+    matching_no_ut_v2_ghostkiller_reader->mean(),
+    matching_no_ut_v2_ghostkiller_reader->std(),
+    matching_no_ut_v2_ghostkiller_reader->weights1(),
+    matching_no_ut_v2_ghostkiller_reader->bias1(),
+    matching_no_ut_v2_ghostkiller_reader->weights2(),
+    matching_no_ut_v2_ghostkiller_reader->bias2());
 
   constants.initialize_matching_with_ut_ghostkiller_constants(
     matching_with_ut_ghostkiller_reader->mean(),

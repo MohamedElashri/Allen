@@ -49,6 +49,13 @@ namespace track_matching {
 
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
 
+    PROPERTY(
+      matching_no_ut_ghost_killer_version_t,
+      "matching_no_ut_ghost_killer_version",
+      "matching_no_ut_ghost_killer_version",
+      int)
+    matching_no_ut_ghost_killer_version;
+
     PROPERTY(multiplication_factor_dX_t, "multiplication_factor_dX", "multiplication_factor_dX", float)
     multiplication_factor_dX;
     PROPERTY(multiplication_factor_dY_t, "multiplication_factor_dY", "multiplication_factor_dY", float)
@@ -90,11 +97,11 @@ namespace track_matching {
     PROPERTY(force_skip_ut_t, "force_skip_ut", "force_skip_ut", bool) force_skip_ut;
   };
 
-  template<bool has_ut>
+  template<bool has_ut, typename GhostKiller_t>
   __global__ void track_matching_veloSciFi(
     Parameters,
     const float* dev_magnet_polarity,
-    const Allen::NeuralNetwork::Model::MatchingGhostKiller* dev_matching_ghost_killer);
+    const GhostKiller_t* dev_matching_ghost_killer);
 
   __global__ void track_matching_add_ut_hits(
     Parameters,
@@ -122,6 +129,7 @@ namespace track_matching {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+    Property<matching_no_ut_ghost_killer_version_t> m_matching_no_ut_ghost_killer_version {this, 2};
     Property<multiplication_factor_dX_t> m_multiplication_factor_dX {this, 0.8};
     Property<multiplication_factor_dY_t> m_multiplication_factor_dY {this, 0.2};
     Property<multiplication_factor_dty_t> m_multiplication_factor_dty {this, 937.5};

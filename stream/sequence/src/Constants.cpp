@@ -291,3 +291,16 @@ void Constants::initialize_matching_with_ut_ghostkiller_constants(
     (void**) &dev_matching_with_ut_ghost_killer, sizeof(Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller));
   fill_single_layer_fcnn_model(dev_matching_with_ut_ghost_killer, mean, std, weights1, bias1, weights2, bias2);
 }
+
+void Constants::initialize_matching_no_ut_v2_ghostkiller_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc(
+    (void**) &dev_matching_no_ut_v2_ghost_killer, sizeof(Allen::NeuralNetwork::Model::MatchingNoUTV2GhostKiller));
+  fill_single_layer_fcnn_model(dev_matching_no_ut_v2_ghost_killer, mean, std, weights1, bias1, weights2, bias2);
+}
