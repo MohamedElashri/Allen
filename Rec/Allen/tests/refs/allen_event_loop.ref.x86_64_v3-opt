@@ -32,7 +32,7 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_283cb05d          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 92
+gather_selections                      INFO Number of counters : 94
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Hlt1D2KKPass"                                  |        13 |
  | "Hlt1D2KKRate"                                  |        13 |
@@ -40,6 +40,8 @@ gather_selections                      INFO Number of counters : 92
  | "Hlt1D2KPiAlignmentRate"                        |         4 |
  | "Hlt1D2KPiPass"                                 |        15 |
  | "Hlt1D2KPiRate"                                 |        15 |
+ | "Hlt1D2KshhPass"                                |         6 |
+ | "Hlt1D2KshhRate"                                |         6 |
  | "Hlt1D2PiPiPass"                                |         5 |
  | "Hlt1D2PiPiRate"                                |         5 |
  | "Hlt1DetJpsiToMuMuNegTagLinePass"               |         1 |
