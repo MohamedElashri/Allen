@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration          *
+* (c) Copyright 2022-2024 CERN for the benefit of the LHCb Collaboration      *
 *                                                                             *
 * This software is distributed under the terms of the Apache License          *
 * version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
@@ -21,17 +21,13 @@ namespace Downstream {
   //
   namespace DownstreamExtrapolation {
     namespace Corrections {
-      __device__ inline float dy(const float qop, const float ty, const float y)
+      __device__ inline float dy(const float ty, const float y)
       {
-        return (-5.130062E-01f) + (1.409223E-01f) * y + (-1.470980E+03f) * ty + (-2.317281E+05f) * qop;
+        return (-6.551111E-02f) + (2.695234E-01f) * y + (-2.514965E+03f) * ty;
       }
-      __device__ inline float dty(const float qop, const float ty, const float y)
+      __device__ inline float dty(const float ty, const float y)
       {
-        return (-5.468134E-05f) + (6.705295E-05f) * y + (-6.321917E-01f) * ty + (-3.407640E+01f) * qop;
-      }
-      __device__ inline float dtx(const float qop, const float ty)
-      {
-        return (2.247261E-05f) + (-8.680666E-05f) * ty + (8.003155E+00f) * qop;
+        return (4.601425E-07f) + (1.066950E-04f) * y + (-9.881966E-01f) * ty;
       }
     } // namespace Corrections
 
@@ -39,42 +35,60 @@ namespace Downstream {
       __device__ inline float
       zMagnet(const float scifi_x, const float scifi_y, const float scifi_tx, const float scifi_ty, const float qop)
       {
-        return (5.367359E+03f) + (-2.660298E+03f) * scifi_ty * scifi_ty + (3.253875E+02f) * scifi_tx * scifi_tx +
-               (-4.985715E+03f) * qop + (-2.634312E-02f) * abs(scifi_x) + (-6.648777E-02f) * abs(scifi_y) +
-               (7.241572E+02f) * abs(scifi_ty) + (1.482586E+02f) * abs(scifi_tx);
+        return (5.362780E+03f) + (1.028418E+04f) * fabsf(qop) + (-3.878377E+08f) * fabsf(qop) * fabsf(qop) +
+               (4.366723E-03f) * fabsf(scifi_x) + (-1.904676E-05f) * fabsf(scifi_x) * fabsf(scifi_x) +
+               (1.057300E-01f) * fabsf(scifi_y) + (-8.798887E-05f) * fabsf(scifi_y) * fabsf(scifi_y) +
+               (3.358789E+01f) * fabsf(scifi_tx) + (8.376555E+02f) * fabsf(scifi_tx) * fabsf(scifi_tx) +
+               (-7.903139E+02f) * fabsf(scifi_ty) + (4.627501E+03f) * fabsf(scifi_ty) * fabsf(scifi_ty);
       }
     } // namespace MagnetPoint
 
     namespace Physics {
       __device__ inline float qop(const float tx, const float ty, const float scifi_tx, const float magnet_polarity)
       {
-        const auto momentumParam = 1217.77f + 454.598f * tx * tx + 3353.39f * ty * ty;
-        return (tx - scifi_tx) / momentumParam * magnet_polarity;
+        const auto dslope = scifi_tx - tx;
+        const auto abs_p = (2.011328E+01f) + ((1.208754E+03f) + (5.222969E+02f) * (scifi_tx * scifi_tx) +
+                                              (8.131686E+01f) * (scifi_tx * scifi_tx * scifi_tx * scifi_tx) +
+                                              (5.099099E+02f) * (scifi_tx * tx) + (2.494386E+03f) * (ty * ty) +
+                                              (-6.255134E+03f) * (ty * ty * ty * ty) + (1.891522E+02f) * (tx * tx)) /
+                                               fabsf(dslope);
+        const auto sign = -dslope * magnet_polarity > 0 ? 1.f : -1.f;
+        return sign / abs_p;
+      }
+
+      __device__ inline float gamma(const float qop, const float magnet_polarity)
+      {
+        // (3.669061E-08) + (1.183515E-02) * abs(qop) + (-1.974256E+00) * (qop)**2
+        // const auto abs_gamma = (3.790512E-08f) + (1.043583E-02f) * fabsf(qop) + (-2.714840E+00f) * qop*qop;
+        const auto abs_gamma = (3.669061E-08f) + (1.183515E-02f) * fabsf(qop) + (-1.974256E+00f) * qop * qop;
+
+        const auto sign = -qop * magnet_polarity > 0 ? 1.f : -1.f;
+
+        return sign * abs_gamma;
       }
     } // namespace Physics
 
     namespace Tolerance {
       //
-      // The tolerance function is fitted by requiring 98% efficiency, the max limit is calculated by requiring 99%
-      // efficiency
+      // The tolerance function is fitted by requiring 99% efficiency. Output format: (val, min, max)
       //
-      __device__ __forceinline__ std::pair<float, float> X(const unsigned layer, const float qop)
+      __device__ __forceinline__ float3 X(const unsigned layer, const float qop)
       {
         switch (layer) {
-        case 0: return {(4.932216E+03f) * fabsf(qop) + (4.622822E-01f), 1.92f};
-        case 1: return {(4.229975E+07f) * qop * qop + (3.339328E+03f) * fabsf(qop) + (1.775429E+00f), 4.93f};
-        case 2: return {(3.973958E+07f) * qop * qop + (1.400553E+03f) * fabsf(qop) + (1.760519E+00f), 4.25f};
-        default: return {(2.011148E+05f) * fabsf(qop) + (2.836915E+00f), 57.71f};
+        case 0: return {((5.663452E+03f) * fabsf(qop) + (5.787033E-01f)), 0.5f, 1.4f};
+        case 1: return {((1.796488E+04f) * fabsf(qop) + (9.839816E-01f)), 0.6f, 3.6f};
+        case 2: return {((1.510435E+04f) * fabsf(qop) + (9.287219E-01f)), 0.6f, 3.1f};
+        default: return {((2.426073E+05f) * fabsf(qop) + (1.007460E+00f)), 3.f, 60.8f};
         }
       }
 
-      __device__ __forceinline__ std::pair<float, float> Y(const unsigned layer, const float qop)
+      __device__ __forceinline__ float3 Y(const unsigned layer, const float qop)
       {
         switch (layer) {
-        case 0: return {(2.926494E+04f) * fabsf(qop) + (5.932930E+00f), 23.72f};
-        case 1: return {(2.384459E+04f) * fabsf(qop) + (6.367733E+00f), 22.86f};
-        case 2: return {(3.128338E+04f) * fabsf(qop) + (4.971600E+00f), 21.44f};
-        default: return {(2.575863E+04f) * fabsf(qop) + (5.166317E+00f), 21.28f};
+        case 0: return {((8.070860E+04f) * fabsf(qop) + (3.080773E+00f)), 3.f, 14.f};
+        case 1: return {((8.210163E+04f) * fabsf(qop) + (3.240486E+00f)), 3.f, 14.f};
+        case 2: return {((4.204240E+04f) * fabsf(qop) + (-1.042032E-01f)), 3.f, 13.f};
+        default: return {((7.942334E+04f) * fabsf(qop) + (2.272749E+00f)), 3.f, 13.f};
         }
       }
 
@@ -104,15 +118,12 @@ namespace Downstream {
       {}
 
       // This is only used to run for calculate magnet point and estimate the first hit position
-      __device__ ExtrapolateTrack(const MiniState scifi_state, const float scifi_qop, const float magnet_polarity)
+      __device__ ExtrapolateTrack(const MiniState scifi_state, const float scifi_qop)
       {
         // Calculate Y extrapolation correction
-        const float dty = Corrections::dty(scifi_qop, scifi_state.ty(), scifi_state.y());
-        const float dy = Corrections::dy(scifi_qop, scifi_state.ty(), scifi_state.y());
+        const float dty = Corrections::dty(scifi_state.ty(), scifi_state.y());
+        const float dy = Corrections::dy(scifi_state.ty(), scifi_state.y());
         m_ty = scifi_state.ty() + dty;
-
-        // Calculate the extra correction for first hit
-        const float dtx = Corrections::dtx(scifi_qop, m_ty);
 
         // Magent point
         m_zMagnet =
@@ -124,10 +135,7 @@ namespace Downstream {
         m_tx = m_xMagnet / m_zMagnet;
 
         // Update momentum
-        m_qop = Physics::qop(m_tx, m_ty, scifi_state.tx(), magnet_polarity);
-
-        // Apply the correction for first hit
-        m_tx += dtx;
+        m_qop = scifi_qop;
       }
 
       // Wrap
@@ -159,14 +167,14 @@ namespace Downstream {
 
       __device__ inline auto xTol(const unsigned layer)
       {
-        const auto [val, max] = Tolerance::X(layer, qop());
-        return (val > max) ? max : val;
+        const auto tol = Tolerance::X(layer, qop());
+        return (tol.x > tol.z) ? tol.z : (tol.x < tol.y) ? tol.y : tol.x;
       }
 
       __device__ inline auto yTol(const unsigned layer)
       {
-        const auto [val, max] = Tolerance::Y(layer, qop());
-        return (val > max) ? max : val;
+        const auto tol = Tolerance::Y(layer, qop());
+        return (tol.x > tol.z) ? tol.z : (tol.x < tol.y) ? tol.y : tol.x;
       }
     };
 

@@ -336,6 +336,25 @@ namespace Allen {
         __host__ __device__ float p2() const { return pt2() + pz() * pz(); }
 
         __host__ __device__ float p() const { return sqrtf(p2()); }
+
+        // The downstream composite model does not account for errors.
+        // Therefore, we repurpose some of the memory originally allocated for error storage to hold other information
+        __host__ __device__ float downstream_doca() const
+        {
+          return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 0];
+        }
+        __host__ __device__ float downstream_quality() const
+        {
+          return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 1];
+        }
+        __host__ __device__ float downstream_armentero_podolanski_x() const
+        {
+          return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 2];
+        }
+        __host__ __device__ float downstream_armentero_podolanski_y() const
+        {
+          return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 3];
+        }
       };
 
       struct SecondaryVertices {

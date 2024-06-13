@@ -75,6 +75,50 @@ def decode_calo(empty_banks=False):
     }
 
 
+def make_is_electron(decoded_calo, host_number_of_tracks,
+                     dev_multi_event_tracks_ptr, dev_velo_states,
+                     dev_scifi_states):
+    number_of_events = initialize_number_of_events()
+
+    track_digit_selective_matching = make_algorithm(
+        track_digit_selective_matching_t,
+        name='track_digit_selective_matching_{hash}',
+        host_number_of_reconstructed_scifi_tracks_t=host_number_of_tracks,
+        dev_scifi_states_t=dev_scifi_states,
+        # dev_long_tracks_view_t=dev_multi_event_tracks_ptr,
+        dev_tracks_view_t=dev_multi_event_tracks_ptr,
+        dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
+        dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"])
+
+    return {
+        "dev_delta_barycenter":
+        track_digit_selective_matching.dev_delta_barycenter_t,
+        "dev_dispersion_x":
+        track_digit_selective_matching.dev_dispersion_x_t,
+        "dev_dispersion_y":
+        track_digit_selective_matching.dev_dispersion_y_t,
+        "dev_dispersion_xy":
+        track_digit_selective_matching.dev_dispersion_xy_t,
+        "dev_track_local_max":
+        track_digit_selective_matching.dev_track_local_max_t,
+        "dev_matched_ecal_energy":
+        track_digit_selective_matching.dev_matched_ecal_energy_t,
+        "dev_matched_ecal_digits_size":
+        track_digit_selective_matching.dev_matched_ecal_digits_size_t,
+        "dev_matched_ecal_digits":
+        track_digit_selective_matching.dev_matched_ecal_digits_t,
+        "dev_track_inEcalAcc":
+        track_digit_selective_matching.dev_track_inEcalAcc_t,
+        "dev_track_Eop":
+        track_digit_selective_matching.dev_track_Eop_t,
+        "dev_track_Eop3x3":
+        track_digit_selective_matching.dev_track_Eop3x3_t,
+        "dev_track_isElectron":
+        track_digit_selective_matching.dev_track_isElectron_t,
+    }
+
+
 def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
                         kalman_velo_only):
     number_of_events = initialize_number_of_events()
@@ -85,7 +129,8 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
         host_number_of_reconstructed_scifi_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_scifi_states_t=long_tracks["dev_scifi_states"],
-        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        # dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        dev_tracks_view_t=long_tracks["dev_multi_event_long_tracks_ptr"],
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"])

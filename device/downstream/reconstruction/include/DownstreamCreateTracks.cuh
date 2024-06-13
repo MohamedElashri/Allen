@@ -11,6 +11,7 @@
 #pragma once
 
 // Basic
+#include "BackendCommon.h"
 #include "AlgorithmTypes.cuh"
 
 // Event Model
@@ -18,12 +19,14 @@
 #include "SciFiEventModel.cuh"
 #include "SciFiConsolidated.cuh"
 
+#include "NeuralNetwork.cuh"
+
 // Local
 #include "DownstreamConstants.cuh"
 #include "DownstreamStructs.cuh"
 #include "DownstreamExtrapolation.cuh"
 #include "DownstreamCache.cuh"
-#include "DownstreamGhostKiller.cuh"
+#include "BinarySearch.cuh"
 
 /**
  * @brief This is a definition file of the downstream_create_tracks algorithm.
@@ -37,19 +40,19 @@ namespace downstream_create_tracks {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
 
-    // Find hits output table
-    DEVICE_INPUT(dev_find_hits_output_table_t, char) dev_find_hits_output_table;
-    DEVICE_INPUT(dev_find_hits_num_row_output_table_t, unsigned) dev_find_hits_num_row_output_table;
+    // From find hits parts
+    DEVICE_INPUT(dev_findhits_num_selected_scifi_t, unsigned) dev_findhits_num_selected_scifi;
+    DEVICE_INPUT(dev_findhits_output_selected_scifi_offsets_t, unsigned) dev_findhits_output_selected_scifi_offsets;
+    DEVICE_INPUT(dev_findhits_output_t, Downstream::DownstreamStructs::DownstreamHits) dev_findhits_output;
+    DEVICE_INPUT(dev_findhits_selected_scifi_tracks_t, Downstream::DownstreamStructs::SelectedSciFiTrack)
+    dev_findhits_selected_scifi_tracks;
 
-    // Output SciFi
-    DEVICE_INPUT(dev_selected_scifi_t, unsigned) dev_selected_scifi;
-    DEVICE_INPUT(dev_num_selected_scifi_t, unsigned) dev_num_selected_scifi;
-    DEVICE_INPUT(dev_selected_scifi_offsets_t, unsigned) dev_selected_scifi_offsets;
-    DEVICE_INPUT(dev_selected_scifi_qop_t, float) dev_selected_scifi_qop;     // for ghost killer
-    DEVICE_INPUT(dev_selected_scifi_chi2Y_t, float) dev_selected_scifi_chi2Y; // for ghost killer
+    // UT hits
+    DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits;
+    DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
 
     // Output
-    DEVICE_OUTPUT(dev_downstream_tracks_t, char) dev_downstream_tracks;
+    DEVICE_OUTPUT(dev_downstream_tracks_t, UT::DownstreamTrack) dev_downstream_tracks;
     DEVICE_OUTPUT(dev_num_downstream_tracks_t, unsigned) dev_num_downstream_tracks;
 
     // Block size
@@ -58,7 +61,12 @@ namespace downstream_create_tracks {
     ghost_killer_threshold;
   };
 
-  __global__ void downstream_create_tracks(Parameters);
+  __global__ void downstream_create_tracks(
+    Parameters,
+    const unsigned*,
+    const float*,
+    const float*,
+    const Allen::NeuralNetwork::Model::DownstreamGhostKiller*);
 
   struct downstream_create_tracks_t : public DeviceAlgorithm,
                                       Parameters
@@ -73,7 +81,7 @@ namespace downstream_create_tracks {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
     Property<ghost_killer_threshold_t> m_ghost_killer_threshold {this, 0.5};
   };
 

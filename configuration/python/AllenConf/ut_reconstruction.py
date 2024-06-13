@@ -27,12 +27,12 @@ def create_reduced_ut_container(decoded_ut, dev_used_ut_hits):
 
     prefix_sum_used_ut_hits = make_algorithm(
         host_prefix_sum_t,
-        name="prefix_sum_used_ut_hits",
+        name='prefix_sum_used_ut_hits_{hash}',
         dev_input_buffer_t=dev_used_ut_hits)
 
     create_reduced_ut_hit_container = make_algorithm(
         create_reduced_ut_hits_container_t,
-        name="create_reduced_ut_hit_container",
+        name="create_reduced_ut_hit_container_{hash}",
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_used_ut_hits_offsets_t=prefix_sum_used_ut_hits.dev_output_buffer_t,
         host_used_ut_hits_offsets_t=prefix_sum_used_ut_hits.

@@ -32,9 +32,30 @@ void make_lepton_id::make_lepton_id_t::operator()(
 
 __global__ void make_lepton_id::make_lepton_id(make_lepton_id::Parameters parameters)
 {
+  if (const auto long_tracks =
+        Allen::dyn_cast<const Allen::Views::Physics::MultiEventLongTracks*>(*parameters.dev_tracks_view);
+      long_tracks) {
+    make_lepton_id_implementation<Allen::Views::Physics::MultiEventLongTracks>(parameters, long_tracks);
+  }
+  else if (const auto downstream_tracks =
+             Allen::dyn_cast<const Allen::Views::Physics::MultiEventDownstreamTracks*>(*parameters.dev_tracks_view);
+           downstream_tracks) {
+    make_lepton_id_implementation<Allen::Views::Physics::MultiEventDownstreamTracks>(parameters, downstream_tracks);
+  }
+  else {
+    // This flag tell compile this code it not reachable, so it will optimze with it
+    Allen::unreachable();
+  }
+}
+
+template<typename MultiEventTracks>
+__device__ void make_lepton_id::make_lepton_id_implementation(
+  make_lepton_id::Parameters parameters,
+  const MultiEventTracks* dev_long_tracks_view)
+{
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   // Long tracks.
-  const auto long_tracks = parameters.dev_long_tracks_view->container(event_number);
+  const auto long_tracks = dev_long_tracks_view->container(event_number);
   const unsigned n_tracks = long_tracks.size();
   const unsigned offset = long_tracks.offset();
   const auto* event_is_muon = parameters.dev_is_muon + offset;

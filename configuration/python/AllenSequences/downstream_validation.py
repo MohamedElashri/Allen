@@ -16,6 +16,7 @@ from AllenConf.validators import velo_validation, seeding_validation, seeding_xz
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate
+from AllenConf.primary_vertex_reconstruction import make_pvs
 
 decoded_velo = decode_velo()
 velo_tracks = make_velo_tracks(decoded_velo)
@@ -35,6 +36,7 @@ decoded_ut = decode_ut()
 downstream_tracks = make_downstream(
     decoded_ut=decoded_ut,
     scifi_seeds=seeding_tracks,
+    pvs=make_pvs(velo_tracks=velo_tracks),
     # ut_tracks=ut_tracks,
     velo_scifi_matches=matched_tracks)
 velo_scifi = long_validation(matched_tracks)

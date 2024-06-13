@@ -204,9 +204,20 @@ namespace Allen {
         __host__ __device__ DownstreamTrack(
           const Allen::Views::UT::Consolidated::Track* ut_segment,
           const Allen::Views::SciFi::Consolidated::Track* scifi_segment,
-          const float* qop) :
-          Track {nullptr, ut_segment, scifi_segment, nullptr, qop}
+          const float* qop,
+          const float* ghost_probability) :
+          Track {nullptr, ut_segment, scifi_segment, nullptr, qop, ghost_probability}
         {}
+
+        __host__ __device__ float pt(Allen::Views::Physics::KalmanState velo_state) const
+        {
+          const auto qop = *m_qop;
+          const float tx = velo_state.tx();
+          const float ty = velo_state.ty();
+          const float slope2 = tx * tx + ty * ty;
+          const float pt = std::sqrt(slope2 / (1.0f + slope2)) / std::fabs(qop);
+          return pt;
+        }
       };
 
       struct DownstreamTracks : ILHCbIDContainer<DownstreamTracks> {
@@ -334,7 +345,8 @@ namespace Allen {
       private:
         const Track* m_track = nullptr;
         const KalmanStates* m_states = nullptr;
-        const PV::Vertex* m_pv = nullptr; // PV event model should be rebuilt too.
+        const PV::Vertex* m_pv = nullptr;
+        const float* m_ip = nullptr;
         // Could store muon and calo PID in a single array, but they're created by
         // different algorithms and might not always exist.
         unsigned m_index = 0;
@@ -352,14 +364,17 @@ namespace Allen {
           const KalmanStates* states,
           const PV::Vertex* pv,
           unsigned index,
-          uint8_t lepton_id) :
+          uint8_t lepton_id,
+          const float* min_ip = nullptr) :
           IParticle(TypeID),
-          m_track(track), m_states(states), m_pv(pv), m_index(index), m_lepton_id(lepton_id)
+          m_track(track), m_states(states), m_pv(pv), m_ip(min_ip), m_index(index), m_lepton_id(lepton_id)
         {
           assert(m_states != nullptr);
         }
 
         __host__ __device__ bool has_pv() const { return m_pv != nullptr; }
+
+        __host__ __device__ bool has_ownpv_ip() const { return m_ip != nullptr; }
 
         __host__ __device__ const Track& track() const { return *m_track; }
 
@@ -367,6 +382,12 @@ namespace Allen {
         {
           assert(has_pv());
           return *m_pv;
+        }
+
+        __host__ __device__ const float& ownpv_ip() const
+        {
+          assert(has_ownpv_ip());
+          return *m_ip;
         }
 
         __host__ __device__ KalmanState state() const { return m_states->state(m_index); }
@@ -558,6 +579,7 @@ namespace Allen {
         std::array<const IParticle*, 4> m_children = {nullptr, nullptr, nullptr, nullptr};
         const SecondaryVertices* m_vertices = nullptr;
         const PV::Vertex* m_pv = nullptr;
+        const float* m_ip = nullptr;
         unsigned m_size = 0;
         unsigned m_index = 0;
 
@@ -601,9 +623,10 @@ namespace Allen {
           const SecondaryVertices* vertices,
           const PV::Vertex* pv,
           unsigned size,
-          unsigned index) :
+          unsigned index,
+          const float* min_ip = nullptr) :
           IParticle(TypeID),
-          m_children(children), m_vertices(vertices), m_pv(pv), m_size(size), m_index(index)
+          m_children(children), m_vertices(vertices), m_pv(pv), m_ip(min_ip), m_size(size), m_index(index)
         {
           for (unsigned i = 0; i < m_children.size(); i++) {
             if (i < m_size)
@@ -613,12 +636,22 @@ namespace Allen {
           }
         }
 
+        __host__ __device__ auto index() const { return m_index; }
+
         __host__ __device__ bool has_pv() const { return m_pv != nullptr; }
 
         __host__ __device__ const PV::Vertex& pv() const
         {
           assert(has_pv());
           return *m_pv;
+        }
+
+        __host__ __device__ bool has_ownpv_ip() const { return m_ip != nullptr; }
+
+        __host__ __device__ const float& ownpv_ip() const
+        {
+          assert(has_ownpv_ip());
+          return *m_ip;
         }
 
         __host__ __device__ unsigned number_of_children() const { return m_size; }
@@ -1102,6 +1135,7 @@ namespace Allen {
       using MultiEventBasicParticles = Allen::MultiEventContainer<BasicParticles>;
       using MultiEventNeutralBasicParticles = Allen::MultiEventContainer<NeutralBasicParticles>;
       using MultiEventCompositeParticles = Allen::MultiEventContainer<CompositeParticles>;
+
     } // namespace Physics
   }   // namespace Views
 } // namespace Allen

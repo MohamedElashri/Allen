@@ -84,10 +84,11 @@ __global__ void downstream_consolidate::downstream_create_tracks_view(
   for (unsigned track_index = threadIdx.x; track_index < downstream_tracks_size; track_index += blockDim.x) {
     const auto scifi_track_index = downstream_track_scifi_indices[track_index];
     const auto downstream_track_index = downstream_tracks_offset + track_index;
-    new (parameters.dev_downstream_track_view + downstream_track_index)
-      Allen::Views::Physics::DownstreamTrack {&parameters.dev_downstream_ut_track_view[downstream_track_index],
-                                              &parameters.dev_scifi_tracks_view[event_number].track(scifi_track_index),
-                                              &parameters.dev_downstream_track_qops[downstream_track_index]};
+    new (parameters.dev_downstream_track_view + downstream_track_index) Allen::Views::Physics::DownstreamTrack {
+      parameters.dev_downstream_ut_track_view + downstream_track_index,
+      &parameters.dev_scifi_tracks_view[event_number].track(scifi_track_index),
+      parameters.dev_downstream_track_qops + downstream_track_index,
+      parameters.dev_downstream_track_ghost_probability + downstream_track_index};
   }
 
   if (threadIdx.x == 0) {
@@ -102,6 +103,7 @@ __global__ void downstream_consolidate::downstream_create_tracks_view(
   }
 
   __syncthreads();
+
   //
   // Fill monitoring
   //
@@ -127,7 +129,9 @@ void downstream_consolidate::downstream_consolidate_t::set_arguments_size(
   set_size<dev_downstream_track_hits_t>(
     arguments, first<host_number_of_hits_in_downstream_tracks_t>(arguments) * UT::Consolidated::Hits::element_size);
   set_size<dev_downstream_track_qops_t>(arguments, first<host_number_of_downstream_tracks_t>(arguments));
+  set_size<dev_downstream_track_ghost_probability_t>(arguments, first<host_number_of_downstream_tracks_t>(arguments));
   set_size<dev_downstream_track_scifi_idx_t>(arguments, first<host_number_of_downstream_tracks_t>(arguments));
+  set_size<dev_downstream_track_scifi_states_t>(arguments, first<host_number_of_downstream_tracks_t>(arguments));
 
   // UT track views
   set_size<dev_downstream_hits_view_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -138,7 +142,6 @@ void downstream_consolidate::downstream_consolidate_t::set_arguments_size(
 
   // Kalman states
   set_size<dev_downstream_track_states_view_t>(arguments, first<host_number_of_events_t>(arguments));
-
   // Downstream track views
   set_size<dev_downstream_track_view_t>(arguments, first<host_number_of_downstream_tracks_t>(arguments));
   set_size<dev_downstream_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -153,8 +156,18 @@ void downstream_consolidate::downstream_consolidate_t::operator()(
   const Allen::Context& context) const
 {
   // Initialize container to avoid invalid std::function destructor
-  Allen::memset_async<dev_multi_event_downstream_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_downstream_track_states_t>(arguments, 0, context);
+  Allen::memset_async<dev_downstream_track_hits_t>(arguments, 0, context);
+  Allen::memset_async<dev_downstream_hits_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_downstream_ut_track_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_downstream_ut_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_multi_event_downstream_ut_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_multi_event_downstream_ut_tracks_view_ptr_t>(arguments, 0, context);
+  Allen::memset_async<dev_downstream_track_states_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_downstream_track_view_t>(arguments, 0, context);
   Allen::memset_async<dev_downstream_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_multi_event_downstream_tracks_view_t>(arguments, 0, context);
+  Allen::memset_async<dev_multi_event_downstream_tracks_view_ptr_t>(arguments, 0, context);
 
   // Fill the consolidation memory
   global_function(downstream_consolidate)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
@@ -183,11 +196,7 @@ __global__ void downstream_consolidate::downstream_consolidate(
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Tracks
-  const auto downstream_tracks_memory =
-    parameters.dev_downstream_tracks + event_number * UT::DownstreamTracks::TotalMemorySize;
-  UT::DownstreamTracks_Const downstream_tracks {downstream_tracks_memory};
-
-  // Event offsets for tracks
+  auto downstream_tracks = parameters.dev_downstream_tracks + event_number * UT::Constants::max_num_tracks;
   const auto downstream_tracks_offset = parameters.dev_offsets_downstream_tracks[event_number];
   const auto downstream_tracks_size =
     parameters.dev_offsets_downstream_tracks[event_number + 1] - downstream_tracks_offset;
@@ -195,12 +204,15 @@ __global__ void downstream_consolidate::downstream_consolidate(
   // Event offsets for hit ofsets
   const auto downstream_hit_number_offsets = parameters.dev_offsets_downstream_hit_numbers + downstream_tracks_offset;
 
+  // SciFi offsets
+  const auto scifi_tracks_offset = parameters.dev_scifi_tracks_view[event_number].offset();
+
   // Total numbers
   const auto downstream_total_number_of_tracks = parameters.dev_offsets_downstream_tracks[number_of_events];
   const auto downstream_total_number_of_hits =
     parameters.dev_offsets_downstream_hit_numbers[downstream_total_number_of_tracks];
 
-  // UT hits
+  // Input UT hits
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
   const UT::HitOffsets ut_hit_offsets {
@@ -217,6 +229,9 @@ __global__ void downstream_consolidate::downstream_consolidate(
   // Outputs
   const auto downstream_track_scifi_indices = parameters.dev_downstream_track_scifi_idx + downstream_tracks_offset;
   const auto downstream_track_qops = parameters.dev_downstream_track_qops + downstream_tracks_offset;
+  const auto downstream_track_ghost_probability =
+    parameters.dev_downstream_track_ghost_probability + downstream_tracks_offset;
+  const auto downstream_track_scifi_states = parameters.dev_downstream_track_scifi_states + downstream_tracks_offset;
 
   UT::Consolidated::Hits downstream_track_hits(
     parameters.dev_downstream_track_hits, 0, downstream_total_number_of_hits);
@@ -230,46 +245,33 @@ __global__ void downstream_consolidate::downstream_consolidate(
   Velo::Consolidated::States output_states(
     parameters.dev_downstream_track_states, downstream_total_number_of_tracks, downstream_tracks_offset);
 
-  // Fill states
+  // Fill start
   for (unsigned track_idx = threadIdx.x; track_idx < downstream_tracks_size; track_idx += blockDim.x) {
+    const auto& downstream_track = downstream_tracks[track_idx];
 
-    // First AOS part of state
-    output_states.x(track_idx) = downstream_tracks.x(track_idx);
-    output_states.y(track_idx) = downstream_tracks.y(track_idx);
-    output_states.z(track_idx) = UT::Constants::zMidUT;
-    output_states.tx(track_idx) = downstream_tracks.tx(track_idx);
-    output_states.ty(track_idx) = downstream_tracks.ty(track_idx);
-    output_states.qop(track_idx) = downstream_tracks.qop(track_idx);
+    // Fill states
+    output_states.x(track_idx) = downstream_track.x;
+    output_states.y(track_idx) = downstream_track.y;
+    output_states.tx(track_idx) = downstream_track.tx;
+    output_states.ty(track_idx) = downstream_track.ty;
+    output_states.qop(track_idx) = downstream_track.qop;
+    output_states.chi2(track_idx) = downstream_track.chi2;
+    output_states.ndof(track_idx) = 1;
 
-    // Fill extra qop for downstream track
-    downstream_track_qops[track_idx] = downstream_tracks.qop(track_idx);
+    // Fill consolidation info
+    downstream_track_scifi_indices[track_idx] = downstream_track.scifi_idx;
+    downstream_track_qops[track_idx] = downstream_track.qop;
+    downstream_track_ghost_probability[track_idx] = downstream_track.ghost_prob;
+    downstream_track_scifi_states[track_idx] =
+      parameters.dev_scifi_states[scifi_tracks_offset + downstream_track.scifi_idx];
 
-    // Second AOS part of state
-    output_states.c00(track_idx) = 0.f;
-    output_states.c20(track_idx) = 0.f;
-    output_states.c22(track_idx) = 0.f;
-    output_states.c11(track_idx) = 0.f;
-    output_states.c31(track_idx) = 0.f;
-    output_states.c33(track_idx) = 0.f;
-    output_states.chi2(track_idx) = downstream_tracks.chi2(track_idx);
-    output_states.ndof(track_idx) = downstream_tracks.n_hits(track_idx) - 1u;
-  }
-
-  // Scifi idx
-  for (unsigned track_idx = threadIdx.x; track_idx < downstream_tracks_size; track_idx += blockDim.x) {
-    downstream_track_scifi_indices[track_idx] = downstream_tracks.scifi(track_idx);
-  }
-
-  // Fill hits
-  for (unsigned track_idx = threadIdx.x; track_idx < downstream_tracks_size; track_idx += blockDim.x) {
-    const auto nhits = downstream_tracks.n_hits(track_idx);
+    // Fill hits
+    const auto nhits = downstream_track.num_hits;
     const auto target_hit_offset = downstream_hit_number_offsets[track_idx];
     for (unsigned hit_idx = 0; hit_idx < nhits; hit_idx++) {
-      downstream_track_hits.set(
-        target_hit_offset + hit_idx, ut_hits.getHit(downstream_tracks.hits(track_idx, hit_idx)));
+      downstream_track_hits.set(target_hit_offset + hit_idx, ut_hits.getHit(downstream_track.hits[hit_idx]));
     }
   }
-
   __syncthreads();
 }
 

@@ -23,7 +23,8 @@ namespace is_muon {
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
+    // DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
+    DEVICE_INPUT(dev_tracks_view_t, Allen::IMultiEventContainer*) dev_tracks_view;
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
     DEVICE_INPUT(dev_station_ocurrences_offset_t, unsigned) dev_station_ocurrences_offset;
     DEVICE_INPUT(dev_muon_hits_t, char) dev_muon_hits;
@@ -42,6 +43,16 @@ namespace is_muon {
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType);
+
+  template<typename MultiEventTracks>
+  __device__ void is_muon_implementation(
+    Parameters parameters,
+    const MultiEventTracks* dev_long_tracks_view,
+    const Muon::Constants::FieldOfInterest* dev_muon_foi,
+    const float* dev_muon_momentum_cuts,
+    Allen::Monitoring::Histogram<>::DeviceType dev_histo_n_muons,
+    Allen::Monitoring::Histogram<>::DeviceType dev_histo_muon_n_stations,
+    Allen::Monitoring::Histogram<>::DeviceType dev_histo_muon_pt);
 
   struct is_muon_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;

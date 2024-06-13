@@ -79,7 +79,7 @@ __global__ void downstream_ut_filter::downstream_ut_filter(
       const auto new_global_idx = new_sector_hit_offset + new_idx;
       const auto old_global_idx = old_sector_hit_offset + old_idx;
 
-      if (parameters.dev_is_ut_hit_used[old_global_idx]) continue;
+      if (parameters.dev_used_ut_hits[old_global_idx]) continue;
 
       output_hits.yBegin(new_global_idx) = ut_hits.yBegin(old_global_idx);
       output_hits.yEnd(new_global_idx) = ut_hits.yEnd(old_global_idx);

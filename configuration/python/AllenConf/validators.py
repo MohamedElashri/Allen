@@ -17,7 +17,7 @@ from AllenCore.algorithms import (
     host_data_provider_t, host_sel_report_validator_t,
     data_quality_validator_long_t, data_quality_validator_occupancy_t,
     data_quality_validator_pv_t, data_quality_validator_velo_t,
-    host_unmatched_seeding_validator_t)
+    host_unmatched_seeding_validator_t, downstream_composite_dumper_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenConf.persistency import make_dec_reporter, make_gather_selections, make_routingbits_writer, rb_map
@@ -492,3 +492,34 @@ def data_quality_validation_occupancy(name="data_quality_validator"):
         dev_offsets_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
         dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
         dev_ecal_num_clusters_t=ecal_clusters["dev_ecal_num_clusters"])
+
+
+def dump_downstream_secondary_vertices(
+        downstream_tracks,
+        downstream_secondary_vertices,
+        name="dump_downstream_secondary_vertices"):
+    mc_events = mc_data_provider()
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        downstream_composite_dumper_t,
+        name=name,
+        # Basics
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_mc_events_t=mc_events.host_mc_events_t,
+        # Long tracks
+        host_number_of_vertices_t=downstream_secondary_vertices[
+            "host_number_of_svs"],
+        dev_offset_vertices_t=downstream_secondary_vertices["dev_sv_offsets"],
+        dev_multi_event_composites_view_t=downstream_secondary_vertices[
+            "dev_multi_event_composites"],
+        # Extras
+        dev_downstream_mva_ks_t=downstream_secondary_vertices[
+            "dev_downstream_mva_ks"],
+        dev_downstream_mva_l0_t=downstream_secondary_vertices[
+            "dev_downstream_mva_l0"],
+        dev_downstream_mva_detached_ks_t=downstream_secondary_vertices[
+            "dev_downstream_mva_detached_ks"],
+        dev_downstream_mva_detached_l0_t=downstream_secondary_vertices[
+            "dev_downstream_mva_detached_l0"],
+    )

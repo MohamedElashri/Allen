@@ -342,9 +342,6 @@ namespace UT {
 
     typedef const Tracks ConstTracks;
 
-    using ConstDownstreamTracks = DownstreamTracks_t<const char>;
-    using DownstreamTracks = DownstreamTracks_t<char>;
-
     template<typename T>
     struct ExtendedTracks_t : public Tracks {
     private:

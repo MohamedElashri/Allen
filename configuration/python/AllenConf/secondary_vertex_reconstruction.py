@@ -70,6 +70,26 @@ def make_kalman_velo_only(long_tracks,
     }
 
 
+def make_lepton_id(host_number_of_tracks, dev_multi_event_tracks_ptr,
+                   is_muon_result, is_electron_result):
+    number_of_events = initialize_number_of_events()
+    if is_electron_result is not None:
+        make_lepton_id = make_algorithm(
+            make_lepton_id_t,
+            name='make_lepton_id_{hash}',
+            host_number_of_events_t=number_of_events["host_number_of_events"],
+            dev_number_of_events_t=number_of_events["dev_number_of_events"],
+            host_number_of_scifi_tracks_t=host_number_of_tracks,
+            dev_tracks_view_t=dev_multi_event_tracks_ptr,
+            dev_is_muon_t=is_muon_result["dev_is_muon"],
+            dev_is_electron_t=is_electron_result["dev_track_isElectron"])
+        lepton_id = make_lepton_id.dev_lepton_id_t
+    else:
+        lepton_id = is_muon_result["dev_lepton_id"]
+
+    return lepton_id
+
+
 def make_basic_particles(
         kalman_velo_only,
         is_muon_result,
@@ -79,21 +99,14 @@ def make_basic_particles(
     long_tracks = kalman_velo_only["long_tracks"]
     pvs = kalman_velo_only["pvs"]
 
-    if is_electron_result is not None:
-        make_lepton_id = make_algorithm(
-            make_lepton_id_t,
-            name='make_lepton_id_{hash}',
-            host_number_of_events_t=number_of_events["host_number_of_events"],
-            dev_number_of_events_t=number_of_events["dev_number_of_events"],
-            host_number_of_scifi_tracks_t=long_tracks[
-                "host_number_of_reconstructed_scifi_tracks"],
-            dev_long_tracks_view_t=long_tracks[
-                "dev_multi_event_long_tracks_view"],
-            dev_is_muon_t=is_muon_result["dev_is_muon"],
-            dev_is_electron_t=is_electron_result["dev_track_isElectron"])
-        lepton_id = make_lepton_id.dev_lepton_id_t
-    else:
-        lepton_id = is_muon_result["dev_lepton_id"]
+    lepton_id = make_lepton_id(
+        host_number_of_tracks=long_tracks[
+            "host_number_of_reconstructed_scifi_tracks"],
+        dev_multi_event_tracks_ptr=long_tracks[
+            "dev_multi_event_long_tracks_ptr"],
+        is_muon_result=is_muon_result,
+        is_electron_result=is_electron_result,
+    )
 
     make_long_track_particles = make_algorithm(
         make_long_track_particles_t,

@@ -115,6 +115,35 @@ def decode_muon(empty_banks=False):
     }
 
 
+def make_is_muon(decoded_muon,
+                 host_number_of_tracks,
+                 dev_multi_event_tracks_ptr,
+                 dev_velo_states,
+                 dev_scifi_states,
+                 is_muon_name='is_muon'):
+    number_of_events = initialize_number_of_events()
+    host_number_of_events = number_of_events["host_number_of_events"]
+    dev_number_of_events = number_of_events["dev_number_of_events"]
+
+    is_muon = make_algorithm(
+        is_muon_t,
+        name=str(is_muon_name),
+        host_number_of_events_t=host_number_of_events,
+        dev_number_of_events_t=dev_number_of_events,
+        host_number_of_reconstructed_scifi_tracks_t=host_number_of_tracks,
+        dev_scifi_states_t=dev_scifi_states,
+        dev_tracks_view_t=dev_multi_event_tracks_ptr,
+        dev_station_ocurrences_offset_t=decoded_muon[
+            "dev_station_ocurrences_offset"],
+        dev_velo_states_view_t=dev_velo_states,
+        dev_muon_hits_t=decoded_muon["dev_muon_hits"])
+
+    return {
+        "dev_is_muon": is_muon.dev_is_muon_t,
+        "dev_lepton_id": is_muon.dev_lepton_id_t
+    }
+
+
 def is_muon(decoded_muon, long_tracks, is_muon_name='is_muon'):
     number_of_events = initialize_number_of_events()
     host_number_of_events = number_of_events["host_number_of_events"]
@@ -133,7 +162,7 @@ def is_muon(decoded_muon, long_tracks, is_muon_name='is_muon'):
         host_number_of_reconstructed_scifi_tracks_t=
         host_number_of_reconstructed_scifi_tracks,
         dev_scifi_states_t=dev_scifi_states,
-        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        dev_tracks_view_t=long_tracks["dev_multi_event_long_tracks_ptr"],
         dev_station_ocurrences_offset_t=decoded_muon[
             "dev_station_ocurrences_offset"],
         dev_velo_states_view_t=velo_kalman_filter[
@@ -210,17 +239,15 @@ def chi2muon(long_tracks, is_muon):
     return {"dev_chi2corr": chi2muon.dev_chi2_muon_t}
 
 
-def fake_muon_id(forward_tracks):
+def fake_muon_id(host_number_of_tracks):
     number_of_events = initialize_number_of_events()
     empty_muon_id = make_algorithm(
         empty_lepton_id_t,
         name='empty_muon_id_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_scifi_tracks_t=forward_tracks[
-            "host_number_of_reconstructed_scifi_tracks"])
+        host_number_of_scifi_tracks_t=host_number_of_tracks)
 
     return {
-        "forward_tracks": forward_tracks,
         "dev_is_muon": empty_muon_id.dev_is_lepton_t,
         "dev_lepton_id": empty_muon_id.dev_lepton_id_t,
         "dev_chi2corr": empty_muon_id.dev_chi2_muon_t,

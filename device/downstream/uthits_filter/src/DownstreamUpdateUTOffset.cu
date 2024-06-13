@@ -69,7 +69,7 @@ __global__ void downstream_update_ut_offset::downstream_update_ut_offset(
     const auto sector_hit_offset = ut_hit_offsets.sector_group_offset(sector_idx);
     const auto num_hits_in_sector = ut_hit_offsets.sector_group_number_of_hits(sector_idx);
     for (unsigned hit_idx = 0; hit_idx < num_hits_in_sector; hit_idx++) {
-      if (parameters.dev_is_ut_hit_used[sector_hit_offset + hit_idx]) continue;
+      if (parameters.dev_used_ut_hits[sector_hit_offset + hit_idx]) continue;
       num_hits_in_each_sector++;
     }
     output_num_hits_per_sector[sector_idx] = num_hits_in_each_sector;

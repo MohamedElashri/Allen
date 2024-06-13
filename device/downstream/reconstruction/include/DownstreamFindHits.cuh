@@ -17,6 +17,7 @@
 #include "UTEventModel.cuh"
 #include "SciFiEventModel.cuh"
 #include "SciFiConsolidated.cuh"
+#include "NeuralNetwork.cuh"
 
 // Local
 #include "DownstreamConstants.cuh"
@@ -40,6 +41,7 @@ namespace downstream_find_hits {
     DEVICE_INPUT(dev_matched_is_scifi_track_used_t, bool) dev_matched_is_scifi_track_used;
 
     // Scifi input
+    // DEVICE_INPUT(dev_scifi_track_selection_t, bool) dev_scifi_track_selection;
     DEVICE_INPUT(dev_offsets_seeding_t, unsigned) dev_offsets_seeding;
     DEVICE_INPUT(dev_seeding_states_t, MiniState) dev_seeding_states;
     DEVICE_INPUT(dev_seeding_qop_t, float) dev_seeding_qop;
@@ -54,26 +56,56 @@ namespace downstream_find_hits {
     DEVICE_OUTPUT(dev_hit_caching_memory_t, char) dev_hit_caching_memory;
     DEVICE_OUTPUT(dev_hit_caching_counter_t, unsigned) dev_hit_caching_counter;
 
-    // Output table
-    DEVICE_OUTPUT(dev_output_table_t, char) dev_output_table;
-    DEVICE_OUTPUT(dev_num_row_output_table_t, unsigned) dev_num_row_output_table;
+    // Outputs
+    DEVICE_OUTPUT(dev_findhits_output_t, Downstream::DownstreamStructs::DownstreamHits) dev_findhits_output;
+    DEVICE_OUTPUT(dev_findhits_extrapolation_t, Downstream::DownstreamStructs::ExtrapolationData)
+    dev_findhits_extrapolation;
+    DEVICE_OUTPUT(dev_findhits_candidate_cache_t, Downstream::DownstreamStructs::CandidateCache)
+    dev_findhits_candidate_cache;
+    DEVICE_OUTPUT(dev_findhits_selected_scifi_tracks_t, Downstream::DownstreamStructs::SelectedSciFiTrack)
+    dev_findhits_selected_scifi_tracks;
 
-    // Output SciFi
-    DEVICE_OUTPUT(dev_selected_scifi_t, unsigned) dev_selected_scifi;
-    DEVICE_OUTPUT(dev_num_selected_scifi_t, unsigned) dev_num_selected_scifi;
-    DEVICE_OUTPUT(dev_selected_scifi_offsets_t, unsigned) dev_selected_scifi_offsets;
-    DEVICE_OUTPUT(dev_selected_scifi_qop_t, float) dev_selected_scifi_qop;     // for ghost killer
-    DEVICE_OUTPUT(dev_selected_scifi_chi2Y_t, float) dev_selected_scifi_chi2Y; // for ghost killer
+    // Output offsets
+    DEVICE_OUTPUT(dev_findhits_num_output_t, unsigned) dev_findhits_num_output;
+    DEVICE_OUTPUT(dev_findhits_num_selected_scifi_t, unsigned) dev_findhits_num_selected_scifi;
+    DEVICE_OUTPUT(dev_findhits_output_selected_scifi_offsets_t, unsigned) dev_findhits_output_selected_scifi_offsets;
+
+    // Properties
+    PROPERTY(
+      ttracks_probability_threshold_t,
+      "ttracks_probability_threshold",
+      "the threshold of the T track propability",
+      float)
+    ttracks_probability_threshold;
+    PROPERTY(require_four_ut_hits_t, "require_four_ut_hits", "Require 4 UT hits to create downstream tracks", bool)
+    require_four_ut_hits;
 
     // Block size
-    PROPERTY(num_threads_scifi_t, "num_threads_scifi", "number of threads for SciFi", DeviceDimensions)
-    num_threads_scifi;
-    PROPERTY(num_threads_row_t, "num_threads_row", "number of threads for Row", DeviceDimensions) num_threads_row;
+    PROPERTY(
+      num_threads_create_candidates_t,
+      "num_threads_create_candidates",
+      "number of threads for candidate creation",
+      DeviceDimensions)
+    num_threads_create_candidates;
+    PROPERTY(
+      num_threads_find_rest_hits_t,
+      "num_threads_find_rest_hits",
+      "number of threads for finding rest of hits",
+      DeviceDimensions)
+    num_threads_find_rest_hits;
   };
 
-  __global__ void downstream_create_output_table(Parameters, const unsigned*, const float*, const float*, const float*);
+  template<bool filter_used_scifi_seeds>
+  __global__ void downstream_create_candidates(
+    Parameters,
+    const unsigned*,
+    const float*,
+    const float*,
+    const float*,
+    const Allen::NeuralNetwork::Model::TTrackSelector*);
 
-  __global__ void downstream_fill_output_table(Parameters, const unsigned*, const float*, const float*, const float*);
+  template<bool require_four_hits>
+  __global__ void downstream_find_rest_hits(Parameters, const unsigned*, const float*, const float*, const float*);
 
   struct downstream_find_hits_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -85,8 +117,10 @@ namespace downstream_find_hits {
       const Allen::Context& context) const;
 
   private:
-    Property<num_threads_scifi_t> m_num_threads_scifi {this, {{128, 1, 1}}};
-    Property<num_threads_row_t> m_num_threads_row {this, {{256, 1, 1}}};
+    Property<ttracks_probability_threshold_t> m_ttracks_probability_threshold {this, 0.5};
+    Property<require_four_ut_hits_t> m_require_four_ut_hits {this, true};
+    Property<num_threads_create_candidates_t> m_num_threads_create_candidates {this, {{64, 1, 1}}};
+    Property<num_threads_find_rest_hits_t> m_num_threads_find_rest_hits {this, {{128, 1, 1}}};
   };
 
 } // namespace downstream_find_hits
