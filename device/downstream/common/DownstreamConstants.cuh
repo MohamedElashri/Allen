@@ -11,6 +11,7 @@
 #pragma once
 
 #include "UTEventModel.cuh"
+#include "UTDefinitions.cuh"
 // #include "SystemOfUnits.h"
 // #include <cstdint>
 
@@ -18,7 +19,7 @@ namespace Downstream {
 
   namespace DownstreamParameters {
     // Max number of hit cached in shared memory
-    constexpr unsigned MaxNumHitCachedSharedMemory = 1024;
+    constexpr unsigned MaxNumHitCachedSharedMemory = 974;
 
     // Max number of downstream scifi seed
     constexpr unsigned MaxNumDownstreamSciFi = UT::Constants::max_num_tracks;
@@ -30,10 +31,13 @@ namespace Downstream {
     constexpr unsigned MaxNumSelectedUVhitPerRow = 2;
 
     // Max number of row in search table
-    constexpr unsigned MaxNumSelectedX3Hit = MaxNumSelectedX3HitPerScifi * MaxNumDownstreamSciFi;
+    constexpr unsigned MaxNumSelectedX3Hit = 1024 * 2;
+
+    // Max number of downstream candidates
+    constexpr unsigned MaxNumCandidates = 1024 * 2;
 
     // Max number of cached sectors
-    constexpr unsigned MaxNumCachedSector = 24;
+    constexpr unsigned MaxNumCachedSector = 64;
 
     // Max number of UT sectors
     constexpr unsigned MaxNumSector = MaxNumCachedSector * UT::Constants::n_layers;

@@ -40,7 +40,7 @@ namespace downstream_ut_filter {
     DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
 
     // Compass UT
-    DEVICE_INPUT(dev_is_ut_hit_used_t, bool) dev_is_ut_hit_used;
+    DEVICE_INPUT(dev_used_ut_hits_t, bool) dev_used_ut_hits;
 
     // New offsets
     DEVICE_INPUT(dev_filtered_hits_offsets_t, unsigned) dev_filtered_hits_offsets;

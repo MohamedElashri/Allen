@@ -26,9 +26,6 @@
 // Local
 #include "DownstreamConstants.cuh"
 #include "DownstreamStructs.cuh"
-#include "DownstreamExtrapolation.cuh"
-#include "DownstreamCache.cuh"
-#include "DownstreamCreateTracks.cuh"
 
 #include "AllenMonitoring.h"
 
@@ -50,10 +47,9 @@ namespace downstream_consolidate {
     HOST_INPUT(host_number_of_downstream_tracks_t, unsigned) host_number_of_downstream_tracks;
 
     // Downstream input
-    DEVICE_INPUT(dev_downstream_track_hit_number_t, unsigned) dev_downstream_track_hit_number;
     DEVICE_INPUT(dev_offsets_downstream_hit_numbers_t, unsigned) dev_offsets_downstream_hit_numbers;
     DEVICE_INPUT(dev_offsets_downstream_tracks_t, unsigned) dev_offsets_downstream_tracks;
-    DEVICE_INPUT(dev_downstream_tracks_t, char) dev_downstream_tracks;
+    DEVICE_INPUT(dev_downstream_tracks_t, UT::DownstreamTrack) dev_downstream_tracks;
 
     // UT input
     DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits;
@@ -61,12 +57,15 @@ namespace downstream_consolidate {
 
     // Scifi input
     DEVICE_INPUT(dev_scifi_tracks_view_t, Allen::Views::SciFi::Consolidated::Tracks) dev_scifi_tracks_view;
+    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
 
     // Output
     DEVICE_OUTPUT(dev_downstream_track_states_t, char) dev_downstream_track_states;
     DEVICE_OUTPUT(dev_downstream_track_hits_t, char) dev_downstream_track_hits;
     DEVICE_OUTPUT(dev_downstream_track_qops_t, float) dev_downstream_track_qops;
+    DEVICE_OUTPUT(dev_downstream_track_ghost_probability_t, float) dev_downstream_track_ghost_probability;
     DEVICE_OUTPUT(dev_downstream_track_scifi_idx_t, unsigned) dev_downstream_track_scifi_idx;
+    DEVICE_OUTPUT(dev_downstream_track_scifi_states_t, MiniState) dev_downstream_track_scifi_states;
 
     //
     // Views outputs : UT tracks
@@ -115,7 +114,11 @@ namespace downstream_consolidate {
     //
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_downstream_track_view_t,
-      DEPENDENCIES(dev_offsets_downstream_tracks_t, dev_downstream_ut_tracks_view_t, dev_downstream_track_qops_t),
+      DEPENDENCIES(
+        dev_offsets_downstream_tracks_t,
+        dev_downstream_ut_tracks_view_t,
+        dev_downstream_track_qops_t,
+        dev_downstream_track_ghost_probability_t),
       Allen::Views::Physics::DownstreamTrack)
     dev_downstream_track_view;
 
@@ -176,7 +179,7 @@ namespace downstream_consolidate {
       Allen::Monitoring::Histogram<>::DeviceType&);
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
 
     Allen::Monitoring::AveragingCounter<> m_downstream_tracks {this, "n_downstream_tracks"};
     Allen::Monitoring::Histogram<> m_histogram_n_downstream_tracks {this,

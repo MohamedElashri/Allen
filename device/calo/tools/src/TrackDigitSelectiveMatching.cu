@@ -54,14 +54,39 @@ void track_digit_selective_matching::track_digit_selective_matching_t::operator(
   global_function(track_digit_selective_matching)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_ecal_geometry);
 }
+
 __global__ void track_digit_selective_matching::track_digit_selective_matching(
   track_digit_selective_matching::Parameters parameters,
+  const char* raw_ecal_geometry)
+{
+  if (const auto long_tracks =
+        Allen::dyn_cast<const Allen::Views::Physics::MultiEventLongTracks*>(*parameters.dev_tracks_view);
+      long_tracks) {
+    track_digit_selective_matching_implementation<Allen::Views::Physics::MultiEventLongTracks>(
+      parameters, long_tracks, raw_ecal_geometry);
+  }
+  else if (const auto downstream_tracks =
+             Allen::dyn_cast<const Allen::Views::Physics::MultiEventDownstreamTracks*>(*parameters.dev_tracks_view);
+           downstream_tracks) {
+    track_digit_selective_matching_implementation<Allen::Views::Physics::MultiEventDownstreamTracks>(
+      parameters, downstream_tracks, raw_ecal_geometry);
+  }
+  else {
+    // This flag tell compile this code it not reachable, so it will optimze with it
+    Allen::unreachable();
+  }
+}
+
+template<typename MultiEventTracks>
+__device__ void track_digit_selective_matching::track_digit_selective_matching_implementation(
+  track_digit_selective_matching::Parameters parameters,
+  const MultiEventTracks* dev_long_tracks_view,
   const char* raw_ecal_geometry)
 {
 
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   // Long tracks.
-  const auto long_tracks = parameters.dev_long_tracks_view->container(event_number);
+  const auto long_tracks = dev_long_tracks_view->container(event_number);
 
   const unsigned n_long_tracks = long_tracks.size();
   const unsigned event_offset = long_tracks.offset();

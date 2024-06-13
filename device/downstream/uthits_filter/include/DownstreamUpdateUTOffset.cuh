@@ -45,7 +45,7 @@ namespace downstream_update_ut_offset {
     DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
 
     // Compass UT
-    DEVICE_INPUT(dev_is_ut_hit_used_t, bool) dev_is_ut_hit_used;
+    DEVICE_INPUT(dev_used_ut_hits_t, bool) dev_used_ut_hits;
 
     // Output UT hits
     DEVICE_OUTPUT(dev_num_hits_per_sector_t, unsigned) dev_num_hits_per_sector;

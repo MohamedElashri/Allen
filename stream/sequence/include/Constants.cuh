@@ -162,6 +162,17 @@ struct Constants {
   Allen::NeuralNetwork::Model::MatchingGhostKiller* dev_matching_ghost_killer = nullptr;
   Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller* dev_matching_with_ut_ghost_killer = nullptr;
   Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_no_ut_ghost_killer = nullptr;
+  Allen::NeuralNetwork::Model::DownstreamGhostKiller* dev_downstream_ghost_killer = nullptr;
+
+  // Downstream Utils
+  Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector = nullptr;
+  Allen::NeuralNetwork::Model::DownstreaCompositeQuality* dev_downstream_composite_quality_evaluator = nullptr;
+
+  // MVA selectors
+  Allen::NeuralNetwork::Model::DownstreamLambdaSelector* dev_downstream_lambda_selector = nullptr;
+  Allen::NeuralNetwork::Model::DownstreamKshortSelector* dev_downstream_kshort_selector = nullptr;
+  Allen::NeuralNetwork::Model::DownstreamDetachedLambdaSelector* dev_downstream_detached_lambda_selector = nullptr;
+  Allen::NeuralNetwork::Model::DownstreamDetachedKshortSelector* dev_downstream_detached_kshort_selector = nullptr;
   Allen::NeuralNetwork::Model::MatchingNoUTV2GhostKiller* dev_matching_no_ut_v2_ghost_killer = nullptr;
 
   // Kalman filter
@@ -248,6 +259,56 @@ struct Constants {
     const std::vector<float>& weights2,
     const float& bias2);
   void initialize_matching_ghostkiller_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_downstream_ghostkiller_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_ttrack_selector_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_downstream_composite_quality_evaluator_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_downstream_kshort_selector_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_downstream_lambda_selector_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+
+  void initialize_downstream_detached_kshort_selector_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_downstream_detached_lambda_selector_constants(
     const std::vector<float>& mean,
     const std::vector<float>& std,
     const std::vector<std::vector<float>>& weights1,

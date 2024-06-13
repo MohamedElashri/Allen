@@ -42,14 +42,14 @@ namespace Downstream {
 
     struct HitCache {
       constexpr static unsigned NumRow = DownstreamParameters::MaxNumHitCachedSharedMemory;
-      constexpr static unsigned RowSize = sizeof(half_t) * 3 + sizeof(uint8_t);
+      constexpr static unsigned RowSize = sizeof(half_t) * 4;
       constexpr static unsigned TotalMemorySize = RowSize * NumRow;
 
       // basics
       half_t* m_data_x;
-      half_t* m_data_y;
       half_t* m_data_z;
-      uint8_t* m_data_ywidth;
+      half_t* m_data_ymin;
+      half_t* m_data_ymax;
       unsigned short m_size;
       unsigned short m_layer;
       unsigned short m_global_offset;
@@ -72,29 +72,28 @@ namespace Downstream {
         return __half2float(m_data_x[hit_idx]);
       }
 
-      __device__ inline float yMid(const unsigned short hit_idx) const
-      {
-        assert(hit_idx < m_size);
-        return __half2float(m_data_y[hit_idx]);
-      }
-
-      __device__ inline float yWidth(const unsigned short hit_idx) const
-      {
-        assert(hit_idx < m_size);
-
-        return detail::decode_y_width(m_data_ywidth[hit_idx]);
-      }
-
       __device__ inline float yMin(const unsigned short hit_idx) const
       {
         assert(hit_idx < m_size);
-        return yMid(hit_idx) - yWidth(hit_idx);
+        return __half2float(m_data_ymin[hit_idx]);
       }
 
       __device__ inline float yMax(const unsigned short hit_idx) const
       {
         assert(hit_idx < m_size);
-        return yMid(hit_idx) + yWidth(hit_idx);
+        return __half2float(m_data_ymax[hit_idx]);
+      }
+
+      __device__ inline float yMid(const unsigned short hit_idx) const
+      {
+        assert(hit_idx < m_size);
+        return (yMin(hit_idx) + yMax(hit_idx)) / 2;
+      }
+
+      __device__ inline float yWidth(const unsigned short hit_idx) const
+      {
+        assert(hit_idx < m_size);
+        return (yMax(hit_idx) - yMin(hit_idx)) / 2;
       }
 
       __device__ inline bool isYCompatible(const unsigned hit_idx, const float y, const float tol) const
@@ -119,9 +118,7 @@ namespace Downstream {
         const UT::HitOffsets& ut_hit_offsets,
         const UT::ConstHits& ut_hits,
         const float mean_layer_z,
-        const unsigned short layer,
-        const unsigned short tid,
-        const unsigned short bdim)
+        const unsigned short layer)
       {
         // Load layer
         m_layer = layer;
@@ -139,7 +136,7 @@ namespace Downstream {
         // Note: if it should fit to global memory, the memory alignment is required; otherwise, the reinterpret_cast
         // will crash.
 
-        const unsigned aligned_num_row = (m_size % 2 == 0) ? m_size : (unsigned(m_size / 2) + 1u) * 2u;
+        const unsigned aligned_num_row = m_size + (m_size % 2);
         shared_or_global(
           aligned_num_row * RowSize, // required size
           NumRow * RowSize,          // max shared memory size
@@ -148,13 +145,13 @@ namespace Downstream {
           m_global_count,            // global memory counter
           [&](char* memory) {
             this->m_data_x = reinterpret_cast<half_t*>(memory);
-            this->m_data_y = reinterpret_cast<half_t*>(memory + (sizeof(half_t)) * aligned_num_row);
-            this->m_data_z = reinterpret_cast<half_t*>(memory + (sizeof(half_t) * 2) * aligned_num_row);
-            this->m_data_ywidth = reinterpret_cast<uint8_t*>(memory + (sizeof(half_t) * 3) * aligned_num_row);
+            this->m_data_z = reinterpret_cast<half_t*>(memory + (sizeof(half_t)) * aligned_num_row);
+            this->m_data_ymin = reinterpret_cast<half_t*>(memory + (sizeof(half_t) * 2) * aligned_num_row);
+            this->m_data_ymax = reinterpret_cast<half_t*>(memory + (sizeof(half_t) * 3) * aligned_num_row);
           });
 
         // Load hits
-        for (unsigned hit_idx = tid; hit_idx < m_size; hit_idx += bdim) {
+        for (unsigned hit_idx = threadIdx.x; hit_idx < m_size; hit_idx += blockDim.x) {
           // idx in global memory
           const unsigned short global_idx = m_global_offset + hit_idx;
 
@@ -163,10 +160,8 @@ namespace Downstream {
           m_data_z[hit_idx] = __float2half(ut_hits.zAtYEq0(global_idx) - m_z0);
 
           // Y
-          const float yBegin = ut_hits.yBegin(global_idx);
-          const float yEnd = ut_hits.yEnd(global_idx);
-          m_data_y[hit_idx] = __float2half((yBegin + yEnd) / 2);
-          m_data_ywidth[hit_idx] = detail::encode_y_width(fabsf(yBegin - yEnd) / 2);
+          m_data_ymin[hit_idx] = __float2half(ut_hits.yMin(global_idx));
+          m_data_ymax[hit_idx] = __float2half(ut_hits.yMax(global_idx));
         }
       }
     };
@@ -194,21 +189,19 @@ namespace Downstream {
         const UT::HitOffsets& ut_hit_offsets,
         const float* sector_xs,
         const unsigned* sector_layer_offsets,
-        const unsigned layer,
-        const unsigned tid,
-        const unsigned bdim)
+        const unsigned layer)
       {
         // Load sizes
         const unsigned short layer_offset = sector_layer_offsets[layer];
         m_size = sector_layer_offsets[layer + 1] - layer_offset;
 
         // Load xs
-        for (unsigned short idx = tid; idx < m_size; idx += bdim) {
+        for (unsigned short idx = threadIdx.x; idx < m_size; idx += blockDim.x) {
           m_sector_xs[idx] = sector_xs[layer_offset + idx];
         };
 
         // Load hit offsets
-        for (unsigned short idx = tid; idx <= m_size; idx += bdim) {
+        for (unsigned short idx = threadIdx.x; idx <= m_size; idx += blockDim.x) {
           m_sector_hit_offsets[idx] =
             ut_hit_offsets.sector_group_offset(layer_offset + idx) - ut_hit_offsets.sector_group_offset(layer_offset);
         };
@@ -224,9 +217,50 @@ namespace Downstream {
         if (sector_min < 0) sector_min = 0;
 
         auto sector_max = linear_search<float>(m_sector_xs, m_size, xmax, sector_min) + 1;
-        if (sector_max > m_size) sector_max = m_size;
+        if (sector_max > static_cast<int>(m_size)) sector_max = m_size;
 
         return ushort2 {m_sector_hit_offsets[sector_min], m_sector_hit_offsets[sector_max]};
+      }
+    };
+
+    struct SectorHelper {
+      const float* m_sector_xs = nullptr;
+      const unsigned* m_sector_hit_offsets = nullptr;
+      unsigned m_size = 0;
+      unsigned m_offset = 0;
+
+      __device__ inline auto cache_layer(
+        const UT::HitOffsets& ut_hit_offsets,
+        const float* sector_xs,
+        const unsigned* sector_layer_offsets,
+        const unsigned layer)
+      {
+        // Load sizes
+        const unsigned short layer_offset = sector_layer_offsets[layer];
+        m_size = sector_layer_offsets[layer + 1] - layer_offset;
+
+        // Load xs
+        m_sector_xs = sector_xs + layer_offset;
+
+        // Load hit offsets
+        m_offset = ut_hit_offsets.sector_group_offset(layer_offset);
+        m_sector_hit_offsets = ut_hit_offsets.m_ut_hit_offsets + layer_offset;
+      }
+
+      __device__ inline auto get_hit_range(const float xmin, const float xmax) const
+      {
+        //
+        // note: considering there are 4 different z position per each layer, we also add neighbor sectors.
+        //      this is to avoid the case that the track is going to the neighbor sector.
+        //
+        auto sector_min = binary_search_rightmost<float>(m_sector_xs, m_size, xmin) - 1;
+        if (sector_min < 0) sector_min = 0;
+
+        auto sector_max = linear_search<float>(m_sector_xs, m_size, xmax, sector_min) + 1;
+        if (sector_max > static_cast<int>(m_size)) sector_max = m_size;
+
+        return uint2 {m_sector_hit_offsets[sector_min] - m_sector_hit_offsets[0],
+                      m_sector_hit_offsets[sector_max] - m_sector_hit_offsets[0]};
       }
     };
   } // namespace DownstreamCache

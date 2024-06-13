@@ -100,10 +100,18 @@ struct uint4 {
   unsigned int w;
 };
 
-struct ushort2 {
+struct alignas(unsigned int) ushort2 {
   unsigned short x;
   unsigned short y;
 };
+
+inline ushort2 make_ushort2(ushort x, ushort y)
+{
+  ushort2 out;
+  out.x = x;
+  out.y = y;
+  return out;
+}
 
 struct ushort4 {
   unsigned short x;

@@ -46,9 +46,7 @@ __global__ void downstream_copy_hit_number::downstream_copy_hit_number(
   // Basic
   const auto event_number = blockIdx.x;
   // Tracks
-  const auto downstream_tracks_memory =
-    parameters.dev_downstream_tracks + event_number * UT::DownstreamTracks::TotalMemorySize;
-  UT::DownstreamTracks_Const downstream_tracks {downstream_tracks_memory};
+  auto downstream_tracks = parameters.dev_downstream_tracks + event_number * UT::Constants::max_num_tracks;
   const auto downstream_tracks_offset = parameters.dev_offsets_downstream_tracks[event_number];
   const auto downstream_tracks_size =
     parameters.dev_offsets_downstream_tracks[event_number + 1] - downstream_tracks_offset;
@@ -58,6 +56,6 @@ __global__ void downstream_copy_hit_number::downstream_copy_hit_number(
 
   // Loop over tracks.
   for (unsigned idx = threadIdx.x; idx < downstream_tracks_size; idx += blockDim.x) {
-    downstream_track_hit_number[idx] = downstream_tracks.n_hits(idx);
+    downstream_track_hit_number[idx] = downstream_tracks[idx].num_hits;
   }
 }

@@ -93,4 +93,22 @@ namespace VertexFit {
     }
   };
 
+  struct MiniVertex {
+    // Track indices.
+    unsigned trk1 = 0;
+    unsigned trk2 = 0;
+    // SV properties
+    float px = 0.0f;
+    float py = 0.0f;
+    float pz = 0.0f;
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
+    float Armenteros_x = 0;
+    float Armenteros_y = 0;
+    // DOCA
+    float doca = 0.f;
+    float quality = 0.f;
+  };
+
 } // namespace VertexFit

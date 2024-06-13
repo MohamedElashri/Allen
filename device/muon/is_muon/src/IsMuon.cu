@@ -93,6 +93,8 @@ __global__ void is_muon::is_muon(
   Allen::Monitoring::Histogram<>::DeviceType dev_histo_muon_n_stations,
   Allen::Monitoring::Histogram<>::DeviceType dev_histo_muon_pt)
 {
+  // FIXME: I comment this because it's not used at all --Jiahui
+  /*
   // Put foi parameters in shared memory
   __shared__ int8_t shared_muon_foi_params_content[sizeof(Muon::Constants::FieldOfInterest)];
   Muon::Constants::FieldOfInterest* shared_muon_foi_params =
@@ -112,6 +114,48 @@ __global__ void is_muon::is_muon(
   // Due to shared_muon_foi_params
   __syncthreads();
 
+  */
+
+  if (const auto long_tracks =
+        Allen::dyn_cast<const Allen::Views::Physics::MultiEventLongTracks*>(*parameters.dev_tracks_view);
+      long_tracks) {
+    is_muon_implementation<Allen::Views::Physics::MultiEventLongTracks>(
+      parameters,
+      long_tracks,
+      dev_muon_foi,
+      dev_muon_momentum_cuts,
+      dev_histo_n_muons,
+      dev_histo_muon_n_stations,
+      dev_histo_muon_pt);
+  }
+  else if (const auto downstream_tracks =
+             Allen::dyn_cast<const Allen::Views::Physics::MultiEventDownstreamTracks*>(*parameters.dev_tracks_view);
+           downstream_tracks) {
+    is_muon_implementation<Allen::Views::Physics::MultiEventDownstreamTracks>(
+      parameters,
+      downstream_tracks,
+      dev_muon_foi,
+      dev_muon_momentum_cuts,
+      dev_histo_n_muons,
+      dev_histo_muon_n_stations,
+      dev_histo_muon_pt);
+  }
+  else {
+    // This flag tell compile this code it not reachable, so it will optimze with it
+    Allen::unreachable();
+  }
+}
+
+template<typename MultiEventTracks>
+__device__ void is_muon::is_muon_implementation(
+  is_muon::Parameters parameters,
+  const MultiEventTracks* dev_long_tracks_view,
+  const Muon::Constants::FieldOfInterest* dev_muon_foi,
+  const float* dev_muon_momentum_cuts,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_n_muons,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_muon_n_stations,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_muon_pt)
+{
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
@@ -121,7 +165,7 @@ __global__ void is_muon::is_muon(
     parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
 
   // Long tracks.
-  const auto long_tracks = parameters.dev_long_tracks_view->container(event_number);
+  const auto long_tracks = dev_long_tracks_view->container(event_number);
   const auto muon_hits = Muon::ConstHits {parameters.dev_muon_hits, muon_total_number_of_hits};
 
   const unsigned number_of_tracks_event = long_tracks.size();
@@ -189,12 +233,23 @@ __global__ void is_muon::is_muon(
         const unsigned n_stations = (occupancies[2] != 0) + (occupancies[3] != 0);
         dev_histo_muon_n_stations.increment(n_stations);
         const auto long_track = long_tracks.track(track_id);
-        const auto velo_track = long_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
-        const auto velo_track_index = velo_track.track_index();
-        const auto endvelo_states = parameters.dev_velo_states_view[event_number];
-        const auto velo_state = endvelo_states.state(velo_track_index);
-        const float pt = long_track.pt(velo_state);
-        dev_histo_muon_pt.increment(pt);
+        if constexpr (std::is_same_v<Allen::Views::Physics::MultiEventLongTracks, MultiEventTracks>) {
+          const auto velo_track = long_track.template track_segment<Allen::Views::Physics::Track::segment::velo>();
+          const auto velo_track_index = velo_track.track_index();
+          const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+          const auto velo_state = endvelo_states.state(velo_track_index);
+          const float pt = long_track.pt(velo_state);
+          dev_histo_muon_pt.increment(pt);
+        }
+        else if constexpr (std::is_same_v<Allen::Views::Physics::MultiEventDownstreamTracks, MultiEventTracks>) {
+          const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+          const auto velo_state = endvelo_states.state(track_id);
+          const float pt = long_track.pt(velo_state);
+          dev_histo_muon_pt.increment(pt);
+        }
+        else {
+          Allen::unreachable();
+        }
       }
       else if (momentum < dev_muon_momentum_cuts[2]) {
         parameters.dev_is_muon[event_offset + track_id] = (occupancies[2] != 0) || (occupancies[3] != 0);
@@ -205,12 +260,23 @@ __global__ void is_muon::is_muon(
           const unsigned n_stations = (occupancies[2] != 0) + (occupancies[3] != 0);
           dev_histo_muon_n_stations.increment(n_stations);
           const auto long_track = long_tracks.track(track_id);
-          const auto velo_track = long_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
-          const auto velo_track_index = velo_track.track_index();
-          const auto endvelo_states = parameters.dev_velo_states_view[event_number];
-          const auto velo_state = endvelo_states.state(velo_track_index);
-          const float pt = long_track.pt(velo_state);
-          dev_histo_muon_pt.increment(pt);
+          if constexpr (std::is_same_v<Allen::Views::Physics::MultiEventLongTracks, MultiEventTracks>) {
+            const auto velo_track = long_track.template track_segment<Allen::Views::Physics::Track::segment::velo>();
+            const auto velo_track_index = velo_track.track_index();
+            const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+            const auto velo_state = endvelo_states.state(velo_track_index);
+            const float pt = long_track.pt(velo_state);
+            dev_histo_muon_pt.increment(pt);
+          }
+          else if constexpr (std::is_same_v<Allen::Views::Physics::MultiEventDownstreamTracks, MultiEventTracks>) {
+            const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+            const auto velo_state = endvelo_states.state(track_id);
+            const float pt = long_track.pt(velo_state);
+            dev_histo_muon_pt.increment(pt);
+          }
+          else {
+            Allen::unreachable();
+          }
         }
         else {
           dev_histo_n_muons.increment(0);
@@ -224,12 +290,23 @@ __global__ void is_muon::is_muon(
           dev_histo_n_muons.increment(1);
           dev_histo_muon_n_stations.increment(2);
           const auto long_track = long_tracks.track(track_id);
-          const auto velo_track = long_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
-          const auto velo_track_index = velo_track.track_index();
-          const auto endvelo_states = parameters.dev_velo_states_view[event_number];
-          const auto velo_state = endvelo_states.state(velo_track_index);
-          const float pt = long_track.pt(velo_state);
-          dev_histo_muon_pt.increment(pt);
+          if constexpr (std::is_same_v<Allen::Views::Physics::MultiEventLongTracks, MultiEventTracks>) {
+            const auto velo_track = long_track.template track_segment<Allen::Views::Physics::Track::segment::velo>();
+            const auto velo_track_index = velo_track.track_index();
+            const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+            const auto velo_state = endvelo_states.state(velo_track_index);
+            const float pt = long_track.pt(velo_state);
+            dev_histo_muon_pt.increment(pt);
+          }
+          else if constexpr (std::is_same_v<Allen::Views::Physics::MultiEventDownstreamTracks, MultiEventTracks>) {
+            const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+            const auto velo_state = endvelo_states.state(track_id);
+            const float pt = long_track.pt(velo_state);
+            dev_histo_muon_pt.increment(pt);
+          }
+          else {
+            Allen::unreachable();
+          }
         }
         else {
           dev_histo_n_muons.increment(0);

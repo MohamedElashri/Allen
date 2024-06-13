@@ -23,6 +23,8 @@ from AllenConf.hlt1_muon_lines import *
 from AllenConf.hlt1_electron_lines import *
 from AllenConf.hlt1_monitoring_lines import *
 from AllenConf.hlt1_smog2_lines import *
+from AllenConf.hlt1_downstream_lines import *
+
 from AllenConf.hlt1_photon_lines import make_diphotonhighmass_line
 from AllenConf.persistency import make_persistency
 from AllenConf.validators import rate_validation
@@ -87,6 +89,40 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             charm_track_pt=thresholds.D2HH_track_pt),
         make_dst_line(dstars, name="Hlt1Dst2D0Pi"),
     ]
+
+    if 'downstream_tracks' in reconstructed_objects and 'downstream_secondary_vertices' in reconstructed_objects:
+        lines += [
+            make_downstream_kshort_line(
+                reconstructed_objects['downstream_tracks'],
+                reconstructed_objects['downstream_secondary_vertices'],
+                mva_ks_threshold=0.5,
+                mva_detached_ks_threshold=0.5,
+                name="Hlt1DownstreamKsToPiPi",
+                enable_monitoring=True),
+            make_downstream_lambda_line(
+                reconstructed_objects['downstream_tracks'],
+                reconstructed_objects['downstream_secondary_vertices'],
+                mva_l0_threshold=0.5,
+                mva_detached_l0_threshold=0.5,
+                name="Hlt1DownstreamLambdaToPPi",
+                enable_monitoring=True),
+            make_downstream_kshort_line(
+                reconstructed_objects['downstream_tracks'],
+                reconstructed_objects['downstream_secondary_vertices'],
+                post_scaler=0.001,
+                mva_ks_threshold=0.5,
+                mva_detached_ks_threshold=0.,
+                name="Hlt1DownstreamPromptKsToPiPi",
+                enable_monitoring=True),
+            make_downstream_lambda_line(
+                reconstructed_objects['downstream_tracks'],
+                reconstructed_objects['downstream_secondary_vertices'],
+                post_scaler=0.001,
+                mva_l0_threshold=0.5,
+                mva_detached_l0_threshold=0.,
+                name="Hlt1DownstreamPromptLambdaToPPi",
+                enable_monitoring=True),
+        ]
 
     if with_v0s:
         lines += [
@@ -1051,23 +1087,6 @@ def setup_hlt1_node(enablePhysics=True,
     hlt1_config['line_nodes'] = line_nodes
     hlt1_config['line_algorithms'] = line_algorithms
     hlt1_config.update(persistency_algorithms)
-
-    # This is used to measure the effect of downstream reconstruction on the final throughput. It should be removed once the real downstream line is implemented.
-    if enableDownstream:
-        hlt1_node = CompositeNode(
-            "AllenWithDownstream", [
-                hlt1_node,
-                CompositeNode(
-                    "DownstreamReconstruction",
-                    prefilters + [
-                        reconstructed_objects["downstream_tracks"]
-                        ["dev_downstream_track_particles_view"]
-                    ],
-                    NodeLogic.LAZY_AND,
-                    force_order=True)
-            ],
-            NodeLogic.NONLAZY_AND,
-            force_order=False)
 
     if with_lumi:
         lumi_reco = lumi_reconstruction(

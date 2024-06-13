@@ -9,11 +9,11 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter, filter_tracks_for_material_interactions, make_velo_tracks_ACsplit
-from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
+from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks, create_reduced_ut_container
 from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
-from AllenConf.downstream_reconstruction import make_downstream
-from AllenConf.muon_reconstruction import decode_muon, is_muon, chi2muon, fake_muon_id, make_muon_stubs
+from AllenConf.downstream_reconstruction import make_downstream, fit_downstream_secondary_vertices
+from AllenConf.muon_reconstruction import decode_muon, chi2muon, is_muon, fake_muon_id, make_muon_stubs
 from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters, make_electronid_nn
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import (
@@ -80,12 +80,15 @@ def hlt1_reconstruction(algorithm_name='',
             algorithm_name=algorithm_name)
 
         if with_ut and enableDownstream:
+            reduced_ut_hits = create_reduced_ut_container(
+                decoded_ut, ut_tracks['dev_used_ut_hits'])
+
             # Downstream tracking
             downstream_tracks = make_downstream(
-                decoded_ut=decoded_ut,
-                # ut_tracks=ut_tracks,
+                decoded_ut=reduced_ut_hits,
                 scifi_seeds=long_tracks["seeding_tracks"],
-                velo_scifi_matches=long_tracks['matched_tracks'])
+                velo_scifi_matches=long_tracks['matched_tracks'],
+                pvs=pvs)
             output.update({"downstream_tracks": downstream_tracks})
 
         output.update({"seeding_tracks": long_tracks["seeding_tracks"]})
@@ -111,6 +114,7 @@ def hlt1_reconstruction(algorithm_name='',
                 decoded_ut=decoded_ut,
                 scifi_seeds=seed_tracks,
                 velo_scifi_matches=long_tracks,
+                pvs=pvs,
                 dev_used_ut_hits=long_tracks['dev_used_ut_hits'])
             output.update({"downstream_tracks": downstream_tracks})
 
@@ -142,7 +146,8 @@ def hlt1_reconstruction(algorithm_name='',
         chi2Corr = chi2muon(long_tracks, muonID)
         muonID.update(chi2Corr)
     else:
-        muonID = fake_muon_id(long_tracks)
+        muonID = fake_muon_id(host_number_of_tracks=long_tracks[
+            'host_number_of_reconstructed_scifi_tracks'])
     kalman_velo_only = make_kalman_velo_only(long_tracks, pvs, muonID)
 
     output.update({
@@ -301,6 +306,13 @@ def hlt1_reconstruction(algorithm_name='',
         "dstars": dstars,
         "v0_pairs": v0_pairs
     })
+
+    if 'downstream_tracks' in output:
+        output.update({
+            'downstream_secondary_vertices':
+            fit_downstream_secondary_vertices(output['downstream_tracks'],
+                                              pvs),
+        })
 
     if with_rich:
         from AllenConf.rich_reconstruction import decode_rich
