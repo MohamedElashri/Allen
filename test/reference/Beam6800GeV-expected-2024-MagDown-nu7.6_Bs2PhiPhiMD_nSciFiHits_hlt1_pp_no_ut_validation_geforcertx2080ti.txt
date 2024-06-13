@@ -63,6 +63,7 @@ Hlt1TwoTrackKs:                                     1/   500, (   60.00 +/-    5
 Hlt1TwoKs:                                          0/   500, (    0.00 +/-     0.00) kHz
 Hlt1LambdaLLDetachedTrack:                          0/   500, (    0.00 +/-     0.00) kHz
 Hlt1XiOmegaLLL:                                     0/   500, (    0.00 +/-     0.00) kHz
+Hlt1D2Kshh:                                         0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                               0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:                         0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonHighMass:                                 1/   500, (   60.00 +/-    59.94) kHz
@@ -155,6 +156,7 @@ Hlt1TwoTrackKs:                                     1           1
 Hlt1TwoKs:                                          0           0
 Hlt1LambdaLLDetachedTrack:                          0           0
 Hlt1XiOmegaLLL:                                     0           0
+Hlt1D2Kshh:                                         0           0
 Hlt1SingleHighPtMuon:                               0           0
 Hlt1SingleHighPtMuonNoMuID:                         0           0
 Hlt1DiMuonHighMass:                                 1           1

@@ -49,6 +49,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     v0_twotrack_pairs = reconstructed_objects["v0_sv_twotrack_pairs"]
     dstars = reconstructed_objects["dstars"]
     v0_pairs = reconstructed_objects["v0_pairs"]
+    v0_hh_pairs = reconstructed_objects["v0_hh_pairs"]
     muon_stubs = reconstructed_objects["muon_stubs"]
 
     lines = [
@@ -153,6 +154,12 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 v0_twotrack_pairs,
                 name="Hlt1XiOmegaLLL",
                 enable_tupling=enable_tupling),
+            make_d2kshh_line(
+                long_tracks,
+                v0_hh_pairs,
+                name="Hlt1D2Kshh",
+                enable_tupling=enable_tupling,
+                minCTau_D0=0.5 * 0.1229)
         ]
 
     if with_muon:
