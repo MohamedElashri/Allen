@@ -12,7 +12,8 @@ from AllenCore.algorithms import (
     velo_pv_ip_t, kalman_velo_only_t, make_lepton_id_t,
     make_long_track_particles_t, filter_tracks_t, host_prefix_sum_t,
     fit_secondary_vertices_t, empty_lepton_id_t, sv_combiner_t, filter_svs_t,
-    calc_max_combos_t, filter_sv_track_t, combine_sv_track_t)
+    filter_two_svs_t, generic_sv_combiner_t, calc_max_combos_t,
+    filter_sv_track_t, combine_sv_track_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenCore.generator import make_algorithm
@@ -272,6 +273,109 @@ def make_sv_pairs(secondary_vertices):
 
     return {
         "host_number_of_sv_pairs":
+        prefix_sum_sv_combos.host_total_sum_holder_t,
+        "dev_multi_event_sv_combos_view":
+        combine_svs.dev_multi_event_combos_view_t
+    }
+
+
+def make_generic_sv_pairs(
+        secondary_vertices_1,
+        secondary_vertices_2,
+        # Filter Properties
+        maxVertexChi2=10.,
+        minMassV1=0.,
+        maxMassV1=20000.,
+        minPtV1=200.,
+        minCosDiraV1=0.03,
+        minEtaV1=2,
+        maxEtaV1=5,
+        minTrackPtV1=100.,
+        minTrackPV1=1000.,
+        minTrackIPChi2V1=-999.,
+        minTrackIPV1=0.2,
+        minMassV2=0.,
+        maxMassV2=20000.,
+        minPtV2=200.,
+        minCosDiraV2=0.03,
+        minEtaV2=2,
+        maxEtaV2=5,
+        minTrackPtV2=100.,
+        minTrackPV2=1000.,
+        minTrackIPChi2V2=-999.,
+        minTrackIPV2=0.2):
+
+    number_of_events = initialize_number_of_events()
+
+    calc_max_combos = make_algorithm(
+        calc_max_combos_t,
+        name='calc_max_combos_two_svs_{hash}',
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_input1_t=secondary_vertices_1["dev_multi_event_composites_ptr"],
+        dev_input2_t=secondary_vertices_2["dev_multi_event_composites_ptr"])
+
+    prefix_sum_max_combos = make_algorithm(
+        host_prefix_sum_t,
+        name='prefix_sum_max_combos_two_svs_{hash}',
+        dev_input_buffer_t=calc_max_combos.dev_max_combos_t)
+
+    filter_two_svs = make_algorithm(
+        filter_two_svs_t,
+        name='filter_two_svs_{hash}',
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_max_combos_t=prefix_sum_max_combos.host_total_sum_holder_t,
+        host_number_of_svs_1_t=secondary_vertices_1["host_number_of_svs"],
+        host_number_of_svs_2_t=secondary_vertices_2["host_number_of_svs"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_max_combo_offsets_t=prefix_sum_max_combos.dev_output_buffer_t,
+        dev_secondary_vertices_1_t=secondary_vertices_1[
+            "dev_multi_event_composites"],
+        dev_secondary_vertices_2_t=secondary_vertices_2[
+            "dev_multi_event_composites"],
+        maxVertexChi2=maxVertexChi2,
+        minMassV1=minMassV1,
+        maxMassV1=maxMassV1,
+        minPtV1=minPtV1,
+        minCosDiraV1=minCosDiraV1,
+        minEtaV1=minEtaV1,
+        maxEtaV1=maxEtaV1,
+        minTrackPtV1=minTrackPtV1,
+        minTrackPV1=minTrackPV1,
+        minTrackIPChi2V1=minTrackIPChi2V1,
+        minTrackIPV1=minTrackIPV1,
+        minMassV2=minMassV2,
+        maxMassV2=maxMassV2,
+        minPtV2=minPtV2,
+        minCosDiraV2=minCosDiraV2,
+        minEtaV2=minEtaV2,
+        maxEtaV2=maxEtaV2,
+        minTrackPtV2=minTrackPtV2,
+        minTrackPV2=minTrackPV2,
+        minTrackIPChi2V2=minTrackIPChi2V2,
+        minTrackIPV2=minTrackIPV2)
+
+    prefix_sum_sv_combos = make_algorithm(
+        host_prefix_sum_t,
+        name='prefix_sum_two_sv_combos_{hash}',
+        dev_input_buffer_t=filter_two_svs.dev_combo_number_t)
+
+    combine_svs = make_algorithm(
+        generic_sv_combiner_t,
+        name='generic_svs_pair_candidate_{hash}',
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_combos_t=prefix_sum_sv_combos.host_total_sum_holder_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_combo_offsets_t=prefix_sum_sv_combos.dev_output_buffer_t,
+        dev_max_combo_offsets_t=prefix_sum_max_combos.dev_output_buffer_t,
+        dev_secondary_vertices_1_t=secondary_vertices_1[
+            "dev_multi_event_composites"],
+        dev_secondary_vertices_2_t=secondary_vertices_2[
+            "dev_multi_event_composites"],
+        dev_child1_idx_t=filter_two_svs.dev_child1_idx_t,
+        dev_child2_idx_t=filter_two_svs.dev_child2_idx_t)
+
+    return {
+        "host_number_of_sv_sv_combinations":
         prefix_sum_sv_combos.host_total_sum_holder_t,
         "dev_multi_event_sv_combos_view":
         combine_svs.dev_multi_event_combos_view_t

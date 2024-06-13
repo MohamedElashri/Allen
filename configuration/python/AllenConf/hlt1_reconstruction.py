@@ -18,7 +18,7 @@ from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import (
     make_kalman_velo_only, make_basic_particles, fit_secondary_vertices,
-    make_sv_track_pairs, make_sv_pairs)
+    make_sv_track_pairs, make_sv_pairs, make_generic_sv_pairs)
 from AllenConf.validators import (
     velo_validation, veloUT_validation, seeding_validation,
     seeding_xz_validation, long_validation, muon_validation, pv_validation,
@@ -295,6 +295,31 @@ def hlt1_reconstruction(algorithm_name='',
 
     v0_pairs = make_sv_pairs(v0s)
 
+    v0_hh_pairs = make_generic_sv_pairs(
+        v0s,
+        dihadrons,
+        maxVertexChi2=10.,
+        minMassV1=450.,
+        maxMassV1=550.,
+        minPtV1=900.,
+        minCosDiraV1=0.9999,
+        minEtaV1=2,
+        maxEtaV1=5,
+        minTrackPtV1=250.,
+        minTrackPV1=2500.,
+        minTrackIPChi2V1=-999.,
+        minTrackIPV1=0.25,
+        minMassV2=250.,
+        maxMassV2=1700.,
+        minPtV2=750.,
+        minCosDiraV2=0.999,
+        minEtaV2=2,
+        maxEtaV2=5,
+        minTrackPtV2=250.,
+        minTrackPV2=2500.,
+        minTrackIPChi2V2=-999.,
+        minTrackIPV2=0.06)
+
     output.update({
         "long_track_particles": long_track_particles,
         "dihadron_secondary_vertices": dihadrons,
@@ -304,7 +329,8 @@ def hlt1_reconstruction(algorithm_name='',
         "lambda_track_from_c": lambda_track_from_c,
         "v0_sv_twotrack_pairs": v0_twotrack_pairs,
         "dstars": dstars,
-        "v0_pairs": v0_pairs
+        "v0_pairs": v0_pairs,
+        "v0_hh_pairs": v0_hh_pairs,
     })
 
     if 'downstream_tracks' in output:
