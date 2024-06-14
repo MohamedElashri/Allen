@@ -32,7 +32,9 @@ gaudi_add_library(BinaryDumpers
                     LHCb::MagnetLib
                     LHCb::MuonDAQLib
                     LHCb::RecEvent
-                    LHCb::RichFutureDAQLib)
+                    LHCb::RichFutureDAQLib
+                    LHCb::RichFutureKernel
+                    )
 
 gaudi_add_module(BinaryDumpersModule
                  SOURCES
