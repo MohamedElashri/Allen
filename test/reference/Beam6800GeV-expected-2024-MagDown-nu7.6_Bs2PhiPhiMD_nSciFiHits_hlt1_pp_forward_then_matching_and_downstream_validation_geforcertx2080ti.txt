@@ -377,12 +377,12 @@ Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 
-Total decisions:      581
-Total tracks:         1204
+Total decisions:      584
+Total tracks:         1208
 Total calos clusters: 20
-Total SVs:            1117
-Total hits:           31086
-Total stdinfo:        14761
+Total SVs:            1126
+Total hits:           31194
+Total stdinfo:        14832
 
 
 velo_validator validation:

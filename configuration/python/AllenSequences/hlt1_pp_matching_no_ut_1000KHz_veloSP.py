@@ -17,6 +17,6 @@ from AllenConf.get_thresholds import get_thresholds
 with decode_velo.bind(retina_decoding=False):
     hlt1_node = setup_hlt1_node(
         tracking_type=TrackingType.MATCHING,
-        threshold_settings=get_thresholds("no_ut_tuned_1000KHz"),
+        threshold_settings=get_thresholds("no_ut_tuned_mu4_1000KHz_v1"),
         with_ut=False)
 generate(hlt1_node)
