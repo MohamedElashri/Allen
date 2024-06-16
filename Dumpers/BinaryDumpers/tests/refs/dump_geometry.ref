@@ -39,7 +39,7 @@ DeviceCaloGeometry                     INFO Number of counters : 1
  | "BytesWritten_EcalGeometry"                     |    202524 |
 DeviceFTGeometry                       INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "BytesWritten_SciFiGeometry"                    |    104200 |
+ | "BytesWritten_SciFiGeometry"                    |   3249928 |
 DeviceMagneticField                    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_MagneticField"                    |         4 |
