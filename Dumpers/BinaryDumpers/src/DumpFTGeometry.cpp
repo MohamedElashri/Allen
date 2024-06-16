@@ -61,6 +61,7 @@ namespace Dumpers {
       vector<float> globaldy;
       vector<float> average_z;
       vector<float> average_dxdy;
+      vector<std::array<float, 128 * 4>> matEndCalibrationVector; // fix me
 
       // First uniqueMat is 512, save space by subtracting
       const uint32_t uniqueMatOffset = 512; // FIXME -- hardcoded
@@ -79,6 +80,7 @@ namespace Dumpers {
       dxdy.resize(max_uniqueMat);
       dzdy.resize(max_uniqueMat);
       globaldy.resize(max_uniqueMat);
+      matEndCalibrationVector.resize(max_uniqueMat);
       average_z.resize(number_of_layers);
       average_dxdy.resize(number_of_layers);
 
@@ -129,6 +131,10 @@ namespace Dumpers {
                 dxdy[index] = mat->dxdy();
                 dzdy[index] = mat->dzdy();
                 globaldy[index] = mat->globaldy();
+                std::copy(
+                  mat->getmatContractionParameterVector().begin(),
+                  mat->getmatContractionParameterVector().end(),
+                  matEndCalibrationVector[index].begin()); // copy the vector
                 average_z[index_layer] += (mirrorPoint.z() + mat->dzdy() * mirrorPoint.y());
                 average_dxdy[index_layer] += mat->dxdy();
                 n_measurements += 1;
@@ -179,7 +185,8 @@ namespace Dumpers {
           dzdy,
           globaldy,
           average_z,
-          average_dxdy);
+          average_dxdy,
+          matEndCalibrationVector);
       }
       else if (comp.count(7)) {
         constexpr uint32_t nLinksPerBank = 24; // FIXME: change to centralised number
@@ -220,7 +227,8 @@ namespace Dumpers {
           dzdy,
           globaldy,
           average_z,
-          average_dxdy);
+          average_dxdy,
+          matEndCalibrationVector);
       }
       else {
         std::stringstream s;

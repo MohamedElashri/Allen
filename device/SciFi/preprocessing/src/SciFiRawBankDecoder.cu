@@ -36,7 +36,12 @@ __device__ void make_cluster(
   const float endPointX = geom.mirrorPointX[mat] + geom.ddxX[mat] * uFromChannel;
   const float endPointY = geom.mirrorPointY[mat] + geom.ddxY[mat] * uFromChannel;
   const float endPointZ = geom.mirrorPointZ[mat] + geom.ddxZ[mat] * uFromChannel;
-  const float x0 = endPointX - dxdy * endPointY;
+  const std::array<float, 128 * 4>& matContractionVector = geom.matEndCalibrationVector[mat];
+  const float matContraction = matContractionVector[(id.sipm() * 128) + id.channel()];
+  const float calibratedDdxX = geom.ddxX[mat] * matContraction;
+  const float calibratedDdxY = geom.ddxY[mat] * matContraction;
+  const float x0Calibration = calibratedDdxX - dxdy * calibratedDdxY;
+  const float x0 = endPointX - dxdy * endPointY + x0Calibration;
   const float z0 = endPointZ - dzdy * endPointY;
 
   assert(pseudoSize < 9 && "Pseudosize of cluster is > 8. Out of range.");
