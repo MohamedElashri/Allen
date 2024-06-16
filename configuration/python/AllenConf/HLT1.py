@@ -876,6 +876,7 @@ def default_bgi_activity_lines(pvs,
 def setup_hlt1_node(enablePhysics=True,
                     withMCChecking=False,
                     EnableGEC=False,
+                    DisableLinesDuringVPClosing=False,
                     withSMOG2=True,
                     enableRateValidator=True,
                     with_ut=True,
@@ -914,7 +915,11 @@ def setup_hlt1_node(enablePhysics=True,
     odin_err_filter = [odin_error_filter("odin_error_filter")
                        ] if with_odin_filter else []
     beam_beam_filter = [make_bxtype(bx_type=3)]
-    prefilters = odin_err_filter + beam_beam_filter + gec
+    velo_open_event = make_event_type(event_type="VeloOpen")
+    velo_closed = [
+        make_invert_event_list(velo_open_event, name="VeloClosedEvent")
+    ] if DisableLinesDuringVPClosing else []
+    prefilters = odin_err_filter + beam_beam_filter + gec + velo_closed
 
     physics_lines = []
     if enablePhysics:
@@ -960,7 +965,6 @@ def setup_hlt1_node(enablePhysics=True,
                 make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.0001))
         ]
 
-    velo_open_event = make_event_type(event_type="VeloOpen")
     with line_maker.bind(prefilter=odin_err_filter + gec + [velo_open_event]):
         monitoring_lines += [
             line_maker(
@@ -977,7 +981,7 @@ def setup_hlt1_node(enablePhysics=True,
             ]
 
     if enableBGI:
-        bgi_prefilters = odin_err_filter + gec
+        bgi_prefilters = odin_err_filter + gec + velo_closed
         physics_lines += default_bgi_activity_lines(
             reconstructed_objects["pvs"],
             reconstructed_objects["velo_states"],
@@ -989,7 +993,8 @@ def setup_hlt1_node(enablePhysics=True,
         reconstructed_objects, prefilters, odin_err_filter + gec, with_muon)
 
     bx_BE = make_bxtype(bx_type=1)
-    with line_maker.bind(prefilter=odin_err_filter + gec + [bx_BE]):
+    with line_maker.bind(
+            prefilter=odin_err_filter + gec + [bx_BE] + velo_closed):
         monitoring_lines += [
             line_maker(
                 make_beam_gas_line(
@@ -1008,7 +1013,9 @@ def setup_hlt1_node(enablePhysics=True,
 
     if withSMOG2:
         SMOG2_prefilters, SMOG2_lines = [], []
-        with line_maker.bind(prefilter=odin_err_filter + [bx_BE]):
+        SMOG2_prefilters += velo_closed
+        with line_maker.bind(
+                prefilter=odin_err_filter + velo_closed + [bx_BE]):
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(
@@ -1022,7 +1029,8 @@ def setup_hlt1_node(enablePhysics=True,
                 name="LowMult_5",
                 minTracks=1,
                 maxTracks=5)
-            with line_maker.bind(prefilter=odin_err_filter + [lowMult_5]):
+            with line_maker.bind(
+                    prefilter=odin_err_filter + velo_closed + [lowMult_5]):
                 SMOG2_lines += [
                     line_maker(
                         make_passthrough_line(
@@ -1038,8 +1046,8 @@ def setup_hlt1_node(enablePhysics=True,
                 maxTracks=3,
                 min_ecal_clusters=1,
                 max_ecal_clusters=10)
-            with line_maker.bind(
-                    prefilter=odin_err_filter + [bx_BE, lowMultElectrons]):
+            with line_maker.bind(prefilter=odin_err_filter + velo_closed +
+                                 [bx_BE, lowMultElectrons]):
                 SMOG2_lines += [
                     line_maker(
                         make_passthrough_line(
@@ -1112,7 +1120,7 @@ def setup_hlt1_node(enablePhysics=True,
 
         lumi_with_prefilter = CompositeNode(
             "LumiWithPrefilter",
-            odin_err_filter + [lumi_node],
+            odin_err_filter + velo_closed + [lumi_node],
             NodeLogic.LAZY_AND,
             force_order=True)
 
