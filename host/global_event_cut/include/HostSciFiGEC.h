@@ -40,7 +40,16 @@ namespace host_scifi_gec {
     auto const scifi_offsets = *parameters.scifi_offsets;
     auto const scifi_sizes = *parameters.scifi_sizes;
     auto const scifi_types = *parameters.scifi_types;
+    // If FT rawbank is empty
+    if (scifi_offsets.empty() || scifi_sizes.empty() || scifi_types.empty()) {
+      for (unsigned event_index = 0; event_index < parameters.host_number_of_events[0]; ++event_index) {
+        parameters.host_output_event_list[event_index] = event_index;
+      }
+      parameters.host_number_of_selected_events[0] = parameters.host_number_of_events[0];
+      return;
+    }
 
+    // Gec logic
     unsigned size_of_list = 0;
     for (unsigned event_index = 0; event_index < parameters.host_number_of_events[0]; ++event_index) {
       unsigned event_number = event_start + event_index;

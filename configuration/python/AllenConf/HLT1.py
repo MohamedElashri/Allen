@@ -446,7 +446,7 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
 
 def alignment_monitoring_lines(reconstructed_objects,
                                prefilters_bx,
-                               prefilters_no_bx,
+                               prefilters_odin_err,
                                with_muon=True):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
@@ -502,7 +502,7 @@ def alignment_monitoring_lines(reconstructed_objects,
     with line_maker.bind(prefilter=prefilters_bx):
         lines = [line_maker(line) for line in lines]
 
-    with line_maker.bind(prefilter=prefilters_no_bx):
+    with line_maker.bind(prefilter=prefilters_odin_err):
         lines += [
             line_maker(
                 make_velo_micro_bias_line(
@@ -875,7 +875,7 @@ def default_bgi_activity_lines(pvs,
 
 def setup_hlt1_node(enablePhysics=True,
                     withMCChecking=False,
-                    EnableGEC=False,
+                    EnableGEC=True,
                     DisableLinesDuringVPClosing=False,
                     withSMOG2=True,
                     enableRateValidator=True,
@@ -911,7 +911,8 @@ def setup_hlt1_node(enablePhysics=True,
 
     hlt1_config['reconstruction'] = reconstructed_objects
 
-    gec = [make_gec(count_ut=with_ut)] if EnableGEC else []
+    gec = [make_gec(count_ut=False, max_scifi_clusters=17000)
+           ] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
                        ] if with_odin_filter else []
     beam_beam_filter = [make_bxtype(bx_type=3)]
@@ -965,7 +966,7 @@ def setup_hlt1_node(enablePhysics=True,
                 make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.0001))
         ]
 
-    with line_maker.bind(prefilter=odin_err_filter + gec + [velo_open_event]):
+    with line_maker.bind(prefilter=odin_err_filter + [velo_open_event]):
         monitoring_lines += [
             line_maker(
                 make_velo_micro_bias_line(
@@ -990,7 +991,7 @@ def setup_hlt1_node(enablePhysics=True,
             prefilter=bgi_prefilters)
 
     monitoring_lines += alignment_monitoring_lines(
-        reconstructed_objects, prefilters, odin_err_filter + gec, with_muon)
+        reconstructed_objects, prefilters, odin_err_filter, with_muon)
 
     bx_BE = make_bxtype(bx_type=1)
     with line_maker.bind(
