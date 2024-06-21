@@ -27,7 +27,8 @@ def make_velo_scifi_matches(
         ghost_killer_threshold=0.5,
         force_skip_ut=False,
         matching_no_ut_ghost_killer_version=2,
-        matching_consolidate_tracks_name='matching_consolidate_tracks'):
+        matching_consolidate_tracks_name='matching_consolidate_tracks',
+        momentum_parameter_version=False):
     number_of_events = initialize_number_of_events()
 
     if not accepted_velo_tracks:
@@ -46,6 +47,16 @@ def make_velo_scifi_matches(
         dev_velo_states_view_t=velo_kalman_filter[
             "dev_velo_kalman_beamline_states_view"],
         dev_accepted_velo_tracks_t=accepted_velo_tracks)
+
+    if (momentum_parameter_version):
+        momentum_parameters = (0, 1.239076e+03, 5.650170e+02, -7.683592e+01,
+                               6.148917e+02, 2.071115e+03, -6.795680e+03,
+                               4.577582e+02, 1)
+    else:
+        momentum_parameters = (1239.4073749458162, 486.05664058906814,
+                               6.7158701518424815, 632.7283787142547,
+                               2358.5758035677504, -9256.27946160669,
+                               241.4601040854867, 42.04859549174048, 0)
 
     matched_tracks = make_algorithm(
         track_matching_t,
@@ -74,9 +85,7 @@ def make_velo_scifi_matches(
         multiplication_factor_dty=937.5,
         multiplication_factor_dtx=2.0,
         ghost_killer_threshold=ghost_killer_threshold,
-        momentum_parameters=(0, 1.239076e+03, 5.650170e+02, -7.683592e+01,
-                             6.148917e+02, 2.071115e+03, -6.795680e+03,
-                             4.577582e+02),
+        momentum_parameters=momentum_parameters,
         # Dimension tunning (with A5000)
         block_dim=(128, 1, 1),
         force_skip_ut=force_skip_ut,

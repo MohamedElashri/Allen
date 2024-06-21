@@ -89,16 +89,31 @@ namespace {
     const float magSign,
     const track_matching::Parameters::momentum_parameters_t::t& momentum_parameters)
   {
-    const auto dslope = txT - txV;
-    const auto abs_p = momentum_parameters[0] +
-                       (momentum_parameters[1] + momentum_parameters[2] * (txT * txT) +
-                        momentum_parameters[3] * (txT * txT * txT * txT) + momentum_parameters[4] * (txT * txV) +
-                        momentum_parameters[5] * (tyV * tyV) + momentum_parameters[6] * (tyV * tyV * tyV * tyV) +
-                        momentum_parameters[7] * (txV * txV)) /
-                         fabsf(dslope);
+    if (momentum_parameters[8] > 0) {
 
-    const auto charge = ((dslope > 0) ? 1.f : -1.f) * magSign;
-    return charge / abs_p;
+      const auto dslope = txT - txV;
+      const auto abs_p = momentum_parameters[0] +
+                         (momentum_parameters[1] + momentum_parameters[2] * (txT * txT) +
+                          momentum_parameters[3] * (txT * txT * txT * txT) + momentum_parameters[4] * (txT * txV) +
+                          momentum_parameters[5] * (tyV * tyV) + momentum_parameters[6] * (tyV * tyV * tyV * tyV) +
+                          momentum_parameters[7] * (txV * txV)) /
+                           fabsf(dslope);
+
+      const auto charge = ((dslope > 0) ? 1.f : -1.f) * magSign;
+      return charge / abs_p;
+    }
+    else {
+      const float txT2 = txT * txT;
+      const float tyV2 = tyV * tyV;
+      const float coef =
+        (momentum_parameters[0] + txT2 * (momentum_parameters[1] + momentum_parameters[2] * txT2) +
+         momentum_parameters[3] * txT * txV + tyV2 * (momentum_parameters[4] + momentum_parameters[5] * tyV2) +
+         momentum_parameters[6] * txV * txV);
+
+      const float factor = std::copysign(magSign, txT - txV);
+      const float cp = (magSign * coef) / (txT - txV) + factor * momentum_parameters[7];
+      return 1.f / cp;
+    }
   }
 } // namespace
 

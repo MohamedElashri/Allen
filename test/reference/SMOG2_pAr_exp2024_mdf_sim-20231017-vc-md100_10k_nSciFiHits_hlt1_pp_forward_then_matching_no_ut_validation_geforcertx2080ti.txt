@@ -1,6 +1,6 @@
 long_validator validation:
 TrackChecker output                               :        86/     3774   2.28% ghosts
-for P>3GeV,Pt>0.5GeV                              :         5/     1303   0.38% ghosts
+for P>3GeV,Pt>0.5GeV                              :         5/     1308   0.38% ghosts
 01_long                                           :      3233/     4578  70.62% ( 69.57%),        76 (  2.30%) clones, pur  99.92%, hit eff  98.73%
 02_long_P>5GeV                                    :      2659/     3038  87.52% ( 87.10%),        61 (  2.24%) clones, pur  99.94%, hit eff  99.23%
 03_long_strange                                   :       152/      226  67.26% ( 66.11%),         3 (  1.94%) clones, pur  99.82%, hit eff  98.54%
@@ -120,7 +120,7 @@ Hlt1SMOG2PassThroughLowMult5:                       5/   500, (  300.00 +/-   13
 Hlt1SMOG2BELowMultElectrons:                        0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2MinimumBias:                               0/   500, (    0.00 +/-     0.00) kHz
 Hlt1PassthroughPVinSMOG2:                           0/   500, (    0.00 +/-     0.00) kHz
-Hlt1SMOG2D2Kpi:                                     3/   500, (  180.00 +/-   103.61) kHz
+Hlt1SMOG2D2Kpi:                                     2/   500, (  120.00 +/-    84.68) kHz
 Hlt1SMOG2etacTopp:                                  0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2KsTopipi:                                  3/   500, (  180.00 +/-   103.61) kHz
 Hlt1SMOG22BodyGeneric:                              3/   500, (  180.00 +/-   103.61) kHz
@@ -298,7 +298,7 @@ Hlt1SMOG2PassThroughLowMult5:                       5           0
 Hlt1SMOG2BELowMultElectrons:                        0           0
 Hlt1SMOG2MinimumBias:                               0           0
 Hlt1PassthroughPVinSMOG2:                           0           0
-Hlt1SMOG2D2Kpi:                                     3           3
+Hlt1SMOG2D2Kpi:                                     2           2
 Hlt1SMOG2etacTopp:                                  0           0
 Hlt1SMOG2KsTopipi:                                  3           3
 Hlt1SMOG22BodyGeneric:                              3          12
@@ -309,12 +309,12 @@ Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
 Hlt1SMOG2L0Toppi:                                   3           3
 
-Total decisions:      25
+Total decisions:      24
 Total tracks:         37
 Total calos clusters: 0
 Total SVs:            26
 Total hits:           991
-Total stdinfo:        425
+Total stdinfo:        424
 
 
 velo_validator validation:
