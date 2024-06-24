@@ -244,16 +244,16 @@ Total stdinfo:        982
 
 
 velo_validator validation:
-TrackChecker output                               :      3239/   153801   2.11% ghosts
+TrackChecker output                               :      3240/   153803   2.11% ghosts
 01_velo                                           :     65023/    66132  98.32% ( 98.47%),      1896 (  2.83%) clones, pur  99.66%, hit eff  95.40%
 02_long                                           :     37665/    37926  99.31% ( 99.36%),       863 (  2.24%) clones, pur  99.78%, hit eff  96.61%
 03_long_P>5GeV                                    :     24615/    24714  99.60% ( 99.63%),       520 (  2.07%) clones, pur  99.81%, hit eff  97.16%
-04_long_strange                                   :      1754/     1807  97.07% ( 97.72%),        37 (  2.07%) clones, pur  99.42%, hit eff  96.29%
-05_long_strange_P>5GeV                            :       852/      878  97.04% ( 97.01%),        14 (  1.62%) clones, pur  99.29%, hit eff  96.76%
+04_long_strange                                   :      1754/     1807  97.07% ( 97.72%),        37 (  2.07%) clones, pur  99.42%, hit eff  96.31%
+05_long_strange_P>5GeV                            :       852/      878  97.04% ( 97.01%),        14 (  1.62%) clones, pur  99.29%, hit eff  96.80%
 06_long_fromB                                     :      2288/     2309  99.09% ( 99.30%),        45 (  1.93%) clones, pur  99.71%, hit eff  97.02%
 07_long_fromB_P>5GeV                              :      1900/     1909  99.53% ( 99.60%),        36 (  1.86%) clones, pur  99.80%, hit eff  97.25%
-08_long_electrons                                 :      2613/     2697  96.89% ( 97.36%),       114 (  4.18%) clones, pur  97.90%, hit eff  95.44%
-09_long_fromB_electrons                           :       106/      110  96.36% ( 96.30%),         5 (  4.50%) clones, pur  98.67%, hit eff  95.38%
-10_long_fromB_electrons_P>5GeV                    :        71/       74  95.95% ( 96.88%),         2 (  2.74%) clones, pur  98.36%, hit eff  96.71%
+08_long_electrons                                 :      2613/     2697  96.89% ( 97.46%),       116 (  4.25%) clones, pur  97.86%, hit eff  95.41%
+09_long_fromB_electrons                           :       107/      110  97.27% ( 97.53%),         5 (  4.46%) clones, pur  98.51%, hit eff  95.24%
+10_long_fromB_electrons_P>5GeV                    :        72/       74  97.30% ( 98.44%),         2 (  2.70%) clones, pur  98.11%, hit eff  96.48%
 11_long_fromSignal                                :      1300/     1312  99.09% ( 99.09%),        22 (  1.66%) clones, pur  99.70%, hit eff  97.24%
 
