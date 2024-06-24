@@ -46,13 +46,13 @@ gather_selections                      INFO Number of counters : 97
  | "Hlt1D2PiPiRate"                                |         6 |
  | "Hlt1DetJpsiToMuMuNegTagLinePass"               |         1 |
  | "Hlt1DetJpsiToMuMuNegTagLineRate"               |         1 |
- | "Hlt1DiElectronDisplacedPass"                   |        51 |
- | "Hlt1DiElectronDisplacedRate"                   |        51 |
+ | "Hlt1DiElectronDisplacedPass"                   |        52 |
+ | "Hlt1DiElectronDisplacedRate"                   |        52 |
  | "Hlt1DiElectronHighMass_SSPass"                 |         1 |
  | "Hlt1DiElectronHighMass_SSRate"                 |         1 |
- | "Hlt1DiElectronLowMass_SS_massSlice1_displacedPass"|        61 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_displacedPass"|        62 |
  | "Hlt1DiElectronLowMass_SS_massSlice1_displacedRate"|         1 |
- | "Hlt1DiElectronLowMass_SS_massSlice1_promptPass"|        59 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_promptPass"|        58 |
  | "Hlt1DiElectronLowMass_SS_massSlice1_promptRate"|         1 |
  | "Hlt1DiElectronLowMass_SS_massSlice2_displacedPass"|        18 |
  | "Hlt1DiElectronLowMass_SS_massSlice2_promptPass"|         8 |
@@ -133,13 +133,13 @@ gather_selections                      INFO Number of counters : 97
  | "Hlt1VeloMicroBiasRate"                         |         9 |
 matching_consolidate_tracks_matc...    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_long_tracks_matching"                        |     10000 |     480655 |     48.066 |
+ | "n_long_tracks_matching"                        |     10000 |     480649 |     48.065 |
 pv_beamline_cleanup                    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_PVs"                                         |     10000 |      51729 |     5.1729 |
+ | "n_PVs"                                         |     10000 |      51728 |     5.1728 |
 scifi_consolidate_seeds_matching       INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_seed_tracks"                                 |     10000 |     799792 |     79.979 |
 velo_consolidate_tracks                INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_velo_tracks"                                 |     10000 |    2501944 |     250.19 |
+ | "n_velo_tracks"                                 |     10000 |    2501914 |     250.19 |
