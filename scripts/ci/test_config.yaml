@@ -164,12 +164,13 @@ full:
     geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7_muonv3_RICH"
 
   # run physics efficiency for downstream reconstruction
-  - type: "efficiency"
-    sequence:
-      - downstream_validation
-      - hlt1_pp_forward_then_matching_and_downstream_validation
-    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD_nSciFiHits"
-    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
+  # temporary disabled, see lhcb/Allen#560
+  #- type: "efficiency"
+  #  sequence:
+  #    - downstream_validation
+  #    - hlt1_pp_forward_then_matching_and_downstream_validation
+  #  dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD_nSciFiHits"
+  #  geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
 
   - type: "run_built_tests"
     lcg_opt:
