@@ -11,12 +11,13 @@
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction
 from AllenConf.hlt1_calibration_lines import make_passthrough_line
 from AllenCore.generator import generate
-from AllenConf.persistency import make_persistency
-from AllenConf.utils import line_maker
+from AllenConf.persistency import make_persistency, make_gather_selections
+from AllenConf.utils import line_maker, sd_error_filter
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenConf.validators import rate_validation
-from AllenConf.odin import odin_error_filter, make_event_type, make_odin_orbit
+from AllenConf.odin import odin_error_filter, make_event_type, make_odin_orbit, tae_filter
 from AllenConf.HLT1 import odin_monitoring_lines
+from AllenConf.lumi_reconstruction import lumi_reconstruction
 
 
 def setup_hlt1_node(velo_open=False):
@@ -40,10 +41,53 @@ def setup_hlt1_node(velo_open=False):
                 make_passthrough_line(name=lumilinefull_name, pre_scaler=1.))
         ]
 
+    with line_maker.bind(
+            prefilter=odin_err_filter + [tae_filter(accept_sub_events=True)]):
+        lines += [
+            line_maker(
+                make_passthrough_line(name="Hlt1TAEPassthrough", pre_scaler=1))
+        ]
+
+    with line_maker.bind(prefilter=[sd_error_filter()]):
+        lines += [
+            line_maker(
+                make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.0001))
+        ]
+
     # list of line algorithms, required for the gather selection and DecReport algorithms
     line_algorithms = [tup[0] for tup in lines]
     # lost of line nodes, required to set up the CompositeNode
     line_nodes = [tup[1] for tup in lines]
+
+    gather_selections = make_gather_selections(lines=line_algorithms)
+    lumi_reco = lumi_reconstruction(
+        gather_selections=gather_selections,
+        lines=line_algorithms,
+        lumiline_name=lumiline_name,
+        lumilinefull_name=lumilinefull_name,
+        with_muon=True,
+        velo_open=False)
+
+    lumi_node = CompositeNode(
+        "AllenLumiNode",
+        lumi_reco["algorithms"],
+        NodeLogic.NONLAZY_AND,
+        force_order=False)
+
+    velo_open_event = make_event_type(event_type="VeloOpen")
+    DisableLinesDuringVPClosing = False
+    velo_closed = [
+        make_invert_event_list(velo_open_event, name="VeloClosedEvent")
+    ] if DisableLinesDuringVPClosing else []
+
+    lumi_with_prefilter = CompositeNode(
+        "LumiWithPrefilter",
+        odin_err_filter + velo_closed + [lumi_node],
+        NodeLogic.LAZY_AND,
+        force_order=True)
+
+    hlt1_config['lumi_reconstruction'] = lumi_reco
+    hlt1_config['lumi_node'] = lumi_with_prefilter
 
     persistency_node, persistency_algorithms = make_persistency(
         line_algorithms)
@@ -52,7 +96,7 @@ def setup_hlt1_node(velo_open=False):
         "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
 
     hlt1_node = CompositeNode(
-        "Allen", [lines, persistency_node],
+        "Allen", [lines, persistency_node, lumi_with_prefilter],
         NodeLogic.NONLAZY_AND,
         force_order=True)
 
