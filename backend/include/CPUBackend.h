@@ -36,6 +36,7 @@ using std::signbit;
 #define __global__
 #define __constant__
 #define __syncthreads()
+#define __threadfence()
 #define __syncwarp()
 #define __launch_bounds__(_i)
 #define __popc __builtin_popcount
@@ -231,6 +232,15 @@ inline T atomicCAS(T* address, T compare, T val)
   }
   return old;
 }
+
+template<class T>
+inline T atomicExch(T* address, T val)
+{
+  const T old = *address;
+  *address = val;
+  return old;
+}
+
 // Compress float to uint16
 uint16_t __float_to_uint16(const float f);
 float __uint16_to_float(const uint16_t h);

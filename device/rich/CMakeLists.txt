@@ -14,7 +14,7 @@ allen_add_device_library(Rich STATIC
   ${rich_decoding}
 )
 
-target_link_libraries(Rich PRIVATE Backend HostEventModel EventModel Utils HostPrefixSum)
+target_link_libraries(Rich PRIVATE Backend HostEventModel EventModel Utils)
 
 target_include_directories(Rich PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/decoding/include>)

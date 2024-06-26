@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "CountMaterialInteractionCandidates.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(CountMaterialInteractionCandidates::count_materialinteraction_candidates_t)
 
@@ -19,7 +20,8 @@ void CountMaterialInteractionCandidates::count_materialinteraction_candidates_t:
 {
   set_size<dev_filtered_velo_track_idx_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
   set_size<dev_number_of_filtered_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_number_of_seeds_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_interaction_seeds_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_total_interaction_seeds_t>(arguments, 1);
 }
 
 void CountMaterialInteractionCandidates::count_materialinteraction_candidates_t::operator()(
@@ -32,10 +34,13 @@ void CountMaterialInteractionCandidates::count_materialinteraction_candidates_t:
 
   Allen::memset_async<dev_filtered_velo_track_idx_t>(arguments, 0, context);
   Allen::memset_async<dev_number_of_filtered_tracks_t>(arguments, 0, context);
-  Allen::memset_async<dev_number_of_seeds_t>(arguments, 0, context);
+  Allen::memset_async<dev_interaction_seeds_offsets_t>(arguments, 0, context);
 
   global_function(count_materialinteraction_candidates)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, dev_beamline);
+
+  PrefixSum::prefix_sum<dev_interaction_seeds_offsets_t, host_number_of_total_interaction_seeds_t>(
+    *this, arguments, context);
 }
 
 __global__ void CountMaterialInteractionCandidates::count_materialinteraction_candidates(
@@ -101,5 +106,5 @@ __global__ void CountMaterialInteractionCandidates::count_materialinteraction_ca
   }
 
   __syncthreads();
-  parameters.dev_number_of_seeds[event_number] = shared_number_of_seeds;
+  parameters.dev_interaction_seeds_offsets[event_number] = shared_number_of_seeds;
 }

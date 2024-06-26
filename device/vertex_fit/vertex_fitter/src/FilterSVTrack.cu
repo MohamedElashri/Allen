@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #include "FilterSVTrack.cuh"
 #include "States.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(FilterSVTrack::filter_sv_track_t)
 
@@ -18,7 +19,8 @@ void FilterSVTrack::filter_sv_track_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_combination_number_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_combination_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_combinations_t>(arguments, 1);
   set_size<dev_sv_idx_t>(arguments, VertexFit::max_sv_track_combinations * first<host_number_of_events_t>(arguments));
   set_size<dev_track_idx_t>(
     arguments, VertexFit::max_sv_track_combinations * first<host_number_of_events_t>(arguments));
@@ -30,10 +32,12 @@ void FilterSVTrack::filter_sv_track_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_combination_number_t>(arguments, 0, context);
+  Allen::memset_async<dev_combination_offsets_t>(arguments, 0, context);
 
   global_function(filter_sv_track)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
+
+  PrefixSum::prefix_sum<dev_combination_offsets_t, host_number_of_combinations_t>(*this, arguments, context);
 }
 
 __global__ void FilterSVTrack::filter_sv_track(FilterSVTrack::Parameters parameters)
@@ -43,7 +47,7 @@ __global__ void FilterSVTrack::filter_sv_track(FilterSVTrack::Parameters paramet
   const unsigned sv_idx_offset = event_number * VertexFit::max_sv_track_combinations;
   unsigned* event_sv_idx = parameters.dev_sv_idx + sv_idx_offset;
   unsigned* event_track_idx = parameters.dev_track_idx + sv_idx_offset;
-  unsigned* event_combination_number = parameters.dev_combination_number + event_number;
+  unsigned* event_combination_number = parameters.dev_combination_offsets + event_number;
 
   const auto svs = parameters.dev_svs->container(event_number);
   const auto tracks = parameters.dev_tracks->container(event_number);

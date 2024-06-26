@@ -22,9 +22,7 @@ namespace rich_decoding {
     DEVICE_INPUT(dev_rich_raw_input_offsets_t, uint) dev_rich_raw_input_offsets;
     DEVICE_INPUT(dev_rich_raw_input_sizes_t, uint) dev_rich_raw_input_sizes;
     DEVICE_INPUT(dev_rich_raw_input_types_t, uint) dev_rich_raw_input_types;
-    DEVICE_OUTPUT(dev_rich_number_of_hits_t, unsigned) dev_rich_number_of_hits;
     DEVICE_OUTPUT(dev_rich_hit_offsets_t, unsigned) dev_rich_hit_offsets;
-    HOST_OUTPUT(host_rich_hit_offsets_t, unsigned) host_rich_hit_offsets;
     HOST_OUTPUT(host_rich_total_number_of_hits_t, unsigned) host_rich_total_number_of_hits;
     DEVICE_OUTPUT(dev_smart_ids_t, Allen::RichSmartID) dev_smart_ids;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned) block_dim_x;

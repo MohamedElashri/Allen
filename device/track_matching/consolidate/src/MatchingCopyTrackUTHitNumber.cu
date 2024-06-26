@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "MatchingCopyTrackUTHitNumber.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(matching_copy_track_ut_hit_number::matching_copy_track_ut_hit_number_t);
 
@@ -17,7 +18,9 @@ void matching_copy_track_ut_hit_number::matching_copy_track_ut_hit_number_t::set
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_matched_track_hit_number_t>(arguments, first<host_number_of_reconstructed_matched_tracks_t>(arguments));
+  set_size<dev_offsets_matched_ut_hit_number_t>(
+    arguments, first<host_number_of_reconstructed_matched_tracks_t>(arguments) + 1);
+  set_size<host_total_sum_holder_t>(arguments, 1);
 }
 
 void matching_copy_track_ut_hit_number::matching_copy_track_ut_hit_number_t::operator()(
@@ -28,6 +31,8 @@ void matching_copy_track_ut_hit_number::matching_copy_track_ut_hit_number_t::ope
 {
   global_function(matching_copy_track_ut_hit_number)(
     dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
+
+  PrefixSum::prefix_sum<dev_offsets_matched_ut_hit_number_t, host_total_sum_holder_t>(*this, arguments, context);
 }
 
 /**
@@ -38,12 +43,12 @@ __global__ void matching_copy_track_ut_hit_number::matching_copy_track_ut_hit_nu
 {
   const auto event_number = blockIdx.x;
   const auto event_tracks = parameters.dev_matched_tracks + event_number * TrackMatchingConsts::max_num_tracks;
-  const auto accumulated_tracks = parameters.dev_atomics_matched[event_number];
+  const auto accumulated_tracks = parameters.dev_offsets_matched_tracks[event_number];
   const auto number_of_tracks =
-    parameters.dev_atomics_matched[event_number + 1] - parameters.dev_atomics_matched[event_number];
+    parameters.dev_offsets_matched_tracks[event_number + 1] - parameters.dev_offsets_matched_tracks[event_number];
 
   // Pointer to ut_track_hit_number of current event.
-  unsigned* matched_track_hit_number = parameters.dev_matched_track_hit_number + accumulated_tracks;
+  unsigned* matched_track_hit_number = parameters.dev_offsets_matched_ut_hit_number + accumulated_tracks;
 
   // Loop over tracks.
   for (unsigned element = threadIdx.x; element < number_of_tracks; element += blockDim.x) {

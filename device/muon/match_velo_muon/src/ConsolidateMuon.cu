@@ -45,9 +45,10 @@ __global__ void consolidate_muon::consolidate_muon(consolidate_muon::Parameters 
 
   // Output
   auto event_muon_tracks_output = parameters.dev_muon_tracks_output + parameters.dev_muon_tracks_offsets[event_number];
+  auto n_tracks =
+    parameters.dev_muon_tracks_offsets[event_number + 1] - parameters.dev_muon_tracks_offsets[event_number];
 
-  for (unsigned i_muon_track = threadIdx.x; i_muon_track < parameters.dev_muon_number_of_tracks[event_number];
-       i_muon_track += blockDim.x) {
+  for (unsigned i_muon_track = threadIdx.x; i_muon_track < n_tracks; i_muon_track += blockDim.x) {
     event_muon_tracks_output[i_muon_track] = event_muon_tracks_input[i_muon_track];
   }
 }

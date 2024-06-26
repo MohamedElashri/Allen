@@ -9,7 +9,7 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenCore.algorithms import (
-    data_provider_t, calo_count_digits_t, host_prefix_sum_t, calo_decode_t,
+    data_provider_t, calo_count_digits_t, calo_decode_t,
     track_digit_selective_matching_t, brem_recovery_t,
     momentum_brem_correction_t, calo_seed_clusters_t, calo_find_clusters_t,
     calo_prefilter_clusters_t, calo_filter_clusters_t, calo_find_twoclusters_t,
@@ -34,44 +34,32 @@ def decode_calo(empty_banks=False):
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"])
 
-    prefix_sum_ecal_num_digits = make_algorithm(
-        host_prefix_sum_t,
-        name='prefix_sum_ecal_num_digits_{hash}',
-        dev_input_buffer_t=calo_count_digits.dev_ecal_num_digits_t)
-
     calo_decode = make_algorithm(
         calo_decode_t,
         name='calo_decode_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_ecal_number_of_digits_t=prefix_sum_ecal_num_digits.
-        host_total_sum_holder_t,
+        host_ecal_number_of_digits_t=calo_count_digits.host_total_sum_holder_t,
         host_raw_bank_version_t=ecal_banks.host_raw_bank_version_t,
         dev_ecal_raw_input_t=ecal_banks.dev_raw_banks_t,
         dev_ecal_raw_input_offsets_t=ecal_banks.dev_raw_offsets_t,
         dev_ecal_raw_input_sizes_t=ecal_banks.dev_raw_sizes_t,
         dev_ecal_raw_input_types_t=ecal_banks.dev_raw_types_t,
-        dev_ecal_digits_offsets_t=prefix_sum_ecal_num_digits.
-        dev_output_buffer_t)
+        dev_ecal_digits_offsets_t=calo_count_digits.dev_digits_offsets_t)
 
     sum_ecal_energy = make_algorithm(
         total_ecal_energy_t,
         name='total_ecal_energy_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_ecal_number_of_digits_t=prefix_sum_ecal_num_digits.
-        host_total_sum_holder_t,
-        dev_ecal_digits_offsets_t=prefix_sum_ecal_num_digits.
-        dev_output_buffer_t,
+        host_ecal_number_of_digits_t=calo_count_digits.host_total_sum_holder_t,
+        dev_ecal_digits_offsets_t=calo_count_digits.dev_digits_offsets_t,
         dev_ecal_digits_t=calo_decode.dev_ecal_digits_t)
 
     return {
         "host_ecal_number_of_digits":
-        prefix_sum_ecal_num_digits.host_total_sum_holder_t,
-        "dev_ecal_digits":
-        calo_decode.dev_ecal_digits_t,
-        "dev_ecal_digits_offsets":
-        prefix_sum_ecal_num_digits.dev_output_buffer_t,
-        "dev_total_ecal_e":
-        sum_ecal_energy.dev_total_ecal_e_t
+        calo_count_digits.host_total_sum_holder_t,
+        "dev_ecal_digits": calo_decode.dev_ecal_digits_t,
+        "dev_ecal_digits_offsets": calo_count_digits.dev_digits_offsets_t,
+        "dev_total_ecal_e": sum_ecal_energy.dev_total_ecal_e_t
     }
 
 
@@ -223,45 +211,39 @@ def make_ecal_clusters(decoded_calo,
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"])
 
-    prefix_sum_ecal_num_clusters = make_algorithm(
-        host_prefix_sum_t,
-        name='prefix_sum_ecal_num_clusters_{hash}',
-        dev_input_buffer_t=calo_seed_clusters.dev_ecal_num_clusters_t)
-
     calo_overlap_clusters = make_algorithm(
         calo_overlap_clusters_t,
         name="calo_overlap_clusters",
-        host_ecal_number_of_clusters_t=prefix_sum_ecal_num_clusters.
+        host_ecal_number_of_clusters_t=calo_seed_clusters.
         host_total_sum_holder_t,
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
         dev_ecal_seed_clusters_t=calo_seed_clusters.dev_ecal_seed_clusters_t,
-        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
-        dev_output_buffer_t,
+        dev_ecal_cluster_offsets_t=calo_seed_clusters.
+        dev_ecal_cluster_offsets_t,
         dev_ecal_digit_is_seed_t=calo_seed_clusters.dev_ecal_digit_is_seed_t)
 
     calo_find_clusters = make_algorithm(
         calo_find_clusters_t,
         name=str(calo_find_clusters_name),
         ecal_min_adc=neighbour_min_adc,
-        host_ecal_number_of_clusters_t=prefix_sum_ecal_num_clusters.
+        host_ecal_number_of_clusters_t=calo_seed_clusters.
         host_total_sum_holder_t,
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
         dev_ecal_seed_clusters_t=calo_seed_clusters.dev_ecal_seed_clusters_t,
-        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
-        dev_output_buffer_t,
+        dev_ecal_cluster_offsets_t=calo_seed_clusters.
+        dev_ecal_cluster_offsets_t,
         dev_ecal_corrections_t=calo_overlap_clusters.dev_ecal_corrections_t)
 
     make_neutral_particles = make_algorithm(
         make_neutral_particles_t,
         name="make_neutral_particles",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_clusters_t=prefix_sum_ecal_num_clusters.
-        host_total_sum_holder_t,
+        host_number_of_clusters_t=calo_seed_clusters.host_total_sum_holder_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
-        dev_output_buffer_t,
+        dev_ecal_cluster_offsets_t=calo_seed_clusters.
+        dev_ecal_cluster_offsets_t,
         dev_ecal_clusters_t=calo_find_clusters.dev_ecal_clusters_t)
 
     calo_prefilter_clusters = make_algorithm(
@@ -271,58 +253,51 @@ def make_ecal_clusters(decoded_calo,
         minE19_clusters=min_e19,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_ecal_number_of_clusters_t=prefix_sum_ecal_num_clusters.
+        host_ecal_number_of_clusters_t=calo_seed_clusters.
         host_total_sum_holder_t,
         dev_neutral_particles_t=make_neutral_particles.
         dev_multi_event_neutral_particles_view_t)
-
-    prefix_sum_ecal_num_twoclusters = make_algorithm(
-        host_prefix_sum_t,
-        name='prefix_sum_ecal_num_twoclusters_{hash}',
-        dev_input_buffer_t=calo_prefilter_clusters.dev_ecal_num_twoclusters_t)
 
     calo_filter_clusters = make_algorithm(
         calo_filter_clusters_t,
         name='calo_filter_clusters_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_ecal_number_of_clusters_t=prefix_sum_ecal_num_clusters.
+        host_ecal_number_of_clusters_t=calo_seed_clusters.
         host_total_sum_holder_t,
-        host_ecal_number_of_twoclusters_t=prefix_sum_ecal_num_twoclusters.
+        host_ecal_number_of_twoclusters_t=calo_prefilter_clusters.
         host_total_sum_holder_t,
         dev_neutral_particles_t=make_neutral_particles.
         dev_multi_event_neutral_particles_view_t,
         dev_num_prefiltered_clusters_t=calo_prefilter_clusters.
         dev_num_prefiltered_clusters_t,
-        dev_ecal_twocluster_offsets_t=prefix_sum_ecal_num_twoclusters.
-        dev_output_buffer_t,
+        dev_ecal_twocluster_offsets_t=calo_prefilter_clusters.
+        dev_ecal_twocluster_offsets_t,
         dev_prefiltered_clusters_idx_t=calo_prefilter_clusters.
         dev_prefiltered_clusters_idx_t,
-        dev_ecal_cluster_offsets_t=prefix_sum_ecal_num_clusters.
-        dev_output_buffer_t)
+        dev_ecal_cluster_offsets_t=calo_seed_clusters.
+        dev_ecal_cluster_offsets_t)
 
     calo_find_twoclusters = make_algorithm(
         calo_find_twoclusters_t,
         name='calo_find_twoclusters_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_twoclusters_t=prefix_sum_ecal_num_twoclusters.
+        host_number_of_twoclusters_t=calo_prefilter_clusters.
         host_total_sum_holder_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_neutral_particles_t=make_neutral_particles.
         dev_multi_event_neutral_particles_view_t,
         dev_cluster1_idx_t=calo_filter_clusters.dev_cluster1_idx_t,
         dev_cluster2_idx_t=calo_filter_clusters.dev_cluster2_idx_t,
-        dev_ecal_twocluster_offsets_t=prefix_sum_ecal_num_twoclusters.
-        dev_output_buffer_t)
+        dev_ecal_twocluster_offsets_t=calo_prefilter_clusters.
+        dev_ecal_twocluster_offsets_t)
 
     return {
         "host_ecal_number_of_clusters":
-        prefix_sum_ecal_num_clusters.host_total_sum_holder_t,
+        calo_seed_clusters.host_total_sum_holder_t,
         "host_ecal_number_of_twoclusters":
-        prefix_sum_ecal_num_twoclusters.host_total_sum_holder_t,
+        calo_prefilter_clusters.host_total_sum_holder_t,
         "dev_ecal_cluster_offsets":
-        prefix_sum_ecal_num_clusters.dev_output_buffer_t,
-        "dev_ecal_num_clusters":
-        calo_seed_clusters.dev_ecal_num_clusters_t,
+        calo_seed_clusters.dev_ecal_cluster_offsets_t,
         "dev_ecal_clusters":
         calo_find_clusters.dev_ecal_clusters_t,
         "dev_multi_event_neutral_particles":

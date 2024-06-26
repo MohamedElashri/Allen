@@ -164,11 +164,7 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
       m_misordered_cluster_counter.data(context));
   }
 
-  unsigned array_size = size<dev_scifi_hit_count_t>(arguments) - 1;
-  PrefixSum::prefix_sum(*this, arguments, context, data<dev_scifi_hit_count_t>(arguments), array_size);
-
-  Allen::copy<host_total_sum_holder_t, dev_scifi_hit_count_t>(
-    arguments, context, 1, 0, size<dev_scifi_hit_count_t>(arguments) - 1);
+  PrefixSum::prefix_sum<dev_scifi_hit_count_t, host_total_sum_holder_t>(*this, arguments, context);
 
   global_function(scifi_compress_hits_offset)(
     dim3(first<host_number_of_events_t>(arguments)), dim3(SciFi::Constants::n_zones + 1), context)(arguments);

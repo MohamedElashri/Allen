@@ -25,7 +25,6 @@ namespace consolidate_muon {
 
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_muon_tracks_input_t, MuonTrack) dev_muon_tracks_input;
-    DEVICE_INPUT(dev_muon_number_of_tracks_t, unsigned) dev_muon_number_of_tracks;
     DEVICE_INPUT(dev_muon_tracks_offsets_t, unsigned) dev_muon_tracks_offsets;
     DEVICE_OUTPUT(dev_muon_tracks_output_t, MuonTrack) dev_muon_tracks_output;
 

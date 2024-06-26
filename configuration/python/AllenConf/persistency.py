@@ -300,78 +300,52 @@ def make_global_decision(lines):
 
 def make_sel_report_writer(lines):
     from AllenConf.utils import initialize_number_of_events
-    from AllenCore.algorithms import host_prefix_sum_t, make_selrep_t
+    from AllenCore.algorithms import make_selrep_t
     from AllenCore.algorithms import make_selected_object_lists_t, make_subbanks_t
 
     gather_selections = make_gather_selections(lines)
     dec_reporter = make_dec_reporter(lines)
     number_of_events = initialize_number_of_events()
 
-    prefix_sum_max_objects = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_max_objects",
-        dev_input_buffer_t=dec_reporter.dev_selected_candidates_counts_t)
-
     make_selected_object_lists = make_algorithm(
         make_selected_object_lists_t,
         name="make_selected_object_lists",
         host_dec_reports_t=dec_reporter.host_dec_reports_t,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_max_objects_t=prefix_sum_max_objects.host_total_sum_holder_t,
+        host_max_objects_t=dec_reporter.host_max_objects_t,
         dev_dec_reports_t=dec_reporter.dev_dec_reports_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_multi_event_particle_containers_t=gather_selections.
         dev_particle_containers_t,
         dev_selections_t=gather_selections.dev_selections_t,
         dev_selections_offsets_t=gather_selections.dev_selections_offsets_t,
-        dev_max_objects_offsets_t=prefix_sum_max_objects.dev_output_buffer_t)
-
-    prefix_sum_hits_size = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_hits_size",
-        dev_input_buffer_t=make_selected_object_lists.dev_hits_bank_size_t)
-
-    prefix_sum_substr_size = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_substr_size",
-        dev_input_buffer_t=make_selected_object_lists.dev_substr_bank_size_t)
-
-    prefix_sum_objtyp_size = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_objtyp_size",
-        dev_input_buffer_t=make_selected_object_lists.dev_objtyp_bank_size_t)
-
-    prefix_sum_stdinfo_size = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_stdinfo_size",
-        dev_input_buffer_t=make_selected_object_lists.dev_stdinfo_bank_size_t)
-
-    prefix_sum_candidate_count = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_candidate_count",
-        dev_input_buffer_t=make_selected_object_lists.dev_candidate_count_t)
-
-    prefix_sum_selrep_size = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_selrep_size",
-        dev_input_buffer_t=make_selected_object_lists.dev_selrep_size_t)
+        dev_max_objects_offsets_t=dec_reporter.dev_max_objects_offsets_t)
 
     make_subbanks = make_algorithm(
         make_subbanks_t,
         name="make_subbanks",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_substr_bank_size_t=prefix_sum_substr_size.host_total_sum_holder_t,
-        host_hits_bank_size_t=prefix_sum_hits_size.host_total_sum_holder_t,
-        host_objtyp_bank_size_t=prefix_sum_objtyp_size.host_total_sum_holder_t,
-        host_stdinfo_bank_size_t=prefix_sum_stdinfo_size.
-        host_total_sum_holder_t,
+        host_substr_bank_size_t=make_selected_object_lists.
+        host_substr_bank_size_t,
+        host_hits_bank_size_t=make_selected_object_lists.host_hits_bank_size_t,
+        host_objtyp_bank_size_t=make_selected_object_lists.
+        host_objtyp_bank_size_t,
+        host_stdinfo_bank_size_t=make_selected_object_lists.
+        host_stdinfo_bank_size_t,
+        dev_candidate_offsets_t=make_selected_object_lists.
+        dev_candidate_offsets_t,
+        dev_rb_hits_offsets_t=make_selected_object_lists.dev_rb_hits_offsets_t,
+        dev_rb_objtyp_offsets_t=make_selected_object_lists.
+        dev_rb_objtyp_offsets_t,
+        dev_rb_stdinfo_offsets_t=make_selected_object_lists.
+        dev_rb_stdinfo_offsets_t,
+        dev_rb_substr_offsets_t=make_selected_object_lists.
+        dev_rb_substr_offsets_t,
         dev_number_of_active_lines_t=gather_selections.
         dev_number_of_active_lines_t,
-        dev_max_objects_offsets_t=prefix_sum_max_objects.dev_output_buffer_t,
+        dev_max_objects_offsets_t=dec_reporter.dev_max_objects_offsets_t,
         dev_sel_count_t=make_selected_object_lists.dev_sel_count_t,
         dev_sel_list_t=make_selected_object_lists.dev_sel_list_t,
-        dev_candidate_count_t=make_selected_object_lists.dev_candidate_count_t,
-        dev_candidate_offsets_t=prefix_sum_candidate_count.dev_output_buffer_t,
         dev_unique_track_list_t=make_selected_object_lists.
         dev_unique_track_list_t,
         dev_unique_track_count_t=make_selected_object_lists.
@@ -401,25 +375,24 @@ def make_sel_report_writer(lines):
         dev_selected_neutral_basic_particle_ptrs_t,
         dev_composite_particle_ptrs_t=make_selected_object_lists.
         dev_selected_composite_particle_ptrs_t,
-        dev_rb_substr_offsets_t=prefix_sum_substr_size.dev_output_buffer_t,
         dev_substr_sel_size_t=make_selected_object_lists.dev_substr_sel_size_t,
         dev_substr_sv_size_t=make_selected_object_lists.dev_substr_sv_size_t,
         dev_substr_track_size_t=make_selected_object_lists.
-        dev_substr_track_size_t,
-        dev_rb_hits_offsets_t=prefix_sum_hits_size.dev_output_buffer_t,
-        dev_rb_objtyp_offsets_t=prefix_sum_objtyp_size.dev_output_buffer_t,
-        dev_rb_stdinfo_offsets_t=prefix_sum_stdinfo_size.dev_output_buffer_t)
+        dev_substr_track_size_t)
 
     make_selreps = make_algorithm(
         make_selrep_t,
         name="make_selreps",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_selrep_size_t=prefix_sum_selrep_size.host_total_sum_holder_t,
-        dev_selrep_offsets_t=prefix_sum_selrep_size.dev_output_buffer_t,
-        dev_rb_objtyp_offsets_t=prefix_sum_objtyp_size.dev_output_buffer_t,
-        dev_rb_hits_offsets_t=prefix_sum_hits_size.dev_output_buffer_t,
-        dev_rb_substr_offsets_t=prefix_sum_substr_size.dev_output_buffer_t,
-        dev_rb_stdinfo_offsets_t=prefix_sum_stdinfo_size.dev_output_buffer_t,
+        host_selrep_size_t=make_selected_object_lists.host_selrep_size_t,
+        dev_selrep_offsets_t=make_selected_object_lists.dev_selrep_offsets_t,
+        dev_rb_objtyp_offsets_t=make_selected_object_lists.
+        dev_rb_objtyp_offsets_t,
+        dev_rb_hits_offsets_t=make_selected_object_lists.dev_rb_hits_offsets_t,
+        dev_rb_substr_offsets_t=make_selected_object_lists.
+        dev_rb_substr_offsets_t,
+        dev_rb_stdinfo_offsets_t=make_selected_object_lists.
+        dev_rb_stdinfo_offsets_t,
         dev_rb_objtyp_t=make_subbanks.dev_rb_objtyp_t,
         dev_rb_hits_t=make_subbanks.dev_rb_hits_t,
         dev_rb_substr_t=make_subbanks.dev_rb_substr_t,
@@ -429,7 +402,7 @@ def make_sel_report_writer(lines):
         "algorithms":
         [make_selected_object_lists, make_subbanks, make_selreps],
         "dev_sel_reports": make_selreps.dev_sel_reports_t,
-        "dev_selrep_offsets": prefix_sum_selrep_size.dev_output_buffer_t
+        "dev_selrep_offsets": make_selected_object_lists.dev_selrep_offsets_t
     }
 
 

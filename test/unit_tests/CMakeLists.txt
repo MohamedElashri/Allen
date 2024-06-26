@@ -16,7 +16,7 @@ add_definitions(-D${TARGET_DEFINITION})
 
 allen_add_executable(unit_tests ${generic_tests} ${cu_generic_tests})
 
-target_link_libraries(unit_tests Catch2::Catch2 HostPrefixSum HostCommon)
+target_link_libraries(unit_tests Catch2::Catch2 HostEventModel EventModel Gear AllenCommon Backend HostCommon)
 
 if (NOT STANDALONE)
   # Make test discovery work in stack builds

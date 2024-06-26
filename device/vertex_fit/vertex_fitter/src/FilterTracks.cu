@@ -14,6 +14,7 @@
 #include "ParKalmanMath.cuh"
 #include "ParKalmanDefinitions.cuh"
 #include "States.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(FilterTracks::filter_tracks_t)
 
@@ -22,7 +23,8 @@ void FilterTracks::filter_tracks_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_sv_atomics_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_sv_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_svs_t>(arguments, 1);
   set_size<dev_svs_trk1_idx_t>(arguments, VertexFit::max_svs * first<host_number_of_events_t>(arguments));
   set_size<dev_svs_trk2_idx_t>(arguments, VertexFit::max_svs * first<host_number_of_events_t>(arguments));
   set_size<dev_sv_poca_t>(arguments, 3 * VertexFit::max_svs * first<host_number_of_events_t>(arguments));
@@ -35,13 +37,15 @@ void FilterTracks::filter_tracks_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_sv_atomics_t>(arguments, 0, context);
+  Allen::memset_async<dev_sv_offsets_t>(arguments, 0, context);
 
   global_function(prefilter_tracks)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_prefilter_t>(), context)(arguments);
 
   global_function(filter_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_filter_t>(), context)(
     arguments);
+
+  PrefixSum::prefix_sum<dev_sv_offsets_t, host_number_of_svs_t>(*this, arguments, context);
 }
 
 __global__ void FilterTracks::prefilter_tracks(FilterTracks::Parameters parameters)
@@ -72,7 +76,7 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const unsigned idx_offset = event_number * VertexFit::max_svs;
-  unsigned* event_sv_number = parameters.dev_sv_atomics + event_number;
+  unsigned* event_sv_number = parameters.dev_sv_offsets + event_number;
   unsigned* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
   unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
   float* event_poca = parameters.dev_sv_poca + 3 * idx_offset;

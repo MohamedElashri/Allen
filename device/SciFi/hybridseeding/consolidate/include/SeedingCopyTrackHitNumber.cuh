@@ -22,7 +22,10 @@ namespace seeding_copy_track_hit_number {
     DEVICE_INPUT(dev_seeding_tracks_t, SciFi::Seeding::Track) dev_seeding_tracks; // input from seed_confirmTracks
     DEVICE_INPUT(dev_seeding_atomics_t, unsigned) dev_seeding_atomics;            // input from seed_confirmTracks
 
-    DEVICE_OUTPUT(dev_seeding_track_hit_number_t, unsigned) dev_seeding_track_hit_number;
+    DEVICE_OUTPUT(dev_offsets_seeding_hit_number_t, unsigned) dev_offsets_seeding_hit_number;
+    HOST_OUTPUT(host_accumulated_number_of_hits_in_scifi_tracks_t, unsigned)
+    host_accumulated_number_of_hits_in_scifi_tracks;
+
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
   __global__ void seeding_copy_track_hit_number(Parameters);

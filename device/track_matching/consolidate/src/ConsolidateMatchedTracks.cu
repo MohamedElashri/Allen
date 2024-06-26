@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "ConsolidateMatchedTracks.cuh"
+#include "PrefixSum.cuh"
 
 INSTANTIATE_ALGORITHM(matching_consolidate_tracks::matching_consolidate_tracks_t);
 
@@ -50,7 +51,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::set_arguments_s
     set_size<dev_matched_ut_track_view_t>(arguments, first<host_number_of_reconstructed_matched_tracks_t>(arguments));
 
     // Filter used ut hits
-    set_size<dev_used_ut_hits_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments));
+    set_size<dev_used_ut_hits_offsets_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) + 1);
   }
   else {
     // In no ut case we don't use any memory for ut info
@@ -66,9 +67,10 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
   [[maybe_unused]] const Constants& constants,
   const Allen::Context& context) const
 {
-  const auto has_ut = size<dev_ut_hits_t>(arguments) > 0;
+  const auto has_ut =
+    (size<dev_ut_hits_t>(arguments) > 0) && (first<host_accumulated_number_of_ut_hits_t>(arguments) > 0);
   if (has_ut) {
-    Allen::memset_async<dev_used_ut_hits_t>(arguments, 0, context);
+    Allen::memset_async<dev_used_ut_hits_offsets_t>(arguments, 0, context);
   }
 
   // Reset masks
@@ -90,6 +92,8 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
 
     global_function(matching_create_longtracks_views<true>)(first<host_number_of_events_t>(arguments), 256, context)(
       arguments);
+
+    PrefixSum::prefix_sum<dev_used_ut_hits_offsets_t>(*this, arguments, context);
   }
   else {
     global_function(matching_consolidate_tracks<false>)(
@@ -249,7 +253,7 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
       for (unsigned layer = 0, hit_idx = 0; layer < UT::Constants::n_layers; layer++) {
         if (matched_track.ut_hits[layer] == SciFi::MatchedTrack::InvalidHit) continue;
         matched_ut_track_hits.set(hit_offset + hit_idx, ut_hits.getHit(matched_track.ut_hits[layer]));
-        parameters.dev_used_ut_hits[event_hit_offset + matched_track.ut_hits[layer]] = 1;
+        parameters.dev_used_ut_hits_offsets[event_hit_offset + matched_track.ut_hits[layer]] = 1;
         hit_idx++;
       }
     }

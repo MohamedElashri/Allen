@@ -2,6 +2,7 @@
 * (c) Copyright 2023 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #include "tracks_ACsplit.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(tracks_ACsplit::tracks_ACsplit_t)
 
@@ -13,12 +14,14 @@ void tracks_ACsplit::tracks_ACsplit_t::set_arguments_size(
   const unsigned track_container_size = first<host_total_number_of_velo_clusters_t>(arguments);
 
   set_size<dev_offsets_velo_track_hit_number_A_side_t>(
-    arguments, first<host_number_of_reconstructed_velo_tracks_A_side_t>(arguments));
+    arguments, first<host_number_of_reconstructed_velo_tracks_A_side_t>(arguments) + 1);
+  set_size<host_accumulated_number_of_hits_in_velo_tracks_A_side_t>(arguments, 1);
   set_size<dev_tracks_A_side_t>(arguments, track_container_size);
   set_size<dev_three_hit_tracks_output_A_side_t>(arguments, track_container_size);
 
   set_size<dev_offsets_velo_track_hit_number_C_side_t>(
-    arguments, first<host_number_of_reconstructed_velo_tracks_C_side_t>(arguments));
+    arguments, first<host_number_of_reconstructed_velo_tracks_C_side_t>(arguments) + 1);
+  set_size<host_accumulated_number_of_hits_in_velo_tracks_C_side_t>(arguments, 1);
   set_size<dev_tracks_C_side_t>(arguments, track_container_size);
   set_size<dev_three_hit_tracks_output_C_side_t>(arguments, track_container_size);
 }
@@ -31,6 +34,14 @@ void tracks_ACsplit::tracks_ACsplit_t::operator()(
 {
   global_function(tracks_ACsplit)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, property<splitting_algorithm_t>().get() == "A/C split");
+
+  PrefixSum::
+    prefix_sum<dev_offsets_velo_track_hit_number_A_side_t, host_accumulated_number_of_hits_in_velo_tracks_A_side_t>(
+      *this, arguments, context);
+
+  PrefixSum::
+    prefix_sum<dev_offsets_velo_track_hit_number_C_side_t, host_accumulated_number_of_hits_in_velo_tracks_C_side_t>(
+      *this, arguments, context);
 }
 
 __global__ void tracks_ACsplit::tracks_ACsplit(tracks_ACsplit::Parameters parameters, const bool AC_split)

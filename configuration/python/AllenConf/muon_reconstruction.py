@@ -9,10 +9,10 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenCore.algorithms import (
-    data_provider_t, muon_calculate_srq_size_t, host_prefix_sum_t,
-    muon_populate_tile_and_tdc_t, muon_add_coords_crossing_maps_t,
-    muon_populate_hits_t, is_muon_t, empty_lepton_id_t, find_muon_hits_t,
-    consolidate_muon_t, muon_consolidate_tracks_t, chi2_muon_t)
+    data_provider_t, muon_calculate_srq_size_t, muon_populate_tile_and_tdc_t,
+    muon_add_coords_crossing_maps_t, muon_populate_hits_t, is_muon_t,
+    empty_lepton_id_t, find_muon_hits_t, consolidate_muon_t,
+    muon_consolidate_tracks_t, chi2_muon_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
@@ -38,49 +38,34 @@ def decode_muon(empty_banks=False):
         dev_muon_raw_types_t=muon_banks.dev_raw_types_t,
         host_raw_bank_version_t=muon_banks.host_raw_bank_version_t)
 
-    muon_srq_prefix_sum = make_algorithm(
-        host_prefix_sum_t,
-        name='muon_srq_prefix_sum_{hash}',
-        dev_input_buffer_t=muon_calculate_srq_size.
-        dev_storage_station_region_quarter_sizes_t,
-    )
-
     muon_populate_tile_and_tdc = make_algorithm(
         muon_populate_tile_and_tdc_t,
         name='muon_populate_tile_and_tdc_{hash}',
         host_number_of_events_t=host_number_of_events,
-        host_muon_total_number_of_tiles_t=muon_srq_prefix_sum.
+        host_muon_total_number_of_tiles_t=muon_calculate_srq_size.
         host_total_sum_holder_t,
         dev_muon_raw_t=muon_banks.dev_raw_banks_t,
         dev_muon_raw_offsets_t=muon_banks.dev_raw_offsets_t,
         dev_muon_raw_sizes_t=muon_banks.dev_raw_sizes_t,
         dev_muon_raw_types_t=muon_banks.dev_raw_types_t,
-        dev_muon_raw_to_hits_t=muon_calculate_srq_size.dev_muon_raw_to_hits_t,
-        dev_storage_station_region_quarter_offsets_t=muon_srq_prefix_sum.
-        dev_output_buffer_t,
+        dev_storage_station_region_quarter_offsets_t=muon_calculate_srq_size.
+        dev_storage_station_region_quarter_offsets_t,
         host_raw_bank_version_t=muon_banks.host_raw_bank_version_t)
-
-    muon_station_ocurrence_prefix_sum = make_algorithm(
-        host_prefix_sum_t,
-        name='muon_station_ocurrence_prefix_sum_{hash}',
-        dev_input_buffer_t=muon_populate_tile_and_tdc.
-        dev_station_ocurrences_sizes_t)
 
     muon_add_coords_crossing_maps = make_algorithm(
         muon_add_coords_crossing_maps_t,
         name='muon_add_coords_crossing_maps_{hash}',
         host_number_of_events_t=host_number_of_events,
-        host_muon_total_number_of_tiles_t=muon_srq_prefix_sum.
+        host_muon_total_number_of_tiles_t=muon_calculate_srq_size.
         host_total_sum_holder_t,
-        dev_storage_station_region_quarter_offsets_t=muon_srq_prefix_sum.
-        dev_output_buffer_t,
+        dev_storage_station_region_quarter_offsets_t=muon_calculate_srq_size.
+        dev_storage_station_region_quarter_offsets_t,
         dev_storage_tile_id_t=muon_populate_tile_and_tdc.dev_storage_tile_id_t,
-        dev_muon_raw_to_hits_t=muon_calculate_srq_size.dev_muon_raw_to_hits_t,
         host_raw_bank_version_t=muon_banks.host_raw_bank_version_t,
         dev_muon_tile_used_t=muon_populate_tile_and_tdc.dev_muon_tile_used_t,
-        dev_station_ocurrences_offset_t=muon_station_ocurrence_prefix_sum.
-        dev_output_buffer_t,
-        host_muon_total_number_of_hits_t=muon_station_ocurrence_prefix_sum.
+        dev_station_ocurrences_offset_t=muon_populate_tile_and_tdc.
+        dev_station_ocurrences_offset_t,
+        host_muon_total_number_of_hits_t=muon_populate_tile_and_tdc.
         host_total_sum_holder_t)
 
     muon_populate_hits = make_algorithm(
@@ -88,26 +73,25 @@ def decode_muon(empty_banks=False):
         name='muon_populate_hits_{hash}',
         host_number_of_events_t=host_number_of_events,
         dev_number_of_events_t=dev_number_of_events,
-        host_muon_total_number_of_hits_t=muon_station_ocurrence_prefix_sum.
+        host_muon_total_number_of_hits_t=muon_populate_tile_and_tdc.
         host_total_sum_holder_t,
         dev_storage_tile_id_t=muon_populate_tile_and_tdc.dev_storage_tile_id_t,
         dev_storage_tdc_value_t=muon_populate_tile_and_tdc.
         dev_storage_tdc_value_t,
-        dev_station_ocurrences_offset_t=muon_station_ocurrence_prefix_sum.
-        dev_output_buffer_t,
+        dev_station_ocurrences_offset_t=muon_populate_tile_and_tdc.
+        dev_station_ocurrences_offset_t,
         dev_muon_compact_hit_t=muon_add_coords_crossing_maps.
         dev_muon_compact_hit_t,
-        dev_muon_raw_to_hits_t=muon_calculate_srq_size.dev_muon_raw_to_hits_t,
-        dev_storage_station_region_quarter_offsets_t=muon_srq_prefix_sum.
-        dev_output_buffer_t)
+        dev_storage_station_region_quarter_offsets_t=muon_calculate_srq_size.
+        dev_storage_station_region_quarter_offsets_t)
 
     return {
         "dev_storage_station_region_quarter_offsets":
-        muon_srq_prefix_sum.dev_output_buffer_t,
+        muon_calculate_srq_size.dev_storage_station_region_quarter_offsets_t,
         "dev_muon_hits":
         muon_populate_hits.dev_muon_hits_t,
         "dev_station_ocurrences_offset":
-        muon_station_ocurrence_prefix_sum.dev_output_buffer_t,
+        muon_populate_tile_and_tdc.dev_station_ocurrences_offset_t,
         "host_raw_bank_version":
         muon_banks.host_raw_bank_version_t,
         "dev_muon_tell_number":
@@ -169,17 +153,11 @@ def is_muon(decoded_muon, long_tracks, is_muon_name='is_muon'):
             "dev_velo_kalman_endvelo_states_view"],
         dev_muon_hits_t=decoded_muon["dev_muon_hits"])
 
-    muon_hit_count_prefix_sum = make_algorithm(
-        host_prefix_sum_t,
-        name='muon_hit_count_prefix_sum_{hash}',
-        dev_input_buffer_t=is_muon.dev_muon_hit_counts_t)
-
     muon_consolidate_tracks = make_algorithm(
         muon_consolidate_tracks_t,
         name='consolidate_is_muon_{hash}',
         host_number_of_events_t=host_number_of_events,
-        host_number_of_hits_in_muon_tracks_t=muon_hit_count_prefix_sum.
-        host_total_sum_holder_t,
+        host_number_of_hits_in_muon_tracks_t=is_muon.host_total_sum_holder_t,
         host_number_of_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         dev_number_of_events_t=dev_number_of_events,
@@ -189,7 +167,7 @@ def is_muon(decoded_muon, long_tracks, is_muon_name='is_muon'):
         dev_muon_hits_data_t=decoded_muon["dev_muon_hits"],
         dev_station_ocurrences_offset_t=decoded_muon[
             "dev_station_ocurrences_offset"],
-        dev_muon_hit_offsets_t=muon_hit_count_prefix_sum.dev_output_buffer_t)
+        dev_muon_hit_offsets_t=is_muon.dev_muon_hit_offsets_t)
 
     # Update long tracks.
     long_tracks[
@@ -291,10 +269,6 @@ def make_muon_stubs(monitoring=False):
             "dev_station_ocurrences_offset"],
         dev_muon_hits_t=decoded_muon["dev_muon_hits"],
         enable_tupling=monitoring)
-    prefix_sum_muon_tracks = make_algorithm(
-        host_prefix_sum_t,
-        name='prefix_sum_muon_tracks_find_hits_{hash}',
-        dev_input_buffer_t=find_muon_hits.dev_muon_number_of_tracks_t)
 
     consolidate_muon = make_algorithm(
         consolidate_muon_t,
@@ -302,18 +276,18 @@ def make_muon_stubs(monitoring=False):
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_muon_tracks_input_t=find_muon_hits.dev_muon_tracks_t,
-        dev_muon_number_of_tracks_t=find_muon_hits.dev_muon_number_of_tracks_t,
-        dev_muon_tracks_offsets_t=prefix_sum_muon_tracks.dev_output_buffer_t,
-        host_muon_total_number_of_tracks_t=prefix_sum_muon_tracks.
-        host_total_sum_holder_t,
+        dev_muon_tracks_offsets_t=find_muon_hits.dev_muon_tracks_offsets_t,
+        host_muon_total_number_of_tracks_t=find_muon_hits.
+        host_muon_total_number_of_tracks_t,
     )
 
     return {
-        "dev_muon_tracks_output": consolidate_muon.dev_muon_tracks_output_t,
-        "dev_muon_number_of_tracks":
-        find_muon_hits.dev_muon_number_of_tracks_t,
-        "consolidated_muon_tracks": consolidate_muon.dev_muon_tracks_output_t,
-        "host_total_sum_holder":
-        prefix_sum_muon_tracks.host_total_sum_holder_t,
-        "dev_output_buffer": prefix_sum_muon_tracks.dev_output_buffer_t
+        "dev_muon_tracks_output":
+        consolidate_muon.dev_muon_tracks_output_t,
+        "consolidated_muon_tracks":
+        consolidate_muon.dev_muon_tracks_output_t,
+        "host_muon_total_number_of_tracks":
+        find_muon_hits.host_muon_total_number_of_tracks_t,
+        "dev_muon_tracks_offsets":
+        find_muon_hits.dev_muon_tracks_offsets_t
     }

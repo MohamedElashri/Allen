@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #include "IsMuon.cuh"
 #include "SystemOfUnits.h"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(is_muon::is_muon_t)
 
@@ -19,7 +20,8 @@ void is_muon::is_muon_t::set_arguments_size(
   const Constants&) const
 {
   set_size<dev_is_muon_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
-  set_size<dev_muon_hit_counts_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_muon_hit_offsets_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments) + 1);
+  set_size<host_total_sum_holder_t>(arguments, 1);
   set_size<dev_muon_idxs_t>(
     arguments, Muon::Constants::max_hits_per_track * first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_lepton_id_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
@@ -33,7 +35,7 @@ void is_muon::is_muon_t::operator()(
 {
   Allen::memset_async<dev_is_muon_t>(arguments, 0, context);
   Allen::memset_async<dev_lepton_id_t>(arguments, 0, context);
-  Allen::memset_async<dev_muon_hit_counts_t>(arguments, 0, context);
+  Allen::memset_async<dev_muon_hit_offsets_t>(arguments, 0, context);
 
   global_function(is_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
     arguments,
@@ -42,6 +44,8 @@ void is_muon::is_muon_t::operator()(
     m_histogram_n_muons.data(context),
     m_histogram_muon_n_stations.data(context),
     m_histogram_muon_pt.data(context));
+
+  PrefixSum::prefix_sum<dev_muon_hit_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
 }
 
 __device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)
@@ -182,7 +186,7 @@ __device__ void is_muon::is_muon_implementation(
 
     unsigned occupancies[Muon::Constants::n_stations];
 
-    unsigned* track_muon_hit_count = parameters.dev_muon_hit_counts + event_offset + track_id;
+    unsigned* track_muon_hit_count = parameters.dev_muon_hit_offsets + event_offset + track_id;
     unsigned* track_muon_idxs =
       parameters.dev_muon_idxs + (event_offset + track_id) * Muon::Constants::max_hits_per_track;
     for (unsigned station_id = 0; station_id < Muon::Constants::n_stations; ++station_id) {

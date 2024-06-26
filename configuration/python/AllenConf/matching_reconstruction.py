@@ -8,7 +8,7 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenCore.algorithms import host_prefix_sum_t, track_matching_t, matching_copy_track_ut_hit_number_t, matching_consolidate_tracks_t, ut_select_velo_tracks_t
+from AllenCore.algorithms import track_matching_t, matching_copy_track_ut_hit_number_t, matching_consolidate_tracks_t, ut_select_velo_tracks_t
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
 from AllenConf.scifi_reconstruction import decode_scifi, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.ut_reconstruction import make_dummy_ut_hits
@@ -92,26 +92,15 @@ def make_velo_scifi_matches(
         matching_no_ut_ghost_killer_version=matching_no_ut_ghost_killer_version
     )
 
-    prefix_sum_matched_tracks = make_algorithm(
-        host_prefix_sum_t,
-        name='prefix_sum_matched_tracks_{hash}',
-        dev_input_buffer_t=matched_tracks.dev_atomics_matched_tracks_t)
-
     matching_copy_track_ut_hit_number = make_algorithm(
         matching_copy_track_ut_hit_number_t,
         name='matching_copy_track_ut_hit_number_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_reconstructed_matched_tracks_t=prefix_sum_matched_tracks
-        .host_total_sum_holder_t,
+        host_number_of_reconstructed_matched_tracks_t=matched_tracks.
+        host_number_of_reconstructed_matched_tracks_t,
         dev_matched_tracks_t=matched_tracks.dev_matched_tracks_t,
-        dev_offsets_matched_tracks_t=prefix_sum_matched_tracks.
-        dev_output_buffer_t)
-
-    prefix_sum_matched_track_ut_hit_number = make_algorithm(
-        host_prefix_sum_t,
-        name='prefix_sum_matched_track_hit_number_{hash}',
-        dev_input_buffer_t=matching_copy_track_ut_hit_number.
-        dev_matched_track_hit_number_t)
+        dev_offsets_matched_tracks_t=matched_tracks.
+        dev_offsets_matched_tracks_t)
 
     matching_consolidate_tracks = make_algorithm(
         matching_consolidate_tracks_t,
@@ -135,16 +124,16 @@ def make_velo_scifi_matches(
         dev_ut_hits_t=ut_hits["dev_ut_hits"],
         dev_ut_hit_offsets_t=ut_hits["dev_ut_hit_offsets"],
         # Matching results (general)
-        host_number_of_reconstructed_matched_tracks_t=prefix_sum_matched_tracks
-        .host_total_sum_holder_t,
-        dev_offsets_matched_tracks_t=prefix_sum_matched_tracks.
-        dev_output_buffer_t,
+        host_number_of_reconstructed_matched_tracks_t=matched_tracks.
+        host_number_of_reconstructed_matched_tracks_t,
+        dev_offsets_matched_tracks_t=matched_tracks.
+        dev_offsets_matched_tracks_t,
         dev_matched_tracks_t=matched_tracks.dev_matched_tracks_t,
         # Matching results (UT related)
         host_accumulated_number_of_ut_hits_in_matched_tracks_t=
-        prefix_sum_matched_track_ut_hit_number.host_total_sum_holder_t,
-        dev_offsets_matched_ut_hit_number_t=
-        prefix_sum_matched_track_ut_hit_number.dev_output_buffer_t)
+        matching_copy_track_ut_hit_number.host_total_sum_holder_t,
+        dev_offsets_matched_ut_hit_number_t=matching_copy_track_ut_hit_number.
+        dev_offsets_matched_ut_hit_number_t)
 
     return {
         #
@@ -170,7 +159,7 @@ def make_velo_scifi_matches(
         "matched_tracks":
         matched_tracks.dev_matched_tracks_t,
         "matched_atomics":
-        matched_tracks.dev_atomics_matched_tracks_t,
+        matched_tracks.dev_offsets_matched_tracks_t,
         "dev_scifi_states":
         matching_consolidate_tracks.dev_scifi_states_t,
         "dev_scifi_track_ut_indices":
@@ -178,12 +167,12 @@ def make_velo_scifi_matches(
         "dev_matched_is_scifi_track_used":
         matching_consolidate_tracks.dev_matched_is_scifi_track_used_t,
         "host_number_of_reconstructed_scifi_tracks":
-        prefix_sum_matched_tracks.host_total_sum_holder_t,
+        matched_tracks.host_number_of_reconstructed_matched_tracks_t,
         "dev_offsets_long_tracks":
-        prefix_sum_matched_tracks.
-        dev_output_buffer_t,  #naming convention same as in forward so that hlt1 sequence works
-        "dev_offsets_scifi_track_ut_hit_number":
-        prefix_sum_matched_track_ut_hit_number.dev_output_buffer_t,
+        matched_tracks.
+        dev_offsets_matched_tracks_t,  #naming convention same as in forward so that hlt1 sequence works
+        "dev_offsets_scifi_track_hit_number":
+        matching_copy_track_ut_hit_number.dev_offsets_matched_ut_hit_number_t,
         "dev_scifi_tracks_view":
         seeding_tracks["dev_scifi_tracks_view"],
         "dev_multi_event_long_tracks_view":
@@ -205,8 +194,8 @@ def make_velo_scifi_matches(
         seeding_tracks["dev_used_scifi_hits"],
         "dev_accepted_and_unused_velo_tracks":
         matching_consolidate_tracks.dev_accepted_and_unused_velo_tracks_t,
-        "dev_used_ut_hits":
-        matching_consolidate_tracks.dev_used_ut_hits_t,
+        "dev_used_ut_hits_offsets":
+        matching_consolidate_tracks.dev_used_ut_hits_offsets_t,
     }
 
 

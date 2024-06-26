@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <CaloSeedClusters.cuh>
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(calo_seed_clusters::calo_seed_clusters_t)
 
@@ -64,7 +65,7 @@ __global__ void calo_seed_clusters::calo_seed_clusters(
     parameters.dev_ecal_digits.subspan(ecal_digits_offset),
     parameters.dev_ecal_digits_offsets[event_number + 1] - ecal_digits_offset,
     parameters.dev_ecal_seed_clusters.subspan(Calo::Constants::ecal_max_index / 8 * event_number),
-    parameters.dev_ecal_num_clusters.subspan(event_number),
+    parameters.dev_ecal_cluster_offsets.subspan(event_number),
     ecal_geometry,
     ecal_min_adc,
     parameters.dev_ecal_digit_is_seed + ecal_digits_offset);
@@ -77,7 +78,9 @@ void calo_seed_clusters::calo_seed_clusters_t::set_arguments_size(
 {
   auto const n_events = first<host_number_of_events_t>(arguments);
   auto const n_digits = first<host_ecal_number_of_digits_t>(arguments);
-  set_size<dev_ecal_num_clusters_t>(arguments, n_events);
+
+  set_size<dev_ecal_cluster_offsets_t>(arguments, n_events + 1);
+  set_size<host_total_sum_holder_t>(arguments, 1);
 
   // TODO: get this from the geometry too
   set_size<dev_ecal_seed_clusters_t>(arguments, Calo::Constants::ecal_max_index / 8 * n_events);
@@ -90,10 +93,12 @@ void calo_seed_clusters::calo_seed_clusters_t::operator()(
   const Constants& constants,
   Allen::Context const& context) const
 {
-  Allen::memset_async<dev_ecal_num_clusters_t>(arguments, 0, context);
+  Allen::memset_async<dev_ecal_cluster_offsets_t>(arguments, 0, context);
 
   // Find local maxima.
   global_function(calo_seed_clusters)(
     dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
     arguments, constants.dev_ecal_geometry, property<ecal_min_adc_t>().get());
+
+  PrefixSum::prefix_sum<dev_ecal_cluster_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
 }

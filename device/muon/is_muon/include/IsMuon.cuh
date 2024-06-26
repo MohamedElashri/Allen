@@ -31,8 +31,10 @@ namespace is_muon {
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     DEVICE_OUTPUT(dev_is_muon_t, bool) dev_is_muon;
     DEVICE_OUTPUT(dev_muon_idxs_t, unsigned) dev_muon_idxs;
-    DEVICE_OUTPUT(dev_muon_hit_counts_t, unsigned) dev_muon_hit_counts;
     DEVICE_OUTPUT(dev_lepton_id_t, uint8_t) dev_lepton_id;
+    DEVICE_OUTPUT(dev_muon_hit_offsets_t, unsigned) dev_muon_hit_offsets;
+    HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
+
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
   };
 

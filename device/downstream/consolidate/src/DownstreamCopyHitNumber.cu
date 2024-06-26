@@ -10,6 +10,7 @@
 \*****************************************************************************/
 
 #include "DownstreamCopyHitNumber.cuh"
+#include <PrefixSum.cuh>
 
 /**
  * @file DownstreamCopyHitNumber.cu
@@ -27,7 +28,8 @@ void downstream_copy_hit_number::downstream_copy_hit_number_t::set_arguments_siz
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_downstream_track_hit_number_t>(arguments, first<host_number_of_downstream_tracks_t>(arguments));
+  set_size<dev_offsets_downstream_hit_numbers_t>(arguments, first<host_number_of_downstream_tracks_t>(arguments) + 1);
+  set_size<host_number_of_hits_in_downstream_tracks_t>(arguments, 1);
 }
 
 void downstream_copy_hit_number::downstream_copy_hit_number_t::operator()(
@@ -38,6 +40,9 @@ void downstream_copy_hit_number::downstream_copy_hit_number_t::operator()(
 {
   global_function(downstream_copy_hit_number)(
     dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
+
+  PrefixSum::prefix_sum<dev_offsets_downstream_hit_numbers_t, host_number_of_hits_in_downstream_tracks_t>(
+    *this, arguments, context);
 }
 
 __global__ void downstream_copy_hit_number::downstream_copy_hit_number(
@@ -52,7 +57,7 @@ __global__ void downstream_copy_hit_number::downstream_copy_hit_number(
     parameters.dev_offsets_downstream_tracks[event_number + 1] - downstream_tracks_offset;
 
   // Output
-  auto downstream_track_hit_number = parameters.dev_downstream_track_hit_number + downstream_tracks_offset;
+  auto downstream_track_hit_number = parameters.dev_offsets_downstream_hit_numbers + downstream_tracks_offset;
 
   // Loop over tracks.
   for (unsigned idx = threadIdx.x; idx < downstream_tracks_size; idx += blockDim.x) {

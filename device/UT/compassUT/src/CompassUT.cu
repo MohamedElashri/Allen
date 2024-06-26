@@ -12,6 +12,7 @@
 #include "CompassUTDeviceFunctions.cuh"
 #include "BinarySearch.cuh"
 #include "UTFastFitter.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(compass_ut::compass_ut_t)
 
@@ -21,7 +22,8 @@ void compass_ut::compass_ut_t::set_arguments_size(
   const Constants&) const
 {
   set_size<dev_ut_tracks_t>(arguments, first<host_number_of_events_t>(arguments) * UT::Constants::max_num_tracks);
-  set_size<dev_atomics_ut_t>(arguments, first<host_number_of_events_t>(arguments) * UT::num_atomics);
+  set_size<dev_offsets_ut_tracks_t>(arguments, first<host_number_of_events_t>(arguments) * UT::num_atomics + 1);
+  set_size<host_number_of_reconstructed_ut_tracks_t>(arguments, 1);
 }
 
 void compass_ut::compass_ut_t::operator()(
@@ -30,7 +32,7 @@ void compass_ut::compass_ut_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_atomics_ut_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_ut_tracks_t>(arguments, 0, context);
 
   global_function(compass_ut)(dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::num_thr_compassut), context)(
     arguments,
@@ -41,7 +43,7 @@ void compass_ut::compass_ut_t::operator()(
 
   if (property<verbosity_t>() >= logger::debug) {
     auto host_ut_tracks = make_host_buffer<dev_ut_tracks_t>(arguments, context);
-    auto host_atomics_ut = make_host_buffer<dev_atomics_ut_t>(arguments, context);
+    auto host_atomics_ut = make_host_buffer<dev_offsets_ut_tracks_t>(arguments, context);
 
     // Make a container just with valid tracks
     std::vector<UT::TrackHits> valid_tracks;
@@ -63,6 +65,8 @@ void compass_ut::compass_ut_t::operator()(
       debug_cout << valid_tracks[i] << "\n";
     }
   }
+
+  PrefixSum::prefix_sum<dev_offsets_ut_tracks_t, host_number_of_reconstructed_ut_tracks_t>(*this, arguments, context);
 }
 
 __global__ void compass_ut::compass_ut(
@@ -90,11 +94,11 @@ __global__ void compass_ut::compass_ut(
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits};
   const auto event_hit_offset = ut_hit_offsets.event_offset();
 
-  // parameters.dev_atomics_ut contains in an SoA:
+  // parameters.dev_offsets_ut_tracks contains in an SoA:
   //   1. # of veloUT tracks
   //   2. # velo tracks in UT acceptance
   // This is to write the final track
-  unsigned* n_veloUT_tracks_event = parameters.dev_atomics_ut + event_number;
+  unsigned* n_veloUT_tracks_event = parameters.dev_offsets_ut_tracks + event_number;
   UT::TrackHits* veloUT_tracks_event = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
 
   // store windows and num candidates in shared mem

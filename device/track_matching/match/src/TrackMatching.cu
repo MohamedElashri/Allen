@@ -11,6 +11,7 @@
 #include "TrackMatching.cuh"
 #include "TrackMatchingHelpers.cuh"
 #include "TrackMatchingAddUTHitsTools.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(track_matching::track_matching_t);
 
@@ -126,7 +127,8 @@ void track_matching::track_matching_t::set_arguments_size(
                       (first<host_accumulated_number_of_ut_hits_t>(arguments) > 0) && (!property<force_skip_ut_t>());
   set_size<dev_matched_tracks_t>(
     arguments, first<host_number_of_events_t>(arguments) * TrackMatchingConsts::max_num_tracks);
-  set_size<dev_atomics_matched_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_offsets_matched_tracks_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_reconstructed_matched_tracks_t>(arguments, 1);
 
   // working memory (Hit caching in case of shared doesn't fit)
   if (has_ut) {
@@ -152,7 +154,7 @@ void track_matching::track_matching_t::operator()(
   const auto has_ut = (size<dev_ut_hits_t>(arguments) > 0) &&
                       (first<host_accumulated_number_of_ut_hits_t>(arguments) > 0) && (!property<force_skip_ut_t>());
 
-  Allen::memset_async<dev_atomics_matched_tracks_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_matched_tracks_t>(arguments, 0, context);
 
   if (has_ut) {
     Allen::memset_async<dev_hit_caching_counter_t>(arguments, 0, context);
@@ -199,6 +201,9 @@ void track_matching::track_matching_t::operator()(
     global_function(track_matching_clone_killing<false>)(
       dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
   }
+
+  PrefixSum::prefix_sum<dev_offsets_matched_tracks_t, host_number_of_reconstructed_matched_tracks_t>(
+    *this, arguments, context);
 }
 
 template<bool has_ut, typename GhostKiller_t>
@@ -226,7 +231,7 @@ __global__ void track_matching::track_matching_veloSciFi(
   const auto number_of_scifi_seeds = scifi_seeds.size();
   const auto scifi_states = parameters.dev_seeding_states + event_scifi_seeds_offset;
 
-  auto& n_matched = parameters.dev_atomics_matched_tracks[event_number];
+  auto& n_matched = parameters.dev_offsets_matched_tracks[event_number];
 
   SciFi::MatchedTrack* matched_tracks_event =
     parameters.dev_matched_tracks + event_number * TrackMatchingConsts::max_num_tracks;
@@ -312,7 +317,7 @@ __global__ void track_matching::track_matching_add_ut_hits(
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Load long track candidates
-  auto& n_matched_tracks_event = parameters.dev_atomics_matched_tracks[event_number];
+  auto& n_matched_tracks_event = parameters.dev_offsets_matched_tracks[event_number];
   auto matched_tracks_event = parameters.dev_matched_tracks + event_number * TrackMatchingConsts::max_num_tracks;
 
   // Load UT information
@@ -511,7 +516,7 @@ __global__ void track_matching::track_matching_filter_tracks(
   const auto scifi_states = parameters.dev_seeding_states + event_scifi_seeds_offset;
 
   // Load long track candidates
-  auto num_tracks = parameters.dev_atomics_matched_tracks + event_number;
+  auto num_tracks = parameters.dev_offsets_matched_tracks + event_number;
   auto matched_tracks_event = parameters.dev_matched_tracks + event_number * TrackMatchingConsts::max_num_tracks;
 
   //
@@ -581,7 +586,7 @@ __global__ void track_matching::track_matching_clone_killing(track_matching::Par
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   // Load long track candidates
-  auto num_tracks = parameters.dev_atomics_matched_tracks + event_number;
+  auto num_tracks = parameters.dev_offsets_matched_tracks + event_number;
   auto matched_tracks_event = parameters.dev_matched_tracks + event_number * TrackMatchingConsts::max_num_tracks;
 
   //

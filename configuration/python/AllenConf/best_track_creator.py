@@ -15,7 +15,7 @@ from AllenConf.scifi_reconstruction import (
     decode_scifi, make_forward_tracks)
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate, make_algorithm
-from AllenCore.algorithms import create_reduced_scifi_hit_container_t, combine_long_track_containers_t, host_prefix_sum_t
+from AllenCore.algorithms import create_reduced_scifi_hit_container_t, combine_long_track_containers_t
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
 from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks, create_reduced_ut_container
 from AllenConf.enum_types import TrackingType
@@ -25,19 +25,11 @@ def create_reduced_scifi_container(dev_used_scifi_hits):
     number_of_events = initialize_number_of_events()
     decoded_scifi = decode_scifi()
 
-    prefix_sum_used_scifi_hits = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_used_scifi_hits",
-        dev_input_buffer_t=dev_used_scifi_hits)
-
     create_reduced_scifi_hit_container = make_algorithm(
         create_reduced_scifi_hit_container_t,
         name="create_reduced_scifi_hit_container",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_used_scifi_hits_offsets_t=prefix_sum_used_scifi_hits.
-        dev_output_buffer_t,
-        host_used_scifi_hits_offsets_t=prefix_sum_used_scifi_hits.
-        host_output_buffer_t,
+        dev_used_scifi_hits_t=dev_used_scifi_hits,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_scifi_hit_offsets_input_t=decoded_scifi["dev_scifi_hit_offsets"],
         dev_scifi_hits_input_t=decoded_scifi["dev_scifi_hits"])
@@ -106,7 +98,7 @@ def best_track_creator(with_ut=True,
             forward_tracks["dev_used_scifi_hits"])
         reduced_ut_hit_container = create_reduced_ut_container(
             decode_ut(), forward_tracks['veloUT_tracks']
-            ['dev_used_ut_hits']) if with_ut else None
+            ['dev_used_ut_hits_offsets']) if with_ut else None
 
         decoded_velo = decode_velo()
         velo_tracks = make_velo_tracks(decoded_velo)
@@ -150,7 +142,7 @@ def best_track_creator(with_ut=True,
 
         if with_ut:
             reduced_ut_hit_container = create_reduced_ut_container(
-                decode_ut(), matched_tracks['dev_used_ut_hits'])
+                decode_ut(), matched_tracks['dev_used_ut_hits_offsets'])
             ut_tracks = make_ut_tracks(reduced_ut_hit_container, velo_tracks)
             input_tracks = ut_tracks
         else:
@@ -172,6 +164,7 @@ def best_track_creator(with_ut=True,
     combined_map.update({
         "seeding_tracks": seeding_tracks,
         "matched_tracks": matched_tracks,
+        "forward_tracks": forward_tracks
     })
 
     return combined_map

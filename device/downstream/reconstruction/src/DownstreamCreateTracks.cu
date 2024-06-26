@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "DownstreamCreateTracks.cuh"
+#include <PrefixSum.cuh>
 
 /**
  * @file DownstreamCreateTracks.cu
@@ -31,7 +32,8 @@ void downstream_create_tracks::downstream_create_tracks_t::set_arguments_size(
   // outputs
   set_size<dev_downstream_tracks_t>(
     arguments, first<host_number_of_events_t>(arguments) * UT::Constants::max_num_tracks);
-  set_size<dev_num_downstream_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_offsets_downstream_tracks_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_downstream_tracks_t>(arguments, 1);
 }
 
 void downstream_create_tracks::downstream_create_tracks_t::operator()(
@@ -40,7 +42,7 @@ void downstream_create_tracks::downstream_create_tracks_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_num_downstream_tracks_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_downstream_tracks_t>(arguments, 0, context);
 
   const auto dev_unique_x_sector_layer_offsets = constants.dev_unique_x_sector_layer_offsets.data();
   const auto dev_magnet_polarity = constants.dev_magnet_polarity.data();
@@ -53,6 +55,8 @@ void downstream_create_tracks::downstream_create_tracks_t::operator()(
     dev_ut_dxDy,
     dev_magnet_polarity,
     constants.dev_downstream_ghost_killer);
+
+  PrefixSum::prefix_sum<dev_offsets_downstream_tracks_t, host_number_of_downstream_tracks_t>(*this, arguments, context);
 }
 
 namespace {
@@ -200,7 +204,7 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
 
   // Ouptut
   auto downstream_tracks = parameters.dev_downstream_tracks + event_number * UT::Constants::max_num_tracks;
-  auto num_downstream_tracks = parameters.dev_num_downstream_tracks + event_number;
+  auto num_downstream_tracks = parameters.dev_offsets_downstream_tracks + event_number;
 
   ///////////////////////////////////////////////////////
   //

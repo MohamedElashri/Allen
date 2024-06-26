@@ -12,6 +12,7 @@
 #include <UTCalculateNumberOfHits.cuh>
 #include <UTRaw.cuh>
 #include <WarpIntrinsicsTools.cuh>
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(ut_calculate_number_of_hits::ut_calculate_number_of_hits_t)
 
@@ -20,12 +21,14 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::set_arguments_s
   const RuntimeOptions&,
   const Constants& constants) const
 {
-  set_size<dev_ut_hit_sizes_t>(
+  set_size<dev_ut_hit_offsets_t>(
     arguments,
-    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers]);
+    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers] +
+      1);
   set_size<dev_ut_nonempty_channels_t>(
     arguments, first<host_number_of_events_t>(arguments) * UT::Decoding::number_of_channels);
   set_size<dev_ut_number_of_nonempty_channels_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<host_total_sum_holder_t>(arguments, 1);
 }
 
 void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
@@ -34,10 +37,13 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_ut_hit_sizes_t>(arguments, 0, context);
+  Allen::memset_async<dev_ut_hit_offsets_t>(arguments, 0, context);
 
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
-  if (bank_version < 0) return; // no UT banks present in data
+  if (bank_version < 0) { // no UT banks present in data
+    Allen::memset_async<host_total_sum_holder_t>(arguments, 0, context);
+    return;
+  }
 
   auto fun = bank_version == 4 ? (runtime_options.mep_layout ? global_function(ut_calculate_number_of_hits<4, true>) :
                                                                global_function(ut_calculate_number_of_hits<4, false>)) :
@@ -51,6 +57,8 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
     constants.dev_unique_x_sector_layer_offsets.data(),
     constants.dev_unique_x_sector_offsets.data(),
     constants.dev_ut_board_geometry_map.data());
+
+  PrefixSum::prefix_sum<dev_ut_hit_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
 }
 
 // Decode large channels first and let the tail end be channels of size 1
@@ -194,9 +202,8 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-  uint32_t* hit_offsets = parameters.dev_ut_hit_sizes + event_number * number_of_unique_x_sectors;
+  uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
   uint16_t* nonempty_channels = parameters.dev_ut_nonempty_channels + event_number * UT::Decoding::number_of_channels;
-
   const UTBoards boards {ut_boards};
   const UTRawEvent<mep> raw_event {parameters.dev_ut_raw_input,
                                    parameters.dev_ut_raw_input_offsets,

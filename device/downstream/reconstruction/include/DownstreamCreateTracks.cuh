@@ -53,7 +53,8 @@ namespace downstream_create_tracks {
 
     // Output
     DEVICE_OUTPUT(dev_downstream_tracks_t, UT::DownstreamTrack) dev_downstream_tracks;
-    DEVICE_OUTPUT(dev_num_downstream_tracks_t, unsigned) dev_num_downstream_tracks;
+    DEVICE_OUTPUT(dev_offsets_downstream_tracks_t, unsigned) dev_offsets_downstream_tracks;
+    HOST_OUTPUT(host_number_of_downstream_tracks_t, unsigned) host_number_of_downstream_tracks;
 
     // Block size
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;

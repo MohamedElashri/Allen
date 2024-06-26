@@ -16,7 +16,6 @@ namespace z_range_materialvertex_seed_line {
 
     DEVICE_INPUT(dev_consolidated_interaction_seeds_t, float3) dev_consolidated_interaction_seeds;
     DEVICE_INPUT(dev_interaction_seeds_offsets_t, unsigned) dev_interaction_seeds_offsets;
-    DEVICE_INPUT(dev_event_number_of_interactions_seeds_t, unsigned) dev_event_number_of_interactions_seeds;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;

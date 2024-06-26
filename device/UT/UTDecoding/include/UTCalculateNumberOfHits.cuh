@@ -23,9 +23,10 @@ namespace ut_calculate_number_of_hits {
     DEVICE_INPUT(dev_ut_raw_input_offsets_t, unsigned) dev_ut_raw_input_offsets;
     DEVICE_INPUT(dev_ut_raw_input_sizes_t, unsigned) dev_ut_raw_input_sizes;
     DEVICE_INPUT(dev_ut_raw_input_types_t, unsigned) dev_ut_raw_input_types;
-    DEVICE_OUTPUT(dev_ut_hit_sizes_t, unsigned) dev_ut_hit_sizes;
     DEVICE_OUTPUT(dev_ut_nonempty_channels_t, uint16_t) dev_ut_nonempty_channels;
     DEVICE_OUTPUT(dev_ut_number_of_nonempty_channels_t, uint16_t) dev_ut_number_of_nonempty_channels;
+    DEVICE_OUTPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
+    HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

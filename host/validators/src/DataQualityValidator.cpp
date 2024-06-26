@@ -175,7 +175,7 @@ void data_quality_validator_occupancy::data_quality_validator_occupancy_t::outpu
   const auto scifi_tracks_offsets = make_host_buffer<dev_scifi_hit_offsets_t>(arguments, context);
   const auto velo_offsets_eis = make_host_buffer<dev_velo_offsets_estimated_input_size_t>(arguments, context);
   const auto event_velo_tracks_offsets = make_host_buffer<dev_offsets_velo_tracks_t>(arguments, context);
-  const auto ecal_clusters = make_host_buffer<dev_ecal_num_clusters_t>(arguments, context);
+  const auto ecal_clusters = make_host_buffer<dev_ecal_clusters_offsets_t>(arguments, context);
   const auto muon_offsets = make_host_buffer<dev_station_ocurrences_offset_t>(arguments, context);
   const auto event_list = make_host_buffer<dev_event_list_t>(arguments, context);
 
@@ -202,7 +202,7 @@ void data_quality_validator_occupancy::data_quality_validator_occupancy_t::outpu
     const auto velo_tracks_offset = event_velo_tracks_offsets[evnum];
     n_velo_tracks = event_velo_tracks_offsets[evnum + 1] - velo_tracks_offset;
 
-    n_ecal_clusters = ecal_clusters.data()[evnum];
+    n_ecal_clusters = ecal_clusters.data()[evnum + 1] - ecal_clusters.data()[evnum];
 
     const auto station_ocurrences_offset = muon_offsets.data() + evnum * Muon::Constants::n_stations;
     n_muon_hits = 0;

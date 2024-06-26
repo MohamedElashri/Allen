@@ -38,19 +38,6 @@ void track_digit_selective_matching::track_digit_selective_matching_t::operator(
   const Constants& constants,
   Allen::Context const& context) const
 {
-  Allen::memset_async<dev_matched_ecal_energy_t>(arguments, 0, context);
-  Allen::memset_async<dev_matched_ecal_digits_t>(arguments, 0, context);
-  Allen::memset_async<dev_matched_ecal_digits_size_t>(arguments, 0, context);
-  Allen::memset_async<dev_track_inEcalAcc_t>(arguments, 0, context);
-  Allen::memset_async<dev_track_Eop_t>(arguments, 0, context);
-  Allen::memset_async<dev_track_Eop3x3_t>(arguments, 0, context);
-  Allen::memset_async<dev_delta_barycenter_t>(arguments, 0, context);
-  Allen::memset_async<dev_dispersion_x_t>(arguments, 0, context);
-  Allen::memset_async<dev_dispersion_y_t>(arguments, 0, context);
-  Allen::memset_async<dev_dispersion_xy_t>(arguments, 0, context);
-  Allen::memset_async<dev_track_local_max_t>(arguments, 0, context);
-  Allen::memset_async<dev_track_isElectron_t>(arguments, 0, context);
-
   global_function(track_digit_selective_matching)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_ecal_geometry);
 }

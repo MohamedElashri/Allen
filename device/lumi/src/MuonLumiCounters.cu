@@ -141,7 +141,7 @@ __global__ void muon_lumi_counters::muon_lumi_counters(
     }
   }
 
-  // now fill counters that are only avaiable inside the GEC
+  // now fill counters that are only available inside the GEC
   for (unsigned event_index = blockIdx.x * blockDim.x + threadIdx.x; event_index < number_of_gec_events;
        event_index += blockDim.x * gridDim.x) {
     auto event_number = parameters.dev_event_list[event_index];
@@ -156,7 +156,7 @@ __global__ void muon_lumi_counters::muon_lumi_counters(
       parameters.dev_lumi_infos[info_offset + Lumi::Constants::n_muon_station_regions],
       offsets_and_sizes[2 * Lumi::Constants::n_muon_station_regions],
       offsets_and_sizes[2 * Lumi::Constants::n_muon_station_regions + 1],
-      parameters.dev_muon_number_of_tracks[event_number],
+      parameters.dev_muon_tracks_offsets[event_number + 1] - parameters.dev_muon_tracks_offsets[event_number],
       shifts_and_scales[2 * Lumi::Constants::n_muon_station_regions],
       shifts_and_scales[2 * Lumi::Constants::n_muon_station_regions + 1]);
   }
