@@ -5,6 +5,12 @@ HLTControlFlowMgr                      INFO  o Number of events slots: 1
 HLTControlFlowMgr                      INFO  o TBB thread pool size:  'ThreadPoolSize':1
 ApplicationMgr                         INFO Application Manager Initialized successfully
 Using 3 input slices.
+  global_decision
+  host_routingbits_writer
+  make_selected_object_lists
+  make_subbanks
+  make_selreps
+  rate_validator
 ApplicationMgr                         INFO Application Manager Started successfully
 DeviceFTGeometry                       INFO Conditions DB is compatible with FT bank version 7 and 8.
 Starting timer for throughput measurement
