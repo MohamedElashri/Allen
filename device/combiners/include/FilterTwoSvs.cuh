@@ -25,9 +25,10 @@ namespace FilterTwoSvs {
     DEVICE_INPUT(dev_max_combo_offsets_t, unsigned) dev_max_combo_offsets;
     DEVICE_OUTPUT(dev_sv_1_filter_decision_t, bool) dev_sv_1_filter_decision;
     DEVICE_OUTPUT(dev_sv_2_filter_decision_t, bool) dev_sv_2_filter_decision;
-    DEVICE_OUTPUT(dev_combo_number_t, unsigned) dev_combo_number;
+    DEVICE_OUTPUT(dev_combo_offset_t, unsigned) dev_combo_offset;
     DEVICE_OUTPUT(dev_child1_idx_t, unsigned) dev_child1_idx;
     DEVICE_OUTPUT(dev_child2_idx_t, unsigned) dev_child2_idx;
+    HOST_OUTPUT(host_total_combo_t, unsigned) host_total_combo;
 
     // Set all properties to filter svs
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "Max child vertex chi2", float) maxVertexChi2;

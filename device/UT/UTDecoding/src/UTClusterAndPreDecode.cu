@@ -10,8 +10,8 @@
 \*****************************************************************************/
 #include <MEPTools.h>
 #include <UTClusterAndPreDecode.cuh>
-#include <UTUniqueID.cuh>
 #include <WarpIntrinsicsTools.cuh>
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t)
 
@@ -23,9 +23,11 @@ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t::set_arguments_size(
   set_size<dev_ut_pre_decoded_hits_t>(
     arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::PreDecodedHits::element_size);
   set_size<dev_ut_tiebreak_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments));
-  set_size<dev_ut_cluster_count_t>(
+  set_size<dev_ut_cluster_offsets_t>(
     arguments,
-    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers]);
+    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers] +
+      1);
+  set_size<host_total_sum_holder_t>(arguments, 1);
 }
 
 void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t::operator()(
@@ -34,10 +36,13 @@ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_ut_cluster_count_t>(arguments, 0, context);
+  Allen::memset_async<dev_ut_cluster_offsets_t>(arguments, 0, context);
 
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
-  if (bank_version < 0) return; // no UT banks present in data
+  if (bank_version < 0) { // no UT banks present in data
+    Allen::memset_async<host_total_sum_holder_t>(arguments, 0, context);
+    return;
+  }
 
   auto fun = bank_version == 4 ? (runtime_options.mep_layout ? global_function(ut_cluster_and_pre_decode<4, true>) :
                                                                global_function(ut_cluster_and_pre_decode<4, false>)) :
@@ -52,6 +57,8 @@ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t::operator()(
     constants.dev_unique_x_sector_layer_offsets.data(),
     constants.dev_unique_x_sector_offsets.data(),
     constants.dev_ut_board_geometry_map.data());
+
+  PrefixSum::prefix_sum<dev_ut_cluster_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
 }
 
 /**
@@ -329,7 +336,7 @@ __global__ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode(
 
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
-  uint32_t* cluster_count = parameters.dev_ut_cluster_count + event_number * number_of_unique_x_sectors;
+  uint32_t* cluster_count = parameters.dev_ut_cluster_offsets + event_number * number_of_unique_x_sectors;
 
   // These are meant for zero-suppression and opportunistic looping
   const uint16_t* nonempty_channels =

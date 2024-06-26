@@ -163,7 +163,39 @@ namespace PrefixSum {
     }*/
   }
 
-  __global__ void prefix_sum_reduce(unsigned* dev_array, unsigned* dev_auxiliary_array, const unsigned /*array_size*/)
+  __global__ void prefix_sum_reduce_x1(unsigned* dev_array, unsigned* dev_auxiliary_array, const unsigned array_size)
+  {
+    constexpr unsigned n = 256; // x1
+    __shared__ unsigned data_block[n + n / NUM_BANKS];
+
+    // Initialize all elements to zero
+    data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x)] = 0;
+    data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x + 1)] = 0;
+
+    // Load elements
+    const auto elem_index = blockIdx.x * n + 2 * threadIdx.x;
+    if (elem_index <= array_size) data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x)] = dev_array[elem_index];
+    if (elem_index + 1 <= array_size) data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x + 1)] = dev_array[elem_index + 1];
+
+    __syncthreads();
+
+    up_sweep<n>(data_block);
+
+    __syncthreads();
+    if (threadIdx.x == 0) {
+      dev_auxiliary_array[blockIdx.x] = data_block[CONFLICT_FREE_ACCESS(n - 1)];
+      data_block[CONFLICT_FREE_ACCESS(n - 1)] = 0;
+    }
+    __syncthreads();
+
+    down_sweep<n>(data_block);
+
+    // Store back elements
+    if (elem_index <= array_size) dev_array[elem_index] = data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x)];
+    if (elem_index + 1 <= array_size) dev_array[elem_index + 1] = data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x + 1)];
+  }
+
+  __global__ void prefix_sum_reduce(unsigned* dev_array, unsigned* dev_auxiliary_array, const unsigned array_size)
   {
     constexpr unsigned n = 256; // x4
     __shared__ unsigned data_block[n + n / NUM_BANKS];
@@ -184,8 +216,31 @@ namespace PrefixSum {
     // Load elements
     const auto elem_index = blockIdx.x * n + 2 * threadIdx.x;
 
-    uint4 elem1 = ((uint4*) dev_array)[elem_index];
-    uint4 elem2 = ((uint4*) dev_array)[elem_index + 1];
+    uint4 elem1, elem2;
+    if ((elem_index * 4 + 3) < array_size) {
+      elem1 = ((uint4*) dev_array)[elem_index];
+
+      if ((elem_index * 4 + 7) < array_size) {
+        elem2 = ((uint4*) dev_array)[elem_index + 1];
+      }
+      else {
+        elem2.x = ((elem_index * 4 + 4) < array_size) ? dev_array[elem_index * 4 + 4] : 0;
+        elem2.y = ((elem_index * 4 + 5) < array_size) ? dev_array[elem_index * 4 + 5] : 0;
+        elem2.z = ((elem_index * 4 + 6) < array_size) ? dev_array[elem_index * 4 + 6] : 0;
+        elem2.w = 0;
+      }
+    }
+    else {
+      elem1.x = ((elem_index * 4) < array_size) ? dev_array[elem_index * 4] : 0;
+      elem1.y = ((elem_index * 4 + 1) < array_size) ? dev_array[elem_index * 4 + 1] : 0;
+      elem1.z = ((elem_index * 4 + 2) < array_size) ? dev_array[elem_index * 4 + 2] : 0;
+      elem1.w = 0;
+
+      elem2.x = 0;
+      elem2.y = 0;
+      elem2.z = 0;
+      elem2.w = 0;
+    }
 
     elem1.y += elem1.x;
     elem1.z += elem1.y;
@@ -196,10 +251,7 @@ namespace PrefixSum {
     elem2.w += elem2.z;
 
     data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x)] = elem1.w;
-    data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x + 1)] = elem2.w; //*/
-
-    /*data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x)] = dev_array[elem_index];
-    data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x + 1)] = dev_array[elem_index + 1];//*/
+    data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x + 1)] = elem2.w;
 
     __syncthreads();
 
@@ -227,20 +279,23 @@ namespace PrefixSum {
     elem2.y = sum2 + elem2.x;
     elem2.x = sum2;
 
-    ((uint4*) dev_array)[elem_index] = elem1;
-    ((uint4*) dev_array)[elem_index + 1] = elem2; //*/
+    if ((elem_index * 4 + 3) <= array_size) {
+      ((uint4*) dev_array)[elem_index] = elem1;
 
-    /*dev_array[elem_index] = data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x)];
-    dev_array[elem_index + 1] = data_block[CONFLICT_FREE_ACCESS(2 * threadIdx.x + 1)];//*/
-
-    /*__syncthreads();
-    if (threadIdx.x == 0 && blockIdx.x == 0) {
-      for (int i=0; i<16; i++) {
-        printf("%d ", dev_array[i]);
+      if ((elem_index * 4 + 7) <= array_size) {
+        ((uint4*) dev_array)[elem_index + 1] = elem2;
       }
-      printf("\n\n");
+      else {
+        if ((elem_index * 4 + 4) <= array_size) dev_array[elem_index * 4 + 4] = elem2.x;
+        if ((elem_index * 4 + 5) <= array_size) dev_array[elem_index * 4 + 5] = elem2.y;
+        if ((elem_index * 4 + 6) <= array_size) dev_array[elem_index * 4 + 6] = elem2.z;
+      }
     }
-    __syncthreads();*/
+    else {
+      if ((elem_index * 4) <= array_size) dev_array[elem_index * 4] = elem1.x;
+      if ((elem_index * 4 + 1) <= array_size) dev_array[elem_index * 4 + 1] = elem1.y;
+      if ((elem_index * 4 + 2) <= array_size) dev_array[elem_index * 4 + 2] = elem1.z;
+    }
   }
 
   __global__ void prefix_sum_scan(unsigned* dev_array, unsigned* dev_auxiliary_array, const unsigned array_size)
@@ -252,6 +307,84 @@ namespace PrefixSum {
     if (element < array_size) {
       const unsigned cluster_offset = dev_auxiliary_array[blockIdx.x + 1];
       dev_array[element] += cluster_offset;
+    }
+  }
+
+  __global__ void prefix_sum_single_warp(unsigned* dev_array, const unsigned array_size)
+  {
+    unsigned sum = 0;
+    for (unsigned i = 0; i < (array_size + 32) / 32; i++) {
+      unsigned index = i * 32 + threadIdx.x;
+      unsigned val = (index < array_size) ? dev_array[index] : 0;
+      unsigned count = val;
+
+#pragma unroll
+      for (unsigned d = 1; d < 32; d *= 2) {
+        unsigned other_val = __shfl_up_sync(0xFFFFFFFF, val, d);
+        if (threadIdx.x >= d) val += other_val;
+      }
+
+      val += sum;
+      sum = __shfl_sync(0xFFFFFFFF, val, 31);
+      val -= count;
+
+      if (index <= array_size) dev_array[index] = val;
+    }
+  }
+
+  __global__ void prefix_sum_single_warp_x4(unsigned* dev_array, const unsigned array_size, unsigned* host_total)
+  {
+    unsigned sum = 0;
+    for (unsigned i = 0; i < (array_size + 128) / 128; i++) {
+      unsigned index = i * 32 + threadIdx.x;
+
+      uint4 elem1;
+      if ((index * 4 + 3) < array_size) {
+        elem1 = ((uint4*) dev_array)[index];
+      }
+      else {
+        elem1.x = ((index * 4) < array_size) ? dev_array[index * 4] : 0;
+        elem1.y = ((index * 4 + 1) < array_size) ? dev_array[index * 4 + 1] : 0;
+        elem1.z = ((index * 4 + 2) < array_size) ? dev_array[index * 4 + 2] : 0;
+        elem1.w = 0;
+      }
+
+      elem1.y += elem1.x;
+      elem1.z += elem1.y;
+      elem1.w += elem1.z;
+
+      unsigned val = elem1.w;
+
+#pragma unroll
+      for (unsigned d = 1; d < 32; d *= 2) {
+        unsigned other_val = __shfl_up_sync(0xFFFFFFFF, val, d);
+        if (threadIdx.x >= d) val += other_val;
+      }
+
+      val += sum;
+      sum = __shfl_sync(0xFFFFFFFF, val, 31);
+      val -= elem1.w;
+
+      elem1.w = val + elem1.z;
+      elem1.z = val + elem1.y;
+      elem1.y = val + elem1.x;
+      elem1.x = val;
+
+      if ((index * 4 + 3) <= array_size) {
+        ((uint4*) dev_array)[index] = elem1;
+      }
+      else {
+        if ((index * 4) <= array_size) dev_array[index * 4] = elem1.x;
+        if ((index * 4 + 1) <= array_size) dev_array[index * 4 + 1] = elem1.y;
+        if ((index * 4 + 2) <= array_size) dev_array[index * 4 + 2] = elem1.z;
+      }
+
+      if (host_total != nullptr) {
+        if (index * 4 == array_size) *host_total = elem1.x;
+        if (index * 4 + 1 == array_size) *host_total = elem1.y;
+        if (index * 4 + 2 == array_size) *host_total = elem1.z;
+        if (index * 4 + 3 == array_size) *host_total = elem1.w;
+      }
     }
   }
 } // namespace PrefixSum

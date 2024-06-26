@@ -18,9 +18,10 @@ namespace matching_copy_track_ut_hit_number {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_matched_tracks_t, unsigned) host_number_of_reconstructed_matched_tracks;
     DEVICE_INPUT(dev_matched_tracks_t, SciFi::MatchedTrack) dev_matched_tracks;
-    DEVICE_INPUT(dev_offsets_matched_tracks_t, unsigned) dev_atomics_matched;
-
-    DEVICE_OUTPUT(dev_matched_track_hit_number_t, unsigned) dev_matched_track_hit_number;
+    DEVICE_INPUT(dev_offsets_matched_tracks_t, unsigned) dev_offsets_matched_tracks;
+    DEVICE_OUTPUT(dev_offsets_matched_ut_hit_number_t, unsigned) dev_offsets_matched_ut_hit_number;
+    HOST_OUTPUT(host_total_sum_holder_t, unsigned)
+    host_total_sum_holder;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
   __global__ void matching_copy_track_ut_hit_number(Parameters);

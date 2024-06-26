@@ -22,8 +22,7 @@ namespace create_reduced_scifi_hit_container {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_scifi_hit_offsets_input_t, unsigned) dev_scifi_hit_offsets_input;
     DEVICE_INPUT(dev_scifi_hits_input_t, char) dev_scifi_hits_input;
-    DEVICE_INPUT(dev_used_scifi_hits_offsets_t, unsigned) dev_used_scifi_hits_offsets;
-    HOST_INPUT(host_used_scifi_hits_offsets_t, unsigned) host_used_scifi_hits_offsets;
+    DEVICE_INPUT(dev_used_scifi_hits_t, unsigned) dev_used_scifi_hits; // bitset
     HOST_OUTPUT(host_number_of_scifi_hits_t, unsigned) host_number_of_scifi_hits;
     DEVICE_OUTPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;

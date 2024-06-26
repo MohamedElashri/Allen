@@ -11,6 +11,7 @@
 #include "DecReporter.cuh"
 #include "HltDecReport.cuh"
 #include "SelectionsEventModel.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(dec_reporter::dec_reporter_t)
 
@@ -24,7 +25,8 @@ void dec_reporter::dec_reporter_t::set_arguments_size(
     arguments, HltDecReports<false>::size(n_lines) * first<host_number_of_events_t>(arguments));
   set_size<host_dec_reports_t>(
     arguments, HltDecReports<false>::size(n_lines) * first<host_number_of_events_t>(arguments));
-  set_size<dev_selected_candidates_counts_t>(arguments, n_lines * first<host_number_of_events_t>(arguments));
+  set_size<dev_max_objects_offsets_t>(arguments, n_lines * first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_max_objects_t>(arguments, 1);
 }
 
 void dec_reporter::dec_reporter_t::operator()(
@@ -34,13 +36,14 @@ void dec_reporter::dec_reporter_t::operator()(
   const Allen::Context& context) const
 {
   Allen::memset_async<host_dec_reports_t>(arguments, 0, context);
-  Allen::memset_async<dev_selected_candidates_counts_t>(arguments, 0, context);
+  Allen::memset_async<dev_max_objects_offsets_t>(arguments, 0, context);
 
   global_function(dec_reporter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
 
   Allen::copy_async<host_dec_reports_t, dev_dec_reports_t>(arguments, context);
-  Allen::synchronize(context);
+
+  PrefixSum::prefix_sum<dev_max_objects_offsets_t, host_max_objects_t>(*this, arguments, context);
 }
 
 __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
@@ -54,7 +57,7 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
 
   HltDecReports<false> reports(parameters.dev_dec_reports, event_index, parameters.dev_number_of_active_lines[0]);
   unsigned* event_selected_candidates_counts =
-    parameters.dev_selected_candidates_counts + event_index * parameters.dev_number_of_active_lines[0];
+    parameters.dev_max_objects_offsets + event_index * parameters.dev_number_of_active_lines[0];
 
   if (threadIdx.x == 0) {
     // Set TCK and taskID for each event dec report

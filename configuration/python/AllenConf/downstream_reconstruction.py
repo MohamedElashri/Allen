@@ -10,10 +10,9 @@
 ###############################################################################
 
 from AllenCore.algorithms import (
-    downstream_find_hits_t, downstream_create_tracks_t, host_prefix_sum_t,
+    downstream_find_hits_t, downstream_create_tracks_t,
     downstream_copy_hit_number_t, downstream_consolidate_t,
-    downstream_make_particles_t, downstream_ut_filter_t,
-    downstream_update_ut_offset_t, downstream_vertexing_t,
+    downstream_make_particles_t, downstream_vertexing_t,
     downstream_make_secondary_vertices_t, downstream_composite_selector_t)
 from AllenConf.utils import initialize_number_of_events, make_dummy
 from AllenCore.generator import make_algorithm
@@ -39,13 +38,14 @@ def make_downstream(decoded_ut,
                     veto_used_scifi_seeds=True,
                     with_calo=True,
                     with_muon=True,
-                    dev_used_ut_hits=None):
+                    dev_used_ut_hits_offsets=None):
 
     number_of_events = initialize_number_of_events()
 
     # Filter used ut hits
-    if dev_used_ut_hits is not None:
-        ut_hits = create_reduced_ut_container(decoded_ut, dev_used_ut_hits)
+    if dev_used_ut_hits_offsets is not None:
+        ut_hits = create_reduced_ut_container(decoded_ut,
+                                              dev_used_ut_hits_offsets)
     else:
         ut_hits = decoded_ut
 
@@ -97,28 +97,16 @@ def make_downstream(decoded_ut,
         # Properties
         ghost_killer_threshold=ghost_killer_threshold)
 
-    prefix_sum_downstream_tracks = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_downstream_tracks",
-        dev_input_buffer_t=downstream_create_tracks.
-        dev_num_downstream_tracks_t)
-
     downstream_copy_track_hit_number = make_algorithm(
         downstream_copy_hit_number_t,
         name="downstream_copy_track_hit_number",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_downstream_tracks_t=prefix_sum_downstream_tracks.
-        host_total_sum_holder_t,
+        host_number_of_downstream_tracks_t=downstream_create_tracks.
+        host_number_of_downstream_tracks_t,
         dev_downstream_tracks_t=downstream_create_tracks.
         dev_downstream_tracks_t,
-        dev_offsets_downstream_tracks_t=prefix_sum_downstream_tracks.
-        dev_output_buffer_t)
-
-    prefix_sum_downstream_copy_track_hit_number = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_downstream_copy_track_hit_number",
-        dev_input_buffer_t=downstream_copy_track_hit_number.
-        dev_downstream_track_hit_number_t)
+        dev_offsets_downstream_tracks_t=downstream_create_tracks.
+        dev_offsets_downstream_tracks_t)
 
     downstream_consolidate_tracks = make_algorithm(
         downstream_consolidate_t,
@@ -128,13 +116,14 @@ def make_downstream(decoded_ut,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         # Host statistics
         host_number_of_hits_in_downstream_tracks_t=
-        prefix_sum_downstream_copy_track_hit_number.host_total_sum_holder_t,
-        host_number_of_downstream_tracks_t=prefix_sum_downstream_tracks.
-        host_total_sum_holder_t,
-        dev_offsets_downstream_hit_numbers_t=
-        prefix_sum_downstream_copy_track_hit_number.dev_output_buffer_t,
-        dev_offsets_downstream_tracks_t=prefix_sum_downstream_tracks.
-        dev_output_buffer_t,
+        downstream_copy_track_hit_number.
+        host_number_of_hits_in_downstream_tracks_t,
+        host_number_of_downstream_tracks_t=downstream_create_tracks.
+        host_number_of_downstream_tracks_t,
+        dev_offsets_downstream_hit_numbers_t=downstream_copy_track_hit_number.
+        dev_offsets_downstream_hit_numbers_t,
+        dev_offsets_downstream_tracks_t=downstream_create_tracks.
+        dev_offsets_downstream_tracks_t,
         dev_downstream_tracks_t=downstream_create_tracks.
         dev_downstream_tracks_t,
         # UT input
@@ -148,8 +137,8 @@ def make_downstream(decoded_ut,
     if with_muon:
         muonID = make_is_muon(
             decoded_muon=decode_muon(),
-            host_number_of_tracks=prefix_sum_downstream_tracks.
-            host_total_sum_holder_t,
+            host_number_of_tracks=downstream_create_tracks.
+            host_number_of_downstream_tracks_t,
             dev_multi_event_tracks_ptr=downstream_consolidate_tracks.
             dev_multi_event_downstream_tracks_view_ptr_t,
             dev_velo_states=downstream_consolidate_tracks.
@@ -158,15 +147,14 @@ def make_downstream(decoded_ut,
             dev_downstream_track_scifi_states_t,
             is_muon_name='is_muon_{hash}')
     else:
-        muonID = fake_muon_id(
-            host_number_of_tracks=prefix_sum_downstream_tracks.
-            host_total_sum_holder_t)
+        muonID = fake_muon_id(host_number_of_tracks=downstream_create_tracks.
+                              host_number_of_downstream_tracks_t)
 
     if with_calo:
         caloID = make_is_electron(
             decoded_calo=decode_calo(),
-            host_number_of_tracks=prefix_sum_downstream_tracks.
-            host_total_sum_holder_t,
+            host_number_of_tracks=downstream_create_tracks.
+            host_number_of_downstream_tracks_t,
             dev_multi_event_tracks_ptr=downstream_consolidate_tracks.
             dev_multi_event_downstream_tracks_view_ptr_t,
             dev_velo_states=downstream_consolidate_tracks.
@@ -175,8 +163,8 @@ def make_downstream(decoded_ut,
             dev_downstream_track_scifi_states_t,
         )
         leptonID = make_lepton_id(
-            host_number_of_tracks=prefix_sum_downstream_tracks.
-            host_total_sum_holder_t,
+            host_number_of_tracks=downstream_create_tracks.
+            host_number_of_downstream_tracks_t,
             dev_multi_event_tracks_ptr=downstream_consolidate_tracks.
             dev_multi_event_downstream_tracks_view_ptr_t,
             is_muon_result=muonID,
@@ -191,14 +179,14 @@ def make_downstream(decoded_ut,
         # Basics
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_number_of_downstream_tracks_t=prefix_sum_downstream_tracks.
-        host_total_sum_holder_t,
+        host_number_of_downstream_tracks_t=downstream_create_tracks.
+        host_number_of_downstream_tracks_t,
         # States
         dev_downstream_track_states_view_t=downstream_consolidate_tracks.
         dev_downstream_track_states_view_t,
         # Downstream consolidated tracks
-        dev_offsets_downstream_tracks_t=prefix_sum_downstream_tracks.
-        dev_output_buffer_t,
+        dev_offsets_downstream_tracks_t=downstream_create_tracks.
+        dev_offsets_downstream_tracks_t,
         dev_multi_event_downstream_tracks_view_t=downstream_consolidate_tracks.
         dev_multi_event_downstream_tracks_view_t,
         # PVs
@@ -238,17 +226,15 @@ def make_downstream(decoded_ut,
         "dev_downstream_tracks":
         downstream_create_tracks.dev_downstream_tracks_t,
         "dev_offsets_downstream_tracks":
-        prefix_sum_downstream_tracks.dev_output_buffer_t,
+        downstream_create_tracks.dev_offsets_downstream_tracks_t,
         "host_number_of_downstream_tracks":
-        prefix_sum_downstream_tracks.host_total_sum_holder_t,
+        downstream_create_tracks.host_number_of_downstream_tracks_t,
 
         #
         # Downstream copy track hit number output
         #
-        "dev_downstream_track_hit_number":
-        downstream_copy_track_hit_number.dev_downstream_track_hit_number_t,
         "dev_offsets_downstream_hit_numbers":
-        prefix_sum_downstream_copy_track_hit_number.dev_output_buffer_t,
+        downstream_copy_track_hit_number.dev_offsets_downstream_hit_numbers_t,
 
         #
         # Downstream ut tracks
@@ -352,12 +338,6 @@ def fit_downstream_secondary_vertices(
         dihadron=dihadron,
     )
 
-    prefix_sum_downstream_vertexing = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_downstream_vertexing",
-        dev_input_buffer_t=downstream_vertexing.
-        dev_offsets_downstream_secondary_vertices_t)
-
     downstream_make_secondary_vertices = make_algorithm(
         downstream_make_secondary_vertices_t,
         name='downstream_make_secondary_vertices',
@@ -365,8 +345,8 @@ def fit_downstream_secondary_vertices(
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         # Downstream tracks
-        host_number_of_downstream_secondary_vertices_t=
-        prefix_sum_downstream_vertexing.host_total_sum_holder_t,
+        host_number_of_downstream_secondary_vertices_t=downstream_vertexing.
+        host_number_of_downstream_secondary_vertices_t,
         dev_multi_event_downstream_track_particles_view_t=downstream_tracks[
             'dev_multi_event_downstream_track_particles_view'],
         # PVs
@@ -376,8 +356,8 @@ def fit_downstream_secondary_vertices(
         # SVs
         dev_downstream_secondary_vertices_t=downstream_vertexing.
         dev_downstream_secondary_vertices_t,
-        dev_offsets_downstream_secondary_vertices_t=
-        prefix_sum_downstream_vertexing.dev_output_buffer_t)
+        dev_offsets_downstream_secondary_vertices_t=downstream_vertexing.
+        dev_offsets_downstream_secondary_vertices_t)
 
     downstream_composite_selector = make_algorithm(
         downstream_composite_selector_t,
@@ -385,8 +365,8 @@ def fit_downstream_secondary_vertices(
         # Basics
         host_number_of_events_t=number_of_events["host_number_of_events"],
         # Size
-        host_number_of_downstream_secondary_vertices_t=
-        prefix_sum_downstream_vertexing.host_total_sum_holder_t,
+        host_number_of_downstream_secondary_vertices_t=downstream_vertexing.
+        host_number_of_downstream_secondary_vertices_t,
         # Composite
         dev_multi_event_composites_view_t=downstream_make_secondary_vertices.
         dev_multi_event_composites_view_t,
@@ -406,9 +386,9 @@ def fit_downstream_secondary_vertices(
         # Standard outputs
         #
         "host_number_of_svs":
-        prefix_sum_downstream_vertexing.host_total_sum_holder_t,
+        downstream_vertexing.host_number_of_downstream_secondary_vertices_t,
         "dev_sv_offsets":
-        prefix_sum_downstream_vertexing.dev_output_buffer_t,
+        downstream_vertexing.dev_offsets_downstream_secondary_vertices_t,
         "dev_two_track_particles":
         downstream_make_secondary_vertices.dev_two_track_composites_view_t,
         "dev_multi_event_composites":

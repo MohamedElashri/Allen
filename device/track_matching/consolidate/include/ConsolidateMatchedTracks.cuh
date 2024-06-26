@@ -70,7 +70,7 @@ namespace matching_consolidate_tracks {
 
     // Outputs (UT part)
     DEVICE_OUTPUT(dev_matched_ut_track_hits_t, char) dev_matched_ut_track_hits;
-    DEVICE_OUTPUT(dev_used_ut_hits_t, unsigned) dev_used_ut_hits;
+    DEVICE_OUTPUT(dev_used_ut_hits_offsets_t, unsigned) dev_used_ut_hits_offsets;
 
     // UT tracks views
     DEVICE_OUTPUT_WITH_DEPENDENCIES(

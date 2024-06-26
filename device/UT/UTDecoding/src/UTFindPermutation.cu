@@ -9,8 +9,8 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "UTFindPermutation.cuh"
-#include "FindPermutation.cuh"
 #include <cstdio>
+#include <SegSort.h>
 
 INSTANTIATE_ALGORITHM(ut_find_permutation::ut_find_permutation_t)
 
@@ -25,42 +25,15 @@ void ut_find_permutation::ut_find_permutation_t::set_arguments_size(
 void ut_find_permutation::ut_find_permutation_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
-  global_function(ut_find_permutation)(
-    dim3(size<dev_event_list_t>(arguments), constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers]),
-    // dim3(size<dev_event_list_t>(arguments), 2304),
-    property<block_dim_t>(),
-    context)(arguments, constants.dev_unique_x_sector_layer_offsets.data());
-}
-
-__global__ void ut_find_permutation::ut_find_permutation(
-  ut_find_permutation::Parameters parameters,
-  const unsigned* dev_unique_x_sector_layer_offsets)
-{
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned sector_group_number = blockIdx.y;
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-
-  const UT::HitOffsets ut_cluster_offsets {
-    parameters.dev_ut_cluster_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
-
-  const unsigned sector_group_cluster_offset = ut_cluster_offsets.sector_group_offset(sector_group_number);
-  const unsigned sector_group_number_of_clusters = ut_cluster_offsets.sector_group_number_of_hits(sector_group_number);
-
-  if (sector_group_number_of_clusters > 0) {
-    // Sort according to the natural order in s_y_begin
-    // Store the permutation found into parameters.dev_ut_permutations
-    find_permutation(
-      0,
-      sector_group_cluster_offset,
-      sector_group_number_of_clusters,
-      parameters.dev_ut_permutations,
-      [&](const int a, const int b) -> int {
-        const auto value_a = parameters.dev_ut_sort_keys[sector_group_cluster_offset + a];
-        const auto value_b = parameters.dev_ut_sort_keys[sector_group_cluster_offset + b];
-        return (value_a > value_b) - (value_a < value_b);
-      });
-  }
+  SegSort::segsort<uint64_t>(
+    *this,
+    arguments,
+    context,
+    (const uint64_t*) data<dev_ut_sort_keys_t>(arguments),
+    data<dev_ut_cluster_offsets_t>(arguments),
+    size<dev_ut_cluster_offsets_t>(arguments) - 1,
+    data<dev_ut_permutations_t>(arguments));
 }

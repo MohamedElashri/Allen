@@ -24,7 +24,6 @@ namespace create_reduced_ut_hits_container {
     DEVICE_INPUT(dev_ut_hit_offsets_input_t, unsigned) dev_ut_hit_offsets_input;
     DEVICE_INPUT(dev_ut_hits_input_t, char) dev_ut_hits_input;
     DEVICE_INPUT(dev_used_ut_hits_offsets_t, unsigned) dev_used_ut_hits_offsets;
-    HOST_INPUT(host_used_ut_hits_offsets_t, unsigned) host_used_ut_hits_offsets;
     HOST_OUTPUT(host_number_of_ut_hits_t, unsigned) host_number_of_ut_hits;
     DEVICE_OUTPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
     DEVICE_OUTPUT(dev_ut_hits_t, char) dev_ut_hits;

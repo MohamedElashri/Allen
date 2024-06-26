@@ -22,9 +22,17 @@ namespace velo_calculate_number_of_candidates {
     DEVICE_INPUT(dev_velo_raw_input_offsets_t, unsigned) dev_velo_raw_input_offsets;
     DEVICE_INPUT(dev_velo_raw_input_sizes_t, unsigned) dev_velo_raw_input_sizes;
     DEVICE_INPUT(dev_velo_raw_input_types_t, unsigned) dev_velo_raw_input_types;
-    DEVICE_OUTPUT(dev_number_of_candidates_t, unsigned) dev_number_of_candidates;
+    DEVICE_OUTPUT(dev_candidates_offsets_t, unsigned) dev_candidates_offsets;
+    HOST_OUTPUT(host_number_of_cluster_candidates_t, unsigned) host_number_of_cluster_candidates;
+
+    DEVICE_OUTPUT(dev_superpixels_offsets_t, unsigned) dev_superpixels_offsets;
+    DEVICE_OUTPUT(dev_superpixels_module_pair_offsets_t, unsigned) dev_superpixels_module_pair_offsets;
+    DEVICE_OUTPUT(dev_superpixels_t, unsigned) dev_superpixels;
+    HOST_OUTPUT(host_total_number_of_superpixels_t, unsigned) host_total_number_of_superpixels;
+
     DEVICE_OUTPUT(dev_velo_bank_index_t, unsigned) dev_velo_bank_index;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x_prop;
+    PROPERTY(count_candidates_t, "count_candidates", "required for masked clustering", bool) count_candidates_prop;
   };
 
   // Algorithm
@@ -39,5 +47,6 @@ namespace velo_calculate_number_of_candidates {
 
   private:
     Property<block_dim_x_t> m_block_dim_x {this, 256};
+    Property<count_candidates_t> m_count_candidates {this, true};
   };
 } // namespace velo_calculate_number_of_candidates

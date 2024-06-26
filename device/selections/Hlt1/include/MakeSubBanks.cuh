@@ -24,7 +24,6 @@ namespace make_subbanks {
     DEVICE_INPUT(dev_max_objects_offsets_t, unsigned) dev_max_objects_offsets;
     DEVICE_INPUT(dev_sel_count_t, unsigned) dev_sel_count;
     DEVICE_INPUT(dev_sel_list_t, unsigned) dev_sel_list;
-    DEVICE_INPUT(dev_candidate_count_t, unsigned) dev_candidate_count;
     DEVICE_INPUT(dev_candidate_offsets_t, unsigned) dev_candidate_offsets;
     DEVICE_INPUT(dev_unique_track_list_t, unsigned) dev_unique_track_list;
     DEVICE_INPUT(dev_unique_calo_list_t, unsigned) dev_unique_calo_list;

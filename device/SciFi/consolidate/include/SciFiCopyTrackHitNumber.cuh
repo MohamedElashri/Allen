@@ -24,7 +24,9 @@ namespace scifi_copy_track_hit_number {
     DEVICE_INPUT(dev_offsets_input_tracks_t, unsigned) dev_atomics_input;
     DEVICE_INPUT(dev_scifi_tracks_t, SciFi::TrackHits) dev_scifi_tracks;
     DEVICE_INPUT(dev_offsets_long_tracks_t, unsigned) dev_atomics_scifi;
-    DEVICE_OUTPUT(dev_scifi_track_hit_number_t, unsigned) dev_scifi_track_hit_number;
+    DEVICE_OUTPUT(dev_offsets_scifi_track_hit_number_t, unsigned) dev_offsets_scifi_track_hit_number;
+    HOST_OUTPUT(host_accumulated_number_of_hits_in_scifi_tracks_t, unsigned)
+    host_accumulated_number_of_hits_in_scifi_tracks;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 

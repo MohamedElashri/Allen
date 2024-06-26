@@ -19,7 +19,8 @@ namespace CalcMaxCombos {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     DEVICE_INPUT(dev_input1_t, Allen::IMultiEventContainer*) dev_input1;
     DEVICE_INPUT(dev_input2_t, Allen::IMultiEventContainer*) dev_input2;
-    DEVICE_OUTPUT(dev_max_combos_t, unsigned) dev_max_combos;
+    DEVICE_OUTPUT(dev_max_combo_offsets_t, unsigned) dev_max_combo_offsets;
+    HOST_OUTPUT(host_max_combos_t, unsigned) host_max_combos;
     PROPERTY(block_dim_t, "block_dim", "Block dimensions", DeviceDimensions) block_dim;
   };
 

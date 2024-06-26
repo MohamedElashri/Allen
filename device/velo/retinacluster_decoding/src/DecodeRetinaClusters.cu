@@ -12,6 +12,7 @@
 #include <DecodeRetinaClusters.cuh>
 #include <VeloTools.cuh>
 #include <BinarySearch.cuh>
+#include <SegSort.h>
 
 INSTANTIATE_ALGORITHM(decode_retinaclusters::decode_retinaclusters_t)
 
@@ -38,50 +39,6 @@ __global__ void populate_module_pair_offsets_and_sizes(
       const auto next_offset_index = (element + 1) * step_size;
 
       parameters.dev_offsets_module_pair_cluster[element + 1] = offsets[next_offset_index];
-    }
-  }
-}
-
-template<bool mep_layout>
-__global__ void velo_calculate_permutations(
-  decode_retinaclusters::Parameters parameters,
-  unsigned* dev_module_pair_zero_cluster_num)
-{
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned* module_pair_hit_start =
-    parameters.dev_offsets_module_pair_cluster + event_number * Velo::Constants::n_module_pairs;
-  const unsigned* module_pair_hit_num =
-    parameters.dev_module_pair_cluster_num + event_number * Velo::Constants::n_module_pairs;
-  const unsigned* module_pair_zero_hit_num =
-    dev_module_pair_zero_cluster_num + event_number * Velo::Constants::n_module_pairs;
-
-  for (unsigned module_pair = threadIdx.x; module_pair < Velo::Constants::n_module_pairs; module_pair += blockDim.x) {
-    const auto hit_start = module_pair_hit_start[module_pair];
-    const auto hit_num = module_pair_hit_num[module_pair] + module_pair_zero_hit_num[module_pair];
-
-    // Decrease divergences
-    __syncthreads();
-
-    // Find the permutations with sorting key
-    // Use insertion sort
-    for (unsigned hit_rel_id = threadIdx.y; hit_rel_id < hit_num; hit_rel_id += blockDim.y) {
-      const auto hit_index = hit_start + hit_rel_id;
-      const auto key = parameters.dev_hit_sorting_key[hit_index];
-
-      unsigned position = 0;
-      for (unsigned j = 0; j < hit_num; ++j) {
-        if (hit_rel_id == j) continue;
-
-        const auto other_hit_index = hit_start + j;
-        const auto other_key = parameters.dev_hit_sorting_key[other_hit_index];
-
-        // Ensure sorting is reproducible
-        position += key > other_key;
-      }
-
-      // Store it in hit permutations
-      const auto global_position = hit_start + position;
-      parameters.dev_hit_permutations[hit_index] = global_position;
     }
   }
 }
@@ -381,7 +338,7 @@ __global__ void decode_retinaclusters_sorted(
   }
 
   for (unsigned i = threadIdx.x; i < number_of_clusters_in_event; i += blockDim.x) {
-    const auto cluster_number = event_clusters_offset + i;
+    const auto cluster_number = parameters.dev_hit_permutations[event_clusters_offset + i];
 
     unsigned sensor_pair = 0;
     if constexpr (decoding_version == 2 || decoding_version == 3) {
@@ -400,7 +357,7 @@ __global__ void decode_retinaclusters_sorted(
       populate_retinacluster<decoding_version>(
         velo_cluster_container,
         g,
-        parameters.dev_hit_permutations[cluster_number],
+        event_clusters_offset + i,
         raw_bank.sensor_index0(),
         raw_bank.sensor_index1(),
         raw_bank.sourceID,
@@ -450,8 +407,6 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
     return; // no VP banks present in data
   }
 
-  Allen::memset_async<dev_hit_permutations_t>(arguments, 0, context);
-
   if (bank_version != 2 && bank_version != 3 && bank_version != 4) {
     throw StrException("Velo cluster bank version not supported (" + std::to_string(bank_version) + ")");
   }
@@ -483,9 +438,14 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
     constants.dev_velo_geometry,
     dev_module_zero_cluster_num.data());
 
-  global_function(runtime_options.mep_layout ? velo_calculate_permutations<true> : velo_calculate_permutations<false>)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_calculate_permutations_t>(), context)(
-    arguments, dev_module_zero_cluster_num.data());
+  SegSort::segsort<int64_t>(
+    *this,
+    arguments,
+    context,
+    data<dev_hit_sorting_key_t>(arguments),
+    data<dev_offsets_module_pair_cluster_t>(arguments),
+    size<dev_offsets_module_pair_cluster_t>(arguments) - 1,
+    data<dev_hit_permutations_t>(arguments));
 
   auto kernel_fn3 = (bank_version == 2) ?
                       (runtime_options.mep_layout ? global_function(decode_retinaclusters_sorted<2, true>) :

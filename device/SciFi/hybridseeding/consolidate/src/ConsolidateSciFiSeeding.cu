@@ -64,7 +64,7 @@ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate_t::set_argum
   set_size<dev_scifi_track_view_t>(arguments, first<host_number_of_reconstructed_seeding_tracks_t>(arguments));
   set_size<dev_scifi_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_scifi_multi_event_tracks_view_t>(arguments, 1);
-  set_size<dev_used_scifi_hits_t>(arguments, first<host_scifi_hit_count_t>(arguments));
+  set_size<dev_used_scifi_hits_t>(arguments, first<host_scifi_hit_count_t>(arguments) / 32 + 1);
 }
 
 //===========================================================================================
@@ -198,7 +198,7 @@ __global__ void seed_confirmTracks_consolidate::seed_confirmTracks_consolidate(
     populate(
       scifiseed, [&consolidated_hits, &scifi_hits, &used_scifi_hits](const unsigned i, const unsigned hit_index) {
         consolidated_hits.x0(i) = scifi_hits.x0(hit_index);
-        used_scifi_hits[hit_index] = 1;
+        atomicOr(&used_scifi_hits[hit_index / 32], 1 << (hit_index % 32));
       });
 
     populate(scifiseed, [&consolidated_hits, &scifi_hits](const unsigned i, const unsigned hit_index) {

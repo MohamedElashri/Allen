@@ -27,7 +27,8 @@ namespace CountMaterialInteractionCandidates {
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     DEVICE_OUTPUT(dev_filtered_velo_track_idx_t, unsigned) dev_filtered_velo_track_idx;
     DEVICE_OUTPUT(dev_number_of_filtered_tracks_t, unsigned) dev_number_of_filtered_tracks;
-    DEVICE_OUTPUT(dev_number_of_seeds_t, unsigned) dev_number_of_seeds;
+    DEVICE_OUTPUT(dev_interaction_seeds_offsets_t, unsigned) dev_interaction_seeds_offsets;
+    HOST_OUTPUT(host_number_of_total_interaction_seeds_t, unsigned) host_number_of_total_interaction_seeds;
 
     PROPERTY(beamdoca_r_t, "beamdoca_r", "radial doca to the beamspot", float) beamdoca_r;
     PROPERTY(

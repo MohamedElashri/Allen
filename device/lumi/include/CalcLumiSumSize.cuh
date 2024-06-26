@@ -17,8 +17,12 @@ namespace calc_lumi_sum_size {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     DEVICE_INPUT(dev_selections_t, uint32_t) dev_selections;
     DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
-    DEVICE_OUTPUT(dev_lumi_sum_sizes_t, unsigned) dev_lumi_sum_sizes;
-    DEVICE_OUTPUT(dev_lumi_sum_present_t, unsigned) dev_lumi_sum_present;
+
+    HOST_OUTPUT(host_lumi_summaries_size_t, unsigned) host_lumi_summaries_size;
+    DEVICE_OUTPUT(dev_lumi_summary_offsets_t, unsigned) dev_lumi_summary_offsets;
+    HOST_OUTPUT(host_lumi_summaries_count_t, unsigned) host_lumi_summaries_count;
+    DEVICE_OUTPUT(dev_lumi_event_indices_t, unsigned) dev_lumi_event_indices;
+
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(line_index_t, "line_index", "index of lumi line", unsigned) line_index;
     PROPERTY(line_index_full_t, "line_index_full", "index of 1kHz lumi line", unsigned) line_index_full;

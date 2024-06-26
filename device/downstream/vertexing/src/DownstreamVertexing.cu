@@ -10,6 +10,7 @@
 \*****************************************************************************/
 
 #include "DownstreamVertexing.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(downstream_vertexing::downstream_vertexing_t)
 
@@ -20,7 +21,8 @@ void downstream_vertexing::downstream_vertexing_t::set_arguments_size(
 {
   set_size<dev_downstream_secondary_vertices_t>(
     arguments, first<host_number_of_events_t>(arguments) * VertexFit::max_svs);
-  set_size<dev_offsets_downstream_secondary_vertices_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_offsets_downstream_secondary_vertices_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_downstream_secondary_vertices_t>(arguments, 1);
 }
 
 void downstream_vertexing::downstream_vertexing_t::operator()(
@@ -34,6 +36,9 @@ void downstream_vertexing::downstream_vertexing_t::operator()(
 
   global_function(downstream_vertexing)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_magnet_polarity.data(), constants.dev_downstream_composite_quality_evaluator);
+
+  PrefixSum::prefix_sum<dev_offsets_downstream_secondary_vertices_t, host_number_of_downstream_secondary_vertices_t>(
+    *this, arguments, context);
 }
 
 namespace {

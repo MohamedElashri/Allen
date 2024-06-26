@@ -9,7 +9,6 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "LFCreateTracks.cuh"
-#include "OddevenMergeSort.cuh"
 #include "WarpIntrinsicsTools.cuh"
 
 template<bool with_ut, typename T>

@@ -125,7 +125,7 @@ namespace Muon {
       Allen::device::span<const uint8_t> span_banks,
       unsigned int active_links,
       unsigned int* map_connected_fibers,
-      unsigned int align_info)
+      unsigned int align_info) const
     {
 
       unsigned int number_of_readout_fibers;

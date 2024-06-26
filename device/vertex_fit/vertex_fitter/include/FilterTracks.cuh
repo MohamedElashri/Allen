@@ -38,7 +38,8 @@ namespace FilterTracks {
     DEVICE_INPUT(dev_long_track_particles_t, Allen::Views::Physics::MultiEventBasicParticles)
     dev_long_track_particles;
     DEVICE_OUTPUT(dev_track_prefilter_result_t, bool) dev_track_prefilter_result;
-    DEVICE_OUTPUT(dev_sv_atomics_t, unsigned) dev_sv_atomics;
+    DEVICE_OUTPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
+    HOST_OUTPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_OUTPUT(dev_svs_trk1_idx_t, unsigned) dev_svs_trk1_idx;
     DEVICE_OUTPUT(dev_svs_trk2_idx_t, unsigned) dev_svs_trk2_idx;
     DEVICE_OUTPUT(dev_sv_poca_t, float) dev_sv_poca;

@@ -199,6 +199,8 @@ __device__ inline auto compress_float_to_16_bits(const float f)
 #endif
 }
 
+#define DIV_CEIL(x, y) (((x) + (y) -1) / (y))
+
 // Numeric limits
 namespace Allen {
   template<typename T>

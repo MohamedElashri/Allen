@@ -61,12 +61,12 @@ void create_reduced_ut_hits_container::create_reduced_ut_hits_container_t::opera
   const Allen::Context& context) const
 {
   // Calculate dev_ut_hit_offsets_t
+  auto host_used_ut_hits_offsets = make_host_buffer<dev_used_ut_hits_offsets_t>(arguments, context);
   auto host_ut_hit_offsets_input = make_host_buffer<dev_ut_hit_offsets_input_t>(arguments, context);
   auto host_ut_hit_offsets = make_host_buffer<unsigned>(arguments, size<dev_ut_hit_offsets_t>(arguments));
   for (unsigned i = 0; i < host_ut_hit_offsets_input.size(); ++i) {
     auto expected_number_of_hits = host_ut_hit_offsets_input[i];
-    auto unused_number_of_hits =
-      expected_number_of_hits - data<host_used_ut_hits_offsets_t>(arguments)[expected_number_of_hits];
+    auto unused_number_of_hits = expected_number_of_hits - host_used_ut_hits_offsets[expected_number_of_hits];
     host_ut_hit_offsets[i] = unused_number_of_hits;
   }
   Allen::memcpy_async(

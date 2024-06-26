@@ -324,7 +324,7 @@ def lowMult(velo_tracks,
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
         host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"],
-        dev_ecal_number_of_clusters_t=calo["dev_ecal_num_clusters"],
+        dev_ecal_cluster_offsets_t=calo["dev_ecal_cluster_offsets"],
         minTracks=minTracks,
         maxTracks=maxTracks,
         min_ecal_clusters=min_ecal_clusters,

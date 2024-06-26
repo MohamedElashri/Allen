@@ -36,6 +36,7 @@ namespace downstream_vertexing {
     // Output
     DEVICE_OUTPUT(dev_downstream_secondary_vertices_t, VertexFit::MiniVertex) dev_downstream_secondary_vertices;
     DEVICE_OUTPUT(dev_offsets_downstream_secondary_vertices_t, unsigned) dev_offsets_downstream_secondary_vertices;
+    HOST_OUTPUT(host_number_of_downstream_secondary_vertices_t, unsigned) host_number_of_downstream_secondary_vertices;
     // Property
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     // Cuts

@@ -49,10 +49,9 @@ def muon_cosmic_lines(muon_stubs):
     lines = [
         line_maker(
             make_one_muon_track_line(
-                muon_stubs["dev_muon_number_of_tracks"],
                 muon_stubs["consolidated_muon_tracks"],
-                muon_stubs["dev_output_buffer"],
-                muon_stubs["host_total_sum_holder"],
+                muon_stubs["dev_muon_tracks_offsets"],
+                muon_stubs["host_muon_total_number_of_tracks"],
                 name="Hlt1OneMuonStub"))
     ]
     return lines

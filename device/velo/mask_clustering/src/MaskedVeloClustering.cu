@@ -135,30 +135,22 @@ __device__ void print_array_64(const uint64_t p, const int row = -1, const int c
   printf("\n");
 }
 
-template<int decoding_version>
 __device__ void rest_of_clusters(
   unsigned const* module_pair_cluster_start,
   Velo::Clusters velo_cluster_container,
   unsigned* module_pair_cluster_num,
   VeloGeometry const& g,
   uint32_t const candidate,
-  Velo::VeloRawBank<decoding_version> const& raw_bank)
+  unsigned sensor_number,
+  const unsigned* superpixels,
+  unsigned n_sp)
 {
   const auto sp_index = candidate >> 11;
-  const auto sensor_number = (candidate >> 3) & 0xFF;
   const auto module_pair_number = sensor_number / 8;
   const auto starting_pixel_location = candidate & 0x7;
   const float* ltg = g.ltg + g.n_trans * sensor_number;
-  uint32_t n_sp;
 
-  if constexpr (decoding_version == 2 || decoding_version == 3) {
-    n_sp = raw_bank.count;
-  }
-  else {
-    n_sp = raw_bank.size / 4;
-  }
-
-  const uint32_t sp_word = raw_bank.word[sp_index];
+  const uint32_t sp_word = superpixels[sp_index];
   const uint32_t sp_addr = (sp_word & 0x007FFF00U) >> 8;
   // Note: In the code below, row and col are int32_t (not unsigned)
   //       This is not a bug
@@ -207,12 +199,7 @@ __device__ void rest_of_clusters(
   // Note: We will pick up the current one,
   //       no need to add a special case
   for (unsigned k = 0; k < n_sp; ++k) {
-    const uint32_t other_sp_word = raw_bank.word[k];
-    if constexpr (decoding_version > 3) {
-      const uint32_t otherSensorBit = (other_sp_word & 0x800000U) ? (0x1U) : 0x0U;
-      // Check if the other SP id from the same sensor in the pair in this bank
-      if (otherSensorBit != (sensor_number & 0x1)) continue;
-    }
+    const uint32_t other_sp_word = superpixels[k];
     const uint32_t other_sp_addr = (other_sp_word & 0x007FFF00U) >> 8;
     const int32_t other_sp_row = other_sp_addr & 0x3FU;
     const int32_t other_sp_col = (other_sp_addr >> 6);
@@ -340,10 +327,8 @@ __device__ void rest_of_clusters(
   }
 }
 
-template<int decoding_version, bool mep_layout>
 __global__ void velo_masked_clustering_kernel(
   velo_masked_clustering::Parameters parameters,
-  const unsigned event_start,
   const VeloGeometry* dev_velo_geometry)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -365,11 +350,8 @@ __global__ void velo_masked_clustering_kernel(
 
   // Load Velo geometry (assume it is the same for all events)
   const VeloGeometry& g = *dev_velo_geometry;
-  const auto velo_raw_event = Velo::RawEvent<decoding_version, mep_layout> {parameters.dev_velo_raw_input,
-                                                                            parameters.dev_velo_raw_input_offsets,
-                                                                            parameters.dev_velo_raw_input_sizes,
-                                                                            parameters.dev_velo_raw_input_types,
-                                                                            event_number + event_start};
+
+  const unsigned* offsets = parameters.dev_superpixels_offsets + event_number * Velo::Constants::n_sensors;
 
   // Process all clusters
   for (unsigned candidate_number = threadIdx.x; candidate_number < number_of_candidates;
@@ -379,10 +361,18 @@ __global__ void velo_masked_clustering_kernel(
 
     assert(sensor_number < Velo::Constants::n_sensors);
 
-    const auto raw_bank_number = parameters.dev_velo_bank_index[sensor_number];
-    const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-    rest_of_clusters<decoding_version>(
-      module_pair_cluster_start, velo_cluster_container, module_pair_cluster_num, g, candidate, raw_bank);
+    unsigned offset = offsets[sensor_number];
+    unsigned size = offsets[sensor_number + 1] - offset;
+
+    rest_of_clusters(
+      module_pair_cluster_start,
+      velo_cluster_container,
+      module_pair_cluster_num,
+      g,
+      candidate,
+      sensor_number,
+      parameters.dev_superpixels + offset,
+      size);
   }
 }
 
@@ -400,7 +390,7 @@ void velo_masked_clustering::velo_masked_clustering_t::set_arguments_size(
 
 void velo_masked_clustering::velo_masked_clustering_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants& constants,
   const Allen::Context& context) const
 {
@@ -410,16 +400,6 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
 
   if (bank_version < 0) return; // no VP banks present in data
 
-  // Selector from layout
-  auto kernel_fn = (bank_version == 2) ?
-                     (runtime_options.mep_layout ? global_function(velo_masked_clustering_kernel<2, true>) :
-                                                   global_function(velo_masked_clustering_kernel<2, false>)) :
-                     (bank_version == 3) ?
-                     (runtime_options.mep_layout ? global_function(velo_masked_clustering_kernel<3, true>) :
-                                                   global_function(velo_masked_clustering_kernel<3, false>)) :
-                     (runtime_options.mep_layout ? global_function(velo_masked_clustering_kernel<4, true>) :
-                                                   global_function(velo_masked_clustering_kernel<4, false>));
-
-  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, std::get<0>(runtime_options.event_interval), constants.dev_velo_geometry);
+  global_function(velo_masked_clustering_kernel)(
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_velo_geometry);
 }

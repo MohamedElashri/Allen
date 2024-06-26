@@ -120,17 +120,12 @@ The following text should appear as part of the run of the program, which indica
     host_init_number_of_events_t/initialize_number_of_events
     data_provider_t/velo_banks
     velo_calculate_number_of_candidates_t/velo_calculate_number_of_candidates
-    host_prefix_sum_t/prefix_sum_offsets_velo_candidates
     velo_estimate_input_size_t/velo_estimate_input_size
-    host_prefix_sum_t/prefix_sum_offsets_estimated_input_size
     velo_masked_clustering_t/velo_masked_clustering
     velo_calculate_phi_and_sort_t/velo_calculate_phi_and_sort
     velo_search_by_triplet_t/velo_search_by_triplet
     velo_three_hit_tracks_filter_t/velo_three_hit_tracks_filter
-    host_prefix_sum_t/prefix_sum_offsets_number_of_three_hit_tracks_filtered
-    host_prefix_sum_t/prefix_sum_offsets_velo_tracks
     velo_copy_track_hit_number_t/velo_copy_track_hit_number
-    host_prefix_sum_t/prefix_sum_offsets_velo_track_hit_number
     saxpy_t/saxpy
 
 To find out how to write a trigger line in Allen and how to add it to the sequence, follow :ref:`selections`.

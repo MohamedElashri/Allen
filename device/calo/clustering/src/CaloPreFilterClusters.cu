@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "CaloPreFilterClusters.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(calo_prefilter_clusters::calo_prefilter_clusters_t)
 
@@ -20,7 +21,8 @@ void calo_prefilter_clusters::calo_prefilter_clusters_t::set_arguments_size(
   auto const& n_events = first<host_number_of_events_t>(arguments);
 
   set_size<dev_num_prefiltered_clusters_t>(arguments, n_events);
-  set_size<dev_ecal_num_twoclusters_t>(arguments, n_events);
+  set_size<dev_ecal_twocluster_offsets_t>(arguments, n_events + 1);
+  set_size<host_total_sum_holder_t>(arguments, 1);
   set_size<dev_prefiltered_clusters_idx_t>(arguments, first<host_ecal_number_of_clusters_t>(arguments));
 }
 
@@ -36,6 +38,8 @@ void calo_prefilter_clusters::calo_prefilter_clusters_t::operator()(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_prefilter_t>(), context)(arguments);
 
   global_function(count_twoclusters)(1, dim3(64), context)(arguments);
+
+  PrefixSum::prefix_sum<dev_ecal_twocluster_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
 }
 
 __global__ void calo_prefilter_clusters::calo_prefilter_clusters(calo_prefilter_clusters::Parameters parameters)
@@ -61,7 +65,7 @@ __global__ void calo_prefilter_clusters::count_twoclusters(calo_prefilter_cluste
 {
   const unsigned n_events = parameters.dev_number_of_events[0];
   unsigned* num_prefiltered_clusters = parameters.dev_num_prefiltered_clusters;
-  unsigned* ecal_num_twoclusters = parameters.dev_ecal_num_twoclusters;
+  unsigned* ecal_num_twoclusters = parameters.dev_ecal_twocluster_offsets;
 
   for (unsigned i_event = threadIdx.x; i_event < n_events; i_event += blockDim.x) {
     const unsigned n = num_prefiltered_clusters[i_event];

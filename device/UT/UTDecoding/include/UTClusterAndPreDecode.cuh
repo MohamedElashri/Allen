@@ -30,8 +30,9 @@ namespace ut_cluster_and_pre_decode {
     DEVICE_INPUT(dev_ut_nonempty_channels_t, uint16_t) dev_ut_nonempty_channels;
     DEVICE_INPUT(dev_ut_number_of_nonempty_channels_t, uint16_t) dev_ut_number_of_nonempty_channels;
     DEVICE_OUTPUT(dev_ut_pre_decoded_hits_t, char) dev_ut_pre_decoded_hits;
-    DEVICE_OUTPUT(dev_ut_cluster_count_t, unsigned) dev_ut_cluster_count;
     DEVICE_OUTPUT(dev_ut_tiebreak_t, uint32_t) dev_ut_tiebreak;
+    DEVICE_OUTPUT(dev_ut_cluster_offsets_t, unsigned) dev_ut_cluster_offsets;
+    HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(cluster_ut_hits_t, "cluster_ut_hits", "whether to cluster UT hits", bool) cluster_ut_hits;
     PROPERTY(position_method_t, "position_method", "weighting method for UT cluster position", int)
@@ -45,9 +46,9 @@ namespace ut_cluster_and_pre_decode {
    * @brief UT raw banks are pre-decoded and clustered.
    *
    * @detail The minimum amount of information is stored on UTPreDecodedHits so that we don't have to read raw banks
-   * again. Also, the number of UT clusters (dev_ut_cluster_count_t) is output and prefix summed later. This is because
-   * number_of_ut_clusters < number_of_ut_hits, so we actually allocated more memory than needed for pre-decoding. The
-   * full decoding will allocate the exact amount of memory needed.
+   * again. Also, the number of UT clusters (dev_ut_cluster_offsets_t) is output and prefix summed later. This is
+   * because number_of_ut_clusters < number_of_ut_hits, so we actually allocated more memory than needed for
+   * pre-decoding. The full decoding will allocate the exact amount of memory needed.
    */
   template<int decoding_version, bool mep>
   __global__ void ut_cluster_and_pre_decode(

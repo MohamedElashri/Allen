@@ -35,9 +35,6 @@ namespace seed_confirmTracks {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, uint) host_number_of_events;
 
-    HOST_OUTPUT(host_seeding_number_of_tracks_t, unsigned) host_seeding_number_of_tracks;
-    HOST_OUTPUT(host_seeding_tracks_t, SciFi::Seeding::Track) host_seeding_tracks;
-
     // event number and hits input
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;
@@ -54,8 +51,8 @@ namespace seed_confirmTracks {
 
     // Outputs
     DEVICE_OUTPUT(dev_seeding_tracks_t, SciFi::Seeding::Track) dev_seeding_tracks;
-    DEVICE_OUTPUT(dev_seeding_number_of_tracks_t, unsigned) dev_seeding_number_of_tracks;
-    DEVICE_OUTPUT(dev_seeding_confirmTracks_atomics_t, unsigned) dev_seeding_confirmTracks_atomics;
+    DEVICE_OUTPUT(dev_offsets_seeding_tracks_t, unsigned) dev_offsets_seeding_tracks;
+    HOST_OUTPUT(host_seeding_number_of_tracks_t, unsigned) host_seeding_number_of_tracks;
 
     PROPERTY(tuning_nhits_t, "tuning_nhits", "tuning_nhits", int) tuning_nhits;
     PROPERTY(tuning_tol_chi2_t, "tuning_tol_chi2", "tuning_tol_chi2", float) tuning_tol_chi2;

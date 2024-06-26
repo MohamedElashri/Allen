@@ -47,6 +47,10 @@ namespace track_matching {
     DEVICE_OUTPUT(dev_atomics_matched_tracks_t, unsigned) dev_atomics_matched_tracks;
     DEVICE_OUTPUT(dev_matched_tracks_t, SciFi::MatchedTrack) dev_matched_tracks;
 
+    DEVICE_OUTPUT(dev_offsets_matched_tracks_t, unsigned) dev_offsets_matched_tracks;
+    HOST_OUTPUT(host_number_of_reconstructed_matched_tracks_t, unsigned)
+    host_number_of_reconstructed_matched_tracks;
+
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
 
     PROPERTY(

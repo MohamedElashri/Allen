@@ -81,7 +81,7 @@ def hlt1_reconstruction(algorithm_name='',
 
         if with_ut and enableDownstream:
             reduced_ut_hits = create_reduced_ut_container(
-                decoded_ut, ut_tracks['dev_used_ut_hits'])
+                decoded_ut, ut_tracks['dev_used_ut_hits_offsets'])
 
             # Downstream tracking
             downstream_tracks = make_downstream(
@@ -91,7 +91,10 @@ def hlt1_reconstruction(algorithm_name='',
                 pvs=pvs)
             output.update({"downstream_tracks": downstream_tracks})
 
-        output.update({"seeding_tracks": long_tracks["seeding_tracks"]})
+        output.update({
+            "seeding_tracks": long_tracks["seeding_tracks"],
+            "forward_tracks": long_tracks["forward_tracks"]
+        })
     elif tracking_type == TrackingType.MATCHING:
         decoded_scifi = decode_scifi()
         seed_xz_tracks = make_seeding_XZ_tracks(decoded_scifi)
@@ -115,7 +118,8 @@ def hlt1_reconstruction(algorithm_name='',
                 scifi_seeds=seed_tracks,
                 velo_scifi_matches=long_tracks,
                 pvs=pvs,
-                dev_used_ut_hits=long_tracks['dev_used_ut_hits'])
+                dev_used_ut_hits_offsets=long_tracks[
+                    'dev_used_ut_hits_offsets'])
             output.update({"downstream_tracks": downstream_tracks})
 
     elif tracking_type == TrackingType.FORWARD:
@@ -478,6 +482,12 @@ def validator_node(reconstructed_objects,
             downstream_validation(reconstructed_objects["downstream_tracks"])
         ]
 
+    if "forward_tracks" in reconstructed_objects:
+        validators += [
+            long_validation(
+                reconstructed_objects["forward_tracks"],
+                name="forward_validator")
+        ]
     validators += [long_validation(reconstructed_objects["long_tracks"])]
 
     if with_muon:

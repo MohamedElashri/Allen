@@ -10,9 +10,8 @@
 ###############################################################################
 from AllenCore.algorithms import ut_compress_and_calculate_keys_t
 from AllenCore.algorithms import (
-    data_provider_t, ut_calculate_number_of_hits_t, host_prefix_sum_t,
-    ut_select_velo_tracks_t, ut_search_windows_t,
-    ut_select_velo_tracks_with_windows_t, compass_ut_t,
+    data_provider_t, ut_calculate_number_of_hits_t, ut_select_velo_tracks_t,
+    ut_search_windows_t, ut_select_velo_tracks_with_windows_t, compass_ut_t,
     ut_copy_track_hit_number_t, ut_consolidate_tracks_t,
     ut_cluster_and_pre_decode_t, ut_find_permutation_t, ut_decode_in_order_t,
     create_reduced_ut_hits_container_t)
@@ -22,21 +21,14 @@ from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
 
 
-def create_reduced_ut_container(decoded_ut, dev_used_ut_hits):
+def create_reduced_ut_container(decoded_ut, dev_used_ut_hits_offsets):
     number_of_events = initialize_number_of_events()
-
-    prefix_sum_used_ut_hits = make_algorithm(
-        host_prefix_sum_t,
-        name='prefix_sum_used_ut_hits_{hash}',
-        dev_input_buffer_t=dev_used_ut_hits)
 
     create_reduced_ut_hit_container = make_algorithm(
         create_reduced_ut_hits_container_t,
         name="create_reduced_ut_hit_container_{hash}",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_used_ut_hits_offsets_t=prefix_sum_used_ut_hits.dev_output_buffer_t,
-        host_used_ut_hits_offsets_t=prefix_sum_used_ut_hits.
-        host_output_buffer_t,
+        dev_used_ut_hits_offsets_t=dev_used_ut_hits_offsets,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_ut_hit_offsets_input_t=decoded_ut["dev_ut_hit_offsets"],
         dev_ut_hits_input_t=decoded_ut["dev_ut_hits"])
@@ -70,24 +62,19 @@ def decode_ut(
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_raw_bank_version_t=ut_banks.host_raw_bank_version_t)
 
-    prefix_sum_ut_hits = make_algorithm(
-        host_prefix_sum_t,
-        name='prefix_sum_ut_hits_{hash}',
-        dev_input_buffer_t=ut_calculate_number_of_hits.dev_ut_hit_sizes_t)
-
     ut_cluster_and_pre_decode = make_algorithm(
         ut_cluster_and_pre_decode_t,
         name='ut_cluster_and_pre_decode_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_accumulated_number_of_ut_hits_t=prefix_sum_ut_hits.
+        host_accumulated_number_of_ut_hits_t=ut_calculate_number_of_hits.
         host_total_sum_holder_t,
         dev_ut_raw_input_t=ut_banks.dev_raw_banks_t,
         dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
         dev_ut_raw_input_sizes_t=ut_banks.dev_raw_sizes_t,
         dev_ut_raw_input_types_t=ut_banks.dev_raw_types_t,
         host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
-        dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
+        dev_ut_hit_offsets_t=ut_calculate_number_of_hits.dev_ut_hit_offsets_t,
         dev_ut_nonempty_channels_t=ut_calculate_number_of_hits.
         dev_ut_nonempty_channels_t,
         dev_ut_number_of_nonempty_channels_t=ut_calculate_number_of_hits.
@@ -98,19 +85,15 @@ def decode_ut(
         max_cluster_size=max_cluster_size,
         save_clusters_above_max=False)  # False to be consistent with HLT2
 
-    prefix_sum_ut_clusters = make_algorithm(
-        host_prefix_sum_t,
-        name='prefix_sum_ut_clusters_{hash}',
-        dev_input_buffer_t=ut_cluster_and_pre_decode.dev_ut_cluster_count_t)
-
     ut_compress_and_calculate_keys = make_algorithm(
         ut_compress_and_calculate_keys_t,
         name='ut_compress_and_calculate_keys_{hash}',
-        host_accumulated_number_of_ut_clusters_t=prefix_sum_ut_clusters.
+        host_accumulated_number_of_ut_clusters_t=ut_cluster_and_pre_decode.
         host_total_sum_holder_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        dev_ut_hit_offsets_t=prefix_sum_ut_hits.dev_output_buffer_t,
-        dev_ut_cluster_offsets_t=prefix_sum_ut_clusters.dev_output_buffer_t,
+        dev_ut_hit_offsets_t=ut_calculate_number_of_hits.dev_ut_hit_offsets_t,
+        dev_ut_cluster_offsets_t=ut_cluster_and_pre_decode.
+        dev_ut_cluster_offsets_t,
         dev_ut_uncompressed_hits_t=ut_cluster_and_pre_decode.
         dev_ut_pre_decoded_hits_t,
         dev_ut_tiebreak_t=ut_cluster_and_pre_decode.dev_ut_tiebreak_t)
@@ -118,33 +101,31 @@ def decode_ut(
     ut_find_permutation = make_algorithm(
         ut_find_permutation_t,
         name='ut_find_permutation_{hash}',
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_accumulated_number_of_ut_clusters_t=prefix_sum_ut_clusters.
+        host_accumulated_number_of_ut_clusters_t=ut_cluster_and_pre_decode.
         host_total_sum_holder_t,
         dev_ut_sort_keys_t=ut_compress_and_calculate_keys.dev_ut_sort_keys_t,
-        dev_ut_cluster_offsets_t=prefix_sum_ut_clusters.dev_output_buffer_t)
+        dev_ut_cluster_offsets_t=ut_cluster_and_pre_decode.
+        dev_ut_cluster_offsets_t)
 
     ut_decode_in_order = make_algorithm(
         ut_decode_in_order_t,
         name='ut_decode_in_order_{hash}',
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_accumulated_number_of_ut_clusters_t=prefix_sum_ut_clusters.
+        host_accumulated_number_of_ut_clusters_t=ut_cluster_and_pre_decode.
         host_total_sum_holder_t,
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_ut_pre_decoded_hits_t=ut_compress_and_calculate_keys.
         dev_ut_compressed_hits_t,
         dev_ut_permutations_t=ut_find_permutation.dev_ut_permutations_t,
-        dev_ut_cluster_offsets_t=prefix_sum_ut_clusters.dev_output_buffer_t)
+        dev_ut_cluster_offsets_t=ut_cluster_and_pre_decode.
+        dev_ut_cluster_offsets_t)
 
     return {
         "dev_ut_hits":
         ut_decode_in_order.dev_ut_hits_t,
         "dev_ut_hit_offsets":
-        prefix_sum_ut_clusters.dev_output_buffer_t,
-        "host_ut_hit_offsets":
-        prefix_sum_ut_clusters.host_output_buffer_t,
+        ut_cluster_and_pre_decode.dev_ut_cluster_offsets_t,
         "host_accumulated_number_of_ut_hits":
-        prefix_sum_ut_clusters.host_total_sum_holder_t
+        ut_cluster_and_pre_decode.host_total_sum_holder_t
     }
 
 
@@ -245,41 +226,31 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         min_ld_3_hit=compass_ut_min_ld_3_hit,
         min_ld_4_hit=compass_ut_min_ld_4_hit)
 
-    prefix_sum_ut_tracks = make_algorithm(
-        host_prefix_sum_t,
-        name='prefix_sum_ut_tracks_{hash}',
-        dev_input_buffer_t=compass_ut.dev_atomics_ut_t)
-
     ut_copy_track_hit_number = make_algorithm(
         ut_copy_track_hit_number_t,
         name='ut_copy_track_hit_number_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_reconstructed_ut_tracks_t=prefix_sum_ut_tracks.
-        host_total_sum_holder_t,
+        host_number_of_reconstructed_ut_tracks_t=compass_ut.
+        host_number_of_reconstructed_ut_tracks_t,
         dev_ut_tracks_t=compass_ut.dev_ut_tracks_t,
-        dev_offsets_ut_tracks_t=prefix_sum_ut_tracks.dev_output_buffer_t)
-
-    prefix_sum_ut_track_hit_number = make_algorithm(
-        host_prefix_sum_t,
-        name='prefix_sum_ut_track_hit_number_{hash}',
-        dev_input_buffer_t=ut_copy_track_hit_number.dev_ut_track_hit_number_t)
+        dev_offsets_ut_tracks_t=compass_ut.dev_offsets_ut_tracks_t)
 
     ut_consolidate_tracks = make_algorithm(
         ut_consolidate_tracks_t,
         name='ut_consolidate_tracks_{hash}',
         host_accumulated_number_of_ut_hits_t=decoded_ut[
             "host_accumulated_number_of_ut_hits"],
-        host_number_of_reconstructed_ut_tracks_t=prefix_sum_ut_tracks.
-        host_total_sum_holder_t,
+        host_number_of_reconstructed_ut_tracks_t=compass_ut.
+        host_number_of_reconstructed_ut_tracks_t,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_accumulated_number_of_hits_in_ut_tracks_t=
-        prefix_sum_ut_track_hit_number.host_total_sum_holder_t,
+        host_accumulated_number_of_hits_in_ut_tracks_t=ut_copy_track_hit_number
+        .host_accumulated_number_of_hits_in_ut_tracks_t,
         dev_ut_hits_t=decoded_ut["dev_ut_hits"],
         dev_ut_hit_offsets_t=decoded_ut["dev_ut_hit_offsets"],
-        dev_offsets_ut_tracks_t=prefix_sum_ut_tracks.dev_output_buffer_t,
-        dev_offsets_ut_track_hit_number_t=prefix_sum_ut_track_hit_number.
-        dev_output_buffer_t,
+        dev_offsets_ut_tracks_t=compass_ut.dev_offsets_ut_tracks_t,
+        dev_offsets_ut_track_hit_number_t=ut_copy_track_hit_number.
+        dev_offsets_ut_track_hit_number_t,
         dev_ut_tracks_t=compass_ut.dev_ut_tracks_t,
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"])
 
@@ -289,17 +260,18 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         "velo_states":
         velo_states,
         "host_number_of_reconstructed_ut_tracks":
-        prefix_sum_ut_tracks.host_total_sum_holder_t,
+        compass_ut.host_number_of_reconstructed_ut_tracks_t,
         "host_number_of_hits_of_reconstructed_ut_tracks":
-        prefix_sum_ut_track_hit_number.host_total_sum_holder_t,
+        ut_copy_track_hit_number.
+        host_accumulated_number_of_hits_in_ut_tracks_t,
         "dev_offsets_ut_tracks":
-        prefix_sum_ut_tracks.dev_output_buffer_t,
+        compass_ut.dev_offsets_ut_tracks_t,
         "dev_offsets_ut_track_hit_number":
-        prefix_sum_ut_track_hit_number.dev_output_buffer_t,
+        ut_copy_track_hit_number.dev_offsets_ut_track_hit_number_t,
         "dev_ut_track_hits":
         ut_consolidate_tracks.dev_ut_track_hits_t,
-        "dev_used_ut_hits":
-        ut_consolidate_tracks.dev_used_ut_hits_t,
+        "dev_used_ut_hits_offsets":
+        ut_consolidate_tracks.dev_used_ut_hits_offsets_t,
         "dev_ut_qop":
         ut_consolidate_tracks.dev_ut_qop_t,
         "dev_ut_track_velo_indices":

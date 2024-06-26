@@ -35,6 +35,6 @@ namespace global_decision {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 32};
+    Property<block_dim_x_t> m_block_dim_x {this, 256};
   };
 } // namespace global_decision

@@ -35,7 +35,10 @@ namespace lf_quality_filter {
     DEVICE_INPUT(dev_scifi_lf_parametrization_length_filter_t, float) dev_scifi_lf_parametrization_length_filter;
     DEVICE_INPUT(dev_input_states_t, MiniState) dev_input_states;
     DEVICE_OUTPUT(dev_lf_quality_of_tracks_t, float) dev_scifi_quality_of_tracks;
-    DEVICE_OUTPUT(dev_atomics_scifi_t, unsigned) dev_atomics_scifi;
+    DEVICE_OUTPUT(dev_offsets_long_tracks_t, unsigned) dev_offsets_long_tracks;
+    HOST_OUTPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned)
+    host_number_of_reconstructed_scifi_tracks;
+
     DEVICE_OUTPUT(dev_scifi_tracks_t, SciFi::TrackHits) dev_scifi_tracks;
     DEVICE_OUTPUT(dev_scifi_lf_y_parametrization_length_filter_t, float)
     dev_scifi_lf_y_parametrization_length_filter;

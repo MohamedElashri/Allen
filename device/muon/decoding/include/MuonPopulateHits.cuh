@@ -25,14 +25,12 @@ namespace muon_populate_hits {
     DEVICE_INPUT(dev_storage_tdc_value_t, unsigned) dev_storage_tdc_value;
     DEVICE_INPUT(dev_station_ocurrences_offset_t, unsigned) dev_station_ocurrences_offset;
     DEVICE_INPUT(dev_muon_compact_hit_t, uint64_t) dev_muon_compact_hit;
-    DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
     DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, unsigned) dev_storage_station_region_quarter_offsets;
-    DEVICE_OUTPUT(dev_permutation_station_t, unsigned) dev_permutation_station;
     DEVICE_OUTPUT(dev_muon_hits_t, char) dev_muon_hits;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void muon_populate_hits(Parameters);
+  __global__ void muon_populate_hits(Parameters, const Muon::MuonTables*);
 
   struct muon_populate_hits_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
