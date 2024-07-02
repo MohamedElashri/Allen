@@ -28,7 +28,7 @@ from AllenConf.validators import (
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer
-from AllenConf.utils import make_gec
+from AllenConf.filters import make_gec
 from AllenConf.best_track_creator import best_track_creator
 from AllenConf.enum_types import TrackingType
 

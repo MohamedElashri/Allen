@@ -14,7 +14,7 @@ from AllenConf.ut_reconstruction import decode_ut
 from AllenConf.validators import velo_validation, seeding_validation, seeding_xz_validation, long_validation, downstream_dump
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
 from PyConf.control_flow import NodeLogic, CompositeNode
-from AllenConf.utils import make_gec
+from AllenConf.filters import make_gec
 from AllenCore.generator import generate
 from AllenConf.downstream_reconstruction import make_downstream
 from AllenConf.primary_vertex_reconstruction import make_pvs

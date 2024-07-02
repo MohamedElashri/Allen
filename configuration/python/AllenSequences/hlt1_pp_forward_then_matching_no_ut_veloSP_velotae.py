@@ -12,7 +12,7 @@ from AllenConf.HLT1 import setup_hlt1_node
 from AllenConf.velo_reconstruction import decode_velo
 from AllenCore.generator import generate
 from AllenConf.enum_types import TrackingType
-from AllenConf.utils import make_tae_activity_filter
+from AllenConf.filters import make_tae_activity_filter
 
 with decode_velo.bind(retina_decoding=False):
     with make_tae_activity_filter.bind(

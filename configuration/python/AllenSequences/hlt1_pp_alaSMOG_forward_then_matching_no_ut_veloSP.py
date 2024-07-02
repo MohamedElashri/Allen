@@ -12,7 +12,7 @@ from AllenConf.HLT1 import setup_hlt1_node, default_SMOG2_lines
 from AllenConf.hlt1_smog2_lines import make_SMOG2_minimum_bias_line
 from AllenCore.generator import generate
 from AllenConf.enum_types import TrackingType
-from AllenConf.utils import make_checkPV
+from AllenConf.filters import make_checkPV
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.velo_reconstruction import decode_velo
 

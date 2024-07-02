@@ -10,7 +10,7 @@
 ###############################################################################
 from AllenConf.HLT1_PbPb import setup_hlt1_node
 from AllenCore.generator import generate
-from AllenConf.utils import make_gec
+from AllenConf.filters import make_gec
 from AllenConf.enum_types import TrackingType
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.calo_reconstruction import make_ecal_clusters

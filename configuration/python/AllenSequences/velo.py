@@ -10,7 +10,7 @@
 ###############################################################################
 
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
-from AllenConf.utils import make_gec
+from AllenConf.filters import make_gec
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate
 
