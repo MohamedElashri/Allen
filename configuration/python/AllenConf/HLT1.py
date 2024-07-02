@@ -8,10 +8,7 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
-                             make_checkCylPV, make_checkPseudoPV,
-                             make_invert_event_list, sd_error_filter,
-                             make_tae_activity_filter)
+from AllenConf.utils import line_maker, make_invert_event_list
 from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter, make_event_type, make_odin_orbit
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
@@ -24,6 +21,7 @@ from AllenConf.hlt1_electron_lines import *
 from AllenConf.hlt1_monitoring_lines import *
 from AllenConf.hlt1_smog2_lines import *
 from AllenConf.hlt1_downstream_lines import *
+from AllenConf.filters import *
 
 from AllenConf.hlt1_photon_lines import make_diphotonhighmass_line
 from AllenConf.persistency import make_persistency
@@ -910,8 +908,13 @@ def setup_hlt1_node(enablePhysics=True,
 
     hlt1_config['reconstruction'] = reconstructed_objects
 
-    gec = [make_gec(count_ut=False, max_scifi_clusters=17000)
-           ] if EnableGEC else []
+    gec = [
+        make_gec(
+            count_ut=False,
+            count_velo=True,
+            max_scifi_clusters=20000,
+            max_velo_clusters=35000)
+    ] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
                        ] if with_odin_filter else []
     beam_beam_filter = [make_bxtype(bx_type=3)]

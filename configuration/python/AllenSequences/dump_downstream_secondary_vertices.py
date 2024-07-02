@@ -11,7 +11,7 @@
 from AllenConf.downstream_reconstruction import make_downstream_objects
 
 from AllenConf.validators import dump_downstream_secondary_vertices
-from AllenConf.utils import make_gec
+from AllenConf.filters import make_gec
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate
 

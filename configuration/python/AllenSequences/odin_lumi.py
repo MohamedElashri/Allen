@@ -12,7 +12,8 @@ from AllenConf.hlt1_reconstruction import hlt1_reconstruction
 from AllenConf.hlt1_calibration_lines import make_passthrough_line
 from AllenCore.generator import generate
 from AllenConf.persistency import make_persistency, make_gather_selections
-from AllenConf.utils import line_maker, sd_error_filter
+from AllenConf.utils import line_maker
+from AllenConf.filters import sd_error_filter
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenConf.validators import rate_validation
 from AllenConf.odin import odin_error_filter, make_event_type, make_odin_orbit, tae_filter

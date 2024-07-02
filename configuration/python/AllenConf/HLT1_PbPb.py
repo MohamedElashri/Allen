@@ -8,7 +8,8 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenConf.utils import make_gec, line_maker, make_checkEcalEnergy, make_lowmult, sd_error_filter
+from AllenConf.filters import make_gec, make_checkEcalEnergy, make_lowmult, sd_error_filter
+from AllenConf.utils import line_maker
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction, validator_node
 from AllenConf.hlt1_calibration_lines import (
     make_d2kpi_align_line, make_passthrough_line, make_rich_1_line,

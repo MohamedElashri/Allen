@@ -12,7 +12,7 @@ from AllenConf.HLT1 import setup_hlt1_node
 from AllenCore.generator import generate
 from AllenConf.enum_types import TrackingType
 from AllenConf.get_thresholds import get_thresholds
-from AllenConf.utils import make_tae_activity_filter
+from AllenConf.filters import make_tae_activity_filter
 
 with make_tae_activity_filter.bind(
         use_long_tracks=True, name="tae_long_activity_filter"):

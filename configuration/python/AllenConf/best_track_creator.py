@@ -8,7 +8,8 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenConf.utils import make_gec, initialize_number_of_events
+from AllenConf.utils import initialize_number_of_events
+from AllenConf.filters import make_gec
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
 from AllenConf.scifi_reconstruction import (
     forward_tracking, make_seeding_XZ_tracks, make_seeding_tracks,
