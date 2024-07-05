@@ -117,7 +117,7 @@ void AllenUpdater::registerProducer(string const& id, Allen::NonEventData::Produ
 void AllenUpdater::update(gsl::span<unsigned const> odin_data)
 {
   {
-    std::unique_lock {m_odinMutex};
+    std::scoped_lock lock {m_odinMutex};
     LHCb::ODIN odin {odin_data};
     if (m_odin && m_odin->runNumber() == odin.runNumber()) {
       return;
