@@ -281,6 +281,8 @@ __global__ void track_matching::track_matching_veloSciFi(
 
       // Save the result
       auto idx = atomicAdd(&n_matched, 1);
+      if (idx >= TrackMatchingConsts::max_num_tracks) break;
+
       auto& matched_track = matched_tracks_event[idx];
 
       const auto magSign = -dev_magnet_polarity[0];
@@ -301,6 +303,14 @@ __global__ void track_matching::track_matching_veloSciFi(
       matched_track.ut_score = 0;
       matched_track.score = ghost_killer_score;
     }
+  }
+
+  __syncthreads();
+  if (threadIdx.x == 0 && n_matched > TrackMatchingConsts::max_num_tracks) {
+    // If there are more than the maximum number of tracks, don't save any
+    // reconstructed tracks to avoid non-deterministic behavior.
+    // TODO: Add counter here?
+    n_matched = 0;
   }
 }
 
