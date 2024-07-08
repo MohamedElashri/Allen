@@ -95,7 +95,7 @@ namespace error_bank_filter {
       unsigned const event_start) const;
 
   private:
-    using bin_mapping_t = std::array<unsigned, LHCb::RawBank::BankType::LastType>;
+    using bin_mapping_t = std::array<unsigned, 256>;
 
 #ifndef ALLEN_STANDALONE
     mutable std::unique_ptr<Gaudi::Accumulators::Histogram<1>> m_error_per_source;
@@ -115,7 +115,9 @@ namespace error_bank_filter {
       std::unordered_set<unsigned char> error_bank_types;
 #ifndef ALLEN_STANDALONE
       bin_mapping_t mapping;
+      bin_mapping_t unexpected_mapping;
       std::unique_ptr<Gaudi::Accumulators::Histogram<1>> banks;
+      std::unique_ptr<Gaudi::Accumulators::Histogram<1>> unexpected_banks;
       std::unique_ptr<Gaudi::Accumulators::Counter<>> error;
       std::unique_ptr<Gaudi::Accumulators::Counter<>> invalid_type;
 #endif
