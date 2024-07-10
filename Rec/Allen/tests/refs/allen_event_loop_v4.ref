@@ -12,6 +12,8 @@ Using 3 input slices.
   make_selreps
   rate_validator
 ApplicationMgr                         INFO Application Manager Started successfully
+HLTControlFlowMgr                      INFO Will measure time between events 0 and 0 (stop might be some events later)
+HLTControlFlowMgr                      INFO Starting loop on events
 DeviceFTGeometry                       INFO Conditions DB is compatible with FT bank version 7 and 8.
 Starting timer for throughput measurement
 Input complete
