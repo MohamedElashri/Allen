@@ -339,9 +339,15 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 is_same_sign=True,
                 pre_scaler=1.0,
                 name="Hlt1DiElectronHighMass_SS"),
+            make_highmass_dielectron_line(
+                long_tracks,
+                dileptons,
+                calo_matching_objects,
+                is_same_sign=False,
+                name="Hlt1DiElectronHighMass"),
             make_di_electron_soft_line(
                 long_tracks,
-                secondary_vertices,
+                dileptons,
                 calo_matching_objects,
                 name="Hlt1DiElectronSoft")            
         ]
