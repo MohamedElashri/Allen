@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -78,14 +85,28 @@ namespace Allen::Store {
     {
       Allen::Store::AllenArgument arg {std::in_place_type<T>, k, Allen::Store::Scope::Host};
       arg.set_size(value.size());
+      reserve(arg);
       const auto& [i, ok] = m_store.try_emplace(k, arg);
       if (!ok) {
         throw std::runtime_error("store register_entry failed, entry already exists");
       }
-      arg = i->second;
-      reserve(arg);
       gsl::span<T> arg_span = arg;
       std::memcpy(arg_span.data(), value.data(), value.size() * sizeof(T));
+    }
+
+    void inject(const std::string& k, const std::vector<bool>& value)
+    {
+      Allen::Store::AllenArgument arg {std::in_place_type<bool>, k, Allen::Store::Scope::Host};
+      arg.set_size(value.size());
+      reserve(arg);
+      const auto& [i, ok] = m_store.try_emplace(k, arg);
+      if (!ok) {
+        throw std::runtime_error("store register_entry failed, entry already exists");
+      }
+      gsl::span<bool> arg_span = arg;
+      for (auto i = 0u; i < value.size(); ++i) {
+        arg_span[i] = value[i];
+      }
     }
 
     void free_all() { m_mem_manager.free_all(); }
@@ -251,7 +272,7 @@ namespace Allen::Store {
   private:
     mutable arguments_t m_arguments;
     input_aggregates_t m_input_aggregates;
-    UnorderedStore* m_store;
+    UnorderedStore* m_store = nullptr;
 
     template<typename T, std::enable_if_t<!std::is_base_of_v<aggregate_datatype, T>, bool> = true>
     decltype(m_arguments[index_of_v<T, parameters_tuple_t>].get()) arg() const
@@ -276,11 +297,12 @@ namespace Allen::Store {
     auto make_buffer(const size_t size) const
     {
       using type = std::remove_const_t<T>;
-#if defined(ALLEN_STANDALONE) || !defined(TARGET_DEVICE_CPU)
-      return m_store->make_buffer<S, type>(size);
-#else
-      return Allen::buffer<Allen::Store::Scope::Host, type> {size};
-#endif
+      if (m_store) {
+        return m_store->make_buffer<S, type>(size);
+      }
+      else {
+        return Allen::buffer<S, type> {size};
+      }
     }
 
     template<typename T>
@@ -327,13 +349,13 @@ namespace Allen::Store {
     void resize(const size_t size) const
     {
       static_assert(!Allen::is_template_base_of_v<input_datatype, T> && "resize can only be used on output datatypes");
-#if defined(ALLEN_STANDALONE) || !defined(TARGET_DEVICE_CPU)
-      m_store->free(name<T>());
+      if (m_store) {
+        m_store->free(name<T>());
+      }
       arg<T>().set_size(size);
-      m_store->put(name<T>());
-#else
-      arg<T>().set_size(size);
-#endif
+      if (m_store) {
+        m_store->put(name<T>());
+      }
     }
 
     /**

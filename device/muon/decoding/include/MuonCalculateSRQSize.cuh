@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -18,8 +25,8 @@ namespace muon_calculate_srq_size {
     DEVICE_INPUT(dev_muon_raw_offsets_t, unsigned) dev_muon_raw_offsets;
     DEVICE_INPUT(dev_muon_raw_sizes_t, unsigned) dev_muon_raw_sizes;
     DEVICE_INPUT(dev_muon_raw_types_t, unsigned) dev_muon_raw_types;
-    DEVICE_OUTPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
-    DEVICE_OUTPUT(dev_storage_station_region_quarter_sizes_t, unsigned) dev_storage_station_region_quarter_sizes;
+    DEVICE_OUTPUT(dev_storage_station_region_quarter_offsets_t, unsigned) dev_storage_station_region_quarter_offsets;
+    HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
   };
 
   struct muon_calculate_srq_size_t : public DeviceAlgorithm, Parameters {

@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -33,7 +40,16 @@ namespace host_scifi_gec {
     auto const scifi_offsets = *parameters.scifi_offsets;
     auto const scifi_sizes = *parameters.scifi_sizes;
     auto const scifi_types = *parameters.scifi_types;
+    // If FT rawbank is empty
+    if (scifi_offsets.empty() || scifi_sizes.empty() || scifi_types.empty()) {
+      for (unsigned event_index = 0; event_index < parameters.host_number_of_events[0]; ++event_index) {
+        parameters.host_output_event_list[event_index] = event_index;
+      }
+      parameters.host_number_of_selected_events[0] = parameters.host_number_of_events[0];
+      return;
+    }
 
+    // Gec logic
     unsigned size_of_list = 0;
     for (unsigned event_index = 0; event_index < parameters.host_number_of_events[0]; ++event_index) {
       unsigned event_number = event_start + event_index;

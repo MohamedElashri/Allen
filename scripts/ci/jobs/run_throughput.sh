@@ -1,6 +1,13 @@
 #!/bin/bash
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
 check_build_exists
@@ -14,13 +21,13 @@ fi
 
 # if a geometry folder is specified, pass it to Allen.
 if [ ! -z ${GEOMETRY+x} ]; then
-  RUN_OPTIONS="$RUN_OPTIONS -g /scratch/allen_geometries/${GEOMETRY}"
+  RUN_OPTIONS="$RUN_OPTIONS -g ../input/allen_geometries/${GEOMETRY}"
 fi
 
-RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}  --run-from-json 1 --params external/ParamFiles/ ${RUN_OPTIONS}"
+RUN_OPTIONS="--mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}.json --params external/ParamFiles/ ${RUN_OPTIONS}"
 
 
-if [ "${AVOID_HIP}" = "1" ]; then 
+if [ "${AVOID_HIP}" = "1" ]; then
   if [ "${TARGET}" = "HIP" ]; then
     echo "***** Variable TARGET is set to HIP, and AVOID_HIP is set to 1 - quit."
     exit 0
@@ -87,7 +94,7 @@ else
     NUMA_NODE=${CI_RUNNER_DESCRIPTION_SPLIT[2]}
     THREADS=$((${TOTAL_THREADS} / ${TOTAL_NUMA_NODES}))
     RUN_OPTIONS="${RUN_OPTIONS} ${RUN_THROUGHPUT_OPTIONS_CPU} -t ${THREADS}"
-    
+
     ALLEN="numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper ./Allen ${RUN_OPTIONS}"
 
   elif [ "${TARGET}" = "CUDA" ]; then
@@ -96,7 +103,7 @@ else
     GPU_NUMBER=`nvidia-smi -L | grep ${GPU_UUID} | awk '{ print $2; }' | sed -e 's/://'`
     NUMA_NODE=`nvidia-smi topo -m | grep GPU${GPU_NUMBER} | tail -1 | awk '{ print $NF; }'`
     RUN_OPTIONS="${RUN_OPTIONS} ${RUN_THROUGHPUT_OPTIONS_CUDA}"
-    
+
     ALLEN="CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ./toolchain/wrapper ./Allen ${RUN_OPTIONS}"
 
     nvidia-smi
@@ -141,7 +148,7 @@ echo "${CI_COMMIT_SHORT_SHA}" > "${OUTPUT_FOLDER}/revision.txt"
 echo "throughput_kHz{device=\"${DEVICE_ID}\",sequence=\"${SEQUENCE}\",dataset=\"${DATA_TAG}\"} ${THROUGHPUT_KHZ}" >> "${OUTPUT_FOLDER}/metrics.txt"
 
 
-if [ "${TPUT_REPORT}" = "NO_REPORT" ]; then 
+if [ "${TPUT_REPORT}" = "NO_REPORT" ]; then
   echo "TPUT_REPORT is set to ${TPUT_REPORT} - throughput will not be reported."
 
   touch "${OUTPUT_FOLDER}/no_throughput_report.txt"

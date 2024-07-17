@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -57,6 +64,24 @@ namespace UT {
     unsigned short hits_num = 0;
     unsigned short velo_track_index;
     short hits[UT::Constants::max_track_size];
+
+    friend std::ostream& operator<<(std::ostream& stream, const TrackHits& hit)
+    {
+      constexpr int prec = 6, width = 12;
+      stream << std::setprecision(prec) << std::setw(width) << "UT track" << std::setw(width) << hit.qop
+             << std::setw(width) << hit.x << std::setw(width) << hit.z << std::setw(width) << hit.tx << std::setw(width)
+             << hit.hits_num;
+      return stream;
+    }
+  };
+
+  struct DownstreamTrack {
+  public:
+    constexpr static unsigned n_layers = UT::Constants::n_layers;
+    float x, y, tx, ty, qop, chi2, ghost_prob;
+    ushort scifi_idx;
+    ushort num_hits;
+    ushort hits[n_layers];
   };
 
   /**
@@ -274,51 +299,56 @@ namespace UT {
   template<typename T>
   struct PreDecodedHits_t {
   private:
-    typename ForwardType<T, float>::t* m_base_pointer;
+    typename ForwardType<T, unsigned>::t* m_base_pointer;
     const unsigned m_total_number_of_hits;
 
   public:
-    constexpr static unsigned element_size = sizeof(float) + sizeof(unsigned);
+    constexpr static unsigned element_size = 2 * sizeof(unsigned) + sizeof(float);
 
     /**
      * @brief Populates the UTHits object pointers to an array of data
      *        pointed by base_pointer.
      */
     __host__ __device__ PreDecodedHits_t(T* base_pointer, const unsigned total_number_of_hits) :
-      m_base_pointer(reinterpret_cast<typename ForwardType<T, float>::t*>(base_pointer)),
+      m_base_pointer(reinterpret_cast<typename ForwardType<T, unsigned>::t*>(base_pointer)),
       m_total_number_of_hits(total_number_of_hits)
     {}
 
     // Const and lvalue accessors
-    __host__ __device__ float sort_key(const unsigned index) const
+    __host__ __device__ unsigned geometry_index(const unsigned index) const
     {
       assert(index < m_total_number_of_hits);
       return m_base_pointer[index];
     }
 
-    __host__ __device__ float& sort_key(const unsigned index)
+    __host__ __device__ unsigned& geometry_index(const unsigned index)
     {
       assert(index < m_total_number_of_hits);
       return m_base_pointer[index];
     }
 
-    __host__ __device__ unsigned index(const unsigned index) const
+    __host__ __device__ unsigned id(const unsigned index) const
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer)[m_total_number_of_hits + index];
+      return m_base_pointer[m_total_number_of_hits + index];
     }
 
-    __host__ __device__ unsigned& index(const unsigned index)
+    __host__ __device__ unsigned& id(const unsigned index)
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer)[m_total_number_of_hits + index];
+      return m_base_pointer[m_total_number_of_hits + index];
     }
 
-    // Pointer accessors for binary search
-    __host__ __device__ typename ForwardType<T, float>::t* sort_key_p(const unsigned index) const
+    __host__ __device__ float num_strips(const unsigned index) const
     {
       assert(index < m_total_number_of_hits);
-      return m_base_pointer + index;
+      return reinterpret_cast<typename ForwardType<T, float>::t*>(m_base_pointer)[2 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ float& num_strips(const unsigned index)
+    {
+      assert(index < m_total_number_of_hits);
+      return reinterpret_cast<typename ForwardType<T, float>::t*>(m_base_pointer)[2 * m_total_number_of_hits + index];
     }
   };
 

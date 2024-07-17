@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration           *
+* (c) Copyright 2022-24 CERN for the benefit of the LHCb Collaboration        *
 *                                                                             *
 * This software is distributed under the terms of the Apache License          *
 * version 2 (Apache-2.0), copied verbatim in the file "COPYING".              *

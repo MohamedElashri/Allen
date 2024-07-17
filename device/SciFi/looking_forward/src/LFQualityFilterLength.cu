@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "LFQualityFilterLength.cuh"
 
@@ -53,8 +60,10 @@ __device__ void quality_filter_length(lf_quality_filter_length::Parameters param
   for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
     const auto scifi_track_index = event_tracks_offset * maximum_number_of_candidates_per_ut_track + i;
     const SciFi::TrackHits& track = parameters.dev_scifi_lf_tracks[scifi_track_index];
+    if (
+      track.hitsNum >= parameters.min_tot_scifi_hits && track.UVhitsNum >= parameters.min_UV_scifi_hits &&
+      track.XhitsNum >= parameters.min_X_scifi_hits) {
 
-    if (track.hitsNum >= LookingForward::track_min_hits) {
       const auto insert_index = atomicAdd(parameters.dev_scifi_lf_length_filtered_atomics + event_number, 1);
 
       const auto new_scifi_track_index = event_tracks_offset * maximum_number_of_candidates_per_ut_track + insert_index;
@@ -85,7 +94,7 @@ __device__ void quality_filter_length(lf_quality_filter_length::Parameters param
 __global__ void lf_quality_filter_length::lf_quality_filter_length(lf_quality_filter_length::Parameters parameters)
 {
   const auto* ut_tracks =
-    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
     quality_filter_length<true>(parameters, ut_tracks);
   }

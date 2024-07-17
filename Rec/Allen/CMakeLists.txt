@@ -1,5 +1,12 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 #[========================================[.rst:
 Rec/Allen
@@ -13,23 +20,26 @@ include(GenerateConfiguration)
 
 gaudi_add_module(AllenWrapper
                  SOURCES
-                   src/GaudiAllenPVsToRecVertexV2.cpp
-                   src/GaudiAllenUTToV2Tracks.cpp
+                   src/GaudiAllenPVsToPrimaryVertexContainer.cpp
                    src/GaudiAllenCaloToCaloClusters.cpp
                    src/GaudiAllenCountAndDumpLineDecisions.cpp
-                   src/GaudiAllenForwardToV2Tracks.cpp
+                   src/GaudiAllenFilterEventsLineDecisions.cpp
                    src/GaudiAllenReportsToRawEvent.cpp
                    src/GaudiAllenLumiSummaryToRawEvent.cpp
                    src/GaudiAllenSVsToRecVertexV2.cpp
-                   src/GaudiAllenVeloToV2Tracks.cpp
-                   src/ProvideConstants.cpp
+                   src/GaudiAllenTrackViewsToV3Tracks.cpp
                    src/AllenROOTService.cpp
                    src/ProvideRuntimeOptions.cpp
-                   src/TestAllenCaloDigits.cpp
-                   src/TestMuonHits.cpp
-                   src/TestUTHits.cpp
-                   src/TestFTClusters.cpp
+                   src/CompareRecAllenCaloDigits.cpp
+                   src/CompareRecAllenMuonHits.cpp
+                   src/CompareRecAllenUTHits.cpp
+                   src/GaudiAllenTransformAllenRecUTHits.cpp
+                   src/MCCheckRecAllenUTHits.cpp
+                   src/CompareRecAllenFTClusters.cpp
+                   src/CompareRecAllenVPHits.cpp
                    src/TestVeloClusters.cpp
+                   src/TestAllenRichPixels.cpp
+                   src/IOMonitor.cpp
                  LINK
                    AllenLib
                    Backend
@@ -37,8 +47,8 @@ gaudi_add_module(AllenWrapper
                    HostCommon
                    HostEventModel
                    HostRoutingBits
-                   NonEventData
                    TrackChecking
+                   PV_beamline
                    PVChecking
                    CheckClustering
                    SelChecking
@@ -52,17 +62,17 @@ gaudi_add_module(AllenWrapper
                    MuonCommon
                    EventModel
                    Gear
+                   Rich
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
-                   LHCb::DAQKernelLib
                    LHCb::RecEvent
                    LHCb::VPDetLib
                    LHCb::UTDetLib
                    LHCb::UTKernelLib
                    LHCb::CaloDetLib
                    LHCb::FTDetLib
-                   LHCb::RecEvent
                    LHCb::MCEvent
+                   LHCb::RecEvent
                    Rec::PrKernel)
 
 target_include_directories(AllenWrapper PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
@@ -78,28 +88,31 @@ gaudi_add_module(AllenAlgorithms
                    ${WRAPPED_ALGORITHM_SOURCES}
                  LINK
                    AllenLib
-       Backend
-           Stream
-         HostCommon
-   		   HostEventModel
-   		   HostRoutingBits
-           NonEventData
-           TrackChecking
-           PVChecking
-           CheckClustering
-           SelChecking
-           Monitoring
-           HostCombiners
-           EventModel
-           Gear
-           mdf
-           LHCbEvent
+                   Backend
+                   CheckClustering
                    EventModel
-       MuonCommon
-       WrapperInterface
+                   Gear
+                   HostCombiners
+                   HostCommon
+                   HostEventModel
+                   HostRoutingBits
+                   LHCbEvent
+                   Monitoring
+                   MuonCommon
+                   NonEventData
+                   PV_beamline
+                   PVChecking
+                   SelChecking
+                   SelectionsHeaders
+                   Stream
+                   TrackChecking
+                   UTCommon
+                   Utils
+                   WrapperInterface
+                   mdf
+                   Rich
                    Gaudi::GaudiAlgLib
                    LHCb::DAQEventLib
-                   LHCb::DAQKernelLib
                    LHCb::VPDetLib
                    LHCb::UTDetLib
                    LHCb::UTKernelLib
@@ -113,6 +126,9 @@ add_custom_target(gaudi_wrappers_of_allen_algorithms DEPENDS ${WRAPPED_ALGORITHM
 target_include_directories(AllenAlgorithms PRIVATE ${PROJECT_BINARY_DIR}/code_generation)
 add_dependencies(AllenAlgorithms gaudi_wrappers_of_allen_algorithms)
 target_compile_definitions(AllenAlgorithms PRIVATE -D${TARGET_DEFINITION})
+# We cannot fix use of lambda capture `[=]` (C++17) or `[=,this]` (C++20) at the same time
+# so we hide the warning when we use C++17.
+target_compile_options(AllenAlgorithms PRIVATE -Wno-c++20-extensions)
 
 endif()
 
@@ -130,3 +146,14 @@ gaudi_add_executable(test_mass_definitions
         LHCb::PartPropLib
     TEST
 )
+
+if(BUILD_TESTING AND NOT USE_DD4HEP)
+    # Disable test on data for detdesc builds
+    set_property(
+        TEST
+          Allen.mdf_input_2023_data
+          Allen.mdf_input_2024_data_tae
+        PROPERTY
+          DISABLED TRUE
+    )
+endif()

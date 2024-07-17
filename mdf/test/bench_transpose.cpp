@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <cstring>
 #include <iostream>
@@ -175,7 +182,7 @@ int main(int argc, char* argv[])
                                   &banks_version,
                                   &event_ids,
                                   &event_masks] {
-      auto& read_buffer = read_buffers[i];
+      auto& buffer = read_buffers[i];
       for (size_t rep = 0; rep < n_reps; ++rep) {
 
         // Reset the slice
@@ -183,7 +190,7 @@ int main(int argc, char* argv[])
 
         // Transpose events
         auto [success, transpose_full, n_transposed] = transpose_events(
-          read_buffer,
+          buffer,
           slices,
           i,
           {BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN},

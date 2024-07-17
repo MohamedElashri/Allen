@@ -1,0 +1,157 @@
+/*****************************************************************************\
+* (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#pragma once
+
+#include "AlgorithmTypes.cuh"
+#include "CompositeParticleLine.cuh"
+#include "ParKalmanFilter.cuh"
+#include "ROOTService.h"
+#include <ROOTHeaders.h>
+
+#include "AllenMonitoring.h"
+
+namespace lowmass_dielectron_line {
+  struct Parameters {
+    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
+    HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
+    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
+    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+    DEVICE_INPUT(dev_brem_corrected_pt_t, float) dev_brem_corrected_pt;
+    DEVICE_INPUT(dev_electronid_evaluation_t, float) dev_electronid_evaluation;
+    // Outputs
+    HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
+    host_fn_parameters;
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
+    // Outputs for ROOT tupling
+    DEVICE_OUTPUT(dev_die_masses_raw_t, float) dev_die_masses_raw;
+    DEVICE_OUTPUT(dev_die_masses_bremcorr_t, float) dev_die_masses_bremcorr;
+    DEVICE_OUTPUT(dev_die_pts_raw_t, float) dev_die_pts_raw;
+    DEVICE_OUTPUT(dev_die_pts_bremcorr_t, float) dev_die_pts_bremcorr;
+    DEVICE_OUTPUT(dev_e_minpts_raw_t, float) dev_e_minpts_raw;
+    DEVICE_OUTPUT(dev_e_minpt_bremcorr_t, float) dev_e_minpt_bremcorr;
+    DEVICE_OUTPUT(dev_die_minipchi2_t, float) dev_die_minipchi2;
+    DEVICE_OUTPUT(dev_die_ip_t, float) dev_die_ip;
+    // Properties
+    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
+    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
+    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
+    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
+    PROPERTY(selectPrompt_t, "selectPrompt", "Use ipchi2 threshold as upper (prompt) or lower (displaced) bound", bool)
+    selectPrompt;
+    PROPERTY(MinMass_t, "MinMass", "Min vertex mass", float) minMass;
+    PROPERTY(MaxMass_t, "MaxMass", "Max vertex mass", float) maxMass;
+    PROPERTY(ss_on_t, "ss_on", "Flag when same-sign candidates should be selected", bool) ss_on;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
+    PROPERTY(MinZ_t, "MinZ", "Min z dielectron coordinate", float) MinZ;
+    PROPERTY(TrackIPChi2Threshold_t, "TrackIPChi2Threshold", "Track IP Chi2 threshold", float) trackIPChi2Threshold;
+    PROPERTY(MaxDOCA_t, "MaxDOCA", "Max DOCA", float) maxDOCA;
+    PROPERTY(MaxVtxChi2_t, "MaxVtxChi2", "Max vertex chi2", float) maxVtxChi2;
+    PROPERTY(MinPTprompt_t, "MinPTprompt", "Min PTprompt", float) minPTprompt;
+    PROPERTY(MinPTdisplaced_t, "MinPTdisplaced", "Min PTdisplaced", float) minPTdisplaced;
+    PROPERTY(MinDielectronPT_t, "MinDielectronPT", "Min dielectron PT", float) minDielectronPT;
+    PROPERTY(UseNN_t, "UseNN", "Use NN flag", bool) useNN;
+    PROPERTY(NNCut_t, "NNCut", "NN cut value", float) nnCut;
+  };
+
+  struct lowmass_dielectron_line_t : public SelectionAlgorithm,
+                                     Parameters,
+                                     CompositeParticleLine<lowmass_dielectron_line_t, Parameters> {
+    struct DeviceAccumulators {
+      Allen::Monitoring::LogHistogram<>::DeviceType histogram_dielectron_masses;
+      Allen::Monitoring::LogHistogram<>::DeviceType histogram_dielectron_masses_brem;
+      DeviceAccumulators(const lowmass_dielectron_line_t& algo, const Allen::Context& ctx) :
+        histogram_dielectron_masses(algo.m_histogram_dielectron_masses.data(ctx)),
+        histogram_dielectron_masses_brem(algo.m_histogram_dielectron_masses_brem.data(ctx))
+      {}
+    };
+
+    __device__ static bool select(
+      const Parameters&,
+      const DeviceAccumulators&,
+      std::tuple<
+        const Allen::Views::Physics::CompositeParticle,
+        const bool,
+        const bool,
+        const float,
+        const float,
+        const float,
+        const bool,
+        const bool>);
+
+    __device__ static std::tuple<
+      const Allen::Views::Physics::CompositeParticle,
+      const bool,
+      const bool,
+      const float,
+      const float,
+      const float,
+      const bool,
+      const bool>
+    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
+    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+
+    void init_tuples(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
+
+    __device__ static void fill_tuples(
+      const Parameters& parameters,
+      std::tuple<
+        const Allen::Views::Physics::CompositeParticle,
+        const bool,
+        const bool,
+        const float,
+        const float,
+        const float,
+        const bool,
+        const bool> input,
+      unsigned index,
+      bool sel);
+
+    void output_tuples(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
+      const;
+
+  private:
+    Allen::Monitoring::LogHistogram<> m_histogram_dielectron_masses {
+      this,
+      "dielectron_mass_counts",
+      "dielectron masses",
+      {200u, 0.f, 1500.f, 0.22842211f, 14.59935056f, 1.f}};
+    Allen::Monitoring::LogHistogram<> m_histogram_dielectron_masses_brem {
+      this,
+      "dielectron_mass_counts_brem",
+      "dielectron masses with brem",
+      {200u, 0.f, 1500.f, 0.22842211f, 14.59935056f, 1.f}};
+
+  private:
+    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
+    Property<post_scaler_t> m_post_scaler {this, 1.f};
+    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
+    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
+    Property<selectPrompt_t> m_selectPrompt {this, true};
+    Property<MinMass_t> m_MinMass {this, 5.f};
+    Property<MaxMass_t> m_MaxMass {this, 300.f};
+    Property<ss_on_t> m_ss_on {this, false};
+    Property<enable_monitoring_t> m_enable_monitoring {this, true};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Property<MinZ_t> m_MinZ {this, -341.f * Gaudi::Units::mm};
+    Property<TrackIPChi2Threshold_t> m_TrackIPChi2Threshold {
+      this,
+      2.0f}; // threshold to split 'prompt' and 'displaced' candidates
+    Property<MaxDOCA_t> m_MaxDOCA {this, 0.082f};
+    Property<MinPTprompt_t> m_MinPTprompt {this, 0.f};
+    Property<MinPTdisplaced_t> m_MinPTdisplaced {this, 0.f};
+    Property<MaxVtxChi2_t> m_MaxVtxChi2 {this, 7.4f};
+    Property<MinDielectronPT_t> m_MinDielectronPT {this, 1000.f};
+    Property<UseNN_t> m_UseNN {this, false};
+    Property<NNCut_t> m_NNCut {this, 0.7};
+  };
+} // namespace lowmass_dielectron_line

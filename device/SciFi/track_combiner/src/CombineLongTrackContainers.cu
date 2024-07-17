@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "CombineLongTrackContainers.cuh"
 
@@ -54,7 +61,7 @@ __global__ void combine_track_views(combine_long_track_containers::Parameters pa
   if (blockIdx.x == 0 && threadIdx.x == 0) {
     new (parameters.dev_multi_event_long_tracks_view_output)
       Allen::Views::Physics::MultiEventLongTracks {parameters.dev_long_tracks_view_output, number_of_events};
-    parameters.dev_multi_event_long_tracks_ptr_output[0] = parameters.dev_multi_event_long_tracks_view_output.get();
+    parameters.dev_multi_event_long_tracks_ptr_output[0] = parameters.dev_multi_event_long_tracks_view_output.data();
   }
 }
 

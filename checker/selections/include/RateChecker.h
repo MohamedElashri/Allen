@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -31,7 +38,7 @@ private:
 public:
   RateChecker(CheckerInvoker const*, std::string const&, std::string const&) { m_tot = 0; }
 
-  void accumulate(const char* names_of_lines, const unsigned* dec_reports, const unsigned number_of_events);
+  void accumulate(const char* names_of_lines, gsl::span<const unsigned> dec_reports, const unsigned number_of_events);
 
   void report(const size_t requested_events) const override;
 };

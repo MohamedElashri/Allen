@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -20,8 +27,6 @@ namespace Velo {
     static constexpr float z_endVelo = 770; // FIXME_GEOMETRY_HARDCODING
 
     // Constants for requested storage on device
-    static constexpr float max_number_of_tracks_per_cluster = 0.3f; // Maximum one track every three clusters
-    static constexpr unsigned minimum_container_size = 10;          // Lower bound for the track container size
     static constexpr unsigned max_track_size = 26;
     static constexpr unsigned max_tracks_to_follow = 2048;
 

@@ -1,9 +1,17 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
 #include "AlgorithmTypes.cuh"
+#include "Datatype.cuh"
 #include "States.cuh"
 #include "SciFiConsolidated.cuh"
 #include "CaloGeometry.cuh"
@@ -17,7 +25,8 @@ namespace track_digit_selective_matching {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     // SciFi tracks
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
-    DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
+    // DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
+    DEVICE_INPUT(dev_tracks_view_t, Allen::IMultiEventContainer*) dev_tracks_view;
     // Calo digits
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
@@ -27,7 +36,13 @@ namespace track_digit_selective_matching {
     DEVICE_OUTPUT(dev_matched_ecal_digits_t, std::array<unsigned, 6>) dev_matched_ecal_digits;
     DEVICE_OUTPUT(dev_track_inEcalAcc_t, bool) dev_track_inEcalAcc;
     DEVICE_OUTPUT(dev_track_Eop_t, float) dev_track_Eop;
+    DEVICE_OUTPUT(dev_track_Eop3x3_t, float) dev_track_Eop3x3;
     DEVICE_OUTPUT(dev_track_isElectron_t, bool) dev_track_isElectron;
+    DEVICE_OUTPUT(dev_delta_barycenter_t, float) dev_delta_barycenter;
+    DEVICE_OUTPUT(dev_dispersion_x_t, float) dev_dispersion_x;
+    DEVICE_OUTPUT(dev_dispersion_y_t, float) dev_dispersion_y;
+    DEVICE_OUTPUT(dev_dispersion_xy_t, float) dev_dispersion_xy;
+    DEVICE_OUTPUT(dev_track_local_max_t, bool) dev_track_local_max;
     // Properties
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
@@ -46,4 +61,10 @@ namespace track_digit_selective_matching {
   };
 
   __global__ void track_digit_selective_matching(Parameters parameters, const char* raw_ecal_geometry);
+
+  template<typename MultiEventTracks>
+  __device__ void track_digit_selective_matching_implementation(
+    Parameters parameters,
+    const MultiEventTracks* dev_long_tracks_view,
+    const char* raw_ecal_geometry);
 } // namespace track_digit_selective_matching

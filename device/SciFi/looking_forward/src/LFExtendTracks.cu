@@ -1,8 +1,21 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "LFCreateTracks.cuh"
 #include "BinarySearch.cuh"
+
+namespace geom {
+  __constant__ extern float dev_average_z_x_layers[LookingForward::number_of_x_layers];
+  __constant__ extern float dev_average_z_uv_layers[LookingForward::number_of_uv_layers];
+  __constant__ extern float dev_average_dxdy[LookingForward::number_of_uv_layers];
+} // namespace geom
 
 template<bool with_ut, typename T>
 __device__ void extend_tracks(
@@ -13,11 +26,11 @@ __device__ void extend_tracks(
 
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
+
   const unsigned number_of_elements_initial_window = with_ut ?
                                                        LookingForward::InputUT::number_of_elements_initial_window :
                                                        LookingForward::InputVelo::number_of_elements_initial_window;
 
-  const unsigned uv_hits_chi2_factor = parameters.uv_hits_chi2_factor;
   const unsigned max_triplets_per_input_track = parameters.max_triplets_per_input_track;
   const float chi2_max_extrapolation_to_x_layers_single = parameters.chi2_max_extrapolation_to_x_layers_single;
 
@@ -30,8 +43,7 @@ __device__ void extend_tracks(
     tracks->container(number_of_events - 1).offset() + tracks->container(number_of_events - 1).size();
 
   // SciFi hits
-  const unsigned total_number_of_hits =
-    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+  const unsigned total_number_of_hits = parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_zones];
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};
 
@@ -71,7 +83,7 @@ __device__ void extend_tracks(
         parameters.dev_scifi_lf_initial_windows
           [current_input_track_index +
            (current_layer * number_of_elements_initial_window + 1 + left_right_side * 2) * total_number_of_tracks];
-      const float z = dev_looking_forward_constants->Zone_zPos_xlayers[current_layer];
+      const float z = geom::dev_average_z_x_layers[current_layer];
 
       const auto dz = z - LookingForward::z_mid_t;
       const auto predicted_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
@@ -84,6 +96,8 @@ __device__ void extend_tracks(
 
       // Binary search of candidate
       const auto candidate_index = binary_search_leftmost(scifi_hits_x0, window_size, predicted_x);
+
+      track.XhitsNum = 3;
 
       // It is now either candidate_index - 1 or candidate_index
       for (int h4_rel = candidate_index - 1; h4_rel < candidate_index + 1; ++h4_rel) {
@@ -100,16 +114,17 @@ __device__ void extend_tracks(
 
       if (best_index != -1) {
         track.add_hit_with_quality((uint16_t)(window_start + best_index), best_chi2);
+        track.XhitsNum += 1;
       }
     }
 
     // Normalize track quality
     track.quality *= (1.f / chi2_max_extrapolation_to_x_layers_single);
 
+    track.UVhitsNum = 0;
     // Add UV hits
     for (int relative_uv_layer = 0; relative_uv_layer < 6; relative_uv_layer++) {
-      const auto layer4 = dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer];
-      const auto z4 = dev_looking_forward_constants->Zone_zPos[layer4];
+      const auto z4 = geom::dev_average_z_uv_layers[relative_uv_layer];
 
       // Use UV windows
       const auto uv_window_start =
@@ -137,8 +152,7 @@ __device__ void extend_tracks(
         z4,
         dev_looking_forward_constants->extrapolation_uv_layers[relative_uv_layer]);
       // This is the predicted_x in the u/v reference plane (i.e. the actual hit position measured)
-      const auto predicted_x =
-        expected_x - expected_y * dev_looking_forward_constants->Zone_dxdy_uvlayers[relative_uv_layer & 0x1];
+      const auto predicted_x = expected_x - expected_y * geom::dev_average_dxdy[relative_uv_layer];
 
       // Pick the best, according to chi2.
       // TODO : This needs some dedicated tuning. We scale the max_chi2 ( i.e the max distance in the x-plane )
@@ -148,7 +162,8 @@ __device__ void extend_tracks(
       // +-2 mm windows is ok (2^{2}  = 4) . If we have large slope the error on x can be big,  For super peripheral
       // tracks ( delta-slope = 0.3, ty = 0.3) you want to open up up to : sqrt(4+60*0.3+60*0.3) = 6 mm windows. Anyway,
       // we need some retuning of this scaling windows.
-      const float max_chi2 = uv_hits_chi2_factor * fabsf(input_state.ty) + uv_hits_chi2_factor * fabsf(input_state.tx);
+      const float max_chi2 = parameters.uv_hits_chi2_factor_y * fabsf(input_state.ty()) +
+                             parameters.uv_hits_chi2_factor_x * fabsf(input_state.tx());
 
       int best_index = -1;
       float best_chi2 = max_chi2;
@@ -173,6 +188,7 @@ __device__ void extend_tracks(
 
       if (best_index != -1) {
         track.add_hit_with_quality((uint16_t) uv_window_start + best_index, best_chi2 / max_chi2);
+        track.UVhitsNum += 1;
       }
     }
   }
@@ -183,7 +199,7 @@ __global__ void lf_create_tracks::lf_extend_tracks(
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   const auto* ut_tracks =
-    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
     extend_tracks<true>(parameters, dev_looking_forward_constants, ut_tracks);
   }

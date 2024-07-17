@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "HostPVValidator.h"
 #include "PrimaryVertexChecker.h"
@@ -19,5 +26,9 @@ void host_pv_validator::host_pv_validator_t::operator()(
 
   auto& checker = runtime_options.checker_invoker->checker<PVChecker>(name(), property<root_output_filename_t>());
   checker.accumulate(
-    *first<host_mc_events_t>(arguments), multi_final_vertices, number_of_multi_final_vertices, event_list);
+    *first<host_mc_events_t>(arguments),
+    multi_final_vertices,
+    number_of_multi_final_vertices,
+    event_list,
+    property<pp_minNumTracksPerVertex_t>());
 }

@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "VeloConsolidateTracks.cuh"
 
@@ -61,6 +68,7 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::set_arguments_size(
   set_size<dev_velo_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_velo_multi_event_tracks_view_t>(arguments, 1);
   set_size<dev_imec_velo_tracks_t>(arguments, 1);
+  set_size<dev_imec_velo_tracks_t>(arguments, 1);
 }
 
 void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
@@ -77,7 +85,7 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
   Allen::memset_async<dev_velo_tracks_view_t>(arguments, 0, context);
 
   global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
-    arguments);
+    arguments, m_histogram_n_velo_tracks.data(context), m_velo_tracks.data(context));
 
   global_function(create_velo_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
 }
@@ -91,7 +99,10 @@ __device__ void populate(const Velo::TrackHits* track, const unsigned number_of_
   }
 }
 
-__global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidate_tracks::Parameters parameters)
+__global__ void velo_consolidate_tracks::velo_consolidate_tracks(
+  velo_consolidate_tracks::Parameters parameters,
+  Allen::Monitoring::Histogram<>::DeviceType dev_number_of_tracks_histo,
+  Allen::Monitoring::AveragingCounter<>::DeviceType dev_tracks_counter)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -105,12 +116,16 @@ __global__ void velo_consolidate_tracks::velo_consolidate_tracks(velo_consolidat
                                           event_number,
                                           number_of_events};
   const unsigned event_total_number_of_tracks = velo_tracks.number_of_tracks(event_number);
-
   const auto event_number_of_three_hit_tracks_filtered =
     parameters.dev_offsets_number_of_three_hit_tracks_filtered[event_number + 1] -
     parameters.dev_offsets_number_of_three_hit_tracks_filtered[event_number];
   const auto event_number_of_tracks_in_main_track_container =
     event_total_number_of_tracks - event_number_of_three_hit_tracks_filtered;
+
+  if (threadIdx.x == 0) {
+    dev_number_of_tracks_histo.increment(event_total_number_of_tracks);
+    dev_tracks_counter.add(event_total_number_of_tracks);
+  }
 
   // Pointers to data within event
   const unsigned total_estimated_number_of_clusters =

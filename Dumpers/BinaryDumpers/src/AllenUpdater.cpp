@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <map>
 #include <memory>
@@ -43,6 +50,7 @@ StatusCode AllenUpdater::initialize()
       return StatusCode::FAILURE;
     }
   }
+
   return StatusCode::SUCCESS;
 }
 
@@ -109,7 +117,7 @@ void AllenUpdater::registerProducer(string const& id, Allen::NonEventData::Produ
 void AllenUpdater::update(gsl::span<unsigned const> odin_data)
 {
   {
-    std::unique_lock {m_odinMutex};
+    std::scoped_lock lock {m_odinMutex};
     LHCb::ODIN odin {odin_data};
     if (m_odin && m_odin->runNumber() == odin.runNumber()) {
       return;

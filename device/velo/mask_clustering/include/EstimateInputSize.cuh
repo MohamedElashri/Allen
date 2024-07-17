@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -12,12 +19,11 @@ namespace velo_estimate_input_size {
     HOST_INPUT(host_number_of_cluster_candidates_t, unsigned) host_number_of_cluster_candidates;
     HOST_INPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     MASK_INPUT(dev_event_list_t) dev_event_list;
+    DEVICE_INPUT(dev_superpixels_t, unsigned) dev_superpixels;
+    DEVICE_INPUT(dev_superpixels_offsets_t, unsigned) dev_superpixels_offsets;
     DEVICE_INPUT(dev_candidates_offsets_t, unsigned) dev_candidates_offsets;
-    DEVICE_INPUT(dev_velo_raw_input_t, char) dev_velo_raw_input;
-    DEVICE_INPUT(dev_velo_raw_input_offsets_t, unsigned) dev_velo_raw_input_offsets;
-    DEVICE_INPUT(dev_velo_raw_input_sizes_t, unsigned) dev_velo_raw_input_sizes;
-    DEVICE_INPUT(dev_velo_raw_input_types_t, unsigned) dev_velo_raw_input_types;
-    DEVICE_OUTPUT(dev_estimated_input_size_t, unsigned) dev_estimated_input_size;
+    DEVICE_OUTPUT(dev_offsets_estimated_input_size_t, unsigned) dev_offsets_estimated_input_size;
+    HOST_OUTPUT(host_total_number_of_velo_clusters_t, unsigned) host_total_number_of_velo_clusters;
     DEVICE_OUTPUT(dev_module_candidate_num_t, unsigned) dev_module_candidate_num;
     DEVICE_OUTPUT(dev_cluster_candidates_t, unsigned) dev_cluster_candidates;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;

@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <cstring>
 #include <iostream>
@@ -141,7 +148,8 @@ int main(int argc, char* argv[])
         }
 
         auto const source_id = b->sourceID();
-        std::string det = SourceId_sysstr(source_id);
+        auto const* sys = SourceId_sysstr(source_id);
+        std::string det = (sys == nullptr) ? "Unknown" : sys;
         std::string fill(7 - det.size(), ' ');
 
         bool dump_bank = b->type() == dump_type && (!dump_n || (dump_n && bank_counts[b->type()] == *dump_n));
@@ -151,9 +159,11 @@ int main(int argc, char* argv[])
           if (b->type() == LHCb::RawBank::ODIN && (!dump.empty() || quiet)) {
             auto odin = MDF::decode_odin(b->range<unsigned>(), b->version());
             odin_stream << "run " << odin.runNumber() << " event " << std::setw(15) << odin.eventNumber()
-                        << " event_type " << std::setw(2) << odin.eventType() << " trigger_type " << std::setw(2)
-                        << odin.triggerType() << " TAE: " << odin.isTAE() << " first " << odin.timeAlignmentEventFirst()
-                        << " window " << std::setw(2) << odin.timeAlignmentEventIndex() << " central "
+                        << " event_type "
+                        << "0x" << std::setfill('0') << std::setw(4) << std::right << std::hex << odin.eventType()
+                        << std::dec << std::setfill(' ') << " trigger_type " << std::setw(2) << odin.triggerType()
+                        << " TAE: " << odin.isTAE() << " first " << odin.timeAlignmentEventFirst() << " window "
+                        << std::setw(2) << odin.timeAlignmentEventIndex() << " central "
                         << odin.timeAlignmentEventCentral();
           }
 
@@ -175,7 +185,9 @@ int main(int argc, char* argv[])
 
           if (!quiet && (dump.empty() || dump_bank)) {
             bank_stream << "bank: " << std::setw(17) << std::left << b->type() << std::right << " version "
-                        << std::setw(2) << b->version() << " sourceID: " << std::setw(6) << b->sourceID()
+                        << std::setw(2) << b->version() << " sourceID: "
+                        << "0x" << std::setfill('0') << std::setw(8) << std::right << std::hex
+                        << static_cast<unsigned>(b->sourceID()) << std::setfill(' ') << std::dec
                         << " top5: " << std::setw(2) << SourceId_sys(source_id) << fill << " (" << det << ") "
                         << std::setw(5) << SourceId_num(source_id) << " " << std::setw(5) << b->size() << "\n";
           }

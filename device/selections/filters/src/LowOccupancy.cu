@@ -1,5 +1,12 @@
 /************************************************************************\
 * (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \************************************************************************/
 #include "LowOccupancy.cuh"
 
@@ -45,9 +52,14 @@ __global__ void low_occupancy::low_occupancy(
     Velo::Consolidated::ConstTracks velo_tracks {
       parameters.dev_offsets_velo_tracks, parameters.dev_offsets_velo_track_hit_number, event_number, number_of_events};
     const unsigned number_of_velo_tracks = velo_tracks.number_of_tracks(event_number);
+    const unsigned ecal_number_of_clusters =
+      parameters.dev_ecal_cluster_offsets[event_number + 1] - parameters.dev_ecal_cluster_offsets[event_number];
 
-    if (number_of_velo_tracks >= parameters.minTracks && number_of_velo_tracks < parameters.maxTracks) {
-      const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.get(), 1);
+    if (
+      number_of_velo_tracks >= parameters.minTracks && number_of_velo_tracks < parameters.maxTracks &&
+      ecal_number_of_clusters >= parameters.min_ecal_clusters &&
+      ecal_number_of_clusters < parameters.max_ecal_clusters) {
+      const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.data(), 1);
       parameters.dev_event_list_output[current_event] = mask_t {event_number};
     }
   }

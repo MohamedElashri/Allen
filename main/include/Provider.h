@@ -1,5 +1,12 @@
 /*****************************************************************************\
  * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <memory>
 #include <map>
@@ -34,9 +41,11 @@ namespace Allen {
 
   std::tuple<bool, bool> velo_decoding_type(const ConfigurationReader& configuration_reader);
 
-  std::tuple<std::string, bool> sequence_conf(std::map<std::string, std::string> const& options);
+  std::string sequence_conf(std::map<std::string, std::string> const& options);
 
-  std::shared_ptr<IInputProvider> make_provider(std::map<std::string, std::string> const& options);
+  std::unique_ptr<IInputProvider> make_provider(
+    std::map<std::string, std::string> const& options,
+    std::string_view configuration);
 
   std::unique_ptr<OutputHandler> output_handler(
     IInputProvider* input_provider,

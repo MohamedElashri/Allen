@@ -11,6 +11,7 @@
 #include "MakeSelectedObjectLists.cuh"
 #include "SelectionsEventModel.cuh"
 #include "HltDecReport.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(make_selected_object_lists::make_selected_object_lists_t)
 
@@ -19,18 +20,24 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
   const RuntimeOptions&,
   const Constants&) const
 {
+  // The number of lines is the same for all events and the DecReports
+  // exist for all events too
+  HltDecReports host_dec_reports {get<host_dec_reports_t>(arguments), 0u};
+
   // For keeping track of selections.
   set_size<dev_sel_count_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_sel_list_t>(
-    arguments, first<host_number_of_events_t>(arguments) * first<host_number_of_active_lines_t>(arguments));
+  set_size<dev_sel_list_t>(arguments, first<host_number_of_events_t>(arguments) * host_dec_reports.number_of_lines());
 
   // For keeping track of selected candidates.
-  set_size<dev_candidate_count_t>(
-    arguments, first<host_number_of_active_lines_t>(arguments) * first<host_number_of_events_t>(arguments));
+  set_size<dev_candidate_offsets_t>(
+    arguments, host_dec_reports.number_of_lines() * first<host_number_of_events_t>(arguments) + 1);
   set_size<dev_sel_track_count_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_sel_calo_count_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_sel_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
   // These are effectively 3D arrays. Use the convention: X = candidate, Y = event, Z = line.
   set_size<dev_sel_track_indices_t>(
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
+  set_size<dev_sel_calo_indices_t>(
     arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_sel_sv_indices_t>(
     arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
@@ -40,29 +47,43 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
   // sizes arbitrarily, or create an algorithm to calculate them.
   set_size<dev_selected_basic_particle_ptrs_t>(
     arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
+  set_size<dev_selected_neutral_basic_particle_ptrs_t>(
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_selected_composite_particle_ptrs_t>(
     arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
 
   // For removing duplicates.
   set_size<dev_track_duplicate_map_t>(
     arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
+  set_size<dev_calo_duplicate_map_t>(
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_sv_duplicate_map_t>(
     arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_unique_track_list_t>(
     arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
+  set_size<dev_unique_calo_list_t>(
+    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_unique_sv_list_t>(
     arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
   set_size<dev_unique_track_count_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_unique_calo_count_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_unique_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
 
   // Bank sizes.
-  set_size<dev_selrep_size_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_hits_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_substr_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_rb_hits_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_hits_bank_size_t>(arguments, 1);
+  set_size<dev_rb_substr_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_substr_bank_size_t>(arguments, 1);
+  set_size<dev_rb_objtyp_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_objtyp_bank_size_t>(arguments, 1);
+  set_size<dev_rb_stdinfo_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_stdinfo_bank_size_t>(arguments, 1);
+  set_size<dev_selrep_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_selrep_size_t>(arguments, 1);
+
   set_size<dev_substr_sel_size_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_substr_sv_size_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_stdinfo_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_objtyp_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_substr_track_size_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void make_selected_object_lists::make_selected_object_lists_t::operator()(
@@ -71,21 +92,27 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_candidate_count_t>(arguments, 0, context);
   Allen::memset_async<dev_sel_track_count_t>(arguments, 0, context);
+  Allen::memset_async<dev_sel_calo_count_t>(arguments, 0, context);
   Allen::memset_async<dev_sel_sv_count_t>(arguments, 0, context);
   Allen::memset_async<dev_track_duplicate_map_t>(arguments, -1, context);
+  Allen::memset_async<dev_calo_duplicate_map_t>(arguments, -1, context);
   Allen::memset_async<dev_sv_duplicate_map_t>(arguments, -1, context);
   Allen::memset_async<dev_unique_track_count_t>(arguments, 0, context);
+  Allen::memset_async<dev_unique_calo_count_t>(arguments, 0, context);
   Allen::memset_async<dev_unique_sv_count_t>(arguments, 0, context);
   Allen::memset_async<dev_sel_count_t>(arguments, 0, context);
-  Allen::memset_async<dev_hits_bank_size_t>(arguments, 0, context);
-  Allen::memset_async<dev_substr_bank_size_t>(arguments, 0, context);
+
+  Allen::memset_async<dev_candidate_offsets_t>(arguments, 0, context);
+  Allen::memset_async<dev_rb_hits_offsets_t>(arguments, 0, context);
+  Allen::memset_async<dev_rb_substr_offsets_t>(arguments, 0, context);
+  Allen::memset_async<dev_rb_objtyp_offsets_t>(arguments, 0, context);
+  Allen::memset_async<dev_rb_stdinfo_offsets_t>(arguments, 0, context);
+  Allen::memset_async<dev_selrep_offsets_t>(arguments, 0, context);
+
   Allen::memset_async<dev_substr_sel_size_t>(arguments, 0, context);
   Allen::memset_async<dev_substr_sv_size_t>(arguments, 0, context);
-  Allen::memset_async<dev_stdinfo_bank_size_t>(arguments, 0, context);
-  Allen::memset_async<dev_objtyp_bank_size_t>(arguments, 0, context);
-  Allen::memset_async<dev_selrep_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_substr_track_size_t>(arguments, 0, context);
 
   global_function(make_selected_object_lists)(
     dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
@@ -95,6 +122,13 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
   // block dimensions.
   global_function(calc_rb_sizes)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
+
+  PrefixSum::prefix_sum<dev_candidate_offsets_t>(*this, arguments, context);
+  PrefixSum::prefix_sum<dev_rb_hits_offsets_t, host_hits_bank_size_t>(*this, arguments, context);
+  PrefixSum::prefix_sum<dev_rb_substr_offsets_t, host_substr_bank_size_t>(*this, arguments, context);
+  PrefixSum::prefix_sum<dev_rb_objtyp_offsets_t, host_objtyp_bank_size_t>(*this, arguments, context);
+  PrefixSum::prefix_sum<dev_rb_stdinfo_offsets_t, host_stdinfo_bank_size_t>(*this, arguments, context);
+  PrefixSum::prefix_sum<dev_selrep_offsets_t, host_selrep_size_t>(*this, arguments, context);
 }
 
 __global__ void make_selected_object_lists::make_selected_object_lists(
@@ -102,23 +136,20 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
   const unsigned total_events)
 {
   const auto event_number = blockIdx.x;
-  const unsigned n_lines = parameters.dev_number_of_active_lines[0];
+  const HltDecReports dec_reports {parameters.dev_dec_reports.get(), event_number};
+
   const unsigned n_children = parameters.max_children_per_object;
-  const unsigned* line_selected_object_offsets = parameters.dev_max_objects_offsets + n_lines * event_number;
+  const unsigned* line_selected_object_offsets =
+    parameters.dev_max_objects_offsets + dec_reports.number_of_lines() * event_number;
   const unsigned selected_object_offset = n_children * line_selected_object_offsets[0];
-  const uint32_t* event_dec_reports =
-    parameters.dev_dec_reports + (3 + parameters.dev_number_of_active_lines[0]) * event_number;
-  unsigned* event_candidate_count =
-    parameters.dev_candidate_count + event_number * parameters.dev_number_of_active_lines[0];
+  unsigned* event_candidate_count = parameters.dev_candidate_offsets + event_number * dec_reports.number_of_lines();
 
   Selections::ConstSelections selections {parameters.dev_selections, parameters.dev_selections_offsets, total_events};
 
-  for (unsigned line_index = 0; line_index < n_lines; line_index += 1) {
+  for (HltDecReport dec_report : dec_reports) {
+    if (!dec_report.decision()) continue;
 
-    HltDecReport dec_report;
-    dec_report.setDecReport(event_dec_reports[3 + line_index]);
-    if (!dec_report.getDecision()) continue;
-
+    const auto line_index = dec_report.line_index();
     const auto mec = parameters.dev_multi_event_particle_containers[line_index];
 
     // Handle lines that do not select from a particle container.
@@ -127,7 +158,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
     // Handle lines that select BasicParticles.
     const auto basic_particle_mec = Allen::dyn_cast<const Allen::Views::Physics::MultiEventBasicParticles*>(mec);
     if (basic_particle_mec) {
-      auto decs = selections.get_span(line_index, event_number);
+      auto decs = selections.get_span(dec_report.line_index(), event_number);
       const auto event_tracks = basic_particle_mec->container(event_number);
       for (unsigned track_index = threadIdx.x; track_index < event_tracks.size(); track_index += blockDim.x) {
         if (decs[track_index]) {
@@ -142,11 +173,30 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
       }
     }
 
+    // Handle lines that select NeutralBasicParticles.
+    const auto neutral_basic_particle_mec =
+      Allen::dyn_cast<const Allen::Views::Physics::MultiEventNeutralBasicParticles*>(mec);
+    if (neutral_basic_particle_mec) {
+      auto decs = selections.get_span(line_index, event_number);
+      const auto event_calos = neutral_basic_particle_mec->container(event_number);
+      for (unsigned calo_index = threadIdx.x; calo_index < event_calos.size(); calo_index += blockDim.x) {
+        if (decs[calo_index]) {
+          const unsigned calo_candidate_index = atomicAdd(event_candidate_count + line_index, 1);
+          const unsigned calo_insert_index = atomicAdd(parameters.dev_sel_calo_count + event_number, 1);
+          parameters
+            .dev_sel_calo_indices[n_children * line_selected_object_offsets[line_index] + calo_candidate_index] =
+            calo_insert_index;
+          parameters.dev_selected_neutral_basic_particle_ptrs[selected_object_offset + calo_insert_index] =
+            const_cast<Allen::Views::Physics::NeutralBasicParticle*>(event_calos.particle_pointer(calo_index));
+        }
+      }
+    }
+
     // Handle lines that select CompositeParticles
     const auto composite_particle_mec =
       Allen::dyn_cast<const Allen::Views::Physics::MultiEventCompositeParticles*>(mec);
     if (composite_particle_mec) {
-      auto decs = selections.get_span(line_index, event_number);
+      auto decs = selections.get_span(dec_report.line_index(), event_number);
       const auto event_svs = composite_particle_mec->container(event_number);
       for (unsigned sv_index = threadIdx.x; sv_index < event_svs.size(); sv_index += blockDim.x) {
         if (decs[sv_index]) {
@@ -169,6 +219,12 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
               parameters.dev_selected_basic_particle_ptrs[selected_object_offset + track_insert_index] =
                 const_cast<Allen::Views::Physics::BasicParticle*>(basic_substr);
             }
+            else if (substr->type_id() == Allen::TypeIDs::NeutralBasicParticle) {
+              const unsigned calo_insert_index = atomicAdd(parameters.dev_sel_calo_count + event_number, 1);
+              const auto basic_substr = static_cast<const Allen::Views::Physics::NeutralBasicParticle*>(substr);
+              parameters.dev_selected_neutral_basic_particle_ptrs[selected_object_offset + calo_insert_index] =
+                const_cast<Allen::Views::Physics::NeutralBasicParticle*>(basic_substr);
+            }
             else { // Handle composite substructures.
               const unsigned sv_insert_index = atomicAdd(parameters.dev_sel_sv_count + event_number, 1);
               const auto composite_substr = static_cast<const Allen::Views::Physics::CompositeParticle*>(substr);
@@ -178,12 +234,21 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
               // Manually handle sub-substructure to avoid recursion.
               const auto n_subsubstr = composite_substr->number_of_children();
               for (unsigned i_subsubstr = 0; i_subsubstr < n_subsubstr; i_subsubstr++) {
-                const unsigned track_insert_index = atomicAdd(parameters.dev_sel_track_count + event_number, 1);
-                // Assume all sub-substructures are BasicParticles.
-                const auto basic_subsubstr =
-                  static_cast<const Allen::Views::Physics::BasicParticle*>(composite_substr->child(i_subsubstr));
-                parameters.dev_selected_basic_particle_ptrs[selected_object_offset + track_insert_index] =
-                  const_cast<Allen::Views::Physics::BasicParticle*>(basic_subsubstr);
+                // Assume all sub-substructures are BasicParticles or NeutralBasicParticles.
+                const auto subsubstr = composite_substr->child(i_subsubstr);
+                if (subsubstr->type_id() == Allen::TypeIDs::BasicParticle) {
+                  const unsigned track_insert_index = atomicAdd(parameters.dev_sel_track_count + event_number, 1);
+                  const auto basic_subsubstr = static_cast<const Allen::Views::Physics::BasicParticle*>(subsubstr);
+                  parameters.dev_selected_basic_particle_ptrs[selected_object_offset + track_insert_index] =
+                    const_cast<Allen::Views::Physics::BasicParticle*>(basic_subsubstr);
+                }
+                else if (subsubstr->type_id() == Allen::TypeIDs::NeutralBasicParticle) {
+                  const unsigned calo_insert_index = atomicAdd(parameters.dev_sel_calo_count + event_number, 1);
+                  const auto basic_subsubstr =
+                    static_cast<const Allen::Views::Physics::NeutralBasicParticle*>(subsubstr);
+                  parameters.dev_selected_neutral_basic_particle_ptrs[selected_object_offset + calo_insert_index] =
+                    const_cast<Allen::Views::Physics::NeutralBasicParticle*>(basic_subsubstr);
+                }
               } // End sub-substructure loop.
             }
           } // End substructure loop.
@@ -215,6 +280,22 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
       }
     }
 
+    const auto n_selected_calos = parameters.dev_sel_calo_count[event_number];
+    for (unsigned i_calo = 0; i_calo < n_selected_calos; i_calo += 1) {
+      // Skip clusters that are already marked as duplicates.
+      if (parameters.dev_calo_duplicate_map[selected_object_offset + i_calo] >= 0) continue;
+      const unsigned calo_insert = atomicAdd(parameters.dev_unique_calo_count + event_number, 1);
+      parameters.dev_unique_calo_list[selected_object_offset + calo_insert] = i_calo;
+      const auto caloA = parameters.dev_selected_neutral_basic_particle_ptrs[selected_object_offset + i_calo];
+      // Check for duplicate clusters.
+      for (unsigned j_calo = i_calo + 1; j_calo < n_selected_calos; j_calo++) {
+        const auto caloB = parameters.dev_selected_neutral_basic_particle_ptrs[selected_object_offset + j_calo];
+        if (caloA == caloB) {
+          parameters.dev_calo_duplicate_map[selected_object_offset + j_calo] = i_calo;
+        }
+      }
+    }
+
     const auto n_selected_svs = parameters.dev_sel_sv_count[event_number];
     for (unsigned i_sv = 0; i_sv < n_selected_svs; i_sv += 1) {
       // Skip SVs that are already marked as duplicates.
@@ -236,9 +317,12 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
 __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_lists::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
+
+  const HltDecReports dec_reports {parameters.dev_dec_reports, event_number};
+
   const unsigned n_children = parameters.max_children_per_object;
-  const unsigned n_lines = parameters.dev_number_of_active_lines[0];
-  const unsigned* line_selected_object_offsets = parameters.dev_max_objects_offsets + n_lines * event_number;
+  const unsigned* line_selected_object_offsets =
+    parameters.dev_max_objects_offsets + dec_reports.number_of_lines() * event_number;
   const unsigned selected_object_offset = n_children * line_selected_object_offsets[0];
   const auto event_track_ptrs = parameters.dev_selected_basic_particle_ptrs + selected_object_offset;
   const auto event_unique_track_list = parameters.dev_unique_track_list + selected_object_offset;
@@ -246,27 +330,24 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
   const auto event_unique_sv_list = parameters.dev_unique_sv_list + selected_object_offset;
   const auto n_selected_tracks = parameters.dev_unique_track_count[event_number];
   const auto n_selected_svs = parameters.dev_unique_sv_count[event_number];
-  const uint32_t* event_dec_reports = parameters.dev_dec_reports + (3 + n_lines) * event_number;
-  unsigned* event_candidate_count = parameters.dev_candidate_count + event_number * n_lines;
-  unsigned* event_sel_list = parameters.dev_sel_list + event_number * n_lines;
+  unsigned* event_candidate_count = parameters.dev_candidate_offsets + event_number * dec_reports.number_of_lines();
+  unsigned* event_sel_list = parameters.dev_sel_list + event_number * dec_reports.number_of_lines();
 
   // Calculate the size of the hits bank.
   for (unsigned i_track = threadIdx.x; i_track < n_selected_tracks; i_track += blockDim.x) {
     const unsigned track_index = event_unique_track_list[i_track];
     const Allen::Views::Physics::BasicParticle* track = event_track_ptrs[track_index];
-    atomicAdd(parameters.dev_hits_bank_size + event_number, track->number_of_ids());
+    atomicAdd(parameters.dev_rb_hits_offsets + event_number, track->number_of_ids());
   }
   if (threadIdx.x == 0) {
-    parameters.dev_hits_bank_size[event_number] += 1 + (parameters.dev_unique_track_count[event_number] / 2);
+    parameters.dev_rb_hits_offsets[event_number] += 1 + (parameters.dev_unique_track_count[event_number] / 2);
   }
 
   // Calculate the size of the substr bank.
-  for (unsigned line_index = threadIdx.x; line_index < parameters.dev_number_of_active_lines[0];
-       line_index += blockDim.x) {
-    HltDecReport dec_report;
-    dec_report.setDecReport(event_dec_reports[3 + line_index]);
-    if (dec_report.getDecision()) {
-      atomicAdd(parameters.dev_substr_bank_size + event_number, 1 + event_candidate_count[line_index]);
+  for (unsigned line_index = threadIdx.x; line_index < dec_reports.number_of_lines(); line_index += blockDim.x) {
+    HltDecReport dec_report = dec_reports.dec_report(line_index);
+    if (dec_report.decision()) {
+      atomicAdd(parameters.dev_rb_substr_offsets + event_number, 1 + event_candidate_count[line_index]);
       atomicAdd(parameters.dev_substr_sel_size + event_number, 1 + event_candidate_count[line_index]);
       unsigned insert_index = atomicAdd(parameters.dev_sel_count + event_number, 1);
       event_sel_list[insert_index] = line_index;
@@ -279,7 +360,7 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     const Allen::Views::Physics::CompositeParticle* sv = event_sv_ptrs[sv_index];
     // Each SV structure consists of 1 short that gives the size and 1 short for
     // each substructure.
-    atomicAdd(parameters.dev_substr_bank_size + event_number, 1 + sv->number_of_children());
+    atomicAdd(parameters.dev_rb_substr_offsets + event_number, 1 + sv->number_of_children());
     atomicAdd(parameters.dev_substr_sv_size + event_number, 1 + sv->number_of_children());
   }
 
@@ -290,46 +371,55 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     if (parameters.dev_unique_track_count[event_number] > 0) {
       // Each track structure consists of 1 short that denotes the
       // size and 1 short pointer to hits in the hits bank.
-      parameters.dev_substr_bank_size[event_number] += 2 * parameters.dev_unique_track_count[event_number];
+      parameters.dev_rb_substr_offsets[event_number] += 2 * parameters.dev_unique_track_count[event_number];
+      parameters.dev_substr_track_size[event_number] += 2 * parameters.dev_unique_track_count[event_number];
+    }
+
+    if (parameters.dev_unique_calo_count[event_number] > 0) {
+      // Each calo structure consists of 1 short that denotes the size, which
+      // for now is 0.
+      parameters.dev_rb_substr_offsets[event_number] += parameters.dev_unique_calo_count[event_number];
     }
 
     // Get the size of the ObjTyp bank. The ObjTyp bank has 1 word defining the
     // bank structure and 1 word for each object type stored.
-    parameters.dev_objtyp_bank_size[event_number] = 1 + (parameters.dev_sel_count[event_number] > 0) +
-                                                    (parameters.dev_unique_track_count[event_number] > 0) +
-                                                    (parameters.dev_unique_sv_count[event_number] > 0);
+    parameters.dev_rb_objtyp_offsets[event_number] =
+      1 + (parameters.dev_sel_count[event_number] > 0) + (parameters.dev_unique_track_count[event_number] > 0) +
+      (parameters.dev_unique_calo_count[event_number] > 0) + (parameters.dev_unique_sv_count[event_number] > 0);
 
     // Convert from number of shorts to number of words. Add 2 shorts for bank size info.
-    if (parameters.dev_substr_bank_size[event_number] > 0) {
-      parameters.dev_substr_bank_size[event_number] = (parameters.dev_substr_bank_size[event_number] + 3) / 2;
+    if (parameters.dev_rb_substr_offsets[event_number] > 0) {
+      parameters.dev_rb_substr_offsets[event_number] = (parameters.dev_rb_substr_offsets[event_number] + 3) / 2;
     }
 
     // Get the size of the StdInfo bank.
-    const unsigned n_objects = parameters.dev_sel_count[event_number] +
-                               parameters.dev_unique_track_count[event_number] +
-                               parameters.dev_unique_sv_count[event_number];
+    const unsigned n_objects =
+      parameters.dev_sel_count[event_number] + parameters.dev_unique_track_count[event_number] +
+      parameters.dev_unique_calo_count[event_number] + parameters.dev_unique_sv_count[event_number];
 
     // StdInfo contains 1 word giving the structure of the bank, 8
     // bits per object with the number of values saved (with possible
     // padding). Saved info includes:
     // Selections: decision ID
     // Tracks: empty
+    // CaloClusters: E, X, Y, Z
     // SVs: empty
     if (n_objects > 0) {
-      parameters.dev_stdinfo_bank_size[event_number] = 2 + n_objects / 4 + parameters.dev_sel_count[event_number] +
-                                                       8 * parameters.dev_unique_track_count[event_number] +
-                                                       4 * parameters.dev_unique_sv_count[event_number];
+      parameters.dev_rb_stdinfo_offsets[event_number] = 2 + n_objects / 4 + parameters.dev_sel_count[event_number] +
+                                                        8 * parameters.dev_unique_track_count[event_number] +
+                                                        4 * parameters.dev_unique_calo_count[event_number] +
+                                                        4 * parameters.dev_unique_sv_count[event_number];
     }
     else {
-      parameters.dev_stdinfo_bank_size[event_number] = 0;
+      parameters.dev_rb_stdinfo_offsets[event_number] = 0;
     }
 
     // Calculate the total selrep size.
     // Size of the empty extraInfo sub-bank depends on the number of objects.
     const unsigned einfo_size = 2 + n_objects / 4;
     const unsigned header_size = 10;
-    parameters.dev_selrep_size[event_number] =
-      header_size + parameters.dev_hits_bank_size[event_number] + parameters.dev_substr_bank_size[event_number] +
-      parameters.dev_stdinfo_bank_size[event_number] + parameters.dev_objtyp_bank_size[event_number] + einfo_size;
+    parameters.dev_selrep_offsets[event_number] =
+      header_size + parameters.dev_rb_hits_offsets[event_number] + parameters.dev_rb_substr_offsets[event_number] +
+      parameters.dev_rb_stdinfo_offsets[event_number] + parameters.dev_rb_objtyp_offsets[event_number] + einfo_size;
   }
 }

@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -32,39 +39,12 @@ namespace SciFi {
     static constexpr unsigned n_xzlayers = 6;
     static constexpr unsigned n_uvlayers = 6;
     static constexpr unsigned n_mats = 1024;
+    static constexpr unsigned n_sipms_per_mat = 4;
+    static constexpr unsigned n_sipms_per_module = 4 * n_sipms_per_mat;
+    static constexpr unsigned n_sipms = n_mats * n_sipms_per_mat;
     static constexpr unsigned n_parts = 2;
-    static constexpr unsigned max_num_seed_tracks = 6000; // FIXME
-    static constexpr int INVALID_IDX = -1;                // FIXME
-    static constexpr int INVALID_ID = 0;                  // FIXME
-
-    /**
-     * The following constants are based on the number of modules per quarter.
-     * There are currently 80 raw banks per SciFi station:
-     *
-     *   The first two stations (first 160 raw banks) encode 4 modules per quarter.//FIXME: WRONG
-     *   The last station (raw banks 161 to 240) encode 5 modules per quarter.//FIXME: WRONG
-     *
-     * The raw data is sorted such that every four consecutive modules are either
-     * monotonically increasing or monotonically decreasing, following a particular pattern.
-     * Thus, it is possible to decode the first 160 raw banks in v4 in parallel since the
-     * position of each hit is known by simply knowing the current iteration in the raw bank,
-     * and using that information as a relative index, given the raw bank offset.
-     * This kind of decoding is what we call "direct decoding".
-     *
-     * However, the last 80 raw banks cannot be decoded in this manner. Therefore, the
-     * previous method is employed for these last raw banks, consisting in a two-step
-     * decoding.
-     *
-     * The constants below capture this idea. The prefix sum needed contains information about
-     * "mat groups" (the first 160 raw banks, since the offset of the group is enough).
-     * However, for the last sector, every mat offset is stored individually.
-     */
-    static constexpr unsigned max_corrected_mat = 1024; // FIXME: probably smaller.
-    static constexpr unsigned n_consecutive_raw_banks = 160;
-    static constexpr unsigned n_mats_per_consec_raw_bank = 4;
-    static constexpr unsigned n_mat_groups_and_mats = 544;
-    static constexpr unsigned mat_index_substract = n_consecutive_raw_banks * 3;
-    static constexpr unsigned n_mats_without_group = n_mats - n_consecutive_raw_banks * n_mats_per_consec_raw_bank;
+    static constexpr unsigned INVALID_IDX = (unsigned) -1; // FIXME
+    static constexpr unsigned INVALID_ID = 0;              // FIXME
 
     // FIXME_GEOMETRY_HARDCODING
     // todo: use dzdy defined in geometry, read by mat
@@ -84,7 +64,7 @@ namespace SciFi {
     static constexpr int max_tracks = 1000;
 
     // Constants for SciFi seeding
-    static constexpr int Nmax_seed_xz_per_part = 300;
+    static constexpr int Nmax_seed_xz_per_part = 900;
     static constexpr int Nmax_seed_xz = n_parts * Nmax_seed_xz_per_part;
     static constexpr int Nmax_seeds_per_part = Nmax_seed_xz_per_part;
     static constexpr int Nmax_seeds = n_parts * Nmax_seeds_per_part;
@@ -146,6 +126,9 @@ namespace SciFi {
     float* dxdy;
     float* dzdy;
     float* globaldy;
+    float* average_z;
+    float* average_dxdy;
+    std::array<float, 128 * 4>* matEndCalibrationVector;
 
     __device__ __host__ SciFiGeometry() {}
 
@@ -176,11 +159,11 @@ namespace SciFi {
       p += sizeof(uint32_t);
       version = *((uint32_t*) p);
       p += sizeof(uint32_t);
-      if (version == 0) {
+      if (version == 0 || version == 2) { // scifi decoding 4, 5, 6 (0 hardcoded geometry-2 read-in geometry)
         bank_first_channel = (uint32_t*) p;
         p += number_of_banks * sizeof(uint32_t);
       }
-      else {
+      else { // scifi decoding 7, 8 or higher (1 hardcoded geometry-3 read-in geometry)
         source_ids = (uint32_t*) p;
         p += number_of_banks * sizeof(uint32_t);
         bank_sipm_list = (uint32_t*) p;
@@ -214,6 +197,12 @@ namespace SciFi {
       p += sizeof(float) * max_uniqueMat;
       globaldy = (float*) p;
       p += sizeof(float) * max_uniqueMat;
+      average_z = (float*) p;
+      p += sizeof(float) * number_of_layers;
+      average_dxdy = (float*) p;
+      p += sizeof(float) * number_of_layers;
+      matEndCalibrationVector = (std::array<float, 128 * 4>*) p;
+      p += sizeof(float) * max_uniqueMat * 128 * 4; // fix me
 
       size = p - geometry;
     }
@@ -249,8 +238,8 @@ namespace SciFi {
     {
       // Returns local module ID in ascending x order.
       // There may be a faster way to do this.
-      uint32_t module_count = station() >= 3 ? 6 : 5;
-      return (isRight()) ? module_count - 1 - module() : module();
+      uint32_t max_module = station() >= 3 ? 5 : 4;
+      return (isRight()) ? max_module - module() : module();
     }
 
     __device__ __host__ uint32_t quarter() const { return ((channelID & quarterMask) >> quarterBits); }
@@ -277,8 +266,9 @@ namespace SciFi {
     {
       // Returns global mat ID in ascending x order without any gaps.
       // Geometry dependent. No idea how to not hardcode this.
-      assert(globalModuleIdx() * 4 + (reversedZone() ? 3 - mat() : mat() < SciFi::Constants::max_corrected_mat));
-      return globalModuleIdx() * 4 + (reversedZone() ? 3 - mat() : mat());
+      unsigned mat_sipm = mat() * SciFi::Constants::n_sipms_per_mat + sipm();
+      assert(globalModuleIdx() * 16 + (reversedZone() ? 15 - mat_sipm : mat_sipm) < SciFi::Constants::n_sipms);
+      return globalModuleIdx() * 16 + (reversedZone() ? 15 - mat_sipm : mat_sipm);
     }
 
     __device__ __host__ uint32_t die() const { return ((channelID & 0x40) >> 6); }
@@ -287,11 +277,7 @@ namespace SciFi {
 
     __device__ __host__ bool isRight() const { return (quarter() == 0 || quarter() == 2); }
 
-    __device__ __host__ bool reversedZone() const
-    {
-      unsigned zone = ((globalQuarterIdx()) >> 1) % 4;
-      return zone == 1 || zone == 2;
-    }
+    __device__ __host__ bool reversedZone() const { return (layer() % 2) != (quarter() / 2); }
 
     __device__ __host__ SciFiChannelID(const uint32_t channelID) : channelID(channelID) {}
 
@@ -349,7 +335,7 @@ namespace SciFi {
 
   __device__ inline unsigned int iSource(const SciFi::SciFiGeometry& geom, unsigned int sourceID)
   {
-    if (geom.version == 0) return sourceID;
+    if (geom.version == 0 || geom.version == 2) return sourceID;
     unsigned int output(geom.number_of_banks);
     for (uint32_t i = 0; i < geom.number_of_banks; i++)
       if (geom.source_ids[i] == sourceID) {
@@ -370,6 +356,49 @@ namespace SciFi {
     uint32_t globalSipmID =
       geom.bank_sipm_list[iRowInDB * SciFi::SciFiRawBankParams::BankProperties::NbLinksPerBank + localLinkIdx];
     return globalSipmID;
+  }
+
+  namespace ClusterReference {
+
+    __device__ inline uint32_t makeClusterReference(const int chanId, const int fraction, const int pseudoSize)
+    {
+      return (chanId << 5) | ((fraction & 1) << 4) | (pseudoSize & 0xf);
+    }
+
+    __device__ inline uint32_t getChanID(uint32_t cluster_reference) { return cluster_reference >> 5; }
+
+    __device__ inline int getFraction(uint32_t cluster_reference) { return (cluster_reference >> 4) & 1; }
+
+    __device__ inline int getPseudoSize(uint32_t cluster_reference) { return cluster_reference & 0xf; }
+
+  }; // namespace ClusterReference
+
+  __device__ inline bool lastClusterSiPM(unsigned c, unsigned c2, const uint16_t* it, const uint16_t* last)
+  {
+    return (it + 1 == last || SciFi::getLinkInBank(c) != SciFi::getLinkInBank(c2));
+  }
+
+  template<int decoding_version>
+  __device__ inline bool startLargeCluster(unsigned c)
+  {
+    if constexpr (decoding_version == 7) {
+      return SciFi::cSize(c) && !SciFi::fraction(c);
+    }
+    return SciFi::cSize(c) && SciFi::fraction(c);
+  }
+
+  template<int decoding_version>
+  __device__ inline bool endLargeCluster(unsigned c)
+  {
+    if constexpr (decoding_version == 7) {
+      return SciFi::cSize(c);
+    }
+    return SciFi::cSize(c) && !SciFi::fraction(c);
+  }
+
+  __device__ inline bool wellOrdered(unsigned c, unsigned c2)
+  {
+    return SciFi::cell(c) < SciFi::cell(c2) && SciFi::getLinkInBank(c) <= SciFi::getLinkInBank(c2);
   }
 
 } // namespace SciFi

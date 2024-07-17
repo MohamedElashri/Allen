@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -33,6 +40,9 @@ namespace LookingForward {
   // ==================================
   constexpr int number_of_x_layers = 6;
   constexpr int number_of_uv_layers = 6;
+  constexpr int nLayers = 12;
+  constexpr unsigned x_layers_number[number_of_x_layers] {0, 3, 4, 7, 8, 11};
+  constexpr unsigned uv_layers_number[number_of_uv_layers] {1, 2, 5, 6, 9, 10};
 
   namespace InputUT {
     // Number of ints per track in initial window (xbegin, xend, uvbegin, uvend == 4)

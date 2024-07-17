@@ -1,10 +1,17 @@
 /*****************************************************************************\
 * (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "MuonDefinitions.cuh"
+#include "MuonEventModel.cuh"
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
 #include "States.cuh"
@@ -18,7 +25,6 @@ namespace consolidate_muon {
 
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_muon_tracks_input_t, MuonTrack) dev_muon_tracks_input;
-    DEVICE_INPUT(dev_muon_number_of_tracks_t, unsigned) dev_muon_number_of_tracks;
     DEVICE_INPUT(dev_muon_tracks_offsets_t, unsigned) dev_muon_tracks_offsets;
     DEVICE_OUTPUT(dev_muon_tracks_output_t, MuonTrack) dev_muon_tracks_output;
 

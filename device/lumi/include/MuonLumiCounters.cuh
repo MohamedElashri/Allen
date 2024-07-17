@@ -16,22 +16,50 @@
 
 #include <LumiDefinitions.cuh>
 
-#include <VeloConsolidated.cuh>
+#include "MuonDefinitions.cuh"
+#include "MuonEventModel.cuh"
 
 namespace muon_lumi_counters {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_lumi_summaries_size_t, unsigned) host_lumi_summaries_size;
-    DEVICE_INPUT(dev_lumi_summary_offsets_t, unsigned) dev_lumi_summary_offsets;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
+    HOST_INPUT(host_lumi_summaries_count_t, unsigned) host_lumi_summaries_count;
+    HOST_INPUT(host_raw_bank_version_t, int) host_raw_bank_version;
+    DEVICE_INPUT(dev_lumi_event_indices_t, unsigned) dev_lumi_event_indices;
     DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, unsigned) dev_storage_station_region_quarter_offsets;
+    DEVICE_INPUT(dev_muon_tracks_offsets_t, unsigned) dev_muon_tracks_offsets;
+    DEVICE_INPUT(dev_muon_tell_number_t, unsigned short) dev_muon_tell_number;
     DEVICE_OUTPUT(dev_lumi_infos_t, Lumi::LumiInfo) dev_lumi_infos;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
+    PROPERTY(
+      lumi_counter_schema_t,
+      "lumi_counter_schema",
+      "schema for lumi counters",
+      std::map<std::string, std::pair<unsigned, unsigned>>)
+    lumi_counter_schema;
+    PROPERTY(
+      lumi_counter_shifts_and_scales_t,
+      "lumi_counter_shifts_and_scales",
+      "shifts and scales extracted from the schema for lumi counters",
+      std::map<std::string, std::pair<float, float>>)
+    lumi_counter_shifts_and_scales;
   }; // struct Parameters
 
-  __global__ void muon_lumi_counters(Parameters, const unsigned number_of_events);
+  using offsets_and_sizes_t = std::array<unsigned, 2 * Lumi::Constants::n_muon_counters>;
+  using shifts_and_scales_t = std::array<float, 2 * Lumi::Constants::n_muon_counters>;
+
+  __global__ void muon_lumi_counters(
+    Parameters,
+    const unsigned number_of_events,
+    const unsigned number_of_gec_events,
+    const int decoding_version,
+    const offsets_and_sizes_t offsets_and_sizes,
+    const shifts_and_scales_t shifts_and_scales);
 
   struct muon_lumi_counters_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+
+    void init();
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -41,5 +69,12 @@ namespace muon_lumi_counters {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
+    Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
+    Property<lumi_counter_shifts_and_scales_t> m_lumi_counter_shifts_and_scales {this, {}};
+
+    offsets_and_sizes_t m_offsets_and_sizes = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
+                                               0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+    shifts_and_scales_t m_shifts_and_scales = {0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f,
+                                               0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f};
   }; // struct muon_lumi_counters_t
 } // namespace muon_lumi_counters

@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -10,15 +17,16 @@ namespace dec_reporter {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
     DEVICE_INPUT(dev_number_of_active_lines_t, unsigned) dev_number_of_active_lines;
-    DEVICE_INPUT(dev_selections_t, bool) dev_selections;
+    DEVICE_INPUT(dev_selections_t, uint32_t) dev_selections;
     DEVICE_INPUT(dev_selections_offsets_t, unsigned) dev_selections_offsets;
-    DEVICE_OUTPUT(dev_selected_candidates_counts_t, unsigned) dev_selected_candidates_counts;
+    DEVICE_OUTPUT(dev_max_objects_offsets_t, unsigned) dev_max_objects_offsets;
+    HOST_OUTPUT(host_max_objects_t, unsigned) host_max_objects;
     DEVICE_OUTPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
     HOST_OUTPUT(host_dec_reports_t, unsigned) host_dec_reports;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(tck_t, "tck", "TCK", unsigned) tck;
     PROPERTY(encoding_key_t, "encoding_key", "encoding key", unsigned) key;
-    PROPERTY(task_id_t, "task_is", "Task ID", unsigned) task_id;
+    PROPERTY(task_id_t, "task_id", "Task ID", unsigned) task_id;
   };
 
   __global__ void dec_reporter(Parameters);
@@ -35,7 +43,7 @@ namespace dec_reporter {
   private:
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<tck_t> m_tck {this, 0};
-    Property<encoding_key_t> m_key {this, 0xDEADBEEF}; // FIXME
+    Property<encoding_key_t> m_key {this, 0xDEADBEEF};
     Property<task_id_t> m_taskID {this, 1};
   };
 } // namespace dec_reporter

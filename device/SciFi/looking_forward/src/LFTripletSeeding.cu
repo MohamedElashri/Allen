@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "LFTripletSeeding.cuh"
 #include "LookingForwardTools.cuh"
@@ -26,6 +33,10 @@ void lf_triplet_seeding::lf_triplet_seeding_t::set_arguments_size(
   set_size<dev_global_count_t>(arguments, 1);
   set_size<dev_global_xs_t>(arguments, first<host_scifi_hit_count_t>(arguments));
 }
+
+namespace geom {
+  __constant__ extern float dev_average_z_x_layers[LookingForward::number_of_x_layers];
+} // namespace geom
 
 void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
@@ -395,6 +406,7 @@ __device__ void find_triplets(
   // If we found too many tracks the result would be non-deterministic.
   // In that very unlikely case, take the hit and make the result deterministic.
   if (shared_number_of_elements[0] > maximum_number_of_triplets_per_warp) {
+    __syncwarp();
     if (threadIdx.x == 0) {
       shared_number_of_elements[0] = 0;
     }
@@ -461,7 +473,7 @@ __device__ void find_triplets(
       // best_chi2 would be a float. In that case, convert it to a half prior to
       // saving the chi2, so that the 12 bits in lf_triplets representing the chi2
       // are as representative as in other versions.
-      const uint16_t ichi2 = __float2half(best_chi2);
+      const uint16_t ichi2 = compress_float_to_16_bits(best_chi2);
 #else
       const auto ichi2 = reinterpret_cast<uint16_t*>(&best_chi2)[0];
 #endif
@@ -507,8 +519,7 @@ __device__ void triplet_seeding(
     tracks->container(number_of_events - 1).offset() + tracks->container(number_of_events - 1).size();
 
   // SciFi hits
-  const unsigned total_number_of_hits =
-    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+  const unsigned total_number_of_hits = parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_zones];
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};
   const auto event_offset = scifi_hit_count.event_offset();
@@ -541,8 +552,8 @@ __device__ void triplet_seeding(
       padded_size,
       shared_xs_size,
       shared_xs,
-      parameters.dev_global_xs.get(),
-      parameters.dev_global_count.get(),
+      parameters.dev_global_xs.data(),
+      parameters.dev_global_count.data(),
       [&](half_t* __restrict__ xs) {
         for (int i = 0; i < LookingForward::number_of_x_layers; ++i) {
           for (unsigned i_hit = threadIdx.x * blockDim.y + threadIdx.y;
@@ -584,8 +595,8 @@ __device__ void triplet_seeding(
             }
           }();
 
-          const auto velo_tx = velo_state.tx;
-          const auto x_at_z_magnet = velo_state.x + (LookingForward::z_magnet - velo_state.z) * velo_tx;
+          const auto velo_tx = velo_state.tx();
+          const auto x_at_z_magnet = velo_state.x() + (LookingForward::z_magnet - velo_state.z()) * velo_tx;
 
           for (unsigned i_seed = 0; i_seed < n_seeds; ++i_seed) {
             const unsigned left_right_side = i_seed / 2;
@@ -606,9 +617,9 @@ __device__ void triplet_seeding(
               continue;
             }
 
-            const auto z0 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_0];
-            const auto z1 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_1];
-            const auto z2 = dev_looking_forward_constants->Zone_zPos_xlayers[layer_2];
+            const auto z0 = geom::dev_average_z_x_layers[layer_0];
+            const auto z1 = geom::dev_average_z_x_layers[layer_1];
+            const auto z2 = geom::dev_average_z_x_layers[layer_2];
 
             const int l0_start =
               shared_xs_offsets[triplet_seed] +
@@ -668,8 +679,8 @@ __device__ void triplet_seeding(
                 z1,
                 z2,
                 qop,
-                (parameters.dev_input_states + current_input_track_index)->tx,
-                velo_state.tx,
+                (parameters.dev_input_states + current_input_track_index)->tx(),
+                velo_state.tx(),
                 x_at_z_magnet,
                 xs,
                 shared_store + threadIdx.y * maximum_number_of_triplets_per_warp,
@@ -696,7 +707,7 @@ __global__ void lf_triplet_seeding::lf_triplet_seeding(
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   const auto* ut_tracks =
-    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
     triplet_seeding<true>(parameters, dev_looking_forward_constants, ut_tracks);
   }

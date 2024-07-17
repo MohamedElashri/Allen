@@ -1,8 +1,16 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <string>
 #include <vector>
+#include <set>
 #include <BackendCommon.h>
 #include <Common.h>
 #include <Consumers.h>
@@ -31,10 +39,10 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
 
   // region offsets
   auto& host_ut_region_offsets = m_constants.get().host_ut_region_offsets;
-  auto& dev_ut_region_offsets = m_constants.get().dev_ut_region_offsets;
+  //   auto& dev_ut_region_offsets = m_constants.get().dev_ut_region_offsets;
   // FIXME_GEOMETRY_HARDCODING
   host_ut_region_offsets = {0, 84, 164, 248, 332, 412, 496, 594, 674, 772, 870, 950, 1048};
-  alloc_and_copy(host_ut_region_offsets, dev_ut_region_offsets);
+  //   alloc_and_copy(host_ut_region_offsets, dev_ut_region_offsets);
 
   auto& host_ut_dxDy = m_constants.get().host_ut_dxDy;
   // FIXME_GEOMETRY_HARDCODING
@@ -59,21 +67,23 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
   auto& host_unique_x_sector_layer_offsets = m_constants.get().host_unique_x_sector_layer_offsets;
   auto& host_unique_x_sector_offsets = m_constants.get().host_unique_x_sector_offsets;
   auto& host_unique_sector_xs = m_constants.get().host_unique_sector_xs;
+  auto& host_mean_ut_layer_zs = m_constants.get().host_mean_ut_layer_zs;
   host_unique_x_sector_layer_offsets[0] = 0;
 
   for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
     const auto offset = offsets[i];
     const auto size = offsets[i + 1] - offsets[i];
 
-    // Copy elements into xs vector
-    std::vector<float> xs(size);
+    // Copy elements into xs vector and zs vector
+    std::vector<float> xs(size), zs(size);
     std::copy_n(geometry.p0X + offset, size, xs.begin());
+    std::copy_n(geometry.p0Z + offset, size, zs.begin());
 
     // Create permutation
     std::vector<int> permutation(xs.size());
     std::iota(permutation.begin(), permutation.end(), 0);
 
-    // Sort permutation according to xs
+    // Sort permutation according to xs and zs
     std::stable_sort(
       permutation.begin(), permutation.end(), [&xs](const int& a, const int& b) { return xs[a] < xs[b]; });
 
@@ -86,12 +96,13 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
 
     for (auto p : permutation) {
       // Allow for a configurable window of error
-      constexpr float accepted_error_window = 2.f;
+      constexpr float accepted_error_window = 20.f;
       if (std::abs(current_element - xs[p]) > accepted_error_window) {
         current_element = xs[p];
         current_index++;
         number_of_unique_elements++;
       }
+      if (current_element < xs[p]) current_element = xs[p];
       permutation_repeated.emplace_back(current_index);
     }
 
@@ -103,11 +114,20 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
       unique_permutation.emplace_back(permutation_repeated[position]);
     }
 
+    // Find the not repeated zs
+    std::set<float> set_zs;
+    std::transform(zs.begin(), zs.end(), std::inserter(set_zs, set_zs.begin()), [](float i) { return fabsf(i); });
+
+    // Fill the average z of each layer
+    const auto mean_z = std::accumulate(set_zs.begin(), set_zs.end(), 0.f) / set_zs.size();
+    host_mean_ut_layer_zs.push_back(mean_z);
+
     // Fill in host_unique_sector_xs
     std::vector<float> temp_unique_elements(number_of_unique_elements);
+    std::fill(temp_unique_elements.begin(), temp_unique_elements.end(), Allen::numeric_limits<float>::infinity());
     for (size_t j = 0; j < size; ++j) {
       const int index = unique_permutation[j];
-      temp_unique_elements[index] = xs[j];
+      if (xs[j] < temp_unique_elements[index]) temp_unique_elements[index] = xs[j];
     }
     for (int j = 0; j < number_of_unique_elements; ++j) {
       host_unique_sector_xs.emplace_back(temp_unique_elements[j]);
@@ -128,6 +148,7 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
     std::tuple {std::cref(host_unique_x_sector_layer_offsets),
                 std::ref(m_constants.get().dev_unique_x_sector_layer_offsets)},
     std::tuple {std::cref(host_unique_x_sector_offsets), std::ref(m_constants.get().dev_unique_x_sector_offsets)},
+    std::tuple {std::cref(host_mean_ut_layer_zs), std::ref(m_constants.get().dev_mean_ut_layer_zs)},
     std::tuple {std::cref(host_unique_sector_xs), std::ref(m_constants.get().dev_unique_sector_xs)}};
 
   for_each(

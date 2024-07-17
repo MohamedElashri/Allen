@@ -1,20 +1,29 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
+
+#include "AllenMonitoring.h"
 
 namespace di_muon_mass_line {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
+    DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+    DEVICE_INPUT(dev_chi2muon_t, float) dev_chi2muon;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
 
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
@@ -29,11 +38,49 @@ namespace di_muon_mass_line {
     PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
     PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+    PROPERTY(maxChi2Muon_t, "maxChi2Muon", "minimum Chi2Muon evaluation", float) maxChi2Muon;
+
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
+
+    DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
+    DEVICE_OUTPUT(muonchi2_t, float) muonchi2;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
   };
 
-  struct di_muon_mass_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<di_muon_mass_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+  struct di_muon_mass_line_t : public SelectionAlgorithm,
+                               Parameters,
+                               CompositeParticleLine<di_muon_mass_line_t, Parameters> {
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_Jpsi_mass;
+      DeviceAccumulators(const di_muon_mass_line_t& algo, const Allen::Context& ctx) :
+        histogram_Jpsi_mass(algo.m_histogram_Jpsi_mass.data(ctx))
+      {}
+    };
+    __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float> static get_input(
+      const Parameters& parameters,
+      const unsigned event_number,
+      const unsigned i);
+    __device__ static bool select(
+      const Parameters&,
+      const DeviceAccumulators&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
+    __device__ static void monitor(
+      const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+      unsigned index,
+      bool sel);
+    __device__ static void fill_tuples(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+      unsigned index,
+      bool sel);
+
+    using monitoring_types = std::tuple<pt_t, ipchi2_t, muonchi2_t, evtNo_t, runNo_t>;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -47,6 +94,11 @@ namespace di_muon_mass_line {
     Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.0f};
     Property<minIPChi2_t> m_minIPChi2 {this, 0.f};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<maxChi2Muon_t> m_minChi2Muon {this, 1.8};
     Property<OppositeSign_t> m_opposite_sign {this, true};
+    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
+
+    Allen::Monitoring::Histogram<> m_histogram_Jpsi_mass {this, "Jpsi_mass", "m(J/Psi)", {300u, 2896.f, 3296.f}};
   };
 } // namespace di_muon_mass_line

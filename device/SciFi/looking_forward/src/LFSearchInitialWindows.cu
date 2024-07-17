@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "LFSearchInitialWindows.cuh"
 #include "LookingForwardConstants.cuh"
@@ -24,6 +31,32 @@ void lf_search_initial_windows::lf_search_initial_windows_t::set_arguments_size(
   set_size<dev_scifi_lf_tracks_indices_t>(arguments, 2 * first<host_number_of_reconstructed_input_tracks_t>(arguments));
 }
 
+namespace geom {
+  __constant__ float dev_average_z_x_layers[LookingForward::number_of_x_layers];
+  __constant__ float dev_average_z_uv_layers[LookingForward::number_of_uv_layers];
+  __constant__ float dev_average_dxdy[LookingForward::number_of_uv_layers];
+} // namespace geom
+
+void lf_search_initial_windows::lf_search_initial_windows_t::update(const Constants& constants) const
+{
+  float host_average_z_x_layers[LookingForward::number_of_x_layers];
+  float host_average_z_uv_layers[LookingForward::number_of_uv_layers];
+  float host_average_dxdy[LookingForward::number_of_uv_layers];
+  const SciFi::SciFiGeometry scifi_geometry {constants.host_scifi_geometry};
+  for (int i = 0; i < LookingForward::number_of_x_layers; i++) {
+    host_average_z_x_layers[i] = scifi_geometry.average_z[LookingForward::x_layers_number[i]];
+    host_average_z_uv_layers[i] = scifi_geometry.average_z[LookingForward::uv_layers_number[i]];
+    host_average_dxdy[i] = scifi_geometry.average_dxdy[LookingForward::uv_layers_number[i]];
+  }
+
+  Allen::memcpyToSymbol(
+    geom::dev_average_z_x_layers, &host_average_z_x_layers, LookingForward::number_of_x_layers * sizeof(float));
+  Allen::memcpyToSymbol(
+    geom::dev_average_z_uv_layers, &host_average_z_uv_layers, LookingForward::number_of_uv_layers * sizeof(float));
+  Allen::memcpyToSymbol(
+    geom::dev_average_dxdy, &host_average_dxdy, LookingForward::number_of_uv_layers * sizeof(float));
+}
+
 void lf_search_initial_windows::lf_search_initial_windows_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
@@ -34,16 +67,12 @@ void lf_search_initial_windows::lf_search_initial_windows_t::operator()(
   Allen::memset_async<dev_scifi_lf_number_of_tracks_t>(arguments, 0, context);
 
   global_function(lf_search_initial_windows)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments,
-    constants.dev_scifi_geometry,
-    constants.dev_looking_forward_constants,
-    constants.dev_magnet_polarity.data());
+    arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
 }
 
 template<bool with_ut, typename T>
 __device__ void search_windows(
   const lf_search_initial_windows::Parameters& parameters,
-  const char* dev_scifi_geometry,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity,
   const T* tracks)
@@ -64,10 +93,9 @@ __device__ void search_windows(
   const unsigned total_number_of_tracks =
     tracks->container(number_of_events - 1).offset() + tracks->container(number_of_events - 1).size();
   // SciFi hits
-  const unsigned total_number_of_hits =
-    parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+  const unsigned total_number_of_hits = parameters.dev_scifi_hit_offsets[number_of_events * SciFi::Constants::n_zones];
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_offsets, event_number};
-  const SciFi::SciFiGeometry scifi_geometry {dev_scifi_geometry};
+
   SciFi::ConstHits scifi_hits(parameters.dev_scifi_hits, total_number_of_hits);
   const auto event_offset = scifi_hit_count.event_offset();
 
@@ -104,8 +132,8 @@ __device__ void search_windows(
       }
       else {
         const auto velo_state = input_track.state(velo_states_view);
-        const float input_tx = velo_state.tx;
-        const float input_ty = velo_state.ty;
+        const float input_tx = velo_state.tx();
+        const float input_ty = velo_state.ty();
         // if I assume pt = 1 GeV , then I can calculate p from tx and ty of the Velo input track
         const float momentum_from_pt =
           parameters.input_pt / cosf(atanf(1 / sqrtf(input_tx * input_tx + input_ty * input_ty)));
@@ -125,7 +153,7 @@ __device__ void search_windows(
         const float input_z = input_track.z();
         const auto velo_track = input_track.velo_track();
         const auto velo_state = velo_track.state(velo_states_view);
-        const float input_ty = velo_state.ty;
+        const float input_ty = velo_state.ty();
         const MiniState start_input_state {
           input_x, LookingForward::y_at_z(velo_state, input_z), input_z, input_tx, input_ty};
         return LookingForward::state_at_z(start_input_state, LookingForward::z_last_UT_plane);
@@ -133,10 +161,10 @@ __device__ void search_windows(
       else {
         // Get everything from the velo state
         const auto velo_state = input_track.state(velo_states_view);
-        const float input_x = velo_state.x;
-        const float input_tx = velo_state.tx;
-        const float input_z = velo_state.z;
-        const float input_ty = velo_state.ty;
+        const float input_x = velo_state.x();
+        const float input_tx = velo_state.tx();
+        const float input_z = velo_state.z();
+        const float input_ty = velo_state.ty();
         const MiniState start_input_state {
           input_x, LookingForward::y_at_z(velo_state, input_z), input_z, input_tx, input_ty};
         return LookingForward::state_at_z(start_input_state, LookingForward::z_last_UT_plane);
@@ -147,8 +175,7 @@ __device__ void search_windows(
     input_states[track_index] = input_state;
 
     // Parameters for the calculation of the windows
-    const float y_projection =
-      LookingForward::y_at_z_dzdy_corrected(input_state, dev_looking_forward_constants->Zone_zPos_xlayers[0]);
+    const float y_projection = LookingForward::y_at_z_dzdy_corrected(input_state, geom::dev_average_z_x_layers[0]);
 
     const bool side = y_projection >= 0.f;
     int* initial_windows = parameters.dev_scifi_lf_initial_windows + event_tracks_offset + track_index;
@@ -165,8 +192,9 @@ __device__ void search_windows(
           qop,
           dev_looking_forward_constants->x_layers[i],
           dev_looking_forward_constants,
-          dev_magnet_polarity);
-        const float xInZone = stateInZone.x;
+          dev_magnet_polarity,
+          geom::dev_average_z_x_layers[i]);
+        const float xInZone = stateInZone.x();
 
         const float xTol =
           LookingForward::initial_window_offset_xtol + LookingForward::initial_window_factor_qop * fabsf(qop);
@@ -211,12 +239,12 @@ __device__ void search_windows(
         // Skip making range but continue if the size is zero
         if (hits_within_bounds_size > 0) {
           // Now match the stereo hits
-          const float zZone = dev_looking_forward_constants->Zone_zPos_xlayers[i];
-          const float this_uv_z = dev_looking_forward_constants->Zone_zPos_uvlayers[i];
+          const float zZone = geom::dev_average_z_x_layers[i];
+          const float this_uv_z = geom::dev_average_z_uv_layers[i];
           const float dz = this_uv_z - zZone;
-          const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx, dz);
-          const float UvCorr =
-            LookingForward::y_at_z(stateInZone, this_uv_z) * dev_looking_forward_constants->Zone_dxdy_uvlayers[i % 2];
+          const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx(), dz);
+          const float UvCorr = LookingForward::y_at_z(stateInZone, this_uv_z) * geom::dev_average_dxdy[i];
+
           const float xInUvCorr = xInUv - UvCorr;
           const float xMinUV = xInUvCorr - parameters.initial_windows_max_offset_uv_window;
           const float xMaxUV = xInUvCorr + parameters.initial_windows_max_offset_uv_window;
@@ -244,23 +272,23 @@ __device__ void search_windows(
       for (int i = 0; i < LookingForward::number_of_x_layers; i++) {
         const auto iZone = iZoneStartingPoint + i;
         // simple straight line propagation
-        const MiniState stateInZone =
-          LookingForward::state_at_z(input_state, dev_looking_forward_constants->Zone_zPos_xlayers[i]);
-        const float xInZone = stateInZone.x;
+        const MiniState stateInZone = LookingForward::state_at_z(input_state, geom::dev_average_z_x_layers[i]);
+        const float xInZone = stateInZone.x();
 
         // this is a term occurring in the polynomial from which the x prediction is deduced
-        const auto term1 = dev_looking_forward_constants->toSciFiExtParams[0] +
-                           input_state.tx * (-dev_looking_forward_constants->toSciFiExtParams[1] +
-                                             dev_looking_forward_constants->toSciFiExtParams[2] * input_state.tx) +
-                           input_state.ty * input_state.ty *
-                             (dev_looking_forward_constants->toSciFiExtParams[3] +
-                              input_state.tx * (dev_looking_forward_constants->toSciFiExtParams[4] +
-                                                dev_looking_forward_constants->toSciFiExtParams[5] * input_state.tx));
+        const auto term1 =
+          dev_looking_forward_constants->toSciFiExtParams[0] +
+          input_state.tx() * (-dev_looking_forward_constants->toSciFiExtParams[1] +
+                              dev_looking_forward_constants->toSciFiExtParams[2] * input_state.tx()) +
+          input_state.ty() * input_state.ty() *
+            (dev_looking_forward_constants->toSciFiExtParams[3] +
+             input_state.tx() * (dev_looking_forward_constants->toSciFiExtParams[4] +
+                                 dev_looking_forward_constants->toSciFiExtParams[5] * input_state.tx()));
 
         //*1000 to make in GeV
         const auto minInvPGeV = fabsf(qop) * 1000.f;
         const auto minPBorder =
-          minInvPGeV * (term1 + minInvPGeV * (dev_looking_forward_constants->toSciFiExtParams[6] * input_state.tx +
+          minInvPGeV * (term1 + minInvPGeV * (dev_looking_forward_constants->toSciFiExtParams[6] * input_state.tx() +
                                               dev_looking_forward_constants->toSciFiExtParams[7] * minInvPGeV));
 
         // window shutters for case without momentum estimate, i.e. velo tracks as input
@@ -317,25 +345,17 @@ __device__ void search_windows(
         initial_windows[(i * number_of_elements_initial_window + 3) * total_number_of_tracks] =
           central_window_size_right;
 
-        // printf("(Search Windows) Initial window right %i, %i: ", track_index, track_index + (i *
-        // number_of_elements_initial_window + 2) * total_number_of_tracks); for (unsigned ii = 0; ii <
-        // central_window_size_right; ++ii) {
-        //   printf("%f, ", scifi_hits.x0(hits_within_bounds_start + x_zone_offset_begin + central_window_begin_right +
-        //   ii));
-        // }
-        // printf("\n");
-
         sizes |= (hits_within_bounds_size > 0) << i;
 
         // Skip making range but continue if the size is zero
         if (hits_within_bounds_size > 0) {
           // Now match the stereo hits
-          const float zZone = dev_looking_forward_constants->Zone_zPos_xlayers[i];
-          const float this_uv_z = dev_looking_forward_constants->Zone_zPos_uvlayers[i];
+          const float zZone = geom::dev_average_z_x_layers[i];
+
+          const float this_uv_z = geom::dev_average_z_uv_layers[i];
           const float dz = this_uv_z - zZone;
-          const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx, dz);
-          const float UvCorr =
-            LookingForward::y_at_z(stateInZone, this_uv_z) * dev_looking_forward_constants->Zone_dxdy_uvlayers[i % 2];
+          const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx(), dz);
+          const float UvCorr = LookingForward::y_at_z(stateInZone, this_uv_z) * geom::dev_average_dxdy[i];
           const float xInUvCorr = xInUv - UvCorr;
           const float xMinUV = xInUvCorr - parameters.initial_windows_max_offset_uv_window;
           const float xMaxUV = xInUvCorr + parameters.initial_windows_max_offset_uv_window;
@@ -409,19 +429,17 @@ __device__ void search_windows(
 
 __global__ void lf_search_initial_windows::lf_search_initial_windows(
   lf_search_initial_windows::Parameters parameters,
-  const char* dev_scifi_geometry,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity)
 {
   const auto* ut_tracks =
-    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    search_windows<true>(parameters, dev_scifi_geometry, dev_looking_forward_constants, dev_magnet_polarity, ut_tracks);
+    search_windows<true>(parameters, dev_looking_forward_constants, dev_magnet_polarity, ut_tracks);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    search_windows<false>(
-      parameters, dev_scifi_geometry, dev_looking_forward_constants, dev_magnet_polarity, velo_tracks);
+    search_windows<false>(parameters, dev_looking_forward_constants, dev_magnet_polarity, velo_tracks);
   }
 }

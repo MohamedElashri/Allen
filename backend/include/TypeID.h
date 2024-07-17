@@ -25,11 +25,15 @@ namespace Allen {
     VeloTracks,
     UTTracks,
     SciFiTracks,
+    MuonTracks,
     VeloUTTracks,
     LongTracks,
+    DownstreamTracks,
     BasicParticle,
+    NeutralBasicParticle,
     CompositeParticle,
     BasicParticles,
+    NeutralBasicParticles,
     CompositeParticles
   };
 

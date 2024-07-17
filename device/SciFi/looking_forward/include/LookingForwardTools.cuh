@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -10,7 +17,11 @@
 
 namespace LookingForward {
   // straight line extrapolation of y to other z position
-  __device__ inline float y_at_z(const MiniState& state, const float z) { return state.y + (z - state.z) * state.ty; }
+  template<typename AllenState>
+  __device__ inline float y_at_z(const AllenState& state, const float z)
+  {
+    return state.y() + (z - state.z()) * state.ty();
+  }
 
   __device__ MiniState propagate_state_from_velo_multi_par(
     const MiniState& UT_state,
@@ -24,19 +35,20 @@ namespace LookingForward {
   // straight line extrapolation of MiniState to other z position
   __device__ inline MiniState state_at_z(const MiniState& state, const float z)
   {
-    return {state.x + (z - state.z) * state.tx, state.y + (z - state.z) * state.ty, z, state.tx, state.ty};
+    return {
+      state.x() + (z - state.z()) * state.tx(), state.y() + (z - state.z()) * state.ty(), z, state.tx(), state.ty()};
   }
 
   __device__ inline float y_at_z_dzdy_corrected(const MiniState& state, const float z)
   {
-    return (state.y + (z - state.z) * state.ty) / (1.f - state.ty * SciFi::Constants::dzdy);
+    return (state.y() + (z - state.z()) * state.ty()) / (1.f - state.ty() * SciFi::Constants::dzdy);
   }
 
   __device__ inline void state_at_z_dzdy_corrected(MiniState& state, const float z)
   {
-    state.x += (z - state.z) * state.tx;
-    state.y = y_at_z_dzdy_corrected(state, z);
-    state.z = z;
+    state.x() += (z - state.z()) * state.tx();
+    state.y() = y_at_z_dzdy_corrected(state, z);
+    state.z() = z;
   }
 
   __device__ inline float tx_ty_corr_multi_par(
@@ -47,16 +59,16 @@ namespace LookingForward {
   {
     float tx_ty_corr = 0.f;
     const float tx_pow[5] = {1,
-                             ut_state.tx,
-                             ut_state.tx * ut_state.tx,
-                             ut_state.tx * ut_state.tx * ut_state.tx,
-                             ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx};
+                             ut_state.tx(),
+                             ut_state.tx() * ut_state.tx(),
+                             ut_state.tx() * ut_state.tx() * ut_state.tx(),
+                             ut_state.tx() * ut_state.tx() * ut_state.tx() * ut_state.tx()};
 
     const float ty_pow[5] = {1,
-                             ut_state.ty * (-1.f) * *dev_magnet_polarity,
-                             ut_state.ty * ut_state.ty,
-                             ut_state.ty * ut_state.ty * ut_state.ty * (-1.f) * *dev_magnet_polarity,
-                             ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty};
+                             ut_state.ty() * (-1.f) * *dev_magnet_polarity,
+                             ut_state.ty() * ut_state.ty(),
+                             ut_state.ty() * ut_state.ty() * ut_state.ty() * (-1.f) * *dev_magnet_polarity,
+                             ut_state.ty() * ut_state.ty() * ut_state.ty() * ut_state.ty()};
 
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
@@ -73,7 +85,8 @@ namespace LookingForward {
     const float qop,
     const int layer,
     const LookingForward::Constants* dev_looking_forward_constants,
-    const float* dev_magnet_polarity)
+    const float* dev_magnet_polarity,
+    const float z)
   {
     // center of the magnet
     const MiniState magnet_state = state_at_z(UT_state, dev_looking_forward_constants->zMagnetParams[0]);
@@ -83,9 +96,9 @@ namespace LookingForward {
     const float tx_ty_corr =
       LookingForward::tx_ty_corr_multi_par(UT_state, layer / 4, dev_looking_forward_constants, dev_magnet_polarity);
 
-    final_state.tx = tx_ty_corr * qop * (-1.f) * *dev_magnet_polarity + UT_state.tx;
+    final_state.tx() = tx_ty_corr * qop * (-1.f) * *dev_magnet_polarity + UT_state.tx();
 
-    state_at_z_dzdy_corrected(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
+    state_at_z_dzdy_corrected(final_state, z);
     // final_state = state_at_z(final_state, dev_looking_forward_constants->Zone_zPos[layer]);
     return final_state;
   }
@@ -99,7 +112,7 @@ namespace LookingForward {
     const float c1,
     const float d_ratio,
     const unsigned event_offset,
-    const LookingForward::Constants* dev_looking_forward_constants)
+    float* average_dxdy)
   {
     // Traverse all UV hits
     float y_values[6];
@@ -110,11 +123,18 @@ namespace LookingForward {
     for (unsigned j = 0; j < number_of_uv_hits; ++j) {
       const auto hit_index = event_offset + track.hits[track.hitsNum - number_of_uv_hits + j];
       const auto plane = scifi_hits.planeCode(hit_index) / 2;
+      // plane 1-2 5-6 9-10
+      // index 0-1 2-3 4-5
+      int index_plane;
+      if (plane % 2 == 1)
+        index_plane = (plane - 1) / 2;
+      else
+        index_plane = plane / 2;
+
       const auto z = scifi_hits.z0(hit_index);
       const auto dz = z - LookingForward::z_mid_t;
       const auto predicted_x = c1 + b1 * dz + a1 * dz * dz * (1.f + d_ratio * dz);
-      const auto y =
-        (predicted_x - scifi_hits.x0(hit_index)) / dev_looking_forward_constants->Zone_dxdy_uvlayers[(plane + 1) % 2];
+      const auto y = (predicted_x - scifi_hits.x0(hit_index)) / average_dxdy[index_plane];
 
       y_values[j] = y;
       z_values[j] = z;
@@ -149,15 +169,15 @@ namespace LookingForward {
     const float z_module,
     const int layer)
   {
-    const auto Dx = x_hit - (ut_state.x + ut_state.tx * (z_module - ut_state.z));
-    const auto tx = ut_state.tx;
-    const auto tx2 = ut_state.tx * ut_state.tx;
-    const auto tx3 = ut_state.tx * ut_state.tx * ut_state.tx;
-    const auto tx4 = ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx;
-    const auto tx5 = ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx * ut_state.tx;
-    const auto ty = ut_state.ty;
-    const auto ty3 = ut_state.ty * ut_state.ty * ut_state.ty;
-    const auto ty5 = ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty * ut_state.ty;
+    const auto Dx = x_hit - (ut_state.x() + ut_state.tx() * (z_module - ut_state.z()));
+    const auto tx = ut_state.tx();
+    const auto tx2 = ut_state.tx() * ut_state.tx();
+    const auto tx3 = ut_state.tx() * ut_state.tx() * ut_state.tx();
+    const auto tx4 = ut_state.tx() * ut_state.tx() * ut_state.tx() * ut_state.tx();
+    const auto tx5 = ut_state.tx() * ut_state.tx() * ut_state.tx() * ut_state.tx() * ut_state.tx();
+    const auto ty = ut_state.ty();
+    const auto ty3 = ut_state.ty() * ut_state.ty() * ut_state.ty();
+    const auto ty5 = ut_state.ty() * ut_state.ty() * ut_state.ty() * ut_state.ty() * ut_state.ty();
 
     // NOTE :
     // Y expected is evaluated as follow :
@@ -192,7 +212,7 @@ namespace LookingForward {
     const auto C3y =
       C3y_0 * tx * ty + C3y_1 * tx3 * ty + C3y_2 * tx * ty3 + C3y_3 * tx5 * ty + C3y_4 * tx3 * ty3 + C3y_5 * tx * ty5;
     const auto Dy = Dx * C1y + Dx * Dx * C2y + Dx * Dx * Dx * C3y;
-    const auto y = ut_state.y + ut_state.ty * (z_module - ut_state.z) + Dy;
+    const auto y = ut_state.y() + ut_state.ty() * (z_module - ut_state.z()) + Dy;
 
     return y;
   }

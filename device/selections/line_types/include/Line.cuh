@@ -1,5 +1,12 @@
 /*****************************************************************************\
  * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
  \*****************************************************************************/
 #pragma once
 
@@ -11,6 +18,7 @@
 #include <tuple>
 #include <ROOTHeaders.h>
 #include "ROOTService.h"
+#include "ODINBank.cuh"
 
 // Helper macro to explicitly instantiate lines
 #define INSTANTIATE_LINE(DERIVED, PARAMETERS)                                                                     \
@@ -18,35 +26,36 @@
     const ArgumentReferences<PARAMETERS>&, const RuntimeOptions&, const Constants&, const Allen::Context&) const; \
   template __device__ void process_line<DERIVED, PARAMETERS>(                                                     \
     char*,                                                                                                        \
-    bool*,                                                                                                        \
+    uint32_t*,                                                                                                    \
     unsigned*,                                                                                                    \
-    Allen::IMultiEventContainer**,                                                                                \
-    unsigned,                                                                                                     \
-    unsigned,                                                                                                     \
-    unsigned,                                                                                                     \
-    unsigned,                                                                                                     \
-    unsigned,                                                                                                     \
-    unsigned,                                                                                                     \
+    const LineData*,                                                                                              \
+    const ODINData*,                                                                                              \
+    const unsigned*,                                                                                              \
+    const unsigned,                                                                                               \
+    const unsigned,                                                                                               \
+    const unsigned,                                                                                               \
     const unsigned);                                                                                              \
   template void line_output_monitor<DERIVED, PARAMETERS>(char*, const RuntimeOptions&, const Allen::Context&);    \
   INSTANTIATE_ALGORITHM(DERIVED)
 
-// Type-erased line function type
-using line_fn_t = void (*)(
-  char*,
-  bool*,
-  unsigned*,
-  Allen::IMultiEventContainer**,
-  unsigned,
-  unsigned,
-  unsigned,
-  unsigned,
-  unsigned,
-  unsigned,
-  const unsigned);
-
 template<typename Derived, typename Parameters>
-using type_erased_tuple_t = std::tuple<Parameters, size_t, unsigned, ArgumentReferences<Parameters>, const Derived*>;
+using type_erased_tuple_t =
+  std::tuple<Parameters, ArgumentReferences<Parameters>, const Derived*, typename Derived::DeviceAccumulators>;
+
+struct LineData {
+  float pre_scaler {0};
+  uint32_t pre_scaler_hash {0};
+
+  float post_scaler {0};
+  uint32_t post_scaler_hash {0};
+
+  unsigned decisions_size {0};
+
+  const mask_t* event_list {nullptr};
+  unsigned event_list_size {0};
+
+  Allen::IMultiEventContainer* particle_container_ptr {nullptr};
+};
 
 template<typename Derived, typename Parameters>
 struct Line {
@@ -133,7 +142,7 @@ public:
   /**
    * @brief Default monitor function.
    */
-  void init_monitor(
+  void init_tuples(
     [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
     [[maybe_unused]] const Allen::Context& context) const
   {
@@ -145,9 +154,7 @@ public:
 
   void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const
   {
-    Allen::ArgumentOperations::set_size<typename Parameters::host_decisions_size_t>(arguments, 1);
-    Allen::ArgumentOperations::set_size<typename Parameters::host_post_scaler_t>(arguments, 1);
-    Allen::ArgumentOperations::set_size<typename Parameters::host_post_scaler_hash_t>(arguments, 1);
+    Allen::ArgumentOperations::set_size<typename Parameters::host_line_data_t>(arguments, 1);
 
     // Set the size of the type-erased fn parameters
     Allen::ArgumentOperations::set_size<typename Parameters::host_fn_parameters_t>(
@@ -159,8 +166,15 @@ public:
     }
   }
 
+  struct DeviceAccumulators {
+    DeviceAccumulators(const Derived&, const Allen::Context&) {}
+  };
+
+  template<typename T, typename U>
+  static __device__ void monitor(const Parameters&, U, T, unsigned, bool)
+  {}
   template<typename T>
-  static __device__ void monitor(const Parameters&, T, unsigned, bool)
+  static __device__ void fill_tuples(const Parameters&, T, unsigned, bool)
   {}
 
   template<std::size_t N, typename lv, typename rv>
@@ -209,7 +223,7 @@ public:
     }
   }
 
-  void output_monitor(
+  void output_tuples(
     [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
     [[maybe_unused]] const RuntimeOptions& runtime_options,
     [[maybe_unused]] const Allen::Context& context) const
@@ -221,17 +235,22 @@ public:
       do_monitoring(arguments, handler, sequence, context);
     }
   }
+
+  __device__ static unsigned input_size(const Parameters& parameters, unsigned event_number)
+  {
+    return Derived::offset(parameters, event_number + 1) - Derived::offset(parameters, event_number);
+  }
 };
 
 template<typename Derived, typename Parameters>
 void line_output_monitor(char* input, const RuntimeOptions& runtime_options, const Allen::Context& context)
 {
-  if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
+  if constexpr (Allen::has_enable_tupling<Parameters>::value) {
     if (input != nullptr) {
       const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
-      auto derived_instance = std::get<4>(type_casted_input);
-      if (derived_instance->template property<typename Parameters::enable_monitoring_t>()) {
-        derived_instance->output_monitor(std::get<3>(type_casted_input), runtime_options, context);
+      auto derived_instance = std::get<2>(type_casted_input);
+      if (derived_instance->template property<typename Parameters::enable_tupling_t>()) {
+        derived_instance->output_tuples(std::get<1>(type_casted_input), runtime_options, context);
       }
     }
   }
@@ -241,78 +260,72 @@ void line_output_monitor(char* input, const RuntimeOptions& runtime_options, con
 template<typename Derived, typename Parameters>
 __device__ void process_line(
   char* input,
-  bool* decisions,
+  uint32_t* decisions,
   unsigned* decisions_offsets,
-  Allen::IMultiEventContainer** particle_container_ptr,
-  unsigned run_no,
-  unsigned evt_hi,
-  unsigned evt_lo,
-  unsigned gps_hi,
-  unsigned gps_lo,
-  unsigned line_offset,
+  [[maybe_unused]] const LineData* dev_line_data,
+  const ODINData* dev_odin_data,
+  const unsigned* pre_scale_event_list,
+  const unsigned pre_scale_event_list_size,
+  const unsigned line_offset,
+  const unsigned line_index,
   const unsigned number_of_events)
 {
-  if (input == nullptr) {
-    if (blockIdx.x == 0 && threadIdx.x == 0) {
-      *particle_container_ptr = nullptr;
-    }
+  const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
+  const auto& parameters = std::get<0>(type_casted_input);
 
-    if (blockIdx.x == 0) {
-      for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
-        decisions_offsets[i] = line_offset;
-      }
-    }
+  // Do initialization for all events, regardless of mask
+  for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
+    decisions_offsets[i] = line_offset + Derived::offset(parameters, i);
   }
-  else {
-    const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
-    const auto& parameters = std::get<0>(type_casted_input);
-    const auto event_list_size = std::get<1>(type_casted_input);
-    const auto event_number = blockIdx.x;
 
-    // Check if blockIdx.x (event_number) is in dev_event_list
-    unsigned mask = 0;
-    for (unsigned i = 0; i < (event_list_size + warp_size - 1) / warp_size; ++i) {
-      const auto index = i * warp_size + threadIdx.x;
-      mask |=
-        __ballot_sync(0xFFFFFFFF, index < event_list_size ? event_number == parameters.dev_event_list[index] : false);
-    }
+  // Switch between 3 settings:
+  // * 1 thread per event
+  // * 1 thread per object
+  // * balanced: (32 threads per objects, 8 event per block)
+  const auto threads_per_event =
+    (dev_line_data->decisions_size == number_of_events) ? 1 : (pre_scale_event_list_size == 1) ? blockDim.x : warp_size;
+  const auto events_per_block = blockDim.x / threads_per_event;
 
-    // Do initialization for all events, regardless of mask
-    // * Populate offsets in first block
-    if (blockIdx.x == 0) {
-      for (unsigned i = threadIdx.x; i < number_of_events; i += blockDim.x) {
-        decisions_offsets[i] = line_offset + Derived::offset(parameters, i);
-      }
-    }
-
-    // * Populate IMultiEventContainer* if relevant
-    if (blockIdx.x == 0 && threadIdx.x == 0) {
-      if constexpr (Allen::has_dev_particle_container<
-                      Derived,
-                      Allen::Store::device_datatype,
-                      Allen::Store::input_datatype>::value) {
-        const auto ptr = static_cast<const Allen::IMultiEventContainer*>(parameters.dev_particle_container);
-        *particle_container_ptr = const_cast<Allen::IMultiEventContainer*>(ptr);
-      }
-      else {
-        *particle_container_ptr = nullptr;
-      }
-    }
+  for (unsigned j = threadIdx.x / threads_per_event; j < pre_scale_event_list_size; j += events_per_block) {
+    const auto event_number = pre_scale_event_list[j];
 
     // * Populate decisions
-    const auto pre_scaler_hash = std::get<2>(type_casted_input);
-    const bool pre_scaler_result =
-      deterministic_scaler(pre_scaler_hash, parameters.pre_scaler, run_no, evt_hi, evt_lo, gps_hi, gps_lo);
     const unsigned input_size = Derived::input_size(parameters, event_number);
-
-    for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
+    for (unsigned i = threadIdx.x % threads_per_event; i < input_size; i += threads_per_event) {
       const auto input = Derived::get_input(parameters, event_number, i);
-      const bool decision = mask > 0 && pre_scaler_result && Derived::select(parameters, input);
-      unsigned index = Derived::offset(parameters, event_number) + i;
-      decisions[index] = decision;
+      bool decision;
+      if constexpr (!std::is_same_v<
+                      typename Line<Derived, Parameters>::DeviceAccumulators,
+                      typename Derived::DeviceAccumulators>) {
+        const auto accumulators = std::get<3>(type_casted_input);
+        decision = Derived::select(parameters, accumulators, input);
+      }
+      else {
+        decision = Derived::select(parameters, input);
+      }
+
+      unsigned span_index = line_index * number_of_events + event_number;
+      unsigned index = (line_offset + Derived::offset(parameters, event_number)) / 32 + span_index + i / 32;
+      if (decision) atomicOr(&decisions[index], 1 << (i % 32));
+
       if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
         if (parameters.enable_monitoring) {
-          Derived::monitor(parameters, input, index, decision);
+          unsigned index = Derived::offset(parameters, event_number) + i;
+          const auto accumulators = std::get<3>(type_casted_input);
+          Derived::monitor(parameters, accumulators, input, index, decision);
+        }
+      }
+      if constexpr (Allen::has_enable_tupling<Parameters>::value) {
+        if (parameters.enable_tupling) {
+          LHCb::ODIN odin {dev_odin_data[event_number]};
+          unsigned index = Derived::offset(parameters, event_number) + i;
+          if constexpr (Allen::monitoring_has_evtNo<Parameters>::value) {
+            parameters.evtNo[index] = odin.eventNumber();
+          }
+          if constexpr (Allen::monitoring_has_runNo<Parameters>::value) {
+            parameters.runNo[index] = odin.runNumber();
+          }
+          Derived::fill_tuples(parameters, input, index, decision);
         }
       }
     }
@@ -328,21 +341,33 @@ void Line<Derived, Parameters>::operator()(
 {
   const auto* derived_instance = static_cast<const Derived*>(this);
 
-  // Copy post scaler and hash to an output, such that GatherSelections can later
-  // perform the postscaling
-  Allen::ArgumentOperations::data<typename Parameters::host_post_scaler_t>(arguments)[0] =
-    derived_instance->template property<typename Parameters::post_scaler_t>();
-  Allen::ArgumentOperations::data<typename Parameters::host_post_scaler_hash_t>(arguments)[0] = m_post_scaler_hash;
-  Allen::ArgumentOperations::data<typename Parameters::host_decisions_size_t>(arguments)[0] =
-    Derived::get_decisions_size(arguments);
+  // Copy infos needed by GatherSelections to an output:
+  auto& line_data = Allen::ArgumentOperations::data<typename Parameters::host_line_data_t>(arguments)[0];
+  line_data.pre_scaler = derived_instance->template property<typename Parameters::pre_scaler_t>();
+  line_data.pre_scaler_hash = m_pre_scaler_hash;
+  line_data.post_scaler = derived_instance->template property<typename Parameters::post_scaler_t>();
+  line_data.post_scaler_hash = m_post_scaler_hash;
+  line_data.decisions_size = Derived::get_decisions_size(arguments);
+  line_data.event_list = Allen::ArgumentOperations::data<typename Parameters::dev_event_list_t>(arguments);
+  line_data.event_list_size = Allen::ArgumentOperations::size<typename Parameters::dev_event_list_t>(arguments);
+  if constexpr (Allen::has_dev_particle_container<
+                  Derived,
+                  Allen::Store::device_datatype,
+                  Allen::Store::input_datatype>::value) {
+    const auto ptr = static_cast<const Allen::IMultiEventContainer*>(
+      Allen::ArgumentOperations::data<typename Parameters::dev_particle_container_t>(arguments));
+    line_data.particle_container_ptr = const_cast<Allen::IMultiEventContainer*>(ptr);
+  }
+  else {
+    line_data.particle_container_ptr = nullptr;
+  }
 
   // Delay the execution of the line: Pass the parameters
   auto parameters = std::make_tuple(
     derived_instance->make_parameters(1, 1, 0, arguments),
-    Allen::ArgumentOperations::size<typename Parameters::dev_event_list_t>(arguments),
-    m_pre_scaler_hash,
     arguments,
-    derived_instance);
+    derived_instance,
+    typename Derived::DeviceAccumulators(*derived_instance, context));
 
   assert(sizeof(type_erased_tuple_t<Derived, Parameters>) == sizeof(parameters));
   std::memcpy(
@@ -350,9 +375,9 @@ void Line<Derived, Parameters>::operator()(
     &parameters,
     sizeof(parameters));
 
-  if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
-    if (derived_instance->template property<typename Parameters::enable_monitoring_t>()) {
-      derived_instance->init_monitor(arguments, context);
+  if constexpr (Allen::has_enable_tupling<Parameters>::value) {
+    if (derived_instance->template property<typename Parameters::enable_tupling_t>()) {
+      derived_instance->init_tuples(arguments, context);
     }
   }
 }

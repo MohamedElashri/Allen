@@ -1,5 +1,12 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
 # Entire workflow is defined here
@@ -14,6 +21,18 @@ build:
     - .default_rules
     - .build_job_minimal_matrix
   stage: build
+
+check-warnings:
+  extends:
+    - .default_rules
+    - .build_job_minimal_matrix
+  stage: check-warnings
+  tags: [cvmfs]
+  script:
+    - source scripts/ci/common.sh
+    - cd "${BUILD_FOLDER}" && ls
+    - "if [[ $(cat build.log | grep warning -i) ]]; then cat build.log | grep warning -i; exit 1; fi"
+  allow_failure: true
 
 .run_job:
   extends: .run_jobs_minimal
@@ -132,7 +151,7 @@ full-pipeline:
     - if: '$CI_PIPELINE_SOURCE == "web"'
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
       when: never
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "2024-patches")'
     - when: never
   needs: []
 
@@ -156,12 +175,12 @@ CPU:
 CUDA:
   extends: .full-build
   variables:
-    LCG_QUALIFIER: cuda11_4
+    LCG_QUALIFIER: "cuda12_1"
 
-HIP:
-  extends: .full-build
-  variables:
-    LCG_QUALIFIER: hip5
+# HIP:
+#   extends: .full-build
+#   variables:
+#     LCG_QUALIFIER: hip5
 
 
 
@@ -182,12 +201,12 @@ HIP:
 .cuda_run_job:
   dependencies: [CUDA, build]
   variables:
-    LCG_QUALIFIER: cuda11_4
+    LCG_QUALIFIER: cuda12_1
 
-.hip_run_job:
-  dependencies: [HIP, build]
-  variables:
-    LCG_QUALIFIER: hip5
+# .hip_run_job:
+#   dependencies: [HIP, build]
+#   variables:
+#     LCG_QUALIFIER: hip5
 
 
 # CPU
@@ -216,6 +235,8 @@ a5000-full:
     - .run_jobs
     - .default_rules_always_run
     - .cuda_run_job
+  timeout: 1h 30m
+
 
 # RTX 2080Ti
 geforcertx2080ti-full:

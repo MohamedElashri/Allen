@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -15,7 +22,11 @@ namespace ut_calculate_number_of_hits {
     DEVICE_INPUT(dev_ut_raw_input_t, char) dev_ut_raw_input;
     DEVICE_INPUT(dev_ut_raw_input_offsets_t, unsigned) dev_ut_raw_input_offsets;
     DEVICE_INPUT(dev_ut_raw_input_sizes_t, unsigned) dev_ut_raw_input_sizes;
-    DEVICE_OUTPUT(dev_ut_hit_sizes_t, unsigned) dev_ut_hit_sizes;
+    DEVICE_INPUT(dev_ut_raw_input_types_t, unsigned) dev_ut_raw_input_types;
+    DEVICE_OUTPUT(dev_ut_nonempty_channels_t, uint16_t) dev_ut_nonempty_channels;
+    DEVICE_OUTPUT(dev_ut_number_of_nonempty_channels_t, uint16_t) dev_ut_number_of_nonempty_channels;
+    DEVICE_OUTPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
+    HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
@@ -41,16 +52,20 @@ namespace ut_calculate_number_of_hits {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{64, 4, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
   };
 
+  /**
+   * @brief Calculates the number of UT strips in the event so that we can allocate enough memory to store pre-decoding
+   * information.
+   */
   template<int decoding_version, bool mep>
   __global__ void ut_calculate_number_of_hits(
     Parameters,
     const unsigned event_start,
     const char* ut_boards,
-    const unsigned* dev_ut_region_offsets,
     const unsigned* dev_unique_x_sector_layer_offsets,
-    const unsigned* dev_unique_x_sector_offsets);
+    const unsigned* dev_unique_x_sector_offsets,
+    const uint16_t* dev_ut_board_geometry_map);
 
 } // namespace ut_calculate_number_of_hits

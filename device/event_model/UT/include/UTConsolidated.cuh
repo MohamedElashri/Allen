@@ -1,10 +1,18 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
 #include "ConsolidatedTypes.cuh"
 #include "VeloConsolidated.cuh"
+#include "SciFiConsolidated.cuh"
 #include "UTEventModel.cuh"
 #include <stdint.h>
 #include <cassert>
@@ -99,9 +107,6 @@ namespace Allen {
 
         private:
           const Hits* m_hits = nullptr;
-          const Allen::Views::Velo::Consolidated::Track* m_velo_track = nullptr;
-          const float* m_track_params = nullptr;
-          unsigned m_number_of_tracks_event = 0;
           unsigned m_track_index = 0;
           unsigned m_track_container_offset = 0;
           unsigned m_offset = 0;
@@ -116,18 +121,13 @@ namespace Allen {
 
           __host__ __device__ Track(
             const Hits* hits,
-            const Allen::Views::Velo::Consolidated::Track* velo_track,
-            const float* track_params,
             const unsigned* offset_tracks,
             const unsigned* offset_track_hit_number,
-            const unsigned number_of_tracks_event,
             const unsigned track_index,
             const unsigned event_number) :
             m_hits(hits + event_number),
-            m_velo_track(velo_track), m_track_params(track_params + 4 * offset_tracks[event_number]),
-            m_number_of_tracks_event(number_of_tracks_event), m_track_index(track_index)
+            m_track_index(track_index)
           {
-            m_track_container_offset = offset_tracks[event_number];
             const auto offset_event = offset_track_hit_number + offset_tracks[event_number];
             m_offset = offset_event[track_index] - offset_event[0];
             m_number_of_hits = offset_event[track_index + 1] - offset_event[track_index];
@@ -137,25 +137,7 @@ namespace Allen {
 
           __host__ __device__ unsigned track_container_offset() const { return m_track_container_offset; }
 
-          __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
-          {
-            return *m_velo_track;
-          }
-
           __host__ __device__ unsigned number_of_ut_hits() const { return m_number_of_hits; }
-
-          __host__ __device__ unsigned number_of_total_hits() const
-          {
-            return m_number_of_hits + m_velo_track->number_of_hits();
-          }
-
-          __host__ __device__ float qop() const { return m_track_params[m_track_index]; }
-
-          __host__ __device__ float x() const { return m_track_params[m_track_index + m_number_of_tracks_event]; }
-
-          __host__ __device__ float z() const { return m_track_params[m_track_index + 2 * m_number_of_tracks_event]; }
-
-          __host__ __device__ float tx() const { return m_track_params[m_track_index + 3 * m_number_of_tracks_event]; }
 
           __host__ __device__ Hit hit(const unsigned ut_hit_index) const
           {
@@ -165,34 +147,84 @@ namespace Allen {
           }
         };
 
-        struct Tracks : Allen::ILHCbIDContainer<Tracks> {
-          friend Allen::ILHCbIDContainer<Tracks>;
-          constexpr static auto TypeID = Allen::TypeIDs::VeloUTTracks;
+        struct VeloUTTrack : public Track {
+          friend Allen::ILHCbIDSequence<Track>;
 
         private:
-          const Track* m_track = nullptr;
+          const Allen::Views::Velo::Consolidated::Track* m_velo_track = nullptr;
+          const float* m_track_params = nullptr;
+          unsigned m_number_of_tracks_event = 0;
+
+        public:
+          VeloUTTrack() = default;
+
+          constexpr static unsigned num_pars_velo_ut_track = 4;
+
+          __host__ __device__ VeloUTTrack(
+            const Hits* hits,
+            const Allen::Views::Velo::Consolidated::Track* velo_track,
+            const float* track_params,
+            const unsigned* offset_tracks,
+            const unsigned* offset_track_hit_number,
+            const unsigned number_of_tracks_event,
+            const unsigned track_index,
+            const unsigned event_number) :
+            Track(hits, offset_tracks, offset_track_hit_number, track_index, event_number),
+            m_velo_track(velo_track),
+            m_track_params(track_params + num_pars_velo_ut_track * offset_tracks[event_number]),
+            m_number_of_tracks_event(number_of_tracks_event)
+          {}
+
+          __host__ __device__ unsigned number_of_total_hits() const
+          {
+            return m_velo_track->number_of_hits() + number_of_ut_hits();
+          }
+
+          __host__ __device__ const Allen::Views::Velo::Consolidated::Track& velo_track() const
+          {
+            return *m_velo_track;
+          }
+
+          // using for compass UT
+          __host__ __device__ float qop() const { return m_track_params[track_index()]; }
+
+          __host__ __device__ float x() const { return m_track_params[track_index() + m_number_of_tracks_event]; }
+
+          __host__ __device__ float z() const { return m_track_params[track_index() + 2 * m_number_of_tracks_event]; }
+
+          __host__ __device__ float tx() const { return m_track_params[track_index() + 3 * m_number_of_tracks_event]; }
+        };
+
+        template<typename TrackType, Allen::TypeIDs TrackTypeID>
+        struct Tracks_t : Allen::ILHCbIDContainer<Tracks_t<TrackType, TrackTypeID>> {
+          friend Allen::ILHCbIDContainer<Tracks_t<TrackType, TrackTypeID>>;
+          constexpr static auto TypeID = TrackTypeID;
+
+        private:
+          const TrackType* m_track = nullptr;
           unsigned m_size = 0;
           unsigned m_offset = 0;
 
           __host__ __device__ unsigned number_of_id_sequences_impl() const { return m_size; }
 
-          __host__ __device__ const Track& id_sequence_impl(const unsigned index)
+          __host__ __device__ const TrackType& id_sequence_impl(const unsigned index)
           {
             assert(index < number_of_id_sequences_impl());
             return m_track[index];
           }
 
         public:
-          Tracks() = default;
+          Tracks_t() = default;
 
-          __host__ __device__ Tracks(const Track* track, const unsigned* offset_tracks, const unsigned event_number) :
+          __host__ __device__
+          Tracks_t(const TrackType* track, const unsigned* offset_tracks, const unsigned event_number) :
             m_track(track + offset_tracks[event_number]),
             m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]), m_offset(offset_tracks[event_number])
           {}
 
           __host__ __device__ unsigned size() const { return m_size; }
 
-          __host__ __device__ const Track& track(const unsigned index) const
+          __host__ __device__ const TrackType& track(const unsigned index) const
           {
             assert(index < m_size);
             return m_track[index];
@@ -201,7 +233,12 @@ namespace Allen {
           __host__ __device__ unsigned offset() const { return m_offset; }
         };
 
+        using VeloUTTracks = Tracks_t<VeloUTTrack, Allen::TypeIDs::VeloUTTracks>;
+        using Tracks = Tracks_t<Track, Allen::TypeIDs::UTTracks>;
+
+        using MultiEventVeloUTTracks = Allen::MultiEventContainer<VeloUTTracks>;
         using MultiEventTracks = Allen::MultiEventContainer<Tracks>;
+
       } // namespace Consolidated
     }   // namespace UT
   }     // namespace Views
@@ -270,12 +307,12 @@ namespace UT {
     //-------------------------------------------
     struct Tracks : public ::Consolidated::Tracks {
       __host__ __device__ Tracks(
-        const unsigned* atomics_base_pointer,
+        const unsigned* event_tracks_offsets,
         const unsigned* track_hit_number_base_pointer,
         const unsigned current_event_number,
         const unsigned number_of_events) :
         ::Consolidated::Tracks(
-          atomics_base_pointer,
+          event_tracks_offsets,
           track_hit_number_base_pointer,
           current_event_number,
           number_of_events)
@@ -337,5 +374,6 @@ namespace UT {
 
     typedef const ExtendedTracks_t<const char> ConstExtendedTracks;
     typedef ExtendedTracks_t<char> ExtendedTracks;
+
   } // end namespace Consolidated
 } // end namespace UT

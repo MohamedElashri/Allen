@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -10,20 +17,22 @@
 #include "BankTypes.h"
 
 namespace Allen {
-  const std::unordered_map<LHCb::RawBank::BankType, BankTypes> bank_mapping = {
-    {LHCb::RawBank::VP, BankTypes::VP},
-    {LHCb::RawBank::Velo, BankTypes::VP},
-    {LHCb::RawBank::VPRetinaCluster, BankTypes::VP},
-    {LHCb::RawBank::UT, BankTypes::UT},
-    {LHCb::RawBank::FTCluster, BankTypes::FT},
-    {LHCb::RawBank::Muon, BankTypes::MUON},
-    {LHCb::RawBank::ODIN, BankTypes::ODIN},
-    {LHCb::RawBank::HcalPacked, BankTypes::HCal},
-    {LHCb::RawBank::EcalPacked, BankTypes::ECal},
-    {LHCb::RawBank::Calo, BankTypes::ECal},
-    {LHCb::RawBank::OTError, BankTypes::MCVertices}, // used for PV MC info
-    {LHCb::RawBank::OTRaw, BankTypes::MCTracks},
-    {LHCb::RawBank::Plume, BankTypes::Plume}}; // used for track MC info
+  const std::unordered_map<LHCb::RawBank::BankType, std::unordered_set<BankTypes>> bank_mapping = {
+    {LHCb::RawBank::VP, {BankTypes::VP}},
+    {LHCb::RawBank::VPRetinaCluster, {BankTypes::VP}},
+    {LHCb::RawBank::UT, {BankTypes::UT}},
+    {LHCb::RawBank::UTError, {BankTypes::UT}},
+    {LHCb::RawBank::FTCluster, {BankTypes::FT}},
+    {LHCb::RawBank::Muon, {BankTypes::MUON}},
+    {LHCb::RawBank::MuonError, {BankTypes::MUON}},
+    {LHCb::RawBank::ODIN, {BankTypes::ODIN}},
+    {LHCb::RawBank::HcalPacked, {BankTypes::HCal}},
+    {LHCb::RawBank::EcalPacked, {BankTypes::ECal}},
+    {LHCb::RawBank::Calo, {BankTypes::ECal, BankTypes::HCal}},
+    {LHCb::RawBank::Rich, {BankTypes::Rich1, BankTypes::Rich2}},
+    {LHCb::RawBank::OTError, {BankTypes::MCVertices}}, // used for PV MC info
+    {LHCb::RawBank::OTRaw, {BankTypes::MCTracks}},
+    {LHCb::RawBank::Plume, {BankTypes::Plume}}}; // used for track MC info
 
   const std::unordered_map<SourceIdSys, BankTypes> subdetectors = {{SourceIdSys::SourceIdSys_ODIN, BankTypes::ODIN},
                                                                    {SourceIdSys::SourceIdSys_VELO_A, BankTypes::VP},

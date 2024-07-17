@@ -1,7 +1,17 @@
 /*****************************************************************************\
  * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <string>
+#include <iostream>
+#include <fstream>
+#include <regex>
 
 #include <MDFProvider.h>
 #include <Provider.h>
@@ -13,6 +23,10 @@
 #include <Event/RawBank.h>
 #include <FileSystem.h>
 #include <InputReader.h>
+
+#ifndef ALLEN_STANDALONE
+#include <TCK.h>
+#endif
 
 std::tuple<bool, bool> Allen::velo_decoding_type(const ConfigurationReader& configuration_reader)
 {
@@ -32,53 +46,88 @@ std::tuple<bool, bool> Allen::velo_decoding_type(const ConfigurationReader& conf
   return {veloSP, retina};
 }
 
-std::tuple<std::string, bool> Allen::sequence_conf(std::map<std::string, std::string> const& options)
+std::string Allen::sequence_conf(std::map<std::string, std::string> const& options)
 {
   static bool generated = false;
   std::string json_configuration_file = "Sequence.json";
   // Sequence to run
   std::string sequence = "hlt1_pp_default";
 
-  bool run_from_json = false;
-
   for (auto const& entry : options) {
     auto [flag, arg] = entry;
     if (flag_in(flag, {"sequence"})) {
       sequence = arg;
     }
-    else if (flag_in(flag, {"run-from-json"})) {
-      run_from_json = atoi(arg.c_str());
-    }
   }
 
-  // Determine configuration
-  if (run_from_json) {
-    if (fs::exists(sequence)) {
+  std::regex tck_option {"([^:]+):(0x[a-fA-F0-9]{8})"};
+  std::smatch tck_match;
+  if (sequence == "null") {
+    return sequence;
+  }
+  else if (std::regex_match(sequence, tck_match, tck_option)) {
+#ifndef ALLEN_STANDALONE
+
+    auto repo = tck_match.str(1);
+    auto tck = tck_match.str(2);
+    std::string config;
+    LHCb::TCK::Info info;
+    try {
+      std::tie(config, info) = Allen::sequence_from_git(repo, tck);
+    } catch (std::runtime_error const& e) {
+      throw std::runtime_error {"Failed to obtain sequence for TCK " + tck + " from repository at " + repo + ":" +
+                                e.what()};
+    }
+
+    auto [check, check_error] = Allen::TCK::check_projects(nlohmann::json::parse(info.metadata));
+
+    if (config.empty()) {
+      throw std::runtime_error {"Failed to obtain sequence for TCK " + tck + " from repository at " + repo};
+    }
+    else if (!check) {
+      throw std::runtime_error {std::string {"TCK "} + tck + ": " + check_error};
+    }
+    info_cout << "TCK " << tck << " loaded " << info.type << " sequence from git with label " << info.label << "\n";
+    return config;
+#else
+    throw std::runtime_error {"Loading configuration from TCK is not supported in standalone builds"};
+#endif
+  }
+  else {
+    // Determine configuration
+    if (sequence.size() > 5 && sequence.substr(sequence.size() - 5, std::string::npos) == ".json") {
       json_configuration_file = sequence;
     }
-    else {
-      json_configuration_file = sequence + ".json";
-    }
-  }
-  else if (!generated) {
+    else if (!generated) {
 #ifdef ALLEN_STANDALONE
-    const std::string allen_configuration_options = "--no-register-keys";
+      const std::string allen_configuration_options = "--no-register-keys";
+      const std::string allen_python_dir =
+        (getenv("ALLEN_BUILD_DIR") != nullptr ? getenv("ALLEN_BUILD_DIR") : CMAKE_ALLEN_BUILD_DIR) +
+        std::string("/code_generation/sequences/");
 #else
-    const std::string allen_configuration_options = "";
+      const std::string allen_configuration_options = "";
+      const std::string allen_python_dir = getenv("ALLEN_INSTALL_DIR") + std::string("/python/");
 #endif
 
-    int error = system(
-      ("PYTHONPATH=code_generation/sequences:$PYTHONPATH python3 ../configuration/python/AllenCore/gen_allen_json.py " +
-       allen_configuration_options + " --seqpath ../configuration/python/AllenSequences/" + sequence + ".py ")
-        .c_str());
-    if (error) {
-      throw std::runtime_error("sequence generation failed");
+      int error = system(("PYTHONPATH=" + allen_python_dir + ":$PYTHONPATH python3 " + allen_python_dir +
+                          "/AllenCore/gen_allen_json.py " + allen_configuration_options + " --seqpath " +
+                          allen_python_dir + "/AllenSequences/" + sequence + ".py > /dev/null")
+                           .c_str());
+      if (error) {
+        throw std::runtime_error {"sequence generation failed"};
+      }
+      info_cout << "\n";
+      generated = true;
     }
-    info_cout << "\n";
-    generated = true;
-  }
 
-  return {json_configuration_file, run_from_json};
+    std::string config;
+    std::ifstream config_file {json_configuration_file};
+    if (!config_file.is_open()) {
+      throw std::runtime_error {"failed to open sequence configuration file " + json_configuration_file};
+    }
+
+    return std::string {std::istreambuf_iterator<char> {config_file}, std::istreambuf_iterator<char> {}};
+  }
 }
 
 Allen::IOConf Allen::io_configuration(
@@ -118,7 +167,9 @@ Allen::IOConf Allen::io_configuration(
   return io_conf;
 }
 
-std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::string> const& options)
+std::unique_ptr<IInputProvider> Allen::make_provider(
+  std::map<std::string, std::string> const& options,
+  std::string_view configuration)
 {
 
   unsigned number_of_slices = 0;
@@ -193,21 +244,22 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
   setenv("CUDA_DEVICE_MAX_CONNECTIONS", std::to_string(cuda_device_max_connections).c_str(), 1);
 #endif
 
-  auto const [json_file, run_from_json] = Allen::sequence_conf(options);
-  ConfigurationReader configuration_reader {json_file};
+  ConfigurationReader configuration_reader {configuration};
 
   auto io_conf = io_configuration(number_of_slices, n_repetitions, number_of_threads, true);
 
+  auto data_bank_types = DataBankTypes;
   auto bank_types = configuration_reader.configured_bank_types();
+  bank_types.merge(data_bank_types);
 
   // This is a hack to avoid copying both SP and Retina banks to the device.
   auto [veloSP, retina] = Allen::velo_decoding_type(configuration_reader);
   std::unordered_set<LHCb::RawBank::BankType> skip_banks {};
-  if (!veloSP) {
+  if (!veloSP && retina) {
     skip_banks.insert(LHCb::RawBank::Velo);
     skip_banks.insert(LHCb::RawBank::VP);
   }
-  if (!retina) {
+  else if (veloSP && !retina) {
     skip_banks.insert(LHCb::RawBank::VPRetinaCluster);
   }
 
@@ -245,7 +297,7 @@ std::shared_ptr<IInputProvider> Allen::make_provider(std::map<std::string, std::
                               io_conf.n_io_reps,         // number of loops over the input files
                               !disable_run_changes,      // Whether to split slices by run number
                               skip_banks};
-    return std::make_shared<MDFProvider>(
+    return std::make_unique<MDFProvider>(
       io_conf.number_of_slices, events_per_slice, n_events, connections, bank_types, config);
   }
   return {};
@@ -258,7 +310,6 @@ std::unique_ptr<OutputHandler> Allen::output_handler(
 {
   std::string output_file;
   size_t output_batch_size = 10;
-  auto const [json_file, run_from_json] = Allen::sequence_conf(options);
 
   for (auto const& entry : options) {
     auto const [flag, arg] = entry;
@@ -275,28 +326,14 @@ std::unique_ptr<OutputHandler> Allen::output_handler(
     return {};
   }
 
-  // Load constant parameters from JSON
-  size_t n_lines = 0;
-  ConfigurationReader configuration_reader {json_file};
-  auto const& configuration = configuration_reader.params();
-  auto conf_it = configuration.find("gather_selections");
-  if (conf_it != configuration.end()) {
-    auto prop_it = conf_it->second.find("names_of_active_lines");
-    if (prop_it != conf_it->second.end()) {
-      auto line_names = split_string(prop_it->second, ",");
-      n_lines = line_names.size();
-    }
-  }
-
   std::unique_ptr<OutputHandler> output_handler;
   if (!output_file.empty()) {
     try {
       if (output_file.substr(0, 6) == "tcp://") {
-        output_handler =
-          std::make_unique<ZMQOutputSender>(input_provider, output_file, output_batch_size, n_lines, zmq_svc);
+        output_handler = std::make_unique<ZMQOutputSender>(input_provider, output_file, output_batch_size, zmq_svc);
       }
       else {
-        output_handler = std::make_unique<FileWriter>(input_provider, output_file, output_batch_size, n_lines);
+        output_handler = std::make_unique<FileWriter>(input_provider, output_file, output_batch_size);
       }
     } catch (std::runtime_error const& e) {
       error_cout << e.what() << "\n";

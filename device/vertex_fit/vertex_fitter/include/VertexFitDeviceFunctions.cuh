@@ -17,19 +17,10 @@
 #include "ParticleTypes.cuh"
 #include "PV_Definitions.cuh"
 #include "MassDefinitions.h"
+#include "States.cuh"
+#include <limits>
 
 namespace VertexFit {
-
-  __device__ inline bool poca(
-    const Allen::Views::Physics::BasicParticle& trackA,
-    const Allen::Views::Physics::BasicParticle& trackB,
-    float& x,
-    float& y,
-    float& z);
-
-  __device__ inline float doca(
-    const Allen::Views::Physics::BasicParticle& trackA,
-    const Allen::Views::Physics::BasicParticle& trackB);
 
   __device__ inline float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty);
 
@@ -83,91 +74,12 @@ namespace VertexFit {
     const Allen::Views::Physics::BasicParticle& trackB,
     const float max_assoc_ipchi2);
 
-  //----------------------------------------------------------------------
-  // Point of closest approach. Reimplementation from TrackVertexUtils.
-  __device__ bool poca(
-    const Allen::Views::Physics::BasicParticle& trackA,
-    const Allen::Views::Physics::BasicParticle& trackB,
-    float& x,
-    float& y,
-    float& z)
-  {
-    const Allen::Views::Physics::KalmanState stateA = trackA.state();
-    const Allen::Views::Physics::KalmanState stateB = trackB.state();
-    float zA = stateA.z();
-    float xA = stateA.x();
-    float yA = stateA.y();
-    float txA = stateA.tx();
-    float tyA = stateA.ty();
-    float zB = stateB.z();
-    float xB = stateB.x();
-    float yB = stateB.y();
-    float txB = stateB.tx();
-    float tyB = stateB.ty();
-    float secondAA = txA * txA + tyA * tyA + 1.0f;
-    float secondBB = txB * txB + tyB * tyB + 1.0f;
-    float secondAB = -txA * txB - tyA * tyB - 1.0f;
-    float det = secondAA * secondBB - secondAB * secondAB;
-    if (fabsf(det) > 0) {
-      float secondinvAA = secondBB / det;
-      float secondinvBB = secondAA / det;
-      float secondinvAB = -secondAB / det;
-      float firstA = txA * (xA - xB) + tyA * (yA - yB) + (zA - zB);
-      float firstB = -txB * (xA - xB) - tyB * (yA - yB) - (zA - zB);
-      float muA = -(secondinvAA * firstA + secondinvAB * firstB);
-      float muB = -(secondinvBB * firstB + secondinvAB * firstA);
-      x = 0.5f * (xA + muA * txA + xB + muB * txB);
-      y = 0.5f * (yA + muA * tyA + yB + muB * tyB);
-      // Because floating point addition is non-associative, the parentheses
-      // below are needed to ensure that z does not depend on the order in which
-      // tracks are passed to the function.
-      z = 0.5f * ((zA + muA) + (zB + muB));
-      return true;
-    }
-    return false;
-  }
-
   __device__ float ip(float x0, float y0, float z0, float x, float y, float z, float tx, float ty)
   {
     float dz = z0 - z;
     float dx = x + dz * tx - x0;
     float dy = y + dz * ty - y0;
     return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
-  }
-
-  __device__ float doca(
-    const Allen::Views::Physics::BasicParticle& trackA,
-    const Allen::Views::Physics::BasicParticle& trackB)
-  {
-    const float xA = trackA.state().x();
-    const float yA = trackA.state().y();
-    const float zA = trackA.state().z();
-    const float txA = trackA.state().tx();
-    const float tyA = trackA.state().ty();
-    const float xB = trackB.state().x();
-    const float yB = trackB.state().y();
-    const float zB = trackB.state().z();
-    const float txB = trackB.state().tx();
-    const float tyB = trackB.state().ty();
-    const float secondAA = txA * txA + tyA * tyA + 1.f;
-    const float secondBB = txB * txB + tyB * tyB + 1.f;
-    const float secondAB = -txA * txB - tyA * tyB - 1.f;
-    const float det = secondAA * secondBB - secondAB * secondAB;
-    float ret = -1.f;
-    if (fabsf(det) > 0) {
-      const float secondinvAA = secondBB / det;
-      const float secondinvBB = secondAA / det;
-      const float secondinvAB = -secondAB / det;
-      const float firstA = txA * (xA - xB) + tyA * (yA - yB) + (zA - zB);
-      const float firstB = -txB * (xA - xB) - tyB * (yA - yB) - (zA - zB);
-      const float muA = -(secondinvAA * firstA + secondinvAB * firstB);
-      const float muB = -(secondinvBB * firstB + secondinvAB * firstA);
-      const float dx = (xA + muA * txA) - (xB + muB * txB);
-      const float dy = (yA + muA * tyA) - (yB + muB * tyB);
-      const float dz = (zA + muA) - (zB + muB);
-      ret = sqrtf(dx * dx + dy * dy + dz * dz);
-    }
-    return ret;
   }
 
   //----------------------------------------------------------------------
@@ -260,7 +172,8 @@ namespace VertexFit {
     float halfDChi2_1 = 0.f;
     float halfDChi2_2 = 0.f;
     /// Add DOCA
-    vertex.doca = doca(trackA, trackB);
+    vertex.doca =
+      Allen::Views::Physics::state_doca(trackA.state().operator MiniState(), trackB.state().operator MiniState());
     vertex.chi2 = addToDerivatives(
       trackA,
       vertex.x,
@@ -369,57 +282,52 @@ namespace VertexFit {
     sv.ntrks16 = (trackA.ip_chi2() < max_assoc_ipchi2) + (trackB.ip_chi2() < max_assoc_ipchi2);
 
     const unsigned n_pvs = pvs.size();
-    float minfdchi2 = -1.;
+    float minip = std::numeric_limits<float>::quiet_NaN();
     int pv_idx = -1;
 
     for (unsigned ipv = 0; ipv < n_pvs; ipv++) {
       auto pv = pvs[ipv];
-
-      // Get PV-SV separation.
-      const float dx = sv.x - pv.position.x;
-      const float dy = sv.y - pv.position.y;
-      const float dz = sv.z - pv.position.z;
-
-      // Get covariance and FD chi2.
-      const float cov00 = sv.cov00 + pv.cov00;
-      const float cov10 = sv.cov10 + pv.cov10;
-      const float cov11 = sv.cov11 + pv.cov11;
-      const float cov20 = sv.cov20 + pv.cov20;
-      const float cov21 = sv.cov21 + pv.cov21;
-      const float cov22 = sv.cov22 + pv.cov22;
-      const float invdet = 1.f / (2.f * cov10 * cov20 * cov21 - cov11 * cov20 * cov20 - cov00 * cov21 * cov21 +
-                                  cov00 * cov11 * cov22 - cov22 * cov10 * cov10);
-      const float invcov00 = (cov11 * cov22 - cov21 * cov21) * invdet;
-      const float invcov10 = (cov20 * cov21 - cov10 * cov22) * invdet;
-      const float invcov11 = (cov00 * cov22 - cov20 * cov20) * invdet;
-      const float invcov20 = (cov10 * cov21 - cov11 * cov20) * invdet;
-      const float invcov21 = (cov10 * cov20 - cov00 * cov21) * invdet;
-      const float invcov22 = (cov00 * cov11 - cov10 * cov10) * invdet;
-      const float fdchi2 = invcov00 * dx * dx + invcov11 * dy * dy + invcov22 * dz * dz + 2.f * invcov20 * dx * dz +
-                           2.f * invcov21 * dy * dz + 2.f * invcov10 * dx * dy;
-      if (fdchi2 < minfdchi2 || pv_idx < 0) {
-        minfdchi2 = fdchi2;
+      const auto tmp_svip =
+        ip(pv.position.x, pv.position.y, pv.position.z, sv.x, sv.y, sv.z, sv.px / sv.pz, sv.py / sv.pz);
+      if (tmp_svip < minip || pv_idx < 0) {
+        minip = tmp_svip;
         pv_idx = ipv;
       }
     }
 
     if (pv_idx < 0) return -1;
 
+    sv.vertex_ip = minip;
+
     // Get PV-SV separation.
-    sv.fdchi2 = minfdchi2;
     auto pv = pvs[pv_idx];
     const float dx = sv.x - pv.position.x;
     const float dy = sv.y - pv.position.y;
     const float dz = sv.z - pv.position.z;
     const float fd = sqrtf(dx * dx + dy * dy + dz * dz);
 
+    // Get covariance and FD chi2.
+    const float cov00 = sv.cov00 + pv.cov00;
+    const float cov10 = sv.cov10 + pv.cov10;
+    const float cov11 = sv.cov11 + pv.cov11;
+    const float cov20 = sv.cov20 + pv.cov20;
+    const float cov21 = sv.cov21 + pv.cov21;
+    const float cov22 = sv.cov22 + pv.cov22;
+    const float invdet = 1.f / (2.f * cov10 * cov20 * cov21 - cov11 * cov20 * cov20 - cov00 * cov21 * cov21 +
+                                cov00 * cov11 * cov22 - cov22 * cov10 * cov10);
+    const float invcov00 = (cov11 * cov22 - cov21 * cov21) * invdet;
+    const float invcov10 = (cov20 * cov21 - cov10 * cov22) * invdet;
+    const float invcov11 = (cov00 * cov22 - cov20 * cov20) * invdet;
+    const float invcov20 = (cov10 * cov21 - cov11 * cov20) * invdet;
+    const float invcov21 = (cov10 * cov20 - cov00 * cov21) * invdet;
+    const float invcov22 = (cov00 * cov11 - cov10 * cov10) * invdet;
+    sv.fdchi2 = invcov00 * dx * dx + invcov11 * dy * dy + invcov22 * dz * dz + 2.f * invcov20 * dx * dz +
+                2.f * invcov21 * dy * dz + 2.f * invcov10 * dx * dy;
+
     // PV-SV eta.
     sv.eta = atanhf(dz / fd);
     // SVz - PVz
     sv.dz = dz;
-
-    // SV IP
-    sv.vertex_ip = ip(pv.position.x, pv.position.y, pv.position.z, sv.x, sv.y, sv.z, sv.px / sv.pz, sv.py / sv.pz);
 
     if (sv.is_dimuon) {
       const float txA = trackA.state().tx();

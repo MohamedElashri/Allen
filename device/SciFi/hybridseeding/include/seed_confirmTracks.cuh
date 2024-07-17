@@ -21,11 +21,19 @@
  */
 
 namespace seed_confirmTracks {
+
+#if defined(TARGET_DEVICE_CUDA)
+#if __CUDA_ARCH__ >= 800 // Ampere
+  __device__ static constexpr unsigned int maxNHits = 600;
+#else // Volta, Turing
+  __device__ static constexpr unsigned int maxNHits = 300;
+#endif
+#else // CPU, HIP
+  __device__ static constexpr unsigned int maxNHits = 300;
+#endif
+
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, uint) host_number_of_events;
-
-    HOST_OUTPUT(host_seeding_number_of_tracks_t, unsigned) host_seeding_number_of_tracks;
-    HOST_OUTPUT(host_seeding_tracks_t, SciFi::Seeding::Track) host_seeding_tracks;
 
     // event number and hits input
     MASK_INPUT(dev_event_list_t) dev_event_list;
@@ -43,15 +51,23 @@ namespace seed_confirmTracks {
 
     // Outputs
     DEVICE_OUTPUT(dev_seeding_tracks_t, SciFi::Seeding::Track) dev_seeding_tracks;
-    DEVICE_OUTPUT(dev_seeding_number_of_tracks_t, unsigned) dev_seeding_number_of_tracks;
-    DEVICE_OUTPUT(dev_seeding_confirmTracks_atomics_t, unsigned) dev_seeding_confirmTracks_atomics;
+    DEVICE_OUTPUT(dev_offsets_seeding_tracks_t, unsigned) dev_offsets_seeding_tracks;
+    HOST_OUTPUT(host_seeding_number_of_tracks_t, unsigned) host_seeding_number_of_tracks;
+
+    PROPERTY(tuning_nhits_t, "tuning_nhits", "tuning_nhits", int) tuning_nhits;
+    PROPERTY(tuning_tol_chi2_t, "tuning_tol_chi2", "tuning_tol_chi2", float) tuning_tol_chi2;
+    PROPERTY(tuning_tol_t, "tuning_tol", "tuning_tol", float) tuning_tol;
+    PROPERTY(use_hough_search_t, "use_hough_search", "use_hough_search", bool) use_hough_search;
   };
 
-  __device__ int findHit(const float tolRem, float predPos, int startPos, int nHits, float* coords);
+  __device__ unsigned findHit(const float tolRem, float predPos, int startPos, int nHits, float* coords);
+  template<bool use_hough_search>
   __global__ void seed_confirmTracks(Parameters);
   __device__ void fitYZ(seed_uv::multiHitCombination& multiHitComb);
 
   struct seed_confirmTracks_t : public DeviceAlgorithm, Parameters {
+    void update(const Constants& constants) const;
+
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
@@ -59,6 +75,12 @@ namespace seed_confirmTracks {
       const RuntimeOptions&,
       const Constants& constants,
       const Allen::Context& context) const;
+
+  private:
+    Property<tuning_nhits_t> m_tuning_nhits {this, 10};
+    Property<tuning_tol_chi2_t> m_tuning_tol_chi2 {this, 100.};
+    Property<tuning_tol_t> m_tuning_tol {this, 2.};
+    Property<use_hough_search_t> m_use_hough_search {this, false};
   };
 
 } // namespace seed_confirmTracks

@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -11,8 +18,6 @@
 template<typename Derived, typename Parameters>
 struct EventLine : public Line<Derived, Parameters> {
   __device__ static unsigned offset(const Parameters&, const unsigned event_number) { return event_number; }
-
-  __device__ static unsigned input_size(const Parameters&, const unsigned) { return 1; }
 
   /**
    * @brief Decision size is the number of events.

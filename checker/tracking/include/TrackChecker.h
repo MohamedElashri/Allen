@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 /** @file TrackChecker.h
  *
@@ -13,6 +20,9 @@
  * 2018-07 Dorothea vom Bruch: updated to run over different track types,
  * use exact same categories as PrChecker2,
  * take input from Renato Quagliani's TrackerDumper
+ *
+ * 2023-07 Jiahui Zhuo: Split the core truth-matching into a standalone,
+ * static function so that we can reuse it in other parts of the code.
  */
 
 #pragma once
@@ -85,7 +95,8 @@ public:
     }
 
     if constexpr (
-      std::is_same_v<T, Checker::Subdetector::SciFi> || std::is_same_v<T, Checker::Subdetector::SciFiSeeding>) {
+      std::is_same_v<T, Checker::Subdetector::Downstream> || std::is_same_v<T, Checker::Subdetector::SciFi> ||
+      std::is_same_v<T, Checker::Subdetector::SciFiSeeding>) {
       std::printf(
         "%-50s: %9lu/%9lu %6.2f%% ghosts\n",
         "for P>3GeV,Pt>0.5GeV",
@@ -176,13 +187,26 @@ public:
     }
   }
 
-  std::tuple<bool, MCParticles::const_iterator> match_track_to_MCPs(
+  template<typename TrackType, typename AssociationTableType>
+  static inline bool match_track_to_MCPs_impl(
     const MCAssociator& mc_assoc,
-    const Checker::Tracks& tracks,
+    const std::vector<TrackType>& tracks,
     const int i_track,
-    std::unordered_map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table)
+    AssociationTableType& assoc_table,
+    const float minweight)
   {
-    const auto& track = tracks[i_track];
+    static_assert(std::is_same_v<TrackType, const Checker::Track*> || std::is_same_v<TrackType, Checker::Track>);
+    static_assert(
+      std::is_same_v<AssociationTableType, std::unordered_map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>> ||
+      std::is_same_v<AssociationTableType, std::unordered_map<int, std::pair<uint32_t, float>>>);
+
+    const Checker::Track* track;
+    if constexpr (std::is_same_v<TrackType, const Checker::Track*>) {
+      track = tracks[i_track];
+    }
+    else {
+      track = &tracks[i_track];
+    }
 
     // Note: This code is based heavily on
     //       https://gitlab.cern.ch/lhcb/Rec/blob/master/Pr/PrMCTools/src/PrTrackAssociator.cpp
@@ -191,8 +215,8 @@ public:
     Checker::TruthCounter total_counter;
     std::unordered_map<unsigned, Checker::TruthCounter> truth_counters;
     int n_meas = 0;
-    for (unsigned i = 0; i < track.total_number_of_hits; i++) {
-      const auto id = track.allids[i];
+    for (unsigned i = 0; i < track->total_number_of_hits; i++) {
+      const auto id = track->allids[i];
       if (lhcb_id::is_velo(id)) {
         n_meas++;
         total_counter.n_velo++;
@@ -216,6 +240,9 @@ public:
         for (const auto& it : it_vec) {
           truth_counters[it->second].n_scifi++;
         }
+      }
+      else if (lhcb_id::is_muon(id)) {
+        // Ignore muon hits.
       }
       else {
         debug_cout << "ID not matched to any subdetector " << std::hex << id << std::dec << std::endl;
@@ -256,20 +283,18 @@ public:
     }
 
     bool match = false;
-    auto track_best_matched_MCP = mc_assoc.m_mcps.cend();
 
-    float max_weight = 1e9f;
     for (const auto& id_counter : truth_counters) {
       bool velo_ok = true;
       bool scifi_ok = true;
 
       if (total_counter.n_velo > 2) {
         const auto weight = id_counter.second.n_velo / ((float) total_counter.n_velo);
-        velo_ok = weight >= m_minweight;
+        velo_ok = weight >= minweight;
       }
       if (total_counter.n_scifi > 2) {
         const auto weight = id_counter.second.n_scifi / ((float) total_counter.n_scifi);
-        scifi_ok = weight >= m_minweight;
+        scifi_ok = weight >= minweight;
       }
       const bool ut_ok =
         (id_counter.second.n_ut + 2 > total_counter.n_ut) || (total_counter.n_velo > 2 && total_counter.n_scifi > 2);
@@ -280,24 +305,31 @@ public:
         // std::endl;
         // save matched hits per subdetector
         // -> needed for hit efficiency
-        int subdetector_counter = 0;
-        if constexpr (std::is_same_v<T, Checker::Subdetector::Velo>)
-          subdetector_counter = id_counter.second.n_velo;
-        else if constexpr (std::is_same_v<T, Checker::Subdetector::UT>)
-          subdetector_counter = id_counter.second.n_ut;
-        else if constexpr (std::is_same_v<T, Checker::Subdetector::SciFi>)
-          subdetector_counter = id_counter.second.n_scifi;
-        else if constexpr (std::is_same_v<T, Checker::Subdetector::SciFiSeeding>)
-          subdetector_counter = id_counter.second.n_scifi;
         const float weight = ((float) counter_sum) / ((float) n_meas);
-        const MCAssociator::TrackWithWeight track_weight = {i_track, weight, subdetector_counter};
-        assoc_table[(mc_assoc.m_mcps[id_counter.first]).key].push_back(track_weight);
-        match = true;
-
-        if (weight < max_weight) {
-          max_weight = weight;
-          track_best_matched_MCP = mc_assoc.m_mcps.begin() + id_counter.first;
+        if constexpr (std::is_same_v<
+                        AssociationTableType,
+                        std::unordered_map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>>) {
+          int subdetector_counter = 0;
+          if constexpr (std::is_same_v<T, Checker::Subdetector::Velo>)
+            subdetector_counter = id_counter.second.n_velo;
+          else if constexpr (std::is_same_v<T, Checker::Subdetector::UT>)
+            subdetector_counter = id_counter.second.n_ut;
+          else if constexpr (std::is_same_v<T, Checker::Subdetector::SciFi>)
+            subdetector_counter = id_counter.second.n_scifi;
+          else if constexpr (std::is_same_v<T, Checker::Subdetector::SciFiSeeding>)
+            subdetector_counter = id_counter.second.n_scifi;
+          else if constexpr (std::is_same_v<T, Checker::Subdetector::Downstream>)
+            subdetector_counter = id_counter.second.n_ut + id_counter.second.n_scifi;
+          const float weight = ((float) counter_sum) / ((float) n_meas);
+          const MCAssociator::TrackWithWeight track_weight = {i_track, weight, subdetector_counter};
+          assoc_table[(mc_assoc.m_mcps[id_counter.first]).key].push_back(track_weight);
         }
+        else {
+          if (!assoc_table.count(i_track) || weight > assoc_table[i_track].second) {
+            assoc_table[i_track] = std::make_pair((mc_assoc.m_mcps[id_counter.first]).key, weight);
+          }
+        }
+        match = true;
       }
     }
 
@@ -315,7 +347,16 @@ public:
     //   }
     // }
 
-    return {match, track_best_matched_MCP};
+    return match;
+  }
+
+  bool match_track_to_MCPs(
+    const MCAssociator& mc_assoc,
+    const Checker::Tracks& tracks,
+    const int i_track,
+    std::unordered_map<uint32_t, std::vector<MCAssociator::TrackWithWeight>>& assoc_table)
+  {
+    return match_track_to_MCPs_impl<Checker::Track>(mc_assoc, tracks, i_track, assoc_table, m_minweight);
   }
 
   void accumulate_impl(const Checker::Tracks& tracks, const MCEvent& mc_event)
@@ -345,9 +386,14 @@ public:
     std::size_t ntrackstriggerperevt = 0;
     for (size_t i_track = 0; i_track < tracks.size(); ++i_track) {
       const auto& track = tracks[i_track];
-      m_histos->fillTotalHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, static_cast<double>(track.eta));
+      m_histos->fillTotalHistos(
+        mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV,
+        mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nbHits_in_SciFi,
+        static_cast<double>(track.eta),
+        static_cast<double>(track.p),
+        static_cast<double>(track.pt));
 
-      auto [match, track_best_matched_MCP] = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
+      auto match = match_track_to_MCPs(mc_assoc, tracks, i_track, assoc_table);
 
       ++ntracksperevt;
 
@@ -357,7 +403,12 @@ public:
       }
       if (!match) {
         ++nghostsperevt;
-        m_histos->fillGhostHistos(mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV, static_cast<double>(track.eta));
+        m_histos->fillGhostHistos(
+          mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nPV,
+          mc_event.m_mcps.empty() ? 0 : mc_event.m_mcps[0].nbHits_in_SciFi,
+          static_cast<double>(track.eta),
+          static_cast<double>(track.p),
+          static_cast<double>(track.pt));
         if (triggerCondition) ++nghoststriggerperevt;
         if (track.is_muon) {
           m_histos->fillMuonGhostHistos(
@@ -416,6 +467,9 @@ public:
         m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
       }
       if (std::is_same_v<T, Checker::Subdetector::UT> && mcp.hasVelo && mcp.hasUT) {
+        m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
+      }
+      if (std::is_same_v<T, Checker::Subdetector::Downstream> && !mcp.hasVelo && mcp.hasUT && mcp.hasSciFi) {
         m_histos->fillMomentumResolutionHisto(mcp, track.p, track.qop);
       }
     }
@@ -510,3 +564,4 @@ using TrackCheckerLong = TrackChecker<Checker::Subdetector::SciFi>;
 using TrackCheckerSeeding = TrackChecker<Checker::Subdetector::SciFiSeeding>;
 using TrackCheckerSeedingXZ = TrackChecker<Checker::Subdetector::SciFiSeeding>;
 using TrackCheckerMuon = TrackChecker<Checker::Subdetector::Muon>;
+using TrackCheckerDownstream = TrackChecker<Checker::Subdetector::Downstream>;

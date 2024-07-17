@@ -1,5 +1,12 @@
 /************************************************************************\
 * (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \************************************************************************/
 #include "ODINBeamCrossingType.cuh"
 #include "Event/ODIN.h"
@@ -29,7 +36,7 @@ __global__ void odin_beamcrossingtype_kernel(
     if (
       (!parameters.invert && bxt == parameters.beam_crossing_type) ||
       (parameters.invert && bxt != parameters.beam_crossing_type)) {
-      const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.get(), 1);
+      const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.data(), 1);
       parameters.dev_event_list_output[current_event] = mask_t {event_number};
     }
   }

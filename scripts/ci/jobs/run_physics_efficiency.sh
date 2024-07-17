@@ -1,6 +1,13 @@
 #!/usr/bin/bash
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
 if [ ${TARGET} = "HIP" ]; then
@@ -11,17 +18,17 @@ fi
 check_build_exists
 
 
-RUN_OPTIONS="-n 10000 -m 1100 --run-from-json 1"
+RUN_OPTIONS="-n 10000 -m 1100"
 
 # Configure the input files (--mdf) and geometry (-g)
 set +x; set +u
 if [ ! -z ${GEOMETRY+x} ]; then
-  RUN_OPTIONS="${RUN_OPTIONS} -g /scratch/allen_geometries/${GEOMETRY}"
+  RUN_OPTIONS="${RUN_OPTIONS} -g ../input/allen_geometries/${GEOMETRY}"
 fi
 
 set -euxo pipefail
 
-RUN_OPTIONS=" --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE} --params external/ParamFiles/ ${RUN_OPTIONS}"
+RUN_OPTIONS=" --mdf ${ALLEN_DATA}/mdf_input/${DATA_TAG}.mdf --sequence ${SEQUENCE}.json --params external/ParamFiles/ ${RUN_OPTIONS}"
 
 OUTPUT_FOLDER="${TEST_NAME}_output_${SEQUENCE}"
 

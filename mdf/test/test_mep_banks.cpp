@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <cstring>
 #include <iostream>
@@ -24,7 +31,6 @@
 #include <SciFiRaw.cuh>
 #include <UTRaw.cuh>
 #include <MuonRaw.cuh>
-#include <CaloRawEvent.cuh>
 #include <ODINBank.cuh>
 
 #include <GaudiKernel/Bootstrap.h>
@@ -60,7 +66,7 @@ struct Config {
 namespace {
   Config s_config;
 
-  std::shared_ptr<IInputProvider> mdf;
+  std::unique_ptr<IInputProvider> mdf;
   SmartIF<IStateful> app;
   IInputProvider* mep;
 
@@ -77,39 +83,7 @@ namespace Allen {
   }
 } // namespace Allen
 
-fs::path write_json(std::unordered_set<BankTypes> const& bank_types, bool velo_sp)
-{
-
-  // Write a JSON file that can be fed to AllenConfiguration to
-  // determine the bank types.
-  json bank_types_json;
-  for (auto bt : bank_types) {
-    bank_types_json["provide_"s + bank_name(bt)]["bank_type"] = bank_name(bt);
-  }
-  std::vector<std::array<std::string, 3>> configured_algorithms {
-    {velo_sp ? "velo_masked_clustering::velo_masked_clustering_t" : "decode_retinaclusters::decode_retinaclusters_t",
-     "decode",
-     "DeviceAlgorithm"}};
-  for (auto bt : bank_types) {
-    configured_algorithms.push_back(
-      {"data_provider::data_provider_t", "provide_" + bank_name(bt), "ProviderAlgorithm"});
-  }
-  bank_types_json["sequence"]["configured_algorithms"] = configured_algorithms;
-
-  auto bt_filename = fs::canonical(fs::current_path()) / "bank_types.json";
-  std::ofstream bt_json(bt_filename.string());
-  if (!bt_json.is_open()) {
-    std::cerr << "Failed to open json file for bank types configuration"
-              << "\n";
-    return {};
-  }
-  else {
-    bt_json << std::setw(4) << bank_types_json.dump() << "\n";
-    return bt_filename;
-  }
-}
-
-IInputProvider* mep_provider(std::string json_file)
+IInputProvider* mep_provider()
 {
 
   app = Gaudi::createApplicationMgr();
@@ -123,7 +97,7 @@ IInputProvider* mep_provider(std::string json_file)
   auto allen_conf = sloc->service<IService>("AllenConfiguration");
   if (!allen_conf) return nullptr;
   auto allen_conf_prop = allen_conf.as<IProperty>();
-  sc &= allen_conf_prop->setProperty("JSON", json_file).isSuccess();
+  sc &= allen_conf_prop->setProperty("JSON", "{}").isSuccess();
 
   if (!sc) return nullptr;
 
@@ -204,25 +178,24 @@ int main(int argc, char* argv[])
         s_config.sds.emplace(bt);
       }
     }
-    auto json_file = write_json(s_config.sds, velo_sp);
 
     // Allocate providers and get slices
     std::map<std::string, std::string> options = {{"s", std::to_string(s_config.n_slices)},
                                                   {"n", std::to_string(s_config.n_events)},
                                                   {"v", std::to_string(s_config.debug ? 4 : 3)},
                                                   {"mdf", s_config.mdf_files},
-                                                  {"sequence", json_file.string()},
-                                                  {"run-from-json", "1"},
+                                                  {"sequence", "null"},
                                                   {"events-per-slice", std::to_string(s_config.eps)},
                                                   {"disable-run-changes", "1"}};
 
-    mdf = Allen::make_provider(options);
+    auto configuration = Allen::sequence_conf(options);
+    mdf = Allen::make_provider(options, configuration);
     if (!mdf) {
       std::cerr << "Failed to obtain MDFProvider\n";
       return 1;
     }
 
-    mep = mep_provider(json_file.string());
+    mep = mep_provider();
     if (mep == nullptr) {
       std::cerr << "Failed to obtain MEPProvider\n";
       return 1;
@@ -274,6 +247,44 @@ int main(int argc, char* argv[])
 
 template<BankTypes BT, bool transpose_mep>
 struct compare {
+  void operator()(
+    const int,
+    gsl::span<char const> mep_fragments,
+    gsl::span<unsigned const> mep_offsets,
+    gsl::span<unsigned const> mep_sizes,
+    gsl::span<unsigned const> mep_types,
+    gsl::span<char const> allen_banks,
+    gsl::span<unsigned const> allen_offsets,
+    gsl::span<unsigned const> allen_sizes,
+    gsl::span<unsigned const> allen_types,
+    unsigned const i_event)
+  {
+
+    const auto allen_raw_event =
+      Allen::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
+    const auto mep_raw_event = Allen::RawEvent<!transpose_mep>(
+      mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
+    auto const mep_n_banks = mep_raw_event.number_of_raw_banks;
+
+    REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
+
+    for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
+      // Read raw bank
+      auto const mep_bank = mep_raw_event.raw_bank(bank);
+      auto const allen_bank = allen_raw_event.raw_bank(bank);
+      auto mep_len = mep_bank.size;
+      auto allen_len = allen_bank.size;
+      REQUIRE(mep_len == allen_len);
+
+      REQUIRE(mep_bank.type == allen_bank.type);
+
+      auto top5_mask = (allen_bank.source_id >> 11 == 0) ? 0x7FF : 0xFFFF;
+      REQUIRE((mep_bank.source_id & top5_mask) == allen_bank.source_id);
+      for (long j = 0; j < mep_len; ++j) {
+        REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
+      }
+    }
+  }
 };
 
 template<bool transpose_mep>
@@ -359,17 +370,17 @@ struct compare<BankTypes::UT, transpose_mep> {
     gsl::span<char const> mep_fragments,
     gsl::span<unsigned const> mep_offsets,
     gsl::span<unsigned const> mep_sizes,
-    gsl::span<unsigned const>,
+    gsl::span<unsigned const> mep_types,
     gsl::span<char const> allen_banks,
     gsl::span<unsigned const> allen_offsets,
     gsl::span<unsigned const> allen_sizes,
-    gsl::span<unsigned const>,
+    gsl::span<unsigned const> allen_types,
     unsigned const i_event)
   {
     const auto allen_raw_event =
-      UTRawEvent<false> {allen_banks.data(), allen_offsets.data(), allen_sizes.data(), i_event};
-    const auto mep_raw_event =
-      UTRawEvent<!transpose_mep> {mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), i_event};
+      UTRawEvent<false> {allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event};
+    const auto mep_raw_event = UTRawEvent<!transpose_mep> {
+      mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event};
     auto const mep_n_banks = mep_raw_event.number_of_raw_banks();
 
     REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks());
@@ -489,48 +500,6 @@ struct compare<BankTypes::MUON, transpose_mep> {
   }
 };
 
-template<bool transpose_mep>
-struct compare<BankTypes::ECal, transpose_mep> {
-  void operator()(
-    const int,
-    gsl::span<char const> mep_fragments,
-    gsl::span<unsigned const> mep_offsets,
-    gsl::span<unsigned const> mep_sizes,
-    gsl::span<unsigned const> mep_types,
-    gsl::span<char const> allen_banks,
-    gsl::span<unsigned const> allen_offsets,
-    gsl::span<unsigned const> allen_sizes,
-    gsl::span<unsigned const> allen_types,
-    unsigned const i_event)
-  {
-
-    const auto allen_raw_event =
-      Calo::RawEvent<false>(allen_banks.data(), allen_offsets.data(), allen_sizes.data(), allen_types.data(), i_event);
-    const auto mep_raw_event = Calo::RawEvent<!transpose_mep>(
-      mep_fragments.data(), mep_offsets.data(), mep_sizes.data(), mep_types.data(), i_event);
-    auto const mep_n_banks = mep_raw_event.number_of_raw_banks;
-
-    REQUIRE(mep_n_banks == allen_raw_event.number_of_raw_banks);
-
-    for (unsigned bank = 0; bank < mep_n_banks; ++bank) {
-      // Read raw bank
-      auto const mep_bank = mep_raw_event.raw_bank(bank);
-      auto const allen_bank = allen_raw_event.raw_bank(bank);
-      auto mep_len = mep_bank.end - mep_bank.data;
-      auto allen_len = allen_bank.end - allen_bank.data;
-      REQUIRE(mep_len == allen_len);
-
-      REQUIRE(mep_bank.type == allen_bank.type);
-
-      auto top5_mask = (allen_bank.source_id >> 11 == 0) ? 0x7FF : 0xFFFF;
-      REQUIRE((mep_bank.source_id & top5_mask) == allen_bank.source_id);
-      for (long j = 0; j < mep_len; ++j) {
-        REQUIRE(allen_bank.data[j] == mep_bank.data[j]);
-      }
-    }
-  }
-};
-
 template<BankTypes BT_>
 struct BTTag {
   inline static const BankTypes BT = BT_;
@@ -542,6 +511,8 @@ using SciFiTag = BTTag<BankTypes::FT>;
 using UTTag = BTTag<BankTypes::UT>;
 using MuonTag = BTTag<BankTypes::MUON>;
 using ECalTag = BTTag<BankTypes::ECal>;
+using Rich1Tag = BTTag<BankTypes::Rich1>;
+using Rich2Tag = BTTag<BankTypes::Rich2>;
 
 /**
  * @brief      Check banks
@@ -609,7 +580,7 @@ void check_banks(BanksAndOffsets const& mep_data, BanksAndOffsets const& allen_d
 
 // Main test case, multiple bank types are checked
 // VeloTag, UTTag, SciFiTag,
-TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ECalTag, MuonTag, VeloTag, SciFiTag, ODINTag)
+TEMPLATE_TEST_CASE("MEP vs MDF", "[MEP MDF]", ECalTag, MuonTag, VeloTag, SciFiTag, ODINTag, Rich1Tag, Rich2Tag)
 {
   if (!s_config.run) return;
 

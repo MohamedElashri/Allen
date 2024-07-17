@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -18,13 +25,14 @@ namespace muon_populate_tile_and_tdc {
     DEVICE_INPUT(dev_muon_raw_offsets_t, unsigned) dev_muon_raw_offsets;
     DEVICE_INPUT(dev_muon_raw_sizes_t, unsigned) dev_muon_raw_sizes;
     DEVICE_INPUT(dev_muon_raw_types_t, unsigned) dev_muon_raw_types;
-    DEVICE_INPUT(dev_muon_raw_to_hits_t, Muon::MuonRawToHits) dev_muon_raw_to_hits;
     DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, unsigned) dev_storage_station_region_quarter_offsets;
     DEVICE_OUTPUT(dev_storage_tile_id_t, unsigned) dev_storage_tile_id;
     DEVICE_OUTPUT(dev_storage_tdc_value_t, unsigned) dev_storage_tdc_value;
     DEVICE_OUTPUT(dev_atomics_muon_t, unsigned) dev_atomics_muon;
     DEVICE_OUTPUT(dev_muon_tile_used_t, bool) dev_muon_tile_used;
-    DEVICE_OUTPUT(dev_station_ocurrences_sizes_t, unsigned) dev_station_ocurrences_sizes;
+    DEVICE_OUTPUT(dev_muon_tell_number_t, unsigned short) dev_muon_tell_number;
+    DEVICE_OUTPUT(dev_station_ocurrences_offset_t, unsigned) dev_station_ocurrences_offset;
+    HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
   };
 
   struct muon_populate_tile_and_tdc_t : public DeviceAlgorithm, Parameters {

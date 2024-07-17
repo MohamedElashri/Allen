@@ -1,6 +1,13 @@
 #!/usr/bin/python3
 ###############################################################################
-# (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
 import re
@@ -11,6 +18,7 @@ from collections import OrderedDict
 from AlgorithmTraversalLibClang import AlgorithmTraversal
 import argparse
 import pickle
+import json
 
 
 def get_clang_so_location():
@@ -30,7 +38,8 @@ class Parser():
 
     # Pattern sought in every file, prior to parsing the file for an algorithm
     __algorithm_pattern_compiled = re.compile(
-        "(?P<scope>Host|Device|Selection|Validation|Provider)Algorithm")
+        "(?P<scope>Host|Device|Selection|Validation|Provider|Barrier)Algorithm"
+    )
 
     # File extensions considered
     __sought_extensions_compiled = [
@@ -58,26 +67,37 @@ class Parser():
                 prefix_project_folder + Parser.__host_folder, Parser.__sought_extensions_compiled)
 
     @staticmethod
-    def parse_all(prefix_project_folder,
-                  algorithm_parser=AlgorithmTraversal()):
-        """Parses all files and traverses algorithm definitions."""
+    def find_algorithm_files(prefix_project_folder):
         all_filenames = Parser.get_all_filenames(prefix_project_folder)
-        algorithms = []
+        algorithm_files = []
+
         for filename in all_filenames:
             with codecs.open(filename, 'r', 'utf-8') as f:
-                try:
-                    s = f.read()
-                    # Invoke the libTooling algorithm parser only if we find the algorithm pattern
-                    has_algorithm = Parser.__algorithm_pattern_compiled.search(
-                        s)
-                    if has_algorithm:
-                        parsed_algorithms = algorithm_parser.traverse(
-                            filename, prefix_project_folder)
-                        if parsed_algorithms:
-                            algorithms += parsed_algorithms
-                except:
-                    print("Parsing file", filename, "failed")
-                    raise
+                s = f.read()
+                # Invoke the libTooling algorithm parser only if we find the algorithm pattern
+                has_algorithm = Parser.__algorithm_pattern_compiled.search(s)
+                if has_algorithm:
+                    algorithm_files.append(filename)
+
+        return algorithm_files
+
+    @staticmethod
+    def parse_all(algorithm_files,
+                  prefix_project_folder,
+                  algorithm_parser=AlgorithmTraversal()):
+        """Parses all files and traverses algorithm definitions."""
+        algorithms = []
+
+        for algorithm_file in algorithm_files:
+            try:
+                parsed_algorithms = algorithm_parser.traverse(
+                    algorithm_file, prefix_project_folder)
+                if parsed_algorithms:
+                    algorithms += parsed_algorithms
+            except:
+                print("Parsing file", algorithm_file, "failed")
+                raise
+
         return algorithms
 
 
@@ -103,7 +123,7 @@ class AllenCore():
         return s
 
     @staticmethod
-    def write_algorithm_code(algorithm, i=0):
+    def write_algorithm_code(algorithm, default_properties, i=0):
         s = AllenCore.prefix(
             i) + "class " + algorithm.name + "(AllenAlgorithm):\n"
         i += 1
@@ -121,9 +141,23 @@ class AllenCore():
             s += AllenCore.prefix(i) + param.typename + " = AllenDataHandle(\"" + param.scope + "\", " + dependencies + ", \"" + param.typename + "\", \"" \
                 + AllenCore.create_var_type(param.kind) + \
                 "\", \"" + str(param.typedef) + "\"),\n"
+
+        # Properties
         for prop in algorithm.properties:
-            s += AllenCore.prefix(i) + prop.name[1:-1] + " = \"\",\n"
-        s = s[:-2]
+            # Use the python JSON parser to turn the JSON
+            # representation of default values into appropriate Python
+            # objects
+            pn = prop.name[1:-1]
+            dv = json.loads(default_properties[pn])
+
+            # Quotes have to be added for properties that hold a string
+            if type(dv) is str:
+                dv = f'"{dv}"'
+
+            # Write the code for the property and include the C++ type
+            # as a comment
+            s += f'{AllenCore.prefix(i)}{pn} = {dv}, # {prop.typedef}\n'
+        s = s[:-1]
         i -= 1
         s += "\n" + AllenCore.prefix(i) + ")\n"
 
@@ -181,7 +215,7 @@ class AllenCore():
             for p in algorithm.properties
         ]
         properties = [
-            f"Gaudi::Property<{p.typedef}> m_{p.typename}{{this, {p.name}, {p.default_value}, [=](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, {p.description} }};"
+            f"Gaudi::Property<{p.typedef}> m_{p.typename}{{this, {p.name}, {p.default_value}, [=,this](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, {p.description} }};"
             for p, init in zip(algorithm.properties, properties_initialization)
         ]
         properties += [
@@ -217,7 +251,7 @@ class AllenCore():
                 f"Gaudi::Property<std::vector<std::string>> m_{agg.typename}_locations",
                 f"#endif",
                 f"{{this, \"{agg.typename}\", {{}},",
-                f"  [=]( Gaudi::Details::PropertyBase& ) {{",
+                f"  [=,this]( Gaudi::Details::PropertyBase& ) {{",
                 f"    this->m_{agg.typename} =",
                 f"      Gaudi::Functional::details::make_vector_of_handles<decltype( this->m_{agg.typename} )>( this, m_{agg.typename}_locations );",
                 f"    std::for_each( this->m_{agg.typename}.begin(), this->m_{agg.typename}.end(),",
@@ -236,6 +270,7 @@ class AllenCore():
             f"DataObjectReadHandle<{typ}> m_{inp.typename} {{this, \"{inp.typename}\", \"\"}};"
             for inp, typ in zip(inputs, input_types)
         ] + [
+            "DataObjectReadHandle<LHCb::ODIN> m_odin {this, \"ODIN\", \"\"};",
             "DataObjectReadHandle<RuntimeOptions> m_runtime_options {this, \"runtime_options_t\", \"\"};",
             "DataObjectReadHandle<Constants const*> m_constants {this, \"constants_t\", \"\"};",
         ]
@@ -260,7 +295,10 @@ class AllenCore():
             "#include <Gaudi/Algorithm.h>",
             "#include <GaudiAlg/FunctionalDetails.h>",
             "#include <GaudiKernel/FunctionalFilterDecision.h>",
+            "#include <Event/ODIN.h>",
+            "#include <mutex>",
             "#include <vector>",
+            "#include \"AllenMonitoring.h\"",
             "using namespace Gaudi::Functional;",
             f"class {algorithm.name} final : public Gaudi::Algorithm {{",
             "public:",
@@ -279,7 +317,10 @@ class AllenCore():
 
         code += "\n" + "\n".join(input_handles + output_handles +
                                  aggregate_handles + aggregate_input_vectors)
-        code += "\n" + "\n".join(properties)
+        code += "\n" + "\n".join(properties) + "\n"
+        code += "mutable std::optional<unsigned> m_runNumber;\n"
+        code += "mutable std::mutex m_mut;\n"
+
         code += "\n" + "\n".join(
             ("public:",
              "StatusCode execute( const EventContext& ) const override {"))
@@ -303,6 +344,14 @@ class AllenCore():
         code += "\n"
         code += "auto const& runtime_options = *m_runtime_options.get();\n"
         code += "auto const& constants = *m_constants.get();\n"
+        code += "auto const& odin = *m_odin.get();\n"
+
+        # Call update method if needed
+        code += "// Call algorithm update method on first event or if run number changes.\n"
+        code += "{\n  std::scoped_lock lock{m_mut};\n"
+        code += "  if ( !m_runNumber || *m_runNumber != odin.runNumber() ) {"
+        code += "    m_algorithm.update(*constants); m_runNumber = odin.runNumber();"
+        code += "  }\n}\n"
 
         code += "\n".join((
             f"std::vector<{typ}> empty_vector_tes_wrappers_{agg.typename} {{}};\n"
@@ -371,14 +420,16 @@ class AllenCore():
             "std::tuple<" + ",".join(output_types) + "> output_container {};",
             "// TES wrappers", f"{tes_wrappers}",
             "// Inputs to set_arguments_size and operator()",
-            f"{tes_wrappers_reference}",
-            f"Allen::Context context{{}};",
+            f"{tes_wrappers_reference}", f"Allen::Context context{{}};",
+            "{ std::scoped_lock lock{Allen::Monitoring::AccumulatorManager::get()->getMutex()};",
+            f"Allen::Monitoring::AccumulatorManager::get()->initAccumulators(1);",
             f"const auto argument_references = ArgumentReferences<{algorithm.namespace}::Parameters>{{tes_wrappers_references, input_aggregates_tuple}};",
             f"// set arguments size invocation",
             f"m_algorithm.set_arguments_size(argument_references, runtime_options, *constants);",
             f"// algorithm operator() invocation",
-            f"m_algorithm(argument_references, runtime_options, *constants, context);"
-        ))
+            f"m_algorithm(argument_references, runtime_options, *constants, context);",
+            f"Allen::Monitoring::AccumulatorManager::get()->mergeAndReset(true);",
+            "}"))
 
         is_filter = "mask_t" in [out.typedef for out in outputs]
         if is_filter:
@@ -410,7 +461,7 @@ class AllenCore():
             for p in algorithm.properties
         ]
         properties = [
-            f"Gaudi::Property<{p.typedef}> m_{p.typename}{{this, {p.name}, {p.default_value}, [=](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, {p.description} }};"
+            f"Gaudi::Property<{p.typedef}> m_{p.typename}{{this, {p.name}, {p.default_value}, [=,this](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, {p.description} }};"
             for p, init in zip(algorithm.properties, properties_initialization)
         ]
         properties += [
@@ -488,6 +539,7 @@ class AllenCore():
         ])
 
         input_keyvals = ", ".join(
+            ['KeyValue("ODIN", {""})'] +
             [f'KeyValue("{p.typename}", {{""}})' for p in inputs] + [
                 f"KeyValue(\"{p}\", {{\"\"}})"
                 for p in [a[0] for a in additional_inputs]
@@ -535,11 +587,15 @@ class AllenCore():
             f"#include \"AlgorithmConversionTools.h\"",
             f"#include <{algorithm.filename}>",
             f"#include <GaudiAlg/{include_file}>",
+            "#include <GaudiAlg/FunctionalUtilities.h>",
+            "#include <Event/ODIN.h>",
+            "#include <mutex>",
             "#include <vector>",
+            "#include \"AllenMonitoring.h\"",
             "// output type",
             f"using output_t = {output_type};",
             "// algorithm definition",
-            f"using base_class_t = {full_base_type}<output_t(EventContext const&, {inputs_tuple}), Gaudi::Functional::Traits::useAlgorithm>;",
+            f"using base_class_t = {full_base_type}<output_t(EventContext const&, LHCb::ODIN const&, {inputs_tuple}), Gaudi::Functional::Traits::useAlgorithm>;",
             f"struct {algorithm.name} final : base_class_t {{",
             f"StatusCode initialize() override {{",
             f"    const StatusCode sc = base_class_t::initialize();",
@@ -552,20 +608,31 @@ class AllenCore():
             f"{algorithm.name}( std::string const& name, ISvcLocator* pSvc )",
             f"  : {base_type}( name, pSvc, {input_and_output_keyvals} ) {{}}",
             f"// operator()",
-            f"{operator_output_type} operator()(EventContext const&, {operator_inputs}) const override {{",
+            f"{operator_output_type} operator()(EventContext const&, LHCb::ODIN const& odin, {operator_inputs}) const override {{",
             output_container,
             "// TES wrappers",
             f"{tes_wrappers}",
             "// Inputs to set_arguments_size and operator()",
             f"{tes_wrappers_reference}",
             f"Allen::Context context{{}};",
+            "// Call algorithm update method on first event or if run number changes.",
+            "{ std::scoped_lock lock{m_mut};",
+            "if ( !m_runNumber || *m_runNumber != odin.runNumber() ) {",
+            "  m_algorithm.update(*constants); m_runNumber = odin.runNumber();"
+            "}}",
+            "{ std::scoped_lock lock{Allen::Monitoring::AccumulatorManager::get()->getMutex()};",
+            f"Allen::Monitoring::AccumulatorManager::get()->initAccumulators(1);",
             f"// set arguments size invocation",
             f"m_algorithm.set_arguments_size(tes_wrappers_references, runtime_options, *constants);",
             f"// algorithm operator() invocation",
             f"m_algorithm(tes_wrappers_references, runtime_options, *constants, context);",
+            f"Allen::Monitoring::AccumulatorManager::get()->mergeAndReset(true);",
+            "}",
             return_statement,
             f"}}",
             "private:",
+            f"mutable std::optional<unsigned> m_runNumber;",
+            f"mutable std::mutex m_mut;",
             f"{algorithm.namespace}::{algorithm.name} m_algorithm{{}};",
             "\n".join(properties),
             f"}};",
@@ -575,10 +642,32 @@ class AllenCore():
         return code
 
     @staticmethod
-    def write_algorithms_view(algorithms, filename):
+    def write_algorithms_view(algorithms, filename, default_properties):
+        from subprocess import (PIPE, run)
+
+        # Run the default_properties executable to get a JSON
+        # representation of the default values of all properties of
+        # all algorithms
+        p = run(
+            [default_properties],
+            stdout=PIPE,
+            input=';'.join([
+                "{}::{}".format(a.namespace, a.name) for a in parsed_algorithms
+            ]),
+            encoding='ascii')
+
+        default_properties = None
+        if p.returncode == 0:
+            default_properties = json.loads(p.stdout)
+        else:
+            print("Failed to obtain default property values")
+            sys.exit(-1)
+
         s = AllenCore.write_preamble()
         for algorithm in parsed_algorithms:
-            s += AllenCore.write_algorithm_code(algorithm)
+            tn = "{}::{}".format(algorithm.namespace, algorithm.name)
+            s += AllenCore.write_algorithm_code(algorithm,
+                                                default_properties[tn])
         with open(filename, "w") as f:
             f.write(s)
 
@@ -612,8 +701,7 @@ class AllenCore():
 
     @staticmethod
     def write_algorithms_db(algorithms, filename):
-        code = "\n".join(("#pragma once", "", "#include <Configuration.h>",
-                          "\n"))
+        code = "\n".join(("#include <AlgorithmDB.h>", "\n"))
         for alg in algorithms:
             code += f"namespace {alg.namespace} {{ struct {alg.name}; }}\n"
         code += "\nAllen::TypeErasedAlgorithm instantiate_allen_algorithm(const ConfiguredAlgorithm& alg) {\n"
@@ -643,7 +731,7 @@ class AllenCore():
         code += "\n"
         if separable_compilation:
             for alg in selection_algorithms:
-                code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, bool*, unsigned*, Allen::IMultiEventContainer**, unsigned, unsigned, unsigned, unsigned, unsigned, unsigned, const unsigned);\n"
+                code += f"extern template __device__ void process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, uint32_t*, unsigned*, const LineData*, const ODINData*, const unsigned*, const unsigned, const unsigned, const unsigned, const unsigned);\n"
             code += "\n"
             for alg in selection_algorithms:
                 code += f"extern template void line_output_monitor<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(char*, const RuntimeOptions&, const Allen::Context&);\n"
@@ -653,11 +741,11 @@ class AllenCore():
             if i != len(selection_algorithms) - 1:
                 code += ",\n"
         code += "\n};\n\n"
-        code += "__device__ inline void invoke_line_functions(unsigned index, char* a, bool* b, unsigned* c, Allen::IMultiEventContainer** d, unsigned e, unsigned f, unsigned g, unsigned h, unsigned i, unsigned j, const unsigned k) {\n"
+        code += "__device__ inline void invoke_line_functions(unsigned index, char* a, uint32_t* b, unsigned* c, const LineData* d, const ODINData* e, const unsigned* f, const unsigned g, const unsigned h, const unsigned i, const unsigned j) {\n"
         code += f"  assert(index < {len(selection_algorithms)});\n"
         code += "  switch (index) {\n"
         for i, alg in enumerate(selection_algorithms):
-            code += f"    case {i}: process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(a, b, c, d, e, f, g, h, i, j, k); break;\n"
+            code += f"    case {i}: process_line<{alg.namespace}::{alg.name}, {alg.namespace}::Parameters>(a, b, c, d, e, f, g, h, i, j); break;\n"
         code += "  }\n}\n\n"
         code += f"constexpr std::array<void(*)(char*, const RuntimeOptions&, const Allen::Context&), {len(selection_algorithms)}> line_output_monitor_functions = {{\n"
         for i, alg in enumerate(selection_algorithms):
@@ -701,6 +789,12 @@ if __name__ == '__main__':
         default="",
         help="location of parsed algorithms")
     parser.add_argument(
+        "--default_properties",
+        nargs="?",
+        type=str,
+        default="",
+        help="location of default_properties executable")
+    parser.add_argument(
         "--generate",
         nargs="?",
         type=str,
@@ -712,24 +806,33 @@ if __name__ == '__main__':
         help="action that will be performed")
 
     args = parser.parse_args()
+    prefix_folder = args.prefix_project_folder + "/"
     if args.generate == "parsed_algorithms":
-        parsed_algorithms = Parser().parse_all(args.prefix_project_folder +
-                                               "/")
+        algorithm_files = Parser().find_algorithm_files(prefix_folder)
+        parsed_algorithms = Parser().parse_all(algorithm_files, prefix_folder)
         with open(args.filename, "wb") as f:
             pickle.dump(parsed_algorithms, f)
+    elif args.generate == "algorithm_headers_list":
+        # Write list of files including algorithm definitions
+        algorithm_headers_list = Parser().find_algorithm_files(prefix_folder)
+        AllenCore.write_algorithm_filename_list(algorithm_headers_list,
+                                                args.filename)
     else:
+
         if args.parsed_algorithms:
             # Load pregenerated parsed_algorithms
             with open(args.parsed_algorithms, "rb") as f:
                 parsed_algorithms = pickle.load(f)
         else:
             # Otherwise generate parsed_algorithms on the fly
-            parsed_algorithms = Parser().parse_all(args.prefix_project_folder +
-                                                   "/")
+            algorithm_files = Parser().find_algorithm_files(prefix_folder)
+            parsed_algorithms = Parser().parse_all(algorithm_files,
+                                                   prefix_folder)
 
         if args.generate == "views":
             # Generate algorithm python views
-            AllenCore.write_algorithms_view(parsed_algorithms, args.filename)
+            AllenCore.write_algorithms_view(parsed_algorithms, args.filename,
+                                            args.default_properties)
         elif args.generate == "wrapperlist":
             # Generate Gaudi wrapper filenames
             gaudi_wrapper_filenames = AllenCore.write_gaudi_algorithms(
@@ -754,10 +857,3 @@ if __name__ == '__main__':
             # Write extern lines header file, without separable compilation
             AllenCore.write_extern_lines(parsed_algorithms, args.filename,
                                          False)
-        elif args.generate == "algorithm_headers_list":
-            # Write list of files including algorithm definitions
-            algorithm_headers_list = [
-                alg.filename for alg in parsed_algorithms
-            ]
-            AllenCore.write_algorithm_filename_list(algorithm_headers_list,
-                                                    args.filename)

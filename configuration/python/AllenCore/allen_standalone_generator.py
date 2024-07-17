@@ -10,13 +10,13 @@
 ###############################################################################
 from AllenCore.cftree_ops import get_execution_list_for, BoolNode
 from AllenCore.event_list_utils import add_event_list_combiners
-from AllenCore.AllenSequenceGenerator import generate_allen_sequence
+from AllenCore.AllenSequenceGenerator import generate_json_configuration
 from AllenCore.allen_benchmarks import benchmark_weights, benchmark_efficiencies
 from AllenCore.algorithms import host_init_event_list_t
 from PyConf.components import Algorithm
 from PyConf.filecontent_metadata import flush_key_registry
-from os.path import exists
-import contextlib
+from PyConf.tonic import configurable
+from json import dump
 
 
 def make_algorithm(alg_type, name, **kwargs):
@@ -59,13 +59,18 @@ def initialize_event_lists(**kwargs):
     return initialize_lists
 
 
-def generate(root, json_configuration_filename="Sequence.json"):
-    """Generates an Allen sequence out of a root node."""
-    with flush_key_registry() :
+def build_sequence(root, verbose=True):
+    if type(root) == dict:
+        root = root['control_flow_node']
+
+    with flush_key_registry():
         best_order, score = get_execution_list_for(root)
         final_seq = add_event_list_combiners(best_order)
 
-        print("Generated sequence represented as algorithms with execution masks:")
+    if verbose:
+        print(
+            "Generated sequence represented as algorithms with execution masks:"
+        )
         for alg, mask_in in final_seq:
             if mask_in == None:
                 mask_in_str = ""
@@ -74,4 +79,21 @@ def generate(root, json_configuration_filename="Sequence.json"):
             elif isinstance(mask_in, BoolNode):
                 mask_in_str = f" in:{mask_in}"
             print(f"  {alg}{mask_in_str}")
-        return generate_allen_sequence([alg for (alg, _) in final_seq], json_configuration_filename)
+
+    return [alg for (alg, _) in final_seq]
+
+
+@configurable
+def generate(root,
+             json_configuration_filename="Sequence.json",
+             noop=False,
+             verbose=True):
+    """Generates an Allen sequence out of a root node."""
+    if noop:
+        return
+
+    algorithms = build_sequence(root, verbose=verbose)
+
+    sequence_json = generate_json_configuration(algorithms)
+    with open(json_configuration_filename, 'w') as outfile:
+        dump(sequence_json, outfile, indent=4, sort_keys=True)

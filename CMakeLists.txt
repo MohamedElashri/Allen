@@ -1,5 +1,12 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
 cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
@@ -10,8 +17,8 @@ if(STANDALONE AND NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{CMAKE_TOOLCHA
   set(CMAKE_TOOLCHAIN_FILE $ENV{CMAKE_TOOLCHAIN_FILE})
 endif()
 
-project(Allen VERSION 3.4
-        LANGUAGES CXX)
+project(Allen VERSION 4.11
+        LANGUAGES C CXX)
 
 # ---------------
 # Boolean options
@@ -67,7 +74,7 @@ endif()
 
 # CUDA compute capability
 set(CUDA_ARCH COMPATIBILITY CACHE STRING "CUDA target architecture")
-set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 53 60 61 62 70 72 75 80 86)
+set_property(CACHE CUDA_ARCH PROPERTY STRINGS COMPATIBILITY MAX MIN 60 61 62 70 72 75 80 86)
 
 # HIP architecture
 # https://llvm.org/docs/AMDGPUUsage.html
@@ -130,7 +137,13 @@ if(TREAT_WARNINGS_AS_ERRORS)
 endif()
 
 # Choice of malloc engine
-set(MALLOC_ENGINE SINGLE_ALLOC CACHE STRING "Malloc engine")
+
+set(_default_malloc_engine SINGLE_ALLOC)
+if(CMAKE_BUILD_TYPE MATCHES ".*San$")
+  # In sanitizer builds we do individual allocs to spot illegal accesses
+  set(_default_malloc_engine MULTI_ALLOC)
+endif()
+set(MALLOC_ENGINE ${_default_malloc_engine} CACHE STRING "Malloc engine")
 set_property(CACHE MALLOC_ENGINE PROPERTY STRINGS SINGLE_ALLOC MULTI_ALLOC)
 message(STATUS "Memory manager: " ${MALLOC_ENGINE})
 add_compile_definitions(MEMORY_MANAGER_${MALLOC_ENGINE})
@@ -225,7 +238,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
   #CUDA_ARCH can be set to MIN
     elseif(CUDA_ARCH STREQUAL "MIN")
       message(STATUS "Setting lowest CUDA compute capability:")
-      list(APPEND CUDA_ARCH_LIST 53)
+      list(APPEND CUDA_ARCH_LIST 60)
   #By default, compile for compatibility
     elseif(CUDA_ARCH STREQUAL "COMPATIBILITY")
   #Compatibility arch flag.
@@ -235,7 +248,7 @@ if(TARGET_DEVICE STREQUAL "CUDA")
   #* Forward compatibility with newer devices is also supported by generating PTX from 8.6
   #(- gencode = arch = compute_86, compute = compute_86)
       message(STATUS "Setting compute capability to COMPATIBILITY:")
-      foreach(arch 53 60 70 75 80 86)
+      foreach(arch 60 70 75 80 86)
         list(APPEND CUDA_ARCH_LIST ${arch})
       endforeach()
   #Finally, compile for the specified architecture
@@ -270,24 +283,25 @@ if(TARGET_DEVICE STREQUAL "CPU")
   endif()
 
   function(allen_add_host_library)
+    list(FIND ARGV STATIC is_static)
     foreach(arg IN LISTS ARGN)
       if(${arg} MATCHES "\\.cu$")
         set_source_files_properties(${arg} PROPERTIES LANGUAGE CXX)
       endif()
     endforeach()
-
     add_library(${ARGV})
+
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
-    install(TARGETS ${ARGV0}
-      EXPORT Allen
-      LIBRARY DESTINATION lib)
+    if (${is_static} EQUAL -1)
+      install(TARGETS ${ARGV0}
+        EXPORT Allen
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endif()
   endfunction()
 
   function(allen_add_device_library)
-    set(destination lib)
-    list(FIND ARGV STREAM is_stream)
-    list(FILTER ARGV EXCLUDE REGEX "STREAM")
+    list(FIND ARGV STATIC is_static)
 
     foreach(arg IN LISTS ARGN)
       if(${arg} MATCHES "\\.cu$")
@@ -297,15 +311,14 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
     add_library(${ARGV})
 
-    if (NOT ${is_stream} EQUAL -1)
-      set(destination lib/sequences)
-    endif()
-
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
-    install(TARGETS ${ARGV0}
-      EXPORT Allen
-      DESTINATION ${destination})
+
+    if (${is_static} EQUAL -1)
+      install(TARGETS ${ARGV0}
+        EXPORT Allen
+        DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endif()
   endfunction()
 
   function(allen_add_executable)
@@ -317,7 +330,7 @@ if(TARGET_DEVICE STREQUAL "CPU")
 
     add_executable(${ARGV})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   endfunction()
 
   string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
@@ -355,23 +368,23 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
   set(CMAKE_EXE_LINKER_FLAGS "-Wl,-rpath,./")
 
   function(allen_add_host_library)
+    list(FIND ARGV STATIC is_static)
+    message(STATUS "Adding host library: ${ARGV0}")
     add_library(${ARGV})
-    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
-    install(TARGETS ${ARGV0}
-      EXPORT Allen
-      LIBRARY DESTINATION lib)
+
+    add_library(Allen::${ARGV0} ALIAS ${ARGV0})
+
+    if (${is_static} EQUAL -1)
+      install(TARGETS ${ARGV0}
+        EXPORT Allen
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endif()
   endfunction()
 
   function(allen_add_device_library)
-    set(destination lib)
-    list(FIND ARGV STREAM is_stream)
-    list(FILTER ARGV EXCLUDE REGEX "STREAM")
-
-    if (NOT ${is_stream} EQUAL -1)
-      set(destination lib/sequences)
-    endif()
+    list(FIND ARGV STATIC is_static)
 
     hip_add_library(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
 
@@ -379,16 +392,18 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
 
-    install(TARGETS ${ARGV0}
-      EXPORT Allen
-      LIBRARY DESTINATION ${destination})
+    if (${is_static} EQUAL -1)
+      install(TARGETS ${ARGV0}
+        EXPORT Allen
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endif()
   endfunction()
 
   function(allen_add_executable)
     hip_add_executable(${ARGV} HIPCC_OPTIONS ${HIPCC_OPTIONS})
     target_include_directories(${ARGV0} PRIVATE ${HIP_PATH}/include ${ROCM_PATH}/hsa/include)
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
 
@@ -415,45 +430,41 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
   message(STATUS "Detected CUDA include directory: " ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
   function(allen_add_host_library)
-    set(destination lib)
-    list(FIND ARGV STREAM is_stream)
-    list(FILTER ARGV EXCLUDE REGEX "STREAM")
-
-    if (NOT ${is_stream} EQUAL -1)
-      set(destination lib/sequences)
-    endif()
+    list(FIND ARGV STATIC is_static)
 
     add_library(${ARGV})
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${PROJECT_BINARY_DIR}/code_generation)
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
     if(SEPARABLE_COMPILATION)
       set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
     endif()
-    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES} ${PROJECT_BINARY_DIR}/code_generation)
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
+
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
-    install(TARGETS ${ARGV0}
-      EXPORT Allen
-      LIBRARY DESTINATION ${destination})
+
+    if (${is_static} EQUAL -1)
+      install(TARGETS ${ARGV0}
+        EXPORT Allen
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endif()
   endfunction()
 
   function(allen_add_device_library)
-    set(destination lib)
-    list(FIND ARGV STREAM is_stream)
-    list(FILTER ARGV EXCLUDE REGEX "STREAM")
-
-    if (NOT ${is_stream} EQUAL -1)
-      set(destination lib/sequences)
-    endif()
+    list(FIND ARGV STATIC is_static)
 
     add_library(${ARGV})
+    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
+    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
     if(SEPARABLE_COMPILATION)
       set_property(TARGET ${ARGV0} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
     endif()
-    target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-    target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION} ODIN_WITHOUT_GAUDI)
+
     add_library(Allen::${ARGV0} ALIAS ${ARGV0})
-    install(TARGETS ${ARGV0}
-      EXPORT Allen
-      LIBRARY DESTINATION ${destination})
+
+    if (${is_static} EQUAL -1)
+      install(TARGETS ${ARGV0}
+        EXPORT Allen
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    endif()
   endfunction()
 
   function(allen_add_executable)
@@ -463,7 +474,7 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     endif()
     target_include_directories(${ARGV0} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
     target_compile_definitions(${ARGV0} PRIVATE ${TARGET_DEFINITION})
-    install(TARGETS ${ARGV0} RUNTIME DESTINATION bin)
+    install(TARGETS ${ARGV0} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   endfunction()
 
   string(APPEND CMAKE_CXX_FLAGS " -Wall -Wextra -Wpedantic -Wnon-virtual-dtor -Wdouble-promotion")
@@ -479,8 +490,6 @@ set(GROUPCOMP_DIR ${PROJECT_BINARY_DIR}/group_comp)
 file(MAKE_DIRECTORY ${GROUPCOMP_DIR})
 
 function(allen_add_device_library_unified)
-  set(destination lib)
-
   foreach(arg IN LISTS ARGN)
     if(${arg} MATCHES "\\.cu$")
       list(APPEND LIBRARY_SOURCES ${arg})
@@ -512,7 +521,7 @@ function(allen_add_device_library_unified)
 
   install(TARGETS ${ARGV0}
     EXPORT Allen
-    LIBRARY DESTINATION ${destination})
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
   MATH(EXPR COUNTER "${COUNTER}+1")
 endfunction()
@@ -574,16 +583,6 @@ if(BUILD_TESTING)
   add_subdirectory(test/unit_tests)
 endif()
 
-add_subdirectory(configuration)
-add_subdirectory(backend)
-add_subdirectory(host)
-add_subdirectory(device)
-add_subdirectory(checker)
-add_subdirectory(mdf)
-add_subdirectory(integration)
-add_subdirectory(zmq)
-add_subdirectory(stream)
-
 # Interface library that will be used for common functionality
 add_library(AllenCommon INTERFACE)
 target_include_directories(AllenCommon
@@ -591,6 +590,16 @@ target_include_directories(AllenCommon
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/main/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/test/contracts/include>)
+
+add_subdirectory(configuration)
+add_subdirectory(backend)
+add_subdirectory(host)
+add_subdirectory(device)
+add_subdirectory(checker)
+add_subdirectory(integration)
+add_subdirectory(zmq)
+add_subdirectory(stream)
+add_subdirectory(mdf)
 
 if (STANDALONE)
   target_compile_definitions(AllenCommon INTERFACE ALLEN_STANDALONE)
@@ -646,7 +655,7 @@ message(STATUS "CMAKE CXX FLAGS: " ${CMAKE_CXX_FLAGS})
 
 
 # Add host library
-allen_add_host_library(HostCommon STATIC
+allen_add_host_library(HostCommon SHARED
   main/src/BankTypes.cpp
   main/src/InputReader.cpp
   main/src/InputTools.cpp
@@ -656,15 +665,17 @@ allen_add_host_library(HostCommon STATIC
   main/src/SliceUtils.cpp
   main/src/Timer.cpp
   main/src/Tools.cpp
+  main/src/MDFProvider.cpp
   main/src/Transpose.cpp)
 
 target_link_libraries(AllenCommon INTERFACE
   LHCbEvent AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
 target_link_libraries(HostCommon PRIVATE
-  mdf EventModel Gear Backend mdf NonEventData AllenCommon LHCbEvent Boost::iostreams)
+  mdf EventModel Gear Backend mdf AllenCommon LHCbEvent Boost::iostreams)
 
 allen_add_host_library(AllenLib SHARED
   main/src/Allen.cpp
+  main/src/AllenMonitoring.cpp
   main/src/AllenThreads.cpp
   main/src/OutputHandler.cpp
   main/src/Provider.cpp
@@ -672,30 +683,61 @@ allen_add_host_library(AllenLib SHARED
   main/src/ZMQOutputSender.cpp)
 
 target_compile_definitions(AllenLib PUBLIC ${TARGET_DEFINITION})
+target_compile_definitions(AllenLib PUBLIC "CMAKE_ALLEN_BUILD_DIR=\"${CMAKE_CURRENT_BINARY_DIR}\"")
+
+target_include_directories(AllenLib PUBLIC
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_link_libraries(AllenLib
   PRIVATE
+    algorithm_db
+    Associate
     Backend
-    Stream
-    HostCommon
-    HostEventModel
-    HostRoutingBits
-    NonEventData
-    TrackChecking
-    PVChecking
+    Calo
     CheckClustering
-    SelChecking
-    Monitoring
-    HostCombiners
+    Combiners
+    DeviceValidators
     EventModel
-    Gear
-    mdf
+    Examples
+    HostClustering
+    HostCombiners
+    HostDataProvider
+    HostDummyMaker
+    HostErrorBanks
+    HostEventModel
+    HostGEC
+    HostInitEventList
+    HostRoutingBits
+    HostTAEFilter
+    Kalman
     LHCbEvent
+    Lumi
+    Monitoring
+    Muon
+    NonEventData
+    PVChecking
+    PV_beamline
+    Plume
+    SciFi
+    SelChecking
+    Selections
+    Stream
+    TrackChecking
+    UT
+    Utils
+    Validators
+    Velo
+    VertexFitter
+    mdf
+    track_matching
   PUBLIC
+    Gear
     AllenCommon
+    HostCommon
     AllenRuntime
     Threads::Threads
     AllenZMQ
+    NonEventDataHeaders
     ${CMAKE_DL_LIBS})
 
 # To propagate filesystem includes/libs
@@ -703,13 +745,20 @@ target_link_libraries(AllenLib PRIVATE AllenFS)
 target_link_libraries(AllenCommon INTERFACE ROOT::RIO ROOT::Core ROOT::Cling ROOT::Hist ROOT::Tree TBB::tbb)
 
 if (NOT STANDALONE)
-  target_link_libraries(AllenLib PRIVATE AIDA::aida)
+  target_link_libraries(AllenLib
+    PRIVATE
+      AIDA::aida
+      Configuration)
+  target_link_libraries(AllenLib
+    PUBLIC
+      LHCb::HltServicesLib)
 endif()
 
 allen_add_executable(Allen main/src/main.cpp)
+add_dependencies(Allen Sequences)
 
-target_link_libraries(Allen PRIVATE AllenLib NonEventData Gear)
-
+target_link_libraries(Allen PRIVATE AllenLib)
+set_target_properties(Allen PROPERTIES BUILD_RPATH_USE_ORIGIN TRUE)
 
 if (NOT STANDALONE)
     include(FileContentMetadataRepository)

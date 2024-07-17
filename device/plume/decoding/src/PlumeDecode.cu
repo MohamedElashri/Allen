@@ -1,4 +1,3 @@
-
 /*****************************************************************************\
 * (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
 *                                                                             *
@@ -26,67 +25,62 @@ namespace {
     Plume_* pl)
   {
 
-    auto bit_shift = [&](uint32_t w) {
-      return ((w & 0xFF) << 24) | ((w & 0xFF00) << 8) | ((w & 0xFF0000) >> 8) | ((w & 0xFF000000) >> 24);
-    };
-
-    auto bit_reverse = [&](uint32_t n) {
-      uint32_t ans = 0;
-      for (int i = 31; i >= 0; i--) {
-        ans |= (n & 1) << i;
-        n >>= 1;
-      }
-      return ans;
-    };
-
     auto raw_event = RawEvent {data, offsets, sizes, types, event_number};
 
     for (unsigned bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
-      auto raw_bank = raw_event.raw_bank(bank_number);
 
+      auto raw_bank = raw_event.raw_bank(bank_number);
       int32_t source_id = raw_bank.source_id;
 
       if (raw_bank.type != LHCb::RawBank::BankType::Plume) {
         continue;
       }
 
-      if (source_id != 0x5001) continue;
+      if constexpr (decoding_version == 2 || decoding_version == 3 || decoding_version == 4) {
 
-      uint32_t word = *(raw_bank.data);
-      auto new_word = bit_shift(word);
-      new_word = bit_reverse(new_word);
-
-      pl->ovr_th[0] = new_word;
-
-      raw_bank.data += 1;
-
-      uint32_t word2 = *(raw_bank.data);
-      auto new_word2 = bit_shift(word2);
-      new_word2 = bit_reverse(new_word2);
-
-      pl->ovr_th[1] = new_word2;
-
-      raw_bank.data += 1;
-
-      struct one_bit {
-        unsigned one : 1;
-      };
-      one_bit board_ch[768];
-
-      for (int wrd = 0; wrd < 24; wrd++) {
-        uint32_t elem = *(raw_bank.data);
-        auto new_elem = bit_shift(elem);
-
-        for (int e = 0; e < 32; e++) {
-          board_ch[(31 - e) + 32 * wrd].one = ((new_elem & (1 << (e))) >> (e));
+        int n_ch = 22;
+        if constexpr (decoding_version == 2) {
+          if (source_id != 0x5001) continue;
+        }
+        else {
+          if (source_id != 0x5001 and source_id != 0x5002) continue;
         }
 
-        raw_bank.data += 1;
+        uint32_t ovr_thb = {0}; // overthreshold bits: 1 bit objects for the n_ch channels
+
+        int n_bank = int(source_id & 0x3);
+
+        for (int ch = 0; ch < n_ch; ch++) {
+
+          uint32_t new_word = raw_bank.data[ch];
+
+          if constexpr (decoding_version == 3) new_word = __bswap(new_word);
+
+          ovr_thb |= (new_word >> 31) << ch;
+
+          auto pedestal_sub_adc = (unsigned int) ((0x7ffff000 & new_word) >> 12);
+
+          pl->ADC_counts.at(ch + n_ch * (n_bank - 1)) = static_cast<float>(pedestal_sub_adc) / 128.f;
+        }
+
+        pl->ovr_th[n_bank - 1] = ovr_thb;
       }
 
-      for (int k = 0; k < 64; k++) {
-        for (int pos_bit = 0; pos_bit < 12; pos_bit++) {
-          pl->ADC_counts[k].x = pl->ADC_counts[k].x << 1 | (board_ch[12 * k + pos_bit].one);
+      else if constexpr (decoding_version == 1) {
+
+        if (source_id != 0x5001) continue;
+
+        pl->ovr_th[0] = __brev(__bswap(*(raw_bank.data++)));
+        pl->ovr_th[1] = __brev(__bswap(*(raw_bank.data++)));
+
+        for (int k = 0; k < 64; k++) {
+          int i = k * 12 / 32;
+          int j = k * 12 % 32;
+          uint32_t value =
+            ((static_cast<uint64_t>(__bswap(__brev(raw_bank.data[i + 1]))) << 32 | __bswap(__brev(raw_bank.data[i]))) >>
+             j) &
+            0xfff;
+          pl->ADC_counts.at(k) = static_cast<float>(__brev(value) >> (32 - 12));
         }
       }
     }
@@ -124,13 +118,18 @@ void plume_decode::plume_decode_t::operator()(
   (void) constants;
   Allen::memset_async<dev_plume_t>(arguments, 0x7F, context);
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
+  if (bank_version < 0) return;
 
   auto f_plume_decode_kernel =
     runtime_options.mep_layout ?
-      (bank_version == 4 ? plume_decode_kernel<true, 4> :
-                           (bank_version == 5 ? plume_decode_kernel<true, 5> : plume_decode_kernel<true, 1>) ) :
-      (bank_version == 4 ? plume_decode_kernel<false, 4> :
-                           (bank_version == 5 ? plume_decode_kernel<false, 5> : plume_decode_kernel<false, 1>) );
+      (bank_version == 4 ?
+         plume_decode_kernel<true, 4> :
+         (bank_version == 3 ? plume_decode_kernel<true, 3> :
+                              (bank_version == 2 ? plume_decode_kernel<true, 2> : plume_decode_kernel<true, 1>) )) :
+      (bank_version == 4 ?
+         plume_decode_kernel<false, 4> :
+         (bank_version == 3 ? plume_decode_kernel<false, 3> :
+                              (bank_version == 2 ? plume_decode_kernel<false, 2> : plume_decode_kernel<false, 1>) ));
 
   global_function(f_plume_decode_kernel)(
     dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(arguments);

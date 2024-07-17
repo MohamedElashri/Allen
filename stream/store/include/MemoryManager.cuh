@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -122,7 +129,7 @@ namespace Allen::Store {
       // Complain if no space was available
       if (it == m_memory_segments.end()) {
         warning_cout << "Reserve: Requested size for argument " + tag + " could not be met (" +
-                          std::to_string(((float) aligned_request) / (1000.f * 1000.f)) + " MB)\n";
+                          std::to_string(static_cast<float>(aligned_request) / (1000.f * 1000.f)) + " MB)\n";
         print();
         throw MemoryException("not enough memory to meet request");
       }
@@ -156,7 +163,7 @@ namespace Allen::Store {
      *        If there are no available segments of the requested size,
      *        it throws an exception.
      */
-    void reserve(BaseArgument& argument) { argument.set_pointer(reserve(argument.name(), argument.sizebytes())); }
+    void reserve(BaseArgument& argument) { argument.set_pointer(reserve(argument.name(), argument.size_bytes())); }
 
     void free(const std::string& tag)
     {
@@ -228,9 +235,10 @@ namespace Allen::Store {
       info_cout << m_name << " segments (MB):" << std::endl;
       for (auto& segment : m_memory_segments) {
         std::string name = segment.tag == "" ? "unused" : segment.tag;
-        info_cout << name << " (" << ((float) segment.size) / (1000.f * 1000.f) << "), ";
+        info_cout << name << " (" << static_cast<float>(segment.size) / (1000.f * 1000.f) << "), ";
       }
-      info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / (1000.f * 1000.f)) << " MB"
+      info_cout << "\nMax memory required: " << (static_cast<float>(m_total_memory_required) / (1000.f * 1000.f))
+                << " MB"
                 << "\n\n";
     }
   };
@@ -297,7 +305,7 @@ namespace Allen::Store {
     /**
      * @brief Allocates a segment of the requested size.
      */
-    void reserve(BaseArgument& argument) { argument.set_pointer(reserve(argument.name(), argument.sizebytes())); }
+    void reserve(BaseArgument& argument) { argument.set_pointer(reserve(argument.name(), argument.size_bytes())); }
 
     void free(const std::string& tag)
     {
@@ -346,9 +354,10 @@ namespace Allen::Store {
     {
       info_cout << m_name << " segments (MB):" << std::endl;
       for (auto const& [name, segment] : m_memory_segments) {
-        info_cout << name << " (" << ((float) segment.size) / (1000.f * 1000.f) << "), ";
+        info_cout << name << " (" << static_cast<float>(segment.size) / (1000.f * 1000.f) << "), ";
       }
-      info_cout << "\nMax memory required: " << (((float) m_total_memory_required) / (1000.f * 1000.f)) << " MB"
+      info_cout << "\nMax memory required: " << (static_cast<float>(m_total_memory_required) / (1000.f * 1000.f))
+                << " MB"
                 << "\n\n";
     }
   };

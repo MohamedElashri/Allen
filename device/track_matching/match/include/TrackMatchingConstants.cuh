@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -9,6 +16,7 @@
 
 namespace TrackMatchingConsts {
   static constexpr unsigned max_num_tracks = 1000; // to do: what is the best / safest value here?
+  static constexpr unsigned max_combination_multiplicity = 4;
 
   constexpr float z_match = 5240.0f; // FIXME_GEOMETRY_HARDCODING
   constexpr float zMatchY = 10000.f; // in mm

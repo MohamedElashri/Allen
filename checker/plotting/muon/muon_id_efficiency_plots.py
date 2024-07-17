@@ -1,6 +1,13 @@
 #!/usr/bin/python
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
 # Script for accessing histograms of reconstructible and
@@ -64,7 +71,6 @@ def muonCategoryDict():
 #      ROOT.TFile.Open("../../../output/Bs2PhiPhi/PrCheckerPLots-Bs2PhiPhi.root", "read"),
 #      ROOT.TFile.Open("../../../output/Z2MuMu/PrCheckerPLots-Z2MuMu.root", "read"),
 # ]
-
 
 f = [ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")]
 outputfile = ROOT.TFile(
@@ -143,14 +149,15 @@ for category in muonCategories:
         # Draw second y axis
         low = 0
         high = 1.05
-        axis = ROOT.TGaxis(gPad.GetUxmax(), gPad.GetUymin(),gPad.GetUxmax(),gPad.GetUymax(),low,high,510,"+L")
+        axis = ROOT.TGaxis(gPad.GetUxmax(), gPad.GetUymin(), gPad.GetUxmax(),
+                           gPad.GetUymax(), low, high, 510, "+L")
         axis.SetTitleFont(132)
         axis.SetTitleSize(0.06)
         axis.SetTitleOffset(0.55)
         axis.SetTitle("Number of events [a.u.]")
         axis.SetLabelSize(0)
         axis.Draw()
-        
+
         canvas.Write()
         cleantitle = muonCatDict[category]["title"].replace(" ", "").replace(
             ",", "_").replace("<", "_")

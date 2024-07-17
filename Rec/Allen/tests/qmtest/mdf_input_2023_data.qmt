@@ -1,0 +1,39 @@
+<?xml version="1.0" ?><!DOCTYPE extension  PUBLIC '-//QM/2.3/Extension//EN'  'http://www.codesourcery.com/qm/dtds/2.3/-//qm/2.3/extension//en.dtd'>
+<!--
+    (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration
+
+    This software is distributed under the terms of the Apache License          
+    version 2 (Apache-2.0), copied verbatim in the file "LICENSE".             
+                                                                            
+    In applying this licence, CERN does not waive the privileges and immunities
+    granted to it by virtue of its status as an Intergovernmental Organization  
+    or submit itself to any jurisdiction.  
+-->
+<!--
+     #######################################################
+# SUMMARY OF THIS TEST
+# ...................
+# Author: Kate Richardson
+# Purpose: Test running Allen through MooreOnline with
+# the passthrough sequence
+#######################################################
+-->
+<extension class="GaudiTest.GaudiExeTest" kind="test">
+  <argument name="program"><text>python</text></argument>
+  <argument name="args"><set>
+    <text>${BINARYDUMPERSROOT}/options/allen.py</text>
+    <text>--monitoring-filename</text><text>mdf_data_hists.root</text>
+    <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants//hlt1_pp_forward_then_matching_no_ut.json</text>
+    <text>--tags=run3/trunk,master</text>
+    <text>--real-data</text>
+    <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/data/2023_raw_hlt1_269138/Run_0000269138_20230706-083945-793_PLEB01_1930.mdf</text>
+  </set></argument>
+  <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
+  <argument name="timeout"><integer>60000</integer></argument>
+  <argument name="validator"><text>
+
+countErrorLines({"FATAL" : 0, "ERROR" : 0, "WARNING" : 0})
+
+  </text></argument>
+</extension>
+

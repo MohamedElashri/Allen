@@ -1,5 +1,12 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 import ROOT
 import numpy as np
@@ -114,7 +121,10 @@ class Reader:
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--fname', action='store', dest='fname', default='../../output/SelCheckerTuple.root')
+        '--fname',
+        action='store',
+        dest='fname',
+        default='../../output/SelCheckerTuple.root')
     parser.add_argument(
         '--signal', action='store', dest='signal', type=int, default=0)
     parser.add_argument(

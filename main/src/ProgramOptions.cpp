@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <regex>
 
@@ -53,7 +60,6 @@ std::vector<ProgramOption> allen_program_options()
     {{"v", "verbosity"}, "verbosity [0-5]", "3", "info"},
     {{"p", "print-memory"}, "print memory usage", "0"},
     {{"sequence"}, "sequence to run", ""},
-    {{"run-from-json"}, "run from json configuration file", "0"},
     {{"output-file"}, "Write selected event to output file", ""},
     {{"output-batch-size"}, "Write output in batches of N events", "10"},
     {{"device"}, "select device to use", "0"},

@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <regex>
 #include <unordered_map>
@@ -71,10 +78,7 @@ MCEvents CheckerInvoker::load(
   }
 
   std::vector<char> raw_particles, raw_pvs;
-  int readFiles = 0;
   for (size_t i = 0; i < events.size(); ++i) {
-    readFiles++;
-
     raw_particles.clear();
     raw_pvs.clear();
 
@@ -90,6 +94,7 @@ MCEvents CheckerInvoker::load(
 
 void CheckerInvoker::report(size_t n_events) const
 {
+  m_report_order.sort();
   for (auto const& entry : m_report_order) {
     auto it = m_checkers.find(std::get<0>(entry));
     // Print stored header if it is not empty

@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -19,7 +26,9 @@ namespace velo_three_hit_tracks_filter {
     DEVICE_INPUT(dev_hit_used_t, bool) dev_hit_used;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_three_hit_tracks_output_t, Velo::TrackletHits) dev_three_hit_tracks_output;
-    DEVICE_OUTPUT(dev_number_of_three_hit_tracks_output_t, unsigned) dev_number_of_three_hit_tracks_output;
+    DEVICE_OUTPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, unsigned)
+    dev_offsets_number_of_three_hit_tracks_filtered;
+    HOST_OUTPUT(host_number_of_three_hit_tracks_filtered_t, unsigned) host_number_of_three_hit_tracks_filtered;
 
     // Max chi2
     PROPERTY(max_chi2_t, "max_chi2", "chi2", float) max_chi2;

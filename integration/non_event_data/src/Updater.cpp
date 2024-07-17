@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <string>
 #include <optional>
@@ -55,7 +62,9 @@ namespace Allen {
                        tuple {NonEventData::SciFiGeometry {}, std::string("scifi_geometry.bin")},
                        tuple {NonEventData::ECalGeometry {}, std::string("ecal_geometry.bin")},
                        tuple {NonEventData::MuonGeometry {}, std::string("muon_geometry.bin")},
-                       tuple {NonEventData::MuonLookupTables {}, std::string("muon_tables.bin")}};
+                       tuple {NonEventData::MuonLookupTables {}, std::string("muon_tables.bin")},
+                       tuple {NonEventData::RichPDMDBMapping {}, std::string("rich_pdmdbmaps.bin")},
+                       tuple {NonEventData::RichCableMapping {}, std::string("rich_tel40maps.bin")}};
 
       for_each(producers, [this, &geometry_producer](const auto& p) {
         using id_t = typename std::remove_reference_t<decltype(std::get<0>(p))>;

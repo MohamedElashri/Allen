@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -28,16 +35,11 @@ namespace Muon {
     float* sizeX[n_tables];
     float* sizeY[n_tables];
     unsigned int* offset[n_tables];
-    unsigned int sizeOffset[Constants::n_stations * Constants::n_regions * n_tables];
     float* coordinates[n_tables * Constants::n_stations];
 
-    __device__ MuonTables(size_t* allOffsets, char* dev_muon_tables_raw, unsigned int* sizeOffset_, const int version)
+    __device__ MuonTables(size_t* allOffsets, char* dev_muon_tables_raw, const int version)
     {
       m_version = version;
-
-      for (size_t i = 0; i < Constants::n_stations * Constants::n_regions * n_tables; i++) {
-        sizeOffset[i] = sizeOffset_[i];
-      }
 
       size_t currentAllOffsetsIndex = 0;
       for (size_t currentTableNumber = 0; currentTableNumber < n_tables; currentTableNumber++) {
@@ -59,18 +61,20 @@ namespace Muon {
   };
 
   __device__ inline unsigned int
-  getLayoutX(MuonTables* muonTables, size_t tableNumber, unsigned int station, unsigned int region)
+  getLayoutX(const MuonTables* muonTables, size_t tableNumber, unsigned int station, unsigned int region)
   {
     return static_cast<unsigned int>(muonTables->gridX[tableNumber][station * Constants::n_regions + region]);
   }
 
   __device__ inline unsigned int
-  getLayoutY(MuonTables* muonTables, size_t tableNumber, unsigned int station, unsigned int region)
+  getLayoutY(const MuonTables* muonTables, size_t tableNumber, unsigned int station, unsigned int region)
   {
     return static_cast<unsigned int>(muonTables->gridY[tableNumber][station * Constants::n_regions + region]);
   }
 
-  __device__ inline std::array<Muon::MuonLayout, 2> getLayout(MuonTables* muonTables, const Muon::MuonTileID& tile)
+  __device__ inline std::array<Muon::MuonLayout, 2> getLayout(
+    const MuonTables* muonTables,
+    const Muon::MuonTileID& tile)
   {
 
     const auto x1 = getLayoutX(muonTables, Muon::MuonTables::stripXTableNumber, tile.station(), tile.region());
@@ -82,7 +86,7 @@ namespace Muon {
   }
 
   __device__ inline size_t
-  lookup_index(MuonTables* muonTables, size_t tableNumber, const Muon::MuonTileID& tile, unsigned int index)
+  lookup_index(const MuonTables* muonTables, size_t tableNumber, const Muon::MuonTileID& tile, unsigned int index)
   {
     const size_t idx = Constants::n_regions * tile.station() + tile.region();
     const int xpad = (int) tile.nX();
@@ -97,25 +101,7 @@ namespace Muon {
     return index * MuonTables::n_dimensions;
   }
 
-  __device__ inline size_t size_index(MuonTables* muonTables, size_t tableNumber, const Muon::MuonTileID& tile)
-  {
-    const auto idx = Constants::n_regions * tile.station() + tile.region();
-    const auto index = muonTables->sizeOffset[tableNumber * Constants::n_stations * Constants::n_regions + idx] +
-                       tile.quarter() * muonTables->gridY[tableNumber][idx] * 6;
-    if (tile.nY() < static_cast<unsigned int>(muonTables->gridY[tableNumber][idx])) {
-      assert(static_cast<int>(tile.nX()) >= muonTables->gridX[tableNumber][idx]);
-      assert(muonTables->gridX[tableNumber][idx] > 0);
-      return index + 2 * tile.nY() +
-             2 * (tile.nX() - muonTables->gridX[tableNumber][idx]) / muonTables->gridX[tableNumber][idx];
-    }
-    else {
-      assert(muonTables->gridX[tableNumber][idx] > 0);
-      return index + 4 * tile.nY() - 2 * muonTables->gridY[tableNumber][idx] +
-             (2 * tile.nX() / muonTables->gridX[tableNumber][idx]);
-    }
-  }
-
-  __device__ inline unsigned int pad_offset(MuonTables* muonTables, const Muon::MuonTileID& tile)
+  __device__ inline unsigned int pad_offset(const MuonTables* muonTables, const Muon::MuonTileID& tile)
   {
     const auto idx = Constants::n_regions * tile.station() + tile.region();
     const int perQuarter =
@@ -130,7 +116,7 @@ namespace Muon {
     return pad_offset;
   }
 
-  __device__ inline unsigned int strip_x_offset(MuonTables* muonTables, const Muon::MuonTileID& tile)
+  __device__ inline unsigned int strip_x_offset(const MuonTables* muonTables, const Muon::MuonTileID& tile)
   {
     const auto idx = Constants::n_regions * tile.station() + tile.region();
     const int perQuarter =
@@ -138,7 +124,7 @@ namespace Muon {
     return muonTables->offset[MuonTables::stripXTableNumber][idx] + tile.quarter() * perQuarter;
   }
 
-  __device__ inline unsigned int strip_y_offset(MuonTables* muonTables, const Muon::MuonTileID& tile)
+  __device__ inline unsigned int strip_y_offset(const MuonTables* muonTables, const Muon::MuonTileID& tile)
   {
     const auto idx = Constants::n_regions * tile.station() + tile.region();
     const int perQuarter =
@@ -147,7 +133,7 @@ namespace Muon {
   }
 
   __device__ inline void calcPos(
-    MuonTables* muonTables,
+    const MuonTables* muonTables,
     size_t tableNumber,
     const Muon::MuonTileID& tile,
     unsigned int offset_index,
@@ -164,13 +150,13 @@ namespace Muon {
     y = muonTables->coordinates[tableNumber * Constants::n_stations + station][index + 1];
     z = muonTables->coordinates[tableNumber * Constants::n_stations + station][index + 2];
 
-    const auto dxi = size_index(muonTables, tableNumber, tile);
+    const auto dxi = 4 * tile.station() + tile.region();
     deltax = muonTables->sizeX[tableNumber][dxi];
     deltay = muonTables->sizeY[tableNumber][dxi];
   }
 
   __device__ inline void calcTilePos(
-    MuonTables* muonTables,
+    const MuonTables* muonTables,
     const Muon::MuonTileID& tile,
     float& x,
     float& deltax,
@@ -182,7 +168,7 @@ namespace Muon {
   }
 
   __device__ inline void calcStripXPos(
-    MuonTables* muonTables,
+    const MuonTables* muonTables,
     const Muon::MuonTileID& tile,
     float& x,
     float& deltax,
@@ -194,7 +180,7 @@ namespace Muon {
   }
 
   __device__ inline void calcStripYPos(
-    MuonTables* muonTables,
+    const MuonTables* muonTables,
     const Muon::MuonTileID& tile,
     float& x,
     float& deltax,

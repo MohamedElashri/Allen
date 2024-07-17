@@ -1,5 +1,12 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from collections import defaultdict
 
@@ -11,6 +18,7 @@ def efficiencyHistoDict():
         "pt": {},
         "phi": {},
         "nPV": {},
+        "nSciFiHits": {},
         "docaz": {}
     }
 
@@ -34,6 +42,10 @@ def efficiencyHistoDict():
     basedict["nPV"]["variable"] = "nPV"
     basedict["nPV"]["title"] = "# of PVs"
 
+    basedict["nSciFiHits"]["xTitle"] = "# of SciFi hits"
+    basedict["nSciFiHits"]["variable"] = "nSciFiHits"
+    basedict["nSciFiHits"]["title"] = "# of SciFi hits"
+
     basedict["docaz"]["xTitle"] = "docaz"
     basedict["docaz"]["variable"] = "docaz"
     basedict["docaz"]["title"] = "docaz"
@@ -42,7 +54,7 @@ def efficiencyHistoDict():
 
 
 def ghostHistoDict():
-    basedict = {"eta": {}, "nPV": {}}
+    basedict = {"eta": {}, "nPV": {}, "nSciFiHits": {}}
 
     basedict["eta"]["xTitle"] = "#eta"
     basedict["eta"]["variable"] = "eta"
@@ -50,17 +62,22 @@ def ghostHistoDict():
     basedict["nPV"]["xTitle"] = "# of PVs"
     basedict["nPV"]["variable"] = "nPV"
 
+    basedict["nSciFiHits"]["xTitle"] = "# of SciFi hits"
+    basedict["nSciFiHits"]["variable"] = "nSciFiHits"
+
     return basedict
 
 
 def getCuts():
-    basedict = {"Velo": {}, "Upstream": {}, "Forward": {}}
+    basedict = {
+        "velo_validator": {},
+        "Upstream": {},
+        "long_validator": {},
+        "seed_validator": {},
+        "seed_xz_validator": {}
+    }
 
-    # basedict["Forward"] = [
-    #     "Long_eta25", "LongFromB_eta25"
-    # ]
-
-    basedict["Velo"] = [
+    basedict["velo_validator"] = [
         "VeloTracks", "VeloTracks_eta25", "LongFromB_eta25", "LongFromD_eta25",
         "LongStrange_eta25"
     ]
@@ -68,9 +85,13 @@ def getCuts():
         "VeloUTTracks_eta25", "LongFromB_eta25", "LongFromD_eta25",
         "LongStrange_eta25"
     ]
-    basedict["Forward"] = [
+    basedict["long_validator"] = [
         "Long_eta25", "LongFromB_eta25", "LongFromD_eta25", "LongStrange_eta25"
     ]
+
+    basedict["seed_validator"] = ["Long_eta25"]
+
+    basedict["seed_xz_validator"] = ["Long_eta25"]
 
     return basedict
 
@@ -78,17 +99,20 @@ def getCuts():
 def categoriesDict():
     basedict = defaultdict(lambda: defaultdict(dict))
 
-    basedict["Velo"]["VeloTracks"]["title"] = "Velo"
-    basedict["Velo"]["VeloTracks_eta25"]["title"] = "Velo, 2 < eta < 5"
-    basedict["Velo"]["LongFromB_eta25"]["title"] = "Long from B, 2 < eta < 5"
-    basedict["Velo"]["LongFromD_eta25"]["title"] = "Long from D, 2 < eta < 5"
-    basedict["Velo"]["LongStrange_eta25"][
+    basedict["velo_validator"]["VeloTracks"]["title"] = "Velo"
+    basedict["velo_validator"]["VeloTracks_eta25"][
+        "title"] = "Velo, 2 < eta < 5"
+    basedict["velo_validator"]["LongFromB_eta25"][
+        "title"] = "Long from B, 2 < eta < 5"
+    basedict["velo_validator"]["LongFromD_eta25"][
+        "title"] = "Long from D, 2 < eta < 5"
+    basedict["velo_validator"]["LongStrange_eta25"][
         "title"] = "Long strange, 2 < eta < 5"
-    basedict["Velo"]["VeloTracks"]["plotElectrons"] = True
-    basedict["Velo"]["VeloTracks_eta25"]["plotElectrons"] = True
-    basedict["Velo"]["LongFromB_eta25"]["plotElectrons"] = False
-    basedict["Velo"]["LongFromD_eta25"]["plotElectrons"] = True
-    basedict["Velo"]["LongStrange_eta25"]["plotElectrons"] = True
+    basedict["velo_validator"]["VeloTracks"]["plotElectrons"] = True
+    basedict["velo_validator"]["VeloTracks_eta25"]["plotElectrons"] = True
+    basedict["velo_validator"]["LongFromB_eta25"]["plotElectrons"] = False
+    basedict["velo_validator"]["LongFromD_eta25"]["plotElectrons"] = True
+    basedict["velo_validator"]["LongStrange_eta25"]["plotElectrons"] = True
 
     basedict["Upstream"]["VeloUTTracks_eta25"]["title"] = "veloUT, 2 < eta < 5"
     basedict["Upstream"]["LongFromB_eta25"][
@@ -102,16 +126,22 @@ def categoriesDict():
     basedict["Upstream"]["LongFromD_eta25"]["plotElectrons"] = True
     basedict["Upstream"]["LongStrange_eta25"]["plotElectrons"] = True
 
-    basedict["Forward"]["Long_eta25"]["title"] = "Long, 2 < eta < 5"
-    basedict["Forward"]["LongFromB_eta25"][
+    basedict["long_validator"]["Long_eta25"]["title"] = "Long, 2 < eta < 5"
+    basedict["long_validator"]["LongFromB_eta25"][
         "title"] = "Long from B, 2 < eta < 5"
-    basedict["Forward"]["LongFromD_eta25"][
+    basedict["long_validator"]["LongFromD_eta25"][
         "title"] = "Long from D, 2 < eta < 5"
-    basedict["Forward"]["LongStrange_eta25"][
+    basedict["long_validator"]["LongStrange_eta25"][
         "title"] = "Long strange, 2 < eta < 5"
-    basedict["Forward"]["Long_eta25"]["plotElectrons"] = True
-    basedict["Forward"]["LongFromB_eta25"]["plotElectrons"] = False
-    basedict["Forward"]["LongFromD_eta25"]["plotElectrons"] = True
-    basedict["Forward"]["LongStrange_eta25"]["plotElectrons"] = True
+    basedict["long_validator"]["Long_eta25"]["plotElectrons"] = False
+    basedict["long_validator"]["LongFromB_eta25"]["plotElectrons"] = False
+    basedict["long_validator"]["LongFromD_eta25"]["plotElectrons"] = True
+    basedict["long_validator"]["LongStrange_eta25"]["plotElectrons"] = True
+
+    basedict["seed_validator"]["Long_eta25"]["title"] = "Long, 2 < eta < 5"
+    basedict["seed_validator"]["Long_eta25"]["plotElectrons"] = False
+
+    basedict["seed_xz_validator"]["Long_eta25"]["title"] = "Long, 2 < eta < 5"
+    basedict["seed_xz_validator"]["Long_eta25"]["plotElectrons"] = False
 
     return basedict

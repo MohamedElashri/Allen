@@ -1,13 +1,17 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "LFCreateTracks.cuh"
 
 template<bool with_ut, typename T>
-__device__ void calculate_parametrization(
-  lf_create_tracks::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants,
-  const T* tracks)
+__device__ void calculate_parametrization(lf_create_tracks::Parameters parameters, const T* tracks)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -23,8 +27,7 @@ __device__ void calculate_parametrization(
   const auto velo_states_view = parameters.dev_velo_states_view[event_number];
 
   // SciFi hits
-  const unsigned total_number_of_hits =
-    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+  const unsigned total_number_of_hits = parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_zones];
 
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};
@@ -64,12 +67,12 @@ __device__ void calculate_parametrization(
     const auto x1 = scifi_hits.x0(h1);
     const auto x2 = scifi_hits.x0(h2);
     const auto x3 = scifi_hits.x0(h3);
-    const auto z1_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(0)];
-    const auto z2_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(1)];
-    const auto z3_noref = dev_looking_forward_constants->Zone_zPos_xlayers[track.get_layer(2)];
+    const auto z1_noref = scifi_hits.z0(h1);
+    const auto z2_noref = scifi_hits.z0(h2);
+    const auto z3_noref = scifi_hits.z0(h3);
 
     // Updated d_ratio
-    const auto track_y_ref = velo_state.y + velo_state.ty * (z2_noref - velo_state.z);
+    const auto track_y_ref = velo_state.y() + velo_state.ty() * (z2_noref - velo_state.z());
     const auto radius_position = sqrtf((5.f * 5.f * 1.e-8f * x2 * x2 + 1e-6f * track_y_ref * track_y_ref));
     const auto d_ratio = -1.f * (LookingForward::d_ratio_par_0 + LookingForward::d_ratio_par_1 * radius_position +
                                  LookingForward::d_ratio_par_2 * radius_position * radius_position);
@@ -106,18 +109,16 @@ __device__ void calculate_parametrization(
   }
 }
 
-__global__ void lf_create_tracks::lf_calculate_parametrization(
-  lf_create_tracks::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants)
+__global__ void lf_create_tracks::lf_calculate_parametrization(lf_create_tracks::Parameters parameters)
 {
   const auto* ut_tracks =
-    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    calculate_parametrization<true>(parameters, dev_looking_forward_constants, ut_tracks);
+    calculate_parametrization<true>(parameters, ut_tracks);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    calculate_parametrization<false>(parameters, dev_looking_forward_constants, velo_tracks);
+    calculate_parametrization<false>(parameters, velo_tracks);
   }
 }

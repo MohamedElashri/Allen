@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -40,7 +47,7 @@ namespace Allen {
   void peek_at_last_error();
   void host_unregister(void* ptr);
   void host_register(void* ptr, size_t size, enum host_register_kind flags);
-  std::tuple<bool, std::string, unsigned> set_device(int cuda_device, size_t stream_id);
+  std::tuple<bool, std::string, unsigned, unsigned> set_device(int cuda_device, size_t stream_id);
   void print_device_memory_consumption();
   std::tuple<bool, int> get_device_id(const std::string& pci_bus_id);
 

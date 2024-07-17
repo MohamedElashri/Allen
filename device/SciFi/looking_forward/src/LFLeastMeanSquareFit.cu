@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "LFLeastMeanSquareFit.cuh"
 
@@ -14,17 +21,14 @@ void lf_least_mean_square_fit::lf_least_mean_square_fit_t::set_arguments_size(
 void lf_least_mean_square_fit::lf_least_mean_square_fit_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
   global_function(lf_least_mean_square_fit)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, constants.dev_looking_forward_constants);
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
 }
 
-__global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
-  lf_least_mean_square_fit::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants)
+__global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(lf_least_mean_square_fit::Parameters parameters)
 {
   const unsigned number_of_events = gridDim.x;
   const unsigned event_number = blockIdx.x;
@@ -33,8 +37,7 @@ __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
   const auto ut_total_number_of_tracks = parameters.dev_atomics_ut[2 * number_of_events];
 
   // SciFi hits
-  const unsigned total_number_of_hits =
-    parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_mat_groups_and_mats];
+  const unsigned total_number_of_hits = parameters.dev_scifi_hit_count[number_of_events * SciFi::Constants::n_zones];
 
   SciFi::ConstHitCount scifi_hit_count {parameters.dev_scifi_hit_count, event_number};
   SciFi::ConstHits scifi_hits {parameters.dev_scifi_hits, total_number_of_hits};
@@ -71,9 +74,8 @@ __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
 
     for (unsigned i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
       const auto hit_index = event_offset + track.hits[i_hit];
-      const auto layer_index = scifi_hits.planeCode(hit_index) / 2;
       const auto x = scifi_hits.x0(hit_index);
-      const auto z = dev_looking_forward_constants->Zone_zPos[layer_index];
+      const auto z = scifi_hits.z0(hit_index);
 
       const auto dz = z - LookingForward::z_mid_t;
       const auto predicted_x = prev_offset + prev_tx * dz + prev_curvature * dz * dz * (1.f + d_ratio * dz);
@@ -122,9 +124,8 @@ __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(
     track.quality = 0.f;
     for (unsigned i_hit = 0; i_hit < track.hitsNum; ++i_hit) {
       const auto hit_index = event_offset + track.hits[i_hit];
-      const auto layer_index = scifi_hits.planeCode(hit_index) / 2;
       const auto x = scifi_hits.x0(hit_index);
-      const auto z = dev_looking_forward_constants->Zone_zPos[layer_index];
+      const auto z = scifi_hits.z0(hit_index);
 
       const auto dz = z - LookingForward::z_mid_t;
       const auto predicted_x = offset + tx * dz + curvature * dz * dz * (1.f + d_ratio * dz);

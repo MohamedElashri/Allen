@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -117,6 +124,7 @@ namespace Allen {
         Allen::Store::UnorderedStore&) = nullptr;
       void (*set_arguments_size)(void*, std::any&, const RuntimeOptions&, const Constants&) = nullptr;
       void (*invoke)(void const*, std::any&, const RuntimeOptions&, const Constants&, const Allen::Context&) = nullptr;
+      void (*update)(void const*, const Constants&) = nullptr;
       void (*init)(void*) = nullptr;
       void (*set_properties)(void*, const std::map<std::string, nlohmann::json>&) = nullptr;
       std::map<std::string, nlohmann::json> (*get_properties)(void const*) = nullptr;
@@ -185,6 +193,7 @@ namespace Allen {
           static_cast<ALGORITHM const*>(p)->operator()(
             std::any_cast<store_ref_t&>(arg_ref_manager), runtime_options, constants, context);
         },
+        [](const void* p, const Constants& constants) { static_cast<ALGORITHM const*>(p)->update(constants); },
         [](void* p) {
           if constexpr (Allen::has_init_member_fn<ALGORITHM>::value) {
             initialize_algorithm(*static_cast<ALGORITHM*>(p));
@@ -262,12 +271,14 @@ namespace Allen {
     std::any create_ref_store(
       std::vector<std::reference_wrapper<Allen::Store::BaseArgument>> vector_store_ref,
       std::vector<std::vector<std::reference_wrapper<Allen::Store::BaseArgument>>> input_aggregates,
-      Allen::Store::UnorderedStore& store)
+      Allen::Store::UnorderedStore& store) const
     {
       return (table.create_ref_store)(name(), std::move(vector_store_ref), std::move(input_aggregates), store);
     }
-    void
-    set_arguments_size(std::any& arg_ref_manager, const RuntimeOptions& runtime_options, const Constants& constants)
+    void set_arguments_size(
+      std::any& arg_ref_manager,
+      const RuntimeOptions& runtime_options,
+      const Constants& constants) const
     {
       (table.set_arguments_size)(instance, arg_ref_manager, runtime_options, constants);
     }
@@ -275,11 +286,12 @@ namespace Allen {
       std::any& arg_ref_manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const Allen::Context& context)
+      const Allen::Context& context) const
     {
       (table.invoke)(instance, arg_ref_manager, runtime_options, constants, context);
     }
-    void init() { (table.init)(instance); }
+    void update(const Constants& constants) { (table.update)(instance, constants); }
+    void init() const { (table.init)(instance); }
     void set_properties(const std::map<std::string, nlohmann::json>& algo_config)
     {
       (table.set_properties)(instance, algo_config);
@@ -290,7 +302,7 @@ namespace Allen {
       std::any& arg_ref_manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const Allen::Context& context)
+      const Allen::Context& context) const
     {
       return (table.run_preconditions)(instance, arg_ref_manager, runtime_options, constants, context);
     }
@@ -298,11 +310,11 @@ namespace Allen {
       std::any& arg_ref_manager,
       const RuntimeOptions& runtime_options,
       const Constants& constants,
-      const Allen::Context& context)
+      const Allen::Context& context) const
     {
       return (table.run_postconditions)(instance, arg_ref_manager, runtime_options, constants, context);
     }
-    void emplace_output_arguments(const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store)
+    void emplace_output_arguments(const std::vector<std::string>& arguments, Allen::Store::UnorderedStore& store) const
     {
       (table.emplace_output_arguments)(arguments, store);
     }
@@ -344,6 +356,8 @@ namespace Allen {
     Algorithm& operator=(const Algorithm&) = delete;
     Algorithm(Algorithm&&) = delete;
     Algorithm& operator=(Algorithm&&) = delete;
+
+    void update(const Constants&) const {}
 
     void set_properties(const std::map<std::string, nlohmann::json>& algo_config) override
     {

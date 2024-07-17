@@ -1,12 +1,21 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 #include "ROOTService.h"
 #include "MassDefinitions.h"
+
+#include "AllenMonitoring.h"
 
 namespace kstopipi_line {
   struct Parameters {
@@ -14,10 +23,7 @@ namespace kstopipi_line {
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
 
@@ -36,18 +42,31 @@ namespace kstopipi_line {
     PROPERTY(maxMass_t, "maxMass", "Maximum invariat mass", float) maxMass;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
-
+    PROPERTY(double_muon_misid_t, "double_muon_misid", "Selects dimuon combinations", bool) double_muon_misid;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
-  struct kstopipi_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<kstopipi_line_t, Parameters> {
+  struct kstopipi_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<kstopipi_line_t, Parameters> {
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_ks_mass;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_ks_pt;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p0_ghost_prob;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p1_ghost_prob;
+      DeviceAccumulators(const kstopipi_line_t& algo, const Allen::Context& ctx) :
+        histogram_ks_mass(algo.m_histogram_ks_mass.data(ctx)), histogram_ks_pt(algo.m_histogram_ks_pt.data(ctx)),
+        histogram_p0_ghost_prob(algo.m_histogram_p0_ghost_prob.data(ctx)),
+        histogram_p1_ghost_prob(algo.m_histogram_p1_ghost_prob.data(ctx))
+      {}
+    };
 
     using monitoring_types = std::tuple<sv_masses_t, pt_t, mipchi2_t>;
 
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    __device__ static bool
+    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     __device__ static void monitor(
       const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
@@ -64,8 +83,19 @@ namespace kstopipi_line {
     Property<maxMass_t> m_maxMass {this, 600.f * Gaudi::Units::MeV};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
     Property<OppositeSign_t> m_opposite_sign {this, true};
-
+    Property<double_muon_misid_t> m_double_muon_misid {this, false};
     // Switch to create monitoring tuple
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
+
+    Allen::Monitoring::Histogram<> m_histogram_ks_mass {this, "ks_mass", "m(ks)", {100u, 400.f, 600.f}};
+    Allen::Monitoring::Histogram<> m_histogram_ks_pt {this, "ks_pt", "pT(ks)", {100u, 0.f, 1e4f}};
+    Allen::Monitoring::Histogram<> m_histogram_p0_ghost_prob {this,
+                                                              "p0_ghost_prob",
+                                                              "track0 GhostProb",
+                                                              {100u, 0.f, 0.6f}};
+    Allen::Monitoring::Histogram<> m_histogram_p1_ghost_prob {this,
+                                                              "p1_ghost_prob",
+                                                              "track1 GhostProb",
+                                                              {100u, 0.f, 0.6f}};
   };
 } // namespace kstopipi_line

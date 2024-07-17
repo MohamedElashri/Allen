@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -9,6 +16,8 @@
 #include "Common.h"
 #include "AlgorithmTypes.cuh"
 #include <cstdint>
+
+#include "AllenMonitoring.h"
 
 namespace velo_consolidate_tracks {
   struct Parameters {
@@ -57,7 +66,10 @@ namespace velo_consolidate_tracks {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void velo_consolidate_tracks(Parameters);
+  __global__ void velo_consolidate_tracks(
+    Parameters,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::AveragingCounter<>::DeviceType);
 
   struct lhcb_id_container_checks : public Allen::contract::Postcondition {
     void operator()(
@@ -80,5 +92,11 @@ namespace velo_consolidate_tracks {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+
+    Allen::Monitoring::AveragingCounter<> m_velo_tracks {this, "n_velo_tracks"};
+    Allen::Monitoring::Histogram<> m_histogram_n_velo_tracks {this,
+                                                              "n_velo_tracks_event",
+                                                              "n_velo_tracks_event",
+                                                              {1001u, -0.5f, 1000.5f}};
   };
 } // namespace velo_consolidate_tracks

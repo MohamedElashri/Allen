@@ -1,8 +1,8 @@
 /*****************************************************************************\
 * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
 *                                                                             *
-* This software is distributed under the terms of the GNU General Public      *
-* Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
 *                                                                             *
 * In applying this licence, CERN does not waive the privileges and immunities *
 * granted to it by virtue of its status as an Intergovernmental Organization  *
@@ -12,13 +12,12 @@
 #include "Event/MCParticle.h"
 #include "Event/MCTrackInfo.h"
 #include "Event/MCVertex.h"
+#include "Event/PrHits.h"
 #include "Event/ODIN.h"
 #include "Event/RawBank.h"
 #include "Event/RawEvent.h"
 #include "Event/VPLightCluster.h"
 #include "UTDAQ/UTInfo.h"
-#include "PrKernel/PrFTHitHandler.h"
-#include "PrKernel/PrHit.h"
 #include "PrKernel/UTHit.h"
 #include "PrKernel/UTHitHandler.h"
 
@@ -29,6 +28,7 @@
 #include <Dumpers/Utils.h>
 
 #include "GaudiAlg/Transformer.h"
+#include "GaudiAlg/FunctionalUtilities.h"
 #include "GaudiKernel/PhysicalConstants.h"
 #include "GaudiKernel/Vector3DTypes.h"
 
@@ -133,7 +133,18 @@ namespace {
   using std::vector;
 
   namespace fs = boost::filesystem;
+
+#ifdef USE_DD4HEP
+  constexpr int NBSIDE = 2;
+  constexpr int NBHALFLAYER = 4;
+  constexpr int NBSTAVE = 9;
+  constexpr int NBFACE = 2;
+  constexpr int NBMODULE = 8;
+  constexpr int NBSUBSECTOR = 2;
+#endif
 } // namespace
+
+using Gaudi::Functional::Traits::useLegacyGaudiAlgorithm;
 
 /** @class PrTrackerDumper PrTrackerDumper.h
  *  TupleTool storing all VPClusters position on tracks (dummy track for noise ones)
@@ -142,13 +153,15 @@ namespace {
  *  @date   2017-11-06
  */
 
-class PrTrackerDumper : public Gaudi::Functional::Transformer<LHCb::RawEvent(
-                          const LHCb::MCParticles&,
-                          const std::vector<LHCb::VPLightCluster>&,
-                          const PrFTHitHandler<PrHit>&,
-                          const UT::HitHandler&,
-                          const LHCb::ODIN&,
-                          const LHCb::LinksByKey&)> {
+class PrTrackerDumper : public Gaudi::Functional::Transformer<
+                          LHCb::RawEvent(
+                            const LHCb::MCParticles&,
+                            const std::vector<LHCb::VPLightCluster>&,
+                            const LHCb::Pr::FT::Hits&,
+                            const UT::HitHandler&,
+                            const LHCb::ODIN&,
+                            const LHCb::LinksByKey&),
+                          useLegacyGaudiAlgorithm> {
 public:
   /// Standard constructor
   PrTrackerDumper(const std::string& name, ISvcLocator* pSvcLocator);
@@ -185,12 +198,15 @@ public:
     const std::vector<unsigned int> UT_lhcbID,
     const std::vector<unsigned int> SciFi_lhcbID,
     const unsigned int nPrim,
+    const unsigned int nbHits_in_Velo,
+    const unsigned int nbHits_in_UT,
+    const unsigned int nbHits_in_SciFi,
     DumpUtils::Writer& outfile) const;
 
   LHCb::RawEvent operator()(
     const LHCb::MCParticles& MCParticles,
     const std::vector<LHCb::VPLightCluster>& VPClusters,
-    const PrFTHitHandler<PrHit>& ftHits,
+    const LHCb::Pr::FT::Hits& ftHits,
     const UT::HitHandler& utHits,
     const LHCb::ODIN& odin,
     const LHCb::LinksByKey& links) const override;
@@ -218,7 +234,7 @@ PrTrackerDumper::PrTrackerDumper(const string& name, ISvcLocator* pSvcLocator) :
     pSvcLocator,
     {KeyValue {"MCParticlesLocation", LHCb::MCParticleLocation::Default},
      KeyValue {"VPLightClusterLocation", LHCb::VPClusterLocation::Light},
-     KeyValue {"FTHitsLocation", PrFTInfo::FTHitsLocation},
+     KeyValue {"FTHitsLocation", PrFTInfo::SciFiHitsLocation},
      KeyValue {"UTHitsLocation", UTInfo::HitLocation},
      KeyValue {"ODINLocation", LHCb::ODINLocation::Default},
      KeyValue {"LinkerLocation", Links::location("Pr/LHCbID")}},
@@ -270,6 +286,9 @@ void PrTrackerDumper::write_MCP_info(
   const vector<unsigned int> UT_lhcbID,
   const vector<unsigned int> SciFi_lhcbID,
   const unsigned int nPrim,
+  const unsigned int nbHits_in_Velo,
+  const unsigned int nbHits_in_UT,
+  const unsigned int nbHits_in_SciFi,
   DumpUtils::Writer& out_buffer) const
 {
   out_buffer.write(key);
@@ -298,6 +317,9 @@ void PrTrackerDumper::write_MCP_info(
   out_buffer.write(DecayOriginMother_tau);
   out_buffer.write(charge);
   out_buffer.write(nPrim);
+  out_buffer.write(nbHits_in_Velo);
+  out_buffer.write(nbHits_in_UT);
+  out_buffer.write(nbHits_in_SciFi);
   int n_IDs = Velo_lhcbID.size();
   out_buffer.write(n_IDs);
   for (unsigned int velo_id : Velo_lhcbID) {
@@ -318,11 +340,15 @@ void PrTrackerDumper::write_MCP_info(
 int computeNbUTHits(const UT::HitHandler& prUTHitHandler)
 {
   int nbHits = 0;
-  for (int iStation = 1; iStation < 3; ++iStation) {
-    for (int iLayer = 1; iLayer < 3; ++iLayer) {
-      for (int iRegion = 1; iRegion < 4; ++iRegion) {
-        for (int iSector = 1; iSector < 99; ++iSector) {
-          nbHits += prUTHitHandler.hits(iStation, iLayer, iRegion, iSector).size();
+  for (int iSide = 0; iSide < NBSIDE; ++iSide) {
+    for (int iLayer = 0; iLayer < NBHALFLAYER; ++iLayer) {
+      for (int iStave = 0; iStave < NBSTAVE; ++iStave) {
+        for (int iFace = 0; iFace < NBFACE; ++iFace) {
+          for (int iModule = 0; iModule < NBMODULE; ++iModule) {
+            for (int iSector = 0; iSector < NBSUBSECTOR; ++iSector) {
+              nbHits += prUTHitHandler.hits(iSide, iLayer, iStave, iFace, iModule, iSector).size();
+            }
+          }
         }
       }
     }
@@ -347,7 +373,7 @@ double mcpTau(const LHCb::MCParticle* mcp)
 LHCb::RawEvent PrTrackerDumper::operator()(
   const LHCb::MCParticles& MCParticles,
   const vector<LHCb::VPLightCluster>& VPClusters,
-  const PrFTHitHandler<PrHit>& prFTHitHandler,
+  const LHCb::Pr::FT::Hits& ftHits,
   const UT::HitHandler& prUTHitHandler,
   const LHCb::ODIN& odin,
   const LHCb::LinksByKey& links) const
@@ -370,28 +396,29 @@ LHCb::RawEvent PrTrackerDumper::operator()(
   }
   if (msgLevel(MSG::DEBUG)) {
     debug() << "Loaded VPClusters , N hits " << VPClusters.size() << endmsg;
-    debug() << "Loaded FTHits     , N hits " << prFTHitHandler.hits().size() << endmsg;
+    debug() << "Loaded FTHits     , N hits " << ftHits.size() << endmsg;
     debug() << "Loaded UTHits     , N hits " << prUTHitHandler.nbHits() << endmsg;
     debug() << "--- dealing with FT Hits ---" << endmsg;
   }
   // SciFi
-  map<const LHCb::MCParticle*, std::vector<PrHit>> FTHits_on_MCParticles;
-  vector<PrHit> non_Assoc_FTHits;
-  for (unsigned int zone = 0; LHCb::Detector::FT::nbZones() > zone; ++zone) {
-    for (const auto& hit : prFTHitHandler.hits(zone)) {
+  std::map<const LHCb::MCParticle*, std::vector<std::pair<unsigned int, unsigned int>>> FTHits_on_MCParticles;
+  std::vector<std::pair<unsigned int, unsigned int>> non_Assoc_FTHits;
+  for (unsigned int zone = 0; LHCb::Detector::FT::nZonesTotal > zone; ++zone) {
+    const auto [begIndex, endIndex] = ftHits.getZoneIndices(zone);
+    for (auto i = begIndex; i < endIndex; i++) {
       // get the LHCbID from the PrHit
-      LHCb::LHCbID lhcbid = hit.id();
+      LHCb::LHCbID lhcbid = ftHits.lhcbid(i);
 
       // Get the linking to the MCParticle given the LHCbID
       auto mcparticlesrelations = HitMCParticleLinks.from(lhcbid.lhcbID());
       if (mcparticlesrelations.empty()) {
-        non_Assoc_FTHits.push_back(hit);
+        non_Assoc_FTHits.push_back(std::make_pair(zone, i));
       }
       for (const auto& mcp : mcparticlesrelations) {
         // MCP is MCParticle*
         auto MCP = mcp.to();
         //---> weightassociation = mcp.weight();
-        FTHits_on_MCParticles[MCP].push_back(hit);
+        FTHits_on_MCParticles[MCP].push_back(std::make_pair(zone, i));
       }
     }
   }
@@ -403,21 +430,25 @@ LHCb::RawEvent PrTrackerDumper::operator()(
   // See Pr/PrKernel/UTHit definitions to know the info to store
   map<const LHCb::MCParticle*, vector<UT::Hit>> UTHits_on_MCParticles;
   vector<UT::Hit> non_Assoc_UTHits;
-  for (int iStation = 1; iStation < 3; ++iStation) {
-    for (int iLayer = 1; iLayer < 3; ++iLayer) {
-      for (int iRegion = 1; iRegion < 4; ++iRegion) {
-        for (int iSector = 1; iSector < 99; ++iSector) {
-          for (auto& hit : prUTHitHandler.hits(iStation, iLayer, iRegion, iSector)) {
-            LHCb::LHCbID lhcbid = hit.lhcbID();
-            auto mcparticlesrelations = HitMCParticleLinks.from(lhcbid.lhcbID());
-            if (mcparticlesrelations.empty()) {
-              non_Assoc_UTHits.push_back(hit);
-            }
-            else {
-              for (const auto& mcp : mcparticlesrelations) {
-                auto MCP = mcp.to();
-                //---> weightassociation = mcp.weight();
-                UTHits_on_MCParticles[MCP].push_back(hit);
+  for (int iSide = 0; iSide < NBSIDE; ++iSide) {
+    for (int iLayer = 0; iLayer < NBHALFLAYER; ++iLayer) {
+      for (int iStave = 0; iStave < NBSTAVE; ++iStave) {
+        for (int iFace = 0; iFace < NBFACE; ++iFace) {
+          for (int iModule = 0; iModule < NBMODULE; ++iModule) {
+            for (int iSector = 0; iSector < NBSUBSECTOR; ++iSector) {
+              for (auto& hit : prUTHitHandler.hits(iSide, iLayer, iStave, iFace, iModule, iSector)) {
+                LHCb::LHCbID lhcbid = hit.lhcbID();
+                auto mcparticlesrelations = HitMCParticleLinks.from(lhcbid.lhcbID());
+                if (mcparticlesrelations.empty()) {
+                  non_Assoc_UTHits.push_back(hit);
+                }
+                else {
+                  for (const auto& mcp : mcparticlesrelations) {
+                    auto MCP = mcp.to();
+                    //---> weightassociation = mcp.weight();
+                    UTHits_on_MCParticles[MCP].push_back(hit);
+                  }
+                }
               }
             }
           }
@@ -472,7 +503,7 @@ LHCb::RawEvent PrTrackerDumper::operator()(
 
   nbHits_in_Velo = VPClusters.size();
   nbHits_in_UT = computeNbUTHits(prUTHitHandler);
-  nbHits_in_SciFi = (int) prFTHitHandler.hits().size();
+  nbHits_in_SciFi = (int) ftHits.size();
 
   // SciFi
   vector<float> FT_hitx;
@@ -690,17 +721,17 @@ LHCb::RawEvent PrTrackerDumper::operator()(
 
     if (FTHits_on_MCParticles.find(mcparticle) != FTHits_on_MCParticles.end()) {
       nFTHits = (int) FTHits_on_MCParticles[mcparticle].size();
-      for (auto& fthit : FTHits_on_MCParticles[mcparticle]) {
-        FT_hitz.push_back(fthit.z());
-        FT_hitx.push_back(fthit.x());
-        FT_hitw.push_back(fthit.w());
-        FT_hitPlaneCode.push_back(fthit.planeCode());
-        FT_hitzone.push_back(fthit.zone());
-        FT_hitDXDY.push_back(fthit.dxDy());
-        FT_hitDZDY.push_back(fthit.dzDy());
-        FT_hitYMin.push_back(fthit.yMin());
-        FT_hitYMax.push_back(fthit.yMax());
-        FT_lhcbID.push_back(fthit.id().lhcbID());
+      for (auto& iAndZone : FTHits_on_MCParticles[mcparticle]) {
+        auto i = iAndZone.second;
+        FT_hitz.push_back(ftHits.z(i));
+        FT_hitx.push_back(ftHits.x(i));
+        FT_hitw.push_back(ftHits.w(i));
+        FT_hitPlaneCode.push_back(ftHits.planeCode(i));
+        FT_hitzone.push_back(iAndZone.first);
+        FT_hitDXDY.push_back(ftHits.dxDy(i));
+        FT_hitYMin.push_back(ftHits.coldHitInfo(i).yMin);
+        FT_hitYMax.push_back(ftHits.coldHitInfo(i).yMax);
+        FT_lhcbID.push_back(ftHits.lhcbid(i).lhcbID());
       }
     }
 
@@ -878,6 +909,9 @@ LHCb::RawEvent PrTrackerDumper::operator()(
       UT_lhcbID,
       FT_lhcbID,
       nPrim,
+      nbHits_in_Velo,
+      nbHits_in_UT,
+      nbHits_in_SciFi,
       rawBuffer);
     if (tree) (*tree)->Fill();
   } // MCParticles
@@ -885,7 +919,7 @@ LHCb::RawEvent PrTrackerDumper::operator()(
   // write rawBuffer to rawEvent
   constexpr int bankSize = 64512;
   for (const auto [sourceID, data] : LHCb::range::enumerate(LHCb::range::chunk(rawBuffer.buffer(), bankSize))) {
-    rawEvent.addBank(sourceID, m_bankType, 2, data);
+    rawEvent.addBank(sourceID, m_bankType, 3, data);
   }
 
   if (msgLevel(MSG::DEBUG)) {
@@ -921,18 +955,17 @@ LHCb::RawEvent PrTrackerDumper::operator()(
   if (msgLevel(MSG::DEBUG)) {
     debug() << "--- Fake MCParticle , FTHits ----" << endmsg;
   }
-
-  for (const auto& fthit : non_Assoc_FTHits) {
-    FT_hitz.push_back(fthit.z());
-    FT_hitx.push_back(fthit.x());
-    FT_hitw.push_back(fthit.w());
-    FT_hitPlaneCode.push_back(fthit.planeCode());
-    FT_hitzone.push_back(fthit.zone());
-    FT_hitDXDY.push_back(fthit.dxDy());
-    FT_hitDZDY.push_back(fthit.dzDy());
-    FT_hitYMin.push_back(fthit.yMin());
-    FT_hitYMax.push_back(fthit.yMax());
-    FT_lhcbID.push_back(fthit.id().lhcbID());
+  for (const auto& iAndZone : non_Assoc_FTHits) {
+    auto& i = iAndZone.second;
+    FT_hitz.push_back(ftHits.z(i));
+    FT_hitx.push_back(ftHits.x(i));
+    FT_hitw.push_back(ftHits.w(i));
+    FT_hitPlaneCode.push_back(ftHits.planeCode(i));
+    FT_hitzone.push_back(iAndZone.first);
+    FT_hitDXDY.push_back(ftHits.dxDy(i));
+    FT_hitYMin.push_back(ftHits.coldHitInfo(i).yMin);
+    FT_hitYMax.push_back(ftHits.coldHitInfo(i).yMax);
+    FT_lhcbID.push_back(ftHits.lhcbid(i).lhcbID());
   }
 
   if (msgLevel(MSG::DEBUG)) {

@@ -1,8 +1,8 @@
 ###############################################################################
 # (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      #
 #                                                                             #
-# This software is distributed under the terms of the GNU General Public      #
-# Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
 #                                                                             #
 # In applying this licence, CERN does not waive the privileges and immunities #
 # granted to it by virtue of its status as an Intergovernmental Organization  #
@@ -12,18 +12,24 @@ import os
 import json
 from itertools import chain
 from Configurables import ApplicationMgr, AllenUpdater
+from collections import OrderedDict
 from PyConf import configurable
 from PyConf.control_flow import CompositeNode, NodeLogic
+from PyConf.application import all_nodes_and_algs
+from PyConf.application import configure_input, configure
 from PyConf.Algorithms import (
-    AllenTESProducer, DumpBeamline, DumpCaloGeometry, DumpMagneticField,
-    DumpVPGeometry, DumpFTGeometry, DumpUTGeometry, DumpUTLookupTables,
-    DumpMuonGeometry, DumpMuonTable, AllenODINProducer)
+    DumpBeamline, DumpCaloGeometry, DumpMagneticField, DumpVPGeometry,
+    DumpFTGeometry, DumpUTGeometry, DumpUTLookupTables, DumpMuonGeometry,
+    DumpMuonTable, AllenODINProducer, DumpRichPDMDBMapping,
+    DumpRichCableMapping)
 from DDDB.CheckDD4Hep import UseDD4Hep
 
 
 @configurable
-def allen_non_event_data_config(dump_geometry=False, out_dir="geometry"):
-    return dump_geometry, out_dir
+def allen_non_event_data_config(dump_geometry=False,
+                                out_dir="geometry",
+                                beamline_offset=(0., 0.)):
+    return dump_geometry, out_dir, beamline_offset
 
 
 def allen_odin():
@@ -61,14 +67,13 @@ def allen_json_sequence(sequence="hlt1_pp_default", json=None):
 
 
 def configured_bank_types(sequence_json):
+    if type(sequence_json) == str:
+        sequence_json = json.loads(sequence_json)
     bank_types = set()
-    with open(sequence_json) as json_file:
-        j = json.load(json_file)
-        for t, n, c in j["sequence"]["configured_algorithms"]:
-            props = j.get(n, {})
-            if c == "ProviderAlgorithm" and not bool(
-                    props.get('empty', False)):
-                bank_types.add(props['bank_type'])
+    for t, n, c in sequence_json["sequence"]["configured_algorithms"]:
+        props = sequence_json.get(n, {})
+        if c == "ProviderAlgorithm" and not bool(props.get('empty', False)):
+            bank_types.add(props['bank_type'])
     return bank_types
 
 
@@ -79,28 +84,44 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     An ExtSvc is added to the ApplicationMgr to provide the Allen non-event
     data (geometries etc.)
     """
+
+    dump_geometry, out_dir, beamline_offset = allen_non_event_data_config()
     converter_types = {
-        'VP': [(DumpBeamline, 'beamline'), (DumpVPGeometry, 'velo_geometry')],
-        'UT': [(DumpUTGeometry, 'ut_geometry'),
-               (DumpUTLookupTables, 'ut_tables')],
-        'ECal': [(DumpCaloGeometry, 'ecal_geometry')],
-        'Magnet': [(DumpMagneticField, 'polarity')],
-        'FTCluster': [(DumpFTGeometry, 'scifi_geometry')],
-        'Muon': [(DumpMuonGeometry, 'muon_geometry'),
-                 (DumpMuonTable, 'muon_tables')]
+        'VP': [(DumpBeamline, 'DeviceBeamline', {
+            "Offset": beamline_offset
+        }, 'beamline'),
+               (DumpVPGeometry, 'DeviceVPGeometry', {}, 'velo_geometry')],
+        'UT': [(DumpUTGeometry, 'DeviceUTGeometry', {}, 'ut_geometry'),
+               (DumpUTLookupTables, 'DeviceUTLookupTables', {}, 'ut_tables')],
+        'ECal': [(DumpCaloGeometry, 'DeviceCaloGeometry', {},
+                  'ecal_geometry')],
+        'Magnet': [(DumpMagneticField, 'DeviceMagneticField', {}, 'polarity')],
+        'FTCluster': [(DumpFTGeometry, 'DeviceFTGeometry', {},
+                       'scifi_geometry')],
+        'Muon': [(DumpMuonGeometry, 'DeviceMuonGeometry', {}, 'muon_geometry'),
+                 (DumpMuonTable, 'DeviceMuonTable', {}, 'muon_tables')],
+        'Rich': [(DumpRichPDMDBMapping, 'DeviceRichPDMDBMapping', {},
+                  'rich_pdmdbmaps'),
+                 (DumpRichCableMapping, 'DeviceRichCableMapping', {},
+                  'rich_tel40maps')]
     }
 
     detector_names = {
         'ECal': 'Ecal',
         'FTCluster': 'FT',
         'PVs': None,
-        'tracks': None
+        'tracks': None,
+        'Plume': None,
     }
 
+    set_detector_list = bank_types is not None
     if type(bank_types) == list:
         bank_types = set(bank_types)
     elif bank_types is None:
         bank_types = set(converter_types.keys())
+        bank_types.remove('Rich')
+        bank_types.add('Rich1')
+        bank_types.add('Rich2')
 
     if 'VPRetinaCluster' in bank_types:
         bank_types.remove('VPRetinaCluster')
@@ -109,62 +130,75 @@ def setup_allen_non_event_data_service(allen_event_loop=False,
     # Always include the magnetic field polarity
     bank_types.add('Magnet')
 
-    dump_geometry, out_dir = allen_non_event_data_config()
-
     appMgr = ApplicationMgr()
     if not UseDD4Hep:
         # MagneticFieldSvc is required for non-DD4hep builds
         appMgr.ExtSvc.append("MagneticFieldSvc")
-    else:
+    elif set_detector_list:
         # Configure those detectors that we need
         from Configurables import LHCb__Det__LbDD4hep__DD4hepSvc as DD4hepSvc
         DD4hepSvc().DetectorList = ["/world"] + list(
             filter(lambda d: d is not None,
                    [detector_names.get(det, det) for det in bank_types]))
 
+    data_bank_types = bank_types.copy()
+    data_bank_types.remove('Magnet')
     appMgr.ExtSvc.extend(AllenUpdater(TriggerEventLoop=allen_event_loop))
 
     algorithm_converters = []
-    algorithm_producers = []
 
     if allen_event_loop:
         algorithm_converters.append(AllenODINProducer())
 
-    converters = chain.from_iterable(
-        convs for bt, convs in converter_types.items() if bt in bank_types)
-    for converter_type, filename in converters:
-        converter_id = converter_type.getDefaultProperties().get('ID', None)
-        if converter_id is not None:
-            converter = converter_type()
-            # An algorithm that needs a TESProducer
-            producer = AllenTESProducer(
-                Filename=filename if dump_geometry else "",
-                OutputDirectory=out_dir,
-                InputID=converter.OutputID,
-                InputData=converter.Converted,
-                ID=converter_id)
-            algorithm_producers.append(producer)
-        else:
-            converter = converter_type(
-                DumpToFile=dump_geometry, OutputDirectory=out_dir)
+    bank_types = set(
+        [t if not t.startswith('Rich') else 'Rich' for t in bank_types])
+    converters = [(bt, t, tn, props, f)
+                  for bt, convs in converter_types.items()
+                  for t, tn, props, f in convs if bt in bank_types]
+
+    for bt, converter_type, converter_name, properties, filename in converters:
+        converter = converter_type(
+            name=converter_name,
+            DumpToFile=dump_geometry,
+            OutputDirectory=out_dir,
+            **properties)
         algorithm_converters.append(converter)
 
     converters_node = CompositeNode(
-        "allen_non_event_data_converters",
+        "allen_non_event_data",
         algorithm_converters,
         combine_logic=NodeLogic.NONLAZY_OR,
         force_order=True)
-    producers_node = CompositeNode(
-        "allen_non_event_data_producers",
-        algorithm_producers,
+
+    return converters_node
+
+
+def run_allen_reconstruction(options, make_reconstruction, public_tools=[]):
+    """Configure the Allen reconstruction data flow
+
+    Convenience function that configures all services and creates a data flow.
+
+    Args:
+        options (ApplicationOptions): holder of application options
+        make_reconstruction: function returning a single CompositeNode object
+        public_tools (list): list of public `Tool` instances to configure
+
+    """
+    from Allen.config import setup_allen_non_event_data_service
+
+    config = configure_input(options)
+
+    reconstruction = make_reconstruction()
+    reco_node = reconstruction if not hasattr(reconstruction,
+                                              "node") else reconstruction.node
+
+    non_event_data_node = setup_allen_non_event_data_service()
+
+    allen_node = CompositeNode(
+        'allen_reconstruction',
         combine_logic=NodeLogic.NONLAZY_OR,
+        children=[non_event_data_node, reco_node],
         force_order=True)
 
-    control_flow = [converters_node, producers_node]
-    cf_node = CompositeNode(
-        "allen_non_event_data",
-        control_flow,
-        combine_logic=NodeLogic.LAZY_AND,
-        force_order=True)
-
-    return cf_node
+    config.update(configure(options, allen_node, public_tools=public_tools))
+    return config

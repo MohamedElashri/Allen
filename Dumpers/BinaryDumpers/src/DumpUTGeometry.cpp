@@ -1,10 +1,20 @@
 /*****************************************************************************\
 * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <fstream>
 #include <iostream>
 #include <tuple>
 #include <vector>
+#include <algorithm>
+#include <cmath>
+#include <limits>
 
 #include <range/v3/view/repeat_n.hpp>
 #include "range/v3/range/conversion.hpp"
@@ -19,13 +29,32 @@
 #include <Dumpers/Utils.h>
 
 #include "Dumper.h"
+#include "UTUniqueID.cuh"
 
 namespace {
   using std::vector;
 
   using namespace ranges;
 
+  /// get allen ut sector index
+  inline int get_allen_ut_sector_index(const DeUTSector& ut_sector)
+  {
+    const auto ch = ut_sector.elementID();
+    const auto side = ch.side();
+    const auto layer = ch.layer();
+    const auto stave = ch.stave();
+    const auto face = ch.face();
+    const auto module = ch.module();
+    const auto sector = ch.sector();
+
+    return sector_unique_id(side, layer, stave, face, module, sector);
+  }
+
+#ifdef USE_DD4HEP
+  const static std::string readoutLocation = "/world/BeforeMagnetRegion/UT:ReadoutMap";
+#else
   const static std::string readoutLocation = "/dd/Conditions/ReadoutConf/UT/ReadoutMap";
+#endif
 } // namespace
 
 namespace {
@@ -50,31 +79,43 @@ namespace {
       vector<float> p0Y;
       vector<float> p0Z;
 
-      pitch.reserve(number_of_sectors);
-      cos.reserve(number_of_sectors);
-      dy.reserve(number_of_sectors);
-      dp0diX.reserve(number_of_sectors);
-      dp0diY.reserve(number_of_sectors);
-      dp0diZ.reserve(number_of_sectors);
-      p0X.reserve(number_of_sectors);
-      p0Y.reserve(number_of_sectors);
-      p0Z.reserve(number_of_sectors);
+      pitch.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      cos.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      dy.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      dp0diX.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      dp0diY.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      dp0diZ.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      p0X.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      p0Y.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      p0Z.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
 
       det.applyToAllSectors([&](DeUTSector const& sector) {
-        pitch.push_back(sector.pitch());
-        cos.push_back(sector.cosAngle());
-        dy.push_back(sector.get_dy());
+        const auto idx = get_allen_ut_sector_index(sector);
+        pitch[idx] = sector.pitch();
+        cos[idx] = (sector.cosAngle());
+        dy[idx] = (sector.get_dy());
         const auto dp0di = sector.get_dp0di();
-        dp0diX.push_back(dp0di.x());
-        dp0diY.push_back(dp0di.y());
-        dp0diZ.push_back(dp0di.z());
+        dp0diX[idx] = (dp0di.x());
+        dp0diY[idx] = (dp0di.y());
+        dp0diZ[idx] = (dp0di.z());
         const auto p0 = sector.get_p0();
-        p0X.push_back(p0.x());
-        p0Y.push_back(p0.y());
+        p0X[idx] = (p0.x());
+        p0Y[idx] = (p0.y());
         // hack: since p0z is always positive, we can use the signbit to encode whether or not to "stripflip"
-        p0Z.push_back(((sector.xInverted() && sector.getStripflip()) ? -1 : 1) * p0.z());
+        p0Z[idx] = (((sector.xInverted() && sector.getStripflip()) ? -1 : 1) * p0.z());
         // this hack will be used in UTPreDecode.cu and UTDecodeRawBanksInOrder.cu
       });
+
+      // cross check
+      assert(std::all_of(pitch.begin(), pitch.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(cos.begin(), cos.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(dy.begin(), dy.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(dp0diX.begin(), dp0diX.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(dp0diY.begin(), dp0diY.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(dp0diZ.begin(), dp0diZ.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(p0X.begin(), p0X.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(p0Y.begin(), p0Y.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(p0Z.begin(), p0Z.end(), [](auto i) { return !std::isnan(i); }));
 
       output.write(number_of_sectors, firstStrip, pitch, dy, dp0diX, dp0diY, dp0diZ, p0X, p0Y, p0Z, cos);
 
@@ -95,10 +136,13 @@ namespace {
       DumpUtils::Writer output {};
 
       vector<uint32_t> stripsPerHybrids;
-      vector<uint32_t> stations;
-      vector<uint32_t> layers;
-      vector<uint32_t> detRegions;
       vector<uint32_t> sectors;
+      vector<uint32_t> modules;
+      vector<uint32_t> faces;
+      vector<uint32_t> staves;
+      vector<uint32_t> layers;
+      vector<uint32_t> sides;
+      vector<uint32_t> types;
       vector<uint32_t> chanIDs;
 
       UTDAQ::version UT_version; // Kernel/UTDAQDefinitions.h
@@ -126,19 +170,25 @@ namespace {
           for (typename std::decay<decltype(n_lanes_in_this_sector)>::type lane = 0; lane < n_lanes_in_this_sector;
                ++lane) {                     // old lingo: sectors, new lingo: lanes
             const auto s = sector_ids[lane]; // LHCb::UTChannelID
-            stations.push_back(s.station());
-            layers.push_back(s.layer());
-            detRegions.push_back(s.detRegion());
             sectors.push_back(s.sector());
+            modules.push_back(s.module());
+            faces.push_back(s.face());
+            staves.push_back(s.stave());
+            layers.push_back(s.layer());
+            sides.push_back(s.side());
+            types.push_back(s.type());
             chanIDs.push_back(s.channelID());
           }
           // If the number of lanes is less than 6, fill the remaining ones up to 6 with zeros
           // this is necessary to be compatible with the Allen UT boards layout
           for (uint32_t dummy_lane = n_lanes_in_this_sector; dummy_lane < n_lanes_max; ++dummy_lane) {
-            stations.push_back(0);
-            layers.push_back(0);
-            detRegions.push_back(0);
             sectors.push_back(0);
+            modules.push_back(0);
+            faces.push_back(0);
+            staves.push_back(0);
+            layers.push_back(0);
+            sides.push_back(0);
+            types.push_back(0);
             chanIDs.push_back(0);
           }
           ++currentBoardID;
@@ -151,10 +201,13 @@ namespace {
           for (; boardID != 0 && currentBoardID < boardID; ++currentBoardID) {
             stripsPerHybrids.push_back(0);
             for (auto i = 0u; i < n_lanes_max; ++i) {
-              stations.push_back(0);
-              layers.push_back(0);
-              detRegions.push_back(0);
               sectors.push_back(0);
+              modules.push_back(0);
+              faces.push_back(0);
+              staves.push_back(0);
+              layers.push_back(0);
+              sides.push_back(0);
+              types.push_back(0);
               chanIDs.push_back(0);
             }
           }
@@ -164,19 +217,25 @@ namespace {
           for (auto is = 0u; is < b->nSectors(); ++is) {
             auto s = std::get<0>(b->DAQToOfflineFull(
               0, UT_version, is * stripsPerHybrid)); // UTTell1Board::ExpandedChannelID (Kernel/UTTell1Board.h)
-            stations.push_back(s.station);
-            layers.push_back(s.layer);
-            detRegions.push_back(s.detRegion);
             sectors.push_back(s.sector);
+            modules.push_back(s.module);
+            faces.push_back(s.face);
+            staves.push_back(s.stave);
+            layers.push_back(s.layer);
+            sides.push_back(s.side);
+            types.push_back(s.type);
             chanIDs.push_back(s.chanID);
           }
           // If the number of sectors is less than 6, fill the remaining ones up to 6 with zeros
           // this is necessary to be compatible with the Allen UT boards layout
           for (auto is = b->nSectors(); is < n_lanes_max; ++is) {
-            stations.push_back(0);
-            layers.push_back(0);
-            detRegions.push_back(0);
             sectors.push_back(0);
+            modules.push_back(0);
+            faces.push_back(0);
+            staves.push_back(0);
+            layers.push_back(0);
+            sides.push_back(0);
+            types.push_back(0);
             chanIDs.push_back(0);
           }
           ++currentBoardID;
@@ -187,15 +246,19 @@ namespace {
         currentBoardID,
         static_cast<uint32_t>(UT_version),
         stripsPerHybrids,
-        stations,
-        layers,
-        detRegions,
         sectors,
+        modules,
+        faces,
+        staves,
+        layers,
+        sides,
+        types,
         chanIDs);
 
       data = output.buffer();
     }
   };
+
 } // namespace
 
 class DumpUTGeometry final

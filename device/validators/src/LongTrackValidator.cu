@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "LongTrackValidator.cuh"
 #include "CopyTrackParameters.cuh"
@@ -15,6 +22,7 @@ __global__ void long_track_validator::long_track_validator(long_track_validator:
   Checker::Track* long_checker_tracks_event = parameters.dev_long_checker_tracks + offset_long_tracks;
 
   prepare_long_tracks(event_long_tracks, endvelo_states, long_checker_tracks_event);
+  __syncthreads();
 }
 
 void long_track_validator::long_track_validator_t::set_arguments_size(
@@ -42,9 +50,9 @@ void long_track_validator::long_track_validator_t::operator()(
     const auto evnum = event_list[i];
     const auto event_offset = event_tracks_offsets[evnum];
     const auto n_tracks = event_tracks_offsets[evnum + 1] - event_offset;
-    std::vector<Checker::Track> event_trakcs = {long_tracks_for_checker.begin() + event_offset,
+    std::vector<Checker::Track> event_tracks = {long_tracks_for_checker.begin() + event_offset,
                                                 long_tracks_for_checker.begin() + event_offset + n_tracks};
-    tracks[i] = event_trakcs;
+    tracks[i] = event_tracks;
   }
 
   auto& checker =

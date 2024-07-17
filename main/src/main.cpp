@@ -1,8 +1,15 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 /**
- *      CUDA HLT1
+ *      LHCb GPU HLT1 Demonstrator
  *
  *      author  -  GPU working group
  *      e-mail  -  lhcb-parallelization@cern.ch
@@ -122,9 +129,15 @@ int main(int argc, char* argv[])
 
   auto zmqSvc = makeZmqSvc();
 
+  auto configuration = Allen::sequence_conf(allen_options);
+
   Allen::NonEventData::Updater updater {allen_options};
-  auto input_provider = Allen::make_provider(allen_options);
-  auto output_handler = Allen::output_handler(input_provider.get(), zmqSvc, allen_options);
+
+  auto input_provider = Allen::make_provider(allen_options, configuration);
   if (!input_provider) return -1;
-  return allen(std::move(allen_options), &updater, std::move(input_provider), output_handler.get(), zmqSvc, "");
+
+  auto output_handler = Allen::output_handler(input_provider.get(), zmqSvc, allen_options);
+
+  return allen(
+    std::move(allen_options), configuration, &updater, input_provider.get(), output_handler.get(), zmqSvc, "");
 }

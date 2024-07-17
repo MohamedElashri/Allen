@@ -33,7 +33,6 @@ A run of the Allen program with the help option `-h` will let you know the basic
      -v, --verbosity {verbosity [0-5]}=3 (info)
      -p, --print-memory {print memory usage}=0
      --sequence {sequence to run}
-     --run-from-json {run from json configuration file}=0
      --output-file {Write selected event to output file}
      --device {select device to use}=0
      --non-stop {Runs the program indefinitely}=0
@@ -82,6 +81,11 @@ control flow can be wrapped using a `with` statement::
   with allen_gaudi_node_barriers.bind(sequence="hlt1_pp_no_gec"):
     run_allen(options)
 
+When Allen is compiled in non-standalone mode, every Allen algorithm is automatically translated into a Gaudi algorithm, ready to be run natively in the LHCb stack.
+Other examples of Moore options files can be found [here](https://gitlab.cern.ch/lhcb/Moore/-/tree/master/Hlt/RecoConf/options?ref_type=heads). Call with
+```
+Moore/run gaudirun.py Moore/Hlt/RecoConf/options/an_allen_gaudi_option.py
+```
 How to study the HLT1 physics performance within Moore is described in :ref:`moore_performance_scripts`.
 
 .. _run_allen_in_gaudi_allen_eventloop:
@@ -94,7 +98,7 @@ Use Gaudi to update non-event data such as alignment and configuration constants
 When using MDF files as input, call from the Allen environment::
 
   ./Allen/build.${ARCHITECTURE}/run python Dumpers/BinaryDumpers/options/allen.py --mdf Allen/input/minbias/mdf/MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1.mdf
- 
+
 When using MEP files as input, call from the MooreOnline environment, as MEP handling is implemented there::
 
   ./MooreOnline/build.${ARCHITECTURE}/run python Allen/Dumpers/BinaryDumpers/options/allen.py --sequence=Allen/InstallArea/${ARCHITECTURE}/constants/hlt1_pp_default.json --tags="dddb_tag,simcond_tag" --mep mep_file.mep

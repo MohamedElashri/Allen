@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #include <MEPTools.h>
 #include <CaloCountDigits.cuh>
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(calo_count_digits::calo_count_digits_t)
 
@@ -23,7 +24,7 @@ __global__ void calo_count_digits::calo_count_digits(
 
   for (unsigned event_index = threadIdx.x; event_index < n_events; event_index += blockDim.x) {
     auto event_number = parameters.dev_event_list[event_index];
-    parameters.dev_ecal_num_digits[event_number] = ecal_geometry.max_index;
+    parameters.dev_digits_offsets[event_number] = ecal_geometry.max_index;
   }
 }
 
@@ -32,7 +33,8 @@ void calo_count_digits::calo_count_digits_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_ecal_num_digits_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_digits_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_total_sum_holder_t>(arguments, 1);
 }
 
 void calo_count_digits::calo_count_digits_t::operator()(
@@ -41,8 +43,10 @@ void calo_count_digits::calo_count_digits_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_ecal_num_digits_t>(arguments, 0, context);
+  Allen::memset_async<dev_digits_offsets_t>(arguments, 0, context);
 
   global_function(calo_count_digits)(dim3(1), dim3(property<block_dim_x_t>().get()), context)(
     arguments, size<dev_event_list_t>(arguments), constants.dev_ecal_geometry);
+
+  PrefixSum::prefix_sum<dev_digits_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
 }

@@ -1,10 +1,45 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
 #include "BackendCommon.h"
 #include "Common.h"
+
+/**
+ * Minimal state used in most track reconstruction algorithms
+ */
+struct MiniState {
+
+  MiniState() = default;
+  MiniState(const MiniState&) = default;
+  MiniState& operator=(const MiniState&) = default;
+
+  __host__ __device__ MiniState(const float _x, const float _y, const float _z, const float _tx, const float _ty) :
+    m_x(_x), m_y(_y), m_z(_z), m_tx(_tx), m_ty(_ty)
+  {}
+
+  __host__ __device__ float x() const { return m_x; }
+  __host__ __device__ float y() const { return m_y; }
+  __host__ __device__ float z() const { return m_z; }
+  __host__ __device__ float tx() const { return m_tx; }
+  __host__ __device__ float ty() const { return m_ty; }
+
+  __host__ __device__ float& x() { return m_x; }
+  __host__ __device__ float& y() { return m_y; }
+  __host__ __device__ float& z() { return m_z; }
+  __host__ __device__ float& tx() { return m_tx; }
+  __host__ __device__ float& ty() { return m_ty; }
+
+  float m_x, m_y, m_z, m_tx, m_ty;
+};
 
 /**
  * @brief A simplified state for the Velo
@@ -21,8 +56,6 @@
  *                        0.f
  */
 struct KalmanVeloState {
-  float x, y, z, tx, ty;
-  float c00, c20, c22, c11, c31, c33;
 
   KalmanVeloState() = default;
   KalmanVeloState(const KalmanVeloState&) = default;
@@ -41,37 +74,41 @@ struct KalmanVeloState {
     const float _c31,
     const float _c33)
   {
-    x = _x;
-    y = _y;
-    z = _z;
-    tx = _tx;
-    ty = _ty;
-    c00 = _c00;
-    c20 = _c20;
-    c22 = _c22;
-    c11 = _c11;
-    c31 = _c31;
-    c33 = _c33;
+    m_ministate = MiniState(_x, _y, _z, _tx, _ty);
+    m_c00 = _c00;
+    m_c20 = _c20;
+    m_c22 = _c22;
+    m_c11 = _c11;
+    m_c31 = _c31;
+    m_c33 = _c33;
   }
-};
 
-/**
- * Minimal state used in most track reconstruction algorithms
- */
-struct MiniState {
-  float x, y, z, tx, ty;
+  __host__ __device__ float x() const { return m_ministate.x(); }
+  __host__ __device__ float y() const { return m_ministate.y(); }
+  __host__ __device__ float z() const { return m_ministate.z(); }
+  __host__ __device__ float tx() const { return m_ministate.tx(); }
+  __host__ __device__ float ty() const { return m_ministate.ty(); }
+  __host__ __device__ float c00() const { return m_c00; }
+  __host__ __device__ float c20() const { return m_c20; }
+  __host__ __device__ float c22() const { return m_c22; }
+  __host__ __device__ float c11() const { return m_c11; }
+  __host__ __device__ float c31() const { return m_c31; }
+  __host__ __device__ float c33() const { return m_c33; }
 
-  MiniState() = default;
-  MiniState(const MiniState&) = default;
-  MiniState& operator=(const MiniState&) = default;
+  __host__ __device__ float& x() { return m_ministate.x(); }
+  __host__ __device__ float& y() { return m_ministate.y(); }
+  __host__ __device__ float& z() { return m_ministate.z(); }
+  __host__ __device__ float& tx() { return m_ministate.tx(); }
+  __host__ __device__ float& ty() { return m_ministate.ty(); }
+  __host__ __device__ float& c00() { return m_c00; }
+  __host__ __device__ float& c20() { return m_c20; }
+  __host__ __device__ float& c22() { return m_c22; }
+  __host__ __device__ float& c11() { return m_c11; }
+  __host__ __device__ float& c31() { return m_c31; }
+  __host__ __device__ float& c33() { return m_c33; }
 
-  __host__ __device__ MiniState(const KalmanVeloState& other) :
-    x(other.x), y(other.y), z(other.z), tx(other.tx), ty(other.ty)
-  {}
-
-  __host__ __device__ MiniState(const float _x, const float _y, const float _z, const float _tx, const float _ty) :
-    x(_x), y(_y), z(_z), tx(_tx), ty(_ty)
-  {}
+  MiniState m_ministate;
+  float m_c00, m_c20, m_c22, m_c11, m_c31, m_c33;
 };
 
 struct ProjectionState {
@@ -79,9 +116,9 @@ struct ProjectionState {
 
   __host__ __device__ ProjectionState() {}
 
-  __host__ __device__ ProjectionState(const MiniState& state) : x(state.x), y(state.y), z(state.z) {}
+  __host__ __device__ ProjectionState(const MiniState& state) : x(state.x()), y(state.y()), z(state.z()) {}
 
-  __host__ __device__ ProjectionState(const KalmanVeloState& state) : x(state.x), y(state.y), z(state.z) {}
+  __host__ __device__ ProjectionState(const KalmanVeloState& state) : x(state.x()), y(state.y()), z(state.z()) {}
 };
 
 namespace Allen {
@@ -179,6 +216,8 @@ namespace Allen {
         __host__ __device__ float e(const float mass) const { return sqrtf(p() * p() + mass * mass); }
 
         __host__ __device__ float eta() const { return atanhf(pz() / p()); }
+
+        __host__ __device__ float rho() const { return sqrtf(tx() * tx() + ty() * ty()); }
 
         __host__ __device__ operator MiniState() const { return MiniState {x(), y(), z(), tx(), ty()}; }
 
@@ -297,6 +336,25 @@ namespace Allen {
         __host__ __device__ float p2() const { return pt2() + pz() * pz(); }
 
         __host__ __device__ float p() const { return sqrtf(p2()); }
+
+        // The downstream composite model does not account for errors.
+        // Therefore, we repurpose some of the memory originally allocated for error storage to hold other information
+        __host__ __device__ float downstream_doca() const
+        {
+          return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 0];
+        }
+        __host__ __device__ float downstream_quality() const
+        {
+          return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 1];
+        }
+        __host__ __device__ float downstream_armentero_podolanski_x() const
+        {
+          return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 2];
+        }
+        __host__ __device__ float downstream_armentero_podolanski_y() const
+        {
+          return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 3];
+        }
       };
 
       struct SecondaryVertices {
@@ -329,6 +387,66 @@ namespace Allen {
           return SecondaryVertex {m_base_pointer, m_offset + sv_index, m_total_number_of_vrts};
         }
       };
+
+      template<typename state_type>
+      __host__ __device__ void _doca_calc(state_type sA, state_type sB, float& det, float& muA, float& muB)
+      {
+
+        float secondAA = sA.tx() * sA.tx() + sA.ty() * sA.ty() + 1.f;
+        float secondBB = sB.tx() * sB.tx() + sB.ty() * sB.ty() + 1.f;
+        float secondAB = -sA.tx() * sB.tx() - sA.ty() * sB.ty() - 1.f;
+        det = secondAA * secondBB - secondAB * secondAB;
+
+        if (fabsf(det) > 0.f) {
+          float secondinvAA = secondBB / det;
+          float secondinvBB = secondAA / det;
+          float secondinvAB = -secondAB / det;
+          float firstA = sA.tx() * (sA.x() - sB.x()) + sA.ty() * (sA.y() - sB.y()) + (sA.z() - sB.z());
+          float firstB = -sB.tx() * (sA.x() - sB.x()) - sB.ty() * (sA.y() - sB.y()) - (sA.z() - sB.z());
+          muA = -(secondinvAA * firstA + secondinvAB * firstB);
+          muB = -(secondinvBB * firstB + secondinvAB * firstA);
+        }
+        return;
+      }
+
+      template<typename state_type>
+      __host__ __device__ float state_doca(state_type sA, state_type sB)
+      {
+
+        float ret = -1;
+        float det = 0.f;
+        float muA = 0.f;
+        float muB = 0.f;
+        _doca_calc(sA, sB, det, muA, muB);
+
+        if (fabsf(det) > 0) {
+          float dx = (sA.x() + muA * sA.tx()) - (sB.x() + muB * sB.tx());
+          float dy = (sA.y() + muA * sA.ty()) - (sB.y() + muB * sB.ty());
+          float dz = (sA.z() + muA) - (sB.z() + muB);
+          ret = sqrtf(dx * dx + dy * dy + dz * dz);
+        }
+        return ret;
+      }
+
+      template<typename state_type>
+      __host__ __device__ float state_poca(state_type sA, state_type sB, float& poca_x, float& poca_y, float& poca_z)
+      {
+        float det = 0.f;
+        float muA = 0.f;
+        float muB = 0.f;
+        _doca_calc(sA, sB, det, muA, muB);
+        if (fabsf(det) > 0) {
+          poca_x = 0.5f * (sA.x() + muA * sA.tx() + sB.x() + muB * sB.tx());
+          poca_y = 0.5f * (sA.y() + muA * sA.ty() + sB.y() + muB * sB.ty());
+          // Because floating point addition is non-associative, the parentheses
+          // below are needed to ensure that z does not depend on the order in which
+          // tracks are passed to the function.
+          poca_z = 0.5f * ((sA.z() + muA) + (sB.z() + muB));
+          return true;
+        }
+        return false;
+      }
+
     } // namespace Physics
   }   // namespace Views
 } // namespace Allen

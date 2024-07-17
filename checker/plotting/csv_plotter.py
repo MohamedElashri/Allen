@@ -1,6 +1,13 @@
 #!/usr/bin/python3
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
 import os
@@ -42,6 +49,12 @@ def get_master_throughput(job_name,
 
     proj_id = int(os.environ["CI_PROJECT_ID"])
     project = gl.projects.get(proj_id)
+    target_branch = os.environ["CI_MERGE_REQUEST_TARGET_BRANCH_NAME"]
+    if (target_branch == "2024-patches"):
+        ref = "2024-patches"
+    print(
+        f"target branch is {target_branch}, will use the corresponding reference"
+    )
 
     # select last successful or failed pipeline
     for pipeline in project.pipelines.list(ref=ref, as_list=False):

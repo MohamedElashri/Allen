@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <memory>
 
@@ -7,6 +14,7 @@
 #include "AlgorithmTypes.cuh"
 #include "Scheduler.cuh"
 #include "HostBuffersManager.cuh"
+#include "AllenMonitoring.h"
 
 #ifdef CALLGRIND_PROFILE
 #include <valgrind/callgrind.h>
@@ -16,19 +24,22 @@
  * @brief Sets up the chain that will be executed later.
  */
 Stream::Stream(
+  const unsigned stream_id,
   const ConfiguredSequence& configuration,
+  const Allen::ScheduledSequence& sched_seq,
   const bool param_do_print_memory_manager,
   const size_t reserve_mb,
   const unsigned required_memory_alignment,
   const Constants& param_constants,
   HostBuffersManager* buffers_manager) :
-  do_print_memory_manager {param_do_print_memory_manager},
-  host_buffers_manager {buffers_manager}, constants {param_constants}
+  stream_id {stream_id},
+  do_print_memory_manager {param_do_print_memory_manager}, host_buffers_manager {buffers_manager}, constants {
+                                                                                                     param_constants}
 {
-  scheduler = new Scheduler {configuration, do_print_memory_manager, reserve_mb, required_memory_alignment};
+  scheduler = new Scheduler {configuration, sched_seq, do_print_memory_manager, reserve_mb, required_memory_alignment};
 
   // Initialize context
-  m_context.initialize();
+  m_context.initialize(stream_id);
 }
 
 Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_options)
@@ -51,12 +62,15 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
       persistent_store->free_all();
 
       try {
+        Allen::Monitoring::AccumulatorManager::get()->synchronizeStream(stream_id);
         // Visit all algorithms in configured sequence
         scheduler->run(runtime_options, constants, persistent_store, m_context);
 
         // Synchronize device
         Allen::synchronize(m_context);
+        Allen::Monitoring::AccumulatorManager::get()->streamDone(stream_id);
       } catch (const MemoryException& e) {
+        Allen::Monitoring::AccumulatorManager::get()->streamDone(stream_id);
         warning_cout << "Insufficient memory to process slice - will sub-divide and retry." << std::endl;
         return Allen::error::errorMemoryAllocation;
       }
@@ -75,11 +89,6 @@ Allen::error Stream::run(const unsigned buf_idx, const RuntimeOptions& runtime_o
  * @brief Print the type and name of the algorithms in the sequence
  */
 void Stream::print_configured_sequence() { scheduler->print_sequence(); }
-
-void Stream::configure_algorithms(const std::map<std::string, std::map<std::string, nlohmann::json>>& config)
-{
-  scheduler->configure_algorithms(config);
-}
 
 std::map<std::string, std::map<std::string, nlohmann::json>> Stream::get_algorithm_configuration() const
 {

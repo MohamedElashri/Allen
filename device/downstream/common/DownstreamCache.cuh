@@ -1,0 +1,267 @@
+/*****************************************************************************\
+* (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration          *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+\*****************************************************************************/
+#pragma once
+
+#include "memory_optim.cuh"
+#include "DownstreamConstants.cuh"
+#include "DownstreamHelper.cuh"
+#include "DownstreamStructs.cuh"
+#include "BinarySearch.cuh"
+
+// Basic
+#include "UTEventModel.cuh"
+
+/**
+ * @brief Downstream cache
+ * @details This file contains the cache helper for downstream tracking.
+ *          The cache is used to reduce the global memory access.
+ *          Two caches are implemented:
+ *            - Hit cache: cache the hits in the current layer
+ *            - Sector cache: cache the sector information in the current layer
+ */
+
+namespace Downstream {
+
+  namespace DownstreamCache {
+
+    namespace detail {
+      static constexpr float y_width_factor = 255 / 50.f; // Y width can not be larger than 50. mm
+
+      __device__ inline float decode_y_width(uint8_t data) { return std::round(data / y_width_factor); }
+
+      __device__ inline uint8_t encode_y_width(float data) { return data * y_width_factor; }
+    }; // namespace detail
+
+    struct HitCache {
+      constexpr static unsigned NumRow = DownstreamParameters::MaxNumHitCachedSharedMemory;
+      constexpr static unsigned RowSize = sizeof(half_t) * 4;
+      constexpr static unsigned TotalMemorySize = RowSize * NumRow;
+
+      // basics
+      half_t* m_data_x;
+      half_t* m_data_z;
+      half_t* m_data_ymin;
+      half_t* m_data_ymax;
+      unsigned short m_size;
+      unsigned short m_layer;
+      unsigned short m_global_offset;
+      float m_z0;
+
+      // memory
+      char* m_shared_memory;
+      char* m_global_memory;
+      unsigned* m_global_count;
+
+      __device__ HitCache(char* shared_memory, char* global_memory, unsigned* global_count) :
+        m_shared_memory(shared_memory), m_global_memory(global_memory), m_global_count(global_count)
+      {}
+
+      __device__ inline unsigned short size() const { return m_size; }
+
+      __device__ inline float xAtYEq0(const unsigned short hit_idx) const
+      {
+        assert(hit_idx < m_size);
+        return __half2float(m_data_x[hit_idx]);
+      }
+
+      __device__ inline float yMin(const unsigned short hit_idx) const
+      {
+        assert(hit_idx < m_size);
+        return __half2float(m_data_ymin[hit_idx]);
+      }
+
+      __device__ inline float yMax(const unsigned short hit_idx) const
+      {
+        assert(hit_idx < m_size);
+        return __half2float(m_data_ymax[hit_idx]);
+      }
+
+      __device__ inline float yMid(const unsigned short hit_idx) const
+      {
+        assert(hit_idx < m_size);
+        return (yMin(hit_idx) + yMax(hit_idx)) / 2;
+      }
+
+      __device__ inline float yWidth(const unsigned short hit_idx) const
+      {
+        assert(hit_idx < m_size);
+        return (yMax(hit_idx) - yMin(hit_idx)) / 2;
+      }
+
+      __device__ inline bool isYCompatible(const unsigned hit_idx, const float y, const float tol) const
+      {
+        return yMin(hit_idx) - tol <= y && y <= yMax(hit_idx) + tol;
+      }
+
+      __device__ inline bool isNotYCompatible(const unsigned hit_idx, const float y, const float tol) const
+      {
+        return yMin(hit_idx) - tol > y || y > yMax(hit_idx) + tol;
+      }
+
+      __device__ inline float zAtYEq0(const unsigned short hit_idx) const
+      {
+        assert(hit_idx < m_size);
+        return __half2float(m_data_z[hit_idx]) + m_z0;
+      }
+
+      __device__ inline auto HitOffset() const { return m_global_offset; }
+
+      __device__ inline auto cache_layer(
+        const UT::HitOffsets& ut_hit_offsets,
+        const UT::ConstHits& ut_hits,
+        const float mean_layer_z,
+        const unsigned short layer)
+      {
+        // Load layer
+        m_layer = layer;
+
+        // Load z0
+        m_z0 = mean_layer_z;
+
+        // Load size
+        m_size = ut_hit_offsets.layer_number_of_hits(layer);
+        const unsigned layer_offset = ut_hit_offsets.layer_offset(layer);
+        const unsigned event_offset = ut_hit_offsets.event_offset();
+        m_global_offset = layer_offset - event_offset;
+
+        // Preapare the cache ( if it doesn't fit in shared memory, cache it into global memory instead. )
+        // Note: if it should fit to global memory, the memory alignment is required; otherwise, the reinterpret_cast
+        // will crash.
+
+        const unsigned aligned_num_row = m_size + (m_size % 2);
+        shared_or_global(
+          aligned_num_row * RowSize, // required size
+          NumRow * RowSize,          // max shared memory size
+          m_shared_memory,           // shared memory
+          m_global_memory,           // global memory
+          m_global_count,            // global memory counter
+          [&](char* memory) {
+            this->m_data_x = reinterpret_cast<half_t*>(memory);
+            this->m_data_z = reinterpret_cast<half_t*>(memory + (sizeof(half_t)) * aligned_num_row);
+            this->m_data_ymin = reinterpret_cast<half_t*>(memory + (sizeof(half_t) * 2) * aligned_num_row);
+            this->m_data_ymax = reinterpret_cast<half_t*>(memory + (sizeof(half_t) * 3) * aligned_num_row);
+          });
+
+        // Load hits
+        for (unsigned hit_idx = threadIdx.x; hit_idx < m_size; hit_idx += blockDim.x) {
+          // idx in global memory
+          const unsigned short global_idx = m_global_offset + hit_idx;
+
+          // X and Z
+          m_data_x[hit_idx] = __float2half(ut_hits.xAtYEq0(global_idx));
+          m_data_z[hit_idx] = __float2half(ut_hits.zAtYEq0(global_idx) - m_z0);
+
+          // Y
+          m_data_ymin[hit_idx] = __float2half(ut_hits.yMin(global_idx));
+          m_data_ymax[hit_idx] = __float2half(ut_hits.yMax(global_idx));
+        }
+      }
+    };
+
+    //
+    // Sector cache
+    // Note: we do a lot of binary search to find the right sector, so caching this to shared memory is very important.
+    //
+    struct SectorCache {
+
+      constexpr static unsigned NumRow = DownstreamParameters::MaxNumCachedSector;
+      constexpr static unsigned RowSize = sizeof(float) + sizeof(ushort);
+      constexpr static unsigned TotalMemorySize = RowSize * NumRow;
+
+      float* m_sector_xs;
+      ushort* m_sector_hit_offsets;
+      ushort m_size;
+
+      __device__ SectorCache(char* shared_memory) :
+        m_sector_xs(reinterpret_cast<float*>(shared_memory)),
+        m_sector_hit_offsets(reinterpret_cast<ushort*>(shared_memory + NumRow * sizeof(float)))
+      {}
+
+      __device__ inline auto cache_layer(
+        const UT::HitOffsets& ut_hit_offsets,
+        const float* sector_xs,
+        const unsigned* sector_layer_offsets,
+        const unsigned layer)
+      {
+        // Load sizes
+        const unsigned short layer_offset = sector_layer_offsets[layer];
+        m_size = sector_layer_offsets[layer + 1] - layer_offset;
+
+        // Load xs
+        for (unsigned short idx = threadIdx.x; idx < m_size; idx += blockDim.x) {
+          m_sector_xs[idx] = sector_xs[layer_offset + idx];
+        };
+
+        // Load hit offsets
+        for (unsigned short idx = threadIdx.x; idx <= m_size; idx += blockDim.x) {
+          m_sector_hit_offsets[idx] =
+            ut_hit_offsets.sector_group_offset(layer_offset + idx) - ut_hit_offsets.sector_group_offset(layer_offset);
+        };
+      }
+
+      __device__ inline auto get_hit_range(const float xmin, const float xmax) const
+      {
+        //
+        // note: considering there are 4 different z position per each layer, we also add neighbor sectors.
+        //      this is to avoid the case that the track is going to the neighbor sector.
+        //
+        auto sector_min = binary_search_rightmost<float>(m_sector_xs, m_size, xmin) - 1;
+        if (sector_min < 0) sector_min = 0;
+
+        auto sector_max = linear_search<float>(m_sector_xs, m_size, xmax, sector_min) + 1;
+        if (sector_max > static_cast<int>(m_size)) sector_max = m_size;
+
+        return ushort2 {m_sector_hit_offsets[sector_min], m_sector_hit_offsets[sector_max]};
+      }
+    };
+
+    struct SectorHelper {
+      const float* m_sector_xs = nullptr;
+      const unsigned* m_sector_hit_offsets = nullptr;
+      unsigned m_size = 0;
+      unsigned m_offset = 0;
+
+      __device__ inline auto cache_layer(
+        const UT::HitOffsets& ut_hit_offsets,
+        const float* sector_xs,
+        const unsigned* sector_layer_offsets,
+        const unsigned layer)
+      {
+        // Load sizes
+        const unsigned short layer_offset = sector_layer_offsets[layer];
+        m_size = sector_layer_offsets[layer + 1] - layer_offset;
+
+        // Load xs
+        m_sector_xs = sector_xs + layer_offset;
+
+        // Load hit offsets
+        m_offset = ut_hit_offsets.sector_group_offset(layer_offset);
+        m_sector_hit_offsets = ut_hit_offsets.m_ut_hit_offsets + layer_offset;
+      }
+
+      __device__ inline auto get_hit_range(const float xmin, const float xmax) const
+      {
+        //
+        // note: considering there are 4 different z position per each layer, we also add neighbor sectors.
+        //      this is to avoid the case that the track is going to the neighbor sector.
+        //
+        auto sector_min = binary_search_rightmost<float>(m_sector_xs, m_size, xmin) - 1;
+        if (sector_min < 0) sector_min = 0;
+
+        auto sector_max = linear_search<float>(m_sector_xs, m_size, xmax, sector_min) + 1;
+        if (sector_max > static_cast<int>(m_size)) sector_max = m_size;
+
+        return uint2 {m_sector_hit_offsets[sector_min] - m_sector_hit_offsets[0],
+                      m_sector_hit_offsets[sector_max] - m_sector_hit_offsets[0]};
+      }
+    };
+  } // namespace DownstreamCache
+} // namespace Downstream

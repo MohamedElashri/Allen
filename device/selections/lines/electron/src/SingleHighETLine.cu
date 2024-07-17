@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "SingleHighETLine.cuh"
 
@@ -12,13 +19,6 @@ __device__ unsigned single_high_et_line::single_high_et_line_t::offset(
   const unsigned event_number)
 {
   return parameters.dev_velo_tracks_offsets[event_number];
-}
-
-__device__ unsigned single_high_et_line::single_high_et_line_t::input_size(
-  const Parameters& parameters,
-  const unsigned event_number)
-{
-  return parameters.dev_velo_tracks_offsets[event_number + 1] - parameters.dev_velo_tracks_offsets[event_number];
 }
 
 // Get decision size function

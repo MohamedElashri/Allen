@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <TrackCheckerHistos.h>
 
@@ -58,6 +65,8 @@ TrackCheckerHistos::TrackCheckerHistos(
     h_reconstructible_phi[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 25, -3.142, 3.142);
     name = category + "_nPV_reconstructible";
     h_reconstructible_nPV[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 21, -0.5, 20.5);
+    name = category + "_nSciFiHits_reconstructible";
+    h_reconstructible_nSciFiHits[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 21, -0.5, 20000.5);
     name = category + "_docaz_reconstructible";
     h_reconstructible_docaz[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 30, 0., 3.);
     name = category + "_P_reconstructed";
@@ -68,6 +77,8 @@ TrackCheckerHistos::TrackCheckerHistos(
     h_reconstructed_phi[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 25, -3.142, 3.142);
     name = category + "_nPV_reconstructed";
     h_reconstructed_nPV[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 21, -0.5, 20.5);
+    name = category + "_nSciFiHits_reconstructed";
+    h_reconstructed_nSciFiHits[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 21, -0.5, 20000.5);
     name = category + "_docaz_reconstructed";
     h_reconstructed_docaz[name] = std::make_unique<TH1D>(name.c_str(), name.c_str(), 30, 0., 3.);
   }
@@ -75,8 +86,14 @@ TrackCheckerHistos::TrackCheckerHistos(
   // histos for ghost rate
   h_ghost_nPV = std::make_unique<TH1D>("nPV_Ghosts", "nPV_Ghosts", 21, -0.5, 20.5);
   h_total_nPV = std::make_unique<TH1D>("nPV_Total", "nPV_Total", 21, -0.5, 20.5);
+  h_ghost_nSciFiHits = std::make_unique<TH1D>("nSciFiHits_Ghosts", "nSciFiHits_Ghosts", 21, -0.5, 20000.5);
+  h_total_nSciFiHits = std::make_unique<TH1D>("nSciFiHits_Total", "nSciFiHits_Total", 21, -0.5, 20000.5);
   h_ghost_eta = std::make_unique<TH1D>("eta_Ghosts", "eta_Ghosts", 20, 0, 7);
   h_total_eta = std::make_unique<TH1D>("eta_Total", "eta_Total", 20, 0, 7);
+  h_ghost_p = std::make_unique<TH1D>("p_Ghosts", "p_Ghosts", 50, 0., 100000.);
+  h_total_p = std::make_unique<TH1D>("p_Total", "p_Total", 50, 0., 100000.);
+  h_ghost_pt = std::make_unique<TH1D>("pt_Ghosts", "pt_Ghosts", 30, 0., 5000.);
+  h_total_pt = std::make_unique<TH1D>("pt_Total", "pt_Total", 30, 0., 5000.);
 
   // histo for momentum resolution
   h_momentum_resolution =
@@ -195,8 +212,14 @@ void TrackCheckerHistos::write()
                          std::ref(h_momentum_matched),
                          std::ref(h_ghost_nPV),
                          std::ref(h_total_nPV),
+                         std::ref(h_ghost_nSciFiHits),
+                         std::ref(h_total_nSciFiHits),
                          std::ref(h_ghost_eta),
                          std::ref(h_total_eta),
+                         std::ref(h_ghost_p),
+                         std::ref(h_total_p),
+                         std::ref(h_ghost_pt),
+                         std::ref(h_total_pt),
                          std::ref(h_muon_catboost_output_matched_muon),
                          std::ref(h_muon_catboost_output_matched_notMuon),
                          std::ref(h_muon_catboost_output_matched_muon_ismuon_true),
@@ -247,12 +270,14 @@ void TrackCheckerHistos::write()
                          std::ref(h_reconstructible_pt),
                          std::ref(h_reconstructible_phi),
                          std::ref(h_reconstructible_nPV),
+                         std::ref(h_reconstructible_nSciFiHits),
                          std::ref(h_reconstructible_docaz),
                          std::ref(h_reconstructed_eta),
                          std::ref(h_reconstructed_p),
                          std::ref(h_reconstructed_pt),
                          std::ref(h_reconstructed_phi),
                          std::ref(h_reconstructed_nPV),
+                         std::ref(h_reconstructed_nSciFiHits),
                          std::ref(h_reconstructible_eta_phi),
                          std::ref(h_reconstructed_eta_phi),
                          std::ref(h_reconstructed_docaz)};
@@ -271,6 +296,7 @@ void TrackCheckerHistos::fillReconstructibleHistos(const MCParticles& mcps, cons
   const std::string pt_name = category.m_name + "_Pt_reconstructible";
   const std::string phi_name = category.m_name + "_Phi_reconstructible";
   const std::string nPV_name = category.m_name + "_nPV_reconstructible";
+  const std::string nSciFiHits_name = category.m_name + "_nSciFiHits_reconstructible";
   const std::string eta_phi_name = category.m_name + "_Eta_Phi_reconstructible";
   const std::string docaz_name = category.m_name + "_docaz_reconstructible";
   for (auto mcp : mcps) {
@@ -280,6 +306,7 @@ void TrackCheckerHistos::fillReconstructibleHistos(const MCParticles& mcps, cons
       h_reconstructible_pt[pt_name]->Fill(static_cast<double>(mcp.pt));
       h_reconstructible_phi[phi_name]->Fill(static_cast<double>(mcp.phi));
       h_reconstructible_nPV[nPV_name]->Fill(static_cast<double>(mcp.nPV));
+      h_reconstructible_nSciFiHits[nSciFiHits_name]->Fill(static_cast<double>(mcp.nbHits_in_SciFi));
       h_reconstructible_eta_phi[eta_phi_name]->Fill(static_cast<double>(mcp.eta), static_cast<double>(mcp.phi));
       float tx = std::cos(mcp.phi) / std::sinh(mcp.eta);
       float ty = std::sin(mcp.phi) / std::sinh(mcp.eta);
@@ -297,6 +324,7 @@ void TrackCheckerHistos::fillReconstructedHistos(const MCParticle& mcp, HistoCat
   const std::string pt_name = category.m_name + "_Pt_reconstructed";
   const std::string phi_name = category.m_name + "_Phi_reconstructed";
   const std::string nPV_name = category.m_name + "_nPV_reconstructed";
+  const std::string nSciFiHits_name = category.m_name + "_nSciFiHits_reconstructed";
   const std::string eta_phi_name = category.m_name + "_Eta_Phi_reconstructed";
   const std::string docaz_name = category.m_name + "_docaz_reconstructed";
   h_reconstructed_eta[eta_name]->Fill(static_cast<double>(mcp.eta));
@@ -304,6 +332,7 @@ void TrackCheckerHistos::fillReconstructedHistos(const MCParticle& mcp, HistoCat
   h_reconstructed_pt[pt_name]->Fill(static_cast<double>(mcp.pt));
   h_reconstructed_phi[phi_name]->Fill(static_cast<double>(mcp.phi));
   h_reconstructed_nPV[nPV_name]->Fill(static_cast<double>(mcp.nPV));
+  h_reconstructed_nSciFiHits[nSciFiHits_name]->Fill(static_cast<double>(mcp.nbHits_in_SciFi));
   h_reconstructed_eta_phi[eta_phi_name]->Fill(static_cast<double>(mcp.eta), static_cast<double>(mcp.phi));
   float tx = std::cos(mcp.phi) / std::sinh(mcp.eta);
   float ty = std::sin(mcp.phi) / std::sinh(mcp.eta);
@@ -311,16 +340,22 @@ void TrackCheckerHistos::fillReconstructedHistos(const MCParticle& mcp, HistoCat
   h_reconstructed_docaz[docaz_name]->Fill(static_cast<double>(docaz));
 }
 
-void TrackCheckerHistos::fillTotalHistos(double nPV, double eta)
+void TrackCheckerHistos::fillTotalHistos(double nPV, double nSciFiHits, double eta, double p, double pt)
 {
   h_total_nPV->Fill(nPV);
+  h_total_nSciFiHits->Fill(nSciFiHits);
   h_total_eta->Fill(eta);
+  h_total_p->Fill(p);
+  h_total_pt->Fill(pt);
 }
 
-void TrackCheckerHistos::fillGhostHistos(double nPV, double eta)
+void TrackCheckerHistos::fillGhostHistos(double nPV, double nSciFiHits, double eta, double p, double pt)
 {
   h_ghost_nPV->Fill(nPV);
+  h_ghost_nSciFiHits->Fill(nSciFiHits);
   h_ghost_eta->Fill(eta);
+  h_ghost_p->Fill(p);
+  h_ghost_pt->Fill(pt);
 }
 
 void TrackCheckerHistos::fillMomentumResolutionHisto(const MCParticle& mcp, const float p, const float qop)

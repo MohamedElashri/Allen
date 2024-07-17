@@ -1,0 +1,41 @@
+<?xml version="1.0" ?><!DOCTYPE extension  PUBLIC '-//QM/2.3/Extension//EN'  'http://www.codesourcery.com/qm/dtds/2.3/-//qm/2.3/extension//en.dtd'>
+<!--
+    (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration
+
+    This software is distributed under the terms of the Apache License
+    version 2 (Apache-2.0), copied verbatim in the file "LICENSE".
+
+    In applying this licence, CERN does not waive the privileges and immunities
+    granted to it by virtue of its status as an Intergovernmental Organization
+    or submit itself to any jurisdiction.
+-->
+<!--
+#######################################################
+# SUMMARY OF THIS TEST
+# ...................
+# Author: Roel Aaij
+# Purpose: Compare a number of TCKs to the output of Allen
+#          \-\-write-configuration 1
+#######################################################
+-->
+<extension class="GaudiTest.GaudiExeTest" kind="test">
+  <argument name="program"><text>python</text></argument>
+  <argument name="args"><set>
+    <text>${ALLENROOT}/tests/options/test_tck_allen_write_config.py</text>
+  </set></argument>
+  <argument name="prerequisites"><set>
+    <tuple><text>create_tcks</text><enumeral>PASS</enumeral></tuple>
+  </set></argument>
+  <argument name="timeout"><integer>600</integer></argument>
+  <argument name="use_temp_dir"><enumeral>per-test</enumeral></argument>
+<argument name="validator"><text>
+
+# No validator for now: only check the exit code
+
+import glob
+workdir = self._common_tmpdir
+for fn in glob.glob(workdir + "/*.diff"):
+    result[os.path.basename(fn)] = open(fn).read()
+
+</text></argument>
+</extension>

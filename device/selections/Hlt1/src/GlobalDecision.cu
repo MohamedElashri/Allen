@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "GlobalDecision.cuh"
 #include "HltDecReport.cuh"
@@ -21,10 +28,7 @@ void global_decision::global_decision_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  auto const grid_size =
-    dim3((first<host_number_of_events_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
-
-  global_function(global_decision)(grid_size, dim3(property<block_dim_x_t>().get()), context)(arguments);
+  global_function(global_decision)(1, dim3(property<block_dim_x_t>().get()), context)(arguments);
 
   Allen::copy_async<host_global_decision_t, dev_global_decision_t>(arguments, context);
 
@@ -37,12 +41,9 @@ __global__ void global_decision::global_decision(global_decision::Parameters par
        event_index += blockDim.x) {
     bool global_decision = false;
 
-    uint32_t const* event_dec_reports =
-      parameters.dev_dec_reports + (3 + parameters.dev_number_of_active_lines[0]) * event_index;
+    HltDecReports reports(parameters.dev_dec_reports, event_index);
 
-    for (unsigned line_index = 0; line_index < parameters.dev_number_of_active_lines[0]; ++line_index) {
-      // Iterate all lines to get the decision for the current {event, line}
-      HltDecReport dec_report(event_dec_reports[3 + line_index]);
+    for (HltDecReport dec_report : reports) {
       global_decision |= dec_report.decision();
       if (global_decision) break;
     }

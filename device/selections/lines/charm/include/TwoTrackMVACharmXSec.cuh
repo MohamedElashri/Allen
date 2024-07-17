@@ -11,7 +11,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 #include "VertexDefinitions.cuh"
 #include "MassDefinitions.h"
 #include "ParticleTypes.cuh"
@@ -27,10 +27,7 @@ namespace two_track_mva_charm_xsec_line {
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     DEVICE_INPUT(dev_two_track_mva_evaluation_t, float) dev_two_track_mva_evaluation;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
 
@@ -56,7 +53,7 @@ namespace two_track_mva_charm_xsec_line {
 
   struct two_track_mva_charm_xsec_line_t : public SelectionAlgorithm,
                                            Parameters,
-                                           TwoTrackLine<two_track_mva_charm_xsec_line_t, Parameters> {
+                                           CompositeParticleLine<two_track_mva_charm_xsec_line_t, Parameters> {
 
     __device__ static std::tuple<const CompositeParticle, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);

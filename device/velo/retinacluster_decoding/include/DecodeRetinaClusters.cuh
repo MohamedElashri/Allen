@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -72,7 +79,7 @@ namespace decode_retinaclusters {
 
   private:
     Property<block_dim_x_calculate_key_t> m_block_dim_x_calculate_key {this, 256};
-    Property<block_dim_calculate_permutations_t> m_block_dim_calculate_permutations {this, {{2, 128, 1}}};
+    Property<block_dim_calculate_permutations_t> m_block_dim_calculate_permutations {this, {{128, 2, 1}}};
     Property<block_dim_x_decode_retina_t> m_block_dim_x_decode_retina {this, 256};
   };
 } // namespace decode_retinaclusters

@@ -9,7 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "CaloLumiCounters.cuh"
-#include "LumiSummaryOffsets.h"
+#include "LumiCommon.cuh"
 
 #include "CaloGeometry.cuh"
 
@@ -22,8 +22,33 @@ void calo_lumi_counters::calo_lumi_counters_t::set_arguments_size(
 {
   // the total size of output info is proportional to the lumi summaries
   set_size<dev_lumi_infos_t>(
-    arguments,
-    Lumi::Constants::n_calo_counters * first<host_lumi_summaries_size_t>(arguments) / Lumi::Constants::lumi_length);
+    arguments, Lumi::Constants::n_calo_counters * first<host_lumi_summaries_count_t>(arguments));
+}
+
+void calo_lumi_counters::calo_lumi_counters_t::init()
+{
+  std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+  std::map<std::string, std::pair<float, float>> shifts_and_scales = property<lumi_counter_shifts_and_scales_t>();
+
+  unsigned c_idx = 0u;
+  for (auto counter_name : Lumi::Constants::calo_counter_names) {
+    if (schema.find(counter_name) == schema.end()) {
+      std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
+    }
+    else {
+      m_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
+      m_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
+    }
+    if (shifts_and_scales.find(counter_name) == shifts_and_scales.end()) {
+      m_shifts_and_scales[2 * c_idx] = 0.f;
+      m_shifts_and_scales[2 * c_idx + 1] = 1.f;
+    }
+    else {
+      m_shifts_and_scales[2 * c_idx] = shifts_and_scales[counter_name].first;
+      m_shifts_and_scales[2 * c_idx + 1] = shifts_and_scales[counter_name].second;
+    }
+    ++c_idx;
+  }
 }
 
 void calo_lumi_counters::calo_lumi_counters_t::operator()(
@@ -33,92 +58,79 @@ void calo_lumi_counters::calo_lumi_counters_t::operator()(
   const Allen::Context& context) const
 {
   // do nothing if no lumi event
-  if (first<host_lumi_summaries_size_t>(arguments) == 0) return;
+  if (first<host_lumi_summaries_count_t>(arguments) == 0) return;
 
-  global_function(calo_lumi_counters)(dim3(2), property<block_dim_t>(), context)(
-    arguments, first<host_number_of_events_t>(arguments), constants.dev_ecal_geometry);
+  Allen::memset_async<dev_lumi_infos_t>(arguments, 0, context);
+
+  global_function(calo_lumi_counters)(
+    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
+    arguments, m_offsets_and_sizes, m_shifts_and_scales, constants.dev_ecal_geometry);
 }
 
 __global__ void calo_lumi_counters::calo_lumi_counters(
   calo_lumi_counters::Parameters parameters,
-  const unsigned number_of_events,
+  const offsets_and_sizes_t offsets_and_sizes,
+  const shifts_and_scales_t shifts_and_scales,
   const char* raw_ecal_geometry)
 {
-  for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
-       event_number += blockDim.x * gridDim.x) {
-    unsigned lumi_sum_offset = parameters.dev_lumi_summary_offsets[event_number];
+  unsigned event_number = blockIdx.x;
+  unsigned lumi_evt_index = parameters.dev_lumi_event_indices[event_number];
 
-    // skip non-lumi event
-    if (lumi_sum_offset == parameters.dev_lumi_summary_offsets[event_number + 1]) continue;
+  // skip non-lumi event
+  if (lumi_evt_index == parameters.dev_lumi_event_indices[event_number + 1]) return;
 
-    auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
-    const unsigned digits_offset = parameters.dev_ecal_digits_offsets[event_number];
-    const unsigned n_digits = parameters.dev_ecal_digits_offsets[event_number + 1] - digits_offset;
-    auto const* digits = parameters.dev_ecal_digits + digits_offset;
-    float sum_et = 0.f;
-    std::array<float, 6> sum_et_area = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+  auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
+  const unsigned digits_offset = parameters.dev_ecal_digits_offsets[event_number];
+  const unsigned n_digits = parameters.dev_ecal_digits_offsets[event_number + 1] - digits_offset;
+  auto const* digits = parameters.dev_ecal_digits + digits_offset;
+  // first 2 reserved for sum et and sum e, followed by ET for each region
+  __shared__ unsigned long long
+    E_vals[Lumi::Constants::n_calo_counters * 2]; // positive and negative separately. result for counter i will be
+                                                  // value at (2 * i) - value at  (2 * i + 1)
 
-    for (unsigned digit_index = 0u; digit_index < n_digits; ++digit_index) {
-      if (!digits[digit_index].is_valid()) continue;
+  for (unsigned i = threadIdx.x; i < Lumi::Constants::n_calo_counters * 2; i += blockDim.x) {
+    E_vals[i] = 0;
+  }
 
-      auto x = ecal_geometry.getX(digit_index);
-      auto y = ecal_geometry.getY(digit_index);
-      // Use Z at shower max
-      auto z = ecal_geometry.getZ(digit_index, 1);
-      auto e = ecal_geometry.getE(digit_index, digits[digit_index].adc);
+  __syncthreads();
 
-      auto sin_theta = sqrtf((x * x + y * y) / (x * x + y * y + z * z));
-      sum_et += e * sin_theta;
+  for (unsigned digit_index = threadIdx.x; digit_index < n_digits; digit_index += blockDim.x) {
+    if (!digits[digit_index].is_valid()) continue;
 
-      auto const area = ecal_geometry.getECALArea(digit_index);
-      if (y > 0.f) {
-        sum_et_area[area] += e * sin_theta;
-      }
-      else {
-        sum_et_area[3 + area] += e * sin_theta;
-      }
+    auto x = ecal_geometry.getX(digit_index);
+    auto y = ecal_geometry.getY(digit_index);
+    // Use Z at shower max
+    auto z = ecal_geometry.getZ(digit_index, 1);
+    auto e = ecal_geometry.getE(digit_index, digits[digit_index].adc);
+
+    auto sin_theta = sqrtf((x * x + y * y) / (x * x + y * y + z * z));
+
+    auto e_abs = fabsf(e);
+
+    auto e_negative = e < 0.f;
+
+    atomicAdd(&E_vals[0] + e_negative, static_cast<unsigned long long>(e_abs * sin_theta * 1e8f));
+    atomicAdd(&E_vals[2] + e_negative, static_cast<unsigned long long>(e_abs * 1e8f));
+
+    auto const area = ecal_geometry.getECALArea(digit_index);
+    if (y > 0.f) {
+      atomicAdd(&E_vals[2 * (2 + area) + e_negative], static_cast<unsigned long long>(e_abs * sin_theta * 1e8f));
     }
+    else {
+      atomicAdd(&E_vals[2 * (5 + area) + e_negative], static_cast<unsigned long long>(e_abs * sin_theta * 1e8f));
+    }
+  }
 
-    unsigned info_offset = Lumi::Constants::n_calo_counters * lumi_sum_offset / Lumi::Constants::lumi_length;
+  __syncthreads();
+  unsigned info_offset = Lumi::Constants::n_calo_counters * lumi_evt_index;
 
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalETOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalETSize;
-    parameters.dev_lumi_infos[info_offset].value = sum_et;
-
-    // Outer Top
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalEOuterTopOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalEOuterTopSize;
-    parameters.dev_lumi_infos[info_offset].value = sum_et_area[0];
-
-    // Middle Top
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalEMiddleTopOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalEMiddleTopSize;
-    parameters.dev_lumi_infos[info_offset].value = sum_et_area[1];
-
-    // Inner Top
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalEInnerTopOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalEInnerTopSize;
-    parameters.dev_lumi_infos[info_offset].value = sum_et_area[2];
-
-    // Outer Bottom
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalEOuterBottomOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalEOuterBottomSize;
-    parameters.dev_lumi_infos[info_offset].value = sum_et_area[3];
-
-    // Middle Bottom
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalEMiddleBottomOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalEMiddleBottomSize;
-    parameters.dev_lumi_infos[info_offset].value = sum_et_area[4];
-
-    // Inner Bottom
-    ++info_offset;
-    parameters.dev_lumi_infos[info_offset].offset = LHCb::LumiSummaryOffsets::V2::ECalEInnerBottomOffset;
-    parameters.dev_lumi_infos[info_offset].size = LHCb::LumiSummaryOffsets::V2::ECalEInnerBottomSize;
-    parameters.dev_lumi_infos[info_offset].value = sum_et_area[5];
+  for (unsigned i = threadIdx.x; i < Lumi::Constants::n_calo_counters; i += blockDim.x) {
+    fillLumiInfo(
+      parameters.dev_lumi_infos[info_offset + i],
+      offsets_and_sizes[2 * i],
+      offsets_and_sizes[2 * i + 1],
+      (static_cast<float>(E_vals[2 * i]) - static_cast<float>(E_vals[2 * i + 1])) / 1e8f,
+      shifts_and_scales[2 * i],
+      shifts_and_scales[2 * i + 1]);
   }
 }

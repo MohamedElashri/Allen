@@ -1,6 +1,13 @@
 #!/usr/bin/bash
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
 # Allow ADDITIONAL_OPTIONS to be unset
@@ -43,7 +50,7 @@ SOURCE_FOLDER=$(realpath ${PWD})
 mkdir -p ${BUILD_FOLDER}
 cd ${BUILD_FOLDER}
 
-yum install -y numactl-libs
+dnf install -y numactl-libs glibc-devel
 
 setupViews
 

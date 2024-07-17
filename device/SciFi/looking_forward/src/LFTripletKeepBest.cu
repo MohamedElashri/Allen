@@ -1,8 +1,14 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "LFCreateTracks.cuh"
-#include "OddevenMergeSort.cuh"
 #include "WarpIntrinsicsTools.cuh"
 
 template<bool with_ut, typename T>
@@ -127,7 +133,7 @@ __global__ void lf_create_tracks::lf_triplet_keep_best(
   const LookingForward::Constants* dev_looking_forward_constants)
 {
   const auto* ut_tracks =
-    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
+    Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
     triplet_keep_best<true>(parameters, dev_looking_forward_constants, ut_tracks);
   }

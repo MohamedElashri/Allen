@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -55,6 +62,12 @@ namespace VP {
   static constexpr unsigned ChipColumns_division = 8;
   static constexpr unsigned ChipColumns_mask = 0xFF;
   static constexpr double Pitch = 0.055;
+
+  static constexpr unsigned number_of_clusters_in_SP(uint8_t sp)
+  {
+    // 2 halfs are linked or one of the half is empty
+    return 1 + !(((sp & 0x22) != 0 && (sp & 0x44) != 0) || (sp & 0x33) == 0 || (sp & 0xCC) == 0);
+  }
 } // namespace VP
 
 namespace Velo {
@@ -213,4 +226,9 @@ __device__ __host__ inline uint32_t get_channel_id(
 __device__ __host__ inline int32_t get_lhcb_id(const int32_t cid)
 {
   return lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::VELO, cid);
+}
+
+__device__ __host__ inline uint32_t get_module_number(const unsigned lhcb_id)
+{
+  return (((lhcb_id) &Allen::VPChannelID::sensorMask) >> Allen::VPChannelID::sensorBits) / 4;
 }

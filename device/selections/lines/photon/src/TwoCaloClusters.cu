@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <math.h>
 #include "TwoCaloClusters.cuh"
@@ -9,123 +16,92 @@
 // Explicit instantiation
 INSTANTIATE_LINE(two_calo_clusters_line::two_calo_clusters_line_t, two_calo_clusters_line::Parameters)
 
-void two_calo_clusters_line::two_calo_clusters_line_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants) const
-{
-  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants);
-  set_size<dev_local_decisions_t>(arguments, get_decisions_size(arguments));
-}
-
 __device__ bool two_calo_clusters_line::two_calo_clusters_line_t::select(
   const Parameters& parameters,
-  std::tuple<const TwoCaloCluster> input)
+  const DeviceAccumulators&,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned> input)
 {
+  const auto number_of_velo_tracks = std::get<1>(input);
+  const auto ecal_number_of_clusters = std::get<2>(input);
+  const auto n_pvs = std::get<3>(input);
   const auto dicluster = std::get<0>(input);
 
-  bool decision = (dicluster.Mass > parameters.minMass) && (dicluster.Mass < parameters.maxMass) &&
-                  (dicluster.Et > parameters.minEt) &&
-                  (dicluster.et1 > parameters.minEt_clusters && dicluster.et2 > parameters.minEt_clusters) &&
-                  (dicluster.et1 + dicluster.et2 > parameters.minSumEt_clusters) &&
-                  (dicluster.CaloNeutralE19_1 > parameters.minE19_clusters &&
-                   dicluster.CaloNeutralE19_2 > parameters.minE19_clusters);
+  const auto child1 = static_cast<const Allen::Views::Physics::NeutralBasicParticle*>(dicluster.child(0));
+  const auto child2 = static_cast<const Allen::Views::Physics::NeutralBasicParticle*>(dicluster.child(1));
+  const auto c1 = child1->cluster();
+  const auto c2 = child2->cluster();
+
+  const float mass = dicluster.diphoton_mass();
+  const float pt = dicluster.diphoton_pt();
+  const float eta = dicluster.diphoton_eta();
+
+  bool decision = (mass > parameters.minMass) && (mass < parameters.maxMass) && (pt > parameters.minPt) &&
+                  (pt <= parameters.maxPt) && (pt > parameters.minPtEta * (10 - eta)) &&
+                  (child1->et() > parameters.minEt_clusters && child2->et() > parameters.minEt_clusters) &&
+                  (child1->et() + child2->et() > parameters.minSumEt_clusters) &&
+                  (c1.CaloNeutralE19 > parameters.minE19_clusters && c2.CaloNeutralE19 > parameters.minE19_clusters) &&
+                  (number_of_velo_tracks <= parameters.max_velo_tracks) &&
+                  (ecal_number_of_clusters <= parameters.max_ecal_clusters) && (n_pvs <= parameters.max_n_pvs) &&
+                  (eta < parameters.eta_max);
 
   return decision;
 }
 
-void two_calo_clusters_line::two_calo_clusters_line_t::init_monitor(
-  const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context) const
-{
-  Allen::memset_async<dev_local_decisions_t>(arguments, false, context);
-}
-
-__device__ void two_calo_clusters_line::two_calo_clusters_line_t::monitor(
+__device__ void two_calo_clusters_line::two_calo_clusters_line_t::fill_tuples(
   const Parameters& parameters,
-  std::tuple<const TwoCaloCluster>,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned> input,
   unsigned index,
   bool sel)
 {
-  parameters.dev_local_decisions[index] = sel;
+  const auto& [dicluster, n_velotracks, n_caloclusters, n_pvs] = input;
+  if (sel) {
+    parameters.diphoton_mass[index] = dicluster.diphoton_mass();
+    parameters.diphoton_et[index] = dicluster.diphoton_pt();
+    parameters.diphoton_eta[index] = dicluster.diphoton_eta();
+    const auto child1 = static_cast<const Allen::Views::Physics::NeutralBasicParticle*>(dicluster.child(0));
+    const auto child2 = static_cast<const Allen::Views::Physics::NeutralBasicParticle*>(dicluster.child(1));
+    const auto c1 = child1->cluster();
+    const auto c2 = child2->cluster();
+    parameters.diphoton_min_photonet[index] =
+      min(child1->et(), child2->et()); // can be used in bandwidth division, [2000,4500] GeV
+    parameters.diphoton_distance[index] = dicluster.diphoton_distance();
+    parameters.photon1_x[index] = c1.x;
+    parameters.photon1_y[index] = c1.y;
+    parameters.photon1_et[index] = child1->et();
+    parameters.photon1_e19[index] = c1.CaloNeutralE19;
+    parameters.photon2_x[index] = c2.x;
+    parameters.photon2_y[index] = c2.y;
+    parameters.photon2_et[index] = child2->et();
+    parameters.photon2_e19[index] = c2.CaloNeutralE19;
+    parameters.nvelotracks[index] = n_velotracks;
+    parameters.necalclusters[index] = n_caloclusters;
+    parameters.npvs[index] = n_pvs;
+  }
 }
 
-void two_calo_clusters_line::two_calo_clusters_line_t::output_monitor(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  [[maybe_unused]] const RuntimeOptions& runtime_options,
-  [[maybe_unused]] const Allen::Context& context) const
+void two_calo_clusters_line::two_calo_clusters_line_t::init()
 {
-  auto handler = runtime_options.root_service->handle(name());
+  Line<two_calo_clusters_line::two_calo_clusters_line_t, two_calo_clusters_line::Parameters>::init();
 
-  // Distributions per dicluster
-  auto tree_twoclusters = handler.tree("monitor_tree_twoclusters");
-  if (tree_twoclusters == nullptr) return;
+  m_histogram_diphoton_mass.x_axis().nBins = property<histogram_diphoton_mass_nbins_t>();
+  m_histogram_diphoton_mass.x_axis().minValue = property<histogram_diphoton_mass_min_t>();
+  m_histogram_diphoton_mass.x_axis().maxValue = property<histogram_diphoton_mass_max_t>();
 
-  // Distributions per event
-  auto tree_evts = handler.tree("monitor_tree_evts");
-  if (tree_evts == nullptr) return;
+  m_histogram_diphoton_pt.x_axis().nBins = property<histogram_diphoton_pt_nbins_t>();
+  m_histogram_diphoton_pt.x_axis().minValue = property<histogram_diphoton_pt_min_t>();
+  m_histogram_diphoton_pt.x_axis().maxValue = property<histogram_diphoton_pt_max_t>();
+}
 
-  const auto host_ecal_twocluster_offsets = make_host_buffer<dev_ecal_twocluster_offsets_t>(arguments, context);
-  const auto host_ecal_twoclusters = make_host_buffer<dev_ecal_twoclusters_t>(arguments, context);
-  const auto host_local_decisions = make_host_buffer<dev_local_decisions_t>(arguments, context);
-
-  float Mass = 0.f;
-  float Et = 0.f;
-  float Distance = 0.f;
-  float x1 = 0.f;
-  float x2 = 0.f;
-  float y1 = 0.f;
-  float y2 = 0.f;
-  float et1 = 0.f;
-  float et2 = 0.f;
-  float e19_1 = 0.f;
-  float e19_2 = 0.f;
-  unsigned num_twoclusters = 0u;
-  unsigned event_number = 0u;
-
-  handler.branch(tree_twoclusters, "Mass", Mass);
-  handler.branch(tree_twoclusters, "Et", Et);
-  handler.branch(tree_twoclusters, "Distance", Distance);
-  handler.branch(tree_twoclusters, "x1", x1);
-  handler.branch(tree_twoclusters, "x2", x2);
-  handler.branch(tree_twoclusters, "y1", y1);
-  handler.branch(tree_twoclusters, "y2", y2);
-  handler.branch(tree_twoclusters, "et1", et1);
-  handler.branch(tree_twoclusters, "et2", et2);
-  handler.branch(tree_twoclusters, "e19_1", e19_1);
-  handler.branch(tree_twoclusters, "e19_2", e19_2);
-  handler.branch(tree_twoclusters, "num_twoclusters", num_twoclusters);
-  handler.branch(tree_twoclusters, "event_number", event_number);
-
-  handler.branch(tree_evts, "num_twoclusters", num_twoclusters);
-
-  auto const n_events = first<host_number_of_events_t>(arguments);
-
-  for (unsigned event_index = 0; event_index < n_events; event_index++) {
-    const unsigned& twoclusters_offset = host_ecal_twocluster_offsets[event_index];
-    num_twoclusters = host_ecal_twocluster_offsets[event_index + 1] - twoclusters_offset;
-    event_number = event_index;
-    tree_evts->Fill();
-
-    for (unsigned twocluster_index = 0; twocluster_index < num_twoclusters; twocluster_index++) {
-      const bool& decision = host_local_decisions[twoclusters_offset + twocluster_index];
-      if (decision) {
-        const auto& dicluster = host_ecal_twoclusters[twoclusters_offset + twocluster_index];
-
-        Mass = dicluster.Mass;
-        Distance = dicluster.Distance;
-        Et = dicluster.Et;
-        x1 = dicluster.x1;
-        x2 = dicluster.x2;
-        y1 = dicluster.y1;
-        y2 = dicluster.y2;
-        et1 = dicluster.et1;
-        et2 = dicluster.et2;
-        e19_1 = dicluster.CaloNeutralE19_1;
-        e19_2 = dicluster.CaloNeutralE19_2;
-
-        tree_twoclusters->Fill();
-      }
-    }
+__device__ void two_calo_clusters_line::two_calo_clusters_line_t::monitor(
+  const Parameters&,
+  const DeviceAccumulators& accumulators,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned> input,
+  unsigned,
+  bool sel)
+{
+  const auto& dicluster = std::get<0>(input);
+  if (sel) {
+    accumulators.histogram_diphoton_mass.increment(dicluster.diphoton_mass());
+    accumulators.histogram_diphoton_pt.increment(dicluster.diphoton_pt());
   }
 }

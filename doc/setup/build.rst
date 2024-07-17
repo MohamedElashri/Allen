@@ -10,7 +10,7 @@ There are two options for building Allen: Either as standalone project or as par
 As standalone project
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. _requisites
+.. _requisites:
 
 Requisites
 ----------------
@@ -43,7 +43,7 @@ Further requirements depend on the device chosen as target. Allen supports targe
 Building with CVMFS
 -------------------
 
-We show a proposed development setup with the CVMFS filesystem and CentOS 7 that automatically provides all the aforementioned requisites:
+We show a proposed development setup with the CVMFS filesystem and RHEL 9 that automatically provides all the aforementioned requisites:
 
 First source the LHCb environment::
 
@@ -55,26 +55,41 @@ The build process is the standard cmake procedure. You should specify a `CMAKE_T
 
     mkdir build
     cd build
-    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12-opt.cmake ..
+    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_103/x86_64-centos9-gcc12-opt.cmake ..
     make
 
 * CUDA target::
 
     mkdir build
     cd build
-    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12+cuda11_4-opt.cmake ..
+    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_103/x86_64_v3-el9-gcc12+cuda12_1-opt.cmake ..
     make
 
-* HIP target::
+* HIP target (the following is a CentOS 7 configuration, a RHEL 9 one will soon be provided)::
 
     mkdir build
     cd build
     cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12+hip5-opt.cmake ..
     make
 
+Note: CUDA builds with CVMFS outside CERN network still require a local CUDA installation. If `cmake` reports that "No CMAKE_CUDA_COMPILER could be found", it is unable to find the local installation of `nvcc` CUDA compiler. You can do either one of the following three:
+
+* Specify `CMAKE_CUDA_COMPILER` when invoking `cmake`::
+
+    cmake -DSTANDALONE=ON -DCMAKE_CUDA_COMPILER=</path/to/nvcc> -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_103/x86_64_v3-el9-gcc12+cuda12_1-opt.cmake ..
+
+* Add `nvcc` directory to `PATH` (typically `/usr/local/cuda-X.Y/bin`)::
+
+    export PATH=$PATH:</directory/containing/nvcc>
+
+* Set the environment variable `CUDACXX`::
+
+    export CUDACXX=</path/to/nvcc>
+
 In order to run, use the generated wrapper::
 
     ./toolchain/wrapper ./Allen --sequence hlt1_pp_validation
+
 
 Building without CVMFS
 ----------------------
@@ -136,7 +151,7 @@ Alternatively, cmake options can be passed with `-D` when invoking the cmake com
 
 * `STANDALONE` - Selects whether to build Allen standalone or as part of the Gaudi stack. Defaults to `OFF`.
 * `TARGET_DEVICE` - Selects the target device architecture. Options are `CPU`, `CUDA` and `HIP`.
-* `SEQUENCES` - Either a regex or `all`, if a regex is passed and the pattern is found in a sequence name, it will be built. For a complete list of sequences available, check `configuration/sequences/`. The name of a sequence is given by its filename without the `.py` extension.
+* `SEQUENCES` - Either a regex or `all`, if a regex is passed and the pattern is found in a sequence name, it will be built. For a complete list of sequences available, check `configuration/sequences/`. The name of a sequence is given by its filename without the `.py` extension. Note that sequences are by default generated during runtime, when specified through --sequence. Requesting sequences here causes them to be pregenerated into a json file (in the build directory).
 * `CMAKE_BUILD_TYPE` - Build type, which is either of `RelWithDebInfo`, `Release` or `Debug`.
 * `CUDA_ARCH` - Selects the architecture to target for `CUDA` compilation.
 * `HIP_ARCH` - Selects the architecture to target with `HIP` compilation.

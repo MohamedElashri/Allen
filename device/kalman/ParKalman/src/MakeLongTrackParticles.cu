@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "MakeLongTrackParticles.cuh"
+#include "ArgumentOps.cuh"
 
 INSTANTIATE_ALGORITHM(make_long_track_particles::make_long_track_particles_t)
 
@@ -33,35 +34,59 @@ void make_long_track_particles::make_long_track_particles_t::operator()(
   Allen::memset_async<dev_long_track_particle_view_t>(arguments, 0, context);
 
   global_function(make_particles)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+    arguments,
+    size<dev_event_list_t>(arguments),
+    m_histogram_n_trks.data(context),
+    m_histogram_trk_eta.data(context),
+    m_histogram_trk_phi.data(context),
+    m_histogram_trk_pt.data(context));
 }
 
-void __global__ make_long_track_particles::make_particles(make_long_track_particles::Parameters parameters)
+void __global__ make_long_track_particles::make_particles(
+  make_long_track_particles::Parameters parameters,
+  unsigned event_list_size,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_n_trks,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_eta,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_phi,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_pt)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
-  const unsigned event_number = blockIdx.x;
-  const auto* mec =
-    static_cast<const Allen::Views::Physics::MultiEventLongTracks*>(parameters.dev_multi_event_long_tracks[0]);
-  const auto event_long_tracks = mec->container(event_number);
-  const unsigned offset = event_long_tracks.offset();
-  const unsigned number_of_tracks = event_long_tracks.size();
-  const auto pv_table = parameters.dev_kalman_pv_tables[event_number];
+  const unsigned event_index = blockIdx.x;
 
-  for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
-    const auto* long_track = &(event_long_tracks.track(i));
-    const int i_pv = pv_table.pv(i);
-    new (parameters.dev_long_track_particle_view + offset + i) Allen::Views::Physics::BasicParticle {
-      long_track,
-      parameters.dev_kalman_states_view + event_number,
-      i_pv >= 0 ? parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i) :
-                  nullptr,
-      i,
-      parameters.dev_lepton_id[offset + i]};
+  if (event_index < event_list_size) {
+    const unsigned event_number = parameters.dev_event_list[event_index];
+    const auto* mec =
+      static_cast<const Allen::Views::Physics::MultiEventLongTracks*>(parameters.dev_multi_event_long_tracks[0]);
+    const auto event_long_tracks = mec->container(event_number);
+    const unsigned offset = event_long_tracks.offset();
+    const unsigned number_of_tracks = event_long_tracks.size();
+    const auto pv_table = parameters.dev_kalman_pv_tables[event_number];
+
+    if (threadIdx.x == 0) {
+      dev_histogram_n_trks.increment(number_of_tracks);
+    }
+
+    for (unsigned i = threadIdx.x; i < number_of_tracks; i += blockDim.x) {
+      const auto* long_track = &(event_long_tracks.track(i));
+      const int i_pv = pv_table.pv(i);
+      new (parameters.dev_long_track_particle_view + offset + i) Allen::Views::Physics::BasicParticle {
+        long_track,
+        parameters.dev_kalman_states_view + event_number,
+        i_pv >= 0 ? parameters.dev_multi_final_vertices + PV::max_number_vertices * event_number + pv_table.pv(i) :
+                    nullptr,
+        i,
+        parameters.dev_lepton_id[offset + i]};
+
+      auto state = (parameters.dev_kalman_states_view + event_number)->state(i);
+      dev_histogram_trk_eta.increment(state.eta());
+      dev_histogram_trk_phi.increment(std::atan2(state.ty(), state.tx()));
+      dev_histogram_trk_pt.increment(state.pt());
+    }
   }
 
   if (threadIdx.x == 0) {
-    new (parameters.dev_long_track_particles_view + event_number) Allen::Views::Physics::BasicParticles {
-      parameters.dev_long_track_particle_view, parameters.dev_atomics_scifi, event_number};
+    new (parameters.dev_long_track_particles_view + event_index) Allen::Views::Physics::BasicParticles {
+      parameters.dev_long_track_particle_view, parameters.dev_atomics_scifi, event_index};
   }
 
   if (blockIdx.x == 0 && threadIdx.x == 0) {

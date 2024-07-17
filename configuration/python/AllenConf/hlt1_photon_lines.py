@@ -1,5 +1,12 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenCore.algorithms import single_calo_cluster_line_t, two_calo_clusters_line_t
 from AllenConf.utils import initialize_number_of_events, mep_layout
@@ -22,34 +29,45 @@ def make_single_calo_cluster_line(calo,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
-        dev_ecal_clusters_t=calo["dev_ecal_clusters"],
-        dev_ecal_cluster_offsets_t=calo["dev_ecal_cluster_offsets"],
         host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"],
+        dev_particle_container_t=calo["dev_multi_event_neutral_particles"],
         minEt=minEt,
         maxEt=maxEt,
-        enable_monitoring=False)
+        enable_tupling=False)
 
 
-def make_bs2gammagamma_line(calo,
-                            name="Hlt1Bs2GammaGamma",
-                            pre_scaler_hash_string=None,
-                            post_scaler_hash_string=None):
+def make_diphotonhighmass_line(calo,
+                               velo_tracks,
+                               pvs,
+                               name="Hlt1DiPhotonHighMass",
+                               pre_scaler=1.,
+                               post_scaler=1.,
+                               pre_scaler_hash_string=None,
+                               post_scaler_hash_string=None,
+                               enable_tupling=False,
+                               minET=6000):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
         two_calo_clusters_line_t,
         name=name,
-        host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
-        dev_ecal_twoclusters_t=calo["dev_ecal_twoclusters"],
-        dev_ecal_twocluster_offsets_t=calo["dev_ecal_twocluster_offsets"],
-        host_ecal_number_of_twoclusters_t=calo[
-            "host_ecal_number_of_twoclusters"],
-        minMass=3000,  #MeV
-        maxMass=8000,  #MeV
-        minEt=1000,
-        minEt_clusters=2500,
-        minSumEt_clusters=0,
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_velo_tracks_t=velo_tracks["dev_velo_tracks_view"],
+        dev_particle_container_t=calo["dev_multi_event_diphotons"],
+        dev_cluster_particle_container_t=calo[
+            "dev_multi_event_neutral_particles"],
+        host_number_of_svs_t=calo["host_ecal_number_of_twoclusters"],
+        dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"],
+        minMass=4200,  #MeV
+        maxMass=21000,  #MeV
+        minPt=3000,
+        minEt_clusters=minET,
+        minSumEt_clusters=6000,
         minE19_clusters=0.6,
-        enable_monitoring=False)
+        enable_tupling=enable_tupling)

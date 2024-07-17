@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "SearchWindows.cuh"
 #include "SearchWindowsDeviceFunctions.cuh"
@@ -124,8 +131,8 @@ __device__ void tol_refine(
     const auto i = const_first_candidate + candidate_i;
 
     const auto zInit = ut_hits.zAtYEq0(i);
-    const auto yApprox = velo_state.y + velo_state.ty * (zInit - velo_state.z);
-    const auto xOnTrackProto = velo_state.x + velo_state.tx * (zInit - velo_state.z);
+    const auto yApprox = velo_state.y() + velo_state.ty() * (zInit - velo_state.z());
+    const auto xOnTrackProto = velo_state.x() + velo_state.tx() * (zInit - velo_state.z());
     const auto xx = ut_hits.xAt(i, yApprox, dxDy);
     const auto dx = xx - xOnTrackProto;
 
@@ -167,30 +174,29 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const float min_pt,
   const float min_momentum)
 {
-  // TODO: Understand and fix this logic
+  // TODO: Understand and fix this logic (especially ty_index)
   // -- This is hardcoded, so faster
   // -- If you ever change the Table in the magnet tool, this will be wrong
-  const float absSlopeY = fabsf(velo_state.ty);
-  int index = static_cast<int>(absSlopeY * 100 + 0.5f);
-  // assert(3 + 4 * index < UTMagnetTool::N_dxLay_vals);
-  if (3 + 4 * index >= UTMagnetTool::N_dxLay_vals) {
-    index = (UTMagnetTool::N_dxLay_vals - 3) / 4 - 1;
-  }
-  const float normFact[4] {
-    fudge_factors[4 * index], fudge_factors[1 + 4 * index], fudge_factors[2 + 4 * index], fudge_factors[3 + 4 * index]};
+  // -- Need to understand where 100 and 0.5 comes from when converting ty->ty_index
+  const float absSlopeY = fabsf(velo_state.ty());
+  const int ty_index = static_cast<int>(absSlopeY * 100 + 0.5f);
+  const int fudge_index =
+    min(UT::Constants::n_layers * ty_index + layer, UTMagnetTool::N_dxLay_vals - UT::Constants::n_layers + layer);
+  const float normFact = fudge_factors[fudge_index];
 
   // -- this 500 seems a little odd...
   // to do: change back!
-  const float invTheta = min(500.0f, 1.0f / sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty));
+  const float invTheta =
+    min(500.0f, 1.0f / sqrtf(velo_state.tx() * velo_state.tx() + velo_state.ty() * velo_state.ty()));
   const float minMom = max(min_pt * invTheta, min_momentum);
   const float xTol = fabsf(1.0f / (UT::Constants::distToMomentum * minMom));
   const int layer_offset = ut_hit_offsets.layer_offset(layer);
 
   const float dx_dy = ut_dxDy[layer];
   const float z_at_layer = ut_hits.zAtYEq0(layer_offset);
-  const float y_track = velo_state.y + velo_state.ty * (z_at_layer - velo_state.z);
-  const float x_track = velo_state.x + velo_state.tx * (z_at_layer - velo_state.z);
-  const float invNormFact = 1.0f / normFact[layer];
+  const float y_track = velo_state.y() + velo_state.ty() * (z_at_layer - velo_state.z());
+  const float x_track = velo_state.x() + velo_state.tx() * (z_at_layer - velo_state.z());
+  const float invNormFact = 1.0f / normFact;
   const float xTolNormFact = xTol * invNormFact;
 
   // Find sector group for lowerBoundX and upperBoundX

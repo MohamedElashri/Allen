@@ -1,10 +1,16 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "FindMuonHits.cuh"
-
-#include "Common.h"
-#include <string>
+#include "MuonDefinitions.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(find_muon_hits::find_muon_hits_t)
 
@@ -15,10 +21,13 @@ void find_muon_hits::find_muon_hits_t::set_arguments_size(
 {
   set_size<dev_muon_tracks_t>(
     arguments, Muon::Constants::max_number_of_tracks * first<host_number_of_events_t>(arguments));
-  set_size<dev_muon_number_of_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_muon_tracks_buffer_t>(
+    arguments, Muon::Constants::max_number_of_tracks * first<host_number_of_events_t>(arguments));
+  set_size<dev_muon_tracks_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_muon_total_number_of_tracks_t>(arguments, 1);
 }
 
-void find_muon_hits::find_muon_hits_t::output_monitor(
+void find_muon_hits::find_muon_hits_t::output_tuples(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions& runtime_options,
   const Allen::Context& context) const
@@ -58,7 +67,7 @@ void find_muon_hits::find_muon_hits_t::output_monitor(
   const auto host_station_ocurrences_offset = make_host_buffer<dev_station_ocurrences_offset_t>(arguments, context);
   const auto host_muon_hits = make_host_buffer<dev_muon_hits_t>(arguments, context);
   const auto host_muon_tracks = make_host_buffer<dev_muon_tracks_t>(arguments, context);
-  const auto host_muon_number_of_tracks = make_host_buffer<dev_muon_number_of_tracks_t>(arguments, context);
+  const auto host_muon_number_of_tracks = make_host_buffer<dev_muon_tracks_offsets_t>(arguments, context);
 
   const auto n_tracks = host_muon_number_of_tracks.data();
   const auto tracks = host_muon_tracks.data();
@@ -106,11 +115,14 @@ void find_muon_hits::find_muon_hits_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_muon_number_of_tracks_t>(arguments, 0, context);
+  Allen::memset_async<dev_muon_tracks_offsets_t>(arguments, 0, context);
 
   global_function(find_muon_hits)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_t>(), context)(
     arguments, constants.dev_match_windows);
-  if (property<enable_monitoring_t>()) output_monitor(arguments, runtime_options, context);
+
+  if (property<enable_tupling_t>()) output_tuples(arguments, runtime_options, context);
+
+  PrefixSum::prefix_sum<dev_muon_tracks_offsets_t, host_muon_total_number_of_tracks_t>(*this, arguments, context);
 }
 
 __device__ bool applyWeightedFit(MuonTrack& muon_track, Muon::ConstHits& muon_hits, bool xz)
@@ -286,10 +298,18 @@ __device__ void seedAndFind(
       auto fit_result_xz = applyWeightedFit(muon_track, muon_hits, true);
       auto fit_result_yz = applyWeightedFit(muon_track, muon_hits, false);
       if (fit_result_xz && fit_result_yz) {
-        const auto insert_index = atomicAdd(&number_of_muon_tracks_atomic, 1);
+        auto insert_index = atomicAdd(&number_of_muon_tracks_atomic, 1);
+        if (insert_index >= Muon::Constants::max_number_of_tracks) {
+          break;
+        }
         muon_tracks[insert_index] = muon_track;
       }
     }
+  }
+
+  __syncthreads();
+  if (threadIdx.x == 0 && number_of_muon_tracks_atomic >= Muon::Constants::max_number_of_tracks) {
+    number_of_muon_tracks_atomic = 0; // Ensure the output is deterministic
   }
 }
 
@@ -310,15 +330,14 @@ __global__ void find_muon_hits::find_muon_hits(
   auto tracks_offset = event_number * Muon::Constants::max_number_of_tracks;
   auto event_muon_tracks = parameters.dev_muon_tracks + tracks_offset;
 
-  auto event_number_of_tracks = parameters.dev_muon_number_of_tracks + event_number;
+  auto event_number_of_tracks = parameters.dev_muon_tracks_offsets + event_number;
 
   // Station processing order
   constexpr std::array<int, 4> st_order {
     Muon::Constants::M5, Muon::Constants::M4, Muon::Constants::M3, Muon::Constants::M2};
 
   const auto match_windows = dev_match_windows[0];
-  __shared__ float muon_tracks_shared_container[Muon::Constants::max_number_of_tracks * sizeof(MuonTrack)];
-  MuonTrack* muon_tracks = reinterpret_cast<MuonTrack*>(muon_tracks_shared_container);
+  MuonTrack* muon_tracks = parameters.dev_muon_tracks_buffer + tracks_offset;
   __shared__ unsigned number_of_muon_tracks_atomic;
   if (threadIdx.x == 0) number_of_muon_tracks_atomic = 0;
 
@@ -333,9 +352,7 @@ __global__ void find_muon_hits::find_muon_hits(
     parameters.required_number_of_hits,
     number_of_muon_tracks_atomic,
     muon_tracks);
-
   __syncthreads();
-
   // Clone killing
   const auto is_clone_of = [&](const MuonTrack& track_a, const MuonTrack& track_b) {
     if (

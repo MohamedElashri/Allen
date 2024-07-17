@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -12,9 +19,7 @@ namespace passthrough_line {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;

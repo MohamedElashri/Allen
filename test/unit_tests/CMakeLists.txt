@@ -1,5 +1,12 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 file(GLOB generic_tests "generic/src/*cpp")
 file(GLOB cu_generic_tests "generic/src/*cu")
@@ -9,7 +16,7 @@ add_definitions(-D${TARGET_DEFINITION})
 
 allen_add_executable(unit_tests ${generic_tests} ${cu_generic_tests})
 
-target_link_libraries(unit_tests Catch2::Catch2 HostPrefixSum HostCommon)
+target_link_libraries(unit_tests Catch2::Catch2 HostEventModel EventModel Gear AllenCommon Backend HostCommon)
 
 if (NOT STANDALONE)
   # Make test discovery work in stack builds

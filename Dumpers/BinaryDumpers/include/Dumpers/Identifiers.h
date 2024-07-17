@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2019 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -85,6 +92,20 @@ namespace Allen {
      */
     struct ECalGeometry : Identifier {
       inline static std::string const id = "EcalGeometry";
+    };
+
+    /** @class RichPDMDBMapping
+     *  Identifier for the RICH PDMDB decode mapping for Allen
+     */
+    struct RichPDMDBMapping : Identifier {
+      inline static std::string const id = "RichPDMDBMapping";
+    };
+
+    /** @class RichCableMapping
+     *  Identifier for the RICH cable mapping for Allen
+     */
+    struct RichCableMapping : Identifier {
+      inline static std::string const id = "RichCableMapping";
     };
 
   } // namespace NonEventData

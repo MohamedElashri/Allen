@@ -1,5 +1,12 @@
 /***************************************************************************** \
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 /**
  *      Allen
@@ -12,6 +19,7 @@
  */
 #include <iostream>
 #include <string>
+#include <sstream>
 #include <cstring>
 #include <exception>
 #include <fstream>
@@ -28,6 +36,7 @@
 #include <memory>
 #include <tuple>
 #include <stdio.h>
+#include <filesystem>
 
 #include <zmq/zmq.hpp>
 #include <ZeroMQ/IZeroMQSvc.h>
@@ -58,7 +67,7 @@
 #include "Provider.h"
 #include "ROOTService.h"
 
-#include "MonitoringAggregator.h"
+#include "AllenMonitoring.h"
 #include "MonitoringPrinter.h"
 #include "ServiceLocator.h"
 
@@ -72,7 +81,6 @@ namespace {
 } // namespace
 
 /**
-=======
  * @brief      Main entry point
  *
  * @param      {key : value} command-line arguments as std::strings
@@ -84,8 +92,9 @@ namespace {
  */
 int allen(
   std::map<std::string, std::string> options,
+  std::string_view config,
   Allen::NonEventData::IUpdater* updater,
-  std::shared_ptr<IInputProvider> input_provider,
+  IInputProvider* input_provider,
   OutputHandler* output_handler,
   IZeroMQSvc* zmqSvc,
   std::string_view control_connection)
@@ -117,7 +126,7 @@ int allen(
   size_t const n_io = n_input + n_write;
 
   std::string flag, arg;
-  bool enable_monitoring_printing = false;
+  [[maybe_unused]] bool enable_monitoring_printing = false;
   [[maybe_unused]] bool register_monitoring_counters = true;
 
   // Use flags to populate variables in the program
@@ -206,10 +215,9 @@ int allen(
   logger::setVerbosity(verbosity);
 
   auto io_conf = Allen::io_configuration(n_slices, n_repetitions, number_of_threads);
-  auto const [json_configuration_file, run_from_json] = Allen::sequence_conf(options);
 
   // Set device for main thread
-  auto [device_set, device_name, device_memory_alignment] = Allen::set_device(device_id, 0);
+  auto [device_set, device_name, device_memory_alignment, bus_id] = Allen::set_device(device_id, 0);
   if (!device_set) {
     return -1;
   }
@@ -222,7 +230,14 @@ int allen(
   std::unique_ptr<ConfigurationReader> configuration_reader;
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
-  std::unique_ptr<TwoTrackMVAModelReader> two_track_mva_model_reader;
+  std::unique_ptr<LipschitzNNModelReader> two_track_mva_model_reader;
+  std::unique_ptr<LipschitzNNModelReader> electronid_mva_model_reader;
+  std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, forward_ghostkiller_reader,
+    matching_ghostkiller_reader, matching_with_ut_ghostkiller_reader, matching_no_ut_v2_ghostkiller_reader;
+
+  std::unique_ptr<SingleLayerFCNNReader> downstream_composite_quality_reader, downstream_lambda_selector_reader,
+    downstream_kshort_selector_reader, downstream_detached_lambda_selector_reader,
+    downstream_detached_kshort_selector_reader, downstream_ghostkiller_reader, ttrack_selector_reader;
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
@@ -239,33 +254,66 @@ int allen(
   }
   //
   // Load constant parameters from JSON
-  configuration_reader = std::make_unique<ConfigurationReader>(json_configuration_file);
+  configuration_reader = std::make_unique<ConfigurationReader>(config);
 
   // Get the path to the parameter folder: different for standalone and Gaudi build
   // Only in case of standalone gitlab CI pipepline the parameters folder path is passed as runtime argument
   if (folder_parameters == "") {
 #ifdef ALLEN_STANDALONE
-#define xstr(s) str(s)
-#define str(s) #s
-    folder_parameters = xstr(PARAMFILESROOTPATH);
+#define STRINGIFY(str) #str
+#define DEF_TO_STR(str) STRINGIFY(str)
+    folder_parameters = DEF_TO_STR(PARAMFILESROOTPATH);
     info_cout << "Local copy of param files is used: " << folder_parameters << std::endl;
 #endif
   }
-  if (folder_parameters == "") {
-    error_cout << "Parameters file path is empty!" << std::endl;
-  }
+
   folder_parameters += "/data/";
+  if (!std::filesystem::is_directory(folder_parameters)) {
+    error_cout << "Parameters path " << folder_parameters << " could not be accessed." << std::endl;
+  }
 
   // Read the Muon catboost model
   muon_catboost_model_reader =
     std::make_unique<CatboostModelReader>(folder_parameters + "allen_muon_catboost_model.json");
   // Two Track Model
   two_track_mva_model_reader =
-    std::make_unique<TwoTrackMVAModelReader>(folder_parameters + "allen_two_track_mva_model_June22.json");
+    std::make_unique<LipschitzNNModelReader>(folder_parameters + "allen_two_track_mva_model_June22.json");
+
+  // Ghost killers
+  forward_no_ut_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_noUT_Forward.json");
+  forward_ghostkiller_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_Forward.json");
+  matching_ghostkiller_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_Matching.json");
+  downstream_ghostkiller_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "GhostProbability/Hlt1_DownstreamGhostKiller.json");
+  downstream_composite_quality_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "HLT1Downstream/Hlt1_Downstream_Composite_Quality.json");
+  downstream_lambda_selector_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_LambdaSelector.json");
+  downstream_kshort_selector_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_KshortSelector.json");
+  downstream_detached_lambda_selector_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "HLT1Downstream/Hlt1_Downstream_DetachedLambdaSelector.json");
+  downstream_detached_kshort_selector_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "HLT1Downstream/Hlt1_Downstream_DetachedKshortSelector.json");
+
+  // Track selector
+  ttrack_selector_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_TTrackSelector.json");
+  matching_with_ut_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT.json");
+  matching_no_ut_v2_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingNoUT_V2.json");
 
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
     muon_field_of_interest_params, folder_parameters + "allen_muon_field_of_interest_params.bin");
+
+  // ElectronID model
+  electronid_mva_model_reader =
+    std::make_unique<LipschitzNNModelReader>(folder_parameters + "CaloPID/electron_mva_AllenFeb2024.json");
 
   // Initialize detector constants on GPU
   Constants constants;
@@ -289,32 +337,135 @@ int allen(
     two_track_mva_model_reader->nominal_cut(),
     two_track_mva_model_reader->lambda());
 
+  constants.initialize_electronid_mva_model_constants(
+    electronid_mva_model_reader->weights(),
+    electronid_mva_model_reader->biases(),
+    electronid_mva_model_reader->layer_sizes(),
+    electronid_mva_model_reader->n_layers(),
+    electronid_mva_model_reader->monotone_constraints(),
+    electronid_mva_model_reader->min_rescales(),
+    electronid_mva_model_reader->max_rescales(),
+    electronid_mva_model_reader->nominal_cut(),
+    electronid_mva_model_reader->lambda());
+
+  constants.initialize_forward_ghostkiller_constants(
+    forward_ghostkiller_reader->mean(),
+    forward_ghostkiller_reader->std(),
+    forward_ghostkiller_reader->weights1(),
+    forward_ghostkiller_reader->bias1(),
+    forward_ghostkiller_reader->weights2(),
+    forward_ghostkiller_reader->bias2());
+  constants.initialize_forward_no_ut_ghostkiller_constants(
+    forward_no_ut_ghostkiller_reader->mean(),
+    forward_no_ut_ghostkiller_reader->std(),
+    forward_no_ut_ghostkiller_reader->weights1(),
+    forward_no_ut_ghostkiller_reader->bias1(),
+    forward_no_ut_ghostkiller_reader->weights2(),
+    forward_no_ut_ghostkiller_reader->bias2());
+
+  constants.initialize_matching_ghostkiller_constants(
+    matching_ghostkiller_reader->mean(),
+    matching_ghostkiller_reader->std(),
+    matching_ghostkiller_reader->weights1(),
+    matching_ghostkiller_reader->bias1(),
+    matching_ghostkiller_reader->weights2(),
+    matching_ghostkiller_reader->bias2());
+  constants.initialize_matching_no_ut_v2_ghostkiller_constants(
+    matching_no_ut_v2_ghostkiller_reader->mean(),
+    matching_no_ut_v2_ghostkiller_reader->std(),
+    matching_no_ut_v2_ghostkiller_reader->weights1(),
+    matching_no_ut_v2_ghostkiller_reader->bias1(),
+    matching_no_ut_v2_ghostkiller_reader->weights2(),
+    matching_no_ut_v2_ghostkiller_reader->bias2());
+
+  constants.initialize_downstream_ghostkiller_constants(
+    downstream_ghostkiller_reader->mean(),
+    downstream_ghostkiller_reader->std(),
+    downstream_ghostkiller_reader->weights1(),
+    downstream_ghostkiller_reader->bias1(),
+    downstream_ghostkiller_reader->weights2(),
+    downstream_ghostkiller_reader->bias2());
+
+  constants.initialize_downstream_composite_quality_evaluator_constants(
+    downstream_composite_quality_reader->mean(),
+    downstream_composite_quality_reader->std(),
+    downstream_composite_quality_reader->weights1(),
+    downstream_composite_quality_reader->bias1(),
+    downstream_composite_quality_reader->weights2(),
+    downstream_composite_quality_reader->bias2());
+
+  constants.initialize_downstream_lambda_selector_constants(
+    downstream_lambda_selector_reader->mean(),
+    downstream_lambda_selector_reader->std(),
+    downstream_lambda_selector_reader->weights1(),
+    downstream_lambda_selector_reader->bias1(),
+    downstream_lambda_selector_reader->weights2(),
+    downstream_lambda_selector_reader->bias2());
+
+  constants.initialize_downstream_kshort_selector_constants(
+    downstream_kshort_selector_reader->mean(),
+    downstream_kshort_selector_reader->std(),
+    downstream_kshort_selector_reader->weights1(),
+    downstream_kshort_selector_reader->bias1(),
+    downstream_kshort_selector_reader->weights2(),
+    downstream_kshort_selector_reader->bias2());
+
+  constants.initialize_downstream_detached_lambda_selector_constants(
+    downstream_detached_lambda_selector_reader->mean(),
+    downstream_detached_lambda_selector_reader->std(),
+    downstream_detached_lambda_selector_reader->weights1(),
+    downstream_detached_lambda_selector_reader->bias1(),
+    downstream_detached_lambda_selector_reader->weights2(),
+    downstream_detached_lambda_selector_reader->bias2());
+
+  constants.initialize_downstream_detached_kshort_selector_constants(
+    downstream_detached_kshort_selector_reader->mean(),
+    downstream_detached_kshort_selector_reader->std(),
+    downstream_detached_kshort_selector_reader->weights1(),
+    downstream_detached_kshort_selector_reader->bias1(),
+    downstream_detached_kshort_selector_reader->weights2(),
+    downstream_detached_kshort_selector_reader->bias2());
+
+  constants.initialize_ttrack_selector_constants(
+    ttrack_selector_reader->mean(),
+    ttrack_selector_reader->std(),
+    ttrack_selector_reader->weights1(),
+    ttrack_selector_reader->bias1(),
+    ttrack_selector_reader->weights2(),
+    ttrack_selector_reader->bias2());
+  constants.initialize_matching_with_ut_ghostkiller_constants(
+    matching_with_ut_ghostkiller_reader->mean(),
+    matching_with_ut_ghostkiller_reader->std(),
+    matching_with_ut_ghostkiller_reader->weights1(),
+    matching_with_ut_ghostkiller_reader->bias1(),
+    matching_with_ut_ghostkiller_reader->weights2(),
+    matching_with_ut_ghostkiller_reader->bias2());
+
   // Register all consumers
   register_consumers(updater, constants, configuration_reader->configured_bank_types());
 
-  // Set up monitoring sink
-  MonitoringAggregator monitoringAggregator;
-  MonitoringPrinter monitoringPrinter {10, enable_monitoring_printing};
-
 #ifndef ALLEN_STANDALONE
-  if (register_monitoring_counters) {
-    // Accumulators from multiple streams must first be aggregated so we run two monitoring hubs
-    // The first is internal to Allen and passes all accumulators to the aggregation service
-    // The aggregation service then passes all aggregated accumulators to the second hub
-    // The second hub is the one provided by Gaudi so can also link to external sinks
-    Gaudi::Monitoring::Hub* firstHub = &StreamServiceLocator::get()->monitoringHub();
-    firstHub->addSink(&monitoringAggregator);
+  // Set up monitoring sink
+  MonitoringPrinter monitoringPrinter {"MonitoringPrinter", Gaudi::svcLocator(), 10, enable_monitoring_printing};
 
-    Gaudi::Monitoring::Hub* secondHub = &Gaudi::svcLocator()->monitoringHub();
-    secondHub->addSink(&monitoringPrinter);
+  if (register_monitoring_counters) {
+    Gaudi::svcLocator()->monitoringHub().addSink(&monitoringPrinter);
   }
+
+  // Set up event-loop monitoring
+  auto svc = dynamic_cast<Service const*>(zmqSvc)->service<IService>("AllenIOMon/EventLoop", true);
+  auto* monSvc = dynamic_cast<Service*>(svc.get());
 #endif
 
   auto const& configuration = configuration_reader->params();
 
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffers_manager =
-    std::make_unique<HostBuffersManager>(number_of_buffers, reserve_host_mb);
+    std::make_unique<HostBuffersManager>(number_of_buffers, reserve_host_mb, configuration);
+
+#ifndef ALLEN_STANDALONE
+  buffers_manager->activateMonitoring(monSvc);
+#endif
 
   if (print_status) {
     buffers_manager->printStatus();
@@ -332,21 +483,30 @@ int allen(
   }
 
   // Create all the streams
+
+  // Instantiate and configure sequence once to get dependencies
+  Allen::ScheduledSequence sched_seq {configuration_reader->configured_sequence()};
+
+  // Configure the algorithms according to the properties' values
+  sched_seq.configure_algorithms(configuration);
+
   std::vector<std::unique_ptr<Stream>> streams;
   for (unsigned t = 0; t < number_of_threads; ++t) {
-    auto& sequence = streams.emplace_back(new Stream {configuration_reader->configured_sequence(),
-                                                      print_memory_usage,
-                                                      reserve_mb,
-                                                      device_memory_alignment,
-                                                      constants,
-                                                      buffers_manager.get()});
-    sequence->configure_algorithms(configuration);
+    streams.emplace_back(new Stream {t,
+                                     configuration_reader->configured_sequence(),
+                                     sched_seq,
+                                     print_memory_usage,
+                                     reserve_mb,
+                                     device_memory_alignment,
+                                     constants,
+                                     buffers_manager.get()});
   }
 
-  if (run_from_json) {
-    // Print configured sequence
-    streams.front()->print_configured_sequence();
-  }
+  // Print configured sequence
+  streams.front()->print_configured_sequence();
+
+  // Init monitoring
+  Allen::Monitoring::AccumulatorManager::get()->initAccumulators(number_of_threads);
 
   // Interrogate stream configured sequence for validation algorithms
   const auto sequence_contains_validation_algorithms = streams.front()->contains_validation_algorithms();
@@ -376,12 +536,16 @@ int allen(
 
   // Lambda with the execution of a thread-stream pair
   const auto stream_thread = [&](unsigned thread_id, unsigned stream_id) {
+    // The InputProvider in RuntimeOptions is a shared_ptr to sort out
+    // memory management for Allen-in-Moore. When called from here it
+    // shouldn't be managed, so provide an empty deleter.
+    std::shared_ptr<IInputProvider> provider {input_provider, [](IInputProvider*) {}};
     return std::thread {run_stream,
                         thread_id,
                         stream_id,
                         device_id,
                         streams[stream_id].get(),
-                        input_provider,
+                        std::move(provider),
                         zmqSvc,
                         checker_invoker.get(),
                         root_service.get(),
@@ -394,7 +558,7 @@ int allen(
   // Lambda with the execution of the input thread that polls the
   // input provider for slices.
   const auto slice_thread = [&](unsigned thread_id, unsigned) {
-    return std::thread {run_slices, thread_id, zmqSvc, input_provider.get()};
+    return std::thread {run_slices, thread_id, zmqSvc, input_provider};
   };
 
   // Lambda with the execution of the output thread
@@ -407,10 +571,12 @@ int allen(
     return std::thread {run_monitoring, thread_id, zmqSvc, monitor_manager.get(), mon_id};
   };
 
+#ifndef ALLEN_STANDALONE
   // Lambda with the execution of the monitoring aggregation
   const auto agg_thread = [&](unsigned thread_id, unsigned) {
-    return std::thread {run_aggregation, thread_id, zmqSvc, &monitoringAggregator, &monitoringPrinter};
+    return std::thread {run_aggregation, thread_id, zmqSvc, &monitoringPrinter};
   };
+#endif
 
   using start_thread = std::function<std::thread(unsigned, unsigned)>;
 
@@ -473,11 +639,14 @@ int allen(
                                                               static_cast<unsigned>(n_mon),
                                                               std::string("Mon"),
                                                               handle_ready {handle_default_ready}},
+#ifndef ALLEN_STANDALONE
                                                   std::tuple {&agg_workers,
                                                               start_thread {agg_thread},
                                                               static_cast<unsigned>(n_agg),
                                                               std::string("Agg"),
-                                                              handle_ready {handle_default_ready}}}) {
+                                                              handle_ready {handle_default_ready}}
+#endif
+       }) {
     size_t n_ready = 0;
     for (unsigned i = 0; i < n; ++i) {
       zmq::socket_t control = zmqSvc->socket(zmq::PAIR);
@@ -541,7 +710,9 @@ int allen(
   try {
     throughput_socket = zmqSvc->socket(zmq::PUB);
     zmq::setsockopt(*throughput_socket, zmq::LINGER, 0);
-    std::string con = "ipc:///tmp/allen_throughput_" + std::to_string(device_id);
+    std::stringstream bus_suffix;
+    bus_suffix << std::setfill('0') << std::setw(2) << std::hex << bus_id;
+    std::string con = "ipc:///tmp/allen_throughput_" + bus_suffix.str();
     throughput_socket->bind(con.c_str());
   } catch (zmq::error_t const& e) {
     debug_cout << "Failed to create or bind throughput socket " << e.what() << "\n";
@@ -738,6 +909,7 @@ int allen(
                      << std::endl;
           try {
             updater->update(next_odin->data);
+            sched_seq.update_algorithms(constants);
           } catch (...) {
             error_cout << "Non-event data update failed\n";
             ++error_count;
@@ -955,6 +1127,7 @@ int allen(
 
       if (msg == "STOP") {
         stop = true;
+
         if (more) {
           stop_timeout = zmqSvc->receive<float>(*allen_control);
           t_stop = Timer {};
@@ -1079,10 +1252,16 @@ loop_error:
               << output_handler->connection() << "\n";
   }
 
-  input_provider.reset();
+  input_provider->release_buffers();
 
   // Reset device
   Allen::device_reset();
+
+#ifndef ALLEN_STANDALONE
+  if (register_monitoring_counters) {
+    Gaudi::svcLocator()->monitoringHub().removeSink(&monitoringPrinter);
+  }
+#endif
 
   if (allen_control) {
     zmqSvc->send(*allen_control, (error_count ? "ERROR" : "NOT_READY"));

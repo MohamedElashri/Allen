@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -122,8 +129,10 @@ namespace Allen {
   template<
     typename T,
     typename Args,
-    typename std::
-      enable_if_t<std::is_pod_v<typename T::type> || !std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
+    typename std::enable_if_t<
+      (std::is_standard_layout_v<typename T::type> && std::is_trivial_v<typename T::type>) ||
+        !std::is_base_of_v<Allen::Store::host_datatype, T>,
+      bool> = true>
   void memset_async(
     const Args& arguments,
     const int value,
@@ -145,8 +154,10 @@ namespace Allen {
   template<
     typename T,
     typename Args,
-    typename std::
-      enable_if_t<!std::is_pod_v<typename T::type> && std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
+    typename std::enable_if_t<
+      !(std::is_standard_layout_v<typename T::type> &&
+        std::is_trivial_v<typename T::type>) &&std::is_base_of_v<Allen::Store::host_datatype, T>,
+      bool> = true>
   void memset_async(
     const Args& arguments,
     const typename T::type value,
@@ -166,8 +177,10 @@ namespace Allen {
   template<
     typename T,
     typename Args,
-    typename std::
-      enable_if_t<std::is_pod_v<typename T::type> || !std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
+    typename std::enable_if_t<
+      (std::is_standard_layout_v<typename T::type> && std::is_trivial_v<typename T::type>) ||
+        !std::is_base_of_v<Allen::Store::host_datatype, T>,
+      bool> = true>
   void memset(
     const Args& arguments,
     const int value,
@@ -187,8 +200,10 @@ namespace Allen {
   template<
     typename T,
     typename Args,
-    typename std::
-      enable_if_t<!std::is_pod_v<typename T::type> && std::is_base_of_v<Allen::Store::host_datatype, T>, bool> = true>
+    typename std::enable_if_t<
+      !(std::is_standard_layout_v<typename T::type> &&
+        std::is_trivial_v<typename T::type>) &&std::is_base_of_v<Allen::Store::host_datatype, T>,
+      bool> = true>
   void memset(
     const Args& arguments,
     const typename T::type value,
@@ -234,9 +249,8 @@ namespace Allen {
     void store_contiguous_async(
       const Args& arguments,
       const Allen::Context& context,
-      bool fill_if_empty_container = false,
-      int fill_value = 0,
-      int fill_count = 1)
+      bool skip_if_empty_container = false,
+      int skip_count = 1)
     {
       auto container = arguments.template get<A>();
       auto aggregate = arguments.template input_aggregate<B>();
@@ -260,9 +274,8 @@ namespace Allen {
           Allen::copy_async(container, aggregate.get(i), context, kind, aggregate.size(i), container_offset);
           container_offset += aggregate.size(i);
         }
-        else if (fill_if_empty_container) {
-          Allen::memset_async<A>(arguments, fill_value, context, fill_count, container_offset);
-          container_offset += fill_count;
+        else if (skip_if_empty_container) {
+          container_offset += skip_count;
         }
       }
     }
@@ -425,13 +438,13 @@ namespace Allen {
      *          considerable slowdown.
      */
     template<typename Arg, typename Args>
-    static void print(const Args& arguments)
+    static void print(const Args& arguments, const std::string sep = ", ")
     {
       if constexpr (std::is_base_of_v<Allen::Store::host_datatype, Arg>) {
         const auto data = arguments.template get<Arg>();
         info_cout << arguments.template name<Arg>() << ": ";
         for (unsigned i = 0; i < data.size(); ++i) {
-          info_cout << ((int) data[i]) << ", ";
+          info_cout << static_cast<int>(data[i]) << sep;
         }
         info_cout << "\n";
       }
@@ -448,10 +461,10 @@ namespace Allen {
           if constexpr (
             std::is_same_v<typename Arg::type, bool> || std::is_same_v<typename Arg::type, char> ||
             std::is_same_v<typename Arg::type, unsigned char> || std::is_same_v<typename Arg::type, signed char>) {
-            info_cout << static_cast<int>(i) << ", ";
+            info_cout << static_cast<int>(i) << sep;
           }
           else {
-            info_cout << i << ", ";
+            info_cout << i << sep;
           }
         }
         info_cout << "\n";

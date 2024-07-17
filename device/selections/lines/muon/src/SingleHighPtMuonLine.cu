@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "SingleHighPtMuonLine.cuh"
 
@@ -16,4 +23,13 @@ __device__ bool single_high_pt_muon_line::single_high_pt_muon_line_t::select(
                         track.is_muon() && track.state().z() > parameters.minZ;
 
   return decision;
+}
+
+__device__ void single_high_pt_muon_line::single_high_pt_muon_line_t::fill_tuples(
+  const Parameters& parameters,
+  std::tuple<const Allen::Views::Physics::BasicParticle> input,
+  unsigned index,
+  bool sel)
+{
+  if (sel) parameters.pt[index] = std::get<0>(input).state().pt();
 }

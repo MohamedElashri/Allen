@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <filesystem>
 #include <fstream>
@@ -21,13 +28,19 @@ UTBoards::UTBoards(std::vector<char> data) : m_data {std::move(data)}
   number_of_channels = 6 * number_of_boards;
   stripsPerHybrids = p;
   p += number_of_boards;
-  stations = p;
+  sectors = p;
+  p += number_of_channels;
+  modules = p;
+  p += number_of_channels;
+  faces = p;
+  p += number_of_channels;
+  staves = p;
   p += number_of_channels;
   layers = p;
   p += number_of_channels;
-  detRegions = p;
+  sides = p;
   p += number_of_channels;
-  sectors = p;
+  types = p;
   p += number_of_channels;
   chanIDs = p;
   p += number_of_channels;

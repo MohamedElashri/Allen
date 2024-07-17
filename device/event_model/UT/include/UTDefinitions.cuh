@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -24,16 +31,28 @@ namespace UT {
       static constexpr int thre_offset = 15; // threshold
     }                                        // namespace v4
     namespace v5 {
-      static constexpr int strip_mask = 0xFFE0;
-      static constexpr int strip_offset = 5;
-      static constexpr unsigned n_lanes = 6;
-      static constexpr unsigned max_region_index = 12;
+      static constexpr uint16_t strip_mask = 0x3FE0;
+      static constexpr uint16_t strip_offset = 5;
+      static constexpr uint16_t adc_mask = 0x1F;
+      static constexpr uint16_t adc_offset = 0;
+      static constexpr uint16_t n_lanes = 6;
+      static constexpr uint16_t max_region_index = 12;
+      static constexpr uint16_t strips_per_hybrid = 512;
     } // namespace v5
 
-    static constexpr unsigned ut_number_of_sectors_per_board = 6;
-    static constexpr unsigned ut_number_of_geometry_sectors = 1048;
-    static constexpr unsigned ut_decoding_in_order_threads_x = 64;
+    // MaxAdc is unimplemented
+    enum class PositionMethod { AdcWeighting = 0, GeoWeighting = 1 };
 
+    static constexpr uint8_t number_of_channel_bins = 16;
+    static constexpr uint8_t empty_channel = 0xFF;
+    static constexpr uint16_t number_of_channels = 1296;
+    static constexpr uint16_t ut_number_of_sectors_per_board = 6;
+    static constexpr uint16_t ut_number_of_geometry_sectors = 1048;
+
+    __host__ __device__ inline bool allowed_rawbank_type(const uint8_t type)
+    {
+      return (type == LHCb::RawBank::UT || type == LHCb::RawBank::UTError);
+    }
   } // namespace Decoding
 
   static constexpr int num_atomics = 3;
@@ -84,10 +103,13 @@ struct UTBoards {
   uint32_t number_of_channels;
   uint32_t version;
   uint32_t* stripsPerHybrids;
-  uint32_t* stations;
-  uint32_t* layers;
-  uint32_t* detRegions;
   uint32_t* sectors;
+  uint32_t* modules;
+  uint32_t* faces;
+  uint32_t* staves;
+  uint32_t* layers;
+  uint32_t* sides;
+  uint32_t* types;
   uint32_t* chanIDs;
 
   __device__ __host__ UTBoards(const char* ut_boards)
@@ -100,13 +122,19 @@ struct UTBoards {
     p += 1;
     stripsPerHybrids = p;
     p += number_of_boards;
-    stations = p;
+    sectors = p;
+    p += number_of_channels;
+    modules = p;
+    p += number_of_channels;
+    faces = p;
+    p += number_of_channels;
+    staves = p;
     p += number_of_channels;
     layers = p;
     p += number_of_channels;
-    detRegions = p;
+    sides = p;
     p += number_of_channels;
-    sectors = p;
+    types = p;
     p += number_of_channels;
     chanIDs = p;
     p += number_of_channels;

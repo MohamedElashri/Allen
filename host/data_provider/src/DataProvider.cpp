@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "DataProvider.h"
 
@@ -35,7 +42,9 @@ void data_provider::data_provider_t::operator()(
   }
 
   // Copy data to device
-  Allen::data_to_device<dev_raw_banks_t, dev_raw_offsets_t, dev_raw_sizes_t, dev_raw_types_t>(arguments, bno, context);
+  if (version != -1)
+    Allen::data_to_device<dev_raw_banks_t, dev_raw_offsets_t, dev_raw_sizes_t, dev_raw_types_t>(
+      arguments, bno, context);
 
   // Copy the bank version
   ::memcpy(data<host_raw_bank_version_t>(arguments), &version, sizeof(version));

@@ -1,8 +1,16 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "IsMuon.cuh"
 #include "SystemOfUnits.h"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(is_muon::is_muon_t)
 
@@ -12,6 +20,10 @@ void is_muon::is_muon_t::set_arguments_size(
   const Constants&) const
 {
   set_size<dev_is_muon_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_muon_hit_offsets_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments) + 1);
+  set_size<host_total_sum_holder_t>(arguments, 1);
+  set_size<dev_muon_idxs_t>(
+    arguments, Muon::Constants::max_hits_per_track * first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_lepton_id_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
 
@@ -23,9 +35,17 @@ void is_muon::is_muon_t::operator()(
 {
   Allen::memset_async<dev_is_muon_t>(arguments, 0, context);
   Allen::memset_async<dev_lepton_id_t>(arguments, 0, context);
+  Allen::memset_async<dev_muon_hit_offsets_t>(arguments, 0, context);
 
   global_function(is_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, constants.dev_muon_foi, constants.dev_muon_momentum_cuts);
+    arguments,
+    constants.dev_muon_foi,
+    constants.dev_muon_momentum_cuts,
+    m_histogram_n_muons.data(context),
+    m_histogram_muon_n_stations.data(context),
+    m_histogram_muon_pt.data(context));
+
+  PrefixSum::prefix_sum<dev_muon_hit_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
 }
 
 __device__ float elliptical_foi_window(const float a, const float b, const float c, const float momentum)
@@ -72,8 +92,13 @@ __device__ bool is_in_window(
 __global__ void is_muon::is_muon(
   is_muon::Parameters parameters,
   const Muon::Constants::FieldOfInterest* dev_muon_foi,
-  const float* dev_muon_momentum_cuts)
+  const float* dev_muon_momentum_cuts,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_n_muons,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_muon_n_stations,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_muon_pt)
 {
+  // FIXME: I comment this because it's not used at all --Jiahui
+  /*
   // Put foi parameters in shared memory
   __shared__ int8_t shared_muon_foi_params_content[sizeof(Muon::Constants::FieldOfInterest)];
   Muon::Constants::FieldOfInterest* shared_muon_foi_params =
@@ -93,6 +118,48 @@ __global__ void is_muon::is_muon(
   // Due to shared_muon_foi_params
   __syncthreads();
 
+  */
+
+  if (const auto long_tracks =
+        Allen::dyn_cast<const Allen::Views::Physics::MultiEventLongTracks*>(*parameters.dev_tracks_view);
+      long_tracks) {
+    is_muon_implementation<Allen::Views::Physics::MultiEventLongTracks>(
+      parameters,
+      long_tracks,
+      dev_muon_foi,
+      dev_muon_momentum_cuts,
+      dev_histo_n_muons,
+      dev_histo_muon_n_stations,
+      dev_histo_muon_pt);
+  }
+  else if (const auto downstream_tracks =
+             Allen::dyn_cast<const Allen::Views::Physics::MultiEventDownstreamTracks*>(*parameters.dev_tracks_view);
+           downstream_tracks) {
+    is_muon_implementation<Allen::Views::Physics::MultiEventDownstreamTracks>(
+      parameters,
+      downstream_tracks,
+      dev_muon_foi,
+      dev_muon_momentum_cuts,
+      dev_histo_n_muons,
+      dev_histo_muon_n_stations,
+      dev_histo_muon_pt);
+  }
+  else {
+    // This flag tell compile this code it not reachable, so it will optimze with it
+    Allen::unreachable();
+  }
+}
+
+template<typename MultiEventTracks>
+__device__ void is_muon::is_muon_implementation(
+  is_muon::Parameters parameters,
+  const MultiEventTracks* dev_long_tracks_view,
+  const Muon::Constants::FieldOfInterest* dev_muon_foi,
+  const float* dev_muon_momentum_cuts,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_n_muons,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_muon_n_stations,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histo_muon_pt)
+{
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
@@ -102,34 +169,38 @@ __global__ void is_muon::is_muon(
     parameters.dev_station_ocurrences_offset + event_number * Muon::Constants::n_stations;
 
   // Long tracks.
-  const auto long_tracks = parameters.dev_long_tracks_view->container(event_number);
+  const auto long_tracks = dev_long_tracks_view->container(event_number);
   const auto muon_hits = Muon::ConstHits {parameters.dev_muon_hits, muon_total_number_of_hits};
 
   const unsigned number_of_tracks_event = long_tracks.size();
   const unsigned event_offset = long_tracks.offset();
 
   for (unsigned track_id = threadIdx.x; track_id < number_of_tracks_event; track_id += blockDim.x) {
-    const auto long_track = long_tracks.track(track_id);
-    const auto scifi_track = long_track.track_segment<Allen::Views::Physics::Track::segment::scifi>();
-    const auto scifi_track_id = scifi_track.track_index();
     const float momentum = 1.f / fabsf(long_tracks.qop(track_id));
-    const auto& state = parameters.dev_scifi_states[scifi_track.track_container_offset() + scifi_track_id];
+    const auto& state = parameters.dev_scifi_states[event_offset + track_id];
 
     if (momentum < dev_muon_momentum_cuts[0]) {
+      dev_histo_n_muons.increment(0);
       continue;
     }
 
     unsigned occupancies[Muon::Constants::n_stations];
 
+    unsigned* track_muon_hit_count = parameters.dev_muon_hit_offsets + event_offset + track_id;
+    unsigned* track_muon_idxs =
+      parameters.dev_muon_idxs + (event_offset + track_id) * Muon::Constants::max_hits_per_track;
     for (unsigned station_id = 0; station_id < Muon::Constants::n_stations; ++station_id) {
       occupancies[station_id] = 0;
       const int number_of_hits = station_ocurrences_offset[station_id + 1] - station_ocurrences_offset[station_id];
 
+      // Keep track of the minimum distance between hits and the extrapolation.
+      float min_norm_d2 = -1;
+
       for (int i_hit = 0; i_hit < number_of_hits; ++i_hit) {
         const int idx = station_ocurrences_offset[station_id] + i_hit;
-        const float extrapolation_x = state.x + state.tx * (muon_hits.z(idx) - state.z);
-        const float extrapolation_y = state.y + state.ty * (muon_hits.z(idx) - state.z);
-        occupancies[station_id] += is_in_window(
+        const float extrapolation_x = state.x() + state.tx() * (muon_hits.z(idx) - state.z());
+        const float extrapolation_y = state.y() + state.ty() * (muon_hits.z(idx) - state.z());
+        bool hit_in_window = is_in_window(
           muon_hits.x(idx),
           muon_hits.y(idx),
           muon_hits.dx(idx),
@@ -140,20 +211,115 @@ __global__ void is_muon::is_muon(
           momentum,
           extrapolation_x,
           extrapolation_y);
+        occupancies[station_id] += hit_in_window;
+
+        // Keep the hit closest to the extrapolated track normalized by the tile dimensions.
+        float norm_dx2 = (extrapolation_x - muon_hits.x(idx)) * (extrapolation_x - muon_hits.x(idx));
+        float norm_dy2 = 2 * (extrapolation_y - muon_hits.y(idx)) * (extrapolation_y - muon_hits.y(idx));
+        float norm_d2 = norm_dx2 + norm_dy2;
+        if (hit_in_window && (norm_d2 < min_norm_d2 || min_norm_d2 < 0)) {
+          track_muon_idxs[*track_muon_hit_count] = idx;
+          min_norm_d2 = norm_d2;
+        }
+      }
+
+      if (occupancies[station_id] > 0) {
+        *track_muon_hit_count += 1;
       }
     }
 
     if (occupancies[0] != 0 && occupancies[1] != 0) {
       if (momentum < dev_muon_momentum_cuts[1]) {
         parameters.dev_is_muon[event_offset + track_id] = true;
+
+        // Fill monitoring histograms
+        dev_histo_n_muons.increment(1);
+        const unsigned n_stations = (occupancies[2] != 0) + (occupancies[3] != 0);
+        dev_histo_muon_n_stations.increment(n_stations);
+        const auto long_track = long_tracks.track(track_id);
+        if constexpr (std::is_same_v<Allen::Views::Physics::MultiEventLongTracks, MultiEventTracks>) {
+          const auto velo_track = long_track.template track_segment<Allen::Views::Physics::Track::segment::velo>();
+          const auto velo_track_index = velo_track.track_index();
+          const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+          const auto velo_state = endvelo_states.state(velo_track_index);
+          const float pt = long_track.pt(velo_state);
+          dev_histo_muon_pt.increment(pt);
+        }
+        else if constexpr (std::is_same_v<Allen::Views::Physics::MultiEventDownstreamTracks, MultiEventTracks>) {
+          const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+          const auto velo_state = endvelo_states.state(track_id);
+          const float pt = long_track.pt(velo_state);
+          dev_histo_muon_pt.increment(pt);
+        }
+        else {
+          Allen::unreachable();
+        }
       }
       else if (momentum < dev_muon_momentum_cuts[2]) {
         parameters.dev_is_muon[event_offset + track_id] = (occupancies[2] != 0) || (occupancies[3] != 0);
+
+        // Fill monitoring histograms
+        if ((occupancies[2] != 0) || (occupancies[3] != 0)) {
+          dev_histo_n_muons.increment(1);
+          const unsigned n_stations = (occupancies[2] != 0) + (occupancies[3] != 0);
+          dev_histo_muon_n_stations.increment(n_stations);
+          const auto long_track = long_tracks.track(track_id);
+          if constexpr (std::is_same_v<Allen::Views::Physics::MultiEventLongTracks, MultiEventTracks>) {
+            const auto velo_track = long_track.template track_segment<Allen::Views::Physics::Track::segment::velo>();
+            const auto velo_track_index = velo_track.track_index();
+            const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+            const auto velo_state = endvelo_states.state(velo_track_index);
+            const float pt = long_track.pt(velo_state);
+            dev_histo_muon_pt.increment(pt);
+          }
+          else if constexpr (std::is_same_v<Allen::Views::Physics::MultiEventDownstreamTracks, MultiEventTracks>) {
+            const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+            const auto velo_state = endvelo_states.state(track_id);
+            const float pt = long_track.pt(velo_state);
+            dev_histo_muon_pt.increment(pt);
+          }
+          else {
+            Allen::unreachable();
+          }
+        }
+        else {
+          dev_histo_n_muons.increment(0);
+        }
       }
       else {
         parameters.dev_is_muon[event_offset + track_id] = (occupancies[2] != 0) && (occupancies[3] != 0);
+
+        // Fill monitoring histograms
+        if ((occupancies[2] != 0) && (occupancies[3] != 0)) {
+          dev_histo_n_muons.increment(1);
+          dev_histo_muon_n_stations.increment(2);
+          const auto long_track = long_tracks.track(track_id);
+          if constexpr (std::is_same_v<Allen::Views::Physics::MultiEventLongTracks, MultiEventTracks>) {
+            const auto velo_track = long_track.template track_segment<Allen::Views::Physics::Track::segment::velo>();
+            const auto velo_track_index = velo_track.track_index();
+            const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+            const auto velo_state = endvelo_states.state(velo_track_index);
+            const float pt = long_track.pt(velo_state);
+            dev_histo_muon_pt.increment(pt);
+          }
+          else if constexpr (std::is_same_v<Allen::Views::Physics::MultiEventDownstreamTracks, MultiEventTracks>) {
+            const auto endvelo_states = parameters.dev_velo_states_view[event_number];
+            const auto velo_state = endvelo_states.state(track_id);
+            const float pt = long_track.pt(velo_state);
+            dev_histo_muon_pt.increment(pt);
+          }
+          else {
+            Allen::unreachable();
+          }
+        }
+        else {
+          dev_histo_n_muons.increment(0);
+        }
       }
       parameters.dev_lepton_id[event_offset + track_id] = parameters.dev_is_muon[event_offset + track_id];
+    }
+    else {
+      dev_histo_n_muons.increment(0);
     }
   }
 }

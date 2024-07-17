@@ -19,9 +19,7 @@ namespace rich_2_line {
     // Commonly required inputs, outputs and properties
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -62,7 +60,7 @@ namespace rich_2_line {
     PROPERTY(minPhi_t, "minPhi", "minimum azi angle", std::array<float, 4>) minPhi;
     PROPERTY(maxPhi_t, "maxPhi", "maximum azi angle", std::array<float, 4>) maxPhi;
 
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
 
   // SelectionAlgorithm definition
@@ -82,15 +80,15 @@ namespace rich_2_line {
       std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
     // Stuff for monitoring hists
-    void init_monitor(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
+    void init_tuples(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
 
-    __device__ static void monitor(
+    __device__ static void fill_tuples(
       const Parameters& parameters,
       std::tuple<const Allen::Views::Physics::BasicParticle> input,
       unsigned index,
       bool sel);
 
-    void output_monitor(
+    void output_tuples(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions& runtime_options,
       const Allen::Context& context) const;
@@ -106,7 +104,7 @@ namespace rich_2_line {
 
     // RICH 2 Line-specific properties
     Property<minPt_t> m_minPt {this, 500.0f / Gaudi::Units::MeV};
-    Property<minP_t> m_minP {this, 40000.0f / Gaudi::Units::MeV};
+    Property<minP_t> m_minP {this, 60000.0f / Gaudi::Units::MeV};
     Property<maxTrChi2_t> m_maxTrChi2 {this, 2.0f};
 
     Property<minEta_t> m_minEta {this, {2.65}};
@@ -115,7 +113,7 @@ namespace rich_2_line {
     Property<maxPhi_t> m_maxPhi {this, {-2.49, -0.55, 0.65, 2.59}};
 
     // Switch to create monitoring tuple
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Property<enable_tupling_t> m_enable_tupling {this, false};
   };
 
 } // namespace rich_2_line

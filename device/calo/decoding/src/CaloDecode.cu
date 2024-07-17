@@ -24,7 +24,9 @@ namespace {
     unsigned const event_number,
     CaloDigit* digits,
     unsigned const number_of_digits,
-    const CaloGeometry& geometry)
+    const CaloGeometry& geometry,
+    const int16_t min_seed_adc,
+    const int16_t min_neighbor_adc)
   {
     auto raw_event = RawEvent {data, offsets, sizes, types, event_number};
     [[maybe_unused]] auto raw_event_fiberCheck = RawEvent {data, offsets, sizes, types, event_number};
@@ -32,30 +34,31 @@ namespace {
 
     for (unsigned bank_number = threadIdx.x; bank_number < raw_event.number_of_raw_banks; bank_number += blockDim.x) {
       auto raw_bank = raw_event.raw_bank(bank_number);
+      auto raw_bank_data_u32 = reinterpret_cast<const uint32_t*>(raw_bank.data);
 
       if constexpr (decoding_version < 4) { // old decoding
 
-        while (raw_bank.data < raw_bank.end) {
-          uint32_t word = *raw_bank.data;
+        const auto raw_bank_end = reinterpret_cast<const uint32_t*>(raw_bank.data + raw_bank.size);
+        while (raw_bank_data_u32 < raw_bank_end) {
+          uint32_t word = *raw_bank_data_u32;
           uint16_t trig_size = word & 0x7F;
           uint16_t code = (word >> 14) & 0x1FF;
 
           // Skip header and trigger words
-          raw_bank.data += 1 + (trig_size + 3) / 4;
+          raw_bank_data_u32 += 1 + (trig_size + 3) / 4;
 
           // pattern bits
-          unsigned int pattern = *raw_bank.data;
-          // Loop over all cards in this front-env sub-bank.
-          uint32_t last_data = *(raw_bank.data + 1);
-          raw_bank.data += 2;
+          unsigned int pattern = *raw_bank_data_u32;
+          uint32_t last_data = *(raw_bank_data_u32 + 1);
+          raw_bank_data_u32 += 2;
 
           int16_t offset = 0;
 
           for (unsigned int bit_num = 0; 32 > bit_num; ++bit_num) {
             if (31 < offset) {
               offset -= 32;
-              last_data = *raw_bank.data;
-              raw_bank.data += 1;
+              last_data = *raw_bank_data_u32;
+              raw_bank_data_u32 += 1;
             }
             int adc;
             if (0 == (pattern & (1 << bit_num))) { //.. short coding
@@ -68,8 +71,8 @@ namespace {
               if (28 == offset) adc &= 0xF; //== clean-up extra bits
               offset += 12;
               if (32 < offset) { //.. get the extra bits on next word
-                last_data = *raw_bank.data;
-                raw_bank.data += 1;
+                last_data = *raw_bank_data_u32;
+                raw_bank_data_u32 += 1;
                 offset -= 32;
                 int temp = (last_data << (12 - offset)) & 0xFFF;
                 adc += temp;
@@ -97,16 +100,17 @@ namespace {
         }
 
         auto raw_bank_fiberCheck = raw_event_fiberCheck.raw_bank(bank_number);
+        auto raw_bank_fiberCheck_data_u32 = reinterpret_cast<const uint32_t*>(raw_bank_fiberCheck.data);
 
-        auto get_data = [](uint32_t const* raw_data) {
-          auto d = *raw_data;
+        auto get_data = [](uint32_t const* raw_data_u32) {
+          auto d = *raw_data_u32;
           if constexpr (decoding_version == 4) { // big endian
             d = ((d >> 24) & 0x000000FF) | ((d >> 8) & 0x0000FF00) | ((d << 8) & 0x00FF0000) | ((d << 24) & 0xFF000000);
           }
           return d;
         };
 
-        uint32_t pattern = *(raw_bank.data);
+        uint32_t pattern = *(raw_bank_data_u32);
 
         int offset = 0;
         uint32_t lastData = pattern;
@@ -117,26 +121,25 @@ namespace {
         for (int ifeb = 0; ifeb < 3; ifeb++) {
           // First, remove 3 LLTs
           if (ifeb == 0) {
-            raw_bank.data += 3;
-            raw_bank_fiberCheck.data += 3;
+            raw_bank_data_u32 += 3;
+            raw_bank_fiberCheck_data_u32 += 3;
           }
-          lastData = get_data(raw_bank.data);
+          lastData = get_data(raw_bank_data_u32);
 
           int nADC = 0;
           bool isFiberOff = false;
           uint16_t code = geometry.getFEB(source_id, ifeb);
           uint16_t index_code = geometry.getFEBindex(source_id, ifeb);
-          if (code == 0) continue; // No FEB linked to the TELL40 slot
 
           // ... and readout data
           for (unsigned int bitNum = 0; 32 > bitNum; bitNum++) {
             if (nADC % 8 == 0) { // Check fibers pattern, 1 fiber corresponds to 8 ADC (96b)
-              if (offset == 32) raw_bank_fiberCheck.data += 1;
-              uint32_t pattern1 = get_data(raw_bank_fiberCheck.data);
-              raw_bank_fiberCheck.data += 1;
-              uint32_t pattern2 = get_data(raw_bank_fiberCheck.data);
-              raw_bank_fiberCheck.data += 1;
-              uint32_t pattern3 = get_data(raw_bank_fiberCheck.data);
+              if (offset == 32) raw_bank_fiberCheck_data_u32 += 1;
+              uint32_t pattern1 = get_data(raw_bank_fiberCheck_data_u32);
+              raw_bank_fiberCheck_data_u32 += 1;
+              uint32_t pattern2 = get_data(raw_bank_fiberCheck_data_u32);
+              raw_bank_fiberCheck_data_u32 += 1;
+              uint32_t pattern3 = get_data(raw_bank_fiberCheck_data_u32);
               if (pattern1 == fibMask1 && pattern2 == fibMask2 && pattern3 == fibMask3)
                 isFiberOff = true;
               else
@@ -144,8 +147,8 @@ namespace {
             }
             if (31 < offset) {
               offset -= 32;
-              raw_bank.data += 1;
-              lastData = get_data(raw_bank.data);
+              raw_bank_data_u32 += 1;
+              lastData = get_data(raw_bank_data_u32);
             }
 
             int adc = 0;
@@ -157,16 +160,16 @@ namespace {
               adc = ((lastData >> (20 - offset)) & 0xfff);
 
             if (28 == offset) { //.. get the extra bits on next word
-              raw_bank.data += 1;
-              lastData = get_data(raw_bank.data);
+              raw_bank_data_u32 += 1;
+              lastData = get_data(raw_bank_data_u32);
 
               int temp = (lastData >> (offset - 4)) & 0xFF;
               offset -= 32;
               adc = (adc << 8) + temp;
             }
             if (24 == offset) { //.. get the extra bits on next word
-              raw_bank.data += 1;
-              lastData = get_data(raw_bank.data);
+              raw_bank_data_u32 += 1;
+              lastData = get_data(raw_bank_data_u32);
               int temp = (lastData >> (offset + 4)) & 0xF;
               offset -= 32;
               adc = (adc << 4) + temp;
@@ -175,23 +178,58 @@ namespace {
             adc -= 256;
             ++nADC;
 
+            if (index_code == 9999) continue; // Skip 'empty' FEB slots
             uint16_t index = geometry.channels[(index_code) *geometry.card_channels + bitNum];
-
             // Ignore cells with invalid indices; these include LED diodes.
-            if (index < number_of_digits && !isFiberOff) {
+            if (index < number_of_digits && !isFiberOff && code != 0) {
               digits[index].adc = adc;
             }
           }
         }
+
       } // end Run 3 decoding
+    }
+
+    __syncthreads(); // make sure we finished filling digits before reading
+
+    // == Apply 2D zero-suppression
+    for (unsigned i = threadIdx.x; i < number_of_digits; i += blockDim.x) {
+      // if the current cell is a seed, exit to avoid looping through the neighbors
+      if (digits[i].adc >= min_seed_adc) continue;
+
+      // if the current cell is bellow neighbor threshold set it to invalid and go to the next
+      if (digits[i].adc < min_neighbor_adc) {
+        digits[i].adc = CaloDigit::INVALID_ADC;
+        continue;
+      }
+
+      // else we check if at least one of the neighbor is passing the min_seed_adc check
+      bool isNeighbor = false;
+      uint16_t* neighbors = &(geometry.neighbors[i * Calo::Constants::max_neighbours]);
+      for (unsigned n = 0; n < Calo::Constants::max_neighbours; n++) {
+        auto const neighbor_id = neighbors[n];
+        if (neighbor_id == USHRT_MAX) break;
+        auto const neighbor_adc = digits[neighbor_id].adc;
+        if (neighbor_adc != CaloDigit::INVALID_ADC && neighbor_adc >= min_seed_adc) {
+          isNeighbor = true;
+          break;
+        }
+      }
+
+      // set to invalid if no neighbor is a seed and the current cell is not a seed
+      if (!isNeighbor) digits[i].adc = CaloDigit::INVALID_ADC;
     }
   }
 } // namespace
 
 // Decode dispatch
 template<bool mep_layout, int decoding_version>
-__global__ void
-calo_decode_dispatch(calo_decode::Parameters parameters, const char* raw_ecal_geometry, const unsigned event_start)
+__global__ void calo_decode_dispatch(
+  calo_decode::Parameters parameters,
+  const char* raw_ecal_geometry,
+  const unsigned event_start,
+  const int16_t min_seed_adc,
+  const int16_t min_neighbor_adc)
 {
   unsigned const event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -199,7 +237,7 @@ calo_decode_dispatch(calo_decode::Parameters parameters, const char* raw_ecal_ge
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   auto const ecal_digits_offset = parameters.dev_ecal_digits_offsets[event_number];
 
-  decode<Calo::RawEvent<mep_layout>, decoding_version>(
+  decode<Allen::RawEvent<mep_layout>, decoding_version>(
     parameters.dev_ecal_raw_input,
     parameters.dev_ecal_raw_input_offsets,
     parameters.dev_ecal_raw_input_sizes,
@@ -207,7 +245,9 @@ calo_decode_dispatch(calo_decode::Parameters parameters, const char* raw_ecal_ge
     event_number + event_start,
     &parameters.dev_ecal_digits[ecal_digits_offset],
     parameters.dev_ecal_digits_offsets[event_number + 1] - ecal_digits_offset,
-    ecal_geometry);
+    ecal_geometry,
+    min_seed_adc,
+    min_neighbor_adc);
 }
 
 void calo_decode::calo_decode_t::set_arguments_size(
@@ -259,5 +299,9 @@ void calo_decode::calo_decode_t::operator()(
                            (bank_version == 5 ? calo_decode_dispatch<false, 5> : calo_decode_dispatch<false, 3>) );
 
   global_function(fn)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, constants.dev_ecal_geometry, std::get<0>(runtime_options.event_interval));
+    arguments,
+    constants.dev_ecal_geometry,
+    std::get<0>(runtime_options.event_interval),
+    property<ecal_min_seed_adc_t>().get(),
+    property<ecal_min_neighbor_adc_t>().get());
 }

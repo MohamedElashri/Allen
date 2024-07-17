@@ -1,10 +1,18 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "CompassUT.cuh"
 #include "CompassUTDeviceFunctions.cuh"
 #include "BinarySearch.cuh"
 #include "UTFastFitter.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(compass_ut::compass_ut_t)
 
@@ -14,7 +22,8 @@ void compass_ut::compass_ut_t::set_arguments_size(
   const Constants&) const
 {
   set_size<dev_ut_tracks_t>(arguments, first<host_number_of_events_t>(arguments) * UT::Constants::max_num_tracks);
-  set_size<dev_atomics_ut_t>(arguments, first<host_number_of_events_t>(arguments) * UT::num_atomics);
+  set_size<dev_offsets_ut_tracks_t>(arguments, first<host_number_of_events_t>(arguments) * UT::num_atomics + 1);
+  set_size<host_number_of_reconstructed_ut_tracks_t>(arguments, 1);
 }
 
 void compass_ut::compass_ut_t::operator()(
@@ -23,7 +32,7 @@ void compass_ut::compass_ut_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_atomics_ut_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_ut_tracks_t>(arguments, 0, context);
 
   global_function(compass_ut)(dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::num_thr_compassut), context)(
     arguments,
@@ -31,6 +40,33 @@ void compass_ut::compass_ut_t::operator()(
     constants.dev_magnet_polarity.data(),
     constants.dev_ut_dxDy.data(),
     constants.dev_unique_x_sector_layer_offsets.data());
+
+  if (property<verbosity_t>() >= logger::debug) {
+    auto host_ut_tracks = make_host_buffer<dev_ut_tracks_t>(arguments, context);
+    auto host_atomics_ut = make_host_buffer<dev_offsets_ut_tracks_t>(arguments, context);
+
+    // Make a container just with valid tracks
+    std::vector<UT::TrackHits> valid_tracks;
+    for (unsigned i = 0; i < first<host_number_of_events_t>(arguments); ++i) {
+      auto offset = i * UT::Constants::max_num_tracks;
+      auto size = host_atomics_ut[i];
+      for (unsigned j = offset; j < offset + size; ++j) {
+        valid_tracks.push_back(host_ut_tracks[j]);
+      }
+    }
+
+    // Sort it
+    std::sort(valid_tracks.begin(), valid_tracks.end(), [](UT::TrackHits a, UT::TrackHits b) {
+      return a.x < b.x || (a.x == b.x && a.z < b.z) || (a.x == b.x && a.z == b.z && a.tx < b.tx);
+    });
+
+    // Print it
+    for (unsigned i = 0; i < valid_tracks.size(); ++i) {
+      debug_cout << valid_tracks[i] << "\n";
+    }
+  }
+
+  PrefixSum::prefix_sum<dev_offsets_ut_tracks_t, host_number_of_reconstructed_ut_tracks_t>(*this, arguments, context);
 }
 
 __global__ void compass_ut::compass_ut(
@@ -58,11 +94,11 @@ __global__ void compass_ut::compass_ut(
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits};
   const auto event_hit_offset = ut_hit_offsets.event_offset();
 
-  // parameters.dev_atomics_ut contains in an SoA:
+  // parameters.dev_offsets_ut_tracks contains in an SoA:
   //   1. # of veloUT tracks
   //   2. # velo tracks in UT acceptance
   // This is to write the final track
-  unsigned* n_veloUT_tracks_event = parameters.dev_atomics_ut + event_number;
+  unsigned* n_veloUT_tracks_event = parameters.dev_offsets_ut_tracks + event_number;
   UT::TrackHits* veloUT_tracks_event = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
 
   // store windows and num candidates in shared mem
@@ -94,7 +130,9 @@ __global__ void compass_ut::compass_ut(
       parameters.max_considered_before_found,
       parameters.delta_tx_2,
       parameters.hit_tol_2,
-      parameters.sigma_velo_slope);
+      parameters.sigma_velo_slope,
+      parameters.min_ld_3_hit,
+      parameters.min_ld_4_hit);
   }
 }
 
@@ -117,7 +155,9 @@ __device__ void compass_ut::compass_ut_tracking(
   const unsigned max_considered_before_found,
   const float delta_tx_2,
   const float hit_tol_2,
-  const float sigma_velo_slope)
+  const float sigma_velo_slope,
+  const float min_ld_3_hit,
+  const float min_ld_4_hit)
 {
   // select velo track to join with UT hits
   const MiniState velo_state = velo_states.state(i_track);
@@ -159,7 +199,9 @@ __device__ void compass_ut::compass_ut_tracking(
       veloUT_tracks_event,
       event_hit_offset,
       min_momentum_final,
-      min_pt_final);
+      min_pt_final,
+      min_ld_3_hit,
+      min_ld_4_hit);
   }
 }
 
@@ -210,14 +252,16 @@ __device__ void compass_ut::save_track(
   UT::TrackHits* VeloUT_tracks, // write the track
   const int event_hit_offset,
   const float min_momentum_final,
-  const float min_pt_final)
+  const float min_pt_final,
+  const float min_ld_3_hit,
+  const float min_ld_4_hit)
 {
   //== Handle states. copy Velo one, add UT.
-  const float zOrigin = (fabsf(velo_state.ty) > 0.001f) ? velo_state.z - velo_state.y / velo_state.ty :
-                                                          velo_state.z - velo_state.x / velo_state.tx;
+  const float zOrigin = (fabsf(velo_state.ty()) > 0.001f) ? velo_state.z() - velo_state.y() / velo_state.ty() :
+                                                            velo_state.z() - velo_state.x() / velo_state.tx();
 
   // -- These are calculations, copied and simplified from PrTableForFunction
-  const float var[3] = {velo_state.ty, zOrigin, velo_state.z};
+  const float var[3] = {velo_state.ty(), zOrigin, velo_state.z()};
 
   const int index1 = max(0, min(30, int((var[0] + 0.3f) / 0.6f * 30)));
   const int index2 = max(0, min(10, int((var[1] + 250) / 500 * 10)));
@@ -248,7 +292,7 @@ __device__ void compass_ut::save_track(
 
   float finalParams[4] = {best_params.x,
                           best_params.tx,
-                          velo_state.y + velo_state.ty * (UT::Constants::zMidUT - velo_state.z),
+                          velo_state.y() + velo_state.ty() * (UT::Constants::zMidUT - velo_state.z()),
                           best_params.chi2UT};
 
   // const float qpxz2p = -1 * sqrtf(1.0f + velo_state.ty * velo_state.ty) / bdl * 3.3356f / Gaudi::Units::GeV;
@@ -260,7 +304,7 @@ __device__ void compass_ut::save_track(
   // -- Don't make tracks that have grossly too low momentum
   // -- Beware of the momentum resolution!
   const float p = 1.3f * fabsf(1.f / qop);
-  const float pt = p * sqrtf(velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty);
+  const float pt = p * sqrtf(velo_state.tx() * velo_state.tx() + velo_state.ty() * velo_state.ty());
 
   if (p < min_momentum_final || pt < min_pt_final) return;
 
@@ -287,7 +331,10 @@ __device__ void compass_ut::save_track(
   }
   const float evalParams[3] = {p, pt, finalParams[3]};
   const float discriminant = evaluateLinearDiscriminant(evalParams, nHits);
-  if (discriminant < UT::Constants::LD3Hits) return;
+
+  const float min_ld = (nHits == 3) ? min_ld_3_hit : min_ld_4_hit;
+  // if (discriminant < UT::Constants::LD3Hits) return;
+  if (discriminant < min_ld) return;
 
   // the track will be added
   unsigned n_tracks = atomicAdd(n_veloUT_tracks, 1u);
@@ -342,7 +389,7 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
       UT::Constants::max_value_considered_before_found :
       parameter_max_considered_before_found;
 
-  const float yyProto = velo_state.y - velo_state.ty * velo_state.z;
+  const float yyProto = velo_state.y() - velo_state.ty() * velo_state.z();
 
   const TrackCandidates ranges(win_size_shared);
 
@@ -374,7 +421,7 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
 
     // Get info to calculate slope
     const auto zhitLayer0 = ut_hits.zAtYEq0(i_hit0);
-    const float yy0 = yyProto + (velo_state.ty * zhitLayer0);
+    const float yy0 = yyProto + (velo_state.ty() * zhitLayer0);
     const auto xhitLayer0 = ut_hits.xAt(i_hit0, yy0, ut_dxDy[dxdy_layer]);
 
     // 2nd layer
@@ -385,12 +432,12 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
       // Get info to calculate slope
       const int dxdy_layer_2 = forward ? 2 : 1;
       const auto zhitLayer2 = ut_hits.zAtYEq0(i_hit2);
-      const float yy2 = yyProto + (velo_state.ty * zhitLayer2);
+      const float yy2 = yyProto + (velo_state.ty() * zhitLayer2);
       const auto xhitLayer2 = ut_hits.xAt(i_hit2, yy2, ut_dxDy[dxdy_layer_2]);
 
       // if slope is out of delta range, don't look for triplet/quadruplet
       const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
-      if (fabsf(tx - velo_state.tx) <= delta_tx_2) {
+      if (fabsf(tx - velo_state.tx()) <= delta_tx_2) {
         candidate_pairs[number_of_candidates++] =
           (forward << 31) | ((i_hit0 - event_hit_offset) << 16) | (i_hit2 - event_hit_offset);
       }
@@ -406,12 +453,12 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
 
     const auto dxdy_layer = forward ? 0 : 3;
     const auto zhitLayer0 = ut_hits.zAtYEq0(i_hit0);
-    const auto yy0 = yyProto + (velo_state.ty * zhitLayer0);
+    const auto yy0 = yyProto + (velo_state.ty() * zhitLayer0);
     const auto xhitLayer0 = ut_hits.xAt(i_hit0, yy0, ut_dxDy[dxdy_layer]);
 
     const auto dxdy_layer_2 = forward ? 2 : 1;
     const auto zhitLayer2 = ut_hits.zAtYEq0(i_hit2);
-    const auto yy2 = yyProto + (velo_state.ty * zhitLayer2);
+    const auto yy2 = yyProto + (velo_state.ty() * zhitLayer2);
     const auto xhitLayer2 = ut_hits.xAt(i_hit2, yy2, ut_dxDy[dxdy_layer_2]);
 
     const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
@@ -427,7 +474,7 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
 
       // Get info to check tolerance
       const float zhitLayer1 = ut_hits.zAtYEq0(i_hit1);
-      const float yy1 = yyProto + (velo_state.ty * zhitLayer1);
+      const float yy1 = yyProto + (velo_state.ty() * zhitLayer1);
       const float xhitLayer1 = ut_hits.xAt(i_hit1, yy1, ut_dxDy[layers[0]]);
       const float xextrapLayer1 = xhitLayer0 + tx * (zhitLayer1 - zhitLayer0);
 
@@ -445,7 +492,7 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
 
       // Get info to check tolerance
       const float zhitLayer3 = ut_hits.zAtYEq0(i_hit3);
-      const float yy3 = yyProto + (velo_state.ty * zhitLayer3);
+      const float yy3 = yyProto + (velo_state.ty() * zhitLayer3);
       const float xhitLayer3 = ut_hits.xAt(i_hit3, yy3, ut_dxDy[layers[1]]);
       const float xextrapLayer3 = xhitLayer2 + tx * (zhitLayer3 - zhitLayer2);
       if (fabsf(xhitLayer3 - xextrapLayer3) < hitTol) {
@@ -499,8 +546,8 @@ __device__ BestParams compass_ut::pkick_fit(
   BestParams best_params;
 
   // Helper stuff from velo state
-  const float xMidField = velo_state.x + velo_state.tx * (UT::Constants::zKink - velo_state.z);
-  const float a = sigma_velo_slope * (UT::Constants::zKink - velo_state.z);
+  const float xMidField = velo_state.x() + velo_state.tx() * (UT::Constants::zKink - velo_state.z());
+  const float a = sigma_velo_slope * (UT::Constants::zKink - velo_state.z());
   const float wb = 1.0f / (a * a);
 
   float mat[3] = {wb, wb * UT::Constants::zDiff, wb * UT::Constants::zDiff * UT::Constants::zDiff};
@@ -520,7 +567,7 @@ __device__ BestParams compass_ut::pkick_fit(
       const float dz = 0.001f * (last_z - UT::Constants::zMidUT);
 
       // x_pos_layer
-      const float yy = yyProto + (velo_state.ty * last_z);
+      const float yy = yyProto + (velo_state.ty() * last_z);
       const float ui = ut_hits.xAt(hit_index, yy, dxDy);
 
       mat[0] += wi * ci;
@@ -538,9 +585,9 @@ __device__ BestParams compass_ut::pkick_fit(
 
   // new VELO slope x
   const float xb = xUTFit + xSlopeUTFit * (UT::Constants::zKink - UT::Constants::zMidUT);
-  const float invKinkVeloDist = 1.f / (UT::Constants::zKink - velo_state.z);
-  const float xSlopeVeloFit = (xb - velo_state.x) * invKinkVeloDist;
-  const float chi2VeloSlope = (velo_state.tx - xSlopeVeloFit) * inv_sigma_velo_slope;
+  const float invKinkVeloDist = 1.f / (UT::Constants::zKink - velo_state.z());
+  const float xSlopeVeloFit = (xb - velo_state.x()) * invKinkVeloDist;
+  const float chi2VeloSlope = (velo_state.tx() - xSlopeVeloFit) * inv_sigma_velo_slope;
 
   // chi2 takes chi2 from velo fit + chi2 from UT fit
   float chi2UT = chi2VeloSlope * chi2VeloSlope;
@@ -555,7 +602,7 @@ __device__ BestParams compass_ut::pkick_fit(
       // x_pos_layer
       const int plane_code = forward ? i : UT::Constants::n_layers - 1 - i;
       const float dxDy = ut_dxDy[plane_code];
-      const float yy = yyProto + (velo_state.ty * zd);
+      const float yy = yyProto + (velo_state.ty() * zd);
       const float x = ut_hits.xAt(hit_index, yy, dxDy);
 
       const float du = xd - x;

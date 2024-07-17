@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -13,6 +20,7 @@
 #include <cuda_fp16.h>
 #define half_t half
 constexpr int warp_size = 32;
+#define __bswap(x) __byte_perm(x, x, 0x0123)
 
 // Support for dynamic shared memory buffers
 #define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config) extern __shared__ _type _instance[];
@@ -40,6 +48,65 @@ constexpr int warp_size = 32;
     }                                                                                                              \
   }
 
+#if defined(DEVICE_COMPILER)
+__attribute__((always_inline, const)) __device__ inline uint32_t __lanemask_eq() noexcept
+{
+  uint32_t mask;
+  asm("mov.u32 %0, %%lanemask_eq;" : "=r"(mask));
+  return mask;
+}
+
+__attribute__((always_inline, const)) __device__ inline uint32_t __lanemask_lt() noexcept
+{
+  uint32_t mask;
+  asm("mov.u32 %0, %%lanemask_lt;" : "=r"(mask));
+  return mask;
+}
+
+__attribute__((always_inline, const)) __device__ inline uint32_t __lanemask_le() noexcept
+{
+  uint32_t mask;
+  asm("mov.u32 %0, %%lanemask_le;" : "=r"(mask));
+  return mask;
+}
+
+__attribute__((always_inline, const)) __device__ inline uint32_t __lanemask_gt() noexcept
+{
+  uint32_t mask;
+  asm("mov.u32 %0, %%lanemask_gt;" : "=r"(mask));
+  return mask;
+}
+
+__attribute__((always_inline, const)) __device__ inline uint32_t __lanemask_ge() noexcept
+{
+  uint32_t mask;
+  asm("mov.u32 %0, %%lanemask_ge;" : "=r"(mask));
+  return mask;
+}
+
+template<typename T>
+__attribute__((always_inline, const)) inline __device__ uint32_t conflict_mask(uint32_t mask, T l) noexcept
+{
+#if __CUDA_ARCH__ >= 700
+  return __match_any_sync(mask, l);
+#else
+  if (!(mask & __lanemask_eq())) return 0;
+  uint32_t ref, ballot;
+  int leader;
+  goto entry;
+loop:
+  mask &= ~ballot;
+entry:
+  leader = __ffs(mask) - 1;
+  ref = __shfl_sync(mask, l, leader);
+  ballot = __ballot_sync(mask, l == ref);
+  if (!(ballot & __lanemask_eq())) goto loop;
+  // exit:
+  return ballot;
+#endif
+}
+#endif
+
 namespace Allen {
   struct KernelInvocationConfiguration {
     KernelInvocationConfiguration() = default;
@@ -48,7 +115,8 @@ namespace Allen {
 
 #ifdef SYNCHRONOUS_DEVICE_EXECUTION
   struct Context {
-    void initialize() {}
+    void initialize(unsigned id) { stream_id = id; }
+    unsigned stream_id {0};
   };
 #else
   struct Context {
@@ -58,7 +126,12 @@ namespace Allen {
   public:
     Context() {}
 
-    void initialize() { cudaCheck(cudaStreamCreate(&m_stream)); }
+    void initialize(unsigned id)
+    {
+      stream_id = id;
+      cudaCheck(cudaStreamCreate(&m_stream));
+    }
+    unsigned stream_id;
 
     cudaStream_t inline stream() const { return m_stream; }
   };
@@ -94,6 +167,12 @@ namespace Allen {
   void inline memcpy(void* dst, const void* src, size_t count, Allen::memcpy_kind kind)
   {
     cudaCheck(cudaMemcpy(dst, src, count, convert_allen_to_cuda_kind(kind)));
+  }
+
+  template<typename Symbol>
+  void inline memcpyToSymbol(Symbol& symbol, const void* src, size_t count)
+  {
+    cudaCheck(cudaMemcpyToSymbol(symbol, src, count));
   }
 
 #ifdef SYNCHRONOUS_DEVICE_EXECUTION
@@ -139,6 +218,18 @@ namespace Allen {
   {
     cudaCheck(cudaHostRegister(ptr, size, convert_allen_to_cuda_host_register_kind(flags)));
   }
+
+  namespace device {
+    template<class To, class From>
+    __host__ __device__ std::enable_if_t<
+      sizeof(To) == sizeof(From) && alignof(To) == alignof(From) && std::is_trivially_copyable_v<From> &&
+        std::is_trivially_copyable_v<To>,
+      To>
+    bit_cast(const From& src) noexcept
+    {
+      return *reinterpret_cast<const To*>(&src);
+    }
+  } // namespace device
 } // namespace Allen
 
 #endif

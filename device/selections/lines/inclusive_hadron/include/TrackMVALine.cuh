@@ -1,10 +1,19 @@
 /*****************************************************************************\
-* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
-\*****************************************************************************/
+ * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
+ \*****************************************************************************/
 #pragma once
 
 #include "AlgorithmTypes.cuh"
 #include "OneTrackLine.cuh"
+#include "AllenMonitoring.h"
+#include "ROOTService.h"
 
 namespace track_mva_line {
   struct Parameters {
@@ -12,10 +21,7 @@ namespace track_mva_line {
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_particle_container;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
@@ -31,10 +37,46 @@ namespace track_mva_line {
     PROPERTY(param3_t, "param3", "param3 description", float) param3;
     PROPERTY(alpha_t, "alpha", "alpha description", float) alpha;
     PROPERTY(minBPVz_t, "minBPVz", "minimum z for the best associated primary vertex", float) minBPVz;
+    PROPERTY(maxGhostProb_t, "maxGhostProb", "Maximum ghost probability of the tracks", float) maxGhostProb;
+
+    DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
+    DEVICE_OUTPUT(ghostProb_t, float) ghostProb;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
+
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct track_mva_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<track_mva_line_t, Parameters> {
-    __device__ static bool select(const Parameters& ps, std::tuple<const Allen::Views::Physics::BasicParticle> input);
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_ghost_prob;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_ip_x;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_ip_y;
+      DeviceAccumulators(const track_mva_line_t& algo, const Allen::Context& ctx) :
+        histogram_ghost_prob(algo.m_histogram_ghost_prob.data(ctx)), histogram_ip_x(algo.m_histogram_ip_x.data(ctx)),
+        histogram_ip_y(algo.m_histogram_ip_y.data(ctx))
+      {}
+    };
+
+    __device__ static bool select(
+      const Parameters& ps,
+      const DeviceAccumulators&,
+      std::tuple<const Allen::Views::Physics::BasicParticle> input);
+    __device__ static void fill_tuples(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::BasicParticle> input,
+      unsigned index,
+      bool sel);
+    __device__ static void monitor(
+      const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
+      std::tuple<const Allen::Views::Physics::BasicParticle> input,
+      unsigned index,
+      bool sel);
+
+    using monitoring_types = std::tuple<pt_t, ipchi2_t, ghostProb_t, evtNo_t, runNo_t>;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -50,5 +92,13 @@ namespace track_mva_line {
     Property<param3_t> m_param3 {this, 1.248f};
     Property<alpha_t> m_alpha {this, 296.f * Gaudi::Units::MeV}; // tuned to about 330 kHz (modulo GEC)
     Property<minBPVz_t> m_minBPVz {this, -341.f * Gaudi::Units::mm};
+    Property<maxGhostProb_t> m_maxGhostProb {this, 0.5};
+
+    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Property<enable_monitoring_t> m_enable_monitoring {this, true};
+
+    Allen::Monitoring::Histogram<> m_histogram_ghost_prob {this, "ghost_prob", "track GhostProb", {100u, 0.f, 0.6f}};
+    Allen::Monitoring::Histogram<> m_histogram_ip_x {this, "ip_x", "IP_{x}", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_ip_y {this, "ip_y", "IP_{y}", {100u, -3.f, 3.f}};
   };
 } // namespace track_mva_line

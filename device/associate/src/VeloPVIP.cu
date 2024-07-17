@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <Common.h>
 #include <PV_Definitions.cuh>
@@ -31,32 +38,32 @@ void velo_pv_ip::velo_pv_ip_t::operator()(
 namespace Distance {
   __device__ float velo_ip(const KalmanVeloState& state, const PV::Vertex& vertex, const float denom)
   {
-    float tx = state.tx;
-    float ty = state.ty;
-    float dz = vertex.position.z - state.z;
-    float dx = state.x + dz * tx - vertex.position.x;
-    float dy = state.y + dz * ty - vertex.position.y;
+    float tx = state.tx();
+    float ty = state.ty();
+    float dz = vertex.position.z - state.z();
+    float dx = state.x() + dz * tx - vertex.position.x;
+    float dy = state.y() + dz * ty - vertex.position.y;
     return sqrtf((dx * dx + dy * dy) * denom);
   }
 
   __device__ float velo_ip_chi2(const KalmanVeloState& velo_kalman_state, const PV::Vertex& vertex)
   {
     // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
-    float tx = velo_kalman_state.tx;
-    float ty = velo_kalman_state.ty;
-    float dz = vertex.position.z - velo_kalman_state.z;
-    float dx = velo_kalman_state.x + dz * tx - vertex.position.x;
-    float dy = velo_kalman_state.y + dz * ty - vertex.position.y;
+    float tx = velo_kalman_state.tx();
+    float ty = velo_kalman_state.ty();
+    float dz = vertex.position.z - velo_kalman_state.z();
+    float dx = velo_kalman_state.x() + dz * tx - vertex.position.x;
+    float dy = velo_kalman_state.y() + dz * ty - vertex.position.y;
 
     // compute the covariance matrix. first only the trivial parts:
-    float cov00 = vertex.cov00 + velo_kalman_state.c00;
+    float cov00 = vertex.cov00 + velo_kalman_state.c00();
     float cov10 = vertex.cov10; // state c10 is 0.f;
-    float cov11 = vertex.cov11 + velo_kalman_state.c11;
+    float cov11 = vertex.cov11 + velo_kalman_state.c11();
 
     // add the contribution from the extrapolation
-    cov00 += dz * dz * velo_kalman_state.c22 + 2 * dz * velo_kalman_state.c20;
+    cov00 += dz * dz * velo_kalman_state.c22() + 2 * dz * velo_kalman_state.c20();
     // cov10 is unchanged: state c32, c30 and c21 are  0.f
-    cov11 += dz * dz * velo_kalman_state.c33 + 2 * dz * velo_kalman_state.c31;
+    cov11 += dz * dz * velo_kalman_state.c33() + 2 * dz * velo_kalman_state.c31();
 
     // add the contribution from pv Z
     cov00 += tx * tx * vertex.cov22 - 2 * tx * vertex.cov20;
@@ -80,7 +87,7 @@ __device__ void associate(
 {
   for (unsigned i = threadIdx.x; i < table.size(); i += blockDim.x) {
     const KalmanVeloState state = velo_kalman_states.state(i);
-    const float denom = 1.f / (1.0f + state.tx * state.tx + state.ty * state.ty);
+    const float denom = 1.f / (1.0f + state.tx() * state.tx() + state.ty() * state.ty());
     float best_value = 0.f;
     short best_index = 0;
     bool first = true;

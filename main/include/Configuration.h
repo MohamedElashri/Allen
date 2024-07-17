@@ -13,6 +13,7 @@
 #include <stdexcept>
 #include <vector>
 #include <string>
+#include <map>
 
 struct ConfiguredAlgorithm {
   std::string id;

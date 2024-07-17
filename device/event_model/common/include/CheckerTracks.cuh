@@ -1,6 +1,12 @@
-
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 /** @file Tracks.h
  *
@@ -18,10 +24,11 @@
 #include <cstdint>
 
 #include "LHCbID.cuh"
+#include "ParticleTypes.cuh"
 
 namespace Checker {
   struct Track {
-    LHCbID allids[42];
+    LHCbID allids[46];
     unsigned total_number_of_hits = 0;
     // SciFi information
     unsigned velo_track_index = 0;
@@ -36,12 +43,12 @@ namespace Checker {
     float velo_docaz = 0.f;
     float long_ip = 0.f, long_ip_chi2 = 0.f, long_ipx = 0.f, long_ipy = 0.f;
     std::size_t n_matched_total = 0;
-    float p = 0.f, pt = 0.f, eta = 0.f, rho = 0.f;
+    float p = 0.f, pt = 0.f, eta = 0.f, rho = 0.f, phi = 0.f;
     float muon_catboost_output = 0.f;
     bool is_muon = false;
 
     __device__ __host__ void addId(LHCbID id)
-    { // 0-26 VELO , 26-30 UT, 30 - 42 SciFi
+    { // 0-26 VELO , 26-30 UT, 30 - 42 SciFi, 42-46 Muon
       allids[total_number_of_hits] = id;
       total_number_of_hits++;
     }
@@ -56,4 +63,11 @@ namespace Checker {
     __device__ __host__ int nIDs() const { return sizeof(allids) / sizeof(allids[0]); }
   };
   using Tracks = std::vector<Track>;
+
+  struct Composite {
+    Track TrackA, TrackB;
+    unsigned idx = 0;
+  };
+  using Composites = std::vector<Composite>;
+
 } // namespace Checker

@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -27,7 +34,9 @@ namespace compass_ut {
     DEVICE_INPUT(dev_ut_selected_velo_tracks_with_windows_t, unsigned) dev_ut_selected_velo_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
-    DEVICE_OUTPUT(dev_atomics_ut_t, unsigned) dev_atomics_ut;
+    DEVICE_OUTPUT(dev_offsets_ut_tracks_t, unsigned) dev_offsets_ut_tracks;
+    HOST_OUTPUT(host_number_of_reconstructed_ut_tracks_t, unsigned) host_number_of_reconstructed_ut_tracks;
+
     PROPERTY(sigma_velo_slope_t, "sigma_velo_slope", "sigma velo slope [radians]", float) sigma_velo_slope;
     PROPERTY(min_momentum_final_t, "min_momentum_final", "final min momentum cut [MeV/c]", float) min_momentum_final;
     PROPERTY(min_pt_final_t, "min_pt_final", "final min pT cut [MeV/c]", float) min_pt_final;
@@ -35,6 +44,8 @@ namespace compass_ut {
     PROPERTY(delta_tx_2_t, "delta_tx_2", "delta_tx_2", float) delta_tx_2;
     PROPERTY(max_considered_before_found_t, "max_considered_before_found", "max_considered_before_found", unsigned)
     max_considered_before_found;
+    PROPERTY(min_ld_3_hit_t, "min_ld_3_hit", "min_ld_3_hit", float) min_ld_3_hit;
+    PROPERTY(min_ld_4_hit_t, "min_ld_4_hit", "min_ld_4_hit", float) min_ld_4_hit;
   };
 
   __global__ void compass_ut(
@@ -60,5 +71,7 @@ namespace compass_ut {
     Property<hit_tol_2_t> m_hit_tol_2 {this, 0.8f * Gaudi::Units::mm};
     Property<delta_tx_2_t> m_delta_tx_2 {this, 0.018f};
     Property<max_considered_before_found_t> m_max_considered_before_found {this, 6};
+    Property<min_ld_3_hit_t> m_min_ld_3_hit {this, -0.5f};
+    Property<min_ld_4_hit_t> m_min_ld_4_hit {this, -0.5f};
   };
 } // namespace compass_ut

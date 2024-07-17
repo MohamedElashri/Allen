@@ -5,6 +5,16 @@ Writing selections
 This tutorial will cover adding trigger selections to Allen using the
 main reconstruction sequence.
 
+Line execution
+^^^^^^^^^^^^^^^^^^^^^^^
+
+A line is a function that take some object list as input and returns a decision (boolean) for each object.
+The decision can be prescaled and postscaled per event. The prescaler runs before the line, if the decision
+of the prescaler is false, the line function will not be executed for that event. The postscaler runs after the line,
+it will not affect the line function itself but only the output decision. This distinction is important if the line is
+used for monitoring or filling tuples and for performances. If a line need to run over a lot of objects, tuning
+the prescaler can make a difference in the throughput of the line.
+
 Types of selections
 ^^^^^^^^^^^^^^^^^^^^^^^
 Selections are fully configurable algorithms in Allen. Lines that select events
@@ -14,7 +24,7 @@ based on basic or composite particles must have a device input
 For convenience, there are some predefined line types.
 
 OneTrackLine
---------------
+------------
 These lines trigger on basic particles with no decay products. In most cases,
 this means triggering on Kalman-filtered long tracks. The input
 `dev_particle_container_t` must be an `Allen::MultiEventBasicParticles`. Basic
@@ -23,8 +33,8 @@ particle properties are accessed via the `BasicParticle
 view. This view provides access to the track state (including
 momentum), lepton ID, and the associated PV (including e.g. IP, IP chi2).
 
-TwoTrackLine
----------------
+CompositeParticleLine
+---------------------
 These lines trigger on composite particles composed of other basic or composite
 particles. In most cases, this means triggering on 2-track secondary vertices.
 The input `dev_particle_container_t` must be an
@@ -35,22 +45,22 @@ view. This view provides access to vertex fit results, the associated PV
 `CompositeParticle` s).
 
 EventLine
--------------
+---------
 A line that executes once per event.
 
 ODINLine
--------------
+--------
 An EventLine that selects events based on information from the ODIN raw bank.
 
 Custom line
---------------
+-----------
 A custom selection can trigger on any input data, and can either be based on
 event-level information, or on more specific information.
 
 Adding a new selection
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^
 Choosing the right directory
---------------------------------
+----------------------------
 HLT1 selection lines live in the directory  `device/selections/lines <https://gitlab.cern.ch/lhcb/Allen/-/tree/master/device/selections/lines>`_ and are grouped into directories based on the selection purpose. Currently, the following subdirectories exist:
 
 * SMOG2
@@ -67,7 +77,7 @@ If your new selection fits into any of these categories, please add it in the re
 Every sub-directory contains a `include` and a `src` directory where the header and source files are placed.
 
 Creating a selection
-----------------------
+--------------------
 Selections are of type `SelectionAlgorithm`, that must in addition inherit from a line type.
 Like with any other `Algorithm`, a `SelectionAlgorithm` can have inputs,
 outputs and properties. However, certain inputs and outputs are assumed and must be defined:
@@ -80,10 +90,6 @@ Event list to which the selection is applied::
 
   MASK_INPUT(dev_event_list_t);
 
-Size of the decision object::
-
-  HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
-
 Type-erased parameters to be passed to the line functions for delayed line processing::
 
   HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
@@ -92,13 +98,9 @@ In case that the selection algorithm requires a `dev_particle_container_t`, then
 
   HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
 
-Post-scaler factor, such that an upcoming algorithm (usually `gather_selections_t`) can do the post-scaling::
+Line data that will be passed to an upcoming algorithm (usually `gather_selections_t`). It contains copies of various properties and inputs, such as the pre and post scaler::
 
-  HOST_OUTPUT(host_post_scaler_t, float), host_post_scaler;
-
-Hash resulting from applying the hash function to the property "post_scaler_hash_string". Needed such that an upcoming algorithm can do the post-scaling::
-
-  HOST_OUTPUT(host_post_scaler_hash_t, uint32_t), host_post_scaler_hash;
+  HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
 
 Pre-scaling factor::
 
@@ -123,7 +125,7 @@ In order to define a selection algorithm, one must define a struct as follows:
 
     struct "name_of_algorithm" : public SelectionAlgorithm, Parameters, "line_type"<"name_of_algorithm", Parameters>
 
-In the above, `"name_of_algorithm"` is the name of the algorithm, and `"line_type"` can be either `Line` for a completely customizable line, or any of the predefined line types (such as `OneTrackLine`, `TwoTrackLine`, `ODINLine`, etc.). Please note that `"name_of_algorithm"` appears twice in the selection algorithm definition.
+In the above, `"name_of_algorithm"` is the name of the algorithm, and `"line_type"` can be either `Line` for a completely customizable line, or any of the predefined line types (such as `OneTrackLine`, `CompositeParticleLine`, `ODINLine`, etc.). Please note that `"name_of_algorithm"` appears twice in the selection algorithm definition.
 
 A `SelectionAlgorithm` can contain the following:
 
@@ -178,7 +180,7 @@ Lines are automatically parallelized with `threadIdx.x` (see the default setting
 Below are four examples of lines.
 
 OneTrackLine example
-----------------------
+--------------------
 As an example, we'll create a line that triggers on highly displaced,
 high-pT single long tracks. It will be of type `OneTrackLine`. We will first create the
 header.
@@ -195,9 +197,7 @@ header.
       // Commonly required inputs, outputs and properties
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
-      HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;      
+      HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -250,28 +250,24 @@ And the then the source:
 Note that since the type of this line was the preexisting (`OneTrackLine`), it was not
 necessary to define any function other than `select`.
 
-TwoTrackLine example
------------------------
+CompositeParticleLine example
+-----------------------------
 Here we'll create an example of a 2-long-track line that selects displaced
-secondary vertices with no postscale. This line inherits from `TwoTrackLine`. We'll create a header with the following contents:
+secondary vertices with no postscale. This line inherits from `CompositeParticleLine`. We'll create a header with the following contents:
 
 .. code-block:: c++
 
   #pragma once
 
   #include "AlgorithmTypes.cuh"
-  #include "TwoTrackLine.cuh"
+  #include "CompositeParticleLine.cuh"
 
   namespace example_two_track_line {
     struct Parameters {
       // Commonly required inputs, outputs and properties
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
-      HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+      HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -288,7 +284,7 @@ secondary vertices with no postscale. This line inherits from `TwoTrackLine`. We
     };
 
     // SelectionAlgorithm definition
-    struct example_two_track_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<example_two_track_line_t, Parameters> {
+    struct example_two_track_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<example_two_track_line_t, Parameters> {
       // Selection function.
       __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
@@ -310,7 +306,7 @@ And a source with the following:
 
 .. code-block:: c++
 
-  #include "ExampleTwoTrackLine.cuh"
+  #include "ExampleCompositeParticleLine.cuh"
 
   INSTANTIATE_LINE(example_two_track_line::example_two_track_line_t, example_two_track_line::Parameters)
 
@@ -332,7 +328,7 @@ And a source with the following:
   }
 
 EventLine example
---------------------
+-----------------
 Now we'll define a line that selects events with at least 1 reconstructed VELO track. This line runs once per event, so it inherits from `EventLine`.
 This time, we will need to define not only the `select` function, but also the `get_input` function, as we need custom data to feed into our line (the number of tracks in an event).
 
@@ -351,12 +347,8 @@ The header `monitoring/include/VeloMicroBiasLine.cuh <https://gitlab.cern.ch/lhc
       // Commonly required inputs, outputs and properties
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
-      HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+      HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
       HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -418,7 +410,7 @@ The source file `monitoring/src/VeloMicroBiasLine.cu` looks as follows:
 `get_input` gets the number of VELO tracks and returns it, and `select` will select only events with VELO tracks.
 
 CustomLine example
---------------------
+------------------
 Finally, we'll define a line that runs on every velo track. Since this is a completely custom line, we need to define all the functions of the line, i.e. `select`, `get_input`, `get_decisions_size` and `offset`.
 In addition, we also need to add some properties to the line.
 
@@ -437,12 +429,8 @@ The header `ExampleOneVeloTrackLine.cuh` is as follows:
       // Commonly required inputs, outputs and properties
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
-      HOST_OUTPUT(host_decisions_size_t, unsigned), host_decisions_size;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+      HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
       HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-      HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-      HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
       PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
       PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
       PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
@@ -546,7 +534,7 @@ It is important that the return type of `get_input` is the same as the input typ
 
 
 Adding your selection to the Allen sequence
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 After creating the selection source code, the selection can either be added to
 an existing sequence or a new sequence is generated. Selections are added to the
 Allen sequence similarly as algorithms, described in :ref:`configure_sequence`,
@@ -727,7 +715,7 @@ First define the line algorithm, for example within `hlt1_inclusive_hadron_lines
         host_number_of_reconstructed_scifi_tracks_t=forward_tracks[
           "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
-          "dev_multi_event_basic_particles"],          
+          "dev_multi_event_basic_particles"],
         pre_scaler_hash_string=pre_scaler_hash_string,
         post_scaler_hash_string=post_scaler_hash_string)
 
@@ -788,7 +776,7 @@ Now, you should be able to build and run the newly generated `custom_hlt1`.
 
 Monitoring Lines with ROOT
 ------------------------------
-Lines can be monitored simply by adding a monitor function which fills outputs which are then written out to a tree using the ROOTService. 
+Lines can be monitored simply by adding a monitor function which fills outputs which are then written out to a tree using the ROOTService.
 
 In addition, your selection algorithm should contain an additional property::
 
@@ -804,23 +792,44 @@ First we need to add the additional `Parameters` that will carry our arrays to o
 
 .. code-block:: c++
 
-   namespace kstopipi_line {
-     struct Parameters {
-       (...)
+  namespace kstopipi_line {
+   struct Parameters {
+     (...)
 
-       DEVICE_OUTPUT(sv_masses_t, float) sv_masses;
-       DEVICE_OUTPUT(pt_t, float) pt;
+     DEVICE_OUTPUT(sv_masses_t, float) sv_masses;
+     DEVICE_OUTPUT(pt_t, float) pt;
 
-       PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-     };
+     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     };
+  };
 
 Your selection algorithm should define an additional tuple type that contains the types of the quantities to monitor, so in this example::
 
- using monitoring_types = std::tuple<pt_t, sv_masses_t>
+.. code-block:: c++
 
-The tuple type is a convenient way to store a parameter pack, which is then used internally (see `Line.cuh <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/selections/line_types/include/Line.cuh>`_ for details) to handle the initialisation of the containers and the transport of the arrays to the nTuple. 
-Then we set up the `monitor` function that will be handled by the kernel in order to retrieve the information that we want to monitor:
+ using monitoring_types = std::tuple<pt_t, sv_masses_t>;
+
+The tuple type is a convenient way to store a parameter pack, which is then used internally (see `Line.cuh <https://gitlab.cern.ch/lhcb/Allen/-/blob/master/device/selections/line_types/include/Line.cuh>`_ for details) to handle the initialisation of the containers and the transport of the arrays to the nTuple.
+Two useful additional pieces of information to include in the nTuple are the event and run number.
+These are automatically filled per candidate if the tuple of monitoring types includes the types runNo_t and evtNo_t, which should be declared as DEVICE_OUTPUTs of type uint64_t and unsigned for runNo and evtNo, respectively.
+So in this example, we would add
+
+.. code-block:: c++
+
+  struct Parameters {
+    (...)
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
+  };
+
+and the monitoring types becomes
+
+.. code-block:: c++
+
+  using monitoring_types = std::tuple<pt_t, sv_masses_t, evtNo_t, runNo_t>;
+
+After all of the values we wish to monitor have been declared,
+then we set up the `monitor` function that will be handled by the kernel in order to retrieve the information that we want to monitor:
 
 .. code-block:: c++
 
@@ -843,13 +852,13 @@ The source files that implement these examples correspond to the `KsToPiPiLine` 
 
 
 ML models in selections
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 TwoTrackMVA
-----------------
+-----------
 
 The training procedure for the TwoTrackMVA is found in `https://github.com/niklasnolte/HLT_2Track`.
 
-The event types used for training can be seen in `here <https://github.com/niklasnolte/HLT_2Track/blob/main/hlt2trk/utils/config.py#L384>`_.
+The event types used for training can be seen at the end `here <https://gitlab.cern.ch/lhcb-rta/HLT_2Track/-/blob/47bd5898cb4064fabbde3da87c09ebe87d31d0c1/hlt2trk/utils/config.py>`_.
 
 The model exported from there goes into `Allen/input/parameters/two_track_mva_model.json <https://gitlab.cern.ch/lhcb-datapkg/ParamFiles/-/blob/master/data/allen_two_track_mva_model_June22.json>`_

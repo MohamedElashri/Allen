@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #ifndef DUMPUTILS_H
 #define DUMPUTILS_H
@@ -86,13 +93,5 @@ namespace DumpUtils {
   using Dumps = std::vector<Dump>;
 
 } // namespace DumpUtils
-
-namespace MuonUtils {
-  size_t size_index(
-    std::array<unsigned int, 16> const& sizeXOffset,
-    std::array<int, 16> const& gridX,
-    std::array<int, 16> const& gridY,
-    LHCb::Detector::Muon::TileID const& tile);
-}
 
 #endif

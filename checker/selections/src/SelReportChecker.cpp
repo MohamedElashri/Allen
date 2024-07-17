@@ -28,11 +28,13 @@ void SelReportChecker::accumulate(
     m_stdinfo_counter = 0;
     m_dec_counter = 0;
     m_track_counter = 0;
+    m_calo_counter = 0;
     m_sv_counter = 0;
   }
 
   const unsigned dec_clid = 1;
   const unsigned track_clid = 10010;
+  const unsigned calo_clid = 2003;
   const unsigned sv_clid = 10030;
   for (unsigned event_number = 0; event_number < number_of_events; event_number++) {
     const unsigned sel_rep_offset = sel_rep_offsets[event_number];
@@ -57,6 +59,9 @@ void SelReportChecker::accumulate(
       }
       else if (clid == track_clid) {
         m_track_counter += nobj;
+      }
+      else if (clid == calo_clid) {
+        m_calo_counter += nobj;
       }
       else if (clid == sv_clid) {
         m_sv_counter += nobj;
@@ -114,10 +119,11 @@ void SelReportChecker::report(const size_t) const
 
   std::printf("\n");
 
-  std::printf("Total decisions: %u\n", m_dec_counter);
-  std::printf("Total tracks:    %u\n", m_track_counter);
-  std::printf("Total SVs:       %u\n", m_sv_counter);
-  std::printf("Total hits:      %u\n", m_hits_counter);
-  std::printf("Total stdinfo:   %u\n", m_stdinfo_counter);
+  std::printf("Total decisions:      %u\n", m_dec_counter);
+  std::printf("Total tracks:         %u\n", m_track_counter);
+  std::printf("Total calos clusters: %u\n", m_calo_counter);
+  std::printf("Total SVs:            %u\n", m_sv_counter);
+  std::printf("Total hits:           %u\n", m_hits_counter);
+  std::printf("Total stdinfo:        %u\n", m_stdinfo_counter);
   std::printf("\n");
 }

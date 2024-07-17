@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <cstring>
 #include <iostream>
@@ -37,11 +44,9 @@ int main(int argc, char* argv[])
 
   Timer t;
 
-  MDFProviderConfig mdf_config {false, 3, 10001, 1200, 10, false, {}};
+  MDFProviderConfig mdf_config {false, 3, 1001, 1000, 10, false, {}};
 
-  std::unordered_set<BankTypes> bank_types {
-    BankTypes::VP, BankTypes::UT, BankTypes::FT, BankTypes::MUON, BankTypes::ODIN};
-  MDFProvider mdf {n_slices, events_per_slice, {}, files, bank_types, mdf_config};
+  MDFProvider mdf {n_slices, events_per_slice, {}, files, DataBankTypes, mdf_config};
 
   chrono::milliseconds sleep_interval {10};
 

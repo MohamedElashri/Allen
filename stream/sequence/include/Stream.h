@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -20,12 +27,15 @@
 #include "CheckerInvoker.h"
 #include "Configuration.h"
 #include "nlohmann/json.hpp"
+#include "Scheduler.cuh"
 
 struct HostBuffersManager;
-class Scheduler;
 
 struct Stream {
 private:
+  // Stream id ranging from 0 to N_streams
+  const unsigned stream_id;
+
   // Dynamic scheduler
   Scheduler* scheduler;
 
@@ -46,16 +56,18 @@ private:
 
 public:
   Stream(
+    const unsigned stream_id,
     const ConfiguredSequence& configuration,
-    const bool param_print_memory_usage,
-    const size_t param_reserve_mb,
+    const Allen::ScheduledSequence& sched_seq,
+    const bool param_do_print_memory_manager,
+    const size_t reserve_mb,
     const unsigned required_memory_alignment,
     const Constants& param_constants,
     HostBuffersManager* buffers_manager);
 
-  Allen::error run(const unsigned buf_idx, RuntimeOptions const& runtime_options);
+  unsigned id() const { return stream_id; }
 
-  void configure_algorithms(const std::map<std::string, std::map<std::string, nlohmann::json>>& config);
+  Allen::error run(const unsigned buf_idx, RuntimeOptions const& runtime_options);
 
   void print_configured_sequence();
 

@@ -12,7 +12,8 @@ import csv
 import argparse
 
 parser = argparse.ArgumentParser(
-    description='Parses a csv file from a ncu report and generates a csv with a custom metric.'
+    description=
+    'Parses a csv file from a ncu report and generates a csv with a custom metric.'
 )
 
 parser.add_argument(
@@ -39,11 +40,14 @@ with open(args.input_filename) as csvfile:
 
 algorithm_list = []
 for k in kernel_dict.keys():
-    def get_metric(metric, name="Metric Value", cast_lambda=lambda x: float(x.replace(",", ""))):
+
+    def get_metric(metric,
+                   name="Metric Value",
+                   cast_lambda=lambda x: float(x.replace(",", ""))):
         return cast_lambda(kernel_dict[k][metric][name])
 
     custom_metric_1 = get_metric("SM Active Cycles") * \
-        get_metric("Compute (SM) [%]")
+        get_metric("Compute (SM) Throughput")
     algorithm_list.append((k, custom_metric_1))
 
 total_sum = sum([a[1] for a in algorithm_list])

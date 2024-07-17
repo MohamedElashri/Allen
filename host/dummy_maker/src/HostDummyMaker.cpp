@@ -19,6 +19,8 @@ void host_dummy_maker::host_dummy_maker_t::set_arguments_size(
 {
   set_size<host_unsigned_dummy_t>(arguments, 0);
   set_size<dev_unsigned_dummy_t>(arguments, 0);
+  set_size<dev_bool_dummy_t>(arguments, 0);
+  set_size<dev_char_dummy_t>(arguments, 0);
   set_size<dev_lumi_dummy_t>(arguments, 0);
 }
 

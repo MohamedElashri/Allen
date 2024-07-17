@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 /** @file MCParticle.h
  *
@@ -52,11 +59,14 @@ struct MCParticle {
   uint32_t scifi_num_hits;
   uint32_t numHits;
   uint32_t nPV; // # of reconstructible primary vertices in event
+  uint32_t nbHits_in_Velo;
+  uint32_t nbHits_in_UT;
+  uint32_t nbHits_in_SciFi;
   std::vector<uint32_t> hits;
 
   bool isMuon() const { return 13 == std::abs(pid); }
-  bool isElectron() const { return 11 == std::abs(pid); };
-  bool inEta2_5() const { return (eta < 5.f && eta > 2.f); };
+  bool isElectron() const { return 11 == std::abs(pid); }
+  bool inEta2_5() const { return (eta < 5.f && eta > 2.f); }
 };
 
 template<typename T>

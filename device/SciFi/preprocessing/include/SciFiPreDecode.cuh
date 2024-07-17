@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -16,9 +23,16 @@ namespace scifi_pre_decode {
     DEVICE_INPUT(dev_scifi_raw_input_t, char) dev_scifi_raw_input;
     DEVICE_INPUT(dev_scifi_raw_input_offsets_t, unsigned) dev_scifi_raw_input_offsets;
     DEVICE_INPUT(dev_scifi_raw_input_sizes_t, unsigned) dev_scifi_raw_input_sizes;
+    DEVICE_INPUT(dev_scifi_raw_input_types_t, unsigned) dev_scifi_raw_input_types;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
     DEVICE_OUTPUT(dev_cluster_references_t, unsigned) dev_cluster_references;
+    PROPERTY(
+      decode_v8_as_v7_t,
+      "decode_v8_as_v7",
+      "Decode v8 banks as v7 to reproduce a bug in July 2023 (MC only)",
+      bool)
+    decode_v7_as_v8;
   };
 
   struct scifi_pre_decode_t : public DeviceAlgorithm, Parameters {
@@ -29,5 +43,8 @@ namespace scifi_pre_decode {
       const RuntimeOptions& runtime_options,
       const Constants& constants,
       const Allen::Context& context) const;
+
+  private:
+    Property<decode_v8_as_v7_t> m_decode_v8_as_v7 {this, {false}};
   };
 } // namespace scifi_pre_decode

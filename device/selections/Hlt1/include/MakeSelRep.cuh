@@ -31,7 +31,19 @@ namespace make_selrep {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void make_selrep_bank(Parameters, const unsigned number_of_events);
+  __host__ __device__ void make_selrep_bank(
+    unsigned* selrep,
+    const unsigned* rb_objtyp,
+    const unsigned* rb_hits,
+    const unsigned* rb_substr,
+    const unsigned* rb_stdinfo,
+    const unsigned bank_size,
+    const unsigned objtyp_size,
+    const unsigned hits_size,
+    const unsigned substr_size,
+    const unsigned stdinfo_size);
+
+  __global__ void make_selrep(Parameters, const unsigned number_of_events);
 
   struct make_selrep_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;

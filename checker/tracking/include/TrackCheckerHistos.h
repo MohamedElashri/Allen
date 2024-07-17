@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -13,6 +20,7 @@ struct TrackCheckerHistos {
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_pt;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_phi;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_nPV;
+  std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_nSciFiHits;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructible_docaz;
   std::map<std::string, std::unique_ptr<TH2D>> h_reconstructible_eta_phi;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_eta;
@@ -20,11 +28,14 @@ struct TrackCheckerHistos {
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_pt;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_phi;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_nPV;
+  std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_nSciFiHits;
   std::map<std::string, std::unique_ptr<TH1D>> h_reconstructed_docaz;
   std::map<std::string, std::unique_ptr<TH2D>> h_reconstructed_eta_phi;
 
   std::unique_ptr<TH1D> h_ghost_nPV;
   std::unique_ptr<TH1D> h_total_nPV;
+  std::unique_ptr<TH1D> h_ghost_nSciFiHits;
+  std::unique_ptr<TH1D> h_total_nSciFiHits;
   std::unique_ptr<TH1D> h_ghost_eta;
   std::unique_ptr<TH1D> h_total_eta;
   std::unique_ptr<TH2D> h_dp_versus_p;
@@ -32,6 +43,10 @@ struct TrackCheckerHistos {
   std::unique_ptr<TH2D> h_qop_resolution;
   std::unique_ptr<TH2D> h_dqop_versus_qop;
   std::unique_ptr<TH1D> h_momentum_matched;
+  std::unique_ptr<TH1D> h_ghost_p;
+  std::unique_ptr<TH1D> h_total_p;
+  std::unique_ptr<TH1D> h_ghost_pt;
+  std::unique_ptr<TH1D> h_total_pt;
 
   std::unique_ptr<TH1D> h_muon_catboost_output_matched_muon;
   std::unique_ptr<TH1D> h_muon_catboost_output_matched_notMuon;
@@ -89,8 +104,8 @@ struct TrackCheckerHistos {
 
   void fillReconstructibleHistos(const MCParticles& mcps, const Checker::HistoCategory& category);
   void fillReconstructedHistos(const MCParticle& mcp, Checker::HistoCategory& category);
-  void fillTotalHistos(double nPV, double eta);
-  void fillGhostHistos(double nPV, double eta);
+  void fillTotalHistos(double nPV, double nSciFiHits, double eta, double p, double pt);
+  void fillGhostHistos(double nPV, double nSciFiHits, double eta, double p, double pt);
   void fillMomentumResolutionHisto(const MCParticle& mcp, const float p, const float qop);
   void fillMuonIDHistos(const Checker::Track& track);
   void fillMuonIDMatchedHistos(const Checker::Track& track, const MCParticle& mcp);

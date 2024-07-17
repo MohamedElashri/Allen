@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <gsl/gsl>
 #include <InputReader.h>
@@ -54,8 +61,7 @@ CatboostModelReader::CatboostModelReader(const std::string& file_name)
     m_split_feature.insert(std::end(m_split_feature), std::begin(tree_split_features), std::end(tree_split_features));
   }
 }
-
-TwoTrackMVAModelReader::TwoTrackMVAModelReader(const std::string& file_name)
+LipschitzNNModelReader::LipschitzNNModelReader(const std::string& file_name)
 {
   if (!exists_test(file_name)) {
     throw StrException("Two Track MVA model file " + file_name + " does not exist.");
@@ -67,8 +73,26 @@ TwoTrackMVAModelReader::TwoTrackMVAModelReader(const std::string& file_name)
   std::map<int, int> layer_sizes {};
   std::map<int, std::vector<float>> biases {};
   std::map<int, std::vector<float>> weights {};
+  std::vector<float> constraints {1, 1, 0, 1}; // Defaulted to TwoTrackMVA configuration
+  if (j.contains("constraints")) {
+    constraints.clear();
+    for (unsigned i = 0; i < j["constraints"].size(); i++) {
+      auto constraint = j["constraints"][i];
+      constraints.push_back(constraint);
+    }
+  }
+  std::vector<float> min_rescales;
+  std::vector<float> max_rescales;
+  if (j.contains("rescale_min") && j.contains("rescale_max")) {
+    for (unsigned i = 0; i < j["constraints"].size(); i++) {
+      const auto min_rescale = j["rescale_min"][i];
+      const auto max_rescale = j["rescale_max"][i];
+      min_rescales.push_back(min_rescale);
+      max_rescales.push_back(max_rescale);
+    }
+  }
 
-  layer_sizes[0] = 4; // input size hard coded
+  layer_sizes[0] = j.contains("n_features") ? static_cast<int>(j["n_features"]) : 4; // input size hard coded
   for (auto el = j.begin(); el != j.end(); ++el) {
     // map is sorted
     std::vector<std::string> tokens;
@@ -111,20 +135,17 @@ TwoTrackMVAModelReader::TwoTrackMVAModelReader(const std::string& file_name)
   // 0 -> -lambda <= df/dx <= lambda
   // 1 -> 0 <= df/dx <= 2*lambda
   // -1 -> -2*lambda <= df/dx <= 0
-  m_monotone_constraints = std::vector<float> {1, 1, 0, 1};
+  m_monotone_constraints = constraints;
+  m_min_rescales = min_rescales;
+  m_max_rescales = max_rescales;
   m_lambda = j["sigmanet.sigma"][0];
   m_nominal_cut = j["nominal_cut"];
   m_n_layers = m_layer_sizes.size();
 }
 
-ConfigurationReader::ConfigurationReader(const std::string& file_name)
+ConfigurationReader::ConfigurationReader(std::string_view configuration)
 {
-  if (!exists_test(file_name)) {
-    throw StrException("Configuration JSON file " + file_name + " does not exist.");
-  }
-  std::ifstream i(file_name);
-  nlohmann::json j;
-  i >> j;
+  nlohmann::json j = nlohmann::json::parse(configuration);
   for (auto& el : j.items()) {
     std::string component = el.key();
     if (component == "sequence") {
@@ -174,9 +195,15 @@ std::map<std::string, nlohmann::json> ConfigurationReader::get_sequence() const 
 
 void ConfigurationReader::save(std::string file_name)
 {
-  nlohmann::json j(m_params);
+  using json_float = nlohmann::basic_json<std::map, std::vector, std::string, bool, std::int32_t, std::uint32_t, float>;
+  json_float j;
+  for (auto [alg, props] : m_params) {
+    for (auto [k, v] : props) {
+      j[alg][k] = v;
+    }
+  }
   std::ofstream o(file_name);
-  o << j.dump(4);
+  o << std::setw(4) << j;
   o.close();
 }
 
@@ -209,4 +236,30 @@ std::unordered_set<BankTypes> ConfigurationReader::configured_bank_types() const
   }
 
   return bank_types;
+}
+
+SingleLayerFCNNReader::SingleLayerFCNNReader(const std::string& file_name)
+{
+  // Read file
+  std::ifstream input_file(file_name);
+  const auto input_data = nlohmann::json::parse(input_file);
+
+  // Read data
+  using array1d_t = std::vector<float>;
+  using array2d_t = std::vector<array1d_t>;
+  m_num_node = input_data.at("num_node").get<unsigned>();
+  m_num_input = input_data.at("num_input").get<unsigned>();
+  m_mean = input_data.at("mean").get<array1d_t>();
+  m_std = input_data.at("std").get<array1d_t>();
+  m_weights1 = input_data.at("weights1").get<array2d_t>();
+  m_bias1 = input_data.at("bias1").get<array1d_t>();
+  m_weights2 = input_data.at("weights2").get<array1d_t>();
+  m_bias2 = input_data.at("bias2").get<float>();
+
+  // Sanity checks
+  assert(m_mean.size() == m_num_input);
+  assert(m_std.size() == m_num_input);
+  assert(m_weights1.size() == m_num_node && m_weights1.front().size() == m_num_input);
+  assert(m_bias1.size() == m_num_node);
+  assert(m_weights2.size() == m_num_node);
 }

@@ -21,11 +21,13 @@ This site documents various aspects of Allen.
    develop/add_algorithm
    develop/configure_sequence
    develop/selections
+   develop/combiners
    develop/tests
    develop/root_service
    develop/memory_layouts
    develop/debugging
    integration/producers_consumers
+   integration/geometry
    monitoring/monitoring_allen
    ci/ci_configuration
    develop/documenting

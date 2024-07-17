@@ -9,12 +9,11 @@ variables:
 
   ALLEN_DATA: "/scratch/allen_data"
 
-  LCG_VERSION: "LCG_101"
-
+  LCG_VERSION: "LCG_103"
   # LCG_PLATFORM = {LCG_SYSTEM}+{LCG_QUALIFIER}-{LCG_OPTIMIZATION}
-  LCG_SYSTEM: "x86_64_v3-centos7-clang12"
+  LCG_SYSTEM: "x86_64_v3-el9-gcc12"
   LCG_QUALIFIER: "cpu"
-  LCG_OPTIMIZATION: "opt"
+  LCG_OPTIMIZATION: "opt+g"
 
   LB_NIGHTLY_SLOT: lhcb-head
   NO_LBLOGIN: "1" # prevent lbdocker containers to start LbLogin/LbEnv
@@ -27,6 +26,7 @@ variables:
 stages:
   - check            # Ensures the CI environment is valid
   - build
+  - check-warnings
   - run              # Build and run (throughput, efficiency, etc...)
   - test             # Runs various tests of the software
   - publish          # Publishes the results of the tests and runs in channels and grafana
@@ -72,18 +72,18 @@ check-copyright:
 check-formatting:
   <<: *active_branches
   stage: check
-  image: gitlab-registry.cern.ch/lhcb-docker/style-checker
+  tags:
+    - cvmfs
+  image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
   script:
-    - |
-      if [ ! -e .clang-format ] ; then
-        curl -o .clang-format "https://gitlab.cern.ch/lhcb-parallelization/Allen/raw/master/.clang-format?inline=false"
-        echo '.clang-format' >> .gitignore
-        git add .gitignore
-      fi
-
+    - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
+    - if [ ! -e .clang-format ] ; then
+    -   curl -o .clang-format "https://gitlab.cern.ch/lhcb-core/LbDevTools/raw/master/LbDevTools/data/default.clang-format?inline=false"
+    -   echo '.clang-format' >> .gitignore
+    -   git add .gitignore
+    - fi
     - curl -o lb-format "https://gitlab.cern.ch/lhcb-core/LbDevTools/raw/master/LbDevTools/SourceTools.py?inline=false"
-
-    - python lb-format --format-patch apply-formatting.patch origin/master
+    - python lb-format --format-patch apply-formatting.patch origin/${TARGET_BRANCH}
   artifacts:
     paths:
       - apply-formatting.patch
@@ -127,7 +127,7 @@ test_pages:
       - schedules
       - merge_requests
   stage: test
-  image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
+  image: gitlab-registry.cern.ch/lhcb-docker/os-base/alma9-devel:latest
   tags:
     - cvmfs
   variables:
@@ -135,8 +135,8 @@ test_pages:
   script:
     - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
     # use nightly build for python environment, needed for API reference of python selection functions
-    - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc linkcheck || reasons+='ERROR failed link check\n'
-    - lb-run --nightly lhcb-head/latest Allen/HEAD make -C doc html || reasons+='ERROR failed html generation\n'
+    - lb-run --nightly lhcb-master/latest Allen/master make -C doc linkcheck || reasons+='ERROR failed link check\n'
+    - lb-run --nightly lhcb-master/latest Allen/master make -C doc html || reasons+='ERROR failed html generation\n'
     - mv doc/_build/html test
     - if [ -n "$reasons" ]; then echo -e $reasons; exit 1; fi
   allow_failure:

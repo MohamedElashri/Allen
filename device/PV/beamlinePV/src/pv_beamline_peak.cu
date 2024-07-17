@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "pv_beamline_peak.cuh"
 
@@ -76,6 +83,7 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
     for (int offset = 16; offset > 0; offset /= 2) {
       integral += __shfl_xor_sync(-1u, integral, offset);
     }
+    __syncwarp();
 
     const float zBin = parameters.zmin + iend * parameters.dz;
     const float minInSeed =
@@ -87,6 +95,7 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
       }
       outIdx += 2;
     }
+    __syncthreads();
   }
   number_of_clusteredges = outIdx;
   __syncthreads();
@@ -208,6 +217,8 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
       }
     }
   }
+
+  __syncthreads();
 
   auto zClusterMean = [&zhisto](auto izmax, auto zmin, auto dz) -> float {
     const float* b = zhisto + izmax;

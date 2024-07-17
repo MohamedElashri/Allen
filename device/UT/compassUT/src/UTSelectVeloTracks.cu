@@ -1,8 +1,16 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "UTSelectVeloTracks.cuh"
 #include <tuple>
+#include "WarpIntrinsicsTools.cuh"
 
 INSTANTIATE_ALGORITHM(ut_select_velo_tracks::ut_select_velo_tracks_t)
 
@@ -45,7 +53,7 @@ __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_trac
     if (
       !backward && parameters.dev_accepted_velo_tracks[velo_tracks.offset() + i] &&
       velo_track_in_UTA_acceptance(velo_state)) {
-      int current_track = atomicAdd(ut_number_of_selected_velo_tracks, 1);
+      int current_track = Allen::warp::atomic_increment(ut_number_of_selected_velo_tracks);
       ut_selected_velo_tracks[current_track] = i;
     }
   }
@@ -56,11 +64,11 @@ __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_trac
 //=============================================================================
 __device__ bool ut_select_velo_tracks::velo_track_in_UTA_acceptance(const MiniState& state)
 {
-  const float xMidUT = state.x + state.tx * (UT::Constants::zMidUT - state.z);
-  const float yMidUT = state.y + state.ty * (UT::Constants::zMidUT - state.z);
+  const float xMidUT = state.x() + state.tx() * (UT::Constants::zMidUT - state.z());
+  const float yMidUT = state.y() + state.ty() * (UT::Constants::zMidUT - state.z());
 
   if (xMidUT * xMidUT + yMidUT * yMidUT < UT::Constants::centralHoleSize * UT::Constants::centralHoleSize) return false;
-  if ((fabsf(state.tx) > UT::Constants::maxXSlope) || (fabsf(state.ty) > UT::Constants::maxYSlope)) return false;
+  if ((fabsf(state.tx()) > UT::Constants::maxXSlope) || (fabsf(state.ty()) > UT::Constants::maxYSlope)) return false;
 
   if (
     UT::Constants::passTracks && fabsf(xMidUT) < UT::Constants::passHoleSize &&

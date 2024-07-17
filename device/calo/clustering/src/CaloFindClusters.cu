@@ -19,7 +19,13 @@ __device__ void simple_clusters(
   CaloCluster* clusters,
   unsigned const num_clusters,
   const CaloGeometry& calo,
-  const int16_t min_adc)
+  const int16_t min_adc,
+  float const* corrections,
+  Allen::Monitoring::Histogram<>::DeviceType histo_ecal_digit_e,
+  Allen::Monitoring::Histogram<>::DeviceType histo_ecal_cluster_e,
+  Allen::Monitoring::Histogram<>::DeviceType histo_ecal_cluster_et,
+  Allen::Monitoring::Histogram<>::DeviceType histo_ecal_cluster_x,
+  Allen::Monitoring::Histogram<>::DeviceType histo_ecal_cluster_y)
 {
   for (unsigned c = threadIdx.x; c < num_clusters; c += blockDim.x) {
     auto const& seed_cluster = seed_clusters[c];
@@ -34,10 +40,13 @@ __device__ void simple_clusters(
       }
       auto const digit = digits[n_id];
       if (digit.is_valid() && (digit.adc > min_adc)) {
-        cluster.e += calo.getE(n_id, digit.adc);
+        const auto digit_e = calo.getE(n_id, digit.adc);
+        cluster.e += digit_e;
         cluster.digits[n] = n_id;
+        histo_ecal_digit_e.increment(digit_e);
       }
     }
+    cluster.e -= corrections[c];
 
     for (uint16_t n = 0; n < Calo::Constants::max_neighbours; n++) {
       auto const n_id = cluster.digits[n];
@@ -51,13 +60,24 @@ __device__ void simple_clusters(
     }
     cluster.CalcEt();
     cluster.CaloNeutralE19 = calo.getE(seed_cluster.id, seed_cluster.adc) / cluster.e;
+
+    histo_ecal_cluster_e.increment(cluster.e);
+    histo_ecal_cluster_et.increment(cluster.et);
+    histo_ecal_cluster_x.increment(cluster.x);
+    histo_ecal_cluster_y.increment(cluster.y);
   }
 }
 
 __global__ void calo_find_clusters::calo_find_clusters(
   calo_find_clusters::Parameters parameters,
   const char* raw_ecal_geometry,
-  const int16_t min_adc)
+  const int16_t min_adc,
+  Allen::Monitoring::Histogram<>::DeviceType histo_n_clusters,
+  Allen::Monitoring::Histogram<>::DeviceType histo_ecal_digit_e,
+  Allen::Monitoring::Histogram<>::DeviceType histo_ecal_cluster_e,
+  Allen::Monitoring::Histogram<>::DeviceType histo_ecal_cluster_et,
+  Allen::Monitoring::Histogram<>::DeviceType histo_ecal_cluster_x,
+  Allen::Monitoring::Histogram<>::DeviceType histo_ecal_cluster_y)
 {
   // Get proper geometry.
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
@@ -68,13 +88,22 @@ __global__ void calo_find_clusters::calo_find_clusters(
   unsigned const ecal_digits_offset = parameters.dev_ecal_digits_offsets[event_number];
   unsigned const ecal_clusters_offset = parameters.dev_ecal_cluster_offsets[event_number];
   unsigned const ecal_num_clusters = parameters.dev_ecal_cluster_offsets[event_number + 1] - ecal_clusters_offset;
+
+  histo_n_clusters.increment(ecal_num_clusters);
+
   simple_clusters(
     parameters.dev_ecal_digits + ecal_digits_offset,
     parameters.dev_ecal_seed_clusters + Calo::Constants::ecal_max_index / 8 * event_number,
     parameters.dev_ecal_clusters + ecal_clusters_offset,
     ecal_num_clusters,
     ecal_geometry,
-    min_adc);
+    min_adc,
+    parameters.dev_ecal_corrections + ecal_clusters_offset,
+    histo_ecal_digit_e,
+    histo_ecal_cluster_e,
+    histo_ecal_cluster_et,
+    histo_ecal_cluster_x,
+    histo_ecal_cluster_y);
 }
 
 void calo_find_clusters::calo_find_clusters_t::set_arguments_size(
@@ -91,8 +120,23 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
   const Constants& constants,
   Allen::Context const& context) const
 {
+  auto dev_histo_n_clusters = m_histogram_n_clusters.data(context);
+  auto dev_histo_ecal_digit_e = m_histogram_ecal_digit_e.data(context);
+  auto dev_histo_ecal_cluster_e = m_histogram_ecal_cluster_e.data(context);
+  auto dev_histo_ecal_cluster_et = m_histogram_ecal_cluster_et.data(context);
+  auto dev_histo_ecal_cluster_x = m_histogram_ecal_cluster_x.data(context);
+  auto dev_histo_ecal_cluster_y = m_histogram_ecal_cluster_y.data(context);
+
   // Find clusters.
   global_function(calo_find_clusters)(
     dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, constants.dev_ecal_geometry, property<ecal_min_adc_t>().get());
+    arguments,
+    constants.dev_ecal_geometry,
+    property<ecal_min_adc_t>().get(),
+    dev_histo_n_clusters,
+    dev_histo_ecal_digit_e,
+    dev_histo_ecal_cluster_e,
+    dev_histo_ecal_cluster_et,
+    dev_histo_ecal_cluster_x,
+    dev_histo_ecal_cluster_y);
 }

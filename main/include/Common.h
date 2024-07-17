@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -19,13 +26,13 @@
 struct StrException : public std::exception {
   std::string s;
   StrException(std::string ss) : s(ss) {}
-  ~StrException() throw() {} // Updated
-  const char* what() const throw() override { return s.c_str(); }
+  ~StrException() noexcept {} // Updated
+  const char* what() const noexcept override { return s.c_str(); }
 };
 
 struct MemoryException : public StrException {
   MemoryException(std::string s) : StrException(s) {}
-  ~MemoryException() throw() {}
+  ~MemoryException() noexcept {}
 };
 
 using EventID = std::tuple<unsigned int, unsigned long>;

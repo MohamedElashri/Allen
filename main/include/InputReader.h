@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #ifndef INPUTREADER_H
 #define INPUTREADER_H 1
@@ -55,13 +62,15 @@ private:
   std::vector<int> m_split_feature;
 };
 
-struct TwoTrackMVAModelReader {
-  TwoTrackMVAModelReader(const std::string& file_name);
+struct LipschitzNNModelReader {
+  LipschitzNNModelReader(const std::string& file_name);
   std::vector<float> weights() const { return m_weights; }
   std::vector<float> biases() const { return m_biases; }
   std::vector<int> layer_sizes() const { return m_layer_sizes; }
   int n_layers() const { return m_n_layers; }
   std::vector<float> monotone_constraints() const { return m_monotone_constraints; }
+  std::vector<float> min_rescales() const { return m_min_rescales; }
+  std::vector<float> max_rescales() const { return m_max_rescales; }
   float lambda() const { return m_lambda; }
   float nominal_cut() const { return m_nominal_cut; }
 
@@ -71,19 +80,25 @@ private:
   std::vector<int> m_layer_sizes;
   int m_n_layers;
   std::vector<float> m_monotone_constraints;
+  std::vector<float> m_min_rescales;
+  std::vector<float> m_max_rescales;
   float m_nominal_cut;
   float m_lambda;
 };
 
 struct ConfigurationReader {
-  ConfigurationReader(const std::string& file_name);
-  ConfigurationReader(const std::map<std::string, std::map<std::string, nlohmann::json>>& params) : m_params(params) {}
+
+  using Params = std::map<std::string, std::map<std::string, nlohmann::json>>;
+
+  ConfigurationReader(std::string_view configuration);
+  ConfigurationReader(const Params& params) : m_params(params) {}
 
   std::map<std::string, nlohmann::json> params(std::string key) const
   {
     return (m_params.count(key) > 0 ? m_params.at(key) : std::map<std::string, nlohmann::json>());
   }
-  std::map<std::string, std::map<std::string, nlohmann::json>> params() const { return m_params; }
+
+  Params const& params() const { return m_params; }
   ConfiguredSequence configured_sequence() const { return m_configured_sequence; }
 
   void save(std::string file_name);
@@ -96,6 +111,27 @@ private:
   std::map<std::string, std::map<std::string, nlohmann::json>> m_params;
   std::map<std::string, nlohmann::json> m_sequence;
   ConfiguredSequence m_configured_sequence;
+};
+
+struct SingleLayerFCNNReader {
+  SingleLayerFCNNReader(const std::string& file_name);
+
+  const auto& mean() const { return m_mean; }
+  const auto& std() const { return m_std; }
+  const auto& weights1() const { return m_weights1; }
+  const auto& bias1() const { return m_bias1; }
+  const auto& weights2() const { return m_weights2; }
+  const auto& bias2() const { return m_bias2; }
+
+private:
+  unsigned m_num_node;
+  unsigned m_num_input;
+  std::vector<float> m_mean;
+  std::vector<float> m_std;
+  std::vector<std::vector<float>> m_weights1;
+  std::vector<float> m_bias1;
+  std::vector<float> m_weights2;
+  float m_bias2;
 };
 
 #endif

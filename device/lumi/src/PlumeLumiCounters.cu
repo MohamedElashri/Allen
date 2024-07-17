@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "PlumeLumiCounters.cuh"
+#include "LumiCommon.cuh"
 
 INSTANTIATE_ALGORITHM(plume_lumi_counters::plume_lumi_counters_t)
 
@@ -19,8 +20,33 @@ void plume_lumi_counters::plume_lumi_counters_t::set_arguments_size(
 {
   // the total size of output info is proportional to the lumi summaries
   set_size<dev_lumi_infos_t>(
-    arguments,
-    Lumi::Constants::n_plume_counters * first<host_lumi_summaries_size_t>(arguments) / Lumi::Constants::lumi_length);
+    arguments, Lumi::Constants::n_plume_counters * first<host_lumi_summaries_count_t>(arguments));
+}
+
+void plume_lumi_counters::plume_lumi_counters_t::init()
+{
+  std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+  std::map<std::string, std::pair<float, float>> shifts_and_scales = property<lumi_counter_shifts_and_scales_t>();
+
+  unsigned c_idx(0u);
+  for (auto counter_name : Lumi::Constants::plume_counter_names) {
+    if (schema.find(counter_name) == schema.end()) {
+      std::cout << "LumiSummary schema does not use " << counter_name << std::endl;
+    }
+    else {
+      m_offsets_and_sizes[2 * c_idx] = schema[counter_name].first;
+      m_offsets_and_sizes[2 * c_idx + 1] = schema[counter_name].second;
+    }
+    if (shifts_and_scales.find(counter_name) == shifts_and_scales.end()) {
+      m_shifts_and_scales[2 * c_idx] = 0.f;
+      m_shifts_and_scales[2 * c_idx + 1] = 1.f;
+    }
+    else {
+      m_shifts_and_scales[2 * c_idx] = shifts_and_scales[counter_name].first;
+      m_shifts_and_scales[2 * c_idx + 1] = shifts_and_scales[counter_name].second;
+    }
+    ++c_idx;
+  }
 }
 
 void plume_lumi_counters::plume_lumi_counters_t::operator()(
@@ -30,51 +56,83 @@ void plume_lumi_counters::plume_lumi_counters_t::operator()(
   const Allen::Context& context) const
 {
   // do nothing if no lumi event
-  if (first<host_lumi_summaries_size_t>(arguments) == 0) return;
+  if (first<host_lumi_summaries_count_t>(arguments) == 0) return;
+
+  Allen::memset_async<dev_lumi_infos_t>(arguments, 0, context);
 
   global_function(plume_lumi_counters)(dim3(4u), property<block_dim_t>(), context)(
-    arguments, first<host_number_of_events_t>(arguments));
+    arguments, first<host_number_of_events_t>(arguments), m_offsets_and_sizes, m_shifts_and_scales);
 }
 
 __global__ void plume_lumi_counters::plume_lumi_counters(
   plume_lumi_counters::Parameters parameters,
-  const unsigned number_of_events)
+  const unsigned number_of_events,
+  const offsets_and_sizes_t offsets_and_sizes,
+  const shifts_and_scales_t shifts_and_scales)
 {
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
-    unsigned lumi_sum_offset = parameters.dev_lumi_summary_offsets[event_number];
+    unsigned lumi_evt_index = parameters.dev_lumi_event_indices[event_number];
 
     // skip non-lumi event
-    if (lumi_sum_offset == parameters.dev_lumi_summary_offsets[event_number + 1]) continue;
+    if (lumi_evt_index == parameters.dev_lumi_event_indices[event_number + 1]) continue;
 
     // loop over lumi channels
     const Plume_* pl = parameters.dev_plume + event_number;
-    std::array<unsigned, 3> plume_counters = {0u, 0u, 0u};
+
+    float plume_counters_ADCsum = 0.f;
+
+    std::array<int32_t, 2> plume_counters_ovt = {0u, 0u};
+
+    std::array<float, 44> plume_counters = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+                                            0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+                                            0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+
     for (unsigned feb = 0; feb < 2; feb++) {
-      unsigned channel_offset = feb * Lumi::Constants::n_plume_channels;
+      unsigned channel_offset = feb * Lumi::Constants::n_plume_lumi_channels;
       for (unsigned channel = 0; channel < Lumi::Constants::n_plume_lumi_channels; ++channel) {
-        plume_counters[0] += static_cast<unsigned>(pl->ADC_counts[channel_offset + channel].x & 0xffffffff);
-        // get the corresonding overthreshold bit
-        plume_counters[1 + feb] |= ((pl->ovr_th[feb]) & (1u << (31 - channel)));
+        plume_counters_ADCsum += pl->ADC_counts.at(channel_offset + channel);
+        plume_counters[feb * Lumi::Constants::n_plume_lumi_channels + channel] +=
+          pl->ADC_counts.at(channel_offset + channel);
+        // get the corresponding overthreshold bit
       }
+      plume_counters_ovt[feb] = pl->ovr_th[feb] & ((1u << Lumi::Constants::n_plume_lumi_channels) - 1);
     }
     // get average
-    plume_counters[0] = plume_counters[0] / 2u / Lumi::Constants::n_plume_lumi_channels;
+    plume_counters_ADCsum = plume_counters_ADCsum / Lumi::Constants::n_plume_lumi_channels / 2.f;
 
-    std::array<LHCb::LumiSummaryOffsets::V2::counterOffsets, Lumi::Constants::n_plume_counters> counter_offsets = {
-      LHCb::LumiSummaryOffsets::V2::PlumeAvgLumiADCOffset,
-      LHCb::LumiSummaryOffsets::V2::PlumeLumiOverthrLowOffset,
-      LHCb::LumiSummaryOffsets::V2::PlumeLumiOverthrHighOffset};
-    std::array<LHCb::LumiSummaryOffsets::V2::counterOffsets, Lumi::Constants::n_plume_counters> counter_sizes = {
-      LHCb::LumiSummaryOffsets::V2::PlumeAvgLumiADCSize,
-      LHCb::LumiSummaryOffsets::V2::PlumeLumiOverthrLowSize,
-      LHCb::LumiSummaryOffsets::V2::PlumeLumiOverthrHighSize};
-    auto* lumi_info =
-      parameters.dev_lumi_infos + Lumi::Constants::n_plume_counters * lumi_sum_offset / Lumi::Constants::lumi_length;
-    for (unsigned info_index = 0u; info_index < Lumi::Constants::n_plume_counters; ++info_index) {
-      lumi_info[info_index].offset = counter_offsets[info_index];
-      lumi_info[info_index].size = counter_sizes[info_index];
-      lumi_info[info_index].value = plume_counters[info_index];
+    unsigned info_offset = Lumi::Constants::n_plume_counters * lumi_evt_index;
+
+    // filling ADCsum average
+
+    fillLumiInfo(
+      parameters.dev_lumi_infos[info_offset],
+      offsets_and_sizes[0],
+      offsets_and_sizes[1],
+      plume_counters_ADCsum,
+      shifts_and_scales[0],
+      shifts_and_scales[1]);
+
+    for (unsigned i = 1u; i < 3u; ++i) {
+
+      // filling ovt bits
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset + i],
+        offsets_and_sizes[2 * i],
+        offsets_and_sizes[2 * i + 1],
+        plume_counters_ovt[i - 1],
+        shifts_and_scales[2 * i],
+        shifts_and_scales[2 * i + 1]);
+    }
+
+    for (unsigned i = 3u; i < Lumi::Constants::n_plume_counters; ++i) {
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset + i],
+        offsets_and_sizes[2 * i],
+        offsets_and_sizes[2 * i + 1],
+        plume_counters[i - 3],
+        shifts_and_scales[2 * i],
+        shifts_and_scales[2 * i + 1]);
     }
   }
 }

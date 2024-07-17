@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "VertexFitter.cuh"
 
@@ -50,7 +57,7 @@ void VertexFit::fit_secondary_vertices_t::set_arguments_size(
   set_size<dev_two_track_composites_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_multi_event_composites_view_t>(arguments, 1);
   set_size<dev_multi_event_composites_ptr_t>(arguments, 1);
-  set_size<dev_sv_pv_ipchi2_t>(arguments, Associate::Consolidated::table_size(first<host_number_of_svs_t>(arguments)));
+  set_size<dev_sv_pv_ip_t>(arguments, Associate::Consolidated::table_size(first<host_number_of_svs_t>(arguments)));
   set_size<dev_sv_pv_tables_t>(arguments, first<host_number_of_events_t>(arguments));
   // TODO: Clean this up.
   set_size<dev_sv_fit_results_view_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -66,7 +73,7 @@ void VertexFit::fit_secondary_vertices_t::operator()(
   Allen::memset_async<dev_two_track_composite_view_t>(arguments, 0, context);
 
   global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+    arguments, m_histogram_nsvs.data(context));
 
   global_function(create_sv_views)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
@@ -99,17 +106,23 @@ __host__ __device__ void fill_sv_fit_result(
   return;
 }
 
-__global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters parameters)
+__global__ void VertexFit::fit_secondary_vertices(
+  VertexFit::Parameters parameters,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_nsvs)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   const unsigned sv_offset = parameters.dev_sv_offsets[event_number];
   const unsigned n_svs = parameters.dev_sv_offsets[event_number + 1] - sv_offset;
-  const unsigned idx_offset = 10 * VertexFit::max_svs * event_number;
+  const unsigned idx_offset = VertexFit::max_svs * event_number;
   const unsigned* event_svs_trk1_idx = parameters.dev_svs_trk1_idx + idx_offset;
   const unsigned* event_svs_trk2_idx = parameters.dev_svs_trk2_idx + idx_offset;
   const float* event_poca = parameters.dev_sv_poca + 3 * idx_offset;
+
+  if (threadIdx.x == 0) {
+    dev_histogram_nsvs.increment(n_svs);
+  }
 
   // Tracks.
   const auto long_track_particles = parameters.dev_long_track_particles->container(event_number);
@@ -125,10 +138,10 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
   // SV -> PV table.
   const unsigned total_number_of_svs = parameters.dev_sv_offsets[number_of_events];
   // TODO: Don't use two different types of PV table.
-  Associate::Consolidated::Table sv_pv_ipchi2 {parameters.dev_sv_pv_ipchi2, total_number_of_svs};
-  Associate::Consolidated::EventTable pv_table = sv_pv_ipchi2.event_table(sv_offset, n_svs);
+  Associate::Consolidated::Table sv_pv_ip {parameters.dev_sv_pv_ip, total_number_of_svs};
+  Associate::Consolidated::EventTable pv_table = sv_pv_ip.event_table(sv_offset, n_svs);
   parameters.dev_sv_pv_tables[event_number] =
-    Allen::Views::Physics::PVTable {parameters.dev_sv_pv_ipchi2, sv_offset, total_number_of_svs, n_svs};
+    Allen::Views::Physics::PVTable {parameters.dev_sv_pv_ip, sv_offset, total_number_of_svs, n_svs};
 
   parameters.dev_sv_fit_results_view[event_number] = Allen::Views::Physics::SecondaryVertices {
     parameters.dev_sv_fit_results, parameters.dev_sv_offsets, event_number, number_of_events};
@@ -140,6 +153,7 @@ __global__ void VertexFit::fit_secondary_vertices(VertexFit::Parameters paramete
     tmp_sv.y = event_poca[3 * i_sv + 1];
     tmp_sv.z = event_poca[3 * i_sv + 2];
     tmp_sv.chi2 = -1;
+    tmp_sv.fdchi2 = -1;
     tmp_sv.minipchi2 = 0;
     auto i_track = event_svs_trk1_idx[i_sv];
     auto j_track = event_svs_trk2_idx[i_sv];

@@ -1,5 +1,12 @@
 /*****************************************************************************\
  * (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "SMOG2_MinimumBiasLine.cuh"
 #include "VeloConsolidated.cuh"
@@ -23,13 +30,6 @@ unsigned SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::get_decisions_size(
   return first<host_number_of_reconstructed_velo_tracks_t>(arguments);
 }
 
-__device__ unsigned SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::input_size(
-  const Parameters& parameters,
-  const unsigned event_number)
-{
-  return parameters.dev_tracks_container[event_number].size();
-}
-
 // Get input function
 __device__ std::tuple<const unsigned, const float> SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::get_input(
   const Parameters& parameters,
@@ -39,7 +39,7 @@ __device__ std::tuple<const unsigned, const float> SMOG2_minimum_bias_line::SMOG
 
   const auto velo_track = parameters.dev_tracks_container[event_number].track(i);
   const auto velo_state = velo_track.state(parameters.dev_velo_states_view[event_number]);
-  return std::forward_as_tuple(velo_track.number_of_hits(), velo_state.z);
+  return std::forward_as_tuple(velo_track.number_of_hits(), velo_state.z());
 }
 
 // Selection function

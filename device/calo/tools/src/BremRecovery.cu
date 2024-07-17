@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "BremRecovery.cuh"
 #include "EcalScan.cuh"
@@ -92,8 +99,8 @@ __global__ void brem_recovery::brem_recovery(brem_recovery::Parameters parameter
     parameters.dev_brem_E[track_index_with_offset] = sum_cell_E;
     parameters.dev_brem_ET[track_index_with_offset] =
       sum_cell_E * sqrtf(
-                     (velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty) /
-                     (velo_state.tx * velo_state.tx + velo_state.ty * velo_state.ty + 1.f));
+                     (velo_state.tx() * velo_state.tx() + velo_state.ty() * velo_state.ty()) /
+                     (velo_state.tx() * velo_state.tx() + velo_state.ty() * velo_state.ty() + 1.f));
     parameters.dev_brem_inECALacc[track_index_with_offset] = inAcc;
     parameters.dev_brem_ecal_digits[track_index_with_offset] = digit_indices;
     parameters.dev_brem_ecal_digits_size[track_index_with_offset] = N_matched_digits;

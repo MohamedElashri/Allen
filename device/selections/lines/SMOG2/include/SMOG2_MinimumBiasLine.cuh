@@ -1,5 +1,12 @@
 /*****************************************************************************\
  * (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -16,9 +23,7 @@ namespace SMOG2_minimum_bias_line {
 
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_tracks_container_t), char) host_fn_parameters;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
@@ -42,7 +47,10 @@ namespace SMOG2_minimum_bias_line {
     static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments);
 
     // Get input size function
-    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number);
+    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number)
+    {
+      return parameters.dev_tracks_container[event_number].size();
+    }
 
     // Get input function
     __device__ static std::tuple<const unsigned, const float>

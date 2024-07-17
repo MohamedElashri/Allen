@@ -1,10 +1,18 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <iostream>
 #include <iomanip>
 #include <MEPTools.h>
 #include <CalculateNumberOfRetinaClustersPerSensor.cuh>
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(
   calculate_number_of_retinaclusters_each_sensor_pair::calculate_number_of_retinaclusters_each_sensor_pair_t)
@@ -18,11 +26,11 @@ __global__ void calculate_number_of_retinaclusters_each_sensor_pair_kernel(
   unsigned* each_sensor_pair_size = nullptr;
 
   if constexpr (decoding_version == 2 || decoding_version == 3) {
-    each_sensor_pair_size = parameters.dev_each_sensor_pair_size +
+    each_sensor_pair_size = parameters.dev_offsets_each_sensor_pair_size +
                             event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module;
   }
   else {
-    each_sensor_pair_size = parameters.dev_each_sensor_pair_size +
+    each_sensor_pair_size = parameters.dev_offsets_each_sensor_pair_size +
                             event_number * Velo::Constants::n_modules * Velo::Constants::n_sensors_per_module / 2;
   }
 
@@ -59,8 +67,9 @@ void calculate_number_of_retinaclusters_each_sensor_pair::calculate_number_of_re
   if (bank_version != 2 && bank_version != 3) {
     size /= 2;
   }
-  set_size<dev_each_sensor_pair_size_t>(arguments, first<host_number_of_events_t>(arguments) * size);
+  set_size<dev_offsets_each_sensor_pair_size_t>(arguments, first<host_number_of_events_t>(arguments) * size + 1);
   set_size<dev_retina_bank_index_t>(arguments, size); // divide by 2 for sensor pair
+  set_size<host_total_sum_holder_t>(arguments, 1);
 }
 
 void calculate_number_of_retinaclusters_each_sensor_pair::calculate_number_of_retinaclusters_each_sensor_pair_t::
@@ -70,11 +79,13 @@ operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_each_sensor_pair_size_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_each_sensor_pair_size_t>(arguments, 0, context);
+
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
 
   if (bank_version < 0) {
     Allen::memset_async<dev_retina_bank_index_t>(arguments, 0, context);
+    Allen::memset_async<host_total_sum_holder_t>(arguments, 0, context);
     return; // no VP banks present in data
   }
 
@@ -92,4 +103,6 @@ operator()(
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, std::get<0>(runtime_options.event_interval));
+
+  PrefixSum::prefix_sum<dev_offsets_each_sensor_pair_size_t, host_total_sum_holder_t>(*this, arguments, context);
 }

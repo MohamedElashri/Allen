@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <array>
 #include <fstream>
@@ -61,8 +68,7 @@ namespace {
       assert(nRegions == 4);
 
       vector<float> padSizeX {}, stripXSizeX {}, stripYSizeX {}, padSizeY {}, stripXSizeY {}, stripYSizeY {};
-      array<unsigned int, 16> padOffset {}, stripXOffset {}, stripYOffset {}, padSizeOffset {}, stripXSizeOffset {},
-        stripYSizeOffset {};
+      array<unsigned int, 16> padOffset {}, stripXOffset {}, stripYOffset {};
       array<int, 16> padGridY {}, stripXGridY {}, stripYGridX {}, stripYGridY {};
       array<vector<array<float, 3>>, 4> padTable {}, stripXTable {}, stripYTable {};
 
@@ -95,29 +101,23 @@ namespace {
         stripYTable[s].resize(12 * accumulate(views::ints(0, 4), 0, nChannels(s, stripYGridX, stripYGridY)));
       }
 
-      for (auto& [sizeX, sizeY, offset, gridY] :
-           {make_tuple(std::ref(padSizeX), std::ref(padSizeY), std::ref(padSizeOffset), std::ref(padGridY)),
-            make_tuple(std::ref(stripXSizeX), std::ref(stripXSizeY), std::ref(stripXSizeOffset), std::ref(stripXGridY)),
-            make_tuple(
-              std::ref(stripYSizeX), std::ref(stripYSizeY), std::ref(stripYSizeOffset), std::ref(stripYGridY))}) {
-        sizeX.resize(24 * accumulate(gridY, 0));
-        sizeY.resize(24 * accumulate(gridY, 0));
-        for (size_t i = 0; i < gridY.size() - 1; ++i) {
-          offset[i + 1] = offset[i] + 24 * gridY[i];
-        }
+      for (auto& [sizeX, sizeY, gridY] :
+           {make_tuple(std::ref(padSizeX), std::ref(padSizeY), std::ref(padGridY)),
+            make_tuple(std::ref(stripXSizeX), std::ref(stripXSizeY), std::ref(stripXGridY)),
+            make_tuple(std::ref(stripYSizeX), std::ref(stripYSizeY), std::ref(stripYGridY))}) {
+        sizeX.resize(16);
+        sizeY.resize(16);
       }
 
       string padType {"pad"}, stripXType {"stripX"}, stripYType {"stripY"};
       // Pads
-      auto pad = std::tie(padType, padGridX, padGridY, padSizeX, padSizeY, padOffset, padSizeOffset, padTable);
+      auto pad = std::tie(padType, padGridX, padGridY, padSizeX, padSizeY, padOffset, padTable);
       // X strips
-      auto stripX = std::tie(
-        stripXType, stripXGridX, stripXGridY, stripXSizeX, stripXSizeY, stripXOffset, stripXSizeOffset, stripXTable);
+      auto stripX = std::tie(stripXType, stripXGridX, stripXGridY, stripXSizeX, stripXSizeY, stripXOffset, stripXTable);
       // Y strips
-      auto stripY = std::tie(
-        stripYType, stripYGridX, stripYGridY, stripYSizeX, stripYSizeY, stripYOffset, stripYSizeOffset, stripYTable);
+      auto stripY = std::tie(stripYType, stripYGridX, stripYGridY, stripYSizeX, stripYSizeY, stripYOffset, stripYTable);
 
-      for (auto& [t, gridX, gridY, sizeX, sizeY, offset, sizeOffset, table] : {pad, stripX, stripY}) {
+      for (auto& [t, gridX, gridY, sizeX, sizeY, offset, table] : {pad, stripX, stripY}) {
         for (auto station : views::ints(0, nStations)) {
           size_t index = 0;
           for (auto region : views::ints(0, nRegions)) {
@@ -145,15 +145,17 @@ namespace {
                 throw GaudiException {e.str(), __FILE__, StatusCode::FAILURE};
               }
               else {
-                auto sizeIdx = MuonUtils::size_index(sizeOffset, gridX, gridY, tile);
+                auto sizeIdx = 4 * tile.station() + tile.region();
 
                 // positions are always indexed by station
                 table[station][index++] = {
                   numeric_cast<float>(pos->x()), numeric_cast<float>(pos->y()), numeric_cast<float>(pos->z())};
 
                 // sizes are specially indexed
-                if (pos->dX() > sizeX[sizeIdx]) sizeX[sizeIdx] = pos->dX();
-                if (pos->dY() > sizeY[sizeIdx]) sizeY[sizeIdx] = pos->dY();
+                if (y < gridY[gidx]) {
+                  if ((t == "pad") || (float) pos->dX() > sizeX[sizeIdx]) sizeX[sizeIdx] = pos->dX();
+                  if ((t == "pad") || (float) pos->dY() > sizeY[sizeIdx]) sizeY[sizeIdx] = pos->dY();
+                }
               }
             }
           }

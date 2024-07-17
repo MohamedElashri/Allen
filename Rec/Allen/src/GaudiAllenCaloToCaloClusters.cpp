@@ -1,8 +1,8 @@
 /*****************************************************************************\
 * (c) Copyright 2008-2022 CERN for the benefit of the LHCb Collaboration      *
 *                                                                             *
-* This software is distributed under the terms of the GNU General Public      *
-* Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
 *                                                                             *
 * In applying this licence, CERN does not waive the privileges and immunities *
 * granted to it by virtue of its status as an Intergovernmental Organization  *
@@ -78,7 +78,6 @@ LHCb::Event::Calo::Clusters GaudiAllenCaloToCaloClusters::operator()(
 
   // Loop over Allen Ecal clusters and convert them
   // Don't need to access them with offset since one event is processed at a time
-  int16_t iFirstEntry = 0;
   for (unsigned i = 0; i < number_of_ecal_clusters; i++) {
     const auto& cluster = host_ecal_clusters[i];
 
@@ -103,10 +102,8 @@ LHCb::Event::Calo::Clusters GaudiAllenCaloToCaloClusters::operator()(
       entry.setFraction(1.f);
       entry.setStatus({LHCb::CaloDigitStatus::Mask::UseForEnergy, LHCb::CaloDigitStatus::Mask::SeedCell});
 
-      auto ncells = 0;
       for (unsigned j = 0; j < Calo::Constants::max_neighbours; ++j) {
         if (cluster.digits[j] == USHRT_MAX) continue;
-        ncells++;
         auto cellID = LHCb::Detector::Calo::DenseIndex::details::toCellID(cluster.digits[j]);
         if (LHCb::Detector::Calo::isValid(cellID)) {
 
@@ -122,8 +119,6 @@ LHCb::Event::Calo::Clusters GaudiAllenCaloToCaloClusters::operator()(
       clusterOut.setType(LHCb::Event::Calo::Clusters::Type::Area3x3);
       clusterOut.setEnergy(cluster.e);
       clusterOut.setPosition({cluster.x, cluster.y, Calo::Constants::z});
-
-      iFirstEntry += ncells + 1; // seed digit+ associated digits making the cluster
     }
     else if (msgLevel(MSG::DEBUG)) {
       debug() << "ECAL CellID " << seedCellID << " corresponding to dense ID " << cluster.center_id << " is invalid!"

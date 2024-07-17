@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "VeloKalmanFilter.cuh"
 #include "ROOTService.h"
@@ -73,13 +80,22 @@ void velo_kalman_filter::velo_kalman_filter_t::output_monitor(
 
 void velo_kalman_filter::velo_kalman_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions& runtime_options,
+  const RuntimeOptions&,
   const Constants& constants,
   const Allen::Context& context) const
 {
   global_function(velo_kalman_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, constants.dev_beamline.data());
-  if (property<enable_monitoring_t>()) output_monitor(arguments, runtime_options, context);
+    arguments,
+    constants.dev_beamline.data(),
+    m_histogram_velo_total_track_eta.data(context),
+    m_histogram_velo_total_track_phi.data(context),
+    m_histogram_velo_total_track_nhits.data(context),
+    m_histogram_velo_forward_track_eta.data(context),
+    m_histogram_velo_forward_track_phi.data(context),
+    m_histogram_velo_forward_track_nhits.data(context),
+    m_histogram_velo_backward_track_eta.data(context),
+    m_histogram_velo_backward_track_phi.data(context),
+    m_histogram_velo_backward_track_nhits.data(context));
 }
 
 /**
@@ -123,16 +139,16 @@ __device__ MiniState least_means_square_fit(const Allen::Views::Velo::Consolidat
 
   // Calculate tx, ty and backward
   const auto dens = 1.0f / (sz2 * s0 - sz * sz);
-  state.tx = (sxz * s0 - sx * sz) * dens;
-  state.x = (sx * sz2 - sxz * sz) * dens;
+  state.tx() = (sxz * s0 - sx * sz) * dens;
+  state.x() = (sx * sz2 - sxz * sz) * dens;
 
   const auto denu = 1.0f / (uz2 * u0 - uz * uz);
-  state.ty = (uyz * u0 - uy * uz) * denu;
-  state.y = (uy * uz2 - uyz * uz) * denu;
+  state.ty() = (uyz * u0 - uy * uz) * denu;
+  state.y() = (uy * uz2 - uyz * uz) * denu;
 
-  state.z = -(state.x * state.tx + state.y * state.ty) / (state.tx * state.tx + state.ty * state.ty);
-  state.x = state.x + state.tx * state.z;
-  state.y = state.y + state.ty * state.z;
+  state.z() = -(state.x() * state.tx() + state.y() * state.ty()) / (state.tx() * state.tx() + state.ty() * state.ty());
+  state.x() = state.x() + state.tx() * state.z();
+  state.y() = state.y() + state.ty() * state.z();
 
   return state;
 }
@@ -149,20 +165,31 @@ __device__ MiniState linear_fit(const Allen::Views::Velo::Consolidated::Track& t
   const auto last = static_cast<::Velo::HitBase>(track.hit(track.number_of_hits() - 1));
 
   // Calculate tx, ty
-  state.tx = (last.x - first.x) / (last.z - first.z);
-  state.ty = (last.y - first.y) / (last.z - first.z);
+  state.tx() = (last.x - first.x) / (last.z - first.z);
+  state.ty() = (last.y - first.y) / (last.z - first.z);
 
   // Propagate to the beamline
-  auto delta_z = (state.tx * (dev_beamline[0] - last.x) + state.ty * (dev_beamline[1] - last.y)) /
-                 (state.tx * state.tx + state.ty * state.ty);
-  state.x = last.x + state.tx * delta_z;
-  state.y = last.y + state.ty * delta_z;
-  state.z = last.z + delta_z;
+  auto delta_z = (state.tx() * (dev_beamline[0] - last.x) + state.ty() * (dev_beamline[1] - last.y)) /
+                 (state.tx() * state.tx() + state.ty() * state.ty());
+  state.x() = last.x + state.tx() * delta_z;
+  state.y() = last.y + state.ty() * delta_z;
+  state.z() = last.z + delta_z;
 
   return state;
 }
 
-__global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Parameters parameters, float* dev_beamline)
+__global__ void velo_kalman_filter::velo_kalman_filter(
+  velo_kalman_filter::Parameters parameters,
+  float* dev_beamline,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_total_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_total_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_total_track_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_forward_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_forward_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_forward_track_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_backward_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_backward_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType dev_histogram_velo_backward_track_nhits)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -186,7 +213,7 @@ __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Param
 
     // Get first estimate of the state , changed least means square fit to linear fit between first and last hit
     const auto lin_fit_at_beamline = linear_fit(track, dev_beamline);
-    bool backward = lin_fit_at_beamline.z > track.hit(0).z();
+    bool backward = lin_fit_at_beamline.z() > track.hit(0).z();
     parameters.dev_is_backward[velo_tracks_view.offset() + i] = backward;
 
     // Perform a Kalman fit to obtain state at beamline
@@ -197,5 +224,61 @@ __global__ void velo_kalman_filter::velo_kalman_filter(velo_kalman_filter::Param
 
     kalman_beamline_states.set(velo_tracks_view.offset() + i, kalman_beamline_state);
     kalman_endvelo_states.set(velo_tracks_view.offset() + i, kalman_endvelo_state);
+
+    velo_kalman_filter::velo_kalman_filter_t::monitor(
+      track,
+      kalman_beamline_state,
+      dev_histogram_velo_total_track_eta,
+      dev_histogram_velo_total_track_phi,
+      dev_histogram_velo_total_track_nhits,
+      dev_histogram_velo_forward_track_eta,
+      dev_histogram_velo_forward_track_phi,
+      dev_histogram_velo_forward_track_nhits,
+      dev_histogram_velo_backward_track_eta,
+      dev_histogram_velo_backward_track_phi,
+      dev_histogram_velo_backward_track_nhits);
   }
+}
+
+__device__ void velo_kalman_filter::velo_kalman_filter_t::monitor(
+  const Allen::Views::Velo::Consolidated::Track& velo_track,
+  const KalmanVeloState& beamline_state,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_total_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_total_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_total_track_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_forward_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_forward_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_forward_track_nhits,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_backward_track_eta,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_backward_track_phi,
+  Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_velo_backward_track_nhits)
+{
+
+  const auto tx = beamline_state.tx();
+  const auto ty = beamline_state.ty();
+  const auto z_beamline = beamline_state.z();
+  const auto first_z = static_cast<::Velo::HitBase>(velo_track.hit(0)).z;
+  const auto backward = z_beamline > first_z;
+  const auto zeta = backward ? -1.f : 1.f;
+
+  const float slope2 = tx * tx + ty * ty;
+  const float rho = std::sqrt(slope2);
+  const auto nhits = velo_track.number_of_hits();
+  const auto eta = eta_from_rho_z(rho, zeta);
+  const auto phi = std::atan2(ty, tx);
+  // printf("tx %.4f , ty %.4f, nhits: %d \n", tx,ty,nhits);
+
+  if (backward) {
+    dev_histogram_velo_backward_track_eta.increment(eta);
+    dev_histogram_velo_backward_track_phi.increment(phi);
+    dev_histogram_velo_backward_track_nhits.increment(nhits);
+  }
+  else {
+    dev_histogram_velo_forward_track_eta.increment(eta);
+    dev_histogram_velo_forward_track_phi.increment(phi);
+    dev_histogram_velo_forward_track_nhits.increment(nhits);
+  }
+  dev_histogram_velo_total_track_eta.increment(eta);
+  dev_histogram_velo_total_track_phi.increment(phi);
+  dev_histogram_velo_total_track_nhits.increment(nhits);
 }

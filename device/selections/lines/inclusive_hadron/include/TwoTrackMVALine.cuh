@@ -1,11 +1,20 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 #include "ParticleTypes.cuh"
+#include "AllenMonitoring.h"
+#include "ROOTService.h"
 
 namespace two_track_mva_line {
   struct Parameters {
@@ -14,10 +23,7 @@ namespace two_track_mva_line {
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     DEVICE_INPUT(dev_two_track_mva_evaluation_t, float) dev_two_track_mva_evaluation;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
@@ -35,15 +41,60 @@ namespace two_track_mva_line {
     PROPERTY(maxDOCA_t, "maxDOCA", "Maximum DOCA between two tracks", float) maxDOCA;
     PROPERTY(minipchi2_t, "minipchi2", "minimum ipchi2 of the tracks", float) minipchi2;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+    PROPERTY(maxGhostProb_t, "maxGhostProb", "Maximum ghost probability of the tracks", float) maxGhostProb;
+
+    DEVICE_OUTPUT(mva_t, float) mva;
+    DEVICE_OUTPUT(maxChildGhostProb_t, float) maxChildGhostProb;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
+
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
+    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
-  struct two_track_mva_line_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_mva_line_t, Parameters> {
+  struct two_track_mva_line_t : public SelectionAlgorithm,
+                                Parameters,
+                                CompositeParticleLine<two_track_mva_line_t, Parameters> {
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
+    struct DeviceAccumulators {
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p0_ghost_prob;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p1_ghost_prob;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p0_ip_x;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p1_ip_x;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p0_ip_y;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_p1_ip_y;
+      Allen::Monitoring::Histogram<>::DeviceType histogram_d0_mass;
+      DeviceAccumulators(const two_track_mva_line_t& algo, const Allen::Context& ctx) :
+        histogram_p0_ghost_prob(algo.m_histogram_p0_ghost_prob.data(ctx)),
+        histogram_p1_ghost_prob(algo.m_histogram_p1_ghost_prob.data(ctx)),
+        histogram_p0_ip_x(algo.m_histogram_p0_ip_x.data(ctx)), histogram_p1_ip_x(algo.m_histogram_p1_ip_x.data(ctx)),
+        histogram_p0_ip_y(algo.m_histogram_p0_ip_y.data(ctx)), histogram_p1_ip_y(algo.m_histogram_p1_ip_y.data(ctx)),
+        histogram_d0_mass(algo.m_histogram_d0_mass.data(ctx))
+
+      {}
+    };
+
     __device__ static bool select(
       const Parameters& parameters,
+      const DeviceAccumulators&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input);
+
+    __device__ static void monitor(
+      const Parameters& parameters,
+      const DeviceAccumulators& accumulators,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+      unsigned index,
+      bool sel);
+
+    __device__ static void fill_tuples(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+      unsigned index,
+      bool sel);
+
+    using monitoring_types = std::tuple<mva_t, maxChildGhostProb_t, evtNo_t, runNo_t>;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -61,6 +112,24 @@ namespace two_track_mva_line {
     Property<maxDOCA_t> m_maxDOCA {this, 0.2f};
     Property<minipchi2_t> m_minipchi2 {this, 4.f}; // this is probably a noop, but better safe than sorry
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Property<maxGhostProb_t> m_maxGhostProb {this, 0.5};
+
+    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Property<enable_monitoring_t> m_enable_monitoring {this, true};
+
+    Allen::Monitoring::Histogram<> m_histogram_p0_ghost_prob {this,
+                                                              "p0_ghost_prob",
+                                                              "track0 GhostProb",
+                                                              {100u, 0.f, 0.6f}};
+    Allen::Monitoring::Histogram<> m_histogram_p1_ghost_prob {this,
+                                                              "p1_ghost_prob",
+                                                              "track1 GhostProb",
+                                                              {100u, 0.f, 0.6f}};
+    Allen::Monitoring::Histogram<> m_histogram_p0_ip_x {this, "p0_ip_x", "IP_{x}(p0)", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_p1_ip_x {this, "p1_ip_x", "IP_{x}(p1)", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_p0_ip_y {this, "p0_ip_y", "IP_{y}(p0)", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_p1_ip_y {this, "p1_ip_y", "IP_{y}(p1)", {100u, -3.f, 3.f}};
+    Allen::Monitoring::Histogram<> m_histogram_d0_mass {this, "d0_mass", "m(K#pi)", {100u, 1765.f, 1965.f}};
   };
 
 } // namespace two_track_mva_line

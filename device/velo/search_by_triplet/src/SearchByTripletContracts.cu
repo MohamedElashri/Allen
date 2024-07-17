@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "SearchByTriplet.cuh"
 
@@ -87,15 +94,15 @@ void velo_search_by_triplet::track_container_checks::operator()(
   const Allen::Context& context) const
 {
   const auto trackhits = make_host_buffer<Parameters::dev_tracks_t>(arguments, context);
-  const auto number_of_velo_tracks = make_host_buffer<Parameters::dev_number_of_velo_tracks_t>(arguments, context);
+  const auto velo_tracks_offsets = make_host_buffer<Parameters::dev_offsets_velo_tracks_t>(arguments, context);
   const auto offsets_estimated_input_size =
     make_host_buffer<Parameters::dev_offsets_estimated_input_size_t>(arguments, context);
 
   bool maximum_number_of_hits = true;
   bool no_repeated_hits = true;
 
-  for (unsigned event_number = 0; event_number < number_of_velo_tracks.size(); ++event_number) {
-    const auto event_number_of_velo_tracks = number_of_velo_tracks[event_number];
+  for (unsigned event_number = 0; event_number < velo_tracks_offsets.size() - 1; ++event_number) {
+    const auto event_number_of_velo_tracks = velo_tracks_offsets[event_number + 1] - velo_tracks_offsets[event_number];
 
     const auto track_offset = Velo::track_offset(offsets_estimated_input_size.data(), event_number);
     for (unsigned i = 0; i < event_number_of_velo_tracks; ++i) {

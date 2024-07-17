@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <string>
 
@@ -35,7 +42,6 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data)
   }
 
   size_t allOffsets[n_data_blocks];
-  unsigned int sizeOffset[Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::MuonTables::n_tables];
   int gridY[Muon::Constants::n_stations * Muon::Constants::n_regions * Muon::MuonTables::n_tables];
   size_t currentAllOffsetsIndex = 0;
 
@@ -53,12 +59,6 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data)
     std::copy_n((int*) raw_input, gridYSize, gridY + Muon::MuonTables::tableStationRegionOffset[tableNumber]);
     allOffsets[currentAllOffsetsIndex++] = raw_input - data.data();
     raw_input += sizeof(int) * gridYSize;
-
-    sizeOffset[Muon::MuonTables::tableStationRegionOffset[tableNumber]] = 0;
-    for (size_t i = 0; i < Muon::Constants::n_stations * Muon::Constants::n_regions - 1; i++) {
-      size_t index = Muon::MuonTables::tableStationRegionOffset[tableNumber] + i;
-      sizeOffset[index + 1] = sizeOffset[index] + 24 * gridY[index];
-    }
 
     size_t sizeXSize;
     std::copy_n((size_t*) raw_input, 1, &sizeXSize);
@@ -106,6 +106,6 @@ void Consumers::MuonLookupTables::consume(std::vector<char> const& data)
   host_muon_tables_raw = data;
   Allen::memcpy(
     dev_muon_tables_raw, host_muon_tables_raw.data(), host_muon_tables_raw.size(), Allen::memcpyHostToDevice);
-  Muon::MuonTables host_muon_tables {allOffsets, dev_muon_tables_raw, sizeOffset, version};
+  Muon::MuonTables host_muon_tables {allOffsets, dev_muon_tables_raw, version};
   Allen::memcpy(m_muon_tables.get(), &host_muon_tables, sizeof(Muon::MuonTables), Allen::memcpyHostToDevice);
 }

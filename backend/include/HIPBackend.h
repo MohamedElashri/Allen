@@ -1,10 +1,18 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
 #include <Logger.h>
 #include "BackendCommonInterface.h"
+#include <hip/hip_runtime.h>
 
 #if !defined(__HCC__) && !defined(__HIP__)
 #define __HIP_PLATFORM_HCC__
@@ -46,6 +54,9 @@
 #include <iomanip>
 #include <hip/hip_fp16.h>
 #define half_t half
+
+#define __fdividef __hip_fast_dividef
+#define __expf __hip_fast_expf
 
 // Intrinsics
 constexpr int warp_size = 64;
@@ -186,4 +197,15 @@ namespace Allen {
     hipCheck(hipHostRegister(ptr, size, convert_allen_to_hip_host_register_kind(flags)));
   }
 
+  namespace device {
+    template<class To, class From>
+    __host__ __device__ std::enable_if_t<
+      sizeof(To) == sizeof(From) && alignof(To) == alignof(From) && std::is_trivially_copyable_v<From> &&
+        std::is_trivially_copyable_v<To>,
+      To>
+    bit_cast(const From& src) noexcept
+    {
+      return *reinterpret_cast<const To*>(&src);
+    }
+  } // namespace device
 } // namespace Allen

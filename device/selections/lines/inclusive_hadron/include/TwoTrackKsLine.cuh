@@ -11,17 +11,14 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 #include "MassDefinitions.h"
 
 namespace two_track_line_ks {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
     PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
@@ -45,10 +42,31 @@ namespace two_track_line_ks {
     PROPERTY(min_combip_t, "min_combip", "min_combip description", float) min_combip;
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
+
+    DEVICE_OUTPUT(eta_ks_t, float) eta_ks;
+    DEVICE_OUTPUT(pt_ks_t, float) pt_ks;
+    DEVICE_OUTPUT(min_pt_t, float) min_pt;
+    DEVICE_OUTPUT(min_ipchi2_t, float) min_ipchi2;
+    DEVICE_OUTPUT(min_p_t, float) min_p;
+    DEVICE_OUTPUT(comb_ip_t, float) comb_ip;
+    DEVICE_OUTPUT(mass_t, float) mass;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
   };
 
-  struct two_track_line_ks_t : public SelectionAlgorithm, Parameters, TwoTrackLine<two_track_line_ks_t, Parameters> {
+  struct two_track_line_ks_t : public SelectionAlgorithm,
+                               Parameters,
+                               CompositeParticleLine<two_track_line_ks_t, Parameters> {
     __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    __device__ static void fill_tuples(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+      unsigned index,
+      bool sel);
+
+    using monitoring_types =
+      std::tuple<eta_ks_t, pt_ks_t, min_pt_t, min_ipchi2_t, min_p_t, comb_ip_t, mass_t, evtNo_t, runNo_t>;
 
   private:
     Property<pre_scaler_t> m_pre_scaler {this, 1.f};
@@ -69,5 +87,7 @@ namespace two_track_line_ks {
     Property<min_combip_t> m_min_combip {this, 0.72f / Gaudi::Units::mm};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
     Property<OppositeSign_t> m_opposite_sign {this, true};
+
+    Property<enable_tupling_t> m_enable_tupling {this, false};
   };
 } // namespace two_track_line_ks

@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -13,15 +20,12 @@ namespace one_muon_track_line {
 
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_muon_total_number_of_tracks_t, unsigned) host_muon_total_number_of_tracks;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_muon_tracks_t, MuonTrack) dev_muon_tracks;
     DEVICE_INPUT(dev_muon_tracks_offsets_t, unsigned) dev_muon_tracks_offsets;
-    DEVICE_INPUT(dev_muon_number_of_tracks_t, unsigned) dev_muon_number_of_tracks;
 
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -57,11 +61,6 @@ namespace one_muon_track_line {
       const unsigned track_index = i + muon_tracks_offsets[event_number];
 
       return std::forward_as_tuple(muon_tracks[track_index]);
-    }
-
-    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number)
-    {
-      return parameters.dev_muon_number_of_tracks[event_number];
     }
 
     __device__ static bool select(const Parameters& parameters, std::tuple<const MuonTrack> input);

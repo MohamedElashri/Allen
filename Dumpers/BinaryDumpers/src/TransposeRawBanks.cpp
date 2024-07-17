@@ -1,19 +1,25 @@
-
-
 /*****************************************************************************\
 * (c) Copyright 2000-2021 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <cstring>
 #include <fstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <array>
 
-#include <AIDA/IHistogram1D.h>
+#include "Gaudi/Accumulators/Histogram.h"
 
 #include <GaudiAlg/MergingTransformer.h>
-#include <GaudiAlg/GaudiHistoAlg.h>
 #include <GaudiKernel/GaudiException.h>
+#include <GaudiKernel/ParsersFactory.h>
 
 #include <Event/ODIN.h>
 #include <Event/RawBank.h>
@@ -22,6 +28,7 @@
 #include <Dumpers/Utils.h>
 
 #include <BankTypes.h>
+#include <BankMapping.h>
 
 template<typename T>
 using VOC = Gaudi::Functional::vector_of_const_<T>;
@@ -33,9 +40,9 @@ using VOC = Gaudi::Functional::vector_of_const_<T>;
 // Once
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // number_of_rawbanks  | uint32_t | 4
-// -----------------------------------------------------------------------------
 // raw_bank_offset     | uint32_t | number_of_rawbanks * 4
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+// -----------------------------------------------------------------------------
 // for each raw bank:
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 // sourceID            | uint32_t | 4                     |
@@ -43,38 +50,86 @@ using VOC = Gaudi::Functional::vector_of_const_<T>;
 // bank_data           | char     | variable
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+std::string toString(BankTypes e) { return bank_name(e); }
+std::ostream& toStream(BankTypes e, std::ostream& os) { return os << std::quoted(toString(e), '\''); }
+std::ostream& operator<<(std::ostream& s, BankTypes e) { return toStream(e, s); }
+
+StatusCode parse(BankTypes& bt, const std::string& in)
+{
+  auto s = std::string_view {in};
+  if (!s.empty() && s.front() == s.back() && (s.front() == '\'' || s.front() == '\"')) {
+    s.remove_prefix(1);
+    s.remove_suffix(1);
+  }
+  // Use BankSizes here because it has all he BankTypes as keys.
+  auto i = std::find_if(BankSizes.begin(), BankSizes.end(), [s](auto e) { return s == bank_name(std::get<0>(e)); });
+  if (i == BankSizes.end()) return StatusCode::FAILURE;
+  bt = i->first;
+  return StatusCode::SUCCESS;
+}
+
+namespace Gaudi::Parsers {
+  StatusCode parse(std::set<BankTypes>& s, const std::string& in)
+  {
+    s.clear();
+    using Gaudi::Parsers::parse;
+    std::set<std::string> ss;
+    return parse(ss, in).andThen([&]() -> StatusCode {
+      try {
+        std::transform(begin(ss), end(ss), std::inserter(s, begin(s)), [](const std::string& str) {
+          BankTypes t {};
+          parse(t, str).orThrow("Bad Parse", "");
+          return t;
+        });
+        return StatusCode::SUCCESS;
+      } catch (const GaudiException& e) {
+        return e.code();
+      }
+    });
+  }
+} // namespace Gaudi::Parsers
+
+namespace {
+  bool check_top5(BankTypes bt, LHCb::RawBank const* bank)
+  {
+    auto const sys = static_cast<SourceIdSys>(SourceId_sys(bank->sourceID()));
+    auto it = Allen::subdetectors.find(sys);
+    return it != Allen::subdetectors.end() && it->second == bt;
+  }
+} // namespace
+
 /** @class TransposeRawBanks TransposeRawBanks.h
  *  Algorithm that dumps raw banks to binary files.
  *
  *  @author Roel Aaij
  *  @date   2018-08-27
  */
-class TransposeRawBanks : public Gaudi::Functional::MergingTransformer<
-                            std::array<TransposedBanks, LHCb::RawBank::types().size()>(VOC<LHCb::RawEvent*> const&),
-                            Gaudi::Functional::Traits::BaseClass_t<GaudiHistoAlg>> {
+class TransposeRawBanks : public Gaudi::Functional::MergingTransformer<std::array<TransposedBanks, NBankTypes>(
+                            VOC<LHCb::RawBank::View> const&)> {
 public:
   /// Standard constructor
   TransposeRawBanks(const std::string& name, ISvcLocator* pSvcLocator);
 
   StatusCode initialize() override;
 
-  std::array<TransposedBanks, LHCb::RawBank::types().size()> operator()(
-    VOC<LHCb::RawEvent*> const& rawEvents) const override;
+  std::array<TransposedBanks, NBankTypes> operator()(VOC<LHCb::RawBank::View> const& rawEvents) const override;
 
 private:
-  Gaudi::Property<std::set<LHCb::RawBank::BankType>> m_bankTypes {this,
-                                                                  "BankTypes",
-                                                                  {LHCb::RawBank::VP,
-                                                                   LHCb::RawBank::VPRetinaCluster,
-                                                                   LHCb::RawBank::UT,
-                                                                   LHCb::RawBank::FTCluster,
-                                                                   LHCb::RawBank::EcalPacked,
-                                                                   LHCb::RawBank::Calo,
-                                                                   LHCb::RawBank::Muon,
-                                                                   LHCb::RawBank::ODIN,
-                                                                   LHCb::RawBank::Plume}};
+  Gaudi::Property<std::set<BankTypes>> m_bankTypes {this,
+                                                    "BankTypes",
+                                                    {BankTypes::VP,
+                                                     BankTypes::UT,
+                                                     BankTypes::FT,
+                                                     BankTypes::MUON,
+                                                     BankTypes::ODIN,
+                                                     BankTypes::Rich1,
+                                                     BankTypes::Rich2,
+                                                     BankTypes::ECal,
+                                                     BankTypes::Plume}};
 
-  std::array<AIDA::IHistogram1D*, LHCb::RawBank::types().size()> m_histos;
+  std::array<std::unique_ptr<Gaudi::Accumulators::Histogram<1>>, NBankTypes> m_histos;
+
+  std::unordered_map<BankTypes, std::unordered_set<LHCb::RawBank::BankType>> m_mapping;
 };
 
 TransposeRawBanks::TransposeRawBanks(const std::string& name, ISvcLocator* pSvcLocator) :
@@ -82,66 +137,94 @@ TransposeRawBanks::TransposeRawBanks(const std::string& name, ISvcLocator* pSvcL
     name,
     pSvcLocator,
     // Inputs
-    KeyValues {"RawEventLocations", {LHCb::RawEventLocation::Default}},
+    KeyValues {"RawBankLocations", {LHCb::RawEventLocation::Default}},
     // Output
     KeyValue {"AllenRawInput", "Allen/Raw/Input"})
 {}
 
 StatusCode TransposeRawBanks::initialize()
 {
-  for (auto bt : LHCb::RawBank::types()) {
-    m_histos[bt] = (m_bankTypes.value().count(bt) ? book1D(toString(bt), -0.5, 603.5, 151) : nullptr);
+  using Axis1D = Gaudi::Accumulators::Axis<double>;
+
+  for (auto const& [lhcb_type, bank_types] : Allen::bank_mapping) {
+    for (auto bt : bank_types) {
+      m_mapping[bt].insert(lhcb_type);
+    }
   }
+
+  for (auto bt : m_bankTypes.value()) {
+    if (!m_mapping.count(bt)) {
+      error() << "Cannot find appropriate LHCb::RawBank::BankType(s) for Allen BankType " << bank_name(bt) << endmsg;
+      return StatusCode::FAILURE;
+    }
+  }
+
+  for (size_t i = 0; i < NBankTypes; ++i) {
+    auto bt = static_cast<BankTypes>(i);
+    if (m_bankTypes.value().count(bt)) {
+      auto bn = bank_name(bt);
+      m_histos[to_integral(bt)] =
+        std::make_unique<Gaudi::Accumulators::Histogram<1>>(this, bn, bn, Axis1D {151, -0.5, 603.5});
+    }
+  }
+
   return StatusCode::SUCCESS;
 }
 
-std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::operator()(
-  VOC<LHCb::RawEvent*> const& rawEvents) const
+std::array<TransposedBanks, NBankTypes> TransposeRawBanks::operator()(VOC<LHCb::RawBank::View> const& allBanks) const
 {
+  std::array<TransposedBanks, NBankTypes> output;
+  std::array<std::vector<LHCb::RawBank const*>, NBankTypes> rawBanks;
 
-  std::array<TransposedBanks, LHCb::RawBank::types().size()> output;
-  std::array<LHCb::RawBank::View, LHCb::RawBank::types().size()> rawBanks;
-
-  for (auto const* rawEvent : rawEvents) {
-    if (rawEvent == nullptr) continue;
-    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [this, rawEvent, &rawBanks](auto bt) {
-      auto banks = rawEvent->banks(bt);
+  for (auto banks : allBanks) {
+    std::for_each(m_bankTypes.begin(), m_bankTypes.end(), [banks, &rawBanks](auto bt) {
+      auto const bt_idx = to_integral(bt);
       if (!banks.empty()) {
-        if (rawBanks[bt].empty()) {
-          rawBanks[bt] = banks;
+        // For the Calo and Rich, use the top5 bits of the source ID
+        // to determine which banks to add. This will take care of
+        // splitting Calo banks into ECal and HCal and Rich into
+        // Rich1 and Rich2.
+        std::function<bool(BankTypes bt, LHCb::RawBank const* bank)> pred;
+        // In a RawBank::View all banks have the same type
+        auto const lhcb_type = banks[0]->type();
+        auto lhcb_it = Allen::bank_mapping.find(lhcb_type);
+        if (lhcb_it != Allen::bank_mapping.end() && lhcb_it->second.size() > 1) {
+          pred = check_top5;
         }
-        else if (msgLevel(MSG::DEBUG)) {
-          debug() << "Multiple RawEvents contain " << toString(bt) << " banks. The first ones found will be used."
-                  << endmsg;
+        else {
+          pred = [](BankTypes, LHCb::RawBank const*) { return true; };
+        }
+        for (auto bank : banks) {
+          if (pred(bt, bank)) {
+            rawBanks[bt_idx].emplace_back(bank);
+          }
         }
       }
+
+      // Default comparison for sorting is by source ID
+      std::function<bool(LHCb::RawBank const* a, LHCb::RawBank const* b)> compare =
+        [](LHCb::RawBank const* a, LHCb::RawBank const* b) { return a->sourceID() < b->sourceID(); };
+      if (bt == BankTypes::VP) {
+        auto const& banks = rawBanks[bt_idx];
+        if (
+          std::any_of(
+            banks.begin(), banks.end(), [](LHCb::RawBank const* bank) { return bank->type() == LHCb::RawBank::VP; }) &&
+          std::any_of(banks.begin(), banks.end(), [](LHCb::RawBank const* bank) {
+            return bank->type() == LHCb::RawBank::VPRetinaCluster;
+          })) {
+          // Sort VP banks first by bank type and then by source ID to partition in VP and VPRetinaCluster banks.
+          compare = [](LHCb::RawBank const* a, LHCb::RawBank const* b) {
+            return a->type() == b->type() ? a->sourceID() < b->sourceID() : a->type() < b->type();
+          };
+        }
+      }
+      // Sort banks
+      std::sort(rawBanks[bt_idx].begin(), rawBanks[bt_idx].end(), compare);
     });
   }
 
-  // We have to deal with the fact that calo banks can come in different types
-  for (auto bt : m_bankTypes.value()) {
-    if (bt == LHCb::RawBank::EcalPacked || bt == LHCb::RawBank::HcalPacked) {
-      if (rawBanks[bt].empty() && rawBanks[LHCb::RawBank::Calo].empty()) {
-        // Old-style calo banks empty and new-style calo banks also empty
-        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
-      }
-    }
-    else if (bt == LHCb::RawBank::Calo) {
-      if (
-        rawBanks[bt].empty() &&
-        ((m_bankTypes.value().count(LHCb::RawBank::EcalPacked) && rawBanks[LHCb::RawBank::EcalPacked].empty()) ||
-         (m_bankTypes.value().count(LHCb::RawBank::HcalPacked) && rawBanks[LHCb::RawBank::HcalPacked].empty()))) {
-        // New-style calo banks empty and old-style calo banks also empty
-        throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
-      }
-    }
-    else if (rawBanks[bt].empty()) {
-      throw GaudiException {"Cannot find " + toString(bt) + " raw bank.", "", StatusCode::FAILURE};
-    }
-  }
-
-  for (auto bt : LHCb::RawBank::types()) {
-    auto const& banks = rawBanks[bt];
+  for (auto bt : m_bankTypes) {
+    auto const& banks = rawBanks[to_integral(bt)];
     if (banks.empty()) continue;
 
     const uint32_t nBanks = banks.size();
@@ -168,12 +251,11 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
       auto bEnd = bank->end<uint32_t>() + (bank->size() % sizeof(uint32_t) != 0);
 
       // Debug/testing histogram with the sizes of the binary data per bank
-      auto histo = m_histos[bt];
-      if (histo == nullptr) {
-        warning() << "No histogram booked for bank type " << toString(bt) << endmsg;
+      if (m_histos[to_integral(bt)]) {
+        ++(*m_histos[to_integral(bt)])[(bEnd - bStart) * sizeof(uint32_t)];
       }
       else {
-        histo->fill((bEnd - bStart) * sizeof(uint32_t));
+        warning() << "No histogram booked for bank type " << toString(bt) << endmsg;
       }
 
       while (bStart != bEnd) {
@@ -191,7 +273,7 @@ std::array<TransposedBanks, LHCb::RawBank::types().size()> TransposeRawBanks::op
     // Dumping number_of_rawbanks + 1 offsets!
     DumpUtils::Writer bank_buffer;
     bank_buffer.write(nBanks, bankOffsets, bankData);
-    output[bt] =
+    output[to_integral(bt)] =
       TransposedBanks {bank_buffer.buffer(), std::move(bankSizes), std::move(bankTypes), banks[0]->version()};
   }
   return output;

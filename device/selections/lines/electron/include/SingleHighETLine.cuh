@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -18,9 +25,7 @@ namespace single_high_et_line {
     // ECAL
     DEVICE_INPUT(dev_brem_ET_t, float) dev_brem_ET;
     // Outputs
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
 
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
@@ -36,8 +41,6 @@ namespace single_high_et_line {
   struct single_high_et_line_t : public SelectionAlgorithm, Parameters, Line<single_high_et_line_t, Parameters> {
     // Offset function
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
-
-    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number);
 
     // Get decision size function
     static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments);

@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -79,69 +86,15 @@ namespace SciFi {
   struct HitCount_t {
   private:
     Allen::forward_type_t<T, unsigned>* m_mat_offsets;
-    // TODO: Add "total number of hits" to information of this struct
 
   public:
     __host__ __device__ HitCount_t(Allen::forward_type_t<T, unsigned>* base_pointer, const unsigned event_number) :
-      m_mat_offsets(base_pointer + event_number * SciFi::Constants::n_mat_groups_and_mats)
+      m_mat_offsets(base_pointer + event_number * SciFi::Constants::n_zones)
     {}
-
-    __host__ __device__ void inline set_mat_offsets(const unsigned mat_number, const unsigned value)
-    {
-      assert(mat_number < SciFi::Constants::n_mats);
-      m_mat_offsets[mat_number] = value;
-    }
-
-    __host__ __device__ inline unsigned mat_offsets(const unsigned mat_number) const
-    {
-      assert(
-        mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank &&
-        mat_number < SciFi::Constants::n_mats);
-      const unsigned corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
-      return m_mat_offsets[corrected_mat_number];
-    }
-
-    __host__ __device__ inline Allen::forward_type_t<T, unsigned>* mat_offsets_p(const unsigned mat_number) const
-    {
-      return m_mat_offsets + mat_number;
-    }
-
-    __host__ __device__ inline unsigned mat_number_of_hits(const unsigned mat_number) const
-    {
-      assert(mat_number >= SciFi::Constants::n_consecutive_raw_banks * SciFi::Constants::n_mats_per_consec_raw_bank);
-      assert(mat_number < SciFi::Constants::n_mats);
-      const unsigned corrected_mat_number = mat_number - SciFi::Constants::mat_index_substract;
-      return m_mat_offsets[corrected_mat_number + 1] - m_mat_offsets[corrected_mat_number];
-    }
-
-    __host__ __device__ inline unsigned mat_group_offset(const unsigned mat_group_number) const
-    {
-      assert(mat_group_number < SciFi::Constants::n_consecutive_raw_banks);
-      return m_mat_offsets[mat_group_number];
-    }
-
-    __host__ __device__ inline unsigned mat_group_number_of_hits(const unsigned mat_group_number) const
-    {
-      assert(mat_group_number < SciFi::Constants::n_consecutive_raw_banks);
-      return m_mat_offsets[mat_group_number + 1] - m_mat_offsets[mat_group_number];
-    }
-
-    __host__ __device__ inline unsigned mat_group_or_mat_number_of_hits(const unsigned mat_or_mat_group_number) const
-    {
-      assert(mat_or_mat_group_number < SciFi::Constants::n_mat_groups_and_mats);
-      return m_mat_offsets[mat_or_mat_group_number + 1] - m_mat_offsets[mat_or_mat_group_number];
-    }
 
     __host__ __device__ inline unsigned zone_offset(const unsigned zone_number) const
     {
-      // TODO: Make this a constant
-      // constexpr uint32_t first_corrected_unique_mat_in_zone[] = {
-      //   0, 40, 80, 120, 160, 200, 240, 280, 320, 360, 400, 440, 480, 520, 560, 600, 640,
-      //   688, 736, 784, 832, 880, 928, 976, 1024};
-      constexpr uint32_t first_corrected_unique_mat_in_zone[] = {0,   10,  20,  30,  40,  50,  60,  70,  80,
-                                                                 90,  100, 110, 120, 130, 140, 150, 160, 208,
-                                                                 256, 304, 352, 400, 448, 496, 544};
-      return m_mat_offsets[first_corrected_unique_mat_in_zone[zone_number]];
+      return m_mat_offsets[zone_number];
     }
 
     __host__ __device__ inline unsigned zone_number_of_hits(const unsigned zone_number) const
@@ -151,21 +104,10 @@ namespace SciFi {
 
     __host__ __device__ inline unsigned event_number_of_hits() const
     {
-      return m_mat_offsets[SciFi::Constants::n_mat_groups_and_mats] - m_mat_offsets[0];
-    }
-
-    __host__ __device__ inline unsigned number_of_hits_in_zones_without_mat_groups() const
-    {
-      return m_mat_offsets[SciFi::Constants::n_mat_groups_and_mats] -
-             m_mat_offsets[SciFi::Constants::n_consecutive_raw_banks];
+      return m_mat_offsets[SciFi::Constants::n_zones] - m_mat_offsets[0];
     }
 
     __host__ __device__ inline unsigned event_offset() const { return m_mat_offsets[0]; }
-
-    __host__ __device__ inline unsigned offset_zones_without_mat_groups() const
-    {
-      return m_mat_offsets[SciFi::Constants::n_consecutive_raw_banks];
-    }
   };
 
   typedef const HitCount_t<const char> ConstHitCount;
@@ -397,6 +339,8 @@ namespace SciFi {
     uint16_t charge_seed;
     uint16_t hits[SciFi::Constants::max_track_size];
     uint8_t hitsNum = 0;
+    uint8_t XhitsNum = 0;
+    uint8_t UVhitsNum = 0;
 
     TrackHits() = default;
     TrackHits(const TrackHits&) = default;
@@ -527,8 +471,9 @@ namespace SciFi {
   namespace Seeding {
     struct TrackXZ {
       int number_of_hits;
-      unsigned int ids[6];
-      int idx[6];
+      // Warning: this container is reused in the seed_xz algorithm,
+      // first it stored uncompressed layer local idx,
+      // then it is compressed during clone killing to store global idx
       unsigned int hits[6];
       float chi2;
       float ax;
@@ -538,8 +483,8 @@ namespace SciFi {
 
     struct Track {
       int number_of_hits = 0;
-      // unsigned int ids[SciFi::Constants::n_layers] = {SciFi::Constants::INVALID_ID};
       unsigned int hits[SciFi::Constants::n_layers] = {SciFi::Constants::INVALID_ID};
+      float chi2X, chi2Y;
       float ax;
       float bx;
       float cx;
@@ -567,12 +512,14 @@ namespace SciFi {
   } // namespace Seeding
 
   struct MatchedTrack {
+    constexpr static uint16_t InvalidHit = std::numeric_limits<uint16_t>::max();
     uint16_t velo_track_index;
     uint16_t scifi_track_index;
-    int number_of_hits_velo = 0;
-    int number_of_hits_ut = 0;
-    int number_of_hits_scifi = 0;
-    float chi2_matching;
+    uint16_t ut_hits[4];
+    unsigned number_of_hits_ut = 0;
     float qop;
+    float gamma;
+    float ut_score;
+    float score;
   };
 } // namespace SciFi

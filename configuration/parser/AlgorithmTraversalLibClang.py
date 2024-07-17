@@ -1,5 +1,12 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 import clang.cindex as cindex
 
@@ -127,7 +134,7 @@ class AlgorithmTraversal():
     # Accepted tokens for algorithm AllenConf
     __algorithm_tokens = [
         "HostAlgorithm", "DeviceAlgorithm", "SelectionAlgorithm",
-        "ValidationAlgorithm", "ProviderAlgorithm"
+        "ValidationAlgorithm", "ProviderAlgorithm", "BarrierAlgorithm"
     ]
 
     # Accepted tokens for parameter parsing
@@ -142,7 +149,7 @@ class AlgorithmTraversal():
     __ignored_namespaces = ["std", "__gnu_cxx", "__cxxabiv1", "__gnu_debug"]
 
     # Arguments to pass to compiler
-    __compile_flags = ["-x", "c++", "-std=c++17"]
+    __compile_flags = ["-x", "c++", "-std=c++17", "-nostdinc++"]
 
     # Clang index
     __index = cindex.Index.create()

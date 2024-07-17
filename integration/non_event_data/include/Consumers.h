@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -42,6 +49,17 @@ namespace Consumers {
     std::reference_wrapper<Constants> m_constants;
   };
 
+  struct UTBoards final : public Allen::NonEventData::Consumer {
+  public:
+    UTBoards(Constants& constants);
+
+    void consume(std::vector<char> const& data) override;
+
+  private:
+    void initialize(const std::vector<char>& data);
+    std::reference_wrapper<Constants> m_constants;
+  };
+
   struct UTGeometry final : public Allen::NonEventData::Consumer {
   public:
     UTGeometry(Constants& constants);
@@ -62,6 +80,18 @@ namespace Consumers {
   private:
     std::reference_wrapper<UTMagnetTool*> m_tool;
     size_t m_size = 0;
+  };
+
+  struct SciFiGeometry final : public Allen::NonEventData::Consumer {
+  public:
+    SciFiGeometry(Constants& constants);
+
+    void consume(std::vector<char> const& data) override;
+
+  private:
+    void initialize(const std::vector<char>& data);
+    std::reference_wrapper<Constants> m_constants;
+    std::vector<char> m_data;
   };
 
   struct HostDeviceGeometry final : public Allen::NonEventData::Consumer {

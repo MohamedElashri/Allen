@@ -1,6 +1,13 @@
 <?xml version="1.0" ?><!DOCTYPE extension  PUBLIC '-//QM/2.3/Extension//EN'  'http://www.codesourcery.com/qm/dtds/2.3/-//qm/2.3/extension//en.dtd'>
 <!--
     (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration
+
+    This software is distributed under the terms of the Apache License
+    version 2 (Apache-2.0), copied verbatim in the file "LICENSE".
+
+    In applying this licence, CERN does not waive the privileges and immunities
+    granted to it by virtue of its status as an Intergovernmental Organization
+    or submit itself to any jurisdiction.
 -->
 <!--
 #######################################################
@@ -18,9 +25,8 @@
     <text>--monitoring-filename</text><text>mdf_input_hists.root</text>
 	<text>--mdf</text><text>root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.mdf</text>
     <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants/hlt1_pp_matching.json</text>
-    <text>--tags=detdesc:dddb-20220705,sim-20220705-vc-md100|dd4hep:trunk,master</text>
+    <text>--tags=detdesc:dddb-20220705,sim-20220705-vc-md100|dd4hep:run3/before-rich1-geom-update-26052022,jonrob/all-pmts-active</text>
     <text>--events-per-slice</text><text>500</text>
-    <text>--monitoring-filename</text><text>""</text>
     <text>-m</text><text>600</text>
     <text>-s</text><text>3</text>
     <text>-t</text><text>2</text>

@@ -1,12 +1,27 @@
 ###############################################################################
 # (c) Copyright 2021 CERN for the benefit of the LHCb Collaboration           #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
+from PyConf.tonic import configurable
 from AllenCore.algorithms import (
-    beam_crossing_line_t, velo_micro_bias_line_t, odin_event_type_line_t,
-    calo_digits_minADC_t, beam_gas_line_t, velo_clusters_micro_bias_line_t)
+    beam_crossing_line_t, velo_micro_bias_line_t,
+    odin_event_type_with_decoding_line_t, calo_digits_minADC_t,
+    beam_gas_line_t, velo_clusters_micro_bias_line_t, plume_activity_line_t,
+    t_track_cosmic_line_t, z_range_materialvertex_seed_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenConf.odin import decode_odin
 from AllenCore.generator import make_algorithm
+from AllenConf.velo_reconstruction import decode_velo
+from AllenConf.calo_reconstruction import decode_calo
+from AllenConf.scifi_reconstruction import decode_scifi
+from AllenConf.muon_reconstruction import decode_muon
+from AllenConf.plume_reconstruction import decode_plume
 
 
 def make_beam_line(pre_scaler_hash_string=None,
@@ -40,7 +55,7 @@ def make_beam_line(pre_scaler_hash_string=None,
 def make_velo_micro_bias_line(velo_tracks,
                               name="Hlt1VeloMicroBias",
                               pre_scaler=1.,
-                              post_scaler=1.e-3,
+                              post_scaler=1.e-4,
                               pre_scaler_hash_string=None,
                               post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
@@ -59,31 +74,43 @@ def make_velo_micro_bias_line(velo_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
-def make_odin_event_type_line(odin_event_type: str,
-                              name=None,
-                              pre_scaler=1.,
-                              post_scaler=1.,
-                              pre_scaler_hash_string=None,
-                              post_scaler_hash_string=None):
+def make_odin_event_type_with_decoding_line(odin_event_type: str,
+                                            name=None,
+                                            pre_scaler=1.,
+                                            post_scaler=1.,
+                                            pre_scaler_hash_string=None,
+                                            post_scaler_hash_string=None):
     type_map = {
         "VeloOpen": 0x0001,
         "Physics": 0x0002,
         "NoBias": 0x0004,
         "Lumi": 0x0008,
         "Beam1Gas": 0x0010,
-        "Beam2Gas": 0x0020
+        "Beam2Gas": 0x0020,
+        "ee_far_from_activity": 0x8000
     }
 
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
+    velo = decode_velo()
+    calo = decode_calo()
+    scifi = decode_scifi()
+    muon = decode_muon()
+    plume = decode_plume()
 
     line_name = name or 'Hlt1ODIN' + odin_event_type
     return make_algorithm(
-        odin_event_type_line_t,
+        odin_event_type_with_decoding_line_t,
         name=line_name,
         pre_scaler=pre_scaler,
         post_scaler=post_scaler,
         dev_odin_data_t=odin["dev_odin_data"],
+        dev_sorted_velo_cluster_container_t=velo[
+            "dev_sorted_velo_cluster_container"],
+        dev_total_ecal_e_t=calo["dev_total_ecal_e"],
+        dev_scifi_hits_t=scifi["dev_scifi_hits"],
+        dev_muon_hits_t=muon["dev_muon_hits"],
+        dev_plume_t=plume["dev_plume"],
         odin_event_type=type_map[odin_event_type],
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or line_name + "_pre",
@@ -137,6 +164,7 @@ def make_beam_gas_line(velo_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 
 
+@configurable
 def make_velo_clusters_micro_bias_line(decoded_velo,
                                        name="Hlt1VeloClustersMicroBias",
                                        pre_scaler=1.,
@@ -158,3 +186,83 @@ def make_velo_clusters_micro_bias_line(decoded_velo,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         min_velo_clusters=min_velo_clusters)
+
+
+def make_plume_activity_line(decoded_plume,
+                             name="Hlt1PlumeActivity",
+                             pre_scaler=1.,
+                             post_scaler=1.,
+                             pre_scaler_hash_string=None,
+                             post_scaler_hash_string=None,
+                             min_plume_adc=406,
+                             min_number_plume_adcs_over_min=1):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        plume_activity_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_plume_t=decoded_plume["dev_plume"],
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        plume_channel_mask=0x003FFFFF003FFFFF,
+        min_plume_adc=min_plume_adc,
+        min_number_plume_adcs_over_min=min_number_plume_adcs_over_min)
+
+
+def make_t_cosmic_line(
+        seed_tracks,
+        name="Hlt1TCosmic",
+        pre_scaler=1.,
+        post_scaler=1.,
+        pre_scaler_hash_string=None,
+        post_scaler_hash_string=None,
+        max_chi2X=0.26,  # 95 percentile of chi2Y distribution
+        max_chi2Y=134.0):  # 95 percentile of chi2Y distribution
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        t_track_cosmic_line_t,
+        name=name,
+        host_number_of_reconstructed_scifi_tracks_t=seed_tracks[
+            "host_number_of_reconstructed_seeding_tracks"],
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_seeding_tracks_t=seed_tracks['seed_tracks'],
+        dev_seeding_offsets_t=seed_tracks['dev_offsets_scifi_seeds'],
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        max_chi2X=max_chi2X,
+        max_chi2Y=max_chi2Y)
+
+
+def make_z_range_materialvertex_seed_line(
+        filtered_velo_tracks,
+        name="Hlt1ZRange_MaterialVertexSeeds",
+        min_z_materialvertex_seed=-10000000.,
+        max_z_materialvertex_seed=10000000.,
+        pre_scaler=1.,
+        post_scaler=1.,
+        pre_scaler_hash_string=None,
+        post_scaler_hash_string=None):
+
+    return make_algorithm(
+        z_range_materialvertex_seed_line_t,
+        name=name,
+        host_total_number_of_interaction_seeds_t=filtered_velo_tracks[
+            "host_total_number_of_seeds"],
+        dev_interaction_seeds_offsets_t=filtered_velo_tracks[
+            "dev_interaction_seeds_offsets"],
+        dev_consolidated_interaction_seeds_t=filtered_velo_tracks[
+            "dev_interaction_seeds"],
+        min_z_materialvertex_seed=min_z_materialvertex_seed,
+        max_z_materialvertex_seed=max_z_materialvertex_seed,
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post")

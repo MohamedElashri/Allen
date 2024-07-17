@@ -20,7 +20,10 @@
 #include "VeloConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "SciFiConsolidated.cuh"
+#include "MuonConsolidated.cuh"
 #include "PV_Definitions.cuh"
+#include "MassDefinitions.h"
+#include "CaloCluster.cuh"
 
 namespace Allen {
   namespace Views {
@@ -60,7 +63,9 @@ namespace Allen {
         const Allen::Views::Velo::Consolidated::Track* m_velo_segment = nullptr;
         const Allen::Views::UT::Consolidated::Track* m_ut_segment = nullptr;
         const Allen::Views::SciFi::Consolidated::Track* m_scifi_segment = nullptr;
+        const Allen::Views::Muon::Consolidated::Track* m_muon_segment = nullptr;
         const float* m_qop = nullptr;
+        const float* m_ghost_probability = nullptr;
 
       public:
         Track() = default;
@@ -69,13 +74,17 @@ namespace Allen {
           const Allen::Views::Velo::Consolidated::Track* velo_segment,
           const Allen::Views::UT::Consolidated::Track* ut_segment,
           const Allen::Views::SciFi::Consolidated::Track* scifi_segment,
-          const float* qop) :
+          const Allen::Views::Muon::Consolidated::Track* muon_segment,
+          const float* qop,
+          const float* ghost_probability = nullptr) :
           m_velo_segment(velo_segment),
-          m_ut_segment(ut_segment), m_scifi_segment(scifi_segment), m_qop(qop)
+          m_ut_segment(ut_segment), m_scifi_segment(scifi_segment), m_muon_segment(muon_segment), m_qop(qop),
+          m_ghost_probability(ghost_probability)
         {}
         __host__ __device__ float qop() const { return *m_qop; }
+        __host__ __device__ float ghost_probability() const { return *m_ghost_probability; }
 
-        enum struct segment { velo, ut, scifi };
+        enum struct segment { velo, ut, scifi, muon };
 
         template<segment t>
         __host__ __device__ bool has() const
@@ -86,8 +95,11 @@ namespace Allen {
           else if constexpr (t == segment::ut) {
             return m_ut_segment != nullptr;
           }
-          else {
+          else if constexpr (t == segment::scifi) {
             return m_scifi_segment != nullptr;
+          }
+          else {
+            return m_muon_segment != nullptr;
           }
         }
 
@@ -101,8 +113,33 @@ namespace Allen {
           else if constexpr (t == segment::ut) {
             return *m_ut_segment;
           }
-          else {
+          else if constexpr (t == segment::scifi) {
             return *m_scifi_segment;
+          }
+          else {
+            return *m_muon_segment;
+          }
+        }
+
+        // Expose the pointers so the long track can be copied. Useful for
+        // adding segments later.
+        __host__ __device__ const float* qop_ptr() const { return m_qop; }
+        __host__ __device__ const float* ghost_probability_ptr() const { return m_ghost_probability; }
+
+        template<segment t>
+        __host__ __device__ auto track_segment_ptr() const
+        {
+          if constexpr (t == segment::velo) {
+            return m_velo_segment;
+          }
+          else if constexpr (t == segment::ut) {
+            return m_ut_segment;
+          }
+          else if constexpr (t == segment::scifi) {
+            return m_scifi_segment;
+          }
+          else {
+            return m_muon_segment;
           }
         }
 
@@ -116,15 +153,18 @@ namespace Allen {
           else if constexpr (t == segment::ut) {
             return m_ut_segment->number_of_ut_hits();
           }
-          else {
+          else if constexpr (t == segment::scifi) {
             return m_scifi_segment->number_of_scifi_hits();
+          }
+          else {
+            return m_muon_segment->number_of_hits();
           }
         }
 
         __host__ __device__ unsigned number_of_hits() const
         {
           return number_of_segment_hits<segment::velo>() + number_of_segment_hits<segment::ut>() +
-                 number_of_segment_hits<segment::scifi>();
+                 number_of_segment_hits<segment::scifi>() + number_of_segment_hits<segment::muon>();
         }
 
         __host__ __device__ unsigned get_id(const unsigned index) const
@@ -136,12 +176,85 @@ namespace Allen {
           else if (index < number_of_segment_hits<segment::velo>() + number_of_segment_hits<segment::ut>()) {
             return m_ut_segment->id(index - number_of_segment_hits<segment::velo>());
           }
-          else {
+          else if (
+            index < number_of_segment_hits<segment::velo>() + number_of_segment_hits<segment::ut>() +
+                      number_of_segment_hits<segment::scifi>()) {
             return m_scifi_segment->id(
               index - number_of_segment_hits<segment::velo>() - number_of_segment_hits<segment::ut>());
           }
+          else {
+            return m_muon_segment->id(
+              index - number_of_segment_hits<segment::velo>() - number_of_segment_hits<segment::ut>() -
+              number_of_segment_hits<segment::scifi>());
+          }
         }
       };
+
+      struct DownstreamTrack : ILHCbIDSequence<DownstreamTrack>, Track {
+        friend ILHCbIDSequence<DownstreamTrack>;
+
+      private:
+        __host__ __device__ unsigned number_of_ids_impl() const { return number_of_hits(); }
+
+        __host__ __device__ unsigned id_impl(const unsigned index) const { return get_id(index); }
+
+      public:
+        DownstreamTrack() = default;
+
+        __host__ __device__ DownstreamTrack(
+          const Allen::Views::UT::Consolidated::Track* ut_segment,
+          const Allen::Views::SciFi::Consolidated::Track* scifi_segment,
+          const float* qop,
+          const float* ghost_probability) :
+          Track {nullptr, ut_segment, scifi_segment, nullptr, qop, ghost_probability}
+        {}
+
+        __host__ __device__ float pt(Allen::Views::Physics::KalmanState velo_state) const
+        {
+          const auto qop = *m_qop;
+          const float tx = velo_state.tx();
+          const float ty = velo_state.ty();
+          const float slope2 = tx * tx + ty * ty;
+          const float pt = std::sqrt(slope2 / (1.0f + slope2)) / std::fabs(qop);
+          return pt;
+        }
+      };
+
+      struct DownstreamTracks : ILHCbIDContainer<DownstreamTracks> {
+        friend Allen::ILHCbIDContainer<DownstreamTracks>;
+        constexpr static auto TypeID = TypeIDs::DownstreamTracks;
+
+      private:
+        const DownstreamTrack* m_track;
+        unsigned m_size = 0;
+        unsigned m_offset = 0;
+
+        __host__ __device__ unsigned number_of_id_sequences_impl() const { return m_size; }
+
+        __host__ __device__ const DownstreamTrack& id_sequence_impl(const unsigned index) const
+        {
+          assert(index < number_of_id_sequences_impl());
+          return m_track[index];
+        }
+
+      public:
+        DownstreamTracks() = default;
+
+        __host__ __device__
+        DownstreamTracks(const DownstreamTrack* track, const unsigned* offset_tracks, const unsigned event_number) :
+          m_track(track + offset_tracks[event_number]),
+          m_size(offset_tracks[event_number + 1] - offset_tracks[event_number]), m_offset(offset_tracks[event_number])
+        {}
+
+        __host__ __device__ unsigned size() const { return m_size; }
+
+        __host__ __device__ float qop(const unsigned index) const { return m_track[index].qop(); }
+
+        __host__ __device__ const DownstreamTrack& track(const unsigned index) const { return id_sequence_impl(index); }
+
+        __host__ __device__ unsigned offset() const { return m_offset; }
+      };
+      using MultiEventDownstreamTracks = Allen::MultiEventContainer<DownstreamTracks>;
 
       struct LongTrack : ILHCbIDSequence<LongTrack>, Track {
         friend ILHCbIDSequence<LongTrack>;
@@ -158,9 +271,21 @@ namespace Allen {
           const Allen::Views::Velo::Consolidated::Track* velo_segment,
           const Allen::Views::UT::Consolidated::Track* ut_segment,
           const Allen::Views::SciFi::Consolidated::Track* scifi_segment,
-          const float* qop) :
-          Track {velo_segment, ut_segment, scifi_segment, qop}
+          const Allen::Views::Muon::Consolidated::Track* muon_segment,
+          const float* qop,
+          const float* ghost_probability = nullptr) :
+          Track {velo_segment, ut_segment, scifi_segment, muon_segment, qop, ghost_probability}
         {}
+
+        __host__ __device__ float pt(Allen::Views::Physics::KalmanState velo_state) const
+        {
+          const auto qop = *m_qop;
+          const float tx = velo_state.tx();
+          const float ty = velo_state.ty();
+          const float slope2 = tx * tx + ty * ty;
+          const float pt = std::sqrt(slope2 / (1.0f + slope2)) / std::fabs(qop);
+          return pt;
+        }
       };
 
       struct LongTracks : ILHCbIDContainer<LongTracks> {
@@ -220,7 +345,8 @@ namespace Allen {
       private:
         const Track* m_track = nullptr;
         const KalmanStates* m_states = nullptr;
-        const PV::Vertex* m_pv = nullptr; // PV event model should be rebuilt too.
+        const PV::Vertex* m_pv = nullptr;
+        const float* m_ip = nullptr;
         // Could store muon and calo PID in a single array, but they're created by
         // different algorithms and might not always exist.
         unsigned m_index = 0;
@@ -238,14 +364,17 @@ namespace Allen {
           const KalmanStates* states,
           const PV::Vertex* pv,
           unsigned index,
-          uint8_t lepton_id) :
+          uint8_t lepton_id,
+          const float* min_ip = nullptr) :
           IParticle(TypeID),
-          m_track(track), m_states(states), m_pv(pv), m_index(index), m_lepton_id(lepton_id)
+          m_track(track), m_states(states), m_pv(pv), m_ip(min_ip), m_index(index), m_lepton_id(lepton_id)
         {
           assert(m_states != nullptr);
         }
 
         __host__ __device__ bool has_pv() const { return m_pv != nullptr; }
+
+        __host__ __device__ bool has_ownpv_ip() const { return m_ip != nullptr; }
 
         __host__ __device__ const Track& track() const { return *m_track; }
 
@@ -253,6 +382,12 @@ namespace Allen {
         {
           assert(has_pv());
           return *m_pv;
+        }
+
+        __host__ __device__ const float& ownpv_ip() const
+        {
+          assert(has_ownpv_ip());
+          return *m_ip;
         }
 
         __host__ __device__ KalmanState state() const { return m_states->state(m_index); }
@@ -276,7 +411,7 @@ namespace Allen {
         __host__ __device__ float ip_chi2() const
         {
           if (!has_pv()) {
-            return -1.f;
+            return -999.f;
           }
 
           // ORIGIN: Rec/Tr/TrackKernel/src/TrackVertexUtils.cpp
@@ -310,7 +445,7 @@ namespace Allen {
         __host__ __device__ float ip() const
         {
           if (!has_pv()) {
-            return -1.f;
+            return -999.f;
           }
 
           const float tx = state().tx();
@@ -319,6 +454,28 @@ namespace Allen {
           const float dx = state().x() + dz * tx - m_pv->position.x;
           const float dy = state().y() + dz * ty - m_pv->position.y;
           return sqrtf((dx * dx + dy * dy) / (1.0f + tx * tx + ty * ty));
+        }
+
+        __host__ __device__ float ip_x() const
+        {
+          if (!has_pv()) {
+            return -999.f;
+          }
+
+          const float tx = state().tx();
+          const float dz = m_pv->position.z - state().z();
+          return state().x() + dz * tx - m_pv->position.x;
+        }
+
+        __host__ __device__ float ip_y() const
+        {
+          if (!has_pv()) {
+            return -999.f;
+          }
+
+          const float ty = state().ty();
+          const float dz = m_pv->position.z - state().z();
+          return state().y() + dz * ty - m_pv->position.y;
         }
       };
 
@@ -356,16 +513,73 @@ namespace Allen {
         __host__ __device__ unsigned offset() const { return m_offset; }
       };
 
+      struct NeutralBasicParticle : IParticle {
+        constexpr static auto TypeID = Allen::TypeIDs::NeutralBasicParticle;
+
+      private:
+        const CaloCluster* m_calo_cluster;
+
+      public:
+        NeutralBasicParticle() = default;
+
+        __host__ __device__ NeutralBasicParticle(const CaloCluster* calo_cluster) :
+          IParticle(TypeID), m_calo_cluster(calo_cluster)
+        {
+          assert(m_calo_cluster != nullptr);
+        }
+
+        __host__ __device__ const CaloCluster& cluster() const { return *m_calo_cluster; }
+
+        __host__ __device__ float et() const
+        {
+          const auto c = cluster();
+          const float r2 = c.x * c.x + c.y * c.y;
+          const float z = Calo::Constants::z;
+          const float sint = sqrtf(r2 / (r2 + z * z));
+          return c.e * sint;
+        }
+      };
+
+      struct NeutralBasicParticles : IParticleContainer<NeutralBasicParticles> {
+        friend IParticleContainer<NeutralBasicParticles>;
+        constexpr static auto TypeID = Allen::TypeIDs::NeutralBasicParticles;
+
+      private:
+        const NeutralBasicParticle* m_particle;
+        unsigned m_size = 0;
+        unsigned m_offset = 0;
+
+        __host__ __device__ unsigned size_impl() const { return m_size; }
+
+        __host__ __device__ const NeutralBasicParticle& particle_impl(const unsigned i) const { return m_particle[i]; }
+
+      public:
+        NeutralBasicParticles() = default;
+
+        __host__ __device__ NeutralBasicParticles(
+          const NeutralBasicParticle* particle,
+          const unsigned* offsets,
+          const unsigned event_number) :
+          m_particle(particle + offsets[event_number]),
+          m_size(offsets[event_number + 1] - offsets[event_number]), m_offset(offsets[event_number])
+        {}
+
+        __host__ __device__ unsigned offset() const { return m_offset; }
+
+        __host__ __device__ const NeutralBasicParticle* particle_pointer(const unsigned index) const
+        {
+          return static_cast<const NeutralBasicParticle*>(m_particle) + index;
+        }
+      };
+
       struct CompositeParticle : IParticle {
-        // TODO: Get these masses from somewhere else.
-        static constexpr float mPi = 139.57f;
-        static constexpr float mMu = 105.66f;
         constexpr static auto TypeID = Allen::TypeIDs::CompositeParticle;
 
       private:
         std::array<const IParticle*, 4> m_children = {nullptr, nullptr, nullptr, nullptr};
         const SecondaryVertices* m_vertices = nullptr;
         const PV::Vertex* m_pv = nullptr;
+        const float* m_ip = nullptr;
         unsigned m_size = 0;
         unsigned m_index = 0;
 
@@ -409,9 +623,10 @@ namespace Allen {
           const SecondaryVertices* vertices,
           const PV::Vertex* pv,
           unsigned size,
-          unsigned index) :
+          unsigned index,
+          const float* min_ip = nullptr) :
           IParticle(TypeID),
-          m_children(children), m_vertices(vertices), m_pv(pv), m_size(size), m_index(index)
+          m_children(children), m_vertices(vertices), m_pv(pv), m_ip(min_ip), m_size(size), m_index(index)
         {
           for (unsigned i = 0; i < m_children.size(); i++) {
             if (i < m_size)
@@ -421,12 +636,22 @@ namespace Allen {
           }
         }
 
+        __host__ __device__ auto index() const { return m_index; }
+
         __host__ __device__ bool has_pv() const { return m_pv != nullptr; }
 
         __host__ __device__ const PV::Vertex& pv() const
         {
           assert(has_pv());
           return *m_pv;
+        }
+
+        __host__ __device__ bool has_ownpv_ip() const { return m_ip != nullptr; }
+
+        __host__ __device__ const float& ownpv_ip() const
+        {
+          assert(has_ownpv_ip());
+          return *m_ip;
         }
 
         __host__ __device__ unsigned number_of_children() const { return m_size; }
@@ -451,7 +676,9 @@ namespace Allen {
         __host__ __device__ float e() const
         {
           return transform_reduce(
-            [](const BasicParticle* p) { return p->state().e(mPi); }, [](float f1, float f2) { return f1 + f2; }, 0.f);
+            [](const BasicParticle* p) { return p->state().e(Allen::mPi); },
+            [](float f1, float f2) { return f1 + f2; },
+            0.f);
         }
 
         __host__ __device__ float sumpt() const
@@ -474,20 +701,82 @@ namespace Allen {
 
         __host__ __device__ float m12(const float m1, const float m2) const
         {
-          float energy = 0.f;
-          const auto a = dyn_cast<const BasicParticle*>(child(0));
-          const auto b = dyn_cast<const BasicParticle*>(child(1));
-          if (!a || !b) {
-            return 0.f;
-          }
-          energy += a->state().e(m1);
-          energy += b->state().e(m2);
+
+          auto get_p2 = [](auto particle) -> float {
+            auto basicp = dyn_cast<const BasicParticle*>(particle);
+            if (basicp) {
+              const auto mom = basicp->state().p();
+              return mom * mom;
+            }
+            else {
+              auto compp = static_cast<const CompositeParticle*>(particle);
+              return compp->vertex().p2();
+            }
+          };
+
+          const auto energy = sqrtf(get_p2(child(0)) + m1 * m1) + sqrtf(get_p2(child(1)) + m2 * m2);
           return sqrtf(energy * energy - vertex().p2());
         }
 
-        __host__ __device__ float mdipi() const { return m12(mPi, mPi); }
+        __host__ __device__ float mdipi() const { return m12(Allen::mPi, Allen::mPi); }
 
-        __host__ __device__ float mdimu() const { return m12(mMu, mMu); }
+        __host__ __device__ float mdimu() const { return m12(Allen::mMu, Allen::mMu); }
+
+        __host__ __device__ bool child_in_tree(const BasicParticle* probe) const
+        {
+          bool overlap = false;
+          for (unsigned i_child = 0; i_child < number_of_children(); i_child++) {
+            auto basicp = dyn_cast<const BasicParticle*>(child(i_child));
+            if (basicp)
+              overlap |= basicp == probe;
+            else {
+              // flatten recursion introduced in 97bd573738f19c2faf3a1c25f52c3d63e4d3456f to fix cuda compiler warning
+              // this issue might be fixed in future cuda versions and the commit can be reverted
+              const auto compp = dyn_cast<const CompositeParticle*>(child(i_child));
+              for (unsigned j_child = 0; j_child < compp->number_of_children(); j_child++) {
+                basicp = dyn_cast<const BasicParticle*>(compp->child(j_child));
+                if (basicp)
+                  overlap |= basicp == probe;
+                else
+                  return true;
+              }
+            }
+          }
+          return overlap;
+        }
+
+        __host__ __device__ float min_opening_angle_in_tree(const MiniState& probe) const
+        {
+          float opening_angle = 6.4f;
+          for (unsigned i_child = 0; i_child < number_of_children(); i_child++) {
+            auto basicp = dyn_cast<const BasicParticle*>(child(i_child));
+            if (basicp) {
+              const auto c_state = basicp->state();
+              const auto t_tx = probe.tx(), t_ty = probe.ty(), c_tx = c_state.tx(), c_ty = c_state.ty();
+              const auto ct_norm = sqrtf((t_tx * t_tx + t_ty * t_ty + 1.f) * (c_tx * c_tx + c_ty * c_ty + 1.f));
+              const auto ct_arg = (t_tx * c_tx + t_ty * c_ty + 1.f) / ct_norm;
+              opening_angle = std::min((ct_arg > 1.f ? 0.f : acosf(ct_arg)), opening_angle);
+            }
+            else {
+              // flatten recursion introduced in 97bd573738f19c2faf3a1c25f52c3d63e4d3456f to fix cuda compiler warning
+              // this issue might be fixed in future cuda versions and the commit can be reverted
+              const auto compp = dyn_cast<const CompositeParticle*>(child(i_child));
+              for (unsigned j_child = 0; j_child < compp->number_of_children(); j_child++) {
+                basicp = dyn_cast<const BasicParticle*>(compp->child(j_child));
+                if (basicp) {
+                  const auto c_state = basicp->state();
+                  const auto t_tx = probe.tx(), t_ty = probe.ty(), c_tx = c_state.tx(), c_ty = c_state.ty();
+                  const auto ct_norm = sqrtf((t_tx * t_tx + t_ty * t_ty + 1.f) * (c_tx * c_tx + c_ty * c_ty + 1.f));
+                  const auto ct_arg = (t_tx * c_tx + t_ty * c_ty + 1.f) / ct_norm;
+                  opening_angle = std::min((ct_arg > 1.f ? 0.f : acosf(ct_arg)), opening_angle);
+                }
+                else
+                  return 0.f;
+              }
+            }
+          }
+          return opening_angle;
+        }
 
         __host__ __device__ float fdchi2() const
         {
@@ -526,10 +815,32 @@ namespace Allen {
           return sqrtf(dx * dx + dy * dy + dz * dz);
         }
 
+        __host__ __device__ float ctau() const
+        {
+          if (!has_pv()) return -1.f;
+          return m() * fd() / vertex().p();
+        }
+
+        __host__ __device__ float ctau(const float mass) const
+        {
+          if (!has_pv()) return -1.f;
+          return mass * fd() / vertex().p();
+        }
+
         __host__ __device__ float dz() const
         {
           if (!has_pv()) return 0.f;
           return vertex().z() - pv().position.z;
+        }
+
+        __host__ __device__ float drho() const
+        {
+          if (!has_pv()) return -1.f;
+          const auto primary = pv();
+          const auto vrt = vertex();
+          const float dx = vrt.x() - primary.position.x;
+          const float dy = vrt.y() - primary.position.y;
+          return sqrtf(dx * dx + dy * dy);
         }
 
         __host__ __device__ float eta() const
@@ -633,25 +944,7 @@ namespace Allen {
           const auto sA = get_state(child(index1));
           const auto sB = get_state(child(index2));
 
-          float secondAA = sA.tx * sA.tx + sA.ty * sA.ty + 1.0f;
-          float secondBB = sB.tx * sB.tx + sB.ty * sB.ty + 1.0f;
-          float secondAB = -sA.tx * sB.tx - sA.ty * sB.ty - 1.0f;
-          float det = secondAA * secondBB - secondAB * secondAB;
-          float ret = -1;
-          if (fabsf(det) > 0) {
-            float secondinvAA = secondBB / det;
-            float secondinvBB = secondAA / det;
-            float secondinvAB = -secondAB / det;
-            float firstA = sA.tx * (sA.x - sB.x) + sA.ty * (sA.y - sB.y) + (sA.z - sB.z);
-            float firstB = -sB.tx * (sA.x - sB.x) - sB.ty * (sA.y - sB.y) - (sA.z - sB.z);
-            float muA = -(secondinvAA * firstA + secondinvAB * firstB);
-            float muB = -(secondinvBB * firstB + secondinvAB * firstA);
-            float dx = (sA.x + muA * sA.tx) - (sB.x + muB * sB.tx);
-            float dy = (sA.y + muA * sA.ty) - (sB.y + muB * sB.ty);
-            float dz = (sA.z + muA) - (sB.z + muB);
-            ret = sqrtf(dx * dx + dy * dy + dz * dz);
-          }
-          return ret;
+          return state_doca(sA, sB);
         }
 
         __host__ __device__ float docamax() const
@@ -696,6 +989,89 @@ namespace Allen {
           return is_di([](const BasicParticle* a) { return a->is_lepton(); });
         }
 
+        __host__ __device__ bool is_dicluster() const
+        {
+          const auto a = dyn_cast<const NeutralBasicParticle*>(child(0));
+          const auto b = dyn_cast<const NeutralBasicParticle*>(child(1));
+          if (!a || !b) return false;
+          return true;
+        }
+
+        __host__ __device__ inline float3 cluster_momentum(const unsigned index) const
+        {
+          const auto particle = dyn_cast<const NeutralBasicParticle*>(child(index));
+          if (!particle) return float3 {0.f, 0.f, 0.f};
+          const auto cluster = particle->cluster();
+          const float z = Calo::Constants::z;
+          const float r2 = cluster.x * cluster.x + cluster.y * cluster.y;
+          const float sin_theta = sqrtf(r2 / (r2 + z * z));
+          const float cos_phi = cluster.x / sqrtf(r2);
+          const float sin_phi = cluster.y / sqrtf(r2);
+          const float ex = cluster.e * sin_theta * cos_phi;
+          const float ey = cluster.e * sin_theta * sin_phi;
+          const float ez = cluster.e * z / sqrtf(r2 + z * z);
+          return float3 {ex, ey, ez};
+        }
+
+        __host__ __device__ float diphoton_mass() const
+        {
+          if (!is_dicluster()) return -1.f;
+          const auto a = static_cast<const NeutralBasicParticle*>(child(0));
+          const auto b = static_cast<const NeutralBasicParticle*>(child(1));
+          const auto ca = a->cluster();
+          const auto cb = b->cluster();
+
+          // Cluster A.
+          const auto ea = cluster_momentum(0);
+
+          // Cluster B.
+          const auto eb = cluster_momentum(1);
+
+          const float p2 =
+            (ea.x + eb.x) * (ea.x + eb.x) + (ea.y + eb.y) * (ea.y + eb.y) + (ea.z + eb.z) * (ea.z + eb.z);
+          const float e2 = (ca.e + cb.e) * (ca.e + cb.e);
+          return sqrtf(e2 - p2);
+        }
+
+        __host__ __device__ float diphoton_pt() const
+        {
+          if (!is_dicluster()) return -1.f;
+
+          // Cluster A.
+          const auto ea = cluster_momentum(0);
+
+          // Cluster B.
+          const auto eb = cluster_momentum(1);
+
+          const float pt2 = (ea.x + eb.x) * (ea.x + eb.x) + (ea.y + eb.y) * (ea.y + eb.y);
+          return sqrtf(pt2);
+        }
+
+        __host__ __device__ float diphoton_eta() const
+        {
+          if (!is_dicluster()) return -1.f;
+
+          // Cluster A.
+          const auto ea = cluster_momentum(0);
+
+          // Cluster B.
+          const auto eb = cluster_momentum(1);
+
+          const float p2 =
+            (ea.x + eb.x) * (ea.x + eb.x) + (ea.y + eb.y) * (ea.y + eb.y) + (ea.z + eb.z) * (ea.z + eb.z);
+          return atanhf((ea.z + eb.z) / sqrtf(p2));
+        }
+
+        __host__ __device__ float diphoton_distance() const
+        {
+          if (!is_dicluster()) return -1.f;
+          const auto a = static_cast<const NeutralBasicParticle*>(child(0));
+          const auto b = static_cast<const NeutralBasicParticle*>(child(1));
+          const auto ca = a->cluster();
+          const auto cb = b->cluster();
+          return sqrtf((ca.x - cb.x) * (ca.x - cb.x) + (ca.y - cb.y) * (ca.y - cb.y));
+        }
+
         __host__ __device__ float clone_sin2() const
         {
           const auto state1 = static_cast<const BasicParticle*>(child(0))->state();
@@ -708,6 +1084,12 @@ namespace Allen {
           const float vy = -txA + txB;
           const float vz = txA * tyB - txB * tyA;
           return (vx * vx + vy * vy + vz * vz) / ((txA * txA + tyA * tyA + 1.f) * (txB * txB + tyB * tyB + 1.f));
+        }
+
+        __host__ __device__ MiniState get_state() const
+        {
+          const auto v = vertex();
+          return MiniState(v.x(), v.y(), v.z(), v.px() / v.pz(), v.py() / v.pz());
         }
       };
 
@@ -751,7 +1133,9 @@ namespace Allen {
       };
 
       using MultiEventBasicParticles = Allen::MultiEventContainer<BasicParticles>;
+      using MultiEventNeutralBasicParticles = Allen::MultiEventContainer<NeutralBasicParticles>;
       using MultiEventCompositeParticles = Allen::MultiEventContainer<CompositeParticles>;
+
     } // namespace Physics
   }   // namespace Views
 } // namespace Allen

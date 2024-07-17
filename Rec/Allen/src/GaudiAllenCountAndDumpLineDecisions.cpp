@@ -11,6 +11,7 @@
 // Gaudi
 #include "GaudiAlg/Consumer.h"
 #include "GaudiKernel/StdArrayAsProperty.h"
+#include "Gaudi/Accumulators.h"
 
 // LHCb
 #include "Event/RawEvent.h"
@@ -27,7 +28,7 @@
 struct GaudiAllenCountAndDumpLineDecisions final : public Gaudi::Functional::Consumer<void(
                                                      const std::vector<unsigned>&,
                                                      const std::vector<char>&,
-                                                     const std::vector<char>&,
+                                                     const std::vector<unsigned>&,
                                                      const std::vector<unsigned>&)> {
   // Standard constructor
   GaudiAllenCountAndDumpLineDecisions(const std::string& name, ISvcLocator* pSvcLocator);
@@ -35,7 +36,7 @@ struct GaudiAllenCountAndDumpLineDecisions final : public Gaudi::Functional::Con
   void operator()(
     const std::vector<unsigned>& allen_number_of_active_lines,
     const std::vector<char>& allen_names_of_active_lines,
-    const std::vector<char>& allen_selections,
+    const std::vector<unsigned>& allen_selections,
     const std::vector<unsigned>& allen_selections_offsets) const override;
 
 private:
@@ -43,6 +44,7 @@ private:
 
   // Counters for HLT1 selection rates
   mutable std::deque<Gaudi::Accumulators::BinomialCounter<uint32_t>> m_hlt1_line_rates {};
+  mutable Gaudi::Accumulators::BinomialCounter<uint32_t> m_hlt1_global_rate {this, "Selected by Hlt1GlobalDecision"};
 
   Gaudi::Property<bool> m_check_names {this,
                                        "CheckLineNamesAndOrder",
@@ -56,7 +58,6 @@ private:
       m_hlt1_line_rates.clear();
       for (const auto& name : m_line_names) {
         m_hlt1_line_rates.emplace_back(this, "Selected by " + name);
-
         if (msgLevel(MSG::DEBUG)) {
           debug() << "Added counter for line name " << name << endmsg;
         }
@@ -83,7 +84,7 @@ GaudiAllenCountAndDumpLineDecisions::GaudiAllenCountAndDumpLineDecisions(
 void GaudiAllenCountAndDumpLineDecisions::operator()(
   const std::vector<unsigned>& allen_number_of_active_lines,
   const std::vector<char>& allen_names_of_active_lines,
-  const std::vector<char>& allen_selections,
+  const std::vector<unsigned>& allen_selections,
   const std::vector<unsigned>& allen_selections_offsets) const
 {
   assert(allen_number_of_active_lines[0] == m_hlt1_line_rates.size());
@@ -97,17 +98,17 @@ void GaudiAllenCountAndDumpLineDecisions::operator()(
   const unsigned number_of_events = 1;
 
   // Selections view
-  const Selections::Selections_t<const char> selections {
+  const Selections::ConstSelections selections {
     allen_selections.data(), allen_selections_offsets.data(), number_of_events};
 
   // Increment counters
+  bool global_dec = false;
   for (unsigned line_index = 0; line_index < allen_number_of_active_lines[0]; line_index++) {
-    bool line_dec = false;
-    auto decs = selections.get_span(line_index, i_event);
-    for (unsigned idec = 0; idec < decs.size(); idec++)
-      line_dec |= decs[idec];
+    bool line_dec = !selections.is_span_empty(line_index, i_event);
     m_hlt1_line_rates[line_index] += line_dec;
+    global_dec |= line_dec;
   }
+  m_hlt1_global_rate += global_dec;
 }
 
 // Check that the line names in the property m_line_names match the Allen

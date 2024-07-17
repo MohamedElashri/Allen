@@ -1,15 +1,24 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <MEPTools.h>
 #include <MuonCalculateSRQSize.cuh>
 #include <BankTypes.h>
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(muon_calculate_srq_size::muon_calculate_srq_size_t)
 
 template<int decoding_version>
 __device__ void calculate_srq_size(
-  Muon::MuonRawToHits const* muon_raw_to_hits,
+  const Muon::MuonTables* muonTables,
+  const Muon::MuonGeometry* muonGeometry,
   Muon::MuonRawBank<decoding_version> const& raw_bank,
   unsigned* storage_station_region_quarter_sizes)
 {
@@ -29,11 +38,11 @@ __device__ void calculate_srq_size(
       for (int j = 1; j < batch_size + 1; ++j) {
         const auto pp = *(p + j);
         const auto add = (pp & 0x0FFF);
-        const auto tileId = muon_raw_to_hits->muonGeometry->getADDInTell1(tell_number, add);
+        const auto tileId = muonGeometry->getADDInTell1(tell_number, add);
 
         if (tileId != 0) {
           const auto tile = Muon::MuonTileID(tileId);
-          const auto layout1 = getLayout(muon_raw_to_hits->muonTables, tile)[0];
+          const auto layout1 = getLayout(muonTables, tile)[0];
 
           const auto storage_srq_layout =
             Muon::Constants::n_layouts * tile.stationRegionQuarter() + (tile.layout() != layout1);
@@ -52,8 +61,8 @@ __device__ void calculate_srq_size(
     const auto tell_pci = raw_bank.sourceID & 0x00FF;
     const auto tell_number = tell_pci / 2 + 1;
     const auto pci_number = tell_pci % 2;
-    const auto tell_station = muon_raw_to_hits->muonGeometry->whichStationIsTell40(tell_number - 1);
-    const auto active_links = muon_raw_to_hits->muonGeometry->NumberOfActiveLink(tell_number, pci_number);
+    const auto tell_station = muonGeometry->whichStationIsTell40(tell_number - 1);
+    const auto active_links = muonGeometry->NumberOfActiveLink(tell_number, pci_number);
 
     const Allen::device::span<const uint8_t> range8 {raw_bank.data, (raw_bank.last - raw_bank.data) / sizeof(uint8_t)};
     if (range8.empty()) return;
@@ -62,13 +71,15 @@ __device__ void calculate_srq_size(
     if (range8.size() < 1 + 3 * align_info or range8.size() < active_links + 1) return;
 
     unsigned map_connected_fibers[24] = {};
-    unsigned number_of_readout_fibers = muon_raw_to_hits->muonGeometry->get_number_of_readout_fibers(
-      range8, active_links, map_connected_fibers, align_info);
+    unsigned number_of_readout_fibers =
+      muonGeometry->get_number_of_readout_fibers(range8, active_links, map_connected_fibers, align_info);
     if (range8.size() < number_of_readout_fibers + 1 + 3 * align_info) return;
 
     bool corrupted = false;
     for (unsigned link = threadIdx.y; link < number_of_readout_fibers; link += blockDim.y) {
-      unsigned current_pointer = link_start_pointer;
+      unsigned current_pointer =
+        raw_bank.type == LHCb::RawBank::BankType::MuonError ? link_start_pointer + 3 : link_start_pointer;
+
       auto size_of_link = (static_cast<unsigned>(range_data[current_pointer] & 0xF0) >> 4) + 1;
       for (unsigned j = 0; j < link; ++j) {
         current_pointer += size_of_link;
@@ -90,10 +101,11 @@ __device__ void calculate_srq_size(
     __syncthreads();
     for (unsigned link = threadIdx.y; link < number_of_readout_fibers; link += blockDim.y) {
       unsigned reroutered_link = map_connected_fibers[link];
-      auto regionOfLink = muon_raw_to_hits->muonGeometry->RegionOfLink(tell_number, pci_number, reroutered_link);
-      auto quarterOfLink = muon_raw_to_hits->muonGeometry->QuarterOfLink(tell_number, pci_number, reroutered_link);
+      auto regionOfLink = muonGeometry->RegionOfLink(tell_number, pci_number, reroutered_link);
+      auto quarterOfLink = muonGeometry->QuarterOfLink(tell_number, pci_number, reroutered_link);
 
-      unsigned current_pointer = link_start_pointer;
+      unsigned current_pointer =
+        raw_bank.type == LHCb::RawBank::BankType::MuonError ? link_start_pointer + 3 : link_start_pointer;
       auto size_of_link = (static_cast<unsigned>(range_data[current_pointer] & 0xF0) >> 4) + 1;
 
       for (unsigned j = 0; j < link; ++j) {
@@ -121,12 +133,11 @@ __device__ void calculate_srq_size(
             if (first_hitmap_byte && bit_pos < 4) continue;
             if (last_hitmap_byte && bit_pos > 3) continue;
             if (*r & Muon::Constants::single_bit_position()[bit_pos]) {
-              auto tileId =
-                muon_raw_to_hits->muonGeometry->TileInTell40(tell_number, pci_number, reroutered_link, pos_in_link);
+              auto tileId = muonGeometry->TileInTell40(tell_number, pci_number, reroutered_link, pos_in_link);
 
               if (tileId != 0) {
                 const auto tile = Muon::MuonTileID(tileId);
-                const auto layout1 = getLayout(muon_raw_to_hits->muonTables, tile)[0];
+                const auto layout1 = getLayout(muonTables, tile)[0];
 
                 if (tell_station * 16 + regionOfLink * 4 + quarterOfLink < 64) {
                   const auto storage_srq_layout =
@@ -147,14 +158,16 @@ __device__ void calculate_srq_size(
 template<int decoding_version, bool mep_layout>
 __global__ void muon_calculate_srq_size_kernel(
   muon_calculate_srq_size::Parameters parameters,
+  const Muon::MuonTables* muonTables,
+  const Muon::MuonGeometry* muonGeometry,
   unsigned const event_start)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   unsigned* storage_station_region_quarter_sizes =
-    parameters.dev_storage_station_region_quarter_sizes + event_number * Muon::Constants::n_layouts *
-                                                            Muon::Constants::n_stations * Muon::Constants::n_regions *
-                                                            Muon::Constants::n_quarters;
+    parameters.dev_storage_station_region_quarter_offsets + event_number * Muon::Constants::n_layouts *
+                                                              Muon::Constants::n_stations * Muon::Constants::n_regions *
+                                                              Muon::Constants::n_quarters;
 
   const auto raw_event = Muon::RawEvent<mep_layout, decoding_version> {parameters.dev_muon_raw,
                                                                        parameters.dev_muon_raw_offsets,
@@ -164,11 +177,10 @@ __global__ void muon_calculate_srq_size_kernel(
 
   for (unsigned bank_index = threadIdx.x; bank_index < raw_event.number_of_raw_banks(); bank_index += blockDim.x) {
     const auto raw_bank = raw_event.raw_bank(bank_index);
+    if (raw_bank.type != LHCb::RawBank::BankType::Muon && raw_bank.type != LHCb::RawBank::BankType::MuonError)
+      continue; // skip invalid raw banks
 
-    if (raw_bank.type != LHCb::RawBank::BankType::Muon) continue; // skip invalid raw banks
-
-    calculate_srq_size<decoding_version>(
-      parameters.dev_muon_raw_to_hits, raw_bank, storage_station_region_quarter_sizes);
+    calculate_srq_size<decoding_version>(muonTables, muonGeometry, raw_bank, storage_station_region_quarter_sizes);
   }
 }
 
@@ -177,18 +189,18 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
+  set_size<dev_storage_station_region_quarter_offsets_t>(
+    arguments,
+    first<host_number_of_events_t>(arguments) * Muon::Constants::n_layouts * Muon::Constants::n_stations *
+        Muon::Constants::n_regions * Muon::Constants::n_quarters +
+      1);
+  set_size<host_total_sum_holder_t>(arguments, 1);
   // Ensure the bank version is supported
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version < 0) return; // no Muon banks present in data
   if (bank_version != 2 && bank_version != 3) {
     throw StrException("Muon bank version not supported (" + std::to_string(bank_version) + ")");
   }
-
-  set_size<dev_muon_raw_to_hits_t>(arguments, 1);
-  set_size<dev_storage_station_region_quarter_sizes_t>(
-    arguments,
-    first<host_number_of_events_t>(arguments) * Muon::Constants::n_layouts * Muon::Constants::n_stations *
-      Muon::Constants::n_regions * Muon::Constants::n_quarters);
 }
 
 void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
@@ -197,18 +209,13 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
+  Allen::memset_async<dev_storage_station_region_quarter_offsets_t>(arguments, 0, context);
+
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
-  if (bank_version < 0) return; // no Muon banks present in data
-
-  // FIXME: this should be done as part of the consumers, but
-  // currently it cannot. This is because it is not possible to
-  // indicate dependencies between Consumer and/or Producers.
-  auto host_muonrawtohits = make_host_buffer<Muon::MuonRawToHits>(arguments, 1);
-  host_muonrawtohits[0] = Muon::MuonRawToHits {constants.dev_muon_tables, constants.dev_muon_geometry};
-
-  Allen::copy_async(
-    get<dev_muon_raw_to_hits_t>(arguments), host_muonrawtohits.get(), context, Allen::memcpyHostToDevice);
-  Allen::memset_async<dev_storage_station_region_quarter_sizes_t>(arguments, 0, context);
+  if (bank_version < 0) { // no Muon banks present in data
+    Allen::memset_async<host_total_sum_holder_t>(arguments, 0, context);
+    return;
+  }
 
   auto kernel_fn = bank_version == 2 ? (runtime_options.mep_layout ? muon_calculate_srq_size_kernel<2, true> :
                                                                      muon_calculate_srq_size_kernel<2, false>) :
@@ -216,5 +223,8 @@ void muon_calculate_srq_size::muon_calculate_srq_size_t::operator()(
                                                                      muon_calculate_srq_size_kernel<3, false>);
 
   global_function(kernel_fn)(size<dev_event_list_t>(arguments), dim3(64, 4), context)(
-    arguments, std::get<0>(runtime_options.event_interval));
+    arguments, constants.dev_muon_tables, constants.dev_muon_geometry, std::get<0>(runtime_options.event_interval));
+
+  PrefixSum::prefix_sum<dev_storage_station_region_quarter_offsets_t, host_total_sum_holder_t>(
+    *this, arguments, context);
 }

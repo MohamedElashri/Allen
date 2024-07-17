@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -19,9 +26,7 @@ namespace beam_gas_line {
     DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned) dev_offsets_velo_tracks;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_offsets_velo_track_hit_number;
     DEVICE_INPUT(dev_odin_data_t, ODINData) dev_odin_data;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
     PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
@@ -46,11 +51,6 @@ namespace beam_gas_line {
     static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
     {
       return first<typename Parameters::host_number_of_reconstructed_velo_tracks_t>(arguments);
-    }
-
-    __device__ static unsigned input_size(const Parameters& parameters, const unsigned event_number)
-    {
-      return parameters.dev_offsets_velo_tracks[event_number + 1] - parameters.dev_offsets_velo_tracks[event_number];
     }
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)

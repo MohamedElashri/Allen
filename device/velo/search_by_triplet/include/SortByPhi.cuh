@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -22,24 +29,9 @@ namespace velo_sort_by_phi {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
     DEVICE_OUTPUT(dev_hit_permutation_t, unsigned) dev_hit_permutation;
+    DEVICE_OUTPUT(dev_hit_sorting_key_t, int64_t) dev_hit_sorting_key;
     DEVICE_INPUT(dev_velo_clusters_t, Velo::Clusters) dev_velo_clusters;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
-
-  __device__ void calculate_permutation(
-    const unsigned* module_hitStarts,
-    const unsigned* module_hitNums,
-    const Velo::Clusters& velo_cluster_container,
-    unsigned* hit_permutations);
-
-  __device__ void sort_by_phi(
-    const unsigned event_hit_start,
-    const unsigned event_number_of_hits,
-    const Velo::Clusters& velo_cluster_container,
-    Velo::Clusters& velo_sorted_cluster_container,
-    unsigned* hit_permutations);
-
-  __global__ void velo_sort_by_phi(Parameters);
 
   struct velo_sort_by_phi_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -49,8 +41,5 @@ namespace velo_sort_by_phi {
       const RuntimeOptions&,
       const Constants&,
       const Allen::Context& context) const;
-
-  private:
-    Property<block_dim_t> m_block_dim {this, {{2, 64, 1}}};
   };
 } // namespace velo_sort_by_phi

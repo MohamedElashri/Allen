@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "FilterSvs.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(FilterSvs::filter_svs_t)
 
@@ -18,7 +19,8 @@ void FilterSvs::filter_svs_t::set_arguments_size(
   const Constants&) const
 {
   set_size<dev_sv_filter_decision_t>(arguments, first<host_number_of_svs_t>(arguments));
-  set_size<dev_combo_number_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_combo_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_combos_t>(arguments, 1);
   set_size<dev_child1_idx_t>(arguments, first<host_max_combos_t>(arguments));
   set_size<dev_child2_idx_t>(arguments, first<host_max_combos_t>(arguments));
 }
@@ -29,10 +31,12 @@ void FilterSvs::filter_svs_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_combo_number_t>(arguments, 0, context);
+  Allen::memset_async<dev_combo_offsets_t>(arguments, 0, context);
 
   global_function(filter_svs)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_filter_t>(), context)(
     arguments);
+
+  PrefixSum::prefix_sum<dev_combo_offsets_t, host_number_of_combos_t>(*this, arguments, context);
 }
 
 __global__ void FilterSvs::filter_svs(FilterSvs::Parameters parameters)
@@ -40,7 +44,7 @@ __global__ void FilterSvs::filter_svs(FilterSvs::Parameters parameters)
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const unsigned idx_offset = parameters.dev_max_combo_offsets[event_number];
-  unsigned* event_combo_number = parameters.dev_combo_number + event_number;
+  unsigned* event_combo_number = parameters.dev_combo_offsets + event_number;
   unsigned* event_child1_idx = parameters.dev_child1_idx + idx_offset;
   unsigned* event_child2_idx = parameters.dev_child2_idx + idx_offset;
 
@@ -58,14 +62,24 @@ __global__ void FilterSvs::filter_svs(FilterSvs::Parameters parameters)
     // Set decision
     dec = vertex.vertex().chi2() > 0 && vertex.vertex().chi2() < parameters.maxVertexChi2;
     // Kinematic cuts.
-    dec &= vertex.minpt() > parameters.minTrackPt;
     dec &= vertex.minp() > parameters.minTrackP;
-    dec &= vertex.vertex().pt() > parameters.minComboPt;
     dec &= vertex.eta() > parameters.minChildEta;
     dec &= vertex.eta() < parameters.maxChildEta;
-    dec &= vertex.minipchi2() > parameters.minTrackIPChi2;
     dec &= vertex.dira() > parameters.minCosDira;
-    event_sv_filter_decision[i_sv] = dec;
+    // Kinematic cuts - IPchi2(dec2), IPlow(dec3) and IPhigh(dec4)
+    bool dec2 = true;
+    dec2 &= vertex.minpt() > parameters.minTrackPt;
+    dec2 &= vertex.vertex().pt() > parameters.minComboPt;
+    dec2 &= vertex.minipchi2() > parameters.minTrackIPChi2;
+    bool dec3 = true;
+    dec3 &= vertex.minpt() > parameters.minTrackPtLowIP;
+    dec3 &= vertex.vertex().pt() > parameters.minComboPt;
+    dec3 &= vertex.minip() > parameters.minTrackLowIP;
+    bool dec4 = true;
+    dec4 &= vertex.minpt() > parameters.minTrackPt;
+    dec4 &= vertex.vertex().pt() > parameters.minComboPtHighIP;
+    dec4 &= vertex.minip() > parameters.minTrackHighIP;
+    event_sv_filter_decision[i_sv] = dec & (dec2 | dec3 | dec4);
   }
 
   __syncthreads();

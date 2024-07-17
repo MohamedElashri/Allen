@@ -1,8 +1,16 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
-#include "RegisterConsumers.h"
-#include "Common.h"
+#include <RegisterConsumers.h>
+#include <Common.h>
+#include <Updater.h>
 
 /**
  * @brief      Register all consumers of non-event data
@@ -20,9 +28,7 @@ void register_consumers(
   const auto consumers = std::make_tuple(
     std::make_tuple(
       Allen::NonEventData::UTBoards {},
-      [&constants]() {
-        return std::make_unique<Consumers::HostDeviceGeometry>(constants.host_ut_boards, constants.dev_ut_boards);
-      },
+      [&constants]() { return std::make_unique<Consumers::UTBoards>(constants); },
       BankTypes::UT),
     std::make_tuple(
       Allen::NonEventData::UTLookupTables {},
@@ -34,10 +40,7 @@ void register_consumers(
       BankTypes::UT),
     std::make_tuple(
       Allen::NonEventData::SciFiGeometry {},
-      [&constants]() {
-        return std::make_unique<Consumers::HostDeviceGeometry>(
-          constants.host_scifi_geometry, constants.dev_scifi_geometry);
-      },
+      [&constants]() { return std::make_unique<Consumers::SciFiGeometry>(constants); },
       BankTypes::FT),
     std::make_tuple(
       Allen::NonEventData::Beamline {},
@@ -67,7 +70,35 @@ void register_consumers(
         return std::make_unique<Consumers::MuonLookupTables>(
           constants.host_muon_lookup_tables_raw, constants.dev_muon_lookup_tables_raw, constants.dev_muon_tables);
       },
-      BankTypes::MUON));
+      BankTypes::MUON),
+    std::make_tuple(
+      Allen::NonEventData::RichPDMDBMapping {},
+      [&constants]() {
+        return std::make_unique<Consumers::HostDeviceGeometry>(
+          constants.host_rich_pdmdb_mapping, constants.dev_rich_pdmdb_mapping);
+      },
+      BankTypes::Rich1),
+    std::make_tuple(
+      Allen::NonEventData::RichCableMapping {},
+      [&constants]() {
+        return std::make_unique<Consumers::HostDeviceGeometry>(
+          constants.host_rich_cable_mapping, constants.dev_rich_cable_mapping);
+      },
+      BankTypes::Rich1),
+    std::make_tuple(
+      Allen::NonEventData::RichPDMDBMapping {},
+      [&constants]() {
+        return std::make_unique<Consumers::HostDeviceGeometry>(
+          constants.host_rich_pdmdb_mapping, constants.dev_rich_pdmdb_mapping);
+      },
+      BankTypes::Rich2),
+    std::make_tuple(
+      Allen::NonEventData::RichCableMapping {},
+      [&constants]() {
+        return std::make_unique<Consumers::HostDeviceGeometry>(
+          constants.host_rich_cable_mapping, constants.dev_rich_cable_mapping);
+      },
+      BankTypes::Rich2));
 
   const auto unconditional_consumers =
     std::make_tuple(std::make_tuple(Allen::NonEventData::MagneticField {}, [&constants]() {
@@ -85,4 +116,13 @@ void register_consumers(
     using id_t = typename std::remove_reference_t<decltype(std::get<0>(c))>;
     updater->registerConsumer<id_t>(std::get<1>(c)());
   });
+}
+
+Allen::NonEventData::IUpdater* binary_updater(std::map<std::string, std::string> const& options)
+{
+  static std::unique_ptr<Allen::NonEventData::IUpdater> updater;
+  if (!updater) {
+    updater = std::make_unique<Allen::NonEventData::Updater>(options);
+  }
+  return updater.get();
 }

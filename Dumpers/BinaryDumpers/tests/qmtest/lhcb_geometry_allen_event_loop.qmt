@@ -1,6 +1,13 @@
 <?xml version="1.0" ?><!DOCTYPE extension  PUBLIC '-//QM/2.3/Extension//EN'  'http://www.codesourcery.com/qm/dtds/2.3/-//qm/2.3/extension//en.dtd'>
 <!--
     (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration
+
+    This software is distributed under the terms of the Apache License
+    version 2 (Apache-2.0), copied verbatim in the file "LICENSE".
+
+    In applying this licence, CERN does not waive the privileges and immunities
+    granted to it by virtue of its status as an Intergovernmental Organization
+    or submit itself to any jurisdiction.
 -->
 <!--
 #######################################################
@@ -15,12 +22,13 @@
   <argument name="program"><text>python</text></argument>
   <argument name="args"><set>
     <text>../../options/allen.py</text>
-    <text>--tags=dd4hep:trunk,master|detdesc:dddb-20220705,sim-20220705-vc-md100</text>
+    <text>--tags=dd4hep:run3/trunk,master|detdesc:dddb-20220705,sim-20220705-vc-md100</text>
     <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3337_dddb-20220705_sim-20220705-vc-md100.mdf</text>
     <text>--sequence</text><text>$ALLEN_INSTALL_DIR/constants/hlt1_pp_no_ut.json</text>
+    <text>--monitoring-filename</text><text>allen_event_loop.root</text>
     <text>-n</text><text>10000</text>
   </set></argument>
-  <arguement name="timeout"><integer>600</integer></arguement>
+  <argument name="timeout"><integer>600</integer></argument>
   <argument name="validator"><text>
 countErrorLines({"FATAL":0,"ERROR":0,"WARNING":0})
 

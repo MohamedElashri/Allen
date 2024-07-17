@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -14,10 +21,7 @@ namespace track_electron_mva_line {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_track_isElectron_t, bool) dev_track_isElectron;
     DEVICE_INPUT(dev_brem_corrected_pt_t, float) dev_brem_corrected_pt;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
-
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
     PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
@@ -33,6 +37,13 @@ namespace track_electron_mva_line {
     PROPERTY(param3_t, "param3", "param3 description", float) param3;
     PROPERTY(alpha_t, "alpha", "alpha description", float) alpha;
     PROPERTY(minBPVz_t, "min_BPVz", "Minimum z for the associated best primary vertex", float) minBPVz;
+    DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(pt_corrected_t, float) pt_corrected;
+    DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
+
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enables monitoring ntuple", bool) enable_tupling;
   };
 
   struct track_electron_mva_line_t : public SelectionAlgorithm,
@@ -41,6 +52,14 @@ namespace track_electron_mva_line {
     __device__ static bool select(
       const Parameters& ps,
       std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input);
+
+    __device__ static void fill_tuples(
+      const Parameters& parameters,
+      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input,
+      unsigned index,
+      bool sel);
+
+    using monitoring_types = std::tuple<pt_t, pt_corrected_t, ipchi2_t, evtNo_t, runNo_t>;
 
     __device__ static std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
@@ -59,5 +78,7 @@ namespace track_electron_mva_line {
     Property<param3_t> m_param3 {this, 1.248f};
     Property<alpha_t> m_alpha {this, 0.f};
     Property<minBPVz_t> m_minBPVz {this, -341.f * Gaudi::Units::mm};
+
+    Property<enable_tupling_t> m_enable_tupling {this, false};
   };
 } // namespace track_electron_mva_line

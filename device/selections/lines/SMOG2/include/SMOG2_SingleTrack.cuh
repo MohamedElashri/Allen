@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2022 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -14,9 +21,7 @@ namespace SMOG2_singletrack_line {
 
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
-    HOST_OUTPUT(host_decisions_size_t, unsigned) host_decisions_size;
-    HOST_OUTPUT(host_post_scaler_t, float) host_post_scaler;
-    HOST_OUTPUT(host_post_scaler_hash_t, uint32_t) host_post_scaler_hash;
+    HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
 
@@ -29,6 +34,7 @@ namespace SMOG2_singletrack_line {
     PROPERTY(minP_t, "minP", "minimum P", float) minP;
     PROPERTY(minBPVz_t, "minBPVz", "minimum z for the best associated primary vertex", float) minBPVz;
     PROPERTY(maxBPVz_t, "maxBPVz", "maximum z for the best associated primary vertex", float) maxBPVz;
+    PROPERTY(maxGhostProb_t, "maxGhostProb", "Maximum ghost probability of the tracks", float) maxGhostProb;
   };
   struct SMOG2_singletrack_line_t : public SelectionAlgorithm,
                                     Parameters,
@@ -42,10 +48,11 @@ namespace SMOG2_singletrack_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minP_t> m_minP {this, 3.f * Gaudi::Units::GeV};
-    Property<minPt_t> m_minPt {this, 1.f * Gaudi::Units::GeV};
-    Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 4.f};
+    Property<minP_t> m_minP {this, 5000.f * Gaudi::Units::MeV};
+    Property<minPt_t> m_minPt {this, 1500.f * Gaudi::Units::MeV};
+    Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 3.f};
     Property<minBPVz_t> m_minBPVz {this, -551.f * Gaudi::Units::mm};
     Property<maxBPVz_t> m_maxBPVz {this, -331.f * Gaudi::Units::mm};
+    Property<maxGhostProb_t> m_maxGhostProb {this, 0.5};
   };
 } // namespace SMOG2_singletrack_line

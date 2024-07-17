@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "VeloDefinitions.cuh"
 #include "SortByPhi.cuh"
@@ -7,87 +14,38 @@
 #include "Vector.h"
 #include <numeric>
 #include <algorithm>
+#include <SegSort.h>
 
 INSTANTIATE_ALGORITHM(velo_sort_by_phi::velo_sort_by_phi_t)
 
 using namespace Allen::device;
 
-void velo_sort_by_phi::velo_sort_by_phi_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions&,
-  const Constants&) const
+__device__ void sort_by_phi(
+  const unsigned event_hit_start,
+  const unsigned event_number_of_hits,
+  const Velo::Clusters& velo_cluster_container,
+  Velo::Clusters& velo_sorted_cluster_container,
+  unsigned* hit_permutations)
 {
-  set_size<dev_sorted_velo_cluster_container_t>(arguments, size<dev_velo_cluster_container_t>(arguments));
-  set_size<dev_hit_permutation_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
-}
+  for (unsigned i = threadIdx.x * blockDim.y + threadIdx.y; i < event_number_of_hits; i += blockDim.y * blockDim.x) {
+    const auto hit_index_global = hit_permutations[event_hit_start + i];
+    velo_sorted_cluster_container.set_id(event_hit_start + i, velo_cluster_container.id(hit_index_global));
+  }
 
-void velo_sort_by_phi::velo_sort_by_phi_t::operator()(
-  const ArgumentReferences<Parameters>& arguments,
-  const RuntimeOptions&,
-  const Constants&,
-  const Allen::Context& context) const
-{
-  Allen::memset_async<dev_hit_permutation_t>(arguments, 0, context);
+  for (unsigned i = threadIdx.x * blockDim.y + threadIdx.y; i < event_number_of_hits; i += blockDim.y * blockDim.x) {
+    const auto hit_index_global = hit_permutations[event_hit_start + i];
+    velo_sorted_cluster_container.set_phi(event_hit_start + i, velo_cluster_container.phi(hit_index_global));
+  }
 
-  global_function(velo_sort_by_phi)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
-
-  if (property<verbosity_t>() >= logger::debug) {
-    info_cout << "VELO clusters after velo_sort_by_phi:\n";
-    print_velo_clusters<
-      dev_sorted_velo_cluster_container_t,
-      dev_offsets_estimated_input_size_t,
-      dev_module_cluster_num_t,
-      host_total_number_of_velo_clusters_t,
-      host_number_of_events_t>(arguments, context);
+  for (unsigned i = threadIdx.x * blockDim.y + threadIdx.y; i < event_number_of_hits; i += blockDim.y * blockDim.x) {
+    const auto hit_index_global = hit_permutations[event_hit_start + i];
+    velo_sorted_cluster_container.set_x(event_hit_start + i, velo_cluster_container.x(hit_index_global));
+    velo_sorted_cluster_container.set_y(event_hit_start + i, velo_cluster_container.y(hit_index_global));
+    velo_sorted_cluster_container.set_z(event_hit_start + i, velo_cluster_container.z(hit_index_global));
   }
 }
 
-/**
- * @brief Track forwarding algorithm based on triplet finding
- */
-__global__ void velo_sort_by_phi::velo_sort_by_phi(velo_sort_by_phi::Parameters parameters)
-{
-  /* Data initialization */
-  // Each event is treated with two blocks, one for each side.
-  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
-  const unsigned number_of_events = parameters.dev_number_of_events[0];
-
-  // Pointers to data within the event
-  const unsigned total_estimated_number_of_clusters =
-    parameters.dev_offsets_estimated_input_size[Velo::Constants::n_module_pairs * number_of_events];
-  const unsigned* module_pair_hit_start =
-    parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
-  const unsigned* module_pair_hit_num =
-    parameters.dev_module_cluster_num + event_number * Velo::Constants::n_module_pairs;
-
-  const auto velo_cluster_container = parameters.dev_velo_clusters[event_number];
-  auto velo_sorted_cluster_container =
-    Velo::Clusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters};
-
-  const unsigned event_hit_start = module_pair_hit_start[0];
-  const unsigned event_number_of_hits = module_pair_hit_start[Velo::Constants::n_module_pairs] - event_hit_start;
-
-  // Calculate hit_permutations
-  calculate_permutation(
-    module_pair_hit_start, module_pair_hit_num, velo_cluster_container, parameters.dev_hit_permutation);
-
-  // Due to hit_permutations RAW
-  __syncthreads();
-
-  // Sort by phi
-  sort_by_phi(
-    event_hit_start,
-    event_number_of_hits,
-    velo_cluster_container,
-    velo_sorted_cluster_container,
-    parameters.dev_hit_permutation);
-}
-
-/**
- * @brief Calculates a phi side
- */
-__device__ void velo_sort_by_phi::calculate_permutation(
+__device__ void calculate_permutation(
   const unsigned* module_pair_hit_start,
   const unsigned* module_pair_hit_num,
   const Velo::Clusters& velo_cluster_container,
@@ -111,10 +69,13 @@ __device__ void velo_sort_by_phi::calculate_permutation(
         const auto other_hit_index = hit_start + j;
         const auto other_phi = velo_cluster_container.phi(other_hit_index);
 
+        int64_t key1 = (static_cast<int64_t>(phi) << 48) | velo_cluster_container.id(hit_index);
+        int64_t key2 = (static_cast<int64_t>(other_phi) << 48) | velo_cluster_container.id(other_hit_index);
+
         // Ensure sorting is reproducible
-        position +=
-          phi > other_phi || (hit_index != other_hit_index && phi == other_phi &&
-                              velo_cluster_container.id(hit_index) > velo_cluster_container.id(other_hit_index));
+        position += key1 > key2;
+        // phi > other_phi || (hit_index != other_hit_index && phi == other_phi &&
+        //                      velo_cluster_container.id(hit_index) > velo_cluster_container.id(other_hit_index));
       }
 
       // Store it in hit permutations
@@ -124,30 +85,124 @@ __device__ void velo_sort_by_phi::calculate_permutation(
   }
 }
 
-/**
- * @brief Sorts all VELO decoded data by phi onto another container.
- */
-__device__ void velo_sort_by_phi::sort_by_phi(
-  const unsigned event_hit_start,
-  const unsigned event_number_of_hits,
-  const Velo::Clusters& velo_cluster_container,
-  Velo::Clusters& velo_sorted_cluster_container,
-  unsigned* hit_permutations)
+__global__ void velo_sort_by_phi_kernel(velo_sort_by_phi::Parameters parameters)
 {
-  for (unsigned i = threadIdx.x * blockDim.y + threadIdx.y; i < event_number_of_hits; i += blockDim.y * blockDim.x) {
-    const auto hit_index_global = hit_permutations[event_hit_start + i];
-    velo_sorted_cluster_container.set_id(event_hit_start + i, velo_cluster_container.id(hit_index_global));
-  }
+  // Each event is treated with two blocks, one for each side.
+  const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  for (unsigned i = threadIdx.x * blockDim.y + threadIdx.y; i < event_number_of_hits; i += blockDim.y * blockDim.x) {
-    const auto hit_index_global = hit_permutations[event_hit_start + i];
-    velo_sorted_cluster_container.set_phi(event_hit_start + i, velo_cluster_container.phi(hit_index_global));
-  }
+  // Pointers to data within the event
+  const unsigned total_estimated_number_of_clusters =
+    parameters.dev_offsets_estimated_input_size[Velo::Constants::n_module_pairs * number_of_events];
+  const unsigned* module_pair_hit_start =
+    parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
+  const unsigned* module_pair_hit_num =
+    parameters.dev_module_cluster_num + event_number * Velo::Constants::n_module_pairs;
 
-  for (unsigned i = threadIdx.x * blockDim.y + threadIdx.y; i < event_number_of_hits; i += blockDim.y * blockDim.x) {
-    const auto hit_index_global = hit_permutations[event_hit_start + i];
-    velo_sorted_cluster_container.set_x(event_hit_start + i, velo_cluster_container.x(hit_index_global));
-    velo_sorted_cluster_container.set_y(event_hit_start + i, velo_cluster_container.y(hit_index_global));
-    velo_sorted_cluster_container.set_z(event_hit_start + i, velo_cluster_container.z(hit_index_global));
+  const auto velo_cluster_container = parameters.dev_velo_clusters[0];
+  auto velo_sorted_cluster_container =
+    Velo::Clusters {parameters.dev_sorted_velo_cluster_container, total_estimated_number_of_clusters};
+
+  const unsigned event_hit_start = module_pair_hit_start[0];
+  const unsigned event_number_of_hits = module_pair_hit_start[Velo::Constants::n_module_pairs] - event_hit_start;
+
+  // Calculate hit_permutations
+  calculate_permutation(
+    module_pair_hit_start, module_pair_hit_num, velo_cluster_container, parameters.dev_hit_permutation);
+
+  // Due to hit_permutations RAW
+  __syncthreads();
+
+  // Sort by phi
+  sort_by_phi(
+    event_hit_start,
+    event_number_of_hits,
+    velo_cluster_container,
+    velo_sorted_cluster_container,
+    parameters.dev_hit_permutation);
+}
+
+__global__ void velo_apply_sort_permutation(velo_sort_by_phi::Parameters parameters)
+{
+  // Data initialization
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+
+  // Pointers to data
+  const unsigned n_hits =
+    parameters.dev_offsets_estimated_input_size[Velo::Constants::n_module_pairs * number_of_events];
+
+  const auto velo_cluster_container = parameters.dev_velo_clusters[0];
+  auto velo_sorted_cluster_container = Velo::Clusters {parameters.dev_sorted_velo_cluster_container, n_hits};
+
+  // Sort by phi
+  for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < n_hits; i += gridDim.x * blockDim.x) {
+    const auto hit_index_global = parameters.dev_hit_permutation[i];
+    velo_sorted_cluster_container.set_id(i, velo_cluster_container.id(hit_index_global));
+    velo_sorted_cluster_container.set_phi(i, velo_cluster_container.phi(hit_index_global));
+    velo_sorted_cluster_container.set_x(i, velo_cluster_container.x(hit_index_global));
+    velo_sorted_cluster_container.set_y(i, velo_cluster_container.y(hit_index_global));
+    velo_sorted_cluster_container.set_z(i, velo_cluster_container.z(hit_index_global));
+  }
+}
+
+__global__ void velo_fill_sorting_key(velo_sort_by_phi::Parameters parameters)
+{
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
+  const unsigned n_hits =
+    parameters.dev_offsets_estimated_input_size[Velo::Constants::n_module_pairs * number_of_events];
+  const auto velo_cluster_container = parameters.dev_velo_clusters[0];
+  int64_t* sort_keys = parameters.dev_hit_sorting_key;
+
+  for (unsigned i = blockIdx.x * blockDim.x + threadIdx.x; i < n_hits; i += gridDim.x * blockDim.x) {
+    const auto phi = velo_cluster_container.phi(i);
+    const auto id = velo_cluster_container.id(i);
+
+    sort_keys[i] = (static_cast<int64_t>(phi) << 48) | id;
+  }
+}
+
+void velo_sort_by_phi::velo_sort_by_phi_t::set_arguments_size(
+  ArgumentReferences<Parameters> arguments,
+  const RuntimeOptions&,
+  const Constants&) const
+{
+  set_size<dev_sorted_velo_cluster_container_t>(arguments, size<dev_velo_cluster_container_t>(arguments));
+  set_size<dev_hit_permutation_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
+  set_size<dev_hit_sorting_key_t>(arguments, first<host_total_number_of_velo_clusters_t>(arguments));
+}
+
+void velo_sort_by_phi::velo_sort_by_phi_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const Allen::Context& context) const
+{
+  Allen::memset_async<dev_hit_permutation_t>(arguments, 0, context);
+
+  global_function(velo_sort_by_phi_kernel)(dim3(size<dev_event_list_t>(arguments)), dim3(2, 64, 1), context)(arguments);
+
+  /*global_function(velo_fill_sorting_key)(
+    dim3((first<host_total_number_of_velo_clusters_t>(arguments) + 255) / 256), dim3(256), context)(arguments);
+
+  SegSort::segsort<int64_t>(
+    *this,
+    arguments,
+    context,
+    data<dev_hit_sorting_key_t>(arguments),
+    data<dev_offsets_estimated_input_size_t>(arguments),
+    size<dev_offsets_estimated_input_size_t>(arguments) - 1,
+    data<dev_hit_permutation_t>(arguments));
+
+  global_function(velo_apply_sort_permutation)(
+    dim3((first<host_total_number_of_velo_clusters_t>(arguments) + 255) / 256), dim3(256), context)(arguments);*/
+
+  if (property<verbosity_t>() >= logger::debug) {
+    info_cout << "VELO clusters after velo_sort_by_phi:\n";
+    print_velo_clusters<
+      dev_sorted_velo_cluster_container_t,
+      dev_offsets_estimated_input_size_t,
+      dev_module_cluster_num_t,
+      host_total_number_of_velo_clusters_t,
+      host_number_of_events_t>(arguments, context);
   }
 }

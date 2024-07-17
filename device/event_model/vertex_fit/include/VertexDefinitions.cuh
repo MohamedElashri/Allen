@@ -1,15 +1,24 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
 #include "SciFiDefinitions.cuh"
 #include "ParKalmanMath.cuh"
 #include "BackendCommon.h"
+#include <limits.h>
 
 namespace VertexFit {
 
   constexpr unsigned max_svs = 1000;
+  constexpr unsigned max_sv_track_combinations = 1000;
 
   struct TrackMVAVertex {
     // Fit results.
@@ -33,8 +42,7 @@ namespace VertexFit {
     float p2 = 0.f;
     float cos = 1.f;
 
-    // Variables for dimuon lines
-    float vertex_ip = 0.0f;
+    float vertex_ip = std::numeric_limits<float>::quiet_NaN();
     float dz = 0.0f;
     float doca = -1.f;
     float vertex_clone_sin2 = 0.0f;
@@ -43,7 +51,7 @@ namespace VertexFit {
     // Sum of track pT.
     float sumpt = 0.0f;
     // FD chi2.
-    float fdchi2 = 0.0f;
+    float fdchi2 = std::numeric_limits<float>::quiet_NaN();
     // Mass assuming dimuon hypothesis.
     float mdimu = 0.0f;
     // Corrected mass.
@@ -83,6 +91,24 @@ namespace VertexFit {
       const float E2 = sqrtf(p2 * p2 + m2 * m2);
       return sqrtf(m1 * m1 + m2 * m2 + 2 * E1 * E2 - 2 * p1 * p2 * cos);
     }
+  };
+
+  struct MiniVertex {
+    // Track indices.
+    unsigned trk1 = 0;
+    unsigned trk2 = 0;
+    // SV properties
+    float px = 0.0f;
+    float py = 0.0f;
+    float pz = 0.0f;
+    float x = 0.0f;
+    float y = 0.0f;
+    float z = 0.0f;
+    float Armenteros_x = 0;
+    float Armenteros_y = 0;
+    // DOCA
+    float doca = 0.f;
+    float quality = 0.f;
   };
 
 } // namespace VertexFit

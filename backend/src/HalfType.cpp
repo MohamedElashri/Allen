@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "BackendCommon.h"
 #include <iostream>
@@ -95,6 +102,22 @@ float __float_cap_to_half_precision(const float f)
   return fresult;
 }
 
-uint16_t __float2half(const float f) { return __float2half_impl(f); }
+#ifdef TARGET_DEVICE_CPU
 
-float __half2float(const uint16_t h) { return __half2float_impl(h); }
+uint16_t __float_to_uint16(const float f) { return __float2half_impl(f); }
+float __uint16_to_float(const uint16_t h) { return __half2float_impl(h); }
+
+#ifdef CPU_USE_REAL_HALF
+
+half_t __float2half(const float f) { return half_t {f}; }
+
+float __half2float(const half_t h) { return float {h}; }
+
+#else
+
+half_t __float2half(const float f) { return f; }
+float __half2float(const half_t h) { return h; }
+
+#endif
+
+#endif

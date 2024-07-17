@@ -1,8 +1,16 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "ThreeHitTracksFilter.cuh"
 #include "VeloTools.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t)
 
@@ -11,14 +19,9 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::set_arguments
   const RuntimeOptions&,
   const Constants&) const
 {
-  const unsigned track_container_size =
-    first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster <
-        first<host_number_of_events_t>(arguments) * Velo::Constants::minimum_container_size ?
-      first<host_number_of_events_t>(arguments) * Velo::Constants::minimum_container_size :
-      first<host_total_number_of_velo_clusters_t>(arguments) * Velo::Constants::max_number_of_tracks_per_cluster;
-
-  set_size<dev_number_of_three_hit_tracks_output_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_three_hit_tracks_output_t>(arguments, track_container_size);
+  set_size<dev_offsets_number_of_three_hit_tracks_filtered_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_three_hit_tracks_filtered_t>(arguments, 1);
+  set_size<dev_three_hit_tracks_output_t>(arguments, size<dev_three_hit_tracks_input_t>(arguments));
 }
 
 void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
@@ -27,7 +30,7 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_number_of_three_hit_tracks_output_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_number_of_three_hit_tracks_filtered_t>(arguments, 0, context);
 
   global_function(velo_three_hit_tracks_filter)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
     arguments);
@@ -36,9 +39,12 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
     info_cout << "VELO three hit tracks found:\n";
     print_velo_three_hit_tracks<
       dev_three_hit_tracks_output_t,
-      dev_number_of_three_hit_tracks_output_t,
+      dev_offsets_number_of_three_hit_tracks_filtered_t,
       dev_offsets_estimated_input_size_t>(arguments, context);
   }
+
+  PrefixSum::prefix_sum<dev_offsets_number_of_three_hit_tracks_filtered_t, host_number_of_three_hit_tracks_filtered_t>(
+    *this, arguments, context);
 }
 
 /**
@@ -109,7 +115,7 @@ __device__ float means_square_fit_chi2(Velo::ConstClusters& velo_cluster_contain
 __device__ void three_hit_tracks_filter_impl(
   const Velo::TrackletHits* input_tracks,
   const unsigned number_of_input_tracks,
-  Velo::TrackletHits* output_tracks,
+  Allen::device::span<Velo::TrackletHits> output_tracks,
   unsigned* number_of_output_tracks,
   const bool* hit_used,
   Velo::ConstClusters& velo_cluster_container,
@@ -155,8 +161,8 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
     parameters.dev_atomics_velo[event_number * Velo::num_atomics + Velo::Tracking::atomics::number_of_three_hit_tracks];
 
   // Output containers
-  Velo::TrackletHits* output_tracks = parameters.dev_three_hit_tracks_output.get() + tracks_offset;
-  unsigned* number_of_output_tracks = parameters.dev_number_of_three_hit_tracks_output.get() + event_number;
+  auto output_tracks = parameters.dev_three_hit_tracks_output.subspan(tracks_offset);
+  auto* number_of_output_tracks = &parameters.dev_offsets_number_of_three_hit_tracks_filtered[event_number];
 
   three_hit_tracks_filter_impl(
     input_tracks,

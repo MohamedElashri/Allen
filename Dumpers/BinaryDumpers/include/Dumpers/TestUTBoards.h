@@ -1,8 +1,16 @@
 /*****************************************************************************\
-* (c) Copyright 2000-2019 CERN for the benefit of the LHCb Collaboration      *
+* (c) Copyright 2000-2023 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -15,10 +23,13 @@ struct UTBoards {
   uint32_t number_of_boards;
   uint32_t number_of_channels;
   uint32_t* stripsPerHybrids;
-  uint32_t* stations;
-  uint32_t* layers;
-  uint32_t* detRegions;
   uint32_t* sectors;
+  uint32_t* modules;
+  uint32_t* faces;
+  uint32_t* staves;
+  uint32_t* layers;
+  uint32_t* sides;
+  uint32_t* types;
   uint32_t* chanIDs;
 
 private:

@@ -1,9 +1,23 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "pv_beamline_cleanup.cuh"
 
 INSTANTIATE_ALGORITHM(pv_beamline_cleanup::pv_beamline_cleanup_t)
+
+void pv_beamline_cleanup::pv_beamline_cleanup_t::init()
+{
+  m_histogram_smogpv_z.x_axis().nBins = property<nbins_histo_smogpvz_t>();
+  m_histogram_smogpv_z.x_axis().minValue = property<min_histo_smogpvz_t>();
+  m_histogram_smogpv_z.x_axis().maxValue = property<max_histo_smogpvz_t>();
+}
 
 void pv_beamline_cleanup::pv_beamline_cleanup_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
@@ -23,14 +37,63 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
   Allen::memset_async<dev_number_of_multi_final_vertices_t>(arguments, 0, context);
 
   global_function(pv_beamline_cleanup)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+    arguments,
+    m_pvs.data(context),
+    m_histogram_n_pvs.data(context),
+    m_histogram_n_smogpvs.data(context),
+    m_histogram_pv_x.data(context),
+    m_histogram_pv_y.data(context),
+    m_histogram_pv_z.data(context),
+    m_histogram_smogpv_z.data(context));
 }
 
-__global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Parameters parameters)
+__device__ void pv_beamline_cleanup::sort_pvs_by_z(PV::Vertex* final_vertices, unsigned n_vertices)
+{
+  if (n_vertices <= 1) return;
+
+  if (blockDim.x <= n_vertices) { // It can be done in a single pass if there are less items than threads
+    auto pv = final_vertices[threadIdx.x];
+    __syncthreads(); // ensure all threads have read their PV
+
+    unsigned smaller = 0; // No PVs with same Z are saved, so we dont need to check for equality
+    for (unsigned i = 0; i < n_vertices; i++) {
+      smaller += final_vertices[i].position.z < pv.position.z;
+    }
+
+    final_vertices[smaller] = pv;
+
+    return;
+  }
+
+  // else, and since n_vertices is always small, we can use a simple single-threaded insertion sort
+  if (threadIdx.x == 0) {
+    for (unsigned i = 1; i < n_vertices; i++) {
+      PV::Vertex pv = final_vertices[i];
+      int j = i - 1;
+      while (j >= 0 && final_vertices[j].position.z > pv.position.z) {
+        final_vertices[j + 1] = final_vertices[j];
+        j = j - 1;
+      }
+      final_vertices[j + 1] = pv;
+    }
+  }
+}
+
+__global__ void pv_beamline_cleanup::pv_beamline_cleanup(
+  pv_beamline_cleanup::Parameters parameters,
+  Allen::Monitoring::AveragingCounter<>::DeviceType dev_n_pvs_counter,
+  Allen::Monitoring::Histogram<>::DeviceType dev_n_pvs_histo,
+  Allen::Monitoring::Histogram<>::DeviceType dev_n_smogpvs_histo,
+  Allen::Monitoring::Histogram<>::DeviceType dev_pv_x_histo,
+  Allen::Monitoring::Histogram<>::DeviceType dev_pv_y_histo,
+  Allen::Monitoring::Histogram<>::DeviceType dev_pv_z_histo,
+  Allen::Monitoring::Histogram<>::DeviceType dev_smogpv_z_histo)
 {
 
   __shared__ unsigned tmp_number_vertices[1];
+  __shared__ unsigned tmp_number_SMOG_vertices[1];
   *tmp_number_vertices = 0;
+  *tmp_number_SMOG_vertices = 0;
 
   __syncthreads();
 
@@ -59,8 +122,29 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(pv_beamline_cleanup::Pa
     if (unique) {
       auto vtx_index = atomicAdd(tmp_number_vertices, 1);
       final_vertices[vtx_index] = vertex1;
+
+      // monitoring
+      if (-200 < vertex1.position.z && vertex1.position.z < 200) {
+        dev_pv_x_histo.increment(vertex1.position.x);
+        dev_pv_y_histo.increment(vertex1.position.y);
+        dev_pv_z_histo.increment(vertex1.position.z);
+      }
+
+      if (dev_smogpv_z_histo.inAcceptance(vertex1.position.z)) {
+        dev_smogpv_z_histo.increment(vertex1.position.z);
+        atomicAdd(tmp_number_SMOG_vertices, 1);
+      }
     }
   }
   __syncthreads();
+
+  sort_pvs_by_z(final_vertices, *tmp_number_vertices);
+
   parameters.dev_number_of_multi_final_vertices[event_number] = *tmp_number_vertices;
+
+  if (threadIdx.x == 0) {
+    dev_n_pvs_histo.increment(*tmp_number_vertices);
+    dev_n_smogpvs_histo.increment(*tmp_number_SMOG_vertices);
+    dev_n_pvs_counter.add(*tmp_number_vertices);
+  }
 }

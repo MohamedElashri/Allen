@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <any>
 #include <string>
@@ -20,7 +27,7 @@
 #include <Stream.h>
 #include <Tools.h>
 
-#include "MonitoringAggregator.h"
+#include "AllenMonitoring.h"
 #include "MonitoringPrinter.h"
 
 namespace {
@@ -203,7 +210,11 @@ void run_slices(const size_t thread_id, IZeroMQSvc* zmqSvc, IInputProvider* inpu
       if (a.has_value()) {
         auto odin_data = std::any_cast<gsl::span<unsigned const>>(a);
         LHCb::ODIN odin {odin_data};
-        if (odin.runNumber() != current_run_number) {
+        if (odin.runNumber() == 0) {
+          info_cout << "ODIN run number 0, skipping \n";
+          continue;
+        }
+        else if (odin.runNumber() != current_run_number) {
           current_run_number = odin.runNumber();
           zmqSvc->send(control, "RUN", send_flags::sndmore);
           zmqSvc->send(control, odin.data);
@@ -369,11 +380,7 @@ void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* mon
   }
 }
 
-void run_aggregation(
-  const size_t thread_id,
-  IZeroMQSvc* zmqSvc,
-  MonitoringAggregator* aggregator,
-  MonitoringPrinter* printer)
+void run_aggregation(const size_t thread_id, IZeroMQSvc* zmqSvc, MonitoringPrinter* printer)
 {
   // Set thread name for easier debugging
   auto thread_name = std::string {"aggregation_"} + std::to_string(thread_id);
@@ -395,13 +402,12 @@ void run_aggregation(
       if (items[0].revents & zmq::POLLIN) {
         auto msg = zmqSvc->receive<std::string>(control);
         if (msg == "START") {
-          if (aggregator) aggregator->start();
           zmqSvc->send(control, true);
           started = true;
         }
         else if (msg == "AGGREGATE") {
           // Run the aggregator and printer
-          if (aggregator) aggregator->process();
+          Allen::Monitoring::AccumulatorManager::get()->mergeAndReset();
           if (printer) printer->process();
           zmqSvc->send(control, true);
         }
@@ -413,7 +419,7 @@ void run_aggregation(
     }
     else {
       // Run the aggregator and printer
-      if (aggregator) aggregator->process();
+      Allen::Monitoring::AccumulatorManager::get()->mergeAndReset();
       if (printer) printer->process();
     }
 

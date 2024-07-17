@@ -1,17 +1,18 @@
 /***************************************************************************** \
  * (c) Copyright 2000-2018 CERN for the benefit of the LHCb Collaboration      *
- *                                                                             *
- * This software is distributed under the terms of the GNU General Public      *
- * Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   *
- *                                                                             *
- * In applying this licence, CERN does not waive the privileges and immunities *
- * granted to it by virtue of its status as an Intergovernmental Organization  *
- * or submit itself to any jurisdiction.                                       *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <array>
 
 // Gaudi
 #include <GaudiAlg/Transformer.h>
+#include <GaudiAlg/FunctionalUtilities.h>
 #include <Event/RawBank.h>
 #include <RuntimeOptions.h>
 #include "AllenROOTService.h"
@@ -21,8 +22,11 @@
 #include <Constants.cuh>
 #include <Logger.h>
 
+using Gaudi::Functional::Traits::useLegacyGaudiAlgorithm;
+
 class ProvideRuntimeOptions final
-  : public Gaudi::Functional::Transformer<RuntimeOptions(std::array<TransposedBanks, LHCb::RawBank::LastType> const&)> {
+  : public Gaudi::Functional::
+      Transformer<RuntimeOptions(std::array<TransposedBanks, NBankTypes> const&), useLegacyGaudiAlgorithm> {
 
 public:
   /// Standard constructor
@@ -31,7 +35,7 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-  RuntimeOptions operator()(std::array<TransposedBanks, LHCb::RawBank::LastType> const& allen_banks) const override;
+  RuntimeOptions operator()(std::array<TransposedBanks, NBankTypes> const& allen_banks) const override;
 
 private:
   SmartIF<AllenROOTService> m_rootService;
@@ -55,8 +59,7 @@ StatusCode ProvideRuntimeOptions::initialize()
   });
 }
 
-RuntimeOptions ProvideRuntimeOptions::operator()(
-  std::array<TransposedBanks, LHCb::RawBank::LastType> const& allen_banks) const
+RuntimeOptions ProvideRuntimeOptions::operator()(std::array<TransposedBanks, NBankTypes> const& allen_banks) const
 {
   const unsigned number_of_repetitions = 1;
   const bool param_inject_mem_fail = false;

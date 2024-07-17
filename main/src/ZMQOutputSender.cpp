@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <limits.h>
 #include <unistd.h>
@@ -41,10 +48,9 @@ ZMQOutputSender::ZMQOutputSender(
   IInputProvider const* input_provider,
   std::string const receiver_connection,
   size_t const output_batch_size,
-  size_t const n_lines,
   IZeroMQSvc* zmqSvc,
   bool const checksum) :
-  OutputHandler {input_provider, receiver_connection, 1u, output_batch_size, n_lines, checksum},
+  OutputHandler {input_provider, receiver_connection, 1u, output_batch_size, checksum},
   m_zmq {zmqSvc}
 {
   auto const pos = receiver_connection.rfind(":");

@@ -1,11 +1,20 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
 #include "BackendCommon.h"
+#include "MuonTileID.cuh"
 #include <ostream>
 #include <iomanip>
+#include <limits>
 
 namespace Muon {
   /**
@@ -182,16 +191,16 @@ namespace Muon {
   typedef Hits_t<char> Hits;
 
   struct Hit {
-    float x;
-    float dx;
-    float y;
-    float dy;
-    float z;
-    unsigned int time;
-    int tile;
-    int uncrossed;
-    int delta_time;
-    int region;
+    float x = 0.f;
+    float dx = 0.f;
+    float y = 0.f;
+    float dy = 0.f;
+    float z = 0.f;
+    unsigned int time = std::numeric_limits<unsigned>::max();
+    int tile = std::numeric_limits<int>::max();
+    int uncrossed = -1;
+    int delta_time = std::numeric_limits<int>::max();
+    int region = -1;
 
     __device__ Hit(
       const float _x,
@@ -211,13 +220,121 @@ namespace Muon {
 
     friend std::ostream& operator<<(std::ostream& stream, const Hit& muon_hit)
     {
-      constexpr int prec = 6, width = 12;
-      stream << std::setprecision(prec) << std::setw(width) << "Muon hit" << std::setw(width) << muon_hit.tile
-             << std::setw(width) << muon_hit.x << std::setw(width) << muon_hit.y << std::setw(width) << muon_hit.z
-             << std::setw(width) << muon_hit.dx << std::setw(width) << muon_hit.dy << std::setw(width) << muon_hit.time
-             << std::setw(width) << muon_hit.uncrossed << std::setw(width) << muon_hit.delta_time << std::setw(width)
-             << muon_hit.region;
+      constexpr int prec = 6, wide = 12, narrow = 4;
+      stream << std::setprecision(prec) << " Muon hit" << std::setw(narrow) << Muon::MuonTileID::station(muon_hit.tile)
+             << std::setw(narrow) << muon_hit.region << std::setw(wide) << muon_hit.tile << std::setw(wide)
+             << muon_hit.x << std::setw(wide) << muon_hit.y << std::setw(wide) << muon_hit.z << std::setw(wide)
+             << muon_hit.dx << std::setw(wide) << muon_hit.dy << std::setw(narrow) << muon_hit.uncrossed
+             << std::setw(narrow) << muon_hit.time << std::setw(narrow) << muon_hit.delta_time;
       return stream;
     }
   };
 } // namespace Muon
+
+struct MuonTrack {
+  int m_hits[4] {-1, -1, -1, -1};
+  uint8_t m_number_of_hits = 0;
+  float m_tx;
+  float m_ty;
+  float m_ax;
+  float m_ay;
+  float m_chi2x;
+  float m_chi2y;
+  int m_state_muon_index;
+
+  __host__ __device__ MuonTrack() {}
+
+  __host__ __device__ void add_hit_to_station(const unsigned hit_index, const int station_index)
+  {
+    ++m_number_of_hits;
+    m_hits[station_index] = hit_index;
+  }
+
+  __host__ __device__ int hit(const int station_index) const { return m_hits[station_index]; }
+
+  __host__ __device__ uint8_t number_of_hits() const { return m_number_of_hits; }
+
+  __host__ __device__ float& tx() { return m_tx; }
+  __host__ __device__ float& ty() { return m_ty; }
+  __host__ __device__ float& ax() { return m_ax; }
+  __host__ __device__ float& ay() { return m_ay; }
+  __host__ __device__ float& chi2x() { return m_chi2x; }
+  __host__ __device__ float& chi2y() { return m_chi2y; }
+  __host__ __device__ int& state() { return m_state_muon_index; }
+
+  __host__ __device__ float tx() const { return m_tx; }
+  __host__ __device__ float ty() const { return m_ty; }
+  __host__ __device__ float ax() const { return m_ax; }
+  __host__ __device__ float ay() const { return m_ay; }
+  __host__ __device__ float chi2x() const { return m_chi2x; }
+  __host__ __device__ float chi2y() const { return m_chi2y; }
+  __host__ __device__ int state() const { return m_state_muon_index; }
+};
+
+namespace MatchUpstreamMuon {
+  static constexpr float kickOffset = 338.92f * Gaudi::Units::MeV; // KickOffset
+  static constexpr float kickScale = 1218.62f * Gaudi::Units::MeV; // KickScale
+  static constexpr float za = 5.331f * Gaudi::Units::m;            // MagnetPlaneParA
+  static constexpr float zb = -0.958f * Gaudi::Units::m;           // MagnetPlaneParB
+  static constexpr float ca = 25.17f * Gaudi::Units::mm;           // MagnetCorrParA
+  static constexpr float cb = -701.5f * Gaudi::Units::mm;          // MagnetCorrParB
+
+  static constexpr float maxChi2DoF = 20.f;
+  // static constexpr bool fitY = false;
+  // static constexpr bool setQOverP = false;
+
+  static constexpr int M2 {0}, M3 {1}, M4 {2}, M5 {3};
+  static constexpr int VeryLowP {0}, LowP {1}, MediumP {2}, HighP {3};
+
+  struct Hit {
+    /// Build a hit from a MuonID hit
+    __device__ Hit(Muon::ConstHits& hits, const unsigned& i_muonhit) :
+      x(hits.x(i_muonhit)), dx2(hits.dx(i_muonhit) * hits.dx(i_muonhit) / 12), y(hits.y(i_muonhit)),
+      dy2(hits.dy(i_muonhit) * hits.dy(i_muonhit) / 12), z(hits.z(i_muonhit))
+    {}
+    /// Build a hit extrapolating the values from a state to the given point.
+    __device__ Hit(const KalmanVeloState& state, const float& pz)
+    {
+      const float dz = pz - state.z();
+
+      const float dz2 = dz * dz;
+
+      x = state.x() + dz * state.tx();
+
+      dx2 = state.c00() + dz2 * state.c22();
+
+      y = state.y() + dz * state.ty();
+
+      dy2 = state.c11() + dz2 * state.c33();
+
+      z = pz;
+    };
+    __device__ Hit() : x {0.f}, dx2 {0.f}, y {0.f}, dy2 {0.f}, z {0.f} {};
+    float x, dx2, y, dy2, z;
+  };
+
+  struct MuonChambers {
+    int first[4] {M3, M4, M5, M5};
+    int firstOffsets[4] {0, 1, 3, 4};
+
+    int afterKick[6] {M2, M3, M2, M4, M3, M2};
+    int afterKickOffsets[4] {0, 1, 3, 6};
+  };
+
+  struct SearchWindows {
+    float Windows[8] {500.f * Gaudi::Units::mm, // M2
+                      400.f * Gaudi::Units::mm,
+
+                      600.f * Gaudi::Units::mm, // M3
+                      500.f * Gaudi::Units::mm,
+
+                      700.f * Gaudi::Units::mm, // M4
+                      600.f * Gaudi::Units::mm,
+
+                      800.f * Gaudi::Units::mm, // M5
+                      700.f * Gaudi::Units::mm
+
+    };
+  };
+
+} // namespace MatchUpstreamMuon

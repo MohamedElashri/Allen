@@ -1,10 +1,18 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <Transpose.h>
 
 namespace {
   std::unordered_set<LHCb::RawBank::BankType> dont_count = {LHCb::RawBank::DAQ,
+                                                            LHCb::RawBank::TAEHeader,
                                                             LHCb::RawBank::HltDecReports,
                                                             LHCb::RawBank::HltSelReports,
                                                             LHCb::RawBank::HltRoutingBits,
@@ -17,7 +25,14 @@ std::array<int, LHCb::NBankTypes> Allen::bank_ids()
   std::array<int, LHCb::NBankTypes> ids;
   for (auto bt : LHCb::RawBank::types()) {
     auto it = Allen::bank_mapping.find(bt);
-    ids[bt] = (it != Allen::bank_mapping.end() ? to_integral(it->second) : -1);
+    if (it != Allen::bank_mapping.end()) {
+      for (auto allen_bt : it->second) {
+        ids[bt] = static_cast<int>(allen_bt);
+      }
+    }
+    else {
+      ids[bt] = -1;
+    }
   }
   return ids;
 }
@@ -139,14 +154,43 @@ std::tuple<bool, bool, size_t> read_events(
     if (eof || error) break;
 
     // Fill the start offset of the next event
-
     if (eof || error) {
       error_cout << "Failed to read banks " << strerror(errno) << "\n";
       break;
     }
     else {
-      event_offsets[n_filled + 1] = bank_span.data() + bank_span.size() - buffer_start;
-      n_bytes += bank_span.size();
+      char const* payload = bank_span.data();
+      auto const* first_bank = reinterpret_cast<LHCb::RawBank const*>(payload);
+      if (first_bank->magic() != LHCb::RawBank::MagicPattern) {
+        error_cout << "Bad magic in first bank.\n";
+        return {false, true, {}};
+      }
+      else if (first_bank->type() == LHCb::RawBank::DAQ && first_bank->version() == DAQ_STATUS_BANK) {
+        // skip the DAQ status bank
+        payload += first_bank->totalSize();
+        first_bank = reinterpret_cast<LHCb::RawBank const*>(payload);
+      }
+      if (first_bank->type() != LHCb::RawBank::TAEHeader) {
+        // Not a TAE event
+        event_offsets[n_filled + 1] = bank_span.data() + bank_span.size() - buffer_start;
+        n_bytes += bank_span.size();
+      }
+      else {
+        // TAE event, read all the subevents
+        size_t n_blocks = first_bank->size() / sizeof(int) / 3;
+        int const* block = reinterpret_cast<int const*>(first_bank);
+        block += 2;                         // skip bank header
+        payload += first_bank->totalSize(); // skip TAE bank body
+        for (size_t i = 0; i < n_blocks; ++i) {
+          // Skip bx offset
+          block++;
+          int offset = *block++;
+          int size = *block++;
+
+          event_offsets[n_filled + i + 1] = payload + offset + size - buffer_start;
+        }
+        n_filled += n_blocks - 1;
+      }
     }
 
     // read the next header
@@ -439,13 +483,10 @@ std::tuple<bool, bool, size_t> transpose_events(
   std::array<int, NBankTypes>& banks_version,
   EventIDs& event_ids,
   std::vector<char>& event_mask,
-  size_t n_events,
   bool split_by_run)
 {
   bool full = false, success = true, run_change = false;
-  auto const& [n_filled, event_offsets, buffer, event_start] = read_buffer;
-  size_t event_end = event_start + n_events;
-  if (n_filled < event_end) event_end = n_filled;
+  auto const& [event_end, event_offsets, buffer, event_start] = read_buffer;
 
   std::vector<LHCb::RawBank const*> sorted_banks;
   auto n_banks = std::accumulate(mfp_count.begin(), mfp_count.end(), 0u);
@@ -461,9 +502,9 @@ std::tuple<bool, bool, size_t> transpose_events(
   for (auto allen_type : bank_types) {
     auto const ia = to_integral(allen_type);
     auto& fragment_sizes_offsets = slices[ia][slice_index].sizes;
-    fragment_sizes_offsets[0] = 2 * (n_events + 1);
+    fragment_sizes_offsets[0] = 2 * (event_end - event_start + 1);
     auto& types_offsets = slices[ia][slice_index].types;
-    types_offsets[0] = 4 * (n_events + 1);
+    types_offsets[0] = 4 * (event_end - event_start + 1);
   }
 
   // Loop over events in the prefetch buffer

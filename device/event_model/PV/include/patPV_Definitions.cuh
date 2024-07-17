@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -44,18 +51,18 @@ namespace PatPV {
     float x = 0.;
     float y = 0.;
     float z = 0.;
-    __device__ __host__ XYZPoint(float m_x, float m_y, float m_z) : x(m_x), y(m_y), z(m_z) {};
-    __device__ __host__ XYZPoint() {};
+    __device__ __host__ XYZPoint(float m_x, float m_y, float m_z) : x(m_x), y(m_y), z(m_z) {}
+    __device__ __host__ XYZPoint() {}
   };
 
   class Vertex {
   public:
-    __device__ Vertex() {};
+    __device__ Vertex() {}
     float x = 0.;
     float y = 0.;
     float z = 0.;
-    float chi2;
-    int ndof;
+    float chi2 = 0.;
+    int ndof = 0;
 
     float cov00 = 0.;
     float cov10 = 0.;

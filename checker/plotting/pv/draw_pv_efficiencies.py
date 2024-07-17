@@ -1,6 +1,13 @@
 #!/usr/bin/python
 ###############################################################################
-# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+# (c) Copyright 2018-2021 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
 # Draw PV resolution as a function of number of tracks in PV
@@ -29,8 +36,6 @@ hist_z = f.Get("eff_vs_z")
 # hist_z_close = f.Get("eff_vs_z_close")
 hist_mult = f.Get("eff_vs_mult")
 
-
-
 hist_z.GetXaxis().SetTitle("z position of MC PV [mm]")
 hist_z.GetYaxis().SetTitle("Reconstruction Eff (%/100)")
 
@@ -53,11 +58,9 @@ canvas.cd(2)
 hist_mult.SetLineColor(1)
 hist_mult.Draw()
 
-
 if not os.path.isdir("../../../plotsfornote"):
-  os.mkdir("../../../plotsfornote")
+    os.mkdir("../../../plotsfornote")
 canvas.SaveAs("../../../plotsfornote/PVEfficiencies.pdf")
-
 
 # canvas.cd(1)
 # hist_z_iso.SetLineColor(1)
@@ -67,7 +70,6 @@ canvas.SaveAs("../../../plotsfornote/PVEfficiencies.pdf")
 # hist_z_close.SetLineColor(1)
 # hist_z_close.Draw()
 # canvas.SaveAs("../../../plotsfornote/PVEfficiencies_isoclose.pdf")
-
 
 # hist_norm = f.Get("eff_norm")
 # hist_norm_iso = f.Get("eff_norm_iso")

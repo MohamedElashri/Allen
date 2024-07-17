@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2019 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -14,6 +21,7 @@
 #include <Event/ODIN.h>
 
 #include <Dumpers/IUpdater.h>
+#include <BankTypes.h>
 
 #include <tbb/task_arena.h>
 
@@ -80,7 +88,6 @@ public:
 
 private:
   Gaudi::Property<bool> m_triggerEventLoop {this, "TriggerEventLoop", false};
-
   std::map<
     std::string,
     std::tuple<Allen::NonEventData::Producer, std::vector<std::unique_ptr<Allen::NonEventData::Consumer>>>>

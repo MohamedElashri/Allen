@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 
 #include <BackendCommon.h>
@@ -18,7 +25,7 @@ void Allen::print_device_memory_consumption()
   verbose_cout << "GPU memory: " << free_percent << " percent free, " << used_percent << " percent used " << std::endl;
 }
 
-std::tuple<bool, std::string, unsigned> Allen::set_device(int cuda_device, size_t stream_id)
+std::tuple<bool, std::string, unsigned, unsigned> Allen::set_device(int cuda_device, size_t stream_id)
 {
   int n_devices = 0;
   cudaDeviceProp device_properties;
@@ -35,7 +42,7 @@ std::tuple<bool, std::string, unsigned> Allen::set_device(int cuda_device, size_
 
     if (cuda_device >= n_devices) {
       error_cout << "Chosen device (" << cuda_device << ") is not available.\n";
-      return {false, "", 0};
+      return {false, "", 0, 0};
     }
     debug_cout << "\n";
 
@@ -44,7 +51,7 @@ std::tuple<bool, std::string, unsigned> Allen::set_device(int cuda_device, size_
 
     if (n_devices == 0) {
       error_cout << "Failed to select device " << cuda_device << "\n";
-      return {false, "", 0};
+      return {false, "", 0, 0};
     }
     else {
       debug_cout << "Stream " << stream_id << " selected cuda device " << cuda_device << ": " << device_properties.name
@@ -53,7 +60,7 @@ std::tuple<bool, std::string, unsigned> Allen::set_device(int cuda_device, size_
   } catch (const std::invalid_argument& e) {
     error_cout << e.what() << std::endl;
     error_cout << "Stream " << stream_id << " failed to select cuda device " << cuda_device << "\n";
-    return {false, "", 0};
+    return {false, "", 0, 0};
   }
 
   if (device_properties.major == 7 && device_properties.minor == 5) {
@@ -61,7 +68,7 @@ std::tuple<bool, std::string, unsigned> Allen::set_device(int cuda_device, size_
     cudaCheck(cudaDeviceSetCacheConfig(cudaFuncCachePreferL1));
   }
 
-  return {true, device_properties.name, device_properties.textureAlignment};
+  return {true, device_properties.name, device_properties.textureAlignment, device_properties.pciDeviceID};
 }
 
 std::tuple<bool, int> Allen::get_device_id(const std::string& pci_bus_id)

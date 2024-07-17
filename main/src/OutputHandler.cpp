@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <iostream>
 
@@ -16,6 +23,7 @@
 #include <mdf_header.hpp>
 #include <raw_helpers.hpp>
 
+#include <HltDecReport.cuh>
 #include <InputProvider.h>
 #include <OutputHandler.h>
 #include <RoutingBitsDefinition.h>
@@ -110,8 +118,8 @@ std::tuple<bool, size_t> OutputHandler::output_single_events(
       auto const event_number = i + start_event;
       selected_events.push_back(event_number);
     }
-    if (output_tae && tae_index < (tae_events.size() - 1)) {
-      tae_index += tae_events[tae_index].central;
+    if (output_tae && tae_index < (tae_events.size() - 1) && tae_events[tae_index].central <= i) {
+      ++tae_index;
     }
   }
 
@@ -158,7 +166,7 @@ std::tuple<bool, size_t> OutputHandler::output_single_events(
       // event of a batch is start_event in a slice, so we subtract
       // start_event that was added to selected_events to have a direct
       // index into the batch again.
-      auto const event_number = selected_events[i] - start_event;
+      unsigned const event_number = selected_events[i] - start_event;
 
       // event sizes are indexed in the same way as selected_events
       size_t output_event_size = header_size + sizes.input[i] + sizes.hlt[i];
@@ -224,10 +232,18 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
 
   std::vector<unsigned> selected_events;
   std::vector<unsigned> tae_offsets;
+
   auto& tae_events = outputs.tae_events;
-  selected_events.reserve(tae_events.size() * (2 * tae_events[0].half_window + 1));
-  tae_offsets.reserve(tae_events.size());
+  // for now, set the size to the number of global decisions
+  selected_events.reserve(outputs.selected_events.size() * (2 * tae_events[0].half_window + 1));
+  tae_offsets.reserve(outputs.selected_events.size());
+
+  unsigned n_selected_tae_events = 0;
+
   for (auto tae_event : tae_events) {
+    auto central_tae_in_global_decision = outputs.selected_events[tae_event.central];
+    if (!central_tae_in_global_decision) continue; // tae event not in global decision, skip
+    n_selected_tae_events++;
     tae_offsets.push_back(selected_events.size());
     for (unsigned event_number = tae_event.central - tae_event.half_window;
          event_number <= tae_event.central + tae_event.half_window;
@@ -239,8 +255,11 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
     }
   }
 
+  selected_events.resize(n_selected_tae_events * (2 * tae_events[0].half_window + 1));
+  tae_offsets.resize(n_selected_tae_events);
+
 #ifndef STANDALONE
-  if (m_ntae) (*m_ntae) += tae_events.size();
+  if (m_ntae) (*m_ntae) += n_selected_tae_events;
 #endif
 
   auto event_ids = m_input_provider->event_ids(slice_index);
@@ -250,7 +269,7 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
   auto tae_bank_size = [](unsigned half_window) { return (2 * half_window + 1) * 3 * sizeof(int); };
 
   size_t tae_buffer_size = 0;
-  for (size_t tae_index = 0; tae_index < tae_events.size(); ++tae_index) {
+  for (size_t tae_index = 0; tae_index < n_selected_tae_events; ++tae_index) {
     auto const& tae_event = tae_events[tae_index];
     auto const offset = tae_offsets[tae_index];
     size_t tae_size = header_size + bank_header_size + tae_bank_size(tae_event.half_window);
@@ -261,10 +280,10 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
     sizes.tae[tae_event.central] = tae_size;
   }
 
-  auto tae_buffer = buffer(thread_id, tae_buffer_size, tae_events.size());
+  auto tae_buffer = buffer(thread_id, tae_buffer_size, n_selected_tae_events);
 
   size_t tae_output_offset = 0;
-  for (size_t tae_index = 0; tae_index < tae_events.size(); ++tae_index) {
+  for (size_t tae_index = 0; tae_index < n_selected_tae_events; ++tae_index) {
     auto const& tae_event = tae_events[tae_index];
     auto const offset = tae_offsets[tae_index];
     auto const tae_size = sizes.tae[tae_event.central];
@@ -320,8 +339,7 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
   }
 
   auto output_success = write_buffer(thread_id);
-
-  return {output_success, tae_events.size()};
+  return {output_success, n_selected_tae_events};
 }
 
 OutputSizes& OutputHandler::event_sizes(
@@ -337,24 +355,24 @@ OutputSizes& OutputHandler::event_sizes(
 
   HLT1Outputs outputs {store};
 
-  // size of the DecReport RawBank
-  const unsigned dec_report_size = (m_nlines + 3) * sizeof(uint32_t);
-
   // Add the HLT bank sizes to event sizes
   for (size_t i = 0; i < selected_events.size(); ++i) {
     auto const event_number = selected_events[i] - start_event;
+
+    HltDecReports dec_reports {outputs.dec_reports, event_number};
+    unsigned const dec_report_size = dec_reports.bank_data().size_bytes();
+
     // size of the SelReport RawBank
     // need the index into the batch here
-    const unsigned sel_report_size =
+    unsigned const sel_report_size =
       outputs.sel_reports_offsets.empty() ?
         0 :
         (outputs.sel_reports_offsets[event_number + 1] - outputs.sel_reports_offsets[event_number]) * sizeof(uint32_t);
-    unsigned lumi_summary_size = 0;
-    if (!outputs.lumi_summary_offsets.empty()) {
-      lumi_summary_size =
+    unsigned const lumi_summary_size =
+      outputs.lumi_summary_offsets.empty() ?
+        0 :
         (outputs.lumi_summary_offsets[event_number + 1] - outputs.lumi_summary_offsets[event_number]) *
-        sizeof(uint32_t);
-    }
+          sizeof(uint32_t);
 
     for (auto hlt_bank_size : {dec_report_size, routing_bits_size, sel_report_size, lumi_summary_size}) {
       if (hlt_bank_size > 0) {
@@ -424,15 +442,15 @@ size_t OutputHandler::add_banks(
 
   HLT1Outputs outputs {store};
 
-  // size of the DecReport RawBank
-  const unsigned dec_report_size = (m_nlines + 3) * sizeof(uint32_t);
-
   // The batch is offset by start_event with respect to the slice, so we add start_event
   m_input_provider->copy_banks(
     slice_index, event_number + start_event, {event_span.data(), static_cast<events_size>(input_size)});
 
   // Starting point of HLT banks
   char* output = event_span.data() + input_size;
+
+  // size of the DecReport RawBank
+  HltDecReports dec_reports {outputs.dec_reports, event_number};
 
   // size of the SelReport RawBank
   // need the index into the batch here
@@ -455,11 +473,7 @@ size_t OutputHandler::add_banks(
   using output_bank = std::tuple<LHCb::RawBank::BankType, unsigned, unsigned, gsl::span<char const>>;
   auto hlt_banks = std::make_tuple(
     // HltDecReports
-    output_bank {LHCb::RawBank::HltDecReports,
-                 3u,
-                 Hlt1::Constants::sourceID,
-                 {reinterpret_cast<char const*>(outputs.dec_reports.data()) + dec_report_size * event_number,
-                  static_cast<events_size>(dec_report_size)}},
+    output_bank {LHCb::RawBank::HltDecReports, dec_reports.version(), dec_reports.source_id(), dec_reports.bank_data()},
     // HltRoutingBits
     output_bank {LHCb::RawBank::HltRoutingBits,
                  0u,
@@ -468,7 +482,7 @@ size_t OutputHandler::add_banks(
                   static_cast<events_size>(routing_bits_size)}},
     // HltSelReports
     output_bank {LHCb::RawBank::HltSelReports,
-                 11u, // TODO: change to 12u, update to run3 source ID...
+                 Hlt1::Constants::version_sel_reports,
                  Hlt1::Constants::sourceID_sel_reports,
                  {reinterpret_cast<char const*>(outputs.sel_reports.data()) + sel_report_offset * sizeof(uint32_t),
                   static_cast<events_size>(sel_report_size)}},

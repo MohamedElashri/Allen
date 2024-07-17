@@ -1,5 +1,12 @@
 ###############################################################################
 # (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 import os, sys
 import argparse
@@ -20,7 +27,7 @@ from common.Legend import *
 from common.LHCbStyle import *
 
 setLHCbStyle()
-ROOT.gROOT.ForceStyle();
+ROOT.gROOT.ForceStyle()
 
 sample = "minbias"
 # f = [#ROOT.TFile.Open("../../../output/KstEE/GPU_PVChecker-KstEE.root", "read"),
@@ -31,7 +38,8 @@ sample = "minbias"
 #     ROOT.TFile.Open("../../../output/minbias/GPU_PVChecker-minbias.root", "read"),
 # ]
 f = [ROOT.TFile.Open("../../../output/GPU_PVChecker.root", "read")]
-outputfile = ROOT.TFile("../../../plotsfornote_root/pv_plots" + sample + ".root", "recreate")
+outputfile = ROOT.TFile(
+    "../../../plotsfornote_root/pv_plots" + sample + ".root", "recreate")
 
 efficiencyHistoDict = pvEfficiencyHistoDict()
 efficiencyHistos = ["z", "mult"]
@@ -60,7 +68,7 @@ for histo in efficiencyHistos:
     g_efficiency = ROOT.TGraphAsymmErrors()
     g_efficiency.Divide(numerator, denominator, "cl=0.683 b(1,1) mode")
 
-    g_efficiency.GetYaxis().SetRangeUser(0,1.05)
+    g_efficiency.GetYaxis().SetRangeUser(0, 1.05)
     g_efficiency.GetYaxis().SetTitle("efficiency")
     g_efficiency.GetXaxis().SetTitle(efficiencyHistoDict[histo]["xTitle"])
 
@@ -78,7 +86,8 @@ for histo in efficiencyHistos:
     place = find_place(canvas, 3)
     legend = TLegend(place[0], place[1], place[2], place[3])
     legend.AddEntry(g_efficiency, "efficiency", "ep")
-    legend.AddEntry(denominator, efficiencyHistoDict[histo]["title"] + " distribution", "f")
+    legend.AddEntry(denominator,
+                    efficiencyHistoDict[histo]["title"] + " distribution", "f")
     legend.SetFillColorAlpha(ROOT.kWhite, 0.)
     legend.SetTextSize(0.06)
     legend.Draw("same")
@@ -86,16 +95,18 @@ for histo in efficiencyHistos:
     # Draw second y axis
     low = 0
     high = 1.05
-    axis = ROOT.TGaxis(gPad.GetUxmax(), gPad.GetUymin(),gPad.GetUxmax(),gPad.GetUymax(),low,high,510,"+L")
+    axis = ROOT.TGaxis(gPad.GetUxmax(), gPad.GetUymin(), gPad.GetUxmax(),
+                       gPad.GetUymax(), low, high, 510, "+L")
     axis.SetTitleFont(132)
     axis.SetTitleSize(0.06)
     axis.SetTitleOffset(0.55)
     axis.SetTitle("Number of events [a.u.]")
     axis.SetLabelSize(0)
     axis.Draw()
-    
+
     # Save plots
-    canvas.SaveAs("../../../plotsfornote/pv_reco_eff_" + histo + "_" + sample + ".pdf")
+    canvas.SaveAs("../../../plotsfornote/pv_reco_eff_" + histo + "_" + sample +
+                  ".pdf")
     canvas.Write()
 
 outputfile.Write()

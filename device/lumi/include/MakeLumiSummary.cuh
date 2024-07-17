@@ -14,7 +14,6 @@
 #include "AlgorithmTypes.cuh"
 #include "GenericContainerContracts.h"
 
-#include "LumiSummaryOffsets.h"
 #include <LumiDefinitions.cuh>
 #include "ODINBank.cuh"
 
@@ -23,6 +22,7 @@ namespace make_lumi_summary {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_lumi_summaries_size_t, unsigned) host_lumi_summaries_size;
     DEVICE_INPUT(dev_lumi_summary_offsets_t, unsigned) dev_lumi_summary_offsets;
+    DEVICE_INPUT(dev_lumi_event_indices_t, unsigned) dev_lumi_event_indices;
     DEVICE_INPUT(dev_odin_data_t, ODINData) dev_odin_data;
     DEVICE_INPUT(dev_velo_info_t, Lumi::LumiInfo) dev_velo_info;
     DEVICE_INPUT(dev_pv_info_t, Lumi::LumiInfo) dev_pv_info;
@@ -36,24 +36,32 @@ namespace make_lumi_summary {
     HOST_OUTPUT(host_lumi_summary_offsets_t, unsigned) host_lumi_summary_offsets;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(encoding_key_t, "encoding_key", "encoding key", unsigned) key;
+    PROPERTY(encoding_key_full_t, "encoding_key_full", "encoding key for 1kHz line", unsigned) key_full;
+    PROPERTY(lumi_sum_length_t, "lumi_sum_length", "LumiSummary length", unsigned) lumi_sum_length;
+    PROPERTY(
+      lumi_counter_schema_t,
+      "lumi_counter_schema",
+      "schema for lumi counters",
+      std::map<std::string, std::pair<unsigned, unsigned>>);
   }; // struct Parameters
+
+  using offsets_and_sizes_t = std::array<unsigned, 2 * Lumi::Constants::n_basic_counters>;
 
   __global__ void make_lumi_summary(
     Parameters,
     const unsigned number_of_events,
     const unsigned number_of_events_passed_gec,
+    const offsets_and_sizes_t offsets_and_sizes,
     std::array<const Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos,
     std::array<unsigned, Lumi::Constants::n_sub_infos> spanSize,
     const unsigned size_of_aggregate);
 
-  __device__ void setField(
-    LHCb::LumiSummaryOffsets::V2::counterOffsets offset,
-    LHCb::LumiSummaryOffsets::V2::counterOffsets size,
-    unsigned* target,
-    unsigned value);
+  __device__ void setField(unsigned offset, unsigned size, unsigned* target, unsigned value, unsigned summary_length);
 
   struct make_lumi_summary_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+
+    void init();
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -64,5 +72,11 @@ namespace make_lumi_summary {
   private:
     Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
     Property<encoding_key_t> m_key {this, 0};
+    Property<encoding_key_full_t> m_key_full {this, 0};
+    Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
+    Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
+
+    offsets_and_sizes_t m_offsets_and_sizes {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
+
   }; // struct make_lumi_summary_t
 } // namespace make_lumi_summary

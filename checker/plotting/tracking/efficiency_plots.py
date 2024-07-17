@@ -1,6 +1,13 @@
 #!/usr/bin/python
 ###############################################################################
-# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+# (c) Copyright 2018-2021 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
 # Script for accessing histograms of reconstructible and
@@ -34,17 +41,18 @@ from common.ConfigHistos import *
 
 
 def getEfficiencyHistoNames():
-    return ["eta", "p", "pt", "phi", "nPV", "docaz"]
+    return ["eta", "p", "pt", "phi", "nPV", "nSciFiHits", "docaz"]
     #return ["p"]
 
 
 def getTrackers():
-    return ["Velo", "Upstream", "Forward"]
+    return ["velo_validator", "long_validator", "seed_validator"]
+    #return ["seed_xz_validator"]
 
 
 def getGhostHistoNames():
     #return ["nPV", "eta"] # currently no eta information available from track
-    return ["nPV"]
+    return ["nSciFiHits"]
 
 
 # f = [ROOT.TFile.Open("../../../output/KstEE/PrCheckerPLots-KstEE.root", "read"),
@@ -55,9 +63,12 @@ def getGhostHistoNames():
 #      ROOT.TFile.Open("../../../output/Z2MuMu/PrCheckerPLots-Z2MuMu.root", "read")
 # ]
 
-f = [ROOT.TFile.Open("../../../output/PrCheckerPlots.root", "read")]
-outputfile = ROOT.TFile("../../../plotsfornote_root/efficiency_plots.root",
-                        "recreate")
+outputdir = "../../../build_standalone/output/seedxz/"
+f = [
+    ROOT.TFile.Open("../../../build_standalone/output/PrCheckerPlots.root",
+                    "read")
+]
+outputfile = ROOT.TFile(outputdir + "plots/efficiency_plots.root", "recreate")
 
 setLHCbStyle()
 
@@ -189,7 +200,7 @@ for tracker in trackers:
                 variable_electrons.SetFillColorAlpha(ROOT.kAzure - 3, 0.2)
                 variable_electrons.Draw("hist bar same")
 
-            place = find_place(canvas, 4)
+            place = find_place(canvas)
             legend = TLegend(place[0], place[1], place[2], place[3])
             if categories[tracker][cut]["plotElectrons"]:
                 legend.AddEntry(g_efficiency_notElectrons,
@@ -211,7 +222,7 @@ for tracker in trackers:
                     variable_electrons, efficiencyHistoDict[histo]["title"] +
                     " distribution, electrons", "f")
             legend.SetFillColorAlpha(ROOT.kWhite, 0.)
-            legend.SetTextSize(0.06)
+            legend.SetTextSize(0.04)
             legend.Draw("same")
 
             # Draw second y axis
@@ -230,7 +241,7 @@ for tracker in trackers:
             canvas.Write()
             cleantitle = categories[tracker][cut]["title"].replace(
                 " ", "").replace(",", "_").replace("<", "_")
-            canvas.SaveAs("../../../plotsfornote/" + tracker + "Eff" + histo +
+            canvas.SaveAs(outputdir + "plots/" + tracker + "Eff" + histo +
                           cleantitle + ".pdf")
             #canvas.Print("../../../output/checkerplots/forreviewdoc/"+histoBaseName.replace("/","_")+efficiencyHistoDict[histo]["variable"]+"_eff.pdf")
 
@@ -243,8 +254,10 @@ for tracker in trackers:
         ROOT.gPad.SetTicks()
         numeratorName = histoBaseName + ghostHistoDict[histo][
             "variable"] + "_Ghosts"
+        print("ghosts numerator: " + numeratorName)
         denominatorName = histoBaseName + ghostHistoDict[histo][
             "variable"] + "_Total"
+        print("ghosts denominator: " + denominatorName)
         print("ghost histo: " + histoBaseName)
         numerator = f[0].Get(numeratorName)
         for infile in f[1:]:
@@ -259,7 +272,7 @@ for tracker in trackers:
         g_efficiency.Divide(numerator, denominator, "cl=0.683 b(1,1) mode")
 
         xtitle = ghostHistoDict[histo]["xTitle"]
-        g_efficiency.GetXaxis().SetRangeUser(1, 14)
+        #g_efficiency.GetXaxis().SetRangeUser(1, 14)
         g_efficiency.GetXaxis().SetTitle(xtitle)
         g_efficiency.GetYaxis().SetTitle("ghost rate")
         g_efficiency.Draw("ap")
@@ -276,8 +289,9 @@ for tracker in trackers:
         numerator.SetLineColor(ROOT.kWhite)
         numerator.Draw("hist bar same")
 
-        place = find_place(canvas)
-        legend = TLegend(place[0], place[1], place[2], place[3])
+        #place = find_place(canvas)
+        #legend = TLegend(place[0], place[1], place[2], place[3])
+        legend = TLegend()
         legend.AddEntry(g_efficiency, "ghost rate", "ep")
         legend.AddEntry(numerator,
                         efficiencyHistoDict[histo]["title"] + " distribution",
@@ -285,7 +299,8 @@ for tracker in trackers:
         legend.Draw("same")
 
         canvas.Write()
-        canvas.SaveAs("../../../plotsfornote/" + tracker + "GhostRate.pdf")
+        canvas.SaveAs(outputdir + "plots/" + tracker + "_" + histo + "_" +
+                      "GhostRate.pdf")
         #canvas.Print("../../../output/checkerplots/forreviewdoc/"+histoBaseName.replace("/","_")+ghostHistoDict[histo]["variable"]+"_ghost.pdf")
 
 outputfile.Write()

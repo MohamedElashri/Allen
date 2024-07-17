@@ -1,5 +1,12 @@
 /***************************************************************************** \
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -7,7 +14,7 @@
 // Warning #940-D: missing return statement at end of non-void function "LHCb::ODINImplementation::details::get_bits"
 #ifdef __CUDACC__
 #pragma push
-#if __CUDACC_VER_MAJOR__ > 11 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 6)
+#if __CUDACC_VER_MAJOR__ > 11 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 5)
 #pragma nv_diag_suppress = 940
 #else
 #pragma diag_suppress = 940
@@ -52,6 +59,15 @@ namespace Allen {
   bank_type(unsigned int const* types_offsets, unsigned const event, unsigned const bank)
   {
     return bank_types(types_offsets, event)[bank];
+  }
+
+  __host__ __device__ inline unsigned int
+  number_of_banks(char const* data, unsigned const* offsets, unsigned const event_number)
+  {
+    // In Allen layout the offsets are indexed using the event number
+    char const* event_data = data + offsets[event_number];
+    // The first 4 bytes of the event data is the number of banks in the event
+    return reinterpret_cast<unsigned const*>(event_data)[0];
   }
 
   static constexpr uint8_t LastBankType = static_cast<uint8_t>(to_integral(LHCb::RawBank::LastType));
@@ -211,3 +227,64 @@ namespace MEP {
     }
   };
 } // namespace MEP
+
+namespace Allen {
+  struct RawBank {
+    uint32_t source_id = 0;
+    uint16_t size = 0;
+    uint8_t const* data = nullptr;
+    uint8_t const type;
+
+    // For Allen format
+    __device__ __host__ RawBank(const char* raw_bank, const uint16_t s, const uint8_t t) :
+      RawBank {*reinterpret_cast<uint32_t const*>(raw_bank), raw_bank + sizeof(uint32_t), s, t}
+    {}
+
+    // For MEP format
+    __device__ __host__ RawBank(const uint32_t sid, const char* fragment, const uint16_t s, const uint8_t t) :
+      source_id {sid}, size {s}, data {reinterpret_cast<uint8_t const*>(fragment)}, type {t}
+    {}
+  };
+
+  template<bool mep_layout>
+  struct RawEvent {
+
+    uint32_t number_of_raw_banks = 0;
+    const char* data = nullptr;
+    const uint32_t* offsets = nullptr;
+    typename std::conditional_t<mep_layout, uint32_t const, uint16_t const>* sizes = nullptr;
+    typename std::conditional_t<mep_layout, uint32_t const, uint8_t const>* types = nullptr;
+    const unsigned event = 0;
+
+    // For Allen format
+    __device__ __host__
+    RawEvent(char const* d, uint32_t const* o, uint32_t const* s, uint32_t const* t, unsigned const event_number) :
+      offsets {o},
+      event {event_number}
+    {
+      if constexpr (mep_layout) {
+        data = d;
+        number_of_raw_banks = MEP::number_of_banks(o);
+        sizes = s;
+        types = t;
+      }
+      else {
+        data = d + offsets[event];
+        number_of_raw_banks = reinterpret_cast<uint32_t const*>(data)[0];
+        sizes = Allen::bank_sizes(s, event);
+        types = Allen::bank_types(t, event);
+      }
+    }
+
+    __device__ __host__ RawBank raw_bank(unsigned const n) const
+    {
+      if constexpr (mep_layout) {
+        return MEP::raw_bank<RawBank>(data, offsets, sizes, types, event, n);
+      }
+      else {
+        uint32_t const* bank_offsets = reinterpret_cast<uint32_t const*>(data) + 1;
+        return RawBank {data + (number_of_raw_banks + 2) * sizeof(uint32_t) + bank_offsets[n], sizes[n], types[n]};
+      }
+    }
+  };
+} // namespace Allen

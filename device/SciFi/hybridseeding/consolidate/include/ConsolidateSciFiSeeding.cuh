@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -7,6 +14,9 @@
 #include "SciFiConsolidated.cuh"
 #include "SciFiEventModel.cuh"
 #include "AlgorithmTypes.cuh"
+#include "CopyTrackParameters.cuh"
+
+#include "AllenMonitoring.h"
 
 namespace seed_confirmTracks_consolidate {
   struct Parameters {
@@ -22,6 +32,9 @@ namespace seed_confirmTracks_consolidate {
     DEVICE_INPUT(dev_offsets_seeding_hit_number_t, unsigned) dev_seeding_hit_number; // fishy
     DEVICE_INPUT(dev_seeding_tracks_t, SciFi::Seeding::Track) dev_seeding_tracks;
     DEVICE_OUTPUT(dev_seeding_qop_t, float) dev_seeding_qop;
+    DEVICE_OUTPUT(dev_seeding_chi2Y_t, float) dev_seeding_chi2Y;
+    // DEVICE_OUTPUT(dev_seeding_chi2X_t, float) dev_seeding_chi2X;
+    // DEVICE_OUTPUT(dev_seeding_nY_t, int) dev_seeding_nY;
     DEVICE_OUTPUT(dev_seeding_states_t, MiniState) dev_seeding_states;
     DEVICE_OUTPUT(dev_seeding_track_hits_t, char) dev_seeding_track_hits;
     HOST_INPUT(host_scifi_hit_count_t, unsigned) host_scifi_hit_count;
@@ -33,7 +46,7 @@ namespace seed_confirmTracks_consolidate {
     dev_scifi_hits_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_track_view_t,
-      DEPENDENCIES(dev_scifi_hits_view_t),
+      DEPENDENCIES(dev_scifi_hits_view_t, dev_seeding_qop_t),
       Allen::Views::SciFi::Consolidated::Track)
     dev_scifi_track_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
@@ -48,7 +61,15 @@ namespace seed_confirmTracks_consolidate {
     dev_scifi_multi_event_tracks_view;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
-  __global__ void seed_confirmTracks_consolidate(Parameters, const float* dev_magnet_polarity);
+  __global__ void seed_confirmTracks_consolidate(
+    Parameters,
+    const float* dev_magnet_polarity,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::AveragingCounter<>::DeviceType);
 
   struct seed_confirmTracks_consolidate_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -59,7 +80,29 @@ namespace seed_confirmTracks_consolidate {
       const Constants& constants,
       const Allen::Context& context) const;
 
+    __device__ static void monitor(
+      SciFi::Seeding::Track scifi_track,
+      MiniState scifi_state,
+      float qop,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&,
+      Allen::Monitoring::Histogram<>::DeviceType&);
+
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+
+    Allen::Monitoring::AveragingCounter<> m_seed_tracks {this, "n_seed_tracks"};
+    Allen::Monitoring::Histogram<> m_histogram_n_scifi_seeds {this,
+                                                              "n_scifi_seeds_event",
+                                                              "n_scifi_seeds_event",
+                                                              {501u, -0.5f, 500.5f}};
+    Allen::Monitoring::Histogram<> m_histogram_scifi_track_eta {this, "scifi_track_eta", "#eta", {400u, 0.f, 10.f}};
+    Allen::Monitoring::Histogram<> m_histogram_scifi_track_phi {this, "scifi_track_phi", "#phi", {160u, -4.f, 4.f}};
+    Allen::Monitoring::Histogram<> m_histogram_scifi_track_nhits {this,
+                                                                  "scifi_track_nhits",
+                                                                  "N. hits / track",
+                                                                  {15u, -0.5f, 14.5f}};
+    Allen::Monitoring::Histogram<> m_histogram_scifi_track_qop {this, "scifi_track_qop", "q/p", {200u, -1e-3f, 1e-3f}};
   };
 } // namespace seed_confirmTracks_consolidate

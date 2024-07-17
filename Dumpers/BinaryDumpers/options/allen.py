@@ -1,12 +1,23 @@
 #!/usr/bin/env python3
 ###############################################################################
-# (c) Copyright 2018-2021 CERN for the benefit of the LHCb Collaboration      #
+# (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 import os
 import sys
 import zmq
+import re
+import json
+from pathlib import Path
 from Configurables import ApplicationMgr
 from Configurables import Gaudi__RootCnvSvc as RootCnvSvc
+from Configurables import DDDBConf
 
 from AllenCore.configuration_options import is_allen_standalone
 is_allen_standalone.global_bind(standalone=True)
@@ -36,7 +47,18 @@ allen_dir = os.environ["ALLEN_PROJECT_ROOT"]
 interpreter.Declare("#include <Dumpers/IUpdater.h>")
 interpreter.Declare("#include <Allen/Allen.h>")
 interpreter.Declare("#include <Allen/Provider.h>")
-interpreter.Declare("#include <Dumpers/PyAllenHelper.h>")
+interpreter.Declare("""
+#include <GaudiKernel/IService.h>
+#include <Allen/InputProvider.h>
+#include <zmq/zmq.hpp>
+// Helper function to cast the LHCb-implementation of the Allen
+// non-event data manager to its shared interface
+template<typename TO>
+struct cast_service { TO* operator()(IService* svc) { return dynamic_cast<TO*>(svc); } };
+template<typename T>
+Allen::NonEventData::IUpdater* binary_updater(std::map<std::string, std::string> const& options);
+uintptr_t czmq_context(zmq::context_t& ctx) { return reinterpret_cast<uintptr_t>(ctx.operator void*()); }
+""")
 
 sequence_default = os.path.join(os.environ['ALLEN_INSTALL_DIR'], 'constants',
                                 'hlt1_pp_default.json')
@@ -44,10 +66,6 @@ sequence_default = os.path.join(os.environ['ALLEN_INSTALL_DIR'], 'constants',
 
 def cast_service(return_type, svc):
     return gbl.cast_service(return_type)()(svc)
-
-
-def shared_wrap(return_type, t):
-    return gbl.shared_wrap(return_type)()(t)
 
 
 # Handle commandline arguments
@@ -58,6 +76,7 @@ parser.add_argument(
     default=os.path.join(allen_dir, "input", "detector_configuration"))
 parser.add_argument("-n", dest="n_events", default=0)
 parser.add_argument("-t", dest="threads", default=1)
+parser.add_argument("--params", dest="params", default="")
 parser.add_argument("-r", dest="repetitions", default=1)
 parser.add_argument("-m", dest="reserve", default=1024)
 parser.add_argument("-v", dest="verbosity", default=3)
@@ -141,6 +160,20 @@ parser.add_argument(
     default=False,
     help="Use binary files as the geometry",
 )
+parser.add_argument(
+    "--tck-no-bindings",
+    help="Avoid using python bindings to TCK utils",
+    dest="bindings",
+    action="store_false",
+    default=True)
+parser.add_argument(
+    "--python-hlt1-node",
+    type=str,
+    help=
+    "Name of the variable that stores the configuration in the python module or file",
+    default="hlt1_node",
+    dest="hlt1_node",
+)
 
 args = parser.parse_args()
 
@@ -162,8 +195,16 @@ options = ApplicationOptions(_enabled=False)
 options.simulation = True if not UseDD4Hep else args.simulation
 options.data_type = 'Upgrade'
 options.input_type = 'MDF'
-options.dddb_tag = dddb_tag
-options.conddb_tag = conddb_tag
+
+if UseDD4Hep:
+    options.geometry_version = dddb_tag
+    options.conditions_version = conddb_tag
+else:
+    options.dddb_tag = dddb_tag
+    options.conddb_tag = conddb_tag
+if args.register_monitoring_counters and args.mon_filename:
+    fn, ext = os.path.splitext(args.mon_filename)
+    options.histo_file = fn + "_gaudi" + ext
 
 online_cond_path = '/group/online/hlt/conditions.run3/lhcb-conditions-database'
 if not args.simulation:
@@ -189,12 +230,53 @@ extSvc = ["ToolSvc", "AuditorSvc", "ZeroMQSvc"]
 rootSvc = RootCnvSvc("RootCnvSvc", EnableIncident=1)
 ApplicationMgr().ExtSvc += ["Gaudi::IODataManager/IODataManager", rootSvc]
 
+# Get Allen JSON configuration
+sequence = Path(os.path.expandvars(args.sequence))
+sequence_json = ""
+tck_option = re.compile(r"([^:]+):(0x[a-fA-F0-9]{8})")
+if (m := tck_option.match(str(sequence))):
+    from Allen.tck import sequence_from_git, dependencies_from_build_manifest
+    import json
+
+    repo = m.group(1)
+    tck = m.group(2)
+    sequence_json, tck_info = sequence_from_git(
+        repo, tck, use_bindings=args.bindings)
+    tck_deps = tck_info["metadata"]["stack"]["projects"]
+    if not sequence_json or sequence_json == 'null':
+        print(
+            f"Failed to obtain configuration for TCK {tck} from repository {repo}"
+        )
+        sys.exit(1)
+    elif (deps := dependencies_from_build_manifest()) != tck_deps:
+        print(
+            f"TCK {tck} is compatible with Allen release {deps}, not with {tck_deps}."
+        )
+        sys.exit(1)
+    else:
+        print(
+            f"Loaded TCK {tck} with sequence type {tck_info['type']} and label {tck_info['label']}."
+        )
+elif sequence.suffix in (".py", ""):
+    from Allen.tck import sequence_from_python
+    from AllenCore.configuration_options import is_allen_standalone
+    is_allen_standalone.global_bind(standalone=True)
+    sequence_json = json.dumps(
+        sequence_from_python(sequence, node_name=args.hlt1_node, verbose=True),
+        sort_keys=True)
+elif sequence.suffix in (".json", ):
+    with sequence.open() as f:
+        sequence_json = f.read()
+else:
+    raise ValueError(f"Unknown type of sequence specified: {str(sequence)}")
+
 if args.mep:
     extSvc += ["AllenConfiguration", "MEPProvider"]
     from Configurables import MEPProvider, AllenConfiguration
 
     allen_conf = AllenConfiguration("AllenConfiguration")
-    allen_conf.JSON = args.sequence
+    # Newlines in a string property cause issues
+    allen_conf.JSON = sequence_json.replace('\n', '')
     allen_conf.OutputLevel = 3
 
     mep_provider = MEPProvider()
@@ -238,13 +320,16 @@ ApplicationMgr().ExtSvc += extSvc
 # Copeid from PyConf.application.configure_input
 default_raw_event.global_bind(raw_event_format=options.input_raw_format)
 if not args.binary_geometry:
-    config.add(
-        setup_component(
-            'DDDBConf',
-            Simulation=options.simulation,
-            DataType=options.data_type,
-            ConditionsVersion=options.conddb_tag))
-    if not UseDD4Hep:
+    if UseDD4Hep:
+        config.add(
+            setup_component(
+                'DDDBConf',
+                Simulation=options.simulation,
+                DataType=options.data_type,
+                GeometryVersion=options.geometry_version,
+                ConditionsVersion=options.conditions_version))
+    else:
+        config.add(DDDBConf(Simulation=options.simulation, DataType="Upgrade"))
         config.add(
             setup_component(
                 'CondDB',
@@ -254,8 +339,7 @@ if not args.binary_geometry:
                     'SIMCOND': options.conddb_tag,
                 }))
 
-if not args.binary_geometry:
-    bank_types = configured_bank_types(args.sequence)
+    bank_types = configured_bank_types(sequence_json)
     cf_node = setup_allen_non_event_data_service(
         allen_event_loop=True, bank_types=bank_types)
     config.update(configure(options, cf_node, make_odin=make_odin))
@@ -270,20 +354,20 @@ zmqSvc = gaudi.service("ZeroMQSvc", interface=gbl.IZeroMQSvc)
 
 # options map
 options = gbl.std.map("std::string", "std::string")()
-for flag, value in [("g", args.det_folder),
-                    ("params", os.getenv("PARAMFILESROOT")),
+params = args.params if args.params != "" else os.getenv("PARAMFILESROOT")
+
+for flag, value in [("g", args.det_folder), ("params", params),
                     ("n", args.n_events), ("t", args.threads),
                     ("r", args.repetitions), ("output-file", args.output_file),
                     ("output-batch-size", args.output_batch_size),
                     ("m", args.reserve), ("v", args.verbosity),
-                    ("p", args.print_memory),
-                    ("sequence", os.path.expandvars(args.sequence)),
+                    ("p", args.print_memory), ("sequence", sequence),
                     ("s", args.slices), ("mdf", os.path.expandvars(args.mdf)),
                     ("disable-run-changes", int(not args.enable_run_changes)),
                     ("monitoring-save-period", args.mon_save_period),
                     ("monitoring-filename", args.mon_filename),
                     ("events-per-slice", args.events_per_slice),
-                    ("device", args.device), ("run-from-json", "1"),
+                    ("device", args.device),
                     ("enable-monitoring-printing",
                      args.enable_monitoring_printing),
                     ("register-monitoring-counters",
@@ -299,12 +383,12 @@ else:
 
 con = gbl.std.string("")
 
-# Create provider
 if args.mep:
     mep_provider = gaudi.service("MEPProvider", interface=gbl.IService)
     provider = cast_service(gbl.IInputProvider, mep_provider)
 else:
-    provider = gbl.Allen.make_provider(options)
+    provider = gbl.Allen.make_provider(options, sequence_json)
+
 output_handler = gbl.Allen.output_handler(provider, zmqSvc, options)
 
 # run Allen
@@ -334,8 +418,8 @@ def allen_thread():
     if args.profile == "CUDA":
         runtime_lib.cudaProfilerStart()
 
-    gbl.allen(options, updater, shared_wrap(gbl.IInputProvider, provider),
-              output_handler, zmqSvc, con.c_str())
+    gbl.allen(options, sequence_json, updater, provider, output_handler,
+              zmqSvc, con.c_str())
 
     if args.profile == "CUDA":
         runtime_lib.cudaProfilerStop()
@@ -352,7 +436,12 @@ else:
     # READY
     msg = control.recv()
     assert (msg.decode() == "READY")
+
+    # Start the fake event loop that takes care of the geometry and
+    # conditions data.
     gaudi.start()
+
+    # Start the Allen event loop
     control.send(b"START")
     msg = control.recv()
     assert (msg.decode() == "RUNNING")

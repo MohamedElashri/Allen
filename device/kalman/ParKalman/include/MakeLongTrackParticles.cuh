@@ -15,6 +15,8 @@
 #include "States.cuh"
 #include "AlgorithmTypes.cuh"
 
+#include "AllenMonitoring.h"
+
 namespace make_long_track_particles {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -55,7 +57,13 @@ namespace make_long_track_particles {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void make_particles(Parameters parameters);
+  __global__ void make_particles(
+    Parameters parameters,
+    unsigned event_list_size,
+    Allen::Monitoring::Histogram<>::DeviceType dev_histogram_n_trks,
+    Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_eta,
+    Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_phi,
+    Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_pt);
 
   struct make_long_track_particles_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -68,6 +76,11 @@ namespace make_long_track_particles {
 
   private:
     Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+
+    Allen::Monitoring::Histogram<> m_histogram_n_trks {this, "number_of_trks", "NTrks", {500 + 1, -0.5f, 500 + 0.5}};
+    Allen::Monitoring::Histogram<> m_histogram_trk_eta {this, "trk_eta", "etaTrk", {400u, 0.f, 10.f}};
+    Allen::Monitoring::Histogram<> m_histogram_trk_phi {this, "trk_phi", "phiTrk", {1000u, -3.2f, 3.2f}};
+    Allen::Monitoring::Histogram<> m_histogram_trk_pt {this, "trk_pt", "ptTrk", {1000u, 0.f, 1e4f}};
   };
 
 } // namespace make_long_track_particles

@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -30,7 +37,7 @@ namespace BeamlinePVConstants {
   }                                                       // namespace Peak
 
   namespace MultiFitter {
-    static constexpr float maxVertexRho2 = 0.3f;  // unit:: mm^2 "Maximum distance squared of vertex to beam line"
+    static constexpr float maxVertexRho2 = 0.09f; // unit:: mm^2 "Maximum distance squared of vertex to beam line"
     static constexpr unsigned int maxFitIter = 7; // "Maximum number of iterations for vertex fit"
     static constexpr float maxChi2 = 12.f;        // Maximum chi2 for track to be used in fit
     static constexpr float minWeight =

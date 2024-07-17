@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "MuonValidator.cuh"
 #include "CopyTrackParameters.cuh"
@@ -17,7 +24,11 @@ __global__ void muon_validator::muon_validator(muon_validator::Parameters parame
 
   prepare_long_tracks(event_long_tracks, endvelo_states, muon_checker_tracks_event);
 
+  __syncthreads();
+
   prepare_muons(event_long_tracks.size(), muon_checker_tracks_event, is_muon);
+
+  __syncthreads();
 }
 
 void muon_validator::muon_validator_t::set_arguments_size(

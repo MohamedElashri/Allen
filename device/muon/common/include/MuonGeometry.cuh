@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -118,7 +125,7 @@ namespace Muon {
       Allen::device::span<const uint8_t> span_banks,
       unsigned int active_links,
       unsigned int* map_connected_fibers,
-      unsigned int align_info)
+      unsigned int align_info) const
     {
 
       unsigned int number_of_readout_fibers;

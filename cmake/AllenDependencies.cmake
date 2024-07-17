@@ -1,8 +1,8 @@
 ###############################################################################
 # (c) Copyright 2000-2021 CERN for the benefit of the LHCb Collaboration      #
 #                                                                             #
-# This software is distributed under the terms of the GNU General Public      #
-# Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
 #                                                                             #
 # In applying this licence, CERN does not waive the privileges and immunities #
 # granted to it by virtue of its status as an Intergovernmental Organization  #
@@ -104,16 +104,40 @@ find_package(umesimd REQUIRED)
 find_package(PkgConfig)
 pkg_check_modules(zmq libzmq REQUIRED IMPORTED_TARGET)
 pkg_check_modules(sodium libsodium REQUIRED IMPORTED_TARGET)
+if(NOT STANDALONE)
+  pkg_check_modules(git2 libgit2 REQUIRED IMPORTED_TARGET)  # for GitEntityResolver
+endif()
 
 if(WITH_Allen_PRIVATE_DEPENDENCIES)
   # We need a Python 3 interpreter
-  find_package(Python 3 REQUIRED Interpreter)
+  find_package(Python 3 REQUIRED Interpreter Development.Module)
 
   # Catch2 for tests
   find_package(Catch2 REQUIRED)
 
   # Find libClang, required for parsing the Allen codebase
-  find_package(LibClang QUIET)
+  find_package(Clang QUIET)
+  if (TARGET libclang)
+    get_target_property(LIBCLANG_CONFIG libclang IMPORTED_CONFIGURATIONS)
+    get_target_property(LIBCLANG_LIBDIR libclang IMPORTED_LOCATION_${LIBCLANG_CONFIG})
+    get_filename_component(LIBCLANG_LIBDIR "${LIBCLANG_LIBDIR}" PATH)
+  else()
+    # As a last resort, try from a number of hard-coded directory in cvmfs
+    set(LIBCLANG_LIBDIR_x86_64_centos7  /cvmfs/lhcb.cern.ch/lib/lcg/releases/clang/12.0.0/x86_64-centos7)
+    set(LIBCLANG_LIBDIR_x86_64_el9      /cvmfs/lhcb.cern.ch/lib/lcg/releases/clang/16.0.3-9dda8/x86_64-el9)
+    set(LIBCLANG_LIBDIR_aarch64_centos7 /cvmfs/sft.cern.ch/lcg/releases/clang/13.0.1-721c8/aarch64-centos7)
+    set(LIBCLANG_LIBDIR_aarch64_el9     /cvmfs/lhcb.cern.ch/lib/lcg/releases/clang/16.0.3-9dda8/aarch64-el9)
+
+    set(LIBCLANG_LIBDIR ${LIBCLANG_LIBDIR_${CMAKE_SYSTEM_PROCESSOR}_${LCG_OS}}/lib)
+    set(LIBCLANG_ALTERNATIVE_FOUND ON)
+    message(STATUS "Trying predefined CVMFS libclang directory")
+  endif()
+  if(LIBCLANG_LIBDIR AND EXISTS "${LIBCLANG_LIBDIR}")
+    message(STATUS "Found libclang at ${LIBCLANG_LIBDIR}")
+  else()
+    message(FATAL_ERROR "No suitable libClang installation found. "
+                        "You may provide a custom path by setting LIBCLANG_LIBDIR manually")
+  endif()
 
   # https://github.com/nlohmann/json
   find_package(nlohmann_json REQUIRED)
@@ -126,6 +150,13 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
   if(NOT STANDALONE)
     find_package(Rangev3 REQUIRED)
     find_package(yaml-cpp REQUIRED)
+
+    # pybind11 is available in LCG, but it's installed with setup.py,
+    # so the CMake files are in a non-standard location and we have to
+    # make sure we can find them
+    execute_process(COMMAND ${Python_EXECUTABLE} -c "import pybind11; print(pybind11.get_cmake_dir(), end=\"\");" OUTPUT_VARIABLE PYBIND11_CMAKE_DIR)
+    list(APPEND CMAKE_PREFIX_PATH ${PYBIND11_CMAKE_DIR})
+    find_package(pybind11 CONFIG REQUIRED)
   endif()
 endif()
 
@@ -138,6 +169,8 @@ if (STANDALONE)
   elseif($ENV{ROOTSYS}) # ROOT was compiled with configure/make
     set(ALLEN_ROOT_CMAKE $ENV{ROOTSYS}/etc)
   endif()
+else()
+  set(Allen_PERSISTENT_OPTIONS TARGET_DEVICE)
 endif()
 
 find_package(ROOT REQUIRED HINTS ${ALLEN_ROOT_CMAKE} COMPONENTS RIO Core Cling Hist Tree)

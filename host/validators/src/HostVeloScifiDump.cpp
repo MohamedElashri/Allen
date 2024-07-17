@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration           *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "HostVeloScifiDump.h"
 #include "KalmanChecker.h"
@@ -202,11 +209,11 @@ void host_veloscifi_dump::host_veloscifi_dump_t::operator()(
       }
 
       const auto endvelo_state = velo_states.get(event_velo_tracks_offset + i_track);
-      auto tx = endvelo_state.tx;
-      auto ty = endvelo_state.ty;
-      auto x = endvelo_state.x;
-      auto y = endvelo_state.y;
-      auto z = endvelo_state.z;
+      auto tx = endvelo_state.tx();
+      auto ty = endvelo_state.ty();
+      auto x = endvelo_state.x();
+      auto y = endvelo_state.y();
+      auto z = endvelo_state.z();
 
       jsonfile << "    {\"tx\":" << tx << ", \"ty\":" << ty << ", \"x\":" << x << ", \"y\":" << y << ", \"z\":" << z
                << "},\n";

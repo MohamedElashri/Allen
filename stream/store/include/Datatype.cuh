@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -37,39 +44,47 @@ namespace Allen::Store {
   struct optional_datatype {
   };
 
-  // A generic datatype* data holder.
+  // A generic datatype data holder.
   template<typename internal_t>
   struct datatype {
     using type = internal_t;
     static_assert(
       Allen::is_trivially_copyable_v<std::remove_const_t<type>> && "Allen datatypes must be trivially copyable");
-    __host__ __device__ datatype(type* value) : m_value(value) {}
-    __host__ __device__ datatype() {}
+    constexpr __host__ __device__ datatype(Allen::device::span<type> value) : m_value(value) {}
+    constexpr __host__ __device__ datatype() {}
+    constexpr __host__ __device__ auto get() const { return m_value; }
+    constexpr __host__ __device__ auto data() const { return m_value.data(); }
+    constexpr __host__ __device__ auto operator-> () const { return data(); }
+    constexpr __host__ __device__ operator type*() const { return data(); }
+    constexpr __host__ __device__ auto empty() const { return m_value.empty(); }
+    constexpr __host__ __device__ auto size() const { return m_value.size(); }
+    constexpr __host__ __device__ auto size_bytes() const { return m_value.size_bytes(); }
+    constexpr __host__ __device__ auto subspan(const std::size_t offset) const { return m_value.subspan(offset); }
+    constexpr __host__ __device__ auto subspan(const std::size_t offset, const std::size_t count) const
+    {
+      return m_value.subspan(offset, count);
+    }
 
   protected:
-    type* m_value;
+    Allen::device::span<type> m_value;
   };
 
   // Input datatypes have read-only accessors.
   template<typename T>
   struct input_datatype : datatype<const T> {
     using type = const T;
-    __host__ __device__ input_datatype() {}
-    __host__ __device__ input_datatype(type* value) : datatype<type>(value) {}
-    __host__ __device__ operator type*() const { return this->m_value; }
-    __host__ __device__ type* get() const { return this->m_value; }
-    __host__ __device__ type* operator->() const { return this->m_value; }
+    constexpr __host__ __device__ input_datatype() {}
+    constexpr __host__ __device__ input_datatype(Allen::device::span<type> value) : datatype<type>(value) {}
+    constexpr __host__ __device__ type operator[](const unsigned index) const { return this->get()[index]; }
   };
 
   // Output datatypes return pointers that can be modified.
   template<typename T>
   struct output_datatype : datatype<T> {
     using type = T;
-    __host__ __device__ output_datatype() {}
-    __host__ __device__ output_datatype(type* value) : datatype<T>(value) {}
-    __host__ __device__ operator type*() const { return this->m_value; }
-    __host__ __device__ type* get() const { return this->m_value; }
-    __host__ __device__ type* operator->() const { return this->m_value; }
+    constexpr __host__ __device__ output_datatype() {}
+    constexpr __host__ __device__ output_datatype(Allen::device::span<type> value) : datatype<type>(value) {}
+    constexpr __host__ __device__ type& operator[](const unsigned index) { return this->get()[index]; }
   };
 
 // Inputs / outputs have an additional parsable method required for libclang parsing.
@@ -151,7 +166,7 @@ namespace Allen::Store {
 //       missing return statement at end of non-void function
 #ifdef __CUDACC__
 #pragma push
-#if __CUDACC_VER_MAJOR__ > 11 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 6)
+#if __CUDACC_VER_MAJOR__ > 11 || (__CUDACC_VER_MAJOR__ == 11 && __CUDACC_VER_MINOR__ >= 5)
 #pragma nv_diag_suppress = 940
 #else
 #pragma diag_suppress = 940

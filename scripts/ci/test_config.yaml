@@ -1,5 +1,12 @@
 ###############################################################################
 # (c) Copyright 2018-2022 CERN for the benefit of the LHCb Collaboration      #
+#                                                                             #
+# This software is distributed under the terms of the Apache License          #
+# version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              #
+#                                                                             #
+# In applying this licence, CERN does not waive the privileges and immunities #
+# granted to it by virtue of its status as an Intergovernmental Organization  #
+# or submit itself to any jurisdiction.                                       #
 ###############################################################################
 
 config:
@@ -9,51 +16,59 @@ config:
   # args added for specific test keys
   args:
     # Added to Allen command always
-    base: "--run-from-json 1 --params external/ParamFiles/"
+    base: "--params external/ParamFiles/"
 
     # added if "dataset:" specified
     dataset: "--mdf /scratch/allen_data/mdf_input/{dataset}.mdf"
 
     # added if "sequence:" specified
-    sequence: "--sequence {sequence}"
+    sequence: "--sequence {sequence}.json"
 
     # added if "geometry:" specified
-    geometry: "-g /scratch/allen_geometries/{geometry}"
+    geometry: "-g ../input/allen_geometries/{geometry}"
 
     # added if "disable-run-changes" specified
     disable_run_changes: "--disable-run-changes {disable_run_changes}"
-  
+
   # args added for specific specific test types
   test_args:
     throughput: "" # handled by target_args
     efficiency: " -n 1000 -m 1100"  # TODO incr to 10k
     run_changes: "-n 1000 -m 1000 "
-  
+
   # args added for specific device targets
   target_args:
     throughput:
-      CUDA: "-n 500 -m 500 -r 1000 -t 16"
-      CUDAPROF: "-n 500 -m 500 -r 1 -t 1"
-      HIP: "-n 2800 --events-per-slice 2800 -m 2800 -t 10 -r 100"
-      CPU: "-n 100 -m 100 -r 100"
+      pp:
+        CUDA: "-n 500 -m 500 -r 1000 -t 16"
+        CUDAPROF: "-n 500 -m 500 -r 1 -t 1"
+        HIP: "-n 2800 --events-per-slice 2800 -m 2800 -t 10 -r 100"
+        CPU: "-n 100 -m 100 -r 100"
+      PbPb:
+        CUDA: "-n 500 -m 3000 -r 200 -t 8 --events-per-slice 300"
+        CUDAPROF: "-n 500 -m 3000 -r 1 -t 1 --events-per-slice 300"
+        HIP: "-n 2800 --events-per-slice 840 -m 8400 -t 5 -r 20"
+        CPU: "-n 100 -m 1000 -r 10"
 
 # NOT GITLAB CI YAML !
 
 minimal:
   - type: "throughput"
-    sequence: 
+    sequence:
       - hlt1_pp_default
-      - hlt1_pp_forward_then_matching_no_gec
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
+      - hlt1_pp_forward_then_matching
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
 
   - type: "efficiency"
-    sequence: 
+    sequence:
       - hlt1_pp_validation
-    dataset: "Upgrade_BsPhiPhi_MD_FTv4_DIGI_retinacluster_v1_newLHCbID"
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD_nSciFiHits"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
 
   # FIXME run_changes needs re-adding
   # - type: "run_changes"
-  #   sequence: 
+  #   sequence:
   #     - "hlt1_pp_validation"
   #   dataset: "MiniBrunel_2018_MinBias_FTv4_DIGI_retinacluster_v1_newLHCbID"
   #   disable_run_changes: ["1"] # TODO FIXME Fix disable-run-changes 0 case!!!
@@ -63,110 +78,161 @@ minimal:
   #     - a5000
 
 full:
+  - type: "throughput" #on legacy MC
+    sequence:
+      - hlt1_pp_default
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+
   - type: "throughput"
     sequence:
       - hlt1_pp_default
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
-    build_options: BUILD_TESTING+ENABLE_CONTRACTS
+    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
+    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+    build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS+MALLOC_ENGINE=MULTI_ALLOC
     throughput_report: false # don't publish throughput report
 
-  # run throughput, no_gec
+  # run throughput, 50% lumi events
   - type: "throughput"
-    sequence: 
-      - hlt1_pp_no_gec
-      - hlt1_pp_no_gec_no_ut
-      - hlt1_pp_SMOG2_default
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
-
-  # run throughput, default, SMOG2_pppHe
-  - type: "throughput"
-    sequence: 
-      - hlt1_pp_default
-      - hlt1_pp_SMOG2_default
-    dataset: "SMOG2_pppHe_retinacluster_v1_newLHCbID"
-    geometry: "SMOG2_pppHe"
-
-  # Allen clustering jobs
-  - type: "throughput"
-    sequence: "hlt1_pp_veloSP"
-    dataset: "upgrade_mc_minbias_scifi_v5_000_newLHCbID"
-
-  # run throughput, scifi_v6
-  - type: "throughput"
-    sequence: 
-      - hlt1_pp_default
-    dataset: "SciFiv6_upgrade_DC19_01_MinBiasMD_retinacluster_v1_newLHCbID"
-    geometry: "upgrade_DC19_01_MinBiasMD"
-
-  # run throughput, calov4
-  - type: "throughput"
-    sequence: "calo"
-    dataset: "sim-20190912-vc-md100-FTv7-calov4"
-    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4"
+    sequence:
+      - hlt1_pp_lumi
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
     throughput_report: false # don't publish throughput report
-
-  # run throughput, scifiv7
-  - type: "throughput"
-    sequence: "scifi_decoding"
-    dataset: "SciFiV7_not_compressed"
-    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7"
-    throughput_report: false # don't publish throughput report
-
-  # run throughput, muonv3
-  - type: "throughput"
-    sequence: "muon_decoding"
-    dataset: "Run_0000232759_20220605-105749-418_MCEB02"
-    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7_muonv3"
-    throughput_report: false # don't publish throughput report
-
-  - type: "throughput"
-    sequence: 
-      - hlt1_pp_default
-    dataset: "upgrade-magdown-sim10-up08-30000000-digi_01_retinacluster_v1_newLHCbID"
-    geometry: "upgrade-magdown-sim10-up08-11102202-digi"
 
   # run throughput, forward no ut, matching
   - type: "throughput"
-    sequence: 
+    sequence:
       - hlt1_pp_matching
       - hlt1_pp_no_ut
-      - hlt1_pp_forward_then_matching_no_gec
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
+      - hlt1_pp_veloSP
+      - hlt1_pp_forward_then_matching
+      - hlt1_pp_forward_then_matching_no_ut
+      - hlt1_pp_matching_no_ut
+      - hlt1_pp_forward_then_matching_and_downstream
+      - hlt1_pp_forward_then_matching_no_ut_veloSP
+      - hlt1_pp_forward_then_matching_and_downstream_veloSP
+      - hlt1_pp_matching_no_ut_veloSP
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
 
-  # Efficiency tests
+  # run throughput, default, SMOG2_pppHe, exp 2024 conditions 
+  - type: "throughput"
+    sequence:
+      - hlt1_pp_forward_then_matching_no_ut
+    dataset: "ppHeBeam6800GeVexpected2024MagDownandSMOG2Nu7.6andNu0.2Pythia8andEPOS_Sim10c_30000000_5k"
+    geometry: "SMOG2_exp2024"
 
-  - type: "efficiency"
-    sequence: "hlt1_pp_SMOG2_validation"
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID"
+  # run throughput, default, SMOG2_pppAr, exp 2024 conditions 
+  - type: "throughput"
+    sequence:
+      - hlt1_pp_forward_then_matching_no_ut
+    dataset: "SMOG2_pppAr_exp2024_mdf_sim-20231017-vc-md100_5k"
+    geometry: "SMOG2_exp2024"
+
+  # run throughput, PbPb samples, 2023 default PbPb sequence
+  - type: "throughput"
+    sequence:
+      - hlt1_PbPb_PbSMOG_no_ut
+    dataset: "upgrade-official-PbPb-EPOS-b-8_22-VELO-23.5mm"
+    geometry: "geometry_dddb-20230313_sim-20230626-vc-md100"
+    timeout: 2400
+    collision_type: "PbPb"
+    allowed_devices:
+      - epyc7502
+      - a5000
+      - geforcertx3090
+
+  # run throughput, PbPb samples, 2023 no-gec PbPb sequence
+  - type: "throughput"
+    sequence:
+      - hlt1_PbPb_PbSMOG_no_ut_veloSP
+    dataset: "upgrade-official-PbPb-EPOS-b-8_22-VELO-23.5mm"
+    geometry: "geometry_dddb-20230313_sim-20230626-vc-md100"
+    timeout: 2400
+    collision_type: "PbPb"
+    allowed_devices:
+      - epyc7502
+      - a5000
+      - geforcertx3090
+
+  #throughput test with RICH decoding -> medium/long term development
+  - type: "throughput"
+    sequence: 
+      - hlt1_pp_rich_no_ut
+    dataset: "Run_0000248711_HLT20840_20221011-113809-426"
+    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7_muonv3_RICH"
+
+  # run physics efficiency for downstream reconstruction
+  # temporary disabled, see lhcb/Allen#560
+  #- type: "efficiency"
+  #  sequence:
+  #    - downstream_validation
+  #    - hlt1_pp_forward_then_matching_and_downstream_validation
+  #  dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD_nSciFiHits"
+  #  geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
 
   - type: "run_built_tests"
     lcg_opt:
-      - "opt"
-      - "dbg"
-    build_options: "BUILD_TESTING+ENABLE_CONTRACTS"
+      - "opt+g"
+      # - "dbg" # FIXME dbg platform not available for x86_64_v3
+    build_options: "BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS+MALLOC_ENGINE=MULTI_ALLOC"
 
-  # run physics efficiency, scifi_v6
-  # forward no ut, scifi v6
+  # run physics efficiency, exp2024
   - type: "efficiency"
-    sequence: 
-      - hlt1_pp_validation
+    sequence:
       - hlt1_pp_no_ut_validation
+      - hlt1_pp_veloSP_validation
+      - hlt1_pp_matching_no_ut_validation
       - hlt1_pp_matching_validation
-      - hlt1_pp_forward_then_matching_no_gec_validation
-    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_retinacluster_v1_newLHCbID_v2"
-    geometry: "upgrade_DC19_01_MinBiasMD"
+      - hlt1_pp_forward_then_matching_validation
+      - hlt1_pp_forward_then_matching_no_ut_validation
+      - velo_ACsplit_validation
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD_nSciFiHits"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
 
-  # efficiency tests, SMOG2 pHe
-  - type: "efficiency"
-    sequence: 
-      - hlt1_pp_validation
-      - hlt1_pp_SMOG2_validation
-      - hlt1_pp_matching_validation
-      - hlt1_pp_forward_then_matching_no_gec_validation
-    dataset: "SMOG2_pHe_5k_retinacluster_v1_newLHCbID"
-    geometry: "SMOG2_pppHe"
 
+  # efficiency tests, SMOG2 pHe, exp 2024 conditions
   - type: "efficiency"
-    sequence: "hlt1_pp_veloSP_validation"
-    dataset: "SciFiv6_upgrade_DC19_01_Bs2PhiPhiMD_1k_newLHCbID"
-    geometry: "upgrade_DC19_01_MinBiasMD"
+    sequence:
+      - hlt1_pp_forward_then_matching_no_ut_validation
+    dataset: "pHeBeam6800GeV0GeVexpected2024MagDownSMOG2Nu0.2EPOS_Sim10c_30000000_10k_nSciFiHits"
+    geometry: "SMOG2_exp2024"
+
+  # efficiency tests, SMOG2 pAr, exp 2024 conditions
+  - type: "efficiency"
+    sequence:
+      - hlt1_pp_forward_then_matching_no_ut_validation
+    dataset: "SMOG2_pAr_exp2024_mdf_sim-20231017-vc-md100_10k_nSciFiHits"
+    geometry: "SMOG2_exp2024"
+  
+  # run memcheck
+  - type: "run_memcheck"
+    sanitizer: "memcheck"
+    sequence:
+      - hlt1_pp_default
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
+    build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS+MALLOC_ENGINE=MULTI_ALLOC
+    allowed_devices:
+      - a5000
+
+  - type: "run_racecheck"
+    sanitizer: "racecheck"
+    sequence:
+      - hlt1_pp_default
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
+    build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS+MALLOC_ENGINE=MULTI_ALLOC
+    allowed_devices:
+      - a5000
+
+  - type: "run_synccheck"
+    sanitizer: "synccheck"
+    sequence:
+      - hlt1_pp_default
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
+    build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS+MALLOC_ENGINE=MULTI_ALLOC
+    allowed_devices:
+      - a5000

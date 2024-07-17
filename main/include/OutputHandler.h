@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -54,10 +61,9 @@ public:
     std::string const connection,
     size_t const n_threads,
     size_t const output_batch_size,
-    size_t const n_lines,
     bool const checksum)
   {
-    init(input_provider, std::move(connection), n_threads, output_batch_size, n_lines, checksum);
+    init(input_provider, std::move(connection), n_threads, output_batch_size, checksum);
   }
 
   virtual ~OutputHandler() {}
@@ -88,7 +94,6 @@ protected:
     std::string const connection,
     size_t const n_threads,
     size_t const output_batch_size,
-    size_t const n_lines,
     bool const checksum)
   {
     m_input_provider = input_provider;
@@ -98,7 +103,6 @@ protected:
       sizes.resize(input_provider->events_per_slice());
     }
     m_output_batch_size = output_batch_size;
-    m_nlines = n_lines;
     m_checksum = checksum;
     m_nthreads = n_threads;
 
@@ -156,7 +160,6 @@ private:
   std::vector<OutputSizes> m_sizes;
   std::array<uint32_t, 4> m_trigger_mask = {~0u, ~0u, ~0u, ~0u};
   size_t m_output_batch_size = 10;
-  size_t m_nlines = 0;
   bool m_checksum = false;
   size_t m_nthreads = 1;
 

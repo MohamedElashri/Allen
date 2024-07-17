@@ -18,11 +18,6 @@
 namespace hybrid_seeding {
   class Case {
   public:
-    // The three parameters that truely define a case, apart from tolerances
-    unsigned int iFirst;
-    unsigned int iMiddle;
-    unsigned int iLast;
-    unsigned int iRem[3];
     // Topology
     float t1_z;
     float t2_z;
@@ -57,7 +52,9 @@ namespace hybrid_seeding {
     float startingFitMatrix[6];
     float scoreOffset;
 
-    __device__ Case(
+    __device__ __host__ Case() {}
+
+    Case(
       unsigned int _iFirst,
       unsigned int _iMiddle,
       unsigned int _iLast,
@@ -65,23 +62,18 @@ namespace hybrid_seeding {
       unsigned int _iremainT2,
       unsigned int _iremainT3,
       float _pMin,
-      float _scoreOffset)
+      float _scoreOffset,
+      float* average_z)
     {
-      iFirst = _iFirst;
-      iMiddle = _iMiddle;
-      iLast = _iLast;
-      iRem[0] = _iremainT1;
-      iRem[1] = _iremainT2;
-      iRem[2] = _iremainT3;
       float pMin = _pMin;
       // Topological information
       // FIXME: this should access the geometry & options of first/last layers
-      t1_z = seed_xz::geomInfo::z[iFirst];
-      t2_z = seed_xz::geomInfo::z[iMiddle];
-      float t3_z = seed_xz::geomInfo::z[iLast];
-      float t1_rem_z = seed_xz::geomInfo::z[iRem[0]];
-      float t2_rem_z = seed_xz::geomInfo::z[iRem[1]];
-      float t3_rem_z = seed_xz::geomInfo::z[iRem[2]];
+      t1_z = average_z[_iFirst];
+      t2_z = average_z[_iMiddle];
+      float t3_z = average_z[_iLast];
+      float t1_rem_z = average_z[_iremainT1];
+      float t2_rem_z = average_z[_iremainT2];
+      float t3_rem_z = average_z[_iremainT3];
       invZf = 1.f / (t1_z);
       invZlZf = 1.f / (t3_z - t1_z);
       dz[0] = t1_z - hybrid_seeding::z_ref;
@@ -125,5 +117,31 @@ namespace hybrid_seeding {
       startingFitMatrix[5] = dz2[0] * dz2[0] + dz2[2] * dz2[2] + dz2[1] * dz2[1];
       scoreOffset = _scoreOffset;
     };
+  };
+  struct CaseLayers {
+    // The three parameters that truely define a case, apart from tolerances
+    unsigned int iFirst;
+    unsigned int iMiddle;
+    unsigned int iLast;
+    unsigned int iRem[3];
+    const Case* case_data;
+    __device__ CaseLayers(
+      unsigned int _iFirst,
+      unsigned int _iMiddle,
+      unsigned int _iLast,
+      unsigned int _iremainT1,
+      unsigned int _iremainT2,
+      unsigned int _iremainT3,
+      const Case* _case_data)
+    {
+      iFirst = _iFirst;
+      iMiddle = _iMiddle;
+      iLast = _iLast;
+      iRem[0] = _iremainT1;
+      iRem[1] = _iremainT2;
+      iRem[2] = _iremainT3;
+
+      case_data = _case_data;
+    }
   };
 } // namespace hybrid_seeding

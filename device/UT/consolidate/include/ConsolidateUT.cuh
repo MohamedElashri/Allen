@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -27,6 +34,7 @@ namespace ut_consolidate_tracks {
     DEVICE_OUTPUT(dev_ut_track_params_t, float) dev_ut_track_params;
     DEVICE_OUTPUT(dev_ut_qop_t, float) dev_ut_qop;
     DEVICE_OUTPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
+    DEVICE_OUTPUT(dev_used_ut_hits_offsets_t, unsigned) dev_used_ut_hits_offsets;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_ut_hits_view_t,
       DEPENDENCIES(dev_ut_track_hits_t),
@@ -35,17 +43,17 @@ namespace ut_consolidate_tracks {
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_ut_track_view_t,
       DEPENDENCIES(dev_ut_hits_view_t, dev_velo_tracks_view_t, dev_ut_track_velo_indices_t, dev_ut_track_params_t),
-      Allen::Views::UT::Consolidated::Track)
+      Allen::Views::UT::Consolidated::VeloUTTrack)
     dev_ut_track_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_ut_tracks_view_t,
       DEPENDENCIES(dev_ut_track_view_t),
-      Allen::Views::UT::Consolidated::Tracks)
+      Allen::Views::UT::Consolidated::VeloUTTracks)
     dev_ut_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_ut_multi_event_tracks_view_t,
       DEPENDENCIES(dev_ut_tracks_view_t),
-      Allen::Views::UT::Consolidated::MultiEventTracks)
+      Allen::Views::UT::Consolidated::MultiEventVeloUTTracks)
     dev_ut_multi_event_tracks_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_imec_ut_tracks_t,

@@ -17,6 +17,7 @@
 namespace hybrid_seeding {
   constexpr float z_ref = 8520.f;
   constexpr float dRatio = -0.00028f;
+  constexpr int nLayers = 12;
 
   template<typename T>
   __device__ unsigned int binary_search_leftmost_unrolled(const T* array, const unsigned array_size, const T& needle)
@@ -43,8 +44,9 @@ namespace hybrid_seeding {
 
 namespace seed_xz {
   namespace geomInfo {
-    __device__ constexpr int nLayers = 6;
-    __device__ constexpr float z[nLayers] = {7826.106f, 8035.9048f, 8508.1064f, 8717.9043f, 9193.1064f, 9402.9043f};
+    constexpr int nLayers = 6;
+    constexpr float z[nLayers] = {7826.106f, 8035.9048f, 8508.1064f, 8717.9043f, 9193.1064f, 9402.9043f};
+    constexpr unsigned x_layers_number[6] {0, 3, 4, 7, 8, 11};
   }; // namespace geomInfo
   // Structure
   struct TwoHitCombination {
@@ -57,7 +59,7 @@ namespace seed_xz {
   };
 
   struct multiHitCombination {
-    int idx[SciFi::Constants::n_xzlayers] = {0};
+    unsigned idx[SciFi::Constants::n_xzlayers] = {0};
     float ax;
     float bx;
     float cx;
@@ -70,35 +72,19 @@ namespace seed_xz {
 
 namespace seed_uv {
   namespace geomInfo {
-    constexpr unsigned int nLayers = 6;
-    constexpr float angle = 0.086;   // FIXME
+    constexpr int nLayers = 6;
     constexpr float yCenter = 2.f;   // FIXME
     constexpr float yEdge = -2700.f; // FIXME
-    __device__ constexpr float z[nLayers] =
-      {8577.8691f, 7895.9189f, 9333.041, 8648.1543f, 9262.9824f, 7966.1035f}; // FIXME
-    __device__ constexpr float uv[nLayers] = {1., 1., -1., -1., 1., -1.};     // 1 for u, -1 for v //FIXME
-    __device__ constexpr float dz[nLayers] = {z[0] - hybrid_seeding::z_ref,
-                                              z[1] - hybrid_seeding::z_ref,
-                                              z[2] - hybrid_seeding::z_ref,
-                                              z[3] - hybrid_seeding::z_ref,
-                                              z[4] - hybrid_seeding::z_ref,
-                                              z[5] - hybrid_seeding::z_ref};
-    __device__ constexpr float dz2[nLayers] = {dz[0] * dz[0] * (1.f + hybrid_seeding::dRatio * dz[0]),
-                                               dz[1] * dz[1] * (1.f + hybrid_seeding::dRatio * dz[1]),
-                                               dz[2] * dz[2] * (1.f + hybrid_seeding::dRatio * dz[2]),
-                                               dz[3] * dz[3] * (1.f + hybrid_seeding::dRatio * dz[3]),
-                                               dz[4] * dz[4] * (1.f + hybrid_seeding::dRatio * dz[4]),
-                                               dz[5] * dz[5] * (1.f + hybrid_seeding::dRatio * dz[5])};
-    __device__ constexpr float dxDy[nLayers] =
-      {angle * uv[0], angle* uv[1], angle* uv[2], angle* uv[3], angle* uv[4], angle* uv[5]};
+    // matching the hardcoded vector used before {8577.8691f,7895.9189f, 9333.041, 8648.1543f, 9262.9824f, 7966.1035f}
+    constexpr unsigned uv_layers_number[nLayers] {5, 1, 10, 6, 9, 2};
   } // namespace geomInfo
 
   struct multiHitCombination {
     int number_of_hits {1};
-    int idx[SciFi::Constants::n_uvlayers] = {SciFi::Constants::INVALID_IDX};
+    unsigned idx[SciFi::Constants::n_uvlayers] = {SciFi::Constants::INVALID_IDX};
     float y[SciFi::Constants::n_uvlayers] = {0};
-    float ay;
-    float by;
+    float ay = {0};
+    float by = {0};
     float chi2;
     float p;
     float qop;
@@ -144,12 +130,86 @@ namespace seeding {
   };
 
   struct Triplet {
-    static constexpr unsigned maxTriplets = 3000;
+    static constexpr unsigned maxTriplets = 10000;
     __device__ Triplet(unsigned indices) : indices(indices) {}
     __device__ Triplet(int idx0, int idx1, int idx2) : indices((idx2 << 20) | (idx1 << 10) | idx0) {}
     __device__ int idx0() { return indices & 1023; }
     __device__ int idx1() { return (indices >> 10) & 1023; }
     __device__ int idx2() { return (indices >> 20) & 1023; }
     unsigned indices;
+  };
+
+  struct HoughSearch {
+    // uses 12 = 2 * 6 32bits registers
+    uint64_t layers[6];
+
+    // reset all sets and counts to 0
+    __device__ void reset()
+    {
+      for (int i = 0; i < 6; i++) {
+        layers[i] = 0;
+      }
+    }
+
+    // Set a bin in a given layer
+    __device__ void setBin(int layer, int bin) { layers[layer] |= 1ll << bin; }
+
+    // clear a bin in all layers and set the bin count to 0
+    __device__ void clearBin(int bin)
+    {
+      for (int i = 0; i < 3; i++) { // only clear the count part
+        layers[i] &= ~(1ll << bin);
+      }
+    }
+
+    // Count unique layers in all bins in place, count result in first 3 layers
+    __device__ void popcount()
+    {
+      // L0 + L1 (max=2, 2bits)
+      uint64_t c = layers[0] & layers[1];
+      layers[0] ^= layers[1];
+      layers[1] = c;
+
+      // L0+L1+L2 (max=3, 2bits)
+      c = layers[0] & layers[2];
+      layers[0] ^= layers[2];
+      layers[1] ^= c;
+      layers[2] = 0;
+
+      // rest (3bits)
+      for (int layer = 3; layer < 6; layer++) {
+        c = layers[layer];
+        for (int i = 0; i < 3; i++) { // add and propagate carry
+          uint64_t a = layers[i];
+          layers[i] = a ^ c;
+          c = c & a;
+        }
+      }
+    }
+
+    // Return the count for a given bin (debug purpose only)
+    __device__ int count(int bin)
+    {
+      int count = 0;
+      for (int i = 0; i < 3; i++) {
+        count += ((layers[i] >> bin) & 1) << i;
+      }
+      return count;
+    }
+
+    // Get the bin with maximum count
+    __device__ int getBestPos()
+    {
+      uint64_t mask = (uint64_t) -1;
+      for (int i = 2; i >= 0; i--) {
+        if ((layers[i] & mask) == 0) continue; // all 0, no new information, skip
+        mask &= layers[i];
+        if (!(mask & (mask - 1))) { // there is only one bit set
+          return __ffsll(mask) - 1;
+        }
+      }
+      if (mask == (uint64_t) -1) return -1; // no results
+      return __ffsll(mask) - 1;             // multiple equal result, return smallest index
+    }
   };
 } // namespace seeding

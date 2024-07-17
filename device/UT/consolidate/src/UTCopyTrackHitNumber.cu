@@ -1,7 +1,15 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "UTCopyTrackHitNumber.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(ut_copy_track_hit_number::ut_copy_track_hit_number_t)
 
@@ -10,7 +18,9 @@ void ut_copy_track_hit_number::ut_copy_track_hit_number_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_ut_track_hit_number_t>(arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments));
+  set_size<dev_offsets_ut_track_hit_number_t>(
+    arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments) + 1);
+  set_size<host_accumulated_number_of_hits_in_ut_tracks_t>(arguments, 1);
 }
 
 void ut_copy_track_hit_number::ut_copy_track_hit_number_t::operator()(
@@ -21,6 +31,9 @@ void ut_copy_track_hit_number::ut_copy_track_hit_number_t::operator()(
 {
   global_function(ut_copy_track_hit_number)(
     dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
+
+  PrefixSum::prefix_sum<dev_offsets_ut_track_hit_number_t, host_accumulated_number_of_hits_in_ut_tracks_t>(
+    *this, arguments, context);
 }
 
 /**
@@ -34,10 +47,10 @@ __global__ void ut_copy_track_hit_number::ut_copy_track_hit_number(ut_copy_track
   const auto number_of_tracks = parameters.dev_atomics_ut[event_number + 1] - parameters.dev_atomics_ut[event_number];
 
   // Pointer to ut_track_hit_number of current event.
-  unsigned* ut_track_hit_number = parameters.dev_ut_track_hit_number + accumulated_tracks;
+  unsigned* ut_track_hit_number = parameters.dev_offsets_ut_track_hit_number + accumulated_tracks;
 
   // Loop over tracks.
-  for (unsigned element = threadIdx.x; element < number_of_tracks; ++element) {
+  for (unsigned element = threadIdx.x; element < number_of_tracks; element += blockDim.x) {
     ut_track_hit_number[element] = event_tracks[element].hits_num;
   }
 }

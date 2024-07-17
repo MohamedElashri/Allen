@@ -1,5 +1,12 @@
 /*****************************************************************************\
 * (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+*                                                                             *
+* This software is distributed under the terms of the Apache License          *
+* version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
+*                                                                             *
+* In applying this licence, CERN does not waive the privileges and immunities *
+* granted to it by virtue of its status as an Intergovernmental Organization  *
+* or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
 
@@ -11,6 +18,7 @@
 #include <chrono>
 #include "BackendCommon.h"
 #include "Logger.h"
+#include "NeuralNetworkDefinition.cuh"
 
 // Forward declarations
 struct VeloGeometry;
@@ -36,6 +44,10 @@ namespace MatchUpstreamMuon {
 namespace TrackMatchingConsts {
   struct MagnetParametrization;
 }
+namespace Rich::Future::DAQ::Allen {
+  class PDMDBDecodeMapping;
+  class Tel40CableMapping;
+} // namespace Rich::Future::DAQ::Allen
 
 /**
  * @brief Struct intended as a singleton with constants defined on GPU.
@@ -47,7 +59,6 @@ namespace TrackMatchingConsts {
  *          The pointers are hard-coded. Feel free to write more as needed.
  */
 struct Constants {
-
   gsl::span<uint8_t> dev_velo_candidate_ks;
   gsl::span<uint8_t> dev_velo_sp_patterns;
   gsl::span<float> dev_velo_sp_fx;
@@ -61,20 +72,23 @@ struct Constants {
   std::vector<unsigned> host_unique_x_sector_offsets;
   std::vector<float> host_unique_sector_xs;
   std::vector<char> host_ut_boards;
+  std::vector<float> host_mean_ut_layer_zs;
+  std::vector<uint16_t> host_ut_board_geometry_map;
 
   gsl::span<char> dev_ut_geometry;
   gsl::span<float> dev_ut_dxDy;
   gsl::span<unsigned> dev_unique_x_sector_layer_offsets;
   gsl::span<unsigned> dev_unique_x_sector_offsets;
-  gsl::span<unsigned> dev_ut_region_offsets;
+  //   gsl::span<unsigned> dev_ut_region_offsets;
   gsl::span<float> dev_unique_sector_xs;
+  gsl::span<float> dev_mean_ut_layer_zs;
   char* dev_ut_boards;
   UTMagnetTool* dev_ut_magnet_tool = nullptr;
+  gsl::span<uint16_t> dev_ut_board_geometry_map;
 
   std::array<float, 9> host_inv_clus_res;
   float* dev_inv_clus_res;
 
-  // Geometry constants
   char* dev_scifi_geometry = nullptr;
   std::vector<char> host_scifi_geometry;
 
@@ -127,13 +141,48 @@ struct Constants {
   float dev_two_track_mva_lambda = 0;
   float dev_two_track_mva_nominal_cut = 0;
 
+  // ElectronID mva constants
+  float* dev_electronid_mva_weights = nullptr;
+  float* dev_electronid_mva_biases = nullptr;
+  int* dev_electronid_mva_layer_sizes = nullptr;
+  int dev_electronid_mva_n_layers = 0;
+  float* dev_electronid_mva_monotone_constraints = nullptr;
+  float* dev_electronid_mva_min_rescales = nullptr;
+  float* dev_electronid_mva_max_rescales = nullptr;
+  float dev_electronid_mva_lambda = 0;
+  float dev_electronid_mva_nominal_cut = 0;
+
   LookingForward::Constants* dev_looking_forward_constants = nullptr;
 
   // TrackMaching
   TrackMatchingConsts::MagnetParametrization* dev_magnet_parametrization = nullptr;
 
+  // GhostKillers
+  Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_ghost_killer = nullptr;
+  Allen::NeuralNetwork::Model::MatchingGhostKiller* dev_matching_ghost_killer = nullptr;
+  Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller* dev_matching_with_ut_ghost_killer = nullptr;
+  Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_no_ut_ghost_killer = nullptr;
+  Allen::NeuralNetwork::Model::DownstreamGhostKiller* dev_downstream_ghost_killer = nullptr;
+
+  // Downstream Utils
+  Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector = nullptr;
+  Allen::NeuralNetwork::Model::DownstreaCompositeQuality* dev_downstream_composite_quality_evaluator = nullptr;
+
+  // MVA selectors
+  Allen::NeuralNetwork::Model::DownstreamLambdaSelector* dev_downstream_lambda_selector = nullptr;
+  Allen::NeuralNetwork::Model::DownstreamKshortSelector* dev_downstream_kshort_selector = nullptr;
+  Allen::NeuralNetwork::Model::DownstreamDetachedLambdaSelector* dev_downstream_detached_lambda_selector = nullptr;
+  Allen::NeuralNetwork::Model::DownstreamDetachedKshortSelector* dev_downstream_detached_kshort_selector = nullptr;
+  Allen::NeuralNetwork::Model::MatchingNoUTV2GhostKiller* dev_matching_no_ut_v2_ghost_killer = nullptr;
+
   // Kalman filter
   ParKalmanFilter::KalmanParametrizations* dev_kalman_params = nullptr;
+
+  // Rich
+  std::vector<char> host_rich_pdmdb_mapping;
+  std::vector<char> host_rich_cable_mapping;
+  char* dev_rich_pdmdb_mapping;
+  char* dev_rich_cable_mapping;
 
   /**
    * @brief Reserves and initializes constants.
@@ -180,4 +229,105 @@ struct Constants {
     const std::vector<float>& monotone_constraints,
     float nominal_cut,
     float lambda);
+
+  void initialize_electronid_mva_model_constants(
+    const std::vector<float>& weights,
+    const std::vector<float>& biases,
+    const std::vector<int>& layer_sizes,
+    const int n_layers,
+    const std::vector<float>& monotone_constraints,
+    const std::vector<float>& min_rescales,
+    const std::vector<float>& max_rescales,
+    float nominal_cut,
+    float lambda);
+
+  /**
+   * @brief Initializes ghost killer constants.
+   */
+  void initialize_forward_no_ut_ghostkiller_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_forward_ghostkiller_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_matching_ghostkiller_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_downstream_ghostkiller_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_ttrack_selector_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_downstream_composite_quality_evaluator_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_downstream_kshort_selector_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_downstream_lambda_selector_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+
+  void initialize_downstream_detached_kshort_selector_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_downstream_detached_lambda_selector_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+
+  void initialize_matching_with_ut_ghostkiller_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_matching_no_ut_v2_ghostkiller_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
 };
