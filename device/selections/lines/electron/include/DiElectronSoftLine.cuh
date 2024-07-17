@@ -4,7 +4,7 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "TwoTrackLine.cuh"
+#include "CompositeParticleLine.cuh"
 #include "ROOTService.h"
 #include "MassDefinitions.h"
 
@@ -59,7 +59,7 @@ namespace di_electron_soft_line {
 
   struct di_electron_soft_line_t : public SelectionAlgorithm,
                                    Parameters,
-                                   TwoTrackLine<di_electron_soft_line_t, Parameters> {
+                                   CompositeParticleLine<di_electron_soft_line_t, Parameters> {
 
     using monitoring_types = std::tuple<
       pipi_masses_t,
