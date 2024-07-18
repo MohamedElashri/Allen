@@ -443,6 +443,12 @@ def order_algs(alg_dependencies):
             # TODO review this logic
             def _get_adjusted_weight(alg):
                 weight = get_weight(alg, algorithms_already_sortd)
+
+                # We don't want selection algorithms to get a looser mask, since the mask is part
+                # of the selection logic. So make sure they get an obscenely high weight
+                if alg._alg_type.category() == "SelectionAlgorithm":
+                    weight = 1000000.0
+
                 eval_mask = alg_dependencies[alg][2]
                 # now, lets see how the eval mask looks without the unknown outcomes
                 not_in_sortd = alg_dependencies[alg][0].difference(sortd)
