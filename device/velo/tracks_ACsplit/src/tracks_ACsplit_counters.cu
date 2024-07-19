@@ -2,6 +2,7 @@
 * (c) Copyright 2023 CERN for the benefit of the LHCb Collaboration           *
 \*****************************************************************************/
 #include "tracks_ACsplit_counters.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(tracks_ACsplit_counters::tracks_ACsplit_counters_t)
 
@@ -10,11 +11,16 @@ void tracks_ACsplit_counters::tracks_ACsplit_counters_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_number_of_velo_tracks_A_side_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_number_of_velo_tracks_C_side_t>(arguments, first<host_number_of_events_t>(arguments));
-
-  set_size<dev_number_of_three_hit_tracks_filtered_A_side_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_number_of_three_hit_tracks_filtered_C_side_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_offsets_velo_tracks_A_side_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_reconstructed_velo_tracks_A_side_t>(arguments, 1);
+  set_size<dev_offsets_velo_tracks_C_side_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_reconstructed_velo_tracks_C_side_t>(arguments, 1);
+  set_size<dev_offsets_number_of_three_hit_tracks_filtered_A_side_t>(
+    arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_three_hit_tracks_filtered_A_side_t>(arguments, 1);
+  set_size<dev_offsets_number_of_three_hit_tracks_filtered_C_side_t>(
+    arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_three_hit_tracks_filtered_C_side_t>(arguments, 1);
 }
 
 void tracks_ACsplit_counters::tracks_ACsplit_counters_t::operator()(
@@ -23,14 +29,27 @@ void tracks_ACsplit_counters::tracks_ACsplit_counters_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_number_of_velo_tracks_A_side_t>(arguments, 0, context);
-  Allen::memset_async<dev_number_of_velo_tracks_C_side_t>(arguments, 0, context);
-
-  Allen::memset_async<dev_number_of_three_hit_tracks_filtered_A_side_t>(arguments, 0, context);
-  Allen::memset_async<dev_number_of_three_hit_tracks_filtered_C_side_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_velo_tracks_A_side_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_velo_tracks_C_side_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_number_of_three_hit_tracks_filtered_A_side_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_number_of_three_hit_tracks_filtered_C_side_t>(arguments, 0, context);
 
   global_function(tracks_ACsplit_counters)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, property<splitting_algorithm_t>().get() == "A/C split");
+
+  PrefixSum::prefix_sum<dev_offsets_velo_tracks_A_side_t, host_number_of_reconstructed_velo_tracks_A_side_t>(
+    *this, arguments, context);
+
+  PrefixSum::prefix_sum<dev_offsets_velo_tracks_C_side_t, host_number_of_reconstructed_velo_tracks_C_side_t>(
+    *this, arguments, context);
+
+  PrefixSum::prefix_sum<
+    dev_offsets_number_of_three_hit_tracks_filtered_A_side_t,
+    host_number_of_three_hit_tracks_filtered_A_side_t>(*this, arguments, context);
+
+  PrefixSum::prefix_sum<
+    dev_offsets_number_of_three_hit_tracks_filtered_C_side_t,
+    host_number_of_three_hit_tracks_filtered_C_side_t>(*this, arguments, context);
 }
 
 __global__ void tracks_ACsplit_counters::tracks_ACsplit_counters(
@@ -45,12 +64,12 @@ __global__ void tracks_ACsplit_counters::tracks_ACsplit_counters(
   auto tracks_3_hit = parameters.dev_three_hit_tracks_output + tracks_offset;
 
   auto number_of_three_hit_tracks_filtered_A_side =
-    parameters.dev_number_of_three_hit_tracks_filtered_A_side + event_number;
+    parameters.dev_offsets_number_of_three_hit_tracks_filtered_A_side + event_number;
   auto number_of_three_hit_tracks_filtered_C_side =
-    parameters.dev_number_of_three_hit_tracks_filtered_C_side + event_number;
+    parameters.dev_offsets_number_of_three_hit_tracks_filtered_C_side + event_number;
 
-  auto number_of_velo_tracks_A_side = parameters.dev_number_of_velo_tracks_A_side + event_number;
-  auto number_of_velo_tracks_C_side = parameters.dev_number_of_velo_tracks_C_side + event_number;
+  auto number_of_velo_tracks_A_side = parameters.dev_offsets_velo_tracks_A_side + event_number;
+  auto number_of_velo_tracks_C_side = parameters.dev_offsets_velo_tracks_C_side + event_number;
 
   const auto event_number_of_three_hit_tracks_filtered =
     parameters.dev_offsets_number_of_three_hit_tracks_filtered[event_number + 1] -

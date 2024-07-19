@@ -24,9 +24,9 @@
 
 using Gaudi::Functional::Traits::useLegacyGaudiAlgorithm;
 
-class ProvideRuntimeOptions final : public Gaudi::Functional::Transformer<
-                                      RuntimeOptions(std::array<TransposedBanks, LHCb::RawBank::LastType> const&),
-                                      useLegacyGaudiAlgorithm> {
+class ProvideRuntimeOptions final
+  : public Gaudi::Functional::
+      Transformer<RuntimeOptions(std::array<TransposedBanks, NBankTypes> const&), useLegacyGaudiAlgorithm> {
 
 public:
   /// Standard constructor
@@ -35,7 +35,7 @@ public:
   StatusCode initialize() override;
 
   /// Algorithm execution
-  RuntimeOptions operator()(std::array<TransposedBanks, LHCb::RawBank::LastType> const& allen_banks) const override;
+  RuntimeOptions operator()(std::array<TransposedBanks, NBankTypes> const& allen_banks) const override;
 
 private:
   SmartIF<AllenROOTService> m_rootService;
@@ -59,8 +59,7 @@ StatusCode ProvideRuntimeOptions::initialize()
   });
 }
 
-RuntimeOptions ProvideRuntimeOptions::operator()(
-  std::array<TransposedBanks, LHCb::RawBank::LastType> const& allen_banks) const
+RuntimeOptions ProvideRuntimeOptions::operator()(std::array<TransposedBanks, NBankTypes> const& allen_banks) const
 {
   const unsigned number_of_repetitions = 1;
   const bool param_inject_mem_fail = false;

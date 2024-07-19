@@ -30,16 +30,12 @@ void ut_decode_in_order::ut_decode_in_order_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  global_function(ut_decode_in_order)(
-    dim3(size<dev_event_list_t>(arguments), UT::Constants::n_layers), property<block_dim_t>(), context)(
-    arguments,
-    constants.dev_ut_boards,
-    constants.dev_ut_geometry.data(),
-    constants.dev_unique_x_sector_layer_offsets.data());
+  global_function(ut_decode_in_order)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    arguments, constants.dev_ut_geometry.data(), constants.dev_unique_x_sector_layer_offsets.data());
 
   if (property<verbosity_t>() >= logger::debug) {
     auto host_ut_hits = make_host_buffer<dev_ut_hits_t>(arguments, context);
-    auto host_ut_post_clustering_offsets = make_host_buffer<dev_ut_clustering_offsets_t>(arguments, context);
+    auto host_ut_post_cluster_offsets = make_host_buffer<dev_ut_cluster_offsets_t>(arguments, context);
     auto clusters_view = UT::Hits {host_ut_hits.data(), first<host_accumulated_number_of_ut_clusters_t>(arguments)};
 
     for (unsigned i = 0; i < first<host_accumulated_number_of_ut_clusters_t>(arguments); ++i) {
@@ -51,23 +47,14 @@ void ut_decode_in_order::ut_decode_in_order_t::operator()(
 
 __device__ void decode_cluster(
   UTGeometry const& geometry,
-  UTBoards const& boards,
   UT::ConstPreDecodedHits const& ut_pre_decoded_hits,
   unsigned const hit_index,
   unsigned const unsorted_hit_index,
   UT::Hits& ut_hits)
 {
-  const auto fullChanIndex = ut_pre_decoded_hits.full_channel_index(unsorted_hit_index);
+  const auto sec = ut_pre_decoded_hits.geometry_index(unsorted_hit_index);
   const auto LHCbID = ut_pre_decoded_hits.id(unsorted_hit_index);
   const auto numstrips = ut_pre_decoded_hits.num_strips(unsorted_hit_index);
-
-  const uint32_t side = boards.sides[fullChanIndex];
-  const uint32_t layer = boards.layers[fullChanIndex];
-  const uint32_t stave = boards.staves[fullChanIndex];
-  const uint32_t face = boards.faces[fullChanIndex];
-  const uint32_t module = boards.modules[fullChanIndex];
-  const uint32_t sector = boards.sectors[fullChanIndex];
-  int sec = sector_unique_id(side, layer, stave, face, module, sector);
 
   const float pitch = geometry.pitch[sec];
   const float dy = geometry.dy[sec];
@@ -94,33 +81,31 @@ __device__ void decode_cluster(
 
 __global__ void ut_decode_in_order::ut_decode_in_order(
   ut_decode_in_order::Parameters parameters,
-  const char* ut_boards,
   const char* ut_geometry,
   const unsigned* dev_unique_x_sector_layer_offsets)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
-  const unsigned layer_number = blockIdx.y;
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 
   UT::ConstPreDecodedHits ut_pre_decoded_hits {
-    parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+    parameters.dev_ut_pre_decoded_hits,
+    parameters.dev_ut_cluster_offsets[number_of_events * number_of_unique_x_sectors]};
 
   UT::Hits ut_hits {parameters.dev_ut_hits,
-                    parameters.dev_ut_clustering_offsets[number_of_events * number_of_unique_x_sectors]};
+                    parameters.dev_ut_cluster_offsets[number_of_events * number_of_unique_x_sectors]};
 
-  const UTBoards boards(ut_boards);
   const UTGeometry geometry(ut_geometry);
 
-  const UT::HitOffsets ut_clustering_offsets {
-    parameters.dev_ut_clustering_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  const UT::HitOffsets ut_cluster_offsets {
+    parameters.dev_ut_cluster_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
 
-  const unsigned layer_offset = ut_clustering_offsets.layer_offset(layer_number);
-  const unsigned layer_number_of_hits = ut_clustering_offsets.layer_number_of_hits(layer_number);
+  const unsigned event_offset = ut_cluster_offsets.event_offset();
+  const unsigned number_of_hits = ut_cluster_offsets.event_number_of_hits();
 
-  for (unsigned i = threadIdx.x; i < layer_number_of_hits; i += blockDim.x) {
-    const unsigned hit_index = layer_offset + i;
+  for (unsigned i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
+    const unsigned hit_index = event_offset + i;
     const unsigned unsorted_hit_index = parameters.dev_ut_permutations[hit_index];
-    decode_cluster(geometry, boards, ut_pre_decoded_hits, hit_index, unsorted_hit_index, ut_hits);
+    decode_cluster(geometry, ut_pre_decoded_hits, hit_index, unsorted_hit_index, ut_hits);
   }
 }

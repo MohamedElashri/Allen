@@ -9,7 +9,6 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 import json
-from AllenCore.algorithms import host_prefix_sum_t
 from AllenCore.algorithms import (velo_lumi_counters_t, pv_lumi_counters_t,
                                   muon_lumi_counters_t, scifi_lumi_counters_t,
                                   calo_lumi_counters_t, plume_lumi_counters_t,
@@ -49,9 +48,8 @@ def get_lumi_info(lumiInfos, name):
         return dummy.dev_lumi_dummy_t
 
 
-def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size,
-                       prefix_sum_lumi_present, key, key_full, lumi_sum_length,
-                       schema):
+def lumi_summary_maker(lumiInfos, calc_lumi_sum_size, key, key_full,
+                       lumi_sum_length, schema):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
 
@@ -62,10 +60,11 @@ def lumi_summary_maker(lumiInfos, prefix_sum_lumi_size,
         encoding_key_full=key_full,
         lumi_sum_length=lumi_sum_length,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_lumi_summaries_size_t=prefix_sum_lumi_size.
-        host_total_sum_holder_t,
-        dev_lumi_summary_offsets_t=prefix_sum_lumi_size.dev_output_buffer_t,
-        dev_lumi_event_indices_t=prefix_sum_lumi_present.dev_output_buffer_t,
+        host_lumi_summaries_size_t=calc_lumi_sum_size.
+        host_lumi_summaries_size_t,
+        dev_lumi_summary_offsets_t=calc_lumi_sum_size.
+        dev_lumi_summary_offsets_t,
+        dev_lumi_event_indices_t=calc_lumi_sum_size.dev_lumi_event_indices_t,
         dev_odin_data_t=odin["dev_odin_data"],
         dev_velo_info_t=get_lumi_info(lumiInfos, "velo"),
         dev_pv_info_t=get_lumi_info(lumiInfos, "pv"),
@@ -284,16 +283,6 @@ def lumi_reconstruction(
         lumi_sum_length=lumi_sum_length,
         lumi_sum_length_full=lumi_sum_length_full)
 
-    prefix_sum_lumi_size = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_lumi_size",
-        dev_input_buffer_t=calc_lumi_sum_size.dev_lumi_sum_sizes_t)
-
-    prefix_sum_lumi_present = make_algorithm(
-        host_prefix_sum_t,
-        name="prefix_sum_lumi_present",
-        dev_input_buffer_t=calc_lumi_sum_size.dev_lumi_sum_present_t)
-
     lumiInfos = {}
     if with_velo:
         velo_states = run_velo_kalman_filter(velo_tracks)
@@ -301,10 +290,10 @@ def lumi_reconstruction(
             velo_lumi_counters_t,
             name="velo_total_tracks",
             host_number_of_events_t=number_of_events["host_number_of_events"],
-            host_lumi_summaries_count_t=prefix_sum_lumi_present.
-            host_total_sum_holder_t,
-            dev_lumi_event_indices_t=prefix_sum_lumi_present.
-            dev_output_buffer_t,
+            host_lumi_summaries_count_t=calc_lumi_sum_size.
+            host_lumi_summaries_count_t,
+            dev_lumi_event_indices_t=calc_lumi_sum_size.
+            dev_lumi_event_indices_t,
             dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
             dev_is_backward_t=velo_states["dev_is_backward"],
             dev_velo_states_view_t=velo_states[
@@ -322,10 +311,10 @@ def lumi_reconstruction(
             pv_lumi_counters_t,
             "pv_lumi_counters",
             host_number_of_events_t=number_of_events["host_number_of_events"],
-            host_lumi_summaries_count_t=prefix_sum_lumi_present.
-            host_total_sum_holder_t,
-            dev_lumi_event_indices_t=prefix_sum_lumi_present.
-            dev_output_buffer_t,
+            host_lumi_summaries_count_t=calc_lumi_sum_size.
+            host_lumi_summaries_count_t,
+            dev_lumi_event_indices_t=calc_lumi_sum_size.
+            dev_lumi_event_indices_t,
             dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
             dev_number_of_pvs_t=pvs["dev_number_of_multi_final_vertices"],
             lumi_counter_schema=schema_for_algorithms,
@@ -336,10 +325,10 @@ def lumi_reconstruction(
             scifi_lumi_counters_t,
             "scifi_lumi_counters",
             host_number_of_events_t=number_of_events["host_number_of_events"],
-            host_lumi_summaries_count_t=prefix_sum_lumi_present.
-            host_total_sum_holder_t,
-            dev_lumi_event_indices_t=prefix_sum_lumi_present.
-            dev_output_buffer_t,
+            host_lumi_summaries_count_t=calc_lumi_sum_size.
+            host_lumi_summaries_count_t,
+            dev_lumi_event_indices_t=calc_lumi_sum_size.
+            dev_lumi_event_indices_t,
             dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
             dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
             lumi_counter_schema=schema_for_algorithms,
@@ -350,15 +339,14 @@ def lumi_reconstruction(
             muon_lumi_counters_t,
             "muon_lumi_counters",
             host_number_of_events_t=number_of_events["host_number_of_events"],
-            host_lumi_summaries_count_t=prefix_sum_lumi_present.
-            host_total_sum_holder_t,
+            host_lumi_summaries_count_t=calc_lumi_sum_size.
+            host_lumi_summaries_count_t,
             host_raw_bank_version_t=decoded_muon["host_raw_bank_version"],
-            dev_lumi_event_indices_t=prefix_sum_lumi_present.
-            dev_output_buffer_t,
+            dev_lumi_event_indices_t=calc_lumi_sum_size.
+            dev_lumi_event_indices_t,
             dev_storage_station_region_quarter_offsets_t=decoded_muon[
                 "dev_storage_station_region_quarter_offsets"],
-            dev_muon_number_of_tracks_t=muon_stubs[
-                "dev_muon_number_of_tracks"],
+            dev_muon_tracks_offsets_t=muon_stubs["dev_muon_tracks_offsets"],
             dev_muon_tell_number_t=decoded_muon["dev_muon_tell_number"],
             lumi_counter_schema=schema_for_algorithms,
             lumi_counter_shifts_and_scales=shifts_and_scales_for_algorithms)
@@ -368,10 +356,10 @@ def lumi_reconstruction(
             calo_lumi_counters_t,
             "calo_lumi_counters",
             host_number_of_events_t=number_of_events["host_number_of_events"],
-            host_lumi_summaries_count_t=prefix_sum_lumi_present.
-            host_total_sum_holder_t,
-            dev_lumi_event_indices_t=prefix_sum_lumi_present.
-            dev_output_buffer_t,
+            host_lumi_summaries_count_t=calc_lumi_sum_size.
+            host_lumi_summaries_count_t,
+            dev_lumi_event_indices_t=calc_lumi_sum_size.
+            dev_lumi_event_indices_t,
             dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
             dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
             lumi_counter_schema=schema_for_algorithms,
@@ -383,23 +371,22 @@ def lumi_reconstruction(
             plume_lumi_counters_t,
             "plume_lumi_counters",
             host_number_of_events_t=number_of_events["host_number_of_events"],
-            host_lumi_summaries_count_t=prefix_sum_lumi_present.
-            host_total_sum_holder_t,
-            dev_lumi_event_indices_t=prefix_sum_lumi_present.
-            dev_output_buffer_t,
+            host_lumi_summaries_count_t=calc_lumi_sum_size.
+            host_lumi_summaries_count_t,
+            dev_lumi_event_indices_t=calc_lumi_sum_size.
+            dev_lumi_event_indices_t,
             dev_plume_t=decoded_plume["dev_plume"],
             lumi_counter_schema=schema_for_algorithms,
             lumi_counter_shifts_and_scales=shifts_and_scales_for_algorithms)
 
-    make_lumi_summary = lumi_summary_maker(
-        lumiInfos, prefix_sum_lumi_size, prefix_sum_lumi_present, key,
-        key_full, lumi_sum_length, schema_for_algorithms)
+    make_lumi_summary = lumi_summary_maker(lumiInfos, calc_lumi_sum_size, key,
+                                           key_full, lumi_sum_length,
+                                           schema_for_algorithms)
 
     return {
-        "algorithms":
-        [prefix_sum_lumi_size, *lumiInfos.values(), make_lumi_summary],
+        "algorithms": [*lumiInfos.values(), make_lumi_summary],
         "dev_lumi_summary_offsets":
-        prefix_sum_lumi_size.dev_output_buffer_t,
+        calc_lumi_sum_size.dev_lumi_summary_offsets_t,
         "dev_lumi_summaries":
         make_lumi_summary.dev_lumi_summaries_t,
         "host_lumi_summary_offsets":

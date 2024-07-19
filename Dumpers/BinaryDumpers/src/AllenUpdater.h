@@ -82,13 +82,8 @@ public:
 
   LHCb::ODIN odin() const { return m_odin ? *m_odin : LHCb::ODIN {}; }
 
-  std::unordered_set<BankTypes> const& bankTypes() const { return m_types; }
-
 private:
   Gaudi::Property<bool> m_triggerEventLoop {this, "TriggerEventLoop", false};
-  Gaudi::Property<std::vector<std::string>> m_bankTypes {this,
-                                                         "BankTypes",
-                                                         {"VP", "UT", "FTCluster", "ECal", "Muon", "Rich1", "Rich2"}};
   std::map<
     std::string,
     std::tuple<Allen::NonEventData::Producer, std::vector<std::unique_ptr<Allen::NonEventData::Consumer>>>>
@@ -100,6 +95,4 @@ private:
 
   std::mutex m_odinMutex;
   std::optional<LHCb::ODIN> m_odin = std::nullopt;
-
-  std::unordered_set<BankTypes> m_types;
 };

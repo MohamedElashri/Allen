@@ -10,7 +10,8 @@
 ###############################################################################
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenConf.persistency import make_persistency
-from AllenConf.utils import line_maker, sd_error_filter
+from AllenConf.utils import line_maker
+from AllenConf.filters import sd_error_filter
 from AllenConf.validators import rate_validation
 from AllenConf.hlt1_photon_lines import make_single_calo_cluster_line
 from AllenConf.hlt1_monitoring_lines import make_calo_digits_minADC_line, make_t_cosmic_line, make_velo_micro_bias_line
@@ -49,10 +50,9 @@ def muon_cosmic_lines(muon_stubs):
     lines = [
         line_maker(
             make_one_muon_track_line(
-                muon_stubs["dev_muon_number_of_tracks"],
                 muon_stubs["consolidated_muon_tracks"],
-                muon_stubs["dev_output_buffer"],
-                muon_stubs["host_total_sum_holder"],
+                muon_stubs["dev_muon_tracks_offsets"],
+                muon_stubs["host_muon_total_number_of_tracks"],
                 name="Hlt1OneMuonStub"))
     ]
     return lines

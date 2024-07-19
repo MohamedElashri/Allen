@@ -26,7 +26,8 @@ namespace FilterSVTrack {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_svs_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_svs;
     DEVICE_INPUT(dev_tracks_t, Allen::Views::Physics::MultiEventBasicParticles) dev_tracks;
-    DEVICE_OUTPUT(dev_combination_number_t, unsigned) dev_combination_number;
+    DEVICE_OUTPUT(dev_combination_offsets_t, unsigned) dev_combination_offsets;
+    HOST_OUTPUT(host_number_of_combinations_t, unsigned) host_number_of_combinations;
     DEVICE_OUTPUT(dev_sv_idx_t, unsigned) dev_sv_idx;
     DEVICE_OUTPUT(dev_track_idx_t, unsigned) dev_track_idx;
 

@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "DownstreamCreateTracks.cuh"
+#include <PrefixSum.cuh>
 
 /**
  * @file DownstreamCreateTracks.cu
@@ -29,26 +30,148 @@ void downstream_create_tracks::downstream_create_tracks_t::set_arguments_size(
   const Constants&) const
 {
   // outputs
-  using UT::DownstreamTracks;
   set_size<dev_downstream_tracks_t>(
-    arguments, first<host_number_of_events_t>(arguments) * DownstreamTracks::TotalMemorySize);
-  set_size<dev_num_downstream_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
+    arguments, first<host_number_of_events_t>(arguments) * UT::Constants::max_num_tracks);
+  set_size<dev_offsets_downstream_tracks_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_number_of_downstream_tracks_t>(arguments, 1);
 }
 
 void downstream_create_tracks::downstream_create_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants&,
+  const Constants& constants,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_num_downstream_tracks_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_downstream_tracks_t>(arguments, 0, context);
+
+  const auto dev_unique_x_sector_layer_offsets = constants.dev_unique_x_sector_layer_offsets.data();
+  const auto dev_magnet_polarity = constants.dev_magnet_polarity.data();
+  const auto dev_ut_dxDy = constants.dev_ut_dxDy.data();
 
   // Create tracks
   global_function(downstream_create_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+    arguments,
+    dev_unique_x_sector_layer_offsets,
+    dev_ut_dxDy,
+    dev_magnet_polarity,
+    constants.dev_downstream_ghost_killer);
+
+  PrefixSum::prefix_sum<dev_offsets_downstream_tracks_t, host_number_of_downstream_tracks_t>(*this, arguments, context);
 }
 
-__global__ void downstream_create_tracks::downstream_create_tracks(downstream_create_tracks::Parameters parameters)
+namespace {
+  struct fitresult_t {
+    float a, b;
+    float chi2;
+  };
+
+  __device__ inline fitresult_t
+  fit_3points(const float x0, const float z0, const float x1, const float z1, const float x2, const float z2)
+  {
+    float ATA[3] = {0, 0, 0};
+    float ATY[2] = {0, 0};
+
+    if (!std::isnan(x0)) {
+      ATA[0] += 1;
+      ATA[1] += z0;
+      ATA[2] += z0 * z0;
+      ATY[0] += x0;
+      ATY[1] += x0 * z0;
+    }
+    if (!std::isnan(x1)) {
+      ATA[0] += 1;
+      ATA[1] += z1;
+      ATA[2] += z1 * z1;
+      ATY[0] += x1;
+      ATY[1] += x1 * z1;
+    }
+    if (!std::isnan(x2)) {
+      ATA[0] += 1;
+      ATA[1] += z2;
+      ATA[2] += z2 * z2;
+      ATY[0] += x2;
+      ATY[1] += x2 * z2;
+    }
+
+    // Determinant
+    const auto det = ATA[0] * ATA[2] - ATA[1] * ATA[1];
+
+    // Solve ax, bx, cx
+    fitresult_t fr;
+    fr.a = ATY[0] * (ATA[2]) + ATY[1] * (-ATA[1]);
+    fr.b = ATY[0] * (-ATA[1]) + ATY[1] * (ATA[0]);
+    fr.a /= det;
+    fr.b /= det;
+
+    // Compute chi2
+    fr.chi2 = ((fr.a + fr.b * z0) - x0) * ((fr.a + fr.b * z0) - x0) +
+              ((fr.a + fr.b * z1) - x1) * ((fr.a + fr.b * z1) - x1) +
+              ((fr.a + fr.b * z2) - x2) * ((fr.a + fr.b * z2) - x2);
+
+    return fr;
+  }
+
+  __device__ inline fitresult_t fit_3points_plus_slope(
+    const float y0,
+    const float z0,
+    const float y1,
+    const float z1,
+    const float y2,
+    const float z2,
+    const float ty3)
+  {
+    float ATA[3] = {0, 0, 1.f};
+    float ATY[2] = {0, ty3};
+
+    if (!std::isnan(y0)) {
+      ATA[0] += 1.f;
+      ATA[1] += z0;
+      ATA[2] += z0 * z0;
+      ATY[0] += y0;
+      ATY[1] += y0 * z0;
+    }
+    if (!std::isnan(y1)) {
+      ATA[0] += 1.f;
+      ATA[1] += z1;
+      ATA[2] += z1 * z1;
+      ATY[0] += y1;
+      ATY[1] += y1 * z1;
+    }
+    if (!std::isnan(y2)) {
+      ATA[0] += 1.f;
+      ATA[1] += z2;
+      ATA[2] += z2 * z2;
+      ATY[0] += y2;
+      ATY[1] += y2 * z2;
+    }
+
+    // Determinant
+    const auto det = ATA[0] * ATA[2] - ATA[1] * ATA[1];
+
+    // Solve ax, bx, cx
+    fitresult_t fr;
+    fr.a = ATY[0] * (ATA[2]) + ATY[1] * (-ATA[1]);
+    fr.b = ATY[0] * (-ATA[1]) + ATY[1] * (ATA[0]);
+    fr.a /= det;
+    fr.b /= det;
+
+    // Compute chi2
+    fr.chi2 = ((fr.a + fr.b * z0) - y0) * ((fr.a + fr.b * z0) - y0) +
+              ((fr.a + fr.b * z1) - y1) * ((fr.a + fr.b * z1) - y1) +
+              ((fr.a + fr.b * z2) - y2) * ((fr.a + fr.b * z2) - y2) + (fr.b - ty3) * (fr.b - ty3);
+
+    fr.chi2 /= 2; // 4 - 2
+
+    return fr;
+  }
+} // namespace
+
+__global__ void downstream_create_tracks::downstream_create_tracks(
+  downstream_create_tracks::Parameters parameters,
+  const unsigned* dev_unique_x_sector_layer_offsets,
+  const float* dev_ut_dxDy,
+  const float* dev_magnet_polarity,
+  const Allen::NeuralNetwork::Model::DownstreamGhostKiller* dev_downstream_ghostkiller)
 {
   ///////////////////////////////////////////////////////
   //
@@ -58,26 +181,30 @@ __global__ void downstream_create_tracks::downstream_create_tracks(downstream_cr
 
   // Basic
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
+  const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  // Load scifi information
-  using Downstream::DownstreamParameters::MaxNumDownstreamSciFi;
-  const auto selected_scifi_offset = parameters.dev_selected_scifi_offsets + event_number * (MaxNumDownstreamSciFi + 1);
-  const auto selected_scifi = parameters.dev_selected_scifi + event_number * (MaxNumDownstreamSciFi);
-  const auto selected_scifi_qop = parameters.dev_selected_scifi_qop + event_number * (MaxNumDownstreamSciFi);
-  const auto selected_scifi_chi2Y = parameters.dev_selected_scifi_chi2Y + event_number * (MaxNumDownstreamSciFi);
-  const auto num_selected_scifi = parameters.dev_num_selected_scifi[event_number];
+  // Fetch found hits
+  const auto findhits_outputs =
+    parameters.dev_findhits_output + event_number * Downstream::DownstreamParameters::MaxNumCandidates;
+  const auto findhits_selected_scifi_tracks = parameters.dev_findhits_selected_scifi_tracks +
+                                              event_number * Downstream::DownstreamParameters::MaxNumDownstreamSciFi;
 
-  // Load output table from Find Hits
-  using Downstream::DownstreamStructs::FindHits_OutputTable_Const;
-  const auto memory_find_hits_table =
-    parameters.dev_find_hits_output_table + event_number * FindHits_OutputTable_Const::TotalMemorySize;
-  FindHits_OutputTable_Const find_hits_table {memory_find_hits_table};
+  const auto findhits_num_selected_scifi = parameters.dev_findhits_num_selected_scifi[event_number];
+  const auto findhits_output_selected_scifi_offsets =
+    parameters.dev_findhits_output_selected_scifi_offsets +
+    event_number * (Downstream::DownstreamParameters::MaxNumDownstreamSciFi + 1);
 
-  // Prepare output
-  using UT::DownstreamTracks;
-  auto output_memory = parameters.dev_downstream_tracks + event_number * DownstreamTracks::TotalMemorySize;
-  auto num_output_tracks = parameters.dev_num_downstream_tracks + event_number;
-  DownstreamTracks output_tracks {output_memory};
+  // Load UT information
+  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
+  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
+  const UT::HitOffsets ut_hit_offsets {
+    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  const auto event_hit_offset = ut_hit_offsets.event_offset();
+  UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits, event_hit_offset};
+
+  // Ouptut
+  auto downstream_tracks = parameters.dev_downstream_tracks + event_number * UT::Constants::max_num_tracks;
+  auto num_downstream_tracks = parameters.dev_offsets_downstream_tracks + event_number;
 
   ///////////////////////////////////////////////////////
   //
@@ -85,26 +212,16 @@ __global__ void downstream_create_tracks::downstream_create_tracks(downstream_cr
   //
   ///////////////////////////////////////////////////////
   __shared__ unsigned shared_num_downstream_tracks;
-  __shared__ unsigned shared_num_downstream_tracks_after_clone_killing;
-  __shared__ ushort shared_scifi[UT::Constants::max_num_tracks];
-  __shared__ ushort shared_hits[UT::Constants::max_num_tracks];
-  __shared__ ushort shared_bests[UT::Constants::max_num_tracks];
-  __shared__ float shared_scores[UT::Constants::max_num_tracks];
-  __shared__ bool shared_killed[UT::Constants::max_num_tracks];
+  __shared__ bool clone_label[UT::Constants::max_num_tracks];
 
-  ///////////////////////////////////////////////////////
-  //
-  // I n i t i a l i z a t i o n
-  //
-  ///////////////////////////////////////////////////////
-
-  // Reset
+  // Reset values
   if (threadIdx.x == 0) {
     shared_num_downstream_tracks = 0;
-    shared_num_downstream_tracks_after_clone_killing = 0;
   };
+  for (unsigned i = threadIdx.x; i < UT::Constants::max_num_tracks; i += blockDim.x) {
+    clone_label[i] = false;
+  }
   __syncthreads();
-
   ///////////////////////////////////////////////////////
   //
   // A l g o r i t h m    s t a r t s
@@ -114,137 +231,181 @@ __global__ void downstream_create_tracks::downstream_create_tracks(downstream_cr
   //
   // Find best candidates
   //
-  for (unsigned short scifi_idx = threadIdx.x; scifi_idx < num_selected_scifi; scifi_idx += blockDim.x) {
-    const auto row_begin = selected_scifi_offset[scifi_idx];
-    const auto row_end = selected_scifi_offset[scifi_idx + 1];
+  for (unsigned scifi_idx = threadIdx.x; scifi_idx < findhits_num_selected_scifi; scifi_idx += blockDim.x) {
+    const auto candidate_idx_begin = findhits_output_selected_scifi_offsets[scifi_idx];
+    const auto candidate_idx_end = findhits_output_selected_scifi_offsets[scifi_idx + 1];
 
     using Downstream::DownstreamHelpers::BestCandidateManager;
-    BestCandidateManager<short> track_candidate_manager;
-    for (unsigned short row = row_begin; row < row_end; row++) {
-      track_candidate_manager.add(row, find_hits_table.score(row));
+    BestCandidateManager<unsigned> track_candidate_manager;
+    for (unsigned short candidate_idx = candidate_idx_begin; candidate_idx < candidate_idx_end; candidate_idx++) {
+      track_candidate_manager.add(candidate_idx, findhits_outputs[candidate_idx].score);
     }
 
-    const auto best_score = track_candidate_manager.score();
+    // Skip this seed if none candidate are valid
+    if (!track_candidate_manager.exist()) continue;
 
-    // Skip all invalid seeds
-    if (best_score == Allen::numeric_limits<float>::infinity()) continue;
-
-    // Store the output
+    // Best candidate!
     const auto best_candidate = track_candidate_manager.best();
-    if (shared_num_downstream_tracks < UT::Constants::max_num_tracks) {
-      const auto idx = atomicAdd(&shared_num_downstream_tracks, 1u);
+    const auto findhits_output = findhits_outputs[best_candidate];
 
-      shared_bests[idx] = best_candidate;
-      shared_scores[idx] = best_score;
-      shared_scifi[idx] = scifi_idx;
-      shared_killed[idx] = false;
+    //
+    // Fitting the state
+    //
+    using SciFi::Constants::ZEndT;
+    using UT::Constants::zMidUT;
+    constexpr auto INVALID_HIT = Downstream::DownstreamStructs::DownstreamHits::INVALID_HIT;
+    constexpr auto NaN = std::numeric_limits<float>::quiet_NaN();
+
+    // Fetch hits
+    const auto hit_0 = findhits_output.hits[0];
+    const auto hit_1 = findhits_output.hits[1];
+    const auto hit_2 = findhits_output.hits[2];
+    const auto hit_3 = findhits_output.hits[3];
+
+    const auto num_hits =
+      (hit_0 != INVALID_HIT) + (hit_1 != INVALID_HIT) + (hit_2 != INVALID_HIT) + (hit_3 != INVALID_HIT);
+
+    const auto dz0 = (hit_0 != INVALID_HIT) ? (ut_hits.zAtYEq0(hit_0) - zMidUT) : NaN;
+    const auto dz1 = (hit_1 != INVALID_HIT) ? (ut_hits.zAtYEq0(hit_1) - zMidUT) : NaN;
+    const auto dz2 = (hit_2 != INVALID_HIT) ? (ut_hits.zAtYEq0(hit_2) - zMidUT) : NaN;
+    const auto dz3 = (hit_3 != INVALID_HIT) ? (ut_hits.zAtYEq0(hit_3) - zMidUT) : NaN;
+
+    const auto xAtYEq0_0 = (hit_0 != INVALID_HIT) ? (ut_hits.xAtYEq0(hit_0)) : NaN;
+    const auto xAtYEq0_1 = (hit_1 != INVALID_HIT) ? (ut_hits.xAtYEq0(hit_1)) : NaN;
+    const auto xAtYEq0_2 = (hit_2 != INVALID_HIT) ? (ut_hits.xAtYEq0(hit_2)) : NaN;
+    const auto xAtYEq0_3 = (hit_3 != INVALID_HIT) ? (ut_hits.xAtYEq0(hit_3)) : NaN;
+
+    // Fetch SciFi info
+    const auto findhits_selected_scifi_track = findhits_selected_scifi_tracks[scifi_idx];
+    const auto ft_idx = findhits_selected_scifi_track.scifi_idx;
+    const auto ft_tx = findhits_selected_scifi_track.tx;
+    const auto ft_ty = findhits_selected_scifi_track.ty;
+    const auto ft_y = findhits_selected_scifi_track.y;
+    const auto ft_chi2 = findhits_selected_scifi_track.chi2;
+    const auto xMag = findhits_selected_scifi_track.xMagnet;
+    const auto zMag = findhits_selected_scifi_track.zMagnet;
+
+    // Fit XZ
+    const auto fr_xz = fit_3points(xAtYEq0_0, dz0, xAtYEq0_3, dz3, xMag, zMag - zMidUT);
+    const auto ut_x = fr_xz.a;
+    const auto ut_tx = fr_xz.b;
+    const auto ut_chi2x = fr_xz.chi2;
+
+    // Fit YZ
+    const auto x1 = ut_x + ut_tx * dz1;
+    const auto x2 = ut_x + ut_tx * dz2;
+    const auto fr_yz = fit_3points_plus_slope(
+      (x1 - xAtYEq0_1) / dev_ut_dxDy[1], dz1, (x2 - xAtYEq0_2) / dev_ut_dxDy[2], dz2, ft_y, ZEndT - zMidUT, ft_ty);
+    const auto ut_y = fr_yz.a;
+    const auto ut_ty = fr_yz.b;
+    const auto ut_chi2y = fr_yz.chi2;
+
+    // Distances
+    auto dist0 = (xAtYEq0_0) - (ut_x + ut_tx * dz0);
+    auto dist1 = (xAtYEq0_1 + dev_ut_dxDy[1] * (ut_y + ut_ty * dz1)) - (ut_x + ut_tx * dz1);
+    auto dist2 = (xAtYEq0_2 + dev_ut_dxDy[2] * (ut_y + ut_ty * dz2)) - (ut_x + ut_tx * dz2);
+    auto dist3 = (xAtYEq0_3) - (ut_x + ut_tx * dz3);
+
+    if (std::isnan(dist0)) {
+      dist0 = dist3;
     }
+    if (std::isnan(dist1)) {
+      dist1 = dist2;
+    }
+    if (std::isnan(dist2)) {
+      dist2 = dist1;
+    }
+    if (std::isnan(dist3)) {
+      dist3 = dist0;
+    }
+
+    // Ghost killing
+    const auto eta = asinhf(1.f / hypotf(ut_tx, ut_ty));
+    float ghost_killer_input[Allen::NeuralNetwork::Model::DownstreamGhostKiller::nInput] = {
+      dist1 + dist2,
+      dist0,
+      dist3,
+      ft_chi2,
+      eta,
+      ut_x,
+      ut_y,
+      ut_tx,
+      ut_ty,
+      ft_tx - ut_tx,
+      ft_y - (ut_y + ut_ty * (ZEndT - zMidUT))};
+    const auto ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_downstream_ghostkiller, ghost_killer_input);
+
+    if (ghost_killer_score > parameters.ghost_killer_threshold) continue;
+
+    if (shared_num_downstream_tracks >= UT::Constants::max_num_tracks) continue;
+
+    const auto idx = atomicAdd(&shared_num_downstream_tracks, 1u);
+
+    auto& output_track = downstream_tracks[idx];
+
+    output_track.x = ut_x;
+    output_track.y = ut_y;
+    output_track.tx = ut_tx;
+    output_track.ty = ut_ty;
+    output_track.qop = Downstream::DownstreamExtrapolation::Physics::qop(ut_tx, ut_ty, ft_tx, *dev_magnet_polarity);
+    output_track.chi2 = ut_chi2x + ut_chi2y;
+    output_track.ghost_prob = ghost_killer_score;
+    output_track.scifi_idx = ft_idx;
+    output_track.num_hits = num_hits;
+    output_track.hits[0] = hit_0;
+    output_track.hits[1] = hit_1;
+    output_track.hits[2] = hit_2;
+    output_track.hits[3] = hit_3;
   }
   __syncthreads();
 
   //
   // Clone killing
   //
-  for (unsigned short layer = 0; layer < UT::Constants::n_layers; layer += 3) {
-    // Cache hits
-    for (unsigned short candidate_idx = threadIdx.x; candidate_idx < shared_num_downstream_tracks;
-         candidate_idx += blockDim.x) {
-      shared_hits[candidate_idx] = find_hits_table.hit(shared_bests[candidate_idx], layer);
-    }
-    __syncthreads();
+  for (unsigned track_1_idx = threadIdx.x; track_1_idx < shared_num_downstream_tracks; track_1_idx += blockDim.x) {
+    if (clone_label[track_1_idx] == true) continue;
 
-    // Kill clone
-    for (unsigned short current_idx = threadIdx.x; current_idx < shared_num_downstream_tracks;
-         current_idx += blockDim.x) {
-      const auto current_hit = shared_hits[current_idx];
-      const auto current_score = shared_scores[current_idx];
+    auto& track_1 = downstream_tracks[track_1_idx];
 
-      if (current_hit == Allen::numeric_limits<ushort>::invalid()) continue;
+    for (unsigned track_2_idx = track_1_idx + 1; track_2_idx < shared_num_downstream_tracks; track_2_idx += 1) {
+      auto& track_2 = downstream_tracks[track_2_idx];
 
-      for (unsigned short rest_idx = current_idx + 1; rest_idx < shared_num_downstream_tracks; rest_idx++) {
-        const auto rest_hit = shared_hits[rest_idx];
-        const auto rest_score = shared_scores[rest_idx];
+      int shared_hits = 0;
+      if (track_1.hits[0] == track_2.hits[0]) {
+        shared_hits += 1;
+      };
+      if (track_1.hits[1] == track_2.hits[1]) {
+        shared_hits += 1;
+      };
+      if (track_1.hits[2] == track_2.hits[2]) {
+        shared_hits += 1;
+      };
+      if (track_1.hits[3] == track_2.hits[3]) {
+        shared_hits += 1;
+      };
 
-        // Find the clone
-        if (current_hit != rest_hit) continue;
-
-        // Find the idx for killed candidate
-        const auto killed_idx = (current_score < rest_score) ? rest_idx : current_idx;
-
-        // Kill it!
-        if (!shared_killed[killed_idx]) shared_killed[killed_idx] = true;
-      }
-    }
-    __syncthreads();
-  }
-
-  //
-  // Build the track
-  //
-  for (unsigned short candidate_idx = threadIdx.x; candidate_idx < shared_num_downstream_tracks;
-       candidate_idx += blockDim.x) {
-    if (shared_killed[candidate_idx]) continue;
-
-    // Apply beam pipe cuts
-    const auto best_candidate = shared_bests[candidate_idx];
-    using Downstream::DownstreamExtrapolation::ExtrapolateTrack;
-    ExtrapolateTrack exTrack {find_hits_table.xMagnet(best_candidate),
-                              find_hits_table.yMagnet(best_candidate),
-                              find_hits_table.zMagnet(best_candidate),
-                              find_hits_table.tx(best_candidate),
-                              find_hits_table.ty(best_candidate),
-                              find_hits_table.qop(best_candidate)};
-
-    // Get extra information about good candidate
-    const auto scifi_idx = shared_scifi[candidate_idx];
-    const auto chi2 = shared_scores[candidate_idx];
-
-    // Get SciFi information
-    const auto scifi = selected_scifi[scifi_idx];
-    const auto scifi_qop = selected_scifi_qop[scifi_idx];
-    const auto scifi_chi2Y = selected_scifi_chi2Y[scifi_idx];
-
-    // Prepare the input for ghost killer
-    using UT::Constants::zMidUT;
-    const auto xMidUT = exTrack.xAtZ(zMidUT);
-    const auto yMidUT = exTrack.yAtZ(zMidUT);
-    const auto qop = exTrack.qop();
-    using Downstream::DownstreamGhostKiller::Model::num_input;
-    float ghost_killer_input[num_input] = {
-      xMidUT, yMidUT, exTrack.tx(), exTrack.ty(), chi2, qop, scifi_chi2Y, scifi_qop};
-
-    // Run the ghost killer
-    const auto ghost_killer_score = Downstream::DownstreamGhostKiller::evaluate(ghost_killer_input);
-    if (ghost_killer_score > parameters.ghost_killer_threshold) continue;
-
-    // Store the result
-    if (shared_num_downstream_tracks_after_clone_killing < UT::Constants::max_num_tracks) {
-      const auto idx = atomicAdd(&shared_num_downstream_tracks_after_clone_killing, 1u);
-
-      // Add hits
-      using UT::Constants::n_layers;
-      output_tracks.n_hits(idx) = n_layers;
-
-      Downstream::DownstreamHelpers::unwind<0, n_layers>(
-        [&](int layer) { output_tracks.hits(idx, layer) = find_hits_table.hit(best_candidate, layer); });
-
-      // Add state
-      output_tracks.scifi(idx) = scifi;
-      output_tracks.tx(idx) = exTrack.tx();
-      output_tracks.ty(idx) = exTrack.ty();
-      output_tracks.x(idx) = xMidUT;
-      output_tracks.y(idx) = yMidUT;
-      output_tracks.qop(idx) = exTrack.qop();
-      output_tracks.chi2(idx) = chi2;
-    }
-  }
+      if (shared_hits >= 2) {
+        if (track_1.ghost_prob <= track_2.ghost_prob) {
+          // if (track_1.chi2 <= track_2.chi2) {
+          clone_label[track_2_idx] = true;
+        }
+        else {
+          clone_label[track_1_idx] = true;
+          break;
+        };
+      };
+    };
+  };
   __syncthreads();
 
-  //
-  // Finish the algorithm
-  //
-  if (threadIdx.x == 0) {
-    num_output_tracks[0] = shared_num_downstream_tracks_after_clone_killing;
-  }
-  __syncthreads();
+  // Collapse
+  for (unsigned i = threadIdx.x; i < shared_num_downstream_tracks; i += blockDim.x) {
+    auto track = downstream_tracks[i];
+    __syncthreads();
+    if (clone_label[i] != true) {
+      unsigned idx = atomicAdd(num_downstream_tracks, 1u);
+      downstream_tracks[idx] = track;
+    }
+    __syncthreads();
+  };
 }

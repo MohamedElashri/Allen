@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "CalcMaxCombos.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(CalcMaxCombos::calc_max_combos_t)
 
@@ -17,7 +18,8 @@ void CalcMaxCombos::calc_max_combos_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_max_combos_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_max_combo_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_max_combos_t>(arguments, 1);
 }
 
 void CalcMaxCombos::calc_max_combos_t::operator()(
@@ -26,9 +28,11 @@ void CalcMaxCombos::calc_max_combos_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_max_combos_t>(arguments, 0, context);
+  Allen::memset_async<dev_max_combo_offsets_t>(arguments, 0, context);
   global_function(calc_max_combos)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
+
+  PrefixSum::prefix_sum<dev_max_combo_offsets_t, host_max_combos_t>(*this, arguments, context);
 }
 
 __global__ void CalcMaxCombos::calc_max_combos(CalcMaxCombos::Parameters parameters)
@@ -52,7 +56,7 @@ __global__ void CalcMaxCombos::calc_max_combos(CalcMaxCombos::Parameters paramet
 
   const auto mec2 = parameters.dev_input2[0];
   if (mec1 == mec2) {
-    parameters.dev_max_combos[event_number] = n_input1 * (n_input1 - 1) / 2;
+    parameters.dev_max_combo_offsets[event_number] = n_input1 * (n_input1 - 1) / 2;
     return;
   }
 
@@ -70,6 +74,6 @@ __global__ void CalcMaxCombos::calc_max_combos(CalcMaxCombos::Parameters paramet
     }
   }
 
-  parameters.dev_max_combos[event_number] = n_input1 * n_input2;
+  parameters.dev_max_combo_offsets[event_number] = n_input1 * n_input2;
   return;
 }

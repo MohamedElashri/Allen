@@ -23,7 +23,8 @@ namespace calo_seed_clusters {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
-    DEVICE_OUTPUT(dev_ecal_num_clusters_t, unsigned) dev_ecal_num_clusters;
+    DEVICE_OUTPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
+    HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
     DEVICE_OUTPUT(dev_ecal_seed_clusters_t, CaloSeedCluster) dev_ecal_seed_clusters;
     DEVICE_OUTPUT(dev_ecal_digit_is_seed_t, unsigned) dev_ecal_digit_is_seed;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;

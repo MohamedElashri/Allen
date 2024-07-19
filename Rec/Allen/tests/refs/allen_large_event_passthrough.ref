@@ -5,6 +5,12 @@ HLTControlFlowMgr                      INFO  o Number of events slots: 1
 HLTControlFlowMgr                      INFO  o TBB thread pool size:  'ThreadPoolSize':1
 ApplicationMgr                         INFO Application Manager Initialized successfully
 Setting number of slices to 2
+  global_decision
+  host_routingbits_writer
+  make_selected_object_lists
+  make_subbanks
+  make_selreps
+  rate_validator
 ApplicationMgr                         INFO Application Manager Started successfully
 HLTControlFlowMgr                      INFO Will measure time between events 0 and 0 (stop might be some events later)
 HLTControlFlowMgr                      INFO Starting loop on events
@@ -33,6 +39,8 @@ NONLAZY_OR: allen_non_event_data               #=1       Sum=1           Eff=|( 
  AllenODINProducer/AllenODINProducer_e608fece  #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpBeamline/DeviceBeamline                   #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpVPGeometry/DeviceVPGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+ DumpUTGeometry/DeviceUTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
+ DumpUTLookupTables/DeviceUTLookupTables       #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpCaloGeometry/DeviceCaloGeometry           #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpMagneticField/DeviceMagneticField         #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|
  DumpFTGeometry/DeviceFTGeometry               #=1       Sum=1           Eff=|( 100.0000 +- 0.00000 )%|

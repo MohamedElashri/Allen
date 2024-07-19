@@ -16,6 +16,7 @@
 
 namespace TrackMatchingConsts {
   static constexpr unsigned max_num_tracks = 1000; // to do: what is the best / safest value here?
+  static constexpr unsigned max_combination_multiplicity = 4;
 
   constexpr float z_match = 5240.0f; // FIXME_GEOMETRY_HARDCODING
   constexpr float zMatchY = 10000.f; // in mm

@@ -63,4 +63,11 @@ namespace Checker {
     __device__ __host__ int nIDs() const { return sizeof(allids) / sizeof(allids[0]); }
   };
   using Tracks = std::vector<Track>;
+
+  struct Composite {
+    Track TrackA, TrackB;
+    unsigned idx = 0;
+  };
+  using Composites = std::vector<Composite>;
+
 } // namespace Checker

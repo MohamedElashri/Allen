@@ -16,13 +16,11 @@
 #include <cuda_runtime_api.h>
 #endif
 
-#include <cuda_runtime.h>
 #include <iomanip>
 #include <cuda_fp16.h>
 #define half_t half
 constexpr int warp_size = 32;
 #define __bswap(x) __byte_perm(x, x, 0x0123)
-#define __fdividef(x, y) ((x) / (y))
 
 // Support for dynamic shared memory buffers
 #define DYNAMIC_SHARED_MEMORY_BUFFER(_type, _instance, _config) extern __shared__ _type _instance[];
@@ -86,7 +84,8 @@ __attribute__((always_inline, const)) __device__ inline uint32_t __lanemask_ge()
   return mask;
 }
 
-__attribute__((always_inline, const)) inline __device__ uint32_t conflict_mask(uint32_t mask, uint32_t l) noexcept
+template<typename T>
+__attribute__((always_inline, const)) inline __device__ uint32_t conflict_mask(uint32_t mask, T l) noexcept
 {
 #if __CUDA_ARCH__ >= 700
   return __match_any_sync(mask, l);

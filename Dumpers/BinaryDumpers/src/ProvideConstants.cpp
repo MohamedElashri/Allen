@@ -104,7 +104,6 @@ StatusCode ProvideConstants::initialize()
     muon_catboost_model_reader.split_feature());
 
   LipschitzNNModelReader two_track_mva_model_reader {geometry_path + "/allen_two_track_mva_model_June22.json"};
-  LipschitzNNModelReader electronid_mva_model_reader {geometry_path + "/CaloPID/electron_mva_AllenFeb2024.json"};
 
   m_constants.initialize_two_track_mva_model_constants(
     two_track_mva_model_reader.weights(),
@@ -144,9 +143,99 @@ StatusCode ProvideConstants::initialize()
     matching_ghostkiller_reader.weights2(),
     matching_ghostkiller_reader.bias2());
 
+  SingleLayerFCNNReader downstream_ghostkiller_reader {geometry_path +
+                                                       "/GhostProbability/Hlt1_DownstreamGhostKiller.json"};
+  m_constants.initialize_downstream_ghostkiller_constants(
+    downstream_ghostkiller_reader.mean(),
+    downstream_ghostkiller_reader.std(),
+    downstream_ghostkiller_reader.weights1(),
+    downstream_ghostkiller_reader.bias1(),
+    downstream_ghostkiller_reader.weights2(),
+    downstream_ghostkiller_reader.bias2());
+
+  SingleLayerFCNNReader matching_with_ut_ghostkiller_reader {
+    geometry_path + "/GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT.json"};
+  m_constants.initialize_matching_with_ut_ghostkiller_constants(
+    matching_with_ut_ghostkiller_reader.mean(),
+    matching_with_ut_ghostkiller_reader.std(),
+    matching_with_ut_ghostkiller_reader.weights1(),
+    matching_with_ut_ghostkiller_reader.bias1(),
+    matching_with_ut_ghostkiller_reader.weights2(),
+    matching_with_ut_ghostkiller_reader.bias2());
+  SingleLayerFCNNReader matching_no_ut_v2_ghostkiller_reader {
+    geometry_path + "/GhostProbability/Hlt1_LongGhostKiller_MatchingNoUT_V2.json"};
+
+  m_constants.initialize_matching_no_ut_v2_ghostkiller_constants(
+    matching_no_ut_v2_ghostkiller_reader.mean(),
+    matching_no_ut_v2_ghostkiller_reader.std(),
+    matching_no_ut_v2_ghostkiller_reader.weights1(),
+    matching_no_ut_v2_ghostkiller_reader.bias1(),
+    matching_no_ut_v2_ghostkiller_reader.weights2(),
+    matching_no_ut_v2_ghostkiller_reader.bias2());
+
   // std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, matching_no_ut_ghostkiller_reader,
   // forward_ghostkiller_reader, matching_ghostkiller_reader;
 
+  SingleLayerFCNNReader ttrack_selector_reader {geometry_path + "/HLT1Downstream/Hlt1_Downstream_TTrackSelector.json"};
+  m_constants.initialize_ttrack_selector_constants(
+    ttrack_selector_reader.mean(),
+    ttrack_selector_reader.std(),
+    ttrack_selector_reader.weights1(),
+    ttrack_selector_reader.bias1(),
+    ttrack_selector_reader.weights2(),
+    ttrack_selector_reader.bias2());
+
+  SingleLayerFCNNReader downstream_composite_quality_reader {geometry_path +
+                                                             "/HLT1Downstream/Hlt1_Downstream_Composite_Quality.json"};
+  m_constants.initialize_downstream_composite_quality_evaluator_constants(
+    downstream_composite_quality_reader.mean(),
+    downstream_composite_quality_reader.std(),
+    downstream_composite_quality_reader.weights1(),
+    downstream_composite_quality_reader.bias1(),
+    downstream_composite_quality_reader.weights2(),
+    downstream_composite_quality_reader.bias2());
+
+  SingleLayerFCNNReader downstream_lambda_selector_reader {geometry_path +
+                                                           "/HLT1Downstream/Hlt1_Downstream_LambdaSelector.json"};
+  m_constants.initialize_downstream_lambda_selector_constants(
+    downstream_lambda_selector_reader.mean(),
+    downstream_lambda_selector_reader.std(),
+    downstream_lambda_selector_reader.weights1(),
+    downstream_lambda_selector_reader.bias1(),
+    downstream_lambda_selector_reader.weights2(),
+    downstream_lambda_selector_reader.bias2());
+
+  SingleLayerFCNNReader downstream_kshort_selector_reader {geometry_path +
+                                                           "/HLT1Downstream/Hlt1_Downstream_KshortSelector.json"};
+  m_constants.initialize_downstream_kshort_selector_constants(
+    downstream_kshort_selector_reader.mean(),
+    downstream_kshort_selector_reader.std(),
+    downstream_kshort_selector_reader.weights1(),
+    downstream_kshort_selector_reader.bias1(),
+    downstream_kshort_selector_reader.weights2(),
+    downstream_kshort_selector_reader.bias2());
+
+  SingleLayerFCNNReader downstream_detached_lambda_selector_reader {
+    geometry_path + "/HLT1Downstream/Hlt1_Downstream_DetachedLambdaSelector.json"};
+  m_constants.initialize_downstream_detached_lambda_selector_constants(
+    downstream_detached_lambda_selector_reader.mean(),
+    downstream_detached_lambda_selector_reader.std(),
+    downstream_detached_lambda_selector_reader.weights1(),
+    downstream_detached_lambda_selector_reader.bias1(),
+    downstream_detached_lambda_selector_reader.weights2(),
+    downstream_detached_lambda_selector_reader.bias2());
+
+  SingleLayerFCNNReader downstream_detached_kshort_selector_reader {
+    geometry_path + "/HLT1Downstream/Hlt1_Downstream_DetachedKshortSelector.json"};
+  m_constants.initialize_downstream_detached_kshort_selector_constants(
+    downstream_detached_kshort_selector_reader.mean(),
+    downstream_detached_kshort_selector_reader.std(),
+    downstream_detached_kshort_selector_reader.weights1(),
+    downstream_detached_kshort_selector_reader.bias1(),
+    downstream_detached_kshort_selector_reader.weights2(),
+    downstream_detached_kshort_selector_reader.bias2());
+
+  LipschitzNNModelReader electronid_mva_model_reader {geometry_path + "/CaloPID/electron_mva_AllenFeb2024.json"};
   m_constants.initialize_electronid_mva_model_constants(
     electronid_mva_model_reader.weights(),
     electronid_mva_model_reader.biases(),
@@ -159,7 +248,11 @@ StatusCode ProvideConstants::initialize()
     electronid_mva_model_reader.lambda());
 
   // Allen Consumers
-  register_consumers(m_updater.get(), m_constants, m_updater->bankTypes());
+  std::unordered_set<BankTypes> subdetectors;
+  for (unsigned bt = 0; bt < NBankTypes; ++bt) {
+    subdetectors.insert(static_cast<BankTypes>(bt));
+  }
+  register_consumers(m_updater.get(), m_constants, subdetectors);
 
   return StatusCode::SUCCESS;
 }

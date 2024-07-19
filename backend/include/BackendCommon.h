@@ -199,6 +199,8 @@ __device__ inline auto compress_float_to_16_bits(const float f)
 #endif
 }
 
+#define DIV_CEIL(x, y) (((x) + (y) -1) / (y))
+
 // Numeric limits
 namespace Allen {
   template<typename T>
@@ -222,4 +224,13 @@ namespace Allen {
   struct numeric_limits<ushort> {
     __host__ __device__ static constexpr ushort invalid() noexcept { return USHRT_MAX; };
   };
+
+  [[noreturn]] __host__ __device__ __forceinline__ void unreachable()
+  {
+#if defined(_MSC_VER) && !defined(__clang__) // MSVC
+    __assume(false);
+#else // GCC, Clang
+    __builtin_unreachable();
+#endif
+  }
 } // namespace Allen

@@ -128,6 +128,7 @@ namespace SciFi {
     float* globaldy;
     float* average_z;
     float* average_dxdy;
+    std::array<float, 128 * 4>* matEndCalibrationVector;
 
     __device__ __host__ SciFiGeometry() {}
 
@@ -200,6 +201,8 @@ namespace SciFi {
       p += sizeof(float) * number_of_layers;
       average_dxdy = (float*) p;
       p += sizeof(float) * number_of_layers;
+      matEndCalibrationVector = (std::array<float, 128 * 4>*) p;
+      p += sizeof(float) * max_uniqueMat * 128 * 4; // fix me
 
       size = p - geometry;
     }

@@ -62,6 +62,12 @@ namespace VP {
   static constexpr unsigned ChipColumns_division = 8;
   static constexpr unsigned ChipColumns_mask = 0xFF;
   static constexpr double Pitch = 0.055;
+
+  static constexpr unsigned number_of_clusters_in_SP(uint8_t sp)
+  {
+    // 2 halfs are linked or one of the half is empty
+    return 1 + !(((sp & 0x22) != 0 && (sp & 0x44) != 0) || (sp & 0x33) == 0 || (sp & 0xCC) == 0);
+  }
 } // namespace VP
 
 namespace Velo {

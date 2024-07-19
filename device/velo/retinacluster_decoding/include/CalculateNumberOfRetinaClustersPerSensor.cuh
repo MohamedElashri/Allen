@@ -23,7 +23,8 @@ namespace calculate_number_of_retinaclusters_each_sensor_pair {
     DEVICE_INPUT(dev_velo_retina_raw_input_sizes_t, uint) dev_velo_retina_raw_input_sizes;
     DEVICE_INPUT(dev_velo_retina_raw_input_types_t, uint) dev_velo_retina_raw_input_types;
     DEVICE_OUTPUT(dev_retina_bank_index_t, uint) dev_retina_bank_index;
-    DEVICE_OUTPUT(dev_each_sensor_pair_size_t, uint) dev_each_sensor_pair_size;
+    DEVICE_OUTPUT(dev_offsets_each_sensor_pair_size_t, unsigned) dev_offsets_each_sensor_pair_size;
+    HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim_prop;
   };
 

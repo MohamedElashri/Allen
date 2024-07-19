@@ -14,7 +14,8 @@ from AllenConf.hlt1_calibration_lines import make_passthrough_line
 from AllenConf.persistency import make_global_decision, make_routingbits_writer, rb_map
 from AllenConf.odin import decode_odin, make_bxtype, odin_error_filter, tae_filter
 from AllenCore.algorithms import data_provider_t
-from AllenConf.utils import line_maker, make_tae_activity_filter
+from AllenConf.utils import line_maker
+from AllenConf.filters import make_tae_activity_filter
 from AllenConf.validators import rate_validation
 from AllenConf.hlt1_reconstruction import hlt1_reconstruction
 from AllenConf.enum_types import TrackingType, includes_matching

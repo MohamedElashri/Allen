@@ -24,14 +24,22 @@ namespace tracks_ACsplit_counters {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
 
     // Velo side A
-    DEVICE_OUTPUT(dev_number_of_three_hit_tracks_filtered_A_side_t, unsigned)
-    dev_number_of_three_hit_tracks_filtered_A_side;
-    DEVICE_OUTPUT(dev_number_of_velo_tracks_A_side_t, unsigned) dev_number_of_velo_tracks_A_side;
+    DEVICE_OUTPUT(dev_offsets_number_of_three_hit_tracks_filtered_A_side_t, unsigned)
+    dev_offsets_number_of_three_hit_tracks_filtered_A_side;
+    HOST_OUTPUT(host_number_of_three_hit_tracks_filtered_A_side_t, unsigned)
+    host_number_of_three_hit_tracks_filtered_A_side;
+    DEVICE_OUTPUT(dev_offsets_velo_tracks_A_side_t, unsigned) dev_offsets_velo_tracks_A_side;
+    HOST_OUTPUT(host_number_of_reconstructed_velo_tracks_A_side_t, unsigned)
+    host_number_of_reconstructed_velo_tracks_A_side;
 
     // Velo side C
-    DEVICE_OUTPUT(dev_number_of_three_hit_tracks_filtered_C_side_t, unsigned)
-    dev_number_of_three_hit_tracks_filtered_C_side;
-    DEVICE_OUTPUT(dev_number_of_velo_tracks_C_side_t, unsigned) dev_number_of_velo_tracks_C_side;
+    DEVICE_OUTPUT(dev_offsets_number_of_three_hit_tracks_filtered_C_side_t, unsigned)
+    dev_offsets_number_of_three_hit_tracks_filtered_C_side;
+    HOST_OUTPUT(host_number_of_three_hit_tracks_filtered_C_side_t, unsigned)
+    host_number_of_three_hit_tracks_filtered_C_side;
+    DEVICE_OUTPUT(dev_offsets_velo_tracks_C_side_t, unsigned) dev_offsets_velo_tracks_C_side;
+    HOST_OUTPUT(host_number_of_reconstructed_velo_tracks_C_side_t, unsigned)
+    host_number_of_reconstructed_velo_tracks_C_side;
 
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     PROPERTY(splitting_algorithm_t, "splitting_algorithm", "splitting_algorithm", std::string);

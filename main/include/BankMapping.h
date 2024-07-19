@@ -19,15 +19,16 @@
 namespace Allen {
   const std::unordered_map<LHCb::RawBank::BankType, std::unordered_set<BankTypes>> bank_mapping = {
     {LHCb::RawBank::VP, {BankTypes::VP}},
-    {LHCb::RawBank::Velo, {BankTypes::VP}},
     {LHCb::RawBank::VPRetinaCluster, {BankTypes::VP}},
     {LHCb::RawBank::UT, {BankTypes::UT}},
+    {LHCb::RawBank::UTError, {BankTypes::UT}},
     {LHCb::RawBank::FTCluster, {BankTypes::FT}},
     {LHCb::RawBank::Muon, {BankTypes::MUON}},
+    {LHCb::RawBank::MuonError, {BankTypes::MUON}},
     {LHCb::RawBank::ODIN, {BankTypes::ODIN}},
     {LHCb::RawBank::HcalPacked, {BankTypes::HCal}},
     {LHCb::RawBank::EcalPacked, {BankTypes::ECal}},
-    {LHCb::RawBank::Calo, {BankTypes::ECal}},
+    {LHCb::RawBank::Calo, {BankTypes::ECal, BankTypes::HCal}},
     {LHCb::RawBank::Rich, {BankTypes::Rich1, BankTypes::Rich2}},
     {LHCb::RawBank::OTError, {BankTypes::MCVertices}}, // used for PV MC info
     {LHCb::RawBank::OTRaw, {BankTypes::MCTracks}},

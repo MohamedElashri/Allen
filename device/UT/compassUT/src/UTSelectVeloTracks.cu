@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #include "UTSelectVeloTracks.cuh"
 #include <tuple>
+#include "WarpIntrinsicsTools.cuh"
 
 INSTANTIATE_ALGORITHM(ut_select_velo_tracks::ut_select_velo_tracks_t)
 
@@ -52,7 +53,7 @@ __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_trac
     if (
       !backward && parameters.dev_accepted_velo_tracks[velo_tracks.offset() + i] &&
       velo_track_in_UTA_acceptance(velo_state)) {
-      int current_track = atomicAdd(ut_number_of_selected_velo_tracks, 1);
+      int current_track = Allen::warp::atomic_increment(ut_number_of_selected_velo_tracks);
       ut_selected_velo_tracks[current_track] = i;
     }
   }

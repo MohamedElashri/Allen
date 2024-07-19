@@ -51,17 +51,6 @@ StatusCode AllenUpdater::initialize()
     }
   }
 
-  for (auto type : m_bankTypes.value()) {
-    auto bt = ::bank_type(type);
-    if (bt == BankTypes::Unknown) {
-      error() << "Failed to obtain bank type for " << type << endmsg;
-      return StatusCode::FAILURE;
-    }
-    else {
-      m_types.insert(bt);
-    }
-  }
-
   return StatusCode::SUCCESS;
 }
 
@@ -103,7 +92,7 @@ void AllenUpdater::registerProducer(string const& id, Allen::NonEventData::Produ
 void AllenUpdater::update(gsl::span<unsigned const> odin_data)
 {
   {
-    std::unique_lock {m_odinMutex};
+    std::scoped_lock lock {m_odinMutex};
     LHCb::ODIN odin {odin_data};
     if (m_odin && m_odin->runNumber() == odin.runNumber()) {
       return;

@@ -17,6 +17,7 @@
 // Event Model
 #include "UTConsolidated.cuh"
 #include "SciFiConsolidated.cuh"
+#include "PV_Definitions.cuh"
 
 #include "AllenMonitoring.h"
 
@@ -41,10 +42,24 @@ namespace downstream_make_particles {
     DEVICE_INPUT(dev_downstream_track_states_view_t, Allen::Views::Physics::KalmanStates)
     dev_downstream_track_states_view;
 
+    // PV input
+    DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
+    DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
+
+    // PV association result
+    DEVICE_OUTPUT(dev_downstream_particles_pv_t, const PV::Vertex*) dev_downstream_particles_pv;
+    DEVICE_OUTPUT(dev_downstream_particles_ip_t, float) dev_downstream_particles_ip;
+
+    // Lepton ID
+    DEVICE_INPUT(dev_lepton_id_t, uint8_t) dev_lepton_id;
+
     // Outputs
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_downstream_track_particle_view_t,
-      DEPENDENCIES(dev_multi_event_downstream_tracks_view_t, dev_downstream_track_states_view_t),
+      DEPENDENCIES(
+        dev_multi_event_downstream_tracks_view_t,
+        dev_downstream_track_states_view_t,
+        dev_downstream_particles_ip_t),
       Allen::Views::Physics::BasicParticle)
     dev_downstream_track_particle_view;
 
@@ -69,12 +84,14 @@ namespace downstream_make_particles {
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void downstream_make_particles(
-    Parameters,
+  __global__ void downstream_create_particles_views(
+    Parameters parameters,
     Allen::Monitoring::Histogram<>::DeviceType dev_histogram_n_trks,
     Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_eta,
     Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_phi,
     Allen::Monitoring::Histogram<>::DeviceType dev_histogram_trk_pt);
+
+  __global__ void downstream_make_particles(Parameters parameters, const float* dev_magnet_polarity);
 
   struct downstream_make_particles_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;

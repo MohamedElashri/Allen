@@ -154,7 +154,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
   set_size<dev_long_tracks_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_multi_event_long_tracks_view_t>(arguments, 1);
   set_size<dev_multi_event_long_tracks_ptr_t>(arguments, 1);
-  set_size<dev_used_scifi_hits_t>(arguments, first<host_scifi_hit_count_t>(arguments));
+  set_size<dev_used_scifi_hits_t>(arguments, first<host_scifi_hit_count_t>(arguments) / 32 + 1);
   set_size<dev_accepted_and_unused_velo_tracks_t>(arguments, size<dev_accepted_velo_tracks_t>(arguments));
 }
 
@@ -329,7 +329,7 @@ __device__ void scifi_consolidate_tracks_impl(
       track,
       [&consolidated_hits, &scifi_hits, &event_offset, &used_scifi_hits](const unsigned i, const unsigned hit_index) {
         consolidated_hits.x0(i) = scifi_hits.x0(event_offset + hit_index);
-        used_scifi_hits[event_offset + hit_index] = 1;
+        atomicOr(&used_scifi_hits[(event_offset + hit_index) / 32], 1 << ((event_offset + hit_index) % 32));
       });
 
     populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {

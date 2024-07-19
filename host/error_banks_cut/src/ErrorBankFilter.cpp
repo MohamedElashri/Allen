@@ -51,7 +51,7 @@ void error_bank_filter::error_bank_filter_t::set_arguments_size(
   set_size<host_number_of_selected_events_t>(arguments, 1);
   set_size<dev_output_event_list_t>(arguments, n_events);
   set_size<host_output_event_list_t>(arguments, n_events);
-  set_size<host_temp_counts_t>(arguments, 5 * LHCb::RawBank::LastType);
+  set_size<host_temp_counts_t>(arguments, 5 * LHCb::RawBank::LastType + 256);
 }
 
 void error_bank_filter::error_bank_filter_t::init()
@@ -81,26 +81,36 @@ void error_bank_filter::error_bank_filter_t::init()
     return types_set;
   };
 
-  auto setup_histogram = [this, &names_to_types](
-                           std::vector<std::string>& names,
+  auto setup_histogram = [this](
+                           std::vector<LHCb::RawBank::BankType> const& types,
                            bin_mapping_t& mapping,
                            std::unique_ptr<Gaudi::Accumulators::Histogram<1>>& histogram,
                            std::string histo_name) {
-    auto types = names_to_types(names);
-    names.clear();
-    std::transform(
-      types.begin(), types.end(), std::back_inserter(names), [](auto bt) { return LHCb::RawBank::typeName(bt); });
+    std::vector<std::string> labels;
+    labels.reserve(types.size());
+    std::transform(types.begin(), types.end(), std::back_inserter(labels), [](auto bt) {
+      if (bt < LHCb::RawBank::LastType) {
+        return LHCb::RawBank::typeName(bt);
+      }
+      else if (bt == LHCb::RawBank::LastType) {
+        return std::string {"LastType"};
+      }
+      else {
+        return std::to_string(static_cast<int>(bt));
+      }
+    });
 
-    mapping.fill(LHCb::RawBank::LastType);
+    mapping.fill(static_cast<LHCb::RawBank::BankType>(256));
     for (size_t i = 0; i < types.size(); ++i) {
       mapping[types[i]] = i;
     }
 
-    histogram.reset(new Gaudi::Accumulators::Histogram<1> {
+    auto* histo = new Gaudi::Accumulators::Histogram<1> {
       this,
       histo_name,
       histo_name,
-      {static_cast<unsigned>(names.size()), -0.5, names.size() - 0.5, "Bank Type", names}});
+      {static_cast<unsigned>(labels.size()), -0.5, labels.size() - 0.5, "Bank Type", labels}};
+    histogram.reset(histo);
   };
 
   for (auto const& [sd, bank_names] : sd_bank_types) {
@@ -124,12 +134,23 @@ void error_bank_filter::error_bank_filter_t::init()
     sd_names.insert(sd_names.end(), bank_names.other_types.begin(), bank_names.other_types.end());
     sd_names.insert(sd_names.end(), sd_error_names.begin(), sd_error_names.end());
 
+    auto sd_types = names_to_types(sd_names);
+    std::vector<LHCb::RawBank::BankType> all_types, other_types;
+    for (int i = 0; i < 256; ++i) {
+      all_types.push_back(static_cast<LHCb::RawBank::BankType>(i));
+    }
+
+    other_types.reserve(all_types.size() - sd_types.size());
+    std::set_difference(
+      all_types.begin(), all_types.end(), sd_types.begin(), sd_types.end(), std::back_inserter(other_types));
+
     auto& sd_info = it->second;
     sd_info.sd = sd_type;
     sd_info.data_bank_types = names_to_types_set(bank_names.data_types);
     sd_info.other_bank_types = names_to_types_set(bank_names.other_types);
     sd_info.error_bank_types = names_to_types_set(sd_error_names);
-    setup_histogram(sd_names, sd_info.mapping, sd_info.banks, sd + "_banks");
+    setup_histogram(sd_types, sd_info.mapping, sd_info.banks, sd + "_banks");
+    setup_histogram(other_types, sd_info.unexpected_mapping, sd_info.unexpected_banks, sd + "_unexpected_banks");
     sd_info.error = std::make_unique<Gaudi::Accumulators::Counter<>>(this, "n_" + sd + "_error_banks");
     sd_info.invalid_type = std::make_unique<Gaudi::Accumulators::Counter<>>(this, "n_" + sd + "_invalid_bank_types");
   }
@@ -143,12 +164,12 @@ void error_bank_filter::error_bank_filter_t::init()
         std::ref(other_names), std::ref(m_other_bin_mapping), std::ref(m_other_banks), std::string {"n_other_banks"}},
       std::tuple {
         std::ref(error_names), std::ref(m_error_bin_mapping), std::ref(m_error_banks), std::string {"n_error_banks"}}},
-    [&setup_histogram](auto entry) {
+    [&setup_histogram, &names_to_types](auto entry) {
       auto& names = std::get<0>(entry).get();
       auto& mapping = std::get<1>(entry).get();
       auto& histo = std::get<2>(entry);
       auto const& histo_name = std::get<3>(entry);
-      setup_histogram(names, mapping, histo, histo_name);
+      setup_histogram(names_to_types(names), mapping, histo, histo_name);
     });
 
   // Setup the histogram that is filled on the top 5 bits of the
@@ -218,6 +239,7 @@ void error_bank_filter::error_bank_filter_t::error_bank_filter(
   auto sd_counts = bin_storage.subspan(3 * LHCb::RawBank::LastType, LHCb::RawBank::LastType);
   // Don't need this many counts, but let's stick with it
   auto source_counts = bin_storage.subspan(4 * LHCb::RawBank::LastType, LHCb::RawBank::LastType);
+  auto unexpected_counts = bin_storage.subspan(5 * LHCb::RawBank::LastType, 256);
 
   auto add_counts = [](Gaudi::Accumulators::Histogram<1>& histo, gsl::span<float> counts) {
     for (size_t i = 0; i < histo.nBins(0); ++i) {
@@ -227,6 +249,7 @@ void error_bank_filter::error_bank_filter_t::error_bank_filter(
 
   for (auto& [sd_name, sd_info] : m_sd_info) {
     std::memset(sd_counts.data(), 0, sd_counts.size_bytes());
+    std::memset(unexpected_counts.data(), 0, unexpected_counts.size_bytes());
     unsigned error_count = 0, invalid_count = 0;
 
     auto bno = input_provider->banks(sd_info.sd, slice_index);
@@ -242,29 +265,29 @@ void error_bank_filter::error_bank_filter_t::error_bank_filter(
     auto const* offsets = bno.offsets.data();
     auto const mep_layout = parameters.mep_layout[0];
 
-    auto const& data_bank_types = sd_info.data_bank_types;
-    auto const& other_bank_types = sd_info.other_bank_types;
-    auto const& error_bank_types = sd_info.error_bank_types;
-
     auto count_bank = [this,
                        sd_counts,
                        data_counts,
                        other_counts,
                        error_counts,
                        source_counts,
+                       unexpected_counts,
                        &error_count,
                        &invalid_count,
-                       &data_bank_types,
-                       &other_bank_types,
-                       &error_bank_types,
                        &sd_info](uint8_t const bank_type, unsigned const source_id) {
+      auto const& data_bank_types = sd_info.data_bank_types;
+      auto const& other_bank_types = sd_info.other_bank_types;
+      auto const& error_bank_types = sd_info.error_bank_types;
+
       if (bank_type >= LHCb::RawBank::BankType::LastType) {
         ++invalid_count;
         return false;
       }
 
+      bool filter = false;
+
       auto const sd_bin = sd_info.mapping[bank_type];
-      ++sd_counts[sd_bin];
+      if (sd_bin < sd_counts.size()) ++sd_counts[sd_bin];
 
       if (data_bank_types.count(bank_type)) {
         auto const bin = m_data_bin_mapping[bank_type];
@@ -279,9 +302,13 @@ void error_bank_filter::error_bank_filter_t::error_bank_filter(
         auto const bin = m_error_bin_mapping[bank_type];
         ++error_counts[bin];
         ++source_counts[SourceId_sys(static_cast<uint16_t>(source_id & 0xFFFF))];
-        return true;
+        filter = true;
       }
-      return false;
+      else {
+        auto const bin = sd_info.unexpected_mapping[bank_type];
+        if (bin < unexpected_counts.size()) ++unexpected_counts[bin];
+      }
+      return filter;
     };
 
     if (mep_layout) {
@@ -318,6 +345,7 @@ void error_bank_filter::error_bank_filter_t::error_bank_filter(
     *sd_info.invalid_type += invalid_count;
     *sd_info.error += error_count;
     add_counts(*sd_info.banks, sd_counts);
+    add_counts(*sd_info.unexpected_banks, unexpected_counts);
   }
 
   for_each(

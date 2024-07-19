@@ -9,16 +9,16 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter, filter_tracks_for_material_interactions, make_velo_tracks_ACsplit
-from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks
+from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks, create_reduced_ut_container
 from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
-from AllenConf.downstream_reconstruction import make_downstream
-from AllenConf.muon_reconstruction import decode_muon, is_muon, chi2muon, fake_muon_id, make_muon_stubs
+from AllenConf.downstream_reconstruction import make_downstream, fit_downstream_secondary_vertices
+from AllenConf.muon_reconstruction import decode_muon, chi2muon, is_muon, fake_muon_id, make_muon_stubs
 from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters, make_electronid_nn
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import (
     make_kalman_velo_only, make_basic_particles, fit_secondary_vertices,
-    make_sv_track_pairs, make_sv_pairs)
+    make_sv_track_pairs, make_sv_pairs, make_generic_sv_pairs)
 from AllenConf.validators import (
     velo_validation, veloUT_validation, seeding_validation,
     seeding_xz_validation, long_validation, muon_validation, pv_validation,
@@ -28,7 +28,7 @@ from AllenConf.validators import (
 from PyConf.control_flow import NodeLogic, CompositeNode
 from PyConf.tonic import configurable
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer
-from AllenConf.utils import make_gec
+from AllenConf.filters import make_gec
 from AllenConf.best_track_creator import best_track_creator
 from AllenConf.enum_types import TrackingType
 
@@ -80,15 +80,21 @@ def hlt1_reconstruction(algorithm_name='',
             algorithm_name=algorithm_name)
 
         if with_ut and enableDownstream:
+            reduced_ut_hits = create_reduced_ut_container(
+                decoded_ut, ut_tracks['dev_used_ut_hits_offsets'])
+
             # Downstream tracking
             downstream_tracks = make_downstream(
-                decoded_ut=decoded_ut,
-                # ut_tracks=ut_tracks,
+                decoded_ut=reduced_ut_hits,
                 scifi_seeds=long_tracks["seeding_tracks"],
-                velo_scifi_matches=long_tracks['matched_tracks'])
+                velo_scifi_matches=long_tracks['matched_tracks'],
+                pvs=pvs)
             output.update({"downstream_tracks": downstream_tracks})
 
-        output.update({"seeding_tracks": long_tracks["seeding_tracks"]})
+        output.update({
+            "seeding_tracks": long_tracks["seeding_tracks"],
+            "forward_tracks": long_tracks["forward_tracks"]
+        })
     elif tracking_type == TrackingType.MATCHING:
         decoded_scifi = decode_scifi()
         seed_xz_tracks = make_seeding_XZ_tracks(decoded_scifi)
@@ -101,6 +107,7 @@ def hlt1_reconstruction(algorithm_name='',
             velo_tracks,
             velo_states,
             seed_tracks,
+            ut_hits=decode_ut() if with_ut else None,
             matching_consolidate_tracks_name=algorithm_name +
             'matching_consolidate_tracks_matching')
         output.update({"seeding_tracks": seed_tracks})
@@ -109,7 +116,10 @@ def hlt1_reconstruction(algorithm_name='',
             downstream_tracks = make_downstream(
                 decoded_ut=decoded_ut,
                 scifi_seeds=seed_tracks,
-                velo_scifi_matches=long_tracks)
+                velo_scifi_matches=long_tracks,
+                pvs=pvs,
+                dev_used_ut_hits_offsets=long_tracks[
+                    'dev_used_ut_hits_offsets'])
             output.update({"downstream_tracks": downstream_tracks})
 
     elif tracking_type == TrackingType.FORWARD:
@@ -140,7 +150,8 @@ def hlt1_reconstruction(algorithm_name='',
         chi2Corr = chi2muon(long_tracks, muonID)
         muonID.update(chi2Corr)
     else:
-        muonID = fake_muon_id(long_tracks)
+        muonID = fake_muon_id(host_number_of_tracks=long_tracks[
+            'host_number_of_reconstructed_scifi_tracks'])
     kalman_velo_only = make_kalman_velo_only(long_tracks, pvs, muonID)
 
     output.update({
@@ -288,6 +299,31 @@ def hlt1_reconstruction(algorithm_name='',
 
     v0_pairs = make_sv_pairs(v0s)
 
+    v0_hh_pairs = make_generic_sv_pairs(
+        v0s,
+        dihadrons,
+        maxVertexChi2=10.,
+        minMassV1=450.,
+        maxMassV1=550.,
+        minPtV1=900.,
+        minCosDiraV1=0.9999,
+        minEtaV1=2,
+        maxEtaV1=5,
+        minTrackPtV1=250.,
+        minTrackPV1=2500.,
+        minTrackIPChi2V1=-999.,
+        minTrackIPV1=0.25,
+        minMassV2=250.,
+        maxMassV2=1700.,
+        minPtV2=750.,
+        minCosDiraV2=0.999,
+        minEtaV2=2,
+        maxEtaV2=5,
+        minTrackPtV2=250.,
+        minTrackPV2=2500.,
+        minTrackIPChi2V2=-999.,
+        minTrackIPV2=0.06)
+
     output.update({
         "long_track_particles": long_track_particles,
         "dihadron_secondary_vertices": dihadrons,
@@ -297,8 +333,16 @@ def hlt1_reconstruction(algorithm_name='',
         "lambda_track_from_c": lambda_track_from_c,
         "v0_sv_twotrack_pairs": v0_twotrack_pairs,
         "dstars": dstars,
-        "v0_pairs": v0_pairs
+        "v0_pairs": v0_pairs,
+        "v0_hh_pairs": v0_hh_pairs,
     })
+
+    if 'downstream_tracks' in output:
+        output.update({
+            'downstream_secondary_vertices':
+            fit_downstream_secondary_vertices(output['downstream_tracks'],
+                                              pvs),
+        })
 
     if with_rich:
         from AllenConf.rich_reconstruction import decode_rich
@@ -438,6 +482,12 @@ def validator_node(reconstructed_objects,
             downstream_validation(reconstructed_objects["downstream_tracks"])
         ]
 
+    if "forward_tracks" in reconstructed_objects:
+        validators += [
+            long_validation(
+                reconstructed_objects["forward_tracks"],
+                name="forward_validator")
+        ]
     validators += [long_validation(reconstructed_objects["long_tracks"])]
 
     if with_muon:

@@ -23,17 +23,20 @@
 namespace Downstream {
   namespace DownstreamHelpers {
 
-    // Helper to force the compiler to unroll a loop
-    template<int Start, int End, int Step = 1, typename F, typename... Args>
-    constexpr inline __attribute__((always_inline)) void unwind(F const& f, Args&&... args)
+    template<unsigned NumIteration, typename f_t, typename fprime_t>
+    __device__ inline float find_root(f_t const& f, fprime_t const& fprime, const float x0)
     {
-      static_assert(Step != 0);
-      static_assert((Step > 0 && Start <= End) || (Step < 0 && Start >= End));
-      if constexpr (Start != End) {
-        f(std::integral_constant<int, Start> {}, args...);
-        unwind<Start + Step, End, Step>(f, args...);
+      float x = x0;
+#if (defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__))
+#pragma unroll
+#endif
+      for (unsigned i = 0; i < NumIteration; i++) {
+        const auto h = f(x) / fprime(x);
+        x -= h;
       }
+      return x;
     }
+
     template<typename T, unsigned MaxSize, bool AbsoluteScore = false>
     struct MultiCandidateManager {
       // Intern struct

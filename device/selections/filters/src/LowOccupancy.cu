@@ -52,7 +52,8 @@ __global__ void low_occupancy::low_occupancy(
     Velo::Consolidated::ConstTracks velo_tracks {
       parameters.dev_offsets_velo_tracks, parameters.dev_offsets_velo_track_hit_number, event_number, number_of_events};
     const unsigned number_of_velo_tracks = velo_tracks.number_of_tracks(event_number);
-    const unsigned ecal_number_of_clusters = parameters.dev_ecal_number_of_clusters[event_number];
+    const unsigned ecal_number_of_clusters =
+      parameters.dev_ecal_cluster_offsets[event_number + 1] - parameters.dev_ecal_cluster_offsets[event_number];
 
     if (
       number_of_velo_tracks >= parameters.minTracks && number_of_velo_tracks < parameters.maxTracks &&

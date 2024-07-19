@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #include "BinarySearch.cuh"
 #include "memory_optim.cuh"
+#include <PrefixSum.cuh>
 
 #include "seed_confirmTracks.cuh"
 
@@ -27,18 +28,15 @@ void seed_confirmTracks::seed_confirmTracks_t::set_arguments_size(
 {
   int sizeTracks = first<host_number_of_events_t>(arguments) * SciFi::Constants::Nmax_seeds;
   int sizeInts = first<host_number_of_events_t>(arguments);
-  // host outputs
-  set_size<host_seeding_tracks_t>(arguments, sizeTracks);
-  set_size<host_seeding_number_of_tracks_t>(arguments, sizeInts);
 
   // working memory
   set_size<dev_hits_working_mem_t>(arguments, size<dev_scifi_hits_t>(arguments) / sizeof(SciFi::ConstHits));
   set_size<dev_count_hits_working_mem_t>(arguments, 1);
 
-  // device outputs
-  set_size<dev_seeding_number_of_tracks_t>(arguments, sizeInts);
+  // outputs
   set_size<dev_seeding_tracks_t>(arguments, sizeTracks);
-  set_size<dev_seeding_confirmTracks_atomics_t>(arguments, sizeInts);
+  set_size<dev_offsets_seeding_tracks_t>(arguments, sizeInts + 1);
+  set_size<host_seeding_number_of_tracks_t>(arguments, 1);
 }
 
 namespace seed_confirmTracks {
@@ -66,12 +64,14 @@ void seed_confirmTracks::seed_confirmTracks_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_seeding_confirmTracks_atomics_t>(arguments, 0, context);
   Allen::memset_async<dev_count_hits_working_mem_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_seeding_tracks_t>(arguments, 0, context);
 
   auto kernel = (m_use_hough_search.get_value()) ? global_function(seed_confirmTracks<true>) :
                                                    global_function(seed_confirmTracks<false>);
   kernel(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(arguments);
+
+  PrefixSum::prefix_sum<dev_offsets_seeding_tracks_t, host_seeding_number_of_tracks_t>(*this, arguments, context);
 }
 
 __device__ unsigned
@@ -331,8 +331,7 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
       });
   } // end the loop on parts
   if (threadIdx.x == 0) {
-    parameters.dev_seeding_number_of_tracks[event_number] = shiftCaseTracks;
-    parameters.dev_seeding_confirmTracks_atomics[event_number] = shiftCaseTracks;
+    parameters.dev_offsets_seeding_tracks[event_number] = shiftCaseTracks;
   }
 }
 

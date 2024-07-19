@@ -11,6 +11,7 @@
 #include "MakeSelectedObjectLists.cuh"
 #include "SelectionsEventModel.cuh"
 #include "HltDecReport.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(make_selected_object_lists::make_selected_object_lists_t)
 
@@ -28,8 +29,8 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
   set_size<dev_sel_list_t>(arguments, first<host_number_of_events_t>(arguments) * host_dec_reports.number_of_lines());
 
   // For keeping track of selected candidates.
-  set_size<dev_candidate_count_t>(
-    arguments, host_dec_reports.number_of_lines() * first<host_number_of_events_t>(arguments));
+  set_size<dev_candidate_offsets_t>(
+    arguments, host_dec_reports.number_of_lines() * first<host_number_of_events_t>(arguments) + 1);
   set_size<dev_sel_track_count_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_sel_calo_count_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_sel_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -69,14 +70,20 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
   set_size<dev_unique_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
 
   // Bank sizes.
-  set_size<dev_selrep_size_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_hits_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_substr_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<dev_rb_hits_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_hits_bank_size_t>(arguments, 1);
+  set_size<dev_rb_substr_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_substr_bank_size_t>(arguments, 1);
+  set_size<dev_rb_objtyp_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_objtyp_bank_size_t>(arguments, 1);
+  set_size<dev_rb_stdinfo_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_stdinfo_bank_size_t>(arguments, 1);
+  set_size<dev_selrep_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_selrep_size_t>(arguments, 1);
+
   set_size<dev_substr_sel_size_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_substr_sv_size_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_substr_track_size_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_stdinfo_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_objtyp_bank_size_t>(arguments, first<host_number_of_events_t>(arguments));
 }
 
 void make_selected_object_lists::make_selected_object_lists_t::operator()(
@@ -85,7 +92,6 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_candidate_count_t>(arguments, 0, context);
   Allen::memset_async<dev_sel_track_count_t>(arguments, 0, context);
   Allen::memset_async<dev_sel_calo_count_t>(arguments, 0, context);
   Allen::memset_async<dev_sel_sv_count_t>(arguments, 0, context);
@@ -96,14 +102,17 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
   Allen::memset_async<dev_unique_calo_count_t>(arguments, 0, context);
   Allen::memset_async<dev_unique_sv_count_t>(arguments, 0, context);
   Allen::memset_async<dev_sel_count_t>(arguments, 0, context);
-  Allen::memset_async<dev_hits_bank_size_t>(arguments, 0, context);
-  Allen::memset_async<dev_substr_bank_size_t>(arguments, 0, context);
+
+  Allen::memset_async<dev_candidate_offsets_t>(arguments, 0, context);
+  Allen::memset_async<dev_rb_hits_offsets_t>(arguments, 0, context);
+  Allen::memset_async<dev_rb_substr_offsets_t>(arguments, 0, context);
+  Allen::memset_async<dev_rb_objtyp_offsets_t>(arguments, 0, context);
+  Allen::memset_async<dev_rb_stdinfo_offsets_t>(arguments, 0, context);
+  Allen::memset_async<dev_selrep_offsets_t>(arguments, 0, context);
+
   Allen::memset_async<dev_substr_sel_size_t>(arguments, 0, context);
   Allen::memset_async<dev_substr_sv_size_t>(arguments, 0, context);
   Allen::memset_async<dev_substr_track_size_t>(arguments, 0, context);
-  Allen::memset_async<dev_stdinfo_bank_size_t>(arguments, 0, context);
-  Allen::memset_async<dev_objtyp_bank_size_t>(arguments, 0, context);
-  Allen::memset_async<dev_selrep_size_t>(arguments, 0, context);
 
   global_function(make_selected_object_lists)(
     dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
@@ -113,6 +122,13 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
   // block dimensions.
   global_function(calc_rb_sizes)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
     arguments);
+
+  PrefixSum::prefix_sum<dev_candidate_offsets_t>(*this, arguments, context);
+  PrefixSum::prefix_sum<dev_rb_hits_offsets_t, host_hits_bank_size_t>(*this, arguments, context);
+  PrefixSum::prefix_sum<dev_rb_substr_offsets_t, host_substr_bank_size_t>(*this, arguments, context);
+  PrefixSum::prefix_sum<dev_rb_objtyp_offsets_t, host_objtyp_bank_size_t>(*this, arguments, context);
+  PrefixSum::prefix_sum<dev_rb_stdinfo_offsets_t, host_stdinfo_bank_size_t>(*this, arguments, context);
+  PrefixSum::prefix_sum<dev_selrep_offsets_t, host_selrep_size_t>(*this, arguments, context);
 }
 
 __global__ void make_selected_object_lists::make_selected_object_lists(
@@ -126,7 +142,7 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
   const unsigned* line_selected_object_offsets =
     parameters.dev_max_objects_offsets + dec_reports.number_of_lines() * event_number;
   const unsigned selected_object_offset = n_children * line_selected_object_offsets[0];
-  unsigned* event_candidate_count = parameters.dev_candidate_count + event_number * dec_reports.number_of_lines();
+  unsigned* event_candidate_count = parameters.dev_candidate_offsets + event_number * dec_reports.number_of_lines();
 
   Selections::ConstSelections selections {parameters.dev_selections, parameters.dev_selections_offsets, total_events};
 
@@ -314,24 +330,24 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
   const auto event_unique_sv_list = parameters.dev_unique_sv_list + selected_object_offset;
   const auto n_selected_tracks = parameters.dev_unique_track_count[event_number];
   const auto n_selected_svs = parameters.dev_unique_sv_count[event_number];
-  unsigned* event_candidate_count = parameters.dev_candidate_count + event_number * dec_reports.number_of_lines();
+  unsigned* event_candidate_count = parameters.dev_candidate_offsets + event_number * dec_reports.number_of_lines();
   unsigned* event_sel_list = parameters.dev_sel_list + event_number * dec_reports.number_of_lines();
 
   // Calculate the size of the hits bank.
   for (unsigned i_track = threadIdx.x; i_track < n_selected_tracks; i_track += blockDim.x) {
     const unsigned track_index = event_unique_track_list[i_track];
     const Allen::Views::Physics::BasicParticle* track = event_track_ptrs[track_index];
-    atomicAdd(parameters.dev_hits_bank_size + event_number, track->number_of_ids());
+    atomicAdd(parameters.dev_rb_hits_offsets + event_number, track->number_of_ids());
   }
   if (threadIdx.x == 0) {
-    parameters.dev_hits_bank_size[event_number] += 1 + (parameters.dev_unique_track_count[event_number] / 2);
+    parameters.dev_rb_hits_offsets[event_number] += 1 + (parameters.dev_unique_track_count[event_number] / 2);
   }
 
   // Calculate the size of the substr bank.
   for (unsigned line_index = threadIdx.x; line_index < dec_reports.number_of_lines(); line_index += blockDim.x) {
     HltDecReport dec_report = dec_reports.dec_report(line_index);
     if (dec_report.decision()) {
-      atomicAdd(parameters.dev_substr_bank_size + event_number, 1 + event_candidate_count[line_index]);
+      atomicAdd(parameters.dev_rb_substr_offsets + event_number, 1 + event_candidate_count[line_index]);
       atomicAdd(parameters.dev_substr_sel_size + event_number, 1 + event_candidate_count[line_index]);
       unsigned insert_index = atomicAdd(parameters.dev_sel_count + event_number, 1);
       event_sel_list[insert_index] = line_index;
@@ -344,7 +360,7 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     const Allen::Views::Physics::CompositeParticle* sv = event_sv_ptrs[sv_index];
     // Each SV structure consists of 1 short that gives the size and 1 short for
     // each substructure.
-    atomicAdd(parameters.dev_substr_bank_size + event_number, 1 + sv->number_of_children());
+    atomicAdd(parameters.dev_rb_substr_offsets + event_number, 1 + sv->number_of_children());
     atomicAdd(parameters.dev_substr_sv_size + event_number, 1 + sv->number_of_children());
   }
 
@@ -355,25 +371,25 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     if (parameters.dev_unique_track_count[event_number] > 0) {
       // Each track structure consists of 1 short that denotes the
       // size and 1 short pointer to hits in the hits bank.
-      parameters.dev_substr_bank_size[event_number] += 2 * parameters.dev_unique_track_count[event_number];
+      parameters.dev_rb_substr_offsets[event_number] += 2 * parameters.dev_unique_track_count[event_number];
       parameters.dev_substr_track_size[event_number] += 2 * parameters.dev_unique_track_count[event_number];
     }
 
     if (parameters.dev_unique_calo_count[event_number] > 0) {
       // Each calo structure consists of 1 short that denotes the size, which
       // for now is 0.
-      parameters.dev_substr_bank_size[event_number] += parameters.dev_unique_calo_count[event_number];
+      parameters.dev_rb_substr_offsets[event_number] += parameters.dev_unique_calo_count[event_number];
     }
 
     // Get the size of the ObjTyp bank. The ObjTyp bank has 1 word defining the
     // bank structure and 1 word for each object type stored.
-    parameters.dev_objtyp_bank_size[event_number] =
+    parameters.dev_rb_objtyp_offsets[event_number] =
       1 + (parameters.dev_sel_count[event_number] > 0) + (parameters.dev_unique_track_count[event_number] > 0) +
       (parameters.dev_unique_calo_count[event_number] > 0) + (parameters.dev_unique_sv_count[event_number] > 0);
 
     // Convert from number of shorts to number of words. Add 2 shorts for bank size info.
-    if (parameters.dev_substr_bank_size[event_number] > 0) {
-      parameters.dev_substr_bank_size[event_number] = (parameters.dev_substr_bank_size[event_number] + 3) / 2;
+    if (parameters.dev_rb_substr_offsets[event_number] > 0) {
+      parameters.dev_rb_substr_offsets[event_number] = (parameters.dev_rb_substr_offsets[event_number] + 3) / 2;
     }
 
     // Get the size of the StdInfo bank.
@@ -389,21 +405,21 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     // CaloClusters: E, X, Y, Z
     // SVs: empty
     if (n_objects > 0) {
-      parameters.dev_stdinfo_bank_size[event_number] = 2 + n_objects / 4 + parameters.dev_sel_count[event_number] +
-                                                       8 * parameters.dev_unique_track_count[event_number] +
-                                                       4 * parameters.dev_unique_calo_count[event_number] +
-                                                       4 * parameters.dev_unique_sv_count[event_number];
+      parameters.dev_rb_stdinfo_offsets[event_number] = 2 + n_objects / 4 + parameters.dev_sel_count[event_number] +
+                                                        8 * parameters.dev_unique_track_count[event_number] +
+                                                        4 * parameters.dev_unique_calo_count[event_number] +
+                                                        4 * parameters.dev_unique_sv_count[event_number];
     }
     else {
-      parameters.dev_stdinfo_bank_size[event_number] = 0;
+      parameters.dev_rb_stdinfo_offsets[event_number] = 0;
     }
 
     // Calculate the total selrep size.
     // Size of the empty extraInfo sub-bank depends on the number of objects.
     const unsigned einfo_size = 2 + n_objects / 4;
     const unsigned header_size = 10;
-    parameters.dev_selrep_size[event_number] =
-      header_size + parameters.dev_hits_bank_size[event_number] + parameters.dev_substr_bank_size[event_number] +
-      parameters.dev_stdinfo_bank_size[event_number] + parameters.dev_objtyp_bank_size[event_number] + einfo_size;
+    parameters.dev_selrep_offsets[event_number] =
+      header_size + parameters.dev_rb_hits_offsets[event_number] + parameters.dev_rb_substr_offsets[event_number] +
+      parameters.dev_rb_stdinfo_offsets[event_number] + parameters.dev_rb_objtyp_offsets[event_number] + einfo_size;
   }
 }

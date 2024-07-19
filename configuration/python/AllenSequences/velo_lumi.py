@@ -9,16 +9,15 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter
-from AllenConf.utils import make_gec
+from AllenConf.filters import make_gec
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import make_algorithm
 from AllenCore.generator import generate
-from AllenConf.utils import initialize_number_of_events
+from AllenConf.utils import initialize_number_of_events, line_maker
 from AllenCore.algorithms import host_dummy_odin_provider_t
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.hlt1_monitoring_lines import make_calo_digits_minADC_line, make_velo_micro_bias_line
 from AllenConf.persistency import make_global_decision, make_gather_selections, make_routingbits_writer
-from AllenConf.utils import line_maker, make_gec
 from AllenConf.odin import odin_error_filter, make_event_type, decode_odin, make_odin_orbit
 from AllenConf.hlt1_calibration_lines import make_passthrough_line
 import AllenConf

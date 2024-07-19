@@ -28,7 +28,8 @@ namespace calo_prefilter_clusters {
 
     DEVICE_OUTPUT(dev_prefiltered_clusters_idx_t, unsigned) dev_prefiltered_clusters_idx;
     DEVICE_OUTPUT(dev_num_prefiltered_clusters_t, unsigned) dev_num_prefiltered_clusters;
-    DEVICE_OUTPUT(dev_ecal_num_twoclusters_t, unsigned) dev_ecal_num_twoclusters;
+    DEVICE_OUTPUT(dev_ecal_twocluster_offsets_t, unsigned) dev_ecal_twocluster_offsets;
+    HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
 
     PROPERTY(minEt_clusters_t, "minEt_clusters", "minEt of each cluster", float) minEt_clusters;
     PROPERTY(minE19_clusters_t, "minE19_clusters", "min CaloNeutralE19 of each cluster", float) minE19_clusters;

@@ -10,7 +10,8 @@
 \*****************************************************************************/
 #include <MEPTools.h>
 #include <UTClusterAndPreDecode.cuh>
-#include <UTUniqueID.cuh>
+#include <WarpIntrinsicsTools.cuh>
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t)
 
@@ -21,9 +22,12 @@ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t::set_arguments_size(
 {
   set_size<dev_ut_pre_decoded_hits_t>(
     arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::PreDecodedHits::element_size);
-  set_size<dev_ut_cluster_count_t>(
+  set_size<dev_ut_tiebreak_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments));
+  set_size<dev_ut_cluster_offsets_t>(
     arguments,
-    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers]);
+    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers] +
+      1);
+  set_size<host_total_sum_holder_t>(arguments, 1);
 }
 
 void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t::operator()(
@@ -32,10 +36,13 @@ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_ut_cluster_count_t>(arguments, 0, context);
+  Allen::memset_async<dev_ut_cluster_offsets_t>(arguments, 0, context);
 
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
-  if (bank_version < 0) return; // no UT banks present in data
+  if (bank_version < 0) { // no UT banks present in data
+    Allen::memset_async<host_total_sum_holder_t>(arguments, 0, context);
+    return;
+  }
 
   auto fun = bank_version == 4 ? (runtime_options.mep_layout ? global_function(ut_cluster_and_pre_decode<4, true>) :
                                                                global_function(ut_cluster_and_pre_decode<4, false>)) :
@@ -48,29 +55,10 @@ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t::operator()(
     constants.dev_ut_boards,
     constants.dev_ut_geometry.data(),
     constants.dev_unique_x_sector_layer_offsets.data(),
-    constants.dev_unique_x_sector_offsets.data());
-}
+    constants.dev_unique_x_sector_offsets.data(),
+    constants.dev_ut_board_geometry_map.data());
 
-/**
- * @brief Makes an unsigned key out of a float, where
- *        float order is preserved. Unsigned order can be composed
- *        to one another as opposed to float order (sign-magnitude).
- */
-__device__ uint32_t generate_cluster_sort_key(const float a)
-{
-  int32_t i = Allen::device::bit_cast<int32_t>(a);
-  return i < 0 ? -i & 0x7FFFFFFF : (1u << 31) | (i & 0x7FFFFFFF);
-}
-
-/**
- * @brief Makes a composed key value made out of:
- *        (u32 representation of yBegin) (u32 representation of xAtYEq0)
- */
-__device__ uint64_t generate_cluster_sort_key(const float xAtYEq0, const float yBegin)
-{
-  auto yBegin_u = generate_cluster_sort_key(yBegin);
-  auto xAtYEq0_u = generate_cluster_sort_key(xAtYEq0);
-  return static_cast<uint64_t>(yBegin_u) << 32 | xAtYEq0_u;
+  PrefixSum::prefix_sum<dev_ut_cluster_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
 }
 
 /**
@@ -85,8 +73,11 @@ __device__ void cluster_and_pre_decode_raw_bank(
   uint32_t const*,
   UTGeometry const&,
   UTBoards const&,
+  const uint16_t*,
   UTRawBank<decoding_version> const&,
+  const uint16_t,
   UT::PreDecodedHits&,
+  uint32_t*,
   uint32_t*,
   const bool,
   const UT::Decoding::PositionMethod,
@@ -100,16 +91,19 @@ __device__ void cluster_and_pre_decode_raw_bank<3>(
   uint32_t const* hit_offsets,
   UTGeometry const& geometry,
   UTBoards const& boards,
+  const uint16_t* dev_ut_board_geometry_map,
   UTRawBank<3> const& raw_bank,
+  const uint16_t channel_index,
   UT::PreDecodedHits& ut_pre_decoded_hits,
   uint32_t* cluster_count,
+  uint32_t* dev_tiebreak,
   const bool,
   const UT::Decoding::PositionMethod,
   const unsigned,
   const bool)
 {
   const uint32_t m_nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID];
-  for (unsigned i = threadIdx.y; i < raw_bank.number_of_hits[0]; i += blockDim.y) {
+  for (unsigned i = 0; i < raw_bank.number_of_hits[0]; i++) {
     // Extract values from raw_data
     const uint16_t value = raw_bank.data[i];
     const uint32_t fracStrip = (value & UT::Decoding::v4::frac_mask) >> UT::Decoding::v4::frac_offset;
@@ -121,66 +115,47 @@ __device__ void cluster_and_pre_decode_raw_bank<3>(
 
     const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + index;
     if (fullChanIndex >= boards.number_of_channels) continue;
-    const uint32_t side = boards.sides[fullChanIndex];
-    const uint32_t layer = boards.layers[fullChanIndex];
-    const uint32_t stave = boards.staves[fullChanIndex];
-    const uint32_t face = boards.faces[fullChanIndex];
-    const uint32_t module = boards.modules[fullChanIndex];
-    const uint32_t sector = boards.sectors[fullChanIndex];
-    const uint32_t chanID = boards.chanIDs[fullChanIndex];
-
-    // Calculate the index to get the geometry of the board
-    int sec = sector_unique_id(side, layer, stave, face, module, sector);
+    const auto chanID = boards.chanIDs[fullChanIndex];
+    const auto sec = dev_ut_board_geometry_map[fullChanIndex];
 
     const uint32_t firstStrip = geometry.firstStrip[sec];
-    const float dp0diX = geometry.dp0diX[sec];
-    const float dp0diY = geometry.dp0diY[sec];
-    const float p0X = geometry.p0X[sec];
-    const float p0Y = geometry.p0Y[sec];
     const float numstrips = 0.25f * fracStrip + stripID - firstStrip;
 
-    const auto yBegin = p0Y + numstrips * dp0diY;
-    const auto xAtYEq0 = p0X + numstrips * dp0diX;
-    const auto key = generate_cluster_sort_key(xAtYEq0, yBegin);
     const uint32_t LHCbID = lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::UT, (chanID + stripID - 1));
 
     const unsigned base_sector_group_offset = dev_unique_x_sector_offsets[sec];
     unsigned* clusters_count_sector_group = cluster_count + base_sector_group_offset;
 
-    const unsigned current_cluster_count = atomicAdd(clusters_count_sector_group, 1);
+    const unsigned current_cluster_count = Allen::warp::atomic_increment(clusters_count_sector_group);
     assert(current_cluster_count < hit_offsets[base_sector_group_offset + 1] - hit_offsets[base_sector_group_offset]);
 
     const unsigned cluster_index = hit_offsets[base_sector_group_offset] + current_cluster_count;
     // No clustering for old UT
-    ut_pre_decoded_hits.sort_key(cluster_index) = key;
-    ut_pre_decoded_hits.full_channel_index(cluster_index) = fullChanIndex;
+    ut_pre_decoded_hits.geometry_index(cluster_index) = sec;
     ut_pre_decoded_hits.id(cluster_index) = LHCbID;
     ut_pre_decoded_hits.num_strips(cluster_index) = numstrips;
+
+    dev_tiebreak[cluster_index] = static_cast<uint32_t>(channel_index) << 16 | i;
   }
 }
 
 __device__ void store_predecoded_ut_cluster(
-  const uint32_t fullChanIndex,
   const float mean_strip,
-  const unsigned stripID,
-  const uint32_t m_nStripsPerHybrid,
+  const uint16_t stripID,
   const uint32_t fullSectorID,
-  const int sec,
-  const float p0X,
-  const float p0Y,
+  const uint16_t sec,
+  const uint16_t channel_index,
+  const uint16_t hit_index,
   const float p0Z,
-  const float dp0diX,
-  const float dp0diY,
   unsigned const* dev_unique_x_sector_offsets,
   uint32_t const* hit_offsets,
   uint32_t* cluster_count,
+  uint32_t* dev_tiebreak,
   UT::PreDecodedHits ut_pre_decoded_hits)
 {
   // we need to know whether or not a "stripflip" canges the numbering
-  const auto numstrips = p0Z < 0 ? m_nStripsPerHybrid - mean_strip : mean_strip;
+  const auto numstrips = p0Z < 0 ? UT::Decoding::v5::strips_per_hybrid - mean_strip : mean_strip;
 
-  // The magic of combining yBegin and xAtYEq0 has been explained in the v4 code above.
-  const auto key = generate_cluster_sort_key(p0X + numstrips * dp0diX, p0Y + numstrips * dp0diY);
   const uint32_t LHCbID = lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::UT, (fullSectorID + stripID));
 
   // Finally we need to fill the global containers correctly
@@ -188,14 +163,15 @@ __device__ void store_predecoded_ut_cluster(
     dev_unique_x_sector_offsets[sec]; // idx; //dev_unique_x_sector_offsets[idx_offset];
   unsigned* clusters_count_sector_group = cluster_count + base_sector_group_offset;
 
-  const unsigned current_cluster_count = atomicAdd(clusters_count_sector_group, 1);
+  const unsigned current_cluster_count = Allen::warp::atomic_increment(clusters_count_sector_group);
   assert(current_cluster_count < hit_offsets[base_sector_group_offset + 1] - hit_offsets[base_sector_group_offset]);
 
   const unsigned cluster_index = hit_offsets[base_sector_group_offset] + current_cluster_count;
-  ut_pre_decoded_hits.sort_key(cluster_index) = key;
-  ut_pre_decoded_hits.full_channel_index(cluster_index) = fullChanIndex;
+  ut_pre_decoded_hits.geometry_index(cluster_index) = sec;
   ut_pre_decoded_hits.id(cluster_index) = LHCbID;
   ut_pre_decoded_hits.num_strips(cluster_index) = numstrips;
+
+  dev_tiebreak[cluster_index] = static_cast<uint32_t>(channel_index) << 16 | hit_index;
 }
 
 __device__ bool nonzero_adc_count(const int sum_adc_counts)
@@ -211,46 +187,35 @@ __device__ void cluster_and_pre_decode_raw_bank<4>(
   uint32_t const* hit_offsets,
   UTGeometry const& geometry,
   UTBoards const& boards,
+  const uint16_t* dev_ut_board_geometry_map,
   UTRawBank<4> const& raw_bank,
+  const uint16_t channel_index,
   UT::PreDecodedHits& ut_pre_decoded_hits,
   uint32_t* cluster_count,
+  uint32_t* dev_tiebreak,
   const bool cluster_ut_hits,
   const UT::Decoding::PositionMethod position_method,
   const unsigned max_cluster_size,
   const bool save_clusters_above_max)
 {
-  const uint32_t m_nStripsPerHybrid = boards.stripsPerHybrids[raw_bank.sourceID];
-  for (unsigned lane = threadIdx.y; lane < UT::Decoding::ut_number_of_sectors_per_board; lane += blockDim.y) {
-    // skip if there's nothing
-    if (raw_bank.number_of_hits[lane] == 0) continue;
-    // we can do some things that only depend on lane and sourceID before decoding individual hits
-    const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane;
-    if (fullChanIndex >= boards.number_of_channels) continue;
+  // Lane inside raw bank
+  const uint16_t lane_index = channel_index % UT::Decoding::v5::n_lanes;
+  const uint32_t fullChanIndex = raw_bank.sourceID * UT::Decoding::ut_number_of_sectors_per_board + lane_index;
 
-    const uint32_t side = boards.sides[fullChanIndex];
-    const uint32_t layer = boards.layers[fullChanIndex];
-    const uint32_t stave = boards.staves[fullChanIndex];
-    const uint32_t face = boards.faces[fullChanIndex];
-    const uint32_t module = boards.modules[fullChanIndex];
-    const uint32_t sector = boards.sectors[fullChanIndex];
-    const uint32_t chanID = boards.chanIDs[fullChanIndex];
-    // chanID will include a subsector bit at the 9th position
-    // stripID can range from [0, 511]
-    // If stripID is between [256, 511], the bit on the 9th position will be 1
-    // But so would the chanID subsector bit (9th bit)
-    // To calculate LHCbID, we have to mask the last 9 bits from channelID to get full sector ID
-    // This is so that the last 9 bits can be reserved for UT sector stripID
-    const uint32_t fullSectorID = chanID & 0xFFFFFE00;
+  // chanID will include a subsector bit at the 9th position
+  // stripID can range from [0, 511]
+  // If stripID is between [256, 511], the bit on the 9th position will be 1
+  // But so would the chanID subsector bit (9th bit)
+  // To calculate LHCbID, we have to mask the last 9 bits from channelID to get full sector ID
+  // This is so that the last 9 bits can be reserved for UT sector stripID
+  const uint32_t chanID = boards.chanIDs[fullChanIndex];
+  const uint32_t fullSectorID = chanID & 0xFFFFFE00;
+  const auto sec = dev_ut_board_geometry_map[fullChanIndex];
+  const float p0Z = geometry.p0Z[sec];
 
-    int sec = sector_unique_id(side, layer, stave, face, module, sector);
-    const float dp0diX = geometry.dp0diX[sec];
-    const float dp0diY = geometry.dp0diY[sec];
-    const float p0X = geometry.p0X[sec];
-    const float p0Y = geometry.p0Y[sec];
-    const float p0Z = geometry.p0Z[sec];
-
-    // Define this lambda function so that store cluster calls are more compact
-    auto store_cluster = [=](const int number_of_strips, const int sum_adc_counts, const int sum_position) {
+  // Define this lambda function so that store cluster calls are more compact
+  auto store_cluster =
+    [=](const int number_of_strips, const int sum_adc_counts, const int sum_position, const uint16_t hit_index) {
       const unsigned sum_weights =
         cluster_ut_hits ?
           ((position_method == UT::Decoding::PositionMethod::AdcWeighting) ? sum_adc_counts : number_of_strips) :
@@ -267,87 +232,85 @@ __device__ void cluster_and_pre_decode_raw_bank<4>(
       const float mean_strip = static_cast<float>(sum_position) / static_cast<float>(sum_weights);
       const unsigned stripID = (sum_position * 2 + sum_weights) / 2 / sum_weights;
       store_predecoded_ut_cluster(
-        fullChanIndex,
         mean_strip,
         stripID,
-        m_nStripsPerHybrid,
         fullSectorID,
         sec,
-        p0X,
-        p0Y,
+        channel_index,
+        hit_index,
         p0Z,
-        dp0diX,
-        dp0diY,
         dev_unique_x_sector_offsets,
         hit_offsets,
         cluster_count,
+        dev_tiebreak,
         ut_pre_decoded_hits);
     };
 
-    // Perform clustering by summing neighbouring strips
-    int previous_stripID; // Probably enough
-    int sum_adc_counts = 0;
-    int sum_position = 0;
-    unsigned number_of_strips = 0;
-    bool exceeded_max_size = false;
+  // Perform clustering by summing neighbouring strips
+  uint16_t previous_stripID; // Probably enough
+  uint16_t sum_adc_counts = 0;
+  unsigned sum_position = 0;
+  uint16_t number_of_strips = 0;
+  bool exceeded_max_size = false;
 
-    // Now we can start decoding hits from the v5 RawBank. The RawBank header (64 bits) tells you how many hits there
-    // are. The RawBank data itself contains lane-wise zero-padded "words". When casting to 32 bits, this looks like
-    // 1280  0  0  0  0  669913862 for example. So there is something in lane 5 (1280) and 0 (669913862), all other
-    // lanes don't have hits. These words have been encoded as 32 bit integers with the corresponding bitshifts that
-    // allow reading them as 16 bit integers, which is what we will do. This means we can loop individual hits but have
-    // to do slighty more complicated indexing gymnastics.
-    for (unsigned ihit = 0; ihit < raw_bank.number_of_hits[lane]; ihit++) { // loop hits
-      const auto hit_index_inside_raw_bank = 16 * (ihit / 2) + 2 * (5 - lane) + ihit % 2;
-      const uint16_t word = raw_bank.data[hit_index_inside_raw_bank];
-      // this is the magic step that tells us which strip was hit
-      const auto stripID = (word & UT::Decoding::v5::strip_mask) >> UT::Decoding::v5::strip_offset;
-      const auto adc_count = (word & UT::Decoding::v5::adc_mask) >> UT::Decoding::v5::adc_offset;
+  // Now we can start decoding hits from the v5 RawBank. The RawBank header (64 bits) tells you how many hits there
+  // are. The RawBank data itself contains lane-wise zero-padded "words". When casting to 32 bits, this looks like
+  // 1280  0  0  0  0  669913862 for example. So there is something in lane 5 (1280) and 0 (669913862), all other
+  // lanes don't have hits. These words have been encoded as 32 bit integers with the corresponding bitshifts that
+  // allow reading them as 16 bit integers, which is what we will do. This means we can loop individual hits but have
+  // to do slighty more complicated indexing gymnastics.
+  for (uint16_t ihit = 0; ihit < static_cast<uint16_t>(raw_bank.number_of_hits[lane_index]); ihit++) { // loop hits
+    const uint16_t hit_index_inside_raw_bank = 16 * (ihit / 2) + 2 * (5 - lane_index) + ihit % 2;
+    const uint16_t word = raw_bank.data[hit_index_inside_raw_bank];
+    // this is the magic step that tells us which strip was hit
+    const uint16_t stripID = (word & UT::Decoding::v5::strip_mask) >> UT::Decoding::v5::strip_offset;
+    const uint16_t adc_count = (word & UT::Decoding::v5::adc_mask) >> UT::Decoding::v5::adc_offset;
 
-      // Store each UT hit and continue if we are not clustering
-      if (!cluster_ut_hits) {
-        store_cluster(1, adc_count, stripID);
-        continue;
-      }
+    // Store each UT hit and continue if we are not clustering
+    if (!cluster_ut_hits) {
+      store_cluster(1, adc_count, stripID, ihit);
+      continue;
+    }
 
-      // Do not store anything during first strip, when counters are empty
-      const bool not_first_hit = ihit != 0;
+    // Do not store anything during first strip, when counters are empty
+    const bool not_first_hit = ihit != 0;
 
-      const bool start_of_new_cluster = previous_stripID + 1 != stripID && not_first_hit;
-      const bool just_exceeded_max_size = number_of_strips >= max_cluster_size && (!exceeded_max_size);
-      const bool last_hit_in_lane = (ihit + 1 == raw_bank.number_of_hits[lane]);
-      // Either adc count is non-zero when ADC weighted or UT clusters are geometrically weighted
-      const bool has_adc_count = nonzero_adc_count(sum_adc_counts);
+    const bool start_of_new_cluster = previous_stripID + 1 != stripID && not_first_hit;
+    const bool just_exceeded_max_size = number_of_strips >= max_cluster_size && (!exceeded_max_size);
+    const bool last_hit_in_lane = (ihit + 1 == static_cast<uint16_t>(raw_bank.number_of_hits[lane_index]));
+    // Either adc count is non-zero when ADC weighted or UT clusters are geometrically weighted
+    const bool has_adc_count = nonzero_adc_count(sum_adc_counts);
 
-      if (start_of_new_cluster) {
-        const bool should_cluster = !exceeded_max_size && has_adc_count;
-        if (should_cluster) store_cluster(number_of_strips, sum_adc_counts, sum_position);
+    if (start_of_new_cluster) {
+      const bool should_cluster = !exceeded_max_size && has_adc_count;
+      if (should_cluster) store_cluster(number_of_strips, sum_adc_counts, sum_position, ihit);
 
-        // flush clustering accumulators
-        number_of_strips = 0;
-        sum_adc_counts = 0;
-        sum_position = 0;
-        exceeded_max_size = false;
-      }
-      else if (just_exceeded_max_size) {
-        const bool should_cluster = save_clusters_above_max && has_adc_count;
-        if (should_cluster) store_cluster(number_of_strips, sum_adc_counts, sum_position);
-        // Stop considering clusters above this limit
-        exceeded_max_size = true;
-      }
+      // flush clustering accumulators
+      number_of_strips = 0;
+      sum_adc_counts = 0;
+      sum_position = 0;
+      exceeded_max_size = false;
+    }
+    else if (just_exceeded_max_size) {
+      const bool should_cluster = save_clusters_above_max && has_adc_count;
+      if (should_cluster) store_cluster(number_of_strips, sum_adc_counts, sum_position, ihit);
+      // Stop considering clusters above this limit
+      exceeded_max_size = true;
+    }
 
-      // Accumulate hit information to cluster
-      previous_stripID = stripID;
-      number_of_strips++;
-      sum_adc_counts += adc_count;
-      sum_position += (position_method == UT::Decoding::PositionMethod::AdcWeighting) ? adc_count * stripID : stripID;
+    // Accumulate hit information to cluster
+    previous_stripID = stripID;
+    number_of_strips++;
+    sum_adc_counts += adc_count;
+    // Max value of adc_count * stripID is 16384, well below 65535 limit of 16-bit unsigned integer
+    // Compiler should do auto-conversion to 32-bit integers when summing sum_position
+    sum_position += (position_method == UT::Decoding::PositionMethod::AdcWeighting) ? adc_count * stripID : stripID;
 
-      if (!exceeded_max_size && last_hit_in_lane) {
-        const bool should_cluster = nonzero_adc_count(sum_adc_counts);
-        if (should_cluster) store_cluster(number_of_strips, sum_adc_counts, sum_position);
-      }
-    } // end loop hits
-  }   // end loop lanes
+    if (!exceeded_max_size && last_hit_in_lane) {
+      const bool should_cluster = nonzero_adc_count(sum_adc_counts);
+      if (should_cluster) store_cluster(number_of_strips, sum_adc_counts, sum_position, ihit);
+    }
+  } // end loop hits
 }
 
 /**
@@ -365,14 +328,20 @@ __global__ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode(
   const char* ut_boards,
   const char* ut_geometry,
   const unsigned* dev_unique_x_sector_layer_offsets,
-  const unsigned* dev_unique_x_sector_offsets)
+  const unsigned* dev_unique_x_sector_offsets,
+  const uint16_t* dev_ut_board_geometry_map)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
-  uint32_t* cluster_count = parameters.dev_ut_cluster_count + event_number * number_of_unique_x_sectors;
+  uint32_t* cluster_count = parameters.dev_ut_cluster_offsets + event_number * number_of_unique_x_sectors;
+
+  // These are meant for zero-suppression and opportunistic looping
+  const uint16_t* nonempty_channels =
+    parameters.dev_ut_nonempty_channels + event_number * UT::Decoding::number_of_channels;
+  const uint16_t number_of_nonempty_channels = parameters.dev_ut_number_of_nonempty_channels[event_number];
 
   // We are allocating enough memory for number_of_ut_hits
   // This is 100% safe for clustering but will allocate too much memory
@@ -389,21 +358,27 @@ __global__ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode(
                                    parameters.dev_ut_raw_input_sizes,
                                    parameters.dev_ut_raw_input_types,
                                    event_number + event_start};
-  for (unsigned raw_bank_index = threadIdx.x; raw_bank_index < raw_event.number_of_raw_banks();
-       raw_bank_index += blockDim.x) {
-    UTRawBank<decoding_version> bank = raw_event.template raw_bank<decoding_version>(raw_bank_index);
-    if (!UT::Decoding::allowed_rawbank_type(bank.type)) continue;
+
+  const auto function = [&](const uint16_t index) {
+    const uint16_t channel_index = nonempty_channels[index];
+    const uint16_t raw_bank_index = (decoding_version == 4) ? channel_index / UT::Decoding::v5::n_lanes : channel_index;
+    UTRawBank<decoding_version> raw_bank = raw_event.template raw_bank<decoding_version>(raw_bank_index);
     cluster_and_pre_decode_raw_bank(
       dev_unique_x_sector_offsets,
       hit_offsets,
       geometry,
       boards,
-      bank,
+      dev_ut_board_geometry_map,
+      raw_bank,
+      channel_index,
       ut_pre_decoded_hits,
       cluster_count,
+      parameters.dev_ut_tiebreak,
       parameters.cluster_ut_hits,
       static_cast<UT::Decoding::PositionMethod>(static_cast<int>(parameters.position_method)),
       parameters.max_cluster_size,
       parameters.save_clusters_above_max);
-  }
+  };
+
+  Allen::warp::opportunistic_loop(number_of_nonempty_channels, function);
 }

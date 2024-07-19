@@ -26,7 +26,8 @@ __device__ unsigned z_range_materialvertex_seed_line::z_range_materialvertex_see
   const Parameters& parameters,
   const unsigned event_number)
 {
-  return parameters.dev_event_number_of_interactions_seeds[event_number];
+  return parameters.dev_interaction_seeds_offsets[event_number + 1] -
+         parameters.dev_interaction_seeds_offsets[event_number];
 }
 
 __device__ std::tuple<const float> z_range_materialvertex_seed_line::z_range_materialvertex_seed_line_t::get_input(

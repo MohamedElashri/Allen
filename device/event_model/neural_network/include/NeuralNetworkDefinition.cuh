@@ -31,6 +31,19 @@ namespace Allen::NeuralNetwork {
 
     using ForwardGhostKiller = SingleLayerFCNN_t<7, 32>;
     using MatchingGhostKiller = SingleLayerFCNN_t<7, 32>;
+    using DownstreamGhostKiller = SingleLayerFCNN_t<11, 32>;
+    using TTrackSelector = SingleLayerFCNN_t<4, 16>;
+
+    using DownstreaCompositeQuality = SingleLayerFCNN_t<6, 32>;
+
+    using DownstreamKshortSelector = SingleLayerFCNN_t<8, 32>;
+    using DownstreamLambdaSelector = SingleLayerFCNN_t<8, 32>;
+
+    using DownstreamDetachedKshortSelector = SingleLayerFCNN_t<7, 32>;
+    using DownstreamDetachedLambdaSelector = SingleLayerFCNN_t<7, 32>;
+
+    using MatchingWithUTGhostKiller = SingleLayerFCNN_t<11, 32>;
+    using MatchingNoUTV2GhostKiller = SingleLayerFCNN_t<8, 32>;
   } // namespace Model
 
 } // namespace Allen::NeuralNetwork

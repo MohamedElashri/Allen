@@ -1,57 +1,57 @@
 downstream_validator validation:
-TrackChecker output                               :      1400/     4671  29.97% ghosts
-for P>3GeV,Pt>0.5GeV                              :       504/     2008  25.10% ghosts
-01_UT+T                                           :      2366/    42859   5.52% (  5.60%),         0 (  0.00%) clones, pur  98.26%, hit eff  96.25%
-02_UT+T_P>5GeV                                    :      1516/    26564   5.71% (  5.80%),         0 (  0.00%) clones, pur  98.31%, hit eff  96.80%
-03_UT+T_strange                                   :       878/     3761  23.34% ( 23.55%),         0 (  0.00%) clones, pur  98.65%, hit eff  97.04%
-04_UT+T_strange_P>5GeV                            :       666/     1970  33.81% ( 34.79%),         0 (  0.00%) clones, pur  98.72%, hit eff  97.44%
-05_noVelo+UT+T_strange                            :       819/     1984  41.28% ( 43.25%),         0 (  0.00%) clones, pur  98.60%, hit eff  97.08%
-06_noVelo+UT+T_strange_P>5GeV                     :       635/     1114  57.00% ( 59.84%),         0 (  0.00%) clones, pur  98.67%, hit eff  97.43%
-07_UT+T_fromDB                                    :       162/     3077   5.26% (  4.59%),         0 (  0.00%) clones, pur  97.98%, hit eff  96.49%
-08_UT+T_fromBD_P>5GeV                             :       103/     2337   4.41% (  3.90%),         0 (  0.00%) clones, pur  97.76%, hit eff  96.61%
-09_noVelo+UT+T_fromBD                             :       117/      359  32.59% ( 35.78%),         0 (  0.00%) clones, pur  98.36%, hit eff  97.51%
-10_noVelo+UT+T_fromBD_P>5GeV                      :        82/      151  54.30% ( 56.19%),         0 (  0.00%) clones, pur  98.37%, hit eff  97.59%
-11_UT+T_SfromDB                                   :        51/      181  28.18% ( 27.49%),         0 (  0.00%) clones, pur  98.63%, hit eff  97.77%
-12_UT+T_SfromDB_P>5GeV                            :        38/      101  37.62% ( 37.20%),         0 (  0.00%) clones, pur  98.50%, hit eff  97.84%
-13_noVelo+UT+T_SfromDB                            :        49/       98  50.00% ( 49.17%),         0 (  0.00%) clones, pur  98.58%, hit eff  97.68%
-14_noVelo+UT+T_SfromDB_P>5GeV                     :        37/       53  69.81% ( 71.49%),         0 (  0.00%) clones, pur  98.46%, hit eff  97.78%
-15_noVelo+UT+T_fromSignal                         :        47/      168  27.98% ( 33.94%),         0 (  0.00%) clones, pur  98.23%, hit eff  97.20%
-16_noVelo+UT+T_fromKs0                            :       488/     1242  39.29% ( 39.66%),         0 (  0.00%) clones, pur  98.62%, hit eff  96.84%
-17_noVelo+UT+T_fromLambda                         :       325/      692  46.97% ( 48.97%),         0 (  0.00%) clones, pur  98.60%, hit eff  97.46%
-19_noVelo+UT+T_fromSignal_P>5GeV                  :        34/       73  46.58% ( 46.83%),         0 (  0.00%) clones, pur  98.49%, hit eff  97.60%
-20_noVelo+UT+T_fromKs0_P>5GeV                     :       374/      685  54.60% ( 55.87%),         0 (  0.00%) clones, pur  98.76%, hit eff  97.32%
-21_noVelo+UT+T_fromLambda_P>5GeV                  :       266/      416  63.94% ( 66.57%),         0 (  0.00%) clones, pur  98.67%, hit eff  97.67%
-22_noVelo+UT+T_fromSignal_P>5GeV_PT>500MeV        :        25/       52  48.08% ( 49.17%),         0 (  0.00%) clones, pur  98.70%, hit eff  97.48%
-23_noVelo+UT+T_fromKs0_P>5GeV_PT>500MeV           :       265/      383  69.19% ( 68.55%),         0 (  0.00%) clones, pur  98.68%, hit eff  97.46%
-24_noVelo+UT+T_fromLambda_P>5GeV_PT>500MeV        :       204/      281  72.60% ( 73.02%),         0 (  0.00%) clones, pur  98.58%, hit eff  97.64%
+TrackChecker output                               :       758/     4596  16.49% ghosts
+for P>3GeV,Pt>0.5GeV                              :       296/     2075  14.27% ghosts
+01_UT+T                                           :      2837/    42859   6.62% (  6.80%),         0 (  0.00%) clones, pur  98.26%, hit eff  96.22%
+02_UT+T_P>5GeV                                    :      1968/    26564   7.41% (  7.61%),         0 (  0.00%) clones, pur  98.15%, hit eff  96.48%
+03_UT+T_strange                                   :       925/     3761  24.59% ( 24.55%),         0 (  0.00%) clones, pur  98.83%, hit eff  97.28%
+04_UT+T_strange_P>5GeV                            :       716/     1970  36.35% ( 37.00%),         0 (  0.00%) clones, pur  98.82%, hit eff  97.63%
+05_noVelo+UT+T_strange                            :       835/     1984  42.09% ( 43.98%),         0 (  0.00%) clones, pur  98.83%, hit eff  97.40%
+06_noVelo+UT+T_strange_P>5GeV                     :       655/     1114  58.80% ( 61.12%),         0 (  0.00%) clones, pur  98.81%, hit eff  97.71%
+07_UT+T_fromDB                                    :       178/     3077   5.78% (  5.40%),         0 (  0.00%) clones, pur  97.96%, hit eff  96.07%
+08_UT+T_fromBD_P>5GeV                             :       116/     2337   4.96% (  4.48%),         0 (  0.00%) clones, pur  97.66%, hit eff  95.88%
+09_noVelo+UT+T_fromBD                             :       113/      359  31.48% ( 34.26%),         0 (  0.00%) clones, pur  98.75%, hit eff  97.60%
+10_noVelo+UT+T_fromBD_P>5GeV                      :        77/      151  50.99% ( 51.98%),         0 (  0.00%) clones, pur  98.67%, hit eff  97.46%
+11_UT+T_SfromDB                                   :        55/      181  30.39% ( 28.65%),         0 (  0.00%) clones, pur  98.85%, hit eff  97.52%
+12_UT+T_SfromDB_P>5GeV                            :        41/      101  40.59% ( 38.65%),         0 (  0.00%) clones, pur  98.61%, hit eff  97.44%
+13_noVelo+UT+T_SfromDB                            :        51/       98  52.04% ( 52.50%),         0 (  0.00%) clones, pur  98.76%, hit eff  97.56%
+14_noVelo+UT+T_SfromDB_P>5GeV                     :        39/       53  73.58% ( 75.44%),         0 (  0.00%) clones, pur  98.53%, hit eff  97.46%
+15_noVelo+UT+T_fromSignal                         :        44/      168  26.19% ( 31.10%),         0 (  0.00%) clones, pur  98.53%, hit eff  97.43%
+16_noVelo+UT+T_fromKs0                            :       502/     1242  40.42% ( 41.14%),         0 (  0.00%) clones, pur  98.96%, hit eff  97.40%
+17_noVelo+UT+T_fromLambda                         :       340/      692  49.13% ( 49.71%),         0 (  0.00%) clones, pur  98.63%, hit eff  97.41%
+19_noVelo+UT+T_fromSignal_P>5GeV                  :        31/       73  42.47% ( 41.33%),         0 (  0.00%) clones, pur  98.75%, hit eff  97.58%
+20_noVelo+UT+T_fromKs0_P>5GeV                     :       392/      685  57.23% ( 58.87%),         0 (  0.00%) clones, pur  99.01%, hit eff  97.76%
+21_noVelo+UT+T_fromLambda_P>5GeV                  :       280/      416  67.31% ( 68.39%),         0 (  0.00%) clones, pur  98.50%, hit eff  97.54%
+22_noVelo+UT+T_fromSignal_P>5GeV_PT>500MeV        :        25/       52  48.08% ( 47.92%),         0 (  0.00%) clones, pur  98.95%, hit eff  97.49%
+23_noVelo+UT+T_fromKs0_P>5GeV_PT>500MeV           :       283/      383  73.89% ( 74.67%),         0 (  0.00%) clones, pur  98.88%, hit eff  97.80%
+24_noVelo+UT+T_fromLambda_P>5GeV_PT>500MeV        :       215/      281  76.51% ( 75.21%),         0 (  0.00%) clones, pur  98.53%, hit eff  97.54%
 
 
 long_validator validation:
-TrackChecker output                               :      3027/    32531   9.30% ghosts
-for P>3GeV,Pt>0.5GeV                              :      1098/    16935   6.48% ghosts
-01_long                                           :     27148/    37926  71.58% ( 72.25%),       623 (  2.24%) clones, pur  99.74%, hit eff  98.18%
-02_long_P>5GeV                                    :     22010/    24714  89.06% ( 89.86%),       528 (  2.34%) clones, pur  99.75%, hit eff  98.45%
-03_long_strange                                   :      1055/     1807  58.38% ( 58.62%),        19 (  1.77%) clones, pur  99.64%, hit eff  97.95%
-04_long_strange_P>5GeV                            :       742/      878  84.51% ( 84.34%),        12 (  1.59%) clones, pur  99.67%, hit eff  98.27%
-05_long_fromB                                     :      1945/     2309  84.24% ( 85.06%),        45 (  2.26%) clones, pur  99.78%, hit eff  98.52%
-06_long_fromB_P>5GeV                              :      1790/     1909  93.77% ( 93.86%),        43 (  2.35%) clones, pur  99.79%, hit eff  98.65%
-07_long_electrons                                 :      1000/     2697  37.08% ( 36.80%),        36 (  3.47%) clones, pur  99.11%, hit eff  98.24%
-08_long_electrons_P>5GeV                          :       789/     1402  56.28% ( 56.85%),        35 (  4.25%) clones, pur  99.08%, hit eff  98.38%
-09_long_fromB_electrons                           :        59/      110  53.64% ( 56.58%),         0 (  0.00%) clones, pur  99.71%, hit eff  98.77%
-10_long_fromB_electrons_P>5GeV                    :        54/       74  72.97% ( 75.00%),         0 (  0.00%) clones, pur  99.79%, hit eff  98.81%
-long_P>5GeV_AND_Pt>1GeV                           :      5963/     6486  91.94% ( 92.72%),       154 (  2.52%) clones, pur  99.73%, hit eff  98.49%
-long_fromB_P>5GeV_AND_Pt>1GeV                     :      1210/     1281  94.46% ( 94.58%),        27 (  2.18%) clones, pur  99.76%, hit eff  98.70%
+TrackChecker output                               :      1478/    30154   4.90% ghosts
+for P>3GeV,Pt>0.5GeV                              :       372/    15951   2.33% ghosts
+01_long                                           :     26572/    37926  70.06% ( 70.68%),       555 (  2.05%) clones, pur  99.76%, hit eff  98.22%
+02_long_P>5GeV                                    :     21494/    24714  86.97% ( 87.72%),       463 (  2.11%) clones, pur  99.77%, hit eff  98.51%
+03_long_strange                                   :      1018/     1807  56.34% ( 56.54%),        17 (  1.64%) clones, pur  99.63%, hit eff  97.92%
+04_long_strange_P>5GeV                            :       708/      878  80.64% ( 80.22%),        12 (  1.67%) clones, pur  99.65%, hit eff  98.24%
+05_long_fromB                                     :      1933/     2309  83.72% ( 84.31%),        41 (  2.08%) clones, pur  99.79%, hit eff  98.57%
+06_long_fromB_P>5GeV                              :      1777/     1909  93.09% ( 93.20%),        39 (  2.15%) clones, pur  99.80%, hit eff  98.70%
+07_long_electrons                                 :       907/     2697  33.63% ( 33.42%),        32 (  3.41%) clones, pur  99.18%, hit eff  98.20%
+08_long_electrons_P>5GeV                          :       711/     1402  50.71% ( 51.41%),        29 (  3.92%) clones, pur  99.17%, hit eff  98.42%
+09_long_fromB_electrons                           :        52/      110  47.27% ( 49.38%),         0 (  0.00%) clones, pur  99.56%, hit eff  98.77%
+10_long_fromB_electrons_P>5GeV                    :        47/       74  63.51% ( 65.62%),         0 (  0.00%) clones, pur  99.64%, hit eff  98.81%
+long_P>5GeV_AND_Pt>1GeV                           :      5903/     6486  91.01% ( 91.78%),       139 (  2.30%) clones, pur  99.75%, hit eff  98.57%
+long_fromB_P>5GeV_AND_Pt>1GeV                     :      1205/     1281  94.07% ( 94.14%),        26 (  2.11%) clones, pur  99.77%, hit eff  98.73%
 11_noVelo_UT                                      :         0/     4124   0.00% (  0.00%),         0 (  0.00%) clones, pur   -nan%, hit eff   -nan%
 12_noVelo_UT_P>5GeV                               :         0/     1671   0.00% (  0.00%),         0 (  0.00%) clones, pur   -nan%, hit eff   -nan%
-13_long_PT>2GeV                                   :      1503/     1586  94.77% ( 94.63%),        26 (  1.70%) clones, pur  99.77%, hit eff  98.83%
-14_long_from_B_PT>2GeV                            :       587/      605  97.02% ( 96.78%),         5 (  0.84%) clones, pur  99.79%, hit eff  98.93%
-15_long_strange_P>5GeV                            :       742/      878  84.51% ( 84.34%),        12 (  1.59%) clones, pur  99.67%, hit eff  98.27%
-16_long_strange_P>5GeV_PT>500MeV                  :       301/      335  89.85% ( 89.47%),         5 (  1.63%) clones, pur  99.77%, hit eff  98.26%
-17_long_fromSignal                                :      1191/     1312  90.78% ( 90.72%),        27 (  2.22%) clones, pur  99.75%, hit eff  98.59%
-18_long_nSciFiHits_gt_0_AND_lt_5000               :     11872/    16638  71.35% ( 71.26%),       279 (  2.30%) clones, pur  99.81%, hit eff  98.67%
-19_long_nSciFiHits_gt_5000_AND_lt_7000            :     10390/    14945  69.52% ( 69.78%),       230 (  2.17%) clones, pur  99.69%, hit eff  98.04%
-20_long_nSciFiHits_gt_7000_AND_lt_10000           :      5640/     8507  66.30% ( 66.52%),       143 (  2.47%) clones, pur  99.60%, hit eff  97.46%
-21_long_nSciFiHits_gt_10000                       :       151/      409  36.92% ( 37.00%),         4 (  2.58%) clones, pur  99.40%, hit eff  96.97%
+13_long_PT>2GeV                                   :      1493/     1586  94.14% ( 93.84%),        23 (  1.52%) clones, pur  99.79%, hit eff  98.90%
+14_long_from_B_PT>2GeV                            :       585/      605  96.69% ( 96.52%),         5 (  0.85%) clones, pur  99.79%, hit eff  98.94%
+15_long_strange_P>5GeV                            :       708/      878  80.64% ( 80.22%),        12 (  1.67%) clones, pur  99.65%, hit eff  98.24%
+16_long_strange_P>5GeV_PT>500MeV                  :       295/      335  88.06% ( 87.79%),         5 (  1.67%) clones, pur  99.76%, hit eff  98.28%
+17_long_fromSignal                                :      1186/     1312  90.40% ( 90.13%),        26 (  2.15%) clones, pur  99.76%, hit eff  98.62%
+18_long_nSciFiHits_gt_0_AND_lt_5000               :     11591/    16638  69.67% ( 69.52%),       258 (  2.18%) clones, pur  99.82%, hit eff  98.67%
+19_long_nSciFiHits_gt_5000_AND_lt_7000            :     10124/    14945  67.74% ( 67.97%),       195 (  1.89%) clones, pur  99.72%, hit eff  98.09%
+20_long_nSciFiHits_gt_7000_AND_lt_10000           :      5521/     8507  64.90% ( 65.12%),       127 (  2.25%) clones, pur  99.61%, hit eff  97.52%
+21_long_nSciFiHits_gt_10000                       :       145/      409  35.45% ( 35.53%),         4 (  2.68%) clones, pur  99.44%, hit eff  97.07%
 
 
 seed_validator validation:
@@ -109,55 +109,55 @@ for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% 
 
 
 unmached_seed_validator validation:
-TrackChecker output                               :      4124/    21773  18.94% ghosts
+TrackChecker output                               :      4267/    23083  18.49% ghosts
 for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% ghosts
-00_P>3Gev_Pt>0.5                                  :       664/    17038   3.90% (  3.79%),        14 (  2.06%) clones, pur  95.51%, hit eff  89.91%
-01_long                                           :      2208/    37926   5.82% (  5.71%),        31 (  1.38%) clones, pur  97.27%, hit eff  93.51%
----1. phi quadrant                                :       585/     9440   6.20% (  5.95%),         8 (  1.35%) clones, pur  96.93%, hit eff  93.31%
----2. phi quadrant                                :       551/     9611   5.73% (  5.88%),         5 (  0.90%) clones, pur  97.46%, hit eff  93.79%
----3. phi quadrant                                :       548/     9375   5.85% (  5.84%),         7 (  1.26%) clones, pur  97.44%, hit eff  93.85%
----4. phi quadrant                                :       524/     9499   5.52% (  5.32%),        11 (  2.06%) clones, pur  97.29%, hit eff  93.11%
----eta < 2.5, small x, large y                    :        74/     1614   4.58% (  4.51%),         0 (  0.00%) clones, pur  97.29%, hit eff  88.37%
----eta < 2.5, large x, small y                    :       115/     2835   4.06% (  4.11%),         2 (  1.71%) clones, pur  97.79%, hit eff  92.09%
----eta > 2.5, small x, large y                    :       693/    12171   5.69% (  5.51%),        11 (  1.56%) clones, pur  96.71%, hit eff  92.84%
----eta > 2.5, large x, small y                    :      1326/    21306   6.22% (  6.13%),        18 (  1.34%) clones, pur  97.52%, hit eff  94.28%
-02_long_P>5GeV                                    :      1297/    24714   5.25% (  5.25%),        25 (  1.89%) clones, pur  96.14%, hit eff  92.33%
-02_long_P>5GeV, eta > 4                           :       748/     9981   7.49% (  7.65%),        13 (  1.71%) clones, pur  96.12%, hit eff  92.59%
----eta < 2.5, small x, large y                    :        36/      479   7.52% (  7.67%),         0 (  0.00%) clones, pur  97.19%, hit eff  91.69%
----eta < 2.5, large x, small y                    :        42/      952   4.41% (  3.87%),         0 (  0.00%) clones, pur  99.29%, hit eff  96.31%
----eta > 2.5, small x, large y                    :       428/     8612   4.97% (  4.80%),        10 (  2.28%) clones, pur  95.24%, hit eff  91.45%
----eta > 2.5, large x, small y                    :       791/    14671   5.39% (  5.47%),        15 (  1.86%) clones, pur  96.42%, hit eff  92.63%
-03_long_P>3GeV                                    :      2206/    32393   6.81% (  6.68%),        31 (  1.39%) clones, pur  97.27%, hit eff  93.52%
-04_long_P>0.5GeV                                  :      2208/    37926   5.82% (  5.71%),        31 (  1.38%) clones, pur  97.27%, hit eff  93.51%
-05_long_from_B                                    :        72/     2309   3.12% (  2.94%),         0 (  0.00%) clones, pur  96.31%, hit eff  92.10%
-06_long_from_B_P>5GeV                             :        45/     1909   2.36% (  2.26%),         0 (  0.00%) clones, pur  95.37%, hit eff  91.20%
-07_long_from_B_P>3GeV                             :        72/     2155   3.34% (  3.21%),         0 (  0.00%) clones, pur  96.31%, hit eff  92.10%
-08_UT+SciFi                                       :      2885/     5429  53.14% ( 52.54%),        25 (  0.86%) clones, pur  99.31%, hit eff  96.81%
-09_UT+SciFi_P>5GeV                                :      1866/     2268  82.28% ( 83.40%),        17 (  0.90%) clones, pur  99.34%, hit eff  97.29%
-10_UT+SciFi_P>3GeV                                :      2875/     3817  75.32% ( 76.11%),        25 (  0.86%) clones, pur  99.32%, hit eff  96.84%
-11_UT+SciFi_fromStrange                           :      1329/     1984  66.99% ( 67.43%),        14 (  1.04%) clones, pur  99.51%, hit eff  97.58%
-12_UT+SciFi_fromStrange_P>5GeV                    :       973/     1114  87.34% ( 88.39%),        12 (  1.22%) clones, pur  99.52%, hit eff  97.93%
-13_UT+SciFi_fromStrange_P>3GeV                    :      1328/     1613  82.33% ( 83.55%),        14 (  1.04%) clones, pur  99.51%, hit eff  97.59%
-14_long_electrons                                 :       315/     2697  11.68% ( 11.49%),         3 (  0.94%) clones, pur  98.62%, hit eff  96.10%
-15_long_electrons_P>5GeV                          :       201/     1402  14.34% ( 13.25%),         1 (  0.50%) clones, pur  98.74%, hit eff  96.46%
-16_long_electrons_P>3GeV                          :       315/     2178  14.46% ( 14.57%),         3 (  0.94%) clones, pur  98.62%, hit eff  96.10%
-17_long_fromB_electrons                           :        10/      110   9.09% (  7.20%),         0 (  0.00%) clones, pur  97.27%, hit eff  95.76%
-18_long_fromB_electrons_P>5GeV                    :         6/       74   8.11% (  7.03%),         0 (  0.00%) clones, pur 100.00%, hit eff  98.48%
-19_long_PT>2GeV                                   :        28/     1586   1.77% (  2.08%),         2 (  6.67%) clones, pur  93.52%, hit eff  87.99%
-20_long_from_B_PT>2GeV                            :         9/      605   1.49% (  1.42%),         0 (  0.00%) clones, pur  97.78%, hit eff  92.72%
-21_long_strange_P>5GeV                            :        78/      878   8.88% (  9.32%),         2 (  2.50%) clones, pur  97.73%, hit eff  93.86%
-22_long_strange_P>5GeV_PT>500MeV                  :        15/      335   4.48% (  4.97%),         1 (  6.25%) clones, pur  97.05%, hit eff  91.27%
-23_noVelo+UT+T_fromSignal                         :        87/      168  51.79% ( 53.41%),         2 (  2.25%) clones, pur  98.87%, hit eff  96.19%
-24_noVelo+UT+T_fromKs0                            :       840/     1242  67.63% ( 67.63%),        10 (  1.18%) clones, pur  99.55%, hit eff  97.47%
-25_noVelo+UT+T_fromLambda                         :       464/      692  67.05% ( 67.67%),         3 (  0.64%) clones, pur  99.48%, hit eff  97.81%
-26_noVelo+UT+T_fromSignal_P>5GeV                  :        56/       73  76.71% ( 77.83%),         1 (  1.75%) clones, pur  98.89%, hit eff  97.00%
-27_noVelo+UT+T_fromKs0_P>5GeV                     :       605/      685  88.32% ( 89.06%),         8 (  1.31%) clones, pur  99.59%, hit eff  98.03%
-28_noVelo+UT+T_fromLambda_P>5GeV                  :       359/      416  86.30% ( 87.43%),         3 (  0.83%) clones, pur  99.41%, hit eff  97.84%
-29_noVelo+UT+T_fromSignal_P>5GeV_PT>500MeV        :        39/       52  75.00% ( 76.25%),         1 (  2.50%) clones, pur  98.42%, hit eff  95.93%
-30_noVelo+UT+T_fromKs0_P>5GeV_PT>500MeV           :       338/      383  88.25% ( 88.69%),         3 (  0.88%) clones, pur  99.62%, hit eff  98.31%
-31_noVelo+UT+T_fromLambda_P>5GeV_PT>500MeV        :       247/      281  87.90% ( 87.97%),         2 (  0.80%) clones, pur  99.62%, hit eff  97.99%
-35_long_nSciFiHits_gt_0_AND_lt_5000               :      1578/    17922   8.80% (  8.87%),        17 (  1.07%) clones, pur  98.58%, hit eff  96.02%
-36_long_nSciFiHits_gt_5000_AND_lt_7000            :      1462/    16105   9.08% (  9.00%),        27 (  1.81%) clones, pur  97.70%, hit eff  94.52%
-37_long_nSciFiHits_gt_7000_AND_lt_10000           :       899/     9149   9.83% (  9.77%),        14 (  1.53%) clones, pur  97.35%, hit eff  93.79%
-38_long_nSciFiHits_gt_10000                       :        17/      449   3.79% (  3.80%),         0 (  0.00%) clones, pur  95.99%, hit eff  89.37%
+00_P>3Gev_Pt>0.5                                  :       872/    17038   5.12% (  5.03%),        12 (  1.36%) clones, pur  95.68%, hit eff  90.79%
+01_long                                           :      2864/    37926   7.55% (  7.46%),        33 (  1.14%) clones, pur  97.48%, hit eff  94.16%
+---1. phi quadrant                                :       747/     9440   7.91% (  7.56%),        10 (  1.32%) clones, pur  97.17%, hit eff  93.88%
+---2. phi quadrant                                :       739/     9611   7.69% (  7.82%),         4 (  0.54%) clones, pur  97.66%, hit eff  94.32%
+---3. phi quadrant                                :       702/     9375   7.49% (  7.56%),         8 (  1.13%) clones, pur  97.61%, hit eff  94.48%
+---4. phi quadrant                                :       676/     9499   7.12% (  7.02%),        11 (  1.60%) clones, pur  97.50%, hit eff  93.99%
+---eta < 2.5, small x, large y                    :        69/     1614   4.28% (  4.26%),         0 (  0.00%) clones, pur  97.24%, hit eff  89.06%
+---eta < 2.5, large x, small y                    :       124/     2835   4.37% (  4.29%),         2 (  1.59%) clones, pur  96.24%, hit eff  90.49%
+---eta > 2.5, small x, large y                    :       929/    12171   7.63% (  7.49%),        12 (  1.28%) clones, pur  97.12%, hit eff  93.83%
+---eta > 2.5, large x, small y                    :      1742/    21306   8.18% (  8.12%),        19 (  1.08%) clones, pur  97.77%, hit eff  94.80%
+02_long_P>5GeV                                    :      1869/    24714   7.56% (  7.58%),        25 (  1.32%) clones, pur  96.79%, hit eff  93.47%
+02_long_P>5GeV, eta > 4                           :      1066/     9981  10.68% ( 10.76%),        14 (  1.30%) clones, pur  96.99%, hit eff  94.03%
+---eta < 2.5, small x, large y                    :        38/      479   7.93% (  8.41%),         0 (  0.00%) clones, pur  97.07%, hit eff  91.23%
+---eta < 2.5, large x, small y                    :        51/      952   5.36% (  4.72%),         0 (  0.00%) clones, pur  97.90%, hit eff  94.18%
+---eta > 2.5, small x, large y                    :       647/     8612   7.51% (  7.42%),        11 (  1.67%) clones, pur  96.25%, hit eff  93.00%
+---eta > 2.5, large x, small y                    :      1133/    14671   7.72% (  7.79%),        14 (  1.22%) clones, pur  97.04%, hit eff  93.78%
+03_long_P>3GeV                                    :      2863/    32393   8.84% (  8.74%),        33 (  1.14%) clones, pur  97.48%, hit eff  94.16%
+04_long_P>0.5GeV                                  :      2864/    37926   7.55% (  7.46%),        33 (  1.14%) clones, pur  97.48%, hit eff  94.16%
+05_long_from_B                                    :        87/     2309   3.77% (  3.78%),         1 (  1.14%) clones, pur  96.21%, hit eff  92.22%
+06_long_from_B_P>5GeV                             :        60/     1909   3.14% (  2.99%),         0 (  0.00%) clones, pur  95.56%, hit eff  91.32%
+07_long_from_B_P>3GeV                             :        87/     2155   4.04% (  4.08%),         1 (  1.14%) clones, pur  96.21%, hit eff  92.22%
+08_UT+SciFi                                       :      2998/     5429  55.22% ( 54.44%),        26 (  0.86%) clones, pur  99.31%, hit eff  96.87%
+09_UT+SciFi_P>5GeV                                :      1964/     2268  86.60% ( 87.08%),        18 (  0.91%) clones, pur  99.34%, hit eff  97.36%
+10_UT+SciFi_P>3GeV                                :      2989/     3817  78.31% ( 78.82%),        26 (  0.86%) clones, pur  99.33%, hit eff  96.90%
+11_UT+SciFi_fromStrange                           :      1377/     1984  69.41% ( 69.53%),        14 (  1.01%) clones, pur  99.51%, hit eff  97.61%
+12_UT+SciFi_fromStrange_P>5GeV                    :      1014/     1114  91.02% ( 91.44%),        12 (  1.17%) clones, pur  99.52%, hit eff  97.96%
+13_UT+SciFi_fromStrange_P>3GeV                    :      1376/     1613  85.31% ( 86.04%),        14 (  1.01%) clones, pur  99.51%, hit eff  97.62%
+14_long_electrons                                 :       404/     2697  14.98% ( 14.23%),         3 (  0.74%) clones, pur  98.85%, hit eff  96.53%
+15_long_electrons_P>5GeV                          :       269/     1402  19.19% ( 17.57%),         2 (  0.74%) clones, pur  98.99%, hit eff  96.87%
+16_long_electrons_P>3GeV                          :       404/     2178  18.55% ( 17.92%),         3 (  0.74%) clones, pur  98.85%, hit eff  96.53%
+17_long_fromB_electrons                           :        17/      110  15.45% ( 14.40%),         0 (  0.00%) clones, pur  98.40%, hit eff  97.01%
+18_long_fromB_electrons_P>5GeV                    :        13/       74  17.57% ( 16.41%),         0 (  0.00%) clones, pur 100.00%, hit eff  98.66%
+19_long_PT>2GeV                                   :        42/     1586   2.65% (  3.02%),         1 (  2.33%) clones, pur  94.08%, hit eff  88.85%
+20_long_from_B_PT>2GeV                            :        11/      605   1.82% (  1.68%),         0 (  0.00%) clones, pur  98.18%, hit eff  93.35%
+21_long_strange_P>5GeV                            :       116/      878  13.21% ( 14.04%),         2 (  1.69%) clones, pur  98.54%, hit eff  95.54%
+22_long_strange_P>5GeV_PT>500MeV                  :        24/      335   7.16% (  7.53%),         1 (  4.00%) clones, pur  98.11%, hit eff  93.79%
+23_noVelo+UT+T_fromSignal                         :        89/      168  52.98% ( 55.41%),         2 (  2.20%) clones, pur  98.90%, hit eff  96.28%
+24_noVelo+UT+T_fromKs0                            :       870/     1242  70.05% ( 69.45%),        10 (  1.14%) clones, pur  99.55%, hit eff  97.51%
+25_noVelo+UT+T_fromLambda                         :       482/      692  69.65% ( 69.50%),         3 (  0.62%) clones, pur  99.43%, hit eff  97.76%
+26_noVelo+UT+T_fromSignal_P>5GeV                  :        58/       73  79.45% ( 82.17%),         1 (  1.69%) clones, pur  98.93%, hit eff  97.10%
+27_noVelo+UT+T_fromKs0_P>5GeV                     :       627/      685  91.53% ( 91.67%),         8 (  1.26%) clones, pur  99.59%, hit eff  98.07%
+28_noVelo+UT+T_fromLambda_P>5GeV                  :       376/      416  90.38% ( 90.48%),         3 (  0.79%) clones, pur  99.34%, hit eff  97.78%
+29_noVelo+UT+T_fromSignal_P>5GeV_PT>500MeV        :        39/       52  75.00% ( 77.92%),         1 (  2.50%) clones, pur  98.42%, hit eff  95.93%
+30_noVelo+UT+T_fromKs0_P>5GeV_PT>500MeV           :       354/      383  92.43% ( 92.51%),         3 (  0.84%) clones, pur  99.61%, hit eff  98.34%
+31_noVelo+UT+T_fromLambda_P>5GeV_PT>500MeV        :       254/      281  90.39% ( 89.99%),         2 (  0.78%) clones, pur  99.49%, hit eff  97.88%
+35_long_nSciFiHits_gt_0_AND_lt_5000               :      1879/    17922  10.48% ( 10.57%),        18 (  0.95%) clones, pur  98.66%, hit eff  96.35%
+36_long_nSciFiHits_gt_5000_AND_lt_7000            :      1764/    16105  10.95% ( 10.89%),        28 (  1.56%) clones, pur  97.75%, hit eff  94.78%
+37_long_nSciFiHits_gt_7000_AND_lt_10000           :      1053/     9149  11.51% ( 11.43%),        14 (  1.31%) clones, pur  97.41%, hit eff  93.94%
+38_long_nSciFiHits_gt_10000                       :        25/      449   5.57% (  5.58%),         0 (  0.00%) clones, pur  96.47%, hit eff  90.79%
 

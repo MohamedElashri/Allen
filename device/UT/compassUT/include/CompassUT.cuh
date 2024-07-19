@@ -34,7 +34,9 @@ namespace compass_ut {
     DEVICE_INPUT(dev_ut_selected_velo_tracks_with_windows_t, unsigned) dev_ut_selected_velo_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
-    DEVICE_OUTPUT(dev_atomics_ut_t, unsigned) dev_atomics_ut;
+    DEVICE_OUTPUT(dev_offsets_ut_tracks_t, unsigned) dev_offsets_ut_tracks;
+    HOST_OUTPUT(host_number_of_reconstructed_ut_tracks_t, unsigned) host_number_of_reconstructed_ut_tracks;
+
     PROPERTY(sigma_velo_slope_t, "sigma_velo_slope", "sigma velo slope [radians]", float) sigma_velo_slope;
     PROPERTY(min_momentum_final_t, "min_momentum_final", "final min momentum cut [MeV/c]", float) min_momentum_final;
     PROPERTY(min_pt_final_t, "min_pt_final", "final min pT cut [MeV/c]", float) min_pt_final;

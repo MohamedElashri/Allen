@@ -10,7 +10,7 @@
 ###############################################################################
 from AllenConf.downstream_reconstruction import downstream_track_reconstruction
 
-from AllenConf.utils import make_gec
+from AllenConf.filters import make_gec
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate
 

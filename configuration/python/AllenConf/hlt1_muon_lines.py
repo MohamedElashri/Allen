@@ -21,10 +21,9 @@ from AllenCore.configuration_options import is_allen_standalone
 
 
 @configurable
-def make_one_muon_track_line(number_of_muon_tracks,
-                             muon_tracks,
-                             dev_output_buffer,
-                             host_total_sum_holder,
+def make_one_muon_track_line(muon_tracks,
+                             dev_muon_tracks_offsets,
+                             host_muon_total_number_of_tracks,
                              name="Hlt1OneMuonTrack",
                              pre_scaler=1.,
                              post_scaler=1.,
@@ -41,10 +40,9 @@ def make_one_muon_track_line(number_of_muon_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         pre_scaler=pre_scaler,
         post_scaler=post_scaler,
-        dev_muon_number_of_tracks_t=number_of_muon_tracks,
         dev_muon_tracks_t=muon_tracks,
-        host_muon_total_number_of_tracks_t=host_total_sum_holder,
-        dev_muon_tracks_offsets_t=dev_output_buffer)
+        host_muon_total_number_of_tracks_t=host_muon_total_number_of_tracks,
+        dev_muon_tracks_offsets_t=dev_muon_tracks_offsets)
 
 
 @configurable

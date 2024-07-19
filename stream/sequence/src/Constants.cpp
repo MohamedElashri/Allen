@@ -278,3 +278,120 @@ void Constants::initialize_matching_ghostkiller_constants(
   Allen::malloc((void**) &dev_matching_ghost_killer, sizeof(Allen::NeuralNetwork::Model::MatchingGhostKiller));
   fill_single_layer_fcnn_model(dev_matching_ghost_killer, mean, std, weights1, bias1, weights2, bias2);
 }
+
+void Constants::initialize_downstream_ghostkiller_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc((void**) &dev_downstream_ghost_killer, sizeof(Allen::NeuralNetwork::Model::DownstreamGhostKiller));
+  fill_single_layer_fcnn_model(dev_downstream_ghost_killer, mean, std, weights1, bias1, weights2, bias2);
+}
+
+void Constants::initialize_ttrack_selector_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc((void**) &dev_ttrack_selector, sizeof(Allen::NeuralNetwork::Model::TTrackSelector));
+  fill_single_layer_fcnn_model(dev_ttrack_selector, mean, std, weights1, bias1, weights2, bias2);
+}
+
+void Constants::initialize_downstream_composite_quality_evaluator_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc(
+    (void**) &dev_downstream_composite_quality_evaluator,
+    sizeof(Allen::NeuralNetwork::Model::DownstreaCompositeQuality));
+  fill_single_layer_fcnn_model(dev_downstream_composite_quality_evaluator, mean, std, weights1, bias1, weights2, bias2);
+}
+void Constants::initialize_matching_with_ut_ghostkiller_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc(
+    (void**) &dev_matching_with_ut_ghost_killer, sizeof(Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller));
+  fill_single_layer_fcnn_model(dev_matching_with_ut_ghost_killer, mean, std, weights1, bias1, weights2, bias2);
+}
+
+void Constants::initialize_matching_no_ut_v2_ghostkiller_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc(
+    (void**) &dev_matching_no_ut_v2_ghost_killer, sizeof(Allen::NeuralNetwork::Model::MatchingNoUTV2GhostKiller));
+  fill_single_layer_fcnn_model(dev_matching_no_ut_v2_ghost_killer, mean, std, weights1, bias1, weights2, bias2);
+}
+
+void Constants::initialize_downstream_lambda_selector_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc(
+    (void**) &dev_downstream_lambda_selector, sizeof(Allen::NeuralNetwork::Model::DownstreamLambdaSelector));
+  fill_single_layer_fcnn_model(dev_downstream_lambda_selector, mean, std, weights1, bias1, weights2, bias2);
+}
+
+void Constants::initialize_downstream_kshort_selector_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc(
+    (void**) &dev_downstream_kshort_selector, sizeof(Allen::NeuralNetwork::Model::DownstreamKshortSelector));
+  fill_single_layer_fcnn_model(dev_downstream_kshort_selector, mean, std, weights1, bias1, weights2, bias2);
+}
+
+void Constants::initialize_downstream_detached_lambda_selector_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc(
+    (void**) &dev_downstream_detached_lambda_selector,
+    sizeof(Allen::NeuralNetwork::Model::DownstreamDetachedLambdaSelector));
+  fill_single_layer_fcnn_model(dev_downstream_detached_lambda_selector, mean, std, weights1, bias1, weights2, bias2);
+}
+
+void Constants::initialize_downstream_detached_kshort_selector_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc(
+    (void**) &dev_downstream_detached_kshort_selector,
+    sizeof(Allen::NeuralNetwork::Model::DownstreamDetachedKshortSelector));
+  fill_single_layer_fcnn_model(dev_downstream_detached_kshort_selector, mean, std, weights1, bias1, weights2, bias2);
+}

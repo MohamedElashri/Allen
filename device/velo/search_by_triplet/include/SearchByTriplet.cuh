@@ -34,8 +34,9 @@ namespace velo_search_by_triplet {
     DEVICE_OUTPUT(dev_hit_used_t, bool) dev_hit_used;
     DEVICE_OUTPUT(dev_atomics_velo_t, unsigned) dev_atomics_velo;
     DEVICE_OUTPUT(dev_rel_indices_t, unsigned short) dev_rel_indices;
-    DEVICE_OUTPUT(dev_number_of_velo_tracks_t, unsigned) dev_number_of_velo_tracks;
-    DEVICE_INPUT(dev_velo_clusters_t, Velo::Clusters) dev_velo_clusters;
+    DEVICE_OUTPUT(dev_offsets_velo_tracks_t, unsigned) dev_offsets_velo_tracks;
+    HOST_OUTPUT(host_number_of_velo_tracks_at_least_four_hits_t, unsigned)
+    host_number_of_velo_tracks_at_least_four_hits;
 
     // Tolerance in phi
     PROPERTY(phi_tolerance_t, "phi_tolerance", "tolerance in phi", float) phi_tolerance;
@@ -78,18 +79,6 @@ namespace velo_search_by_triplet {
     const int16_t phi_tolerance);
 
   __device__ void track_seeding(
-    Velo::ConstClusters& velo_cluster_container,
-    const Velo::ModulePair* module_pair_data,
-    const bool* hit_used,
-    Velo::TrackletHits* tracklets,
-    unsigned* tracks_to_follow,
-    uint16_t* h1_indices,
-    unsigned* dev_atomics_velo,
-    const float max_scatter,
-    const int16_t phi_tolerance,
-    const unsigned h0_candidates_to_consider);
-
-  __device__ void track_seeding_vectorized(
     Velo::ConstClusters& velo_cluster_container,
     const Velo::ModulePair* module_pair_data,
     const bool* hit_used,

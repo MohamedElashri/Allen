@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "LFQualityFilter.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(lf_quality_filter::lf_quality_filter_t)
 
@@ -17,7 +18,9 @@ void lf_quality_filter::lf_quality_filter_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_atomics_scifi_t>(arguments, first<host_number_of_events_t>(arguments) * LookingForward::num_atomics);
+  set_size<dev_offsets_long_tracks_t>(
+    arguments, first<host_number_of_events_t>(arguments) * LookingForward::num_atomics + 1);
+  set_size<host_number_of_reconstructed_scifi_tracks_t>(arguments, 1);
   set_size<dev_scifi_tracks_t>(
     arguments,
     first<host_number_of_reconstructed_input_tracks_t>(arguments) * SciFi::Constants::max_SciFi_tracks_per_UT_track);
@@ -45,14 +48,17 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_atomics_scifi_t>(arguments, 0, context);
+  Allen::memset_async<dev_offsets_long_tracks_t>(arguments, 0, context);
 
   global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_forward_ghost_killer, constants.dev_forward_no_ut_ghost_killer);
 
   if (property<verbosity_t>() >= logger::debug) {
-    print<dev_atomics_scifi_t>(arguments);
+    print<dev_offsets_long_tracks_t>(arguments);
   }
+
+  PrefixSum::prefix_sum<dev_offsets_long_tracks_t, host_number_of_reconstructed_scifi_tracks_t>(
+    *this, arguments, context);
 }
 
 namespace {
@@ -167,7 +173,7 @@ __device__ void quality_filter(
     parameters.dev_scifi_quality_of_tracks[scifi_track_index] = updated_track_quality;
 
     // // This code is to keep all the tracks
-    // const auto insert_index = atomicAdd(parameters.dev_atomics_scifi + event_number, 1);
+    // const auto insert_index = atomicAdd(parameters.dev_offsets_long_tracks + event_number, 1);
     // parameters.dev_scifi_tracks[ut_event_tracks_offset * SciFi::Constants::max_SciFi_tracks_per_UT_track +
     // insert_index] = track;
   }
@@ -232,7 +238,7 @@ __device__ void quality_filter(
       const auto ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_forward_ghost_killer, ghost_killer_inputs);
 
       if (ghost_killer_score < parameters.ghost_killer_threshold.get()) {
-        const int insert_index = atomicAdd(parameters.dev_atomics_scifi + event_number, 1);
+        const int insert_index = atomicAdd(parameters.dev_offsets_long_tracks + event_number, 1);
         assert(insert_index < event_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track);
 
         const auto new_scifi_track_index =

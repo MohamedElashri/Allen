@@ -27,7 +27,8 @@ namespace FilterSvs {
     DEVICE_INPUT(dev_secondary_vertices_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_secondary_vertices;
     DEVICE_INPUT(dev_max_combo_offsets_t, unsigned) dev_max_combo_offsets;
     DEVICE_OUTPUT(dev_sv_filter_decision_t, bool) dev_sv_filter_decision;
-    DEVICE_OUTPUT(dev_combo_number_t, unsigned) dev_combo_number;
+    DEVICE_OUTPUT(dev_combo_offsets_t, unsigned) dev_combo_offsets;
+    HOST_OUTPUT(host_number_of_combos_t, unsigned) host_number_of_combos;
     DEVICE_OUTPUT(dev_child1_idx_t, unsigned) dev_child1_idx;
     DEVICE_OUTPUT(dev_child2_idx_t, unsigned) dev_child2_idx;
 

@@ -75,98 +75,14 @@ namespace UT {
     }
   };
 
-  /**
-   * @brief Downstream tracks, SOA format
-   */
-  template<typename T>
-  struct DownstreamTracks_t {
-    constexpr static unsigned NumRow = UT::Constants::max_num_tracks;
-    constexpr static unsigned RowSize = sizeof(float) * 6 + sizeof(unsigned) * 6;
-    constexpr static unsigned TotalMemorySize = NumRow * RowSize;
-
-    Allen::forward_type_t<T, float>* m_x;
-    Allen::forward_type_t<T, float>* m_y;
-    Allen::forward_type_t<T, float>* m_tx;
-    Allen::forward_type_t<T, float>* m_ty;
-    Allen::forward_type_t<T, float>* m_chi2;
-    Allen::forward_type_t<T, float>* m_qop;
-    Allen::forward_type_t<T, unsigned>* m_scifi;
-    Allen::forward_type_t<T, unsigned>* m_n_hits;
-    Allen::forward_type_t<T, unsigned>* m_hits; //(1,2,3,4)
-
-    // Constructor
-    __device__ DownstreamTracks_t(T* global_memory) :
-      m_x(reinterpret_cast<Allen::forward_type_t<T, float>*>(global_memory)),
-      m_y(reinterpret_cast<Allen::forward_type_t<T, float>*>(global_memory + (sizeof(float) * 1) * NumRow)),
-      m_tx(reinterpret_cast<Allen::forward_type_t<T, float>*>(global_memory + (sizeof(float) * 2) * NumRow)),
-      m_ty(reinterpret_cast<Allen::forward_type_t<T, float>*>(global_memory + (sizeof(float) * 3) * NumRow)),
-      m_chi2(reinterpret_cast<Allen::forward_type_t<T, float>*>(global_memory + (sizeof(float) * 4) * NumRow)),
-      m_qop(reinterpret_cast<Allen::forward_type_t<T, float>*>(global_memory + (sizeof(float) * 5) * NumRow)),
-      m_scifi(reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(global_memory + (sizeof(float) * 6) * NumRow)),
-      m_n_hits(reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(
-        global_memory + (sizeof(float) * 6 + sizeof(unsigned) * 1) * NumRow)),
-      m_hits(reinterpret_cast<Allen::forward_type_t<T, unsigned>*>(
-        global_memory + (sizeof(float) * 6 + sizeof(unsigned) * 2) * NumRow))
-    {}
-
-    __device__ auto& x(unsigned row_idx)
-    {
-      assert(row_idx < NumRow);
-      return m_x[row_idx];
-    }
-
-    __device__ auto& y(unsigned row_idx)
-    {
-      assert(row_idx < NumRow);
-      return m_y[row_idx];
-    }
-
-    __device__ auto& tx(unsigned row_idx)
-    {
-      assert(row_idx < NumRow);
-      return m_tx[row_idx];
-    }
-
-    __device__ auto& ty(unsigned row_idx)
-    {
-      assert(row_idx < NumRow);
-      return m_ty[row_idx];
-    }
-
-    __device__ auto& qop(unsigned row_idx)
-    {
-      assert(row_idx < NumRow);
-      return m_qop[row_idx];
-    }
-
-    __device__ auto& chi2(unsigned row_idx)
-    {
-      assert(row_idx < NumRow);
-      return m_chi2[row_idx];
-    }
-
-    __device__ auto& scifi(unsigned row_idx)
-    {
-      assert(row_idx < NumRow);
-      return m_scifi[row_idx];
-    }
-
-    __device__ auto& n_hits(unsigned row_idx)
-    {
-      assert(row_idx < NumRow);
-      return m_n_hits[row_idx];
-    }
-
-    __device__ auto& hits(unsigned row_idx, unsigned element_idx)
-    {
-      assert(row_idx < NumRow);
-      assert(element_idx < 4);
-      return m_hits[NumRow * element_idx + row_idx];
-    }
+  struct DownstreamTrack {
+  public:
+    constexpr static unsigned n_layers = UT::Constants::n_layers;
+    float x, y, tx, ty, qop, chi2, ghost_prob;
+    ushort scifi_idx;
+    ushort num_hits;
+    ushort hits[n_layers];
   };
-
-  using DownstreamTracks = DownstreamTracks_t<char>;
-  using DownstreamTracks_Const = DownstreamTracks_t<const char>;
 
   /**
    * @brief Offset and number of hits of each layer.
@@ -383,79 +299,56 @@ namespace UT {
   template<typename T>
   struct PreDecodedHits_t {
   private:
-    typename ForwardType<T, uint64_t>::t* m_base_pointer;
+    typename ForwardType<T, unsigned>::t* m_base_pointer;
     const unsigned m_total_number_of_hits;
 
   public:
-    constexpr static unsigned element_size = sizeof(uint64_t) + 2 * sizeof(unsigned) + sizeof(float);
+    constexpr static unsigned element_size = 2 * sizeof(unsigned) + sizeof(float);
 
     /**
      * @brief Populates the UTHits object pointers to an array of data
      *        pointed by base_pointer.
      */
     __host__ __device__ PreDecodedHits_t(T* base_pointer, const unsigned total_number_of_hits) :
-      m_base_pointer(reinterpret_cast<typename ForwardType<T, uint64_t>::t*>(base_pointer)),
+      m_base_pointer(reinterpret_cast<typename ForwardType<T, unsigned>::t*>(base_pointer)),
       m_total_number_of_hits(total_number_of_hits)
     {}
 
     // Const and lvalue accessors
-    __host__ __device__ uint64_t sort_key(const unsigned index) const
+    __host__ __device__ unsigned geometry_index(const unsigned index) const
     {
       assert(index < m_total_number_of_hits);
       return m_base_pointer[index];
     }
 
-    __host__ __device__ uint64_t& sort_key(const unsigned index)
+    __host__ __device__ unsigned& geometry_index(const unsigned index)
     {
       assert(index < m_total_number_of_hits);
       return m_base_pointer[index];
-    }
-
-    __host__ __device__ unsigned full_channel_index(const unsigned index) const
-    {
-      assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer + m_total_number_of_hits)[index];
-    }
-
-    __host__ __device__ unsigned& full_channel_index(const unsigned index)
-    {
-      assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(m_base_pointer + m_total_number_of_hits)[index];
     }
 
     __host__ __device__ unsigned id(const unsigned index) const
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
-        m_base_pointer + m_total_number_of_hits)[m_total_number_of_hits + index];
+      return m_base_pointer[m_total_number_of_hits + index];
     }
 
     __host__ __device__ unsigned& id(const unsigned index)
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
-        m_base_pointer + m_total_number_of_hits)[m_total_number_of_hits + index];
+      return m_base_pointer[m_total_number_of_hits + index];
     }
 
     __host__ __device__ float num_strips(const unsigned index) const
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, float>::t*>(
-        m_base_pointer + m_total_number_of_hits)[2 * m_total_number_of_hits + index];
+      return reinterpret_cast<typename ForwardType<T, float>::t*>(m_base_pointer)[2 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ float& num_strips(const unsigned index)
     {
       assert(index < m_total_number_of_hits);
-      return reinterpret_cast<typename ForwardType<T, float>::t*>(
-        m_base_pointer + m_total_number_of_hits)[2 * m_total_number_of_hits + index];
-    }
-
-    // Pointer accessors for binary search
-    __host__ __device__ typename ForwardType<T, uint64_t>::t* sort_key_p(const unsigned index) const
-    {
-      assert(index < m_total_number_of_hits);
-      return m_base_pointer + index;
+      return reinterpret_cast<typename ForwardType<T, float>::t*>(m_base_pointer)[2 * m_total_number_of_hits + index];
     }
   };
 

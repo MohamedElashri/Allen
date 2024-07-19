@@ -81,7 +81,6 @@ namespace {
 } // namespace
 
 /**
-=======
  * @brief      Main entry point
  *
  * @param      {key : value} command-line arguments as std::strings
@@ -233,8 +232,12 @@ int allen(
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
   std::unique_ptr<LipschitzNNModelReader> two_track_mva_model_reader;
   std::unique_ptr<LipschitzNNModelReader> electronid_mva_model_reader;
-  std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, matching_no_ut_ghostkiller_reader,
-    forward_ghostkiller_reader, matching_ghostkiller_reader;
+  std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, forward_ghostkiller_reader,
+    matching_ghostkiller_reader, matching_with_ut_ghostkiller_reader, matching_no_ut_v2_ghostkiller_reader;
+
+  std::unique_ptr<SingleLayerFCNNReader> downstream_composite_quality_reader, downstream_lambda_selector_reader,
+    downstream_kshort_selector_reader, downstream_detached_lambda_selector_reader,
+    downstream_detached_kshort_selector_reader, downstream_ghostkiller_reader, ttrack_selector_reader;
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
@@ -283,6 +286,26 @@ int allen(
     std::make_unique<SingleLayerFCNNReader>(folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_Forward.json");
   matching_ghostkiller_reader =
     std::make_unique<SingleLayerFCNNReader>(folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_Matching.json");
+  downstream_ghostkiller_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "GhostProbability/Hlt1_DownstreamGhostKiller.json");
+  downstream_composite_quality_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "HLT1Downstream/Hlt1_Downstream_Composite_Quality.json");
+  downstream_lambda_selector_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_LambdaSelector.json");
+  downstream_kshort_selector_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_KshortSelector.json");
+  downstream_detached_lambda_selector_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "HLT1Downstream/Hlt1_Downstream_DetachedLambdaSelector.json");
+  downstream_detached_kshort_selector_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "HLT1Downstream/Hlt1_Downstream_DetachedKshortSelector.json");
+
+  // Track selector
+  ttrack_selector_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_TTrackSelector.json");
+  matching_with_ut_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT.json");
+  matching_no_ut_v2_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingNoUT_V2.json");
 
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
@@ -347,6 +370,76 @@ int allen(
     matching_ghostkiller_reader->bias1(),
     matching_ghostkiller_reader->weights2(),
     matching_ghostkiller_reader->bias2());
+  constants.initialize_matching_no_ut_v2_ghostkiller_constants(
+    matching_no_ut_v2_ghostkiller_reader->mean(),
+    matching_no_ut_v2_ghostkiller_reader->std(),
+    matching_no_ut_v2_ghostkiller_reader->weights1(),
+    matching_no_ut_v2_ghostkiller_reader->bias1(),
+    matching_no_ut_v2_ghostkiller_reader->weights2(),
+    matching_no_ut_v2_ghostkiller_reader->bias2());
+
+  constants.initialize_downstream_ghostkiller_constants(
+    downstream_ghostkiller_reader->mean(),
+    downstream_ghostkiller_reader->std(),
+    downstream_ghostkiller_reader->weights1(),
+    downstream_ghostkiller_reader->bias1(),
+    downstream_ghostkiller_reader->weights2(),
+    downstream_ghostkiller_reader->bias2());
+
+  constants.initialize_downstream_composite_quality_evaluator_constants(
+    downstream_composite_quality_reader->mean(),
+    downstream_composite_quality_reader->std(),
+    downstream_composite_quality_reader->weights1(),
+    downstream_composite_quality_reader->bias1(),
+    downstream_composite_quality_reader->weights2(),
+    downstream_composite_quality_reader->bias2());
+
+  constants.initialize_downstream_lambda_selector_constants(
+    downstream_lambda_selector_reader->mean(),
+    downstream_lambda_selector_reader->std(),
+    downstream_lambda_selector_reader->weights1(),
+    downstream_lambda_selector_reader->bias1(),
+    downstream_lambda_selector_reader->weights2(),
+    downstream_lambda_selector_reader->bias2());
+
+  constants.initialize_downstream_kshort_selector_constants(
+    downstream_kshort_selector_reader->mean(),
+    downstream_kshort_selector_reader->std(),
+    downstream_kshort_selector_reader->weights1(),
+    downstream_kshort_selector_reader->bias1(),
+    downstream_kshort_selector_reader->weights2(),
+    downstream_kshort_selector_reader->bias2());
+
+  constants.initialize_downstream_detached_lambda_selector_constants(
+    downstream_detached_lambda_selector_reader->mean(),
+    downstream_detached_lambda_selector_reader->std(),
+    downstream_detached_lambda_selector_reader->weights1(),
+    downstream_detached_lambda_selector_reader->bias1(),
+    downstream_detached_lambda_selector_reader->weights2(),
+    downstream_detached_lambda_selector_reader->bias2());
+
+  constants.initialize_downstream_detached_kshort_selector_constants(
+    downstream_detached_kshort_selector_reader->mean(),
+    downstream_detached_kshort_selector_reader->std(),
+    downstream_detached_kshort_selector_reader->weights1(),
+    downstream_detached_kshort_selector_reader->bias1(),
+    downstream_detached_kshort_selector_reader->weights2(),
+    downstream_detached_kshort_selector_reader->bias2());
+
+  constants.initialize_ttrack_selector_constants(
+    ttrack_selector_reader->mean(),
+    ttrack_selector_reader->std(),
+    ttrack_selector_reader->weights1(),
+    ttrack_selector_reader->bias1(),
+    ttrack_selector_reader->weights2(),
+    ttrack_selector_reader->bias2());
+  constants.initialize_matching_with_ut_ghostkiller_constants(
+    matching_with_ut_ghostkiller_reader->mean(),
+    matching_with_ut_ghostkiller_reader->std(),
+    matching_with_ut_ghostkiller_reader->weights1(),
+    matching_with_ut_ghostkiller_reader->bias1(),
+    matching_with_ut_ghostkiller_reader->weights2(),
+    matching_with_ut_ghostkiller_reader->bias2());
 
   // Register all consumers
   register_consumers(updater, constants, configuration_reader->configured_bank_types());
@@ -356,8 +449,7 @@ int allen(
   MonitoringPrinter monitoringPrinter {"MonitoringPrinter", Gaudi::svcLocator(), 10, enable_monitoring_printing};
 
   if (register_monitoring_counters) {
-    Gaudi::Monitoring::Hub* secondHub = &Gaudi::svcLocator()->monitoringHub();
-    secondHub->addSink(&monitoringPrinter);
+    Gaudi::svcLocator()->monitoringHub().addSink(&monitoringPrinter);
   }
 
   // Set up event-loop monitoring
@@ -1164,6 +1256,12 @@ loop_error:
 
   // Reset device
   Allen::device_reset();
+
+#ifndef ALLEN_STANDALONE
+  if (register_monitoring_counters) {
+    Gaudi::svcLocator()->monitoringHub().removeSink(&monitoringPrinter);
+  }
+#endif
 
   if (allen_control) {
     zmqSvc->send(*allen_control, (error_count ? "ERROR" : "NOT_READY"));

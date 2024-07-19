@@ -9,7 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include <RichDecoding.cuh>
-#include <HostPrefixSum.h>
+#include <PrefixSum.cuh>
 #include <RichTel40CableMapping.cuh>
 #include <RichPDMDBDecodeMapping.cuh>
 #include <MEPTools.h>
@@ -183,7 +183,7 @@ __global__ void rich_calculate_number_of_hits(
     const auto number_of_hits_in_raw_bank =
       rich_calculate_number_of_hits_in_raw_bank(bank, cable_mapping, pdmdb_mapping);
     if (number_of_hits_in_raw_bank > 0) {
-      atomicAdd(parameters.dev_rich_number_of_hits + event_number, number_of_hits_in_raw_bank);
+      atomicAdd(parameters.dev_rich_hit_offsets + event_number, number_of_hits_in_raw_bank);
     }
   }
 }
@@ -417,9 +417,7 @@ void rich_decoding::rich_decoding_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_rich_number_of_hits_t>(arguments, size<dev_event_list_t>(arguments));
   set_size<dev_rich_hit_offsets_t>(arguments, size<dev_event_list_t>(arguments) + 1);
-  set_size<host_rich_hit_offsets_t>(arguments, size<dev_event_list_t>(arguments) + 1);
   set_size<host_rich_total_number_of_hits_t>(arguments, 1);
 }
 
@@ -438,26 +436,14 @@ void rich_decoding::rich_decoding_t::operator()(
   auto pdmdb_mapping =
     reinterpret_cast<Rich::Future::DAQ::Allen::PDMDBDecodeMapping*>(constants.dev_rich_pdmdb_mapping);
 
-  // Calculate number of hits into dev_rich_number_of_hits_t
-  Allen::memset_async<dev_rich_number_of_hits_t>(arguments, 0, context);
+  // Calculate number of hits into dev_rich_hit_offsets_t
+  Allen::memset_async<dev_rich_hit_offsets_t>(arguments, 0, context);
   global_function(
     runtime_options.mep_layout ? rich_calculate_number_of_hits<true> : rich_calculate_number_of_hits<false>)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_t>(), context)(
     arguments, std::get<0>(runtime_options.event_interval), cable_mapping, pdmdb_mapping);
 
-  // Copy to host
-  data<host_rich_hit_offsets_t>(arguments)[0] = 0;
-  Allen::copy<host_rich_hit_offsets_t, dev_rich_number_of_hits_t>(
-    arguments, context, size<dev_rich_number_of_hits_t>(arguments), 1, 0);
-
-  // Prefix sum
-  host_prefix_sum::host_prefix_sum_impl(
-    data<host_rich_hit_offsets_t>(arguments),
-    size<host_rich_hit_offsets_t>(arguments),
-    data<host_rich_total_number_of_hits_t>(arguments));
-
-  // Copy prefix summed container to device
-  Allen::copy_async<dev_rich_hit_offsets_t, host_rich_hit_offsets_t>(arguments, context);
+  PrefixSum::prefix_sum<dev_rich_hit_offsets_t, host_rich_total_number_of_hits_t>(*this, arguments, context);
 
   // Decode RICH hits
   auto dev_rich_number_of_inserted_hits = make_device_buffer<unsigned>(arguments, size<dev_event_list_t>(arguments));

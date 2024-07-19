@@ -8,10 +8,7 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenConf.utils import (line_maker, make_gec, make_checkPV, make_lowmult,
-                             make_checkCylPV, make_checkPseudoPV,
-                             make_invert_event_list, sd_error_filter,
-                             make_tae_activity_filter)
+from AllenConf.utils import line_maker, make_invert_event_list
 from AllenConf.odin import make_bxtype, odin_error_filter, tae_filter, make_event_type, make_odin_orbit
 from AllenConf.velo_reconstruction import decode_velo
 from AllenConf.calo_reconstruction import decode_calo
@@ -23,6 +20,9 @@ from AllenConf.hlt1_muon_lines import *
 from AllenConf.hlt1_electron_lines import *
 from AllenConf.hlt1_monitoring_lines import *
 from AllenConf.hlt1_smog2_lines import *
+from AllenConf.hlt1_downstream_lines import *
+from AllenConf.filters import *
+
 from AllenConf.hlt1_photon_lines import make_diphotonhighmass_line
 from AllenConf.persistency import make_persistency
 from AllenConf.validators import rate_validation
@@ -47,6 +47,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     v0_twotrack_pairs = reconstructed_objects["v0_sv_twotrack_pairs"]
     dstars = reconstructed_objects["dstars"]
     v0_pairs = reconstructed_objects["v0_pairs"]
+    v0_hh_pairs = reconstructed_objects["v0_hh_pairs"]
     muon_stubs = reconstructed_objects["muon_stubs"]
 
     lines = [
@@ -88,6 +89,40 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
         make_dst_line(dstars, name="Hlt1Dst2D0Pi"),
     ]
 
+    if 'downstream_tracks' in reconstructed_objects and 'downstream_secondary_vertices' in reconstructed_objects:
+        lines += [
+            make_downstream_kshort_line(
+                reconstructed_objects['downstream_tracks'],
+                reconstructed_objects['downstream_secondary_vertices'],
+                mva_ks_threshold=0.5,
+                mva_detached_ks_threshold=0.5,
+                name="Hlt1DownstreamKsToPiPi",
+                enable_monitoring=True),
+            make_downstream_lambda_line(
+                reconstructed_objects['downstream_tracks'],
+                reconstructed_objects['downstream_secondary_vertices'],
+                mva_l0_threshold=0.5,
+                mva_detached_l0_threshold=0.5,
+                name="Hlt1DownstreamLambdaToPPi",
+                enable_monitoring=True),
+            make_downstream_kshort_line(
+                reconstructed_objects['downstream_tracks'],
+                reconstructed_objects['downstream_secondary_vertices'],
+                post_scaler=0.001,
+                mva_ks_threshold=0.5,
+                mva_detached_ks_threshold=0.,
+                name="Hlt1DownstreamPromptKsToPiPi",
+                enable_monitoring=True),
+            make_downstream_lambda_line(
+                reconstructed_objects['downstream_tracks'],
+                reconstructed_objects['downstream_secondary_vertices'],
+                post_scaler=0.001,
+                mva_l0_threshold=0.5,
+                mva_detached_l0_threshold=0.,
+                name="Hlt1DownstreamPromptLambdaToPPi",
+                enable_monitoring=True),
+        ]
+
     if with_v0s:
         lines += [
             make_kstopipi_line(
@@ -117,6 +152,12 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 v0_twotrack_pairs,
                 name="Hlt1XiOmegaLLL",
                 enable_tupling=enable_tupling),
+            make_d2kshh_line(
+                long_tracks,
+                v0_hh_pairs,
+                name="Hlt1D2Kshh",
+                enable_tupling=enable_tupling,
+                minCTau_D0=0.5 * 0.1229)
         ]
 
     if with_muon:
@@ -403,7 +444,7 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
 
 def alignment_monitoring_lines(reconstructed_objects,
                                prefilters_bx,
-                               prefilters_no_bx,
+                               prefilters_odin_err,
                                with_muon=True):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
@@ -448,10 +489,9 @@ def alignment_monitoring_lines(reconstructed_objects,
                 muonid,
                 name="Hlt1DiMuonJpsiMassAlignment"),
             make_one_muon_track_line(
-                muon_stubs["dev_muon_number_of_tracks"],
                 muon_stubs["consolidated_muon_tracks"],
-                muon_stubs["dev_output_buffer"],
-                muon_stubs["host_total_sum_holder"],
+                muon_stubs["dev_muon_tracks_offsets"],
+                muon_stubs["host_muon_total_number_of_tracks"],
                 name="Hlt1OneMuonTrackLine",
                 post_scaler=0.001),
         ]
@@ -459,7 +499,7 @@ def alignment_monitoring_lines(reconstructed_objects,
     with line_maker.bind(prefilter=prefilters_bx):
         lines = [line_maker(line) for line in lines]
 
-    with line_maker.bind(prefilter=prefilters_no_bx):
+    with line_maker.bind(prefilter=prefilters_odin_err):
         lines += [
             line_maker(
                 make_velo_micro_bias_line(
@@ -832,7 +872,8 @@ def default_bgi_activity_lines(pvs,
 
 def setup_hlt1_node(enablePhysics=True,
                     withMCChecking=False,
-                    EnableGEC=False,
+                    EnableGEC=True,
+                    DisableLinesDuringVPClosing=False,
                     withSMOG2=True,
                     enableRateValidator=True,
                     with_ut=True,
@@ -867,11 +908,21 @@ def setup_hlt1_node(enablePhysics=True,
 
     hlt1_config['reconstruction'] = reconstructed_objects
 
-    gec = [make_gec(count_ut=with_ut)] if EnableGEC else []
+    gec = [
+        make_gec(
+            count_ut=False,
+            count_velo=True,
+            max_scifi_clusters=20000,
+            max_velo_clusters=35000)
+    ] if EnableGEC else []
     odin_err_filter = [odin_error_filter("odin_error_filter")
                        ] if with_odin_filter else []
     beam_beam_filter = [make_bxtype(bx_type=3)]
-    prefilters = odin_err_filter + beam_beam_filter + gec
+    velo_open_event = make_event_type(event_type="VeloOpen")
+    velo_closed = [
+        make_invert_event_list(velo_open_event, name="VeloClosedEvent")
+    ] if DisableLinesDuringVPClosing else []
+    prefilters = odin_err_filter + beam_beam_filter + gec + velo_closed
 
     physics_lines = []
     if enablePhysics:
@@ -917,8 +968,7 @@ def setup_hlt1_node(enablePhysics=True,
                 make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.0001))
         ]
 
-    velo_open_event = make_event_type(event_type="VeloOpen")
-    with line_maker.bind(prefilter=odin_err_filter + gec + [velo_open_event]):
+    with line_maker.bind(prefilter=odin_err_filter + [velo_open_event]):
         monitoring_lines += [
             line_maker(
                 make_velo_micro_bias_line(
@@ -934,7 +984,7 @@ def setup_hlt1_node(enablePhysics=True,
             ]
 
     if enableBGI:
-        bgi_prefilters = odin_err_filter + gec
+        bgi_prefilters = odin_err_filter + gec + velo_closed
         physics_lines += default_bgi_activity_lines(
             reconstructed_objects["pvs"],
             reconstructed_objects["velo_states"],
@@ -943,10 +993,11 @@ def setup_hlt1_node(enablePhysics=True,
             prefilter=bgi_prefilters)
 
     monitoring_lines += alignment_monitoring_lines(
-        reconstructed_objects, prefilters, odin_err_filter + gec, with_muon)
+        reconstructed_objects, prefilters, odin_err_filter, with_muon)
 
     bx_BE = make_bxtype(bx_type=1)
-    with line_maker.bind(prefilter=odin_err_filter + gec + [bx_BE]):
+    with line_maker.bind(
+            prefilter=odin_err_filter + gec + [bx_BE] + velo_closed):
         monitoring_lines += [
             line_maker(
                 make_beam_gas_line(
@@ -965,7 +1016,9 @@ def setup_hlt1_node(enablePhysics=True,
 
     if withSMOG2:
         SMOG2_prefilters, SMOG2_lines = [], []
-        with line_maker.bind(prefilter=odin_err_filter + [bx_BE]):
+        SMOG2_prefilters += velo_closed
+        with line_maker.bind(
+                prefilter=odin_err_filter + velo_closed + [bx_BE]):
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(
@@ -979,7 +1032,8 @@ def setup_hlt1_node(enablePhysics=True,
                 name="LowMult_5",
                 minTracks=1,
                 maxTracks=5)
-            with line_maker.bind(prefilter=odin_err_filter + [lowMult_5]):
+            with line_maker.bind(
+                    prefilter=odin_err_filter + velo_closed + [lowMult_5]):
                 SMOG2_lines += [
                     line_maker(
                         make_passthrough_line(
@@ -995,8 +1049,8 @@ def setup_hlt1_node(enablePhysics=True,
                 maxTracks=3,
                 min_ecal_clusters=1,
                 max_ecal_clusters=10)
-            with line_maker.bind(
-                    prefilter=odin_err_filter + [bx_BE, lowMultElectrons]):
+            with line_maker.bind(prefilter=odin_err_filter + velo_closed +
+                                 [bx_BE, lowMultElectrons]):
                 SMOG2_lines += [
                     line_maker(
                         make_passthrough_line(
@@ -1052,23 +1106,6 @@ def setup_hlt1_node(enablePhysics=True,
     hlt1_config['line_algorithms'] = line_algorithms
     hlt1_config.update(persistency_algorithms)
 
-    # This is used to measure the effect of downstream reconstruction on the final throughput. It should be removed once the real downstream line is implemented.
-    if enableDownstream:
-        hlt1_node = CompositeNode(
-            "AllenWithDownstream", [
-                hlt1_node,
-                CompositeNode(
-                    "DownstreamReconstruction",
-                    prefilters + [
-                        reconstructed_objects["downstream_tracks"]
-                        ["dev_downstream_track_particles_view"]
-                    ],
-                    NodeLogic.LAZY_AND,
-                    force_order=True)
-            ],
-            NodeLogic.NONLAZY_AND,
-            force_order=False)
-
     if with_lumi:
         lumi_reco = lumi_reconstruction(
             gather_selections=hlt1_config['gather_selections'],
@@ -1086,7 +1123,7 @@ def setup_hlt1_node(enablePhysics=True,
 
         lumi_with_prefilter = CompositeNode(
             "LumiWithPrefilter",
-            odin_err_filter + [lumi_node],
+            odin_err_filter + velo_closed + [lumi_node],
             NodeLogic.LAZY_AND,
             force_order=True)
 

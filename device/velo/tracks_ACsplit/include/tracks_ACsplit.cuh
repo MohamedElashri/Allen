@@ -29,11 +29,15 @@ namespace tracks_ACsplit {
     // Velo side A
     DEVICE_OUTPUT(dev_tracks_A_side_t, Velo::TrackHits) dev_tracks_A_side;
     DEVICE_OUTPUT(dev_offsets_velo_track_hit_number_A_side_t, unsigned) dev_offsets_velo_track_hit_number_A_side;
+    HOST_OUTPUT(host_accumulated_number_of_hits_in_velo_tracks_A_side_t, unsigned)
+    host_accumulated_number_of_hits_in_velo_tracks_A_side;
     DEVICE_OUTPUT(dev_three_hit_tracks_output_A_side_t, Velo::TrackletHits) dev_three_hit_tracks_output_A_side;
 
     // Velo side C
     DEVICE_OUTPUT(dev_tracks_C_side_t, Velo::TrackHits) dev_tracks_C_side;
     DEVICE_OUTPUT(dev_offsets_velo_track_hit_number_C_side_t, unsigned) dev_offsets_velo_track_hit_number_C_side;
+    HOST_OUTPUT(host_accumulated_number_of_hits_in_velo_tracks_C_side_t, unsigned)
+    host_accumulated_number_of_hits_in_velo_tracks_C_side;
     DEVICE_OUTPUT(dev_three_hit_tracks_output_C_side_t, Velo::TrackletHits) dev_three_hit_tracks_output_C_side;
 
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;

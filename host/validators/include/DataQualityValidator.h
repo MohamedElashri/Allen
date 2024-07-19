@@ -107,7 +107,7 @@ namespace data_quality_validator_occupancy {
     DEVICE_INPUT(dev_velo_offsets_estimated_input_size_t, unsigned) dev_velo_offsets_estimated_input_size;
     DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned) dev_offsets_velo_tracks;
     DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
-    DEVICE_INPUT(dev_ecal_num_clusters_t, unsigned) dev_ecal_num_clusters;
+    DEVICE_INPUT(dev_ecal_clusters_offsets_t, unsigned) dev_ecal_clusters_offsets;
 
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable Tupling", bool) enable_tupling;
   };
