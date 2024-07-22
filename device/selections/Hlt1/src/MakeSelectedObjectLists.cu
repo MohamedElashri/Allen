@@ -340,7 +340,7 @@ __global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_l
     atomicAdd(parameters.dev_rb_hits_offsets + event_number, track->number_of_ids());
   }
   if (threadIdx.x == 0) {
-    parameters.dev_rb_hits_offsets[event_number] += 1 + (parameters.dev_unique_track_count[event_number] / 2);
+    atomicAdd(parameters.dev_rb_hits_offsets + event_number, 1 + (parameters.dev_unique_track_count[event_number] / 2));
   }
 
   // Calculate the size of the substr bank.
