@@ -34,8 +34,8 @@ struct MCPVInfo {
   int number_rec_vtx = 0; // number of associated rec vertices
 };
 
-struct RecPVInfo {
-  int nTracks;     // number of tracks
+struct AllenRecPVInfo {
+  float nTracks;   // number of tracks
   int nVeloTracks; // number of velo tracks in a vertex
   int nLongTracks;
   double minTrackRD; //

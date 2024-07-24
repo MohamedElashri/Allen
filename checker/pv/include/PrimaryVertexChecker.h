@@ -63,7 +63,7 @@ private:
   int m_nTracksToBeRecble = 0;
 };
 
-void match_mc_vertex_by_distance(int ipv, std::vector<RecPVInfo>& rinfo, std::vector<MCPVInfo>& mcpvvec);
+void match_mc_vertex_by_distance(int ipv, std::vector<AllenRecPVInfo>& rinfo, std::vector<MCPVInfo>& mcpvvec);
 
 void printRat(std::string mes, int a, int b);
 
