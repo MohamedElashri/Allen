@@ -65,11 +65,25 @@ namespace tracks_ACsplit_counters {
     return 0;
   }
 
-  __device__ inline bool random_selection(const Velo::TrackHits& track)
+  __device__ inline bool random_selection(
+    const Velo::ConstClusters velo_cluster_container,
+    const Velo::TrackHits& track)
   {
-    const auto hit_index = track.hits[0];
-    return hit_index % 2;
+    const auto index_hitFirst = track.hits[0];
+    const auto index_hitLast = track.hits[track.hitsNum - 1];
+    const auto r_hitFirst = velo_cluster_container.x(index_hitFirst) * velo_cluster_container.x(index_hitFirst) +
+                            velo_cluster_container.y(index_hitFirst) * velo_cluster_container.y(index_hitFirst);
+    const auto r_hitLast = velo_cluster_container.x(index_hitLast) * velo_cluster_container.x(index_hitLast) +
+                           velo_cluster_container.y(index_hitLast) * velo_cluster_container.y(index_hitLast);
+
+    if (r_hitFirst > r_hitLast) {
+      return index_hitFirst % 2;
+    }
+    else {
+      return index_hitLast % 2;
+    }
   }
+
   struct tracks_ACsplit_counters_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
