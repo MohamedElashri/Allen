@@ -44,6 +44,21 @@ struct ConfiguredAlgorithmArguments {
   {}
 };
 
+inline bool operator==(ConfiguredAlgorithm const& a, ConfiguredAlgorithm const& b)
+{
+  return a.id == b.id && a.name == b.name && a.scope == b.scope;
+}
+
+inline bool operator==(ConfiguredArgument const& a, ConfiguredArgument const& b)
+{
+  return a.scope == b.scope && a.name == b.name;
+}
+
+inline bool operator==(ConfiguredAlgorithmArguments const& a, ConfiguredAlgorithmArguments const& b)
+{
+  return a.arguments == b.arguments && a.input_aggregates == b.input_aggregates;
+}
+
 using ArgumentDependencies = std::map<std::string, std::vector<std::string>>;
 
 struct LifetimeDependencies {
@@ -56,6 +71,13 @@ struct ConfiguredSequence {
   std::vector<ConfiguredAlgorithmArguments> configured_algorithm_arguments;
   ArgumentDependencies argument_dependencies;
 };
+
+inline bool operator==(ConfiguredSequence const& a, ConfiguredSequence const& b)
+{
+  return a.configured_algorithms == b.configured_algorithms && a.configured_arguments == b.configured_arguments &&
+         a.configured_algorithm_arguments == b.configured_algorithm_arguments &&
+         a.argument_dependencies == b.argument_dependencies;
+}
 
 struct ParsedSequence {
   using configured_algorithm_parse_t = std::vector<std::tuple<std::string, std::string, std::string>>;

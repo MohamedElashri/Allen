@@ -138,6 +138,7 @@ std::tuple<bool, size_t> OutputHandler::output_single_events(
 
 #ifndef STANDALONE
   if (m_nbatches) (*m_nbatches) += n_batches;
+  if (m_nprocessed) (*m_nprocessed) += outputs.selected_events.size();
 #endif
 
   for (size_t i_batch = 0; i_batch < n_batches && output_success; ++i_batch) {

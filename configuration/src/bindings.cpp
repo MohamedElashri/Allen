@@ -57,4 +57,5 @@ PYBIND11_MODULE(TCK, m)
     &Allen::sequence_from_git,
     "Get the TCK and TCK information in a format that can be used to "
     "configure Allen");
+  m.def("load_tck", &Allen::load_tck, "Load the TCK and TCK info and check that the dependencies match");
 }

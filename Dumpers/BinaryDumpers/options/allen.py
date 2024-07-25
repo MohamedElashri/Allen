@@ -78,7 +78,8 @@ parser.add_argument("-n", dest="n_events", default=0)
 parser.add_argument("-t", dest="threads", default=1)
 parser.add_argument("--params", dest="params", default="")
 parser.add_argument("-r", dest="repetitions", default=1)
-parser.add_argument("-m", dest="reserve", default=1024)
+parser.add_argument("-m", dest="reserve", default=1000)
+parser.add_argument("--host-memory", dest="host_memory", default=200)
 parser.add_argument("-v", dest="verbosity", default=3)
 parser.add_argument("-p", dest="print_memory", default=0)
 parser.add_argument("--sequence", dest="sequence", default=sequence_default)
@@ -167,6 +168,12 @@ parser.add_argument(
     action="store_false",
     default=True)
 parser.add_argument(
+    "--tck-from-odin",
+    help="Respect the TCK requested by ODIN",
+    dest="tck_from_odin",
+    action="store_true",
+    default=False)
+parser.add_argument(
     "--python-hlt1-node",
     type=str,
     help=
@@ -232,7 +239,7 @@ ApplicationMgr().ExtSvc += ["Gaudi::IODataManager/IODataManager", rootSvc]
 
 # Get Allen JSON configuration
 sequence = Path(os.path.expandvars(args.sequence))
-sequence_json = ""
+sequence_json, sequence_source = ("", "")
 tck_option = re.compile(r"([^:]+):(0x[a-fA-F0-9]{8})")
 if (m := tck_option.match(str(sequence))):
     from Allen.tck import sequence_from_git, dependencies_from_build_manifest
@@ -257,6 +264,7 @@ if (m := tck_option.match(str(sequence))):
         print(
             f"Loaded TCK {tck} with sequence type {tck_info['type']} and label {tck_info['label']}."
         )
+        sequence_source = f"{repo}:{tck}"
 elif sequence.suffix in (".py", ""):
     from Allen.tck import sequence_from_python
     from AllenCore.configuration_options import is_allen_standalone
@@ -264,9 +272,12 @@ elif sequence.suffix in (".py", ""):
     sequence_json = json.dumps(
         sequence_from_python(sequence, node_name=args.hlt1_node, verbose=True),
         sort_keys=True)
+    sequence_source = str(sequence)
 elif sequence.suffix in (".json", ):
+    print(sequence.resolve())
     with sequence.open() as f:
         sequence_json = f.read()
+    sequence_source = str(sequence)
 else:
     raise ValueError(f"Unknown type of sequence specified: {str(sequence)}")
 
@@ -303,8 +314,7 @@ if args.mep:
                                                         for mep in list_file))
             ]
     else:
-        mep_provider.Connections = mep_dir.split(',')
-    # mep_provider.Connections = ["/daqarea1/fest/beam_test/Allen_BU_10.mep"]
+        mep_provider.Connections = meps
 
     mep_provider.LoopOnMEPs = False
     mep_provider.Preload = args.reuse_meps
@@ -367,11 +377,12 @@ for flag, value in [("g", args.det_folder), ("params", params),
                     ("monitoring-save-period", args.mon_save_period),
                     ("monitoring-filename", args.mon_filename),
                     ("events-per-slice", args.events_per_slice),
-                    ("device", args.device),
+                    ("device", args.device), ("host-memory", args.host_memory),
+                    ("tck-from-odin", int(args.tck_from_odin)),
                     ("enable-monitoring-printing",
-                     args.enable_monitoring_printing),
+                     int(args.enable_monitoring_printing)),
                     ("register-monitoring-counters",
-                     args.register_monitoring_counters)]:
+                     int(args.register_monitoring_counters))]:
     if value is not None:
         options[flag] = str(value)
 
@@ -418,8 +429,8 @@ def allen_thread():
     if args.profile == "CUDA":
         runtime_lib.cudaProfilerStart()
 
-    gbl.allen(options, sequence_json, updater, provider, output_handler,
-              zmqSvc, con.c_str())
+    gbl.allen(options, sequence_json, sequence_source, updater, provider,
+              output_handler, zmqSvc, con.c_str())
 
     if args.profile == "CUDA":
         runtime_lib.cudaProfilerStop()

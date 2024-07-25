@@ -14,6 +14,14 @@
 #include "InputTools.h"
 #include "Tools.h"
 
+#include <range/v3/algorithm/all_of.hpp>
+#include <range/v3/core.hpp>
+#include <range/v3/numeric/accumulate.hpp>
+#include <range/v3/view/take.hpp>
+#include <range/v3/view/map.hpp>
+#include <range/v3/view/zip.hpp>
+#include <range/v3/algorithm/equal.hpp>
+
 namespace {
   using std::make_pair;
 }
@@ -236,6 +244,22 @@ std::unordered_set<BankTypes> ConfigurationReader::configured_bank_types() const
   }
 
   return bank_types;
+}
+
+bool compatible_configurations(ConfigurationReader const& a, ConfigurationReader const& b)
+{
+  // For two configurations to be compatible, their sequences must be
+  // the same and all algorithms must have the same properties. Values
+  // of properties may be different.
+  using namespace ranges;
+
+  auto const &a_pars = a.params(), b_pars = b.params();
+  return a.configured_sequence() == b.configured_sequence() &&
+         ranges::equal(views::keys(a_pars), views::keys(b_pars)) &&
+         ranges::all_of(views::zip(a_pars, b_pars), [](auto&& entry) {
+           auto const& [a, b] = entry;
+           return ranges::equal(views::keys(a.second), views::keys(b.second));
+         });
 }
 
 SingleLayerFCNNReader::SingleLayerFCNNReader(const std::string& file_name)
