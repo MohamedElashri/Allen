@@ -665,7 +665,7 @@ allen_add_host_library(HostCommon SHARED
 target_link_libraries(AllenCommon INTERFACE
   LHCbEvent AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
 target_link_libraries(HostCommon PRIVATE
-  mdf EventModel Gear Backend mdf AllenCommon LHCbEvent Boost::iostreams)
+  mdf EventModel Gear Backend mdf AllenCommon LHCbEvent Boost::iostreams Rangev3::rangev3)
 
 allen_add_host_library(AllenLib SHARED
   main/src/Allen.cpp

@@ -99,7 +99,7 @@ struct ConfigurationReader {
   }
 
   Params const& params() const { return m_params; }
-  ConfiguredSequence configured_sequence() const { return m_configured_sequence; }
+  ConfiguredSequence const& configured_sequence() const { return m_configured_sequence; }
 
   void save(std::string file_name);
 
@@ -112,6 +112,8 @@ private:
   std::map<std::string, nlohmann::json> m_sequence;
   ConfiguredSequence m_configured_sequence;
 };
+
+bool compatible_configurations(ConfigurationReader const& a, ConfigurationReader const& b);
 
 struct SingleLayerFCNNReader {
   SingleLayerFCNNReader(const std::string& file_name);

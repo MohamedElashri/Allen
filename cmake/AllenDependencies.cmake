@@ -147,8 +147,9 @@ if(WITH_Allen_PRIVATE_DEPENDENCIES)
   find_package(Boost 1.75 CONFIG REQUIRED COMPONENTS filesystem iostreams thread regex
     serialization program_options unit_test_framework headers)
 
+  find_package(Rangev3 REQUIRED)
+
   if(NOT STANDALONE)
-    find_package(Rangev3 REQUIRED)
     find_package(yaml-cpp REQUIRED)
 
     # pybind11 is available in LCG, but it's installed with setup.py,

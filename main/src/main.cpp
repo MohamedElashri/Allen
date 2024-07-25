@@ -129,15 +129,15 @@ int main(int argc, char* argv[])
 
   auto zmqSvc = makeZmqSvc();
 
-  auto configuration = Allen::sequence_conf(allen_options);
+  auto [config, config_source] = Allen::sequence_conf(allen_options);
 
   Allen::NonEventData::Updater updater {allen_options};
 
-  auto input_provider = Allen::make_provider(allen_options, configuration);
+  auto input_provider = Allen::make_provider(allen_options, config);
   if (!input_provider) return -1;
 
   auto output_handler = Allen::output_handler(input_provider.get(), zmqSvc, allen_options);
 
   return allen(
-    std::move(allen_options), configuration, &updater, input_provider.get(), output_handler.get(), zmqSvc, "");
+    std::move(allen_options), config, config_source, &updater, input_provider.get(), output_handler.get(), zmqSvc, "");
 }

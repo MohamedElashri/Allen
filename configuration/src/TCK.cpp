@@ -178,3 +178,25 @@ std::tuple<std::string, LHCb::TCK::Info> Allen::sequence_from_git(std::string re
 
   return {sequence.dump(), tck_info};
 }
+
+std::tuple<std::string, std::string, LHCb::TCK::Info> Allen::load_tck(std::string repo, std::string tck)
+{
+  std::string config;
+  LHCb::TCK::Info info;
+  try {
+    std::tie(config, info) = Allen::sequence_from_git(repo, tck);
+  } catch (std::runtime_error const& e) {
+    throw std::runtime_error {"Failed to obtain sequence for TCK " + tck + " from repository at " + repo + ":" +
+                              e.what()};
+  }
+
+  auto [check, check_error] = TCK::check_projects(nlohmann::json::parse(info.metadata));
+
+  if (config.empty()) {
+    throw std::runtime_error {"Failed to obtain sequence for TCK " + tck + " from repository at " + repo};
+  }
+  else if (!check) {
+    throw std::runtime_error {std::string {"TCK "} + tck + ": " + check_error};
+  }
+  return {std::move(config), repo + ":" + tck, std::move(info)};
+}
