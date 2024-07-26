@@ -55,14 +55,14 @@ The build process is the standard cmake procedure. You should specify a `CMAKE_T
 
     mkdir build
     cd build
-    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_103/x86_64-centos9-gcc12-opt.cmake ..
+    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_105a/x86_64_v3-el9-gcc12-opt+g.cmake ..
     make
 
 * CUDA target::
 
     mkdir build
     cd build
-    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_103/x86_64_v3-el9-gcc12+cuda12_1-opt.cmake ..
+    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_105a/x86_64_v3-el9-gcc12+cuda12_1-opt+g.cmake ..
     make
 
 * HIP target (the following is a CentOS 7 configuration, a RHEL 9 one will soon be provided)::
@@ -76,7 +76,7 @@ Note: CUDA builds with CVMFS outside CERN network still require a local CUDA ins
 
 * Specify `CMAKE_CUDA_COMPILER` when invoking `cmake`::
 
-    cmake -DSTANDALONE=ON -DCMAKE_CUDA_COMPILER=</path/to/nvcc> -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_103/x86_64_v3-el9-gcc12+cuda12_1-opt.cmake ..
+    cmake -DSTANDALONE=ON -DCMAKE_CUDA_COMPILER=</path/to/nvcc> -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_105a/x86_64_v3-el9-gcc12+cuda12_1-opt+g.cmake ..
 
 * Add `nvcc` directory to `PATH` (typically `/usr/local/cuda-X.Y/bin`)::
 
@@ -200,7 +200,7 @@ As a Gaudi/LHCb cmake project
 To build Allen like this, is the same as building
 any other Gaudi/LHCb project. Allen depends on Rec and all projects that Rec depends on. So either clone them locally or add the path to a valid nightly build to `CMAKE_PREFIX_PATH` (check the |nightly_builds|). Then do::
 
-    LbLogin -c x86_64-centos7-clang12-opt
+    LbLogin -c x86_64_v3-el9-gcc13-opt+g
     cd Allen
     lb-project-init
     make configure
@@ -227,4 +227,3 @@ other Gaudi/LHCb projects can be used::
 .. |nightly_builds| raw:: html
 
    <a href="https://lhcb-nightlies.web.cern.ch/nightly/" target="_blank">here</a>
-

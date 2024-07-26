@@ -43,4 +43,3 @@
   variables:
     DEVICE_ID: "epyc7502"
     LCG_QUALIFIER: "cpu"
-

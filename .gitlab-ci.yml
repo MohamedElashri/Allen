@@ -9,7 +9,7 @@ variables:
 
   ALLEN_DATA: "/scratch/allen_data"
 
-  LCG_VERSION: "LCG_103"
+  LCG_VERSION: "LCG_105a"
   # LCG_PLATFORM = {LCG_SYSTEM}+{LCG_QUALIFIER}-{LCG_OPTIMIZATION}
   LCG_SYSTEM: "x86_64_v3-el9-gcc12"
   LCG_QUALIFIER: "cpu"
@@ -63,10 +63,10 @@ check-copyright:
   <<: *active_branches
 
   stage: check
-  image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
+  image: gitlab-registry.cern.ch/lhcb-docker/os-base/alma9-devel:latest
   script:
     - curl -o lb-check-copyright "https://gitlab.cern.ch/lhcb-core/LbDevTools/-/raw/master/LbDevTools/SourceTools.py?inline=False"
-    - python lb-check-copyright --license=Apache-2.0 origin/${TARGET_BRANCH}
+    - python3 lb-check-copyright --license=Apache-2.0 origin/${TARGET_BRANCH}
   needs: []
 
 check-formatting:
@@ -74,7 +74,7 @@ check-formatting:
   stage: check
   tags:
     - cvmfs
-  image: gitlab-registry.cern.ch/ci-tools/ci-worker:cc7
+  image: gitlab-registry.cern.ch/lhcb-docker/os-base/alma9-devel:latest
   script:
     - . /cvmfs/lhcb.cern.ch/lib/LbEnv.sh
     - if [ ! -e .clang-format ] ; then
@@ -97,7 +97,7 @@ pages:
     refs:
       - master
   stage: publish
-  image: gitlab-registry.cern.ch/lhcb-core/lbdocker/centos7-build:latest
+  image: gitlab-registry.cern.ch/lhcb-docker/os-base/alma9-devel:latest
   tags:
     - cvmfs
   variables:

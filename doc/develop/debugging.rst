@@ -5,7 +5,7 @@ Debugging
 
 In order to debug you should use a debug build for the target architecture you are interested in. If CVMFS is available, you should use a `dbg` tag such as::
 
-    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_101/x86_64-centos7-clang12+cuda11_4-dbg.cmake ..
+    cmake -DSTANDALONE=ON -DCMAKE_TOOLCHAIN_FILE=/cvmfs/lhcb.cern.ch/lib/lhcb/lcg-toolchains/LCG_105a/x86_64-el9-gcc12+cuda12_3-dbg.cmake ..
 
 Then, you should be able to run your code with a debugger such as `gdb` (CPU), `cuda-gdb` (CUDA) or `rocgdb` (HIP). For instance::
 
@@ -32,7 +32,7 @@ First, make sure to include the correct cmake flags in the build by putting::
 
 in the `utils/config.json` file in your stack before you `make Allen`. Once it is compiled with the flag,  the profile can be created using::
 
-    MooreOnline/build.{tag}/run valgrind --tool=callgrind --instr-atstart=no python Allen/Dumpers/BinaryDumpers/options/allen.py 
+    MooreOnline/build.{tag}/run valgrind --tool=callgrind --instr-atstart=no python Allen/Dumpers/BinaryDumpers/options/allen.py
 
 with the tags, data, and other flags following as normal. This will create a file in the directory that you ran Allen from named `callgrind.out.xxxxxx` where xxxxxx is a seemingly random 6 digit number. You may need to copy this to another machine where you have installed `qcachegrind` or another program capable of reading callgrind files. On that machine, run::
 

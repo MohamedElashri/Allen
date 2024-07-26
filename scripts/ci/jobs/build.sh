@@ -17,7 +17,7 @@ fi
 
 set +u
 
-if [ "${AVOID_HIP}" = "1" ]; then 
+if [ "${AVOID_HIP}" = "1" ]; then
   if [ "${TARGET}" = "HIP" ]; then
     echo "***** Variable TARGET is set to HIP, and AVOID_HIP is set to 1 - quit gracefully."
     exit 0
@@ -61,7 +61,7 @@ TRIES=0
 MAXTRIES=4
 
 while [ $TRIES -le $MAXTRIES ] ; do
-  ninja 2>&1 | tee build.log
+  ninja -j 12 2>&1 | tee build.log
   RC=$?
 
   TRIES=$((TRIES + 1))
@@ -78,12 +78,12 @@ while [ $TRIES -le $MAXTRIES ] ; do
     fi
 
     # clang++ like this
-    if grep -q "LLVM ERROR: out of memory" build.log ; then 
+    if grep -q "LLVM ERROR: out of memory" build.log ; then
       RETRY=1
-    fi 
+    fi
 
     # if we see this, it's likely we got an OOM from compiling the Stream target
-    if grep -q "FAILED: sequences/CMakeFiles/Stream_" build.log ; then 
+    if grep -q "FAILED: sequences/CMakeFiles/Stream_" build.log ; then
       RETRY=1
     fi
 
@@ -103,10 +103,10 @@ while [ $TRIES -le $MAXTRIES ] ; do
   fi
 
   # This is a hack to compensate for the lack of -Werror support
-  # in the CUDA compiler(s) 
-  if grep -q ": warning #" build.log ; then 
+  # in the CUDA compiler(s)
+  if grep -q ": warning #" build.log ; then
     if [[ $ADDITIONAL_OPTIONS == *"TREAT_WARNINGS_AS_ERRORS"* ]]; then
-      if [ $TARGET = "CUDA" ]; then 
+      if [ $TARGET = "CUDA" ]; then
         echo "CUDA warnings were detected in the log, and TREAT_WARNINGS_AS_ERRORS is enabled!"
         echo "Please fix these warnings and try again."
         exit 1;

@@ -16,7 +16,7 @@ include: "scripts/ci/config/common.yaml"
 # builds + runs tests
 
 build:
-  extends: 
+  extends:
     - .build_job
     - .default_rules
     - .build_job_minimal_matrix
@@ -81,7 +81,7 @@ epyc7502:
 
 physics-efficiency:
   stage: test
-  extends: 
+  extends:
     - .test_physics_efficiency
     - .default_rules_always_run
     - .device-jobs
@@ -89,7 +89,7 @@ physics-efficiency:
 
 # run-changes:
 #   stage: test
-#   extends: 
+#   extends:
 #     - .test_run_changes
 #     - .default_rules_always_run
 #   needs:
@@ -98,14 +98,14 @@ physics-efficiency:
 
 
 throughput:
-  extends: 
+  extends:
     - .publish_test_throughput
     - .default_rules_always_run
   stage: test
   variables:
     PUBLISH_ARTIFACT_NAME: "test_throughput"
     TEST_NAME: "test_throughput"
-  
+
   artifacts:
     name: "$PUBLISH_ARTIFACT_NAME"
     paths:
@@ -118,7 +118,7 @@ throughput:
 
 pub-throughput:
   stage: publish
-  extends: 
+  extends:
     - .publish_test_throughput
     - .default_rules_always_run
   variables:
@@ -161,7 +161,7 @@ full-pipeline:
 .full-build:
   needs: [full-pipeline]
   stage: "build full"
-  extends: 
+  extends:
     - .default_rules
     - .build_job
     - .build_job_additional_matrix
@@ -259,7 +259,7 @@ geforcertx2080ti-full:
     # CPU
     - epyc7502-full
 
-    # CUDA 
+    # CUDA
     - geforcertx3090-full
     - geforcertx2080ti-full
     - a5000-full
@@ -270,7 +270,7 @@ geforcertx2080ti-full:
 
 physics-efficiency-full:
   stage: test full
-  extends: 
+  extends:
     - .test_physics_efficiency
     - .default_rules_always_run
     - .depend_full_jobs
@@ -278,14 +278,14 @@ physics-efficiency-full:
 # FIXME
 # run-changes-full:
 #   stage: test full
-#   extends: 
+#   extends:
 #     - .test_run_changes
 #     - .default_rules_always_run
 #     - .depend_full_jobs
 
 
 throughput-full:
-  extends: 
+  extends:
     - .publish_test_throughput
     - .default_rules_always_run
     - .depend_full_jobs
@@ -307,7 +307,7 @@ throughput-full:
 
 
 pub-throughput-full:
-  extends: 
+  extends:
     - .publish_test_throughput
     - .default_rules_always_run
 
