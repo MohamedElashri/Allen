@@ -75,7 +75,7 @@ If your test needs a build of Allen that is not yet included in the `build` stag
 
 In order to ensure the correct build from the `build` stage is used in your test, make sure that the following variables are set correctly and match.
 
-* `${LCG_SYSTEM}` (e.g. `x86_64_v3-centos7-clang12`. default value is set by `.run_jobs` key)
+* `${LCG_SYSTEM}` (e.g. `x86_64_v3-el9-gcc12`. default value is set by `.run_jobs` key)
 * `${LCG_QUALIFIER}` (added directly after `LCG_SYSTEM` with `+` delimiter - default is `cpu`)
 * `${LCG_OPTIMIZATION}` (e.g. `opt` or `dbg`. default value is set in `.gitlab-ci.yaml` to `opt`)
 * `${SEQUENCES}` (must be set in `.run_matrix_jobs_full:parallel:matrix:`)
