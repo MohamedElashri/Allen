@@ -11,7 +11,6 @@
 #include <iostream>
 #include <iomanip>
 #include <chrono>
-#include <immintrin.h>
 #include "PrefixSum.cuh"
 #include "BackendCommon.h"
 

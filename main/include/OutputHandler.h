@@ -109,6 +109,7 @@ protected:
 #ifndef STANDALONE
     auto* svc = dynamic_cast<Service*>(this);
     if (svc != nullptr) {
+      m_nprocessed = std::make_unique<Gaudi::Accumulators::Counter<>>(svc, "NProcessed");
       m_noutput = std::make_unique<Gaudi::Accumulators::Counter<>>(svc, "NOutput");
       m_ntae = std::make_unique<Gaudi::Accumulators::Counter<>>(svc, "NTAEOutput");
       m_nbatches = std::make_unique<Gaudi::Accumulators::AveragingCounter<>>(svc, "NBatches");
@@ -164,6 +165,7 @@ private:
   size_t m_nthreads = 1;
 
 #ifndef STANDALONE
+  std::unique_ptr<Gaudi::Accumulators::Counter<>> m_nprocessed;
   std::unique_ptr<Gaudi::Accumulators::Counter<>> m_noutput;
   std::unique_ptr<Gaudi::Accumulators::AveragingCounter<>> m_batch_size;
   std::unique_ptr<Gaudi::Accumulators::AveragingCounter<>> m_nbatches;

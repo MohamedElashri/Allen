@@ -28,7 +28,7 @@ skip_config = BlockSkipper("User ApplicationOptions",
                            "Application Manager Configured successfully")
 
 skip_options = BlockSkipper("Requested options:",
-                            "Configure the device to use more shared")
+                            "Respect the TCK requested by ODIN")
 
 skip_rates = BlockSkipper("rate_validator validation:", "Inclusive:")
 

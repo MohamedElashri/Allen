@@ -73,6 +73,7 @@
 
 #ifndef ALLEN_STANDALONE
 #include <GaudiKernel/Bootstrap.h>
+#include <TCK.h>
 #endif
 
 namespace {
@@ -93,6 +94,7 @@ namespace {
 int allen(
   std::map<std::string, std::string> options,
   std::string_view config,
+  std::string_view config_source,
   Allen::NonEventData::IUpdater* updater,
   IInputProvider* input_provider,
   OutputHandler* output_handler,
@@ -108,6 +110,7 @@ int allen(
   unsigned verbosity = 3;
   bool print_memory_usage = false;
   bool write_config = false;
+  [[maybe_unused]] bool tck_from_odin = false;
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;
 
@@ -208,6 +211,9 @@ int allen(
     else if (flag_in(flag, {"prefer-shared"})) {
       prefer_shared = atoi(arg.c_str());
     }
+    else if (flag_in(flag, {"tck-from-odin"})) {
+      tck_from_odin = atoi(arg.c_str());
+    }
   }
 
   // Set verbosity level
@@ -226,8 +232,6 @@ int allen(
   print_call_options(options, device_name);
 
   number_of_buffers = number_of_threads + n_mon + 1;
-
-  std::unique_ptr<ConfigurationReader> configuration_reader;
 
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
   std::unique_ptr<LipschitzNNModelReader> two_track_mva_model_reader;
@@ -254,7 +258,9 @@ int allen(
   }
   //
   // Load constant parameters from JSON
-  configuration_reader = std::make_unique<ConfigurationReader>(config);
+  ConfigurationReader config_reader {config};
+  auto [from_tck, tck_repo, tck_str] = Allen::config_from_tck(config_source);
+  [[maybe_unused]] uint32_t tck = from_tck ? std::stoi(tck_str, nullptr, 16) : 0;
 
   // Get the path to the parameter folder: different for standalone and Gaudi build
   // Only in case of standalone gitlab CI pipepline the parameters folder path is passed as runtime argument
@@ -442,7 +448,7 @@ int allen(
     matching_with_ut_ghostkiller_reader->bias2());
 
   // Register all consumers
-  register_consumers(updater, constants, configuration_reader->configured_bank_types());
+  register_consumers(updater, constants, config_reader.configured_bank_types());
 
 #ifndef ALLEN_STANDALONE
   // Set up monitoring sink
@@ -457,7 +463,7 @@ int allen(
   auto* monSvc = dynamic_cast<Service*>(svc.get());
 #endif
 
-  auto const& configuration = configuration_reader->params();
+  auto const& configuration = config_reader.params();
 
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffers_manager =
@@ -485,15 +491,16 @@ int allen(
   // Create all the streams
 
   // Instantiate and configure sequence once to get dependencies
-  Allen::ScheduledSequence sched_seq {configuration_reader->configured_sequence()};
+  Allen::ScheduledSequence sched_seq {config_reader.configured_sequence()};
 
   // Configure the algorithms according to the properties' values
   sched_seq.configure_algorithms(configuration);
+  sched_seq.initialize_algorithms();
 
   std::vector<std::unique_ptr<Stream>> streams;
   for (unsigned t = 0; t < number_of_threads; ++t) {
     streams.emplace_back(new Stream {t,
-                                     configuration_reader->configured_sequence(),
+                                     config_reader.configured_sequence(),
                                      sched_seq,
                                      print_memory_usage,
                                      reserve_mb,
@@ -525,7 +532,7 @@ int allen(
     if (write_config) {
       info_cout << "Write full configuration\n";
       // Add sequence - this makes the generated json fully operational
-      algorithm_configuration["sequence"] = configuration_reader->get_sequence();
+      algorithm_configuration["sequence"] = config_reader.get_sequence();
       ConfigurationReader saveToJson(algorithm_configuration);
       saveToJson.save("config.json");
       return 0;
@@ -904,9 +911,46 @@ int allen(
     if (run_change) {
       if (next_odin) {
         // Only process the run change once all GPU stream_threads have finished
-        if (stream_ready.count() == number_of_threads) {
+        if (
+          stream_ready.count() == number_of_threads &&
+          (count_status(SliceStatus::Empty) + count_status(SliceStatus::Processed)) == io_conf.number_of_slices) {
           debug_cout << "Run number changing from " << current_run_number << " to " << next_odin->runNumber()
                      << std::endl;
+
+#ifndef ALLEN_STANDALONE
+          // Fast run change of TCK
+          auto new_tck = next_odin->triggerConfigurationKey();
+          if (from_tck && tck_from_odin && new_tck != 0 && tck != new_tck) {
+            try {
+              // Load new TCK
+              std::string new_tck_str = fmt::format("{:#010x}", new_tck);
+              auto [new_config, new_source, new_tck_info] = Allen::load_tck(tck_repo, new_tck_str);
+              ConfigurationReader new_config_reader {new_config};
+
+              // Check compatibility
+              if (!compatible_configurations(config_reader, new_config_reader)) {
+                error_cout << "TCKs " << tck_str << " and " << new_tck_str
+                           << " are not compatible for fast run change.\n";
+                ++error_count;
+                goto loop_error;
+              }
+
+              // Reconfigure algorithms
+              sched_seq.configure_algorithms(new_config_reader.params());
+              debug_cout << "Fast run change from " << tck_str << " to " << new_tck_str << "\n";
+
+              // Update state
+              tck = new_tck;
+              tck_str = new_tck_str;
+              config_reader = new_config_reader;
+            } catch (...) {
+              error_cout << "Configuration update failed\n";
+              ++error_count;
+              goto loop_error;
+            }
+          }
+#endif
+          // Update geometry and conditions data
           try {
             updater->update(next_odin->data);
             sched_seq.update_algorithms(constants);
@@ -915,6 +959,7 @@ int allen(
             ++error_count;
             goto loop_error;
           }
+
           current_run_number = next_odin->runNumber();
           next_odin.reset();
           run_change = false;
@@ -925,97 +970,100 @@ int allen(
       }
     }
 
-    if (!run_change) {
-      // Check if input slices are ready or events have been written
-      for (size_t i = 0; i < n_io; ++i) {
-        if (items[number_of_threads + i].revents & zmq::POLLIN) {
-          auto& socket = std::get<1>(io_workers[i]);
-          auto msg = zmqSvc->receive<std::string>(socket);
+    // Check if input slices are ready or events have been written
+    auto const io_start = run_change ? n_input : 0;
+    for (size_t i = io_start; i < n_io; ++i) {
+      if (items[number_of_threads + i].revents & zmq::POLLIN) {
+        auto& socket = std::get<1>(io_workers[i]);
+        auto msg = zmqSvc->receive<std::string>(socket);
 
-          if (msg == "SLICE") {
-            slice_index = zmqSvc->receive<size_t>(socket);
-            auto n_filled = zmqSvc->receive<size_t>(socket);
+        if (msg == "SLICE") {
+          slice_index = zmqSvc->receive<size_t>(socket);
+          auto n_filled = zmqSvc->receive<size_t>(socket);
 
-            // Check once that raw banks with MC information are available if MC check is requested
-            if (n_events_read == 0 && sequence_contains_validation_algorithms) {
-              auto bno_pvs = input_provider->banks(BankTypes::MCVertices, *slice_index);
-              auto bno_tracks = input_provider->banks(BankTypes::MCTracks, *slice_index);
-              if (bno_pvs.offsets.size() == 1 || bno_tracks.offsets.size() == 1) {
-                error_cout << "No raw bank containing MC information found in input file" << std::endl;
-                ++error_count;
-                goto loop_error;
-              }
-            }
-
-            // FIXME: make the warmup time configurable
-            if (
-              !t && (io_conf.number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) ||
-                     !io_conf.async_io)) {
-              info_cout << "Starting timer for throughput measurement\n";
-              throughput_start = n_events_processed * io_conf.number_of_repetitions;
-              t = Timer {};
-              previous_time_measurement = t->get_elapsed_time();
-            }
-            input_slice_status[*slice_index][0] = SliceStatus::Filled;
-            events_in_slice[*slice_index][0] = n_filled;
-            n_events_read += n_filled;
-            // If we have a slice we must send it for processing before polling remaining I/O threads
-            break;
-          }
-          else if (msg == "RUN") {
-            run_change = true;
-            auto odin_data = zmqSvc->receive<decltype(LHCb::ODIN::data)>(socket);
-            next_odin = LHCb::ODIN {odin_data};
-            debug_cout << "Requested run change from " << current_run_number << " to " << next_odin->runNumber()
-                       << std::endl;
-            // guard against double run changes if we have multiple input threads
-            if ((disable_run_changes && current_run_number != 0) || next_odin->runNumber() == current_run_number)
-              next_odin.reset();
-          }
-          else if (msg == "WRITTEN") {
-            auto slc_idx = zmqSvc->receive<size_t>(socket);
-            auto first_evt = zmqSvc->receive<size_t>(socket);
-            auto buf_idx = zmqSvc->receive<size_t>(socket);
-            auto success = zmqSvc->receive<bool>(socket);
-            auto n_written = zmqSvc->receive<size_t>(socket);
-            n_events_output += n_written;
-            n_output_measured += n_written;
-            if (!success) {
-              error_cout << "Failed to write output events.\n";
-            }
-            input_slice_status[slc_idx][first_evt] = SliceStatus::Written;
-
-            // check to see if any parts of this slice still need to be written
-            bool slice_finished(true);
-            for (auto const& [k, v] : input_slice_status[slc_idx]) {
-              if (v != SliceStatus::Written) {
-                slice_finished = false;
-                break;
-              }
-            }
-            if (io_conf.async_io && slice_finished) {
-              input_slice_status[slc_idx].clear();
-              input_slice_status[slc_idx][0] = SliceStatus::Empty;
-              input_provider->slice_free(slc_idx);
-              events_in_slice[slc_idx].clear();
-              events_in_slice[slc_idx][0] = 0;
-            }
-
-            buffers_manager->returnBufferWritten(buf_idx);
-          }
-          else if (msg == "DONE") {
-            if (!io_done) {
-              io_done = true;
-              info_cout << "Input complete\n";
+          // Check once that raw banks with MC information are available if MC check is requested
+          if (n_events_read == 0 && sequence_contains_validation_algorithms) {
+            auto bno_pvs = input_provider->banks(BankTypes::MCVertices, *slice_index);
+            auto bno_tracks = input_provider->banks(BankTypes::MCTracks, *slice_index);
+            if (bno_pvs.offsets.size() == 1 || bno_tracks.offsets.size() == 1) {
+              error_cout << "No raw bank containing MC information found in input file" << std::endl;
+              ++error_count;
+              goto loop_error;
             }
           }
-          else {
-            assert(msg == "ERROR");
-            error_cout << "I/O provider failed to decode events into slice.\n";
-            ++error_count;
+
+          // FIXME: make the warmup time configurable
+          if (
+            !t &&
+            (io_conf.number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !io_conf.async_io)) {
+            info_cout << "Starting timer for throughput measurement\n";
+            throughput_start = n_events_processed * io_conf.number_of_repetitions;
+            t = Timer {};
+            previous_time_measurement = t->get_elapsed_time();
+          }
+          input_slice_status[*slice_index][0] = SliceStatus::Filled;
+          events_in_slice[*slice_index][0] = n_filled;
+          n_events_read += n_filled;
+          // If we have a slice we must send it for processing before polling remaining I/O threads
+          break;
+        }
+        else if (msg == "RUN") {
+          run_change = true;
+          auto odin_data = zmqSvc->receive<decltype(LHCb::ODIN::data)>(socket);
+          next_odin = LHCb::ODIN {odin_data};
+          debug_cout << "Requested run change from " << current_run_number << " to " << next_odin->runNumber()
+                     << std::endl;
+          // guard against double run changes if we have multiple input threads
+          if (
+            (disable_run_changes && current_run_number != 0) || (next_odin->runNumber() == current_run_number) ||
+            (next_odin->runNumber() == 0)) {
+            run_change = false;
+            next_odin.reset();
+          }
+        }
+        else if (msg == "WRITTEN") {
+          auto slc_idx = zmqSvc->receive<size_t>(socket);
+          auto first_evt = zmqSvc->receive<size_t>(socket);
+          auto buf_idx = zmqSvc->receive<size_t>(socket);
+          auto success = zmqSvc->receive<bool>(socket);
+          auto n_written = zmqSvc->receive<size_t>(socket);
+          n_events_output += n_written;
+          n_output_measured += n_written;
+          if (!success) {
+            error_cout << "Failed to write output events.\n";
+          }
+          input_slice_status[slc_idx][first_evt] = SliceStatus::Written;
+
+          // check to see if any parts of this slice still need to be written
+          bool slice_finished(true);
+          for (auto const& [k, v] : input_slice_status[slc_idx]) {
+            if (v != SliceStatus::Written) {
+              slice_finished = false;
+              break;
+            }
+          }
+          if (io_conf.async_io && slice_finished) {
+            input_slice_status[slc_idx].clear();
+            input_slice_status[slc_idx][0] = SliceStatus::Empty;
+            input_provider->slice_free(slc_idx);
+            events_in_slice[slc_idx].clear();
+            events_in_slice[slc_idx][0] = 0;
+          }
+
+          buffers_manager->returnBufferWritten(buf_idx);
+        }
+        else if (msg == "DONE") {
+          if (!io_done) {
             io_done = true;
-            goto loop_error;
+            info_cout << "Input complete\n";
           }
+        }
+        else {
+          assert(msg == "ERROR");
+          error_cout << "I/O provider failed to decode events into slice.\n";
+          ++error_count;
+          io_done = true;
+          goto loop_error;
         }
       }
     }

@@ -20,7 +20,7 @@ public:
   PVCheckerHistos(CheckerInvoker const* invoker, std::string const& root_file, std::string const& directory);
 
   void accumulate(
-    gsl::span<const RecPVInfo> vec_all_rec,
+    gsl::span<const AllenRecPVInfo> vec_all_rec,
     gsl::span<const double> vec_rec_x,
     gsl::span<const double> vec_rec_y,
     gsl::span<const double> vec_rec_z,

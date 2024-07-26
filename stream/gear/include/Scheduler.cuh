@@ -43,7 +43,14 @@ namespace Allen {
       for (auto& algorithm : sequence) {
         auto c = config.find(algorithm.name());
         if (c != config.end()) algorithm.set_properties(c->second);
-        // * Invoke void initialize() const, iff it exists
+      }
+    }
+
+    // Configure constants for algorithms in the sequence
+    void initialize_algorithms()
+    {
+      for (auto& algorithm : sequence) {
+        // Invoke void initialize() const, if it exists
         algorithm.init();
       }
     }

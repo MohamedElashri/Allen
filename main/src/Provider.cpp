@@ -46,10 +46,11 @@ std::tuple<bool, bool> Allen::velo_decoding_type(const ConfigurationReader& conf
   return {veloSP, retina};
 }
 
-std::string Allen::sequence_conf(std::map<std::string, std::string> const& options)
+std::tuple<std::string, std::string> Allen::sequence_conf(std::map<std::string, std::string> const& options)
 {
   static bool generated = false;
   std::string json_configuration_file = "Sequence.json";
+  std::string configuration_source;
   // Sequence to run
   std::string sequence = "hlt1_pp_default";
 
@@ -60,35 +61,17 @@ std::string Allen::sequence_conf(std::map<std::string, std::string> const& optio
     }
   }
 
-  std::regex tck_option {"([^:]+):(0x[a-fA-F0-9]{8})"};
-  std::smatch tck_match;
+  auto [from_tck, repo, tck] = config_from_tck(sequence);
+
   if (sequence == "null") {
-    return sequence;
+    return {sequence, configuration_source};
   }
-  else if (std::regex_match(sequence, tck_match, tck_option)) {
+  else if (from_tck) {
 #ifndef ALLEN_STANDALONE
-
-    auto repo = tck_match.str(1);
-    auto tck = tck_match.str(2);
-    std::string config;
-    LHCb::TCK::Info info;
-    try {
-      std::tie(config, info) = Allen::sequence_from_git(repo, tck);
-    } catch (std::runtime_error const& e) {
-      throw std::runtime_error {"Failed to obtain sequence for TCK " + tck + " from repository at " + repo + ":" +
-                                e.what()};
-    }
-
-    auto [check, check_error] = Allen::TCK::check_projects(nlohmann::json::parse(info.metadata));
-
-    if (config.empty()) {
-      throw std::runtime_error {"Failed to obtain sequence for TCK " + tck + " from repository at " + repo};
-    }
-    else if (!check) {
-      throw std::runtime_error {std::string {"TCK "} + tck + ": " + check_error};
-    }
-    info_cout << "TCK " << tck << " loaded " << info.type << " sequence from git with label " << info.label << "\n";
-    return config;
+    auto [config, config_source, tck_info] = load_tck(repo, tck);
+    info_cout << "TCK " << tck << " loaded " << tck_info.type << " sequence from git with label " << tck_info.label
+              << "\n";
+    return {std::move(config), std::move(config_source)};
 #else
     throw std::runtime_error {"Loading configuration from TCK is not supported in standalone builds"};
 #endif
@@ -97,6 +80,7 @@ std::string Allen::sequence_conf(std::map<std::string, std::string> const& optio
     // Determine configuration
     if (sequence.size() > 5 && sequence.substr(sequence.size() - 5, std::string::npos) == ".json") {
       json_configuration_file = sequence;
+      configuration_source = sequence;
     }
     else if (!generated) {
 #ifdef ALLEN_STANDALONE
@@ -108,16 +92,17 @@ std::string Allen::sequence_conf(std::map<std::string, std::string> const& optio
       const std::string allen_configuration_options = "";
       const std::string allen_python_dir = getenv("ALLEN_INSTALL_DIR") + std::string("/python/");
 #endif
-
+      std::string python_file = allen_python_dir + "/AllenSequences/" + sequence + ".py";
       int error = system(("PYTHONPATH=" + allen_python_dir + ":$PYTHONPATH python3 " + allen_python_dir +
-                          "/AllenCore/gen_allen_json.py " + allen_configuration_options + " --seqpath " +
-                          allen_python_dir + "/AllenSequences/" + sequence + ".py > /dev/null")
+                          "/AllenCore/gen_allen_json.py " + allen_configuration_options + " --seqpath " + python_file +
+                          " > /dev/null")
                            .c_str());
       if (error) {
         throw std::runtime_error {"sequence generation failed"};
       }
       info_cout << "\n";
       generated = true;
+      configuration_source = python_file;
     }
 
     std::string config;
@@ -126,8 +111,23 @@ std::string Allen::sequence_conf(std::map<std::string, std::string> const& optio
       throw std::runtime_error {"failed to open sequence configuration file " + json_configuration_file};
     }
 
-    return std::string {std::istreambuf_iterator<char> {config_file}, std::istreambuf_iterator<char> {}};
+    return {std::string {std::istreambuf_iterator<char> {config_file}, std::istreambuf_iterator<char> {}},
+            configuration_source};
   }
+}
+
+std::tuple<bool, std::string, std::string> Allen::config_from_tck(std::string_view source)
+{
+  std::regex tck_option {"([^:]+):(0x[a-fA-F0-9]{8})"};
+  std::match_results<std::string_view::const_iterator> tck_match;
+  std::string repo, tck;
+
+  auto from_tck = std::regex_match(source.begin(), source.end(), tck_match, tck_option);
+  if (from_tck) {
+    repo = tck_match.str(1);
+    tck = tck_match.str(2);
+  }
+  return {from_tck, repo, tck};
 }
 
 Allen::IOConf Allen::io_configuration(

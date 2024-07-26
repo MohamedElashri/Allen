@@ -193,12 +193,6 @@ if (NOT STANDALONE)
     SET ALLEN_PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 endif()
 
-# Set the policy of CMP0104 (require CUDA_ARCHITECTURES) to OLD.
-# Support it in a future Allen release.
-if(${CMAKE_VERSION} VERSION_GREATER "3.18.0" OR ${CMAKE_VERSION} VERSION_EQUAL "3.18.0")
-  cmake_policy(SET CMP0104 OLD)
-endif()
-
 # Detect CUDA architecture
 if(TARGET_DEVICE STREQUAL "CUDA")
   if (NOT CMAKE_CUDA_COMPILER)
@@ -671,7 +665,7 @@ allen_add_host_library(HostCommon SHARED
 target_link_libraries(AllenCommon INTERFACE
   LHCbEvent AllenFS nlohmann_json::nlohmann_json cppgsl::cppgsl)
 target_link_libraries(HostCommon PRIVATE
-  mdf EventModel Gear Backend mdf AllenCommon LHCbEvent Boost::iostreams)
+  mdf EventModel Gear Backend mdf AllenCommon LHCbEvent Boost::iostreams Rangev3::rangev3)
 
 allen_add_host_library(AllenLib SHARED
   main/src/Allen.cpp

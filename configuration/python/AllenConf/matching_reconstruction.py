@@ -49,9 +49,9 @@ def make_velo_scifi_matches(
         dev_accepted_velo_tracks_t=accepted_velo_tracks)
 
     if (momentum_parameter_version):
-        momentum_parameters = (0, 1.239076e+03, 5.650170e+02, -7.683592e+01,
-                               6.148917e+02, 2.071115e+03, -6.795680e+03,
-                               4.577582e+02, 1)
+        momentum_parameters = (34.27448, 1.239076e+03, 5.650170e+02,
+                               -7.683592e+01, 6.148917e+02, 2.071115e+03,
+                               -6.795680e+03, 4.577582e+02, 1)
     else:
         momentum_parameters = (1239.4073749458162, 486.05664058906814,
                                6.7158701518424815, 632.7283787142547,

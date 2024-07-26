@@ -30,4 +30,5 @@ namespace Allen {
 
   std::tuple<std::string, LHCb::TCK::Info> sequence_from_git(std::string repo, std::string tck);
 
+  std::tuple<std::string, std::string, LHCb::TCK::Info> load_tck(std::string repo, std::string tck);
 } // namespace Allen
