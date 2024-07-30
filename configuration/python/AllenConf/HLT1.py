@@ -445,6 +445,7 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
 def alignment_monitoring_lines(reconstructed_objects,
                                prefilters_bx,
                                prefilters_odin_err,
+                               thresholds,
                                with_muon=True):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
@@ -494,6 +495,14 @@ def alignment_monitoring_lines(reconstructed_objects,
                 muon_stubs["host_muon_total_number_of_tracks"],
                 name="Hlt1OneMuonTrackLine",
                 post_scaler=0.001),
+            make_di_muon_mass_line(
+                long_tracks,
+                dileptons,
+                muonid,
+                maxChi2Corr=thresholds.DiMuonHighMass_maxCorrChi2,
+                name="Hlt1UpsilonAlignment",
+                minMass=8000.,
+                minHighMassTrackPt=thresholds.DiMuonHighMass_pt),
         ]
 
     with line_maker.bind(prefilter=prefilters_bx):
@@ -993,7 +1002,8 @@ def setup_hlt1_node(enablePhysics=True,
             prefilter=bgi_prefilters)
 
     monitoring_lines += alignment_monitoring_lines(
-        reconstructed_objects, prefilters, odin_err_filter, with_muon)
+        reconstructed_objects, prefilters, odin_err_filter, threshold_settings,
+        with_muon)
 
     bx_BE = make_bxtype(bx_type=1)
     with line_maker.bind(
