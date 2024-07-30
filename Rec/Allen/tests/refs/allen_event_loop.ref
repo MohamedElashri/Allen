@@ -38,7 +38,7 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_5af2e675          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 94
+gather_selections                      INFO Number of counters : 96
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Hlt1D2KKPass"                                  |        13 |
  | "Hlt1D2KKRate"                                  |        13 |
@@ -132,6 +132,8 @@ gather_selections                      INFO Number of counters : 94
  | "Hlt1TwoTrackKsRate"                            |        26 |
  | "Hlt1TwoTrackMVAPass"                           |       263 |
  | "Hlt1TwoTrackMVARate"                           |       263 |
+ | "Hlt1UpsilonAlignmentPass"                      |         1 |
+ | "Hlt1UpsilonAlignmentRate"                      |         1 |
  | "Hlt1VeloMicroBiasPass"                         |      9997 |
  | "Hlt1VeloMicroBiasRate"                         |         9 |
 matching_consolidate_tracks_matc...    INFO Number of counters : 1
