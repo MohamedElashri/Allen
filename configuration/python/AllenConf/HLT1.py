@@ -293,6 +293,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
         ecal_clusters = reconstructed_objects["ecal_clusters"]
         calo_matching_objects = reconstructed_objects["calo_matching_objects"]
         electronid_nn = reconstructed_objects["electronid_nn"]
+        jets = reconstructed_objects["jets"]
+
         lines += [
             make_track_electron_mva_line(
                 long_tracks,
@@ -345,6 +347,34 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 calo_matching_objects,
                 is_same_sign=False,
                 name="Hlt1DiElectronHighMass"),
+            make_cone_jet_line(
+                jets,
+                name="Hlt1ConeJet15GeV",
+                min_pt=15000.,
+                pre_scaler=0.001,
+                pre_scaler_hash_string='cone_jet_15gev_line_pre',
+                post_scaler_hash_string='cone_jet_15gev_line_post'),
+            make_cone_jet_line(
+                jets,
+                name="Hlt1ConeJet30GeV",
+                min_pt=30000.,
+                pre_scaler=0.05,
+                pre_scaler_hash_string='cone_jet_30gev_line_pre',
+                post_scaler_hash_string='cone_jet_30gev_line_post'),
+            make_cone_jet_line(
+                jets,
+                name="Hlt1ConeJet50GeV",
+                min_pt=50000.,
+                pre_scaler=0.1,
+                pre_scaler_hash_string='cone_jet_50gev_line_pre',
+                post_scaler_hash_string='cone_jet_50gev_line_post'),
+            make_cone_jet_line(
+                jets,
+                name="Hlt1ConeJet100GeV",
+                min_pt=100000.,
+                pre_scaler=1,
+                pre_scaler_hash_string='cone_jet_100gev_line_pre',
+                post_scaler_hash_string='cone_jet_100gev_line_post'),
         ]
 
         line_slices_mass = {

@@ -85,6 +85,10 @@ Hlt1DiPhotonHighMass:                               7/   500, (  420.00 +/-   15
 Hlt1Pi02GammaGamma:                                 0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronHighMass_SS:                          0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronHighMass:                             0/   500, (    0.00 +/-     0.00) kHz
+Hlt1ConeJet15GeV:                                   1/   500, (   60.00 +/-    59.94) kHz
+Hlt1ConeJet30GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
+Hlt1ConeJet50GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
+Hlt1ConeJet100GeV:                                  0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronLowMass_massSlice1_prompt:            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronLowMass_SS_massSlice1_prompt:         0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronLowMass_massSlice2_prompt:            0/   500, (    0.00 +/-     0.00) kHz
@@ -140,7 +144,7 @@ Hlt1SMOG2SingleTrackHighPt:                         0/   500, (    0.00 +/-     
 Hlt1SMOG2DiMuonHighMass:                            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2SingleMuon:                                0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2L0Toppi:                                   0/   500, (    0.00 +/-     0.00) kHz
-Inclusive:                                         60/   500, ( 3600.00 +/-   435.98) kHz
+Inclusive:                                         61/   500, ( 3660.00 +/-   439.10) kHz
 
 
 selreport_validator validation:
@@ -179,6 +183,10 @@ Hlt1DiPhotonHighMass:                               7          13
 Hlt1Pi02GammaGamma:                                 0           0
 Hlt1DiElectronHighMass_SS:                          0           0
 Hlt1DiElectronHighMass:                             0           0
+Hlt1ConeJet15GeV:                                   1           1
+Hlt1ConeJet30GeV:                                   0           0
+Hlt1ConeJet50GeV:                                   0           0
+Hlt1ConeJet100GeV:                                  0           0
 Hlt1DiElectronLowMass_massSlice1_prompt:            0           0
 Hlt1DiElectronLowMass_SS_massSlice1_prompt:         0           0
 Hlt1DiElectronLowMass_massSlice2_prompt:            0           0
@@ -235,12 +243,12 @@ Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 
-Total decisions:      69
+Total decisions:      70
 Total tracks:         78
-Total calos clusters: 20
+Total calos clusters: 21
 Total SVs:            39
 Total hits:           1637
-Total stdinfo:        929
+Total stdinfo:        934
 
 
 velo_validator validation:

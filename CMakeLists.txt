@@ -724,6 +724,7 @@ target_link_libraries(AllenLib
     VertexFitter
     mdf
     track_matching
+    Jets
   PUBLIC
     Gear
     AllenCommon

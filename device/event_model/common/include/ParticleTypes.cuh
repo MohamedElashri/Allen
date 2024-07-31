@@ -538,6 +538,22 @@ namespace Allen {
           const float sint = sqrtf(r2 / (r2 + z * z));
           return c.e * sint;
         }
+
+        __host__ __device__ float phi() const
+        {
+          const auto c = cluster();
+          const float z = Calo::Constants::z;
+          const float tx = c.x / z;
+          const float ty = c.y / z;
+          return tx == 0.f && ty == 0.f ? 0.f : atan2f(tx, ty);
+        }
+
+        __host__ __device__ float eta() const
+        {
+          const auto c = cluster();
+          const auto ez = sqrtf(c.e * c.e - et() * et());
+          return atanhf(ez / c.e);
+        }
       };
 
       struct NeutralBasicParticles : IParticleContainer<NeutralBasicParticles> {

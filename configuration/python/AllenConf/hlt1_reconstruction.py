@@ -19,6 +19,7 @@ from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import (
     make_kalman_velo_only, make_basic_particles, fit_secondary_vertices,
     make_sv_track_pairs, make_sv_pairs, make_generic_sv_pairs)
+from AllenConf.jet_reconstruction import make_cone_jets
 from AllenConf.validators import (
     velo_validation, veloUT_validation, seeding_validation,
     seeding_xz_validation, long_validation, muon_validation, pv_validation,
@@ -168,17 +169,26 @@ def hlt1_reconstruction(algorithm_name='',
                                                     velo_states, long_tracks,
                                                     kalman_velo_only)
         electronid_nn = make_electronid_nn(long_tracks, calo_matching_objects)
+
+        ecal_clusters = make_ecal_clusters(
+            decoded_calo,
+            calo_matching_objects,
+            calo_find_clusters_name='calo_find_clusters')
+
         long_track_particles = make_basic_particles(
             kalman_velo_only,
             muonID,
             make_long_track_particles_name=algorithm_name +
             'make_long_track_particles',
             is_electron_result=calo_matching_objects)
+        jets = make_cone_jets(
+            long_tracks, long_track_particles, ecal_clusters, n_max_jets=4)
         output.update({
             "decoded_calo": decoded_calo,
             "calo_matching_objects": calo_matching_objects,
             "ecal_clusters": ecal_clusters,
-            "electronid_nn": electronid_nn
+            "electronid_nn": electronid_nn,
+            "jets": jets
         })
     else:
         long_track_particles = make_basic_particles(

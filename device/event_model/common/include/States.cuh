@@ -219,6 +219,8 @@ namespace Allen {
 
         __host__ __device__ float rho() const { return sqrtf(tx() * tx() + ty() * ty()); }
 
+        __host__ __device__ float phi() const { return tx() == 0.f && ty() == 0.f ? 0.f : atan2f(tx(), ty()); }
+
         __host__ __device__ operator MiniState() const { return MiniState {x(), y(), z(), tx(), ty()}; }
 
         __host__ __device__ operator KalmanVeloState() const
