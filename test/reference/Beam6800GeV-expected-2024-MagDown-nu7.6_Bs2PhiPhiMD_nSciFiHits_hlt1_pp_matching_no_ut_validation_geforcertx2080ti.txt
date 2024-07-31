@@ -90,7 +90,7 @@ Hlt1ConeJet30GeV:                                   0/   500, (    0.00 +/-     
 Hlt1ConeJet50GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet100GeV:                                  0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronLowMass_massSlice1_prompt:            0/   500, (    0.00 +/-     0.00) kHz
-Hlt1DiElectronLowMass_SS_massSlice1_prompt:         0/   500, (    0.00 +/-     0.00) kHz
+Hlt1DiElectronLowMass_SS_massSlice1_prompt:         1/   500, (   60.00 +/-    59.94) kHz
 Hlt1DiElectronLowMass_massSlice2_prompt:            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronLowMass_SS_massSlice2_prompt:         0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronLowMass_massSlice3_prompt:            0/   500, (    0.00 +/-     0.00) kHz
@@ -297,7 +297,7 @@ Hlt1ConeJet30GeV:                                   0           0
 Hlt1ConeJet50GeV:                                   0           0
 Hlt1ConeJet100GeV:                                  0           0
 Hlt1DiElectronLowMass_massSlice1_prompt:            0           0
-Hlt1DiElectronLowMass_SS_massSlice1_prompt:         0           0
+Hlt1DiElectronLowMass_SS_massSlice1_prompt:         1           1
 Hlt1DiElectronLowMass_massSlice2_prompt:            0           0
 Hlt1DiElectronLowMass_SS_massSlice2_prompt:         0           0
 Hlt1DiElectronLowMass_massSlice3_prompt:            0           0
@@ -353,12 +353,12 @@ Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 
-Total decisions:      558
-Total tracks:         1166
+Total decisions:      559
+Total tracks:         1168
 Total calos clusters: 22
-Total SVs:            1097
-Total hits:           25736
-Total stdinfo:        14362
+Total SVs:            1098
+Total hits:           25770
+Total stdinfo:        14383
 
 
 velo_validator validation:

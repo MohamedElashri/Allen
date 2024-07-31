@@ -11,10 +11,8 @@
 #pragma once
 
 #include "AlgorithmTypes.cuh"
-#include "VertexDefinitions.cuh"
-#include "MuonDefinitions.cuh"
 #include "ParticleTypes.cuh"
-#include <cmath>
+#include "NNPropagation.cuh"
 
 namespace electronid_features {
 
@@ -29,10 +27,10 @@ namespace electronid_features {
     DEVICE_INPUT(dev_track_Eop_t, float) dev_track_Eop;
     DEVICE_INPUT(dev_track_Eop3x3_t, float) dev_track_Eop3x3;
     DEVICE_INPUT(dev_delta_barycenter_t, float) dev_delta_barycenter;
+    DEVICE_INPUT(dev_region_t, int) dev_region;
     DEVICE_INPUT(dev_dispersion_x_t, float) dev_dispersion_x;
     DEVICE_INPUT(dev_dispersion_y_t, float) dev_dispersion_y;
     DEVICE_INPUT(dev_dispersion_xy_t, float) dev_dispersion_xy;
-    DEVICE_INPUT(dev_track_local_max_t, bool) dev_track_local_max;
     DEVICE_OUTPUT(dev_electronid_features_t, float) dev_electronid_features;
     PROPERTY(block_dim_t, "block_dim", "block dimension", DeviceDimensions) block_dim;
   };

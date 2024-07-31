@@ -12,7 +12,7 @@ from AllenCore.algorithms import (
     data_provider_t, muon_calculate_srq_size_t, muon_populate_tile_and_tdc_t,
     muon_add_coords_crossing_maps_t, muon_populate_hits_t, is_muon_t,
     empty_lepton_id_t, find_muon_hits_t, consolidate_muon_t,
-    muon_consolidate_tracks_t, chi2_muon_t)
+    muon_consolidate_tracks_t, muonid_nn_t, muonid_features_t, chi2_muon_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
@@ -290,4 +290,56 @@ def make_muon_stubs(monitoring=False):
         find_muon_hits.host_muon_total_number_of_tracks_t,
         "dev_muon_tracks_offsets":
         find_muon_hits.dev_muon_tracks_offsets_t
+    }
+
+
+def muonid_nn(long_tracks, muon_id, decoded_muon):
+    number_of_events = initialize_number_of_events()
+    host_number_of_events = number_of_events["host_number_of_events"]
+    dev_number_of_events = number_of_events["dev_number_of_events"]
+
+    host_number_of_reconstructed_scifi_tracks = long_tracks[
+        "host_number_of_reconstructed_scifi_tracks"]
+    dev_scifi_states = long_tracks["dev_scifi_states"]
+
+    chi2muon = make_algorithm(
+        chi2_muon_t,
+        name='chi2_muon_{hash}',
+        host_number_of_events_t=host_number_of_events,
+        dev_number_of_events_t=dev_number_of_events,
+        host_number_of_reconstructed_scifi_tracks_t=
+        host_number_of_reconstructed_scifi_tracks,
+        dev_scifi_states_t=dev_scifi_states,
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        dev_is_muon_t=muon_id['dev_is_muon'])
+
+    muonid_features = make_algorithm(
+        muonid_features_t,
+        name='muonid_features_{hash}',
+        host_number_of_events_t=host_number_of_events,
+        dev_number_of_events_t=dev_number_of_events,
+        host_number_of_reconstructed_scifi_tracks_t=
+        host_number_of_reconstructed_scifi_tracks,
+        dev_scifi_states_t=dev_scifi_states,
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        dev_is_muon_t=muon_id['dev_is_muon'],
+        dev_chi2_muon_t=chi2muon.dev_chi2_muon_t,
+        dev_chi2uncorr_muon_t=chi2muon.dev_chi2uncorr_muon_t)
+
+    muonid_nn = make_algorithm(
+        muonid_nn_t,
+        name='muonid_nn_{hash}',
+        host_number_of_events_t=host_number_of_events,
+        dev_number_of_events_t=dev_number_of_events,
+        host_number_of_reconstructed_scifi_tracks_t=
+        host_number_of_reconstructed_scifi_tracks,
+        dev_muonid_features_t=muonid_features.dev_muonid_features_t,
+        dev_is_muon_t=muon_id['dev_is_muon'],
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+    )
+    return {
+        "dev_muonid_response": muonid_nn.dev_muonid_evaluation_t,
+        "dev_muonid_features": muonid_features.dev_muonid_features_t,
+        "dev_chi2corr": chi2muon.dev_chi2_muon_t,
+        "dev_chi2uncorr_muon": chi2muon.dev_chi2uncorr_muon_t,
     }

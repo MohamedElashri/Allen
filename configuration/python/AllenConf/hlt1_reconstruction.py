@@ -13,7 +13,7 @@ from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks, create_reduce
 from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
 from AllenConf.downstream_reconstruction import make_downstream, fit_downstream_secondary_vertices
-from AllenConf.muon_reconstruction import decode_muon, chi2muon, is_muon, fake_muon_id, make_muon_stubs
+from AllenConf.muon_reconstruction import decode_muon, chi2muon, is_muon, fake_muon_id, make_muon_stubs, muonid_nn
 from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters, make_electronid_nn
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import (
@@ -148,8 +148,9 @@ def hlt1_reconstruction(algorithm_name='',
             decoded_muon, long_tracks, is_muon_name=algorithm_name + 'is_muon')
         # Replace long tracks with those containing muon hits.
         long_tracks = muonID["long_tracks"]
-        chi2Corr = chi2muon(long_tracks, muonID)
-        muonID.update(chi2Corr)
+        # chi2Corr = chi2muon(long_tracks, muonID)
+        muonid_extra = muonid_nn(long_tracks, muonID, decoded_muon)
+        muonID.update(muonid_extra)
     else:
         muonID = fake_muon_id(host_number_of_tracks=long_tracks[
             'host_number_of_reconstructed_scifi_tracks'])

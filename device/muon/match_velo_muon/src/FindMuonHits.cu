@@ -125,59 +125,6 @@ void find_muon_hits::find_muon_hits_t::operator()(
   PrefixSum::prefix_sum<dev_muon_tracks_offsets_t, host_muon_total_number_of_tracks_t>(*this, arguments, context);
 }
 
-__device__ bool applyWeightedFit(MuonTrack& muon_track, Muon::ConstHits& muon_hits, bool xz)
-{
-  const auto n_hits_track = muon_track.number_of_hits();
-  float sz2, sz, s0, sxz, sx, sx2;
-  sz2 = sz = s0 = sxz = sx = sx2 = 0.f;
-  for (unsigned i_hit = 0; i_hit < 4; i_hit++) {
-    if (muon_track.hit(i_hit) == -1) continue;
-    float z = muon_hits.z(muon_track.hit(i_hit));
-    float coord, coorderr;
-
-    if (xz) {
-      coord = muon_hits.x(muon_track.hit(i_hit));
-      coorderr = 2.f * muon_hits.dx(muon_track.hit(i_hit));
-    }
-    else {
-      coord = muon_hits.y(muon_track.hit(i_hit));
-      coorderr = 2.f * muon_hits.dy(muon_track.hit(i_hit));
-    }
-
-    sz2 += z * z / coorderr / coorderr;
-    sz += z / coorderr / coorderr;
-    s0 += 1.f / coorderr / coorderr;
-    sxz += z * coord / coorderr / coorderr;
-    sx += coord / coorderr / coorderr;
-    sx2 += coord * coord / coorderr / coorderr;
-  }
-
-  float slope, a, chi2ndof;
-  slope = a = chi2ndof = 9999.f;
-  float det = sz2 * s0 - sz * sz;
-  if (det != 0.f) {
-    slope = (sxz * s0 - sx * sz) / det;
-    a = (sx * sz2 - sxz * sz) / det;
-
-    chi2ndof = (sx2 + slope * slope * sz2 + a * a * s0 - 2.f * slope * sxz - 2.f * a * sx + 2.f * slope * a * sz) /
-               (n_hits_track - 2);
-  }
-  else
-    return false;
-  if (xz) {
-    muon_track.tx() = slope;
-    muon_track.ax() = a;
-    muon_track.chi2x() = chi2ndof;
-    muon_track.state() = muon_track.hit(Muon::Constants::M2);
-  }
-  else {
-    muon_track.ty() = slope;
-    muon_track.ay() = a;
-    muon_track.chi2y() = chi2ndof;
-  }
-  return true;
-}
-
 __device__ int find_compatible_hit_in_station(
   float x,
   float y,
@@ -295,8 +242,8 @@ __device__ void seedAndFind(
     }
 
     if (muon_track.number_of_hits() == required_number_of_hits && muon_track.hit(required_station) != -1) {
-      auto fit_result_xz = applyWeightedFit(muon_track, muon_hits, true);
-      auto fit_result_yz = applyWeightedFit(muon_track, muon_hits, false);
+      auto fit_result_xz = applyWeightedFit<Muon::ConstHits>(muon_track, muon_hits, true);
+      auto fit_result_yz = applyWeightedFit<Muon::ConstHits>(muon_track, muon_hits, false);
       if (fit_result_xz && fit_result_yz) {
         auto insert_index = atomicAdd(&number_of_muon_tracks_atomic, 1);
         if (insert_index >= Muon::Constants::max_number_of_tracks) {

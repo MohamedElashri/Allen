@@ -238,6 +238,7 @@ int allen(
   std::unique_ptr<LipschitzNNModelReader> electronid_mva_model_reader;
   std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, forward_ghostkiller_reader,
     matching_ghostkiller_reader, matching_with_ut_ghostkiller_reader, matching_no_ut_v2_ghostkiller_reader;
+  std::unique_ptr<LipschitzNNModelReader> muonid_mva_model_reader;
 
   std::unique_ptr<SingleLayerFCNNReader> downstream_composite_quality_reader, downstream_lambda_selector_reader,
     downstream_kshort_selector_reader, downstream_detached_lambda_selector_reader,
@@ -285,6 +286,14 @@ int allen(
   two_track_mva_model_reader =
     std::make_unique<LipschitzNNModelReader>(folder_parameters + "allen_two_track_mva_model_June22.json");
 
+  // ElectronID model
+  electronid_mva_model_reader =
+    std::make_unique<LipschitzNNModelReader>(folder_parameters + "/CaloPID/electron_mva_AllenJune2024.json");
+
+  // MuonID Model
+  muonid_mva_model_reader =
+    std::make_unique<LipschitzNNModelReader>(folder_parameters + "/muonid_mva_AllenJune2024.json");
+
   // Ghost killers
   forward_no_ut_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
     folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_noUT_Forward.json");
@@ -316,10 +325,6 @@ int allen(
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
     muon_field_of_interest_params, folder_parameters + "allen_muon_field_of_interest_params.bin");
-
-  // ElectronID model
-  electronid_mva_model_reader =
-    std::make_unique<LipschitzNNModelReader>(folder_parameters + "CaloPID/electron_mva_AllenFeb2024.json");
 
   // Initialize detector constants on GPU
   Constants constants;
@@ -353,6 +358,17 @@ int allen(
     electronid_mva_model_reader->max_rescales(),
     electronid_mva_model_reader->nominal_cut(),
     electronid_mva_model_reader->lambda());
+
+  constants.initialize_muonid_mva_model_constants(
+    muonid_mva_model_reader->weights(),
+    muonid_mva_model_reader->biases(),
+    muonid_mva_model_reader->layer_sizes(),
+    muonid_mva_model_reader->n_layers(),
+    muonid_mva_model_reader->monotone_constraints(),
+    muonid_mva_model_reader->min_rescales(),
+    muonid_mva_model_reader->max_rescales(),
+    muonid_mva_model_reader->nominal_cut(),
+    muonid_mva_model_reader->lambda());
 
   constants.initialize_forward_ghostkiller_constants(
     forward_ghostkiller_reader->mean(),

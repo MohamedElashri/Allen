@@ -98,7 +98,7 @@ Hlt1DiMuonHighMass:                                11/   500, (  660.00 +/-   19
 Hlt1DiMuonDisplaced:                                8/   500, (  480.00 +/-   168.34) kHz
 Hlt1DiMuonSoft:                                     0/   500, (    0.00 +/-     0.00) kHz
 Hlt1TrackMuonMVA:                                   9/   500, (  540.00 +/-   178.37) kHz
-Hlt1DiMuonNoIP:                                     1/   500, (   60.00 +/-    59.94) kHz
+Hlt1DiMuonNoIP:                                     0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonNoIP_SS:                                  0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_VLowMass:                        0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_VLowMass_SS:                     0/   500, (    0.00 +/-     0.00) kHz
@@ -305,7 +305,7 @@ Hlt1DiMuonHighMass:                                11          17
 Hlt1DiMuonDisplaced:                                8           9
 Hlt1DiMuonSoft:                                     0           0
 Hlt1TrackMuonMVA:                                   9          10
-Hlt1DiMuonNoIP:                                     1           1
+Hlt1DiMuonNoIP:                                     0           0
 Hlt1DiMuonNoIP_SS:                                  0           0
 Hlt1DiMuonDrellYan_VLowMass:                        0           0
 Hlt1DiMuonDrellYan_VLowMass_SS:                     0           0
@@ -381,12 +381,12 @@ Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 
-Total decisions:      573
+Total decisions:      572
 Total tracks:         1182
 Total calos clusters: 22
 Total SVs:            1113
 Total hits:           30818
-Total stdinfo:        14569
+Total stdinfo:        14568
 
 
 velo_validator validation:
