@@ -194,6 +194,7 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
 
 @configurable
 def make_ecal_clusters(decoded_calo,
+                       calo_matching_objects=None,
                        calo_find_clusters_name='calo_find_clusters',
                        seed_min_adc=50,
                        neighbour_min_adc=10,

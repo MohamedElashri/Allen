@@ -30,4 +30,4 @@ add_subdirectory(combiners)
 add_subdirectory(plume)
 add_subdirectory(downstream)
 add_subdirectory(rich)
-
+add_subdirectory(jets)

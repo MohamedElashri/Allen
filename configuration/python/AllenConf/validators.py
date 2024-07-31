@@ -463,7 +463,8 @@ def data_quality_validation_occupancy(name="data_quality_validator"):
     decoded_scifi = decode_scifi()
     decoded_muon = decode_muon()
     decoded_calo = decode_calo()
-    ecal_clusters = make_ecal_clusters(decoded_calo)
+    ecal_clusters = make_ecal_clusters(
+        decoded_calo, calo_find_clusters_name='calo_find_clusters')
 
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)

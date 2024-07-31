@@ -14,6 +14,7 @@
 #include <BackendCommon.h>
 #include "CaloConstants.cuh"
 #include "CaloGeometry.cuh"
+#include "JetDefinitions.cuh"
 
 struct CaloSeedCluster {
   uint16_t id = 0;
@@ -43,6 +44,14 @@ struct CaloCluster {
 
   __device__ __host__ CaloCluster(const CaloGeometry& calo, const CaloSeedCluster& seed) :
     e {calo.getE(seed.id, seed.adc)}, x {seed.x}, y {seed.y}, center_id {seed.id}
+  {}
+
+  // Construct a CALO cluster from jet data.
+  __device__ __host__ CaloCluster(const Jets::Jet& jet) :
+    e {jet.pt * coshf(jet.eta)}, et {jet.pt}, x {jet.pt > 0.f ? (jet.pt * sinf(jet.phi)) / (jet.pt * sinhf(jet.eta)) *
+                                                                  Calo::Constants::z :
+                                                                0.f},
+    y {jet.pt > 0.f ? (jet.pt * cosf(jet.phi)) / (jet.pt * sinhf(jet.eta)) * Calo::Constants::z : 0.f}
   {}
 
   __device__ __host__ void SetE(float newE) { this->e = newE; }
