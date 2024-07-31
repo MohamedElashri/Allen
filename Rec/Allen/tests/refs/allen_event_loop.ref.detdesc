@@ -38,7 +38,7 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_5af2e675          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 103
+gather_selections                      INFO Number of counters : 102
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Hlt1ConeJet100GeVPass"                         |         2 |
  | "Hlt1ConeJet100GeVRate"                         |         2 |
@@ -62,40 +62,39 @@ gather_selections                      INFO Number of counters : 103
  | "Hlt1DiElectronDisplacedRate"                   |        53 |
  | "Hlt1DiElectronHighMass_SSPass"                 |         1 |
  | "Hlt1DiElectronHighMass_SSRate"                 |         1 |
- | "Hlt1DiElectronLowMass_SS_massSlice1_displacedPass"|        50 |
- | "Hlt1DiElectronLowMass_SS_massSlice1_displacedRate"|         1 |
- | "Hlt1DiElectronLowMass_SS_massSlice1_promptPass"|        27 |
- | "Hlt1DiElectronLowMass_SS_massSlice1_promptRate"|         2 |
- | "Hlt1DiElectronLowMass_SS_massSlice2_displacedPass"|        15 |
- | "Hlt1DiElectronLowMass_SS_massSlice2_promptPass"|         8 |
- | "Hlt1DiElectronLowMass_SS_massSlice3_displacedPass"|         7 |
- | "Hlt1DiElectronLowMass_SS_massSlice3_promptPass"|        10 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_displacedPass"|        54 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_displacedRate"|         2 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_promptPass"|        32 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_promptRate"|         1 |
+ | "Hlt1DiElectronLowMass_SS_massSlice2_displacedPass"|        14 |
+ | "Hlt1DiElectronLowMass_SS_massSlice2_promptPass"|         7 |
+ | "Hlt1DiElectronLowMass_SS_massSlice3_displacedPass"|         8 |
+ | "Hlt1DiElectronLowMass_SS_massSlice3_promptPass"|         9 |
  | "Hlt1DiElectronLowMass_SS_massSlice3_promptRate"|         1 |
  | "Hlt1DiElectronLowMass_SS_massSlice4_displacedPass"|         7 |
- | "Hlt1DiElectronLowMass_SS_massSlice4_displacedRate"|         1 |
- | "Hlt1DiElectronLowMass_SS_massSlice4_promptPass"|         8 |
- | "Hlt1DiElectronLowMass_massSlice1_displacedPass"|        12 |
- | "Hlt1DiElectronLowMass_massSlice1_displacedRate"|        12 |
- | "Hlt1DiElectronLowMass_massSlice1_promptPass"   |        11 |
- | "Hlt1DiElectronLowMass_massSlice1_promptRate"   |        11 |
- | "Hlt1DiElectronLowMass_massSlice2_displacedPass"|         5 |
- | "Hlt1DiElectronLowMass_massSlice2_displacedRate"|         5 |
- | "Hlt1DiElectronLowMass_massSlice2_promptPass"   |         6 |
- | "Hlt1DiElectronLowMass_massSlice2_promptRate"   |         6 |
- | "Hlt1DiElectronLowMass_massSlice3_displacedPass"|         6 |
- | "Hlt1DiElectronLowMass_massSlice3_displacedRate"|         6 |
- | "Hlt1DiElectronLowMass_massSlice3_promptPass"   |         5 |
+ | "Hlt1DiElectronLowMass_SS_massSlice4_promptPass"|         9 |
+ | "Hlt1DiElectronLowMass_massSlice1_displacedPass"|        10 |
+ | "Hlt1DiElectronLowMass_massSlice1_displacedRate"|        10 |
+ | "Hlt1DiElectronLowMass_massSlice1_promptPass"   |        10 |
+ | "Hlt1DiElectronLowMass_massSlice1_promptRate"   |        10 |
+ | "Hlt1DiElectronLowMass_massSlice2_displacedPass"|         6 |
+ | "Hlt1DiElectronLowMass_massSlice2_displacedRate"|         6 |
+ | "Hlt1DiElectronLowMass_massSlice2_promptPass"   |         7 |
+ | "Hlt1DiElectronLowMass_massSlice2_promptRate"   |         7 |
+ | "Hlt1DiElectronLowMass_massSlice3_displacedPass"|         7 |
+ | "Hlt1DiElectronLowMass_massSlice3_displacedRate"|         7 |
+ | "Hlt1DiElectronLowMass_massSlice3_promptPass"   |         7 |
  | "Hlt1DiElectronLowMass_massSlice3_promptRate"   |         1 |
- | "Hlt1DiElectronLowMass_massSlice4_displacedPass"|         6 |
- | "Hlt1DiElectronLowMass_massSlice4_displacedRate"|         6 |
- | "Hlt1DiElectronLowMass_massSlice4_promptPass"   |         6 |
+ | "Hlt1DiElectronLowMass_massSlice4_displacedPass"|         5 |
+ | "Hlt1DiElectronLowMass_massSlice4_displacedRate"|         5 |
+ | "Hlt1DiElectronLowMass_massSlice4_promptPass"   |         5 |
  | "Hlt1DiElectronLowMass_massSlice4_promptRate"   |         1 |
  | "Hlt1DiMuonDisplacedPass"                       |        83 |
  | "Hlt1DiMuonDisplacedRate"                       |        83 |
  | "Hlt1DiMuonHighMassPass"                        |        76 |
  | "Hlt1DiMuonHighMassRate"                        |        76 |
- | "Hlt1DiMuonNoIPPass"                            |         8 |
- | "Hlt1DiMuonNoIPRate"                            |         8 |
+ | "Hlt1DiMuonNoIPPass"                            |         7 |
+ | "Hlt1DiMuonNoIPRate"                            |         7 |
  | "Hlt1DiMuonNoIP_SSPass"                         |         5 |
  | "Hlt1DiMuonSoftPass"                            |         8 |
  | "Hlt1DiMuonSoftRate"                            |         8 |
