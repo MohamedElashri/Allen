@@ -151,6 +151,7 @@ Hlt1MaterialVertexSeedsDownstreamz:                 0/   500, (    0.00 +/-     
 Hlt1MaterialVertexSeeds_DWFS:                       0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonJpsiMassAlignment:                        0/   500, (    0.00 +/-     0.00) kHz
 Hlt1OneMuonTrackLine:                               1/   500, (   60.00 +/-    59.94) kHz
+Hlt1UpsilonAlignment:                               0/   500, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                  1/   500, (   60.00 +/-    59.94) kHz
 Hlt1BeamGas:                                        0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2BENoBias:                                  0/   500, (    0.00 +/-     0.00) kHz
@@ -353,6 +354,7 @@ Hlt1MaterialVertexSeedsDownstreamz:                 0           0
 Hlt1MaterialVertexSeeds_DWFS:                       0           0
 Hlt1DiMuonJpsiMassAlignment:                        0           0
 Hlt1OneMuonTrackLine:                               1           0
+Hlt1UpsilonAlignment:                               0           0
 Hlt1VeloMicroBias:                                  1           0
 Hlt1BeamGas:                                        0           0
 Hlt1SMOG2BENoBias:                                  0           0
