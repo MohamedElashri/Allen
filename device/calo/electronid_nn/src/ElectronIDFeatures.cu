@@ -8,18 +8,17 @@
 * granted to it by virtue of its status as an Intergovernmental Organization  *
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
+#include "CaloConstants.cuh"
 #include "ElectronIDFeatures.cuh"
-#include <cmath>
-#include <cwchar>
 
 INSTANTIATE_ALGORITHM(electronid_features::electronid_features_t)
-
 void electronid_features::electronid_features_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_electronid_features_t>(arguments, 7 * first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_electronid_features_t>(
+    arguments, Calo::Constants::n_electron_id_features * first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
 
 void electronid_features::electronid_features_t::operator()(
@@ -40,23 +39,32 @@ __global__ void electronid_features::electronid_features(
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  constexpr int input_size = 7;
+  constexpr int input_size = Calo::Constants::n_electron_id_features;
   const auto long_tracks = parameters.dev_long_tracks_view->container(event_number);
   for (unsigned track_idx = threadIdx.x; track_idx < long_tracks.size(); track_idx += blockDim.x) {
     const auto scifi_idx_with_offset = long_tracks.offset() + track_idx;
     float* electron_id_features = parameters.dev_electronid_features + input_size * scifi_idx_with_offset;
-    float logdb = logf(max(fabsf(parameters.dev_delta_barycenter[scifi_idx_with_offset]), 1e-10f));
-    float logdx = logf(max(fabsf(parameters.dev_dispersion_x[scifi_idx_with_offset]), 1e-10f));
-    float logdy = logf(max(fabsf(parameters.dev_dispersion_y[scifi_idx_with_offset]), 1e-10f));
-    float logdxy = logf(max(fabsf(parameters.dev_dispersion_xy[scifi_idx_with_offset]), 1e-10f));
-    electron_id_features[0] =
-      (parameters.dev_track_Eop[scifi_idx_with_offset] - min_rescales[0]) / (max_rescales[0] - min_rescales[0]);
-    electron_id_features[1] =
-      (parameters.dev_track_Eop3x3[scifi_idx_with_offset] - min_rescales[1]) / (max_rescales[1] - min_rescales[1]);
-    electron_id_features[2] = static_cast<float>(parameters.dev_track_local_max[scifi_idx_with_offset]);
-    electron_id_features[3] = (logdb - min_rescales[3]) / (max_rescales[3] - min_rescales[3]);
-    electron_id_features[4] = (logdx - min_rescales[4]) / (max_rescales[4] - min_rescales[4]);
-    electron_id_features[5] = (logdy - min_rescales[5]) / (max_rescales[5] - min_rescales[5]);
-    electron_id_features[6] = (logdxy - min_rescales[6]) / (max_rescales[6] - min_rescales[6]);
+    int region = parameters.dev_region[scifi_idx_with_offset];
+    float region_s = Calo::Constants::region_size_0 + region * Calo::Constants::region_size_1 +
+                     Calo::Constants::region_size_2 * region * region; // Get the region size from the region index:
+    // 0 -> 121.2 mm
+    // 1 -> 60.6 mm
+    // 2 -> 40.4 mm
+    float region_s2 = region_s * region_s;
+    float logdb = log_feature(parameters.dev_delta_barycenter[scifi_idx_with_offset] / region_s2);
+    ;
+    float logdx = log_feature(parameters.dev_dispersion_x[scifi_idx_with_offset] / region_s2);
+    float logdy = log_feature(parameters.dev_dispersion_y[scifi_idx_with_offset] / region_s2);
+    float logdxy = log_feature(parameters.dev_dispersion_xy[scifi_idx_with_offset]);
+
+    electron_id_features[0] = parameters.dev_track_Eop[scifi_idx_with_offset];
+    electron_id_features[1] = parameters.dev_track_Eop3x3[scifi_idx_with_offset];
+    electron_id_features[2] = logdb;
+    electron_id_features[3] = logdx;
+    electron_id_features[4] = logdy;
+    electron_id_features[5] = logdxy;
+    for (unsigned i = 0; i < input_size; i++) {
+      electron_id_features[i] = rescale(electron_id_features[i], i, min_rescales, max_rescales);
+    }
   }
 }

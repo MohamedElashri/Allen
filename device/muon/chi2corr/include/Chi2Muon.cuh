@@ -21,6 +21,7 @@ namespace chi2_muon {
     DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
     DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
     DEVICE_OUTPUT(dev_chi2_muon_t, float) dev_chi2_muon;
+    DEVICE_OUTPUT(dev_chi2uncorr_muon_t, float) dev_chi2uncorr_muon;
     PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
   };
 

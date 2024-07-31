@@ -15,7 +15,6 @@
 #include "MuonDefinitions.cuh"
 #include "ParticleTypes.cuh"
 #include "NNPropagation.cuh"
-#include <cmath>
 
 namespace electronid_nn {
 
@@ -35,8 +34,6 @@ namespace electronid_nn {
 
   __global__ void electronid_nn(
     Parameters,
-    const float* weights,
-    const float* biases,
     const int* layer_sizes,
     const int n_layers,
     const float* monotone_constraints,
@@ -44,7 +41,7 @@ namespace electronid_nn {
 
   struct electronid_nn_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
-
+    void update(const Constants& constants) const;
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
       const RuntimeOptions&,

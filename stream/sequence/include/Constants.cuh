@@ -133,8 +133,8 @@ struct Constants {
   int* dev_muon_catboost_leaf_offsets = nullptr;
 
   // Two track mva constants
-  float* dev_two_track_mva_weights = nullptr;
-  float* dev_two_track_mva_biases = nullptr;
+  float* host_two_track_mva_weights = nullptr;
+  float* host_two_track_mva_biases = nullptr;
   int* dev_two_track_mva_layer_sizes = nullptr;
   int dev_two_track_mva_n_layers = 0;
   float* dev_two_track_mva_monotone_constraints = nullptr;
@@ -142,8 +142,8 @@ struct Constants {
   float dev_two_track_mva_nominal_cut = 0;
 
   // ElectronID mva constants
-  float* dev_electronid_mva_weights = nullptr;
-  float* dev_electronid_mva_biases = nullptr;
+  float* host_electronid_mva_weights = nullptr;
+  float* host_electronid_mva_biases = nullptr;
   int* dev_electronid_mva_layer_sizes = nullptr;
   int dev_electronid_mva_n_layers = 0;
   float* dev_electronid_mva_monotone_constraints = nullptr;
@@ -151,6 +151,16 @@ struct Constants {
   float* dev_electronid_mva_max_rescales = nullptr;
   float dev_electronid_mva_lambda = 0;
   float dev_electronid_mva_nominal_cut = 0;
+  // MuonID mva constants
+  float* host_muonid_mva_weights = nullptr;
+  float* host_muonid_mva_biases = nullptr;
+  int* dev_muonid_mva_layer_sizes = nullptr;
+  int dev_muonid_mva_n_layers = 0;
+  float* dev_muonid_mva_monotone_constraints = nullptr;
+  float* dev_muonid_mva_min_rescales = nullptr;
+  float* dev_muonid_mva_max_rescales = nullptr;
+  float dev_muonid_mva_lambda = 0;
+  float dev_muonid_mva_nominal_cut = 0;
 
   LookingForward::Constants* dev_looking_forward_constants = nullptr;
 
@@ -231,6 +241,16 @@ struct Constants {
     float lambda);
 
   void initialize_electronid_mva_model_constants(
+    const std::vector<float>& weights,
+    const std::vector<float>& biases,
+    const std::vector<int>& layer_sizes,
+    const int n_layers,
+    const std::vector<float>& monotone_constraints,
+    const std::vector<float>& min_rescales,
+    const std::vector<float>& max_rescales,
+    float nominal_cut,
+    float lambda);
+  void initialize_muonid_mva_model_constants(
     const std::vector<float>& weights,
     const std::vector<float>& biases,
     const std::vector<int>& layer_sizes,

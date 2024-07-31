@@ -183,7 +183,6 @@ __global__ void muon_consolidate_tracks::muon_consolidate_tracks(muon_consolidat
       [&consolidated_muon_hits, &muon_hits, &consolidated_muon_offset](const unsigned i, const unsigned hit_idx) {
         consolidated_muon_hits.z(consolidated_muon_offset + i) = muon_hits.z(hit_idx);
       });
-
     populate(
       track_idxs,
       n_muon_hits,

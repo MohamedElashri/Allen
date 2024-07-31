@@ -17,6 +17,7 @@ file(GLOB muon_velo_filtering "match_velo_muon/src/*cu")
 file(GLOB muon_filter "muon_filter/src/*cu")
 file(GLOB consolidate_muon "consolidate_muon/src/*cu")
 file(GLOB chi2corr "chi2corr/src/*cu")
+file(GLOB muonid_nn "muonid_nn/src/*cu")
 file(GLOB consolidate_muon "consolidate_tracks/src/*cu")
 
 
@@ -31,6 +32,7 @@ allen_add_device_library(Muon STATIC
   ${muon_filter}
   ${consolidate_muon}
   ${chi2corr}
+  ${muonid_nn}
 )
 
 add_library(MuonCommon INTERFACE)
@@ -52,4 +54,6 @@ target_include_directories(Muon PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/match_velo_muon/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/consolidate_tracks/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/chi2corr/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/muonid_nn/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils/nn_propagation/include>
   )

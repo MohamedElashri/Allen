@@ -206,12 +206,12 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 enable_tupling=enable_tupling,
                 alpha=thresholds.TrackMuonMVA_alpha),
             make_di_muon_no_ip_line(
-                long_tracks, dileptons, muonid, maxChi2Corr=1.3),
+                long_tracks, dileptons, muonid, minNN=0.83),
             make_di_muon_no_ip_line(
                 long_tracks,
                 dileptons,
                 muonid,
-                maxChi2Corr=1.3,
+                minNN=0.83,
                 name="Hlt1DiMuonNoIP_SS",
                 pre_scaler_hash_string="di_muon_no_ip_ss_line_pre",
                 post_scaler_hash_string="di_muon_no_ip_ss_line_post",
@@ -388,7 +388,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             for label, limits in line_slices_mass.items():
                 postscale_os = line_slices_postscales[
                     label] if subSample == "prompt" else 1.0
-                nnCut = 0.95
+                nnCut = 0.94
                 lines.append(
                     make_lowmass_dielectron_line(
                         long_tracks,
@@ -406,7 +406,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                         name="Hlt1DiElectronLowMass_massSlice{}_{}".format(
                             label, subSample),
                         pre_scaler_hash_string=
-                        "lowmass_dielectronNN_massSlice{}_{}_pre".format(
+                        "Hlt1DiElectronLowMass_massSlice{}_{}_pre".format(
                             label, subSample),
                         post_scaler=postscale_os))
                 lines.append(
