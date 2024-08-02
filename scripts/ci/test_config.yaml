@@ -45,7 +45,7 @@ config:
         HIP: "-n 2800 --events-per-slice 2800 -m 2800 -t 10 -r 100"
         CPU: "-n 100 -m 100 -r 100"
       PbPb:
-        CUDA: "-n 500 -m 3000 -r 200 -t 8 --events-per-slice 300"
+        CUDA: "-n 500 -m 4000 -r 200 -t 6 --events-per-slice 200"
         CUDAPROF: "-n 500 -m 3000 -r 1 -t 1 --events-per-slice 300"
         HIP: "-n 2800 --events-per-slice 840 -m 8400 -t 5 -r 20"
         CPU: "-n 100 -m 1000 -r 10"
