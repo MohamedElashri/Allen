@@ -139,24 +139,24 @@ def make_forward_tracks(
         input_pt = 1000
         #triplet seeding
         maximum_number_of_triplets_per_warp = 64
-        chi2_max_triplet_single = 2.0
+        chi2_max_triplet_single = 4.0
         z_mag_difference = 8.
         #create tracks
-        max_triplets_per_input_track = 10
+        max_triplets_per_input_track = 15
         chi2_max_extrapolation_to_x_layers_single = 0.5
         uv_hits_chi2_factor_x = 15.
         uv_hits_chi2_factor_y = 5.
         #quality factor
-        max_diff_ty_window = 0.003
+        max_diff_ty_window = 0.01
 
-        max_final_quality = 0.6
+        max_final_quality = 2.0
         min_tot_scifi_hits = 9
         min_UV_scifi_hits = 4
         min_X_scifi_hits = 3
         factor_9_hits = 5.
-        factor_10_hits = 3.
-        factor_11_hits = 2.
-        factor_12_hits = 0.
+        factor_10_hits = 1.
+        factor_11_hits = 0.8
+        factor_12_hits = 0.5
 
     dev_offsets_all_velo_tracks = velo_tracks["dev_offsets_all_velo_tracks"]
     host_number_of_reconstructed_velo_tracks = velo_tracks[
