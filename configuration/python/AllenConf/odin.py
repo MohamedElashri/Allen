@@ -60,7 +60,7 @@ def ODIN_BeamXtype(name='ODIN_BeamXType', bxtype=3, invert=False):
 
 
 @configurable
-def make_event_type(name=None, event_type="VeloOpen"):
+def make_event_type(name=None, event_type="VeloOpen", invert=False):
 
     type_map = {
         "VeloOpen": 0x0001,
@@ -74,10 +74,11 @@ def make_event_type(name=None, event_type="VeloOpen"):
 
     return ODIN_event_type(
         name=name or f"ODIN_EvenType_{event_type}",
-        event_type=type_map[event_type])
+        event_type=type_map[event_type],
+        invert=invert)
 
 
-def ODIN_event_type(name, event_type):
+def ODIN_event_type(name, event_type, invert):
 
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
@@ -87,7 +88,8 @@ def ODIN_event_type(name, event_type):
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_odin_data_t=odin['dev_odin_data'],
-        event_type=event_type)
+        event_type=event_type,
+        invert=invert)
 
 
 def odin_error_filter(name="odin_error_filter"):

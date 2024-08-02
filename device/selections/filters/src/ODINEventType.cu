@@ -31,7 +31,7 @@ __global__ void odin_eventtype_kernel(odin_eventtype::Parameters parameters, con
     const unsigned event_number = parameters.dev_event_list[idx];
     const unsigned event = LHCb::ODIN {parameters.dev_odin_data[event_number]}.eventType();
 
-    if (event & parameters.event_type) {
+    if ((event & parameters.event_type) != parameters.invert) {
       const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.data(), 1);
       parameters.dev_event_list_output[current_event] = mask_t {event_number};
     }
