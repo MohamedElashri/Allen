@@ -959,7 +959,10 @@ def setup_hlt1_node(enablePhysics=True,
     beam_beam_filter = [make_bxtype(bx_type=3)]
     velo_open_event = make_event_type(event_type="VeloOpen")
     velo_closed = [
-        make_invert_event_list(velo_open_event, name="VeloClosedEvent")
+        make_event_type(
+            name="ODIN_EvenType_VeloClosed",
+            event_type="VeloOpen",
+            invert=True)
     ] if DisableLinesDuringVPClosing else []
     prefilters = odin_err_filter + beam_beam_filter + gec + velo_closed
 
