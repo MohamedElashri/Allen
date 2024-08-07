@@ -26,13 +26,6 @@ void downstream_find_hits::downstream_find_hits_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  // working memory (Hit caching in case of shared doesn't fit)
-  using Downstream::DownstreamCache::HitCache;
-  set_size<dev_hit_caching_memory_t>(
-    arguments,
-    (first<host_accumulated_number_of_ut_hits_t>(arguments) + 4) * HitCache::RowSize); // Extra 4 hits for alignement
-  set_size<dev_hit_caching_counter_t>(arguments, 1);
-
   // output
   set_size<dev_findhits_output_t>(
     arguments, first<host_number_of_events_t>(arguments) * Downstream::DownstreamParameters::MaxNumCandidates);
@@ -130,9 +123,6 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  // Reset memory
-  Allen::memset_async<dev_hit_caching_counter_t>(arguments, 0, context);
-
   // Reset the counter
   Allen::memset_async<dev_findhits_num_output_t>(arguments, 0, context);
   Allen::memset_async<dev_findhits_num_selected_scifi_t>(arguments, 0, context);
@@ -145,9 +135,8 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
 
   const auto dev_unique_x_sector_layer_offsets = constants.dev_unique_x_sector_layer_offsets.data();
   const auto dev_unique_sector_xs = constants.dev_unique_sector_xs.data();
-  const auto dev_ut_dxDy = constants.dev_ut_dxDy.data();
   const auto dev_magnet_polarity = constants.dev_magnet_polarity.data();
-  const auto dev_mean_layer_z = constants.dev_mean_ut_layer_zs.data();
+  const auto dev_ut_per_layer_info = constants.dev_ut_per_layer_info;
 
   const bool filter_used_scifi_seeds = size<dev_matched_is_scifi_track_used_t>(arguments) > 0;
 
@@ -159,7 +148,7 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
       dev_unique_x_sector_layer_offsets,
       dev_unique_sector_xs,
       dev_magnet_polarity,
-      dev_mean_layer_z,
+      dev_ut_per_layer_info,
       constants.dev_ttrack_selector);
   }
   else {
@@ -169,7 +158,7 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
       dev_unique_x_sector_layer_offsets,
       dev_unique_sector_xs,
       dev_magnet_polarity,
-      dev_mean_layer_z,
+      dev_ut_per_layer_info,
       constants.dev_ttrack_selector);
   }
 
@@ -177,12 +166,12 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
   if (property<require_four_ut_hits_t>()) {
     global_function(downstream_find_rest_hits<true>)(
       dim3(size<dev_event_list_t>(arguments)), property<num_threads_find_rest_hits_t>(), context)(
-      arguments, dev_unique_x_sector_layer_offsets, dev_unique_sector_xs, dev_ut_dxDy, dev_mean_layer_z);
+      arguments, dev_unique_x_sector_layer_offsets, dev_unique_sector_xs, dev_ut_per_layer_info);
   }
   else {
     global_function(downstream_find_rest_hits<false>)(
       dim3(size<dev_event_list_t>(arguments)), property<num_threads_find_rest_hits_t>(), context)(
-      arguments, dev_unique_x_sector_layer_offsets, dev_unique_sector_xs, dev_ut_dxDy, dev_mean_layer_z);
+      arguments, dev_unique_x_sector_layer_offsets, dev_unique_sector_xs, dev_ut_per_layer_info);
   }
 }
 
@@ -202,7 +191,7 @@ __global__ void downstream_find_hits::downstream_create_candidates(
   const unsigned* dev_unique_x_sector_layer_offsets,
   const float* dev_unique_sector_xs,
   const float* dev_magnet_polarity,
-  const float* dev_mean_layer_z,
+  const UT::Constants::PerLayerInfo* dev_mean_layer_info,
   const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector)
 {
 
@@ -231,10 +220,6 @@ __global__ void downstream_find_hits::downstream_create_candidates(
   const auto event_hit_offset = ut_hit_offsets.event_offset();
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits, event_hit_offset};
 
-  // Global memory for hit caching
-  const auto global_memory_hit_caching = parameters.dev_hit_caching_memory;
-  const auto global_memory_hit_caching_counter = parameters.dev_hit_caching_counter;
-
   // Output
   auto findhits_outputs =
     parameters.dev_findhits_output + event_number * Downstream::DownstreamParameters::MaxNumCandidates;
@@ -253,25 +238,22 @@ __global__ void downstream_find_hits::downstream_create_candidates(
   //
   ///////////////////////////////////////////////////////
 
-  using Downstream::DownstreamCache::HitCache;
-  using Downstream::DownstreamCache::SectorHelper;
-
   // Allocate the memory
-  __shared__ char shared_memory_hit_caching[HitCache::TotalMemorySize];
+  __shared__ typename UTHitsCache_CreateCandidates::ElementType
+    shared_memory_hit_caching[UTHitsCache_CreateCandidates::NumElements];
+
+  // Hit Cache
+  UTHitsCache_CreateCandidates hit_cache {shared_memory_hit_caching};
+  UT::SectorHelper sector_cache;
 
   // Allocate objects
   __shared__ ushort2 shared_counter;
   auto& shared_num_candidates = shared_counter.x;
   auto& shared_num_selelected_scifi = shared_counter.y;
 
-  // Hit Cache
-  HitCache hit_cache {shared_memory_hit_caching, global_memory_hit_caching, global_memory_hit_caching_counter};
-  SectorHelper sector_cache;
-
   // Initialization
   if (threadIdx.x == 0) {
-    shared_num_candidates = 0;
-    shared_num_selelected_scifi = 0;
+    shared_counter = Allen::device::bit_cast<ushort2>(0u);
   };
   __syncthreads();
 
@@ -284,8 +266,12 @@ __global__ void downstream_find_hits::downstream_create_candidates(
   // Alias
   const unsigned layer = 3; // X3 layer
 
+  // Cache mean values to register
+  const float mean_dxdy = dev_mean_layer_info->mean_dxDy[layer];
+  const float mean_z = dev_mean_layer_info->mean_z[layer];
+
   // Cache hits and sectors
-  hit_cache.cache_layer(ut_hit_offsets, ut_hits, dev_mean_layer_z[layer], layer);
+  hit_cache.cache_layer(ut_hit_offsets, ut_hits, dev_mean_layer_info, layer);
   sector_cache.cache_layer(ut_hit_offsets, dev_unique_sector_xs, dev_unique_x_sector_layer_offsets, layer);
   __syncthreads();
 
@@ -319,7 +305,8 @@ __global__ void downstream_find_hits::downstream_create_candidates(
     const auto yTol = exTrack.yTol(layer);
 
     // Get expected x and open the search window
-    const auto expected_layer_x = exTrack.xAtZ(dev_mean_layer_z[layer]);
+    const auto expected_layer_y = exTrack.yAtZ(mean_z);
+    const auto expected_layer_x = exTrack.xAtZ(mean_z) - mean_dxdy * expected_layer_y;
     const auto hit_range = sector_cache.get_hit_range(expected_layer_x - xTol, expected_layer_x + xTol);
 
     // Loop all hits, save best 10 hits inside of the search window.
@@ -328,21 +315,11 @@ __global__ void downstream_find_hits::downstream_create_candidates(
     MultiCandidateManager<unsigned short, MaxNumSelectedX3HitPerScifi, true> BestX3Hits;
 
     for (auto hit_idx = hit_range.x; hit_idx < hit_range.y; hit_idx++) {
-      // Cross check
-      assert(hit_idx < hit_cache.size());
-
-      // Filter Y
-      const float hit_z = hit_cache.zAtYEq0(hit_idx);
-      const float expected_hit_y = exTrack.yAtZ(hit_z);
-      if (hit_cache.isNotYCompatible(hit_idx, expected_hit_y, yTol)) continue;
-
-      // Filter X
-      const float expected_hit_x = exTrack.xAtZ(hit_z);
-      const float hit_x = hit_cache.xAtYEq0(hit_idx);
-      const float xdist = fabsf(expected_hit_x - hit_x);
-      if (xdist > xTol) continue;
-
-      // Store
+      const auto hit = hit_cache.hit(hit_idx);
+      const float expected_hit_y = exTrack.yAtZ(hit.zAtYEq0());
+      if (hit.isNotYCompatible(expected_hit_y, yTol)) continue;
+      const float xdist = exTrack.xAtZ(hit.zAtYEq0()) - hit.xAt(expected_hit_y);
+      if (fabsf(xdist) > xTol) continue;
       BestX3Hits.add(hit_idx, xdist);
     };
 
@@ -350,20 +327,19 @@ __global__ void downstream_find_hits::downstream_create_candidates(
     const auto n_x3hits = BestX3Hits.size();
     if (n_x3hits == 0) continue;
 
-    if (
-      shared_num_candidates < Downstream::DownstreamParameters::MaxNumCandidates &&
-      shared_num_selelected_scifi < Downstream::DownstreamParameters::MaxNumDownstreamSciFi) {
-      // Output table
-      const auto num_hits = min(Downstream::DownstreamParameters::MaxNumCandidates - shared_num_candidates, n_x3hits);
-      const auto offset_and_idx = atomicAdd_ushort2(&shared_counter, make_ushort2(num_hits, 1u));
-      const auto& offset = offset_and_idx.x;
-      const auto& idx = offset_and_idx.y;
-      for (unsigned short x3hits_idx = 0; x3hits_idx < num_hits; x3hits_idx++) {
-        const auto hit_idx = BestX3Hits.get(x3hits_idx);
-        const auto hit_z = hit_cache.zAtYEq0(hit_idx);
-        const auto hit_x = hit_cache.xAtYEq0(hit_idx);
+    const auto offset_and_idx = atomicAdd_ushort2(&shared_counter, make_ushort2(n_x3hits, 1u));
+    const auto& offset = offset_and_idx.x;
+    const auto& idx = offset_and_idx.y;
 
-        const auto new_tx = exTrack.get_new_tx(hit_z, hit_x);
+    if (
+      (offset + n_x3hits) < Downstream::DownstreamParameters::MaxNumCandidates &&
+      idx < Downstream::DownstreamParameters::MaxNumDownstreamSciFi) {
+      // Output table
+      for (unsigned short x3hits_idx = 0; x3hits_idx < n_x3hits; x3hits_idx++) {
+        const auto hit_idx = BestX3Hits.get(x3hits_idx);
+        const auto hit = hit_cache.hit(hit_idx);
+        const auto expected_hit_y = exTrack.yAtZ(hit.zAtYEq0());
+        const auto new_tx = exTrack.get_new_tx(hit.zAtYEq0(), hit.xAt(expected_hit_y));
         const auto new_qop = exTrack.get_new_qop(new_tx, scifi_states[SciFi_idx].tx(), *dev_magnet_polarity);
 
         // Fill output
@@ -405,12 +381,15 @@ __global__ void downstream_find_hits::downstream_create_candidates(
   __syncthreads();
 
   if (threadIdx.x == 0) {
+    const auto no_overflow = (shared_num_candidates < Downstream::DownstreamParameters::MaxNumCandidates) &&
+                             (shared_num_selelected_scifi < Downstream::DownstreamParameters::MaxNumDownstreamSciFi);
+
     // Store the number of rows
-    parameters.dev_findhits_num_output[event_number] = shared_num_candidates;
+    parameters.dev_findhits_num_output[event_number] = no_overflow ? shared_num_candidates : 0;
     // Store the number of selected scifi seeds
-    parameters.dev_findhits_num_selected_scifi[event_number] = shared_num_selelected_scifi;
+    parameters.dev_findhits_num_selected_scifi[event_number] = no_overflow ? shared_num_selelected_scifi : 0;
     // Set the end of offsets
-    output_selected_scifi_offsets[shared_num_selelected_scifi] = shared_num_candidates;
+    output_selected_scifi_offsets[shared_num_selelected_scifi] = no_overflow ? shared_num_candidates : 0;
   };
   __syncthreads();
 }
@@ -427,8 +406,7 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
   downstream_find_hits::Parameters parameters,
   const unsigned* dev_unique_x_sector_layer_offsets,
   const float* dev_unique_sector_xs,
-  const float* dev_ut_dxDy,
-  const float* dev_mean_layer_z)
+  const UT::Constants::PerLayerInfo* dev_mean_layer_info)
 {
   ///////////////////////////////////////////////////////
   //
@@ -448,10 +426,6 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
   const auto event_hit_offset = ut_hit_offsets.event_offset();
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits, event_hit_offset};
 
-  // Global memory for hit caching
-  const auto global_memory_hit_caching = parameters.dev_hit_caching_memory;
-  const auto global_memory_hit_caching_counter = parameters.dev_hit_caching_counter;
-
   // Output
   auto findhits_outputs =
     parameters.dev_findhits_output + event_number * Downstream::DownstreamParameters::MaxNumCandidates;
@@ -469,16 +443,15 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
   //
   ///////////////////////////////////////////////////////
 
-  using Downstream::DownstreamCache::HitCache;
-  using Downstream::DownstreamCache::SectorHelper;
   using UT::Constants::n_layers;
 
   // Allocate the memory
-  __shared__ char shared_memory_hit_caching[HitCache::TotalMemorySize];
+  __shared__
+    typename UTHitsCache_FindRestHits::ElementType shared_memory_hit_caching[UTHitsCache_FindRestHits::NumElements];
 
   // Hit Cache
-  HitCache hit_cache {shared_memory_hit_caching, global_memory_hit_caching, global_memory_hit_caching_counter};
-  SectorHelper sector_cache;
+  UTHitsCache_FindRestHits hit_cache {shared_memory_hit_caching};
+  UT::SectorHelper sector_cache;
 
   ///////////////////////////////////////////////////////
   //
@@ -488,13 +461,14 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
 
   // Since this loop is static, it should be unrolled automatically
   for (unsigned layer = 0; layer < 3; ++layer) {
+    // Cache dxdy to register
+    const float layer_dxDy = dev_mean_layer_info->mean_dxDy[layer];
+    const float layer_z = dev_mean_layer_info->mean_z[layer];
+
     // Cache hits and sectors
-    hit_cache.cache_layer(ut_hit_offsets, ut_hits, dev_mean_layer_z[layer], layer);
+    hit_cache.cache_layer(ut_hit_offsets, ut_hits, dev_mean_layer_info, layer);
     sector_cache.cache_layer(ut_hit_offsets, dev_unique_sector_xs, dev_unique_x_sector_layer_offsets, layer);
     __syncthreads();
-
-    // Cache dxdy to register
-    const float dxdy = dev_ut_dxDy[layer];
 
     // Start
     for (unsigned candidate_idx = threadIdx.x; candidate_idx < num_output; candidate_idx += blockDim.x) {
@@ -517,24 +491,20 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
       const auto xTol = exTrack.xTol(layer);
       const auto yTol = exTrack.yTol(layer);
 
+      // Get expected x and open the search window
+      const auto expected_layer_y = exTrack.yAtZ(layer_z);
+      const auto expected_layer_x = exTrack.xAtZ(layer_z) - layer_dxDy * expected_layer_y;
+      const auto hit_range = sector_cache.get_hit_range(expected_layer_x - xTol, expected_layer_x + xTol);
+
       // For x0 layer, we select the best candidate
       if (layer == 0) {
-        // Get expected x and open the search window
-        const auto expected_layer_x = exTrack.xAtZ(dev_mean_layer_z[layer]);
-        const auto hit_range = sector_cache.get_hit_range(expected_layer_x - xTol, expected_layer_x + xTol);
-
         using Downstream::DownstreamHelpers::BestCandidateManager;
         BestCandidateManager<ushort, true> best_x0_hit;
         for (auto hit_idx = hit_range.x; hit_idx < hit_range.y; hit_idx++) {
-          const float hit_z = hit_cache.zAtYEq0(hit_idx);
-
-          const float expected_hit_y = exTrack.yAtZ(hit_z);
-          if (hit_cache.isNotYCompatible(hit_idx, expected_hit_y, yTol)) continue;
-
-          const float expected_hit_x = exTrack.xAtZ(hit_z);
-          const float hit_x = hit_cache.xAtYEq0(hit_idx);
-
-          const float xdist = expected_hit_x - hit_x;
+          const auto hit = hit_cache.hit(hit_idx);
+          const float expected_hit_y = exTrack.yAtZ(hit.zAtYEq0());
+          if (hit.isNotYCompatible(expected_hit_y, yTol)) continue;
+          const float xdist = exTrack.xAtZ(hit.zAtYEq0()) - hit.xAt(expected_hit_y);
           if (fabsf(xdist) > xTol) continue;
 
           // Store
@@ -554,26 +524,15 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
       }
       // For uv layers, we select best two candidates
       else {
-        // Get expected x and open the search window
-        const auto expected_layer_y = exTrack.yAtZ(dev_mean_layer_z[layer]);
-        const auto expected_layer_x = exTrack.xAtZ(dev_mean_layer_z[layer]) - dxdy * expected_layer_y;
-        const auto hit_range = sector_cache.get_hit_range(expected_layer_x - xTol, expected_layer_x + xTol);
 
         using Downstream::DownstreamHelpers::MultiCandidateManager;
         using Downstream::DownstreamParameters::MaxNumSelectedUVhitPerRow;
         MultiCandidateManager<ushort, MaxNumSelectedUVhitPerRow, true> best_uv_hits;
         for (auto hit_idx = hit_range.x; hit_idx < hit_range.y; hit_idx++) {
-          const float hit_z = hit_cache.zAtYEq0(hit_idx);
-
-          const float expected_hit_y = exTrack.yAtZ(hit_z);
-          if (hit_cache.isNotYCompatible(hit_idx, expected_hit_y, yTol)) continue;
-
-          const float expected_hit_x = exTrack.xAtZ(hit_z);
-          const float hit_x = hit_cache.xAtYEq0(hit_idx) + expected_hit_y * dxdy;
-
-          const float xdist = expected_hit_x - hit_x;
-          if (fabsf(xdist) > xTol) continue;
-
+          const auto hit = hit_cache.hit(hit_idx);
+          const float expected_hit_y = exTrack.yAtZ(hit.zAtYEq0());
+          if (hit.isNotYCompatible(expected_hit_y, yTol)) continue;
+          const float xdist = exTrack.xAtZ(hit.zAtYEq0()) - hit.xAt(expected_hit_y);
           // Store
           best_uv_hits.add(hit_idx, xdist);
         };

@@ -20,6 +20,64 @@
 namespace {
   using std::string;
   using std::to_string;
+
+  template<bool absolute_value>
+  std::set<float> get_unique_values(const float* array, const unsigned size)
+  {
+    std::set<float> result;
+    if constexpr (absolute_value) {
+      std::transform(array, array + size, std::inserter(result, result.end()), [](float i) { return fabsf(i); });
+    }
+    else {
+      std::transform(array, array + size, std::inserter(result, result.end()), [](float i) { return i; });
+    }
+    return result;
+  }
+
+  template<bool absolute_value>
+  std::set<float> get_unique_values(gsl::span<float> array)
+  {
+    std::set<float> result;
+    if constexpr (absolute_value) {
+      std::transform(array.begin(), array.end(), std::inserter(result, result.end()), [](float i) { return fabsf(i); });
+    }
+    else {
+      std::transform(array.begin(), array.end(), std::inserter(result, result.end()), [](float i) { return i; });
+    }
+    return result;
+  }
+
+  using ConditionFunction_t = std::function<bool(float)>;
+  template<typename Data_t>
+  float compute_mean_value(
+    const Data_t& input,
+    ConditionFunction_t condition_function = [](auto) { return true; })
+  {
+    return std::accumulate(
+             input.begin(),
+             input.end(),
+             0.f,
+             [&condition_function](float acc, float val) { return condition_function(val) ? acc + val : acc; }) /
+           std::count_if(input.begin(), input.end(), condition_function);
+  }
+
+  template<typename Data_t>
+  float compute_middle_value(const Data_t& input)
+  {
+    const auto min_val = *std::min_element(input.begin(), input.end());
+    const auto max_val = *std::max_element(input.begin(), input.end());
+    return (min_val + max_val) / 2;
+  }
+
+  template<typename Data_t>
+  float compute_middle_value(const Data_t& input, ConditionFunction_t condition_function)
+  {
+    Data_t filtered;
+    std::copy_if(input.begin(), input.end(), std::inserter(filtered, filtered.end()), condition_function);
+    const auto min_val = *std::min_element(filtered.begin(), filtered.end());
+    const auto max_val = *std::max_element(filtered.begin(), filtered.end());
+    return (min_val + max_val) / 2;
+  }
 } // namespace
 
 Consumers::UTGeometry::UTGeometry(Constants& constants) : m_constants {constants} {}
@@ -70,9 +128,46 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
   auto& host_mean_ut_layer_zs = m_constants.get().host_mean_ut_layer_zs;
   host_unique_x_sector_layer_offsets[0] = 0;
 
+  // Container for per layer constants
+  auto& dev_ut_per_layer_info = m_constants.get().dev_ut_per_layer_info;
+  auto host_ut_per_layer_info = new UT::Constants::PerLayerInfo {};
+  m_constants.get().host_ut_per_layer_info = host_ut_per_layer_info;
+
   for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
     const auto offset = offsets[i];
     const auto size = offsets[i + 1] - offsets[i];
+
+    // Find the mean small and large dy for each layer (2 types (AB or CD))
+    const auto unique_layer_dy = get_unique_values<true>(geometry.dy + offset, size);
+    const auto middle_dy = compute_middle_value(unique_layer_dy);
+    const auto small_mean_dy = compute_mean_value(unique_layer_dy, [middle_dy](float v) { return v < middle_dy; });
+    const auto large_mean_dy = compute_mean_value(unique_layer_dy, [middle_dy](float v) { return v >= middle_dy; });
+    host_ut_per_layer_info->two_dy[i][0] = small_mean_dy;
+    host_ut_per_layer_info->two_dy[i][1] = large_mean_dy;
+
+    // Find 4 mean z positions for each layer (2 Sides + 2 Faces)
+    const auto unique_layer_z = get_unique_values<true>(geometry.p0Z + offset, size);
+    const auto mean_z = compute_mean_value(unique_layer_z);
+    host_ut_per_layer_info->mean_z[i] = mean_z;
+    host_mean_ut_layer_zs.push_back(mean_z);
+
+    // Find the mean dxdy for each layer
+    float mean_dxdy = 0.f, min_dxdy = 0.f, max_dxdy = 0.f;
+    if (geometry.dxDy != nullptr) {
+      gsl::span<float> all_dxdy(geometry.dxDy + offset, size);
+      const auto unique_layer_dxdy = get_unique_values<false>(all_dxdy);
+      mean_dxdy = compute_mean_value(unique_layer_dxdy);
+      min_dxdy = *std::min_element(unique_layer_dxdy.begin(), unique_layer_dxdy.end());
+      max_dxdy = *std::max_element(unique_layer_dxdy.begin(), unique_layer_dxdy.end());
+    }
+    else {
+      mean_dxdy = UT::Constants::hardcoded_dxdy(i);
+      min_dxdy = UT::Constants::hardcoded_dxdy(i);
+      max_dxdy = UT::Constants::hardcoded_dxdy(i);
+    }
+    host_ut_per_layer_info->mean_dxDy[i] = mean_dxdy;
+    host_ut_per_layer_info->min_dxDy[i] = min_dxdy;
+    host_ut_per_layer_info->max_dxDy[i] = max_dxdy;
 
     // Copy elements into xs vector and zs vector
     std::vector<float> xs(size), zs(size);
@@ -118,10 +213,6 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
     std::set<float> set_zs;
     std::transform(zs.begin(), zs.end(), std::inserter(set_zs, set_zs.begin()), [](float i) { return fabsf(i); });
 
-    // Fill the average z of each layer
-    const auto mean_z = std::accumulate(set_zs.begin(), set_zs.end(), 0.f) / set_zs.size();
-    host_mean_ut_layer_zs.push_back(mean_z);
-
     // Fill in host_unique_sector_xs
     std::vector<float> temp_unique_elements(number_of_unique_elements);
     std::fill(temp_unique_elements.begin(), temp_unique_elements.end(), Allen::numeric_limits<float>::infinity());
@@ -142,6 +233,13 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
     current_sector_offset += number_of_unique_elements;
     host_unique_x_sector_layer_offsets[i + 1] = current_sector_offset;
   }
+
+  Allen::malloc((void**) &dev_ut_per_layer_info, sizeof(UT::Constants::PerLayerInfo));
+  Allen::memcpy(
+    m_constants.get().dev_ut_per_layer_info,
+    host_ut_per_layer_info,
+    sizeof(UT::Constants::PerLayerInfo),
+    Allen::memcpyHostToDevice);
 
   // Populate device constant into global memory
   std::tuple numbers {

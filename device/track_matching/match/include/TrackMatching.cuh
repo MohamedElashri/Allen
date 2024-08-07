@@ -18,6 +18,7 @@
 #include "NeuralNetwork.cuh"
 #include "TrackMatchingConstants.cuh"
 #include "AlgorithmTypes.cuh"
+#include "UTHitCache.cuh"
 
 namespace track_matching {
   struct Parameters {
@@ -40,10 +41,6 @@ namespace track_matching {
     DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
     HOST_INPUT(host_accumulated_number_of_ut_hits_t, unsigned) host_accumulated_number_of_ut_hits;
 
-    // Hit caching memory - cache UT hits in global memory in case of it doesn't fit the shared memory
-    DEVICE_OUTPUT(dev_hit_caching_memory_t, char) dev_hit_caching_memory;
-    DEVICE_OUTPUT(dev_hit_caching_counter_t, unsigned) dev_hit_caching_counter;
-
     DEVICE_OUTPUT(dev_atomics_matched_tracks_t, unsigned) dev_atomics_matched_tracks;
     DEVICE_OUTPUT(dev_matched_tracks_t, SciFi::MatchedTrack) dev_matched_tracks;
 
@@ -59,6 +56,13 @@ namespace track_matching {
       "matching_no_ut_ghost_killer_version",
       int)
     matching_no_ut_ghost_killer_version;
+
+    PROPERTY(
+      matching_with_ut_ghost_killer_version_t,
+      "matching_with_ut_ghost_killer_version",
+      "matching_with_ut_ghost_killer_version",
+      int)
+    matching_with_ut_ghost_killer_version;
 
     PROPERTY(multiplication_factor_dX_t, "multiplication_factor_dX", "multiplication_factor_dX", float)
     multiplication_factor_dX;
@@ -88,31 +92,35 @@ namespace track_matching {
     PROPERTY(z_magnet_parameters_t, "z_magnet_parameters", "z_magnet_parameters", std::array<float, 5>)
     z_magnet_parameters;
 
-    PROPERTY(
-      loose_ut_hit_tolerance_scaling_factor_t,
-      "loose_ut_hit_tolerance_scaling_factor",
-      "loose_ut_hit_tolerance_scaling_factor",
-      std::array<float, 3>)
-    loose_ut_hit_tolerance_scaling_factor;
+    PROPERTY(ut_x_loose_tolerance_parameters_t, "ut_x_loose_tolerance_parameters", "ut_x_loose_tolerance_parameters", std::array<float, 4*3>)
+    ut_x_loose_tolerance_parameters;
 
-    PROPERTY(
-      tight_ut_hit_tolerance_scaling_factor_t,
-      "tight_ut_hit_tolerance_scaling_factor",
-      "tight_ut_hit_tolerance_scaling_factor",
-      std::array<float, 3>)
-    tight_ut_hit_tolerance_scaling_factor;
+    PROPERTY(ut_x_tight_tolerance_parameters_t, "ut_x_tight_tolerance_parameters", "ut_x_tight_tolerance_parameters", std::array<float, 4*3>)
+    ut_x_tight_tolerance_parameters;
 
-    PROPERTY(
-      y_ut_hit_tolerance_scaling_factor_t,
-      "y_ut_hit_tolerance_scaling_factor",
-      "y_ut_hit_tolerance_scaling_factor",
-      std::array<float, 3>)
-    y_ut_hit_tolerance_scaling_factor;
+    PROPERTY(ut_y_tolerance_parameters_t, "ut_y_tolerance_parameters", "ut_y_tolerance_parameters", float)
+    ut_y_tolerance_parameters;
+
+    PROPERTY(min_num_ut_hits_t, "min_num_ut_hits", "min_num_ut_hits", unsigned) min_num_ut_hits;
 
     PROPERTY(force_skip_ut_t, "force_skip_ut", "force_skip_ut", bool) force_skip_ut;
   };
 
-  template<bool has_ut, typename GhostKiller_t>
+#if defined(TARGET_DEVICE_CUDA)
+#if __CUDA_ARCH__ >= 800 // Ampere (A5000)
+// for 56 registers/thread: 1280=36warps, 1472=32warps, 1664=28warps, 1984=24warps
+// With 90% UT efficiency, there are < 5000 hits per event -> ~1250 hits/layer => 1280
+// With 99% UT efficiency, scale it 1280 / 0.9 * 0.99 = 1408 => 1472
+  __device__ static constexpr unsigned int MaxCacheSize = 1280;
+#else // Volta, Turing: for 56 registers/thread: 1024=32warps, 
+  __device__ static constexpr unsigned int MaxCacheSize = 1024;
+#endif
+#else // CPU, HIP
+  __device__ static constexpr unsigned int MaxCacheSize = 1;
+#endif
+  using UTHitsCache = UT::SmartHitsCache<MaxCacheSize>;
+
+  template<typename GhostKiller_t>
   __global__ void track_matching_veloSciFi(
     Parameters,
     const float* dev_magnet_polarity,
@@ -123,15 +131,20 @@ namespace track_matching {
     const float* dev_magnet_polarity,
     const unsigned* dev_unique_x_sector_layer_offsets,
     const float* dev_unique_sector_xs,
-    const float* dev_ut_dxDy,
-    const float* dev_mean_layer_z);
+    const UT::Constants::PerLayerInfo* dev_mean_layer_info);
 
-  __global__ void track_matching_filter_tracks(
+  __global__ void track_matching_filter_bad_ut_segment(Parameters);
+
+  __global__ void track_matching_select_best_ut_segment(Parameters);
+
+  template<typename GhostKiller_t>
+  __global__ void track_matching_ghost_killing(
     Parameters,
-    const Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller* dev_matching_ghost_killer);
+    const GhostKiller_t* dev_matching_ghost_killer);
 
   template<bool has_ut>
   __global__ void track_matching_clone_killing(Parameters);
+
 
   struct track_matching_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -145,6 +158,7 @@ namespace track_matching {
   private:
     Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
     Property<matching_no_ut_ghost_killer_version_t> m_matching_no_ut_ghost_killer_version {this, 2};
+    Property<matching_with_ut_ghost_killer_version_t> m_matching_with_ut_ghost_killer_version {this, 2};
     Property<multiplication_factor_dX_t> m_multiplication_factor_dX {this, 0.8};
     Property<multiplication_factor_dY_t> m_multiplication_factor_dY {this, 0.2};
     Property<multiplication_factor_dty_t> m_multiplication_factor_dty {this, 937.5};
@@ -156,11 +170,21 @@ namespace track_matching {
 
     Property<z_magnet_parameters_t> m_z_magnet_parameters {this, {5287.6f, -7.98878f, 317.683f, 0.0119379f, -1418.42f}};
 
-    Property<loose_ut_hit_tolerance_scaling_factor_t> m_loose_ut_hit_tolerance_scaling_factor {this, {1.f, 1.f, 1.f}};
+    // 4 parameters for each layer: offset, slope, min, max
+    Property<ut_x_loose_tolerance_parameters_t> m_ut_x_loose_tolerance_parameters {this, {
+      20.f,0.f,0.f,50.f,
+      20.f,0.f,0.f,50.f,
+      20.f,0.f,0.f,50.f
+    }};
+    // 4 parameters for each layer: offset, slope, min, max
+    Property<ut_x_tight_tolerance_parameters_t> m_ut_x_tight_tolerance_parameters {this, {
+      6.f,0.f,1.f,20.f,
+      6.f,0.f,1.f,20.f,
+      6.f,0.f,1.f,20.f
+    }};
+    Property<ut_y_tolerance_parameters_t> m_ut_y_tolerance_parameters {this, 1.f};
 
-    Property<tight_ut_hit_tolerance_scaling_factor_t> m_tight_ut_hit_tolerance_scaling_factor {this, {1.f, 1.f, 1.f}};
-
-    Property<y_ut_hit_tolerance_scaling_factor_t> m_y_ut_hit_tolerance_scaling_factor {this, {1.f, 0.f, 1.f}};
+    Property<min_num_ut_hits_t> m_min_num_ut_hits {this, 2u};
 
     Property<force_skip_ut_t> m_force_skip_ut {this, false};
   };

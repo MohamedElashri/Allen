@@ -16,18 +16,8 @@
 // Event Model
 #include "UTDefinitions.cuh"
 #include "UTEventModel.cuh"
-#include "SciFiEventModel.cuh"
-#include "SciFiConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "AlgorithmTypes.cuh"
-
-// Local
-#include "DownstreamConstants.cuh"
-#include "DownstreamStructs.cuh"
-#include "DownstreamExtrapolation.cuh"
-#include "DownstreamCache.cuh"
-#include "DownstreamFindHits.cuh"
-#include "DownstreamCreateTracks.cuh"
 
 /**
  * @brief This is definition file for downstream_copy_hit_number algorithm.

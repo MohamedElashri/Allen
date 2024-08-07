@@ -49,6 +49,10 @@ namespace Rich::Future::DAQ::Allen {
   class Tel40CableMapping;
 } // namespace Rich::Future::DAQ::Allen
 
+namespace UT::Constants {
+  struct PerLayerInfo;
+}
+
 /**
  * @brief Struct intended as a singleton with constants defined on GPU.
  * @details __constant__ memory on the GPU has very few use cases.
@@ -193,6 +197,10 @@ struct Constants {
   std::vector<char> host_rich_cable_mapping;
   char* dev_rich_pdmdb_mapping;
   char* dev_rich_cable_mapping;
+
+  // UT per layer constant information
+  UT::Constants::PerLayerInfo* host_ut_per_layer_info = nullptr;
+  UT::Constants::PerLayerInfo* dev_ut_per_layer_info = nullptr;
 
   /**
    * @brief Reserves and initializes constants.

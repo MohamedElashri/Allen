@@ -21,7 +21,6 @@ namespace compass_ut {
     UT::ConstHits& ut_hits,
     const UT::HitOffsets& ut_hit_offsets,
     const MiniState& velo_state,
-    const float* ut_dxDy,
     const unsigned max_considered_before_found,
     const float delta_tx_2,
     const float hit_tol_2,
@@ -33,9 +32,7 @@ namespace compass_ut {
     const int best_hits[UT::Constants::n_layers],
     UT::ConstHits& ut_hits,
     const MiniState& velo_state,
-    const float* ut_dxDy,
     const float yyProto,
-    const bool forward,
     const float sigma_velo_slope,
     const float inv_sigma_velo_slope);
 
@@ -61,7 +58,6 @@ namespace compass_ut {
     UT::ConstHits& ut_hits,
     const UT::HitOffsets& ut_hit_offsets,
     const float* bdl_table,
-    const float* dev_ut_dxDy,
     const float magnet_polarity,
     short* win_size_shared,
     unsigned* n_veloUT_tracks_event,
@@ -91,7 +87,6 @@ namespace compass_ut {
     const BestParams& best_params,
     const int* best_hits,
     UT::ConstHits& ut_hits,
-    const float* ut_dxDy,
     const float magSign,
     unsigned* n_veloUT_tracks,
     UT::TrackHits* VeloUT_tracks,

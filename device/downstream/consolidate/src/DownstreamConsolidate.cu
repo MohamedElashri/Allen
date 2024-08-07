@@ -266,10 +266,20 @@ __global__ void downstream_consolidate::downstream_consolidate(
       parameters.dev_scifi_states[scifi_tracks_offset + downstream_track.scifi_idx];
 
     // Fill hits
-    const auto nhits = downstream_track.num_hits;
     const auto target_hit_offset = downstream_hit_number_offsets[track_idx];
-    for (unsigned hit_idx = 0; hit_idx < nhits; hit_idx++) {
-      downstream_track_hits.set(target_hit_offset + hit_idx, ut_hits.getHit(downstream_track.hits[hit_idx]));
+    constexpr auto INVALID_HIT = Downstream::DownstreamStructs::DownstreamHits::INVALID_HIT;
+    for (unsigned layer = 0, hit_idx = 0; layer < UT::Constants::n_layers; layer++) {
+      const auto ut_hit_idx = downstream_track.hits[hit_idx];
+      if (ut_hit_idx == INVALID_HIT) continue;
+      downstream_track_hits.yBegin(target_hit_offset + hit_idx) = ut_hits.yBegin(ut_hit_idx);
+      downstream_track_hits.yEnd(target_hit_offset + hit_idx) = ut_hits.yEnd(ut_hit_idx);
+      downstream_track_hits.zAtYEq0(target_hit_offset + hit_idx) = ut_hits.zAtYEq0(ut_hit_idx);
+      downstream_track_hits.xAtYEq0(target_hit_offset + hit_idx) = ut_hits.xAtYEq0(ut_hit_idx);
+      downstream_track_hits.dxDy(target_hit_offset + hit_idx) = ut_hits.dxDy(ut_hit_idx);
+      downstream_track_hits.weight(target_hit_offset + hit_idx) = ut_hits.weight(ut_hit_idx);
+      downstream_track_hits.id(target_hit_offset + hit_idx) = ut_hits.id(ut_hit_idx);
+      downstream_track_hits.plane_code(target_hit_offset + hit_idx) = layer;
+      hit_idx++;
     }
   }
   __syncthreads();
