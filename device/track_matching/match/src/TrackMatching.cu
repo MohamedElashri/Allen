@@ -88,38 +88,20 @@ namespace {
     const float tyV,
     const float txT,
     const float magSign,
-    const track_matching::Parameters::momentum_parameters_magUp_t::t& momentum_parameters_magUp,
-    const track_matching::Parameters::momentum_parameters_magDown_t::t& momentum_parameters_magDown)
+    const typename track_matching::Parameters::momentum_parameters_t::t& momentum_parameters)
   {
     // Pick parametrisation from polarity condition
     // magSign is -1*dev_magnet_polarity so negative sign is MagUp
-    if (magSign < 0) {
-      const auto momentum_parameters = momentum_parameters_magUp;
-      const auto dslope = txT - txV;
-      const auto abs_p = momentum_parameters[0] +
-                         (momentum_parameters[1] + momentum_parameters[2] * (txT * txT) +
-                          momentum_parameters[3] * (txT * txT * txT * txT) + momentum_parameters[4] * (txT * txV) +
-                          momentum_parameters[5] * (tyV * tyV) + momentum_parameters[6] * (tyV * tyV * tyV * tyV) +
-                          momentum_parameters[7] * (txV * txV)) /
-                           fabsf(dslope);
+    const float* params = momentum_parameters.data() + (magSign < 0 ? 0 : 8);
 
-      const auto charge = ((dslope > 0) ? 1.f : -1.f) * magSign;
-      return charge / abs_p;
-    }
-    // positive sign is magDown
-    else {
-      const auto momentum_parameters = momentum_parameters_magDown;
-      const float txT2 = txT * txT;
-      const float tyV2 = tyV * tyV;
-      const float coef =
-        (momentum_parameters[0] + txT2 * (momentum_parameters[1] + momentum_parameters[2] * txT2) +
-         momentum_parameters[3] * txT * txV + tyV2 * (momentum_parameters[4] + momentum_parameters[5] * tyV2) +
-         momentum_parameters[6] * txV * txV);
+    const auto dslope = txT - txV;
+    const auto abs_p =
+      params[0] + (params[1] + params[2] * (txT * txT) + params[3] * (txT * txT * txT * txT) + params[4] * (txT * txV) +
+                   params[5] * (tyV * tyV) + params[6] * (tyV * tyV * tyV * tyV) + params[7] * (txV * txV)) /
+                    fabsf(dslope);
 
-      const float factor = std::copysign(magSign, txT - txV);
-      const float cp = (magSign * coef) / (txT - txV) + factor * momentum_parameters[7];
-      return 1.f / cp;
-    }
+    const auto charge = ((dslope > 0) ? 1.f : -1.f) * magSign;
+    return charge / abs_p;
   }
 } // namespace
 
@@ -147,7 +129,8 @@ void track_matching::track_matching_t::operator()(
 
   if (has_ut) {
     // Velo SciFi matching
-    global_function(track_matching_veloSciFi<void>)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    global_function(track_matching_veloSciFi<void>)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments, constants.dev_magnet_polarity.data(), nullptr);
 
     // Add UT hits
@@ -166,36 +149,41 @@ void track_matching::track_matching_t::operator()(
     // Select only one best ut segement for each VeloSciFi matched result
     global_function(track_matching_select_best_ut_segment)(
       dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
-      
-    // Fit UT segment and evaluate ghost probability
-    global_function(track_matching_ghost_killing<void>)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-      arguments, nullptr);
-    
 
-    // // Clone killing
-    // global_function(track_matching_clone_killing<true>)(
-    //   dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+    // Fit UT segment and evaluate ghost probability
+    if (property<matching_with_ut_ghost_killer_version_t>() == 1) {
+      global_function(track_matching_ghost_killing<Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller>)(
+        dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+        arguments, constants.dev_matching_with_ut_ghost_killer);
+    }
+    else if (property<matching_with_ut_ghost_killer_version_t>() == 2) {
+      global_function(track_matching_ghost_killing<Allen::NeuralNetwork::Model::MatchingWithUTV2GhostKiller>)(
+        dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+        arguments, constants.dev_matching_with_ut_v2_ghost_killer);
+    }
+    else {
+      throw std::invalid_argument("matching_no_ut_ghost_killer_version can only be [1, 2].");
+    }
   }
   else {
     // Velo SciFi matching
     if (property<matching_no_ut_ghost_killer_version_t>() == 1) {
       global_function(track_matching_veloSciFi<Allen::NeuralNetwork::Model::MatchingGhostKiller>)(
-        dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(
+        dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
         arguments, constants.dev_magnet_polarity.data(), constants.dev_matching_ghost_killer);
     }
     else if (property<matching_no_ut_ghost_killer_version_t>() == 2) {
       global_function(track_matching_veloSciFi<Allen::NeuralNetwork::Model::MatchingNoUTV2GhostKiller>)(
-        dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(
+        dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
         arguments, constants.dev_magnet_polarity.data(), constants.dev_matching_no_ut_v2_ghost_killer);
     }
     else {
       throw std::invalid_argument("matching_no_ut_ghost_killer_version can only be [1, 2].");
     }
-    // // Clone killing
-    // global_function(track_matching_clone_killing<false>)(
-    //   dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
   }
+  // Clone killing
+  global_function(track_matching_clone_killing)(
+    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 
   PrefixSum::prefix_sum<dev_offsets_matched_tracks_t, host_number_of_reconstructed_matched_tracks_t>(
     *this, arguments, context);
@@ -271,7 +259,7 @@ __global__ void track_matching::track_matching_veloSciFi(
           ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
         }
 
-        // if (ghost_killer_score > parameters.ghost_killer_threshold.get()) continue;
+        if (ghost_killer_score > parameters.ghost_killer_threshold.get()) continue;
       }
 
       // Save the result
@@ -282,12 +270,7 @@ __global__ void track_matching::track_matching_veloSciFi(
 
       const auto magSign = -dev_magnet_polarity[0];
       const auto qop = computeQoverP(
-        endvelo_state.tx(),
-        endvelo_state.ty(),
-        scifi_state.tx(),
-        magSign,
-        parameters.momentum_parameters_magUp.get(),
-        parameters.momentum_parameters_magDown.get());
+        endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, parameters.momentum_parameters.get());
 
       matched_track.velo_track_index = velo_track_index;
       matched_track.scifi_track_index = i;
@@ -385,7 +368,7 @@ __global__ void track_matching::track_matching_add_ut_hits(
 
       // Early stop: if layer==3 but not hit was found before (We need at least 2 hits to make UT segment)
       const auto first_hit = std::isnan(matched_track.gamma);
-      if (first_hit && layer==3) continue;
+      if (first_hit && layer == 3) continue;
 
       // Get state
       const auto endvelo_state = velo_states.state(matched_track.velo_track_index);
@@ -407,9 +390,8 @@ __global__ void track_matching::track_matching_add_ut_hits(
 
       // Get tolerances
       const auto xTol = trajectory.get_tolerance(
-        first_hit ? parameters.ut_x_loose_tolerance_parameters.get().data() + 4 * (layer)
-                  : parameters.ut_x_tight_tolerance_parameters.get().data() + 4 * (layer-1)
-      );
+        first_hit ? parameters.ut_x_loose_tolerance_parameters.get().data() + 4 * (layer) :
+                    parameters.ut_x_tight_tolerance_parameters.get().data() + 4 * (layer - 1));
       const auto yTol = parameters.ut_y_tolerance_parameters.get();
 
       // Get expected x and open the search window
@@ -461,7 +443,8 @@ __global__ void track_matching::track_matching_add_ut_hits(
             // Modify the gamma
             const auto hit = hit_cache.hit(best_hit_idx);
             const float expected_hit_y = trajectory.yAtZ(hit.zAtYEq0());
-            matched_tracks_event[new_candidate_idx].gamma = trajectory.get_new_gamma(hit.zAtYEq0(), hit.xAt(expected_hit_y));
+            matched_tracks_event[new_candidate_idx].gamma =
+              trajectory.get_new_gamma(hit.zAtYEq0(), hit.xAt(expected_hit_y));
           }
         }
       }
@@ -481,7 +464,8 @@ __global__ void track_matching::track_matching_add_ut_hits(
         // update gamma
         const auto hit = hit_cache.hit(best_hit.best());
         const float expected_hit_y = trajectory.yAtZ(hit.zAtYEq0());
-        matched_track.gamma = (matched_track.gamma + trajectory.get_new_gamma(hit.zAtYEq0(), hit.xAt(expected_hit_y)))/2;
+        matched_track.gamma =
+          (matched_track.gamma + trajectory.get_new_gamma(hit.zAtYEq0(), hit.xAt(expected_hit_y))) / 2;
 
         // Add best hit
         matched_track.ut_hits[layer] = hit_cache.HitOffset() + best_hit.best();
@@ -490,10 +474,8 @@ __global__ void track_matching::track_matching_add_ut_hits(
       }
     }
     __syncthreads();
-    if (threadIdx.x == 0)
-    {
-      if (n_matched_tracks_event > TrackMatchingConsts::max_num_tracks)
-      {
+    if (threadIdx.x == 0) {
+      if (n_matched_tracks_event > TrackMatchingConsts::max_num_tracks) {
         n_matched_tracks_event = 0;
       }
     }
@@ -579,7 +561,9 @@ __global__ void track_matching::track_matching_select_best_ut_segment(Parameters
     for (unsigned n_track_2 = n_track_1 + 1; n_track_2 < const_num_tracks; n_track_2 += 1) {
       auto& track_2 = matched_tracks_event[n_track_2];
 
-      if ((track_1.velo_track_index == track_2.velo_track_index) && (track_1.scifi_track_index == track_2.scifi_track_index)) {
+      if (
+        (track_1.velo_track_index == track_2.velo_track_index) &&
+        (track_1.scifi_track_index == track_2.scifi_track_index)) {
         if (track_1.number_of_hits_ut < track_2.number_of_hits_ut) {
           killed[n_track_1] = true;
         }
@@ -676,8 +660,21 @@ __global__ void track_matching::track_matching_ghost_killing(
         float(scifi_seeds.track(matched_track.scifi_track_index).number_of_scifi_hits())};
       matched_track.score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
     }
-    // killed[i] = (matched_track.score > parameters.ghost_killer_threshold) || (matched_track.number_of_hits_ut < parameters.min_num_ut_hits.get());
-    // killed[i] = (matched_track.number_of_hits_ut < parameters.min_num_ut_hits.get());
+    else if constexpr (std::is_same_v<GhostKiller_t, Allen::NeuralNetwork::Model::MatchingWithUTV2GhostKiller>) {
+      float ghost_killer_inputs[Allen::NeuralNetwork::Model::MatchingWithUTV2GhostKiller::nInput] = {
+        matchingInfo.zForX,
+        matchingInfo.distX,
+        matchingInfo.distY,
+        matchingInfo.dSlopeX,
+        matchingInfo.dSlopeY,
+        logf(matchingInfo.chi2),
+        velo_eta,
+        float(scifi_seeds.track(matched_track.scifi_track_index).number_of_scifi_hits()),
+        logf(matched_track.ut_score / (matched_track.number_of_hits_ut - 1)),
+        float(matched_track.number_of_hits_ut)};
+      matched_track.score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
+    }
+    killed[i] = (matched_track.score > parameters.ghost_killer_threshold);
   }
   __syncthreads();
 
@@ -695,7 +692,6 @@ __global__ void track_matching::track_matching_ghost_killing(
   };
 }
 
-template<bool has_ut>
 __global__ void track_matching::track_matching_clone_killing(track_matching::Parameters parameters)
 {
   // Basics
@@ -737,56 +733,14 @@ __global__ void track_matching::track_matching_clone_killing(track_matching::Par
         shared_seeds += 1;
       };
 
-      if constexpr (has_ut) {
-        unsigned shared_ut_hits = 0;
-        if (track_1.ut_hits[0] != SciFi::MatchedTrack::InvalidHit && track_1.ut_hits[0] == track_2.ut_hits[0]) {
-          shared_ut_hits++;
+      if ((shared_seeds >= 1) && (fabsf(track_1.score - track_2.score) > 0.05f)) {
+        if (track_1.score <= track_2.score) {
+          killed[n_track_2] = true;
         }
-        if (track_1.ut_hits[1] != SciFi::MatchedTrack::InvalidHit && track_1.ut_hits[1] == track_2.ut_hits[1]) {
-          shared_ut_hits++;
-        }
-        if (track_1.ut_hits[2] != SciFi::MatchedTrack::InvalidHit && track_1.ut_hits[2] == track_2.ut_hits[2]) {
-          shared_ut_hits++;
-        }
-        if (track_1.ut_hits[3] != SciFi::MatchedTrack::InvalidHit && track_1.ut_hits[3] == track_2.ut_hits[3]) {
-          shared_ut_hits++;
-        }
-
-        if (
-          // Same Velo and SciFi: must select one, otherwise clone rate is too high
-          ((shared_seeds == 2)) 
-          // ||
-          // // Same UT segment
-          // ((shared_ut_hits == min(track_1.number_of_hits_ut, track_2.number_of_hits_ut)) && (shared_ut_hits > 2) &&
-          //  (fabsf(track_1.score - track_2.score) > 0.05f)) ||
-          // // Align with MatchingNoUT
-          // ((shared_seeds >= 1) && (fabsf(track_1.score - track_2.score) > 0.05f)) // Same condition like NoUT killing
-        ) {
-
-          if (track_1.number_of_hits_ut < track_2.number_of_hits_ut) {
-            killed[n_track_1] = true;
-          }
-          else if (track_1.number_of_hits_ut > track_2.number_of_hits_ut) {
-            killed[n_track_2] = true;
-          }
-          else if (track_1.score <= track_2.score) {
-            killed[n_track_2] = true;
-          }
-          else if (track_1.score > track_2.score) {
-            killed[n_track_1] = true;
-          }
-        }
-      }
-      else {
-        if ((shared_seeds >= 1) && (fabsf(track_1.score - track_2.score) > 0.05f)) {
-          if (track_1.score <= track_2.score) {
-            killed[n_track_2] = true;
-          }
-          else {
-            killed[n_track_1] = true;
-          };
+        else {
+          killed[n_track_1] = true;
         };
-      }
+      };
     };
   };
   __syncthreads();

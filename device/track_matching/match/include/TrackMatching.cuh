@@ -75,27 +75,24 @@ namespace track_matching {
     PROPERTY(ghost_killer_threshold_t, "ghost_killer_threshold", "ghost_killer_threshold", float)
     ghost_killer_threshold;
 
-    PROPERTY(
-      momentum_parameters_magUp_t,
-      "momentum_parameters_magUp",
-      "momentum_parameters_magUp",
-      std::array<float, 8>)
-    momentum_parameters_magUp;
-
-    PROPERTY(
-      momentum_parameters_magDown_t,
-      "momentum_parameters_magDown",
-      "momentum_parameters_magDown",
-      std::array<float, 8>)
-    momentum_parameters_magDown;
+    PROPERTY(momentum_parameters_t, "momentum_parameters", "momentum_parameters", std::array<float, 16>)
+    momentum_parameters;
 
     PROPERTY(z_magnet_parameters_t, "z_magnet_parameters", "z_magnet_parameters", std::array<float, 5>)
     z_magnet_parameters;
 
-    PROPERTY(ut_x_loose_tolerance_parameters_t, "ut_x_loose_tolerance_parameters", "ut_x_loose_tolerance_parameters", std::array<float, 4*3>)
+    PROPERTY(
+      ut_x_loose_tolerance_parameters_t,
+      "ut_x_loose_tolerance_parameters",
+      "ut_x_loose_tolerance_parameters",
+      std::array<float, 4 * 3>)
     ut_x_loose_tolerance_parameters;
 
-    PROPERTY(ut_x_tight_tolerance_parameters_t, "ut_x_tight_tolerance_parameters", "ut_x_tight_tolerance_parameters", std::array<float, 4*3>)
+    PROPERTY(
+      ut_x_tight_tolerance_parameters_t,
+      "ut_x_tight_tolerance_parameters",
+      "ut_x_tight_tolerance_parameters",
+      std::array<float, 4 * 3>)
     ut_x_tight_tolerance_parameters;
 
     PROPERTY(ut_y_tolerance_parameters_t, "ut_y_tolerance_parameters", "ut_y_tolerance_parameters", float)
@@ -108,11 +105,11 @@ namespace track_matching {
 
 #if defined(TARGET_DEVICE_CUDA)
 #if __CUDA_ARCH__ >= 800 // Ampere (A5000)
-// for 56 registers/thread: 1280=36warps, 1472=32warps, 1664=28warps, 1984=24warps
-// With 90% UT efficiency, there are < 5000 hits per event -> ~1250 hits/layer => 1280
-// With 99% UT efficiency, scale it 1280 / 0.9 * 0.99 = 1408 => 1472
+                         // for 56 registers/thread: 1280=36warps, 1472=32warps, 1664=28warps, 1984=24warps
+                         // With 90% UT efficiency, there are < 5000 hits per event -> ~1250 hits/layer => 1280
+                         // With 99% UT efficiency, scale it 1280 / 0.9 * 0.99 = 1408 => 1472
   __device__ static constexpr unsigned int MaxCacheSize = 1280;
-#else // Volta, Turing: for 56 registers/thread: 1024=32warps, 
+#else // Volta, Turing: for 56 registers/thread: 1024=32warps,
   __device__ static constexpr unsigned int MaxCacheSize = 1024;
 #endif
 #else // CPU, HIP
@@ -138,13 +135,9 @@ namespace track_matching {
   __global__ void track_matching_select_best_ut_segment(Parameters);
 
   template<typename GhostKiller_t>
-  __global__ void track_matching_ghost_killing(
-    Parameters,
-    const GhostKiller_t* dev_matching_ghost_killer);
+  __global__ void track_matching_ghost_killing(Parameters, const GhostKiller_t* dev_matching_ghost_killer);
 
-  template<bool has_ut>
   __global__ void track_matching_clone_killing(Parameters);
-
 
   struct track_matching_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -165,23 +158,19 @@ namespace track_matching {
     Property<multiplication_factor_dtx_t> m_multiplication_factor_dtx {this, 2.};
     Property<ghost_killer_threshold_t> m_ghost_killer_threshold {this, 0.5};
 
-    Property<momentum_parameters_magUp_t> m_momentum_parameters_magUp {this, {}};
-    Property<momentum_parameters_magDown_t> m_momentum_parameters_magDown {this, {}};
+    // Configured in python
+    Property<momentum_parameters_t> m_momentum_parameters {this, {}};
 
     Property<z_magnet_parameters_t> m_z_magnet_parameters {this, {5287.6f, -7.98878f, 317.683f, 0.0119379f, -1418.42f}};
 
     // 4 parameters for each layer: offset, slope, min, max
-    Property<ut_x_loose_tolerance_parameters_t> m_ut_x_loose_tolerance_parameters {this, {
-      20.f,0.f,0.f,50.f,
-      20.f,0.f,0.f,50.f,
-      20.f,0.f,0.f,50.f
-    }};
+    Property<ut_x_loose_tolerance_parameters_t> m_ut_x_loose_tolerance_parameters {
+      this,
+      {6.f, 0.f, 0.f, 50.f, 6.f, 0.f, 0.f, 50.f, 7.f, 0.f, 0.f, 50.f}};
     // 4 parameters for each layer: offset, slope, min, max
-    Property<ut_x_tight_tolerance_parameters_t> m_ut_x_tight_tolerance_parameters {this, {
-      6.f,0.f,1.f,20.f,
-      6.f,0.f,1.f,20.f,
-      6.f,0.f,1.f,20.f
-    }};
+    Property<ut_x_tight_tolerance_parameters_t> m_ut_x_tight_tolerance_parameters {
+      this,
+      {1.f, 0.f, 1.f, 20.f, 2.f, 0.f, 1.f, 20.f, 2.f, 0.f, 1.f, 20.f}};
     Property<ut_y_tolerance_parameters_t> m_ut_y_tolerance_parameters {this, 1.f};
 
     Property<min_num_ut_hits_t> m_min_num_ut_hits {this, 2u};
