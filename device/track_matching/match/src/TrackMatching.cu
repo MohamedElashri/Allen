@@ -88,10 +88,13 @@ namespace {
     const float tyV,
     const float txT,
     const float magSign,
-    const track_matching::Parameters::momentum_parameters_t::t& momentum_parameters)
+    const track_matching::Parameters::momentum_parameters_magUp_t::t& momentum_parameters_magUp,
+    const track_matching::Parameters::momentum_parameters_magDown_t::t& momentum_parameters_magDown)
   {
-    if (momentum_parameters[8] > 0) {
-
+    // Pick parametrisation from polarity condition
+    // magSign is -1*dev_magnet_polarity so negative sign is MagUp
+    if (magSign < 0) {
+      const auto momentum_parameters = momentum_parameters_magUp;
       const auto dslope = txT - txV;
       const auto abs_p = momentum_parameters[0] +
                          (momentum_parameters[1] + momentum_parameters[2] * (txT * txT) +
@@ -103,7 +106,9 @@ namespace {
       const auto charge = ((dslope > 0) ? 1.f : -1.f) * magSign;
       return charge / abs_p;
     }
+    // positive sign is magDown
     else {
+      const auto momentum_parameters = momentum_parameters_magDown;
       const float txT2 = txT * txT;
       const float tyV2 = tyV * tyV;
       const float coef =
@@ -287,7 +292,12 @@ __global__ void track_matching::track_matching_veloSciFi(
 
       const auto magSign = -dev_magnet_polarity[0];
       const auto qop = computeQoverP(
-        endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, parameters.momentum_parameters.get());
+        endvelo_state.tx(),
+        endvelo_state.ty(),
+        scifi_state.tx(),
+        magSign,
+        parameters.momentum_parameters_magUp.get(),
+        parameters.momentum_parameters_magDown.get());
 
       matched_track.velo_track_index = velo_track_index;
       matched_track.scifi_track_index = i;
