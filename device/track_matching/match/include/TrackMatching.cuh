@@ -71,8 +71,19 @@ namespace track_matching {
     PROPERTY(ghost_killer_threshold_t, "ghost_killer_threshold", "ghost_killer_threshold", float)
     ghost_killer_threshold;
 
-    PROPERTY(momentum_parameters_t, "momentum_parameters", "momentum_parameters", std::array<float, 9>)
-    momentum_parameters;
+    PROPERTY(
+      momentum_parameters_magUp_t,
+      "momentum_parameters_magUp",
+      "momentum_parameters_magUp",
+      std::array<float, 8>)
+    momentum_parameters_magUp;
+
+    PROPERTY(
+      momentum_parameters_magDown_t,
+      "momentum_parameters_magDown",
+      "momentum_parameters_magDown",
+      std::array<float, 8>)
+    momentum_parameters_magDown;
 
     PROPERTY(z_magnet_parameters_t, "z_magnet_parameters", "z_magnet_parameters", std::array<float, 5>)
     z_magnet_parameters;
@@ -140,16 +151,8 @@ namespace track_matching {
     Property<multiplication_factor_dtx_t> m_multiplication_factor_dtx {this, 2.};
     Property<ghost_killer_threshold_t> m_ghost_killer_threshold {this, 0.5};
 
-    Property<momentum_parameters_t> m_momentum_parameters {this,
-                                                           {0.f,
-                                                            1.239076e+03f,
-                                                            5.650170e+02f,
-                                                            -7.683592e+01f,
-                                                            6.148917e+02f,
-                                                            2.071115e+03f,
-                                                            -6.795680e+03f,
-                                                            4.577582e+02f,
-                                                            1.f}};
+    Property<momentum_parameters_magUp_t> m_momentum_parameters_magUp {this, {}};
+    Property<momentum_parameters_magDown_t> m_momentum_parameters_magDown {this, {}};
 
     Property<z_magnet_parameters_t> m_z_magnet_parameters {this, {5287.6f, -7.98878f, 317.683f, 0.0119379f, -1418.42f}};
 
