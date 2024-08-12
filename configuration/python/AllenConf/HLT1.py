@@ -438,7 +438,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
 
 
 def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
-                          odin_err_filter):
+                          odin_err_filter, velo_closed_filter):
     lines = []
     if with_lumi:
         odin_lumi_event = make_event_type(event_type='Lumi')
@@ -462,7 +462,8 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
         lines += [line_maker(make_odin_calib_line(name="Hlt1ODINCalib"))]
 
     ee_far_from_activity = make_event_type(event_type="ee_far_from_activity")
-    with line_maker.bind(prefilter=odin_err_filter + [ee_far_from_activity]):
+    with line_maker.bind(prefilter=odin_err_filter + velo_closed_filter +
+                         [ee_far_from_activity]):
         lines += [
             line_maker(
                 make_passthrough_line(
@@ -976,8 +977,9 @@ def setup_hlt1_node(enablePhysics=True,
     lumiline_name = "Hlt1ODINLumi"
     lumilinefull_name = "Hlt1ODIN1kHzLumi"
 
-    monitoring_lines = odin_monitoring_lines(
-        with_lumi, lumiline_name, lumilinefull_name, odin_err_filter)
+    monitoring_lines = odin_monitoring_lines(with_lumi, lumiline_name,
+                                             lumilinefull_name,
+                                             odin_err_filter, velo_closed)
 
     with line_maker.bind(prefilter=odin_err_filter):
         physics_lines += [line_maker(make_passthrough_line())]
