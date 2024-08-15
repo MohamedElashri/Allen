@@ -78,7 +78,7 @@ Hlt1DiMuonDrellYan:                                 0/   500, (    0.00 +/-     
 Hlt1DiMuonDrellYan_SS:                              0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DetJpsiToMuMuPosTagLine:                        0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DetJpsiToMuMuNegTagLine:                        0/   500, (    0.00 +/-     0.00) kHz
-Hlt1TrackElectronMVA:                              23/   500, ( 1380.00 +/-   281.05) kHz
+Hlt1TrackElectronMVA:                              24/   500, ( 1440.00 +/-   286.80) kHz
 Hlt1SingleHighPtElectron:                           5/   500, (  300.00 +/-   133.49) kHz
 Hlt1DiElectronDisplaced:                            9/   500, (  540.00 +/-   178.37) kHz
 Hlt1DiPhotonHighMass:                               7/   500, (  420.00 +/-   157.63) kHz
@@ -285,7 +285,7 @@ Hlt1DiMuonDrellYan:                                 0           0
 Hlt1DiMuonDrellYan_SS:                              0           0
 Hlt1DetJpsiToMuMuPosTagLine:                        0           0
 Hlt1DetJpsiToMuMuNegTagLine:                        0           0
-Hlt1TrackElectronMVA:                              23          23
+Hlt1TrackElectronMVA:                              24          24
 Hlt1SingleHighPtElectron:                           5          13
 Hlt1DiElectronDisplaced:                            9          13
 Hlt1DiPhotonHighMass:                               7          13
@@ -353,12 +353,12 @@ Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 
-Total decisions:      557
-Total tracks:         1164
+Total decisions:      558
+Total tracks:         1165
 Total calos clusters: 22
 Total SVs:            1095
-Total hits:           25691
-Total stdinfo:        14337
+Total hits:           25713
+Total stdinfo:        14346
 
 
 velo_validator validation:

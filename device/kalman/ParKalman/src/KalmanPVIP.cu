@@ -71,20 +71,21 @@ __device__ void associate_and_muon_id(
     short best_index = -1;
     bool first = true;
     for (unsigned j = 0; j < vertices.size(); ++j) {
-      float val = fabsf(Distance::kalman_ipchi2(states.state(i), *(vertices.data() + j)));
+      float val = fabsf(kalman_ip(states.state(i), *(vertices.data() + j)));
       best_index = (first || val < best_value) ? j : best_index;
       best_value = (first || val < best_value) ? val : best_value;
       first = false;
     }
     table.pv(i) = best_index;
     table.value(i) = best_value;
-    tracks[i].ipChi2 = best_value;
+    tracks[i].ipChi2 =
+      best_index == -1 ? 0.f : Distance::kalman_ipchi2(states.state(i), *(vertices.data() + best_index));
     tracks[i].is_muon = is_muon[i];
-    tracks[i].ip = best_index == -1 ? 0.f : kalman_ip(states.state(i), *(vertices.data() + best_index));
+    tracks[i].ip = best_value;
   }
 }
 
-__global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters parameters)
+__global__ void kalman_velo_only::kalman_pv_ip(kalman_velo_only::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -93,9 +94,9 @@ __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters 
   const unsigned total_number_of_long_tracks = parameters.dev_long_tracks_view->number_of_contained_objects();
 
   // The total track-PV association table.
-  Associate::Consolidated::Table kalman_pv_ipchi2 {parameters.dev_kalman_pv_ipchi2, total_number_of_long_tracks};
+  Associate::Consolidated::Table kalman_pv_ip {parameters.dev_kalman_pv_ip, total_number_of_long_tracks};
   parameters.dev_kalman_pv_tables[event_number] = Allen::Views::Physics::PVTable {
-    parameters.dev_kalman_pv_ipchi2, event_long_tracks.offset(), total_number_of_long_tracks, event_long_tracks.size()};
+    parameters.dev_kalman_pv_ip, event_long_tracks.offset(), total_number_of_long_tracks, event_long_tracks.size()};
 
   // Kalman-fitted tracks for this event.
   ParKalmanFilter::FittedTrack* event_tracks = parameters.dev_kf_tracks + event_long_tracks.offset();
@@ -106,7 +107,7 @@ __global__ void kalman_velo_only::kalman_pv_ipchi2(kalman_velo_only::Parameters 
 
   // The track <-> PV association table for this event.
   Associate::Consolidated::EventTable pv_table =
-    kalman_pv_ipchi2.event_table(event_long_tracks.offset(), event_long_tracks.size());
+    kalman_pv_ip.event_table(event_long_tracks.offset(), event_long_tracks.size());
 
   // Perform the association for this event.
   associate_and_muon_id(event_tracks, kalman_states_view, event_is_muon, vertices, pv_table);
