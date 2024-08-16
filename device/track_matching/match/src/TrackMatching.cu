@@ -125,45 +125,15 @@ void track_matching::track_matching_t::operator()(
   const auto has_ut = (size<dev_ut_hits_t>(arguments) > 0) &&
                       (first<host_accumulated_number_of_ut_hits_t>(arguments) > 0) && (!property<force_skip_ut_t>());
 
+  const auto use_with_ut_neural_network = has_ut && !property<force_no_ut_nn_t>();
+
   Allen::memset_async<dev_offsets_matched_tracks_t>(arguments, 0, context);
 
-  if (has_ut) {
+  if (use_with_ut_neural_network) {
     // Velo SciFi matching
     global_function(track_matching_veloSciFi<void>)(
       dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
       arguments, constants.dev_magnet_polarity.data(), nullptr);
-
-    // Add UT hits
-    global_function(track_matching_add_ut_hits)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-      arguments,
-      constants.dev_magnet_polarity.data(),
-      constants.dev_unique_x_sector_layer_offsets.data(),
-      constants.dev_unique_sector_xs.data(),
-      constants.dev_ut_per_layer_info);
-
-    // Filter bad ut segments (by requiring min number of ut hits or chi2)
-    global_function(track_matching_filter_bad_ut_segment)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
-
-    // Select only one best ut segement for each VeloSciFi matched result
-    global_function(track_matching_select_best_ut_segment)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
-
-    // Fit UT segment and evaluate ghost probability
-    if (property<matching_with_ut_ghost_killer_version_t>() == 1) {
-      global_function(track_matching_ghost_killing<Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller>)(
-        dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-        arguments, constants.dev_matching_with_ut_ghost_killer);
-    }
-    else if (property<matching_with_ut_ghost_killer_version_t>() == 2) {
-      global_function(track_matching_ghost_killing<Allen::NeuralNetwork::Model::MatchingWithUTV2GhostKiller>)(
-        dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-        arguments, constants.dev_matching_with_ut_v2_ghost_killer);
-    }
-    else {
-      throw std::invalid_argument("matching_no_ut_ghost_killer_version can only be [1, 2].");
-    }
   }
   else {
     // Velo SciFi matching
@@ -181,6 +151,43 @@ void track_matching::track_matching_t::operator()(
       throw std::invalid_argument("matching_no_ut_ghost_killer_version can only be [1, 2].");
     }
   }
+
+  if (has_ut) {
+    // Add UT hits
+    global_function(track_matching_add_ut_hits)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+      arguments,
+      constants.dev_magnet_polarity.data(),
+      constants.dev_unique_x_sector_layer_offsets.data(),
+      constants.dev_unique_sector_xs.data(),
+      constants.dev_ut_per_layer_info);
+
+    // Filter bad ut segments (by requiring min number of ut hits or chi2)
+    global_function(track_matching_filter_bad_ut_segment)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+
+    // Select only one best ut segement for each VeloSciFi matched result
+    global_function(track_matching_select_best_ut_segment)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  }
+
+  if (use_with_ut_neural_network) {
+    // Fit UT segment and evaluate ghost probability
+    if (property<matching_with_ut_ghost_killer_version_t>() == 1) {
+      global_function(track_matching_ghost_killing<Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller>)(
+        dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+        arguments, constants.dev_matching_with_ut_ghost_killer);
+    }
+    else if (property<matching_with_ut_ghost_killer_version_t>() == 2) {
+      global_function(track_matching_ghost_killing<Allen::NeuralNetwork::Model::MatchingWithUTV2GhostKiller>)(
+        dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+        arguments, constants.dev_matching_with_ut_v2_ghost_killer);
+    }
+    else {
+      throw std::invalid_argument("matching_no_ut_ghost_killer_version can only be [1, 2].");
+    }
+  }
+
   // Clone killing
   global_function(track_matching_clone_killing)(
     dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);

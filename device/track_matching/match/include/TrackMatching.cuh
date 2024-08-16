@@ -101,6 +101,7 @@ namespace track_matching {
     PROPERTY(min_num_ut_hits_t, "min_num_ut_hits", "min_num_ut_hits", unsigned) min_num_ut_hits;
 
     PROPERTY(force_skip_ut_t, "force_skip_ut", "force_skip_ut", bool) force_skip_ut;
+    PROPERTY(force_no_ut_nn_t, "force_no_ut_nn", "force_no_ut_nn", bool) force_no_ut_nn;
   };
 
 #if defined(TARGET_DEVICE_CUDA)
@@ -164,18 +165,43 @@ namespace track_matching {
     Property<z_magnet_parameters_t> m_z_magnet_parameters {this, {5287.6f, -7.98878f, 317.683f, 0.0119379f, -1418.42f}};
 
     // 4 parameters for each layer: offset, slope, min, max
-    Property<ut_x_loose_tolerance_parameters_t> m_ut_x_loose_tolerance_parameters {
-      this,
-      {6.f, 0.f, 0.f, 50.f, 6.f, 0.f, 0.f, 50.f, 7.f, 0.f, 0.f, 50.f}};
+    Property<ut_x_loose_tolerance_parameters_t> m_ut_x_loose_tolerance_parameters {this,
+                                                                                   {
+                                                                                     0.8333f,
+                                                                                     3.3333e4,
+                                                                                     1.2f,
+                                                                                     8.5f, /* Layer 0 */
+                                                                                     0.8333f,
+                                                                                     3.3333e4,
+                                                                                     1.2f,
+                                                                                     8.5f, /* Layer 1 */
+                                                                                     1.3333f,
+                                                                                     3.3333e4,
+                                                                                     1.5f,
+                                                                                     9.5f /* Layer 2 */
+                                                                                   }};
     // 4 parameters for each layer: offset, slope, min, max
-    Property<ut_x_tight_tolerance_parameters_t> m_ut_x_tight_tolerance_parameters {
-      this,
-      {1.f, 0.f, 1.f, 20.f, 2.f, 0.f, 1.f, 20.f, 2.f, 0.f, 1.f, 20.f}};
+    Property<ut_x_tight_tolerance_parameters_t> m_ut_x_tight_tolerance_parameters {this,
+                                                                                   {
+                                                                                     0.2f,
+                                                                                     0.6e4f,
+                                                                                     0.5f,
+                                                                                     2.0f, /* Layer 0 */
+                                                                                     0.4f,
+                                                                                     1.2e4f,
+                                                                                     1.0f,
+                                                                                     4.0f, /* Layer 1 */
+                                                                                     0.4f,
+                                                                                     1.2e4f,
+                                                                                     1.0f,
+                                                                                     4.0f /* Layer 2 */
+                                                                                   }};
     Property<ut_y_tolerance_parameters_t> m_ut_y_tolerance_parameters {this, 1.f};
 
     Property<min_num_ut_hits_t> m_min_num_ut_hits {this, 2u};
 
     Property<force_skip_ut_t> m_force_skip_ut {this, false};
+    Property<force_no_ut_nn_t> m_force_no_ut_nn {this, true};
   };
 
 } // namespace track_matching
