@@ -19,6 +19,7 @@
 #include "TrackMatchingConstants.cuh"
 #include "AlgorithmTypes.cuh"
 #include "UTHitCache.cuh"
+#include "AllenMonitoring.h"
 
 namespace track_matching {
   struct Parameters {
@@ -122,14 +123,16 @@ namespace track_matching {
   __global__ void track_matching_veloSciFi(
     Parameters,
     const float* dev_magnet_polarity,
-    const GhostKiller_t* dev_matching_ghost_killer);
+    const GhostKiller_t* dev_matching_ghost_killer,
+    Allen::Monitoring::Counter<>::DeviceType);
 
   __global__ void track_matching_add_ut_hits(
     Parameters,
     const float* dev_magnet_polarity,
     const unsigned* dev_unique_x_sector_layer_offsets,
     const float* dev_unique_sector_xs,
-    const UT::Constants::PerLayerInfo* dev_mean_layer_info);
+    const UT::Constants::PerLayerInfo* dev_mean_layer_info,
+    Allen::Monitoring::Counter<>::DeviceType);
 
   __global__ void track_matching_filter_bad_ut_segment(Parameters);
 
@@ -150,6 +153,7 @@ namespace track_matching {
       const Allen::Context& context) const;
 
   private:
+    Allen::Monitoring::Counter<> m_n_overflow_track_matching {this, "n_overflow_track_matching"};
     Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
     Property<matching_no_ut_ghost_killer_version_t> m_matching_no_ut_ghost_killer_version {this, 2};
     Property<matching_with_ut_ghost_killer_version_t> m_matching_with_ut_ghost_killer_version {this, 2};

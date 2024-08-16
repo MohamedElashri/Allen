@@ -133,19 +133,25 @@ void track_matching::track_matching_t::operator()(
     // Velo SciFi matching
     global_function(track_matching_veloSciFi<void>)(
       dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-      arguments, constants.dev_magnet_polarity.data(), nullptr);
+      arguments, constants.dev_magnet_polarity.data(), nullptr, m_n_overflow_track_matching.data(context));
   }
   else {
     // Velo SciFi matching
     if (property<matching_no_ut_ghost_killer_version_t>() == 1) {
       global_function(track_matching_veloSciFi<Allen::NeuralNetwork::Model::MatchingGhostKiller>)(
         dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-        arguments, constants.dev_magnet_polarity.data(), constants.dev_matching_ghost_killer);
+        arguments,
+        constants.dev_magnet_polarity.data(),
+        constants.dev_matching_ghost_killer,
+        m_n_overflow_track_matching.data(context));
     }
     else if (property<matching_no_ut_ghost_killer_version_t>() == 2) {
       global_function(track_matching_veloSciFi<Allen::NeuralNetwork::Model::MatchingNoUTV2GhostKiller>)(
         dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-        arguments, constants.dev_magnet_polarity.data(), constants.dev_matching_no_ut_v2_ghost_killer);
+        arguments,
+        constants.dev_magnet_polarity.data(),
+        constants.dev_matching_no_ut_v2_ghost_killer,
+        m_n_overflow_track_matching.data(context));
     }
     else {
       throw std::invalid_argument("matching_no_ut_ghost_killer_version can only be [1, 2].");
@@ -160,7 +166,8 @@ void track_matching::track_matching_t::operator()(
       constants.dev_magnet_polarity.data(),
       constants.dev_unique_x_sector_layer_offsets.data(),
       constants.dev_unique_sector_xs.data(),
-      constants.dev_ut_per_layer_info);
+      constants.dev_ut_per_layer_info,
+      m_n_overflow_track_matching.data(context));
 
     // Filter bad ut segments (by requiring min number of ut hits or chi2)
     global_function(track_matching_filter_bad_ut_segment)(
@@ -200,7 +207,8 @@ template<typename GhostKiller_t>
 __global__ void track_matching::track_matching_veloSciFi(
   track_matching::Parameters parameters,
   const float* dev_magnet_polarity,
-  const GhostKiller_t* dev_matching_ghost_killer)
+  const GhostKiller_t* dev_matching_ghost_killer,
+  [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_track_matching)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -301,6 +309,7 @@ __global__ void track_matching::track_matching_veloSciFi(
     // reconstructed tracks to avoid non-deterministic behavior.
     // TODO: Add counter here?
     n_matched = 0;
+    dev_n_overflow_track_matching.increment();
   }
 }
 
@@ -309,7 +318,8 @@ __global__ void track_matching::track_matching_add_ut_hits(
   const float* dev_magnet_polarity,
   const unsigned* dev_unique_x_sector_layer_offsets,
   const float* dev_unique_sector_xs,
-  const UT::Constants::PerLayerInfo* dev_mean_layer_info)
+  const UT::Constants::PerLayerInfo* dev_mean_layer_info,
+  [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_track_matching)
 {
   // Basic
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -484,6 +494,7 @@ __global__ void track_matching::track_matching_add_ut_hits(
     if (threadIdx.x == 0) {
       if (n_matched_tracks_event > TrackMatchingConsts::max_num_tracks) {
         n_matched_tracks_event = 0;
+        dev_n_overflow_track_matching.increment();
       }
     }
     __syncthreads();
