@@ -11,13 +11,59 @@
 from AllenCore.algorithms import (
     SMOG2_minimum_bias_line_t, SMOG2_dimuon_highmass_line_t,
     SMOG2_ditrack_line_t, SMOG2_singletrack_line_t, SMOG2_single_muon_line_t,
-    SMOG2_kstopipi_line_t)
+    SMOG2_kstopipi_line_t, SMOG2_displaced_di_muon_line_t)
 
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
 from AllenConf.odin import decode_odin
 from PyConf.tonic import configurable
 from AllenCore.configuration_options import is_allen_standalone
+
+
+@configurable
+def make_SMOG2_dimuon_displaced_line(secondary_vertices,
+                                     long_tracks,
+                                     muonid,
+                                     pre_scaler_hash_string=None,
+                                     post_scaler_hash_string=None,
+                                     name="Hlt1SMOG2_DisplacedDiMuon",
+                                     mintrackpt=500,
+                                     maxvtxchi2=25,
+                                     mincombopt=1.,
+                                     min_PVz=-541,
+                                     max_PVz=-341,
+                                     minFDCHI2=15.,
+                                     min_SVz=-541.,
+                                     maxIP=1.,
+                                     maxChi2Corr=2.0,
+                                     pre_scaler=1.,
+                                     post_scaler=1.,
+                                     enable_monitoring=True):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        SMOG2_displaced_di_muon_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
+        dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
+        dev_chi2muon_t=muonid["dev_chi2corr"],
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        minDispTrackPt=mintrackpt,
+        maxVertexChi2=maxvtxchi2,
+        minComboPt=mincombopt,
+        minZ=min_SVz,
+        minFDCHI2=minFDCHI2,
+        maxIP=maxIP,
+        maxChi2CorrMuon=maxChi2Corr,
+        minPVZ=min_PVz,
+        maxPVZ=max_PVz,
+        enable_monitoring=is_allen_standalone() and enable_monitoring)
 
 
 @configurable

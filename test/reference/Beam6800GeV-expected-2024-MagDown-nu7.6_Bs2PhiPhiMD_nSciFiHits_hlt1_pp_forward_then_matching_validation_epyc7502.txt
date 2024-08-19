@@ -172,6 +172,7 @@ Hlt1SMOG2SingleTrackVeryHighPt:                     0/   500, (    0.00 +/-     
 Hlt1SMOG2SingleTrackHighPt:                         0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2DiMuonHighMass:                            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2SingleMuon:                                0/   500, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2DisplacedDiMuon:                           0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2L0Toppi:                                   0/   500, (    0.00 +/-     0.00) kHz
 Inclusive:                                        318/   500, (19080.00 +/-   645.53) kHz
 
@@ -379,6 +380,7 @@ Hlt1SMOG2SingleTrackVeryHighPt:                     0           0
 Hlt1SMOG2SingleTrackHighPt:                         0           0
 Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2SingleMuon:                                0           0
+Hlt1SMOG2DisplacedDiMuon:                           0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 
 Total decisions:      567
