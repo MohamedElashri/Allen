@@ -670,7 +670,14 @@ def default_SMOG2_lines(reconstructed_objects,
                 maxChi2Corr=1.8,
                 MinPt=700,
                 name="Hlt1SMOG2SingleMuon",
-                pre_scaler=0.2)
+                pre_scaler=0.2),
+            make_SMOG2_dimuon_displaced_line(
+                dileptons,
+                long_tracks,
+                muonid,
+                maxChi2Corr=1.3,
+                minFDCHI2=100.,
+                name="Hlt1SMOG2DisplacedDiMuon")
         ]
 
     if with_v0s:
