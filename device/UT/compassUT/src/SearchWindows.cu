@@ -15,6 +15,17 @@
 
 INSTANTIATE_ALGORITHM(ut_search_windows::ut_search_windows_t)
 
+namespace {
+  __device__ inline float get_min_x(const float y, const float min_dxdy, const float max_dxdy)
+  {
+    return fminf(min_dxdy * y, max_dxdy * y);
+  }
+  __device__ inline float get_max_x(const float y, const float min_dxdy, const float max_dxdy)
+  {
+    return fmaxf(min_dxdy * y, max_dxdy * y);
+  }
+} // namespace
+
 void ut_search_windows::ut_search_windows_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -37,7 +48,7 @@ void ut_search_windows::ut_search_windows_t::operator()(
     dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::n_layers, property<block_dim_y_t>()), context)(
     arguments,
     constants.dev_ut_magnet_tool,
-    constants.dev_ut_dxDy.data(),
+    constants.dev_ut_per_layer_info,
     constants.dev_unique_x_sector_layer_offsets.data(),
     constants.dev_unique_sector_xs.data());
 }
@@ -45,7 +56,7 @@ void ut_search_windows::ut_search_windows_t::operator()(
 __global__ void ut_search_windows::ut_search_windows(
   ut_search_windows::Parameters parameters,
   UTMagnetTool* dev_ut_magnet_tool,
-  const float* dev_ut_dxDy,
+  const UT::Constants::PerLayerInfo* dev_mean_layer_info,
   const unsigned* dev_unique_x_sector_layer_offsets, // prefixsum to point to the x hit of the sector, per layer
   const float* dev_unique_sector_xs)                 // list of xs that define the groups
 {
@@ -81,7 +92,7 @@ __global__ void ut_search_windows::ut_search_windows(
         fudge_factors,
         ut_hits,
         ut_hit_offsets,
-        dev_ut_dxDy,
+        dev_mean_layer_info,
         dev_unique_sector_xs,
         dev_unique_x_sector_layer_offsets,
         parameters.y_tol,
@@ -120,7 +131,6 @@ __device__ void tol_refine(
   const MiniState& velo_state,
   const float invNormfact,
   const float xTolNormFact,
-  const float dxDy,
   const float y_tol,
   const float y_tol_slope)
 {
@@ -133,7 +143,7 @@ __device__ void tol_refine(
     const auto zInit = ut_hits.zAtYEq0(i);
     const auto yApprox = velo_state.y() + velo_state.ty() * (zInit - velo_state.z());
     const auto xOnTrackProto = velo_state.x() + velo_state.tx() * (zInit - velo_state.z());
-    const auto xx = ut_hits.xAt(i, yApprox, dxDy);
+    const auto xx = ut_hits.xAt(i, yApprox);
     const auto dx = xx - xOnTrackProto;
 
     if (
@@ -166,7 +176,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const float* fudge_factors,
   UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
-  const float* ut_dxDy,
+  const UT::Constants::PerLayerInfo* dev_mean_layer_info,
   const float* dev_unique_sector_xs,
   const unsigned* dev_unique_x_sector_layer_offsets,
   const float y_tol,
@@ -192,7 +202,6 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const float xTol = fabsf(1.0f / (UT::Constants::distToMomentum * minMom));
   const int layer_offset = ut_hit_offsets.layer_offset(layer);
 
-  const float dx_dy = ut_dxDy[layer];
   const float z_at_layer = ut_hits.zAtYEq0(layer_offset);
   const float y_track = velo_state.y() + velo_state.ty() * (z_at_layer - velo_state.z());
   const float x_track = velo_state.x() + velo_state.tx() * (z_at_layer - velo_state.z());
@@ -219,13 +228,14 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   // central sector group
   if ((sector_group + 1) < last_sector_group_in_layer && sector_group > first_sector_group_in_layer) {
     const auto sector_candidates = find_candidates_in_sector_group(
+      layer,
       ut_hits,
       ut_hit_offsets,
       velo_state,
       dev_unique_sector_xs,
       x_track,
       y_track,
-      dx_dy,
+      dev_mean_layer_info,
       invNormFact,
       xTolNormFact,
       sector_group,
@@ -241,13 +251,14 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   if ((left_group + 1) < last_sector_group_in_layer && left_group > first_sector_group_in_layer) {
     // Valid sector group to find compatible hits
     const auto left_group_candidates = find_candidates_in_sector_group(
+      layer,
       ut_hits,
       ut_hit_offsets,
       velo_state,
       dev_unique_sector_xs,
       x_track,
       y_track,
-      dx_dy,
+      dev_mean_layer_info,
       invNormFact,
       xTolNormFact,
       left_group,
@@ -263,13 +274,14 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   if ((left2_group + 1) < last_sector_group_in_layer && left2_group > first_sector_group_in_layer) {
     // Valid sector group to find compatible hits
     const auto left2_group_candidates = find_candidates_in_sector_group(
+      layer,
       ut_hits,
       ut_hit_offsets,
       velo_state,
       dev_unique_sector_xs,
       x_track,
       y_track,
-      dx_dy,
+      dev_mean_layer_info,
       invNormFact,
       xTolNormFact,
       left2_group,
@@ -285,13 +297,14 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   if ((right_group + 1) < last_sector_group_in_layer && right_group > first_sector_group_in_layer) {
     // Valid sector group to find compatible hits
     const auto right_group_candidates = find_candidates_in_sector_group(
+      layer,
       ut_hits,
       ut_hit_offsets,
       velo_state,
       dev_unique_sector_xs,
       x_track,
       y_track,
-      dx_dy,
+      dev_mean_layer_info,
       invNormFact,
       xTolNormFact,
       right_group,
@@ -307,13 +320,14 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   if ((right2_group + 1) < last_sector_group_in_layer && right2_group > first_sector_group_in_layer) {
     // Valid sector group to find compatible hits
     const auto right2_group_candidates = find_candidates_in_sector_group(
+      layer,
       ut_hits,
       ut_hit_offsets,
       velo_state,
       dev_unique_sector_xs,
       x_track,
       y_track,
-      dx_dy,
+      dev_mean_layer_info,
       invNormFact,
       xTolNormFact,
       right2_group,
@@ -337,13 +351,14 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
 }
 
 __device__ std::tuple<int, int> find_candidates_in_sector_group(
+  const int layer,
   UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
   const float* dev_unique_sector_xs,
   const float x_track,
   const float y_track,
-  const float dx_dy,
+  const UT::Constants::PerLayerInfo* dev_mean_layer_info,
   const float invNormFact,
   const float xTolNormFact,
   const int sector_group,
@@ -352,8 +367,10 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
 {
   const float x_at_left_sector = dev_unique_sector_xs[sector_group];
   const float x_at_right_sector = dev_unique_sector_xs[sector_group + 1];
-  const float xx_at_left_sector = x_at_left_sector + y_track * dx_dy;
-  const float xx_at_right_sector = x_at_right_sector + y_track * dx_dy;
+  const float xx_at_left_sector =
+    x_at_left_sector + get_min_x(y_track, dev_mean_layer_info->min_dxDy[layer], dev_mean_layer_info->max_dxDy[layer]);
+  const float xx_at_right_sector =
+    x_at_right_sector + get_max_x(y_track, dev_mean_layer_info->min_dxDy[layer], dev_mean_layer_info->max_dxDy[layer]);
   const float dx_max = max(xx_at_left_sector - x_track, xx_at_right_sector - x_track);
 
   const float tol = y_tol + y_tol_slope * fabsf(dx_max * invNormFact);
@@ -379,15 +396,7 @@ __device__ std::tuple<int, int> find_candidates_in_sector_group(
     if (number_of_candidates > 0) {
       // Refine the found candidate to fulfill some specific criteria
       tol_refine(
-        first_candidate,
-        number_of_candidates,
-        ut_hits,
-        velo_state,
-        invNormFact,
-        xTolNormFact,
-        dx_dy,
-        y_tol,
-        y_tol_slope);
+        first_candidate, number_of_candidates, ut_hits, velo_state, invNormFact, xTolNormFact, y_tol, y_tol_slope);
     }
   }
 

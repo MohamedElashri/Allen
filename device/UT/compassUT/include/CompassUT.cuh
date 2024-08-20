@@ -52,7 +52,6 @@ namespace compass_ut {
     Parameters,
     UTMagnetTool* dev_ut_magnet_tool,
     const float* dev_magnet_polarity,
-    const float* dev_ut_dxDy,
     const unsigned* dev_unique_x_sector_layer_offsets);
 
   struct compass_ut_t : public DeviceAlgorithm, Parameters {

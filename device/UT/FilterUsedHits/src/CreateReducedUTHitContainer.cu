@@ -39,6 +39,7 @@ __global__ void create_ut_hit_container(
       hits_output.yEnd(index_output) = hits_input.yEnd(index_input);
       hits_output.zAtYEq0(index_output) = hits_input.zAtYEq0(index_input);
       hits_output.xAtYEq0(index_output) = hits_input.xAtYEq0(index_input);
+      hits_output.dxDy(index_output) = hits_input.dxDy(index_input);
       hits_output.weight(index_output) = hits_input.weight(index_input);
       hits_output.id(index_output) = hits_input.id(index_input);
     }

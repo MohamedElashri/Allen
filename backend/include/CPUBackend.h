@@ -136,6 +136,12 @@ struct float2 {
   float x;
   float y;
 };
+struct float4 {
+  float x;
+  float y;
+  float z;
+  float w;
+};
 
 struct dim3 {
   unsigned int x = 1;
@@ -358,6 +364,9 @@ using half_t = float;
 
 half_t __float2half(const float f);
 float __half2float(const half_t h);
+
+float2 __half22float2(const float2 a);
+float2 __float22half2_rn(const float2 a);
 
 #endif
 

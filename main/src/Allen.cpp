@@ -242,7 +242,8 @@ int allen(
 
   std::unique_ptr<SingleLayerFCNNReader> downstream_composite_quality_reader, downstream_lambda_selector_reader,
     downstream_kshort_selector_reader, downstream_detached_lambda_selector_reader,
-    downstream_detached_kshort_selector_reader, downstream_ghostkiller_reader, ttrack_selector_reader;
+    downstream_detached_kshort_selector_reader, downstream_ghostkiller_reader, ttrack_selector_reader,
+    matching_with_ut_v2_ghostkiller_reader;
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
@@ -321,6 +322,8 @@ int allen(
     folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT.json");
   matching_no_ut_v2_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
     folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingNoUT_V2.json");
+  matching_with_ut_v2_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT_V2.json");
 
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
@@ -462,6 +465,13 @@ int allen(
     matching_with_ut_ghostkiller_reader->bias1(),
     matching_with_ut_ghostkiller_reader->weights2(),
     matching_with_ut_ghostkiller_reader->bias2());
+  constants.initialize_matching_with_ut_v2_ghostkiller_constants(
+    matching_with_ut_v2_ghostkiller_reader->mean(),
+    matching_with_ut_v2_ghostkiller_reader->std(),
+    matching_with_ut_v2_ghostkiller_reader->weights1(),
+    matching_with_ut_v2_ghostkiller_reader->bias1(),
+    matching_with_ut_v2_ghostkiller_reader->weights2(),
+    matching_with_ut_v2_ghostkiller_reader->bias2());
 
   // Register all consumers
   register_consumers(updater, constants, config_reader.configured_bank_types());

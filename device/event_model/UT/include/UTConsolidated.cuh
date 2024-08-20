@@ -42,7 +42,7 @@ namespace Allen {
           __host__ __device__ uint8_t plane_code() const
           {
             auto plane_code_base_pointer =
-              reinterpret_cast<const uint8_t*>(m_base_pointer + 6 * m_total_number_of_hits);
+              reinterpret_cast<const uint8_t*>(m_base_pointer + 7 * m_total_number_of_hits);
             return plane_code_base_pointer[m_index];
           }
 
@@ -54,16 +54,18 @@ namespace Allen {
 
           __host__ __device__ float xAtYEq0() const { return m_base_pointer[3 * m_total_number_of_hits + m_index]; }
 
-          __host__ __device__ float weight() const { return m_base_pointer[4 * m_total_number_of_hits + m_index]; }
+          __host__ __device__ float dxDy() const { return m_base_pointer[4 * m_total_number_of_hits + m_index]; }
+
+          __host__ __device__ float weight() const { return m_base_pointer[5 * m_total_number_of_hits + m_index]; }
 
           __host__ __device__ uint32_t id() const
           {
-            return reinterpret_cast<const uint32_t*>(m_base_pointer)[5 * m_total_number_of_hits + m_index];
+            return reinterpret_cast<const uint32_t*>(m_base_pointer)[6 * m_total_number_of_hits + m_index];
           }
 
           __host__ __device__ operator ::UT::Hit() const
           {
-            return ::UT::Hit {yBegin(), yEnd(), zAtYEq0(), xAtYEq0(), weight(), id(), plane_code()};
+            return ::UT::Hit {yBegin(), yEnd(), zAtYEq0(), xAtYEq0(), dxDy(), weight(), id(), plane_code()};
           }
         };
 
@@ -249,7 +251,7 @@ namespace UT {
     template<typename T>
     struct Hits_t : public UT::Hits_t<T> {
       using plane_code_t = uint8_t;
-      constexpr static unsigned element_size = 5 * sizeof(float) + sizeof(unsigned) + sizeof(plane_code_t);
+      constexpr static unsigned element_size = 6 * sizeof(float) + sizeof(unsigned) + sizeof(plane_code_t);
 
       using UT::Hits_t<T>::m_base_pointer;
       using UT::Hits_t<T>::m_total_number_of_hits;
@@ -264,7 +266,7 @@ namespace UT {
       {
         assert(m_offset + index < m_total_number_of_hits);
         auto plane_code_base_pointer =
-          reinterpret_cast<Allen::forward_type_t<T, plane_code_t>*>(m_base_pointer + 6 * m_total_number_of_hits);
+          reinterpret_cast<Allen::forward_type_t<T, plane_code_t>*>(m_base_pointer + 7 * m_total_number_of_hits);
         return plane_code_base_pointer[m_offset + index];
       }
 
@@ -272,7 +274,7 @@ namespace UT {
       {
         assert(m_offset + index < m_total_number_of_hits);
         auto plane_code_base_pointer =
-          reinterpret_cast<Allen::forward_type_t<T, plane_code_t>*>(m_base_pointer + 6 * m_total_number_of_hits);
+          reinterpret_cast<Allen::forward_type_t<T, plane_code_t>*>(m_base_pointer + 7 * m_total_number_of_hits);
         return plane_code_base_pointer[m_offset + index];
       }
 
@@ -282,6 +284,7 @@ namespace UT {
         this->yEnd(hit_number) = hit.yEnd;
         this->zAtYEq0(hit_number) = hit.zAtYEq0;
         this->xAtYEq0(hit_number) = hit.xAtYEq0;
+        this->dxDy(hit_number) = hit.dxDy;
         this->weight(hit_number) = hit.weight;
         this->id(hit_number) = hit.LHCbID;
         plane_code(hit_number) = hit.plane_code;
@@ -293,6 +296,7 @@ namespace UT {
                         this->yEnd(hit_number),
                         this->zAtYEq0(hit_number),
                         this->xAtYEq0(hit_number),
+                        this->dxDy(hit_number),
                         this->weight(hit_number),
                         this->id(hit_number),
                         plane_code(hit_number)};

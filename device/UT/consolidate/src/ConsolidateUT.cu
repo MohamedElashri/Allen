@@ -180,6 +180,10 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
     });
 
     populate(track, [&consolidated_hits, &ut_hits, &event_offset](const unsigned hit_number, const unsigned j) {
+      consolidated_hits.dxDy(hit_number) = ut_hits.dxDy(j + event_offset);
+    });
+
+    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const unsigned hit_number, const unsigned j) {
       consolidated_hits.id(hit_number) = ut_hits.id(j + event_offset);
     });
 
