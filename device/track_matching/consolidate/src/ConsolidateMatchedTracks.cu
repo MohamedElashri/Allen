@@ -260,6 +260,7 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
         matched_ut_track_hits.dxDy(hit_offset + hit_idx) = ut_hits.dxDy(ut_hit_idx);
         matched_ut_track_hits.weight(hit_offset + hit_idx) = ut_hits.weight(ut_hit_idx);
         matched_ut_track_hits.id(hit_offset + hit_idx) = ut_hits.id(ut_hit_idx);
+        matched_ut_track_hits.original_index(hit_offset + hit_idx) = ut_hit_idx + event_hit_offset;
         matched_ut_track_hits.plane_code(hit_offset + hit_idx) = layer;
         parameters.dev_used_ut_hits_offsets[event_hit_offset + ut_hit_idx] = 1;
         hit_idx++;
