@@ -118,7 +118,7 @@ namespace scifi_consolidate_tracks {
       Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_qop);
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
 
     Allen::Monitoring::AveragingCounter<> m_counter_long_tracks_forward {this, "n_long_tracks_forward"};
 

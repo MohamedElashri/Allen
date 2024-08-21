@@ -155,7 +155,7 @@ __global__ void ut_consolidate_tracks::ut_consolidate_tracks(
     UT::Consolidated::Hits consolidated_hits = ut_tracks.get_hits(parameters.dev_ut_track_hits, i);
 
     // Store original UT hit index so that we can mask it after looking forward
-    populate(track, [&consolidated_hits, &ut_hits, &event_offset](const unsigned hit_number, const unsigned j) {
+    populate(track, [&consolidated_hits, &event_offset](const unsigned hit_number, const unsigned j) {
       consolidated_hits.original_index(hit_number) = j + event_offset;
     });
 
