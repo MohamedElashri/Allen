@@ -130,7 +130,10 @@ def decode_ut(
 
 
 @configurable
-def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
+def make_ut_tracks(decoded_ut,
+                   velo_tracks,
+                   dev_accepted_velo_tracks=None,
+                   restricted=True):
     number_of_events = initialize_number_of_events()
     velo_states = run_velo_kalman_filter(velo_tracks)
 
@@ -139,7 +142,8 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
     dev_offsets_all_velo_tracks_t = velo_tracks["dev_offsets_all_velo_tracks"]
     dev_offsets_velo_track_hit_number_t = velo_tracks[
         "dev_offsets_velo_track_hit_number"]
-    dev_accepted_velo_tracks_t = velo_tracks["dev_accepted_velo_tracks"]
+    if not dev_accepted_velo_tracks:
+        dev_accepted_velo_tracks = velo_tracks["dev_accepted_velo_tracks"]
 
     ut_select_velo_tracks = make_algorithm(
         ut_select_velo_tracks_t,
@@ -150,7 +154,7 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_velo_states_view_t=velo_states[
             "dev_velo_kalman_beamline_states_view"],
-        dev_accepted_velo_tracks_t=dev_accepted_velo_tracks_t)
+        dev_accepted_velo_tracks_t=dev_accepted_velo_tracks)
 
     # TODO: Tune min LD parameter
     ut_search_windows_min_momentum = 1250.0
@@ -196,7 +200,7 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         host_number_of_reconstructed_velo_tracks_t=
         host_number_of_reconstructed_velo_tracks_t,
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
-        dev_accepted_velo_tracks_t=dev_accepted_velo_tracks_t,
+        dev_accepted_velo_tracks_t=dev_accepted_velo_tracks,
         dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
         dev_ut_number_of_selected_velo_tracks_t,
         dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
@@ -270,8 +274,6 @@ def make_ut_tracks(decoded_ut, velo_tracks, restricted=True):
         ut_copy_track_hit_number.dev_offsets_ut_track_hit_number_t,
         "dev_ut_track_hits":
         ut_consolidate_tracks.dev_ut_track_hits_t,
-        "dev_used_ut_hits_offsets":
-        ut_consolidate_tracks.dev_used_ut_hits_offsets_t,
         "dev_ut_qop":
         ut_consolidate_tracks.dev_ut_qop_t,
         "dev_ut_track_velo_indices":
@@ -311,5 +313,5 @@ def make_dummy_ut_hits():
         "dev_ut_hits": dummy.dev_char_dummy_t,
         "dev_ut_hit_offsets": dummy.dev_unsigned_dummy_t,
         "host_ut_hit_offsets": dummy.host_unsigned_dummy_t,
-        "host_accumulated_number_of_ut_hits": dummy.host_unsigned_dummy_t
+        "host_accumulated_number_of_ut_hits": dummy.host_sum_dummy_t,
     }

@@ -246,6 +246,7 @@ def muon_id(algorithm_name=''):
     long_tracks = make_forward_tracks(
         decoded_scifi,
         ut_tracks,
+        decoded_ut,
         velo_tracks["dev_accepted_velo_tracks"],
         scifi_consolidate_tracks_name=algorithm_name +
         'scifi_consolidate_tracks_muon_id')
