@@ -27,7 +27,7 @@ void PVChecker::accumulate(
   std::lock_guard<std::mutex> guard(m_mutex);
   passed += event_list.size();
 
-  std::vector<RecPVInfo> vec_all_rec;
+  std::vector<AllenRecPVInfo> vec_all_rec;
 
   // vectors to collect the pulls and erros
   std::vector<double> vec_rec_x;
@@ -69,14 +69,14 @@ void PVChecker::accumulate(
     // Fill reconstucted PV info
     const auto starting_index = event_number * PatPV::max_number_vertices;
     const auto number_of_vertices = number_of_vertex[event_number];
-    std::vector<RecPVInfo> recpvvec;
+    std::vector<AllenRecPVInfo> recpvvec;
     recpvvec.reserve(number_of_vertices);
 
     for (unsigned i = 0; i < number_of_vertices; ++i) {
       const auto index = starting_index + i;
       const auto& pv = rec_vertex[index];
 
-      RecPVInfo recinfo;
+      AllenRecPVInfo recinfo;
       recinfo.pRECPV = rec_vertex.data() + index;
       recinfo.x = static_cast<double>(pv.position.x);
       recinfo.y = static_cast<double>(pv.position.y);
@@ -340,7 +340,7 @@ REC and MC vertices matched %s\n\n",
   m_histos->write();
 }
 
-void match_mc_vertex_by_distance(int ipv, std::vector<RecPVInfo>& rinfo, std::vector<MCPVInfo>& mcpvvec)
+void match_mc_vertex_by_distance(int ipv, std::vector<AllenRecPVInfo>& rinfo, std::vector<MCPVInfo>& mcpvvec)
 {
 
   double mindist = 999999.;

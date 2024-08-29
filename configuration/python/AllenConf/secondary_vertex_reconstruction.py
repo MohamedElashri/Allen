@@ -64,7 +64,7 @@ def make_kalman_velo_only(long_tracks,
         "pvs": pvs,
         "dev_velo_pv_ip": velo_pv_ip.dev_velo_pv_ip_t,
         "dev_kf_tracks": kalman_velo_only.dev_kf_tracks_t,
-        "dev_kalman_pv_ipchi2": kalman_velo_only.dev_kalman_pv_ipchi2_t,
+        "dev_kalman_pv_ip": kalman_velo_only.dev_kalman_pv_ip_t,
         "dev_kalman_pv_tables": kalman_velo_only.dev_kalman_pv_tables_t,
         "dev_kalman_fit_results": kalman_velo_only.dev_kalman_fit_results_t,
         "dev_kalman_states_view": kalman_velo_only.dev_kalman_states_view_t

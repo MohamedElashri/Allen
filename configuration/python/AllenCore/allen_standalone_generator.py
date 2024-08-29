@@ -17,6 +17,7 @@ from PyConf.components import Algorithm
 from PyConf.filecontent_metadata import flush_key_registry
 from PyConf.tonic import configurable
 from json import dump
+import random
 
 
 def make_algorithm(alg_type, name, **kwargs):
@@ -48,6 +49,11 @@ def make_algorithm(alg_type, name, **kwargs):
         weight = 10.0
     else:
         weight = 100.0
+
+    # Add a small random number seeded with the name of the algorithm
+    # to make things more deterministic
+    random.seed(name)
+    weight += random.random()
 
     return Algorithm(
         alg_type, name=name, weight=weight, average_eff=eff, **kwargs)

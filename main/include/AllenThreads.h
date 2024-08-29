@@ -51,4 +51,4 @@ void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* mon
 
 struct MonitoringPrinter;
 
-void run_aggregation(const size_t thread_id, IZeroMQSvc* zmqSvc, MonitoringPrinter* printer);
+void run_aggregation(const size_t thread_id, const int device_id, IZeroMQSvc* zmqSvc, MonitoringPrinter* printer);

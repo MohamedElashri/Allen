@@ -105,7 +105,7 @@ __global__ void tracks_ACsplit::tracks_ACsplit(tracks_ACsplit::Parameters parame
         selection = tracks_ACsplit_counters::velo_track_in_A_side(velo_cluster_container, tracks[i]);
       }
       else {
-        selection = tracks_ACsplit_counters::random_selection(tracks[i]);
+        selection = tracks_ACsplit_counters::random_selection(velo_cluster_container, tracks[i]);
       }
 
       if (selection == 1) {
@@ -128,8 +128,8 @@ __global__ void tracks_ACsplit::tracks_ACsplit(tracks_ACsplit::Parameters parame
           velo_cluster_container, tracks_3_hit[i - event_number_of_tracks_in_main_track_container]);
       }
       else {
-        selection =
-          tracks_ACsplit_counters::random_selection(tracks_3_hit[i - event_number_of_tracks_in_main_track_container]);
+        selection = tracks_ACsplit_counters::random_selection(
+          velo_cluster_container, tracks_3_hit[i - event_number_of_tracks_in_main_track_container]);
       }
 
       if (selection == 1) {

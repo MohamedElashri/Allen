@@ -206,12 +206,12 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 enable_tupling=enable_tupling,
                 alpha=thresholds.TrackMuonMVA_alpha),
             make_di_muon_no_ip_line(
-                long_tracks, dileptons, muonid, maxChi2Corr=1.3),
+                long_tracks, dileptons, muonid, minNN=0.83),
             make_di_muon_no_ip_line(
                 long_tracks,
                 dileptons,
                 muonid,
-                maxChi2Corr=1.3,
+                minNN=0.83,
                 name="Hlt1DiMuonNoIP_SS",
                 pre_scaler_hash_string="di_muon_no_ip_ss_line_pre",
                 post_scaler_hash_string="di_muon_no_ip_ss_line_post",
@@ -293,6 +293,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
         ecal_clusters = reconstructed_objects["ecal_clusters"]
         calo_matching_objects = reconstructed_objects["calo_matching_objects"]
         electronid_nn = reconstructed_objects["electronid_nn"]
+        jets = reconstructed_objects["jets"]
+
         lines += [
             make_track_electron_mva_line(
                 long_tracks,
@@ -350,6 +352,34 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 dileptons,
                 calo_matching_objects,
                 name="Hlt1DiElectronSoft")            
+            make_cone_jet_line(
+                jets,
+                name="Hlt1ConeJet15GeV",
+                min_pt=15000.,
+                pre_scaler=0.001,
+                pre_scaler_hash_string='cone_jet_15gev_line_pre',
+                post_scaler_hash_string='cone_jet_15gev_line_post'),
+            make_cone_jet_line(
+                jets,
+                name="Hlt1ConeJet30GeV",
+                min_pt=30000.,
+                pre_scaler=0.05,
+                pre_scaler_hash_string='cone_jet_30gev_line_pre',
+                post_scaler_hash_string='cone_jet_30gev_line_post'),
+            make_cone_jet_line(
+                jets,
+                name="Hlt1ConeJet50GeV",
+                min_pt=50000.,
+                pre_scaler=0.1,
+                pre_scaler_hash_string='cone_jet_50gev_line_pre',
+                post_scaler_hash_string='cone_jet_50gev_line_post'),
+            make_cone_jet_line(
+                jets,
+                name="Hlt1ConeJet100GeV",
+                min_pt=100000.,
+                pre_scaler=1,
+                pre_scaler_hash_string='cone_jet_100gev_line_pre',
+                post_scaler_hash_string='cone_jet_100gev_line_post'),
         ]
 
         line_slices_mass = {
@@ -363,7 +393,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             for label, limits in line_slices_mass.items():
                 postscale_os = line_slices_postscales[
                     label] if subSample == "prompt" else 1.0
-                nnCut = 0.95
+                nnCut = 0.94
                 lines.append(
                     make_lowmass_dielectron_line(
                         long_tracks,
@@ -381,7 +411,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                         name="Hlt1DiElectronLowMass_massSlice{}_{}".format(
                             label, subSample),
                         pre_scaler_hash_string=
-                        "lowmass_dielectronNN_massSlice{}_{}_pre".format(
+                        "Hlt1DiElectronLowMass_massSlice{}_{}_pre".format(
                             label, subSample),
                         post_scaler=postscale_os))
                 lines.append(
@@ -413,7 +443,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
 
 
 def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
-                          odin_err_filter):
+                          odin_err_filter, velo_closed_filter):
     lines = []
     if with_lumi:
         odin_lumi_event = make_event_type(event_type='Lumi')
@@ -437,7 +467,8 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
         lines += [line_maker(make_odin_calib_line(name="Hlt1ODINCalib"))]
 
     ee_far_from_activity = make_event_type(event_type="ee_far_from_activity")
-    with line_maker.bind(prefilter=odin_err_filter + [ee_far_from_activity]):
+    with line_maker.bind(prefilter=odin_err_filter + velo_closed_filter +
+                         [ee_far_from_activity]):
         lines += [
             line_maker(
                 make_passthrough_line(
@@ -450,6 +481,7 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
 def alignment_monitoring_lines(reconstructed_objects,
                                prefilters_bx,
                                prefilters_odin_err,
+                               thresholds,
                                with_muon=True):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
@@ -499,6 +531,14 @@ def alignment_monitoring_lines(reconstructed_objects,
                 muon_stubs["host_muon_total_number_of_tracks"],
                 name="Hlt1OneMuonTrackLine",
                 post_scaler=0.001),
+            make_di_muon_mass_line(
+                long_tracks,
+                dileptons,
+                muonid,
+                maxChi2Corr=thresholds.DiMuonHighMass_maxCorrChi2,
+                name="Hlt1UpsilonAlignment",
+                minMass=8000.,
+                minHighMassTrackPt=thresholds.DiMuonHighMass_pt),
         ]
 
     with line_maker.bind(prefilter=prefilters_bx):
@@ -635,7 +675,14 @@ def default_SMOG2_lines(reconstructed_objects,
                 maxChi2Corr=1.8,
                 MinPt=700,
                 name="Hlt1SMOG2SingleMuon",
-                pre_scaler=0.2)
+                pre_scaler=0.2),
+            make_SMOG2_dimuon_displaced_line(
+                dileptons,
+                long_tracks,
+                muonid,
+                maxChi2Corr=1.3,
+                minFDCHI2=100.,
+                name="Hlt1SMOG2DisplacedDiMuon")
         ]
 
     if with_v0s:
@@ -925,7 +972,10 @@ def setup_hlt1_node(enablePhysics=True,
     beam_beam_filter = [make_bxtype(bx_type=3)]
     velo_open_event = make_event_type(event_type="VeloOpen")
     velo_closed = [
-        make_invert_event_list(velo_open_event, name="VeloClosedEvent")
+        make_event_type(
+            name="ODIN_EvenType_VeloClosed",
+            event_type="VeloOpen",
+            invert=True)
     ] if DisableLinesDuringVPClosing else []
     prefilters = odin_err_filter + beam_beam_filter + gec + velo_closed
 
@@ -939,8 +989,9 @@ def setup_hlt1_node(enablePhysics=True,
     lumiline_name = "Hlt1ODINLumi"
     lumilinefull_name = "Hlt1ODIN1kHzLumi"
 
-    monitoring_lines = odin_monitoring_lines(
-        with_lumi, lumiline_name, lumilinefull_name, odin_err_filter)
+    monitoring_lines = odin_monitoring_lines(with_lumi, lumiline_name,
+                                             lumilinefull_name,
+                                             odin_err_filter, velo_closed)
 
     with line_maker.bind(prefilter=odin_err_filter):
         physics_lines += [line_maker(make_passthrough_line())]
@@ -998,7 +1049,8 @@ def setup_hlt1_node(enablePhysics=True,
             prefilter=bgi_prefilters)
 
     monitoring_lines += alignment_monitoring_lines(
-        reconstructed_objects, prefilters, odin_err_filter, with_muon)
+        reconstructed_objects, prefilters, odin_err_filter, threshold_settings,
+        with_muon)
 
     bx_BE = make_bxtype(bx_type=1)
     with line_maker.bind(

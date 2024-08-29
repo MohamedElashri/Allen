@@ -25,7 +25,7 @@
 #include "DownstreamConstants.cuh"
 #include "DownstreamStructs.cuh"
 #include "DownstreamExtrapolation.cuh"
-#include "DownstreamCache.cuh"
+#include "DownstreamHelper.cuh"
 #include "BinarySearch.cuh"
 
 /**

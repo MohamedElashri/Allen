@@ -188,8 +188,8 @@ int main(int argc, char* argv[])
                                                   {"events-per-slice", std::to_string(s_config.eps)},
                                                   {"disable-run-changes", "1"}};
 
-    auto configuration = Allen::sequence_conf(options);
-    mdf = Allen::make_provider(options, configuration);
+    auto [config, config_source] = Allen::sequence_conf(options);
+    mdf = Allen::make_provider(options, config);
     if (!mdf) {
       std::cerr << "Failed to obtain MDFProvider\n";
       return 1;

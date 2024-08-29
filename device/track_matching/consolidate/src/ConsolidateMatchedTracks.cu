@@ -251,9 +251,18 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
       const auto& matched_track = event_matched_tracks[i];
       const auto hit_offset = parameters.dev_offsets_matched_ut_hit_number[matched_tracks_offset + i];
       for (unsigned layer = 0, hit_idx = 0; layer < UT::Constants::n_layers; layer++) {
-        if (matched_track.ut_hits[layer] == SciFi::MatchedTrack::InvalidHit) continue;
-        matched_ut_track_hits.set(hit_offset + hit_idx, ut_hits.getHit(matched_track.ut_hits[layer]));
-        parameters.dev_used_ut_hits_offsets[event_hit_offset + matched_track.ut_hits[layer]] = 1;
+        const auto ut_hit_idx = matched_track.ut_hits[layer];
+        if (ut_hit_idx == SciFi::MatchedTrack::InvalidHit) continue;
+        matched_ut_track_hits.yBegin(hit_offset + hit_idx) = ut_hits.yBegin(ut_hit_idx);
+        matched_ut_track_hits.yEnd(hit_offset + hit_idx) = ut_hits.yEnd(ut_hit_idx);
+        matched_ut_track_hits.zAtYEq0(hit_offset + hit_idx) = ut_hits.zAtYEq0(ut_hit_idx);
+        matched_ut_track_hits.xAtYEq0(hit_offset + hit_idx) = ut_hits.xAtYEq0(ut_hit_idx);
+        matched_ut_track_hits.dxDy(hit_offset + hit_idx) = ut_hits.dxDy(ut_hit_idx);
+        matched_ut_track_hits.weight(hit_offset + hit_idx) = ut_hits.weight(ut_hit_idx);
+        matched_ut_track_hits.id(hit_offset + hit_idx) = ut_hits.id(ut_hit_idx);
+        matched_ut_track_hits.original_index(hit_offset + hit_idx) = ut_hit_idx + event_hit_offset;
+        matched_ut_track_hits.plane_code(hit_offset + hit_idx) = layer;
+        parameters.dev_used_ut_hits_offsets[event_hit_offset + ut_hit_idx] = 1;
         hit_idx++;
       }
     }

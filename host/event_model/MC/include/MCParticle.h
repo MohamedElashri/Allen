@@ -29,39 +29,39 @@
 
 // Monte Carlo information
 struct MCParticle {
-  uint32_t key;
-  int pid;
-  float p;
-  float pt;
-  float eta;
-  float phi;
-  float ovtx_x;
-  float ovtx_y;
-  float ovtx_z;
-  bool isLong;
-  bool isDown;
-  bool hasVelo;
-  bool hasUT;
-  bool hasSciFi;
-  bool fromBeautyDecay;
-  bool fromCharmDecay;
-  bool fromStrangeDecay;
-  bool fromSignal {0};
-  int motherKey;
-  int mother_pid;
-  int DecayOriginMother_key;
-  int DecayOriginMother_pid;
-  float DecayOriginMother_pt;
-  float DecayOriginMother_tau;
-  float charge;
-  uint32_t velo_num_hits;
-  uint32_t ut_num_hits;
-  uint32_t scifi_num_hits;
-  uint32_t numHits;
-  uint32_t nPV; // # of reconstructible primary vertices in event
-  uint32_t nbHits_in_Velo;
-  uint32_t nbHits_in_UT;
-  uint32_t nbHits_in_SciFi;
+  uint32_t key {0};
+  int pid {0};
+  float p {0};
+  float pt {0};
+  float eta {0};
+  float phi {0};
+  float ovtx_x {0};
+  float ovtx_y {0};
+  float ovtx_z {0};
+  bool isLong {false};
+  bool isDown {false};
+  bool hasVelo {false};
+  bool hasUT {false};
+  bool hasSciFi {false};
+  bool fromBeautyDecay {false};
+  bool fromCharmDecay {false};
+  bool fromStrangeDecay {false};
+  bool fromSignal {false};
+  int motherKey {0};
+  int mother_pid {0};
+  int DecayOriginMother_key {0};
+  int DecayOriginMother_pid {0};
+  float DecayOriginMother_pt {0};
+  float DecayOriginMother_tau {0};
+  float charge {0};
+  uint32_t velo_num_hits {0};
+  uint32_t ut_num_hits {0};
+  uint32_t scifi_num_hits {0};
+  uint32_t numHits {0};
+  uint32_t nPV {0}; // # of reconstructible primary vertices in event
+  uint32_t nbHits_in_Velo {0};
+  uint32_t nbHits_in_UT {0};
+  uint32_t nbHits_in_SciFi {0};
   std::vector<uint32_t> hits;
 
   bool isMuon() const { return 13 == std::abs(pid); }

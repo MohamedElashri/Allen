@@ -36,9 +36,9 @@ struct MCAssociator {
 
   /// internal structure with index into particles and weight
   struct MCParticleWithWeight {
-    std::size_t m_idx;
-    float m_w;
-    unsigned m_counter_sum;
+    std::size_t m_idx {0};
+    float m_w {0};
+    unsigned m_counter_sum {0};
     MCParticleWithWeight(std::size_t idx, float w, unsigned counter_sum) :
       m_idx(idx), m_w(w), m_counter_sum(counter_sum)
     {}
@@ -49,9 +49,9 @@ struct MCAssociator {
   };
   // internal structure with index into tracks matched to an MCP
   struct TrackWithWeight {
-    int m_idx;
-    float m_w;
-    int m_counter_subdetector;
+    int m_idx {0};
+    float m_w {0};
+    int m_counter_subdetector {0};
     TrackWithWeight(int idx, float w, int counter_subdetector) :
       m_idx(idx), m_w(w), m_counter_subdetector(counter_subdetector)
     {}

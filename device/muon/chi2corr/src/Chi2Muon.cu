@@ -19,6 +19,7 @@ void chi2_muon::chi2_muon_t::set_arguments_size(
   const Constants&) const
 {
   set_size<dev_chi2_muon_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_chi2uncorr_muon_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
 
 void chi2_muon::chi2_muon_t::operator()(
@@ -28,6 +29,7 @@ void chi2_muon::chi2_muon_t::operator()(
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_chi2_muon_t>(arguments, 10, context);
+  Allen::memset_async<dev_chi2uncorr_muon_t>(arguments, 10, context);
 
   global_function(chi2_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
     arguments);
@@ -232,15 +234,19 @@ __global__ void chi2_muon::chi2_muon(chi2_muon::Parameters parameters)
       invert_matrix(covX, invCovX, dimension);
       invert_matrix(covY, invCovY, dimension);
       float chi2corr = 0;
+      float chi2uncorr = 0;
       for (unsigned i = 0; i < dimension; ++i) {
         for (unsigned j = 0; j < i; ++j) {
           chi2corr += 2 * ((cand_dx[i] * invCovX[i][j] * cand_dx[j]) + (cand_dy[i] * invCovY[i][j] * cand_dy[j]));
         }
         chi2corr += square(cand_dx[i]) * invCovX[i][i] + square(cand_dy[i]) * invCovY[i][i];
+        chi2uncorr += square(cand_dx[i] / cand_padx[i]) + square(cand_dy[i] / cand_pady[i]);
       }
 
       chi2corr = chi2corr / dimension;
+      chi2uncorr = chi2uncorr / dimension;
       parameters.dev_chi2_muon[scifi_idx_with_offset] = log10f(chi2corr);
+      parameters.dev_chi2uncorr_muon[scifi_idx_with_offset] = log10f(chi2uncorr);
     } // if is_muon
   }   // loop on tracks
 } // end of global

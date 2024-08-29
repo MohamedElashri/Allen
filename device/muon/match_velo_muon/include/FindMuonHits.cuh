@@ -12,6 +12,7 @@
 
 #include "AlgorithmTypes.cuh"
 #include "MuonEventModel.cuh"
+#include "MuonSegmentFit.cuh"
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
 #include "States.cuh"

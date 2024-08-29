@@ -20,6 +20,7 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
+from AllenConf.ut_reconstruction import make_dummy_ut_hits
 
 
 @configurable
@@ -82,7 +83,8 @@ def decode_scifi():
 def make_forward_tracks(
         decoded_scifi,
         input_tracks,
-        dev_accepted_velo_tracks,
+        ut_hits=None,
+        dev_accepted_velo_tracks=None,
         with_ut=True,
         ghost_killer_threshold=0.5,
         scifi_consolidate_tracks_name='scifi_consolidate_tracks'):
@@ -123,8 +125,6 @@ def make_forward_tracks(
         factor_12_hits = 0.5
     else:
         velo_tracks = input_tracks
-        dev_offsets_all_velo_tracks = velo_tracks[
-            "dev_offsets_all_velo_tracks"]
         host_number_of_reconstructed_input_tracks = velo_tracks[
             "host_number_of_reconstructed_velo_tracks"]
         dev_offsets_input_tracks = velo_tracks["dev_offsets_all_velo_tracks"]
@@ -139,37 +139,38 @@ def make_forward_tracks(
         input_pt = 1000
         #triplet seeding
         maximum_number_of_triplets_per_warp = 64
-        chi2_max_triplet_single = 2.0
+        chi2_max_triplet_single = 4.0
         z_mag_difference = 8.
         #create tracks
-        max_triplets_per_input_track = 10
+        max_triplets_per_input_track = 15
         chi2_max_extrapolation_to_x_layers_single = 0.5
         uv_hits_chi2_factor_x = 15.
         uv_hits_chi2_factor_y = 5.
         #quality factor
-        max_diff_ty_window = 0.003
+        max_diff_ty_window = 0.01
 
-        max_final_quality = 0.6
+        max_final_quality = 2.0
         min_tot_scifi_hits = 9
         min_UV_scifi_hits = 4
         min_X_scifi_hits = 3
         factor_9_hits = 5.
-        factor_10_hits = 3.
-        factor_11_hits = 2.
-        factor_12_hits = 0.
+        factor_10_hits = 1.
+        factor_11_hits = 0.8
+        factor_12_hits = 0.5
 
-    dev_offsets_all_velo_tracks = velo_tracks["dev_offsets_all_velo_tracks"]
-    host_number_of_reconstructed_velo_tracks = velo_tracks[
-        "host_number_of_reconstructed_velo_tracks"]
-    dev_accepted_velo_tracks = velo_tracks["dev_accepted_velo_tracks"]
+    if not dev_accepted_velo_tracks:
+        dev_accepted_velo_tracks = velo_tracks["dev_accepted_velo_tracks"]
+
+    if not ut_hits:
+        ut_hits = make_dummy_ut_hits()
 
     # The preexisting will be deduplicated in UT-ful
     ut_select_velo_tracks = make_algorithm(
         ut_select_velo_tracks_t,
         name='ut_select_velo_tracks_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_reconstructed_velo_tracks_t=
-        host_number_of_reconstructed_velo_tracks,
+        host_number_of_reconstructed_velo_tracks_t=velo_tracks[
+            "host_number_of_reconstructed_velo_tracks"],
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_velo_states_view_t=velo_states[
             "dev_velo_kalman_beamline_states_view"],
@@ -322,6 +323,8 @@ def make_forward_tracks(
         host_accumulated_number_of_hits_in_scifi_tracks_t=
         scifi_copy_track_hit_number.
         host_accumulated_number_of_hits_in_scifi_tracks_t,
+        host_accumulated_number_of_ut_hits_t=ut_hits[
+            "host_accumulated_number_of_ut_hits"],
         host_number_of_reconstructed_scifi_tracks_t=lf_quality_filter.
         host_number_of_reconstructed_scifi_tracks_t,
         dev_scifi_hits_t=decoded_scifi["dev_scifi_hits"],
@@ -377,6 +380,9 @@ def make_forward_tracks(
         scifi_consolidate_tracks.dev_used_scifi_hits_t,
         "dev_accepted_and_unused_velo_tracks":
         scifi_consolidate_tracks.dev_accepted_and_unused_velo_tracks_t,
+        # UT hits veto
+        "dev_used_ut_hits_offsets":
+        scifi_consolidate_tracks.dev_used_ut_hits_offsets_t,
     }
 
 
@@ -499,16 +505,18 @@ def forward_tracking(with_ut=True):
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
     if with_ut:
-        decoded_ut = decode_ut()
-        ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
+        ut_hits = decode_ut()
+        ut_tracks = make_ut_tracks(ut_hits, velo_tracks)
         input_tracks = ut_tracks
     else:
+        ut_hits = make_dummy_ut_hits()
         input_tracks = velo_tracks
     decoded_scifi = decode_scifi()
 
     return make_forward_tracks(
         decoded_scifi,
         input_tracks,
+        ut_hits,
         velo_tracks["dev_accepted_velo_tracks"],
         with_ut=with_ut)
 

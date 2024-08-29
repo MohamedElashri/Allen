@@ -8,6 +8,8 @@
 * granted to it by virtue of its status as an Intergovernmental Organization  *
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
+#pragma once
+
 #include <memory>
 #include <map>
 #include <string>
@@ -39,9 +41,13 @@ namespace Allen {
     unsigned n_io_reps = 0;
   };
 
+  void set_environment(unsigned number_of_threads);
+
   std::tuple<bool, bool> velo_decoding_type(const ConfigurationReader& configuration_reader);
 
-  std::string sequence_conf(std::map<std::string, std::string> const& options);
+  std::tuple<std::string, std::string> sequence_conf(std::map<std::string, std::string> const& options);
+
+  std::tuple<bool, std::string, std::string> config_from_tck(std::string_view source);
 
   std::unique_ptr<IInputProvider> make_provider(
     std::map<std::string, std::string> const& options,

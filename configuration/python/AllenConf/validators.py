@@ -167,8 +167,6 @@ def seeding_xz_validation(name="seed_xz_validator"):
 
 def seeding_validation(seeding_tracks, name="seed_validator"):
     mc_events = mc_data_provider()
-    #decoded_scifi = decode_scifi("v6")
-    #seeding_tracks = make_seeding_tracks(decoded_scifi)
 
     number_of_events = initialize_number_of_events()
 
@@ -189,8 +187,6 @@ def seeding_unmatched_validation(seeding_tracks,
                                  velo_scifi_matches,
                                  name="unmached_seed_validator"):
     mc_events = mc_data_provider()
-    #decoded_scifi = decode_scifi("v6")
-    #seeding_tracks = make_seeding_tracks(decoded_scifi)
 
     number_of_events = initialize_number_of_events()
 
@@ -313,7 +309,7 @@ def muon_validation(muonID, name="muon_validator"):
         dev_multi_event_long_tracks_view_t=long_tracks[
             "dev_multi_event_long_tracks_view"],
         dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"],
-        dev_is_muon_t=muonID["dev_is_muon"])
+        dev_is_muon_t=muonID['dev_is_muon'])
 
 
 def pv_validation(pvs, name="pv_validator"):
@@ -463,7 +459,8 @@ def data_quality_validation_occupancy(name="data_quality_validator"):
     decoded_scifi = decode_scifi()
     decoded_muon = decode_muon()
     decoded_calo = decode_calo()
-    ecal_clusters = make_ecal_clusters(decoded_calo)
+    ecal_clusters = make_ecal_clusters(
+        decoded_calo, calo_find_clusters_name='calo_find_clusters')
 
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)

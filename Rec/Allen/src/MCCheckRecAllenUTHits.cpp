@@ -26,24 +26,16 @@
 
 using simd = SIMDWrapper::best::types;
 
-class MCCheckRecAllenUTHits final : public Gaudi::Functional::Consumer<void(
-                                      const std::vector<UT::Hit>&,
-                                      const std::vector<UT::Hit>&,
-                                      const std::vector<float>&,
-                                      const Constants* const&,
-                                      const LHCb::MCHits&)> {
+class MCCheckRecAllenUTHits final
+  : public Gaudi::Functional::Consumer<
+      void(const std::vector<UT::Hit>&, const std::vector<UT::Hit>&, const LHCb::MCHits&)> {
 
 public:
   /// Standard constructor
   MCCheckRecAllenUTHits(const std::string& name, ISvcLocator* pSvcLocator);
 
   /// Algorithm execution
-  void operator()(
-    const std::vector<UT::Hit>&,
-    const std::vector<UT::Hit>&,
-    const std::vector<float>&,
-    const Constants* const&,
-    const LHCb::MCHits&) const override;
+  void operator()(const std::vector<UT::Hit>&, const std::vector<UT::Hit>&, const LHCb::MCHits&) const override;
 
 private:
   mutable std::unique_ptr<Gaudi::Accumulators::BinomialCounter<>> m_allen_hit_eff;
@@ -65,18 +57,12 @@ MCCheckRecAllenUTHits::MCCheckRecAllenUTHits(const std::string& name, ISvcLocato
   Consumer(
     name,
     pSvcLocator,
-    {KeyValue {"allen_ut_hits", ""},
-     KeyValue {"rec_ut_hits", ""},
-     KeyValue {"rec_ut_dxdys", ""},
-     KeyValue {"allen_constants", ""},
-     KeyValue {"UnpackedUTHits", "/Event/MC/UT/Hits"}})
+    {KeyValue {"allen_ut_hits", ""}, KeyValue {"rec_ut_hits", ""}, KeyValue {"UnpackedUTHits", "/Event/MC/UT/Hits"}})
 {}
 
 void MCCheckRecAllenUTHits::operator()(
   const std::vector<UT::Hit>& allen_hits,
   const std::vector<UT::Hit>& rec_hits,
-  const std::vector<float>& rec_dxdys,
-  const Constants* const& allen_constants,
   const LHCb::MCHits& mc_hits) const
 {
   // Different counter names for different UT decoding settings
@@ -91,7 +77,6 @@ void MCCheckRecAllenUTHits::operator()(
 
   const auto n_hits_total_allen = allen_hits.size();
   const auto n_hits_total_rec = rec_hits.size();
-  const auto& allen_dxdys = allen_constants->host_ut_dxDy;
 
   debug() << "Number of UT hits (Allen) in this event " << n_hits_total_allen << endmsg;
   debug() << "Number of UT hits (Rec) in this event   " << n_hits_total_rec << endmsg;
@@ -114,10 +99,8 @@ void MCCheckRecAllenUTHits::operator()(
   const auto n_z_planes = known_zAtYEq0.size();
   assert(n_z_planes <= 16);
   std::sort(known_zAtYEq0.begin(), known_zAtYEq0.end());
-  std::vector<float> dxdy_in_plane(n_z_planes, 0.f);
   std::vector<std::vector<LHCb::MCHit>> regrouped_mc_hits(n_z_planes);
   std::vector<std::vector<UT::Hit>> regrouped_allen_hits(n_z_planes), regrouped_rec_hits(n_z_planes);
-  std::vector<std::vector<float>> regrouped_rec_dxdyx(n_z_planes);
 
   auto get_z_position_index = [&known_zAtYEq0, &n_z_planes, this, tol_z = static_cast<float>(m_tol_z)](const float& z) {
     auto index = std::find_if(
@@ -138,11 +121,8 @@ void MCCheckRecAllenUTHits::operator()(
   for (const auto& hit : allen_hits) {
     regrouped_allen_hits[get_z_position_index(hit.zAtYEq0)].emplace_back(hit);
   }
-  // Also store dxdy values for Rec hits
-  for (size_t i = 0; i < rec_hits.size(); i++) {
-    const auto index = get_z_position_index(rec_hits[i].zAtYEq0);
-    regrouped_rec_hits[index].emplace_back(rec_hits[i]);
-    regrouped_rec_dxdyx[index].emplace_back(rec_dxdys[i]);
+  for (const auto& hit : rec_hits) {
+    regrouped_rec_hits[get_z_position_index(hit.zAtYEq0)].emplace_back(hit);
   }
 
   // Loop UT MCHits
@@ -163,21 +143,6 @@ void MCCheckRecAllenUTHits::operator()(
       return hit_a.entry().x() < hit_b.entry().x();
     });
     std::sort(regrouped_allen_hits[i].begin(), regrouped_allen_hits[i].end(), sort_by_x_ut_hit);
-
-    // Rec sorting is a little more involved, because it has dxdy information
-    std::vector<unsigned> unsorted_rec_indices(regrouped_rec_hits[i].size());
-    std::iota(unsorted_rec_indices.begin(), unsorted_rec_indices.end(), 0);
-    std::sort(
-      unsorted_rec_indices.begin(),
-      unsorted_rec_indices.end(),
-      [&](const unsigned index_a, const unsigned index_b) -> bool {
-        return sort_by_x_ut_hit(regrouped_rec_hits[i][index_a], regrouped_rec_hits[i][index_b]);
-      });
-    std::vector<float> sorted_dxdy_in_plane(n_rec_hits_in_current_plane);
-    for (size_t j = 0; j < n_rec_hits_in_current_plane; j++) {
-      const auto index = unsorted_rec_indices[j];
-      sorted_dxdy_in_plane[j] = regrouped_rec_dxdyx[i][index];
-    }
     std::sort(regrouped_rec_hits[i].begin(), regrouped_rec_hits[i].end(), sort_by_x_ut_hit);
 
     std::vector<bool> allen_match_mask(n_allen_hits_in_current_plane, false);
@@ -195,10 +160,11 @@ void MCCheckRecAllenUTHits::operator()(
       unsigned hit_mult = 0;
 
       // truth matching by comparing MC hit position to decoded strip position. also handles bookkeeping like counters.
-      auto simple_truth_matching =
-        [&mch_x, &mch_y, tol_x = static_cast<float>(m_tol_x), tol_y = static_cast<float>(m_tol_y)](
-          const float dxdy, const auto& hit, auto hit_matched) -> bool {
-        const bool in_x_tolerance = abs((hit.xAtYEq0 + dxdy * mch_y) - mch_x) < tol_x;
+      auto simple_truth_matching = [&mch_x,
+                                    &mch_y,
+                                    tol_x = static_cast<float>(m_tol_x),
+                                    tol_y = static_cast<float>(m_tol_y)](const auto& hit, auto hit_matched) -> bool {
+        const bool in_x_tolerance = abs((hit.xAtYEq0 + hit.dxDy * mch_y) - mch_x) < tol_x;
         const bool in_y_tolerance = hit.yBegin - tol_y < mch_y && mch_y < hit.yEnd + tol_y;
         const bool matched = in_x_tolerance && in_y_tolerance;
         hit_matched = matched;
@@ -206,8 +172,7 @@ void MCCheckRecAllenUTHits::operator()(
       };
 
       for (unsigned j = 0; j < n_allen_hits_in_current_plane; j++) {
-        const auto dxdy = allen_dxdys[regrouped_allen_hits[i][j].plane_code];
-        if (simple_truth_matching(dxdy, regrouped_allen_hits[i][j], allen_match_mask[j])) {
+        if (simple_truth_matching(regrouped_allen_hits[i][j], allen_match_mask[j])) {
           hit_mult++;
         }
       }
@@ -226,7 +191,7 @@ void MCCheckRecAllenUTHits::operator()(
       // reset and loop rec hits
       hit_mult = 0;
       for (unsigned j = 0; j < n_rec_hits_in_current_plane; j++) {
-        if (simple_truth_matching(sorted_dxdy_in_plane[j], regrouped_rec_hits[i][j], rec_match_mask[j])) {
+        if (simple_truth_matching(regrouped_rec_hits[i][j], rec_match_mask[j])) {
           hit_mult++;
         }
       }
@@ -248,7 +213,7 @@ void MCCheckRecAllenUTHits::operator()(
     debug() << "Printing those that could not be matched " << endmsg;
     debug() << std::setw(width) << "Type" << std::setw(width) << "LHCbID" << std::setw(width) << "yBegin"
             << std::setw(width) << "yEnd" << std::setw(width) << "zAtYEq0" << std::setw(width) << "xAtYEq0"
-            << std::setw(width) << "weight" << std::setw(width) << "dxdy" << endmsg;
+            << std::setw(width) << "dxDy" << std::setw(width) << "weight" << endmsg;
     debug() << std::string(8 * width, '-') << endmsg;
     for (unsigned j = 0; j < n_allen_hits_in_current_plane; j++) {
       if (!allen_match_mask[j])
@@ -256,14 +221,13 @@ void MCCheckRecAllenUTHits::operator()(
                 << std::setw(width) << regrouped_allen_hits[i][j].yBegin << std::setw(width)
                 << regrouped_allen_hits[i][j].yEnd << std::setw(width) << regrouped_allen_hits[i][j].zAtYEq0
                 << std::setw(width) << regrouped_allen_hits[i][j].xAtYEq0 << std::setw(width)
-                << regrouped_allen_hits[i][j].weight << std::setw(width)
-                << allen_dxdys[regrouped_allen_hits[i][j].plane_code] << endmsg;
+                << regrouped_allen_hits[i][j].dxDy << std::setw(width) << regrouped_allen_hits[i][j].weight << endmsg;
     }
     debug() << "Rec UT hits in plane " << i << " : " << n_rec_hits_in_current_plane << endmsg;
     debug() << "Printing those that could not be matched " << endmsg;
     debug() << std::setw(width) << "Type" << std::setw(width) << "LHCbID" << std::setw(width) << "yBegin"
             << std::setw(width) << "yEnd" << std::setw(width) << "zAtYEq0" << std::setw(width) << "xAtYEq0"
-            << std::setw(width) << "weight" << std::setw(width) << "dxdy" << endmsg;
+            << std::setw(width) << "dxDy" << std::setw(width) << "weight" << endmsg;
     debug() << std::string(8 * width, '-') << endmsg;
     for (unsigned j = 0; j < n_rec_hits_in_current_plane; j++) {
       if (!rec_match_mask[j])
@@ -271,7 +235,7 @@ void MCCheckRecAllenUTHits::operator()(
                 << std::setw(width) << regrouped_rec_hits[i][j].yBegin << std::setw(width)
                 << regrouped_rec_hits[i][j].yEnd << std::setw(width) << regrouped_rec_hits[i][j].zAtYEq0
                 << std::setw(width) << regrouped_rec_hits[i][j].xAtYEq0 << std::setw(width)
-                << regrouped_rec_hits[i][j].weight << std::setw(width) << sorted_dxdy_in_plane[j] << endmsg;
+                << regrouped_rec_hits[i][j].dxDy << std::setw(width) << regrouped_rec_hits[i][j].weight << endmsg;
     }
     debug() << "Printing all MC Hits for comparison" << endmsg;
     debug() << std::setw(width) << "Type" << std::setw(width) << "x_entry" << std::setw(width) << "y_entry"

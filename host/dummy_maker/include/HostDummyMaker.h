@@ -18,6 +18,7 @@
 namespace host_dummy_maker {
   struct Parameters {
     HOST_OUTPUT(host_unsigned_dummy_t, unsigned) host_unsigned_dummy;
+    HOST_OUTPUT(host_sum_dummy_t, unsigned) host_sum_dummy;
     DEVICE_OUTPUT(dev_unsigned_dummy_t, unsigned) dev_unsigned_dummy;
     DEVICE_OUTPUT(dev_bool_dummy_t, bool) dev_bool_dummy;
     DEVICE_OUTPUT(dev_char_dummy_t, char) dev_char_dummy;

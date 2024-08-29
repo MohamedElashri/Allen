@@ -73,6 +73,7 @@
 
 #ifndef ALLEN_STANDALONE
 #include <GaudiKernel/Bootstrap.h>
+#include <TCK.h>
 #endif
 
 namespace {
@@ -93,6 +94,7 @@ namespace {
 int allen(
   std::map<std::string, std::string> options,
   std::string_view config,
+  std::string_view config_source,
   Allen::NonEventData::IUpdater* updater,
   IInputProvider* input_provider,
   OutputHandler* output_handler,
@@ -108,6 +110,7 @@ int allen(
   unsigned verbosity = 3;
   bool print_memory_usage = false;
   bool write_config = false;
+  [[maybe_unused]] bool tck_from_odin = false;
   size_t reserve_mb = 1000;
   size_t reserve_host_mb = 200;
 
@@ -208,6 +211,9 @@ int allen(
     else if (flag_in(flag, {"prefer-shared"})) {
       prefer_shared = atoi(arg.c_str());
     }
+    else if (flag_in(flag, {"tck-from-odin"})) {
+      tck_from_odin = atoi(arg.c_str());
+    }
   }
 
   // Set verbosity level
@@ -215,6 +221,8 @@ int allen(
   logger::setVerbosity(verbosity);
 
   auto io_conf = Allen::io_configuration(n_slices, n_repetitions, number_of_threads);
+
+  Allen::set_environment(number_of_threads);
 
   // Set device for main thread
   auto [device_set, device_name, device_memory_alignment, bus_id] = Allen::set_device(device_id, 0);
@@ -227,17 +235,17 @@ int allen(
 
   number_of_buffers = number_of_threads + n_mon + 1;
 
-  std::unique_ptr<ConfigurationReader> configuration_reader;
-
   std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
   std::unique_ptr<LipschitzNNModelReader> two_track_mva_model_reader;
   std::unique_ptr<LipschitzNNModelReader> electronid_mva_model_reader;
   std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, forward_ghostkiller_reader,
     matching_ghostkiller_reader, matching_with_ut_ghostkiller_reader, matching_no_ut_v2_ghostkiller_reader;
+  std::unique_ptr<LipschitzNNModelReader> muonid_mva_model_reader;
 
   std::unique_ptr<SingleLayerFCNNReader> downstream_composite_quality_reader, downstream_lambda_selector_reader,
     downstream_kshort_selector_reader, downstream_detached_lambda_selector_reader,
-    downstream_detached_kshort_selector_reader, downstream_ghostkiller_reader, ttrack_selector_reader;
+    downstream_detached_kshort_selector_reader, downstream_ghostkiller_reader, ttrack_selector_reader,
+    matching_with_ut_v2_ghostkiller_reader;
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
@@ -254,7 +262,9 @@ int allen(
   }
   //
   // Load constant parameters from JSON
-  configuration_reader = std::make_unique<ConfigurationReader>(config);
+  ConfigurationReader config_reader {config};
+  auto [from_tck, tck_repo, tck_str] = Allen::config_from_tck(config_source);
+  [[maybe_unused]] uint32_t tck = from_tck ? std::stoi(tck_str, nullptr, 16) : 0;
 
   // Get the path to the parameter folder: different for standalone and Gaudi build
   // Only in case of standalone gitlab CI pipepline the parameters folder path is passed as runtime argument
@@ -278,6 +288,14 @@ int allen(
   // Two Track Model
   two_track_mva_model_reader =
     std::make_unique<LipschitzNNModelReader>(folder_parameters + "allen_two_track_mva_model_June22.json");
+
+  // ElectronID model
+  electronid_mva_model_reader =
+    std::make_unique<LipschitzNNModelReader>(folder_parameters + "/CaloPID/electron_mva_AllenJune2024.json");
+
+  // MuonID Model
+  muonid_mva_model_reader =
+    std::make_unique<LipschitzNNModelReader>(folder_parameters + "/muonid_mva_AllenJune2024.json");
 
   // Ghost killers
   forward_no_ut_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
@@ -306,14 +324,12 @@ int allen(
     folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT.json");
   matching_no_ut_v2_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
     folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingNoUT_V2.json");
+  matching_with_ut_v2_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT_V2.json");
 
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
     muon_field_of_interest_params, folder_parameters + "allen_muon_field_of_interest_params.bin");
-
-  // ElectronID model
-  electronid_mva_model_reader =
-    std::make_unique<LipschitzNNModelReader>(folder_parameters + "CaloPID/electron_mva_AllenFeb2024.json");
 
   // Initialize detector constants on GPU
   Constants constants;
@@ -347,6 +363,17 @@ int allen(
     electronid_mva_model_reader->max_rescales(),
     electronid_mva_model_reader->nominal_cut(),
     electronid_mva_model_reader->lambda());
+
+  constants.initialize_muonid_mva_model_constants(
+    muonid_mva_model_reader->weights(),
+    muonid_mva_model_reader->biases(),
+    muonid_mva_model_reader->layer_sizes(),
+    muonid_mva_model_reader->n_layers(),
+    muonid_mva_model_reader->monotone_constraints(),
+    muonid_mva_model_reader->min_rescales(),
+    muonid_mva_model_reader->max_rescales(),
+    muonid_mva_model_reader->nominal_cut(),
+    muonid_mva_model_reader->lambda());
 
   constants.initialize_forward_ghostkiller_constants(
     forward_ghostkiller_reader->mean(),
@@ -440,9 +467,16 @@ int allen(
     matching_with_ut_ghostkiller_reader->bias1(),
     matching_with_ut_ghostkiller_reader->weights2(),
     matching_with_ut_ghostkiller_reader->bias2());
+  constants.initialize_matching_with_ut_v2_ghostkiller_constants(
+    matching_with_ut_v2_ghostkiller_reader->mean(),
+    matching_with_ut_v2_ghostkiller_reader->std(),
+    matching_with_ut_v2_ghostkiller_reader->weights1(),
+    matching_with_ut_v2_ghostkiller_reader->bias1(),
+    matching_with_ut_v2_ghostkiller_reader->weights2(),
+    matching_with_ut_v2_ghostkiller_reader->bias2());
 
   // Register all consumers
-  register_consumers(updater, constants, configuration_reader->configured_bank_types());
+  register_consumers(updater, constants, config_reader.configured_bank_types());
 
 #ifndef ALLEN_STANDALONE
   // Set up monitoring sink
@@ -457,7 +491,7 @@ int allen(
   auto* monSvc = dynamic_cast<Service*>(svc.get());
 #endif
 
-  auto const& configuration = configuration_reader->params();
+  auto const& configuration = config_reader.params();
 
   // create host buffers
   std::unique_ptr<HostBuffersManager> buffers_manager =
@@ -485,15 +519,16 @@ int allen(
   // Create all the streams
 
   // Instantiate and configure sequence once to get dependencies
-  Allen::ScheduledSequence sched_seq {configuration_reader->configured_sequence()};
+  Allen::ScheduledSequence sched_seq {config_reader.configured_sequence()};
 
   // Configure the algorithms according to the properties' values
   sched_seq.configure_algorithms(configuration);
+  sched_seq.initialize_algorithms();
 
   std::vector<std::unique_ptr<Stream>> streams;
   for (unsigned t = 0; t < number_of_threads; ++t) {
     streams.emplace_back(new Stream {t,
-                                     configuration_reader->configured_sequence(),
+                                     config_reader.configured_sequence(),
                                      sched_seq,
                                      print_memory_usage,
                                      reserve_mb,
@@ -525,7 +560,7 @@ int allen(
     if (write_config) {
       info_cout << "Write full configuration\n";
       // Add sequence - this makes the generated json fully operational
-      algorithm_configuration["sequence"] = configuration_reader->get_sequence();
+      algorithm_configuration["sequence"] = config_reader.get_sequence();
       ConfigurationReader saveToJson(algorithm_configuration);
       saveToJson.save("config.json");
       return 0;
@@ -574,7 +609,7 @@ int allen(
 #ifndef ALLEN_STANDALONE
   // Lambda with the execution of the monitoring aggregation
   const auto agg_thread = [&](unsigned thread_id, unsigned) {
-    return std::thread {run_aggregation, thread_id, zmqSvc, &monitoringPrinter};
+    return std::thread {run_aggregation, thread_id, device_id, zmqSvc, &monitoringPrinter};
   };
 #endif
 
@@ -904,9 +939,46 @@ int allen(
     if (run_change) {
       if (next_odin) {
         // Only process the run change once all GPU stream_threads have finished
-        if (stream_ready.count() == number_of_threads) {
+        if (
+          stream_ready.count() == number_of_threads &&
+          (count_status(SliceStatus::Empty) + count_status(SliceStatus::Processed)) == io_conf.number_of_slices) {
           debug_cout << "Run number changing from " << current_run_number << " to " << next_odin->runNumber()
                      << std::endl;
+
+#ifndef ALLEN_STANDALONE
+          // Fast run change of TCK
+          auto new_tck = next_odin->triggerConfigurationKey();
+          if (from_tck && tck_from_odin && new_tck != 0 && tck != new_tck) {
+            try {
+              // Load new TCK
+              std::string new_tck_str = fmt::format("{:#010x}", new_tck);
+              auto [new_config, new_source, new_tck_info] = Allen::load_tck(tck_repo, new_tck_str);
+              ConfigurationReader new_config_reader {new_config};
+
+              // Check compatibility
+              if (!compatible_configurations(config_reader, new_config_reader)) {
+                error_cout << "TCKs " << tck_str << " and " << new_tck_str
+                           << " are not compatible for fast run change.\n";
+                ++error_count;
+                goto loop_error;
+              }
+
+              // Reconfigure algorithms
+              sched_seq.configure_algorithms(new_config_reader.params());
+              debug_cout << "Fast run change from " << tck_str << " to " << new_tck_str << "\n";
+
+              // Update state
+              tck = new_tck;
+              tck_str = new_tck_str;
+              config_reader = new_config_reader;
+            } catch (...) {
+              error_cout << "Configuration update failed\n";
+              ++error_count;
+              goto loop_error;
+            }
+          }
+#endif
+          // Update geometry and conditions data
           try {
             updater->update(next_odin->data);
             sched_seq.update_algorithms(constants);
@@ -915,6 +987,7 @@ int allen(
             ++error_count;
             goto loop_error;
           }
+
           current_run_number = next_odin->runNumber();
           next_odin.reset();
           run_change = false;
@@ -925,97 +998,100 @@ int allen(
       }
     }
 
-    if (!run_change) {
-      // Check if input slices are ready or events have been written
-      for (size_t i = 0; i < n_io; ++i) {
-        if (items[number_of_threads + i].revents & zmq::POLLIN) {
-          auto& socket = std::get<1>(io_workers[i]);
-          auto msg = zmqSvc->receive<std::string>(socket);
+    // Check if input slices are ready or events have been written
+    auto const io_start = run_change ? n_input : 0;
+    for (size_t i = io_start; i < n_io; ++i) {
+      if (items[number_of_threads + i].revents & zmq::POLLIN) {
+        auto& socket = std::get<1>(io_workers[i]);
+        auto msg = zmqSvc->receive<std::string>(socket);
 
-          if (msg == "SLICE") {
-            slice_index = zmqSvc->receive<size_t>(socket);
-            auto n_filled = zmqSvc->receive<size_t>(socket);
+        if (msg == "SLICE") {
+          slice_index = zmqSvc->receive<size_t>(socket);
+          auto n_filled = zmqSvc->receive<size_t>(socket);
 
-            // Check once that raw banks with MC information are available if MC check is requested
-            if (n_events_read == 0 && sequence_contains_validation_algorithms) {
-              auto bno_pvs = input_provider->banks(BankTypes::MCVertices, *slice_index);
-              auto bno_tracks = input_provider->banks(BankTypes::MCTracks, *slice_index);
-              if (bno_pvs.offsets.size() == 1 || bno_tracks.offsets.size() == 1) {
-                error_cout << "No raw bank containing MC information found in input file" << std::endl;
-                ++error_count;
-                goto loop_error;
-              }
-            }
-
-            // FIXME: make the warmup time configurable
-            if (
-              !t && (io_conf.number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) ||
-                     !io_conf.async_io)) {
-              info_cout << "Starting timer for throughput measurement\n";
-              throughput_start = n_events_processed * io_conf.number_of_repetitions;
-              t = Timer {};
-              previous_time_measurement = t->get_elapsed_time();
-            }
-            input_slice_status[*slice_index][0] = SliceStatus::Filled;
-            events_in_slice[*slice_index][0] = n_filled;
-            n_events_read += n_filled;
-            // If we have a slice we must send it for processing before polling remaining I/O threads
-            break;
-          }
-          else if (msg == "RUN") {
-            run_change = true;
-            auto odin_data = zmqSvc->receive<decltype(LHCb::ODIN::data)>(socket);
-            next_odin = LHCb::ODIN {odin_data};
-            debug_cout << "Requested run change from " << current_run_number << " to " << next_odin->runNumber()
-                       << std::endl;
-            // guard against double run changes if we have multiple input threads
-            if ((disable_run_changes && current_run_number != 0) || next_odin->runNumber() == current_run_number)
-              next_odin.reset();
-          }
-          else if (msg == "WRITTEN") {
-            auto slc_idx = zmqSvc->receive<size_t>(socket);
-            auto first_evt = zmqSvc->receive<size_t>(socket);
-            auto buf_idx = zmqSvc->receive<size_t>(socket);
-            auto success = zmqSvc->receive<bool>(socket);
-            auto n_written = zmqSvc->receive<size_t>(socket);
-            n_events_output += n_written;
-            n_output_measured += n_written;
-            if (!success) {
-              error_cout << "Failed to write output events.\n";
-            }
-            input_slice_status[slc_idx][first_evt] = SliceStatus::Written;
-
-            // check to see if any parts of this slice still need to be written
-            bool slice_finished(true);
-            for (auto const& [k, v] : input_slice_status[slc_idx]) {
-              if (v != SliceStatus::Written) {
-                slice_finished = false;
-                break;
-              }
-            }
-            if (io_conf.async_io && slice_finished) {
-              input_slice_status[slc_idx].clear();
-              input_slice_status[slc_idx][0] = SliceStatus::Empty;
-              input_provider->slice_free(slc_idx);
-              events_in_slice[slc_idx].clear();
-              events_in_slice[slc_idx][0] = 0;
-            }
-
-            buffers_manager->returnBufferWritten(buf_idx);
-          }
-          else if (msg == "DONE") {
-            if (!io_done) {
-              io_done = true;
-              info_cout << "Input complete\n";
+          // Check once that raw banks with MC information are available if MC check is requested
+          if (n_events_read == 0 && sequence_contains_validation_algorithms) {
+            auto bno_pvs = input_provider->banks(BankTypes::MCVertices, *slice_index);
+            auto bno_tracks = input_provider->banks(BankTypes::MCTracks, *slice_index);
+            if (bno_pvs.offsets.size() == 1 || bno_tracks.offsets.size() == 1) {
+              error_cout << "No raw bank containing MC information found in input file" << std::endl;
+              ++error_count;
+              goto loop_error;
             }
           }
-          else {
-            assert(msg == "ERROR");
-            error_cout << "I/O provider failed to decode events into slice.\n";
-            ++error_count;
+
+          // FIXME: make the warmup time configurable
+          if (
+            !t &&
+            (io_conf.number_of_repetitions == 1 || (slices_processed >= 5 * number_of_threads) || !io_conf.async_io)) {
+            info_cout << "Starting timer for throughput measurement\n";
+            throughput_start = n_events_processed * io_conf.number_of_repetitions;
+            t = Timer {};
+            previous_time_measurement = t->get_elapsed_time();
+          }
+          input_slice_status[*slice_index][0] = SliceStatus::Filled;
+          events_in_slice[*slice_index][0] = n_filled;
+          n_events_read += n_filled;
+          // If we have a slice we must send it for processing before polling remaining I/O threads
+          break;
+        }
+        else if (msg == "RUN") {
+          run_change = true;
+          auto odin_data = zmqSvc->receive<decltype(LHCb::ODIN::data)>(socket);
+          next_odin = LHCb::ODIN {odin_data};
+          debug_cout << "Requested run change from " << current_run_number << " to " << next_odin->runNumber()
+                     << std::endl;
+          // guard against double run changes if we have multiple input threads
+          if (
+            (disable_run_changes && current_run_number != 0) || (next_odin->runNumber() == current_run_number) ||
+            (next_odin->runNumber() == 0)) {
+            run_change = false;
+            next_odin.reset();
+          }
+        }
+        else if (msg == "WRITTEN") {
+          auto slc_idx = zmqSvc->receive<size_t>(socket);
+          auto first_evt = zmqSvc->receive<size_t>(socket);
+          auto buf_idx = zmqSvc->receive<size_t>(socket);
+          auto success = zmqSvc->receive<bool>(socket);
+          auto n_written = zmqSvc->receive<size_t>(socket);
+          n_events_output += n_written;
+          n_output_measured += n_written;
+          if (!success) {
+            error_cout << "Failed to write output events.\n";
+          }
+          input_slice_status[slc_idx][first_evt] = SliceStatus::Written;
+
+          // check to see if any parts of this slice still need to be written
+          bool slice_finished(true);
+          for (auto const& [k, v] : input_slice_status[slc_idx]) {
+            if (v != SliceStatus::Written) {
+              slice_finished = false;
+              break;
+            }
+          }
+          if (io_conf.async_io && slice_finished) {
+            input_slice_status[slc_idx].clear();
+            input_slice_status[slc_idx][0] = SliceStatus::Empty;
+            input_provider->slice_free(slc_idx);
+            events_in_slice[slc_idx].clear();
+            events_in_slice[slc_idx][0] = 0;
+          }
+
+          buffers_manager->returnBufferWritten(buf_idx);
+        }
+        else if (msg == "DONE") {
+          if (!io_done) {
             io_done = true;
-            goto loop_error;
+            info_cout << "Input complete\n";
           }
+        }
+        else {
+          assert(msg == "ERROR");
+          error_cout << "I/O provider failed to decode events into slice.\n";
+          ++error_count;
+          io_done = true;
+          goto loop_error;
         }
       }
     }

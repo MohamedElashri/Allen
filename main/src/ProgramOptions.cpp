@@ -69,7 +69,8 @@ std::vector<ProgramOption> allen_program_options()
     {{"disable-run-changes"}, "Ignore signals to update non-event data with each run change", "1"},
     {{"enable-monitoring-printing"}, "Enables printing monitoring information", "0"},
     {{"register-monitoring-counters"}, "Registers monitoring counters", "1"},
-    {{"prefer-shared"}, "Configure the device to use more shared than L1 (0: false)", "0"}};
+    {{"prefer-shared"}, "Configure the device to use more shared than L1 (0: false)", "0"},
+    {{"tck-from-odin"}, "Respect the TCK requested by ODIN", "0"}};
 }
 
 void print_call_options(const std::map<std::string, std::string>& options, const std::string& device_name)

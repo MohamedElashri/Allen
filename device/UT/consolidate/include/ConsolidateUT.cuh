@@ -34,7 +34,6 @@ namespace ut_consolidate_tracks {
     DEVICE_OUTPUT(dev_ut_track_params_t, float) dev_ut_track_params;
     DEVICE_OUTPUT(dev_ut_qop_t, float) dev_ut_qop;
     DEVICE_OUTPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
-    DEVICE_OUTPUT(dev_used_ut_hits_offsets_t, unsigned) dev_used_ut_hits_offsets;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_ut_hits_view_t,
       DEPENDENCIES(dev_ut_track_hits_t),

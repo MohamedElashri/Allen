@@ -329,7 +329,7 @@ def make_velo_tracks(decoded_velo):
     }
 
 
-def make_velo_tracks_ACsplit(decoded_velo):
+def make_velo_tracks_ACsplit(decoded_velo, split_alg="A/C split"):
 
     number_of_events = initialize_number_of_events()
     velo_tracks_preparation = make_pr_velo_tracks(decoded_velo)
@@ -356,7 +356,7 @@ def make_velo_tracks_ACsplit(decoded_velo):
             "dev_offsets_number_of_three_hit_tracks_filtered"],
         dev_sorted_velo_cluster_container_t=dev_sorted_velo_cluster_container,
         dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
-        splitting_algorithm="A/C split")
+        splitting_algorithm=split_alg)
 
     tracks_ACsplit = make_algorithm(
         tracks_ACsplit_t,
@@ -382,7 +382,7 @@ def make_velo_tracks_ACsplit(decoded_velo):
         dev_offsets_number_of_three_hit_tracks_filtered_t=
         velo_tracks_preparation[
             "dev_offsets_number_of_three_hit_tracks_filtered"],
-        splitting_algorithm="A/C split")
+        splitting_algorithm=split_alg)
 
     velo_consolidate_tracks_A_side = make_algorithm(
         velo_consolidate_tracks_t,

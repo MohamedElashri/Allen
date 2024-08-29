@@ -9,16 +9,17 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks, run_velo_kalman_filter, filter_tracks_for_material_interactions, make_velo_tracks_ACsplit
-from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks, create_reduced_ut_container
+from AllenConf.ut_reconstruction import decode_ut, make_ut_tracks, create_reduced_ut_container, make_dummy_ut_hits
 from AllenConf.scifi_reconstruction import decode_scifi, make_forward_tracks, make_seeding_XZ_tracks, make_seeding_tracks
 from AllenConf.matching_reconstruction import make_velo_scifi_matches
 from AllenConf.downstream_reconstruction import make_downstream, fit_downstream_secondary_vertices
-from AllenConf.muon_reconstruction import decode_muon, chi2muon, is_muon, fake_muon_id, make_muon_stubs
+from AllenConf.muon_reconstruction import decode_muon, chi2muon, is_muon, fake_muon_id, make_muon_stubs, muonid_nn
 from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make_ecal_clusters, make_electronid_nn
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import (
     make_kalman_velo_only, make_basic_particles, fit_secondary_vertices,
     make_sv_track_pairs, make_sv_pairs, make_generic_sv_pairs)
+from AllenConf.jet_reconstruction import make_cone_jets
 from AllenConf.validators import (
     velo_validation, veloUT_validation, seeding_validation,
     seeding_xz_validation, long_validation, muon_validation, pv_validation,
@@ -67,28 +68,20 @@ def hlt1_reconstruction(algorithm_name='',
 
     if tracking_type in (TrackingType.FORWARD_THEN_MATCHING,
                          TrackingType.MATCHING_THEN_FORWARD):
-        if with_ut:
-            # VeloUT tracking
-            decoded_ut = decode_ut()
-            ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
-            input_tracks = ut_tracks
-            output.update({"ut_tracks": input_tracks})
-
         long_tracks = best_track_creator(
             with_ut,
             tracking_type=tracking_type,
             algorithm_name=algorithm_name)
 
         if with_ut and enableDownstream:
-            reduced_ut_hits = create_reduced_ut_container(
-                decoded_ut, ut_tracks['dev_used_ut_hits_offsets'])
-
             # Downstream tracking
             downstream_tracks = make_downstream(
-                decoded_ut=reduced_ut_hits,
+                decoded_ut=long_tracks["ut_hits"],
                 scifi_seeds=long_tracks["seeding_tracks"],
                 velo_scifi_matches=long_tracks['matched_tracks'],
-                pvs=pvs)
+                pvs=pvs,
+                dev_used_ut_hits_offsets=long_tracks[
+                    "dev_used_ut_hits_offsets"])
             output.update({"downstream_tracks": downstream_tracks})
 
         output.update({
@@ -124,16 +117,18 @@ def hlt1_reconstruction(algorithm_name='',
 
     elif tracking_type == TrackingType.FORWARD:
         if with_ut:
-            decoded_ut = decode_ut()
-            ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
+            ut_hits = decode_ut()
+            ut_tracks = make_ut_tracks(ut_hits, velo_tracks)
             input_tracks = ut_tracks
             output.update({"ut_tracks": input_tracks})
         else:
+            ut_hits = make_dummy_ut_hits()
             input_tracks = velo_tracks
         decoded_scifi = decode_scifi()
         long_tracks = make_forward_tracks(
             decoded_scifi,
             input_tracks,
+            ut_hits,
             velo_tracks["dev_accepted_velo_tracks"],
             with_ut=with_ut,
             scifi_consolidate_tracks_name=algorithm_name +
@@ -147,8 +142,9 @@ def hlt1_reconstruction(algorithm_name='',
             decoded_muon, long_tracks, is_muon_name=algorithm_name + 'is_muon')
         # Replace long tracks with those containing muon hits.
         long_tracks = muonID["long_tracks"]
-        chi2Corr = chi2muon(long_tracks, muonID)
-        muonID.update(chi2Corr)
+        # chi2Corr = chi2muon(long_tracks, muonID)
+        muonid_extra = muonid_nn(long_tracks, muonID, decoded_muon)
+        muonID.update(muonid_extra)
     else:
         muonID = fake_muon_id(host_number_of_tracks=long_tracks[
             'host_number_of_reconstructed_scifi_tracks'])
@@ -168,17 +164,26 @@ def hlt1_reconstruction(algorithm_name='',
                                                     velo_states, long_tracks,
                                                     kalman_velo_only)
         electronid_nn = make_electronid_nn(long_tracks, calo_matching_objects)
+
+        ecal_clusters = make_ecal_clusters(
+            decoded_calo,
+            calo_matching_objects,
+            calo_find_clusters_name='calo_find_clusters')
+
         long_track_particles = make_basic_particles(
             kalman_velo_only,
             muonID,
             make_long_track_particles_name=algorithm_name +
             'make_long_track_particles',
             is_electron_result=calo_matching_objects)
+        jets = make_cone_jets(
+            long_tracks, long_track_particles, ecal_clusters, n_max_jets=4)
         output.update({
             "decoded_calo": decoded_calo,
             "calo_matching_objects": calo_matching_objects,
             "ecal_clusters": ecal_clusters,
-            "electronid_nn": electronid_nn
+            "electronid_nn": electronid_nn,
+            "jets": jets
         })
     else:
         long_track_particles = make_basic_particles(

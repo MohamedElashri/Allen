@@ -98,8 +98,8 @@ def best_track_creator(with_ut=True,
         reduced_scifi_hit_container = create_reduced_scifi_container(
             forward_tracks["dev_used_scifi_hits"])
         reduced_ut_hit_container = create_reduced_ut_container(
-            decode_ut(), forward_tracks['veloUT_tracks']
-            ['dev_used_ut_hits_offsets']) if with_ut else None
+            decode_ut(),
+            forward_tracks['dev_used_ut_hits_offsets']) if with_ut else None
 
         decoded_velo = decode_velo()
         velo_tracks = make_velo_tracks(decoded_velo)
@@ -119,6 +119,7 @@ def best_track_creator(with_ut=True,
             ut_hits=reduced_ut_hit_container,
             matching_consolidate_tracks_name=algorithm_name +
             'matching_consolidate_tracks')
+        dev_used_ut_hits_offsets = matched_tracks["dev_used_ut_hits_offsets"]
     elif tracking_type == TrackingType.MATCHING_THEN_FORWARD:
         decoded_velo = decode_velo()
         velo_tracks = make_velo_tracks(decoded_velo)
@@ -141,10 +142,16 @@ def best_track_creator(with_ut=True,
         reduced_scifi_hit_container = create_reduced_scifi_container(
             matched_tracks["dev_used_scifi_hits"])
 
+        reduced_ut_hit_container = create_reduced_ut_container(
+            decode_ut(),
+            matched_tracks['dev_used_ut_hits_offsets']) if with_ut else None
+
         if with_ut:
-            reduced_ut_hit_container = create_reduced_ut_container(
-                decode_ut(), matched_tracks['dev_used_ut_hits_offsets'])
-            ut_tracks = make_ut_tracks(reduced_ut_hit_container, velo_tracks)
+            ut_tracks = make_ut_tracks(
+                reduced_ut_hit_container,
+                velo_tracks,
+                dev_accepted_velo_tracks=matched_tracks[
+                    "dev_accepted_and_unused_velo_tracks"])
             input_tracks = ut_tracks
         else:
             input_tracks = velo_tracks
@@ -152,10 +159,12 @@ def best_track_creator(with_ut=True,
         forward_tracks = make_forward_tracks(
             reduced_scifi_hit_container,
             input_tracks,
+            reduced_ut_hit_container,
             matched_tracks["dev_accepted_and_unused_velo_tracks"],
             with_ut,
             scifi_consolidate_tracks_name=algorithm_name +
             'scifi_consolidate_tracks')
+        dev_used_ut_hits_offsets = forward_tracks["dev_used_ut_hits_offsets"]
     else:
         raise Exception("Tracking type not supported")
 
@@ -165,7 +174,9 @@ def best_track_creator(with_ut=True,
     combined_map.update({
         "seeding_tracks": seeding_tracks,
         "matched_tracks": matched_tracks,
-        "forward_tracks": forward_tracks
+        "forward_tracks": forward_tracks,
+        "ut_hits": reduced_ut_hit_container,
+        "dev_used_ut_hits_offsets": dev_used_ut_hits_offsets
     })
 
     return combined_map

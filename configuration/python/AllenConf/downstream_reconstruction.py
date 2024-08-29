@@ -200,6 +200,8 @@ def make_downstream(decoded_ut,
         #
         # Forward previous outputs
         #
+        "ut_hits":
+        ut_hits,
         "decode_ut":
         decoded_ut,
         "scifi_seeds":

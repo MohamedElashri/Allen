@@ -93,7 +93,10 @@ Vertices GaudiAllenPVsToPrimaryVertexContainer::operator()(
     auto& recvertex = vertices.emplace_back(Gaudi::XYZPoint {vertex.position.x, vertex.position.y, vertex.position.z});
     recvertex.setCovMatrix(poscov);
     recvertex.setChi2(vertex.chi2);
-    recvertex.setNDoF(vertex.ndof);
+    // vertex.nTracks contains the sum of weights from Allen TBLV. To convert it to Number of Degrees of Freedom ->
+    // Nubmer of Tracks we can use linear parametrisation described here
+    // https://indico.cern.ch/event/1370630/contributions/5849852. nTrack = (nDoF+3)/2
+    recvertex.setNDoF(std::lround(2 * (1 + 1.58 * vertex.nTracks) - 3));
   }
 
   m_nbPVsCounter += vertices.size();

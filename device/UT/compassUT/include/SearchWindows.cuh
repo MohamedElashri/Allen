@@ -39,7 +39,7 @@ namespace ut_search_windows {
   __global__ void ut_search_windows(
     Parameters,
     UTMagnetTool* dev_ut_magnet_tool,
-    const float* dev_ut_dxDy,
+    const UT::Constants::PerLayerInfo* dev_mean_layer_info,
     const unsigned* dev_unique_x_sector_layer_offsets,
     const float* dev_unique_sector_xs);
 

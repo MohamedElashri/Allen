@@ -112,6 +112,7 @@ void CompareRecAllenUTHits::operator()(const std::vector<UT::Hit>& allen_hits, c
        value_compatible(iterator->yBegin, sorted_allen_hits[i].yBegin) &&
        value_compatible(iterator->yEnd, sorted_allen_hits[i].yEnd) &&
        value_compatible(iterator->zAtYEq0, sorted_allen_hits[i].zAtYEq0) &&
+       value_compatible(iterator->dxDy, sorted_allen_hits[i].dxDy) &&
        value_compatible(iterator->weight, sorted_allen_hits[i].weight));
 
     (*m_allen_overlap) += matched;
@@ -132,6 +133,7 @@ void CompareRecAllenUTHits::operator()(const std::vector<UT::Hit>& allen_hits, c
        value_compatible(iterator->yBegin, sorted_rec_hits[i].yBegin) &&
        value_compatible(iterator->yEnd, sorted_rec_hits[i].yEnd) &&
        value_compatible(iterator->zAtYEq0, sorted_rec_hits[i].zAtYEq0) &&
+       value_compatible(iterator->dxDy, sorted_rec_hits[i].dxDy) &&
        value_compatible(iterator->weight, sorted_rec_hits[i].weight));
 
     (*m_rec_overlap) += matched;
@@ -174,13 +176,13 @@ void CompareRecAllenUTHits::operator()(const std::vector<UT::Hit>& allen_hits, c
     info() << "Printing Allen and Rec hits that are not matched" << endmsg;
     info() << std::setw(width) << "Type" << std::setw(width) << "LHCbID" << std::setw(width) << "xAtYEq0"
            << std::setw(width) << "yBegin" << std::setw(width) << "yEnd" << std::setw(width) << "zAtYEq0"
-           << std::setw(width) << "weight" << endmsg;
+           << std::setw(width) << "dxDy" << std::setw(width) << "weight" << endmsg;
     for (unsigned i = 0; i < n_hits_total_allen; i++) {
       if (!allen_hits_matched[i]) {
         const auto& hit = sorted_allen_hits[i];
         info() << std::setw(width) << "Allen" << std::setw(width) << hit.LHCbID << std::setw(width) << hit.xAtYEq0
                << std::setw(width) << hit.yBegin << std::setw(width) << hit.yEnd << std::setw(width) << hit.zAtYEq0
-               << std::setw(width) << hit.weight << endmsg;
+               << std::setw(width) << hit.dxDy << std::setw(width) << hit.weight << endmsg;
       }
     }
     for (unsigned i = 0; i < n_hits_total_rec; i++) {
@@ -188,7 +190,7 @@ void CompareRecAllenUTHits::operator()(const std::vector<UT::Hit>& allen_hits, c
         const auto& hit = sorted_rec_hits[i];
         info() << std::setw(width) << "Rec" << std::setw(width) << hit.LHCbID << std::setw(width) << hit.xAtYEq0
                << std::setw(width) << hit.yBegin << std::setw(width) << hit.yEnd << std::setw(width) << hit.zAtYEq0
-               << std::setw(width) << hit.weight << endmsg;
+               << std::setw(width) << hit.dxDy << std::setw(width) << hit.weight << endmsg;
       }
     }
   }
@@ -197,13 +199,13 @@ void CompareRecAllenUTHits::operator()(const std::vector<UT::Hit>& allen_hits, c
     warning() << "Printing Allen and Rec hits that are repeated" << endmsg;
     warning() << std::setw(width) << "Type" << std::setw(width) << "LHCbID" << std::setw(width) << "xAtYEq0"
               << std::setw(width) << "yBegin" << std::setw(width) << "yEnd" << std::setw(width) << "zAtYEq0"
-              << std::setw(width) << "weight" << endmsg;
+              << std::setw(width) << "dxDy" << std::setw(width) << "weight" << endmsg;
     for (unsigned i = 0; i < n_hits_total_allen; i++) {
       if (allen_hits_repeated[i]) {
         const auto& hit = sorted_allen_hits[i];
         warning() << std::setw(width) << "Allen" << std::setw(width) << hit.LHCbID << std::setw(width) << hit.xAtYEq0
                   << std::setw(width) << hit.yBegin << std::setw(width) << hit.yEnd << std::setw(width) << hit.zAtYEq0
-                  << std::setw(width) << hit.weight << endmsg;
+                  << std::setw(width) << hit.dxDy << std::setw(width) << hit.weight << endmsg;
       }
     }
     for (unsigned i = 0; i < n_hits_total_allen; i++) {
@@ -211,7 +213,7 @@ void CompareRecAllenUTHits::operator()(const std::vector<UT::Hit>& allen_hits, c
         const auto& hit = sorted_rec_hits[i];
         warning() << std::setw(width) << "Rec" << std::setw(width) << hit.LHCbID << std::setw(width) << hit.xAtYEq0
                   << std::setw(width) << hit.yBegin << std::setw(width) << hit.yEnd << std::setw(width) << hit.zAtYEq0
-                  << std::setw(width) << hit.weight << endmsg;
+                  << std::setw(width) << hit.dxDy << std::setw(width) << hit.weight << endmsg;
       }
     }
   }

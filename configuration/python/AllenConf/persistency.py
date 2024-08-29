@@ -150,13 +150,13 @@ rb_map = {
     'Hlt1BGI.*':
     11,
     # RB 12 Upsilon Alignment
-    'Hlt1DiMuonHighMass':
+    'Hlt1UpsilonAlignment':
     12,
     # RB 14 HLT1 physics for monitoring and alignment
     'Hlt1(TrackMVA|TwoTrackMVA|SingleHighPtMuon|DiMuonHighMass|TrackMuonMVA|DisplacedDiMuon|TrackElectronMVA|SingleHighPtElectron|DisplacedDielectron|SingleHighEt)':
     14,
     # RB 15 HLT1 beam-gas physics for monitoring and alignment
-    'Hlt1SMOG2(2BodyGeneric|2BodyGenericPrompt|SingleTrackVeryHighPt|SingleTrackHighPt|DiMuonHighMass|SingleMuon)':
+    'Hlt1SMOG2(2BodyGeneric|2BodyGenericPrompt|SingleTrackVeryHighPt|SingleTrackHighPt|DiMuonHighMass|SingleMuon|DisplacedDiMuon)':
     15,
     # RB 17 physics for CalibMon
     'Hlt1(Dst2D0Pi|DetJpsiToMuMuPosTagLine|DetJpsiToMuMuNegTagLine)':
@@ -202,7 +202,7 @@ rb_map_PbPb = {
     'Hlt1ODINCalib':
     10,
     # RB 12 Upsilon Alignment
-    'Hlt1DiMuonHighMass':
+    'Hlt1UpsilonAlignment':
     12,
     # RB 14 HLT1 beam-beam physics for monitoring and alignment
     'Hlt1(HeavyIonPbPbPeripheral|HeavyIonPbPbCentral|HeavyIonPbPbUPCMB|GECCentPassthrough)':

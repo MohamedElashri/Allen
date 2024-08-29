@@ -45,6 +45,7 @@ void ut_decode_in_order::ut_decode_in_order_t::operator()(
   }
 }
 
+template<int layer>
 __device__ void decode_cluster(
   UTGeometry const& geometry,
   UT::ConstPreDecodedHits const& ut_pre_decoded_hits,
@@ -65,6 +66,15 @@ __device__ void decode_cluster(
   const float p0Y = geometry.p0Y[sec];
   const float p0Z = geometry.p0Z[sec];
 
+  // Load dxDy
+  float dxDy = 0.f;
+  if constexpr (layer < 0) {
+    dxDy = geometry.dxDy[sec];
+  }
+  else {
+    dxDy = UT::Constants::static_hardcoded_dxdy<layer>();
+  }
+
   const float yBegin = p0Y + numstrips * dp0diY;
   const float yEnd = dy + yBegin;
   const float zAtYEq0 = fabsf(p0Z) + numstrips * dp0diZ;
@@ -75,6 +85,7 @@ __device__ void decode_cluster(
   ut_hits.yEnd(hit_index) = yEnd;
   ut_hits.zAtYEq0(hit_index) = zAtYEq0;
   ut_hits.xAtYEq0(hit_index) = xAtYEq0;
+  ut_hits.dxDy(hit_index) = dxDy;
   ut_hits.weight(hit_index) = weight;
   ut_hits.id(hit_index) = LHCbID;
 }
@@ -106,6 +117,25 @@ __global__ void ut_decode_in_order::ut_decode_in_order(
   for (unsigned i = threadIdx.x; i < number_of_hits; i += blockDim.x) {
     const unsigned hit_index = event_offset + i;
     const unsigned unsorted_hit_index = parameters.dev_ut_permutations[hit_index];
-    decode_cluster(geometry, ut_pre_decoded_hits, hit_index, unsorted_hit_index, ut_hits);
+
+    if (geometry.version > 0) {
+      // When version > 0, we use per-sector dxDy
+      decode_cluster<-1>(geometry, ut_pre_decoded_hits, hit_index, unsorted_hit_index, ut_hits);
+    }
+    else {
+      // When version <= 0, we use hard-coded dxDy, so need to pass layer information
+      if (hit_index < ut_cluster_offsets.layer_offset(1)) {
+        decode_cluster<0>(geometry, ut_pre_decoded_hits, hit_index, unsorted_hit_index, ut_hits);
+      }
+      else if (hit_index < ut_cluster_offsets.layer_offset(2)) {
+        decode_cluster<1>(geometry, ut_pre_decoded_hits, hit_index, unsorted_hit_index, ut_hits);
+      }
+      else if (hit_index < ut_cluster_offsets.layer_offset(3)) {
+        decode_cluster<2>(geometry, ut_pre_decoded_hits, hit_index, unsorted_hit_index, ut_hits);
+      }
+      else {
+        decode_cluster<3>(geometry, ut_pre_decoded_hits, hit_index, unsorted_hit_index, ut_hits);
+      }
+    }
   }
 }

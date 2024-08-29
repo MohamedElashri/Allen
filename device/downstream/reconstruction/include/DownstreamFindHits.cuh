@@ -23,7 +23,8 @@
 #include "DownstreamConstants.cuh"
 #include "DownstreamStructs.cuh"
 #include "DownstreamExtrapolation.cuh"
-#include "DownstreamCache.cuh"
+#include "DownstreamHelper.cuh"
+#include "UTHitCache.cuh"
 
 /**
  * @brief This is definition file for downstream_find_hits algorithm
@@ -51,10 +52,6 @@ namespace downstream_find_hits {
     DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
     HOST_INPUT(host_accumulated_number_of_ut_hits_t, unsigned) host_accumulated_number_of_ut_hits;
-
-    // Hit caching memory - cache UT hits in global memory in case of it doesn't fit the shared memory
-    DEVICE_OUTPUT(dev_hit_caching_memory_t, char) dev_hit_caching_memory;
-    DEVICE_OUTPUT(dev_hit_caching_counter_t, unsigned) dev_hit_caching_counter;
 
     // Outputs
     DEVICE_OUTPUT(dev_findhits_output_t, Downstream::DownstreamStructs::DownstreamHits) dev_findhits_output;
@@ -95,17 +92,38 @@ namespace downstream_find_hits {
     num_threads_find_rest_hits;
   };
 
+#if defined(TARGET_DEVICE_CUDA)
+#if __CUDA_ARCH__ >= 800 // Ampere (A5000)
+  // downstream_create_candidates has 48 register / thread
+  // downstream_find_rest_hits has 40 register / thread
+  __device__ static constexpr unsigned int MaxCacheSize_CreateCandidates = 1472 - 1; // Need extra bits for counters
+  __device__ static constexpr unsigned int MaxCacheSize_FindRestHits = 1472;
+#else // Volta, Turing:
+  __device__ static constexpr unsigned int MaxCacheSize_CreateCandidates = 1344 - 1; // Need extra bits for counters
+  __device__ static constexpr unsigned int MaxCacheSize_FindRestHits = 1344;
+#endif
+#else // CPU, HIP
+  __device__ static constexpr unsigned int MaxCacheSize_CreateCandidates = 1;
+  __device__ static constexpr unsigned int MaxCacheSize_FindRestHits = 1;
+#endif
+  using UTHitsCache_CreateCandidates = UT::SmartHitsCache<MaxCacheSize_CreateCandidates>;
+  using UTHitsCache_FindRestHits = UT::SmartHitsCache<MaxCacheSize_FindRestHits>;
+
   template<bool filter_used_scifi_seeds>
   __global__ void downstream_create_candidates(
-    Parameters,
-    const unsigned*,
-    const float*,
-    const float*,
-    const float*,
-    const Allen::NeuralNetwork::Model::TTrackSelector*);
+    Parameters parameters,
+    const unsigned* dev_unique_x_sector_layer_offsets,
+    const float* dev_unique_sector_xs,
+    const float* dev_magnet_polarity,
+    const UT::Constants::PerLayerInfo* dev_mean_layer_info,
+    const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector);
 
   template<bool require_four_hits>
-  __global__ void downstream_find_rest_hits(Parameters, const unsigned*, const float*, const float*, const float*);
+  __global__ void downstream_find_rest_hits(
+    Parameters parameters,
+    const unsigned* dev_unique_x_sector_layer_offsets,
+    const float* dev_unique_sector_xs,
+    const UT::Constants::PerLayerInfo* dev_mean_layer_info);
 
   struct downstream_find_hits_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -120,7 +138,7 @@ namespace downstream_find_hits {
     Property<ttracks_probability_threshold_t> m_ttracks_probability_threshold {this, 0.5};
     Property<require_four_ut_hits_t> m_require_four_ut_hits {this, true};
     Property<num_threads_create_candidates_t> m_num_threads_create_candidates {this, {{64, 1, 1}}};
-    Property<num_threads_find_rest_hits_t> m_num_threads_find_rest_hits {this, {{128, 1, 1}}};
+    Property<num_threads_find_rest_hits_t> m_num_threads_find_rest_hits {this, {{192, 1, 1}}};
   };
 
 } // namespace downstream_find_hits

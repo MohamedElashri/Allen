@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #pragma once
+#include <cstdint>
 
 namespace Calo {
   namespace Constants {
@@ -25,5 +26,12 @@ namespace Calo {
 
     constexpr uint16_t z = 12650;
 
+    // Parameters to get region size out of region_s = region_size_0 + region_size_1 * region_index + region_size_2 *
+    // region_index**2
+    constexpr float region_size_0 = 121.2f;
+    constexpr float region_size_1 = -80.8f;
+    constexpr float region_size_2 = 20.2f;
+
+    constexpr uint16_t n_electron_id_features = 6;
   } // namespace Constants
 } // namespace Calo

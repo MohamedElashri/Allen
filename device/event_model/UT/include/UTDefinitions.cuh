@@ -95,6 +95,38 @@ namespace UT {
     static constexpr float magFieldParams_2 = -71330.f;
     //
     static constexpr float LD3Hits = -0.5f;
+
+    // Hardcoded dxdy
+    __host__ __device__ inline float hardcoded_dxdy(unsigned layer)
+    {
+      switch (layer) {
+      case 0:
+      case 3: return 0.f;
+      case 1: return 0.08748867f;
+      case 2: return -0.08748867f;
+      default: return std::numeric_limits<float>::quiet_NaN();
+      }
+    }
+
+    template<unsigned layer>
+    __device__ __host__ static constexpr float static_hardcoded_dxdy()
+    {
+      switch (layer) {
+      case 0:
+      case 3: return 0.f;
+      case 1: return 0.08748867f;
+      case 2: return -0.08748867f;
+      default: return std::numeric_limits<float>::quiet_NaN();
+      }
+    };
+
+    struct PerLayerInfo {
+      float mean_z[Constants::n_layers];
+      float mean_dxDy[Constants::n_layers];
+      float min_dxDy[Constants::n_layers];
+      float max_dxDy[Constants::n_layers];
+      float two_dy[Constants::n_layers][2];
+    };
   } // namespace Constants
 } // namespace UT
 
@@ -144,6 +176,7 @@ struct UTBoards {
 };
 
 struct UTGeometry {
+  uint32_t version = 0;
   uint32_t number_of_sectors = 0;
   uint32_t* firstStrip = nullptr;
   float* pitch = nullptr;
@@ -155,11 +188,14 @@ struct UTGeometry {
   float* p0Y = nullptr;
   float* p0Z = nullptr;
   float* cos = nullptr;
+  float* dxDy = nullptr;
 
   __device__ __host__ UTGeometry(const char* ut_geometry)
   {
     uint32_t* p = (uint32_t*) ut_geometry;
-    number_of_sectors = *((uint32_t*) p);
+    uint32_t metadata = *((uint32_t*) p);
+    version = metadata >> 16;
+    number_of_sectors = metadata & 0x0000FFFF;
     p += 1;
     firstStrip = (uint32_t*) p;
     p += UT::Decoding::ut_number_of_geometry_sectors;
@@ -180,7 +216,11 @@ struct UTGeometry {
     p0Z = (float*) p;
     p += UT::Decoding::ut_number_of_geometry_sectors;
     cos = (float*) p;
-    p += UT::Decoding::ut_number_of_geometry_sectors;
+    if (version > 0) // v0 -> hard-coded dxdy, v1 -> per-serctor dxdy
+    {
+      p += UT::Decoding::ut_number_of_geometry_sectors;
+      dxDy = (float*) p;
+    }
   }
 
   UTGeometry(const std::vector<char>& ut_geometry) : UTGeometry {ut_geometry.data()} {}

@@ -49,12 +49,18 @@ def get_master_throughput(job_name,
 
     proj_id = int(os.environ["CI_PROJECT_ID"])
     project = gl.projects.get(proj_id)
-    target_branch = os.environ["CI_MERGE_REQUEST_TARGET_BRANCH_NAME"]
-    if (target_branch == "2024-patches"):
-        ref = "2024-patches"
-    print(
-        f"target branch is {target_branch}, will use the corresponding reference"
-    )
+
+    target_branch = os.environ.get('CI_MERGE_REQUEST_TARGET_BRANCH_NAME')
+    if target_branch is not None:
+        if (target_branch == "2024-patches"):
+            ref = "2024-patches"
+        else:
+            ref = "master"
+        print(
+            f"target branch is {target_branch}, will use the corresponding reference"
+        )
+    else:
+        ref = os.environ["CI_COMMIT_REF_NAME"]
 
     # select last successful or failed pipeline
     for pipeline in project.pipelines.list(ref=ref, as_list=False):

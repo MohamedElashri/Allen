@@ -28,8 +28,6 @@ namespace two_track_mva_evaluator {
 
   __global__ void two_track_mva_evaluator(
     Parameters,
-    const float* weights,
-    const float* biases,
     const int* layer_sizes,
     const int n_layers,
     const float* monotone_constraints,
@@ -37,6 +35,7 @@ namespace two_track_mva_evaluator {
 
   struct two_track_mva_evaluator_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+    void update(const Constants& constants) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,

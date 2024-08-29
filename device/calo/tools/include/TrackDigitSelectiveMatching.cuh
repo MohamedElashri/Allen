@@ -38,9 +38,12 @@ namespace track_digit_selective_matching {
     DEVICE_OUTPUT(dev_track_Eop_t, float) dev_track_Eop;
     DEVICE_OUTPUT(dev_track_Eop3x3_t, float) dev_track_Eop3x3;
     DEVICE_OUTPUT(dev_track_isElectron_t, bool) dev_track_isElectron;
+    DEVICE_OUTPUT(dev_delta_barycenter_x_t, float) dev_delta_barycenter_x;
+    DEVICE_OUTPUT(dev_delta_barycenter_y_t, float) dev_delta_barycenter_y;
     DEVICE_OUTPUT(dev_delta_barycenter_t, float) dev_delta_barycenter;
     DEVICE_OUTPUT(dev_dispersion_x_t, float) dev_dispersion_x;
     DEVICE_OUTPUT(dev_dispersion_y_t, float) dev_dispersion_y;
+    DEVICE_OUTPUT(dev_region_t, int) dev_region;
     DEVICE_OUTPUT(dev_dispersion_xy_t, float) dev_dispersion_xy;
     DEVICE_OUTPUT(dev_track_local_max_t, bool) dev_track_local_max;
     // Properties

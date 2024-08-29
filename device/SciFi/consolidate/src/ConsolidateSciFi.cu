@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #include "ConsolidateSciFi.cuh"
 #include "LFMomentumEstimation.cuh"
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(scifi_consolidate_tracks::scifi_consolidate_tracks_t)
 
@@ -156,6 +157,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
   set_size<dev_multi_event_long_tracks_ptr_t>(arguments, 1);
   set_size<dev_used_scifi_hits_t>(arguments, first<host_scifi_hit_count_t>(arguments) / 32 + 1);
   set_size<dev_accepted_and_unused_velo_tracks_t>(arguments, size<dev_accepted_velo_tracks_t>(arguments));
+  set_size<dev_used_ut_hits_offsets_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) + 1);
 }
 
 void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
@@ -167,6 +169,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   Allen::memset_async<dev_scifi_multi_event_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_scifi_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_used_scifi_hits_t>(arguments, 0, context);
+  Allen::memset_async<dev_used_ut_hits_offsets_t>(arguments, 0, context);
   Allen::copy_async<dev_accepted_and_unused_velo_tracks_t, dev_accepted_velo_tracks_t>(arguments, context);
 
   auto dev_counter_long_tracks_forward = m_counter_long_tracks_forward.data(context);
@@ -189,6 +192,11 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
     dev_histo_long_track_forward_phi,
     dev_histo_long_track_forward_nhits,
     dev_histo_long_track_forward_qop);
+
+  const bool with_ut = first<host_accumulated_number_of_ut_hits_t>(arguments) > 0;
+  if (with_ut) {
+    PrefixSum::prefix_sum<dev_used_ut_hits_offsets_t>(*this, arguments, context);
+  }
 }
 
 template<typename F>
@@ -347,6 +355,14 @@ __device__ void scifi_consolidate_tracks_impl(
     populate(track, [&consolidated_hits, &scifi_hits, &event_offset](const unsigned i, const unsigned hit_index) {
       consolidated_hits.assembled_datatype(i) = scifi_hits.assembled_datatype(event_offset + hit_index);
     });
+
+    if constexpr (with_ut) {
+      const auto ut_track = input_tracks_view.track(event_scifi_tracks[i].input_track_index);
+      for (unsigned j = 0; j < ut_track.number_of_ut_hits(); j++) {
+        const unsigned original_index = ut_track.hit(j).original_index();
+        parameters.dev_used_ut_hits_offsets[original_index] = 1u;
+      }
+    }
   }
 }
 

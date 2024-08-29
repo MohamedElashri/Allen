@@ -113,6 +113,30 @@ StatusCode ProvideConstants::initialize()
     two_track_mva_model_reader.monotone_constraints(),
     two_track_mva_model_reader.nominal_cut(),
     two_track_mva_model_reader.lambda());
+  LipschitzNNModelReader electronid_mva_model_reader {geometry_path + "/CaloPID/electron_mva_AllenJune2024.json"};
+
+  m_constants.initialize_electronid_mva_model_constants(
+    electronid_mva_model_reader.weights(),
+    electronid_mva_model_reader.biases(),
+    electronid_mva_model_reader.layer_sizes(),
+    electronid_mva_model_reader.n_layers(),
+    electronid_mva_model_reader.monotone_constraints(),
+    electronid_mva_model_reader.min_rescales(),
+    electronid_mva_model_reader.max_rescales(),
+    electronid_mva_model_reader.nominal_cut(),
+    electronid_mva_model_reader.lambda());
+  LipschitzNNModelReader muonid_mva_model_reader {geometry_path + "/muonid_mva_AllenJune2024.json"};
+
+  m_constants.initialize_muonid_mva_model_constants(
+    muonid_mva_model_reader.weights(),
+    muonid_mva_model_reader.biases(),
+    muonid_mva_model_reader.layer_sizes(),
+    muonid_mva_model_reader.n_layers(),
+    muonid_mva_model_reader.monotone_constraints(),
+    muonid_mva_model_reader.min_rescales(),
+    muonid_mva_model_reader.max_rescales(),
+    muonid_mva_model_reader.nominal_cut(),
+    muonid_mva_model_reader.lambda());
 
   // Ghost killers
   SingleLayerFCNNReader forward_ghostkiller_reader {geometry_path +
@@ -173,6 +197,15 @@ StatusCode ProvideConstants::initialize()
     matching_no_ut_v2_ghostkiller_reader.weights2(),
     matching_no_ut_v2_ghostkiller_reader.bias2());
 
+  SingleLayerFCNNReader matching_with_ut_v2_ghostkiller_reader {
+    geometry_path + "/GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT_V2.json"};
+  m_constants.initialize_matching_with_ut_v2_ghostkiller_constants(
+    matching_with_ut_v2_ghostkiller_reader.mean(),
+    matching_with_ut_v2_ghostkiller_reader.std(),
+    matching_with_ut_v2_ghostkiller_reader.weights1(),
+    matching_with_ut_v2_ghostkiller_reader.bias1(),
+    matching_with_ut_v2_ghostkiller_reader.weights2(),
+    matching_with_ut_v2_ghostkiller_reader.bias2());
   // std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, matching_no_ut_ghostkiller_reader,
   // forward_ghostkiller_reader, matching_ghostkiller_reader;
 
@@ -234,18 +267,6 @@ StatusCode ProvideConstants::initialize()
     downstream_detached_kshort_selector_reader.bias1(),
     downstream_detached_kshort_selector_reader.weights2(),
     downstream_detached_kshort_selector_reader.bias2());
-
-  LipschitzNNModelReader electronid_mva_model_reader {geometry_path + "/CaloPID/electron_mva_AllenFeb2024.json"};
-  m_constants.initialize_electronid_mva_model_constants(
-    electronid_mva_model_reader.weights(),
-    electronid_mva_model_reader.biases(),
-    electronid_mva_model_reader.layer_sizes(),
-    electronid_mva_model_reader.n_layers(),
-    electronid_mva_model_reader.monotone_constraints(),
-    electronid_mva_model_reader.min_rescales(),
-    electronid_mva_model_reader.max_rescales(),
-    electronid_mva_model_reader.nominal_cut(),
-    electronid_mva_model_reader.lambda());
 
   // Allen Consumers
   std::unordered_set<BankTypes> subdetectors;
