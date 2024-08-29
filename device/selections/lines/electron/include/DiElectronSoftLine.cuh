@@ -55,6 +55,7 @@ namespace di_electron_soft_line {
     PROPERTY(DESoftGhost_t, "DESoftGhost", "min sin2 of angle between electrons (ghost removal)", float) DESoftGhost;
     PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dielectron combinations", bool) OppositeSign;
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+    PROPERTY(enable_tupling_t, "enable_tupling", "Enables monitoring ntuple", bool) enable_tupling;
   };
 
   struct di_electron_soft_line_t : public SelectionAlgorithm,
@@ -93,15 +94,16 @@ namespace di_electron_soft_line {
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     Property<DESoftM0_t> m_DESoftM0 {this, 465.f};
     Property<DESoftM1_t> m_DESoftM1 {this, 530.f};
-    Property<DESoftM2_t> m_DESoftM2 {this, 600.f};
+    Property<DESoftM2_t> m_DESoftM2 {this, 800.f};
     Property<DESoftMinIP_t> m_DESoftMinIP {this, 0.5f};
     Property<DESoftMinRho2_t> m_DESoftMinRho2 {this, 9.f};
-    Property<DESoftMinZ_t> m_DESoftMinZ {this, -375.f};
+    Property<DESoftMinZ_t> m_DESoftMinZ {this, -10.f};
     Property<DESoftMaxZ_t> m_DESoftMaxZ {this, 635.f};
     Property<DESoftMaxDOCA_t> m_DESoftMaxDOCA {this, 0.1f};
-    Property<DESoftMaxIPDZ_t> m_DESoftMaxIPDZ {this, 0.04f};
+    Property<DESoftMaxIPDZ_t> m_DESoftMaxIPDZ {this, 0.02f};
     Property<DESoftGhost_t> m_DESoftGhost {this, 4.e-06f};
     Property<OppositeSign_t> m_opposite_sign {this, true};
     Property<enable_monitoring_t> m_enable_monitoring {this, true};
+    Property<enable_tupling_t> m_enable_tupling {this, true};
   };
 } // namespace di_electron_soft_line
