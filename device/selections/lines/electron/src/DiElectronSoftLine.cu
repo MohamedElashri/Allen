@@ -70,7 +70,7 @@ __device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
     vertex.doca12() < parameters.DESoftMaxDOCA && vertex.ip() / vertex.dz() < parameters.DESoftMaxIPDZ &&
     vertex.clone_sin2() > parameters.DESoftGhost;
   return decision;
-  //return true;
+  // return true;
 }
 
 __device__ void di_electron_soft_line::di_electron_soft_line_t::fill_tuples(
