@@ -222,6 +222,8 @@ int allen(
 
   auto io_conf = Allen::io_configuration(n_slices, n_repetitions, number_of_threads);
 
+  Allen::set_environment(number_of_threads);
+
   // Set device for main thread
   auto [device_set, device_name, device_memory_alignment, bus_id] = Allen::set_device(device_id, 0);
   if (!device_set) {
@@ -607,7 +609,7 @@ int allen(
 #ifndef ALLEN_STANDALONE
   // Lambda with the execution of the monitoring aggregation
   const auto agg_thread = [&](unsigned thread_id, unsigned) {
-    return std::thread {run_aggregation, thread_id, zmqSvc, &monitoringPrinter};
+    return std::thread {run_aggregation, thread_id, device_id, zmqSvc, &monitoringPrinter};
   };
 #endif
 

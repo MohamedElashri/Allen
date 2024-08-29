@@ -41,6 +41,8 @@ namespace Allen {
     unsigned n_io_reps = 0;
   };
 
+  void set_environment(unsigned number_of_threads);
+
   std::tuple<bool, bool> velo_decoding_type(const ConfigurationReader& configuration_reader);
 
   std::tuple<std::string, std::string> sequence_conf(std::map<std::string, std::string> const& options);

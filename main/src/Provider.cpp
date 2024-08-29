@@ -28,6 +28,17 @@
 #include <TCK.h>
 #endif
 
+void Allen::set_environment([[maybe_unused]] unsigned number_of_threads)
+{
+#ifdef TARGET_DEVICE_CUDA
+  // For CUDA targets, set the maximum number of connections environment variable
+  // equal to the number of thread/streams, with a maximum of 32.
+  const auto cuda_device_max_connections = number_of_threads < 32 ? number_of_threads : 32;
+  setenv("CUDA_DEVICE_MAX_CONNECTIONS", std::to_string(cuda_device_max_connections).c_str(), 1);
+  setenv("CUDA_DEVICE_ORDER", "PCI_BUS_ID", 1);
+#endif
+}
+
 std::tuple<bool, bool> Allen::velo_decoding_type(const ConfigurationReader& configuration_reader)
 {
   bool veloSP = false;
@@ -237,12 +248,7 @@ std::unique_ptr<IInputProvider> Allen::make_provider(
     n_events = number_of_events_requested;
   }
 
-#ifdef TARGET_DEVICE_CUDA
-  // For CUDA targets, set the maximum number of connections environment variable
-  // equal to the number of thread/streams, with a maximum of 32.
-  const auto cuda_device_max_connections = number_of_threads < 32 ? number_of_threads : 32;
-  setenv("CUDA_DEVICE_MAX_CONNECTIONS", std::to_string(cuda_device_max_connections).c_str(), 1);
-#endif
+  set_environment(number_of_threads);
 
   ConfigurationReader configuration_reader {configuration};
 

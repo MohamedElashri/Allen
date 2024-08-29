@@ -380,11 +380,13 @@ void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* mon
   }
 }
 
-void run_aggregation(const size_t thread_id, IZeroMQSvc* zmqSvc, MonitoringPrinter* printer)
+void run_aggregation(const size_t thread_id, const int device_id, IZeroMQSvc* zmqSvc, MonitoringPrinter* printer)
 {
   // Set thread name for easier debugging
   auto thread_name = std::string {"aggregation_"} + std::to_string(thread_id);
   set_current_thread_name(thread_name);
+
+  auto [device_set, device_name, device_memory_alignment, bus_id] = Allen::set_device(device_id, 0);
 
   zmq::socket_t control = make_control(thread_id, zmqSvc);
   zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
