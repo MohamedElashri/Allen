@@ -95,10 +95,10 @@ namespace di_electron_soft_line {
     Property<DESoftM0_t> m_DESoftM0 {this, 483.f};
     Property<DESoftM1_t> m_DESoftM1 {this, 513.f};
     Property<DESoftM2_t> m_DESoftM2 {this, 800.f};
-    Property<DESoftMinIP_t> m_DESoftMinIP {this, 1.45f}; 
-    Property<DESoftMinRho2_t> m_DESoftMinRho2 {this, 9.1f}; 
-    Property<DESoftMaxDOCA_t> m_DESoftMaxDOCA {this, 0.096f}; 
-    Property<DESoftMaxIPDZ_t> m_DESoftMaxIPDZ {this, 0.0024f}; 
+    Property<DESoftMinIP_t> m_DESoftMinIP {this, 1.45f};
+    Property<DESoftMinRho2_t> m_DESoftMinRho2 {this, 9.1f};
+    Property<DESoftMaxDOCA_t> m_DESoftMaxDOCA {this, 0.096f};
+    Property<DESoftMaxIPDZ_t> m_DESoftMaxIPDZ {this, 0.0024f};
     Property<DESoftMinZ_t> m_DESoftMinZ {this, -375.f};
     Property<DESoftMaxZ_t> m_DESoftMaxZ {this, 635.f};
     Property<DESoftGhost_t> m_DESoftGhost {this, 4.e-06f};
