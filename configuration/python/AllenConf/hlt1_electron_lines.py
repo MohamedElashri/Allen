@@ -232,7 +232,7 @@ def make_di_electron_soft_line(long_tracks,
                                name="Hlt1DiElectronSoft",
                                pre_scaler_hash_string=None,
                                enable_tupling=False,
-                               enable_monitoring=False,
+                               enable_monitoring=True,
                                post_scaler_hash_string=None):
     number_of_events = initialize_number_of_events()
 
@@ -247,6 +247,6 @@ def make_di_electron_soft_line(long_tracks,
         dev_track_isElectron_t=calo["dev_track_isElectron"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
-        enable_monitoring=False,
-        enable_tupling=False,
+        enable_monitoring=enable_monitoring,
+        enable_tupling=enable_tupling,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")

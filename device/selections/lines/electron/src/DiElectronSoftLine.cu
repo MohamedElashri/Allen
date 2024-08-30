@@ -62,7 +62,7 @@ __device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
   if (opposite_sign != parameters.OppositeSign) return false;
 
   const bool decision =
-    vertex.vertex().chi2() > 0 && (true || dipion_mass < parameters.DESoftM0 || dipion_mass > parameters.DESoftM1) &&
+    vertex.vertex().chi2() > 0 && (dipion_mass < parameters.DESoftM0 || dipion_mass > parameters.DESoftM1) &&
     (brem_corrected_dielectron_mass < parameters.DESoftM2) && vertex.eta() > 0 &&
     (vertex.vertex().x() * vertex.vertex().x() + vertex.vertex().y() * vertex.vertex().y()) >
       parameters.DESoftMinRho2 &&
