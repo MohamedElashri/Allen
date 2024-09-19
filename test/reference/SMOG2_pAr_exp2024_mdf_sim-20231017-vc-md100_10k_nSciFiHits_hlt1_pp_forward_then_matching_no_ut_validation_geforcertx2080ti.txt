@@ -93,6 +93,7 @@ Hlt1DiPhotonHighMass:                               0/   500, (    0.00 +/-     
 Hlt1Pi02GammaGamma:                                 0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronHighMass_SS:                          0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronHighMass:                             0/   500, (    0.00 +/-     0.00) kHz
+Hlt1DiElectronSoft:                                 0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet15GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet30GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet50GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
@@ -277,6 +278,7 @@ Hlt1DiPhotonHighMass:                               0           0
 Hlt1Pi02GammaGamma:                                 0           0
 Hlt1DiElectronHighMass_SS:                          0           0
 Hlt1DiElectronHighMass:                             0           0
+Hlt1DiElectronSoft:                                 0           0
 Hlt1ConeJet15GeV:                                   0           0
 Hlt1ConeJet30GeV:                                   0           0
 Hlt1ConeJet50GeV:                                   0           0

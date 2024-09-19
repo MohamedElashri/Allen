@@ -347,6 +347,11 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 calo_matching_objects,
                 is_same_sign=False,
                 name="Hlt1DiElectronHighMass"),
+            make_di_electron_soft_line(
+                long_tracks,
+                dileptons,
+                calo_matching_objects,
+                name="Hlt1DiElectronSoft"),
             make_cone_jet_line(
                 jets,
                 name="Hlt1ConeJet15GeV",
