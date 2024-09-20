@@ -84,7 +84,7 @@ void error_bank_filter::error_bank_filter_t::init()
   auto setup_histogram = [this](
                            std::vector<LHCb::RawBank::BankType> const& types,
                            bin_mapping_t& mapping,
-                           std::unique_ptr<Gaudi::Accumulators::Histogram<1>>& histogram,
+                           std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>>& histogram,
                            std::string histo_name) {
     std::vector<std::string> labels;
     labels.reserve(types.size());
@@ -105,7 +105,7 @@ void error_bank_filter::error_bank_filter_t::init()
       mapping[types[i]] = i;
     }
 
-    auto* histo = new Gaudi::Accumulators::Histogram<1> {
+    auto* histo = new Gaudi::Accumulators::StaticHistogram<1> {
       this,
       histo_name,
       histo_name,
@@ -184,7 +184,7 @@ void error_bank_filter::error_bank_filter_t::init()
     }
   }
 
-  m_error_per_source.reset(new Gaudi::Accumulators::Histogram<1> {
+  m_error_per_source.reset(new Gaudi::Accumulators::StaticHistogram<1> {
     this,
     "error_banks_per_daq_source",
     "error_banks_per_daq_source",
@@ -241,7 +241,7 @@ void error_bank_filter::error_bank_filter_t::error_bank_filter(
   auto source_counts = bin_storage.subspan(4 * LHCb::RawBank::LastType, LHCb::RawBank::LastType);
   auto unexpected_counts = bin_storage.subspan(5 * LHCb::RawBank::LastType, 256);
 
-  auto add_counts = [](Gaudi::Accumulators::Histogram<1>& histo, gsl::span<float> counts) {
+  auto add_counts = [](Gaudi::Accumulators::StaticHistogram<1>& histo, gsl::span<float> counts) {
     for (size_t i = 0; i < histo.nBins(0); ++i) {
       histo[i] += counts[i];
     }
