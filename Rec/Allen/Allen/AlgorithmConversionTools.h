@@ -18,7 +18,7 @@
 #include <BankTypes.h>
 #include <AllenTypeTraits.h>
 #include <GaudiKernel/StatusCode.h>
-#include <GaudiKernel/ParsersFactory.h>
+#include <Gaudi/Parsers/Factory.h>
 #include <GaudiKernel/StdArrayAsProperty.h>
 
 namespace Allen {

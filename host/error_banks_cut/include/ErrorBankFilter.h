@@ -20,7 +20,7 @@
 #include <MEPTools.h>
 
 #ifndef ALLEN_STANDALONE
-#include <GaudiKernel/ParsersFactory.h>
+#include <Gaudi/Parsers/Factory.h>
 #include <GaudiKernel/ToStream.h>
 #include <Gaudi/Parsers/CommonParsers.h>
 #include <GaudiKernel/StatusCode.h>
