@@ -10,7 +10,7 @@
 \*****************************************************************************/
 
 // Gaudi Array properties ( must be first ...)
-#include "GaudiKernel/ParsersFactory.h"
+#include "Gaudi/Parsers/Factory.h"
 #include "GaudiKernel/StdArrayAsProperty.h"
 
 // Rich Kernel

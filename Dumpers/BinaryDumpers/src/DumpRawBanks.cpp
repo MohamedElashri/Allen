@@ -20,7 +20,7 @@
 #include <Event/ODIN.h>
 #include <Event/RawBank.h>
 #include <GaudiAlg/Consumer.h>
-#include <GaudiKernel/ParsersFactory.h>
+#include <Gaudi/Parsers/Factory.h>
 
 #include <Dumpers/Utils.h>
 
