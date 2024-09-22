@@ -26,6 +26,8 @@
 #include "DownstreamHelper.cuh"
 #include "UTHitCache.cuh"
 
+#include "AllenMonitoring.h"
+
 /**
  * @brief This is definition file for downstream_find_hits algorithm
  * implemented in downstream_find_hits.cu
@@ -116,7 +118,8 @@ namespace downstream_find_hits {
     const float* dev_unique_sector_xs,
     const float* dev_magnet_polarity,
     const UT::Constants::PerLayerInfo* dev_mean_layer_info,
-    const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector);
+    const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector,
+    [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_tracking);
 
   template<bool require_four_hits>
   __global__ void downstream_find_rest_hits(
@@ -135,6 +138,7 @@ namespace downstream_find_hits {
       const Allen::Context& context) const;
 
   private:
+    Allen::Monitoring::Counter<> m_n_overflow_downstream_tracking {this, "n_overflow_downstream_tracking"};
     Property<ttracks_probability_threshold_t> m_ttracks_probability_threshold {this, 0.5};
     Property<require_four_ut_hits_t> m_require_four_ut_hits {this, true};
     Property<num_threads_create_candidates_t> m_num_threads_create_candidates {this, {{64, 1, 1}}};

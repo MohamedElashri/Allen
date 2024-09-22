@@ -94,8 +94,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             make_downstream_kshort_line(
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
-                mva_ks_threshold=0.5,
-                mva_detached_ks_threshold=0.5,
+                mva_ks_threshold=0.55,
+                mva_detached_ks_threshold=0.55,
                 name="Hlt1DownstreamKsToPiPi",
                 enable_monitoring=True),
             make_downstream_lambda_line(

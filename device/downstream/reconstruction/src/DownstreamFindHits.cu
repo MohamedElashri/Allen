@@ -149,7 +149,8 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
       dev_unique_sector_xs,
       dev_magnet_polarity,
       dev_ut_per_layer_info,
-      constants.dev_ttrack_selector);
+      constants.dev_ttrack_selector,
+      m_n_overflow_downstream_tracking.data(context));
   }
   else {
     global_function(downstream_create_candidates<false>)(
@@ -159,7 +160,8 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
       dev_unique_sector_xs,
       dev_magnet_polarity,
       dev_ut_per_layer_info,
-      constants.dev_ttrack_selector);
+      constants.dev_ttrack_selector,
+      m_n_overflow_downstream_tracking.data(context));
   }
 
   // Fill table
@@ -192,7 +194,8 @@ __global__ void downstream_find_hits::downstream_create_candidates(
   const float* dev_unique_sector_xs,
   const float* dev_magnet_polarity,
   const UT::Constants::PerLayerInfo* dev_mean_layer_info,
-  const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector)
+  const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector,
+  [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_tracking)
 {
 
   ///////////////////////////////////////////////////////
@@ -390,6 +393,10 @@ __global__ void downstream_find_hits::downstream_create_candidates(
     parameters.dev_findhits_num_selected_scifi[event_number] = no_overflow ? shared_num_selelected_scifi : 0;
     // Set the end of offsets
     output_selected_scifi_offsets[shared_num_selelected_scifi] = no_overflow ? shared_num_candidates : 0;
+
+    if (!no_overflow) {
+      dev_n_overflow_downstream_tracking.increment();
+    }
   };
   __syncthreads();
 }
