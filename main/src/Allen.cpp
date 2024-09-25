@@ -222,6 +222,8 @@ int allen(
 
   auto io_conf = Allen::io_configuration(n_slices, n_repetitions, number_of_threads);
 
+  Allen::set_environment(number_of_threads);
+
   // Set device for main thread
   auto [device_set, device_name, device_memory_alignment, bus_id] = Allen::set_device(device_id, 0);
   if (!device_set) {
@@ -238,10 +240,12 @@ int allen(
   std::unique_ptr<LipschitzNNModelReader> electronid_mva_model_reader;
   std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, forward_ghostkiller_reader,
     matching_ghostkiller_reader, matching_with_ut_ghostkiller_reader, matching_no_ut_v2_ghostkiller_reader;
+  std::unique_ptr<LipschitzNNModelReader> muonid_mva_model_reader;
 
   std::unique_ptr<SingleLayerFCNNReader> downstream_composite_quality_reader, downstream_lambda_selector_reader,
     downstream_kshort_selector_reader, downstream_detached_lambda_selector_reader,
-    downstream_detached_kshort_selector_reader, downstream_ghostkiller_reader, ttrack_selector_reader;
+    downstream_detached_kshort_selector_reader, downstream_ghostkiller_reader, ttrack_selector_reader,
+    matching_with_ut_v2_ghostkiller_reader;
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
@@ -285,6 +289,14 @@ int allen(
   two_track_mva_model_reader =
     std::make_unique<LipschitzNNModelReader>(folder_parameters + "allen_two_track_mva_model_June22.json");
 
+  // ElectronID model
+  electronid_mva_model_reader =
+    std::make_unique<LipschitzNNModelReader>(folder_parameters + "/CaloPID/electron_mva_AllenJune2024.json");
+
+  // MuonID Model
+  muonid_mva_model_reader =
+    std::make_unique<LipschitzNNModelReader>(folder_parameters + "/muonid_mva_AllenJune2024.json");
+
   // Ghost killers
   forward_no_ut_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
     folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_noUT_Forward.json");
@@ -312,14 +324,12 @@ int allen(
     folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT.json");
   matching_no_ut_v2_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
     folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingNoUT_V2.json");
+  matching_with_ut_v2_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT_V2.json");
 
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
     muon_field_of_interest_params, folder_parameters + "allen_muon_field_of_interest_params.bin");
-
-  // ElectronID model
-  electronid_mva_model_reader =
-    std::make_unique<LipschitzNNModelReader>(folder_parameters + "CaloPID/electron_mva_AllenFeb2024.json");
 
   // Initialize detector constants on GPU
   Constants constants;
@@ -353,6 +363,17 @@ int allen(
     electronid_mva_model_reader->max_rescales(),
     electronid_mva_model_reader->nominal_cut(),
     electronid_mva_model_reader->lambda());
+
+  constants.initialize_muonid_mva_model_constants(
+    muonid_mva_model_reader->weights(),
+    muonid_mva_model_reader->biases(),
+    muonid_mva_model_reader->layer_sizes(),
+    muonid_mva_model_reader->n_layers(),
+    muonid_mva_model_reader->monotone_constraints(),
+    muonid_mva_model_reader->min_rescales(),
+    muonid_mva_model_reader->max_rescales(),
+    muonid_mva_model_reader->nominal_cut(),
+    muonid_mva_model_reader->lambda());
 
   constants.initialize_forward_ghostkiller_constants(
     forward_ghostkiller_reader->mean(),
@@ -446,6 +467,13 @@ int allen(
     matching_with_ut_ghostkiller_reader->bias1(),
     matching_with_ut_ghostkiller_reader->weights2(),
     matching_with_ut_ghostkiller_reader->bias2());
+  constants.initialize_matching_with_ut_v2_ghostkiller_constants(
+    matching_with_ut_v2_ghostkiller_reader->mean(),
+    matching_with_ut_v2_ghostkiller_reader->std(),
+    matching_with_ut_v2_ghostkiller_reader->weights1(),
+    matching_with_ut_v2_ghostkiller_reader->bias1(),
+    matching_with_ut_v2_ghostkiller_reader->weights2(),
+    matching_with_ut_v2_ghostkiller_reader->bias2());
 
   // Register all consumers
   register_consumers(updater, constants, config_reader.configured_bank_types());
@@ -581,7 +609,7 @@ int allen(
 #ifndef ALLEN_STANDALONE
   // Lambda with the execution of the monitoring aggregation
   const auto agg_thread = [&](unsigned thread_id, unsigned) {
-    return std::thread {run_aggregation, thread_id, zmqSvc, &monitoringPrinter};
+    return std::thread {run_aggregation, thread_id, device_id, zmqSvc, &monitoringPrinter};
   };
 #endif
 

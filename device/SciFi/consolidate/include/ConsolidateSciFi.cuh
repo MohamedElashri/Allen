@@ -27,6 +27,7 @@ namespace scifi_consolidate_tracks {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_accumulated_number_of_hits_in_scifi_tracks_t, unsigned)
     host_accumulated_number_of_hits_in_scifi_tracks;
+    HOST_INPUT(host_accumulated_number_of_ut_hits_t, unsigned) host_accumulated_number_of_ut_hits;
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
@@ -47,6 +48,7 @@ namespace scifi_consolidate_tracks {
     HOST_INPUT(host_scifi_hit_count_t, unsigned) host_scifi_hit_count;
     DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
     DEVICE_OUTPUT(dev_used_scifi_hits_t, unsigned) dev_used_scifi_hits;
+    DEVICE_OUTPUT(dev_used_ut_hits_offsets_t, unsigned) dev_used_ut_hits_offsets;
     DEVICE_OUTPUT(dev_accepted_and_unused_velo_tracks_t, bool) dev_accepted_and_unused_velo_tracks;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_scifi_hits_view_t,
@@ -116,7 +118,7 @@ namespace scifi_consolidate_tracks {
       Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_qop);
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
 
     Allen::Monitoring::AveragingCounter<> m_counter_long_tracks_forward {this, "n_long_tracks_forward"};
 

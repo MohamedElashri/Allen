@@ -25,7 +25,7 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const float* fudge_factors,
   UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_count,
-  const float* ut_dxDy,
+  const UT::Constants::PerLayerInfo* dev_mean_layer_info,
   const float* dev_unique_sector_xs,
   const unsigned* dev_unique_x_sector_layer_offsets,
   const float y_tol,
@@ -34,13 +34,14 @@ __device__ std::tuple<int, int, int, int, int, int, int, int, int, int> calculat
   const float min_momentum);
 
 __device__ std::tuple<int, int> find_candidates_in_sector_group(
+  const int layer,
   UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
   const float* dev_unique_sector_xs,
   const float x_track,
   const float y_track,
-  const float dx_dy,
+  const UT::Constants::PerLayerInfo* dev_mean_layer_info,
   const float invNormFact,
   const float xTol,
   const int sector_group,
@@ -54,6 +55,5 @@ __device__ void tol_refine(
   const MiniState& velo_state,
   const float invNormfact,
   const float xTolNormFact,
-  const float dxDy,
   const float y_tol,
   const float y_tol_slope);

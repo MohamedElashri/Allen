@@ -27,26 +27,24 @@ di_muon_no_ip_line::di_muon_no_ip_line_t::get_input(
   const auto vertex = event_vertices.particle(i);
   const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
   const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
-  const auto chi2corr1 = parameters.dev_chi2muon[parameters.dev_track_offsets[event_number] + track1->get_index()];
-  const auto chi2corr2 = parameters.dev_chi2muon[parameters.dev_track_offsets[event_number] + track2->get_index()];
-
-  return std::forward_as_tuple(vertex, max(chi2corr1, chi2corr2));
+  const auto muonidnn1 = parameters.dev_muonid_nn[parameters.dev_track_offsets[event_number] + track1->get_index()];
+  const auto muonidnn2 = parameters.dev_muonid_nn[parameters.dev_track_offsets[event_number] + track2->get_index()];
+  float min_nn = min(muonidnn1, muonidnn2);
+  return std::forward_as_tuple(vertex, min_nn);
 }
-
 __device__ bool di_muon_no_ip_line::di_muon_no_ip_line_t::select(
   const Parameters& parameters,
   const DeviceAccumulators&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto vertex = std::get<0>(input);
-  const auto maxchi2muon = std::get<1>(input);
+  const auto min_nn = std::get<1>(input);
 
   const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
   const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
 
   const bool same_sign = vertex.charge() != 0;
-
-  bool dec = maxchi2muon < parameters.maxChi2Muon && vertex.is_dimuon() && (same_sign == parameters.ss_on) &&
+  bool dec = min_nn > parameters.minNN && vertex.is_dimuon() && (same_sign == parameters.ss_on) &&
              track1->state().chi2() / track1->state().ndof() <= parameters.maxTrChi2 &&
              track2->state().chi2() / track2->state().ndof() <= parameters.maxTrChi2 && track1->state().chi2() > 0 &&
              track2->state().chi2() > 0 && vertex.doca12() <= parameters.maxDoca &&

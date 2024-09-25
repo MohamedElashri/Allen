@@ -38,7 +38,6 @@ void compass_ut::compass_ut_t::operator()(
     arguments,
     constants.dev_ut_magnet_tool,
     constants.dev_magnet_polarity.data(),
-    constants.dev_ut_dxDy.data(),
     constants.dev_unique_x_sector_layer_offsets.data());
 
   if (property<verbosity_t>() >= logger::debug) {
@@ -73,7 +72,6 @@ __global__ void compass_ut::compass_ut(
   compass_ut::Parameters parameters,
   UTMagnetTool* dev_ut_magnet_tool,
   const float* dev_magnet_polarity,
-  const float* dev_ut_dxDy,
   const unsigned* dev_unique_x_sector_layer_offsets) // prefixsum to point to the x hit of the sector, per layer
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -119,7 +117,6 @@ __global__ void compass_ut::compass_ut(
       ut_hits,
       ut_hit_offsets,
       bdl_table,
-      dev_ut_dxDy,
       dev_magnet_polarity[0],
       win_size_shared,
       n_veloUT_tracks_event,
@@ -144,7 +141,6 @@ __device__ void compass_ut::compass_ut_tracking(
   UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const float* bdl_table,
-  const float* dev_ut_dxDy,
   const float magnet_polarity,
   short* win_size_shared,
   unsigned* n_veloUT_tracks_event,
@@ -170,7 +166,6 @@ __device__ void compass_ut::compass_ut_tracking(
     ut_hits,
     ut_hit_offsets,
     velo_state,
-    dev_ut_dxDy,
     max_considered_before_found,
     delta_tx_2,
     hit_tol_2,
@@ -193,7 +188,6 @@ __device__ void compass_ut::compass_ut_tracking(
       best_params,
       best_hits,
       ut_hits,
-      dev_ut_dxDy,
       magnet_polarity,
       n_veloUT_tracks_event,
       veloUT_tracks_event,
@@ -246,7 +240,6 @@ __device__ void compass_ut::save_track(
   const BestParams& best_params,
   const int* best_hits,
   UT::ConstHits& ut_hits,
-  const float* ut_dxDy,
   const float magSign,
   unsigned* n_veloUT_tracks,    // increment number of tracks
   UT::TrackHits* VeloUT_tracks, // write the track
@@ -298,7 +291,7 @@ __device__ void compass_ut::save_track(
   // const float qpxz2p = -1 * sqrtf(1.0f + velo_state.ty * velo_state.ty) / bdl * 3.3356f / Gaudi::Units::GeV;
   const float qpxz2p = -1.f / bdl * 3.3356f / Gaudi::Units::GeV;
   // const float qp = best_params.qp;
-  const float qp = fastfitter(best_params, velo_state, best_hits, qpxz2p, ut_dxDy, ut_hits, finalParams);
+  const float qp = fastfitter(best_params, velo_state, best_hits, qpxz2p, ut_hits, finalParams);
   const float qop = (fabsf(bdl) < 1.e-8f) ? 0.0f : qp * qpxz2p;
 
   // -- Don't make tracks that have grossly too low momentum
@@ -373,7 +366,6 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
   UT::ConstHits& ut_hits,
   const UT::HitOffsets& ut_hit_offsets,
   const MiniState& velo_state,
-  const float* ut_dxDy,
   const unsigned parameter_max_considered_before_found,
   const float delta_tx_2,
   const float hit_tol_2,
@@ -407,22 +399,19 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
 
     // set range for next layer if forward or backward
     int layer_2;
-    int dxdy_layer = -1;
     if (i < sum_layer_hits(ranges, 0)) {
       forward = true;
       layer_2 = 2;
-      dxdy_layer = 0;
     }
     else {
       forward = false;
       layer_2 = 1;
-      dxdy_layer = 3;
     }
 
     // Get info to calculate slope
     const auto zhitLayer0 = ut_hits.zAtYEq0(i_hit0);
     const float yy0 = yyProto + (velo_state.ty() * zhitLayer0);
-    const auto xhitLayer0 = ut_hits.xAt(i_hit0, yy0, ut_dxDy[dxdy_layer]);
+    const auto xhitLayer0 = ut_hits.xAt(i_hit0, yy0);
 
     // 2nd layer
     const int total_hits_2layers_2 = sum_layer_hits(ranges, layer_2);
@@ -430,10 +419,9 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
       int i_hit2 = calc_index(j, ranges, layer_2, ut_hit_offsets);
 
       // Get info to calculate slope
-      const int dxdy_layer_2 = forward ? 2 : 1;
       const auto zhitLayer2 = ut_hits.zAtYEq0(i_hit2);
       const float yy2 = yyProto + (velo_state.ty() * zhitLayer2);
-      const auto xhitLayer2 = ut_hits.xAt(i_hit2, yy2, ut_dxDy[dxdy_layer_2]);
+      const auto xhitLayer2 = ut_hits.xAt(i_hit2, yy2);
 
       // if slope is out of delta range, don't look for triplet/quadruplet
       const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
@@ -451,15 +439,13 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
     const int i_hit0 = event_hit_offset + ((pair >> 16) & 0x7FFF);
     const int i_hit2 = event_hit_offset + (pair & 0x7FFF);
 
-    const auto dxdy_layer = forward ? 0 : 3;
     const auto zhitLayer0 = ut_hits.zAtYEq0(i_hit0);
     const auto yy0 = yyProto + (velo_state.ty() * zhitLayer0);
-    const auto xhitLayer0 = ut_hits.xAt(i_hit0, yy0, ut_dxDy[dxdy_layer]);
+    const auto xhitLayer0 = ut_hits.xAt(i_hit0, yy0);
 
-    const auto dxdy_layer_2 = forward ? 2 : 1;
     const auto zhitLayer2 = ut_hits.zAtYEq0(i_hit2);
     const auto yy2 = yyProto + (velo_state.ty() * zhitLayer2);
-    const auto xhitLayer2 = ut_hits.xAt(i_hit2, yy2, ut_dxDy[dxdy_layer_2]);
+    const auto xhitLayer2 = ut_hits.xAt(i_hit2, yy2);
 
     const auto tx = (xhitLayer2 - xhitLayer0) / (zhitLayer2 - zhitLayer0);
 
@@ -475,7 +461,7 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
       // Get info to check tolerance
       const float zhitLayer1 = ut_hits.zAtYEq0(i_hit1);
       const float yy1 = yyProto + (velo_state.ty() * zhitLayer1);
-      const float xhitLayer1 = ut_hits.xAt(i_hit1, yy1, ut_dxDy[layers[0]]);
+      const float xhitLayer1 = ut_hits.xAt(i_hit1, yy1);
       const float xextrapLayer1 = xhitLayer0 + tx * (zhitLayer1 - zhitLayer0);
 
       if (fabsf(xhitLayer1 - xextrapLayer1) < hitTol) {
@@ -493,7 +479,7 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
       // Get info to check tolerance
       const float zhitLayer3 = ut_hits.zAtYEq0(i_hit3);
       const float yy3 = yyProto + (velo_state.ty() * zhitLayer3);
-      const float xhitLayer3 = ut_hits.xAt(i_hit3, yy3, ut_dxDy[layers[1]]);
+      const float xhitLayer3 = ut_hits.xAt(i_hit3, yy3);
       const float xextrapLayer3 = xhitLayer2 + tx * (zhitLayer3 - zhitLayer2);
       if (fabsf(xhitLayer3 - xextrapLayer3) < hitTol) {
         hitTol = fabsf(xhitLayer3 - xextrapLayer3);
@@ -503,8 +489,7 @@ __device__ std::tuple<int, int, int, int, BestParams> compass_ut::find_best_hits
 
     // Fit the hits to get q/p, chi2
     const auto temp_number_of_hits = 2 + (temp_best_hits[1] != -1) + (temp_best_hits[3] != -1);
-    const auto params =
-      pkick_fit(temp_best_hits, ut_hits, velo_state, ut_dxDy, yyProto, forward, sigma_velo_slope, inv_sigma_velo_slope);
+    const auto params = pkick_fit(temp_best_hits, ut_hits, velo_state, yyProto, sigma_velo_slope, inv_sigma_velo_slope);
 
     // Save the best chi2 and number of hits triplet/quadruplet
     if (params.chi2UT < best_fit && temp_number_of_hits >= best_number_of_hits) {
@@ -537,9 +522,7 @@ __device__ BestParams compass_ut::pkick_fit(
   const int best_hits[UT::Constants::n_layers],
   UT::ConstHits& ut_hits,
   const MiniState& velo_state,
-  const float* ut_dxDy,
   const float yyProto,
-  const bool forward,
   const float sigma_velo_slope,
   const float inv_sigma_velo_slope)
 {
@@ -560,15 +543,13 @@ __device__ BestParams compass_ut::pkick_fit(
     const auto hit_index = best_hits[i];
     if (hit_index >= 0) {
       const float wi = ut_hits.weight(hit_index);
-      const int plane_code = forward ? i : UT::Constants::n_layers - 1 - i;
-      const float dxDy = ut_dxDy[plane_code];
-      const float ci = ut_hits.cosT(hit_index, dxDy);
+      const float ci = ut_hits.cosT(hit_index);
       last_z = ut_hits.zAtYEq0(hit_index);
       const float dz = 0.001f * (last_z - UT::Constants::zMidUT);
 
       // x_pos_layer
       const float yy = yyProto + (velo_state.ty() * last_z);
-      const float ui = ut_hits.xAt(hit_index, yy, dxDy);
+      const float ui = ut_hits.xAt(hit_index, yy);
 
       mat[0] += wi * ci;
       mat[1] += wi * ci * dz;
@@ -600,10 +581,8 @@ __device__ BestParams compass_ut::pkick_fit(
       const float zd = ut_hits.zAtYEq0(hit_index);
       const float xd = xUTFit + xSlopeUTFit * (zd - UT::Constants::zMidUT);
       // x_pos_layer
-      const int plane_code = forward ? i : UT::Constants::n_layers - 1 - i;
-      const float dxDy = ut_dxDy[plane_code];
       const float yy = yyProto + (velo_state.ty() * zd);
-      const float x = ut_hits.xAt(hit_index, yy, dxDy);
+      const float x = ut_hits.xAt(hit_index, yy);
 
       const float du = xd - x;
       chi2UT += (du * du) * ut_hits.weight(hit_index);

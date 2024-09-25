@@ -15,6 +15,8 @@ allen_add_device_library(DeviceValidators STATIC
 )
 
 target_link_libraries(DeviceValidators PRIVATE
+  UTCommon
+  Utils
   TrackChecking
   EventModel
   HostEventModel

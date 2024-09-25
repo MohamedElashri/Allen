@@ -66,7 +66,14 @@ namespace {
     {
       DumpUtils::Writer output {};
 
+      // To ensure backward compatibility, we use first 16 bits to store UT geometry version
+      // and the last 16 bits to store the number of sectors:
+      // For old UT geometry which uses 32 bits to store number of sectors, the first 16 bits
+      // are always empty, so the version is always zero
       uint32_t number_of_sectors = det.nSectors();
+      uint32_t version = 1u; // 0 -> hardcoded dxdy, 1 -> per-serctor dxdy
+      uint32_t metadata = number_of_sectors | (version << 16);
+
       // first strip is always 1
       vector<uint32_t> firstStrip = views::repeat_n(1, number_of_sectors) | to<std::vector<uint32_t>>();
       vector<float> pitch;
@@ -78,6 +85,7 @@ namespace {
       vector<float> p0X;
       vector<float> p0Y;
       vector<float> p0Z;
+      vector<float> dxDy;
 
       pitch.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
       cos.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
@@ -88,6 +96,7 @@ namespace {
       p0X.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
       p0Y.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
       p0Z.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
+      dxDy.resize(number_of_sectors, std::numeric_limits<float>::quiet_NaN());
 
       det.applyToAllSectors([&](DeUTSector const& sector) {
         const auto idx = get_allen_ut_sector_index(sector);
@@ -103,7 +112,8 @@ namespace {
         p0Y[idx] = (p0.y());
         // hack: since p0z is always positive, we can use the signbit to encode whether or not to "stripflip"
         p0Z[idx] = (((sector.xInverted() && sector.getStripflip()) ? -1 : 1) * p0.z());
-        // this hack will be used in UTPreDecode.cu and UTDecodeRawBanksInOrder.cu
+        // this hack will be used in UTClusterAndPreDecode.cu
+        dxDy[idx] = sector.get_dxdy();
       });
 
       // cross check
@@ -116,8 +126,9 @@ namespace {
       assert(std::all_of(p0X.begin(), p0X.end(), [](auto i) { return !std::isnan(i); }));
       assert(std::all_of(p0Y.begin(), p0Y.end(), [](auto i) { return !std::isnan(i); }));
       assert(std::all_of(p0Z.begin(), p0Z.end(), [](auto i) { return !std::isnan(i); }));
+      assert(std::all_of(dxDy.begin(), dxDy.end(), [](auto i) { return !std::isnan(i); }));
 
-      output.write(number_of_sectors, firstStrip, pitch, dy, dp0diX, dp0diY, dp0diZ, p0X, p0Y, p0Z, cos);
+      output.write(metadata, firstStrip, pitch, dy, dp0diX, dp0diY, dp0diZ, p0X, p0Y, p0Z, cos, dxDy);
 
       data = output.buffer();
     }

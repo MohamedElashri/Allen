@@ -151,6 +151,8 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
         dev_brem_ET_t=brem_recovery.dev_brem_ET_t)
 
     return {
+        "dev_region":
+        track_digit_selective_matching.dev_region_t,
         "dev_delta_barycenter":
         track_digit_selective_matching.dev_delta_barycenter_t,
         "dev_dispersion_x":
@@ -159,8 +161,6 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
         track_digit_selective_matching.dev_dispersion_y_t,
         "dev_dispersion_xy":
         track_digit_selective_matching.dev_dispersion_xy_t,
-        "dev_track_local_max":
-        track_digit_selective_matching.dev_track_local_max_t,
         "dev_matched_ecal_energy":
         track_digit_selective_matching.dev_matched_ecal_energy_t,
         "dev_matched_ecal_digits_size":
@@ -194,6 +194,7 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
 
 @configurable
 def make_ecal_clusters(decoded_calo,
+                       calo_matching_objects=None,
                        calo_find_clusters_name='calo_find_clusters',
                        seed_min_adc=50,
                        neighbour_min_adc=10,
@@ -335,10 +336,10 @@ def make_electronid_nn(long_tracks, track_matching):
         dev_track_Eop_t=track_matching["dev_track_Eop"],
         dev_track_Eop3x3_t=track_matching["dev_track_Eop3x3"],
         dev_delta_barycenter_t=track_matching["dev_delta_barycenter"],
+        dev_region_t=track_matching["dev_region"],
         dev_dispersion_x_t=track_matching["dev_dispersion_x"],
         dev_dispersion_y_t=track_matching["dev_dispersion_y"],
-        dev_dispersion_xy_t=track_matching["dev_dispersion_xy"],
-        dev_track_local_max_t=track_matching["dev_track_local_max"])
+        dev_dispersion_xy_t=track_matching["dev_dispersion_xy"])
 
     electronid_nn = make_algorithm(
         electronid_nn_t,

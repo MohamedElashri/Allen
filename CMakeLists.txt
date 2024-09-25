@@ -17,7 +17,7 @@ if(STANDALONE AND NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{CMAKE_TOOLCHA
   set(CMAKE_TOOLCHAIN_FILE $ENV{CMAKE_TOOLCHAIN_FILE})
 endif()
 
-project(Allen VERSION 4.11
+project(Allen VERSION 4.12.2
         LANGUAGES C CXX)
 
 # ---------------
@@ -724,6 +724,7 @@ target_link_libraries(AllenLib
     VertexFitter
     mdf
     track_matching
+    Jets
   PUBLIC
     Gear
     AllenCommon

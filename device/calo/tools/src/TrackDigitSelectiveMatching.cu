@@ -25,6 +25,10 @@ void track_digit_selective_matching::track_digit_selective_matching_t::set_argum
   set_size<dev_track_Eop_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_track_Eop3x3_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_delta_barycenter_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_delta_barycenter_x_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_region_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_delta_barycenter_y_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_dispersion_x_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_dispersion_x_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_dispersion_y_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_dispersion_xy_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
@@ -125,7 +129,7 @@ __device__ void track_digit_selective_matching::track_digit_selective_matching_i
       sum_cell_E,
       digit_indices,
       localmax);
-
+    int region = 0;
     cluster_shape_scan(
       N_ecal_positions,
       ecal_positions,
@@ -139,7 +143,8 @@ __device__ void track_digit_selective_matching::track_digit_selective_matching_i
       xdispersion,
       ydispersion,
       xydispersion,
-      ecal_z);
+      ecal_z,
+      region);
 
     const float dz_ecal = z_showermax - scifi_state.z();
     float xV = scifi_state.x() + scifi_state.tx() * dz_ecal;
@@ -154,7 +159,10 @@ __device__ void track_digit_selective_matching::track_digit_selective_matching_i
     parameters.dev_track_Eop3x3[track_index + event_offset] = barycenter_E * fabsf(long_track.qop());
     parameters.dev_track_isElectron[track_index + event_offset] =
       parameters.dev_track_Eop[track_index + event_offset] > 0.7f;
+    parameters.dev_delta_barycenter_x[track_index + event_offset] = (xV - xbar);
+    parameters.dev_delta_barycenter_y[track_index + event_offset] = (yV - ybar);
     parameters.dev_delta_barycenter[track_index + event_offset] = delta2;
+    parameters.dev_region[track_index + event_offset] = region;
     parameters.dev_dispersion_x[track_index + event_offset] = xdispersion;
     parameters.dev_dispersion_y[track_index + event_offset] = ydispersion;
     parameters.dev_dispersion_xy[track_index + event_offset] = xydispersion;

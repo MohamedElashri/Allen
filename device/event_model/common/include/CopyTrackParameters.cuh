@@ -77,6 +77,7 @@ __device__ inline void prepare_long_tracks(
     const auto total_number_of_hits = long_track.number_of_hits();
     for (unsigned int ihit = 0; ihit < total_number_of_hits; ihit++) {
       const auto id = long_track.get_id(ihit);
+      // if (lhcb_id::is_ut(id))
       t.addId(id);
     }
     long_checker_tracks[i_track] = t;

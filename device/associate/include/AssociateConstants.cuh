@@ -22,7 +22,7 @@ namespace Associate {
   namespace VeloPVIP {
     constexpr float baseline = 50.f * Gaudi::Units::um;
   }
-  namespace KalmanPVIPChi2 {
+  namespace KalmanPVIP {
     constexpr float baseline = 100.f;
   }
 } // namespace Associate

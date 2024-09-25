@@ -103,7 +103,7 @@ namespace kalman_velo_only {
     DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
     DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
     DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
-    DEVICE_OUTPUT(dev_kalman_pv_ipchi2_t, char) dev_kalman_pv_ipchi2;
+    DEVICE_OUTPUT(dev_kalman_pv_ip_t, char) dev_kalman_pv_ip;
     DEVICE_OUTPUT(dev_kalman_fit_results_t, char) dev_kalman_fit_results;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_kalman_states_view_t,
@@ -112,7 +112,7 @@ namespace kalman_velo_only {
     dev_kalman_states_view;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_kalman_pv_tables_t,
-      DEPENDENCIES(dev_kalman_pv_ipchi2_t),
+      DEPENDENCIES(dev_kalman_pv_ip_t),
       Allen::Views::Physics::PVTable)
     dev_kalman_pv_tables;
     PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
@@ -120,7 +120,7 @@ namespace kalman_velo_only {
 
   __global__ void kalman_velo_only(Parameters parameters, float* dev_beamline);
 
-  __global__ void kalman_pv_ipchi2(Parameters parameters);
+  __global__ void kalman_pv_ip(Parameters parameters);
 
   struct kalman_velo_only_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;

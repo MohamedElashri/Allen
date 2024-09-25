@@ -37,9 +37,10 @@ namespace di_muon_no_ip_line {
 
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
-    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
+    DEVICE_INPUT(dev_muonid_nn_t, float) dev_muonid_nn;
     DEVICE_INPUT(dev_chi2muon_t, float) dev_chi2muon;
+    DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
@@ -57,7 +58,8 @@ namespace di_muon_no_ip_line {
     PROPERTY(ss_on_t, "ss_on", "ss_on description", bool) ss_on;
     PROPERTY(minPt_t, "minPt", "minPt description", float) minPt;
     PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
-    PROPERTY(maxChi2Muon_t, "maxChi2Muon", "minimum Chi2Muon evaluation", float) maxChi2Muon;
+    PROPERTY(maxChi2Muon_t, "maxChi2Muon", "maximum Chi2Muon evaluation", float) maxChi2Muon;
+    PROPERTY(minNN_t, "minNN", "minimum NN evaluation", float) minNN;
 
     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
@@ -108,6 +110,7 @@ namespace di_muon_no_ip_line {
     Property<minPt_t> m_minPt {this, 1.f * Gaudi::Units::GeV};
     Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
     Property<maxChi2Muon_t> m_minChi2Muon {this, 1.3f};
+    Property<minNN_t> m_minNN {this, 0.74f};
 
     Property<enable_monitoring_t> m_enable_monitoring {this, false};
     Property<enable_tupling_t> m_enable_tupling {this, false};

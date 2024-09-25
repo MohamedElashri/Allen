@@ -20,7 +20,7 @@ allen_add_device_library(Downstream STATIC
   ${downstream_vertexing}
 )
 
-target_link_libraries(Downstream PRIVATE Backend HostEventModel EventModel Utils)
+target_link_libraries(Downstream PRIVATE Backend HostEventModel EventModel Utils UTCommon)
 
 target_include_directories(Downstream PUBLIC 
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common>

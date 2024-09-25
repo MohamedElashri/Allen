@@ -16,7 +16,7 @@ allen_add_device_library(track_matching STATIC
   ${matching_consolidate}
 )
 
-target_link_libraries(track_matching PRIVATE Backend HostEventModel EventModel Utils)
+target_link_libraries(track_matching PRIVATE Backend HostEventModel EventModel UTCommon Utils)
 
 target_include_directories(track_matching PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/match/include>

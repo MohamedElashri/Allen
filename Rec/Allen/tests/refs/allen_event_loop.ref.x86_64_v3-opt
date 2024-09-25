@@ -5,12 +5,12 @@ HLTControlFlowMgr                      INFO  o Number of events slots: 1
 HLTControlFlowMgr                      INFO  o TBB thread pool size:  'ThreadPoolSize':1
 ApplicationMgr                         INFO Application Manager Initialized successfully
 Using 3 input slices.
+  rate_validator
   global_decision
-  host_routingbits_writer
   make_selected_object_lists
   make_subbanks
   make_selreps
-  rate_validator
+  host_routingbits_writer
 ApplicationMgr                         INFO Application Manager Started successfully
 HLTControlFlowMgr                      INFO Will measure time between events 0 and 0 (stop might be some events later)
 HLTControlFlowMgr                      INFO Starting loop on events
@@ -40,68 +40,70 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_5af2e675          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 95
+gather_selections                      INFO Number of counters : 99
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "Hlt1D2KKPass"                                  |        13 |
- | "Hlt1D2KKRate"                                  |        13 |
+ | "Hlt1ConeJet100GeVPass"                         |         1 |
+ | "Hlt1ConeJet100GeVRate"                         |         1 |
+ | "Hlt1D2KKPass"                                  |        15 |
+ | "Hlt1D2KKRate"                                  |        15 |
  | "Hlt1D2KPiAlignmentPass"                        |         4 |
  | "Hlt1D2KPiAlignmentRate"                        |         4 |
- | "Hlt1D2KPiPass"                                 |        15 |
- | "Hlt1D2KPiRate"                                 |        15 |
- | "Hlt1D2KshhPass"                                |         5 |
- | "Hlt1D2KshhRate"                                |         5 |
- | "Hlt1D2PiPiPass"                                |         5 |
- | "Hlt1D2PiPiRate"                                |         5 |
+ | "Hlt1D2KPiPass"                                 |        16 |
+ | "Hlt1D2KPiRate"                                 |        16 |
+ | "Hlt1D2KshhPass"                                |         7 |
+ | "Hlt1D2KshhRate"                                |         7 |
+ | "Hlt1D2PiPiPass"                                |         4 |
+ | "Hlt1D2PiPiRate"                                |         4 |
  | "Hlt1DetJpsiToMuMuNegTagLinePass"               |         1 |
  | "Hlt1DetJpsiToMuMuNegTagLineRate"               |         1 |
- | "Hlt1DiElectronDisplacedPass"                   |        48 |
- | "Hlt1DiElectronDisplacedRate"                   |        48 |
+ | "Hlt1DiElectronDisplacedPass"                   |        41 |
+ | "Hlt1DiElectronDisplacedRate"                   |        41 |
  | "Hlt1DiElectronHighMass_SSPass"                 |         1 |
  | "Hlt1DiElectronHighMass_SSRate"                 |         1 |
- | "Hlt1DiElectronLowMass_SS_massSlice1_displacedPass"|        42 |
- | "Hlt1DiElectronLowMass_SS_massSlice1_promptPass"|        28 |
- | "Hlt1DiElectronLowMass_SS_massSlice2_displacedPass"|        15 |
- | "Hlt1DiElectronLowMass_SS_massSlice2_promptPass"|         7 |
- | "Hlt1DiElectronLowMass_SS_massSlice3_displacedPass"|         6 |
- | "Hlt1DiElectronLowMass_SS_massSlice3_promptPass"|        10 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_displacedPass"|        39 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_promptPass"|        25 |
+ | "Hlt1DiElectronLowMass_SS_massSlice1_promptRate"|         1 |
+ | "Hlt1DiElectronLowMass_SS_massSlice2_displacedPass"|         7 |
+ | "Hlt1DiElectronLowMass_SS_massSlice2_promptPass"|         2 |
+ | "Hlt1DiElectronLowMass_SS_massSlice3_displacedPass"|         7 |
+ | "Hlt1DiElectronLowMass_SS_massSlice3_displacedRate"|         1 |
+ | "Hlt1DiElectronLowMass_SS_massSlice3_promptPass"|         6 |
  | "Hlt1DiElectronLowMass_SS_massSlice3_promptRate"|         1 |
- | "Hlt1DiElectronLowMass_SS_massSlice4_displacedPass"|         7 |
- | "Hlt1DiElectronLowMass_SS_massSlice4_displacedRate"|         1 |
- | "Hlt1DiElectronLowMass_SS_massSlice4_promptPass"|         7 |
- | "Hlt1DiElectronLowMass_massSlice1_displacedPass"|        12 |
- | "Hlt1DiElectronLowMass_massSlice1_displacedRate"|        12 |
- | "Hlt1DiElectronLowMass_massSlice1_promptPass"   |        14 |
- | "Hlt1DiElectronLowMass_massSlice1_promptRate"   |        14 |
- | "Hlt1DiElectronLowMass_massSlice2_displacedPass"|         3 |
- | "Hlt1DiElectronLowMass_massSlice2_displacedRate"|         3 |
- | "Hlt1DiElectronLowMass_massSlice2_promptPass"   |         4 |
- | "Hlt1DiElectronLowMass_massSlice2_promptRate"   |         4 |
+ | "Hlt1DiElectronLowMass_SS_massSlice4_displacedPass"|         5 |
+ | "Hlt1DiElectronLowMass_SS_massSlice4_promptPass"|         8 |
+ | "Hlt1DiElectronLowMass_massSlice1_displacedPass"|         9 |
+ | "Hlt1DiElectronLowMass_massSlice1_displacedRate"|         9 |
+ | "Hlt1DiElectronLowMass_massSlice1_promptPass"   |        17 |
+ | "Hlt1DiElectronLowMass_massSlice1_promptRate"   |        17 |
+ | "Hlt1DiElectronLowMass_massSlice2_displacedPass"|         4 |
+ | "Hlt1DiElectronLowMass_massSlice2_displacedRate"|         4 |
+ | "Hlt1DiElectronLowMass_massSlice2_promptPass"   |         3 |
+ | "Hlt1DiElectronLowMass_massSlice2_promptRate"   |         3 |
  | "Hlt1DiElectronLowMass_massSlice3_displacedPass"|         6 |
  | "Hlt1DiElectronLowMass_massSlice3_displacedRate"|         6 |
- | "Hlt1DiElectronLowMass_massSlice3_promptPass"   |         5 |
- | "Hlt1DiElectronLowMass_massSlice3_promptRate"   |         1 |
- | "Hlt1DiElectronLowMass_massSlice4_displacedPass"|         5 |
- | "Hlt1DiElectronLowMass_massSlice4_displacedRate"|         5 |
- | "Hlt1DiElectronLowMass_massSlice4_promptPass"   |         5 |
+ | "Hlt1DiElectronLowMass_massSlice3_promptPass"   |         4 |
+ | "Hlt1DiElectronLowMass_massSlice4_displacedPass"|         3 |
+ | "Hlt1DiElectronLowMass_massSlice4_displacedRate"|         3 |
+ | "Hlt1DiElectronLowMass_massSlice4_promptPass"   |         3 |
  | "Hlt1DiElectronLowMass_massSlice4_promptRate"   |         1 |
- | "Hlt1DiMuonDisplacedPass"                       |        78 |
- | "Hlt1DiMuonDisplacedRate"                       |        78 |
- | "Hlt1DiMuonHighMassPass"                        |        66 |
- | "Hlt1DiMuonHighMassRate"                        |        66 |
+ | "Hlt1DiMuonDisplacedPass"                       |        74 |
+ | "Hlt1DiMuonDisplacedRate"                       |        74 |
+ | "Hlt1DiMuonHighMassPass"                        |        71 |
+ | "Hlt1DiMuonHighMassRate"                        |        71 |
  | "Hlt1DiMuonNoIPPass"                            |         6 |
  | "Hlt1DiMuonNoIPRate"                            |         6 |
- | "Hlt1DiMuonNoIP_SSPass"                         |         4 |
- | "Hlt1DiMuonSoftPass"                            |         7 |
- | "Hlt1DiMuonSoftRate"                            |         7 |
+ | "Hlt1DiMuonNoIP_SSPass"                         |         5 |
+ | "Hlt1DiMuonSoftPass"                            |         6 |
+ | "Hlt1DiMuonSoftRate"                            |         6 |
  | "Hlt1DiPhotonHighMassPass"                      |        81 |
  | "Hlt1DiPhotonHighMassRate"                      |        81 |
- | "Hlt1Dst2D0PiAlignmentPass"                     |         3 |
- | "Hlt1Dst2D0PiAlignmentRate"                     |         3 |
- | "Hlt1Dst2D0PiPass"                              |         3 |
- | "Hlt1Dst2D0PiRate"                              |         3 |
+ | "Hlt1Dst2D0PiAlignmentPass"                     |         2 |
+ | "Hlt1Dst2D0PiAlignmentRate"                     |         2 |
+ | "Hlt1Dst2D0PiPass"                              |         2 |
+ | "Hlt1Dst2D0PiRate"                              |         2 |
  | "Hlt1GECPassthroughPass"                        |         2 |
  | "Hlt1GECPassthroughRate"                        |         2 |
- | "Hlt1KsToPiPiPass"                              |       704 |
+ | "Hlt1KsToPiPiPass"                              |       741 |
  | "Hlt1KsToPiPiRate"                              |         2 |
  | "Hlt1LambdaLLDetachedTrackPass"                 |         1 |
  | "Hlt1LambdaLLDetachedTrackRate"                 |         1 |
@@ -113,33 +115,35 @@ gather_selections                      INFO Number of counters : 95
  | "Hlt1OneMuonTrackLineRate"                      |         3 |
  | "Hlt1Pi02GammaGammaPass"                        |         2 |
  | "Hlt1Pi02GammaGammaRate"                        |         2 |
- | "Hlt1RICH1AlignmentPass"                        |         2 |
- | "Hlt1RICH1AlignmentRate"                        |         2 |
+ | "Hlt1RICH1AlignmentPass"                        |         4 |
+ | "Hlt1RICH1AlignmentRate"                        |         4 |
  | "Hlt1SMOG2PassThroughLowMult5Pass"              |         3 |
  | "Hlt1SMOG2PassThroughLowMult5Rate"              |         3 |
- | "Hlt1SingleHighPtElectronPass"                  |        11 |
- | "Hlt1SingleHighPtElectronRate"                  |        11 |
- | "Hlt1SingleHighPtMuonNoMuIDPass"                |        17 |
- | "Hlt1SingleHighPtMuonNoMuIDRate"                |        17 |
- | "Hlt1SingleHighPtMuonPass"                      |         3 |
- | "Hlt1SingleHighPtMuonRate"                      |         3 |
- | "Hlt1TrackElectronMVAPass"                      |        61 |
- | "Hlt1TrackElectronMVARate"                      |        61 |
- | "Hlt1TrackMVAPass"                              |       111 |
- | "Hlt1TrackMVARate"                              |       111 |
+ | "Hlt1SingleHighPtElectronPass"                  |        13 |
+ | "Hlt1SingleHighPtElectronRate"                  |        13 |
+ | "Hlt1SingleHighPtMuonNoMuIDPass"                |        19 |
+ | "Hlt1SingleHighPtMuonNoMuIDRate"                |        19 |
+ | "Hlt1SingleHighPtMuonPass"                      |         5 |
+ | "Hlt1SingleHighPtMuonRate"                      |         5 |
+ | "Hlt1TrackElectronMVAPass"                      |        54 |
+ | "Hlt1TrackElectronMVARate"                      |        54 |
+ | "Hlt1TrackMVAPass"                              |        99 |
+ | "Hlt1TrackMVARate"                              |        99 |
  | "Hlt1TrackMuonMVAPass"                          |         9 |
  | "Hlt1TrackMuonMVARate"                          |         9 |
- | "Hlt1TwoKsPass"                                 |         6 |
- | "Hlt1TwoKsRate"                                 |         6 |
- | "Hlt1TwoTrackKsPass"                            |        26 |
- | "Hlt1TwoTrackKsRate"                            |        26 |
- | "Hlt1TwoTrackMVAPass"                           |       263 |
- | "Hlt1TwoTrackMVARate"                           |       263 |
+ | "Hlt1TwoKsPass"                                 |         8 |
+ | "Hlt1TwoKsRate"                                 |         8 |
+ | "Hlt1TwoTrackKsPass"                            |        30 |
+ | "Hlt1TwoTrackKsRate"                            |        30 |
+ | "Hlt1TwoTrackMVAPass"                           |       247 |
+ | "Hlt1TwoTrackMVARate"                           |       247 |
+ | "Hlt1UpsilonAlignmentPass"                      |         2 |
+ | "Hlt1UpsilonAlignmentRate"                      |         2 |
  | "Hlt1VeloMicroBiasPass"                         |      9997 |
  | "Hlt1VeloMicroBiasRate"                         |         9 |
 matching_consolidate_tracks_matc...    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_long_tracks_matching"                        |     10000 |     464535 |     46.453 |
+ | "n_long_tracks_matching"                        |     10000 |     458865 |     45.886 |
 pv_beamline_cleanup                    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_PVs"                                         |     10000 |      51728 |     5.1728 |

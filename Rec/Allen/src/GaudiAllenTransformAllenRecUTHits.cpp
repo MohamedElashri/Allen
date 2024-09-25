@@ -37,18 +37,17 @@
 using simd = SIMDWrapper::best::types;
 
 class GaudiAllenTransformAllenRecUTHits final
-  : public Gaudi::Functional::MultiTransformer<
-      std::tuple<std::vector<UT::Hit>, std::vector<UT::Hit>, std::vector<float>>(
-        const std::vector<unsigned>&,
-        const std::vector<char>&,
-        LHCb::Pr::UT::Hits const& hit_handler,
-        const Constants* const&)> {
+  : public Gaudi::Functional::MultiTransformer<std::tuple<std::vector<UT::Hit>, std::vector<UT::Hit>>(
+      const std::vector<unsigned>&,
+      const std::vector<char>&,
+      LHCb::Pr::UT::Hits const& hit_handler,
+      const Constants* const&)> {
 public:
   // Standard constructor
   GaudiAllenTransformAllenRecUTHits(const std::string& name, ISvcLocator* pSvcLocator);
 
   // Algorithm execution
-  std::tuple<std::vector<UT::Hit>, std::vector<UT::Hit>, std::vector<float>> operator()(
+  std::tuple<std::vector<UT::Hit>, std::vector<UT::Hit>> operator()(
     const std::vector<unsigned>&,
     const std::vector<char>&,
     LHCb::Pr::UT::Hits const&,
@@ -69,11 +68,10 @@ GaudiAllenTransformAllenRecUTHits::GaudiAllenTransformAllenRecUTHits(
      KeyValue {"UTHitsLocation", UTInfo::HitLocation},
      KeyValue {"allen_constants", ""}},
     // Outputs
-    {KeyValue {"allen_ut_hits", ""}, KeyValue {"rec_ut_hits", ""}, KeyValue {"rec_ut_dxdys", ""}})
+    {KeyValue {"allen_ut_hits", ""}, KeyValue {"rec_ut_hits", ""}})
 {}
 
-std::tuple<std::vector<UT::Hit>, std::vector<UT::Hit>, std::vector<float>> GaudiAllenTransformAllenRecUTHits::
-operator()(
+std::tuple<std::vector<UT::Hit>, std::vector<UT::Hit>> GaudiAllenTransformAllenRecUTHits::operator()(
   const std::vector<unsigned>& ut_hit_offsets,
   const std::vector<char>& ut_hits,
   LHCb::Pr::UT::Hits const& hit_handler,
@@ -89,10 +87,8 @@ operator()(
 
   std::vector<UT::Hit> allen_hits, rec_hits;
   // Rec stores dxdy information inside hit, Allen accesses it using place code
-  std::vector<float> rec_dxdys;
   allen_hits.reserve(n_hits_total_allen);
   rec_hits.reserve(n_hits_total_rec);
-  rec_dxdys.reserve(n_hits_total_rec);
 
   constexpr int width = 12; // for printing results
   // loop sector groups and fill hit container for re-ordering
@@ -102,13 +98,13 @@ operator()(
             << " Allen UT hits sector group " << sector_group_index << endmsg;
     debug() << std::setw(width) << "Type" << std::setw(width) << "LHCbID" << std::setw(width) << "yBegin"
             << std::setw(width) << "yEnd" << std::setw(width) << "zAtYEq0" << std::setw(width) << "xAtYEq0"
-            << std::setw(width) << "weight" << std::setw(width) << "dxdy" << endmsg;
+            << std::setw(width) << "dxDy" << std::setw(width) << "weight" << endmsg;
     for (unsigned hit_idx = ut_hit_offsets[sector_group_index]; hit_idx < ut_hit_offsets[sector_group_index + 1];
          hit_idx++) {
       const auto hit = ut_hit_container_allen.getHit(hit_idx);
       debug() << std::setw(width) << "Allen Hit" << std::setw(width) << hit.LHCbID << std::setw(width) << hit.yBegin
               << std::setw(width) << hit.yEnd << std::setw(width) << hit.zAtYEq0 << std::setw(width) << hit.xAtYEq0
-              << std::setw(width) << hit.weight << std::setw(width) << 0 << endmsg;
+              << std::setw(width) << hit.dxDy << std::setw(width) << hit.weight << endmsg;
       allen_hits.emplace_back(hit);
     }
   } // end loop sector groups
@@ -127,22 +123,21 @@ operator()(
     const auto mH = ut_hit_container_rec[i];
     std::array<int, simd::size> channelIDs;
     mH.get<LHCb::Pr::UT::UTHitsTag::channelID>().store(channelIDs.data());
-    std::array<float, simd::size> yBegins, yEnds, zAtYEq0s, xAtYEq0s, weights, dxdys;
+    std::array<float, simd::size> yBegins, yEnds, zAtYEq0s, xAtYEq0s, weights, dxDys;
     mH.get<LHCb::Pr::UT::UTHitsTag::yBegin>().store(yBegins.data());
     mH.get<LHCb::Pr::UT::UTHitsTag::yEnd>().store(yEnds.data());
     mH.get<LHCb::Pr::UT::UTHitsTag::zAtYEq0>().store(zAtYEq0s.data());
     mH.get<LHCb::Pr::UT::UTHitsTag::xAtYEq0>().store(xAtYEq0s.data());
     mH.get<LHCb::Pr::UT::UTHitsTag::weight>().store(weights.data());
-    mH.get<LHCb::Pr::UT::UTHitsTag::dxDy>().store(dxdys.data());
+    mH.get<LHCb::Pr::UT::UTHitsTag::dxDy>().store(dxDys.data());
     for (std::size_t j = 0; j < simd::size; j++) {
       const auto channelID = LHCb::Detector::UT::ChannelID(channelIDs[j]);
       const auto lhcbID = bit_cast<int, unsigned int>(LHCb::LHCbID(channelID).lhcbID());
       const auto layer = channelID.layer();
-      rec_hits.emplace_back(yBegins[j], yEnds[j], zAtYEq0s[j], xAtYEq0s[j], weights[j], lhcbID, layer);
-      rec_dxdys.emplace_back(dxdys[j]);
+      rec_hits.emplace_back(yBegins[j], yEnds[j], zAtYEq0s[j], xAtYEq0s[j], dxDys[j], weights[j], lhcbID, layer);
     }
   }
 
   rec_hits.resize(n_hits_total_rec);
-  return std::make_tuple(allen_hits, rec_hits, rec_dxdys);
+  return std::make_tuple(allen_hits, rec_hits);
 }

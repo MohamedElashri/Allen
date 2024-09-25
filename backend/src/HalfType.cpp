@@ -118,6 +118,9 @@ float __half2float(const half_t h) { return float {h}; }
 half_t __float2half(const float f) { return f; }
 float __half2float(const half_t h) { return h; }
 
+float2 __half22float2(const float2 a) { return a; }
+float2 __float22half2_rn(const float2 a) { return a; }
+
 #endif
 
 #endif

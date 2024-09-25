@@ -58,7 +58,7 @@ DeviceRichPDMDBMapping                 INFO Number of counters : 1
 DeviceUTGeometry                       INFO Number of counters : 2
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_UTBoards"                         |     84688 |
- | "BytesWritten_UTGeometry"                       |     41924 |
+ | "BytesWritten_UTGeometry"                       |     46116 |
 DeviceUTLookupTables                   INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "BytesWritten_UTLookupTables"                   |     15544 |

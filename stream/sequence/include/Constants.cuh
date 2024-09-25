@@ -49,6 +49,10 @@ namespace Rich::Future::DAQ::Allen {
   class Tel40CableMapping;
 } // namespace Rich::Future::DAQ::Allen
 
+namespace UT::Constants {
+  struct PerLayerInfo;
+}
+
 /**
  * @brief Struct intended as a singleton with constants defined on GPU.
  * @details __constant__ memory on the GPU has very few use cases.
@@ -133,8 +137,8 @@ struct Constants {
   int* dev_muon_catboost_leaf_offsets = nullptr;
 
   // Two track mva constants
-  float* dev_two_track_mva_weights = nullptr;
-  float* dev_two_track_mva_biases = nullptr;
+  float* host_two_track_mva_weights = nullptr;
+  float* host_two_track_mva_biases = nullptr;
   int* dev_two_track_mva_layer_sizes = nullptr;
   int dev_two_track_mva_n_layers = 0;
   float* dev_two_track_mva_monotone_constraints = nullptr;
@@ -142,8 +146,8 @@ struct Constants {
   float dev_two_track_mva_nominal_cut = 0;
 
   // ElectronID mva constants
-  float* dev_electronid_mva_weights = nullptr;
-  float* dev_electronid_mva_biases = nullptr;
+  float* host_electronid_mva_weights = nullptr;
+  float* host_electronid_mva_biases = nullptr;
   int* dev_electronid_mva_layer_sizes = nullptr;
   int dev_electronid_mva_n_layers = 0;
   float* dev_electronid_mva_monotone_constraints = nullptr;
@@ -151,6 +155,16 @@ struct Constants {
   float* dev_electronid_mva_max_rescales = nullptr;
   float dev_electronid_mva_lambda = 0;
   float dev_electronid_mva_nominal_cut = 0;
+  // MuonID mva constants
+  float* host_muonid_mva_weights = nullptr;
+  float* host_muonid_mva_biases = nullptr;
+  int* dev_muonid_mva_layer_sizes = nullptr;
+  int dev_muonid_mva_n_layers = 0;
+  float* dev_muonid_mva_monotone_constraints = nullptr;
+  float* dev_muonid_mva_min_rescales = nullptr;
+  float* dev_muonid_mva_max_rescales = nullptr;
+  float dev_muonid_mva_lambda = 0;
+  float dev_muonid_mva_nominal_cut = 0;
 
   LookingForward::Constants* dev_looking_forward_constants = nullptr;
 
@@ -161,6 +175,7 @@ struct Constants {
   Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_ghost_killer = nullptr;
   Allen::NeuralNetwork::Model::MatchingGhostKiller* dev_matching_ghost_killer = nullptr;
   Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller* dev_matching_with_ut_ghost_killer = nullptr;
+  Allen::NeuralNetwork::Model::MatchingWithUTV2GhostKiller* dev_matching_with_ut_v2_ghost_killer = nullptr;
   Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_no_ut_ghost_killer = nullptr;
   Allen::NeuralNetwork::Model::DownstreamGhostKiller* dev_downstream_ghost_killer = nullptr;
 
@@ -183,6 +198,10 @@ struct Constants {
   std::vector<char> host_rich_cable_mapping;
   char* dev_rich_pdmdb_mapping;
   char* dev_rich_cable_mapping;
+
+  // UT per layer constant information
+  UT::Constants::PerLayerInfo* host_ut_per_layer_info = nullptr;
+  UT::Constants::PerLayerInfo* dev_ut_per_layer_info = nullptr;
 
   /**
    * @brief Reserves and initializes constants.
@@ -231,6 +250,16 @@ struct Constants {
     float lambda);
 
   void initialize_electronid_mva_model_constants(
+    const std::vector<float>& weights,
+    const std::vector<float>& biases,
+    const std::vector<int>& layer_sizes,
+    const int n_layers,
+    const std::vector<float>& monotone_constraints,
+    const std::vector<float>& min_rescales,
+    const std::vector<float>& max_rescales,
+    float nominal_cut,
+    float lambda);
+  void initialize_muonid_mva_model_constants(
     const std::vector<float>& weights,
     const std::vector<float>& biases,
     const std::vector<int>& layer_sizes,
@@ -324,6 +353,13 @@ struct Constants {
     const std::vector<float>& weights2,
     const float& bias2);
   void initialize_matching_no_ut_v2_ghostkiller_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+  void initialize_matching_with_ut_v2_ghostkiller_constants(
     const std::vector<float>& mean,
     const std::vector<float>& std,
     const std::vector<std::vector<float>>& weights1,

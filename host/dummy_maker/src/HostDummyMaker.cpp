@@ -22,11 +22,16 @@ void host_dummy_maker::host_dummy_maker_t::set_arguments_size(
   set_size<dev_bool_dummy_t>(arguments, 0);
   set_size<dev_char_dummy_t>(arguments, 0);
   set_size<dev_lumi_dummy_t>(arguments, 0);
+  set_size<host_sum_dummy_t>(arguments, 1);
 }
 
-void host_dummy_maker::host_dummy_maker_t::
-operator()(const ArgumentReferences<Parameters>&, const RuntimeOptions&, const Constants&, const Allen::Context&) const
+void host_dummy_maker::host_dummy_maker_t::operator()(
+  const ArgumentReferences<Parameters>& arguments,
+  const RuntimeOptions&,
+  const Constants&,
+  const Allen::Context& context) const
 {
+  Allen::memset_async<host_sum_dummy_t>(arguments, 0, context);
   if (property<verbosity_t>() >= logger::debug) {
     debug_cout << "Making dummy object" << std::endl;
   }

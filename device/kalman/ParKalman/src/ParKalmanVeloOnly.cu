@@ -19,7 +19,7 @@ void kalman_velo_only::kalman_velo_only_t::set_arguments_size(
 {
   auto n_scifi_tracks = first<host_number_of_reconstructed_scifi_tracks_t>(arguments);
   set_size<dev_kf_tracks_t>(arguments, n_scifi_tracks);
-  set_size<dev_kalman_pv_ipchi2_t>(arguments, Associate::Consolidated::table_size(n_scifi_tracks));
+  set_size<dev_kalman_pv_ip_t>(arguments, Associate::Consolidated::table_size(n_scifi_tracks));
   set_size<dev_kalman_fit_results_t>(arguments, n_scifi_tracks * Velo::Consolidated::States::size);
   set_size<dev_kalman_states_view_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_kalman_pv_tables_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -34,8 +34,7 @@ void kalman_velo_only::kalman_velo_only_t::operator()(
   global_function(kalman_velo_only)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
     arguments, constants.dev_beamline.data());
 
-  global_function(kalman_pv_ipchi2)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(kalman_pv_ip)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
 }
 
 __device__ void add_noise_1d(

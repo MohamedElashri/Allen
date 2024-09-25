@@ -11,7 +11,7 @@
 from AllenCore.algorithms import (
     kstopipi_line_t, track_mva_line_t, two_track_mva_line_t,
     two_track_mva_evaluator_t, two_track_line_ks_t, lambda2ppi_line_t,
-    lambda_ll_detached_track_line_t, xi_omega_lll_line_t)
+    lambda_ll_detached_track_line_t, xi_omega_lll_line_t, cone_jet_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenCore.configuration_options import is_allen_standalone
@@ -216,4 +216,28 @@ def make_detached_xi_omega_lll_line(sv_twotrack_candidates,
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
         enable_monitoring=enable_monitoring,
+        enable_tupling=enable_tupling)
+
+
+def make_cone_jet_line(jets,
+                       name='Hlt1ConeJet_{hash}',
+                       pre_scaler_hash_string=None,
+                       post_scaler_hash_string=None,
+                       pre_scaler=1.,
+                       min_pt=15000.,
+                       max_pt=1000000.,
+                       enable_tupling=False):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        cone_jet_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_jets_t=jets["host_number_of_jets"],
+        dev_particle_container_t=jets["dev_multi_event_jets"],
+        min_jet_pt=min_pt,
+        max_jet_pt=max_pt,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
+        post_scaler_hash_string=post_scaler_hash_string or name + '_post',
+        pre_scaler=pre_scaler,
         enable_tupling=enable_tupling)

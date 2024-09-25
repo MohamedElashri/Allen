@@ -24,6 +24,7 @@ namespace UT {
     float yEnd;
     float zAtYEq0;
     float xAtYEq0;
+    float dxDy;
     float weight;
     uint32_t LHCbID;
     uint8_t plane_code;
@@ -35,11 +36,13 @@ namespace UT {
       const float _yEnd,
       const float _zAtYEq0,
       const float _xAtYEq0,
+      const float _dxDy,
       const float _weight,
       const uint32_t _LHCbID,
       const uint8_t _plane_code) :
       yBegin(_yBegin),
-      yEnd(_yEnd), zAtYEq0(_zAtYEq0), xAtYEq0(_xAtYEq0), weight(_weight), LHCbID(_LHCbID), plane_code(_plane_code)
+      yEnd(_yEnd), zAtYEq0(_zAtYEq0), xAtYEq0(_xAtYEq0), dxDy(_dxDy), weight(_weight), LHCbID(_LHCbID),
+      plane_code(_plane_code)
     {}
 
     bool operator==(const Hit& h) const { return LHCbID == h.LHCbID; }
@@ -149,7 +152,7 @@ namespace UT {
     const unsigned m_offset;
 
   public:
-    constexpr static unsigned element_size = 5 * sizeof(float) + sizeof(unsigned);
+    constexpr static unsigned element_size = 6 * sizeof(float) + sizeof(unsigned);
     /**
      * @brief Populates the UTHits object pointers to an array of data
      *        pointed by base_pointer.
@@ -208,30 +211,42 @@ namespace UT {
       return m_base_pointer[m_offset + 3 * m_total_number_of_hits + index];
     }
 
-    __host__ __device__ inline float weight(const unsigned index) const
+    __host__ __device__ inline float dxDy(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[m_offset + 4 * m_total_number_of_hits + index];
     }
 
-    __host__ __device__ inline float& weight(const unsigned index)
+    __host__ __device__ inline float& dxDy(const unsigned index)
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[m_offset + 4 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ inline float weight(const unsigned index) const
+    {
+      assert(m_offset + index < m_total_number_of_hits);
+      return m_base_pointer[m_offset + 5 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ inline float& weight(const unsigned index)
+    {
+      assert(m_offset + index < m_total_number_of_hits);
+      return m_base_pointer[m_offset + 5 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ inline unsigned id(const unsigned index) const
     {
       assert(m_offset + index < m_total_number_of_hits);
       return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
-        m_base_pointer)[m_offset + 5 * m_total_number_of_hits + index];
+        m_base_pointer)[m_offset + 6 * m_total_number_of_hits + index];
     }
 
     __host__ __device__ inline unsigned& id(const unsigned index)
     {
       assert(m_offset + index < m_total_number_of_hits);
       return reinterpret_cast<typename ForwardType<T, unsigned>::t*>(
-        m_base_pointer)[m_offset + 5 * m_total_number_of_hits + index];
+        m_base_pointer)[m_offset + 6 * m_total_number_of_hits + index];
     }
 
     /**
@@ -239,7 +254,7 @@ namespace UT {
      */
     __host__ __device__ inline Hit getHit(const unsigned index) const
     {
-      return {yBegin(index), yEnd(index), zAtYEq0(index), xAtYEq0(index), weight(index), id(index), 0};
+      return {yBegin(index), yEnd(index), zAtYEq0(index), xAtYEq0(index), dxDy(index), weight(index), id(index), 0};
     }
 
     __host__ __device__ inline bool isYCompatible(const unsigned index, const float y, const float tol) const
@@ -252,21 +267,18 @@ namespace UT {
       return yMin(index) - tol > y || y > yMax(index) + tol;
     }
 
-    __host__ __device__ inline float cosT(const unsigned index, const float dxDy) const
+    __host__ __device__ inline float cosT(const unsigned index) const
     {
-      return (fabsf(xAtYEq0(index)) < 1.0e-9f) ? 1.f / sqrtf(1.f + dxDy * dxDy) : cosf(dxDy);
+      return (fabsf(xAtYEq0(index)) < 1.0e-9f) ? 1.f / sqrtf(1.f + dxDy(index) * dxDy(index)) : cosf(dxDy(index));
     }
 
-    __host__ __device__ inline float sinT(const unsigned index, const float dxDy) const
-    {
-      return tanT(dxDy) * cosT(index, dxDy);
-    }
+    __host__ __device__ inline float sinT(const unsigned index) const { return tanT(index) * cosT(index); }
 
-    __host__ __device__ inline float tanT(const float dxDy) const { return -1.f * dxDy; }
+    __host__ __device__ inline float tanT(const unsigned index) const { return -1.f * dxDy(index); }
 
-    __host__ __device__ inline float xAt(const unsigned index, const float globalY, const float dxDy) const
+    __host__ __device__ inline float xAt(const unsigned index, const float globalY) const
     {
-      return xAtYEq0(index) + globalY * dxDy;
+      return xAtYEq0(index) + globalY * dxDy(index);
     }
 
     __host__ __device__ inline float yMax(const unsigned index) const { return fmaxf(yBegin(index), yEnd(index)); }
