@@ -54,7 +54,8 @@ void downstream_create_tracks::downstream_create_tracks_t::operator()(
     dev_unique_x_sector_layer_offsets,
     dev_ut_dxDy,
     dev_magnet_polarity,
-    constants.dev_downstream_ghost_killer);
+    constants.dev_downstream_ghost_killer,
+    m_n_overflow_downstream_create_tracks.data(context));
 
   PrefixSum::prefix_sum<dev_offsets_downstream_tracks_t, host_number_of_downstream_tracks_t>(*this, arguments, context);
 }
@@ -171,7 +172,8 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
   const unsigned* dev_unique_x_sector_layer_offsets,
   const float* dev_ut_dxDy,
   const float* dev_magnet_polarity,
-  const Allen::NeuralNetwork::Model::DownstreamGhostKiller* dev_downstream_ghostkiller)
+  const Allen::NeuralNetwork::Model::DownstreamGhostKiller* dev_downstream_ghostkiller,
+  [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_create_tracks)
 {
   ///////////////////////////////////////////////////////
   //
@@ -337,9 +339,9 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
 
     if (ghost_killer_score > parameters.ghost_killer_threshold) continue;
 
-    if (shared_num_downstream_tracks >= UT::Constants::max_num_tracks) continue;
-
     const auto idx = atomicAdd(&shared_num_downstream_tracks, 1u);
+
+    if (idx >= UT::Constants::max_num_tracks) break;
 
     auto& output_track = downstream_tracks[idx];
 
@@ -356,6 +358,11 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
     output_track.hits[1] = hit_1;
     output_track.hits[2] = hit_2;
     output_track.hits[3] = hit_3;
+  }
+  __syncthreads();
+  if (shared_num_downstream_tracks > UT::Constants::max_num_tracks && threadIdx.x == 0) {
+    shared_num_downstream_tracks = 0;
+    dev_n_overflow_downstream_create_tracks.increment();
   }
   __syncthreads();
 
