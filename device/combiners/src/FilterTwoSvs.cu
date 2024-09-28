@@ -64,7 +64,7 @@ __global__ void FilterTwoSvs::filter_two_svs(FilterTwoSvs::Parameters parameters
     const auto vertex = svs_1.particle(i_sv);
 
     // Set decision
-    dec = vertex.vertex().chi2() > 0 && vertex.vertex().chi2() < parameters.maxVertexChi2;
+    dec = vertex.vertex().chi2() >= 0 && vertex.vertex().chi2() < parameters.maxVertexChi2;
     dec &= parameters.minMassV1 < vertex.m() && vertex.m() < parameters.maxMassV1;
     if (dec) {
       // Kinematic cuts.
@@ -87,7 +87,7 @@ __global__ void FilterTwoSvs::filter_two_svs(FilterTwoSvs::Parameters parameters
     const auto vertex = svs_2.particle(j_sv);
 
     // Set decision
-    dec = vertex.vertex().chi2() > 0 && vertex.vertex().chi2() < parameters.maxVertexChi2;
+    dec = vertex.vertex().chi2() >= 0 && vertex.vertex().chi2() < parameters.maxVertexChi2;
     dec &= parameters.minMassV2 < vertex.m() && vertex.m() < parameters.maxMassV2;
     if (dec) {
       // Kinematic cuts.

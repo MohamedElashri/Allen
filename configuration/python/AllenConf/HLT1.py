@@ -94,8 +94,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             make_downstream_kshort_line(
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
-                mva_ks_threshold=0.5,
-                mva_detached_ks_threshold=0.5,
+                mva_ks_threshold=0.55,
+                mva_detached_ks_threshold=0.55,
                 name="Hlt1DownstreamKsToPiPi",
                 enable_monitoring=True),
             make_downstream_lambda_line(
@@ -121,6 +121,21 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 mva_detached_l0_threshold=0.,
                 name="Hlt1DownstreamPromptLambdaToPPi",
                 enable_monitoring=True),
+        ]
+    if 'v0dd_hh_pairs' in reconstructed_objects:
+        lines += [
+            make_d2kshh_line(
+                long_tracks,
+                reconstructed_objects['v0dd_hh_pairs'],
+                maxVertexChi2=10,
+                pre_scaler=0.25,
+                maxDOCA=2.5,
+                minM_Ks=420.,
+                maxM_Ks=540.,
+                minTrackIP_Ks=0.2,
+                minCTau_D0=0.5 * 0.1229,
+                name="Hlt1DownstreamD2Kshh",
+                enable_tupling=enable_tupling),
         ]
 
     if with_v0s:

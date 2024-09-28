@@ -64,11 +64,11 @@ __device__ float d2kshh_line::d2kshh_line_t::mSq(
   const float m1,
   const float m2)
 {
-  const auto p1 = vertex->vertex();
-  const auto p2 = particle->state();
-  const float E1 = sqrtf(p1.px() * p1.px() + p1.py() * p1.py() + p1.pz() * p1.pz() + m1 * m1);
-  const float E2 = sqrtf(p2.px() * p2.px() + p2.py() * p2.py() + p2.pz() * p2.pz() + m2 * m2);
-  return m1 * m1 + m2 * m2 + 2.f * (E1 * E2 - (p1.px() * p2.px() + p1.py() * p2.py() + p1.pz() * p2.pz()));
+  const auto ks = vertex->vertex();
+  const auto hh = particle->state();
+  const float E1 = sqrtf(ks.px() * ks.px() + ks.py() * ks.py() + ks.pz() * ks.pz() + m1 * m1);
+  const float E2 = sqrtf(hh.px() * hh.px() + hh.py() * hh.py() + hh.pz() * hh.pz() + m2 * m2);
+  return m1 * m1 + m2 * m2 + 2.f * (E1 * E2 - (ks.px() * hh.px() + ks.py() * hh.py() + ks.pz() * hh.pz()));
 }
 
 // Selection function
@@ -91,7 +91,7 @@ __device__ bool d2kshh_line::d2kshh_line_t::select(
   if (!comb_cuts) return false;
 
   // Vertex quality cuts.
-  comb_cuts &= ks->vertex().chi2() > 0 && ks->vertex().chi2() < parameters.maxVertexChi2 && hh->vertex().chi2() > 0 &&
+  comb_cuts &= ks->vertex().chi2() >= 0 && ks->vertex().chi2() < parameters.maxVertexChi2 && hh->vertex().chi2() > 0 &&
                hh->vertex().chi2() < parameters.maxVertexChi2;
   if (!comb_cuts) return false;
 
@@ -102,8 +102,8 @@ __device__ bool d2kshh_line::d2kshh_line_t::select(
   if (!comb_cuts) return false;
 
   // Invariant mass cut
-  auto mks = ks->m();                                                            // m(p1,Allen::mPi, Allen::mPi);
-  auto mpipi = hh->m();                                                          // m(p2,Allen::mPi, Allen::mPi);
+  auto mks = ks->m();                                                            // m(ks,Allen::mPi, Allen::mPi);
+  auto mpipi = hh->m();                                                          // m(hh,Allen::mPi, Allen::mPi);
   comb_cuts = fabsf(m(ks, hh, mks, mpipi) - Allen::mDz) < parameters.massWindow; // all pions
 
   bool ks_cuts = true;
@@ -178,50 +178,50 @@ __device__ void d2kshh_line::d2kshh_line_t::fill_tuples(
 {
   if (sel) {
     const auto sv = std::get<0>(input);
-    const auto p1 = static_cast<const Allen::Views::Physics::CompositeParticle*>(sv.child(0));
-    const auto p2 = static_cast<const Allen::Views::Physics::CompositeParticle*>(sv.child(1));
-    const auto p1_1 = static_cast<const Allen::Views::Physics::BasicParticle*>(p1->child(0));
-    const auto p1_2 = static_cast<const Allen::Views::Physics::BasicParticle*>(p1->child(1));
-    const auto p2_1 = static_cast<const Allen::Views::Physics::BasicParticle*>(p2->child(0));
-    const auto p2_2 = static_cast<const Allen::Views::Physics::BasicParticle*>(p2->child(1));
+    const auto ks = static_cast<const Allen::Views::Physics::CompositeParticle*>(sv.child(0));
+    const auto hh = static_cast<const Allen::Views::Physics::CompositeParticle*>(sv.child(1));
+    const auto ks_1 = static_cast<const Allen::Views::Physics::BasicParticle*>(ks->child(0));
+    const auto ks_2 = static_cast<const Allen::Views::Physics::BasicParticle*>(ks->child(1));
+    const auto hh_1 = static_cast<const Allen::Views::Physics::BasicParticle*>(hh->child(0));
+    const auto hh_2 = static_cast<const Allen::Views::Physics::BasicParticle*>(hh->child(1));
 
-    parameters.sv_masses[index] = m(p1, p2, Allen::mPi, Allen::mPi);
-    parameters.pt[index] = pt(p1, p2);
-    parameters.p[index] = p(p1, p2);
-    parameters.doca[index] = Allen::Views::Physics::state_doca(p1->get_state(), p2->get_state());
-    parameters.ctau[index] = ctau(p1, p2);
-    const float m1 = p1->m();
-    const float m2 = p2->m();
-    if (p1->vertex().z() > p2->vertex().z()) {
+    parameters.sv_masses[index] = m(ks, hh, Allen::mPi, Allen::mPi);
+    parameters.pt[index] = pt(ks, hh);
+    parameters.p[index] = p(ks, hh);
+    parameters.doca[index] = Allen::Views::Physics::state_doca(ks->get_state(), hh->get_state());
+    parameters.ctau[index] = ctau(ks, hh);
+    const float m1 = ks->m();
+    const float m2 = hh->m();
+    if (ks->vertex().z() > hh->vertex().z()) {
       parameters.v1_m[index] = m1;
       parameters.v2_m[index] = m2;
-      parameters.v1_minipchi2[index] = p1->minipchi2();
-      parameters.v2_minipchi2[index] = p2->minipchi2();
-      parameters.v1_minip[index] = p1->minip();
-      parameters.v2_minip[index] = p2->minip();
-      if (p2_1->state().charge() > 0) {
-        parameters.msqp[index] = mSq(p1, p2_1, m1, Allen::mPi);
-        parameters.msqm[index] = mSq(p1, p2_2, m1, Allen::mPi);
+      parameters.v1_minipchi2[index] = ks->minipchi2();
+      parameters.v2_minipchi2[index] = hh->minipchi2();
+      parameters.v1_minip[index] = ks->minip();
+      parameters.v2_minip[index] = hh->minip();
+      if (hh_1->state().charge() > 0) {
+        parameters.msqp[index] = mSq(ks, hh_1, m1, Allen::mPi);
+        parameters.msqm[index] = mSq(ks, hh_2, m1, Allen::mPi);
       }
       else {
-        parameters.msqp[index] = mSq(p1, p2_2, m1, Allen::mPi);
-        parameters.msqm[index] = mSq(p1, p2_1, m1, Allen::mPi);
+        parameters.msqp[index] = mSq(ks, hh_2, m1, Allen::mPi);
+        parameters.msqm[index] = mSq(ks, hh_1, m1, Allen::mPi);
       }
     }
     else {
       parameters.v1_m[index] = m2;
       parameters.v2_m[index] = m1;
-      parameters.v1_minipchi2[index] = p2->minipchi2();
-      parameters.v2_minipchi2[index] = p1->minipchi2();
-      parameters.v1_minip[index] = p2->minip();
-      parameters.v2_minip[index] = p1->minip();
-      if (p1_1->state().charge() > 0) {
-        parameters.msqp[index] = mSq(p2, p1_1, m1, Allen::mPi);
-        parameters.msqm[index] = mSq(p2, p1_2, m1, Allen::mPi);
+      parameters.v1_minipchi2[index] = hh->minipchi2();
+      parameters.v2_minipchi2[index] = ks->minipchi2();
+      parameters.v1_minip[index] = hh->minip();
+      parameters.v2_minip[index] = ks->minip();
+      if (ks_1->state().charge() > 0) {
+        parameters.msqp[index] = mSq(hh, ks_1, m1, Allen::mPi);
+        parameters.msqm[index] = mSq(hh, ks_2, m1, Allen::mPi);
       }
       else {
-        parameters.msqp[index] = mSq(p2, p1_2, m1, Allen::mPi);
-        parameters.msqm[index] = mSq(p2, p1_1, m1, Allen::mPi);
+        parameters.msqp[index] = mSq(hh, ks_2, m1, Allen::mPi);
+        parameters.msqm[index] = mSq(hh, ks_1, m1, Allen::mPi);
       }
     }
   }
