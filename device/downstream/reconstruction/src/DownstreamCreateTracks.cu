@@ -398,7 +398,6 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
         }
         else {
           clone_label[track_1_idx] = true;
-          break;
         };
       };
     };
