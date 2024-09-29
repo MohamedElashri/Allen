@@ -44,6 +44,8 @@ namespace Allen::NeuralNetwork {
 
     using MatchingWithUTGhostKiller = SingleLayerFCNN_t<11, 32>;
     using MatchingNoUTV2GhostKiller = SingleLayerFCNN_t<8, 32>;
+    using DownstreamBuscaSelector = SingleLayerFCNN_t<9, 12>;
+
     using MatchingWithUTV2GhostKiller = SingleLayerFCNN_t<10, 32>;
   } // namespace Model
 

@@ -117,6 +117,11 @@ Hlt1DownstreamKsToPiPi:                             8/   500, (  480.00 +/-   16
 Hlt1DownstreamLambdaToPPi:                          3/   500, (  180.00 +/-   103.61) kHz
 Hlt1DownstreamPromptKsToPiPi:                       0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DownstreamPromptLambdaToPPi:                    0/   500, (    0.00 +/-     0.00) kHz
+Hlt1DownstreamBuScaMonitoring:                      0/   500, (    0.00 +/-     0.00) kHz
+Hlt1DownstreamBuScaMonitoringSameSign:              0/   500, (    0.00 +/-     0.00) kHz
+Hlt1DownstreamBuScaPostScaled:                      0/   500, (    0.00 +/-     0.00) kHz
+Hlt1DownstreamBuScaMuMuLine:                        0/   500, (    0.00 +/-     0.00) kHz
+Hlt1DownstreamBuScaElElLine:                        0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DownstreamD2Kshh:                               0/   500, (    0.00 +/-     0.00) kHz
 Hlt1KsToPiPi:                                       0/   500, (    0.00 +/-     0.00) kHz
 Hlt1KsToPiPiDoubleMuonMisID:                        0/   500, (    0.00 +/-     0.00) kHz
@@ -331,6 +336,11 @@ Hlt1DownstreamKsToPiPi:                             8           8
 Hlt1DownstreamLambdaToPPi:                          3           3
 Hlt1DownstreamPromptKsToPiPi:                       0           0
 Hlt1DownstreamPromptLambdaToPPi:                    0           0
+Hlt1DownstreamBuScaMonitoring:                      0           0
+Hlt1DownstreamBuScaMonitoringSameSign:              0           0
+Hlt1DownstreamBuScaPostScaled:                      0           0
+Hlt1DownstreamBuScaMuMuLine:                        0           0
+Hlt1DownstreamBuScaElElLine:                        0           0
 Hlt1DownstreamD2Kshh:                               0           0
 Hlt1KsToPiPi:                                       0           0
 Hlt1KsToPiPiDoubleMuonMisID:                        0           0

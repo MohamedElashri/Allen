@@ -110,6 +110,7 @@ full:
       - hlt1_pp_forward_then_matching_no_ut
       - hlt1_pp_matching_no_ut
       - hlt1_pp_forward_then_matching_and_downstream
+      - hlt1_pp_matching_no_ut_and_downstream
       - hlt1_pp_forward_then_matching_no_ut_veloSP
       - hlt1_pp_forward_then_matching_and_downstream_veloSP
       - hlt1_pp_matching_no_ut_veloSP

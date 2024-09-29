@@ -442,3 +442,15 @@ void Constants::initialize_downstream_detached_kshort_selector_constants(
     sizeof(Allen::NeuralNetwork::Model::DownstreamDetachedKshortSelector));
   fill_single_layer_fcnn_model(dev_downstream_detached_kshort_selector, mean, std, weights1, bias1, weights2, bias2);
 }
+
+void Constants::initialize_downstream_busca_selector_constants(
+  const std::vector<float>& mean,
+  const std::vector<float>& std,
+  const std::vector<std::vector<float>>& weights1,
+  const std::vector<float>& bias1,
+  const std::vector<float>& weights2,
+  const float& bias2)
+{
+  Allen::malloc((void**) &dev_downstream_busca_selector, sizeof(Allen::NeuralNetwork::Model::DownstreamBuscaSelector));
+  fill_single_layer_fcnn_model(dev_downstream_busca_selector, mean, std, weights1, bias1, weights2, bias2);
+}

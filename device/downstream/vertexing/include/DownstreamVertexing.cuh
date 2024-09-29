@@ -54,8 +54,11 @@ namespace downstream_vertexing {
     PROPERTY(max_vtx_z_t, "max_vtx_z", "Maximum z position of the vertex.", float) max_vtx_z;
     PROPERTY(min_quality_t, "min_quality", "Minimum MVA quality score.", float) min_quality;
     PROPERTY(dihadron_t, "dihadron", "Filter leptons", bool) dihadron;
+    PROPERTY(combined_container_t, "combined_container", "Filter leptons", bool) combined_container;
+    PROPERTY(same_sign_reco_t, "same_sign_reco", "Filter leptons", bool) same_sign_reco;
   };
 
+  template<bool same_sign_reco>
   __global__ void
   downstream_vertexing(Parameters, const float*, const Allen::NeuralNetwork::Model::DownstreaCompositeQuality*);
 
@@ -81,5 +84,7 @@ namespace downstream_vertexing {
     Property<max_vtx_z_t> m_max_vtx_z {this, 2484.6f * Gaudi::Units::mm};
     Property<min_quality_t> m_min_quality {this, 0.1};
     Property<dihadron_t> m_dihadron {this, true};
+    Property<combined_container_t> m_combined_container {this, false};
+    Property<same_sign_reco_t> m_same_sign_reco {this, false};
   };
 } // namespace downstream_vertexing
