@@ -245,7 +245,7 @@ int allen(
   std::unique_ptr<SingleLayerFCNNReader> downstream_composite_quality_reader, downstream_lambda_selector_reader,
     downstream_kshort_selector_reader, downstream_detached_lambda_selector_reader,
     downstream_detached_kshort_selector_reader, downstream_ghostkiller_reader, ttrack_selector_reader,
-    matching_with_ut_v2_ghostkiller_reader;
+    downstream_busca_selector_reader, matching_with_ut_v2_ghostkiller_reader;
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
@@ -312,6 +312,12 @@ int allen(
     std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_LambdaSelector.json");
   downstream_kshort_selector_reader =
     std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_KshortSelector.json");
+  downstream_detached_lambda_selector_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "HLT1Downstream/Hlt1_Downstream_DetachedLambdaSelector.json");
+  downstream_detached_kshort_selector_reader = std::make_unique<SingleLayerFCNNReader>(
+    folder_parameters + "HLT1Downstream/Hlt1_Downstream_DetachedKshortSelector.json");
+  downstream_busca_selector_reader =
+    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_BuScaSelector.json");
   downstream_detached_lambda_selector_reader = std::make_unique<SingleLayerFCNNReader>(
     folder_parameters + "HLT1Downstream/Hlt1_Downstream_DetachedLambdaSelector.json");
   downstream_detached_kshort_selector_reader = std::make_unique<SingleLayerFCNNReader>(
@@ -452,6 +458,14 @@ int allen(
     downstream_detached_kshort_selector_reader->bias1(),
     downstream_detached_kshort_selector_reader->weights2(),
     downstream_detached_kshort_selector_reader->bias2());
+
+  constants.initialize_downstream_busca_selector_constants(
+    downstream_busca_selector_reader->mean(),
+    downstream_busca_selector_reader->std(),
+    downstream_busca_selector_reader->weights1(),
+    downstream_busca_selector_reader->bias1(),
+    downstream_busca_selector_reader->weights2(),
+    downstream_busca_selector_reader->bias2());
 
   constants.initialize_ttrack_selector_constants(
     ttrack_selector_reader->mean(),

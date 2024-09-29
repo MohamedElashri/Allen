@@ -190,6 +190,8 @@ struct Constants {
   Allen::NeuralNetwork::Model::DownstreamDetachedKshortSelector* dev_downstream_detached_kshort_selector = nullptr;
   Allen::NeuralNetwork::Model::MatchingNoUTV2GhostKiller* dev_matching_no_ut_v2_ghost_killer = nullptr;
 
+  Allen::NeuralNetwork::Model::DownstreamBuscaSelector* dev_downstream_busca_selector = nullptr;
+
   // Kalman filter
   ParKalmanFilter::KalmanParametrizations* dev_kalman_params = nullptr;
 
@@ -353,6 +355,14 @@ struct Constants {
     const std::vector<float>& weights2,
     const float& bias2);
   void initialize_matching_no_ut_v2_ghostkiller_constants(
+    const std::vector<float>& mean,
+    const std::vector<float>& std,
+    const std::vector<std::vector<float>>& weights1,
+    const std::vector<float>& bias1,
+    const std::vector<float>& weights2,
+    const float& bias2);
+
+  void initialize_downstream_busca_selector_constants(
     const std::vector<float>& mean,
     const std::vector<float>& std,
     const std::vector<std::vector<float>>& weights1,

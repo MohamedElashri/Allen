@@ -268,6 +268,16 @@ StatusCode ProvideConstants::initialize()
     downstream_detached_kshort_selector_reader.weights2(),
     downstream_detached_kshort_selector_reader.bias2());
 
+  SingleLayerFCNNReader downstream_busca_selector_reader {geometry_path +
+                                                          "/HLT1Downstream/Hlt1_Downstream_BuScaSelector.json"};
+  m_constants.initialize_downstream_busca_selector_constants(
+    downstream_busca_selector_reader.mean(),
+    downstream_busca_selector_reader.std(),
+    downstream_busca_selector_reader.weights1(),
+    downstream_busca_selector_reader.bias1(),
+    downstream_busca_selector_reader.weights2(),
+    downstream_busca_selector_reader.bias2());
+
   // Allen Consumers
   std::unordered_set<BankTypes> subdetectors;
   for (unsigned bt = 0; bt < NBankTypes; ++bt) {

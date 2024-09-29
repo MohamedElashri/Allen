@@ -92,6 +92,69 @@ namespace downstream_find_hits {
       "number of threads for finding rest of hits",
       DeviceDimensions)
     num_threads_find_rest_hits;
+
+    PROPERTY(
+      enable_constant_tolerance_window_t,
+      "enable_constant_tolerance_window",
+      "switch for constant tolerance window",
+      bool)
+    enable_constant_tolerance_window;
+
+    PROPERTY(
+      tolerance_window_x1_multiplier_t,
+      "tolerance_window_x1_multiplier",
+      "constant value, at which defaut value is multiplied",
+      float)
+    tolerance_window_x1_multiplier;
+
+    PROPERTY(
+      tolerance_window_y1_multiplier_t,
+      "tolerance_window_y1_multiplier",
+      "constant value, at which defaut value is multiplied",
+      float)
+    tolerance_window_y1_multiplier;
+
+    PROPERTY(
+      tolerance_window_x2_multiplier_t,
+      "tolerance_window_x2_multiplier",
+      "constant value, at which defaut value is multiplied",
+      float)
+    tolerance_window_x2_multiplier;
+
+    PROPERTY(
+      tolerance_window_y2_multiplier_t,
+      "tolerance_window_y2_multiplier",
+      "constant value, at which defaut value is multiplied",
+      float)
+    tolerance_window_y2_multiplier;
+
+    PROPERTY(
+      tolerance_window_x3_multiplier_t,
+      "tolerance_window_x3_multiplier",
+      "constant value, at which defaut value is multiplied",
+      float)
+    tolerance_window_x3_multiplier;
+
+    PROPERTY(
+      tolerance_window_y3_multiplier_t,
+      "tolerance_window_y3_multiplier",
+      "constant value, at which defaut value is multiplied",
+      float)
+    tolerance_window_y3_multiplier;
+
+    PROPERTY(
+      tolerance_window_x4_multiplier_t,
+      "tolerance_window_x4_multiplier",
+      "constant value, at which defaut value is multiplied",
+      float)
+    tolerance_window_x4_multiplier;
+
+    PROPERTY(
+      tolerance_window_y4_multiplier_t,
+      "tolerance_window_y4_multiplier",
+      "constant value, at which defaut value is multiplied",
+      float)
+    tolerance_window_y4_multiplier;
   };
 
 #if defined(TARGET_DEVICE_CUDA)
@@ -111,7 +174,7 @@ namespace downstream_find_hits {
   using UTHitsCache_CreateCandidates = UT::SmartHitsCache<MaxCacheSize_CreateCandidates>;
   using UTHitsCache_FindRestHits = UT::SmartHitsCache<MaxCacheSize_FindRestHits>;
 
-  template<bool filter_used_scifi_seeds>
+  template<bool filter_used_scifi_seeds, bool use_constant_tolerance_window>
   __global__ void downstream_create_candidates(
     Parameters parameters,
     const unsigned* dev_unique_x_sector_layer_offsets,
@@ -121,7 +184,7 @@ namespace downstream_find_hits {
     const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector,
     [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_tracking);
 
-  template<bool require_four_hits>
+  template<bool require_four_hits, bool use_constant_tolerance_window>
   __global__ void downstream_find_rest_hits(
     Parameters parameters,
     const unsigned* dev_unique_x_sector_layer_offsets,
@@ -143,6 +206,15 @@ namespace downstream_find_hits {
     Property<require_four_ut_hits_t> m_require_four_ut_hits {this, true};
     Property<num_threads_create_candidates_t> m_num_threads_create_candidates {this, {{64, 1, 1}}};
     Property<num_threads_find_rest_hits_t> m_num_threads_find_rest_hits {this, {{192, 1, 1}}};
+    Property<enable_constant_tolerance_window_t> m_enable_constant_tolerance_window {this, false};
+    Property<tolerance_window_x1_multiplier_t> m_tolerance_window_x1_multiplier {this, 1.f};
+    Property<tolerance_window_y1_multiplier_t> m_tolerance_window_y1_multiplier {this, 1.f};
+    Property<tolerance_window_x2_multiplier_t> m_tolerance_window_x2_multiplier {this, 1.f};
+    Property<tolerance_window_y2_multiplier_t> m_tolerance_window_y2_multiplier {this, 1.f};
+    Property<tolerance_window_x3_multiplier_t> m_tolerance_window_x3_multiplier {this, 1.f};
+    Property<tolerance_window_y3_multiplier_t> m_tolerance_window_y3_multiplier {this, 1.f};
+    Property<tolerance_window_x4_multiplier_t> m_tolerance_window_x4_multiplier {this, 1.f};
+    Property<tolerance_window_y4_multiplier_t> m_tolerance_window_y4_multiplier {this, 1.f};
   };
 
 } // namespace downstream_find_hits
