@@ -17,14 +17,29 @@ from AllenConf.filters import sd_error_filter
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenConf.validators import rate_validation
 from AllenConf.odin import odin_error_filter, make_event_type, make_odin_orbit, tae_filter
-from AllenConf.HLT1 import odin_monitoring_lines
+from AllenConf.HLT1 import odin_monitoring_lines, default_bgi_activity_lines
 from AllenConf.lumi_reconstruction import lumi_reconstruction
+from AllenConf.velo_reconstruction import decode_velo
+from AllenConf.calo_reconstruction import decode_calo
+from AllenConf.enum_types import TrackingType, includes_matching
 
 
-def setup_hlt1_node(velo_open=False):
+def setup_hlt1_node(velo_open=False, enableBGI=True, enableBGI_full=False):
     hlt1_config = {}
     lines = []
     odin_err_filter = [odin_error_filter("odin_error_filter")]
+
+    # Reconstruct objects needed as input for selection lines
+    reconstructed_objects = hlt1_reconstruction(
+        with_calo=True,
+        with_ut=True,
+        with_muon=True,
+        enableDownstream=False,
+        tracking_type=TrackingType.FORWARD_THEN_MATCHING,
+        velo_open=velo_open,
+        with_AC_split=False,
+        with_rich=False)
+
     lumiline_name = "Hlt1ODINLumi"
     lumilinefull_name = "Hlt1ODIN1kHzLumi"
     odin_lumi_event = make_event_type(event_type='Lumi')
@@ -41,6 +56,14 @@ def setup_hlt1_node(velo_open=False):
             line_maker(
                 make_passthrough_line(name=lumilinefull_name, pre_scaler=1.))
         ]
+    if enableBGI:
+        lines += default_bgi_activity_lines(
+            reconstructed_objects["pvs"],
+            reconstructed_objects["velo_states"],
+            decode_velo(),
+            decode_calo(),
+            enableBGI_full=enableBGI_full,
+            prefilter=odin_err_filter)
 
     with line_maker.bind(
             prefilter=odin_err_filter + [tae_filter(accept_sub_events=True)]):
@@ -98,6 +121,14 @@ def setup_hlt1_node(velo_open=False):
 
     hlt1_node = CompositeNode(
         "Allen", [lines, persistency_node, lumi_with_prefilter],
+        NodeLogic.NONLAZY_AND,
+        force_order=True)
+
+    hlt1_node = CompositeNode(
+        "AllenRateValidation", [
+            hlt1_node,
+            rate_validation(lines=line_algorithms),
+        ],
         NodeLogic.NONLAZY_AND,
         force_order=True)
 
