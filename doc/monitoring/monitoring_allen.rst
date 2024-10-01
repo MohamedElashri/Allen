@@ -57,3 +57,252 @@ Allen has finished executing. In principle, this could be performed on a regular
 ideally would require monitoring threads to be paused for thread safety.
 
 Histograms are currently written to `monitoringHists.root`.
+
+Gaudi monitoring
+^^^^^^^^^^^^^^^^^^^^^^
+Add to a line
+-------------
+A good example is in the `KsToPiPiLine` which I will use to demonstrate the necessary changes here.
+
+**Edit the header**
+
+There are several necessary additions to the header that monitoring will use:
+
+* Include the necessary header
+
+.. code-block:: c++
+
+  #include "AllenMonitoring.h"
+
+* Add the `enable_monitoring` property and set the default value to false. This should default to false
+because the Gaudi monitoring needs to be off in Allen standalone and affects the production throughput. Put
+
+.. code-block:: c++
+
+  PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
+
+in the parameters and
+
+.. code-block:: c++
+
+  Property<enable_monitoring_t> m_enable_monitoring {this, false};
+
+in the property list.
+
+* Add the `DeviceAccumulators` `struct` after the line `struct` declaration
+
+.. code-block:: c++
+
+  struct DeviceAccumulators {
+    Allen::Monitoring::Histogram<>::DeviceType histogram_ks_mass;
+    DeviceAccumulators(const kstopipi_line_t& algo, const Allen::Context& ctx) :
+      histogram_ks_mass(algo.m_histogram_ks_mass.data(ctx))
+    {}
+  };
+
+* The additional function needs to be declared in the `SelectionAlgorithm` struct, for example:
+
+.. code-block:: c++
+
+  __device__ static void monitor(
+    const Parameters& parameters,
+    const DeviceAccumulators& accumulators,
+    std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+    unsigned index,
+    bool sel);
+
+* In the list of properties, add the histogram with the name, title, and a tuple of the number of bins, minimum,
+and maximum. This one will appear in the root file as `ks_mass`, have a title of `m(ks)`, and 100 bins between 400
+and 600.
+
+.. code-block:: c++
+
+  Allen::Monitoring::Histogram<> m_histogram_ks_mass {this, "ks_mass", "m(ks)", {100u, 400.f, 600.f}};
+
+**Fill the histogram**
+
+The `monitor` function is where the histogram will be filled. Using what conditions you want to fill the histogram
+(typically that the event is selected by the line i.e. `sel`), increment the histogram. An example of this is
+
+.. code-block:: c++
+
+  __device__ void kstopipi_line::kstopipi_line_t::monitor(
+    const Parameters& parameters,
+    const DeviceAccumulators& accumulators,
+    std::tuple<const Allen::Views::Physics::CompositeParticle> input,
+    unsigned index,
+    bool sel)
+  {
+    if (sel) {
+      const auto ks = std::get<0>(input);
+      accumulators.histogram_ks_mass.increment(ks.m12(Allen::mPi, Allen::mPi));
+    }
+  }
+
+**Turn on the monitoring**
+
+In the configuration of the line (a file called `hlt1_*_lines.py`, for `KsToPiPi` it is `hlt1_inclusive_hadron_lines.py`)
+the new `enable_monitoring` property needs to be set. After this the `make_kstopipi_line` function now looks like
+
+.. code-block:: python
+
+  def make_kstopipi_line(long_tracks,
+                        secondary_vertices,
+                        pre_scaler_hash_string=None,
+                        post_scaler_hash_string=None,
+                        name='Hlt1KsToPiPi_{hash}',
+                        enable_monitoring=True):
+      number_of_events = initialize_number_of_events()
+
+      return make_algorithm(
+          kstopipi_line_t,
+          name=name,
+          enable_monitoring=is_allen_standalone() and enable_monitoring,
+          host_number_of_events_t=number_of_events["host_number_of_events"],
+          host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
+          dev_particle_container_t=secondary_vertices[
+              "dev_multi_event_composites"],
+          pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+          post_scaler_hash_string=post_scaler_hash_string or name + "_post")
+
+Note that it requires the `is_allen_standalone` flag to be true, which can be imported using
+
+.. code-block:: python
+
+  from AllenCore.configuration_options import is_allen_standalone
+
+if it is not already in the configuration file. `enable_monitoring` is set to `True` by default here, and so every
+version of the `KsToPiPiLine` will have monitoring unless explicitly set to `False`. To turn on monitoring for just
+one version of a line, set `enable_monitoring` to `False` by default in the `hlt1_*_lines.py` file, and then set it
+to `True` in `HLT1.py`, as done by the `DiMuonDrellYan` line for example:
+
+.. code-block:: python
+
+  make_di_muon_drell_yan_line(
+    long_tracks,
+    dileptons,
+    muonid,
+    name="Hlt1DiMuonDrellYan",
+    pre_scaler_hash_string="di_muon_drell_yan_line_pre",
+    post_scaler_hash_string="di_muon_drell_yan_line_post",
+    minMass=5000.,
+    minTrackP=12500,
+    maxChi2Corr=2.4,
+    enable_monitoring=True,
+    enable_tupling=enable_tupling)
+
+
+Add to an algorithm
+-------------------
+For this one I am using `VeloConsolidateTracks` as an example.
+
+**Edit the header**
+
+We will need similar edits to the header
+
+* Include the monitoring header
+.. code-block:: c++
+
+  #include "AllenMonitoring.h"
+
+* Change the algorithm declaration to include the monitoring inputs
+.. code-block:: c++
+
+  __global__ void velo_consolidate_tracks(
+    Parameters,
+    Allen::Monitoring::Histogram<>::DeviceType,
+    Allen::Monitoring::AveragingCounter<>::DeviceType);
+
+* Add it to the property list where the fields are the same as before (name, title, and a tuple of number of bins,
+minimum, and maximim)
+.. code-block:: c++
+
+  Allen::Monitoring::Histogram<> m_histogram_n_velo_tracks {this,
+                                                            "n_velo_tracks_event",
+                                                            "n_velo_tracks_event",
+                                                            {1001u, -0.5f, 1000.5f}};
+
+**Pass it to the algorithm**
+
+In the `Operator` function, there is a `global_function` call to the algorithm which should be edited to include the
+histogram as an input. The histogram can be accesssed like so
+.. code-block:: c++
+
+  global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
+      arguments, m_histogram_n_velo_tracks.data(context), m_velo_tracks.data(context));
+
+**Increment**
+
+* The algorithm declaration will need to be updated to reflect the additional input
+.. code-block:: c++
+
+  __global__ void velo_consolidate_tracks::velo_consolidate_tracks(
+    velo_consolidate_tracks::Parameters parameters,
+    Allen::Monitoring::Histogram<>::DeviceType dev_number_of_tracks_histo,
+    Allen::Monitoring::AveragingCounter<>::DeviceType dev_tracks_counter)
+
+* Then the histogram can be filled from inside the algorithm with the generated values
+.. code-block:: c++
+
+  dev_number_of_tracks_histo.increment(event_total_number_of_tracks);
+
+2D Histograms
+---------------
+Most everything is the same for a 2D histogram, but you will need to add the second axis to the declaration,
+
+.. code-block:: c++
+
+  Allen::Monitoring::Histogram2D<> m_histogram_test_2d {this, "2d", "2d title", {10u, 0.f, 100.f}, {10u, 0.f, 100.f}};
+
+edit anywhere the type is specified to be
+
+.. code-block:: c++
+
+  Allen::Monitoring::Histogram2D<>::DeviceType
+
+and increment using both values
+
+.. code-block:: c++
+
+  histo_test_2d.increment(test_val_1, test_val_2);
+
+There is not currently support for 3D histograms.
+
+Counters
+--------
+Similarly, counters follow the same pattern as histograms except for minor changes. The declaration is
+
+.. code-block:: c++
+
+  Allen::Monitoring::Counter<> m_invalid_chanid {this, "n_invalid_chanid"};
+
+where only the name is chosen. The type is
+
+.. code-block:: c++
+
+  Allen::Monitoring::Counter<>::DeviceType invalid_chanid
+
+and it can be incremented as
+
+.. code-block:: c++
+
+  invalid_chanid.increment();
+
+Please note there is also the `AveragingCounter` type available which is incremented using a value like
+
+.. code-block:: c++
+
+  dev_n_pvs_counter.add(*tmp_number_vertices);
+
+as an example. Then the number of entries, sum, and mean are saved whereas the standard counter only saves
+the number of entries.
+
+Testing offline
+---------------
+Please note that Gaudi monitoring is only avaliable when running with a Gaudi build from the |allen_event_loop|.
+To test the histogram, set the flags `--register-monitoring-counters 1 monitoring-filename test` in your
+command. Then after running, there will be a root file created with the given name plus `_gaudi` with the histograms.
+
+.. |allen_event_loop| raw:: html
+
+   <a href="https://allen-doc.docs.cern.ch/setup/run_allen.html#as-gaudi-project-event-loop-steered-by-allen-data-taking" target="_blank">Allen event loop</a>
