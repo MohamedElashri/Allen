@@ -63,9 +63,7 @@ namespace lf_triplet_seeding {
       const Allen::Context& context) const;
 
   private:
-    Property<maximum_number_of_triplets_per_warp_t> m_maximum_number_of_triplets_per_warp {
-      this,
-      32 * LookingForward::max_triplets_per_thread};
+    Property<maximum_number_of_triplets_per_warp_t> m_maximum_number_of_triplets_per_warp {this, 64};
     Property<chi2_max_triplet_single_t> m_chi2_max_triplet_single {this, 8.};
     Property<z_mag_difference_t> m_z_mag_difference {this, 10.};
   };
