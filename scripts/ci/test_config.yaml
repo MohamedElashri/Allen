@@ -117,6 +117,16 @@ full:
     dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD"
     geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
 
+  # run throughput, pp reference run, exp 2024 conditions
+  - type: "throughput"
+    sequence:
+      - hlt1_pp_ref_matching
+      - hlt1_pp_ref_matching_no_ut
+      - hlt1_pp_ref_forward_then_matching
+      - hlt1_pp_ref_forward_then_matching_no_ut
+    dataset: "Beam2680GeV-expected-2024-MagDown-nu3.5_MinBiasMD"
+    geometry: "geometry_dddb-20240427_sim10-2024.Q1.2-v1.1-md100"
+
   # run throughput, default, SMOG2_pppHe, exp 2024 conditions 
   - type: "throughput"
     sequence:
@@ -130,6 +140,14 @@ full:
       - hlt1_pp_forward_then_matching_no_ut
     dataset: "SMOG2_pppAr_exp2024_mdf_sim-20231017-vc-md100_5k"
     geometry: "SMOG2_exp2024"
+
+  # run throughput, pp reference run, SMOG2 pp+pAr, expected 2024 conditions
+  - type: "throughput"
+    sequence:
+    - hlt1_pp_ref_forward_then_matching
+    - hlt1_pp_ref_forward_then_matching_no_ut
+    dataset: "ppArBeam2680GeV-expected-2024-MagDown-nu3.5-nu0.37_MinBiasMD"
+    geometry: "geometry_dddb-20240427_sim10-2024.Q1.2-v1.1-md100"
 
   # run throughput, PbPb samples, 2023 default PbPb sequence
   - type: "throughput"
@@ -191,6 +209,15 @@ full:
     dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD_nSciFiHits"
     geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
 
+  # efficiency tests, pp reference run, exp 2024 conditions
+  - type: "efficiency"
+    sequence:
+      - hlt1_pp_ref_matching_validation
+      - hlt1_pp_ref_matching_no_ut_validation
+      - hlt1_pp_ref_forward_then_matching_validation
+      - hlt1_pp_ref_forward_then_matching_no_ut_validation
+    dataset: "Beam2680GeV-expected-2024-MagDown-nu3.5_MinBiasMD"
+    geometry: "geometry_dddb-20240427_sim10-2024.Q1.2-v1.1-md100"
 
   # efficiency tests, SMOG2 pHe, exp 2024 conditions
   - type: "efficiency"
@@ -205,7 +232,15 @@ full:
       - hlt1_pp_forward_then_matching_no_ut_validation
     dataset: "SMOG2_pAr_exp2024_mdf_sim-20231017-vc-md100_10k_nSciFiHits"
     geometry: "SMOG2_exp2024"
-  
+
+  # efficiency tests, pp reference run, SMOG2 pp+pAr, expected 2024 conditions
+  - type: "efficiency"
+    sequence:
+    - hlt1_pp_ref_forward_then_matching_validation
+    - hlt1_pp_ref_forward_then_matching_no_ut_validation
+    dataset: "ppArBeam2680GeV-expected-2024-MagDown-nu3.5-nu0.37_MinBiasMD"
+    geometry: "geometry_dddb-20240427_sim10-2024.Q1.2-v1.1-md100"
+
   # run memcheck
   - type: "run_memcheck"
     sanitizer: "memcheck"
