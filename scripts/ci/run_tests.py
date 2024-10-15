@@ -166,9 +166,8 @@ def post_proc_throughput(test,
     if run_profiler_output and run_profiler_output.exists():
         profiler_keep_files = [
             "algo_breakdown.csv",
-            "allen_report.csv",
-            "allen_report_custom_metric.csv",
-            "allen_report.ncu-rep",
+            "allen_report_cuda_gpu_kern_sum.csv",
+            "allen_report.nsys-rep",
         ]
         for fn in profiler_keep_files:
             copyfile(
