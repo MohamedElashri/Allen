@@ -55,7 +55,6 @@ interpreter.Declare("""
 // non-event data manager to its shared interface
 template<typename TO>
 struct cast_service { TO* operator()(IService* svc) { return dynamic_cast<TO*>(svc); } };
-template<typename T>
 Allen::NonEventData::IUpdater* binary_updater(std::map<std::string, std::string> const& options);
 uintptr_t czmq_context(zmq::context_t& ctx) { return reinterpret_cast<uintptr_t>(ctx.operator void*()); }
 """)
