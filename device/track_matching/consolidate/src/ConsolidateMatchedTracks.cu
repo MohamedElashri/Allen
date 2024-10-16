@@ -69,7 +69,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
 {
   const auto has_ut =
     (size<dev_ut_hits_t>(arguments) > 0) && (first<host_accumulated_number_of_ut_hits_t>(arguments) > 0);
-  if (has_ut) {
+  if (size<dev_used_ut_hits_offsets_t>(arguments) > 0) {
     Allen::memset_async<dev_used_ut_hits_offsets_t>(arguments, 0, context);
   }
 
