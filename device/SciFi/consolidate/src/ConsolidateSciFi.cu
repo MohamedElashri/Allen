@@ -157,7 +157,9 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::set_arguments_size(
   set_size<dev_multi_event_long_tracks_ptr_t>(arguments, 1);
   set_size<dev_used_scifi_hits_t>(arguments, first<host_scifi_hit_count_t>(arguments) / 32 + 1);
   set_size<dev_accepted_and_unused_velo_tracks_t>(arguments, size<dev_accepted_velo_tracks_t>(arguments));
-  set_size<dev_used_ut_hits_offsets_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) + 1);
+  if (first<host_accumulated_number_of_ut_hits_t>(arguments) > 0) {
+    set_size<dev_used_ut_hits_offsets_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) + 1);
+  }
 }
 
 void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
@@ -166,10 +168,14 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
+  const bool with_ut = first<host_accumulated_number_of_ut_hits_t>(arguments) > 0;
+
   Allen::memset_async<dev_scifi_multi_event_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_scifi_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_used_scifi_hits_t>(arguments, 0, context);
-  Allen::memset_async<dev_used_ut_hits_offsets_t>(arguments, 0, context);
+  if (size<dev_used_ut_hits_offsets_t>(arguments) > 0) {
+    Allen::memset_async<dev_used_ut_hits_offsets_t>(arguments, 0, context);
+  }
   Allen::copy_async<dev_accepted_and_unused_velo_tracks_t, dev_accepted_velo_tracks_t>(arguments, context);
 
   auto dev_counter_long_tracks_forward = m_counter_long_tracks_forward.data(context);
@@ -193,7 +199,6 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
     dev_histo_long_track_forward_nhits,
     dev_histo_long_track_forward_qop);
 
-  const bool with_ut = first<host_accumulated_number_of_ut_hits_t>(arguments) > 0;
   if (with_ut) {
     PrefixSum::prefix_sum<dev_used_ut_hits_offsets_t>(*this, arguments, context);
   }
