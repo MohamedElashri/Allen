@@ -99,14 +99,16 @@ elif [ "${RUN_PROFILER}" = "1" ]; then
   mkdir -p "${RUN_PROFILER_OUTPUT}"
 
   # The following ncu command always fails at removing the tmp folder, ignore that failure with || true
+  # TMPDIR=tmp
   {
-  eval "CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} TMPDIR=tmp numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} ncu --print-summary per-kernel --target-processes all -o allen_report ./toolchain/wrapper ./Allen $@"
+  eval "CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU_NUMBER} numactl --cpunodebind=${NUMA_NODE} --membind=${NUMA_NODE} nsys profile -o allen_report --force-overwrite true ./toolchain/wrapper ./Allen $@"
   } || true
 
-  ncu -i allen_report.ncu-rep --csv > "${RUN_PROFILER_OUTPUT}/allen_report.csv"
-  mv allen_report.ncu-rep ${RUN_PROFILER_OUTPUT}/allen_report.ncu-rep
-  python3 ${TOPLEVEL}/scripts/parse_ncu_output.py --input_filename="${RUN_PROFILER_OUTPUT}/allen_report.csv" --output_filename="${RUN_PROFILER_OUTPUT}/allen_report_custom_metric.csv"
-  python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f "${RUN_PROFILER_OUTPUT}/allen_report_custom_metric.csv" -d "${RUN_PROFILER_OUTPUT}/"
+  # remove sqlite file, force overwrite is not enough
+  rm -f allen_report.sqlite
+  nsys stats allen_report.nsys-rep --format csv --report cuda_gpu_kern_sum -o "${RUN_PROFILER_OUTPUT}/allen_report" --force-overwrite true
+  mv allen_report.nsys-rep ${RUN_PROFILER_OUTPUT}/allen_report.nsys-rep
+  python3 ${TOPLEVEL}/checker/plotting/extract_algo_breakdown.py -f "${RUN_PROFILER_OUTPUT}/allen_report_cuda_gpu_kern_sum.csv" -d "${RUN_PROFILER_OUTPUT}/"
 
   rm -rf tmp
 
