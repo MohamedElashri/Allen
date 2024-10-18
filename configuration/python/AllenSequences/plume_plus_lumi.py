@@ -39,7 +39,6 @@ decoded_plume = decode_plume()
 algos = [lumiline[1], lumilinefull[1], decoded_plume["plume_algo"]
          ] + lumi_reconstruction(
              gather_selections=gather_selections,
-             lines=line_algorithms,
              lumiline_name=lumiline_name,
              lumilinefull_name=lumilinefull_name,
              with_muon=False,
