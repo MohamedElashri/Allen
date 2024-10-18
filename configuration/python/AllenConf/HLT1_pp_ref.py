@@ -960,7 +960,6 @@ def setup_hlt1_node(enablePhysics=True,
     if with_lumi:
         lumi_reco = lumi_reconstruction(
             gather_selections=hlt1_config['gather_selections'],
-            lines=line_algorithms,
             lumiline_name=lumiline_name,
             lumilinefull_name=lumilinefull_name,
             with_muon=with_muon,

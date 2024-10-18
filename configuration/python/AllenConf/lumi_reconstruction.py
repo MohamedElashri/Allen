@@ -19,7 +19,7 @@ from AllenConf.odin import decode_odin
 from AllenConf.utils import initialize_number_of_events, make_dummy
 from AllenCore.generator import make_algorithm
 
-from AllenConf.persistency import make_gather_selections
+from AllenConf.persistency import line_names
 
 from PyConf.tonic import configurable
 from PyConf.filecontent_metadata import register_encoding_dictionary
@@ -35,7 +35,7 @@ from AllenConf.plume_reconstruction import decode_plume
 
 def findLine(lines, name):
     for i in range(len(lines)):
-        if lines[i].name.startswith(name):
+        if lines[i].startswith(name):
             return i, True
     return -1, False
 
@@ -77,7 +77,6 @@ def lumi_summary_maker(lumiInfos, calc_lumi_sum_size, key, key_full,
 
 def lumi_reconstruction(
         gather_selections,
-        lines,
         lumiline_name,
         lumilinefull_name=None,
         with_muon=True,
@@ -213,6 +212,8 @@ def lumi_reconstruction(
             "VeloVertexZ": (0x2000, 16.384),
             "PlumeAvgLumiADC": (0, 128.)
         }):
+
+    lines = line_names(gather_selections)
     lumiLine_index, found = findLine(lines, lumiline_name)
     if not found:
         raise Exception("Line name starting with", lumiline_name,

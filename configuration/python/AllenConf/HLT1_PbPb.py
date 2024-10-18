@@ -513,7 +513,6 @@ def setup_hlt1_node(withMCChecking=False,
             "AllenLumiNode",
             lumi_reconstruction(
                 gather_selections=hlt1_config['gather_selections'],
-                lines=line_algorithms,
                 lumiline_name=lumiline_name,
                 lumilinefull_name=lumilinefull_name)["algorithms"],
             NodeLogic.NONLAZY_AND,
