@@ -17,8 +17,9 @@ from AllenConf.HLT1 import default_bgi_activity_lines
 default_bgi_activity_lines.global_bind(enableBGI_full=True)
 
 hlt1_node = setup_hlt1_node(
-    tracking_type=TrackingType.MATCHING,
-    threshold_settings=get_thresholds("no_ut_tuned_1000KHz"),
-    with_ut=False)
+    tracking_type=TrackingType.FORWARD_THEN_MATCHING,
+    threshold_settings=get_thresholds(
+        "forward_then_matching_tuned_mu5p3_1000KHz"),
+    with_ut=True)
 
 generate(hlt1_node)
