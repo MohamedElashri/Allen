@@ -33,6 +33,35 @@ from AllenConf.enum_types import TrackingType, includes_matching
 from AllenConf.get_thresholds import get_thresholds
 
 
+@configurable
+def velo_micro_bas_lines(velo_tracks,
+                         prefilters,
+                         pre_scalers=[1., 1.],
+                         post_scalers=[1.e-3, 3.e-3]):
+    microbias_lines = []
+
+    with line_maker.bind(prefilter=prefilters[0]):
+        microbias_lines += [
+            line_maker(
+                make_velo_micro_bias_line(
+                    velo_tracks,
+                    name="Hlt1VeloMicroBias",
+                    pre_scaler=pre_scalers[0],
+                    post_scaler=post_scalers[0]))
+        ]
+
+    with line_maker.bind(prefilter=prefilters[1]):
+        microbias_lines += [
+            line_maker(
+                make_velo_micro_bias_line(
+                    velo_tracks,
+                    name="Hlt1VeloMicroBiasVeloClosing",
+                    pre_scaler=pre_scalers[1],
+                    post_scaler=post_scalers[1]))
+        ]
+    return microbias_lines
+
+
 def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                           with_v0s, thresholds, enable_tupling):
 
@@ -349,16 +378,6 @@ def alignment_monitoring_lines(reconstructed_objects,
 
     with line_maker.bind(prefilter=prefilters_bx):
         lines = [line_maker(line) for line in lines]
-
-    with line_maker.bind(prefilter=prefilters_odin_err):
-        lines += [
-            line_maker(
-                make_velo_micro_bias_line(
-                    velo_tracks,
-                    name="Hlt1VeloMicroBias",
-                    pre_scaler=1.,
-                    post_scaler=1.e-3))
-        ]
 
     return lines
 
@@ -818,15 +837,11 @@ def setup_hlt1_node(enablePhysics=True,
             line_maker(
                 make_passthrough_line(name="Hlt1ErrorBank", pre_scaler=0.0001))
         ]
-
-    with line_maker.bind(prefilter=odin_err_filter + [velo_open_event]):
-        monitoring_lines += [
-            line_maker(
-                make_velo_micro_bias_line(
-                    reconstructed_objects["velo_tracks"],
-                    name="Hlt1VeloMicroBiasVeloClosing",
-                    post_scaler=3.e-3))
-        ]
+    # Defines the VeloMicroBias and VeloMicroBiasVeloClosing lines
+    # 1st arguments are for the VeloMicroBias and 2nd arguments for the VeloMicroBiasVeloClosing
+    monitoring_lines += velo_micro_bas_lines(
+        reconstructed_objects["velo_tracks"],
+        prefilters=[odin_err_filter, odin_err_filter + [velo_open_event]])
 
     if EnableGEC:
         with line_maker.bind(prefilter=odin_err_filter + gec):
