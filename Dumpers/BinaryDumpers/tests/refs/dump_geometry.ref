@@ -1,15 +1,15 @@
 HLTControlFlowMgr                      INFO Start initialization
+HLTControlFlowMgr                      INFO Will not use an EventSelector.
+RootIOAlg                              INFO DATAFILE='root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.xdigi'
 HLTControlFlowMgr                      INFO Concurrency level information:
 HLTControlFlowMgr                      INFO  o Number of events slots: 1
 HLTControlFlowMgr                      INFO  o TBB thread pool size:  'ThreadPoolSize':1
 ApplicationMgr                         INFO Application Manager Initialized successfully
 ApplicationMgr                         INFO Application Manager Started successfully
-EventPersistencySvc                    INFO Added successfully Conversion service:RootCnvSvc
-EventSelector                          INFO Stream:EventSelector.DataStreamTool_1 Def:DATAFILE='root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.xdigi' SVC='Gaudi::RootEvtSelector' OPT='READ' IgnoreChecksum='YES'
 HLTControlFlowMgr                      INFO Will measure time between events 0 and 0 (stop might be some events later)
 HLTControlFlowMgr                      INFO Starting loop on events
-EventSelector                       SUCCESS Reading Event record 1. Record number within stream 1: 1
 DeviceFTGeometry                       INFO Conditions DB is compatible with FT bank version 7 and 8.
+RootIOAlg                           SUCCESS Reading Event record 1 within root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.xdigi
 ApplicationMgr                         INFO Application Manager Stopped successfully
 HLTControlFlowMgr                      INFO
 HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #passed
