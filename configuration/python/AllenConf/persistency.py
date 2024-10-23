@@ -15,46 +15,7 @@ from PyConf.tonic import configurable
 from PyConf.control_flow import NodeLogic, CompositeNode
 
 
-def build_decision_ids(lines, offset=1):
-    """Return a dict of decision names to integer IDs.
-
-    Decision report IDs must not be zero. This method generates IDs starting
-    from offset.
-
-    Args:
-        decision_names (list of str)
-        offset (int): needed so that there are no identical ints in the int->str relations
-        of HltRawBankDecoderBase
-
-    Returns:
-        decision_ids (dict of str to int): Mapping from decision name to ID.
-    """
-
-    return {name: idx for idx, name in enumerate(lines, offset)}
-
-
-def register_decision_ids(ids):
-    # note: as the HltSelRep raw bank does not have its own encoding key just yet, it
-    #       still 'sidesteps' to the decreports raw bank. Hence we stick
-    #       the SelectionID and InfoID into the same encoding table as the decision IDs
-    return int(
-        register_encoding_dictionary(
-            'Hlt1DecisionID', {
-                'Hlt1DecisionID': {v: k
-                                   for k, v in ids.items()},
-                'Hlt1SelectionID': {v: k
-                                    for k, v in ids.items()},
-                'InfoID': {},
-                'version': '0'
-            }), 16)  # TODO unsigned? Stick to hex string?
-
-
-def register_allen_encoding_table(lines):
-    ids = build_decision_ids([l.name for l in lines])
-    return register_decision_ids(ids)
-
-
-def build_decision_ids(lines, offset=1):
+def build_decision_ids(line_names, offset=1, append=True):
     """Return a dict of decision names to integer IDs.
 
     Decision report IDs must not be zero. This method generates IDs starting
@@ -72,8 +33,8 @@ def build_decision_ids(lines, offset=1):
     append_decision = lambda x: x if x.endswith('Decision') else '{}Decision'.format(x)
 
     return {
-        append_decision(name): idx
-        for idx, name in enumerate(lines, offset)
+        append_decision(name) if append else name: idx
+        for idx, name in enumerate(line_names, offset)
     }
 
 
@@ -92,26 +53,13 @@ def register_decision_ids(ids):
             }), 16)  # TODO unsigned? Stick to hex string?
 
 
-def register_allen_encoding_table(lines):
-    ids = build_decision_ids([l.name for l in lines])
+def line_names(gather_selections):
+    return gather_selections.properties['names_of_active_lines'].split(',')
+
+
+def register_allen_encoding_table(gather_selections):
+    ids = build_decision_ids(line_names(gather_selections))
     return register_decision_ids(ids)
-
-
-def _build_decision_ids(decision_names, offset=0):
-    """Return a dict of decision names to integer IDs.
-
-    Decision report IDs must not be zero. This method generates IDs starting
-    from offset.
-
-    Args:
-        decision_names (list of str)
-        offset (int): needed so that there are no identical ints in the int->str relations
-        of HltRawBankDecoderBase
-
-    Returns:
-        decision_ids (dict of str to int): Mapping from decision name to ID.
-    """
-    return {name: idx for idx, name in enumerate(decision_names, offset)}
 
 
 # Example routing bits map to be passed as property in the host_routingbits_writer algorithm
@@ -227,6 +175,8 @@ def make_gather_selections(lines):
     if not lines:
         raise ValueError("make_gather_selections: lines must not be empty")
 
+    # Sort the lines by name to avoid issues fallout from the order in which things are added.
+    lines = sorted(lines, key=lambda line: line.name)
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
 
@@ -243,22 +193,24 @@ def make_gather_selections(lines):
 
 
 @configurable
-def make_dec_reporter(lines, TCK=0):
+def make_dec_reporter(lines, TCK=0, encoding_key=None):
     from AllenConf.utils import initialize_number_of_events
     from AllenCore.algorithms import dec_reporter_t
+
     gather_selections = make_gather_selections(lines)
     number_of_events = initialize_number_of_events()
 
-    if allen_register_keys():
-        key = register_allen_encoding_table(lines)
-    else:
-        key = 0
+    if encoding_key is None:
+        if allen_register_keys():
+            encoding_key = register_allen_encoding_table(gather_selections)
+        else:
+            encoding_key = 0
 
     return make_algorithm(
         dec_reporter_t,
         name="dec_reporter",
         tck=TCK,
-        encoding_key=key,
+        encoding_key=encoding_key,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         host_number_of_active_lines_t=gather_selections.
         host_number_of_active_lines_t,
@@ -276,7 +228,10 @@ def make_routingbits_writer(lines, rb_map=rb_map):
     gather_selections = make_gather_selections(lines)
     dec_reporter = make_dec_reporter(lines)
     number_of_events = initialize_number_of_events()
-    name_to_decID_map = _build_decision_ids([line.name for line in lines])
+    # The routing bits writer uses the index of the dec reports
+    # instead of the decision ID to match decisions to lines
+    name_to_decID_map = build_decision_ids(
+        line_names(gather_selections), offset=0, append=False)
     return make_algorithm(
         host_routingbits_writer_t,
         name="host_routingbits_writer",

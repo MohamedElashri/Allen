@@ -19,7 +19,7 @@
 
 #include <LHCbAlgs/MergingTransformer.h>
 #include <GaudiKernel/GaudiException.h>
-#include <GaudiKernel/ParsersFactory.h>
+#include <Gaudi/Parsers/Factory.h>
 
 #include <Event/ODIN.h>
 #include <Event/RawBank.h>

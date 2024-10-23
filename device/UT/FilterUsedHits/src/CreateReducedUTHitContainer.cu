@@ -61,6 +61,12 @@ void create_reduced_ut_hits_container::create_reduced_ut_hits_container_t::opera
   const Constants& constants,
   const Allen::Context& context) const
 {
+  // Only happen when UT hit container is empty
+  if (size<dev_used_ut_hits_offsets_t>(arguments) == 0 || size<dev_ut_hits_input_t>(arguments) == 0) {
+    data<host_number_of_ut_hits_t>(arguments)[0] = 0;
+    Allen::memset_async<dev_ut_hit_offsets_t>(arguments, 0, context);
+    return;
+  }
   // Calculate dev_ut_hit_offsets_t
   auto host_used_ut_hits_offsets = make_host_buffer<dev_used_ut_hits_offsets_t>(arguments, context);
   auto host_ut_hit_offsets_input = make_host_buffer<dev_ut_hit_offsets_input_t>(arguments, context);

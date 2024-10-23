@@ -34,8 +34,14 @@ void downstream_vertexing::downstream_vertexing_t::operator()(
   Allen::memset_async<dev_downstream_secondary_vertices_t>(arguments, 0, context);
   Allen::memset_async<dev_offsets_downstream_secondary_vertices_t>(arguments, 0, context);
 
-  global_function(downstream_vertexing)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, constants.dev_magnet_polarity.data(), constants.dev_downstream_composite_quality_evaluator);
+  if (property<same_sign_reco_t>())
+    global_function(downstream_vertexing<true>)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+      arguments, constants.dev_magnet_polarity.data(), constants.dev_downstream_composite_quality_evaluator);
+  else
+    global_function(downstream_vertexing<false>)(
+      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+      arguments, constants.dev_magnet_polarity.data(), constants.dev_downstream_composite_quality_evaluator);
 
   PrefixSum::prefix_sum<dev_offsets_downstream_secondary_vertices_t, host_number_of_downstream_secondary_vertices_t>(
     *this, arguments, context);
@@ -121,6 +127,7 @@ namespace {
   }
 } // namespace
 
+template<bool same_sign_reco>
 __global__ void downstream_vertexing::downstream_vertexing(
   downstream_vertexing::Parameters parameters,
   const float* dev_magnet_polarity,
@@ -145,9 +152,11 @@ __global__ void downstream_vertexing::downstream_vertexing(
     const auto& downstream_particle = *downstream_particles.particle_pointer(i);
     const auto selection = (downstream_particle.state().pt() > parameters.track_min_pt_both.get()) &&
                            (downstream_particle.ownpv_ip() > parameters.track_min_ip_both.get()) &&
-                           (parameters.dihadron && !downstream_particle.is_lepton());
+                           ((parameters.dihadron && !downstream_particle.is_lepton()) ||
+                            (!parameters.dihadron && downstream_particle.is_lepton()) || parameters.combined_container);
+    //  ((parameters.dihadron && !downstream_particle.is_lepton()) || (!parameters.dihadron));
 
-    particle_selection[i] = !selection ? 0 : downstream_particle.state().charge() > 0 ? 1 : 2;
+    particle_selection[i] = !selection ? 0 : downstream_particle.state().charge() > 0 ? 1 : 3;
   }
   __syncthreads();
 
@@ -158,7 +167,14 @@ __global__ void downstream_vertexing::downstream_vertexing(
       // Check if daughters are selected
       const auto Asel = particle_selection[daughterA_idx];
       const auto Bsel = particle_selection[daughterB_idx];
-      const auto daughters_are_selected = (Asel + Bsel) == 3;
+
+      bool daughters_are_selected;
+
+      if constexpr (same_sign_reco)
+        daughters_are_selected = ((Asel + Bsel) == 2) || ((Asel + Bsel) == 6);
+      else
+        daughters_are_selected = (Asel + Bsel) == 4;
+
       if (!daughters_are_selected) continue;
 
       // Fetch elements

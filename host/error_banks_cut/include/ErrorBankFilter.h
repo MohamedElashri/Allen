@@ -20,7 +20,7 @@
 #include <MEPTools.h>
 
 #ifndef ALLEN_STANDALONE
-#include <GaudiKernel/ParsersFactory.h>
+#include <Gaudi/Parsers/Factory.h>
 #include <GaudiKernel/ToStream.h>
 #include <Gaudi/Parsers/CommonParsers.h>
 #include <GaudiKernel/StatusCode.h>
@@ -32,7 +32,7 @@
 #if GAUDI_MAJOR_VERSION < 39
 #include "Gaudi/Accumulators/Histogram.h"
 namespace Gaudi::Accumulators {
-  template <unsigned int ND, atomicity Atomicity = atomicity::full, typename Arithmetic = double>
+  template<unsigned int ND, atomicity Atomicity = atomicity::full, typename Arithmetic = double>
   using StaticHistogram = Histogram<ND, Atomicity, Arithmetic>;
 } // namespace Gaudi::Accumulators
 #else

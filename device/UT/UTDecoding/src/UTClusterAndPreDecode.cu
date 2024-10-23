@@ -93,7 +93,7 @@ __device__ void cluster_and_pre_decode_raw_bank<3>(
   UTBoards const& boards,
   const uint16_t* dev_ut_board_geometry_map,
   UTRawBank<3> const& raw_bank,
-  const uint16_t channel_index,
+  [[maybe_unused]] const uint16_t channel_index,
   UT::PreDecodedHits& ut_pre_decoded_hits,
   uint32_t* cluster_count,
   uint32_t* dev_tiebreak,
@@ -135,7 +135,7 @@ __device__ void cluster_and_pre_decode_raw_bank<3>(
     ut_pre_decoded_hits.id(cluster_index) = LHCbID;
     ut_pre_decoded_hits.num_strips(cluster_index) = numstrips;
 
-    dev_tiebreak[cluster_index] = static_cast<uint32_t>(channel_index) << 16 | i;
+    dev_tiebreak[cluster_index] = LHCbID;
   }
 }
 
@@ -144,8 +144,6 @@ __device__ void store_predecoded_ut_cluster(
   const uint16_t stripID,
   const uint32_t fullSectorID,
   const uint16_t sec,
-  const uint16_t channel_index,
-  const uint16_t hit_index,
   const float p0Z,
   unsigned const* dev_unique_x_sector_offsets,
   uint32_t const* hit_offsets,
@@ -171,7 +169,7 @@ __device__ void store_predecoded_ut_cluster(
   ut_pre_decoded_hits.id(cluster_index) = LHCbID;
   ut_pre_decoded_hits.num_strips(cluster_index) = numstrips;
 
-  dev_tiebreak[cluster_index] = static_cast<uint32_t>(channel_index) << 16 | hit_index;
+  dev_tiebreak[cluster_index] = LHCbID;
 }
 
 __device__ bool nonzero_adc_count(const int sum_adc_counts)
@@ -214,37 +212,34 @@ __device__ void cluster_and_pre_decode_raw_bank<4>(
   const float p0Z = geometry.p0Z[sec];
 
   // Define this lambda function so that store cluster calls are more compact
-  auto store_cluster =
-    [=](const int number_of_strips, const int sum_adc_counts, const int sum_position, const uint16_t hit_index) {
-      const unsigned sum_weights =
-        cluster_ut_hits ?
-          ((position_method == UT::Decoding::PositionMethod::AdcWeighting) ? sum_adc_counts : number_of_strips) :
-          1u;
-      // mean_strip is used to calculate UT hits geometry, so we do a direct cast to float and division
-      // stripID used to be calculated from mean_strip as floor( mean_strip + 0.5 )
-      //   but this would cause stripID calculation to be sensitive to floating point division
-      //   https://indico.cern.ch/event/1370609/contributions/5930503/attachments/2847596/4979440/WP2_UT_decoding_240430.pdf
-      //   See https://gitlab.cern.ch/lhcb/Allen/-/merge_requests/1607 for better explanation of stripID formula.
-      //   instead of floor( sum_position / sum_weights + 0.5 ), we can rewrite the formula in integers
-      //   sum_position / sum_weights + 1 / 2 = ( sum_position * 2 ) / ( sum_weights * 2 ) + sum_weights / ( sum_weights
-      //   * 2 )
-      //                                      = ( sum_position * 2 + sum_weights ) / ( 2 * sum_weights )
-      const float mean_strip = static_cast<float>(sum_position) / static_cast<float>(sum_weights);
-      const unsigned stripID = (sum_position * 2 + sum_weights) / 2 / sum_weights;
-      store_predecoded_ut_cluster(
-        mean_strip,
-        stripID,
-        fullSectorID,
-        sec,
-        channel_index,
-        hit_index,
-        p0Z,
-        dev_unique_x_sector_offsets,
-        hit_offsets,
-        cluster_count,
-        dev_tiebreak,
-        ut_pre_decoded_hits);
-    };
+  auto store_cluster = [=](const int number_of_strips, const int sum_adc_counts, const int sum_position) {
+    const unsigned sum_weights =
+      cluster_ut_hits ?
+        ((position_method == UT::Decoding::PositionMethod::AdcWeighting) ? sum_adc_counts : number_of_strips) :
+        1u;
+    // mean_strip is used to calculate UT hits geometry, so we do a direct cast to float and division
+    // stripID used to be calculated from mean_strip as floor( mean_strip + 0.5 )
+    //   but this would cause stripID calculation to be sensitive to floating point division
+    //   https://indico.cern.ch/event/1370609/contributions/5930503/attachments/2847596/4979440/WP2_UT_decoding_240430.pdf
+    //   See https://gitlab.cern.ch/lhcb/Allen/-/merge_requests/1607 for better explanation of stripID formula.
+    //   instead of floor( sum_position / sum_weights + 0.5 ), we can rewrite the formula in integers
+    //   sum_position / sum_weights + 1 / 2 = ( sum_position * 2 ) / ( sum_weights * 2 ) + sum_weights / ( sum_weights
+    //   * 2 )
+    //                                      = ( sum_position * 2 + sum_weights ) / ( 2 * sum_weights )
+    const float mean_strip = static_cast<float>(sum_position) / static_cast<float>(sum_weights);
+    const unsigned stripID = (sum_position * 2 + sum_weights) / 2 / sum_weights;
+    store_predecoded_ut_cluster(
+      mean_strip,
+      stripID,
+      fullSectorID,
+      sec,
+      p0Z,
+      dev_unique_x_sector_offsets,
+      hit_offsets,
+      cluster_count,
+      dev_tiebreak,
+      ut_pre_decoded_hits);
+  };
 
   // Perform clustering by summing neighbouring strips
   uint16_t previous_stripID; // Probably enough
@@ -268,7 +263,7 @@ __device__ void cluster_and_pre_decode_raw_bank<4>(
 
     // Store each UT hit and continue if we are not clustering
     if (!cluster_ut_hits) {
-      store_cluster(1, adc_count, stripID, ihit);
+      store_cluster(1, adc_count, stripID);
       continue;
     }
 
@@ -283,7 +278,7 @@ __device__ void cluster_and_pre_decode_raw_bank<4>(
 
     if (start_of_new_cluster) {
       const bool should_cluster = !exceeded_max_size && has_adc_count;
-      if (should_cluster) store_cluster(number_of_strips, sum_adc_counts, sum_position, ihit);
+      if (should_cluster) store_cluster(number_of_strips, sum_adc_counts, sum_position);
 
       // flush clustering accumulators
       number_of_strips = 0;
@@ -293,7 +288,7 @@ __device__ void cluster_and_pre_decode_raw_bank<4>(
     }
     else if (just_exceeded_max_size) {
       const bool should_cluster = save_clusters_above_max && has_adc_count;
-      if (should_cluster) store_cluster(number_of_strips, sum_adc_counts, sum_position, ihit);
+      if (should_cluster) store_cluster(number_of_strips, sum_adc_counts, sum_position);
       // Stop considering clusters above this limit
       exceeded_max_size = true;
     }
@@ -308,7 +303,7 @@ __device__ void cluster_and_pre_decode_raw_bank<4>(
 
     if (!exceeded_max_size && last_hit_in_lane) {
       const bool should_cluster = nonzero_adc_count(sum_adc_counts);
-      if (should_cluster) store_cluster(number_of_strips, sum_adc_counts, sum_position, ihit);
+      if (should_cluster) store_cluster(number_of_strips, sum_adc_counts, sum_position);
     }
   } // end loop hits
 }

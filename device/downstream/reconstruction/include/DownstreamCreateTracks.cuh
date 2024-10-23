@@ -28,6 +28,8 @@
 #include "DownstreamHelper.cuh"
 #include "BinarySearch.cuh"
 
+#include "AllenMonitoring.h"
+
 /**
  * @brief This is a definition file of the downstream_create_tracks algorithm.
  * implementation file is in downstream_create_tracks.cu
@@ -67,7 +69,8 @@ namespace downstream_create_tracks {
     const unsigned*,
     const float*,
     const float*,
-    const Allen::NeuralNetwork::Model::DownstreamGhostKiller*);
+    const Allen::NeuralNetwork::Model::DownstreamGhostKiller*,
+    [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType);
 
   struct downstream_create_tracks_t : public DeviceAlgorithm,
                                       Parameters
@@ -82,6 +85,7 @@ namespace downstream_create_tracks {
       const Allen::Context& context) const;
 
   private:
+    Allen::Monitoring::Counter<> m_n_overflow_downstream_create_tracks {this, "n_overflow_downstream_create_tracks"};
     Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
     Property<ghost_killer_threshold_t> m_ghost_killer_threshold {this, 0.5};
   };

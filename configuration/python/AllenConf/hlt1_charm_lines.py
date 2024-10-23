@@ -194,7 +194,8 @@ def make_d2kshh_line(
         minTrackIP_hh=0.06,
         minComboPt_D0=1500.,
         minCTau_D0=0.5 * 0.1229,  # 0.5 * D0 ctau
-        massWindow=100.):
+        massWindow=100.,
+        pre_scaler=1.0):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -209,6 +210,7 @@ def make_d2kshh_line(
             "dev_multi_event_sv_combos_view"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        pre_scaler=pre_scaler,
         # Filter properties
         maxVertexChi2=maxVertexChi2,
         maxDOCA=maxDOCA,

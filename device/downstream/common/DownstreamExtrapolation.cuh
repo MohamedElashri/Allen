@@ -94,6 +94,28 @@ namespace Downstream {
 
     } // namespace Tolerance
 
+    namespace ConstantTolerance {
+      __device__ __forceinline__ float X(const unsigned layer)
+      {
+        switch (layer) {
+        case 0: return 3.f;
+        case 1: return 5.f;
+        case 2: return 5.f;
+        default: return 60.f;
+        }
+      }
+
+      __device__ __forceinline__ float Y(const unsigned layer)
+      {
+        switch (layer) {
+        case 0: return 10.f;
+        case 1: return 10.f;
+        case 2: return 6.f;
+        default: return 10.f;
+        }
+      }
+    } // namespace ConstantTolerance
+
     struct ExtrapolateTrack {
     private:
       float m_xMagnet;
@@ -175,6 +197,18 @@ namespace Downstream {
       {
         const auto tol = Tolerance::Y(layer, qop());
         return (tol.x > tol.z) ? tol.z : (tol.x < tol.y) ? tol.y : tol.x;
+      }
+
+      __device__ inline auto xTolConst(const unsigned layer)
+      {
+        const auto tol = ConstantTolerance::X(layer);
+        return tol;
+      }
+
+      __device__ inline auto yTolConst(const unsigned layer)
+      {
+        const auto tol = ConstantTolerance::Y(layer);
+        return tol;
       }
     };
 

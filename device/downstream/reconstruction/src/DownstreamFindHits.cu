@@ -142,35 +142,45 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
 
   // Create candidates
   if (filter_used_scifi_seeds) {
-    global_function(downstream_create_candidates<true>)(
-      dim3(size<dev_event_list_t>(arguments)), property<num_threads_create_candidates_t>(), context)(
+    auto candidates_condition = (property<enable_constant_tolerance_window_t>()) ?
+                                  global_function(downstream_create_candidates<true, true>) :
+                                  global_function(downstream_create_candidates<true, false>);
+    candidates_condition(dim3(size<dev_event_list_t>(arguments)), property<num_threads_create_candidates_t>(), context)(
       arguments,
       dev_unique_x_sector_layer_offsets,
       dev_unique_sector_xs,
       dev_magnet_polarity,
       dev_ut_per_layer_info,
-      constants.dev_ttrack_selector);
+      constants.dev_ttrack_selector,
+      m_n_overflow_downstream_tracking.data(context));
   }
   else {
-    global_function(downstream_create_candidates<false>)(
-      dim3(size<dev_event_list_t>(arguments)), property<num_threads_create_candidates_t>(), context)(
+    auto candidates_condition = (property<enable_constant_tolerance_window_t>()) ?
+                                  global_function(downstream_create_candidates<false, true>) :
+                                  global_function(downstream_create_candidates<false, false>);
+    candidates_condition(dim3(size<dev_event_list_t>(arguments)), property<num_threads_create_candidates_t>(), context)(
       arguments,
       dev_unique_x_sector_layer_offsets,
       dev_unique_sector_xs,
       dev_magnet_polarity,
       dev_ut_per_layer_info,
-      constants.dev_ttrack_selector);
+      constants.dev_ttrack_selector,
+      m_n_overflow_downstream_tracking.data(context));
   }
 
   // Fill table
   if (property<require_four_ut_hits_t>()) {
-    global_function(downstream_find_rest_hits<true>)(
-      dim3(size<dev_event_list_t>(arguments)), property<num_threads_find_rest_hits_t>(), context)(
+    auto candidates_condition = (property<enable_constant_tolerance_window_t>()) ?
+                                  global_function(downstream_find_rest_hits<true, true>) :
+                                  global_function(downstream_find_rest_hits<true, false>);
+    candidates_condition(dim3(size<dev_event_list_t>(arguments)), property<num_threads_find_rest_hits_t>(), context)(
       arguments, dev_unique_x_sector_layer_offsets, dev_unique_sector_xs, dev_ut_per_layer_info);
   }
   else {
-    global_function(downstream_find_rest_hits<false>)(
-      dim3(size<dev_event_list_t>(arguments)), property<num_threads_find_rest_hits_t>(), context)(
+    auto candidates_condition = (property<enable_constant_tolerance_window_t>()) ?
+                                  global_function(downstream_find_rest_hits<false, true>) :
+                                  global_function(downstream_find_rest_hits<false, false>);
+    candidates_condition(dim3(size<dev_event_list_t>(arguments)), property<num_threads_find_rest_hits_t>(), context)(
       arguments, dev_unique_x_sector_layer_offsets, dev_unique_sector_xs, dev_ut_per_layer_info);
   }
 }
@@ -185,14 +195,15 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
  * @note To improve algorithm throughput, this function will cache all UT hits and sector information into shared
  * memory, if possible.
  */
-template<bool filter_used_scifi_seeds>
+template<bool filter_used_scifi_seeds, bool use_constant_tolerance_window>
 __global__ void downstream_find_hits::downstream_create_candidates(
   downstream_find_hits::Parameters parameters,
   const unsigned* dev_unique_x_sector_layer_offsets,
   const float* dev_unique_sector_xs,
   const float* dev_magnet_polarity,
   const UT::Constants::PerLayerInfo* dev_mean_layer_info,
-  const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector)
+  const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector,
+  [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_tracking)
 {
 
   ///////////////////////////////////////////////////////
@@ -300,9 +311,18 @@ __global__ void downstream_find_hits::downstream_create_candidates(
     using Downstream::DownstreamExtrapolation::ExtrapolateTrack;
     ExtrapolateTrack exTrack(scifi_state, scifi_qop);
 
+    auto xTol = 0.f;
+    auto yTol = 0.f;
+
     // Get tolerances
-    const auto xTol = exTrack.xTol(layer);
-    const auto yTol = exTrack.yTol(layer);
+    if constexpr (!(use_constant_tolerance_window)) {
+      xTol = exTrack.xTol(layer);
+      yTol = exTrack.yTol(layer);
+    }
+    else {
+      xTol = exTrack.xTolConst(layer) * parameters.tolerance_window_x4_multiplier.get();
+      yTol = exTrack.yTolConst(layer) * parameters.tolerance_window_y4_multiplier.get();
+    }
 
     // Get expected x and open the search window
     const auto expected_layer_y = exTrack.yAtZ(mean_z);
@@ -390,6 +410,10 @@ __global__ void downstream_find_hits::downstream_create_candidates(
     parameters.dev_findhits_num_selected_scifi[event_number] = no_overflow ? shared_num_selelected_scifi : 0;
     // Set the end of offsets
     output_selected_scifi_offsets[shared_num_selelected_scifi] = no_overflow ? shared_num_candidates : 0;
+
+    if (!no_overflow) {
+      dev_n_overflow_downstream_tracking.increment();
+    }
   };
   __syncthreads();
 }
@@ -401,7 +425,7 @@ __global__ void downstream_find_hits::downstream_create_candidates(
  * memory, if possible.
  */
 
-template<bool require_four_hits>
+template<bool require_four_hits, bool use_constant_tolerance_window>
 __global__ void downstream_find_hits::downstream_find_rest_hits(
   downstream_find_hits::Parameters parameters,
   const unsigned* dev_unique_x_sector_layer_offsets,
@@ -453,6 +477,13 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
   UTHitsCache_FindRestHits hit_cache {shared_memory_hit_caching};
   UT::SectorHelper sector_cache;
 
+  const float x_tolerance_windows[3] = {parameters.tolerance_window_x1_multiplier.get(),
+                                        parameters.tolerance_window_x2_multiplier.get(),
+                                        parameters.tolerance_window_x3_multiplier.get()};
+  const float y_tolerance_windows[3] = {parameters.tolerance_window_y1_multiplier.get(),
+                                        parameters.tolerance_window_y2_multiplier.get(),
+                                        parameters.tolerance_window_y3_multiplier.get()};
+
   ///////////////////////////////////////////////////////
   //
   // A l g o r i t h m    s t a r t
@@ -487,9 +518,18 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
                                 findhits_extrapolation.ty,
                                 findhits_extrapolation.qop};
 
+      auto xTol = 0.f;
+      auto yTol = 0.f;
+
       // Get tolerances
-      const auto xTol = exTrack.xTol(layer);
-      const auto yTol = exTrack.yTol(layer);
+      if constexpr (!(use_constant_tolerance_window)) {
+        xTol = exTrack.xTol(layer);
+        yTol = exTrack.yTol(layer);
+      }
+      else {
+        xTol = exTrack.xTolConst(layer) * x_tolerance_windows[layer];
+        yTol = exTrack.yTolConst(layer) * y_tolerance_windows[layer];
+      }
 
       // Get expected x and open the search window
       const auto expected_layer_y = exTrack.yAtZ(layer_z);

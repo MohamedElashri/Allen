@@ -76,10 +76,13 @@ def main(argv):
     with open(options.filename) as csvfile:
         csv_reader = csv.reader(csvfile, delimiter=',')
         for i, row in enumerate(csv_reader):
-            if i > 0:
+            if i > 100:
+                if "..." not in plot_data: plot_data["..."] = 0
+                plot_data["..."] += float(row[0])
+            elif i > 0:
                 try:
                     plot_data[algorithm_name_parser.parse_algorithm_name(
-                        row[0])] = float(row[1])
+                        row[8])] = float(row[0])
                 except:
                     print(traceback.format_exc())
 

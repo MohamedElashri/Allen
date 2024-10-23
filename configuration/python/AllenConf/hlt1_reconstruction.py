@@ -343,10 +343,35 @@ def hlt1_reconstruction(algorithm_name='',
     })
 
     if 'downstream_tracks' in output:
+        v0s_dd = fit_downstream_secondary_vertices(output['downstream_tracks'],
+                                                   pvs)
+        v0dd_hh_pairs = make_generic_sv_pairs(
+            v0s_dd,
+            dihadrons,
+            maxVertexChi2=10.,
+            minMassV1=410.,
+            maxMassV1=530.,
+            minPtV1=1000.,
+            minCosDiraV1=0.999,
+            minEtaV1=2,
+            maxEtaV1=5,
+            minTrackPtV1=300.,
+            minTrackPV1=3000.,
+            minTrackIPChi2V1=-999.,
+            minTrackIPV1=0.25,
+            minMassV2=250.,
+            maxMassV2=1700.,
+            minPtV2=750.,
+            minCosDiraV2=0.999,
+            minEtaV2=2,
+            maxEtaV2=5,
+            minTrackPtV2=250.,
+            minTrackPV2=2500.,
+            minTrackIPChi2V2=-999.,
+            minTrackIPV2=0.06)
         output.update({
-            'downstream_secondary_vertices':
-            fit_downstream_secondary_vertices(output['downstream_tracks'],
-                                              pvs),
+            'downstream_secondary_vertices': v0s_dd,
+            'v0dd_hh_pairs': v0dd_hh_pairs
         })
 
     if with_rich:

@@ -29,7 +29,7 @@ namespace Downstream {
     constexpr unsigned MaxNumSelectedUVhitPerRow = 2;
 
     // Max number of downstream candidates
-    constexpr unsigned MaxNumCandidates = 1024 * 2;
+    constexpr unsigned MaxNumCandidates = 1024 * 4;
 
   } // namespace DownstreamParameters
 } // namespace Downstream
