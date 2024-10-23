@@ -101,7 +101,7 @@ rb_map = {
     'Hlt1UpsilonAlignment':
     12,
     # RB 14 HLT1 physics for monitoring and alignment
-    'Hlt1(TrackMVA|TwoTrackMVA|SingleHighPtMuon|DiMuonHighMass|TrackMuonMVA|DisplacedDiMuon|TrackElectronMVA|SingleHighPtElectron|DisplacedDielectron|SingleHighEt)':
+    'Hlt1(TrackMVA|TwoTrackMVA|SingleHighPtMuon|DiMuonHighMass|TrackMuonMVA|DiMuonDisplaced|TrackElectronMVA|SingleHighPtElectron|DielectronDisplaced|SingleHighEt)':
     14,
     # RB 15 HLT1 beam-gas physics for monitoring and alignment
     'Hlt1SMOG2(2BodyGeneric|2BodyGenericPrompt|SingleTrackVeryHighPt|SingleTrackHighPt|DiMuonHighMass|SingleMuon|DisplacedDiMuon)':
