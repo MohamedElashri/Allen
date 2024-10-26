@@ -110,7 +110,7 @@ def make_SMOG2_minimum_bias_line(velo_tracks,
                                  name="Hlt1SMOG2_MinimumBias",
                                  min_z=-541.,
                                  max_z=-341.,
-                                 pre_scaler=1.,
+                                 pre_scaler=0.00003,
                                  post_scaler=1.):
     number_of_events = initialize_number_of_events()
 

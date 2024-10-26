@@ -933,8 +933,7 @@ def setup_hlt1_node(enablePhysics=True,
                     make_SMOG2_minimum_bias_line(
                         reconstructed_objects["velo_tracks"],
                         reconstructed_objects["velo_states"],
-                        name="Hlt1SMOG2MinimumBias",
-                        pre_scaler=0.0025))
+                        name="Hlt1SMOG2MinimumBias"))
             ]
 
         SMOG2_prefilters += [
