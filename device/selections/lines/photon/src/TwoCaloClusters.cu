@@ -40,6 +40,7 @@ __device__ bool two_calo_clusters_line::two_calo_clusters_line_t::select(
                   (child1->et() > parameters.minEt_clusters && child2->et() > parameters.minEt_clusters) &&
                   (child1->et() + child2->et() > parameters.minSumEt_clusters) &&
                   (c1.CaloNeutralE19 > parameters.minE19_clusters && c2.CaloNeutralE19 > parameters.minE19_clusters) &&
+                  (fabsf(c1.y) > parameters.minAbsY_clusters && fabsf(c2.y) > parameters.minAbsY_clusters) &&
                   (number_of_velo_tracks <= parameters.max_velo_tracks) &&
                   (ecal_number_of_clusters <= parameters.max_ecal_clusters) && (n_pvs <= parameters.max_n_pvs) &&
                   (eta < parameters.eta_max);

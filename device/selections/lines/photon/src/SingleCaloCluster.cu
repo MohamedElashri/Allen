@@ -29,7 +29,8 @@ __device__ bool single_calo_cluster_line::single_calo_cluster_line_t::select(
     (ecal_cluster.x * ecal_cluster.x + ecal_cluster.y * ecal_cluster.y + z * z));
   const float E_T = ecal_cluster.e * sintheta;
   const float decision =
-    (E_T > parameters.minEt && E_T < parameters.maxEt && ecal_number_of_clusters <= parameters.max_ecal_clusters);
+    (E_T > parameters.minEt && E_T < parameters.maxEt && fabsf(ecal_cluster.y) > parameters.minAbsY_cluster &&
+     ecal_number_of_clusters <= parameters.max_ecal_clusters);
 
   return decision;
 }

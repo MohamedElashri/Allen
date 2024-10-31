@@ -62,6 +62,7 @@ namespace two_calo_clusters_line {
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
     PROPERTY(minE19_clusters_t, "minE19_clusters", "min E19 of each cluster", float) minE19_clusters;
     PROPERTY(minEt_clusters_t, "minEt_clusters", "min Et of each cluster", float) minEt_clusters;
+    PROPERTY(minAbsY_clusters_t, "minAbsY_clusters", "min |Y| of each cluster", float) minAbsY_clusters;
     PROPERTY(minSumEt_clusters_t, "minSumEt_clusters", "min SumEt of clusters", float) minSumEt_clusters;
     PROPERTY(minPt_t, "minPt", "min Pt of the twocluster", float) minPt;
     PROPERTY(maxPt_t, "maxPt", "min Pt of the twocluster", float) maxPt;
@@ -184,6 +185,7 @@ namespace two_calo_clusters_line {
     Property<minEt_clusters_t> m_minEt_clusters {this, 200.f};       // MeV
     Property<minSumEt_clusters_t> m_minSumEt_clusters {this, 400.f}; // MeV
     Property<minE19_clusters_t> m_minE19_clusters {this, 0.6f};
+    Property<minAbsY_clusters_t> minAbsY_clusters {this, -1.0f}; // mm
     Property<eta_max_t> m_eta_max {this, 10.f};
     Property<max_velo_tracks_t> m_max_velo_tracks {this, UINT_MAX};
     Property<max_ecal_clusters_t> m_max_ecal_clusters {this, UINT_MAX};

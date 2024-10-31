@@ -44,6 +44,7 @@ namespace single_calo_cluster_line {
     PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
     PROPERTY(minEt_t, "minEt", "minEt description", float) minEt;
     PROPERTY(maxEt_t, "maxEt", "maxEt description", float) maxEt;
+    PROPERTY(minAbsY_cluster_t, "minAbsY_cluster", "min |Y| of cluster", float) minAbsY_cluster;
     PROPERTY(max_ecal_clusters_t, "max_ecal_clusters", "Maximum number of VELO tracks", unsigned) max_ecal_clusters;
     PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
   };
@@ -86,8 +87,9 @@ namespace single_calo_cluster_line {
     Property<post_scaler_t> m_post_scaler {this, 1.f};
     Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
     Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minEt_t> m_minEt {this, 200.0f};   // MeV
-    Property<maxEt_t> m_maxEt {this, 999999.f}; // MeV
+    Property<minEt_t> m_minEt {this, 200.0f};                  // MeV
+    Property<maxEt_t> m_maxEt {this, 999999.f};                // MeV
+    Property<minAbsY_cluster_t> minAbsY_cluster {this, -1.0f}; // mm
     Property<max_ecal_clusters_t> m_max_ecal_clusters {this, UINT_MAX};
     Property<enable_tupling_t> m_enable_tupling {this, false};
   };

@@ -14,9 +14,10 @@ from AllenCore.algorithms import (
     check_pvs_t, check_cyl_pvs_t, low_occupancy_t,
     check_localized_beamline_ip_t, error_bank_filter_t, data_provider_t,
     check_ecal_energy_t, velo_track_activity_filter_t,
-    long_track_activity_filter_t)
+    long_track_activity_filter_t, pv_activity_filter_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenConf.velo_reconstruction import decode_velo
+from AllenConf.enum_types import ActivityType
 from PyConf.tonic import configurable
 from PyConf.control_flow import NodeLogic, CompositeNode
 
@@ -111,7 +112,7 @@ def make_gec(gec_name='gec',
 
 def long_track_activity_filter(long_tracks,
                                name="long_track_activity_filter",
-                               min_long_tracks=0,
+                               min_long_tracks=1,
                                max_long_tracks=99999999):
     number_of_events = initialize_number_of_events()
 
@@ -125,7 +126,7 @@ def long_track_activity_filter(long_tracks,
 
 def velo_track_activity_filter(velo_tracks,
                                name="velo_track_activity_filter",
-                               min_velo_tracks=0,
+                               min_velo_tracks=1,
                                max_velo_tracks=99999999):
     number_of_events = initialize_number_of_events()
 
@@ -138,6 +139,22 @@ def velo_track_activity_filter(velo_tracks,
             "dev_offsets_velo_track_hit_number"],
         min_velo_tracks=min_velo_tracks,
         max_velo_tracks=max_velo_tracks)
+
+
+@configurable
+def make_pv_activity_filter(pvs,
+                            name="pv_activity_filter",
+                            min_pvs=1,
+                            max_pvs=99999999):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        pv_activity_filter_t,
+        name=name,
+        dev_number_of_multi_final_vertices_t=pvs[
+            "dev_number_of_multi_final_vertices"],
+        minPVs=min_pvs,
+        maxPVs=max_pvs)
 
 
 @configurable
@@ -162,6 +179,66 @@ def make_tae_activity_filter(
             name=name,
             min_velo_tracks=min_tracks,
             max_velo_tracks=max_tracks)
+
+
+@configurable
+def make_minimal_activity_filter(reconstructed_objects, minimal_activity_type,
+                                 min_activity, max_activity):
+
+    activity_filter = []
+    if minimal_activity_type is None:
+        activity_filter = []
+    elif minimal_activity_type is ActivityType.VELO_CLUSTERS:
+        activity_filter = [
+            make_gec(
+                gec_name="minimal_activity_velo_clusters",
+                count_velo=True,
+                count_scifi=False,
+                count_ut=False,
+                min_velo_clusters=min_activity,
+                max_velo_clusters=max_activity)
+        ]
+    elif minimal_activity_type is ActivityType.PRIMARY_VERTICES:
+        activity_filter = [
+            make_pv_activity_filter(
+                reconstructed_objects["pvs"],
+                min_pvs=min_activity,
+                max_pvs=max_activity)
+        ]
+    elif minimal_activity_type is ActivityType.SCIFI_CLUSTERS:
+        activity_filter = [
+            make_gec(
+                gec_name="minimal_activity_scifi_clusters",
+                count_velo=False,
+                count_scifi=True,
+                count_ut=False,
+                min_scifi_clusters=min_activity,
+                max_scifi_clusters=max_activity)
+        ]
+    elif minimal_activity_type is ActivityType.VELO_TRACKS:
+        activity_filter = [
+            make_tae_activity_filter(
+                reconstructed_objects["long_tracks"],
+                reconstructed_objects["velo_tracks"],
+                name="minimal_activity_velo_tracks",
+                use_long_tracks=False,
+                min_tracks=min_activity,
+                max_tracks=max_activity)
+        ]
+    elif minimal_activity_type is ActivityType.LONG_TRACKS:
+        activity_filter = [
+            make_tae_activity_filter(
+                reconstructed_objects["long_tracks"],
+                reconstructed_objects["velo_tracks"],
+                name="minimal_activity_long_tracks",
+                use_long_tracks=True,
+                min_tracks=min_activity,
+                max_tracks=max_activity)
+        ]
+    else:
+        raise Exception("Minimal activity type not supported")
+
+    return activity_filter
 
 
 @configurable

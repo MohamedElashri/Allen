@@ -235,7 +235,7 @@ a5000-full:
     - .run_jobs
     - .default_rules_always_run
     - .cuda_run_job
-  timeout: 2h
+  timeout: 1h 30m
 
 
 # RTX 2080Ti
