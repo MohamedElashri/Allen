@@ -24,6 +24,7 @@ def make_photon_lowmult_line(calo,
                              pre_scaler_hash_string=None,
                              post_scaler_hash_string=None,
                              minEt=200.0,
+                             min_absY=-1,
                              max_ecal_clusters=999999):
     number_of_events = initialize_number_of_events()
 
@@ -37,6 +38,7 @@ def make_photon_lowmult_line(calo,
         host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"],
         dev_particle_container_t=calo["dev_multi_event_neutral_particles"],
         minEt=minEt,
+        minAbsY_cluster=min_absY,
         max_ecal_clusters=max_ecal_clusters,
         enable_tupling=False)
 
@@ -54,6 +56,7 @@ def make_diphoton_lowmult_line(calo,
                                minEt_clusters=200,
                                max_velo_tracks=999999,
                                max_ecal_clusters=999999,
+                               min_absY=-1,
                                enable_monitoring=True,
                                mass_histogram_range=[0, 2000]):
     number_of_events = initialize_number_of_events()
@@ -79,6 +82,7 @@ def make_diphoton_lowmult_line(calo,
         maxPt=maxPt,  #MeV
         minEt_clusters=minEt_clusters,  #MeV
         minE19_clusters=0.4,
+        minAbsY_clusters=min_absY,
         max_velo_tracks=max_velo_tracks,
         max_ecal_clusters=max_ecal_clusters,
         enable_tupling=False,

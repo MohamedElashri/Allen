@@ -123,7 +123,7 @@ rb_map_PbPb = {
     '^Hlt1.*Lumi.*':
     1,
     # RB 2 Velo alignment
-    'Hlt1(VeloMicroBias|BeamGas|NMaterialVertexSeeds|NVELODisplacedTrack|HeavyIonPbPbMBOneTrack)':
+    'Hlt1(VeloMicroBias|BeamGas|HeavyIonPbPbMBOneTrack|Hlt1HeavyIonPbPbMicroBias)':
     2,
     # RB 3 Tracker alignment
     'Hlt1D2KPiAlignment|Hlt1HeavyIonPbPbUPCMB':
@@ -141,7 +141,7 @@ rb_map_PbPb = {
     'Hlt1RICH2Alignment':
     7,
     # RB 8 Velo (closing) monitoring
-    'Hlt1ODINVelo.*':
+    'Hlt1VeloMicroBias.*':
     8,
     # RB 9 ECAL pi0 calibration
     'Hlt1HeavyIonPbPbUPCDiPhoton_LowPt':
@@ -149,15 +149,24 @@ rb_map_PbPb = {
     # RB 10 ODIN calibration triggers
     'Hlt1ODINCalib':
     10,
+    # RB 11 BGI lines
+    'Hlt1BGI.*':
+    11,
     # RB 12 Upsilon Alignment
     'Hlt1UpsilonAlignment':
     12,
+    #RB 13 for minimal PbPb activity
+    'Hlt1MinimalActivity':
+    13,
     # RB 14 HLT1 beam-beam physics for monitoring and alignment
-    'Hlt1(HeavyIonPbPbPeripheral|HeavyIonPbPbCentral|HeavyIonPbPbUPCMB|GECCentPassthrough)':
+    'Hlt1(HeavyIonPbPbHadronic|HeavyIonPbPbUPCMB|GECCentPassthrough)':
     14,
     # RB 15 HLT1 beam-gas physics for monitoring and alignment
     'Hlt1(HeavyIonPbSMOGHadronic|GECCentPassthrough)':
     15,
+    # RB 17 physics for CalibMon
+    'Hlt1(Dst2D0Pi|DetJpsiToMuMuPosTagLine|DetJpsiToMuMuNegTagLine)':
+    17,
     # RB 25 error banks
     'Hlt1ErrorBank':
     25,
@@ -367,6 +376,7 @@ def make_sel_report_writer(lines):
     }
 
 
+@configurable
 def make_persistency(line_algorithms):
     gather_selections = make_gather_selections(line_algorithms)
     global_decision = make_global_decision(line_algorithms)
