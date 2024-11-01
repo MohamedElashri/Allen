@@ -762,7 +762,8 @@ def setup_hlt1_node(enablePhysics=True,
                     tae_passthrough=True,
                     tae_activity=False,
                     enableTupling=False,
-                    data_quality=False):
+                    data_quality=False,
+                    smog2_lumi_prescale=0.1):
 
     hlt1_config = {}
     # Reconstruct objects needed as input for selection lines
@@ -921,7 +922,7 @@ def setup_hlt1_node(enablePhysics=True,
                     line_maker(
                         make_passthrough_line(
                             name="Hlt1SMOG2BELowMultElectrons",
-                            pre_scaler=0.1))
+                            pre_scaler=smog2_lumi_prescale))
                 ]
 
         if EnableGEC:
