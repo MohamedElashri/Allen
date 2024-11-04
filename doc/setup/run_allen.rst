@@ -102,3 +102,12 @@ When using MDF files as input, call from the Allen environment::
 When using MEP files as input, call from the MooreOnline environment, as MEP handling is implemented there::
 
   ./MooreOnline/build.${ARCHITECTURE}/run python Allen/Dumpers/BinaryDumpers/options/allen.py --sequence=Allen/InstallArea/${ARCHITECTURE}/constants/hlt1_pp_default.json --tags="dddb_tag,simcond_tag" --mep mep_file.mep
+
+.. _find_a_used_sequence:
+
+Finding a sequence used on data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Finding the name of a sequence that has been used on a specific LHCb dataset may be done using the [runDB](https://lbrundb.cern.ch/rundb/export). From here the option `Trigger Conf` may be selected and the Allen sequence used when running HLT1 for any Run 3 dataset may be found.
+
+Searching may also be done over a specified time period rather than for specific runs.
