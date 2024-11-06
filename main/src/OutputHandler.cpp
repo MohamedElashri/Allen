@@ -235,9 +235,11 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
   std::vector<unsigned> tae_offsets;
 
   auto& tae_events = outputs.tae_events;
+  std::vector<TAE::TAEEvent> selected_tae_events;
   // for now, set the size to the number of global decisions
   selected_events.reserve(outputs.selected_events.size() * (2 * tae_events[0].half_window + 1));
   tae_offsets.reserve(outputs.selected_events.size());
+  selected_tae_events.reserve(outputs.tae_events.size());
 
   unsigned n_selected_tae_events = 0;
 
@@ -246,6 +248,7 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
     if (!central_tae_in_global_decision) continue; // tae event not in global decision, skip
     n_selected_tae_events++;
     tae_offsets.push_back(selected_events.size());
+    selected_tae_events.push_back(tae_event);
     for (unsigned event_number = tae_event.central - tae_event.half_window;
          event_number <= tae_event.central + tae_event.half_window;
          ++event_number) {
@@ -255,9 +258,11 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
       selected_events.push_back(event_number + start_event);
     }
   }
+  if (n_selected_tae_events == 0) return {true, 0};
 
   selected_events.resize(n_selected_tae_events * (2 * tae_events[0].half_window + 1));
   tae_offsets.resize(n_selected_tae_events);
+  selected_tae_events.resize(n_selected_tae_events);
 
 #ifndef STANDALONE
   if (m_ntae) (*m_ntae) += n_selected_tae_events;
@@ -271,7 +276,7 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
 
   size_t tae_buffer_size = 0;
   for (size_t tae_index = 0; tae_index < n_selected_tae_events; ++tae_index) {
-    auto const& tae_event = tae_events[tae_index];
+    auto const& tae_event = selected_tae_events[tae_index];
     auto const offset = tae_offsets[tae_index];
     size_t tae_size = header_size + bank_header_size + tae_bank_size(tae_event.half_window);
     for (unsigned sub_index = offset; sub_index < offset + 2 * tae_event.half_window + 1; ++sub_index) {
@@ -285,7 +290,7 @@ std::tuple<bool, size_t> OutputHandler::output_tae_events(
 
   size_t tae_output_offset = 0;
   for (size_t tae_index = 0; tae_index < n_selected_tae_events; ++tae_index) {
-    auto const& tae_event = tae_events[tae_index];
+    auto const& tae_event = selected_tae_events[tae_index];
     auto const offset = tae_offsets[tae_index];
     auto const tae_size = sizes.tae[tae_event.central];
     auto tae_span = tae_buffer.subspan(tae_output_offset, tae_size);
