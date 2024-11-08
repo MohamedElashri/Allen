@@ -45,8 +45,8 @@ config:
         HIP: "-n 2800 --events-per-slice 2800 -m 2800 -t 10 -r 100"
         CPU: "-n 100 -m 100 -r 100"
       PbPb:
-        CUDA: "-n 500 -m 4000 -r 200 -t 6 --events-per-slice 200"
-        CUDAPROF: "-n 500 -m 3000 -r 1 -t 1 --events-per-slice 300"
+        CUDA: "-n 500 -m 2000 -r 200 -t 6 --events-per-slice 200"
+        CUDAPROF: "-n 500 -m 2000 -r 1 -t 1 --events-per-slice 300"
         HIP: "-n 2800 --events-per-slice 840 -m 8400 -t 5 -r 20"
         CPU: "-n 100 -m 1000 -r 10"
 
@@ -150,11 +150,65 @@ full:
     geometry: "geometry_dddb-20240427_sim10-2024.Q1.2-v1.1-md100"
 
   # run throughput, PbPb samples, 2023 default PbPb sequence
+    
+    # run throughput, PbPb samples, 2024 default PbPb sequence
+  - type: "throughput"
+    sequence:
+      - hlt1_PbPb_PbSMOG_no_ut
+    dataset: "official-expected-2024-PbPb-minbias-mdf"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100"
+    timeout: 2400
+    collision_type: "PbPb"
+    allowed_devices:
+      - epyc7502
+      - a5000
+      - geforcertx3090
+  
+  # run throughput, PbPb samples, 2024 default PbPb sequence
+  - type: "throughput"
+    sequence:
+      - hlt1_PbPb_PbSMOG
+    dataset: "official-expected-2024-PbPb-minbias-mdf"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100"
+    timeout: 2400
+    collision_type: "PbPb"
+    allowed_devices:
+      - epyc7502
+      - a5000
+      - geforcertx3090
+
+  # run throughput, PbPb samples, 2024 no-gec PbPb sequence
+  - type: "throughput"
+    sequence:
+      - hlt1_PbPb_PbSMOG_no_ut
+    dataset: "official-expected-2024-PbAr-minbias-mdf"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100"
+    timeout: 2400
+    collision_type: "PbPb"
+    allowed_devices:
+      - epyc7502
+      - a5000
+      - geforcertx3090
+
+  # run throughput, PbPb samples, 2024 no-gec PbPb sequence
+  - type: "throughput"
+    sequence:
+      - hlt1_PbPb_PbSMOG
+    dataset: "official-expected-2024-PbAr-minbias-mdf"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100"
+    timeout: 2400
+    collision_type: "PbPb"
+    allowed_devices:
+      - epyc7502
+      - a5000
+      - geforcertx3090
+  
+  # run throughput, PbPb samples, 2023 default PbPb sequence
   - type: "throughput"
     sequence:
       - hlt1_PbPb_PbSMOG_no_ut
     dataset: "upgrade-official-PbPb-EPOS-b-8_22-VELO-23.5mm"
-    geometry: "geometry_dddb-20230313_sim-20230626-vc-md100"
+    geometry: "geometry_dddb-20231010_sim-20231116-vc-md100"
     timeout: 2400
     collision_type: "PbPb"
     allowed_devices:
@@ -167,13 +221,14 @@ full:
     sequence:
       - hlt1_PbPb_PbSMOG_no_ut_veloSP
     dataset: "upgrade-official-PbPb-EPOS-b-8_22-VELO-23.5mm"
-    geometry: "geometry_dddb-20230313_sim-20230626-vc-md100"
+    geometry: "geometry_dddb-20231010_sim-20231116-vc-md100"
     timeout: 2400
     collision_type: "PbPb"
     allowed_devices:
       - epyc7502
       - a5000
       - geforcertx3090
+
 
   #throughput test with RICH decoding -> medium/long term development
   - type: "throughput"
