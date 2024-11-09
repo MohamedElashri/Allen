@@ -136,7 +136,7 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
     const float mindip = parameters.minDipDensity * parameters.dz; // need to invent something
     const float minpeak = parameters.minDensity * parameters.dz;
 
-    Extremum extrema[PV::max_number_vertices];
+    Extremum extrema[PV::max_number_clusteredges];
     int number_of_extrema = 0;
 
     bool rising = true;
@@ -227,6 +227,10 @@ __global__ void pv_beamline_peak::pv_beamline_peak(pv_beamline_peak::Parameters 
     float idz = d1 + d2 > 0 ? 0.5f * (d1 - d2) / (d1 + d2) : 0.0f;
     return zmin + dz * (izmax + idz + 0.5f);
   };
+
+  if (number_of_clusters > PV::max_number_vertices) {
+    number_of_clusters = PV::max_number_vertices;
+  }
 
   for (unsigned i = threadIdx.x; i < number_of_clusters; i += blockDim.x) {
     zpeaks[i] = zClusterMean(clusters[i].izmax, parameters.zmin, parameters.dz);
