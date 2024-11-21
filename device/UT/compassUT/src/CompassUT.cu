@@ -131,6 +131,13 @@ __global__ void compass_ut::compass_ut(
       parameters.min_ld_3_hit,
       parameters.min_ld_4_hit);
   }
+  __syncthreads();
+  if (threadIdx.x == 0) {
+    if (n_veloUT_tracks_event[0] >= UT::Constants::max_num_tracks) {
+      n_veloUT_tracks_event[0] = 0;
+    }
+  }
+  __syncthreads();
 }
 
 __device__ void compass_ut::compass_ut_tracking(
@@ -331,6 +338,7 @@ __device__ void compass_ut::save_track(
 
   // the track will be added
   unsigned n_tracks = atomicAdd(n_veloUT_tracks, 1u);
+  if (n_tracks >= UT::Constants::max_num_tracks) return;
 
   // // to do: maybe save y from fit
   UT::TrackHits track;
@@ -352,7 +360,6 @@ __device__ void compass_ut::save_track(
     }
   }
 
-  assert(n_tracks < UT::Constants::max_num_tracks);
   VeloUT_tracks[n_tracks] = track;
 }
 

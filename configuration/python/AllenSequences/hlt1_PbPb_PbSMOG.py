@@ -23,7 +23,6 @@ with make_routingbits_writer.bind(rb_map=rb_map_PbPb):
                 prescale=True,
                 with_ut=True,
                 EnableGEC=True,
-                bx_type=[1, 3],
                 reco_particles=True,
                 tracking_type=TrackingType.FORWARD_THEN_MATCHING)
             generate(hlt1_node)
