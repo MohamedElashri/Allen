@@ -267,7 +267,7 @@ namespace Dumpers {
  */
 
 class DumpCaloGeometry final
-  : public Allen::Dumpers::Dumper<void(Dumpers::Calo const&), LHCb::DetDesc::usesConditions<Dumpers::Calo>> {
+  : public Allen::Dumpers::Dumper<void(Dumpers::Calo const&), LHCb::Algorithm::Traits::usesConditions<Dumpers::Calo>> {
 public:
   DumpCaloGeometry(const std::string& name, ISvcLocator* svcLoc);
 

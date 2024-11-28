@@ -192,7 +192,7 @@ namespace {
  *  @date   2022-06-03
  */
 class DumpMuonTable final
-  : public Allen::Dumpers::Dumper<void(MuonTable_t const&), LHCb::DetDesc::usesConditions<MuonTable_t>> {
+  : public Allen::Dumpers::Dumper<void(MuonTable_t const&), LHCb::Algorithm::Traits::usesConditions<MuonTable_t>> {
 public:
   DumpMuonTable(const std::string& name, ISvcLocator* svcLoc);
 
