@@ -123,7 +123,8 @@ namespace {
  */
 
 class DumpMuonGeometry final
-  : public Allen::Dumpers::Dumper<void(MuonGeometry_t const&), LHCb::DetDesc::usesConditions<MuonGeometry_t>> {
+  : public Allen::Dumpers::
+      Dumper<void(MuonGeometry_t const&), LHCb::Algorithm::Traits::usesConditions<MuonGeometry_t>> {
 public:
   DumpMuonGeometry(const std::string& name, ISvcLocator* svcLoc);
 

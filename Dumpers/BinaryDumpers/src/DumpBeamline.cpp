@@ -61,7 +61,7 @@ namespace {
  *  @date   2019-04-27
  */
 class DumpBeamline final
-  : public Allen::Dumpers::Dumper<void(Beamline const&), LHCb::DetDesc::usesConditions<Beamline>> {
+  : public Allen::Dumpers::Dumper<void(Beamline const&), LHCb::Algorithm::Traits::usesConditions<Beamline>> {
 public:
   DumpBeamline(const std::string& name, ISvcLocator* svcLoc);
 

@@ -274,7 +274,7 @@ namespace {
 
 class DumpUTGeometry final
   : public Allen::Dumpers::
-      Dumper<void(Geometry const&, Boards const&), LHCb::DetDesc::usesConditions<Geometry, Boards>> {
+      Dumper<void(Geometry const&, Boards const&), LHCb::Algorithm::Traits::usesConditions<Geometry, Boards>> {
 public:
   DumpUTGeometry(const std::string& name, ISvcLocator* svcLoc);
 

@@ -71,7 +71,7 @@ namespace Dumpers {
 } // namespace Dumpers
 
 class DumpVPGeometry final
-  : public Allen::Dumpers::Dumper<void(Dumpers::VP const&), LHCb::DetDesc::usesConditions<Dumpers::VP>> {
+  : public Allen::Dumpers::Dumper<void(Dumpers::VP const&), LHCb::Algorithm::Traits::usesConditions<Dumpers::VP>> {
 public:
   DumpVPGeometry(const std::string& name, ISvcLocator* svcLoc);
 

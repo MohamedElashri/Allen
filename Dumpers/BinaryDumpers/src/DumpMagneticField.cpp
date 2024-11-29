@@ -53,7 +53,7 @@ namespace Dumpers {
 
 class DumpMagneticField final
   : public Allen::Dumpers::
-      Dumper<void(Dumpers::MagneticField const&), LHCb::DetDesc::usesConditions<Dumpers::MagneticField>> {
+      Dumper<void(Dumpers::MagneticField const&), LHCb::Algorithm::Traits::usesConditions<Dumpers::MagneticField>> {
 public:
   DumpMagneticField(const std::string& name, ISvcLocator* svcLoc);
 
