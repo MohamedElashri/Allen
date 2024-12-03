@@ -8,9 +8,8 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from GaudiTesting.BaseTest import LineSkipper, RegexpReplacer
 from GaudiConf.QMTest.LHCbTest import BlockSkipper
-from GaudiConf.QMTest.LHCbExclusions import preprocessor as LHCbPreprocessor
+from GaudiConf.QMTest.LHCbExclusions import preprocessor as LHCbPreprocessor, LineSkipper, RegexpReplacer
 
 remove_throughput = LineSkipper(regexps=[
     # Processing complete messages
