@@ -18,13 +18,9 @@ DeviceFTGeometry                       INFO Conditions DB is compatible with FT 
 Starting timer for throughput measurement
 Input complete
 error_bank_filter                      INFO Booked 3 Histogram(s) : 1D=3 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-error_bank_filter                      INFO 1D histograms in directory "error_bank_filter" : 3
 gather_selections                      INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-gather_selections                      INFO 1D histograms in directory "gather_selections" : 2
 pv_beamline_cleanup                    INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-pv_beamline_cleanup                    INFO 1D histograms in directory "pv_beamline_cleanup" : 2
 velo_consolidate_tracks                INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-velo_consolidate_tracks                INFO 1D histograms in directory "velo_consolidate_tracks" : 1
 ApplicationMgr                         INFO Application Manager Stopped successfully
 HLTControlFlowMgr                      INFO
 HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #passed
