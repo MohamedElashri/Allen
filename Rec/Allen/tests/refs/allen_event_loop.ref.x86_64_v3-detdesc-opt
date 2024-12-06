@@ -18,79 +18,42 @@ DeviceFTGeometry                       INFO Conditions DB is compatible with FT 
 Starting timer for throughput measurement
 Input complete
 Hlt1D2KK                               INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1D2KK                               INFO 1D histograms in directory "Hlt1D2KK" : 2
 Hlt1D2KPi                              INFO Booked 6 Histogram(s) : 1D=6 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1D2KPi                              INFO 1D histograms in directory "Hlt1D2KPi" : 6
 Hlt1D2KPiAlignment                     INFO Booked 6 Histogram(s) : 1D=6 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1D2KPiAlignment                     INFO 1D histograms in directory "Hlt1D2KPiAlignment" : 6
 Hlt1D2PiPi                             INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1D2PiPi                             INFO 1D histograms in directory "Hlt1D2PiPi" : 2
 Hlt1DetJpsiToMuMuNegTagLine            INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DetJpsiToMuMuNegTagLine            INFO 1D histograms in directory "Hlt1DetJpsiToMuMuNegTagLine" : 1
 Hlt1DiElectronHighMass_SS              INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiElectronHighMass_SS              INFO 1D histograms in directory "Hlt1DiElectronHighMass_SS" : 1
 Hlt1DiElectronLowMass_SS_massSli...    INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiElectronLowMass_SS_massSli...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_SS_massSlice1_prompt" : 2
 Hlt1DiElectronLowMass_SS_massSli...    INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiElectronLowMass_SS_massSli...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_SS_massSlice2_prompt" : 2
 Hlt1DiElectronLowMass_SS_massSli...    INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiElectronLowMass_SS_massSli...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_SS_massSlice3_prompt" : 2
 Hlt1DiElectronLowMass_SS_massSli...    INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiElectronLowMass_SS_massSli...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_SS_massSlice4_prompt" : 2
 Hlt1DiElectronLowMass_massSlice1...    INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiElectronLowMass_massSlice1...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_massSlice1_prompt" : 2
 Hlt1DiElectronLowMass_massSlice2...    INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiElectronLowMass_massSlice2...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_massSlice2_prompt" : 2
 Hlt1DiElectronLowMass_massSlice3...    INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiElectronLowMass_massSlice3...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_massSlice3_prompt" : 2
 Hlt1DiElectronLowMass_massSlice4...    INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiElectronLowMass_massSlice4...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_massSlice4_prompt" : 2
 Hlt1DiMuonDisplaced                    INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiMuonDisplaced                    INFO 1D histograms in directory "Hlt1DiMuonDisplaced" : 1
 Hlt1DiMuonHighMass                     INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiMuonHighMass                     INFO 1D histograms in directory "Hlt1DiMuonHighMass" : 1
 Hlt1DiMuonNoIP                         INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiMuonNoIP                         INFO 1D histograms in directory "Hlt1DiMuonNoIP" : 1
 Hlt1DiMuonNoIP_SS                      INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiMuonNoIP_SS                      INFO 1D histograms in directory "Hlt1DiMuonNoIP_SS" : 1
 Hlt1Dst2D0Pi                           INFO Booked 3 Histogram(s) : 1D=3 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1Dst2D0Pi                           INFO 1D histograms in directory "Hlt1Dst2D0Pi" : 3
 Hlt1Dst2D0PiAlignment                  INFO Booked 3 Histogram(s) : 1D=3 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1Dst2D0PiAlignment                  INFO 1D histograms in directory "Hlt1Dst2D0PiAlignment" : 3
 Hlt1KsToPiPi                           INFO Booked 4 Histogram(s) : 1D=4 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1KsToPiPi                           INFO 1D histograms in directory "Hlt1KsToPiPi" : 4
 Hlt1LambdaLLDetachedTrack              INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1LambdaLLDetachedTrack              INFO 1D histograms in directory "Hlt1LambdaLLDetachedTrack" : 2
 Hlt1TrackMVA                           INFO Booked 3 Histogram(s) : 1D=3 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1TrackMVA                           INFO 1D histograms in directory "Hlt1TrackMVA" : 3
 Hlt1TwoTrackMVA                        INFO Booked 7 Histogram(s) : 1D=7 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1TwoTrackMVA                        INFO 1D histograms in directory "Hlt1TwoTrackMVA" : 7
 calo_find_clusters                     INFO Booked 6 Histogram(s) : 1D=6 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-calo_find_clusters                     INFO 1D histograms in directory "calo_find_clusters" : 6
 error_bank_filter                      INFO Booked 8 Histogram(s) : 1D=8 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-error_bank_filter                      INFO 1D histograms in directory "error_bank_filter" : 8
 fit_dihadron_secondary_vertices        INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-fit_dihadron_secondary_vertices        INFO 1D histograms in directory "fit_dihadron_secondary_vertices" : 1
 fit_dilepton_secondary_vertices        INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-fit_dilepton_secondary_vertices        INFO 1D histograms in directory "fit_dilepton_secondary_vertices" : 1
 fit_v0_secondary_vertices              INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-fit_v0_secondary_vertices              INFO 1D histograms in directory "fit_v0_secondary_vertices" : 1
 gather_selections                      INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-gather_selections                      INFO 1D histograms in directory "gather_selections" : 2
 is_muon                                INFO Booked 3 Histogram(s) : 1D=3 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-is_muon                                INFO 1D histograms in directory "is_muon" : 3
 make_long_track_particles              INFO Booked 4 Histogram(s) : 1D=4 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-make_long_track_particles              INFO 1D histograms in directory "make_long_track_particles" : 4
 matching_consolidate_tracks_matc...    INFO Booked 6 Histogram(s) : 1D=6 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-matching_consolidate_tracks_matc...    INFO 1D histograms in directory "matching_consolidate_tracks_matching" : 6
 pv_beamline_cleanup                    INFO Booked 5 Histogram(s) : 1D=5 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-pv_beamline_cleanup                    INFO 1D histograms in directory "pv_beamline_cleanup" : 5
 scifi_consolidate_seeds_matching       INFO Booked 5 Histogram(s) : 1D=5 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-scifi_consolidate_seeds_matching       INFO 1D histograms in directory "scifi_consolidate_seeds_matching" : 5
 velo_consolidate_tracks                INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-velo_consolidate_tracks                INFO 1D histograms in directory "velo_consolidate_tracks" : 1
 velo_kalman_filter                     INFO Booked 9 Histogram(s) : 1D=9 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-velo_kalman_filter                     INFO 1D histograms in directory "velo_kalman_filter" : 9
 ApplicationMgr                         INFO Application Manager Stopped successfully
 HLTControlFlowMgr                      INFO
 HLTControlFlowMgr                      INFO StateTree: CFNode   #executed  #passed
