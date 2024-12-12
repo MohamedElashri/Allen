@@ -14,4 +14,15 @@
 
 // Let Catch provide main():
 #define CATCH_CONFIG_MAIN
+#if __has_include(<catch2/catch.hpp>)
+// Catch2 v2
 #include <catch2/catch.hpp>
+namespace Catch {
+  using Detail::Approx;
+}
+#else
+// Catch2 v3
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_template_test_macros.hpp>
+#include <catch2/catch_test_macros.hpp>
+#endif
