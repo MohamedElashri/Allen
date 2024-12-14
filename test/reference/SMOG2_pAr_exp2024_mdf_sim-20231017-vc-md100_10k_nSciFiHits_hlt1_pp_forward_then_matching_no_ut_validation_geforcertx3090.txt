@@ -62,6 +62,7 @@ rate_validator validation:
 Hlt1BGIPseudoPVsBeamOne:                            4/   500, (  240.00 +/-   119.52) kHz
 Hlt1BGIPseudoPVsBeamTwo:                            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BGIPseudoPVsDownBeamBeam:                       0/   500, (    0.00 +/-     0.00) kHz
+Hlt1BGIPseudoPVsIRBeamBeam:                         0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BGIPseudoPVsNoBeam:                             0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BGIPseudoPVsUpBeamBeam:                         0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                        0/   500, (    0.00 +/-     0.00) kHz
@@ -247,6 +248,7 @@ selreport_validator validation:
 Hlt1BGIPseudoPVsBeamOne:                            4           0
 Hlt1BGIPseudoPVsBeamTwo:                            0           0
 Hlt1BGIPseudoPVsDownBeamBeam:                       0           0
+Hlt1BGIPseudoPVsIRBeamBeam:                         0           0
 Hlt1BGIPseudoPVsNoBeam:                             0           0
 Hlt1BGIPseudoPVsUpBeamBeam:                         0           0
 Hlt1BeamGas:                                        0           0

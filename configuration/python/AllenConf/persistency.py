@@ -159,7 +159,7 @@ rb_map_PbPb = {
     'Hlt1MinimalActivity':
     13,
     # RB 14 HLT1 beam-beam physics for monitoring and alignment
-    'Hlt1(HeavyIonPbPbHadronic|HeavyIonPbPbUPCMB|GECCentPassthrough)':
+    'Hlt1(HeavyIonPbPbHadronic|GECCentPassthrough)':
     14,
     # RB 15 HLT1 beam-gas physics for monitoring and alignment
     'Hlt1(HeavyIonPbSMOGHadronic|GECCentPassthrough)':
