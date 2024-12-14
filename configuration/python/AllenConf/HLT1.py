@@ -761,6 +761,7 @@ def default_bgi_activity_lines(pvs,
                                decoded_velo,
                                decoded_calo,
                                enableBGI_full=False,
+                               PbPb_collision=False,
                                prefilter=[]):
     """
     Primary vertex lines for various bunch crossing types composed from
@@ -846,25 +847,25 @@ def default_bgi_activity_lines(pvs,
             prefilter=prefilter + [velo_states_z_down])
     ]
 
-    if not enableBGI_full:
-        return lines
-
     velo_states_z_ir = make_checkPseudoPV(
         velo_states,
         name="BGIPseudoPVsIR",
         min_state_z=-250.,
         max_state_z=250.,
         max_state_rho_sq=max_cyl_rad_sq,
-        min_local_nTracks=28.)
+        min_local_nTracks=28. if not PbPb_collision else 10.)
     lines += [
         line_maker(
             make_beam_line(
                 name="Hlt1BGIPseudoPVsIRBeamBeam",
                 beam_crossing_type=3,
-                pre_scaler=1.,
-                post_scaler=0.1),
+                pre_scaler=1. if enableBGI_full else 1e-3,
+                post_scaler=1.),
             prefilter=prefilter + [velo_states_z_ir])
     ]
+
+    if not enableBGI_full:
+        return lines
 
     lines += [
         line_maker(
@@ -931,44 +932,6 @@ def default_bgi_activity_lines(pvs,
         max_vtz_z=250.,
         max_vtx_rho_sq=max_cyl_rad_sq,
         min_vtx_nTracks=28.)
-    lines += [
-        line_maker(
-            make_beam_line(
-                name="Hlt1BGIPVsCylIRBeamBeam",
-                beam_crossing_type=3,
-                pre_scaler=1.,
-                post_scaler=1.),
-            prefilter=prefilter + [pvs_z_ir])
-    ]
-    """
-    Detector activity lines for BGI data collection.
-    """
-    # lines += [
-    #     line_maker(
-    #         make_velo_clusters_micro_bias_line(
-    #             decoded_velo,
-    #             name="Hlt1BGIVeloClustersMicroBias",
-    #             min_velo_clusters=5,
-    #         ),
-    #         prefilter=prefilter + [bx_NoBB]),
-    #     line_maker(
-    #         make_calo_digits_minADC_line(
-    #             decoded_calo,
-    #             name="Hlt1BGICaloDigits",
-    #             minADC=60,
-    #         ),
-    #         prefilter=prefilter + [bx_NoBB]),
-    #     # line_maker(
-    #     #     make_plume_activity_line(
-    #     #         decoded_plume,
-    #     #         name="Hlt1BGIPlumeActivity",
-    #     #         min_number_plume_adcs_over_min=1,
-    #     #         min_plume_adc=276,
-    #     #     ),
-    #     #     prefilter=prefilter + [bx_NoBB]),
-    #     # FIXME Hlt1BGIPlumeActivity can be re-enabled when v2 support
-    #     #       is implemented in the Plume decoding.
-    # ]
     return lines
 
 
