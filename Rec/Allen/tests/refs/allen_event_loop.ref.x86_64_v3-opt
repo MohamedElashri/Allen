@@ -38,8 +38,10 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_5af2e675          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 99
+gather_selections                      INFO Number of counters : 101
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
+ | "Hlt1BGIPseudoPVsIRBeamBeamPass"                |         8 |
+ | "Hlt1BGIPseudoPVsIRBeamBeamRate"                |         8 |
  | "Hlt1ConeJet100GeVPass"                         |         1 |
  | "Hlt1ConeJet100GeVRate"                         |         1 |
  | "Hlt1D2KKPass"                                  |        15 |
