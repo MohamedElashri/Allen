@@ -243,13 +243,27 @@ def post_proc_sanitizer(
         run_profiler_output: Path = None,
         allen_profiler_log: str = None,
 ):
+    false_positives = {
+        "run_racecheck": {
+            "CUDA Dynamic Parallelism is not supported by the selected tool",
+        }
+    }
+    warnings = re.findall(
+        r"^========= Warning: (.*)$", log_output, flags=re.MULTILINE)
+    print(f"warnings: {warnings}")
+    false_warnings = [
+        w for w in warnings if w in false_positives.get(test["type"], {})
+    ]
+
     hazards = int(
         re.search(
             r"^========= [A-Z]+ SUMMARY: ([0-9]+)",
             log_output,
             flags=re.MULTILINE).group(1))
-    if hazards > 0:
-        log.error(f"Sanitizer found {hazards} hazards. Check logs.")
+    if hazards - len(false_warnings) > 0:
+        log.error(
+            f"Sanitizer found {hazards - len(false_warnings)} hazards. Check logs."
+        )
         return False
     return {}
 
