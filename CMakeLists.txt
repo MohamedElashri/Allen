@@ -41,7 +41,6 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules)
 
 set(CMAKE_CXX_EXTENSIONS OFF) # Generate -std=c++17 instead of -std=gnu++17
-set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g -DALLEN_DEBUG")
@@ -170,6 +169,23 @@ endif()
 
 set(WITH_Allen_PRIVATE_DEPENDENCIES TRUE)
 include(AllenDependencies)
+
+if(NOT STANDALONE)
+  set(CMAKE_CXX_STANDARD ${GAUDI_CXX_STANDARD})
+elseif(DEFINED ROOT_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD ${ROOT_CXX_STANDARD})
+else()
+  # Deduce CXX_STANDARD from ROOT_CXX_FLAGS
+  set(ROOT_CXX_FLAGS_TEMP ${ROOT_CXX_FLAGS}) # Use a temporary variable to avoid modifying the original
+  separate_arguments(ROOT_CXX_FLAGS_TEMP)
+  list(FILTER ROOT_CXX_FLAGS_TEMP INCLUDE REGEX "-std=(c|gnu)\\+\\+[0-9]+")
+  list(TRANSFORM ROOT_CXX_FLAGS_TEMP REPLACE "-std=(c|gnu)\\+\\+([0-9]+)" "\\2")
+  if(NOT ROOT_CXX_FLAGS_TEMP)
+    message(FATAL_ERROR "Cannot find the C++ standard of ROOT")
+  endif()
+  list(GET ROOT_CXX_FLAGS_TEMP 0 CMAKE_CXX_STANDARD)
+endif()
+message(STATUS "Allen will be built using C++${CMAKE_CXX_STANDARD} standard.")
 
 set(TARGET_DEFINITION "TARGET_DEVICE_${TARGET_DEVICE}")
 
@@ -400,8 +416,7 @@ elseif(TARGET_DEVICE STREQUAL "HIP")
     install(TARGETS ${ARGV0} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
   endfunction()
 elseif(TARGET_DEVICE STREQUAL "CUDA")
-
-  set(CMAKE_CUDA_STANDARD 17)
+  set(CMAKE_CUDA_STANDARD ${CMAKE_CXX_STANDARD})
   set(CMAKE_CUDA_FLAGS_RELWITHDEBINFO "-O3 -g -DNDEBUG --generate-line-info")
   set(CMAKE_CUDA_FLAGS_RELEASE "-O3 -DNDEBUG --generate-line-info")
   set(CMAKE_CUDA_FLAGS_DEBUG "-G -g -DALLEN_DEBUG")
@@ -414,10 +429,20 @@ elseif(TARGET_DEVICE STREQUAL "CUDA")
     set(CUDA_VERBOSE_FLAGS "")
   endif()
 
+  # The cxx standard seems to get lost somehwere for .cu files, so add it explicitly
+  string(APPEND CMAKE_CUDA_FLAGS "  -std=c++${CMAKE_CUDA_STANDARD}")
+
   string(APPEND CMAKE_CUDA_FLAGS " ${DEVICE_ARCHITECTURE} ${CUDA_TOOLCHAIN_OPTIONS} -Xcudafe --display_error_number --use_fast_math --expt-relaxed-constexpr ${CUDA_VERBOSE_FLAGS}")
   if (NOT CMAKE_CUDA_HOST_COMPILER)
     string(REGEX REPLACE "toolchain/.*" "toolchain" CXX_COMPILER_DIR ${CMAKE_CXX_COMPILER})
     string(APPEND CMAKE_CUDA_FLAGS " -ccbin=${CXX_COMPILER_DIR} ")
+  endif()
+
+  # For c++20 there is an issue with 10.0.0<=fmt<10.1.0
+  if (${fmt_FOUND})
+    if (${CMAKE_CUDA_STANDARD} GREATER_EQUAL 20 AND ${fmt_VERSION} VERSION_GREATER_EQUAL 10.0.0 AND ${fmt_VERSION} VERSION_LESS 10.1.0)
+      string(APPEND CMAKE_CUDA_FLAGS " -DFMT_USE_CONSTEXPR ")
+    endif()
   endif()
 
   message(STATUS "CMAKE CUDA FLAGS:" ${CMAKE_CUDA_FLAGS})
