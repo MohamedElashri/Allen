@@ -69,3 +69,29 @@ def check_large_event_histograms(filename):
         rb_counts = {}
 
     return line_name, pass_counts, rb_counts
+
+
+def check_PV_efficiency(reference_file, causes, category):
+    import re
+    import os
+    # Regular expression to find the line with the required category
+    pattern = rf"\b{category}\s+:.*?\[\s*(\d+\.\d+)\s*%\],\s*false\s*(\d+)\s*from\s*reco\.\s*(\d+)\s*\(.*?\[\s*(\d+\.\d+)\s*%\]"
+    with open(os.path.expandvars(reference_file)) as ref:
+        file_contents = ref.read()  # Read the reference file into a string
+        match = re.search(pattern, file_contents)
+
+    if match:
+        efficiency = float(match.group(1))
+        fake_pv_percentage = float(match.group(4))
+        if efficiency < 90:
+            causes.append(
+                "WARNING : The all tracks PV reconstruction efficiency = {}% is lower than 90% "
+                .format(efficiency))
+        if fake_pv_percentage > 3:
+            causes.append(
+                "WARNING : The all tracks number of fake PVs = {}% is higher than 3% "
+                .format(fake_pv_percentage))
+
+        return efficiency, fake_pv_percentage
+    else:
+        return None, None
