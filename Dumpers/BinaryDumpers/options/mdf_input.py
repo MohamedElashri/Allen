@@ -11,15 +11,8 @@
 """Write an HLT1-filtered MDF file."""
 from PyConf.application import ApplicationOptions
 from DDDB.CheckDD4Hep import UseDD4Hep
+from PRConfig.TestFileDB import test_file_db
 
 options = ApplicationOptions(_enabled=False)
-
-options.input_files = [
-    "mdf:root://eoslhcb.cern.ch//eos/lhcb/hlt2/LHCb/0000248711/Run_0000248711_HLT20840_20221011-113809-426.mdf"
-]
-options.input_type = 'MDF'
-options.conddb_tag = "upgrade/master"
-options.dddb_tag = "upgrade/master"
-options.conditions_version = "alignment2022"
-options.geometry_version = "run3/trunk"
-options.simulation = not UseDD4Hep
+options.set_input_and_conds_from_testfiledb(
+    "upgrade_Sept2022_minbias_0fb_md_mdf")

@@ -22,8 +22,7 @@
   <argument name="program"><text>python</text></argument>
   <argument name="args"><set>
     <text>../../options/allen.py</text>
-    <text>--tags=dd4hep:run3/trunk,master|detdesc:dddb-20220705,sim-20220705-vc-md100</text>
-    <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3337_dddb-20220705_sim-20220705-vc-md100.mdf</text>
+    <text>--test-file-db-key</text><text>upgrade_Sept2022_minbias_0fb_md_mdf</text>
     <text>--sequence</text><text>$ALLEN_INSTALL_DIR/constants/hlt1_pp_no_ut.json</text>
     <text>--monitoring-filename</text><text>allen_event_loop.root</text>
     <text>-n</text><text>10000</text>
