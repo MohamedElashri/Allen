@@ -14,6 +14,7 @@ Using 3 input slices.
 ApplicationMgr                         INFO Application Manager Started successfully
 HLTControlFlowMgr                      INFO Will measure time between events 0 and 0 (stop might be some events later)
 HLTControlFlowMgr                      INFO Starting loop on events
+DeviceUTLookupTables.PrUTMagnetTool    INFO  No B field detected.
 DeviceFTGeometry                       INFO Conditions DB is compatible with FT bank version 7 and 8.
 Starting timer for throughput measurement
 Input complete
