@@ -26,8 +26,7 @@
   <argument name="args"><set>
     <text>../../options/allen.py</text>
     <text>--sequence</text><text>$ALLEN_INSTALL_DIR/constants/hlt1_pp_odqv.json</text>
-    <text>--mdf</text><text>root://eoslhcb.cern.ch//eos/lhcb/wg/rta/samples/mc/Jira_LHCBGAUSS-2635/Minbias_MagDown_Boole_lhcbhead3379_dddb-20220705_sim-20220705-vc-md100_lumi0.mdf</text>
-    <text>--tags=detdesc:dddb-20220705,sim-20220705-vc-md100|dd4hep:run3/trunk,master</text>
+    <text>--test-file-db-key</text><text>upgrade_Sept2022_minbias_0fb_md_mdf</text>
     <text>-n</text><text>10000</text>
     <text>--monitoring-filename</text><text>allen_odqv_qmtest.root</text>
   </set></argument>

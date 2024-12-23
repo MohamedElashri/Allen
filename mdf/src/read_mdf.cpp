@@ -40,13 +40,17 @@ namespace {
 
 Allen::IO MDF::open(std::string const& filepath, int flags, int mode)
 {
-  if (::strncmp(filepath.c_str(), "root:", 5) == 0) {
-    return ROOT::open(filepath, flags);
+  std::string file = filepath;
+  if (::strncmp(filepath.c_str(), "mdf:", 4) == 0) {
+    file = file.substr(4, std::string::npos);
+  }
+  if (::strncmp(file.c_str(), "root:", 5) == 0) {
+    return ROOT::open(file, flags);
   }
   else {
-    int fd = ::open(filepath.c_str(), flags, mode);
+    int fd = ::open(file.c_str(), flags, mode);
     if (fd < 0) {
-      cerr << "Failed to open file " << filepath << ": " << strerror(errno) << "\n";
+      cerr << "Failed to open file " << file << " " << filepath << ": " << strerror(errno) << "\n";
       return {};
     }
     else {

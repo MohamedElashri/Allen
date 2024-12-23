@@ -16,9 +16,8 @@
   <argument name="args"><set>
     <text>${BINARYDUMPERSROOT}/options/allen.py</text>
     <text>--monitoring-filename</text><text>mdf_input_hists.root</text>
-	<text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/data/2024-PLUME-RAW/plume_v3.mdf</text>
+	<text>--test-file-db-key</text><text>plume-raw-data-v3</text>
     <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants/hlt1_pp_matching.json</text>
-    <text>--tags=detdesc:dddb-20220705,sim-20220705-vc-md100|dd4hep:run3/trunk,master</text>
     <text>--events-per-slice</text><text>500</text>
     <text>-m</text><text>600</text>
     <text>-s</text><text>3</text>
