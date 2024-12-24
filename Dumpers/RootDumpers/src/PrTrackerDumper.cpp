@@ -1075,8 +1075,8 @@ LHCb::RawEvent PrTrackerDumper::operator()(
 
 int PrTrackerDumper::mcVertexType(const LHCb::MCParticle& particle) const
 {
-  const LHCb::MCVertex& vertex = findMCOriginVertex(particle);
-  return vertex.type();
+  const LHCb::MCVertex* vertex = findMCOriginVertex(particle);
+  return vertex ? vertex->type() : LHCb::MCVertex::MCVertexType::Unknown;
 }
 const LHCb::MCVertex* PrTrackerDumper::findMCOriginVertex(
   const LHCb::MCParticle& particle,
