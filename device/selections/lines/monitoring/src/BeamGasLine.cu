@@ -34,11 +34,12 @@ beam_gas_line::beam_gas_line_t::get_input(const Parameters& parameters, const un
 }
 
 __device__ bool beam_gas_line::beam_gas_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const unsigned, const unsigned, const unsigned, const float> input)
 {
   const auto [number_of_velo_tracks, beam_crossing_number, velo_track_hit_number, velo_track_state_poca_z] = input;
-  return number_of_velo_tracks >= parameters.min_velo_tracks && beam_crossing_number == parameters.beam_crossing_type &&
-         velo_track_hit_number >= parameters.minNHits && velo_track_state_poca_z > parameters.minZ &&
-         velo_track_state_poca_z < parameters.maxZ;
+  return number_of_velo_tracks >= properties.min_velo_tracks && beam_crossing_number == properties.beam_crossing_type &&
+         velo_track_hit_number >= properties.minNHits && velo_track_state_poca_z > properties.minZ &&
+         velo_track_state_poca_z < properties.maxZ;
 }

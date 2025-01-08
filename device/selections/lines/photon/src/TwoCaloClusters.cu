@@ -17,8 +17,8 @@
 INSTANTIATE_LINE(two_calo_clusters_line::two_calo_clusters_line_t, two_calo_clusters_line::Parameters)
 
 __device__ bool two_calo_clusters_line::two_calo_clusters_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned> input)
 {
   const auto number_of_velo_tracks = std::get<1>(input);
@@ -35,21 +35,21 @@ __device__ bool two_calo_clusters_line::two_calo_clusters_line_t::select(
   const float pt = dicluster.diphoton_pt();
   const float eta = dicluster.diphoton_eta();
 
-  bool decision = (mass > parameters.minMass) && (mass < parameters.maxMass) && (pt > parameters.minPt) &&
-                  (pt <= parameters.maxPt) && (pt > parameters.minPtEta * (10 - eta)) &&
-                  (child1->et() > parameters.minEt_clusters && child2->et() > parameters.minEt_clusters) &&
-                  (child1->et() + child2->et() > parameters.minSumEt_clusters) &&
-                  (c1.CaloNeutralE19 > parameters.minE19_clusters && c2.CaloNeutralE19 > parameters.minE19_clusters) &&
-                  (fabsf(c1.y) > parameters.minAbsY_clusters && fabsf(c2.y) > parameters.minAbsY_clusters) &&
-                  (number_of_velo_tracks <= parameters.max_velo_tracks) &&
-                  (ecal_number_of_clusters <= parameters.max_ecal_clusters) && (n_pvs <= parameters.max_n_pvs) &&
-                  (eta < parameters.eta_max);
-
+  bool decision = (mass > properties.minMass) && (mass < properties.maxMass) && (pt > properties.minPt) &&
+                  (pt <= properties.maxPt) && (pt > properties.minPtEta * (10 - eta)) &&
+                  (child1->et() > properties.minEt_clusters && child2->et() > properties.minEt_clusters) &&
+                  (child1->et() + child2->et() > properties.minSumEt_clusters) &&
+                  (c1.CaloNeutralE19 > properties.minE19_clusters && c2.CaloNeutralE19 > properties.minE19_clusters) &&
+                  (fabsf(c1.y) > properties.minAbsY_clusters && fabsf(c2.y) > properties.minAbsY_clusters) &&
+                  (number_of_velo_tracks <= properties.max_velo_tracks) &&
+                  (ecal_number_of_clusters <= properties.max_ecal_clusters) && (n_pvs <= properties.max_n_pvs) &&
+                  (eta < properties.eta_max);
   return decision;
 }
 
 __device__ void two_calo_clusters_line::two_calo_clusters_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned> input,
   unsigned index,
   bool sel)
@@ -84,25 +84,25 @@ void two_calo_clusters_line::two_calo_clusters_line_t::init()
 {
   Line<two_calo_clusters_line::two_calo_clusters_line_t, two_calo_clusters_line::Parameters>::init();
 
-  m_histogram_diphoton_mass.x_axis().nBins = property<histogram_diphoton_mass_nbins_t>();
-  m_histogram_diphoton_mass.x_axis().minValue = property<histogram_diphoton_mass_min_t>();
-  m_histogram_diphoton_mass.x_axis().maxValue = property<histogram_diphoton_mass_max_t>();
+  m_histogram_diphoton_mass.x_axis().nBins = m_histogramdiphotonMassNBins;
+  m_histogram_diphoton_mass.x_axis().minValue = m_histogramdiphotonMassMin;
+  m_histogram_diphoton_mass.x_axis().maxValue = m_histogramdiphotonMassMax;
 
-  m_histogram_diphoton_pt.x_axis().nBins = property<histogram_diphoton_pt_nbins_t>();
-  m_histogram_diphoton_pt.x_axis().minValue = property<histogram_diphoton_pt_min_t>();
-  m_histogram_diphoton_pt.x_axis().maxValue = property<histogram_diphoton_pt_max_t>();
+  m_histogram_diphoton_pt.x_axis().nBins = m_histogramdiphotonPtNBins;
+  m_histogram_diphoton_pt.x_axis().minValue = m_histogramdiphotonPtMin;
+  m_histogram_diphoton_pt.x_axis().maxValue = m_histogramdiphotonPtMax;
 }
 
 __device__ void two_calo_clusters_line::two_calo_clusters_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned> input,
   unsigned,
   bool sel)
 {
   const auto& dicluster = std::get<0>(input);
   if (sel) {
-    accumulators.histogram_diphoton_mass.increment(dicluster.diphoton_mass());
-    accumulators.histogram_diphoton_pt.increment(dicluster.diphoton_pt());
+    properties.histogram_diphoton_mass.increment(dicluster.diphoton_mass());
+    properties.histogram_diphoton_pt.increment(dicluster.diphoton_pt());
   }
 }

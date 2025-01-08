@@ -79,7 +79,7 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
 {
   Allen::memset_async<dev_ut_multi_event_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_ut_tracks_view_t>(arguments, 0, context);
-  global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
 
   global_function(create_ut_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);

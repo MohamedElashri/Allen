@@ -34,13 +34,56 @@ void FilterTwoSvs::filter_two_svs_t::operator()(
 {
   Allen::memset_async<dev_combo_offset_t>(arguments, 0, context);
 
-  global_function(filter_two_svs)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_filter_t>(), context)(
-    arguments);
+  global_function(filter_two_svs)(dim3(size<dev_event_list_t>(arguments)), m_block_dim_filter, context)(
+    arguments,
+    m_maxVertexChi2,
+    m_minMassV1,
+    m_maxMassV1,
+    m_minTrackPV1,
+    m_minEtaV1,
+    m_maxEtaV1,
+    m_minCosDiraV1,
+    m_minTrackPtV1,
+    m_minPtV1,
+    m_minTrackIPChi2V1,
+    m_minTrackIPV1,
+    m_minMassV2,
+    m_maxMassV2,
+    m_minTrackPV2,
+    m_minEtaV2,
+    m_maxEtaV2,
+    m_minCosDiraV2,
+    m_minTrackPtV2,
+    m_minPtV2,
+    m_minTrackIPChi2V2,
+    m_minTrackIPV2);
 
   PrefixSum::prefix_sum<dev_combo_offset_t, host_total_combo_t>(*this, arguments, context);
 }
 
-__global__ void FilterTwoSvs::filter_two_svs(FilterTwoSvs::Parameters parameters)
+__global__ void FilterTwoSvs::filter_two_svs(
+  FilterTwoSvs::Parameters parameters,
+  const float maxVertexChi2,
+  const float minMassV1,
+  const float maxMassV1,
+  const float minTrackPV1,
+  const float minEtaV1,
+  const float maxEtaV1,
+  const float minCosDiraV1,
+  const float minTrackPtV1,
+  const float minPtV1,
+  const float minTrackIPChi2V1,
+  const float minTrackIPV1,
+  const float minMassV2,
+  const float maxMassV2,
+  const float minTrackPV2,
+  const float minEtaV2,
+  const float maxEtaV2,
+  const float minCosDiraV2,
+  const float minTrackPtV2,
+  const float minPtV2,
+  const float minTrackIPChi2V2,
+  const float minTrackIPV2)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -64,18 +107,18 @@ __global__ void FilterTwoSvs::filter_two_svs(FilterTwoSvs::Parameters parameters
     const auto vertex = svs_1.particle(i_sv);
 
     // Set decision
-    dec = vertex.vertex().chi2() >= 0 && vertex.vertex().chi2() < parameters.maxVertexChi2;
-    dec &= parameters.minMassV1 < vertex.m() && vertex.m() < parameters.maxMassV1;
+    dec = vertex.vertex().chi2() >= 0 && vertex.vertex().chi2() < maxVertexChi2;
+    dec &= minMassV1 < vertex.m() && vertex.m() < maxMassV1;
     if (dec) {
       // Kinematic cuts.
-      dec &= vertex.minp() > parameters.minTrackPV1;
-      dec &= vertex.eta() > parameters.minEtaV1;
-      dec &= vertex.eta() < parameters.maxEtaV1;
-      dec &= vertex.dira() > parameters.minCosDiraV1;
-      dec &= vertex.minpt() > parameters.minTrackPtV1;
-      dec &= vertex.vertex().pt() > parameters.minPtV1;
-      dec &= vertex.minipchi2() > parameters.minTrackIPChi2V1;
-      dec &= vertex.minip() > parameters.minTrackIPV1;
+      dec &= vertex.minp() > minTrackPV1;
+      dec &= vertex.eta() > minEtaV1;
+      dec &= vertex.eta() < maxEtaV1;
+      dec &= vertex.dira() > minCosDiraV1;
+      dec &= vertex.minpt() > minTrackPtV1;
+      dec &= vertex.vertex().pt() > minPtV1;
+      dec &= vertex.minipchi2() > minTrackIPChi2V1;
+      dec &= vertex.minip() > minTrackIPV1;
     }
     event_sv_1_filter_decision[i_sv] = dec;
   }
@@ -87,18 +130,18 @@ __global__ void FilterTwoSvs::filter_two_svs(FilterTwoSvs::Parameters parameters
     const auto vertex = svs_2.particle(j_sv);
 
     // Set decision
-    dec = vertex.vertex().chi2() >= 0 && vertex.vertex().chi2() < parameters.maxVertexChi2;
-    dec &= parameters.minMassV2 < vertex.m() && vertex.m() < parameters.maxMassV2;
+    dec = vertex.vertex().chi2() >= 0 && vertex.vertex().chi2() < maxVertexChi2;
+    dec &= minMassV2 < vertex.m() && vertex.m() < maxMassV2;
     if (dec) {
       // Kinematic cuts.
-      dec &= vertex.minp() > parameters.minTrackPV2;
-      dec &= vertex.eta() > parameters.minEtaV2;
-      dec &= vertex.eta() < parameters.maxEtaV2;
-      dec &= vertex.dira() > parameters.minCosDiraV2;
-      dec &= vertex.minpt() > parameters.minTrackPtV2;
-      dec &= vertex.vertex().pt() > parameters.minPtV2;
-      dec &= vertex.minipchi2() > parameters.minTrackIPChi2V2;
-      dec &= vertex.minip() > parameters.minTrackIPV2;
+      dec &= vertex.minp() > minTrackPV2;
+      dec &= vertex.eta() > minEtaV2;
+      dec &= vertex.eta() < maxEtaV2;
+      dec &= vertex.dira() > minCosDiraV2;
+      dec &= vertex.minpt() > minTrackPtV2;
+      dec &= vertex.vertex().pt() > minPtV2;
+      dec &= vertex.minipchi2() > minTrackIPChi2V2;
+      dec &= vertex.minip() > minTrackIPV2;
     }
     event_sv_2_filter_decision[j_sv] = dec;
   }

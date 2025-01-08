@@ -47,7 +47,6 @@ namespace track_digit_selective_matching {
     DEVICE_OUTPUT(dev_dispersion_xy_t, float) dev_dispersion_xy;
     DEVICE_OUTPUT(dev_track_local_max_t, bool) dev_track_local_max;
     // Properties
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   struct track_digit_selective_matching_t : public DeviceAlgorithm, Parameters {
@@ -60,7 +59,7 @@ namespace track_digit_selective_matching {
       Allen::Context const&) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
   };
 
   __global__ void track_digit_selective_matching(Parameters parameters, const char* raw_ecal_geometry);

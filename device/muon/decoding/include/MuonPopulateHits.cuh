@@ -27,7 +27,6 @@ namespace muon_populate_hits {
     DEVICE_INPUT(dev_muon_compact_hit_t, uint64_t) dev_muon_compact_hit;
     DEVICE_INPUT(dev_storage_station_region_quarter_offsets_t, unsigned) dev_storage_station_region_quarter_offsets;
     DEVICE_OUTPUT(dev_muon_hits_t, char) dev_muon_hits;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void muon_populate_hits(Parameters, const Muon::MuonTables*);
@@ -42,6 +41,6 @@ namespace muon_populate_hits {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 1, 1}, "block dimensions"};
   };
 } // namespace muon_populate_hits

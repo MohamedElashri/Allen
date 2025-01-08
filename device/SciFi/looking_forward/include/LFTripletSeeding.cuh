@@ -39,18 +39,14 @@ namespace lf_triplet_seeding {
     DEVICE_OUTPUT(dev_scifi_lf_number_of_found_triplets_t, unsigned) dev_scifi_lf_number_of_found_triplets;
     DEVICE_OUTPUT(dev_global_xs_t, half_t) dev_global_xs;
     DEVICE_OUTPUT(dev_global_count_t, unsigned) dev_global_count;
-    PROPERTY(
-      maximum_number_of_triplets_per_warp_t,
-      "maximum_number_of_triplets_per_warp",
-      "maximum_number_of_triplets_per_warp",
-      unsigned)
-    maximum_number_of_triplets_per_warp;
-    PROPERTY(chi2_max_triplet_single_t, "chi2_max_triplet_single", "chi2_max_triplet_single", float)
-    chi2_max_triplet_single;
-    PROPERTY(z_mag_difference_t, "z_mag_difference", "z_mag_difference", float) z_mag_difference;
   };
 
-  __global__ void lf_triplet_seeding(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
+  __global__ void lf_triplet_seeding(
+    Parameters,
+    const LookingForward::Constants* dev_looking_forward_constants,
+    const unsigned maximum_number_of_triplets_per_warp,
+    const float chi2_max_triplet_single,
+    const float z_mag_difference);
 
   struct lf_triplet_seeding_t : public DeviceAlgorithm, Parameters {
 
@@ -63,8 +59,11 @@ namespace lf_triplet_seeding {
       const Allen::Context& context) const;
 
   private:
-    Property<maximum_number_of_triplets_per_warp_t> m_maximum_number_of_triplets_per_warp {this, 64};
-    Property<chi2_max_triplet_single_t> m_chi2_max_triplet_single {this, 8.};
-    Property<z_mag_difference_t> m_z_mag_difference {this, 10.};
+    Allen::Property<unsigned> m_maximum_number_of_triplets_per_warp {this,
+                                                                     "maximum_number_of_triplets_per_warp",
+                                                                     64,
+                                                                     "maximum_number_of_triplets_per_warp"};
+    Allen::Property<float> m_chi2_max_triplet_single {this, "chi2_max_triplet_single", 8., "chi2_max_triplet_single"};
+    Allen::Property<float> m_z_mag_difference {this, "z_mag_difference", 10., "z_mag_difference"};
   };
 } // namespace lf_triplet_seeding

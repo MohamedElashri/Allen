@@ -23,7 +23,6 @@ namespace two_track_mva_evaluator {
     DEVICE_INPUT(dev_consolidated_svs_t, VertexFit::TrackMVAVertex) dev_svs;
     DEVICE_INPUT(dev_sv_offsets_t, unsigned) dev_sv_offsets;
     DEVICE_OUTPUT(dev_two_track_mva_evaluation_t, float) dev_two_track_mva_evaluation;
-    PROPERTY(block_dim_t, "block_dim", "block dimension", DeviceDimensions) block_dim;
   };
 
   __global__ void two_track_mva_evaluator(
@@ -44,7 +43,7 @@ namespace two_track_mva_evaluator {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimension"};
   };
 
 } // namespace two_track_mva_evaluator

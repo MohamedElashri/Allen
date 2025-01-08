@@ -26,21 +26,17 @@ namespace one_muon_track_line {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_muon_tracks_t, MuonTrack) dev_muon_tracks;
     DEVICE_INPUT(dev_muon_tracks_offsets_t, unsigned) dev_muon_tracks_offsets;
-
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(max_chi2x_t, "max_chi2x", "Maximum chi2 for the xz plane", float) max_chi2x;
-    PROPERTY(max_chi2y_t, "max_chi2y", "Maximum chi2 for the yz plane", float) max_chi2y;
   };
 
   struct one_muon_track_line_t : public SelectionAlgorithm, Parameters, Line<one_muon_track_line_t, Parameters> {
 
-    void set_arguments_size(
-      ArgumentReferences<Parameters> arguments,
-      const RuntimeOptions& runtime_options,
-      const Constants& constants) const;
+    struct DeviceProperties {
+      float max_chi2x;
+      float max_chi2y;
+      DeviceProperties(const one_muon_track_line_t& algo, const Allen::Context&) :
+        max_chi2x(algo.m_max_chi2x), max_chi2y(algo.m_max_chi2y)
+      {}
+    };
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {
@@ -63,14 +59,10 @@ namespace one_muon_track_line {
       return std::forward_as_tuple(muon_tracks[track_index]);
     }
 
-    __device__ static bool select(const Parameters& parameters, std::tuple<const MuonTrack> input);
+    __device__ static bool select(const Parameters&, const DeviceProperties&, std::tuple<const MuonTrack> input);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<max_chi2x_t> m_max_chi2x {this, 1.f};
-    Property<max_chi2y_t> m_max_chi2y {this, 0.3f};
+    Allen::Property<float> m_max_chi2x {this, "max_chi2x", 1.f, "Maximum chi2 for the xz plane"};
+    Allen::Property<float> m_max_chi2y {this, "max_chi2y", 0.3f, "Maximum chi2 for the yz plane"};
   };
 } // namespace one_muon_track_line

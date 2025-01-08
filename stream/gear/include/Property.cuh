@@ -16,13 +16,18 @@
 #include "Logger.h"
 #include "Common.h"
 #include <string>
-#include <sstream>
 #include <map>
 #include <list>
 #include <set>
 #include <regex>
 #include <functional>
 #include <iostream>
+#include <cstdlib>
+#include <cxxabi.h>
+#include <nlohmann/json.hpp>
+
+void from_json(const nlohmann::json& j, dim3& d);
+void to_json(nlohmann::json& j, const dim3& d);
 
 namespace Allen {
   /**
@@ -32,42 +37,43 @@ namespace Allen {
   template<typename V>
   class Property : public BaseProperty {
   public:
-    Property() = delete;
-
-    Property(BaseAlgorithm* algo, const typename V::t& default_value) :
-      m_algo {algo}, m_cached_value {V(default_value)}, m_name {V::name}, m_description {V::description}
+    Property(BaseAlgorithm* algo, const std::string& name, const V& default_value, const std::string& description) :
+      BaseProperty {name, description, type_name()}, m_algo {algo}, m_cached_value {default_value}
     {
       algo->register_property(m_name, this);
     }
 
-    const V* get_value_address() const { return &m_cached_value; }
+    V const& value() const { return m_cached_value; }
 
-    V get_value() const { return m_cached_value; }
+    void from_json(const nlohmann::json& value) override { nlohmann::from_json(value, m_cached_value); }
 
-    void from_json(const nlohmann::json& value) override { set_value(value); }
-
-    nlohmann::json to_json() const override { return m_cached_value.get(); }
+    nlohmann::json to_json() const override { return m_cached_value; }
 
     std::string to_string() const override
     {
-      nlohmann::json j = m_cached_value.get();
+      nlohmann::json j = m_cached_value;
       return j.dump();
     }
 
-    std::string print() const override
-    {
-      // very basic implementation based on streaming
-      std::stringstream s;
-      s << m_name << " " << to_string() << " " << m_description;
-      return s.str();
-    }
+    operator V const&() const { return m_cached_value; }
 
-    void set_value(typename V::t value) { m_cached_value = V {value}; }
+    void set_value(const V& value) { m_cached_value = value; }
+
+  private:
+    std::string type_name()
+    {
+      int status;
+      std::string tname = typeid(V).name();
+      char* demangled_name = abi::__cxa_demangle(tname.c_str(), NULL, NULL, &status);
+      if (status == 0) {
+        tname = demangled_name;
+        std::free(demangled_name);
+      }
+      return tname;
+    }
 
   private:
     BaseAlgorithm* m_algo = nullptr;
     V m_cached_value;
-    std::string m_name;
-    std::string m_description;
   };
 } // namespace Allen

@@ -22,13 +22,9 @@ namespace pv_activity_filter {
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
-
-    PROPERTY(minPVs_t, "minPVs", "min number of PVs to accept an event", unsigned) minPVs;
-    PROPERTY(maxPVs_t, "maxPVs", "max number of PVs to accept an event", unsigned) maxPVs;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
   };
 
-  __global__ void pv_activity_filter(Parameters, const unsigned);
+  __global__ void pv_activity_filter(Parameters, const unsigned, const unsigned, const unsigned);
   struct pv_activity_filter_t : public DeviceAlgorithm, Parameters {
 
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -40,9 +36,9 @@ namespace pv_activity_filter {
       const Allen::Context&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
-    Property<minPVs_t> m_minPVs {this, 1};
-    Property<maxPVs_t> m_maxPVs {this, UINT_MAX};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension x"};
+    Allen::Property<unsigned> m_minPVs {this, "minPVs", 1, "min number of PVs to accept an event"};
+    Allen::Property<unsigned> m_maxPVs {this, "maxPVs", UINT_MAX, "max number of PVs to accept an event"};
   }; // pv_activity_filter_t
 
 } // namespace pv_activity_filter

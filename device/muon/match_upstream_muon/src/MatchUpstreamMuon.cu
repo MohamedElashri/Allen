@@ -28,8 +28,7 @@ void MatchUpstreamMuon::match_upstream_muon_t::operator()(
 {
   Allen::memset_async<dev_match_upstream_muon_t>(arguments, 0, context);
 
-  global_function(match_upstream_muon)(
-    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(match_upstream_muon)(dim3(first<host_selected_events_mf_t>(arguments)), m_block_dim, context)(
     arguments,
     constants.dev_magnet_polarity.data(),
     constants.dev_muonmatch_search_muon_chambers,

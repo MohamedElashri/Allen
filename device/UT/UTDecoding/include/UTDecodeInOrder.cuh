@@ -24,7 +24,6 @@ namespace ut_decode_in_order {
     DEVICE_INPUT(dev_ut_cluster_offsets_t, unsigned) dev_ut_cluster_offsets;
     DEVICE_INPUT(dev_ut_permutations_t, unsigned) dev_ut_permutations;
     DEVICE_OUTPUT(dev_ut_hits_t, char) dev_ut_hits;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   /**
@@ -44,6 +43,6 @@ namespace ut_decode_in_order {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 1, 1}, "block dimensions"};
   };
 } // namespace ut_decode_in_order

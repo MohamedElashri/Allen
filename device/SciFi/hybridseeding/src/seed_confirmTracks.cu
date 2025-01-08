@@ -67,9 +67,10 @@ void seed_confirmTracks::seed_confirmTracks_t::operator()(
   Allen::memset_async<dev_count_hits_working_mem_t>(arguments, 0, context);
   Allen::memset_async<dev_offsets_seeding_tracks_t>(arguments, 0, context);
 
-  auto kernel = (m_use_hough_search.get_value()) ? global_function(seed_confirmTracks<true>) :
-                                                   global_function(seed_confirmTracks<false>);
-  kernel(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(arguments);
+  auto kernel = (m_use_hough_search.value()) ? global_function(seed_confirmTracks<true>) :
+                                               global_function(seed_confirmTracks<false>);
+  kernel(dim3(size<dev_event_list_t>(arguments)), dim3(128), context)(
+    arguments, m_tuning_nhits, m_tuning_tol_chi2, m_tuning_tol);
 
   PrefixSum::prefix_sum<dev_offsets_seeding_tracks_t, host_seeding_number_of_tracks_t>(*this, arguments, context);
 }
@@ -83,7 +84,11 @@ seed_confirmTracks::findHit(const float tolRem, float predPos, int startPos, int
 }
 
 template<bool use_hough_search>
-__global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
+__global__ void seed_confirmTracks::seed_confirmTracks(
+  Parameters parameters,
+  const int tuning_nhits,
+  const float tuning_tol_chi2,
+  const float tuning_tol)
 {
   /*
     Reconstructs full tracks from XZ candidates.
@@ -159,9 +164,6 @@ __global__ void seed_confirmTracks::seed_confirmTracks(Parameters parameters)
                                      parameters.dev_seeding_number_of_tracksXZ_part1[event_number];
         endTrack += startTrack;
         for (int iTrack = startTrack + threadIdx.x; iTrack < endTrack; iTrack += blockDim.x) {
-          int tuning_nhits = parameters.tuning_nhits;
-          float tuning_tol_chi2 = parameters.tuning_tol_chi2;
-          float tuning_tol = parameters.tuning_tol;
           const auto xTrack = xTracks[iTrack];
           const unsigned int nTarget = tuning_nhits - xTrack.number_of_hits;
           // Calculate the predicted x(z) position of the track in all U/V layers

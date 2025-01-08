@@ -25,7 +25,6 @@ namespace lf_least_mean_square_fit {
     DEVICE_OUTPUT(dev_scifi_tracks_t, SciFi::TrackHits) dev_scifi_tracks;
     DEVICE_INPUT(dev_atomics_scifi_t, unsigned) dev_atomics_scifi;
     DEVICE_OUTPUT(dev_scifi_lf_parametrization_x_filter_t, float) dev_scifi_lf_parametrization_x_filter;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void lf_least_mean_square_fit(Parameters);
@@ -41,6 +40,6 @@ namespace lf_least_mean_square_fit {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 } // namespace lf_least_mean_square_fit

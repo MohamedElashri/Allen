@@ -45,12 +45,16 @@ void ut_search_windows::ut_search_windows_t::operator()(
   Allen::memset_async<dev_ut_windows_layers_t>(arguments, 0, context);
 
   global_function(ut_search_windows)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::n_layers, property<block_dim_y_t>()), context)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(UT::Constants::n_layers, m_block_dim_y), context)(
     arguments,
     constants.dev_ut_magnet_tool,
     constants.dev_ut_per_layer_info,
     constants.dev_unique_x_sector_layer_offsets.data(),
-    constants.dev_unique_sector_xs.data());
+    constants.dev_unique_sector_xs.data(),
+    m_ytol,
+    m_yslope,
+    m_pt,
+    m_mom);
 }
 
 __global__ void ut_search_windows::ut_search_windows(
@@ -58,7 +62,11 @@ __global__ void ut_search_windows::ut_search_windows(
   UTMagnetTool* dev_ut_magnet_tool,
   const UT::Constants::PerLayerInfo* dev_mean_layer_info,
   const unsigned* dev_unique_x_sector_layer_offsets, // prefixsum to point to the x hit of the sector, per layer
-  const float* dev_unique_sector_xs)                 // list of xs that define the groups
+  const float* dev_unique_sector_xs,                 // list of xs that define the groups
+  const float y_tol,
+  const float y_tol_slope,
+  const float min_pt,
+  const float min_momentum)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -95,10 +103,10 @@ __global__ void ut_search_windows::ut_search_windows(
         dev_mean_layer_info,
         dev_unique_sector_xs,
         dev_unique_x_sector_layer_offsets,
-        parameters.y_tol,
-        parameters.y_tol_slope,
-        parameters.min_pt,
-        parameters.min_momentum);
+        y_tol,
+        y_tol_slope,
+        min_pt,
+        min_momentum);
 
       // Write the windows in SoA style
       short* windows_layers =

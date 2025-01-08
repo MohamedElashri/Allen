@@ -27,12 +27,6 @@ namespace scifi_pre_decode {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
     DEVICE_OUTPUT(dev_cluster_references_t, unsigned) dev_cluster_references;
-    PROPERTY(
-      decode_v8_as_v7_t,
-      "decode_v8_as_v7",
-      "Decode v8 banks as v7 to reproduce a bug in July 2023 (MC only)",
-      bool)
-    decode_v7_as_v8;
   };
 
   struct scifi_pre_decode_t : public DeviceAlgorithm, Parameters {
@@ -45,6 +39,9 @@ namespace scifi_pre_decode {
       const Allen::Context& context) const;
 
   private:
-    Property<decode_v8_as_v7_t> m_decode_v8_as_v7 {this, {false}};
+    Allen::Property<bool> m_decode_v8_as_v7 {this,
+                                             "decode_v8_as_v7",
+                                             {false},
+                                             "Decode v8 banks as v7 to reproduce a bug in July 2023 (MC only)"};
   };
 } // namespace scifi_pre_decode

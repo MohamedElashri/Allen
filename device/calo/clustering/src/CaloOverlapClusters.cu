@@ -91,7 +91,6 @@ void calo_overlap_clusters::calo_overlap_clusters_t::operator()(
   Allen::Context const& context) const
 {
   // Find overlap cells.
-  global_function(calo_overlap_clusters)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, constants.dev_ecal_geometry, property<ecal_min_adc_t>().get());
+  global_function(calo_overlap_clusters)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
+    arguments, constants.dev_ecal_geometry, m_ecal_min_adc);
 }

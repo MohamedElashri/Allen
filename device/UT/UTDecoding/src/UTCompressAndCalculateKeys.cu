@@ -29,8 +29,7 @@ void ut_compress_and_calculate_keys::ut_compress_and_calculate_keys_t::operator(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  global_function(ut_compress_and_calculate_keys)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(ut_compress_and_calculate_keys)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments, constants.dev_ut_geometry.data(), constants.dev_unique_x_sector_layer_offsets.data());
 }
 

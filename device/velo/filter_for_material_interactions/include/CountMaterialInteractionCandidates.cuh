@@ -29,19 +29,13 @@ namespace CountMaterialInteractionCandidates {
     DEVICE_OUTPUT(dev_number_of_filtered_tracks_t, unsigned) dev_number_of_filtered_tracks;
     DEVICE_OUTPUT(dev_interaction_seeds_offsets_t, unsigned) dev_interaction_seeds_offsets;
     HOST_OUTPUT(host_number_of_total_interaction_seeds_t, unsigned) host_number_of_total_interaction_seeds;
-
-    PROPERTY(beamdoca_r_t, "beamdoca_r", "radial doca to the beamspot", float) beamdoca_r;
-    PROPERTY(
-      max_doca_for_close_track_pairs_t,
-      "max_doca_for_close_track_pairs",
-      "doca to define close track pairs",
-      float)
-    max_doca_for_close_track_pairs;
-
-    PROPERTY(block_dim_t, "block_dim", "block dimension", DeviceDimensions) block_dim;
   };
 
-  __global__ void count_materialinteraction_candidates(Parameters, float*);
+  __global__ void count_materialinteraction_candidates(
+    Parameters,
+    float*,
+    const float beamdoca_r,
+    const float max_doca_for_close_track_pairs);
 
   struct count_materialinteraction_candidates_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -53,9 +47,12 @@ namespace CountMaterialInteractionCandidates {
       const Allen::Context& context) const;
 
   private:
-    Property<beamdoca_r_t> m_beamdoca_r {this, 3.5f};
-    Property<max_doca_for_close_track_pairs_t> m_max_doca_for_close_track_pairs {this, 0.15f};
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<float> m_beamdoca_r {this, "beamdoca_r", 3.5f, "radial doca to the beamspot"};
+    Allen::Property<float> m_max_doca_for_close_track_pairs {this,
+                                                             "max_doca_for_close_track_pairs",
+                                                             0.15f,
+                                                             "doca to define close track pairs"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimension"};
   };
 
 } // namespace CountMaterialInteractionCandidates

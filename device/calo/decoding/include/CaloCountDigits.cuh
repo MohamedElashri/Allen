@@ -20,7 +20,6 @@ namespace calo_count_digits {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_digits_offsets_t, unsigned) dev_digits_offsets;
     HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
   };
 
   __global__ void calo_count_digits(Parameters parameters, unsigned const n_events, char const* dev_ecal_geometry);
@@ -39,6 +38,6 @@ namespace calo_count_digits {
       Allen::Context const&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension X"};
   };
 } // namespace calo_count_digits

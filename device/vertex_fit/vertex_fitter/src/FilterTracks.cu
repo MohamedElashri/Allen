@@ -39,16 +39,39 @@ void FilterTracks::filter_tracks_t::operator()(
 {
   Allen::memset_async<dev_sv_offsets_t>(arguments, 0, context);
 
-  global_function(prefilter_tracks)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_prefilter_t>(), context)(arguments);
+  global_function(prefilter_tracks)(dim3(size<dev_event_list_t>(arguments)), m_block_dim_prefilter, context)(
+    arguments,
+    m_minpt_both,
+    m_minipchi2_both,
+    m_maxchi2ndof,
+    m_minip_both,
+    m_require_muon.value(),
+    m_require_electron.value(),
+    m_require_lepton.value());
 
-  global_function(filter_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_filter_t>(), context)(
-    arguments);
+  global_function(filter_tracks)(dim3(size<dev_event_list_t>(arguments)), m_block_dim_filter, context)(
+    arguments,
+    m_require_os_pair.value(),
+    m_require_same_pv.value(),
+    m_maxassocipchi2,
+    m_minpt_either,
+    m_minip_either,
+    m_minipchi2_either,
+    m_minsumpt,
+    m_maxdoca);
 
   PrefixSum::prefix_sum<dev_sv_offsets_t, host_number_of_svs_t>(*this, arguments, context);
 }
 
-__global__ void FilterTracks::prefilter_tracks(FilterTracks::Parameters parameters)
+__global__ void FilterTracks::prefilter_tracks(
+  FilterTracks::Parameters parameters,
+  const float track_min_pt_both,
+  const float track_min_ipchi2_both,
+  const float track_max_chi2ndof,
+  const float track_min_ip_both,
+  const bool require_muon,
+  const bool require_electron,
+  const bool require_lepton)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const auto long_track_particles = parameters.dev_long_track_particles->container(event_number);
@@ -62,16 +85,25 @@ __global__ void FilterTracks::prefilter_tracks(FilterTracks::Parameters paramete
     const float ipchi2 = track.ip_chi2();
     const float ip = track.ip();
     const float chi2ndof = track.chi2() / track.ndof();
-    bool dec = pt > parameters.track_min_pt_both && ipchi2 > parameters.track_min_ipchi2_both &&
-               chi2ndof < parameters.track_max_chi2ndof && ip > parameters.track_min_ip_both;
-    if (parameters.require_muon) dec &= track.is_muon();
-    if (parameters.require_electron) dec &= track.is_electron();
-    if (parameters.require_lepton) dec &= track.is_lepton();
+    bool dec = pt > track_min_pt_both && ipchi2 > track_min_ipchi2_both && chi2ndof < track_max_chi2ndof &&
+               ip > track_min_ip_both;
+    if (require_muon) dec &= track.is_muon();
+    if (require_electron) dec &= track.is_electron();
+    if (require_lepton) dec &= track.is_lepton();
     event_prefilter_result[i_track] = dec;
   }
 }
 
-__global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
+__global__ void FilterTracks::filter_tracks(
+  FilterTracks::Parameters parameters,
+  const bool require_os_pair,
+  const bool require_same_pv,
+  const float max_assoc_ipchi2,
+  const float track_min_pt_either,
+  const float track_min_ip_either,
+  const float track_min_ipchi2_either,
+  const float sum_pt_min,
+  const float doca_max)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -103,33 +135,31 @@ __global__ void FilterTracks::filter_tracks(FilterTracks::Parameters parameters)
       const float ptB = trackB.state().pt();
 
       // OS pair cut. Tracks must have opposite-sign charge.
-      if (parameters.require_os_pair) {
+      if (require_os_pair) {
         if (trackA.state().charge() * trackB.state().charge() > 0.f) continue;
       }
 
       // Same PV cut. If tracks are "prompt", they must be associated to the same PV.
-      if (parameters.require_same_pv) {
-        if (
-          &(trackA.pv()) != &(trackB.pv()) && ipchi2A < parameters.max_assoc_ipchi2 &&
-          ipchi2B < parameters.max_assoc_ipchi2) {
+      if (require_same_pv) {
+        if (&(trackA.pv()) != &(trackB.pv()) && ipchi2A < max_assoc_ipchi2 && ipchi2B < max_assoc_ipchi2) {
           continue;
         }
       }
 
       // Check cuts on at least one track
-      if (ptA < parameters.track_min_pt_either && ptB < parameters.track_min_pt_either) continue;
-      if (ipA < parameters.track_min_ip_either && ipB < parameters.track_min_ip_either) continue;
-      if (ipchi2A < parameters.track_min_ipchi2_either && ipchi2B < parameters.track_min_ipchi2_either) continue;
+      if (ptA < track_min_pt_either && ptB < track_min_pt_either) continue;
+      if (ipA < track_min_ip_either && ipB < track_min_ip_either) continue;
+      if (ipchi2A < track_min_ipchi2_either && ipchi2B < track_min_ipchi2_either) continue;
 
       // Check the sum of pt.
-      if (ptA + ptB < parameters.sum_pt_min) continue;
+      if (ptA + ptB < sum_pt_min) continue;
 
       const auto trackA_ministate = trackA.state().operator MiniState(),
                  trackB_ministate = trackB.state().operator MiniState();
 
       // Check the DOCA.
       const float doca = Allen::Views::Physics::state_doca(trackA_ministate, trackB_ministate);
-      if (doca > parameters.doca_max) continue;
+      if (doca > doca_max) continue;
 
       // Check the POCA.
       float x;

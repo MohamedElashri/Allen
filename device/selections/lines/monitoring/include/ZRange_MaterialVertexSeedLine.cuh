@@ -16,21 +16,20 @@ namespace z_range_materialvertex_seed_line {
 
     DEVICE_INPUT(dev_consolidated_interaction_seeds_t, float3) dev_consolidated_interaction_seeds;
     DEVICE_INPUT(dev_interaction_seeds_offsets_t, unsigned) dev_interaction_seeds_offsets;
-
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(min_z_materialvertex_seed_t, "min_z_materialvertex_seed", "min z for the material vertex seed", float)
-    min_z_materialvertex_seed;
-    PROPERTY(max_z_materialvertex_seed_t, "max_z_materialvertex_seed", "max z for the material vertex seed", float)
-    max_z_materialvertex_seed;
   };
 
   // SelectionAlgorithm definition
   struct z_range_materialvertex_seed_line_t : public SelectionAlgorithm,
                                               Parameters,
                                               Line<z_range_materialvertex_seed_line_t, Parameters> {
+    struct DeviceProperties {
+      float min_z_materialvertex_seed;
+      float max_z_materialvertex_seed;
+      DeviceProperties(const z_range_materialvertex_seed_line_t& algo, const Allen::Context&) :
+        min_z_materialvertex_seed(algo.m_min_z_materialvertex_seed),
+        max_z_materialvertex_seed(algo.m_max_z_materialvertex_seed)
+      {}
+    };
 
     // Offset function
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
@@ -46,16 +45,18 @@ namespace z_range_materialvertex_seed_line {
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
     // Selection function
-    __device__ static bool select(const Parameters& parameters, std::tuple<const float> input);
+    __device__ static bool select(const Parameters&, const DeviceProperties&, std::tuple<const float> input);
 
   private:
     // Commonly required properties
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     // Line-specific properties
-    Property<min_z_materialvertex_seed_t> m_min_z_materialvertex_seed {this, -1000.f};
-    Property<max_z_materialvertex_seed_t> m_max_z_materialvertex_seed {this, 1000.f};
+    Allen::Property<float> m_min_z_materialvertex_seed {this,
+                                                        "min_z_materialvertex_seed",
+                                                        -1000.f,
+                                                        "min z for the material vertex seed"};
+    Allen::Property<float> m_max_z_materialvertex_seed {this,
+                                                        "max_z_materialvertex_seed",
+                                                        1000.f,
+                                                        "max z for the material vertex seed"};
   };
 } // namespace z_range_materialvertex_seed_line

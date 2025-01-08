@@ -54,13 +54,6 @@ namespace gather_selections {
     HOST_OUTPUT(host_event_list_output_size_t, unsigned) host_event_list_output_size;
     DEVICE_OUTPUT(dev_event_list_output_size_t, unsigned) dev_event_list_output_size;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
-    PROPERTY(names_of_active_lines_t, "names_of_active_lines", "names of active lines", std::string);
-    PROPERTY(
-      names_of_active_line_algorithms_t,
-      "names_of_active_line_algorithms",
-      "names of active line algorithms",
-      std::string);
   };
 
   struct gather_selections_t : public BarrierAlgorithm, Parameters {
@@ -76,9 +69,12 @@ namespace gather_selections {
 
   private:
     std::vector<unsigned> m_indices_active_line_algorithms;
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
-    Property<names_of_active_line_algorithms_t> m_names_of_active_line_algorithms {this, ""};
-    Property<names_of_active_lines_t> m_names_of_active_lines {this, ""};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension x"};
+    Allen::Property<std::string> m_names_of_active_line_algorithms {this,
+                                                                    "names_of_active_line_algorithms",
+                                                                    "",
+                                                                    "names of active line algorithms"};
+    Allen::Property<std::string> m_names_of_active_lines {this, "names_of_active_lines", "", "names of active lines"};
 
     std::vector<std::unique_ptr<Allen::Monitoring::HistogramBinAsCounter<Allen::Monitoring::Histogram<>>>>
       m_pass_counters;

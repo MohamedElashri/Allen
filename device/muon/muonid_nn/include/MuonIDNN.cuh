@@ -29,7 +29,6 @@ namespace muonid_nn {
     DEVICE_INPUT(dev_muonid_features_t, float) dev_muonid_features;
     DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
     DEVICE_OUTPUT(dev_muonid_evaluation_t, float) dev_muonid_evaluation;
-    PROPERTY(block_dim_t, "block_dim", "block dimension", DeviceDimensions) block_dim;
   };
 
   __global__ void muonid_nn(
@@ -50,7 +49,7 @@ namespace muonid_nn {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimension"};
   };
 
 } // namespace muonid_nn

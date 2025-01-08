@@ -54,8 +54,6 @@ namespace calo_find_twoclusters {
       DEPENDENCIES(dev_multi_event_twoclusters_view_t),
       Allen::Views::Physics::MultiEventCompositeParticles*)
     dev_multi_event_twoclusters_ptr;
-
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
   };
 
   __global__ void calo_find_twoclusters(Parameters parameters);
@@ -71,6 +69,6 @@ namespace calo_find_twoclusters {
       Allen::Context const&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 128};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 128, "block dimension X"};
   };
 } // namespace calo_find_twoclusters

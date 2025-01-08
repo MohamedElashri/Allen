@@ -42,8 +42,7 @@ void downstream_validator::downstream_validator_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(downstream_validator)(first<host_number_of_events_t>(arguments), property<block_dim_t>(), context)(
-    arguments);
+  global_function(downstream_validator)(first<host_number_of_events_t>(arguments), m_block_dim, context)(arguments);
   const auto event_list = make_host_buffer<dev_event_list_t>(arguments, context);
   const auto downstream_tracks_for_checker = make_host_buffer<dev_downstream_checker_tracks_t>(arguments, context);
   const auto event_tracks_offsets = make_host_buffer<dev_offsets_downstream_tracks_t>(arguments, context);
@@ -59,7 +58,6 @@ void downstream_validator::downstream_validator_t::operator()(
     tracks[i] = event_trakcs;
   }
 
-  auto& checker =
-    runtime_options.checker_invoker->checker<TrackCheckerDownstream>(name(), property<root_output_filename_t>());
+  auto& checker = runtime_options.checker_invoker->checker<TrackCheckerDownstream>(name(), m_root_output_filename);
   checker.accumulate(*first<host_mc_events_t>(arguments), tracks, event_list);
 }

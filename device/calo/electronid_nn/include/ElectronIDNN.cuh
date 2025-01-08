@@ -29,7 +29,6 @@ namespace electronid_nn {
     DEVICE_INPUT(dev_track_inEcalAcc_t, bool) dev_track_inEcalAcc;
     DEVICE_INPUT(dev_track_Eop_t, float) dev_track_Eop;
     DEVICE_OUTPUT(dev_electronid_evaluation_t, float) dev_electronid_evaluation;
-    PROPERTY(block_dim_t, "block_dim", "block dimension", DeviceDimensions) block_dim;
   };
 
   __global__ void electronid_nn(
@@ -49,7 +48,7 @@ namespace electronid_nn {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimension"};
   };
 
 } // namespace electronid_nn

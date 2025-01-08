@@ -23,7 +23,7 @@ void data_quality_validator_velo::data_quality_validator_velo_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  if (property<enable_tupling_t>()) output_monitor(arguments, runtime_options, context);
+  if (m_enable_tupling.value()) output_monitor(arguments, runtime_options, context);
 }
 
 void data_quality_validator_velo::data_quality_validator_velo_t::output_monitor(
@@ -87,7 +87,7 @@ void data_quality_validator_pv::data_quality_validator_pv_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  if (property<enable_tupling_t>()) output_monitor(arguments, runtime_options, context);
+  if (m_enable_tupling.value()) output_monitor(arguments, runtime_options, context);
 }
 
 void data_quality_validator_pv::data_quality_validator_pv_t::output_monitor(
@@ -160,7 +160,7 @@ void data_quality_validator_occupancy::data_quality_validator_occupancy_t::opera
   const Constants&,
   const Allen::Context& context) const
 {
-  if (property<enable_tupling_t>()) output_monitor(arguments, runtime_options, context);
+  if (m_enable_tupling.value()) output_monitor(arguments, runtime_options, context);
 }
 
 void data_quality_validator_occupancy::data_quality_validator_occupancy_t::output_monitor(

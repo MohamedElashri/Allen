@@ -90,6 +90,6 @@ void create_reduced_ut_hits_container::create_reduced_ut_hits_container_t::opera
   resize<dev_ut_hits_t>(arguments, first<host_number_of_ut_hits_t>(arguments) * UT::Hits::element_size);
 
   // Populate dev_ut_hits_t
-  global_function(create_ut_hit_container)(size<dev_event_list_t>(arguments), property<block_dim_x_t>(), context)(
+  global_function(create_ut_hit_container)(size<dev_event_list_t>(arguments), dim3(m_block_dim_x), context)(
     arguments, constants.dev_unique_x_sector_layer_offsets.data());
 }

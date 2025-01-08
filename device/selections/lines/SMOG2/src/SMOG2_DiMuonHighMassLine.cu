@@ -31,8 +31,8 @@ SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::get_input(
 }
 
 __device__ bool SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto& vtx = std::get<0>(input);
@@ -44,34 +44,36 @@ __device__ bool SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::select
   const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vtx.child(1));
   const auto maxchi2muon = std::get<1>(input);
 
-  bool decision = maxchi2muon < parameters.maxChi2Corr && vtx.vertex().z() < parameters.maxZ && vtx.is_dimuon() &&
-                  vtx.doca12() < parameters.maxDoca && trk1->chi2() / trk1->ndof() < parameters.maxTrackChi2Ndf &&
-                  trk2->chi2() / trk2->ndof() < parameters.maxTrackChi2Ndf && vtx.mdimu() >= parameters.minMass &&
-                  vtx.minpt() >= parameters.minTrackPt && vtx.minp() >= parameters.minTrackP &&
-                  vtx.vertex().chi2() < parameters.maxVertexChi2 && vtx.vertex().z() >= parameters.minZ &&
-                  vtx.charge() == parameters.CombCharge && vtx.has_pv() && vtx.pv().position.z < parameters.maxZ;
+  bool decision = maxchi2muon < properties.maxChi2Corr && vtx.vertex().z() < properties.maxZ && vtx.is_dimuon() &&
+                  vtx.doca12() < properties.maxDoca && trk1->chi2() / trk1->ndof() < properties.maxTrackChi2Ndf &&
+                  trk2->chi2() / trk2->ndof() < properties.maxTrackChi2Ndf && vtx.mdimu() >= properties.minMass &&
+                  vtx.minpt() >= properties.minTrackPt && vtx.minp() >= properties.minTrackP &&
+                  vtx.vertex().chi2() < properties.maxVertexChi2 && vtx.vertex().z() >= properties.minZ &&
+                  vtx.charge() == properties.HighMassCombCharge && vtx.has_pv() &&
+                  vtx.pv().position.z < properties.maxZ;
 
   return decision;
 }
 
 __device__ void SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned,
   bool sel)
 {
   if (sel) {
     const auto dimuon = std::get<0>(input);
-    accumulators.histogram_smogdimuon_mass.increment(dimuon.mdimu());
-    accumulators.histogram_smogdimuon_svz.increment(dimuon.vertex().z());
-    accumulators.histogram_smogdimuon_pvz.increment(dimuon.pv().position.z);
-    accumulators.histogram_smogdimuon_pt.increment(dimuon.vertex().pt());
+    properties.histogram_smogdimuon_mass.increment(dimuon.mdimu());
+    properties.histogram_smogdimuon_svz.increment(dimuon.vertex().z());
+    properties.histogram_smogdimuon_pvz.increment(dimuon.pv().position.z);
+    properties.histogram_smogdimuon_pt.increment(dimuon.vertex().pt());
   }
 }
 
 __device__ void SMOG2_dimuon_highmass_line::SMOG2_dimuon_highmass_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned index,
   bool sel)

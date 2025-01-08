@@ -29,7 +29,7 @@ void downstream_busca_selector::downstream_busca_selector_t::operator()(
 {
   Allen::memset_async<dev_downstream_mva_busca_t>(arguments, 0, context);
 
-  global_function(downstream_busca_selector)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(downstream_busca_selector)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments, constants.dev_downstream_busca_selector);
 }
 

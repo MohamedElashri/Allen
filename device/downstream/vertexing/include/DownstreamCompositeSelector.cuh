@@ -31,7 +31,6 @@ namespace downstream_composite_selector {
     DEVICE_OUTPUT(dev_downstream_mva_detached_ks_t, float) dev_downstream_mva_detached_ks;
     DEVICE_OUTPUT(dev_downstream_mva_detached_l0_t, float) dev_downstream_mva_detached_l0;
     // Property
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void downstream_composite_selector(
@@ -51,6 +50,6 @@ namespace downstream_composite_selector {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{16, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {16, 1, 1}, "block dimensions"};
   };
 } // namespace downstream_composite_selector

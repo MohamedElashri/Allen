@@ -28,8 +28,8 @@ void scifi_lumi_counters::scifi_lumi_counters_t::set_arguments_size(
 
 void scifi_lumi_counters::scifi_lumi_counters_t::init()
 {
-  std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
-  std::map<std::string, std::pair<float, float>> shifts_and_scales = property<lumi_counter_shifts_and_scales_t>();
+  std::map<std::string, std::pair<unsigned, unsigned>> schema = m_lumi_counter_schema;
+  std::map<std::string, std::pair<float, float>> shifts_and_scales = m_lumi_counter_shifts_and_scales;
 
   unsigned c_idx(0u);
   for (auto counter_name : Lumi::Constants::scifi_counter_names) {
@@ -62,8 +62,7 @@ void scifi_lumi_counters::scifi_lumi_counters_t::operator()(
   if (first<host_lumi_summaries_count_t>(arguments) == 0) return;
   Allen::memset_async<dev_lumi_infos_t>(arguments, 0, context);
 
-  global_function(scifi_lumi_counters)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(scifi_lumi_counters)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
     arguments,
     first<host_number_of_events_t>(arguments),
     m_offsets_and_sizes,

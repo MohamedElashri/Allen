@@ -59,7 +59,6 @@ namespace seed_confirmTracks_consolidate {
       DEPENDENCIES(dev_scifi_tracks_view_t),
       Allen::Views::SciFi::Consolidated::MultiEventTracks)
     dev_scifi_multi_event_tracks_view;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
   __global__ void seed_confirmTracks_consolidate(
     Parameters,
@@ -90,7 +89,7 @@ namespace seed_confirmTracks_consolidate {
       Allen::Monitoring::Histogram<>::DeviceType&);
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
 
     Allen::Monitoring::AveragingCounter<> m_seed_tracks {this, "n_seed_tracks"};
     Allen::Monitoring::Histogram<> m_histogram_n_scifi_seeds {this,

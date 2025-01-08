@@ -31,7 +31,8 @@ single_high_pt_electron_line::single_high_pt_electron_line_t::get_input(
 }
 
 __device__ bool single_high_pt_electron_line::single_high_pt_electron_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input)
 {
   const auto& track = std::get<0>(input);
@@ -43,14 +44,15 @@ __device__ bool single_high_pt_electron_line::single_high_pt_electron_line_t::se
     return false;
   }
 
-  const bool decision = corrected_pt > parameters.singleMinPt &&
-                        track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof &&
-                        track.state().z() >= parameters.minZ;
+  const bool decision = corrected_pt > properties.singleMinPt &&
+                        track.state().chi2() / track.state().ndof() < properties.maxChi2Ndof &&
+                        track.state().z() >= properties.minZ;
   return decision;
 }
 
 __device__ void single_high_pt_electron_line::single_high_pt_electron_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input,
   unsigned index,
   bool sel)

@@ -30,51 +30,64 @@ namespace two_track_mva_charm_xsec_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "Maximum chi2 of the combination vertex.", float)
-    maxVertexChi2;
-    PROPERTY(minTrackPt_t, "minTrackPt", "Minimum transverse momentum of tracks.", float) minTrackPt;
-    PROPERTY(minTrackP_t, "minTrackP", "Minimum momentum of tracks.", float) minTrackP;
-    PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "Minimum IPCHI2 of tracks.", float) minTrackIPChi2;
-    PROPERTY(maxDOCA_t, "maxDOCA", "Maximum distance of closest approach of tracks.", float) maxDOCA;
-    PROPERTY(massWindow_t, "massWindow", "Window around the combination mass.", float) massWindow;
-    PROPERTY(maxCombKpiMass_t, "maxCombKpiMass", "Maximum invariant mass of combination assuming kaon and pion.", float)
-    maxCombKpiMass;
-    PROPERTY(lowSVpt_t, "lowSVpt", "Value of SV pT in MeV below which the low PT MVA cut is applied.", float) lowSVpt;
-    PROPERTY(minMVAhightPt_t, "minMVAhighPt", "Minimum passing MVA response at hight Pt.", float) minMVAhighPt;
-    PROPERTY(minMVAlowPt_t, "minMVAlowPt", "Minimum passing MVA response at low Pt.", float) minMVAlowPt;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
   };
 
   struct two_track_mva_charm_xsec_line_t : public SelectionAlgorithm,
                                            Parameters,
                                            CompositeParticleLine<two_track_mva_charm_xsec_line_t, Parameters> {
 
+    struct DeviceProperties {
+      float maxVertexChi2;
+      float minTrackPt;
+      float minTrackP;
+      float minTrackIPChi2;
+      float maxDOCA;
+      float massWindow;
+      float maxCombKpiMass;
+      float lowSVpt;
+      float minMVAhighPt;
+      float minMVAlowPt;
+      float minZ;
+      DeviceProperties(const two_track_mva_charm_xsec_line_t& algo, const Allen::Context&) :
+        maxVertexChi2(algo.m_maxVertexChi2), minTrackPt(algo.m_minTrackPt), minTrackP(algo.m_minTrackP),
+        minTrackIPChi2(algo.m_minTrackIPChi2), maxDOCA(algo.m_maxDOCA), massWindow(algo.m_massWindow),
+        maxCombKpiMass(algo.m_maxCombKpiMass), lowSVpt(algo.m_lowSVpt), minMVAhighPt(algo.m_minMVAhighPt),
+        minMVAlowPt(algo.m_minMVAlowPt), minZ(algo.m_minZ)
+      {}
+    };
+
     __device__ static std::tuple<const CompositeParticle, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
-    __device__ static bool select(const Parameters& parameters, std::tuple<const CompositeParticle, const float> input);
+    __device__ static bool
+    select(const Parameters&, const DeviceProperties&, std::tuple<const CompositeParticle, const float> input);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<maxVertexChi2_t> m_maxVertexChi {this, 20.f};
-    Property<minTrackPt_t> m_minTrackPt {this, 250.f * Gaudi::Units::MeV};
-    Property<minTrackP_t> m_minTrackP {this, 2000.f * Gaudi::Units::MeV};
-    Property<minTrackIPChi2_t> m_minTrackIPChi2 {this, 4.f};
-    Property<maxDOCA_t> m_maxDOCA {this, 0.2f * Gaudi::Units::mm};
-    Property<massWindow_t> m_massWindow {this, 100.f * Gaudi::Units::MeV};
-    Property<maxCombKpiMass_t> m_maxCombKpiMass {this, 1830.f * Gaudi::Units::MeV};
-    Property<lowSVpt_t> m_lowSVpt {this, 1500.f * Gaudi::Units::MeV};
-    Property<minMVAhightPt_t> m_minMVAhighPt {this, 0.92385f};
-    Property<minMVAlowPt_t> m_minMVAlowPt {this, 0.7f};
-    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "Maximum chi2 of the combination vertex."};
+    Allen::Property<float> m_minTrackPt {this,
+                                         "minTrackPt",
+                                         250.f * Gaudi::Units::MeV,
+                                         "Minimum transverse momentum of tracks."};
+    Allen::Property<float> m_minTrackP {this, "minTrackP", 2000.f * Gaudi::Units::MeV, "Minimum momentum of tracks."};
+    Allen::Property<float> m_minTrackIPChi2 {this, "minTrackIPChi2", 4.f, "Minimum IPCHI2 of tracks."};
+    Allen::Property<float> m_maxDOCA {this,
+                                      "maxDOCA",
+                                      0.2f * Gaudi::Units::mm,
+                                      "Maximum distance of closest approach of tracks."};
+    Allen::Property<float> m_massWindow {this,
+                                         "massWindow",
+                                         100.f * Gaudi::Units::MeV,
+                                         "Window around the combination mass."};
+    Allen::Property<float> m_maxCombKpiMass {this,
+                                             "maxCombKpiMass",
+                                             1830.f * Gaudi::Units::MeV,
+                                             "Maximum invariant mass of combination assuming kaon and pion."};
+    Allen::Property<float> m_lowSVpt {this,
+                                      "lowSVpt",
+                                      1500.f * Gaudi::Units::MeV,
+                                      "Value of SV pT in MeV below which the low PT MVA cut is applied."};
+    Allen::Property<float> m_minMVAhighPt {this, "minMVAhighPt", 0.92385f, "Minimum passing MVA response at hight Pt."};
+    Allen::Property<float> m_minMVAlowPt {this, "minMVAlowPt", 0.7f, "Minimum passing MVA response at low Pt."};
+    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
   };
 } // namespace two_track_mva_charm_xsec_line

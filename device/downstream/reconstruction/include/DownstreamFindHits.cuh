@@ -68,93 +68,6 @@ namespace downstream_find_hits {
     DEVICE_OUTPUT(dev_findhits_num_output_t, unsigned) dev_findhits_num_output;
     DEVICE_OUTPUT(dev_findhits_num_selected_scifi_t, unsigned) dev_findhits_num_selected_scifi;
     DEVICE_OUTPUT(dev_findhits_output_selected_scifi_offsets_t, unsigned) dev_findhits_output_selected_scifi_offsets;
-
-    // Properties
-    PROPERTY(
-      ttracks_probability_threshold_t,
-      "ttracks_probability_threshold",
-      "the threshold of the T track propability",
-      float)
-    ttracks_probability_threshold;
-    PROPERTY(require_four_ut_hits_t, "require_four_ut_hits", "Require 4 UT hits to create downstream tracks", bool)
-    require_four_ut_hits;
-
-    // Block size
-    PROPERTY(
-      num_threads_create_candidates_t,
-      "num_threads_create_candidates",
-      "number of threads for candidate creation",
-      DeviceDimensions)
-    num_threads_create_candidates;
-    PROPERTY(
-      num_threads_find_rest_hits_t,
-      "num_threads_find_rest_hits",
-      "number of threads for finding rest of hits",
-      DeviceDimensions)
-    num_threads_find_rest_hits;
-
-    PROPERTY(
-      enable_constant_tolerance_window_t,
-      "enable_constant_tolerance_window",
-      "switch for constant tolerance window",
-      bool)
-    enable_constant_tolerance_window;
-
-    PROPERTY(
-      tolerance_window_x1_multiplier_t,
-      "tolerance_window_x1_multiplier",
-      "constant value, at which defaut value is multiplied",
-      float)
-    tolerance_window_x1_multiplier;
-
-    PROPERTY(
-      tolerance_window_y1_multiplier_t,
-      "tolerance_window_y1_multiplier",
-      "constant value, at which defaut value is multiplied",
-      float)
-    tolerance_window_y1_multiplier;
-
-    PROPERTY(
-      tolerance_window_x2_multiplier_t,
-      "tolerance_window_x2_multiplier",
-      "constant value, at which defaut value is multiplied",
-      float)
-    tolerance_window_x2_multiplier;
-
-    PROPERTY(
-      tolerance_window_y2_multiplier_t,
-      "tolerance_window_y2_multiplier",
-      "constant value, at which defaut value is multiplied",
-      float)
-    tolerance_window_y2_multiplier;
-
-    PROPERTY(
-      tolerance_window_x3_multiplier_t,
-      "tolerance_window_x3_multiplier",
-      "constant value, at which defaut value is multiplied",
-      float)
-    tolerance_window_x3_multiplier;
-
-    PROPERTY(
-      tolerance_window_y3_multiplier_t,
-      "tolerance_window_y3_multiplier",
-      "constant value, at which defaut value is multiplied",
-      float)
-    tolerance_window_y3_multiplier;
-
-    PROPERTY(
-      tolerance_window_x4_multiplier_t,
-      "tolerance_window_x4_multiplier",
-      "constant value, at which defaut value is multiplied",
-      float)
-    tolerance_window_x4_multiplier;
-
-    PROPERTY(
-      tolerance_window_y4_multiplier_t,
-      "tolerance_window_y4_multiplier",
-      "constant value, at which defaut value is multiplied",
-      float)
-    tolerance_window_y4_multiplier;
   };
 
 #if defined(TARGET_DEVICE_CUDA)
@@ -180,6 +93,9 @@ namespace downstream_find_hits {
     const unsigned* dev_unique_x_sector_layer_offsets,
     const float* dev_unique_sector_xs,
     const float* dev_magnet_polarity,
+    const float tolerance_window_x4_multiplier,
+    const float tolerance_window_y4_multiplier,
+    const float ttracks_probability_threshold,
     const UT::Constants::PerLayerInfo* dev_mean_layer_info,
     const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector,
     [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_tracking);
@@ -189,7 +105,13 @@ namespace downstream_find_hits {
     Parameters parameters,
     const unsigned* dev_unique_x_sector_layer_offsets,
     const float* dev_unique_sector_xs,
-    const UT::Constants::PerLayerInfo* dev_mean_layer_info);
+    const UT::Constants::PerLayerInfo* dev_mean_layer_info,
+    const float tolerance_window_x1_multiplier,
+    const float tolerance_window_x2_multiplier,
+    const float tolerance_window_x3_multiplier,
+    const float tolerance_window_y1_multiplier,
+    const float tolerance_window_y2_multiplier,
+    const float tolerance_window_y3_multiplier);
 
   struct downstream_find_hits_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -202,19 +124,58 @@ namespace downstream_find_hits {
 
   private:
     Allen::Monitoring::Counter<> m_n_overflow_downstream_tracking {this, "n_overflow_downstream_tracking"};
-    Property<ttracks_probability_threshold_t> m_ttracks_probability_threshold {this, 0.5};
-    Property<require_four_ut_hits_t> m_require_four_ut_hits {this, true};
-    Property<num_threads_create_candidates_t> m_num_threads_create_candidates {this, {{64, 1, 1}}};
-    Property<num_threads_find_rest_hits_t> m_num_threads_find_rest_hits {this, {{192, 1, 1}}};
-    Property<enable_constant_tolerance_window_t> m_enable_constant_tolerance_window {this, false};
-    Property<tolerance_window_x1_multiplier_t> m_tolerance_window_x1_multiplier {this, 1.f};
-    Property<tolerance_window_y1_multiplier_t> m_tolerance_window_y1_multiplier {this, 1.f};
-    Property<tolerance_window_x2_multiplier_t> m_tolerance_window_x2_multiplier {this, 1.f};
-    Property<tolerance_window_y2_multiplier_t> m_tolerance_window_y2_multiplier {this, 1.f};
-    Property<tolerance_window_x3_multiplier_t> m_tolerance_window_x3_multiplier {this, 1.f};
-    Property<tolerance_window_y3_multiplier_t> m_tolerance_window_y3_multiplier {this, 1.f};
-    Property<tolerance_window_x4_multiplier_t> m_tolerance_window_x4_multiplier {this, 1.f};
-    Property<tolerance_window_y4_multiplier_t> m_tolerance_window_y4_multiplier {this, 1.f};
+    Allen::Property<float> m_ttracks_probability_threshold {this,
+                                                            "ttracks_probability_threshold",
+                                                            0.5,
+                                                            "the threshold of the T track propability"};
+    Allen::Property<bool> m_require_four_ut_hits {this,
+                                                  "require_four_ut_hits",
+                                                  true,
+                                                  "Require 4 UT hits to create downstream tracks"};
+    Allen::Property<dim3> m_num_threads_create_candidates {this,
+                                                           "num_threads_create_candidates",
+                                                           {64, 1, 1},
+                                                           "number of threads for candidate creation"};
+    Allen::Property<dim3> m_num_threads_find_rest_hits {this,
+                                                        "num_threads_find_rest_hits",
+                                                        {192, 1, 1},
+                                                        "number of threads for finding rest of hits"};
+    Allen::Property<bool> m_enable_constant_tolerance_window {this,
+                                                              "enable_constant_tolerance_window",
+                                                              false,
+                                                              "switch for constant tolerance window"};
+    Allen::Property<float> m_tolerance_window_x1_multiplier {this,
+                                                             "tolerance_window_x1_multiplier",
+                                                             1.f,
+                                                             "constant value, at which defaut value is multiplied"};
+    Allen::Property<float> m_tolerance_window_y1_multiplier {this,
+                                                             "tolerance_window_y1_multiplier",
+                                                             1.f,
+                                                             "constant value, at which defaut value is multiplied"};
+    Allen::Property<float> m_tolerance_window_x2_multiplier {this,
+                                                             "tolerance_window_x2_multiplier",
+                                                             1.f,
+                                                             "constant value, at which defaut value is multiplied"};
+    Allen::Property<float> m_tolerance_window_y2_multiplier {this,
+                                                             "tolerance_window_y2_multiplier",
+                                                             1.f,
+                                                             "constant value, at which defaut value is multiplied"};
+    Allen::Property<float> m_tolerance_window_x3_multiplier {this,
+                                                             "tolerance_window_x3_multiplier",
+                                                             1.f,
+                                                             "constant value, at which defaut value is multiplied"};
+    Allen::Property<float> m_tolerance_window_y3_multiplier {this,
+                                                             "tolerance_window_y3_multiplier",
+                                                             1.f,
+                                                             "constant value, at which defaut value is multiplied"};
+    Allen::Property<float> m_tolerance_window_x4_multiplier {this,
+                                                             "tolerance_window_x4_multiplier",
+                                                             1.f,
+                                                             "constant value, at which defaut value is multiplied"};
+    Allen::Property<float> m_tolerance_window_y4_multiplier {this,
+                                                             "tolerance_window_y4_multiplier",
+                                                             1.f,
+                                                             "constant value, at which defaut value is multiplied"};
   };
 
 } // namespace downstream_find_hits

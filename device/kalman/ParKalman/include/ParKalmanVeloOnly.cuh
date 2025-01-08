@@ -21,7 +21,7 @@
 #include "States.cuh"
 #include "SciFiDefinitions.cuh"
 #include "AlgorithmTypes.cuh"
-#include "PackageKalman.cuh"
+#include "PackageKalmanTracks.cuh"
 #include "PV_Definitions.cuh"
 #include "ParticleTypes.cuh"
 
@@ -115,7 +115,6 @@ namespace kalman_velo_only {
       DEPENDENCIES(dev_kalman_pv_ip_t),
       Allen::Views::Physics::PVTable)
     dev_kalman_pv_tables;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void kalman_velo_only(Parameters parameters, float* dev_beamline);
@@ -132,6 +131,6 @@ namespace kalman_velo_only {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 } // namespace kalman_velo_only

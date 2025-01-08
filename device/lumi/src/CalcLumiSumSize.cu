@@ -36,8 +36,13 @@ void calc_lumi_sum_size::calc_lumi_sum_size_t::operator()(
   Allen::memset_async<dev_lumi_summary_offsets_t>(arguments, 0, context);
   Allen::memset_async<dev_lumi_event_indices_t>(arguments, 0, context);
 
-  global_function(calc_lumi_sum_size)(dim3(4u), property<block_dim_t>(), context)(
-    arguments, first<host_number_of_events_t>(arguments));
+  global_function(calc_lumi_sum_size)(dim3(4u), m_block_dim, context)(
+    arguments,
+    first<host_number_of_events_t>(arguments),
+    m_line_index,
+    m_line_index_full,
+    m_lumi_sum_length_full,
+    m_lumi_sum_length);
 
   PrefixSum::prefix_sum<dev_lumi_summary_offsets_t, host_lumi_summaries_size_t>(*this, arguments, context);
   PrefixSum::prefix_sum<dev_lumi_event_indices_t, host_lumi_summaries_count_t>(*this, arguments, context);
@@ -45,7 +50,11 @@ void calc_lumi_sum_size::calc_lumi_sum_size_t::operator()(
 
 __global__ void calc_lumi_sum_size::calc_lumi_sum_size(
   calc_lumi_sum_size::Parameters parameters,
-  const unsigned number_of_events)
+  const unsigned number_of_events,
+  const unsigned line_index,
+  const unsigned line_index_full,
+  const unsigned lumi_sum_length_full,
+  const unsigned lumi_sum_length)
 {
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
@@ -53,17 +62,17 @@ __global__ void calc_lumi_sum_size::calc_lumi_sum_size(
     Selections::ConstSelections selections {
       parameters.dev_selections, parameters.dev_selections_offsets, number_of_events};
 
-    const auto sel_span = selections.get_span(parameters.line_index, event_number);
-    const auto sel_span_full = selections.get_span(parameters.line_index_full, event_number);
+    const auto sel_span = selections.get_span(line_index, event_number);
+    const auto sel_span_full = selections.get_span(line_index_full, event_number);
 
-    if (!sel_span_full.empty() && sel_span_full[0] && parameters.line_index_full != parameters.line_index) {
+    if (!sel_span_full.empty() && sel_span_full[0] && line_index_full != line_index) {
       // if the 1 kHz line passes then use the full summary length
       // if the same line index is passed for both lines then the 1 kHz line is not in use
-      parameters.dev_lumi_summary_offsets[event_number] = parameters.lumi_sum_length_full;
+      parameters.dev_lumi_summary_offsets[event_number] = lumi_sum_length_full;
     }
     else if (!sel_span.empty() && sel_span[0]) {
       // if only the 30 kHz line passes then use the reduced summary length
-      parameters.dev_lumi_summary_offsets[event_number] = parameters.lumi_sum_length;
+      parameters.dev_lumi_summary_offsets[event_number] = lumi_sum_length;
     }
     else {
       // skip non-lumi event

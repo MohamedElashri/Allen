@@ -32,7 +32,6 @@ namespace electronid_features {
     DEVICE_INPUT(dev_dispersion_y_t, float) dev_dispersion_y;
     DEVICE_INPUT(dev_dispersion_xy_t, float) dev_dispersion_xy;
     DEVICE_OUTPUT(dev_electronid_features_t, float) dev_electronid_features;
-    PROPERTY(block_dim_t, "block_dim", "block dimension", DeviceDimensions) block_dim;
   };
 
   __global__ void electronid_features(Parameters, const float* min_rescales, const float* max_rescales);
@@ -47,7 +46,7 @@ namespace electronid_features {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimension"};
   };
 
 } // namespace electronid_features

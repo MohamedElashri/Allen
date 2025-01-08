@@ -21,7 +21,6 @@ namespace CalcMaxCombos {
     DEVICE_INPUT(dev_input2_t, Allen::IMultiEventContainer*) dev_input2;
     DEVICE_OUTPUT(dev_max_combo_offsets_t, unsigned) dev_max_combo_offsets;
     HOST_OUTPUT(host_max_combos_t, unsigned) host_max_combos;
-    PROPERTY(block_dim_t, "block_dim", "Block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void calc_max_combos(Parameters parameters);
@@ -36,6 +35,6 @@ namespace CalcMaxCombos {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{1, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {1, 1, 1}, "Block dimensions"};
   };
 } // namespace CalcMaxCombos

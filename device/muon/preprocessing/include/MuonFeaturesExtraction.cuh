@@ -39,7 +39,6 @@ namespace muon_catboost_features_extraction {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_muon_catboost_features_t, float) dev_muon_catboost_features;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void muon_catboost_features_extraction(Parameters);
@@ -54,6 +53,6 @@ namespace muon_catboost_features_extraction {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
   };
 } // namespace muon_catboost_features_extraction

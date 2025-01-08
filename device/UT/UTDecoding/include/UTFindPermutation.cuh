@@ -20,7 +20,6 @@ namespace ut_find_permutation {
     DEVICE_INPUT(dev_ut_sort_keys_t, uint64_t) dev_ut_sort_keys;
     DEVICE_INPUT(dev_ut_cluster_offsets_t, unsigned) dev_ut_cluster_offsets;
     DEVICE_OUTPUT(dev_ut_permutations_t, unsigned) dev_ut_permutations;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   struct ut_find_permutation_t : public DeviceAlgorithm, Parameters {
@@ -33,6 +32,6 @@ namespace ut_find_permutation {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
   };
 } // namespace ut_find_permutation

@@ -37,8 +37,8 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
 {
   Allen::memset_async<dev_offsets_all_velo_tracks_t>(arguments, 0, context);
 
-  global_function(velo_copy_track_hit_number)(
-    first<host_number_of_events_t>(arguments), property<block_dim_t>(), context)(arguments);
+  global_function(velo_copy_track_hit_number)(first<host_number_of_events_t>(arguments), m_block_dim, context)(
+    arguments);
 
   *data<host_number_of_reconstructed_velo_tracks_t>(arguments) =
     size<dev_offsets_velo_track_hit_number_t>(arguments) - 1;
@@ -46,7 +46,7 @@ void velo_copy_track_hit_number::velo_copy_track_hit_number_t::operator()(
   PrefixSum::prefix_sum<dev_offsets_velo_track_hit_number_t, host_accumulated_number_of_hits_in_velo_tracks_t>(
     *this, arguments, context);
 
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     print<dev_offsets_all_velo_tracks_t>(arguments);
   }
 }

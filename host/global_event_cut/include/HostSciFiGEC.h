@@ -27,15 +27,15 @@ namespace host_scifi_gec {
     HOST_OUTPUT(host_output_event_list_t, unsigned) host_output_event_list;
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
     MASK_OUTPUT(dev_event_list_output_t) dev_output_event_list;
-    PROPERTY(min_clusters_t, "min_clusters", "minimum number of SciFi clusters", unsigned)
-    min_clusters;
-    PROPERTY(max_clusters_t, "max_clusters", "maximum number of SciFi clusters", unsigned)
-    max_clusters;
   };
 
   // Templated GEC on the MEP layout
   template<bool mep_layout = true>
-  void host_scifi_gec(host_scifi_gec::Parameters parameters, unsigned const event_start)
+  void host_scifi_gec(
+    host_scifi_gec::Parameters parameters,
+    unsigned const event_start,
+    unsigned const min_clusters,
+    unsigned const max_clusters)
   {
     auto const scifi_offsets = *parameters.scifi_offsets;
     auto const scifi_sizes = *parameters.scifi_sizes;
@@ -72,7 +72,7 @@ namespace host_scifi_gec {
       // number of clusters due to the merging of clusters.
       n_SciFi_clusters = (n_SciFi_clusters / 2) - 2;
 
-      if (n_SciFi_clusters <= parameters.max_clusters && n_SciFi_clusters >= parameters.min_clusters) {
+      if (n_SciFi_clusters <= max_clusters && n_SciFi_clusters >= min_clusters) {
         parameters.host_output_event_list[size_of_list++] = event_index;
       }
     }
@@ -93,7 +93,7 @@ namespace host_scifi_gec {
       const Allen::Context& context) const;
 
   private:
-    Property<min_clusters_t> m_min_clusters {this, 0};
-    Property<max_clusters_t> m_max_clusters {this, 9750};
+    Allen::Property<unsigned> m_min_clusters {this, "min_clusters", 0, "minimum number of SciFi clusters"};
+    Allen::Property<unsigned> m_max_clusters {this, "max_clusters", 9750, "maximum number of SciFi clusters"};
   };
 } // namespace host_scifi_gec

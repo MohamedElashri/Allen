@@ -29,8 +29,7 @@ void package_mf_tracks::package_mf_tracks_t::operator()(
 {
   Allen::memset_async<dev_mf_tracks_t>(arguments, 0, context);
 
-  global_function(package_mf_tracks)(
-    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(package_mf_tracks)(dim3(first<host_selected_events_mf_t>(arguments)), m_block_dim, context)(
     arguments, first<host_number_of_events_t>(arguments));
 }
 

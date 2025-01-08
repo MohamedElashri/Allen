@@ -23,10 +23,6 @@ namespace odin_beamcrossingtype {
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
-
-    PROPERTY(beam_crossing_type_t, "beam_crossing_type", "ODIN beam crossing type [0-3]", unsigned) beam_crossing_type;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
-    PROPERTY(invert_t, "invert", "invert on", bool) invert;
   };
 
   struct odin_beamcrossingtype_t : public DeviceAlgorithm, Parameters {
@@ -39,9 +35,8 @@ namespace odin_beamcrossingtype {
       const Allen::Context&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
-    Property<beam_crossing_type_t> m_beam_crossing_type {this, 0};
-    Property<invert_t> m_invert {this, false};
-  }; // odin_beamcrossingtype_t
-
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension x"};
+    Allen::Property<unsigned> m_beam_crossing_type {this, "beam_crossing_type", 0, "ODIN beam crossing type [0-3]"};
+    Allen::Property<bool> m_invert {this, "invert", false, "invert on"};
+  };
 } // namespace odin_beamcrossingtype

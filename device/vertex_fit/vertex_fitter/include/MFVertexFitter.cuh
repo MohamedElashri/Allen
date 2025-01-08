@@ -28,7 +28,6 @@ namespace MFVertexFit {
     DEVICE_INPUT(dev_svs_mf_idx_t, unsigned) dev_svs_mf_idx;
     DEVICE_INPUT(dev_event_list_mf_t, unsigned) dev_event_list_mf;
     DEVICE_OUTPUT(dev_mf_svs_t, VertexFit::TrackMVAVertex) dev_mf_svs;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void fit_mf_vertices(Parameters);
@@ -43,7 +42,7 @@ namespace MFVertexFit {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{16, 16, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {16, 16, 1}, "block dimensions"};
   };
 
 } // namespace MFVertexFit

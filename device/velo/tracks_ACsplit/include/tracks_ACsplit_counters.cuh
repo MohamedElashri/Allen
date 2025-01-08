@@ -40,9 +40,6 @@ namespace tracks_ACsplit_counters {
     DEVICE_OUTPUT(dev_offsets_velo_tracks_C_side_t, unsigned) dev_offsets_velo_tracks_C_side;
     HOST_OUTPUT(host_number_of_reconstructed_velo_tracks_C_side_t, unsigned)
     host_number_of_reconstructed_velo_tracks_C_side;
-
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(splitting_algorithm_t, "splitting_algorithm", "splitting_algorithm", std::string);
   };
 
   __global__ void tracks_ACsplit_counters(Parameters, const bool);
@@ -102,7 +99,7 @@ namespace tracks_ACsplit_counters {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
-    Property<splitting_algorithm_t> splitting_algorithm {this, "A/C split"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
+    Allen::Property<std::string> splitting_algorithm {this, "splitting_algorithm", "A/C split", "splitting_algorithm"};
   };
 } // namespace tracks_ACsplit_counters

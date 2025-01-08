@@ -28,32 +28,35 @@ namespace displaced_leptons_line {
     DEVICE_INPUT(dev_brem_corrected_pt_t, float) dev_brem_corrected_pt;
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(min_ipchi2_t, "min_ipchi2", "Minimum ipchi2", float) min_ipchi2;
-    PROPERTY(min_pt_t, "min_pt", "Minimum pt", float) min_pt;
-    PROPERTY(minBPVz_t, "min_BPVz", "Minimum z for the associated best primary vertex", float) minBPVz;
   };
 
   struct displaced_leptons_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     EventLine<displaced_leptons_line_t, Parameters> {
+
+    struct DeviceProperties {
+      float min_ipchi2;
+      float min_pt;
+      float min_BPVz;
+      DeviceProperties(const displaced_leptons_line_t& algo, const Allen::Context&) :
+        min_ipchi2(algo.m_min_ipchi2), min_pt(algo.m_min_pt), min_BPVz(algo.m_minBPVz)
+      {}
+    };
+
     __device__ static std::tuple<const Allen::Views::Physics::BasicParticles, const unsigned, const bool*, const float*>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned);
+    get_input(const Parameters&, const unsigned, const unsigned);
 
     __device__ static bool select(
-      const Parameters& parameters,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::BasicParticles, const unsigned, const bool*, const float*> input);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<min_ipchi2_t> m_min_ipchi2 {this, 7.4f};
-    Property<min_pt_t> m_min_pt {this, 1000.f};
-    Property<minBPVz_t> m_minBPVz {this, -341.f * Gaudi::Units::mm};
+    Allen::Property<float> m_min_ipchi2 {this, "min_ipchi2", 7.4f, "Minimum ipchi2"};
+    Allen::Property<float> m_min_pt {this, "min_pt", 1000.f, "Minimum pt"};
+    Allen::Property<float> m_minBPVz {this,
+                                      "min_BPVz",
+                                      -341.f * Gaudi::Units::mm,
+                                      "Minimum z for the associated best primary vertex"};
   };
 } // namespace displaced_leptons_line

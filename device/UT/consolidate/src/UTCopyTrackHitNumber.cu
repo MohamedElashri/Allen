@@ -29,8 +29,8 @@ void ut_copy_track_hit_number::ut_copy_track_hit_number_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(ut_copy_track_hit_number)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(ut_copy_track_hit_number)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
+    arguments);
 
   PrefixSum::prefix_sum<dev_offsets_ut_track_hit_number_t, host_accumulated_number_of_hits_in_ut_tracks_t>(
     *this, arguments, context);

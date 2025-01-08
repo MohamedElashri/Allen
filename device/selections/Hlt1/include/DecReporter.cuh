@@ -23,13 +23,9 @@ namespace dec_reporter {
     HOST_OUTPUT(host_max_objects_t, unsigned) host_max_objects;
     DEVICE_OUTPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
     HOST_OUTPUT(host_dec_reports_t, unsigned) host_dec_reports;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(tck_t, "tck", "TCK", unsigned) tck;
-    PROPERTY(encoding_key_t, "encoding_key", "encoding key", unsigned) key;
-    PROPERTY(task_id_t, "task_id", "Task ID", unsigned) task_id;
   };
 
-  __global__ void dec_reporter(Parameters);
+  __global__ void dec_reporter(Parameters, unsigned, unsigned, unsigned);
 
   struct dec_reporter_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -41,9 +37,9 @@ namespace dec_reporter {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
-    Property<tck_t> m_tck {this, 0};
-    Property<encoding_key_t> m_key {this, 0xDEADBEEF};
-    Property<task_id_t> m_taskID {this, 1};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {64, 1, 1}, "block dimensions"};
+    Allen::Property<unsigned> m_tck {this, "tck", 0, "TCK"};
+    Allen::Property<unsigned> m_key {this, "encoding_key", 0xDEADBEEF, "encoding key"};
+    Allen::Property<unsigned> m_taskID {this, "task_id", 1, "Task ID"};
   };
 } // namespace dec_reporter

@@ -14,9 +14,10 @@
 INSTANTIATE_LINE(calo_digits_minADC::calo_digits_minADC_t, calo_digits_minADC::Parameters)
 
 __device__ bool calo_digits_minADC::calo_digits_minADC_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const CaloDigit> input)
 {
   const auto ecal_digits = std::get<0>(input);
-  return ecal_digits.is_valid() && ecal_digits.adc >= parameters.minADC;
+  return ecal_digits.is_valid() && ecal_digits.adc >= properties.minADC;
 }

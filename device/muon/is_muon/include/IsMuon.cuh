@@ -34,8 +34,6 @@ namespace is_muon {
     DEVICE_OUTPUT(dev_lepton_id_t, uint8_t) dev_lepton_id;
     DEVICE_OUTPUT(dev_muon_hit_offsets_t, unsigned) dev_muon_hit_offsets;
     HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
-
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
   };
 
   __global__ void is_muon(
@@ -66,7 +64,7 @@ namespace is_muon {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 128};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 128, "block dimension X"};
     Allen::Monitoring::Histogram<> m_histogram_n_muons {this, "n_muons", "# muons", {2u, -0.5f, 1.5f}};
     Allen::Monitoring::Histogram<> m_histogram_muon_n_stations {this, "pv_x", "pv_x", {3u, 1.5f, 4.5f}};
     Allen::Monitoring::Histogram<> m_histogram_muon_pt {this, "pv_y", "pv_y", {1000u, 0.f, 1e4}};

@@ -176,8 +176,7 @@ void downstream_composite_dumper::downstream_composite_dumper_t::operator()(
   const Allen::Context& context) const
 {
 
-  global_function(downstream_composite_dumper)(
-    first<host_number_of_events_t>(arguments), property<block_dim_t>(), context)(
+  global_function(downstream_composite_dumper)(first<host_number_of_events_t>(arguments), m_block_dim, context)(
     arguments, constants.dev_magnet_polarity.data());
 
   // Load result to host
@@ -203,7 +202,7 @@ void downstream_composite_dumper::downstream_composite_dumper_t::operator()(
   }
 
   // Obtain checker
-  auto& checker = runtime_options.checker_invoker->checker<CompositeDumper>(name(), property<root_output_filename_t>());
+  auto& checker = runtime_options.checker_invoker->checker<CompositeDumper>(name(), m_root_output_filename);
 
   // Fetch event level infos
   float host_polarity = 0;

@@ -50,7 +50,7 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
                                  (runtime_options.mep_layout ? global_function(ut_calculate_number_of_hits<3, true>) :
                                                                global_function(ut_calculate_number_of_hits<3, false>));
 
-  fun(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  fun(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
     std::get<0>(runtime_options.event_interval),
     constants.dev_ut_boards,

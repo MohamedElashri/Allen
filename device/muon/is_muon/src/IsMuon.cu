@@ -37,7 +37,7 @@ void is_muon::is_muon_t::operator()(
   Allen::memset_async<dev_lepton_id_t>(arguments, 0, context);
   Allen::memset_async<dev_muon_hit_offsets_t>(arguments, 0, context);
 
-  global_function(is_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
+  global_function(is_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
     arguments,
     constants.dev_muon_foi,
     constants.dev_muon_momentum_cuts,

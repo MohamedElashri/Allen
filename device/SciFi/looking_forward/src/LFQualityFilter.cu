@@ -26,16 +26,14 @@ void lf_quality_filter::lf_quality_filter_t::set_arguments_size(
     first<host_number_of_reconstructed_input_tracks_t>(arguments) * SciFi::Constants::max_SciFi_tracks_per_UT_track);
   set_size<dev_scifi_lf_y_parametrization_length_filter_t>(
     arguments,
-    2 * first<host_number_of_reconstructed_input_tracks_t>(arguments) *
-      property<maximum_number_of_candidates_per_ut_track_t>());
+    2 * first<host_number_of_reconstructed_input_tracks_t>(arguments) * m_maximum_number_of_candidates_per_ut_track);
   set_size<dev_scifi_lf_parametrization_consolidate_t>(
     arguments,
     7 * first<host_number_of_reconstructed_input_tracks_t>(arguments) *
       SciFi::Constants::max_SciFi_tracks_per_UT_track);
   set_size<dev_lf_quality_of_tracks_t>(
     arguments,
-    property<maximum_number_of_candidates_per_ut_track_t>() *
-      first<host_number_of_reconstructed_input_tracks_t>(arguments));
+    m_maximum_number_of_candidates_per_ut_track * first<host_number_of_reconstructed_input_tracks_t>(arguments));
 }
 
 namespace geom {
@@ -50,10 +48,20 @@ void lf_quality_filter::lf_quality_filter_t::operator()(
 {
   Allen::memset_async<dev_offsets_long_tracks_t>(arguments, 0, context);
 
-  global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, constants.dev_forward_ghost_killer, constants.dev_forward_no_ut_ghost_killer);
+  global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments,
+    constants.dev_forward_ghost_killer,
+    constants.dev_forward_no_ut_ghost_killer,
+    m_maximum_number_of_candidates_per_ut_track,
+    m_max_diff_ty_window,
+    m_factor_9_hits,
+    m_factor_10_hits,
+    m_factor_11_hits,
+    m_factor_12_hits,
+    m_max_final_quality,
+    m_ghost_killer_threshold);
 
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     print<dev_offsets_long_tracks_t>(arguments);
   }
 
@@ -79,13 +87,18 @@ template<bool with_ut, typename T>
 __device__ void quality_filter(
   lf_quality_filter::Parameters parameters,
   const T* tracks,
-  const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_ghost_killer)
+  const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_ghost_killer,
+  const unsigned maximum_number_of_candidates_per_ut_track,
+  const float max_diff_ty_window,
+  const float factor_9_hits,
+  const float factor_10_hits,
+  const float factor_11_hits,
+  const float factor_12_hits,
+  const float max_final_quality,
+  const float ghost_killer_threshold)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
-
-  const unsigned maximum_number_of_candidates_per_ut_track = parameters.maximum_number_of_candidates_per_ut_track;
-  const float max_diff_ty_window = parameters.max_diff_ty_window;
 
   const auto input_tracks_view = tracks->container(event_number);
 
@@ -158,16 +171,16 @@ __device__ void quality_filter(
 
     // Apply multipliers to quality of tracks depending on number of hits
     if (track.hitsNum == 9) {
-      updated_track_quality *= parameters.factor_9_hits;
+      updated_track_quality *= factor_9_hits;
     }
     else if (track.hitsNum == 10) {
-      updated_track_quality *= parameters.factor_10_hits;
+      updated_track_quality *= factor_10_hits;
     }
     else if (track.hitsNum == 11) {
-      updated_track_quality *= parameters.factor_11_hits;
+      updated_track_quality *= factor_11_hits;
     }
     else if (track.hitsNum == 12) {
-      updated_track_quality *= parameters.factor_12_hits;
+      updated_track_quality *= factor_12_hits;
     }
 
     parameters.dev_scifi_quality_of_tracks[scifi_track_index] = updated_track_quality;
@@ -182,7 +195,7 @@ __device__ void quality_filter(
   __syncthreads();
 
   for (int i = threadIdx.x; i < event_number_of_tracks; i += blockDim.x) {
-    float best_quality = parameters.max_final_quality;
+    float best_quality = max_final_quality;
     int best_track_index = -1;
     assert(number_of_tracks < INT_MAX); // assertion to make sure best_track_index is in range
     for (unsigned j = 0; j < number_of_tracks; j++) {
@@ -237,7 +250,7 @@ __device__ void quality_filter(
 
       const auto ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_forward_ghost_killer, ghost_killer_inputs);
 
-      if (ghost_killer_score < parameters.ghost_killer_threshold.get()) {
+      if (ghost_killer_score < ghost_killer_threshold) {
         const int insert_index = atomicAdd(parameters.dev_offsets_long_tracks + event_number, 1);
         assert(insert_index < event_number_of_tracks * SciFi::Constants::max_SciFi_tracks_per_UT_track);
 
@@ -270,16 +283,46 @@ __device__ void quality_filter(
 __global__ void lf_quality_filter::lf_quality_filter(
   lf_quality_filter::Parameters parameters,
   const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_ghost_killer,
-  const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_no_ut_ghost_killer)
+  const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_no_ut_ghost_killer,
+  const unsigned maximum_number_of_candidates_per_ut_track,
+  const float max_diff_ty_window,
+  const float factor_9_hits,
+  const float factor_10_hits,
+  const float factor_11_hits,
+  const float factor_12_hits,
+  const float max_final_quality,
+  const float ghost_killer_threshold)
 {
   const auto* ut_tracks =
     Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    quality_filter<true>(parameters, ut_tracks, dev_forward_ghost_killer);
+    quality_filter<true>(
+      parameters,
+      ut_tracks,
+      dev_forward_ghost_killer,
+      maximum_number_of_candidates_per_ut_track,
+      max_diff_ty_window,
+      factor_9_hits,
+      factor_10_hits,
+      factor_11_hits,
+      factor_12_hits,
+      max_final_quality,
+      ghost_killer_threshold);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    quality_filter<false>(parameters, velo_tracks, dev_forward_no_ut_ghost_killer);
+    quality_filter<false>(
+      parameters,
+      velo_tracks,
+      dev_forward_no_ut_ghost_killer,
+      maximum_number_of_candidates_per_ut_track,
+      max_diff_ty_window,
+      factor_9_hits,
+      factor_10_hits,
+      factor_11_hits,
+      factor_12_hits,
+      max_final_quality,
+      ghost_killer_threshold);
   }
 }

@@ -29,7 +29,6 @@ namespace ut_select_velo_tracks_with_windows {
     DEVICE_OUTPUT(dev_ut_number_of_selected_velo_tracks_with_windows_t, unsigned)
     dev_ut_number_of_selected_velo_tracks_with_windows;
     DEVICE_OUTPUT(dev_ut_selected_velo_tracks_with_windows_t, unsigned) dev_ut_selected_velo_tracks_with_windows;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void ut_select_velo_tracks_with_windows(Parameters);
@@ -44,6 +43,6 @@ namespace ut_select_velo_tracks_with_windows {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 } // namespace ut_select_velo_tracks_with_windows

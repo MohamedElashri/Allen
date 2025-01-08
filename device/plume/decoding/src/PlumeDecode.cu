@@ -131,6 +131,6 @@ void plume_decode::plume_decode_t::operator()(
          (bank_version == 3 ? plume_decode_kernel<false, 3> :
                               (bank_version == 2 ? plume_decode_kernel<false, 2> : plume_decode_kernel<false, 1>) ));
 
-  global_function(f_plume_decode_kernel)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(arguments);
+  global_function(f_plume_decode_kernel)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
+    arguments);
 }

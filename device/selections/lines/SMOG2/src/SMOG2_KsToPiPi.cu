@@ -15,25 +15,25 @@
 INSTANTIATE_LINE(SMOG2_kstopipi_line::SMOG2_kstopipi_line_t, SMOG2_kstopipi_line::Parameters)
 
 __device__ bool SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto vertex = std::get<0>(input);
   const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
   const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
 
-  return vertex.has_pv() && vertex.pv().position.z >= parameters.minPVZ && vertex.pv().position.z < parameters.maxPVZ &&
-         vertex.minipchi2() > parameters.minIPChi2 && vertex.charge() == parameters.CombCharge &&
-         track1->state().pt() > parameters.minTrackPt && track2->state().pt() > parameters.minTrackPt &&
-         vertex.vertex().chi2() < parameters.maxVertexChi2 && vertex.ip() < parameters.maxIP &&
-         vertex.m12(Allen::mPi, Allen::mPi) >= parameters.minMass &&
-         vertex.m12(Allen::mPi, Allen::mPi) < parameters.maxMass && vertex.vertex().z() >= parameters.minPVZ;
+  return vertex.has_pv() && vertex.pv().position.z >= properties.minPVZ && vertex.pv().position.z < properties.maxPVZ &&
+         vertex.minipchi2() > properties.minIPChi2 && vertex.charge() == properties.CombCharge &&
+         track1->state().pt() > properties.minTrackPt && track2->state().pt() > properties.minTrackPt &&
+         vertex.vertex().chi2() < properties.maxVertexChi2 && vertex.ip() < properties.maxIP &&
+         vertex.m12(Allen::mPi, Allen::mPi) >= properties.minMass &&
+         vertex.m12(Allen::mPi, Allen::mPi) < properties.maxMass && vertex.vertex().z() >= properties.minPVZ;
 }
 
 __device__ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned,
   bool sel)
@@ -41,15 +41,16 @@ __device__ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::monitor(
   if (sel) {
     const auto smogks = std::get<0>(input);
 
-    accumulators.histogram_smogks_mass.increment(smogks.m12(Allen::mPi, Allen::mPi));
-    accumulators.histogram_smogks_svz.increment(smogks.vertex().z());
-    accumulators.histogram_smogks_pt.increment(smogks.vertex().pt());
-    accumulators.histogram_smogks_pvz.increment(smogks.pv().position.z);
+    properties.histogram_smogks_mass.increment(smogks.m12(Allen::mPi, Allen::mPi));
+    properties.histogram_smogks_svz.increment(smogks.vertex().z());
+    properties.histogram_smogks_pt.increment(smogks.vertex().pt());
+    properties.histogram_smogks_pvz.increment(smogks.pv().position.z);
   }
 }
 
 __device__ void SMOG2_kstopipi_line::SMOG2_kstopipi_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,
   bool sel)

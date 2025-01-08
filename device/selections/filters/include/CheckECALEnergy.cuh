@@ -24,13 +24,9 @@ namespace check_ecal_energy {
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
-
-    PROPERTY(ecalCut_t, "ecalCut", "ECAL cut value.", float) ecalCut;
-    PROPERTY(cutHigh_t, "cutHigh", "Select events with ECAL energy less than ecalCut.", bool) cutHigh;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void check_ecal_energy(Parameters, const unsigned number_of_events);
+  __global__ void check_ecal_energy(Parameters, const unsigned number_of_events, const float, const bool);
 
   struct check_ecal_energy_t : public DeviceAlgorithm, Parameters {
 
@@ -43,9 +39,9 @@ namespace check_ecal_energy {
       const Allen::Context&) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
-    Property<ecalCut_t> m_ecalCut {this, 310.f * Gaudi::Units::GeV};
-    Property<cutHigh_t> m_cutHigh {this, true};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
+    Allen::Property<float> m_ecalCut {this, "ecalCut", 310.f * Gaudi::Units::GeV, "ECAL cut value."};
+    Allen::Property<bool> m_cutHigh {this, "cutHigh", true, "Select events with ECAL energy less than ecalCut."};
   }; // check_ecal_energy_t
 
 } // namespace check_ecal_energy

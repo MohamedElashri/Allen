@@ -31,8 +31,7 @@ void make_neutral_basic_particles::make_neutral_particles_t::operator()(
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_neutral_basic_particle_view_t>(arguments, 0, context);
-  global_function(make_particles)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(make_particles)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(arguments);
 }
 
 void __global__ make_neutral_basic_particles::make_particles(make_neutral_basic_particles::Parameters parameters)

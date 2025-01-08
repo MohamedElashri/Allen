@@ -25,7 +25,6 @@ namespace rich_decoding {
     DEVICE_OUTPUT(dev_rich_hit_offsets_t, unsigned) dev_rich_hit_offsets;
     HOST_OUTPUT(host_rich_total_number_of_hits_t, unsigned) host_rich_total_number_of_hits;
     DEVICE_OUTPUT(dev_smart_ids_t, Allen::RichSmartID) dev_smart_ids;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned) block_dim_x;
   };
 
   struct rich_decoding_t : public DeviceAlgorithm, Parameters {
@@ -38,6 +37,6 @@ namespace rich_decoding {
       const Allen::Context&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 64};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 64, "block dimension x"};
   };
 } // namespace rich_decoding

@@ -76,13 +76,6 @@ namespace error_bank_filter {
     HOST_OUTPUT(host_output_event_list_t, unsigned) host_output_event_list;
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
     HOST_OUTPUT(host_temp_counts_t, float) host_counts;
-    PROPERTY(
-      sd_bank_types_t,
-      "sd_bank_types",
-      "subdetector data, other and error bank types",
-      std::map<std::string, error_bank_filter::bank_types_t>)
-    sd_bank_types;
-    PROPERTY(daq_error_types_t, "daq_error_types", "DAQ error types", std::vector<std::string>) daq_error_types;
   };
 
   // Algorithm
@@ -138,18 +131,24 @@ namespace error_bank_filter {
 
     mutable std::unordered_map<std::string, sd_info_t> m_sd_info;
 
-    Property<sd_bank_types_t> m_sd_bank_types {this, {}};
-    Property<daq_error_types_t> m_daq_error_types {this,
-                                                   {"DaqErrorFragmentThrottled",
-                                                    "DaqErrorBXIDCorrupted",
-                                                    "DaqErrorSyncBXIDCorrupted",
-                                                    "DaqErrorFragmentMissing",
-                                                    "DaqErrorFragmentTruncated",
-                                                    "DaqErrorIdleBXIDCorrupted",
-                                                    "DaqErrorFragmentMalformed",
-                                                    "DaqErrorEVIDJumped",
-                                                    "DaqErrorAlignFifoFull",
-                                                    "DaqErrorFEfragSizeWrong"}};
+    Allen::Property<std::map<std::string, error_bank_filter::bank_types_t>> m_sd_bank_types {
+      this,
+      "sd_bank_types",
+      {},
+      "subdetector data, other and error bank types"};
+    Allen::Property<std::vector<std::string>> m_daq_error_types {this,
+                                                                 "daq_error_types",
+                                                                 {"DaqErrorFragmentThrottled",
+                                                                  "DaqErrorBXIDCorrupted",
+                                                                  "DaqErrorSyncBXIDCorrupted",
+                                                                  "DaqErrorFragmentMissing",
+                                                                  "DaqErrorFragmentTruncated",
+                                                                  "DaqErrorIdleBXIDCorrupted",
+                                                                  "DaqErrorFragmentMalformed",
+                                                                  "DaqErrorEVIDJumped",
+                                                                  "DaqErrorAlignFifoFull",
+                                                                  "DaqErrorFEfragSizeWrong"},
+                                                                 "DAQ error types"};
   };
 
 } // namespace error_bank_filter

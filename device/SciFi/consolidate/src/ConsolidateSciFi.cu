@@ -185,7 +185,7 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   auto dev_histo_long_track_forward_nhits = m_histogram_long_track_forward_nhits.data(context);
   auto dev_histo_long_track_forward_qop = m_histogram_long_track_forward_qop.data(context);
 
-  global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
     constants.dev_looking_forward_constants,
     constants.dev_magnet_polarity.data(),

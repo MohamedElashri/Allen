@@ -152,8 +152,7 @@ void scifi_raw_bank_decoder::scifi_raw_bank_decoder_t::operator()(
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
   if (bank_version < 0) return; // no SciFi banks present in data
 
-  global_function(scifi_raw_bank_decoder_kernel)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(scifi_raw_bank_decoder_kernel)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments, constants.dev_scifi_geometry, m_invalid_chanid.data(context));
 
 #if ALLEN_DEBUG

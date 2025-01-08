@@ -27,7 +27,7 @@ void make_lumi_summary::make_lumi_summary_t::set_arguments_size(
 
 void make_lumi_summary::make_lumi_summary_t::init()
 {
-  std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
+  std::map<std::string, std::pair<unsigned, unsigned>> schema = m_lumi_counter_schema;
 
   unsigned c_idx(0u);
   for (auto counter_name : Lumi::Constants::basic_counter_names) {
@@ -80,14 +80,17 @@ void make_lumi_summary::make_lumi_summary_t::operator()(
     }
   }
 
-  global_function(make_lumi_summary)(dim3(4u), property<block_dim_t>(), context)(
+  global_function(make_lumi_summary)(dim3(4u), m_block_dim, context)(
     arguments,
     first<host_number_of_events_t>(arguments),
     size<dev_event_list_t>(arguments),
     m_offsets_and_sizes,
     lumiInfos,
     infoSize,
-    size_of_aggregate);
+    size_of_aggregate,
+    m_lumi_sum_length,
+    m_key_full,
+    m_key);
 
   Allen::copy_async<host_lumi_summaries_t, dev_lumi_summaries_t>(arguments, context);
   Allen::copy_async<host_lumi_summary_offsets_t, dev_lumi_summary_offsets_t>(arguments, context);
@@ -126,7 +129,10 @@ __global__ void make_lumi_summary::make_lumi_summary(
   const offsets_and_sizes_t offsets_and_sizes,
   std::array<const Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos,
   std::array<unsigned, Lumi::Constants::n_sub_infos> infoSize,
-  const unsigned size_of_aggregate)
+  const unsigned size_of_aggregate,
+  const unsigned lumi_sum_length,
+  const unsigned key_full,
+  const unsigned key)
 {
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
        event_number += blockDim.x * gridDim.x) {
@@ -138,11 +144,11 @@ __global__ void make_lumi_summary::make_lumi_summary(
     if (sum_length == 0u) continue;
 
     auto* lumi_summary = parameters.dev_lumi_summaries + offset;
-    if (sum_length > parameters.lumi_sum_length) {
-      lumi_summary[0] = parameters.key_full;
+    if (sum_length > lumi_sum_length) {
+      lumi_summary[0] = key_full;
     }
     else {
-      lumi_summary[0] = parameters.key;
+      lumi_summary[0] = key;
     }
 
     /// ODIN information

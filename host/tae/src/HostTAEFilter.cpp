@@ -13,7 +13,10 @@
 
 INSTANTIATE_ALGORITHM(host_tae_filter::host_tae_filter_t)
 
-void tae_filter(host_tae_filter::host_tae_filter_t::Parameters parameters, unsigned const number_of_events)
+void tae_filter(
+  host_tae_filter::host_tae_filter_t::Parameters parameters,
+  unsigned const number_of_events,
+  bool const accept_sub_events)
 {
   unsigned n_tae = 0;
   unsigned event_list_size = 0;
@@ -53,7 +56,7 @@ void tae_filter(host_tae_filter::host_tae_filter_t::Parameters parameters, unsig
         else if (tae_window && (event_number == tae_start + 2 * *tae_window)) {
           // fill the event list only once the last event in the tae group is found,
 
-          if (parameters.accept_sub_events) {
+          if (accept_sub_events) {
             // sub events should be output as separate events
             for (unsigned tae_event = tae_start; tae_event <= event_number; ++tae_event) {
               parameters.host_output_event_list[event_list_size++] = tae_event;
@@ -83,7 +86,7 @@ void host_tae_filter::host_tae_filter_t::set_arguments_size(
     size<host_event_list_t>(arguments); // this is not the full mask, it is only the event list from ODIN
 
   set_size<host_number_of_tae_events_t>(arguments, 1);
-  set_size<host_tae_events_t>(arguments, m_accept_sub_events.get_value() ? 0 : TAE::max_tae_events(n_events));
+  set_size<host_tae_events_t>(arguments, m_accept_sub_events.value() ? 0 : TAE::max_tae_events(n_events));
   set_size<host_number_of_selected_events_t>(arguments, 1);
   set_size<host_output_event_list_t>(arguments, n_events);
   set_size<host_mask_event_list_t>(arguments, size<dev_event_list_t>(arguments));
@@ -107,7 +110,7 @@ void host_tae_filter::host_tae_filter_t::operator()(
     Allen::memcpyDeviceToHost,
     n_mask);
 
-  host_function(tae_filter)(arguments, size<host_event_list_t>(arguments));
+  host_function(tae_filter)(arguments, size<host_event_list_t>(arguments), m_accept_sub_events.value());
 
   auto n_selected = first<host_number_of_selected_events_t>(arguments);
   reduce_size<host_tae_events_t>(arguments, first<host_number_of_tae_events_t>(arguments));

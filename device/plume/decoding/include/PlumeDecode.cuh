@@ -25,7 +25,6 @@ namespace plume_decode {
     DEVICE_INPUT(dev_plume_raw_input_sizes_t, unsigned) dev_plume_raw_input_sizes;
     DEVICE_INPUT(dev_plume_raw_input_types_t, unsigned) dev_plume_raw_input_types;
     DEVICE_OUTPUT(dev_plume_t, Plume_) dev_plume;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
   };
 
   struct plume_decode_t : public DeviceAlgorithm, Parameters {
@@ -38,7 +37,7 @@ namespace plume_decode {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 32};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 32, "block dimension X"};
   };
 
 } // namespace plume_decode

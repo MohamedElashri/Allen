@@ -25,7 +25,6 @@ namespace seeding_copy_trackXZ_hit_number {
     HOST_OUTPUT(host_number_of_reconstructed_seeding_tracksXZ_t, unsigned)
     host_number_of_reconstructed_seeding_trackXZs;
     DEVICE_OUTPUT(dev_offsets_scifi_seedXZ_hit_number_t, unsigned) dev_offsets_scifi_seedXZ_hit_number;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
   __global__ void seeding_copy_trackXZ_hit_number(Parameters);
 
@@ -39,6 +38,6 @@ namespace seeding_copy_trackXZ_hit_number {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{512, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {512, 1, 1}, "block dimensions"};
   };
 } // namespace seeding_copy_trackXZ_hit_number

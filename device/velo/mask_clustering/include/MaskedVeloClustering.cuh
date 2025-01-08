@@ -38,7 +38,6 @@ namespace velo_masked_clustering {
       DEPENDENCIES(dev_velo_cluster_container_t, dev_module_cluster_num_t, dev_number_of_events_t),
       Velo::Clusters)
     dev_velo_clusters;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   struct velo_masked_clustering_t : public DeviceAlgorithm, Parameters {
@@ -51,6 +50,6 @@ namespace velo_masked_clustering {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 } // namespace velo_masked_clustering

@@ -53,10 +53,10 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
   Allen::memset_async<dev_hit_used_t>(arguments, 0, context);
   Allen::memset_async<dev_offsets_velo_tracks_t>(arguments, 0, context);
 
-  global_function(velo_search_by_triplet)(size<dev_event_list_t>(arguments), property<block_dim_x_t>().get(), context)(
-    arguments, constants.dev_velo_geometry);
+  global_function(velo_search_by_triplet)(size<dev_event_list_t>(arguments), dim3(m_block_dim_x), context)(
+    arguments, constants.dev_velo_geometry, m_tolerance, m_max_scatter, m_skip);
 
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     info_cout << "VELO tracks found:\n";
     print_velo_tracks<
       dev_tracks_t,
@@ -117,7 +117,10 @@ void velo_search_by_triplet::velo_search_by_triplet_t::operator()(
  */
 __global__ void velo_search_by_triplet::velo_search_by_triplet(
   velo_search_by_triplet::Parameters parameters,
-  const VeloGeometry* dev_velo_geometry)
+  const VeloGeometry* dev_velo_geometry,
+  const float phi_tolerance,
+  const float max_scatter,
+  const unsigned max_skipped_modules)
 {
   // Shared memory size is a constant, enough to fit information about three module pairs.
   __shared__ Velo::ModulePair module_pair_data[3];
@@ -164,7 +167,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
   // Due to shared module data initialization
   __syncthreads();
 
-  const auto phi_tolerance_i16 = hit_phi_float_to_16(parameters.phi_tolerance);
+  const auto phi_tolerance_i16 = hit_phi_float_to_16(phi_tolerance);
 
   // Do first track seeding
   const auto initial_seeding_candidates = initial_seeding_h0_candidates;
@@ -176,7 +179,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
     tracks_to_follow,
     h1_rel_indices,
     dev_atomics_velo,
-    parameters.max_scatter,
+    max_scatter,
     phi_tolerance_i16,
     initial_seeding_candidates);
 
@@ -225,8 +228,8 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
       dev_atomics_velo,
       parameters.dev_offsets_velo_tracks,
       phi_tolerance_i16,
-      parameters.max_scatter,
-      parameters.max_skipped_modules,
+      max_scatter,
+      max_skipped_modules,
       event_number);
 
     // Due to module data reading
@@ -242,7 +245,7 @@ __global__ void velo_search_by_triplet::velo_search_by_triplet(
       tracks_to_follow,
       h1_rel_indices,
       dev_atomics_velo,
-      parameters.max_scatter,
+      max_scatter,
       phi_tolerance_i16,
       seeding_candidates);
 

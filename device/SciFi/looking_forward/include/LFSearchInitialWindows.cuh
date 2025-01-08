@@ -36,24 +36,18 @@ namespace lf_search_initial_windows {
     DEVICE_OUTPUT(dev_input_states_t, MiniState) dev_input_states;
     DEVICE_OUTPUT(dev_scifi_lf_number_of_tracks_t, unsigned) dev_scifi_lf_number_of_tracks;
     DEVICE_OUTPUT(dev_scifi_lf_tracks_indices_t, unsigned) dev_scifi_lf_tracks_indices;
-    PROPERTY(hit_window_size_t, "hit_window_size", "maximum hit window size", unsigned) hit_window_size;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions);
-    PROPERTY(input_momentum_t, "input_momentum", "momentum assumption to open SW", float) input_momentum;
-    PROPERTY(input_pt_t, "input_pt", "pt assumption to open SW", float) input_pt;
-    PROPERTY(overlap_in_mm_t, "overlap_in_mm", "overlap between SWs left-right", float) overlap_in_mm;
-    PROPERTY(
-      initial_windows_max_offset_uv_window_t,
-      "initial_windows_max_offset_uv_window",
-      "initial_windows_max_offset_uv_window",
-      float)
-    initial_windows_max_offset_uv_window;
-    PROPERTY(x_windows_factor_t, "x_windows_factor", "x_windows_factor", float) x_windows_factor;
   };
 
   __global__ void lf_search_initial_windows(
     Parameters,
     const LookingForward::Constants* dev_looking_forward_constants,
-    const float* dev_magnet_polarity);
+    const float* dev_magnet_polarity,
+    const float input_pt,
+    const float input_momentum,
+    const int hit_window_size,
+    const float initial_windows_max_offset_uv_window,
+    const float x_windows_factor,
+    const float overlap_in_mm);
 
   struct lf_search_initial_windows_t : public DeviceAlgorithm, Parameters {
     void update(const Constants& constants) const;
@@ -67,12 +61,15 @@ namespace lf_search_initial_windows {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
-    Property<hit_window_size_t> m_hit_window_size {this, 32};
-    Property<input_momentum_t> m_input_momentum {this, 5000.};
-    Property<input_pt_t> m_input_pt {this, 1000.};
-    Property<overlap_in_mm_t> m_overlap_in_mm {this, 50.};
-    Property<initial_windows_max_offset_uv_window_t> m_initial_windows_max_offset_uv_window {this, 800.};
-    Property<x_windows_factor_t> m_x_windows_factor {this, 1.};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
+    Allen::Property<unsigned> m_hit_window_size {this, "hit_window_size", 32, "maximum hit window size"};
+    Allen::Property<float> m_input_momentum {this, "input_momentum", 5000., "momentum assumption to open SW"};
+    Allen::Property<float> m_input_pt {this, "input_pt", 1000., "pt assumption to open SW"};
+    Allen::Property<float> m_overlap_in_mm {this, "overlap_in_mm", 50., "overlap between SWs left-right"};
+    Allen::Property<float> m_initial_windows_max_offset_uv_window {this,
+                                                                   "initial_windows_max_offset_uv_window",
+                                                                   800.,
+                                                                   "initial_windows_max_offset_uv_window"};
+    Allen::Property<float> m_x_windows_factor {this, "x_windows_factor", 1., "x_windows_factor"};
   };
 } // namespace lf_search_initial_windows

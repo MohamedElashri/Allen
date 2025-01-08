@@ -51,8 +51,6 @@ namespace GenericSVCombiner {
     dev_multi_event_combos_ptr;
 
     // Set all properties to filter svs
-    PROPERTY(block_dim_filter_t, "block_dim_filter", "block dimensions for filter step", DeviceDimensions)
-    block_dim_filter;
   };
 
   __global__ void combine_generic_svs(Parameters);
@@ -67,6 +65,9 @@ namespace GenericSVCombiner {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_filter_t> m_block_dim_filter {this, {{16, 16, 1}}};
+    Allen::Property<dim3> m_block_dim_filter {this,
+                                              "block_dim_filter",
+                                              {16, 16, 1},
+                                              "block dimensions for filter step"};
   };
 } // namespace GenericSVCombiner

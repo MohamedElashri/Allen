@@ -22,30 +22,30 @@ namespace di_muon_track_eff_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(DMTrackEffM0_t, "DMTrackEffM0", "DMTrackEffM0 description", float) DMTrackEffM0;
-    PROPERTY(DMTrackEffM1_t, "DMTrackEffM1", "DMTrackEffM1 description", float) DMTrackEffM1;
-    PROPERTY(DMTrackEffMinZ_t, "DMTrackEffMinZ", "MinZ for DMTrackEff", float) DMTrackEffMinZ;
-    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
   };
 
   struct di_muon_track_eff_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     CompositeParticleLine<di_muon_track_eff_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+
+    struct DeviceProperties {
+      float DMTrackEffM0;
+      float DMTrackEffM1;
+      float DMTrackEffMinZ;
+      bool oppositeSign;
+      DeviceProperties(const di_muon_track_eff_line_t& algo, const Allen::Context&) :
+        DMTrackEffM0(algo.m_DMTrackEffM0), DMTrackEffM1(algo.m_DMTrackEffM1), DMTrackEffMinZ(algo.m_DMTrackEffMinZ),
+        oppositeSign(algo.m_opposite_sign.value())
+      {}
+    };
+    __device__ static bool
+    select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     // Mass window around J/psi meson.
-    Property<DMTrackEffM0_t> m_DMTrackEffM0 {this, 2900.f};
-    Property<DMTrackEffM1_t> m_DMTrackEffM1 {this, 3100.f};
-    Property<DMTrackEffMinZ_t> m_DMTrackEffMinZ {this, -341.f};
-    Property<OppositeSign_t> m_opposite_sign {this, true};
+    Allen::Property<float> m_DMTrackEffM0 {this, "DMTrackEffM0", 2900.f, "DMTrackEffM0 description"};
+    Allen::Property<float> m_DMTrackEffM1 {this, "DMTrackEffM1", 3100.f, "DMTrackEffM1 description"};
+    Allen::Property<float> m_DMTrackEffMinZ {this, "DMTrackEffMinZ", -341.f, "MinZ for DMTrackEff"};
+    Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dimuon combinations"};
   };
 } // namespace di_muon_track_eff_line

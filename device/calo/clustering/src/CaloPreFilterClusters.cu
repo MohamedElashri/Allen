@@ -34,15 +34,18 @@ void calo_prefilter_clusters::calo_prefilter_clusters_t::operator()(
 {
   Allen::memset_async<dev_num_prefiltered_clusters_t>(arguments, 0, context);
 
-  global_function(calo_prefilter_clusters)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_prefilter_t>(), context)(arguments);
+  global_function(calo_prefilter_clusters)(dim3(size<dev_event_list_t>(arguments)), m_block_dim_prefilter, context)(
+    arguments, m_minEt_clusters, m_minE19_clusters);
 
   global_function(count_twoclusters)(1, dim3(64), context)(arguments);
 
   PrefixSum::prefix_sum<dev_ecal_twocluster_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
 }
 
-__global__ void calo_prefilter_clusters::calo_prefilter_clusters(calo_prefilter_clusters::Parameters parameters)
+__global__ void calo_prefilter_clusters::calo_prefilter_clusters(
+  calo_prefilter_clusters::Parameters parameters,
+  const float minEt_clusters,
+  const float minE19_clusters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const auto event_neutral_particles = parameters.dev_neutral_particles->container(event_number);
@@ -54,7 +57,7 @@ __global__ void calo_prefilter_clusters::calo_prefilter_clusters(calo_prefilter_
   for (unsigned i_cluster = threadIdx.x; i_cluster < ecal_num_clusters; i_cluster += blockDim.x) {
     const auto particle = event_neutral_particles.particle(i_cluster);
     const auto cluster = particle.cluster();
-    if (cluster.et > parameters.minEt_clusters && cluster.CaloNeutralE19 > parameters.minE19_clusters) {
+    if (cluster.et > minEt_clusters && cluster.CaloNeutralE19 > minE19_clusters) {
       const unsigned idx = atomicAdd(num_prefiltered_clusters, 1);
       prefiltered_clusters_idx[idx] = i_cluster;
     }

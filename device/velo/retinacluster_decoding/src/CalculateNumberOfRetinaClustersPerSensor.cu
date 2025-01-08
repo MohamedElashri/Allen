@@ -101,7 +101,7 @@ operator()(
                         global_function(calculate_number_of_retinaclusters_each_sensor_pair_kernel<4, true>) :
                         global_function(calculate_number_of_retinaclusters_each_sensor_pair_kernel<4, false>));
 
-  kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  kernel_fn(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments, std::get<0>(runtime_options.event_interval));
 
   PrefixSum::prefix_sum<dev_offsets_each_sensor_pair_size_t, host_total_sum_holder_t>(*this, arguments, context);

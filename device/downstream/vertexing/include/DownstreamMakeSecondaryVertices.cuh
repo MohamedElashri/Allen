@@ -86,7 +86,6 @@ namespace downstream_make_secondary_vertices {
     dev_multi_event_composites_ptr;
 
     // Property
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void downstream_make_secondary_vertices(Parameters);
@@ -103,7 +102,7 @@ namespace downstream_make_secondary_vertices {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{16, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {16, 1, 1}, "block dimensions"};
 
     Allen::Monitoring::Histogram<> m_histogram_nsvs {this,
                                                      "number_of_svs",

@@ -32,7 +32,7 @@ void host_dummy_maker::host_dummy_maker_t::operator()(
   const Allen::Context& context) const
 {
   Allen::memset_async<host_sum_dummy_t>(arguments, 0, context);
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     debug_cout << "Making dummy object" << std::endl;
   }
 }

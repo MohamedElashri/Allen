@@ -143,20 +143,13 @@ class AllenCore():
                 "\", \"" + str(param.typedef) + "\"),\n"
 
         # Properties
-        for prop in algorithm.properties:
-            # Use the python JSON parser to turn the JSON
-            # representation of default values into appropriate Python
-            # objects
-            pn = prop.name[1:-1]
-            dv = json.loads(default_properties[pn])
-
+        for pn, [dv, data_type, descr] in default_properties.items():
             # Quotes have to be added for properties that hold a string
             if type(dv) is str:
                 dv = f'"{dv}"'
 
-            # Write the code for the property and include the C++ type
-            # as a comment
-            s += f'{AllenCore.prefix(i)}{pn} = {dv}, # {prop.typedef}\n'
+            # Write the code for the property
+            s += f'{AllenCore.prefix(i)}{pn} = {dv}, # ({data_type}) {descr}\n'
         s = s[:-1]
         i -= 1
         s += "\n" + AllenCore.prefix(i) + ")\n"
@@ -205,21 +198,21 @@ class AllenCore():
         return s
 
     @staticmethod
-    def generate_gaudi_wrapper_for_aggregate(algorithm):
+    def generate_gaudi_wrapper_for_aggregate(algorithm, default_properties):
 
         # Initialize the properties
         properties_initialization = [
-            f"m_algorithm.set_property_value<{algorithm.namespace}::Parameters::{p.typename}, {p.typedef}>(m_{p.typename}.value());"
-            if p.scope == "algorithm" else
-            f"m_algorithm.set_property_value<Allen::Algorithm::{p.typename}, {p.typedef}>(m_{p.typename}.value());"
-            for p in algorithm.properties
+            f"m_algorithm.set_property_value<{typedef}>(m_{name}.name(), m_{name}.value());"
+            for name, [value, typedef, description] in default_properties.
+            items()
         ]
         properties = [
-            f"Gaudi::Property<{p.typedef}> m_{p.typename}{{this, {p.name}, {p.default_value}, [=,this](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, {p.description} }};"
-            for p, init in zip(algorithm.properties, properties_initialization)
+            f"Gaudi::Property<{typedef}> m_{name}{{this, \"{name}\", m_algorithm.get_property<{typedef}>(\"{name}\"), [=, this](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, \"{description}\" }};"
+            for [name, [value, typedef, description]], init in zip(
+                default_properties.items(), properties_initialization)
         ]
         properties += [
-            # a property indicating that it contains optionals
+            # a property indicating that it does not contain optionals
             'Gaudi::Property<bool> m_hasOptionals{this, "hasOptionals", true};'
         ]
 
@@ -452,17 +445,17 @@ class AllenCore():
         return code
 
     @staticmethod
-    def generate_gaudi_wrapper(algorithm):
+    def generate_gaudi_wrapper(algorithm, default_properties):
         # Initialize the properties
         properties_initialization = [
-            f"m_algorithm.set_property_value<{algorithm.namespace}::Parameters::{p.typename}, {p.typedef}>(m_{p.typename}.value());"
-            if p.scope == "algorithm" else
-            f"m_algorithm.set_property_value<Allen::Algorithm::{p.typename}, {p.typedef}>(m_{p.typename}.value());"
-            for p in algorithm.properties
+            f"m_algorithm.set_property_value<{typedef}>(m_{name}.name(), m_{name}.value());"
+            for name, [value, typedef, description] in default_properties.
+            items()
         ]
         properties = [
-            f"Gaudi::Property<{p.typedef}> m_{p.typename}{{this, {p.name}, {p.default_value}, [=,this](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, {p.description} }};"
-            for p, init in zip(algorithm.properties, properties_initialization)
+            f"Gaudi::Property<{typedef}> m_{name}{{this, \"{name}\", m_algorithm.get_property<{typedef}>(\"{name}\"), [=, this](auto&) {{ {init} }}, Gaudi::Details::Property::ImmediatelyInvokeHandler{{true}}, \"{description}\" }};"
+            for [name, [value, typedef, description]], init in zip(
+                default_properties.items(), properties_initialization)
         ]
         properties += [
             # a property indicating that it does not contain optionals
@@ -642,19 +635,18 @@ class AllenCore():
         return code
 
     @staticmethod
-    def write_algorithms_view(algorithms, filename, default_properties):
+    def get_default_properties(algorithms, default_properties_cmd):
         from subprocess import (PIPE, run)
 
         # Run the default_properties executable to get a JSON
         # representation of the default values of all properties of
         # all algorithms
-        p = run(
-            [default_properties],
-            stdout=PIPE,
-            input=';'.join([
-                "{}::{}".format(a.namespace, a.name) for a in parsed_algorithms
-            ]),
-            encoding='ascii')
+        p = run([default_properties_cmd],
+                stdout=PIPE,
+                input=';'.join([
+                    "{}::{}".format(a.namespace, a.name) for a in algorithms
+                ]),
+                encoding='ascii')
 
         default_properties = None
         if p.returncode == 0:
@@ -662,9 +654,12 @@ class AllenCore():
         else:
             print("Failed to obtain default property values")
             sys.exit(-1)
+        return default_properties
 
+    @staticmethod
+    def write_algorithms_view(algorithms, filename, default_properties):
         s = AllenCore.write_preamble()
-        for algorithm in parsed_algorithms:
+        for algorithm in algorithms:
             tn = "{}::{}".format(algorithm.namespace, algorithm.name)
             s += AllenCore.write_algorithm_code(algorithm,
                                                 default_properties[tn])
@@ -672,22 +667,31 @@ class AllenCore():
             f.write(s)
 
     @staticmethod
-    def write_gaudi_algorithms(algorithms,
-                               algorithm_wrappers_folder,
-                               write_files=True):
+    def get_gaudi_algorithms_filenames(algorithms, algorithm_wrappers_folder):
         algorithms_generated_filenames = []
         for alg in algorithms:
+            output_filename = algorithm_wrappers_folder + "/" + alg.name + "_gaudi.cpp"
+            algorithms_generated_filenames.append(output_filename)
+        return algorithms_generated_filenames
+
+    @staticmethod
+    def write_gaudi_algorithms(algorithms, algorithm_wrappers_folder,
+                               default_properties):
+        algorithms_generated_filenames = []
+        for alg in algorithms:
+            tn = "{}::{}".format(alg.namespace, alg.name)
             if not [
                     var
                     for var in alg.parameters if var.aggregate or var.optional
             ]:
-                code = AllenCore.generate_gaudi_wrapper(alg)
+                code = AllenCore.generate_gaudi_wrapper(
+                    alg, default_properties[tn])
             else:
-                code = AllenCore.generate_gaudi_wrapper_for_aggregate(alg)
+                code = AllenCore.generate_gaudi_wrapper_for_aggregate(
+                    alg, default_properties[tn])
             output_filename = algorithm_wrappers_folder + "/" + alg.name + "_gaudi.cpp"
-            if write_files:
-                with open(output_filename, "w") as f:
-                    f.write(code)
+            with open(output_filename, "w") as f:
+                f.write(code)
             algorithms_generated_filenames.append(output_filename)
         return algorithms_generated_filenames
 
@@ -831,21 +835,24 @@ if __name__ == '__main__':
 
         if args.generate == "views":
             # Generate algorithm python views
+            default_properties = AllenCore.get_default_properties(
+                parsed_algorithms, args.default_properties)
             AllenCore.write_algorithms_view(parsed_algorithms, args.filename,
-                                            args.default_properties)
+                                            default_properties)
         elif args.generate == "wrapperlist":
             # Generate Gaudi wrapper filenames
-            gaudi_wrapper_filenames = AllenCore.write_gaudi_algorithms(
-                parsed_algorithms,
-                args.algorithm_wrappers_folder,
-                write_files=False)
+            gaudi_wrapper_filenames = AllenCore.get_gaudi_algorithms_filenames(
+                parsed_algorithms, args.algorithm_wrappers_folder)
             # Write algorithm list in txt format for CMake
             AllenCore.write_algorithm_filename_list(gaudi_wrapper_filenames,
                                                     args.filename)
         elif args.generate == "wrappers":
             # Write Gaudi wrappers on top of all algorithms
+            default_properties = AllenCore.get_default_properties(
+                parsed_algorithms, args.default_properties)
             AllenCore.write_gaudi_algorithms(parsed_algorithms,
-                                             args.algorithm_wrappers_folder)
+                                             args.algorithm_wrappers_folder,
+                                             default_properties)
         elif args.generate == "db":
             # Generate Allen algorithms DB
             AllenCore.write_algorithms_db(parsed_algorithms, args.filename)

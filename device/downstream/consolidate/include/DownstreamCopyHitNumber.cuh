@@ -38,7 +38,6 @@ namespace downstream_copy_hit_number {
     DEVICE_OUTPUT(dev_offsets_downstream_hit_numbers_t, unsigned) dev_offsets_downstream_hit_numbers;
     HOST_OUTPUT(host_number_of_hits_in_downstream_tracks_t, unsigned) host_number_of_hits_in_downstream_tracks;
     // Property
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void downstream_copy_hit_number(Parameters);
@@ -53,6 +52,6 @@ namespace downstream_copy_hit_number {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
   };
 } // namespace downstream_copy_hit_number

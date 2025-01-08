@@ -46,7 +46,7 @@ void downstream_make_particles::downstream_make_particles_t::operator()(
   Allen::memset_async<dev_downstream_particles_ip_t>(arguments, 0, context);
   Allen::memset_async<dev_downstream_particles_pv_t>(arguments, 0, context);
 
-  global_function(downstream_make_particles)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(downstream_make_particles)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments, constants.dev_magnet_polarity.data());
 
   global_function(downstream_create_particles_views)(dim3(first<host_number_of_events_t>(arguments)), 128, context)(

@@ -30,15 +30,16 @@ namespace single_high_et_line {
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
 
     // Properties
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minET_t, "minET", "min Et of brem cluster", float) minET;
   };
 
   // SelectionAlgorithm definition
   struct single_high_et_line_t : public SelectionAlgorithm, Parameters, Line<single_high_et_line_t, Parameters> {
+
+    struct DeviceProperties {
+      float minET;
+      DeviceProperties(const single_high_et_line_t& algo, const Allen::Context&) : minET(algo.m_minET) {}
+    };
+
     // Offset function
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number);
 
@@ -46,19 +47,14 @@ namespace single_high_et_line {
     static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments);
 
     // Get input function
-    __device__ static std::tuple<const float>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
+    __device__ static std::tuple<const float> get_input(const Parameters&, const unsigned, const unsigned i);
 
     // Selection function
-    __device__ static bool select(const Parameters& parameters, std::tuple<const float> input);
+    __device__ static bool select(const Parameters&, const DeviceProperties&, std::tuple<const float> input);
 
   private:
     // Commonly required properties
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     // Line-specific properties
-    Property<minET_t> m_minET {this, 15000.f};
+    Allen::Property<float> m_minET {this, "minET", 15000.f, "min Et of brem cluster"};
   };
 } // namespace single_high_et_line

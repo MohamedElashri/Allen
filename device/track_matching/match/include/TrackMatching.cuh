@@ -48,61 +48,6 @@ namespace track_matching {
     DEVICE_OUTPUT(dev_offsets_matched_tracks_t, unsigned) dev_offsets_matched_tracks;
     HOST_OUTPUT(host_number_of_reconstructed_matched_tracks_t, unsigned)
     host_number_of_reconstructed_matched_tracks;
-
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-
-    PROPERTY(
-      matching_no_ut_ghost_killer_version_t,
-      "matching_no_ut_ghost_killer_version",
-      "matching_no_ut_ghost_killer_version",
-      int)
-    matching_no_ut_ghost_killer_version;
-
-    PROPERTY(
-      matching_with_ut_ghost_killer_version_t,
-      "matching_with_ut_ghost_killer_version",
-      "matching_with_ut_ghost_killer_version",
-      int)
-    matching_with_ut_ghost_killer_version;
-
-    PROPERTY(multiplication_factor_dX_t, "multiplication_factor_dX", "multiplication_factor_dX", float)
-    multiplication_factor_dX;
-    PROPERTY(multiplication_factor_dY_t, "multiplication_factor_dY", "multiplication_factor_dY", float)
-    multiplication_factor_dY;
-    PROPERTY(multiplication_factor_dty_t, "multiplication_factor_dty", "multiplication_factor_dty", float)
-    multiplication_factor_dty;
-    PROPERTY(multiplication_factor_dtx_t, "multiplication_factor_dtx", "multiplication_factor_dtx", float)
-    multiplication_factor_dtx;
-    PROPERTY(ghost_killer_threshold_t, "ghost_killer_threshold", "ghost_killer_threshold", float)
-    ghost_killer_threshold;
-
-    PROPERTY(momentum_parameters_t, "momentum_parameters", "momentum_parameters", std::array<float, 16>)
-    momentum_parameters;
-
-    PROPERTY(z_magnet_parameters_t, "z_magnet_parameters", "z_magnet_parameters", std::array<float, 5>)
-    z_magnet_parameters;
-
-    PROPERTY(
-      ut_x_loose_tolerance_parameters_t,
-      "ut_x_loose_tolerance_parameters",
-      "ut_x_loose_tolerance_parameters",
-      std::array<float, 4 * 3>)
-    ut_x_loose_tolerance_parameters;
-
-    PROPERTY(
-      ut_x_tight_tolerance_parameters_t,
-      "ut_x_tight_tolerance_parameters",
-      "ut_x_tight_tolerance_parameters",
-      std::array<float, 4 * 3>)
-    ut_x_tight_tolerance_parameters;
-
-    PROPERTY(ut_y_tolerance_parameters_t, "ut_y_tolerance_parameters", "ut_y_tolerance_parameters", float)
-    ut_y_tolerance_parameters;
-
-    PROPERTY(min_num_ut_hits_t, "min_num_ut_hits", "min_num_ut_hits", unsigned) min_num_ut_hits;
-
-    PROPERTY(force_skip_ut_t, "force_skip_ut", "force_skip_ut", bool) force_skip_ut;
-    PROPERTY(force_no_ut_nn_t, "force_no_ut_nn", "force_no_ut_nn", bool) force_no_ut_nn;
   };
 
 #if defined(TARGET_DEVICE_CUDA)
@@ -124,6 +69,13 @@ namespace track_matching {
     Parameters,
     const float* dev_magnet_polarity,
     const GhostKiller_t* dev_matching_ghost_killer,
+    const std::array<float, 16>,
+    const std::array<float, 5>,
+    const float,
+    const float,
+    const float,
+    const float,
+    const float,
     Allen::Monitoring::Counter<>::DeviceType);
 
   __global__ void track_matching_add_ut_hits(
@@ -131,15 +83,26 @@ namespace track_matching {
     const float* dev_magnet_polarity,
     const unsigned* dev_unique_x_sector_layer_offsets,
     const float* dev_unique_sector_xs,
+    const std::array<float, 4 * 3> ut_x_loose_tolerance_parameters,
+    const std::array<float, 4 * 3> ut_x_tight_tolerance_parameters,
+    const float ut_y_tolerance_parameters,
     const UT::Constants::PerLayerInfo* dev_mean_layer_info,
     Allen::Monitoring::Counter<>::DeviceType);
 
-  __global__ void track_matching_filter_bad_ut_segment(Parameters);
+  __global__ void track_matching_filter_bad_ut_segment(Parameters, const unsigned min_num_ut_hits);
 
   __global__ void track_matching_select_best_ut_segment(Parameters);
 
   template<typename GhostKiller_t>
-  __global__ void track_matching_ghost_killing(Parameters, const GhostKiller_t* dev_matching_ghost_killer);
+  __global__ void track_matching_ghost_killing(
+    Parameters,
+    const std::array<float, 5>,
+    const float,
+    const float,
+    const float,
+    const float,
+    const float,
+    const GhostKiller_t* dev_matching_ghost_killer);
 
   __global__ void track_matching_clone_killing(Parameters);
 
@@ -154,58 +117,85 @@ namespace track_matching {
 
   private:
     Allen::Monitoring::Counter<> m_n_overflow_track_matching {this, "n_overflow_track_matching"};
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
-    Property<matching_no_ut_ghost_killer_version_t> m_matching_no_ut_ghost_killer_version {this, 2};
-    Property<matching_with_ut_ghost_killer_version_t> m_matching_with_ut_ghost_killer_version {this, 2};
-    Property<multiplication_factor_dX_t> m_multiplication_factor_dX {this, 0.8};
-    Property<multiplication_factor_dY_t> m_multiplication_factor_dY {this, 0.2};
-    Property<multiplication_factor_dty_t> m_multiplication_factor_dty {this, 937.5};
-    Property<multiplication_factor_dtx_t> m_multiplication_factor_dtx {this, 2.};
-    Property<ghost_killer_threshold_t> m_ghost_killer_threshold {this, 0.5};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 1, 1}, "block dimensions"};
+    Allen::Property<int> m_matching_no_ut_ghost_killer_version {this,
+                                                                "matching_no_ut_ghost_killer_version",
+                                                                2,
+                                                                "matching_no_ut_ghost_killer_version"};
+    Allen::Property<int> m_matching_with_ut_ghost_killer_version {this,
+                                                                  "matching_with_ut_ghost_killer_version",
+                                                                  2,
+                                                                  "matching_with_ut_ghost_killer_version"};
+    Allen::Property<float> m_multiplication_factor_dX {this,
+                                                       "multiplication_factor_dX",
+                                                       0.8,
+                                                       "multiplication_factor_dX"};
+    Allen::Property<float> m_multiplication_factor_dY {this,
+                                                       "multiplication_factor_dY",
+                                                       0.2,
+                                                       "multiplication_factor_dY"};
+    Allen::Property<float> m_multiplication_factor_dty {this,
+                                                        "multiplication_factor_dty",
+                                                        937.5,
+                                                        "multiplication_factor_dty"};
+    Allen::Property<float> m_multiplication_factor_dtx {this,
+                                                        "multiplication_factor_dtx",
+                                                        2.,
+                                                        "multiplication_factor_dtx"};
+    Allen::Property<float> m_ghost_killer_threshold {this, "ghost_killer_threshold", 0.5, "ghost_killer_threshold"};
 
     // Configured in python
-    Property<momentum_parameters_t> m_momentum_parameters {this, {}};
+    Allen::Property<std::array<float, 16>> m_momentum_parameters {this,
+                                                                  "momentum_parameters",
+                                                                  {},
+                                                                  "momentum_parameters"};
 
-    Property<z_magnet_parameters_t> m_z_magnet_parameters {this, {5287.6f, -7.98878f, 317.683f, 0.0119379f, -1418.42f}};
+    Allen::Property<std::array<float, 5>> m_z_magnet_parameters {this,
+                                                                 "z_magnet_parameters",
+                                                                 {5287.6f, -7.98878f, 317.683f, 0.0119379f, -1418.42f},
+                                                                 "z_magnet_parameters"};
 
     // 4 parameters for each layer: offset, slope, min, max
-    Property<ut_x_loose_tolerance_parameters_t> m_ut_x_loose_tolerance_parameters {this,
-                                                                                   {
-                                                                                     0.8333f,
-                                                                                     3.3333e4,
-                                                                                     1.2f,
-                                                                                     8.5f, /* Layer 0 */
-                                                                                     0.8333f,
-                                                                                     3.3333e4,
-                                                                                     1.2f,
-                                                                                     8.5f, /* Layer 1 */
-                                                                                     1.3333f,
-                                                                                     3.3333e4,
-                                                                                     1.5f,
-                                                                                     9.5f /* Layer 2 */
-                                                                                   }};
+    Allen::Property<std::array<float, 4 * 3>> m_ut_x_loose_tolerance_parameters {this,
+                                                                                 "ut_x_loose_tolerance_parameters",
+                                                                                 {0.8333f,
+                                                                                  3.3333e4,
+                                                                                  1.2f,
+                                                                                  8.5f,
+                                                                                  /* Layer 0 */ 0.8333f,
+                                                                                  3.3333e4,
+                                                                                  1.2f,
+                                                                                  8.5f,
+                                                                                  /* Layer 1 */ 1.3333f,
+                                                                                  3.3333e4,
+                                                                                  1.5f,
+                                                                                  9.5f /* Layer 2 */},
+                                                                                 "ut_x_loose_tolerance_parameters"};
     // 4 parameters for each layer: offset, slope, min, max
-    Property<ut_x_tight_tolerance_parameters_t> m_ut_x_tight_tolerance_parameters {this,
-                                                                                   {
-                                                                                     0.2f,
-                                                                                     0.6e4f,
-                                                                                     0.5f,
-                                                                                     2.0f, /* Layer 0 */
-                                                                                     0.4f,
-                                                                                     1.2e4f,
-                                                                                     1.0f,
-                                                                                     4.0f, /* Layer 1 */
-                                                                                     0.4f,
-                                                                                     1.2e4f,
-                                                                                     1.0f,
-                                                                                     4.0f /* Layer 2 */
-                                                                                   }};
-    Property<ut_y_tolerance_parameters_t> m_ut_y_tolerance_parameters {this, 1.f};
+    Allen::Property<std::array<float, 4 * 3>> m_ut_x_tight_tolerance_parameters {this,
+                                                                                 "ut_x_tight_tolerance_parameters",
+                                                                                 {0.2f,
+                                                                                  0.6e4f,
+                                                                                  0.5f,
+                                                                                  2.0f,
+                                                                                  /* Layer 0 */ 0.4f,
+                                                                                  1.2e4f,
+                                                                                  1.0f,
+                                                                                  4.0f,
+                                                                                  /* Layer 1 */ 0.4f,
+                                                                                  1.2e4f,
+                                                                                  1.0f,
+                                                                                  4.0f /* Layer 2 */},
+                                                                                 "ut_x_tight_tolerance_parameters"};
+    Allen::Property<float> m_ut_y_tolerance_parameters {this,
+                                                        "ut_y_tolerance_parameters",
+                                                        1.f,
+                                                        "ut_y_tolerance_parameters"};
 
-    Property<min_num_ut_hits_t> m_min_num_ut_hits {this, 2u};
+    Allen::Property<unsigned> m_min_num_ut_hits {this, "min_num_ut_hits", 2u, "min_num_ut_hits"};
 
-    Property<force_skip_ut_t> m_force_skip_ut {this, false};
-    Property<force_no_ut_nn_t> m_force_no_ut_nn {this, true};
+    Allen::Property<bool> m_force_skip_ut {this, "force_skip_ut", false, "force_skip_ut"};
+    Allen::Property<bool> m_force_no_ut_nn {this, "force_no_ut_nn", true, "force_no_ut_nn"};
   };
 
 } // namespace track_matching

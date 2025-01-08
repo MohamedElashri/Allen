@@ -28,24 +28,26 @@ namespace beam_gas_line {
     DEVICE_INPUT(dev_odin_data_t, ODINData) dev_odin_data;
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(min_velo_tracks_t, "min_velo_tracks", "Minimum number of VELO tracks", unsigned) min_velo_tracks;
-    PROPERTY(beam_crossing_type_t, "beam_crossing_type", "ODIN beam crossing type [0-3]", unsigned) beam_crossing_type;
-    PROPERTY(minNHits_t, "minNHits", "min number of hits of velo track", unsigned) minNHits;
-    PROPERTY(minZ_t, "minZ", "min z coordinate for accepted velo track POCA", float) minZ;
-    PROPERTY(maxZ_t, "maxZ", "max z coordinate for accepted velo track POCA", float) maxZ;
   };
 
   struct beam_gas_line_t : public SelectionAlgorithm, Parameters, Line<beam_gas_line_t, Parameters> {
-
+    struct DeviceProperties {
+      unsigned min_velo_tracks;
+      unsigned beam_crossing_type;
+      unsigned minNHits;
+      float minZ;
+      float maxZ;
+      DeviceProperties(const beam_gas_line_t& algo, const Allen::Context&) :
+        min_velo_tracks(algo.m_min_velo_tracks), beam_crossing_type(algo.m_beam_crossing_type),
+        minNHits(algo.m_minNHits), minZ(algo.m_minZ), maxZ(algo.m_maxZ)
+      {}
+    };
     __device__ static std::tuple<const unsigned, const unsigned, const unsigned, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
     __device__ static bool select(
-      const Parameters& parameters,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<const unsigned, const unsigned, const unsigned, const float> input);
 
     static unsigned get_decisions_size(const ArgumentReferences<Parameters>& arguments)
@@ -59,14 +61,16 @@ namespace beam_gas_line {
     }
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1e-3f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<min_velo_tracks_t> m_min_velo_tracks {this, 1};
-    Property<beam_crossing_type_t> m_beam_crossing_type {this, 1};
-    Property<minNHits_t> m_minNHits {this, 12};
-    Property<minZ_t> m_minZ {this, -550.f * Gaudi::Units::mm};
-    Property<maxZ_t> m_maxZ {this, -300.f * Gaudi::Units::mm};
+    Allen::Property<unsigned> m_min_velo_tracks {this, "min_velo_tracks", 1, "Minimum number of VELO tracks"};
+    Allen::Property<unsigned> m_beam_crossing_type {this, "beam_crossing_type", 1, "ODIN beam crossing type [0-3]"};
+    Allen::Property<unsigned> m_minNHits {this, "minNHits", 12, "min number of hits of velo track"};
+    Allen::Property<float> m_minZ {this,
+                                   "minZ",
+                                   -550.f * Gaudi::Units::mm,
+                                   "min z coordinate for accepted velo track POCA"};
+    Allen::Property<float> m_maxZ {this,
+                                   "maxZ",
+                                   -300.f * Gaudi::Units::mm,
+                                   "max z coordinate for accepted velo track POCA"};
   };
 } // namespace beam_gas_line

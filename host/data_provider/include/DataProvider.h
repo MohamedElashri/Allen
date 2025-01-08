@@ -21,8 +21,6 @@ namespace data_provider {
     DEVICE_OUTPUT(dev_raw_sizes_t, unsigned) dev_raw_sizes;
     DEVICE_OUTPUT(dev_raw_types_t, unsigned) dev_raw_types;
     HOST_OUTPUT(host_raw_bank_version_t, int) host_raw_bank_version;
-    PROPERTY(raw_bank_type_t, "bank_type", "type of raw bank to provide", BankTypes) prop_raw_bank_type;
-    PROPERTY(empty_t, "empty", "will provide empty banks", bool) empty;
   };
 
   struct data_provider_t : public ProviderAlgorithm, Parameters {
@@ -38,7 +36,7 @@ namespace data_provider {
       const Allen::Context& context) const;
 
   private:
-    Property<raw_bank_type_t> m_bank_type {this, BankTypes::ODIN};
-    Property<empty_t> m_empty {this, false};
+    Allen::Property<BankTypes> m_bank_type {this, "bank_type", BankTypes::ODIN, "type of raw bank to provide"};
+    Allen::Property<bool> m_empty {this, "empty", false, "will provide empty banks"};
   };
 } // namespace data_provider

@@ -26,7 +26,6 @@ namespace velo_estimate_input_size {
     HOST_OUTPUT(host_total_number_of_velo_clusters_t, unsigned) host_total_number_of_velo_clusters;
     DEVICE_OUTPUT(dev_module_candidate_num_t, unsigned) dev_module_candidate_num;
     DEVICE_OUTPUT(dev_cluster_candidates_t, unsigned) dev_cluster_candidates;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   struct velo_estimate_input_size_t : public DeviceAlgorithm, Parameters {
@@ -39,6 +38,6 @@ namespace velo_estimate_input_size {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{16, 16, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {16, 16, 1}, "block dimensions"};
   };
 } // namespace velo_estimate_input_size

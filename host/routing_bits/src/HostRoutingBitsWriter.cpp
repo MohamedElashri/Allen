@@ -24,8 +24,8 @@ void host_routingbits_writer::host_routingbits_writer_t::set_arguments_size(
 
 void host_routingbits_writer::host_routingbits_writer_t::init()
 {
-  const auto name_to_id_map = m_name_to_id_map.get_value().get();
-  const auto rb_map = m_routingbit_map.get_value().get();
+  const auto name_to_id_map = m_name_to_id_map.value();
+  const auto rb_map = m_routingbit_map.value();
   const auto nlines = name_to_id_map.size();
   const auto last_bit = RoutingBitsDefinition::n_words * RoutingBitsDefinition::bits_size;
 

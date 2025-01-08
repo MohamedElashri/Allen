@@ -432,7 +432,7 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
                       (runtime_options.mep_layout ? global_function(velo_calculate_sorting_key<4, true>) :
                                                     global_function(velo_calculate_sorting_key<4, false>));
 
-  kernel_fn1(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_calculate_key_t>().get(), context)(
+  kernel_fn1(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x_calculate_key), context)(
     arguments,
     std::get<0>(runtime_options.event_interval),
     constants.dev_velo_geometry,
@@ -456,10 +456,10 @@ void decode_retinaclusters::decode_retinaclusters_t::operator()(
                       (runtime_options.mep_layout ? global_function(decode_retinaclusters_sorted<4, true>) :
                                                     global_function(decode_retinaclusters_sorted<4, false>));
 
-  kernel_fn3(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_decode_retina_t>().get(), context)(
+  kernel_fn3(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x_decode_retina), context)(
     arguments, std::get<0>(runtime_options.event_interval), constants.dev_velo_geometry);
 
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     info_cout << "VELO clusters after decode_retina_clusters:\n";
     print_velo_clusters<
       dev_velo_cluster_container_t,

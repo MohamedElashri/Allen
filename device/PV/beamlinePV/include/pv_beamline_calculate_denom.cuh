@@ -29,7 +29,6 @@ namespace pv_beamline_calculate_denom {
     DEVICE_INPUT(dev_zpeaks_t, float) dev_zpeaks;
     DEVICE_INPUT(dev_number_of_zpeaks_t, unsigned) dev_number_of_zpeaks;
     DEVICE_OUTPUT(dev_pvtracks_denom_t, float) dev_pvtracks_denom;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void pv_beamline_calculate_denom(Parameters, const float*);
@@ -44,6 +43,6 @@ namespace pv_beamline_calculate_denom {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 } // namespace pv_beamline_calculate_denom

@@ -38,7 +38,6 @@ namespace host_veloscifi_dump {
     DEVICE_INPUT(dev_seeding_states_t, MiniState) dev_seeding_states;
 
     HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;
-    PROPERTY(dump_output_filename_t, "dump_output_filename", "dump output filename", std::string);
   };
 
   struct host_veloscifi_dump_t : public ValidationAlgorithm, Parameters {
@@ -51,6 +50,9 @@ namespace host_veloscifi_dump {
       const Allen::Context&) const;
 
   private:
-    Property<dump_output_filename_t> m_dump_output_filename {this, "veloscifimatch.json"};
+    Allen::Property<std::string> m_dump_output_filename {this,
+                                                         "dump_output_filename",
+                                                         "veloscifimatch.json",
+                                                         "dump output filename"};
   };
 } // namespace host_veloscifi_dump

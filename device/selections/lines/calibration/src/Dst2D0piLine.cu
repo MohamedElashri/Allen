@@ -13,8 +13,8 @@
 INSTANTIATE_LINE(dst_d2kpi_line::dst_d2kpi_line_t, dst_d2kpi_line::Parameters)
 
 __device__ bool dst_d2kpi_line::dst_d2kpi_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto particle = std::get<0>(input);
@@ -46,18 +46,18 @@ __device__ bool dst_d2kpi_line::dst_d2kpi_line_t::select(
   }
 
   const bool decision =
-    dm < parameters.dmMax && d0_vertex.pt() > parameters.minComboPt && d0_vertex.chi2() < parameters.maxVertexChi2 &&
-    d0->eta() > parameters.minEta && d0->eta() < parameters.maxEta && d0->doca12() < parameters.maxDOCA &&
-    d0->minpt() > parameters.minTrackPt && d0->has_pv() && d0->minip() > parameters.minTrackIP &&
-    d0->fdchi2() > parameters.minFDChi2 && d0->ctau(Allen::mDz) > parameters.ctIPScale * parameters.minTrackIP &&
-    fabsf(m_d0 - Allen::mDz) < parameters.massWindow && d0_vertex.z() >= parameters.minZ &&
-    d0->pv().position.z >= parameters.minZ;
+    dm < properties.dmMax && d0_vertex.pt() > properties.minComboPt && d0_vertex.chi2() < properties.maxVertexChi2 &&
+    d0->eta() > properties.minEta && d0->eta() < properties.maxEta && d0->doca12() < properties.maxDOCA &&
+    d0->minpt() > properties.minTrackPt && d0->has_pv() && d0->minip() > properties.minTrackIP &&
+    d0->fdchi2() > properties.minFDChi2 && d0->ctau(Allen::mDz) > properties.ctIPScale * properties.minTrackIP &&
+    fabsf(m_d0 - Allen::mDz) < properties.massWindow && d0_vertex.z() >= properties.minZ &&
+    d0->pv().position.z >= properties.minZ;
   return decision;
 }
 
 __device__ void dst_d2kpi_line::dst_d2kpi_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned,
   bool sel)
@@ -88,14 +88,15 @@ __device__ void dst_d2kpi_line::dst_d2kpi_line_t::monitor(
     const float dm = m_dst - m_d0;
     const float pt = d0_vertex.pt();
 
-    accumulators.histogram_d0_mass.increment(m_d0);
-    accumulators.histogram_d0_pt.increment(pt);
-    accumulators.histogram_dst_dm.increment(dm);
+    properties.histogram_d0_mass.increment(m_d0);
+    properties.histogram_d0_pt.increment(pt);
+    properties.histogram_dst_dm.increment(dm);
   }
 }
 
 __device__ void dst_d2kpi_line::dst_d2kpi_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,
   bool sel)

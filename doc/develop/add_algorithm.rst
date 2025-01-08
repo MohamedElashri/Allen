@@ -136,12 +136,10 @@ Parameters and properties
       DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
       DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
       DEVICE_OUTPUT(dev_saxpy_output_t, float) dev_saxpy_output;
-      PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float) saxpy_scale_factor;
-      PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
     };
   }
 
-In the `saxpy` namespace the parameters and properties are specified. Parameters *scope* can either be the host or the device, and they can either be inputs or outputs. Parameters should be defined with the following convention::
+In the `saxpy` namespace the parameters are specified. Parameters *scope* can either be the host or the device, and they can either be inputs or outputs. Parameters should be defined with the following convention::
 
     <scope>_<io>(<name>, <type>) <identifier>;
 
@@ -171,29 +169,17 @@ Defines an input parameter on *host memory*, with name `host_number_of_events_t`
 
 Defines an input parameter on *device memory*, with name `dev_number_of_events_t` and identifier `dev_number_of_events`. Its underlying type is `const unsigned*`.
 
-Properties of algorithms define constants and can be configured prior to running the application. They are defined in two parts. First, they should be defined in the `DEFINE_PARAMETERS` macro following the convention::
+Properties of algorithms define constants and can be configured prior to running the application. They should be defined inside the algorithm struct as follows::
 
-    PROPERTY(<name>, <key>, <description>, <type>) <identifier>;
-
-For example like this:
-
-.. code-block:: c++
-
-   PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float) saxpy_scale_factor
-
-Property with name `saxpy_scale_factor_t` is of type `float`. It will be accessible through key `"saxpy_scale_factor"` in a python configuration file, and it has description `"scale factor a used in a*x + y"`. Its identifier is `saxpy_scale_factor`. Properties *underlying type* is always the same as their type, so in this case `float`.
-
-And second, properties should be defined inside the algorithm struct as follows::
-
-    Property<_name_> _internal_name_ {this, _default_value_};
+    Property<_type_> _internal_name_ {this, _name_string_, _default_value_, _description_};
 
 In the case of saxpy:
 
 .. code-block:: c++
 
   private:
-    Property<saxpy_scale_factor_t> m_saxpy_factor {this, 2.f};
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Property<float> m_saxpy_factor {this, "saxpy_scale_factor", 2.f, "scale factor a used in a*x + y"};
+    Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
 
 Views
 ^^^^^^^^^^
@@ -253,8 +239,8 @@ An algorithm must define **two methods**: `set_arguments_size` and `operator()`.
       const Allen::Context& context) const;
 
   private:
-    Property<saxpy_scale_factor_t> m_saxpy_factor {this, 2.f};
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Property<float> m_saxpy_factor {this, "saxpy_scale_factor", 2.f, "scale factor a used in a*x + y"};
+    Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"}; // dim3 is a native CUDA type representing 3D sizes
   };
 
 An algorithm `saxpy_t` has been declared. It is a `DeviceAlgorithm`, and for convenience it inherits from the previously defined `Parameters`. It defines two methods, `set_arguments_size` and `operator()` with the above predefined signatures. The algorithm declaration ends with the `private:` block for the properties mentioned before.
@@ -263,7 +249,7 @@ Since this is a DeviceAlgorithm, one would like the work to actually be done on 
 
 .. code-block:: c++
 
-  __global__ void saxpy(Parameters);
+  __global__ void saxpy(Parameters, float factor);
 
 SAXPY_example.cu
 --------------------
@@ -305,7 +291,7 @@ Next, `operator()` should be defined:
   {
     global_function(saxpy)(
       dim3(1),
-      property<block_dim_t>(), context)(arguments);
+      m_block_dim, context)(arguments, m_saxpy_factor);
   }
 
 In order to invoke host and global functions, wrapper methods `host_function` and `global_function` should be used. The syntax is as follows:
@@ -336,7 +322,7 @@ Finally, the kernel is defined:
   * @brief SAXPY example algorithm
   * @detail Calculates for every event y = a*x + x, where x is the number of velo tracks in one event
   */
-  __global__ void saxpy::saxpy(saxpy::Parameters parameters)
+  __global__ void saxpy::saxpy(saxpy::Parameters parameters, float factor)
   {
     const auto number_of_events = parameters.dev_number_of_events[0];
     for (unsigned event_number = threadIdx.x; event_number < number_of_events; event_number += blockDim.x) {
@@ -345,7 +331,7 @@ Finally, the kernel is defined:
       const unsigned number_of_tracks_event = velo_tracks.number_of_tracks(event_number);
 
       parameters.dev_saxpy_output[event_number] =
-        parameters.saxpy_scale_factor * number_of_tracks_event + number_of_tracks_event;
+        factor * number_of_tracks_event + number_of_tracks_event;
     }
   }
 
@@ -363,7 +349,6 @@ In other words, in the code above:
 * `parameters.dev_atomics_velo` decays to `const unsigned*`.
 * `parameters.dev_velo_track_hit_number` decays to `const unsigned*`.
 * `parameters.dev_saxpy_output` decays to `float*`.
-* `parameters.saxpy_scale_factor` decays to `float`, and has default value `2.f`.
 
 .. _building_newly_defined_algorithm:
 
@@ -385,7 +370,7 @@ Typically, events are processed by independent blocks of execution. When that's 
 
   global_function(kernel)(
     size<dev_event_list_t>(),
-    property<block_dim_t>(), context)(arguments);
+    m_block_dim, context)(arguments);
 
 Then, in the kernel itself, in order to access the event under execution, the following idiom is used:
 

@@ -49,32 +49,32 @@ di_electron_soft_line::di_electron_soft_line_t::get_input(
 }
 
 __device__ bool di_electron_soft_line::di_electron_soft_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float> input)
 {
-
   const auto& [vertex, is_dielectron, brem_corrected_dielectron_mass, dipion_mass] = input;
 
   const bool opposite_sign = vertex.charge() == 0;
 
   if (!is_dielectron) return false;
-  if (vertex.minip() < parameters.DESoftMinIP) return false;
-  if (opposite_sign != parameters.OppositeSign) return false;
+  if (vertex.minip() < properties.DESoftMinIP) return false;
+  if (opposite_sign != properties.OppositeSign) return false;
 
   const bool decision =
-    vertex.vertex().chi2() > 0 && (dipion_mass < parameters.DESoftM0 || dipion_mass > parameters.DESoftM1) &&
-    (brem_corrected_dielectron_mass < parameters.DESoftM2) && vertex.eta() > 0 &&
+    vertex.vertex().chi2() > 0 && (dipion_mass < properties.DESoftM0 || dipion_mass > properties.DESoftM1) &&
+    (brem_corrected_dielectron_mass < properties.DESoftM2) && vertex.eta() > 0 &&
     (vertex.vertex().x() * vertex.vertex().x() + vertex.vertex().y() * vertex.vertex().y()) >
-      parameters.DESoftMinRho2 &&
-    (vertex.vertex().z() > parameters.DESoftMinZ) && (vertex.vertex().z() < parameters.DESoftMaxZ) &&
-    vertex.doca12() < parameters.DESoftMaxDOCA && vertex.ip() / vertex.dz() < parameters.DESoftMaxIPDZ &&
-    vertex.clone_sin2() > parameters.DESoftGhost;
+      properties.DESoftMinRho2 &&
+    (vertex.vertex().z() > properties.DESoftMinZ) && (vertex.vertex().z() < properties.DESoftMaxZ) &&
+    vertex.doca12() < properties.DESoftMaxDOCA && vertex.ip() / vertex.dz() < properties.DESoftMaxIPDZ &&
+    vertex.clone_sin2() > properties.DESoftGhost;
   return decision;
-  // return true;
 }
 
 __device__ void di_electron_soft_line::di_electron_soft_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float> input,
   unsigned index,
   bool sel)

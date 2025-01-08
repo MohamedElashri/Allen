@@ -26,7 +26,6 @@ namespace host_dummy_odin_provider {
     HOST_INPUT(host_odin_data_t, ODINData) host_odin_data;
     DEVICE_OUTPUT(dev_odin_dummy_t, ODINData) dev_odin_dummy;
     HOST_OUTPUT(host_odin_dummy_t, ODINData) host_odin_dummy;
-    PROPERTY(lumi_frac_t, "lumi_frac", "fraction of lumi events", std::array<float, 4>) lumi_frac;
   };
 
   // Algorithm
@@ -43,6 +42,9 @@ namespace host_dummy_odin_provider {
       const Allen::Context& context) const;
 
   private:
-    Property<lumi_frac_t> m_lumi_frac {this, {0.f, 0.f, 0.f, 0.f}};
+    Allen::Property<std::array<float, 4>> m_lumi_frac {this,
+                                                       "lumi_frac",
+                                                       {0.f, 0.f, 0.f, 0.f},
+                                                       "fraction of lumi events"};
   };
 } // namespace host_dummy_odin_provider

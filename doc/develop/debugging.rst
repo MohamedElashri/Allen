@@ -39,3 +39,21 @@ with the tags, data, and other flags following as normal. This will create a fil
     qcachegrind callgrind.out.xxxxxx
 
 replacing `callgrind.out.xxxxxx` with your file name. This should launch a window showing the CPU usage of Allen in a variety of different formats including tiles and flowchart.
+
+Algorithm verbosity
+^^^^^^^^^^^^^^^^^^^
+Every algorithm have a common `verbosity` property inherited from their base class. This property describe the verbosity level of the algorithm:
+
+* 0 = no logging
+* 1 = error
+* 2 = warning
+* 3 = info
+* 4 = debug
+* 5 = verbose
+
+Algorithms can access the property to conditionnaly print informations:
+
+.. code-block::c++
+  if (m_verbosity >= logger::debug) {
+    printf("debuging\n");
+  }

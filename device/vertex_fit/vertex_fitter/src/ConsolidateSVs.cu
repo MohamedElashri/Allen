@@ -26,8 +26,7 @@ void consolidate_svs::consolidate_svs_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(consolidate_svs)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(consolidate_svs)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(arguments);
 }
 
 __global__ void consolidate_svs::consolidate_svs(consolidate_svs::Parameters parameters)

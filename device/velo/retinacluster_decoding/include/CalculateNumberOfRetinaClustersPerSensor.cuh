@@ -25,7 +25,6 @@ namespace calculate_number_of_retinaclusters_each_sensor_pair {
     DEVICE_OUTPUT(dev_retina_bank_index_t, uint) dev_retina_bank_index;
     DEVICE_OUTPUT(dev_offsets_each_sensor_pair_size_t, unsigned) dev_offsets_each_sensor_pair_size;
     HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim_prop;
   };
 
   struct calculate_number_of_retinaclusters_each_sensor_pair_t : public DeviceAlgorithm, Parameters {
@@ -38,6 +37,6 @@ namespace calculate_number_of_retinaclusters_each_sensor_pair {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 } // namespace calculate_number_of_retinaclusters_each_sensor_pair

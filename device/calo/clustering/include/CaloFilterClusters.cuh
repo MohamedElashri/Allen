@@ -36,9 +36,6 @@ namespace calo_filter_clusters {
 
     DEVICE_OUTPUT(dev_cluster1_idx_t, unsigned) dev_cluster1_idx;
     DEVICE_OUTPUT(dev_cluster2_idx_t, unsigned) dev_cluster2_idx;
-
-    PROPERTY(block_dim_filter_t, "block_dim_filter", "block dimensions for filter step", DeviceDimensions)
-    block_dim_filter;
   };
 
   __global__ void calo_filter_clusters(Parameters);
@@ -54,7 +51,10 @@ namespace calo_filter_clusters {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_filter_t> m_block_dim_filter {this, {{64, 16, 1}}};
+    Allen::Property<dim3> m_block_dim_filter {this,
+                                              "block_dim_filter",
+                                              {64, 16, 1},
+                                              "block dimensions for filter step"};
 #ifndef ALLEN_STANDALONE
   private:
     mutable std::unique_ptr<Gaudi::Accumulators::Counter<>> m_calo_clusters;
