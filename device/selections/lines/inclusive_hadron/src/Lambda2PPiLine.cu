@@ -13,13 +13,13 @@
 INSTANTIATE_LINE(lambda2ppi_line::lambda2ppi_line_t, lambda2ppi_line::Parameters)
 
 __device__ bool lambda2ppi_line::lambda2ppi_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto Lambda = std::get<0>(input);
   const bool pv_filter =
-    Lambda.has_pv() && Lambda.pv().position.z >= parameters.minPVZ && Lambda.pv().position.z < parameters.maxPVZ;
+    Lambda.has_pv() && Lambda.pv().position.z >= properties.minPVZ && Lambda.pv().position.z < properties.maxPVZ;
 
   const auto L_vx = Lambda.vertex();
   // Proton is always first child for anything that passes the cuts below (see FilterTracks -- the ordering is
@@ -34,21 +34,22 @@ __device__ bool lambda2ppi_line::lambda2ppi_line_t::select(
 
   // Repeat stuff from FilterTracks, TODO: have container with lambda-prfilter decisions (will be needed so that
   // Lambda+track combinatorics doesn't explode)
-  const bool track_filter = proton_state.charge() != pion_state.charge() && proton_state.pt() > parameters.L_p_PT_min &&
-                            proton->has_pv() && proton->ip_chi2() > parameters.L_p_MIPCHI2_min &&
-                            proton->ip() > parameters.L_p_MIP_min && pion_state.pt() > parameters.L_pi_PT_min &&
-                            pion->ip_chi2() > parameters.L_pi_MIPCHI2_min && pion->ip() > parameters.L_pi_MIP_min &&
-                            Lambda.doca12() < parameters.L_DOCA_max && L_vx.pt() > parameters.L_PT_min &&
-                            lambda_mass < parameters.L_M_max;
+  const bool track_filter = proton_state.charge() != pion_state.charge() && proton_state.pt() > properties.L_p_PT_min &&
+                            proton->has_pv() && proton->ip_chi2() > properties.L_p_MIPCHI2_min &&
+                            proton->ip() > properties.L_p_MIP_min && pion_state.pt() > properties.L_pi_PT_min &&
+                            pion->ip_chi2() > properties.L_pi_MIPCHI2_min && pion->ip() > properties.L_pi_MIP_min &&
+                            Lambda.doca12() < properties.L_DOCA_max && L_vx.pt() > properties.L_PT_min &&
+                            lambda_mass < properties.L_M_max;
 
-  return pv_filter && track_filter && L_vx.chi2() < parameters.L_VCHI2_max && parameters.L_VZ_min < L_vx.z() &&
-         L_vx.z() < parameters.L_VZ_max && Lambda.dz() > parameters.L_BPVVDZ_min &&
-         Lambda.drho() > parameters.L_BPVVDRHO_min && Lambda.fdchi2() > parameters.L_BPVVDCHI2_min &&
-         Lambda.dira() > parameters.L_BPVDIRA_min;
+  return pv_filter && track_filter && L_vx.chi2() < properties.L_VCHI2_max && properties.L_VZ_min < L_vx.z() &&
+         L_vx.z() < properties.L_VZ_max && Lambda.dz() > properties.L_BPVVDZ_min &&
+         Lambda.drho() > properties.L_BPVVDRHO_min && Lambda.fdchi2() > properties.L_BPVVDCHI2_min &&
+         Lambda.dira() > properties.L_BPVDIRA_min;
 }
 
 __device__ void lambda2ppi_line::lambda2ppi_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,
   bool sel)
@@ -102,7 +103,7 @@ __device__ void lambda2ppi_line::lambda2ppi_line_t::fill_tuples(
 
 __device__ void lambda2ppi_line::lambda2ppi_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned,
   bool sel)
@@ -114,9 +115,9 @@ __device__ void lambda2ppi_line::lambda2ppi_line_t::monitor(
     const auto c1 = static_cast<const Allen::Views::Physics::BasicParticle*>(lz.child(1));
     const auto mass = c0->state().p() > c1->state().p() ? lz.m12(Allen::mP, Allen::mPi) : lz.m12(Allen::mPi, Allen::mP);
 
-    accumulators.histogram_lz_mass.increment(mass);
-    accumulators.histogram_lz_pt.increment(lz.vertex().pt());
-    accumulators.histogram_lz_svz.increment(lz.vertex().z());
-    accumulators.histogram_lz_pvz.increment(lz.pv().position.z);
+    properties.histogram_lz_mass.increment(mass);
+    properties.histogram_lz_pt.increment(lz.vertex().pt());
+    properties.histogram_lz_svz.increment(lz.vertex().z());
+    properties.histogram_lz_pvz.increment(lz.pv().position.z);
   }
 }

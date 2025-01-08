@@ -25,31 +25,6 @@ namespace lambda_ll_detached_track_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
-    PROPERTY(pi_PT_min_t, "pi_PT_min", "pT of pion candidate", float) pi_PT_min;
-    PROPERTY(p_PT_min_t, "p_PT_min", "pT of proton candidate", float) p_PT_min;
-    PROPERTY(pi_MIPCHI2_min_t, "pi_MIPCHI2_min", "min IP chi2 of pion candidate", float) pi_MIPCHI2_min;
-    PROPERTY(p_MIPCHI2_min_t, "p_MIPCHI2_min", "min IP chi2 of proton candidate", float) p_MIPCHI2_min;
-    PROPERTY(L_PT_min_t, "L_PT_min", "pT of Lambda candidate", float) L_PT_min;
-    PROPERTY(L_DOCA_max_t, "L_DOCA_max", "DOCA of proton and pion", float) L_DOCA_max;
-    PROPERTY(L_VCHI2_max_t, "L_VCHI2_max", "Lambda vertex chi2", float) L_VCHI2_max;
-    PROPERTY(L_BPVFDCHI2_min_t, "L_BPVFDCHI2_min", "flight distance chi2 of Lambda candidate", float) L_BPVFDCHI2_min;
-    PROPERTY(L_M_min_t, "L_M_min", "min mass of Lambda candidate", float) L_M_min;
-    PROPERTY(L_M_max_t, "L_M_max", "max mass of Lambda candidate", float) L_M_max;
-    PROPERTY(t_MIPCHI2_min_t, "t_MIPCHI2_min", "min companion track IP chi2", float) t_MIPCHI2_min;
-    PROPERTY(t_PT_min_t, "t_PT_min", "min companion track PT", float) t_PT_min;
-    PROPERTY(M_max_t, "M_max", "max mass given pion mass hypothesis for companion track", float) M_max;
-    PROPERTY(VZ_min_t, "VZ_min", "min vertex z position", float) VZ_min;
-    PROPERTY(VZ_max_t, "VZ_max", "max vertex z position", float) VZ_max;
-    PROPERTY(BPVVDZ_min_t, "BPVVDZ_min", "min distance (in z) to best PV", float) BPVVDZ_min;
-    PROPERTY(BPVVDRHO_min_t, "BPVVDRHO_min", "min distance (in z) to best PV", float) BPVVDRHO_min;
-    PROPERTY(LVDZ_min_t, "LVDZ_min", "min distance (in z) to Lambda vertex", float) LVDZ_min;
-    PROPERTY(SUMPT_min_t, "SUMPT_min", "sum of Lambda and track pT", float) SUMPT_min;
 
     DEVICE_OUTPUT(M_t, float) M;
     DEVICE_OUTPUT(MCORR_t, float) MCORR;
@@ -95,29 +70,55 @@ namespace lambda_ll_detached_track_line {
   struct lambda_ll_detached_track_line_t : public SelectionAlgorithm,
                                            Parameters,
                                            CompositeParticleLine<lambda_ll_detached_track_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float pi_PT_min;
+      float p_PT_min;
+      float pi_MIPCHI2_min;
+      float p_MIPCHI2_min;
+      float L_PT_min;
+      float L_DOCA_max;
+      float L_VCHI2_max;
+      float L_BPVFDCHI2_min;
+      float L_M_min;
+      float L_M_max;
+      float t_MIPCHI2_min;
+      float t_PT_min;
+      float VZ_min;
+      float VZ_max;
+      float M_max;
+      float BPVVDZ_min;
+      float BPVVDRHO_min;
+      float LVDZ_min;
+      float SUMPT_min;
       Allen::Monitoring::Histogram<>::DeviceType histogram_Lambda_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_LambdaPi_mass;
-      DeviceAccumulators(const lambda_ll_detached_track_line_t& algo, const Allen::Context& ctx) :
+      DeviceProperties(const lambda_ll_detached_track_line_t& algo, const Allen::Context& ctx) :
+        pi_PT_min(algo.m_pi_PT_min), p_PT_min(algo.m_p_PT_min), pi_MIPCHI2_min(algo.m_pi_MIPCHI2_min),
+        p_MIPCHI2_min(algo.m_p_MIPCHI2_min), L_PT_min(algo.m_L_PT_min), L_DOCA_max(algo.m_L_DOCA_max),
+        L_VCHI2_max(algo.m_L_VCHI2_max), L_BPVFDCHI2_min(algo.m_L_BPVFDCHI2_min), L_M_min(algo.m_L_M_min),
+        L_M_max(algo.m_L_M_max), t_MIPCHI2_min(algo.m_t_MIPCHI2_min), t_PT_min(algo.m_t_PT_min), VZ_min(algo.m_VZ_min),
+        VZ_max(algo.m_VZ_max), M_max(algo.m_M_max), BPVVDZ_min(algo.m_BPVVDZ_min), BPVVDRHO_min(algo.m_BPVVDRHO_min),
+        LVDZ_min(algo.m_LVDZ_min), SUMPT_min(algo.m_SUMPT_min),
         histogram_Lambda_mass(algo.m_histogram_Lambda_mass.data(ctx)),
         histogram_LambdaPi_mass(algo.m_histogram_LambdaPi_mass.data(ctx))
       {}
     };
 
     __device__ static bool
-    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle>,
+      unsigned,
+      bool);
     __device__ static void monitor(
-      const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
-      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle>,
+      unsigned,
+      bool);
 
     using monitoring_types = std::tuple<
       M_t,
@@ -161,31 +162,37 @@ namespace lambda_ll_detached_track_line {
       runNo_t>;
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<pi_PT_min_t> m_pi_PT_min {this, 130.f * Gaudi::Units::MeV};
-    Property<p_PT_min_t> m_p_PT_min {this, 1200.f * Gaudi::Units::MeV};
-    Property<pi_MIPCHI2_min_t> m_pi_MIPCHI2_min {this, 64.f};
-    Property<p_MIPCHI2_min_t> m_p_MIPCHI2_min {this, 12.f};
-    Property<L_PT_min_t> m_L_PT_min {this, 1400.f * Gaudi::Units::MeV};
-    Property<L_DOCA_max_t> m_L_DOCA_max {this, 100.f * Gaudi::Units::um};
-    Property<L_VCHI2_max_t> m_L_VCHI2_max {this, 16.f};
-    Property<L_BPVFDCHI2_min_t> m_L_BPVFDCHI2_min {this, 240.f};
-    Property<L_M_min_t> m_L_M_min {this, 1090.f * Gaudi::Units::MeV};
-    Property<L_M_max_t> m_L_M_max {this, 1140.f * Gaudi::Units::MeV};
-    Property<t_MIPCHI2_min_t> m_t_MIPCHI2_min {this, 12.f};
-    Property<t_PT_min_t> m_t_PT_min {this, 700.f * Gaudi::Units::MeV};
-    Property<VZ_min_t> m_VZ_min {this, -200.f * Gaudi::Units::mm};
-    Property<VZ_max_t> m_VZ_max {this, 250.f * Gaudi::Units::mm};
-    Property<M_max_t> m_M_max {this, 3.6f * Gaudi::Units::GeV};
-    Property<BPVVDZ_min_t> m_BPVVDZ_min {this, 1.5f * Gaudi::Units::mm};
-    Property<BPVVDRHO_min_t> m_BPVVDRHO_min {this, 120.f * Gaudi::Units::um};
-    Property<LVDZ_min_t> m_LVDZ_min {this, 8.f * Gaudi::Units::mm};
-    Property<SUMPT_min_t> m_SUMPT_min {this, 2.8f * Gaudi::Units::GeV};
-    Property<enable_monitoring_t> m_enable_monitoring {this, true};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_pi_PT_min {this, "pi_PT_min", 130.f * Gaudi::Units::MeV, "pT of pion candidate"};
+    Allen::Property<float> m_p_PT_min {this, "p_PT_min", 1200.f * Gaudi::Units::MeV, "pT of proton candidate"};
+    Allen::Property<float> m_pi_MIPCHI2_min {this, "pi_MIPCHI2_min", 64.f, "min IP chi2 of pion candidate"};
+    Allen::Property<float> m_p_MIPCHI2_min {this, "p_MIPCHI2_min", 12.f, "min IP chi2 of proton candidate"};
+    Allen::Property<float> m_L_PT_min {this, "L_PT_min", 1400.f * Gaudi::Units::MeV, "pT of Lambda candidate"};
+    Allen::Property<float> m_L_DOCA_max {this, "L_DOCA_max", 100.f * Gaudi::Units::um, "DOCA of proton and pion"};
+    Allen::Property<float> m_L_VCHI2_max {this, "L_VCHI2_max", 16.f, "Lambda vertex chi2"};
+    Allen::Property<float> m_L_BPVFDCHI2_min {this,
+                                              "L_BPVFDCHI2_min",
+                                              240.f,
+                                              "flight distance chi2 of Lambda candidate"};
+    Allen::Property<float> m_L_M_min {this, "L_M_min", 1090.f * Gaudi::Units::MeV, "min mass of Lambda candidate"};
+    Allen::Property<float> m_L_M_max {this, "L_M_max", 1140.f * Gaudi::Units::MeV, "max mass of Lambda candidate"};
+    Allen::Property<float> m_t_MIPCHI2_min {this, "t_MIPCHI2_min", 12.f, "min companion track IP chi2"};
+    Allen::Property<float> m_t_PT_min {this, "t_PT_min", 700.f * Gaudi::Units::MeV, "min companion track PT"};
+    Allen::Property<float> m_VZ_min {this, "VZ_min", -200.f * Gaudi::Units::mm, "min vertex z position"};
+    Allen::Property<float> m_VZ_max {this, "VZ_max", 250.f * Gaudi::Units::mm, "max vertex z position"};
+    Allen::Property<float> m_M_max {this,
+                                    "M_max",
+                                    3.6f * Gaudi::Units::GeV,
+                                    "max mass given pion mass hypothesis for companion track"};
+    Allen::Property<float> m_BPVVDZ_min {this, "BPVVDZ_min", 1.5f * Gaudi::Units::mm, "min distance (in z) to best PV"};
+    Allen::Property<float> m_BPVVDRHO_min {this,
+                                           "BPVVDRHO_min",
+                                           120.f * Gaudi::Units::um,
+                                           "min distance (in z) to best PV"};
+    Allen::Property<float> m_LVDZ_min {this,
+                                       "LVDZ_min",
+                                       8.f * Gaudi::Units::mm,
+                                       "min distance (in z) to Lambda vertex"};
+    Allen::Property<float> m_SUMPT_min {this, "SUMPT_min", 2.8f * Gaudi::Units::GeV, "sum of Lambda and track pT"};
 
     Allen::Monitoring::Histogram<> m_histogram_Lambda_mass {
       this,

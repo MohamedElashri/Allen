@@ -25,7 +25,6 @@ namespace host_seeding_validator {
     DEVICE_INPUT(dev_seeding_states_t, MiniState) dev_seeding_states;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;
-    PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
   };
 
   struct host_seeding_validator_t : public ValidationAlgorithm, Parameters {
@@ -38,6 +37,9 @@ namespace host_seeding_validator {
       const Allen::Context&) const;
 
   private:
-    Property<root_output_filename_t> m_root_output_filename {this, "PrCheckerPlots.root"};
+    Allen::Property<std::string> m_root_output_filename {this,
+                                                         "root_output_filename",
+                                                         "PrCheckerPlots.root",
+                                                         "root output filename"};
   };
 } // namespace host_seeding_validator

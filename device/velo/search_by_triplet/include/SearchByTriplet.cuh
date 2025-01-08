@@ -37,19 +37,6 @@ namespace velo_search_by_triplet {
     DEVICE_OUTPUT(dev_offsets_velo_tracks_t, unsigned) dev_offsets_velo_tracks;
     HOST_OUTPUT(host_number_of_velo_tracks_at_least_four_hits_t, unsigned)
     host_number_of_velo_tracks_at_least_four_hits;
-
-    // Tolerance in phi
-    PROPERTY(phi_tolerance_t, "phi_tolerance", "tolerance in phi", float) phi_tolerance;
-
-    // Max scatter for forming triplets (seeding) and forwarding
-    PROPERTY(max_scatter_t, "max_scatter", "maximum scatter for seeding and forwarding", float) max_scatter;
-
-    // Maximum number of skipped modules allowed for a track
-    // before storing it
-    PROPERTY(max_skipped_modules_t, "max_skipped_modules", "skipped modules", unsigned) max_skipped_modules;
-
-    // Block dimension x of kernel
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned) block_dim_x;
   };
 
   // Define pre and postconditions
@@ -107,7 +94,12 @@ namespace velo_search_by_triplet {
     const unsigned max_skipped_modules,
     const unsigned event_number);
 
-  __global__ void velo_search_by_triplet(Parameters, const VeloGeometry*);
+  __global__ void velo_search_by_triplet(
+    Parameters,
+    const VeloGeometry*,
+    const float phi_tolerance,
+    const float max_scatter,
+    const unsigned max_skipped_modules);
 
   struct velo_search_by_triplet_t : public DeviceAlgorithm, Parameters {
     // Register contracts for this algorithm
@@ -122,9 +114,9 @@ namespace velo_search_by_triplet {
       const Allen::Context& context) const;
 
   private:
-    Property<phi_tolerance_t> m_tolerance {this, 0.045f};
-    Property<max_scatter_t> m_max_scatter {this, 0.08f};
-    Property<max_skipped_modules_t> m_skip {this, 1};
-    Property<block_dim_x_t> m_block_dim_x {this, 64};
+    Allen::Property<float> m_tolerance {this, "phi_tolerance", 0.045f, "tolerance in phi"};
+    Allen::Property<float> m_max_scatter {this, "max_scatter", 0.08f, "maximum scatter for seeding and forwarding"};
+    Allen::Property<unsigned> m_skip {this, "max_skipped_modules", 1, "skipped modules"};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 64, "block dimension x"};
   };
 } // namespace velo_search_by_triplet

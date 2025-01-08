@@ -23,7 +23,6 @@ namespace total_ecal_energy {
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_OUTPUT(dev_ecal_digits_e_t, float) dev_ecal_digits_e;
     DEVICE_OUTPUT(dev_total_ecal_e_t, float) dev_total_ecal_e;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
   };
 
   __global__ void sum_ecal_energy(Parameters parameters, const char* raw_ecal_geometry);
@@ -38,6 +37,6 @@ namespace total_ecal_energy {
       Allen::Context const&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension X"};
   };
 } // namespace total_ecal_energy

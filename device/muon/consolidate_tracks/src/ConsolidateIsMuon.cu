@@ -111,7 +111,7 @@ void muon_consolidate_tracks::muon_consolidate_tracks_t::operator()(
   Allen::memset_async<dev_muon_long_tracks_view_t>(arguments, 0, context);
 
   global_function(muon_consolidate_tracks::muon_consolidate_tracks)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
   global_function(create_muon_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
 }
 

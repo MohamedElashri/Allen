@@ -30,8 +30,6 @@ namespace long_track_validator {
     dev_multi_event_long_tracks_view;
     DEVICE_INPUT(dev_offsets_long_tracks_t, unsigned) dev_offsets_long_tracks;
     DEVICE_OUTPUT(dev_long_checker_tracks_t, Checker::Track) dev_long_checker_tracks;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
   };
 
   __global__ void long_track_validator(Parameters parameters);
@@ -46,7 +44,10 @@ namespace long_track_validator {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
-    Property<root_output_filename_t> m_root_output_filename {this, "PrCheckerPlots.root"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
+    Allen::Property<std::string> m_root_output_filename {this,
+                                                         "root_output_filename",
+                                                         "PrCheckerPlots.root",
+                                                         "root output filename"};
   };
 } // namespace long_track_validator

@@ -32,12 +32,16 @@ void FilterMFTracks::filter_mf_tracks_t::operator()(
   Allen::memset_async<dev_svs_kf_idx_t>(arguments, 0, context);
   Allen::memset_async<dev_svs_mf_idx_t>(arguments, 0, context);
 
-  global_function(filter_mf_tracks)(
-    dim3(first<host_selected_events_mf_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, first<host_number_of_events_t>(arguments));
+  global_function(filter_mf_tracks)(dim3(first<host_selected_events_mf_t>(arguments)), m_block_dim, context)(
+    arguments, first<host_number_of_events_t>(arguments), m_kfminpt, m_kfminipchi2, m_mfminpt);
 }
 
-__global__ void FilterMFTracks::filter_mf_tracks(FilterMFTracks::Parameters parameters, const unsigned number_of_events)
+__global__ void FilterMFTracks::filter_mf_tracks(
+  FilterMFTracks::Parameters parameters,
+  const unsigned number_of_events,
+  const float kf_track_min_pt,
+  const float kf_track_min_ipchi2,
+  const float mf_track_min_pt)
 {
   const unsigned muon_filtered_event = blockIdx.x;
   const unsigned i_event = parameters.dev_event_list_mf[muon_filtered_event];
@@ -67,8 +71,7 @@ __global__ void FilterMFTracks::filter_mf_tracks(FilterMFTracks::Parameters para
   for (unsigned i_track = threadIdx.x; i_track < n_scifi_tracks; i_track += blockDim.x) {
 
     const ParKalmanFilter::FittedTrack trackA = event_kf_tracks[i_track];
-    if (
-      trackA.pt() < parameters.kf_track_min_pt || (trackA.ipChi2 < parameters.kf_track_min_ipchi2 && !trackA.is_muon)) {
+    if (trackA.pt() < kf_track_min_pt || (trackA.ipChi2 < kf_track_min_ipchi2 && !trackA.is_muon)) {
       continue;
     }
 
@@ -76,7 +79,7 @@ __global__ void FilterMFTracks::filter_mf_tracks(FilterMFTracks::Parameters para
     for (unsigned j_track = threadIdx.y; j_track < n_mf_tracks; j_track += blockDim.x) {
 
       const ParKalmanFilter::FittedTrack trackB = event_mf_tracks[j_track];
-      if (trackB.pt() < parameters.mf_track_min_pt || (!trackB.is_muon)) {
+      if (trackB.pt() < mf_track_min_pt || (!trackB.is_muon)) {
         continue;
       }
 

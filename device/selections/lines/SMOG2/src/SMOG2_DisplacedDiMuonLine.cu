@@ -31,22 +31,22 @@ SMOG2_displaced_di_muon_line::SMOG2_displaced_di_muon_line_t::get_input(
 }
 
 __device__ bool SMOG2_displaced_di_muon_line::SMOG2_displaced_di_muon_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto vertex = std::get<0>(input);
   const auto maxchi2muon = std::get<1>(input);
 
   if (!vertex.is_dimuon()) return false;
-  if (vertex.mdimu() < parameters.mass) return false;
+  if (vertex.mdimu() < properties.mass) return false;
   if (!vertex.has_pv()) return false;
-  if (!(vertex.pv().position.z < parameters.maxPVZ && vertex.pv().position.z > parameters.minPVZ)) return false;
+  if (!(vertex.pv().position.z < properties.maxPVZ && vertex.pv().position.z > properties.minPVZ)) return false;
 
-  bool decision = maxchi2muon < parameters.maxChi2CorrMuon && vertex.vertex().chi2() > 0 &&
-                  vertex.vertex().pt() > parameters.minComboPt && vertex.vertex().chi2() < parameters.maxVertexChi2 &&
-                  vertex.minpt() > parameters.minDispTrackPt && vertex.vertex().z() >= parameters.minZ &&
-                  vertex.ip() < parameters.m_maxIP && vertex.fdchi2() > parameters.m_minFDCHI2;
+  bool decision = maxchi2muon < properties.maxChi2CorrMuon && vertex.vertex().chi2() > 0 &&
+                  vertex.vertex().pt() > properties.minComboPt && vertex.vertex().chi2() < properties.maxVertexChi2 &&
+                  vertex.minpt() > properties.minDispTrackPt && vertex.vertex().z() >= properties.minZ &&
+                  vertex.ip() < properties.maxIP && vertex.fdchi2() > properties.minFDCHI2;
   if (decision) {
     using segment = Allen::Views::Physics::Track::segment;
     const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
@@ -65,13 +65,13 @@ __device__ bool SMOG2_displaced_di_muon_line::SMOG2_displaced_di_muon_line_t::se
 
 __device__ void SMOG2_displaced_di_muon_line::SMOG2_displaced_di_muon_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned,
   bool sel)
 {
   if (sel) {
     const auto vertex = std::get<0>(input);
-    accumulators.histogram_displaced_dimuon_mass.increment(vertex.mdimu());
+    properties.histogram_displaced_dimuon_mass.increment(vertex.mdimu());
   }
 }

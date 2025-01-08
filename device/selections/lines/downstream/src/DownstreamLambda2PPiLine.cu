@@ -16,7 +16,7 @@ INSTANTIATE_LINE(downstream_lambdatoppi_line::downstream_lambdatoppi_line_t, dow
 
 __device__ bool downstream_lambdatoppi_line::downstream_lambdatoppi_line_t::select(
   const Parameters& parameters,
-  const DeviceAccumulators&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input)
 {
   const auto composite = std::get<0>(input);
@@ -30,14 +30,35 @@ __device__ bool downstream_lambdatoppi_line::downstream_lambdatoppi_line_t::sele
   const auto composite_mass =
     c0->state().p() > c1->state().p() ? composite.m12(Allen::mP, Allen::mPi) : composite.m12(Allen::mPi, Allen::mP);
 
-  return (l0_mva > parameters.mva_l0_threshold.get()) &&
-         (detached_l0_mva > parameters.mva_detached_l0_threshold.get()) &&
-         (composite_mass > parameters.minMass.get()) && (composite_mass < parameters.maxMass.get());
+  return (l0_mva > properties.mva_l0_threshold) && (detached_l0_mva > properties.mva_detached_l0_threshold) &&
+         (composite_mass > properties.minMass) && (composite_mass < properties.maxMass);
 }
 
 __device__ void downstream_lambdatoppi_line::downstream_lambdatoppi_line_t::monitor(
+  const Parameters&,
+  const DeviceProperties& properties,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
+  unsigned,
+  bool sel)
+{
+  if (sel) {
+    const auto l0 = std::get<0>(input);
+
+    const auto c0 = static_cast<const Allen::Views::Physics::BasicParticle*>(l0.child(0));
+    const auto c1 = static_cast<const Allen::Views::Physics::BasicParticle*>(l0.child(1));
+
+    const auto l0_mass =
+      c0->state().p() > c1->state().p() ? l0.m12(Allen::mP, Allen::mPi) : l0.m12(Allen::mPi, Allen::mP);
+    const float pt = l0.vertex().pt();
+
+    properties.histogram_l0_mass.increment(l0_mass);
+    properties.histogram_l0_pt.increment(pt);
+  }
+}
+
+__device__ void downstream_lambdatoppi_line::downstream_lambdatoppi_line_t::fill_tuples(
   const Parameters& parameters,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
   unsigned index,
   bool sel)
@@ -50,13 +71,9 @@ __device__ void downstream_lambdatoppi_line::downstream_lambdatoppi_line_t::moni
 
     const auto l0_mass =
       c0->state().p() > c1->state().p() ? l0.m12(Allen::mP, Allen::mPi) : l0.m12(Allen::mPi, Allen::mP);
-
     const float pt = l0.vertex().pt();
 
     parameters.l0_mass[index] = l0_mass;
     parameters.l0_pt[index] = pt;
-
-    accumulators.histogram_l0_mass.increment(l0_mass);
-    accumulators.histogram_l0_pt.increment(pt);
   }
 }

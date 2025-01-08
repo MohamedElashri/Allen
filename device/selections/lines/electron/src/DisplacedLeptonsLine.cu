@@ -28,7 +28,8 @@ displaced_leptons_line::displaced_leptons_line_t::get_input(
 }
 
 __device__ bool displaced_leptons_line::displaced_leptons_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::BasicParticles, const unsigned, const bool*, const float*> input)
 {
   const auto tracks = std::get<0>(input);
@@ -40,9 +41,9 @@ __device__ bool displaced_leptons_line::displaced_leptons_line_t::select(
     const auto track = tracks.particle(i);
 
     if (
-      (track.has_pv() && track.ip_chi2() > parameters.min_ipchi2 && track.pv().position.z > parameters.minBPVz) &&
-      ((track.is_electron() && brem_corrected_pts[i] > parameters.min_pt) ||
-       (track.is_muon() && track.state().pt() > parameters.min_pt))) {
+      (track.has_pv() && track.ip_chi2() > properties.min_ipchi2 && track.pv().position.z > properties.min_BPVz) &&
+      ((track.is_electron() && brem_corrected_pts[i] > properties.min_pt) ||
+       (track.is_muon() && track.state().pt() > properties.min_pt))) {
       N_good_leptons += 1;
     }
   }

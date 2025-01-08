@@ -13,13 +13,14 @@
 INSTANTIATE_LINE(two_track_line_ks::two_track_line_ks_t, two_track_line_ks::Parameters)
 
 __device__ bool two_track_line_ks::two_track_line_ks_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto& particle = std::get<0>(input);
   const bool opposite_sign = particle.charge() == 0;
 
-  if (opposite_sign != parameters.OppositeSign) return false;
+  if (opposite_sign != properties.oppositeSign) return false;
   const auto& vertex = particle.vertex();
   if (vertex.chi2() < 0) {
     return false;
@@ -32,20 +33,20 @@ __device__ bool two_track_line_ks::two_track_line_ks_t::select(
   const float cos =
     (state1.px() * state2.px() + state1.py() * state2.py() + state1.pz() * state2.pz()) / (state1.p() * state2.p());
   const bool decision =
-    vertex.chi2() < parameters.maxVertexChi2 && particle.eta() > parameters.minEta_Ks &&
-    particle.eta() < parameters.maxEta_Ks && particle.has_pv() && particle.minipchi2() > parameters.minTrackIPChi2_Ks &&
-    particle.m12(Allen::mPi, Allen::mPi) > parameters.minM_Ks &&
-    particle.m12(Allen::mPi, Allen::mPi) < parameters.maxM_Ks && vertex.pt() > parameters.minComboPt_Ks &&
-    cos > parameters.minCosOpening && particle.dira() > parameters.minCosDira &&
-    particle.minp() > parameters.minTrackP_piKs && trk1->has_pv() && trk2->has_pv() &&
-    trk1->ip() * trk2->ip() / particle.ip() > parameters.min_combip && particle.minpt() > parameters.minTrackPt_piKs &&
-    vertex.z() >= parameters.minZ && particle.pv().position.z >= parameters.minZ;
-
+    vertex.chi2() < properties.maxVertexChi2 && particle.eta() > properties.minEta_Ks &&
+    particle.eta() < properties.maxEta_Ks && particle.has_pv() && particle.minipchi2() > properties.minTrackIPChi2_Ks &&
+    particle.m12(Allen::mPi, Allen::mPi) > properties.minM_Ks &&
+    particle.m12(Allen::mPi, Allen::mPi) < properties.maxM_Ks && vertex.pt() > properties.minComboPt_Ks &&
+    cos > properties.minCosOpening && particle.dira() > properties.minCosDira &&
+    particle.minp() > properties.minTrackP_piKs && trk1->has_pv() && trk2->has_pv() &&
+    trk1->ip() * trk2->ip() / particle.ip() > properties.min_combip && particle.minpt() > properties.minTrackPt_piKs &&
+    vertex.z() >= properties.minZ && particle.pv().position.z >= properties.minZ;
   return decision;
 }
 
 __device__ void two_track_line_ks::two_track_line_ks_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,
   bool sel)

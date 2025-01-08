@@ -30,23 +30,23 @@ namespace odin_event_type_with_decoding_line {
     DEVICE_INPUT(dev_muon_hits_t, char) dev_muon_hits;
     DEVICE_INPUT(dev_plume_t, Plume_) dev_plume;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(odin_event_type_t, "odin_event_type", "ODIN event type", unsigned) odin_event_type;
   };
 
   struct odin_event_type_with_decoding_line_t : public SelectionAlgorithm,
                                                 Parameters,
                                                 ODINLine<odin_event_type_with_decoding_line_t, Parameters> {
-    __device__ static bool select(const Parameters& parameters, std::tuple<const ODINData> input);
+    struct DeviceProperties {
+      unsigned odin_event_type;
+      DeviceProperties(const odin_event_type_with_decoding_line_t& algo, const Allen::Context&) :
+        odin_event_type(algo.m_odin_event_type)
+      {}
+    };
+    __device__ static bool select(const Parameters&, const DeviceProperties&, std::tuple<const ODINData> input);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<odin_event_type_t> m_odin_event_type {this, static_cast<uint16_t>(LHCb::ODIN::EventTypes::Lumi)};
+    Allen::Property<unsigned> m_odin_event_type {this,
+                                                 "odin_event_type",
+                                                 static_cast<uint16_t>(LHCb::ODIN::EventTypes::Lumi),
+                                                 "ODIN event type"};
   };
 } // namespace odin_event_type_with_decoding_line

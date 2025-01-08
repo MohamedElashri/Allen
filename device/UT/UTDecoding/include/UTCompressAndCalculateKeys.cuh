@@ -25,7 +25,6 @@ namespace ut_compress_and_calculate_keys {
     DEVICE_INPUT(dev_ut_tiebreak_t, uint32_t) dev_ut_tiebreak;
     DEVICE_OUTPUT(dev_ut_compressed_hits_t, char) dev_ut_compressed_hits;
     DEVICE_OUTPUT(dev_ut_sort_keys_t, uint64_t) dev_ut_sort_keys;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   /**
@@ -47,6 +46,6 @@ namespace ut_compress_and_calculate_keys {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 1, 1}, "block dimensions"};
   };
 } // namespace ut_compress_and_calculate_keys

@@ -39,8 +39,6 @@ namespace data_quality_validator_velo {
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_offsets_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
     DEVICE_INPUT(dev_velo_kalman_states_t, char) dev_velo_kalman_states;
-
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable Tupling", bool) enable_tupling;
   };
 
   struct data_quality_validator_velo_t : public HostAlgorithm, Parameters {
@@ -61,7 +59,7 @@ namespace data_quality_validator_velo {
       const Allen::Context& context) const;
 
   private:
-    Property<enable_tupling_t> m_enable_tupling {this, true};
+    Allen::Property<bool> m_enable_tupling {this, "enable_tupling", true, "Enable Tupling"};
   };
 } // namespace data_quality_validator_velo
 
@@ -72,8 +70,6 @@ namespace data_quality_validator_pv {
 
     DEVICE_INPUT(dev_multi_fit_vertices_t, PV::Vertex) dev_multi_fit_vertices;
     DEVICE_INPUT(dev_number_of_multi_fit_vertices_t, unsigned) dev_number_of_multi_fit_vertices;
-
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable Tupling", bool) enable_tupling;
   };
 
   struct data_quality_validator_pv_t : public HostAlgorithm, Parameters {
@@ -94,7 +90,7 @@ namespace data_quality_validator_pv {
       const Allen::Context& context) const;
 
   private:
-    Property<enable_tupling_t> m_enable_tupling {this, true};
+    Allen::Property<bool> m_enable_tupling {this, "enable_tupling", true, "Enable Tupling"};
   };
 } // namespace data_quality_validator_pv
 
@@ -108,8 +104,6 @@ namespace data_quality_validator_occupancy {
     DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned) dev_offsets_velo_tracks;
     DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
     DEVICE_INPUT(dev_ecal_clusters_offsets_t, unsigned) dev_ecal_clusters_offsets;
-
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable Tupling", bool) enable_tupling;
   };
 
   struct data_quality_validator_occupancy_t : public HostAlgorithm, Parameters {
@@ -130,6 +124,6 @@ namespace data_quality_validator_occupancy {
       const Allen::Context& context) const;
 
   private:
-    Property<enable_tupling_t> m_enable_tupling {this, true};
+    Allen::Property<bool> m_enable_tupling {this, "enable_tupling", true, "Enable Tupling"};
   };
 } // namespace data_quality_validator_occupancy

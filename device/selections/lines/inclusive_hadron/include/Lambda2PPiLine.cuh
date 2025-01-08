@@ -24,42 +24,6 @@ namespace lambda2ppi_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
-    PROPERTY(L_p_MIPCHI2_min_t, "L_p_MIPCHI2_min", "proton min ip chi^2 for Lambda LL", float) L_p_MIPCHI2_min;
-    PROPERTY(L_pi_MIPCHI2_min_t, "L_pi_MIPCHI2_min", "pion min ip chi^2 for Lambda LL", float) L_pi_MIPCHI2_min;
-    PROPERTY(L_p_MIP_min_t, "L_p_MIP_min", "proton min ip for Lambda LL", float) L_p_MIP_min;
-    PROPERTY(L_pi_MIP_min_t, "L_pi_MIP_min", "pion min ip for Lambda LL", float) L_pi_MIP_min;
-    PROPERTY(L_p_PT_min_t, "L_p_PT_min", "proton min pT for Lambda LL", float) L_p_PT_min;
-    PROPERTY(L_pi_PT_min_t, "L_pi_PT_min", "pion min pT for Lambda LL", float) L_pi_PT_min;
-    PROPERTY(L_DOCA_max_t, "L_DOCA_max", "max p,pi DOCA for Lambda LL", float) L_DOCA_max;
-    PROPERTY(L_PT_min_t, "L_PT_min", "min pT of Lambda LL", float) L_PT_min;
-    PROPERTY(L_M_max_t, "L_M_max", "max mass for Lambda LL", float) L_M_max;
-    PROPERTY(L_VCHI2_max_t, "L_VCHI2_max", "max p pi vertex chi2", float) L_VCHI2_max;
-    PROPERTY(L_VZ_min_t, "L_VZ_min", "min vertex z position of Lambda candidate", float) L_VZ_min;
-    PROPERTY(L_VZ_max_t, "L_VZ_max", "max vertex z position of Lambda candidate", float) L_VZ_max;
-    PROPERTY(L_BPVVDZ_min_t, "L_BPVVDZ_min", "min distance (in z) between Lambda vertex and best PV", float)
-    L_BPVVDZ_min;
-    PROPERTY(
-      L_BPVVDCHI2_min_t,
-      "L_BPVVDCHI2_min",
-      "min flight distance chi2 between p pi vertex and its best PV",
-      float)
-    L_BPVVDCHI2_min;
-    PROPERTY(
-      L_BPVVDRHO_min_t,
-      "L_BPVVDRHO_min",
-      "min squared radial vertex distance of Lambda w.r.t. its best PV",
-      float)
-    L_BPVVDRHO_min;
-    PROPERTY(L_BPVDIRA_min_t, "L_BPVDIRA_min", "min cosine of direction angle of Lambda w.r.t. its best PV", float)
-    L_BPVDIRA_min;
-    PROPERTY(minPVZ_t, "minPVZ", "minimum PV z coordinate", float) minPVZ;
-    PROPERTY(maxPVZ_t, "maxPVZ", "maximum PV z coordinate", float) maxPVZ;
 
     DEVICE_OUTPUT(L_M_t, float) L_M;
     DEVICE_OUTPUT(p_P_t, float) p_P;
@@ -90,32 +54,58 @@ namespace lambda2ppi_line {
                              Parameters,
                              CompositeParticleLine<lambda2ppi_line_t, Parameters> {
 
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float L_p_MIPCHI2_min;
+      float L_pi_MIPCHI2_min;
+      float L_p_MIP_min;
+      float L_pi_MIP_min;
+      float L_p_PT_min;
+      float L_pi_PT_min;
+      float L_DOCA_max;
+      float L_PT_min;
+      float L_M_max;
+      float L_VCHI2_max;
+      float L_VZ_min;
+      float L_VZ_max;
+      float L_BPVVDCHI2_min;
+      float L_BPVVDZ_min;
+      float L_BPVVDRHO_min;
+      float L_BPVDIRA_min;
+      float minPVZ;
+      float maxPVZ;
       Allen::Monitoring::Histogram<>::DeviceType histogram_lz_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_lz_pt;
       Allen::Monitoring::Histogram<>::DeviceType histogram_lz_svz;
       Allen::Monitoring::Histogram<>::DeviceType histogram_lz_pvz;
-      DeviceAccumulators(const lambda2ppi_line_t& algo, const Allen::Context& ctx) :
-        histogram_lz_mass(algo.m_histogram_lz_mass.data(ctx)), histogram_lz_pt(algo.m_histogram_lz_pt.data(ctx)),
-        histogram_lz_svz(algo.m_histogram_lz_svz.data(ctx)), histogram_lz_pvz(algo.m_histogram_lz_pvz.data(ctx))
+      DeviceProperties(const lambda2ppi_line_t& algo, const Allen::Context& ctx) :
+        L_p_MIPCHI2_min(algo.m_L_p_MIPCHI2_min), L_pi_MIPCHI2_min(algo.m_L_pi_MIPCHI2_min),
+        L_p_MIP_min(algo.m_L_p_MIP_min), L_pi_MIP_min(algo.m_L_pi_MIP_min), L_p_PT_min(algo.m_L_p_PT_min),
+        L_pi_PT_min(algo.m_L_pi_PT_min), L_DOCA_max(algo.m_L_DOCA_max), L_PT_min(algo.m_L_PT_min),
+        L_M_max(algo.m_L_M_max), L_VCHI2_max(algo.m_L_VCHI2_max), L_VZ_min(algo.m_L_VZ_min), L_VZ_max(algo.m_L_VZ_max),
+        L_BPVVDCHI2_min(algo.m_L_BPVVDCHI2_min), L_BPVVDZ_min(algo.m_L_BPVVDZ_min),
+        L_BPVVDRHO_min(algo.m_L_BPVVDRHO_min), L_BPVDIRA_min(algo.m_L_BPVDIRA_min), minPVZ(algo.m_minPVZ),
+        maxPVZ(algo.m_maxPVZ), histogram_lz_mass(algo.m_histogram_lz_mass.data(ctx)),
+        histogram_lz_pt(algo.m_histogram_lz_pt.data(ctx)), histogram_lz_svz(algo.m_histogram_lz_svz.data(ctx)),
+        histogram_lz_pvz(algo.m_histogram_lz_pvz.data(ctx))
       {}
     };
 
     __device__ static bool
-    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle>,
-      unsigned index,
-      bool sel);
+      unsigned,
+      bool);
 
     __device__ static void monitor(
-      const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
-      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle>,
+      unsigned,
+      bool);
 
     using monitoring_types = std::tuple<
       L_M_t,
@@ -143,30 +133,42 @@ namespace lambda2ppi_line {
       runNo_t>;
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
-    Property<L_p_MIPCHI2_min_t> m_L_p_MIPCHI2_min {this, 12.f};
-    Property<L_pi_MIPCHI2_min_t> m_L_pi_MIPCHI2_min {this, 32.f};
-    Property<L_p_MIP_min_t> m_L_p_MIP_min {this, 80.f * Gaudi::Units::um};
-    Property<L_pi_MIP_min_t> m_L_pi_MIP_min {this, 200.f * Gaudi::Units::um};
-    Property<L_p_PT_min_t> m_L_p_PT_min {this, 450.f * Gaudi::Units::MeV};
-    Property<L_pi_PT_min_t> m_L_pi_PT_min {this, 80.f * Gaudi::Units::MeV};
-    Property<L_DOCA_max_t> m_DOCA_max {this, 500.f * Gaudi::Units::um};
-    Property<L_PT_min_t> m_PT_min {this, 500.f * Gaudi::Units::MeV};
-    Property<L_M_max_t> m_M_max {this, 1140.f * Gaudi::Units::MeV};
-    Property<L_VCHI2_max_t> m_L_VCHI2_max {this, 16.f};
-    Property<L_VZ_min_t> m_L_VZ_min {this, -80.f * Gaudi::Units::mm};
-    Property<L_VZ_max_t> m_L_VZ_max {this, 650.f * Gaudi::Units::mm};
-    Property<L_BPVVDCHI2_min_t> m_L_BPVVDCHI2_min {this, 180.f};
-    Property<L_BPVVDZ_min_t> m_L_BPVVDZ_min {this, 12.f * Gaudi::Units::mm};
-    Property<L_BPVVDRHO_min_t> m_L_BPVVDRHO_min {this, 2.f * Gaudi::Units::mm};
-    Property<L_BPVDIRA_min_t> m_L_BPVDIRA_min {this, 0.9997};
-    Property<minPVZ_t> m_minPVZ {this, -200.f * Gaudi::Units::mm};
-    Property<maxPVZ_t> m_maxPVZ {this, 200.f * Gaudi::Units::mm};
+    Allen::Property<float> m_L_p_MIPCHI2_min {this, "L_p_MIPCHI2_min", 12.f, "proton min ip chi^2 for Lambda LL"};
+    Allen::Property<float> m_L_pi_MIPCHI2_min {this, "L_pi_MIPCHI2_min", 32.f, "pion min ip chi^2 for Lambda LL"};
+    Allen::Property<float> m_L_p_MIP_min {this, "L_p_MIP_min", 80.f * Gaudi::Units::um, "proton min ip for Lambda LL"};
+    Allen::Property<float> m_L_pi_MIP_min {this, "L_pi_MIP_min", 200.f * Gaudi::Units::um, "pion min ip for Lambda LL"};
+    Allen::Property<float> m_L_p_PT_min {this, "L_p_PT_min", 450.f * Gaudi::Units::MeV, "proton min pT for Lambda LL"};
+    Allen::Property<float> m_L_pi_PT_min {this, "L_pi_PT_min", 80.f * Gaudi::Units::MeV, "pion min pT for Lambda LL"};
+    Allen::Property<float> m_L_DOCA_max {this, "L_DOCA_max", 500.f * Gaudi::Units::um, "max p, pi DOCA for Lambda LL"};
+    Allen::Property<float> m_L_PT_min {this, "L_PT_min", 500.f * Gaudi::Units::MeV, "min pT of Lambda LL"};
+    Allen::Property<float> m_L_M_max {this, "L_M_max", 1140.f * Gaudi::Units::MeV, "max mass for Lambda LL"};
+    Allen::Property<float> m_L_VCHI2_max {this, "L_VCHI2_max", 16.f, "max p pi vertex chi2"};
+    Allen::Property<float> m_L_VZ_min {this,
+                                       "L_VZ_min",
+                                       -80.f * Gaudi::Units::mm,
+                                       "min vertex z position of Lambda candidate"};
+    Allen::Property<float> m_L_VZ_max {this,
+                                       "L_VZ_max",
+                                       650.f * Gaudi::Units::mm,
+                                       "max vertex z position of Lambda candidate"};
+    Allen::Property<float> m_L_BPVVDCHI2_min {this,
+                                              "L_BPVVDCHI2_min",
+                                              180.f,
+                                              "min flight distance chi2 between p pi vertex and its best PV"};
+    Allen::Property<float> m_L_BPVVDZ_min {this,
+                                           "L_BPVVDZ_min",
+                                           12.f * Gaudi::Units::mm,
+                                           "min distance (in z) between Lambda vertex and best PV"};
+    Allen::Property<float> m_L_BPVVDRHO_min {this,
+                                             "L_BPVVDRHO_min",
+                                             2.f * Gaudi::Units::mm,
+                                             "min squared radial vertex distance of Lambda w.r.t. its best PV"};
+    Allen::Property<float> m_L_BPVDIRA_min {this,
+                                            "L_BPVDIRA_min",
+                                            0.9997,
+                                            "min cosine of direction angle of Lambda w.r.t. its best PV"};
+    Allen::Property<float> m_minPVZ {this, "minPVZ", -200.f * Gaudi::Units::mm, "minimum PV z coordinate"};
+    Allen::Property<float> m_maxPVZ {this, "maxPVZ", 200.f * Gaudi::Units::mm, "maximum PV z coordinate"};
 
     Allen::Monitoring::Histogram<> m_histogram_lz_mass {this, "lz_mass", "mass", {100u, 1000.f, 1200.f}};
     Allen::Monitoring::Histogram<> m_histogram_lz_pt {this, "lz_pt", "pT (lz)", {100u, 0.f, 1e4f}};

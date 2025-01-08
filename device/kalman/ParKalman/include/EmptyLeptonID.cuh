@@ -22,7 +22,6 @@ namespace empty_lepton_id {
     DEVICE_OUTPUT(dev_lepton_id_t, uint8_t) dev_lepton_id;
     DEVICE_OUTPUT(dev_chi2_muon_t, float) dev_chi2_muon;
     DEVICE_OUTPUT(dev_chi2uncorr_muon_t, float) dev_chi2uncorr_muon;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   struct empty_lepton_id_t : public DeviceAlgorithm, Parameters {
@@ -35,6 +34,6 @@ namespace empty_lepton_id {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 } // namespace empty_lepton_id

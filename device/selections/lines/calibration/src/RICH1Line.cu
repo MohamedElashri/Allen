@@ -63,6 +63,7 @@ void rich_1_line::rich_1_line_t::init_tuples(
  */
 __device__ void rich_1_line::rich_1_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::BasicParticle> input,
   unsigned index,
   bool sel)
@@ -142,42 +143,35 @@ void rich_1_line::rich_1_line_t::output_tuples(
   }
 }
 
-__device__ bool rich_1_line::rich_1_line_t::passes(
-  const Allen::Views::Physics::BasicParticle& track,
-  const Parameters& parameters)
+__device__ bool rich_1_line::rich_1_line_t::select(
+  const Parameters&,
+  const DeviceProperties& properties,
+  std::tuple<const Allen::Views::Physics::BasicParticle> input)
 {
+  const auto& track = std::get<0>(input);
   const auto state = track.state();
 
   // Cut on momentum
-  if (state.p() < parameters.minP) return false;
+  if (state.p() < properties.minP) return false;
 
   // Cut on track Chi2 (fiducial)
-  if (state.chi2() / state.ndof() > parameters.maxTrChi2) return false;
+  if (state.chi2() / state.ndof() > properties.maxTrChi2) return false;
 
   // Cut on transverse momentum (fiducial)
-  if (state.pt() < parameters.minPt) return false;
+  if (state.pt() < properties.minPt) return false;
 
   // For each eta/phi bin pair, check if our track falls in it
   // Put this last as we return true if the track falls within our allowed bins; otherwise return false
-  for (unsigned j = 0; j < parameters.minPhi.get().size(); ++j) {
+  for (unsigned j = 0; j < properties.minPhi.size(); ++j) {
     const auto eta {state.eta()};
     const auto phi {trackPhi(track)};
 
     // For now, eta is a 1-length array
     if (
-      parameters.minEta.get()[0] < eta && eta < parameters.maxEta.get()[0] && parameters.minPhi.get()[j] < phi &&
-      phi < parameters.maxPhi.get()[j]) {
+      properties.minEta[0] < eta && eta < properties.maxEta[0] && properties.minPhi[j] < phi &&
+      phi < properties.maxPhi[j]) {
       return true;
     }
   }
   return false;
-}
-
-__device__ bool rich_1_line::rich_1_line_t::select(
-  const Parameters& parameters,
-  std::tuple<const Allen::Views::Physics::BasicParticle> input)
-{
-  const auto& track = std::get<0>(input);
-
-  return passes(track, parameters);
 }

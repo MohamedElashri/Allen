@@ -36,8 +36,8 @@ void build_cone_jets::build_cone_jets_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_jet_data_t>(arguments, property<n_max_jets_t>() * first<host_number_of_events_t>(arguments));
-  set_size<dev_jet_clusters_t>(arguments, property<n_max_jets_t>() * first<host_number_of_events_t>(arguments));
+  set_size<dev_jet_data_t>(arguments, m_n_max_jets * first<host_number_of_events_t>(arguments));
+  set_size<dev_jet_clusters_t>(arguments, m_n_max_jets * first<host_number_of_events_t>(arguments));
   set_size<dev_track_masks_t>(arguments, first<host_number_of_tracks_t>(arguments));
   set_size<dev_neutral_masks_t>(arguments, first<host_number_of_neutrals_t>(arguments));
   set_size<dev_jet_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
@@ -55,18 +55,20 @@ void build_cone_jets::build_cone_jets_t::operator()(
   Allen::memset_async<dev_jet_data_t>(arguments, 0, context);
   Allen::memset_async<dev_jet_clusters_t>(arguments, 0, context);
   Allen::memset_async<dev_jet_offsets_t>(arguments, 0, context);
-  global_function(build_jets)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_t>(), context)(arguments);
+  global_function(build_jets)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
+    arguments, m_n_max_jets, m_cone_radius);
 
   PrefixSum::prefix_sum<dev_jet_offsets_t, host_number_of_jets_t>(*this, arguments, context);
 }
 
-__global__ void build_cone_jets::build_jets(build_cone_jets::Parameters parameters)
+__global__ void
+build_cone_jets::build_jets(build_cone_jets::Parameters parameters, const unsigned n_max_jets, const float cone_radius)
 {
   // memset_async only sets single bytes, so we have to set the number of jets
   // per event by hand.
   if (threadIdx.x == 0 && blockIdx.x == 0) {
     for (unsigned i_event = 0; i_event < parameters.dev_number_of_events[0]; i_event++) {
-      parameters.dev_jet_offsets[i_event] = parameters.n_max_jets;
+      parameters.dev_jet_offsets[i_event] = n_max_jets;
     }
   }
 
@@ -80,8 +82,8 @@ __global__ void build_cone_jets::build_jets(build_cone_jets::Parameters paramete
 
   int* event_track_masks = parameters.dev_track_masks + tracks.offset();
   int* event_neutral_masks = parameters.dev_neutral_masks + calos.offset();
-  Jets::Jet* event_jets = parameters.dev_jet_data + parameters.n_max_jets * event_number;
-  CaloCluster* event_jet_clusters = parameters.dev_jet_clusters + parameters.n_max_jets * event_number;
+  Jets::Jet* event_jets = parameters.dev_jet_data + n_max_jets * event_number;
+  CaloCluster* event_jet_clusters = parameters.dev_jet_clusters + n_max_jets * event_number;
 
   // Create jets until no seed tracks are available or the maximum number of
   // jets is reached.
@@ -89,7 +91,7 @@ __global__ void build_cone_jets::build_jets(build_cone_jets::Parameters paramete
   __shared__ float max_pt;
   __shared__ int max_pt_idx;
   __shared__ bool found_seed;
-  while (i_jet < parameters.n_max_jets) {
+  while (i_jet < n_max_jets) {
 
     __shared__ unsigned fixed_pt_sum;
     __shared__ unsigned fixed_eta_sum;
@@ -154,7 +156,7 @@ __global__ void build_cone_jets::build_jets(build_cone_jets::Parameters paramete
         deltaR(seed_track.state().eta(), seed_track.state().phi(), test_track.state().eta(), test_track.state().phi());
 
       // Mask the track if it's in the cone.
-      if (dr < parameters.cone_radius) {
+      if (dr < cone_radius) {
         event_track_masks[i_track] = i_jet;
 
         // Use fixed-precision addition so these sums will be deterministic.
@@ -179,7 +181,7 @@ __global__ void build_cone_jets::build_jets(build_cone_jets::Parameters paramete
       float dr = deltaR(seed_track.state().eta(), seed_track.state().phi(), test_calo.eta(), test_calo.phi());
 
       // Mask the photon if it's in the cone.
-      if (dr < parameters.cone_radius) {
+      if (dr < cone_radius) {
         event_neutral_masks[i_calo] = i_jet;
 
         atomicAdd(&(jet.n_calos), 1);

@@ -31,14 +31,10 @@ namespace find_muon_hits {
     DEVICE_OUTPUT(dev_muon_tracks_buffer_t, MuonTrack) dev_muon_tracks_buffer;
     DEVICE_OUTPUT(dev_muon_tracks_offsets_t, unsigned) dev_muon_tracks_offsets;
     HOST_OUTPUT(host_muon_total_number_of_tracks_t, unsigned) host_muon_total_number_of_tracks;
-
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable tupling boolean", bool) enable_tupling;
-    PROPERTY(required_number_of_hits_t, "required_number_of_hits", "Minimum number of hits to accept a muon stub", int)
-    required_number_of_hits;
   };
 
-  __global__ void find_muon_hits(Parameters, const Muon::Constants::MatchWindows* dev_match_windows);
+  __global__ void
+  find_muon_hits(Parameters, const Muon::Constants::MatchWindows* dev_match_windows, const int required_number_of_hits);
 
   struct find_muon_hits_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -55,9 +51,12 @@ namespace find_muon_hits {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 64};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
-    Property<required_number_of_hits_t> m_required_number_of_hits {this, 4};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 64, "block dimension X"};
+    Allen::Property<bool> m_enable_tupling {this, "enable_tupling", false, "Enable tupling boolean"};
+    Allen::Property<int> m_required_number_of_hits {this,
+                                                    "required_number_of_hits",
+                                                    4,
+                                                    "Minimum number of hits to accept a muon stub"};
   };
 
 } // namespace find_muon_hits

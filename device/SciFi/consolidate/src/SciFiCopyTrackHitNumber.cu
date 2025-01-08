@@ -29,8 +29,8 @@ void scifi_copy_track_hit_number::scifi_copy_track_hit_number_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(scifi_copy_track_hit_number)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(scifi_copy_track_hit_number)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
+    arguments);
 
   PrefixSum::prefix_sum<dev_offsets_scifi_track_hit_number_t, host_accumulated_number_of_hits_in_scifi_tracks_t>(
     *this, arguments, context);

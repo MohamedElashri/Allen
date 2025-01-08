@@ -18,43 +18,13 @@ namespace d2kshh_line {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
 
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
-    pre_scaler_hash_string;
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string)
-    post_scaler_hash_string;
-    // Line-specific inputs and properties
+    // Line-specific inputs
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    // Combination properties
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "max VertexChi2 of the two vertices", float) maxVertexChi2;
-    PROPERTY(maxDOCA_t, "maxDOCA", "max DOCA of the two vertices", float) maxDOCA;
-    // KS0 properties
-    PROPERTY(minTrackPt_Ks_t, "minTrackPt_Ks", "min Pt of KS vertex tracks", float) minTrackPt_Ks;
-    PROPERTY(minTrackP_Ks_t, "minTrackP_Ks", "min P of KS vertex tracks", float) minTrackP_Ks;
-    PROPERTY(minTrackIP_Ks_t, "minTrackIP_Ks", "min IP of KS vertex tracks", float) minTrackIP_Ks;
-    PROPERTY(minComboPt_Ks_t, "minComboPt_Ks", "min Pt of Ks candidate", float) minComboPt_Ks;
-    PROPERTY(minEta_Ks_t, "minEta_Ks", "min Pseudorapidity of KS candidate", float) minEta_Ks;
-    PROPERTY(maxEta_Ks_t, "maxEta_Ks", "max Pseudorapidity of KS candidate", float) maxEta_Ks;
-    PROPERTY(minM_Ks_t, "minM_Ks", "min mass of KS candidate", float) minM_Ks;
-    PROPERTY(maxM_Ks_t, "maxM_Ks", "max mass of KS candidate", float) maxM_Ks;
-    // hh properties
-    PROPERTY(maxDOCA_hh_t, "maxDOCA_hh", "max DOCA of hh tracks", float) maxDOCA_hh;
-    PROPERTY(minEta_hh_t, "minEta_hh", "min Pseudorapidity of hh candidate", float) minEta_hh;
-    PROPERTY(maxEta_hh_t, "maxEta_hh", "max Pseudorapidity of hh candidate", float) maxEta_hh;
-    PROPERTY(minTrackP_hh_t, "minTrackP_hh", "min P of hh candidate tracks", float) minTrackP_hh;
-    PROPERTY(minTrackPt_hh_t, "minTrackPt_hh", "min Pt of D0 candidate tracks", float) minTrackPt_hh;
-    PROPERTY(minTrackIP_hh_t, "minTrackIP_hh", "min IP of D0 candidate tracks", float) minTrackIP_hh;
-    // D0 properties
-    PROPERTY(minComboPt_D0_t, "minComboPt_D0", "min Pt of D0 candidate", float) minComboPt_D0;
-    PROPERTY(minCTau_D0_t, "minCTau_D0", "minimum D0 proper time", float) minCTau_D0;
-    PROPERTY(massWindow_t, "massWindow", "D0 massWindow", float) massWindow;
+
     // Monitoring
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
     DEVICE_OUTPUT(sv_masses_t, float) sv_masses;       // the mass of the combination
@@ -74,13 +44,38 @@ namespace d2kshh_line {
 
   // Monitoring Histograms
   struct d2kshh_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<d2kshh_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float maxVertexChi2;
+      float maxDOCA;
+      float minTrackPt_Ks;
+      float minTrackP_Ks;
+      float minTrackIP_Ks;
+      float minComboPt_Ks;
+      float minEta_Ks;
+      float maxEta_Ks;
+      float minM_Ks;
+      float maxM_Ks;
+      float maxDOCA_hh;
+      float minEta_hh;
+      float maxEta_hh;
+      float minTrackPt_hh;
+      float minTrackP_hh;
+      float minTrackIP_hh;
+      float minComboPt_D0;
+      float minCTau_D0;
+      float massWindow;
       Allen::Monitoring::Histogram<>::DeviceType histogram_d02kshh_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_d02kshh_pt;
       Allen::Monitoring::Histogram<>::DeviceType histogram_d02kshh_ctau;
       Allen::Monitoring::Histogram<>::DeviceType histogram_d02kshh_mKS;
       Allen::Monitoring::Histogram<>::DeviceType histogram_d02kshh_mhh;
-      DeviceAccumulators(const d2kshh_line_t& algo, const Allen::Context& ctx) :
+      DeviceProperties(const d2kshh_line_t& algo, const Allen::Context& ctx) :
+        maxVertexChi2(algo.m_maxVertexChi2), maxDOCA(algo.m_maxDOCA), minTrackPt_Ks(algo.m_minTrackPt_piKs),
+        minTrackP_Ks(algo.m_minTrackP_piKs), minTrackIP_Ks(algo.m_minTrackIP_Ks), minComboPt_Ks(algo.m_minComboPt_Ks),
+        minEta_Ks(algo.m_minEta_Ks), maxEta_Ks(algo.m_maxEta_Ks), minM_Ks(algo.m_minM_Ks), maxM_Ks(algo.m_maxM_Ks),
+        maxDOCA_hh(algo.m_maxDOCA_hh), minEta_hh(algo.m_minEta_hh), maxEta_hh(algo.m_maxEta_hh),
+        minTrackPt_hh(algo.m_minTrackPt_hh), minTrackP_hh(algo.m_minTrackP_hh), minTrackIP_hh(algo.m_minTrackIP_hh),
+        minComboPt_D0(algo.m_minComboPt_D0), minCTau_D0(algo.m_minCTau_D0), massWindow(algo.m_massWindow),
         histogram_d02kshh_mass(algo.m_histogram_d02kshh_mass.data(ctx)),
         histogram_d02kshh_pt(algo.m_histogram_d02kshh_pt.data(ctx)),
         histogram_d02kshh_ctau(algo.m_histogram_d02kshh_ctau.data(ctx)),
@@ -120,21 +115,22 @@ namespace d2kshh_line {
 
     // Selection function
     __device__ static bool
-    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     // // Monitoring functions
     __device__ static void monitor(
-      const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
-      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle>,
+      unsigned,
+      bool);
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle>,
+      unsigned,
+      bool);
 
     using monitoring_types = std::tuple<
       evtNo_t,
@@ -154,31 +150,46 @@ namespace d2kshh_line {
       msqm_t>;
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 20.f};
-    Property<maxDOCA_t> m_maxDOCA {this, 0.5f * Gaudi::Units::mm};
-    Property<minTrackPt_Ks_t> m_minTrackPt_piKs {this, 200.f * Gaudi::Units::MeV};
-    Property<minTrackP_Ks_t> m_minTrackP_piKs {this, 1500.f * Gaudi::Units::MeV};
-    Property<minTrackIP_Ks_t> m_minTrackIP_Ks {this, 0.2f * Gaudi::Units::mm};
-    Property<minComboPt_Ks_t> m_minComboPt_Ks {this, 200.f * Gaudi::Units::MeV};
-    Property<minEta_Ks_t> m_minEta_Ks {this, 2.0f};
-    Property<maxEta_Ks_t> m_maxEta_Ks {this, 5.0f};
-    Property<minM_Ks_t> m_minM_Ks {this, 455.0f * Gaudi::Units::MeV};
-    Property<maxM_Ks_t> m_maxM_Ks {this, 545.0f * Gaudi::Units::MeV};
-    Property<maxDOCA_hh_t> m_maxDOCA_hh {this, 0.05f};
-    Property<minEta_hh_t> m_minEta_hh {this, 2.0f};
-    Property<maxEta_hh_t> m_maxEta_hh {this, 5.0f};
-    Property<minTrackPt_hh_t> m_minTrackPt_hh {this, 250.f * Gaudi::Units::MeV};
-    Property<minTrackP_hh_t> m_minTrackP_hh {this, 1500.f * Gaudi::Units::MeV};
-    Property<minTrackIP_hh_t> m_minTrackIP_hh {this, 0.06f * Gaudi::Units::mm};
-    Property<minComboPt_D0_t> m_minComboPt_D0 {this, 1500.0f * Gaudi::Units::MeV};
-    Property<minCTau_D0_t> m_minCTau_D0 {this, 0.5f * 0.1229f}; // 0.5 * D0 ctau
-    Property<massWindow_t> m_massWindow {this, 100.f * Gaudi::Units::MeV};
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "max VertexChi2 of the two vertices"};
+    Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.5f * Gaudi::Units::mm, "max DOCA of the two vertices"};
+    Allen::Property<float> m_minTrackPt_piKs {this,
+                                              "minTrackPt_Ks",
+                                              200.f * Gaudi::Units::MeV,
+                                              "min Pt of KS vertex tracks"};
+    Allen::Property<float> m_minTrackP_piKs {this,
+                                             "minTrackP_Ks",
+                                             1500.f * Gaudi::Units::MeV,
+                                             "min P of KS vertex tracks"};
+    Allen::Property<float> m_minTrackIP_Ks {this,
+                                            "minTrackIP_Ks",
+                                            0.2f * Gaudi::Units::mm,
+                                            "min IP of KS vertex tracks"};
+    Allen::Property<float> m_minComboPt_Ks {this, "minComboPt_Ks", 200.f * Gaudi::Units::MeV, "min Pt of Ks candidate"};
+    Allen::Property<float> m_minEta_Ks {this, "minEta_Ks", 2.0f, "min Pseudorapidity of KS candidate"};
+    Allen::Property<float> m_maxEta_Ks {this, "maxEta_Ks", 5.0f, "max Pseudorapidity of KS candidate"};
+    Allen::Property<float> m_minM_Ks {this, "minM_Ks", 455.0f * Gaudi::Units::MeV, "min mass of KS candidate"};
+    Allen::Property<float> m_maxM_Ks {this, "maxM_Ks", 545.0f * Gaudi::Units::MeV, "max mass of KS candidate"};
+    Allen::Property<float> m_maxDOCA_hh {this, "maxDOCA_hh", 0.05f, "max DOCA of hh tracks"};
+    Allen::Property<float> m_minEta_hh {this, "minEta_hh", 2.0f, "min Pseudorapidity of hh candidate"};
+    Allen::Property<float> m_maxEta_hh {this, "maxEta_hh", 5.0f, "max Pseudorapidity of hh candidate"};
+    Allen::Property<float> m_minTrackPt_hh {this,
+                                            "minTrackPt_hh",
+                                            250.f * Gaudi::Units::MeV,
+                                            "min Pt of D0 candidate tracks"};
+    Allen::Property<float> m_minTrackP_hh {this,
+                                           "minTrackP_hh",
+                                           1500.f * Gaudi::Units::MeV,
+                                           "min P of hh candidate tracks"};
+    Allen::Property<float> m_minTrackIP_hh {this,
+                                            "minTrackIP_hh",
+                                            0.06f * Gaudi::Units::mm,
+                                            "min IP of D0 candidate tracks"};
+    Allen::Property<float> m_minComboPt_D0 {this,
+                                            "minComboPt_D0",
+                                            1500.0f * Gaudi::Units::MeV,
+                                            "min Pt of D0 candidate"};
+    Allen::Property<float> m_minCTau_D0 {this, "minCTau_D0", 0.5f * 0.1229f, "minimum D0 proper time"}; // 0.5 * D0 ctau
+    Allen::Property<float> m_massWindow {this, "massWindow", 100.f * Gaudi::Units::MeV, "D0 massWindow"};
 
     Allen::Monitoring::Histogram<> m_histogram_d02kshh_mass {this, "d02kshh_mass", "m(D0)", {100u, 1765.f, 1965.f}};
     Allen::Monitoring::Histogram<> m_histogram_d02kshh_pt {this, "d02kshh_pt", "pT(D0)", {100u, 0.f, 1e4f}};

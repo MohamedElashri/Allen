@@ -34,7 +34,6 @@ namespace package_mf_tracks {
     DEVICE_INPUT(dev_event_list_mf_t, unsigned) dev_event_list_mf;
     DEVICE_INPUT(dev_mf_track_offsets_t, unsigned) dev_mf_track_offsets;
     DEVICE_OUTPUT(dev_mf_tracks_t, ParKalmanFilter::FittedTrack) dev_mf_tracks;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void package_mf_tracks(Parameters, const unsigned number_of_events);
@@ -49,7 +48,7 @@ namespace package_mf_tracks {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 
 } // namespace package_mf_tracks

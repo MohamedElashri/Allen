@@ -37,7 +37,6 @@ void host_unmatched_seeding_validator::host_unmatched_seeding_validator_t::opera
     seeding_states,
     event_list);
 
-  auto& checker =
-    runtime_options.checker_invoker->checker<TrackCheckerSeeding>(name(), property<root_output_filename_t>());
+  auto& checker = runtime_options.checker_invoker->checker<TrackCheckerSeeding>(name(), m_root_output_filename);
   checker.accumulate(*first<host_mc_events_t>(arguments), tracks, event_list); // FIXME
 }

@@ -44,12 +44,13 @@ __device__ std::tuple<const unsigned, const float> SMOG2_minimum_bias_line::SMOG
 
 // Selection function
 __device__ bool SMOG2_minimum_bias_line::SMOG2_minimum_bias_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const unsigned, const float> input)
 {
   const auto& velo_track_hit_number = std::get<0>(input);
   const auto& velo_track_state_z = std::get<1>(input);
 
-  return velo_track_state_z < parameters.maxZ && velo_track_state_z >= parameters.minZ &&
-         velo_track_hit_number >= parameters.minNHits;
+  return velo_track_state_z < properties.maxZ && velo_track_state_z >= properties.minZ &&
+         velo_track_hit_number >= properties.minNHits;
 }

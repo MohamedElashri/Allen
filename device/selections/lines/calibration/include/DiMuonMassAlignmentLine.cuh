@@ -24,30 +24,38 @@ namespace di_muon_mass_alignment_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minHighMassTrackPt_t, "minHighMassTrackPt", "minHighMassTrackPt description", float) minHighMassTrackPt;
-    PROPERTY(minHighMassTrackP_t, "minHighMassTrackP", "minHighMassTrackP description", float) minHighMassTrackP;
-    PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float) minComboPt;
-    PROPERTY(minMass_t, "minMass", "minMass description", float) minMass;
-    PROPERTY(maxMass_t, "maxMass", "maxMass description", float) maxMass;
-    PROPERTY(maxDoca_t, "maxDoca", "maxDoca description", float) maxDoca;
-    PROPERTY(minEta_t, "minEta", "minEta description", float) minEta;
-    PROPERTY(maxEta_t, "maxEta", "maxEta description", float) maxEta;
-    PROPERTY(minDira_t, "minDira", "minimum value of cos(theta_dira)", float) minDira;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
-    PROPERTY(minIP_t, "minIP", "minIP description", float) minIP;
-    PROPERTY(minFdChi2_t, "minFdChi2", "minFdChi2 description", float) minFdChi2;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
-    PROPERTY(maxChi2Muon_t, "maxChi2Muon", "max Chi2Muon evaluation", float) maxChi2Muon;
-    PROPERTY(DiMuonCharge_t, "DiMuonCharge", "Charge of the dimuon combination", int) DiMuonCharge;
   };
 
   struct di_muon_mass_alignment_line_t : public SelectionAlgorithm,
                                          Parameters,
                                          CompositeParticleLine<di_muon_mass_alignment_line_t, Parameters> {
+
+    struct DeviceProperties {
+      float minHighMassTrackPt;
+      float minHighMassTrackP;
+      float minMass;
+      float maxMass;
+      float maxDoca;
+      float maxVertexChi2;
+      float minIP;
+      float minFdChi2;
+      float minZ;
+      float minEta;
+      float maxEta;
+      float minDira;
+      float minComboPt;
+      float maxChi2Muon;
+      int diMuonCharge;
+
+      DeviceProperties(const di_muon_mass_alignment_line_t& algo, const Allen::Context&) :
+        minHighMassTrackPt(algo.m_minHighMassTrackPt), minHighMassTrackP(algo.m_minHighMassTrackP),
+        minMass(algo.m_minMass), maxMass(algo.m_maxMass), maxDoca(algo.m_maxDoca), maxVertexChi2(algo.m_maxVertexChi2),
+        minIP(algo.m_minIP), minFdChi2(algo.m_minFdChi2), minZ(algo.m_minZ), minEta(algo.m_minEta),
+        maxEta(algo.m_maxEta), minDira(algo.m_minDira), minComboPt(algo.m_minComboPt), maxChi2Muon(algo.m_maxChi2Muon),
+        diMuonCharge(algo.m_dimuon_charge)
+      {}
+    };
+
     __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float> static get_input(
       const Parameters& parameters,
       const unsigned event_number,
@@ -55,27 +63,30 @@ namespace di_muon_mass_alignment_line {
 
     __device__ static bool select(
       const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minHighMassTrackPt_t> m_minHighMassTrackPt {this, 500.f / Gaudi::Units::MeV};
-    Property<minHighMassTrackP_t> m_minHighMassTrackP {this, 6000.f / Gaudi::Units::MeV};
-    Property<minMass_t> m_minMass {this, 2996.f / Gaudi::Units::MeV};
-    Property<maxMass_t> m_maxMass {this, 3196.f / Gaudi::Units::MeV};
-    Property<maxDoca_t> m_maxDoca {this, 0.2f};
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 10.0f};
-    Property<minIP_t> m_minIP {this, 0.07f * Gaudi::Units::mm};
-    Property<minFdChi2_t> m_minFdChi2 {this, 3.f};
-    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
-    Property<minEta_t> m_minEta {this, 2.0f};
-    Property<maxEta_t> m_maxEta {this, 5.0f};
-    Property<minDira_t> m_minDira {this, 0.9995f};
-    Property<minComboPt_t> m_minComboPt {this, 2000.0f * Gaudi::Units::MeV};
-    Property<maxChi2Muon_t> m_maxChi2Muon {this, 1.8};
-    Property<DiMuonCharge_t> m_dimuon_charge {this, 0};
+    Allen::Property<float> m_minHighMassTrackPt {this,
+                                                 "minHighMassTrackPt",
+                                                 500.f / Gaudi::Units::MeV,
+                                                 "minHighMassTrackPt description"};
+    Allen::Property<float> m_minHighMassTrackP {this,
+                                                "minHighMassTrackP",
+                                                6000.f / Gaudi::Units::MeV,
+                                                "minHighMassTrackP description"};
+    Allen::Property<float> m_minMass {this, "minMass", 2996.f / Gaudi::Units::MeV, "minMass description"};
+    Allen::Property<float> m_maxMass {this, "maxMass", 3196.f / Gaudi::Units::MeV, "maxMass description"};
+    Allen::Property<float> m_maxDoca {this, "maxDoca", 0.2f, "maxDoca description"};
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 10.0f, "maxVertexChi2 description"};
+    Allen::Property<float> m_minIP {this, "minIP", 0.07f * Gaudi::Units::mm, "minIP description"};
+    Allen::Property<float> m_minFdChi2 {this, "minFdChi2", 3.f, "minFdChi2 description"};
+    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_minEta {this, "minEta", 2.0f, "minEta description"};
+    Allen::Property<float> m_maxEta {this, "maxEta", 5.0f, "maxEta description"};
+    Allen::Property<float> m_minDira {this, "minDira", 0.9995f, "minimum value of cos(theta_dira)"};
+    Allen::Property<float> m_minComboPt {this, "minComboPt", 2000.0f * Gaudi::Units::MeV, "minComboPt description"};
+    Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 1.8, "max Chi2Muon evaluation"};
+    Allen::Property<int> m_dimuon_charge {this, "DiMuonCharge", 0, "Charge of the dimuon combination"};
   };
 } // namespace di_muon_mass_alignment_line

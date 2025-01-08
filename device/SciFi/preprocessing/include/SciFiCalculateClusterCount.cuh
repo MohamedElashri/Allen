@@ -28,13 +28,6 @@ namespace scifi_calculate_cluster_count {
     DEVICE_OUTPUT(dev_scifi_hit_count_t, unsigned) dev_scifi_hit_count;
     DEVICE_OUTPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
     HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(
-      decode_v8_as_v7_t,
-      "decode_v8_as_v7",
-      "Decode v8 banks as v7 to reproduce a bug in July 2023 (MC only)",
-      bool)
-    decode_v7_as_v8;
   };
 
   struct scifi_calculate_cluster_count_t : public DeviceAlgorithm, Parameters {
@@ -47,8 +40,11 @@ namespace scifi_calculate_cluster_count {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{240, 1, 1}}};
-    Property<decode_v8_as_v7_t> m_decode_v8_as_v7 {this, {false}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {240, 1, 1}, "block dimensions"};
+    Allen::Property<bool> m_decode_v8_as_v7 {this,
+                                             "decode_v8_as_v7",
+                                             {false},
+                                             "Decode v8 banks as v7 to reproduce a bug in July 2023 (MC only)"};
     Allen::Monitoring::Counter<> m_link_error_counter {this, "n_link_error"};
     Allen::Monitoring::Counter<> m_misordered_cluster_counter {this, "n_misordered_cluster"};
   };

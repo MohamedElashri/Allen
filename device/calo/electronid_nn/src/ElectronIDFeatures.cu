@@ -28,7 +28,7 @@ void electronid_features::electronid_features_t::operator()(
   const Allen::Context& context) const
 {
 
-  global_function(electronid_features)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(electronid_features)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments, constants.dev_electronid_mva_min_rescales, constants.dev_electronid_mva_max_rescales);
 }
 

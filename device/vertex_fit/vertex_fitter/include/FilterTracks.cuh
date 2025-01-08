@@ -43,44 +43,28 @@ namespace FilterTracks {
     DEVICE_OUTPUT(dev_svs_trk1_idx_t, unsigned) dev_svs_trk1_idx;
     DEVICE_OUTPUT(dev_svs_trk2_idx_t, unsigned) dev_svs_trk2_idx;
     DEVICE_OUTPUT(dev_sv_poca_t, float) dev_sv_poca;
-    PROPERTY(track_min_pt_both_t, "track_min_pt_both", "Minimum track pT required for both tracks.", float)
-    track_min_pt_both;
-    PROPERTY(track_min_pt_either_t, "track_min_pt_either", "Minimum track pT required for at least one track.", float)
-    track_min_pt_either;
-    PROPERTY(track_min_ipchi2_both_t, "track_min_ipchi2_both", "Minimum track IP chi2 required for both tracks.", float)
-    track_min_ipchi2_both;
-    PROPERTY(
-      track_min_ipchi2_either_t,
-      "track_min_ipchi2_either",
-      "Minimum track IP chi2 required for at least one tracks.",
-      float)
-    track_min_ipchi2_either;
-    PROPERTY(track_min_ip_both_t, "track_min_ip_both", "Minimum track IP required for both tracks.", float)
-    track_min_ip_both;
-    PROPERTY(track_min_ip_either_t, "track_min_ip_either", "Minimum track IP required for at least one track.", float)
-    track_min_ip_either;
-    PROPERTY(track_max_chi2ndof_t, "track_max_chi2ndof", "max track chi2/ndof", float) track_max_chi2ndof;
-    PROPERTY(sum_pt_min_t, "sum_pt_min", "Minimum sum of track pT.", float) sum_pt_min;
-    PROPERTY(doca_max_t, "doca_max", "Maximum DOCA between tracks.", float) doca_max;
-    PROPERTY(require_os_pair_t, "require_os_pair", "Require that tracks have opposite-sign charge.", bool)
-    require_os_pair;
-    PROPERTY(require_same_pv_t, "require_same_pv", "Require both tracks to be associated with the same PV.", bool)
-    require_same_pv;
-    PROPERTY(require_muon_t, "require_muon", "Require both tracks to be identified as muons.", bool) require_muon;
-    PROPERTY(require_electron_t, "require_electron", "Require both tracks to be identified as electrons.", bool)
-    require_electron;
-    PROPERTY(require_lepton_t, "require_lepton", "Require both tracks to be identified as leptons.", bool)
-    require_lepton;
-    PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float) max_assoc_ipchi2;
-    PROPERTY(block_dim_prefilter_t, "block_dim_prefilter", "block dimensions for prefilter step", DeviceDimensions)
-    block_dim_prefilter;
-    PROPERTY(block_dim_filter_t, "block_dim_filter", "block dimensions for filter step", DeviceDimensions)
-    block_dim_filter;
   };
 
-  __global__ void prefilter_tracks(Parameters);
+  __global__ void prefilter_tracks(
+    Parameters,
+    const float track_min_pt_both,
+    const float track_min_ipchi2_both,
+    const float track_max_chi2ndof,
+    const float track_min_ip_both,
+    const bool require_muon,
+    const bool require_electron,
+    const bool require_lepton);
 
-  __global__ void filter_tracks(Parameters);
+  __global__ void filter_tracks(
+    Parameters,
+    const bool require_os_pair,
+    const bool require_same_pv,
+    const float max_assoc_ipchi2,
+    const float track_min_pt_either,
+    const float track_min_ip_either,
+    const float track_min_ipchi2_either,
+    const float sum_pt_min,
+    const float doca_max);
 
   struct filter_tracks_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -92,23 +76,62 @@ namespace FilterTracks {
       const Allen::Context& context) const;
 
   private:
-    Property<track_min_pt_both_t> m_minpt_both {this, 200.0f};
-    Property<track_min_pt_either_t> m_minpt_either {this, 200.0f};
-    Property<track_min_ipchi2_both_t> m_minipchi2_both {this, 4.0f};
-    Property<track_min_ipchi2_either_t> m_minipchi2_either {this, 4.0f};
-    Property<track_min_ip_both_t> m_minip_both {this, 0.06f * Gaudi::Units::mm};
-    Property<track_min_ip_either_t> m_minip_either {this, 0.06f * Gaudi::Units::mm};
-    Property<track_max_chi2ndof_t> m_maxchi2ndof {this, 10.0f};
-    Property<doca_max_t> m_maxdoca {this, 1.f * Gaudi::Units::mm};
-    Property<sum_pt_min_t> m_minsumpt {this, 400.0f * Gaudi::Units::MeV};
-    Property<require_os_pair_t> m_require_os_pair {this, false};
-    Property<require_same_pv_t> m_require_same_pv {this, true};
-    Property<require_muon_t> m_require_muon {this, false};
-    Property<require_electron_t> m_require_electron {this, false};
-    Property<require_lepton_t> m_require_lepton {this, false};
-    Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this, 16.0f};
-    Property<block_dim_prefilter_t> m_block_dim_prefilter {this, {{256, 1, 1}}};
-    Property<block_dim_filter_t> m_block_dim_filter {this, {{16, 16, 1}}};
+    Allen::Property<float> m_minpt_both {this,
+                                         "track_min_pt_both",
+                                         200.0f,
+                                         "Minimum track pT required for both tracks."};
+    Allen::Property<float> m_minpt_either {this,
+                                           "track_min_pt_either",
+                                           200.0f,
+                                           "Minimum track pT required for at least one track."};
+    Allen::Property<float> m_minipchi2_both {this,
+                                             "track_min_ipchi2_both",
+                                             4.0f,
+                                             "Minimum track IP chi2 required for both tracks."};
+    Allen::Property<float> m_minipchi2_either {this,
+                                               "track_min_ipchi2_either",
+                                               4.0f,
+                                               "Minimum track IP chi2 required for at least one tracks."};
+    Allen::Property<float> m_minip_both {this,
+                                         "track_min_ip_both",
+                                         0.06f * Gaudi::Units::mm,
+                                         "Minimum track IP required for both tracks."};
+    Allen::Property<float> m_minip_either {this,
+                                           "track_min_ip_either",
+                                           0.06f * Gaudi::Units::mm,
+                                           "Minimum track IP required for at least one track."};
+    Allen::Property<float> m_maxchi2ndof {this, "track_max_chi2ndof", 10.0f, "max track chi2/ndof"};
+    Allen::Property<float> m_maxdoca {this, "doca_max", 1.f * Gaudi::Units::mm, "Maximum DOCA between tracks."};
+    Allen::Property<float> m_minsumpt {this, "sum_pt_min", 400.0f * Gaudi::Units::MeV, "Minimum sum of track pT."};
+    Allen::Property<bool> m_require_os_pair {this,
+                                             "require_os_pair",
+                                             false,
+                                             "Require that tracks have opposite-sign charge."};
+    Allen::Property<bool> m_require_same_pv {this,
+                                             "require_same_pv",
+                                             true,
+                                             "Require both tracks to be associated with the same PV."};
+    Allen::Property<bool> m_require_muon {this,
+                                          "require_muon",
+                                          false,
+                                          "Require both tracks to be identified as muons."};
+    Allen::Property<bool> m_require_electron {this,
+                                              "require_electron",
+                                              false,
+                                              "Require both tracks to be identified as electrons."};
+    Allen::Property<bool> m_require_lepton {this,
+                                            "require_lepton",
+                                            false,
+                                            "Require both tracks to be identified as leptons."};
+    Allen::Property<float> m_maxassocipchi2 {this, "max_assoc_ipchi2", 16.0f, "maximum IP chi2 to associate to PV"};
+    Allen::Property<dim3> m_block_dim_prefilter {this,
+                                                 "block_dim_prefilter",
+                                                 {256, 1, 1},
+                                                 "block dimensions for prefilter step"};
+    Allen::Property<dim3> m_block_dim_filter {this,
+                                              "block_dim_filter",
+                                              {16, 16, 1},
+                                              "block dimensions for filter step"};
   };
 
 } // namespace FilterTracks

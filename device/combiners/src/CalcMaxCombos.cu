@@ -29,8 +29,7 @@ void CalcMaxCombos::calc_max_combos_t::operator()(
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_max_combo_offsets_t>(arguments, 0, context);
-  global_function(calc_max_combos)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(calc_max_combos)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(arguments);
 
   PrefixSum::prefix_sum<dev_max_combo_offsets_t, host_max_combos_t>(*this, arguments, context);
 }

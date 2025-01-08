@@ -178,12 +178,12 @@ namespace gather_selections {
 
 void gather_selections::gather_selections_t::init()
 {
-  const auto names_of_active_line_algorithms = split(property<names_of_active_line_algorithms_t>().get(), ',');
+  const auto names_of_active_line_algorithms = split(m_names_of_active_line_algorithms, ',');
   for (const auto& name : names_of_active_line_algorithms) {
     const auto it = std::find(std::begin(line_strings), std::end(line_strings), name);
     m_indices_active_line_algorithms.push_back(it - std::begin(line_strings));
   }
-  const auto line_names = std::string(property<names_of_active_lines_t>());
+  const auto line_names = std::string(m_names_of_active_lines);
   std::istringstream is(line_names);
   std::string line_name;
   std::vector<std::string> line_labels;
@@ -239,7 +239,7 @@ void gather_selections::gather_selections_t::set_arguments_size(
 
   set_size<host_number_of_active_lines_t>(arguments, 1);
   set_size<dev_number_of_active_lines_t>(arguments, 1);
-  set_size<host_names_of_active_lines_t>(arguments, std::string(property<names_of_active_lines_t>().get()).size() + 1);
+  set_size<host_names_of_active_lines_t>(arguments, std::string(m_names_of_active_lines).size() + 1);
   set_size<host_selections_lines_offsets_t>(arguments, size_of_aggregates + 1);
   set_size<dev_selections_lines_offsets_t>(arguments, size_of_aggregates + 1);
   set_size<host_selections_offsets_t>(arguments, first<host_number_of_events_t>(arguments) * size_of_aggregates + 1);
@@ -260,7 +260,7 @@ void gather_selections::gather_selections_t::set_arguments_size(
   set_size<dev_event_list_output_size_t>(arguments, 1);
   set_size<dev_event_list_output_t>(arguments, first<host_number_of_events_t>(arguments));
 
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     info_cout << "Sizes of gather_selections datatypes: " << size<host_selections_offsets_t>(arguments) << ", "
               << size<host_selections_lines_offsets_t>(arguments) << ", " << size<dev_selections_offsets_t>(arguments)
               << ", " << size<dev_selections_t>(arguments) << "\n";
@@ -284,7 +284,7 @@ void gather_selections::gather_selections_t::operator()(
 
   Allen::memset_async<dev_pre_scale_event_lists_size_t>(arguments, 0, context);
 
-  global_function(prescaler)(host_line_data.size_of_aggregate(), property<block_dim_x_t>().get(), context)(
+  global_function(prescaler)(host_line_data.size_of_aggregate(), dim3(m_block_dim_x), context)(
     arguments, first<host_number_of_events_t>(arguments), first<host_number_of_active_lines_t>(arguments));
 
   // === Run the selection algorithms
@@ -324,8 +324,7 @@ void gather_selections::gather_selections_t::operator()(
   Allen::memset_async<dev_selections_t>(arguments, 0, context); // <<===
 
   // * Run all selections in one go
-  global_function(gather_selections::run_lines)(
-    host_line_data.size_of_aggregate(), property<block_dim_x_t>().get(), context)(
+  global_function(gather_selections::run_lines)(host_line_data.size_of_aggregate(), dim3(m_block_dim_x), context)(
     arguments, first<host_number_of_events_t>(arguments), first<host_number_of_active_lines_t>(arguments));
 
   // Run monitoring if configured
@@ -336,7 +335,7 @@ void gather_selections::gather_selections_t::operator()(
 
   // Save the names of active lines as output
   Allen::memset_async<host_names_of_active_lines_t>(arguments, 0, context);
-  const auto line_names = std::string(property<names_of_active_lines_t>());
+  const auto line_names = std::string(m_names_of_active_lines);
   line_names.copy(data<host_names_of_active_lines_t>(arguments), line_names.size());
 
   // === Run the postscalers
@@ -352,7 +351,7 @@ void gather_selections::gather_selections_t::operator()(
   Allen::memset_async(
     dev_postscaled_decisions_per_event_line.data(), 0, dev_decisions_per_event_line.size_bytes(), context);
 
-  global_function(postscaler)(first<host_number_of_events_t>(arguments), property<block_dim_x_t>().get(), context)(
+  global_function(postscaler)(first<host_number_of_events_t>(arguments), dim3(m_block_dim_x), context)(
     arguments,
     first<host_number_of_active_lines_t>(arguments),
     dev_decisions_per_event_line.data(),
@@ -364,7 +363,7 @@ void gather_selections::gather_selections_t::operator()(
   Allen::copy<host_event_list_output_size_t, dev_event_list_output_size_t>(arguments, context);
   reduce_size<dev_event_list_output_t>(arguments, first<host_event_list_output_size_t>(arguments));
 
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     const auto host_selections = make_host_buffer<dev_selections_t>(arguments, context);
     Allen::copy<host_selections_offsets_t, dev_selections_offsets_t>(arguments, context);
 

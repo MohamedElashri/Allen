@@ -13,16 +13,18 @@
 INSTANTIATE_LINE(cone_jet_line::cone_jet_line_t, cone_jet_line::Parameters)
 
 __device__ bool cone_jet_line::cone_jet_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::NeutralBasicParticle> input)
 {
   const auto& jet = std::get<0>(input);
-  bool decision = jet.et() > parameters.min_jet_pt && jet.et() < parameters.max_jet_pt;
+  bool decision = jet.et() > properties.min_jet_pt && jet.et() < properties.max_jet_pt;
   return decision;
 }
 
 __device__ void cone_jet_line::cone_jet_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::NeutralBasicParticle> input,
   unsigned index,
   bool)

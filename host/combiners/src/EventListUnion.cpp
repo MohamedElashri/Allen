@@ -67,7 +67,7 @@ void event_list_union::event_list_union_t::operator()(
   // Copy the event list to the device
   Allen::copy_async<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
 
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     printf("List union:\n From lists:\n a: ");
     for (size_t i = 0; i < size<host_event_list_a_t>(arguments); ++i) {
       printf("%i, ", data<host_event_list_a_t>(arguments)[i]);

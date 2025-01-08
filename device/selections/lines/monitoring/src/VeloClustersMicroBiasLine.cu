@@ -29,9 +29,10 @@ __device__ std::tuple<const unsigned> velo_clusters_micro_bias_line::velo_cluste
 }
 
 __device__ bool velo_clusters_micro_bias_line::velo_clusters_micro_bias_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const unsigned> input)
 {
   const auto number_of_velo_clusters = std::get<0>(input);
-  return number_of_velo_clusters >= parameters.min_velo_clusters;
+  return number_of_velo_clusters >= properties.min_velo_clusters;
 }

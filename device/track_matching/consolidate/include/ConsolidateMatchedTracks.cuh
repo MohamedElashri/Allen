@@ -110,8 +110,6 @@ namespace matching_consolidate_tracks {
       DEPENDENCIES(dev_multi_event_long_tracks_view_t),
       Allen::IMultiEventContainer*)
     dev_multi_event_long_tracks_ptr;
-
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   template<bool has_ut>
@@ -150,7 +148,7 @@ namespace matching_consolidate_tracks {
       Allen::Monitoring::Histogram<>::DeviceType&);
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
 
     Allen::Monitoring::AveragingCounter<> m_long_tracks_matching {this, "n_long_tracks_matching"};
     Allen::Monitoring::Histogram<> m_histogram_n_long_tracks_matching {this,

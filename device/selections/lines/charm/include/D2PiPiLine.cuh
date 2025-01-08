@@ -34,48 +34,46 @@ namespace d2pipi_line {
     DEVICE_OUTPUT(D0_ct_t, float) D0_ct;   // To be used in bandwidth division
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
-
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float) minComboPt;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
-    PROPERTY(maxDOCA_t, "maxDOCA", "maxDOCA description", float) maxDOCA;
-    PROPERTY(minEta_t, "minEta", "minEta description", float) minEta;
-    PROPERTY(maxEta_t, "maxEta", "maxEta description", float) maxEta;
-    PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float) minTrackPt;
-    PROPERTY(massWindow_t, "massWindow", "massWindow description", float) massWindow;
-    PROPERTY(minTrackIP_t, "minTrackIP", "minTrackIP description", float) minTrackIP;
-    PROPERTY(ctIPScale_t, "ctIPScale", "D0 ct should be larger than this time minTrackIP", float) ctIPScale;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
-    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dibody combinations", bool) OppositeSign;
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
 
   struct d2pipi_line_t : public SelectionAlgorithm, Parameters, CompositeParticleLine<d2pipi_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      bool oppositeSign;
+      float minComboPt;
+      float maxVertexChi2;
+      float minEta;
+      float maxEta;
+      float maxDOCA;
+      float minTrackPt;
+      float minTrackIP;
+      float ctIPScale;
+      float massWindow;
+      float minZ;
+
       Allen::Monitoring::Histogram<>::DeviceType histogram_d02pipi_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_d02pipi_pt;
-      DeviceAccumulators(const d2pipi_line_t& algo, const Allen::Context& ctx) :
+      DeviceProperties(const d2pipi_line_t& algo, const Allen::Context& ctx) :
+        oppositeSign(algo.m_opposite_sign.value()), minComboPt(algo.m_minComboPt), maxVertexChi2(algo.m_maxVertexChi2),
+        minEta(algo.m_minEta), maxEta(algo.m_maxEta), maxDOCA(algo.m_maxDOCA), minTrackPt(algo.m_minTrackPt),
+        minTrackIP(algo.m_minTrackIP), ctIPScale(algo.m_ctIPScale), massWindow(algo.m_massWindow), minZ(algo.m_minZ),
         histogram_d02pipi_mass(algo.m_histogram_d02pipi_mass.data(ctx)),
         histogram_d02pipi_pt(algo.m_histogram_d02pipi_pt.data(ctx))
       {}
     };
 
     __device__ static bool
-    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     __device__ static void monitor(
       const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
+      const DeviceProperties& properties,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
@@ -83,23 +81,17 @@ namespace d2pipi_line {
     using monitoring_types = std::tuple<min_pt_t, min_ip_t, D0_ct_t, evtNo_t, runNo_t>;
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minComboPt_t> m_minComboPt {this, 2000.0f * Gaudi::Units::MeV};
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 20.f};
-    Property<maxDOCA_t> m_maxDOCA {this, 0.2f * Gaudi::Units::mm};
-    Property<minEta_t> m_minEta {this, 2.0f};
-    Property<maxEta_t> m_maxEta {this, 5.0f};
-    Property<minTrackPt_t> m_minTrackPt {this, 800.f * Gaudi::Units::MeV};
-    Property<massWindow_t> m_massWindow {this, 100.f * Gaudi::Units::MeV};
-    Property<minTrackIP_t> m_minTrackIP {this, 0.06f * Gaudi::Units::mm};
-    Property<ctIPScale_t> m_ctIPScale {this, 1.f};
-    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
-    Property<OppositeSign_t> m_opposite_sign {this, true};
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_minComboPt {this, "minComboPt", 2000.0f * Gaudi::Units::MeV, "minComboPt description"};
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "maxVertexChi2 description"};
+    Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.2f * Gaudi::Units::mm, "maxDOCA description"};
+    Allen::Property<float> m_minEta {this, "minEta", 2.0f, "minEta description"};
+    Allen::Property<float> m_maxEta {this, "maxEta", 5.0f, "maxEta description"};
+    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 800.f * Gaudi::Units::MeV, "minTrackPt description"};
+    Allen::Property<float> m_massWindow {this, "massWindow", 100.f * Gaudi::Units::MeV, "massWindow description"};
+    Allen::Property<float> m_minTrackIP {this, "minTrackIP", 0.06f * Gaudi::Units::mm, "minTrackIP description"};
+    Allen::Property<float> m_ctIPScale {this, "ctIPScale", 1.f, "D0 ct should be larger than this time minTrackIP"};
+    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dibody combinations"};
 
     Allen::Monitoring::Histogram<> m_histogram_d02pipi_mass {this, "d02pipi_mass", "m(D0)", {100u, 1765.f, 1965.f}};
     Allen::Monitoring::Histogram<> m_histogram_d02pipi_pt {this, "d02pipi_pt", "pT(D0)", {100u, 800.f, 1e4f}};

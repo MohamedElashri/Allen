@@ -72,7 +72,6 @@ void kalman_validator::kalman_validator_t::operator()(
     tracks[i] = event_trakcs;
   }
 
-  auto& checker =
-    runtime_options.checker_invoker->checker<KalmanChecker>(name(), property<root_output_filename_t>(), false);
+  auto& checker = runtime_options.checker_invoker->checker<KalmanChecker>(name(), m_root_output_filename, false);
   checker.accumulate(*first<host_mc_events_t>(arguments), tracks, event_list);
 }

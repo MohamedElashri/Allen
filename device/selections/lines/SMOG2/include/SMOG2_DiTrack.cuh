@@ -26,37 +26,6 @@ namespace SMOG2_ditrack_line {
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
 
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(maxTrackChi2Ndf_t, "minTrackChi2Ndf", "max track fit Chi2ndf", float) maxTrackChi2Ndf;
-    PROPERTY(minTrackP_t, "minTrackP", "minimum final-state particles momentum", float) minTrackP;
-    PROPERTY(minTrackPt_t, "minTrackPt", "minimum final-state particles transverse momentum", float) minTrackPt;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "max SV Chi2", float) maxVertexChi2;
-    PROPERTY(maxDoca_t, "maxDoca", "max distance of closest approach", float) maxDoca;
-    PROPERTY(minZ_t, "minZ", "minimum accepted SV z", float) minZ;
-    PROPERTY(maxZ_t, "maxZ", "maximum accepted SV z", float) maxZ;
-    PROPERTY(combCharge_t, "combCharge", "Charge of the combination", int) combCharge;
-    PROPERTY(m1_t, "m1", "first final-state particle mass", float) m1;
-    PROPERTY(m2_t, "m2", "second final-state particle mass", float) m2;
-    PROPERTY(minMdipion_t, "minMdipion", "Minimum mass assuming dipion hypothesis in MeV", float) minMdipion;
-    PROPERTY(mMother_t, "mMother", "resonance mass", float) mMother;
-    PROPERTY(massWindow_t, "massWindow", "maximum mass difference wrt mM", float) massWindow;
-    PROPERTY(minTrackIPCHI2_t, "minTrackIPCHI2", "Min IPCHI2 for the final-state parts", float) minTrackIPCHI2;
-    PROPERTY(maxTrackIPCHI2_t, "maxTrackIPCHI2", "Max IPCHI2 for the final-state parts", float) maxTrackIPCHI2;
-    PROPERTY(minEta_t, "minEta", "minimum pseudoirapidity for composite particle", float) minEta;
-    PROPERTY(maxEta_t, "maxEta", "maximum pseudoirapidity for composite particle", float) maxEta;
-    PROPERTY(minFDCHI2_t, "minFDCHI2", "Min flight distance CHI2 for the final-state part", float) minFDCHI2;
-    PROPERTY(maxFDCHI2_t, "maxFDCHI2", "Max flight distance CHI2 for the final-state part", float) maxFDCHI2;
-    PROPERTY(
-      minEitherTrackPt_t,
-      "minEitherTrackPt",
-      "minimum transverse momentum for at least one final-state particle",
-      float)
-    minEitherTrackPt;
-    PROPERTY(maxGhostProb_t, "maxGhostProb", "Maximum ghost probability of the tracks", float) maxGhostProb;
-
     DEVICE_OUTPUT(sv_masses_m12_t, float) sv_masses_m12;
     DEVICE_OUTPUT(sv_masses_m21_t, float) sv_masses_m21;
     DEVICE_OUTPUT(svz_t, float) svz;
@@ -66,22 +35,47 @@ namespace SMOG2_ditrack_line {
     DEVICE_OUTPUT(ip_t, float) ip;
     DEVICE_OUTPUT(pt_t, float) pt;
     DEVICE_OUTPUT(pvz_t, float) pvz;
-
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
   struct SMOG2_ditrack_line_t : public SelectionAlgorithm,
                                 Parameters,
                                 CompositeParticleLine<SMOG2_ditrack_line_t, Parameters> {
 
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float minEta;
+      float maxEta;
+      float maxTrackChi2Ndf;
+      float minTrackP;
+      float minTrackPt;
+      float minEitherTrackPt;
+      float maxVertexChi2;
+      float minZ;
+      float maxZ;
+      float maxDoca;
+      int combCharge;
+      float minTrackIPCHI2;
+      float maxTrackIPCHI2;
+      float m1;
+      float m2;
+      float minMdipion;
+      float mMother;
+      float massWindow;
+      float minFDCHI2;
+      float maxFDCHI2;
+      float maxGhostProb;
+
       Allen::Monitoring::Histogram<>::DeviceType histogram_smogditrack_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_smogditrack_pt;
       Allen::Monitoring::Histogram<>::DeviceType histogram_smogditrack_pvz;
       Allen::Monitoring::Histogram<>::DeviceType histogram_smogditrack_svz;
 
-      DeviceAccumulators(const SMOG2_ditrack_line_t& algo, const Allen::Context& ctx) :
-        histogram_smogditrack_mass(algo.m_histogram_smogditrack_mass.data(ctx)),
+      DeviceProperties(const SMOG2_ditrack_line_t& algo, const Allen::Context& ctx) :
+        minEta(algo.m_minEta), maxEta(algo.m_maxEta), maxTrackChi2Ndf(algo.m_maxTrackChi2Ndf),
+        minTrackP(algo.m_minTrackP), minTrackPt(algo.m_minTrackPt), minEitherTrackPt(algo.m_minEitherTrackPt),
+        maxVertexChi2(algo.m_maxVertexChi2), minZ(algo.m_minZ), maxZ(algo.m_maxZ), maxDoca(algo.m_maxDoca),
+        combCharge(algo.m_combCharge), minTrackIPCHI2(algo.m_minTrackIPCHI2), maxTrackIPCHI2(algo.m_maxTrackIPCHI2),
+        m1(algo.m_m1), m2(algo.m_m2), minMdipion(algo.m_minMdipion), mMother(algo.m_mMother),
+        massWindow(algo.m_massWindow), minFDCHI2(algo.m_minFDCHI2), maxFDCHI2(algo.m_maxFDCHI2),
+        maxGhostProb(algo.m_maxGhostProb), histogram_smogditrack_mass(algo.m_histogram_smogditrack_mass.data(ctx)),
         histogram_smogditrack_pt(algo.m_histogram_smogditrack_pt.data(ctx)),
         histogram_smogditrack_pvz(algo.m_histogram_smogditrack_pvz.data(ctx)),
         histogram_smogditrack_svz(algo.m_histogram_smogditrack_svz.data(ctx))
@@ -92,17 +86,18 @@ namespace SMOG2_ditrack_line {
       std::tuple<sv_masses_m12_t, sv_masses_m21_t, svz_t, track1pt_t, track2pt_t, minipchi2_t, ip_t, pvz_t, pt_t>;
 
     __device__ static bool
-    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     __device__ static void monitor(
       const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
+      const DeviceProperties& properties,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
+      const DeviceProperties& properties,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
@@ -110,36 +105,45 @@ namespace SMOG2_ditrack_line {
     void init();
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-
-    Property<minEta_t> m_minEta {this, 2.0f};
-    Property<maxEta_t> m_maxEta {this, 6.0f};
-    Property<maxTrackChi2Ndf_t> m_maxTrackChi2Ndf {this, 4.f};
-    Property<minTrackP_t> m_minTrackP {this, 3000.f * Gaudi::Units::MeV};
-    Property<minTrackPt_t> m_minTrackPt {this, 400.f * Gaudi::Units::MeV};
-    Property<minEitherTrackPt_t> m_minEitherTrackPt {this, 800.f * Gaudi::Units::MeV};
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 20.f};
-    Property<minZ_t> m_minZ {this, -551.f * Gaudi::Units::mm};
-    Property<maxZ_t> m_maxZ {this, -331.f * Gaudi::Units::mm};
-    Property<maxDoca_t> m_maxDoca {this, 0.2f * Gaudi::Units::mm};
-    Property<combCharge_t> m_combCharge {this, 0};
-    Property<minTrackIPCHI2_t> m_minTrackIPCHI2 {this, 5.f};
-    Property<maxTrackIPCHI2_t> m_maxTrackIPCHI2 {this, 999999.f};
-    Property<m1_t> m_m1 {this, -1.f * Gaudi::Units::MeV};
-    Property<m2_t> m_m2 {this, -1.f * Gaudi::Units::MeV};
-    Property<minMdipion_t> m_minMdipion {this, -1.f * Gaudi::Units::MeV};
-    Property<mMother_t> m_mMother {this, -1.f * Gaudi::Units::MeV};
-    Property<massWindow_t> m_massWindow {this, -1.f * Gaudi::Units::MeV};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
-    Property<minFDCHI2_t> m_minFDCHI2 {this, -10.f};
-    Property<maxFDCHI2_t> m_maxFDCHI2 {this, 999999.f};
-    Property<maxGhostProb_t> m_maxGhostProb {this, 0.5};
-
-    // Switch to create monitoring tuple
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Allen::Property<float> m_minEta {this, "minEta", 2.0f, "minimum pseudoirapidity for composite particle"};
+    Allen::Property<float> m_maxEta {this, "maxEta", 6.0f, "maximum pseudoirapidity for composite particle"};
+    Allen::Property<float> m_maxTrackChi2Ndf {this, "maxTrackChi2Ndf", 4.f, "max track fit Chi2ndf"};
+    Allen::Property<float> m_minTrackP {this,
+                                        "minTrackP",
+                                        3000.f * Gaudi::Units::MeV,
+                                        "minimum final-state particles momentum"};
+    Allen::Property<float> m_minTrackPt {this,
+                                         "minTrackPt",
+                                         400.f * Gaudi::Units::MeV,
+                                         "minimum final-state particles transverse momentum"};
+    Allen::Property<float> m_minEitherTrackPt {this,
+                                               "minEitherTrackPt",
+                                               800.f * Gaudi::Units::MeV,
+                                               "minimum transverse momentum for at least one final-state particle"};
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "max SV Chi2"};
+    Allen::Property<float> m_minZ {this, "minZ", -551.f * Gaudi::Units::mm, "minimum accepted SV z"};
+    Allen::Property<float> m_maxZ {this, "maxZ", -331.f * Gaudi::Units::mm, "maximum accepted SV z"};
+    Allen::Property<float> m_maxDoca {this, "maxDoca", 0.2f * Gaudi::Units::mm, "max distance of closest approach"};
+    Allen::Property<int> m_combCharge {this, "combCharge", 0, "Charge of the combination"};
+    Allen::Property<float> m_minTrackIPCHI2 {this, "minTrackIPCHI2", 5.f, "Min IPCHI2 for the final-state parts"};
+    Allen::Property<float> m_maxTrackIPCHI2 {this, "maxTrackIPCHI2", 999999.f, "Max IPCHI2 for the final-state parts"};
+    Allen::Property<float> m_m1 {this, "m1", -1.f * Gaudi::Units::MeV, "first final-state particle mass"};
+    Allen::Property<float> m_m2 {this, "m2", -1.f * Gaudi::Units::MeV, "second final-state particle mass"};
+    Allen::Property<float> m_minMdipion {this,
+                                         "minMdipion",
+                                         -1.f * Gaudi::Units::MeV,
+                                         "Minimum mass assuming dipion hypothesis in MeV"};
+    Allen::Property<float> m_mMother {this, "mMother", -1.f * Gaudi::Units::MeV, "resonance mass"};
+    Allen::Property<float> m_massWindow {this,
+                                         "massWindow",
+                                         -1.f * Gaudi::Units::MeV,
+                                         "maximum mass difference wrt mM"};
+    Allen::Property<float> m_minFDCHI2 {this, "minFDCHI2", -10.f, "Min flight distance CHI2 for the final-state part"};
+    Allen::Property<float> m_maxFDCHI2 {this,
+                                        "maxFDCHI2",
+                                        999999.f,
+                                        "Max flight distance CHI2 for the final-state part"};
+    Allen::Property<float> m_maxGhostProb {this, "maxGhostProb", 0.5, "Maximum ghost probability of the tracks"};
 
     Allen::Monitoring::Histogram<> m_histogram_smogditrack_mass {this,
                                                                  "SMOG2_ditrack_mass",

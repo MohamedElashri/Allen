@@ -33,13 +33,38 @@ void FilterSvs::filter_svs_t::operator()(
 {
   Allen::memset_async<dev_combo_offsets_t>(arguments, 0, context);
 
-  global_function(filter_svs)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_filter_t>(), context)(
-    arguments);
+  global_function(filter_svs)(dim3(size<dev_event_list_t>(arguments)), m_block_dim_filter, context)(
+    arguments,
+    m_maxVertexChi2,
+    m_minTrackP,
+    m_minChildEta,
+    m_maxChildEta,
+    m_minCosDira,
+    m_minTrackPt,
+    m_minComboPt,
+    m_minTrackIPChi2,
+    m_minTrackPtLowIP,
+    m_minTrackLowIP,
+    m_minComboPtHighIP,
+    m_minTrackHighIP);
 
   PrefixSum::prefix_sum<dev_combo_offsets_t, host_number_of_combos_t>(*this, arguments, context);
 }
 
-__global__ void FilterSvs::filter_svs(FilterSvs::Parameters parameters)
+__global__ void FilterSvs::filter_svs(
+  FilterSvs::Parameters parameters,
+  const float maxVertexChi2,
+  const float minTrackP,
+  const float minChildEta,
+  const float maxChildEta,
+  const float minCosDira,
+  const float minTrackPt,
+  const float minComboPt,
+  const float minTrackIPChi2,
+  const float minTrackPtLowIP,
+  const float minTrackLowIP,
+  const float minComboPtHighIP,
+  const float minTrackHighIP)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -60,25 +85,25 @@ __global__ void FilterSvs::filter_svs(FilterSvs::Parameters parameters)
     const auto vertex = svs.particle(i_sv);
 
     // Set decision
-    dec = vertex.vertex().chi2() > 0 && vertex.vertex().chi2() < parameters.maxVertexChi2;
+    dec = vertex.vertex().chi2() > 0 && vertex.vertex().chi2() < maxVertexChi2;
     // Kinematic cuts.
-    dec &= vertex.minp() > parameters.minTrackP;
-    dec &= vertex.eta() > parameters.minChildEta;
-    dec &= vertex.eta() < parameters.maxChildEta;
-    dec &= vertex.dira() > parameters.minCosDira;
+    dec &= vertex.minp() > minTrackP;
+    dec &= vertex.eta() > minChildEta;
+    dec &= vertex.eta() < maxChildEta;
+    dec &= vertex.dira() > minCosDira;
     // Kinematic cuts - IPchi2(dec2), IPlow(dec3) and IPhigh(dec4)
     bool dec2 = true;
-    dec2 &= vertex.minpt() > parameters.minTrackPt;
-    dec2 &= vertex.vertex().pt() > parameters.minComboPt;
-    dec2 &= vertex.minipchi2() > parameters.minTrackIPChi2;
+    dec2 &= vertex.minpt() > minTrackPt;
+    dec2 &= vertex.vertex().pt() > minComboPt;
+    dec2 &= vertex.minipchi2() > minTrackIPChi2;
     bool dec3 = true;
-    dec3 &= vertex.minpt() > parameters.minTrackPtLowIP;
-    dec3 &= vertex.vertex().pt() > parameters.minComboPt;
-    dec3 &= vertex.minip() > parameters.minTrackLowIP;
+    dec3 &= vertex.minpt() > minTrackPtLowIP;
+    dec3 &= vertex.vertex().pt() > minComboPt;
+    dec3 &= vertex.minip() > minTrackLowIP;
     bool dec4 = true;
-    dec4 &= vertex.minpt() > parameters.minTrackPt;
-    dec4 &= vertex.vertex().pt() > parameters.minComboPtHighIP;
-    dec4 &= vertex.minip() > parameters.minTrackHighIP;
+    dec4 &= vertex.minpt() > minTrackPt;
+    dec4 &= vertex.vertex().pt() > minComboPtHighIP;
+    dec4 &= vertex.minip() > minTrackHighIP;
     event_sv_filter_decision[i_sv] = dec & (dec2 | dec3 | dec4);
   }
 

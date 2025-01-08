@@ -37,8 +37,7 @@ void downstream_composite_selector::downstream_composite_selector_t::operator()(
   Allen::memset_async<dev_downstream_mva_detached_l0_t>(arguments, 0, context);
   Allen::memset_async<dev_downstream_mva_detached_ks_t>(arguments, 0, context);
 
-  global_function(downstream_composite_selector)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(downstream_composite_selector)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
     constants.dev_downstream_lambda_selector,
     constants.dev_downstream_kshort_selector,

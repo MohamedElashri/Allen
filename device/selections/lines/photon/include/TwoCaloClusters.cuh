@@ -55,79 +55,48 @@ namespace two_calo_clusters_line {
     DEVICE_OUTPUT(npvs_t, unsigned) npvs;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
-
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minE19_clusters_t, "minE19_clusters", "min E19 of each cluster", float) minE19_clusters;
-    PROPERTY(minEt_clusters_t, "minEt_clusters", "min Et of each cluster", float) minEt_clusters;
-    PROPERTY(minAbsY_clusters_t, "minAbsY_clusters", "min |Y| of each cluster", float) minAbsY_clusters;
-    PROPERTY(minSumEt_clusters_t, "minSumEt_clusters", "min SumEt of clusters", float) minSumEt_clusters;
-    PROPERTY(minPt_t, "minPt", "min Pt of the twocluster", float) minPt;
-    PROPERTY(maxPt_t, "maxPt", "min Pt of the twocluster", float) maxPt;
-    PROPERTY(minPtEta_t, "minPtEta", "Pt > (minPtEta * (10-Eta)) of the twocluster", float) minPtEta;
-    PROPERTY(minMass_t, "minMass", "min Mass of the two cluster", float) minMass;
-    PROPERTY(maxMass_t, "maxMass", "max Mass of the two cluster", float) maxMass;
-    PROPERTY(eta_max_t, "eta_max", "Maximum dicluster pseudorapidity", float) eta_max;
-    PROPERTY(max_velo_tracks_t, "max_velo_tracks", "Maximum number of VELO tracks", unsigned) max_velo_tracks;
-    PROPERTY(max_ecal_clusters_t, "max_ecal_clusters", "Maximum number of ECAL clusters", unsigned) max_ecal_clusters;
-    PROPERTY(max_n_pvs_t, "max_n_pvs", "Maximum number of PVs", unsigned) max_n_pvs;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
-
-    PROPERTY(
-      histogram_diphoton_mass_min_t,
-      "histogram_diphoton_mass_min",
-      "histogram_diphoton_mass_min description",
-      float)
-    histogram_diphoton_mass_min;
-    PROPERTY(
-      histogram_diphoton_mass_max_t,
-      "histogram_diphoton_mass_max",
-      "histogram_diphoton_mass_max description",
-      float)
-    histogram_diphoton_mass_max;
-    PROPERTY(
-      histogram_diphoton_mass_nbins_t,
-      "histogram_diphoton_mass_nbins",
-      "histogram_diphoton_mass_nbins description",
-      unsigned int)
-    histogram_diphoton_mass_nbins;
-    PROPERTY(histogram_diphoton_pt_min_t, "histogram_diphoton_pt_min", "histogram_diphoton_pt_min description", float)
-    histogram_diphoton_pt_min;
-    PROPERTY(histogram_diphoton_pt_max_t, "histogram_diphoton_pt_max", "histogram_diphoton_pt_max description", float)
-    histogram_diphoton_pt_max;
-    PROPERTY(
-      histogram_diphoton_pt_nbins_t,
-      "histogram_diphoton_pt_nbins",
-      "histogram_diphoton_pt_nbins description",
-      unsigned int)
-    histogram_diphoton_pt_nbins;
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct two_calo_clusters_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     CompositeParticleLine<two_calo_clusters_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float minMass;
+      float maxMass;
+      float minPt;
+      float maxPt;
+      float minPtEta;
+      float minEt_clusters;
+      float minSumEt_clusters;
+      float minE19_clusters;
+      float minAbsY_clusters;
+      float eta_max;
+      unsigned max_velo_tracks;
+      unsigned max_ecal_clusters;
+      unsigned max_n_pvs;
       Allen::Monitoring::Histogram<>::DeviceType histogram_diphoton_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_diphoton_pt;
-      DeviceAccumulators(const two_calo_clusters_line_t& algo, const Allen::Context& ctx) :
-        histogram_diphoton_mass(algo.m_histogram_diphoton_mass.data(ctx)),
+      DeviceProperties(const two_calo_clusters_line_t& algo, const Allen::Context& ctx) :
+        minMass(algo.m_minMass), maxMass(algo.m_maxMass), minPt(algo.m_minPt), maxPt(algo.m_maxPt),
+        minPtEta(algo.m_minPtEta), minEt_clusters(algo.m_minEt_clusters), minSumEt_clusters(algo.m_minSumEt_clusters),
+        minE19_clusters(algo.m_minE19_clusters), minAbsY_clusters(algo.m_minAbsY_clusters), eta_max(algo.m_eta_max),
+        max_velo_tracks(algo.m_max_velo_tracks), max_ecal_clusters(algo.m_max_ecal_clusters),
+        max_n_pvs(algo.m_max_n_pvs), histogram_diphoton_mass(algo.m_histogram_diphoton_mass.data(ctx)),
         histogram_diphoton_pt(algo.m_histogram_diphoton_pt.data(ctx))
       {}
     };
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned>,
-      unsigned index,
-      bool sel);
+      unsigned,
+      bool);
 
     __device__ static bool select(
       const Parameters&,
-      const DeviceAccumulators&,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned> input);
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned>);
 
     using monitoring_types = std::tuple<
       mass_t,
@@ -167,38 +136,53 @@ namespace two_calo_clusters_line {
 
     __device__ static void monitor(
       const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
+      const DeviceProperties& properties,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned, const unsigned, const unsigned>,
       unsigned index,
       bool sel);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minMass_t> m_minMass {this, 4200.0f};                   // MeV
-    Property<maxMass_t> m_maxMass {this, 21000.0f};                  // MeV
-    Property<minPt_t> m_minPt {this, 0.0f};                          // MeV
-    Property<maxPt_t> m_maxPt {this, 999999.f};                      // MeV
-    Property<minPtEta_t> m_minPtEta {this, 0.0f};                    // MeV
-    Property<minEt_clusters_t> m_minEt_clusters {this, 200.f};       // MeV
-    Property<minSumEt_clusters_t> m_minSumEt_clusters {this, 400.f}; // MeV
-    Property<minE19_clusters_t> m_minE19_clusters {this, 0.6f};
-    Property<minAbsY_clusters_t> minAbsY_clusters {this, -1.0f}; // mm
-    Property<eta_max_t> m_eta_max {this, 10.f};
-    Property<max_velo_tracks_t> m_max_velo_tracks {this, UINT_MAX};
-    Property<max_ecal_clusters_t> m_max_ecal_clusters {this, UINT_MAX};
-    Property<max_n_pvs_t> m_max_n_pvs {this, UINT_MAX};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_minMass {this, "minMass", 4200.0f, "min Mass of the two cluster"};                 // MeV
+    Allen::Property<float> m_maxMass {this, "maxMass", 21000.0f, "max Mass of the two cluster"};                // MeV
+    Allen::Property<float> m_minPt {this, "minPt", 0.0f, "min Pt of the twocluster"};                           // MeV
+    Allen::Property<float> m_maxPt {this, "maxPt", 999999.f, "max Pt of the twocluster"};                       // MeV
+    Allen::Property<float> m_minPtEta {this, "minPtEta", 0.0f, "Pt > (minPtEta * (10-Eta)) of the twocluster"}; // MeV
+    Allen::Property<float> m_minEt_clusters {this, "minEt_clusters", 200.f, "min Et of each cluster"};          // MeV
+    Allen::Property<float> m_minSumEt_clusters {this, "minSumEt_clusters", 400.f, "min SumEt of clusters"};     // MeV
+    Allen::Property<float> m_minE19_clusters {this, "minE19_clusters", 0.6f, "min E19 of each cluster"};
+    Allen::Property<float> m_minAbsY_clusters {this, "minAbsY_clusters", -1.0f, "min |Y| of each cluster"}; // mm
+    Allen::Property<float> m_eta_max {this, "eta_max", 10.f, "Maximum dicluster pseudorapidity"};
+    Allen::Property<unsigned> m_max_velo_tracks {this, "max_velo_tracks", UINT_MAX, "Maximum number of VELO tracks"};
+    Allen::Property<unsigned> m_max_ecal_clusters {this,
+                                                   "max_ecal_clusters",
+                                                   UINT_MAX,
+                                                   "Maximum number of ECAL clusters"};
+    Allen::Property<unsigned> m_max_n_pvs {this, "max_n_pvs", UINT_MAX, "Maximum number of PVs"};
 
-    Property<histogram_diphoton_mass_min_t> m_histogramdiphotonMassMin {this, 0.f};
-    Property<histogram_diphoton_mass_max_t> m_histogramdiphotonMassMax {this, 2000.f};
-    Property<histogram_diphoton_mass_nbins_t> m_histogramdiphotonMassNBins {this, 100u};
-    Property<histogram_diphoton_pt_min_t> m_histogramdiphotonPtMin {this, 0.f};
-    Property<histogram_diphoton_pt_max_t> m_histogramdiphotonPtMax {this, 2e3};
-    Property<histogram_diphoton_pt_nbins_t> m_histogramdiphotonPtNBins {this, 100u};
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Allen::Property<float> m_histogramdiphotonMassMin {this,
+                                                       "histogram_diphoton_mass_min",
+                                                       0.f,
+                                                       "histogram_diphoton_mass_min description"};
+    Allen::Property<float> m_histogramdiphotonMassMax {this,
+                                                       "histogram_diphoton_mass_max",
+                                                       2000.f,
+                                                       "histogram_diphoton_mass_max description"};
+    Allen::Property<unsigned int> m_histogramdiphotonMassNBins {this,
+                                                                "histogram_diphoton_mass_nbins",
+                                                                100u,
+                                                                "histogram_diphoton_mass_nbins description"};
+    Allen::Property<float> m_histogramdiphotonPtMin {this,
+                                                     "histogram_diphoton_pt_min",
+                                                     0.f,
+                                                     "histogram_diphoton_pt_min description"};
+    Allen::Property<float> m_histogramdiphotonPtMax {this,
+                                                     "histogram_diphoton_pt_max",
+                                                     2e3,
+                                                     "histogram_diphoton_pt_max description"};
+    Allen::Property<unsigned int> m_histogramdiphotonPtNBins {this,
+                                                              "histogram_diphoton_pt_nbins",
+                                                              100u,
+                                                              "histogram_diphoton_pt_nbins description"};
 
     Allen::Monitoring::Histogram<> m_histogram_diphoton_mass {this, "diphoton_mass", "m(diphoton)", {100u, 0.f, 2e3f}};
     Allen::Monitoring::Histogram<> m_histogram_diphoton_pt {this, "diphoton_pt", "pT(diphoton)", {100u, 0.f, 2e3f}};

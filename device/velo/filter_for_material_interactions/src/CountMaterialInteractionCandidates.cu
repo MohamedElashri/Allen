@@ -36,8 +36,8 @@ void CountMaterialInteractionCandidates::count_materialinteraction_candidates_t:
   Allen::memset_async<dev_number_of_filtered_tracks_t>(arguments, 0, context);
   Allen::memset_async<dev_interaction_seeds_offsets_t>(arguments, 0, context);
 
-  global_function(count_materialinteraction_candidates)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, dev_beamline);
+  global_function(count_materialinteraction_candidates)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments, dev_beamline, m_beamdoca_r, m_max_doca_for_close_track_pairs);
 
   PrefixSum::prefix_sum<dev_interaction_seeds_offsets_t, host_number_of_total_interaction_seeds_t>(
     *this, arguments, context);
@@ -45,7 +45,9 @@ void CountMaterialInteractionCandidates::count_materialinteraction_candidates_t:
 
 __global__ void CountMaterialInteractionCandidates::count_materialinteraction_candidates(
   CountMaterialInteractionCandidates::Parameters parameters,
-  float* dev_beamline)
+  float* dev_beamline,
+  const float beamdoca_r,
+  const float max_doca_for_close_track_pairs)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const auto velo_tracks = parameters.dev_velo_track_view[event_number];
@@ -69,7 +71,7 @@ __global__ void CountMaterialInteractionCandidates::count_materialinteraction_ca
       ((state.x() - dev_beamline[0]) * (state.x() - dev_beamline[0])) +
       ((state.y() - dev_beamline[1]) * (state.y() - dev_beamline[1])));
 
-    if (beamspot_doca_r > parameters.beamdoca_r) {
+    if (beamspot_doca_r > beamdoca_r) {
       auto insert_index = atomicAdd(&shared_number_of_filtered_tracks, 1);
       event_velo_filtered_idx[insert_index] = i_track;
     }
@@ -88,17 +90,17 @@ __global__ void CountMaterialInteractionCandidates::count_materialinteraction_ca
       auto stateB = trackB.state(velo_states);
 
       auto tracks_doca_AB = Allen::Views::Physics::state_doca(stateA, stateB);
-      if (tracks_doca_AB < 0.f || tracks_doca_AB > parameters.max_doca_for_close_track_pairs) continue;
+      if (tracks_doca_AB < 0.f || tracks_doca_AB > max_doca_for_close_track_pairs) continue;
 
       for (unsigned kdx = threadIdx.z + jdx + 1; kdx < shared_number_of_filtered_tracks; kdx += blockDim.z) {
         auto trackC = velo_tracks.track(event_velo_filtered_idx[kdx]);
         auto stateC = trackC.state(velo_states);
 
         auto tracks_doca_BC = Allen::Views::Physics::state_doca(stateB, stateC);
-        if (tracks_doca_BC < 0.f || tracks_doca_BC > parameters.max_doca_for_close_track_pairs) continue;
+        if (tracks_doca_BC < 0.f || tracks_doca_BC > max_doca_for_close_track_pairs) continue;
 
         auto tracks_doca_AC = Allen::Views::Physics::state_doca(stateA, stateC);
-        if (tracks_doca_AC > 0.f && tracks_doca_AC < parameters.max_doca_for_close_track_pairs) {
+        if (tracks_doca_AC > 0.f && tracks_doca_AC < max_doca_for_close_track_pairs) {
           atomicAdd(&shared_number_of_seeds, 1);
         }
       }

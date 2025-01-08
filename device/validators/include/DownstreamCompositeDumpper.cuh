@@ -47,8 +47,6 @@ namespace downstream_composite_dumper {
     DEVICE_OUTPUT(dev_dumpping_objects_t, Allen::DumppingObjects::DownstreamComposite) dev_dumpping_objects;
 
     // Property
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
   };
 
   // __global__ Checker::Track create_track_from_seed(const SciFi::Seeding::Track seed);
@@ -64,7 +62,10 @@ namespace downstream_composite_dumper {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
-    Property<root_output_filename_t> m_root_output_filename {this, "CompositeDumpper.root"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
+    Allen::Property<std::string> m_root_output_filename {this,
+                                                         "root_output_filename",
+                                                         "CompositeDumpper.root",
+                                                         "root output filename"};
   };
 } // namespace downstream_composite_dumper

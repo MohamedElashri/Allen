@@ -33,13 +33,6 @@ namespace ut_cluster_and_pre_decode {
     DEVICE_OUTPUT(dev_ut_tiebreak_t, uint32_t) dev_ut_tiebreak;
     DEVICE_OUTPUT(dev_ut_cluster_offsets_t, unsigned) dev_ut_cluster_offsets;
     HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(cluster_ut_hits_t, "cluster_ut_hits", "whether to cluster UT hits", bool) cluster_ut_hits;
-    PROPERTY(position_method_t, "position_method", "weighting method for UT cluster position", int)
-    position_method;
-    PROPERTY(max_cluster_size_t, "max_cluster_size", "max size of UT clusters", unsigned) max_cluster_size;
-    PROPERTY(save_clusters_above_max_t, "save_clusters_above_max", "whether to save UT clusters above max size", bool)
-    save_clusters_above_max;
   };
 
   /**
@@ -58,7 +51,11 @@ namespace ut_cluster_and_pre_decode {
     const char* ut_geometry,
     const unsigned* dev_unique_x_sector_layer_offsets,
     const unsigned* dev_unique_x_sector_offsets,
-    const uint16_t* dev_ut_board_geometry_map);
+    const uint16_t* dev_ut_board_geometry_map,
+    const bool cluster_ut_hits,
+    const int position_method,
+    const unsigned max_cluster_size,
+    const bool save_clusters_above_max);
 
   struct ut_cluster_and_pre_decode_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants& constants)
@@ -71,10 +68,13 @@ namespace ut_cluster_and_pre_decode {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 4, 1}}};
-    Property<position_method_t> m_position_method {this, 0};
-    Property<max_cluster_size_t> m_max_cluster_size {this, 4u};
-    Property<cluster_ut_hits_t> m_cluster_ut_hits {this, true};
-    Property<save_clusters_above_max_t> m_save_clusters_above_max {this, true};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 4, 1}, "block dimensions"};
+    Allen::Property<int> m_position_method {this, "position_method", 0, "weighting method for UT cluster position"};
+    Allen::Property<unsigned> m_max_cluster_size {this, "max_cluster_size", 4u, "max size of UT clusters"};
+    Allen::Property<bool> m_cluster_ut_hits {this, "cluster_ut_hits", true, "whether to cluster UT hits"};
+    Allen::Property<bool> m_save_clusters_above_max {this,
+                                                     "save_clusters_above_max",
+                                                     true,
+                                                     "whether to save UT clusters above max size"};
   };
 } // namespace ut_cluster_and_pre_decode

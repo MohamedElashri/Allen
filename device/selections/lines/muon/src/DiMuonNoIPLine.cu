@@ -33,8 +33,8 @@ di_muon_no_ip_line::di_muon_no_ip_line_t::get_input(
   return std::forward_as_tuple(vertex, min_nn);
 }
 __device__ bool di_muon_no_ip_line::di_muon_no_ip_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto vertex = std::get<0>(input);
@@ -44,14 +44,14 @@ __device__ bool di_muon_no_ip_line::di_muon_no_ip_line_t::select(
   const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
 
   const bool same_sign = vertex.charge() != 0;
-  bool dec = min_nn > parameters.minNN && vertex.is_dimuon() && (same_sign == parameters.ss_on) &&
-             track1->state().chi2() / track1->state().ndof() <= parameters.maxTrChi2 &&
-             track2->state().chi2() / track2->state().ndof() <= parameters.maxTrChi2 && track1->state().chi2() > 0 &&
-             track2->state().chi2() > 0 && vertex.doca12() <= parameters.maxDoca &&
-             track1->state().pt() * track2->state().pt() >= parameters.minTrackPtPROD &&
-             track1->state().p() >= parameters.minTrackP && track2->state().p() >= parameters.minTrackP &&
-             vertex.vertex().chi2() > 0 && vertex.vertex().chi2() <= parameters.maxVertexChi2 &&
-             vertex.vertex().pt() > parameters.minPt && vertex.vertex().z() >= parameters.minZ;
+  bool dec = min_nn > properties.minNN && vertex.is_dimuon() && (same_sign == properties.ss_on) &&
+             track1->state().chi2() / track1->state().ndof() <= properties.maxTrChi2 &&
+             track2->state().chi2() / track2->state().ndof() <= properties.maxTrChi2 && track1->state().chi2() > 0 &&
+             track2->state().chi2() > 0 && vertex.doca12() <= properties.maxDoca &&
+             track1->state().pt() * track2->state().pt() >= properties.minTrackPtPROD &&
+             track1->state().p() >= properties.minTrackP && track2->state().p() >= properties.minTrackP &&
+             vertex.vertex().chi2() > 0 && vertex.vertex().chi2() <= properties.maxVertexChi2 &&
+             vertex.vertex().pt() > properties.minPt && vertex.vertex().z() >= properties.minZ;
   if (dec) {
     using segment = Allen::Views::Physics::Track::segment;
     const auto* muon_segment1 = track1->track().track_segment_ptr<segment::muon>();
@@ -67,7 +67,7 @@ __device__ bool di_muon_no_ip_line::di_muon_no_ip_line_t::select(
 
 __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned,
   bool sel)
@@ -78,7 +78,7 @@ __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
     const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
     if (track1->ip_chi2() < 6 && track2->ip_chi2() < 6) {
       float q = sqrtf(vertex.mdimu() * vertex.mdimu() - 4 * Allen::mMu * Allen::mMu);
-      accumulators.histogram_prompt_q.increment(q);
+      properties.histogram_prompt_q.increment(q);
     }
   }
 }

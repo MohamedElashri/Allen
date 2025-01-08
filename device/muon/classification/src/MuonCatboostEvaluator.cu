@@ -27,7 +27,7 @@ void muon_catboost_evaluator::muon_catboost_evaluator_t::operator()(
   const Allen::Context& context) const
 {
   global_function(muon_catboost_evaluator)(
-    dim3(first<host_number_of_reconstructed_scifi_tracks_t>(arguments)), property<block_dim_t>(), context)(
+    dim3(first<host_number_of_reconstructed_scifi_tracks_t>(arguments)), m_block_dim, context)(
     arguments,
     constants.dev_muon_catboost_leaf_values,
     constants.dev_muon_catboost_leaf_offsets,

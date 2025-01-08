@@ -22,7 +22,6 @@
 namespace Allen::Gear::Function {
   template<typename... S>
   auto make_parameters(
-    const std::map<std::string, Allen::BaseProperty*>& properties,
     const dim3& grid_dim,
     const dim3& block_dim,
     const unsigned dynamic_shared_memory_size,
@@ -30,7 +29,6 @@ namespace Allen::Gear::Function {
   {
     return std::make_tuple(TransformParameters<S>::transform(
       std::forward<S>(arguments),
-      properties,
       Allen::KernelInvocationConfiguration {grid_dim, block_dim, dynamic_shared_memory_size})...);
   }
 } // namespace Allen::Gear::Function
@@ -38,7 +36,6 @@ namespace Allen::Gear::Function {
 template<typename Fn>
 struct GlobalFunctionImpl {
 private:
-  const std::map<std::string, Allen::BaseProperty*>& m_properties;
   const dim3& m_grid_dim;
   const dim3& m_block_dim;
   const Allen::Context& m_context;
@@ -47,22 +44,20 @@ private:
 
 public:
   GlobalFunctionImpl(
-    const std::map<std::string, Allen::BaseProperty*>& properties,
     const dim3& grid_dim,
     const dim3& block_dim,
     const Allen::Context& context,
     const unsigned dynamic_shared_memory_size,
     const Fn& fn) :
-    m_properties(properties),
-    m_grid_dim(grid_dim), m_block_dim(block_dim), m_context(context),
-    m_dynamic_shared_memory_size(dynamic_shared_memory_size), m_fn(fn)
+    m_grid_dim(grid_dim),
+    m_block_dim(block_dim), m_context(context), m_dynamic_shared_memory_size(dynamic_shared_memory_size), m_fn(fn)
   {}
 
   template<typename... S>
   void operator()(S&&... arguments) const
   {
-    const auto invoke_arguments = Allen::Gear::Function::make_parameters(
-      m_properties, m_grid_dim, m_block_dim, m_dynamic_shared_memory_size, arguments...);
+    const auto invoke_arguments =
+      Allen::Gear::Function::make_parameters(m_grid_dim, m_block_dim, m_dynamic_shared_memory_size, arguments...);
 
     invoke_device_function(
       m_fn,
@@ -84,14 +79,11 @@ public:
 template<typename Fn>
 struct GlobalFunction {
 private:
-  const std::map<std::string, Allen::BaseProperty*>& m_properties;
   const Fn& m_fn;
 
 public:
   // Constructor. Encapsulates a CUDA function.
-  GlobalFunction(const std::map<std::string, Allen::BaseProperty*>& properties, const Fn& fn) :
-    m_properties(properties), m_fn(fn)
-  {}
+  GlobalFunction(const Fn& fn) : m_fn(fn) {}
 
   // The syntax of operator() resembles the CUDA syntax:
   //  foo(num_blocks, num_threads, cuda_context)(arguments...)
@@ -101,7 +93,7 @@ public:
     const Allen::Context& context,
     const unsigned dynamic_shared_memory_size = 0) const
   {
-    return GlobalFunctionImpl<Fn> {m_properties, num_blocks, num_threads, context, dynamic_shared_memory_size, m_fn};
+    return GlobalFunctionImpl<Fn> {num_blocks, num_threads, context, dynamic_shared_memory_size, m_fn};
   }
 };
 
@@ -113,17 +105,14 @@ public:
 template<typename Fn>
 struct HostFunction {
 private:
-  const std::map<std::string, Allen::BaseProperty*>& m_properties;
   const Fn& m_fn;
 
 public:
-  HostFunction(const std::map<std::string, Allen::BaseProperty*>& properties, const Fn& fn) :
-    m_properties(properties), m_fn(fn)
-  {}
+  HostFunction(const Fn& fn) : m_fn(fn) {}
 
   template<typename... S>
   auto operator()(S&&... arguments) const
   {
-    return m_fn(TransformParameters<S>::transform(std::forward<S>(arguments), m_properties, {})...);
+    return m_fn(TransformParameters<S>::transform(std::forward<S>(arguments), {})...);
   }
 };

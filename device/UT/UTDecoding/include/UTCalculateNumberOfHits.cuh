@@ -27,7 +27,6 @@ namespace ut_calculate_number_of_hits {
     DEVICE_OUTPUT(dev_ut_number_of_nonempty_channels_t, uint16_t) dev_ut_number_of_nonempty_channels;
     DEVICE_OUTPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
     HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   struct version_checks : public Allen::contract::Precondition {
@@ -52,7 +51,7 @@ namespace ut_calculate_number_of_hits {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 1, 1}, "block dimensions"};
   };
 
   /**

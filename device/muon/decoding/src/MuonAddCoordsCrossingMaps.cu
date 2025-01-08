@@ -128,6 +128,6 @@ void muon_add_coords_crossing_maps::muon_add_coords_crossing_maps_t::operator()(
   auto kernel_fn =
     bank_version == 2 ? muon_add_coords_crossing_maps_kernel<2> : muon_add_coords_crossing_maps_kernel<3>;
 
-  global_function(kernel_fn)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(kernel_fn)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments, constants.dev_muon_tables);
 }

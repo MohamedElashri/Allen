@@ -29,34 +29,31 @@ namespace FilterTwoSvs {
     DEVICE_OUTPUT(dev_child1_idx_t, unsigned) dev_child1_idx;
     DEVICE_OUTPUT(dev_child2_idx_t, unsigned) dev_child2_idx;
     HOST_OUTPUT(host_total_combo_t, unsigned) host_total_combo;
-
-    // Set all properties to filter svs
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "Max child vertex chi2", float) maxVertexChi2;
-    PROPERTY(minMassV1_t, "minMassV1", "Minimum mass of first vertex", float) minMassV1;
-    PROPERTY(maxMassV1_t, "maxMassV1", "Maximum mass of first vertex", float) maxMassV1;
-    PROPERTY(minPtV1_t, "minPtV1", "Minimum pT of first vertex", float) minPtV1;
-    PROPERTY(minCosDiraV1_t, "minCosDiraV1", "Minimum DIRA of first vertex", float) minCosDiraV1;
-    PROPERTY(minEtaV1_t, "minEtaV1", "Minimum eta of first vertex", float) minEtaV1;
-    PROPERTY(maxEtaV1_t, "maxEtaV1", "Maximum eta of first vertex", float) maxEtaV1;
-    PROPERTY(minTrackPtV1_t, "minTrackPtV1", "Minimum track pT of first vertex", float) minTrackPtV1;
-    PROPERTY(minTrackPV1_t, "minTrackPV1", "Minimum track p of first vertex", float) minTrackPV1;
-    PROPERTY(minTrackIPChi2V1_t, "minTrackIPChi2V1", "Minimum track IP chi2 of first vertex", float) minTrackIPChi2V1;
-    PROPERTY(minTrackIPV1_t, "minTrackIPV1", "Minimum track IP of first vertex", float) minTrackIPV1;
-    PROPERTY(minMassV2_t, "minMassV2", "Minimum mass of second vertex", float) minMassV2;
-    PROPERTY(maxMassV2_t, "maxMassV2", "Maximum mass of second vertex", float) maxMassV2;
-    PROPERTY(minPtV2_t, "minPtV2", "Minimum pT of second vertex", float) minPtV2;
-    PROPERTY(minCosDiraV2_t, "minCosDiraV2", "Minimum DIRA of second vertex", float) minCosDiraV2;
-    PROPERTY(minEtaV2_t, "minEtaV2", "Minimum eta of second vertex", float) minEtaV2;
-    PROPERTY(maxEtaV2_t, "maxEtaV2", "Maximum eta of second vertex", float) maxEtaV2;
-    PROPERTY(minTrackPtV2_t, "minTrackPtV2", "Minimum track pT of second vertex", float) minTrackPtV2;
-    PROPERTY(minTrackPV2_t, "minTrackPV2", "Minimum track p of second vertex", float) minTrackPV2;
-    PROPERTY(minTrackIPChi2V2_t, "minTrackIPChi2V2", "Minimum track IP chi2 of second vertex", float) minTrackIPChi2V2;
-    PROPERTY(minTrackIPV2_t, "minTrackIPV2", "Minimum track IP of second vertex", float) minTrackIPV2;
-    PROPERTY(block_dim_filter_t, "block_dim_filter", "block dimensions for filter step", DeviceDimensions)
-    block_dim_filter;
   };
 
-  __global__ void filter_two_svs(Parameters);
+  __global__ void filter_two_svs(
+    Parameters,
+    const float maxVertexChi2,
+    const float minMassV1,
+    const float maxMassV1,
+    const float minTrackPV1,
+    const float minEtaV1,
+    const float maxEtaV1,
+    const float minCosDiraV1,
+    const float minTrackPtV1,
+    const float minPtV1,
+    const float minTrackIPChi2V1,
+    const float minTrackIPV1,
+    const float minMassV2,
+    const float maxMassV2,
+    const float minTrackPV2,
+    const float minEtaV2,
+    const float maxEtaV2,
+    const float minCosDiraV2,
+    const float minTrackPtV2,
+    const float minPtV2,
+    const float minTrackIPChi2V2,
+    const float minTrackIPV2);
 
   struct filter_two_svs_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -68,31 +65,52 @@ namespace FilterTwoSvs {
       const Allen::Context& context) const;
 
   private:
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 30.f};
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 30.f, "Max child vertex chi2"};
     // Selection cuts for first vertex
-    Property<minMassV1_t> m_minMassV1 {this, 0.f};
-    Property<maxMassV1_t> m_maxMassV1 {this, 20000.f};
-    Property<minPtV1_t> m_minPtV1 {this, 200.f * Gaudi::Units::MeV};
+    Allen::Property<float> m_minMassV1 {this, "minMassV1", 0.f, "Minimum mass of first vertex"};
+    Allen::Property<float> m_maxMassV1 {this, "maxMassV1", 20000.f, "Maximum mass of first vertex"};
+    Allen::Property<float> m_minPtV1 {this, "minPtV1", 200.f * Gaudi::Units::MeV, "Minimum pT of first vertex"};
     // Momenta of SVs from displaced decays won't point back to a PV, so don't
     // make a DIRA cut here by default.
-    Property<minCosDiraV1_t> m_minCosDiraV1 {this, 0.0f};
-    Property<minEtaV1_t> m_minEtaV1 {this, 2.f};
-    Property<maxEtaV1_t> m_maxEtaV1 {this, 5.f};
-    Property<minTrackPtV1_t> m_minTrackPtV1 {this, 200.f * Gaudi::Units::MeV};
-    Property<minTrackPV1_t> m_minTrackPV1 {this, 1000.f * Gaudi::Units::MeV};
-    Property<minTrackIPChi2V1_t> m_minTrackIPChi2V1 {this, 4.f};
-    Property<minTrackIPV1_t> m_minTrackIPV1 {this, 0.2f * Gaudi::Units::mm};
+    Allen::Property<float> m_minCosDiraV1 {this, "minCosDiraV1", 0.0f, "Minimum DIRA of first vertex"};
+    Allen::Property<float> m_minEtaV1 {this, "minEtaV1", 2.f, "Minimum eta of first vertex"};
+    Allen::Property<float> m_maxEtaV1 {this, "maxEtaV1", 5.f, "Maximum eta of first vertex"};
+    Allen::Property<float> m_minTrackPtV1 {this,
+                                           "minTrackPtV1",
+                                           200.f * Gaudi::Units::MeV,
+                                           "Minimum track pT of first vertex"};
+    Allen::Property<float> m_minTrackPV1 {this,
+                                          "minTrackPV1",
+                                          1000.f * Gaudi::Units::MeV,
+                                          "Minimum track p of first vertex"};
+    Allen::Property<float> m_minTrackIPChi2V1 {this, "minTrackIPChi2V1", 4.f, "Minimum track IP chi2 of first vertex"};
+    Allen::Property<float> m_minTrackIPV1 {this,
+                                           "minTrackIPV1",
+                                           0.2f * Gaudi::Units::mm,
+                                           "Minimum track IP of first vertex"};
     // Selection cuts for second vertex
-    Property<minMassV2_t> m_minMassV2 {this, 0.f};
-    Property<maxMassV2_t> m_maxMassV2 {this, 20000.f};
-    Property<minPtV2_t> m_minPtV2 {this, 200.f * Gaudi::Units::MeV};
-    Property<minCosDiraV2_t> m_minCosDiraV2 {this, 0.0f};
-    Property<minEtaV2_t> m_minEtaV2 {this, 2.f};
-    Property<maxEtaV2_t> m_maxEtaV2 {this, 5.f};
-    Property<minTrackPtV2_t> m_minTrackPtV2 {this, 200.f * Gaudi::Units::MeV};
-    Property<minTrackPV2_t> m_minTrackPV2 {this, 2000.f * Gaudi::Units::MeV};
-    Property<minTrackIPChi2V2_t> m_minTrackIPChi2V2 {this, 4.f};
-    Property<minTrackIPV2_t> m_minTrackIPV2 {this, 0.06f * Gaudi::Units::mm};
-    Property<block_dim_filter_t> m_block_dim_filter {this, {{128, 1, 1}}};
+    Allen::Property<float> m_minMassV2 {this, "minMassV2", 0.f, "Minimum mass of second vertex"};
+    Allen::Property<float> m_maxMassV2 {this, "maxMassV2", 20000.f, "Maximum mass of second vertex"};
+    Allen::Property<float> m_minPtV2 {this, "minPtV2", 200.f * Gaudi::Units::MeV, "Minimum pT of second vertex"};
+    Allen::Property<float> m_minCosDiraV2 {this, "minCosDiraV2", 0.0f, "Minimum DIRA of second vertex"};
+    Allen::Property<float> m_minEtaV2 {this, "minEtaV2", 2.f, "Minimum eta of second vertex"};
+    Allen::Property<float> m_maxEtaV2 {this, "maxEtaV2", 5.f, "Maximum eta of second vertex"};
+    Allen::Property<float> m_minTrackPtV2 {this,
+                                           "minTrackPtV2",
+                                           200.f * Gaudi::Units::MeV,
+                                           "Minimum track pT of second vertex"};
+    Allen::Property<float> m_minTrackPV2 {this,
+                                          "minTrackPV2",
+                                          2000.f * Gaudi::Units::MeV,
+                                          "Minimum track p of second vertex"};
+    Allen::Property<float> m_minTrackIPChi2V2 {this, "minTrackIPChi2V2", 4.f, "Minimum track IP chi2 of second vertex"};
+    Allen::Property<float> m_minTrackIPV2 {this,
+                                           "minTrackIPV2",
+                                           0.06f * Gaudi::Units::mm,
+                                           "Minimum track IP of second vertex"};
+    Allen::Property<dim3> m_block_dim_filter {this,
+                                              "block_dim_filter",
+                                              {128, 1, 1},
+                                              "block dimensions for filter step"};
   };
 } // namespace FilterTwoSvs

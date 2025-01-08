@@ -23,10 +23,6 @@ namespace odin_eventtype {
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
-
-    PROPERTY(event_type_t, "event_type", "ODIN event type", uint16_t) event_type;
-    PROPERTY(invert_t, "invert", "invert event", bool) invert;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
   };
 
   struct odin_eventtype_t : public DeviceAlgorithm, Parameters {
@@ -39,9 +35,12 @@ namespace odin_eventtype {
       const Allen::Context&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
-    Property<invert_t> m_invert {this, false};
-    Property<event_type_t> m_event_type {this, static_cast<uint16_t>(LHCb::ODIN::EventTypes::VeloOpen)};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension x"};
+    Allen::Property<bool> m_invert {this, "invert", false, "invert event"};
+    Allen::Property<uint16_t> m_event_type {this,
+                                            "event_type",
+                                            static_cast<uint16_t>(LHCb::ODIN::EventTypes::VeloOpen),
+                                            "ODIN event type"};
 
   }; // odin_eventtype_t
 } // namespace odin_eventtype

@@ -31,8 +31,8 @@ void ut_select_velo_tracks_with_windows::ut_select_velo_tracks_with_windows_t::o
 {
   Allen::memset_async<dev_ut_number_of_selected_velo_tracks_with_windows_t>(arguments, 0, context);
 
-  global_function(ut_select_velo_tracks_with_windows)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(ut_select_velo_tracks_with_windows)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments);
 }
 
 //=========================================================================

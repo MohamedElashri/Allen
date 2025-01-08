@@ -22,30 +22,33 @@ namespace low_pt_muon_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(maxChi2Ndof_t, "maxChi2Ndof", "maxChi2Ndof description", float) maxChi2Ndof;
-    PROPERTY(minPt_t, "minPt", "minPt description", float) minPt;
-    PROPERTY(minIP_t, "minIP", "minIP description", float) minIP;
-    PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
-    PROPERTY(minBPVz_t, "minBPVz", "minimum z for the best primary vertex associated to the muon", float) minBPVz;
   };
 
   struct low_pt_muon_line_t : public SelectionAlgorithm, Parameters, OneTrackLine<low_pt_muon_line_t, Parameters> {
-    __device__ static bool select(const Parameters& ps, std::tuple<const Allen::Views::Physics::BasicParticle> input);
+
+    struct DeviceProperties {
+      float maxChi2Ndof;
+      float minPt;
+      float minIP;
+      float minIPChi2;
+      float minBPVz;
+      DeviceProperties(const low_pt_muon_line_t& algo, const Allen::Context&) :
+        maxChi2Ndof(algo.m_maxChi2Ndof), minPt(algo.m_minPt), minIP(algo.m_minIP), minIPChi2(algo.m_minIPChi2),
+        minBPVz(algo.m_minBPVz)
+      {}
+    };
+    __device__ static bool
+    select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 100.f};
+    Allen::Property<float> m_maxChi2Ndof {this, "maxChi2Ndof", 100.f, "maxChi2Ndof description"};
     // NB: This pt cut is looser than default tracking threshold.
-    Property<minPt_t> m_minPt {this, 80.0f * Gaudi::Units::MeV};
-    Property<minIP_t> m_minIP {this, 4.f};
-    Property<minIPChi2_t> m_minIPChi2 {this, 7.4f};
-    Property<minBPVz_t> m_minBPVz {this, -341.f * Gaudi::Units::mm};
+    Allen::Property<float> m_minPt {this, "minPt", 80.0f * Gaudi::Units::MeV, "minPt description"};
+    Allen::Property<float> m_minIP {this, "minIP", 4.f, "minIP description"};
+    Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 7.4f, "minIPChi2 description"};
+    Allen::Property<float> m_minBPVz {this,
+                                      "minBPVz",
+                                      -341.f * Gaudi::Units::mm,
+                                      "minimum z for the best primary vertex associated to the muon"};
   };
 } // namespace low_pt_muon_line

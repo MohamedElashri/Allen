@@ -72,11 +72,10 @@ void VertexFit::fit_secondary_vertices_t::operator()(
 {
   Allen::memset_async<dev_two_track_composite_view_t>(arguments, 0, context);
 
-  global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, m_histogram_nsvs.data(context));
+  global_function(fit_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments, m_maxassocipchi2, m_histogram_nsvs.data(context));
 
-  global_function(create_sv_views)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(create_sv_views)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(arguments);
 }
 
 __host__ __device__ void fill_sv_fit_result(
@@ -108,6 +107,7 @@ __host__ __device__ void fill_sv_fit_result(
 
 __global__ void VertexFit::fit_secondary_vertices(
   VertexFit::Parameters parameters,
+  const float max_assoc_ipchi2,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_nsvs)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -172,7 +172,7 @@ __global__ void VertexFit::fit_secondary_vertices(
     // Fill extra info.
     fill_extra_info(tmp_sv, trackA, trackB);
     if (n_pvs_event > 0) {
-      pv_table.pv(i_sv) = fill_extra_pv_info(tmp_sv, vertices, trackA, trackB, parameters.max_assoc_ipchi2);
+      pv_table.pv(i_sv) = fill_extra_pv_info(tmp_sv, vertices, trackA, trackB, max_assoc_ipchi2);
     }
     // Handle events with no PV.
     else {

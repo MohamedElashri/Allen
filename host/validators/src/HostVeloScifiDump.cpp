@@ -170,7 +170,7 @@ void host_veloscifi_dump::host_veloscifi_dump_t::operator()(
   const auto mc_events = *first<host_mc_events_t>(arguments);
 
   std::ofstream jsonfile;
-  jsonfile.open(property<dump_output_filename_t>());
+  jsonfile.open(m_dump_output_filename);
 
   // Loop over events.
   jsonfile << "[" << std::endl;

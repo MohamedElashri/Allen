@@ -63,7 +63,6 @@ namespace velo_consolidate_tracks {
       DEPENDENCIES(dev_velo_multi_event_tracks_view_t),
       Allen::IMultiEventContainer*)
     dev_imec_velo_tracks;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void velo_consolidate_tracks(
@@ -91,7 +90,7 @@ namespace velo_consolidate_tracks {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
 
     Allen::Monitoring::AveragingCounter<> m_velo_tracks {this, "n_velo_tracks"};
     Allen::Monitoring::Histogram<> m_histogram_n_velo_tracks {this,

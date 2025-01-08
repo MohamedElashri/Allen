@@ -31,15 +31,15 @@ di_muon_drell_yan_line::di_muon_drell_yan_line_t::get_input(
 }
 
 __device__ bool di_muon_drell_yan_line::di_muon_drell_yan_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto& particle = std::get<0>(input);
   const auto& maxchi2muon = std::get<1>(input);
 
   const bool opposite_sign = particle.charge() == 0;
-  if (opposite_sign != parameters.OppositeSign) return false;
+  if (opposite_sign != properties.oppositeSign) return false;
 
   const auto& vertex = particle.vertex();
 
@@ -50,32 +50,32 @@ __device__ bool di_muon_drell_yan_line::di_muon_drell_yan_line_t::select(
   const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(0));
   const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(1));
 
-  const bool decision = particle.is_dimuon() && maxchi2muon < parameters.maxChi2Muon &&
-                        vertex.chi2() <= parameters.maxVertexChi2 && particle.doca12() <= parameters.maxDoca &&
-                        trk1->state().pt() >= parameters.minTrackPt && trk1->state().p() >= parameters.minTrackP &&
-                        trk1->state().eta() <= parameters.maxTrackEta && trk2->state().pt() >= parameters.minTrackPt &&
-                        trk2->state().p() >= parameters.minTrackP && trk2->state().eta() <= parameters.maxTrackEta &&
-                        particle.mdimu() >= parameters.minMass && particle.mdimu() <= parameters.maxMass &&
-                        vertex.z() >= parameters.minZ;
-
+  const bool decision = particle.is_dimuon() && maxchi2muon < properties.maxChi2Muon &&
+                        vertex.chi2() <= properties.maxVertexChi2 && particle.doca12() <= properties.maxDoca &&
+                        trk1->state().pt() >= properties.minTrackPt && trk1->state().p() >= properties.minTrackP &&
+                        trk1->state().eta() <= properties.maxTrackEta && trk2->state().pt() >= properties.minTrackPt &&
+                        trk2->state().p() >= properties.minTrackP && trk2->state().eta() <= properties.maxTrackEta &&
+                        particle.mdimu() >= properties.minMass && particle.mdimu() <= properties.maxMass &&
+                        vertex.z() >= properties.minZ;
   return decision;
 }
 
 __device__ void di_muon_drell_yan_line::di_muon_drell_yan_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned,
   bool sel)
 {
   if (sel) {
     const auto& vertex = std::get<0>(input);
-    accumulators.histogram_Z_mass.increment(vertex.mdimu());
+    properties.histogram_Z_mass.increment(vertex.mdimu());
   }
 }
 
 __device__ void di_muon_drell_yan_line::di_muon_drell_yan_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned index,
   bool sel)

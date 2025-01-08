@@ -33,8 +33,8 @@ void calo_filter_clusters::calo_filter_clusters_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(calo_filter_clusters)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_filter_t>(), context)(arguments);
+  global_function(calo_filter_clusters)(dim3(size<dev_event_list_t>(arguments)), m_block_dim_filter, context)(
+    arguments);
 
 #ifndef ALLEN_STANDALONE
   // Monitoring

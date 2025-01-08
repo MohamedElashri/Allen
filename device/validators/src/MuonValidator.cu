@@ -61,7 +61,6 @@ void muon_validator::muon_validator_t::operator()(
     tracks[i] = event_trakcs;
   }
 
-  auto& checker =
-    runtime_options.checker_invoker->checker<TrackCheckerMuon>(name(), property<root_output_filename_t>());
+  auto& checker = runtime_options.checker_invoker->checker<TrackCheckerMuon>(name(), m_root_output_filename);
   checker.accumulate(*first<host_mc_events_t>(arguments), tracks, event_list);
 }

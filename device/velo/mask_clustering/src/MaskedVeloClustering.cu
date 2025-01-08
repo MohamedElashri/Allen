@@ -400,6 +400,6 @@ void velo_masked_clustering::velo_masked_clustering_t::operator()(
 
   if (bank_version < 0) return; // no VP banks present in data
 
-  global_function(velo_masked_clustering_kernel)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_velo_geometry);
+  global_function(velo_masked_clustering_kernel)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments, constants.dev_velo_geometry);
 }

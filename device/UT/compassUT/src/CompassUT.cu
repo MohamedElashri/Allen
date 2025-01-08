@@ -38,9 +38,17 @@ void compass_ut::compass_ut_t::operator()(
     arguments,
     constants.dev_ut_magnet_tool,
     constants.dev_magnet_polarity.data(),
-    constants.dev_unique_x_sector_layer_offsets.data());
+    constants.dev_unique_x_sector_layer_offsets.data(),
+    m_mom_fin,
+    m_pt_fin,
+    m_max_considered_before_found,
+    m_delta_tx_2,
+    m_hit_tol_2,
+    m_slope,
+    m_min_ld_3_hit,
+    m_min_ld_4_hit);
 
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     auto host_ut_tracks = make_host_buffer<dev_ut_tracks_t>(arguments, context);
     auto host_atomics_ut = make_host_buffer<dev_offsets_ut_tracks_t>(arguments, context);
 
@@ -72,7 +80,15 @@ __global__ void compass_ut::compass_ut(
   compass_ut::Parameters parameters,
   UTMagnetTool* dev_ut_magnet_tool,
   const float* dev_magnet_polarity,
-  const unsigned* dev_unique_x_sector_layer_offsets) // prefixsum to point to the x hit of the sector, per layer
+  const unsigned* dev_unique_x_sector_layer_offsets,
+  const float min_momentum_final,
+  const float min_pt_final,
+  const unsigned max_considered_before_found,
+  const float delta_tx_2,
+  const float hit_tol_2,
+  const float sigma_velo_slope,
+  const float min_ld_3_hit,
+  const float min_ld_4_hit) // prefixsum to point to the x hit of the sector, per layer
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -122,14 +138,14 @@ __global__ void compass_ut::compass_ut(
       n_veloUT_tracks_event,
       veloUT_tracks_event,
       event_hit_offset,
-      parameters.min_momentum_final,
-      parameters.min_pt_final,
-      parameters.max_considered_before_found,
-      parameters.delta_tx_2,
-      parameters.hit_tol_2,
-      parameters.sigma_velo_slope,
-      parameters.min_ld_3_hit,
-      parameters.min_ld_4_hit);
+      min_momentum_final,
+      min_pt_final,
+      max_considered_before_found,
+      delta_tx_2,
+      hit_tol_2,
+      sigma_velo_slope,
+      min_ld_3_hit,
+      min_ld_4_hit);
   }
   __syncthreads();
   if (threadIdx.x == 0) {

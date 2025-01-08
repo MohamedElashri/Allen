@@ -34,16 +34,7 @@ namespace make_lumi_summary {
     DEVICE_OUTPUT(dev_lumi_summaries_t, unsigned) dev_lumi_summaries;
     HOST_OUTPUT(host_lumi_summaries_t, unsigned) host_lumi_summaries;
     HOST_OUTPUT(host_lumi_summary_offsets_t, unsigned) host_lumi_summary_offsets;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(encoding_key_t, "encoding_key", "encoding key", unsigned) key;
-    PROPERTY(encoding_key_full_t, "encoding_key_full", "encoding key for 1kHz line", unsigned) key_full;
-    PROPERTY(lumi_sum_length_t, "lumi_sum_length", "LumiSummary length", unsigned) lumi_sum_length;
-    PROPERTY(
-      lumi_counter_schema_t,
-      "lumi_counter_schema",
-      "schema for lumi counters",
-      std::map<std::string, std::pair<unsigned, unsigned>>);
-  }; // struct Parameters
+  };
 
   using offsets_and_sizes_t = std::array<unsigned, 2 * Lumi::Constants::n_basic_counters>;
 
@@ -54,7 +45,10 @@ namespace make_lumi_summary {
     const offsets_and_sizes_t offsets_and_sizes,
     std::array<const Lumi::LumiInfo*, Lumi::Constants::n_sub_infos> lumiInfos,
     std::array<unsigned, Lumi::Constants::n_sub_infos> spanSize,
-    const unsigned size_of_aggregate);
+    const unsigned size_of_aggregate,
+    const unsigned lumi_sum_length,
+    const unsigned key_full,
+    const unsigned key);
 
   __device__ void setField(unsigned offset, unsigned size, unsigned* target, unsigned value, unsigned summary_length);
 
@@ -70,13 +64,16 @@ namespace make_lumi_summary {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
-    Property<encoding_key_t> m_key {this, 0};
-    Property<encoding_key_full_t> m_key_full {this, 0};
-    Property<lumi_sum_length_t> m_lumi_sum_length {this, 0u};
-    Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {64, 1, 1}, "block dimensions"};
+    Allen::Property<unsigned> m_key {this, "encoding_key", 0, "encoding key"};
+    Allen::Property<unsigned> m_key_full {this, "encoding_key_full", 0, "encoding key for 1kHz line"};
+    Allen::Property<unsigned> m_lumi_sum_length {this, "lumi_sum_length", 0u, "LumiSummary length"};
+    Allen::Property<std::map<std::string, std::pair<unsigned, unsigned>>> m_lumi_counter_schema {
+      this,
+      "lumi_counter_schema",
+      {},
+      "schema for lumi counters"};
 
     offsets_and_sizes_t m_offsets_and_sizes {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
-
-  }; // struct make_lumi_summary_t
+  };
 } // namespace make_lumi_summary

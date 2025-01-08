@@ -32,13 +32,13 @@ void check_pvs::check_pvs_t::operator()(
   Allen::memset_async<host_number_of_selected_events_t>(arguments, 0, context);
   Allen::memset_async<dev_event_list_output_t>(arguments, 0, context);
 
-  global_function(check_pvs)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(check_pvs)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments, m_minZ, m_maxZ);
 
   Allen::copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);
   reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 }
 
-__global__ void check_pvs::check_pvs(check_pvs::Parameters parameters)
+__global__ void check_pvs::check_pvs(check_pvs::Parameters parameters, const float minZ, const float maxZ)
 {
 
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -50,7 +50,7 @@ __global__ void check_pvs::check_pvs(check_pvs::Parameters parameters)
 
   for (unsigned i = threadIdx.x; i < parameters.dev_number_of_multi_final_vertices[event_number]; i += blockDim.x) {
     const auto& pv = vertices[i];
-    const bool dec = pv.position.z >= parameters.minZ and pv.position.z < parameters.maxZ;
+    const bool dec = pv.position.z >= minZ and pv.position.z < maxZ;
     if (dec) atomicOr(&event_decision, dec);
   }
 

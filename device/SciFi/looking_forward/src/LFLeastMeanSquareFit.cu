@@ -24,8 +24,8 @@ void lf_least_mean_square_fit::lf_least_mean_square_fit_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(lf_least_mean_square_fit)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(lf_least_mean_square_fit)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
+    arguments);
 }
 
 __global__ void lf_least_mean_square_fit::lf_least_mean_square_fit(lf_least_mean_square_fit::Parameters parameters)

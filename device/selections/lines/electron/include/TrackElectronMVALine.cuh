@@ -24,40 +24,45 @@ namespace track_electron_mva_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(maxChi2Ndof_t, "maxChi2Ndof", "maxChi2Ndof description", float) maxChi2Ndof;
-    PROPERTY(minPt_t, "minPt", "minPt description", float) minPt;
-    PROPERTY(maxPt_t, "maxPt", "maxPt description", float) maxPt;
-    PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
-    PROPERTY(param1_t, "param1", "param1 description", float) param1;
-    PROPERTY(param2_t, "param2", "param2 description", float) param2;
-    PROPERTY(param3_t, "param3", "param3 description", float) param3;
-    PROPERTY(alpha_t, "alpha", "alpha description", float) alpha;
-    PROPERTY(minBPVz_t, "min_BPVz", "Minimum z for the associated best primary vertex", float) minBPVz;
     DEVICE_OUTPUT(pt_t, float) pt;
     DEVICE_OUTPUT(pt_corrected_t, float) pt_corrected;
     DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
-
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enables monitoring ntuple", bool) enable_tupling;
   };
 
   struct track_electron_mva_line_t : public SelectionAlgorithm,
                                      Parameters,
                                      OneTrackLine<track_electron_mva_line_t, Parameters> {
+
+    struct DeviceProperties {
+      float maxChi2Ndof;
+      float minPt;
+      float maxPt;
+      float minIPChi2;
+      float param1;
+      float param2;
+      float param3;
+      float alpha;
+      float minBPVz;
+      DeviceProperties(const track_electron_mva_line_t& algo, const Allen::Context&) :
+        maxChi2Ndof(algo.m_maxChi2Ndof), minPt(algo.m_minPt), maxPt(algo.m_maxPt), minIPChi2(algo.m_minIPChi2),
+        param1(algo.m_param1), param2(algo.m_param2), param3(algo.m_param3), alpha(algo.m_alpha),
+        minBPVz(algo.m_minBPVz)
+      {}
+    };
+
     __device__ static bool select(
-      const Parameters& ps,
-      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>);
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>,
+      unsigned,
+      bool);
 
     using monitoring_types = std::tuple<pt_t, pt_corrected_t, ipchi2_t, evtNo_t, runNo_t>;
 
@@ -65,20 +70,17 @@ namespace track_electron_mva_line {
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 2.5f};
-    Property<minPt_t> m_minPt {this, 1.f * Gaudi::Units::GeV};
-    Property<maxPt_t> m_maxPt {this, 26.f * Gaudi::Units::GeV};
-    Property<minIPChi2_t> m_minIPChi2 {this, 3.f};
-    Property<param1_t> m_param1 {this, 1.f * Gaudi::Units::GeV* Gaudi::Units::GeV};
-    Property<param2_t> m_param2 {this, 1.f * Gaudi::Units::GeV};
-    Property<param3_t> m_param3 {this, 1.248f};
-    Property<alpha_t> m_alpha {this, 0.f};
-    Property<minBPVz_t> m_minBPVz {this, -341.f * Gaudi::Units::mm};
-
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_maxChi2Ndof {this, "maxChi2Ndof", 2.5f, "maxChi2Ndof description"};
+    Allen::Property<float> m_minPt {this, "minPt", 1.f * Gaudi::Units::GeV, "minPt description"};
+    Allen::Property<float> m_maxPt {this, "maxPt", 26.f * Gaudi::Units::GeV, "maxPt description"};
+    Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 3.f, "minIPChi2 description"};
+    Allen::Property<float> m_param1 {this, "param1", 1.f * Gaudi::Units::GeV* Gaudi::Units::GeV, "param1 description"};
+    Allen::Property<float> m_param2 {this, "param2", 1.f * Gaudi::Units::GeV, "param2 description"};
+    Allen::Property<float> m_param3 {this, "param3", 1.248f, "param3 description"};
+    Allen::Property<float> m_alpha {this, "alpha", 0.f, "alpha description"};
+    Allen::Property<float> m_minBPVz {this,
+                                      "min_BPVz",
+                                      -341.f * Gaudi::Units::mm,
+                                      "Minimum z for the associated best primary vertex"};
   };
 } // namespace track_electron_mva_line

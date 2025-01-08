@@ -21,7 +21,11 @@ template<bool with_ut, typename T>
 __device__ void extend_tracks(
   lf_create_tracks::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants,
-  const T* tracks)
+  const T* tracks,
+  const unsigned max_triplets_per_input_track,
+  const float uv_hits_chi2_factor_y,
+  const float uv_hits_chi2_factor_x,
+  const float chi2_max_extrapolation_to_x_layers_single)
 {
 
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -30,9 +34,6 @@ __device__ void extend_tracks(
   const unsigned number_of_elements_initial_window = with_ut ?
                                                        LookingForward::InputUT::number_of_elements_initial_window :
                                                        LookingForward::InputVelo::number_of_elements_initial_window;
-
-  const unsigned max_triplets_per_input_track = parameters.max_triplets_per_input_track;
-  const float chi2_max_extrapolation_to_x_layers_single = parameters.chi2_max_extrapolation_to_x_layers_single;
 
   const auto input_tracks_view = tracks->container(event_number);
 
@@ -162,8 +163,8 @@ __device__ void extend_tracks(
       // +-2 mm windows is ok (2^{2}  = 4) . If we have large slope the error on x can be big,  For super peripheral
       // tracks ( delta-slope = 0.3, ty = 0.3) you want to open up up to : sqrt(4+60*0.3+60*0.3) = 6 mm windows. Anyway,
       // we need some retuning of this scaling windows.
-      const float max_chi2 = parameters.uv_hits_chi2_factor_y * fabsf(input_state.ty()) +
-                             parameters.uv_hits_chi2_factor_x * fabsf(input_state.tx());
+      const float max_chi2 =
+        uv_hits_chi2_factor_y * fabsf(input_state.ty()) + uv_hits_chi2_factor_x * fabsf(input_state.tx());
 
       int best_index = -1;
       float best_chi2 = max_chi2;
@@ -196,16 +197,34 @@ __device__ void extend_tracks(
 
 __global__ void lf_create_tracks::lf_extend_tracks(
   lf_create_tracks::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants)
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const unsigned max_triplets_per_input_track,
+  const float uv_hits_chi2_factor_y,
+  const float uv_hits_chi2_factor_x,
+  const float chi2_max_extrapolation_to_x_layers_single)
 {
   const auto* ut_tracks =
     Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    extend_tracks<true>(parameters, dev_looking_forward_constants, ut_tracks);
+    extend_tracks<true>(
+      parameters,
+      dev_looking_forward_constants,
+      ut_tracks,
+      max_triplets_per_input_track,
+      uv_hits_chi2_factor_y,
+      uv_hits_chi2_factor_x,
+      chi2_max_extrapolation_to_x_layers_single);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    extend_tracks<false>(parameters, dev_looking_forward_constants, velo_tracks);
+    extend_tracks<false>(
+      parameters,
+      dev_looking_forward_constants,
+      velo_tracks,
+      max_triplets_per_input_track,
+      uv_hits_chi2_factor_y,
+      uv_hits_chi2_factor_x,
+      chi2_max_extrapolation_to_x_layers_single);
   }
 }

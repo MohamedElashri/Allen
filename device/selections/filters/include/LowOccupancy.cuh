@@ -26,15 +26,16 @@ namespace low_occupancy {
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
-
-    PROPERTY(minTracks_t, "minTracks", "minimum number of Velo tracks in the event", unsigned int) minTracks;
-    PROPERTY(maxTracks_t, "maxTracks", "maximum number of Velo tracks in the event", unsigned int) maxTracks;
-    PROPERTY(min_ecal_clusters_t, "min_ecal_clusters", "Maximum number of ECAL clusters", unsigned) min_ecal_clusters;
-    PROPERTY(max_ecal_clusters_t, "max_ecal_clusters", "Maximum number of ECAL clusters", unsigned) max_ecal_clusters;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
   };
 
-  __global__ void low_occupancy(Parameters, const unsigned, const unsigned);
+  __global__ void low_occupancy(
+    Parameters,
+    const unsigned,
+    const unsigned,
+    const unsigned,
+    const unsigned,
+    const unsigned,
+    const unsigned);
   struct low_occupancy_t : public DeviceAlgorithm, Parameters {
 
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -46,11 +47,14 @@ namespace low_occupancy {
       const Allen::Context&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
-    Property<minTracks_t> m_minTracks {this, 0};
-    Property<maxTracks_t> m_maxTracks {this, UINT_MAX};
-    Property<max_ecal_clusters_t> m_max_ecal_clusters {this, UINT_MAX};
-    Property<min_ecal_clusters_t> m_min_ecal_clusters {this, 0};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension x"};
+    Allen::Property<unsigned> m_minTracks {this, "minTracks", 0, "minimum number of Velo tracks in the event"};
+    Allen::Property<unsigned> m_maxTracks {this, "maxTracks", UINT_MAX, "maximum number of Velo tracks in the event"};
+    Allen::Property<unsigned> m_max_ecal_clusters {this,
+                                                   "max_ecal_clusters",
+                                                   UINT_MAX,
+                                                   "Maximum number of ECAL clusters"};
+    Allen::Property<unsigned> m_min_ecal_clusters {this, "min_ecal_clusters", 0, "Maximum number of ECAL clusters"};
   }; // low_occupancy_t
 
 } // namespace low_occupancy

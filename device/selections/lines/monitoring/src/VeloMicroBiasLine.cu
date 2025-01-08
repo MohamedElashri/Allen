@@ -27,9 +27,10 @@ __device__ std::tuple<const unsigned> velo_micro_bias_line::velo_micro_bias_line
 }
 
 __device__ bool velo_micro_bias_line::velo_micro_bias_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const unsigned> input)
 {
   const auto number_of_velo_tracks = std::get<0>(input);
-  return number_of_velo_tracks >= parameters.min_velo_tracks;
+  return number_of_velo_tracks >= properties.min_velo_tracks;
 }

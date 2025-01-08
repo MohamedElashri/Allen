@@ -43,27 +43,20 @@ namespace lf_quality_filter {
     DEVICE_OUTPUT(dev_scifi_lf_y_parametrization_length_filter_t, float)
     dev_scifi_lf_y_parametrization_length_filter;
     DEVICE_OUTPUT(dev_scifi_lf_parametrization_consolidate_t, float) dev_scifi_lf_parametrization_consolidate;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(
-      maximum_number_of_candidates_per_ut_track_t,
-      "maximum_number_of_candidates_per_ut_track",
-      "maximum_number_of_candidates_per_ut_track",
-      unsigned)
-    maximum_number_of_candidates_per_ut_track;
-    PROPERTY(max_diff_ty_window_t, "max_diff_ty_window", "max_diff_ty_window", float) max_diff_ty_window;
-    PROPERTY(max_final_quality_t, "max_final_quality", "max_final_quality", float) max_final_quality;
-    PROPERTY(factor_9_hits_t, "factor_9_hits", "factor_9_hits", float) factor_9_hits;
-    PROPERTY(factor_10_hits_t, "factor_10_hits", "factor_10_hits", float) factor_10_hits;
-    PROPERTY(factor_11_hits_t, "factor_11_hits", "factor_11_hits", float) factor_11_hits;
-    PROPERTY(factor_12_hits_t, "factor_12_hits", "factor_12_hits", float) factor_12_hits;
-    PROPERTY(ghost_killer_threshold_t, "ghost_killer_threshold", "ghost_killer_threshold", float)
-    ghost_killer_threshold;
   };
 
   __global__ void lf_quality_filter(
     Parameters,
     const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_ghost_killer,
-    const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_no_ut_ghost_killer);
+    const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_no_ut_ghost_killer,
+    const unsigned maximum_number_of_candidates_per_ut_track,
+    const float max_diff_ty_window,
+    const float factor_9_hits,
+    const float factor_10_hits,
+    const float factor_11_hits,
+    const float factor_12_hits,
+    const float max_final_quality,
+    const float ghost_killer_threshold);
 
   struct lf_quality_filter_t : public DeviceAlgorithm, Parameters {
 
@@ -76,14 +69,17 @@ namespace lf_quality_filter {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
-    Property<maximum_number_of_candidates_per_ut_track_t> m_maximum_number_of_candidates_per_ut_track {this, 12};
-    Property<max_diff_ty_window_t> m_max_diff_ty_window {this, 0.02};
-    Property<max_final_quality_t> m_max_final_quality {this, 0.5};
-    Property<factor_9_hits_t> m_factor_9_hits {this, 5.};
-    Property<factor_10_hits_t> m_factor_10_hits {this, 1.};
-    Property<factor_11_hits_t> m_factor_11_hits {this, 0.8};
-    Property<factor_12_hits_t> m_factor_12_hits {this, 0.5};
-    Property<ghost_killer_threshold_t> m_ghost_killer_threshold {this, 0.5};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 1, 1}, "block dimensions"};
+    Allen::Property<unsigned> m_maximum_number_of_candidates_per_ut_track {this,
+                                                                           "maximum_number_of_candidates_per_ut_track",
+                                                                           12,
+                                                                           "maximum_number_of_candidates_per_ut_track"};
+    Allen::Property<float> m_max_diff_ty_window {this, "max_diff_ty_window", 0.02, "max_diff_ty_window"};
+    Allen::Property<float> m_max_final_quality {this, "max_final_quality", 0.5, "max_final_quality"};
+    Allen::Property<float> m_factor_9_hits {this, "factor_9_hits", 5., "factor_9_hits"};
+    Allen::Property<float> m_factor_10_hits {this, "factor_10_hits", 1., "factor_10_hits"};
+    Allen::Property<float> m_factor_11_hits {this, "factor_11_hits", 0.8, "factor_11_hits"};
+    Allen::Property<float> m_factor_12_hits {this, "factor_12_hits", 0.5, "factor_12_hits"};
+    Allen::Property<float> m_ghost_killer_threshold {this, "ghost_killer_threshold", 0.5, "ghost_killer_threshold"};
   };
 } // namespace lf_quality_filter

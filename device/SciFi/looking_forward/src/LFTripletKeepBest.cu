@@ -15,12 +15,12 @@ template<bool with_ut, typename T>
 __device__ void triplet_keep_best(
   lf_create_tracks::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants,
-  const T* tracks)
+  const T* tracks,
+  const unsigned max_triplets_per_input_track,
+  const unsigned maximum_number_of_triplets_per_warp)
 {
-  const unsigned max_triplets_per_input_track = parameters.max_triplets_per_input_track;
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
-  const unsigned maximum_number_of_triplets_per_warp = parameters.maximum_number_of_triplets_per_warp;
 
   const auto n_seeds = with_ut ? LookingForward::InputUT::n_seeds : LookingForward::InputVelo::n_seeds;
 
@@ -130,16 +130,28 @@ __device__ void triplet_keep_best(
 
 __global__ void lf_create_tracks::lf_triplet_keep_best(
   lf_create_tracks::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants)
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const unsigned max_triplets_per_input_track,
+  const unsigned maximum_number_of_triplets_per_warp)
 {
   const auto* ut_tracks =
     Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    triplet_keep_best<true>(parameters, dev_looking_forward_constants, ut_tracks);
+    triplet_keep_best<true>(
+      parameters,
+      dev_looking_forward_constants,
+      ut_tracks,
+      max_triplets_per_input_track,
+      maximum_number_of_triplets_per_warp);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    triplet_keep_best<false>(parameters, dev_looking_forward_constants, velo_tracks);
+    triplet_keep_best<false>(
+      parameters,
+      dev_looking_forward_constants,
+      velo_tracks,
+      max_triplets_per_input_track,
+      maximum_number_of_triplets_per_warp);
   }
 }

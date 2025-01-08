@@ -26,8 +26,7 @@ void pv_beamline_extrapolate::pv_beamline_extrapolate_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(pv_beamline_extrapolate)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(pv_beamline_extrapolate)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
 }
 
 __global__ void pv_beamline_extrapolate::pv_beamline_extrapolate(pv_beamline_extrapolate::Parameters parameters)

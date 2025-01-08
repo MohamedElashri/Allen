@@ -39,7 +39,7 @@ void muonid_nn::muonid_nn_t::operator()(
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_muonid_evaluation_t>(arguments, 0, context);
-  global_function(muonid_nn)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(muonid_nn)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
     constants.dev_muonid_mva_layer_sizes,
     constants.dev_muonid_mva_n_layers,

@@ -30,7 +30,7 @@ void total_ecal_energy::total_ecal_energy_t::operator()(
   Allen::memset_async<dev_total_ecal_e_t>(arguments, 0, context);
   Allen::memset_async<dev_ecal_digits_e_t>(arguments, 0, context);
 
-  global_function(sum_ecal_energy)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_t>(), context)(
+  global_function(sum_ecal_energy)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
     arguments, constants.dev_ecal_geometry);
 }
 

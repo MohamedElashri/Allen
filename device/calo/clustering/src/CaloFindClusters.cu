@@ -128,11 +128,10 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
   auto dev_histo_ecal_cluster_y = m_histogram_ecal_cluster_y.data(context);
 
   // Find clusters.
-  global_function(calo_find_clusters)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
+  global_function(calo_find_clusters)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
     arguments,
     constants.dev_ecal_geometry,
-    property<ecal_min_adc_t>().get(),
+    m_ecal_min_adc,
     dev_histo_n_clusters,
     dev_histo_ecal_digit_e,
     dev_histo_ecal_cluster_e,

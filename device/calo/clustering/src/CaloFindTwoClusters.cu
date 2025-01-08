@@ -72,10 +72,10 @@ __host__ void calo_find_twoclusters::calo_find_twoclusters_t::operator()(
   Allen::Context const& context) const
 {
   // Find clusters.
-  global_function(calo_find_twoclusters)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(arguments);
+  global_function(calo_find_twoclusters)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
+    arguments);
 
   // Make views.
   global_function(create_twocluster_views)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_x_t>(), context)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), dim3(m_block_dim_x), context)(arguments);
 }

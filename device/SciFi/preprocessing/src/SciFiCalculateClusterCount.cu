@@ -150,13 +150,13 @@ void scifi_calculate_cluster_count::scifi_calculate_cluster_count_t::operator()(
                        (bank_version == 6) ?
                        (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<6, true>) :
                                                      global_function(scifi_calculate_cluster_count_kernel<6, false>)) :
-                       (bank_version == 7 || (bank_version == 8 && property<decode_v8_as_v7_t>())) ?
+                       (bank_version == 7 || (bank_version == 8 && m_decode_v8_as_v7.value())) ?
                        (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<7, true>) :
                                                      global_function(scifi_calculate_cluster_count_kernel<7, false>)) :
                        (runtime_options.mep_layout ? global_function(scifi_calculate_cluster_count_kernel<8, true>) :
                                                      global_function(scifi_calculate_cluster_count_kernel<8, false>));
 
-    kernel_fn(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    kernel_fn(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
       arguments,
       std::get<0>(runtime_options.event_interval),
       constants.dev_scifi_geometry,

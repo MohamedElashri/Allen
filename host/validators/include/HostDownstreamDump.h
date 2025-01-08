@@ -56,13 +56,6 @@ namespace host_downstream_dump {
 
     // MC
     HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;
-
-    // Properties
-    PROPERTY(dump_scifi_t, "dump_scifi", "dump_scifi", bool) dump_scifi;
-    PROPERTY(dump_downstream_t, "dump_downstream", "dump_downstream", bool) dump_downstream;
-    PROPERTY(dump_ut_hits_t, "dump_ut_hits", "dump_ut_hits", bool) dump_ut_hits;
-    PROPERTY(dump_mcps_t, "dump_mcps", "dump_mcps", bool) dump_mcps;
-    PROPERTY(output_folder_t, "output_folder", "output_folder", std::string) output_folder;
   };
 
   struct host_downstream_dump_t : public ValidationAlgorithm, Parameters {
@@ -75,11 +68,10 @@ namespace host_downstream_dump {
       const Allen::Context&) const;
 
   private:
-    Property<dump_scifi_t> m_dump_scifi {this, true};
-    Property<dump_downstream_t> m_dump_downstream {this, true};
-    Property<dump_ut_hits_t> m_dump_ut_hits {this, true};
-    Property<dump_mcps_t> m_dump_mcps {this, true};
-
-    Property<output_folder_t> m_output_folder {this, "downstream_dump"};
+    Allen::Property<bool> m_dump_scifi {this, "dump_scifi", true, "dump_scifi"};
+    Allen::Property<bool> m_dump_downstream {this, "dump_downstream", true, "dump_downstream"};
+    Allen::Property<bool> m_dump_ut_hits {this, "dump_ut_hits", true, "dump ut hits"};
+    Allen::Property<bool> m_dump_mcps {this, "dump_mcps", true, "dump mcps"};
+    Allen::Property<std::string> m_output_folder {this, "output_folder", "downstream_dump", "output folder"};
   };
 } // namespace host_downstream_dump

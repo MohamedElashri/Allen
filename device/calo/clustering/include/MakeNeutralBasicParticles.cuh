@@ -42,7 +42,6 @@ namespace make_neutral_basic_particles {
       DEPENDENCIES(dev_multi_event_neutral_particles_view_t),
       Allen::IMultiEventContainer*)
     dev_multi_event_container_neutral_particles;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void make_particles(Parameters parameters);
@@ -57,7 +56,7 @@ namespace make_neutral_basic_particles {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 
 } // namespace make_neutral_basic_particles

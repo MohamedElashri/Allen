@@ -245,15 +245,14 @@ void host_downstream_dump::host_downstream_dump_t::operator()(
 
   // Define output paths
   auto seconds = time(NULL);
-  const std::string output_downstream_tracks = std::string(property<output_folder_t>()) +
-                                               std::string("/dump_downstream_tracks_") + std::to_string(seconds) +
-                                               ".json";
+  const std::string output_downstream_tracks =
+    std::string(m_output_folder) + std::string("/dump_downstream_tracks_") + std::to_string(seconds) + ".json";
   const std::string output_scifi_tracks =
-    std::string(property<output_folder_t>()) + std::string("/dump_scifi_tracks_") + std::to_string(seconds) + ".json";
+    std::string(m_output_folder) + std::string("/dump_scifi_tracks_") + std::to_string(seconds) + ".json";
   const std::string output_ut_hits =
-    std::string(property<output_folder_t>()) + std::string("/dump_ut_hits_") + std::to_string(seconds) + ".json";
+    std::string(m_output_folder) + std::string("/dump_ut_hits_") + std::to_string(seconds) + ".json";
   const std::string output_mcps =
-    std::string(property<output_folder_t>()) + std::string("/dump_mcps_") + std::to_string(seconds) + ".json";
+    std::string(m_output_folder) + std::string("/dump_mcps_") + std::to_string(seconds) + ".json";
 
   // Define output container
   using nlohmann::json;
@@ -328,7 +327,7 @@ void host_downstream_dump::host_downstream_dump_t::operator()(
         }
       }
 
-      if (m_dump_ut_hits.get_value()) {
+      if (m_dump_ut_hits.value()) {
         std::vector<json> all_ut_hits_in_this_event_array;
         all_ut_hits_in_this_event_array.reserve(all_ut_hits_in_this_event.size());
         for (const auto& hit : all_ut_hits_in_this_event)
@@ -338,7 +337,7 @@ void host_downstream_dump::host_downstream_dump_t::operator()(
     }
 
     // Dump SciFi seeds information
-    if (m_dump_scifi.get_value()) {
+    if (m_dump_scifi.value()) {
 
       // Load velo-scifi matching information
       auto is_veloscifi_matcheds = matched_is_scifi_track_used.data() + scifi_tracks_event_offset;
@@ -414,7 +413,7 @@ void host_downstream_dump::host_downstream_dump_t::operator()(
       }
     }
 
-    if (m_dump_downstream.get_value()) {
+    if (m_dump_downstream.value()) {
       // Create checker tracks containers
       Checker::Tracks checker_tracks_ut, checker_tracks_all;
       checker_tracks_ut.reserve(number_of_downstream_tracks);
@@ -507,7 +506,7 @@ void host_downstream_dump::host_downstream_dump_t::operator()(
       }
     }
 
-    if (m_dump_mcps.get_value()) {
+    if (m_dump_mcps.value()) {
       auto mcps_per_event = json::array();
       const auto& mc_event = mc_events[i_event];
       const auto& mc_particles = mc_event.m_mcps;
@@ -531,16 +530,16 @@ void host_downstream_dump::host_downstream_dump_t::operator()(
     out_ut << output_data << std::endl;
   };
 
-  if (m_dump_downstream.get_value()) {
+  if (m_dump_downstream.value()) {
     write_output(output_downstream_tracks, output_downstream_tracks_data);
   }
-  if (m_dump_scifi.get_value()) {
+  if (m_dump_scifi.value()) {
     write_output(output_scifi_tracks, output_scifi_tracks_data);
   }
-  if (m_dump_ut_hits.get_value()) {
+  if (m_dump_ut_hits.value()) {
     write_output(output_ut_hits, output_ut_hits_data);
   }
-  if (m_dump_mcps.get_value()) {
+  if (m_dump_mcps.value()) {
     write_output(output_mcps, output_mcps_data);
   }
 

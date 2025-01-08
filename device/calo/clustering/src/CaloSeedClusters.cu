@@ -96,9 +96,8 @@ void calo_seed_clusters::calo_seed_clusters_t::operator()(
   Allen::memset_async<dev_ecal_cluster_offsets_t>(arguments, 0, context);
 
   // Find local maxima.
-  global_function(calo_seed_clusters)(
-    dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, constants.dev_ecal_geometry, property<ecal_min_adc_t>().get());
+  global_function(calo_seed_clusters)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
+    arguments, constants.dev_ecal_geometry, m_ecal_min_adc);
 
   PrefixSum::prefix_sum<dev_ecal_cluster_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
 }

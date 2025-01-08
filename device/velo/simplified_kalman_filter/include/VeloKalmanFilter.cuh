@@ -181,8 +181,6 @@ namespace velo_kalman_filter {
       DEPENDENCIES(dev_velo_kalman_endvelo_states_t, dev_offsets_all_velo_tracks_t),
       Allen::Views::Physics::KalmanStates)
     dev_velo_kalman_endvelo_states_view;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   __global__ void velo_kalman_filter(
@@ -225,8 +223,8 @@ namespace velo_kalman_filter {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
+    Allen::Property<bool> m_enable_monitoring {this, "enable_monitoring", false, "Enable line monitoring"};
 
     Allen::Monitoring::Histogram<> m_histogram_velo_total_track_eta {this,
                                                                      "velo_total_track_eta",

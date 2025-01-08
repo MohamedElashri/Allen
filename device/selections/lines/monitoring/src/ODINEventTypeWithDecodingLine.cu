@@ -18,9 +18,10 @@ INSTANTIATE_LINE(
   odin_event_type_with_decoding_line::Parameters)
 
 __device__ bool odin_event_type_with_decoding_line::odin_event_type_with_decoding_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const ODINData> input)
 {
   const auto event_type = LHCb::ODIN {std::get<0>(input)}.eventType();
-  return event_type & parameters.odin_event_type;
+  return event_type & properties.odin_event_type;
 }

@@ -21,7 +21,7 @@ void host_routingbits_validator::host_routingbits_validator_t::operator()(
 {
   if (runtime_options.checker_invoker == nullptr) return;
 
-  const auto map = m_routingbit_map.get_value().get();
+  const auto map = m_routingbit_map.value();
 
   auto& checker = runtime_options.checker_invoker->checker<RoutingBitsChecker>(name());
   host_function([&checker](host_routingbits_validator::Parameters parameters) {

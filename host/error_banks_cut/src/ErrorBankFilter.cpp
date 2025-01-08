@@ -57,8 +57,8 @@ void error_bank_filter::error_bank_filter_t::set_arguments_size(
 void error_bank_filter::error_bank_filter_t::init()
 {
 #ifndef ALLEN_STANDALONE
-  std::map<std::string, bank_types_t> sd_bank_types = property<sd_bank_types_t>();
-  std::vector<std::string> daq_error_types = property<daq_error_types_t>();
+  std::map<std::string, bank_types_t> sd_bank_types = m_sd_bank_types.value();
+  std::vector<std::string> daq_error_types = m_daq_error_types.value();
 
   std::vector<std::string> source_names, data_names, other_names, error_names = daq_error_types;
 

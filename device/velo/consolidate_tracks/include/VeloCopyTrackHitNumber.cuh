@@ -27,7 +27,6 @@ namespace velo_copy_track_hit_number {
     HOST_OUTPUT(host_accumulated_number_of_hits_in_velo_tracks_t, unsigned)
     host_accumulated_number_of_hits_in_velo_tracks;
     DEVICE_OUTPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_offsets_all_velo_tracks;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void velo_copy_track_hit_number(Parameters);
@@ -42,6 +41,6 @@ namespace velo_copy_track_hit_number {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{512, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {512, 1, 1}, "block dimensions"};
   };
 } // namespace velo_copy_track_hit_number

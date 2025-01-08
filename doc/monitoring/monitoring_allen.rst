@@ -74,28 +74,13 @@ There are several necessary additions to the header that monitoring will use:
 
   #include "AllenMonitoring.h"
 
-* Add the `enable_monitoring` property and set the default value to false. This should default to false
-because the Gaudi monitoring needs to be off in Allen standalone and affects the production throughput. Put
+* Add the `DeviceProperties` `struct` after the line `struct` declaration
 
 .. code-block:: c++
 
-  PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-
-in the parameters and
-
-.. code-block:: c++
-
-  Property<enable_monitoring_t> m_enable_monitoring {this, false};
-
-in the property list.
-
-* Add the `DeviceAccumulators` `struct` after the line `struct` declaration
-
-.. code-block:: c++
-
-  struct DeviceAccumulators {
+  struct DeviceProperties {
     Allen::Monitoring::Histogram<>::DeviceType histogram_ks_mass;
-    DeviceAccumulators(const kstopipi_line_t& algo, const Allen::Context& ctx) :
+    DeviceProperties(const kstopipi_line_t& algo, const Allen::Context& ctx) :
       histogram_ks_mass(algo.m_histogram_ks_mass.data(ctx))
     {}
   };
@@ -106,7 +91,7 @@ in the property list.
 
   __device__ static void monitor(
     const Parameters& parameters,
-    const DeviceAccumulators& accumulators,
+    const DeviceProperties& properties,
     std::tuple<const Allen::Views::Physics::CompositeParticle> input,
     unsigned index,
     bool sel);
@@ -128,21 +113,21 @@ The `monitor` function is where the histogram will be filled. Using what conditi
 
   __device__ void kstopipi_line::kstopipi_line_t::monitor(
     const Parameters& parameters,
-    const DeviceAccumulators& accumulators,
+    const DeviceProperties& properties,
     std::tuple<const Allen::Views::Physics::CompositeParticle> input,
     unsigned index,
     bool sel)
   {
     if (sel) {
       const auto ks = std::get<0>(input);
-      accumulators.histogram_ks_mass.increment(ks.m12(Allen::mPi, Allen::mPi));
+      properties.histogram_ks_mass.increment(ks.m12(Allen::mPi, Allen::mPi));
     }
   }
 
 **Turn on the monitoring**
 
 In the configuration of the line (a file called `hlt1_*_lines.py`, for `KsToPiPi` it is `hlt1_inclusive_hadron_lines.py`)
-the new `enable_monitoring` property needs to be set. After this the `make_kstopipi_line` function now looks like
+the `enable_monitoring` property (which is a default property of all lines) needs to be set. After this the `make_kstopipi_line` function now looks like
 
 .. code-block:: python
 

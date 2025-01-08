@@ -42,8 +42,8 @@ void track_digit_selective_matching::track_digit_selective_matching_t::operator(
   const Constants& constants,
   Allen::Context const& context) const
 {
-  global_function(track_digit_selective_matching)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_ecal_geometry);
+  global_function(track_digit_selective_matching)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments, constants.dev_ecal_geometry);
 }
 
 __global__ void track_digit_selective_matching::track_digit_selective_matching(

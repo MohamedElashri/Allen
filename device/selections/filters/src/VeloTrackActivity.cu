@@ -23,39 +23,42 @@ void velo_track_activity_filter::velo_track_activity_filter_t::set_arguments_siz
   set_size<dev_event_list_output_t>(arguments, size<dev_event_list_t>(arguments));
 }
 
+__global__ void velo_track_activity_filter_kernel(
+  velo_track_activity_filter::Parameters parameters,
+  const unsigned number_of_selected_events,
+  const unsigned number_of_events,
+  const unsigned min_velo_tracks,
+  const unsigned max_velo_tracks)
+{
+  for (unsigned idx = threadIdx.x; idx < number_of_selected_events; idx += blockDim.x) {
+    auto event_number = parameters.dev_event_list[idx];
+    Velo::Consolidated::ConstTracks velo_tracks {
+      parameters.dev_offsets_velo_tracks, parameters.dev_offsets_velo_track_hit_number, event_number, number_of_events};
+    const unsigned number_of_velo_tracks = velo_tracks.number_of_tracks(event_number);
+
+    if (number_of_velo_tracks >= min_velo_tracks && number_of_velo_tracks < max_velo_tracks) {
+      const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.data(), 1);
+      parameters.dev_event_list_output[current_event] = mask_t {event_number};
+    }
+  }
+}
+
 void velo_track_activity_filter::velo_track_activity_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
   const Constants&,
   const Allen::Context& context) const
 {
-
   Allen::memset_async<dev_number_of_selected_events_t>(arguments, 0, context);
   Allen::memset_async<host_number_of_selected_events_t>(arguments, 0, context);
   Allen::memset_async<dev_event_list_output_t>(arguments, 0, context);
 
-  global_function(velo_track_activity_filter)(dim3(1), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, size<dev_event_list_t>(arguments), first<host_number_of_events_t>(arguments));
+  global_function(velo_track_activity_filter_kernel)(dim3(1), dim3(m_block_dim_x), context)(
+    arguments,
+    size<dev_event_list_t>(arguments),
+    first<host_number_of_events_t>(arguments),
+    m_min_velo_tracks,
+    m_max_velo_tracks);
   Allen::copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);
   reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
-}
-
-__global__ void velo_track_activity_filter::velo_track_activity_filter(
-  velo_track_activity_filter::Parameters parameters,
-  const unsigned number_of_selected_events,
-  const unsigned number_of_events)
-{
-
-  for (unsigned idx = threadIdx.x; idx < number_of_selected_events; idx += blockDim.x) {
-
-    auto event_number = parameters.dev_event_list[idx];
-    Velo::Consolidated::ConstTracks velo_tracks {
-      parameters.dev_offsets_velo_tracks, parameters.dev_offsets_velo_track_hit_number, event_number, number_of_events};
-    const unsigned number_of_velo_tracks = velo_tracks.number_of_tracks(event_number);
-
-    if (number_of_velo_tracks >= parameters.min_velo_tracks && number_of_velo_tracks < parameters.max_velo_tracks) {
-      const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.data(), 1);
-      parameters.dev_event_list_output[current_event] = mask_t {event_number};
-    }
-  }
 }

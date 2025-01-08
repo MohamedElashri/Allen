@@ -20,7 +20,6 @@ namespace global_decision {
     DEVICE_INPUT(dev_dec_reports_t, unsigned) dev_dec_reports;
     DEVICE_OUTPUT(dev_global_decision_t, bool) dev_global_decision;
     HOST_OUTPUT(host_global_decision_t, bool) host_global_decision;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
   };
 
   __global__ void global_decision(Parameters);
@@ -35,6 +34,6 @@ namespace global_decision {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension X"};
   };
 } // namespace global_decision

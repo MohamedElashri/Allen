@@ -35,7 +35,6 @@ namespace brem_recovery {
     DEVICE_OUTPUT(dev_brem_ecal_digits_size_t, unsigned) dev_brem_ecal_digits_size;
     DEVICE_OUTPUT(dev_brem_ecal_digits_t, std::array<unsigned, 4>) dev_brem_ecal_digits;
     // Properties
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   struct brem_recovery_t : public DeviceAlgorithm, Parameters {
@@ -48,7 +47,7 @@ namespace brem_recovery {
       Allen::Context const&) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
   };
 
   __global__ void brem_recovery(Parameters parameters, const char* raw_ecal_geometry);

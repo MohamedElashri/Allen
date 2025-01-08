@@ -29,8 +29,6 @@ namespace host_tae_filter {
     HOST_OUTPUT(host_mask_event_list_t, unsigned) host_mask_event_list;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_event_output_list_t) dev_event_output_list;
-    PROPERTY(accept_sub_events_t, "accept_sub_events", "Accept all sub events of a TAE batch as separate events", bool)
-    accept_sub_events;
   };
 
   // Algorithm
@@ -47,6 +45,9 @@ namespace host_tae_filter {
       const Allen::Context& context) const;
 
   private:
-    Property<accept_sub_events_t> m_accept_sub_events {this, true};
+    Allen::Property<bool> m_accept_sub_events {this,
+                                               "accept_sub_events",
+                                               true,
+                                               "Accept all sub events of a TAE batch as separate events"};
   };
 } // namespace host_tae_filter

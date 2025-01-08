@@ -22,40 +22,44 @@ namespace displaced_di_muon_mass_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minMass_t, "minMass", "minMass description", float) minMass;
-    PROPERTY(minDispTrackPt_t, "minDispTrackPt", "minDispTrackPt description", float) minDispTrackPt;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
-    PROPERTY(dispMinIPChi2_t, "dispMinIPChi2", "dispMinIPChi2 description", float) dispMinIPChi2;
-    PROPERTY(dispMinEta_t, "dispMinEta", "dispMinEta description", float) dispMinEta;
-    PROPERTY(dispMaxEta_t, "dispMaxEta", "dispMaxEta description", float) dispMaxEta;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z dimuon coordinate", float) minZ;
-    PROPERTY(DiMuonCharge_t, "DiMuonCharge", "Charge of the dimuon combination", int) DiMuonCharge;
   };
 
   struct displaced_di_muon_mass_line_t : public SelectionAlgorithm,
                                          Parameters,
                                          CompositeParticleLine<displaced_di_muon_mass_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    struct DeviceProperties {
+      float minMass;
+      float minDispTrackPt;
+      float maxVertexChi2;
+      float dispMinIPChi2;
+      float dispMinEta;
+      float dispMaxEta;
+      float minZ;
+      int diMuonCharge;
+
+      DeviceProperties(const displaced_di_muon_mass_line_t& algo, const Allen::Context&) :
+        minMass(algo.m_minMass), minDispTrackPt(algo.m_minDispTrackPt), maxVertexChi2(algo.m_maxVertexChi2),
+        dispMinIPChi2(algo.m_dispMinIPChi2), dispMinEta(algo.m_dispMinEta), dispMaxEta(algo.m_dispMaxEta),
+        minZ(algo.m_minZ), diMuonCharge(algo.m_dimuon_charge)
+      {}
+    };
+    __device__ static bool
+    select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     // Dimuon mass cut
-    Property<minMass_t> m_minMass {this, 2700.f / Gaudi::Units::MeV};
+    Allen::Property<float> m_minMass {this, "minMass", 2700.f / Gaudi::Units::MeV, "minMass description"};
     // Dimuon track pt.
-    Property<minDispTrackPt_t> m_minDispTrackPt {this, 500.f / Gaudi::Units::MeV};
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 6.f};
+    Allen::Property<float> m_minDispTrackPt {this,
+                                             "minDispTrackPt",
+                                             500.f / Gaudi::Units::MeV,
+                                             "minDispTrackPt description"};
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 6.f, "maxVertexChi2 description"};
     // Displaced dimuon selections.
-    Property<dispMinIPChi2_t> m_dispMinIPChi2 {this, 6.f};
-    Property<dispMinEta_t> m_dispMinEta {this, 2.f};
-    Property<dispMaxEta_t> m_dispMaxEta {this, 5.f};
-    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
-    Property<DiMuonCharge_t> m_dimuon_charge {this, 0};
+    Allen::Property<float> m_dispMinIPChi2 {this, "dispMinIPChi2", 6.f, "dispMinIPChi2 description"};
+    Allen::Property<float> m_dispMinEta {this, "dispMinEta", 2.f, "dispMinEta description"};
+    Allen::Property<float> m_dispMaxEta {this, "dispMaxEta", 5.f, "dispMaxEta description"};
+    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z dimuon coordinate"};
+    Allen::Property<int> m_dimuon_charge {this, "DiMuonCharge", 0, "Charge of the dimuon combination"};
   };
 } // namespace displaced_di_muon_mass_line

@@ -49,14 +49,18 @@ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t::operator()(
                                  (runtime_options.mep_layout ? global_function(ut_cluster_and_pre_decode<3, true>) :
                                                                global_function(ut_cluster_and_pre_decode<3, false>));
 
-  fun(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  fun(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
     std::get<0>(runtime_options.event_interval),
     constants.dev_ut_boards,
     constants.dev_ut_geometry.data(),
     constants.dev_unique_x_sector_layer_offsets.data(),
     constants.dev_unique_x_sector_offsets.data(),
-    constants.dev_ut_board_geometry_map.data());
+    constants.dev_ut_board_geometry_map.data(),
+    m_cluster_ut_hits.value(),
+    m_position_method,
+    m_max_cluster_size,
+    m_save_clusters_above_max.value());
 
   PrefixSum::prefix_sum<dev_ut_cluster_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
 }
@@ -324,7 +328,11 @@ __global__ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode(
   const char* ut_geometry,
   const unsigned* dev_unique_x_sector_layer_offsets,
   const unsigned* dev_unique_x_sector_offsets,
-  const uint16_t* dev_ut_board_geometry_map)
+  const uint16_t* dev_ut_board_geometry_map,
+  const bool cluster_ut_hits,
+  const int position_method,
+  const unsigned max_cluster_size,
+  const bool save_clusters_above_max)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -369,10 +377,10 @@ __global__ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode(
       ut_pre_decoded_hits,
       cluster_count,
       parameters.dev_ut_tiebreak,
-      parameters.cluster_ut_hits,
-      static_cast<UT::Decoding::PositionMethod>(static_cast<int>(parameters.position_method)),
-      parameters.max_cluster_size,
-      parameters.save_clusters_above_max);
+      cluster_ut_hits,
+      static_cast<UT::Decoding::PositionMethod>(position_method),
+      max_cluster_size,
+      save_clusters_above_max);
   };
 
   Allen::warp::opportunistic_loop(number_of_nonempty_channels, function);

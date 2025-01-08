@@ -31,61 +31,62 @@ namespace heavy_ion_event_line {
     DEVICE_INPUT(dev_number_of_pvs_t, unsigned) dev_number_of_pvs;
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(min_velo_tracks_PbPb_t, "min_velo_tracks_PbPb", "Minimum number of VELO tracks in the PbPb region", int)
-    min_velo_tracks_PbPb;
-    PROPERTY(max_velo_tracks_PbPb_t, "max_velo_tracks_PbPb", "Maximum number of VELO tracks in the PbPb region", int)
-    max_velo_tracks_PbPb;
-    PROPERTY(min_long_tracks_t, "min_long_tracks", "Minimum number of Long tracks", int) min_long_tracks;
-    PROPERTY(max_long_tracks_t, "max_long_tracks", "Maximum number of Long tracks", int) max_long_tracks;
-    PROPERTY(min_velo_tracks_SMOG_t, "min_velo_tracks_SMOG", "Minimum number of VELO tracks in the SMOG region", int)
-    min_velo_tracks_SMOG;
-    PROPERTY(max_velo_tracks_SMOG_t, "max_velo_tracks_SMOG", "Maximum number of VELO tracks in the SMOG region", int)
-    max_velo_tracks_SMOG;
-    PROPERTY(min_pvs_PbPb_t, "min_pvs_PbPb", "Minimum number of PVs in the PbPb region", int) min_pvs_PbPb;
-    PROPERTY(max_pvs_PbPb_t, "max_pvs_PbPb", "Maximum number of PVs in the PbPb region", int) max_pvs_PbPb;
-    PROPERTY(min_pvs_SMOG_t, "min_pvs_SMOG", "Minimum number of PVs in the SMOG region", int) min_pvs_SMOG;
-    PROPERTY(max_pvs_SMOG_t, "max_pvs_SMOG", "Maximum number of PVs in the SMOG region", int) max_pvs_SMOG;
-    PROPERTY(min_ecal_e_t, "min_ecal_e", "Minimum ECAL energy", float) min_ecal_e;
-    PROPERTY(max_ecal_e_t, "max_ecal_e", "Maximum ECAL energy", float) max_ecal_e;
-    PROPERTY(PbPb_SMOG_z_separation_t, "PbPb_SMOG_z_separation", "PbPb_SMOG_z_separation", float)
-    PbPb_SMOG_z_separation;
   };
 
   struct heavy_ion_event_line_t : public SelectionAlgorithm, Parameters, EventLine<heavy_ion_event_line_t, Parameters> {
-    // Tuple includes:
-    // Number of velo tracks in PbPb region
-    // Number of velo tracks in SMOG region
-    // Number of PVs in PbPb region
-    // Number of PVs in SMOG region
-    // Total ECAL energy
-    __device__ static std::tuple<const int, const int, const int, const int, const int, const float>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned);
+    struct DeviceProperties {
+      int min_velo_tracks_PbPb;
+      int max_velo_tracks_PbPb;
+      int min_long_tracks;
+      int max_long_tracks;
+      int min_velo_tracks_SMOG;
+      int max_velo_tracks_SMOG;
+      int min_pvs_PbPb;
+      int max_pvs_PbPb;
+      int min_pvs_SMOG;
+      int max_pvs_SMOG;
+      float min_ecal_e;
+      float max_ecal_e;
+      float PbPb_SMOG_z_separation;
+      DeviceProperties(const heavy_ion_event_line_t& algo, const Allen::Context&) :
+        min_velo_tracks_PbPb(algo.m_min_velo_tracks_PbPb), max_velo_tracks_PbPb(algo.m_max_velo_tracks_PbPb),
+        min_long_tracks(algo.m_min_long_tracks), max_long_tracks(algo.m_max_long_tracks),
+        min_velo_tracks_SMOG(algo.m_min_velo_tracks_SMOG), max_velo_tracks_SMOG(algo.m_max_velo_tracks_SMOG),
+        min_pvs_PbPb(algo.m_min_pvs_PbPb), max_pvs_PbPb(algo.m_max_pvs_PbPb), min_pvs_SMOG(algo.m_min_pvs_SMOG),
+        max_pvs_SMOG(algo.m_max_pvs_SMOG), min_ecal_e(algo.m_min_ecal_e), max_ecal_e(algo.m_max_ecal_e),
+        PbPb_SMOG_z_separation(algo.m_PbPb_SMOG_z_separation)
+      {}
+    };
 
-    __device__ static bool select(
-      const Parameters& parameters,
-      std::tuple<const int, const int, const int, const int, const int, const float> input);
+    __device__ static std::tuple<unsigned> get_input(const Parameters&, const unsigned, const unsigned);
+
+    __device__ static bool select(const Parameters&, const DeviceProperties&, std::tuple<unsigned> input);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<min_velo_tracks_PbPb_t> m_min_velo_tracks_PbPb {this, 0};
-    Property<max_velo_tracks_PbPb_t> m_max_velo_tracks_PbPb {this, -1};
-    Property<min_long_tracks_t> m_min_long_tracks {this, 0};
-    Property<max_long_tracks_t> m_max_long_tracks {this, -1};
-    Property<min_velo_tracks_SMOG_t> m_min_velo_tracks_SMOG {this, 0};
-    Property<max_velo_tracks_SMOG_t> m_max_velo_tracks_SMOG {this, -1};
-    Property<min_pvs_PbPb_t> m_min_pvs_PbPb {this, 0};
-    Property<max_pvs_PbPb_t> m_max_pvs_PbPb {this, -1};
-    Property<min_pvs_SMOG_t> m_min_pvs_SMOG {this, 0};
-    Property<max_pvs_SMOG_t> m_max_pvs_SMOG {this, -1};
-    Property<min_ecal_e_t> m_min_ecal_e {this, 0.f};
-    Property<max_ecal_e_t> m_max_ecal_e {this, -1.f};
-    Property<PbPb_SMOG_z_separation_t> m_PbPb_SMOG_z_separation_t {this, -341.f};
+    Allen::Property<int> m_min_velo_tracks_PbPb {this,
+                                                 "min_velo_tracks_PbPb",
+                                                 0,
+                                                 "Minimum number of VELO tracks in the PbPb region"};
+    Allen::Property<int> m_max_velo_tracks_PbPb {this,
+                                                 "max_velo_tracks_PbPb",
+                                                 -1,
+                                                 "Maximum number of VELO tracks in the PbPb region"};
+    Allen::Property<int> m_min_long_tracks {this, "min_long_tracks", 0, "Minimum number of Long tracks"};
+    Allen::Property<int> m_max_long_tracks {this, "max_long_tracks", -1, "Maximum number of Long tracks"};
+    Allen::Property<int> m_min_velo_tracks_SMOG {this,
+                                                 "min_velo_tracks_SMOG",
+                                                 0,
+                                                 "Minimum number of VELO tracks in the SMOG region"};
+    Allen::Property<int> m_max_velo_tracks_SMOG {this,
+                                                 "max_velo_tracks_SMOG",
+                                                 -1,
+                                                 "Maximum number of VELO tracks in the SMOG region"};
+    Allen::Property<int> m_min_pvs_PbPb {this, "min_pvs_PbPb", 0, "Minimum number of PVs in the PbPb region"};
+    Allen::Property<int> m_max_pvs_PbPb {this, "max_pvs_PbPb", -1, "Maximum number of PVs in the PbPb region"};
+    Allen::Property<int> m_min_pvs_SMOG {this, "min_pvs_SMOG", 0, "Minimum number of PVs in the SMOG region"};
+    Allen::Property<int> m_max_pvs_SMOG {this, "max_pvs_SMOG", -1, "Maximum number of PVs in the SMOG region"};
+    Allen::Property<float> m_min_ecal_e {this, "min_ecal_e", 0.f, "Minimum ECAL energy"};
+    Allen::Property<float> m_max_ecal_e {this, "max_ecal_e", -1.f, "Maximum ECAL energy"};
+    Allen::Property<float> m_PbPb_SMOG_z_separation {this, "PbPb_SMOG_z_separation", -341.f, "PbPb_SMOG_z_separation"};
   };
 } // namespace heavy_ion_event_line

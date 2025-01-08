@@ -27,8 +27,6 @@ namespace consolidate_muon {
     DEVICE_INPUT(dev_muon_tracks_input_t, MuonTrack) dev_muon_tracks_input;
     DEVICE_INPUT(dev_muon_tracks_offsets_t, unsigned) dev_muon_tracks_offsets;
     DEVICE_OUTPUT(dev_muon_tracks_output_t, MuonTrack) dev_muon_tracks_output;
-
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x;
   };
 
   __global__ void consolidate_muon(Parameters);
@@ -43,7 +41,7 @@ namespace consolidate_muon {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 64};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 64, "block dimension X"};
   };
 
 } // namespace consolidate_muon

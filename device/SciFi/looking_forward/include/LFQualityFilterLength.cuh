@@ -29,19 +29,14 @@ namespace lf_quality_filter_length {
     DEVICE_OUTPUT(dev_scifi_lf_length_filtered_tracks_t, SciFi::TrackHits) dev_scifi_lf_length_filtered_tracks;
     DEVICE_OUTPUT(dev_scifi_lf_length_filtered_atomics_t, unsigned) dev_scifi_lf_length_filtered_atomics;
     DEVICE_OUTPUT(dev_scifi_lf_parametrization_length_filter_t, float) dev_scifi_lf_parametrization_length_filter;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(
-      maximum_number_of_candidates_per_ut_track_t,
-      "maximum_number_of_candidates_per_ut_track",
-      "maximum_number_of_candidates_per_ut_track",
-      unsigned)
-    maximum_number_of_candidates_per_ut_track;
-    PROPERTY(min_tot_scifi_hits_t, "min_tot_scifi_hits", "min_tot_scifi_hits", unsigned) min_tot_scifi_hits;
-    PROPERTY(min_UV_scifi_hits_t, "min_UV_scifi_hits", "min_UV_scifi_hits", unsigned) min_UV_scifi_hits;
-    PROPERTY(min_X_scifi_hits_t, "min_X_scifi_hits", "min_X_scifi_hits", unsigned) min_X_scifi_hits;
   };
 
-  __global__ void lf_quality_filter_length(Parameters);
+  __global__ void lf_quality_filter_length(
+    Parameters,
+    const unsigned maximum_number_of_candidates_per_ut_track,
+    const unsigned min_tot_scifi_hits,
+    const unsigned min_UV_scifi_hits,
+    const unsigned min_X_scifi_hits);
 
   struct lf_quality_filter_length_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -53,10 +48,13 @@ namespace lf_quality_filter_length {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
-    Property<maximum_number_of_candidates_per_ut_track_t> m_maximum_number_of_candidates_per_ut_track {this, 12};
-    Property<min_tot_scifi_hits_t> m_min_tot_scifi_hits {this, 9};
-    Property<min_UV_scifi_hits_t> m_min_UV_scifi_hits {this, 3};
-    Property<min_X_scifi_hits_t> m_min_X_scifi_hits {this, 3};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
+    Allen::Property<unsigned> m_maximum_number_of_candidates_per_ut_track {this,
+                                                                           "maximum_number_of_candidates_per_ut_track",
+                                                                           12,
+                                                                           "maximum_number_of_candidates_per_ut_track"};
+    Allen::Property<unsigned> m_min_tot_scifi_hits {this, "min_tot_scifi_hits", 9, "min_tot_scifi_hits"};
+    Allen::Property<unsigned> m_min_UV_scifi_hits {this, "min_UV_scifi_hits", 3, "min_UV_scifi_hits"};
+    Allen::Property<unsigned> m_min_X_scifi_hits {this, "min_X_scifi_hits", 3, "min_X_scifi_hits"};
   };
 } // namespace lf_quality_filter_length

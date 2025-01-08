@@ -17,8 +17,14 @@ INSTANTIATE_ALGORITHM(track_matching::track_matching_t);
 
 namespace {
   // inspired from https://gitlab.cern.ch/lhcb/Rec/-/blob/master/Pr/PrAlgorithms/src/PrMatchNN.cpp
-  __device__ track_matching::MatchingResult
-  getChi2Match(track_matching::Parameters parameters, const MiniState velo_state, const MiniState scifi_state)
+  __device__ track_matching::MatchingResult getChi2Match(
+    const MiniState velo_state,
+    const MiniState scifi_state,
+    const std::array<float, 5>& z_magnet_parameters,
+    float multiplication_factor_dX,
+    float multiplication_factor_dY,
+    float multiplication_factor_dty,
+    float multiplication_factor_dtx)
   {
     const float xpos_velo = velo_state.x(), ypos_velo = velo_state.y(), zpos_velo = velo_state.z(),
                 tx_velo = velo_state.tx(), ty_velo = velo_state.ty();
@@ -34,7 +40,6 @@ namespace {
     if (std::abs(dSlopeY) > 0.02f)
       return {9999.f, 9999.f, 9999.f, 9999.f, 9999.f, 9999.f}; // matching the UT/SciFi slopes in Y (no bending)
 
-    const auto& z_magnet_parameters = parameters.z_magnet_parameters.get();
     const float zForX = z_magnet_parameters[0] + z_magnet_parameters[1] * std::abs(dSlopeX) +
                         z_magnet_parameters[2] * dSlopeX * dSlopeX + z_magnet_parameters[3] * std::abs(xpos_scifi) +
                         z_magnet_parameters[4] * tx_velo * tx_velo;
@@ -61,11 +66,6 @@ namespace {
     const float tolX = dxTol2 + dSlopeX * dSlopeX * dxTolSlope2;
     const float tolY = TrackMatchingConsts::dyTol * TrackMatchingConsts::dyTol +
                        teta2 * TrackMatchingConsts::dyTolSlope * TrackMatchingConsts::dyTolSlope;
-    const float multiplication_factor_dX = parameters.multiplication_factor_dX;
-    const float multiplication_factor_dY = parameters.multiplication_factor_dY;
-    const float multiplication_factor_dty = parameters.multiplication_factor_dty;
-    const float multiplication_factor_dtx = parameters.multiplication_factor_dtx;
-
     float chi2 =
       (tolX != 0.f and tolY != 0.f ?
          multiplication_factor_dX * distX * distX / tolX + multiplication_factor_dY * distY * distY / tolY :
@@ -88,7 +88,7 @@ namespace {
     const float tyV,
     const float txT,
     const float magSign,
-    const typename track_matching::Parameters::momentum_parameters_t::t& momentum_parameters)
+    const std::array<float, 16>& momentum_parameters)
   {
     // Pick parametrisation from polarity condition
     // magSign is -1*dev_magnet_polarity so negative sign is MagUp
@@ -123,34 +123,57 @@ void track_matching::track_matching_t::operator()(
   const Allen::Context& context) const
 {
   const auto has_ut = (size<dev_ut_hits_t>(arguments) > 0) &&
-                      (first<host_accumulated_number_of_ut_hits_t>(arguments) > 0) && (!property<force_skip_ut_t>());
+                      (first<host_accumulated_number_of_ut_hits_t>(arguments) > 0) && (!m_force_skip_ut.value());
 
-  const auto use_with_ut_neural_network = has_ut && !property<force_no_ut_nn_t>();
+  const auto use_with_ut_neural_network = has_ut && !m_force_no_ut_nn.value();
 
   Allen::memset_async<dev_offsets_matched_tracks_t>(arguments, 0, context);
 
   if (use_with_ut_neural_network) {
     // Velo SciFi matching
-    global_function(track_matching_veloSciFi<void>)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-      arguments, constants.dev_magnet_polarity.data(), nullptr, m_n_overflow_track_matching.data(context));
+    global_function(track_matching_veloSciFi<void>)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+      arguments,
+      constants.dev_magnet_polarity.data(),
+      nullptr,
+      m_momentum_parameters,
+      m_z_magnet_parameters,
+      m_multiplication_factor_dX,
+      m_multiplication_factor_dY,
+      m_multiplication_factor_dty,
+      m_multiplication_factor_dtx,
+      m_ghost_killer_threshold,
+      m_n_overflow_track_matching.data(context));
   }
   else {
     // Velo SciFi matching
-    if (property<matching_no_ut_ghost_killer_version_t>() == 1) {
+    if (m_matching_no_ut_ghost_killer_version == 1) {
       global_function(track_matching_veloSciFi<Allen::NeuralNetwork::Model::MatchingGhostKiller>)(
-        dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+        dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
         arguments,
         constants.dev_magnet_polarity.data(),
         constants.dev_matching_ghost_killer,
+        m_momentum_parameters,
+        m_z_magnet_parameters,
+        m_multiplication_factor_dX,
+        m_multiplication_factor_dY,
+        m_multiplication_factor_dty,
+        m_multiplication_factor_dtx,
+        m_ghost_killer_threshold,
         m_n_overflow_track_matching.data(context));
     }
-    else if (property<matching_no_ut_ghost_killer_version_t>() == 2) {
+    else if (m_matching_no_ut_ghost_killer_version == 2) {
       global_function(track_matching_veloSciFi<Allen::NeuralNetwork::Model::MatchingNoUTV2GhostKiller>)(
-        dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+        dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
         arguments,
         constants.dev_magnet_polarity.data(),
         constants.dev_matching_no_ut_v2_ghost_killer,
+        m_momentum_parameters,
+        m_z_magnet_parameters,
+        m_multiplication_factor_dX,
+        m_multiplication_factor_dY,
+        m_multiplication_factor_dty,
+        m_multiplication_factor_dtx,
+        m_ghost_killer_threshold,
         m_n_overflow_track_matching.data(context));
     }
     else {
@@ -160,35 +183,51 @@ void track_matching::track_matching_t::operator()(
 
   if (has_ut) {
     // Add UT hits
-    global_function(track_matching_add_ut_hits)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    global_function(track_matching_add_ut_hits)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
       arguments,
       constants.dev_magnet_polarity.data(),
       constants.dev_unique_x_sector_layer_offsets.data(),
       constants.dev_unique_sector_xs.data(),
+      m_ut_x_loose_tolerance_parameters,
+      m_ut_x_tight_tolerance_parameters,
+      m_ut_y_tolerance_parameters,
       constants.dev_ut_per_layer_info,
       m_n_overflow_track_matching.data(context));
 
     // Filter bad ut segments (by requiring min number of ut hits or chi2)
     global_function(track_matching_filter_bad_ut_segment)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+      dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments, m_min_num_ut_hits);
 
     // Select only one best ut segement for each VeloSciFi matched result
     global_function(track_matching_select_best_ut_segment)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+      dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
   }
 
   if (use_with_ut_neural_network) {
     // Fit UT segment and evaluate ghost probability
-    if (property<matching_with_ut_ghost_killer_version_t>() == 1) {
+    if (m_matching_with_ut_ghost_killer_version == 1) {
       global_function(track_matching_ghost_killing<Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller>)(
-        dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-        arguments, constants.dev_matching_with_ut_ghost_killer);
+        dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+        arguments,
+        m_z_magnet_parameters,
+        m_multiplication_factor_dX,
+        m_multiplication_factor_dY,
+        m_multiplication_factor_dty,
+        m_multiplication_factor_dtx,
+        m_ghost_killer_threshold,
+        constants.dev_matching_with_ut_ghost_killer);
     }
-    else if (property<matching_with_ut_ghost_killer_version_t>() == 2) {
+    else if (m_matching_with_ut_ghost_killer_version == 2) {
       global_function(track_matching_ghost_killing<Allen::NeuralNetwork::Model::MatchingWithUTV2GhostKiller>)(
-        dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-        arguments, constants.dev_matching_with_ut_v2_ghost_killer);
+        dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+        arguments,
+        m_z_magnet_parameters,
+        m_multiplication_factor_dX,
+        m_multiplication_factor_dY,
+        m_multiplication_factor_dty,
+        m_multiplication_factor_dtx,
+        m_ghost_killer_threshold,
+        constants.dev_matching_with_ut_v2_ghost_killer);
     }
     else {
       throw std::invalid_argument("matching_no_ut_ghost_killer_version can only be [1, 2].");
@@ -196,8 +235,8 @@ void track_matching::track_matching_t::operator()(
   }
 
   // Clone killing
-  global_function(track_matching_clone_killing)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(track_matching_clone_killing)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments);
 
   PrefixSum::prefix_sum<dev_offsets_matched_tracks_t, host_number_of_reconstructed_matched_tracks_t>(
     *this, arguments, context);
@@ -208,6 +247,13 @@ __global__ void track_matching::track_matching_veloSciFi(
   track_matching::Parameters parameters,
   const float* dev_magnet_polarity,
   const GhostKiller_t* dev_matching_ghost_killer,
+  const std::array<float, 16> momentum_parameters,
+  const std::array<float, 5> z_magnet_parameters,
+  const float multiplication_factor_dX,
+  const float multiplication_factor_dY,
+  const float multiplication_factor_dty,
+  const float multiplication_factor_dtx,
+  const float ghost_killer_threshold,
   [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_track_matching)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -242,7 +288,14 @@ __global__ void track_matching::track_matching_veloSciFi(
 
       const auto velo_track_index = ut_selected_velo_tracks[ivelo];
       const auto endvelo_state = velo_states.state(velo_track_index);
-      auto matchingInfo = getChi2Match(parameters, endvelo_state, scifi_state);
+      auto matchingInfo = getChi2Match(
+        endvelo_state,
+        scifi_state,
+        z_magnet_parameters,
+        multiplication_factor_dX,
+        multiplication_factor_dY,
+        multiplication_factor_dty,
+        multiplication_factor_dtx);
       if (matchingInfo.chi2 > TrackMatchingConsts::maxChi2) continue;
 
       const auto velo_eta = asinhf(1.f / hypotf(endvelo_state.tx(), endvelo_state.ty()));
@@ -274,7 +327,7 @@ __global__ void track_matching::track_matching_veloSciFi(
           ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
         }
 
-        if (ghost_killer_score > parameters.ghost_killer_threshold.get()) continue;
+        if (ghost_killer_score > ghost_killer_threshold) continue;
       }
 
       // Save the result
@@ -284,8 +337,8 @@ __global__ void track_matching::track_matching_veloSciFi(
       auto& matched_track = matched_tracks_event[idx];
 
       const auto magSign = -dev_magnet_polarity[0];
-      const auto qop = computeQoverP(
-        endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, parameters.momentum_parameters.get());
+      const auto qop =
+        computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, momentum_parameters);
 
       matched_track.velo_track_index = velo_track_index;
       matched_track.scifi_track_index = i;
@@ -318,6 +371,9 @@ __global__ void track_matching::track_matching_add_ut_hits(
   const float* dev_magnet_polarity,
   const unsigned* dev_unique_x_sector_layer_offsets,
   const float* dev_unique_sector_xs,
+  const std::array<float, 4 * 3> ut_x_loose_tolerance_parameters,
+  const std::array<float, 4 * 3> ut_x_tight_tolerance_parameters,
+  const float ut_y_tolerance_parameters,
   const UT::Constants::PerLayerInfo* dev_mean_layer_info,
   [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_track_matching)
 {
@@ -407,9 +463,9 @@ __global__ void track_matching::track_matching_add_ut_hits(
 
       // Get tolerances
       const auto xTol = trajectory.get_tolerance(
-        first_hit ? parameters.ut_x_loose_tolerance_parameters.get().data() + 4 * (layer) :
-                    parameters.ut_x_tight_tolerance_parameters.get().data() + 4 * (layer - 1));
-      const auto yTol = parameters.ut_y_tolerance_parameters.get();
+        first_hit ? ut_x_loose_tolerance_parameters.data() + 4 * (layer) :
+                    ut_x_tight_tolerance_parameters.data() + 4 * (layer - 1));
+      const auto yTol = ut_y_tolerance_parameters;
 
       // Get expected x and open the search window
       const auto expected_layer_y = trajectory.yAtZ(layer_z);
@@ -501,7 +557,9 @@ __global__ void track_matching::track_matching_add_ut_hits(
   }
 }
 
-__global__ void track_matching::track_matching_filter_bad_ut_segment(Parameters parameters)
+__global__ void track_matching::track_matching_filter_bad_ut_segment(
+  Parameters parameters,
+  const unsigned min_num_ut_hits)
 {
   // Basics
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -529,7 +587,7 @@ __global__ void track_matching::track_matching_filter_bad_ut_segment(Parameters 
     // Fetch candidate info
     auto& matched_track = matched_tracks_event[i];
 
-    killed[i] = (matched_track.number_of_hits_ut < parameters.min_num_ut_hits.get());
+    killed[i] = (matched_track.number_of_hits_ut < min_num_ut_hits);
   }
   __syncthreads();
 
@@ -616,6 +674,12 @@ __global__ void track_matching::track_matching_select_best_ut_segment(Parameters
 template<typename GhostKiller_t>
 __global__ void track_matching::track_matching_ghost_killing(
   track_matching::Parameters parameters,
+  const std::array<float, 5> z_magnet_parameters,
+  const float multiplication_factor_dX,
+  const float multiplication_factor_dY,
+  const float multiplication_factor_dty,
+  const float multiplication_factor_dtx,
+  const float ghost_killer_threshold,
   const GhostKiller_t* dev_matching_ghost_killer)
 {
   // Basics
@@ -659,7 +723,14 @@ __global__ void track_matching::track_matching_ghost_killing(
     // Prepare the NN inputs
     const auto vp_state = velo_states.state(matched_track.velo_track_index);
     const auto ft_state = scifi_states[matched_track.scifi_track_index];
-    const auto matchingInfo = getChi2Match(parameters, vp_state, ft_state);
+    const auto matchingInfo = getChi2Match(
+      vp_state,
+      ft_state,
+      z_magnet_parameters,
+      multiplication_factor_dX,
+      multiplication_factor_dY,
+      multiplication_factor_dty,
+      multiplication_factor_dtx);
     const auto velo_eta = asinhf(1.f / hypotf(vp_state.tx(), vp_state.ty()));
 
     // Evaluate NN based ghost killer
@@ -692,7 +763,7 @@ __global__ void track_matching::track_matching_ghost_killing(
         float(matched_track.number_of_hits_ut)};
       matched_track.score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
     }
-    killed[i] = (matched_track.score > parameters.ghost_killer_threshold);
+    killed[i] = (matched_track.score > ghost_killer_threshold);
   }
   __syncthreads();
 

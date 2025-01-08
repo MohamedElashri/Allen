@@ -31,8 +31,6 @@ namespace velo_calculate_number_of_candidates {
     HOST_OUTPUT(host_total_number_of_superpixels_t, unsigned) host_total_number_of_superpixels;
 
     DEVICE_OUTPUT(dev_velo_bank_index_t, unsigned) dev_velo_bank_index;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim_x_prop;
-    PROPERTY(count_candidates_t, "count_candidates", "required for masked clustering", bool) count_candidates_prop;
   };
 
   // Algorithm
@@ -46,7 +44,7 @@ namespace velo_calculate_number_of_candidates {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
-    Property<count_candidates_t> m_count_candidates {this, true};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension X"};
+    Allen::Property<bool> m_count_candidates {this, "count_candidates", true, "required for masked clustering"};
   };
 } // namespace velo_calculate_number_of_candidates

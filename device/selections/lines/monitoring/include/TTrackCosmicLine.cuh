@@ -20,21 +20,20 @@ namespace t_track_cosmic_line {
     DEVICE_INPUT(dev_seeding_tracks_t, SciFi::Seeding::Track) dev_seeding_tracks;
     DEVICE_INPUT(dev_seeding_offsets_t, unsigned) dev_seeding_offsets;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(max_chi2X_t, "max_chi2X", "Max value of chi2X", float) max_chi2X;
-    PROPERTY(max_chi2Y_t, "max_chi2Y", "Max value of chi2Y", float) max_chi2Y;
   };
 
   struct t_track_cosmic_line_t : public SelectionAlgorithm, Parameters, Line<t_track_cosmic_line_t, Parameters> {
-
-    __device__ static bool select(const Parameters& ps, std::tuple<const SciFi::Seeding::Track> input);
+    struct DeviceProperties {
+      float max_chi2X;
+      float max_chi2Y;
+      DeviceProperties(const t_track_cosmic_line_t& algo, const Allen::Context&) :
+        max_chi2X(algo.m_max_chi2X), max_chi2Y(algo.m_max_chi2Y)
+      {}
+    };
+    __device__ static bool
+    select(const Parameters&, const DeviceProperties&, std::tuple<const SciFi::Seeding::Track> input);
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {
@@ -55,11 +54,13 @@ namespace t_track_cosmic_line {
     }
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<max_chi2X_t> m_max_chi2X {this, 0.26f};  // 95 percentile of chi2X distribution
-    Property<max_chi2Y_t> m_max_chi2Y {this, 134.0f}; // 95 percentile of chi2Y distribution
+    Allen::Property<float> m_max_chi2X {this,
+                                        "max_chi2X",
+                                        0.26f,
+                                        "Max value of chi2X"}; // 95 percentile of chi2X distribution
+    Allen::Property<float> m_max_chi2Y {this,
+                                        "max_chi2Y",
+                                        134.0f,
+                                        "Max value of chi2Y"}; // 95 percentile of chi2Y distribution
   };
 } // namespace t_track_cosmic_line

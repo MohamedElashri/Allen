@@ -75,11 +75,10 @@ namespace VertexFit {
       DEPENDENCIES(dev_multi_event_composites_view_t),
       Allen::IMultiEventContainer*)
     dev_multi_event_composites_ptr;
-    PROPERTY(max_assoc_ipchi2_t, "max_assoc_ipchi2", "maximum IP chi2 to associate to PV", float) max_assoc_ipchi2;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void fit_secondary_vertices(Parameters, Allen::Monitoring::Histogram<>::DeviceType);
+  __global__ void
+  fit_secondary_vertices(Parameters, const float max_assoc_ipchi2, Allen::Monitoring::Histogram<>::DeviceType);
 
   struct vertex_fit_checks : public Allen::contract::Postcondition {
     void operator()(
@@ -99,8 +98,8 @@ namespace VertexFit {
       const Allen::Context& context) const;
 
   private:
-    Property<max_assoc_ipchi2_t> m_maxassocipchi2 {this, 16.0f};
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+    Allen::Property<float> m_maxassocipchi2 {this, "max_assoc_ipchi2", 16.0f, "maximum IP chi2 to associate to PV"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 1, 1}, "block dimensions"};
 
     Allen::Monitoring::Histogram<> m_histogram_nsvs {this,
                                                      "number_of_svs",

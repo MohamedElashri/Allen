@@ -38,7 +38,7 @@ void two_track_mva_evaluator::two_track_mva_evaluator_t::operator()(
   const Allen::Context& context) const
 {
 
-  global_function(two_track_mva_evaluator)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(two_track_mva_evaluator)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
     constants.dev_two_track_mva_layer_sizes,
     constants.dev_two_track_mva_n_layers,

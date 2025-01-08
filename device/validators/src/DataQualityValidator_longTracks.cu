@@ -76,11 +76,10 @@ void data_quality_validator_long::data_quality_validator_long_t::operator()(
   const Allen::Context& context) const
 {
   // Copy the IP params over
-  global_function(copyLongTrackIP)(first<host_number_of_events_t>(arguments), property<block_dim_t>(), context)(
-    arguments);
+  global_function(copyLongTrackIP)(first<host_number_of_events_t>(arguments), m_block_dim, context)(arguments);
 
   // Write them out
-  if (property<enable_tupling_t>()) output_monitor(arguments, runtime_options, context);
+  if (m_enable_tupling.value()) output_monitor(arguments, runtime_options, context);
 }
 
 void data_quality_validator_long::data_quality_validator_long_t::output_monitor(

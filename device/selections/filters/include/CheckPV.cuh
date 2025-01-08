@@ -24,13 +24,9 @@ namespace check_pvs {
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
-
-    PROPERTY(minZ_t, "minZ", "min z coordinate to accept a reconstructed primary vertex", float) minZ;
-    PROPERTY(maxZ_t, "maxZ", "max z coordinate to accept a reconstructed primary vertex", float) maxZ;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void check_pvs(Parameters);
+  __global__ void check_pvs(Parameters, const float, const float);
   struct check_pvs_t : public DeviceAlgorithm, Parameters {
 
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -42,9 +38,9 @@ namespace check_pvs {
       const Allen::Context&) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
-    Property<minZ_t> m_minZ {this, -99999.};
-    Property<maxZ_t> m_maxZ {this, 99999.};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
+    Allen::Property<float> m_minZ {this, "minZ", -99999., "min z coordinate to accept a reconstructed primary vertex"};
+    Allen::Property<float> m_maxZ {this, "maxZ", 99999., "max z coordinate to accept a reconstructed primary vertex"};
   }; // check_pvs_t
 
 } // namespace check_pvs

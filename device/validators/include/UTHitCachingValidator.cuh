@@ -39,8 +39,6 @@ namespace ut_hit_caching_test {
     // Hits
     DEVICE_OUTPUT(dev_original_ut_hits_t, MiniUTHit) dev_original_ut_hits;
     DEVICE_OUTPUT(dev_cached_ut_hits_t, MiniUTHit) dev_cached_ut_hits;
-
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   using UTHitCache = UT::SmartHitsCache<2000>;
@@ -60,7 +58,7 @@ namespace ut_hit_caching_test {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 1, 1}, "block dimensions"};
   };
 
 } // namespace ut_hit_caching_test

@@ -102,22 +102,6 @@ Line data that will be passed to an upcoming algorithm (usually `gather_selectio
 
   HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
 
-Pre-scaling factor::
-
-  PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float), pre_scaler;
-
-Post-scaling factor::
-
-  PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float), post_scaler;
-
-Pre-scaler hash string. (Must not be empty)::
-
-  PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string) pre_scaler_hash_string;
-
-Post-scaler hash string. (Must not be empty)::
-
-  PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string), post_scaler_hash_string;
-
 
 In order to define a selection algorithm, one must define a struct as follows:
 
@@ -194,22 +178,14 @@ header.
 
   namespace example_one_track_line {
     struct Parameters {
-      // Commonly required inputs, outputs and properties
+      // Commonly required inputs, outputs
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
       HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
-      PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-      PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-      PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
-       pre_scaler_hash_string;
-      PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string)
-       post_scaler_hash_string;
-      // Line-specific inputs and properties
+      // Line-specific inputs
       HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
       DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventBasicParticles) dev_particle_container_t;
       HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
-      PROPERTY(minPt_t, "minPt", "minPt description", float) minPt;
-      PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
     };
 
     // SelectionAlgorithm definition
@@ -218,14 +194,9 @@ header.
       __device__ static bool select(const Parameters& parameters, std::tuple<const Allen::Views::Physics::BasicParticle> input);
 
     private:
-      // Commonly required properties
-      Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-      Property<post_scaler_t> m_post_scaler {this, 1.f};
-      Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-      Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
       // Line-specific properties
-      Property<minPt_t> m_minPt {this, 10000.0f * Gaudi::Units::MeV};
-      Property<minIPChi2_t> m_minIPChi2 {this, 25.0f};
+      Property<float> m_minPt {this, "minPt", 10000.0f * Gaudi::Units::MeV, "minPt description"};
+      Property<float> m_minIPChi2 {this, "minIPChi2", 25.0f, "minIPChi2 description"};
     };
   } // namespace example_one_track_line
 
@@ -268,19 +239,10 @@ secondary vertices with no postscale. This line inherits from `CompositeParticle
       HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
       MASK_INPUT(dev_event_list_t);
       HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
-      PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-      PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-      PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
-       pre_scaler_hash_string;
-      PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string)
-       post_scaler_hash_string;
       // Line-specific inputs and properties
       HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
       DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
       HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char) host_fn_parameters;
-      PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float) minComboPt;
-      PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float) minTrackPt;
-      PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "minTrackIPChi2 description", float) minTrackIPChi2;
     };
 
     // SelectionAlgorithm definition
@@ -289,15 +251,10 @@ secondary vertices with no postscale. This line inherits from `CompositeParticle
       __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     private:
-      // Commonly required properties
-      Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-      Property<post_scaler_t> m_post_scaler {this, 1.f};
-      Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-      Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
       // Line-specific properties
-      Property<minComboPt_t> m_minComboPt {this, 2000.0f * Gaudi::Units::MeV};
-      Property<minTrackPt_t> m_minTrackPt {this, 500.0f * Gaudi::Units::MeV};
-      Property<minTrackIPChi2_t> m_minTrackIPChi2 {this, 25.0f};
+      Property<float> m_minComboPt {this, "minComboPt", 2000.0f * Gaudi::Units::MeV, "minComboPt description"};
+      Property<float> m_minTrackPt {this, "minTrackPt", 500.0f * Gaudi::Units::MeV, "minTrackPt description"};
+      Property<float> m_minTrackIPChi2 {this, "minTrackIPChi2", 25.0f, "minTrackIPChi2 description"};
     };
 
   } // namespace example_two_track_line
@@ -349,17 +306,11 @@ The header `monitoring/include/VeloMicroBiasLine.cuh <https://gitlab.cern.ch/lhc
       MASK_INPUT(dev_event_list_t);
       HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
       HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-      PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-      PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-      PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
-       pre_scaler_hash_string;
-      PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string)
        post_scaler_hash_string;
       // Line-specific inputs and properties
       DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
       DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned) dev_offsets_velo_tracks;
       DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_offsets_velo_track_hit_number;
-      PROPERTY(min_velo_tracks_t, "min_velo_tracks", "Minimum number of VELO tracks", unsigned) min_velo_tracks;
     };
 
     struct velo_micro_bias_line_t : public SelectionAlgorithm, Parameters, EventLine<velo_micro_bias_line_t, Parameters> {
@@ -369,13 +320,8 @@ The header `monitoring/include/VeloMicroBiasLine.cuh <https://gitlab.cern.ch/lhc
       __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input);
 
     private:
-      // Commonly required properties
-      Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-      Property<post_scaler_t> m_post_scaler {this, 1.f};
-      Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-      Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
       // Line-specific properties
-      Property<min_velo_tracks_t> m_min_velo_tracks {this, 1};
+      Property<unsigned> m_min_velo_tracks {this, "min_velo_tracks", 1, "Minimum number of VELO tracks"};
     };
   } // namespace velo_micro_bias_line
 
@@ -431,19 +377,11 @@ The header `ExampleOneVeloTrackLine.cuh` is as follows:
       MASK_INPUT(dev_event_list_t);
       HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
       HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-      PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-      PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-      PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string)
-       pre_scaler_hash_string;
-      PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string)
-       post_scaler_hash_string;
       // Line-specific inputs and properties
       DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
       DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
       DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
-      PROPERTY(minNHits_t, "minNHits", "min number of hits of velo track", unsigned) minNHits;
     };
-
 
     // SelectionAlgorithm definition
     struct example_one_velo_track_line_t : public SelectionAlgorithm, Parameters, Line<example_one_velo_track_line_t, Parameters> {
@@ -460,15 +398,9 @@ The header `ExampleOneVeloTrackLine.cuh` is as follows:
         // Selection function
         __device__ static bool select(const Parameters& parameters, std::tuple<const unsigned> input);
 
-
     private:
-      // Commonly required properties
-      Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-      Property<post_scaler_t> m_post_scaler {this, 1.f};
-      Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-      Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
       // Line-specific properties
-      Property<minNHits_t> m_minNHits {this, 0};
+      Property<unsigned> m_minNHits {this, "minNHits", 0, "min number of hits of velo track"};
     };
   } // namespace example_one_velo_track_line
 
@@ -780,11 +712,7 @@ Lines can be monitored simply by adding a monitor function which fills outputs w
 
 In addition, your selection algorithm should contain an additional property::
 
-  PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-
-The property should be defaulted to false::
-
-  Property<enable_monitoring_t> m_enable_monitoring {this, false};
+  Property<bool> m_enable_monitoring {this, "enable_monitoring", false, "Enable line monitoring"};
 
 In this example we want to monitor the `Mass` and `pT` of the Secondary Vertices selected by a line meant for the decay Ks-> pi+ pi- .
 
@@ -798,8 +726,6 @@ First we need to add the additional `Parameters` that will carry our arrays to o
 
      DEVICE_OUTPUT(sv_masses_t, float) sv_masses;
      DEVICE_OUTPUT(pt_t, float) pt;
-
-     PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
     };
   };
 

@@ -40,7 +40,7 @@
 
 template<typename Derived, typename Parameters>
 using type_erased_tuple_t =
-  std::tuple<Parameters, ArgumentReferences<Parameters>, const Derived*, typename Derived::DeviceAccumulators>;
+  std::tuple<Parameters, ArgumentReferences<Parameters>, const Derived*, typename Derived::DeviceProperties>;
 
 struct LineData {
   float pre_scaler {0};
@@ -53,6 +53,9 @@ struct LineData {
 
   const mask_t* event_list {nullptr};
   unsigned event_list_size {0};
+
+  bool enable_monitoring {false};
+  bool enable_tupling {false};
 
   Allen::IMultiEventContainer* particle_container_ptr {nullptr};
 };
@@ -121,9 +124,9 @@ public:
   {
     auto derived_instance = static_cast<const Derived*>(this);
     const std::string pre_scaler_hash_string =
-      derived_instance->template property<typename Parameters::pre_scaler_hash_string_t>();
+      derived_instance->template get_property<std::string>("pre_scaler_hash_string");
     const std::string post_scaler_hash_string =
-      derived_instance->template property<typename Parameters::post_scaler_hash_string_t>();
+      derived_instance->template get_property<std::string>("post_scaler_hash_string");
 
     if (pre_scaler_hash_string.empty() || post_scaler_hash_string.empty()) {
       throw HashNotPopulatedException(derived_instance->name());
@@ -166,8 +169,8 @@ public:
     }
   }
 
-  struct DeviceAccumulators {
-    DeviceAccumulators(const Derived&, const Allen::Context&) {}
+  struct DeviceProperties {
+    DeviceProperties(const Derived&, const Allen::Context&) {}
   };
 
   template<typename T, typename U>
@@ -245,11 +248,11 @@ public:
 template<typename Derived, typename Parameters>
 void line_output_monitor(char* input, const RuntimeOptions& runtime_options, const Allen::Context& context)
 {
-  if constexpr (Allen::has_enable_tupling<Parameters>::value) {
+  if constexpr (Allen::has_monitoring_types<Derived>::value) {
     if (input != nullptr) {
       const auto& type_casted_input = *reinterpret_cast<type_erased_tuple_t<Derived, Parameters>*>(input);
       auto derived_instance = std::get<2>(type_casted_input);
-      if (derived_instance->template property<typename Parameters::enable_tupling_t>()) {
+      if (derived_instance->template get_property<bool>("enable_tupling")) {
         derived_instance->output_tuples(std::get<1>(type_casted_input), runtime_options, context);
       }
     }
@@ -295,10 +298,10 @@ __device__ void process_line(
       const auto input = Derived::get_input(parameters, event_number, i);
       bool decision;
       if constexpr (!std::is_same_v<
-                      typename Line<Derived, Parameters>::DeviceAccumulators,
-                      typename Derived::DeviceAccumulators>) {
-        const auto accumulators = std::get<3>(type_casted_input);
-        decision = Derived::select(parameters, accumulators, input);
+                      typename Line<Derived, Parameters>::DeviceProperties,
+                      typename Derived::DeviceProperties>) {
+        const auto properties = std::get<3>(type_casted_input);
+        decision = Derived::select(parameters, properties, input);
       }
       else {
         decision = Derived::select(parameters, input);
@@ -308,15 +311,14 @@ __device__ void process_line(
       unsigned index = (line_offset + Derived::offset(parameters, event_number)) / 32 + span_index + i / 32;
       if (decision) atomicOr(&decisions[index], 1 << (i % 32));
 
-      if constexpr (Allen::has_enable_monitoring<Parameters>::value) {
-        if (parameters.enable_monitoring) {
-          unsigned index = Derived::offset(parameters, event_number) + i;
-          const auto accumulators = std::get<3>(type_casted_input);
-          Derived::monitor(parameters, accumulators, input, index, decision);
-        }
+      if (dev_line_data->enable_monitoring) {
+        unsigned index = Derived::offset(parameters, event_number) + i;
+        const auto properties = std::get<3>(type_casted_input);
+        Derived::monitor(parameters, properties, input, index, decision);
       }
-      if constexpr (Allen::has_enable_tupling<Parameters>::value) {
-        if (parameters.enable_tupling) {
+
+      if constexpr (Allen::has_monitoring_types<Derived>::value) {
+        if (dev_line_data->enable_tupling) {
           LHCb::ODIN odin {dev_odin_data[event_number]};
           unsigned index = Derived::offset(parameters, event_number) + i;
           if constexpr (Allen::monitoring_has_evtNo<Parameters>::value) {
@@ -325,7 +327,15 @@ __device__ void process_line(
           if constexpr (Allen::monitoring_has_runNo<Parameters>::value) {
             parameters.runNo[index] = odin.runNumber();
           }
-          Derived::fill_tuples(parameters, input, index, decision);
+          if constexpr (!std::is_same_v<
+                          typename Line<Derived, Parameters>::DeviceProperties,
+                          typename Derived::DeviceProperties>) {
+            const auto properties = std::get<3>(type_casted_input);
+            Derived::fill_tuples(parameters, properties, input, index, decision);
+          }
+          else {
+            Derived::fill_tuples(parameters, input, index, decision);
+          }
         }
       }
     }
@@ -343,13 +353,16 @@ void Line<Derived, Parameters>::operator()(
 
   // Copy infos needed by GatherSelections to an output:
   auto& line_data = Allen::ArgumentOperations::data<typename Parameters::host_line_data_t>(arguments)[0];
-  line_data.pre_scaler = derived_instance->template property<typename Parameters::pre_scaler_t>();
+  line_data.pre_scaler = derived_instance->template get_property<float>("pre_scaler");
   line_data.pre_scaler_hash = m_pre_scaler_hash;
-  line_data.post_scaler = derived_instance->template property<typename Parameters::post_scaler_t>();
+  line_data.post_scaler = derived_instance->template get_property<float>("post_scaler");
   line_data.post_scaler_hash = m_post_scaler_hash;
   line_data.decisions_size = Derived::get_decisions_size(arguments);
   line_data.event_list = Allen::ArgumentOperations::data<typename Parameters::dev_event_list_t>(arguments);
   line_data.event_list_size = Allen::ArgumentOperations::size<typename Parameters::dev_event_list_t>(arguments);
+  line_data.enable_monitoring = derived_instance->template get_property<bool>("enable_monitoring");
+  line_data.enable_tupling = derived_instance->template get_property<bool>("enable_tupling");
+
   if constexpr (Allen::has_dev_particle_container<
                   Derived,
                   Allen::Store::device_datatype,
@@ -367,7 +380,7 @@ void Line<Derived, Parameters>::operator()(
     derived_instance->make_parameters(1, 1, 0, arguments),
     arguments,
     derived_instance,
-    typename Derived::DeviceAccumulators(*derived_instance, context));
+    typename Derived::DeviceProperties(*derived_instance, context));
 
   assert(sizeof(type_erased_tuple_t<Derived, Parameters>) == sizeof(parameters));
   std::memcpy(
@@ -375,8 +388,8 @@ void Line<Derived, Parameters>::operator()(
     &parameters,
     sizeof(parameters));
 
-  if constexpr (Allen::has_enable_tupling<Parameters>::value) {
-    if (derived_instance->template property<typename Parameters::enable_tupling_t>()) {
+  if constexpr (Allen::has_monitoring_types<Derived>::value) {
+    if (derived_instance->template get_property<bool>("enable_tupling")) {
       derived_instance->init_tuples(arguments, context);
     }
   }

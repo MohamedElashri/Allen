@@ -35,13 +35,14 @@ namespace FilterMFTracks {
     DEVICE_OUTPUT(dev_mf_sv_atomics_t, unsigned) dev_mf_sv_atomics;
     DEVICE_OUTPUT(dev_svs_kf_idx_t, unsigned) dev_svs_kf_idx;
     DEVICE_OUTPUT(dev_svs_mf_idx_t, unsigned) dev_svs_mf_idx;
-    PROPERTY(kf_track_min_pt_t, "kf_track_min_pt", "minimum track pT", float) kf_track_min_pt;
-    PROPERTY(kf_track_min_ipchi2_t, "kf_track_min_ipchi2", "minimum track IP chi2", float) kf_track_min_ipchi2;
-    PROPERTY(mf_track_min_pt_t, "mf_track_min_pt", "minimum velo-UT-muon track pt", float) mf_track_min_pt;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void filter_mf_tracks(Parameters, const unsigned number_of_events);
+  __global__ void filter_mf_tracks(
+    Parameters,
+    const unsigned number_of_events,
+    const float kf_track_min_pt,
+    const float kf_track_min_ipchi2,
+    const float mf_track_min_pt);
 
   struct filter_mf_tracks_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -53,10 +54,10 @@ namespace FilterMFTracks {
       const Allen::Context& context) const;
 
   private:
-    Property<kf_track_min_pt_t> m_kfminpt {this, 800.f};
-    Property<kf_track_min_ipchi2_t> m_kfminipchi2 {this, 16.f};
-    Property<mf_track_min_pt_t> m_mfminpt {this, 200.f};
-    Property<block_dim_t> m_block_dim {this, {{16, 16, 1}}};
+    Allen::Property<float> m_kfminpt {this, "kf_track_min_pt", 800.f, "minimum track pT"};
+    Allen::Property<float> m_kfminipchi2 {this, "kf_track_min_ipchi2", 16.f, "minimum track IP chi2"};
+    Allen::Property<float> m_mfminpt {this, "mf_track_min_pt", 200.f, "minimum velo-UT-muon track pt"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {16, 16, 1}, "block dimensions"};
   };
 
 } // namespace FilterMFTracks

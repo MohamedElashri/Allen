@@ -84,7 +84,7 @@ void velo_kalman_filter::velo_kalman_filter_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  global_function(velo_kalman_filter)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(velo_kalman_filter)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
     constants.dev_beamline.data(),
     m_histogram_velo_total_track_eta.data(context),

@@ -128,6 +128,7 @@ namespace Allen {
       void (*init)(void*) = nullptr;
       void (*set_properties)(void*, const std::map<std::string, nlohmann::json>&) = nullptr;
       std::map<std::string, nlohmann::json> (*get_properties)(void const*) = nullptr;
+      std::map<std::string, nlohmann::json> (*get_properties_infos)(void const*) = nullptr;
       std::string (*scope)() = nullptr;
       void (*dtor)(void*) = nullptr;
       void (*run_preconditions)(
@@ -206,6 +207,7 @@ namespace Allen {
           static_cast<ALGORITHM*>(p)->set_properties(algo_config);
         },
         [](void const* p) { return static_cast<ALGORITHM const*>(p)->get_properties(); },
+        [](void const* p) { return static_cast<ALGORITHM const*>(p)->get_properties_infos(); },
         []() -> std::string { return ALGORITHM::algorithm_scope; },
         [](void* p) { delete static_cast<ALGORITHM*>(p); },
         [](
@@ -297,6 +299,10 @@ namespace Allen {
       (table.set_properties)(instance, algo_config);
     }
     std::map<std::string, nlohmann::json> get_properties() const { return (table.get_properties)(instance); }
+    std::map<std::string, nlohmann::json> get_properties_infos() const
+    {
+      return (table.get_properties_infos)(instance);
+    }
     std::string scope() const { return (table.scope)(); }
     void run_preconditions(
       std::any& arg_ref_manager,
@@ -348,9 +354,6 @@ namespace Allen {
     // Define empty contract container by default
     using contracts = std::tuple<>;
 
-    template<typename T>
-    using Property = Allen::Property<T>;
-
     Algorithm() = default;
     Algorithm(const Algorithm&) = delete;
     Algorithm& operator=(const Algorithm&) = delete;
@@ -380,25 +383,25 @@ namespace Allen {
       }
     }
 
-    template<typename T, typename R>
-    void set_property_value(const R& value)
+    template<typename T>
+    void set_property_value(const std::string& name, const T& value)
     {
-      auto prop = const_cast<Allen::Property<T>*>(dynamic_cast<Allen::Property<T> const*>(get_prop(T::name)));
+      auto prop = const_cast<Allen::Property<T>*>(dynamic_cast<Allen::Property<T> const*>(get_prop(name)));
       prop->set_value(value);
     }
 
     // Gets the value of property with type T
     template<typename T>
-    T property() const
+    const T& get_property(const std::string& name) const
     {
-      const auto base_prop = get_prop(T::name);
-      const auto prop = dynamic_cast<const Property<T>*>(base_prop);
+      const auto base_prop = get_prop(name);
+      const auto prop = reinterpret_cast<const Property<T>*>(base_prop);
       if (!prop) {
         const std::string error_message =
-          "property " + std::string(T::name) + " not defined, perhaps member definition is missing";
+          "property " + std::string(name) + " not defined, perhaps member definition is missing";
         throw std::runtime_error {error_message};
       }
-      return prop->get_value();
+      return prop->value();
     }
 
     std::map<std::string, nlohmann::json> get_properties() const override
@@ -406,6 +409,18 @@ namespace Allen {
       std::map<std::string, nlohmann::json> properties;
       for (const auto& kv : m_properties) {
         properties.emplace(kv.first, kv.second->to_json());
+      }
+      return properties;
+    }
+
+    std::map<std::string, nlohmann::json> get_properties_infos() const override
+    {
+      std::map<std::string, nlohmann::json> properties;
+      for (const auto& kv : m_properties) {
+        properties.emplace(
+          kv.first,
+          std::tuple<nlohmann::json, std::string, std::string> {
+            kv.second->to_json(), kv.second->data_type(), kv.second->description()});
       }
       return properties;
     }
@@ -428,13 +443,13 @@ namespace Allen {
     template<typename Fn>
     auto host_function(const Fn& fn) const
     {
-      return HostFunction<Fn> {m_properties, fn};
+      return HostFunction<Fn> {fn};
     }
 
     template<typename Fn>
     auto global_function(const Fn& fn) const
     {
-      return GlobalFunction<Fn> {m_properties, fn};
+      return GlobalFunction<Fn> {fn};
     }
 
     template<typename... S>
@@ -444,13 +459,10 @@ namespace Allen {
       const unsigned dynamic_shared_memory_size,
       S&&... arguments) const
     {
-      return Allen::Gear::Function::make_parameters(
-        m_properties, grid_dim, block_dim, dynamic_shared_memory_size, arguments...);
+      return Allen::Gear::Function::make_parameters(grid_dim, block_dim, dynamic_shared_memory_size, arguments...);
     }
 
-    PROPERTY(verbosity_t, "verbosity", "verbosity of algorithm", int);
-
-  protected:
+  private:
     BaseProperty const* get_prop(const std::string& prop_name) const override
     {
       if (m_properties.find(prop_name) != m_properties.end()) {
@@ -459,10 +471,11 @@ namespace Allen {
       return nullptr;
     }
 
-  private:
     std::map<std::string, BaseProperty*> m_properties;
     std::string m_name = "";
-    Property<verbosity_t> m_verbosity = {this, 3};
+
+  protected:
+    Allen::Property<int> m_verbosity = {this, "verbosity", 3, "verbosity of algorithm"};
 
 #ifndef ALLEN_STANDALONE
   public:

@@ -26,7 +26,6 @@ namespace ut_select_velo_tracks {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_ut_number_of_selected_velo_tracks_t, unsigned) dev_ut_number_of_selected_velo_tracks;
     DEVICE_OUTPUT(dev_ut_selected_velo_tracks_t, unsigned) dev_ut_selected_velo_tracks;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __device__ bool velo_track_in_UTA_acceptance(const MiniState& state);
@@ -43,6 +42,6 @@ namespace ut_select_velo_tracks {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 } // namespace ut_select_velo_tracks

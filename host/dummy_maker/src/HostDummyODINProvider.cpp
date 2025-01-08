@@ -41,7 +41,7 @@ void host_dummy_odin_provider::host_dummy_odin_provider_t::operator()(
     const uint32_t gps_hi = static_cast<uint32_t>(odin_dummy.gpsTime() >> 32);
     const uint32_t gps_lo = static_cast<uint32_t>(odin_dummy.gpsTime() & 0xffffffff);
 
-    if (deterministic_scaler(name_hash, m_lumi_frac.get_value().get()[bx_type], run_no, evt_hi, evt_lo, gps_hi, gps_lo))
+    if (deterministic_scaler(name_hash, m_lumi_frac.value()[bx_type], run_no, evt_hi, evt_lo, gps_hi, gps_lo))
       event_type = static_cast<unsigned>(LHCb::ODIN::EventTypes::Lumi);
 
     odin_dummy.setEventType(event_type);

@@ -12,6 +12,7 @@
 
 #include <map>
 #include <string>
+#include <sstream>
 #include "nlohmann/json.hpp"
 
 namespace Allen {
@@ -28,9 +29,30 @@ namespace Allen {
 
     virtual std::string to_string() const = 0;
 
-    virtual std::string print() const = 0;
-
     virtual ~BaseProperty() {}
+
+    BaseProperty(const std::string& name, const std::string& description, const std::string& data_type) :
+      m_name(name), m_description(description), m_data_type(data_type)
+    {}
+
+    const std::string& name() const { return m_name; }
+
+    const std::string& description() const { return m_description; }
+
+    const std::string& data_type() const { return m_data_type; }
+
+    std::string print() const
+    {
+      // very basic implementation based on streaming
+      std::stringstream s;
+      s << m_name << " " << to_string() << " " << m_description;
+      return s.str();
+    }
+
+  protected:
+    std::string m_name;
+    std::string m_description;
+    std::string m_data_type;
   };
 
   /**
@@ -41,6 +63,8 @@ namespace Allen {
     virtual void set_properties(const std::map<std::string, nlohmann::json>& algo_config) = 0;
 
     virtual std::map<std::string, nlohmann::json> get_properties() const = 0;
+
+    virtual std::map<std::string, nlohmann::json> get_properties_infos() const = 0;
 
     virtual bool register_property(const std::string& name, BaseProperty* property) = 0;
 

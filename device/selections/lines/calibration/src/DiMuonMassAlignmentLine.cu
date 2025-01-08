@@ -31,19 +31,20 @@ di_muon_mass_alignment_line::di_muon_mass_alignment_line_t::get_input(
 }
 
 __device__ bool di_muon_mass_alignment_line::di_muon_mass_alignment_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto vertex = std::get<0>(input);
   const auto maxchi2muon = std::get<1>(input);
-  if (vertex.charge() != parameters.DiMuonCharge) return false;
+  if (vertex.charge() != properties.diMuonCharge) return false;
 
-  return maxchi2muon < parameters.maxChi2Muon && vertex.is_dimuon() && vertex.minip() >= parameters.minIP &&
-         vertex.doca12() <= parameters.maxDoca && vertex.mdimu() >= parameters.minMass &&
-         vertex.mdimu() <= parameters.maxMass && vertex.minpt() >= parameters.minHighMassTrackPt &&
-         vertex.vertex().pt() > parameters.minComboPt && vertex.dira() > parameters.minDira &&
-         vertex.minp() >= parameters.minHighMassTrackP && vertex.vertex().chi2() > 0 &&
-         vertex.fdchi2() > parameters.minFdChi2 && vertex.eta() > parameters.minEta &&
-         vertex.eta() < parameters.maxEta && vertex.vertex().chi2() < parameters.maxVertexChi2 &&
-         vertex.vertex().z() >= parameters.minZ && vertex.has_pv() && vertex.pv().position.z >= parameters.minZ;
+  return maxchi2muon < properties.maxChi2Muon && vertex.is_dimuon() && vertex.minip() >= properties.minIP &&
+         vertex.doca12() <= properties.maxDoca && vertex.mdimu() >= properties.minMass &&
+         vertex.mdimu() <= properties.maxMass && vertex.minpt() >= properties.minHighMassTrackPt &&
+         vertex.vertex().pt() > properties.minComboPt && vertex.dira() > properties.minDira &&
+         vertex.minp() >= properties.minHighMassTrackP && vertex.vertex().chi2() > 0 &&
+         vertex.fdchi2() > properties.minFdChi2 && vertex.eta() > properties.minEta &&
+         vertex.eta() < properties.maxEta && vertex.vertex().chi2() < properties.maxVertexChi2 &&
+         vertex.vertex().z() >= properties.minZ && vertex.has_pv() && vertex.pv().position.z >= properties.minZ;
 }

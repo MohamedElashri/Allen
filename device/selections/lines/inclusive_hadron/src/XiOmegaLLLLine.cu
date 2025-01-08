@@ -13,8 +13,8 @@
 INSTANTIATE_LINE(xi_omega_lll_line::xi_omega_lll_line_t, xi_omega_lll_line::Parameters)
 
 __device__ bool xi_omega_lll_line::xi_omega_lll_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto XimOmmt = std::get<0>(input);
@@ -36,23 +36,24 @@ __device__ bool xi_omega_lll_line::xi_omega_lll_line_t::select(
   const bool charge_requirement =
     c0_is_proton ? (XimOmm_track_state.charge() == c1_state.charge() && companion_state.charge() == c0_state.charge()) :
                    (XimOmm_track_state.charge() == c0_state.charge() && companion_state.charge() == c1_state.charge());
-  return parameters.L_M_min < mL && mL < parameters.L_M_max && charge_requirement &&
-         L_vx.chi2() < parameters.L_VCHI2_max && Lambda->doca12() < parameters.L_DOCA_max &&
-         ((parameters.Xi_M_min < XimOmm->m12(Allen::mL, Allen::mPi) &&
-           XimOmm->m12(Allen::mL, Allen::mPi) < parameters.Xi_M_max &&
-           XimOmmt.m12(Allen::mXi, Allen::mMu) < parameters.XimOmmt_M_max) ||
-          (parameters.Omega_M_min < XimOmm->m12(Allen::mL, Allen::mK) &&
-           XimOmm->m12(Allen::mL, Allen::mK) < parameters.Omega_M_max &&
-           XimOmmt.m12(Allen::mOmega, Allen::mMu) < parameters.XimOmmt_M_max)) &&
-         companion_state.pt() > parameters.t_PT_min && companion->ip_chi2() > parameters.t_MIPCHI2_min &&
-         L_vx.z() - XimOmm_vx.z() > parameters.LVDZ_min && XimOmm_vx.z() - vertex.z() > parameters.XimOmmVDZ_min &&
-         parameters.VZ_min < vertex.z() && vertex.z() < parameters.VZ_max &&
-         XimOmmt.pv().position.z > parameters.BPVZ_min && XimOmm->dz() > parameters.BPVVDZ_min &&
-         XimOmm->drho() > parameters.BPVVDRHO_min;
+  return properties.L_M_min < mL && mL < properties.L_M_max && charge_requirement &&
+         L_vx.chi2() < properties.L_VCHI2_max && Lambda->doca12() < properties.L_DOCA_max &&
+         ((properties.Xi_M_min < XimOmm->m12(Allen::mL, Allen::mPi) &&
+           XimOmm->m12(Allen::mL, Allen::mPi) < properties.Xi_M_max &&
+           XimOmmt.m12(Allen::mXi, Allen::mMu) < properties.XimOmmt_M_max) ||
+          (properties.Omega_M_min < XimOmm->m12(Allen::mL, Allen::mK) &&
+           XimOmm->m12(Allen::mL, Allen::mK) < properties.Omega_M_max &&
+           XimOmmt.m12(Allen::mOmega, Allen::mMu) < properties.XimOmmt_M_max)) &&
+         companion_state.pt() > properties.t_PT_min && companion->ip_chi2() > properties.t_MIPCHI2_min &&
+         L_vx.z() - XimOmm_vx.z() > properties.LVDZ_min && XimOmm_vx.z() - vertex.z() > properties.XimOmmVDZ_min &&
+         properties.VZ_min < vertex.z() && vertex.z() < properties.VZ_max &&
+         XimOmmt.pv().position.z > properties.BPVZ_min && XimOmm->dz() > properties.BPVVDZ_min &&
+         XimOmm->drho() > properties.BPVVDRHO_min;
 }
 
 __device__ void xi_omega_lll_line::xi_omega_lll_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,
   bool sel)
@@ -134,7 +135,7 @@ __device__ void xi_omega_lll_line::xi_omega_lll_line_t::fill_tuples(
 
 __device__ void xi_omega_lll_line::xi_omega_lll_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned,
   bool sel)
@@ -151,8 +152,8 @@ __device__ void xi_omega_lll_line::xi_omega_lll_line_t::monitor(
     const auto mL =
       c0->state().p() > c1->state().p() ? Lambda->m12(Allen::mP, Allen::mPi) : Lambda->m12(Allen::mPi, Allen::mP);
 
-    accumulators.histogram_Lambda_mass.increment(mL);
-    accumulators.histogram_Xi_mass.increment(mLpi);
-    accumulators.histogram_Omega_mass.increment(mLK);
+    properties.histogram_Lambda_mass.increment(mL);
+    properties.histogram_Xi_mass.increment(mLpi);
+    properties.histogram_Omega_mass.increment(mLK);
   }
 }

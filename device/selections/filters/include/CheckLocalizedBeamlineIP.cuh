@@ -24,23 +24,9 @@ namespace check_localized_beamline_ip {
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
-
-    PROPERTY(min_state_z_t, "min_state_z", "min z coordinate of region in which to count velo tracks", float)
-    min_state_z;
-    PROPERTY(max_state_z_t, "max_state_z", "max z coordinate of region in which to count velo tracks", float)
-    max_state_z;
-    PROPERTY(
-      max_state_rho_sq_t,
-      "max_state_rho_sq",
-      "max square of cylindrical radius of beamline state in which to count velo tracks",
-      float)
-    max_state_rho_sq;
-    PROPERTY(min_local_nTracks_t, "min_local_nTracks", "min number of tracks in the designated region", float)
-    min_local_nTracks;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void check_localized_beamline_ip(Parameters);
+  __global__ void check_localized_beamline_ip(Parameters, const float, const float, const float, const float);
   struct check_localized_beamline_ip_t : public DeviceAlgorithm, Parameters {
 
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -52,11 +38,24 @@ namespace check_localized_beamline_ip {
       const Allen::Context&) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
-    Property<min_state_z_t> m_min_state_z {this, -99999.};
-    Property<max_state_z_t> m_max_state_z {this, 99999.};
-    Property<max_state_rho_sq_t> m_max_state_rho_sq {this, 99999.};
-    Property<min_local_nTracks_t> m_min_local_nTracks {this, 10.};
-  }; // check_localized_beamline_ip_t
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
+    Allen::Property<float> m_min_state_z {this,
+                                          "min_state_z",
+                                          -99999.,
+                                          "min z coordinate of region in which to count velo tracks"};
+    Allen::Property<float> m_max_state_z {this,
+                                          "max_state_z",
+                                          99999.,
+                                          "max z coordinate of region in which to count velo tracks"};
+    Allen::Property<float> m_max_state_rho_sq {
+      this,
+      "max_state_rho_sq",
+      99999.,
+      "max square of cylindrical radius of beamline state in which to count velo tracks"};
+    Allen::Property<float> m_min_local_nTracks {this,
+                                                "min_local_nTracks",
+                                                10.,
+                                                "min number of tracks in the designated region"};
+  };
 
 } // namespace check_localized_beamline_ip

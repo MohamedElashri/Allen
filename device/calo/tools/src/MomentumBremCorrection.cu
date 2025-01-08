@@ -30,8 +30,7 @@ void momentum_brem_correction::momentum_brem_correction_t::operator()(
   Allen::memset_async<dev_brem_corrected_p_t>(arguments, 0, context);
   Allen::memset_async<dev_brem_corrected_pt_t>(arguments, 0, context);
 
-  global_function(momentum_brem_correction)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(momentum_brem_correction)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
 }
 
 __global__ void momentum_brem_correction::momentum_brem_correction(momentum_brem_correction::Parameters parameters)

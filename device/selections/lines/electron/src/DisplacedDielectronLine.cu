@@ -30,7 +30,8 @@ displaced_dielectron_line::displaced_dielectron_line_t::get_input(
 }
 
 __device__ bool displaced_dielectron_line::displaced_dielectron_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto& [vertex, brem_corrected_minpt] = input;
@@ -40,18 +41,19 @@ __device__ bool displaced_dielectron_line::displaced_dielectron_line_t::select(
     return false;
   }
   const bool opposite_sign = vertex.charge() == 0;
-  if (opposite_sign != parameters.OppositeSign) return false;
+  if (opposite_sign != properties.oppositeSign) return false;
 
-  const bool decision = vertex.has_pv() && vertex.minipchi2() > parameters.minIPChi2 &&
-                        vertex.doca12() < parameters.maxDOCA && brem_corrected_minpt > parameters.minPT &&
-                        vertex.vertex().chi2() < parameters.maxVtxChi2 && vertex.vertex().z() > parameters.minZ &&
-                        vertex.pv().position.z >= parameters.minZ;
+  const bool decision = vertex.has_pv() && vertex.minipchi2() > properties.minIPChi2 &&
+                        vertex.doca12() < properties.maxDOCA && brem_corrected_minpt > properties.minPT &&
+                        vertex.vertex().chi2() < properties.maxVtxChi2 && vertex.vertex().z() > properties.minZ &&
+                        vertex.pv().position.z >= properties.minZ;
 
   return decision;
 }
 
 __device__ void displaced_dielectron_line::displaced_dielectron_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned index,
   bool sel)

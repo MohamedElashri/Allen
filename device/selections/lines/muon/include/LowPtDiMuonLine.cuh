@@ -22,39 +22,40 @@ namespace low_pt_di_muon_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minTrackIP_t, "minTrackIP", "minTrackIP description", float) minTrackIP;
-    PROPERTY(minTrackPt_t, "minTrackPt", "minTrackPt description", float) minTrackPt;
-    PROPERTY(minTrackP_t, "minTrackP", "minTrackP description", float) minTrackP;
-    PROPERTY(minTrackIPChi2_t, "minTrackIPChi2", "minTrackIPChi2 description", float) minTrackIPChi2;
-    PROPERTY(maxDOCA_t, "maxDOCA", "maxDOCA description", float) maxDOCA;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
-    PROPERTY(minMass_t, "minMass", "minMass description", float) minMass;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
-    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
   };
 
   struct low_pt_di_muon_line_t : public SelectionAlgorithm,
                                  Parameters,
                                  CompositeParticleLine<low_pt_di_muon_line_t, Parameters> {
-    __device__ static bool select(const Parameters&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+
+    struct DeviceProperties {
+      float minTrackIP;
+      float minTrackPt;
+      float minTrackP;
+      float minTrackIPChi2;
+      float maxDOCA;
+      float maxVertexChi2;
+      float minMass;
+      float minZ;
+      bool oppositeSign;
+      DeviceProperties(const low_pt_di_muon_line_t& algo, const Allen::Context&) :
+        minTrackIP(algo.m_minTrackIP), minTrackPt(algo.m_minTrackPt), minTrackP(algo.m_minTrackP),
+        minTrackIPChi2(algo.m_minTrackIPChi2), maxDOCA(algo.m_maxDOCA), maxVertexChi2(algo.m_maxVertexChi2),
+        minMass(algo.m_minMass), minZ(algo.m_minZ), oppositeSign(algo.m_opposite_sign.value())
+      {}
+    };
+    __device__ static bool
+    select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minTrackIP_t> m_minTrackIP {this, 0.1f};
-    Property<minTrackPt_t> m_minTrackPt {this, 80.f};
-    Property<minTrackP_t> m_minTrackP {this, 3000.f};
-    Property<minTrackIPChi2_t> m_minTrackIPChi2 {this, 1.f};
-    Property<maxDOCA_t> m_maxDOCA {this, 0.2f};
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.f};
-    Property<minMass_t> m_minMass {this, 220.f};
-    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
-    Property<OppositeSign_t> m_opposite_sign {this, true};
+    Allen::Property<float> m_minTrackIP {this, "minTrackIP", 0.1f, "minTrackIP description"};
+    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 80.f, "minTrackPt description"};
+    Allen::Property<float> m_minTrackP {this, "minTrackP", 3000.f, "minTrackP description"};
+    Allen::Property<float> m_minTrackIPChi2 {this, "minTrackIPChi2", 1.f, "minTrackIPChi2 description"};
+    Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.2f, "maxDOCA description"};
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 25.f, "maxVertexChi2 description"};
+    Allen::Property<float> m_minMass {this, "minMass", 220.f, "minMass description"};
+    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dimuon combinations"};
   };
 } // namespace low_pt_di_muon_line

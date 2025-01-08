@@ -31,37 +31,38 @@ di_muon_mass_line::di_muon_mass_line_t::get_input(
 }
 
 __device__ bool di_muon_mass_line::di_muon_mass_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto vertex = std::get<0>(input);
   const auto maxchi2muon = std::get<1>(input);
   const bool opposite_sign = vertex.charge() == 0;
 
-  return maxchi2muon < parameters.maxChi2Muon && vertex.is_dimuon() && opposite_sign == parameters.OppositeSign &&
-         vertex.minipchi2() >= parameters.minIPChi2 && vertex.doca12() <= parameters.maxDoca &&
-         vertex.mdimu() >= parameters.minMass && vertex.minpt() >= parameters.minHighMassTrackPt &&
-         vertex.minp() >= parameters.minHighMassTrackP && vertex.vertex().chi2() > 0 &&
-         vertex.vertex().chi2() < parameters.maxVertexChi2 && vertex.vertex().z() >= parameters.minZ &&
-         vertex.pv().position.z >= parameters.minZ;
+  return maxchi2muon < properties.maxChi2Muon && vertex.is_dimuon() && opposite_sign == properties.oppositeSign &&
+         vertex.minipchi2() >= properties.minIPChi2 && vertex.doca12() <= properties.maxDoca &&
+         vertex.mdimu() >= properties.minMass && vertex.minpt() >= properties.minHighMassTrackPt &&
+         vertex.minp() >= properties.minHighMassTrackP && vertex.vertex().chi2() > 0 &&
+         vertex.vertex().chi2() < properties.maxVertexChi2 && vertex.vertex().z() >= properties.minZ &&
+         vertex.pv().position.z >= properties.minZ;
 }
 
 __device__ void di_muon_mass_line::di_muon_mass_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned,
   bool sel)
 {
   if (sel) {
     const auto particle = std::get<0>(input);
-    accumulators.histogram_Jpsi_mass.increment(particle.m());
+    properties.histogram_Jpsi_mass.increment(particle.m());
   }
 }
 
 __device__ void di_muon_mass_line::di_muon_mass_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned index,
   bool sel)

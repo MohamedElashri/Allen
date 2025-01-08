@@ -32,7 +32,6 @@ namespace MatchUpstreamMuon {
     DEVICE_INPUT(dev_muon_hits_t, char) dev_muon_hits;
     DEVICE_INPUT(dev_event_list_mf_t, unsigned) dev_event_list_mf;
     DEVICE_OUTPUT(dev_match_upstream_muon_t, bool) dev_muon_match;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void match_upstream_muon(
@@ -52,6 +51,6 @@ namespace MatchUpstreamMuon {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 1, 1}, "block dimensions"};
   };
 } // namespace MatchUpstreamMuon

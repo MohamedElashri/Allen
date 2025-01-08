@@ -90,7 +90,6 @@ namespace scifi_consolidate_tracks {
       DEPENDENCIES(dev_multi_event_long_tracks_view_t),
       Allen::IMultiEventContainer*)
     dev_multi_event_long_tracks_ptr;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void scifi_consolidate_tracks(
@@ -118,7 +117,7 @@ namespace scifi_consolidate_tracks {
       Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_qop);
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 1, 1}, "block dimensions"};
 
     Allen::Monitoring::AveragingCounter<> m_counter_long_tracks_forward {this, "n_long_tracks_forward"};
 

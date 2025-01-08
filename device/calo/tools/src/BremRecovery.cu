@@ -37,7 +37,7 @@ void brem_recovery::brem_recovery_t::operator()(
   Allen::memset_async<dev_brem_ecal_digits_size_t>(arguments, 0, context);
   Allen::memset_async<dev_brem_ecal_digits_t>(arguments, 0, context);
 
-  global_function(brem_recovery)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(brem_recovery)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments, constants.dev_ecal_geometry);
 }
 
