@@ -77,32 +77,6 @@ namespace {
 
     return {dSlopeX, dSlopeY, distX, distY, zForX, chi2};
   }
-  // Parametrization from SciFiTrackForwarding.cpp , found to work better than FastMomentumEstimate.cpp
-  // https://gitlab.cern.ch/lhcb/Rec/-/blob/master/Pr/SciFiTrackForwarding/src/SciFiTrackForwarding.cpp#L321
-  //
-  // @jzhuo (24/05/2024): update the same parametrization format with Sim10aU1 MinBias simulation (MD+MU),
-  //                      the term related to txT^4 and tyV^4 are deprecated because it increase the
-  //                      mean square error.
-  __device__ float computeQoverP(
-    const float txV,
-    const float tyV,
-    const float txT,
-    const float magSign,
-    const std::array<float, 16>& momentum_parameters)
-  {
-    // Pick parametrisation from polarity condition
-    // magSign is -1*dev_magnet_polarity so negative sign is MagUp
-    const float* params = momentum_parameters.data() + (magSign < 0 ? 0 : 8);
-
-    const auto dslope = txT - txV;
-    const auto abs_p =
-      params[0] + (params[1] + params[2] * (txT * txT) + params[3] * (txT * txT * txT * txT) + params[4] * (txT * txV) +
-                   params[5] * (tyV * tyV) + params[6] * (tyV * tyV * tyV * tyV) + params[7] * (txV * txV)) /
-                    fabsf(dslope);
-
-    const auto charge = ((dslope > 0) ? 1.f : -1.f) * magSign;
-    return charge / abs_p;
-  }
 } // namespace
 
 void track_matching::track_matching_t::set_arguments_size(
@@ -337,8 +311,9 @@ __global__ void track_matching::track_matching_veloSciFi(
       auto& matched_track = matched_tracks_event[idx];
 
       const auto magSign = -dev_magnet_polarity[0];
-      const auto qop =
-        computeQoverP(endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, momentum_parameters);
+
+      const auto qop = LongTrack::computeQoverP(
+        endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, momentum_parameters);
 
       matched_track.velo_track_index = velo_track_index;
       matched_track.scifi_track_index = i;
