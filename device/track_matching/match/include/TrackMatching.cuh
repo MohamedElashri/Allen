@@ -20,6 +20,7 @@
 #include "AlgorithmTypes.cuh"
 #include "UTHitCache.cuh"
 #include "AllenMonitoring.h"
+#include "LongTrackMomentumEvaluation.cuh"
 
 namespace track_matching {
   struct Parameters {
