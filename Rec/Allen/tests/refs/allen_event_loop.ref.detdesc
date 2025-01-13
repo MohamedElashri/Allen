@@ -213,10 +213,10 @@ Hlt1D2PiPi                             INFO 1D histograms in directory "Hlt1D2Pi
  | d02pipi_pt                                    | "pT(D0)"                                      |          5 |     4268.4 | 1502.1     |    0.39564 |     -1.461 |
 Hlt1DetJpsiToMuMuNegTagLine            INFO 1D histograms in directory "Hlt1DetJpsiToMuMuNegTagLine" : 1
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | histogram_det_jpsitomumu_tap_mass             | "m(jpsi)"                                     |          1 |     3092.5 | 0.0000     |-nan        |-nan        |
+ | histogram_det_jpsitomumu_tap_mass             | "m(jpsi)"                                     |          1 |     3092.5 | 0.0000     |          0 |          0 |
 Hlt1DiElectronHighMass_SS              INFO 1D histograms in directory "Hlt1DiElectronHighMass_SS" : 1
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_upsilon_mass_counts_ss             | "dielectron masses w/brem (Upsilon)"          |          1 |     8647.5 | 0.0000     |-nan        |-nan        |
+ | dielectron_upsilon_mass_counts_ss             | "dielectron masses w/brem (Upsilon)"          |          1 |     8647.5 | 0.0000     |          0 |          0 |
 Hlt1DiElectronLowMass_SS_massSli...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_SS_massSlice1_prompt" : 2
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | dielectron_mass_counts                        | "dielectron masses"                           |        221 |     1053.4 | 510.51     |    -1.0871 |   -0.47798 |
@@ -251,7 +251,7 @@ Hlt1DiElectronLowMass_massSlice4...    INFO 1D histograms in directory "Hlt1DiEl
  | dielectron_mass_counts_brem                   | "dielectron masses with brem"                 |        174 |     1185.3 | 422.29     |    -1.8854 |     2.3324 |
 Hlt1DiMuonDisplaced                    INFO 1D histograms in directory "Hlt1DiMuonDisplaced" : 1
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | Jpsi_mass                                     | "m(J/Psi)"                                    |          2 |     3089.3 | 38.000     | 1.3904e-10 |         -2 |
+ | Jpsi_mass                                     | "m(J/Psi)"                                    |          2 |     3089.3 | 38.000     | 2.0856e-10 |         -2 |
 Hlt1DiMuonHighMass                     INFO 1D histograms in directory "Hlt1DiMuonHighMass" : 1
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | Jpsi_mass                                     | "m(J/Psi)"                                    |         25 |     3090.6 | 112.86     |    0.19062 |    -1.0786 |
@@ -279,8 +279,8 @@ Hlt1KsToPiPi                           INFO 1D histograms in directory "Hlt1KsTo
  | p1_ghost_prob                                 | "track1 GhostProb"                            |        827 |   0.085222 | 0.10570    |     1.7811 |     2.5165 |
 Hlt1LambdaLLDetachedTrack              INFO 1D histograms in directory "Hlt1LambdaLLDetachedTrack" : 2
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | LambdaTrack_mass                              | "m(#Lambda#pi^{+}) [MeV]"                     |          1 |     2087.5 | 0.0000     |-nan        |-nan        |
- | Lambda_mass_LambdaLLDetachedTrack             | "m(p#pi^{#minus}) [MeV]"                      |          1 |     1118.8 | 0.0000     |-nan        |-nan        |
+ | LambdaTrack_mass                              | "m(#Lambda#pi^{+}) [MeV]"                     |          1 |     2087.5 | 0.0000     |          0 |          0 |
+ | Lambda_mass_LambdaLLDetachedTrack             | "m(p#pi^{#minus}) [MeV]"                      |          1 |     1118.8 | 0.0000     |          0 |          0 |
 Hlt1TrackMVA                           INFO 1D histograms in directory "Hlt1TrackMVA" : 3
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | ghost_prob                                    | "track GhostProb"                             |        112 |   0.026893 | 0.059672   |     4.7643 |     27.642 |
@@ -305,13 +305,13 @@ calo_find_clusters                     INFO 1D histograms in directory "calo_fin
  | n_ecal_clusters                               | "NClusters"                                   |      10000 |     49.474 | 28.662     |    0.75757 |    0.68816 |
 error_bank_filter                      INFO 1D histograms in directory "error_bank_filter" : 8
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | ECal_banks                                    | "ECal_banks"                                  |     920000 |          0 | 0.0000     |-nan        |-nan        |
- | FTCluster_banks                               | "FTCluster_banks"                             |    2400000 |          0 | 0.0000     |-nan        |-nan        |
- | Muon_banks                                    | "Muon_banks"                                  |     440000 |          0 | 0.0000     |-nan        |-nan        |
- | ODIN_banks                                    | "ODIN_banks"                                  |      10000 |          0 | 0.0000     |-nan        |-nan        |
- | Rich1_banks                                   | "Rich1_banks"                                 |      40000 |          0 | 0.0000     |-nan        |-nan        |
- | UT_banks                                      | "UT_banks"                                    |    2160000 |          0 | 0.0000     |-nan        |-nan        |
- | VP_banks                                      | "VP_banks"                                    |    1040000 |          2 | 0.0000     |-nan        |-nan        |
+ | ECal_banks                                    | "ECal_banks"                                  |     920000 |          0 | 0.0000     |          0 |          0 |
+ | FTCluster_banks                               | "FTCluster_banks"                             |    2400000 |          0 | 0.0000     |          0 |          0 |
+ | Muon_banks                                    | "Muon_banks"                                  |     440000 |          0 | 0.0000     |          0 |          0 |
+ | ODIN_banks                                    | "ODIN_banks"                                  |      10000 |          0 | 0.0000     |          0 |          0 |
+ | Rich1_banks                                   | "Rich1_banks"                                 |      40000 |          0 | 0.0000     |          0 |          0 |
+ | UT_banks                                      | "UT_banks"                                    |    2160000 |          0 | 0.0000     |          0 |          0 |
+ | VP_banks                                      | "VP_banks"                                    |    1040000 |          2 | 0.0000     |          0 |          0 |
  | n_data_banks                                  | "n_data_banks"                                |    7010000 |     5.9943 | 1.9785     |   -0.60878 |    0.93075 |
 fit_dihadron_secondary_vertices        INFO 1D histograms in directory "fit_dihadron_secondary_vertices" : 1
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
@@ -329,7 +329,7 @@ gather_selections                      INFO 1D histograms in directory "gather_s
 is_muon                                INFO 1D histograms in directory "is_muon" : 3
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_muons                                       | "# muons"                                     |     461023 |    0.10963 | 0.31243    |     2.4989 |     4.2447 |
- | pv_x                                          | "pv_x"                                        |      29982 |          2 | 0.0000     |-nan        |-nan        |
+ | pv_x                                          | "pv_x"                                        |      29982 |          2 | 0.0000     |          0 |          0 |
  | pv_y                                          | "pv_y"                                        |      50541 |     502.26 | 337.18     |     2.9643 |     35.098 |
 make_long_track_particles              INFO 1D histograms in directory "make_long_track_particles" : 4
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
@@ -348,7 +348,7 @@ matching_consolidate_tracks_matc...    INFO 1D histograms in directory "matching
 pv_beamline_cleanup                    INFO 1D histograms in directory "pv_beamline_cleanup" : 5
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_pvs_event                                   | "n_pvs_event"                                 |      10000 |     5.1728 | 2.1617     |    0.35345 |    0.10441 |
- | n_smog2_PVs                                   | "n_smog2_PVs"                                 |      10000 |          0 | 0.0000     |-nan        |-nan        |
+ | n_smog2_PVs                                   | "n_smog2_PVs"                                 |      10000 |          0 | 0.0000     |          0 |          0 |
  | pv_x                                          | "pv_x"                                        |      51646 |-0.00011982 | 0.030488   |  -0.028993 |     1.9904 |
  | pv_y                                          | "pv_y"                                        |      51646 | 3.1058e-05 | 0.030206   |  -0.054324 |     1.6699 |
  | pv_z                                          | "pv_z"                                        |      51646 |     1.1385 | 63.227     |  -0.018741 |   -0.16116 |
