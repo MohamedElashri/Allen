@@ -19,7 +19,7 @@
 #include "SciFiEventModel.cuh"
 #include "SciFiConsolidated.cuh"
 
-#include "NeuralNetwork.cuh"
+#include "SingleLayerFCNN.cuh"
 
 // Local
 #include "DownstreamConstants.cuh"
@@ -35,6 +35,7 @@
  * implementation file is in downstream_create_tracks.cu
  */
 namespace downstream_create_tracks {
+  using DownstreamGhostKiller = Allen::MVAModels::SingleLayerFCNN<11, 32>;
 
   struct Parameters {
     // Basic
@@ -65,7 +66,7 @@ namespace downstream_create_tracks {
     const float*,
     const float*,
     const float,
-    const Allen::NeuralNetwork::Model::DownstreamGhostKiller*,
+    const DownstreamGhostKiller::DeviceType*,
     [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType);
 
   struct downstream_create_tracks_t : public DeviceAlgorithm,
@@ -87,6 +88,9 @@ namespace downstream_create_tracks {
                                                      "ghost_killer_threshold",
                                                      0.5,
                                                      "the threshold of the ghost killer"};
+
+    DownstreamGhostKiller dev_downstream_ghostkiller {"dev_downstream_ghostkiller",
+                                                      "/GhostProbability/Hlt1_DownstreamGhostKiller.json"};
   };
 
 } // namespace downstream_create_tracks

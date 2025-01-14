@@ -43,15 +43,15 @@ namespace geom {
 void lf_quality_filter::lf_quality_filter_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_offsets_long_tracks_t>(arguments, 0, context);
 
   global_function(lf_quality_filter)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
-    constants.dev_forward_ghost_killer,
-    constants.dev_forward_no_ut_ghost_killer,
+    forward_ghost_killer.getDevicePointer(),
+    forward_ghost_killer_no_ut.getDevicePointer(),
     m_maximum_number_of_candidates_per_ut_track,
     m_max_diff_ty_window,
     m_factor_9_hits,
@@ -87,7 +87,7 @@ template<bool with_ut, typename T>
 __device__ void quality_filter(
   lf_quality_filter::Parameters parameters,
   const T* tracks,
-  const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_ghost_killer,
+  const LFQualityNN::DeviceType* dev_forward_ghost_killer,
   const unsigned maximum_number_of_candidates_per_ut_track,
   const float max_diff_ty_window,
   const float factor_9_hits,
@@ -245,10 +245,10 @@ __device__ void quality_filter(
       const auto velo_rho = hypotf(velo_state.tx(), velo_state.ty());
       const auto velo_eta = asinhf(1.f / velo_rho);
 
-      float ghost_killer_inputs[Allen::NeuralNetwork::Model::ForwardGhostKiller::nInput] = {
+      float ghost_killer_inputs[LFQualityNN::DeviceType::nInput] = {
         zMagnet, distX, distY, dSlopeX, dSlopeY, velo_eta, logf(best_quality)};
 
-      const auto ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_forward_ghost_killer, ghost_killer_inputs);
+      const auto ghost_killer_score = dev_forward_ghost_killer->evaluate(ghost_killer_inputs);
 
       if (ghost_killer_score < ghost_killer_threshold) {
         const int insert_index = atomicAdd(parameters.dev_offsets_long_tracks + event_number, 1);
@@ -282,8 +282,8 @@ __device__ void quality_filter(
 
 __global__ void lf_quality_filter::lf_quality_filter(
   lf_quality_filter::Parameters parameters,
-  const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_ghost_killer,
-  const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_no_ut_ghost_killer,
+  const LFQualityNN::DeviceType* dev_forward_ghost_killer,
+  const LFQualityNN::DeviceType* dev_forward_no_ut_ghost_killer,
   const unsigned maximum_number_of_candidates_per_ut_track,
   const float max_diff_ty_window,
   const float factor_9_hits,

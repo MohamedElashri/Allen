@@ -55,7 +55,7 @@ void downstream_create_tracks::downstream_create_tracks_t::operator()(
     dev_ut_dxDy,
     dev_magnet_polarity,
     m_ghost_killer_threshold,
-    constants.dev_downstream_ghost_killer,
+    dev_downstream_ghostkiller.getDevicePointer(),
     m_n_overflow_downstream_create_tracks.data(context));
 
   PrefixSum::prefix_sum<dev_offsets_downstream_tracks_t, host_number_of_downstream_tracks_t>(*this, arguments, context);
@@ -174,7 +174,7 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
   const float* dev_ut_dxDy,
   const float* dev_magnet_polarity,
   const float ghost_killer_threshold,
-  const Allen::NeuralNetwork::Model::DownstreamGhostKiller* dev_downstream_ghostkiller,
+  const DownstreamGhostKiller::DeviceType* dev_downstream_ghostkiller,
   [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_create_tracks)
 {
   ///////////////////////////////////////////////////////
@@ -325,19 +325,18 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
 
     // Ghost killing
     const auto eta = asinhf(1.f / hypotf(ut_tx, ut_ty));
-    float ghost_killer_input[Allen::NeuralNetwork::Model::DownstreamGhostKiller::nInput] = {
-      dist1 + dist2,
-      dist0,
-      dist3,
-      ft_chi2,
-      eta,
-      ut_x,
-      ut_y,
-      ut_tx,
-      ut_ty,
-      ft_tx - ut_tx,
-      ft_y - (ut_y + ut_ty * (ZEndT - zMidUT))};
-    const auto ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_downstream_ghostkiller, ghost_killer_input);
+    float ghost_killer_input[DownstreamGhostKiller::DeviceType::nInput] = {dist1 + dist2,
+                                                                           dist0,
+                                                                           dist3,
+                                                                           ft_chi2,
+                                                                           eta,
+                                                                           ut_x,
+                                                                           ut_y,
+                                                                           ut_tx,
+                                                                           ut_ty,
+                                                                           ft_tx - ut_tx,
+                                                                           ft_y - (ut_y + ut_ty * (ZEndT - zMidUT))};
+    const auto ghost_killer_score = dev_downstream_ghostkiller->evaluate(ghost_killer_input);
 
     if (ghost_killer_score > ghost_killer_threshold) continue;
 

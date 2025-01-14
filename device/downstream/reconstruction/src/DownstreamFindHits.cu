@@ -9,7 +9,6 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "DownstreamFindHits.cuh"
-#include "NeuralNetwork.cuh"
 
 /**
  * @file DownstreamFindHits.cu
@@ -154,7 +153,7 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
       m_tolerance_window_y4_multiplier,
       m_ttracks_probability_threshold,
       dev_ut_per_layer_info,
-      constants.dev_ttrack_selector,
+      dev_ttrack_selector.getDevicePointer(),
       m_n_overflow_downstream_tracking.data(context));
   }
   else {
@@ -170,7 +169,7 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
       m_tolerance_window_y4_multiplier,
       m_ttracks_probability_threshold,
       dev_ut_per_layer_info,
-      constants.dev_ttrack_selector,
+      dev_ttrack_selector.getDevicePointer(),
       m_n_overflow_downstream_tracking.data(context));
   }
 
@@ -229,7 +228,7 @@ __global__ void downstream_find_hits::downstream_create_candidates(
   const float tolerance_window_y4_multiplier,
   const float ttracks_probability_threshold,
   const UT::Constants::PerLayerInfo* dev_mean_layer_info,
-  const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector,
+  const TTrackSelector::DeviceType* dev_ttrack_selector,
   [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_tracking)
 {
 
@@ -322,13 +321,13 @@ __global__ void downstream_find_hits::downstream_create_candidates(
 
     // Filter T tracks which are 100% ghost for downstream tracks
     const auto scifi_state = scifi_states[SciFi_idx];
-    float ttrack_prob_inputs[Allen::NeuralNetwork::Model::TTrackSelector::nInput] = {
+    float ttrack_prob_inputs[TTrackSelector::DeviceType::nInput] = {
       fabsf(scifi_state.x()),
       fabsf(scifi_state.y()),
       fabsf(scifi_state.tx()),
       fabsf(scifi_state.ty()),
     };
-    const auto ttrack_prob = Allen::NeuralNetwork::evaluate(dev_ttrack_selector, ttrack_prob_inputs);
+    const auto ttrack_prob = dev_ttrack_selector->evaluate(ttrack_prob_inputs);
     if (ttrack_prob > ttracks_probability_threshold) continue;
 
     // Get SciFi qop

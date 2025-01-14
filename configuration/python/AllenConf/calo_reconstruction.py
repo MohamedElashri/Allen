@@ -14,7 +14,7 @@ from AllenCore.algorithms import (
     momentum_brem_correction_t, calo_seed_clusters_t, calo_find_clusters_t,
     calo_prefilter_clusters_t, calo_filter_clusters_t, calo_find_twoclusters_t,
     total_ecal_energy_t, make_neutral_particles_t, calo_overlap_clusters_t,
-    electronid_nn_t, electronid_features_t)
+    electronid_nn_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
@@ -323,23 +323,6 @@ def make_electronid_nn(long_tracks, track_matching):
 
     host_number_of_reconstructed_scifi_tracks = long_tracks[
         "host_number_of_reconstructed_scifi_tracks"]
-    dev_scifi_states = long_tracks["dev_scifi_states"]
-    velo_tracks = long_tracks["velo_tracks"]
-    electronid_features = make_algorithm(
-        electronid_features_t,
-        name='electronid_features_{hash}',
-        host_number_of_events_t=host_number_of_events,
-        dev_number_of_events_t=dev_number_of_events,
-        host_number_of_reconstructed_scifi_tracks_t=
-        host_number_of_reconstructed_scifi_tracks,
-        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
-        dev_track_Eop_t=track_matching["dev_track_Eop"],
-        dev_track_Eop3x3_t=track_matching["dev_track_Eop3x3"],
-        dev_delta_barycenter_t=track_matching["dev_delta_barycenter"],
-        dev_region_t=track_matching["dev_region"],
-        dev_dispersion_x_t=track_matching["dev_dispersion_x"],
-        dev_dispersion_y_t=track_matching["dev_dispersion_y"],
-        dev_dispersion_xy_t=track_matching["dev_dispersion_xy"])
 
     electronid_nn = make_algorithm(
         electronid_nn_t,
@@ -349,9 +332,13 @@ def make_electronid_nn(long_tracks, track_matching):
         dev_number_of_events_t=dev_number_of_events,
         host_number_of_reconstructed_scifi_tracks_t=
         host_number_of_reconstructed_scifi_tracks,
-        dev_electronid_features_t=electronid_features.
-        dev_electronid_features_t,
-        dev_track_Eop_t=track_matching["dev_track_Eop3x3"],
+        dev_track_Eop_t=track_matching["dev_track_Eop"],
+        dev_track_Eop3x3_t=track_matching["dev_track_Eop3x3"],
+        dev_delta_barycenter_t=track_matching["dev_delta_barycenter"],
+        dev_region_t=track_matching["dev_region"],
+        dev_dispersion_x_t=track_matching["dev_dispersion_x"],
+        dev_dispersion_y_t=track_matching["dev_dispersion_y"],
+        dev_dispersion_xy_t=track_matching["dev_dispersion_xy"],
         dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
     )
     return {

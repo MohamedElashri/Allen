@@ -38,7 +38,7 @@ void downstream_vertexing::downstream_vertexing_t::operator()(
     global_function(downstream_vertexing<true>)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
       arguments,
       constants.dev_magnet_polarity.data(),
-      constants.dev_downstream_composite_quality_evaluator,
+      composite_quality_nn.getDevicePointer(),
       m_minpt_both,
       m_minip_both,
       m_dihadron.value(),
@@ -54,7 +54,7 @@ void downstream_vertexing::downstream_vertexing_t::operator()(
     global_function(downstream_vertexing<false>)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
       arguments,
       constants.dev_magnet_polarity.data(),
-      constants.dev_downstream_composite_quality_evaluator,
+      composite_quality_nn.getDevicePointer(),
       m_minpt_both,
       m_minip_both,
       m_dihadron.value(),
@@ -155,7 +155,7 @@ template<bool same_sign_reco>
 __global__ void downstream_vertexing::downstream_vertexing(
   downstream_vertexing::Parameters parameters,
   const float* dev_magnet_polarity,
-  const Allen::NeuralNetwork::Model::DownstreaCompositeQuality* dev_downstream_composite_quality_evaluator,
+  const CompositeQualityEvaluator::DeviceType* dev_downstream_composite_quality_evaluator,
   const float track_min_pt_both,
   const float track_min_ip_both,
   const bool dihadron,
@@ -267,9 +267,8 @@ __global__ void downstream_vertexing::downstream_vertexing(
       // const auto eta = asinhf(pz / hypotf(px, py));
 
       // Make the composite quality and filter very bad quality composites
-      float inputs[Allen::NeuralNetwork::Model::DownstreaCompositeQuality::nInput] {
-        vtx.x, vtx.y, vtx.z, px / pz, py / pz, doca};
-      const auto quality_score = Allen::NeuralNetwork::evaluate(dev_downstream_composite_quality_evaluator, inputs);
+      float inputs[CompositeQualityEvaluator::DeviceType::nInput] {vtx.x, vtx.y, vtx.z, px / pz, py / pz, doca};
+      const auto quality_score = dev_downstream_composite_quality_evaluator->evaluate(inputs);
       if (quality_score < min_quality) continue;
 
       // Compute Armenteros Podolansky plot for monitoring
