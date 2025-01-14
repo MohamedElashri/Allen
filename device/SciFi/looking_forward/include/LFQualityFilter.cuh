@@ -18,10 +18,13 @@
 #include "UTConsolidated.cuh"
 #include "LookingForwardTools.cuh"
 #include "KinUtils.cuh"
-#include "NeuralNetwork.cuh"
+#include "SingleLayerFCNN.cuh"
 #include "LFMomentumEstimation.cuh"
 
+using LFQualityNN = Allen::MVAModels::SingleLayerFCNN<7, 32>;
+
 namespace lf_quality_filter {
+
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_input_tracks_t, unsigned) host_number_of_reconstructed_input_tracks;
@@ -47,8 +50,8 @@ namespace lf_quality_filter {
 
   __global__ void lf_quality_filter(
     Parameters,
-    const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_ghost_killer,
-    const Allen::NeuralNetwork::Model::ForwardGhostKiller* dev_forward_no_ut_ghost_killer,
+    const LFQualityNN::DeviceType* dev_forward_ghost_killer,
+    const LFQualityNN::DeviceType* dev_forward_no_ut_ghost_killer,
     const unsigned maximum_number_of_candidates_per_ut_track,
     const float max_diff_ty_window,
     const float factor_9_hits,
@@ -81,5 +84,9 @@ namespace lf_quality_filter {
     Allen::Property<float> m_factor_11_hits {this, "factor_11_hits", 0.8, "factor_11_hits"};
     Allen::Property<float> m_factor_12_hits {this, "factor_12_hits", 0.5, "factor_12_hits"};
     Allen::Property<float> m_ghost_killer_threshold {this, "ghost_killer_threshold", 0.5, "ghost_killer_threshold"};
+
+    LFQualityNN forward_ghost_killer {"forward_ghost_killer", "/GhostProbability/Hlt1_LongGhostKiller_Forward.json"};
+    LFQualityNN forward_ghost_killer_no_ut {"forward_ghost_killer_no_ut",
+                                            "/GhostProbability/Hlt1_LongGhostKiller_noUT_Forward.json"};
   };
 } // namespace lf_quality_filter

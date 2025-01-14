@@ -19,6 +19,7 @@ This site documents various aspects of Allen.
    setup/performance
    hlt1/reconstruction_algorithms
    develop/add_algorithm
+   develop/add_mva_model
    develop/configure_sequence
    develop/selections
    develop/combiners

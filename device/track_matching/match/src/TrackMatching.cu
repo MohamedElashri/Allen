@@ -121,11 +121,11 @@ void track_matching::track_matching_t::operator()(
   else {
     // Velo SciFi matching
     if (m_matching_no_ut_ghost_killer_version == 1) {
-      global_function(track_matching_veloSciFi<Allen::NeuralNetwork::Model::MatchingGhostKiller>)(
+      global_function(track_matching_veloSciFi<MatchingGhostKiller::DeviceType>)(
         dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
         arguments,
         constants.dev_magnet_polarity.data(),
-        constants.dev_matching_ghost_killer,
+        matching_ghost_killer.getDevicePointer(),
         m_momentum_parameters,
         m_z_magnet_parameters,
         m_multiplication_factor_dX,
@@ -136,11 +136,11 @@ void track_matching::track_matching_t::operator()(
         m_n_overflow_track_matching.data(context));
     }
     else if (m_matching_no_ut_ghost_killer_version == 2) {
-      global_function(track_matching_veloSciFi<Allen::NeuralNetwork::Model::MatchingNoUTV2GhostKiller>)(
+      global_function(track_matching_veloSciFi<MatchingNoUTV2GhostKiller::DeviceType>)(
         dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
         arguments,
         constants.dev_magnet_polarity.data(),
-        constants.dev_matching_no_ut_v2_ghost_killer,
+        matching_no_ut_v2_ghost_killer.getDevicePointer(),
         m_momentum_parameters,
         m_z_magnet_parameters,
         m_multiplication_factor_dX,
@@ -180,7 +180,7 @@ void track_matching::track_matching_t::operator()(
   if (use_with_ut_neural_network) {
     // Fit UT segment and evaluate ghost probability
     if (m_matching_with_ut_ghost_killer_version == 1) {
-      global_function(track_matching_ghost_killing<Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller>)(
+      global_function(track_matching_ghost_killing<MatchingWithUTGhostKiller::DeviceType>)(
         dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
         arguments,
         m_z_magnet_parameters,
@@ -189,10 +189,10 @@ void track_matching::track_matching_t::operator()(
         m_multiplication_factor_dty,
         m_multiplication_factor_dtx,
         m_ghost_killer_threshold,
-        constants.dev_matching_with_ut_ghost_killer);
+        matching_with_ut_ghost_killer.getDevicePointer());
     }
     else if (m_matching_with_ut_ghost_killer_version == 2) {
-      global_function(track_matching_ghost_killing<Allen::NeuralNetwork::Model::MatchingWithUTV2GhostKiller>)(
+      global_function(track_matching_ghost_killing<MatchingWithUTV2GhostKiller::DeviceType>)(
         dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
         arguments,
         m_z_magnet_parameters,
@@ -201,7 +201,7 @@ void track_matching::track_matching_t::operator()(
         m_multiplication_factor_dty,
         m_multiplication_factor_dtx,
         m_ghost_killer_threshold,
-        constants.dev_matching_with_ut_v2_ghost_killer);
+        matching_with_ut_v2_ghost_killer.getDevicePointer());
     }
     else {
       throw std::invalid_argument("matching_no_ut_ghost_killer_version can only be [1, 2].");
@@ -276,29 +276,27 @@ __global__ void track_matching::track_matching_veloSciFi(
 
       float ghost_killer_score = 0.f;
       if constexpr (!std::is_same_v<GhostKiller_t, void>) {
-        if constexpr (std::is_same_v<GhostKiller_t, Allen::NeuralNetwork::Model::MatchingGhostKiller>) {
-          float ghost_killer_inputs[Allen::NeuralNetwork::Model::MatchingGhostKiller::nInput] = {
-            matchingInfo.zForX,
-            matchingInfo.distX,
-            matchingInfo.distY,
-            matchingInfo.dSlopeX,
-            matchingInfo.dSlopeY,
-            logf(matchingInfo.chi2),
-            velo_eta};
-          ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
+        if constexpr (std::is_same_v<GhostKiller_t, MatchingGhostKiller::DeviceType>) {
+          float ghost_killer_inputs[MatchingGhostKiller::DeviceType::nInput] = {matchingInfo.zForX,
+                                                                                matchingInfo.distX,
+                                                                                matchingInfo.distY,
+                                                                                matchingInfo.dSlopeX,
+                                                                                matchingInfo.dSlopeY,
+                                                                                logf(matchingInfo.chi2),
+                                                                                velo_eta};
+          ghost_killer_score = dev_matching_ghost_killer->evaluate(ghost_killer_inputs);
         }
         else {
           const auto number_of_scifi_hits = float(scifi_seeds.track(i).number_of_scifi_hits());
-          float ghost_killer_inputs[Allen::NeuralNetwork::Model::MatchingNoUTV2GhostKiller::nInput] = {
-            matchingInfo.zForX,
-            matchingInfo.distX,
-            matchingInfo.distY,
-            matchingInfo.dSlopeX,
-            matchingInfo.dSlopeY,
-            matchingInfo.chi2,
-            velo_eta,
-            number_of_scifi_hits};
-          ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
+          float ghost_killer_inputs[MatchingNoUTV2GhostKiller::DeviceType::nInput] = {matchingInfo.zForX,
+                                                                                      matchingInfo.distX,
+                                                                                      matchingInfo.distY,
+                                                                                      matchingInfo.dSlopeX,
+                                                                                      matchingInfo.dSlopeY,
+                                                                                      matchingInfo.chi2,
+                                                                                      velo_eta,
+                                                                                      number_of_scifi_hits};
+          ghost_killer_score = dev_matching_ghost_killer->evaluate(ghost_killer_inputs);
         }
 
         if (ghost_killer_score > ghost_killer_threshold) continue;
@@ -709,8 +707,8 @@ __global__ void track_matching::track_matching_ghost_killing(
     const auto velo_eta = asinhf(1.f / hypotf(vp_state.tx(), vp_state.ty()));
 
     // Evaluate NN based ghost killer
-    if constexpr (std::is_same_v<GhostKiller_t, Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller>) {
-      float ghost_killer_inputs[Allen::NeuralNetwork::Model::MatchingWithUTGhostKiller::nInput] = {
+    if constexpr (std::is_same_v<GhostKiller_t, MatchingWithUTGhostKiller::DeviceType>) {
+      float ghost_killer_inputs[MatchingWithUTGhostKiller::DeviceType::nInput] = {
         matchingInfo.zForX,
         matchingInfo.distX,
         matchingInfo.distY,
@@ -722,10 +720,10 @@ __global__ void track_matching::track_matching_ghost_killing(
         float(matched_track.number_of_hits_ut),
         float(velo_tracks.track(matched_track.velo_track_index).number_of_hits()),
         float(scifi_seeds.track(matched_track.scifi_track_index).number_of_scifi_hits())};
-      matched_track.score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
+      matched_track.score = dev_matching_ghost_killer->evaluate(ghost_killer_inputs);
     }
-    else if constexpr (std::is_same_v<GhostKiller_t, Allen::NeuralNetwork::Model::MatchingWithUTV2GhostKiller>) {
-      float ghost_killer_inputs[Allen::NeuralNetwork::Model::MatchingWithUTV2GhostKiller::nInput] = {
+    else if constexpr (std::is_same_v<GhostKiller_t, MatchingWithUTV2GhostKiller::DeviceType>) {
+      float ghost_killer_inputs[MatchingWithUTV2GhostKiller::DeviceType::nInput] = {
         matchingInfo.zForX,
         matchingInfo.distX,
         matchingInfo.distY,
@@ -736,7 +734,7 @@ __global__ void track_matching::track_matching_ghost_killing(
         float(scifi_seeds.track(matched_track.scifi_track_index).number_of_scifi_hits()),
         logf(matched_track.ut_score / (matched_track.number_of_hits_ut - 1)),
         float(matched_track.number_of_hits_ut)};
-      matched_track.score = Allen::NeuralNetwork::evaluate(dev_matching_ghost_killer, ghost_killer_inputs);
+      matched_track.score = dev_matching_ghost_killer->evaluate(ghost_killer_inputs);
     }
     killed[i] = (matched_track.score > ghost_killer_threshold);
   }

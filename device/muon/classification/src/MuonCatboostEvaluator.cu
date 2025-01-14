@@ -23,19 +23,12 @@ void muon_catboost_evaluator::muon_catboost_evaluator_t::set_arguments_size(
 void muon_catboost_evaluator::muon_catboost_evaluator_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
   global_function(muon_catboost_evaluator)(
     dim3(first<host_number_of_reconstructed_scifi_tracks_t>(arguments)), m_block_dim, context)(
-    arguments,
-    constants.dev_muon_catboost_leaf_values,
-    constants.dev_muon_catboost_leaf_offsets,
-    constants.dev_muon_catboost_split_borders,
-    constants.dev_muon_catboost_split_features,
-    constants.dev_muon_catboost_tree_depths,
-    constants.dev_muon_catboost_tree_offsets,
-    constants.muon_catboost_n_trees);
+    arguments, caloboost_muon.getDevicePointer());
 }
 
 /**
@@ -52,25 +45,27 @@ across an entire level of a tree.
 */
 __global__ void muon_catboost_evaluator::muon_catboost_evaluator(
   muon_catboost_evaluator::Parameters parameters,
-  const float* dev_muon_catboost_leaf_values,
-  const int* dev_muon_catboost_leaf_offsets,
-  const float* dev_muon_catboost_split_borders,
-  const int* dev_muon_catboost_split_features,
-  const int* dev_muon_catboost_tree_sizes,
-  const int* dev_muon_catboost_tree_offsets,
-  const int n_trees)
+  const NeuralNetworkType::DeviceType* catboost_muon_desicion_tree)
 {
   const auto object_id = blockIdx.x;
   const auto block_size = blockDim.x;
-  int tree_id = threadIdx.x;
+  unsigned tree_id = threadIdx.x;
   float sum = 0;
+
+  const float* dev_muon_catboost_leaf_values = catboost_muon_desicion_tree->leaf_values();
+  const unsigned* dev_muon_catboost_leaf_offsets = catboost_muon_desicion_tree->leaf_offsets();
+  const float* dev_muon_catboost_split_borders = catboost_muon_desicion_tree->split_borders();
+  const unsigned* dev_muon_catboost_split_features = catboost_muon_desicion_tree->split_features();
+  const unsigned* dev_muon_catboost_tree_sizes = catboost_muon_desicion_tree->tree_depths();
+  const unsigned* dev_muon_catboost_tree_offsets = catboost_muon_desicion_tree->tree_offsets();
+  const unsigned n_trees = catboost_muon_desicion_tree->n_trees()[0];
 
   const int object_offset = object_id * Muon::Constants::n_catboost_features;
 
   while (tree_id < n_trees) {
     int index = 0;
     const int tree_offset = dev_muon_catboost_tree_offsets[tree_id];
-    for (int depth = 0; depth < dev_muon_catboost_tree_sizes[tree_id]; ++depth) {
+    for (unsigned depth = 0; depth < dev_muon_catboost_tree_sizes[tree_id]; ++depth) {
       const int feature_id = dev_muon_catboost_split_features[tree_offset + depth];
       const float feature_value = parameters.dev_muon_catboost_features[object_offset + feature_id];
       const float border = dev_muon_catboost_split_borders[tree_offset + depth];

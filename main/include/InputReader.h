@@ -40,52 +40,6 @@ struct GeometryReader : public Reader {
 
 using FolderMap = std::map<BankTypes, std::string>;
 
-struct CatboostModelReader {
-  CatboostModelReader(const std::string& file_name);
-  int n_features() const { return m_num_features; }
-  int n_trees() const { return m_num_trees; }
-  std::vector<int> tree_depths() const { return m_tree_depths; }
-  std::vector<int> tree_offsets() const { return m_tree_offsets; }
-  std::vector<int> leaf_offsets() const { return m_leaf_offsets; }
-  std::vector<float> leaf_values() const { return m_leaf_values; }
-  std::vector<float> split_border() const { return m_split_border; }
-  std::vector<int> split_feature() const { return m_split_feature; }
-
-private:
-  int m_num_features;
-  int m_num_trees;
-  std::vector<int> m_tree_depths;
-  std::vector<int> m_tree_offsets;
-  std::vector<int> m_leaf_offsets;
-  std::vector<float> m_leaf_values;
-  std::vector<float> m_split_border;
-  std::vector<int> m_split_feature;
-};
-
-struct LipschitzNNModelReader {
-  LipschitzNNModelReader(const std::string& file_name);
-  std::vector<float> weights() const { return m_weights; }
-  std::vector<float> biases() const { return m_biases; }
-  std::vector<int> layer_sizes() const { return m_layer_sizes; }
-  int n_layers() const { return m_n_layers; }
-  std::vector<float> monotone_constraints() const { return m_monotone_constraints; }
-  std::vector<float> min_rescales() const { return m_min_rescales; }
-  std::vector<float> max_rescales() const { return m_max_rescales; }
-  float lambda() const { return m_lambda; }
-  float nominal_cut() const { return m_nominal_cut; }
-
-private:
-  std::vector<float> m_weights;
-  std::vector<float> m_biases;
-  std::vector<int> m_layer_sizes;
-  int m_n_layers;
-  std::vector<float> m_monotone_constraints;
-  std::vector<float> m_min_rescales;
-  std::vector<float> m_max_rescales;
-  float m_nominal_cut;
-  float m_lambda;
-};
-
 struct ConfigurationReader {
 
   using Params = std::map<std::string, std::map<std::string, nlohmann::json>>;
@@ -114,26 +68,5 @@ private:
 };
 
 bool compatible_configurations(ConfigurationReader const& a, ConfigurationReader const& b);
-
-struct SingleLayerFCNNReader {
-  SingleLayerFCNNReader(const std::string& file_name);
-
-  const auto& mean() const { return m_mean; }
-  const auto& std() const { return m_std; }
-  const auto& weights1() const { return m_weights1; }
-  const auto& bias1() const { return m_bias1; }
-  const auto& weights2() const { return m_weights2; }
-  const auto& bias2() const { return m_bias2; }
-
-private:
-  unsigned m_num_node;
-  unsigned m_num_input;
-  std::vector<float> m_mean;
-  std::vector<float> m_std;
-  std::vector<std::vector<float>> m_weights1;
-  std::vector<float> m_bias1;
-  std::vector<float> m_weights2;
-  float m_bias2;
-};
 
 #endif

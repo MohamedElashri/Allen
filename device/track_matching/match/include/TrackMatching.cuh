@@ -15,7 +15,7 @@
 #include "UTEventModel.cuh"
 #include "SciFiEventModel.cuh"
 #include "SciFiConsolidated.cuh"
-#include "NeuralNetwork.cuh"
+#include "SingleLayerFCNN.cuh"
 #include "TrackMatchingConstants.cuh"
 #include "AlgorithmTypes.cuh"
 #include "UTHitCache.cuh"
@@ -23,6 +23,12 @@
 #include "LongTrackMomentumEvaluation.cuh"
 
 namespace track_matching {
+
+  using MatchingGhostKiller = Allen::MVAModels::SingleLayerFCNN<7, 32>;
+  using MatchingNoUTV2GhostKiller = Allen::MVAModels::SingleLayerFCNN<8, 32>;
+  using MatchingWithUTGhostKiller = Allen::MVAModels::SingleLayerFCNN<11, 32>;
+  using MatchingWithUTV2GhostKiller = Allen::MVAModels::SingleLayerFCNN<10, 32>;
+
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
@@ -197,6 +203,18 @@ namespace track_matching {
 
     Allen::Property<bool> m_force_skip_ut {this, "force_skip_ut", false, "force_skip_ut"};
     Allen::Property<bool> m_force_no_ut_nn {this, "force_no_ut_nn", true, "force_no_ut_nn"};
+
+    MatchingGhostKiller matching_ghost_killer {"matching_ghost_killer",
+                                               "/GhostProbability/Hlt1_LongGhostKiller_Matching.json"};
+    MatchingWithUTGhostKiller matching_with_ut_ghost_killer {
+      "matching_with_ut_ghost_killer",
+      "/GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT.json"};
+    MatchingNoUTV2GhostKiller matching_no_ut_v2_ghost_killer {
+      "matching_no_ut_v2_ghost_killer",
+      "/GhostProbability/Hlt1_LongGhostKiller_MatchingNoUT_V2.json"};
+    MatchingWithUTV2GhostKiller matching_with_ut_v2_ghost_killer {
+      "matching_with_ut_v2_ghost_killer",
+      "/GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT_V2.json"};
   };
 
 } // namespace track_matching

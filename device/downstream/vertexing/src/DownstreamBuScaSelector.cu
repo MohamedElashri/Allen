@@ -24,18 +24,18 @@ void downstream_busca_selector::downstream_busca_selector_t::set_arguments_size(
 void downstream_busca_selector::downstream_busca_selector_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_downstream_mva_busca_t>(arguments, 0, context);
 
   global_function(downstream_busca_selector)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
-    arguments, constants.dev_downstream_busca_selector);
+    arguments, m_busca_selector.getDevicePointer());
 }
 
 __global__ void downstream_busca_selector::downstream_busca_selector(
   downstream_busca_selector::Parameters parameters,
-  const Allen::NeuralNetwork::Model::DownstreamBuscaSelector* dev_downstream_busca_selector)
+  const DownstreamBuscaSelector::DeviceType* dev_downstream_busca_selector)
 {
   // Basic
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -72,11 +72,10 @@ __global__ void downstream_busca_selector::downstream_busca_selector(
 
     const auto ip = downstream_composite.ownpv_ip();
     // Compute scores
-    float inputs_busca[Allen::NeuralNetwork::Model::DownstreamBuscaSelector::nInput] = {
+    float inputs_busca[DownstreamBuscaSelector::DeviceType::nInput] = {
       logf(dA_ip), logf(dA_chi2), logf(dB_ip), logf(dB_chi2), doca, logf(quality), logf(ip), logf(min_ip), logf(pt)};
 
-    downstream_busca_selector[composite_idx] =
-      Allen::NeuralNetwork::evaluate(dev_downstream_busca_selector, inputs_busca);
+    downstream_busca_selector[composite_idx] = dev_downstream_busca_selector->evaluate(inputs_busca);
   }
 
   __syncthreads();

@@ -12,10 +12,12 @@
 
 #include "AlgorithmTypes.cuh"
 #include "VertexDefinitions.cuh"
-#include "NNPropagation.cuh"
+#include "MultiLayerFCNN.cuh"
 #include <cmath>
 
 namespace two_track_mva_evaluator {
+
+  using NeuralNetworkType = Allen::MVAModels::MultiLayerFCNN<4, 20, 20, 1>;
 
   struct Parameters {
     MASK_INPUT(dev_event_list_t) dev_event_list;
@@ -25,12 +27,7 @@ namespace two_track_mva_evaluator {
     DEVICE_OUTPUT(dev_two_track_mva_evaluation_t, float) dev_two_track_mva_evaluation;
   };
 
-  __global__ void two_track_mva_evaluator(
-    Parameters,
-    const int* layer_sizes,
-    const int n_layers,
-    const float* monotone_constraints,
-    const float lambda);
+  __global__ void two_track_mva_evaluator(Parameters, const NeuralNetworkType::DeviceType*);
 
   struct two_track_mva_evaluator_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -44,6 +41,8 @@ namespace two_track_mva_evaluator {
 
   private:
     Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimension"};
+
+    NeuralNetworkType two_track_mva_nn {"two_track_mva_nn", "/allen_two_track_mva_model_June22.json"};
   };
 
 } // namespace two_track_mva_evaluator

@@ -13,9 +13,11 @@
 // Basic
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
-#include "NeuralNetwork.cuh"
+#include "SingleLayerFCNN.cuh"
 
 namespace downstream_busca_selector {
+
+  using DownstreamBuscaSelector = Allen::MVAModels::SingleLayerFCNN<9, 12>;
   struct Parameters {
     // Basic
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -33,11 +35,7 @@ namespace downstream_busca_selector {
     // Property
   };
 
-  __global__ void downstream_busca_selector(
-    Parameters,
-    const Allen::NeuralNetwork::Model::DownstreamBuscaSelector*
-
-  );
+  __global__ void downstream_busca_selector(Parameters, const DownstreamBuscaSelector::DeviceType*);
 
   struct downstream_busca_selector_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -50,5 +48,7 @@ namespace downstream_busca_selector {
 
   private:
     Allen::Property<dim3> m_block_dim {this, "block_dim", {16, 1, 1}, "block dimensions"};
+
+    DownstreamBuscaSelector m_busca_selector {"busca_selector", "/HLT1Downstream/Hlt1_Downstream_BuScaSelector.json"};
   };
 } // namespace downstream_busca_selector

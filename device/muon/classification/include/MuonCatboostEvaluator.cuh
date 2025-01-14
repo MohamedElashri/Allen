@@ -12,23 +12,17 @@
 
 #include "AlgorithmTypes.cuh"
 #include "MuonDefinitions.cuh"
+#include "CatboostDesTree.cuh"
 
 namespace muon_catboost_evaluator {
+  using NeuralNetworkType = Allen::MVAModels::CatboostDT;
   struct Parameters {
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
     DEVICE_INPUT(dev_muon_catboost_features_t, float) dev_muon_catboost_features;
     DEVICE_OUTPUT(dev_muon_catboost_output_t, float) dev_muon_catboost_output;
   };
 
-  __global__ void muon_catboost_evaluator(
-    Parameters,
-    const float* dev_muon_catboost_leaf_values,
-    const int* dev_muon_catboost_leaf_offsets,
-    const float* dev_muon_catbost_split_borders,
-    const int* dev_muon_catboost_split_features,
-    const int* dev_muon_catboost_tree_sizes,
-    const int* dev_muon_catboost_tree_offsets,
-    const int n_trees);
+  __global__ void muon_catboost_evaluator(Parameters, const NeuralNetworkType::DeviceType*);
 
   struct muon_catboost_evaluator_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -41,5 +35,7 @@ namespace muon_catboost_evaluator {
 
   private:
     Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
+
+    NeuralNetworkType caloboost_muon {"caloboost_muon", "/allen_muon_catboost_model.json"};
   };
 } // namespace muon_catboost_evaluator

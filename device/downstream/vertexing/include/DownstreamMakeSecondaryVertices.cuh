@@ -18,7 +18,6 @@
 
 // Event Model
 #include "UTDefinitions.cuh"
-#include "NeuralNetwork.cuh"
 
 // Local
 #include "DownstreamExtrapolation.cuh"

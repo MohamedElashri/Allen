@@ -13,9 +13,12 @@
 // Basic
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
-#include "NeuralNetwork.cuh"
+#include "SingleLayerFCNN.cuh"
 
 namespace downstream_composite_selector {
+
+  using PromptSelector = Allen::MVAModels::SingleLayerFCNN<8, 32>;
+  using DetachedSelector = Allen::MVAModels::SingleLayerFCNN<7, 32>;
   struct Parameters {
     // Basic
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -35,10 +38,10 @@ namespace downstream_composite_selector {
 
   __global__ void downstream_composite_selector(
     Parameters,
-    const Allen::NeuralNetwork::Model::DownstreamLambdaSelector*,
-    const Allen::NeuralNetwork::Model::DownstreamKshortSelector*,
-    const Allen::NeuralNetwork::Model::DownstreamDetachedLambdaSelector*,
-    const Allen::NeuralNetwork::Model::DownstreamDetachedKshortSelector*);
+    const PromptSelector::DeviceType*,
+    const PromptSelector::DeviceType*,
+    const DetachedSelector::DeviceType*,
+    const DetachedSelector::DeviceType*);
 
   struct downstream_composite_selector_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -51,5 +54,12 @@ namespace downstream_composite_selector {
 
   private:
     Allen::Property<dim3> m_block_dim {this, "block_dim", {16, 1, 1}, "block dimensions"};
+
+    PromptSelector lambda_selector {"lambda_selector", "/HLT1Downstream/Hlt1_Downstream_LambdaSelector.json"};
+    PromptSelector ks_selector {"ks_selector", "/HLT1Downstream/Hlt1_Downstream_KshortSelector.json"};
+    DetachedSelector lambda_detached_selector {"lambda_detached_selector",
+                                               "/HLT1Downstream/Hlt1_Downstream_DetachedLambdaSelector.json"};
+    DetachedSelector ks_detached_selector {"ks_detached_selector",
+                                           "/HLT1Downstream/Hlt1_Downstream_DetachedKshortSelector.json"};
   };
 } // namespace downstream_composite_selector

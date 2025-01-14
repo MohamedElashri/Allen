@@ -695,6 +695,7 @@ target_link_libraries(HostCommon PRIVATE
 allen_add_host_library(AllenLib SHARED
   main/src/Allen.cpp
   main/src/AllenMonitoring.cpp
+  main/src/MVAModelsManager.cpp
   main/src/AllenThreads.cpp
   main/src/OutputHandler.cpp
   main/src/Provider.cpp

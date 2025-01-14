@@ -17,7 +17,7 @@
 #include "UTEventModel.cuh"
 #include "SciFiEventModel.cuh"
 #include "SciFiConsolidated.cuh"
-#include "NeuralNetwork.cuh"
+#include "SingleLayerFCNN.cuh"
 
 // Local
 #include "DownstreamConstants.cuh"
@@ -33,6 +33,8 @@
  * implemented in downstream_find_hits.cu
  */
 namespace downstream_find_hits {
+
+  using TTrackSelector = Allen::MVAModels::SingleLayerFCNN<4, 16>;
 
   struct Parameters {
     // Basic
@@ -97,7 +99,7 @@ namespace downstream_find_hits {
     const float tolerance_window_y4_multiplier,
     const float ttracks_probability_threshold,
     const UT::Constants::PerLayerInfo* dev_mean_layer_info,
-    const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector,
+    const TTrackSelector::DeviceType* dev_ttrack_selector,
     [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_tracking);
 
   template<bool require_four_hits, bool use_constant_tolerance_window>
@@ -176,6 +178,8 @@ namespace downstream_find_hits {
                                                              "tolerance_window_y4_multiplier",
                                                              1.f,
                                                              "constant value, at which defaut value is multiplied"};
+
+    TTrackSelector dev_ttrack_selector {"dev_ttrack_selector", "/HLT1Downstream/Hlt1_Downstream_TTrackSelector.json"};
   };
 
 } // namespace downstream_find_hits

@@ -17,13 +17,15 @@
 
 // Event Model
 #include "UTDefinitions.cuh"
-#include "NeuralNetwork.cuh"
+#include "SingleLayerFCNN.cuh"
 
 // Local
 #include "DownstreamExtrapolation.cuh"
 #include "DownstreamHelper.cuh"
 
 namespace downstream_vertexing {
+
+  using CompositeQualityEvaluator = Allen::MVAModels::SingleLayerFCNN<6, 32>;
   struct Parameters {
     // Basic
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -43,7 +45,7 @@ namespace downstream_vertexing {
   __global__ void downstream_vertexing(
     Parameters,
     const float*,
-    const Allen::NeuralNetwork::Model::DownstreaCompositeQuality*,
+    const CompositeQualityEvaluator::DeviceType*,
     const float track_min_pt_both,
     const float track_min_ip_both,
     const bool dihadron,
@@ -98,5 +100,8 @@ namespace downstream_vertexing {
     Allen::Property<bool> m_dihadron {this, "dihadron", true, "Filter leptons"};
     Allen::Property<bool> m_combined_container {this, "combined_container", false, "Filter leptons"};
     Allen::Property<bool> m_same_sign_reco {this, "same_sign_reco", false, "Filter leptons"};
+
+    CompositeQualityEvaluator composite_quality_nn {"composite_quality_nn",
+                                                    "/HLT1Downstream/Hlt1_Downstream_Composite_Quality.json"};
   };
 } // namespace downstream_vertexing
