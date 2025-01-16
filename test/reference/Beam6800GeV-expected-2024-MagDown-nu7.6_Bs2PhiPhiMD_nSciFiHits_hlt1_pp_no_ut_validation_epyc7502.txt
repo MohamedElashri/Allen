@@ -61,7 +61,7 @@ Hlt1ConeJet100GeV:                                  0/   500, (    0.00 +/-     
 Hlt1ConeJet15GeV:                                   2/   500, (  120.00 +/-    84.68) kHz
 Hlt1ConeJet30GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet50GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
-Hlt1D2KK:                                          11/   500, (  660.00 +/-   196.80) kHz
+Hlt1D2KK:                                          12/   500, (  720.00 +/-   205.34) kHz
 Hlt1D2KPi:                                         15/   500, (  900.00 +/-   228.87) kHz
 Hlt1D2KPiAlignment:                                 7/   500, (  420.00 +/-   157.63) kHz
 Hlt1D2Kshh:                                         0/   500, (    0.00 +/-     0.00) kHz
@@ -137,8 +137,8 @@ Hlt1SingleHighPtElectron:                           4/   500, (  240.00 +/-   11
 Hlt1SingleHighPtMuon:                               0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:                         3/   500, (  180.00 +/-   103.61) kHz
 Hlt1TAEPassthrough:                                 0/   500, (    0.00 +/-     0.00) kHz
-Hlt1TrackElectronMVA:                              19/   500, ( 1140.00 +/-   256.52) kHz
-Hlt1TrackMVA:                                     121/   500, ( 7260.00 +/-   574.62) kHz
+Hlt1TrackElectronMVA:                              20/   500, ( 1200.00 +/-   262.91) kHz
+Hlt1TrackMVA:                                     118/   500, ( 7080.00 +/-   569.69) kHz
 Hlt1TrackMuonMVA:                                   9/   500, (  540.00 +/-   178.37) kHz
 Hlt1TwoKs:                                          0/   500, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackKs:                                     3/   500, (  180.00 +/-   103.61) kHz
@@ -162,11 +162,11 @@ Hlt1ConeJet100GeV:                                  0           0
 Hlt1ConeJet15GeV:                                   2           2
 Hlt1ConeJet30GeV:                                   0           0
 Hlt1ConeJet50GeV:                                   0           0
-Hlt1D2KK:                                          11          12
+Hlt1D2KK:                                          12          13
 Hlt1D2KPi:                                         15          15
 Hlt1D2KPiAlignment:                                 7           7
 Hlt1D2Kshh:                                         0           0
-Hlt1D2PiPi:                                         9          10
+Hlt1D2PiPi:                                         9           9
 Hlt1DetJpsiToMuMuNegTagLine:                        0           0
 Hlt1DetJpsiToMuMuPosTagLine:                        0           0
 Hlt1DiElectronDisplaced:                            0           0
@@ -238,23 +238,23 @@ Hlt1SingleHighPtElectron:                           4           8
 Hlt1SingleHighPtMuon:                               0           0
 Hlt1SingleHighPtMuonNoMuID:                         3           3
 Hlt1TAEPassthrough:                                 0           0
-Hlt1TrackElectronMVA:                              19          20
-Hlt1TrackMVA:                                     121         185
+Hlt1TrackElectronMVA:                              20          21
+Hlt1TrackMVA:                                     118         183
 Hlt1TrackMuonMVA:                                   9          10
 Hlt1TwoKs:                                          0           0
 Hlt1TwoTrackKs:                                     3           4
-Hlt1TwoTrackMVA:                                  255         677
+Hlt1TwoTrackMVA:                                  255         676
 Hlt1UpsilonAlignment:                               0           0
 Hlt1VeloMicroBias:                                  1           0
 Hlt1VeloMicroBiasVeloClosing:                       0           0
 Hlt1XiOmegaLLL:                                     0           0
 
-Total decisions:      474
-Total tracks:         829
+Total decisions:      473
+Total tracks:         830
 Total calos clusters: 22
-Total SVs:            709
-Total hits:           18268
-Total stdinfo:        10030
+Total SVs:            708
+Total hits:           18289
+Total stdinfo:        10033
 
 
 velo_validator validation:
