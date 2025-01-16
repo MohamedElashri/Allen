@@ -32,7 +32,7 @@ Muon fraction in MCPs to which a track(s) was matched:                     56/  
 Correctly identified muons with isMuon:                                    50/       56  89.29% 
 Correctly identified muons from strange decays with isMuon:                 0/        0   -nan% 
 Correctly identified muons from B decays with isMuon:                      27/       32  84.38% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:       394/     8438   4.67% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:       393/     8438   4.66% 
 Ghost tracks identified as muon with isMuon:                               12/      194   6.19% 
 
 
@@ -61,11 +61,11 @@ Hlt1ConeJet100GeV:                                  0/   500, (    0.00 +/-     
 Hlt1ConeJet15GeV:                                   2/   500, (  120.00 +/-    84.68) kHz
 Hlt1ConeJet30GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet50GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
-Hlt1D2KK:                                          12/   500, (  720.00 +/-   205.34) kHz
+Hlt1D2KK:                                          13/   500, (  780.00 +/-   213.50) kHz
 Hlt1D2KPi:                                         15/   500, (  900.00 +/-   228.87) kHz
 Hlt1D2KPiAlignment:                                 6/   500, (  360.00 +/-   146.08) kHz
 Hlt1D2Kshh:                                         0/   500, (    0.00 +/-     0.00) kHz
-Hlt1D2PiPi:                                         7/   500, (  420.00 +/-   157.63) kHz
+Hlt1D2PiPi:                                         5/   500, (  300.00 +/-   133.49) kHz
 Hlt1DetJpsiToMuMuNegTagLine:                        0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DetJpsiToMuMuPosTagLine:                        0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronDisplaced:                            0/   500, (    0.00 +/-     0.00) kHz
@@ -137,17 +137,17 @@ Hlt1SingleHighPtElectron:                           3/   500, (  180.00 +/-   10
 Hlt1SingleHighPtMuon:                               0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:                         3/   500, (  180.00 +/-   103.61) kHz
 Hlt1TAEPassthrough:                                 0/   500, (    0.00 +/-     0.00) kHz
-Hlt1TrackElectronMVA:                              19/   500, ( 1140.00 +/-   256.52) kHz
-Hlt1TrackMVA:                                     118/   500, ( 7080.00 +/-   569.69) kHz
+Hlt1TrackElectronMVA:                              20/   500, ( 1200.00 +/-   262.91) kHz
+Hlt1TrackMVA:                                     115/   500, ( 6900.00 +/-   564.61) kHz
 Hlt1TrackMuonMVA:                                   8/   500, (  480.00 +/-   168.34) kHz
 Hlt1TwoKs:                                          0/   500, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackKs:                                     3/   500, (  180.00 +/-   103.61) kHz
-Hlt1TwoTrackMVA:                                  246/   500, (14760.00 +/-   670.73) kHz
+Hlt1TwoTrackMVA:                                  248/   500, (14880.00 +/-   670.80) kHz
 Hlt1UpsilonAlignment:                               0/   500, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                                  1/   500, (   60.00 +/-    59.94) kHz
 Hlt1VeloMicroBiasVeloClosing:                       0/   500, (    0.00 +/-     0.00) kHz
 Hlt1XiOmegaLLL:                                     0/   500, (    0.00 +/-     0.00) kHz
-Inclusive:                                        277/   500, (16620.00 +/-   666.90) kHz
+Inclusive:                                        276/   500, (16560.00 +/-   667.18) kHz
 
 
 selreport_validator validation:
@@ -162,11 +162,11 @@ Hlt1ConeJet100GeV:                                  0           0
 Hlt1ConeJet15GeV:                                   2           2
 Hlt1ConeJet30GeV:                                   0           0
 Hlt1ConeJet50GeV:                                   0           0
-Hlt1D2KK:                                          12          13
+Hlt1D2KK:                                          13          14
 Hlt1D2KPi:                                         15          15
 Hlt1D2KPiAlignment:                                 6           6
 Hlt1D2Kshh:                                         0           0
-Hlt1D2PiPi:                                         7           7
+Hlt1D2PiPi:                                         5           5
 Hlt1DetJpsiToMuMuNegTagLine:                        0           0
 Hlt1DetJpsiToMuMuPosTagLine:                        0           0
 Hlt1DiElectronDisplaced:                            0           0
@@ -238,23 +238,23 @@ Hlt1SingleHighPtElectron:                           3           6
 Hlt1SingleHighPtMuon:                               0           0
 Hlt1SingleHighPtMuonNoMuID:                         3           3
 Hlt1TAEPassthrough:                                 0           0
-Hlt1TrackElectronMVA:                              19          20
-Hlt1TrackMVA:                                     118         182
+Hlt1TrackElectronMVA:                              20          21
+Hlt1TrackMVA:                                     115         182
 Hlt1TrackMuonMVA:                                   8           9
 Hlt1TwoKs:                                          0           0
 Hlt1TwoTrackKs:                                     3           4
-Hlt1TwoTrackMVA:                                  246         653
+Hlt1TwoTrackMVA:                                  248         655
 Hlt1UpsilonAlignment:                               0           0
 Hlt1VeloMicroBias:                                  1           0
 Hlt1VeloMicroBiasVeloClosing:                       0           0
 Hlt1XiOmegaLLL:                                     0           0
 
-Total decisions:      458
-Total tracks:         804
+Total decisions:      457
+Total tracks:         807
 Total calos clusters: 22
-Total SVs:            684
-Total hits:           17765
-Total stdinfo:        9714
+Total SVs:            686
+Total hits:           17833
+Total stdinfo:        9745
 
 
 velo_validator validation:

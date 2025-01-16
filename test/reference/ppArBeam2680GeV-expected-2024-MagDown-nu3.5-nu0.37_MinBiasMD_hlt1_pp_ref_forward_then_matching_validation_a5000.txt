@@ -1,6 +1,6 @@
 forward_validator validation:
 TrackChecker output                               :       288/    16799   1.71% ghosts
-for P>3GeV,Pt>0.5GeV                              :       116/     9832   1.18% ghosts
+for P>3GeV,Pt>0.5GeV                              :       115/     9832   1.17% ghosts
 01_long                                           :     15386/    29988  51.31% ( 50.96%),       382 (  2.42%) clones, pur  99.59%, hit eff  99.10%
 02_long_P>5GeV                                    :     12598/    18751  67.19% ( 66.32%),       346 (  2.67%) clones, pur  99.67%, hit eff  99.35%
 03_long_strange                                   :       563/     1562  36.04% ( 34.47%),        13 (  2.26%) clones, pur  99.48%, hit eff  98.92%
@@ -22,7 +22,7 @@ long_fromB_P>5GeV_AND_Pt>1GeV                     :         1/        1 100.00% 
 
 long_validator validation:
 TrackChecker output                               :       752/    24784   3.03% ghosts
-for P>3GeV,Pt>0.5GeV                              :       139/    10392   1.34% ghosts
+for P>3GeV,Pt>0.5GeV                              :       138/    10392   1.33% ghosts
 01_long                                           :     21732/    29988  72.47% ( 72.96%),       513 (  2.31%) clones, pur  99.52%, hit eff  98.86%
 02_long_P>5GeV                                    :     16664/    18751  88.87% ( 89.08%),       441 (  2.58%) clones, pur  99.58%, hit eff  99.14%
 03_long_strange                                   :       947/     1562  60.63% ( 59.41%),        22 (  2.27%) clones, pur  99.36%, hit eff  98.84%
@@ -48,7 +48,7 @@ Muon fraction in MCPs to which a track(s) was matched:                    239/  
 Correctly identified muons with isMuon:                                   201/      239  84.10% 
 Correctly identified muons from strange decays with isMuon:                 0/        0   -nan% 
 Correctly identified muons from B decays with isMuon:                       0/        0   -nan% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:       908/    27284   3.33% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:       909/    27284   3.33% 
 Ghost tracks identified as muon with isMuon:                               49/      752   6.52% 
 
 
@@ -73,7 +73,7 @@ Hlt1BGIPseudoPVsDownBeamBeam:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BGIPseudoPVsNoBeam:                  0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BGIPseudoPVsUpBeamBeam:              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                             0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1ConeJet15GeV:                        4/  1000, (  120.00 +/-    59.88) kHz
+Hlt1ConeJet15GeV:                        3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1ConeJet30GeV:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet50GeV:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1D2KPi:                               5/  1000, (  150.00 +/-    66.91) kHz
@@ -105,13 +105,13 @@ Hlt1Passthrough:                         1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1PassthroughPVinSMOG2:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1RICH1Alignment:                      0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1RICH2Alignment:                      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1SMOG22BodyGeneric:                  18/  1000, (  540.00 +/-   126.13) kHz
+Hlt1SMOG22BodyGeneric:                  19/  1000, (  570.00 +/-   129.52) kHz
 Hlt1SMOG22BodyGenericPrompt:             1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1SMOG2BELowMultElectrons:             0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2BENoBias:                       0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1SMOG2D2Kpi:                          8/  1000, (  240.00 +/-    84.51) kHz
+Hlt1SMOG2D2Kpi:                          9/  1000, (  270.00 +/-    89.59) kHz
 Hlt1SMOG2DiMuonHighMass:                 0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1SMOG2KsTopipi:                       2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1SMOG2KsTopipi:                       3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SMOG2L0Toppi:                        3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1SMOG2MinimumBias:                    1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1SMOG2PassThroughLowMult5:            1/  1000, (   30.00 +/-    29.98) kHz
@@ -123,14 +123,14 @@ Hlt1SingleHighPtElectron:                1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1SingleHighPtMuon:                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TAEPassthrough:                      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1TrackElectronMVA:                    2/  1000, (   60.00 +/-    42.38) kHz
+Hlt1TrackElectronMVA:                    1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1TrackMVA:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMuonMVA:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackMVA:                         4/  1000, (  120.00 +/-    59.88) kHz
 Hlt1VeloMicroBias:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1VeloMicroBiasVeloClosing:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1XiOmegaLLL:                          0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                              55/  1000, ( 1650.00 +/-   216.28) kHz
+Inclusive:                              56/  1000, ( 1680.00 +/-   218.12) kHz
 
 
 seed_validator validation:
@@ -233,7 +233,7 @@ Hlt1BGIPseudoPVsDownBeamBeam:            0           0
 Hlt1BGIPseudoPVsNoBeam:                  0           0
 Hlt1BGIPseudoPVsUpBeamBeam:              0           0
 Hlt1BeamGas:                             0           0
-Hlt1ConeJet15GeV:                        4           4
+Hlt1ConeJet15GeV:                        3           3
 Hlt1ConeJet30GeV:                        0           0
 Hlt1ConeJet50GeV:                        0           0
 Hlt1D2KPi:                               5           6
@@ -265,13 +265,13 @@ Hlt1Passthrough:                         1           0
 Hlt1PassthroughPVinSMOG2:                0           0
 Hlt1RICH1Alignment:                      0           0
 Hlt1RICH2Alignment:                      0           0
-Hlt1SMOG22BodyGeneric:                  18          53
+Hlt1SMOG22BodyGeneric:                  19          54
 Hlt1SMOG22BodyGenericPrompt:             1           5
 Hlt1SMOG2BELowMultElectrons:             0           0
 Hlt1SMOG2BENoBias:                       0           0
-Hlt1SMOG2D2Kpi:                          8          14
+Hlt1SMOG2D2Kpi:                          9          15
 Hlt1SMOG2DiMuonHighMass:                 0           0
-Hlt1SMOG2KsTopipi:                       2           5
+Hlt1SMOG2KsTopipi:                       3           6
 Hlt1SMOG2L0Toppi:                        3           3
 Hlt1SMOG2MinimumBias:                    1           0
 Hlt1SMOG2PassThroughLowMult5:            1           0
@@ -283,7 +283,7 @@ Hlt1SingleHighPtElectron:                1           1
 Hlt1SingleHighPtMuon:                    0           0
 Hlt1SingleHighPtMuonNoMuID:              0           0
 Hlt1TAEPassthrough:                      0           0
-Hlt1TrackElectronMVA:                    2           2
+Hlt1TrackElectronMVA:                    1           1
 Hlt1TrackMVA:                            0           0
 Hlt1TrackMuonMVA:                        0           0
 Hlt1TwoTrackMVA:                         4           7
@@ -291,12 +291,12 @@ Hlt1VeloMicroBias:                       1           0
 Hlt1VeloMicroBiasVeloClosing:            0           0
 Hlt1XiOmegaLLL:                          0           0
 
-Total decisions:      65
-Total tracks:         114
-Total calos clusters: 11
-Total SVs:            87
-Total hits:           3359
-Total stdinfo:        1369
+Total decisions:      66
+Total tracks:         119
+Total calos clusters: 10
+Total SVs:            90
+Total hits:           3524
+Total stdinfo:        1418
 
 
 velo_validator validation:

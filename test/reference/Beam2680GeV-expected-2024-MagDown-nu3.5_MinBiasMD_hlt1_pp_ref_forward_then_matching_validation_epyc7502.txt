@@ -1,6 +1,6 @@
 forward_validator validation:
 TrackChecker output                               :       364/    27350   1.33% ghosts
-for P>3GeV,Pt>0.5GeV                              :       154/    16868   0.91% ghosts
+for P>3GeV,Pt>0.5GeV                              :       152/    16886   0.90% ghosts
 01_long                                           :     25472/    46162  55.18% ( 54.20%),       462 (  1.78%) clones, pur  99.62%, hit eff  99.15%
 02_long_P>5GeV                                    :     20322/    28556  71.17% ( 69.24%),       370 (  1.79%) clones, pur  99.69%, hit eff  99.35%
 03_long_strange                                   :       972/     2516  38.63% ( 38.63%),         8 (  0.82%) clones, pur  99.53%, hit eff  98.99%
@@ -23,7 +23,7 @@ long_fromB_P>5GeV_AND_Pt>1GeV                     :         4/        4 100.00% 
 
 long_validator validation:
 TrackChecker output                               :       443/    19083   2.32% ghosts
-for P>3GeV,Pt>0.5GeV                              :        86/     8854   0.97% ghosts
+for P>3GeV,Pt>0.5GeV                              :        85/     8863   0.96% ghosts
 01_long                                           :     17217/    23081  74.59% ( 74.66%),       308 (  1.76%) clones, pur  99.57%, hit eff  99.04%
 02_long_P>5GeV                                    :     12952/    14278  90.71% ( 90.46%),       237 (  1.80%) clones, pur  99.61%, hit eff  99.24%
 03_long_strange                                   :       817/     1258  64.94% ( 64.57%),         8 (  0.97%) clones, pur  99.45%, hit eff  98.90%
@@ -125,14 +125,14 @@ Hlt1SingleHighPtElectron:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TAEPassthrough:                      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1TrackElectronMVA:                    1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1TrackElectronMVA:                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMVA:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMuonMVA:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackMVA:                         3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1VeloMicroBias:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1VeloMicroBiasVeloClosing:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1XiOmegaLLL:                          0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                               9/  1000, (  270.00 +/-    89.59) kHz
+Inclusive:                               8/  1000, (  240.00 +/-    84.51) kHz
 
 
 seed_validator validation:
@@ -287,7 +287,7 @@ Hlt1SingleHighPtElectron:                0           0
 Hlt1SingleHighPtMuon:                    0           0
 Hlt1SingleHighPtMuonNoMuID:              0           0
 Hlt1TAEPassthrough:                      0           0
-Hlt1TrackElectronMVA:                    1           2
+Hlt1TrackElectronMVA:                    0           0
 Hlt1TrackMVA:                            0           0
 Hlt1TrackMuonMVA:                        0           0
 Hlt1TwoTrackMVA:                         3           4
@@ -295,12 +295,12 @@ Hlt1VeloMicroBias:                       1           0
 Hlt1VeloMicroBiasVeloClosing:            0           0
 Hlt1XiOmegaLLL:                          0           0
 
-Total decisions:      10
-Total tracks:         13
+Total decisions:      9
+Total tracks:         11
 Total calos clusters: 3
 Total SVs:            6
-Total hits:           328
-Total stdinfo:        150
+Total hits:           284
+Total stdinfo:        133
 
 
 velo_validator validation:

@@ -50,7 +50,7 @@ Muon fraction in MCPs to which a track(s) was matched:                    137/  
 Correctly identified muons with isMuon:                                   119/      137  86.86% 
 Correctly identified muons from strange decays with isMuon:                 0/        0   -nan% 
 Correctly identified muons from B decays with isMuon:                       1/        1 100.00% 
-Tracks identified as muon with isMuon, but matched to non-muon MCP:       818/    19721   4.15% 
+Tracks identified as muon with isMuon, but matched to non-muon MCP:       820/    19721   4.16% 
 Ghost tracks identified as muon with isMuon:                               31/      447   6.94% 
 
 
@@ -125,14 +125,14 @@ Hlt1SingleHighPtElectron:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TAEPassthrough:                      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1TrackElectronMVA:                    1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1TrackElectronMVA:                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMVA:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMuonMVA:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackMVA:                         3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1VeloMicroBias:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1VeloMicroBiasVeloClosing:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1XiOmegaLLL:                          0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                               9/  1000, (  270.00 +/-    89.59) kHz
+Inclusive:                               8/  1000, (  240.00 +/-    84.51) kHz
 
 
 seed_validator validation:
@@ -287,7 +287,7 @@ Hlt1SingleHighPtElectron:                0           0
 Hlt1SingleHighPtMuon:                    0           0
 Hlt1SingleHighPtMuonNoMuID:              0           0
 Hlt1TAEPassthrough:                      0           0
-Hlt1TrackElectronMVA:                    1           2
+Hlt1TrackElectronMVA:                    0           0
 Hlt1TrackMVA:                            0           0
 Hlt1TrackMuonMVA:                        0           0
 Hlt1TwoTrackMVA:                         3           4
@@ -295,12 +295,12 @@ Hlt1VeloMicroBias:                       1           0
 Hlt1VeloMicroBiasVeloClosing:            0           0
 Hlt1XiOmegaLLL:                          0           0
 
-Total decisions:      10
-Total tracks:         13
+Total decisions:      9
+Total tracks:         11
 Total calos clusters: 3
 Total SVs:            6
-Total hits:           275
-Total stdinfo:        150
+Total hits:           239
+Total stdinfo:        133
 
 
 velo_validator validation:
