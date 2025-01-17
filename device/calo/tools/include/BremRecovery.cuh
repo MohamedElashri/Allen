@@ -26,6 +26,7 @@ namespace brem_recovery {
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_kalman_beamline_states_t, char) dev_velo_kalman_beamline_states;
     // Calo digits
+    HOST_INPUT(host_ecal_number_of_digits_t, unsigned) host_ecal_number_of_digits;
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
     // Output
@@ -34,7 +35,7 @@ namespace brem_recovery {
     DEVICE_OUTPUT(dev_brem_inECALacc_t, bool) dev_brem_inECALacc;
     DEVICE_OUTPUT(dev_brem_ecal_digits_size_t, unsigned) dev_brem_ecal_digits_size;
     DEVICE_OUTPUT(dev_brem_ecal_digits_t, std::array<unsigned, 4>) dev_brem_ecal_digits;
-    // Properties
+    DEVICE_OUTPUT(dev_ecal_digits_isBremMatched_t, bool) dev_ecal_digits_isBremMatched;
   };
 
   struct brem_recovery_t : public DeviceAlgorithm, Parameters {

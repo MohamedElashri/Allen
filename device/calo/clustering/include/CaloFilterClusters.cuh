@@ -22,7 +22,6 @@ namespace calo_filter_clusters {
   struct Parameters {
 
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_ecal_number_of_clusters_t, unsigned) host_ecal_number_of_clusters;
     HOST_INPUT(host_ecal_number_of_twoclusters_t, unsigned) host_ecal_number_of_twoclusters;
     MASK_INPUT(dev_event_list_t) dev_event_list;
 

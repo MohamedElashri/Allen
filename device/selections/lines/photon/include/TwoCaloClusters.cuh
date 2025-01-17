@@ -27,7 +27,6 @@ namespace two_calo_clusters_line {
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_velo_tracks_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks;
-    HOST_INPUT(host_ecal_number_of_clusters_t, unsigned) host_ecal_number_of_clusters;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     DEVICE_INPUT(dev_cluster_particle_container_t, Allen::Views::Physics::MultiEventNeutralBasicParticles)
     dev_cluster_particle_container;
@@ -42,6 +41,8 @@ namespace two_calo_clusters_line {
     DEVICE_OUTPUT(eta_t, float) diphoton_eta;
     DEVICE_OUTPUT(minet_t, float) diphoton_min_photonet; // use this in bandwidth division
     DEVICE_OUTPUT(distance_t, float) diphoton_distance;
+    DEVICE_OUTPUT(isTrackMatched_t, bool) diphoton_isTrackMatched;
+    DEVICE_OUTPUT(isBremMatched_t, bool) diphoton_isBremMatched;
     DEVICE_OUTPUT(et1_t, float) photon1_et;
     DEVICE_OUTPUT(et2_t, float) photon2_et;
     DEVICE_OUTPUT(x1_t, float) photon1_x;
@@ -74,6 +75,7 @@ namespace two_calo_clusters_line {
       unsigned max_velo_tracks;
       unsigned max_ecal_clusters;
       unsigned max_n_pvs;
+      bool veto_bm_clusters;
       Allen::Monitoring::Histogram<>::DeviceType histogram_diphoton_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_diphoton_pt;
       DeviceProperties(const two_calo_clusters_line_t& algo, const Allen::Context& ctx) :
@@ -81,7 +83,8 @@ namespace two_calo_clusters_line {
         minPtEta(algo.m_minPtEta), minEt_clusters(algo.m_minEt_clusters), minSumEt_clusters(algo.m_minSumEt_clusters),
         minE19_clusters(algo.m_minE19_clusters), minAbsY_clusters(algo.m_minAbsY_clusters), eta_max(algo.m_eta_max),
         max_velo_tracks(algo.m_max_velo_tracks), max_ecal_clusters(algo.m_max_ecal_clusters),
-        max_n_pvs(algo.m_max_n_pvs), histogram_diphoton_mass(algo.m_histogram_diphoton_mass.data(ctx)),
+        max_n_pvs(algo.m_max_n_pvs), veto_bm_clusters(algo.m_veto_bm_clusters),
+        histogram_diphoton_mass(algo.m_histogram_diphoton_mass.data(ctx)),
         histogram_diphoton_pt(algo.m_histogram_diphoton_pt.data(ctx))
       {}
     };
@@ -104,6 +107,8 @@ namespace two_calo_clusters_line {
       eta_t,
       minet_t,
       distance_t,
+      isTrackMatched_t,
+      isBremMatched_t,
       et1_t,
       et2_t,
       x1_t,
@@ -158,6 +163,10 @@ namespace two_calo_clusters_line {
                                                    UINT_MAX,
                                                    "Maximum number of ECAL clusters"};
     Allen::Property<unsigned> m_max_n_pvs {this, "max_n_pvs", UINT_MAX, "Maximum number of PVs"};
+    Allen::Property<bool> m_veto_bm_clusters {this,
+                                              "veto_bm_clusters",
+                                              true,
+                                              "Discard candidates with bremsstrahlung-matched clusters"};
 
     Allen::Property<float> m_histogramdiphotonMassMin {this,
                                                        "histogram_diphoton_mass_min",

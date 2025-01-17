@@ -28,6 +28,7 @@ namespace track_digit_selective_matching {
     // DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
     DEVICE_INPUT(dev_tracks_view_t, Allen::IMultiEventContainer*) dev_tracks_view;
     // Calo digits
+    HOST_INPUT(host_ecal_number_of_digits_t, unsigned) host_ecal_number_of_digits;
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
     // Outputs
@@ -46,7 +47,7 @@ namespace track_digit_selective_matching {
     DEVICE_OUTPUT(dev_region_t, int) dev_region;
     DEVICE_OUTPUT(dev_dispersion_xy_t, float) dev_dispersion_xy;
     DEVICE_OUTPUT(dev_track_local_max_t, bool) dev_track_local_max;
-    // Properties
+    DEVICE_OUTPUT(dev_ecal_digits_isTrackMatched_t, bool) dev_ecal_digits_isTrackMatched;
   };
 
   struct track_digit_selective_matching_t : public DeviceAlgorithm, Parameters {

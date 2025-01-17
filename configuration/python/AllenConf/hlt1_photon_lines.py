@@ -9,7 +9,7 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenCore.algorithms import single_calo_cluster_line_t, two_calo_clusters_line_t
-from AllenConf.utils import initialize_number_of_events, mep_layout
+from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 
 
@@ -29,7 +29,8 @@ def make_single_calo_cluster_line(calo,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
-        host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"],
+        host_ecal_number_of_clusters_t=calo[
+            "host_ecal_number_of_neutral_particles"],
         dev_particle_container_t=calo["dev_multi_event_neutral_particles"],
         minEt=minEt,
         maxEt=maxEt,
@@ -56,7 +57,6 @@ def make_diphotonhighmass_line(calo,
         pre_scaler=pre_scaler,
         post_scaler=post_scaler,
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_velo_tracks_t=velo_tracks["dev_velo_tracks_view"],
         dev_particle_container_t=calo["dev_multi_event_diphotons"],

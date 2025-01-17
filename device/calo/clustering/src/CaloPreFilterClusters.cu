@@ -23,7 +23,7 @@ void calo_prefilter_clusters::calo_prefilter_clusters_t::set_arguments_size(
   set_size<dev_num_prefiltered_clusters_t>(arguments, n_events);
   set_size<dev_ecal_twocluster_offsets_t>(arguments, n_events + 1);
   set_size<host_total_sum_holder_t>(arguments, 1);
-  set_size<dev_prefiltered_clusters_idx_t>(arguments, first<host_ecal_number_of_clusters_t>(arguments));
+  set_size<dev_prefiltered_clusters_idx_t>(arguments, first<host_ecal_number_of_neutral_clusters_t>(arguments));
 }
 
 void calo_prefilter_clusters::calo_prefilter_clusters_t::operator()(
@@ -54,13 +54,24 @@ __global__ void calo_prefilter_clusters::calo_prefilter_clusters(
   unsigned* prefiltered_clusters_idx = parameters.dev_prefiltered_clusters_idx + ecal_clusters_offset;
   unsigned* num_prefiltered_clusters = parameters.dev_num_prefiltered_clusters + event_number;
 
+  __shared__ unsigned num_prefiltered_clusters_shared;
+  if (threadIdx.x == 0) {
+    num_prefiltered_clusters_shared = 0u;
+  }
+  __syncthreads();
+
   for (unsigned i_cluster = threadIdx.x; i_cluster < ecal_num_clusters; i_cluster += blockDim.x) {
     const auto particle = event_neutral_particles.particle(i_cluster);
     const auto cluster = particle.cluster();
     if (cluster.et > minEt_clusters && cluster.CaloNeutralE19 > minE19_clusters) {
-      const unsigned idx = atomicAdd(num_prefiltered_clusters, 1);
+      const unsigned idx = atomicAdd(&num_prefiltered_clusters_shared, 1);
       prefiltered_clusters_idx[idx] = i_cluster;
     }
+  }
+
+  __syncthreads();
+  if (threadIdx.x == 0) {
+    *num_prefiltered_clusters = num_prefiltered_clusters_shared;
   }
 }
 

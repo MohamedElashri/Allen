@@ -16,16 +16,14 @@
 
 namespace total_ecal_energy {
   struct Parameters {
-    HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_ecal_number_of_digits_t, unsigned) host_ecal_number_of_digits;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
     DEVICE_INPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
-    DEVICE_OUTPUT(dev_ecal_digits_e_t, float) dev_ecal_digits_e;
     DEVICE_OUTPUT(dev_total_ecal_e_t, float) dev_total_ecal_e;
   };
 
-  __global__ void sum_ecal_energy(Parameters parameters, const char* raw_ecal_geometry);
+  __global__ void get_ecal_energy(Parameters parameters, const char* raw_ecal_geometry, float* dev_ecal_digits_e);
 
   struct total_ecal_energy_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;

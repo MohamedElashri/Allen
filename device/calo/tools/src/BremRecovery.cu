@@ -23,6 +23,7 @@ void brem_recovery::brem_recovery_t::set_arguments_size(
   set_size<dev_brem_inECALacc_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
   set_size<dev_brem_ecal_digits_size_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
   set_size<dev_brem_ecal_digits_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
+  set_size<dev_ecal_digits_isBremMatched_t>(arguments, first<host_ecal_number_of_digits_t>(arguments));
 }
 
 void brem_recovery::brem_recovery_t::operator()(
@@ -36,6 +37,7 @@ void brem_recovery::brem_recovery_t::operator()(
   Allen::memset_async<dev_brem_inECALacc_t>(arguments, 0, context);
   Allen::memset_async<dev_brem_ecal_digits_size_t>(arguments, 0, context);
   Allen::memset_async<dev_brem_ecal_digits_t>(arguments, 0, context);
+  Allen::memset_async<dev_ecal_digits_isBremMatched_t>(arguments, 0, context);
 
   global_function(brem_recovery)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments, constants.dev_ecal_geometry);
@@ -58,6 +60,7 @@ __global__ void brem_recovery::brem_recovery(brem_recovery::Parameters parameter
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   const unsigned digits_offset = parameters.dev_ecal_digits_offsets[event_number];
   auto const* digits = parameters.dev_ecal_digits + digits_offset;
+  auto* digits_isBremMatched = parameters.dev_ecal_digits_isBremMatched + digits_offset;
 
   // Loop over the velo tracks in parallel to find brem cluster
   for (unsigned track_index = threadIdx.x; track_index < velo_tracks.number_of_tracks(event_number);
@@ -95,6 +98,11 @@ __global__ void brem_recovery::brem_recovery(brem_recovery::Parameters parameter
       N_matched_digits,
       sum_cell_E,
       digit_indices);
+
+    for (unsigned j = 0; j < N_matched_digits; ++j) {
+      const unsigned& digit_index = digit_indices[j];
+      digits_isBremMatched[digit_index] = true;
+    }
 
     parameters.dev_brem_E[track_index_with_offset] = sum_cell_E;
     parameters.dev_brem_ET[track_index_with_offset] =

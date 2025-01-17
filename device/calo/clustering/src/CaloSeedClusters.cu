@@ -22,14 +22,18 @@ __device__ void seed_clusters(
   const int16_t min_adc,
   unsigned* digit_is_seed)
 {
+
+  __shared__ unsigned num_clusters_shared;
+  if (threadIdx.x == 0) num_clusters_shared = 0u;
+  __syncthreads();
+
   // Loop over all CellIDs.
   for (unsigned i = threadIdx.x; i < num_digits; i += blockDim.x) {
     const auto digit = digits[i];
-    digit_is_seed[i] = 0;
     if (digit.adc < min_adc || !digit.is_valid()) {
       continue;
     }
-    uint16_t* neighbors = &(geometry.neighbors[i * Calo::Constants::max_neighbours]);
+    const uint16_t* neighbors = &(geometry.neighbors[i * Calo::Constants::max_neighbours]);
     bool is_max = true;
     float energy = geometry.getE(i, digit.adc);
     for (unsigned n = 0; n < Calo::Constants::max_neighbours; n++) {
@@ -37,16 +41,21 @@ __device__ void seed_clusters(
       if (neighbor_id == USHRT_MAX) {
         continue;
       }
-      auto const neighbor_digit = digits[neighbors[n]];
-      is_max = is_max && (digit.adc > neighbor_digit.adc || !neighbor_digit.is_valid());
-      if (neighbor_digit.is_valid()) energy += geometry.getE(neighbor_id, neighbor_digit.adc);
+      auto const neighbor_digit = digits[neighbor_id];
+      if (neighbor_digit.is_valid()) {
+        is_max = is_max && (digit.adc > neighbor_digit.adc);
+        energy += geometry.getE(neighbor_id, neighbor_digit.adc);
+      }
     }
     if (is_max) {
-      auto const id = atomicAdd(num_clusters.data(), 1);
-      clusters[id] = CaloSeedCluster(i, digits[i].adc, geometry.getX(i), geometry.getY(i), energy);
+      auto const id = atomicAdd(&num_clusters_shared, 1);
+      clusters[id] = CaloSeedCluster(i, digit.adc, geometry.getX(i), geometry.getY(i), energy);
       digit_is_seed[i] = id;
     }
   }
+
+  __syncthreads();
+  if (threadIdx.x == 0) num_clusters[0] = num_clusters_shared;
 }
 
 __global__ void calo_seed_clusters::calo_seed_clusters(
@@ -93,6 +102,7 @@ void calo_seed_clusters::calo_seed_clusters_t::operator()(
   const Constants& constants,
   Allen::Context const& context) const
 {
+  Allen::memset_async<dev_ecal_digit_is_seed_t>(arguments, 0, context);
   Allen::memset_async<dev_ecal_cluster_offsets_t>(arguments, 0, context);
 
   // Find local maxima.
