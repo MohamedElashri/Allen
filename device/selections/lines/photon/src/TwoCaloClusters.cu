@@ -44,6 +44,9 @@ __device__ bool two_calo_clusters_line::two_calo_clusters_line_t::select(
                   (number_of_velo_tracks <= properties.max_velo_tracks) &&
                   (ecal_number_of_clusters <= properties.max_ecal_clusters) && (n_pvs <= properties.max_n_pvs) &&
                   (eta < properties.eta_max);
+
+  if (properties.veto_bm_clusters) decision = decision && !(c1.isBremMatched || c2.isBremMatched);
+
   return decision;
 }
 
@@ -66,6 +69,8 @@ __device__ void two_calo_clusters_line::two_calo_clusters_line_t::fill_tuples(
     parameters.diphoton_min_photonet[index] =
       min(child1->et(), child2->et()); // can be used in bandwidth division, [2000,4500] GeV
     parameters.diphoton_distance[index] = dicluster.diphoton_distance();
+    parameters.diphoton_isTrackMatched[index] = c1.isTrackMatched || c2.isTrackMatched;
+    parameters.diphoton_isBremMatched[index] = c1.isBremMatched || c2.isBremMatched;
     parameters.photon1_x[index] = c1.x;
     parameters.photon1_y[index] = c1.y;
     parameters.photon1_et[index] = child1->et();

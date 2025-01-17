@@ -22,7 +22,7 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenConf.persistency import make_dec_reporter, make_gather_selections, make_routingbits_writer, rb_map
 from AllenCore.algorithms import seeding_copy_trackXZ_hit_number_t
-from AllenConf.scifi_reconstruction import decode_scifi, make_seeding_XZ_tracks, make_seeding_tracks
+from AllenConf.scifi_reconstruction import decode_scifi, make_seeding_XZ_tracks
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.muon_reconstruction import decode_muon
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
@@ -460,7 +460,8 @@ def data_quality_validation_occupancy(name="data_quality_validator"):
     decoded_muon = decode_muon()
     decoded_calo = decode_calo()
     ecal_clusters = make_ecal_clusters(
-        decoded_calo, calo_find_clusters_name='calo_find_clusters')
+        decoded_calo,
+        calo_find_clusters_name='calo_find_clusters_dq_validator')
 
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)

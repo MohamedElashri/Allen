@@ -10,14 +10,18 @@
 \*****************************************************************************/
 #include <CaloCluster.cuh>
 #include <CaloFindClusters.cuh>
+#include <PrefixSum.cuh>
 
 INSTANTIATE_ALGORITHM(calo_find_clusters::calo_find_clusters_t)
 
 __device__ void simple_clusters(
   CaloDigit const* digits,
+  const bool* digits_isTrackMatched,
+  const bool* digits_isBremMatched,
   CaloSeedCluster const* seed_clusters,
   CaloCluster* clusters,
   unsigned const num_clusters,
+  unsigned* num_neutral_clusters,
   const CaloGeometry& calo,
   const int16_t min_adc,
   float const* corrections,
@@ -27,10 +31,16 @@ __device__ void simple_clusters(
   Allen::Monitoring::Histogram<>::DeviceType histo_ecal_cluster_x,
   Allen::Monitoring::Histogram<>::DeviceType histo_ecal_cluster_y)
 {
+
+  __shared__ unsigned num_neutral_clusters_shared;
+  if (threadIdx.x == 0) num_neutral_clusters_shared = 0u;
+  __syncthreads();
+
   for (unsigned c = threadIdx.x; c < num_clusters; c += blockDim.x) {
-    auto const& seed_cluster = seed_clusters[c];
-    auto& cluster = clusters[c];
-    cluster = CaloCluster(calo, seed_cluster);
+    auto const seed_cluster = seed_clusters[c];
+    const bool isTrackMatched = digits_isTrackMatched[seed_cluster.id];
+    const bool isBremMatched = digits_isBremMatched[seed_cluster.id];
+    auto cluster = CaloCluster(calo, seed_cluster, isTrackMatched, isBremMatched);
 
     uint16_t const* neighbors = &(calo.neighbors[seed_cluster.id * Calo::Constants::max_neighbours]);
     for (uint16_t n = 0; n < Calo::Constants::max_neighbours; n++) {
@@ -65,7 +75,16 @@ __device__ void simple_clusters(
     histo_ecal_cluster_et.increment(cluster.et);
     histo_ecal_cluster_x.increment(cluster.x);
     histo_ecal_cluster_y.increment(cluster.y);
+
+    clusters[c] = cluster;
+
+    if (!cluster.isTrackMatched) {
+      atomicAdd(&num_neutral_clusters_shared, 1);
+    }
   }
+
+  __syncthreads();
+  if (threadIdx.x == 0) *num_neutral_clusters = num_neutral_clusters_shared;
 }
 
 __global__ void calo_find_clusters::calo_find_clusters(
@@ -93,9 +112,12 @@ __global__ void calo_find_clusters::calo_find_clusters(
 
   simple_clusters(
     parameters.dev_ecal_digits + ecal_digits_offset,
+    parameters.dev_ecal_digits_isTrackMatched + ecal_digits_offset,
+    parameters.dev_ecal_digits_isBremMatched + ecal_digits_offset,
     parameters.dev_ecal_seed_clusters + Calo::Constants::ecal_max_index / 8 * event_number,
     parameters.dev_ecal_clusters + ecal_clusters_offset,
     ecal_num_clusters,
+    parameters.dev_ecal_neutral_cluster_offsets + event_number,
     ecal_geometry,
     min_adc,
     parameters.dev_ecal_corrections + ecal_clusters_offset,
@@ -111,7 +133,10 @@ void calo_find_clusters::calo_find_clusters_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
+  auto const n_events = first<host_number_of_events_t>(arguments);
   set_size<dev_ecal_clusters_t>(arguments, first<host_ecal_number_of_clusters_t>(arguments));
+  set_size<dev_ecal_neutral_cluster_offsets_t>(arguments, n_events + 1);
+  set_size<host_total_sum_holder_t>(arguments, 1);
 }
 
 __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
@@ -127,6 +152,8 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
   auto dev_histo_ecal_cluster_x = m_histogram_ecal_cluster_x.data(context);
   auto dev_histo_ecal_cluster_y = m_histogram_ecal_cluster_y.data(context);
 
+  Allen::memset_async<dev_ecal_neutral_cluster_offsets_t>(arguments, 0, context);
+
   // Find clusters.
   global_function(calo_find_clusters)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
     arguments,
@@ -138,4 +165,6 @@ __host__ void calo_find_clusters::calo_find_clusters_t::operator()(
     dev_histo_ecal_cluster_et,
     dev_histo_ecal_cluster_x,
     dev_histo_ecal_cluster_y);
+
+  PrefixSum::prefix_sum<dev_ecal_neutral_cluster_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
 }

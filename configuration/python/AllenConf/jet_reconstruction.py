@@ -11,7 +11,6 @@
 from AllenCore.algorithms import build_cone_jets_t, make_neutral_particles_t
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
-from AllenConf.odin import decode_odin
 
 
 def make_cone_jets(long_tracks,
@@ -27,7 +26,7 @@ def make_cone_jets(long_tracks,
         host_number_of_tracks_t=long_tracks[
             "host_number_of_reconstructed_scifi_tracks"],
         host_number_of_neutrals_t=ecal_clusters[
-            "host_ecal_number_of_clusters"],
+            "host_ecal_number_of_neutral_particles"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_long_track_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
@@ -39,9 +38,11 @@ def make_cone_jets(long_tracks,
         make_neutral_particles_t,
         name="make_neutral_particles_{hash}",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_clusters_t=build_cone_jets.host_number_of_jets_t,
+        host_number_of_neutral_clusters_t=build_cone_jets.
+        host_number_of_jets_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_ecal_cluster_offsets_t=build_cone_jets.dev_jet_offsets_t,
+        dev_ecal_neutral_cluster_offsets_t=build_cone_jets.dev_jet_offsets_t,
         dev_ecal_clusters_t=build_cone_jets.dev_jet_clusters_t)
 
     return {

@@ -25,8 +25,10 @@ struct CaloSeedCluster {
 
   __device__ __host__ CaloSeedCluster() {}
 
-  __device__ __host__ CaloSeedCluster(uint16_t cellid, int16_t a, float rX, float rY, float energy) :
-    id {cellid}, adc {a}, x {rX}, y {rY}, e {energy}
+  __device__ __host__
+  CaloSeedCluster(const uint16_t& cellid, const int16_t& a, const float& rX, const float& rY, const float& energy) :
+    id {cellid},
+    adc {a}, x {rX}, y {rY}, e {energy}
   {}
 };
 
@@ -39,11 +41,15 @@ struct CaloCluster {
   uint16_t digits[Calo::Constants::max_neighbours] =
     {USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX, USHRT_MAX};
   float CaloNeutralE19 = -1.f;
+  bool isTrackMatched = false;
+  bool isBremMatched = false;
 
   __device__ __host__ CaloCluster() {}
 
-  __device__ __host__ CaloCluster(const CaloGeometry& calo, const CaloSeedCluster& seed) :
-    e {calo.getE(seed.id, seed.adc)}, x {seed.x}, y {seed.y}, center_id {seed.id}
+  __device__ __host__
+  CaloCluster(const CaloGeometry& calo, const CaloSeedCluster& seed, const bool& isTM, const bool& isBM) :
+    e {calo.getE(seed.id, seed.adc)},
+    x {seed.x}, y {seed.y}, center_id {seed.id}, isTrackMatched {isTM}, isBremMatched {isBM}
   {}
 
   // Construct a CALO cluster from jet data.

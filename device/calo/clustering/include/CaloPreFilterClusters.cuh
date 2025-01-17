@@ -20,7 +20,7 @@ namespace calo_prefilter_clusters {
 
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    HOST_INPUT(host_ecal_number_of_clusters_t, unsigned) host_ecal_number_of_clusters;
+    HOST_INPUT(host_ecal_number_of_neutral_clusters_t, unsigned) host_ecal_number_neutral_of_clusters;
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
 

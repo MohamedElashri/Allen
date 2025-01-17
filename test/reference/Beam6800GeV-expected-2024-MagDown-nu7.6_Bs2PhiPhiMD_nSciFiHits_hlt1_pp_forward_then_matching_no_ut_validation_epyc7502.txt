@@ -86,7 +86,7 @@ Hlt1BGIPseudoPVsNoBeam:                             0/   500, (    0.00 +/-     
 Hlt1BGIPseudoPVsUpBeamBeam:                         0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                        0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet100GeV:                                  0/   500, (    0.00 +/-     0.00) kHz
-Hlt1ConeJet15GeV:                                   2/   500, (  120.00 +/-    84.68) kHz
+Hlt1ConeJet15GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet30GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet50GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1D2KK:                                          15/   500, (  900.00 +/-   228.87) kHz
@@ -126,7 +126,7 @@ Hlt1DiMuonJpsiMassAlignment:                        0/   500, (    0.00 +/-     
 Hlt1DiMuonNoIP:                                     0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonNoIP_SS:                                  0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                                     0/   500, (    0.00 +/-     0.00) kHz
-Hlt1DiPhotonHighMass:                               7/   500, (  420.00 +/-   157.63) kHz
+Hlt1DiPhotonHighMass:                               3/   500, (  180.00 +/-   103.61) kHz
 Hlt1Dst2D0Pi:                                       0/   500, (    0.00 +/-     0.00) kHz
 Hlt1Dst2D0PiAlignment:                              0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ErrorBank:                                      0/   500, (    0.00 +/-     0.00) kHz
@@ -295,7 +295,7 @@ Hlt1BGIPseudoPVsNoBeam:                             0           0
 Hlt1BGIPseudoPVsUpBeamBeam:                         0           0
 Hlt1BeamGas:                                        0           0
 Hlt1ConeJet100GeV:                                  0           0
-Hlt1ConeJet15GeV:                                   2           2
+Hlt1ConeJet15GeV:                                   0           0
 Hlt1ConeJet30GeV:                                   0           0
 Hlt1ConeJet50GeV:                                   0           0
 Hlt1D2KK:                                          15          16
@@ -335,7 +335,7 @@ Hlt1DiMuonJpsiMassAlignment:                        0           0
 Hlt1DiMuonNoIP:                                     0           0
 Hlt1DiMuonNoIP_SS:                                  0           0
 Hlt1DiMuonSoft:                                     0           0
-Hlt1DiPhotonHighMass:                               7          13
+Hlt1DiPhotonHighMass:                               3           6
 Hlt1Dst2D0Pi:                                       0           0
 Hlt1Dst2D0PiAlignment:                              0           0
 Hlt1ErrorBank:                                      0           0
@@ -385,12 +385,12 @@ Hlt1VeloMicroBias:                                  1           0
 Hlt1VeloMicroBiasVeloClosing:                       0           0
 Hlt1XiOmegaLLL:                                     0           0
 
-Total decisions:      579
+Total decisions:      573
 Total tracks:         1212
-Total calos clusters: 22
-Total SVs:            1110
+Total calos clusters: 9
+Total SVs:            1103
 Total hits:           26751
-Total stdinfo:        14803
+Total stdinfo:        14717
 
 
 velo_validator validation:

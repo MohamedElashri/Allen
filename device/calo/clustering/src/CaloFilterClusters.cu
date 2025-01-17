@@ -54,7 +54,6 @@ __global__ void calo_filter_clusters::calo_filter_clusters(calo_filter_clusters:
   unsigned* event_cluster1_idx = parameters.dev_cluster1_idx + ecal_twoclusters_offsets;
   unsigned* event_cluster2_idx = parameters.dev_cluster2_idx + ecal_twoclusters_offsets;
 
-  // const unsigned ecal_cluster_offsets = parameters.dev_ecal_cluster_offsets[event_number];
   const auto event_neutral_particles = parameters.dev_neutral_particles->container(event_number);
   const unsigned* prefiltered_clusters_idx = parameters.dev_prefiltered_clusters_idx + event_neutral_particles.offset();
   const unsigned n_prefltred_clusters = parameters.dev_num_prefiltered_clusters[event_number];

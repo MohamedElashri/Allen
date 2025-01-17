@@ -17,10 +17,11 @@
 namespace make_neutral_basic_particles {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_number_of_clusters_t, unsigned) host_number_of_clusters;
+    HOST_INPUT(host_number_of_neutral_clusters_t, unsigned) host_number_of_neutral_clusters;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
+    DEVICE_INPUT(dev_ecal_neutral_cluster_offsets_t, unsigned) dev_ecal_neutral_cluster_offsets;
     DEVICE_INPUT(dev_ecal_clusters_t, CaloCluster) dev_ecal_clusters;
     DEVICE_OUTPUT_WITH_DEPENDENCIES(
       dev_neutral_basic_particle_view_t,

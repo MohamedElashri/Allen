@@ -9,6 +9,7 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "TotalEcalEnergy.cuh"
+#include "SumReduction.cuh"
 
 INSTANTIATE_ALGORITHM(total_ecal_energy::total_ecal_energy_t)
 
@@ -17,8 +18,7 @@ void total_ecal_energy::total_ecal_energy_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_total_ecal_e_t>(arguments, first<host_number_of_events_t>(arguments));
-  set_size<dev_ecal_digits_e_t>(arguments, first<host_ecal_number_of_digits_t>(arguments));
+  set_size<dev_total_ecal_e_t>(arguments, size<dev_event_list_t>(arguments));
 }
 
 void total_ecal_energy::total_ecal_energy_t::operator()(
@@ -28,15 +28,26 @@ void total_ecal_energy::total_ecal_energy_t::operator()(
   Allen::Context const& context) const
 {
   Allen::memset_async<dev_total_ecal_e_t>(arguments, 0, context);
-  Allen::memset_async<dev_ecal_digits_e_t>(arguments, 0, context);
 
-  global_function(sum_ecal_energy)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
-    arguments, constants.dev_ecal_geometry);
+  auto dev_ecal_digits_e =
+    arguments.template make_buffer<Allen::Store::Scope::Device, float>(first<host_ecal_number_of_digits_t>(arguments));
+
+  global_function(get_ecal_energy)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
+    arguments, constants.dev_ecal_geometry, dev_ecal_digits_e.data());
+
+  SumReduction::sum_reduction(
+    *this,
+    context,
+    dev_ecal_digits_e.data(),
+    data<dev_ecal_digits_offsets_t>(arguments),
+    size<dev_event_list_t>(arguments),
+    data<dev_total_ecal_e_t>(arguments));
 }
 
-__global__ void total_ecal_energy::sum_ecal_energy(
+__global__ void total_ecal_energy::get_ecal_energy(
   total_ecal_energy::Parameters parameters,
-  const char* raw_ecal_geometry)
+  const char* raw_ecal_geometry,
+  float* dev_ecal_digits_e)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -44,23 +55,12 @@ __global__ void total_ecal_energy::sum_ecal_energy(
   const unsigned digits_offset = parameters.dev_ecal_digits_offsets[event_number];
   const unsigned n_digits = parameters.dev_ecal_digits_offsets[event_number + 1] - digits_offset;
   auto const* digits = parameters.dev_ecal_digits + digits_offset;
-  float* event_ecal_digits_e = parameters.dev_ecal_digits_e + digits_offset;
+  float* event_ecal_digits_e = dev_ecal_digits_e + digits_offset;
 
   for (unsigned digit_index = threadIdx.x; digit_index < n_digits; digit_index += blockDim.x) {
-    event_ecal_digits_e[digit_index] = ecal_geometry.getE(digit_index, digits[digit_index].adc);
-  }
-
-  __syncthreads();
-
-  if (threadIdx.x == 0) {
-    float e_sum = 0.f;
-    for (unsigned digit_index = 0; digit_index < n_digits; digit_index++) {
-      // check the digits
-      if (digits[digit_index].adc < 0. || !digits[digit_index].is_valid()) {
-        continue;
-      }
-      e_sum += event_ecal_digits_e[digit_index];
+    const auto digit = digits[digit_index];
+    if (digit.is_valid() && digit.adc > 0) {
+      event_ecal_digits_e[digit_index] = ecal_geometry.getE(digit_index, digit.adc);
     }
-    parameters.dev_total_ecal_e[event_number] = e_sum;
   }
 }
