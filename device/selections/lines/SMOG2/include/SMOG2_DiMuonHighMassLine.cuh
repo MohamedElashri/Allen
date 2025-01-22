@@ -90,7 +90,7 @@ namespace SMOG2_dimuon_highmass_line {
     using monitoring_types = std::tuple<mass_t, svz_t, pvz_t, pt_t, maxchi2corr_t>;
 
   private:
-    Allen::Property<float> m_maxTrackChi2Ndf {this, "maxTrackChi2Ndf", 3.f, "max track fit Chi2ndf"};
+    Allen::Property<float> m_maxTrackChi2Ndf {this, "maxTrackChi2Ndf", 5.f, "max track fit Chi2ndf"};
     Allen::Property<float> m_minTrackPt {this,
                                          "minTrackPt",
                                          500.f * Gaudi::Units::MeV,
