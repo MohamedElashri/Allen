@@ -74,10 +74,10 @@ ApplicationMgr                         INFO Application Manager Terminated succe
 HLTControlFlowMgr                      INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Processed events"                              |         1 |
-calo_filter_clusters_5af2e675          INFO Number of counters : 1
+calo_filter_clusters_b3e43409          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |    494739 |
-gather_selections                      INFO Number of counters : 96
+gather_selections                      INFO Number of counters : 94
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Hlt1ConeJet100GeVPass"                         |         1 |
  | "Hlt1ConeJet100GeVRate"                         |         1 |
@@ -131,8 +131,8 @@ gather_selections                      INFO Number of counters : 96
  | "Hlt1DiMuonNoIP_SSPass"                         |         5 |
  | "Hlt1DiMuonSoftPass"                            |         6 |
  | "Hlt1DiMuonSoftRate"                            |         6 |
- | "Hlt1DiPhotonHighMassPass"                      |        81 |
- | "Hlt1DiPhotonHighMassRate"                      |        81 |
+ | "Hlt1DiPhotonHighMassPass"                      |        32 |
+ | "Hlt1DiPhotonHighMassRate"                      |        32 |
  | "Hlt1Dst2D0PiAlignmentPass"                     |         3 |
  | "Hlt1Dst2D0PiAlignmentRate"                     |         3 |
  | "Hlt1Dst2D0PiPass"                              |         3 |
@@ -147,8 +147,6 @@ gather_selections                      INFO Number of counters : 96
  | "Hlt1MaterialVertexSeedsDownstreamzRate"        |         4 |
  | "Hlt1OneMuonTrackLinePass"                      |      5724 |
  | "Hlt1OneMuonTrackLineRate"                      |         3 |
- | "Hlt1Pi02GammaGammaPass"                        |         2 |
- | "Hlt1Pi02GammaGammaRate"                        |         2 |
  | "Hlt1RICH1AlignmentPass"                        |         4 |
  | "Hlt1RICH1AlignmentRate"                        |         4 |
  | "Hlt1SMOG2PassThroughLowMult5Pass"              |         3 |
@@ -324,8 +322,8 @@ fit_v0_secondary_vertices              INFO 1D histograms in directory "fit_v0_s
  | number_of_svs                                 | "NSVs"                                        |      10000 |      0.854 | 1.8782     |     5.8281 |     76.047 |
 gather_selections                      INFO 1D histograms in directory "gather_selections" : 2
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | line_passes                                   | "line passes"                                 |      17422 |      79.51 | 17.725     |   -0.79027 |   -0.35894 |
- | line_rates                                    | "line rates"                                  |        885 |     66.093 | 28.020     |   -0.55703 |    -1.2536 |
+ | line_passes                                   | "line passes"                                 |      17371 |     79.602 | 17.669     |   -0.79901 |   -0.33106 |
+ | line_rates                                    | "line rates"                                  |        834 |     67.189 | 28.489     |   -0.66155 |    -1.1836 |
 is_muon                                INFO 1D histograms in directory "is_muon" : 3
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_muons                                       | "# muons"                                     |     458878 |    0.10947 | 0.31223    |     2.5015 |     4.2576 |
