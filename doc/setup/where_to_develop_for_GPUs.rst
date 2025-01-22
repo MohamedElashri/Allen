@@ -4,7 +4,7 @@ Where to develop for GPUs
 ===========================
 
 For development purposes, a server with eight GeForce RTX 2080 Ti GPUs is set up in the online network.
-An online account is required to access it. If you need to create one, please send a request to lbonsupp@cern.ch.
+An online account is required to access it. If you need to create one, please check `the twiki <https://lbtwiki.cern.ch/bin/view/Online/ConnectingFromOutside>`_.
 The development server is reachable from lxplus like this:
 
   ssh lbgw
