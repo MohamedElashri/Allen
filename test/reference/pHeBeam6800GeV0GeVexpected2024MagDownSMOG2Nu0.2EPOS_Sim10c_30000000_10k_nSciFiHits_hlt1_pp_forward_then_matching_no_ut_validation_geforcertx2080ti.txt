@@ -133,6 +133,8 @@ Hlt1SMOG2BENoBias:                                  0/   500, (    0.00 +/-     
 Hlt1SMOG2D2Kpi:                                     1/   500, (   60.00 +/-    59.94) kHz
 Hlt1SMOG2DiMuonHighMass:                            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2DisplacedDiMuon:                           0/   500, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2JPsiToMuMuTaP_NegTag:                      0/   500, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2JPsiToMuMuTaP_PosTag:                      0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2KsTopipi:                                  1/   500, (   60.00 +/-    59.94) kHz
 Hlt1SMOG2L0Toppi:                                   1/   500, (   60.00 +/-    59.94) kHz
 Hlt1SMOG2MinimumBias:                               0/   500, (    0.00 +/-     0.00) kHz
@@ -318,6 +320,8 @@ Hlt1SMOG2BENoBias:                                  0           0
 Hlt1SMOG2D2Kpi:                                     1           1
 Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2DisplacedDiMuon:                           0           0
+Hlt1SMOG2JPsiToMuMuTaP_NegTag:                      0           0
+Hlt1SMOG2JPsiToMuMuTaP_PosTag:                      0           0
 Hlt1SMOG2KsTopipi:                                  1           1
 Hlt1SMOG2L0Toppi:                                   1           1
 Hlt1SMOG2MinimumBias:                               0           0
