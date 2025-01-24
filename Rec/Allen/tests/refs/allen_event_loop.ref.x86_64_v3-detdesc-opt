@@ -325,8 +325,8 @@ fit_v0_secondary_vertices              INFO 1D histograms in directory "fit_v0_s
  | number_of_svs                                 | "NSVs"                                        |      10000 |      0.864 | 1.8964     |     5.7826 |     74.022 |
 gather_selections                      INFO 1D histograms in directory "gather_selections" : 2
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | line_passes                                   | "line passes"                                 |      17434 |     79.473 | 17.856     |   -0.82602 |   -0.22905 |
- | line_rates                                    | "line rates"                                  |        866 |     66.982 | 28.602     |   -0.64588 |     -1.218 |
+ | line_passes                                   | "line passes"                                 |      17434 |     80.678 | 18.791     |   -0.78078 |   -0.43713 |
+ | line_rates                                    | "line rates"                                  |        866 |     68.173 | 29.538     |   -0.63037 |    -1.2576 |
 is_muon                                INFO 1D histograms in directory "is_muon" : 3
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_muons                                       | "# muons"                                     |     461016 |    0.10963 | 0.31243    |      2.499 |     4.2448 |
