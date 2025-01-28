@@ -217,7 +217,7 @@ else:
         for entry in args.tags.split('|'):
             build, t = entry.split(':')
             tags[build] = t.split(',')
-            dddb_tag, conddb_tag = tags['dd4hep' if UseDD4Hep else 'detdesc']
+        dddb_tag, conddb_tag = tags['dd4hep' if UseDD4Hep else 'detdesc']
     else:
         dddb_tag, conddb_tag = args.tags.split(',')
 
