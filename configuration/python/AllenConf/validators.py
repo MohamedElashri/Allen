@@ -457,6 +457,7 @@ def data_quality_validation_occupancy(name="data_quality_validator"):
     number_of_events = initialize_number_of_events()
 
     decoded_scifi = decode_scifi()
+    scifi_xz_seeds = make_seeding_XZ_tracks(decoded_scifi)
     decoded_muon = decode_muon()
     decoded_calo = decode_calo()
     ecal_clusters = make_ecal_clusters(
@@ -477,6 +478,7 @@ def data_quality_validation_occupancy(name="data_quality_validator"):
             "dev_offsets_estimated_input_size"],
         dev_offsets_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
         dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
+        dev_scifi_seedsXZ_t=scifi_xz_seeds['seed_xz_number_of_tracks'],
         dev_ecal_clusters_offsets_t=ecal_clusters["dev_ecal_cluster_offsets"])
 
 

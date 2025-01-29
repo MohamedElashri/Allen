@@ -1267,8 +1267,10 @@ def setup_hlt1_node(enablePhysics=True,
             with_ut=with_ut,
             with_muon=with_muon,
             tracking_type=TrackingType.FORWARD)
-        node = make_dq_node(reconstructed_objects,
-                            reconstructed_objects_forward, line_algorithms)
+        node = make_dq_node(
+            reconstructed_objects,
+            reconstructed_objects_forward,
+            prefilters=beam_beam_filter)
         return node
 
     if not withMCChecking:
