@@ -104,6 +104,7 @@ namespace data_quality_validator_occupancy {
     DEVICE_INPUT(dev_offsets_velo_tracks_t, unsigned) dev_offsets_velo_tracks;
     DEVICE_INPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
     DEVICE_INPUT(dev_ecal_clusters_offsets_t, unsigned) dev_ecal_clusters_offsets;
+    DEVICE_INPUT(dev_scifi_seedsXZ_t, unsigned) dev_scifi_seedsXZ;
   };
 
   struct data_quality_validator_occupancy_t : public HostAlgorithm, Parameters {

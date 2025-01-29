@@ -23,5 +23,9 @@ hlt1_node = setup_hlt1_node(
     with_ut=False,
     # tracking_type is set to matching, but will output both matching and forward
     tracking_type=TrackingType.MATCHING,
+    with_lumi=False,
+    enableBGI=False,
+    withSMOG2=False,
+    enablePhysics=True,
     with_calo=True)
 generate(hlt1_node)
