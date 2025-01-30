@@ -23,11 +23,92 @@
 namespace Allen::Monitoring {
   struct AccumulatorBase;
 
+  template<typename T>
+  struct Counter;
+
+  template<typename T>
+  struct AveragingCounter;
+
   struct AccumulatorInfosAndPointers {
     std::size_t offset {0};
     std::size_t size {0};
     std::size_t element_size {0};
     std::vector<AccumulatorBase*> owners;
+  };
+
+  struct CountersHistogram {
+
+    CountersHistogram() : m_title("CountersHistogram"), m_bins(2, 0.0f) {}
+
+    friend void reset(CountersHistogram& c)
+    {
+      std::fill(c.m_bins.begin(), c.m_bins.end(), 0.0f);
+      c.m_totNEntries = 0.0;
+    }
+
+    friend void to_json(nlohmann::json& j, CountersHistogram const& h)
+    {
+      j = {{"type", "histogram:WeightedHistogram:d"},
+           {"title", h.m_title},
+           {"dimension", 1},
+           {"empty", h.m_totNEntries == 0},
+           {"nEntries", h.m_totNEntries},
+           {"axis",
+            {{{"nBins", h.m_bins.size() - 2},
+              {"minValue", h.m_minValue},
+              {"maxValue", h.m_maxValue},
+              {"title", ""},
+              {"labels", h.m_labels}}}},
+           {"bins", h.m_bins}};
+    }
+
+    void registerHistogram()
+    {
+
+      // Handle warning if no counters are used in the sequence
+      if (m_labels.size() == 0) {
+        m_labels.push_back("empty_bin");
+        m_maxValue++;
+        m_bins.push_back(0.f);
+      }
+
+// Register CountersHistogram for Gaudi
+#ifndef ALLEN_STANDALONE
+      Gaudi::svcLocator()->monitoringHub().registerEntity(
+        "CountersHistogram", "CountersValues", "histogram:WeightedHistogram:d", *this);
+#endif
+    }
+
+    void addCounter(std::string label)
+    {
+      m_labels.push_back(label);
+      m_maxValue++;
+      m_bins.push_back(0.f);
+    }
+
+    void addAvCounter(const std::string& label)
+    {
+      m_labels.insert(m_labels.end(), {label + "_sum", label + "_n_entries"});
+      m_maxValue += 2;
+      m_bins.insert(m_bins.end(), 2, 0.f);
+    }
+
+    void updateBin(int bin_index, float value) { m_bins[bin_index + 1] = value; }
+
+    void resetHistogram()
+    {
+      m_bins = std::vector<float>(2, 0.f);
+      m_labels = std::vector<std::string>();
+      m_minValue = 0;
+      m_maxValue = 0;
+    }
+
+    std::string m_title;
+    std::vector<float> m_bins;
+    int m_minValue = 0;
+    int m_maxValue = 0;
+    std::vector<std::string> m_labels;
+    unsigned m_totNEntries = 0;
   };
 
   struct AccumulatorManager {
@@ -38,6 +119,8 @@ namespace Allen::Monitoring {
     }
 
     void registerAccumulator(AccumulatorBase* acc);
+    void registerCounter(Counter<unsigned>* c) { m_counters.push_back(c); }
+    void registerAveragingCounter(AveragingCounter<unsigned>* c) { m_av_counters.push_back(c); }
     void initAccumulators(unsigned number_of_streams);
     void mergeAndReset(bool singlethreaded = false);
     char* bufferForStream(unsigned stream_id) const { return m_dev_buffer_ptr[m_stream_current_buffer[stream_id]]; }
@@ -60,7 +143,11 @@ namespace Allen::Monitoring {
     std::vector<unsigned> m_stream_current_buffer;
     std::vector<bool> m_stream_done;
 
+    CountersHistogram m_counters_histogram;
+
     std::vector<AccumulatorBase*> m_registered_accumulators;
+    std::vector<Counter<unsigned>*> m_counters;
+    std::vector<AveragingCounter<unsigned>*> m_av_counters;
     std::map<std::string, AccumulatorInfosAndPointers> m_accumulators;
   };
 
@@ -122,7 +209,10 @@ namespace Allen::Monitoring {
     using type = T;
     using DeviceType = DeviceCounter<T>;
 
-    Counter(const Allen::Algorithm* owner, std::string name) : AccumulatorBase(owner, name) {}
+    Counter(const Allen::Algorithm* owner, std::string name) : AccumulatorBase(owner, name)
+    {
+      if constexpr (std::is_same<T, unsigned>::value) AccumulatorManager::get()->registerCounter(this);
+    }
     std::size_t size() const override { return 1; }
     std::size_t elementSize() const override { return sizeof(T); }
     DeviceType data(const Allen::Context& ctx) const { return reinterpret_cast<T*>(currentDevicePtr(ctx.stream_id)); }
@@ -185,7 +275,10 @@ namespace Allen::Monitoring {
     using type = T;
     using DeviceType = DeviceAveragingCounter<T>;
 
-    AveragingCounter(const Allen::Algorithm* owner, std::string name) : AccumulatorBase(owner, name) {}
+    AveragingCounter(const Allen::Algorithm* owner, std::string name) : AccumulatorBase(owner, name)
+    {
+      if constexpr (std::is_same<T, unsigned>::value) AccumulatorManager::get()->registerAveragingCounter(this);
+    }
     std::size_t size() const override { return 2; }
     std::size_t elementSize() const override { return sizeof(T); }
     DeviceType data(const Allen::Context& ctx) const { return reinterpret_cast<T*>(currentDevicePtr(ctx.stream_id)); }

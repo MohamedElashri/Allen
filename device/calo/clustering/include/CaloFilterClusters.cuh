@@ -13,9 +13,7 @@
 #include "CaloCluster.cuh"
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
-#ifndef ALLEN_STANDALONE
-#include "Gaudi/Accumulators.h"
-#endif
+#include "AllenMonitoring.h"
 
 namespace calo_filter_clusters {
 
@@ -37,11 +35,10 @@ namespace calo_filter_clusters {
     DEVICE_OUTPUT(dev_cluster2_idx_t, unsigned) dev_cluster2_idx;
   };
 
-  __global__ void calo_filter_clusters(Parameters);
+  __global__ void calo_filter_clusters(Parameters, Allen::Monitoring::AveragingCounter<>::DeviceType);
 
   struct calo_filter_clusters_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
-    void init();
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -54,10 +51,7 @@ namespace calo_filter_clusters {
                                               "block_dim_filter",
                                               {64, 16, 1},
                                               "block dimensions for filter step"};
-#ifndef ALLEN_STANDALONE
-  private:
-    mutable std::unique_ptr<Gaudi::Accumulators::Counter<>> m_calo_clusters;
-#endif
+    Allen::Monitoring::AveragingCounter<> m_calo_clusters {this, "n_calo_clusters"};
   };
 
 } // namespace calo_filter_clusters

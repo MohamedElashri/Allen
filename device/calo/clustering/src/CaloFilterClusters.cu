@@ -20,12 +20,6 @@ void calo_filter_clusters::calo_filter_clusters_t::set_arguments_size(
   set_size<dev_cluster1_idx_t>(arguments, first<host_ecal_number_of_twoclusters_t>(arguments));
   set_size<dev_cluster2_idx_t>(arguments, first<host_ecal_number_of_twoclusters_t>(arguments));
 }
-void calo_filter_clusters::calo_filter_clusters_t::init()
-{
-#ifndef ALLEN_STANDALONE
-  m_calo_clusters = std::make_unique<Gaudi::Accumulators::Counter<>>(this, "n_calo_clusters");
-#endif
-}
 
 void calo_filter_clusters::calo_filter_clusters_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
@@ -34,19 +28,12 @@ void calo_filter_clusters::calo_filter_clusters_t::operator()(
   const Allen::Context& context) const
 {
   global_function(calo_filter_clusters)(dim3(size<dev_event_list_t>(arguments)), m_block_dim_filter, context)(
-    arguments);
-
-#ifndef ALLEN_STANDALONE
-  // Monitoring
-  auto host_ecal_cluster_offsets = make_host_buffer<dev_ecal_cluster_offsets_t>(arguments, context);
-  for (auto i = 0u; i < first<host_number_of_events_t>(arguments); ++i) {
-    auto n_clusters_event = host_ecal_cluster_offsets[i + 1] - host_ecal_cluster_offsets[i];
-    (*m_calo_clusters) += n_clusters_event;
-  }
-#endif
+    arguments, m_calo_clusters.data(context));
 }
 
-__global__ void calo_filter_clusters::calo_filter_clusters(calo_filter_clusters::Parameters parameters)
+__global__ void calo_filter_clusters::calo_filter_clusters(
+  calo_filter_clusters::Parameters parameters,
+  Allen::Monitoring::AveragingCounter<>::DeviceType device_counter)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
@@ -67,4 +54,8 @@ __global__ void calo_filter_clusters::calo_filter_clusters(calo_filter_clusters:
       event_cluster2_idx[dicluster_idx] = prefiltered_clusters_idx[j_cluster];
     }
   }
+
+  const unsigned n_clusters_event =
+    parameters.dev_ecal_cluster_offsets[event_number + 1] - parameters.dev_ecal_cluster_offsets[event_number];
+  device_counter.add(n_clusters_event);
 }
