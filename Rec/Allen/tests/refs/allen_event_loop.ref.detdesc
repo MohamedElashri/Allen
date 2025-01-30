@@ -76,7 +76,7 @@ HLTControlFlowMgr                      INFO Number of counters : 1
  | "Processed events"                              |         1 |
 calo_filter_clusters_b3e43409          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_calo_clusters"                               |    494739 |
+ | "n_calo_clusters"                               |     10000 |     494739 |     49.474 |
 gather_selections                      INFO Number of counters : 94
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Hlt1ConeJet100GeVPass"                         |         1 |
