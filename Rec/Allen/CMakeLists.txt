@@ -31,6 +31,7 @@ gaudi_add_module(AllenWrapper
                    src/AllenROOTService.cpp
                    src/ProvideRuntimeOptions.cpp
                    src/CompareRecAllenCaloDigits.cpp
+                   src/CompareRecAllenPlume.cpp
                    src/CompareRecAllenMuonHits.cpp
                    src/CompareRecAllenUTHits.cpp
                    src/GaudiAllenTransformAllenRecUTHits.cpp
