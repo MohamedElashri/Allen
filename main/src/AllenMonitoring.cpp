@@ -25,19 +25,6 @@ namespace Allen::Monitoring {
 
   void AccumulatorManager::initAccumulators(unsigned number_of_streams)
   {
-    m_counters_histogram.resetHistogram();
-
-    // Resize bins for CountersHistogram
-    for (auto counter : m_counters) {
-      m_counters_histogram.addCounter(counter->uniqueName());
-    }
-
-    for (auto counter : m_av_counters) {
-      m_counters_histogram.addAvCounter(counter->uniqueName());
-    }
-
-    m_counters_histogram.registerHistogram();
-
     // Algorithms have finished their initializations for all streams
     // This function will init the memory and communicate back pointers to algorithms
 
@@ -47,6 +34,16 @@ namespace Allen::Monitoring {
     std::fill(m_stream_done.begin(), m_stream_done.end(), true);
 
     if (m_registered_accumulators.empty()) return;
+
+    // Resize bins and register CountersHistogram
+    m_counters_histogram.resetHistogram();
+    for (auto counter : m_counters) {
+      m_counters_histogram.addCounter(counter->uniqueName());
+    }
+    for (auto counter : m_av_counters) {
+      m_counters_histogram.addAvCounter(counter->uniqueName());
+    }
+    m_counters_histogram.registerHistogram();
 
     // * Group registered allocator by unique name (they should be registered once per stream)
     for (auto acc : m_registered_accumulators) {
