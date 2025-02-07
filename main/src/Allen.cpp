@@ -55,7 +55,6 @@
 #include "Consumers.h"
 #include "CheckerInvoker.h"
 #include "HostBuffersManager.cuh"
-#include "MonitorManager.h"
 #include "FileWriter.h"
 #include "ZMQOutputSender.h"
 #include "Stream.h"
@@ -121,7 +120,6 @@ int allen(
   bool print_config = 0;
   bool print_status = 0;
   uint inject_mem_fail = 0;
-  uint mon_save_period = 0;
   std::string mon_filename;
   bool disable_run_changes = 0;
   bool prefer_shared = false;
@@ -197,9 +195,6 @@ int allen(
     else if (flag_in(flag, {"monitoring-filename"})) {
       mon_filename = arg;
     }
-    else if (flag_in(flag, {"monitoring-save-period"})) {
-      mon_save_period = atoi(arg.c_str());
-    }
     else if (flag_in(flag, {"disable-run-changes"})) {
       disable_run_changes = atoi(arg.c_str());
     }
@@ -234,11 +229,11 @@ int allen(
   // Show call options
   print_call_options(options, device_name);
 
-  number_of_buffers = number_of_threads + n_mon + 1;
+  number_of_buffers = number_of_threads + 1;
 
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
-  items.resize(number_of_threads + n_io + n_mon + n_agg + !control_connection.empty());
+  items.resize(number_of_threads + n_io + n_agg + !control_connection.empty());
 
   std::optional<zmq::socket_t> allen_control;
   size_t control_index = 0;
@@ -311,10 +306,6 @@ int allen(
   }
 
   auto root_service = std::make_unique<ROOTService>(mon_filename);
-
-  // create rate monitors
-  std::unique_ptr<MonitorManager> monitor_manager =
-    std::make_unique<MonitorManager>(n_mon, buffers_manager.get(), root_service.get(), 30, time(0));
 
   // Notify used memory if requested verbose mode
   if (logger::verbosity() >= logger::verbose) {
@@ -408,11 +399,6 @@ int allen(
     return std::thread {run_output, thread_id, output_id, zmqSvc, output_handler, buffers_manager.get()};
   };
 
-  // Lambda with the execution of the monitoring thread
-  const auto mon_thread = [&](unsigned thread_id, unsigned mon_id) {
-    return std::thread {run_monitoring, thread_id, zmqSvc, monitor_manager.get(), mon_id};
-  };
-
 #ifndef ALLEN_STANDALONE
   // Lambda with the execution of the monitoring aggregation
   const auto agg_thread = [&](unsigned thread_id, unsigned) {
@@ -428,8 +414,6 @@ int allen(
   stream_threads.reserve(number_of_threads);
   workers_t io_workers;
   io_workers.reserve(n_io);
-  workers_t mon_workers;
-  mon_workers.reserve(n_mon);
   workers_t agg_workers;
   agg_workers.reserve(n_agg);
 
@@ -475,11 +459,6 @@ int allen(
                                                               start_thread {output_thread},
                                                               static_cast<unsigned>(n_write),
                                                               std::string("Output"),
-                                                              handle_ready {handle_default_ready}},
-                                                  std::tuple {&mon_workers,
-                                                              start_thread {mon_thread},
-                                                              static_cast<unsigned>(n_mon),
-                                                              std::string("Mon"),
                                                               handle_ready {handle_default_ready}},
 #ifndef ALLEN_STANDALONE
                                                   std::tuple {&agg_workers,
@@ -605,9 +584,6 @@ int allen(
             sub_slice_queue.push({slice_index, first_event, mid_event});
             sub_slice_queue.push({slice_index, mid_event, last_event});
 
-            // Record the split in the monitoring output
-            monitor_manager->fillSplit();
-
             // Release the buffer to be used again
             buffers_manager->returnBufferUnfilled(buffer_index);
           }
@@ -661,20 +637,6 @@ int allen(
           input_slice_status[slice_index][first_event] = SliceStatus::Processed;
           buffers_manager->returnBufferFilled(buffer_index);
         }
-      }
-    }
-  };
-
-  auto check_monitors = [&] {
-    for (size_t i = 0; i < n_mon; ++i) {
-      if (items[number_of_threads + n_io + i].revents & zmq::POLLIN) {
-        auto& socket = std::get<1>(mon_workers[i]);
-        auto msg = zmqSvc->receive<std::string>(socket);
-        assert(msg == "MONITORED");
-        auto buffer_index = zmqSvc->receive<size_t>(socket);
-        auto monitor_index = zmqSvc->receive<unsigned>(socket);
-        buffers_manager->returnBufferProcessed(buffer_index);
-        monitor_manager->freeMonitor(monitor_index);
       }
     }
   };
@@ -976,34 +938,6 @@ int allen(
       zmqSvc->send(socket, buf_index);
     }
 
-    // Send any available HostBuffers to montoring threads
-    buffer_index = std::optional<size_t> {buffers_manager->assignBufferToProcess()};
-    while ((*buffer_index) != SIZE_MAX) {
-      // check if a monitor is available
-      std::optional<size_t> monitor_index = monitor_manager->getFreeMonitor();
-      if (monitor_index) {
-        auto& socket = std::get<1>(mon_workers[*monitor_index]);
-        zmqSvc->send(socket, "MONITOR", send_flags::sndmore);
-        zmqSvc->send(socket, *buffer_index);
-      }
-      else {
-        // if no free monitors then mark the buffer as processed
-        buffers_manager->returnBufferProcessed(*buffer_index);
-      }
-      buffer_index = std::optional<size_t> {buffers_manager->assignBufferToProcess()};
-    }
-    buffer_index.reset();
-
-    // Check for finished monitoring jobs
-    check_monitors();
-
-    // periodically save monitoring histograms
-    if (mon_save_period > 0 && t_mon.get_elapsed_time() >= mon_save_period) {
-      monitor_manager->saveHistograms();
-      info_cout << "Saved monitoring histograms" << std::endl;
-      t_mon.restart();
-    }
-
     if (allen_control && items[control_index].revents & zmq::POLLIN) {
       bool more = false;
       auto msg = zmqSvc->receive<std::string>(*allen_control, &more);
@@ -1098,7 +1032,7 @@ loop_error:
   }
 
   // Send stop signal to all threads and join them
-  for (auto workers : {std::ref(io_workers), std::ref(mon_workers), std::ref(stream_threads), std::ref(agg_workers)}) {
+  for (auto workers : {std::ref(io_workers), std::ref(stream_threads), std::ref(agg_workers)}) {
     for (auto& worker : workers.get()) {
       zmqSvc->send(std::get<1>(worker), "DONE");
       std::get<0>(worker).join();
@@ -1107,9 +1041,6 @@ loop_error:
 
   if (print_status) {
     buffers_manager->printStatus();
-  }
-  if (!mon_filename.empty()) {
-    monitor_manager->saveHistograms();
   }
 
   // Print checker reports

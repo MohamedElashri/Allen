@@ -23,7 +23,6 @@ struct ConfigurationReader;
 
 namespace {
   constexpr size_t n_input = 1;
-  constexpr size_t n_mon = 1;
 #ifdef ALLEN_STANDALONE
   // Stand-alone build does not run an aggregation thread
   constexpr size_t n_agg = 0;

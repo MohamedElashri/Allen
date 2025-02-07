@@ -23,18 +23,16 @@
 #endif
 
 struct HostBuffersManager {
-  enum class BufferStatus { Empty, Filling, Filled, Processing, Processed, Written };
+  enum class BufferStatus { Empty, Filling, Filled, Written };
 
   HostBuffersManager(size_t nBuffers, size_t host_memory_size, const ConfigurationReader::Params& configuration);
 
   Allen::Store::PersistentStore* get_persistent_store(size_t i) const { return m_persistent_stores.at(i); }
 
   size_t assignBufferToFill();
-  size_t assignBufferToProcess();
 
   void returnBufferFilled(size_t);
   void returnBufferUnfilled(size_t);
-  void returnBufferProcessed(size_t);
   void returnBufferWritten(size_t);
 
   void writeSingleEventPassthrough(const size_t b);
