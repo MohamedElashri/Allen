@@ -49,12 +49,13 @@ void downstream_create_tracks::downstream_create_tracks_t::operator()(
   const auto dev_ut_dxDy = constants.dev_ut_dxDy.data();
 
   // Create tracks
-  global_function(downstream_create_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(downstream_create_tracks)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
     dev_unique_x_sector_layer_offsets,
     dev_ut_dxDy,
     dev_magnet_polarity,
-    constants.dev_downstream_ghost_killer,
+    m_ghost_killer_threshold,
+    dev_downstream_ghostkiller.getDevicePointer(),
     m_n_overflow_downstream_create_tracks.data(context));
 
   PrefixSum::prefix_sum<dev_offsets_downstream_tracks_t, host_number_of_downstream_tracks_t>(*this, arguments, context);
@@ -172,7 +173,8 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
   const unsigned* dev_unique_x_sector_layer_offsets,
   const float* dev_ut_dxDy,
   const float* dev_magnet_polarity,
-  const Allen::NeuralNetwork::Model::DownstreamGhostKiller* dev_downstream_ghostkiller,
+  const float ghost_killer_threshold,
+  const DownstreamGhostKiller::DeviceType* dev_downstream_ghostkiller,
   [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_create_tracks)
 {
   ///////////////////////////////////////////////////////
@@ -323,21 +325,20 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
 
     // Ghost killing
     const auto eta = asinhf(1.f / hypotf(ut_tx, ut_ty));
-    float ghost_killer_input[Allen::NeuralNetwork::Model::DownstreamGhostKiller::nInput] = {
-      dist1 + dist2,
-      dist0,
-      dist3,
-      ft_chi2,
-      eta,
-      ut_x,
-      ut_y,
-      ut_tx,
-      ut_ty,
-      ft_tx - ut_tx,
-      ft_y - (ut_y + ut_ty * (ZEndT - zMidUT))};
-    const auto ghost_killer_score = Allen::NeuralNetwork::evaluate(dev_downstream_ghostkiller, ghost_killer_input);
+    float ghost_killer_input[DownstreamGhostKiller::DeviceType::nInput] = {dist1 + dist2,
+                                                                           dist0,
+                                                                           dist3,
+                                                                           ft_chi2,
+                                                                           eta,
+                                                                           ut_x,
+                                                                           ut_y,
+                                                                           ut_tx,
+                                                                           ut_ty,
+                                                                           ft_tx - ut_tx,
+                                                                           ft_y - (ut_y + ut_ty * (ZEndT - zMidUT))};
+    const auto ghost_killer_score = dev_downstream_ghostkiller->evaluate(ghost_killer_input);
 
-    if (ghost_killer_score > parameters.ghost_killer_threshold) continue;
+    if (ghost_killer_score > ghost_killer_threshold) continue;
 
     const auto idx = atomicAdd(&shared_num_downstream_tracks, 1u);
 

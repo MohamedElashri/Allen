@@ -29,7 +29,8 @@ track_muon_mva_line::track_muon_mva_line_t::get_input(
   return std::forward_as_tuple(track, chi2corr);
 }
 __device__ bool track_muon_mva_line::track_muon_mva_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::BasicParticle, const float> input)
 {
   const auto& track = std::get<0>(input);
@@ -38,18 +39,18 @@ __device__ bool track_muon_mva_line::track_muon_mva_line_t::select(
     return false;
   }
 
-  const auto ptShift = (track.state().pt() - parameters.alpha) / Gaudi::Units::GeV;
-  const auto maxPt_GeV = parameters.maxPt / Gaudi::Units::GeV;
-  const auto minPt_GeV = parameters.minPt / Gaudi::Units::GeV;
+  const auto ptShift = (track.state().pt() - properties.alpha) / Gaudi::Units::GeV;
+  const auto maxPt_GeV = properties.maxPt / Gaudi::Units::GeV;
+  const auto minPt_GeV = properties.minPt / Gaudi::Units::GeV;
   const auto ipChi2 = track.ip_chi2();
-  const auto minBPVz = parameters.minBPVz;
+  const auto minBPVz = properties.minBPVz;
 
   const bool decision =
-    chi2corr < parameters.maxChi2Muon && track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof &&
-    ((ptShift > maxPt_GeV && ipChi2 > parameters.minIPChi2) ||
+    chi2corr < properties.maxChi2Muon && track.state().chi2() / track.state().ndof() < properties.maxChi2Ndof &&
+    ((ptShift > maxPt_GeV && ipChi2 > properties.minIPChi2) ||
      (ptShift > minPt_GeV && ptShift < maxPt_GeV &&
-      logf(ipChi2) > parameters.param1 / ((ptShift - parameters.param2) * (ptShift - parameters.param2)) +
-                       parameters.param3 / maxPt_GeV * (maxPt_GeV - ptShift) + logf(parameters.minIPChi2))) &&
+      logf(ipChi2) > properties.param1 / ((ptShift - properties.param2) * (ptShift - properties.param2)) +
+                       properties.param3 / maxPt_GeV * (maxPt_GeV - ptShift) + logf(properties.minIPChi2))) &&
     track.pv().position.z >= minBPVz;
 
   return decision;
@@ -57,6 +58,7 @@ __device__ bool track_muon_mva_line::track_muon_mva_line_t::select(
 
 __device__ void track_muon_mva_line::track_muon_mva_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::BasicParticle, const float> input,
   unsigned index,
   bool sel)

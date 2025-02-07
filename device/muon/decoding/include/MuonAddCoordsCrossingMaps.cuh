@@ -28,7 +28,6 @@ namespace muon_add_coords_crossing_maps {
     DEVICE_INPUT(dev_muon_tile_used_t, bool) dev_muon_tile_used;
     DEVICE_INPUT(dev_station_ocurrences_offset_t, unsigned) dev_station_ocurrences_offset;
     HOST_INPUT(host_muon_total_number_of_hits_t, unsigned) host_muon_total_number_of_hits;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   struct muon_add_coords_crossing_maps_t : public DeviceAlgorithm, Parameters {
@@ -41,6 +40,6 @@ namespace muon_add_coords_crossing_maps {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {64, 1, 1}, "block dimensions"};
   };
 } // namespace muon_add_coords_crossing_maps

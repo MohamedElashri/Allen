@@ -29,16 +29,9 @@ namespace velo_three_hit_tracks_filter {
     DEVICE_OUTPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, unsigned)
     dev_offsets_number_of_three_hit_tracks_filtered;
     HOST_OUTPUT(host_number_of_three_hit_tracks_filtered_t, unsigned) host_number_of_three_hit_tracks_filtered;
-
-    // Max chi2
-    PROPERTY(max_chi2_t, "max_chi2", "chi2", float) max_chi2;
-
-    // Maximum number of tracks to follow at a time
-    PROPERTY(max_weak_tracks_t, "max_weak_tracks", "max weak tracks", unsigned) max_weak_tracks;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void velo_three_hit_tracks_filter(Parameters);
+  __global__ void velo_three_hit_tracks_filter(Parameters, const float max_chi2);
 
   struct velo_three_hit_tracks_filter_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -50,8 +43,8 @@ namespace velo_three_hit_tracks_filter {
       const Allen::Context& context) const;
 
   private:
-    Property<max_chi2_t> m_chi2 {this, 20.0f};
-    Property<max_weak_tracks_t> m_max_weak {this, 500u};
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<float> m_chi2 {this, "max_chi2", 20.0f, "chi2"};
+    Allen::Property<unsigned> m_max_weak {this, "max_weak_tracks", 500u, "max weak tracks"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 } // namespace velo_three_hit_tracks_filter

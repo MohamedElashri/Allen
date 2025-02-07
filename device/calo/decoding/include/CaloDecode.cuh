@@ -28,9 +28,6 @@ namespace calo_decode {
     DEVICE_INPUT(dev_ecal_raw_input_types_t, unsigned) dev_ecal_raw_input_types;
     DEVICE_INPUT(dev_ecal_digits_offsets_t, unsigned) dev_ecal_digits_offsets;
     DEVICE_OUTPUT(dev_ecal_digits_t, CaloDigit) dev_ecal_digits;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
-    PROPERTY(ecal_min_seed_adc_t, "ecal_min_seed_adc", "Seed minimum ADC", int16_t) ecal_min_seed_adc;
-    PROPERTY(ecal_min_neighbor_adc_t, "ecal_min_neighbor_adc", "Neighbor minimum ADC", int16_t) ecal_min_neighbor_adc;
   };
 
   struct check_digits : public Allen::contract::Postcondition {
@@ -58,8 +55,8 @@ namespace calo_decode {
       Allen::Context const&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 64};
-    Property<ecal_min_seed_adc_t> m_ecal_min_seed_adc {this, 10};
-    Property<ecal_min_neighbor_adc_t> m_ecal_min_neighbor_adc {this, -5};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 64, "block dimension X"};
+    Allen::Property<int16_t> m_ecal_min_seed_adc {this, "ecal_min_seed_adc", 10, "Seed minimum ADC"};
+    Allen::Property<int16_t> m_ecal_min_neighbor_adc {this, "ecal_min_neighbor_adc", -5, "Neighbor minimum ADC"};
   };
 } // namespace calo_decode

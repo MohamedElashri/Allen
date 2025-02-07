@@ -17,7 +17,7 @@ void host_data_provider::host_data_provider_t::set_arguments_size(
   const RuntimeOptions& runtime_options,
   const Constants&) const
 {
-  auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
+  auto bno = runtime_options.input_provider->banks(m_bank_type.value(), runtime_options.slice_index);
   // A number of spans for the blocks equal to the number of blocks
   set_size<host_raw_banks_t>(arguments, bno.fragments.size());
 
@@ -40,9 +40,9 @@ void host_data_provider::host_data_provider_t::operator()(
   const Constants&,
   const Allen::Context&) const
 {
-  auto bno = runtime_options.input_provider->banks(m_bank_type.get_value(), runtime_options.slice_index);
+  auto bno = runtime_options.input_provider->banks(m_bank_type.value(), runtime_options.slice_index);
 
-  if (logger::verbosity() >= logger::debug && property<empty_t>() && bno.version != -1) {
+  if (logger::verbosity() >= logger::debug && m_empty.value() && bno.version != -1) {
     debug_cout << "Empty banks configured but data is there\n";
   }
 

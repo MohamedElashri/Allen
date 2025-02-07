@@ -35,36 +35,27 @@ void make_selected_object_lists::make_selected_object_lists_t::set_arguments_siz
   set_size<dev_sel_calo_count_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_sel_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
   // These are effectively 3D arrays. Use the convention: X = candidate, Y = event, Z = line.
-  set_size<dev_sel_track_indices_t>(
-    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
-  set_size<dev_sel_calo_indices_t>(
-    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
-  set_size<dev_sel_sv_indices_t>(
-    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
+  set_size<dev_sel_track_indices_t>(arguments, m_max_children_per_object * first<host_max_objects_t>(arguments));
+  set_size<dev_sel_calo_indices_t>(arguments, m_max_children_per_object * first<host_max_objects_t>(arguments));
+  set_size<dev_sel_sv_indices_t>(arguments, m_max_children_per_object * first<host_max_objects_t>(arguments));
 
   // For saving selected candidates.
   // We could have multiple track and SV containers, so we can either set these
   // sizes arbitrarily, or create an algorithm to calculate them.
   set_size<dev_selected_basic_particle_ptrs_t>(
-    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
+    arguments, m_max_children_per_object * first<host_max_objects_t>(arguments));
   set_size<dev_selected_neutral_basic_particle_ptrs_t>(
-    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
+    arguments, m_max_children_per_object * first<host_max_objects_t>(arguments));
   set_size<dev_selected_composite_particle_ptrs_t>(
-    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
+    arguments, m_max_children_per_object * first<host_max_objects_t>(arguments));
 
   // For removing duplicates.
-  set_size<dev_track_duplicate_map_t>(
-    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
-  set_size<dev_calo_duplicate_map_t>(
-    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
-  set_size<dev_sv_duplicate_map_t>(
-    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
-  set_size<dev_unique_track_list_t>(
-    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
-  set_size<dev_unique_calo_list_t>(
-    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
-  set_size<dev_unique_sv_list_t>(
-    arguments, property<max_children_per_object_t>() * first<host_max_objects_t>(arguments));
+  set_size<dev_track_duplicate_map_t>(arguments, m_max_children_per_object * first<host_max_objects_t>(arguments));
+  set_size<dev_calo_duplicate_map_t>(arguments, m_max_children_per_object * first<host_max_objects_t>(arguments));
+  set_size<dev_sv_duplicate_map_t>(arguments, m_max_children_per_object * first<host_max_objects_t>(arguments));
+  set_size<dev_unique_track_list_t>(arguments, m_max_children_per_object * first<host_max_objects_t>(arguments));
+  set_size<dev_unique_calo_list_t>(arguments, m_max_children_per_object * first<host_max_objects_t>(arguments));
+  set_size<dev_unique_sv_list_t>(arguments, m_max_children_per_object * first<host_max_objects_t>(arguments));
   set_size<dev_unique_track_count_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_unique_calo_count_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_unique_sv_count_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -114,14 +105,13 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
   Allen::memset_async<dev_substr_sv_size_t>(arguments, 0, context);
   Allen::memset_async<dev_substr_track_size_t>(arguments, 0, context);
 
-  global_function(make_selected_object_lists)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, first<host_number_of_events_t>(arguments));
+  global_function(make_selected_object_lists)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
+    arguments, first<host_number_of_events_t>(arguments), m_max_children_per_object);
 
   // TODO: Look into whether or not these kernels benefit from using different
   // block dimensions.
-  global_function(calc_rb_sizes)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(calc_rb_sizes)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
+    arguments, m_max_children_per_object);
 
   PrefixSum::prefix_sum<dev_candidate_offsets_t>(*this, arguments, context);
   PrefixSum::prefix_sum<dev_rb_hits_offsets_t, host_hits_bank_size_t>(*this, arguments, context);
@@ -133,12 +123,12 @@ void make_selected_object_lists::make_selected_object_lists_t::operator()(
 
 __global__ void make_selected_object_lists::make_selected_object_lists(
   make_selected_object_lists::Parameters parameters,
-  const unsigned total_events)
+  const unsigned total_events,
+  const unsigned n_children)
 {
   const auto event_number = blockIdx.x;
   const HltDecReports dec_reports {parameters.dev_dec_reports.get(), event_number};
 
-  const unsigned n_children = parameters.max_children_per_object;
   const unsigned* line_selected_object_offsets =
     parameters.dev_max_objects_offsets + dec_reports.number_of_lines() * event_number;
   const unsigned selected_object_offset = n_children * line_selected_object_offsets[0];
@@ -314,13 +304,14 @@ __global__ void make_selected_object_lists::make_selected_object_lists(
   }
 }
 
-__global__ void make_selected_object_lists::calc_rb_sizes(make_selected_object_lists::Parameters parameters)
+__global__ void make_selected_object_lists::calc_rb_sizes(
+  make_selected_object_lists::Parameters parameters,
+  const unsigned n_children)
 {
   const auto event_number = blockIdx.x;
 
   const HltDecReports dec_reports {parameters.dev_dec_reports, event_number};
 
-  const unsigned n_children = parameters.max_children_per_object;
   const unsigned* line_selected_object_offsets =
     parameters.dev_max_objects_offsets + dec_reports.number_of_lines() * event_number;
   const unsigned selected_object_offset = n_children * line_selected_object_offsets[0];

@@ -25,7 +25,6 @@ namespace make_lepton_id {
     DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
     DEVICE_INPUT(dev_is_electron_t, bool) dev_is_electron;
     DEVICE_OUTPUT(dev_lepton_id_t, uint8_t) dev_lepton_id;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void make_lepton_id(Parameters parameters);
@@ -43,6 +42,6 @@ namespace make_lepton_id {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 } // namespace make_lepton_id

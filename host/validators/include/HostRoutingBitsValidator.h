@@ -21,11 +21,6 @@ namespace host_routingbits_validator {
     HOST_INPUT(host_number_of_active_lines_t, unsigned) host_number_of_active_lines;
     HOST_INPUT(host_dec_reports_t, unsigned) host_dec_reports;
     HOST_INPUT(host_routingbits_t, unsigned) host_routingbits;
-    PROPERTY(
-      routingbit_map_t,
-      "routingbit_map",
-      "mapping of expressions to routing bits",
-      std::map<std::string, uint32_t>);
   };
 
   struct host_routingbits_validator_t : public HostAlgorithm, Parameters {
@@ -38,6 +33,9 @@ namespace host_routingbits_validator {
       const Allen::Context&) const;
 
   private:
-    Property<routingbit_map_t> m_routingbit_map {this, {}};
+    Allen::Property<std::map<std::string, uint32_t>> m_routingbit_map {this,
+                                                                       "routingbit_map",
+                                                                       {},
+                                                                       "mapping of expressions to routing bits"};
   };
 } // namespace host_routingbits_validator

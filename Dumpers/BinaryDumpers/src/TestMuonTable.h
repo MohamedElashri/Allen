@@ -61,9 +61,9 @@ struct StripTable : public MuonTable {
  *  @date   2018-08-27
  */
 
-class TestMuonTable final
-  : public LHCb::Algorithm::
-      Consumer<void(DeMuonDetector const&, MuonHitContainer const&), LHCb::DetDesc::usesConditions<DeMuonDetector>> {
+class TestMuonTable final : public LHCb::Algorithm::Consumer<
+                              void(DeMuonDetector const&, MuonHitContainer const&),
+                              LHCb::Algorithm::Traits::usesConditions<DeMuonDetector>> {
 public:
   /// Standard constructor
   TestMuonTable(const std::string& name, ISvcLocator* pSvcLocator) :

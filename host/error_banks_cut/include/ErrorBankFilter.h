@@ -25,7 +25,20 @@
 #include <Gaudi/Parsers/CommonParsers.h>
 #include <GaudiKernel/StatusCode.h>
 #include <Kernel/STLExtensions.h>
+
+#include <GAUDI_VERSION.h>
+
+// backward compatibility with Gaudi < v39 where StaticHistogram is just the plain Histogram
+#if GAUDI_MAJOR_VERSION < 39
 #include "Gaudi/Accumulators/Histogram.h"
+namespace Gaudi::Accumulators {
+  template<unsigned int ND, atomicity Atomicity = atomicity::full, typename Arithmetic = double>
+  using StaticHistogram = Histogram<ND, Atomicity, Arithmetic>;
+} // namespace Gaudi::Accumulators
+#else
+#include "Gaudi/Accumulators/StaticHistogram.h"
+#endif
+
 #endif
 
 namespace error_bank_filter {
@@ -63,13 +76,6 @@ namespace error_bank_filter {
     HOST_OUTPUT(host_output_event_list_t, unsigned) host_output_event_list;
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
     HOST_OUTPUT(host_temp_counts_t, float) host_counts;
-    PROPERTY(
-      sd_bank_types_t,
-      "sd_bank_types",
-      "subdetector data, other and error bank types",
-      std::map<std::string, error_bank_filter::bank_types_t>)
-    sd_bank_types;
-    PROPERTY(daq_error_types_t, "daq_error_types", "DAQ error types", std::vector<std::string>) daq_error_types;
   };
 
   // Algorithm
@@ -98,12 +104,12 @@ namespace error_bank_filter {
     using bin_mapping_t = std::array<unsigned, 256>;
 
 #ifndef ALLEN_STANDALONE
-    mutable std::unique_ptr<Gaudi::Accumulators::Histogram<1>> m_error_per_source;
-    mutable std::unique_ptr<Gaudi::Accumulators::Histogram<1>> m_data_banks;
+    mutable std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>> m_error_per_source;
+    mutable std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>> m_data_banks;
     mutable bin_mapping_t m_data_bin_mapping;
-    mutable std::unique_ptr<Gaudi::Accumulators::Histogram<1>> m_other_banks;
+    mutable std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>> m_other_banks;
     mutable bin_mapping_t m_other_bin_mapping;
-    mutable std::unique_ptr<Gaudi::Accumulators::Histogram<1>> m_error_banks;
+    mutable std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>> m_error_banks;
     mutable bin_mapping_t m_error_bin_mapping;
 #endif
     struct sd_info_t {
@@ -116,8 +122,8 @@ namespace error_bank_filter {
 #ifndef ALLEN_STANDALONE
       bin_mapping_t mapping;
       bin_mapping_t unexpected_mapping;
-      std::unique_ptr<Gaudi::Accumulators::Histogram<1>> banks;
-      std::unique_ptr<Gaudi::Accumulators::Histogram<1>> unexpected_banks;
+      std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>> banks;
+      std::unique_ptr<Gaudi::Accumulators::StaticHistogram<1>> unexpected_banks;
       std::unique_ptr<Gaudi::Accumulators::Counter<>> error;
       std::unique_ptr<Gaudi::Accumulators::Counter<>> invalid_type;
 #endif
@@ -125,18 +131,24 @@ namespace error_bank_filter {
 
     mutable std::unordered_map<std::string, sd_info_t> m_sd_info;
 
-    Property<sd_bank_types_t> m_sd_bank_types {this, {}};
-    Property<daq_error_types_t> m_daq_error_types {this,
-                                                   {"DaqErrorFragmentThrottled",
-                                                    "DaqErrorBXIDCorrupted",
-                                                    "DaqErrorSyncBXIDCorrupted",
-                                                    "DaqErrorFragmentMissing",
-                                                    "DaqErrorFragmentTruncated",
-                                                    "DaqErrorIdleBXIDCorrupted",
-                                                    "DaqErrorFragmentMalformed",
-                                                    "DaqErrorEVIDJumped",
-                                                    "DaqErrorAlignFifoFull",
-                                                    "DaqErrorFEfragSizeWrong"}};
+    Allen::Property<std::map<std::string, error_bank_filter::bank_types_t>> m_sd_bank_types {
+      this,
+      "sd_bank_types",
+      {},
+      "subdetector data, other and error bank types"};
+    Allen::Property<std::vector<std::string>> m_daq_error_types {this,
+                                                                 "daq_error_types",
+                                                                 {"DaqErrorFragmentThrottled",
+                                                                  "DaqErrorBXIDCorrupted",
+                                                                  "DaqErrorSyncBXIDCorrupted",
+                                                                  "DaqErrorFragmentMissing",
+                                                                  "DaqErrorFragmentTruncated",
+                                                                  "DaqErrorIdleBXIDCorrupted",
+                                                                  "DaqErrorFragmentMalformed",
+                                                                  "DaqErrorEVIDJumped",
+                                                                  "DaqErrorAlignFifoFull",
+                                                                  "DaqErrorFEfragSizeWrong"},
+                                                                 "DAQ error types"};
   };
 
 } // namespace error_bank_filter

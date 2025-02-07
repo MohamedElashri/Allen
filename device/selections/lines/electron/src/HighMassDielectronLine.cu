@@ -55,8 +55,8 @@ __device__ std::
 }
 
 __device__ bool highmass_dielectron_line::highmass_dielectron_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::
     tuple<const Allen::Views::Physics::CompositeParticle, const bool, const bool, const float, const float, const float>
       input)
@@ -76,18 +76,18 @@ __device__ bool highmass_dielectron_line::highmass_dielectron_line_t::select(
   const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
   const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
 
-  bool decision = (is_same_sign != parameters.OppositeSign) && (vertex.doca12() <= parameters.maxDoca) &&
-                  (min_pt > parameters.minTrackPt) && trk1->state().eta() <= parameters.maxTrackEta &&
-                  trk2->state().eta() <= parameters.maxTrackEta && (brem_corrected_minp > parameters.minTrackP) &&
-                  brem_corrected_dielectron_mass > parameters.minMass &&
-                  brem_corrected_dielectron_mass < parameters.maxMass && vertex.vertex().z() >= parameters.MinZ;
+  bool decision = (is_same_sign != properties.oppositeSign) && (vertex.doca12() <= properties.maxDoca) &&
+                  (min_pt > properties.minTrackPt) && trk1->state().eta() <= properties.maxTrackEta &&
+                  trk2->state().eta() <= properties.maxTrackEta && (brem_corrected_minp > properties.minTrackP) &&
+                  brem_corrected_dielectron_mass > properties.minMass &&
+                  brem_corrected_dielectron_mass < properties.maxMass && vertex.vertex().z() >= properties.minZ;
 
   return decision;
 }
 
 __device__ void highmass_dielectron_line::highmass_dielectron_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::
     tuple<const Allen::Views::Physics::CompositeParticle, const bool, const bool, const float, const float, const float>
       input,
@@ -96,13 +96,14 @@ __device__ void highmass_dielectron_line::highmass_dielectron_line_t::monitor(
 {
   if (sel) {
     const auto& m = std::get<4>(input);
-    accumulators.histogram_dielectron_Z_mass.increment(m);
-    accumulators.histogram_dielectron_upsilon_mass.increment(m);
+    properties.histogram_dielectron_Z_mass.increment(m);
+    properties.histogram_dielectron_upsilon_mass.increment(m);
   }
 }
 
 __device__ void highmass_dielectron_line::highmass_dielectron_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::
     tuple<const Allen::Views::Physics::CompositeParticle, const bool, const bool, const float, const float, const float>
       input,

@@ -31,7 +31,8 @@ track_electron_mva_line::track_electron_mva_line_t::get_input(
 }
 
 __device__ bool track_electron_mva_line::track_electron_mva_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input)
 {
   const auto& track = std::get<0>(input);
@@ -43,24 +44,25 @@ __device__ bool track_electron_mva_line::track_electron_mva_line_t::select(
     return false;
   }
 
-  const auto ptShift = (corrected_pt - parameters.alpha);
-  const auto maxPt = parameters.maxPt;
-  const auto minIPChi2 = parameters.minIPChi2;
+  const auto ptShift = (corrected_pt - properties.alpha);
+  const auto maxPt = properties.maxPt;
+  const auto minIPChi2 = properties.minIPChi2;
   const auto trackIPChi2 = track.ip_chi2();
 
   const bool decision =
-    track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof &&
+    track.state().chi2() / track.state().ndof() < properties.maxChi2Ndof &&
     ((ptShift > maxPt && trackIPChi2 > minIPChi2) ||
-     (ptShift > parameters.minPt && ptShift < maxPt &&
-      logf(trackIPChi2) > parameters.param1 / ((ptShift - parameters.param2) * (ptShift - parameters.param2)) +
-                            (parameters.param3 / maxPt) * (maxPt - ptShift) + logf(minIPChi2))) &&
-    track.pv().position.z > parameters.minBPVz;
+     (ptShift > properties.minPt && ptShift < maxPt &&
+      logf(trackIPChi2) > properties.param1 / ((ptShift - properties.param2) * (ptShift - properties.param2)) +
+                            (properties.param3 / maxPt) * (maxPt - ptShift) + logf(minIPChi2))) &&
+    track.pv().position.z > properties.minBPVz;
 
   return decision;
 }
 
 __device__ void track_electron_mva_line::track_electron_mva_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input,
   unsigned index,
   bool sel)

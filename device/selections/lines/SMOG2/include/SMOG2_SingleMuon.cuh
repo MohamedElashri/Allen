@@ -25,23 +25,28 @@ namespace SMOG2_single_muon_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(maxChi2Ndof_t, "maxChi2Ndof", "maxChi2Ndof description", float) maxChi2Ndof;
-    PROPERTY(MinPt_t, "MinPt", "Minimum PT", float) MinPt;
-    PROPERTY(MinP_t, "MinP", "Minimum P", float) MinP;
-    PROPERTY(minBPVz_t, "minBPVz", "minimum z for the track BPV", float) minBPVz;
-    PROPERTY(maxBPVz_t, "maxBPVz", "maximum z for the track BPV", float) maxBPVz;
-    PROPERTY(maxChi2Corr_t, "maxChi2Corr", "maximum Chi2Muon evaluation", float) maxChi2Corr;
   };
 
   struct SMOG2_single_muon_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     OneTrackLine<SMOG2_single_muon_line_t, Parameters> {
+
+    struct DeviceProperties {
+      float maxChi2Ndof;
+      float MinPt;
+      float MinP;
+      float minBPVz;
+      float maxBPVz;
+      float maxChi2Corr;
+      DeviceProperties(const SMOG2_single_muon_line_t& algo, const Allen::Context&) :
+        maxChi2Ndof(algo.m_maxChi2Ndof), MinPt(algo.m_MinPt), MinP(algo.m_MinP), minBPVz(algo.m_minBPVz),
+        maxBPVz(algo.m_maxBPVz), maxChi2Corr(algo.m_maxChi2Corr)
+      {}
+    };
+
     __device__ static bool select(
-      const Parameters& ps,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::BasicParticle, const float> input);
 
     __device__ std::tuple<const Allen::Views::Physics::BasicParticle, const float> static get_input(
@@ -50,15 +55,11 @@ namespace SMOG2_single_muon_line {
       const unsigned i);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 100.f};
-    Property<MinPt_t> m_MinPt {this, 600.f / Gaudi::Units::MeV};
-    Property<MinP_t> m_MinP {this, 5000.f / Gaudi::Units::MeV};
-    Property<minBPVz_t> m_minBPVz {this, -541.f * Gaudi::Units::mm};
-    Property<maxBPVz_t> m_maxBPVz {this, -341.f * Gaudi::Units::mm};
-    Property<maxChi2Corr_t> m_maxChi2Corr {this, 1.8};
+    Allen::Property<float> m_maxChi2Ndof {this, "maxChi2Ndof", 100.f, "maxChi2Ndof description"};
+    Allen::Property<float> m_MinPt {this, "MinPt", 600.f / Gaudi::Units::MeV, "Minimum PT"};
+    Allen::Property<float> m_MinP {this, "MinP", 5000.f / Gaudi::Units::MeV, "Minimum P"};
+    Allen::Property<float> m_minBPVz {this, "minBPVz", -541.f * Gaudi::Units::mm, "minimum z for the track BPV"};
+    Allen::Property<float> m_maxBPVz {this, "maxBPVz", -341.f * Gaudi::Units::mm, "maximum z for the track BPV"};
+    Allen::Property<float> m_maxChi2Corr {this, "maxChi2Corr", 1.8, "maximum Chi2Muon evaluation"};
   };
 } // namespace SMOG2_single_muon_line

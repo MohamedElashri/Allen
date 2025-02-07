@@ -25,8 +25,8 @@ void muon_lumi_counters::muon_lumi_counters_t::set_arguments_size(
 
 void muon_lumi_counters::muon_lumi_counters_t::init()
 {
-  std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
-  std::map<std::string, std::pair<float, float>> shifts_and_scales = property<lumi_counter_shifts_and_scales_t>();
+  std::map<std::string, std::pair<unsigned, unsigned>> schema = m_lumi_counter_schema;
+  std::map<std::string, std::pair<float, float>> shifts_and_scales = m_lumi_counter_shifts_and_scales;
 
   unsigned c_idx(0u);
   for (auto counter_name : Lumi::Constants::muon_counter_names) {
@@ -60,7 +60,7 @@ void muon_lumi_counters::muon_lumi_counters_t::operator()(
 
   Allen::memset_async<dev_lumi_infos_t>(arguments, 0, context);
 
-  global_function(muon_lumi_counters)(dim3(4u), property<block_dim_t>(), context)(
+  global_function(muon_lumi_counters)(dim3(4u), m_block_dim, context)(
     arguments,
     first<host_number_of_events_t>(arguments),
     size<dev_event_list_t>(arguments),

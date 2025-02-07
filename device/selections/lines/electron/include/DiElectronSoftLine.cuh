@@ -38,29 +38,31 @@ namespace di_electron_soft_line {
     DEVICE_OUTPUT(ee_cloneang_t, float) ee_cloneang;
     DEVICE_OUTPUT(minpt_uncorr_t, float) minpt_uncorr;
     DEVICE_OUTPUT(sv_pt_t, float) sv_pt;
-
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(DESoftM0_t, "DESoftM0", "lower m(pipi) for KS->pipi veto", float) DESoftM0;
-    PROPERTY(DESoftM1_t, "DESoftM1", "higher m(pipi) for KS->pipi veto", float) DESoftM1;
-    PROPERTY(DESoftM2_t, "DESoftM2", "upper m(ee)", float) DESoftM2;
-    PROPERTY(DESoftMinIP_t, "DESoftMinIP", "min(IP) of the electrons", float) DESoftMinIP;
-    PROPERTY(DESoftMinRho2_t, "DESoftMinRho2", "minimum transverse distance to the beampipe", float) DESoftMinRho2;
-    PROPERTY(DESoftMinZ_t, "DESoftMinZ", "min z", float) DESoftMinZ;
-    PROPERTY(DESoftMaxZ_t, "DESoftMaxZ", "max z", float) DESoftMaxZ;
-    PROPERTY(DESoftMaxDOCA_t, "DESoftMaxDOCA", "max DOCA between electrons", float) DESoftMaxDOCA;
-    PROPERTY(DESoftMaxIPDZ_t, "DESoftMaxIPDZ", "DESoftMaxIPDZ description", float) DESoftMaxIPDZ;
-    PROPERTY(DESoftGhost_t, "DESoftGhost", "min sin2 of angle between electrons (ghost removal)", float) DESoftGhost;
-    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dielectron combinations", bool) OppositeSign;
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enables monitoring ntuple", bool) enable_tupling;
   };
 
   struct di_electron_soft_line_t : public SelectionAlgorithm,
                                    Parameters,
                                    CompositeParticleLine<di_electron_soft_line_t, Parameters> {
+
+    struct DeviceProperties {
+      float DESoftM0;
+      float DESoftM1;
+      float DESoftM2;
+      float DESoftMinIP;
+      float DESoftMinRho2;
+      float DESoftMaxDOCA;
+      float DESoftMaxIPDZ;
+      float DESoftMinZ;
+      float DESoftMaxZ;
+      float DESoftGhost;
+      bool OppositeSign;
+      DeviceProperties(const di_electron_soft_line_t& algo, const Allen::Context&) :
+        DESoftM0(algo.m_DESoftM0), DESoftM1(algo.m_DESoftM1), DESoftM2(algo.m_DESoftM2),
+        DESoftMinIP(algo.m_DESoftMinIP), DESoftMinRho2(algo.m_DESoftMinRho2), DESoftMaxDOCA(algo.m_DESoftMaxDOCA),
+        DESoftMaxIPDZ(algo.m_DESoftMaxIPDZ), DESoftMinZ(algo.m_DESoftMinZ), DESoftMaxZ(algo.m_DESoftMaxZ),
+        DESoftGhost(algo.m_DESoftGhost), OppositeSign(algo.m_opposite_sign)
+      {}
+    };
 
     using monitoring_types = std::tuple<
       pipi_masses_t,
@@ -76,34 +78,33 @@ namespace di_electron_soft_line {
 
     __device__ static bool select(
       const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float>);
 
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
+    get_input(const Parameters&, const unsigned, const unsigned i);
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const bool, const float, const float> input,
       unsigned index,
       bool sel);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<DESoftM0_t> m_DESoftM0 {this, 483.f};
-    Property<DESoftM1_t> m_DESoftM1 {this, 513.f};
-    Property<DESoftM2_t> m_DESoftM2 {this, 800.f};
-    Property<DESoftMinIP_t> m_DESoftMinIP {this, 1.45f};
-    Property<DESoftMinRho2_t> m_DESoftMinRho2 {this, 9.1f};
-    Property<DESoftMaxDOCA_t> m_DESoftMaxDOCA {this, 0.096f};
-    Property<DESoftMaxIPDZ_t> m_DESoftMaxIPDZ {this, 0.0024f};
-    Property<DESoftMinZ_t> m_DESoftMinZ {this, -375.f};
-    Property<DESoftMaxZ_t> m_DESoftMaxZ {this, 635.f};
-    Property<DESoftGhost_t> m_DESoftGhost {this, 4.e-06f};
-    Property<OppositeSign_t> m_opposite_sign {this, true};
-    Property<enable_monitoring_t> m_enable_monitoring {this, true};
-    Property<enable_tupling_t> m_enable_tupling {this, true};
+    Allen::Property<float> m_DESoftM0 {this, "DESoftM0", 483.f, "lower m(pipi) for KS->pipi veto"};
+    Allen::Property<float> m_DESoftM1 {this, "DESoftM1", 513.f, "higher m(pipi) for KS->pipi veto"};
+    Allen::Property<float> m_DESoftM2 {this, "DESoftM2", 800.f, "upper m(ee)"};
+    Allen::Property<float> m_DESoftMinIP {this, "DESoftMinIP", 1.45f, "min(IP) of the electrons"};
+    Allen::Property<float> m_DESoftMinRho2 {this, "DESoftMinRho2", 9.1f, "minimum transverse distance to the beampipe"};
+    Allen::Property<float> m_DESoftMaxDOCA {this, "DESoftMaxDOCA", 0.096f, "max DOCA between electrons"};
+    Allen::Property<float> m_DESoftMaxIPDZ {this, "DESoftMaxIPDZ", 0.0024f, "DESoftMaxIPDZ description"};
+    Allen::Property<float> m_DESoftMinZ {this, "DESoftMinZ", -375.f, "min z"};
+    Allen::Property<float> m_DESoftMaxZ {this, "DESoftMaxZ", 635.f, "max z"};
+    Allen::Property<float> m_DESoftGhost {this,
+                                          "DESoftGhost",
+                                          4.e-06f,
+                                          "min sin2 of angle between electrons (ghost removal)"};
+    Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dielectron combinations"};
   };
 } // namespace di_electron_soft_line

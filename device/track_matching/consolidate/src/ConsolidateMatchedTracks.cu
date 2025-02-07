@@ -78,8 +78,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
   Allen::copy_async<dev_accepted_and_unused_velo_tracks_t, dev_accepted_velo_tracks_t>(arguments, context);
 
   if (has_ut) {
-    global_function(matching_consolidate_tracks<true>)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    global_function(matching_consolidate_tracks<true>)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
       arguments,
       constants.dev_unique_x_sector_layer_offsets.data(),
       m_histogram_long_track_matching_eta.data(context),
@@ -96,8 +95,7 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
     PrefixSum::prefix_sum<dev_used_ut_hits_offsets_t>(*this, arguments, context);
   }
   else {
-    global_function(matching_consolidate_tracks<false>)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+    global_function(matching_consolidate_tracks<false>)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
       arguments,
       constants.dev_unique_x_sector_layer_offsets.data(),
       m_histogram_long_track_matching_eta.data(context),

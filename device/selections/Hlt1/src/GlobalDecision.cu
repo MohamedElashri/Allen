@@ -28,7 +28,7 @@ void global_decision::global_decision_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(global_decision)(1, dim3(property<block_dim_x_t>().get()), context)(arguments);
+  global_function(global_decision)(1, dim3(m_block_dim_x), context)(arguments);
 
   Allen::copy_async<host_global_decision_t, dev_global_decision_t>(arguments, context);
 

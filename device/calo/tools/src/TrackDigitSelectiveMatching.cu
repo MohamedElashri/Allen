@@ -34,6 +34,7 @@ void track_digit_selective_matching::track_digit_selective_matching_t::set_argum
   set_size<dev_dispersion_xy_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_track_local_max_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
   set_size<dev_track_isElectron_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_ecal_digits_isTrackMatched_t>(arguments, first<host_ecal_number_of_digits_t>(arguments));
 }
 
 void track_digit_selective_matching::track_digit_selective_matching_t::operator()(
@@ -42,8 +43,10 @@ void track_digit_selective_matching::track_digit_selective_matching_t::operator(
   const Constants& constants,
   Allen::Context const& context) const
 {
-  global_function(track_digit_selective_matching)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments, constants.dev_ecal_geometry);
+  Allen::memset_async<dev_ecal_digits_isTrackMatched_t>(arguments, 0, context);
+
+  global_function(track_digit_selective_matching)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments, constants.dev_ecal_geometry);
 }
 
 __global__ void track_digit_selective_matching::track_digit_selective_matching(
@@ -86,6 +89,7 @@ __device__ void track_digit_selective_matching::track_digit_selective_matching_i
   auto ecal_geometry = CaloGeometry(raw_ecal_geometry);
   const unsigned digits_offset = parameters.dev_ecal_digits_offsets[event_number];
   auto const* digits = parameters.dev_ecal_digits + digits_offset;
+  auto* digits_isTrackMatched = parameters.dev_ecal_digits_isTrackMatched + digits_offset;
 
   // Loop over the long tracks in parallel
   for (unsigned track_index = threadIdx.x; track_index < n_long_tracks; track_index += blockDim.x) {
@@ -129,6 +133,12 @@ __device__ void track_digit_selective_matching::track_digit_selective_matching_i
       sum_cell_E,
       digit_indices,
       localmax);
+
+    for (unsigned j = 0; j < N_matched_digits; ++j) {
+      const unsigned& digit_index = digit_indices[j];
+      digits_isTrackMatched[digit_index] = true;
+    }
+
     int region = 0;
     cluster_shape_scan(
       N_ecal_positions,

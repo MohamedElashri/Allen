@@ -76,18 +76,11 @@ namespace make_selected_object_lists {
       DEPENDENCIES(dev_multi_event_particle_containers_t),
       Allen::Views::Physics::CompositeParticle*)
     dev_selected_composite_particle_ptrs;
-    PROPERTY(
-      max_children_per_object_t,
-      "max_children_per_object",
-      "Maximum number of children per selected object",
-      unsigned)
-    max_children_per_object;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void make_selected_object_lists(Parameters, const unsigned total_events);
+  __global__ void make_selected_object_lists(Parameters, const unsigned, const unsigned);
 
-  __global__ void calc_rb_sizes(Parameters);
+  __global__ void calc_rb_sizes(Parameters, const unsigned);
 
   struct make_selected_object_lists_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -99,8 +92,10 @@ namespace make_selected_object_lists {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
-    Property<max_children_per_object_t> m_max_children_per_object {this, 4};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {64, 1, 1}, "block dimensions"};
+    Allen::Property<unsigned> m_max_children_per_object {this,
+                                                         "max_children_per_object",
+                                                         4,
+                                                         "Maximum number of children per selected object"};
   };
-
 } // namespace make_selected_object_lists

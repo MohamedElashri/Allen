@@ -19,7 +19,7 @@
 #include "SciFiEventModel.cuh"
 #include "SciFiConsolidated.cuh"
 
-#include "NeuralNetwork.cuh"
+#include "SingleLayerFCNN.cuh"
 
 // Local
 #include "DownstreamConstants.cuh"
@@ -35,6 +35,7 @@
  * implementation file is in downstream_create_tracks.cu
  */
 namespace downstream_create_tracks {
+  using DownstreamGhostKiller = Allen::MVAModels::SingleLayerFCNN<11, 32>;
 
   struct Parameters {
     // Basic
@@ -57,11 +58,6 @@ namespace downstream_create_tracks {
     DEVICE_OUTPUT(dev_downstream_tracks_t, UT::DownstreamTrack) dev_downstream_tracks;
     DEVICE_OUTPUT(dev_offsets_downstream_tracks_t, unsigned) dev_offsets_downstream_tracks;
     HOST_OUTPUT(host_number_of_downstream_tracks_t, unsigned) host_number_of_downstream_tracks;
-
-    // Block size
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(ghost_killer_threshold_t, "ghost_killer_threshold", "the threshold of the ghost killer", float)
-    ghost_killer_threshold;
   };
 
   __global__ void downstream_create_tracks(
@@ -69,7 +65,8 @@ namespace downstream_create_tracks {
     const unsigned*,
     const float*,
     const float*,
-    const Allen::NeuralNetwork::Model::DownstreamGhostKiller*,
+    const float,
+    const DownstreamGhostKiller::DeviceType*,
     [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType);
 
   struct downstream_create_tracks_t : public DeviceAlgorithm,
@@ -86,8 +83,14 @@ namespace downstream_create_tracks {
 
   private:
     Allen::Monitoring::Counter<> m_n_overflow_downstream_create_tracks {this, "n_overflow_downstream_create_tracks"};
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
-    Property<ghost_killer_threshold_t> m_ghost_killer_threshold {this, 0.5};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
+    Allen::Property<float> m_ghost_killer_threshold {this,
+                                                     "ghost_killer_threshold",
+                                                     0.5,
+                                                     "the threshold of the ghost killer"};
+
+    DownstreamGhostKiller dev_downstream_ghostkiller {"dev_downstream_ghostkiller",
+                                                      "/GhostProbability/Hlt1_DownstreamGhostKiller.json"};
   };
 
 } // namespace downstream_create_tracks

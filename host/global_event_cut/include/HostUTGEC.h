@@ -30,15 +30,15 @@ namespace host_ut_gec {
     HOST_OUTPUT(host_number_of_selected_events_t, unsigned) host_number_of_selected_events;
     DEVICE_OUTPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     MASK_OUTPUT(dev_event_list_output_t) dev_output_event_list;
-    PROPERTY(min_clusters_t, "min_clusters", "minimum number of UT clusters", unsigned)
-    min_clusters;
-    PROPERTY(max_clusters_t, "max_clusters", "maximum number of UT clusters", unsigned)
-    max_clusters;
   };
 
   // Templated GEC on the MEP layout
   template<bool mep_layout = true>
-  void host_ut_gec(host_ut_gec::Parameters parameters, unsigned const event_start)
+  void host_ut_gec(
+    host_ut_gec::Parameters parameters,
+    unsigned const event_start,
+    unsigned const min_clusters,
+    unsigned const max_clusters)
   {
     auto const ut_offsets = *parameters.ut_offsets;
     auto const ut_sizes = *parameters.ut_sizes;
@@ -88,7 +88,7 @@ namespace host_ut_gec {
         }
       }
 
-      if (n_clusters <= parameters.max_clusters && n_clusters >= parameters.min_clusters) {
+      if (n_clusters <= max_clusters && n_clusters >= min_clusters) {
         parameters.host_output_event_list[size_of_list++] = event_index;
       }
     }
@@ -109,7 +109,7 @@ namespace host_ut_gec {
       const Allen::Context& context) const;
 
   private:
-    Property<min_clusters_t> m_min_clusters {this, 0};
-    Property<max_clusters_t> m_max_clusters {this, 9750};
+    Allen::Property<unsigned> m_min_clusters {this, "min_clusters", 0, "minimum number of UT clusters"};
+    Allen::Property<unsigned> m_max_clusters {this, "max_clusters", 9750, "maximum number of UT clusters"};
   };
 } // namespace host_ut_gec

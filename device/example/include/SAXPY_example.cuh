@@ -20,8 +20,6 @@ namespace saxpy {
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_atomics_velo;
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
     DEVICE_OUTPUT(dev_saxpy_output_t, float) dev_saxpy_output;
-    PROPERTY(saxpy_scale_factor_t, "saxpy_scale_factor", "scale factor a used in a*x + y", float) saxpy_scale_factor;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   struct saxpy_t : public DeviceAlgorithm, Parameters {
@@ -34,9 +32,9 @@ namespace saxpy {
       const Allen::Context& context) const;
 
   private:
-    Property<saxpy_scale_factor_t> m_saxpy_factor {this, 2.f};
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<float> m_saxpy_factor {this, "saxpy_scale_factor", 2.f, "scale factor a used in a*x + y"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
   };
 
-  __global__ void saxpy(Parameters);
+  __global__ void saxpy(Parameters, const float);
 } // namespace saxpy

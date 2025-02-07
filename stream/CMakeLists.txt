@@ -20,8 +20,9 @@ install(TARGETS Gear EXPORT Allen)
 include(GenerateConfiguration)
 
 file(GLOB stream_src "sequence/src/*cpp")
+file(GLOB gear_src "gear/src/*cpp")
 
-allen_add_host_library(Stream STATIC ${stream_src})
+allen_add_host_library(Stream STATIC ${stream_src} ${gear_src})
 
 target_link_libraries(Stream
   PRIVATE

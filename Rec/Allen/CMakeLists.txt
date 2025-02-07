@@ -31,6 +31,7 @@ gaudi_add_module(AllenWrapper
                    src/AllenROOTService.cpp
                    src/ProvideRuntimeOptions.cpp
                    src/CompareRecAllenCaloDigits.cpp
+                   src/CompareRecAllenPlume.cpp
                    src/CompareRecAllenMuonHits.cpp
                    src/CompareRecAllenUTHits.cpp
                    src/GaudiAllenTransformAllenRecUTHits.cpp
@@ -73,6 +74,7 @@ gaudi_add_module(AllenWrapper
                    LHCb::FTDetLib
                    LHCb::MCEvent
                    LHCb::RecEvent
+                   LHCb::RichFutureUtils
                    Rec::PrKernel)
 
 target_include_directories(AllenWrapper PRIVATE ${PROJECT_BINARY_DIR}/code_generation)

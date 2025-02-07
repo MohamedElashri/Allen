@@ -13,15 +13,7 @@
 
 INSTANTIATE_LINE(lowmass_dielectron_line::lowmass_dielectron_line_t, lowmass_dielectron_line::Parameters)
 
-__device__ std::tuple<
-  const Allen::Views::Physics::CompositeParticle,
-  const bool,
-  const bool,
-  const float,
-  const float,
-  const float,
-  const bool,
-  const bool>
+__device__ std::tuple<const Allen::Views::Physics::CompositeParticle, unsigned>
 lowmass_dielectron_line::lowmass_dielectron_line_t::get_input(
   const Parameters& parameters,
   const unsigned event_number,
@@ -29,6 +21,17 @@ lowmass_dielectron_line::lowmass_dielectron_line_t::get_input(
 {
   const auto event_vertices = parameters.dev_particle_container->container(event_number);
   const auto vertex = event_vertices.particle(i);
+
+  return std::forward_as_tuple(vertex, event_number);
+}
+
+__device__ bool lowmass_dielectron_line::lowmass_dielectron_line_t::select(
+  const Parameters& parameters,
+  const DeviceProperties& properties,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, unsigned> input)
+{
+  const Allen::Views::Physics::CompositeParticle vertex = std::get<0>(input);
+  const unsigned event_number = std::get<1>(input);
   const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
   const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
   const float nn_track1 =
@@ -36,8 +39,8 @@ lowmass_dielectron_line::lowmass_dielectron_line_t::get_input(
   const float nn_track2 =
     parameters.dev_electronid_evaluation[parameters.dev_track_offsets[event_number] + track2->get_index()];
   bool is_dielectron = false;
-  if (parameters.useNN)
-    is_dielectron = nn_track1 > parameters.nnCut && nn_track2 > parameters.nnCut;
+  if (properties.useNN)
+    is_dielectron = nn_track1 > properties.nnCut && nn_track2 > properties.nnCut;
   else
     is_dielectron = vertex.is_dielectron();
   const float brem_corrected_pt1 =
@@ -65,67 +68,36 @@ lowmass_dielectron_line::lowmass_dielectron_line_t::get_input(
 
   const bool is_same_sign = (track1->state().qop() * track2->state().qop()) > 0;
 
-  bool passes_common_selection = vertex.doca12() < parameters.maxDOCA &&
-                                 vertex.vertex().chi2() < parameters.maxVtxChi2 &&
-                                 brem_corrected_dielectron_pt > parameters.minDielectronPT;
+  bool passes_common_selection = vertex.doca12() < properties.maxDOCA &&
+                                 vertex.vertex().chi2() < properties.maxVtxChi2 &&
+                                 brem_corrected_dielectron_pt > properties.minDielectronPT;
 
-  bool passes_prompt_selection = passes_common_selection && brem_corrected_minpt > parameters.minPTprompt &&
-                                 track1->ip_chi2() < parameters.trackIPChi2Threshold &&
-                                 track2->ip_chi2() < parameters.trackIPChi2Threshold;
+  bool passes_prompt_selection = passes_common_selection && brem_corrected_minpt > properties.minPTprompt &&
+                                 track1->ip_chi2() < properties.trackIPChi2Threshold &&
+                                 track2->ip_chi2() < properties.trackIPChi2Threshold;
 
-  bool passes_displaced_selection = passes_common_selection && brem_corrected_minpt > parameters.minPTdisplaced &&
-                                    track1->ip_chi2() > parameters.trackIPChi2Threshold &&
-                                    track2->ip_chi2() > parameters.trackIPChi2Threshold;
-
-  return std::forward_as_tuple(
-    vertex,
-    is_dielectron,
-    is_same_sign,
-    brem_corrected_minpt,
-    brem_corrected_dielectron_mass,
-    brem_corrected_dielectron_pt,
-    passes_prompt_selection,
-    passes_displaced_selection);
-}
-
-__device__ bool lowmass_dielectron_line::lowmass_dielectron_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators& accumulators,
-  std::tuple<
-    const Allen::Views::Physics::CompositeParticle,
-    const bool,
-    const bool,
-    const float,
-    const float,
-    const float,
-    const bool,
-    const bool> input)
-{
-  const Allen::Views::Physics::CompositeParticle vertex = std::get<0>(input);
-  const bool is_dielectron = std::get<1>(input);
-  const bool is_same_sign = std::get<2>(input);
-  const float brem_corrected_dielectron_mass = std::get<4>(input);
-  const bool passes_prompt_selection = std::get<6>(input);
-  const bool passes_displaced_selection = std::get<7>(input);
+  bool passes_displaced_selection = passes_common_selection && brem_corrected_minpt > properties.minPTdisplaced &&
+                                    track1->ip_chi2() > properties.trackIPChi2Threshold &&
+                                    track2->ip_chi2() > properties.trackIPChi2Threshold;
 
   // Electron ID
   if (!is_dielectron) {
     return false;
   }
 
-  bool decision = (is_same_sign == parameters.ss_on) && brem_corrected_dielectron_mass > parameters.minMass &&
-                  brem_corrected_dielectron_mass < parameters.maxMass && vertex.vertex().z() >= parameters.MinZ;
+  bool decision = (is_same_sign == properties.ss_on) && brem_corrected_dielectron_mass > properties.minMass &&
+                  brem_corrected_dielectron_mass < properties.maxMass && vertex.vertex().z() >= properties.minZ;
 
   // Select prompt or displaced candidates
   decision &=
-    ((parameters.selectPrompt && passes_prompt_selection) || (!parameters.selectPrompt && passes_displaced_selection));
+    ((properties.selectPrompt && passes_prompt_selection) || (!properties.selectPrompt && passes_displaced_selection));
 
-  bool decision_no_mass_prompt_only = (is_same_sign == parameters.ss_on) && vertex.vertex().z() >= parameters.MinZ &&
-                                      parameters.selectPrompt && passes_prompt_selection;
+  bool decision_no_mass_prompt_only = (is_same_sign == properties.ss_on) && vertex.vertex().z() >= properties.minZ &&
+                                      properties.selectPrompt && passes_prompt_selection;
   if (decision_no_mass_prompt_only) {
     auto m12 = vertex.m12(0.510999, 0.510999);
-    accumulators.histogram_dielectron_masses.increment(m12);
-    accumulators.histogram_dielectron_masses_brem.increment(brem_corrected_dielectron_mass);
+    properties.histogram_dielectron_masses.increment(m12);
+    properties.histogram_dielectron_masses_brem.increment(brem_corrected_dielectron_mass);
   }
 
   return decision;
@@ -170,22 +142,38 @@ void lowmass_dielectron_line::lowmass_dielectron_line_t::init_tuples(
 
 __device__ void lowmass_dielectron_line::lowmass_dielectron_line_t::fill_tuples(
   const Parameters& parameters,
-  std::tuple<
-    const Allen::Views::Physics::CompositeParticle,
-    const bool,
-    const bool,
-    const float,
-    const float,
-    const float,
-    const bool,
-    const bool> input,
+  const DeviceProperties&,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, unsigned> input,
   unsigned index,
   bool sel)
 {
   const Allen::Views::Physics::CompositeParticle vertex = std::get<0>(input);
-  const float brem_corrected_minpt = std::get<3>(input);
-  const float brem_corrected_dielectron_mass = std::get<4>(input);
-  const float brem_corrected_dielectron_pt = std::get<5>(input);
+  const unsigned event_number = std::get<1>(input);
+  const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
+  const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
+  const float brem_corrected_pt1 =
+    parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + track1->get_index()];
+  const float brem_corrected_pt2 =
+    parameters.dev_brem_corrected_pt[parameters.dev_track_offsets[event_number] + track2->get_index()];
+
+  const float raw_pt1 = track1->state().pt();
+  const float raw_pt2 = track2->state().pt();
+
+  float brem_p_correction_ratio_trk1 = 0.f;
+  float brem_p_correction_ratio_trk2 = 0.f;
+  if (track1->state().p() > 0.f) {
+    brem_p_correction_ratio_trk1 = brem_corrected_pt1 / raw_pt1;
+  }
+  if (track2->state().p() > 0.f) {
+    brem_p_correction_ratio_trk2 = brem_corrected_pt2 / raw_pt2;
+  }
+  const float brem_corrected_dielectron_mass =
+    vertex.m12(0.510999f, 0.510999f) * sqrtf(brem_p_correction_ratio_trk1 * brem_p_correction_ratio_trk2);
+
+  const float brem_corrected_dielectron_pt = brem_corrected_pt1 + brem_corrected_pt2;
+
+  const float brem_corrected_minpt = min(brem_corrected_pt1, brem_corrected_pt2);
+
   if (sel) {
     parameters.dev_die_masses_raw[index] = vertex.m12(0.510999, 0.510999);
     parameters.dev_die_masses_bremcorr[index] = brem_corrected_dielectron_mass;

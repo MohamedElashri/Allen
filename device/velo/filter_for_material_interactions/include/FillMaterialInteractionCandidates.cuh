@@ -30,18 +30,9 @@ namespace FillMaterialInteractionCandidates {
     DEVICE_INPUT(dev_interaction_seeds_offsets_t, unsigned) dev_interaction_seeds_offsets;
 
     DEVICE_OUTPUT(dev_interaction_seeds_t, float3) dev_interaction_seeds;
-
-    PROPERTY(
-      max_doca_for_close_track_pairs_t,
-      "max_doca_for_close_track_pairs",
-      "doca to define close track pairs",
-      float)
-    max_doca_for_close_track_pairs;
-
-    PROPERTY(block_dim_t, "block_dim", "block dimension", DeviceDimensions) block_dim;
   };
 
-  __global__ void fill_materialinteraction_candidates(Parameters);
+  __global__ void fill_materialinteraction_candidates(Parameters, const float max_doca_for_close_track_pairs);
 
   struct fill_materialinteraction_candidates_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -53,8 +44,11 @@ namespace FillMaterialInteractionCandidates {
       const Allen::Context& context) const;
 
   private:
-    Property<max_doca_for_close_track_pairs_t> m_max_doca_for_close_track_pairs {this, 0.15f};
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<float> m_max_doca_for_close_track_pairs {this,
+                                                             "max_doca_for_close_track_pairs",
+                                                             0.15f,
+                                                             "doca to define close track pairs"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimension"};
   };
 
 } // namespace FillMaterialInteractionCandidates

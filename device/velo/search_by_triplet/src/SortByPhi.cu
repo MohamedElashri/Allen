@@ -196,7 +196,7 @@ void velo_sort_by_phi::velo_sort_by_phi_t::operator()(
   global_function(velo_apply_sort_permutation)(
     dim3((first<host_total_number_of_velo_clusters_t>(arguments) + 255) / 256), dim3(256), context)(arguments);*/
 
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     info_cout << "VELO clusters after velo_sort_by_phi:\n";
     print_velo_clusters<
       dev_sorted_velo_cluster_container_t,

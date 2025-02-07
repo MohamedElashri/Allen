@@ -26,7 +26,6 @@ namespace create_reduced_scifi_hit_container {
     HOST_OUTPUT(host_number_of_scifi_hits_t, unsigned) host_number_of_scifi_hits;
     DEVICE_OUTPUT(dev_scifi_hit_offsets_t, unsigned) dev_scifi_hit_offsets;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned);
   };
 
   struct create_reduced_scifi_hit_container_t : public DeviceAlgorithm, Parameters {
@@ -39,6 +38,6 @@ namespace create_reduced_scifi_hit_container {
       const Allen::Context&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension X"};
   };
 } // namespace create_reduced_scifi_hit_container

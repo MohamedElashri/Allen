@@ -23,7 +23,7 @@ void data_quality_validator_velo::data_quality_validator_velo_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  if (property<enable_tupling_t>()) output_monitor(arguments, runtime_options, context);
+  if (m_enable_tupling.value()) output_monitor(arguments, runtime_options, context);
 }
 
 void data_quality_validator_velo::data_quality_validator_velo_t::output_monitor(
@@ -87,7 +87,7 @@ void data_quality_validator_pv::data_quality_validator_pv_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  if (property<enable_tupling_t>()) output_monitor(arguments, runtime_options, context);
+  if (m_enable_tupling.value()) output_monitor(arguments, runtime_options, context);
 }
 
 void data_quality_validator_pv::data_quality_validator_pv_t::output_monitor(
@@ -100,6 +100,7 @@ void data_quality_validator_pv::data_quality_validator_pv_t::output_monitor(
   // --> PVs
   auto tree = handler.tree("PVs");
   auto eventTree = handler.tree("PV_event");
+  auto PVpairsTree = handler.tree("PV_pairs");
   const auto PVs = make_host_buffer<dev_multi_fit_vertices_t>(arguments, context);
   const auto n_pvs = make_host_buffer<dev_number_of_multi_fit_vertices_t>(arguments, context);
   const auto event_list = make_host_buffer<dev_event_list_t>(arguments, context);
@@ -120,7 +121,15 @@ void data_quality_validator_pv::data_quality_validator_pv_t::output_monitor(
   handler.branch(tree, "cov22", pv_cov[2][2]);
 
   int nPVs;
+  float PVdistance_min, PVdistance_max, PVdistance_mean;
   handler.branch(eventTree, "n_pvs", nPVs);
+  handler.branch(eventTree, "PVdistance_min", PVdistance_min);
+  handler.branch(eventTree, "PVdistance_max", PVdistance_max);
+  handler.branch(eventTree, "PVdistance_mean", PVdistance_mean);
+
+  // Fill with the Delta Z distance of each pair of PVs
+  float PVdelta_z;
+  handler.branch(PVpairsTree, "PVdelta_z", PVdelta_z);
 
   for (unsigned i = 0; i < event_list.size(); ++i) {
     const auto evnum = event_list[i];
@@ -130,6 +139,19 @@ void data_quality_validator_pv::data_quality_validator_pv_t::output_monitor(
     // Thus the offset is calculated using this number instead of
     // something like dev_pv_offsets
     const unsigned pv_offset = evnum * PV::max_number_vertices;
+
+    // If there's 1 or fewer PVs, there's no distance between them!
+    // - set a dummy number for this
+    if (nPVs <= 1) {
+      PVdistance_max = -99.f;
+      PVdistance_min = -99.f;
+      PVdistance_mean = -99.f;
+    }
+    else { // Otherwise reset the values ready for the upcoming loop
+      PVdistance_mean = 0.f;
+      PVdistance_max = 0.f;
+      PVdistance_min = std::numeric_limits<float>::infinity();
+    }
 
     for (int i_vertex = 0; i_vertex < nPVs; i_vertex++) {
       const auto pv = PVs[i_vertex + pv_offset];
@@ -146,6 +168,33 @@ void data_quality_validator_pv::data_quality_validator_pv_t::output_monitor(
       pv_cov[2][1] = pv.cov21;
       pv_cov[2][2] = pv.cov22;
       tree->Fill();
+
+      // Now compare this vertex to all previous ones and calculate their distances
+      if (nPVs > 1) {
+        for (int j = 0; j < i_vertex; ++j) {
+          const auto otherVertex = PVs[j + pv_offset];
+          const float delta_x = otherVertex.position.x - pv_x;
+          const float delta_y = otherVertex.position.y - pv_y;
+          const float delta_z = otherVertex.position.z - pv_z;
+          const float delta_pos = std::sqrt(delta_x * delta_x + delta_y * delta_y + delta_z * delta_z);
+
+          if (delta_pos > PVdistance_max) {
+            PVdistance_max = delta_pos;
+          }
+          if (delta_pos < PVdistance_min) {
+            PVdistance_min = delta_pos;
+          }
+          PVdistance_mean += delta_pos;
+
+          // Fill with each pair of points
+          PVdelta_z = delta_z;
+          PVpairsTree->Fill();
+        }
+      }
+    }
+    // finally, divide by nPVs to for the mean
+    if (nPVs > 1) {
+      PVdistance_mean /= nPVs;
     }
     eventTree->Fill();
   }
@@ -160,7 +209,7 @@ void data_quality_validator_occupancy::data_quality_validator_occupancy_t::opera
   const Constants&,
   const Allen::Context& context) const
 {
-  if (property<enable_tupling_t>()) output_monitor(arguments, runtime_options, context);
+  if (m_enable_tupling.value()) output_monitor(arguments, runtime_options, context);
 }
 
 void data_quality_validator_occupancy::data_quality_validator_occupancy_t::output_monitor(
@@ -173,14 +222,16 @@ void data_quality_validator_occupancy::data_quality_validator_occupancy_t::outpu
   // --> Occupancy
   auto eventTree = handler.tree("occupancy");
   const auto scifi_tracks_offsets = make_host_buffer<dev_scifi_hit_offsets_t>(arguments, context);
+  const auto scifi_seeds = make_host_buffer<dev_scifi_seedsXZ_t>(arguments, context);
   const auto velo_offsets_eis = make_host_buffer<dev_velo_offsets_estimated_input_size_t>(arguments, context);
   const auto event_velo_tracks_offsets = make_host_buffer<dev_offsets_velo_tracks_t>(arguments, context);
   const auto ecal_clusters = make_host_buffer<dev_ecal_clusters_offsets_t>(arguments, context);
   const auto muon_offsets = make_host_buffer<dev_station_ocurrences_offset_t>(arguments, context);
   const auto event_list = make_host_buffer<dev_event_list_t>(arguments, context);
 
-  int n_scifi_hits, n_velo_hits, n_velo_tracks, n_ecal_clusters, n_muon_hits;
+  int n_scifi_hits, n_scifi_xz_seeds, n_velo_hits, n_velo_tracks, n_ecal_clusters, n_muon_hits;
   handler.branch(eventTree, "n_scifi_hits", n_scifi_hits);
+  handler.branch(eventTree, "n_scifi_xz_seeds", n_scifi_xz_seeds);
   handler.branch(eventTree, "n_velo_hits", n_velo_hits);
   handler.branch(eventTree, "n_velo_tracks", n_velo_tracks);
   handler.branch(eventTree, "n_ecal_clusters", n_ecal_clusters);
@@ -194,6 +245,7 @@ void data_quality_validator_occupancy::data_quality_validator_occupancy_t::outpu
     const auto evnum = event_list[i];
     SciFi::ConstHitCount scifi_hit_count {scifi_tracks_offsets.data(), evnum};
     n_scifi_hits = scifi_hit_count.event_number_of_hits();
+    n_scifi_xz_seeds = scifi_seeds.data()[evnum];
 
     const unsigned* module_pair_hit_start = velo_offsets_eis.data() + evnum * Velo::Constants::n_module_pairs;
     const unsigned event_hit_start = module_pair_hit_start[0];

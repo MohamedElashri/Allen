@@ -59,7 +59,6 @@ namespace ut_consolidate_tracks {
       DEPENDENCIES(dev_ut_multi_event_tracks_view_t),
       Allen::IMultiEventContainer*)
     dev_imec_ut_tracks;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void ut_consolidate_tracks(Parameters, const unsigned* dev_unique_x_sector_layer_offsets);
@@ -82,6 +81,6 @@ namespace ut_consolidate_tracks {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 } // namespace ut_consolidate_tracks

@@ -9,7 +9,6 @@
 * or submit itself to any jurisdiction.                                       *
 \*****************************************************************************/
 #include "DownstreamFindHits.cuh"
-#include "NeuralNetwork.cuh"
 
 /**
  * @file DownstreamFindHits.cu
@@ -142,46 +141,70 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
 
   // Create candidates
   if (filter_used_scifi_seeds) {
-    auto candidates_condition = (property<enable_constant_tolerance_window_t>()) ?
+    auto candidates_condition = (m_enable_constant_tolerance_window.value()) ?
                                   global_function(downstream_create_candidates<true, true>) :
                                   global_function(downstream_create_candidates<true, false>);
-    candidates_condition(dim3(size<dev_event_list_t>(arguments)), property<num_threads_create_candidates_t>(), context)(
+    candidates_condition(dim3(size<dev_event_list_t>(arguments)), m_num_threads_create_candidates, context)(
       arguments,
       dev_unique_x_sector_layer_offsets,
       dev_unique_sector_xs,
       dev_magnet_polarity,
+      m_tolerance_window_x4_multiplier,
+      m_tolerance_window_y4_multiplier,
+      m_ttracks_probability_threshold,
       dev_ut_per_layer_info,
-      constants.dev_ttrack_selector,
+      dev_ttrack_selector.getDevicePointer(),
       m_n_overflow_downstream_tracking.data(context));
   }
   else {
-    auto candidates_condition = (property<enable_constant_tolerance_window_t>()) ?
+    auto candidates_condition = (m_enable_constant_tolerance_window.value()) ?
                                   global_function(downstream_create_candidates<false, true>) :
                                   global_function(downstream_create_candidates<false, false>);
-    candidates_condition(dim3(size<dev_event_list_t>(arguments)), property<num_threads_create_candidates_t>(), context)(
+    candidates_condition(dim3(size<dev_event_list_t>(arguments)), m_num_threads_create_candidates, context)(
       arguments,
       dev_unique_x_sector_layer_offsets,
       dev_unique_sector_xs,
       dev_magnet_polarity,
+      m_tolerance_window_x4_multiplier,
+      m_tolerance_window_y4_multiplier,
+      m_ttracks_probability_threshold,
       dev_ut_per_layer_info,
-      constants.dev_ttrack_selector,
+      dev_ttrack_selector.getDevicePointer(),
       m_n_overflow_downstream_tracking.data(context));
   }
 
   // Fill table
-  if (property<require_four_ut_hits_t>()) {
-    auto candidates_condition = (property<enable_constant_tolerance_window_t>()) ?
+  if (m_require_four_ut_hits.value()) {
+    auto candidates_condition = (m_enable_constant_tolerance_window.value()) ?
                                   global_function(downstream_find_rest_hits<true, true>) :
                                   global_function(downstream_find_rest_hits<true, false>);
-    candidates_condition(dim3(size<dev_event_list_t>(arguments)), property<num_threads_find_rest_hits_t>(), context)(
-      arguments, dev_unique_x_sector_layer_offsets, dev_unique_sector_xs, dev_ut_per_layer_info);
+    candidates_condition(dim3(size<dev_event_list_t>(arguments)), m_num_threads_find_rest_hits, context)(
+      arguments,
+      dev_unique_x_sector_layer_offsets,
+      dev_unique_sector_xs,
+      dev_ut_per_layer_info,
+      m_tolerance_window_x1_multiplier,
+      m_tolerance_window_x2_multiplier,
+      m_tolerance_window_x3_multiplier,
+      m_tolerance_window_y1_multiplier,
+      m_tolerance_window_y2_multiplier,
+      m_tolerance_window_y3_multiplier);
   }
   else {
-    auto candidates_condition = (property<enable_constant_tolerance_window_t>()) ?
+    auto candidates_condition = (m_enable_constant_tolerance_window.value()) ?
                                   global_function(downstream_find_rest_hits<false, true>) :
                                   global_function(downstream_find_rest_hits<false, false>);
-    candidates_condition(dim3(size<dev_event_list_t>(arguments)), property<num_threads_find_rest_hits_t>(), context)(
-      arguments, dev_unique_x_sector_layer_offsets, dev_unique_sector_xs, dev_ut_per_layer_info);
+    candidates_condition(dim3(size<dev_event_list_t>(arguments)), m_num_threads_find_rest_hits, context)(
+      arguments,
+      dev_unique_x_sector_layer_offsets,
+      dev_unique_sector_xs,
+      dev_ut_per_layer_info,
+      m_tolerance_window_x1_multiplier,
+      m_tolerance_window_x2_multiplier,
+      m_tolerance_window_x3_multiplier,
+      m_tolerance_window_y1_multiplier,
+      m_tolerance_window_y2_multiplier,
+      m_tolerance_window_y3_multiplier);
   }
 }
 
@@ -201,8 +224,11 @@ __global__ void downstream_find_hits::downstream_create_candidates(
   const unsigned* dev_unique_x_sector_layer_offsets,
   const float* dev_unique_sector_xs,
   const float* dev_magnet_polarity,
+  const float tolerance_window_x4_multiplier,
+  const float tolerance_window_y4_multiplier,
+  const float ttracks_probability_threshold,
   const UT::Constants::PerLayerInfo* dev_mean_layer_info,
-  const Allen::NeuralNetwork::Model::TTrackSelector* dev_ttrack_selector,
+  const TTrackSelector::DeviceType* dev_ttrack_selector,
   [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_tracking)
 {
 
@@ -295,14 +321,14 @@ __global__ void downstream_find_hits::downstream_create_candidates(
 
     // Filter T tracks which are 100% ghost for downstream tracks
     const auto scifi_state = scifi_states[SciFi_idx];
-    float ttrack_prob_inputs[Allen::NeuralNetwork::Model::TTrackSelector::nInput] = {
+    float ttrack_prob_inputs[TTrackSelector::DeviceType::nInput] = {
       fabsf(scifi_state.x()),
       fabsf(scifi_state.y()),
       fabsf(scifi_state.tx()),
       fabsf(scifi_state.ty()),
     };
-    const auto ttrack_prob = Allen::NeuralNetwork::evaluate(dev_ttrack_selector, ttrack_prob_inputs);
-    if (ttrack_prob > parameters.ttracks_probability_threshold.get()) continue;
+    const auto ttrack_prob = dev_ttrack_selector->evaluate(ttrack_prob_inputs);
+    if (ttrack_prob > ttracks_probability_threshold) continue;
 
     // Get SciFi qop
     const auto scifi_qop = scifi_qops[SciFi_idx];
@@ -320,8 +346,8 @@ __global__ void downstream_find_hits::downstream_create_candidates(
       yTol = exTrack.yTol(layer);
     }
     else {
-      xTol = exTrack.xTolConst(layer) * parameters.tolerance_window_x4_multiplier.get();
-      yTol = exTrack.yTolConst(layer) * parameters.tolerance_window_y4_multiplier.get();
+      xTol = exTrack.xTolConst(layer) * tolerance_window_x4_multiplier;
+      yTol = exTrack.yTolConst(layer) * tolerance_window_y4_multiplier;
     }
 
     // Get expected x and open the search window
@@ -430,7 +456,13 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
   downstream_find_hits::Parameters parameters,
   const unsigned* dev_unique_x_sector_layer_offsets,
   const float* dev_unique_sector_xs,
-  const UT::Constants::PerLayerInfo* dev_mean_layer_info)
+  const UT::Constants::PerLayerInfo* dev_mean_layer_info,
+  const float tolerance_window_x1_multiplier,
+  const float tolerance_window_x2_multiplier,
+  const float tolerance_window_x3_multiplier,
+  const float tolerance_window_y1_multiplier,
+  const float tolerance_window_y2_multiplier,
+  const float tolerance_window_y3_multiplier)
 {
   ///////////////////////////////////////////////////////
   //
@@ -477,12 +509,10 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
   UTHitsCache_FindRestHits hit_cache {shared_memory_hit_caching};
   UT::SectorHelper sector_cache;
 
-  const float x_tolerance_windows[3] = {parameters.tolerance_window_x1_multiplier.get(),
-                                        parameters.tolerance_window_x2_multiplier.get(),
-                                        parameters.tolerance_window_x3_multiplier.get()};
-  const float y_tolerance_windows[3] = {parameters.tolerance_window_y1_multiplier.get(),
-                                        parameters.tolerance_window_y2_multiplier.get(),
-                                        parameters.tolerance_window_y3_multiplier.get()};
+  const float x_tolerance_windows[3] = {
+    tolerance_window_x1_multiplier, tolerance_window_x2_multiplier, tolerance_window_x3_multiplier};
+  const float y_tolerance_windows[3] = {
+    tolerance_window_y1_multiplier, tolerance_window_y2_multiplier, tolerance_window_y3_multiplier};
 
   ///////////////////////////////////////////////////////
   //

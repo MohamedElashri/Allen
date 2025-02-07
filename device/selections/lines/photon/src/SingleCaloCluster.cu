@@ -16,7 +16,8 @@
 INSTANTIATE_LINE(single_calo_cluster_line::single_calo_cluster_line_t, single_calo_cluster_line::Parameters)
 
 __device__ bool single_calo_cluster_line::single_calo_cluster_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::NeutralBasicParticle, const unsigned> input)
 {
   const auto calo = std::get<0>(input);
@@ -29,14 +30,15 @@ __device__ bool single_calo_cluster_line::single_calo_cluster_line_t::select(
     (ecal_cluster.x * ecal_cluster.x + ecal_cluster.y * ecal_cluster.y + z * z));
   const float E_T = ecal_cluster.e * sintheta;
   const float decision =
-    (E_T > parameters.minEt && E_T < parameters.maxEt && fabsf(ecal_cluster.y) > parameters.minAbsY_cluster &&
-     ecal_number_of_clusters <= parameters.max_ecal_clusters);
+    (E_T > properties.minEt && E_T < properties.maxEt && fabsf(ecal_cluster.y) > properties.minAbsY_cluster &&
+     ecal_number_of_clusters <= properties.max_ecal_clusters);
 
   return decision;
 }
 
 __device__ void single_calo_cluster_line::single_calo_cluster_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::NeutralBasicParticle, const unsigned> input,
   unsigned index,
   bool sel)

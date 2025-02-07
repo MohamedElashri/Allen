@@ -38,15 +38,16 @@ void dec_reporter::dec_reporter_t::operator()(
   Allen::memset_async<host_dec_reports_t>(arguments, 0, context);
   Allen::memset_async<dev_max_objects_offsets_t>(arguments, 0, context);
 
-  global_function(dec_reporter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(dec_reporter)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
+    arguments, m_key, m_tck, m_taskID);
 
   Allen::copy_async<host_dec_reports_t, dev_dec_reports_t>(arguments, context);
 
   PrefixSum::prefix_sum<dev_max_objects_offsets_t, host_max_objects_t>(*this, arguments, context);
 }
 
-__global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
+__global__ void
+dec_reporter::dec_reporter(dec_reporter::Parameters parameters, unsigned key, unsigned tck, unsigned task_id)
 {
   const auto event_index = blockIdx.x;
   const auto number_of_events = gridDim.x;
@@ -62,9 +63,9 @@ __global__ void dec_reporter::dec_reporter(dec_reporter::Parameters parameters)
   if (threadIdx.x == 0) {
     // Set TCK and taskID for each event dec report
     reports.set_number_of_lines(parameters.dev_number_of_active_lines[0]);
-    reports.set_key(parameters.key);
-    reports.set_tck(parameters.tck);
-    reports.set_task_id(parameters.task_id);
+    reports.set_key(key);
+    reports.set_tck(tck);
+    reports.set_task_id(task_id);
   }
 
   __syncthreads();

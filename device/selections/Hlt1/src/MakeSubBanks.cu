@@ -34,11 +34,11 @@ void make_subbanks::make_subbanks_t::operator()(
   Allen::memset_async<dev_rb_hits_t>(arguments, 0, context);
   Allen::memset_async<dev_rb_stdinfo_t>(arguments, 0, context);
   Allen::memset_async<dev_rb_objtyp_t>(arguments, 0, context);
-  global_function(make_rb_substr)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, first<host_number_of_events_t>(arguments));
+  global_function(make_rb_substr)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
+    arguments, first<host_number_of_events_t>(arguments), m_max_children_per_object);
 
-  global_function(make_rb_hits)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(make_rb_hits)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
+    arguments, m_max_children_per_object);
 }
 
 __host__ __device__ void make_subbanks::make_rb_substr_bank(
@@ -463,7 +463,10 @@ __host__ __device__ void make_subbanks::make_rb_stdinfo_bank(
   return;
 }
 
-__global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters parameters, const unsigned number_of_events)
+__global__ void make_subbanks::make_rb_substr(
+  make_subbanks::Parameters parameters,
+  const unsigned number_of_events,
+  const unsigned n_children)
 {
 
   for (unsigned event_number = blockIdx.x * blockDim.x + threadIdx.x; event_number < number_of_events;
@@ -477,7 +480,6 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
       parameters.dev_rb_substr_offsets[event_number + 1] - parameters.dev_rb_substr_offsets[event_number];
     const unsigned n_lines = parameters.dev_number_of_active_lines[0];
     const unsigned* line_object_offsets = parameters.dev_max_objects_offsets + n_lines * event_number;
-    const unsigned n_children = parameters.max_children_per_object;
     const unsigned selected_object_offset = n_children * line_object_offsets[0];
     const unsigned n_tracks = parameters.dev_unique_track_count[event_number];
     const unsigned n_calos = parameters.dev_unique_calo_count[event_number];
@@ -551,7 +553,7 @@ __global__ void make_subbanks::make_rb_substr(make_subbanks::Parameters paramete
   }
 }
 
-__global__ void make_subbanks::make_rb_hits(make_subbanks::Parameters parameters)
+__global__ void make_subbanks::make_rb_hits(make_subbanks::Parameters parameters, const unsigned n_children)
 {
   const unsigned event_number = blockIdx.x;
 
@@ -561,8 +563,7 @@ __global__ void make_subbanks::make_rb_hits(make_subbanks::Parameters parameters
   unsigned* event_rb_hits = parameters.dev_rb_hits + parameters.dev_rb_hits_offsets[event_number];
   const unsigned bank_info_size = 1 + (n_hit_sequences / 2);
   const unsigned n_lines = parameters.dev_number_of_active_lines[0];
-  const unsigned track_offset =
-    parameters.max_children_per_object * parameters.dev_max_objects_offsets[event_number * n_lines];
+  const unsigned track_offset = n_children * parameters.dev_max_objects_offsets[event_number * n_lines];
 
   // Run sequentially over tracks and in parallel over hits. There will usually
   // only be ~1 selected track anyway.

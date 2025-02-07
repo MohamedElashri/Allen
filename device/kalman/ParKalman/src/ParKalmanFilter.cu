@@ -26,7 +26,7 @@ void kalman_filter::kalman_filter_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  global_function(kalman_filter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(kalman_filter)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
     arguments, constants.dev_scifi_geometry, constants.dev_inv_clus_res, constants.dev_kalman_params);
 }
 

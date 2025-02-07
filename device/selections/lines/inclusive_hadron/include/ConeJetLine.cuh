@@ -34,24 +34,25 @@ namespace cone_jet_line {
     DEVICE_OUTPUT(jet_phi_t, float) jet_phi;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
-
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(min_jet_pt_t, "min_jet_pt", "Minimum jet pT", float) min_jet_pt;
-    PROPERTY(max_jet_pt_t, "max_jet_pt", "Maximum jet pT", float) max_jet_pt;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
 
   struct cone_jet_line_t : public SelectionAlgorithm, Parameters, CaloClusterLine<cone_jet_line_t, Parameters> {
+    struct DeviceProperties {
+      float min_jet_pt;
+      float max_jet_pt;
+      DeviceProperties(const cone_jet_line_t& algo, const Allen::Context&) :
+        min_jet_pt(algo.m_min_jet_pt), max_jet_pt(algo.m_max_jet_pt)
+      {}
+    };
 
     __device__ static bool select(
-      const Parameters& parameters,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::NeutralBasicParticle> input);
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::NeutralBasicParticle> input,
       unsigned index,
       bool sel);
@@ -64,13 +65,8 @@ namespace cone_jet_line {
     using monitoring_types = std::tuple<jet_pt_t, jet_eta_t, jet_phi_t, evtNo_t, runNo_t>;
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<min_jet_pt_t> m_min_jet_pt {this, 15.f * Gaudi::Units::GeV};
-    Property<max_jet_pt_t> m_max_jet_pt {this, 1000.f * Gaudi::Units::GeV};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_min_jet_pt {this, "min_jet_pt", 15.f * Gaudi::Units::GeV, "Minimum jet pT"};
+    Allen::Property<float> m_max_jet_pt {this, "max_jet_pt", 1000.f * Gaudi::Units::GeV, "Maximum jet pT"};
   };
 
 } // namespace cone_jet_line

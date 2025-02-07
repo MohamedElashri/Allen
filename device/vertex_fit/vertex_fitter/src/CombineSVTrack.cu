@@ -70,10 +70,8 @@ void CombineSVTrack::combine_sv_track_t::operator()(
 {
   Allen::memset_async<dev_sv_track_composite_view_t>(arguments, 0, context);
   Allen::memset_async<dev_sv_track_fit_results_t>(arguments, 0, context);
-  global_function(combine_sv_track)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
-  global_function(create_views)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(combine_sv_track)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
+  global_function(create_views)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(arguments);
 }
 
 __global__ void CombineSVTrack::combine_sv_track(CombineSVTrack::Parameters parameters)

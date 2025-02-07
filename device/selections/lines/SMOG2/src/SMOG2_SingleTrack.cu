@@ -13,16 +13,17 @@
 INSTANTIATE_LINE(SMOG2_singletrack_line::SMOG2_singletrack_line_t, SMOG2_singletrack_line::Parameters)
 
 __device__ bool SMOG2_singletrack_line::SMOG2_singletrack_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::BasicParticle> input)
 {
   const auto& track = std::get<0>(input);
 
-  bool decision = track.state().pt() >= parameters.minPt && track.state().p() >= parameters.minP &&
-                  track.chi2() / track.ndof() < parameters.maxChi2Ndof && track.state().z() < parameters.maxBPVz &&
-                  track.state().z() >= parameters.minBPVz && track.has_pv() &&
-                  track.pv().position.z < parameters.maxBPVz && track.pv().position.z >= parameters.minBPVz &&
-                  track.track().ghost_probability() < parameters.maxGhostProb;
+  bool decision = track.state().pt() >= properties.minPt && track.state().p() >= properties.minP &&
+                  track.chi2() / track.ndof() < properties.maxChi2Ndof && track.state().z() < properties.maxBPVz &&
+                  track.state().z() >= properties.minBPVz && track.has_pv() &&
+                  track.pv().position.z < properties.maxBPVz && track.pv().position.z >= properties.minBPVz &&
+                  track.track().ghost_probability() < properties.maxGhostProb;
 
   return decision;
 }

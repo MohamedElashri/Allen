@@ -19,8 +19,6 @@ namespace calo_overlap_clusters {
     DEVICE_INPUT(dev_ecal_cluster_offsets_t, unsigned) dev_ecal_cluster_offsets;
     DEVICE_INPUT(dev_ecal_digit_is_seed_t, unsigned) dev_ecal_digit_is_seed;
     DEVICE_OUTPUT(dev_ecal_corrections_t, float) dev_ecal_corrections;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
-    PROPERTY(ecal_min_adc_t, "ecal_min_adc", "ECal seed cluster minimum ADC", int16_t) ecal_min_adc;
   };
 
   // Global function
@@ -42,7 +40,7 @@ namespace calo_overlap_clusters {
       Allen::Context const&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 128};
-    Property<ecal_min_adc_t> m_ecal_min_adc {this, 0};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 128, "block dimension X"};
+    Allen::Property<int16_t> m_ecal_min_adc {this, "ecal_min_adc", 0, "ECal seed cluster minimum ADC"};
   };
 } // namespace calo_overlap_clusters

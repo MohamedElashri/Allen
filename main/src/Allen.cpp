@@ -68,6 +68,7 @@
 #include "ROOTService.h"
 
 #include "AllenMonitoring.h"
+#include "MVAModelsManager.h"
 #include "MonitoringPrinter.h"
 #include "ServiceLocator.h"
 
@@ -235,18 +236,6 @@ int allen(
 
   number_of_buffers = number_of_threads + n_mon + 1;
 
-  std::unique_ptr<CatboostModelReader> muon_catboost_model_reader;
-  std::unique_ptr<LipschitzNNModelReader> two_track_mva_model_reader;
-  std::unique_ptr<LipschitzNNModelReader> electronid_mva_model_reader;
-  std::unique_ptr<SingleLayerFCNNReader> forward_no_ut_ghostkiller_reader, forward_ghostkiller_reader,
-    matching_ghostkiller_reader, matching_with_ut_ghostkiller_reader, matching_no_ut_v2_ghostkiller_reader;
-  std::unique_ptr<LipschitzNNModelReader> muonid_mva_model_reader;
-
-  std::unique_ptr<SingleLayerFCNNReader> downstream_composite_quality_reader, downstream_lambda_selector_reader,
-    downstream_kshort_selector_reader, downstream_detached_lambda_selector_reader,
-    downstream_detached_kshort_selector_reader, downstream_ghostkiller_reader, ttrack_selector_reader,
-    downstream_busca_selector_reader, matching_with_ut_v2_ghostkiller_reader;
-
   // items for 0MQ to poll
   std::vector<zmq::pollitem_t> items;
   items.resize(number_of_threads + n_io + n_mon + n_agg + !control_connection.empty());
@@ -282,57 +271,6 @@ int allen(
     error_cout << "Parameters path " << folder_parameters << " could not be accessed." << std::endl;
   }
 
-  // Read the Muon catboost model
-  muon_catboost_model_reader =
-    std::make_unique<CatboostModelReader>(folder_parameters + "allen_muon_catboost_model.json");
-  // Two Track Model
-  two_track_mva_model_reader =
-    std::make_unique<LipschitzNNModelReader>(folder_parameters + "allen_two_track_mva_model_June22.json");
-
-  // ElectronID model
-  electronid_mva_model_reader =
-    std::make_unique<LipschitzNNModelReader>(folder_parameters + "/CaloPID/electron_mva_AllenJune2024.json");
-
-  // MuonID Model
-  muonid_mva_model_reader =
-    std::make_unique<LipschitzNNModelReader>(folder_parameters + "/muonid_mva_AllenJune2024.json");
-
-  // Ghost killers
-  forward_no_ut_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
-    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_noUT_Forward.json");
-  forward_ghostkiller_reader =
-    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_Forward.json");
-  matching_ghostkiller_reader =
-    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_Matching.json");
-  downstream_ghostkiller_reader =
-    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "GhostProbability/Hlt1_DownstreamGhostKiller.json");
-  downstream_composite_quality_reader = std::make_unique<SingleLayerFCNNReader>(
-    folder_parameters + "HLT1Downstream/Hlt1_Downstream_Composite_Quality.json");
-  downstream_lambda_selector_reader =
-    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_LambdaSelector.json");
-  downstream_kshort_selector_reader =
-    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_KshortSelector.json");
-  downstream_detached_lambda_selector_reader = std::make_unique<SingleLayerFCNNReader>(
-    folder_parameters + "HLT1Downstream/Hlt1_Downstream_DetachedLambdaSelector.json");
-  downstream_detached_kshort_selector_reader = std::make_unique<SingleLayerFCNNReader>(
-    folder_parameters + "HLT1Downstream/Hlt1_Downstream_DetachedKshortSelector.json");
-  downstream_busca_selector_reader =
-    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_BuScaSelector.json");
-  downstream_detached_lambda_selector_reader = std::make_unique<SingleLayerFCNNReader>(
-    folder_parameters + "HLT1Downstream/Hlt1_Downstream_DetachedLambdaSelector.json");
-  downstream_detached_kshort_selector_reader = std::make_unique<SingleLayerFCNNReader>(
-    folder_parameters + "HLT1Downstream/Hlt1_Downstream_DetachedKshortSelector.json");
-
-  // Track selector
-  ttrack_selector_reader =
-    std::make_unique<SingleLayerFCNNReader>(folder_parameters + "HLT1Downstream/Hlt1_Downstream_TTrackSelector.json");
-  matching_with_ut_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
-    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT.json");
-  matching_no_ut_v2_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
-    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingNoUT_V2.json");
-  matching_with_ut_v2_ghostkiller_reader = std::make_unique<SingleLayerFCNNReader>(
-    folder_parameters + "GhostProbability/Hlt1_LongGhostKiller_MatchingWithUT_V2.json");
-
   std::vector<float> muon_field_of_interest_params;
   read_muon_field_of_interest(
     muon_field_of_interest_params, folder_parameters + "allen_muon_field_of_interest_params.bin");
@@ -341,153 +279,6 @@ int allen(
   Constants constants;
 
   constants.reserve_and_initialize(muon_field_of_interest_params, folder_parameters);
-  constants.initialize_muon_catboost_model_constants(
-    muon_catboost_model_reader->n_trees(),
-    muon_catboost_model_reader->tree_depths(),
-    muon_catboost_model_reader->tree_offsets(),
-    muon_catboost_model_reader->leaf_values(),
-    muon_catboost_model_reader->leaf_offsets(),
-    muon_catboost_model_reader->split_border(),
-    muon_catboost_model_reader->split_feature());
-
-  constants.initialize_two_track_mva_model_constants(
-    two_track_mva_model_reader->weights(),
-    two_track_mva_model_reader->biases(),
-    two_track_mva_model_reader->layer_sizes(),
-    two_track_mva_model_reader->n_layers(),
-    two_track_mva_model_reader->monotone_constraints(),
-    two_track_mva_model_reader->nominal_cut(),
-    two_track_mva_model_reader->lambda());
-
-  constants.initialize_electronid_mva_model_constants(
-    electronid_mva_model_reader->weights(),
-    electronid_mva_model_reader->biases(),
-    electronid_mva_model_reader->layer_sizes(),
-    electronid_mva_model_reader->n_layers(),
-    electronid_mva_model_reader->monotone_constraints(),
-    electronid_mva_model_reader->min_rescales(),
-    electronid_mva_model_reader->max_rescales(),
-    electronid_mva_model_reader->nominal_cut(),
-    electronid_mva_model_reader->lambda());
-
-  constants.initialize_muonid_mva_model_constants(
-    muonid_mva_model_reader->weights(),
-    muonid_mva_model_reader->biases(),
-    muonid_mva_model_reader->layer_sizes(),
-    muonid_mva_model_reader->n_layers(),
-    muonid_mva_model_reader->monotone_constraints(),
-    muonid_mva_model_reader->min_rescales(),
-    muonid_mva_model_reader->max_rescales(),
-    muonid_mva_model_reader->nominal_cut(),
-    muonid_mva_model_reader->lambda());
-
-  constants.initialize_forward_ghostkiller_constants(
-    forward_ghostkiller_reader->mean(),
-    forward_ghostkiller_reader->std(),
-    forward_ghostkiller_reader->weights1(),
-    forward_ghostkiller_reader->bias1(),
-    forward_ghostkiller_reader->weights2(),
-    forward_ghostkiller_reader->bias2());
-  constants.initialize_forward_no_ut_ghostkiller_constants(
-    forward_no_ut_ghostkiller_reader->mean(),
-    forward_no_ut_ghostkiller_reader->std(),
-    forward_no_ut_ghostkiller_reader->weights1(),
-    forward_no_ut_ghostkiller_reader->bias1(),
-    forward_no_ut_ghostkiller_reader->weights2(),
-    forward_no_ut_ghostkiller_reader->bias2());
-
-  constants.initialize_matching_ghostkiller_constants(
-    matching_ghostkiller_reader->mean(),
-    matching_ghostkiller_reader->std(),
-    matching_ghostkiller_reader->weights1(),
-    matching_ghostkiller_reader->bias1(),
-    matching_ghostkiller_reader->weights2(),
-    matching_ghostkiller_reader->bias2());
-  constants.initialize_matching_no_ut_v2_ghostkiller_constants(
-    matching_no_ut_v2_ghostkiller_reader->mean(),
-    matching_no_ut_v2_ghostkiller_reader->std(),
-    matching_no_ut_v2_ghostkiller_reader->weights1(),
-    matching_no_ut_v2_ghostkiller_reader->bias1(),
-    matching_no_ut_v2_ghostkiller_reader->weights2(),
-    matching_no_ut_v2_ghostkiller_reader->bias2());
-
-  constants.initialize_downstream_ghostkiller_constants(
-    downstream_ghostkiller_reader->mean(),
-    downstream_ghostkiller_reader->std(),
-    downstream_ghostkiller_reader->weights1(),
-    downstream_ghostkiller_reader->bias1(),
-    downstream_ghostkiller_reader->weights2(),
-    downstream_ghostkiller_reader->bias2());
-
-  constants.initialize_downstream_composite_quality_evaluator_constants(
-    downstream_composite_quality_reader->mean(),
-    downstream_composite_quality_reader->std(),
-    downstream_composite_quality_reader->weights1(),
-    downstream_composite_quality_reader->bias1(),
-    downstream_composite_quality_reader->weights2(),
-    downstream_composite_quality_reader->bias2());
-
-  constants.initialize_downstream_lambda_selector_constants(
-    downstream_lambda_selector_reader->mean(),
-    downstream_lambda_selector_reader->std(),
-    downstream_lambda_selector_reader->weights1(),
-    downstream_lambda_selector_reader->bias1(),
-    downstream_lambda_selector_reader->weights2(),
-    downstream_lambda_selector_reader->bias2());
-
-  constants.initialize_downstream_kshort_selector_constants(
-    downstream_kshort_selector_reader->mean(),
-    downstream_kshort_selector_reader->std(),
-    downstream_kshort_selector_reader->weights1(),
-    downstream_kshort_selector_reader->bias1(),
-    downstream_kshort_selector_reader->weights2(),
-    downstream_kshort_selector_reader->bias2());
-
-  constants.initialize_downstream_detached_lambda_selector_constants(
-    downstream_detached_lambda_selector_reader->mean(),
-    downstream_detached_lambda_selector_reader->std(),
-    downstream_detached_lambda_selector_reader->weights1(),
-    downstream_detached_lambda_selector_reader->bias1(),
-    downstream_detached_lambda_selector_reader->weights2(),
-    downstream_detached_lambda_selector_reader->bias2());
-
-  constants.initialize_downstream_detached_kshort_selector_constants(
-    downstream_detached_kshort_selector_reader->mean(),
-    downstream_detached_kshort_selector_reader->std(),
-    downstream_detached_kshort_selector_reader->weights1(),
-    downstream_detached_kshort_selector_reader->bias1(),
-    downstream_detached_kshort_selector_reader->weights2(),
-    downstream_detached_kshort_selector_reader->bias2());
-
-  constants.initialize_downstream_busca_selector_constants(
-    downstream_busca_selector_reader->mean(),
-    downstream_busca_selector_reader->std(),
-    downstream_busca_selector_reader->weights1(),
-    downstream_busca_selector_reader->bias1(),
-    downstream_busca_selector_reader->weights2(),
-    downstream_busca_selector_reader->bias2());
-
-  constants.initialize_ttrack_selector_constants(
-    ttrack_selector_reader->mean(),
-    ttrack_selector_reader->std(),
-    ttrack_selector_reader->weights1(),
-    ttrack_selector_reader->bias1(),
-    ttrack_selector_reader->weights2(),
-    ttrack_selector_reader->bias2());
-  constants.initialize_matching_with_ut_ghostkiller_constants(
-    matching_with_ut_ghostkiller_reader->mean(),
-    matching_with_ut_ghostkiller_reader->std(),
-    matching_with_ut_ghostkiller_reader->weights1(),
-    matching_with_ut_ghostkiller_reader->bias1(),
-    matching_with_ut_ghostkiller_reader->weights2(),
-    matching_with_ut_ghostkiller_reader->bias2());
-  constants.initialize_matching_with_ut_v2_ghostkiller_constants(
-    matching_with_ut_v2_ghostkiller_reader->mean(),
-    matching_with_ut_v2_ghostkiller_reader->std(),
-    matching_with_ut_v2_ghostkiller_reader->weights1(),
-    matching_with_ut_v2_ghostkiller_reader->bias1(),
-    matching_with_ut_v2_ghostkiller_reader->weights2(),
-    matching_with_ut_v2_ghostkiller_reader->bias2());
 
   // Register all consumers
   register_consumers(updater, constants, config_reader.configured_bank_types());
@@ -556,6 +347,8 @@ int allen(
 
   // Init monitoring
   Allen::Monitoring::AccumulatorManager::get()->initAccumulators(number_of_threads);
+
+  Allen::MVAModels::MVAModelsManager::get()->loadData(folder_parameters.c_str());
 
   // Interrogate stream configured sequence for validation algorithms
   const auto sequence_contains_validation_algorithms = streams.front()->contains_validation_algorithms();

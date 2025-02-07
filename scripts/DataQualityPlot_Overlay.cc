@@ -46,6 +46,16 @@ TH1* draw(
   const Int_t colourIndex,
   std::map<TVirtualPad*, TH1*>& originalHists);
 
+void makeIPplot(
+  TTree* tree,
+  TString var,
+  TVirtualPad* pad,
+  const TString& fileName,
+  const bool first,
+  const Int_t colourIndex,
+  std::map<TVirtualPad*, TH1*>& originalHists,
+  const bool forward);
+
 std::pair<TColor*, Int_t> GetColorAndLineStyle(Int_t index);
 
 template<typename... FILENAMES>
@@ -81,6 +91,7 @@ void DataQualityPlot_Overlay(FILENAMES... files)
   std::map<TString, TCanvas*> canvases = {
     {"PVcanvas", new TCanvas("PVcanvas", "PVcanvas", 900, 600)},
     {"PVcovCanvas", new TCanvas("PVcovCanvas", "PVcovCanvas", 900, 900)},
+    {"PVdistCanvas", new TCanvas("PVdistCanvas", "PVdistCanvas", 600, 600)},
     {"longMatchingCanvas", new TCanvas("longMatchingCanvas", "longMatchingCanvas", 900, 900)},
     {"longForwardCanvas", new TCanvas("longForwardCanvas", "longForwardCanvas", 900, 900)},
     {"kalmanCovCanvas", new TCanvas("kalmanCovCanvas", "kalmanCovCanvas", 1200, 1200)},
@@ -90,6 +101,7 @@ void DataQualityPlot_Overlay(FILENAMES... files)
     {"PIDkinCanvas", new TCanvas("PIDkinCanvas", "PIDkinCanvas", 1200, 600)},
     {"IPmatchingCanvas", new TCanvas("IPmatchingCanvas", "IPmatchingCanvas", 600, 600)},
     {"IPforwardCanvas", new TCanvas("IPforwardCanvas", "IPforwardCanvas", 600, 600)},
+    {"IPresolutionCanvas", new TCanvas("IPresolutionCanvas", "IPresolutionCanvas", 600, 600)},
     {"fileCanvas", new TCanvas("fileCanvas", "fileCanvas", 600, 600)}};
   for (auto& [name, canvas] : canvases) {
     canvas->Divide(canvas->GetWindowWidth() / 300, canvas->GetWindowHeight() / 300);
@@ -113,11 +125,11 @@ void DataQualityPlot_Overlay(FILENAMES... files)
 
     canvas = canvases["PVcanvas"];
 
-    std::vector<Var> PVcanvasVars = {Var("n_pvs", "data_quality_validation_pv/PV_event", 0, 8),
-                                     Var("pv_nTracks", "data_quality_validation_pv/PVs", 0, 100),
-                                     Var("pv_y:pv_x", "data_quality_validation_pv/PVs", 0.8, 1.4, 0.35, 0.65),
-                                     Var("pv_x", "data_quality_validation_pv/PVs", 0.8, 1.4),
-                                     Var("pv_y", "data_quality_validation_pv/PVs", 0.35, 0.65),
+    std::vector<Var> PVcanvasVars = {Var("n_pvs", "data_quality_validation_pv/PV_event", 0, 12),
+                                     Var("pv_nTracks", "data_quality_validation_pv/PVs", 0, 20),
+                                     Var("pv_y:pv_x", "data_quality_validation_pv/PVs", 0.8, 1.5, -0.1, 0.5),
+                                     Var("pv_x", "data_quality_validation_pv/PVs", 0.8, 1.5),
+                                     Var("pv_y", "data_quality_validation_pv/PVs", -0.1, 0.5),
                                      Var("pv_z", "data_quality_validation_pv/PVs", -100, 100)};
 
     for (size_t i = 0; i < PVcanvasVars.size(); ++i) {
@@ -131,8 +143,19 @@ void DataQualityPlot_Overlay(FILENAMES... files)
         if (first) {
           legends["mu"] = new TLegend(0.6, 0.7, 0.9, 0.9);
         }
-        Float_t mean = hist->GetMean();
-        legends["mu"]->AddEntry(hist, Form("#mu = %.2f", mean), "l");
+        hist->ResetStats();
+        // make a poisson shape, following
+        // https://root-forum.cern.ch/t/fitting-a-poisson-distribution-to-a-histogram/12078/2
+        TF1* f1 = new TF1(
+          "f1",
+          "[0]*TMath::Power(([1]/[2]),(x/[2]))*(TMath::Exp(-([1]/[2])))/TMath::Gamma((x/[2])+1.)",
+          var.xmin,
+          var.xmax);
+        f1->SetParameters(1, 1, 1); // you MUST set non-zero initial values for parameters
+        hist->Fit("f1", "RQ");      // "R" = fit between "xmin" and "xmax" of the "f1"
+        Float_t mean = f1->GetParameter(1);
+        legends["mu"]->AddEntry(hist, Form("#mu_{poisson} = %.2f", mean), "l");
+        delete f1;
 
         if (fileName == fileList.back()) {
           legends["mu"]->Draw();
@@ -162,10 +185,42 @@ void DataQualityPlot_Overlay(FILENAMES... files)
     }
 
     std::cout << " complete!" << std::endl;
+    std::cout << "Generating PV distance canvas ...";
+
+    canvas = canvases["PVdistCanvas"];
+
+    std::vector<Var> PVdistCanvasVars = {Var("PVdistance_min", "data_quality_validation_pv/PV_event", 0, 200),
+                                         Var("PVdistance_max", "data_quality_validation_pv/PV_event", 0, 300),
+                                         Var("PVdistance_mean", "data_quality_validation_pv/PV_event", 0, 200),
+                                         Var("PVdelta_z", "data_quality_validation_pv/PV_pairs", -6, 6)};
+
+    for (size_t i = 0; i < PVdistCanvasVars.size(); ++i) {
+      TVirtualPad* pad = canvas->cd(i + 1);
+      Var var = PVdistCanvasVars[i];
+      TTree* tree = dynamic_cast<TTree*>(file->Get(var.treeName));
+
+      TH1* hist = draw(tree, var, pad, fileName, first, colourIndex, originalHists);
+
+      if (i < 3) {
+        if (first) {
+          legends[var.varName] = new TLegend(0.5, 0.6, 0.9, 0.9);
+        }
+        hist->ResetStats();
+        Float_t mean = hist->GetMean();
+        Float_t lessThan2PVs = 1.f * tree->GetEntries(var.varName + "<0") / tree->GetEntries();
+        legends[var.varName]->AddEntry(hist, Form("#mu = %.2f; <2 PV rate =  %.2f%%", mean, lessThan2PVs * 100), "l");
+
+        if (fileName == fileList.back()) {
+          legends[var.varName]->Draw();
+        }
+      }
+    }
+
+    std::cout << " complete!" << std::endl;
     std::cout << "Generating long tracks canvas (matching) ...";
 
     std::vector<Var> longVars = {
-      Var("n_long_tracks", "data_quality_validation_matching/long_tracks_event", 0, 30),
+      Var("n_long_tracks", "data_quality_validation_matching/long_tracks_event", 1, 140),
       Var("qop", "data_quality_validation_matching/long_track_particles", -4e-4, 4e-4),
       Var("pt", "data_quality_validation_matching/long_track_particles", 0, 5000),
       Var("tx", "data_quality_validation_matching/long_track_particles", -0.12, 0.12),
@@ -185,7 +240,19 @@ void DataQualityPlot_Overlay(FILENAMES... files)
       }
       TTree* tree = dynamic_cast<TTree*>(file->Get(var.treeName));
 
-      draw(tree, var, pad, fileName, first, colourIndex, originalHists);
+      TH1* hist = draw(tree, var, pad, fileName, first, colourIndex, originalHists);
+      if (i == 0) {
+        if (first) {
+          legends["nLongTracks_Matching"] = new TLegend(0.6, 0.7, 0.9, 0.9);
+        }
+        hist->ResetStats();
+        Float_t mean = hist->GetMean();
+        legends["nLongTracks_Matching"]->AddEntry(hist, Form("#mu = %.2f", mean), "l");
+
+        if (fileName == fileList.back()) {
+          legends["nLongTracks_Matching"]->Draw();
+        }
+      }
     }
 
     std::cout << " complete!" << std::endl;
@@ -203,7 +270,19 @@ void DataQualityPlot_Overlay(FILENAMES... files)
       var.forward = true;
       TTree* tree = dynamic_cast<TTree*>(file->Get(var.treeName));
 
-      draw(tree, var, pad, fileName, first, colourIndex, originalHists);
+      TH1* hist = draw(tree, var, pad, fileName, first, colourIndex, originalHists);
+      if (i == 0) {
+        if (first) {
+          legends["nLongTracks_Forward"] = new TLegend(0.6, 0.7, 0.9, 0.9);
+        }
+        hist->ResetStats();
+        Float_t mean = hist->GetMean();
+        legends["nLongTracks_Forward"]->AddEntry(hist, Form("#mu = %.2f", mean), "l");
+
+        if (fileName == fileList.back()) {
+          legends["nLongTracks_Forward"]->Draw();
+        }
+      }
     }
 
     std::cout << " complete!" << std::endl;
@@ -231,7 +310,7 @@ void DataQualityPlot_Overlay(FILENAMES... files)
     std::cout << "Generating velo canvas ...";
 
     std::vector<Var> veloVars = {Var("n_velo_hits", "data_quality_validation_occupancy/occupancy", 0, 3000),
-                                 Var("n_velo_tracks", "data_quality_validation_occupancy/occupancy", -0.5, 249.5),
+                                 Var("n_velo_tracks", "data_quality_validation_occupancy/occupancy", -0.5, 1000),
                                  Var("n_hits_per_track", "data_quality_validation_velo/velo_states", 0, 16),
                                  Var("tx", "data_quality_validation_velo/velo_states", -0.3, 0.3),
                                  Var("ty", "data_quality_validation_velo/velo_states", -0.3, 0.3),
@@ -252,15 +331,16 @@ void DataQualityPlot_Overlay(FILENAMES... files)
 
       TH1* hist = draw(tree, var, pad, fileName, first, colourIndex, originalHists);
 
-      if (i == 2) {
+      if (i == 1 or i == 2) {
         if (first) {
-          legends["nHitsPerTrack"] = new TLegend(0.6, 0.7, 0.9, 0.9);
+          legends[var.varName] = new TLegend(0.6, 0.7, 0.9, 0.9);
         }
+        hist->ResetStats();
         Float_t mean = hist->GetMean();
-        legends["nHitsPerTrack"]->AddEntry(hist, Form("#mu = %.2f", mean), "l");
+        legends[var.varName]->AddEntry(hist, Form("#mu = %.2f", mean), "l");
 
         if (fileName == fileList.back()) {
-          legends["nHitsPerTrack"]->Draw();
+          legends[var.varName]->Draw();
         }
       }
     }
@@ -269,11 +349,12 @@ void DataQualityPlot_Overlay(FILENAMES... files)
     std::cout << "Generating occupancy canvas ...";
 
     std::vector<Var> occupancyVars = {
-      Var("n_velo_hits", "data_quality_validation_occupancy/occupancy", 0, 3000),
-      Var("n_scifi_hits", "data_quality_validation_occupancy/occupancy", 0, 6000),
-      Var("n_ecal_clusters", "data_quality_validation_occupancy/occupancy", 0, 60),
-      Var("n_muon_hits", "data_quality_validation_occupancy/occupancy", 0, 400),
-      Var("n_scifi_hits:n_velo_hits", "data_quality_validation_occupancy/occupancy", 0, 3000, 0, 6000),
+      Var("n_velo_hits", "data_quality_validation_occupancy/occupancy", 1, 30000),
+      Var("n_scifi_hits", "data_quality_validation_occupancy/occupancy", 1, 60000),
+      Var("n_scifi_xz_seeds", "data_quality_validation_occupancy/occupancy", 1, 800),
+      Var("n_ecal_clusters", "data_quality_validation_occupancy/occupancy", 1, 600),
+      Var("n_muon_hits", "data_quality_validation_occupancy/occupancy", 1, 4000),
+      Var("n_scifi_hits:n_velo_hits", "data_quality_validation_occupancy/occupancy", 1, 3000, 1, 6000),
     };
 
     canvas = canvases["occupancyCanvas"];
@@ -283,8 +364,23 @@ void DataQualityPlot_Overlay(FILENAMES... files)
       Var var = occupancyVars[i];
       TTree* tree = dynamic_cast<TTree*>(file->Get(var.treeName));
 
-      var.logy = true;
-      draw(tree, var, pad, fileName, first, colourIndex, originalHists);
+      if (i != 5) {
+        var.logy = true;
+      }
+      TH1* hist = draw(tree, var, pad, fileName, first, colourIndex, originalHists);
+
+      if (i < 4) {
+        if (first) {
+          legends[var.varName] = new TLegend(0.6, 0.7, 0.9, 0.9);
+        }
+        hist->ResetStats();
+        Float_t mean = hist->GetMean();
+        legends[var.varName]->AddEntry(hist, Form("#mu = %.2f", mean), "l");
+
+        if (fileName == fileList.back()) {
+          legends[var.varName]->Draw();
+        }
+      }
     }
 
     std::cout << " complete!" << std::endl;
@@ -339,7 +435,6 @@ void DataQualityPlot_Overlay(FILENAMES... files)
     for (size_t i = 0; i < PIDkinVars.size(); ++i) {
       TVirtualPad* pad = canvas->cd(i + 1);
       Var var = PIDkinVars[i];
-      TTree* tree = dynamic_cast<TTree*>(file->Get(var.treeName));
       TLegend* leg = nullptr;
       leg = new TLegend();
       if (i < 4) {
@@ -357,6 +452,7 @@ void DataQualityPlot_Overlay(FILENAMES... files)
       else {
         var.cut = "is_electron==1";
       }
+      TTree* tree = dynamic_cast<TTree*>(file->Get(var.treeName));
       draw(tree, var, pad, fileName, first, colourIndex, originalHists);
       leg->SetTextColor(2);
       if (fileName == fileList.front()) {
@@ -367,8 +463,8 @@ void DataQualityPlot_Overlay(FILENAMES... files)
     std::cout << " complete!" << std::endl;
     std::cout << "Generating IP canvas (matching)...";
 
-    std::vector<Var> IPVars = {Var("ip_x", "data_quality_validation_matching/long_track_particles", -4, 4),
-                               Var("ip_y", "data_quality_validation_matching/long_track_particles", -4, 4),
+    std::vector<Var> IPVars = {Var("ip_x", "data_quality_validation_matching/long_track_particles", -0.5, 0.5),
+                               Var("ip_y", "data_quality_validation_matching/long_track_particles", -0.5, 0.5),
                                Var("ip_chi2", "data_quality_validation_matching/long_track_particles", -1, 1000),
                                Var("chi2", "data_quality_validation_matching/long_track_particles", 0, 100)};
     IPVars[2].logy = true;
@@ -380,7 +476,19 @@ void DataQualityPlot_Overlay(FILENAMES... files)
       Var var = IPVars[i];
       TTree* tree = dynamic_cast<TTree*>(file->Get(var.treeName));
 
-      draw(tree, var, pad, fileName, first, colourIndex, originalHists);
+      TH1* hist = draw(tree, var, pad, fileName, first, colourIndex, originalHists);
+      if (i < 2) {
+        if (first) {
+          legends[var.varName + "_matching"] = new TLegend(0.6, 0.7, 0.9, 0.9);
+        }
+        hist->ResetStats();
+        Float_t width = hist->GetRMS();
+        legends[var.varName + "_matching"]->AddEntry(hist, Form("#sigma = %.4f", width), "l");
+
+        if (fileName == fileList.back()) {
+          legends[var.varName + "_matching"]->Draw();
+        }
+      }
     }
 
     std::cout << " complete!" << std::endl;
@@ -391,10 +499,56 @@ void DataQualityPlot_Overlay(FILENAMES... files)
     for (size_t i = 0; i < IPVars.size(); ++i) {
       TVirtualPad* pad = canvas->cd(i + 1);
       Var var = IPVars[i];
+      var.treeName.ReplaceAll("matching", "forward");
       TTree* tree = dynamic_cast<TTree*>(file->Get(var.treeName));
       var.forward = true;
 
-      draw(tree, var, pad, fileName, first, colourIndex, originalHists);
+      TH1* hist = draw(tree, var, pad, fileName, first, colourIndex, originalHists);
+      if (i < 2) {
+        if (first) {
+          legends[var.varName + "_forward"] = new TLegend(0.6, 0.7, 0.9, 0.9);
+        }
+        hist->ResetStats();
+        Float_t width = hist->GetRMS();
+        legends[var.varName + "_forward"]->AddEntry(hist, Form("#sigma = %.4f", width), "l");
+
+        if (fileName == fileList.back()) {
+          legends[var.varName + "_forward"]->Draw();
+        }
+      }
+    }
+
+    std::cout << " complete!" << std::endl;
+    std::cout << "Generating IP resolution canvas ...";
+
+    std::vector<TString> IPresoVars = {"ip_x", "ip_x", "ip_y", "ip_y"};
+    std::vector<TString> Trees = {"data_quality_validation_matching/long_track_particles",
+                                  "data_quality_validation_forward/long_track_particles",
+                                  "data_quality_validation_matching/long_track_particles",
+                                  "data_quality_validation_forward/long_track_particles"};
+
+    canvas = canvases["IPresolutionCanvas"];
+
+    for (size_t i = 0; i < IPresoVars.size(); ++i) {
+      TVirtualPad* pad = canvas->cd(i + 1);
+      TString var = IPresoVars[i];
+      TTree* tree = dynamic_cast<TTree*>(file->Get(Trees[i]));
+
+      TLegend* leg = new TLegend();
+      const bool forward = Trees[i].Contains("forward");
+      if (forward) {
+        leg->SetHeader("Forward", "C");
+      }
+      else {
+        leg->SetHeader("Matching", "C");
+      }
+
+      makeIPplot(tree, var, pad, fileName, first, colourIndex, originalHists, forward);
+
+      leg->SetTextColor(2);
+      if (fileName == fileList.back()) {
+        leg->Draw();
+      }
     }
 
     std::cout << " complete!" << std::endl;
@@ -492,7 +646,7 @@ TH1* draw(
     Int_t nBins = 100;
     if (var.varName.BeginsWith("n_") or var.varName == "nPVs") {
       nBins = var.xmax - var.xmin;
-      if (nBins > 100) {
+      if (nBins > 200) {
         nBins = 100;
       }
     }
@@ -542,6 +696,67 @@ TH1* draw(
   return hist;
 }
 /*-------------------------------------------------------------------------*/
+void makeIPplot(
+  TTree* tree,
+  TString var,
+  TVirtualPad* pad,
+  const TString& fileName,
+  const bool first,
+  const Int_t colourIndex,
+  std::map<TVirtualPad*, TH1*>& originalHists,
+  const bool forward)
+{
+  // These bin edges match the TDR Fig.30
+  std::vector<Float_t> pTbinEdges = {0.0f, 0.4f, 0.6f, 0.8f, 1.0f, 1.2f, 1.4f, 1.6f, 1.8f, 2.0f};
+  if (forward) {
+    pTbinEdges = {0.0f, 0.4f, 0.6f, 0.8f, 1.0f, 1.25f};
+  }
+  TString name =
+    Form("%s_canvas_%s_%s_%s", var.Data(), tree->GetName(), fileName.Data(), forward ? "forward" : "matching");
+  name.ReplaceAll("/", "_");
+  name.ReplaceAll(".root", "");
+  TH1F* IPplot = new TH1F(
+    name.Data(),
+    Form(";1/p_{T} [c/GeV];IP_{%s} resolution [#mum]", var == "ip_x" ? "x" : "y"),
+    pTbinEdges.size() - 1,
+    pTbinEdges.data());
+  for (size_t i_ptBin = 0; i_ptBin < pTbinEdges.size() - 1; ++i_ptBin) {
+    // find the IPs resolutions and fill the IPplot hist
+    TH1F IPcalculationHist("IPcalculationHist", "", 60, -0.1, 0.1);
+
+    TCut cut = Form("1000/pt > %f && 1000/pt <= %f", pTbinEdges[i_ptBin], pTbinEdges[i_ptBin + 1]);
+    // cut.Print();
+    tree->Draw(Form("%s >> IPcalculationHist", var.Data()), cut, "GOFF");
+    if (IPcalculationHist.Integral(1, 60) > 0) {
+      TFitResultPtr fit = IPcalculationHist.Fit("gaus", "SQ", "", -0.1, 0.1);
+      IPplot->SetBinContent(i_ptBin + 1, fit->Value(2) * 1000);
+      IPplot->SetBinError(i_ptBin + 1, fit->Error(2) * 1000);
+    }
+    else {
+      IPplot->SetBinContent(i_ptBin + 1, 0.f);
+      IPplot->SetBinError(i_ptBin + 1, 0.f);
+    }
+  }
+  if (not first) {
+    const Double_t yMax = IPplot->GetBinContent(IPplot->GetMaximumBin());
+    const Double_t factor = 1.1;
+    if (yMax * factor > originalHists[pad]->GetMaximum()) {
+      originalHists[pad]->SetMaximum(yMax * factor);
+    }
+  }
+  auto [colour, style] = GetColorAndLineStyle(colourIndex);
+  IPplot->SetLineColor(colour->GetNumber());
+  IPplot->SetLineStyle(style);
+
+  if (first) {
+    originalHists[pad] = IPplot;
+  }
+  TString drawOption = Form("%s", first ? "E1" : "SAME");
+  IPplot->Draw(drawOption.Data());
+  IPplot->SetMarkerStyle(0);
+  return;
+}
+/*-------------------------------------------------------------------------*/
 std::pair<TColor*, Int_t> GetColorAndLineStyle(Int_t index)
 {
   static map<std::array<Int_t, 3>, TColor*> cache;
@@ -579,7 +794,7 @@ std::pair<TColor*, Int_t> GetColorAndLineStyle(Int_t index)
 void DataQualityPlot_Overlay()
 {
   TString isQMtest = std::getenv("QMTTEST_NAME");
-  if (isQMtest == "lhcb_ODQV_plot") {
+  if (isQMtest.Contains("lhcb_ODQV_plot")) {
     DataQualityPlot_Overlay("allen_odqv_qmtest.root");
   }
   else {

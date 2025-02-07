@@ -170,7 +170,7 @@ void downstream_consolidate::downstream_consolidate_t::operator()(
   Allen::memset_async<dev_multi_event_downstream_tracks_view_ptr_t>(arguments, 0, context);
 
   // Fill the consolidation memory
-  global_function(downstream_consolidate)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(downstream_consolidate)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
     constants.dev_unique_x_sector_layer_offsets.data(),
     m_histogram_n_downstream_tracks.data(context),

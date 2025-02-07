@@ -45,49 +45,44 @@ namespace di_muon_no_ip_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minTrackPtPROD_t, "minTrackPtPROD", "minTrackPtPROD description", float) minTrackPtPROD;
-    PROPERTY(minTrackP_t, "minTrackP", "minTrackP description", float) minTrackP;
-    PROPERTY(maxDoca_t, "maxDoca", "maxDoca description", float) maxDoca;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
-    PROPERTY(maxTrChi2_t, "maxTrChi2", "maxTrChi2 description", float) maxTrChi2;
-    PROPERTY(ss_on_t, "ss_on", "ss_on description", bool) ss_on;
-    PROPERTY(minPt_t, "minPt", "minPt description", float) minPt;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
-    PROPERTY(maxChi2Muon_t, "maxChi2Muon", "maximum Chi2Muon evaluation", float) maxChi2Muon;
-    PROPERTY(minNN_t, "minNN", "minimum NN evaluation", float) minNN;
-
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
 
   struct di_muon_no_ip_line_t : public SelectionAlgorithm,
                                 Parameters,
                                 CompositeParticleLine<di_muon_no_ip_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float minTrackPtPROD;
+      float minTrackP;
+      float maxDoca;
+      float maxVertexChi2;
+      float maxTrChi2;
+      bool ss_on;
+      float minPt;
+      float minZ;
+      float maxChi2Muon;
+      float minNN;
       Allen::Monitoring::LogHistogram<>::DeviceType histogram_prompt_q;
-      DeviceAccumulators(const di_muon_no_ip_line_t& algo, const Allen::Context& ctx) :
+      DeviceProperties(const di_muon_no_ip_line_t& algo, const Allen::Context& ctx) :
+        minTrackPtPROD(algo.m_minTrackPtPROD), minTrackP(algo.m_minTrackP), maxDoca(algo.m_maxDoca),
+        maxVertexChi2(algo.m_maxVertexChi2), maxTrChi2(algo.m_maxTrChi2), ss_on(algo.m_ss_on.value()),
+        minPt(algo.m_minPt), minZ(algo.m_minZ), maxChi2Muon(algo.m_maxChi2Muon), minNN(algo.m_minNN),
         histogram_prompt_q(algo.m_histogram_prompt_q.data(ctx))
       {}
     };
     __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float> static get_input(
-      const Parameters& parameters,
-      const unsigned event_number,
-      const unsigned i);
+      const Parameters&,
+      const unsigned,
+      const unsigned);
     __device__ static bool select(
-      const Parameters& parameters,
-      const DeviceAccumulators&,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
     __device__ static void monitor(
-      const Parameters& parameters,
-      const DeviceAccumulators&,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>,
+      unsigned,
+      bool);
 
   private:
     Allen::Monitoring::LogHistogram<> m_histogram_prompt_q {this,
@@ -96,23 +91,21 @@ namespace di_muon_no_ip_line {
                                                             {10390, 0.f, 70e3, 2.71998658e-03f, 2.34546735e+03f, 1.f}};
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minTrackPtPROD_t> m_minTrackPtPROD {this,
-                                                 1.f * Gaudi::Units::GeV* Gaudi::Units::GeV}; // run 2 value: 1.*GeV*GeV
-    Property<minTrackP_t> m_minTrackP {this, 5000.f * Gaudi::Units::MeV};                     // run 2 value: 10000
-    Property<maxDoca_t> m_maxDoca {this, .3f};                                                // run 2 value: 0.1
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 9.f};                                    // run 2 value: 9
-    Property<maxTrChi2_t> m_maxTrChi2 {this, 3.f};                                            // run 2 value: 3
-    Property<ss_on_t> m_ss_on {this, false};
-    Property<minPt_t> m_minPt {this, 1.f * Gaudi::Units::GeV};
-    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
-    Property<maxChi2Muon_t> m_minChi2Muon {this, 1.3f};
-    Property<minNN_t> m_minNN {this, 0.74f};
-
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_minTrackPtPROD {this,
+                                             "minTrackPtPROD",
+                                             1.f * Gaudi::Units::GeV* Gaudi::Units::GeV,
+                                             "minTrackPtPROD description"}; // run 2 value: 1.*GeV*GeV
+    Allen::Property<float> m_minTrackP {this,
+                                        "minTrackP",
+                                        5000.f * Gaudi::Units::MeV,
+                                        "minTrackP description"};                   // run 2 value: 10000
+    Allen::Property<float> m_maxDoca {this, "maxDoca", .3f, "maxDoca description"}; // run 2 value: 0.1
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 9.f, "maxVertexChi2 description"}; // run 2 value: 9
+    Allen::Property<float> m_maxTrChi2 {this, "maxTrChi2", 3.f, "maxTrChi2 description"};             // run 2 value: 3
+    Allen::Property<bool> m_ss_on {this, "ss_on", false, "ss_on description"};
+    Allen::Property<float> m_minPt {this, "minPt", 1.f * Gaudi::Units::GeV, "minPt description"};
+    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 1.3f, "maximum Chi2Muon evaluation"};
+    Allen::Property<float> m_minNN {this, "minNN", 0.74f, "minimum NN evaluation"};
   };
 } // namespace di_muon_no_ip_line

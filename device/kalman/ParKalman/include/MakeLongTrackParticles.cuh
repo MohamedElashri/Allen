@@ -54,7 +54,6 @@ namespace make_long_track_particles {
       DEPENDENCIES(dev_multi_event_basic_particles_view_t),
       Allen::IMultiEventContainer*)
     dev_multi_event_container_basic_particles;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void make_particles(
@@ -75,7 +74,7 @@ namespace make_long_track_particles {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
 
     Allen::Monitoring::Histogram<> m_histogram_n_trks {this, "number_of_trks", "NTrks", {500 + 1, -0.5f, 500 + 0.5}};
     Allen::Monitoring::Histogram<> m_histogram_trk_eta {this, "trk_eta", "etaTrk", {400u, 0.f, 10.f}};

@@ -16,7 +16,7 @@ INSTANTIATE_LINE(downstream_kstopipi_line::downstream_kstopipi_line_t, downstrea
 
 __device__ bool downstream_kstopipi_line::downstream_kstopipi_line_t::select(
   const Parameters& parameters,
-  const DeviceAccumulators&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input)
 {
   const auto composite = std::get<0>(input);
@@ -28,14 +28,27 @@ __device__ bool downstream_kstopipi_line::downstream_kstopipi_line_t::select(
 
   // printf("mva=%f, mass=%f\n", ks_mva, composite_mass);
 
-  return (ks_mva > parameters.mva_ks_threshold.get()) &&
-         (detached_ks_mva > parameters.mva_detached_ks_threshold.get()) &&
-         (composite_mass > parameters.minMass.get()) && (composite_mass < parameters.maxMass.get());
+  return (ks_mva > properties.mva_ks_threshold) && (detached_ks_mva > properties.mva_detached_ks_threshold) &&
+         (composite_mass > properties.minMass) && (composite_mass < properties.maxMass);
 }
 
 __device__ void downstream_kstopipi_line::downstream_kstopipi_line_t::monitor(
+  const Parameters&,
+  const DeviceProperties& properties,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
+  unsigned,
+  bool sel)
+{
+  if (sel) {
+    const auto ks = std::get<0>(input);
+    properties.histogram_ks_mass.increment(ks.m12(Allen::mPi, Allen::mPi));
+    properties.histogram_ks_pt.increment(ks.vertex().pt());
+  }
+}
+
+__device__ void downstream_kstopipi_line::downstream_kstopipi_line_t::fill_tuples(
   const Parameters& parameters,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
   unsigned index,
   bool sel)
@@ -44,8 +57,5 @@ __device__ void downstream_kstopipi_line::downstream_kstopipi_line_t::monitor(
     const auto ks = std::get<0>(input);
     parameters.ks_mass[index] = ks.m12(Allen::mPi, Allen::mPi);
     parameters.ks_pt[index] = ks.vertex().pt();
-
-    accumulators.histogram_ks_mass.increment(ks.m12(Allen::mPi, Allen::mPi));
-    accumulators.histogram_ks_pt.increment(ks.vertex().pt());
   }
 }

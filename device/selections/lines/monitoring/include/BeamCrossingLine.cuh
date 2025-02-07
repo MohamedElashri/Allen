@@ -21,23 +21,18 @@ namespace beam_crossing_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     DEVICE_INPUT(dev_odin_data_t, ODINData) dev_odin_data;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(beam_crossing_type_t, "beam_crossing_type", "ODIN beam crossing type [0-3]", unsigned)
-    beam_crossing_type;
   };
 
   struct beam_crossing_line_t : public SelectionAlgorithm, Parameters, ODINLine<beam_crossing_line_t, Parameters> {
-    __device__ static bool select(const Parameters& parameters, std::tuple<const ODINData&> input);
+    struct DeviceProperties {
+      unsigned beam_crossing_type;
+      DeviceProperties(const beam_crossing_line_t& algo, const Allen::Context&) :
+        beam_crossing_type(algo.m_beam_crossing_type)
+      {}
+    };
+    __device__ static bool select(const Parameters&, const DeviceProperties&, std::tuple<const ODINData&> input);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1e-3f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<beam_crossing_type_t> m_beam_crossing_type {this, 0};
+    Allen::Property<unsigned> m_beam_crossing_type {this, "beam_crossing_type", 0, "ODIN beam crossing type [0-3]"};
   };
 } // namespace beam_crossing_line

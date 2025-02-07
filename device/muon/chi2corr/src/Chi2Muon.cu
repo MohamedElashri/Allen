@@ -31,8 +31,7 @@ void chi2_muon::chi2_muon_t::operator()(
   Allen::memset_async<dev_chi2_muon_t>(arguments, 10, context);
   Allen::memset_async<dev_chi2uncorr_muon_t>(arguments, 10, context);
 
-  global_function(chi2_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
-    arguments);
+  global_function(chi2_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(arguments);
 }
 
 __device__ void invert_matrix(float (&matrix)[4][4], float (&invMatrix)[4][4], unsigned dimension)

@@ -23,6 +23,81 @@ from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenConf.ut_reconstruction import make_dummy_ut_hits
 
 
+def fetch_momentum_parameters(version: int):
+    '''
+    Fetch momentum parametrization for VeloSciFi Matching (with UT) algorithm, first 8 floats correspond to MagUp
+    last 8 floats correspond to MagDown:
+        p = params[0] + 
+            (
+                params[1] + 
+                params[2] * (txT * txT) + 
+                params[3] * (txT * txT * txT * txT) + 
+                params[4] * (txT * txV) + params[5] * (tyV * tyV) + 
+                params[6] * (tyV * tyV * tyV * tyV) + 
+                params[7] * (txV * txV)
+            ) / fabsf(dslope)
+    The following versioning are supported:
+        v0: Use same parametrization as HLT2: great performance for MagDown, mass peak is shift in MagUp
+        v1: Update parametrization values with Run2 Magnetic Field Map, setting momentum offset to 0: Align the mass peak in both MagUp and MagDown, 
+            but both are slighly biased.
+        v2: Use v0 in MagDown and v1 in MagUp
+        v3: Update the momentum offset for v1, use v1+offset in MagUp and v0 in MagDown
+        v4: Use v1+offset in both MagUp and MagDown
+        v5: Update v3 with Run3 Magnetic Field Map
+    '''
+    parametrization_options = {
+        # v0: OLD Hlt2 parameters for both MagUp and MagDown
+        0: (42.04859549174048, 1239.4073749458162, 486.05664058906814,
+            6.7158701518424815, 632.7283787142547, 2358.5758035677504,
+            -9256.27946160669, 241.4601040854867, 42.04859549174048,
+            1239.4073749458162, 486.05664058906814, 6.7158701518424815,
+            632.7283787142547, 2358.5758035677504, -9256.27946160669,
+            241.4601040854867),
+        # v1: Updated v0 parameters for both MagUp and MagDown
+        1: (
+            0,
+            1.239076e+03,
+            5.650170e+02,
+            -7.683592e+01,
+            6.148917e+02,
+            2.071115e+03,
+            -6.795680e+03,
+            4.577582e+02,
+            0,
+            1.239076e+03,
+            5.650170e+02,
+            -7.683592e+01,
+            6.148917e+02,
+            2.071115e+03,
+            -6.795680e+03,
+            4.577582e+02,
+        ),
+        # v2: v1 for MagUp and v0 for MagDown
+        2: (0, 1.239076e+03, 5.650170e+02, -7.683592e+01, 6.148917e+02,
+            2.071115e+03, -6.795680e+03, 4.577582e+02, 42.04859549174048,
+            1239.4073749458162, 486.05664058906814, 6.7158701518424815,
+            632.7283787142547, 2358.5758035677504, -9256.27946160669,
+            241.4601040854867),
+        # v3: Add offset to v1: v1+offset for MagUp and v0 for MagDown
+        3: (34.27448, 1.239076e+03, 5.650170e+02, -7.683592e+01, 6.148917e+02,
+            2.071115e+03, -6.795680e+03, 4.577582e+02, 42.04859549174048,
+            1239.4073749458162, 486.05664058906814, 6.7158701518424815,
+            632.7283787142547, 2358.5758035677504, -9256.27946160669,
+            241.4601040854867),
+        # v4: v1+offset for both MagUp and MagDown
+        4: (34.27448, 1.239076e+03, 5.650170e+02, -7.683592e+01, 6.148917e+02,
+            2.071115e+03, -6.795680e+03, 4.577582e+02, 34.27448, 1.239076e+03,
+            5.650170e+02, -7.683592e+01, 6.148917e+02, 2.071115e+03,
+            -6.795680e+03, 4.577582e+02),
+        # v5: update v4 with 2024 Magnetic Field Map (no offset is set) : TODO compute offset based on KsToPiPi mass peak
+        5: (0., 1.242252e+03, 5.793044e+02, -1.280154e+0, 5.831745e+02,
+            1.935609e+03, -6.578155e+0, 4.498875e+02, 0., 1.242285e+03,
+            5.795218e+02, -1.283602e+0, 5.839503e+02, 1.936307e+03,
+            -6.577531e+0, 4.510438e+02),
+    }
+    return parametrization_options[version]
+
+
 @configurable
 def decode_scifi():
     number_of_events = initialize_number_of_events()
@@ -87,6 +162,7 @@ def make_forward_tracks(
         dev_accepted_velo_tracks=None,
         with_ut=True,
         ghost_killer_threshold=0.5,
+        momentum_parameter_version=3,
         scifi_consolidate_tracks_name='scifi_consolidate_tracks'):
     number_of_events = initialize_number_of_events()
 
@@ -315,6 +391,8 @@ def make_forward_tracks(
         dev_scifi_tracks_t=lf_quality_filter.dev_scifi_tracks_t,
         dev_offsets_long_tracks_t=lf_quality_filter.dev_offsets_long_tracks_t)
 
+    momentum_parameters = fetch_momentum_parameters(momentum_parameter_version)
+
     scifi_consolidate_tracks = make_algorithm(
         scifi_consolidate_tracks_t,
         name=str(scifi_consolidate_tracks_name),
@@ -340,7 +418,8 @@ def make_forward_tracks(
         dev_velo_states_view_t=velo_states[
             "dev_velo_kalman_endvelo_states_view"],
         host_scifi_hit_count_t=decoded_scifi["host_number_of_scifi_hits"],
-        dev_accepted_velo_tracks_t=dev_accepted_velo_tracks)
+        dev_accepted_velo_tracks_t=dev_accepted_velo_tracks,
+        momentum_parameters=momentum_parameters)
 
     return {
         "veloUT_tracks":

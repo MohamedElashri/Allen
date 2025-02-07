@@ -20,7 +20,7 @@ namespace calo_prefilter_clusters {
 
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    HOST_INPUT(host_ecal_number_of_clusters_t, unsigned) host_ecal_number_of_clusters;
+    HOST_INPUT(host_ecal_number_of_neutral_clusters_t, unsigned) host_ecal_number_neutral_of_clusters;
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
 
@@ -30,14 +30,9 @@ namespace calo_prefilter_clusters {
     DEVICE_OUTPUT(dev_num_prefiltered_clusters_t, unsigned) dev_num_prefiltered_clusters;
     DEVICE_OUTPUT(dev_ecal_twocluster_offsets_t, unsigned) dev_ecal_twocluster_offsets;
     HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
-
-    PROPERTY(minEt_clusters_t, "minEt_clusters", "minEt of each cluster", float) minEt_clusters;
-    PROPERTY(minE19_clusters_t, "minE19_clusters", "min CaloNeutralE19 of each cluster", float) minE19_clusters;
-    PROPERTY(block_dim_prefilter_t, "block_dim_prefilter", "block dimensions for prefilter step", DeviceDimensions)
-    block_dim_prefilter;
   };
 
-  __global__ void calo_prefilter_clusters(Parameters);
+  __global__ void calo_prefilter_clusters(Parameters, const float, const float);
 
   __global__ void count_twoclusters(Parameters);
 
@@ -51,9 +46,12 @@ namespace calo_prefilter_clusters {
       const Allen::Context& context) const;
 
   private:
-    Property<minEt_clusters_t> m_minEt_clusters {this, 400.f}; // MeV
-    Property<minE19_clusters_t> m_minE19_clusters {this, 0.6f};
-    Property<block_dim_prefilter_t> m_block_dim_prefilter {this, {{256, 1, 1}}};
+    Allen::Property<float> m_minEt_clusters {this, "minEt_clusters", 400.f, "minEt of each cluster"}; // MeV
+    Allen::Property<float> m_minE19_clusters {this, "minE19_clusters", 0.6f, "min CaloNeutralE19 of each cluster"};
+    Allen::Property<dim3> m_block_dim_prefilter {this,
+                                                 "block_dim_prefilter",
+                                                 {256, 1, 1},
+                                                 "block dimensions for prefilter step"};
   };
 
 } // namespace calo_prefilter_clusters

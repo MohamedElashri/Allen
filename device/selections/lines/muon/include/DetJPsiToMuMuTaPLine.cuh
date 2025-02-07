@@ -18,30 +18,8 @@ namespace det_jpsitomumu_tap_line {
 
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
 
-    PROPERTY(JpsiMinPt_t, "JpsiMinPt", "JpsiMinPt description", float) JpsiMinPt;
-    PROPERTY(JpsiMaxVChi2_t, "JpsiMaxVChi2", "JpsiMaxVChi2 description", float) JpsiMaxVChi2;
-    PROPERTY(JpsiMinMass_t, "JpsiMinMass", "JpsiMinMass description", float) JpsiMinMass;
-    PROPERTY(JpsiMaxMass_t, "JpsiMaxMass", "JpsiMaxMass description", float) JpsiMaxMass;
-    PROPERTY(JpsiMinZ_t, "JpsiMinZ", "minimum vertex z dimuon coordinate", float) JpsiMinZ;
-    PROPERTY(JpsiMaxDoca_t, "JpsiMaxDoca", "JpsiMaxDoca description", float) JpsiMaxDoca;
-    PROPERTY(JpsiMinCosDira_t, "JpsiMinCosDira", "JpsiMinCosDira description", float) JpsiMinCosDira;
-    PROPERTY(JpsiMinFDChi2_t, "JpsiMinFDChi2", "JpsiMinFDChi2 description", float) JpsiMinFDChi2;
-
-    PROPERTY(mutagMinP_t, "mutagMinP", "mutagMinP description", float) mutagMinP;
-    PROPERTY(mutagMinPt_t, "mutagMinPt", "mutagMinPt description", float) mutagMinPt;
-    PROPERTY(mutagMinIPChi2_t, "mutagMinIPChi2", "mutagMinIPChi2 description", float) mutagMinIPChi2;
-    PROPERTY(muprobeMinIPChi2_t, "muprobeMinIPChi2", "muprobeMinIPChi2 description", float) muprobeMinIPChi2;
-    PROPERTY(muprobeMinP_t, "muprobeMinP", "muprobeMinP description", float) muprobeMinP;
-
-    PROPERTY(posTag_t, "posTag", "Tags positive charged tracks with isMuon", bool) posTag;
     // tupling
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
-
     DEVICE_OUTPUT(decision_t, bool) decision;
     DEVICE_OUTPUT(jpsi_mass_t, float) jpsi_mass;
     DEVICE_OUTPUT(jpsi_dira_t, float) jpsi_dira;
@@ -78,31 +56,49 @@ namespace det_jpsitomumu_tap_line {
     DEVICE_OUTPUT(muprobe_chi2ndof_t, float) muprobe_chi2ndof;
     DEVICE_OUTPUT(mutag_eta_t, float) mutag_eta;
     DEVICE_OUTPUT(muprobe_eta_t, float) muprobe_eta;
-    // monitoring
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct det_jpsitomumu_tap_line_t : public SelectionAlgorithm,
                                      Parameters,
                                      CompositeParticleLine<det_jpsitomumu_tap_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float JpsiMinPt;
+      float JpsiMaxVChi2;
+      float JpsiMinMass;
+      float JpsiMaxMass;
+      float JpsiMinZ;
+      float JpsiMaxDoca;
+      float JpsiMinCosDira;
+      float JpsiMinFDChi2;
+      float mutagMinP;
+      float mutagMinPt;
+      float mutagMinIPChi2;
+      float muprobeMinIPChi2;
+      float muprobeMinP;
+      bool posTag;
       Allen::Monitoring::Histogram<>::DeviceType histogram_det_jpsitomumu_tap_mass;
-      DeviceAccumulators(const det_jpsitomumu_tap_line_t& algo, const Allen::Context& ctx) :
+      DeviceProperties(const det_jpsitomumu_tap_line_t& algo, const Allen::Context& ctx) :
+        JpsiMinPt(algo.m_JpsiMinPt), JpsiMaxVChi2(algo.m_JpsiMaxVChi2), JpsiMinMass(algo.m_JpsiMinMass),
+        JpsiMaxMass(algo.m_JpsiMaxMass), JpsiMinZ(algo.m_JpsiMinZ), JpsiMaxDoca(algo.m_JpsiMaxDoca),
+        JpsiMinCosDira(algo.m_JpsiMinCosDira), JpsiMinFDChi2(algo.m_JpsiMinFDChi2), mutagMinP(algo.m_mutagMinP),
+        mutagMinPt(algo.m_mutagMinPt), mutagMinIPChi2(algo.m_mutagMinIPChi2), muprobeMinIPChi2(algo.m_muprobeMinIPChi2),
+        muprobeMinP(algo.m_muprobeMinP), posTag(algo.m_posTag),
         histogram_det_jpsitomumu_tap_mass(algo.m_histogram_det_jpsitomumu_tap_mass.data(ctx))
       {}
     };
 
     __device__ static bool
-    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
     // monitoring
     __device__ static void monitor(
-      const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
     __device__ static void fill_tuples(
-      const Parameters& parameters,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
@@ -145,30 +141,23 @@ namespace det_jpsitomumu_tap_line {
       muprobe_eta_t>;
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-
-    Property<JpsiMinPt_t> m_JpsiMinPt {this, 1000.f * Gaudi::Units::MeV};
-    Property<JpsiMaxVChi2_t> m_JpsiMaxVChi2 {this, 15.f};
-    Property<JpsiMinMass_t> m_JpsiMinMass {this, 2950.f * Gaudi::Units::MeV};
-    Property<JpsiMaxMass_t> m_JpsiMaxMass {this, 3250.f * Gaudi::Units::MeV};
-    Property<JpsiMinZ_t> m_JpsiMinZ {this, -341.f * Gaudi::Units::mm};
-    Property<JpsiMaxDoca_t> m_JpsiMaxDoca {this, 1.f * Gaudi::Units::mm};
-    Property<JpsiMinCosDira_t> m_JpsiMinCosDira {this, 0.99f};
-    Property<JpsiMinFDChi2_t> m_JpsiMinFDChi2 {this, 50.f};
-
-    Property<mutagMinP_t> m_mutagMinP {this, 3000.f * Gaudi::Units::MeV};
-    Property<mutagMinPt_t> m_mutagMinPt {this, 1200.f * Gaudi::Units::MeV};
-    Property<mutagMinIPChi2_t> m_mutagMinIPChi2 {this, 9.f};
-    Property<muprobeMinIPChi2_t> m_muprobeMinIPChi2 {this, 9.f};
-    Property<muprobeMinP_t> m_muprobeMinP {this, 3000.f * Gaudi::Units::MeV};
-
-    Property<posTag_t> m_posTag {this, true};
-
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_JpsiMinPt {this, "JpsiMinPt", 1000.f * Gaudi::Units::MeV, "JpsiMinPt description"};
+    Allen::Property<float> m_JpsiMaxVChi2 {this, "JpsiMaxVChi2", 15.f, "JpsiMaxVChi2 description"};
+    Allen::Property<float> m_JpsiMinMass {this, "JpsiMinMass", 2950.f * Gaudi::Units::MeV, "JpsiMinMass description"};
+    Allen::Property<float> m_JpsiMaxMass {this, "JpsiMaxMass", 3250.f * Gaudi::Units::MeV, "JpsiMaxMass description"};
+    Allen::Property<float> m_JpsiMinZ {this,
+                                       "JpsiMinZ",
+                                       -341.f * Gaudi::Units::mm,
+                                       "minimum vertex z dimuon coordinate"};
+    Allen::Property<float> m_JpsiMaxDoca {this, "JpsiMaxDoca", 1.f * Gaudi::Units::mm, "JpsiMaxDoca description"};
+    Allen::Property<float> m_JpsiMinCosDira {this, "JpsiMinCosDira", 0.99f, "JpsiMinCosDira description"};
+    Allen::Property<float> m_JpsiMinFDChi2 {this, "JpsiMinFDChi2", 50.f, "JpsiMinFDChi2 description"};
+    Allen::Property<float> m_mutagMinP {this, "mutagMinP", 3000.f * Gaudi::Units::MeV, "mutagMinP description"};
+    Allen::Property<float> m_mutagMinPt {this, "mutagMinPt", 1200.f * Gaudi::Units::MeV, "mutagMinPt description"};
+    Allen::Property<float> m_mutagMinIPChi2 {this, "mutagMinIPChi2", 9.f, "mutagMinIPChi2 description"};
+    Allen::Property<float> m_muprobeMinIPChi2 {this, "muprobeMinIPChi2", 9.f, "muprobeMinIPChi2 description"};
+    Allen::Property<float> m_muprobeMinP {this, "muprobeMinP", 3000.f * Gaudi::Units::MeV, "muprobeMinP description"};
+    Allen::Property<bool> m_posTag {this, "posTag", true, "Tags positive charged tracks with isMuon"};
 
     Allen::Monitoring::Histogram<> m_histogram_det_jpsitomumu_tap_mass {this,
                                                                         "histogram_det_jpsitomumu_tap_mass",

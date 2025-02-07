@@ -13,16 +13,13 @@
 #include "CaloCluster.cuh"
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
-#ifndef ALLEN_STANDALONE
-#include "Gaudi/Accumulators.h"
-#endif
+#include "AllenMonitoring.h"
 
 namespace calo_filter_clusters {
 
   struct Parameters {
 
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_ecal_number_of_clusters_t, unsigned) host_ecal_number_of_clusters;
     HOST_INPUT(host_ecal_number_of_twoclusters_t, unsigned) host_ecal_number_of_twoclusters;
     MASK_INPUT(dev_event_list_t) dev_event_list;
 
@@ -36,16 +33,12 @@ namespace calo_filter_clusters {
 
     DEVICE_OUTPUT(dev_cluster1_idx_t, unsigned) dev_cluster1_idx;
     DEVICE_OUTPUT(dev_cluster2_idx_t, unsigned) dev_cluster2_idx;
-
-    PROPERTY(block_dim_filter_t, "block_dim_filter", "block dimensions for filter step", DeviceDimensions)
-    block_dim_filter;
   };
 
-  __global__ void calo_filter_clusters(Parameters);
+  __global__ void calo_filter_clusters(Parameters, Allen::Monitoring::AveragingCounter<>::DeviceType);
 
   struct calo_filter_clusters_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
-    void init();
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
@@ -54,11 +47,11 @@ namespace calo_filter_clusters {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_filter_t> m_block_dim_filter {this, {{64, 16, 1}}};
-#ifndef ALLEN_STANDALONE
-  private:
-    mutable std::unique_ptr<Gaudi::Accumulators::Counter<>> m_calo_clusters;
-#endif
+    Allen::Property<dim3> m_block_dim_filter {this,
+                                              "block_dim_filter",
+                                              {64, 16, 1},
+                                              "block dimensions for filter step"};
+    Allen::Monitoring::AveragingCounter<> m_calo_clusters {this, "n_calo_clusters"};
   };
 
 } // namespace calo_filter_clusters

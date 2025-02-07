@@ -26,8 +26,8 @@ void velo_lumi_counters::velo_lumi_counters_t::set_arguments_size(
 
 void velo_lumi_counters::velo_lumi_counters_t::init()
 {
-  std::map<std::string, std::pair<unsigned, unsigned>> schema = property<lumi_counter_schema_t>();
-  std::map<std::string, std::pair<float, float>> shifts_and_scales = property<lumi_counter_shifts_and_scales_t>();
+  std::map<std::string, std::pair<unsigned, unsigned>> schema = m_lumi_counter_schema;
+  std::map<std::string, std::pair<float, float>> shifts_and_scales = m_lumi_counter_shifts_and_scales;
 
   unsigned c_idx(0u);
   for (auto counter_name : Lumi::Constants::velo_counter_names) {
@@ -61,18 +61,18 @@ void velo_lumi_counters::velo_lumi_counters_t::operator()(
 
   Allen::memset_async<dev_lumi_infos_t>(arguments, 0, context);
 
-  global_function(velo_lumi_gec_counters)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, m_offsets_and_sizes, m_shifts_and_scales);
+  global_function(velo_lumi_gec_counters)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments, m_offsets_and_sizes, m_shifts_and_scales, m_tracks_eta_bins.value());
 
-  global_function(velo_lumi_decoding_counters)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, m_offsets_and_sizes, m_shifts_and_scales);
+  global_function(velo_lumi_decoding_counters)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
+    arguments, m_offsets_and_sizes, m_shifts_and_scales, m_clusters_station_bin_edges);
 }
 
 __global__ void velo_lumi_counters::velo_lumi_gec_counters(
   velo_lumi_counters::Parameters parameters,
   const offsets_and_sizes_t offsets_and_sizes,
-  const shifts_and_scales_t shifts_and_scales)
+  const shifts_and_scales_t shifts_and_scales,
+  std::array<float, Lumi::Constants::n_velo_eta_bin_edges> tracks_eta_bins)
 {
   auto event_number = parameters.dev_event_list[blockIdx.x];
   unsigned lumi_evt_index = parameters.dev_lumi_event_indices[event_number];
@@ -107,12 +107,12 @@ __global__ void velo_lumi_counters::velo_lumi_gec_counters(
 
     // fill eta bins
     float eta = velo_eta(velo_state, parameters.dev_is_backward[track_offset + track_index]);
-    if (eta > parameters.tracks_eta_bins.get()[Lumi::Constants::n_velo_eta_bin_edges - 1u] * Gaudi::Units::mm) {
+    if (eta > tracks_eta_bins[Lumi::Constants::n_velo_eta_bin_edges - 1u] * Gaudi::Units::mm) {
       atomicAdd(&reco_counters[2u + Lumi::Constants::n_velo_eta_bin_edges], 1);
       continue;
     }
     for (unsigned eta_bin = 0; eta_bin < Lumi::Constants::n_velo_eta_bin_edges; ++eta_bin) {
-      if (eta < parameters.tracks_eta_bins.get()[eta_bin] * Gaudi::Units::mm) {
+      if (eta < tracks_eta_bins[eta_bin] * Gaudi::Units::mm) {
         atomicAdd(&reco_counters[2u + eta_bin], 1);
         break;
       }
@@ -138,7 +138,8 @@ __global__ void velo_lumi_counters::velo_lumi_gec_counters(
 __global__ void velo_lumi_counters::velo_lumi_decoding_counters(
   velo_lumi_counters::Parameters parameters,
   const offsets_and_sizes_t offsets_and_sizes,
-  const shifts_and_scales_t shifts_and_scales)
+  const shifts_and_scales_t shifts_and_scales,
+  std::array<unsigned, 4> clusters_station_bin_edges)
 {
 
   unsigned event_number = blockIdx.x;
@@ -195,7 +196,7 @@ __global__ void velo_lumi_counters::velo_lumi_decoding_counters(
       cluster_counters[counter_index + 1] += cluster_counters[station_id * 2 + 1];
 
       // go to next bin
-      if (station_id == parameters.clusters_station_bin_edges.get()[station_bin]) {
+      if (station_id == clusters_station_bin_edges[station_bin]) {
         ++station_bin;
       }
     }

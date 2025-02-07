@@ -35,13 +35,13 @@ void MuonFilter::muon_filter_t::operator()(
   Allen::memset_async<dev_mf_decisions_t>(arguments, 0, context);
   Allen::memset_async<dev_mf_track_atomics_t>(arguments, 0, context);
 
-  global_function(muon_filter)(dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(muon_filter)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
+    arguments, m_minpt, m_minipchi2);
 
   Allen::copy<host_selected_events_mf_t, dev_selected_events_mf_t>(arguments, context);
 }
 
-__global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters)
+__global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters, const float min_pt, const float min_ipchi2)
 {
 
   const unsigned number_of_events = gridDim.x;
@@ -91,13 +91,12 @@ __global__ void MuonFilter::muon_filter(MuonFilter::Parameters parameters)
     const float tx2 = velo_states.tx(i_velo_state) * velo_states.tx(i_velo_state);
     const float ty2 = velo_states.ty(i_velo_state) * velo_states.ty(i_velo_state);
     const float pT = p * sqrtf((tx2 + ty2) / (1.f + tx2 + ty2));
-    pTcut = pT > parameters.mf_min_pt;
+    pTcut = pT > min_pt;
 
     // Is muon.
     isMuon = parameters.dev_is_muon[i_scifi_track + event_offset];
 
     // PV cut.
-    const float min_ipchi2 = parameters.mf_min_ipchi2;
     pvcut = (pvchi2_table.value(i_scifi_track) > min_ipchi2);
 
     const bool dec = isMuon && pTcut && pvcut;

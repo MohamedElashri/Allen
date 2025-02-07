@@ -80,8 +80,6 @@ namespace downstream_make_particles {
       DEPENDENCIES(dev_multi_event_downstream_track_particles_view_t),
       Allen::IMultiEventContainer*)
     dev_multi_event_downstream_track_particles_view_ptr;
-
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void downstream_create_particles_views(
@@ -103,7 +101,7 @@ namespace downstream_make_particles {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
 
     Allen::Monitoring::Histogram<> m_histogram_n_trks {
       this,

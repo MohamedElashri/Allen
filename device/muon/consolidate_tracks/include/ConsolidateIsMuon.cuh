@@ -76,8 +76,6 @@ namespace muon_consolidate_tracks {
       DEPENDENCIES(dev_multi_event_muon_long_tracks_view_t),
       Allen::IMultiEventContainer*)
     dev_multi_event_muon_long_tracks_ptr;
-
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void muon_consolidate_tracks(Parameters parameters);
@@ -92,7 +90,7 @@ namespace muon_consolidate_tracks {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 
 } // namespace muon_consolidate_tracks

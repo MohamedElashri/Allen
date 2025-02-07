@@ -26,30 +26,11 @@ namespace two_track_mva_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-
-    PROPERTY(minMVA_t, "minMVA", "Minimum passing MVA response.", float) minMVA;
-    PROPERTY(minPt_t, "minPt", "Minimum track pT in MeV.", float) minPt;
-    PROPERTY(minSVpt_t, "minSVpt", "Minimum SV pT in MeV.", float) minSVpt;
-    PROPERTY(minEta_t, "minEta", "Minimum PV-SV eta.", float) minEta;
-    PROPERTY(maxEta_t, "maxEta", "Maximum PV-SV eta.", float) maxEta;
-    PROPERTY(minMcor_t, "minMcor", "Minimum corrected mass in MeV", float) minMcor;
-    PROPERTY(maxSVchi2_t, "maxSVchi2", "Maximum SV chi2", float) maxSVchi2;
-    PROPERTY(maxDOCA_t, "maxDOCA", "Maximum DOCA between two tracks", float) maxDOCA;
-    PROPERTY(minipchi2_t, "minipchi2", "minimum ipchi2 of the tracks", float) minipchi2;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
-    PROPERTY(maxGhostProb_t, "maxGhostProb", "Maximum ghost probability of the tracks", float) maxGhostProb;
 
     DEVICE_OUTPUT(mva_t, float) mva;
     DEVICE_OUTPUT(maxChildGhostProb_t, float) maxChildGhostProb;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
-
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct two_track_mva_line_t : public SelectionAlgorithm,
@@ -58,7 +39,18 @@ namespace two_track_mva_line {
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float minMVA;
+      float minPt;
+      float minSVpt;
+      float minEta;
+      float maxEta;
+      float minMcor;
+      float maxSVchi2;
+      float maxDOCA;
+      float minipchi2;
+      float minZ;
+      float maxGhostProb;
       Allen::Monitoring::Histogram<>::DeviceType histogram_p0_ghost_prob;
       Allen::Monitoring::Histogram<>::DeviceType histogram_p1_ghost_prob;
       Allen::Monitoring::Histogram<>::DeviceType histogram_p0_ip_x;
@@ -66,56 +58,58 @@ namespace two_track_mva_line {
       Allen::Monitoring::Histogram<>::DeviceType histogram_p0_ip_y;
       Allen::Monitoring::Histogram<>::DeviceType histogram_p1_ip_y;
       Allen::Monitoring::Histogram<>::DeviceType histogram_d0_mass;
-      DeviceAccumulators(const two_track_mva_line_t& algo, const Allen::Context& ctx) :
+      DeviceProperties(const two_track_mva_line_t& algo, const Allen::Context& ctx) :
+        minMVA(algo.m_minMVA), minPt(algo.m_minPt), minSVpt(algo.m_minSVpt), minEta(algo.m_minEta),
+        maxEta(algo.m_maxEta), minMcor(algo.m_minMcor), maxSVchi2(algo.m_maxSVchi2), maxDOCA(algo.m_maxDOCA),
+        minipchi2(algo.m_minipchi2), minZ(algo.m_minZ), maxGhostProb(algo.m_maxGhostProb),
         histogram_p0_ghost_prob(algo.m_histogram_p0_ghost_prob.data(ctx)),
         histogram_p1_ghost_prob(algo.m_histogram_p1_ghost_prob.data(ctx)),
         histogram_p0_ip_x(algo.m_histogram_p0_ip_x.data(ctx)), histogram_p1_ip_x(algo.m_histogram_p1_ip_x.data(ctx)),
         histogram_p0_ip_y(algo.m_histogram_p0_ip_y.data(ctx)), histogram_p1_ip_y(algo.m_histogram_p1_ip_y.data(ctx)),
         histogram_d0_mass(algo.m_histogram_d0_mass.data(ctx))
-
       {}
     };
 
     __device__ static bool select(
-      const Parameters& parameters,
-      const DeviceAccumulators&,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
 
     __device__ static void monitor(
-      const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>,
+      unsigned,
+      bool);
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>,
+      unsigned,
+      bool);
 
     using monitoring_types = std::tuple<mva_t, maxChildGhostProb_t, evtNo_t, runNo_t>;
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-
-    Property<minMVA_t> m_minMVA {this, 0.9569f}; // tuned to about 660 kHz (modulo GEC)
-    Property<minPt_t> m_minPt {this, 200.f * Gaudi::Units::MeV};
-    Property<minSVpt_t> m_minSVpt {this, 1000.f * Gaudi::Units::MeV};
-    Property<minEta_t> m_minEta {this, 2.f};
-    Property<maxEta_t> m_maxEta {this, 5.f};
-    Property<minMcor_t> m_minMcor {this, 1000.f};
-    Property<maxSVchi2_t> m_maxSVchi2 {this, 20.f};
-    Property<maxDOCA_t> m_maxDOCA {this, 0.2f};
-    Property<minipchi2_t> m_minipchi2 {this, 4.f}; // this is probably a noop, but better safe than sorry
-    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
-    Property<maxGhostProb_t> m_maxGhostProb {this, 0.5};
-
-    Property<enable_tupling_t> m_enable_tupling {this, false};
-    Property<enable_monitoring_t> m_enable_monitoring {this, true};
+    Allen::Property<float> m_minMVA {this,
+                                     "minMVA",
+                                     0.9569f,
+                                     "Minimum passing MVA response."}; // tuned to about 660 kHz (modulo GEC)
+    Allen::Property<float> m_minPt {this, "minPt", 200.f * Gaudi::Units::MeV, "Minimum track pT in MeV."};
+    Allen::Property<float> m_minSVpt {this, "minSVpt", 1000.f * Gaudi::Units::MeV, "Minimum SV pT in MeV."};
+    Allen::Property<float> m_minEta {this, "minEta", 2.f, "Minimum PV-SV eta."};
+    Allen::Property<float> m_maxEta {this, "maxEta", 5.f, "Maximum PV-SV eta."};
+    Allen::Property<float> m_minMcor {this, "minMcor", 1000.f, "Minimum corrected mass in MeV"};
+    Allen::Property<float> m_maxSVchi2 {this, "maxSVchi2", 20.f, "Maximum SV chi2"};
+    Allen::Property<float> m_maxDOCA {this, "maxDOCA", 0.2f, "Maximum DOCA between two tracks"};
+    Allen::Property<float> m_minipchi2 {
+      this,
+      "minipchi2",
+      4.f,
+      "minimum ipchi2 of the tracks"}; // this is probably a noop, but better safe than sorry
+    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_maxGhostProb {this, "maxGhostProb", 0.5, "Maximum ghost probability of the tracks"};
 
     Allen::Monitoring::Histogram<> m_histogram_p0_ghost_prob {this,
                                                               "p0_ghost_prob",

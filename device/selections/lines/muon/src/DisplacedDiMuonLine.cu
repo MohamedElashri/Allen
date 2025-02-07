@@ -32,34 +32,34 @@ displaced_di_muon_line::displaced_di_muon_line_t::get_input(
 }
 
 __device__ bool displaced_di_muon_line::displaced_di_muon_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input)
 {
   const auto vertex = std::get<0>(input);
   const auto maxchi2muon = std::get<1>(input);
 
   if (!vertex.is_dimuon()) return false;
-  if (vertex.minipchi2() < parameters.dispMinIPChi2) return false;
+  if (vertex.minipchi2() < properties.dispMinIPChi2) return false;
   // TODO temporary hardcoded mass cut to reduce CPU-GPU differences
   if (vertex.mdimu() < 215.f) return false;
 
-  bool decision = maxchi2muon < parameters.maxChi2Muon && vertex.vertex().chi2() > 0 &&
-                  vertex.vertex().chi2() < parameters.maxVertexChi2 && vertex.eta() > parameters.dispMinEta &&
-                  vertex.eta() < parameters.dispMaxEta && vertex.minpt() > parameters.minDispTrackPt &&
-                  vertex.vertex().z() >= parameters.minZ;
+  bool decision = maxchi2muon < properties.maxChi2Muon && vertex.vertex().chi2() > 0 &&
+                  vertex.vertex().chi2() < properties.maxVertexChi2 && vertex.eta() > properties.dispMinEta &&
+                  vertex.eta() < properties.dispMaxEta && vertex.minpt() > properties.minDispTrackPt &&
+                  vertex.vertex().z() >= properties.minZ;
   return decision;
 }
 
 __device__ void displaced_di_muon_line::displaced_di_muon_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
   unsigned,
   bool sel)
 {
   if (sel) {
     const auto vertex = std::get<0>(input);
-    accumulators.histogram_displaced_dimuon_mass.increment(vertex.mdimu());
+    properties.histogram_displaced_dimuon_mass.increment(vertex.mdimu());
   }
 }

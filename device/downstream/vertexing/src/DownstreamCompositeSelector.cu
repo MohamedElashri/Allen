@@ -29,7 +29,7 @@ void downstream_composite_selector::downstream_composite_selector_t::set_argumen
 void downstream_composite_selector::downstream_composite_selector_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_downstream_mva_l0_t>(arguments, 0, context);
@@ -37,23 +37,22 @@ void downstream_composite_selector::downstream_composite_selector_t::operator()(
   Allen::memset_async<dev_downstream_mva_detached_l0_t>(arguments, 0, context);
   Allen::memset_async<dev_downstream_mva_detached_ks_t>(arguments, 0, context);
 
-  global_function(downstream_composite_selector)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(downstream_composite_selector)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
-    constants.dev_downstream_lambda_selector,
-    constants.dev_downstream_kshort_selector,
-    constants.dev_downstream_detached_lambda_selector,
-    constants.dev_downstream_detached_kshort_selector);
+    lambda_selector.getDevicePointer(),
+    ks_selector.getDevicePointer(),
+    lambda_detached_selector.getDevicePointer(),
+    ks_detached_selector.getDevicePointer());
 
   // const auto host_downstream_mva_l0 = make_host_buffer<dev_downstream_mva_l0_t>(arguments, context);
 }
 
 __global__ void downstream_composite_selector::downstream_composite_selector(
   downstream_composite_selector::Parameters parameters,
-  const Allen::NeuralNetwork::Model::DownstreamLambdaSelector* dev_downstream_lambda_selector,
-  const Allen::NeuralNetwork::Model::DownstreamKshortSelector* dev_downstream_kshort_selector,
-  const Allen::NeuralNetwork::Model::DownstreamDetachedLambdaSelector* dev_downstream_detached_lambda_selector,
-  const Allen::NeuralNetwork::Model::DownstreamDetachedKshortSelector* dev_downstream_detached_kshort_selector)
+  const PromptSelector::DeviceType* dev_downstream_lambda_selector,
+  const PromptSelector::DeviceType* dev_downstream_kshort_selector,
+  const DetachedSelector::DeviceType* dev_downstream_detached_lambda_selector,
+  const DetachedSelector::DeviceType* dev_downstream_detached_kshort_selector)
 {
   // Basic
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -101,25 +100,23 @@ __global__ void downstream_composite_selector::downstream_composite_selector(
     const auto dira_angle = acosf(dira > 1.f ? 1.f : dira);
 
     // Compute scores
-    float inputs_lambda[Allen::NeuralNetwork::Model::DownstreamLambdaSelector::nInput] = {
+    float inputs_lambda[PromptSelector::DeviceType::nInput] = {
       doca, logf(min_ip), logf(max_ip), logf(min_pt), logf(max_pt), logf(min_pt + max_pt), fd, eta_simple};
-    downstream_lambda_selector[composite_idx] =
-      Allen::NeuralNetwork::evaluate(dev_downstream_lambda_selector, inputs_lambda);
+    downstream_lambda_selector[composite_idx] = dev_downstream_lambda_selector->evaluate(inputs_lambda);
 
-    float inputs_detached_lambda[Allen::NeuralNetwork::Model::DownstreamDetachedLambdaSelector::nInput] = {
+    float inputs_detached_lambda[DetachedSelector::DeviceType::nInput] = {
       fd, eta_simple, dira_angle, logf(ip), logf(pt), logf(min_ip), logf(max_ip)};
     downstream_detached_lambda_selector[composite_idx] =
-      Allen::NeuralNetwork::evaluate(dev_downstream_detached_lambda_selector, inputs_detached_lambda);
+      dev_downstream_detached_lambda_selector->evaluate(inputs_detached_lambda);
 
-    float inputs_kshort[Allen::NeuralNetwork::Model::DownstreamKshortSelector::nInput] = {
+    float inputs_kshort[PromptSelector::DeviceType::nInput] = {
       doca, logf(min_ip), logf(max_ip), logf(min_pt), logf(max_pt), logf(min_pt + max_pt), fd, eta_simple};
-    downstream_kshort_selector[composite_idx] =
-      Allen::NeuralNetwork::evaluate(dev_downstream_kshort_selector, inputs_kshort);
+    downstream_kshort_selector[composite_idx] = dev_downstream_kshort_selector->evaluate(inputs_kshort);
 
-    float inputs_detached_kshort[Allen::NeuralNetwork::Model::DownstreamDetachedKshortSelector::nInput] = {
+    float inputs_detached_kshort[DetachedSelector::DeviceType::nInput] = {
       fd, eta_simple, dira_angle, logf(ip), logf(pt), logf(min_ip), logf(max_ip)};
     downstream_detached_kshort_selector[composite_idx] =
-      Allen::NeuralNetwork::evaluate(dev_downstream_detached_kshort_selector, inputs_detached_kshort);
+      dev_downstream_detached_kshort_selector->evaluate(inputs_detached_kshort);
   }
   __syncthreads();
 }

@@ -84,7 +84,7 @@ void velo_consolidate_tracks::velo_consolidate_tracks_t::operator()(
   Allen::memset_async<dev_velo_multi_event_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_velo_tracks_view_t>(arguments, 0, context);
 
-  global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
+  global_function(velo_consolidate_tracks)(size<dev_event_list_t>(arguments), m_block_dim, context)(
     arguments, m_histogram_n_velo_tracks.data(context), m_velo_tracks.data(context));
 
   global_function(create_velo_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);

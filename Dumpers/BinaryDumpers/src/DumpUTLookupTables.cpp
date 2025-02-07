@@ -42,9 +42,9 @@ namespace {
   };
 } // namespace
 
-class DumpUTLookupTables final
-  : public Allen::Dumpers::
-      Dumper<void(LookupTables const&, DeMagnet const&), LHCb::DetDesc::usesConditions<LookupTables, DeMagnet>> {
+class DumpUTLookupTables final : public Allen::Dumpers::Dumper<
+                                   void(LookupTables const&, DeMagnet const&),
+                                   LHCb::Algorithm::Traits::usesConditions<LookupTables, DeMagnet>> {
 public:
   DumpUTLookupTables(const std::string& name, ISvcLocator* svcLoc);
 

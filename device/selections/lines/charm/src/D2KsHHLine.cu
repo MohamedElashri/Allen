@@ -73,8 +73,8 @@ __device__ float d2kshh_line::d2kshh_line_t::mSq(
 
 // Selection function
 __device__ bool d2kshh_line::d2kshh_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   // Unpack the tuple.
@@ -87,72 +87,72 @@ __device__ bool d2kshh_line::d2kshh_line_t::select(
   if (!opposite_sign) return false;
 
   // DOCA between vertices
-  bool comb_cuts = Allen::Views::Physics::state_doca(ks->get_state(), hh->get_state()) < parameters.maxDOCA;
+  bool comb_cuts = Allen::Views::Physics::state_doca(ks->get_state(), hh->get_state()) < properties.maxDOCA;
   if (!comb_cuts) return false;
 
   // Vertex quality cuts.
-  comb_cuts &= ks->vertex().chi2() >= 0 && ks->vertex().chi2() < parameters.maxVertexChi2 && hh->vertex().chi2() > 0 &&
-               hh->vertex().chi2() < parameters.maxVertexChi2;
+  comb_cuts &= ks->vertex().chi2() >= 0 && ks->vertex().chi2() < properties.maxVertexChi2 && hh->vertex().chi2() > 0 &&
+               hh->vertex().chi2() < properties.maxVertexChi2;
   if (!comb_cuts) return false;
 
   // D0 proper time cut
-  comb_cuts &= ctau(ks, hh) > parameters.minCTau_D0; // all pions
+  comb_cuts &= ctau(ks, hh) > properties.minCTau_D0; // all pions
   // D0 minimum pt
-  comb_cuts &= pt(ks, hh) > parameters.minComboPt_D0; // all pions
+  comb_cuts &= pt(ks, hh) > properties.minComboPt_D0; // all pions
   if (!comb_cuts) return false;
 
   // Invariant mass cut
   auto mks = ks->m();                                                            // m(ks,Allen::mPi, Allen::mPi);
   auto mpipi = hh->m();                                                          // m(hh,Allen::mPi, Allen::mPi);
-  comb_cuts = fabsf(m(ks, hh, mks, mpipi) - Allen::mDz) < parameters.massWindow; // all pions
+  comb_cuts = fabsf(m(ks, hh, mks, mpipi) - Allen::mDz) < properties.massWindow; // all pions
 
   bool ks_cuts = true;
   // require the KS to be downstream of the D0
   if (ks->vertex().z() < hh->vertex().z()) return false;
   ks_cuts &= (ks->vertex().z() > hh->vertex().z());
   // KS Mass cuts.
-  ks_cuts &= ks->mdipi() > parameters.minM_Ks;
-  ks_cuts &= ks->mdipi() < parameters.maxM_Ks;
+  ks_cuts &= ks->mdipi() > properties.minM_Ks;
+  ks_cuts &= ks->mdipi() < properties.maxM_Ks;
   if (!ks_cuts) return false;
 
   // KS PT
-  ks_cuts &= ks->vertex().pt() > parameters.minComboPt_Ks;
+  ks_cuts &= ks->vertex().pt() > properties.minComboPt_Ks;
   if (!ks_cuts) return false;
 
   // D0 Invariant mass
   auto mkpi = hh->m12(Allen::mK, Allen::mPi); // Kpi
-  comb_cuts |= fabsf(m(ks, hh, mks, mkpi) - Allen::mDz) < parameters.massWindow;
+  comb_cuts |= fabsf(m(ks, hh, mks, mkpi) - Allen::mDz) < properties.massWindow;
   auto mpik = hh->m12(Allen::mPi, Allen::mK); // piK
-  comb_cuts |= fabsf(m(ks, hh, mks, mpik) - Allen::mDz) < parameters.massWindow;
+  comb_cuts |= fabsf(m(ks, hh, mks, mpik) - Allen::mDz) < properties.massWindow;
   auto mkk = hh->m12(Allen::mK, Allen::mK); // KK
-  comb_cuts |= fabsf(m(ks, hh, mks, mkk) - Allen::mDz) < parameters.massWindow;
+  comb_cuts |= fabsf(m(ks, hh, mks, mkk) - Allen::mDz) < properties.massWindow;
   if (!comb_cuts) return false;
 
   // KS selection
   // Kinematic cuts
-  ks_cuts &= ks->minpt() > parameters.minTrackPt_Ks;
-  ks_cuts &= ks->minp() > parameters.minTrackP_Ks;
-  ks_cuts &= ks->eta() > parameters.minEta_Ks;
-  ks_cuts &= ks->eta() < parameters.maxEta_Ks;
-  ks_cuts &= ks->minip() > parameters.minTrackIP_Ks;
+  ks_cuts &= ks->minpt() > properties.minTrackPt_Ks;
+  ks_cuts &= ks->minp() > properties.minTrackP_Ks;
+  ks_cuts &= ks->eta() > properties.minEta_Ks;
+  ks_cuts &= ks->eta() < properties.maxEta_Ks;
+  ks_cuts &= ks->minip() > properties.minTrackIP_Ks;
   if (!ks_cuts) return false;
 
   // hh selection
   // Kinematic cuts
   bool hh_cuts = true;
-  hh_cuts &= hh->doca12() < parameters.maxDOCA_hh;
-  hh_cuts &= hh->minpt() > parameters.minTrackPt_hh;
-  hh_cuts &= hh->minp() > parameters.minTrackP_hh;
-  hh_cuts &= hh->minip() > parameters.minTrackIP_hh;
-  hh_cuts &= hh->eta() < parameters.maxEta_hh;
-  hh_cuts &= hh->eta() > parameters.minEta_hh;
+  hh_cuts &= hh->doca12() < properties.maxDOCA_hh;
+  hh_cuts &= hh->minpt() > properties.minTrackPt_hh;
+  hh_cuts &= hh->minp() > properties.minTrackP_hh;
+  hh_cuts &= hh->minip() > properties.minTrackIP_hh;
+  hh_cuts &= hh->eta() < properties.maxEta_hh;
+  hh_cuts &= hh->eta() > properties.minEta_hh;
 
   return comb_cuts && ks_cuts && hh_cuts;
 }
 
 __device__ void d2kshh_line::d2kshh_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned,
   bool sel)
@@ -162,16 +162,17 @@ __device__ void d2kshh_line::d2kshh_line_t::monitor(
     const auto ks = static_cast<const Allen::Views::Physics::CompositeParticle*>(sv.child(0));
     const auto hh = static_cast<const Allen::Views::Physics::CompositeParticle*>(sv.child(1));
     // Fill histograms
-    accumulators.histogram_d02kshh_mass.increment(m(ks, hh, Allen::mPi, Allen::mPi));
-    accumulators.histogram_d02kshh_pt.increment(pt(ks, hh));
-    accumulators.histogram_d02kshh_ctau.increment(ctau(ks, hh));
-    accumulators.histogram_d02kshh_mKS.increment(ks->m());
-    accumulators.histogram_d02kshh_mhh.increment(hh->m());
+    properties.histogram_d02kshh_mass.increment(m(ks, hh, Allen::mPi, Allen::mPi));
+    properties.histogram_d02kshh_pt.increment(pt(ks, hh));
+    properties.histogram_d02kshh_ctau.increment(ctau(ks, hh));
+    properties.histogram_d02kshh_mKS.increment(ks->m());
+    properties.histogram_d02kshh_mhh.increment(hh->m());
   }
 }
 
 __device__ void d2kshh_line::d2kshh_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,
   bool sel)

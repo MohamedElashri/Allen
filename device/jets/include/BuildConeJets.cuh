@@ -42,13 +42,9 @@ namespace build_cone_jets {
 
     DEVICE_OUTPUT(dev_track_masks_t, int) dev_track_masks;
     DEVICE_OUTPUT(dev_neutral_masks_t, int) dev_neutral_masks;
-
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
-    PROPERTY(n_max_jets_t, "n_max_jets", "Maximum number of jets", unsigned) n_max_jets;
-    PROPERTY(cone_radius_t, "cone_radius", "Radius of jet cone", float) cone_radius;
   };
 
-  __global__ void build_jets(Parameters parameters);
+  __global__ void build_jets(Parameters parameters, const unsigned n_max_jets, const float cone_radius);
 
   struct build_cone_jets_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -60,9 +56,9 @@ namespace build_cone_jets {
       Allen::Context const&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 64};
-    Property<n_max_jets_t> m_n_max_jets {this, 8};
-    Property<cone_radius_t> m_cone_radius {this, 0.5};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 64, "block dimension X"};
+    Allen::Property<unsigned> m_n_max_jets {this, "n_max_jets", 8, "Maximum number of jets"};
+    Allen::Property<float> m_cone_radius {this, "cone_radius", 0.5, "Radius of jet cone"};
   };
 
 } // namespace build_cone_jets

@@ -27,17 +27,14 @@ namespace calo_digits_minADC {
 
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT(host_fn_parameters_t, char) host_fn_parameters;
-
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minADC_t, "minADC", "minADC description", int16_t) minADC;
   };
 
   struct calo_digits_minADC_t : public SelectionAlgorithm, Parameters, Line<calo_digits_minADC_t, Parameters> {
-
-    __device__ static bool select(const Parameters& ps, std::tuple<const CaloDigit> input);
+    struct DeviceProperties {
+      int16_t minADC;
+      DeviceProperties(const calo_digits_minADC_t& algo, const Allen::Context&) : minADC(algo.m_minADC) {}
+    };
+    __device__ static bool select(const Parameters&, const DeviceProperties&, std::tuple<const CaloDigit> input);
 
     __device__ static unsigned offset(const Parameters& parameters, const unsigned event_number)
     {
@@ -58,10 +55,6 @@ namespace calo_digits_minADC {
     }
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minADC_t> m_minADC {this, 500}; // MeV
+    Allen::Property<int16_t> m_minADC {this, "minADC", 500, "minADC description"}; // MeV
   };
 } // namespace calo_digits_minADC

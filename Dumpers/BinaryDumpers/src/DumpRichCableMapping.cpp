@@ -51,7 +51,8 @@ namespace {
  * @brief Dump cable mapping for the RICH detector.
  */
 class DumpRichCableMapping final
-  : public Allen::Dumpers::Dumper<void(RichCableMapping const&), LHCb::DetDesc::usesConditions<RichCableMapping>> {
+  : public Allen::Dumpers::
+      Dumper<void(RichCableMapping const&), LHCb::Algorithm::Traits::usesConditions<RichCableMapping>> {
 public:
   DumpRichCableMapping(const std::string& name, ISvcLocator* svcLoc);
 

@@ -29,7 +29,8 @@ namespace two_track_mva_charm_xsec_line {
   }
 
   __device__ bool two_track_mva_charm_xsec_line_t::select(
-    const Parameters& parameters,
+    const Parameters&,
+    const DeviceProperties& properties,
     std::tuple<const CompositeParticle, const float> input)
   {
     const auto particle = std::get<0>(input);
@@ -45,19 +46,19 @@ namespace two_track_mva_charm_xsec_line {
      * be less than `maxCombKpiMass` which is set such that it selects all the modes that are missing a
      * particle or two.
      */
-    auto massDecision = [&particle, &parameters] {
+    auto massDecision = [&particle, &properties] {
       const auto m1 = particle.m12(Allen::mK, Allen::mPi);
       const auto m2 = particle.m12(Allen::mPi, Allen::mK);
-      const auto dzero = min(fabsf(m1 - Allen::mDz), fabsf(m2 - Allen::mDz)) < parameters.massWindow;
-      const auto other = min(m1, m2) < parameters.maxCombKpiMass;
+      const auto dzero = min(fabsf(m1 - Allen::mDz), fabsf(m2 - Allen::mDz)) < properties.massWindow;
+      const auto other = min(m1, m2) < properties.maxCombKpiMass;
       return dzero || other;
     };
 
-    const auto preselection = vertex.chi2() < parameters.maxVertexChi2 && particle.minpt() > parameters.minTrackPt &&
-                              particle.has_pv() && particle.minp() > parameters.minTrackP &&
-                              particle.docamax() < parameters.maxDOCA && massDecision() &&
-                              particle.minipchi2() > parameters.minTrackIPChi2 && vertex.z() >= parameters.minZ &&
-                              particle.pv().position.z >= parameters.minZ;
+    const auto preselection = vertex.chi2() < properties.maxVertexChi2 && particle.minpt() > properties.minTrackPt &&
+                              particle.has_pv() && particle.minp() > properties.minTrackP &&
+                              particle.docamax() < properties.maxDOCA && massDecision() &&
+                              particle.minipchi2() > properties.minTrackIPChi2 && vertex.z() >= properties.minZ &&
+                              particle.pv().position.z >= properties.minZ;
 
     /*
      * After a rough selection of genereall intersting tracks and vertices two different MVA response cuts
@@ -66,9 +67,9 @@ namespace two_track_mva_charm_xsec_line {
      * transverse momentum candidates (PT < 1 GeV), but performs well for PT > 1.5 GeV. The cut for low PT is loosenend
      * such that candidates with PT < 1 GeV pass.
      */
-    const auto low_pt_selection = preselection && vertex.pt() < parameters.lowSVpt && response > parameters.minMVAlowPt;
+    const auto low_pt_selection = preselection && vertex.pt() < properties.lowSVpt && response > properties.minMVAlowPt;
     const auto high_pt_selection =
-      preselection && vertex.pt() >= parameters.lowSVpt && response > parameters.minMVAhighPt;
+      preselection && vertex.pt() >= properties.lowSVpt && response > properties.minMVAhighPt;
 
     return low_pt_selection || high_pt_selection;
   }

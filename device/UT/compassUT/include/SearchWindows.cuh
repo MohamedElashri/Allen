@@ -29,11 +29,6 @@ namespace ut_search_windows {
     DEVICE_INPUT(dev_ut_selected_velo_tracks_t, unsigned) dev_ut_selected_velo_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_OUTPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
-    PROPERTY(min_momentum_t, "min_momentum", "min momentum cut [MeV/c]", float) min_momentum;
-    PROPERTY(min_pt_t, "min_pt", "min pT cut [MeV/c]", float) min_pt;
-    PROPERTY(y_tol_t, "y_tol", "y tol [mm]", float) y_tol;
-    PROPERTY(y_tol_slope_t, "y_tol_slope", "y tol slope [mm]", float) y_tol_slope;
-    PROPERTY(block_dim_y_t, "block_dim_y_t", "block dimension Y", unsigned) block_dim_y;
   };
 
   __global__ void ut_search_windows(
@@ -41,7 +36,11 @@ namespace ut_search_windows {
     UTMagnetTool* dev_ut_magnet_tool,
     const UT::Constants::PerLayerInfo* dev_mean_layer_info,
     const unsigned* dev_unique_x_sector_layer_offsets,
-    const float* dev_unique_sector_xs);
+    const float* dev_unique_sector_xs,
+    const float y_tol,
+    const float y_tol_slope,
+    const float min_pt,
+    const float min_momentum);
 
   struct ut_search_windows_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -53,10 +52,10 @@ namespace ut_search_windows {
       const Allen::Context& context) const;
 
   private:
-    Property<min_momentum_t> m_mom {this, 1500.f * Gaudi::Units::MeV};
-    Property<min_pt_t> m_pt {this, 300.f * Gaudi::Units::MeV};
-    Property<y_tol_t> m_ytol {this, 0.5f * Gaudi::Units::mm};
-    Property<y_tol_slope_t> m_yslope {this, 0.08f};
-    Property<block_dim_y_t> m_block_dim_y {this, 128};
+    Allen::Property<float> m_mom {this, "min_momentum", 1500.f * Gaudi::Units::MeV, "min momentum cut [MeV/c]"};
+    Allen::Property<float> m_pt {this, "min_pt", 300.f * Gaudi::Units::MeV, "min pT cut [MeV/c]"};
+    Allen::Property<float> m_ytol {this, "y_tol", 0.5f * Gaudi::Units::mm, "y tol [mm]"};
+    Allen::Property<float> m_yslope {this, "y_tol_slope", 0.08f, "y tol slope [mm]"};
+    Allen::Property<unsigned> m_block_dim_y {this, "block_dim_y_t", 128, "block dimension Y"};
   };
 } // namespace ut_search_windows

@@ -15,14 +15,12 @@ event_list_alg_types = ("event_list_union_t", "event_list_inversion_t",
 
 
 class ParsedAlgorithm():
-    def __init__(self, name, scope, filename, namespace, parameters,
-                 properties):
+    def __init__(self, name, scope, filename, namespace, parameters):
         self.name = name
         self.scope = scope
         self.filename = filename
         self.namespace = namespace
         self.parameters = parameters
-        self.properties = properties
 
         # Check parameters contains at most one input mask and one output mask
         input_masks = [
@@ -42,22 +40,6 @@ class ParsedAlgorithm():
 
     def __repr__(self):
         return self.scope + " " + self.name
-
-
-class Property():
-    def __init__(self,
-                 typename,
-                 typedef,
-                 name,
-                 description,
-                 default_value,
-                 scope="algorithm"):
-        self.typename = typename
-        self.typedef = typedef
-        self.name = name
-        self.description = description
-        self.default_value = default_value
-        self.scope = scope
 
 
 class Parameter():
@@ -84,14 +66,6 @@ class Parameter():
             raise
 
 
-# TODO: Parse these from Algorithm.cuh
-def make_default_algorithm_properties():
-    return [
-        Property("verbosity_t", "int", "\"verbosity\"",
-                 "\"verbosity of algorithm\"", 3, "baseclass")
-    ]
-
-
 def make_parsed_algorithms(filename, data):
     parsed_algorithms = []
     for namespace_data in data:
@@ -102,19 +76,12 @@ def make_parsed_algorithms(filename, data):
             name = algorithm_data[1]
             scope = algorithm_data[2]
             parameters = []
-            properties = []
-            # Add default properties
-            for default_property in make_default_algorithm_properties():
-                properties.append(default_property)
             for t in algorithm_data[3]:
                 kind = t[0]
-                if kind == "Property":
-                    properties.append(Property(*t[1:]))
-                elif kind == "Parameter":
+                if kind == "Parameter":
                     parameters.append(Parameter(*t[1:]))
             parsed_algorithms.append(
-                ParsedAlgorithm(name, scope, filename, namespace, parameters,
-                                properties))
+                ParsedAlgorithm(name, scope, filename, namespace, parameters))
     return parsed_algorithms
 
 
@@ -171,31 +138,23 @@ class AlgorithmTraversal():
 
     @staticmethod
     def traverse_individual_parameters(c):
-        """Traverses parameter / property c.
+        """Traverses parameter c.
 
         For a parameter, we are searching for:
         * typename: Name of the class (ie. host_number_of_events_t).
         * kind: host / device.
         * io: input / output.
         * typedef: Type that it holds (ie. unsigned).
-
-        For a property:
-        * typedef: Type that it holds (ie. unsigned).
-        * name: Name of the property (obtained with tokens)
-        * descrition: Property description (obtained with tokens)
         """
         typename = c.spelling
 
-        # Detect whether it is a parameter or a property
-        is_property = False
+        # Detect whether it is a parameter
         is_parameter = False
         for child in c.get_children():
             if child.kind == cindex.CursorKind.CXX_METHOD:
                 if child.spelling == "parameter":
                     is_parameter = True
-                elif child.spelling == "property":
-                    is_property = True
-        # Parse parameters / properties
+        # Parse parameters
         if is_parameter:
             # - Host / Device is now visible as a child class.
             # - There is a function (parameter) which captures:
@@ -231,32 +190,11 @@ class AlgorithmTraversal():
             if kind and typedef and io != None:
                 return ("Parameter", typename, kind, io, typedef, aggregate,
                         optional, dependencies)
-        elif is_property:
-            # - There is a function (property) which captures:
-            #   * f.type.spelling: The type (restricted to POD types)
-            typedef = None
-            for child in c.get_children():
-                if child.kind == cindex.CursorKind.CXX_METHOD:
-                    typedef = [a.type.spelling
-                               for a in child.get_children()][0]
-            if typedef == "" or typedef == "int":
-                # If the type is empty or int, it is not to be trusted and instead the tag is employed here
-                typedef = AlgorithmTraversal.__properties[typename][
-                    "property_type"]
-            # Unfortunately, for properties we need to rely on tokens found in the
-            # namespace to get the literals.
-            name = AlgorithmTraversal.__properties[typename]["name"]
-            description = AlgorithmTraversal.__properties[typename][
-                "description"]
-            default_value = AlgorithmTraversal.__properties[typename][
-                "default_value"]
-            return ("Property", typename, typedef, name, description,
-                    default_value)
         return None
 
     @staticmethod
     def parameters(c):
-        """Traverses all parameters / properties of an Algorithm."""
+        """Traverses all parameters of an Algorithm."""
         if c.kind == cindex.CursorKind.STRUCT_DECL:
             return AlgorithmTraversal.traverse_individual_parameters(c)
         else:
@@ -265,7 +203,7 @@ class AlgorithmTraversal():
     @staticmethod
     def algorithm_definition(c):
         """Traverses an algorithm definition. If a base class other than __algorithm_tokens
-        is found, it delegates traversing the parameters / properties."""
+        is found, it delegates traversing the parameters."""
         if c.kind == cindex.CursorKind.CXX_BASE_SPECIFIER:
             if c.type.spelling in AlgorithmTraversal.__algorithm_tokens:
                 return ("AlgorithmClass", c.kind, c.type.spelling)
@@ -286,17 +224,27 @@ class AlgorithmTraversal():
         ]:
             # Fetch the class and parameters of the algorithm
             algorithm_class = ""
-            algorithm_parameters = ""
+            algorithm_parameters = []
             algorithm_class_parameters = AlgorithmTraversal.traverse_children(
                 c, AlgorithmTraversal.algorithm_definition)
+            # Add properties
+            for _, prop in AlgorithmTraversal.__properties.items():
+                algorithm_class_parameters.append(
+                    ("Property", prop["name"], prop["variable_type"],
+                     prop["description"], prop["default_value"]))
+            algorithm_properties = []
+
             for d in algorithm_class_parameters:
-                if len(d) > 2 and d[0] == "AlgorithmClass":
+                if d[0] == "AlgorithmClass":
                     algorithm_class = d[2]
+                elif d[0] == "Property":
+                    algorithm_properties.append(d)
                 elif type(d) == list:
                     algorithm_parameters = d
+            parameters_and_properties = algorithm_parameters + algorithm_properties
             if algorithm_class != "":
                 return (c.kind, c.spelling, algorithm_class,
-                        algorithm_parameters)
+                        parameters_and_properties)
             else:
                 return None
         else:
@@ -316,28 +264,8 @@ class AlgorithmTraversal():
             # Check if it is a "new algorithm", which is identified by locating
             # at least one of the tokens in AlgorithmTraversal.__algorithm_tokens:
             if [a for a in AlgorithmTraversal.__algorithm_tokens if a in ts]:
-                last_found = -1
                 properties = {}
-                while True:
-                    # Loop over all "PROPERTY"s until there are no more to be parsed
-                    try:
-                        last_found = ts.index("PROPERTY", last_found + 1)
-                    except ValueError:
-                        break
-                    typename = ts[last_found + 2]
-                    name = ts[last_found + 4]
-                    description = ts[last_found + 6]
-                    closing_parenthesis = ts.index(")", last_found + 8)
-                    property_type = "".join(
-                        ts[last_found + 8:closing_parenthesis])
-                    properties[typename] = {
-                        "name": name,
-                        "description": description,
-                        "property_type": property_type
-                    }
-
                 last_found = -1
-                default_values = {}
                 while True:
                     # Loop over all "Property"s until there are no more to be parsed
                     try:
@@ -345,31 +273,24 @@ class AlgorithmTraversal():
                     except ValueError:
                         break
                     # Traverse the "Property"s to find out the default values
-                    typename = ts[last_found + 2]
-                    comma_position = ts.index(",", last_found)
+                    pass
+                    this_position = ts.index("this", last_found)
                     semicolon_position = ts.index(";", last_found)
+                    variable_type = " ".join(
+                        ts[last_found + 2:this_position - 2])[:-1]
+                    variable_name = ts[this_position - 2]
+                    name = ts[this_position + 2]
+                    description = ts[semicolon_position - 2]
                     default_value = "".join(
-                        ts[comma_position + 1:semicolon_position - 1])
-                    default_values[typename] = default_value
-
-                # Match all PROPERTY blocks with all Property blocks. In essence, for each code as:
-                #
-                #   PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned) block_dim_x;
-                #
-                # there should be a corresponding:
-                #
-                #   Property<block_dim_x_t> m_block_dim_x {this, 64};
-                set_diff = set(properties).symmetric_difference(
-                    set(default_values))
-                if set_diff:
-                    raise Exception(
-                        f"Error parsing properties {set_diff} in file {filename}.\n"
-                        "Please ensure all properties have a PROPERTY field and a Property definition."
-                    )
+                        ts[this_position + 4:semicolon_position - 3])
+                    properties[variable_name] = {
+                        "name": name,
+                        "description": description,
+                        "variable_type": variable_type,
+                        "default_value": default_value
+                    }
 
                 AlgorithmTraversal.__properties = properties
-                for t, v in default_values.items():
-                    AlgorithmTraversal.__properties[t]["default_value"] = v
 
                 return (c.kind, c.spelling,
                         AlgorithmTraversal.traverse_children(

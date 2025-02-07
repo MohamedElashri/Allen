@@ -13,18 +13,19 @@
 INSTANTIATE_LINE(displaced_di_muon_mass_line::displaced_di_muon_mass_line_t, displaced_di_muon_mass_line::Parameters)
 
 __device__ bool displaced_di_muon_mass_line::displaced_di_muon_mass_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto vertex = std::get<0>(input);
 
   if (!vertex.is_dimuon()) return false;
-  if (vertex.charge() != parameters.DiMuonCharge) return false;
-  if (vertex.minipchi2() < parameters.dispMinIPChi2) return false;
-  if (vertex.mdimu() < parameters.minMass) return false;
+  if (vertex.charge() != properties.diMuonCharge) return false;
+  if (vertex.minipchi2() < properties.dispMinIPChi2) return false;
+  if (vertex.mdimu() < properties.minMass) return false;
 
-  bool decision = vertex.vertex().chi2() > 0 && vertex.vertex().chi2() < parameters.maxVertexChi2 &&
-                  vertex.eta() > parameters.dispMinEta && vertex.eta() < parameters.dispMaxEta &&
-                  vertex.minpt() > parameters.minDispTrackPt && vertex.vertex().z() >= parameters.minZ;
+  bool decision = vertex.vertex().chi2() > 0 && vertex.vertex().chi2() < properties.maxVertexChi2 &&
+                  vertex.eta() > properties.dispMinEta && vertex.eta() < properties.dispMaxEta &&
+                  vertex.minpt() > properties.minDispTrackPt && vertex.vertex().z() >= properties.minZ;
   return decision;
 }

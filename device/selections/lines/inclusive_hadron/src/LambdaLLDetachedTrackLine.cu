@@ -15,8 +15,8 @@ INSTANTIATE_LINE(
   lambda_ll_detached_track_line::Parameters)
 
 __device__ bool lambda_ll_detached_track_line::lambda_ll_detached_track_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto Lt = std::get<0>(input);
@@ -38,19 +38,20 @@ __device__ bool lambda_ll_detached_track_line::lambda_ll_detached_track_line_t::
   // a (anti-) charm decay. Decays from b should be covered by the generic lines.
   const bool track_and_proton_are_same_sign =
     c0_is_proton ? companion_state.charge() == c0_state.charge() : companion_state.charge() == c1_state.charge();
-  return track_and_proton_are_same_sign && pion_state.pt() > parameters.pi_PT_min &&
-         proton_state.pt() > parameters.p_PT_min && pion->ip_chi2() > parameters.pi_MIPCHI2_min &&
-         proton->ip_chi2() > parameters.p_MIPCHI2_min && Lambda->doca12() < parameters.L_DOCA_max &&
-         L_vx.chi2() < parameters.L_VCHI2_max && Lambda->fdchi2() > parameters.L_BPVFDCHI2_min &&
-         parameters.L_M_min < mL && mL < parameters.L_M_max && L_vx.pt() > parameters.L_PT_min &&
-         companion_state.pt() > parameters.t_PT_min && companion->ip_chi2() > parameters.t_MIPCHI2_min &&
-         Lt.m12(Allen::mL, Allen::mPi) < parameters.M_max && L_vx.z() - vertex.z() > parameters.LVDZ_min &&
-         parameters.VZ_min < vertex.z() && vertex.z() < parameters.VZ_max && Lt.dz() > parameters.BPVVDZ_min &&
-         Lt.drho() > parameters.BPVVDRHO_min && L_vx.pt() + companion_state.pt() > parameters.SUMPT_min;
+  return track_and_proton_are_same_sign && pion_state.pt() > properties.pi_PT_min &&
+         proton_state.pt() > properties.p_PT_min && pion->ip_chi2() > properties.pi_MIPCHI2_min &&
+         proton->ip_chi2() > properties.p_MIPCHI2_min && Lambda->doca12() < properties.L_DOCA_max &&
+         L_vx.chi2() < properties.L_VCHI2_max && Lambda->fdchi2() > properties.L_BPVFDCHI2_min &&
+         properties.L_M_min < mL && mL < properties.L_M_max && L_vx.pt() > properties.L_PT_min &&
+         companion_state.pt() > properties.t_PT_min && companion->ip_chi2() > properties.t_MIPCHI2_min &&
+         Lt.m12(Allen::mL, Allen::mPi) < properties.M_max && L_vx.z() - vertex.z() > properties.LVDZ_min &&
+         properties.VZ_min < vertex.z() && vertex.z() < properties.VZ_max && Lt.dz() > properties.BPVVDZ_min &&
+         Lt.drho() > properties.BPVVDRHO_min && L_vx.pt() + companion_state.pt() > properties.SUMPT_min;
 }
 
 __device__ void lambda_ll_detached_track_line::lambda_ll_detached_track_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties&,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,
   bool sel)
@@ -113,7 +114,7 @@ __device__ void lambda_ll_detached_track_line::lambda_ll_detached_track_line_t::
 
 __device__ void lambda_ll_detached_track_line::lambda_ll_detached_track_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned,
   bool sel)
@@ -128,7 +129,7 @@ __device__ void lambda_ll_detached_track_line::lambda_ll_detached_track_line_t::
     const auto mL =
       c0->state().p() > c1->state().p() ? Lambda->m12(Allen::mP, Allen::mPi) : Lambda->m12(Allen::mPi, Allen::mP);
 
-    accumulators.histogram_Lambda_mass.increment(mL);
-    accumulators.histogram_LambdaPi_mass.increment(mLpi);
+    properties.histogram_Lambda_mass.increment(mL);
+    properties.histogram_LambdaPi_mass.increment(mLpi);
   }
 }

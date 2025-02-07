@@ -43,9 +43,10 @@ __device__ std::tuple<const float> z_range_materialvertex_seed_line::z_range_mat
 }
 
 __device__ bool z_range_materialvertex_seed_line::z_range_materialvertex_seed_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const float> input)
 {
   const auto& vertex_seed_z = std::get<0>(input);
-  return vertex_seed_z >= parameters.min_z_materialvertex_seed && vertex_seed_z < parameters.max_z_materialvertex_seed;
+  return vertex_seed_z >= properties.min_z_materialvertex_seed && vertex_seed_z < properties.max_z_materialvertex_seed;
 }

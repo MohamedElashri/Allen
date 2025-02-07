@@ -257,13 +257,13 @@ namespace Allen::Store {
    * @brief Manager of argument references for every handler.
    */
   template<
-    typename ParametersAndPropertiesTuple,
+    typename UnalteredParameterTuple,
     typename ParameterTuple,
     typename ParameterStruct,
     typename InputAggregatesTuple = std::tuple<>>
   struct StoreRef {
   public:
-    using parameters_and_properties_tuple_t = ParametersAndPropertiesTuple;
+    using unaltered_parameters_tuple_t = UnalteredParameterTuple;
     using parameters_tuple_t = ParameterTuple;
     using parameters_struct_t = ParameterStruct;
     using input_aggregates_t = typename AggregateTypes<InputAggregatesTuple>::aggregates_tuple_type_t;
@@ -386,17 +386,16 @@ namespace Allen::Store {
 
   /**
    * @brief Tuple wrapper that extracts tuples out of the
-   *        Parameters struct. It extracts a tuple of all parameters and properties
-   *        (parameters_and_properties_tuple_t), and a tuple of parameters (parameters_tuple_t).
+   *        Parameters struct. It extracts a tuple of parameters (parameters_tuple_t).
    */
   template<typename Tuple, typename I, typename Enabled = void>
   struct WrappedTupleDetails;
 
   template<typename Tuple>
   struct WrappedTupleDetails<Tuple, std::index_sequence<>> {
-    using parameters_and_properties_tuple_t = std::tuple<>;
     using parameters_tuple_t = std::tuple<>;
     using aggregates_tuple_t = std::tuple<>;
+    using unaltered_parameters_tuple_t = std::tuple<>;
   };
 
   template<typename Tuple, std::size_t I, std::size_t... Is>
@@ -408,12 +407,12 @@ namespace Allen::Store {
       std::is_base_of_v<host_datatype, boost::pfr::tuple_element_t<I, Tuple>>) &&!std::
                        is_base_of_v<aggregate_datatype, boost::pfr::tuple_element_t<I, Tuple>>>> {
     using prev_wrapped_tuple = WrappedTupleDetails<Tuple, std::index_sequence<Is...>>;
-    using prev_parameters_and_properties_tuple_t = typename prev_wrapped_tuple::parameters_and_properties_tuple_t;
-    using parameters_and_properties_tuple_t =
-      prepend_to_tuple_t<boost::pfr::tuple_element_t<I, Tuple>, prev_parameters_and_properties_tuple_t>;
     using prev_parameters_tuple_t = typename prev_wrapped_tuple::parameters_tuple_t;
     using parameters_tuple_t = prepend_to_tuple_t<boost::pfr::tuple_element_t<I, Tuple>, prev_parameters_tuple_t>;
     using aggregates_tuple_t = typename prev_wrapped_tuple::aggregates_tuple_t;
+    using unaltered_parameters_tuple_t = prepend_to_tuple_t<
+      boost::pfr::tuple_element_t<I, Tuple>,
+      typename prev_wrapped_tuple::unaltered_parameters_tuple_t>;
   };
 
   template<typename Tuple, std::size_t I, std::size_t... Is>
@@ -422,12 +421,12 @@ namespace Allen::Store {
     std::index_sequence<I, Is...>,
     std::enable_if_t<std::is_base_of_v<aggregate_datatype, boost::pfr::tuple_element_t<I, Tuple>>>> {
     using prev_wrapped_tuple = WrappedTupleDetails<Tuple, std::index_sequence<Is...>>;
-    using parameters_and_properties_tuple_t = prepend_to_tuple_t<
-      boost::pfr::tuple_element_t<I, Tuple>,
-      typename prev_wrapped_tuple::parameters_and_properties_tuple_t>;
     using parameters_tuple_t = typename prev_wrapped_tuple::parameters_tuple_t;
     using aggregates_tuple_t =
       prepend_to_tuple_t<boost::pfr::tuple_element_t<I, Tuple>, typename prev_wrapped_tuple::aggregates_tuple_t>;
+    using unaltered_parameters_tuple_t = prepend_to_tuple_t<
+      boost::pfr::tuple_element_t<I, Tuple>,
+      typename prev_wrapped_tuple::unaltered_parameters_tuple_t>;
   };
 
   template<typename Tuple, std::size_t I, std::size_t... Is>
@@ -439,11 +438,11 @@ namespace Allen::Store {
       !std::is_base_of_v<host_datatype, boost::pfr::tuple_element_t<I, Tuple>> &&
       !std::is_base_of_v<aggregate_datatype, boost::pfr::tuple_element_t<I, Tuple>>>> {
     using prev_wrapped_tuple = WrappedTupleDetails<Tuple, std::index_sequence<Is...>>;
-    using prev_parameters_and_properties_tuple_t = typename prev_wrapped_tuple::parameters_and_properties_tuple_t;
-    using parameters_and_properties_tuple_t =
-      prepend_to_tuple_t<boost::pfr::tuple_element_t<I, Tuple>, prev_parameters_and_properties_tuple_t>;
     using parameters_tuple_t = typename prev_wrapped_tuple::parameters_tuple_t;
     using aggregates_tuple_t = typename prev_wrapped_tuple::aggregates_tuple_t;
+    using unaltered_parameters_tuple_t = prepend_to_tuple_t<
+      boost::pfr::tuple_element_t<I, Tuple>,
+      typename prev_wrapped_tuple::unaltered_parameters_tuple_t>;
   };
 
   template<size_t... Is>
@@ -460,7 +459,7 @@ namespace Allen::Store {
 
 template<typename T>
 using ArgumentReferences = Allen::Store::StoreRef<
-  typename Allen::Store::WrappedTuple<T>::parameters_and_properties_tuple_t,
+  typename Allen::Store::WrappedTuple<T>::unaltered_parameters_tuple_t,
   typename Allen::Store::WrappedTuple<T>::parameters_tuple_t,
   T,
   typename Allen::Store::WrappedTuple<T>::aggregates_tuple_t>;

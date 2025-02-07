@@ -251,10 +251,9 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
   partition_fn(dim3(size<dev_event_list_t>(arguments)), dim3(16, 16), context)(
     arguments, std::get<0>(runtime_options.event_interval));
 
-  if (m_count_candidates.get_value()) {
+  if (m_count_candidates.value()) {
     // Enough blocks to cover all events
-    const auto grid_size =
-      dim3((size<dev_event_list_t>(arguments) + property<block_dim_x_t>() - 1) / property<block_dim_x_t>());
+    const auto grid_size = dim3((size<dev_event_list_t>(arguments) + m_block_dim_x - 1) / m_block_dim_x);
 
     auto kernel_fn =
       (bank_version == 2) ?
@@ -266,7 +265,7 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
         (runtime_options.mep_layout ? global_function(velo_calculate_number_of_candidates_kernel<4, true>) :
                                       global_function(velo_calculate_number_of_candidates_kernel<4, false>));
 
-    kernel_fn(grid_size, dim3(property<block_dim_x_t>().get()), context)(
+    kernel_fn(grid_size, dim3(m_block_dim_x), context)(
       arguments, size<dev_event_list_t>(arguments), std::get<0>(runtime_options.event_interval));
 
     PrefixSum::prefix_sum<dev_candidates_offsets_t, host_number_of_cluster_candidates_t>(*this, arguments, context);

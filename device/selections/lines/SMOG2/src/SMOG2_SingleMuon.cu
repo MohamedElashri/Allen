@@ -14,17 +14,18 @@
 INSTANTIATE_LINE(SMOG2_single_muon_line::SMOG2_single_muon_line_t, SMOG2_single_muon_line::Parameters)
 
 __device__ bool SMOG2_single_muon_line::SMOG2_single_muon_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::BasicParticle, const float> input)
 {
   const auto track = std::get<0>(input);
   const auto chi2corr = std::get<1>(input);
 
-  bool decision = chi2corr < parameters.maxChi2Corr && track.is_muon() && track.state().pt() > parameters.MinPt &&
-                  track.state().p() > parameters.MinP &&
-                  track.state().chi2() / track.state().ndof() < parameters.maxChi2Ndof &&
-                  track.state().z() < parameters.maxBPVz && track.state().z() >= parameters.minBPVz;
-  if (track.has_pv()) decision = decision && track.pv().position.z < parameters.maxBPVz;
+  bool decision = chi2corr < properties.maxChi2Corr && track.is_muon() && track.state().pt() > properties.MinPt &&
+                  track.state().p() > properties.MinP &&
+                  track.state().chi2() / track.state().ndof() < properties.maxChi2Ndof &&
+                  track.state().z() < properties.maxBPVz && track.state().z() >= properties.minBPVz;
+  if (track.has_pv()) decision = decision && track.pv().position.z < properties.maxBPVz;
 
   return decision;
 }

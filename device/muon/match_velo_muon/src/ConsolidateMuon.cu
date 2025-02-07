@@ -31,8 +31,7 @@ void consolidate_muon::consolidate_muon_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(consolidate_muon)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_t>(), context)(
-    arguments);
+  global_function(consolidate_muon)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(arguments);
 }
 
 __global__ void consolidate_muon::consolidate_muon(consolidate_muon::Parameters parameters)

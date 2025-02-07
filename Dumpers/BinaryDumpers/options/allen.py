@@ -83,8 +83,11 @@ parser.add_argument("-v", dest="verbosity", default=3)
 parser.add_argument("-p", dest="print_memory", default=0)
 parser.add_argument("--sequence", dest="sequence", default=sequence_default)
 parser.add_argument("-s", dest="slices", default=1)
-parser.add_argument("--mdf", dest="mdf", default="")
-parser.add_argument("--mep", dest="mep", default="")
+
+input_group = parser.add_mutually_exclusive_group(required=True)
+input_group.add_argument("--mdf", dest="mdf", default="")
+input_group.add_argument("--mep", dest="mep", default="")
+input_group.add_argument("--test-file-db-key", dest="tdbk")
 parser.add_argument(
     "--mep-mask-source-id-top-5",
     action="store_true",
@@ -135,8 +138,7 @@ parser.add_argument(
     default=300,
     help="How long to run when reusing MEPs [s]",
 )
-parser.add_argument(
-    "--tags", dest="tags", default="dddb-20171122,sim-20180530-vc-md100")
+parser.add_argument("--tags")
 parser.add_argument(
     "--real-data", dest="simulation", action="store_false", default=True)
 parser.add_argument(
@@ -187,27 +189,45 @@ runtime_lib = None
 if args.profile == "CUDA":
     runtime_lib = ctypes.CDLL("libcudart.so")
 
-if args.tags.find('|') != -1:
-    # special case that allows giving tags for both DetDesc and DD4hep
-    tags = {}
-    for entry in args.tags.split('|'):
-        build, t = entry.split(':')
-        tags[build] = t.split(',')
-    dddb_tag, conddb_tag = tags['dd4hep' if UseDD4Hep else 'detdesc']
-else:
-    dddb_tag, conddb_tag = args.tags.split(',')
-
 options = ApplicationOptions(_enabled=False)
-options.simulation = True if not UseDD4Hep else args.simulation
-options.data_type = 'Upgrade'
 options.input_type = 'MDF'
 
-if UseDD4Hep:
-    options.geometry_version = dddb_tag
-    options.conditions_version = conddb_tag
+if args.tdbk is not None:
+    from PRConfig.TestFileDB import test_file_db
+    # TestFileDB key supplied, use it for all the information it can supply
+    options.set_conds_from_testfiledb(args.tdbk)
+    args.simulation = options.simulation
+
+    tdb_entry = test_file_db[args.tdbk]
+    format = tdb_entry.qualifiers['Format']
+    if format == 'MDF':
+        args.mdf = ','.join(tdb_entry.filenames)
+    elif format == 'MEP':
+        args.mep = ','.join(tdb_entry.filenames)
+    else:
+        raise ValueError(
+            "Only files in MDF or MEP format are supported by allen.py")
 else:
-    options.dddb_tag = dddb_tag
-    options.conddb_tag = conddb_tag
+    options.simulation = True if not UseDD4Hep else args.simulation
+    options.data_type = 'Upgrade'
+
+    if args.tags.find('|') != -1:
+        # special case that allows giving tags for both DetDesc and DD4hep
+        tags = {}
+        for entry in args.tags.split('|'):
+            build, t = entry.split(':')
+            tags[build] = t.split(',')
+        dddb_tag, conddb_tag = tags['dd4hep' if UseDD4Hep else 'detdesc']
+    else:
+        dddb_tag, conddb_tag = args.tags.split(',')
+
+    if UseDD4Hep:
+        options.geometry_version = dddb_tag
+        options.conditions_version = conddb_tag
+    else:
+        options.dddb_tag = dddb_tag
+        options.conddb_tag = conddb_tag
+
 if args.register_monitoring_counters and args.mon_filename:
     fn, ext = os.path.splitext(args.mon_filename)
     options.histo_file = fn + "_gaudi" + ext

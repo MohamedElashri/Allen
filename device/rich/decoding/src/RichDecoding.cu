@@ -440,7 +440,7 @@ void rich_decoding::rich_decoding_t::operator()(
   Allen::memset_async<dev_rich_hit_offsets_t>(arguments, 0, context);
   global_function(
     runtime_options.mep_layout ? rich_calculate_number_of_hits<true> : rich_calculate_number_of_hits<false>)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_t>(), context)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
     arguments, std::get<0>(runtime_options.event_interval), cable_mapping, pdmdb_mapping);
 
   PrefixSum::prefix_sum<dev_rich_hit_offsets_t, host_rich_total_number_of_hits_t>(*this, arguments, context);
@@ -452,14 +452,14 @@ void rich_decoding::rich_decoding_t::operator()(
   resize<dev_smart_ids_t>(arguments, first<host_rich_total_number_of_hits_t>(arguments));
 
   global_function(runtime_options.mep_layout ? rich_decoding_kernel<true> : rich_decoding_kernel<false>)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_t>(), context)(
+    dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
     arguments,
     std::get<0>(runtime_options.event_interval),
     cable_mapping,
     pdmdb_mapping,
     dev_rich_number_of_inserted_hits.data());
 
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     // Print output
     print<dev_rich_hit_offsets_t>(arguments);
     print<dev_smart_ids_t>(arguments);

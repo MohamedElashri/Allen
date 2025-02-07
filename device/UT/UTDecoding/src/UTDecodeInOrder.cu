@@ -30,10 +30,10 @@ void ut_decode_in_order::ut_decode_in_order_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-  global_function(ut_decode_in_order)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(ut_decode_in_order)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments, constants.dev_ut_geometry.data(), constants.dev_unique_x_sector_layer_offsets.data());
 
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     auto host_ut_hits = make_host_buffer<dev_ut_hits_t>(arguments, context);
     auto host_ut_post_cluster_offsets = make_host_buffer<dev_ut_cluster_offsets_t>(arguments, context);
     auto clusters_view = UT::Hits {host_ut_hits.data(), first<host_accumulated_number_of_ut_clusters_t>(arguments)};

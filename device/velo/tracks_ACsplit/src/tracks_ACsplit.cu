@@ -32,8 +32,8 @@ void tracks_ACsplit::tracks_ACsplit_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(tracks_ACsplit)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, property<splitting_algorithm_t>().get() == "A/C split");
+  global_function(tracks_ACsplit)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments, splitting_algorithm.value() == "A/C split");
 
   PrefixSum::
     prefix_sum<dev_offsets_velo_track_hit_number_A_side_t, host_accumulated_number_of_hits_in_velo_tracks_A_side_t>(

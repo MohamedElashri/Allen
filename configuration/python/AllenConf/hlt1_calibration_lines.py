@@ -26,7 +26,8 @@ def make_pi02gammagamma_line(calo,
                              name="Hlt1Pi02GammaGamma",
                              pre_scaler=0.05,
                              pre_scaler_hash_string=None,
-                             post_scaler_hash_string=None):
+                             post_scaler_hash_string=None,
+                             enable_tupling=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -37,7 +38,6 @@ def make_pi02gammagamma_line(calo,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
-        host_ecal_number_of_clusters_t=calo["host_ecal_number_of_clusters"],
         dev_velo_tracks_t=velo_tracks["dev_velo_tracks_view"],
         dev_particle_container_t=calo["dev_multi_event_diphotons"],
         dev_cluster_particle_container_t=calo[
@@ -50,7 +50,7 @@ def make_pi02gammagamma_line(calo,
         minE19_clusters=0.7,
         minPtEta=200,  #Pi0Pt>minPtEta*(10-Pi0Eta)
         max_n_pvs=1,
-        enable_tupling=False)
+        enable_tupling=enable_tupling)
 
 
 def make_dst_line(dstars,

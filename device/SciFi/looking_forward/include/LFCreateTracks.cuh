@@ -42,37 +42,23 @@ namespace lf_create_tracks {
     DEVICE_OUTPUT(dev_scifi_lf_total_number_of_found_triplets_t, unsigned)
     dev_scifi_lf_total_number_of_found_triplets;
     DEVICE_OUTPUT(dev_scifi_lf_parametrization_t, float) dev_scifi_lf_parametrization;
-    PROPERTY(
-      calculate_parametrization_block_dim_t,
-      "calculate_parametrization_block_dim",
-      "block dimensions calculate parametrization",
-      DeviceDimensions)
-    calculate_parametrization_block_dim;
-    PROPERTY(extend_tracks_block_dim_t, "extend_tracks_block_dim", "block dimensions extend tracks", DeviceDimensions)
-    extend_tracks_block_dim;
-    PROPERTY(
-      chi2_max_extrapolation_to_x_layers_single_t,
-      "chi2_max_extrapolation_to_x_layers_single",
-      "chi2_max_extrapolation_to_x_layers_single",
-      float)
-    chi2_max_extrapolation_to_x_layers_single;
-    PROPERTY(max_triplets_per_input_track_t, "max_triplets_per_input_track", "max_triplets_per_input_track", unsigned)
-    max_triplets_per_input_track;
-    PROPERTY(
-      maximum_number_of_triplets_per_warp_t,
-      "maximum_number_of_triplets_per_warp",
-      "maximum_number_of_triplets_per_warp",
-      unsigned)
-    maximum_number_of_triplets_per_warp;
-    PROPERTY(uv_hits_chi2_factor_x_t, "uv_hits_chi2_factor_x", "uv_hits_chi2_factor_x", float) uv_hits_chi2_factor_x;
-    PROPERTY(uv_hits_chi2_factor_y_t, "uv_hits_chi2_factor_y", "uv_hits_chi2_factor_y", float) uv_hits_chi2_factor_y;
   };
 
-  __global__ void lf_triplet_keep_best(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
+  __global__ void lf_triplet_keep_best(
+    Parameters,
+    const LookingForward::Constants* dev_looking_forward_constants,
+    const unsigned max_triplets_per_input_track,
+    const unsigned maximum_number_of_triplets_per_warp);
 
-  __global__ void lf_calculate_parametrization(Parameters);
+  __global__ void lf_calculate_parametrization(Parameters, const unsigned max_triplets_per_input_track);
 
-  __global__ void lf_extend_tracks(Parameters, const LookingForward::Constants* dev_looking_forward_constants);
+  __global__ void lf_extend_tracks(
+    Parameters,
+    const LookingForward::Constants* dev_looking_forward_constants,
+    const unsigned max_triplets_per_input_track,
+    const float uv_hits_chi2_factor_y,
+    const float uv_hits_chi2_factor_x,
+    const float chi2_max_extrapolation_to_x_layers_single);
 
   struct lf_create_tracks_t : public DeviceAlgorithm, Parameters {
 
@@ -85,12 +71,27 @@ namespace lf_create_tracks {
       const Allen::Context& context) const;
 
   private:
-    Property<calculate_parametrization_block_dim_t> m_calculate_parametrization_block_dim {this, {{128, 1, 1}}};
-    Property<extend_tracks_block_dim_t> m_extend_tracks_block_dim {this, {{256, 1, 1}}};
-    Property<max_triplets_per_input_track_t> m_max_triplets_per_input_track {this, 12};
-    Property<maximum_number_of_triplets_per_warp_t> m_maximum_number_of_triplets_per_warp {this, 64};
-    Property<chi2_max_extrapolation_to_x_layers_single_t> m_chi2_max_extrapolation_to_x_layers_single {this, 2.};
-    Property<uv_hits_chi2_factor_x_t> m_uv_hits_chi2_factor_x {this, 50.};
-    Property<uv_hits_chi2_factor_y_t> m_uv_hits_chi2_factor_y {this, 50.};
+    Allen::Property<dim3> m_calculate_parametrization_block_dim {this,
+                                                                 "calculate_parametrization_block_dim",
+                                                                 {128, 1, 1},
+                                                                 "block dimensions calculate parametrization"};
+    Allen::Property<dim3> m_extend_tracks_block_dim {this,
+                                                     "extend_tracks_block_dim",
+                                                     {256, 1, 1},
+                                                     "block dimensions extend tracks"};
+    Allen::Property<unsigned> m_max_triplets_per_input_track {this,
+                                                              "max_triplets_per_input_track",
+                                                              12,
+                                                              "max_triplets_per_input_track"};
+    Allen::Property<unsigned> m_maximum_number_of_triplets_per_warp {this,
+                                                                     "maximum_number_of_triplets_per_warp",
+                                                                     64,
+                                                                     "maximum_number_of_triplets_per_warp"};
+    Allen::Property<float> m_chi2_max_extrapolation_to_x_layers_single {this,
+                                                                        "chi2_max_extrapolation_to_x_layers_single",
+                                                                        2.,
+                                                                        "chi2_max_extrapolation_to_x_layers_single"};
+    Allen::Property<float> m_uv_hits_chi2_factor_x {this, "uv_hits_chi2_factor_x", 50., "uv_hits_chi2_factor_x"};
+    Allen::Property<float> m_uv_hits_chi2_factor_y {this, "uv_hits_chi2_factor_y", 50., "uv_hits_chi2_factor_y"};
   };
 } // namespace lf_create_tracks

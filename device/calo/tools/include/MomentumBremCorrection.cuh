@@ -30,7 +30,6 @@ namespace momentum_brem_correction {
     // Outputs
     DEVICE_OUTPUT(dev_brem_corrected_p_t, float) dev_brem_corrected_p;
     DEVICE_OUTPUT(dev_brem_corrected_pt_t, float) dev_brem_corrected_pt;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void momentum_brem_correction(Parameters);
@@ -45,7 +44,7 @@ namespace momentum_brem_correction {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
   };
 
 } // namespace momentum_brem_correction

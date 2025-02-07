@@ -28,7 +28,6 @@ namespace make_selrep {
     DEVICE_OUTPUT(dev_sel_reports_t, unsigned) dev_sel_reports;
     HOST_OUTPUT(host_selrep_offsets_t, unsigned) host_selrep_offsets;
     HOST_OUTPUT(host_sel_reports_t, unsigned) host_sel_reports;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __host__ __device__ void make_selrep_bank(
@@ -55,6 +54,6 @@ namespace make_selrep {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
   };
 } // namespace make_selrep

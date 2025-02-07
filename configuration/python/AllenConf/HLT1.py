@@ -732,7 +732,23 @@ def default_SMOG2_lines(reconstructed_objects,
                 muonid,
                 maxChi2Corr=1.3,
                 minFDCHI2=100.,
-                name="Hlt1SMOG2DisplacedDiMuon")
+                name="Hlt1SMOG2DisplacedDiMuon"),
+            make_SMOG2_jpsitomumu_tap_line(
+                prompt_dihadrons,
+                long_tracks,
+                muonid,
+                posTag=True,
+                maxChi2Corr=1.8,
+                enable_tupling=enable_tupling,
+                name="Hlt1SMOG2JPsiToMuMuTaP_PosTag"),
+            make_SMOG2_jpsitomumu_tap_line(
+                prompt_dihadrons,
+                long_tracks,
+                muonid,
+                posTag=False,
+                maxChi2Corr=1.8,
+                enable_tupling=enable_tupling,
+                name="Hlt1SMOG2JPsiToMuMuTaP_NegTag")
         ]
 
     if with_v0s:
@@ -1230,8 +1246,10 @@ def setup_hlt1_node(enablePhysics=True,
             with_ut=with_ut,
             with_muon=with_muon,
             tracking_type=TrackingType.FORWARD)
-        node = make_dq_node(reconstructed_objects,
-                            reconstructed_objects_forward, line_algorithms)
+        node = make_dq_node(
+            reconstructed_objects,
+            reconstructed_objects_forward,
+            prefilters=beam_beam_filter)
         return node
 
     if not withMCChecking:

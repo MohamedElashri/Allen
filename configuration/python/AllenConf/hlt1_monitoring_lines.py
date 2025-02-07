@@ -143,6 +143,8 @@ def make_beam_gas_line(velo_tracks,
                        name="Hlt1BeamGas",
                        pre_scaler_hash_string=None,
                        post_scaler_hash_string=None,
+                       pre_scaler=1.,
+                       post_scaler=1.e-3,
                        beam_crossing_type=1):
     number_of_events = initialize_number_of_events()
     odin = decode_odin()
@@ -162,6 +164,8 @@ def make_beam_gas_line(velo_tracks,
         dev_offsets_velo_track_hit_number_t=velo_tracks[
             "dev_offsets_velo_track_hit_number"],
         dev_odin_data_t=odin["dev_odin_data"],
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post")
 

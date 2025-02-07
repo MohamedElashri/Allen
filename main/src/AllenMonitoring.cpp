@@ -35,6 +35,16 @@ namespace Allen::Monitoring {
 
     if (m_registered_accumulators.empty()) return;
 
+    // Resize bins and register CountersHistogram
+    m_counters_histogram.resetHistogram();
+    for (auto counter : m_counters) {
+      m_counters_histogram.addCounter(counter->uniqueName());
+    }
+    for (auto counter : m_av_counters) {
+      m_counters_histogram.addAvCounter(counter->uniqueName());
+    }
+    m_counters_histogram.registerHistogram();
+
     // * Group registered allocator by unique name (they should be registered once per stream)
     for (auto acc : m_registered_accumulators) {
       auto key = acc->uniqueName();
@@ -95,6 +105,19 @@ namespace Allen::Monitoring {
     // * Update accumulators
     for ([[maybe_unused]] auto& [key, acc] : m_accumulators) {
       acc.owners[0]->fillAccumulator((void*) (m_host_buffer_ptr + acc.offset));
+    }
+
+    int counter_index = 0;
+    for (auto counter : m_counters) {
+      m_counters_histogram.updateBin(counter_index, static_cast<float>(counter->m_entries));
+      counter_index++;
+    }
+
+    for (auto counter : m_av_counters) {
+      m_counters_histogram.updateBin(counter_index, static_cast<float>(counter->m_sum));
+      counter_index++;
+      m_counters_histogram.updateBin(counter_index, static_cast<float>(counter->m_entries));
+      counter_index++;
     }
   }
 } // namespace Allen::Monitoring

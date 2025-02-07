@@ -40,36 +40,32 @@ namespace lowmass_dielectron_line {
     DEVICE_OUTPUT(dev_e_minpt_bremcorr_t, float) dev_e_minpt_bremcorr;
     DEVICE_OUTPUT(dev_die_minipchi2_t, float) dev_die_minipchi2;
     DEVICE_OUTPUT(dev_die_ip_t, float) dev_die_ip;
-    // Properties
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(selectPrompt_t, "selectPrompt", "Use ipchi2 threshold as upper (prompt) or lower (displaced) bound", bool)
-    selectPrompt;
-    PROPERTY(MinMass_t, "MinMass", "Min vertex mass", float) minMass;
-    PROPERTY(MaxMass_t, "MaxMass", "Max vertex mass", float) maxMass;
-    PROPERTY(ss_on_t, "ss_on", "Flag when same-sign candidates should be selected", bool) ss_on;
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
-    PROPERTY(MinZ_t, "MinZ", "Min z dielectron coordinate", float) MinZ;
-    PROPERTY(TrackIPChi2Threshold_t, "TrackIPChi2Threshold", "Track IP Chi2 threshold", float) trackIPChi2Threshold;
-    PROPERTY(MaxDOCA_t, "MaxDOCA", "Max DOCA", float) maxDOCA;
-    PROPERTY(MaxVtxChi2_t, "MaxVtxChi2", "Max vertex chi2", float) maxVtxChi2;
-    PROPERTY(MinPTprompt_t, "MinPTprompt", "Min PTprompt", float) minPTprompt;
-    PROPERTY(MinPTdisplaced_t, "MinPTdisplaced", "Min PTdisplaced", float) minPTdisplaced;
-    PROPERTY(MinDielectronPT_t, "MinDielectronPT", "Min dielectron PT", float) minDielectronPT;
-    PROPERTY(UseNN_t, "UseNN", "Use NN flag", bool) useNN;
-    PROPERTY(NNCut_t, "NNCut", "NN cut value", float) nnCut;
   };
 
   struct lowmass_dielectron_line_t : public SelectionAlgorithm,
                                      Parameters,
                                      CompositeParticleLine<lowmass_dielectron_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      bool selectPrompt;
+      float minMass;
+      float maxMass;
+      bool ss_on;
+      float minZ;
+      float trackIPChi2Threshold;
+      float maxDOCA;
+      float minPTprompt;
+      float minPTdisplaced;
+      float maxVtxChi2;
+      float minDielectronPT;
+      bool useNN;
+      float nnCut;
       Allen::Monitoring::LogHistogram<>::DeviceType histogram_dielectron_masses;
       Allen::Monitoring::LogHistogram<>::DeviceType histogram_dielectron_masses_brem;
-      DeviceAccumulators(const lowmass_dielectron_line_t& algo, const Allen::Context& ctx) :
+      DeviceProperties(const lowmass_dielectron_line_t& algo, const Allen::Context& ctx) :
+        selectPrompt(algo.m_selectPrompt), minMass(algo.m_minMass), maxMass(algo.m_maxMass), ss_on(algo.m_ss_on),
+        minZ(algo.m_minZ), trackIPChi2Threshold(algo.m_trackIPChi2Threshold), maxDOCA(algo.m_maxDOCA),
+        minPTprompt(algo.m_minPTprompt), minPTdisplaced(algo.m_minPTdisplaced), maxVtxChi2(algo.m_maxVtxChi2),
+        minDielectronPT(algo.m_minDielectronPT), useNN(algo.m_useNN), nnCut(algo.m_nnCut),
         histogram_dielectron_masses(algo.m_histogram_dielectron_masses.data(ctx)),
         histogram_dielectron_masses_brem(algo.m_histogram_dielectron_masses_brem.data(ctx))
       {}
@@ -77,49 +73,46 @@ namespace lowmass_dielectron_line {
 
     __device__ static bool select(
       const Parameters&,
-      const DeviceAccumulators&,
-      std::tuple<
-        const Allen::Views::Physics::CompositeParticle,
-        const bool,
-        const bool,
-        const float,
-        const float,
-        const float,
-        const bool,
-        const bool>);
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, unsigned>);
 
-    __device__ static std::tuple<
-      const Allen::Views::Physics::CompositeParticle,
-      const bool,
-      const bool,
-      const float,
-      const float,
-      const float,
-      const bool,
-      const bool>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
-    void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
+    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, unsigned>
+    get_input(const Parameters&, const unsigned, const unsigned);
+    void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&) const;
 
-    void init_tuples(const ArgumentReferences<Parameters>& arguments, const Allen::Context& context) const;
+    void init_tuples(const ArgumentReferences<Parameters>&, const Allen::Context&) const;
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
-      std::tuple<
-        const Allen::Views::Physics::CompositeParticle,
-        const bool,
-        const bool,
-        const float,
-        const float,
-        const float,
-        const bool,
-        const bool> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, unsigned>,
+      unsigned,
+      bool);
 
-    void output_tuples(const ArgumentReferences<Parameters>& arguments, const RuntimeOptions&, const Allen::Context&)
-      const;
+    void output_tuples(const ArgumentReferences<Parameters>&, const RuntimeOptions&, const Allen::Context&) const;
 
   private:
+    Allen::Property<bool> m_selectPrompt {this,
+                                          "selectPrompt",
+                                          true,
+                                          "Use ipchi2 threshold as upper (prompt) or lower (displaced) bound"};
+    Allen::Property<float> m_minMass {this, "MinMass", 5.f, "Min vertex mass"};
+    Allen::Property<float> m_maxMass {this, "MaxMass", 300.f, "Max vertex mass"};
+    Allen::Property<bool> m_ss_on {this, "ss_on", false, "Flag when same-sign candidates should be selected"};
+    Allen::Property<float> m_minZ {this, "MinZ", -341.f * Gaudi::Units::mm, "Min z dielectron coordinate"};
+    Allen::Property<float> m_trackIPChi2Threshold {
+      this,
+      "TrackIPChi2Threshold",
+      2.0f,
+      "Track IP Chi2 threshold"}; // threshold to split 'prompt' and 'displaced' candidates
+    Allen::Property<float> m_maxDOCA {this, "MaxDOCA", 0.082f, "Max DOCA"};
+    Allen::Property<float> m_minPTprompt {this, "MinPTprompt", 0.f, "Min PTprompt"};
+    Allen::Property<float> m_minPTdisplaced {this, "MinPTdisplaced", 0.f, "Min PTdisplaced"};
+    Allen::Property<float> m_maxVtxChi2 {this, "MaxVtxChi2", 7.4f, "Max vertex chi2"};
+    Allen::Property<float> m_minDielectronPT {this, "MinDielectronPT", 1000.f, "Min dielectron PT"};
+    Allen::Property<bool> m_useNN {this, "UseNN", false, "Use NN flag"};
+    Allen::Property<float> m_nnCut {this, "NNCut", 0.7, "NN cut value"};
+
     Allen::Monitoring::LogHistogram<> m_histogram_dielectron_masses {
       this,
       "dielectron_mass_counts",
@@ -130,28 +123,5 @@ namespace lowmass_dielectron_line {
       "dielectron_mass_counts_brem",
       "dielectron masses with brem",
       {200u, 0.f, 1500.f, 0.22842211f, 14.59935056f, 1.f}};
-
-  private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<selectPrompt_t> m_selectPrompt {this, true};
-    Property<MinMass_t> m_MinMass {this, 5.f};
-    Property<MaxMass_t> m_MaxMass {this, 300.f};
-    Property<ss_on_t> m_ss_on {this, false};
-    Property<enable_monitoring_t> m_enable_monitoring {this, true};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
-    Property<MinZ_t> m_MinZ {this, -341.f * Gaudi::Units::mm};
-    Property<TrackIPChi2Threshold_t> m_TrackIPChi2Threshold {
-      this,
-      2.0f}; // threshold to split 'prompt' and 'displaced' candidates
-    Property<MaxDOCA_t> m_MaxDOCA {this, 0.082f};
-    Property<MinPTprompt_t> m_MinPTprompt {this, 0.f};
-    Property<MinPTdisplaced_t> m_MinPTdisplaced {this, 0.f};
-    Property<MaxVtxChi2_t> m_MaxVtxChi2 {this, 7.4f};
-    Property<MinDielectronPT_t> m_MinDielectronPT {this, 1000.f};
-    Property<UseNN_t> m_UseNN {this, false};
-    Property<NNCut_t> m_NNCut {this, 0.7};
   };
 } // namespace lowmass_dielectron_line

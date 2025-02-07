@@ -223,8 +223,8 @@ void velo_estimate_input_size::velo_estimate_input_size_t::operator()(
     throw StrException("Velo SP bank version not supported (" + std::to_string(bank_version) + ")");
   }
 
-  global_function(velo_estimate_input_size_kernel)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(velo_estimate_input_size_kernel)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments);
 
   PrefixSum::prefix_sum<dev_offsets_estimated_input_size_t, host_total_number_of_velo_clusters_t>(
     *this, arguments, context);

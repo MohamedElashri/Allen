@@ -45,8 +45,8 @@ void downstream_make_secondary_vertices::downstream_make_secondary_vertices_t::o
   Allen::memset_async<dev_downstream_secondary_vertices_ip_t>(arguments, 0, context);
   Allen::memset_async<dev_downstream_secondary_vertices_pv_t>(arguments, 0, context);
 
-  global_function(downstream_make_secondary_vertices)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(downstream_make_secondary_vertices)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments);
 
   global_function(downstream_make_secondary_vertices_views)(
     dim3(first<host_number_of_events_t>(arguments)), 128, context)(arguments, m_histogram_nsvs.data(context));

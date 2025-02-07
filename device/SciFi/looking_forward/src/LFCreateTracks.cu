@@ -18,14 +18,12 @@ void lf_create_tracks::lf_create_tracks_t::set_arguments_size(
   const Constants&) const
 {
   set_size<dev_scifi_lf_tracks_t>(
-    arguments,
-    first<host_number_of_reconstructed_input_tracks_t>(arguments) * property<max_triplets_per_input_track_t>());
+    arguments, first<host_number_of_reconstructed_input_tracks_t>(arguments) * m_max_triplets_per_input_track);
   set_size<dev_scifi_lf_atomics_t>(arguments, first<host_number_of_events_t>(arguments));
   set_size<dev_scifi_lf_total_number_of_found_triplets_t>(
     arguments, first<host_number_of_reconstructed_input_tracks_t>(arguments));
   set_size<dev_scifi_lf_parametrization_t>(
-    arguments,
-    4 * first<host_number_of_reconstructed_input_tracks_t>(arguments) * property<max_triplets_per_input_track_t>());
+    arguments, 4 * first<host_number_of_reconstructed_input_tracks_t>(arguments) * m_max_triplets_per_input_track);
 }
 
 void lf_create_tracks::lf_create_tracks_t::operator()(
@@ -41,13 +39,21 @@ void lf_create_tracks::lf_create_tracks_t::operator()(
     dim3(size<dev_event_list_t>(arguments)),
     dim3(warp_size, 128 / warp_size),
     context,
-    (128 / warp_size) * property<maximum_number_of_triplets_per_warp_t>() *
-      sizeof(SciFi::lf_triplet::t))(arguments, constants.dev_looking_forward_constants);
+    (128 / warp_size) * m_maximum_number_of_triplets_per_warp * sizeof(SciFi::lf_triplet::t))(
+    arguments,
+    constants.dev_looking_forward_constants,
+    m_max_triplets_per_input_track,
+    m_maximum_number_of_triplets_per_warp);
 
   global_function(lf_calculate_parametrization)(
-    dim3(size<dev_event_list_t>(arguments)), property<calculate_parametrization_block_dim_t>(), context)(arguments);
+    dim3(size<dev_event_list_t>(arguments)), m_calculate_parametrization_block_dim, context)(
+    arguments, m_max_triplets_per_input_track);
 
-  global_function(lf_extend_tracks)(
-    dim3(size<dev_event_list_t>(arguments)), property<extend_tracks_block_dim_t>(), context)(
-    arguments, constants.dev_looking_forward_constants);
+  global_function(lf_extend_tracks)(dim3(size<dev_event_list_t>(arguments)), m_extend_tracks_block_dim, context)(
+    arguments,
+    constants.dev_looking_forward_constants,
+    m_max_triplets_per_input_track,
+    m_uv_hits_chi2_factor_y,
+    m_uv_hits_chi2_factor_x,
+    m_chi2_max_extrapolation_to_x_layers_single);
 }

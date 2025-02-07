@@ -83,11 +83,11 @@ Derivation from Dumper base class
 
 A specific dumper is defined buy inheriting from Dumper (header Dumper.h), with a function signature that is `void(derived_cond1, derived_cond2, ...)`.
 
-Each derived condition should be tagged with `LHCb::DetDesc::usesConditions` for example:
+Each derived condition should be tagged with `LHCb::Algorithm::Traits::usesConditions` for example:
 
 .. code-block:: c++
 
-  Allen::Dumpers::Dumper<void(VPGeometry const&), LHCb::DetDesc::usesConditions<VPGeometry>>
+  Allen::Dumpers::Dumper<void(VPGeometry const&), LHCb::Algorithm::Traits::usesConditions<VPGeometry>>
 
 
 The signature of `operator()` matches `void operator()(const VPGeometry& VPGeo) const override`

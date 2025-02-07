@@ -30,37 +30,26 @@ namespace FilterSVTrack {
     HOST_OUTPUT(host_number_of_combinations_t, unsigned) host_number_of_combinations;
     DEVICE_OUTPUT(dev_sv_idx_t, unsigned) dev_sv_idx;
     DEVICE_OUTPUT(dev_track_idx_t, unsigned) dev_track_idx;
-
-    PROPERTY(SV_VZ_min_t, "SV_VZ_min", "min vertex z position of sv candidate", float) SV_VZ_min;
-    PROPERTY(SV_VZ_max_t, "SV_VZ_max", "max vertex z position of sv candidate", float) SV_VZ_max;
-    PROPERTY(SV_BPVIP_min_t, "SV_BPVIP_min", "min IP of sv w.r.t. its best PV", float) SV_BPVIP_min;
-    PROPERTY(SV_BPVVDZ_min_t, "SV_BPVVDZ_min", "min z vertex distance of sv w.r.t. its best PV", float) SV_BPVVDZ_min;
-    PROPERTY(SV_BPVVDRHO_min_t, "SV_BPVVDRHO_min", "min radial vertex distance of sv w.r.t. its best PV", float)
-    SV_BPVVDRHO_min;
-    PROPERTY(SV_BPVDIRA_min_t, "SV_BPVDIRA_min", "min cosine of direction angle of sv w.r.t. its best PV", float)
-    SV_BPVDIRA_min;
-    PROPERTY(T_CHI2NDF_max_t, "T_CHI2NDF_max", "Maximum track chi2 per n.d.f. (VeloKalman)", float) T_CHI2NDF_max;
-    PROPERTY(T_PT_min_t, "T_PT_min", "Minimal track pT", float) T_PT_min;
-    PROPERTY(T_MIPCHI2_min_t, "T_MIPCHI2_min", "Minimal IP chi^2 of track w.r.t. any PV", float) T_MIPCHI2_min;
-    PROPERTY(T_MIPCHI2_max_t, "T_MIPCHI2_max", "Maximum minimal IP chi^2 of track w.r.t. any PV", float) T_MIPCHI2_max;
-    PROPERTY(T_MIP_min_t, "T_MIP_min", "Minimal IP of track w.r.t. any PV", float) T_MIP_min;
-    PROPERTY(T_MIP_max_t, "T_MIP_max", "Maximum minimal IP of track w.r.t. any PV", float) T_MIP_max;
-    PROPERTY(SV_T_DOCA_max_t, "SV_T_DOCA_max", "DOCA of sv and track", float) SV_T_DOCA_max;
-    PROPERTY(opening_angle_min_t, "opening_angle_min", "min angle between tracks from sv and companion track", float)
-    opening_angle_min;
-    PROPERTY(require_same_pv_t, "require_same_pv", "Require track and SV to have the same associated PV.", bool)
-    require_same_pv;
-    PROPERTY(
-      require_os_pair_t,
-      "require_os_pair",
-      "Requires that the SV consists of two tracks with opposite charge.",
-      bool)
-    require_os_pair;
-
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void filter_sv_track(Parameters);
+  __global__ void filter_sv_track(
+    Parameters,
+    const float SV_VZ_min,
+    const float SV_VZ_max,
+    const float SV_BPVIP_min,
+    const float SV_BPVVDZ_min,
+    const float SV_BPVVDRHO_min,
+    const float SV_BPVDIRA_min,
+    const float T_CHI2NDF_max,
+    const float T_PT_min,
+    const float T_MIPCHI2_min,
+    const float T_MIPCHI2_max,
+    const float T_MIP_min,
+    const float T_MIP_max,
+    const float SV_T_DOCA_max,
+    const float opening_angle_min,
+    const bool require_same_pv,
+    const bool require_os_pair);
 
   struct filter_sv_track_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -72,22 +61,55 @@ namespace FilterSVTrack {
       const Allen::Context& context) const;
 
   private:
-    Property<SV_VZ_min_t> m_SV_VZ_min {this, -180.f * Gaudi::Units::mm};
-    Property<SV_VZ_max_t> m_SV_VZ_max {this, 650.f * Gaudi::Units::mm};
-    Property<SV_BPVIP_min_t> m_SV_BPVIP_min {this, 32.f * Gaudi::Units::um};
-    Property<SV_BPVVDZ_min_t> m_SV_BPVVDZ_min {this, 24.f * Gaudi::Units::mm};
-    Property<SV_BPVVDRHO_min_t> m_SV_BPVVDRHO_min {this, 3.f * Gaudi::Units::mm};
-    Property<SV_BPVDIRA_min_t> m_SV_BPVDIRA_min {this, 0.9999f};
-    Property<T_CHI2NDF_max_t> m_T_CHI2NDF_max {this, 10.f};
-    Property<T_PT_min_t> m_T_PT_min {this, 100.f * Gaudi::Units::MeV};
-    Property<T_MIPCHI2_min_t> m_T_MIPCHI2_min {this, 6.f};
-    Property<T_MIPCHI2_max_t> m_T_MIPCHI2_max {this, std::numeric_limits<float>::max()};
-    Property<T_MIP_min_t> m_T_MIP_min {this, 0.f};
-    Property<T_MIP_max_t> m_T_MIP_max {this, std::numeric_limits<float>::max()};
-    Property<SV_T_DOCA_max_t> m_SV_T_DOCA_max {this, 150.f * Gaudi::Units::um};
-    Property<opening_angle_min_t> m_opening_angle_min {this, 0.5f * Gaudi::Units::mrad};
-    Property<require_same_pv_t> m_require_same_pv {this, false};
-    Property<require_os_pair_t> m_require_os_pair {this, true};
-    Property<block_dim_t> m_block_dim {this, {{4, 64, 1}}};
+    Allen::Property<float> m_SV_VZ_min {this,
+                                        "SV_VZ_min",
+                                        -180.f * Gaudi::Units::mm,
+                                        "min vertex z position of sv candidate"};
+    Allen::Property<float> m_SV_VZ_max {this,
+                                        "SV_VZ_max",
+                                        650.f * Gaudi::Units::mm,
+                                        "max vertex z position of sv candidate"};
+    Allen::Property<float> m_SV_BPVIP_min {this,
+                                           "SV_BPVIP_min",
+                                           32.f * Gaudi::Units::um,
+                                           "min IP of sv w.r.t. its best PV"};
+    Allen::Property<float> m_SV_BPVVDZ_min {this,
+                                            "SV_BPVVDZ_min",
+                                            24.f * Gaudi::Units::mm,
+                                            "min z vertex distance of sv w.r.t. its best PV"};
+    Allen::Property<float> m_SV_BPVVDRHO_min {this,
+                                              "SV_BPVVDRHO_min",
+                                              3.f * Gaudi::Units::mm,
+                                              "min radial vertex distance of sv w.r.t. its best PV"};
+    Allen::Property<float> m_SV_BPVDIRA_min {this,
+                                             "SV_BPVDIRA_min",
+                                             0.9999f,
+                                             "min cosine of direction angle of sv w.r.t. its best PV"};
+    Allen::Property<float> m_T_CHI2NDF_max {this, "T_CHI2NDF_max", 10.f, "Maximum track chi2 per n.d.f. (VeloKalman)"};
+    Allen::Property<float> m_T_PT_min {this, "T_PT_min", 100.f * Gaudi::Units::MeV, "Minimal track pT"};
+    Allen::Property<float> m_T_MIPCHI2_min {this, "T_MIPCHI2_min", 6.f, "Minimal IP chi^2 of track w.r.t. any PV"};
+    Allen::Property<float> m_T_MIPCHI2_max {this,
+                                            "T_MIPCHI2_max",
+                                            std::numeric_limits<float>::max(),
+                                            "Maximum minimal IP chi^2 of track w.r.t. any PV"};
+    Allen::Property<float> m_T_MIP_min {this, "T_MIP_min", 0.f, "Minimal IP of track w.r.t. any PV"};
+    Allen::Property<float> m_T_MIP_max {this,
+                                        "T_MIP_max",
+                                        std::numeric_limits<float>::max(),
+                                        "Maximum minimal IP of track w.r.t. any PV"};
+    Allen::Property<float> m_SV_T_DOCA_max {this, "SV_T_DOCA_max", 150.f * Gaudi::Units::um, "DOCA of sv and track"};
+    Allen::Property<float> m_opening_angle_min {this,
+                                                "opening_angle_min",
+                                                0.5f * Gaudi::Units::mrad,
+                                                "min angle between tracks from sv and companion track"};
+    Allen::Property<bool> m_require_same_pv {this,
+                                             "require_same_pv",
+                                             false,
+                                             "Require track and SV to have the same associated PV."};
+    Allen::Property<bool> m_require_os_pair {this,
+                                             "require_os_pair",
+                                             true,
+                                             "Requires that the SV consists of two tracks with opposite charge."};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {4, 64, 1}, "block dimensions"};
   };
 } // namespace FilterSVTrack

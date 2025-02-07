@@ -155,9 +155,9 @@ if(NOT STANDALONE AND TARGET_DEVICE STREQUAL "CPU")
     OUTPUT ${WRAPPED_ALGORITHM_SOURCES}
     COMMENT "Generating wrapped algorithm sources"
     COMMAND
-      ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate wrappers --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" --algorithm_wrappers_folder "${ALGORITHM_WRAPPERS_FOLDER}"
+      ${CMAKE_COMMAND} -E env ${PARSER_ENV} ${Python_EXECUTABLE} ${ALGORITHMS_GENERATION_SCRIPT} --generate wrappers --parsed_algorithms "${PARSED_ALGORITHMS_OUTPUTFILE}" --algorithm_wrappers_folder "${ALGORITHM_WRAPPERS_FOLDER}" --default_properties $<TARGET_FILE:default_properties>
     WORKING_DIRECTORY ${PROJECT_SEQUENCE_DIR}
-    DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}")
+    DEPENDS "${PARSED_ALGORITHMS_OUTPUTFILE}" default_properties)
 elseif(STANDALONE)
   if (DEFINED ENV{LHCBROOT})
     set(LHCBROOT $ENV{LHCBROOT} CACHE STRING "LHCB root directory")

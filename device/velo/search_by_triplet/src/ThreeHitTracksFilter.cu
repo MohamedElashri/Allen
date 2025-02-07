@@ -32,10 +32,10 @@ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter_t::operator()(
 {
   Allen::memset_async<dev_offsets_number_of_three_hit_tracks_filtered_t>(arguments, 0, context);
 
-  global_function(velo_three_hit_tracks_filter)(size<dev_event_list_t>(arguments), property<block_dim_t>(), context)(
-    arguments);
+  global_function(velo_three_hit_tracks_filter)(size<dev_event_list_t>(arguments), m_block_dim, context)(
+    arguments, m_chi2);
 
-  if (property<verbosity_t>() >= logger::debug) {
+  if (m_verbosity >= logger::debug) {
     info_cout << "VELO three hit tracks found:\n";
     print_velo_three_hit_tracks<
       dev_three_hit_tracks_output_t,
@@ -136,7 +136,8 @@ __device__ void three_hit_tracks_filter_impl(
 }
 
 __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
-  velo_three_hit_tracks_filter::Parameters parameters)
+  velo_three_hit_tracks_filter::Parameters parameters,
+  const float max_chi2)
 {
   // Data initialization
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -171,5 +172,5 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
     number_of_output_tracks,
     hit_used,
     velo_cluster_container,
-    parameters.max_chi2);
+    max_chi2);
 }

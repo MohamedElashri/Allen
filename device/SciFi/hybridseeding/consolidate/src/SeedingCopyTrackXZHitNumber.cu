@@ -37,8 +37,8 @@ void seeding_copy_trackXZ_hit_number::seeding_copy_trackXZ_hit_number_t::operato
   resize<dev_offsets_scifi_seedXZ_hit_number_t>(
     arguments, first<host_number_of_reconstructed_seeding_tracksXZ_t>(arguments) + 1);
 
-  global_function(seeding_copy_trackXZ_hit_number)(
-    dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(seeding_copy_trackXZ_hit_number)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments);
 
   PrefixSum::prefix_sum<dev_offsets_scifi_seedXZ_hit_number_t>(*this, arguments, context);
 }

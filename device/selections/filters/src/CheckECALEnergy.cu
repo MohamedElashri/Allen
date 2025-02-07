@@ -32,8 +32,8 @@ void check_ecal_energy::check_ecal_energy_t::operator()(
   Allen::memset_async<host_number_of_selected_events_t>(arguments, 0, context);
   Allen::memset_async<dev_event_list_output_t>(arguments, 0, context);
 
-  global_function(check_ecal_energy)(dim3(1), property<block_dim_t>(), context)(
-    arguments, size<dev_event_list_t>(arguments));
+  global_function(check_ecal_energy)(dim3(1), m_block_dim, context)(
+    arguments, size<dev_event_list_t>(arguments), m_ecalCut, m_cutHigh.value());
 
   Allen::copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);
   reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
@@ -41,13 +41,15 @@ void check_ecal_energy::check_ecal_energy_t::operator()(
 
 __global__ void check_ecal_energy::check_ecal_energy(
   check_ecal_energy::Parameters parameters,
-  const unsigned number_of_events)
+  const unsigned number_of_events,
+  const float ecalCut,
+  const bool cutHigh)
 {
   for (unsigned event_idx = blockIdx.x * blockDim.x + threadIdx.x; event_idx < number_of_events;
        event_idx += blockDim.x * gridDim.x) {
     const auto event_number = parameters.dev_event_list[event_idx];
     const float ecal_energy = parameters.dev_total_ecal_e[event_number];
-    unsigned decision = parameters.cutHigh ? ecal_energy < parameters.ecalCut : ecal_energy > parameters.ecalCut;
+    unsigned decision = cutHigh ? ecal_energy < ecalCut : ecal_energy > ecalCut;
     if (decision) {
       const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.data(), 1);
       parameters.dev_event_list_output[current_event] = mask_t {event_number};

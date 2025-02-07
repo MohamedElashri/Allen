@@ -30,8 +30,7 @@ void make_selrep::make_selrep_t::operator()(
 {
   // Initialization might not be necessary.
   Allen::memset_async<dev_sel_reports_t>(arguments, 0, context);
-  global_function(make_selrep::make_selrep)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(make_selrep::make_selrep)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(
     arguments, first<host_number_of_events_t>(arguments));
 
   Allen::copy_async<host_selrep_offsets_t, dev_selrep_offsets_t>(arguments, context);

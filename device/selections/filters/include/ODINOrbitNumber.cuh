@@ -23,12 +23,6 @@ namespace odin_orbitnumber {
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
     MASK_OUTPUT(dev_event_list_output_t) dev_event_list_output;
-
-    PROPERTY(odin_orbit_modulo_t, "odin_orbit_modulo", "Modulo for ODIN orbit number test", unsigned) odin_orbit_modulo;
-    PROPERTY(odin_orbit_remainder_t, "odin_orbit_remainder", "Remainder for ODIN orbit number test", unsigned)
-    odin_orbit_remainder;
-
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension x", unsigned);
   };
 
   struct odin_orbitnumber_t : public DeviceAlgorithm, Parameters {
@@ -41,8 +35,11 @@ namespace odin_orbitnumber {
       const Allen::Context&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 256};
-    Property<odin_orbit_modulo_t> m_odin_orbit_modulo {this, 30u};
-    Property<odin_orbit_remainder_t> m_odin_orbit_remainder {this, 1u};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension x"};
+    Allen::Property<unsigned> m_odin_orbit_modulo {this, "odin_orbit_modulo", 30u, "Modulo for ODIN orbit number test"};
+    Allen::Property<unsigned> m_odin_orbit_remainder {this,
+                                                      "odin_orbit_remainder",
+                                                      1u,
+                                                      "Remainder for ODIN orbit number test"};
   }; // odin_orbitnumber_t
 } // namespace odin_orbitnumber

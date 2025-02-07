@@ -27,7 +27,6 @@ from AllenConf.validators import (
     data_quality_validation_occupancy, data_quality_validation_pv,
     data_quality_validation_velo, downstream_validation)
 from PyConf.control_flow import NodeLogic, CompositeNode
-from PyConf.tonic import configurable
 from AllenConf.persistency import make_gather_selections, make_sel_report_writer
 from AllenConf.filters import make_gec
 from AllenConf.best_track_creator import best_track_creator
@@ -158,7 +157,6 @@ def hlt1_reconstruction(algorithm_name='',
 
     if with_calo:
         decoded_calo = decode_calo()
-        ecal_clusters = make_ecal_clusters(decoded_calo)
 
         calo_matching_objects = make_track_matching(decoded_calo, velo_tracks,
                                                     velo_states, long_tracks,
@@ -167,8 +165,8 @@ def hlt1_reconstruction(algorithm_name='',
 
         ecal_clusters = make_ecal_clusters(
             decoded_calo,
-            calo_matching_objects,
-            calo_find_clusters_name='calo_find_clusters')
+            calo_matching_objects=calo_matching_objects,
+            calo_find_clusters_name=algorithm_name + 'calo_find_clusters')
 
         long_track_particles = make_basic_particles(
             kalman_velo_only,
@@ -411,15 +409,14 @@ def make_composite_node_with_gec(alg_name,
 
 def make_dq_node(reconstructed_matching,
                  reconstructed_forward,
-                 line_algorithms,
-                 methods=["forward", "matching", "occupancy", "pv", "velo"]):
+                 methods=["forward", "matching", "occupancy", "pv", "velo"],
+                 prefilters=[]):
     # N.B. if more 'methods' are added to the ODQV later, make sure to update Allen/Dumpers/BinaryDumpers/tests/qmtest/lhcb_ODQV.qmt line 35
 
     nodes = [
         data_quality_node(
             reconstructed_forward if method == "forward" else
-            reconstructed_matching, line_algorithms, method)
-        for method in methods
+            reconstructed_matching, method, prefilters) for method in methods
     ]
 
     return CompositeNode(
@@ -429,15 +426,14 @@ def make_dq_node(reconstructed_matching,
         force_order=False)
 
 
-def data_quality_node(reconstructed_objects=None,
-                      line_algorithms=None,
-                      method=""):
+def data_quality_node(reconstructed_objects=None, method="", prefilters=[]):
 
     validators = []
     if method in ["forward", "matching"]:
         validators = [
             CompositeNode(
-                f"data_quality_validation_{method}", [
+                f"data_quality_validation_{method}",
+                prefilters + [
                     data_quality_validation_long(
                         reconstructed_objects["long_tracks"],
                         reconstructed_objects["long_track_particles"],
@@ -449,7 +445,8 @@ def data_quality_node(reconstructed_objects=None,
     elif method == "occupancy":
         validators = [
             CompositeNode(
-                f"data_quality_validation_{method}", [
+                f"data_quality_validation_{method}",
+                prefilters + [
                     data_quality_validation_occupancy(
                         f"data_quality_validation_{method}")
                 ],
@@ -459,7 +456,8 @@ def data_quality_node(reconstructed_objects=None,
     elif method == "pv":
         validators = [
             CompositeNode(
-                f"data_quality_validation_{method}", [
+                f"data_quality_validation_{method}",
+                prefilters + [
                     data_quality_validation_pv(
                         reconstructed_objects["long_tracks"],
                         f"data_quality_validation_{method}")
@@ -470,7 +468,8 @@ def data_quality_node(reconstructed_objects=None,
     elif method == "velo":
         validators = [
             CompositeNode(
-                f"data_quality_validation_{method}", [
+                f"data_quality_validation_{method}",
+                prefilters + [
                     data_quality_validation_velo(
                         reconstructed_objects["long_tracks"],
                         f"data_quality_validation_{method}")

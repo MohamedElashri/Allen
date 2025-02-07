@@ -117,10 +117,10 @@ void find_muon_hits::find_muon_hits_t::operator()(
 {
   Allen::memset_async<dev_muon_tracks_offsets_t>(arguments, 0, context);
 
-  global_function(find_muon_hits)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_x_t>(), context)(
-    arguments, constants.dev_match_windows);
+  global_function(find_muon_hits)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
+    arguments, constants.dev_match_windows, m_required_number_of_hits);
 
-  if (property<enable_tupling_t>()) output_tuples(arguments, runtime_options, context);
+  if (m_enable_tupling.value()) output_tuples(arguments, runtime_options, context);
 
   PrefixSum::prefix_sum<dev_muon_tracks_offsets_t, host_muon_total_number_of_tracks_t>(*this, arguments, context);
 }
@@ -262,7 +262,8 @@ __device__ void seedAndFind(
 
 __global__ void find_muon_hits::find_muon_hits(
   find_muon_hits::Parameters parameters,
-  const Muon::Constants::MatchWindows* dev_match_windows)
+  const Muon::Constants::MatchWindows* dev_match_windows,
+  const int required_number_of_hits)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
@@ -296,7 +297,7 @@ __global__ void find_muon_hits::find_muon_hits(
     Muon::Constants::n_stations,
     match_windows,
     Muon::Constants::M2,
-    parameters.required_number_of_hits,
+    required_number_of_hits,
     number_of_muon_tracks_atomic,
     muon_tracks);
   __syncthreads();

@@ -27,25 +27,6 @@ namespace highmass_dielectron_line {
     host_fn_parameters;
 
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
-
-    // Properties
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
-    PROPERTY(MinZ_t, "MinZ", "Min z dielectron coordinate", float) MinZ;
-
-    PROPERTY(minMass_t, "minMass", "Min mass of the composite", float) minMass;
-    PROPERTY(maxMass_t, "maxMass", "Max mass of the composite", float) maxMass;
-    PROPERTY(minTrackP_t, "minTrackP", "Minimal momentum for both daughters ", float) minTrackP;
-    PROPERTY(minTrackPt_t, "minTrackPt", "Minimal pT for both daughters", float) minTrackPt;
-    PROPERTY(maxTrackEta_t, "maxTrackEta", "Maximal ETA for both daughters", float) maxTrackEta;
-    PROPERTY(maxDoca_t, "maxDoca", "maxDoca description", float) maxDoca;
-
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
-
     // Outputs for ROOT tupling
     DEVICE_OUTPUT(mass_t, float) mass;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
@@ -55,10 +36,21 @@ namespace highmass_dielectron_line {
   struct highmass_dielectron_line_t : public SelectionAlgorithm,
                                       Parameters,
                                       CompositeParticleLine<highmass_dielectron_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float minTrackP;
+      float minTrackPt;
+      float maxTrackEta;
+      float minMass;
+      float maxMass;
+      float maxDoca;
+      float minZ;
+      bool oppositeSign;
       Allen::Monitoring::Histogram<>::DeviceType histogram_dielectron_Z_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_dielectron_upsilon_mass;
-      DeviceAccumulators(const highmass_dielectron_line_t& algo, const Allen::Context& ctx) :
+      DeviceProperties(const highmass_dielectron_line_t& algo, const Allen::Context& ctx) :
+        minTrackP(algo.m_minTrackP), minTrackPt(algo.m_minTrackPt), maxTrackEta(algo.m_maxTrackEta),
+        minMass(algo.m_minMass), maxMass(algo.m_maxMass), maxDoca(algo.m_maxDoca), minZ(algo.m_MinZ),
+        oppositeSign(algo.m_only_select_opposite_sign),
         histogram_dielectron_Z_mass(algo.m_histogram_dielectron_Z_mass.data(ctx)),
         histogram_dielectron_upsilon_mass(algo.m_histogram_dielectron_upsilon_mass.data(ctx))
       {}
@@ -66,7 +58,7 @@ namespace highmass_dielectron_line {
 
     __device__ static bool select(
       const Parameters&,
-      const DeviceAccumulators&,
+      const DeviceProperties&,
       std::tuple<
         const Allen::Views::Physics::CompositeParticle,
         const bool,
@@ -82,52 +74,50 @@ namespace highmass_dielectron_line {
       const float,
       const float,
       const float>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
+    get_input(const Parameters&, const unsigned, const unsigned);
 
     __device__ static void monitor(
-      const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<
         const Allen::Views::Physics::CompositeParticle,
         const bool,
         const bool,
         const float,
         const float,
-        const float> input,
-      unsigned index,
-      bool sel);
+        const float>,
+      unsigned,
+      bool);
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<
         const Allen::Views::Physics::CompositeParticle,
         const bool,
         const bool,
         const float,
         const float,
-        const float> input,
-      unsigned index,
-      bool sel);
+        const float>,
+      unsigned,
+      bool);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     // Low-mass no-IP dielectron selections.
-    Property<minTrackP_t> m_minTrackP {this, 14.f * Gaudi::Units::GeV};
-    Property<minTrackPt_t> m_minTrackPt {this, 1.5f * Gaudi::Units::GeV};
-    Property<maxTrackEta_t> m_maxTrackEta {this, 5.0};
-
-    Property<minMass_t> m_minMass {this, 8.0f * Gaudi::Units::GeV};
-    Property<maxMass_t> m_maxMass {this, 140.f * Gaudi::Units::GeV};
-
-    Property<maxDoca_t> m_maxDoca {this, .2f * Gaudi::Units::mm};
-    Property<OppositeSign_t> m_only_select_opposite_sign {this, true};
-
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
-    Property<MinZ_t> m_MinZ {this, -341.f * Gaudi::Units::mm};
+    Allen::Property<float> m_minTrackP {this,
+                                        "minTrackP",
+                                        14.f * Gaudi::Units::GeV,
+                                        "Minimal momentum for both daughters "};
+    Allen::Property<float> m_minTrackPt {this, "minTrackPt", 1.5f * Gaudi::Units::GeV, "Minimal pT for both daughters"};
+    Allen::Property<float> m_maxTrackEta {this, "maxTrackEta", 5.0, "Maximal ETA for both daughters"};
+    Allen::Property<float> m_minMass {this, "minMass", 8.0f * Gaudi::Units::GeV, "Min mass of the composite"};
+    Allen::Property<float> m_maxMass {this, "maxMass", 140.f * Gaudi::Units::GeV, "Max mass of the composite"};
+    Allen::Property<float> m_maxDoca {this, "maxDoca", .2f * Gaudi::Units::mm, "maxDoca description"};
+    Allen::Property<float> m_MinZ {this, "MinZ", -341.f * Gaudi::Units::mm, "Min z dielectron coordinate"};
+    Allen::Property<bool> m_only_select_opposite_sign {this,
+                                                       "OppositeSign",
+                                                       true,
+                                                       "Selects opposite sign dimuon combinations"};
 
     Allen::Monitoring::Histogram<> m_histogram_dielectron_Z_mass {this,
                                                                   "dielectron_Z_mass_counts",

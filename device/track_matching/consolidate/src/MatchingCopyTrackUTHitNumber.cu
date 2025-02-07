@@ -30,7 +30,7 @@ void matching_copy_track_ut_hit_number::matching_copy_track_ut_hit_number_t::ope
   const Allen::Context& context) const
 {
   global_function(matching_copy_track_ut_hit_number)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_t>(), context)(arguments);
+    dim3(first<host_number_of_events_t>(arguments)), m_block_dim, context)(arguments);
 
   PrefixSum::prefix_sum<dev_offsets_matched_ut_hit_number_t, host_total_sum_holder_t>(*this, arguments, context);
 }

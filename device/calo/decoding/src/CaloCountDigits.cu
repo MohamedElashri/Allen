@@ -45,7 +45,7 @@ void calo_count_digits::calo_count_digits_t::operator()(
 {
   Allen::memset_async<dev_digits_offsets_t>(arguments, 0, context);
 
-  global_function(calo_count_digits)(dim3(1), dim3(property<block_dim_x_t>().get()), context)(
+  global_function(calo_count_digits)(dim3(1), dim3(m_block_dim_x), context)(
     arguments, size<dev_event_list_t>(arguments), constants.dev_ecal_geometry);
 
   PrefixSum::prefix_sum<dev_digits_offsets_t, host_total_sum_holder_t>(*this, arguments, context);

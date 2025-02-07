@@ -26,8 +26,7 @@ void lf_triplet_seeding::lf_triplet_seeding_t::set_arguments_size(
 
   set_size<dev_scifi_lf_found_triplets_t>(
     arguments,
-    first<host_number_of_reconstructed_input_tracks_t>(arguments) * property<maximum_number_of_triplets_per_warp_t>() *
-      n_seeds);
+    first<host_number_of_reconstructed_input_tracks_t>(arguments) * m_maximum_number_of_triplets_per_warp * n_seeds);
   set_size<dev_scifi_lf_number_of_found_triplets_t>(
     arguments, first<host_number_of_reconstructed_input_tracks_t>(arguments));
   set_size<dev_global_count_t>(arguments, 1);
@@ -53,9 +52,14 @@ void lf_triplet_seeding::lf_triplet_seeding_t::operator()(
     dim3(size<dev_event_list_t>(arguments)),
     dim3(warp_size, number_of_threads_y),
     context,
-    number_of_threads_y * sizeof(unsigned) + // shared_number_of_elements
-      number_of_threads_y * property<maximum_number_of_triplets_per_warp_t>() * sizeof(short) // shared_store
-    )(arguments, constants.dev_looking_forward_constants);
+    number_of_threads_y * sizeof(unsigned) +                                      // shared_number_of_elements
+      number_of_threads_y * m_maximum_number_of_triplets_per_warp * sizeof(short) // shared_store
+    )(
+    arguments,
+    constants.dev_looking_forward_constants,
+    m_maximum_number_of_triplets_per_warp,
+    m_chi2_max_triplet_single,
+    m_z_mag_difference);
 }
 
 #if defined(TARGET_DEVICE_CUDA)
@@ -493,11 +497,12 @@ template<bool with_ut, typename T>
 __device__ void triplet_seeding(
   lf_triplet_seeding::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants,
-  const T* tracks)
+  const T* tracks,
+  const unsigned maximum_number_of_triplets_per_warp,
+  const float chi2_max_triplet_single,
+  const float z_mag_difference)
 {
   const unsigned n_seeds = with_ut ? LookingForward::InputUT::n_seeds : LookingForward::InputVelo::n_seeds;
-
-  const unsigned maximum_number_of_triplets_per_warp = parameters.maximum_number_of_triplets_per_warp;
 
   DYNAMIC_SHARED_MEMORY_BUFFER(unsigned, shared_memory, parameters.config)
   unsigned* shared_number_of_elements = shared_memory;
@@ -658,13 +663,13 @@ __device__ void triplet_seeding(
                 shared_store + threadIdx.y * maximum_number_of_triplets_per_warp,
                 shared_number_of_elements + threadIdx.y,
                 parameters.dev_scifi_lf_found_triplets +
-                  current_input_track_index * parameters.maximum_number_of_triplets_per_warp * n_seeds,
+                  current_input_track_index * maximum_number_of_triplets_per_warp * n_seeds,
                 parameters.dev_scifi_lf_number_of_found_triplets + current_input_track_index,
                 triplet_seed,
                 left_right_side,
                 maximum_number_of_triplets_per_warp,
-                parameters.chi2_max_triplet_single.get(),
-                parameters.z_mag_difference.get());
+                chi2_max_triplet_single,
+                z_mag_difference);
             }
             else {
 #endif
@@ -686,13 +691,13 @@ __device__ void triplet_seeding(
                 shared_store + threadIdx.y * maximum_number_of_triplets_per_warp,
                 shared_number_of_elements + threadIdx.y,
                 parameters.dev_scifi_lf_found_triplets +
-                  current_input_track_index * parameters.maximum_number_of_triplets_per_warp * n_seeds,
+                  current_input_track_index * maximum_number_of_triplets_per_warp * n_seeds,
                 parameters.dev_scifi_lf_number_of_found_triplets + current_input_track_index,
                 triplet_seed,
                 left_right_side,
                 maximum_number_of_triplets_per_warp,
-                parameters.chi2_max_triplet_single.get(),
-                parameters.z_mag_difference.get());
+                chi2_max_triplet_single,
+                z_mag_difference);
 #if defined(TARGET_DEVICE_CUDA)
             }
 #endif
@@ -704,16 +709,31 @@ __device__ void triplet_seeding(
 
 __global__ void lf_triplet_seeding::lf_triplet_seeding(
   lf_triplet_seeding::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants)
+  const LookingForward::Constants* dev_looking_forward_constants,
+  const unsigned maximum_number_of_triplets_per_warp,
+  const float chi2_max_triplet_single,
+  const float z_mag_difference)
 {
   const auto* ut_tracks =
     Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    triplet_seeding<true>(parameters, dev_looking_forward_constants, ut_tracks);
+    triplet_seeding<true>(
+      parameters,
+      dev_looking_forward_constants,
+      ut_tracks,
+      maximum_number_of_triplets_per_warp,
+      chi2_max_triplet_single,
+      z_mag_difference);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    triplet_seeding<false>(parameters, dev_looking_forward_constants, velo_tracks);
+    triplet_seeding<false>(
+      parameters,
+      dev_looking_forward_constants,
+      velo_tracks,
+      maximum_number_of_triplets_per_warp,
+      chi2_max_triplet_single,
+      z_mag_difference);
   }
 }

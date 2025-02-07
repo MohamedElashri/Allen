@@ -2,12 +2,12 @@
 <!--
     (c) Copyright 2020 CERN for the benefit of the LHCb Collaboration
 
-    This software is distributed under the terms of the Apache License          
-    version 2 (Apache-2.0), copied verbatim in the file "LICENSE".             
-                                                                            
+    This software is distributed under the terms of the Apache License
+    version 2 (Apache-2.0), copied verbatim in the file "LICENSE".
+
     In applying this licence, CERN does not waive the privileges and immunities
-    granted to it by virtue of its status as an Intergovernmental Organization  
-    or submit itself to any jurisdiction.  
+    granted to it by virtue of its status as an Intergovernmental Organization
+    or submit itself to any jurisdiction.
 -->
 <!--
      #######################################################
@@ -22,11 +22,10 @@
   <argument name="program"><text>python</text></argument>
   <argument name="args"><set>
     <text>${BINARYDUMPERSROOT}/options/allen.py</text>
+    <text>--test-file-db-key</text><text>2023_raw_hlt1_269138</text>
     <text>--monitoring-filename</text><text>mdf_data_hists.root</text>
     <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants//hlt1_pp_forward_then_matching_no_ut.json</text>
-    <text>--tags=run3/trunk,master</text>
     <text>--real-data</text>
-    <text>--mdf</text><text>root://eoslhcb.cern.ch///eos/lhcb/wg/rta/samples/data/2023_raw_hlt1_269138/Run_0000269138_20230706-083945-793_PLEB01_1930.mdf</text>
   </set></argument>
   <argument name="use_temp_dir"><enumeral>true</enumeral></argument>
   <argument name="timeout"><integer>60000</integer></argument>
@@ -36,4 +35,3 @@ countErrorLines({"FATAL" : 0, "ERROR" : 0, "WARNING" : 0})
 
   </text></argument>
 </extension>
-

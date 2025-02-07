@@ -30,20 +30,7 @@ namespace muon_lumi_counters {
     DEVICE_INPUT(dev_muon_tracks_offsets_t, unsigned) dev_muon_tracks_offsets;
     DEVICE_INPUT(dev_muon_tell_number_t, unsigned short) dev_muon_tell_number;
     DEVICE_OUTPUT(dev_lumi_infos_t, Lumi::LumiInfo) dev_lumi_infos;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(
-      lumi_counter_schema_t,
-      "lumi_counter_schema",
-      "schema for lumi counters",
-      std::map<std::string, std::pair<unsigned, unsigned>>)
-    lumi_counter_schema;
-    PROPERTY(
-      lumi_counter_shifts_and_scales_t,
-      "lumi_counter_shifts_and_scales",
-      "shifts and scales extracted from the schema for lumi counters",
-      std::map<std::string, std::pair<float, float>>)
-    lumi_counter_shifts_and_scales;
-  }; // struct Parameters
+  };
 
   using offsets_and_sizes_t = std::array<unsigned, 2 * Lumi::Constants::n_muon_counters>;
   using shifts_and_scales_t = std::array<float, 2 * Lumi::Constants::n_muon_counters>;
@@ -68,13 +55,21 @@ namespace muon_lumi_counters {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
-    Property<lumi_counter_schema_t> m_lumi_counter_schema {this, {}};
-    Property<lumi_counter_shifts_and_scales_t> m_lumi_counter_shifts_and_scales {this, {}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {64, 1, 1}, "block dimensions"};
+    Allen::Property<std::map<std::string, std::pair<unsigned, unsigned>>> m_lumi_counter_schema {
+      this,
+      "lumi_counter_schema",
+      {},
+      "schema for lumi counters"};
+    Allen::Property<std::map<std::string, std::pair<float, float>>> m_lumi_counter_shifts_and_scales {
+      this,
+      "lumi_counter_shifts_and_scales",
+      {},
+      "shifts and scales extracted from the schema for lumi counters"};
 
     offsets_and_sizes_t m_offsets_and_sizes = {0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u,
                                                0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
     shifts_and_scales_t m_shifts_and_scales = {0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f,
                                                0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f, 0.f, 1.f};
-  }; // struct muon_lumi_counters_t
+  };
 } // namespace muon_lumi_counters

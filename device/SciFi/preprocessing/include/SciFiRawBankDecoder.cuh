@@ -30,13 +30,6 @@ namespace scifi_raw_bank_decoder {
     MASK_INPUT(dev_event_list_t) dev_event_list;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_scifi_hits_t, char) dev_scifi_hits;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(
-      decode_v8_as_v7_t,
-      "decode_v8_as_v7",
-      "Decode v8 banks as v7 to reproduce a bug in July 2023 (MC only)",
-      bool)
-    decode_v8_as_v7;
   };
 
   struct scifi_raw_bank_decoder_t : public DeviceAlgorithm, Parameters {
@@ -49,8 +42,11 @@ namespace scifi_raw_bank_decoder {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
-    Property<decode_v8_as_v7_t> m_decode_v8_as_v7 {this, {false}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
+    Allen::Property<bool> m_decode_v8_as_v7 {this,
+                                             "decode_v8_as_v7",
+                                             {false},
+                                             "Decode v8 banks as v7 to reproduce a bug in July 2023 (MC only)"};
     Allen::Monitoring::Counter<> m_invalid_chanid {this, "n_invalid_chanid"};
   };
 } // namespace scifi_raw_bank_decoder

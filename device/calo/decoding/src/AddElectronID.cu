@@ -26,8 +26,7 @@ void add_electron_id::add_electron_id_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(add_electron_id)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(add_electron_id)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
 }
 
 __global__ void add_electron_id::add_electron_id(add_electron_id::Parameters parameters)

@@ -34,35 +34,30 @@ namespace SMOG2_kstopipi_line {
     DEVICE_OUTPUT(pt_t, float) pt;
     DEVICE_OUTPUT(minipchi2_t, float) minipchi2;
     DEVICE_OUTPUT(ip_t, float) ip;
-
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minIPChi2_t, "minIPChi2", "Minimum IPCHI2", float) minIPChi2;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "Maximum vertex Chi2", float) maxVertexChi2;
-    PROPERTY(maxIP_t, "maxIP", "Maximum IP", float) maxIP;
-    PROPERTY(minMass_t, "minMass", "Minimum invariant mass", float) minMass;
-    PROPERTY(maxMass_t, "maxMass", "Maximum invariat mass", float) maxMass;
-    PROPERTY(minPVZ_t, "minPVZ", "minimum PV z coordinate", float) minPVZ;
-    PROPERTY(maxPVZ_t, "maxPVZ", "maximum PV z coordinate", float) maxPVZ;
-    PROPERTY(CombCharge_t, "CombCharge", "Charge of the combination", int) CombCharge;
-    PROPERTY(minTrackPt_t, "minTrackPt", "Minimum final-state particles Pt", float) minTrackPt;
-
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
   };
 
   struct SMOG2_kstopipi_line_t : public SelectionAlgorithm,
                                  Parameters,
                                  CompositeParticleLine<SMOG2_kstopipi_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float minIPChi2;
+      float maxVertexChi2;
+      float maxIP;
+      float minMass;
+      float minTrackPt;
+      float maxMass;
+      float minPVZ;
+      float maxPVZ;
+      int CombCharge;
+
       Allen::Monitoring::Histogram<>::DeviceType histogram_smogks_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_smogks_svz;
       Allen::Monitoring::Histogram<>::DeviceType histogram_smogks_pvz;
       Allen::Monitoring::Histogram<>::DeviceType histogram_smogks_pt;
-      DeviceAccumulators(const SMOG2_kstopipi_line_t& algo, const Allen::Context& ctx) :
-        histogram_smogks_mass(algo.m_histogram_smogks_mass.data(ctx)),
+      DeviceProperties(const SMOG2_kstopipi_line_t& algo, const Allen::Context& ctx) :
+        minIPChi2(algo.m_minIPChi2), maxVertexChi2(algo.m_maxVertexChi2), maxIP(algo.m_maxIP), minMass(algo.m_minMass),
+        minTrackPt(algo.m_minTrackPt), maxMass(algo.m_maxMass), minPVZ(algo.m_minPVZ), maxPVZ(algo.m_maxPVZ),
+        CombCharge(algo.m_CombCharge), histogram_smogks_mass(algo.m_histogram_smogks_mass.data(ctx)),
         histogram_smogks_svz(algo.m_histogram_smogks_svz.data(ctx)),
         histogram_smogks_pvz(algo.m_histogram_smogks_pvz.data(ctx)),
         histogram_smogks_pt(algo.m_histogram_smogks_pt.data(ctx))
@@ -71,40 +66,35 @@ namespace SMOG2_kstopipi_line {
     using monitoring_types = std::tuple<sv_masses_t, svz_t, track1pt_t, track2pt_t, minipchi2_t, ip_t>;
 
     __device__ static bool
-    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     __device__ static void monitor(
       const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
+      const DeviceProperties& properties,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
+      const DeviceProperties& properties,
       std::tuple<const Allen::Views::Physics::CompositeParticle> input,
       unsigned index,
       bool sel);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minIPChi2_t> m_minIPChi2 {this, 100.f};
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 10.0f};
-    Property<maxIP_t> m_maxIP {this, 0.3f * Gaudi::Units::mm};
-    Property<minMass_t> m_minMass {this, 400.f * Gaudi::Units::MeV};
-    Property<minTrackPt_t> m_minTrackPt {this, 200.f * Gaudi::Units::MeV};
-    Property<maxMass_t> m_maxMass {this, 600.f * Gaudi::Units::MeV};
-    Property<minPVZ_t> m_minPVZ {this, -541.f * Gaudi::Units::mm};
-    Property<maxPVZ_t> m_maxPVZ {this, -341.f * Gaudi::Units::mm};
-    Property<CombCharge_t> m_CombCharge {this, 0};
-
-    // Switch to create monitoring plots
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
-    // Switch to create monitoring tuple
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 100.f, "Minimum IPCHI2"};
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 10.0f, "Maximum vertex Chi2"};
+    Allen::Property<float> m_maxIP {this, "maxIP", 0.3f * Gaudi::Units::mm, "Maximum IP"};
+    Allen::Property<float> m_minMass {this, "minMass", 400.f * Gaudi::Units::MeV, "Minimum invariant mass"};
+    Allen::Property<float> m_minTrackPt {this,
+                                         "minTrackPt",
+                                         200.f * Gaudi::Units::MeV,
+                                         "Minimum final-state particles Pt"};
+    Allen::Property<float> m_maxMass {this, "maxMass", 600.f * Gaudi::Units::MeV, "Maximum invariat mass"};
+    Allen::Property<float> m_minPVZ {this, "minPVZ", -541.f * Gaudi::Units::mm, "minimum PV z coordinate"};
+    Allen::Property<float> m_maxPVZ {this, "maxPVZ", -341.f * Gaudi::Units::mm, "maximum PV z coordinate"};
+    Allen::Property<int> m_CombCharge {this, "CombCharge", 0, "Charge of the combination"};
 
     Allen::Monitoring::Histogram<> m_histogram_smogks_mass {this,
                                                             "SMOGks_mass",

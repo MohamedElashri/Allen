@@ -17,7 +17,7 @@
 
 #include "Gaudi/Accumulators/Histogram.h"
 
-#include <GaudiAlg/MergingTransformer.h>
+#include <LHCbAlgs/MergingTransformer.h>
 #include <GaudiKernel/GaudiException.h>
 #include <Gaudi/Parsers/Factory.h>
 
@@ -104,7 +104,7 @@ namespace {
  *  @author Roel Aaij
  *  @date   2018-08-27
  */
-class TransposeRawBanks : public Gaudi::Functional::MergingTransformer<std::array<TransposedBanks, NBankTypes>(
+class TransposeRawBanks : public LHCb::Algorithm::MergingTransformer<std::array<TransposedBanks, NBankTypes>(
                             VOC<LHCb::RawBank::View> const&)> {
 public:
   /// Standard constructor

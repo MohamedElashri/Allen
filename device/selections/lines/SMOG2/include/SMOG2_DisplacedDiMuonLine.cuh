@@ -26,29 +26,28 @@ namespace SMOG2_displaced_di_muon_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minDispTrackPt_t, "minDispTrackPt", "minDispTrackPt description", float) minDispTrackPt;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
-    PROPERTY(minComboPt_t, "minComboPt", "minComboPt description", float) minComboPt;
-    PROPERTY(mass_t, "mass", "mass of dimuon", float) mass;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z dimuon coordinate", float) minZ;
-    PROPERTY(maxChi2Muon_t, "maxChi2CorrMuon", "minimum Chi2CorrMuon evaluation", float) maxChi2CorrMuon;
-    PROPERTY(minPVZ_t, "minPVZ", "minimum PV z coordinate", float) minPVZ;
-    PROPERTY(maxPVZ_t, "maxPVZ", "maximum PV z coordinate", float) maxPVZ;
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(minFDCHI2_t, "minFDCHI2", "chi2 of pv and endvertex", float) m_minFDCHI2;
-    PROPERTY(maxIP_t, "maxIP", "mother IP", float) m_maxIP;
   };
 
   struct SMOG2_displaced_di_muon_line_t : public SelectionAlgorithm,
                                           Parameters,
                                           CompositeParticleLine<SMOG2_displaced_di_muon_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float minDispTrackPt;
+      float maxVertexChi2;
+      float minComboPt;
+      float mass;
+      float minZ;
+      float maxChi2CorrMuon;
+      float minPVZ;
+      float maxPVZ;
+      float minFDCHI2;
+      float maxIP;
+
       Allen::Monitoring::Histogram<>::DeviceType histogram_displaced_dimuon_mass;
-      DeviceAccumulators(const SMOG2_displaced_di_muon_line_t& algo, const Allen::Context& ctx) :
+      DeviceProperties(const SMOG2_displaced_di_muon_line_t& algo, const Allen::Context& ctx) :
+        minDispTrackPt(algo.m_minDispTrackPt), maxVertexChi2(algo.m_maxVertexChi2), minComboPt(algo.m_minComboPt),
+        mass(algo.m_mass), minZ(algo.m_minZ), maxChi2CorrMuon(algo.m_maxChi2CorrMuon), minPVZ(algo.m_minPVZ),
+        maxPVZ(algo.m_maxPVZ), minFDCHI2(algo.m_minFDCHI2), maxIP(algo.m_maxIP),
         histogram_displaced_dimuon_mass(algo.m_histogram_displaced_dimuon_mass.data(ctx))
       {}
     };
@@ -56,33 +55,31 @@ namespace SMOG2_displaced_di_muon_line {
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
     __device__ static bool select(
       const Parameters&,
-      const DeviceAccumulators&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
     __device__ static void monitor(
       const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
+      const DeviceProperties& properties,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     // Dimuon track pt.
-    Property<minDispTrackPt_t> m_minDispTrackPt {this, 250.f * Gaudi::Units::MeV};
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 30.f};
-    Property<minComboPt_t> m_minComboPt {this, 1.f * Gaudi::Units::GeV};
+    Allen::Property<float> m_minDispTrackPt {this,
+                                             "minDispTrackPt",
+                                             250.f * Gaudi::Units::MeV,
+                                             "minDispTrackPt description"};
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 30.f, "maxVertexChi2 description"};
+    Allen::Property<float> m_minComboPt {this, "minComboPt", 1.f * Gaudi::Units::GeV, "minComboPt description"};
     // Displaced dimuon selections.
-    Property<mass_t> m_mass {this, 500.f * Gaudi::Units::MeV};
-    Property<minZ_t> m_minZ {this, -541.f * Gaudi::Units::mm};
-    Property<maxChi2Muon_t> m_minChi2Muon {this, 2.5};
-    Property<minPVZ_t> m_minPVZ {this, -541.f * Gaudi::Units::mm};
-    Property<maxPVZ_t> m_maxPVZ {this, -341.f * Gaudi::Units::mm};
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
-    Property<minFDCHI2_t> m_minFDCHI2 {this, 15.f};
-    Property<maxIP_t> m_maxIP {this, 1.f * Gaudi::Units::mm};
+    Allen::Property<float> m_mass {this, "mass", 500.f * Gaudi::Units::MeV, "mass of dimuon"};
+    Allen::Property<float> m_minZ {this, "minZ", -541.f * Gaudi::Units::mm, "minimum vertex z dimuon coordinate"};
+    Allen::Property<float> m_maxChi2CorrMuon {this, "maxChi2CorrMuon", 2.5, "maximum Chi2CorrMuon evaluation"};
+    Allen::Property<float> m_minPVZ {this, "minPVZ", -541.f * Gaudi::Units::mm, "minimum PV z coordinate"};
+    Allen::Property<float> m_maxPVZ {this, "maxPVZ", -341.f * Gaudi::Units::mm, "maximum PV z coordinate"};
+    Allen::Property<float> m_minFDCHI2 {this, "minFDCHI2", 15.f, "chi2 of pv and endvertex"};
+    Allen::Property<float> m_maxIP {this, "maxIP", 1.f * Gaudi::Units::mm, "mother IP"};
 
     Allen::Monitoring::Histogram<> m_histogram_displaced_dimuon_mass {this,
                                                                       "displaced_dimuon_mass",

@@ -22,7 +22,7 @@ from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenConf.persistency import make_dec_reporter, make_gather_selections, make_routingbits_writer, rb_map
 from AllenCore.algorithms import seeding_copy_trackXZ_hit_number_t
-from AllenConf.scifi_reconstruction import decode_scifi, make_seeding_XZ_tracks, make_seeding_tracks
+from AllenConf.scifi_reconstruction import decode_scifi, make_seeding_XZ_tracks
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.muon_reconstruction import decode_muon
 from AllenConf.velo_reconstruction import decode_velo, make_velo_tracks
@@ -457,10 +457,12 @@ def data_quality_validation_occupancy(name="data_quality_validator"):
     number_of_events = initialize_number_of_events()
 
     decoded_scifi = decode_scifi()
+    scifi_xz_seeds = make_seeding_XZ_tracks(decoded_scifi)
     decoded_muon = decode_muon()
     decoded_calo = decode_calo()
     ecal_clusters = make_ecal_clusters(
-        decoded_calo, calo_find_clusters_name='calo_find_clusters')
+        decoded_calo,
+        calo_find_clusters_name='calo_find_clusters_dq_validator')
 
     decoded_velo = decode_velo()
     velo_tracks = make_velo_tracks(decoded_velo)
@@ -476,6 +478,7 @@ def data_quality_validation_occupancy(name="data_quality_validator"):
             "dev_offsets_estimated_input_size"],
         dev_offsets_velo_tracks_t=velo_tracks["dev_offsets_all_velo_tracks"],
         dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
+        dev_scifi_seedsXZ_t=scifi_xz_seeds['seed_xz_number_of_tracks'],
         dev_ecal_clusters_offsets_t=ecal_clusters["dev_ecal_cluster_offsets"])
 
 

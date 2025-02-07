@@ -31,8 +31,7 @@ void ut_select_velo_tracks::ut_select_velo_tracks_t::operator()(
 {
   Allen::memset_async<dev_ut_number_of_selected_velo_tracks_t>(arguments, 0, context);
 
-  global_function(ut_select_velo_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments);
+  global_function(ut_select_velo_tracks)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
 }
 
 __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_tracks::Parameters parameters)

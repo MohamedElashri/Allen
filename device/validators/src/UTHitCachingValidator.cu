@@ -36,7 +36,7 @@ void ut_hit_caching_test::ut_hit_caching_test_t::operator()(
   Allen::memset_async<dev_cached_ut_hits_t>(arguments, 0, context);
 
   // Fill ut hits into compact struct
-  global_function(fill_ut_hits)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(fill_ut_hits)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments, constants.dev_unique_x_sector_layer_offsets.data(), constants.dev_ut_per_layer_info);
 
   // Copy result to CPU

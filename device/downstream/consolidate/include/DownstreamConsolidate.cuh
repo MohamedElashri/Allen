@@ -139,8 +139,6 @@ namespace downstream_consolidate {
       DEPENDENCIES(dev_multi_event_downstream_tracks_view_t),
       Allen::IMultiEventContainer*)
     dev_multi_event_downstream_tracks_view_ptr;
-
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void downstream_consolidate(
@@ -179,7 +177,7 @@ namespace downstream_consolidate {
       Allen::Monitoring::Histogram<>::DeviceType&);
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
 
     Allen::Monitoring::AveragingCounter<> m_downstream_tracks {this, "n_downstream_tracks"};
     Allen::Monitoring::Histogram<> m_histogram_n_downstream_tracks {this,

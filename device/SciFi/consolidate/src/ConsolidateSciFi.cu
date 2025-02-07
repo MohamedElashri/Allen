@@ -185,10 +185,10 @@ void scifi_consolidate_tracks::scifi_consolidate_tracks_t::operator()(
   auto dev_histo_long_track_forward_nhits = m_histogram_long_track_forward_nhits.data(context);
   auto dev_histo_long_track_forward_qop = m_histogram_long_track_forward_qop.data(context);
 
-  global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(scifi_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
-    constants.dev_looking_forward_constants,
     constants.dev_magnet_polarity.data(),
+    m_momentum_parameters,
     dev_histo_n_long_tracks_forward,
     dev_counter_long_tracks_forward);
 
@@ -216,9 +216,9 @@ __device__ void populate(const SciFi::TrackHits& track, const F& assign)
 template<bool with_ut, typename T>
 __device__ void scifi_consolidate_tracks_impl(
   const scifi_consolidate_tracks::Parameters& parameters,
-  const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity,
   const T* tracks,
+  const std::array<float, 16> momentum_parameters,
   Allen::Monitoring::Histogram<>::DeviceType& dev_histogram_n_long_tracks_forward,
   Allen::Monitoring::AveragingCounter<>::DeviceType& dev_n_long_tracks_forward_counter)
 {
@@ -316,23 +316,16 @@ __device__ void scifi_consolidate_tracks_impl(
     auto consolidated_hits = scifi_tracks.get_hits(parameters.dev_scifi_track_hits, i);
     const SciFi::TrackHits& track = event_scifi_tracks[i];
 
-    // Update qop of the track
-    const auto magSign = dev_magnet_polarity[0];
-    const auto z0 = LookingForward::z_mid_t;
-    const auto xVelo = velo_state.x();
-    const auto yVelo = velo_state.y();
-    const auto zVelo = velo_state.z();
-    const auto txO = velo_state.tx();
-    const auto tyO = velo_state.ty();
+    // align momentum evaluation with velo-scifi matching
+    const auto magSign = -dev_magnet_polarity[0];
+    // needs SciFi tx at last T-station SciFi::Constants::ZEndT (9410)
+    const auto qop =
+      LongTrack::computeQoverP(velo_state.tx(), velo_state.ty(), scifi_state.tx(), magSign, momentum_parameters);
 
     // QoP for scifi tracks
-    using LookingForward::MomentumEstimation::qop_calculation;
-    scifi_tracks.qop(i) =
-      qop_calculation(dev_looking_forward_constants, magSign, z0, x0, y0, xVelo, yVelo, zVelo, txO, tyO, tx, ty);
-
+    scifi_tracks.qop(i) = qop;
     // QoP for long tracks
-    tracks_qop[i] =
-      qop_calculation(dev_looking_forward_constants, magSign, z0, x0, y0, xVelo, yVelo, zVelo, txO, tyO, tx, ty);
+    tracks_qop[i] = qop;
 
     // Ghost probability
     tracks_ghost_probability[i] = ghost_probability;
@@ -373,8 +366,8 @@ __device__ void scifi_consolidate_tracks_impl(
 
 __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
   scifi_consolidate_tracks::Parameters parameters,
-  const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity,
+  const std::array<float, 16> momentum_parameters,
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_n_long_tracks_forward,
   Allen::Monitoring::AveragingCounter<>::DeviceType dev_n_long_tracks_forward_counter)
 {
@@ -383,9 +376,9 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
   if (ut_tracks) {
     scifi_consolidate_tracks_impl<true>(
       parameters,
-      dev_looking_forward_constants,
       dev_magnet_polarity,
       ut_tracks,
+      momentum_parameters,
       dev_histogram_n_long_tracks_forward,
       dev_n_long_tracks_forward_counter);
   }
@@ -394,9 +387,9 @@ __global__ void scifi_consolidate_tracks::scifi_consolidate_tracks(
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
     scifi_consolidate_tracks_impl<false>(
       parameters,
-      dev_looking_forward_constants,
       dev_magnet_polarity,
       velo_tracks,
+      momentum_parameters,
       dev_histogram_n_long_tracks_forward,
       dev_n_long_tracks_forward_counter);
   }

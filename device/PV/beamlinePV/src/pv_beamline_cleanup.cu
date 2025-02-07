@@ -14,9 +14,9 @@ INSTANTIATE_ALGORITHM(pv_beamline_cleanup::pv_beamline_cleanup_t)
 
 void pv_beamline_cleanup::pv_beamline_cleanup_t::init()
 {
-  m_histogram_smogpv_z.x_axis().nBins = property<nbins_histo_smogpvz_t>();
-  m_histogram_smogpv_z.x_axis().minValue = property<min_histo_smogpvz_t>();
-  m_histogram_smogpv_z.x_axis().maxValue = property<max_histo_smogpvz_t>();
+  m_histogram_smogpv_z.x_axis().nBins = m_nbins_histo_smogpvz;
+  m_histogram_smogpv_z.x_axis().minValue = m_min_histo_smogpvz;
+  m_histogram_smogpv_z.x_axis().maxValue = m_max_histo_smogpvz;
 }
 
 void pv_beamline_cleanup::pv_beamline_cleanup_t::set_arguments_size(
@@ -36,8 +36,9 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
 {
   Allen::memset_async<dev_number_of_multi_final_vertices_t>(arguments, 0, context);
 
-  global_function(pv_beamline_cleanup)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
+  global_function(pv_beamline_cleanup)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
+    m_minChi2Dist,
     m_pvs.data(context),
     m_histogram_n_pvs.data(context),
     m_histogram_n_smogpvs.data(context),
@@ -81,6 +82,7 @@ __device__ void pv_beamline_cleanup::sort_pvs_by_z(PV::Vertex* final_vertices, u
 
 __global__ void pv_beamline_cleanup::pv_beamline_cleanup(
   pv_beamline_cleanup::Parameters parameters,
+  const float minChi2Dist,
   Allen::Monitoring::AveragingCounter<>::DeviceType dev_n_pvs_counter,
   Allen::Monitoring::Histogram<>::DeviceType dev_n_pvs_histo,
   Allen::Monitoring::Histogram<>::DeviceType dev_n_smogpvs_histo,
@@ -115,7 +117,7 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(
       float variance2 = vertex2.cov22;
       float chi2_dist = (z1 - z2) * (z1 - z2);
       chi2_dist = chi2_dist / (variance1 + variance2);
-      if (chi2_dist < parameters.minChi2Dist && vertex1.nTracks < vertex2.nTracks) {
+      if (chi2_dist < minChi2Dist && vertex1.nTracks < vertex2.nTracks) {
         unique = false;
       }
     }

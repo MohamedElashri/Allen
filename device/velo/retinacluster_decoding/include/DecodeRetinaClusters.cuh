@@ -44,16 +44,6 @@ namespace decode_retinaclusters {
         dev_offsets_module_pair_cluster_t),
       Velo::Clusters)
     dev_velo_clusters;
-    PROPERTY(block_dim_x_calculate_key_t, "block_dim_x_calculate_key", "block dim x of calculate_key", unsigned)
-    block_dim_x_calculate_key;
-    PROPERTY(
-      block_dim_calculate_permutations_t,
-      "block_dim_calculate_permutations",
-      "block dims of calculate permutations",
-      DeviceDimensions)
-    block_dim_calculate_permutations;
-    PROPERTY(block_dim_x_decode_retina_t, "block_dim_x_decode_retina", "block dim x of decode retina sorted", unsigned)
-    block_dim_x_decode_retina;
   };
 
   // Define postconditions
@@ -78,8 +68,17 @@ namespace decode_retinaclusters {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_x_calculate_key_t> m_block_dim_x_calculate_key {this, 256};
-    Property<block_dim_calculate_permutations_t> m_block_dim_calculate_permutations {this, {{128, 2, 1}}};
-    Property<block_dim_x_decode_retina_t> m_block_dim_x_decode_retina {this, 256};
+    Allen::Property<unsigned> m_block_dim_x_calculate_key {this,
+                                                           "block_dim_x_calculate_key",
+                                                           256,
+                                                           "block dim x of calculate_key"};
+    Allen::Property<dim3> m_block_dim_calculate_permutations {this,
+                                                              "block_dim_calculate_permutations",
+                                                              {128, 2, 1},
+                                                              "block dims of calculate permutations"};
+    Allen::Property<unsigned> m_block_dim_x_decode_retina {this,
+                                                           "block_dim_x_decode_retina",
+                                                           256,
+                                                           "block dim x of decode retina sorted"};
   };
 } // namespace decode_retinaclusters

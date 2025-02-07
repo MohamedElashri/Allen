@@ -27,8 +27,6 @@ namespace calo_seed_clusters {
     HOST_OUTPUT(host_total_sum_holder_t, unsigned) host_total_sum_holder;
     DEVICE_OUTPUT(dev_ecal_seed_clusters_t, CaloSeedCluster) dev_ecal_seed_clusters;
     DEVICE_OUTPUT(dev_ecal_digit_is_seed_t, unsigned) dev_ecal_digit_is_seed;
-    PROPERTY(block_dim_x_t, "block_dim_x", "block dimension X", unsigned) block_dim;
-    PROPERTY(ecal_min_adc_t, "ecal_min_adc", "ECal seed cluster minimum ADC", int16_t) ecal_min_adc;
   };
 
   // Global function
@@ -49,7 +47,7 @@ namespace calo_seed_clusters {
       Allen::Context const&) const;
 
   private:
-    Property<block_dim_x_t> m_block_dim_x {this, 128};
-    Property<ecal_min_adc_t> m_ecal_min_adc {this, 50};
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 128, "block dimension X"};
+    Allen::Property<int16_t> m_ecal_min_adc {this, "ecal_min_adc", 50, "ECal seed cluster minimum ADC"};
   };
 } // namespace calo_seed_clusters

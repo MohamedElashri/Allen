@@ -19,6 +19,7 @@
 #include "LookingForwardConstants.cuh"
 #include "ParticleTypes.cuh"
 #include "CopyTrackParameters.cuh"
+#include "LongTrackMomentumEvaluation.cuh"
 
 #include "AllenMonitoring.h"
 
@@ -90,13 +91,12 @@ namespace scifi_consolidate_tracks {
       DEPENDENCIES(dev_multi_event_long_tracks_view_t),
       Allen::IMultiEventContainer*)
     dev_multi_event_long_tracks_ptr;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void scifi_consolidate_tracks(
     Parameters,
-    const LookingForward::Constants* dev_looking_forward_constants,
     const float* dev_magnet_polarity,
+    const std::array<float, 16> momentum_parameters,
     Allen::Monitoring::Histogram<>::DeviceType dev_histogram_n_long_tracks_forward,
     Allen::Monitoring::AveragingCounter<>::DeviceType dev_n_long_tracks_forward_counter);
 
@@ -118,7 +118,11 @@ namespace scifi_consolidate_tracks {
       Allen::Monitoring::Histogram<>::DeviceType& dev_histo_long_track_forward_qop);
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{128, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 1, 1}, "block dimensions"};
+    Allen::Property<std::array<float, 16>> m_momentum_parameters {this,
+                                                                  "momentum_parameters",
+                                                                  {},
+                                                                  "momentum_parameters"};
 
     Allen::Monitoring::AveragingCounter<> m_counter_long_tracks_forward {this, "n_long_tracks_forward"};
 

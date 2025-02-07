@@ -27,7 +27,6 @@ namespace host_velo_ut_validator {
     DEVICE_INPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
     DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
     HOST_INPUT(host_mc_events_t, const MCEvents*) host_mc_events;
-    PROPERTY(root_output_filename_t, "root_output_filename", "root output filename", std::string);
   };
 
   struct host_velo_ut_validator_t : public ValidationAlgorithm, Parameters {
@@ -40,6 +39,9 @@ namespace host_velo_ut_validator {
       const Allen::Context&) const;
 
   private:
-    Property<root_output_filename_t> m_root_output_filename {this, "PrCheckerPlots.root"};
+    Allen::Property<std::string> m_root_output_filename {this,
+                                                         "root_output_filename",
+                                                         "PrCheckerPlots.root",
+                                                         "root output filename"};
   };
 } // namespace host_velo_ut_validator

@@ -51,9 +51,6 @@ namespace data_quality_validator_long {
     DEVICE_INPUT(dev_offsets_long_tracks_t, unsigned) dev_offsets_long_tracks;
 
     DEVICE_OUTPUT(dev_dq_long_track_info_t, data_quality_validator_long::long_track_info) dev_dq_long_track_info;
-
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable Tupling", bool) enable_tupling;
   };
 
   __global__ void copyLongTrackIP(Parameters);
@@ -76,7 +73,7 @@ namespace data_quality_validator_long {
     // Block size should be < the average number of long tracks
     // to avoid GPU threads idling, 32 has been chosen as this number
     // it shouldn't be set to less than 32 as this is the warp size
-    Property<block_dim_t> m_block_dim {this, {{32, 1, 1}}};
-    Property<enable_tupling_t> m_enable_tupling {this, true};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimensions"};
+    Allen::Property<bool> m_enable_tupling {this, "enable_tupling", true, "Enable Tupling"};
   };
 } // namespace data_quality_validator_long

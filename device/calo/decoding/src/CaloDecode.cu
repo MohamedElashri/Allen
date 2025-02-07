@@ -298,10 +298,10 @@ void calo_decode::calo_decode_t::operator()(
       (bank_version == 4 ? calo_decode_dispatch<false, 4> :
                            (bank_version == 5 ? calo_decode_dispatch<false, 5> : calo_decode_dispatch<false, 3>) );
 
-  global_function(fn)(dim3(size<dev_event_list_t>(arguments)), dim3(property<block_dim_x_t>().get()), context)(
+  global_function(fn)(dim3(size<dev_event_list_t>(arguments)), dim3(m_block_dim_x), context)(
     arguments,
     constants.dev_ecal_geometry,
     std::get<0>(runtime_options.event_interval),
-    property<ecal_min_seed_adc_t>().get(),
-    property<ecal_min_neighbor_adc_t>().get());
+    m_ecal_min_seed_adc,
+    m_ecal_min_neighbor_adc);
 }

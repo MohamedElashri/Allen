@@ -11,12 +11,14 @@
 #include "LFCreateTracks.cuh"
 
 template<bool with_ut, typename T>
-__device__ void calculate_parametrization(lf_create_tracks::Parameters parameters, const T* tracks)
+__device__ void calculate_parametrization(
+  lf_create_tracks::Parameters parameters,
+  const T* tracks,
+  const unsigned max_triplets_per_input_track)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  const auto max_triplets_per_input_track = parameters.max_triplets_per_input_track;
   const auto input_tracks_view = tracks->container(event_number);
 
   const int event_tracks_offset = input_tracks_view.offset();
@@ -109,16 +111,18 @@ __device__ void calculate_parametrization(lf_create_tracks::Parameters parameter
   }
 }
 
-__global__ void lf_create_tracks::lf_calculate_parametrization(lf_create_tracks::Parameters parameters)
+__global__ void lf_create_tracks::lf_calculate_parametrization(
+  lf_create_tracks::Parameters parameters,
+  const unsigned max_triplets_per_input_track)
 {
   const auto* ut_tracks =
     Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    calculate_parametrization<true>(parameters, ut_tracks);
+    calculate_parametrization<true>(parameters, ut_tracks, max_triplets_per_input_track);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    calculate_parametrization<false>(parameters, velo_tracks);
+    calculate_parametrization<false>(parameters, velo_tracks, max_triplets_per_input_track);
   }
 }

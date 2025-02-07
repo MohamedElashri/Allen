@@ -25,34 +25,6 @@ namespace xi_omega_lll_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line tupling", bool) enable_tupling;
-    PROPERTY(L_DOCA_max_t, "L_DOCA_max", "max p,pi DOCA for Lambda LL", float) L_DOCA_max;
-    PROPERTY(L_VCHI2_max_t, "L_VCHI2_max", "Lambda vertex chi2", float) L_VCHI2_max;
-    PROPERTY(L_M_min_t, "L_M_min", "min mass of Lambda candidate", float) L_M_min;
-    PROPERTY(L_M_max_t, "L_M_max", "max mass of Lambda candidate", float) L_M_max;
-    PROPERTY(Xi_M_min_t, "Xi_M_min", "min mass given pion mass hypothesis for tertiary track", float) Xi_M_min;
-    PROPERTY(Xi_M_max_t, "Xi_M_max", "max mass given pion mass hypothesis for tertiary track", float) Xi_M_max;
-    PROPERTY(Omega_M_min_t, "Omega_M_min", "min mass given kaon mass hypothesis for tertiary track", float)
-    Omega_M_min;
-    PROPERTY(Omega_M_max_t, "Omega_M_max", "max mass given kaon mass hypothesis for tertiary track", float)
-    Omega_M_max;
-    PROPERTY(XimOmmt_M_max_t, "XimOmmt_M_max", "max mass given muon mass hypothesis for companion track", float)
-    XimOmmt_M_max;
-    PROPERTY(t_PT_min_t, "t_PT_min", "min companion track pT", float) t_PT_min;
-    PROPERTY(t_MIPCHI2_min_t, "t_MIPCHI2_min", "min companion track IP chi2", float) t_MIPCHI2_min;
-
-    PROPERTY(LVDZ_min_t, "LVDZ_min", "min distance (in z) of Lambda to Xi/Omega vertex", float) LVDZ_min;
-    PROPERTY(XimOmmVDZ_min_t, "XimOmmVDZ_min", "min distance (in z) of Xi/Omega to charm vertex", float) XimOmmVDZ_min;
-    PROPERTY(BPVZ_min_t, "BPVZ_min", "min primary vertex z position", float) BPVZ_min;
-    PROPERTY(VZ_max_t, "VZ_max", "max vertex z position", float) VZ_max;
-    PROPERTY(VZ_min_t, "VZ_min", "min vertex z position", float) VZ_min;
-    PROPERTY(BPVVDZ_min_t, "BPVVDZ_min", "min distance (in z) to best PV", float) BPVVDZ_min;
-    PROPERTY(BPVVDRHO_min_t, "BPVVDRHO_min", "min radial distance to best PV", float) BPVVDRHO_min;
 
     DEVICE_OUTPUT(Xipi_M_t, float) Xipi_M;
     DEVICE_OUTPUT(Omegapi_M_t, float) Omegapi_M;
@@ -114,11 +86,35 @@ namespace xi_omega_lll_line {
   struct xi_omega_lll_line_t : public SelectionAlgorithm,
                                Parameters,
                                CompositeParticleLine<xi_omega_lll_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float L_DOCA_max;
+      float L_VCHI2_max;
+      float L_M_min;
+      float L_M_max;
+      float BPVZ_min;
+      float VZ_min;
+      float VZ_max;
+      float Xi_M_min;
+      float Xi_M_max;
+      float Omega_M_min;
+      float Omega_M_max;
+      float t_PT_min;
+      float t_MIPCHI2_min;
+      float XimOmmt_M_max;
+      float LVDZ_min;
+      float XimOmmVDZ_min;
+      float BPVVDZ_min;
+      float BPVVDRHO_min;
       Allen::Monitoring::Histogram<>::DeviceType histogram_Lambda_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_Xi_mass;
       Allen::Monitoring::Histogram<>::DeviceType histogram_Omega_mass;
-      DeviceAccumulators(const xi_omega_lll_line_t& algo, const Allen::Context& ctx) :
+      DeviceProperties(const xi_omega_lll_line_t& algo, const Allen::Context& ctx) :
+        L_DOCA_max(algo.m_L_DOCA_max), L_VCHI2_max(algo.m_L_VCHI2_max), L_M_min(algo.m_L_M_min),
+        L_M_max(algo.m_L_M_max), BPVZ_min(algo.m_BPVZ_min), VZ_min(algo.m_VZ_min), VZ_max(algo.m_VZ_max),
+        Xi_M_min(algo.m_Xi_M_min), Xi_M_max(algo.m_Xi_M_max), Omega_M_min(algo.m_Omega_M_min),
+        Omega_M_max(algo.m_Omega_M_max), t_PT_min(algo.m_t_PT_min), t_MIPCHI2_min(algo.m_t_MIPCHI2_min),
+        XimOmmt_M_max(algo.m_XimOmmt_M_max), LVDZ_min(algo.m_LVDZ_min), XimOmmVDZ_min(algo.m_XimOmmVDZ_min),
+        BPVVDZ_min(algo.m_BPVVDZ_min), BPVVDRHO_min(algo.m_BPVVDRHO_min),
         histogram_Lambda_mass(algo.m_histogram_Lambda_mass.data(ctx)),
         histogram_Xi_mass(algo.m_histogram_Xi_mass.data(ctx)),
         histogram_Omega_mass(algo.m_histogram_Omega_mass.data(ctx))
@@ -126,19 +122,20 @@ namespace xi_omega_lll_line {
     };
 
     __device__ static bool
-    select(const Parameters&, const DeviceAccumulators&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
+    select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::CompositeParticle>);
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle>,
+      unsigned,
+      bool);
     __device__ static void monitor(
-      const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
-      std::tuple<const Allen::Views::Physics::CompositeParticle> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle>,
+      unsigned,
+      bool);
 
     using monitoring_types = std::tuple<
       Xipi_M_t,
@@ -198,30 +195,48 @@ namespace xi_omega_lll_line {
       runNo_t>;
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<L_DOCA_max_t> m_L_DOCA_max {this, 180.f * Gaudi::Units::um};
-    Property<L_VCHI2_max_t> m_L_VCHI2_max {this, 24.f};
-    Property<L_M_min_t> m_L_M_min {this, 1090.f * Gaudi::Units::MeV};
-    Property<L_M_max_t> m_L_M_max {this, 1140.f * Gaudi::Units::MeV};
-    Property<BPVZ_min_t> m_BPVZ_min {this, -200.f * Gaudi::Units::mm};
-    Property<VZ_min_t> m_VZ_min {this, -200.f * Gaudi::Units::mm};
-    Property<VZ_max_t> m_VZ_max {this, 640.f * Gaudi::Units::mm};
-    Property<Xi_M_min_t> m_Xi_M_min {this, 1292.f * Gaudi::Units::MeV};
-    Property<Xi_M_max_t> m_Xi_M_max {this, 1352.f * Gaudi::Units::MeV};
-    Property<Omega_M_min_t> m_Omega_M_min {this, 1647.f * Gaudi::Units::MeV};
-    Property<Omega_M_max_t> m_Omega_M_max {this, 1697.f * Gaudi::Units::MeV};
-    Property<t_PT_min_t> m_t_PT_min {this, 280.f * Gaudi::Units::MeV};
-    Property<t_MIPCHI2_min_t> m_t_MIPCHI2_min {this, 6.f};
-    Property<XimOmmt_M_max_t> m_XimOmmt_M_max {this, 6.f * Gaudi::Units::GeV};
-    Property<LVDZ_min_t> m_LVDZ_min {this, 4.f * Gaudi::Units::mm};
-    Property<XimOmmVDZ_min_t> m_XimOmmVDZ_min {this, 4.f * Gaudi::Units::mm};
-    Property<BPVVDZ_min_t> m_BPVVDZ_min {this, 1.f * Gaudi::Units::mm};
-    Property<BPVVDRHO_min_t> m_BPVVDRHO_min {this, 75.f * Gaudi::Units::um};
-    Property<enable_monitoring_t> m_enable_monitoring {this, true};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_L_DOCA_max {this, "L_DOCA_max", 180.f * Gaudi::Units::um, "max p, pi DOCA for Lambda LL"};
+    Allen::Property<float> m_L_VCHI2_max {this, "L_VCHI2_max", 24.f, "Lambda vertex chi2"};
+    Allen::Property<float> m_L_M_min {this, "L_M_min", 1090.f * Gaudi::Units::MeV, "min mass of Lambda candidate"};
+    Allen::Property<float> m_L_M_max {this, "L_M_max", 1140.f * Gaudi::Units::MeV, "max mass of Lambda candidate"};
+    Allen::Property<float> m_BPVZ_min {this, "BPVZ_min", -200.f * Gaudi::Units::mm, "min primary vertex z position"};
+    Allen::Property<float> m_VZ_min {this, "VZ_min", -200.f * Gaudi::Units::mm, "min vertex z position"};
+    Allen::Property<float> m_VZ_max {this, "VZ_max", 640.f * Gaudi::Units::mm, "max vertex z position"};
+    Allen::Property<float> m_Xi_M_min {this,
+                                       "Xi_M_min",
+                                       1292.f * Gaudi::Units::MeV,
+                                       "min mass given pion mass hypothesis for tertiary track"};
+    Allen::Property<float> m_Xi_M_max {this,
+                                       "Xi_M_max",
+                                       1352.f * Gaudi::Units::MeV,
+                                       "max mass given pion mass hypothesis for tertiary track"};
+    Allen::Property<float> m_Omega_M_min {this,
+                                          "Omega_M_min",
+                                          1647.f * Gaudi::Units::MeV,
+                                          "min mass given kaon mass hypothesis for tertiary track"};
+    Allen::Property<float> m_Omega_M_max {this,
+                                          "Omega_M_max",
+                                          1697.f * Gaudi::Units::MeV,
+                                          "max mass given kaon mass hypothesis for tertiary track"};
+    Allen::Property<float> m_t_PT_min {this, "t_PT_min", 280.f * Gaudi::Units::MeV, "min companion track pT"};
+    Allen::Property<float> m_t_MIPCHI2_min {this, "t_MIPCHI2_min", 6.f, "min companion track IP chi2"};
+    Allen::Property<float> m_XimOmmt_M_max {this,
+                                            "XimOmmt_M_max",
+                                            6.f * Gaudi::Units::GeV,
+                                            "max mass given muon mass hypothesis for companion track"};
+    Allen::Property<float> m_LVDZ_min {this,
+                                       "LVDZ_min",
+                                       4.f * Gaudi::Units::mm,
+                                       "min distance (in z) of Lambda to Xi/Omega vertex"};
+    Allen::Property<float> m_XimOmmVDZ_min {this,
+                                            "XimOmmVDZ_min",
+                                            4.f * Gaudi::Units::mm,
+                                            "min distance (in z) of Xi/Omega to charm vertex"};
+    Allen::Property<float> m_BPVVDZ_min {this, "BPVVDZ_min", 1.f * Gaudi::Units::mm, "min distance (in z) to best PV"};
+    Allen::Property<float> m_BPVVDRHO_min {this,
+                                           "BPVVDRHO_min",
+                                           75.f * Gaudi::Units::um,
+                                           "min radial distance to best PV"};
 
     Allen::Monitoring::Histogram<> m_histogram_Lambda_mass {
       this,

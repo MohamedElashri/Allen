@@ -54,12 +54,11 @@ rate_validator validation:
 Hlt1BGIPseudoPVsBeamOne:                            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BGIPseudoPVsBeamTwo:                            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BGIPseudoPVsDownBeamBeam:                       0/   500, (    0.00 +/-     0.00) kHz
-Hlt1BGIPseudoPVsIRBeamBeam:                         1/   500, (   60.00 +/-    59.94) kHz
 Hlt1BGIPseudoPVsNoBeam:                             0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BGIPseudoPVsUpBeamBeam:                         0/   500, (    0.00 +/-     0.00) kHz
 Hlt1BeamGas:                                        0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet100GeV:                                  0/   500, (    0.00 +/-     0.00) kHz
-Hlt1ConeJet15GeV:                                   2/   500, (  120.00 +/-    84.68) kHz
+Hlt1ConeJet15GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet30GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ConeJet50GeV:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1D2KK:                                          15/   500, (  900.00 +/-   228.87) kHz
@@ -99,7 +98,7 @@ Hlt1DiMuonJpsiMassAlignment:                        0/   500, (    0.00 +/-     
 Hlt1DiMuonNoIP:                                     0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonNoIP_SS:                                  0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                                     0/   500, (    0.00 +/-     0.00) kHz
-Hlt1DiPhotonHighMass:                               7/   500, (  420.00 +/-   157.63) kHz
+Hlt1DiPhotonHighMass:                               3/   500, (  180.00 +/-   103.61) kHz
 Hlt1Dst2D0Pi:                                       0/   500, (    0.00 +/-     0.00) kHz
 Hlt1Dst2D0PiAlignment:                              0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ErrorBank:                                      0/   500, (    0.00 +/-     0.00) kHz
@@ -126,6 +125,8 @@ Hlt1SMOG2BENoBias:                                  0/   500, (    0.00 +/-     
 Hlt1SMOG2D2Kpi:                                     0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2DiMuonHighMass:                            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2DisplacedDiMuon:                           0/   500, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2JPsiToMuMuTaP_NegTag:                      0/   500, (    0.00 +/-     0.00) kHz
+Hlt1SMOG2JPsiToMuMuTaP_PosTag:                      0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2KsTopipi:                                  0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2L0Toppi:                                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1SMOG2MinimumBias:                               0/   500, (    0.00 +/-     0.00) kHz
@@ -148,7 +149,7 @@ Hlt1UpsilonAlignment:                               0/   500, (    0.00 +/-     
 Hlt1VeloMicroBias:                                  1/   500, (   60.00 +/-    59.94) kHz
 Hlt1VeloMicroBiasVeloClosing:                       0/   500, (    0.00 +/-     0.00) kHz
 Hlt1XiOmegaLLL:                                     0/   500, (    0.00 +/-     0.00) kHz
-Inclusive:                                        311/   500, (18660.00 +/-   650.55) kHz
+Inclusive:                                        310/   500, (18600.00 +/-   651.21) kHz
 
 
 seed_validator validation:
@@ -264,12 +265,11 @@ selreport_validator validation:
 Hlt1BGIPseudoPVsBeamOne:                            0           0
 Hlt1BGIPseudoPVsBeamTwo:                            0           0
 Hlt1BGIPseudoPVsDownBeamBeam:                       0           0
-Hlt1BGIPseudoPVsIRBeamBeam:                         1           0
 Hlt1BGIPseudoPVsNoBeam:                             0           0
 Hlt1BGIPseudoPVsUpBeamBeam:                         0           0
 Hlt1BeamGas:                                        0           0
 Hlt1ConeJet100GeV:                                  0           0
-Hlt1ConeJet15GeV:                                   2           2
+Hlt1ConeJet15GeV:                                   0           0
 Hlt1ConeJet30GeV:                                   0           0
 Hlt1ConeJet50GeV:                                   0           0
 Hlt1D2KK:                                          15          16
@@ -309,7 +309,7 @@ Hlt1DiMuonJpsiMassAlignment:                        0           0
 Hlt1DiMuonNoIP:                                     0           0
 Hlt1DiMuonNoIP_SS:                                  0           0
 Hlt1DiMuonSoft:                                     0           0
-Hlt1DiPhotonHighMass:                               7          13
+Hlt1DiPhotonHighMass:                               3           6
 Hlt1Dst2D0Pi:                                       0           0
 Hlt1Dst2D0PiAlignment:                              0           0
 Hlt1ErrorBank:                                      0           0
@@ -336,6 +336,8 @@ Hlt1SMOG2BENoBias:                                  0           0
 Hlt1SMOG2D2Kpi:                                     0           0
 Hlt1SMOG2DiMuonHighMass:                            0           0
 Hlt1SMOG2DisplacedDiMuon:                           0           0
+Hlt1SMOG2JPsiToMuMuTaP_NegTag:                      0           0
+Hlt1SMOG2JPsiToMuMuTaP_PosTag:                      0           0
 Hlt1SMOG2KsTopipi:                                  0           0
 Hlt1SMOG2L0Toppi:                                   0           0
 Hlt1SMOG2MinimumBias:                               0           0
@@ -359,12 +361,12 @@ Hlt1VeloMicroBias:                                  1           0
 Hlt1VeloMicroBiasVeloClosing:                       0           0
 Hlt1XiOmegaLLL:                                     0           0
 
-Total decisions:      552
+Total decisions:      545
 Total tracks:         1147
-Total calos clusters: 22
-Total SVs:            1082
+Total calos clusters: 9
+Total SVs:            1075
 Total hits:           29905
-Total stdinfo:        14144
+Total stdinfo:        14057
 
 
 velo_validator validation:

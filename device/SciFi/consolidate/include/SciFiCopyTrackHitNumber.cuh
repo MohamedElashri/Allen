@@ -27,7 +27,6 @@ namespace scifi_copy_track_hit_number {
     DEVICE_OUTPUT(dev_offsets_scifi_track_hit_number_t, unsigned) dev_offsets_scifi_track_hit_number;
     HOST_OUTPUT(host_accumulated_number_of_hits_in_scifi_tracks_t, unsigned)
     host_accumulated_number_of_hits_in_scifi_tracks;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void scifi_copy_track_hit_number(Parameters);
@@ -42,6 +41,6 @@ namespace scifi_copy_track_hit_number {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{512, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {512, 1, 1}, "block dimensions"};
   };
 } // namespace scifi_copy_track_hit_number

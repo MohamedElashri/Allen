@@ -11,7 +11,8 @@
 from AllenCore.algorithms import (
     SMOG2_minimum_bias_line_t, SMOG2_dimuon_highmass_line_t,
     SMOG2_ditrack_line_t, SMOG2_singletrack_line_t, SMOG2_single_muon_line_t,
-    SMOG2_kstopipi_line_t, SMOG2_displaced_di_muon_line_t)
+    SMOG2_kstopipi_line_t, SMOG2_displaced_di_muon_line_t,
+    SMOG2jpsitomumu_tap_line_t)
 
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
@@ -98,6 +99,44 @@ def make_SMOG2_dimuon_highmass_line(secondary_vertices,
         minZ=min_z,
         maxZ=max_z,
         maxChi2Corr=maxChi2Corr,
+        enable_monitoring=is_allen_standalone() and enable_monitoring,
+        enable_tupling=enable_tupling)
+
+
+@configurable
+def make_SMOG2_jpsitomumu_tap_line(secondary_vertices,
+                                   long_tracks,
+                                   muonid,
+                                   pre_scaler_hash_string=None,
+                                   post_scaler_hash_string=None,
+                                   name="Hlt1SMOG2_JpsiToMuMuTaPLine",
+                                   min_z=-541,
+                                   max_z=-341,
+                                   pre_scaler=1.,
+                                   post_scaler=1.,
+                                   maxChi2Corr=1.8,
+                                   enable_monitoring=True,
+                                   enable_tupling=False,
+                                   posTag=True):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        SMOG2jpsitomumu_tap_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
+        dev_particle_container_t=secondary_vertices[
+            "dev_multi_event_composites"],
+        dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
+        dev_chi2muon_t=muonid["dev_chi2corr"],
+        pre_scaler=pre_scaler,
+        post_scaler=post_scaler,
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        JpsiMinZ=min_z,
+        JpsiMaxZ=max_z,
+        posTag=posTag,
+        mutagMaxChi2Corr=maxChi2Corr,
         enable_monitoring=is_allen_standalone() and enable_monitoring,
         enable_tupling=enable_tupling)
 
@@ -260,7 +299,7 @@ def make_SMOG2_single_muon_line(long_tracks,
                                 muonid,
                                 pre_scaler_hash_string=None,
                                 post_scaler_hash_string=None,
-                                name="Hlt1_SMOG2_SingleTrack",
+                                name="Hlt1_SMOG2_SingleMuon",
                                 MinPt=700,
                                 maxChi2Corr=1.8,
                                 min_z=-541.,

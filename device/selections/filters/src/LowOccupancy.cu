@@ -34,8 +34,14 @@ void low_occupancy::low_occupancy_t::operator()(
   Allen::memset_async<host_number_of_selected_events_t>(arguments, 0, context);
   Allen::memset_async<dev_event_list_output_t>(arguments, 0, context);
 
-  global_function(low_occupancy)(dim3(1), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, size<dev_event_list_t>(arguments), first<host_number_of_events_t>(arguments));
+  global_function(low_occupancy)(dim3(1), dim3(m_block_dim_x), context)(
+    arguments,
+    size<dev_event_list_t>(arguments),
+    first<host_number_of_events_t>(arguments),
+    m_minTracks,
+    m_maxTracks,
+    m_max_ecal_clusters,
+    m_min_ecal_clusters);
   Allen::copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);
   reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));
 }
@@ -43,7 +49,11 @@ void low_occupancy::low_occupancy_t::operator()(
 __global__ void low_occupancy::low_occupancy(
   low_occupancy::Parameters parameters,
   const unsigned number_of_selected_events,
-  const unsigned number_of_events)
+  const unsigned number_of_events,
+  const unsigned minTracks,
+  const unsigned maxTracks,
+  const unsigned max_ecal_clusters,
+  const unsigned min_ecal_clusters)
 {
 
   for (unsigned idx = threadIdx.x; idx < number_of_selected_events; idx += blockDim.x) {
@@ -56,9 +66,8 @@ __global__ void low_occupancy::low_occupancy(
       parameters.dev_ecal_cluster_offsets[event_number + 1] - parameters.dev_ecal_cluster_offsets[event_number];
 
     if (
-      number_of_velo_tracks >= parameters.minTracks && number_of_velo_tracks < parameters.maxTracks &&
-      ecal_number_of_clusters >= parameters.min_ecal_clusters &&
-      ecal_number_of_clusters < parameters.max_ecal_clusters) {
+      number_of_velo_tracks >= minTracks && number_of_velo_tracks < maxTracks &&
+      ecal_number_of_clusters >= min_ecal_clusters && ecal_number_of_clusters < max_ecal_clusters) {
       const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.data(), 1);
       parameters.dev_event_list_output[current_event] = mask_t {event_number};
     }

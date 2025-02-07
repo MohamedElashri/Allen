@@ -54,11 +54,10 @@ void SVCombiner::sv_combiner_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(combine_svs)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_filter_t>(), context)(
-    arguments);
+  global_function(combine_svs)(dim3(size<dev_event_list_t>(arguments)), m_block_dim_filter, context)(arguments);
 
-  global_function(create_combo_views)(
-    dim3(first<host_number_of_events_t>(arguments)), property<block_dim_filter_t>(), context)(arguments);
+  global_function(create_combo_views)(dim3(first<host_number_of_events_t>(arguments)), m_block_dim_filter, context)(
+    arguments);
 }
 
 __global__ void SVCombiner::combine_svs(SVCombiner::Parameters parameters)

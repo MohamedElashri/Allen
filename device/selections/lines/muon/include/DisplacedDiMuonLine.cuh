@@ -26,26 +26,24 @@ namespace displaced_di_muon_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minDispTrackPt_t, "minDispTrackPt", "minDispTrackPt description", float) minDispTrackPt;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
-    PROPERTY(dispMinIPChi2_t, "dispMinIPChi2", "dispMinIPChi2 description", float) dispMinIPChi2;
-    PROPERTY(dispMinEta_t, "dispMinEta", "dispMinEta description", float) dispMinEta;
-    PROPERTY(dispMaxEta_t, "dispMaxEta", "dispMaxEta description", float) dispMaxEta;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z dimuon coordinate", float) minZ;
-    PROPERTY(maxChi2Muon_t, "maxChi2Muon", "minimum Chi2Muon evaluation", float) maxChi2Muon;
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
   };
 
   struct displaced_di_muon_line_t : public SelectionAlgorithm,
                                     Parameters,
                                     CompositeParticleLine<displaced_di_muon_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float minDispTrackPt;
+      float maxVertexChi2;
+      float dispMinIPChi2;
+      float dispMinEta;
+      float dispMaxEta;
+      float minZ;
+      float maxChi2Muon;
       Allen::Monitoring::Histogram<>::DeviceType histogram_displaced_dimuon_mass;
-      DeviceAccumulators(const displaced_di_muon_line_t& algo, const Allen::Context& ctx) :
+      DeviceProperties(const displaced_di_muon_line_t& algo, const Allen::Context& ctx) :
+        minDispTrackPt(algo.m_minDispTrackPt), maxVertexChi2(algo.m_maxVertexChi2), dispMinIPChi2(algo.m_dispMinIPChi2),
+        dispMinEta(algo.m_dispMinEta), dispMaxEta(algo.m_dispMaxEta), minZ(algo.m_minZ),
+        maxChi2Muon(algo.m_maxChi2Muon),
         histogram_displaced_dimuon_mass(algo.m_histogram_displaced_dimuon_mass.data(ctx))
       {}
     };
@@ -53,30 +51,28 @@ namespace displaced_di_muon_line {
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
     __device__ static bool select(
       const Parameters&,
-      const DeviceAccumulators&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
     __device__ static void monitor(
-      const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>,
+      unsigned,
+      bool);
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     // Dimuon track pt.
-    Property<minDispTrackPt_t> m_minDispTrackPt {this, 500.f / Gaudi::Units::MeV};
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 6.f};
+    Allen::Property<float> m_minDispTrackPt {this,
+                                             "minDispTrackPt",
+                                             500.f / Gaudi::Units::MeV,
+                                             "minDispTrackPt description"};
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 6.f, "maxVertexChi2 description"};
     // Displaced dimuon selections.
-    Property<dispMinIPChi2_t> m_dispMinIPChi2 {this, 6.f};
-    Property<dispMinEta_t> m_dispMinEta {this, 2.f};
-    Property<dispMaxEta_t> m_dispMaxEta {this, 5.f};
-    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
-    Property<maxChi2Muon_t> m_minChi2Muon {this, 1.8};
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
+    Allen::Property<float> m_dispMinIPChi2 {this, "dispMinIPChi2", 6.f, "dispMinIPChi2 description"};
+    Allen::Property<float> m_dispMinEta {this, "dispMinEta", 2.f, "dispMinEta description"};
+    Allen::Property<float> m_dispMaxEta {this, "dispMaxEta", 5.f, "dispMaxEta description"};
+    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z dimuon coordinate"};
+    Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 1.8, "maximum Chi2Muon evaluation"};
 
     Allen::Monitoring::Histogram<> m_histogram_displaced_dimuon_mass {this,
                                                                       "displaced_dimuon_mass",

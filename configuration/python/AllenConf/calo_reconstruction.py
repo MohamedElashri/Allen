@@ -14,7 +14,7 @@ from AllenCore.algorithms import (
     momentum_brem_correction_t, calo_seed_clusters_t, calo_find_clusters_t,
     calo_prefilter_clusters_t, calo_filter_clusters_t, calo_find_twoclusters_t,
     total_ecal_energy_t, make_neutral_particles_t, calo_overlap_clusters_t,
-    electronid_nn_t, electronid_features_t)
+    electronid_nn_t, fake_digit_matching_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
@@ -49,7 +49,6 @@ def decode_calo(empty_banks=False):
     sum_ecal_energy = make_algorithm(
         total_ecal_energy_t,
         name='total_ecal_energy_{hash}',
-        host_number_of_events_t=number_of_events["host_number_of_events"],
         host_ecal_number_of_digits_t=calo_count_digits.host_total_sum_holder_t,
         dev_ecal_digits_offsets_t=calo_count_digits.dev_digits_offsets_t,
         dev_ecal_digits_t=calo_decode.dev_ecal_digits_t)
@@ -75,6 +74,8 @@ def make_is_electron(decoded_calo, host_number_of_tracks,
         dev_scifi_states_t=dev_scifi_states,
         # dev_long_tracks_view_t=dev_multi_event_tracks_ptr,
         dev_tracks_view_t=dev_multi_event_tracks_ptr,
+        host_ecal_number_of_digits_t=decoded_calo[
+            "host_ecal_number_of_digits"],
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"])
@@ -119,6 +120,8 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
         dev_scifi_states_t=long_tracks["dev_scifi_states"],
         # dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
         dev_tracks_view_t=long_tracks["dev_multi_event_long_tracks_ptr"],
+        host_ecal_number_of_digits_t=decoded_calo[
+            "host_ecal_number_of_digits"],
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"])
@@ -134,6 +137,8 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
             "dev_offsets_velo_track_hit_number"],
         dev_velo_kalman_beamline_states_t=velo_states[
             "dev_velo_kalman_beamline_states"],
+        host_ecal_number_of_digits_t=decoded_calo[
+            "host_ecal_number_of_digits"],
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
         dev_ecal_digits_offsets_t=decoded_calo["dev_ecal_digits_offsets"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"])
@@ -175,6 +180,8 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
         track_digit_selective_matching.dev_track_Eop3x3_t,
         "dev_track_isElectron":
         track_digit_selective_matching.dev_track_isElectron_t,
+        "dev_ecal_digits_isTrackMatched":
+        track_digit_selective_matching.dev_ecal_digits_isTrackMatched_t,
         "dev_brem_E":
         brem_recovery.dev_brem_E_t,
         "dev_brem_ET":
@@ -185,10 +192,29 @@ def make_track_matching(decoded_calo, velo_tracks, velo_states, long_tracks,
         brem_recovery.dev_brem_ecal_digits_size_t,
         "dev_brem_ecal_digits":
         brem_recovery.dev_brem_ecal_digits_t,
+        "dev_ecal_digits_isBremMatched":
+        brem_recovery.dev_ecal_digits_isBremMatched_t,
         "dev_brem_corrected_p":
         momentum_brem_correction.dev_brem_corrected_p_t,
         "dev_brem_corrected_pt":
         momentum_brem_correction.dev_brem_corrected_pt_t
+    }
+
+
+# Produce arrays with fake matching decisions, all set to false,
+# to run calo_find_clusters without vetoing any seed clusters.
+def fake_digit_matching(decoded_calo):
+    fake_digit_match = make_algorithm(
+        fake_digit_matching_t,
+        name='empty_digit_track_matching_{hash}',
+        host_ecal_number_of_digits_t=decoded_calo["host_ecal_number_of_digits"]
+    )
+
+    return {
+        "dev_ecal_digits_isTrackMatched":
+        fake_digit_match.dev_ecal_digits_isMatched_t,
+        "dev_ecal_digits_isBremMatched":
+        fake_digit_match.dev_ecal_digits_isMatched_t
     }
 
 
@@ -214,7 +240,7 @@ def make_ecal_clusters(decoded_calo,
 
     calo_overlap_clusters = make_algorithm(
         calo_overlap_clusters_t,
-        name="calo_overlap_clusters",
+        name="calo_overlap_clusters_{hash}",
         host_ecal_number_of_clusters_t=calo_seed_clusters.
         host_total_sum_holder_t,
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
@@ -224,10 +250,18 @@ def make_ecal_clusters(decoded_calo,
         dev_ecal_cluster_offsets_t,
         dev_ecal_digit_is_seed_t=calo_seed_clusters.dev_ecal_digit_is_seed_t)
 
+    # If calo_matching_objects is None, produce arrays with fake matching decisions,
+    # all set to false, to run calo_find_clusters without vetoing any seed clusters.
+    # Otherwise, calo_matching_objects contains the output from make_track_matching(),
+    # and seed clusters matched with charged tracks or brem photons are vetoed.
+    if calo_matching_objects is None:
+        calo_matching_objects = fake_digit_matching(decoded_calo)
+
     calo_find_clusters = make_algorithm(
         calo_find_clusters_t,
-        name=str(calo_find_clusters_name),
+        name=calo_find_clusters_name,
         ecal_min_adc=neighbour_min_adc,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
         host_ecal_number_of_clusters_t=calo_seed_clusters.
         host_total_sum_holder_t,
         dev_ecal_digits_t=decoded_calo["dev_ecal_digits"],
@@ -235,16 +269,23 @@ def make_ecal_clusters(decoded_calo,
         dev_ecal_seed_clusters_t=calo_seed_clusters.dev_ecal_seed_clusters_t,
         dev_ecal_cluster_offsets_t=calo_seed_clusters.
         dev_ecal_cluster_offsets_t,
-        dev_ecal_corrections_t=calo_overlap_clusters.dev_ecal_corrections_t)
+        dev_ecal_corrections_t=calo_overlap_clusters.dev_ecal_corrections_t,
+        dev_ecal_digits_isTrackMatched_t=calo_matching_objects[
+            "dev_ecal_digits_isTrackMatched"],
+        dev_ecal_digits_isBremMatched_t=calo_matching_objects[
+            "dev_ecal_digits_isBremMatched"])
 
     make_neutral_particles = make_algorithm(
         make_neutral_particles_t,
-        name="make_neutral_particles",
+        name="make_neutral_particles_{hash}",
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_clusters_t=calo_seed_clusters.host_total_sum_holder_t,
+        host_number_of_neutral_clusters_t=calo_find_clusters.
+        host_total_sum_holder_t,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_ecal_cluster_offsets_t=calo_seed_clusters.
         dev_ecal_cluster_offsets_t,
+        dev_ecal_neutral_cluster_offsets_t=calo_find_clusters.
+        dev_ecal_neutral_cluster_offsets_t,
         dev_ecal_clusters_t=calo_find_clusters.dev_ecal_clusters_t)
 
     calo_prefilter_clusters = make_algorithm(
@@ -254,7 +295,7 @@ def make_ecal_clusters(decoded_calo,
         minE19_clusters=min_e19,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_ecal_number_of_clusters_t=calo_seed_clusters.
+        host_ecal_number_of_neutral_clusters_t=calo_find_clusters.
         host_total_sum_holder_t,
         dev_neutral_particles_t=make_neutral_particles.
         dev_multi_event_neutral_particles_view_t)
@@ -263,8 +304,6 @@ def make_ecal_clusters(decoded_calo,
         calo_filter_clusters_t,
         name='calo_filter_clusters_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_ecal_number_of_clusters_t=calo_seed_clusters.
-        host_total_sum_holder_t,
         host_ecal_number_of_twoclusters_t=calo_prefilter_clusters.
         host_total_sum_holder_t,
         dev_neutral_particles_t=make_neutral_particles.
@@ -295,10 +334,14 @@ def make_ecal_clusters(decoded_calo,
     return {
         "host_ecal_number_of_clusters":
         calo_seed_clusters.host_total_sum_holder_t,
+        "host_ecal_number_of_neutral_particles":
+        calo_find_clusters.host_total_sum_holder_t,
         "host_ecal_number_of_twoclusters":
         calo_prefilter_clusters.host_total_sum_holder_t,
         "dev_ecal_cluster_offsets":
         calo_seed_clusters.dev_ecal_cluster_offsets_t,
+        "dev_ecal_neutral_particle_offsets":
+        calo_find_clusters.dev_ecal_neutral_cluster_offsets_t,
         "dev_ecal_clusters":
         calo_find_clusters.dev_ecal_clusters_t,
         "dev_multi_event_neutral_particles":
@@ -323,23 +366,6 @@ def make_electronid_nn(long_tracks, track_matching):
 
     host_number_of_reconstructed_scifi_tracks = long_tracks[
         "host_number_of_reconstructed_scifi_tracks"]
-    dev_scifi_states = long_tracks["dev_scifi_states"]
-    velo_tracks = long_tracks["velo_tracks"]
-    electronid_features = make_algorithm(
-        electronid_features_t,
-        name='electronid_features_{hash}',
-        host_number_of_events_t=host_number_of_events,
-        dev_number_of_events_t=dev_number_of_events,
-        host_number_of_reconstructed_scifi_tracks_t=
-        host_number_of_reconstructed_scifi_tracks,
-        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
-        dev_track_Eop_t=track_matching["dev_track_Eop"],
-        dev_track_Eop3x3_t=track_matching["dev_track_Eop3x3"],
-        dev_delta_barycenter_t=track_matching["dev_delta_barycenter"],
-        dev_region_t=track_matching["dev_region"],
-        dev_dispersion_x_t=track_matching["dev_dispersion_x"],
-        dev_dispersion_y_t=track_matching["dev_dispersion_y"],
-        dev_dispersion_xy_t=track_matching["dev_dispersion_xy"])
 
     electronid_nn = make_algorithm(
         electronid_nn_t,
@@ -349,9 +375,13 @@ def make_electronid_nn(long_tracks, track_matching):
         dev_number_of_events_t=dev_number_of_events,
         host_number_of_reconstructed_scifi_tracks_t=
         host_number_of_reconstructed_scifi_tracks,
-        dev_electronid_features_t=electronid_features.
-        dev_electronid_features_t,
-        dev_track_Eop_t=track_matching["dev_track_Eop3x3"],
+        dev_track_Eop_t=track_matching["dev_track_Eop"],
+        dev_track_Eop3x3_t=track_matching["dev_track_Eop3x3"],
+        dev_delta_barycenter_t=track_matching["dev_delta_barycenter"],
+        dev_region_t=track_matching["dev_region"],
+        dev_dispersion_x_t=track_matching["dev_dispersion_x"],
+        dev_dispersion_y_t=track_matching["dev_dispersion_y"],
+        dev_dispersion_xy_t=track_matching["dev_dispersion_xy"],
         dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
     )
     return {

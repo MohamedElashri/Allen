@@ -74,12 +74,12 @@ void create_reduced_scifi_hit_container::create_reduced_scifi_hit_container_t::o
   auto counts =
     arguments.template make_buffer<Allen::Store::Scope::Device, unsigned>(size<dev_used_scifi_hits_t>(arguments));
 
-  global_function(count_unused)(DIV_CEIL(counts.size(), property<block_dim_x_t>()), property<block_dim_x_t>(), context)(
+  global_function(count_unused)(DIV_CEIL(counts.size(), m_block_dim_x), dim3(m_block_dim_x), context)(
     arguments, counts.data(), counts.size());
   PrefixSum::prefix_sum(*this, arguments, context, counts.data(), counts.size() - 1);
 
   global_function(make_zone_offsets)(
-    DIV_CEIL(size<dev_scifi_hit_offsets_t>(arguments), property<block_dim_x_t>()), property<block_dim_x_t>(), context)(
+    DIV_CEIL(size<dev_scifi_hit_offsets_t>(arguments), m_block_dim_x), dim3(m_block_dim_x), context)(
     arguments, counts.data());
 
   unsigned array_size = size<dev_scifi_hit_offsets_t>(arguments) - 1;
@@ -90,6 +90,6 @@ void create_reduced_scifi_hit_container::create_reduced_scifi_hit_container_t::o
     arguments, first<host_number_of_scifi_hits_t>(arguments) * SciFi::Hits::number_of_arrays * sizeof(uint32_t));
 
   // Populate dev_scifi_hits_t
-  global_function(create_scifi_hit_container)(size<dev_event_list_t>(arguments), property<block_dim_x_t>(), context)(
+  global_function(create_scifi_hit_container)(size<dev_event_list_t>(arguments), dim3(m_block_dim_x), context)(
     arguments, counts.data());
 }

@@ -25,47 +25,43 @@ namespace single_high_pt_electron_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(maxChi2Ndof_t, "maxChi2Ndof", "maxChi2Ndof description", float) maxChi2Ndof;
-    PROPERTY(singleMinPt_t, "singleMinPt", "singleMinPt description", float) singleMinPt;
-    PROPERTY(minZ_t, "MinZ", "Minimum track state z", float) minZ;
-
     DEVICE_OUTPUT(pt_corrected_t, float) pt_corrected;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
-
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
   };
 
   struct single_high_pt_electron_line_t : public SelectionAlgorithm,
                                           Parameters,
                                           OneTrackLine<single_high_pt_electron_line_t, Parameters> {
+    struct DeviceProperties {
+      float maxChi2Ndof;
+      float singleMinPt;
+      float minZ;
+      DeviceProperties(const single_high_pt_electron_line_t& algo, const Allen::Context&) :
+        maxChi2Ndof(algo.m_maxChi2Ndof), singleMinPt(algo.m_singleMinPt), minZ(algo.m_minZ)
+      {}
+    };
+
     __device__ static bool select(
-      const Parameters& ps,
-      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>);
 
     __device__ static std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>
-    get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
+    get_input(const Parameters&, const unsigned, const unsigned);
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
-      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float> input,
-      unsigned index,
-      bool sel);
+      const Parameters&,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::BasicParticle, const bool, const float>,
+      unsigned,
+      bool);
 
     using monitoring_types = std::tuple<pt_corrected_t, evtNo_t, runNo_t>;
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<maxChi2Ndof_t> m_maxChi2Ndof {this, 100.f};
-    Property<singleMinPt_t> m_singleMinPt {this, 6000.f / Gaudi::Units::MeV};
-    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_maxChi2Ndof {this, "maxChi2Ndof", 100.f, "maxChi2Ndof description"};
+    Allen::Property<float> m_singleMinPt {this, "singleMinPt", 6000.f / Gaudi::Units::MeV, "singleMinPt description"};
+    Allen::Property<float> m_minZ {this, "MinZ", -341.f * Gaudi::Units::mm, "Minimum track state z"};
   };
 } // namespace single_high_pt_electron_line

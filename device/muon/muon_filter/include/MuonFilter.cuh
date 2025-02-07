@@ -45,12 +45,9 @@ namespace MuonFilter {
     DEVICE_OUTPUT(dev_event_list_mf_t, unsigned) dev_event_list_mf;
     DEVICE_OUTPUT(dev_selected_events_mf_t, unsigned) dev_selected_events_mf;
     DEVICE_OUTPUT(dev_mf_track_atomics_t, unsigned) dev_mf_track_atomics;
-    PROPERTY(mf_min_pt_t, "mf_min_pt", "minimum track pT", float) mf_min_pt;
-    PROPERTY(mf_min_ipchi2_t, "mf_min_ipchi2", "minimum track IP chi2", float) mf_min_ipchi2;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
-  __global__ void muon_filter(Parameters);
+  __global__ void muon_filter(Parameters, const float min_pt, const float min_ipchi2);
 
   struct muon_filter_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -62,8 +59,8 @@ namespace MuonFilter {
       const Allen::Context& context) const;
 
   private:
-    Property<mf_min_pt_t> m_minpt {this, 800.f};
-    Property<mf_min_ipchi2_t> m_minipchi2 {this, 16.f};
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<float> m_minpt {this, "mf_min_pt", 800.f, "minimum track pT"};
+    Allen::Property<float> m_minipchi2 {this, "mf_min_ipchi2", 16.f, "minimum track IP chi2"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 } // namespace MuonFilter

@@ -46,7 +46,8 @@ expectedFiles=["fileCanvas.pdf", "IPforwardCanvas.pdf",
         "longForwardCanvas.pdf", "longMatchingCanvas.pdf",
         "occupancyCanvas.pdf", "PIDCanvas.pdf",
         "PIDkinCanvas.pdf", "PVcanvas.pdf",
-        "PVcovCanvas.pdf", "veloCanvas.pdf"]
+        "PVcovCanvas.pdf", "PVdistCanvas.pdf",
+	"IPresolutionCanvas.pdf", "veloCanvas.pdf"]
 
 for file in expectedFiles:
     if not os.path.exists(file):

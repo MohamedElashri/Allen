@@ -54,15 +54,6 @@ namespace make_subbanks {
     DEVICE_OUTPUT(dev_rb_hits_t, unsigned) dev_rb_hits;
     DEVICE_OUTPUT(dev_rb_objtyp_t, unsigned) dev_rb_objtyp;
     DEVICE_OUTPUT(dev_rb_stdinfo_t, unsigned) dev_rb_stdinfo;
-    // TODO: This needs to be the same as the properties in
-    // MakeSelectedObjectLists. These should be saved as constants somewhere.
-    PROPERTY(
-      max_children_per_object_t,
-      "max_children_per_object",
-      "Maximum number of children per selected object",
-      unsigned)
-    max_children_per_object;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __host__ __device__ void make_rb_substr_bank(
@@ -116,9 +107,9 @@ namespace make_subbanks {
     Allen::Views::Physics::NeutralBasicParticle* const* const event_calo_ptrs,
     Allen::Views::Physics::CompositeParticle* const* const event_sv_ptrs);
 
-  __global__ void make_rb_substr(Parameters, const unsigned number_of_events);
+  __global__ void make_rb_substr(Parameters, const unsigned, const unsigned);
 
-  __global__ void make_rb_hits(Parameters);
+  __global__ void make_rb_hits(Parameters, const unsigned);
 
   struct make_subbanks_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(
@@ -133,7 +124,12 @@ namespace make_subbanks {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{64, 1, 1}}};
-    Property<max_children_per_object_t> m_max_children_per_object {this, 4};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {64, 1, 1}, "block dimensions"};
+    // TODO: This needs to be the same as the properties in
+    // MakeSelectedObjectLists. These should be saved as constants somewhere.
+    Allen::Property<unsigned> m_max_children_per_object {this,
+                                                         "max_children_per_object",
+                                                         4,
+                                                         "Maximum number of children per selected object"};
   };
 } // namespace make_subbanks

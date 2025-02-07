@@ -17,13 +17,15 @@
 
 // Event Model
 #include "UTDefinitions.cuh"
-#include "NeuralNetwork.cuh"
+#include "SingleLayerFCNN.cuh"
 
 // Local
 #include "DownstreamExtrapolation.cuh"
 #include "DownstreamHelper.cuh"
 
 namespace downstream_vertexing {
+
+  using CompositeQualityEvaluator = Allen::MVAModels::SingleLayerFCNN<6, 32>;
   struct Parameters {
     // Basic
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -37,30 +39,24 @@ namespace downstream_vertexing {
     DEVICE_OUTPUT(dev_downstream_secondary_vertices_t, VertexFit::MiniVertex) dev_downstream_secondary_vertices;
     DEVICE_OUTPUT(dev_offsets_downstream_secondary_vertices_t, unsigned) dev_offsets_downstream_secondary_vertices;
     HOST_OUTPUT(host_number_of_downstream_secondary_vertices_t, unsigned) host_number_of_downstream_secondary_vertices;
-    // Property
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
-    // Cuts
-    PROPERTY(track_min_pt_both_t, "track_min_pt_both", "Minimum track pT required for both tracks.", float)
-    track_min_pt_both;
-    PROPERTY(track_min_pt_either_t, "track_min_pt_either", "Minimum track pT required for at least one track.", float)
-    track_min_pt_either;
-    PROPERTY(track_min_ip_both_t, "track_min_ip_both", "Minimum track IP required for both tracks.", float)
-    track_min_ip_both;
-    PROPERTY(track_min_ip_either_t, "track_min_ip_either", "Minimum track IP required for at least one track.", float)
-    track_min_ip_either;
-    PROPERTY(sum_pt_min_t, "sum_pt_min", "Minimum sum of track pT.", float) sum_pt_min;
-    PROPERTY(doca_max_t, "doca_max", "Maximum DOCA between tracks.", float) doca_max;
-    PROPERTY(min_vtx_z_t, "min_vtx_z", "Minimum z position of the vertex.", float) min_vtx_z;
-    PROPERTY(max_vtx_z_t, "max_vtx_z", "Maximum z position of the vertex.", float) max_vtx_z;
-    PROPERTY(min_quality_t, "min_quality", "Minimum MVA quality score.", float) min_quality;
-    PROPERTY(dihadron_t, "dihadron", "Filter leptons", bool) dihadron;
-    PROPERTY(combined_container_t, "combined_container", "Filter leptons", bool) combined_container;
-    PROPERTY(same_sign_reco_t, "same_sign_reco", "Filter leptons", bool) same_sign_reco;
   };
 
   template<bool same_sign_reco>
-  __global__ void
-  downstream_vertexing(Parameters, const float*, const Allen::NeuralNetwork::Model::DownstreaCompositeQuality*);
+  __global__ void downstream_vertexing(
+    Parameters,
+    const float*,
+    const CompositeQualityEvaluator::DeviceType*,
+    const float track_min_pt_both,
+    const float track_min_ip_both,
+    const bool dihadron,
+    const bool combined_container,
+    const float track_min_ip_either,
+    const float track_min_pt_either,
+    const float sum_pt_min,
+    const float doca_max,
+    const float min_vtx_z,
+    const float max_vtx_z,
+    const float min_quality);
 
   struct downstream_vertexing_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -72,19 +68,40 @@ namespace downstream_vertexing {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{16, 4, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {16, 4, 1}, "block dimensions"};
     // Cuts
-    Property<track_min_pt_both_t> m_minpt_both {this, 136.1f * Gaudi::Units::MeV};
-    Property<track_min_pt_either_t> m_minpt_either {this, 277.1f * Gaudi::Units::MeV};
-    Property<track_min_ip_both_t> m_minip_both {this, 64.7f * Gaudi::Units::mm};
-    Property<track_min_ip_either_t> m_minip_either {this, 64.7f * Gaudi::Units::mm};
-    Property<sum_pt_min_t> m_minsumpt {this, 471.8f * Gaudi::Units::MeV};
-    Property<doca_max_t> m_maxdoca {this, 19.1f * Gaudi::Units::mm};
-    Property<min_vtx_z_t> m_min_vtx_z {this, 54.5f * Gaudi::Units::mm};
-    Property<max_vtx_z_t> m_max_vtx_z {this, 2484.6f * Gaudi::Units::mm};
-    Property<min_quality_t> m_min_quality {this, 0.1};
-    Property<dihadron_t> m_dihadron {this, true};
-    Property<combined_container_t> m_combined_container {this, false};
-    Property<same_sign_reco_t> m_same_sign_reco {this, false};
+    Allen::Property<float> m_minpt_both {this,
+                                         "track_min_pt_both",
+                                         136.1f * Gaudi::Units::MeV,
+                                         "Minimum track pT required for both tracks."};
+    Allen::Property<float> m_minpt_either {this,
+                                           "track_min_pt_either",
+                                           277.1f * Gaudi::Units::MeV,
+                                           "Minimum track pT required for at least one track."};
+    Allen::Property<float> m_minip_both {this,
+                                         "track_min_ip_both",
+                                         64.7f * Gaudi::Units::mm,
+                                         "Minimum track IP required for both tracks."};
+    Allen::Property<float> m_minip_either {this,
+                                           "track_min_ip_either",
+                                           64.7f * Gaudi::Units::mm,
+                                           "Minimum track IP required for at least one track."};
+    Allen::Property<float> m_minsumpt {this, "sum_pt_min", 471.8f * Gaudi::Units::MeV, "Minimum sum of track pT."};
+    Allen::Property<float> m_maxdoca {this, "doca_max", 19.1f * Gaudi::Units::mm, "Maximum DOCA between tracks."};
+    Allen::Property<float> m_min_vtx_z {this,
+                                        "min_vtx_z",
+                                        54.5f * Gaudi::Units::mm,
+                                        "Minimum z position of the vertex."};
+    Allen::Property<float> m_max_vtx_z {this,
+                                        "max_vtx_z",
+                                        2484.6f * Gaudi::Units::mm,
+                                        "Maximum z position of the vertex."};
+    Allen::Property<float> m_min_quality {this, "min_quality", 0.1, "Minimum MVA quality score."};
+    Allen::Property<bool> m_dihadron {this, "dihadron", true, "Filter leptons"};
+    Allen::Property<bool> m_combined_container {this, "combined_container", false, "Filter leptons"};
+    Allen::Property<bool> m_same_sign_reco {this, "same_sign_reco", false, "Filter leptons"};
+
+    CompositeQualityEvaluator composite_quality_nn {"composite_quality_nn",
+                                                    "/HLT1Downstream/Hlt1_Downstream_Composite_Quality.json"};
   };
 } // namespace downstream_vertexing

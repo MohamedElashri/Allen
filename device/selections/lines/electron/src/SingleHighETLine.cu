@@ -40,12 +40,13 @@ __device__ std::tuple<const float> single_high_et_line::single_high_et_line_t::g
 
 // Selection function
 __device__ bool single_high_et_line::single_high_et_line_t::select(
-  const Parameters& parameters,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const float> input)
 {
   const float calo_ET = std::get<0>(input);
 
-  const bool decision = (calo_ET > parameters.minET);
+  const bool decision = (calo_ET > properties.minET);
 
   return decision;
 }

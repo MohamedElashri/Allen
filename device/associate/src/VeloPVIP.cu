@@ -32,7 +32,7 @@ void velo_pv_ip::velo_pv_ip_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  global_function(velo_pv_ip)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(arguments);
+  global_function(velo_pv_ip)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
 }
 
 namespace Distance {

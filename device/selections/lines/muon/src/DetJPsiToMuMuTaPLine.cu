@@ -6,30 +6,30 @@
 INSTANTIATE_LINE(det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t, det_jpsitomumu_tap_line::Parameters)
 
 __device__ bool det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::select(
-  const Parameters& parameters,
-  const DeviceAccumulators&,
+  const Parameters&,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input)
 {
   const auto jpsi = std::get<0>(input);
 
-  if (jpsi.fdchi2() < parameters.JpsiMinFDChi2) return false;
-  if (jpsi.mdimu() < parameters.JpsiMinMass || jpsi.mdimu() > parameters.JpsiMaxMass) return false;
+  if (jpsi.fdchi2() < properties.JpsiMinFDChi2) return false;
+  if (jpsi.mdimu() < properties.JpsiMinMass || jpsi.mdimu() > properties.JpsiMaxMass) return false;
   if (jpsi.charge() != 0) return false;
 
   const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(jpsi.child(0));
   const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(jpsi.child(1));
 
-  const auto mutag = parameters.posTag ? (track1->state().charge() > 0 ? track1 : track2) :
+  const auto mutag = properties.posTag ? (track1->state().charge() > 0 ? track1 : track2) :
                                          (track1->state().charge() > 0 ? track2 : track1);
-  const auto muprobe = parameters.posTag ? (track1->state().charge() > 0 ? track2 : track1) :
+  const auto muprobe = properties.posTag ? (track1->state().charge() > 0 ? track2 : track1) :
                                            (track1->state().charge() > 0 ? track1 : track2);
 
-  bool decision = jpsi.vertex().chi2() > 0 && jpsi.vertex().chi2() < parameters.JpsiMaxVChi2 &&
-                  jpsi.vertex().pt() > parameters.JpsiMinPt && jpsi.vertex().z() >= parameters.JpsiMinZ &&
-                  jpsi.doca12() < parameters.JpsiMaxDoca && jpsi.dira() > parameters.JpsiMinCosDira &&
-                  mutag->is_muon() && mutag->state().p() > parameters.mutagMinP &&
-                  mutag->state().pt() > parameters.mutagMinPt && mutag->ip_chi2() > parameters.mutagMinIPChi2 &&
-                  muprobe->ip_chi2() > parameters.muprobeMinIPChi2 && muprobe->state().p() > parameters.muprobeMinP;
+  bool decision = jpsi.vertex().chi2() > 0 && jpsi.vertex().chi2() < properties.JpsiMaxVChi2 &&
+                  jpsi.vertex().pt() > properties.JpsiMinPt && jpsi.vertex().z() >= properties.JpsiMinZ &&
+                  jpsi.doca12() < properties.JpsiMaxDoca && jpsi.dira() > properties.JpsiMinCosDira &&
+                  mutag->is_muon() && mutag->state().p() > properties.mutagMinP &&
+                  mutag->state().pt() > properties.mutagMinPt && mutag->ip_chi2() > properties.mutagMinIPChi2 &&
+                  muprobe->ip_chi2() > properties.muprobeMinIPChi2 && muprobe->state().p() > properties.muprobeMinP;
   return decision;
 }
 
@@ -37,7 +37,7 @@ __device__ bool det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::select(
 
 __device__ void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::monitor(
   const Parameters&,
-  const DeviceAccumulators& accumulators,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned,
   bool sel)
@@ -45,12 +45,13 @@ __device__ void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::monitor(
   if (sel) {
     const auto jpsi = std::get<0>(input);
     const auto m = jpsi.mdimu();
-    accumulators.histogram_det_jpsitomumu_tap_mass.increment(m);
+    properties.histogram_det_jpsitomumu_tap_mass.increment(m);
   }
 }
 
 __device__ void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::fill_tuples(
   const Parameters& parameters,
+  const DeviceProperties& properties,
   std::tuple<const Allen::Views::Physics::CompositeParticle> input,
   unsigned index,
   bool sel)
@@ -60,9 +61,9 @@ __device__ void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::fill_tuples(
   const auto track1 = static_cast<const Allen::Views::Physics::BasicParticle*>(jpsi.child(0));
   const auto track2 = static_cast<const Allen::Views::Physics::BasicParticle*>(jpsi.child(1));
 
-  const auto mutag = parameters.posTag ? (track1->state().charge() > 0 ? track1 : track2) :
+  const auto mutag = properties.posTag ? (track1->state().charge() > 0 ? track1 : track2) :
                                          (track1->state().charge() > 0 ? track2 : track1);
-  const auto muprobe = parameters.posTag ? (track1->state().charge() > 0 ? track2 : track1) :
+  const auto muprobe = properties.posTag ? (track1->state().charge() > 0 ? track2 : track1) :
                                            (track1->state().charge() > 0 ? track1 : track2);
 
   if (1) {

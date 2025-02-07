@@ -34,14 +34,38 @@ void downstream_vertexing::downstream_vertexing_t::operator()(
   Allen::memset_async<dev_downstream_secondary_vertices_t>(arguments, 0, context);
   Allen::memset_async<dev_offsets_downstream_secondary_vertices_t>(arguments, 0, context);
 
-  if (property<same_sign_reco_t>())
-    global_function(downstream_vertexing<true>)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-      arguments, constants.dev_magnet_polarity.data(), constants.dev_downstream_composite_quality_evaluator);
+  if (m_same_sign_reco.value())
+    global_function(downstream_vertexing<true>)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+      arguments,
+      constants.dev_magnet_polarity.data(),
+      composite_quality_nn.getDevicePointer(),
+      m_minpt_both,
+      m_minip_both,
+      m_dihadron.value(),
+      m_combined_container.value(),
+      m_minip_either,
+      m_minpt_either,
+      m_minsumpt,
+      m_maxdoca,
+      m_min_vtx_z,
+      m_max_vtx_z,
+      m_min_quality);
   else
-    global_function(downstream_vertexing<false>)(
-      dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-      arguments, constants.dev_magnet_polarity.data(), constants.dev_downstream_composite_quality_evaluator);
+    global_function(downstream_vertexing<false>)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+      arguments,
+      constants.dev_magnet_polarity.data(),
+      composite_quality_nn.getDevicePointer(),
+      m_minpt_both,
+      m_minip_both,
+      m_dihadron.value(),
+      m_combined_container.value(),
+      m_minip_either,
+      m_minpt_either,
+      m_minsumpt,
+      m_maxdoca,
+      m_min_vtx_z,
+      m_max_vtx_z,
+      m_min_quality);
 
   PrefixSum::prefix_sum<dev_offsets_downstream_secondary_vertices_t, host_number_of_downstream_secondary_vertices_t>(
     *this, arguments, context);
@@ -131,7 +155,18 @@ template<bool same_sign_reco>
 __global__ void downstream_vertexing::downstream_vertexing(
   downstream_vertexing::Parameters parameters,
   const float* dev_magnet_polarity,
-  const Allen::NeuralNetwork::Model::DownstreaCompositeQuality* dev_downstream_composite_quality_evaluator)
+  const CompositeQualityEvaluator::DeviceType* dev_downstream_composite_quality_evaluator,
+  const float track_min_pt_both,
+  const float track_min_ip_both,
+  const bool dihadron,
+  const bool combined_container,
+  const float track_min_ip_either,
+  const float track_min_pt_either,
+  const float sum_pt_min,
+  const float doca_max,
+  const float min_vtx_z,
+  const float max_vtx_z,
+  const float min_quality)
 {
   // Basic
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -150,11 +185,11 @@ __global__ void downstream_vertexing::downstream_vertexing(
   const auto bdim = blockDim.x * blockDim.y;
   for (unsigned i = tid; i < num_downstream_particles; i += bdim) {
     const auto& downstream_particle = *downstream_particles.particle_pointer(i);
-    const auto selection = (downstream_particle.state().pt() > parameters.track_min_pt_both.get()) &&
-                           (downstream_particle.ownpv_ip() > parameters.track_min_ip_both.get()) &&
-                           ((parameters.dihadron && !downstream_particle.is_lepton()) ||
-                            (!parameters.dihadron && downstream_particle.is_lepton()) || parameters.combined_container);
-    //  ((parameters.dihadron && !downstream_particle.is_lepton()) || (!parameters.dihadron));
+    const auto selection = (downstream_particle.state().pt() > track_min_pt_both) &&
+                           (downstream_particle.ownpv_ip() > track_min_ip_both) &&
+                           ((dihadron && !downstream_particle.is_lepton()) ||
+                            (!dihadron && downstream_particle.is_lepton()) || combined_container);
+    //  ((dihadron && !downstream_particle.is_lepton()) || (!dihadron));
 
     particle_selection[i] = !selection ? 0 : downstream_particle.state().charge() > 0 ? 1 : 3;
   }
@@ -192,8 +227,8 @@ __global__ void downstream_vertexing::downstream_vertexing(
       const auto max_ip = Aip > Bip ? Aip : Bip;
 
       // Selection on combination
-      const auto selection = (max_ip > parameters.track_min_ip_either) && (max_pt > parameters.track_min_ip_either) &&
-                             ((Apt + Bpt) > parameters.sum_pt_min.get());
+      const auto selection =
+        (max_ip > track_min_ip_either) && (max_pt > track_min_pt_either) && ((Apt + Bpt) > sum_pt_min);
       if (!selection) continue;
 
       // Fit sv
@@ -206,8 +241,7 @@ __global__ void downstream_vertexing::downstream_vertexing(
       const auto doca = sqrtf(vtx.dx2 + vtx.dy2);
 
       // Filter divergent composites
-      const auto vertex_selection = (doca < parameters.doca_max.get()) && (doca > 0) &&
-                                    (vtx.z > parameters.min_vtx_z.get()) && (vtx.z < parameters.max_vtx_z.get());
+      const auto vertex_selection = (doca < doca_max) && (doca > 0) && (vtx.z > min_vtx_z) && (vtx.z < max_vtx_z);
       if (!vertex_selection) continue;
 
       // Compute the momentum
@@ -233,10 +267,9 @@ __global__ void downstream_vertexing::downstream_vertexing(
       // const auto eta = asinhf(pz / hypotf(px, py));
 
       // Make the composite quality and filter very bad quality composites
-      float inputs[Allen::NeuralNetwork::Model::DownstreaCompositeQuality::nInput] {
-        vtx.x, vtx.y, vtx.z, px / pz, py / pz, doca};
-      const auto quality_score = Allen::NeuralNetwork::evaluate(dev_downstream_composite_quality_evaluator, inputs);
-      if (quality_score < parameters.min_quality.get()) continue;
+      float inputs[CompositeQualityEvaluator::DeviceType::nInput] {vtx.x, vtx.y, vtx.z, px / pz, py / pz, doca};
+      const auto quality_score = dev_downstream_composite_quality_evaluator->evaluate(inputs);
+      if (quality_score < min_quality) continue;
 
       // Compute Armenteros Podolansky plot for monitoring
       const auto p = sqrtf(px * px + py * py + pz * pz);

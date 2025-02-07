@@ -36,23 +36,21 @@ namespace compass_ut {
     DEVICE_OUTPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
     DEVICE_OUTPUT(dev_offsets_ut_tracks_t, unsigned) dev_offsets_ut_tracks;
     HOST_OUTPUT(host_number_of_reconstructed_ut_tracks_t, unsigned) host_number_of_reconstructed_ut_tracks;
-
-    PROPERTY(sigma_velo_slope_t, "sigma_velo_slope", "sigma velo slope [radians]", float) sigma_velo_slope;
-    PROPERTY(min_momentum_final_t, "min_momentum_final", "final min momentum cut [MeV/c]", float) min_momentum_final;
-    PROPERTY(min_pt_final_t, "min_pt_final", "final min pT cut [MeV/c]", float) min_pt_final;
-    PROPERTY(hit_tol_2_t, "hit_tol_2", "hit_tol_2 [mm]", float) hit_tol_2;
-    PROPERTY(delta_tx_2_t, "delta_tx_2", "delta_tx_2", float) delta_tx_2;
-    PROPERTY(max_considered_before_found_t, "max_considered_before_found", "max_considered_before_found", unsigned)
-    max_considered_before_found;
-    PROPERTY(min_ld_3_hit_t, "min_ld_3_hit", "min_ld_3_hit", float) min_ld_3_hit;
-    PROPERTY(min_ld_4_hit_t, "min_ld_4_hit", "min_ld_4_hit", float) min_ld_4_hit;
   };
 
   __global__ void compass_ut(
     Parameters,
     UTMagnetTool* dev_ut_magnet_tool,
     const float* dev_magnet_polarity,
-    const unsigned* dev_unique_x_sector_layer_offsets);
+    const unsigned* dev_unique_x_sector_layer_offsets,
+    const float min_momentum_final,
+    const float min_pt_final,
+    const unsigned max_considered_before_found,
+    const float delta_tx_2,
+    const float hit_tol_2,
+    const float sigma_velo_slope,
+    const float min_ld_3_hit,
+    const float min_ld_4_hit);
 
   struct compass_ut_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
@@ -64,13 +62,16 @@ namespace compass_ut {
       const Allen::Context& context) const;
 
   private:
-    Property<sigma_velo_slope_t> m_slope {this, 0.1f * Gaudi::Units::mrad};
-    Property<min_momentum_final_t> m_mom_fin {this, 2500.f};
-    Property<min_pt_final_t> m_pt_fin {this, 425.f};
-    Property<hit_tol_2_t> m_hit_tol_2 {this, 0.8f * Gaudi::Units::mm};
-    Property<delta_tx_2_t> m_delta_tx_2 {this, 0.018f};
-    Property<max_considered_before_found_t> m_max_considered_before_found {this, 6};
-    Property<min_ld_3_hit_t> m_min_ld_3_hit {this, -0.5f};
-    Property<min_ld_4_hit_t> m_min_ld_4_hit {this, -0.5f};
+    Allen::Property<float> m_slope {this, "sigma_velo_slope", 0.1f * Gaudi::Units::mrad, "sigma velo slope [radians]"};
+    Allen::Property<float> m_mom_fin {this, "min_momentum_final", 2500.f, "final min momentum cut [MeV/c]"};
+    Allen::Property<float> m_pt_fin {this, "min_pt_final", 425.f, "final min pT cut [MeV/c]"};
+    Allen::Property<float> m_hit_tol_2 {this, "hit_tol_2", 0.8f * Gaudi::Units::mm, "hit_tol_2 [mm]"};
+    Allen::Property<float> m_delta_tx_2 {this, "delta_tx_2", 0.018f, "delta_tx_2"};
+    Allen::Property<unsigned> m_max_considered_before_found {this,
+                                                             "max_considered_before_found",
+                                                             6,
+                                                             "max_considered_before_found"};
+    Allen::Property<float> m_min_ld_3_hit {this, "min_ld_3_hit", -0.5f, "min_ld_3_hit"};
+    Allen::Property<float> m_min_ld_4_hit {this, "min_ld_4_hit", -0.5f, "min_ld_4_hit"};
   };
 } // namespace compass_ut

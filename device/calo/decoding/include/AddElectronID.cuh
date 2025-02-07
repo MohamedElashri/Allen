@@ -24,7 +24,6 @@ namespace add_electron_id {
     DEVICE_INPUT(dev_is_electron_t, bool) dev_is_electron;
     DEVICE_OUTPUT(dev_kf_tracks_with_electron_id_t, ParKalmanFilter::FittedTrack)
     dev_kf_tracks_with_electron_id;
-    PROPERTY(block_dim_t, "block_dim", "block dimensions", DeviceDimensions) block_dim;
   };
 
   __global__ void add_electron_id(Parameters parameters);
@@ -39,7 +38,7 @@ namespace add_electron_id {
       const Allen::Context& context) const;
 
   private:
-    Property<block_dim_t> m_block_dim {this, {{256, 1, 1}}};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
 
 } // namespace add_electron_id

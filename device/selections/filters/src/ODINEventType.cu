@@ -24,14 +24,18 @@ void odin_eventtype::odin_eventtype_t::set_arguments_size(
   set_size<dev_event_list_output_t>(arguments, size<dev_event_list_t>(arguments));
 }
 
-__global__ void odin_eventtype_kernel(odin_eventtype::Parameters parameters, const unsigned number_of_events)
+__global__ void odin_eventtype_kernel(
+  odin_eventtype::Parameters parameters,
+  const unsigned number_of_events,
+  const bool invert,
+  const uint16_t event_type)
 {
 
   for (unsigned idx = threadIdx.x; idx < number_of_events; idx += blockDim.x) {
     const unsigned event_number = parameters.dev_event_list[idx];
     const unsigned event = LHCb::ODIN {parameters.dev_odin_data[event_number]}.eventType();
 
-    if ((event & parameters.event_type) != parameters.invert) {
+    if ((event & event_type) != invert) {
       const auto current_event = atomicAdd(parameters.dev_number_of_selected_events.data(), 1);
       parameters.dev_event_list_output[current_event] = mask_t {event_number};
     }
@@ -48,8 +52,8 @@ void odin_eventtype::odin_eventtype_t::operator()(
   Allen::memset_async<host_number_of_selected_events_t>(arguments, 0, context);
   Allen::memset_async<dev_event_list_output_t>(arguments, 0, context);
 
-  global_function(odin_eventtype_kernel)(dim3(1), dim3(property<block_dim_x_t>().get()), context)(
-    arguments, size<dev_event_list_t>(arguments));
+  global_function(odin_eventtype_kernel)(dim3(1), dim3(m_block_dim_x), context)(
+    arguments, size<dev_event_list_t>(arguments), m_invert.value(), m_event_type);
 
   Allen::copy<host_number_of_selected_events_t, dev_number_of_selected_events_t>(arguments, context);
   reduce_size<dev_event_list_output_t>(arguments, first<host_number_of_selected_events_t>(arguments));

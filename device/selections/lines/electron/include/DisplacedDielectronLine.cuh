@@ -28,20 +28,6 @@ namespace displaced_dielectron_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    // Properties
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(MinIPChi2_t, "MinIPChi2", "Min IP Chi2", float) minIPChi2;
-    PROPERTY(MaxDOCA_t, "MaxDOCA", "Max DOCA", float) maxDOCA;
-    PROPERTY(MinPT_t, "MinPT", "Min PT", float) minPT;
-    PROPERTY(MaxVtxChi2_t, "MaxVtxChi2", "Max vertex chi2", float) maxVtxChi2;
-    PROPERTY(MinZ_t, "MinZ", "Min z dielectron coordinate", float) minZ;
-    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dielectron combinations", bool) OppositeSign;
-
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
-
     DEVICE_OUTPUT(pt_t, float) pt;
     DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
@@ -51,15 +37,30 @@ namespace displaced_dielectron_line {
   struct displaced_dielectron_line_t : public SelectionAlgorithm,
                                        Parameters,
                                        CompositeParticleLine<displaced_dielectron_line_t, Parameters> {
+
+    struct DeviceProperties {
+      float minIPChi2;
+      float maxDOCA;
+      float minPT;
+      float maxVtxChi2;
+      float minZ;
+      bool oppositeSign;
+      DeviceProperties(const displaced_dielectron_line_t& algo, const Allen::Context&) :
+        minIPChi2(algo.m_MinIPChi2), maxDOCA(algo.m_MaxDOCA), minPT(algo.m_MinPT), maxVtxChi2(algo.m_MaxVtxChi2),
+        minZ(algo.m_MinZ), oppositeSign(algo.m_opposite_sign)
+      {}
+    };
     __device__ static bool select(
       const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
 
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
     __device__ static void fill_tuples(
-      const Parameters& parameters,
+      const Parameters&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
@@ -67,17 +68,12 @@ namespace displaced_dielectron_line {
     using monitoring_types = std::tuple<pt_t, ipchi2_t, evtNo_t, runNo_t>;
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
     // Displaced dielectron selections.
-    Property<MinIPChi2_t> m_MinIPChi2 {this, 7.4f};
-    Property<MaxDOCA_t> m_MaxDOCA {this, 0.082f};
-    Property<MinPT_t> m_MinPT {this, 500.f};
-    Property<MaxVtxChi2_t> m_MaxVtxChi2 {this, 7.4f};
-    Property<MinZ_t> m_MinZ {this, -341.f * Gaudi::Units::mm};
-    Property<OppositeSign_t> m_opposite_sign {this, true};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_MinIPChi2 {this, "MinIPChi2", 7.4f, "Min IP Chi2"};
+    Allen::Property<float> m_MaxDOCA {this, "MaxDOCA", 0.082f, "Max DOCA"};
+    Allen::Property<float> m_MinPT {this, "MinPT", 500.f, "Min PT"};
+    Allen::Property<float> m_MaxVtxChi2 {this, "MaxVtxChi2", 7.4f, "Max vertex chi2"};
+    Allen::Property<float> m_MinZ {this, "MinZ", -341.f * Gaudi::Units::mm, "Min z dielectron coordinate"};
+    Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dielectron combinations"};
   };
 } // namespace displaced_dielectron_line

@@ -66,8 +66,16 @@ void lf_search_initial_windows::lf_search_initial_windows_t::operator()(
   Allen::memset_async<dev_scifi_lf_initial_windows_t>(arguments, 0, context);
   Allen::memset_async<dev_scifi_lf_number_of_tracks_t>(arguments, 0, context);
 
-  global_function(lf_search_initial_windows)(dim3(size<dev_event_list_t>(arguments)), property<block_dim_t>(), context)(
-    arguments, constants.dev_looking_forward_constants, constants.dev_magnet_polarity.data());
+  global_function(lf_search_initial_windows)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
+    arguments,
+    constants.dev_looking_forward_constants,
+    constants.dev_magnet_polarity.data(),
+    m_input_pt,
+    m_input_momentum,
+    m_hit_window_size,
+    m_initial_windows_max_offset_uv_window,
+    m_x_windows_factor,
+    m_overlap_in_mm);
 }
 
 template<bool with_ut, typename T>
@@ -75,7 +83,13 @@ __device__ void search_windows(
   const lf_search_initial_windows::Parameters& parameters,
   const LookingForward::Constants* dev_looking_forward_constants,
   const float* dev_magnet_polarity,
-  const T* tracks)
+  const T* tracks,
+  const float input_pt,
+  const float input_momentum,
+  const int hit_window_size,
+  const float initial_windows_max_offset_uv_window,
+  const float x_windows_factor,
+  const float overlap_in_mm)
 {
 
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
@@ -135,12 +149,10 @@ __device__ void search_windows(
         const float input_tx = velo_state.tx();
         const float input_ty = velo_state.ty();
         // if I assume pt = 1 GeV , then I can calculate p from tx and ty of the Velo input track
-        const float momentum_from_pt =
-          parameters.input_pt / cosf(atanf(1 / sqrtf(input_tx * input_tx + input_ty * input_ty)));
+        const float momentum_from_pt = input_pt / cosf(atanf(1 / sqrtf(input_tx * input_tx + input_ty * input_ty)));
         // here I pick the tighter cut (higher momentum) between the two
-        const float input_qop_value = fabsf(1 / parameters.input_momentum) > fabsf(1 / momentum_from_pt) ?
-                                        1 / momentum_from_pt :
-                                        1 / parameters.input_momentum;
+        const float input_qop_value =
+          fabsf(1 / input_momentum) > fabsf(1 / momentum_from_pt) ? 1 / momentum_from_pt : 1 / input_momentum;
         return input_qop_value;
       }
     }();
@@ -223,11 +235,9 @@ __device__ void search_windows(
           xMax);
 
         // Cap the central windows to a certain size
-        const int central_window_begin =
-          max(hits_within_bounds_xInZone - static_cast<int>(parameters.hit_window_size) / 2, 0);
+        const int central_window_begin = max(hits_within_bounds_xInZone - static_cast<int>(hit_window_size) / 2, 0);
         const int central_window_size =
-          min(central_window_begin + static_cast<int>(parameters.hit_window_size), hits_within_bounds_size) -
-          central_window_begin;
+          min(central_window_begin + static_cast<int>(hit_window_size), hits_within_bounds_size) - central_window_begin;
 
         // Initialize windows
         initial_windows[i * number_of_elements_initial_window * total_number_of_tracks] =
@@ -246,8 +256,8 @@ __device__ void search_windows(
           const float UvCorr = LookingForward::y_at_z(stateInZone, this_uv_z) * geom::dev_average_dxdy[i];
 
           const float xInUvCorr = xInUv - UvCorr;
-          const float xMinUV = xInUvCorr - parameters.initial_windows_max_offset_uv_window;
-          const float xMaxUV = xInUvCorr + parameters.initial_windows_max_offset_uv_window;
+          const float xMinUV = xInUvCorr - initial_windows_max_offset_uv_window;
+          const float xMaxUV = xInUvCorr + initial_windows_max_offset_uv_window;
           // Get bounds in UV layers
           // do one search on the same side as the x module
           const int uv_zone_offset_begin = scifi_hit_count.zone_offset(dev_looking_forward_constants->uvZones[iZone]);
@@ -292,8 +302,8 @@ __device__ void search_windows(
                                               dev_looking_forward_constants->toSciFiExtParams[7] * minInvPGeV));
 
         // window shutters for case without momentum estimate, i.e. velo tracks as input
-        float dxMin = -minPBorder * parameters.x_windows_factor;
-        float dxMax = minPBorder * parameters.x_windows_factor;
+        float dxMin = -minPBorder * x_windows_factor;
+        float dxMax = minPBorder * x_windows_factor;
         float xMin, xMax;
 
         xMin = xInZone + dxMin;
@@ -314,23 +324,22 @@ __device__ void search_windows(
         const int hits_within_bounds_xInZone_left = binary_search_leftmost(
           scifi_hits.x0_p(x_zone_offset_begin + hits_within_bounds_start),
           x_zone_size - hits_within_bounds_start,
-          xInZone - parameters.overlap_in_mm);
+          xInZone - overlap_in_mm);
         const int hits_within_bounds_xInZone_right = binary_search_leftmost(
           scifi_hits.x0_p(x_zone_offset_begin + hits_within_bounds_start),
           x_zone_size - hits_within_bounds_start,
-          xInZone + parameters.overlap_in_mm);
+          xInZone + overlap_in_mm);
 
         // Cap the central windows to a certain size
-        // the beginning of the left window is center + overlap - parameters.hit_window_size
+        // the beginning of the left window is center + overlap - hit_window_size
         const int central_window_begin_left =
-          max(hits_within_bounds_xInZone_right - static_cast<int>(parameters.hit_window_size), 0);
+          max(hits_within_bounds_xInZone_right - static_cast<int>(hit_window_size), 0);
         // the beginning of the right window is center - overlap
         const int central_window_begin_right = max(hits_within_bounds_xInZone_left, 0);
 
-        const int central_window_size_left =
-          min(static_cast<int>(parameters.hit_window_size), hits_within_bounds_xInZone_right);
+        const int central_window_size_left = min(static_cast<int>(hit_window_size), hits_within_bounds_xInZone_right);
         const int central_window_size_right =
-          min(static_cast<int>(parameters.hit_window_size), hits_within_bounds_size - hits_within_bounds_xInZone_left);
+          min(static_cast<int>(hit_window_size), hits_within_bounds_size - hits_within_bounds_xInZone_left);
 
         // Initialize windows
         // left
@@ -357,8 +366,8 @@ __device__ void search_windows(
           const float xInUv = LookingForward::linear_propagation(xInZone, stateInZone.tx(), dz);
           const float UvCorr = LookingForward::y_at_z(stateInZone, this_uv_z) * geom::dev_average_dxdy[i];
           const float xInUvCorr = xInUv - UvCorr;
-          const float xMinUV = xInUvCorr - parameters.initial_windows_max_offset_uv_window;
-          const float xMaxUV = xInUvCorr + parameters.initial_windows_max_offset_uv_window;
+          const float xMinUV = xInUvCorr - initial_windows_max_offset_uv_window;
+          const float xMaxUV = xInUvCorr + initial_windows_max_offset_uv_window;
 
           // Get bounds in UV layers
           // do one search on the same side as the x module
@@ -374,23 +383,23 @@ __device__ void search_windows(
           const int hits_within_bounds_xInUV_left = binary_search_leftmost(
             scifi_hits.x0_p(uv_zone_offset_begin + hits_within_uv_bounds),
             uv_zone_size - hits_within_uv_bounds,
-            xInUvCorr - parameters.overlap_in_mm);
+            xInUvCorr - overlap_in_mm);
           const int hits_within_bounds_xInUV_right = binary_search_leftmost(
             scifi_hits.x0_p(uv_zone_offset_begin + hits_within_uv_bounds),
             uv_zone_size - hits_within_uv_bounds,
-            xInUvCorr + parameters.overlap_in_mm);
+            xInUvCorr + overlap_in_mm);
 
           // Cap the central windows to a certain size
-          // the beginning of the left window is center + overlap - parameters.hit_window_size
+          // the beginning of the left window is center + overlap - hit_window_size
           const int central_uv_window_begin_left =
-            max(hits_within_bounds_xInUV_right - static_cast<int>(parameters.hit_window_size), 0);
+            max(hits_within_bounds_xInUV_right - static_cast<int>(hit_window_size), 0);
           // the beginning of the right window is center - overlap
           const int central_uv_window_begin_right = max(hits_within_bounds_xInUV_left, 0);
 
           const int central_uv_window_size_left =
-            min(static_cast<int>(parameters.hit_window_size), hits_within_bounds_xInUV_right);
-          const int central_uv_window_size_right = min(
-            static_cast<int>(parameters.hit_window_size), hits_within_uv_bounds_size - hits_within_bounds_xInUV_left);
+            min(static_cast<int>(hit_window_size), hits_within_bounds_xInUV_right);
+          const int central_uv_window_size_right =
+            min(static_cast<int>(hit_window_size), hits_within_uv_bounds_size - hits_within_bounds_xInUV_left);
 
           initial_windows[(i * number_of_elements_initial_window + 4) * total_number_of_tracks] =
             hits_within_uv_bounds + uv_zone_offset_begin - event_offset + central_uv_window_begin_left;
@@ -430,16 +439,42 @@ __device__ void search_windows(
 __global__ void lf_search_initial_windows::lf_search_initial_windows(
   lf_search_initial_windows::Parameters parameters,
   const LookingForward::Constants* dev_looking_forward_constants,
-  const float* dev_magnet_polarity)
+  const float* dev_magnet_polarity,
+  const float input_pt,
+  const float input_momentum,
+  const int hit_window_size,
+  const float initial_windows_max_offset_uv_window,
+  const float x_windows_factor,
+  const float overlap_in_mm)
 {
   const auto* ut_tracks =
     Allen::dyn_cast<const Allen::Views::UT::Consolidated::MultiEventVeloUTTracks*>(*parameters.dev_tracks_view);
   if (ut_tracks) {
-    search_windows<true>(parameters, dev_looking_forward_constants, dev_magnet_polarity, ut_tracks);
+    search_windows<true>(
+      parameters,
+      dev_looking_forward_constants,
+      dev_magnet_polarity,
+      ut_tracks,
+      input_pt,
+      input_momentum,
+      hit_window_size,
+      initial_windows_max_offset_uv_window,
+      x_windows_factor,
+      overlap_in_mm);
   }
   else {
     const auto* velo_tracks =
       static_cast<const Allen::Views::Velo::Consolidated::MultiEventTracks*>(*parameters.dev_tracks_view);
-    search_windows<false>(parameters, dev_looking_forward_constants, dev_magnet_polarity, velo_tracks);
+    search_windows<false>(
+      parameters,
+      dev_looking_forward_constants,
+      dev_magnet_polarity,
+      velo_tracks,
+      input_pt,
+      input_momentum,
+      hit_window_size,
+      initial_windows_max_offset_uv_window,
+      x_windows_factor,
+      overlap_in_mm);
   }
 }

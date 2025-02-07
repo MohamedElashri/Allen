@@ -27,22 +27,6 @@ namespace di_muon_mass_line {
 
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
-    PROPERTY(pre_scaler_t, "pre_scaler", "Pre-scaling factor", float) pre_scaler;
-    PROPERTY(post_scaler_t, "post_scaler", "Post-scaling factor", float) post_scaler;
-    PROPERTY(pre_scaler_hash_string_t, "pre_scaler_hash_string", "Pre-scaling hash string", std::string);
-    PROPERTY(post_scaler_hash_string_t, "post_scaler_hash_string", "Post-scaling hash string", std::string);
-    PROPERTY(minHighMassTrackPt_t, "minHighMassTrackPt", "minHighMassTrackPt description", float) minHighMassTrackPt;
-    PROPERTY(minHighMassTrackP_t, "minHighMassTrackP", "minHighMassTrackP description", float) minHighMassTrackP;
-    PROPERTY(minMass_t, "minMass", "minMass description", float) minMass;
-    PROPERTY(maxDoca_t, "maxDoca", "maxDoca description", float) maxDoca;
-    PROPERTY(maxVertexChi2_t, "maxVertexChi2", "maxVertexChi2 description", float) maxVertexChi2;
-    PROPERTY(minIPChi2_t, "minIPChi2", "minIPChi2 description", float) minIPChi2;
-    PROPERTY(minZ_t, "minZ", "minimum vertex z coordinate", float) minZ;
-    PROPERTY(maxChi2Muon_t, "maxChi2Muon", "minimum Chi2Muon evaluation", float) maxChi2Muon;
-
-    PROPERTY(OppositeSign_t, "OppositeSign", "Selects opposite sign dimuon combinations", bool) OppositeSign;
-    PROPERTY(enable_monitoring_t, "enable_monitoring", "Enable line monitoring", bool) enable_monitoring;
-    PROPERTY(enable_tupling_t, "enable_tupling", "Enable line monitoring", bool) enable_tupling;
 
     DEVICE_OUTPUT(pt_t, float) pt;
     DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
@@ -54,10 +38,22 @@ namespace di_muon_mass_line {
   struct di_muon_mass_line_t : public SelectionAlgorithm,
                                Parameters,
                                CompositeParticleLine<di_muon_mass_line_t, Parameters> {
-    struct DeviceAccumulators {
+    struct DeviceProperties {
+      float minHighMassTrackPt;
+      float minHighMassTrackP;
+      float minMass;
+      float maxDoca;
+      float maxVertexChi2;
+      float minIPChi2;
+      float minZ;
+      float maxChi2Muon;
+      bool oppositeSign;
       Allen::Monitoring::Histogram<>::DeviceType histogram_Jpsi_mass;
-      DeviceAccumulators(const di_muon_mass_line_t& algo, const Allen::Context& ctx) :
-        histogram_Jpsi_mass(algo.m_histogram_Jpsi_mass.data(ctx))
+      DeviceProperties(const di_muon_mass_line_t& algo, const Allen::Context& ctx) :
+        minHighMassTrackPt(algo.m_minHighMassTrackPt), minHighMassTrackP(algo.m_minHighMassTrackP),
+        minMass(algo.m_minMass), maxDoca(algo.m_maxDoca), maxVertexChi2(algo.m_maxVertexChi2),
+        minIPChi2(algo.m_minIPChi2), minZ(algo.m_minZ), maxChi2Muon(algo.m_maxChi2Muon),
+        oppositeSign(algo.m_opposite_sign), histogram_Jpsi_mass(algo.m_histogram_Jpsi_mass.data(ctx))
       {}
     };
     __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float> static get_input(
@@ -66,16 +62,17 @@ namespace di_muon_mass_line {
       const unsigned i);
     __device__ static bool select(
       const Parameters&,
-      const DeviceAccumulators&,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
     __device__ static void monitor(
       const Parameters& parameters,
-      const DeviceAccumulators& accumulators,
+      const DeviceProperties& properties,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
     __device__ static void fill_tuples(
       const Parameters& parameters,
+      const DeviceProperties&,
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
@@ -83,21 +80,21 @@ namespace di_muon_mass_line {
     using monitoring_types = std::tuple<pt_t, ipchi2_t, muonchi2_t, evtNo_t, runNo_t>;
 
   private:
-    Property<pre_scaler_t> m_pre_scaler {this, 1.f};
-    Property<post_scaler_t> m_post_scaler {this, 1.f};
-    Property<pre_scaler_hash_string_t> m_pre_scaler_hash_string {this, ""};
-    Property<post_scaler_hash_string_t> m_post_scaler_hash_string {this, ""};
-    Property<minHighMassTrackPt_t> m_minHighMassTrackPt {this, 300.f / Gaudi::Units::MeV};
-    Property<minHighMassTrackP_t> m_minHighMassTrackP {this, 6000.f / Gaudi::Units::MeV};
-    Property<minMass_t> m_minMass {this, 2700.f / Gaudi::Units::MeV};
-    Property<maxDoca_t> m_maxDoca {this, 0.2f};
-    Property<maxVertexChi2_t> m_maxVertexChi2 {this, 25.0f};
-    Property<minIPChi2_t> m_minIPChi2 {this, 0.f};
-    Property<minZ_t> m_minZ {this, -341.f * Gaudi::Units::mm};
-    Property<maxChi2Muon_t> m_minChi2Muon {this, 1.8};
-    Property<OppositeSign_t> m_opposite_sign {this, true};
-    Property<enable_monitoring_t> m_enable_monitoring {this, false};
-    Property<enable_tupling_t> m_enable_tupling {this, false};
+    Allen::Property<float> m_minHighMassTrackPt {this,
+                                                 "minHighMassTrackPt",
+                                                 300.f / Gaudi::Units::MeV,
+                                                 "minHighMassTrackPt description"};
+    Allen::Property<float> m_minHighMassTrackP {this,
+                                                "minHighMassTrackP",
+                                                6000.f / Gaudi::Units::MeV,
+                                                "minHighMassTrackP description"};
+    Allen::Property<float> m_minMass {this, "minMass", 2700.f / Gaudi::Units::MeV, "minMass description"};
+    Allen::Property<float> m_maxDoca {this, "maxDoca", 0.2f, "maxDoca description"};
+    Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 25.0f, "maxVertexChi2 description"};
+    Allen::Property<float> m_minIPChi2 {this, "minIPChi2", 0.f, "minIPChi2 description"};
+    Allen::Property<float> m_minZ {this, "minZ", -341.f * Gaudi::Units::mm, "minimum vertex z coordinate"};
+    Allen::Property<float> m_maxChi2Muon {this, "maxChi2Muon", 1.8, "maximum Chi2Muon evaluation"};
+    Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dimuon combinations"};
 
     Allen::Monitoring::Histogram<> m_histogram_Jpsi_mass {this, "Jpsi_mass", "m(J/Psi)", {300u, 2896.f, 3296.f}};
   };
