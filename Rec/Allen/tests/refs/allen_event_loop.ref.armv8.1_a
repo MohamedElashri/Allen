@@ -77,8 +77,10 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_b3e43409          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |     10000 |     494739 |     49.474 |
-gather_selections                      INFO Number of counters : 97
+gather_selections                      INFO Number of counters : 99
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
+ | "Hlt1BGIPseudoPVsIRBeamBeamPass"                |         8 |
+ | "Hlt1BGIPseudoPVsIRBeamBeamRate"                |         8 |
  | "Hlt1ConeJet100GeVPass"                         |         1 |
  | "Hlt1ConeJet100GeVRate"                         |         1 |
  | "Hlt1D2KKPass"                                  |        15 |
@@ -325,8 +327,8 @@ fit_v0_secondary_vertices              INFO 1D histograms in directory "fit_v0_s
  | number_of_svs                                 | "NSVs"                                        |      10000 |     0.8562 | 1.8803     |      5.817 |     75.771 |
 gather_selections                      INFO 1D histograms in directory "gather_selections" : 2
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | line_passes                                   | "line passes"                                 |      17401 |      80.71 | 18.741     |   -0.77234 |   -0.46878 |
- | line_rates                                    | "line rates"                                  |        844 |     67.816 | 29.604     |   -0.60315 |    -1.2932 |
+ | line_passes                                   | "line passes"                                 |      17409 |     81.674 | 18.811     |   -0.79063 |   -0.37642 |
+ | line_rates                                    | "line rates"                                  |        852 |     68.203 | 30.131     |   -0.60128 |    -1.2685 |
 is_muon                                INFO 1D histograms in directory "is_muon" : 3
  | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_muons                                       | "# muons"                                     |     458865 |    0.10948 | 0.31224    |     2.5015 |     4.2573 |
