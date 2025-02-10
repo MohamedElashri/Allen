@@ -15,7 +15,7 @@
   <argument name="program"><text>python</text></argument>
   <argument name="args"><set>
     <text>${BINARYDUMPERSROOT}/options/allen.py</text>
-    <text>--monitoring-filename</text><text>mdf_input_hists.root</text>
+    <text>--monitoring-filename</text><text>mdf_input_hists_v4.root</text>
 	<text>--test-file-db-key</text><text>plume-raw-data-v4</text>
     <text>--sequence</text><text>${ALLEN_INSTALL_DIR}/constants/hlt1_pp_matching.json</text>
     <text>--events-per-slice</text><text>500</text>
