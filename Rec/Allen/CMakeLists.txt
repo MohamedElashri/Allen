@@ -53,7 +53,6 @@ gaudi_add_module(AllenWrapper
                    PVChecking
                    CheckClustering
                    SelChecking
-                   Monitoring
                    HostCombiners
                    EventModel
                    Gear
@@ -99,7 +98,6 @@ gaudi_add_module(AllenAlgorithms
                    HostEventModel
                    HostRoutingBits
                    LHCbEvent
-                   Monitoring
                    MuonCommon
                    NonEventData
                    PV_beamline

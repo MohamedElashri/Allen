@@ -732,7 +732,6 @@ target_link_libraries(AllenLib
     Kalman
     LHCbEvent
     Lumi
-    Monitoring
     Muon
     NonEventData
     PVChecking

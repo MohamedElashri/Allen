@@ -19,7 +19,6 @@
 
 #include <OutputHandler.h>
 #include <HostBuffersManager.cuh>
-#include <MonitorManager.h>
 #include <CheckerInvoker.h>
 #include <ROOTService.h>
 #include <MCRaw.h>
@@ -330,52 +329,6 @@ void run_stream(
         zmqSvc->send(control, first, send_flags::sndmore);
         zmqSvc->send(control, buf);
       }
-    }
-  }
-}
-
-/**
- * @brief      Receive filled HostBuffers from GPU
- *             threads and produce rate histograms
- *
- * @param      thread ID of this monitoring thread
- * @param      manager for the monitor objects
- * @param      index of the monitor objects to use for this thread
- *
- * @return     void
- */
-void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* monitor_manager, unsigned i_monitor)
-{
-  // Set thread name for easier debugging
-  auto thread_name = std::string {"monitoring_"} + std::to_string(mon_id);
-  set_current_thread_name(thread_name);
-
-  zmq::socket_t control = make_control(mon_id, zmqSvc);
-  zmq::pollitem_t items[] = {{control, 0, zmq::POLLIN, 0}};
-
-  while (true) {
-    // Check if there are messages
-    zmqSvc->poll(&items[0], 1, -1);
-
-    std::optional<size_t> buf_idx;
-    if (items[0].revents & zmq::POLLIN) {
-      auto msg = zmqSvc->receive<std::string>(control);
-      if (msg == "DONE") {
-        break;
-      }
-      else if (msg != "MONITOR") {
-        error_cout << "monitor thread " << mon_id << " received bad command: " << msg << "\n";
-      }
-      else {
-        buf_idx = zmqSvc->receive<size_t>(control);
-      }
-    }
-
-    if (buf_idx) {
-      monitor_manager->fill(i_monitor, *buf_idx);
-      zmqSvc->send(control, "MONITORED", send_flags::sndmore);
-      zmqSvc->send(control, *buf_idx, send_flags::sndmore);
-      zmqSvc->send(control, i_monitor);
     }
   }
 }

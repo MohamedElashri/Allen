@@ -68,19 +68,6 @@ size_t HostBuffersManager::assignBufferToFill()
   return b;
 }
 
-size_t HostBuffersManager::assignBufferToProcess()
-{
-  // FIXME required until nvcc supports C++17
-  // ideally, this fuction would return a std::optional<size_t>
-  if (filled_buffers.empty()) return SIZE_MAX;
-
-  auto b = filled_buffers.front();
-  filled_buffers.pop();
-
-  buffer_statuses[b] = BufferStatus::Processing;
-  return b;
-}
-
 void HostBuffersManager::returnBufferFilled(size_t b)
 {
   buffer_statuses[b] = BufferStatus::Filled;
@@ -97,32 +84,10 @@ void HostBuffersManager::returnBufferUnfilled(size_t b)
 #endif
 }
 
-void HostBuffersManager::returnBufferProcessed(size_t b)
-{
-  // buffer must be both processed (monitoring) and written (I/O)
-  // if I/O is already finished then mark "empty"
-  // otherwise, mark "processed" and wait for I/O
-  if (buffer_statuses[b] == BufferStatus::Written) {
-    buffer_statuses[b] = BufferStatus::Empty;
-    empty_buffers.push(b);
-  }
-  else {
-    buffer_statuses[b] = BufferStatus::Processed;
-  }
-}
-
 void HostBuffersManager::returnBufferWritten(size_t b)
 {
-  // buffer must be both processed (monitoring) and written (I/O)
-  // if monitoring is already finished then mark "empty"
-  // otherwise, mark "written" and wait for I/O
-  if (buffer_statuses[b] == BufferStatus::Processed) {
-    buffer_statuses[b] = BufferStatus::Empty;
-    empty_buffers.push(b);
-  }
-  else {
-    buffer_statuses[b] = BufferStatus::Written;
-  }
+  buffer_statuses[b] = BufferStatus::Empty;
+  empty_buffers.push(b);
 }
 
 void HostBuffersManager::writeSingleEventPassthrough(const size_t b)

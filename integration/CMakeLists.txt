@@ -8,5 +8,4 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-add_subdirectory(monitoring)
 add_subdirectory(non_event_data)

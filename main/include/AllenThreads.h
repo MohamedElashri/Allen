@@ -17,7 +17,6 @@ class OutputHandler;
 struct StreamWrapper;
 struct CheckerInvoker;
 struct HostBuffersManager;
-struct MonitorManager;
 struct ROOTService;
 struct Stream;
 class IInputProvider;
@@ -46,8 +45,6 @@ void run_stream(
   bool mep_layout,
   uint inject_mem_fail,
   bool prefer_shared);
-
-void run_monitoring(const size_t mon_id, IZeroMQSvc* zmqSvc, MonitorManager* monitor_manager, unsigned i_monitor);
 
 struct MonitoringPrinter;
 
