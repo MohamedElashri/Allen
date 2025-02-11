@@ -178,12 +178,14 @@ def upc_physics_lines(reconstructed_objects):
             maxPt=2000,
             max_velo_tracks=10,
             max_ecal_clusters=10,
-            mass_histogram_range=[1300, 40000]),
+            mass_histogram_range=[1300, 40000],
+            pre_scaler=0.1),
         make_photon_lowmult_line(
             name="Hlt1HeavyIonPbPbUPCPhoton_HighEt",
             calo=ecal_clusters,
             minEt=800,
-            max_ecal_clusters=10)
+            max_ecal_clusters=10,
+            pre_scaler=0.1)
     ]
     return [line_maker(line) for line in lines]
 
@@ -349,6 +351,7 @@ def setup_hlt1_node(withMCChecking=False,
                     tae_passthrough=True,
                     tae_activity=True,
                     minimal_activity_type=ActivityType.VELO_CLUSTERS,
+                    ActivityForClosing=ActivityType.VELO_CLUSTERS,
                     DisableLinesDuringVPClosing=False,
                     mini=False):
 
@@ -423,12 +426,67 @@ def setup_hlt1_node(withMCChecking=False,
         minimal_activity_type,
         min_activity=200,
         max_activity=999999999)
+    #activity filter needed for SD monitoring
+
+    velo_closing_gec = []
+
+    #reject extremely busy events that give rise to fake PVs for VeloClosingMon and VeloMon
+    pv_activity_filter = make_minimal_activity_filter(
+        reconstructed_objects,
+        minimal_activity_type=ActivityType.PRIMARY_VERTICES,
+        min_activity=1.,
+        max_activity=100.)
+    velo_clusters_filter = [
+        make_gec(
+            gec_name="closing_filter",
+            count_velo=True,
+            count_scifi=False,
+            count_ut=False,
+            min_velo_clusters=200,
+            max_velo_clusters=30000)
+    ]
+
+    if ActivityForClosing == ActivityType.VELO_CLUSTERS:
+        velo_closing_gec = velo_clusters_filter
+    elif ActivityForClosing == ActivityType.PRIMARY_VERTICES:
+        velo_closing_gec = pv_activity_filter
+    else:
+        raise Exception("VeloClosing activity not supported")
+
+    veloMicroBias_scifi_clusters_filter = [
+        scifi_gec(
+            'veloMicroBias_scifi_clusters_filter',
+            min_clusters=0,
+            max_clusters=7000)
+    ]
+    veloMicroBias_velo_clusters_filter = [
+        velo_gec(
+            'veloMicroBias_velo_clusters_filter',
+            min_clusters=200,
+            max_clusters=7000)
+    ]
+    veloMicroBias_clusters_filter = [
+        CompositeNode(
+            "veloMicroBias_clusters_filter_node",
+            veloMicroBias_scifi_clusters_filter +
+            veloMicroBias_velo_clusters_filter,
+            NodeLogic.LAZY_AND,
+            force_order=False)
+    ]
+
+    if ActivityForClosing == ActivityType.VELO_CLUSTERS:
+        veloMicroBias_gec = veloMicroBias_clusters_filter
+    elif ActivityForClosing == ActivityType.PRIMARY_VERTICES:
+        veloMicroBias_gec = pv_activity_filter
+    else:
+        raise Exception("VeloClosing activity not supported")
+    bx_BB = [make_bxtype(bx_type=3)]
 
     prefilters = odin_err_filter + gec + velo_closed
     prefilter_upc = prefilters + gec_ecal_upc + velo_closed
     prefilter_photon_velo_upc = prefilters + gec_photon_nvelo_upc + velo_closed
     prefilter_hadronic = prefilters + gec_ecal_periph + velo_closed
-
+    prefilter_veloMicroBias = odin_err_filter + bx_BB + velo_closed + veloMicroBias_gec
     # The lumi filter should be the same as for the physics lines but without the bx_type filter
     prefilters_lumi = odin_err_filter
     if mini:
@@ -514,8 +572,8 @@ def setup_hlt1_node(withMCChecking=False,
             reconstructed_objects, reco_particles, with_muon)
 
     # velo microbias lines for Velo closing & alignment inside minimal activity filter
-    with line_maker.bind(
-            prefilter=odin_err_filter + [velo_open_event] + activity_filter):
+    with line_maker.bind(prefilter=odin_err_filter + [velo_open_event] + gec +
+                         velo_closing_gec):
         monitoring_lines += [
             line_maker(
                 make_velo_micro_bias_line(
@@ -524,14 +582,15 @@ def setup_hlt1_node(withMCChecking=False,
                     pre_scaler=1.,
                     post_scaler=1.))
         ]
-    with line_maker.bind(prefilter=odin_err_filter + activity_filter):
+    with line_maker.bind(prefilter=prefilter_veloMicroBias):
         monitoring_lines += [
             line_maker(
                 make_velo_micro_bias_line(
                     reconstructed_objects["velo_tracks"],
                     name="Hlt1VeloMicroBias",
-                    pre_scaler=1.,
-                    post_scaler=1.))
+                    pre_scaler=0.15,
+                    post_scaler=1.,
+                    min_velo_tracks=3))
         ]
 
     bx_BE = make_bxtype(bx_type=1)
@@ -549,14 +608,14 @@ def setup_hlt1_node(withMCChecking=False,
     if tae_passthrough:
         if tae_activity:
 
-            tae_activity_filter = make_tae_activity_filter(
-                reconstructed_objects["long_tracks"],
-                reconstructed_objects["velo_tracks"],
-                use_long_tracks=False)
+            #tae_activity_filter = make_tae_activity_filter(
+            #    reconstructed_objects["long_tracks"],
+            #    reconstructed_objects["velo_tracks"],
+            #    use_long_tracks=True)
 
             tae_filters = CompositeNode(
                 "taefilter_node",
-                [tae_activity_filter, tae_filter()],
+                gec + pv_activity_filter + [tae_filter()],
                 NodeLogic.LAZY_AND,
                 force_order=True)
         else:
@@ -576,7 +635,8 @@ def setup_hlt1_node(withMCChecking=False,
             decoded_velo=decode_velo(),
             decoded_calo=decoded_calo,
             prefilter=(prefilter_upc_bgi if mini else prefilters_bgi),
-            enableBGI_full=True)
+            enableBGI_full=False,
+            PbPb_collision=True)
 
     with line_maker.bind(prefilter=[sd_error_filter()]):
         physics_lines += [

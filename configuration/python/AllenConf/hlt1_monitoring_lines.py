@@ -57,7 +57,8 @@ def make_velo_micro_bias_line(velo_tracks,
                               pre_scaler=1.,
                               post_scaler=1.e-4,
                               pre_scaler_hash_string=None,
-                              post_scaler_hash_string=None):
+                              post_scaler_hash_string=None,
+                              min_velo_tracks=1):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -71,7 +72,8 @@ def make_velo_micro_bias_line(velo_tracks,
         pre_scaler=pre_scaler,
         post_scaler=post_scaler,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
-        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        min_velo_tracks=min_velo_tracks)
 
 
 def make_odin_event_type_with_decoding_line(odin_event_type: str,
