@@ -110,6 +110,6 @@ namespace FilterSVTrack {
                                              "require_os_pair",
                                              true,
                                              "Requires that the SV consists of two tracks with opposite charge."};
-    Allen::Property<dim3> m_block_dim {this, "block_dim", {4, 64, 1}, "block dimensions"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 4, 1}, "block dimensions"};
   };
 } // namespace FilterSVTrack
