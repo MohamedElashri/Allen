@@ -75,6 +75,13 @@ __global__ void FilterSVTrack::filter_sv_track(
   const bool require_same_pv,
   const bool require_os_pair)
 {
+  /*
+  / For each event, check all the combinations of SVs and tracks to match the given citeria.
+  / The blockDim is [128, 4, 1].
+  / Tracks align with the x-axis, SVs with the y-axis.
+  / Ideally we should not exceed 128 long tracks per event, so the first loop should hardly ever be executed more than
+  / once.
+  */
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
   const unsigned sv_idx_offset = event_number * VertexFit::max_sv_track_combinations;
@@ -84,52 +91,57 @@ __global__ void FilterSVTrack::filter_sv_track(
 
   const auto svs = parameters.dev_svs->container(event_number);
   const auto tracks = parameters.dev_tracks->container(event_number);
-  for (unsigned i_sv = threadIdx.x; i_sv < svs.size(); i_sv += blockDim.x) {
-    const auto sv = svs.particle(i_sv);
 
-    // OS pair cut. SV must be made of oppositely charged tracks.
-    // TODO: For now, the SV is assumed to be 2-track, but this should be relaxed in the future.
-    if (require_os_pair) {
-      if (sv.charge() != 0) continue;
-    }
-
-    const auto sv_vx = sv.vertex();
-    const auto sv_vxz = sv_vx.z();
-    const bool sv_decision = SV_VZ_min < sv_vxz && sv_vxz < SV_VZ_max && sv.dz() > SV_BPVVDZ_min &&
-                             sv.drho() > SV_BPVVDRHO_min && sv.ip() > SV_BPVIP_min && sv.dira() > SV_BPVDIRA_min;
-    if (!sv_decision) continue;
-    for (unsigned i_track = threadIdx.y; i_track < tracks.size(); i_track += blockDim.y) {
-      const auto track = tracks.particle(i_track);
-      // check if track was already used to build SV
-      if (sv.child_in_tree(tracks.particle_pointer(i_track))) continue;
-      // Check if the track and SV have the same PV.
-      // Note this will only make sense if the track and SV are produced promptly.
-      if (require_same_pv) {
-        if (&(track.pv()) != &(sv.pv())) continue;
+  for (unsigned i_track = threadIdx.x; i_track < tracks.size(); i_track += blockDim.x) { // loop over all tracks
+    if (svs.size() < threadIdx.y + 1) {
+      break;
+    } // break loop for threads that don't have any SVs to check
+    const auto track = tracks.particle(i_track);
+    const auto t_s = track.state();
+    const bool track_decision = t_s.pt() > T_PT_min && track.ip_chi2() > T_MIPCHI2_min &&
+                                track.ip_chi2() < T_MIPCHI2_max && track.ip() > T_MIP_min && track.ip() < T_MIP_max &&
+                                track.chi2() / track.ndof() < T_CHI2NDF_max;
+    if (!track_decision) continue;
+    auto next_sv = svs.particle(threadIdx.y);
+    const auto t_ministate = track.state().operator MiniState();
+    for (unsigned i_sv = threadIdx.y; i_sv < svs.size(); i_sv += blockDim.y) {
+      auto sv = next_sv;
+      next_sv = (i_sv + blockDim.y < svs.size()) ? svs.particle(i_sv + blockDim.y) : sv; // Preload the next vertex
+      // first make checks that would reject the SV for every track
+      if (require_os_pair && sv.charge() != 0) {
+        continue;
       }
-      const auto t_s = track.state();
-      const bool track_decision = t_s.pt() > T_PT_min && track.ip_chi2() > T_MIPCHI2_min &&
-                                  track.ip_chi2() < T_MIPCHI2_max && track.ip() > T_MIP_min && track.ip() < T_MIP_max &&
-                                  track.chi2() / track.ndof() < T_CHI2NDF_max;
-
-      if (!track_decision) continue;
-      const auto sv_ministate = sv.get_state(), t_ministate = track.state().operator MiniState();
+      const auto sv_vxz = sv.vertex().z();
+      const bool sv_decision = SV_VZ_min < sv_vxz && sv_vxz < SV_VZ_max && sv.dz() > SV_BPVVDZ_min &&
+                               sv.drho() > SV_BPVVDRHO_min && sv.ip() > SV_BPVIP_min && sv.dira() > SV_BPVDIRA_min;
+      if (!sv_decision) continue;
+      // load the Mini State
+      const auto sv_ministate = sv.get_state();
+      // Check is the specific SV was created using this track
+      if (sv.child_in_tree(tracks.particle_pointer(i_track))) continue;
+      // Check that, if required, the track and SV come from the same PV
+      if (require_same_pv && &(track.pv()) != &(sv.pv())) continue;
+      // check DOCA within limit
       if (Allen::Views::Physics::state_doca(sv_ministate, t_ministate) > SV_T_DOCA_max) continue;
+      // check opening angle within limit
       if (sv.min_opening_angle_in_tree(t_ministate) < opening_angle_min) continue;
-
+      // set results counters
       unsigned cmb_idx = atomicAdd(event_combination_number, 1);
       // Leave the loop if the maximum number of combinations is exceeded.
-      if (cmb_idx >= VertexFit::max_sv_track_combinations) break;
+      if (cmb_idx >= VertexFit::max_sv_track_combinations) {
+        break;
+      }
       event_sv_idx[cmb_idx] = i_sv;
       event_track_idx[cmb_idx] = i_track;
-    }
-  }
+
+    } // loop over svs
+  }   // loop over tracks
 
   __syncthreads();
 
   // If there are too many combinations in an event, set the number of combinations to 0.
   if (event_combination_number[0] > VertexFit::max_sv_track_combinations) {
-    if (threadIdx.x == 0) {
+    if (threadIdx.x == 0 && threadIdx.y == 0) {
       event_combination_number[0] = 0;
     }
   }
