@@ -41,7 +41,17 @@
 #include <GaudiKernel/SmartIF.h>
 
 #define CATCH_CONFIG_RUNNER
+#if __has_include(<catch2/catch.hpp>)
+// Catch2 v2
 #include <catch2/catch.hpp>
+namespace Catch {
+  using Detail::Approx;
+  namespace Clara = clara;
+} // namespace Catch
+#else
+// Catch2 v3
+#include <catch2/catch_all.hpp>
+#endif
 
 using namespace std;
 using namespace std::string_literals;
@@ -136,7 +146,7 @@ int main(int argc, char* argv[])
   bool velo_sp = false;
 
   // Build a new parser on top of Catch's
-  using namespace Catch::clara;
+  using namespace Catch::Clara;
   auto cli = session.cli() | Opt(s_config.mdf_files, string {"MDF files"})["--mdf"]("MDF files") |
              Opt(s_config.mep_files, string {"MEP files"})["--mep"]("MEP files") |
              Opt(s_config.n_events, string {"#events"})["--nevents"]("number of events") |
