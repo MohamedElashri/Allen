@@ -19,12 +19,9 @@ INSTANTIATE_ALGORITHM(ut_calculate_number_of_hits::ut_calculate_number_of_hits_t
 void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants& constants) const
+  const Constants&) const
 {
-  set_size<dev_ut_hit_offsets_t>(
-    arguments,
-    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers] +
-      1);
+  set_size<dev_ut_hit_offsets_t>(arguments, first<host_number_of_events_t>(arguments) * UT::Constants::n_groups + 1);
   set_size<dev_ut_nonempty_channels_t>(
     arguments, first<host_number_of_events_t>(arguments) * UT::Decoding::number_of_channels);
   set_size<dev_ut_number_of_nonempty_channels_t>(arguments, first<host_number_of_events_t>(arguments));
@@ -53,12 +50,18 @@ void ut_calculate_number_of_hits::ut_calculate_number_of_hits_t::operator()(
   fun(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
     std::get<0>(runtime_options.event_interval),
-    constants.dev_ut_boards,
-    constants.dev_unique_x_sector_layer_offsets.data(),
-    constants.dev_unique_x_sector_offsets.data(),
+    constants.dev_ut_boards.data(),
+    constants.dev_ut_sector_to_group_map.data(),
     constants.dev_ut_board_geometry_map.data());
 
   PrefixSum::prefix_sum<dev_ut_hit_offsets_t, host_total_sum_holder_t>(*this, arguments, context);
+
+  if (m_verbosity >= logger::debug) {
+    print<dev_ut_hit_offsets_t>(arguments);
+    print<dev_ut_nonempty_channels_t>(arguments);
+    print<dev_ut_number_of_nonempty_channels_t>(arguments);
+    print<host_total_sum_holder_t>(arguments);
+  }
 }
 
 // Decode large channels first and let the tail end be channels of size 1
@@ -136,7 +139,7 @@ __device__ void calculate_number_of_hits(
 
 template<>
 __device__ void calculate_number_of_hits<3>(
-  unsigned const* dev_unique_x_sector_offsets,
+  unsigned const* dev_ut_sector_to_group_map,
   UTBoards const& boards,
   const uint16_t* dev_ut_board_geometry_map,
   UTRawBank<3> const& raw_bank,
@@ -154,7 +157,7 @@ __device__ void calculate_number_of_hits<3>(
     if (fullChanIndex >= boards.number_of_channels) continue;
 
     const uint16_t sec = dev_ut_board_geometry_map[fullChanIndex];
-    unsigned* hits_sector_group = hit_offsets + dev_unique_x_sector_offsets[sec];
+    unsigned* hits_sector_group = hit_offsets + dev_ut_sector_to_group_map[sec];
     Allen::warp::atomic_increment(hits_sector_group);
   }
 
@@ -165,7 +168,7 @@ __device__ void calculate_number_of_hits<3>(
 
 template<>
 __device__ void calculate_number_of_hits<4>(
-  unsigned const* dev_unique_x_sector_offsets,
+  unsigned const* dev_ut_sector_to_group_map,
   UTBoards const& boards,
   const uint16_t* dev_ut_board_geometry_map,
   UTRawBank<4> const& raw_bank,
@@ -179,7 +182,7 @@ __device__ void calculate_number_of_hits<4>(
   if (fullChanIndex >= boards.number_of_channels) return;
   const uint16_t sec = dev_ut_board_geometry_map[fullChanIndex];
 
-  unsigned* hits_sector_group = hit_offsets + dev_unique_x_sector_offsets[sec];
+  unsigned* hits_sector_group = hit_offsets + dev_ut_sector_to_group_map[sec];
   atomicAdd(hits_sector_group, raw_bank.number_of_hits[lane_index]);
 
   const uint8_t bin = ut_decoding_size_to_bin(raw_bank.number_of_hits[lane_index]);
@@ -195,14 +198,12 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
   ut_calculate_number_of_hits::Parameters parameters,
   const unsigned event_start,
   const char* ut_boards,
-  const unsigned* dev_unique_x_sector_layer_offsets,
-  const unsigned* dev_unique_x_sector_offsets,
+  const unsigned* dev_ut_sector_to_group_map,
   const uint16_t* dev_ut_board_geometry_map)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-  uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
+  uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * UT::Constants::n_groups;
   uint16_t* nonempty_channels = parameters.dev_ut_nonempty_channels + event_number * UT::Decoding::number_of_channels;
   const UTBoards boards {ut_boards};
   const UTRawEvent<mep> raw_event {parameters.dev_ut_raw_input,
@@ -238,7 +239,7 @@ __global__ void ut_calculate_number_of_hits::ut_calculate_number_of_hits(
     if (bank.number_of_hits[lane_index] == 0 || !UT::Decoding::allowed_rawbank_type(bank.type)) continue;
 
     calculate_number_of_hits(
-      dev_unique_x_sector_offsets,
+      dev_ut_sector_to_group_map,
       boards,
       dev_ut_board_geometry_map,
       bank,

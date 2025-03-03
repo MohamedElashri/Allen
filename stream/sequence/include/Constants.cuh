@@ -49,7 +49,7 @@ namespace Rich::Future::DAQ::Allen {
 } // namespace Rich::Future::DAQ::Allen
 
 namespace UT::Constants {
-  struct PerLayerInfo;
+  struct UTLayerGeometry;
 }
 
 /**
@@ -62,45 +62,44 @@ namespace UT::Constants {
  *          The pointers are hard-coded. Feel free to write more as needed.
  */
 struct Constants {
+
+  // Velo related
   gsl::span<uint8_t> dev_velo_candidate_ks;
   gsl::span<uint8_t> dev_velo_sp_patterns;
   gsl::span<float> dev_velo_sp_fx;
   gsl::span<float> dev_velo_sp_fy;
   VeloGeometry* dev_velo_geometry = nullptr;
 
+  // UT related
   std::vector<char> host_ut_geometry;
-  std::vector<unsigned> host_ut_region_offsets;
-  std::vector<float> host_ut_dxDy;
-  std::vector<unsigned> host_unique_x_sector_layer_offsets;
-  std::vector<unsigned> host_unique_x_sector_offsets;
-  std::vector<float> host_unique_sector_xs;
   std::vector<char> host_ut_boards;
-  std::vector<float> host_mean_ut_layer_zs;
   std::vector<uint16_t> host_ut_board_geometry_map;
+  std::vector<uint8_t> host_ut_board_to_sector_group_map;
+  std::vector<unsigned> host_ut_sector_to_group_map;
 
   gsl::span<char> dev_ut_geometry;
-  gsl::span<float> dev_ut_dxDy;
-  gsl::span<unsigned> dev_unique_x_sector_layer_offsets;
-  gsl::span<unsigned> dev_unique_x_sector_offsets;
-  //   gsl::span<unsigned> dev_ut_region_offsets;
-  gsl::span<float> dev_unique_sector_xs;
-  gsl::span<float> dev_mean_ut_layer_zs;
-  char* dev_ut_boards;
-  UTMagnetTool* dev_ut_magnet_tool = nullptr;
+  gsl::span<char> dev_ut_boards;
   gsl::span<uint16_t> dev_ut_board_geometry_map;
+  gsl::span<uint8_t> dev_ut_board_to_sector_group_map;
+  gsl::span<unsigned> dev_ut_sector_to_group_map;
 
-  std::array<float, 9> host_inv_clus_res;
-  float* dev_inv_clus_res;
+  UTMagnetTool* dev_ut_magnet_tool = nullptr;
 
+  UT::Constants::UTLayerGeometry* host_ut_layer_geometry = nullptr;
+  UT::Constants::UTLayerGeometry* dev_ut_layer_geometry = nullptr;
+
+  // SciFi
   char* dev_scifi_geometry = nullptr;
   std::vector<char> host_scifi_geometry;
+  std::array<float, 9> host_inv_clus_res;
+  float* dev_inv_clus_res;
 
   // Beam location
   gsl::span<float> dev_beamline;
 
   // Magnet polarity
   gsl::span<float> dev_magnet_polarity;
-  std::array<float, 1> host_magnet_polarity;
+  std::vector<float> host_magnet_polarity;
 
   // Looking forward
   LookingForward::Constants* host_looking_forward_constants;
@@ -159,10 +158,6 @@ struct Constants {
   std::vector<char> host_rich_cable_mapping;
   char* dev_rich_pdmdb_mapping;
   char* dev_rich_cable_mapping;
-
-  // UT per layer constant information
-  UT::Constants::PerLayerInfo* host_ut_per_layer_info = nullptr;
-  UT::Constants::PerLayerInfo* dev_ut_per_layer_info = nullptr;
 
   /**
    * @brief Reserves and initializes constants.

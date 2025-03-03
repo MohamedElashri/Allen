@@ -63,6 +63,11 @@ namespace track_matching::tools {
     }
     __device__ inline auto yAtZ(const float z) const { return m_vp_y + m_vp_ty * (z - Velo::Constants::z_endVelo); }
 
+    __device__ inline auto txAtZ(const float z) const
+    {
+      return m_vp_tx + 2 * m_gamma * (z - Velo::Constants::z_endVelo);
+    }
+
     // Useful updater
     __device__ inline auto get_new_gamma(const float z, const float x)
     {

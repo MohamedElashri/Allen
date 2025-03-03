@@ -30,8 +30,7 @@ namespace ut_decode_in_order {
    * @brief Fully decodes pre-decoding information into geometry for tracking, storing fully decoded UT hits it in a
    * sorted manner.
    */
-  __global__ void
-  ut_decode_in_order(Parameters, const char* ut_geometry, const unsigned* dev_unique_x_sector_layer_offsets);
+  __global__ void ut_decode_in_order(Parameters, const char* ut_geometry);
 
   struct ut_decode_in_order_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;

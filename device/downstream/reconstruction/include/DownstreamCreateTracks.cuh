@@ -62,8 +62,6 @@ namespace downstream_create_tracks {
 
   __global__ void downstream_create_tracks(
     Parameters,
-    const unsigned*,
-    const float*,
     const float*,
     const float,
     const DownstreamGhostKiller::DeviceType*,

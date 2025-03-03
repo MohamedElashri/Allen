@@ -14,7 +14,9 @@ from AllenCore.algorithms import (
     ut_search_windows_t, ut_select_velo_tracks_with_windows_t, compass_ut_t,
     ut_copy_track_hit_number_t, ut_consolidate_tracks_t,
     ut_cluster_and_pre_decode_t, ut_find_permutation_t, ut_decode_in_order_t,
-    create_reduced_ut_hits_container_t)
+    create_reduced_ut_hits_container_t, ut_decoding_get_bank_offsets_t,
+    ut_decoding_get_hit_offsets_t, ut_decoding_predecode_hits_t,
+    ut_decoding_hit_clustering_t, ut_decoding_decode_clusters_t)
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenConf.utils import initialize_number_of_events, make_dummy
 from AllenCore.generator import make_algorithm
@@ -45,10 +47,11 @@ def create_reduced_ut_container(decoded_ut, dev_used_ut_hits_offsets):
     return reduced_ut_hit_container
 
 
-def decode_ut(
+def decode_ut_v1(
         cluster_ut_hits=True,
         position_method=0,  # 0 = AdcWeighting, 1 = GeoWeighting
-        max_cluster_size=128):
+        max_cluster_size=128,
+        save_clusters_above_max=False):
     number_of_events = initialize_number_of_events()
     ut_banks = make_algorithm(data_provider_t, name='ut_banks', bank_type="UT")
 
@@ -83,7 +86,8 @@ def decode_ut(
         cluster_ut_hits=cluster_ut_hits,
         position_method=position_method,
         max_cluster_size=max_cluster_size,
-        save_clusters_above_max=False)  # False to be consistent with HLT2
+        save_clusters_above_max=save_clusters_above_max
+    )  # False to be consistent with HLT2
 
     ut_compress_and_calculate_keys = make_algorithm(
         ut_compress_and_calculate_keys_t,
@@ -127,6 +131,168 @@ def decode_ut(
         "host_accumulated_number_of_ut_hits":
         ut_cluster_and_pre_decode.host_total_sum_holder_t
     }
+
+
+def decode_ut_v2(
+        cluster_ut_hits=True,
+        position_method=0,  # 0 = AdcWeighting, 1 = GeoWeighting
+        max_cluster_size=128,
+        save_clusters_above_max=False):
+    number_of_events = initialize_number_of_events()
+    ut_banks = make_algorithm(data_provider_t, name='ut_banks', bank_type="UT")
+
+    ut_decoding_get_bank_offsets = make_algorithm(
+        ut_decoding_get_bank_offsets_t,
+        name='ut_decoding_get_bank_offsets_{hash}',
+        # verbosity=5,
+        block_dim=(256, 1, 1),
+        # Basics
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        # RawBanks
+        dev_ut_raw_input_t=ut_banks.dev_raw_banks_t,
+        dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
+        dev_ut_raw_input_sizes_t=ut_banks.dev_raw_sizes_t,
+        dev_ut_raw_input_types_t=ut_banks.dev_raw_types_t,
+        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
+    )
+
+    ut_decoding_get_hit_offsets = make_algorithm(
+        ut_decoding_get_hit_offsets_t,
+        name='ut_decoding_get_hit_offsets_{hash}',
+        # verbosity=5,
+        block_dim=(256, 1, 1),
+        # Basics
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        # RawBanks
+        dev_ut_raw_input_t=ut_banks.dev_raw_banks_t,
+        dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
+        dev_ut_raw_input_sizes_t=ut_banks.dev_raw_sizes_t,
+        dev_ut_raw_input_types_t=ut_banks.dev_raw_types_t,
+        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
+        # Bank offsets
+        host_total_number_of_ut_banks_t=ut_decoding_get_bank_offsets.
+        host_total_number_of_ut_banks_t,
+        dev_ut_banks_offsets_t=ut_decoding_get_bank_offsets.
+        dev_ut_banks_offsets_t,
+    )
+
+    ut_decoding_predecode_hits = make_algorithm(
+        ut_decoding_predecode_hits_t,
+        name='ut_decoding_predecode_hits_{hash}',
+        # verbosity=5,
+        # Basics
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        # RawBanks
+        dev_ut_raw_input_t=ut_banks.dev_raw_banks_t,
+        dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
+        dev_ut_raw_input_sizes_t=ut_banks.dev_raw_sizes_t,
+        dev_ut_raw_input_types_t=ut_banks.dev_raw_types_t,
+        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
+        # Bank offsets
+        dev_ut_banks_offsets_t=ut_decoding_get_bank_offsets.
+        dev_ut_banks_offsets_t,
+        # Hit offsets
+        host_total_number_of_ut_hits_t=ut_decoding_get_hit_offsets.
+        host_total_number_of_ut_hits_t,
+        dev_ut_lanes_hit_offsets_t=ut_decoding_get_hit_offsets.
+        dev_ut_lanes_hit_offsets_t,
+    )
+
+    ut_decoding_hit_clustering = make_algorithm(
+        ut_decoding_hit_clustering_t,
+        name='ut_decoding_hit_clustering_{hash}',
+        # verbosity=5,
+        # Basics
+        cluster_ut_hits=cluster_ut_hits,
+        position_method=position_method,
+        max_cluster_size=max_cluster_size,
+        save_clusters_above_max=save_clusters_above_max,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        # Rawbank
+        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
+        # Hit offsets
+        host_total_number_of_ut_hits_t=ut_decoding_get_hit_offsets.
+        host_total_number_of_ut_hits_t,
+        # Predecoding
+        dev_ut_predecoded_hits_t=ut_decoding_predecode_hits.
+        dev_ut_predecoded_hits_t,
+        dev_ut_hits_strip_info_t=ut_decoding_predecode_hits.
+        dev_ut_hits_strip_info_t,
+        dev_ut_predecoded_event_offsets_t=ut_decoding_predecode_hits.
+        dev_ut_predecoded_event_offsets_t,
+    )
+
+    ut_decoding_decode_clusters = make_algorithm(
+        ut_decoding_decode_clusters_t,
+        name='ut_decoding_decode_clusters_{hash}',
+        # verbosity=5,
+        # Basics
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        # Rawbank
+        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
+        # Hit offsets
+        # host_total_number_of_ut_hits_t=ut_decoding_get_hit_offsets.
+        # host_total_number_of_ut_hits_t,
+        # Clustering
+        host_ut_num_clusters_t=ut_decoding_hit_clustering.
+        host_ut_num_clusters_t,
+        dev_ut_clusters_t=ut_decoding_hit_clustering.dev_ut_clusters_t,
+        dev_ut_clusters_sector_group_offsets_t=ut_decoding_hit_clustering.
+        dev_ut_clusters_sector_group_offsets_t,
+        dev_ut_clusters_permutations_t=ut_decoding_hit_clustering.
+        dev_ut_clusters_permutations_t,
+    )
+
+    return {
+        # Algorithms
+        "ut_decoding_get_bank_offsets":
+        ut_decoding_get_bank_offsets,
+        "ut_decoding_get_hit_offsets":
+        ut_decoding_get_hit_offsets,
+        "ut_decoding_predecode_hits":
+        ut_decoding_predecode_hits,
+        "ut_decoding_hit_clustering":
+        ut_decoding_hit_clustering,
+        "ut_decoding_decode_clusters":
+        ut_decoding_decode_clusters,
+        # Output
+        "dev_ut_hits":
+        ut_decoding_decode_clusters.dev_ut_hits_t,
+        "dev_ut_hit_offsets":
+        ut_decoding_hit_clustering.dev_ut_clusters_sector_group_offsets_t,
+        "host_accumulated_number_of_ut_hits":
+        ut_decoding_hit_clustering.host_ut_num_clusters_t,
+    }
+
+
+@configurable
+def decode_ut(
+        cluster_ut_hits=True,
+        position_method=0,  # 0 = AdcWeighting, 1 = GeoWeighting
+        max_cluster_size=128,
+        save_clusters_above_max=False,
+        decoder_version=2):
+    """Decodes UT hits.
+
+    Arguments:
+    cluster_ut_hits: Enable UT hit clustering.
+    position_method: Clustering method. 0 = AdcWeighting, 1 = GeoWeighting.
+    max_cluster_size: Maximum cluster size for UT clustering (128 is recommended by the UT group).
+    save_clusters_above_max: Whether to keep clusters larger than max_cluster_size.
+    decoder_version: Decoder version (not the UT rawbank version).
+      - 1 = Legacy UT decoding, where each thread processes a non-empty UT lane.
+      - 2 = New UT decoding, where each thread processes a UT cluster (a range of UT hits).
+    """
+
+    decoders = {1: decode_ut_v1, 2: decode_ut_v2}
+    decoder = decoders[decoder_version]
+
+    return decoder(
+        cluster_ut_hits=cluster_ut_hits,
+        position_method=position_method,
+        max_cluster_size=max_cluster_size,
+        save_clusters_above_max=save_clusters_above_max,
+    )
 
 
 @configurable

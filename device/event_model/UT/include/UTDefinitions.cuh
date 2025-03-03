@@ -67,6 +67,13 @@ namespace UT {
     static constexpr unsigned n_layers = 4;
     static constexpr unsigned n_regions_in_layer = 3;
 
+    /* Sector group definition */
+    static constexpr unsigned n_sectors = 1048;
+    static constexpr unsigned n_groups_inner_in_layer = 4;
+    static constexpr unsigned n_groups_outer_in_layer = 14;
+    static constexpr unsigned n_groups_in_layer = n_groups_inner_in_layer + n_groups_outer_in_layer;
+    static constexpr unsigned n_groups = n_groups_in_layer * n_layers;
+
     /* Cut-offs */
     static constexpr unsigned max_num_tracks = 400; // to do: what is the best / safest value here?
     static constexpr unsigned max_track_size = 4;
@@ -119,13 +126,53 @@ namespace UT {
       default: return std::numeric_limits<float>::quiet_NaN();
       }
     };
+    struct UTLayerGeometry {
+      float mean_z[n_layers];
+      float mean_dxdy[n_layers];
+      float error_z[n_layers];
+      float error_dxdy[n_layers];
+      float two_dy[n_layers][2];
+      float outer_1_over_dy[n_layers];
+      float outer_y0_over_dy[n_layers];
+      float inner_1_over_dy[n_layers];
+      float inner_y0_over_dy[n_layers];
 
-    struct PerLayerInfo {
-      float mean_z[Constants::n_layers];
-      float mean_dxDy[Constants::n_layers];
-      float min_dxDy[Constants::n_layers];
-      float max_dxDy[Constants::n_layers];
-      float two_dy[Constants::n_layers][2];
+      __device__ __host__ int find_outer_sector(unsigned layer, float y) const
+      {
+        const int idx = y * outer_1_over_dy[layer] - outer_y0_over_dy[layer];
+        return (idx >= 0 && idx < static_cast<int>(UT::Constants::n_groups_outer_in_layer)) ? idx : -1;
+      }
+      __device__ __host__ int find_inner_sector(unsigned layer, float y) const
+      {
+        const int idx = y * inner_1_over_dy[layer] - inner_y0_over_dy[layer];
+        return (idx >= 0 && idx < static_cast<int>(UT::Constants::n_groups_inner_in_layer)) ?
+                 idx + static_cast<int>(UT::Constants::n_groups_outer_in_layer) :
+                 -1;
+      }
+
+      __device__ __host__ std::array<signed char, 4> find_sectors(unsigned layer, float ymin, float ymax) const
+      {
+        static_assert(sizeof(std::array<signed char, 4>) == 4);
+        uint8_t i = 0;
+        std::array<signed char, 4> out = {-1, -1, -1, -1};
+        const auto omin = find_outer_sector(layer, ymin);
+        const auto omax = find_outer_sector(layer, ymax);
+        const auto imin = find_inner_sector(layer, ymin);
+        const auto imax = find_inner_sector(layer, ymax);
+        if (omin != -1) {
+          out[i++] = omin;
+        }
+        if (omax != -1 && omax != omin) {
+          out[i++] = omax;
+        }
+        if (imin != -1) {
+          out[i++] = imin;
+        }
+        if (imax != -1 && imax != imin) {
+          out[i++] = imax;
+        }
+        return out;
+      }
     };
   } // namespace Constants
 } // namespace UT

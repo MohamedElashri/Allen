@@ -24,16 +24,11 @@ void Constants::reserve_constants()
   Allen::malloc((void**) &dev_inv_clus_res, host_inv_clus_res.size() * sizeof(float));
   Allen::malloc((void**) &dev_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizationsStruct));
   Allen::malloc((void**) &dev_looking_forward_constants, sizeof(LookingForward::Constants));
-  Allen::malloc((void**) &dev_magnet_parametrization, sizeof(TrackMatchingConsts::MagnetParametrization));
   Allen::malloc((void**) &dev_muon_foi, sizeof(Muon::Constants::FieldOfInterest));
   Allen::malloc((void**) &dev_muon_momentum_cuts, 3 * sizeof(float));
   Allen::malloc((void**) &dev_muonmatch_search_muon_chambers, sizeof(MatchUpstreamMuon::MuonChambers));
   Allen::malloc((void**) &dev_muonmatch_search_windows, sizeof(MatchUpstreamMuon::SearchWindows));
   Allen::malloc((void**) &dev_match_windows, sizeof(Muon::Constants::MatchWindows));
-
-  host_ut_region_offsets.resize(UT::Constants::n_layers * UT::Constants::n_regions_in_layer + 1);
-  host_ut_dxDy.resize(UT::Constants::n_layers);
-  host_unique_x_sector_layer_offsets.resize(UT::Constants::n_layers + 1);
 }
 
 void Constants::initialize_constants(

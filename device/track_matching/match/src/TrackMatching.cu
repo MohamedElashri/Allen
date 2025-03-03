@@ -160,12 +160,10 @@ void track_matching::track_matching_t::operator()(
     global_function(track_matching_add_ut_hits)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
       arguments,
       constants.dev_magnet_polarity.data(),
-      constants.dev_unique_x_sector_layer_offsets.data(),
-      constants.dev_unique_sector_xs.data(),
       m_ut_x_loose_tolerance_parameters,
       m_ut_x_tight_tolerance_parameters,
       m_ut_y_tolerance_parameters,
-      constants.dev_ut_per_layer_info,
+      constants.dev_ut_layer_geometry,
       m_n_overflow_track_matching.data(context));
 
     // Filter bad ut segments (by requiring min number of ut hits or chi2)
@@ -342,12 +340,10 @@ __global__ void track_matching::track_matching_veloSciFi(
 __global__ void track_matching::track_matching_add_ut_hits(
   track_matching::Parameters parameters,
   const float* dev_magnet_polarity,
-  const unsigned* dev_unique_x_sector_layer_offsets,
-  const float* dev_unique_sector_xs,
   const std::array<float, 4 * 3> ut_x_loose_tolerance_parameters,
   const std::array<float, 4 * 3> ut_x_tight_tolerance_parameters,
   const float ut_y_tolerance_parameters,
-  const UT::Constants::PerLayerInfo* dev_mean_layer_info,
+  const UT::Constants::UTLayerGeometry* dev_ut_layer_geometry,
   [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_track_matching)
 {
   // Basic
@@ -359,10 +355,8 @@ __global__ void track_matching::track_matching_add_ut_hits(
   auto matched_tracks_event = parameters.dev_matched_tracks + event_number * TrackMatchingConsts::max_num_tracks;
 
   // Load UT information
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
-  const UT::HitOffsets ut_hit_offsets {
-    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * UT::Constants::n_groups];
+  const UT::HitOffsets ut_hit_offsets {parameters.dev_ut_hit_offsets, event_number};
   const auto event_hit_offset = ut_hit_offsets.event_offset();
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits, event_hit_offset};
 
@@ -393,46 +387,50 @@ __global__ void track_matching::track_matching_add_ut_hits(
 #if (defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__))
 #pragma unroll
 #endif
-  for (unsigned layer = 0; layer < UT::Constants::n_layers; layer++) {
-    // Cache hits and sectors
-    hit_cache.cache_layer(ut_hit_offsets, ut_hits, dev_mean_layer_info, layer);
-    sector_cache.cache_layer(ut_hit_offsets, dev_unique_sector_xs, dev_unique_x_sector_layer_offsets, layer);
+    for (unsigned layer = 0; layer < UT::Constants::n_layers; layer++) {
+      // Cache hits and sectors
+      hit_cache.cache_layer(ut_hit_offsets, ut_hits, dev_ut_layer_geometry, layer);
 
-    const auto const_n_matched_tracks_event = n_matched_tracks_event;
-    __syncthreads();
+      const auto const_n_matched_tracks_event = n_matched_tracks_event;
+      __syncthreads();
 
-    // Cache/Alias certain values
-    const auto dxdy = dev_mean_layer_info->mean_dxDy[layer];
-    const auto layer_z = dev_mean_layer_info->mean_z[layer];
+      // Cache/Alias certain values
+      const auto dxdy = dev_ut_layer_geometry->mean_dxdy[layer];
+      const auto layer_z = dev_ut_layer_geometry->mean_z[layer];
+      const auto error_dxdy = dev_ut_layer_geometry->error_dxdy[layer];
+      const auto error_layer_z = dev_ut_layer_geometry->error_z[layer];
 
-    // Add hits to each candidates
-    for (unsigned candidate_idx = threadIdx.x; candidate_idx < const_n_matched_tracks_event;
-         candidate_idx += blockDim.x) {
+      // Add hits to each candidates
+      for (unsigned candidate_idx = threadIdx.x; candidate_idx < const_n_matched_tracks_event;
+           candidate_idx += blockDim.x) {
 
-      // Alias
-      auto& matched_track = matched_tracks_event[candidate_idx];
+        // Alias
+        auto& matched_track = matched_tracks_event[candidate_idx];
 
-      // Early stop: if layer==3 but not hit was found before (We need at least 2 hits to make UT segment)
-      const auto first_hit = std::isnan(matched_track.gamma);
-      if (first_hit && layer == 3) continue;
+        // Early stop: if layer==3 but not hit was found before (We need at least 2 hits to make UT segment)
+        const auto first_hit = std::isnan(matched_track.gamma);
+        if (first_hit && layer == 3) continue;
 
-      // Get state
-      const auto endvelo_state = velo_states.state(matched_track.velo_track_index);
+        // Layer offset
+        const auto layer_offset = ut_hit_offsets.layer_offset(layer);
 
-      // Load extrapolation
-      auto trajectory = first_hit ? track_matching::tools::VeloToUTExtrapolator(
-                                      endvelo_state.x(),
-                                      endvelo_state.y(),
-                                      endvelo_state.tx(),
-                                      endvelo_state.ty(),
-                                      matched_track.qop * dev_magnet_polarity[0]) :
-                                    track_matching::tools::VeloToUTExtrapolator(
-                                      endvelo_state.x(),
-                                      endvelo_state.y(),
-                                      endvelo_state.tx(),
-                                      endvelo_state.ty(),
-                                      matched_track.qop,
-                                      matched_track.gamma);
+        // Get state
+        const auto endvelo_state = velo_states.state(matched_track.velo_track_index);
+
+        // Load extrapolation
+        auto trajectory = first_hit ? track_matching::tools::VeloToUTExtrapolator(
+                                        endvelo_state.x(),
+                                        endvelo_state.y(),
+                                        endvelo_state.tx(),
+                                        endvelo_state.ty(),
+                                        matched_track.qop * dev_magnet_polarity[0]) :
+                                      track_matching::tools::VeloToUTExtrapolator(
+                                        endvelo_state.x(),
+                                        endvelo_state.y(),
+                                        endvelo_state.tx(),
+                                        endvelo_state.ty(),
+                                        matched_track.qop,
+                                        matched_track.gamma);
 
       // Get tolerances
       const auto xTol = trajectory.get_tolerance(
@@ -440,93 +438,115 @@ __global__ void track_matching::track_matching_add_ut_hits(
                     ut_x_tight_tolerance_parameters.data() + 4 * (layer - 1));
       const auto yTol = ut_y_tolerance_parameters;
 
-      // Get expected x and open the search window
-      const auto expected_layer_y = trajectory.yAtZ(layer_z);
-      const auto expected_layer_x = trajectory.xAtZ(layer_z) - dxdy * expected_layer_y;
-      const auto hit_range = sector_cache.get_hit_range(expected_layer_x - xTol, expected_layer_x + xTol);
+        // Get expected x and open the search window
+        const auto expected_layer_y = trajectory.yAtZ(layer_z);
+        const auto expected_layer_x = trajectory.xAtZ(layer_z) - dxdy * expected_layer_y;
+        const auto xTol_layer =
+          xTol + fabsf(trajectory.txAtZ(layer_z) * error_layer_z) + fabsf(expected_layer_y * error_dxdy);
+        const auto yTol_layer = 10.f;
+        const auto fired_sectors =
+          dev_ut_layer_geometry->find_sectors(layer, expected_layer_y - yTol_layer, expected_layer_y + yTol_layer);
 
-      // Find best hit
-      if (first_hit) // In case of first hit, each hit is a independent candidate
-      {
-        using track_matching::tools::MultiCandidateManager;
-        MultiCandidateManager<ushort, 8, true> best_hits;
-        for (auto hit_idx = hit_range.x; hit_idx < hit_range.y; hit_idx++) {
-          const auto hit = hit_cache.hit(hit_idx);
-          const float expected_hit_y = trajectory.yAtZ(hit.zAtYEq0());
-          if (hit.isNotYCompatible(expected_hit_y, yTol)) continue;
-          const float xdist = trajectory.xAtZ(hit.zAtYEq0()) - hit.xAt(expected_hit_y);
-          if (fabsf(xdist) > xTol) continue;
-          best_hits.add(hit_idx, xdist);
-        };
-        if (!best_hits.exist()) continue;
-
-        //
-        // Add all hits as candidates
-        //
-        for (unsigned best_hits_idx = 0; best_hits_idx < best_hits.size(); best_hits_idx++) {
-          if (best_hits_idx == 0) {
-            // First hit will override to the current candidate
-            const auto best_hit_idx = best_hits.get(best_hits_idx);
-            matched_track.ut_hits[layer] = hit_cache.HitOffset() + best_hit_idx;
-            matched_track.number_of_hits_ut++;
-            // update gamma
-            const auto hit = hit_cache.hit(best_hit_idx);
-            const float expected_hit_y = trajectory.yAtZ(hit.zAtYEq0());
-            matched_track.gamma = trajectory.get_new_gamma(hit.zAtYEq0(), hit.xAt(expected_hit_y));
+        // Find best hit
+        if (first_hit) // In case of first hit, each hit is a independent candidate
+        {
+          using track_matching::tools::MultiCandidateManager;
+          MultiCandidateManager<ushort, 8, true> best_hits;
+          for (unsigned sector_idx = 0; sector_idx < 4; sector_idx++) {
+            const auto sector = fired_sectors[sector_idx];
+            if (sector == -1) break;
+            const auto hit_start = ut_hit_offsets.sector_group_offset(layer, sector) - layer_offset;
+            const auto hit_end = ut_hit_offsets.sector_group_offset(layer, sector + 1) - layer_offset;
+            hit_cache.for_each_in_x_tol(
+              hit_start,
+              hit_end,
+              expected_layer_x - xTol_layer,
+              expected_layer_x + xTol_layer,
+              [&best_hits, &trajectory, &xTol, &yTol](ushort idx, const UTHitsCache::MiniHit& hit) {
+                const float expected_hit_y = trajectory.yAtZ(hit.zAtYEq0());
+                if (hit.isNotYCompatible(expected_hit_y, yTol)) {
+                  return;
+                }
+                const float xdist = trajectory.xAtZ(hit.zAtYEq0()) - hit.xAt(expected_hit_y);
+                if (fabsf(xdist) < xTol) {
+                  best_hits.add(idx, xdist);
+                }
+              });
           }
-          else {
-            // Rest of hits have to create new candidates
-            const auto new_candidate_idx = atomicAdd(&n_matched_tracks_event, 1u);
-            if (new_candidate_idx >= TrackMatchingConsts::max_num_tracks) break;
-            const auto best_hit_idx = best_hits.get(best_hits_idx);
+          if (!best_hits.exist()) continue;
 
-            // Clone candidate
-            matched_tracks_event[new_candidate_idx] = matched_track;
+          //
+          // Add all hits as candidates
+          //
+          for (unsigned best_hits_idx = 0; best_hits_idx < best_hits.size(); best_hits_idx++) {
+            if (best_hits_idx == 0) {
+              // First hit will override to the current candidate
+              const auto best_hit_idx = best_hits.get(best_hits_idx);
+              matched_track.ut_hits[layer] = hit_cache.HitOffset() + best_hit_idx;
+              matched_track.number_of_hits_ut++;
+              // update gamma
+              const auto hit = hit_cache.hit(best_hit_idx);
+              const float expected_hit_y = trajectory.yAtZ(hit.zAtYEq0());
+              matched_track.gamma = trajectory.get_new_gamma(hit.zAtYEq0(), hit.xAt(expected_hit_y));
+            }
+            else {
+              // Rest of hits have to create new candidates
+              const auto new_candidate_idx = atomicAdd(&n_matched_tracks_event, 1u);
+              if (new_candidate_idx >= TrackMatchingConsts::max_num_tracks) break;
+              const auto best_hit_idx = best_hits.get(best_hits_idx);
 
-            // Modify the ut hit
-            matched_tracks_event[new_candidate_idx].ut_hits[layer] = hit_cache.HitOffset() + best_hit_idx;
+              // Clone candidate
+              matched_tracks_event[new_candidate_idx] = matched_track;
 
-            // Modify the gamma
-            const auto hit = hit_cache.hit(best_hit_idx);
-            const float expected_hit_y = trajectory.yAtZ(hit.zAtYEq0());
-            matched_tracks_event[new_candidate_idx].gamma =
-              trajectory.get_new_gamma(hit.zAtYEq0(), hit.xAt(expected_hit_y));
+              // Modify the ut hit
+              matched_tracks_event[new_candidate_idx].ut_hits[layer] = hit_cache.HitOffset() + best_hit_idx;
+
+              // Modify the gamma
+              const auto hit = hit_cache.hit(best_hit_idx);
+              const float expected_hit_y = trajectory.yAtZ(hit.zAtYEq0());
+              matched_tracks_event[new_candidate_idx].gamma =
+                trajectory.get_new_gamma(hit.zAtYEq0(), hit.xAt(expected_hit_y));
+            }
           }
         }
-      }
-      else {
-        using track_matching::tools::BestCandidateManager;
-        BestCandidateManager<ushort, true> best_hit;
-        for (auto hit_idx = hit_range.x; hit_idx < hit_range.y; hit_idx++) {
-          const auto hit = hit_cache.hit(hit_idx);
+        else {
+          using track_matching::tools::BestCandidateManager;
+          BestCandidateManager<ushort, true> best_hit;
+          for (unsigned sector_idx = 0; sector_idx < 4; sector_idx++) {
+            const auto sector = fired_sectors[sector_idx];
+            if (sector == -1) break;
+            const auto hit_start = ut_hit_offsets.sector_group_offset(layer, sector) - layer_offset;
+            const auto hit_end = ut_hit_offsets.sector_group_offset(layer, sector + 1) - layer_offset;
+            hit_cache.for_each_in_x_tol(
+              hit_start,
+              hit_end,
+              expected_layer_x - xTol_layer,
+              expected_layer_x + xTol_layer,
+              [&best_hit, &trajectory, &xTol, &yTol](ushort idx, const UTHitsCache::MiniHit& hit) {
+                const float expected_hit_y = trajectory.yAtZ(hit.zAtYEq0());
+                if (hit.isNotYCompatible(expected_hit_y, yTol)) {
+                  return;
+                }
+                const float xdist = trajectory.xAtZ(hit.zAtYEq0()) - hit.xAt(expected_hit_y);
+                if (fabsf(xdist) < xTol) {
+                  best_hit.add(idx, xdist);
+                }
+              });
+          }
+          if (!best_hit.exist()) continue;
+
+          // update gamma
+          const auto hit = hit_cache.hit(best_hit.best());
           const float expected_hit_y = trajectory.yAtZ(hit.zAtYEq0());
-          if (hit.isNotYCompatible(expected_hit_y, yTol)) continue;
-          const float xdist = trajectory.xAtZ(hit.zAtYEq0()) - hit.xAt(expected_hit_y);
-          if (fabsf(xdist) > xTol) continue;
-          best_hit.add(hit_idx, xdist);
-        };
-        if (!best_hit.exist()) continue;
+          matched_track.gamma =
+            (matched_track.gamma + trajectory.get_new_gamma(hit.zAtYEq0(), hit.xAt(expected_hit_y))) / 2;
 
-        // update gamma
-        const auto hit = hit_cache.hit(best_hit.best());
-        const float expected_hit_y = trajectory.yAtZ(hit.zAtYEq0());
-        matched_track.gamma =
-          (matched_track.gamma + trajectory.get_new_gamma(hit.zAtYEq0(), hit.xAt(expected_hit_y))) / 2;
-
-        // Add best hit
-        matched_track.ut_hits[layer] = hit_cache.HitOffset() + best_hit.best();
-        matched_track.ut_score += best_hit.score() * best_hit.score();
-        matched_track.number_of_hits_ut++;
+          // Add best hit
+          matched_track.ut_hits[layer] = hit_cache.HitOffset() + best_hit.best();
+          matched_track.ut_score += best_hit.score() * best_hit.score();
+          matched_track.number_of_hits_ut++;
+        }
       }
-    }
-    __syncthreads();
-    if (threadIdx.x == 0) {
-      if (n_matched_tracks_event > TrackMatchingConsts::max_num_tracks) {
-        n_matched_tracks_event = 0;
-        dev_n_overflow_track_matching.increment();
-      }
-    }
-    __syncthreads();
   }
 }
 

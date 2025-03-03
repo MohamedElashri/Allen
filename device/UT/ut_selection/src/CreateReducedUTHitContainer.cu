@@ -13,21 +13,17 @@
 
 INSTANTIATE_ALGORITHM(create_reduced_ut_hits_container::create_reduced_ut_hits_container_t)
 
-__global__ void create_ut_hit_container(
-  create_reduced_ut_hits_container::Parameters parameters,
-  const unsigned* dev_unique_x_sector_layer_offsets)
+__global__ void create_ut_hit_container(create_reduced_ut_hits_container::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
   const unsigned total_number_of_hits_input =
-    parameters.dev_ut_hit_offsets_input[number_of_events * number_of_unique_x_sectors];
-  const UT::HitOffsets hit_offsets_input {
-    parameters.dev_ut_hit_offsets_input, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+    parameters.dev_ut_hit_offsets_input[number_of_events * UT::Constants::n_groups];
+  const UT::HitOffsets hit_offsets_input {parameters.dev_ut_hit_offsets_input, event_number};
   UT::ConstHits hits_input {parameters.dev_ut_hits_input, total_number_of_hits_input};
   UT::Hits hits_output {parameters.dev_ut_hits,
-                        parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+                        parameters.dev_ut_hit_offsets[number_of_events * UT::Constants::n_groups]};
 
   const auto event_offset_input = hit_offsets_input.event_offset();
   for (unsigned i = threadIdx.x; i < hit_offsets_input.event_number_of_hits(); i += blockDim.x) {
@@ -58,7 +54,7 @@ void create_reduced_ut_hits_container::create_reduced_ut_hits_container_t::set_a
 void create_reduced_ut_hits_container::create_reduced_ut_hits_container_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
   // Only happen when UT hit container is empty
@@ -90,6 +86,5 @@ void create_reduced_ut_hits_container::create_reduced_ut_hits_container_t::opera
   resize<dev_ut_hits_t>(arguments, first<host_number_of_ut_hits_t>(arguments) * UT::Hits::element_size);
 
   // Populate dev_ut_hits_t
-  global_function(create_ut_hit_container)(size<dev_event_list_t>(arguments), dim3(m_block_dim_x), context)(
-    arguments, constants.dev_unique_x_sector_layer_offsets.data());
+  global_function(create_ut_hit_container)(size<dev_event_list_t>(arguments), dim3(m_block_dim_x), context)(arguments);
 }

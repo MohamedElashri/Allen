@@ -76,38 +76,34 @@ namespace downstream_find_hits {
 #if __CUDA_ARCH__ >= 800 // Ampere (A5000)
   // downstream_create_candidates has 48 register / thread
   // downstream_find_rest_hits has 40 register / thread
-  __device__ static constexpr unsigned int MaxCacheSize_CreateCandidates = 1472 - 1; // Need extra bits for counters
+  __device__ static constexpr unsigned int MaxCacheSize_CreateCandidates = 1472 - 2; // Need extra bits for counters
   __device__ static constexpr unsigned int MaxCacheSize_FindRestHits = 1472;
 #else // Volta, Turing:
-  __device__ static constexpr unsigned int MaxCacheSize_CreateCandidates = 1344 - 1; // Need extra bits for counters
+  __device__ static constexpr unsigned int MaxCacheSize_CreateCandidates = 1344 - 2; // Need extra bits for counters
   __device__ static constexpr unsigned int MaxCacheSize_FindRestHits = 1344;
 #endif
 #else // CPU, HIP
   __device__ static constexpr unsigned int MaxCacheSize_CreateCandidates = 1;
   __device__ static constexpr unsigned int MaxCacheSize_FindRestHits = 1;
 #endif
-  using UTHitsCache_CreateCandidates = UT::SmartHitsCache<MaxCacheSize_CreateCandidates>;
-  using UTHitsCache_FindRestHits = UT::SmartHitsCache<MaxCacheSize_FindRestHits>;
+  using UTHitsCache_CreateCandidates = UTHitCache::FullHitCache_8Bytes<MaxCacheSize_CreateCandidates>;
+  using UTHitsCache_FindRestHits = UTHitCache::FullHitCache_8Bytes<MaxCacheSize_FindRestHits>;
 
   template<bool filter_used_scifi_seeds, bool use_constant_tolerance_window>
   __global__ void downstream_create_candidates(
     Parameters parameters,
-    const unsigned* dev_unique_x_sector_layer_offsets,
-    const float* dev_unique_sector_xs,
     const float* dev_magnet_polarity,
     const float tolerance_window_x4_multiplier,
     const float tolerance_window_y4_multiplier,
     const float ttracks_probability_threshold,
-    const UT::Constants::PerLayerInfo* dev_mean_layer_info,
+    const UT::Constants::UTLayerGeometry* dev_ut_layer_geometry,
     const TTrackSelector::DeviceType* dev_ttrack_selector,
     [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_tracking);
 
   template<bool require_four_hits, bool use_constant_tolerance_window>
   __global__ void downstream_find_rest_hits(
     Parameters parameters,
-    const unsigned* dev_unique_x_sector_layer_offsets,
-    const float* dev_unique_sector_xs,
-    const UT::Constants::PerLayerInfo* dev_mean_layer_info,
+    const UT::Constants::UTLayerGeometry* dev_ut_layer_geometry,
     const float tolerance_window_x1_multiplier,
     const float tolerance_window_x2_multiplier,
     const float tolerance_window_x3_multiplier,

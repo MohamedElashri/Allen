@@ -75,14 +75,13 @@ std::tuple<std::vector<UT::Hit>, std::vector<UT::Hit>> GaudiAllenTransformAllenR
   const std::vector<unsigned>& ut_hit_offsets,
   const std::vector<char>& ut_hits,
   LHCb::Pr::UT::Hits const& hit_handler,
-  const Constants* const& allen_constants) const
+  const Constants* const&) const
 {
   // read in offsets and hits from the buffer
   const auto n_hits_total_allen = ut_hit_offsets[ut_hit_offsets.size() - 1];
   const auto n_hits_total_rec = hit_handler.nHits();
   // call the UT::Hits_t ctor in UTEventModel.cuh with offset=0
   UT::ConstHits ut_hit_container_allen {ut_hits.data(), n_hits_total_allen};
-  const auto& unique_x_sector_layer_offsets = allen_constants->host_unique_x_sector_layer_offsets;
   const auto& ut_hit_container_rec = hit_handler.simd();
 
   std::vector<UT::Hit> allen_hits, rec_hits;
@@ -110,8 +109,9 @@ std::tuple<std::vector<UT::Hit>, std::vector<UT::Hit>> GaudiAllenTransformAllenR
   } // end loop sector groups
   // Assign the correct layer to plane_code
   for (unsigned layer = 0; layer < UT::Constants::n_layers; layer++) {
-    const unsigned layer_offset = ut_hit_offsets[unique_x_sector_layer_offsets[layer]];
-    const unsigned number_of_hits_in_layer = ut_hit_offsets[unique_x_sector_layer_offsets[layer + 1]] - layer_offset;
+    const unsigned layer_offset = ut_hit_offsets[layer * UT::Constants::n_groups_in_layer];
+    const unsigned number_of_hits_in_layer =
+      ut_hit_offsets[(layer + 1) * UT::Constants::n_groups_in_layer] - layer_offset;
     for (unsigned i = 0; i < number_of_hits_in_layer; i++) {
       const unsigned hit_idx = layer_offset + i;
       allen_hits[hit_idx].plane_code = layer;

@@ -95,3 +95,22 @@ __device__ __host__ inline int sector_unique_id(
   return sec;
   // End of function to get unique sector ID
 }
+
+__device__ __host__ inline unsigned
+get_sector_group_id(const uint32_t& stave, const uint32_t& face, const uint32_t& module)
+{
+  const unsigned alpha = module * 2 + (face == 0);
+  switch (alpha) {
+  case 0:
+  case 1:
+  case 2:
+  case 3:
+  case 4:
+  case 5: return alpha;
+  case 6: return (stave == 0) ? 14 : 6;
+  case 7: return 15;
+  case 8: return 16;
+  case 9: return (stave == 0) ? 17 : 7;
+  default: return alpha - 2;
+  }
+}

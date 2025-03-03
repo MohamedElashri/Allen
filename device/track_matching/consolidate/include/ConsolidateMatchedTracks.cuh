@@ -118,7 +118,6 @@ namespace matching_consolidate_tracks {
   template<bool has_ut>
   __global__ void matching_consolidate_tracks(
     Parameters,
-    const unsigned*,
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,

@@ -21,62 +21,75 @@ namespace {
   using std::string;
   using std::to_string;
 
-  template<bool absolute_value>
-  std::set<float> get_unique_values(const float* array, const unsigned size)
+  struct AverageCounter {
+    float mean = 0.0;
+    unsigned count = 0;
+
+    float value() const { return count == 0 ? 0.f : mean; }
+
+    void add(float value)
+    {
+      ++count;
+      mean += (value - mean) / count;
+    }
+
+    AverageCounter& operator+=(float value)
+    {
+      ++count;
+      mean += (value - mean) / count;
+      return *this;
+    }
+  };
+
+  // UT sector numbering
+  const unsigned sector_layer_offsets[] = {0, 248, 248 + 248, 248 + 248 + 276, 248 + 248 + 276 + 276};
+
+  // Hardcoded dxdy
+  const float hardcoded_layer_dxdy[] = {0, 0.08748866, -0.08748866, 0};
+
+  unsigned map_sector_to_group(unsigned layer, unsigned sector)
   {
-    std::set<float> result;
-    if constexpr (absolute_value) {
-      std::transform(array, array + size, std::inserter(result, result.end()), [](float i) { return fabsf(i); });
+    static const unsigned r0_map[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13};
+    static const unsigned r1_map[] = {0, 1, 2, 3, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 10, 11, 12, 13};
+    static const unsigned r2_map[] = {0, 1, 2, 3, 4, 5, 5, 14, 14, 15, 15, 16, 16, 17, 17, 8, 8, 9, 10, 11, 12, 13};
+
+    const auto group_offset = layer * UT::Constants::n_groups_in_layer;
+    const auto station = layer / 2;
+    const auto num_large_columns = 6 + station;
+
+    const unsigned offsets[] = {0,
+                                14 * num_large_columns,
+                                14 * num_large_columns + 18,
+                                14 * num_large_columns + 18 + 22 * 2,
+                                14 * num_large_columns + 18 * 2 + 22 * 2,
+                                14 * num_large_columns * 2 + 18 * 2 + 22 * 2};
+    std::array<const unsigned*, 5> maps = {r0_map, r1_map, r2_map, r1_map, r0_map};
+    const unsigned maps_size[5] = {14, 18, 22, 18, 14};
+    for (unsigned region = 0; region < 5; region++) {
+      if (sector >= offsets[region] && sector < offsets[region + 1]) {
+        const auto map = maps[region];
+        const auto size = maps_size[region];
+        const auto idx = (sector - offsets[region]) % size;
+        return group_offset + map[idx];
+      }
     }
-    else {
-      std::transform(array, array + size, std::inserter(result, result.end()), [](float i) { return i; });
-    }
-    return result;
+    return 0;
   }
 
-  template<bool absolute_value>
-  std::set<float> get_unique_values(gsl::span<float> array)
+  template<typename T>
+  void alloc_and_copy(std::vector<T>& host_data, gsl::span<T>& device_data)
   {
-    std::set<float> result;
-    if constexpr (absolute_value) {
-      std::transform(array.begin(), array.end(), std::inserter(result, result.end()), [](float i) { return fabsf(i); });
-    }
-    else {
-      std::transform(array.begin(), array.end(), std::inserter(result, result.end()), [](float i) { return i; });
-    }
-    return result;
+    T* p;
+    Allen::malloc((void**) &p, host_data.size() * sizeof(T));
+    device_data = gsl::span {p, host_data.size()};
+    Allen::memcpy(device_data.data(), host_data.data(), host_data.size() * sizeof(T), Allen::memcpyHostToDevice);
   }
 
-  using ConditionFunction_t = std::function<bool(float)>;
-  template<typename Data_t>
-  float compute_mean_value(
-    const Data_t& input,
-    ConditionFunction_t condition_function = [](auto) { return true; })
+  template<typename T>
+  void alloc_and_copy(T*& host_data, T*& device_data)
   {
-    return std::accumulate(
-             input.begin(),
-             input.end(),
-             0.f,
-             [&condition_function](float acc, float val) { return condition_function(val) ? acc + val : acc; }) /
-           std::count_if(input.begin(), input.end(), condition_function);
-  }
-
-  template<typename Data_t>
-  float compute_middle_value(const Data_t& input)
-  {
-    const auto min_val = *std::min_element(input.begin(), input.end());
-    const auto max_val = *std::max_element(input.begin(), input.end());
-    return (min_val + max_val) / 2;
-  }
-
-  template<typename Data_t>
-  float compute_middle_value(const Data_t& input, ConditionFunction_t condition_function)
-  {
-    Data_t filtered;
-    std::copy_if(input.begin(), input.end(), std::inserter(filtered, filtered.end()), condition_function);
-    const auto min_val = *std::min_element(filtered.begin(), filtered.end());
-    const auto max_val = *std::max_element(filtered.begin(), filtered.end());
-    return (min_val + max_val) / 2;
+    Allen::malloc((void**) &device_data, sizeof(T));
+    Allen::memcpy(device_data, host_data, sizeof(T), Allen::memcpyHostToDevice);
   }
 } // namespace
 
@@ -84,29 +97,6 @@ Consumers::UTGeometry::UTGeometry(Constants& constants) : m_constants {constants
 
 void Consumers::UTGeometry::initialize(std::vector<char> const& data)
 {
-
-  auto alloc_and_copy = [](auto const& host_numbers, auto& device_numbers) {
-    using value_type = typename std::remove_reference_t<decltype(host_numbers)>::value_type;
-    using span_type = typename std::remove_reference_t<decltype(device_numbers)>::value_type;
-    value_type* p = nullptr;
-    Allen::malloc((void**) &p, host_numbers.size() * sizeof(value_type));
-    device_numbers = gsl::span {p, static_cast<span_size_t<span_type>>(host_numbers.size())};
-    Allen::memcpy(
-      device_numbers.data(), host_numbers.data(), host_numbers.size() * sizeof(value_type), Allen::memcpyHostToDevice);
-  };
-
-  // region offsets
-  auto& host_ut_region_offsets = m_constants.get().host_ut_region_offsets;
-  //   auto& dev_ut_region_offsets = m_constants.get().dev_ut_region_offsets;
-  // FIXME_GEOMETRY_HARDCODING
-  host_ut_region_offsets = {0, 84, 164, 248, 332, 412, 496, 594, 674, 772, 870, 950, 1048};
-  //   alloc_and_copy(host_ut_region_offsets, dev_ut_region_offsets);
-
-  auto& host_ut_dxDy = m_constants.get().host_ut_dxDy;
-  // FIXME_GEOMETRY_HARDCODING
-  host_ut_dxDy = {0., 0.08748867, -0.0874886, 0.};
-  alloc_and_copy(host_ut_dxDy, m_constants.get().dev_ut_dxDy);
-
   // Allocate space for geometry
   auto& dev_ut_geometry = m_constants.get().dev_ut_geometry;
   using span_type = typename std::remove_reference_t<decltype(dev_ut_geometry)>::value_type;
@@ -115,142 +105,84 @@ void Consumers::UTGeometry::initialize(std::vector<char> const& data)
   dev_ut_geometry = gsl::span {g, static_cast<span_size_t<span_type>>(data.size())};
   const ::UTGeometry geometry {data};
 
-  // Offset for each station / layer
-  const std::array<unsigned, UT::Constants::n_layers + 1> offsets {host_ut_region_offsets[0],
-                                                                   host_ut_region_offsets[3],
-                                                                   host_ut_region_offsets[6],
-                                                                   host_ut_region_offsets[9],
-                                                                   host_ut_region_offsets[12]};
-  int current_sector_offset = 0;
-  auto& host_unique_x_sector_layer_offsets = m_constants.get().host_unique_x_sector_layer_offsets;
-  auto& host_unique_x_sector_offsets = m_constants.get().host_unique_x_sector_offsets;
-  auto& host_unique_sector_xs = m_constants.get().host_unique_sector_xs;
-  auto& host_mean_ut_layer_zs = m_constants.get().host_mean_ut_layer_zs;
-  host_unique_x_sector_layer_offsets[0] = 0;
-
-  // Container for per layer constants
-  auto& dev_ut_per_layer_info = m_constants.get().dev_ut_per_layer_info;
-  auto host_ut_per_layer_info = new UT::Constants::PerLayerInfo {};
-  m_constants.get().host_ut_per_layer_info = host_ut_per_layer_info;
-
-  for (unsigned i = 0; i < UT::Constants::n_layers; ++i) {
-    const auto offset = offsets[i];
-    const auto size = offsets[i + 1] - offsets[i];
-
-    // Find the mean small and large dy for each layer (2 types (AB or CD))
-    const auto unique_layer_dy = get_unique_values<true>(geometry.dy + offset, size);
-    const auto middle_dy = compute_middle_value(unique_layer_dy);
-    const auto small_mean_dy = compute_mean_value(unique_layer_dy, [middle_dy](float v) { return v < middle_dy; });
-    const auto large_mean_dy = compute_mean_value(unique_layer_dy, [middle_dy](float v) { return v >= middle_dy; });
-    host_ut_per_layer_info->two_dy[i][0] = small_mean_dy;
-    host_ut_per_layer_info->two_dy[i][1] = large_mean_dy;
-
-    // Find 4 mean z positions for each layer (2 Sides + 2 Faces)
-    const auto unique_layer_z = get_unique_values<true>(geometry.p0Z + offset, size);
-    const auto mean_z = compute_mean_value(unique_layer_z);
-    host_ut_per_layer_info->mean_z[i] = mean_z;
-    host_mean_ut_layer_zs.push_back(mean_z);
-
-    // Find the mean dxdy for each layer
-    float mean_dxdy = 0.f, min_dxdy = 0.f, max_dxdy = 0.f;
-    if (geometry.dxDy != nullptr) {
-      gsl::span<float> all_dxdy(geometry.dxDy + offset, size);
-      const auto unique_layer_dxdy = get_unique_values<false>(all_dxdy);
-      mean_dxdy = compute_mean_value(unique_layer_dxdy);
-      min_dxdy = *std::min_element(unique_layer_dxdy.begin(), unique_layer_dxdy.end());
-      max_dxdy = *std::max_element(unique_layer_dxdy.begin(), unique_layer_dxdy.end());
+  // Fill sector to group map
+  auto& host_ut_sector_to_group_map = m_constants.get().host_ut_sector_to_group_map;
+  host_ut_sector_to_group_map.resize(UT::Constants::n_sectors);
+  auto& dev_ut_sector_to_group_map = m_constants.get().dev_ut_sector_to_group_map;
+  for (unsigned layer = 0; layer < UT::Constants::n_layers; layer++) {
+    const auto sector_offset = sector_layer_offsets[layer];
+    const auto sector_size = sector_layer_offsets[layer + 1] - sector_offset;
+    for (unsigned sector = 0; sector < sector_size; sector++) {
+      host_ut_sector_to_group_map[sector_offset + sector] = map_sector_to_group(layer, sector);
     }
-    else {
-      mean_dxdy = UT::Constants::hardcoded_dxdy(i);
-      min_dxdy = UT::Constants::hardcoded_dxdy(i);
-      max_dxdy = UT::Constants::hardcoded_dxdy(i);
-    }
-    host_ut_per_layer_info->mean_dxDy[i] = mean_dxdy;
-    host_ut_per_layer_info->min_dxDy[i] = min_dxdy;
-    host_ut_per_layer_info->max_dxDy[i] = max_dxdy;
-
-    // Copy elements into xs vector and zs vector
-    std::vector<float> xs(size), zs(size);
-    std::copy_n(geometry.p0X + offset, size, xs.begin());
-    std::copy_n(geometry.p0Z + offset, size, zs.begin());
-
-    // Create permutation
-    std::vector<int> permutation(xs.size());
-    std::iota(permutation.begin(), permutation.end(), 0);
-
-    // Sort permutation according to xs and zs
-    std::stable_sort(
-      permutation.begin(), permutation.end(), [&xs](const int& a, const int& b) { return xs[a] < xs[b]; });
-
-    // Iterate the permutation, incrementing the counter when the element changes.
-    // Calculate unique elements
-    std::vector<int> permutation_repeated;
-    auto current_element = xs[permutation[0]];
-    int current_index = 0;
-    int number_of_unique_elements = 1;
-
-    for (auto p : permutation) {
-      // Allow for a configurable window of error
-      constexpr float accepted_error_window = 20.f;
-      if (std::abs(current_element - xs[p]) > accepted_error_window) {
-        current_element = xs[p];
-        current_index++;
-        number_of_unique_elements++;
-      }
-      if (current_element < xs[p]) current_element = xs[p];
-      permutation_repeated.emplace_back(current_index);
-    }
-
-    // Calculate final permutation into unique elements
-    std::vector<int> unique_permutation;
-    for (size_t j = 0; j < size; ++j) {
-      auto it = std::find(permutation.begin(), permutation.end(), j);
-      auto position = it - permutation.begin();
-      unique_permutation.emplace_back(permutation_repeated[position]);
-    }
-
-    // Find the not repeated zs
-    std::set<float> set_zs;
-    std::transform(zs.begin(), zs.end(), std::inserter(set_zs, set_zs.begin()), [](float i) { return fabsf(i); });
-
-    // Fill in host_unique_sector_xs
-    std::vector<float> temp_unique_elements(number_of_unique_elements);
-    std::fill(temp_unique_elements.begin(), temp_unique_elements.end(), Allen::numeric_limits<float>::infinity());
-    for (size_t j = 0; j < size; ++j) {
-      const int index = unique_permutation[j];
-      if (xs[j] < temp_unique_elements[index]) temp_unique_elements[index] = xs[j];
-    }
-    for (int j = 0; j < number_of_unique_elements; ++j) {
-      host_unique_sector_xs.emplace_back(temp_unique_elements[j]);
-    }
-
-    // Fill in host_unique_x_sector_offsets
-    for (auto p : unique_permutation) {
-      host_unique_x_sector_offsets.emplace_back(current_sector_offset + p);
-    }
-
-    // Fill in host_unique_x_sectors
-    current_sector_offset += number_of_unique_elements;
-    host_unique_x_sector_layer_offsets[i + 1] = current_sector_offset;
   }
 
-  Allen::malloc((void**) &dev_ut_per_layer_info, sizeof(UT::Constants::PerLayerInfo));
-  Allen::memcpy(
-    m_constants.get().dev_ut_per_layer_info,
-    host_ut_per_layer_info,
-    sizeof(UT::Constants::PerLayerInfo),
-    Allen::memcpyHostToDevice);
+  // Fill layer geometry
+  auto& host_ut_layer_geometry = m_constants.get().host_ut_layer_geometry;
+  auto& dev_ut_layer_geometry = m_constants.get().dev_ut_layer_geometry;
+  host_ut_layer_geometry = new UT::Constants::UTLayerGeometry;
 
-  // Populate device constant into global memory
-  std::tuple numbers {
-    std::tuple {std::cref(host_unique_x_sector_layer_offsets),
-                std::ref(m_constants.get().dev_unique_x_sector_layer_offsets)},
-    std::tuple {std::cref(host_unique_x_sector_offsets), std::ref(m_constants.get().dev_unique_x_sector_offsets)},
-    std::tuple {std::cref(host_mean_ut_layer_zs), std::ref(m_constants.get().dev_mean_ut_layer_zs)},
-    std::tuple {std::cref(host_unique_sector_xs), std::ref(m_constants.get().dev_unique_sector_xs)}};
+  for (unsigned layer = 0; layer < 4; layer++) {
+    const auto inf = std::numeric_limits<float>::infinity();
+    float min_z = inf, max_z = -inf, min_dxdy = inf, max_dxdy = -inf;
+    AverageCounter mean_z, mean_dxdy, inner_ymin, inner_ymax, outer_ymin, outer_ymax, mean_dy[2];
 
-  for_each(
-    numbers, [&alloc_and_copy](auto& entry) { alloc_and_copy(std::get<0>(entry).get(), std::get<1>(entry).get()); });
+    // Sector range
+    const auto sector_offset = sector_layer_offsets[layer];
+    const auto sector_size = sector_layer_offsets[layer + 1] - sector_offset;
+
+    for (unsigned sector = 0; sector < sector_size; sector++) {
+      const auto group = map_sector_to_group(layer, sector) % UT::Constants::n_groups_in_layer;
+
+      // Get values
+      float sector_dxdy = (geometry.dxDy) ? geometry.dxDy[sector_offset + sector] : hardcoded_layer_dxdy[layer];
+      float sector_z = fabsf(geometry.p0Z[sector_offset + sector]);
+      float sector_y0 = geometry.p0Y[sector_offset + sector];
+      float sector_dy = geometry.dy[sector_offset + sector];
+
+      // Fill Min and Max
+      min_z = std::min(min_z, sector_z);
+      max_z = std::max(max_z, sector_z);
+      min_dxdy = std::min(min_dxdy, sector_dxdy);
+      max_dxdy = std::max(max_dxdy, sector_dxdy);
+
+      // Fill mean
+      mean_z += sector_z;
+      mean_dxdy += sector_dxdy;
+      if (group == 0) {
+        outer_ymin += sector_y0;
+      }
+      if (group == 13) {
+        outer_ymax += sector_y0;
+      }
+      if (group == 14) {
+        inner_ymin += sector_y0;
+      }
+      if (group == 17) {
+        inner_ymax += sector_y0;
+      }
+      mean_dy[(group < 14)] += sector_dy;
+    }
+
+    // Compute step
+    float outer_dy = (outer_ymax.value() - outer_ymin.value()) / (UT::Constants::n_groups_outer_in_layer - 1);
+    float inner_dy = (inner_ymax.value() - inner_ymin.value()) / (UT::Constants::n_groups_inner_in_layer - 1);
+
+    // Fill layer info
+    host_ut_layer_geometry->mean_z[layer] = mean_z.value();
+    host_ut_layer_geometry->mean_dxdy[layer] = mean_dxdy.value();
+    host_ut_layer_geometry->error_z[layer] = max_z - min_z;
+    host_ut_layer_geometry->error_dxdy[layer] = max_dxdy - min_dxdy;
+    host_ut_layer_geometry->two_dy[layer][0] = mean_dy[0].value();
+    host_ut_layer_geometry->two_dy[layer][1] = mean_dy[1].value();
+    host_ut_layer_geometry->outer_1_over_dy[layer] = 1.f / outer_dy;
+    host_ut_layer_geometry->outer_y0_over_dy[layer] = outer_ymin.value() / outer_dy;
+    host_ut_layer_geometry->inner_1_over_dy[layer] = 1.f / inner_dy;
+    host_ut_layer_geometry->inner_y0_over_dy[layer] = inner_ymin.value() / inner_dy;
+  }
+
+  alloc_and_copy(host_ut_sector_to_group_map, dev_ut_sector_to_group_map);
+  alloc_and_copy(host_ut_layer_geometry, dev_ut_layer_geometry);
 }
 
 void Consumers::UTGeometry::consume(std::vector<char> const& data)
