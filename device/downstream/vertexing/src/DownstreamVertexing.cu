@@ -23,6 +23,7 @@ void downstream_vertexing::downstream_vertexing_t::set_arguments_size(
     arguments, first<host_number_of_events_t>(arguments) * VertexFit::max_svs);
   set_size<dev_offsets_downstream_secondary_vertices_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
   set_size<host_number_of_downstream_secondary_vertices_t>(arguments, 1);
+  set_size<dev_vertexing_buffer_t>(arguments, first<host_number_of_downstream_tracks_t>(arguments));
 }
 
 void downstream_vertexing::downstream_vertexing_t::operator()(
@@ -180,7 +181,7 @@ __global__ void downstream_vertexing::downstream_vertexing(
   auto downstream_secondary_vertices = parameters.dev_downstream_secondary_vertices + event_number * VertexFit::max_svs;
 
   // Select particles
-  __shared__ uint8_t particle_selection[UT::Constants::max_num_tracks];
+  auto particle_selection = parameters.dev_vertexing_buffer + downstream_particles.offset();
   const auto tid = threadIdx.y * blockDim.x + threadIdx.x;
   const auto bdim = blockDim.x * blockDim.y;
   for (unsigned i = tid; i < num_downstream_particles; i += bdim) {
