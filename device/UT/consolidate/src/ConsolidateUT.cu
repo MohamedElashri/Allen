@@ -17,8 +17,8 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
 {
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = blockIdx.x;
-  const auto event_tracks_offset = parameters.dev_atomics_ut[event_number];
-  const auto event_number_of_tracks = parameters.dev_atomics_ut[event_number + 1] - event_tracks_offset;
+  const auto event_tracks_offset = parameters.dev_offsets_ut_tracks[event_number];
+  const auto event_number_of_tracks = parameters.dev_offsets_ut_tracks[event_number + 1] - event_tracks_offset;
   const auto event_ut_track_velo_indices = parameters.dev_ut_track_velo_indices + event_tracks_offset;
 
   for (unsigned track_index = threadIdx.x; track_index < event_number_of_tracks; track_index += blockDim.x) {
@@ -27,7 +27,7 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
       parameters.dev_ut_hits_view,
       &parameters.dev_velo_tracks_view[event_number].track(velo_track_index),
       parameters.dev_ut_track_params,
-      parameters.dev_atomics_ut,
+      parameters.dev_offsets_ut_tracks,
       parameters.dev_ut_track_hit_number,
       event_number_of_tracks,
       track_index,
@@ -37,13 +37,13 @@ __global__ void create_ut_views(ut_consolidate_tracks::Parameters parameters)
   if (threadIdx.x == 0) {
     new (parameters.dev_ut_hits_view + event_number)
       Allen::Views::UT::Consolidated::Hits {parameters.dev_ut_track_hits,
-                                            parameters.dev_atomics_ut,
+                                            parameters.dev_offsets_ut_tracks,
                                             parameters.dev_ut_track_hit_number,
                                             event_number,
                                             number_of_events};
 
     new (parameters.dev_ut_tracks_view + event_number) Allen::Views::UT::Consolidated::VeloUTTracks {
-      parameters.dev_ut_track_view, parameters.dev_atomics_ut, event_number};
+      parameters.dev_ut_track_view, parameters.dev_offsets_ut_tracks, event_number};
   }
 
   if (blockIdx.x == 0 && threadIdx.x == 0) {
@@ -74,13 +74,12 @@ void ut_consolidate_tracks::ut_consolidate_tracks_t::set_arguments_size(
 void ut_consolidate_tracks::ut_consolidate_tracks_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
   Allen::memset_async<dev_ut_multi_event_tracks_view_t>(arguments, 0, context);
   Allen::memset_async<dev_ut_tracks_view_t>(arguments, 0, context);
-  global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
-    arguments, constants.dev_unique_x_sector_layer_offsets.data());
+  global_function(ut_consolidate_tracks)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
 
   global_function(create_ut_views)(first<host_number_of_events_t>(arguments), 256, context)(arguments);
 }
@@ -109,24 +108,21 @@ __device__ void populate_plane_code(const UT::TrackHits& track, const F& assign)
   }
 }
 
-__global__ void ut_consolidate_tracks::ut_consolidate_tracks(
-  ut_consolidate_tracks::Parameters parameters,
-  const unsigned* dev_unique_x_sector_layer_offsets)
+__global__ void ut_consolidate_tracks::ut_consolidate_tracks(ut_consolidate_tracks::Parameters parameters)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
-  const UT::TrackHits* event_veloUT_tracks = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
+  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * UT::Constants::n_groups];
+  const UT::TrackHits* event_veloUT_tracks =
+    parameters.dev_ut_tracks + parameters.dev_input_offsets_ut_tracks[event_number];
 
-  const UT::HitOffsets ut_hit_offsets {
-    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  const UT::HitOffsets ut_hit_offsets {parameters.dev_ut_hit_offsets, event_number};
   const auto event_offset = ut_hit_offsets.event_offset();
 
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits};
 
   // Create consolidated SoAs.
-  UT::Consolidated::ExtendedTracks ut_tracks {parameters.dev_atomics_ut,
+  UT::Consolidated::ExtendedTracks ut_tracks {parameters.dev_offsets_ut_tracks,
                                               parameters.dev_ut_track_hit_number,
                                               parameters.dev_ut_qop,
                                               parameters.dev_ut_track_velo_indices,

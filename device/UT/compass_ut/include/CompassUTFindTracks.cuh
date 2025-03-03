@@ -1,5 +1,5 @@
 /*****************************************************************************\
-* (c) Copyright 2018-2020 CERN for the benefit of the LHCb Collaboration      *
+* (c) Copyright 2024 CERN for the benefit of the LHCb Collaboration           *
 *                                                                             *
 * This software is distributed under the terms of the Apache License          *
 * version 2 (Apache-2.0), copied verbatim in the file "LICENSE".              *
@@ -13,36 +13,38 @@
 #include "UTDefinitions.cuh"
 #include "VeloConsolidated.cuh"
 #include "UTMagnetToolDefinitions.h"
-#include "CompassUTDefinitions.cuh"
+#include "CompassUTStructs.cuh"
 #include "AlgorithmTypes.cuh"
 
-namespace ut_search_windows {
+namespace compass_ut_find_tracks {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_number_of_reconstructed_velo_tracks_t, unsigned) host_number_of_reconstructed_velo_tracks;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
-    DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, unsigned) dev_ut_number_of_selected_velo_tracks;
-    DEVICE_INPUT(dev_ut_selected_velo_tracks_t, unsigned) dev_ut_selected_velo_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    DEVICE_OUTPUT(dev_ut_windows_layers_t, short) dev_ut_windows_layers;
+    // From candidates
+    HOST_INPUT(host_number_of_ut_track_candidate_t, unsigned) host_number_of_ut_track_candidate;
+    DEVICE_INPUT(dev_ut_track_consolidate_candidate_offset_t, unsigned) dev_ut_track_consolidate_candidate_offset;
+    DEVICE_INPUT(dev_ut_track_consolidate_candidates_t, CompassUT::Structs::Candidate)
+    dev_ut_track_consolidate_candidates;
+    // Output
+    HOST_OUTPUT(host_number_of_ut_track_output_tracks_t, unsigned) host_number_of_ut_track_output_tracks;
+    DEVICE_OUTPUT(dev_ut_track_output_offset_t, unsigned) dev_ut_track_output_offset;
+    DEVICE_OUTPUT(dev_ut_track_output_tracks_t, CompassUT::Structs::VeloUTTrack) dev_ut_track_output_tracks;
   };
 
-  __global__ void ut_search_windows(
+  __global__ void compass_ut_find_tracks(
     Parameters,
     UTMagnetTool* dev_ut_magnet_tool,
-    const UT::Constants::PerLayerInfo* dev_mean_layer_info,
-    const unsigned* dev_unique_x_sector_layer_offsets,
-    const float* dev_unique_sector_xs,
-    const float y_tol,
-    const float y_tol_slope,
-    const float min_pt,
-    const float min_momentum);
+    const UT::Constants::UTLayerGeometry* dev_ut_layer_geometry,
+    float xtol_axial,
+    float xtol_stereo,
+    float ytol);
 
-  struct ut_search_windows_t : public DeviceAlgorithm, Parameters {
+  struct compass_ut_find_tracks_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
@@ -52,10 +54,9 @@ namespace ut_search_windows {
       const Allen::Context& context) const;
 
   private:
-    Allen::Property<float> m_mom {this, "min_momentum", 1500.f * Gaudi::Units::MeV, "min momentum cut [MeV/c]"};
-    Allen::Property<float> m_pt {this, "min_pt", 300.f * Gaudi::Units::MeV, "min pT cut [MeV/c]"};
-    Allen::Property<float> m_ytol {this, "y_tol", 0.5f * Gaudi::Units::mm, "y tol [mm]"};
-    Allen::Property<float> m_yslope {this, "y_tol_slope", 0.08f, "y tol slope [mm]"};
-    Allen::Property<unsigned> m_block_dim_y {this, "block_dim_y_t", 128, "block dimension Y"};
+    Allen::Property<float> m_xtol_axial {this, "xtol_axial", 2.f, "x tolerance window for axial layers [mm]"};
+    Allen::Property<float> m_xtol_stereo {this, "xtol_stereo", 4.f, "x tolerance window for stereo layers [mm]"};
+    Allen::Property<float> m_ytol {this, "ytol", 1.f, "y tolerance window [mm]"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
   };
-} // namespace ut_search_windows
+} // namespace compass_ut_find_tracks

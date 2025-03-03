@@ -10,6 +10,7 @@
 \*****************************************************************************/
 #include "UTSelectVeloTracks.cuh"
 #include <tuple>
+#include "PrefixSum.cuh"
 #include "WarpIntrinsicsTools.cuh"
 
 INSTANTIATE_ALGORITHM(ut_select_velo_tracks::ut_select_velo_tracks_t)
@@ -19,7 +20,8 @@ void ut_select_velo_tracks::ut_select_velo_tracks_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_ut_number_of_selected_velo_tracks_t>(arguments, first<host_number_of_events_t>(arguments));
+  set_size<host_total_number_of_selected_velo_tracks_t>(arguments, 1);
+  set_size<dev_ut_number_of_selected_velo_tracks_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
   set_size<dev_ut_selected_velo_tracks_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
 }
 
@@ -32,6 +34,9 @@ void ut_select_velo_tracks::ut_select_velo_tracks_t::operator()(
   Allen::memset_async<dev_ut_number_of_selected_velo_tracks_t>(arguments, 0, context);
 
   global_function(ut_select_velo_tracks)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
+
+  PrefixSum::prefix_sum<dev_ut_number_of_selected_velo_tracks_t, host_total_number_of_selected_velo_tracks_t>(
+    *this, arguments, context);
 }
 
 __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_tracks::Parameters parameters)

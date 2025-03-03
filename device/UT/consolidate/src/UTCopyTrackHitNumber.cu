@@ -18,8 +18,7 @@ void ut_copy_track_hit_number::ut_copy_track_hit_number_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_offsets_ut_track_hit_number_t>(
-    arguments, first<host_number_of_reconstructed_ut_tracks_t>(arguments) + 1);
+  set_size<dev_offsets_ut_track_hit_number_t>(arguments, first<host_number_of_ut_track_hits_t>(arguments) + 1);
   set_size<host_accumulated_number_of_hits_in_ut_tracks_t>(arguments, 1);
 }
 
@@ -42,15 +41,14 @@ void ut_copy_track_hit_number::ut_copy_track_hit_number_t::operator()(
 __global__ void ut_copy_track_hit_number::ut_copy_track_hit_number(ut_copy_track_hit_number::Parameters parameters)
 {
   const auto event_number = blockIdx.x;
-  const auto event_tracks = parameters.dev_ut_tracks + event_number * UT::Constants::max_num_tracks;
-  const auto accumulated_tracks = parameters.dev_atomics_ut[event_number];
-  const auto number_of_tracks = parameters.dev_atomics_ut[event_number + 1] - parameters.dev_atomics_ut[event_number];
-
-  // Pointer to ut_track_hit_number of current event.
-  unsigned* ut_track_hit_number = parameters.dev_offsets_ut_track_hit_number + accumulated_tracks;
+  const auto input_offset = parameters.dev_ut_track_selected_offset[event_number];
+  const auto output_offset = parameters.dev_ut_track_hits_offset[event_number];
+  const auto input_size = parameters.dev_ut_track_hits_offset[event_number + 1] - output_offset;
+  const auto input_tracks = parameters.dev_ut_track_hits + input_offset;
+  auto output_tracks = parameters.dev_offsets_ut_track_hit_number + output_offset;
 
   // Loop over tracks.
-  for (unsigned element = threadIdx.x; element < number_of_tracks; element += blockDim.x) {
-    ut_track_hit_number[element] = event_tracks[element].hits_num;
+  for (unsigned i = threadIdx.x; i < input_size; i += blockDim.x) {
+    output_tracks[i] = input_tracks[i].hits_num;
   }
 }

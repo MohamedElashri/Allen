@@ -25,7 +25,8 @@ namespace ut_consolidate_tracks {
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_ut_hits_t, char) dev_ut_hits;
     DEVICE_INPUT(dev_ut_hit_offsets_t, unsigned) dev_ut_hit_offsets;
-    DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned) dev_atomics_ut;
+    DEVICE_INPUT(dev_offsets_ut_tracks_t, unsigned) dev_offsets_ut_tracks;
+    DEVICE_INPUT(dev_input_offsets_ut_tracks_t, unsigned) dev_input_offsets_ut_tracks;
     DEVICE_INPUT(dev_offsets_ut_track_hit_number_t, unsigned) dev_ut_track_hit_number;
     DEVICE_INPUT(dev_ut_tracks_t, UT::TrackHits) dev_ut_tracks;
     DEVICE_INPUT(dev_velo_tracks_view_t, Allen::Views::Velo::Consolidated::Tracks) dev_velo_tracks_view;
@@ -61,7 +62,7 @@ namespace ut_consolidate_tracks {
     dev_imec_ut_tracks;
   };
 
-  __global__ void ut_consolidate_tracks(Parameters, const unsigned* dev_unique_x_sector_layer_offsets);
+  __global__ void ut_consolidate_tracks(Parameters);
 
   struct lhcb_id_container_checks : public Allen::contract::Postcondition {
     void operator()(

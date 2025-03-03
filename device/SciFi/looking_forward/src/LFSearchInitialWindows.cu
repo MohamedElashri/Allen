@@ -121,7 +121,8 @@ __device__ void search_windows(
       return event_number_of_tracks;
     }
     else {
-      return parameters.dev_ut_number_of_selected_velo_tracks[event_number];
+      return parameters.dev_ut_number_of_selected_velo_tracks[event_number + 1] -
+             parameters.dev_ut_number_of_selected_velo_tracks[event_number];
     }
   };
 
