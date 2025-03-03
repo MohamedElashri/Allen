@@ -62,14 +62,6 @@ void Constants::initialize_constants(
     sizeof(LookingForward::Constants),
     Allen::memcpyHostToDevice);
 
-  // Track matching constants
-  host_magnet_parametrization = new TrackMatchingConsts::MagnetParametrization {};
-  Allen::memcpy(
-    dev_magnet_parametrization,
-    host_magnet_parametrization,
-    sizeof(TrackMatchingConsts::MagnetParametrization),
-    Allen::memcpyHostToDevice);
-
   // Muon constants
   Muon::Constants::FieldOfInterest host_muon_foi;
   std::copy_n(

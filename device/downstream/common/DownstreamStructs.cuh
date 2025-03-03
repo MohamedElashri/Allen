@@ -11,14 +11,6 @@
 #pragma once
 
 #include "DownstreamConstants.cuh"
-#include "UTEventModel.cuh"
-
-/**
- * @brief This is definition file for downstream specific structs and enums.
- * @details Downstream structs contain the output table for FindHits algorithm.
- * The output table for FindHits algorithm is also used for cache some useful variables in SOA.
- *
- */
 
 namespace Downstream {
   namespace DownstreamEnums {
