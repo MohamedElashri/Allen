@@ -34,6 +34,7 @@
  */
 namespace downstream_find_hits {
 
+  constexpr unsigned MaxNumIteration = 2;
   using TTrackSelector = Allen::MVAModels::SingleLayerFCNN<4, 16>;
 
   struct Parameters {

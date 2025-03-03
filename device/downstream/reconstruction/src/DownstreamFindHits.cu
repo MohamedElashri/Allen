@@ -267,16 +267,18 @@ __global__ void downstream_find_hits::downstream_create_candidates(
 
   // Hit Cache
   UTHitsCache_CreateCandidates hit_cache {shared_memory_hit_caching};
-  UT::SectorHelper sector_cache;
 
   // Allocate objects
   __shared__ ushort2 shared_counter;
   auto& shared_num_candidates = shared_counter.x;
   auto& shared_num_selelected_scifi = shared_counter.y;
 
+  __shared__ float scaling_factor;
+
   // Initialization
   if (threadIdx.x == 0) {
     shared_counter = Allen::device::bit_cast<ushort2>(0u);
+    scaling_factor = 1.f;
   };
   __syncthreads();
 
@@ -300,6 +302,10 @@ __global__ void downstream_find_hits::downstream_create_candidates(
   hit_cache.cache_layer(ut_hit_offsets, ut_hits, dev_ut_layer_geometry, layer);
   __syncthreads();
 
+  // Try up to MaxNumIteration times.
+  // If a candidate overflows, try using a tighter threshold.
+  // If it still exceeds after MaxNumIteration times, simply reset the event to 0
+  for (unsigned iteration = 0; iteration < MaxNumIteration; iteration++) {
     // Start
     for (unsigned short SciFi_idx = threadIdx.x; SciFi_idx < scifi_n_tracks; SciFi_idx += blockDim.x) {
       // Skip the used seeds
@@ -337,6 +343,9 @@ __global__ void downstream_find_hits::downstream_create_candidates(
         xTol = exTrack.xTolConst(layer) * tolerance_window_x4_multiplier;
         yTol = exTrack.yTolConst(layer) * tolerance_window_y4_multiplier;
       }
+
+      xTol *= scaling_factor;
+      yTol *= scaling_factor;
 
       // Get expected x and open the search window
       const auto expected_layer_y = exTrack.yAtZ(mean_z);
@@ -428,20 +437,29 @@ __global__ void downstream_find_hits::downstream_create_candidates(
     }
     __syncthreads();
 
+    const auto overflow =
+      !((shared_num_candidates < Downstream::DownstreamParameters::MaxNumCandidates) &&
+        (shared_num_selelected_scifi < Downstream::DownstreamParameters::MaxNumDownstreamSciFi));
+    __syncthreads();
+    if (overflow) {
+      if (threadIdx.x == 0) {
+        shared_counter = Allen::device::bit_cast<ushort2>(0u);
+        scaling_factor *= 0.5f;
+        dev_n_overflow_downstream_tracking.increment();
+      }
+      __syncthreads();
+      continue;
+    }
+    break;
+  }
   if (threadIdx.x == 0) {
-    const auto no_overflow = (shared_num_candidates < Downstream::DownstreamParameters::MaxNumCandidates) &&
-                             (shared_num_selelected_scifi < Downstream::DownstreamParameters::MaxNumDownstreamSciFi);
 
     // Store the number of rows
-    parameters.dev_findhits_num_output[event_number] = no_overflow ? shared_num_candidates : 0;
+    parameters.dev_findhits_num_output[event_number] = shared_num_candidates;
     // Store the number of selected scifi seeds
-    parameters.dev_findhits_num_selected_scifi[event_number] = no_overflow ? shared_num_selelected_scifi : 0;
+    parameters.dev_findhits_num_selected_scifi[event_number] = shared_num_selelected_scifi;
     // Set the end of offsets
-    output_selected_scifi_offsets[shared_num_selelected_scifi] = no_overflow ? shared_num_candidates : 0;
-
-    if (!no_overflow) {
-      dev_n_overflow_downstream_tracking.increment();
-    }
+    output_selected_scifi_offsets[shared_num_selelected_scifi] = shared_num_candidates;
   };
   __syncthreads();
 }

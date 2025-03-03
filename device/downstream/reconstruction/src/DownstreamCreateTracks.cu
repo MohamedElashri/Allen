@@ -209,9 +209,11 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
   ///////////////////////////////////////////////////////
   __shared__ unsigned shared_num_downstream_tracks;
   __shared__ bool clone_label[UT::Constants::max_num_tracks];
+  __shared__ float scaling_factor;
 
   // Reset values
   if (threadIdx.x == 0) {
+    scaling_factor = 1.f;
     shared_num_downstream_tracks = 0;
   };
   for (unsigned i = threadIdx.x; i < UT::Constants::max_num_tracks; i += blockDim.x) {
@@ -224,6 +226,10 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
   //
   ///////////////////////////////////////////////////////
 
+  // Try up to MaxNumIteration times.
+  // If a candidate overflows, try using a tighter threshold.
+  // If it still exceeds after MaxNumIteration times, simply reset the event to 0
+  for (unsigned iteration = 0; iteration < MaxNumIteration; iteration++) {
     //
     // Find best candidates
     //
@@ -333,7 +339,7 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
                                                                              ft_y - (ut_y + ut_ty * (ZEndT - zMidUT))};
       const auto ghost_killer_score = dev_downstream_ghostkiller->evaluate(ghost_killer_input);
 
-    if (ghost_killer_score > ghost_killer_threshold) continue;
+      if (ghost_killer_score > ghost_killer_threshold * scaling_factor) continue;
 
       const auto idx = atomicAdd(&shared_num_downstream_tracks, 1u);
 
@@ -355,6 +361,20 @@ __global__ void downstream_create_tracks::downstream_create_tracks(
       output_track.hits[2] = hit_2;
       output_track.hits[3] = hit_3;
     }
+    __syncthreads();
+    const auto overflow = shared_num_downstream_tracks > UT::Constants::max_num_tracks;
+    __syncthreads();
+    if (overflow) {
+      if (threadIdx.x == 0) {
+        scaling_factor *= 0.5f;
+        shared_num_downstream_tracks = 0;
+        dev_n_overflow_downstream_create_tracks.increment();
+      }
+      __syncthreads();
+      continue;
+    }
+    break;
+  }
 
   //
   // Clone killing

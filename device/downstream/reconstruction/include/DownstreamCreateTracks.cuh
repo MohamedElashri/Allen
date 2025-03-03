@@ -35,6 +35,7 @@
  * implementation file is in downstream_create_tracks.cu
  */
 namespace downstream_create_tracks {
+  constexpr unsigned MaxNumIteration = 2;
   using DownstreamGhostKiller = Allen::MVAModels::SingleLayerFCNN<11, 32>;
 
   struct Parameters {

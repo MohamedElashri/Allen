@@ -237,7 +237,8 @@ __global__ void track_matching::track_matching_veloSciFi(
   const unsigned event_velo_seeds_offset = velo_tracks.offset();
 
   // filtered velo tracks
-  const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
+  const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number + 1] -
+                                            parameters.dev_ut_number_of_selected_velo_tracks[event_number];
   const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_velo_seeds_offset;
 
   // SciFi seed views
@@ -252,88 +253,104 @@ __global__ void track_matching::track_matching_veloSciFi(
   SciFi::MatchedTrack* matched_tracks_event =
     parameters.dev_matched_tracks + event_number * TrackMatchingConsts::max_num_tracks;
 
-  for (unsigned i = threadIdx.x; i < number_of_scifi_seeds; i += blockDim.x) {
-    const auto scifi_state = scifi_states[i];
-
-    // Loop over filtered velo tracks
-    for (unsigned ivelo = 0; ivelo < ut_number_of_selected_tracks; ivelo++) {
-
-      const auto velo_track_index = ut_selected_velo_tracks[ivelo];
-      const auto endvelo_state = velo_states.state(velo_track_index);
-      auto matchingInfo = getChi2Match(
-        endvelo_state,
-        scifi_state,
-        z_magnet_parameters,
-        multiplication_factor_dX,
-        multiplication_factor_dY,
-        multiplication_factor_dty,
-        multiplication_factor_dtx);
-      if (matchingInfo.chi2 > TrackMatchingConsts::maxChi2) continue;
-
-      const auto velo_eta = asinhf(1.f / hypotf(endvelo_state.tx(), endvelo_state.ty()));
-
-      float ghost_killer_score = 0.f;
-      if constexpr (!std::is_same_v<GhostKiller_t, void>) {
-        if constexpr (std::is_same_v<GhostKiller_t, MatchingGhostKiller::DeviceType>) {
-          float ghost_killer_inputs[MatchingGhostKiller::DeviceType::nInput] = {matchingInfo.zForX,
-                                                                                matchingInfo.distX,
-                                                                                matchingInfo.distY,
-                                                                                matchingInfo.dSlopeX,
-                                                                                matchingInfo.dSlopeY,
-                                                                                logf(matchingInfo.chi2),
-                                                                                velo_eta};
-          ghost_killer_score = dev_matching_ghost_killer->evaluate(ghost_killer_inputs);
-        }
-        else {
-          const auto number_of_scifi_hits = float(scifi_seeds.track(i).number_of_scifi_hits());
-          float ghost_killer_inputs[MatchingNoUTV2GhostKiller::DeviceType::nInput] = {matchingInfo.zForX,
-                                                                                      matchingInfo.distX,
-                                                                                      matchingInfo.distY,
-                                                                                      matchingInfo.dSlopeX,
-                                                                                      matchingInfo.dSlopeY,
-                                                                                      matchingInfo.chi2,
-                                                                                      velo_eta,
-                                                                                      number_of_scifi_hits};
-          ghost_killer_score = dev_matching_ghost_killer->evaluate(ghost_killer_inputs);
-        }
-
-        if (ghost_killer_score > ghost_killer_threshold) continue;
-      }
-
-      // Save the result
-      auto idx = atomicAdd(&n_matched, 1);
-      if (idx >= TrackMatchingConsts::max_num_tracks) break;
-
-      auto& matched_track = matched_tracks_event[idx];
-
-      const auto magSign = -dev_magnet_polarity[0];
-
-      const auto qop = LongTrack::computeQoverP(
-        endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, momentum_parameters);
-
-      matched_track.velo_track_index = velo_track_index;
-      matched_track.scifi_track_index = i;
-
-      matched_track.ut_hits[0] = SciFi::MatchedTrack::InvalidHit;
-      matched_track.ut_hits[1] = SciFi::MatchedTrack::InvalidHit;
-      matched_track.ut_hits[2] = SciFi::MatchedTrack::InvalidHit;
-      matched_track.ut_hits[3] = SciFi::MatchedTrack::InvalidHit;
-
-      matched_track.number_of_hits_ut = 0;
-      matched_track.qop = qop;
-      matched_track.gamma = std::numeric_limits<float>::quiet_NaN();
-      matched_track.ut_score = 0;
-      matched_track.score = ghost_killer_score;
-    }
+  __shared__ float scaling_factor;
+  if (threadIdx.x == 0) {
+    scaling_factor = 1.f;
   }
-
   __syncthreads();
-  if (threadIdx.x == 0 && n_matched > TrackMatchingConsts::max_num_tracks) {
-    // If there are more than the maximum number of tracks, don't save any
-    // reconstructed tracks to avoid non-deterministic behavior.
-    // TODO: Add counter here?
-    n_matched = 0;
-    dev_n_overflow_track_matching.increment();
+
+  // Try up to MaxNumIteration times.
+  // If a candidate overflows, try using a tighter threshold.
+  // If it still exceeds after MaxNumIteration times, simply reset the event to 0
+  for (unsigned iteration = 0; iteration < MaxNumIteration; iteration++) {
+    for (unsigned i = threadIdx.x; i < number_of_scifi_seeds; i += blockDim.x) {
+      const auto scifi_state = scifi_states[i];
+
+      // Loop over filtered velo tracks
+      for (unsigned ivelo = 0; ivelo < ut_number_of_selected_tracks; ivelo++) {
+
+        const auto velo_track_index = ut_selected_velo_tracks[ivelo];
+        const auto endvelo_state = velo_states.state(velo_track_index);
+        auto matchingInfo = getChi2Match(
+          endvelo_state,
+          scifi_state,
+          z_magnet_parameters,
+          multiplication_factor_dX,
+          multiplication_factor_dY,
+          multiplication_factor_dty,
+          multiplication_factor_dtx);
+        if (matchingInfo.chi2 > TrackMatchingConsts::maxChi2) continue;
+
+        const auto velo_eta = asinhf(1.f / hypotf(endvelo_state.tx(), endvelo_state.ty()));
+
+        float ghost_killer_score = 0.f;
+        if constexpr (!std::is_same_v<GhostKiller_t, void>) {
+          if constexpr (std::is_same_v<GhostKiller_t, MatchingGhostKiller::DeviceType>) {
+            float ghost_killer_inputs[MatchingGhostKiller::DeviceType::nInput] = {matchingInfo.zForX,
+                                                                                  matchingInfo.distX,
+                                                                                  matchingInfo.distY,
+                                                                                  matchingInfo.dSlopeX,
+                                                                                  matchingInfo.dSlopeY,
+                                                                                  logf(matchingInfo.chi2),
+                                                                                  velo_eta};
+            ghost_killer_score = dev_matching_ghost_killer->evaluate(ghost_killer_inputs);
+          }
+          else {
+            const auto number_of_scifi_hits = float(scifi_seeds.track(i).number_of_scifi_hits());
+            float ghost_killer_inputs[MatchingNoUTV2GhostKiller::DeviceType::nInput] = {matchingInfo.zForX,
+                                                                                        matchingInfo.distX,
+                                                                                        matchingInfo.distY,
+                                                                                        matchingInfo.dSlopeX,
+                                                                                        matchingInfo.dSlopeY,
+                                                                                        matchingInfo.chi2,
+                                                                                        velo_eta,
+                                                                                        number_of_scifi_hits};
+            ghost_killer_score = dev_matching_ghost_killer->evaluate(ghost_killer_inputs);
+          }
+
+          if (ghost_killer_score > ghost_killer_threshold * scaling_factor) continue;
+        }
+
+        // Save the result
+        auto idx = atomicAdd(&n_matched, 1);
+        if (idx >= TrackMatchingConsts::max_num_tracks) break;
+
+        auto& matched_track = matched_tracks_event[idx];
+
+        const auto magSign = -dev_magnet_polarity[0];
+
+        const auto qop = LongTrack::computeQoverP(
+          endvelo_state.tx(), endvelo_state.ty(), scifi_state.tx(), magSign, momentum_parameters);
+
+        matched_track.velo_track_index = velo_track_index;
+        matched_track.scifi_track_index = i;
+
+        matched_track.ut_hits[0] = SciFi::MatchedTrack::InvalidHit;
+        matched_track.ut_hits[1] = SciFi::MatchedTrack::InvalidHit;
+        matched_track.ut_hits[2] = SciFi::MatchedTrack::InvalidHit;
+        matched_track.ut_hits[3] = SciFi::MatchedTrack::InvalidHit;
+
+        matched_track.number_of_hits_ut = 0;
+        matched_track.qop = qop;
+        matched_track.gamma = std::numeric_limits<float>::quiet_NaN();
+        matched_track.ut_score = 0;
+        matched_track.score = ghost_killer_score;
+      }
+    }
+    __syncthreads();
+    const auto overflow = n_matched > TrackMatchingConsts::max_num_tracks;
+    __syncthreads();
+    if (overflow) {
+      // Let's scale the threshold by half, and try again
+      if (threadIdx.x == 0) {
+        scaling_factor *= 0.5f;
+        n_matched = 0;
+        dev_n_overflow_track_matching.increment();
+      }
+      __syncthreads(); // This is needed to propagate new scaling factor
+      continue;
+    }
+    break;
   }
 }
 
@@ -376,7 +393,6 @@ __global__ void track_matching::track_matching_add_ut_hits(
 
   // Hit Cache
   UTHitsCache hit_cache {shared_memory_hit_caching};
-  UT::SectorHelper sector_cache;
 
   ///////////////////////////////////////////////////////
   //
@@ -384,9 +400,20 @@ __global__ void track_matching::track_matching_add_ut_hits(
   //
   ///////////////////////////////////////////////////////
 
+  __shared__ unsigned scaling_factor;
+  if (threadIdx.x == 0) {
+    scaling_factor = 1.f;
+  }
+  __syncthreads();
+
+  // Try up to MaxNumIteration times.
+  // If a candidate overflows, try using a tighter threshold.
+  // If it still exceeds after MaxNumIteration times, simply reset the event to 0.
 #if (defined(TARGET_DEVICE_CUDA) && defined(__CUDACC__))
 #pragma unroll
 #endif
+  for (unsigned iteration = 0; iteration < MaxNumIteration; iteration++) {
+    bool overflow = false;
     for (unsigned layer = 0; layer < UT::Constants::n_layers; layer++) {
       // Cache hits and sectors
       hit_cache.cache_layer(ut_hit_offsets, ut_hits, dev_ut_layer_geometry, layer);
@@ -432,11 +459,11 @@ __global__ void track_matching::track_matching_add_ut_hits(
                                         matched_track.qop,
                                         matched_track.gamma);
 
-      // Get tolerances
-      const auto xTol = trajectory.get_tolerance(
-        first_hit ? ut_x_loose_tolerance_parameters.data() + 4 * (layer) :
-                    ut_x_tight_tolerance_parameters.data() + 4 * (layer - 1));
-      const auto yTol = ut_y_tolerance_parameters;
+        // Get tolerances
+        const auto xTol = scaling_factor * trajectory.get_tolerance(
+                                             first_hit ? ut_x_loose_tolerance_parameters.data() + 4 * (layer) :
+                                                         ut_x_tight_tolerance_parameters.data() + 4 * (layer - 1));
+        const auto yTol = scaling_factor * ut_y_tolerance_parameters;
 
         // Get expected x and open the search window
         const auto expected_layer_y = trajectory.yAtZ(layer_z);
@@ -547,6 +574,22 @@ __global__ void track_matching::track_matching_add_ut_hits(
           matched_track.number_of_hits_ut++;
         }
       }
+      __syncthreads();
+      const auto has_overflow = n_matched_tracks_event > TrackMatchingConsts::max_num_tracks;
+      __syncthreads();
+      if (has_overflow) {
+        if (threadIdx.x == 0) {
+          scaling_factor *= 0.5f;
+          n_matched_tracks_event = 0;
+          dev_n_overflow_track_matching.increment();
+        }
+        __syncthreads();
+        overflow = true;
+        break;
+      }
+    }
+    if (overflow) continue;
+    break;
   }
 }
 

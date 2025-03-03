@@ -24,6 +24,8 @@
 
 namespace track_matching {
 
+  constexpr unsigned MaxNumIteration = 2;
+
   using MatchingGhostKiller = Allen::MVAModels::SingleLayerFCNN<7, 32>;
   using MatchingNoUTV2GhostKiller = Allen::MVAModels::SingleLayerFCNN<8, 32>;
   using MatchingWithUTGhostKiller = Allen::MVAModels::SingleLayerFCNN<11, 32>;
