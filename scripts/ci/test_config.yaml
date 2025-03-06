@@ -33,8 +33,8 @@ config:
   # args added for specific specific test types
   test_args:
     throughput: "" # handled by target_args
-    efficiency: " -n 1000 -m 1100"  # TODO incr to 10k
-    run_changes: "-n 1000 -m 1000 "
+    efficiency: " -n 1000 -m 1100 --host-memory 1100"  # TODO incr to 10k
+    run_changes: "-n 1000 -m 1000 --host-memory 1000"
 
   # args added for specific device targets
   target_args:
