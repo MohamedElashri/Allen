@@ -289,6 +289,10 @@ __device__ inline void prepare_kalman_tracks(
     t.best_qop = (float) track.best_qop;
     t.p = (float) track.p();
     t.pt = (float) track.pt();
+    t.nhitsV = (float) track.nhitsV;
+    t.nhitsT = (float) track.nhitsT;
+    t.nhitsUT = (float) track.nhitsUT;
+    t.chi2UT = (float) track.chi2UT;
     kalman_checker_tracks[i_track] = t;
   }
 }

@@ -70,6 +70,10 @@ private:
   float m_trk_ndofT = 0.f;
   float m_trk_ghost = 0.f;
   float m_mcp_p = 0.f;
+  float m_trk_velo_hits = 0.f;
+  float m_trk_scifi_hits = 0.f;
+  float m_trk_ut_hits = 0.f;
+  float m_trk_chi2UT = 0.f;
 
   std::string m_directory;
 };

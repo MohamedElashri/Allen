@@ -40,6 +40,49 @@ std::vector<char> GeometryReader::read_geometry(const std::string& filename) con
   return geometry;
 }
 
+ParKalmanReader::ParKalmanReader(const std::string& path)
+{
+  if (!exists_test(path)) {
+    throw StrException("ParKalman parameter file " + path + " does not exist.");
+  }
+
+  std::ifstream i(path);
+  nlohmann::json j;
+  i >> j;
+
+  std::map<std::string, std::vector<float>*> key_to_member = {{"VParams_MagDown", &m_VP_pars_MD},
+                                                              {"VUTParams_MagDown", &m_VPUT_pars_MD},
+                                                              {"TParams_MagDown", &m_T_pars_MD},
+                                                              {"TFTParams_MagDown", &m_TFT_pars_MD},
+                                                              {"UTParams_MagDown", &m_UT_pars_MD},
+                                                              {"UTTFParams_MagDown", &m_UTTF_pars_MD},
+                                                              {"VParams_MagUp", &m_VP_pars_MU},
+                                                              {"VUTParams_MagUp", &m_VPUT_pars_MU},
+                                                              {"TParams_MagUp", &m_T_pars_MU},
+                                                              {"TFTParams_MagUp", &m_TFT_pars_MU},
+                                                              {"UTParams_MagUp", &m_UT_pars_MU},
+                                                              {"UTTFParams_MagUp", &m_UTTF_pars_MU},
+                                                              {"UTT_META_MagDown", &m_UTT_META_MD},
+                                                              {"UTT_META_MagUp", &m_UTT_META_MU},
+                                                              {"UTLayer", &m_UT_layer},
+                                                              {"TLayer", &m_T_layer}};
+
+  for (const auto& [map_key, member] : key_to_member) {
+    auto el = j.at(map_key);
+    int nSets = 0;
+    int nPars = 0;
+    for (auto par_row : el) {
+      ++nSets;
+      nPars = par_row.size();
+      for (auto par_el : par_row) {
+        member->push_back(par_el);
+      }
+    }
+    member->push_back(nSets);
+    member->push_back(nPars);
+  }
+}
+
 ConfigurationReader::ConfigurationReader(std::string_view configuration)
 {
   nlohmann::json j = nlohmann::json::parse(configuration);

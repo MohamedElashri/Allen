@@ -278,6 +278,46 @@ namespace ParKalmanFilter {
   }
 
   //----------------------------------------------------------------------
+  // Add two square matrices A+=B in place.
+  template<bool _symA, bool _symB, int _size>
+  __host__ __device__ void AeApB(SquareMatrix<_symA, _size>& A, const SquareMatrix<_symB, _size>& B)
+  {
+    for (int i = 0; i < _size; i++) {
+      for (int j = 0; j < _size; j++) {
+        A(i, j) += B(i, j);
+      }
+    }
+  }
+
+  template<int _size>
+  __host__ __device__ void AeApB(SquareMatrix<true, _size>& A, const SquareMatrix<true, _size>& B)
+  {
+    for (int i = 0; i < (((_size * (_size + 1)) >> 1)); i++) {
+      A.vals[i] += B.vals[i];
+    }
+  }
+
+  //----------------------------------------------------------------------
+  // Subtract two square matrices A-=B in place.
+  template<bool _symA, bool _symB, int _size>
+  __host__ __device__ void AeAmB(SquareMatrix<_symA, _size>& A, const SquareMatrix<_symB, _size>& B)
+  {
+    for (int i = 0; i < _size; i++) {
+      for (int j = 0; j < _size; j++) {
+        A(i, j) -= B(i, j);
+      }
+    }
+  }
+
+  template<int _size>
+  __host__ __device__ void AeAmB(SquareMatrix<true, _size>& A, const SquareMatrix<true, _size>& B)
+  {
+    for (int i = 0; i < (((_size * (_size + 1)) >> 1)); i++) {
+      A.vals[i] -= B.vals[i];
+    }
+  }
+
+  //----------------------------------------------------------------------
   // Operator - Subtract a square matrix from another. C=A-B.
   template<bool _symA, bool _symB, int _size>
   __host__ __device__ SquareMatrix<false, _size> operator-(
@@ -405,6 +445,7 @@ namespace ParKalmanFilter {
   typedef Vector<5> Vector5;
   typedef SquareMatrix<true, 5> SymMatrix5x5;
   typedef SquareMatrix<false, 5> Matrix5x5;
+  typedef SquareMatrix<false, 2> Matrix2x2;
 
   __device__ __host__ inline void tensorProduct(const Vector<5>& u, const Vector<5>& v, SquareMatrix<true, 5>& A);
 
@@ -422,6 +463,30 @@ namespace ParKalmanFilter {
   __device__ __host__ inline KalmanFloat similarity_2x1_2x2(const Vector<2>& a, const SquareMatrix<true, 2>& C);
 
   __device__ __host__ inline SquareMatrix<true, 5> similarity_5_5(
+    const SquareMatrix<false, 5>& F,
+    const SquareMatrix<true, 5>& C);
+
+  __device__ __host__ inline SquareMatrix<true, 5> similarity_5_5_VP(
+    const SquareMatrix<false, 2>& F,
+    const SquareMatrix<true, 5>& C);
+
+  __device__ __host__ inline SquareMatrix<true, 5> similarity_5_5_VUT(
+    const SquareMatrix<false, 5>& F,
+    const SquareMatrix<true, 5>& C);
+
+  __device__ __host__ inline SquareMatrix<true, 5> similarity_5_5_UT(
+    const SquareMatrix<false, 5>& F,
+    const SquareMatrix<true, 5>& C);
+
+  __device__ __host__ inline SquareMatrix<true, 5> similarity_5_5_UTT(
+    const SquareMatrix<false, 5>& F,
+    const SquareMatrix<true, 5>& C);
+
+  __device__ __host__ inline SquareMatrix<true, 5> similarity_5_5_T(
+    const SquareMatrix<false, 5>& F,
+    const SquareMatrix<true, 5>& C);
+
+  __device__ __host__ inline SquareMatrix<true, 5> similarity_5_5_TFT(
     const SquareMatrix<false, 5>& F,
     const SquareMatrix<true, 5>& C);
 
@@ -603,6 +668,244 @@ namespace ParKalmanFilter {
     _3 = c[6] * f[20] + c[7] * f[21] + c[8] * f[22] + c[9] * f[23] + c[13] * f[24];
     _4 = c[10] * f[20] + c[11] * f[21] + c[12] * f[22] + c[13] * f[23] + c[14] * f[24];
     a[14] = f[20] * _0 + f[21] * _1 + f[22] * _2 + f[23] * _3 + f[24] * _4;
+    return A;
+  }
+
+  __device__ __host__ SquareMatrix<true, 5> similarity_5_5_VP(
+    const SquareMatrix<false, 2>& F,
+    const SquareMatrix<true, 5>& C)
+  { // implementation of similartity_5_5 that drops alls terms that include F[ROW, COL]=0,1
+    // This minimises operations and memory usage
+    // should only be used in `ExtrapolateInV` will not act as expected ouside of this context.
+    SquareMatrix<true, 5> A;
+    KalmanFloat* a = A.vals;
+    const KalmanFloat* f = F.vals;
+    const KalmanFloat* c = C.vals;
+    KalmanFloat _0 = c[0] + c[3] * f[0] + c[10] * f[2];
+    KalmanFloat _1 = c[1] + c[4] * f[0] + c[11] * f[2];
+    KalmanFloat _2 = c[3] + c[5] * f[0] + c[12] * f[2];
+    KalmanFloat _3 = c[6] + c[8] * f[0] + c[13] * f[2];
+    KalmanFloat _4 = c[10] + c[12] * f[0] + c[14] * f[2];
+    a[0] = _0 + f[0] * _2 + f[2] * _4;
+    a[1] = _1 + f[1] * _3;
+    a[3] = _2 + f[3] * _4;
+    a[6] = _3;
+    a[10] = _4;
+    _1 = c[2] + c[7] * f[1];
+    _2 = c[4] + c[8] * f[1];
+    _3 = c[7] + c[9] * f[1];
+    _4 = c[11] + c[13] * f[1];
+    a[2] = _1 + f[1] * _3;
+    a[4] = _2 + f[3] * _4;
+    a[7] = _3;
+    a[11] = _4;
+    _2 = c[5] + c[12] * f[3];
+    _3 = c[8] + c[13] * f[3];
+    _4 = c[12] + c[14] * f[3];
+    a[5] = _2 + f[3] * _4;
+    a[8] = _3;
+    a[12] = _4;
+    a[9] = c[9];
+    a[13] = c[13];
+    a[14] = c[14];
+    return A;
+  }
+
+  __device__ __host__ SquareMatrix<true, 5> similarity_5_5_VUT(
+    const SquareMatrix<false, 5>& F,
+    const SquareMatrix<true, 5>& C)
+  {
+    SquareMatrix<true, 5> A;
+    KalmanFloat* a = A.vals;
+    const KalmanFloat* f = F.vals;
+    const KalmanFloat* c = C.vals;
+    KalmanFloat _0 = c[0] + c[3] * f[2] + c[6] * f[3] + c[10] * f[4];
+    KalmanFloat _1 = c[1] + c[4] * f[2] + c[7] * f[3] + c[11] * f[4];
+    KalmanFloat _2 = c[3] + c[5] * f[2] + c[8] * f[3] + c[12] * f[4];
+    KalmanFloat _3 = c[6] + c[8] * f[2] + c[9] * f[3] + c[13] * f[4];
+    KalmanFloat _4 = c[10] + c[12] * f[2] + c[13] * f[3] + c[14] * f[4];
+    a[0] = _0 + f[2] * _2 + f[3] * _3 + f[4] * _4;
+    a[1] = f[6] * _1 + f[7] * _2 + f[8] * _3 + f[9] * _4;
+    a[3] = f[12] * _2 + f[13] * _3 + f[14] * _4;
+    a[6] = f[17] * _2 + _3 + f[19] * _4;
+    a[10] = _4;
+    _1 = c[2] * f[6] + c[4] * f[7] + c[7] * f[8] + c[11] * f[9];
+    _2 = c[4] * f[6] + c[5] * f[7] + c[8] * f[8] + c[12] * f[9];
+    _3 = c[7] * f[6] + c[8] * f[7] + c[9] * f[8] + c[13] * f[9];
+    _4 = c[11] * f[6] + c[12] * f[7] + c[13] * f[8] + c[14] * f[9];
+    a[2] = f[6] * _1 + f[7] * _2 + f[8] * _3 + f[9] * _4;
+    a[4] = f[12] * _2 + f[13] * _3 + f[14] * _4;
+    a[7] = f[17] * _2 + _3 + f[19] * _4;
+    a[11] = _4;
+    _2 = c[5] * f[12] + c[8] * f[13] + c[12] * f[14];
+    _3 = c[8] * f[12] + c[9] * f[13] + c[13] * f[14];
+    _4 = c[12] * f[12] + c[13] * f[13] + c[14] * f[14];
+    a[5] = f[12] * _2 + f[13] * _3 + f[14] * _4;
+    a[8] = f[17] * _2 + _3 + f[19] * _4;
+    a[12] = _4;
+    _2 = c[5] * f[17] + c[8] + c[12] * f[19];
+    _3 = c[8] * f[17] + c[9] + c[13] * f[19];
+    _4 = c[12] * f[17] + c[13] + c[14] * f[19];
+    a[9] = f[17] * _2 + _3 + f[19] * _4;
+    a[13] = _4;
+    a[14] = c[14];
+    return A;
+  }
+
+  __device__ __host__ SquareMatrix<true, 5> similarity_5_5_UT(
+    const SquareMatrix<false, 5>& F,
+    const SquareMatrix<true, 5>& C)
+  { // could also go down more on the tmp variable bu using the A matrix for tmp storage
+    SquareMatrix<true, 5> A;
+    KalmanFloat* a = A.vals;
+    const KalmanFloat* f = F.vals;
+    const KalmanFloat* c = C.vals;
+    KalmanFloat _0 = c[0] + c[1] * f[1] + c[3] * f[2] + c[10] * f[4];
+    KalmanFloat _1 = c[1] + c[2] * f[1] + c[4] * f[2] + c[11] * f[4];
+    KalmanFloat _2 = c[3] + c[4] * f[1] + c[5] * f[2] + c[12] * f[4];
+    KalmanFloat _3 = c[6] + c[7] * f[1] + c[8] * f[2] + c[13] * f[4];
+    a[10] = c[10] + c[11] * f[1] + c[12] * f[2] + c[14] * f[4];
+    a[0] = _0 + f[1] * _1 + f[2] * _2 + f[4] * a[10];
+    a[1] = _1 + f[7] * _2 + f[8] * _3 + f[9] * a[10];
+    a[3] = f[11] * _1 + _2 + f[14] * a[10];
+    a[6] = f[17] * _2 + _3 + f[19] * a[10];
+    _1 = c[2] + c[4] * f[7] + c[7] * f[8] + c[11] * f[9];
+    _2 = c[4] + c[5] * f[7] + c[8] * f[8] + c[12] * f[9];
+    _3 = c[7] + c[8] * f[7] + c[9] * f[8] + c[13] * f[9];
+    _0 = c[11] + c[12] * f[7] + c[13] * f[8] + c[14] * f[9];
+    a[2] = _1 + f[7] * _2 + f[8] * _3 + f[9] * _0;
+    a[4] = f[11] * _1 + _2 + f[14] * _0;
+    a[7] = f[17] * _2 + _3 + f[19] * _0;
+    a[11] = _0;
+    _1 = c[2] * f[11] + c[4] + c[11] * f[14];
+    _2 = c[4] * f[11] + c[5] + c[12] * f[14];
+    _3 = c[7] * f[11] + c[8] + c[13] * f[14];
+    a[12] = c[11] * f[11] + c[12] + c[14] * f[14];
+    a[5] = f[11] * _1 + _2 + f[14] * a[12];
+    a[8] = f[17] * _2 + _3 + f[19] * a[12];
+    a[13] = c[12] * f[17] + c[13] + c[14] * f[19];
+    a[9] = f[17] * c[5] * f[17] + c[8] + c[12] * f[19] + c[8] * f[17] + c[9] + c[13] * f[19] + f[19] * a[13];
+    a[14] = c[14];
+    return A;
+  }
+
+  __device__ __host__ SquareMatrix<true, 5> similarity_5_5_UTT(
+    const SquareMatrix<false, 5>& F,
+    const SquareMatrix<true, 5>& C)
+  { // could also get rid of _4 and use a[n*5 +4] row of a
+    SquareMatrix<true, 5> A;
+    KalmanFloat* a = A.vals;
+    const KalmanFloat* f = F.vals;
+    const KalmanFloat* c = C.vals;
+    KalmanFloat _2 = c[3] + c[5] * f[2] + c[8] * f[3] + c[12] * f[4];
+    KalmanFloat _3 = c[6] + c[8] * f[2] + c[9] * f[3] + c[13] * f[4];
+    KalmanFloat _4 = c[10] + c[12] * f[2] + c[13] * f[3] + c[14] * f[4];
+    a[0] = c[0] + c[3] * f[2] + c[6] * f[3] + c[10] * f[4] + f[2] * _2 + f[3] * _3 + f[4] * _4;
+    a[1] = f[7] * _2 + f[8] * _3 + f[9] * _4;
+    a[3] = f[12] * _2 + f[13] * _3 + f[14] * _4;
+    a[6] = f[17] * _2 + f[18] * _3 + f[19] * _4;
+    a[10] = _4;
+    _2 = c[5] * f[7] + c[8] * f[8] + c[12] * f[9];
+    _3 = c[8] * f[7] + c[9] * f[8] + c[13] * f[9];
+    _4 = c[12] * f[7] + c[13] * f[8] + c[14] * f[9];
+    a[2] = f[7] * _2 + f[8] * _3 + f[9] * _4;
+    a[4] = f[12] * _2 + f[13] * _3 + f[14] * _4;
+    a[7] = f[17] * _2 + f[18] * _3 + f[19] * _4;
+    a[11] = _4;
+    _2 = c[5] * f[12] + c[8] * f[13] + c[12] * f[14];
+    _3 = c[8] * f[12] + c[9] * f[13] + c[13] * f[14];
+    _4 = c[12] * f[12] + c[13] * f[13] + c[14] * f[14];
+    a[5] = f[12] * _2 + f[13] * _3 + f[14] * _4;
+    a[8] = f[17] * _2 + f[18] * _3 + f[19] * _4;
+    a[12] = _4;
+    _2 = c[5] * f[17] + c[8] * f[18] + c[12] * f[19];
+    _3 = c[8] * f[17] + c[9] * f[18] + c[13] * f[19];
+    _4 = c[12] * f[17] + c[13] * f[18] + c[14] * f[19];
+    a[9] = f[17] * _2 + f[18] * _3 + f[19] * _4;
+    a[13] = _4;
+
+    a[14] = c[14];
+    return A;
+  }
+
+  __device__ __host__ SquareMatrix<true, 5> similarity_5_5_T(
+    const SquareMatrix<false, 5>& F,
+    const SquareMatrix<true, 5>& C)
+  { // could still reduce the numer of tmp variables
+    SquareMatrix<true, 5> A;
+    KalmanFloat* a = A.vals;
+    const KalmanFloat* f = F.vals;
+    const KalmanFloat* c = C.vals;
+    KalmanFloat _0 = c[0] + c[1] * f[1] + c[3] * f[2] + c[6] * f[3] + c[10] * f[4];
+    KalmanFloat _1 = c[1] + c[2] * f[1] + c[4] * f[2] + c[7] * f[3] + c[11] * f[4];
+    KalmanFloat _2 = c[3] + c[4] * f[1] + c[5] * f[2] + c[8] * f[3] + c[12] * f[4];
+    KalmanFloat _3 = c[6] + c[7] * f[1] + c[8] * f[2] + c[9] * f[3] + c[13] * f[4];
+    KalmanFloat _4 = c[10] + c[11] * f[1] + c[12] * f[2] + c[13] * f[3] + c[14] * f[4];
+    a[0] = _0 + f[1] * _1 + f[2] * _2 + f[3] * _3 + f[4] * _4;
+    a[1] = f[8] * _3 + f[9] * _4;
+    a[3] = f[11] * _1 + _2 + f[13] * _3 + f[14] * _4;
+    a[6] = _3 + f[19] * _4;
+    a[10] = _4;
+
+    _1 = +c[2] + c[7] * f[8] + c[11] * f[9];
+    _2 = +c[4] + c[8] * f[8] + c[12] * f[9];
+    _3 = +c[7] + c[9] * f[8] + c[13] * f[9];
+    _4 = +c[11] + c[13] * f[8] + c[14] * f[9];
+    a[2] = _1 + f[8] * _3 + f[9] * _4;
+    a[4] = f[11] * _1 + _2 + f[13] * _3 + f[14] * _4;
+    a[7] = _3 + f[19] * _4;
+    a[11] = _4;
+
+    _1 = c[2] * f[11] + c[4] + c[7] * f[13] + c[11] * f[14];
+    _2 = c[4] * f[11] + c[5] + c[8] * f[13] + c[12] * f[14];
+    _3 = c[7] * f[11] + c[8] + c[9] * f[13] + c[13] * f[14];
+    _4 = c[11] * f[11] + c[12] + c[13] * f[13] + c[14] * f[14];
+    a[5] = f[11] * _1 + _2 + f[13] * _3 + f[14] * _4;
+    a[8] = _3 + f[19] * _4;
+    a[12] = _4;
+
+    _4 = c[13] + c[14] * f[19];
+    a[9] = c[9] + c[13] * f[19] + f[19] * _4;
+    a[13] = _4;
+
+    a[14] = c[14];
+    return A;
+  }
+
+  __device__ __host__ SquareMatrix<true, 5> similarity_5_5_TFT(
+    const SquareMatrix<false, 5>& F,
+    const SquareMatrix<true, 5>& C)
+  {
+    SquareMatrix<true, 5> A;
+    KalmanFloat* a = A.vals;
+    const KalmanFloat* f = F.vals;
+    const KalmanFloat* c = C.vals;
+    KalmanFloat _2 = c[3] + c[5] * f[2] + c[12] * f[4];
+    KalmanFloat _3 = c[6] + c[8] * f[2] + c[13] * f[4];
+    KalmanFloat _4 = c[10] + c[12] * f[2] + c[14] * f[4];
+    a[0] = c[0] + c[3] * f[2] + c[10] * f[4] + f[2] * _2 + f[4] * _4;
+    a[1] = c[1] + c[4] * f[2] + c[11] * f[4] + f[8] * _3 + f[9] * _4;
+    a[3] = _2 + f[14] * _4;
+    a[6] = _3 + f[19] * _4;
+    a[10] = _4;
+    _2 = c[4] + c[8] * f[8] + c[12] * f[9];
+    _3 = c[7] + c[9] * f[8] + c[13] * f[9];
+    _4 = c[11] + c[13] * f[8] + c[14] * f[9];
+    a[2] = c[2] + c[7] * f[8] + c[11] * f[9] + f[8] * _3 + f[9] * _4;
+    a[4] = _2 + f[14] * _4;
+    a[7] = _3 + f[19] * _4;
+    a[11] = _4;
+    _2 = c[5] + c[12] * f[14];
+    _3 = c[8] + c[13] * f[14];
+    _4 = c[12] + c[14] * f[14];
+    a[5] = _2 + f[14] * _4;
+    a[8] = _3 + f[19] * _4;
+    a[12] = _4;
+    _3 = c[9] + c[13] * f[19];
+    _4 = c[13] + c[14] * f[19];
+    a[9] = _3 + f[19] * _4;
+    a[13] = _4;
+    a[14] = c[14];
     return A;
   }
 

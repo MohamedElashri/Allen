@@ -54,6 +54,10 @@ KalmanChecker::KalmanChecker(CheckerInvoker const* invoker, std::string const& r
   m_tree->Branch("ndofT", &m_trk_ndofT);
   m_tree->Branch("ghost", &m_trk_ghost);
   m_tree->Branch("mcp_p", &m_mcp_p);
+  m_tree->Branch("velo_hits", &m_trk_velo_hits);
+  m_tree->Branch("scifi_hits", &m_trk_scifi_hits);
+  m_tree->Branch("ut_hits", &m_trk_ut_hits);
+  m_tree->Branch("chi2UT", &m_trk_chi2UT);
 }
 
 void KalmanChecker::accumulate(
@@ -111,6 +115,10 @@ void KalmanChecker::accumulate(
       float sint =
         std::sqrt((m_trk_tx * m_trk_tx + m_trk_ty * m_trk_ty) / (1.f + m_trk_tx * m_trk_tx + m_trk_ty * m_trk_ty));
       m_trk_best_pt = sint / std::abs(track.best_qop);
+      m_trk_velo_hits = (float) track.nhitsV;
+      m_trk_ut_hits = (float) track.nhitsUT;
+      m_trk_scifi_hits = (float) track.nhitsT;
+      m_trk_chi2UT = track.chi2UT;
       m_tree->Fill();
     }
   }

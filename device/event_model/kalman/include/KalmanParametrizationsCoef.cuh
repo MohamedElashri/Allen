@@ -23,7 +23,6 @@ namespace ParKalmanFilter {
     int degx1 = Degx1, degx2 = Degx2, degy1 = Degy1, degy2 = Degy2;
 
     // Read parameters.
-    //__host__ int Read(std::istream &inFile, int degx1, int degx2, int degy1, int degy2);
     __host__ int Read(std::istream& inFile)
     {
       if (degx1 > 10 || degx2 > 10 || degy1 > 10 || degy2 > 10)
@@ -104,6 +103,8 @@ namespace ParKalmanFilter {
   __device__ __host__ inline StandardCoefs operator+(const StandardCoefs& a, const StandardCoefs& b);
   __device__ __host__ inline StandardCoefs operator-(const StandardCoefs& a, const StandardCoefs& b);
   __device__ __host__ inline StandardCoefs operator*(const StandardCoefs& a, const float p);
+  __device__ __host__ inline void aPEbxp(StandardCoefs& a, const StandardCoefs& b, const float p);
+  __device__ __host__ inline void setZero(StandardCoefs& a);
 
 } // namespace ParKalmanFilter
 
@@ -112,8 +113,7 @@ namespace ParKalmanFilter {
   __device__ __host__ StandardCoefs operator+(const StandardCoefs& a, const StandardCoefs& b)
   {
     StandardCoefs c;
-    int nMax = 4 * a.degx1 + 2 * a.degx2 + 4 * a.degy1 + 2 * a.degy2;
-    for (int i = 0; i < nMax; i++) {
+    for (int i = 0; i < nSC; i++) {
       c.coefs[i] = a.coefs[i] + b.coefs[i];
     }
     return c;
@@ -122,8 +122,7 @@ namespace ParKalmanFilter {
   __device__ __host__ StandardCoefs operator-(const StandardCoefs& a, const StandardCoefs& b)
   {
     StandardCoefs c;
-    int nMax = 4 * a.degx1 + 2 * a.degx2 + 4 * a.degy1 + 2 * a.degy2;
-    for (int i = 0; i < nMax; i++) {
+    for (int i = 0; i < nSC; i++) {
       c.coefs[i] = a.coefs[i] - b.coefs[i];
     }
     return c;
@@ -132,11 +131,24 @@ namespace ParKalmanFilter {
   __device__ __host__ StandardCoefs operator*(const StandardCoefs& a, const float p)
   {
     StandardCoefs c;
-    int nMax = 4 * a.degx1 + 2 * a.degx2 + 4 * a.degy1 + 2 * a.degy2;
-    for (int i = 0; i < nMax; i++) {
+    for (int i = 0; i < nSC; i++) {
       c.coefs[i] = p * a.coefs[i];
     }
     return c;
+  }
+
+  __device__ __host__ inline void aPEbxp(StandardCoefs& a, const StandardCoefs& b, const float p)
+  {
+    for (int i = 0; i < nSC; i++) {
+      a.coefs[i] += p * b.coefs[i];
+    }
+  }
+
+  __device__ __host__ inline void setZero(StandardCoefs& a)
+  {
+    for (int i = 0; i < nSC; i++) {
+      a.coefs[i] = 0.;
+    }
   }
 
 } // namespace ParKalmanFilter

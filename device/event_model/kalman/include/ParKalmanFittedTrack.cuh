@@ -29,6 +29,7 @@ namespace ParKalmanFilter {
     KalmanFloat chi2;
     KalmanFloat chi2V;
     KalmanFloat chi2T;
+    KalmanFloat chi2UT;
     KalmanFloat ipChi2;
     KalmanFloat ip;
 
@@ -36,6 +37,9 @@ namespace ParKalmanFilter {
     unsigned ndofV;
     unsigned ndofT;
     unsigned nhits;
+    unsigned nhitsV;
+    unsigned nhitsT;
+    unsigned nhitsUT;
 
     bool is_muon;
     bool is_electron;

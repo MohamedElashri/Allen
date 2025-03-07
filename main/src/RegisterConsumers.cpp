@@ -102,7 +102,7 @@ void register_consumers(
 
   const auto unconditional_consumers =
     std::make_tuple(std::make_tuple(Allen::NonEventData::MagneticField {}, [&constants]() {
-      return std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity);
+      return std::make_unique<Consumers::MagneticField>(constants.dev_magnet_polarity, constants.host_magnet_polarity);
     }));
 
   for_each(consumers, [updater, requested_banks](const auto& c) {
