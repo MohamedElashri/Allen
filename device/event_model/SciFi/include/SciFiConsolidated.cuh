@@ -15,6 +15,8 @@
 #include "VeloConsolidated.cuh"
 #include <stdint.h>
 
+// namespace gSciFi = SciFi;
+
 namespace Allen {
   namespace Views {
     namespace SciFi {
@@ -59,6 +61,8 @@ namespace Allen {
           __host__ __device__ unsigned pseudoSize() const { return (assembled_datatype() >> 11) & 0xf; }
 
           __host__ __device__ unsigned planeCode() const { return (assembled_datatype() >> 15) & 0x1f; }
+
+          __host__ __device__ bool isBottom() const { return (planeCode() % 2 == 1); }
         };
 
         struct Hits {

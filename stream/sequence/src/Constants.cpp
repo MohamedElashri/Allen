@@ -22,7 +22,7 @@
 void Constants::reserve_constants()
 {
   Allen::malloc((void**) &dev_inv_clus_res, host_inv_clus_res.size() * sizeof(float));
-  Allen::malloc((void**) &dev_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations));
+  Allen::malloc((void**) &dev_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizationsStruct));
   Allen::malloc((void**) &dev_looking_forward_constants, sizeof(LookingForward::Constants));
   Allen::malloc((void**) &dev_magnet_parametrization, sizeof(TrackMatchingConsts::MagnetParametrization));
   Allen::malloc((void**) &dev_muon_foi, sizeof(Muon::Constants::FieldOfInterest));
@@ -48,10 +48,13 @@ void Constants::initialize_constants(
   host_looking_forward_constants = new LookingForward::Constants {};
 
   // Kalman filter constants.
-  ParKalmanFilter::KalmanParametrizations host_kalman_params;
-  host_kalman_params.SetParameters(param_file_location, ParKalmanFilter::Polarity::Down);
+  ParKalmanFilter::KalmanParametrizationsStruct host_kalman_params;
+  host_kalman_params.SetParameters(param_file_location);
   Allen::memcpy(
-    dev_kalman_params, &host_kalman_params, sizeof(ParKalmanFilter::KalmanParametrizations), Allen::memcpyHostToDevice);
+    dev_kalman_params,
+    &host_kalman_params,
+    sizeof(ParKalmanFilter::KalmanParametrizationsStruct),
+    Allen::memcpyHostToDevice);
 
   Allen::memcpy(
     dev_looking_forward_constants,
@@ -97,4 +100,61 @@ void Constants::initialize_constants(
     &host_muonmatch_search_windows,
     sizeof(MatchUpstreamMuon::SearchWindows),
     Allen::memcpyHostToDevice);
+}
+
+void Constants::initialize_kalman_pars_constants(
+  const std::vector<float>& VP_pars_MD,
+  const std::vector<float>& VPUT_pars_MD,
+  const std::vector<float>& UT_pars_MD,
+  const std::vector<float>& T_pars_MD,
+  const std::vector<float>& UTTF_pars_MD,
+  const std::vector<float>& TFT_pars_MD,
+  const std::vector<float>& VP_pars_MU,
+  const std::vector<float>& VPUT_pars_MU,
+  const std::vector<float>& UT_pars_MU,
+  const std::vector<float>& T_pars_MU,
+  const std::vector<float>& UTTF_pars_MU,
+  const std::vector<float>& TFT_pars_MU,
+  const std::vector<float>& UT_Layers,
+  const std::vector<float>& T_Layers,
+  const std::vector<float>& UTT_META_MD,
+  const std::vector<float>& UTT_META_MU)
+{
+  Allen::malloc((void**) &host_VP_pars_MD, VP_pars_MD.size() * sizeof(float));
+  Allen::malloc((void**) &host_VPUT_pars_MD, VPUT_pars_MD.size() * sizeof(float));
+  Allen::malloc((void**) &host_UT_pars_MD, UT_pars_MD.size() * sizeof(float));
+  Allen::malloc((void**) &host_T_pars_MD, T_pars_MD.size() * sizeof(float));
+  Allen::malloc((void**) &host_UTTF_pars_MD, UTTF_pars_MD.size() * sizeof(float));
+  Allen::malloc((void**) &host_TFT_pars_MD, TFT_pars_MD.size() * sizeof(float));
+
+  Allen::malloc((void**) &host_VP_pars_MU, VP_pars_MU.size() * sizeof(float));
+  Allen::malloc((void**) &host_VPUT_pars_MU, VPUT_pars_MU.size() * sizeof(float));
+  Allen::malloc((void**) &host_UT_pars_MU, UT_pars_MU.size() * sizeof(float));
+  Allen::malloc((void**) &host_T_pars_MU, T_pars_MU.size() * sizeof(float));
+  Allen::malloc((void**) &host_UTTF_pars_MU, UT_pars_MU.size() * sizeof(float));
+  Allen::malloc((void**) &host_TFT_pars_MU, T_pars_MU.size() * sizeof(float));
+
+  Allen::malloc((void**) &host_UT_Layers, UT_Layers.size() * sizeof(float));
+  Allen::malloc((void**) &host_T_Layers, T_Layers.size() * sizeof(float));
+  Allen::malloc((void**) &host_UTT_META_MD, UTT_META_MD.size() * sizeof(float));
+  Allen::malloc((void**) &host_UTT_META_MU, UTT_META_MU.size() * sizeof(float));
+
+  Allen::memcpy(host_VP_pars_MD, VP_pars_MD.data(), VP_pars_MD.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_VPUT_pars_MD, VPUT_pars_MD.data(), VPUT_pars_MD.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_UT_pars_MD, UT_pars_MD.data(), UT_pars_MD.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_T_pars_MD, T_pars_MD.data(), T_pars_MD.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_UTTF_pars_MD, UTTF_pars_MD.data(), UTTF_pars_MD.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_TFT_pars_MD, TFT_pars_MD.data(), TFT_pars_MD.size() * sizeof(float), Allen::memcpyHostToHost);
+
+  Allen::memcpy(host_VP_pars_MU, VP_pars_MU.data(), VP_pars_MU.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_VPUT_pars_MU, VPUT_pars_MU.data(), VPUT_pars_MU.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_UT_pars_MU, UT_pars_MU.data(), UT_pars_MU.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_T_pars_MU, T_pars_MU.data(), T_pars_MU.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_UTTF_pars_MU, UTTF_pars_MU.data(), UTTF_pars_MU.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_TFT_pars_MU, TFT_pars_MU.data(), TFT_pars_MU.size() * sizeof(float), Allen::memcpyHostToHost);
+
+  Allen::memcpy(host_UT_Layers, UT_Layers.data(), UT_Layers.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_T_Layers, T_Layers.data(), T_Layers.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_UTT_META_MU, UTT_META_MU.data(), UTT_META_MU.size() * sizeof(float), Allen::memcpyHostToHost);
+  Allen::memcpy(host_UTT_META_MD, UTT_META_MD.data(), UTT_META_MD.size() * sizeof(float), Allen::memcpyHostToHost);
 }

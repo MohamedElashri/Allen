@@ -353,16 +353,13 @@ def setup_hlt1_node(withMCChecking=False,
                     minimal_activity_type=ActivityType.VELO_CLUSTERS,
                     ActivityForClosing=ActivityType.VELO_CLUSTERS,
                     DisableLinesDuringVPClosing=False,
-                    mini=False):
+                    mini=False,
+                    with_fullKF=False,
+                    track_max_chi2ndof=10.0):
 
     hlt1_config = {}
 
     # Reconstruct objects needed as input for selection lines
-    reconstructed_objects = hlt1_reconstruction(
-        with_ut=with_ut,
-        tracking_type=tracking_type,
-        with_AC_split=with_AC_split)
-
     reconstructed_objects = hlt1_reconstruction(
         with_calo=with_calo,
         with_ut=with_ut,
@@ -371,7 +368,9 @@ def setup_hlt1_node(withMCChecking=False,
         tracking_type=tracking_type,
         velo_open=velo_open,
         with_AC_split=with_AC_split,
-        with_rich=with_rich)
+        with_rich=with_rich,
+        with_fullKF=with_fullKF,
+        track_max_chi2ndof=track_max_chi2ndof)
 
     hlt1_config['reconstruction'] = reconstructed_objects
 
@@ -707,7 +706,7 @@ def setup_hlt1_node(withMCChecking=False,
         validation_node = validator_node(
             reconstructed_objects, line_algorithms,
             includes_matching(tracking_type), with_ut, with_muon,
-            with_AC_split, prefilters)
+            with_AC_split, with_fullKF, prefilters)
         hlt1_config['validator_node'] = validation_node
 
         node = CompositeNode(

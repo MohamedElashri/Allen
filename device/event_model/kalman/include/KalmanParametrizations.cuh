@@ -31,31 +31,12 @@ namespace ParKalmanFilter {
     // Parameters.
     StandardCoefs C[nBinXMax][nBinYMax];
 
-    float Par_predictV[nSetsV][nParsV];
-    float Par_predictVUT[nSetsVUT][nParsVUT];
-    float Par_predictUT[nSetsUT][nParsUT];
-    float Par_predictUTFUT[nSetsUTFUT][nParsUTFUT];
-    float Par_predictUTTF[nSetsUTTF][nParsUTTF];
-    float Par_predictTFT[nSetsTFT][nParsTFT];
-    float Par_predictT[nSetsT][nParsT];
-    float Par_TLayer[nSetsTLayer][nParsTLayer];
-    float Par_UTLayer[nSetsUTLayer][nParsUTLayer];
-
     float ZINI, ZFIN;
     float PMIN;
     float BENDX, BENDX_X2, BENDX_Y2, BENDY_XY;
     float Txmax, Tymax, XFmax, Xmax, Ymax;
     float Dtxy;
     float step;
-
-    // Parameters that change sign under parity flip.
-    const int flip_Par_predictV[1] = {4};
-    const int flip_Par_predictVUT[4] = {0, 8, 9, 10};
-    const int flip_Par_predictUT[4] = {5, 6, 7, 10};
-    const int flip_Par_predictUTFUT[1] = {0};
-    const int flip_Par_predictUTTF[8] = {0, 2, 3, 5, 6, 8, 9, 11};
-    const int flip_Par_predictTFT[2] = {5, 6};
-    const int flip_Par_predictT[3] = {5, 6, 7};
 
 // Parameters for Pierre's UT-T extrapolation.
 #define QUADRATICINTERPOLATION 1
@@ -66,19 +47,16 @@ namespace ParKalmanFilter {
     // Keep track of polarity and whether or not parameters have been loaded.
     Polarity m_Polarity = Polarity::Up;
     bool paramsLoaded = false;
-    bool m_qop_flip = false;
 
     __device__ __host__ inline float UTTExtrEndZ() const;
 
     __device__ __host__ inline float UTTExtrBeginZ() const;
 
-    __device__ __host__ inline float VUTExtrEndZ() const;
-
     // Pierre's extrapolation.
     __host__ inline void read_params_UTT(std::string file);
 
     //----------------------------------------------------------------------
-    // Template function for reading parameters.
+    // Template function for reading parameters. // no longer needed
     template<int nPars, int nSets>
     __host__ void read_params(std::string file, float (&params)[nSets][nPars])
     {
@@ -127,55 +105,42 @@ namespace ParKalmanFilter {
     }
 
     //----------------------------------------------------------------------
-    // Flip parameters if necessary.
-    template<int nPars, int nSets, int nFlips>
-    __host__ void SwitchParamsForPolarity(float (&params)[nSets][nPars], const int (&flips)[nFlips])
-    {
-      for (int i = 0; i < nSets; i++)
-        for (int j = 0; j < nFlips; j++)
-          params[i][flips[j]] *= -1;
-    }
-
-    //----------------------------------------------------------------------
     // Set parameters.
     __host__ void SetParameters(std::string param_file_location, Polarity polarity)
     {
 
-      const std::string ParamFileLocation = param_file_location + "/ParametrizedKalmanFit/FT6x2/" + "MagDown";
-
       // Get polarity.
       if ((m_Polarity == polarity) && paramsLoaded) return;
-
-      // read the parameters for parametrizations
-      read_params(ParamFileLocation + "/params_predictV.txt", Par_predictV);
-      read_params(ParamFileLocation + "/params_predictVUT.txt", Par_predictVUT);
-      read_params(ParamFileLocation + "/params_predictUT.txt", Par_predictUT);
-      read_params(ParamFileLocation + "/params_predictUTFUT.txt", Par_predictUTFUT);
-      read_params(ParamFileLocation + "/params_predictUTTF.txt", Par_predictUTTF);
-      read_params(ParamFileLocation + "/params_predictTFT.txt", Par_predictTFT);
-      read_params(ParamFileLocation + "/params_predictT.txt", Par_predictT);
-      read_params(ParamFileLocation + "/params_TLayer.txt", Par_TLayer);
-      read_params(ParamFileLocation + "/params_UTLayer.txt", Par_UTLayer);
-
-      // Get the up parameters from the down parameters
+      std::string ParamFileLocation;
       if (polarity == Polarity::Up) {
-        SwitchParamsForPolarity(Par_predictV, flip_Par_predictV);
-        SwitchParamsForPolarity(Par_predictVUT, flip_Par_predictVUT);
-        SwitchParamsForPolarity(Par_predictUT, flip_Par_predictUT);
-        SwitchParamsForPolarity(Par_predictUTFUT, flip_Par_predictUTFUT);
-        SwitchParamsForPolarity(Par_predictUTTF, flip_Par_predictUTTF);
-        SwitchParamsForPolarity(Par_predictTFT, flip_Par_predictTFT);
-        SwitchParamsForPolarity(Par_predictT, flip_Par_predictT);
+        ParamFileLocation = param_file_location + "/ParametrizedKalmanFit/24v0/" + "MagUp";
+      }
+      else if (polarity == Polarity::Down) {
+        ParamFileLocation = param_file_location + "/ParametrizedKalmanFit/24v0/" + "MagDown";
+      }
+      else {
+        throw StrException("Failed to set the magnet polarity in Kalman Parametrisation ");
       }
 
-      // read_params_UTT(ParamFileLocation + "/MagDown/v5r0_7957.tab");
-      read_params_UTT(ParamFileLocation + "/v5r0_7957.tab");
-      if (polarity == Polarity::Up) m_qop_flip = true;
-
+      read_params_UTT(ParamFileLocation + "/params_UTT_v0.tab");
       m_Polarity = polarity;
       paramsLoaded = true;
     }
-  };
+  }; // End KalmanParametrizations
+
+  // We need to load both parametrisation at this point, based on the condition only the right polarity will be used.
+  struct KalmanParametrizationsStruct {
+    // Up and Down parameters
+    KalmanParametrizations par_up;
+    KalmanParametrizations par_down;
+
+    // passthrough the Setup
+    __host__ void SetParameters(std::string param_file_location)
+    {
+      par_up.SetParameters(param_file_location, Polarity::Up);
+      par_down.SetParameters(param_file_location, Polarity::Down);
+    }
+  }; // End KalmanParametrizationsStruct
 
 } // namespace ParKalmanFilter
 
@@ -204,7 +169,5 @@ namespace ParKalmanFilter {
   __device__ __host__ float KalmanParametrizations::UTTExtrEndZ() const { return ZFIN; }
 
   __device__ __host__ float KalmanParametrizations::UTTExtrBeginZ() const { return ZINI; }
-
-  __device__ __host__ float KalmanParametrizations::VUTExtrEndZ() const { return Par_UTLayer[0][0]; }
 
 } // namespace ParKalmanFilter

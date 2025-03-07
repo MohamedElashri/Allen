@@ -134,6 +134,46 @@ With Seeding algorithms
 
 Kalman filter
 ^^^^^^^^^^^^^^^
+There are two main points in the reconstruction, where a Kalman filter is used to
+estimate particle states. Particle states are defined by the vector (x,y,tx,ty,qop),
+where tx and ty are the slope in that direction, and qop is the charge over momentum. This is a
+convenient definition for calculating trajectories of charged particles in a magnetic field.
+
+1. After the reconstruction of the Velo tracks a simplified Kalman filter is used.
+The fit starts by getting a first estimate for the state from a linear fit between 
+first and last hit.
+The Kalman filter is executed twice, to get a state at the beamline (closest to the beamline) and one at the
+end of the Velo(z=770mm). The scattering noise model is linear in tr**2. The x and y components
+are treated independently.
+For code see device/velo/simplified_kalman_filter
+2. After the long track reconstruction, another Kalman filter is used to produce
+the state that will be used in the secondary vertex reconstruction, this can include 
+improved momentum resolution.
+
+There are two implementations, the Velo-only and the parameterised Kalman filter version:
+a. Simplified velo-only is the version used for all data taking up to EoY 2024 (at least). 
+(device/kalman/ParKalman/src/ParKalmanVeloOnly.cu), here the 'simplified_fit' function
+is used. This function uses similar simplifications as the filter above, but 
+includes a more involved noise function, that includes the momentum and charge information
+from long tracking, the RF foil and more parameters (see Rec/Tr/TrackFitEvent/include/Event/ParametrisedScatters.h).
+In addition to the state, a chi2 is also produced that can be used to cut on in the SV creation.
+b. Parameterised Kalman filter (parKF). This is based on (`<https://cds.cern.ch/record/2759269/files/2101.12040.pdf>`_).
+Here the full track is fitted, based on several parameterisations. This includes a rather involved treatment of the propagation
+of charged particles in the magnetic field. This KF is more computationally expensive but yields
+improvement in momentum resolution, ghost rejection, mass resolution and SV reconstruction.
+In its current implementation, the following steps are performed:
+- An initial state is created from the first and last Velo hit at the position of the first hit.
+- The parKF runs over the remaining Velo hits in the forward direction. A state is saved at the position of the last hit.
+- Extrapolation V -> UT, start at this point we create a transport matrix F by multiplying up the Jacobians of each extrapolation.
+- Extrapolation in UT, updates at every state, if there is a hit. In a no_ut configuration, the algorithm still stops at every
+  UT layer and adds noise.
+- UT -> T extrapolation through the magnetic field using a large parametrisation.
+- Extrapolation in T, updates at every state, if there is a hit.
+- At the last hit we invert the transport matrix F and use F^-1 to transport the covariance matrix C back to the state at the end of VELO.
+- We revert to the state saved at this point in the forward pass but substitute the improved qop estimate.
+- We let the filter run backward over all velo hits. The state produced at the lowest z will be used as the state closest
+  to the beamline for calculating the impact parameter and creating secondary vertices.
+TODO: add links to repo with parametrisation creation
 
 Muon ID
 ^^^^^^^^^^^

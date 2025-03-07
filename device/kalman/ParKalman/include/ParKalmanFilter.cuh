@@ -19,99 +19,50 @@
 #include "SciFiConsolidated.cuh"
 #include "UTConsolidated.cuh"
 #include "VeloConsolidated.cuh"
+#include "AssociateConsolidated.cuh"
 
 #include "States.cuh"
 #include "SciFiDefinitions.cuh"
 
 #include "AlgorithmTypes.cuh"
+#include "PV_Definitions.cuh"
 #include "ParticleTypes.cuh"
 
 namespace ParKalmanFilter {
 
   //----------------------------------------------------------------------
-  // General method for updating states.
-  __device__ void UpdateState(
-    const unsigned n_velo_hits,
-    const unsigned n_ut_layers,
-    const unsigned n_scifi_layers,
-    int forward,
-    int i_hit,
-    Vector5& x,
-    SymMatrix5x5& C,
-    KalmanFloat& lastz,
-    trackInfo& tI);
-
-  //----------------------------------------------------------------------
-  // General method for predicting states.
-  __device__ void PredictState(
-    const Velo::Consolidated::Hits& velo_hits,
-    const unsigned n_velo_hits,
-    const UT::Consolidated::Hits& ut_hits,
-    const unsigned n_ut_layers,
-    const SciFi::Consolidated::Hits& scifi_hits,
-    const unsigned n_scifi_layers,
-    int forward,
-    int i_hit,
-    Vector5& x,
-    SymMatrix5x5& C,
-    KalmanFloat& lastz,
-    trackInfo& tI);
-
-  //----------------------------------------------------------------------
-  // Forward fit iteration.
-  __device__ void ForwardFit(
-    const Velo::Consolidated::Hits& velo_hits,
-    const unsigned n_velo_hits,
-    const UT::Consolidated::Hits& ut_hits,
-    const unsigned n_ut_layers,
-    const SciFi::Consolidated::Hits& scifi_hits,
-    const unsigned n_scifi_layers,
-    Vector5& x,
-    SymMatrix5x5& C,
-    KalmanFloat& lastz,
-    trackInfo& tI);
-
-  //----------------------------------------------------------------------
-  // Backward fit iteration.
-  __device__ void BackwardFit(
-    const Velo::Consolidated::Hits& velo_hits,
-    const unsigned n_velo_hits,
-    const UT::Consolidated::Hits& ut_hits,
-    const unsigned n_ut_layers,
-    const SciFi::Consolidated::Hits& scifi_hits,
-    const unsigned n_scifi_layers,
-    Vector5& x,
-    SymMatrix5x5& C,
-    KalmanFloat& lastz,
-    trackInfo& tI);
-
-  //----------------------------------------------------------------------
   // Create the output track.
   __device__ void MakeTrack(
-    const Velo::Consolidated::Hits& velo_hits,
-    const unsigned n_velo_hits,
-    const UT::Consolidated::Hits& ut_hits,
-    const unsigned n_ut_layers,
-    const SciFi::Consolidated::Hits& scifi_hits,
-    const unsigned n_scifi_layers,
+    const KalmanFloat& init_qop,
     const Vector5& x,
     const SymMatrix5x5& C,
-    const KalmanFloat& z,
     const trackInfo& tI,
-    FittedTrack& track);
+    FittedTrack& track,
+    const unsigned& velo_hits,
+    unsigned& ut_hits,
+    unsigned& scifi_hits);
 
   //----------------------------------------------------------------------
   // Run the Kalman filter on a track.
-  __device__ FittedTrack fit(
-    const Velo::Consolidated::Hits& velo_hits,
-    const unsigned n_velo_hits,
-    const UT::Consolidated::Hits& ut_hits,
-    const unsigned n_ut_hits,
-    const SciFi::Consolidated::Hits& scifi_hits,
-    const unsigned n_scifi_hits,
+  __device__ void fit(
+    const Allen::Views::Velo::Consolidated::Track& velo_track,
+    const Allen::Views::UT::Consolidated::Track& ut_track,
+    const Allen::Views::SciFi::Consolidated::Track& scifi_track,
     const KalmanFloat init_qop,
-    const KalmanParametrizations& kalman_params,
-    FittedTrack& track);
+    const KalmanParametrizations* kalman_params,
+    FittedTrack& track,
+    const SciFi::SciFiGeometry scifi_geometry,
+    const float* dev_UT_lay,
+    const float* dev_T_lay,
+    const float* dev_V_pars,
+    const float* dev_VUT_par,
+    const float* dev_UT_pars,
+    const float* dev_UTTF_pars,
+    const float* dev_T_par,
+    const float* dev_TFT_par,
+    const float* dev_UTT_META);
+
+  __device__ void propagate_to_beamline(FittedTrack& track, float* dev_beamline);
 
 } // namespace ParKalmanFilter
 
@@ -119,22 +70,26 @@ namespace kalman_filter {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_reconstructed_scifi_tracks_t, unsigned) host_number_of_reconstructed_scifi_tracks;
-    DEVICE_INPUT(dev_atomics_velo_t, unsigned) dev_atomics_velo;
-    DEVICE_INPUT(dev_velo_track_hit_number_t, unsigned) dev_velo_track_hit_number;
-    DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
-    DEVICE_INPUT(dev_atomics_ut_t, unsigned) dev_atomics_ut;
-    DEVICE_INPUT(dev_ut_track_hit_number_t, unsigned) dev_ut_track_hit_number;
-    DEVICE_INPUT(dev_ut_track_hits_t, char) dev_ut_track_hits;
-    DEVICE_INPUT(dev_ut_qop_t, float) dev_ut_qop;
-    DEVICE_INPUT(dev_ut_track_velo_indices_t, unsigned) dev_ut_track_velo_indices;
-    DEVICE_INPUT(dev_atomics_scifi_t, unsigned) dev_atomics_scifi;
-    DEVICE_INPUT(dev_scifi_track_hit_number_t, unsigned) dev_scifi_track_hit_number;
-    DEVICE_INPUT(dev_scifi_track_hits_t, char) dev_scifi_track_hits;
-    DEVICE_INPUT(dev_scifi_qop_t, float) dev_scifi_qop;
-    DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
-    DEVICE_INPUT(dev_scifi_track_ut_indices_t, unsigned) dev_scifi_track_ut_indices;
+    MASK_INPUT(dev_event_list_t) dev_event_list;
+    DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
+    DEVICE_INPUT(dev_offsets_long_tracks_t, unsigned) dev_atomics_scifi;
+    DEVICE_INPUT(dev_multi_final_vertices_t, PV::Vertex) dev_multi_final_vertices;
+    DEVICE_INPUT(dev_number_of_multi_final_vertices_t, unsigned) dev_number_of_multi_final_vertices;
+    DEVICE_INPUT(dev_is_muon_t, bool) dev_is_muon;
     DEVICE_OUTPUT(dev_kf_tracks_t, ParKalmanFilter::FittedTrack) dev_kf_tracks;
+    DEVICE_OUTPUT(dev_kalman_pv_ip_t, char) dev_kalman_pv_ip;
+    DEVICE_OUTPUT(dev_kalman_fit_results_t, char) dev_kalman_fit_results;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_kalman_states_view_t,
+      DEPENDENCIES(dev_kalman_fit_results_t),
+      Allen::Views::Physics::KalmanStates)
+    dev_kalman_states_view;
+    DEVICE_OUTPUT_WITH_DEPENDENCIES(
+      dev_kalman_pv_tables_t,
+      DEPENDENCIES(dev_kalman_pv_ip_t),
+      Allen::Views::Physics::PVTable)
+    dev_kalman_pv_tables;
   };
 
   //--------------------------------------------------
@@ -142,11 +97,14 @@ namespace kalman_filter {
   //--------------------------------------------------
   __global__ void kalman_filter(
     Parameters,
-    const char* dev_scifi_geometry,
-    const float* dev_inv_clus_res,
-    const ParKalmanFilter::KalmanParametrizations* dev_kalman_params);
+    const float* dev_magnet_polarity,
+    const ParKalmanFilter::KalmanParametrizationsStruct* dev_kalman_params);
+
+  // Does this need to be reimplemented?
+  __global__ void kalman_pv_ip(Parameters parameters);
 
   struct kalman_filter_t : public DeviceAlgorithm, Parameters {
+    void update(const Constants& constants) const;
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
@@ -156,6 +114,6 @@ namespace kalman_filter {
       const Allen::Context& context) const;
 
   private:
-    Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {128, 1, 1}, "block dimensions"};
   };
 } // namespace kalman_filter

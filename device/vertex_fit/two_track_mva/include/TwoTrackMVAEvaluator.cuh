@@ -40,7 +40,7 @@ namespace two_track_mva_evaluator {
       const Allen::Context& context) const;
 
   private:
-    Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimension"};
+    Allen::Property<dim3> m_block_dim {this, "block_dim", {64, 1, 1}, "block dimension"};
 
     NeuralNetworkType two_track_mva_nn {"two_track_mva_nn", "/allen_two_track_mva_model_June22.json"};
   };

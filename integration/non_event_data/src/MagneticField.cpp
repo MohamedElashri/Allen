@@ -19,22 +19,27 @@ namespace {
   using std::to_string;
 } // namespace
 
-Consumers::MagneticField::MagneticField(gsl::span<float>& dev_magnet_polarity) :
-  m_dev_magnet_polarity {dev_magnet_polarity}
+Consumers::MagneticField::MagneticField(
+  gsl::span<float>& dev_magnet_polarity,
+  std::array<float, 1>& host_magnet_polarity) :
+  m_dev_magnet_polarity {dev_magnet_polarity},
+  m_host_magnet_polarity {host_magnet_polarity}
 {}
 
 void Consumers::MagneticField::consume(std::vector<char> const& data)
 {
-  if (m_dev_magnet_polarity.get().empty()) {
+  auto& dev_magnet_polarity = m_dev_magnet_polarity.get();
+  auto& host_magnet_polarity = m_host_magnet_polarity.get();
+  if (dev_magnet_polarity.empty()) {
     // Allocate space
     float* p = nullptr;
     Allen::malloc((void**) &p, data.size());
-    m_dev_magnet_polarity.get() = {p, static_cast<span_size_t<char>>(data.size() / sizeof(float))};
+    dev_magnet_polarity = {p, static_cast<span_size_t<char>>(data.size() / sizeof(float))};
   }
-  else if (data.size() != static_cast<size_t>(sizeof(float) * m_dev_magnet_polarity.get().size())) {
-    throw StrException {string {"sizes don't match: "} + to_string(m_dev_magnet_polarity.get().size()) + " " +
+  else if (data.size() != static_cast<size_t>(sizeof(float) * dev_magnet_polarity.size())) {
+    throw StrException {string {"sizes don't match: "} + to_string(dev_magnet_polarity.size()) + " " +
                         to_string(data.size() / sizeof(float))};
   }
-
-  Allen::memcpy(m_dev_magnet_polarity.get().data(), data.data(), data.size(), Allen::memcpyHostToDevice);
+  std::memcpy(host_magnet_polarity.data(), data.data(), data.size());
+  Allen::memcpy(dev_magnet_polarity.data(), data.data(), data.size(), Allen::memcpyHostToDevice);
 }

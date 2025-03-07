@@ -40,6 +40,37 @@ struct GeometryReader : public Reader {
 
 using FolderMap = std::map<BankTypes, std::string>;
 
+struct ParKalmanReader {
+  ParKalmanReader(const std::string& path);
+  std::vector<float> VP_pars(int pol) const { return pol > 0 ? m_VP_pars_MU : m_VP_pars_MD; }
+  std::vector<float> VPUT_pars(int pol) const { return pol > 0 ? m_VPUT_pars_MU : m_VPUT_pars_MD; }
+  std::vector<float> UT_pars(int pol) const { return pol > 0 ? m_UT_pars_MU : m_UT_pars_MD; }
+  std::vector<float> T_pars(int pol) const { return pol > 0 ? m_T_pars_MU : m_T_pars_MD; }
+  std::vector<float> TFT_pars(int pol) const { return pol > 0 ? m_TFT_pars_MU : m_TFT_pars_MD; }
+  std::vector<float> UTTF_pars(int pol) const { return pol > 0 ? m_UTTF_pars_MU : m_UTTF_pars_MD; }
+  std::vector<float> UTT_META(int pol) const { return pol > 0 ? m_UTT_META_MU : m_UTT_META_MD; }
+  std::vector<float> UT_layer() const { return m_UT_layer; }
+  std::vector<float> T_layer() const { return m_T_layer; }
+
+private:
+  std::vector<float> m_VP_pars_MD;
+  std::vector<float> m_VP_pars_MU;
+  std::vector<float> m_VPUT_pars_MD;
+  std::vector<float> m_VPUT_pars_MU;
+  std::vector<float> m_UT_pars_MD;
+  std::vector<float> m_UT_pars_MU;
+  std::vector<float> m_UTTF_pars_MD;
+  std::vector<float> m_UTTF_pars_MU;
+  std::vector<float> m_T_pars_MD;
+  std::vector<float> m_T_pars_MU;
+  std::vector<float> m_TFT_pars_MD;
+  std::vector<float> m_TFT_pars_MU;
+  std::vector<float> m_UT_layer;
+  std::vector<float> m_T_layer;
+  std::vector<float> m_UTT_META_MD;
+  std::vector<float> m_UTT_META_MU;
+};
+
 struct ConfigurationReader {
 
   using Params = std::map<std::string, std::map<std::string, nlohmann::json>>;

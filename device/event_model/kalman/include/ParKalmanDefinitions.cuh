@@ -20,16 +20,24 @@ namespace ParKalmanFilter {
   typedef SquareMatrix<true, 5> SymMatrix5x5;
   typedef SquareMatrix<false, 5> Matrix5x5;
 
-  // Set a 5x5 diagonal matrix for later use
+  // Set a 5x5 diagonal matrix for later use (F)
   [[maybe_unused]] __constant__ static KalmanFloat F_diag[25] = {1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
                                                                  0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1};
-
+  // Set a 5x5 sym zero matrix for later use (Q)
+  [[maybe_unused]] __constant__ static KalmanFloat Q_sym_zero[15] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   // 26 VELO + 4 UT + 12 SciFi.
   constexpr int nMaxMeasurements = 42;
 
   // Max number of bins for the UT <-> SciFi extrapolation.
   constexpr int nBinXMax = 60;
   constexpr int nBinYMax = 50;
+
+  // Size of the StandardCoefs
+  constexpr int DEGx1 = 7;
+  constexpr int DEGx2 = 9;
+  constexpr int DEGy1 = 5;
+  constexpr int DEGy2 = 7;
+  constexpr int nSC = 80; // 2 * Degx2 + 4 * Degx1 + 2 * Degy2 + 4 * Degy1
 
   // Number of velo parameters.
   constexpr int nParsV = 10;
@@ -71,4 +79,7 @@ namespace ParKalmanFilter {
   constexpr bool m_UseForwardMomEstimate = true;
   constexpr bool m_UseForwardChi2Estimate = true;
   constexpr int nMaxOutliers = 2;
+
+  constexpr float Approx_dy = 2424.0f;         // TODO simplified SCIFI GEO
+  constexpr float Approx_BeamHole_dy = 116.5f; // TODO simplified SCIFI GEO
 } // namespace ParKalmanFilter

@@ -31,6 +31,7 @@ from AllenConf.persistency import make_gather_selections, make_sel_report_writer
 from AllenConf.filters import make_gec
 from AllenConf.best_track_creator import best_track_creator
 from AllenConf.enum_types import TrackingType
+from AllenConf.secondary_vertex_reconstruction import make_kalman_long
 
 
 def hlt1_reconstruction(algorithm_name='',
@@ -41,7 +42,9 @@ def hlt1_reconstruction(algorithm_name='',
                         velo_open=False,
                         enableDownstream=False,
                         with_rich=False,
-                        with_AC_split=False):
+                        with_AC_split=False,
+                        with_fullKF=False,
+                        track_max_chi2ndof=10.0):
     decoded_velo = decode_velo()
     decoded_scifi = decode_scifi()
     velo_tracks = make_velo_tracks(decoded_velo)
@@ -134,7 +137,6 @@ def hlt1_reconstruction(algorithm_name='',
             'scifi_consolidate_tracks_forward')
     else:
         raise Exception("Tracking type not supported")
-
     if with_muon:
         decoded_muon = decode_muon()
         muonID = is_muon(
@@ -147,20 +149,26 @@ def hlt1_reconstruction(algorithm_name='',
     else:
         muonID = fake_muon_id(host_number_of_tracks=long_tracks[
             'host_number_of_reconstructed_scifi_tracks'])
-    kalman_velo_only = make_kalman_velo_only(long_tracks, pvs, muonID)
 
     output.update({
         "long_tracks": long_tracks,
         "muonID": muonID,
-        "kalman_velo_only": kalman_velo_only
     })
+
+    if with_fullKF:
+        kalman_long_tracks = make_kalman_long(long_tracks, pvs, muonID)
+        KF_long_track = kalman_long_tracks
+        output.update({"kalman_long_track": kalman_long_tracks})
+    else:
+        kalman_velo_only = make_kalman_velo_only(long_tracks, pvs, muonID)
+        output.update({"kalman_velo_only": kalman_velo_only})
+        KF_long_track = kalman_velo_only
 
     if with_calo:
         decoded_calo = decode_calo()
 
-        calo_matching_objects = make_track_matching(decoded_calo, velo_tracks,
-                                                    velo_states, long_tracks,
-                                                    kalman_velo_only)
+        calo_matching_objects = make_track_matching(
+            decoded_calo, velo_tracks, velo_states, long_tracks, KF_long_track)
         electronid_nn = make_electronid_nn(long_tracks, calo_matching_objects)
 
         ecal_clusters = make_ecal_clusters(
@@ -169,7 +177,7 @@ def hlt1_reconstruction(algorithm_name='',
             calo_find_clusters_name=algorithm_name + 'calo_find_clusters')
 
         long_track_particles = make_basic_particles(
-            kalman_velo_only,
+            KF_long_track,
             muonID,
             make_long_track_particles_name=algorithm_name +
             'make_long_track_particles',
@@ -185,7 +193,7 @@ def hlt1_reconstruction(algorithm_name='',
         })
     else:
         long_track_particles = make_basic_particles(
-            kalman_velo_only,
+            KF_long_track,
             muonID,
             make_long_track_particles_name=algorithm_name +
             'make_long_track_particles_no_calo')
@@ -195,20 +203,21 @@ def hlt1_reconstruction(algorithm_name='',
     dihadrons = fit_secondary_vertices(
         long_tracks,
         pvs,
-        kalman_velo_only,
+        KF_long_track,
         long_track_particles,
         fit_secondary_vertices_name=algorithm_name +
         'fit_dihadron_secondary_vertices',
         track_min_ipchi2_both=-999.,
         track_min_ipchi2_either=-999.,
         track_min_ip_both=0.06,
-        track_min_ip_either=0.06)
+        track_min_ip_either=0.06,
+        track_max_chi2ndof=track_max_chi2ndof)
 
     # Make prompt SVs with a relatively tight pT cut.
     prompt_dihadrons = fit_secondary_vertices(
         long_tracks,
         pvs,
-        kalman_velo_only,
+        KF_long_track,
         long_track_particles,
         fit_secondary_vertices_name=algorithm_name +
         'fit_prompt_dihadron_secondary_vertices',
@@ -216,6 +225,7 @@ def hlt1_reconstruction(algorithm_name='',
         track_min_ipchi2_either=-999.,
         track_min_ip_both=-999.,
         track_min_ip_either=-999.,
+        track_max_chi2ndof=track_max_chi2ndof,
         require_same_pv=True,
         require_os_pair=True,
         max_doca=0.1,
@@ -227,7 +237,7 @@ def hlt1_reconstruction(algorithm_name='',
     dileptons = fit_secondary_vertices(
         long_tracks,
         pvs,
-        kalman_velo_only,
+        KF_long_track,
         long_track_particles,
         fit_secondary_vertices_name=algorithm_name +
         'fit_dilepton_secondary_vertices',
@@ -235,6 +245,7 @@ def hlt1_reconstruction(algorithm_name='',
         track_min_ipchi2_either=-999.,
         track_min_ip_both=-999.,
         track_min_ip_either=-999.,
+        track_max_chi2ndof=track_max_chi2ndof,
         require_same_pv=False,
         require_lepton=True)
 
@@ -242,7 +253,7 @@ def hlt1_reconstruction(algorithm_name='',
     v0s = fit_secondary_vertices(
         long_tracks,
         pvs,
-        kalman_velo_only,
+        KF_long_track,
         long_track_particles,
         fit_secondary_vertices_name=algorithm_name +
         'fit_v0_secondary_vertices',
@@ -252,6 +263,7 @@ def hlt1_reconstruction(algorithm_name='',
         track_min_ip_either=0.2,
         track_min_pt_both=80.,
         track_min_pt_either=450.,
+        track_max_chi2ndof=track_max_chi2ndof,
         max_doca=0.5,
         require_os_pair=True)
 
@@ -494,6 +506,7 @@ def validator_node(reconstructed_objects,
                    with_ut,
                    with_muon,
                    with_AC_split,
+                   with_fullKF,
                    prefilters=[]):
 
     validators = [velo_validation(reconstructed_objects["velo_tracks"])]
@@ -522,9 +535,10 @@ def validator_node(reconstructed_objects,
     if with_muon:
         validators += [muon_validation(reconstructed_objects["muonID"])]
 
+    kf_var = "kalman_long_track" if with_fullKF else "kalman_velo_only"
     validators += [
         pv_validation(reconstructed_objects["pvs"]),
-        kalman_validation(reconstructed_objects["kalman_velo_only"]),
+        kalman_validation(reconstructed_objects[kf_var]),
         selreport_validation(
             make_sel_report_writer(lines=line_algorithms),
             make_gather_selections(lines=line_algorithms))

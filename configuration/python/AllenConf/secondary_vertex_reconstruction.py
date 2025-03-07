@@ -13,10 +13,40 @@ from AllenCore.algorithms import (
     make_long_track_particles_t, filter_tracks_t, fit_secondary_vertices_t,
     empty_lepton_id_t, sv_combiner_t, filter_svs_t, filter_two_svs_t,
     generic_sv_combiner_t, calc_max_combos_t, filter_sv_track_t,
-    combine_sv_track_t)
+    combine_sv_track_t, kalman_filter_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenCore.generator import make_algorithm
+
+
+def make_kalman_long(long_tracks, pvs, is_muon_result,
+                     is_electron_result=None):
+    number_of_events = initialize_number_of_events()
+
+    kalman = make_algorithm(
+        kalman_filter_t,
+        name='kalman_long_{hash}',
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        host_number_of_reconstructed_scifi_tracks_t=long_tracks[
+            "host_number_of_reconstructed_scifi_tracks"],
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"],
+        dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
+        dev_number_of_multi_final_vertices_t=pvs[
+            "dev_number_of_multi_final_vertices"],
+        dev_is_muon_t=is_muon_result["dev_is_muon"],
+    )
+
+    return {
+        "long_tracks": long_tracks,
+        "pvs": pvs,
+        "dev_kf_tracks": kalman.dev_kf_tracks_t,
+        "dev_kalman_pv_ip": kalman.dev_kalman_pv_ip_t,
+        "dev_kalman_pv_tables": kalman.dev_kalman_pv_tables_t,
+        "dev_kalman_fit_results": kalman.dev_kalman_fit_results_t,
+        "dev_kalman_states_view": kalman.dev_kalman_states_view_t
+    }
 
 
 def make_kalman_velo_only(long_tracks,

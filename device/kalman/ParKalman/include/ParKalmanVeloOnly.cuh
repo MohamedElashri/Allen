@@ -57,32 +57,6 @@ __device__ void simplified_step(
   float& covTxTx,
   float& chi2);
 
-__device__ void extrapolate_velo_only(
-  KalmanFloat zFrom,
-  KalmanFloat zTo,
-  Vector5& x,
-  Matrix5x5& F,
-  SymMatrix5x5& Q,
-  const ParKalmanFilter::KalmanParametrizations* params);
-
-__device__ void predict_velo_only(
-  const Velo::Consolidated::Hits& hits,
-  int nHit,
-  Vector5& x,
-  SymMatrix5x5& C,
-  KalmanFloat& lastz,
-  const ParKalmanFilter::KalmanParametrizations* params);
-
-__device__ void
-update_velo_only(const Velo::Consolidated::Hits& hits, int nHit, Vector5& x, SymMatrix5x5& C, KalmanFloat& chi2);
-
-__device__ void velo_only_fit(
-  const Velo::Consolidated::Hits& velo_hits,
-  const unsigned n_velo_hits,
-  const KalmanFloat init_qop,
-  const KalmanParametrizations* kalman_params,
-  FittedTrack& track);
-
 __device__ void simplified_fit(
   const Allen::Views::Velo::Consolidated::Track& velo_track,
   const KalmanFloat init_qop,

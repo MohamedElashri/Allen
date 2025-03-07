@@ -35,8 +35,9 @@ namespace Checker {
     // Kalman information.
     float z = 0.f, x = 0.f, y = 0.f, tx = 0.f, ty = 0.f, qop = 0.f;
     float first_qop = 0.f, best_qop = 0.f;
-    float chi2 = 0.f, chi2V = 0.f, chi2T = 0.f;
+    float chi2 = 0.f, chi2V = 0.f, chi2T = 0.f, chi2UT = 0.f;
     unsigned ndof = 0, ndofV = 0, ndofT = 0;
+    unsigned nhitsV = 0, nhitsT = 0, nhitsUT = 0;
     float kalman_ip = 0.f, kalman_ip_chi2 = 0.f, kalman_ipx = 0.f, kalman_ipy = 0.f;
     float kalman_docaz = 0.f;
     float velo_ip = 0.f, velo_ip_chi2 = 0.f, velo_ipx = 0.f, velo_ipy = 0.f;
