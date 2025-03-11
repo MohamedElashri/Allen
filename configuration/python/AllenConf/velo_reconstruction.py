@@ -24,7 +24,7 @@ from PyConf.tonic import configurable
 
 
 @configurable
-def decode_velo(retina_decoding=True, use_sparse_ccl=False):
+def decode_velo(retina_decoding=True, use_sparse_ccl=True):
     number_of_events = initialize_number_of_events()
 
     if retina_decoding:

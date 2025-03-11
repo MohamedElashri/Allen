@@ -49,7 +49,8 @@ std::tuple<bool, bool> Allen::velo_decoding_type(const ConfigurationReader& conf
     if (alg.id == "decode_retinaclusters::decode_retinaclusters_t") {
       retina = true;
     }
-    else if (alg.id == "velo_masked_clustering::velo_masked_clustering_t") {
+    else if (
+      alg.id == "velo_masked_clustering::velo_masked_clustering_t" || alg.id == "velo_sparse_ccl::velo_sparse_ccl_t") {
       veloSP = true;
     }
   }

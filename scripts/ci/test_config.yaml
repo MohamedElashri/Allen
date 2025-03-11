@@ -256,7 +256,6 @@ full:
   - type: "efficiency"
     sequence:
       - hlt1_pp_no_ut_validation
-      - hlt1_pp_veloSP_validation
       - hlt1_pp_matching_no_ut_validation
       - hlt1_pp_matching_validation
       - hlt1_pp_forward_then_matching_validation
@@ -265,6 +264,13 @@ full:
       - hlt1_pp_forward_then_matching_with_parkf_validation
     dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_Bs2PhiPhiMD_nSciFiHits"
     geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
+
+  # run physics efficiency, veloSP
+  - type: "efficiency"
+    sequence:
+      - hlt1_pp_veloSP_validation
+    dataset: "Beam6800GeV-expected-2024-MagUp-nu7.6_Bs2PhiPhi_veloSP"
+    geometry: "geometry_sim-20231017-vc-mu100"
 
   # efficiency tests, pp reference run, exp 2024 conditions
   - type: "efficiency"
