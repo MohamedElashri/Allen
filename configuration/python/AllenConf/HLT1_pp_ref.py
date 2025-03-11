@@ -31,6 +31,7 @@ from PyConf.tonic import configurable
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.enum_types import TrackingType, includes_matching
 from AllenConf.get_thresholds import get_thresholds
+import re
 
 
 @configurable
@@ -765,7 +766,9 @@ def setup_hlt1_node(enablePhysics=True,
                     data_quality=False,
                     smog2_lumi_prescale=0.1,
                     with_fullKF=False,
-                    track_max_chi2ndof=10.0):
+                    track_max_chi2ndof=10.0,
+                    enabled_lines=[r'.*?'],
+                    disabled_lines=[]):
 
     hlt1_config = {}
     # Reconstruct objects needed as input for selection lines
@@ -963,6 +966,15 @@ def setup_hlt1_node(enablePhysics=True,
 
     lines = CompositeNode(
         "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
+
+    line_algorithms = [
+        line for line in line_algorithms if any(
+            re.match(r, line.name) for r in enabled_lines)
+    ]
+    line_algorithms = [
+        line for line in line_algorithms
+        if not any(re.match(r, line.name) for r in disabled_lines)
+    ]
 
     persistency_node, persistency_algorithms = make_persistency(
         line_algorithms)
