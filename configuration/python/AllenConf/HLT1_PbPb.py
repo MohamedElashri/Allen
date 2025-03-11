@@ -27,6 +27,7 @@ from AllenConf.persistency import make_persistency
 from AllenConf.lumi_reconstruction import lumi_reconstruction
 from AllenConf.enum_types import TrackingType, ActivityType, includes_matching
 from .HLT1 import default_bgi_activity_lines
+import re
 
 
 def default_physics_lines(reconstructed_objects, prescale, reco_particles,
@@ -355,7 +356,9 @@ def setup_hlt1_node(withMCChecking=False,
                     DisableLinesDuringVPClosing=False,
                     mini=False,
                     with_fullKF=False,
-                    track_max_chi2ndof=10.0):
+                    track_max_chi2ndof=10.0,
+                    enabled_lines=[r'.*?'],
+                    disabled_lines=[]):
 
     hlt1_config = {}
 
@@ -652,6 +655,15 @@ def setup_hlt1_node(withMCChecking=False,
 
     lines = CompositeNode(
         "SetupAllLines", line_nodes, NodeLogic.NONLAZY_OR, force_order=False)
+
+    line_algorithms = [
+        line for line in line_algorithms if any(
+            re.match(r, line.name) for r in enabled_lines)
+    ]
+    line_algorithms = [
+        line for line in line_algorithms
+        if not any(re.match(r, line.name) for r in disabled_lines)
+    ]
 
     persistency_node, persistency_algorithms = make_persistency(
         line_algorithms)
