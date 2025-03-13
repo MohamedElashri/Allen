@@ -95,8 +95,8 @@ gather_selections                      INFO Number of counters : 96
  | "Hlt1D2PiPiRate"                                |         4 |
  | "Hlt1DetJpsiToMuMuNegTagLinePass"               |         1 |
  | "Hlt1DetJpsiToMuMuNegTagLineRate"               |         1 |
- | "Hlt1DiElectronDisplacedPass"                   |        42 |
- | "Hlt1DiElectronDisplacedRate"                   |        42 |
+ | "Hlt1DiElectronDisplacedPass"                   |        43 |
+ | "Hlt1DiElectronDisplacedRate"                   |        43 |
  | "Hlt1DiElectronHighMass_SSPass"                 |         1 |
  | "Hlt1DiElectronHighMass_SSRate"                 |         1 |
  | "Hlt1DiElectronLowMass_SS_massSlice1_displacedPass"|        26 |
@@ -133,15 +133,15 @@ gather_selections                      INFO Number of counters : 96
  | "Hlt1DiMuonNoIP_SSPass"                         |         5 |
  | "Hlt1DiMuonSoftPass"                            |         6 |
  | "Hlt1DiMuonSoftRate"                            |         6 |
- | "Hlt1DiPhotonHighMassPass"                      |        32 |
- | "Hlt1DiPhotonHighMassRate"                      |        32 |
+ | "Hlt1DiPhotonHighMassPass"                      |        33 |
+ | "Hlt1DiPhotonHighMassRate"                      |        33 |
  | "Hlt1Dst2D0PiAlignmentPass"                     |         3 |
  | "Hlt1Dst2D0PiAlignmentRate"                     |         3 |
  | "Hlt1Dst2D0PiPass"                              |         3 |
  | "Hlt1Dst2D0PiRate"                              |         3 |
  | "Hlt1GECPassthroughPass"                        |         2 |
  | "Hlt1GECPassthroughRate"                        |         2 |
- | "Hlt1KsToPiPiPass"                              |       741 |
+ | "Hlt1KsToPiPiPass"                              |       739 |
  | "Hlt1KsToPiPiRate"                              |         2 |
  | "Hlt1LambdaLLDetachedTrackPass"                 |         1 |
  | "Hlt1LambdaLLDetachedTrackRate"                 |         1 |
@@ -161,23 +161,23 @@ gather_selections                      INFO Number of counters : 96
  | "Hlt1SingleHighPtMuonRate"                      |         5 |
  | "Hlt1TrackElectronMVAPass"                      |        54 |
  | "Hlt1TrackElectronMVARate"                      |        54 |
- | "Hlt1TrackMVAPass"                              |        99 |
- | "Hlt1TrackMVARate"                              |        99 |
+ | "Hlt1TrackMVAPass"                              |        96 |
+ | "Hlt1TrackMVARate"                              |        96 |
  | "Hlt1TrackMuonMVAPass"                          |         9 |
  | "Hlt1TrackMuonMVARate"                          |         9 |
  | "Hlt1TwoKsPass"                                 |         8 |
  | "Hlt1TwoKsRate"                                 |         8 |
  | "Hlt1TwoTrackKsPass"                            |        30 |
  | "Hlt1TwoTrackKsRate"                            |        30 |
- | "Hlt1TwoTrackMVAPass"                           |       248 |
- | "Hlt1TwoTrackMVARate"                           |       248 |
+ | "Hlt1TwoTrackMVAPass"                           |       247 |
+ | "Hlt1TwoTrackMVARate"                           |       247 |
  | "Hlt1UpsilonAlignmentPass"                      |         2 |
  | "Hlt1UpsilonAlignmentRate"                      |         2 |
  | "Hlt1VeloMicroBiasPass"                         |      9997 |
  | "Hlt1VeloMicroBiasRate"                         |         9 |
 matching_consolidate_tracks_matc...    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_long_tracks_matching"                        |     10000 |     458878 |     45.888 |
+ | "n_long_tracks_matching"                        |     10000 |     458876 |     45.888 |
 pv_beamline_cleanup                    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_PVs"                                         |     10000 |      51728 |     5.1728 |
@@ -188,188 +188,188 @@ velo_consolidate_tracks                INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_velo_tracks"                                 |     10000 |    2501922 |     250.19 |
 Hlt1D2KK                               INFO 1D histograms in directory "Hlt1D2KK" : 2
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | d02kk_mass                                    | "m(D0)"                                       |         15 |     1857.2 | 50.905     |   -0.12698 |    -1.3045 |
- | d02kk_pt                                      | "pT(D0)"                                      |         15 |     3268.7 | 1109.4     |    0.51074 |    -1.1442 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | d02kk_mass                                                                       | "m(D0)"                                                                          |         15 |     1857.2 | 50.905     |   -0.12698 |    -1.3045 |
+ | d02kk_pt                                                                         | "pT(D0)"                                                                         |         15 |     3268.7 | 1109.4     |    0.51074 |    -1.1442 |
 Hlt1D2KPi                              INFO 1D histograms in directory "Hlt1D2KPi" : 6
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | d0_mass                                       | "m(D0)"                                       |         22 |     1849.7 | 55.407     |    0.35733 |   -0.88567 |
- | d0_pt                                         | "pT(D0)"                                      |         16 |       3790 | 1584.5     |     0.5713 |   -0.84028 |
- | p0_ipx                                        | "IP_{x}(p0)"                                  |         15 |      0.142 | 0.34423    |     2.7824 |     7.1987 |
- | p0_ipy                                        | "IP_{y}(p0)"                                  |         14 |   -0.14571 | 0.41288    |    -2.2524 |     4.6895 |
- | p1_ipx                                        | "IP_{x}(p1)"                                  |         14 |  -0.094286 | 0.18901    |    -1.0173 |  -0.061234 |
- | p1_ipy                                        | "IP_{y}(p1)"                                  |         15 |      -0.09 | 0.36856    |    -1.6222 |     2.5149 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | d0_mass                                                                          | "m(D0)"                                                                          |         22 |     1849.7 | 55.407     |    0.35733 |   -0.88567 |
+ | d0_pt                                                                            | "pT(D0)"                                                                         |         16 |       3790 | 1584.5     |     0.5713 |   -0.84028 |
+ | p0_ipx                                                                           | "IP_{x}(p0)"                                                                     |         15 |      0.142 | 0.34423    |     2.7824 |     7.1987 |
+ | p0_ipy                                                                           | "IP_{y}(p0)"                                                                     |         14 |   -0.14571 | 0.41288    |    -2.2524 |     4.6895 |
+ | p1_ipx                                                                           | "IP_{x}(p1)"                                                                     |         14 |  -0.094286 | 0.18901    |    -1.0173 |  -0.061234 |
+ | p1_ipy                                                                           | "IP_{y}(p1)"                                                                     |         15 |      -0.09 | 0.36856    |    -1.6222 |     2.5149 |
 Hlt1D2KPiAlignment                     INFO 1D histograms in directory "Hlt1D2KPiAlignment" : 6
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | d0_mass                                       | "m(D0)"                                       |          7 |     1868.9 | 40.565     |   0.017291 |   -0.54811 |
- | d0_pt                                         | "pT(D0)"                                      |          4 |       5653 | 1184.2     |   -0.16155 |    -1.6552 |
- | p0_ipx                                        | "IP_{x}(p0)"                                  |          4 |       0.12 | 0.13077    |    0.65202 |   -0.90305 |
- | p0_ipy                                        | "IP_{y}(p0)"                                  |          4 |      -0.21 | 0.25100    |    0.92203 |   -0.81714 |
- | p1_ipx                                        | "IP_{x}(p1)"                                  |          4 |     -0.045 | 0.10712    |   -0.41185 |   -0.96194 |
- | p1_ipy                                        | "IP_{y}(p1)"                                  |          4 |      0.165 | 0.18187    |   -0.18516 |     -1.413 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | d0_mass                                                                          | "m(D0)"                                                                          |          7 |     1868.9 | 40.565     |   0.017291 |   -0.54811 |
+ | d0_pt                                                                            | "pT(D0)"                                                                         |          4 |       5653 | 1184.2     |   -0.16155 |    -1.6552 |
+ | p0_ipx                                                                           | "IP_{x}(p0)"                                                                     |          4 |       0.12 | 0.13077    |    0.65202 |   -0.90305 |
+ | p0_ipy                                                                           | "IP_{y}(p0)"                                                                     |          4 |      -0.21 | 0.25100    |    0.92203 |   -0.81714 |
+ | p1_ipx                                                                           | "IP_{x}(p1)"                                                                     |          4 |     -0.045 | 0.10712    |   -0.41185 |   -0.96194 |
+ | p1_ipy                                                                           | "IP_{y}(p1)"                                                                     |          4 |      0.165 | 0.18187    |   -0.18516 |     -1.413 |
 Hlt1D2PiPi                             INFO 1D histograms in directory "Hlt1D2PiPi" : 2
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | d02pipi_mass                                  | "m(D0)"                                       |          4 |       1850 | 65.605     |    0.35903 |   -0.97823 |
- | d02pipi_pt                                    | "pT(D0)"                                      |          4 |       4664 | 1427.5     |   0.064048 |    -1.5569 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | d02pipi_mass                                                                     | "m(D0)"                                                                          |          4 |       1850 | 65.605     |    0.35903 |   -0.97823 |
+ | d02pipi_pt                                                                       | "pT(D0)"                                                                         |          4 |       4664 | 1427.5     |   0.064048 |    -1.5569 |
 Hlt1DetJpsiToMuMuNegTagLine            INFO 1D histograms in directory "Hlt1DetJpsiToMuMuNegTagLine" : 1
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | histogram_det_jpsitomumu_tap_mass             | "m(jpsi)"                                     |          1 |     3092.5 | 0.0000     |          0 |          0 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | histogram_det_jpsitomumu_tap_mass                                                | "m(jpsi)"                                                                        |          1 |     3092.5 | 0.0000     |          0 |          0 |
 Hlt1DiElectronHighMass_SS              INFO 1D histograms in directory "Hlt1DiElectronHighMass_SS" : 1
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_upsilon_mass_counts_ss             | "dielectron masses w/brem (Upsilon)"          |          1 |     8647.5 | 0.0000     |          0 |          0 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | dielectron_upsilon_mass_counts_ss                                                | "dielectron masses w/brem (Upsilon)"                                             |          1 |     8647.5 | 0.0000     |          0 |          0 |
 Hlt1DiElectronLowMass_SS_massSli...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_SS_massSlice1_prompt" : 2
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                        | "dielectron masses"                           |        213 |     1079.6 | 501.12     |    -1.2368 |  -0.082566 |
- | dielectron_mass_counts_brem                   | "dielectron masses with brem"                 |        187 |     1062.5 | 516.73     |    -1.1114 |   -0.40039 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        212 |     1078.4 | 502.00     |    -1.2296 |    -0.1013 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        186 |       1061 | 517.72     |    -1.1032 |   -0.41947 |
 Hlt1DiElectronLowMass_SS_massSli...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_SS_massSlice2_prompt" : 2
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                        | "dielectron masses"                           |        213 |     1079.6 | 501.12     |    -1.2368 |  -0.082566 |
- | dielectron_mass_counts_brem                   | "dielectron masses with brem"                 |        187 |     1062.5 | 516.73     |    -1.1114 |   -0.40039 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        212 |     1078.4 | 502.00     |    -1.2296 |    -0.1013 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        186 |       1061 | 517.72     |    -1.1032 |   -0.41947 |
 Hlt1DiElectronLowMass_SS_massSli...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_SS_massSlice3_prompt" : 2
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                        | "dielectron masses"                           |        213 |     1079.6 | 501.12     |    -1.2368 |  -0.082566 |
- | dielectron_mass_counts_brem                   | "dielectron masses with brem"                 |        187 |     1062.5 | 516.73     |    -1.1114 |   -0.40039 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        212 |     1078.4 | 502.00     |    -1.2296 |    -0.1013 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        186 |       1061 | 517.72     |    -1.1032 |   -0.41947 |
 Hlt1DiElectronLowMass_SS_massSli...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_SS_massSlice4_prompt" : 2
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                        | "dielectron masses"                           |        213 |     1079.6 | 501.12     |    -1.2368 |  -0.082566 |
- | dielectron_mass_counts_brem                   | "dielectron masses with brem"                 |        187 |     1062.5 | 516.73     |    -1.1114 |   -0.40039 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        212 |     1078.4 | 502.00     |    -1.2296 |    -0.1013 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        186 |       1061 | 517.72     |    -1.1032 |   -0.41947 |
 Hlt1DiElectronLowMass_massSlice1...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_massSlice1_prompt" : 2
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                        | "dielectron masses"                           |        206 |     1200.3 | 396.98     |    -2.0571 |     3.1583 |
- | dielectron_mass_counts_brem                   | "dielectron masses with brem"                 |        175 |     1196.6 | 413.24     |    -1.9413 |     2.5681 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        206 |     1200.3 | 396.98     |    -2.0571 |     3.1583 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        175 |     1196.6 | 413.24     |    -1.9413 |     2.5681 |
 Hlt1DiElectronLowMass_massSlice2...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_massSlice2_prompt" : 2
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                        | "dielectron masses"                           |        206 |     1200.3 | 396.98     |    -2.0571 |     3.1583 |
- | dielectron_mass_counts_brem                   | "dielectron masses with brem"                 |        175 |     1196.6 | 413.24     |    -1.9413 |     2.5681 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        206 |     1200.3 | 396.98     |    -2.0571 |     3.1583 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        175 |     1196.6 | 413.24     |    -1.9413 |     2.5681 |
 Hlt1DiElectronLowMass_massSlice3...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_massSlice3_prompt" : 2
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                        | "dielectron masses"                           |        206 |     1200.3 | 396.98     |    -2.0571 |     3.1583 |
- | dielectron_mass_counts_brem                   | "dielectron masses with brem"                 |        175 |     1196.6 | 413.24     |    -1.9413 |     2.5681 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        206 |     1200.3 | 396.98     |    -2.0571 |     3.1583 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        175 |     1196.6 | 413.24     |    -1.9413 |     2.5681 |
 Hlt1DiElectronLowMass_massSlice4...    INFO 1D histograms in directory "Hlt1DiElectronLowMass_massSlice4_prompt" : 2
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                        | "dielectron masses"                           |        206 |     1200.3 | 396.98     |    -2.0571 |     3.1583 |
- | dielectron_mass_counts_brem                   | "dielectron masses with brem"                 |        175 |     1196.6 | 413.24     |    -1.9413 |     2.5681 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        206 |     1200.3 | 396.98     |    -2.0571 |     3.1583 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        175 |     1196.6 | 413.24     |    -1.9413 |     2.5681 |
 Hlt1DiMuonDisplaced                    INFO 1D histograms in directory "Hlt1DiMuonDisplaced" : 1
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | Jpsi_mass                                     | "m(J/Psi)"                                    |          2 |     3089.3 | 38.000     | 2.0856e-10 |         -2 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | Jpsi_mass                                                                        | "m(J/Psi)"                                                                       |          2 |     3089.3 | 38.000     | 2.0856e-10 |         -2 |
 Hlt1DiMuonHighMass                     INFO 1D histograms in directory "Hlt1DiMuonHighMass" : 1
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | Jpsi_mass                                     | "m(J/Psi)"                                    |         22 |     3077.9 | 113.53     |    0.42484 |   -0.90215 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | Jpsi_mass                                                                        | "m(J/Psi)"                                                                       |         22 |     3077.9 | 113.53     |    0.42484 |   -0.90215 |
 Hlt1DiMuonNoIP                         INFO 1D histograms in directory "Hlt1DiMuonNoIP" : 1
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dimuon_q                                      | "dimuon q"                                    |          4 |      21404 | 5792.7     |   -0.53652 |    -1.1436 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | dimuon_q                                                                         | "dimuon q"                                                                       |          4 |      21404 | 5792.7     |   -0.53652 |    -1.1436 |
 Hlt1DiMuonNoIP_SS                      INFO 1D histograms in directory "Hlt1DiMuonNoIP_SS" : 1
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dimuon_q                                      | "dimuon q"                                    |          4 |      25442 | 2971.6     |    0.59183 |    -1.1726 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | dimuon_q                                                                         | "dimuon q"                                                                       |          4 |      25442 | 2971.6     |    0.59183 |    -1.1726 |
 Hlt1Dst2D0Pi                           INFO 1D histograms in directory "Hlt1Dst2D0Pi" : 3
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | d0_mass                                       | "m(D0)"                                       |          3 |     1805.3 | 38.793     |    0.68462 |       -1.5 |
- | d0_pt                                         | "pT(D0)"                                      |          3 |       3350 | 2264.2     |    0.70297 |       -1.5 |
- | dst_dm                                        | "m(D*)-m(D0)"                                 |          3 |     147.04 | 2.2016     |    0.64606 |       -1.5 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | d0_mass                                                                          | "m(D0)"                                                                          |          3 |     1805.3 | 38.793     |    0.68462 |       -1.5 |
+ | d0_pt                                                                            | "pT(D0)"                                                                         |          3 |       3350 | 2264.2     |    0.70297 |       -1.5 |
+ | dst_dm                                                                           | "m(D*)-m(D0)"                                                                    |          3 |     147.04 | 2.2016     |    0.64606 |       -1.5 |
 Hlt1Dst2D0PiAlignment                  INFO 1D histograms in directory "Hlt1Dst2D0PiAlignment" : 3
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | d0_mass                                       | "m(D0)"                                       |          3 |     1805.3 | 38.793     |    0.68462 |       -1.5 |
- | d0_pt                                         | "pT(D0)"                                      |          3 |       3350 | 2264.2     |    0.70297 |       -1.5 |
- | dst_dm                                        | "m(D*)-m(D0)"                                 |          3 |     147.04 | 2.2016     |    0.64606 |       -1.5 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | d0_mass                                                                          | "m(D0)"                                                                          |          3 |     1805.3 | 38.793     |    0.68462 |       -1.5 |
+ | d0_pt                                                                            | "pT(D0)"                                                                         |          3 |       3350 | 2264.2     |    0.70297 |       -1.5 |
+ | dst_dm                                                                           | "m(D*)-m(D0)"                                                                    |          3 |     147.04 | 2.2016     |    0.64606 |       -1.5 |
 Hlt1KsToPiPi                           INFO 1D histograms in directory "Hlt1KsToPiPi" : 4
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | ks_mass                                       | "m(ks)"                                       |        827 |     493.03 | 19.434     |    -2.5866 |     8.5345 |
- | ks_pt                                         | "pT(ks)"                                      |        827 |     1205.9 | 603.09     |     1.7508 |     3.8993 |
- | p0_ghost_prob                                 | "track0 GhostProb"                            |        827 |   0.066076 | 0.086984   |      2.328 |     5.7895 |
- | p1_ghost_prob                                 | "track1 GhostProb"                            |        827 |   0.087776 | 0.10840    |     1.7793 |     2.5429 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | ks_mass                                                                          | "m(ks)"                                                                          |        825 |     493.05 | 19.435     |    -2.5932 |     8.5684 |
+ | ks_pt                                                                            | "pT(ks)"                                                                         |        825 |     1204.5 | 603.35     |     1.7594 |     3.9236 |
+ | p0_ghost_prob                                                                    | "track0 GhostProb"                                                               |        825 |   0.066425 | 0.087025   |     2.3099 |     5.6961 |
+ | p1_ghost_prob                                                                    | "track1 GhostProb"                                                               |        825 |   0.087385 | 0.10836    |     1.7939 |     2.5995 |
 Hlt1LambdaLLDetachedTrack              INFO 1D histograms in directory "Hlt1LambdaLLDetachedTrack" : 2
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | LambdaTrack_mass                              | "m(#Lambda#pi^{+}) [MeV]"                     |          1 |     2087.5 | 0.0000     |          0 |          0 |
- | Lambda_mass_LambdaLLDetachedTrack             | "m(p#pi^{#minus}) [MeV]"                      |          1 |     1118.8 | 0.0000     |          0 |          0 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | LambdaTrack_mass                                                                 | "m(#Lambda#pi^{+}) [MeV]"                                                        |          1 |     2087.5 | 0.0000     |          0 |          0 |
+ | Lambda_mass_LambdaLLDetachedTrack                                                | "m(p#pi^{#minus}) [MeV]"                                                         |          1 |     1118.8 | 0.0000     |          0 |          0 |
 Hlt1TrackMVA                           INFO 1D histograms in directory "Hlt1TrackMVA" : 3
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | ghost_prob                                    | "track GhostProb"                             |        105 |   0.022943 | 0.042543   |      3.285 |     10.567 |
- | ip_x                                          | "IP_{x}"                                      |        103 |  -0.059126 | 0.56060    |    -1.1866 |     8.3997 |
- | ip_y                                          | "IP_{y}"                                      |        100 |    -0.0786 | 0.34652    |    -2.4192 |     9.7538 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | ghost_prob                                                                       | "track GhostProb"                                                                |        102 |   0.023235 | 0.043094   |     3.2345 |     10.176 |
+ | ip_x                                                                             | "IP_{x}"                                                                         |        100 |     -0.054 | 0.56725    |    -1.2038 |     8.2425 |
+ | ip_y                                                                             | "IP_{y}"                                                                         |         97 |  -0.078247 | 0.35045    |    -2.4113 |     9.5736 |
 Hlt1TwoTrackMVA                        INFO 1D histograms in directory "Hlt1TwoTrackMVA" : 7
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | d0_mass                                       | "m(K#pi)"                                     |         30 |     1875.3 | 56.380     |   -0.19812 |   -0.99045 |
- | p0_ghost_prob                                 | "track0 GhostProb"                            |        389 |   0.033046 | 0.061746   |     4.1297 |     20.403 |
- | p0_ip_x                                       | "IP_{x}(p0)"                                  |        350 |   0.011314 | 0.60703    |   -0.83164 |     7.8961 |
- | p0_ip_y                                       | "IP_{y}(p0)"                                  |        349 |    0.04788 | 0.56366    |   0.080444 |     8.5444 |
- | p1_ghost_prob                                 | "track1 GhostProb"                            |        389 |   0.038584 | 0.066418   |      3.451 |     13.976 |
- | p1_ip_x                                       | "IP_{x}(p1)"                                  |        343 |  -0.070408 | 0.57295    |   -0.25338 |     6.4909 |
- | p1_ip_y                                       | "IP_{y}(p1)"                                  |        344 |     -0.045 | 0.57855    |    -1.0926 |     8.9633 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | d0_mass                                                                          | "m(K#pi)"                                                                        |         31 |     1871.8 | 58.731     |   -0.19735 |    -1.0301 |
+ | p0_ghost_prob                                                                    | "track0 GhostProb"                                                               |        389 |   0.031982 | 0.059099   |     4.2112 |      21.88 |
+ | p0_ip_x                                                                          | "IP_{x}(p0)"                                                                     |        348 |  0.0065517 | 0.61076    |   -0.80918 |     7.6813 |
+ | p0_ip_y                                                                          | "IP_{y}(p0)"                                                                     |        347 |   0.047983 | 0.56486    |   0.080051 |     8.5121 |
+ | p1_ghost_prob                                                                    | "track1 GhostProb"                                                               |        389 |   0.038661 | 0.066398   |     3.4508 |      13.98 |
+ | p1_ip_x                                                                          | "IP_{x}(p1)"                                                                     |        341 |  -0.066598 | 0.56859    |   -0.29833 |     6.7732 |
+ | p1_ip_y                                                                          | "IP_{y}(p1)"                                                                     |        342 |  -0.046667 | 0.57806    |    -1.1063 |     9.0382 |
 calo_find_clusters                     INFO 1D histograms in directory "calo_find_clusters" : 6
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | ecal_cluster_e                                | "EcalClusterE"                                |     490569 |       8008 | 7518.3     |     2.3012 |     6.1944 |
- | ecal_cluster_et                               | "EcalClusterEt"                               |     494433 |     806.19 | 458.05     |     2.2547 |     8.6268 |
- | ecal_cluster_x                                | "EcalClusterX"                                |     494739 |    0.48119 | 1894.5     |   0.011245 |   -0.73997 |
- | ecal_cluster_y                                | "EcalClusterY"                                |     494739 |    -1.0884 | 1037.3     |  0.0058091 |      1.087 |
- | ecal_digit_e                                  | "EcalDigitE"                                  |    1073948 |       1545 | 1469.6     |     2.2933 |     6.4136 |
- | n_ecal_clusters                               | "NClusters"                                   |      10000 |     49.474 | 28.662     |    0.75757 |    0.68816 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | ecal_cluster_e                                                                   | "EcalClusterE"                                                                   |     490569 |       8008 | 7518.3     |     2.3012 |     6.1944 |
+ | ecal_cluster_et                                                                  | "EcalClusterEt"                                                                  |     494433 |     806.19 | 458.05     |     2.2547 |     8.6268 |
+ | ecal_cluster_x                                                                   | "EcalClusterX"                                                                   |     494739 |    0.48119 | 1894.5     |   0.011245 |   -0.73997 |
+ | ecal_cluster_y                                                                   | "EcalClusterY"                                                                   |     494739 |    -1.0884 | 1037.3     |  0.0058091 |      1.087 |
+ | ecal_digit_e                                                                     | "EcalDigitE"                                                                     |    1073948 |       1545 | 1469.6     |     2.2933 |     6.4136 |
+ | n_ecal_clusters                                                                  | "NClusters"                                                                      |      10000 |     49.474 | 28.662     |    0.75757 |    0.68816 |
 error_bank_filter                      INFO 1D histograms in directory "error_bank_filter" : 8
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | ECal_banks                                    | "ECal_banks"                                  |     920000 |          0 | 0.0000     |          0 |          0 |
- | FTCluster_banks                               | "FTCluster_banks"                             |    2400000 |          0 | 0.0000     |          0 |          0 |
- | Muon_banks                                    | "Muon_banks"                                  |     440000 |          0 | 0.0000     |          0 |          0 |
- | ODIN_banks                                    | "ODIN_banks"                                  |      10000 |          0 | 0.0000     |          0 |          0 |
- | Rich1_banks                                   | "Rich1_banks"                                 |      40000 |          0 | 0.0000     |          0 |          0 |
- | UT_banks                                      | "UT_banks"                                    |    2160000 |          0 | 0.0000     |          0 |          0 |
- | VP_banks                                      | "VP_banks"                                    |    1040000 |          2 | 0.0000     |          0 |          0 |
- | n_data_banks                                  | "n_data_banks"                                |    7010000 |     5.9943 | 1.9785     |   -0.60878 |    0.93075 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | ECal_banks                                                                       | "ECal_banks"                                                                     |     920000 |          0 | 0.0000     |          0 |          0 |
+ | FTCluster_banks                                                                  | "FTCluster_banks"                                                                |    2400000 |          0 | 0.0000     |          0 |          0 |
+ | Muon_banks                                                                       | "Muon_banks"                                                                     |     440000 |          0 | 0.0000     |          0 |          0 |
+ | ODIN_banks                                                                       | "ODIN_banks"                                                                     |      10000 |          0 | 0.0000     |          0 |          0 |
+ | Rich1_banks                                                                      | "Rich1_banks"                                                                    |      40000 |          0 | 0.0000     |          0 |          0 |
+ | UT_banks                                                                         | "UT_banks"                                                                       |    2160000 |          0 | 0.0000     |          0 |          0 |
+ | VP_banks                                                                         | "VP_banks"                                                                       |    1040000 |          2 | 0.0000     |          0 |          0 |
+ | n_data_banks                                                                     | "n_data_banks"                                                                   |    7010000 |     5.9943 | 1.9785     |   -0.60878 |    0.93075 |
 fit_dihadron_secondary_vertices        INFO 1D histograms in directory "fit_dihadron_secondary_vertices" : 1
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                 | "NSVs"                                        |      10000 |     35.053 | 41.822     |     2.9095 |      16.03 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     35.049 | 41.816     |     2.9074 |     16.013 |
 fit_dilepton_secondary_vertices        INFO 1D histograms in directory "fit_dilepton_secondary_vertices" : 1
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                 | "NSVs"                                        |      10000 |     21.619 | 40.957     |     4.6248 |      34.39 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     21.614 | 40.909     |     4.5935 |     33.704 |
 fit_v0_secondary_vertices              INFO 1D histograms in directory "fit_v0_secondary_vertices" : 1
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                 | "NSVs"                                        |      10000 |      0.854 | 1.8782     |     5.8281 |     76.047 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     0.8532 | 1.8763     |     5.8379 |     76.327 |
 gather_selections                      INFO 1D histograms in directory "gather_selections" : 2
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | line_passes                                   | "line passes"                                 |      17379 |     81.773 | 18.679     |   -0.77582 |   -0.43122 |
- | line_rates                                    | "line rates"                                  |        842 |      68.76 | 29.973     |   -0.64319 |     -1.202 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | line_passes                                                                      | "line passes"                                                                    |      17375 |     81.768 | 18.685     |    -0.7766 |   -0.42768 |
+ | line_rates                                                                       | "line rates"                                                                     |        840 |     68.568 | 30.025     |   -0.63023 |    -1.2186 |
 is_muon                                INFO 1D histograms in directory "is_muon" : 3
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | n_muons                                       | "# muons"                                     |     458878 |    0.10947 | 0.31223    |     2.5015 |     4.2576 |
- | pv_x                                          | "pv_x"                                        |      29748 |          2 | 0.0000     |          0 |          0 |
- | pv_y                                          | "pv_y"                                        |      50234 |     498.37 | 332.15     |     2.9207 |     35.518 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | n_muons                                                                          | "# muons"                                                                        |     458876 |    0.10947 | 0.31223    |     2.5015 |     4.2575 |
+ | pv_x                                                                             | "pv_x"                                                                           |      29749 |          2 | 0.0000     |          0 |          0 |
+ | pv_y                                                                             | "pv_y"                                                                           |      50234 |     498.44 | 332.36     |      2.921 |     35.457 |
 make_long_track_particles              INFO 1D histograms in directory "make_long_track_particles" : 4
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_trks                                | "NTrks"                                       |      10000 |     45.888 | 26.571     |    0.73539 |    0.45522 |
- | trk_eta                                       | "etaTrk"                                      |     458878 |     3.6723 | 0.71517    |   -0.13626 |   -0.83741 |
- | trk_phi                                       | "phiTrk"                                      |     458878 | -0.0066013 | 1.8032     | -0.0013705 |    -1.2508 |
- | trk_pt                                        | "ptTrk"                                       |     458818 |     657.03 | 580.27     |     3.3716 |     21.433 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | number_of_trks                                                                   | "NTrks"                                                                          |      10000 |     45.888 | 26.571     |    0.73532 |    0.45474 |
+ | trk_eta                                                                          | "etaTrk"                                                                         |     458876 |     3.6724 | 0.71507    |   -0.13649 |   -0.83711 |
+ | trk_phi                                                                          | "phiTrk"                                                                         |     458876 | -0.0064995 | 1.8034     | -0.0014037 |    -1.2509 |
+ | trk_pt                                                                           | "ptTrk"                                                                          |     458817 |     656.85 | 579.54     |     3.3628 |     21.324 |
 matching_consolidate_tracks_matc...    INFO 1D histograms in directory "matching_consolidate_tracks_matching" : 6
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | long_track_ghost_prob                         | "GhostProb"                                   |     458878 |   0.076805 | 0.10031    |     2.0765 |     3.9811 |
- | long_track_matching_eta                       | "#eta"                                        |     458878 |     3.6718 | 0.71490    |   -0.13579 |   -0.83674 |
- | long_track_matching_nhits                     | "N. hits / track"                             |     458878 |     24.957 | 3.3259     |-0.00056896 |   -0.52759 |
- | long_track_matching_phi                       | "#phi"                                        |     458878 | -0.0066845 | 1.8033     | -0.0013615 |    -1.2506 |
- | long_track_matching_qop                       | "q/p"                                         |     458878 | 1.2893e-06 | 0.00015182 | -0.0059313 |    -0.8199 |
- | n_long_tracks_matching_event                  | "n_long_tracks_matching_event"                |      10000 |     45.888 | 26.571     |    0.73539 |    0.45522 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | long_track_ghost_prob                                                            | "GhostProb"                                                                      |     458876 |   0.076806 | 0.10031    |     2.0766 |     3.9815 |
+ | long_track_matching_eta                                                          | "#eta"                                                                           |     458876 |     3.6719 | 0.71481    |   -0.13602 |   -0.83643 |
+ | long_track_matching_nhits                                                        | "N. hits / track"                                                                |     458876 |     24.961 | 3.3240     | -0.0013868 |   -0.52384 |
+ | long_track_matching_phi                                                          | "#phi"                                                                           |     458876 | -0.0065821 | 1.8035     | -0.0013917 |    -1.2507 |
+ | long_track_matching_qop                                                          | "q/p"                                                                            |     458876 | 1.2825e-06 | 0.00015182 |   -0.00571 |   -0.81974 |
+ | n_long_tracks_matching_event                                                     | "n_long_tracks_matching_event"                                                   |      10000 |     45.888 | 26.571     |    0.73532 |    0.45474 |
 pv_beamline_cleanup                    INFO 1D histograms in directory "pv_beamline_cleanup" : 5
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | n_pvs_event                                   | "n_pvs_event"                                 |      10000 |     5.1728 | 2.1617     |    0.35345 |    0.10441 |
- | n_smog2_PVs                                   | "n_smog2_PVs"                                 |      10000 |          0 | 0.0000     |          0 |          0 |
- | pv_x                                          | "pv_x"                                        |      51646 |-0.00011982 | 0.030488   |  -0.028993 |     1.9904 |
- | pv_y                                          | "pv_y"                                        |      51646 | 3.1058e-05 | 0.030206   |  -0.054324 |     1.6699 |
- | pv_z                                          | "pv_z"                                        |      51646 |     1.1385 | 63.227     |  -0.018741 |   -0.16116 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | n_pvs_event                                                                      | "n_pvs_event"                                                                    |      10000 |     5.1728 | 2.1617     |    0.35345 |    0.10441 |
+ | n_smog2_PVs                                                                      | "n_smog2_PVs"                                                                    |      10000 |          0 | 0.0000     |          0 |          0 |
+ | pv_x                                                                             | "pv_x"                                                                           |      51646 |-0.00011982 | 0.030488   |  -0.028993 |     1.9904 |
+ | pv_y                                                                             | "pv_y"                                                                           |      51646 | 3.1058e-05 | 0.030206   |  -0.054324 |     1.6699 |
+ | pv_z                                                                             | "pv_z"                                                                           |      51646 |     1.1385 | 63.227     |  -0.018741 |   -0.16116 |
 scifi_consolidate_seeds_matching       INFO 1D histograms in directory "scifi_consolidate_seeds_matching" : 5
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | n_scifi_seeds_event                           | "n_scifi_seeds_event"                         |      10000 |     79.973 | 51.731     |      1.499 |     4.1481 |
- | scifi_track_eta                               | "#eta"                                        |     799729 |     2.6523 | 0.73315    |    0.64601 |    0.31597 |
- | scifi_track_nhits                             | "N. hits / track"                             |     799730 |      11.44 | 0.74005    |   -0.90845 |   -0.61428 |
- | scifi_track_phi                               | "#phi"                                        |     799730 |  -0.006392 | 2.0444     |  0.0039281 |    -1.0015 |
- | scifi_track_qop                               | "q/p"                                         |     799730 | 1.1745e-06 | 0.00016280 | -0.0060324 |   -0.86296 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | n_scifi_seeds_event                                                              | "n_scifi_seeds_event"                                                            |      10000 |     79.973 | 51.731     |      1.499 |     4.1481 |
+ | scifi_track_eta                                                                  | "#eta"                                                                           |     799729 |     2.6523 | 0.73315    |    0.64601 |    0.31597 |
+ | scifi_track_nhits                                                                | "N. hits / track"                                                                |     799730 |      11.44 | 0.74005    |   -0.90845 |   -0.61428 |
+ | scifi_track_phi                                                                  | "#phi"                                                                           |     799730 |  -0.006392 | 2.0444     |  0.0039281 |    -1.0015 |
+ | scifi_track_qop                                                                  | "q/p"                                                                            |     799730 | 1.1745e-06 | 0.00016280 | -0.0060324 |   -0.86296 |
 velo_consolidate_tracks                INFO 1D histograms in directory "velo_consolidate_tracks" : 1
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | n_velo_tracks_event                           | "n_velo_tracks_event"                         |       9999 |     250.12 | 134.33     |    0.77697 |    0.89125 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | n_velo_tracks_event                                                              | "n_velo_tracks_event"                                                            |       9999 |     250.12 | 134.33     |    0.77697 |    0.89125 |
 velo_kalman_filter                     INFO 1D histograms in directory "velo_kalman_filter" : 9
- | ID                                            | Title                                         |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | velo_backward_track_eta                       | "#backward_eta"                               |     935907 |    -3.0143 | 0.80746    |   0.011252 |    -0.6287 |
- | velo_backward_track_nhits                     | "backward N. hits / track"                    |     935908 |     4.5929 | 1.3876     |     1.2513 |     2.3966 |
- | velo_backward_track_phi                       | "#backward_phi"                               |     935908 |-0.00020729 | 1.7950     |  -0.012918 |    -1.1696 |
- | velo_forward_track_eta                        | "#forward_eta"                                |    1566014 |     3.2753 | 1.0900     |    0.11831 |   -0.98396 |
- | velo_forward_track_nhits                      | "forward N. hits / track"                     |    1566014 |     7.3357 | 3.4695     |    0.58273 |   -0.57484 |
- | velo_forward_track_phi                        | "#forward_phi"                                |    1566014 | -0.0031376 | 1.8200     |  -0.004291 |    -1.2094 |
- | velo_total_track_eta                          | "#total_eta"                                  |    2501921 |    0.92254 | 3.2016     |   -0.37194 |    -1.4824 |
- | velo_total_track_nhits                        | "total N. hits / track"                       |    2501922 |     6.3097 | 3.1649     |     1.0962 |    0.44518 |
- | velo_total_track_phi                          | "#total_phi"                                  |    2501922 | -0.0020414 | 1.8107     | -0.0074665 |    -1.1947 |
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | velo_backward_track_eta                                                          | "#backward_eta"                                                                  |     935907 |    -3.0143 | 0.80746    |   0.011252 |    -0.6287 |
+ | velo_backward_track_nhits                                                        | "backward N. hits / track"                                                       |     935908 |     4.5929 | 1.3876     |     1.2513 |     2.3966 |
+ | velo_backward_track_phi                                                          | "#backward_phi"                                                                  |     935908 |-0.00020729 | 1.7950     |  -0.012918 |    -1.1696 |
+ | velo_forward_track_eta                                                           | "#forward_eta"                                                                   |    1566014 |     3.2753 | 1.0900     |    0.11831 |   -0.98396 |
+ | velo_forward_track_nhits                                                         | "forward N. hits / track"                                                        |    1566014 |     7.3357 | 3.4695     |    0.58273 |   -0.57484 |
+ | velo_forward_track_phi                                                           | "#forward_phi"                                                                   |    1566014 | -0.0031376 | 1.8200     |  -0.004291 |    -1.2094 |
+ | velo_total_track_eta                                                             | "#total_eta"                                                                     |    2501921 |    0.92254 | 3.2016     |   -0.37194 |    -1.4824 |
+ | velo_total_track_nhits                                                           | "total N. hits / track"                                                          |    2501922 |     6.3097 | 3.1649     |     1.0962 |    0.44518 |
+ | velo_total_track_phi                                                             | "#total_phi"                                                                     |    2501922 | -0.0020414 | 1.8107     | -0.0074665 |    -1.1947 |
