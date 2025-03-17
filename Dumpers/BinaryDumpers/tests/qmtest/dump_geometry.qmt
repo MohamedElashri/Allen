@@ -28,9 +28,10 @@
   <argument name="timeout"><integer>600</integer></argument>
   <argument name="validator"><text>
 from Allen.qmtest.exclusions import preprocessor
+from GaudiConf.QMTest.LHCbExclusions import ignore_missing_hepmc_dicts
 
 validateWithReference(preproc=preprocessor)
 
-countErrorLines({"FATAL": 0, "ERROR": 0, "WARNING": 0})
+countErrorLines({"FATAL": 0, "ERROR": 0, "WARNING": 0}, stdout=ignore_missing_hepmc_dicts(stdout))
 </text></argument>
 </extension>

@@ -281,7 +281,7 @@ TrackChecker output                               :      2822/    31832   8.87% 
 
 
 velo_validator validation:
-TrackChecker output                               :      2996/   155703   1.92% ghosts
+TrackChecker output                               :      2995/   155702   1.92% ghosts
 01_velo                                           :     65079/    66293  98.17% ( 98.26%),      1885 (  2.81%) clones, pur  99.68%, hit eff  95.68%
 02_long                                           :     37770/    38073  99.20% ( 99.25%),       876 (  2.27%) clones, pur  99.79%, hit eff  96.80%
 03_long_P>5GeV                                    :     24877/    24988  99.56% ( 99.60%),       528 (  2.08%) clones, pur  99.83%, hit eff  97.31%
