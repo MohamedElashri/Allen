@@ -60,22 +60,28 @@ inline __device__ unsigned merge(unsigned* labels, unsigned l1, unsigned l2, uin
 {
   l1 = find(labels, l1);
   l2 = find(labels, l2);
+  __threadfence();
   while (l1 != l2) {
     if (l2 < l1) swap(l1, l2);
     unsigned l3 = atomicMin(&labels[l2], l1);
+    __threadfence();
     // uint64_t is defined as unsigned long in 64bit mode..
     // therfore we need to cast, even if the type is the same
     auto f = atomicExch((unsigned long long*) &features[l2], 0llu);
     atomicAdd((unsigned long long*) &features[l1], f);
+    __threadfence();
     if (l3 == l2) break;
     l2 = l3;
   }
   unsigned a = find(labels, l1);
+  __threadfence();
   while (a != l1) {
     auto f = atomicExch((unsigned long long*) &features[l1], 0llu);
     atomicAdd((unsigned long long*) &features[a], f);
+    __threadfence();
     l1 = a;
     a = find(labels, l1);
+    __threadfence();
   }
   return a;
 }

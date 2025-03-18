@@ -264,7 +264,7 @@ Total stdinfo:        10316
 
 
 veloUT_validator validation:
-TrackChecker output                               :      2822/    31832   8.87% ghosts
+TrackChecker output                               :      2821/    31831   8.86% ghosts
 01_velo                                           :     27125/    66293  40.92% ( 41.43%),       451 (  1.64%) clones, pur  99.33%, hit eff  95.78%
 02_velo+UT                                        :     27055/    57419  47.12% ( 47.73%),       448 (  1.63%) clones, pur  99.35%, hit eff  95.77%
 03_velo+UT_P>5GeV                                 :     18679/    29829  62.62% ( 63.39%),       327 (  1.72%) clones, pur  99.43%, hit eff  96.27%
@@ -281,8 +281,8 @@ TrackChecker output                               :      2822/    31832   8.87% 
 
 
 velo_validator validation:
-TrackChecker output                               :      2995/   155702   1.92% ghosts
-01_velo                                           :     65079/    66293  98.17% ( 98.26%),      1885 (  2.81%) clones, pur  99.68%, hit eff  95.68%
+TrackChecker output                               :      2996/   155704   1.92% ghosts
+01_velo                                           :     65079/    66293  98.17% ( 98.26%),      1886 (  2.82%) clones, pur  99.68%, hit eff  95.68%
 02_long                                           :     37770/    38073  99.20% ( 99.25%),       876 (  2.27%) clones, pur  99.79%, hit eff  96.80%
 03_long_P>5GeV                                    :     24877/    24988  99.56% ( 99.60%),       528 (  2.08%) clones, pur  99.83%, hit eff  97.31%
 04_long_strange                                   :      1885/     1936  97.37% ( 97.17%),        49 (  2.53%) clones, pur  99.24%, hit eff  96.13%
