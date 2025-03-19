@@ -582,14 +582,18 @@ def alignment_monitoring_lines(reconstructed_objects,
                 muon_stubs["host_muon_total_number_of_tracks"],
                 name="Hlt1OneMuonTrackLine",
                 post_scaler=0.001),
-            make_di_muon_mass_line(
+            make_di_muon_mass_align_line(
                 long_tracks,
                 dileptons,
                 muonid,
-                maxChi2Corr=thresholds.DiMuonHighMass_maxCorrChi2,
+                minHighMassTrackPt=1800.,
+                minHighMassTrackP=20000.,
                 name="Hlt1UpsilonAlignment",
                 minMass=8000.,
-                minHighMassTrackPt=thresholds.DiMuonHighMass_pt),
+                maxMass=12000.,
+                minFdChi2=-1.,
+                minIP=-1.,
+                minDira=0.9),
         ]
 
     with line_maker.bind(prefilter=prefilters_bx):
