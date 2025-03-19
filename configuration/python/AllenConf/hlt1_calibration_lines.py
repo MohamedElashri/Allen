@@ -203,6 +203,15 @@ def make_di_muon_mass_align_line(long_tracks,
                                  muonid,
                                  pre_scaler=1.0,
                                  post_scaler=1.0,
+                                 minMass=2996.,
+                                 maxMass=3196.,
+                                 maxDoca=0.2,
+                                 maxVertexChi2=10.,
+                                 minHighMassTrackPt=1000.,
+                                 minHighMassTrackP=6000.,
+                                 minIP=0.07,
+                                 minFdChi2=5.,
+                                 minDira=0.9995,
                                  pre_scaler_hash_string=None,
                                  post_scaler_hash_string=None,
                                  name="Hlt1DiMuonHighMassAlignment"):
@@ -220,7 +229,16 @@ def make_di_muon_mass_align_line(long_tracks,
         pre_scaler=pre_scaler,
         post_scaler=post_scaler,
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
-        post_scaler_hash_string=post_scaler_hash_string or name + "_post")
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        minMass=minMass,
+        maxMass=maxMass,
+        maxDoca=maxDoca,
+        maxVertexChi2=maxVertexChi2,
+        minHighMassTrackPt=minHighMassTrackPt,
+        minHighMassTrackP=minHighMassTrackP,
+        minIP=minIP,
+        minFdChi2=minFdChi2,
+        minDira=minDira)
 
 
 @configurable
