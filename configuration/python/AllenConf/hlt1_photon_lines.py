@@ -70,4 +70,5 @@ def make_diphotonhighmass_line(calo,
         minEt_clusters=minET,
         minSumEt_clusters=6000,
         minE19_clusters=0.6,
+        maxE19_clusters=1.0,
         enable_tupling=enable_tupling)
