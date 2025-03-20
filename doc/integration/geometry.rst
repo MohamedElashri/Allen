@@ -69,7 +69,7 @@ A more complex dumper using two derived conditions and a regular condition as in
       std::vector<char>& data,
       IUTReadoutTool const& readout,
       IUTReadoutTool::ReadoutInfo const* roInfo,
-      YAML::Node const& readoutMap)
+      nlohmann::json const& readoutMap)
     {
       DumpUtils::Writer output {};
       output.write(...);

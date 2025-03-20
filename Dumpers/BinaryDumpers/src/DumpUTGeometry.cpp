@@ -19,8 +19,6 @@
 #include <range/v3/view/repeat_n.hpp>
 #include "range/v3/range/conversion.hpp"
 
-#include <yaml-cpp/yaml.h>
-
 #include <DetDesc/GenericConditionAccessorHolder.h>
 #include <Kernel/IUTReadoutTool.h>
 #include <Kernel/UTTell1Board.h> //v4
@@ -142,7 +140,7 @@ namespace {
       std::vector<char>& data,
       IUTReadoutTool const& readout,
       IUTReadoutTool::ReadoutInfo const* roInfo,
-      YAML::Node const& readoutMap)
+      nlohmann::json const& readoutMap)
     {
       DumpUtils::Writer output {};
 
@@ -159,9 +157,9 @@ namespace {
       UTDAQ::version UT_version; // Kernel/UTDAQDefinitions.h
       constexpr uint32_t n_lanes_max = 6;
       // mstahl: this is the condition for the new UT geometry. we might want a version field in the readout map
-      if (readoutMap["nTell40InUT"].IsDefined())
+      if (readoutMap.contains("nTell40InUT"))
         UT_version = UTDAQ::version::v5;
-      else if (readoutMap["hybridsPerBoard"].IsDefined())
+      else if (readoutMap.contains("hybridsPerBoard"))
         UT_version = UTDAQ::version::v4;
       else
         throw GaudiException {
@@ -169,7 +167,7 @@ namespace {
       // things that (might) depend on the decoding version
       const bool geometry_v5 = UT_version == UTDAQ::version::v5;
       const auto stripsPerHybrid = geometry_v5 ? UTDAQ::nStripsPerBoard / n_lanes_max :
-                                                 UTDAQ::nStripsPerBoard / readoutMap["hybridsPerBoard"].as<int>();
+                                                 UTDAQ::nStripsPerBoard / readoutMap["hybridsPerBoard"].get<int>();
 
       uint32_t currentBoardID = 0, cbID = 0;
       for (; cbID < roInfo->nBoards; ++cbID) {
@@ -312,7 +310,7 @@ StatusCode DumpUTGeometry::initialize()
     addConditionDerivation(
       {m_readoutTool->getReadoutInfoKey(), readoutLocation},
       inputLocation<Boards>(),
-      [&](IUTReadoutTool::ReadoutInfo const& roInfo, YAML::Node const& readoutMap) {
+      [&](IUTReadoutTool::ReadoutInfo const& roInfo, nlohmann::json const& readoutMap) {
         Boards boards {m_boardsData, *m_readoutTool, &roInfo, readoutMap};
         dump();
         return boards;
