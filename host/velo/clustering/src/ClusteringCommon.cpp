@@ -76,9 +76,9 @@ void cache_sp_patterns(
         ++n;
 
         for (unsigned int ni = 0; ni < 8; ++ni) {
-          const char ncol = col + dx[ni];
+          const signed char ncol = col + dx[ni];
           if (ncol < 0 || ncol > 1) continue;
-          const char nrow = row + dy[ni];
+          const signed char nrow = row + dy[ni];
           if (nrow < 0 || nrow > 3) continue;
           const unsigned char nidx = (ncol << 2) | nrow;
           if (0 == sp_buffer[nidx]) continue;
