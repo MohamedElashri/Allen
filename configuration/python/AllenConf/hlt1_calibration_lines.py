@@ -48,6 +48,7 @@ def make_pi02gammagamma_line(calo,
         maxMass=300,  #MeV
         minEt_clusters=400,  #MeV
         minE19_clusters=0.7,
+        maxE19_clusters=1.0,
         minPtEta=200,  #Pi0Pt>minPtEta*(10-Pi0Eta)
         max_n_pvs=1,
         enable_tupling=enable_tupling)

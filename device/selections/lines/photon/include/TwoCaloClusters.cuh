@@ -70,6 +70,7 @@ namespace two_calo_clusters_line {
       float minEt_clusters;
       float minSumEt_clusters;
       float minE19_clusters;
+      float maxE19_clusters;
       float minAbsY_clusters;
       float eta_max;
       unsigned max_velo_tracks;
@@ -154,7 +155,11 @@ namespace two_calo_clusters_line {
     Allen::Property<float> m_minPtEta {this, "minPtEta", 0.0f, "Pt > (minPtEta * (10-Eta)) of the twocluster"}; // MeV
     Allen::Property<float> m_minEt_clusters {this, "minEt_clusters", 200.f, "min Et of each cluster"};          // MeV
     Allen::Property<float> m_minSumEt_clusters {this, "minSumEt_clusters", 400.f, "min SumEt of clusters"};     // MeV
-    Allen::Property<float> m_minE19_clusters {this, "minE19_clusters", 0.6f, "min E19 of each cluster"};
+    Allen::Property<float> m_minE19_clusters {this, "minE19_clusters", 0.5f, "min E19 of each cluster"};
+    Allen::Property<float> m_maxE19_clusters {this,
+                                              "maxE19_clusters",
+                                              1.0f,
+                                              "max E19 of each cluster"}; // Safety for hot ECAL cells
     Allen::Property<float> m_minAbsY_clusters {this, "minAbsY_clusters", -1.0f, "min |Y| of each cluster"}; // mm
     Allen::Property<float> m_eta_max {this, "eta_max", 10.f, "Maximum dicluster pseudorapidity"};
     Allen::Property<unsigned> m_max_velo_tracks {this, "max_velo_tracks", UINT_MAX, "Maximum number of VELO tracks"};
@@ -167,7 +172,6 @@ namespace two_calo_clusters_line {
                                               "veto_bm_clusters",
                                               true,
                                               "Discard candidates with bremsstrahlung-matched clusters"};
-
     Allen::Property<float> m_histogramdiphotonMassMin {this,
                                                        "histogram_diphoton_mass_min",
                                                        0.f,
