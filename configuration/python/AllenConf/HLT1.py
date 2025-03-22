@@ -433,63 +433,45 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 post_scaler_hash_string='cone_jet_100gev_line_post'),
         ]
 
-        line_slices_mass = {
-            "1": (5., 30.),
-            "2": (30., 100.),
-            "3": (100., 200.),
-            "4": (200., 300.)
-        }
-        line_slices_postscales = {"1": 1, "2": 1, "3": 0.3, "4": 0.3}
-        for subSample in ["prompt", "displaced"]:
-            for label, limits in line_slices_mass.items():
-                postscale_os = line_slices_postscales[
-                    label] if subSample == "prompt" else 1.0
-                nnCut = 0.94
-                lines.append(
-                    make_lowmass_dielectron_line(
-                        long_tracks,
-                        dileptons,
-                        electronid_nn,
-                        calo_matching_objects,
-                        minMass=limits[0],
-                        maxMass=limits[1],
-                        minPTprompt=500.,
-                        minPTdisplaced=0.,
-                        trackIPChi2Threshold=2,
-                        selectPrompt=True if subSample == "prompt" else False,
-                        useNN=True,
-                        nnCut=nnCut,
-                        name="Hlt1DiElectronLowMass_massSlice{}_{}".format(
-                            label, subSample),
-                        pre_scaler_hash_string=
-                        "Hlt1DiElectronLowMass_massSlice{}_{}_pre".format(
-                            label, subSample),
-                        post_scaler=postscale_os))
-                lines.append(
-                    make_lowmass_dielectron_line(
-                        long_tracks,
-                        dileptons,
-                        electronid_nn,
-                        calo_matching_objects,
-                        is_same_sign=True,
-                        minMass=limits[0],
-                        maxMass=limits[1],
-                        minPTprompt=500.,
-                        minPTdisplaced=0.,
-                        trackIPChi2Threshold=2,
-                        selectPrompt=True if subSample == "prompt" else False,
-                        useNN=True,
-                        nnCut=nnCut,
-                        name="Hlt1DiElectronLowMass_SS_massSlice{}_{}".format(
-                            label, subSample),
-                        pre_scaler_hash_string=
-                        "lowmass_dielectron_SS_massSlice{}_{}_pre".format(
-                            label, subSample),
-                        post_scaler=0.02,
-                        post_scaler_hash_string=
-                        "lowmass_dielectron_SS_massSlice{}_{}_post".format(
-                            label, subSample)))
-
+        for subSample in ["NoIP", "NoIPNorm", "Displaced"]:
+            common_kwargs_low_mass_electron = {
+                "minMass": 5,
+                "maxMass": 300,
+                "minPTprompt": 500.0,
+                "minPTdisplaced": 0.0,
+                "trackIPChi2Threshold": -1 if "NoIP" in subSample else
+                4,  # it will only be picked up by the displaced line the NoIP (aka prompt) won't trigger this cut
+                "selectPrompt": "NoIP" in subSample,
+                "useNN": True,
+                "nnCut": 0.94 if subSample == "NoIP" else 0.75,
+                "enable_monitoring": True
+            }
+            lines.append(
+                make_lowmass_dielectron_line(
+                    long_tracks,
+                    dileptons,
+                    electronid_nn,
+                    calo_matching_objects,
+                    **common_kwargs_low_mass_electron,
+                    name="Hlt1DiElectronLowMass_{}".format(subSample),
+                    pre_scaler_hash_string=
+                    "Hlt1DiElectronLowMass_massSlice_{}_pre".format(subSample),
+                    post_scaler=0.02 if subSample == "NoIPNorm" else 1,
+                ))
+            lines.append(
+                make_lowmass_dielectron_line(
+                    long_tracks,
+                    dileptons,
+                    electronid_nn,
+                    calo_matching_objects,
+                    **common_kwargs_low_mass_electron,
+                    is_same_sign=True,
+                    name="Hlt1DiElectronLowMass_SS_{}".format(subSample),
+                    pre_scaler_hash_string=
+                    "Hlt1DiElectronLowMass_massSlice_SS_{}_pre".format(
+                        subSample),
+                    post_scaler=0.02,
+                ))
     return [line_maker(line) for line in lines]
 
 
