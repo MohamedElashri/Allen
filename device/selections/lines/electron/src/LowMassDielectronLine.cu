@@ -72,9 +72,8 @@ __device__ bool lowmass_dielectron_line::lowmass_dielectron_line_t::select(
                                  vertex.vertex().chi2() < properties.maxVtxChi2 &&
                                  brem_corrected_dielectron_pt > properties.minDielectronPT;
 
-  bool passes_prompt_selection = passes_common_selection && brem_corrected_minpt > properties.minPTprompt &&
-                                 track1->ip_chi2() < properties.trackIPChi2Threshold &&
-                                 track2->ip_chi2() < properties.trackIPChi2Threshold;
+  bool passes_prompt_selection = passes_common_selection && brem_corrected_minpt > properties.minPTprompt;
+  // no cut on the IP for prompt, actually NoIP.
 
   bool passes_displaced_selection = passes_common_selection && brem_corrected_minpt > properties.minPTdisplaced &&
                                     track1->ip_chi2() > properties.trackIPChi2Threshold &&
@@ -126,20 +125,6 @@ void lowmass_dielectron_line::lowmass_dielectron_line_t::set_arguments_size(
   set_size<dev_die_ip_t>(arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
 }
 
-void lowmass_dielectron_line::lowmass_dielectron_line_t::init_tuples(
-  const ArgumentReferences<Parameters>& arguments,
-  const Allen::Context& context) const
-{
-  Allen::memset_async<dev_die_masses_raw_t>(arguments, -1, context);
-  Allen::memset_async<dev_die_masses_bremcorr_t>(arguments, -1, context);
-  Allen::memset_async<dev_die_pts_raw_t>(arguments, -1, context);
-  Allen::memset_async<dev_die_pts_bremcorr_t>(arguments, -1, context);
-  Allen::memset_async<dev_die_minipchi2_t>(arguments, -1, context);
-  Allen::memset_async<dev_die_ip_t>(arguments, -1, context);
-  Allen::memset_async<dev_e_minpts_raw_t>(arguments, -1, context);
-  Allen::memset_async<dev_e_minpt_bremcorr_t>(arguments, -1, context);
-}
-
 __device__ void lowmass_dielectron_line::lowmass_dielectron_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
@@ -158,7 +143,10 @@ __device__ void lowmass_dielectron_line::lowmass_dielectron_line_t::fill_tuples(
 
   const float raw_pt1 = track1->state().pt();
   const float raw_pt2 = track2->state().pt();
-
+  const float nn_track1 =
+    parameters.dev_electronid_evaluation[parameters.dev_track_offsets[event_number] + track1->get_index()];
+  const float nn_track2 =
+    parameters.dev_electronid_evaluation[parameters.dev_track_offsets[event_number] + track2->get_index()];
   float brem_p_correction_ratio_trk1 = 0.f;
   float brem_p_correction_ratio_trk2 = 0.f;
   if (track1->state().p() > 0.f) {
@@ -183,58 +171,6 @@ __device__ void lowmass_dielectron_line::lowmass_dielectron_line_t::fill_tuples(
     parameters.dev_die_ip[index] = vertex.ip();
     parameters.dev_e_minpts_raw[index] = vertex.minpt();
     parameters.dev_e_minpt_bremcorr[index] = brem_corrected_minpt;
+    parameters.dev_electron_nn[index] = min(nn_track1, nn_track2);
   }
-}
-
-void lowmass_dielectron_line::lowmass_dielectron_line_t::output_tuples(
-  [[maybe_unused]] const ArgumentReferences<Parameters>& arguments,
-  [[maybe_unused]] const RuntimeOptions& runtime_options,
-  [[maybe_unused]] const Allen::Context& context) const
-{
-  const auto v_die_masses_raw = make_host_buffer<dev_die_masses_raw_t>(arguments, context);
-  const auto v_die_masses_bremcorr = make_host_buffer<dev_die_masses_bremcorr_t>(arguments, context);
-  const auto v_die_pts_raw = make_host_buffer<dev_die_pts_raw_t>(arguments, context);
-  const auto v_die_pts_bremcorr = make_host_buffer<dev_die_pts_bremcorr_t>(arguments, context);
-  const auto v_die_minipchi2 = make_host_buffer<dev_die_minipchi2_t>(arguments, context);
-  const auto v_dev_die_ip = make_host_buffer<dev_die_ip_t>(arguments, context);
-  const auto v_e_minpts_raw = make_host_buffer<dev_e_minpts_raw_t>(arguments, context);
-  const auto v_e_minpt_bremcorr = make_host_buffer<dev_e_minpt_bremcorr_t>(arguments, context);
-
-  auto handler = runtime_options.root_service->handle(name());
-  auto tree = handler.tree("monitor_tree");
-
-  float die_mass_raw;
-  float die_mass_bremcorr;
-  float die_pt_raw;
-  float die_pt_bremcorr;
-  float die_minipchi2;
-  float die_ip;
-  float e_minpt_raw;
-  float e_minpt_bremcorr;
-
-  handler.branch(tree, "die_mass_raw", die_mass_raw);
-  handler.branch(tree, "die_mass_bremcorr", die_mass_bremcorr);
-  handler.branch(tree, "die_pt_raw", die_pt_raw);
-  handler.branch(tree, "die_minipchi2", die_minipchi2);
-  handler.branch(tree, "die_pt_bremcorr", die_pt_bremcorr);
-  handler.branch(tree, "die_ip", die_ip);
-  handler.branch(tree, "e_minpt_raw", e_minpt_raw);
-  handler.branch(tree, "e_minpt_bremcorr", e_minpt_bremcorr);
-
-  unsigned n_svs = v_die_masses_raw.size();
-
-  for (unsigned i = 0; i < n_svs; i++) {
-    die_mass_raw = v_die_masses_raw[i];
-    die_mass_bremcorr = v_die_masses_bremcorr[i];
-    die_pt_raw = v_die_pts_raw[i];
-    die_pt_bremcorr = v_die_pts_bremcorr[i];
-    die_minipchi2 = v_die_minipchi2[i];
-    die_ip = v_dev_die_ip[i];
-    e_minpt_raw = v_e_minpts_raw[i];
-    e_minpt_bremcorr = v_e_minpt_bremcorr[i];
-    if (die_mass_raw > -1) {
-      tree->Fill();
-    }
-  }
-  tree->Write(0, TObject::kOverwrite);
 }
