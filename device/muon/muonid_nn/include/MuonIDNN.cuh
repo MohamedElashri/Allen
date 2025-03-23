@@ -20,7 +20,7 @@
 
 namespace muonid_nn {
 
-  using NeuralNetworkType = Allen::MVAModels::MultiLayerFCNN<12, 24, 1>;
+  using NeuralNetworkType = Allen::MVAModels::MultiLayerFCNN<5, 10, 10, 10, 10, 10, 1>;
 
   struct Parameters {
     MASK_INPUT(dev_event_list_t) dev_event_list;
@@ -31,6 +31,7 @@ namespace muonid_nn {
     DEVICE_INPUT(dev_long_tracks_view_t, Allen::Views::Physics::MultiEventLongTracks) dev_long_tracks_view;
 
     DEVICE_INPUT(dev_scifi_states_t, MiniState) dev_scifi_states;
+    DEVICE_INPUT(dev_velo_states_t, Allen::Views::Physics::KalmanStates) dev_velo_states;
     DEVICE_INPUT(dev_chi2_muon_t, float) dev_chi2_muon;
     DEVICE_INPUT(dev_chi2uncorr_muon_t, float) dev_chi2uncorr_muon;
 
@@ -53,7 +54,7 @@ namespace muonid_nn {
   private:
     Allen::Property<dim3> m_block_dim {this, "block_dim", {32, 1, 1}, "block dimension"};
 
-    NeuralNetworkType muon_id_nn {"muon_id_nn", "/muonid_mva_AllenJune2024.json"};
+    NeuralNetworkType muon_id_nn {"muon_id_nn", "/muonid_mva_AllenMarch2025.json"};
   };
 
 } // namespace muonid_nn

@@ -302,6 +302,8 @@ def muonid_nn(long_tracks, muon_id, decoded_muon):
     host_number_of_reconstructed_scifi_tracks = long_tracks[
         "host_number_of_reconstructed_scifi_tracks"]
     dev_scifi_states = long_tracks["dev_scifi_states"]
+    dev_velo_states = long_tracks["velo_kalman_filter"][
+        "dev_velo_kalman_endvelo_states_view"]
 
     chi2muon = make_algorithm(
         chi2_muon_t,
@@ -322,6 +324,7 @@ def muonid_nn(long_tracks, muon_id, decoded_muon):
         host_number_of_reconstructed_scifi_tracks_t=
         host_number_of_reconstructed_scifi_tracks,
         dev_scifi_states_t=dev_scifi_states,
+        dev_velo_states_t=dev_velo_states,
         dev_is_muon_t=muon_id['dev_is_muon'],
         dev_chi2_muon_t=chi2muon.dev_chi2_muon_t,
         dev_chi2uncorr_muon_t=chi2muon.dev_chi2uncorr_muon_t,

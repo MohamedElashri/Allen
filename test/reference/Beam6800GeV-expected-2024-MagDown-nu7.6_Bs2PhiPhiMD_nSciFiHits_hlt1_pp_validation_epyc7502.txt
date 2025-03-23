@@ -80,13 +80,17 @@ Hlt1DiElectronLowMass_SS_NoIP:           0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronLowMass_SS_NoIPNorm:       0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiElectronSoft:                      0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDisplaced:                     7/   500, (  420.00 +/-   157.63) kHz
+Hlt1DiMuonDisplacedSoftPT:               1/   500, (   60.00 +/-    59.94) kHz
+Hlt1DiMuonDisplacedSoftPT_SS:            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan:                      0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_SS:                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_VLowMass:             0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonDrellYan_VLowMass_SS:          0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonHighMass:                      6/   500, (  360.00 +/-   146.08) kHz
 Hlt1DiMuonJpsiMassAlignment:             0/   500, (    0.00 +/-     0.00) kHz
-Hlt1DiMuonNoIP:                          0/   500, (    0.00 +/-     0.00) kHz
+Hlt1DiMuonNoIP:                          1/   500, (   60.00 +/-    59.94) kHz
+Hlt1DiMuonNoIPNorm:                      1/   500, (   60.00 +/-    59.94) kHz
+Hlt1DiMuonNoIPNorm_SS:                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonNoIP_SS:                       0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                          0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiPhotonHighMass:                    4/   500, (  240.00 +/-   119.52) kHz
@@ -174,13 +178,17 @@ Hlt1DiElectronLowMass_SS_NoIP:           0           0
 Hlt1DiElectronLowMass_SS_NoIPNorm:       0           0
 Hlt1DiElectronSoft:                      0           0
 Hlt1DiMuonDisplaced:                     7           7
+Hlt1DiMuonDisplacedSoftPT:               1           2
+Hlt1DiMuonDisplacedSoftPT_SS:            0           0
 Hlt1DiMuonDrellYan:                      0           0
 Hlt1DiMuonDrellYan_SS:                   0           0
 Hlt1DiMuonDrellYan_VLowMass:             0           0
 Hlt1DiMuonDrellYan_VLowMass_SS:          0           0
 Hlt1DiMuonHighMass:                      6           7
 Hlt1DiMuonJpsiMassAlignment:             0           0
-Hlt1DiMuonNoIP:                          0           0
+Hlt1DiMuonNoIP:                          1           1
+Hlt1DiMuonNoIPNorm:                      1           2
+Hlt1DiMuonNoIPNorm_SS:                   0           0
 Hlt1DiMuonNoIP_SS:                       0           0
 Hlt1DiMuonSoft:                          0           0
 Hlt1DiPhotonHighMass:                    4           7
@@ -235,12 +243,12 @@ Hlt1VeloMicroBias:                       1           0
 Hlt1VeloMicroBiasVeloClosing:            0           0
 Hlt1XiOmegaLLL:                          0           0
 
-Total decisions:      535
-Total tracks:         1080
+Total decisions:      538
+Total tracks:         1085
 Total calos clusters: 12
-Total SVs:            1002
-Total hits:           28146
-Total stdinfo:        13231
+Total SVs:            1005
+Total hits:           28309
+Total stdinfo:        13286
 
 
 veloUT_validator validation:

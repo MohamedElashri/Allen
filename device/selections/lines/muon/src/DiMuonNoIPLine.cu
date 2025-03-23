@@ -82,3 +82,15 @@ __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
     }
   }
 }
+__device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::fill_tuples(
+  const Parameters& parameters,
+  const DeviceProperties&,
+  std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+  unsigned index,
+  bool sel)
+{
+  const auto min_nn = std::get<1>(input);
+  if (sel) {
+    parameters.dev_muon_nn[index] = min_nn;
+  }
+}
