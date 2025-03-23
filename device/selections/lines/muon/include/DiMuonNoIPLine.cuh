@@ -33,7 +33,9 @@ namespace di_muon_no_ip_line {
     DEVICE_OUTPUT(dev_same_sign_on_t, bool) dev_same_sign_on;
     DEVICE_OUTPUT(dev_is_dimuon_t, bool) dev_is_dimuon;
     DEVICE_OUTPUT(dev_pt_t, float) dev_pt;
-    DEVICE_OUTPUT(dev_eventNum_t, int16_t) dev_eventNum;
+    DEVICE_OUTPUT(dev_muon_nn_t, float) dev_muon_nn;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
 
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
@@ -83,6 +85,13 @@ namespace di_muon_no_ip_line {
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float>,
       unsigned,
       bool);
+    __device__ static void fill_tuples(
+      const Parameters& parameters,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+      unsigned index,
+      bool sel);
+    using monitoring_types = std::tuple<dev_muon_nn_t, evtNo_t, runNo_t>;
 
   private:
     Allen::Monitoring::LogHistogram<> m_histogram_prompt_q {this,

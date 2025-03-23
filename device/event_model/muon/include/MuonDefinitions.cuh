@@ -34,7 +34,7 @@ namespace Muon {
     static constexpr unsigned int ODEFrameSize = 48;
 
     // MuonID NN
-    static constexpr unsigned n_muon_id_features = 12;
+    static constexpr unsigned n_muon_id_features = 5;
 
     __host__ __device__ inline std::array<uint8_t, 8> single_bit_position()
     {
