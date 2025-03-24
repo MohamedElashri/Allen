@@ -175,8 +175,8 @@ full:
   - type: "throughput"
     sequence: 
       - hlt1_pp_rich_no_ut
-    dataset: "Run_0000248711_HLT20840_20221011-113809-426"
-    geometry: "MiniBrunel_2018_MinBias_FTv4_DIGI_ecalv4_scifiv7_muonv3_RICH"
+    dataset: "Run307533_MEPs_LHCb_ECEB01_BU_0_passthrough"
+    geometry: "geometry_run3_2024.Q1.2-v00.00"
 
   # run physics efficiency for downstream reconstruction
   - type: "efficiency"
