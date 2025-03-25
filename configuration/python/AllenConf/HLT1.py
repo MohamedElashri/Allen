@@ -156,8 +156,25 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 name="Hlt1DownstreamBuScaElElLine",
                 line_type="electron",
                 mva_busca_threshold=0.1,
-                enable_trigger=True)
+                enable_trigger=True),
+            make_downstream_two_track_ks_line(
+                reconstructed_objects['downstream_tracks'],
+                reconstructed_objects['downstream_secondary_vertices'],
+                name='Hlt1DownstreamTwoTrackKs',
+                minTrackPt_piKs=475.0,
+                enable_monitoring=True,
+                enable_tupling=enable_tupling),
         ]
+        if 'downstream_sv_pairs' in reconstructed_objects:
+            lines += [
+                make_d02ksks_DDDD_line(
+                    reconstructed_objects['downstream_tracks'],
+                    reconstructed_objects['downstream_sv_pairs'],
+                    name='Hlt1D02KsKsDDDD',
+                    minTrackPt_piKs=450.0,
+                    minComboPt_Ks=1500.0,
+                    enable_tupling=enable_tupling),
+            ]
     if 'v0dd_hh_pairs' in reconstructed_objects:
         lines += [
             make_d2kshh_line(

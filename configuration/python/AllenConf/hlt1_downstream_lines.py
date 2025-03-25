@@ -8,9 +8,9 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenCore.algorithms import (downstream_lambdatoppi_line_t,
-                                  downstream_mva_busca_line_t,
-                                  downstream_kstopipi_line_t)
+from AllenCore.algorithms import (
+    downstream_lambdatoppi_line_t, downstream_mva_busca_line_t,
+    downstream_kstopipi_line_t, downstream_two_track_ks_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenCore.configuration_options import is_allen_standalone
@@ -144,3 +144,29 @@ def make_BuSca_line(downstream_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         pre_scaler=pre_scaler,
         post_scaler=post_scaler)
+
+
+@configurable
+def make_downstream_two_track_ks_line(downstream_tracks,
+                                      downstream_vertices,
+                                      pre_scaler_hash_string=None,
+                                      post_scaler_hash_string=None,
+                                      name='Hlt1DownstreamTwoTrackKs',
+                                      minTrackPt_piKs=475.0,
+                                      enable_monitoring=False,
+                                      enable_tupling=False):
+
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        downstream_two_track_ks_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=downstream_vertices["host_number_of_svs"],
+        dev_particle_container_t=downstream_vertices[
+            "dev_multi_event_composites"],
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        minTrackPt_piKs=minTrackPt_piKs,
+        enable_monitoring=is_allen_standalone() and enable_monitoring,
+        enable_tupling=enable_tupling)

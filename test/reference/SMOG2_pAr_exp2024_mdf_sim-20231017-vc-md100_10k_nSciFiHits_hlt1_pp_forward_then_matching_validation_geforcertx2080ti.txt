@@ -156,7 +156,7 @@ Inclusive:                              28/   500, ( 1680.00 +/-   308.47) kHz
 
 
 seed_validator validation:
-TrackChecker output                               :        14/     4691   0.30% ghosts
+TrackChecker output                               :        14/     4690   0.30% ghosts
 for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% ghosts
 00_P>3Gev_Pt>0.5                                  :       103/     1413   7.29% (  7.92%),         2 (  1.90%) clones, pur  99.56%, hit eff  96.93%
 01_long                                           :      1547/     4578  33.79% ( 34.84%),         6 (  0.39%) clones, pur  99.83%, hit eff  98.40%
@@ -176,9 +176,9 @@ for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% 
 ---eta > 2.5, large x, small y                    :       666/     1914  34.80% ( 37.41%),         2 (  0.30%) clones, pur  99.84%, hit eff  99.17%
 03_long_P>3GeV                                    :      1547/     3988  38.79% ( 39.94%),         6 (  0.39%) clones, pur  99.83%, hit eff  98.40%
 04_long_P>0.5GeV                                  :      1547/     4578  33.79% ( 34.84%),         6 (  0.39%) clones, pur  99.83%, hit eff  98.40%
-08_UT+SciFi                                       :       467/      935  49.95% ( 45.69%),         1 (  0.21%) clones, pur  99.75%, hit eff  97.03%
+08_UT+SciFi                                       :       466/      935  49.84% ( 45.57%),         1 (  0.21%) clones, pur  99.75%, hit eff  97.02%
 09_UT+SciFi_P>5GeV                                :       296/      334  88.62% ( 88.04%),         0 (  0.00%) clones, pur  99.82%, hit eff  97.79%
-10_UT+SciFi_P>3GeV                                :       464/      618  75.08% ( 73.58%),         1 (  0.22%) clones, pur  99.75%, hit eff  97.01%
+10_UT+SciFi_P>3GeV                                :       463/      618  74.92% ( 73.38%),         1 (  0.22%) clones, pur  99.75%, hit eff  97.00%
 11_UT+SciFi_fromStrange                           :       103/      141  73.05% ( 72.57%),         0 (  0.00%) clones, pur  99.74%, hit eff  98.20%
 12_UT+SciFi_fromStrange_P>5GeV                    :        83/       86  96.51% ( 97.85%),         0 (  0.00%) clones, pur  99.78%, hit eff  98.59%
 13_UT+SciFi_fromStrange_P>3GeV                    :       103/      120  85.83% ( 84.31%),         0 (  0.00%) clones, pur  99.74%, hit eff  98.20%

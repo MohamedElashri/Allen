@@ -9,8 +9,9 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenCore.algorithms import (
-    d2kk_line_t, d2pipi_line_t, d2kpi_line_t, two_ks_line_t, d2kshh_line_t,
-    two_track_mva_charm_xsec_line_t, two_track_mva_evaluator_t)
+    d2kk_line_t, d2pipi_line_t, d2kpi_line_t, two_ks_line_t,
+    d02ksks_DDDD_line_t, d2kshh_line_t, two_track_mva_charm_xsec_line_t,
+    two_track_mva_evaluator_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenCore.generator import make_algorithm
 from AllenCore.configuration_options import is_allen_standalone
@@ -134,6 +135,32 @@ def make_two_ks_line(long_tracks,
             "dev_multi_event_sv_combos_view"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+    )
+
+
+def make_d02ksks_DDDD_line(downstream_tracks,
+                           downstream_vertices,
+                           name='Hlt1D02KsKsDDDD',
+                           pre_scaler_hash_string=None,
+                           post_scaler_hash_string=None,
+                           minTrackPt_piKs=450.0,
+                           minComboPt_Ks=1500.0,
+                           enable_tupling=False):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        d02ksks_DDDD_line_t,
+        name=name,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=downstream_vertices[
+            "host_number_of_sv_sv_combinations"],
+        dev_particle_container_t=downstream_vertices[
+            "dev_multi_event_sv_combos_view"],
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        minTrackPt_piKs=minTrackPt_piKs,
+        minComboPt_Ks=minComboPt_Ks,
+        enable_tupling=is_allen_standalone() and enable_tupling,
     )
 
 
