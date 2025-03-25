@@ -3,7 +3,7 @@ TrackChecker output                               :      1355/    29980   4.52% 
 for P>3GeV,Pt>0.5GeV                              :       290/    15841   1.83% ghosts
 01_long                                           :     26540/    37926  69.98% ( 70.59%),       554 (  2.04%) clones, pur  98.74%, hit eff  98.21%
 02_long_P>5GeV                                    :     21462/    24714  86.84% ( 87.59%),       463 (  2.11%) clones, pur  98.82%, hit eff  98.51%
-03_long_strange                                   :      1017/     1807  56.28% ( 56.50%),        17 (  1.64%) clones, pur  98.18%, hit eff  97.92%
+03_long_strange                                   :      1017/     1807  56.28% ( 56.50%),        17 (  1.64%) clones, pur  98.17%, hit eff  97.92%
 04_long_strange_P>5GeV                            :       707/      878  80.52% ( 80.15%),        12 (  1.67%) clones, pur  98.29%, hit eff  98.25%
 05_long_fromB                                     :      1930/     2309  83.59% ( 84.21%),        41 (  2.08%) clones, pur  99.05%, hit eff  98.57%
 06_long_fromB_P>5GeV                              :      1774/     1909  92.93% ( 93.07%),        39 (  2.15%) clones, pur  99.11%, hit eff  98.70%
