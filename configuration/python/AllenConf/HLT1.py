@@ -1039,7 +1039,7 @@ def default_bgi_activity_lines(pvs,
 def setup_hlt1_node(enablePhysics=True,
                     withMCChecking=False,
                     EnableGEC=True,
-                    DisableLinesDuringVPClosing=False,
+                    DisableLinesDuringVPClosing=True,
                     withSMOG2=True,
                     enableRateValidator=True,
                     with_ut=True,
@@ -1098,7 +1098,7 @@ def setup_hlt1_node(enablePhysics=True,
             event_type="VeloOpen",
             invert=True)
     ] if DisableLinesDuringVPClosing else []
-    prefilters = odin_err_filter + beam_beam_filter + gec + velo_closed
+    prefilters = odin_err_filter + beam_beam_filter + velo_closed + gec
 
     physics_lines = []
     if enablePhysics:
@@ -1161,7 +1161,7 @@ def setup_hlt1_node(enablePhysics=True,
             ]
 
     if enableBGI:
-        bgi_prefilters = odin_err_filter + gec + velo_closed
+        bgi_prefilters = odin_err_filter + velo_closed + gec
         physics_lines += default_bgi_activity_lines(
             reconstructed_objects["pvs"],
             reconstructed_objects["velo_states"],
@@ -1175,7 +1175,7 @@ def setup_hlt1_node(enablePhysics=True,
 
     bx_BE = make_bxtype(bx_type=1)
     with line_maker.bind(
-            prefilter=odin_err_filter + gec + [bx_BE] + velo_closed):
+            prefilter=odin_err_filter + [bx_BE] + velo_closed + gec):
         monitoring_lines += [
             line_maker(
                 make_beam_gas_line(
@@ -1196,7 +1196,7 @@ def setup_hlt1_node(enablePhysics=True,
         SMOG2_prefilters, SMOG2_lines = [], []
         SMOG2_prefilters += velo_closed
         with line_maker.bind(
-                prefilter=odin_err_filter + velo_closed + [bx_BE]):
+                prefilter=odin_err_filter + [bx_BE] + velo_closed):
             SMOG2_lines += [
                 line_maker(
                     make_passthrough_line(
@@ -1227,8 +1227,8 @@ def setup_hlt1_node(enablePhysics=True,
                 maxTracks=3,
                 min_ecal_clusters=1,
                 max_ecal_clusters=10)
-            with line_maker.bind(prefilter=odin_err_filter + velo_closed +
-                                 [bx_BE, lowMultElectrons]):
+            with line_maker.bind(prefilter=odin_err_filter + [bx_BE] +
+                                 velo_closed + [lowMultElectrons]):
                 SMOG2_lines += [
                     line_maker(
                         make_passthrough_line(
