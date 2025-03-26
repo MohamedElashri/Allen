@@ -20,6 +20,7 @@ Input complete
 error_bank_filter                      INFO Booked 3 Histogram(s) : 1D=3 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 gather_selections                      INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 pv_beamline_cleanup                    INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
+scifi_consolidate_seeds_matching       INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 velo_consolidate_tracks                INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 ApplicationMgr                         INFO Application Manager Stopped successfully
 HLTControlFlowMgr                      INFO
@@ -48,6 +49,9 @@ gather_selections                      INFO Number of counters : 2
 pv_beamline_cleanup                    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_PVs"                                         |      1000 |          0 |     0.0000 |
+scifi_consolidate_seeds_matching       INFO Number of counters : 1
+ |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
+ | "n_seed_tracks"                                 |      1000 |          0 |     0.0000 |
 velo_consolidate_tracks                INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_velo_tracks"                                 |      1000 |          0 |     0.0000 |
@@ -64,6 +68,9 @@ pv_beamline_cleanup                    INFO 1D histograms in directory "pv_beaml
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_pvs_event                                                                      | "n_pvs_event"                                                                    |       1000 |          0 | 0.0000     |          0 |          0 |
  | n_smog2_PVs                                                                      | "n_smog2_PVs"                                                                    |       1000 |          0 | 0.0000     |          0 |          0 |
+scifi_consolidate_seeds_matching       INFO 1D histograms in directory "scifi_consolidate_seeds_matching" : 1
+ | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
+ | n_scifi_seeds_event                                                              | "n_scifi_seeds_event"                                                            |       1000 |          0 | 0.0000     |          0 |          0 |
 velo_consolidate_tracks                INFO 1D histograms in directory "velo_consolidate_tracks" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_velo_tracks_event                                                              | "n_velo_tracks_event"                                                            |       1000 |          0 | 0.0000     |          0 |          0 |
