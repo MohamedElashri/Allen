@@ -63,8 +63,7 @@ namespace ut_calculate_number_of_hits {
     Parameters,
     const unsigned event_start,
     const char* ut_boards,
-    const unsigned* dev_unique_x_sector_layer_offsets,
-    const unsigned* dev_unique_x_sector_offsets,
+    const unsigned* dev_ut_sector_to_group_map,
     const uint16_t* dev_ut_board_geometry_map);
 
 } // namespace ut_calculate_number_of_hits

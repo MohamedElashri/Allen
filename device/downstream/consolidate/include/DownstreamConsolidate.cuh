@@ -143,7 +143,6 @@ namespace downstream_consolidate {
 
   __global__ void downstream_consolidate(
     Parameters,
-    const unsigned* dev_unique_x_sector_layer_offsets,
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::AveragingCounter<>::DeviceType);
   __global__ void downstream_create_tracks_view(

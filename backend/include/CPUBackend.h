@@ -50,6 +50,7 @@ using std::signbit;
 #define fminf_impl fminf
 // #define CPU_USE_REAL_HALF 1
 #define __fdividef(x, y) ((x) / (y))
+#define __frsqrt_rn(x) (1.f / sqrtf(x))
 #define __expf expf
 
 constexpr int warp_size = 1;
@@ -126,6 +127,13 @@ struct short2 {
   short y;
 };
 
+inline short2 make_short2(short x, short y)
+{
+  short2 out;
+  out.x = x;
+  out.y = y;
+  return out;
+}
 struct float3 {
   float x;
   float y;

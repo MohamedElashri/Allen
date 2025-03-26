@@ -30,10 +30,7 @@ namespace ut_compress_and_calculate_keys {
   /**
    * @brief UT clusters are uncompressed, compress them to adapt to sorting algorithm.
    */
-  __global__ void ut_compress_and_calculate_keys(
-    Parameters,
-    const char* ut_geometry,
-    const unsigned* dev_unique_x_sector_layer_offsets);
+  __global__ void ut_compress_and_calculate_keys(Parameters, const char* ut_geometry);
 
   struct ut_compress_and_calculate_keys_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants& constants)

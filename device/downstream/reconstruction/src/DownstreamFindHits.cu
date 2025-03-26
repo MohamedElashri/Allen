@@ -132,10 +132,8 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
   Allen::memset_async<dev_findhits_candidate_cache_t>(arguments, 0, context);
   Allen::memset_async<dev_findhits_selected_scifi_tracks_t>(arguments, 0, context);
 
-  const auto dev_unique_x_sector_layer_offsets = constants.dev_unique_x_sector_layer_offsets.data();
-  const auto dev_unique_sector_xs = constants.dev_unique_sector_xs.data();
   const auto dev_magnet_polarity = constants.dev_magnet_polarity.data();
-  const auto dev_ut_per_layer_info = constants.dev_ut_per_layer_info;
+  const auto dev_ut_layer_geometry = constants.dev_ut_layer_geometry;
 
   const bool filter_used_scifi_seeds = size<dev_matched_is_scifi_track_used_t>(arguments) > 0;
 
@@ -146,13 +144,11 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
                                   global_function(downstream_create_candidates<true, false>);
     candidates_condition(dim3(size<dev_event_list_t>(arguments)), m_num_threads_create_candidates, context)(
       arguments,
-      dev_unique_x_sector_layer_offsets,
-      dev_unique_sector_xs,
       dev_magnet_polarity,
       m_tolerance_window_x4_multiplier,
       m_tolerance_window_y4_multiplier,
       m_ttracks_probability_threshold,
-      dev_ut_per_layer_info,
+      dev_ut_layer_geometry,
       dev_ttrack_selector.getDevicePointer(),
       m_n_overflow_downstream_tracking.data(context));
   }
@@ -162,13 +158,11 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
                                   global_function(downstream_create_candidates<false, false>);
     candidates_condition(dim3(size<dev_event_list_t>(arguments)), m_num_threads_create_candidates, context)(
       arguments,
-      dev_unique_x_sector_layer_offsets,
-      dev_unique_sector_xs,
       dev_magnet_polarity,
       m_tolerance_window_x4_multiplier,
       m_tolerance_window_y4_multiplier,
       m_ttracks_probability_threshold,
-      dev_ut_per_layer_info,
+      dev_ut_layer_geometry,
       dev_ttrack_selector.getDevicePointer(),
       m_n_overflow_downstream_tracking.data(context));
   }
@@ -180,9 +174,7 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
                                   global_function(downstream_find_rest_hits<true, false>);
     candidates_condition(dim3(size<dev_event_list_t>(arguments)), m_num_threads_find_rest_hits, context)(
       arguments,
-      dev_unique_x_sector_layer_offsets,
-      dev_unique_sector_xs,
-      dev_ut_per_layer_info,
+      dev_ut_layer_geometry,
       m_tolerance_window_x1_multiplier,
       m_tolerance_window_x2_multiplier,
       m_tolerance_window_x3_multiplier,
@@ -196,9 +188,7 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
                                   global_function(downstream_find_rest_hits<false, false>);
     candidates_condition(dim3(size<dev_event_list_t>(arguments)), m_num_threads_find_rest_hits, context)(
       arguments,
-      dev_unique_x_sector_layer_offsets,
-      dev_unique_sector_xs,
-      dev_ut_per_layer_info,
+      dev_ut_layer_geometry,
       m_tolerance_window_x1_multiplier,
       m_tolerance_window_x2_multiplier,
       m_tolerance_window_x3_multiplier,
@@ -221,13 +211,11 @@ void downstream_find_hits::downstream_find_hits_t::operator()(
 template<bool filter_used_scifi_seeds, bool use_constant_tolerance_window>
 __global__ void downstream_find_hits::downstream_create_candidates(
   downstream_find_hits::Parameters parameters,
-  const unsigned* dev_unique_x_sector_layer_offsets,
-  const float* dev_unique_sector_xs,
   const float* dev_magnet_polarity,
   const float tolerance_window_x4_multiplier,
   const float tolerance_window_y4_multiplier,
   const float ttracks_probability_threshold,
-  const UT::Constants::PerLayerInfo* dev_mean_layer_info,
+  const UT::Constants::UTLayerGeometry* dev_ut_layer_geometry,
   const TTrackSelector::DeviceType* dev_ttrack_selector,
   [[maybe_unused]] Allen::Monitoring::Counter<>::DeviceType dev_n_overflow_downstream_tracking)
 {
@@ -250,10 +238,8 @@ __global__ void downstream_find_hits::downstream_create_candidates(
   const auto scifi_chi2Y = parameters.dev_seeding_chi2Y + scifi_offset;
 
   // Load UT information
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
-  const UT::HitOffsets ut_hit_offsets {
-    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * UT::Constants::n_groups];
+  const UT::HitOffsets ut_hit_offsets {parameters.dev_ut_hit_offsets, event_number};
   const auto event_hit_offset = ut_hit_offsets.event_offset();
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits, event_hit_offset};
 
@@ -281,16 +267,18 @@ __global__ void downstream_find_hits::downstream_create_candidates(
 
   // Hit Cache
   UTHitsCache_CreateCandidates hit_cache {shared_memory_hit_caching};
-  UT::SectorHelper sector_cache;
 
   // Allocate objects
   __shared__ ushort2 shared_counter;
   auto& shared_num_candidates = shared_counter.x;
   auto& shared_num_selelected_scifi = shared_counter.y;
 
+  __shared__ float scaling_factor;
+
   // Initialization
   if (threadIdx.x == 0) {
     shared_counter = Allen::device::bit_cast<ushort2>(0u);
+    scaling_factor = 1.f;
   };
   __syncthreads();
 
@@ -304,142 +292,174 @@ __global__ void downstream_find_hits::downstream_create_candidates(
   const unsigned layer = 3; // X3 layer
 
   // Cache mean values to register
-  const float mean_dxdy = dev_mean_layer_info->mean_dxDy[layer];
-  const float mean_z = dev_mean_layer_info->mean_z[layer];
+  const float mean_z = dev_ut_layer_geometry->mean_z[layer];
+  const float error_layer_z = dev_ut_layer_geometry->error_z[layer];
+
+  // Layer offset
+  const auto layer_offset = ut_hit_offsets.layer_offset(layer);
 
   // Cache hits and sectors
-  hit_cache.cache_layer(ut_hit_offsets, ut_hits, dev_mean_layer_info, layer);
-  sector_cache.cache_layer(ut_hit_offsets, dev_unique_sector_xs, dev_unique_x_sector_layer_offsets, layer);
+  hit_cache.cache_layer(ut_hit_offsets, ut_hits, dev_ut_layer_geometry, layer);
   __syncthreads();
 
-  // Start
-  for (unsigned short SciFi_idx = threadIdx.x; SciFi_idx < scifi_n_tracks; SciFi_idx += blockDim.x) {
-    // Skip the used seeds
-    if constexpr (filter_used_scifi_seeds) {
-      if (parameters.dev_matched_is_scifi_track_used[scifi_offset + SciFi_idx]) continue;
-    }
-
-    // Filter T tracks which are 100% ghost for downstream tracks
-    const auto scifi_state = scifi_states[SciFi_idx];
-    float ttrack_prob_inputs[TTrackSelector::DeviceType::nInput] = {
-      fabsf(scifi_state.x()),
-      fabsf(scifi_state.y()),
-      fabsf(scifi_state.tx()),
-      fabsf(scifi_state.ty()),
-    };
-    const auto ttrack_prob = dev_ttrack_selector->evaluate(ttrack_prob_inputs);
-    if (ttrack_prob > ttracks_probability_threshold) continue;
-
-    // Get SciFi qop
-    const auto scifi_qop = scifi_qops[SciFi_idx];
-
-    // Load extrapolation
-    using Downstream::DownstreamExtrapolation::ExtrapolateTrack;
-    ExtrapolateTrack exTrack(scifi_state, scifi_qop);
-
-    auto xTol = 0.f;
-    auto yTol = 0.f;
-
-    // Get tolerances
-    if constexpr (!(use_constant_tolerance_window)) {
-      xTol = exTrack.xTol(layer);
-      yTol = exTrack.yTol(layer);
-    }
-    else {
-      xTol = exTrack.xTolConst(layer) * tolerance_window_x4_multiplier;
-      yTol = exTrack.yTolConst(layer) * tolerance_window_y4_multiplier;
-    }
-
-    // Get expected x and open the search window
-    const auto expected_layer_y = exTrack.yAtZ(mean_z);
-    const auto expected_layer_x = exTrack.xAtZ(mean_z) - mean_dxdy * expected_layer_y;
-    const auto hit_range = sector_cache.get_hit_range(expected_layer_x - xTol, expected_layer_x + xTol);
-
-    // Loop all hits, save best 10 hits inside of the search window.
-    using Downstream::DownstreamHelpers::MultiCandidateManager;
-    using Downstream::DownstreamParameters::MaxNumSelectedX3HitPerScifi;
-    MultiCandidateManager<unsigned short, MaxNumSelectedX3HitPerScifi, true> BestX3Hits;
-
-    for (auto hit_idx = hit_range.x; hit_idx < hit_range.y; hit_idx++) {
-      const auto hit = hit_cache.hit(hit_idx);
-      const float expected_hit_y = exTrack.yAtZ(hit.zAtYEq0());
-      if (hit.isNotYCompatible(expected_hit_y, yTol)) continue;
-      const float xdist = exTrack.xAtZ(hit.zAtYEq0()) - hit.xAt(expected_hit_y);
-      if (fabsf(xdist) > xTol) continue;
-      BestX3Hits.add(hit_idx, xdist);
-    };
-
-    // Skip the seed if not X3 hit is found
-    const auto n_x3hits = BestX3Hits.size();
-    if (n_x3hits == 0) continue;
-
-    const auto offset_and_idx = atomicAdd_ushort2(&shared_counter, make_ushort2(n_x3hits, 1u));
-    const auto& offset = offset_and_idx.x;
-    const auto& idx = offset_and_idx.y;
-
-    if (
-      (offset + n_x3hits) < Downstream::DownstreamParameters::MaxNumCandidates &&
-      idx < Downstream::DownstreamParameters::MaxNumDownstreamSciFi) {
-      // Output table
-      for (unsigned short x3hits_idx = 0; x3hits_idx < n_x3hits; x3hits_idx++) {
-        const auto hit_idx = BestX3Hits.get(x3hits_idx);
-        const auto hit = hit_cache.hit(hit_idx);
-        const auto expected_hit_y = exTrack.yAtZ(hit.zAtYEq0());
-        const auto new_tx = exTrack.get_new_tx(hit.zAtYEq0(), hit.xAt(expected_hit_y));
-        const auto new_qop = exTrack.get_new_qop(new_tx, scifi_states[SciFi_idx].tx(), *dev_magnet_polarity);
-
-        // Fill output
-        const auto candidate_idx = offset + x3hits_idx;
-
-        auto& findhits_output = findhits_outputs[candidate_idx];
-        findhits_output.hits[layer] = hit_idx + hit_cache.HitOffset();
-        findhits_output.hits[0] = Downstream::DownstreamStructs::DownstreamHits::INVALID_HIT;
-        findhits_output.hits[1] = Downstream::DownstreamStructs::DownstreamHits::INVALID_HIT;
-        findhits_output.hits[2] = Downstream::DownstreamStructs::DownstreamHits::INVALID_HIT;
-        findhits_output.score = 0;
-
-        // Fill cache
-        auto& findhits_extrapolation = findhits_extrapolations[candidate_idx];
-        findhits_extrapolation.xMagnet = exTrack.xMagnet();
-        findhits_extrapolation.yMagnet = exTrack.yMagnet();
-        findhits_extrapolation.zMagnet = exTrack.zMagnet();
-        findhits_extrapolation.tx = new_tx;
-        findhits_extrapolation.ty = exTrack.ty();
-        findhits_extrapolation.qop = new_qop;
+  // Try up to MaxNumIteration times.
+  // If a candidate overflows, try using a tighter threshold.
+  // If it still exceeds after MaxNumIteration times, simply reset the event to 0
+  for (unsigned iteration = 0; iteration < MaxNumIteration; iteration++) {
+    // Start
+    for (unsigned short SciFi_idx = threadIdx.x; SciFi_idx < scifi_n_tracks; SciFi_idx += blockDim.x) {
+      // Skip the used seeds
+      if constexpr (filter_used_scifi_seeds) {
+        if (parameters.dev_matched_is_scifi_track_used[scifi_offset + SciFi_idx]) continue;
       }
-      // Output scifi selection
-      auto& findhits_selected_scifi_track = findhits_selected_scifi_tracks[idx];
-      findhits_selected_scifi_track.scifi_idx = SciFi_idx;
-      findhits_selected_scifi_track.tx = scifi_state.tx();
-      findhits_selected_scifi_track.ty = scifi_state.ty();
-      findhits_selected_scifi_track.y = scifi_state.y();
-      findhits_selected_scifi_track.chi2 = scifi_chi2Y[SciFi_idx];
-      findhits_selected_scifi_track.xMagnet = exTrack.xMagnet();
-      findhits_selected_scifi_track.zMagnet = exTrack.zMagnet();
 
-      // Update offset
-      output_selected_scifi_offsets[idx] = offset;
+      // Filter T tracks which are 100% ghost for downstream tracks
+      const auto scifi_state = scifi_states[SciFi_idx];
+      float ttrack_prob_inputs[TTrackSelector::DeviceType::nInput] = {
+        fabsf(scifi_state.x()),
+        fabsf(scifi_state.y()),
+        fabsf(scifi_state.tx()),
+        fabsf(scifi_state.ty()),
+      };
+      const auto ttrack_prob = dev_ttrack_selector->evaluate(ttrack_prob_inputs);
+      if (ttrack_prob > ttracks_probability_threshold) continue;
+
+      // Get SciFi qop
+      const auto scifi_qop = scifi_qops[SciFi_idx];
+
+      // Load extrapolation
+      using Downstream::DownstreamExtrapolation::ExtrapolateTrack;
+      ExtrapolateTrack exTrack(scifi_state, scifi_qop);
+
+      auto xTol = 0.f;
+      auto yTol = 0.f;
+
+      // Get tolerances
+      if constexpr (!(use_constant_tolerance_window)) {
+        xTol = exTrack.xTol(layer);
+        yTol = exTrack.yTol(layer);
+      }
+      else {
+        xTol = exTrack.xTolConst(layer) * tolerance_window_x4_multiplier;
+        yTol = exTrack.yTolConst(layer) * tolerance_window_y4_multiplier;
+      }
+
+      xTol *= scaling_factor;
+      yTol *= scaling_factor;
+
+      // Get expected x and open the search window
+      const auto expected_layer_y = exTrack.yAtZ(mean_z);
+      const auto expected_layer_x = exTrack.xAtZ(mean_z);
+      const auto xTol_layer = xTol + fabsf(exTrack.tx() * error_layer_z);
+      const auto yTol_layer = 18.f;
+      const auto fired_sectors =
+        dev_ut_layer_geometry->find_sectors(layer, expected_layer_y - yTol_layer, expected_layer_y + yTol_layer);
+
+      // Loop all hits, save best 10 hits inside of the search window.
+      using Downstream::DownstreamHelpers::MultiCandidateManager;
+      using Downstream::DownstreamParameters::MaxNumSelectedX3HitPerScifi;
+      MultiCandidateManager<unsigned short, MaxNumSelectedX3HitPerScifi, true> BestX3Hits;
+
+      for (unsigned sector_idx = 0; sector_idx < 4; sector_idx++) {
+        const auto sector = fired_sectors[sector_idx];
+        if (sector == -1) break;
+        const auto hit_start = ut_hit_offsets.sector_group_offset(layer, sector) - layer_offset;
+        const auto hit_end = ut_hit_offsets.sector_group_offset(layer, sector + 1) - layer_offset;
+        hit_cache.for_each_in_x_tol(
+          hit_start,
+          hit_end,
+          expected_layer_x - xTol_layer,
+          expected_layer_x + xTol_layer,
+          [&BestX3Hits, &exTrack, &xTol, &yTol](ushort idx, const UTHitsCache_CreateCandidates::MiniHit& hit) {
+            const float expected_hit_y = exTrack.yAtZ(hit.zAtYEq0());
+            if (hit.isNotYCompatible(expected_hit_y, yTol)) return;
+            const float xdist = exTrack.xAtZ(hit.zAtYEq0()) - hit.xAtYEq0();
+            if (fabsf(xdist) < xTol) {
+              BestX3Hits.add(idx, xdist);
+            }
+          });
+      }
+
+      // Skip the seed if not X3 hit is found
+      const auto n_x3hits = BestX3Hits.size();
+      if (n_x3hits == 0) continue;
+
+      const auto offset_and_idx = atomicAdd_ushort2(&shared_counter, make_ushort2(n_x3hits, 1u));
+      const auto& offset = offset_and_idx.x;
+      const auto& idx = offset_and_idx.y;
+
+      if (
+        (offset + n_x3hits) < Downstream::DownstreamParameters::MaxNumCandidates &&
+        idx < Downstream::DownstreamParameters::MaxNumDownstreamSciFi) {
+        // Output table
+        for (unsigned short x3hits_idx = 0; x3hits_idx < n_x3hits; x3hits_idx++) {
+          const auto hit_idx = BestX3Hits.get(x3hits_idx);
+          const auto hit = hit_cache.hit(hit_idx);
+          // const auto expected_hit_y = exTrack.yAtZ(hit.zAtYEq0());
+          const auto new_tx = exTrack.get_new_tx(hit.zAtYEq0(), hit.xAtYEq0());
+          const auto new_qop = exTrack.get_new_qop(new_tx, scifi_states[SciFi_idx].tx(), *dev_magnet_polarity);
+
+          // Fill output
+          const auto candidate_idx = offset + x3hits_idx;
+
+          auto& findhits_output = findhits_outputs[candidate_idx];
+          findhits_output.hits[layer] = hit_idx + hit_cache.HitOffset();
+          findhits_output.hits[0] = Downstream::DownstreamStructs::DownstreamHits::INVALID_HIT;
+          findhits_output.hits[1] = Downstream::DownstreamStructs::DownstreamHits::INVALID_HIT;
+          findhits_output.hits[2] = Downstream::DownstreamStructs::DownstreamHits::INVALID_HIT;
+          findhits_output.score = 0;
+
+          // Fill cache
+          auto& findhits_extrapolation = findhits_extrapolations[candidate_idx];
+          findhits_extrapolation.xMagnet = exTrack.xMagnet();
+          findhits_extrapolation.yMagnet = exTrack.yMagnet();
+          findhits_extrapolation.zMagnet = exTrack.zMagnet();
+          findhits_extrapolation.tx = new_tx;
+          findhits_extrapolation.ty = exTrack.ty();
+          findhits_extrapolation.qop = new_qop;
+        }
+        // Output scifi selection
+        auto& findhits_selected_scifi_track = findhits_selected_scifi_tracks[idx];
+        findhits_selected_scifi_track.scifi_idx = SciFi_idx;
+        findhits_selected_scifi_track.tx = scifi_state.tx();
+        findhits_selected_scifi_track.ty = scifi_state.ty();
+        findhits_selected_scifi_track.y = scifi_state.y();
+        findhits_selected_scifi_track.chi2 = scifi_chi2Y[SciFi_idx];
+        findhits_selected_scifi_track.xMagnet = exTrack.xMagnet();
+        findhits_selected_scifi_track.zMagnet = exTrack.zMagnet();
+
+        // Update offset
+        output_selected_scifi_offsets[idx] = offset;
+      }
+      else {
+        break;
+      }
     }
-    else {
-      break;
+    __syncthreads();
+
+    const auto overflow =
+      !((shared_num_candidates < Downstream::DownstreamParameters::MaxNumCandidates) &&
+        (shared_num_selelected_scifi < Downstream::DownstreamParameters::MaxNumDownstreamSciFi));
+    __syncthreads();
+    if (overflow) {
+      if (threadIdx.x == 0) {
+        shared_counter = Allen::device::bit_cast<ushort2>(0u);
+        scaling_factor *= 0.5f;
+        dev_n_overflow_downstream_tracking.increment();
+      }
+      __syncthreads();
+      continue;
     }
+    break;
   }
-  __syncthreads();
-
   if (threadIdx.x == 0) {
-    const auto no_overflow = (shared_num_candidates < Downstream::DownstreamParameters::MaxNumCandidates) &&
-                             (shared_num_selelected_scifi < Downstream::DownstreamParameters::MaxNumDownstreamSciFi);
 
     // Store the number of rows
-    parameters.dev_findhits_num_output[event_number] = no_overflow ? shared_num_candidates : 0;
+    parameters.dev_findhits_num_output[event_number] = shared_num_candidates;
     // Store the number of selected scifi seeds
-    parameters.dev_findhits_num_selected_scifi[event_number] = no_overflow ? shared_num_selelected_scifi : 0;
+    parameters.dev_findhits_num_selected_scifi[event_number] = shared_num_selelected_scifi;
     // Set the end of offsets
-    output_selected_scifi_offsets[shared_num_selelected_scifi] = no_overflow ? shared_num_candidates : 0;
-
-    if (!no_overflow) {
-      dev_n_overflow_downstream_tracking.increment();
-    }
+    output_selected_scifi_offsets[shared_num_selelected_scifi] = shared_num_candidates;
   };
   __syncthreads();
 }
@@ -454,9 +474,7 @@ __global__ void downstream_find_hits::downstream_create_candidates(
 template<bool require_four_hits, bool use_constant_tolerance_window>
 __global__ void downstream_find_hits::downstream_find_rest_hits(
   downstream_find_hits::Parameters parameters,
-  const unsigned* dev_unique_x_sector_layer_offsets,
-  const float* dev_unique_sector_xs,
-  const UT::Constants::PerLayerInfo* dev_mean_layer_info,
+  const UT::Constants::UTLayerGeometry* dev_ut_layer_geometry,
   const float tolerance_window_x1_multiplier,
   const float tolerance_window_x2_multiplier,
   const float tolerance_window_x3_multiplier,
@@ -475,10 +493,8 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Load UT information
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
-  const UT::HitOffsets ut_hit_offsets {
-    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * UT::Constants::n_groups];
+  const UT::HitOffsets ut_hit_offsets {parameters.dev_ut_hit_offsets, event_number};
   const auto event_hit_offset = ut_hit_offsets.event_offset();
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits, event_hit_offset};
 
@@ -507,7 +523,6 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
 
   // Hit Cache
   UTHitsCache_FindRestHits hit_cache {shared_memory_hit_caching};
-  UT::SectorHelper sector_cache;
 
   const float x_tolerance_windows[3] = {
     tolerance_window_x1_multiplier, tolerance_window_x2_multiplier, tolerance_window_x3_multiplier};
@@ -523,12 +538,16 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
   // Since this loop is static, it should be unrolled automatically
   for (unsigned layer = 0; layer < 3; ++layer) {
     // Cache dxdy to register
-    const float layer_dxDy = dev_mean_layer_info->mean_dxDy[layer];
-    const float layer_z = dev_mean_layer_info->mean_z[layer];
+    const float layer_dxdy = dev_ut_layer_geometry->mean_dxdy[layer];
+    const float layer_z = dev_ut_layer_geometry->mean_z[layer];
+    const float error_layer_dxdy = dev_ut_layer_geometry->error_dxdy[layer];
+    const float error_layer_z = dev_ut_layer_geometry->error_z[layer];
+
+    // Layer offset
+    const auto layer_offset = ut_hit_offsets.layer_offset(layer);
 
     // Cache hits and sectors
-    hit_cache.cache_layer(ut_hit_offsets, ut_hits, dev_mean_layer_info, layer);
-    sector_cache.cache_layer(ut_hit_offsets, dev_unique_sector_xs, dev_unique_x_sector_layer_offsets, layer);
+    hit_cache.cache_layer(ut_hit_offsets, ut_hits, dev_ut_layer_geometry, layer);
     __syncthreads();
 
     // Start
@@ -563,23 +582,37 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
 
       // Get expected x and open the search window
       const auto expected_layer_y = exTrack.yAtZ(layer_z);
-      const auto expected_layer_x = exTrack.xAtZ(layer_z) - layer_dxDy * expected_layer_y;
-      const auto hit_range = sector_cache.get_hit_range(expected_layer_x - xTol, expected_layer_x + xTol);
+      const auto expected_layer_x = exTrack.xAtZ(layer_z) - layer_dxdy * expected_layer_y;
+      const auto expected_layer_y_error = fabsf(exTrack.ty() * error_layer_z);
+      const auto xTol_layer = xTol + fabsf(exTrack.tx() * error_layer_z) + fabsf(expected_layer_y * error_layer_dxdy) +
+                              fabsf(expected_layer_y_error * layer_dxdy);
+      const auto yTol_layer = 18.f;
+      const auto fired_sectors =
+        dev_ut_layer_geometry->find_sectors(layer, expected_layer_y - yTol_layer, expected_layer_y + yTol_layer);
 
       // For x0 layer, we select the best candidate
       if (layer == 0) {
         using Downstream::DownstreamHelpers::BestCandidateManager;
         BestCandidateManager<ushort, true> best_x0_hit;
-        for (auto hit_idx = hit_range.x; hit_idx < hit_range.y; hit_idx++) {
-          const auto hit = hit_cache.hit(hit_idx);
-          const float expected_hit_y = exTrack.yAtZ(hit.zAtYEq0());
-          if (hit.isNotYCompatible(expected_hit_y, yTol)) continue;
-          const float xdist = exTrack.xAtZ(hit.zAtYEq0()) - hit.xAt(expected_hit_y);
-          if (fabsf(xdist) > xTol) continue;
-
-          // Store
-          best_x0_hit.add(hit_idx, xdist);
-        };
+        for (unsigned sector_idx = 0; sector_idx < 4; sector_idx++) {
+          const auto sector = fired_sectors[sector_idx];
+          if (sector == -1) break;
+          const auto hit_start = ut_hit_offsets.sector_group_offset(layer, sector) - layer_offset;
+          const auto hit_end = ut_hit_offsets.sector_group_offset(layer, sector + 1) - layer_offset;
+          hit_cache.for_each_in_x_tol(
+            hit_start,
+            hit_end,
+            expected_layer_x - xTol_layer,
+            expected_layer_x + xTol_layer,
+            [&best_x0_hit, &exTrack, &xTol, &yTol](ushort idx, const UTHitsCache_FindRestHits::MiniHit& hit) {
+              const float expected_hit_y = exTrack.yAtZ(hit.zAtYEq0());
+              if (hit.isNotYCompatible(expected_hit_y, yTol)) return;
+              const float xdist = exTrack.xAtZ(hit.zAtYEq0()) - hit.xAtYEq0();
+              if (fabsf(xdist) < xTol) {
+                best_x0_hit.add(idx, xdist);
+              }
+            });
+        }
 
         if (!best_x0_hit.exist()) {
           if constexpr (require_four_hits) {
@@ -598,14 +631,23 @@ __global__ void downstream_find_hits::downstream_find_rest_hits(
         using Downstream::DownstreamHelpers::MultiCandidateManager;
         using Downstream::DownstreamParameters::MaxNumSelectedUVhitPerRow;
         MultiCandidateManager<ushort, MaxNumSelectedUVhitPerRow, true> best_uv_hits;
-        for (auto hit_idx = hit_range.x; hit_idx < hit_range.y; hit_idx++) {
-          const auto hit = hit_cache.hit(hit_idx);
-          const float expected_hit_y = exTrack.yAtZ(hit.zAtYEq0());
-          if (hit.isNotYCompatible(expected_hit_y, yTol)) continue;
-          const float xdist = exTrack.xAtZ(hit.zAtYEq0()) - hit.xAt(expected_hit_y);
-          // Store
-          best_uv_hits.add(hit_idx, xdist);
-        };
+        for (unsigned sector_idx = 0; sector_idx < 4; sector_idx++) {
+          const auto sector = fired_sectors[sector_idx];
+          if (sector == -1) break;
+          const auto hit_start = ut_hit_offsets.sector_group_offset(layer, sector) - layer_offset;
+          const auto hit_end = ut_hit_offsets.sector_group_offset(layer, sector + 1) - layer_offset;
+          hit_cache.for_each_in_x_tol(
+            hit_start,
+            hit_end,
+            expected_layer_x - xTol_layer,
+            expected_layer_x + xTol_layer,
+            [&best_uv_hits, &exTrack, &yTol](ushort idx, const UTHitsCache_FindRestHits::MiniHit& hit) {
+              const float expected_hit_y = exTrack.yAtZ(hit.zAtYEq0());
+              if (hit.isNotYCompatible(expected_hit_y, yTol)) return;
+              const float xdist = exTrack.xAtZ(hit.zAtYEq0()) - hit.xAt(expected_hit_y);
+              best_uv_hits.add(idx, xdist);
+            });
+        }
 
         if constexpr (require_four_hits) {
           if (!best_uv_hits.exist()) {

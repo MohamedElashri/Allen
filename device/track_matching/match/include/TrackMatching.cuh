@@ -24,6 +24,8 @@
 
 namespace track_matching {
 
+  constexpr unsigned MaxNumIteration = 2;
+
   using MatchingGhostKiller = Allen::MVAModels::SingleLayerFCNN<7, 32>;
   using MatchingNoUTV2GhostKiller = Allen::MVAModels::SingleLayerFCNN<8, 32>;
   using MatchingWithUTGhostKiller = Allen::MVAModels::SingleLayerFCNN<11, 32>;
@@ -62,14 +64,14 @@ namespace track_matching {
                          // for 56 registers/thread: 1280=36warps, 1472=32warps, 1664=28warps, 1984=24warps
                          // With 90% UT efficiency, there are < 5000 hits per event -> ~1250 hits/layer => 1280
                          // With 99% UT efficiency, scale it 1280 / 0.9 * 0.99 = 1408 => 1472
-  __device__ static constexpr unsigned int MaxCacheSize = 1280;
+  __device__ static constexpr unsigned int MaxCacheSize = 1276;
 #else // Volta, Turing: for 56 registers/thread: 1024=32warps,
-  __device__ static constexpr unsigned int MaxCacheSize = 1024;
+  __device__ static constexpr unsigned int MaxCacheSize = 1020;
 #endif
 #else // CPU, HIP
   __device__ static constexpr unsigned int MaxCacheSize = 1;
 #endif
-  using UTHitsCache = UT::SmartHitsCache<MaxCacheSize>;
+  using UTHitsCache = UTHitCache::FullHitCache_8Bytes<MaxCacheSize>;
 
   template<typename GhostKiller_t>
   __global__ void track_matching_veloSciFi(
@@ -88,12 +90,10 @@ namespace track_matching {
   __global__ void track_matching_add_ut_hits(
     Parameters,
     const float* dev_magnet_polarity,
-    const unsigned* dev_unique_x_sector_layer_offsets,
-    const float* dev_unique_sector_xs,
     const std::array<float, 4 * 3> ut_x_loose_tolerance_parameters,
     const std::array<float, 4 * 3> ut_x_tight_tolerance_parameters,
     const float ut_y_tolerance_parameters,
-    const UT::Constants::PerLayerInfo* dev_mean_layer_info,
+    const UT::Constants::UTLayerGeometry* dev_ut_layer_geometry,
     Allen::Monitoring::Counter<>::DeviceType);
 
   __global__ void track_matching_filter_bad_ut_segment(Parameters, const unsigned min_num_ut_hits);

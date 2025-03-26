@@ -38,6 +38,9 @@ struct MiniState {
   __host__ __device__ float& tx() { return m_tx; }
   __host__ __device__ float& ty() { return m_ty; }
 
+  __host__ __device__ float xAt(float z) const { return m_x + m_tx * (z - m_z); }
+  __host__ __device__ float yAt(float z) const { return m_y + m_ty * (z - m_z); }
+
   float m_x, m_y, m_z, m_tx, m_ty;
 };
 

@@ -31,18 +31,7 @@ void ut_decode_in_order::ut_decode_in_order_t::operator()(
   const Allen::Context& context) const
 {
   global_function(ut_decode_in_order)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
-    arguments, constants.dev_ut_geometry.data(), constants.dev_unique_x_sector_layer_offsets.data());
-
-  if (m_verbosity >= logger::debug) {
-    auto host_ut_hits = make_host_buffer<dev_ut_hits_t>(arguments, context);
-    auto host_ut_post_cluster_offsets = make_host_buffer<dev_ut_cluster_offsets_t>(arguments, context);
-    auto clusters_view = UT::Hits {host_ut_hits.data(), first<host_accumulated_number_of_ut_clusters_t>(arguments)};
-
-    for (unsigned i = 0; i < first<host_accumulated_number_of_ut_clusters_t>(arguments); ++i) {
-      debug_cout << clusters_view.id(i) << ", ";
-    }
-    debug_cout << "\n";
-  }
+    arguments, constants.dev_ut_geometry.data());
 }
 
 template<int layer>
@@ -92,24 +81,20 @@ __device__ void decode_cluster(
 
 __global__ void ut_decode_in_order::ut_decode_in_order(
   ut_decode_in_order::Parameters parameters,
-  const char* ut_geometry,
-  const unsigned* dev_unique_x_sector_layer_offsets)
+  const char* ut_geometry)
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
   const unsigned number_of_events = parameters.dev_number_of_events[0];
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
 
   UT::ConstPreDecodedHits ut_pre_decoded_hits {
-    parameters.dev_ut_pre_decoded_hits,
-    parameters.dev_ut_cluster_offsets[number_of_events * number_of_unique_x_sectors]};
+    parameters.dev_ut_pre_decoded_hits, parameters.dev_ut_cluster_offsets[number_of_events * UT::Constants::n_groups]};
 
   UT::Hits ut_hits {parameters.dev_ut_hits,
-                    parameters.dev_ut_cluster_offsets[number_of_events * number_of_unique_x_sectors]};
+                    parameters.dev_ut_cluster_offsets[number_of_events * UT::Constants::n_groups]};
 
   const UTGeometry geometry(ut_geometry);
 
-  const UT::HitOffsets ut_cluster_offsets {
-    parameters.dev_ut_cluster_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  const UT::HitOffsets ut_cluster_offsets {parameters.dev_ut_cluster_offsets, event_number};
 
   const unsigned event_offset = ut_cluster_offsets.event_offset();
   const unsigned number_of_hits = ut_cluster_offsets.event_number_of_hits();

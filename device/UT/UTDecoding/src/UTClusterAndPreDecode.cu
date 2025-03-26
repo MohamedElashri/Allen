@@ -18,15 +18,12 @@ INSTANTIATE_ALGORITHM(ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t)
 void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
-  const Constants& constants) const
+  const Constants&) const
 {
   set_size<dev_ut_pre_decoded_hits_t>(
     arguments, first<host_accumulated_number_of_ut_hits_t>(arguments) * UT::PreDecodedHits::element_size);
   set_size<dev_ut_tiebreak_t>(arguments, first<host_accumulated_number_of_ut_hits_t>(arguments));
-  set_size<dev_ut_cluster_offsets_t>(
-    arguments,
-    first<host_number_of_events_t>(arguments) * constants.host_unique_x_sector_layer_offsets[UT::Constants::n_layers] +
-      1);
+  set_size<dev_ut_cluster_offsets_t>(arguments, size<dev_ut_hit_offsets_t>(arguments));
   set_size<host_total_sum_holder_t>(arguments, 1);
 }
 
@@ -52,10 +49,9 @@ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode_t::operator()(
   fun(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
     arguments,
     std::get<0>(runtime_options.event_interval),
-    constants.dev_ut_boards,
+    constants.dev_ut_boards.data(),
     constants.dev_ut_geometry.data(),
-    constants.dev_unique_x_sector_layer_offsets.data(),
-    constants.dev_unique_x_sector_offsets.data(),
+    constants.dev_ut_sector_to_group_map.data(),
     constants.dev_ut_board_geometry_map.data(),
     m_cluster_ut_hits.value(),
     m_position_method,
@@ -91,7 +87,7 @@ __device__ void cluster_and_pre_decode_raw_bank(
 
 template<>
 __device__ void cluster_and_pre_decode_raw_bank<3>(
-  unsigned const* dev_unique_x_sector_offsets,
+  unsigned const* dev_ut_sector_to_group_map,
   uint32_t const* hit_offsets,
   UTGeometry const& geometry,
   UTBoards const& boards,
@@ -127,7 +123,7 @@ __device__ void cluster_and_pre_decode_raw_bank<3>(
 
     const uint32_t LHCbID = lhcb_id::set_detector_type_id(lhcb_id::LHCbIDType::UT, (chanID + stripID - 1));
 
-    const unsigned base_sector_group_offset = dev_unique_x_sector_offsets[sec];
+    const unsigned base_sector_group_offset = dev_ut_sector_to_group_map[sec];
     unsigned* clusters_count_sector_group = cluster_count + base_sector_group_offset;
 
     const unsigned current_cluster_count = Allen::warp::atomic_increment(clusters_count_sector_group);
@@ -149,7 +145,7 @@ __device__ void store_predecoded_ut_cluster(
   const uint32_t fullSectorID,
   const uint16_t sec,
   const float p0Z,
-  unsigned const* dev_unique_x_sector_offsets,
+  unsigned const* dev_ut_sector_to_group_map,
   uint32_t const* hit_offsets,
   uint32_t* cluster_count,
   uint32_t* dev_tiebreak,
@@ -162,7 +158,7 @@ __device__ void store_predecoded_ut_cluster(
 
   // Finally we need to fill the global containers correctly
   const unsigned base_sector_group_offset =
-    dev_unique_x_sector_offsets[sec]; // idx; //dev_unique_x_sector_offsets[idx_offset];
+    dev_ut_sector_to_group_map[sec]; // idx; //dev_ut_sector_to_group_map[idx_offset];
   unsigned* clusters_count_sector_group = cluster_count + base_sector_group_offset;
 
   const unsigned current_cluster_count = Allen::warp::atomic_increment(clusters_count_sector_group);
@@ -185,7 +181,7 @@ __device__ bool nonzero_adc_count(const int sum_adc_counts)
 
 template<>
 __device__ void cluster_and_pre_decode_raw_bank<4>(
-  unsigned const* dev_unique_x_sector_offsets,
+  unsigned const* dev_ut_sector_to_group_map,
   uint32_t const* hit_offsets,
   UTGeometry const& geometry,
   UTBoards const& boards,
@@ -238,7 +234,7 @@ __device__ void cluster_and_pre_decode_raw_bank<4>(
       fullSectorID,
       sec,
       p0Z,
-      dev_unique_x_sector_offsets,
+      dev_ut_sector_to_group_map,
       hit_offsets,
       cluster_count,
       dev_tiebreak,
@@ -326,8 +322,7 @@ __global__ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode(
   const unsigned event_start,
   const char* ut_boards,
   const char* ut_geometry,
-  const unsigned* dev_unique_x_sector_layer_offsets,
-  const unsigned* dev_unique_x_sector_offsets,
+  const unsigned* dev_ut_sector_to_group_map,
   const uint16_t* dev_ut_board_geometry_map,
   const bool cluster_ut_hits,
   const int position_method,
@@ -337,9 +332,8 @@ __global__ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode(
   const unsigned number_of_events = parameters.dev_number_of_events[0];
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-  const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * number_of_unique_x_sectors;
-  uint32_t* cluster_count = parameters.dev_ut_cluster_offsets + event_number * number_of_unique_x_sectors;
+  const uint32_t* hit_offsets = parameters.dev_ut_hit_offsets + event_number * UT::Constants::n_groups;
+  uint32_t* cluster_count = parameters.dev_ut_cluster_offsets + event_number * UT::Constants::n_groups;
 
   // These are meant for zero-suppression and opportunistic looping
   const uint16_t* nonempty_channels =
@@ -351,7 +345,7 @@ __global__ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode(
   // However, we need to do clustering first to know the exact memory size anyway
   // We will cleanup empty clusters during sorting
   UT::PreDecodedHits ut_pre_decoded_hits {parameters.dev_ut_pre_decoded_hits,
-                                          parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors]};
+                                          parameters.dev_ut_hit_offsets[number_of_events * UT::Constants::n_groups]};
 
   const UTGeometry geometry(ut_geometry);
   const UTBoards boards(ut_boards);
@@ -367,7 +361,7 @@ __global__ void ut_cluster_and_pre_decode::ut_cluster_and_pre_decode(
     const uint16_t raw_bank_index = (decoding_version == 4) ? channel_index / UT::Decoding::v5::n_lanes : channel_index;
     UTRawBank<decoding_version> raw_bank = raw_event.template raw_bank<decoding_version>(raw_bank_index);
     cluster_and_pre_decode_raw_bank(
-      dev_unique_x_sector_offsets,
+      dev_ut_sector_to_group_map,
       hit_offsets,
       geometry,
       boards,

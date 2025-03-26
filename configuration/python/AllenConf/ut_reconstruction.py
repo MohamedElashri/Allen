@@ -11,10 +11,13 @@
 from AllenCore.algorithms import ut_compress_and_calculate_keys_t
 from AllenCore.algorithms import (
     data_provider_t, ut_calculate_number_of_hits_t, ut_select_velo_tracks_t,
-    ut_search_windows_t, ut_select_velo_tracks_with_windows_t, compass_ut_t,
+    compass_ut_define_candidates_t, compass_ut_find_tracks_t,
+    compass_ut_select_tracks_t, compass_ut_fit_tracks_t,
     ut_copy_track_hit_number_t, ut_consolidate_tracks_t,
     ut_cluster_and_pre_decode_t, ut_find_permutation_t, ut_decode_in_order_t,
-    create_reduced_ut_hits_container_t)
+    create_reduced_ut_hits_container_t, ut_decoding_get_bank_offsets_t,
+    ut_decoding_get_hit_offsets_t, ut_decoding_predecode_hits_t,
+    ut_decoding_hit_clustering_t, ut_decoding_decode_clusters_t)
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenConf.utils import initialize_number_of_events, make_dummy
 from AllenCore.generator import make_algorithm
@@ -45,10 +48,11 @@ def create_reduced_ut_container(decoded_ut, dev_used_ut_hits_offsets):
     return reduced_ut_hit_container
 
 
-def decode_ut(
+def decode_ut_v1(
         cluster_ut_hits=True,
         position_method=0,  # 0 = AdcWeighting, 1 = GeoWeighting
-        max_cluster_size=128):
+        max_cluster_size=128,
+        save_clusters_above_max=False):
     number_of_events = initialize_number_of_events()
     ut_banks = make_algorithm(data_provider_t, name='ut_banks', bank_type="UT")
 
@@ -83,7 +87,8 @@ def decode_ut(
         cluster_ut_hits=cluster_ut_hits,
         position_method=position_method,
         max_cluster_size=max_cluster_size,
-        save_clusters_above_max=False)  # False to be consistent with HLT2
+        save_clusters_above_max=save_clusters_above_max
+    )  # False to be consistent with HLT2
 
     ut_compress_and_calculate_keys = make_algorithm(
         ut_compress_and_calculate_keys_t,
@@ -129,6 +134,168 @@ def decode_ut(
     }
 
 
+def decode_ut_v2(
+        cluster_ut_hits=True,
+        position_method=0,  # 0 = AdcWeighting, 1 = GeoWeighting
+        max_cluster_size=128,
+        save_clusters_above_max=False):
+    number_of_events = initialize_number_of_events()
+    ut_banks = make_algorithm(data_provider_t, name='ut_banks', bank_type="UT")
+
+    ut_decoding_get_bank_offsets = make_algorithm(
+        ut_decoding_get_bank_offsets_t,
+        name='ut_decoding_get_bank_offsets_{hash}',
+        # verbosity=5,
+        block_dim=(256, 1, 1),
+        # Basics
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        # RawBanks
+        dev_ut_raw_input_t=ut_banks.dev_raw_banks_t,
+        dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
+        dev_ut_raw_input_sizes_t=ut_banks.dev_raw_sizes_t,
+        dev_ut_raw_input_types_t=ut_banks.dev_raw_types_t,
+        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
+    )
+
+    ut_decoding_get_hit_offsets = make_algorithm(
+        ut_decoding_get_hit_offsets_t,
+        name='ut_decoding_get_hit_offsets_{hash}',
+        # verbosity=5,
+        block_dim=(256, 1, 1),
+        # Basics
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        # RawBanks
+        dev_ut_raw_input_t=ut_banks.dev_raw_banks_t,
+        dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
+        dev_ut_raw_input_sizes_t=ut_banks.dev_raw_sizes_t,
+        dev_ut_raw_input_types_t=ut_banks.dev_raw_types_t,
+        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
+        # Bank offsets
+        host_total_number_of_ut_banks_t=ut_decoding_get_bank_offsets.
+        host_total_number_of_ut_banks_t,
+        dev_ut_banks_offsets_t=ut_decoding_get_bank_offsets.
+        dev_ut_banks_offsets_t,
+    )
+
+    ut_decoding_predecode_hits = make_algorithm(
+        ut_decoding_predecode_hits_t,
+        name='ut_decoding_predecode_hits_{hash}',
+        # verbosity=5,
+        # Basics
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        # RawBanks
+        dev_ut_raw_input_t=ut_banks.dev_raw_banks_t,
+        dev_ut_raw_input_offsets_t=ut_banks.dev_raw_offsets_t,
+        dev_ut_raw_input_sizes_t=ut_banks.dev_raw_sizes_t,
+        dev_ut_raw_input_types_t=ut_banks.dev_raw_types_t,
+        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
+        # Bank offsets
+        dev_ut_banks_offsets_t=ut_decoding_get_bank_offsets.
+        dev_ut_banks_offsets_t,
+        # Hit offsets
+        host_total_number_of_ut_hits_t=ut_decoding_get_hit_offsets.
+        host_total_number_of_ut_hits_t,
+        dev_ut_lanes_hit_offsets_t=ut_decoding_get_hit_offsets.
+        dev_ut_lanes_hit_offsets_t,
+    )
+
+    ut_decoding_hit_clustering = make_algorithm(
+        ut_decoding_hit_clustering_t,
+        name='ut_decoding_hit_clustering_{hash}',
+        # verbosity=5,
+        # Basics
+        cluster_ut_hits=cluster_ut_hits,
+        position_method=position_method,
+        max_cluster_size=max_cluster_size,
+        save_clusters_above_max=save_clusters_above_max,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        # Rawbank
+        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
+        # Hit offsets
+        host_total_number_of_ut_hits_t=ut_decoding_get_hit_offsets.
+        host_total_number_of_ut_hits_t,
+        # Predecoding
+        dev_ut_predecoded_hits_t=ut_decoding_predecode_hits.
+        dev_ut_predecoded_hits_t,
+        dev_ut_hits_strip_info_t=ut_decoding_predecode_hits.
+        dev_ut_hits_strip_info_t,
+        dev_ut_predecoded_event_offsets_t=ut_decoding_predecode_hits.
+        dev_ut_predecoded_event_offsets_t,
+    )
+
+    ut_decoding_decode_clusters = make_algorithm(
+        ut_decoding_decode_clusters_t,
+        name='ut_decoding_decode_clusters_{hash}',
+        # verbosity=5,
+        # Basics
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        # Rawbank
+        host_raw_bank_version_t=ut_banks.host_raw_bank_version_t,
+        # Hit offsets
+        # host_total_number_of_ut_hits_t=ut_decoding_get_hit_offsets.
+        # host_total_number_of_ut_hits_t,
+        # Clustering
+        host_ut_num_clusters_t=ut_decoding_hit_clustering.
+        host_ut_num_clusters_t,
+        dev_ut_clusters_t=ut_decoding_hit_clustering.dev_ut_clusters_t,
+        dev_ut_clusters_sector_group_offsets_t=ut_decoding_hit_clustering.
+        dev_ut_clusters_sector_group_offsets_t,
+        dev_ut_clusters_permutations_t=ut_decoding_hit_clustering.
+        dev_ut_clusters_permutations_t,
+    )
+
+    return {
+        # Algorithms
+        "ut_decoding_get_bank_offsets":
+        ut_decoding_get_bank_offsets,
+        "ut_decoding_get_hit_offsets":
+        ut_decoding_get_hit_offsets,
+        "ut_decoding_predecode_hits":
+        ut_decoding_predecode_hits,
+        "ut_decoding_hit_clustering":
+        ut_decoding_hit_clustering,
+        "ut_decoding_decode_clusters":
+        ut_decoding_decode_clusters,
+        # Output
+        "dev_ut_hits":
+        ut_decoding_decode_clusters.dev_ut_hits_t,
+        "dev_ut_hit_offsets":
+        ut_decoding_hit_clustering.dev_ut_clusters_sector_group_offsets_t,
+        "host_accumulated_number_of_ut_hits":
+        ut_decoding_hit_clustering.host_ut_num_clusters_t,
+    }
+
+
+@configurable
+def decode_ut(
+        cluster_ut_hits=True,
+        position_method=0,  # 0 = AdcWeighting, 1 = GeoWeighting
+        max_cluster_size=128,
+        save_clusters_above_max=False,
+        decoder_version=2):
+    """Decodes UT hits.
+
+    Arguments:
+    cluster_ut_hits: Enable UT hit clustering.
+    position_method: Clustering method. 0 = AdcWeighting, 1 = GeoWeighting.
+    max_cluster_size: Maximum cluster size for UT clustering (128 is recommended by the UT group).
+    save_clusters_above_max: Whether to keep clusters larger than max_cluster_size.
+    decoder_version: Decoder version (not the UT rawbank version).
+      - 1 = Legacy UT decoding, where each thread processes a non-empty UT lane.
+      - 2 = New UT decoding, where each thread processes a UT cluster (a range of UT hits).
+    """
+
+    decoders = {1: decode_ut_v1, 2: decode_ut_v2}
+    decoder = decoders[decoder_version]
+
+    return decoder(
+        cluster_ut_hits=cluster_ut_hits,
+        position_method=position_method,
+        max_cluster_size=max_cluster_size,
+        save_clusters_above_max=save_clusters_above_max,
+    )
+
+
 @configurable
 def make_ut_tracks(decoded_ut,
                    velo_tracks,
@@ -159,57 +326,46 @@ def make_ut_tracks(decoded_ut,
     # TODO: Tune min LD parameter
     ut_search_windows_min_momentum = 1250.0
     ut_search_windows_min_pt = 275.0
-    compass_ut_max_considered_before_found = 6
     compass_ut_min_momentum_final = 1500.0
     compass_ut_min_pt_final = 400.0
-    compass_ut_min_ld_3_hit = -0.5
-    compass_ut_min_ld_4_hit = -0.5
 
     if not restricted:
         ut_search_windows_min_momentum = 1250.0
         ut_search_windows_min_pt = 200.0
-        compass_ut_max_considered_before_found = 6
         compass_ut_min_momentum_final = 1500.0
         compass_ut_min_pt_final = 250.0
-        compass_ut_min_ld_3_hit = -0.5
-        compass_ut_min_ld_4_hit = -0.5
 
-    ut_search_windows = make_algorithm(
-        ut_search_windows_t,
-        name='ut_search_windows_{hash}',
+    compass_ut_define_candidates = make_algorithm(
+        compass_ut_define_candidates_t,
+        name="compass_ut_define_candidates_{hash}",
+        # verbosity=5,
+        # Basics
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        host_number_of_reconstructed_velo_tracks_t=
-        host_number_of_reconstructed_velo_tracks_t,
+        # UT
         dev_ut_hits_t=decoded_ut["dev_ut_hits"],
         dev_ut_hit_offsets_t=decoded_ut["dev_ut_hit_offsets"],
-        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
+        # VELO
+        dev_offsets_all_velo_tracks_t=velo_tracks[
+            "dev_offsets_all_velo_tracks"],
         dev_velo_states_view_t=velo_states[
             "dev_velo_kalman_endvelo_states_view"],
+        # Selection
+        host_total_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
+        host_total_number_of_selected_velo_tracks_t,
         dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
         dev_ut_number_of_selected_velo_tracks_t,
         dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
         dev_ut_selected_velo_tracks_t,
+        # Constants
         min_momentum=ut_search_windows_min_momentum,
-        min_pt=ut_search_windows_min_pt)
+        min_pt=ut_search_windows_min_pt,
+    )
 
-    ut_select_velo_tracks_with_windows = make_algorithm(
-        ut_select_velo_tracks_with_windows_t,
-        name='ut_select_velo_tracks_with_windows_{hash}',
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_reconstructed_velo_tracks_t=
-        host_number_of_reconstructed_velo_tracks_t,
-        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
-        dev_accepted_velo_tracks_t=dev_accepted_velo_tracks,
-        dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
-        dev_ut_number_of_selected_velo_tracks_t,
-        dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
-        dev_ut_selected_velo_tracks_t,
-        dev_ut_windows_layers_t=ut_search_windows.dev_ut_windows_layers_t)
-
-    compass_ut = make_algorithm(
-        compass_ut_t,
-        name='compass_ut_{hash}',
+    compass_ut_find_tracks = make_algorithm(
+        compass_ut_find_tracks_t,
+        name="compass_ut_find_tracks_{hash}",
+        # verbosity=5,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         dev_ut_hits_t=decoded_ut["dev_ut_hits"],
@@ -217,61 +373,131 @@ def make_ut_tracks(decoded_ut,
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
         dev_velo_states_view_t=velo_states[
             "dev_velo_kalman_endvelo_states_view"],
-        dev_ut_windows_layers_t=ut_search_windows.dev_ut_windows_layers_t,
-        dev_ut_number_of_selected_velo_tracks_with_windows_t=
-        ut_select_velo_tracks_with_windows.
-        dev_ut_number_of_selected_velo_tracks_with_windows_t,
-        dev_ut_selected_velo_tracks_with_windows_t=
-        ut_select_velo_tracks_with_windows.
-        dev_ut_selected_velo_tracks_with_windows_t,
-        max_considered_before_found=compass_ut_max_considered_before_found,
+        host_number_of_ut_track_candidate_t=compass_ut_define_candidates.
+        host_number_of_ut_track_candidate_t,
+        dev_ut_track_consolidate_candidate_offset_t=compass_ut_define_candidates
+        .dev_ut_track_consolidate_candidate_offset_t,
+        dev_ut_track_consolidate_candidates_t=compass_ut_define_candidates.
+        dev_ut_track_consolidate_candidates_t,
+        # xtol_axial=2.0,
+        # xtol_stereo=4.0,
+        # ytol=1.0,
+    )
+
+    compass_ut_select_tracks = make_algorithm(
+        compass_ut_select_tracks_t,
+        name='compass_ut_select_tracks_{hash}',
+        # verbosity=5,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_ut_hit_offsets_t=decoded_ut["dev_ut_hit_offsets"],
+        dev_ut_track_consolidate_candidate_offset_t=compass_ut_define_candidates
+        .dev_ut_track_consolidate_candidate_offset_t,
+        host_number_of_ut_track_output_tracks_t=compass_ut_find_tracks.
+        host_number_of_ut_track_output_tracks_t,
+        dev_ut_track_output_offset_t=compass_ut_find_tracks.
+        dev_ut_track_output_offset_t,
+        dev_ut_track_output_tracks_t=compass_ut_find_tracks.
+        dev_ut_track_output_tracks_t)
+
+    compass_ut_fit_tracks = make_algorithm(
+        compass_ut_fit_tracks_t,
+        name="compass_ut_fit_tracks_{hash}",
+        # verbosity=5,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        # Input
+        dev_ut_hits_t=decoded_ut["dev_ut_hits"],
+        dev_ut_hit_offsets_t=decoded_ut["dev_ut_hit_offsets"],
+        dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"],
+        dev_velo_states_view_t=velo_states[
+            "dev_velo_kalman_endvelo_states_view"],
+        # From tracking
+        host_number_of_ut_track_selected_tracks_t=compass_ut_select_tracks.
+        host_number_of_ut_track_selected_tracks_t,
+        dev_ut_track_output_offset_t=compass_ut_find_tracks.
+        dev_ut_track_output_offset_t,
+        dev_ut_track_selected_offset_t=compass_ut_select_tracks.
+        dev_ut_track_selected_offset_t,
+        dev_ut_track_selected_tracks_t=compass_ut_select_tracks.
+        dev_ut_track_selected_tracks_t,
+        # Properties
         min_momentum_final=compass_ut_min_momentum_final,
         min_pt_final=compass_ut_min_pt_final,
-        min_ld_3_hit=compass_ut_min_ld_3_hit,
-        min_ld_4_hit=compass_ut_min_ld_4_hit)
+        min_ghost_prob_3_hit=0.5,
+        min_ghost_prob_4_hit=0.5,
+    )
 
     ut_copy_track_hit_number = make_algorithm(
         ut_copy_track_hit_number_t,
         name='ut_copy_track_hit_number_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_number_of_reconstructed_ut_tracks_t=compass_ut.
-        host_number_of_reconstructed_ut_tracks_t,
-        dev_ut_tracks_t=compass_ut.dev_ut_tracks_t,
-        dev_offsets_ut_tracks_t=compass_ut.dev_offsets_ut_tracks_t)
+        host_number_of_ut_track_hits_t=compass_ut_fit_tracks.
+        host_number_of_ut_track_hits_t,
+        dev_ut_track_selected_offset_t=compass_ut_select_tracks.
+        dev_ut_track_selected_offset_t,
+        dev_ut_track_hits_offset_t=compass_ut_fit_tracks.
+        dev_ut_track_hits_offset_t,
+        dev_ut_track_hits_t=compass_ut_fit_tracks.dev_ut_track_hits_t)
 
     ut_consolidate_tracks = make_algorithm(
         ut_consolidate_tracks_t,
         name='ut_consolidate_tracks_{hash}',
         host_accumulated_number_of_ut_hits_t=decoded_ut[
             "host_accumulated_number_of_ut_hits"],
-        host_number_of_reconstructed_ut_tracks_t=compass_ut.
-        host_number_of_reconstructed_ut_tracks_t,
+        host_number_of_reconstructed_ut_tracks_t=compass_ut_fit_tracks.
+        host_number_of_ut_track_hits_t,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         host_accumulated_number_of_hits_in_ut_tracks_t=ut_copy_track_hit_number
         .host_accumulated_number_of_hits_in_ut_tracks_t,
         dev_ut_hits_t=decoded_ut["dev_ut_hits"],
         dev_ut_hit_offsets_t=decoded_ut["dev_ut_hit_offsets"],
-        dev_offsets_ut_tracks_t=compass_ut.dev_offsets_ut_tracks_t,
+        dev_offsets_ut_tracks_t=compass_ut_fit_tracks.
+        dev_ut_track_hits_offset_t,
+        dev_input_offsets_ut_tracks_t=compass_ut_select_tracks.
+        dev_ut_track_selected_offset_t,
         dev_offsets_ut_track_hit_number_t=ut_copy_track_hit_number.
         dev_offsets_ut_track_hit_number_t,
-        dev_ut_tracks_t=compass_ut.dev_ut_tracks_t,
+        dev_ut_tracks_t=compass_ut_fit_tracks.dev_ut_track_hits_t,
         dev_velo_tracks_view_t=velo_tracks["dev_velo_tracks_view"])
 
     return {
+        # Basics
         "velo_tracks":
         velo_tracks,
         "velo_states":
         velo_states,
-        "host_number_of_reconstructed_ut_tracks":
-        compass_ut.host_number_of_reconstructed_ut_tracks_t,
-        "host_number_of_hits_of_reconstructed_ut_tracks":
+        # Algorithms
+        "compass_ut_define_candidates":
+        compass_ut_define_candidates,
+        "compass_ut_find_tracks":
+        compass_ut_find_tracks,
+        "compass_ut_select_tracks":
+        compass_ut_select_tracks,
+        "compass_ut_fit_tracks":
+        compass_ut_fit_tracks,
+        "ut_copy_track_hit_number":
+        ut_copy_track_hit_number,
+        "ut_consolidate_tracks":
+        ut_consolidate_tracks,
+        "test":
+        ut_consolidate_tracks,
+        # Host outputs
+        'host_number_of_reconstructed_ut_tracks':
+        compass_ut_fit_tracks.host_number_of_ut_track_hits_t,
+        'host_number_of_hits_of_reconstructed_ut_tracks':
         ut_copy_track_hit_number.
         host_accumulated_number_of_hits_in_ut_tracks_t,
+        # Outputs
         "dev_offsets_ut_tracks":
-        compass_ut.dev_offsets_ut_tracks_t,
+        compass_ut_fit_tracks.dev_ut_track_hits_offset_t,
         "dev_offsets_ut_track_hit_number":
         ut_copy_track_hit_number.dev_offsets_ut_track_hit_number_t,
+        "dev_ut_track_view":
+        ut_consolidate_tracks.dev_ut_track_view_t,
+        "dev_ut_tracks_view":
+        ut_consolidate_tracks.dev_ut_tracks_view_t,
         "dev_ut_track_hits":
         ut_consolidate_tracks.dev_ut_track_hits_t,
         "dev_ut_qop":
@@ -284,13 +510,6 @@ def make_ut_tracks(decoded_ut,
         ut_consolidate_tracks.dev_ut_multi_event_tracks_view_t,
         "dev_imec_ut_tracks":
         ut_consolidate_tracks.dev_imec_ut_tracks_t,
-
-        # TODO: Is this needed anymore?
-        # Needed for long track particle dependencies
-        "dev_ut_track_view":
-        ut_consolidate_tracks.dev_ut_track_view_t,
-        "dev_ut_hits_view":
-        ut_consolidate_tracks.dev_ut_hits_view_t
     }
 
 
@@ -301,8 +520,7 @@ def ut_tracking():
     velo_tracks = make_velo_tracks(decoded_velo)
     decoded_ut = decode_ut()
     ut_tracks = make_ut_tracks(decoded_ut, velo_tracks)
-    alg = ut_tracks["dev_ut_track_hits"].producer
-    return alg
+    return ut_tracks["dev_ut_tracks_view"]
 
 
 def make_dummy_ut_hits():

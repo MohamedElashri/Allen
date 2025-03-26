@@ -91,50 +91,55 @@ namespace UT {
    * @brief Offset and number of hits of each layer.
    */
   struct HitOffsets {
-    const unsigned* m_unique_x_sector_layer_offsets;
     const unsigned* m_ut_hit_offsets;
-    const unsigned m_number_of_unique_x_sectors;
 
-    __device__ __host__ HitOffsets(
-      const unsigned* base_pointer,
-      const unsigned event_number,
-      const unsigned number_of_unique_x_sectors,
-      const unsigned* unique_x_sector_layer_offsets) :
-      m_unique_x_sector_layer_offsets(unique_x_sector_layer_offsets),
-      m_ut_hit_offsets(base_pointer + event_number * number_of_unique_x_sectors),
-      m_number_of_unique_x_sectors(number_of_unique_x_sectors)
+    __device__ __host__ HitOffsets(const unsigned* base_pointer, const unsigned event_number) :
+      m_ut_hit_offsets(base_pointer + event_number * UT::Constants::n_groups)
     {}
 
     __device__ __host__ unsigned sector_group_offset(const unsigned sector_group) const
     {
-      assert(sector_group <= m_number_of_unique_x_sectors);
+      assert(sector_group <= UT::Constants::n_groups);
       return m_ut_hit_offsets[sector_group];
     }
 
     __device__ __host__ unsigned sector_group_number_of_hits(const unsigned sector_group) const
     {
-      assert(sector_group < m_number_of_unique_x_sectors);
-      return m_ut_hit_offsets[sector_group + 1] - m_ut_hit_offsets[sector_group];
+      assert(sector_group < UT::Constants::n_groups);
+      return sector_group_offset(sector_group + 1) - sector_group_offset(sector_group);
+    }
+
+    __device__ __host__ unsigned sector_group_offset(const unsigned layer, const unsigned sector_group) const
+    {
+      assert(sector_group <= UT::Constants::n_groups_in_layer);
+      return m_ut_hit_offsets[layer * UT::Constants::n_groups_in_layer + sector_group];
+    }
+
+    __device__ __host__ unsigned sector_group_number_of_hits(const unsigned layer_number, const unsigned sector_group)
+      const
+    {
+      assert(layer_number < 4);
+      assert(sector_group < UT::Constants::n_groups_in_layer);
+      return sector_group_offset(layer_number, sector_group + 1) - sector_group_offset(layer_number, sector_group);
     }
 
     __device__ __host__ unsigned layer_offset(const unsigned layer_number) const
     {
-      assert(layer_number < 4);
-      return m_ut_hit_offsets[m_unique_x_sector_layer_offsets[layer_number]];
+      assert(layer_number <= 4);
+      return m_ut_hit_offsets[layer_number * UT::Constants::n_groups_in_layer];
     }
 
     __device__ __host__ unsigned layer_number_of_hits(const unsigned layer_number) const
     {
       assert(layer_number < 4);
-      return m_ut_hit_offsets[m_unique_x_sector_layer_offsets[layer_number + 1]] -
-             m_ut_hit_offsets[m_unique_x_sector_layer_offsets[layer_number]];
+      return layer_offset(layer_number + 1) - layer_offset(layer_number);
     }
 
     __device__ __host__ unsigned event_offset() const { return m_ut_hit_offsets[0]; }
 
     __device__ __host__ unsigned event_number_of_hits() const
     {
-      return m_ut_hit_offsets[m_number_of_unique_x_sectors] - m_ut_hit_offsets[0];
+      return m_ut_hit_offsets[UT::Constants::n_groups] - event_offset();
     }
   };
 
@@ -209,6 +214,12 @@ namespace UT {
     {
       assert(m_offset + index < m_total_number_of_hits);
       return m_base_pointer[m_offset + 3 * m_total_number_of_hits + index];
+    }
+
+    __host__ __device__ inline const float* xAtYEq0_p(const unsigned index) const
+    {
+      assert(m_offset + index < m_total_number_of_hits);
+      return m_base_pointer + (m_offset + 3 * m_total_number_of_hits + index);
     }
 
     __host__ __device__ inline float dxDy(const unsigned index) const

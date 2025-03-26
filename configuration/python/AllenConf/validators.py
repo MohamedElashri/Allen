@@ -13,11 +13,10 @@ from AllenCore.algorithms import (
     long_track_validator_t, muon_validator_t, host_pv_validator_t,
     host_rate_validator_t, host_routingbits_validator_t, kalman_validator_t,
     host_seeding_XZ_validator_t, host_seeding_validator_t,
-    host_downstream_dump_t, downstream_validator_t, host_veloscifi_dump_t,
-    host_data_provider_t, host_sel_report_validator_t,
-    data_quality_validator_long_t, data_quality_validator_occupancy_t,
-    data_quality_validator_pv_t, data_quality_validator_velo_t,
-    host_unmatched_seeding_validator_t, downstream_composite_dumper_t)
+    downstream_validator_t, host_veloscifi_dump_t, host_data_provider_t,
+    host_sel_report_validator_t, data_quality_validator_long_t,
+    data_quality_validator_occupancy_t, data_quality_validator_pv_t,
+    data_quality_validator_velo_t, host_unmatched_seeding_validator_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenConf.persistency import make_dec_reporter, make_gather_selections, make_routingbits_writer, rb_map
@@ -203,58 +202,6 @@ def seeding_unmatched_validation(seeding_tracks,
         dev_matched_is_scifi_track_used_t=velo_scifi_matches[
             "dev_matched_is_scifi_track_used"],
         host_mc_events_t=mc_events.host_mc_events_t)
-
-
-def downstream_dump(downstream_tracks,
-                    dump_scifi=True,
-                    dump_ut_hits=False,
-                    dump_downstream=False,
-                    dump_mcps=False,
-                    output_folder='dump_output'):
-    mc_events = mc_data_provider()
-    number_of_events = initialize_number_of_events()
-    ut_hits = downstream_tracks['decode_ut']
-    velo_scifi_matches = downstream_tracks['velo_scifi_matches']
-    seeding_tracks = downstream_tracks['scifi_seeds']
-    return make_algorithm(
-        host_downstream_dump_t,
-        name='DownstreamDump',
-        # Basic
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_mc_events_t=mc_events.host_mc_events_t,
-        # UT
-        dev_ut_hits_t=ut_hits['dev_ut_hits'],
-        dev_ut_hit_offsets_t=ut_hits['dev_ut_hit_offsets'],
-        # Scifi
-        dev_seeding_qop_t=seeding_tracks["dev_seeding_qop"],
-        # dev_seeding_chi2X_t=seeding_tracks["dev_seeding_chi2X"],
-        dev_seeding_chi2Y_t=seeding_tracks["dev_seeding_chi2Y"],
-        # dev_seeding_nY_t=seeding_tracks["dev_seeding_nY"],
-        dev_offsets_scifi_seeds_t=seeding_tracks["dev_offsets_scifi_seeds"],
-        dev_scifi_hits_t=seeding_tracks["dev_seeding_track_hits"],
-        dev_offsets_scifi_seed_hit_number_t=seeding_tracks[
-            "dev_offsets_scifi_seed_hit_number"],
-        dev_scifi_seeds_t=seeding_tracks["seed_tracks"],
-        dev_seeding_states_t=seeding_tracks["dev_seeding_states"],
-        # VeloScifi
-        dev_matched_is_scifi_track_used_t=velo_scifi_matches[
-            "dev_matched_is_scifi_track_used"],
-        # Downstream
-        dev_offsets_downstream_hit_numbers_t=downstream_tracks[
-            'dev_offsets_downstream_hit_numbers'],
-        dev_offsets_downstream_tracks_t=downstream_tracks[
-            'dev_offsets_downstream_tracks'],
-        dev_downstream_track_scifi_idx_t=downstream_tracks[
-            'dev_downstream_track_scifi_idx'],
-        dev_downstream_track_hits_t=downstream_tracks[
-            'dev_downstream_track_hits'],
-        dev_downstream_track_states_t=downstream_tracks[
-            'dev_downstream_track_states'],
-        dump_scifi=dump_scifi,
-        dump_ut_hits=dump_ut_hits,
-        dump_downstream=dump_downstream,
-        dump_mcps=dump_mcps,
-        output_folder=output_folder)
 
 
 def velo_scifi_dump(matched_tracks, name="veloscifi_dump"):
@@ -480,34 +427,3 @@ def data_quality_validation_occupancy(name="data_quality_validator"):
         dev_scifi_hit_offsets_t=decoded_scifi["dev_scifi_hit_offsets"],
         dev_scifi_seedsXZ_t=scifi_xz_seeds['seed_xz_number_of_tracks'],
         dev_ecal_clusters_offsets_t=ecal_clusters["dev_ecal_cluster_offsets"])
-
-
-def dump_downstream_secondary_vertices(
-        downstream_tracks,
-        downstream_secondary_vertices,
-        name="dump_downstream_secondary_vertices"):
-    mc_events = mc_data_provider()
-    number_of_events = initialize_number_of_events()
-
-    return make_algorithm(
-        downstream_composite_dumper_t,
-        name=name,
-        # Basics
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        host_mc_events_t=mc_events.host_mc_events_t,
-        # Long tracks
-        host_number_of_vertices_t=downstream_secondary_vertices[
-            "host_number_of_svs"],
-        dev_offset_vertices_t=downstream_secondary_vertices["dev_sv_offsets"],
-        dev_multi_event_composites_view_t=downstream_secondary_vertices[
-            "dev_multi_event_composites"],
-        # Extras
-        dev_downstream_mva_ks_t=downstream_secondary_vertices[
-            "dev_downstream_mva_ks"],
-        dev_downstream_mva_l0_t=downstream_secondary_vertices[
-            "dev_downstream_mva_l0"],
-        dev_downstream_mva_detached_ks_t=downstream_secondary_vertices[
-            "dev_downstream_mva_detached_ks"],
-        dev_downstream_mva_detached_l0_t=downstream_secondary_vertices[
-            "dev_downstream_mva_detached_l0"],
-    )

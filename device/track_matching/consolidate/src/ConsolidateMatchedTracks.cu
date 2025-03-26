@@ -80,7 +80,6 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
   if (has_ut) {
     global_function(matching_consolidate_tracks<true>)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
       arguments,
-      constants.dev_unique_x_sector_layer_offsets.data(),
       m_histogram_long_track_matching_eta.data(context),
       m_histogram_long_track_matching_phi.data(context),
       m_histogram_long_track_matching_nhits.data(context),
@@ -97,7 +96,6 @@ void matching_consolidate_tracks::matching_consolidate_tracks_t::operator()(
   else {
     global_function(matching_consolidate_tracks<false>)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
       arguments,
-      constants.dev_unique_x_sector_layer_offsets.data(),
       m_histogram_long_track_matching_eta.data(context),
       m_histogram_long_track_matching_phi.data(context),
       m_histogram_long_track_matching_nhits.data(context),
@@ -192,7 +190,6 @@ __global__ void matching_consolidate_tracks::matching_create_longtracks_views(
 template<bool has_ut>
 __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
   matching_consolidate_tracks::Parameters parameters,
-  const unsigned* dev_unique_x_sector_layer_offsets,
   [[maybe_unused]] Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_eta,
   [[maybe_unused]] Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_phi,
   [[maybe_unused]] Allen::Monitoring::Histogram<>::DeviceType dev_histogram_long_track_matching_nhits,
@@ -232,11 +229,8 @@ __global__ void matching_consolidate_tracks::matching_consolidate_tracks(
     const unsigned number_of_events = parameters.dev_number_of_events[0];
 
     // Input UT hits
-    const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-    const unsigned total_number_of_ut_hits =
-      parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
-    const UT::HitOffsets ut_hit_offsets {
-      parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+    const unsigned total_number_of_ut_hits = parameters.dev_ut_hit_offsets[number_of_events * UT::Constants::n_groups];
+    const UT::HitOffsets ut_hit_offsets {parameters.dev_ut_hit_offsets, event_number};
     const auto event_hit_offset = ut_hit_offsets.event_offset();
     UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_ut_hits, event_hit_offset};
 

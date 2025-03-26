@@ -10,19 +10,21 @@
 ###############################################################################
 file(GLOB UT_decoding "UTDecoding/src/*cu")
 file(GLOB UT_consolidate "consolidate/src/*cu")
-file(GLOB CompassUT_tracking "compassUT/src/*cu")
-file(GLOB UT_FilterUsedHits "FilterUsedHits/src/*cu")
+file(GLOB UT_selection "ut_selection/src/*cu")
+file(GLOB UT_ComapssUT "compass_ut/src/*cu")
+file(GLOB UT_decode "decode_ut/src/*cu")
 
 add_library(UTCommon INTERFACE)
 target_include_directories(UTCommon INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/common/include>)
 install(TARGETS UTCommon EXPORT Allen)
-
+ 
 allen_add_device_library(UT STATIC
   ${UT_decoding}
   ${UT_consolidate}
-  ${CompassUT_tracking}
-  ${UT_FilterUsedHits}
+  ${UT_selection}
+  ${UT_ComapssUT}
+  ${UT_decode}
 )
 
 target_link_libraries(UT
@@ -37,7 +39,8 @@ target_link_libraries(UT
 target_include_directories(UT PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/UTDecoding/include>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/consolidate/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/FilterUsedHits/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/compassUT/include>)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/compass_ut/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/decode_ut/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ut_selection/include>)
 
 target_link_libraries(WrapperInterface INTERFACE UTCommon)

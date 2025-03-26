@@ -152,7 +152,7 @@ void downstream_consolidate::downstream_consolidate_t::set_arguments_size(
 void downstream_consolidate::downstream_consolidate_t::operator()(
   const ArgumentReferences<Parameters>& arguments,
   const RuntimeOptions&,
-  const Constants& constants,
+  const Constants&,
   const Allen::Context& context) const
 {
   // Initialize container to avoid invalid std::function destructor
@@ -171,10 +171,7 @@ void downstream_consolidate::downstream_consolidate_t::operator()(
 
   // Fill the consolidation memory
   global_function(downstream_consolidate)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
-    arguments,
-    constants.dev_unique_x_sector_layer_offsets.data(),
-    m_histogram_n_downstream_tracks.data(context),
-    m_downstream_tracks.data(context));
+    arguments, m_histogram_n_downstream_tracks.data(context), m_downstream_tracks.data(context));
 
   // Create views
   global_function(downstream_create_tracks_view)(dim3(first<host_number_of_events_t>(arguments)), 256, context)(
@@ -186,7 +183,6 @@ void downstream_consolidate::downstream_consolidate_t::operator()(
 
 __global__ void downstream_consolidate::downstream_consolidate(
   downstream_consolidate::Parameters parameters,
-  const unsigned* dev_unique_x_sector_layer_offsets,
   // Monitoring
   Allen::Monitoring::Histogram<>::DeviceType dev_histogram_n_downstream_tracks,
   Allen::Monitoring::AveragingCounter<>::DeviceType dev_n_downstream_tracks_counter)
@@ -213,10 +209,8 @@ __global__ void downstream_consolidate::downstream_consolidate(
     parameters.dev_offsets_downstream_hit_numbers[downstream_total_number_of_tracks];
 
   // Input UT hits
-  const unsigned number_of_unique_x_sectors = dev_unique_x_sector_layer_offsets[UT::Constants::n_layers];
-  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * number_of_unique_x_sectors];
-  const UT::HitOffsets ut_hit_offsets {
-    parameters.dev_ut_hit_offsets, event_number, number_of_unique_x_sectors, dev_unique_x_sector_layer_offsets};
+  const unsigned total_number_of_hits = parameters.dev_ut_hit_offsets[number_of_events * UT::Constants::n_groups];
+  const UT::HitOffsets ut_hit_offsets {parameters.dev_ut_hit_offsets, event_number};
   const auto event_hit_offset = ut_hit_offsets.event_offset();
   UT::ConstHits ut_hits {parameters.dev_ut_hits, total_number_of_hits, event_hit_offset};
 
