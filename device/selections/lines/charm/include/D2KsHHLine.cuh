@@ -133,8 +133,6 @@ namespace d2kshh_line {
       bool);
 
     using monitoring_types = std::tuple<
-      evtNo_t,
-      runNo_t,
       sv_masses_t,
       p_t,
       pt_t,
@@ -147,7 +145,9 @@ namespace d2kshh_line {
       v1_minip_t,
       v2_minip_t,
       msqp_t,
-      msqm_t>;
+      msqm_t,
+      evtNo_t,
+      runNo_t>;
 
   private:
     Allen::Property<float> m_maxVertexChi2 {this, "maxVertexChi2", 20.f, "max VertexChi2 of the two vertices"};

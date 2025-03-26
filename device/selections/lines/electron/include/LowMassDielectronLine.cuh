@@ -41,6 +41,8 @@ namespace lowmass_dielectron_line {
     DEVICE_OUTPUT(dev_die_minipchi2_t, float) dev_die_minipchi2;
     DEVICE_OUTPUT(dev_die_ip_t, float) dev_die_ip;
     DEVICE_OUTPUT(dev_electron_nn_t, float) dev_electron_nn;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
   };
 
   struct lowmass_dielectron_line_t : public SelectionAlgorithm,
@@ -79,7 +81,19 @@ namespace lowmass_dielectron_line {
 
     __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, unsigned>
     get_input(const Parameters&, const unsigned, const unsigned);
-    void set_arguments_size(ArgumentReferences<Parameters>, const RuntimeOptions&, const Constants&) const;
+
+    using monitoring_types = std::tuple<
+      dev_die_masses_raw_t,
+      dev_die_masses_bremcorr_t,
+      dev_die_pts_raw_t,
+      dev_die_pts_bremcorr_t,
+      dev_e_minpts_raw_t,
+      dev_e_minpt_bremcorr_t,
+      dev_die_minipchi2_t,
+      dev_die_ip_t,
+      dev_electron_nn_t,
+      evtNo_t,
+      runNo_t>;
 
     __device__ static void fill_tuples(
       const Parameters&,
@@ -87,17 +101,6 @@ namespace lowmass_dielectron_line {
       std::tuple<const Allen::Views::Physics::CompositeParticle, unsigned>,
       unsigned,
       bool);
-
-    using monitoring_types = std::tuple<
-      dev_die_masses_raw_t,
-      dev_die_masses_bremcorr_t,
-      dev_die_pts_raw_t,
-      dev_die_pts_bremcorr_t,
-      dev_die_minipchi2_t,
-      dev_die_ip_t,
-      dev_e_minpts_raw_t,
-      dev_e_minpt_bremcorr_t,
-      dev_electron_nn_t>;
 
   private:
     Allen::Property<bool> m_selectPrompt {this,

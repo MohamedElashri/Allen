@@ -26,7 +26,8 @@ def make_downstream_kshort_line(downstream_tracks,
                                 mva_ks_threshold=0.5,
                                 mva_detached_ks_threshold=0.5,
                                 name='Hlt1DownstreamKsToPiPi',
-                                enable_monitoring=False):
+                                enable_monitoring=False,
+                                enable_tupling=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -48,7 +49,8 @@ def make_downstream_kshort_line(downstream_tracks,
             "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
-        post_scaler=post_scaler)
+        post_scaler=post_scaler,
+        enable_tupling=enable_tupling)
 
 
 @configurable
@@ -60,7 +62,8 @@ def make_downstream_lambda_line(downstream_tracks,
                                 mva_l0_threshold=0.5,
                                 mva_detached_l0_threshold=0.5,
                                 name='Hlt1DownstreamLambdaToPPi',
-                                enable_monitoring=False):
+                                enable_monitoring=False,
+                                enable_tupling=False):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -82,7 +85,8 @@ def make_downstream_lambda_line(downstream_tracks,
             "dev_multi_event_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
-        post_scaler=post_scaler)
+        post_scaler=post_scaler,
+        enable_tupling=enable_tupling)
 
 
 @configurable

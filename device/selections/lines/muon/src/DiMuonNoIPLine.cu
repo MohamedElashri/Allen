@@ -82,6 +82,7 @@ __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::monitor(
     }
   }
 }
+
 __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
@@ -89,8 +90,10 @@ __device__ void di_muon_no_ip_line::di_muon_no_ip_line_t::fill_tuples(
   unsigned index,
   bool sel)
 {
-  const auto min_nn = std::get<1>(input);
   if (sel) {
-    parameters.dev_muon_nn[index] = min_nn;
+    const auto particle = std::get<0>(input);
+    parameters.ipchi2[index] = particle.minipchi2();
+    parameters.pt[index] = particle.minpt();
+    parameters.dev_muon_nn[index] = std::get<1>(input);
   }
 }

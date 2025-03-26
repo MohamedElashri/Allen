@@ -55,7 +55,12 @@ __device__ void downstream_kstopipi_line::downstream_kstopipi_line_t::fill_tuple
 {
   if (sel) {
     const auto ks = std::get<0>(input);
+    const auto idx = std::get<1>(input);
+    const auto& ks_mva = parameters.dev_downstream_mva_ks[idx];
+    const auto& detached_ks_mva = parameters.dev_downstream_mva_detached_ks[idx];
     parameters.ks_mass[index] = ks.m12(Allen::mPi, Allen::mPi);
     parameters.ks_pt[index] = ks.vertex().pt();
+    parameters.mva_ks_detached[index] = detached_ks_mva;
+    parameters.mva_ks_prompt[index] = ks_mva;
   }
 }

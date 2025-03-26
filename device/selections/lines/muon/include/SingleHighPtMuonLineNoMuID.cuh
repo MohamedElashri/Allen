@@ -22,6 +22,10 @@ namespace single_high_pt_muon_no_muid_line {
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
+
+    DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
   };
 
   struct single_high_pt_muon_no_muid_line_t : public SelectionAlgorithm,
@@ -39,6 +43,15 @@ namespace single_high_pt_muon_no_muid_line {
     };
     __device__ static bool
     select(const Parameters&, const DeviceProperties&, std::tuple<const Allen::Views::Physics::BasicParticle> input);
+
+    __device__ static void fill_tuples(
+      const Parameters& parameters,
+      const DeviceProperties&,
+      std::tuple<const Allen::Views::Physics::BasicParticle> input,
+      unsigned index,
+      bool sel);
+
+    using monitoring_types = std::tuple<pt_t, evtNo_t, runNo_t>;
 
   private:
     Allen::Property<float> m_maxChi2Ndof {this, "maxChi2Ndof", 100.f, "maxChi2Ndof description"};

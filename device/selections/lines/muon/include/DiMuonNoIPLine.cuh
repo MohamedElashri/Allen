@@ -34,6 +34,9 @@ namespace di_muon_no_ip_line {
     DEVICE_OUTPUT(dev_is_dimuon_t, bool) dev_is_dimuon;
     DEVICE_OUTPUT(dev_pt_t, float) dev_pt;
     DEVICE_OUTPUT(dev_muon_nn_t, float) dev_muon_nn;
+    DEVICE_OUTPUT(dev_eventNum_t, int16_t) dev_eventNum;
+    DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
 
@@ -91,7 +94,8 @@ namespace di_muon_no_ip_line {
       std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
       unsigned index,
       bool sel);
-    using monitoring_types = std::tuple<dev_muon_nn_t, evtNo_t, runNo_t>;
+
+    using monitoring_types = std::tuple<dev_muon_nn_t, pt_t, ipchi2_t, evtNo_t, runNo_t>;
 
   private:
     Allen::Monitoring::LogHistogram<> m_histogram_prompt_q {this,
