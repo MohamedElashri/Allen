@@ -65,15 +65,18 @@ __device__ void downstream_lambdatoppi_line::downstream_lambdatoppi_line_t::fill
 {
   if (sel) {
     const auto l0 = std::get<0>(input);
+    const auto idx = std::get<1>(input);
+    const auto& l0_mva = parameters.dev_downstream_mva_l0[idx];
+    const auto& detached_l0_mva = parameters.dev_downstream_mva_detached_l0[idx];
 
     const auto c0 = static_cast<const Allen::Views::Physics::BasicParticle*>(l0.child(0));
     const auto c1 = static_cast<const Allen::Views::Physics::BasicParticle*>(l0.child(1));
 
     const auto l0_mass =
       c0->state().p() > c1->state().p() ? l0.m12(Allen::mP, Allen::mPi) : l0.m12(Allen::mPi, Allen::mP);
-    const float pt = l0.vertex().pt();
-
     parameters.l0_mass[index] = l0_mass;
-    parameters.l0_pt[index] = pt;
+    parameters.l0_pt[index] = l0.vertex().pt();
+    parameters.mva_l0_detached[index] = detached_l0_mva;
+    parameters.mva_l0_prompt[index] = l0_mva;
   }
 }

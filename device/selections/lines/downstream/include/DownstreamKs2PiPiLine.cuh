@@ -30,6 +30,10 @@ namespace downstream_kstopipi_line {
     host_fn_parameters;
     DEVICE_OUTPUT(ks_mass_t, float) ks_mass;
     DEVICE_OUTPUT(ks_pt_t, float) ks_pt;
+    DEVICE_OUTPUT(mva_ks_detached_t, float) mva_ks_detached;
+    DEVICE_OUTPUT(mva_ks_prompt_t, float) mva_ks_prompt;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
   };
 
   struct downstream_kstopipi_line_t : public SelectionAlgorithm,
@@ -49,7 +53,7 @@ namespace downstream_kstopipi_line {
       {}
     };
 
-    using monitoring_types = std::tuple<ks_mass_t, ks_pt_t>;
+    using monitoring_types = std::tuple<ks_mass_t, ks_pt_t, mva_ks_detached_t, mva_ks_prompt_t, evtNo_t, runNo_t>;
 
     __device__ static bool select(
       const Parameters&,

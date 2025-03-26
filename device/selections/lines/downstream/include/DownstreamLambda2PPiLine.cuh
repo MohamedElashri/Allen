@@ -30,6 +30,10 @@ namespace downstream_lambdatoppi_line {
     host_fn_parameters;
     DEVICE_OUTPUT(l0_mass_t, float) l0_mass;
     DEVICE_OUTPUT(l0_pt_t, float) l0_pt;
+    DEVICE_OUTPUT(mva_l0_detached_t, float) mva_l0_detached;
+    DEVICE_OUTPUT(mva_l0_prompt_t, float) mva_l0_prompt;
+    DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
+    DEVICE_OUTPUT(runNo_t, unsigned) runNo;
   };
 
   struct downstream_lambdatoppi_line_t : public SelectionAlgorithm,
@@ -49,7 +53,7 @@ namespace downstream_lambdatoppi_line {
       {}
     };
 
-    using monitoring_types = std::tuple<l0_mass_t, l0_pt_t>;
+    using monitoring_types = std::tuple<l0_mass_t, l0_pt_t, mva_l0_detached_t, mva_l0_prompt_t, evtNo_t, runNo_t>;
 
     __device__ static bool select(
       const Parameters&,

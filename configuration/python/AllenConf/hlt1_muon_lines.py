@@ -77,6 +77,7 @@ def make_single_high_pt_muon_no_muid_line(long_tracks,
                                           name="Hlt1SingleHighPtMuonNoMuID",
                                           pre_scaler_hash_string=None,
                                           post_scaler_hash_string=None,
+                                          enable_tupling=False,
                                           pre_scaler=0.05,
                                           singleMinPt=8000):
     number_of_events = initialize_number_of_events()
@@ -92,6 +93,7 @@ def make_single_high_pt_muon_no_muid_line(long_tracks,
             "host_number_of_reconstructed_scifi_tracks"],
         dev_particle_container_t=long_track_particles[
             "dev_multi_event_basic_particles"],
+        enable_tupling=enable_tupling,
         singleMinPt=singleMinPt)
 
 

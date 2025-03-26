@@ -98,14 +98,16 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 mva_ks_threshold=0.55,
                 mva_detached_ks_threshold=0.55,
                 name="Hlt1DownstreamKsToPiPi",
-                enable_monitoring=True),
+                enable_monitoring=True,
+                enable_tupling=enable_tupling),
             make_downstream_lambda_line(
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
                 mva_l0_threshold=0.5,
                 mva_detached_l0_threshold=0.5,
                 name="Hlt1DownstreamLambdaToPPi",
-                enable_monitoring=True),
+                enable_monitoring=True,
+                enable_tupling=enable_tupling),
             make_downstream_kshort_line(
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
@@ -113,7 +115,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 mva_ks_threshold=0.5,
                 mva_detached_ks_threshold=0.,
                 name="Hlt1DownstreamPromptKsToPiPi",
-                enable_monitoring=True),
+                enable_monitoring=True,
+                enable_tupling=enable_tupling),
             make_downstream_lambda_line(
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
@@ -121,7 +124,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 mva_l0_threshold=0.5,
                 mva_detached_l0_threshold=0.,
                 name="Hlt1DownstreamPromptLambdaToPPi",
-                enable_monitoring=True),
+                enable_monitoring=True,
+                enable_tupling=enable_tupling),
             make_BuSca_line(
                 reconstructed_objects['downstream_tracks'],
                 reconstructed_objects['downstream_secondary_vertices'],
@@ -241,6 +245,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 long_tracks,
                 long_track_particles,
                 name="Hlt1SingleHighPtMuonNoMuID",
+                enable_tupling=enable_tupling,
                 singleMinPt=thresholds.SingleHighPtLepton_pt),
             make_di_muon_mass_line(
                 long_tracks,
@@ -308,7 +313,12 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 enable_tupling=enable_tupling,
                 alpha=thresholds.TrackMuonMVA_alpha),
             make_di_muon_no_ip_line(
-                long_tracks, dileptons, muonid, maxVertexChi2=9, minNN=0.95),
+                long_tracks,
+                dileptons,
+                muonid,
+                maxVertexChi2=9,
+                minNN=0.95,
+                enable_tupling=enable_tupling),
             make_di_muon_no_ip_line(
                 long_tracks,
                 dileptons,
@@ -318,6 +328,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 name="Hlt1DiMuonNoIP_SS",
                 pre_scaler_hash_string="di_muon_no_ip_ss_line_pre",
                 post_scaler_hash_string="di_muon_no_ip_ss_line_post",
+                enable_tupling=enable_tupling,
                 ss_on=True,
                 post_scaler=.01),
             make_di_muon_mass_line(
@@ -331,7 +342,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 maxDoca=0.2,
                 maxVertexChi2=9,
                 minIPChi2=-1,
-                enable_tupling=False,
+                enable_tupling=enable_tupling,
                 minMuonNN=0.8,
                 useNN=True,
                 vetoSharedHits=True,
@@ -347,7 +358,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 maxDoca=0.2,
                 maxVertexChi2=9,
                 minIPChi2=-1,
-                enable_tupling=False,
+                enable_tupling=enable_tupling,
                 minMuonNN=0.8,
                 useNN=True,
                 vetoSharedHits=True,
@@ -530,7 +541,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 "selectPrompt": "NoIP" in subSample,
                 "useNN": True,
                 "nnCut": 0.94 if subSample == "NoIP" else 0.75,
-                "enable_monitoring": True
+                "enable_monitoring": True,
+                "enable_tupling": enable_tupling
             }
             lines.append(
                 make_lowmass_dielectron_line(
@@ -750,7 +762,7 @@ def default_SMOG2_lines(reconstructed_objects,
             minTrackIPCHI2=7.,
             name="Hlt1SMOG22BodyGeneric",
             enable_monitoring=False,
-            enable_tupling=False,
+            enable_tupling=enable_tupling,
             pre_scaler=0.3),
         make_SMOG2_ditrack_line(
             prompt_dihadrons,
@@ -760,7 +772,7 @@ def default_SMOG2_lines(reconstructed_objects,
             max_z=max_z,
             minTrackIPCHI2=0.,
             enable_monitoring=False,
-            enable_tupling=False,
+            enable_tupling=enable_tupling,
             name="Hlt1SMOG22BodyGenericPrompt",
             pre_scaler=0.01),
         make_SMOG2_singletrack_line(
@@ -1050,7 +1062,8 @@ def setup_hlt1_node(enablePhysics=True,
                     with_fullKF=False,
                     track_max_chi2ndof=10.0,
                     enabled_lines=[r'.*?'],
-                    disabled_lines=[]):
+                    disabled_lines=[],
+                    user_hooks=False):
 
     hlt1_config = {}
     # Reconstruct objects needed as input for selection lines
@@ -1325,6 +1338,8 @@ def setup_hlt1_node(enablePhysics=True,
             ],
             NodeLogic.NONLAZY_AND,
             force_order=True)
+    if user_hooks != False: hlt1_node = user_hooks(hlt1_node)
+
     if data_quality:
         # Forward reconstructed long tracks are needed for that module
         # Matching method is already used in reconstructed_objects

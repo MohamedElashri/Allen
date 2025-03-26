@@ -164,8 +164,11 @@ public:
       arguments, sizeof(type_erased_tuple_t<Derived, Parameters>));
 
     if constexpr (Allen::has_monitoring_types<Derived>::value) {
-      set_size_functor ssf(arguments, Derived::get_decisions_size(arguments));
-      for_each<set_size_functor, typename Derived::monitoring_types>(ssf);
+      auto derived_instance = static_cast<const Derived*>(this);
+      if (derived_instance->template get_property<bool>("enable_tupling")) {
+        set_size_functor ssf(arguments, Derived::get_decisions_size(arguments));
+        for_each<set_size_functor, typename Derived::monitoring_types>(ssf);
+      }
     }
   }
 

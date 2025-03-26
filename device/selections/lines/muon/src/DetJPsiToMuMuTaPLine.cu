@@ -66,7 +66,7 @@ __device__ void det_jpsitomumu_tap_line::det_jpsitomumu_tap_line_t::fill_tuples(
   const auto muprobe = properties.posTag ? (track1->state().charge() > 0 ? track2 : track1) :
                                            (track1->state().charge() > 0 ? track1 : track2);
 
-  if (1) {
+  if (sel) {
 
     parameters.decision[index] = sel;
     parameters.jpsi_mass[index] = jpsi.mdimu();

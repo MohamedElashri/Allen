@@ -102,29 +102,6 @@ __device__ bool lowmass_dielectron_line::lowmass_dielectron_line_t::select(
   return decision;
 }
 
-void lowmass_dielectron_line::lowmass_dielectron_line_t::set_arguments_size(
-  ArgumentReferences<Parameters> arguments,
-  const RuntimeOptions& runtime_options,
-  const Constants& constants) const
-{
-  static_cast<Line const*>(this)->set_arguments_size(arguments, runtime_options, constants);
-  set_size<dev_die_masses_raw_t>(
-    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
-  set_size<dev_die_masses_bremcorr_t>(
-    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
-  set_size<dev_die_pts_raw_t>(
-    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
-  set_size<dev_die_pts_bremcorr_t>(
-    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
-  set_size<dev_e_minpts_raw_t>(
-    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
-  set_size<dev_e_minpt_bremcorr_t>(
-    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
-  set_size<dev_die_minipchi2_t>(
-    arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
-  set_size<dev_die_ip_t>(arguments, lowmass_dielectron_line::lowmass_dielectron_line_t::get_decisions_size(arguments));
-}
-
 __device__ void lowmass_dielectron_line::lowmass_dielectron_line_t::fill_tuples(
   const Parameters& parameters,
   const DeviceProperties&,
