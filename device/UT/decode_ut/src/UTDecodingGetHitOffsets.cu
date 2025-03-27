@@ -34,6 +34,15 @@ void ut_decoding_get_hit_offsets::ut_decoding_get_hit_offsets_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
+  const auto num_banks = first<host_total_number_of_ut_banks_t>(arguments);
+
+  // If there's not any valid UT bank, skipt it
+  if (num_banks == 0) {
+    Allen::memset_async<dev_ut_lanes_hit_offsets_t>(arguments, 0, context);
+    Allen::memset_async<host_total_number_of_ut_hits_t>(arguments, 0, context);
+    return;
+  }
+
   // Basics
   const auto event_start = std::get<0>(runtime_options.event_interval);
 

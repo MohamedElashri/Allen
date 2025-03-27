@@ -28,6 +28,15 @@ void ut_decoding_get_bank_offsets::ut_decoding_get_bank_offsets_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
+  auto const bank_version = first<host_raw_bank_version_t>(arguments);
+
+  // Protect no UT sequence
+  if (bank_version < 0) {
+    Allen::memset_async<dev_ut_banks_offsets_t>(arguments, 0, context);
+    Allen::memset_async<host_total_number_of_ut_banks_t>(arguments, 0, context);
+    return;
+  }
+
   // Basics
   const auto event_start = std::get<0>(runtime_options.event_interval);
 
