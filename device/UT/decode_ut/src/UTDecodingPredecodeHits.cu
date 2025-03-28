@@ -35,6 +35,13 @@ void ut_decoding_predecode_hits::ut_decoding_predecode_hits_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
+  const auto num_hits = first<host_total_number_of_ut_hits_t>(arguments);
+
+  // If there's not any UT hit, we should skip it
+  if (num_hits == 0) {
+    Allen::memset_async<dev_ut_predecoded_event_offsets_t>(arguments, 0, context);
+    return;
+  }
 
   // Bank dependent info
   auto const bank_version = first<host_raw_bank_version_t>(arguments);

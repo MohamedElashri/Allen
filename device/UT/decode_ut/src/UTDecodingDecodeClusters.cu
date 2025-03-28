@@ -31,6 +31,11 @@ void ut_decoding_decode_clusters::ut_decoding_decode_clusters_t::operator()(
   // Basics
   const auto num_clusters = first<host_ut_num_clusters_t>(arguments);
 
+  // If there's not UT cluster at all, we skip it
+  if (num_clusters == 0) {
+    return;
+  }
+
   // Bank dependent info
   auto const bank_version = first<host_raw_bank_version_t>(arguments);
 
