@@ -94,6 +94,7 @@ Hlt1DiMuonNoIPNorm_SS:                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonNoIP_SS:                       0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiMuonSoft:                          0/   500, (    0.00 +/-     0.00) kHz
 Hlt1DiPhotonHighMass:                    3/   500, (  180.00 +/-   103.61) kHz
+Hlt1DiProtonHighMass:                    0/   500, (    0.00 +/-     0.00) kHz
 Hlt1Dst2D0Pi:                            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1Dst2D0PiAlignment:                   0/   500, (    0.00 +/-     0.00) kHz
 Hlt1ErrorBank:                           0/   500, (    0.00 +/-     0.00) kHz
@@ -192,6 +193,7 @@ Hlt1DiMuonNoIPNorm_SS:                   0           0
 Hlt1DiMuonNoIP_SS:                       0           0
 Hlt1DiMuonSoft:                          0           0
 Hlt1DiPhotonHighMass:                    3           6
+Hlt1DiProtonHighMass:                    0           0
 Hlt1Dst2D0Pi:                            0           0
 Hlt1Dst2D0PiAlignment:                   0           0
 Hlt1ErrorBank:                           0           0
