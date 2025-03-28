@@ -9,12 +9,11 @@
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
 from AllenCore.algorithms import (
-    data_provider_t, velo_calculate_number_of_candidates_t,
-    velo_estimate_input_size_t, velo_masked_clustering_t, velo_sparse_ccl_t,
-    velo_sort_by_phi_t, velo_search_by_triplet_t,
-    velo_three_hit_tracks_filter_t, velo_copy_track_hit_number_t,
-    velo_consolidate_tracks_t, tracks_ACsplit_counters_t, tracks_ACsplit_t,
-    velo_kalman_filter_t, count_materialinteraction_candidates_t,
+    data_provider_t, velo_calculate_number_of_candidates_t, velo_sparse_ccl_t,
+    velo_search_by_triplet_t, velo_three_hit_tracks_filter_t,
+    velo_copy_track_hit_number_t, velo_consolidate_tracks_t,
+    tracks_ACsplit_counters_t, tracks_ACsplit_t, velo_kalman_filter_t,
+    count_materialinteraction_candidates_t,
     fill_materialinteraction_candidates_t,
     calculate_number_of_retinaclusters_each_sensor_pair_t,
     decode_retinaclusters_t)
@@ -24,7 +23,7 @@ from PyConf.tonic import configurable
 
 
 @configurable
-def decode_velo(retina_decoding=True, use_sparse_ccl=True):
+def decode_velo(retina_decoding=True):
     number_of_events = initialize_number_of_events()
 
     if retina_decoding:
@@ -86,111 +85,35 @@ def decode_velo(retina_decoding=True, use_sparse_ccl=True):
             dev_velo_raw_input_t=velo_banks.dev_raw_banks_t,
             dev_velo_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
             dev_velo_raw_input_sizes_t=velo_banks.dev_raw_sizes_t,
-            dev_velo_raw_input_types_t=velo_banks.dev_raw_types_t,
-            count_candidates=not use_sparse_ccl)
+            dev_velo_raw_input_types_t=velo_banks.dev_raw_types_t)
 
-        if not use_sparse_ccl:
-            velo_estimate_input_size = make_algorithm(
-                velo_estimate_input_size_t,
-                name="velo_estimate_input_size",
-                host_number_of_events_t=number_of_events[
-                    "host_number_of_events"],
-                host_number_of_cluster_candidates_t=
-                velo_calculate_number_of_candidates.
-                host_number_of_cluster_candidates_t,
-                host_raw_bank_version_t=velo_banks.host_raw_bank_version_t,
-                dev_superpixels_t=velo_calculate_number_of_candidates.
-                dev_superpixels_t,
-                dev_superpixels_offsets_t=velo_calculate_number_of_candidates.
-                dev_superpixels_offsets_t,
-                dev_candidates_offsets_t=velo_calculate_number_of_candidates.
-                dev_candidates_offsets_t)
+        velo_sparse_ccl = make_algorithm(
+            velo_sparse_ccl_t,
+            name="velo_sparse_ccl",
+            host_number_of_events_t=number_of_events["host_number_of_events"],
+            host_raw_bank_version_t=velo_banks.host_raw_bank_version_t,
+            dev_superpixels_t=velo_calculate_number_of_candidates.
+            dev_superpixels_t,
+            dev_superpixels_offsets_t=velo_calculate_number_of_candidates.
+            dev_superpixels_offsets_t,
+            host_total_number_of_superpixels_t=
+            velo_calculate_number_of_candidates.
+            host_total_number_of_superpixels_t,
+            dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        )
 
-            velo_masked_clustering = make_algorithm(
-                velo_masked_clustering_t,
-                name="velo_masked_clustering",
-                host_total_number_of_velo_clusters_t=velo_estimate_input_size.
-                host_total_number_of_velo_clusters_t,
-                host_number_of_events_t=number_of_events[
-                    "host_number_of_events"],
-                host_raw_bank_version_t=velo_banks.host_raw_bank_version_t,
-                dev_superpixels_t=velo_calculate_number_of_candidates.
-                dev_superpixels_t,
-                dev_superpixels_offsets_t=velo_calculate_number_of_candidates.
-                dev_superpixels_offsets_t,
-                dev_offsets_estimated_input_size_t=velo_estimate_input_size.
-                dev_offsets_estimated_input_size_t,
-                dev_module_candidate_num_t=velo_estimate_input_size.
-                dev_module_candidate_num_t,
-                dev_cluster_candidates_t=velo_estimate_input_size.
-                dev_cluster_candidates_t,
-                dev_candidates_offsets_t=velo_calculate_number_of_candidates.
-                dev_candidates_offsets_t,
-                dev_number_of_events_t=number_of_events[
-                    "dev_number_of_events"],
-                dev_velo_bank_index_t=velo_calculate_number_of_candidates.
-                dev_velo_bank_index_t)
-
-            velo_sort_by_phi = make_algorithm(
-                velo_sort_by_phi_t,
-                name="velo_sort_by_phi",
-                host_number_of_events_t=number_of_events[
-                    "host_number_of_events"],
-                host_total_number_of_velo_clusters_t=velo_estimate_input_size.
-                host_total_number_of_velo_clusters_t,
-                dev_offsets_estimated_input_size_t=velo_estimate_input_size.
-                dev_offsets_estimated_input_size_t,
-                dev_module_cluster_num_t=velo_masked_clustering.
-                dev_module_cluster_num_t,
-                dev_velo_cluster_container_t=velo_masked_clustering.
-                dev_velo_cluster_container_t,
-                dev_number_of_events_t=number_of_events[
-                    "dev_number_of_events"],
-                dev_velo_clusters_t=velo_masked_clustering.dev_velo_clusters_t)
-
-            return {
-                "dev_sorted_velo_cluster_container":
-                velo_sort_by_phi.dev_sorted_velo_cluster_container_t,
-                "dev_module_cluster_num":
-                velo_masked_clustering.dev_module_cluster_num_t,
-                "dev_offsets_estimated_input_size":
-                velo_estimate_input_size.dev_offsets_estimated_input_size_t,
-                "host_total_number_of_velo_clusters":
-                velo_estimate_input_size.host_total_number_of_velo_clusters_t,
-                "dev_velo_clusters":
-                velo_masked_clustering.dev_velo_clusters_t
-            }
-
-        else:
-            velo_sparse_ccl = make_algorithm(
-                velo_sparse_ccl_t,
-                name="velo_sparse_ccl",
-                host_number_of_events_t=number_of_events[
-                    "host_number_of_events"],
-                host_raw_bank_version_t=velo_banks.host_raw_bank_version_t,
-                dev_superpixels_t=velo_calculate_number_of_candidates.
-                dev_superpixels_t,
-                dev_superpixels_offsets_t=velo_calculate_number_of_candidates.
-                dev_superpixels_offsets_t,
-                host_total_number_of_superpixels_t=
-                velo_calculate_number_of_candidates.
-                host_total_number_of_superpixels_t,
-                dev_number_of_events_t=number_of_events[
-                    "dev_number_of_events"],
-            )
-
-            return {
-                "dev_sorted_velo_cluster_container":
-                velo_sparse_ccl.dev_sorted_velo_cluster_container_t,
-                "dev_module_cluster_num":
-                velo_sparse_ccl.dev_module_pair_cluster_num_t,
-                "dev_offsets_estimated_input_size":
-                velo_sparse_ccl.dev_module_pair_cluster_offset_t,
-                "host_total_number_of_velo_clusters":
-                velo_sparse_ccl.host_total_number_of_clusters_t,
-                "dev_velo_clusters":
-                velo_sparse_ccl.dev_velo_clusters_t
-            }
+        return {
+            "dev_sorted_velo_cluster_container":
+            velo_sparse_ccl.dev_sorted_velo_cluster_container_t,
+            "dev_module_cluster_num":
+            velo_sparse_ccl.dev_module_pair_cluster_num_t,
+            "dev_offsets_estimated_input_size":
+            velo_sparse_ccl.dev_module_pair_cluster_offset_t,
+            "host_total_number_of_velo_clusters":
+            velo_sparse_ccl.host_total_number_of_clusters_t,
+            "dev_velo_clusters":
+            velo_sparse_ccl.dev_velo_clusters_t
+        }
 
 
 def make_pr_velo_tracks(decoded_velo):

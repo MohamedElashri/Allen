@@ -64,10 +64,6 @@ namespace UT::Constants {
 struct Constants {
 
   // Velo related
-  gsl::span<uint8_t> dev_velo_candidate_ks;
-  gsl::span<uint8_t> dev_velo_sp_patterns;
-  gsl::span<float> dev_velo_sp_fx;
-  gsl::span<float> dev_velo_sp_fy;
   VeloGeometry* dev_velo_geometry = nullptr;
 
   // UT related

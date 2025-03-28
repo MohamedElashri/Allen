@@ -19,7 +19,6 @@ install(TARGETS NonEventDataHeaders EXPORT Allen)
 
 target_link_libraries(NonEventData
   PRIVATE
-    HostClustering
     AllenRuntime
     AllenCommon
     HostCommon
