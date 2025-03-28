@@ -97,7 +97,6 @@ Link the new library "Examples" to the stream library in `stream/CMakeLists.txt`
     Velo
     AllenPatPV
     PV_beamline
-    HostClustering
     UT
     Kalman
     VertexFitter

@@ -10,36 +10,36 @@
 \*****************************************************************************/
 #pragma once
 
-#include <cstdint>
-#include <cassert>
-#include "BackendCommon.h"
-#include "VeloDefinitions.cuh"
-#include "VeloEventModel.cuh"
 #include "AlgorithmTypes.cuh"
-#include "VeloTools.cuh"
+#include "ClusteringDefinitions.cuh"
 
-namespace velo_sort_by_phi {
+namespace velo_calculate_number_of_candidates {
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
-    HOST_INPUT(host_total_number_of_velo_clusters_t, unsigned) host_total_number_of_velo_clusters;
+    HOST_INPUT(host_raw_bank_version_t, int) host_raw_bank_version;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    DEVICE_INPUT(dev_offsets_estimated_input_size_t, unsigned) dev_offsets_estimated_input_size;
-    DEVICE_INPUT(dev_module_cluster_num_t, unsigned) dev_module_cluster_num;
-    DEVICE_INPUT(dev_velo_cluster_container_t, char) dev_velo_cluster_container;
-    DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
-    DEVICE_OUTPUT(dev_sorted_velo_cluster_container_t, char) dev_sorted_velo_cluster_container;
-    DEVICE_OUTPUT(dev_hit_permutation_t, unsigned) dev_hit_permutation;
-    DEVICE_OUTPUT(dev_hit_sorting_key_t, int64_t) dev_hit_sorting_key;
-    DEVICE_INPUT(dev_velo_clusters_t, Velo::Clusters) dev_velo_clusters;
+    DEVICE_INPUT(dev_velo_raw_input_t, char) dev_velo_raw_input;
+    DEVICE_INPUT(dev_velo_raw_input_offsets_t, unsigned) dev_velo_raw_input_offsets;
+    DEVICE_INPUT(dev_velo_raw_input_sizes_t, unsigned) dev_velo_raw_input_sizes;
+    DEVICE_INPUT(dev_velo_raw_input_types_t, unsigned) dev_velo_raw_input_types;
+
+    DEVICE_OUTPUT(dev_superpixels_offsets_t, unsigned) dev_superpixels_offsets;
+    DEVICE_OUTPUT(dev_superpixels_module_pair_offsets_t, unsigned) dev_superpixels_module_pair_offsets;
+    DEVICE_OUTPUT(dev_superpixels_t, unsigned) dev_superpixels;
+    HOST_OUTPUT(host_total_number_of_superpixels_t, unsigned) host_total_number_of_superpixels;
   };
 
-  struct velo_sort_by_phi_t : public DeviceAlgorithm, Parameters {
+  // Algorithm
+  struct velo_calculate_number_of_candidates_t : public DeviceAlgorithm, Parameters {
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
       const ArgumentReferences<Parameters>& arguments,
-      const RuntimeOptions&,
+      const RuntimeOptions& runtime_options,
       const Constants&,
       const Allen::Context& context) const;
+
+  private:
+    Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 256, "block dimension X"};
   };
-} // namespace velo_sort_by_phi
+} // namespace velo_calculate_number_of_candidates

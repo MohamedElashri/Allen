@@ -714,12 +714,10 @@ target_link_libraries(AllenLib
     Associate
     Backend
     Calo
-    CheckClustering
     Combiners
     DeviceValidators
     EventModel
     Examples
-    HostClustering
     HostCombiners
     HostDataProvider
     HostDummyMaker

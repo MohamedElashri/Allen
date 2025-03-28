@@ -16,47 +16,6 @@
 INSTANTIATE_ALGORITHM(velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t)
 
 template<int decoding_version, bool mep_layout>
-__global__ void velo_calculate_number_of_candidates_kernel(
-  velo_calculate_number_of_candidates::Parameters parameters,
-  const unsigned number_of_events,
-  const unsigned event_start)
-{
-  for (auto event_index = blockIdx.x * blockDim.x + threadIdx.x; event_index < number_of_events;
-       event_index += blockDim.x * gridDim.x) {
-    const auto event_number = parameters.dev_event_list[event_index];
-
-    const auto velo_raw_event = Velo::RawEvent<decoding_version, mep_layout> {parameters.dev_velo_raw_input,
-                                                                              parameters.dev_velo_raw_input_offsets,
-                                                                              parameters.dev_velo_raw_input_sizes,
-                                                                              parameters.dev_velo_raw_input_types,
-                                                                              event_number + event_start};
-    unsigned number_of_candidates = 0;
-    for (unsigned raw_bank_number = 0; raw_bank_number < velo_raw_event.number_of_raw_banks(); ++raw_bank_number) {
-      const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
-      if (raw_bank.type != LHCb::RawBank::VP) continue;
-
-      if constexpr (decoding_version == 2 || decoding_version == 3) {
-        number_of_candidates += raw_bank.count;
-      }
-      else {
-        number_of_candidates += raw_bank.size / 4;
-      }
-      if (blockIdx.x == 0) {
-        if constexpr (decoding_version > 3) {
-          parameters.dev_velo_bank_index[raw_bank.sensor_index0()] = raw_bank_number;
-          parameters.dev_velo_bank_index[raw_bank.sensor_index1()] = raw_bank_number;
-        }
-        else {
-          parameters.dev_velo_bank_index[raw_bank.sensor_pair()] = raw_bank_number;
-        }
-      }
-    }
-    // The maximum number of candidates is two times the number of SPs
-    parameters.dev_candidates_offsets[event_number] = 2 * number_of_candidates;
-  }
-}
-
-template<int decoding_version, bool mep_layout>
 __global__ void velo_count_sp_per_sensor(
   velo_calculate_number_of_candidates::Parameters parameters,
   const unsigned event_start)
@@ -195,10 +154,6 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<dev_candidates_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
-  set_size<host_number_of_cluster_candidates_t>(arguments, 1);
-  set_size<dev_velo_bank_index_t>(arguments, Velo::Constants::n_sensors);
-
   set_size<dev_superpixels_t>(
     arguments, 1); // this will get resized, set_size to avoid warning (the allocator will set size to 1 anyway)
   set_size<dev_superpixels_offsets_t>(
@@ -214,10 +169,8 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
   const Constants&,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_candidates_offsets_t>(arguments, 0, context);
   Allen::memset_async<dev_superpixels_offsets_t>(arguments, 0, context);
   Allen::memset_async<host_total_number_of_superpixels_t>(arguments, 0, context);
-  Allen::memset_async<host_number_of_cluster_candidates_t>(arguments, 0, context);
 
   const auto bank_version = first<host_raw_bank_version_t>(arguments);
 
@@ -251,37 +204,16 @@ void velo_calculate_number_of_candidates::velo_calculate_number_of_candidates_t:
   partition_fn(dim3(size<dev_event_list_t>(arguments)), dim3(16, 16), context)(
     arguments, std::get<0>(runtime_options.event_interval));
 
-  if (m_count_candidates.value()) {
-    // Enough blocks to cover all events
-    const auto grid_size = dim3((size<dev_event_list_t>(arguments) + m_block_dim_x - 1) / m_block_dim_x);
+  global_function(make_module_pair_offset)(
+    dim3((first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs + 256) / 256),
+    dim3(256),
+    context)(arguments, first<host_number_of_events_t>(arguments));
 
-    auto kernel_fn =
-      (bank_version == 2) ?
-        (runtime_options.mep_layout ? global_function(velo_calculate_number_of_candidates_kernel<2, true>) :
-                                      global_function(velo_calculate_number_of_candidates_kernel<2, false>)) :
-        (bank_version == 3) ?
-        (runtime_options.mep_layout ? global_function(velo_calculate_number_of_candidates_kernel<3, true>) :
-                                      global_function(velo_calculate_number_of_candidates_kernel<3, false>)) :
-        (runtime_options.mep_layout ? global_function(velo_calculate_number_of_candidates_kernel<4, true>) :
-                                      global_function(velo_calculate_number_of_candidates_kernel<4, false>));
-
-    kernel_fn(grid_size, dim3(m_block_dim_x), context)(
-      arguments, size<dev_event_list_t>(arguments), std::get<0>(runtime_options.event_interval));
-
-    PrefixSum::prefix_sum<dev_candidates_offsets_t, host_number_of_cluster_candidates_t>(*this, arguments, context);
-  }
-  else {
-    global_function(make_module_pair_offset)(
-      dim3((first<host_number_of_events_t>(arguments) * Velo::Constants::n_module_pairs + 256) / 256),
-      dim3(256),
-      context)(arguments, first<host_number_of_events_t>(arguments));
-
-    SegSort::segsort_keys<uint32_t>(
-      *this,
-      arguments,
-      context,
-      data<dev_superpixels_t>(arguments),
-      data<dev_superpixels_module_pair_offsets_t>(arguments),
-      size<dev_superpixels_module_pair_offsets_t>(arguments) - 1);
-  }
+  SegSort::segsort_keys<uint32_t>(
+    *this,
+    arguments,
+    context,
+    data<dev_superpixels_t>(arguments),
+    data<dev_superpixels_module_pair_offsets_t>(arguments),
+    size<dev_superpixels_module_pair_offsets_t>(arguments) - 1);
 }

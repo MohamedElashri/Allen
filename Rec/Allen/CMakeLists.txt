@@ -51,7 +51,6 @@ gaudi_add_module(AllenWrapper
                    TrackChecking
                    PV_beamline
                    PVChecking
-                   CheckClustering
                    SelChecking
                    HostCombiners
                    EventModel
@@ -90,7 +89,6 @@ gaudi_add_module(AllenAlgorithms
                  LINK
                    AllenLib
                    Backend
-                   CheckClustering
                    EventModel
                    Gear
                    HostCombiners
