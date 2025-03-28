@@ -42,6 +42,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     long_track_particles = reconstructed_objects["long_track_particles"]
     pvs = reconstructed_objects["pvs"]
     dihadrons = reconstructed_objects["dihadron_secondary_vertices"]
+    prompt_dihadrons = reconstructed_objects[
+        "prompt_dihadron_secondary_vertices"]
     dileptons = reconstructed_objects["dilepton_secondary_vertices"]
     v0s = reconstructed_objects["v0_secondary_vertices"]
     lambda_track_from_c = reconstructed_objects["lambda_track_from_c"]
@@ -88,6 +90,11 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             charm_track_ip=thresholds.D2HH_track_ip,
             charm_track_pt=thresholds.D2HH_track_pt),
         make_dst_line(dstars, name="Hlt1Dst2D0Pi"),
+        make_diproton_highmass_line(
+            prompt_dihadrons,
+            name="Hlt1DiProtonHighMass",
+            pre_scaler=1.,
+            enable_tupling=enable_tupling),
     ]
 
     if 'downstream_tracks' in reconstructed_objects and 'downstream_secondary_vertices' in reconstructed_objects:
