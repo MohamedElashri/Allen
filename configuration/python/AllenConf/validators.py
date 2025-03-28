@@ -225,8 +225,8 @@ def velo_scifi_dump(matched_tracks, name="veloscifi_dump"):
         dev_velo_track_hits_t=velo_tracks["dev_velo_track_hits"],
         dev_velo_kalman_states_t=velo_kalman_filter[
             "dev_velo_kalman_endvelo_states"],
-        dev_ut_number_of_selected_velo_tracks_t=matched_tracks[
-            "dev_ut_number_of_selected_velo_tracks"],
+        dev_ut_velo_tracks_offsets_t=matched_tracks[
+            "dev_ut_selected_velo_tracks_offsets"],
         dev_ut_selected_velo_tracks_t=matched_tracks[
             "dev_ut_selected_velo_tracks"],
         dev_offsets_scifi_seeds_t=seeding_tracks["dev_offsets_scifi_seeds"],

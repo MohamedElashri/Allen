@@ -85,7 +85,7 @@ namespace lf_create_tracks {
                                                               "max_triplets_per_input_track"};
     Allen::Property<unsigned> m_maximum_number_of_triplets_per_warp {this,
                                                                      "maximum_number_of_triplets_per_warp",
-                                                                     64,
+                                                                     LookingForward::max_triplets_per_track,
                                                                      "maximum_number_of_triplets_per_warp"};
     Allen::Property<float> m_chi2_max_extrapolation_to_x_layers_single {this,
                                                                         "chi2_max_extrapolation_to_x_layers_single",

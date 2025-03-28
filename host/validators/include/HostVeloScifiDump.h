@@ -28,7 +28,7 @@ namespace host_veloscifi_dump {
     DEVICE_INPUT(dev_offsets_velo_track_hit_number_t, unsigned) dev_offsets_velo_track_hit_number;
     DEVICE_INPUT(dev_velo_track_hits_t, char) dev_velo_track_hits;
     DEVICE_INPUT(dev_velo_kalman_states_t, char) dev_velo_kalman_states;
-    DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, unsigned) dev_ut_number_of_selected_velo_tracks;
+    DEVICE_INPUT(dev_ut_velo_tracks_offsets_t, unsigned) dev_ut_velo_tracks_offsets;
     DEVICE_INPUT(dev_ut_selected_velo_tracks_t, unsigned) dev_ut_selected_velo_tracks;
 
     DEVICE_INPUT(dev_scifi_hits_t, char) dev_scifi_hits;

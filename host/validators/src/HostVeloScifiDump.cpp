@@ -158,7 +158,7 @@ void host_veloscifi_dump::host_veloscifi_dump_t::operator()(
   const auto offsets_velo_track_hit_number = make_host_buffer<dev_offsets_velo_track_hit_number_t>(arguments, context);
   const auto velo_track_hits = make_host_buffer<dev_velo_track_hits_t>(arguments, context);
   const auto velo_states_base = make_host_buffer<dev_velo_kalman_states_t>(arguments, context);
-  const auto number_of_selected_velo = make_host_buffer<dev_ut_number_of_selected_velo_tracks_t>(arguments, context);
+  const auto selected_velo_offsets = make_host_buffer<dev_ut_velo_tracks_offsets_t>(arguments, context);
   const auto selected_velo_tracks = make_host_buffer<dev_ut_selected_velo_tracks_t>(arguments, context);
 
   const auto scifi_seed_atomics = make_host_buffer<dev_offsets_scifi_seeds_t>(arguments, context);
@@ -192,15 +192,15 @@ void host_veloscifi_dump::host_veloscifi_dump_t::operator()(
 
     // Checker tracks
     Checker::Tracks velo_checker;
-    const auto n_selected_velo = number_of_selected_velo[i_event + 1] - number_of_selected_velo[i_event];
-    velo_checker.reserve(n_selected_velo);
+    unsigned n_selected = selected_velo_offsets[i_event + 1] - selected_velo_offsets[i_event];
+    velo_checker.reserve(n_selected);
     Checker::Tracks scifi_checker;
     scifi_checker.reserve(number_of_tracks_scifi);
 
     // Loop over velo tracks
     jsonfile << "  \"velo\":[\n";
-    for (unsigned i_selected = 0; i_selected < n_selected_velo; i_selected++) {
-      unsigned i_track = selected_velo_tracks[event_velo_tracks_offset + i_selected];
+    for (unsigned i_selected = 0; i_selected < n_selected; i_selected++) {
+      unsigned i_track = selected_velo_tracks[selected_velo_offsets[i_event] + i_selected];
 
       Checker::Track& t = velo_checker.emplace_back();
       const unsigned velo_track_number_of_hits = velo_tracks.number_of_hits(i_track);
@@ -219,7 +219,7 @@ void host_veloscifi_dump::host_veloscifi_dump_t::operator()(
       jsonfile << "    {\"tx\":" << tx << ", \"ty\":" << ty << ", \"x\":" << x << ", \"y\":" << y << ", \"z\":" << z
                << "},\n";
     } // velo tracks
-    if (n_selected_velo > 0) jsonfile.seekp(-2, jsonfile.cur);
+    if (n_selected > 0) jsonfile.seekp(-2, jsonfile.cur);
     jsonfile << "\n  ],\n";
 
     // Loop over seeding tracks
@@ -245,7 +245,7 @@ void host_veloscifi_dump::host_veloscifi_dump_t::operator()(
 
     jsonfile << "  \"matches\":[\n";
     int num_matches = 0;
-    for (unsigned i_velo = 0; i_velo < n_selected_velo; i_velo++) {
+    for (unsigned i_velo = 0; i_velo < n_selected; i_velo++) {
       auto [match, velo_MCP] =
         match_track_to_MCPs<Checker::Subdetector::Velo>(mc_assoc, velo_checker, i_velo, assoc_table);
       if (!match) continue;

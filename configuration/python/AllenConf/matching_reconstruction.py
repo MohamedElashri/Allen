@@ -64,8 +64,8 @@ def make_velo_scifi_matches(
             "dev_velo_kalman_endvelo_states_view"],
         dev_scifi_tracks_view_t=seeding_tracks["dev_scifi_tracks_view"],
         dev_seeding_states_t=seeding_tracks["dev_seeding_states"],
-        dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
-        dev_ut_number_of_selected_velo_tracks_t,
+        dev_ut_selected_velo_tracks_offsets_t=ut_select_velo_tracks.
+        dev_ut_selected_velo_tracks_offsets_t,
         dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
         dev_ut_selected_velo_tracks_t,
         # UT
@@ -183,8 +183,8 @@ def make_velo_scifi_matches(
         seeding_tracks["dev_scifi_track_view"],
         "dev_scifi_hits_view":
         seeding_tracks["dev_scifi_hits_view"],
-        "dev_ut_number_of_selected_velo_tracks":
-        ut_select_velo_tracks.dev_ut_number_of_selected_velo_tracks_t,
+        "dev_ut_selected_velo_tracks_offsets":
+        ut_select_velo_tracks.dev_ut_selected_velo_tracks_offsets_t,
         "dev_ut_selected_velo_tracks":
         ut_select_velo_tracks.dev_ut_selected_velo_tracks_t,
         "dev_used_scifi_hits":

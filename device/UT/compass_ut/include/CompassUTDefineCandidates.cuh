@@ -28,8 +28,8 @@ namespace compass_ut_define_candidates {
     DEVICE_INPUT(dev_offsets_all_velo_tracks_t, unsigned) dev_offsets_all_velo_tracks;
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     // Velo seletion
-    HOST_INPUT(host_total_number_of_selected_velo_tracks_t, unsigned) host_total_number_of_selected_velo_tracks;
-    DEVICE_INPUT(dev_ut_number_of_selected_velo_tracks_t, unsigned) dev_ut_number_of_selected_velo_tracks;
+    HOST_INPUT(host_ut_number_of_selected_velo_tracks_t, unsigned) host_ut_number_of_selected_velo_tracks;
+    DEVICE_INPUT(dev_ut_selected_velo_tracks_offsets_t, unsigned) dev_ut_selected_velo_tracks_offsets;
     DEVICE_INPUT(dev_ut_selected_velo_tracks_t, unsigned) dev_ut_selected_velo_tracks;
     // Preselection
     DEVICE_OUTPUT(dev_ut_track_candidate_tols_t, float2) dev_ut_track_candidate_tols;
