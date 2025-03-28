@@ -57,8 +57,8 @@ minimal:
     sequence:
       - hlt1_pp_default
       - hlt1_pp_forward_then_matching
-    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD"
-    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
+    dataset: "Run307533_MEPs_LHCb_ECEB01_BU_0_passthrough"
+    geometry: "geometry_run3_2024.Q1.2-v00.00"
 
   - type: "efficiency"
     sequence:
@@ -78,17 +78,19 @@ minimal:
   #     - a5000
 
 full:
-  - type: "throughput" #on legacy MC
+  - type: "throughput" #on exp24 MC
     sequence:
       - hlt1_pp_default
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
-    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+      - hlt1_pp_veloSP
+      - hlt1_pp_forward_then_matching_and_downstream_veloSP
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
 
   - type: "throughput"
     sequence:
       - hlt1_pp_default
-    dataset: "upgrade_mc_minbias_scifi_v5_retinacluster_000_v1_newLHCbID_new_UT_geometry"
-    geometry: "geometry_dddb-20180815_sim-20180530-vc-md100_new_UT_geometry"
+    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD"
+    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
     build_options: BUILD_TESTING+ENABLE_CONTRACTS+TREAT_WARNINGS_AS_ERRORS+MALLOC_ENGINE=MULTI_ALLOC
     throughput_report: false # don't publish throughput report
 
@@ -96,22 +98,20 @@ full:
   - type: "throughput"
     sequence:
       - hlt1_pp_lumi
-    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD"
-    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
+    dataset: "Run307533_MEPs_LHCb_ECEB01_BU_0_passthrough"
+    geometry: "geometry_run3_2024.Q1.2-v00.00"
     throughput_report: false # don't publish throughput report
 
   # run throughput, forward no ut, matching
   - type: "throughput"
     sequence:
       - hlt1_pp_matching
-      - hlt1_pp_veloSP
       - hlt1_pp_forward_then_matching
       - hlt1_pp_forward_then_matching_no_ut
       - hlt1_pp_forward_then_matching_and_downstream
-      - hlt1_pp_forward_then_matching_and_downstream_veloSP
       - hlt1_pp_forward_then_matching_with_parkf
-    dataset: "Beam6800GeV-expected-2024-MagDown-nu7.6_MinBiasMD"
-    geometry: "geometry_dddb-20231017_sim-20231017-vc-md100_new_SciFi_geometry"
+    dataset: "Run307533_MEPs_LHCb_ECEB01_BU_0_passthrough"
+    geometry: "geometry_run3_2024.Q1.2-v00.00"
 
   # run throughput, pp reference run, exp 2024 conditions
   - type: "throughput"
