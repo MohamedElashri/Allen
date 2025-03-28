@@ -181,7 +181,6 @@ def make_forward_tracks(
         input_momentum = 5000
         input_pt = 1000
         #triplet seeding
-        maximum_number_of_triplets_per_warp = 64
         chi2_max_triplet_single = 8.
         z_mag_difference = 10.
         #create tracks
@@ -214,7 +213,6 @@ def make_forward_tracks(
         input_momentum = 5000
         input_pt = 1000
         #triplet seeding
-        maximum_number_of_triplets_per_warp = 64
         chi2_max_triplet_single = 4.0
         z_mag_difference = 8.
         #create tracks
@@ -268,8 +266,8 @@ def make_forward_tracks(
         dev_velo_states_view_t=velo_states[
             "dev_velo_kalman_endvelo_states_view"],
         dev_tracks_view_t=input_track_views,
-        dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
-        dev_ut_number_of_selected_velo_tracks_t,
+        dev_ut_selected_velo_tracks_offsets_t=ut_select_velo_tracks.
+        dev_ut_selected_velo_tracks_offsets_t,
         dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
         dev_ut_selected_velo_tracks_t,
         hit_window_size=hit_window_size,
@@ -297,7 +295,6 @@ def make_forward_tracks(
         dev_scifi_lf_initial_windows_t=lf_search_initial_windows.
         dev_scifi_lf_initial_windows_t,
         dev_input_states_t=lf_search_initial_windows.dev_input_states_t,
-        maximum_number_of_triplets_per_warp=maximum_number_of_triplets_per_warp,
         chi2_max_triplet_single=chi2_max_triplet_single,
         z_mag_difference=z_mag_difference,
         dev_scifi_lf_number_of_tracks_t=lf_search_initial_windows.
@@ -331,7 +328,6 @@ def make_forward_tracks(
         uv_hits_chi2_factor_x=uv_hits_chi2_factor_x,
         uv_hits_chi2_factor_y=uv_hits_chi2_factor_y,
         max_triplets_per_input_track=max_triplets_per_input_track,
-        maximum_number_of_triplets_per_warp=maximum_number_of_triplets_per_warp,
         dev_scifi_lf_number_of_tracks_t=lf_search_initial_windows.
         dev_scifi_lf_number_of_tracks_t,
         dev_scifi_lf_tracks_indices_t=lf_search_initial_windows.

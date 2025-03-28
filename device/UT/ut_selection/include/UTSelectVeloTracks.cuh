@@ -24,8 +24,9 @@ namespace ut_select_velo_tracks {
     DEVICE_INPUT(dev_velo_states_view_t, Allen::Views::Physics::KalmanStates) dev_velo_states_view;
     DEVICE_INPUT(dev_accepted_velo_tracks_t, bool) dev_accepted_velo_tracks;
     MASK_INPUT(dev_event_list_t) dev_event_list;
-    HOST_OUTPUT(host_total_number_of_selected_velo_tracks_t, unsigned) host_total_number_of_selected_velo_tracks;
-    DEVICE_OUTPUT(dev_ut_number_of_selected_velo_tracks_t, unsigned) dev_ut_number_of_selected_velo_tracks;
+    DEVICE_OUTPUT(dev_velo_tracks_offsets_t, unsigned) dev_velo_tracks_offsets;
+    DEVICE_OUTPUT(dev_ut_selected_velo_tracks_offsets_t, unsigned) dev_ut_selected_velo_tracks_offsets;
+    HOST_OUTPUT(host_ut_number_of_selected_velo_tracks_t, unsigned) host_ut_number_of_selected_velo_tracks;
     DEVICE_OUTPUT(dev_ut_selected_velo_tracks_t, unsigned) dev_ut_selected_velo_tracks;
   };
 

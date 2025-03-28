@@ -12,6 +12,7 @@
 #include <tuple>
 #include "PrefixSum.cuh"
 #include "WarpIntrinsicsTools.cuh"
+#include "PrefixSum.cuh"
 
 INSTANTIATE_ALGORITHM(ut_select_velo_tracks::ut_select_velo_tracks_t)
 
@@ -20,9 +21,30 @@ void ut_select_velo_tracks::ut_select_velo_tracks_t::set_arguments_size(
   const RuntimeOptions&,
   const Constants&) const
 {
-  set_size<host_total_number_of_selected_velo_tracks_t>(arguments, 1);
-  set_size<dev_ut_number_of_selected_velo_tracks_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<dev_ut_selected_velo_tracks_offsets_t>(arguments, first<host_number_of_events_t>(arguments) + 1);
+  set_size<host_ut_number_of_selected_velo_tracks_t>(arguments, 1);
   set_size<dev_ut_selected_velo_tracks_t>(arguments, first<host_number_of_reconstructed_velo_tracks_t>(arguments));
+  set_size<dev_velo_tracks_offsets_t>(arguments, first<host_number_of_events_t>(arguments));
+}
+
+__global__ void
+compress_array(const unsigned* src_offsets, const unsigned* dst_offsets, unsigned n_offsets, unsigned* data)
+{
+  unsigned group = 0;
+  unsigned group_start = dst_offsets[0];
+  unsigned group_end = dst_offsets[1];
+  for (unsigned i = threadIdx.x; i < dst_offsets[n_offsets]; i += blockDim.x) {
+    while (i >= group_end) {
+      group++;
+      group_start = group_end;
+      group_end = dst_offsets[group + 1];
+    }
+    unsigned src_i = src_offsets[group] + i - group_start;
+    auto val = data[src_i];
+    __syncthreads();
+    data[i] = val;
+    // no sync needed
+  }
 }
 
 void ut_select_velo_tracks::ut_select_velo_tracks_t::operator()(
@@ -31,12 +53,18 @@ void ut_select_velo_tracks::ut_select_velo_tracks_t::operator()(
   const Constants&,
   const Allen::Context& context) const
 {
-  Allen::memset_async<dev_ut_number_of_selected_velo_tracks_t>(arguments, 0, context);
+  Allen::memset_async<dev_ut_selected_velo_tracks_offsets_t>(arguments, 0, context);
 
   global_function(ut_select_velo_tracks)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
 
-  PrefixSum::prefix_sum<dev_ut_number_of_selected_velo_tracks_t, host_total_number_of_selected_velo_tracks_t>(
+  PrefixSum::prefix_sum<dev_ut_selected_velo_tracks_offsets_t, host_ut_number_of_selected_velo_tracks_t>(
     *this, arguments, context);
+  global_function(compress_array)(dim3(1), dim3(256), context)(
+    data<dev_velo_tracks_offsets_t>(arguments),
+    data<dev_ut_selected_velo_tracks_offsets_t>(arguments),
+    first<host_number_of_events_t>(arguments),
+    data<dev_ut_selected_velo_tracks_t>(arguments));
+  reduce_size<dev_ut_selected_velo_tracks_t>(arguments, first<host_ut_number_of_selected_velo_tracks_t>(arguments));
 }
 
 __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_tracks::Parameters parameters)
@@ -46,8 +74,12 @@ __global__ void ut_select_velo_tracks::ut_select_velo_tracks(ut_select_velo_trac
   const auto velo_tracks = parameters.dev_velo_tracks_view[event_number];
   const auto velo_states = parameters.dev_velo_states_view[event_number];
 
-  auto ut_number_of_selected_velo_tracks = parameters.dev_ut_number_of_selected_velo_tracks + event_number;
+  auto ut_number_of_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks_offsets + event_number;
   auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + velo_tracks.offset();
+
+  if (threadIdx.x == 0) {
+    parameters.dev_velo_tracks_offsets[event_number] = velo_tracks.offset();
+  }
 
   for (unsigned i = threadIdx.x; i < velo_states.size(); i += blockDim.x) {
     const auto velo_track = velo_tracks.track(i);

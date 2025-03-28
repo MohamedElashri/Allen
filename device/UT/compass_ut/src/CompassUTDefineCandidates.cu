@@ -24,7 +24,7 @@ void compass_ut_define_candidates::compass_ut_define_candidates_t::set_arguments
   const RuntimeOptions&,
   const Constants&) const
 {
-  const auto number_of_selected_velo = first<host_total_number_of_selected_velo_tracks_t>(arguments);
+  const auto number_of_selected_velo = first<host_ut_number_of_selected_velo_tracks_t>(arguments);
 
   // Preselection
   set_size<dev_ut_track_candidate_hit_ranges_t>(arguments, number_of_selected_velo * 2);
@@ -102,11 +102,11 @@ __global__ void compass_ut_define_candidates::compass_ut_hit_preselection(
 
   // Velo Input
   const auto velo_states = parameters.dev_velo_states_view[event_number];
-  const auto velo_offset = parameters.dev_offsets_all_velo_tracks[event_number];
-  const auto output_offset = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
+  // const auto velo_offset = parameters.dev_offsets_all_velo_tracks[event_number];
+  const auto output_offset = parameters.dev_ut_selected_velo_tracks_offsets[event_number];
   const auto number_of_selected_velo_tracks =
-    parameters.dev_ut_number_of_selected_velo_tracks[event_number + 1] - output_offset;
-  const auto selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + velo_offset;
+    parameters.dev_ut_selected_velo_tracks_offsets[event_number + 1] - output_offset;
+  const auto selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + output_offset;
 
   // Outputs
   auto output_ranges = parameters.dev_ut_track_candidate_hit_ranges + output_offset * 2;
@@ -226,11 +226,11 @@ compass_ut_define_candidates::compass_ut_fill_cadidates(Parameters parameters, f
 
   // Velo Input
   const auto velo_states = parameters.dev_velo_states_view[event_number];
-  const auto velo_offset = parameters.dev_offsets_all_velo_tracks[event_number];
-  const auto velo_output_offset = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
+  // const auto velo_offset = parameters.dev_offsets_all_velo_tracks[event_number];
+  const auto velo_output_offset = parameters.dev_ut_selected_velo_tracks_offsets[event_number];
   const auto number_of_selected_velo_tracks =
-    parameters.dev_ut_number_of_selected_velo_tracks[event_number + 1] - velo_output_offset;
-  const auto selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + velo_offset;
+    parameters.dev_ut_selected_velo_tracks_offsets[event_number + 1] - velo_output_offset;
+  const auto selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + velo_output_offset;
 
   // Preselection result
   const auto tols = parameters.dev_ut_track_candidate_tols + velo_output_offset * 2;
@@ -298,8 +298,8 @@ __global__ void compass_ut_define_candidates::compass_ut_consolidate_candidates(
   const unsigned number_of_events = parameters.dev_number_of_events[0];
 
   // Velo Input
-  const auto velo_offset = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
-  const auto number_of_velo_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number + 1] - velo_offset;
+  const auto velo_offset = parameters.dev_ut_selected_velo_tracks_offsets[event_number];
+  const auto number_of_velo_tracks = parameters.dev_ut_selected_velo_tracks_offsets[event_number + 1] - velo_offset;
 
   // Offsets
   const auto input_offsets = parameters.dev_ut_track_all_candidate_input_offset + velo_offset * 2;
@@ -325,7 +325,7 @@ __global__ void compass_ut_define_candidates::compass_ut_consolidate_candidates(
 
   if (blockIdx.x == 0) {
     for (unsigned event_number = threadIdx.x; event_number <= number_of_events; event_number += blockDim.x) {
-      const auto velo_offset = parameters.dev_ut_number_of_selected_velo_tracks[event_number];
+      const auto velo_offset = parameters.dev_ut_selected_velo_tracks_offsets[event_number];
       parameters.dev_ut_track_consolidate_candidate_offset[event_number] =
         parameters.dev_ut_track_all_candidate_output_offset[velo_offset * 2];
     }

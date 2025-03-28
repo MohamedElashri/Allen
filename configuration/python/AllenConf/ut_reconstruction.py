@@ -351,10 +351,10 @@ def make_ut_tracks(decoded_ut,
         dev_velo_states_view_t=velo_states[
             "dev_velo_kalman_endvelo_states_view"],
         # Selection
-        host_total_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
-        host_total_number_of_selected_velo_tracks_t,
-        dev_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
-        dev_ut_number_of_selected_velo_tracks_t,
+        host_ut_number_of_selected_velo_tracks_t=ut_select_velo_tracks.
+        host_ut_number_of_selected_velo_tracks_t,
+        dev_ut_selected_velo_tracks_offsets_t=ut_select_velo_tracks.
+        dev_ut_selected_velo_tracks_offsets_t,
         dev_ut_selected_velo_tracks_t=ut_select_velo_tracks.
         dev_ut_selected_velo_tracks_t,
         # Constants

@@ -230,16 +230,14 @@ __global__ void track_matching::track_matching_veloSciFi(
 {
   const unsigned event_number = parameters.dev_event_list[blockIdx.x];
 
-  // Velo views
-  const auto velo_tracks = parameters.dev_velo_tracks_view[event_number];
+  // Velo view
   const auto velo_states = parameters.dev_velo_states_view[event_number];
 
-  const unsigned event_velo_seeds_offset = velo_tracks.offset();
-
   // filtered velo tracks
-  const auto ut_number_of_selected_tracks = parameters.dev_ut_number_of_selected_velo_tracks[event_number + 1] -
-                                            parameters.dev_ut_number_of_selected_velo_tracks[event_number];
-  const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + event_velo_seeds_offset;
+  const auto ut_selected_tracks_offset = parameters.dev_ut_selected_velo_tracks_offsets[event_number];
+  const auto ut_number_of_selected_tracks =
+    parameters.dev_ut_selected_velo_tracks_offsets[event_number + 1] - ut_selected_tracks_offset;
+  const auto ut_selected_velo_tracks = parameters.dev_ut_selected_velo_tracks + ut_selected_tracks_offset;
 
   // SciFi seed views
   const auto scifi_seeds = parameters.dev_scifi_tracks_view[event_number];
