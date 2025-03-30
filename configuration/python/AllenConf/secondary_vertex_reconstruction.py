@@ -13,10 +13,40 @@ from AllenCore.algorithms import (
     make_long_track_particles_t, filter_tracks_t, fit_secondary_vertices_t,
     empty_lepton_id_t, sv_combiner_t, filter_svs_t, filter_two_svs_t,
     generic_sv_combiner_t, calc_max_combos_t, filter_sv_track_t,
-    combine_sv_track_t, kalman_filter_t)
+    kalman_filter_t, combine_sv_track_t, flatten_svs_t)
 from AllenConf.utils import initialize_number_of_events, mep_layout
 from AllenConf.velo_reconstruction import run_velo_kalman_filter
 from AllenCore.generator import make_algorithm
+
+
+def make_kalman_long(long_tracks, pvs, is_muon_result,
+                     is_electron_result=None):
+    number_of_events = initialize_number_of_events()
+
+    kalman = make_algorithm(
+        kalman_filter_t,
+        name='kalman_long_{hash}',
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        host_number_of_reconstructed_scifi_tracks_t=long_tracks[
+            "host_number_of_reconstructed_scifi_tracks"],
+        dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
+        dev_offsets_long_tracks_t=long_tracks["dev_offsets_long_tracks"],
+        dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
+        dev_number_of_multi_final_vertices_t=pvs[
+            "dev_number_of_multi_final_vertices"],
+        dev_is_muon_t=is_muon_result["dev_is_muon"],
+    )
+
+    return {
+        "long_tracks": long_tracks,
+        "pvs": pvs,
+        "dev_kf_tracks": kalman.dev_kf_tracks_t,
+        "dev_kalman_pv_ip": kalman.dev_kalman_pv_ip_t,
+        "dev_kalman_pv_tables": kalman.dev_kalman_pv_tables_t,
+        "dev_kalman_fit_results": kalman.dev_kalman_fit_results_t,
+        "dev_kalman_states_view": kalman.dev_kalman_states_view_t
+    }
 
 
 def make_kalman_long(long_tracks, pvs, is_muon_result,
@@ -445,4 +475,66 @@ def make_sv_track_pairs(secondary_vertices,
         combine_sv_track.dev_multi_event_composites_view_t,
         "host_number_of_sv_track_combinations":
         filter_sv_track.host_number_of_combinations_t,
+        "dev_sv_track_combination_offsets":
+        filter_sv_track.dev_combination_offsets_t,
+        "dev_sv_track_combination":
+        combine_sv_track.dev_multi_event_composites_view_t
+    }
+
+
+def make_three_body_svs(secondary_vertices,
+                        long_track_particles,
+                        pvs,
+                        min_track_ipchi2=16.0,
+                        max_track_ipchi2=1e16,
+                        min_track_ip=0.05,
+                        max_track_ip=1e16,
+                        min_track_pt=0.0,
+                        sv_bpvvdz_min=0.,
+                        sv_bpvip_min=0.0,
+                        sv_bpvvdrho_min=3.,
+                        sv_vz_min=-200.,
+                        sv_vz_max=650.,
+                        opening_angle_min=0.5e-3,
+                        sv_track_doca_max=0.2,
+                        sv_bpvvdchi2_min=25.0,
+                        sv_bpvdira_min=0.99):
+
+    number_of_events = initialize_number_of_events()
+
+    combine_sv_track = make_sv_track_pairs(
+        secondary_vertices,
+        long_track_particles,
+        pvs,
+        min_track_ipchi2,
+        max_track_ipchi2,
+        min_track_ip,
+        max_track_ip,
+        min_track_pt,
+        sv_bpvip_min,
+        sv_bpvvdz_min,
+        sv_bpvvdrho_min,
+        sv_bpvdira_min,
+        sv_vz_min,
+        sv_vz_max,
+        sv_track_doca_max,
+        opening_angle_min=0.5e-3,
+    )
+
+    make_flat_svs = make_algorithm(
+        flatten_svs_t,
+        name='flatten_svs_{hash}',
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=combine_sv_track[
+            "host_number_of_sv_track_combinations"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        dev_composite_offsets_t=combine_sv_track[
+            "dev_sv_track_combination_offsets"],
+        dev_input_sv_mec_t=combine_sv_track["dev_sv_track_combination"])
+
+    return {
+        "host_number_of_three_body_svs":
+        combine_sv_track["host_number_of_sv_track_combinations"],
+        "dev_three_body_svs":
+        make_flat_svs.dev_multi_event_composites_view_t,
     }

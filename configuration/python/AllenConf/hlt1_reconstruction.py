@@ -18,7 +18,8 @@ from AllenConf.calo_reconstruction import decode_calo, make_track_matching, make
 from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import (
     make_kalman_velo_only, make_basic_particles, fit_secondary_vertices,
-    make_sv_track_pairs, make_sv_pairs, make_generic_sv_pairs)
+    make_sv_track_pairs, make_sv_pairs, make_generic_sv_pairs,
+    make_three_body_svs)
 from AllenConf.jet_reconstruction import make_cone_jets
 from AllenConf.validators import (
     velo_validation, veloUT_validation, seeding_validation,
@@ -312,6 +313,8 @@ def hlt1_reconstruction(algorithm_name='',
         sv_bpvdira_min=0.9997,
         sv_bpvvdrho_min=0.)
 
+    three_body_svs = make_three_body_svs(dihadrons, long_track_particles, pvs)
+
     v0_pairs = make_sv_pairs(v0s)
 
     v0_hh_pairs = make_generic_sv_pairs(
@@ -350,6 +353,7 @@ def hlt1_reconstruction(algorithm_name='',
         "dstars": dstars,
         "v0_pairs": v0_pairs,
         "v0_hh_pairs": v0_hh_pairs,
+        "three_body_svs": three_body_svs
     })
 
     if 'downstream_tracks' in output:

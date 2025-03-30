@@ -22,6 +22,7 @@ from AllenConf.hlt1_monitoring_lines import *
 from AllenConf.hlt1_smog2_lines import *
 from AllenConf.hlt1_downstream_lines import *
 from AllenConf.filters import *
+from AllenConf.hlt1_charged_kaon_lines import *
 
 from AllenConf.hlt1_photon_lines import make_diphotonhighmass_line
 from AllenConf.persistency import make_persistency
@@ -49,6 +50,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     lambda_track_from_c = reconstructed_objects["lambda_track_from_c"]
     v0_twotrack_pairs = reconstructed_objects["v0_sv_twotrack_pairs"]
     dstars = reconstructed_objects["dstars"]
+    three_body_svs = reconstructed_objects["three_body_svs"]
     v0_pairs = reconstructed_objects["v0_pairs"]
     v0_hh_pairs = reconstructed_objects["v0_hh_pairs"]
     muon_stubs = reconstructed_objects["muon_stubs"]
@@ -95,6 +97,12 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             name="Hlt1DiProtonHighMass",
             pre_scaler=1.,
             enable_tupling=enable_tupling),
+        make_kplus_to_piee_line(
+            three_body_svs, name="Hlt1Kplus2PiEE", enable_monitoring=False),
+        make_kplus_to_pimumu_line(
+            three_body_svs, name="Hlt1Kplus2PiMuMu", enable_monitoring=False),
+        make_kplus_to_3pi_line(
+            three_body_svs, name="Hlt1Kplus2PiPiPi", enable_monitoring=False)
     ]
 
     if 'downstream_tracks' in reconstructed_objects and 'downstream_secondary_vertices' in reconstructed_objects:
