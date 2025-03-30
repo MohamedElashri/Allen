@@ -62,8 +62,8 @@ error_bank_filter                      INFO 1D histograms in directory "error_ba
  | n_data_banks                                                                     | "n_data_banks"                                                                   |       4000 |          8 | 3.4641     |    -1.1547 |   -0.66667 |
 gather_selections                      INFO 1D histograms in directory "gather_selections" : 2
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | line_passes                                                                      | "line passes"                                                                    |       1000 |       53.5 | 0.0000     |          0 |          0 |
- | line_rates                                                                       | "line rates"                                                                     |       1000 |       53.5 | 0.0000     |          0 |          0 |
+ | line_passes                                                                      | "line passes"                                                                    |       1000 |       57.5 | 0.0000     |          0 |          0 |
+ | line_rates                                                                       | "line rates"                                                                     |       1000 |       57.5 | 0.0000     |          0 |          0 |
 pv_beamline_cleanup                    INFO 1D histograms in directory "pv_beamline_cleanup" : 2
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_pvs_event                                                                      | "n_pvs_event"                                                                    |       1000 |          0 | 0.0000     |          0 |          0 |
