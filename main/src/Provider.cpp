@@ -107,7 +107,7 @@ std::tuple<std::string, std::string> Allen::sequence_conf(std::map<std::string, 
       std::string python_file = allen_python_dir + "/AllenSequences/" + sequence + ".py";
       int error = system(("PYTHONPATH=" + allen_python_dir + ":$PYTHONPATH python3 " + allen_python_dir +
                           "/AllenCore/gen_allen_json.py " + allen_configuration_options + " --seqpath " + python_file +
-                          " > /dev/null")
+                          " > gen_json_" + sequence + ".log")
                            .c_str());
       if (error) {
         throw std::runtime_error {"sequence generation failed"};

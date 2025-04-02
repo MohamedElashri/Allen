@@ -22,8 +22,15 @@ from AllenCore.generator import make_algorithm
 from PyConf.tonic import configurable
 
 
+def masked_modules_bitmask(masked_modules):
+    bitmask = 0
+    for m in masked_modules:
+        if m >= 0 and m < 52: bitmask |= 1 << m
+    return bitmask
+
+
 @configurable
-def decode_velo(retina_decoding=True):
+def decode_velo(retina_decoding=True, masked_modules=[]):
     number_of_events = initialize_number_of_events()
 
     if retina_decoding:
@@ -38,7 +45,8 @@ def decode_velo(retina_decoding=True):
             dev_velo_retina_raw_input_t=velo_banks.dev_raw_banks_t,
             dev_velo_retina_raw_input_offsets_t=velo_banks.dev_raw_offsets_t,
             dev_velo_retina_raw_input_sizes_t=velo_banks.dev_raw_sizes_t,
-            dev_velo_retina_raw_input_types_t=velo_banks.dev_raw_types_t)
+            dev_velo_retina_raw_input_types_t=velo_banks.dev_raw_types_t,
+            masked_modules=masked_modules_bitmask(masked_modules))
 
         decode_retinaclusters = make_algorithm(
             decode_retinaclusters_t,
@@ -116,7 +124,15 @@ def decode_velo(retina_decoding=True):
         }
 
 
-def make_pr_velo_tracks(decoded_velo):
+def missing_module_pairs_bitmask(missing_modules):
+    bitmask = 0
+    for m in missing_modules:
+        if m >= 0 and m < 52: bitmask |= 1 << (25 - (m // 2))
+    return bitmask
+
+
+@configurable
+def make_pr_velo_tracks(decoded_velo, missing_modules=[], skip_forward=1):
 
     number_of_events = initialize_number_of_events()
     dev_module_cluster_num = decoded_velo["dev_module_cluster_num"]
@@ -136,8 +152,8 @@ def make_pr_velo_tracks(decoded_velo):
         dev_offsets_estimated_input_size_t=dev_offsets_estimated_input_size,
         dev_module_cluster_num_t=dev_module_cluster_num,
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        max_skipped_modules=1,
-    )
+        max_skipped_modules=skip_forward,
+        missing_module_pairs=missing_module_pairs_bitmask(missing_modules))
 
     velo_three_hit_tracks_filter = make_algorithm(
         velo_three_hit_tracks_filter_t,

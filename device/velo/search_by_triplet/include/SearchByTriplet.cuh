@@ -31,7 +31,7 @@ namespace velo_search_by_triplet {
     DEVICE_OUTPUT(dev_tracklets_t, Velo::TrackletHits) dev_tracklets;
     DEVICE_OUTPUT(dev_tracks_to_follow_t, unsigned) dev_tracks_to_follow;
     DEVICE_OUTPUT(dev_three_hit_tracks_t, Velo::TrackletHits) dev_three_hit_tracks;
-    DEVICE_OUTPUT(dev_hit_used_t, bool) dev_hit_used;
+    DEVICE_OUTPUT(dev_hit_used_t, uint8_t) dev_hit_used;
     DEVICE_OUTPUT(dev_atomics_velo_t, unsigned) dev_atomics_velo;
     DEVICE_OUTPUT(dev_rel_indices_t, unsigned short) dev_rel_indices;
     DEVICE_OUTPUT(dev_offsets_velo_tracks_t, unsigned) dev_offsets_velo_tracks;
@@ -67,8 +67,10 @@ namespace velo_search_by_triplet {
 
   __device__ void track_seeding(
     Velo::ConstClusters& velo_cluster_container,
-    const Velo::ModulePair* module_pair_data,
-    const bool* hit_used,
+    const Velo::ModulePair& previous_module_pair,
+    const Velo::ModulePair& current_module_pair,
+    const Velo::ModulePair& next_module_pair,
+    uint8_t* hit_used,
     Velo::TrackletHits* tracklets,
     unsigned* tracks_to_follow,
     uint16_t* h1_indices,
@@ -79,8 +81,8 @@ namespace velo_search_by_triplet {
 
   __device__ void track_forwarding(
     Velo::ConstClusters& velo_cluster_container,
-    bool* hit_used,
-    const Velo::ModulePair* module_pair_data,
+    uint8_t* hit_used,
+    const Velo::ModulePair& next_module_pair,
     const unsigned diff_ttf,
     unsigned* tracks_to_follow,
     Velo::TrackletHits* three_hit_tracks,
@@ -99,7 +101,8 @@ namespace velo_search_by_triplet {
     const VeloGeometry*,
     const float phi_tolerance,
     const float max_scatter,
-    const unsigned max_skipped_modules);
+    const unsigned max_skipped_modules,
+    const unsigned missing_module_pairs);
 
   struct velo_search_by_triplet_t : public DeviceAlgorithm, Parameters {
     // Register contracts for this algorithm
@@ -117,6 +120,7 @@ namespace velo_search_by_triplet {
     Allen::Property<float> m_tolerance {this, "phi_tolerance", 0.045f, "tolerance in phi"};
     Allen::Property<float> m_max_scatter {this, "max_scatter", 0.08f, "maximum scatter for seeding and forwarding"};
     Allen::Property<unsigned> m_skip {this, "max_skipped_modules", 1, "skipped modules"};
+    Allen::Property<unsigned> m_missing_module_pairs {this, "missing_module_pairs", 0, "missing module pairs bitmask"};
     Allen::Property<unsigned> m_block_dim_x {this, "block_dim_x", 64, "block dimension x"};
   };
 } // namespace velo_search_by_triplet
