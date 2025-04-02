@@ -23,7 +23,7 @@ namespace velo_three_hit_tracks_filter {
     DEVICE_INPUT(dev_offsets_estimated_input_size_t, unsigned) dev_offsets_estimated_input_size;
     DEVICE_INPUT(dev_three_hit_tracks_input_t, Velo::TrackletHits) dev_three_hit_tracks_input;
     DEVICE_INPUT(dev_atomics_velo_t, unsigned) dev_atomics_velo;
-    DEVICE_INPUT(dev_hit_used_t, bool) dev_hit_used;
+    DEVICE_INPUT(dev_hit_used_t, uint8_t) dev_hit_used;
     DEVICE_INPUT(dev_number_of_events_t, unsigned) dev_number_of_events;
     DEVICE_OUTPUT(dev_three_hit_tracks_output_t, Velo::TrackletHits) dev_three_hit_tracks_output;
     DEVICE_OUTPUT(dev_offsets_number_of_three_hit_tracks_filtered_t, unsigned)

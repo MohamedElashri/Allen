@@ -20,7 +20,8 @@ INSTANTIATE_ALGORITHM(
 template<int decoding_version, bool mep_layout>
 __global__ void calculate_number_of_retinaclusters_each_sensor_pair_kernel(
   calculate_number_of_retinaclusters_each_sensor_pair::Parameters parameters,
-  const unsigned event_start)
+  const unsigned event_start,
+  const uint64_t masked_modules)
 {
   const auto event_number = parameters.dev_event_list[blockIdx.x];
   unsigned* each_sensor_pair_size = nullptr;
@@ -47,10 +48,12 @@ __global__ void calculate_number_of_retinaclusters_each_sensor_pair_kernel(
     const auto raw_bank = velo_raw_event.raw_bank(raw_bank_number);
     if (raw_bank.type == LHCb::RawBank::VPRetinaCluster) {
       if constexpr (decoding_version == 2 || decoding_version == 3) {
-        each_sensor_pair_size[raw_bank.sourceID] = raw_bank.count;
+        each_sensor_pair_size[raw_bank.sourceID] =
+          (masked_modules & (1 << (raw_bank.sourceID / 4))) ? 0 : raw_bank.count;
       }
       else {
-        each_sensor_pair_size[raw_bank.sensor_pair()] = raw_bank.size / 4;
+        each_sensor_pair_size[raw_bank.sensor_pair()] =
+          (masked_modules & (1 << (raw_bank.sensor_pair() / 2))) ? 0 : raw_bank.size / 4;
       }
     }
     if (blockIdx.x == 0) {
@@ -102,7 +105,7 @@ operator()(
                         global_function(calculate_number_of_retinaclusters_each_sensor_pair_kernel<4, false>));
 
   kernel_fn(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(
-    arguments, std::get<0>(runtime_options.event_interval));
+    arguments, std::get<0>(runtime_options.event_interval), m_masked_modules);
 
   PrefixSum::prefix_sum<dev_offsets_each_sensor_pair_size_t, host_total_sum_holder_t>(*this, arguments, context);
 }

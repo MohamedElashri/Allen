@@ -38,5 +38,6 @@ namespace calculate_number_of_retinaclusters_each_sensor_pair {
 
   private:
     Allen::Property<dim3> m_block_dim {this, "block_dim", {256, 1, 1}, "block dimensions"};
+    Allen::Property<uint64_t> m_masked_modules {this, "masked_modules", 0, "masked modules bitmask"};
   };
 } // namespace calculate_number_of_retinaclusters_each_sensor_pair

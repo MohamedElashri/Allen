@@ -117,14 +117,14 @@ __device__ void three_hit_tracks_filter_impl(
   const unsigned number_of_input_tracks,
   Allen::device::span<Velo::TrackletHits> output_tracks,
   unsigned* number_of_output_tracks,
-  const bool* hit_used,
+  const uint8_t* hit_used,
   Velo::ConstClusters& velo_cluster_container,
   const float max_chi2)
 {
 
   for (unsigned track_number = threadIdx.x; track_number < number_of_input_tracks; track_number += blockDim.x) {
     const Velo::TrackletHits& t = input_tracks[track_number];
-    const bool any_used = hit_used[t.hits[0]] || hit_used[t.hits[1]] || hit_used[t.hits[2]];
+    const bool any_used = hit_used[t.hits[0]] > 1 || hit_used[t.hits[1]] > 1 || hit_used[t.hits[2]] > 1;
     const float chi2 = means_square_fit_chi2(velo_cluster_container, t);
 
     // Store them in the tracks container
@@ -149,7 +149,7 @@ __global__ void velo_three_hit_tracks_filter::velo_three_hit_tracks_filter(
   const unsigned* module_hitStarts =
     parameters.dev_offsets_estimated_input_size + event_number * Velo::Constants::n_module_pairs;
   const unsigned hit_offset = module_hitStarts[0];
-  const bool* hit_used = parameters.dev_hit_used + hit_offset;
+  const uint8_t* hit_used = parameters.dev_hit_used + hit_offset;
 
   // Offseted VELO cluster container
   const auto velo_cluster_container =

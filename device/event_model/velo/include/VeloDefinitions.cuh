@@ -54,11 +54,5 @@ namespace Velo {
       static constexpr unsigned skipped_modules = 0x70000000;
       static constexpr unsigned skipped_module_position = 28;
     } // namespace bits
-    // Shared memory
-    namespace shared {
-      static constexpr unsigned previous_module_pair = 0;
-      static constexpr unsigned current_module_pair = 1;
-      static constexpr unsigned next_module_pair = 2;
-    } // namespace shared
   }   // namespace Tracking
 } // namespace Velo
