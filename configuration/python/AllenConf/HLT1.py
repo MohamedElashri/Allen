@@ -53,6 +53,8 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
     three_body_svs = reconstructed_objects["three_body_svs"]
     v0_pairs = reconstructed_objects["v0_pairs"]
     v0_hh_pairs = reconstructed_objects["v0_hh_pairs"]
+    phi_plus_track = reconstructed_objects["phi_plus_track"]
+    dihadrons_noipcut = reconstructed_objects["dihadrons_noipcut"]
     muon_stubs = reconstructed_objects["muon_stubs"]
 
     lines = [
@@ -102,7 +104,11 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
         make_kplus_to_pimumu_line(
             three_body_svs, name="Hlt1Kplus2PiMuMu", enable_monitoring=False),
         make_kplus_to_3pi_line(
-            three_body_svs, name="Hlt1Kplus2PiPiPi", enable_monitoring=False)
+            three_body_svs, name="Hlt1Kplus2PiPiPi", enable_monitoring=False),
+        make_tautophimu_line(
+            phi_plus_track,
+            name="Hlt1TauToPhiMu",
+            enable_tupling=enable_tupling),
     ]
 
     if 'downstream_tracks' in reconstructed_objects and 'downstream_secondary_vertices' in reconstructed_objects:

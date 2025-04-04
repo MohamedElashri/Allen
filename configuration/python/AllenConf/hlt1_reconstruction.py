@@ -214,6 +214,24 @@ def hlt1_reconstruction(algorithm_name='',
         track_min_ip_either=0.06,
         track_max_chi2ndof=track_max_chi2ndof)
 
+    # Dihadron SVs constructed with IP > 0 (no IP cut)
+    dihadrons_noipcut = fit_secondary_vertices(
+        long_tracks,
+        pvs,
+        KF_long_track,
+        long_track_particles,
+        fit_secondary_vertices_name=algorithm_name +
+        'fit_dihadrons_noipcut_secondary_vertices',
+        track_min_ipchi2_both=4.,
+        track_min_ipchi2_either=4.,
+        track_min_ip_both=0.,
+        track_min_ip_either=0.,
+        require_same_pv=True,
+        require_os_pair=True,
+        track_min_pt_both=450.,
+        track_min_pt_either=450.,
+        min_sum_pt=900.)
+
     # Make prompt SVs with a relatively tight pT cut.
     prompt_dihadrons = fit_secondary_vertices(
         long_tracks,
@@ -315,6 +333,22 @@ def hlt1_reconstruction(algorithm_name='',
 
     three_body_svs = make_three_body_svs(dihadrons, long_track_particles, pvs)
 
+    # Tau -> phi(-> KK) + third track
+    phi_plus_track = make_sv_track_pairs(
+        dihadrons_noipcut,
+        long_track_particles,
+        pvs,
+        min_track_ipchi2=4.,
+        min_track_ip=0.,
+        min_track_pt=300.,
+        sv_track_doca_max=0.2,
+        sv_vz_min=-200,
+        sv_vz_max=650,
+        sv_bpvip_min=0.,
+        sv_bpvvdz_min=0.,
+        sv_bpvvdrho_min=0.,
+        sv_bpvdira_min=0.9986)
+
     v0_pairs = make_sv_pairs(v0s)
 
     v0_hh_pairs = make_generic_sv_pairs(
@@ -353,7 +387,9 @@ def hlt1_reconstruction(algorithm_name='',
         "dstars": dstars,
         "v0_pairs": v0_pairs,
         "v0_hh_pairs": v0_hh_pairs,
-        "three_body_svs": three_body_svs
+        "three_body_svs": three_body_svs,
+        "phi_plus_track": phi_plus_track,
+        "dihadrons_noipcut": dihadrons_noipcut,
     })
 
     if 'downstream_tracks' in output:
