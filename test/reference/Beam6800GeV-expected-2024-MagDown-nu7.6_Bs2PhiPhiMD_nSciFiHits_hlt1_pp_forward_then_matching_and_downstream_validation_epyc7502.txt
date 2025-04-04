@@ -206,6 +206,7 @@ Hlt1SingleHighPtElectron:                   6/   500, (  360.00 +/-   146.08) kH
 Hlt1SingleHighPtMuon:                       1/   500, (   60.00 +/-    59.94) kHz
 Hlt1SingleHighPtMuonNoMuID:                 4/   500, (  240.00 +/-   119.52) kHz
 Hlt1TAEPassthrough:                         0/   500, (    0.00 +/-     0.00) kHz
+Hlt1TauToPhiMu:                             4/   500, (  240.00 +/-   119.52) kHz
 Hlt1TrackElectronMVA:                      25/   500, ( 1500.00 +/-   292.40) kHz
 Hlt1TrackMVA:                             119/   500, ( 7140.00 +/-   571.35) kHz
 Hlt1TrackMuonMVA:                          10/   500, (  600.00 +/-   187.83) kHz
@@ -428,6 +429,7 @@ Hlt1SingleHighPtElectron:                   6          10
 Hlt1SingleHighPtMuon:                       1           1
 Hlt1SingleHighPtMuonNoMuID:                 4           4
 Hlt1TAEPassthrough:                         0           0
+Hlt1TauToPhiMu:                             4           4
 Hlt1TrackElectronMVA:                      25          25
 Hlt1TrackMVA:                             119         185
 Hlt1TrackMuonMVA:                          10          10
@@ -439,12 +441,12 @@ Hlt1VeloMicroBias:                          1           0
 Hlt1VeloMicroBiasVeloClosing:               0           0
 Hlt1XiOmegaLLL:                             0           0
 
-Total decisions:      588
-Total tracks:         1224
+Total decisions:      592
+Total tracks:         1230
 Total calos clusters: 9
-Total SVs:            1138
-Total hits:           31856
-Total stdinfo:        14968
+Total SVs:            1146
+Total hits:           32021
+Total stdinfo:        15052
 
 
 velo_validator validation:

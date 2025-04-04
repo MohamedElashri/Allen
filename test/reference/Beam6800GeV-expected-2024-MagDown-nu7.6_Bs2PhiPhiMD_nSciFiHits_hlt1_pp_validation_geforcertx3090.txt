@@ -138,6 +138,7 @@ Hlt1SingleHighPtElectron:                5/   500, (  300.00 +/-   133.49) kHz
 Hlt1SingleHighPtMuon:                    1/   500, (   60.00 +/-    59.94) kHz
 Hlt1SingleHighPtMuonNoMuID:              4/   500, (  240.00 +/-   119.52) kHz
 Hlt1TAEPassthrough:                      0/   500, (    0.00 +/-     0.00) kHz
+Hlt1TauToPhiMu:                          3/   500, (  180.00 +/-   103.61) kHz
 Hlt1TrackElectronMVA:                   25/   500, ( 1500.00 +/-   292.40) kHz
 Hlt1TrackMVA:                          114/   500, ( 6840.00 +/-   562.88) kHz
 Hlt1TrackMuonMVA:                        9/   500, (  540.00 +/-   178.37) kHz
@@ -148,7 +149,7 @@ Hlt1UpsilonAlignment:                    0/   500, (    0.00 +/-     0.00) kHz
 Hlt1VeloMicroBias:                       1/   500, (   60.00 +/-    59.94) kHz
 Hlt1VeloMicroBiasVeloClosing:            0/   500, (    0.00 +/-     0.00) kHz
 Hlt1XiOmegaLLL:                          0/   500, (    0.00 +/-     0.00) kHz
-Inclusive:                             312/   500, (18720.00 +/-   649.86) kHz
+Inclusive:                             313/   500, (18780.00 +/-   649.17) kHz
 
 
 selreport_validator validation:
@@ -240,6 +241,7 @@ Hlt1SingleHighPtElectron:                5           8
 Hlt1SingleHighPtMuon:                    1           1
 Hlt1SingleHighPtMuonNoMuID:              4           4
 Hlt1TAEPassthrough:                      0           0
+Hlt1TauToPhiMu:                          3           3
 Hlt1TrackElectronMVA:                   25          25
 Hlt1TrackMVA:                          114         179
 Hlt1TrackMuonMVA:                        9           9
@@ -251,12 +253,12 @@ Hlt1VeloMicroBias:                       1           0
 Hlt1VeloMicroBiasVeloClosing:            0           0
 Hlt1XiOmegaLLL:                          0           0
 
-Total decisions:      540
-Total tracks:         1086
+Total decisions:      543
+Total tracks:         1092
 Total calos clusters: 10
-Total SVs:            1000
-Total hits:           28348
-Total stdinfo:        13268
+Total SVs:            1006
+Total hits:           28513
+Total stdinfo:        13343
 
 
 veloUT_validator validation:

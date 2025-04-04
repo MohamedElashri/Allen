@@ -22,4 +22,5 @@ namespace Allen {
   constexpr float mXi = 1321.71f;
   constexpr float mOmega = 1672.45f;
   constexpr float mDz = 1864.83f;
+  constexpr float mPhi = 1019.461f;
 } // namespace Allen
