@@ -77,7 +77,8 @@ __global__ void pv_lumi_counters::pv_lumi_counters(
     if (lumi_evt_index == parameters.dev_lumi_event_indices[event_number + 1]) continue;
 
     // number of PVs
-    std::array<float, Lumi::Constants::n_pv_counters> pv_counters = {0u, 0u, 0u, 0u, 0u};
+    std::array<float, Lumi::Constants::n_pv_counters> pv_counters = {
+      0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u};
     pv_counters[0] = parameters.dev_number_of_pvs[event_number];
 
     if (parameters.dev_number_of_pvs[event_number] > 0) {
@@ -89,12 +90,16 @@ __global__ void pv_lumi_counters::pv_lumi_counters(
       pv_counters[3] = pv_pos.y;
       pv_counters[4] = pv_pos.z;
 
+      const auto shift_pv_counters = Lumi::Constants::n_pv_counters - Lumi::Constants::n_pv_z_stored;
       // count vertices in fiducial volume
       for (unsigned pv_index = 0u; pv_index < pv_counters[0]; ++pv_index) {
         auto x = vertices[pv_index].position.x;
         auto y = vertices[pv_index].position.y;
         auto absz = fabsf(vertices[pv_index].position.z);
         if (absz < 300 && sqrtf(x * x + y * y) < 3) ++pv_counters[1];
+        if (pv_index < Lumi::Constants::n_pv_z_stored) { // store at maximum 10 PVz
+          pv_counters[pv_index + shift_pv_counters] = vertices[pv_index].position.z;
+        }
       }
     }
 

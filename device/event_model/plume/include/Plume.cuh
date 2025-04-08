@@ -18,5 +18,5 @@ struct Plume_ {
     0u,
     0u}; // overthreshold bits feb0=ovr_th[0] and feb1=ovr_th[1], first left bit of the 32 bit word is ch.0
 
-  std::array<float, 64> ADC_counts; // N=64 objects of type float for N ADC counts, [0]=channel0.
+  std::array<float, 128> ADC_counts; // N=128 objects of type float for N ADC counts, [0]=channel0.
 };

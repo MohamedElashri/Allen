@@ -84,9 +84,13 @@ __global__ void plume_lumi_counters::plume_lumi_counters(
 
     std::array<int32_t, 2> plume_counters_ovt = {0u, 0u};
 
-    std::array<float, 44> plume_counters = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-                                            0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-                                            0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+    std::array<float, 2 * Lumi::Constants::n_plume_lumi_channels> plume_counters = {
+      0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+      0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+
+    std::array<float, Lumi::Constants::n_plume_channels> plume_counters_timing = {
+      0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+      0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
 
     for (unsigned feb = 0; feb < 2; feb++) {
       unsigned channel_offset = feb * Lumi::Constants::n_plume_lumi_channels;
@@ -101,10 +105,19 @@ __global__ void plume_lumi_counters::plume_lumi_counters(
     // get average
     plume_counters_ADCsum = plume_counters_ADCsum / Lumi::Constants::n_plume_lumi_channels / 2.f;
 
+    // timing counters
+    const auto shift_two_febs = 44;
+    for (unsigned int i = 0; i < Lumi::Constants::n_plume_channels; ++i) {
+      plume_counters_timing[i] =
+        pl->ADC_counts.at(shift_two_febs + i * 2 + 1) - pl->ADC_counts.at(shift_two_febs + i * 2);
+    }
+
     unsigned info_offset = Lumi::Constants::n_plume_counters * lumi_evt_index;
+    const unsigned idx_start_adc_counters = Lumi::Constants::n_plume_counters - Lumi::Constants::n_plume_channels -
+                                            2 * Lumi::Constants::n_plume_lumi_channels;
+    const unsigned idx_start_time_counters = Lumi::Constants::n_plume_counters - Lumi::Constants::n_plume_channels;
 
     // filling ADCsum average
-
     fillLumiInfo(
       parameters.dev_lumi_infos[info_offset],
       offsets_and_sizes[0],
@@ -113,9 +126,8 @@ __global__ void plume_lumi_counters::plume_lumi_counters(
       shifts_and_scales[0],
       shifts_and_scales[1]);
 
-    for (unsigned i = 1u; i < 3u; ++i) {
-
-      // filling ovt bits
+    // filling ovt bits
+    for (unsigned i = 1u; i < idx_start_adc_counters; ++i) {
       fillLumiInfo(
         parameters.dev_lumi_infos[info_offset + i],
         offsets_and_sizes[2 * i],
@@ -124,13 +136,23 @@ __global__ void plume_lumi_counters::plume_lumi_counters(
         shifts_and_scales[2 * i],
         shifts_and_scales[2 * i + 1]);
     }
-
-    for (unsigned i = 3u; i < Lumi::Constants::n_plume_counters; ++i) {
+    // filling the ADCs for each PMT
+    for (unsigned i = idx_start_adc_counters; i < idx_start_time_counters; ++i) {
       fillLumiInfo(
         parameters.dev_lumi_infos[info_offset + i],
         offsets_and_sizes[2 * i],
         offsets_and_sizes[2 * i + 1],
-        plume_counters[i - 3],
+        plume_counters[i - idx_start_adc_counters],
+        shifts_and_scales[2 * i],
+        shifts_and_scales[2 * i + 1]);
+    }
+    // filling the counters for TIMING PMTs
+    for (unsigned i = idx_start_time_counters; i < Lumi::Constants::n_plume_counters; ++i) {
+      fillLumiInfo(
+        parameters.dev_lumi_infos[info_offset + i],
+        offsets_and_sizes[2 * i],
+        offsets_and_sizes[2 * i + 1],
+        plume_counters_timing[i - idx_start_time_counters],
         shifts_and_scales[2 * i],
         shifts_and_scales[2 * i + 1]);
     }

@@ -11,6 +11,7 @@
 #include <MEPTools.h>
 #include <PlumeDecode.cuh>
 #include <BankTypes.h>
+#include <LumiDefinitions.cuh>
 
 INSTANTIATE_ALGORITHM(plume_decode::plume_decode_t)
 
@@ -38,19 +39,28 @@ namespace {
 
       if constexpr (decoding_version == 2 || decoding_version == 3 || decoding_version == 4) {
 
-        int n_ch = 22;
+        const unsigned n_ch = Lumi::Constants::n_plume_channels;
+
         if constexpr (decoding_version == 2) {
           if (source_id != 0x5001) continue;
         }
         else {
-          if (source_id != 0x5001 and source_id != 0x5002) continue;
+          if (source_id != 0x5001 and source_id != 0x5002 and source_id != 0x5003 and source_id != 0x5004) continue;
         }
 
         uint32_t ovr_thb = {0}; // overthreshold bits: 1 bit objects for the n_ch channels
 
-        int n_bank = int(source_id & 0x3);
+        int n_bank = int(source_id & 0x7); // 0x7 necessary to select least significant digit of source_id up to 4
 
-        for (int ch = 0; ch < n_ch; ch++) {
+        const auto shift_bank = (n_bank == 1 or n_bank == 2) ? 10 : 0;
+        const auto shift_ch = (n_bank == 1 or n_bank == 2) ? 0 : 20;
+
+        for (unsigned ch = 0; ch < n_ch; ++ch) {
+
+          if (ch >= Lumi::Constants::n_plume_lumi_channels and (n_bank == 1 or n_bank == 2)) { // decode only the lumi
+                                                                                               // PMTs in banks 1 and 2
+            continue;
+          }
 
           uint32_t new_word = raw_bank.data[ch];
 
@@ -60,10 +70,14 @@ namespace {
 
           auto pedestal_sub_adc = (unsigned int) ((0x7ffff000 & new_word) >> 12);
 
-          pl->ADC_counts.at(ch + n_ch * (n_bank - 1)) = static_cast<float>(pedestal_sub_adc) / 128.f;
+          auto idx = ch + (n_ch - shift_bank) * (n_bank - 1) - shift_ch;
+
+          pl->ADC_counts.at(idx) = static_cast<float>(pedestal_sub_adc) / 128.f;
         }
 
-        pl->ovr_th[n_bank - 1] = ovr_thb;
+        if (n_bank == 1 or n_bank == 2) {
+          pl->ovr_th[n_bank - 1] = ovr_thb;
+        }
       }
 
       else if constexpr (decoding_version == 1) {
