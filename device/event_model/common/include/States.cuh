@@ -360,6 +360,10 @@ namespace Allen {
         {
           return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 3];
         }
+        __host__ __device__ float downstream_helicity() const
+        {
+          return m_base_pointer[nb_elements_vrt * m_total_number_of_vrts + nb_elements_cov * m_index + 4];
+        }
       };
 
       struct SecondaryVertices {

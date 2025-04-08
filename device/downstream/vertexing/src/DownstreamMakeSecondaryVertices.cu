@@ -72,6 +72,7 @@ namespace {
     fbase[nvrt * n_svs_total + ncov * index + 1] = sv.quality;
     fbase[nvrt * n_svs_total + ncov * index + 2] = sv.Armenteros_x;
     fbase[nvrt * n_svs_total + ncov * index + 3] = sv.Armenteros_y;
+    fbase[nvrt * n_svs_total + ncov * index + 4] = sv.helicity;
   }
 } // namespace
 

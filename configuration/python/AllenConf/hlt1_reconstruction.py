@@ -393,8 +393,19 @@ def hlt1_reconstruction(algorithm_name='',
     })
 
     if 'downstream_tracks' in output:
-        v0s_dd = fit_downstream_secondary_vertices(output['downstream_tracks'],
-                                                   pvs)
+        v0s_dd = fit_downstream_secondary_vertices(
+            output['downstream_tracks'], pvs, dihadron=True)
+        downstream_combined_hadronic_and_leptonic_secondary_vertices = fit_downstream_secondary_vertices(
+            output['downstream_tracks'],
+            pvs,
+            dihadron=False,
+            hadronic_and_leptonic_combined=True)
+        downstream_combined_hadronic_and_leptonic_same_sign_secondary_vertices = fit_downstream_secondary_vertices(
+            output['downstream_tracks'],
+            pvs,
+            dihadron=False,
+            hadronic_and_leptonic_combined=True,
+            same_sign_reco=True)
         v0dd_pairs = make_generic_sv_pairs(
             v0s_dd,
             v0s_dd,
@@ -444,9 +455,16 @@ def hlt1_reconstruction(algorithm_name='',
             minTrackIPChi2V2=-999.,
             minTrackIPV2=0.06)
         output.update({
-            'downstream_secondary_vertices': v0s_dd,
-            'downstream_sv_pairs': v0dd_pairs,
-            'v0dd_hh_pairs': v0dd_hh_pairs
+            'downstream_secondary_vertices':
+            v0s_dd,
+            'downstream_sv_pairs':
+            v0dd_pairs,
+            "downstream_combined_hadronic_and_leptonic_secondary_vertices":
+            downstream_combined_hadronic_and_leptonic_secondary_vertices,
+            "downstream_combined_hadronic_and_leptonic_same_sign_secondary_vertices":
+            downstream_combined_hadronic_and_leptonic_same_sign_secondary_vertices,
+            'v0dd_hh_pairs':
+            v0dd_hh_pairs
         })
 
     if with_rich:

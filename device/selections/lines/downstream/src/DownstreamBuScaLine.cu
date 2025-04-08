@@ -25,6 +25,15 @@ void downstream_mva_busca_line::downstream_mva_busca_line_t::init()
   m_busca_scaled.y_axis().minValue = m_histogramFDMin;
   m_busca_scaled.y_axis().maxValue = m_histogramFDMax;
   m_busca_scaled.y_axis().nBins = m_histogramFDNBins;
+
+  if (m_clean_region) {
+    m_helicity_vs_mass.x_axis().nBins = m_histogramMassNBins;
+    m_helicity_vs_mass.x_axis().minValue = m_histogramMassMin;
+  }
+  else {
+    m_helicity_vs_mass.x_axis().nBins = 1; // reducing memory-taking
+    m_helicity_vs_mass.y_axis().nBins = 1; // reducing memory-taking
+  }
 }
 
 __device__ bool downstream_mva_busca_line::downstream_mva_busca_line_t::select(
@@ -39,7 +48,7 @@ __device__ bool downstream_mva_busca_line::downstream_mva_busca_line_t::select(
   if (properties.enable_trigger) {
 
     if (properties.general_line) {
-      const float m = composite.m12(Allen::mPi, Allen::mPi); // TODO: insert mass hypotesis
+      const float m = composite.m12(Allen::mPi, Allen::mPi);
       const float fd = composite.fd();
 
       const float x = composite.vertex().x();
@@ -131,13 +140,26 @@ __device__ void downstream_mva_busca_line::downstream_mva_busca_line_t::monitor(
 
   if (properties.general_line) {
     if (busca_mva > properties.mva_threshold) {
-      const float m = pair.m12(Allen::mPi, Allen::mPi); // TODO: insert mass hypotesis
+      const float m = pair.m12(Allen::mPi, Allen::mPi);
       const float fd = pair.fd();
+
+      if (
+        (fd > properties.histogram_ks_fd_min) & (fd < properties.histogram_ks_fd_max) &
+        (m > properties.histogram_ks_mass_min) & (m < properties.histogram_ks_mass_max)) {
+      }
+      else
+        return;
 
       const float x = pair.vertex().x();
       const float y = pair.vertex().y();
 
       const float R = sqrtf(x * x + y * y);
+
+      const float helicity = pair.vertex().downstream_helicity();
+
+      if (properties.clean_region) {
+        properties.clean_region_histogram.increment(m, helicity);
+      }
 
       if (R > 25) {
         properties.busca_scaled.increment(m, fd);
@@ -159,6 +181,21 @@ __device__ void downstream_mva_busca_line::downstream_mva_busca_line_t::monitor(
 
     if (type_selection && busca_mva > properties.mva_threshold) {
 
+      const float mass_ks = pair.mdipi();
+      const float mass_ee = pair.m12(Allen::mEl, Allen::mEl);
+      const float fd = pair.fd();
+
+      float m = mass_ks;
+      if (properties.muon_line) m = pair.m12(Allen::mMu, Allen::mMu);
+      if (properties.electron_line) m = mass_ee;
+
+      if (
+        (fd > properties.histogram_ks_fd_min) & (fd < properties.histogram_ks_fd_max) &
+        (m > properties.histogram_ks_mass_min) & (m < properties.histogram_ks_mass_max)) {
+      }
+      else
+        return;
+
       const auto dA = static_cast<const Allen::Views::Physics::BasicParticle*>(pair.child(0));
       const auto dB = static_cast<const Allen::Views::Physics::BasicParticle*>(pair.child(1));
 
@@ -169,10 +206,8 @@ __device__ void downstream_mva_busca_line::downstream_mva_busca_line_t::monitor(
 
       if (quality < properties.downstream_quality_cut) return;
 
-      const float mass_ks = pair.mdipi();
       const float mass_lambda_1 = pair.m12(Allen::mPi, Allen::mP);
       const float mass_lambda_2 = pair.m12(Allen::mP, Allen::mPi);
-      const float mass_ee = pair.m12(Allen::mEl, Allen::mEl);
 
       const float x = pair.vertex().x();
       const float y = pair.vertex().y();
@@ -191,17 +226,16 @@ __device__ void downstream_mva_busca_line::downstream_mva_busca_line_t::monitor(
         (mass_lambda_2 < properties.mass_ppi_lower_threshold || mass_lambda_2 > properties.mass_ppi_higher_threshold) &&
         (mass_ee > properties.mass_ee_cut);
 
-      float m = pair.m12(Allen::mPi, Allen::mPi);
-      if (properties.muon_line) m = pair.m12(Allen::mMu, Allen::mMu);
-      if (properties.electron_line) m = pair.m12(Allen::mEl, Allen::mEl);
-
-      const float fd = pair.fd();
-
       if (
         mass_cut && (is_R || properties.disable_R_cut) && (dA_p > properties.daughter_momentum_cut) &&
         (dB_p > properties.daughter_momentum_cut)) {
         properties.busca_scaled.increment(m, fd);
         properties.busca_armenteros.increment(
+          pair.vertex().downstream_armentero_podolanski_x(), pair.vertex().downstream_armentero_podolanski_y());
+      }
+
+      if (sel) {
+        properties.busca_triggered_armenteros.increment(
           pair.vertex().downstream_armentero_podolanski_x(), pair.vertex().downstream_armentero_podolanski_y());
       }
     }

@@ -90,40 +90,35 @@ def make_downstream_lambda_line(downstream_tracks,
 
 
 @configurable
-def make_BuSca_line(downstream_tracks,
-                    downstream_secondary_vertices,
+def make_BuSca_line(downstream_secondary_vertices,
                     pre_scaler_hash_string=None,
                     post_scaler_hash_string=None,
                     pre_scaler=1.0,
                     post_scaler=1.0,
                     name='Hlt1DownstreamBuSca',
-                    mva_busca_threshold=0.85,
+                    mva_busca_threshold=0.75,
                     enable_monitoring=True,
                     enable_tupling=False,
                     enable_trigger=False,
                     line_type="muon",
+                    clean_region=False,
                     trigger_mass_min=200,
                     trigger_mass_max=5000,
                     trigger_fd_min=500,
                     trigger_fd_max=2500,
-                    same_sign_line=False):
+                    histogram_ks_fd_min=0,
+                    histogram_ks_fd_max=2500,
+                    histogram_ks_fd_nbins=20,
+                    histogram_ks_mass_min=200,
+                    histogram_ks_mass_max=5000,
+                    histogram_ks_mass_nbins=80):
 
     number_of_events = initialize_number_of_events()
 
-    if (same_sign_line):
-        busca_mva = downstream_secondary_vertices[
-            'dev_downstream_mva_same_sign_busca']
-        number_of_svs = downstream_secondary_vertices[
-            "host_number_of_same_sign_svs"]
-        svs_container = downstream_secondary_vertices[
-            "dev_multi_event_same_sign_composites"]
-    else:
-        busca_mva = downstream_secondary_vertices[
-            'dev_downstream_mva_combined_busca']
-        number_of_svs = downstream_secondary_vertices[
-            "host_number_of_combined_svs"]
-        svs_container = downstream_secondary_vertices[
-            "dev_multi_event_combined_composites"]
+    busca_mva = downstream_secondary_vertices[
+        'dev_downstream_mva_combined_busca']
+    number_of_svs = downstream_secondary_vertices["host_number_of_svs"]
+    svs_container = downstream_secondary_vertices["dev_multi_event_composites"]
 
     return make_algorithm(
         downstream_mva_busca_line_t,
@@ -134,6 +129,13 @@ def make_BuSca_line(downstream_tracks,
         trigger_mass_max=trigger_mass_max,
         trigger_fd_min=trigger_fd_min,
         trigger_fd_max=trigger_fd_max,
+        histogram_ks_fd_min=histogram_ks_fd_min,
+        histogram_ks_fd_max=histogram_ks_fd_max,
+        histogram_ks_fd_nbins=histogram_ks_fd_nbins,
+        histogram_ks_mass_min=histogram_ks_mass_min,
+        histogram_ks_mass_max=histogram_ks_mass_max,
+        histogram_ks_mass_nbins=histogram_ks_mass_nbins,
+        clean_region=clean_region,
         general_line=(line_type == "monitoring"),
         muon_line=(line_type == "muon"),
         electron_line=(line_type == "electron"),

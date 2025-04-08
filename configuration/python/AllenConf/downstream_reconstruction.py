@@ -632,25 +632,25 @@ def make_downstream(decoded_ut,
 
 
 @configurable
-def fit_downstream_secondary_vertices(
-        downstream_tracks,
-        pvs,
-        track_min_pt_both=136.1,
-        track_min_pt_either=277.1,
-        track_min_ip_both=64.,
-        track_min_ip_either=64.,
-        sum_pt_min=471.8,
-        doca_max=19.1,
-        min_vtx_z=54.5,
-        max_vtx_z=2484.6,
-        min_quality=0.1,
-        dihadron=True,
-):
+def fit_downstream_secondary_vertices(downstream_tracks,
+                                      pvs,
+                                      track_min_pt_both=136.1,
+                                      track_min_pt_either=277.1,
+                                      track_min_ip_both=64.,
+                                      track_min_ip_either=64.,
+                                      sum_pt_min=471.8,
+                                      doca_max=19.1,
+                                      min_vtx_z=54.5,
+                                      max_vtx_z=2484.6,
+                                      min_quality=0.1,
+                                      dihadron=True,
+                                      same_sign_reco=False,
+                                      hadronic_and_leptonic_combined=False):
     number_of_events = initialize_number_of_events()
 
-    downstream_hadron_vertexing = make_algorithm(
+    downstream_vertexing = make_algorithm(
         downstream_vertexing_t,
-        name='downstream_vertexing',
+        name='downstream_vertexing_{hash}',
         # Basics
         host_number_of_events_t=number_of_events["host_number_of_events"],
         # Downstream tracks
@@ -669,62 +669,17 @@ def fit_downstream_secondary_vertices(
         max_vtx_z=max_vtx_z,
         min_quality=min_quality,
         dihadron=dihadron,
-    )
-
-    downstream_combined_vertexing = make_algorithm(
-        downstream_vertexing_t,
-        name='downstream_leptonic_vertexing',
-        # Basics
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        # Downstream tracks
-        host_number_of_downstream_tracks_t=downstream_tracks[
-            'host_number_of_downstream_tracks'],
-        dev_multi_event_downstream_track_particles_view_t=downstream_tracks[
-            'dev_multi_event_downstream_track_particles_view'],
-        # Properties
-        track_min_pt_both=track_min_pt_both,
-        track_min_pt_either=track_min_pt_either,
-        track_min_ip_both=track_min_ip_both,
-        track_min_ip_either=track_min_ip_either,
-        sum_pt_min=sum_pt_min,
-        doca_max=doca_max,
-        min_vtx_z=min_vtx_z,
-        max_vtx_z=max_vtx_z,
-        min_quality=min_quality,
-        combined_container=True)
-
-    downstream_same_sign_vertexing = make_algorithm(
-        downstream_vertexing_t,
-        name='downstream_same_sign_vertexing',
-        # Basics
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        # Downstream tracks
-        host_number_of_downstream_tracks_t=downstream_tracks[
-            'host_number_of_downstream_tracks'],
-        dev_multi_event_downstream_track_particles_view_t=downstream_tracks[
-            'dev_multi_event_downstream_track_particles_view'],
-        # Properties
-        track_min_pt_both=track_min_pt_both,
-        track_min_pt_either=track_min_pt_either,
-        track_min_ip_both=track_min_ip_both,
-        track_min_ip_either=track_min_ip_either,
-        sum_pt_min=sum_pt_min,
-        doca_max=doca_max,
-        min_vtx_z=min_vtx_z,
-        max_vtx_z=max_vtx_z,
-        min_quality=min_quality,
-        combined_container=True,
-        same_sign_reco=True)
+        combined_container=hadronic_and_leptonic_combined,
+        same_sign_reco=same_sign_reco)
 
     downstream_make_secondary_vertices = make_algorithm(
         downstream_make_secondary_vertices_t,
-        name='downstream_make_secondary_vertices',
+        name='downstream_make_secondary_vertices_{hash}',
         # Basics
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_number_of_events_t=number_of_events["dev_number_of_events"],
         # Downstream tracks
-        host_number_of_downstream_secondary_vertices_t=
-        downstream_hadron_vertexing.
+        host_number_of_downstream_secondary_vertices_t=downstream_vertexing.
         host_number_of_downstream_secondary_vertices_t,
         dev_multi_event_downstream_track_particles_view_t=downstream_tracks[
             'dev_multi_event_downstream_track_particles_view'],
@@ -733,104 +688,41 @@ def fit_downstream_secondary_vertices(
         dev_number_of_multi_final_vertices_t=pvs[
             "dev_number_of_multi_final_vertices"],
         # SVs
-        dev_downstream_secondary_vertices_t=downstream_hadron_vertexing.
+        dev_downstream_secondary_vertices_t=downstream_vertexing.
         dev_downstream_secondary_vertices_t,
-        dev_offsets_downstream_secondary_vertices_t=downstream_hadron_vertexing
-        .dev_offsets_downstream_secondary_vertices_t)
-
-    downstream_make_combined_secondary_vertices = make_algorithm(
-        downstream_make_secondary_vertices_t,
-        name='downstream_make_combined_secondary_vertices',
-        # Basics
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        # Downstream tracks
-        host_number_of_downstream_secondary_vertices_t=
-        downstream_combined_vertexing.
-        host_number_of_downstream_secondary_vertices_t,
-        dev_multi_event_downstream_track_particles_view_t=downstream_tracks[
-            'dev_multi_event_downstream_track_particles_view'],
-        # PVs
-        dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
-        dev_number_of_multi_final_vertices_t=pvs[
-            "dev_number_of_multi_final_vertices"],
-        # SVs
-        dev_downstream_secondary_vertices_t=downstream_combined_vertexing.
-        dev_downstream_secondary_vertices_t,
-        dev_offsets_downstream_secondary_vertices_t=downstream_combined_vertexing
-        .dev_offsets_downstream_secondary_vertices_t)
-
-    downstream_make_same_sign_secondary_vertices = make_algorithm(
-        downstream_make_secondary_vertices_t,
-        name='downstream_make_same_sign_secondary_vertices',
-        # Basics
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        dev_number_of_events_t=number_of_events["dev_number_of_events"],
-        # Downstream tracks
-        host_number_of_downstream_secondary_vertices_t=
-        downstream_same_sign_vertexing.
-        host_number_of_downstream_secondary_vertices_t,
-        dev_multi_event_downstream_track_particles_view_t=downstream_tracks[
-            'dev_multi_event_downstream_track_particles_view'],
-        # PVs
-        dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
-        dev_number_of_multi_final_vertices_t=pvs[
-            "dev_number_of_multi_final_vertices"],
-        # SVs
-        dev_downstream_secondary_vertices_t=downstream_same_sign_vertexing.
-        dev_downstream_secondary_vertices_t,
-        dev_offsets_downstream_secondary_vertices_t=
-        downstream_same_sign_vertexing.
+        dev_offsets_downstream_secondary_vertices_t=downstream_vertexing.
         dev_offsets_downstream_secondary_vertices_t)
 
     downstream_composite_selector = make_algorithm(
         downstream_composite_selector_t,
-        name='downstream_composite_selector',
+        name='downstream_composite_selector_{hash}',
         # Basics
         host_number_of_events_t=number_of_events["host_number_of_events"],
         # Size
-        host_number_of_downstream_secondary_vertices_t=
-        downstream_hadron_vertexing.
+        host_number_of_downstream_secondary_vertices_t=downstream_vertexing.
         host_number_of_downstream_secondary_vertices_t,
         # Composite
         dev_multi_event_composites_view_t=downstream_make_secondary_vertices.
         dev_multi_event_composites_view_t,
     )
 
-    downstream_busca_combined_selector = make_algorithm(
+    downstream_busca_selector = make_algorithm(
         downstream_busca_selector_t,
-        name='downstream_busca_combined_selector',
+        name='downstream_busca_combined_selector_{hash}',
         host_number_of_events_t=number_of_events["host_number_of_events"],
         # Size
-        host_number_of_downstream_secondary_vertices_t=
-        downstream_combined_vertexing.
+        host_number_of_downstream_secondary_vertices_t=downstream_vertexing.
         host_number_of_downstream_secondary_vertices_t,
         # Composite
-        dev_multi_event_composites_view_t=
-        downstream_make_combined_secondary_vertices.
-        dev_multi_event_composites_view_t,
-    )
-
-    downstream_busca_same_sign_selector = make_algorithm(
-        downstream_busca_selector_t,
-        name='downstream_busca_same_sign_selector',
-        host_number_of_events_t=number_of_events["host_number_of_events"],
-        # Size
-        host_number_of_downstream_secondary_vertices_t=
-        downstream_same_sign_vertexing.
-        host_number_of_downstream_secondary_vertices_t,
-        # Composite
-        dev_multi_event_composites_view_t=
-        downstream_make_same_sign_secondary_vertices.
-        dev_multi_event_composites_view_t,
-    )
+        dev_multi_event_composites_view_t=downstream_make_secondary_vertices.
+        dev_multi_event_composites_view_t)
 
     return {
         #
         # Algorithms
         #
         "downstream_vertexing":
-        downstream_hadron_vertexing,
+        downstream_vertexing,
         "downstream_make_secondary_vertices":
         downstream_make_secondary_vertices,
         "downstream_composite_selector":
@@ -839,27 +731,13 @@ def fit_downstream_secondary_vertices(
         # Standard outputs
         #
         "host_number_of_svs":
-        downstream_hadron_vertexing.
-        host_number_of_downstream_secondary_vertices_t,
-        "host_number_of_combined_svs":
-        downstream_combined_vertexing.
-        host_number_of_downstream_secondary_vertices_t,
-        "host_number_of_same_sign_svs":
-        downstream_same_sign_vertexing.
-        host_number_of_downstream_secondary_vertices_t,
+        downstream_vertexing.host_number_of_downstream_secondary_vertices_t,
         "dev_sv_offsets":
-        downstream_hadron_vertexing.
-        dev_offsets_downstream_secondary_vertices_t,
+        downstream_vertexing.dev_offsets_downstream_secondary_vertices_t,
         "dev_two_track_particles":
         downstream_make_secondary_vertices.dev_two_track_composites_view_t,
         "dev_multi_event_composites":
         downstream_make_secondary_vertices.dev_multi_event_composites_view_t,
-        "dev_multi_event_combined_composites":
-        downstream_make_combined_secondary_vertices.
-        dev_multi_event_composites_view_t,
-        "dev_multi_event_same_sign_composites":
-        downstream_make_same_sign_secondary_vertices.
-        dev_multi_event_composites_view_t,
         "dev_multi_event_composites_ptr":
         downstream_make_secondary_vertices.dev_multi_event_composites_ptr_t,
         #
@@ -880,9 +758,7 @@ def fit_downstream_secondary_vertices(
         "dev_downstream_mva_detached_l0":
         downstream_composite_selector.dev_downstream_mva_detached_l0_t,
         "dev_downstream_mva_combined_busca":
-        downstream_busca_combined_selector.dev_downstream_mva_busca_t,
-        "dev_downstream_mva_same_sign_busca":
-        downstream_busca_same_sign_selector.dev_downstream_mva_busca_t
+        downstream_busca_selector.dev_downstream_mva_busca_t,
     }
 
 
@@ -906,11 +782,28 @@ def make_downstream_objects():
         # , ut_tracks=ut_tracks
         pvs=pvs)
     downstream_secondary_vertices = fit_downstream_secondary_vertices(
-        downstream_tracks, pvs)
+        downstream_tracks, pvs, dihadron=True)
+    downstream_combined_hadronic_and_leptonic_secondary_vertices = fit_downstream_secondary_vertices(
+        downstream_tracks,
+        pvs,
+        dihadron=False,
+        hadronic_and_leptonic_combined=True)
+    downstream_combined_hadronic_and_leptonic_same_sign_secondary_vertices = fit_downstream_secondary_vertices(
+        downstream_tracks,
+        pvs,
+        dihadron=False,
+        hadronic_and_leptonic_combined=True,
+        same_sign_reco=True)
 
     return {
-        "downstream_tracks": downstream_tracks,
-        "downstream_secondary_vertices": downstream_secondary_vertices,
+        "downstream_tracks":
+        downstream_tracks,
+        "downstream_secondary_vertices":
+        downstream_secondary_vertices,
+        "downstream_combined_hadronic_and_leptonic_secondary_vertices":
+        downstream_combined_hadronic_and_leptonic_secondary_vertices,
+        "downstream_combined_hadronic_and_leptonic_same_sign_secondary_vertices":
+        downstream_combined_hadronic_and_leptonic_same_sign_secondary_vertices
     }
 
 
