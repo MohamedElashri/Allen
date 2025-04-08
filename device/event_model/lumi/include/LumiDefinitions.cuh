@@ -59,12 +59,13 @@ namespace Lumi {
 
     static constexpr unsigned n_basic_counters = 6u;
     static constexpr unsigned n_velo_counters = 70u;
-    static constexpr unsigned n_pv_counters = 5u;
+    static constexpr unsigned n_pv_counters = 15u;
+    static constexpr unsigned n_pv_z_stored = 10u;
     static constexpr unsigned n_scifi_counters = 38u;
     static constexpr unsigned n_calo_counters = 8u;
     // 1u for muon tracks
     static constexpr unsigned n_muon_counters = n_muon_station_regions + 1u + Muon::Constants::maxTell40Number;
-    static constexpr unsigned n_plume_counters = 47u;
+    static constexpr unsigned n_plume_counters = 79u;
 
     // number of velo eta bins edges
     static constexpr unsigned n_velo_eta_bin_edges = 7u;
@@ -151,7 +152,17 @@ namespace Lumi {
                                                                      "FiducialVeloVertices",
                                                                      "VeloVertexX",
                                                                      "VeloVertexY",
-                                                                     "VeloVertexZ"};
+                                                                     "VeloVertexZ",
+                                                                     "VeloVertexZ_00",
+                                                                     "VeloVertexZ_01",
+                                                                     "VeloVertexZ_02",
+                                                                     "VeloVertexZ_03",
+                                                                     "VeloVertexZ_04",
+                                                                     "VeloVertexZ_05",
+                                                                     "VeloVertexZ_06",
+                                                                     "VeloVertexZ_07",
+                                                                     "VeloVertexZ_08",
+                                                                     "VeloVertexZ_09"};
     const std::array<std::string, n_scifi_counters> scifi_counter_names = {
       "SciFiT1M123",  "SciFiT2M123",  "SciFiT3M123",  "SciFiT1M4",    "SciFiT2M4",    "SciFiT3M45",   "SciFiT1Q02M0",
       "SciFiT1Q13M0", "SciFiT1Q02M1", "SciFiT1Q13M1", "SciFiT1Q02M2", "SciFiT1Q13M2", "SciFiT1Q02M3", "SciFiT1Q13M3",
@@ -184,7 +195,14 @@ namespace Lumi {
       "PlumeLumiADC27",  "PlumeLumiADC28",      "PlumeLumiADC29",       "PlumeLumiADC30", "PlumeLumiADC31",
       "PlumeLumiADC32",  "PlumeLumiADC33",      "PlumeLumiADC34",       "PlumeLumiADC35", "PlumeLumiADC36",
       "PlumeLumiADC37",  "PlumeLumiADC38",      "PlumeLumiADC39",       "PlumeLumiADC40", "PlumeLumiADC41",
-      "PlumeLumiADC42",  "PlumeLumiADC43"};
+      "PlumeLumiADC42",  "PlumeLumiADC43",      "PlumeTiming00",        "PlumeTiming01",  "PlumeTiming02",
+      "PlumeTiming03",   "PlumeTiming04",       "PlumeTiming05",        "PlumeTiming06",  "PlumeTiming07",
+      "PlumeTiming08",   "PlumeTiming09",       "PlumeTiming10",        "PlumeTiming11",  "PlumeTiming12",
+      "PlumeTiming13",   "PlumeTiming14",       "PlumeTiming15",        "PlumeTiming16",  "PlumeTiming17",
+      "PlumeTiming18",   "PlumeTiming19",       "PlumeTiming20",        "PlumeTiming21",  "PlumeTiming22",
+      "PlumeTiming23",   "PlumeTiming24",       "PlumeTiming25",        "PlumeTiming26",  "PlumeTiming27",
+      "PlumeTiming28",   "PlumeTiming29",       "PlumeTiming30",        "PlumeTiming31"};
+
   } // namespace Constants
 
   struct LumiInfo {
