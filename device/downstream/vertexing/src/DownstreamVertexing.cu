@@ -263,9 +263,28 @@ __global__ void downstream_vertexing::downstream_vertexing(
       const auto py = pAy + pBy;
       const auto pz = pAz + pBz;
 
-      // const auto pt = hypotf(px, py);
+      const auto p1_pi_e = sqrtf(pAx * pAx + pAy * pAy + pAz * pAz + Allen::mPi * Allen::mPi);
+      const auto p2_pi_e = sqrtf(pBx * pBx + pBy * pBy + pBz * pBz + Allen::mPi * Allen::mPi);
 
-      // const auto eta = asinhf(pz / hypotf(px, py));
+      const auto energy_m = p1_pi_e + p2_pi_e;
+      const auto betaX = -px / energy_m;
+      const auto betaY = -py / energy_m;
+      const auto betaZ = -pz / energy_m;
+      const auto beta2 = betaX * betaX + betaY * betaY + betaZ * betaZ;
+      const auto gamma = 1.f / sqrtf(1.f - beta2);
+
+      // Perform Lorentz boost on daughter particle
+      const auto p1_dot_beta = pAx * betaX + pAy * betaY + pAz * betaZ;
+      const auto gamma2 = (gamma - 1.f) / beta2;
+      const auto pAx_boosted = pAx + gamma2 * p1_dot_beta * betaX + gamma * betaX * p1_pi_e;
+      const auto pAy_boosted = pAy + gamma2 * p1_dot_beta * betaY + gamma * betaY * p1_pi_e;
+      const auto pAz_boosted = pAz + gamma2 * p1_dot_beta * betaZ + gamma * betaZ * p1_pi_e;
+
+      const auto norm_pA_boosted =
+        sqrtf(pAx_boosted * pAx_boosted + pAy_boosted * pAy_boosted + pAz_boosted * pAz_boosted);
+      const auto norm_p = sqrtf(px * px + py * py + pz * pz);
+
+      const auto cosThetaH = (pAx_boosted * px + pAy_boosted * py + pAz_boosted * pz) / (norm_pA_boosted * norm_p);
 
       // Make the composite quality and filter very bad quality composites
       float inputs[CompositeQualityEvaluator::DeviceType::nInput] {vtx.x, vtx.y, vtx.z, px / pz, py / pz, doca};
@@ -305,6 +324,7 @@ __global__ void downstream_vertexing::downstream_vertexing(
       sv.Armenteros_y = dA_rel_PT + dB_rel_PT;
       sv.doca = doca;
       sv.quality = quality_score;
+      sv.helicity = cosThetaH;
     }
   }
 }

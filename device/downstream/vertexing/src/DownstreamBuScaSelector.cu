@@ -68,12 +68,11 @@ __global__ void downstream_busca_selector::downstream_busca_selector(
     // NN inputs
     const auto doca = downstream_vertex.downstream_doca();
     const auto min_ip = downstream_composite.minip();
-    const auto pt = downstream_vertex.pt();
 
     const auto ip = downstream_composite.ownpv_ip();
     // Compute scores
     float inputs_busca[DownstreamBuscaSelector::DeviceType::nInput] = {
-      logf(dA_ip), logf(dA_chi2), logf(dB_ip), logf(dB_chi2), doca, logf(quality), logf(ip), logf(min_ip), logf(pt)};
+      logf(dA_ip), logf(dA_chi2), logf(dB_ip), logf(dB_chi2), doca, logf(quality), logf(ip), logf(min_ip)};
 
     downstream_busca_selector[composite_idx] = dev_downstream_busca_selector->evaluate(inputs_busca);
   }

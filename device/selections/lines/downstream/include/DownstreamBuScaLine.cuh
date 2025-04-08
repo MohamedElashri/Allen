@@ -47,16 +47,24 @@ namespace downstream_mva_busca_line {
       float mass_pipi_higher_threshold;
       float mass_ppi_lower_threshold;
       float mass_ppi_higher_threshold;
+      float histogram_ks_mass_min;
+      float histogram_ks_mass_max;
+      unsigned histogram_ks_mass_nbins;
+      float histogram_ks_fd_min;
+      float histogram_ks_fd_max;
+      unsigned histogram_ks_fd_nbins;
       bool muon_line;
       bool electron_line;
       bool hadron_line;
       bool disable_R_cut;
+      bool clean_region;
       bool general_line;
 
       Allen::Monitoring::HistogramND<unsigned, Allen::Monitoring::LogAxis, Allen::Monitoring::LogAxis>::DeviceType
         busca_scaled;
       Allen::Monitoring::Histogram2D<>::DeviceType busca_armenteros;
       Allen::Monitoring::Histogram2D<>::DeviceType busca_triggered_armenteros;
+      Allen::Monitoring::Histogram2D<>::DeviceType clean_region_histogram;
       DeviceProperties(const downstream_mva_busca_line_t& algo, const Allen::Context& ctx) :
         mva_threshold(algo.m_mva_threshold), enable_trigger(algo.m_enable_trigger.value()),
         trigger_mass_min(algo.m_trigger_mass_min), trigger_mass_max(algo.m_trigger_mass_max),
@@ -65,11 +73,16 @@ namespace downstream_mva_busca_line {
         mass_ee_cut(algo.m_mass_ee_cut), mass_pipi_lower_threshold(algo.m_mass_pipi_lower_threshold),
         mass_pipi_higher_threshold(algo.m_mass_pipi_higher_threshold),
         mass_ppi_lower_threshold(algo.m_mass_ppi_lower_threshold),
-        mass_ppi_higher_threshold(algo.m_mass_ppi_higher_threshold), muon_line(algo.m_muon_line.value()),
+        mass_ppi_higher_threshold(algo.m_mass_ppi_higher_threshold), histogram_ks_mass_min(algo.m_histogramMassMin),
+        histogram_ks_mass_max(algo.m_histogramMassMax), histogram_ks_mass_nbins(algo.m_histogramMassNBins),
+        histogram_ks_fd_min(algo.m_histogramFDMin), histogram_ks_fd_max(algo.m_histogramFDMax),
+        histogram_ks_fd_nbins(algo.m_histogramFDNBins), muon_line(algo.m_muon_line.value()),
         electron_line(algo.m_electron_line.value()), hadron_line(algo.m_hadron_line.value()),
-        disable_R_cut(algo.m_disable_R_cut.value()), general_line(algo.m_general_line.value()),
-        busca_scaled(algo.m_busca_scaled.data(ctx)), busca_armenteros(algo.m_busca_armenteros.data(ctx)),
-        busca_triggered_armenteros(algo.m_busca_triggered_armenteros.data(ctx))
+        disable_R_cut(algo.m_disable_R_cut.value()), clean_region(algo.m_clean_region.value()),
+        general_line(algo.m_general_line.value()), busca_scaled(algo.m_busca_scaled.data(ctx)),
+        busca_armenteros(algo.m_busca_armenteros.data(ctx)),
+        busca_triggered_armenteros(algo.m_busca_triggered_armenteros.data(ctx)),
+        clean_region_histogram(algo.m_helicity_vs_mass.data(ctx))
       {}
     };
 
@@ -130,6 +143,7 @@ namespace downstream_mva_busca_line {
     Allen::Property<bool> m_hadron_line {this, "hadron_line", false, "Turn of hadron line"};
     Allen::Property<bool> m_disable_R_cut {this, "disable_R_cut", false, "Turn of hadron line"};
     Allen::Property<bool> m_general_line {this, "general_line", true, "general line with specific trigger system"};
+    Allen::Property<bool> m_clean_region {this, "clean_region", false, "clean region"};
 
     Allen::Property<float> m_histogramMassMin {this,
                                                "histogram_ks_mass_min",
@@ -147,12 +161,12 @@ namespace downstream_mva_busca_line {
                                                       "histogram_busca_mass_sigma_multiplier",
                                                       2.f,
                                                       "histogram_busca_mass_sigma_multiplier description"};
-    Allen::Property<float> m_histogramFDMin {this, "histogram_ks_pt_min", 0.f, "histogram_ks_pt_min description"};
-    Allen::Property<float> m_histogramFDMax {this, "histogram_ks_pt_max", 2500.f, "histogram_ks_pt_max description"};
+    Allen::Property<float> m_histogramFDMin {this, "histogram_ks_fd_min", 0.f, "histogram_ks_fd_min description"};
+    Allen::Property<float> m_histogramFDMax {this, "histogram_ks_fd_max", 2500.f, "histogram_ks_fd_max description"};
     Allen::Property<unsigned> m_histogramFDNBins {this,
-                                                  "histogram_ks_pt_nbins",
+                                                  "histogram_ks_fd_nbins",
                                                   20u,
-                                                  "histogram_ks_pt_nbins description"};
+                                                  "histogram_ks_fd_nbins description"};
     Allen::Property<float> m_histogramFDSigmaMulti {this,
                                                     "histogram_busca_fd_sigma_multiplier",
                                                     2.f,
@@ -180,6 +194,12 @@ namespace downstream_mva_busca_line {
                                                          "armenteros",
                                                          {100u, -1.f, 1.f},
                                                          {100u, 0.f, 4000.f}};
+
+    Allen::Monitoring::Histogram2D<> m_helicity_vs_mass {this,
+                                                         "helicity_vs_mass",
+                                                         "helicity_vs_mass",
+                                                         {m_histogramMassNBins, m_histogramMassMin, m_histogramMassMax},
+                                                         {50u, -1.f, 1.f}};
 
     Allen::Monitoring::Histogram2D<> m_busca_triggered_armenteros {this,
                                                                    "armenteros_triggered_busca",

@@ -106,6 +106,8 @@ namespace VertexFit {
     float z = 0.0f;
     float Armenteros_x = 0;
     float Armenteros_y = 0;
+    // BuSca variables
+    float helicity = 0.f;
     // DOCA
     float doca = 0.f;
     float quality = 0.f;

@@ -14,10 +14,11 @@
 #include "AlgorithmTypes.cuh"
 #include "ParticleTypes.cuh"
 #include "SingleLayerFCNN.cuh"
+#include "VertexDefinitions.cuh"
 
 namespace downstream_busca_selector {
 
-  using DownstreamBuscaSelector = Allen::MVAModels::SingleLayerFCNN<9, 12>;
+  using DownstreamBuscaSelector = Allen::MVAModels::SingleLayerFCNN<8, 32>;
   struct Parameters {
     // Basic
     HOST_INPUT(host_number_of_events_t, unsigned) host_number_of_events;
@@ -29,9 +30,6 @@ namespace downstream_busca_selector {
     dev_multi_event_composites_view;
     // Output
     DEVICE_OUTPUT(dev_downstream_mva_busca_t, float) dev_downstream_mva_busca;
-    // DEVICE_OUTPUT(dev_downstream_mva_l0_t, float) dev_downstream_mva_l0;
-    // DEVICE_OUTPUT(dev_downstream_mva_detached_ks_t, float) dev_downstream_mva_detached_ks;
-    // DEVICE_OUTPUT(dev_downstream_mva_detached_l0_t, float) dev_downstream_mva_detached_l0;
     // Property
   };
 
@@ -49,6 +47,11 @@ namespace downstream_busca_selector {
   private:
     Allen::Property<dim3> m_block_dim {this, "block_dim", {16, 1, 1}, "block dimensions"};
 
-    DownstreamBuscaSelector m_busca_selector {"busca_selector", "/HLT1Downstream/Hlt1_Downstream_BuScaSelector.json"};
+    Allen::Property<std::string> m_NN_selection_path {this,
+                                                      "nn_selection_path",
+                                                      "/HLT1Downstream/Hlt1_Downstream_BuScaSelector_v2.json",
+                                                      "path to NN which should be used for selection"};
+
+    DownstreamBuscaSelector m_busca_selector {"busca_selector", m_NN_selection_path};
   };
 } // namespace downstream_busca_selector
