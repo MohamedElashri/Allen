@@ -33,6 +33,12 @@ namespace seed_xz {
   __device__ static constexpr unsigned int maxNHits = 300;
 #endif
 
+  // The seeding triplet is defined as a 32-bit integer, using 10 + 10 + 12 bits to store hit indices.
+  // So the maximum hit index is 2^10 = 1024.
+  // In principle, we should never hit this limit, but if it occurs too often in real data,
+  // we should consider tightening the GEC or redesigning the triplet structure.
+  __device__ static constexpr unsigned int MaxHitIdx = 1024;
+
   struct Parameters {
     HOST_INPUT(host_number_of_events_t, uint) host_number_of_events;
     HOST_INPUT(host_scifi_hit_count_t, unsigned) host_scifi_hit_count;

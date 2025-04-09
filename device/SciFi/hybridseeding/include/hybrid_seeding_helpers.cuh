@@ -25,13 +25,13 @@ namespace hybrid_seeding {
     unsigned int low = 0;
     unsigned int size = array_size;
 
-    // Unroll 9 time to cover arrays of size max 512
+    // Unroll 10 time to cover arrays of size max 1024
 #if defined(__clang__) or defined(__NVCC__)
 #pragma unroll
 #elif defined(__GNUC__)
-#pragma GCC unroll 9
+#pragma GCC unroll 10
 #endif
-    for (unsigned int step = 0; step < 9; step++) {
+    for (unsigned int step = 0; step < 10; step++) {
       unsigned int half = size / 2;
       low += (array[low + half] < needle) * (size - half);
       size = half;
@@ -97,26 +97,27 @@ namespace seeding {
   inline __device__ int searchBin(const float needle, const float* hits, int nhits)
   {
     int low = 0;
-    int size = nhits;
+    int size = nhits - 1;
 
-    do {
+    while (size > 0) {
       int half = size / 2;
       low += (hits[low + half] <= needle) * (size - half);
       size = half;
-    } while (size > 0);
+    };
 
     return low - (low > 0 && std::fabs(hits[low] - needle) >= std::fabs(hits[low - 1] - needle));
   }
+
   inline __device__ int searchBin(const float needle, const float* hits, int startpos, int nhits)
   {
     int low = startpos;
-    int size = nhits;
+    int size = nhits - 1;
 
-    do {
+    while (size > 0) {
       int half = size / 2;
       low += (hits[low + half] <= needle) * (size - half);
       size = half;
-    } while (size > 0);
+    };
 
     return low - (low > 0 && std::fabs(hits[low] - needle) >= std::fabs(hits[low - 1] - needle));
   }
