@@ -134,7 +134,7 @@ Inclusive:                              51/  1000, ( 1530.00 +/-   208.71) kHz
 
 
 seed_validator validation:
-TrackChecker output                               :       187/    23419   0.80% ghosts
+TrackChecker output                               :       186/    23418   0.79% ghosts
 for P>3GeV,Pt>0.5GeV                              :         0/        0   -nan% ghosts
 00_P>3Gev_Pt>0.5                                  :       893/    10586   8.44% (  8.04%),         5 (  0.56%) clones, pur  99.56%, hit eff  97.07%
 01_long                                           :      8815/    29988  29.40% ( 30.65%),        50 (  0.56%) clones, pur  99.74%, hit eff  97.93%

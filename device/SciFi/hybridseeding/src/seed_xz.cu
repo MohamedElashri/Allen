@@ -291,7 +291,8 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
     unsigned totalHits = 0;
     for (int iLayer = 0; iLayer < 6; iLayer++) {
       hits.size[iLayer] = scifi_hit_count.zone_number_of_hits(xLayers[iLayer]);
-      totalHits += hits.size[iLayer];
+      // We can only store hit index smaller than MaxHitIdx = 2^10 = 1024
+      totalHits += std::min(hits.size[iLayer], MaxHitIdx);
     }
     // If hits don't fit in shared, use global instead
     shared_or_global<float>(
@@ -305,8 +306,13 @@ __global__ void seed_xz::seed_xz(seed_xz::Parameters parameters)
 
         hits.start[0] = 0;
         for (int iLayer = 0; iLayer < 6; iLayer++) {
-          if (iLayer > 0) hits.start[iLayer] = hits.start[iLayer - 1] + hits.size[iLayer - 1];
           zone_offset[iLayer] = scifi_hit_count.zone_offset(xLayers[iLayer]);
+          // If we exceed the limit, let's shrink to the center (mitigate phi asym.)
+          if (hits.size[iLayer] > MaxHitIdx) {
+            zone_offset[iLayer] += (hits.size[iLayer] - MaxHitIdx) / 2;
+            hits.size[iLayer] = MaxHitIdx;
+          }
+          if (iLayer > 0) hits.start[iLayer] = hits.start[iLayer - 1] + hits.size[iLayer - 1];
           for (unsigned int iHit = threadIdx.x; iHit < hits.size[iLayer]; iHit += blockDim.x) {
             hits.hit(iLayer, iHit) = scifi_hits.x0(zone_offset[iLayer] + iHit);
           }
