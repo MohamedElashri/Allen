@@ -134,7 +134,7 @@ gather_selections                      INFO Number of counters : 88
  | "Hlt1Kplus2PiEERate"                            |         1 |
  | "Hlt1Kplus2PiMuMuPass"                          |         1 |
  | "Hlt1Kplus2PiMuMuRate"                          |         1 |
- | "Hlt1KsToPiPiPass"                              |       743 |
+ | "Hlt1KsToPiPiPass"                              |       744 |
  | "Hlt1KsToPiPiRate"                              |         2 |
  | "Hlt1LambdaLLDetachedTrackPass"                 |         1 |
  | "Hlt1LambdaLLDetachedTrackRate"                 |         1 |
@@ -168,13 +168,13 @@ gather_selections                      INFO Number of counters : 88
  | "Hlt1VeloMicroBiasRate"                         |         9 |
 matching_consolidate_tracks_matc...    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_long_tracks_matching"                        |     10000 |     461018 |     46.102 |
+ | "n_long_tracks_matching"                        |     10000 |     461097 |     46.110 |
 pv_beamline_cleanup                    INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_PVs"                                         |     10000 |      51728 |     5.1728 |
 scifi_consolidate_seeds_matching       INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
- | "n_seed_tracks"                                 |     10000 |     799793 |     79.979 |
+ | "n_seed_tracks"                                 |     10000 |     799623 |     79.962 |
 velo_consolidate_tracks                INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_velo_tracks"                                 |     10000 |    2501922 |     250.19 |
@@ -256,10 +256,10 @@ Hlt1Dst2D0PiAlignment                  INFO 1D histograms in directory "Hlt1Dst2
  | dst_dm                                                                           | "m(D*)-m(D0)"                                                                    |          3 |     147.04 | 2.2016     |    0.64606 |       -1.5 |
 Hlt1KsToPiPi                           INFO 1D histograms in directory "Hlt1KsToPiPi" : 4
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | ks_mass                                                                          | "m(ks)"                                                                          |        827 |     492.97 | 19.435     |    -2.5771 |     8.4507 |
- | ks_pt                                                                            | "pT(ks)"                                                                         |        827 |     1213.2 | 609.92     |     1.7398 |     3.7962 |
- | p0_ghost_prob                                                                    | "track0 GhostProb"                                                               |        827 |    0.06789 | 0.087935   |      2.257 |     5.4068 |
- | p1_ghost_prob                                                                    | "track1 GhostProb"                                                               |        827 |   0.084882 | 0.10535    |     1.7901 |     2.5691 |
+ | ks_mass                                                                          | "m(ks)"                                                                          |        828 |     492.97 | 19.424     |    -2.5778 |     8.4608 |
+ | ks_pt                                                                            | "pT(ks)"                                                                         |        828 |     1212.8 | 609.68     |     1.7417 |     3.8038 |
+ | p0_ghost_prob                                                                    | "track0 GhostProb"                                                               |        828 |   0.067899 | 0.087882   |      2.258 |     5.4159 |
+ | p1_ghost_prob                                                                    | "track1 GhostProb"                                                               |        828 |   0.085246 | 0.10581    |     1.7826 |     2.5224 |
 Hlt1LambdaLLDetachedTrack              INFO 1D histograms in directory "Hlt1LambdaLLDetachedTrack" : 2
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | LambdaTrack_mass                                                                 | "m(#Lambda#pi^{+}) [MeV]"                                                        |          1 |     2087.5 | 0.0000     |          0 |          0 |
@@ -298,42 +298,42 @@ error_bank_filter                      INFO 1D histograms in directory "error_ba
  | n_data_banks                                                                     | "n_data_banks"                                                                   |    7010000 |     5.9943 | 1.9785     |   -0.60878 |    0.93075 |
 fit_dihadron_secondary_vertices        INFO 1D histograms in directory "fit_dihadron_secondary_vertices" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     35.215 | 42.140     |     2.9173 |     15.777 |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     35.235 | 42.206     |     2.9286 |     15.894 |
 fit_dihadrons_noipcut_secondary_...    INFO 1D histograms in directory "fit_dihadrons_noipcut_secondary_vertices" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     3.1951 | 5.5921     |     4.0727 |     28.022 |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     3.1965 | 5.5949     |     4.0705 |     27.975 |
 fit_dilepton_secondary_vertices        INFO 1D histograms in directory "fit_dilepton_secondary_vertices" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |      21.88 | 41.426     |     4.6275 |      34.16 |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     21.895 | 41.495     |     4.6322 |     34.142 |
 fit_prompt_dihadron_secondary_ve...    INFO 1D histograms in directory "fit_prompt_dihadron_secondary_vertices" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     16.447 | 21.429     |     2.4928 |     8.5874 |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     16.451 | 21.430     |     2.4922 |     8.5839 |
 fit_v0_secondary_vertices              INFO 1D histograms in directory "fit_v0_secondary_vertices" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     0.8615 | 1.8936     |     5.7957 |     74.379 |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     0.8617 | 1.8939     |      5.798 |     74.381 |
 gather_selections                      INFO 1D histograms in directory "gather_selections" : 2
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | line_passes                                                                      | "line passes"                                                                    |      17635 |     79.582 | 20.136     |   -0.81928 |   -0.36249 |
+ | line_passes                                                                      | "line passes"                                                                    |      17636 |      79.58 | 20.136     |   -0.81908 |   -0.36297 |
  | line_rates                                                                       | "line rates"                                                                     |        883 |     65.076 | 31.835     |   -0.47454 |    -1.5647 |
 is_muon                                INFO 1D histograms in directory "is_muon" : 3
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | n_muons                                                                          | "# muons"                                                                        |     461018 |    0.10963 | 0.31243    |     2.4989 |     4.2446 |
- | pv_x                                                                             | "pv_x"                                                                           |      29982 |          2 | 0.0000     |          0 |          0 |
- | pv_y                                                                             | "pv_y"                                                                           |      50541 |     502.26 | 337.18     |     2.9643 |     35.098 |
+ | n_muons                                                                          | "# muons"                                                                        |     461097 |    0.10964 | 0.31244    |     2.4988 |     4.2442 |
+ | pv_x                                                                             | "pv_x"                                                                           |      29987 |          2 | 0.0000     |          0 |          0 |
+ | pv_y                                                                             | "pv_y"                                                                           |      50552 |     502.24 | 337.18     |     2.9637 |     35.088 |
 make_long_track_particles              INFO 1D histograms in directory "make_long_track_particles" : 4
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_trks                                                                   | "NTrks"                                                                          |      10000 |     46.102 | 26.695     |    0.73614 |    0.46363 |
- | trk_eta                                                                          | "etaTrk"                                                                         |     461018 |     3.6668 | 0.71862    |   -0.13998 |    -0.8328 |
- | trk_phi                                                                          | "phiTrk"                                                                         |     461018 | -0.0040119 | 1.8038     |-0.00094115 |    -1.2489 |
- | trk_pt                                                                           | "ptTrk"                                                                          |     460951 |     661.47 | 586.05     |     3.3622 |      21.22 |
+ | number_of_trks                                                                   | "NTrks"                                                                          |      10000 |      46.11 | 26.711     |    0.73811 |      0.468 |
+ | trk_eta                                                                          | "etaTrk"                                                                         |     461097 |     3.6668 | 0.71862    |   -0.13999 |   -0.83279 |
+ | trk_phi                                                                          | "phiTrk"                                                                         |     461097 | -0.0040984 | 1.8038     |-0.00085944 |    -1.2489 |
+ | trk_pt                                                                           | "ptTrk"                                                                          |     461030 |     661.49 | 586.04     |     3.3618 |     21.217 |
 matching_consolidate_tracks_matc...    INFO 1D histograms in directory "matching_consolidate_tracks_matching" : 6
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | long_track_ghost_prob                                                            | "GhostProb"                                                                      |     461018 |   0.076534 | 0.10011    |     2.0817 |     4.0086 |
- | long_track_matching_eta                                                          | "#eta"                                                                           |     461018 |     3.6663 | 0.71835    |   -0.13954 |   -0.83216 |
- | long_track_matching_nhits                                                        | "N. hits / track"                                                                |     461018 |     25.145 | 3.2507     |   0.027624 |   -0.50397 |
- | long_track_matching_phi                                                          | "#phi"                                                                           |     461018 | -0.0040412 | 1.8039     |-0.00093818 |    -1.2487 |
- | long_track_matching_qop                                                          | "q/p"                                                                            |     461018 | 1.3161e-06 | 0.00015182 | -0.0059836 |   -0.82069 |
- | n_long_tracks_matching_event                                                     | "n_long_tracks_matching_event"                                                   |      10000 |     46.102 | 26.695     |    0.73614 |    0.46363 |
+ | long_track_ghost_prob                                                            | "GhostProb"                                                                      |     461097 |   0.076534 | 0.10011    |     2.0818 |     4.0091 |
+ | long_track_matching_eta                                                          | "#eta"                                                                           |     461097 |     3.6663 | 0.71835    |   -0.13956 |   -0.83215 |
+ | long_track_matching_nhits                                                        | "N. hits / track"                                                                |     461097 |     25.145 | 3.2507     |   0.027714 |   -0.50394 |
+ | long_track_matching_phi                                                          | "#phi"                                                                           |     461097 | -0.0041285 | 1.8039     |-0.00085723 |    -1.2487 |
+ | long_track_matching_qop                                                          | "q/p"                                                                            |     461097 | 1.3272e-06 | 0.00015181 | -0.0058222 |   -0.82083 |
+ | n_long_tracks_matching_event                                                     | "n_long_tracks_matching_event"                                                   |      10000 |      46.11 | 26.711     |    0.73811 |      0.468 |
 pv_beamline_cleanup                    INFO 1D histograms in directory "pv_beamline_cleanup" : 5
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_pvs_event                                                                      | "n_pvs_event"                                                                    |      10000 |     5.1728 | 2.1617     |    0.35345 |    0.10441 |
@@ -343,11 +343,11 @@ pv_beamline_cleanup                    INFO 1D histograms in directory "pv_beaml
  | pv_z                                                                             | "pv_z"                                                                           |      51646 |     1.1385 | 63.227     |  -0.018741 |   -0.16116 |
 scifi_consolidate_seeds_matching       INFO 1D histograms in directory "scifi_consolidate_seeds_matching" : 5
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | n_scifi_seeds_event                                                              | "n_scifi_seeds_event"                                                            |      10000 |     79.979 | 51.750     |     1.4999 |     4.1502 |
- | scifi_track_eta                                                                  | "#eta"                                                                           |     799793 |     2.6523 | 0.73313    |    0.64719 |    0.32485 |
- | scifi_track_nhits                                                                | "N. hits / track"                                                                |     799793 |     11.441 | 0.74016    |   -0.91001 |    -0.6125 |
- | scifi_track_phi                                                                  | "#phi"                                                                           |     799793 |  -0.006599 | 2.0443     |  0.0043526 |    -1.0014 |
- | scifi_track_qop                                                                  | "q/p"                                                                            |     799793 | 1.2039e-06 | 0.00016279 | -0.0059783 |     -0.863 |
+ | n_scifi_seeds_event                                                              | "n_scifi_seeds_event"                                                            |      10000 |     79.962 | 51.756     |     1.5142 |     4.3239 |
+ | scifi_track_eta                                                                  | "#eta"                                                                           |     799623 |     2.6527 | 0.73294    |     0.6465 |    0.32442 |
+ | scifi_track_nhits                                                                | "N. hits / track"                                                                |     799623 |     11.441 | 0.73990    |   -0.91089 |   -0.61029 |
+ | scifi_track_phi                                                                  | "#phi"                                                                           |     799623 | -0.0064713 | 2.0443     |    0.00432 |    -1.0011 |
+ | scifi_track_qop                                                                  | "q/p"                                                                            |     799623 |  1.279e-06 | 0.00016273 | -0.0053642 |   -0.86296 |
 velo_consolidate_tracks                INFO 1D histograms in directory "velo_consolidate_tracks" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_velo_tracks_event                                                              | "n_velo_tracks_event"                                                            |       9999 |     250.12 | 134.33     |    0.77697 |    0.89125 |
