@@ -12,6 +12,7 @@
 
 #include "KalmanParametrizations.cuh"
 #include "ParKalmanDefinitions.cuh"
+#include "ParKalmanFittedTrack.cuh"
 #include "ParKalmanMath.cuh"
 #include "SciFiConsolidated.cuh"
 #include "UTConsolidated.cuh"
@@ -47,6 +48,19 @@ using Vector10 = Vector<10>;
 using Vector2 = Vector<2>;
 using SymMatrix2x2 = SquareMatrix<true, 2>;
 using Matrix2x2 = SquareMatrix<false, 2>;
+
+// Parameters for beamline propagation and VELO-only Kalman Filter.
+static constexpr float rffoilscatter = 0.6;
+
+static constexpr float scatterSensorParameter_VPHit2VPHit_cms = 1.48;
+static constexpr float scatterSensorParameter_VPHit2VPHit_etaxx = 0.643;
+static constexpr float scatterSensorParameter_VPHit2VPHit_etaxtx = 0.526;
+static constexpr float scatterSensorParameter_VPHit2VPHit_Eloss = 0.592;
+
+static constexpr float scatterSensorParameter_VPHit2ClosestToBeam_cms = 2.91;
+static constexpr float scatterSensorParameter_VPHit2ClosestToBeam_etaxx = 0.808;
+static constexpr float scatterSensorParameter_VPHit2ClosestToBeam_etaxtx = 0.793;
+static constexpr float scatterSensorParameter_VPHit2ClosestToBeam_Eloss = 1.29;
 
 ////////////////////////////////////////////////////////////////////////
 // Functions related to SciFi hits and their geometry
@@ -1123,3 +1137,166 @@ __device__ inline void UpdateStateT(
 //----------------------------------------------------------------------
 // Extrapolate to the vertex using straight line extrapolation.
 __device__ inline void ExtrapolateToVertex(Vector5& x, SymMatrix5x5& C, KalmanFloat& lastz);
+
+__device__ inline void add_noise_2d(
+  const KalmanFloat dz,
+  const KalmanFloat tx,
+  const KalmanFloat ty,
+  KalmanFloat& qop,
+  SymMatrix5x5& Q,
+  const KalmanFloat Cms,
+  const KalmanFloat etaxx,
+  const KalmanFloat etaxtx,
+  const KalmanFloat Eloss,
+  const bool infoil)
+{
+
+  // Adds full noise.
+  // Scattering paramters are defined in the include/ParKalmanVeloOnly.cuh as
+  // scatterSensorParameter_VPHit2VPHit_{cms,etaxx, etaxtx, Eloss}
+  // Values are taken from the Rec/Tr/TrackFitEvent/include/Event/ParametrisedScatters.h
+  // fine tuned on 10k events of upgrade-magdown-sim10-up08-30000000-digi from TestFileDB
+  // as of 14.12.21
+
+  const KalmanFloat tx2 = tx * tx;
+  const KalmanFloat ty2 = ty * ty;
+  const KalmanFloat n2 = 1 + tx2 + ty2;
+  const KalmanFloat n = sqrtf(n2);
+  const KalmanFloat invp = fabsf(qop);
+  const KalmanFloat norm = n2 * invp * invp * n;
+
+  KalmanFloat normCms = norm * Cms;
+  normCms += infoil ? (norm * rffoilscatter) : 0;
+
+  Q(2, 2) = (1 + tx2) * normCms;
+  Q(3, 3) = (1 + ty2) * normCms;
+  Q(3, 2) = tx * ty * normCms;
+
+  // x, tx part
+  Q(0, 0) = Q(2, 2) * dz * dz * etaxx * etaxx;
+  Q(2, 0) = Q(2, 2) * dz * etaxtx;
+  // y, ty part
+  Q(1, 1) = Q(3, 3) * dz * dz * etaxx * etaxx;
+  Q(3, 1) = Q(3, 3) * dz * etaxtx;
+
+  Q(1, 0) = Q(3, 2) * dz * dz * etaxx * etaxx;
+  Q(3, 0) = Q(3, 2) * dz * etaxtx;
+  Q(2, 1) = Q(3, 0);
+
+  const KalmanFloat deltaE = ((dz) < 0 ? 1 : -1) * Eloss * n;
+  const KalmanFloat charge = (qop > 0) ? 1. : -1.;
+  const KalmanFloat momnew =
+    (fabsf(qop) > 1e-20f && 10.f < (fabsf(1.f / qop) + deltaE)) ? fabsf(1.f / qop) + deltaE : 10.f;
+  qop = (fabsf(momnew) > 10.f && fabsf(qop) > 1e-20f) ? (charge / momnew) : qop;
+}
+
+__device__ inline void add_noise_1d(
+  const KalmanFloat dz,
+  const KalmanFloat tx,
+  KalmanFloat& qop,
+  KalmanFloat& predcovXX,
+  KalmanFloat& predcovXTx,
+  KalmanFloat& predcovTxTx,
+  const KalmanFloat Cms,
+  const KalmanFloat etaxx,
+  const KalmanFloat etaxtx,
+  const KalmanFloat Eloss,
+  const bool infoil)
+{
+  // Adds full noise.
+  // Scattering paramters are defined in the include/ParKalmanVeloOnly.cuh as
+  // scatterSensorParameter_VPHit2VPHit_{cms,etaxx, etaxtx, Eloss}
+  // Values are taken from the Rec/Tr/TrackFitEvent/include/Event/ParametrisedScatters.h
+  // fine tuned on 10k events of upgrade-magdown-sim10-up08-30000000-digi from TestFileDB
+  // as of 14.12.21
+
+  const KalmanFloat tx2 = tx * tx;
+  const KalmanFloat n2 = 1 + tx2;
+  const KalmanFloat n = sqrtf(n2);
+  const KalmanFloat invp = fabsf(qop);
+  const KalmanFloat norm = n2 * invp * invp * n;
+
+  KalmanFloat normCms = norm * Cms;
+  normCms += infoil ? norm * rffoilscatter : 0;
+
+  const KalmanFloat sig = (1 + tx2) * normCms;
+  // x, tx part
+  predcovXX += sig * dz * dz * etaxx * etaxx;
+  predcovXTx += sig * dz * etaxtx;
+  predcovTxTx += sig;
+
+  const KalmanFloat deltaE = ((dz) < 0 ? 1 : -1) * Eloss * n;
+  const KalmanFloat charge = qop > 0 ? 1. : -1.;
+  const KalmanFloat momnew =
+    (fabsf(qop) > 1e-20f && 10.f < (fabsf(1.f / qop) + deltaE)) ? fabsf(1.f / qop) + deltaE : 10.f;
+  qop = (fabsf(momnew) > 10.f && fabsf(qop) > 1e-20f) ? (charge / momnew) : qop;
+}
+
+__device__ inline void propagate_to_beamline(FittedTrack& track, const float* dev_beamline, const bool add_eloss = true)
+{
+  KalmanFloat x = track.state[0];
+  KalmanFloat y = track.state[1];
+  KalmanFloat tx = track.state[2];
+  KalmanFloat ty = track.state[3];
+  const KalmanFloat t2 = sqrtf(tx * tx + ty * ty);
+
+  // Get the beam position.
+  KalmanFloat zBeam = track.z;
+  KalmanFloat denom = t2 * t2;
+  const KalmanFloat tol = (KalmanFloat) 0.001;
+  zBeam = (denom < tol * tol) ? zBeam : track.z + ((dev_beamline[0] - x) * tx + (dev_beamline[1] - y) * ty) / denom;
+  const KalmanFloat dz = zBeam - track.z;
+  KalmanFloat qop = track.state[4];
+  // Propagate the covariance matrix.
+  const KalmanFloat dz2 = dz * dz;
+  track.cov(0, 0) += dz2 * track.cov(2, 2) + 2 * dz * track.cov(0, 2);
+  track.cov(0, 2) += dz * track.cov(2, 2);
+  track.cov(1, 1) += dz2 * track.cov(3, 3) + 2 * dz * track.cov(1, 3);
+  track.cov(1, 3) += dz * track.cov(3, 3);
+
+  // Propagate the state.
+  track.state[0] = x + dz * tx;
+  track.state[1] = y + dz * ty;
+  track.z = zBeam;
+
+  //
+  x = track.state[0];
+  y = track.state[1];
+  tx = track.state[2];
+  ty = track.state[3];
+
+  SymMatrix5x5 Q;
+  // add noise
+  // Note: for VPhit2BeamLine propagation the rf-foil is included in the parameters,
+  // so infoil has to be set to false.
+  add_noise_2d(
+    dz,
+    tx,
+    ty,
+    qop,
+    Q,
+    scatterSensorParameter_VPHit2ClosestToBeam_cms,
+    scatterSensorParameter_VPHit2ClosestToBeam_etaxx,
+    scatterSensorParameter_VPHit2ClosestToBeam_etaxtx,
+    scatterSensorParameter_VPHit2ClosestToBeam_Eloss,
+    false);
+
+  // Optionally update momentum.
+  if (add_eloss) {
+    track.state[4] = qop;
+  }
+
+  track.cov(0, 0) += Q(0, 0);
+  track.cov(1, 1) += Q(1, 1);
+  track.cov(2, 2) += Q(2, 2);
+  track.cov(3, 3) += Q(3, 3);
+
+  track.cov(1, 0) += Q(1, 0);
+
+  track.cov(2, 0) += Q(2, 0);
+  track.cov(2, 1) += Q(2, 1);
+
+  track.cov(3, 0) += Q(3, 0);
+  track.cov(3, 1) += Q(3, 1);
+  track.cov(3, 2) += Q(3, 2);
+}

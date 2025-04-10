@@ -222,6 +222,7 @@ full:
   - type: "efficiency"
     sequence:
       - hlt1_pp_forward_then_matching_validation
+      - hlt1_pp_forward_then_matching_with_parkf_validation
     dataset: "pHeBeam6800GeV0GeVexpected2024MagDownSMOG2Nu0.2EPOS_Sim10c_30000000_10k_nSciFiHits"
     geometry: "SMOG2_exp2024"
 
@@ -229,6 +230,7 @@ full:
   - type: "efficiency"
     sequence:
       - hlt1_pp_forward_then_matching_validation
+      - hlt1_pp_forward_then_matching_with_parkf_validation
     dataset: "SMOG2_pAr_exp2024_mdf_sim-20231017-vc-md100_10k_nSciFiHits"
     geometry: "SMOG2_exp2024"
 
