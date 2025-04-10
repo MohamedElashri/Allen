@@ -32,18 +32,6 @@ typedef SquareMatrix<false, 2> Matrix2x2;
 
 static constexpr float pixelErr = 0.0125f;
 
-static constexpr float scatterSensorParameter_VPHit2VPHit_cms = 1.48;
-static constexpr float scatterSensorParameter_VPHit2VPHit_etaxx = 0.643;
-static constexpr float scatterSensorParameter_VPHit2VPHit_etaxtx = 0.526;
-static constexpr float scatterSensorParameter_VPHit2VPHit_Eloss = 0.592;
-
-static constexpr float scatterSensorParameter_VPHit2ClosestToBeam_cms = 2.91;
-static constexpr float scatterSensorParameter_VPHit2ClosestToBeam_etaxx = 0.808;
-static constexpr float scatterSensorParameter_VPHit2ClosestToBeam_etaxtx = 0.793;
-static constexpr float scatterSensorParameter_VPHit2ClosestToBeam_Eloss = 1.29;
-
-static constexpr float rffoilscatter = 0.6;
-
 __device__ void simplified_step(
   const float z,
   const float zhit,
@@ -62,8 +50,6 @@ __device__ void simplified_fit(
   const KalmanFloat init_qop,
   FittedTrack& track,
   float* dev_beamline);
-
-__device__ void propagate_to_beamline(FittedTrack& track, float* dev_beamline);
 
 namespace kalman_velo_only {
   struct Parameters {

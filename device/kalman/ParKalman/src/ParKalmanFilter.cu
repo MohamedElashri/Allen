@@ -83,7 +83,7 @@ void kalman_filter::kalman_filter_t::operator()(
   int _gridDim = size<dev_event_list_t>(arguments);
 #endif
   global_function(kalman_filter)(dim3(_gridDim), m_block_dim, context)(
-    arguments, constants.dev_magnet_polarity.data(), constants.dev_kalman_params);
+    arguments, constants.dev_magnet_polarity.data(), constants.dev_kalman_params, constants.dev_beamline.data());
 
   global_function(kalman_pv_ip)(dim3(size<dev_event_list_t>(arguments)), m_block_dim, context)(arguments);
 }
@@ -136,7 +136,8 @@ namespace ParKalmanFilter {
     const float* dev_UTTF_pars,
     const float* dev_T_pars,
     const float* dev_TFT_pars,
-    const float* dev_UTT_META)
+    const float* dev_UTT_META,
+    float* dev_beamline)
   {
     // Fit information.
     trackInfo tI;
@@ -307,12 +308,15 @@ namespace ParKalmanFilter {
     }
     __syncthreads();
     //------------------------------ End backward fit.
-    // Straight line extrapolation to the closest point to the beamline.
-    // NOTE: Don't do this for now. The track is extrapolated again
-    // when calculating IP info anyway.
-    // ExtrapolateToVertex(xBest, C, lastz);
 
     MakeTrack(init_qop, x, C, tI, track, n_velo_hits2, n_ut_layers, n_scifi_layers);
+
+    // Straight line extrapolation to the closest point to the beamline.
+
+    // The Rec version uses TrackMasterExtrapolator for this
+    // step. Because that isn't available here, just use the same
+    // propagation as the VELO-only Kalman Filter.
+    propagate_to_beamline(track, dev_beamline, false);
   }
 } // End namespace ParKalmanFilter.
 
@@ -343,7 +347,8 @@ set_result(const unsigned track_number, const ParKalmanFilter::FittedTrack& trac
 __global__ void kalman_filter::kalman_filter(
   kalman_filter::Parameters parameters,
   const float* dev_magnet_polarity,
-  const ParKalmanFilter::KalmanParametrizationsStruct* dev_kalman_params)
+  const ParKalmanFilter::KalmanParametrizationsStruct* dev_kalman_params,
+  float* dev_beamline)
 {
   const auto magSign = dev_magnet_polarity[0];
   const ParKalmanFilter::KalmanParametrizations* kalman_params;
@@ -418,7 +423,8 @@ __global__ void kalman_filter::kalman_filter(
       dev_UTTF_pars,
       dev_T_pars,
       dev_TFT_pars,
-      dev_UTT_META);
+      dev_UTT_META,
+      dev_beamline);
     set_result(event_long_tracks.offset() + final_track_id, kalman_track, kalman_states);
     parameters.dev_kf_tracks[event_long_tracks.offset() + final_track_id] = kalman_track;
   }
