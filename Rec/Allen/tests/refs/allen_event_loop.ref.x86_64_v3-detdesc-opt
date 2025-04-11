@@ -22,12 +22,10 @@ Hlt1D2KPi                              INFO Booked 6 Histogram(s) : 1D=6 2D=0 3D
 Hlt1D2KPiAlignment                     INFO Booked 6 Histogram(s) : 1D=6 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 Hlt1D2PiPi                             INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 Hlt1DetJpsiToMuMuNegTagLine            INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiElectronHighMass_SS              INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 Hlt1DiElectronLowMass_NoIP             INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 Hlt1DiElectronLowMass_NoIPNorm         INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 Hlt1DiElectronLowMass_SS_NoIP          INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 Hlt1DiElectronLowMass_SS_NoIPNorm      INFO Booked 2 Histogram(s) : 1D=2 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
-Hlt1DiMuonDisplaced                    INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 Hlt1DiMuonHighMass                     INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 Hlt1DiMuonNoIP                         INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
 Hlt1DiMuonNoIP_SS                      INFO Booked 1 Histogram(s) : 1D=1 2D=0 3D=0 1DProf=0 2DProf=0 3DProf=0
@@ -76,7 +74,7 @@ HLTControlFlowMgr                      INFO Number of counters : 1
 calo_filter_clusters_b3e43409          INFO Number of counters : 1
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "n_calo_clusters"                               |     10000 |     494739 |     49.474 |
-gather_selections                      INFO Number of counters : 91
+gather_selections                      INFO Number of counters : 93
  |    Counter                                      |     #     |    sum     | mean/eff^* | rms/err^*  |     min     |     max     |
  | "Hlt1BGIPseudoPVsIRBeamBeamPass"                |         8 |
  | "Hlt1BGIPseudoPVsIRBeamBeamRate"                |         8 |
@@ -88,34 +86,36 @@ gather_selections                      INFO Number of counters : 91
  | "Hlt1D2KPiAlignmentRate"                        |         4 |
  | "Hlt1D2KPiPass"                                 |        16 |
  | "Hlt1D2KPiRate"                                 |        16 |
- | "Hlt1D2KshhPass"                                |         7 |
- | "Hlt1D2KshhRate"                                |         7 |
+ | "Hlt1D2KshhPass"                                |         6 |
+ | "Hlt1D2KshhRate"                                |         6 |
  | "Hlt1D2PiPiPass"                                |         5 |
  | "Hlt1D2PiPiRate"                                |         5 |
  | "Hlt1DetJpsiToMuMuNegTagLinePass"               |         1 |
  | "Hlt1DetJpsiToMuMuNegTagLineRate"               |         1 |
- | "Hlt1DiElectronDisplacedPass"                   |        43 |
- | "Hlt1DiElectronDisplacedRate"                   |        43 |
+ | "Hlt1DiElectronDisplacedPass"                   |        29 |
+ | "Hlt1DiElectronDisplacedRate"                   |        29 |
  | "Hlt1DiElectronHighMass_SSPass"                 |         1 |
  | "Hlt1DiElectronHighMass_SSRate"                 |         1 |
  | "Hlt1DiElectronLowMass_DisplacedPass"           |         6 |
  | "Hlt1DiElectronLowMass_DisplacedRate"           |         6 |
- | "Hlt1DiElectronLowMass_NoIPNormPass"            |        60 |
+ | "Hlt1DiElectronLowMass_NoIPNormPass"            |        68 |
  | "Hlt1DiElectronLowMass_NoIPNormRate"            |         2 |
- | "Hlt1DiElectronLowMass_NoIPPass"                |        28 |
- | "Hlt1DiElectronLowMass_NoIPRate"                |        28 |
+ | "Hlt1DiElectronLowMass_NoIPPass"                |        27 |
+ | "Hlt1DiElectronLowMass_NoIPRate"                |        27 |
  | "Hlt1DiElectronLowMass_SS_DisplacedPass"        |        32 |
  | "Hlt1DiElectronLowMass_SS_DisplacedRate"        |         1 |
- | "Hlt1DiElectronLowMass_SS_NoIPNormPass"         |       166 |
+ | "Hlt1DiElectronLowMass_SS_NoIPNormPass"         |       181 |
  | "Hlt1DiElectronLowMass_SS_NoIPNormRate"         |         3 |
- | "Hlt1DiElectronLowMass_SS_NoIPPass"             |        94 |
+ | "Hlt1DiElectronLowMass_SS_NoIPPass"             |        97 |
  | "Hlt1DiElectronLowMass_SS_NoIPRate"             |         3 |
- | "Hlt1DiMuonDisplacedPass"                       |        73 |
- | "Hlt1DiMuonDisplacedRate"                       |        73 |
+ | "Hlt1DiMuonDisplacedPass"                       |        17 |
+ | "Hlt1DiMuonDisplacedRate"                       |        17 |
  | "Hlt1DiMuonDisplacedSoftPTPass"                 |         5 |
  | "Hlt1DiMuonDisplacedSoftPTRate"                 |         5 |
- | "Hlt1DiMuonHighMassPass"                        |        75 |
- | "Hlt1DiMuonHighMassRate"                        |        75 |
+ | "Hlt1DiMuonHighMassPass"                        |        47 |
+ | "Hlt1DiMuonHighMassRate"                        |        47 |
+ | "Hlt1DiMuonNoIPNormPass"                        |         2 |
+ | "Hlt1DiMuonNoIPNormRate"                        |         2 |
  | "Hlt1DiMuonNoIPPass"                            |         9 |
  | "Hlt1DiMuonNoIPRate"                            |         9 |
  | "Hlt1DiMuonNoIP_SSPass"                         |         7 |
@@ -149,14 +149,14 @@ gather_selections                      INFO Number of counters : 91
  | "Hlt1RICH1AlignmentRate"                        |         5 |
  | "Hlt1SMOG2PassThroughLowMult5Pass"              |         3 |
  | "Hlt1SMOG2PassThroughLowMult5Rate"              |         3 |
- | "Hlt1SingleHighPtElectronPass"                  |        13 |
- | "Hlt1SingleHighPtElectronRate"                  |        13 |
+ | "Hlt1SingleHighPtElectronPass"                  |        12 |
+ | "Hlt1SingleHighPtElectronRate"                  |        12 |
  | "Hlt1SingleHighPtMuonNoMuIDPass"                |        19 |
  | "Hlt1SingleHighPtMuonNoMuIDRate"                |        19 |
  | "Hlt1SingleHighPtMuonPass"                      |         5 |
  | "Hlt1SingleHighPtMuonRate"                      |         5 |
- | "Hlt1TrackElectronMVAPass"                      |        56 |
- | "Hlt1TrackElectronMVARate"                      |        56 |
+ | "Hlt1TrackElectronMVAPass"                      |        64 |
+ | "Hlt1TrackElectronMVARate"                      |        64 |
  | "Hlt1TrackMVAPass"                              |       105 |
  | "Hlt1TrackMVARate"                              |       105 |
  | "Hlt1TrackMuonMVAPass"                          |         9 |
@@ -208,31 +208,25 @@ Hlt1D2PiPi                             INFO 1D histograms in directory "Hlt1D2Pi
 Hlt1DetJpsiToMuMuNegTagLine            INFO 1D histograms in directory "Hlt1DetJpsiToMuMuNegTagLine" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | histogram_det_jpsitomumu_tap_mass                                                | "m(jpsi)"                                                                        |          1 |     3092.5 | 0.0000     |          0 |          0 |
-Hlt1DiElectronHighMass_SS              INFO 1D histograms in directory "Hlt1DiElectronHighMass_SS" : 1
- | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_upsilon_mass_counts_ss                                                | "dielectron masses w/brem (Upsilon)"                                             |          1 |     8647.5 | 0.0000     |          0 |          0 |
 Hlt1DiElectronLowMass_NoIP             INFO 1D histograms in directory "Hlt1DiElectronLowMass_NoIP" : 2
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        188 |     1189.6 | 372.17     |    -1.8179 |     2.1814 |
- | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        160 |     1188.9 | 374.26     |    -1.6528 |     1.5158 |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        178 |     1184.3 | 379.64     |    -1.7704 |     1.9485 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        153 |       1183 | 380.23     |    -1.6075 |     1.3259 |
 Hlt1DiElectronLowMass_NoIPNorm         INFO 1D histograms in directory "Hlt1DiElectronLowMass_NoIPNorm" : 2
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        623 |     1246.3 | 321.78     |    -2.2652 |      4.568 |
- | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        525 |     1253.1 | 327.47     |    -2.1394 |     3.7813 |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        724 |     1252.3 | 312.42     |    -2.3115 |     4.9388 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        614 |       1258 | 317.01     |    -2.1831 |     4.1197 |
 Hlt1DiElectronLowMass_SS_NoIP          INFO 1D histograms in directory "Hlt1DiElectronLowMass_SS_NoIP" : 2
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        263 |     865.77 | 537.42     |   -0.25073 |    -1.6902 |
- | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        241 |     852.25 | 533.05     |   -0.14402 |     -1.733 |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        256 |     835.46 | 540.93     |   -0.13899 |    -1.7421 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        235 |      819.4 | 533.86     |  -0.029464 |    -1.7599 |
 Hlt1DiElectronLowMass_SS_NoIPNorm      INFO 1D histograms in directory "Hlt1DiElectronLowMass_SS_NoIPNorm" : 2
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        722 |     1041.7 | 483.75     |   -0.91505 |   -0.79428 |
- | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        647 |     1033.2 | 488.66     |   -0.81374 |    -1.0043 |
-Hlt1DiMuonDisplaced                    INFO 1D histograms in directory "Hlt1DiMuonDisplaced" : 1
- | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | Jpsi_mass                                                                        | "m(J/Psi)"                                                                       |          2 |     3089.3 | 38.000     | 2.2726e-10 |         -2 |
+ | dielectron_mass_counts                                                           | "dielectron masses"                                                              |        811 |       1050 | 481.73     |   -0.94856 |   -0.72912 |
+ | dielectron_mass_counts_brem                                                      | "dielectron masses with brem"                                                    |        729 |     1040.4 | 486.08     |    -0.8462 |   -0.94285 |
 Hlt1DiMuonHighMass                     INFO 1D histograms in directory "Hlt1DiMuonHighMass" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | Jpsi_mass                                                                        | "m(J/Psi)"                                                                       |         25 |     3090.7 | 112.97     |    0.19067 |    -1.0759 |
+ | Jpsi_mass                                                                        | "m(J/Psi)"                                                                       |         16 |     3067.4 | 120.68     |    0.38588 |    -1.0504 |
 Hlt1DiMuonNoIP                         INFO 1D histograms in directory "Hlt1DiMuonNoIP" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | dimuon_q                                                                         | "dimuon q"                                                                       |          8 |      24758 | 5560.2     |     -1.133 |    0.33202 |
@@ -301,23 +295,23 @@ error_bank_filter                      INFO 1D histograms in directory "error_ba
  | n_data_banks                                                                     | "n_data_banks"                                                                   |    7010000 |     5.9943 | 1.9785     |   -0.60878 |    0.93075 |
 fit_dihadron_secondary_vertices        INFO 1D histograms in directory "fit_dihadron_secondary_vertices" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     35.414 | 42.333     |     2.9109 |     15.676 |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     35.414 | 42.333     |     2.9109 |     15.675 |
 fit_dihadrons_noipcut_secondary_...    INFO 1D histograms in directory "fit_dihadrons_noipcut_secondary_vertices" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     3.1984 | 5.5919     |     4.0674 |     27.978 |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     3.1985 | 5.5918     |     4.0673 |     27.978 |
 fit_dilepton_secondary_vertices        INFO 1D histograms in directory "fit_dilepton_secondary_vertices" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     21.993 | 41.613     |      4.622 |     33.963 |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     17.795 | 35.090     |     6.2375 |     83.111 |
 fit_prompt_dihadron_secondary_ve...    INFO 1D histograms in directory "fit_prompt_dihadron_secondary_vertices" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     16.455 | 21.433     |     2.4919 |     8.5851 |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     16.455 | 21.432     |     2.4918 |     8.5854 |
 fit_v0_secondary_vertices              INFO 1D histograms in directory "fit_v0_secondary_vertices" : 1
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     0.8641 | 1.8967     |     5.7854 |      74.03 |
+ | number_of_svs                                                                    | "NSVs"                                                                           |      10000 |     0.8641 | 1.8966     |     5.7859 |     74.046 |
 gather_selections                      INFO 1D histograms in directory "gather_selections" : 2
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
- | line_passes                                                                      | "line passes"                                                                    |      17687 |     79.436 | 20.302     |   -0.82612 |   -0.34477 |
- | line_rates                                                                       | "line rates"                                                                     |        884 |     65.187 | 31.814     |   -0.48033 |    -1.5609 |
+ | line_passes                                                                      | "line passes"                                                                    |      17622 |     79.642 | 20.087     |   -0.82269 |   -0.35159 |
+ | line_rates                                                                       | "line rates"                                                                     |        793 |     69.912 | 30.702     |   -0.83513 |    -1.0576 |
 is_muon                                INFO 1D histograms in directory "is_muon" : 3
  | ID                                                                               | Title                                                                            |      #     |     Mean   |    RMS     |  Skewness  |  Kurtosis  |
  | n_muons                                                                          | "# muons"                                                                        |     461091 |    0.10964 | 0.31244    |     2.4988 |     4.2441 |
