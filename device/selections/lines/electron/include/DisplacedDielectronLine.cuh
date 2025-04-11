@@ -23,12 +23,14 @@ namespace displaced_dielectron_line {
     DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
     // ECAL
     DEVICE_INPUT(dev_track_isElectron_t, bool) dev_track_isElectron;
+    DEVICE_INPUT(dev_electronidnn_t, float) dev_electronidnn;
     DEVICE_INPUT(dev_brem_corrected_pt_t, float) dev_brem_corrected_pt;
     // Outputs
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
     HOST_OUTPUT_WITH_DEPENDENCIES(host_fn_parameters_t, DEPENDENCIES(dev_particle_container_t), char)
     host_fn_parameters;
     DEVICE_OUTPUT(pt_t, float) pt;
+    DEVICE_OUTPUT(electron_nn_t, float) electron_nn;
     DEVICE_OUTPUT(ipchi2_t, float) ipchi2;
     DEVICE_OUTPUT(evtNo_t, uint64_t) evtNo;
     DEVICE_OUTPUT(runNo_t, unsigned) runNo;
@@ -45,27 +47,29 @@ namespace displaced_dielectron_line {
       float maxVtxChi2;
       float minZ;
       bool oppositeSign;
+      float minElectronNN;
+      bool useNN;
       DeviceProperties(const displaced_dielectron_line_t& algo, const Allen::Context&) :
         minIPChi2(algo.m_MinIPChi2), maxDOCA(algo.m_MaxDOCA), minPT(algo.m_MinPT), maxVtxChi2(algo.m_MaxVtxChi2),
-        minZ(algo.m_MinZ), oppositeSign(algo.m_opposite_sign)
+        minZ(algo.m_MinZ), oppositeSign(algo.m_opposite_sign), minElectronNN(algo.m_minElectronNN), useNN(algo.m_useNN)
       {}
     };
     __device__ static bool select(
       const Parameters&,
       const DeviceProperties&,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const float>);
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned>);
 
-    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const float>
+    __device__ static std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned>
     get_input(const Parameters& parameters, const unsigned event_number, const unsigned i);
 
     __device__ static void fill_tuples(
       const Parameters&,
       const DeviceProperties&,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const float> input,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
       unsigned index,
       bool sel);
 
-    using monitoring_types = std::tuple<pt_t, ipchi2_t, evtNo_t, runNo_t>;
+    using monitoring_types = std::tuple<pt_t, electron_nn_t, ipchi2_t, evtNo_t, runNo_t>;
 
   private:
     // Displaced dielectron selections.
@@ -75,5 +79,7 @@ namespace displaced_dielectron_line {
     Allen::Property<float> m_MaxVtxChi2 {this, "MaxVtxChi2", 7.4f, "Max vertex chi2"};
     Allen::Property<float> m_MinZ {this, "MinZ", -341.f * Gaudi::Units::mm, "Min z dielectron coordinate"};
     Allen::Property<bool> m_opposite_sign {this, "OppositeSign", true, "Selects opposite sign dielectron combinations"};
+    Allen::Property<float> m_minElectronNN {this, "minElectronNN", 0.1, "min NN evaluation"};
+    Allen::Property<bool> m_useNN {this, "useNN", true, "useNN"};
   };
 } // namespace displaced_dielectron_line

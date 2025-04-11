@@ -40,7 +40,7 @@ __device__ bool di_muon_mass_line::di_muon_mass_line_t::select(
 
   const auto nn1 = parameters.dev_muonidnn[parameters.dev_track_offsets[event_number] + trk1->get_index()];
   const auto nn2 = parameters.dev_muonidnn[parameters.dev_track_offsets[event_number] + trk2->get_index()];
-  bool muonid_bool = true;
+  bool muonid_bool = false;
   if (properties.useNN) {
     muonid_bool = min(nn1, nn2) > properties.minMuonNN;
   }
@@ -88,19 +88,17 @@ __device__ void di_muon_mass_line::di_muon_mass_line_t::fill_tuples(
   unsigned index,
   bool sel)
 {
-
-  const auto vertex = std::get<0>(input);
-  const auto event_number = std::get<1>(input);
-  const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(0));
-  const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(vertex.child(1));
-
-  const auto chi2corr1 = parameters.dev_chi2muon[parameters.dev_track_offsets[event_number] + trk1->get_index()];
-  const auto chi2corr2 = parameters.dev_chi2muon[parameters.dev_track_offsets[event_number] + trk2->get_index()];
-
-  const auto nn1 = parameters.dev_muonidnn[parameters.dev_track_offsets[event_number] + trk1->get_index()];
-  const auto nn2 = parameters.dev_muonidnn[parameters.dev_track_offsets[event_number] + trk2->get_index()];
   if (sel) {
     const auto particle = std::get<0>(input);
+    const auto event_number = std::get<1>(input);
+    const auto trk1 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(0));
+    const auto trk2 = static_cast<const Allen::Views::Physics::BasicParticle*>(particle.child(1));
+
+    const auto chi2corr1 = parameters.dev_chi2muon[parameters.dev_track_offsets[event_number] + trk1->get_index()];
+    const auto chi2corr2 = parameters.dev_chi2muon[parameters.dev_track_offsets[event_number] + trk2->get_index()];
+
+    const auto nn1 = parameters.dev_muonidnn[parameters.dev_track_offsets[event_number] + trk1->get_index()];
+    const auto nn2 = parameters.dev_muonidnn[parameters.dev_track_offsets[event_number] + trk2->get_index()];
     parameters.ipchi2[index] = particle.minipchi2();
     parameters.pt[index] = particle.minpt();
     parameters.muonchi2[index] = max(chi2corr1, chi2corr2);

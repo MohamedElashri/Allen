@@ -62,6 +62,14 @@ namespace Allen::MVAModels {
   {
     return (feature - min_rescales[idx]) / (max_rescales[idx] - min_rescales[idx]);
   }
+  __device__ float inline clip(float feature)
+  {
+    if (feature > 1.f)
+      return 1.f;
+    else if (feature < 0.f)
+      return 0.f;
+    return feature;
+  }
   template<typename T>
   inline __host__ __device__ T square(const T a)
   {

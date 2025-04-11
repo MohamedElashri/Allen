@@ -125,14 +125,14 @@ Hlt1SingleHighPtElectron:                0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuon:                    0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1SingleHighPtMuonNoMuID:              0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TAEPassthrough:                      0/  1000, (    0.00 +/-     0.00) kHz
-Hlt1TrackElectronMVA:                    1/  1000, (   30.00 +/-    29.98) kHz
+Hlt1TrackElectronMVA:                    2/  1000, (   60.00 +/-    42.38) kHz
 Hlt1TrackMVA:                            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TrackMuonMVA:                        0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1TwoTrackMVA:                         3/  1000, (   90.00 +/-    51.88) kHz
 Hlt1VeloMicroBias:                       1/  1000, (   30.00 +/-    29.98) kHz
 Hlt1VeloMicroBiasVeloClosing:            0/  1000, (    0.00 +/-     0.00) kHz
 Hlt1XiOmegaLLL:                          0/  1000, (    0.00 +/-     0.00) kHz
-Inclusive:                              12/  1000, (  360.00 +/-   103.30) kHz
+Inclusive:                              13/  1000, (  390.00 +/-   107.46) kHz
 
 
 seed_validator validation:
@@ -287,7 +287,7 @@ Hlt1SingleHighPtElectron:                0           0
 Hlt1SingleHighPtMuon:                    0           0
 Hlt1SingleHighPtMuonNoMuID:              0           0
 Hlt1TAEPassthrough:                      0           0
-Hlt1TrackElectronMVA:                    1           1
+Hlt1TrackElectronMVA:                    2           2
 Hlt1TrackMVA:                            0           0
 Hlt1TrackMuonMVA:                        0           0
 Hlt1TwoTrackMVA:                         3           4
@@ -295,12 +295,12 @@ Hlt1VeloMicroBias:                       1           0
 Hlt1VeloMicroBiasVeloClosing:            0           0
 Hlt1XiOmegaLLL:                          0           0
 
-Total decisions:      14
-Total tracks:         23
+Total decisions:      15
+Total tracks:         24
 Total calos clusters: 3
 Total SVs:            14
-Total hits:           591
-Total stdinfo:        266
+Total hits:           617
+Total stdinfo:        275
 
 
 velo_validator validation:

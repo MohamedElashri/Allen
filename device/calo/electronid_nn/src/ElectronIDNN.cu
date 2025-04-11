@@ -29,6 +29,7 @@ void electronid_nn::electronid_nn_t::set_arguments_size(
   const Constants&) const
 {
   set_size<dev_electronid_evaluation_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
+  set_size<dev_is_electron_nn_t>(arguments, first<host_number_of_reconstructed_scifi_tracks_t>(arguments));
 }
 
 void electronid_nn::electronid_nn_t::operator()(
@@ -59,7 +60,10 @@ __global__ void electronid_nn::electronid_nn(
     const auto scifi_idx_with_offset = long_tracks.offset() + track_idx;
     if (
       parameters.dev_track_inEcalAcc[scifi_idx_with_offset] &&
-      parameters.dev_track_Eop3x3[scifi_idx_with_offset] > 0.7f) {
+      // Eop3x3 has no left tail
+      parameters.dev_track_Eop3x3[scifi_idx_with_offset] > 0.4f &&
+      // Eop has no right tail
+      parameters.dev_track_Eop[scifi_idx_with_offset] < 2.f) {
 
       int region = parameters.dev_region[scifi_idx_with_offset];
       float region_s = Calo::Constants::region_size_0 + region * Calo::Constants::region_size_1 +
@@ -89,6 +93,11 @@ __global__ void electronid_nn::electronid_nn(
       float response = electronid_nn_evaluator->propagation(electron_features_track, dev_weights, dev_biases, buf);
 
       parameters.dev_electronid_evaluation[scifi_idx_with_offset] = response;
+      parameters.dev_is_electron_nn[scifi_idx_with_offset] = response > 0.6f;
+    }
+    else {
+      parameters.dev_electronid_evaluation[scifi_idx_with_offset] = 0;
+      parameters.dev_is_electron_nn[scifi_idx_with_offset] = false;
     }
   }
 }

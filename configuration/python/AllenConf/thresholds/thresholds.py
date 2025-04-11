@@ -40,3 +40,10 @@ class Thresholds(NamedTuple):
     LambdaLLDetachedTrack_track_mipchi2: float
     LambdaLLDetachedTrack_combination_bpvfd: float
     XiOmegaLLL_track_ipchi2: float
+    TrackMuonMVA_NN: float = 0.1
+    DiMuonDisplaced_NN: float = 0.1
+    DiMuonDisplacedSoftPT_NN: float = 0.8
+    DiElectronDisplaced_NN: float = 0.7
+    TrackElectronMVA_NN: float = 0.7
+    DiMuonHighMass_NN: float = 0.1
+    DiMuonNoIP_NN: float = 0.95
