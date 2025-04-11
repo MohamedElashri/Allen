@@ -385,5 +385,6 @@ def make_electronid_nn(long_tracks, track_matching):
         dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
     )
     return {
-        "dev_electronid_response": electronid_nn.dev_electronid_evaluation_t
+        "dev_electronidnn": electronid_nn.dev_electronid_evaluation_t,
+        "dev_track_isElectron": electronid_nn.dev_is_electron_nn_t
     }

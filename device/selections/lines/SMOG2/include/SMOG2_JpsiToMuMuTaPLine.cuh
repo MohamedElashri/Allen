@@ -13,6 +13,7 @@ namespace SMOG2jpsitomumu_tap_line {
     HOST_INPUT(host_number_of_svs_t, unsigned) host_number_of_svs;
     DEVICE_INPUT(dev_particle_container_t, Allen::Views::Physics::MultiEventCompositeParticles) dev_particle_container;
     DEVICE_INPUT(dev_chi2muon_t, float) dev_chi2muon;
+    DEVICE_INPUT(dev_muonidnn_t, float) dev_muonidnn;
     DEVICE_INPUT(dev_track_offsets_t, unsigned) dev_track_offsets;
 
     DEVICE_OUTPUT(mass_t, float) mass;
@@ -20,6 +21,7 @@ namespace SMOG2jpsitomumu_tap_line {
     DEVICE_OUTPUT(pvz_t, float) pvz;
     DEVICE_OUTPUT(svz_t, float) svz;
     DEVICE_OUTPUT(maxchi2corr_t, float) maxchi2corr;
+    DEVICE_OUTPUT(min_muon_nn_t, float) min_muon_nn;
 
     MASK_INPUT(dev_event_list_t) dev_event_list;
     HOST_OUTPUT(host_line_data_t, LineData) host_line_data;
@@ -46,6 +48,8 @@ namespace SMOG2jpsitomumu_tap_line {
       float JpsiMaxDoca;
       bool posTag;
       float maxTrackChi2Ndf;
+      float minMuonNN;
+      bool useNN;
 
       Allen::Monitoring::Histogram<>::DeviceType histogram_SMOG2jpsitomumu_tap_mass;
 
@@ -54,12 +58,12 @@ namespace SMOG2jpsitomumu_tap_line {
         JpsiMaxZ(algo.m_JpsiMaxZ), mutagMinP(algo.m_mutagMinP), mutagMinPt(algo.m_mutagMinPt),
         mutagMaxChi2Corr(algo.m_mutagMaxChi2Corr), muprobeMinP(algo.m_muprobeMinP), muprobeMinPt(algo.m_muprobeMinPt),
         JpsiMinPt(algo.m_JpsiMinPt), JpsiMaxVChi2(algo.m_JpsiMaxVChi2), JpsiMaxDoca(algo.m_JpsiMaxDoca),
-        posTag(algo.m_posTag), maxTrackChi2Ndf(algo.m_maxTrackChi2Ndf),
-        histogram_SMOG2jpsitomumu_tap_mass(algo.m_histogram_SMOG2jpsitomumu_tap_mass.data(ctx))
+        posTag(algo.m_posTag), maxTrackChi2Ndf(algo.m_maxTrackChi2Ndf), minMuonNN(algo.m_minMuonNN),
+        useNN(algo.m_useNN), histogram_SMOG2jpsitomumu_tap_mass(algo.m_histogram_SMOG2jpsitomumu_tap_mass.data(ctx))
       {}
     };
 
-    __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const float, const float> static get_input(
+    __device__ std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> static get_input(
       const Parameters& parameters,
       const unsigned event_number,
       const unsigned i);
@@ -67,24 +71,24 @@ namespace SMOG2jpsitomumu_tap_line {
     __device__ static bool select(
       const Parameters&,
       const DeviceProperties&,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const float, const float>);
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned>);
 
     // monitoring
     __device__ static void monitor(
       const Parameters&,
       const DeviceProperties&,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const float, const float> input,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
       unsigned index,
       bool sel);
 
     __device__ static void fill_tuples(
       const Parameters& parameters,
       const DeviceProperties& properties,
-      std::tuple<const Allen::Views::Physics::CompositeParticle, const float, const float> input,
+      std::tuple<const Allen::Views::Physics::CompositeParticle, const unsigned> input,
       unsigned index,
       bool sel);
 
-    using monitoring_types = std::tuple<mass_t, svz_t, pvz_t, pt_t, maxchi2corr_t>;
+    using monitoring_types = std::tuple<mass_t, svz_t, pvz_t, pt_t, maxchi2corr_t, min_muon_nn_t>;
 
   private:
     Allen::Property<float> m_JpsiMinMass {this,
@@ -119,6 +123,8 @@ namespace SMOG2jpsitomumu_tap_line {
                                           0.5f * Gaudi::Units::mm,
                                           "Max DOCA for the J/psi candidate combination"};
     Allen::Property<float> m_maxTrackChi2Ndf {this, "maxTrackChi2Ndf", 5.f, "max track fit Chi2ndf"};
+    Allen::Property<float> m_minMuonNN {this, "minMuonNN", 0.1, "min NN evaluation"};
+    Allen::Property<float> m_useNN {this, "useNN", true, "useNN"};
 
     Allen::Monitoring::Histogram<> m_histogram_SMOG2jpsitomumu_tap_mass {this,
                                                                          "histogram_SMOG2jpsitomumu_tap_mass",

@@ -39,6 +39,7 @@ namespace electronid_nn {
     DEVICE_INPUT(dev_dispersion_xy_t, float) dev_dispersion_xy;
 
     DEVICE_OUTPUT(dev_electronid_evaluation_t, float) dev_electronid_evaluation;
+    DEVICE_OUTPUT(dev_is_electron_nn_t, bool) dev_is_electron_nn;
   };
 
   __global__ void electronid_nn(Parameters, const NeuralNetworkType::DeviceType*);

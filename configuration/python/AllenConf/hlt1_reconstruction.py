@@ -182,7 +182,8 @@ def hlt1_reconstruction(algorithm_name='',
             muonID,
             make_long_track_particles_name=algorithm_name +
             'make_long_track_particles',
-            is_electron_result=calo_matching_objects)
+            # is_electron_result=calo_matching_objects)
+            is_electron_result=electronid_nn)
         jets = make_cone_jets(
             long_tracks, long_track_particles, ecal_clusters, n_max_jets=4)
         output.update({

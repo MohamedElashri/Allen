@@ -23,11 +23,14 @@ from PyConf.tonic import configurable
 def make_track_electron_mva_line(long_tracks,
                                  long_track_particles,
                                  calo,
+                                 electronidnn,
                                  name="Hlt1TrackElectronMVA",
                                  pre_scaler_hash_string=None,
                                  post_scaler_hash_string=None,
                                  enable_tupling=False,
-                                 alpha=0.):
+                                 alpha=0.,
+                                 useNN=True,
+                                 minElectronNN=0.5):
     number_of_events = initialize_number_of_events()
 
     return make_algorithm(
@@ -41,9 +44,12 @@ def make_track_electron_mva_line(long_tracks,
         pre_scaler_hash_string=pre_scaler_hash_string or name + '_pre',
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
         dev_track_isElectron_t=calo["dev_track_isElectron"],
+        dev_electronidnn_t=electronidnn['dev_electronidnn'],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
         enable_tupling=enable_tupling,
-        alpha=alpha)
+        alpha=alpha,
+        useNN=useNN,
+        minElectronNN=minElectronNN)
 
 
 def make_single_high_pt_electron_line(long_tracks,
@@ -75,11 +81,14 @@ def make_single_high_pt_electron_line(long_tracks,
 def make_displaced_dielectron_line(long_tracks,
                                    secondary_vertices,
                                    calo,
+                                   electronid_nn,
                                    name="Hlt1DisplacedDiElectron",
                                    pre_scaler_hash_string=None,
                                    post_scaler_hash_string=None,
                                    MinPT=500,
                                    MinIPChi2=7.4,
+                                   useNN=True,
+                                   minElectronNN=0.5,
                                    enable_tupling=False):
     number_of_events = initialize_number_of_events()
 
@@ -94,9 +103,12 @@ def make_displaced_dielectron_line(long_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + '_post',
         dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
         dev_track_isElectron_t=calo["dev_track_isElectron"],
+        dev_electronidnn_t=electronid_nn["dev_electronidnn"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
         MinPT=MinPT,
         MinIPChi2=MinIPChi2,
+        useNN=useNN,
+        minElectronNN=minElectronNN,
         enable_tupling=enable_tupling)
 
 
@@ -168,7 +180,7 @@ def make_lowmass_dielectron_line(
         name=name,
         host_number_of_events_t=number_of_events["host_number_of_events"],
         dev_track_offsets_t=long_tracks["dev_offsets_long_tracks"],
-        dev_electronid_evaluation_t=electronid_nn["dev_electronid_response"],
+        dev_electronid_evaluation_t=electronid_nn["dev_electronidnn"],
         dev_brem_corrected_pt_t=calo["dev_brem_corrected_pt"],
         host_number_of_svs_t=secondary_vertices["host_number_of_svs"],
         dev_particle_container_t=secondary_vertices[

@@ -331,7 +331,7 @@ def muonid_nn(long_tracks, muon_id, decoded_muon):
         dev_long_tracks_view_t=long_tracks["dev_multi_event_long_tracks_view"],
     )
     return {
-        "dev_muonid_response": muonid_nn.dev_muonid_evaluation_t,
+        "dev_muonidnn": muonid_nn.dev_muonid_evaluation_t,
         "dev_chi2corr": chi2muon.dev_chi2_muon_t,
         "dev_chi2uncorr_muon": chi2muon.dev_chi2uncorr_muon_t,
     }
