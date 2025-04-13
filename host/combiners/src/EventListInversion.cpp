@@ -62,7 +62,7 @@ void event_list_inversion::event_list_inversion_t::operator()(
   Allen::copy_async<dev_event_list_output_t, host_event_list_output_t>(arguments, context);
 
   if (m_verbosity >= logger::debug) {
-    printf("List inversion:\n From list: ");
+    printf("List inversion:\n%s\nFrom list: ", name().c_str());
     for (size_t i = 0; i < size<host_event_list_t>(arguments); ++i) {
       printf("%i, ", data<host_event_list_t>(arguments)[i]);
     }
@@ -71,5 +71,8 @@ void event_list_inversion::event_list_inversion_t::operator()(
       printf("%i, ", data<host_event_list_output_t>(arguments)[i]);
     }
     printf("\n");
+    // Synchronize the stream
+    // Avoids CUDA asynchronously launching the next kernel while the debugging messages above are printed
+    Allen::synchronize(context);
   }
 }
