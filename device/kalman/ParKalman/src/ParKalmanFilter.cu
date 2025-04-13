@@ -358,49 +358,17 @@ __global__ void kalman_filter::kalman_filter(
   else {
     kalman_params = &(dev_kalman_params->par_down);
   }
-  // For GPU device: Fill all block to the max regardless of event association.
-#ifndef TARGET_DEVICE_CPU // IF GPU: Find the event number matching the position in the grid
-  const unsigned track_id = blockIdx.x * blockDim.x + threadIdx.x; // global now, reduce later
-  unsigned event_number = UINT_MAX;
-  unsigned n_tracks = 0;
-  unsigned final_track_id = UINT_MAX;
-  // TODO: This implementation does not assume anything about the ordering of events, check which assumptions could be
-  // made.
-  for (unsigned event_id = 0; event_id < parameters.dev_number_of_events[0]; ++event_id) {
-    unsigned current_event_number = parameters.dev_event_list[event_id];
-    unsigned n_long_tracks = parameters.dev_long_tracks_view->container(current_event_number).size();
-    int condition = (track_id >= n_tracks && track_id < n_tracks + n_long_tracks);
-    final_track_id = condition * (track_id - n_tracks) + (1 - condition) * final_track_id;
-    event_number = condition * current_event_number + (1 - condition) * event_number;
-    n_tracks += n_long_tracks;
-  }
 
-  if (event_number == UINT_MAX) {
-    return;
-  }
-  if (final_track_id == UINT_MAX) {
-    return;
-  }
-#else
-  // CPU implementation as many blocks as events
-  unsigned event_number = parameters.dev_event_list[blockIdx.x];
-#endif
-
+  // Base pointer for the list of all tracks (contiguous in memory), regardless of events boundaries
+  const Allen::Views::Physics::LongTrack* track_base = &(parameters.dev_long_tracks_view->container(0).track(0));
   const unsigned total_number_of_tracks = parameters.dev_long_tracks_view->number_of_contained_objects();
+
   Velo::Consolidated::States kalman_states {parameters.dev_kalman_fit_results, total_number_of_tracks};
 
-  // Get associated UT and VELO tracks.
-  const auto event_long_tracks = parameters.dev_long_tracks_view->container(event_number);
-  const unsigned n_long_tracks = event_long_tracks.size();
-
-#ifndef TARGET_DEVICE_CPU // IF GPU: don't start more threads than there are tracks
-  if (final_track_id < n_long_tracks) {
-#else
-  // CPU implementation
-  for (unsigned final_track_id = threadIdx.x; final_track_id < n_long_tracks; final_track_id += blockDim.x) {
-#endif
+  for (unsigned track_id = blockIdx.x * blockDim.x + threadIdx.x; track_id < total_number_of_tracks;
+       track_id += blockDim.x * gridDim.x) {
     // Prepare fit input.
-    const auto long_track = event_long_tracks.track(final_track_id);
+    const Allen::Views::Physics::LongTrack& long_track = track_base[track_id];
     // subdetector tracks which will give us access to the hits.
     const auto velo_track = long_track.track_segment<Allen::Views::Physics::Track::segment::velo>();
     const auto ut_track_ptr = long_track.track_segment_ptr<Allen::Views::Physics::Track::segment::ut>();
@@ -425,7 +393,7 @@ __global__ void kalman_filter::kalman_filter(
       dev_TFT_pars,
       dev_UTT_META,
       dev_beamline);
-    set_result(event_long_tracks.offset() + final_track_id, kalman_track, kalman_states);
-    parameters.dev_kf_tracks[event_long_tracks.offset() + final_track_id] = kalman_track;
+    set_result(track_id, kalman_track, kalman_states);
+    parameters.dev_kf_tracks[track_id] = kalman_track;
   }
 }
