@@ -75,13 +75,8 @@ void kalman_filter::kalman_filter_t::operator()(
   const Constants& constants,
   const Allen::Context& context) const
 {
-#ifndef TARGET_DEVICE_CPU
   dim3 block_dim = m_block_dim;
   int _gridDim = (first<host_number_of_reconstructed_scifi_tracks_t>(arguments) + (block_dim.x) - 1) / (block_dim.x);
-#else
-  // CPU implementation
-  int _gridDim = size<dev_event_list_t>(arguments);
-#endif
   global_function(kalman_filter)(dim3(_gridDim), m_block_dim, context)(
     arguments, constants.dev_magnet_polarity.data(), constants.dev_kalman_params, constants.dev_beamline.data());
 
