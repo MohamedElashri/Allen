@@ -11,7 +11,7 @@
 from PyConf.control_flow import NodeLogic, CompositeNode
 from AllenCore.generator import generate, make_algorithm
 from AllenConf.hlt1_calibration_lines import make_passthrough_line
-from AllenConf.persistency import make_global_decision, make_routingbits_writer, rb_map
+from AllenConf.persistency import make_persistency, rb_map, make_routingbits_writer
 from AllenConf.odin import decode_odin, make_bxtype, odin_error_filter, tae_filter
 from AllenCore.algorithms import data_provider_t
 from AllenConf.utils import line_maker
@@ -73,20 +73,19 @@ if tae_passthrough:
 
 line_algorithms = [tup[0] for tup in lines]
 
-global_decision = make_global_decision(lines=line_algorithms)
+with make_routingbits_writer.bind(rb_map=routingbit_map):
+    persistency_node, _ = make_persistency(line_algorithms)
 
 lines = CompositeNode(
     "AllLines", [tup[1] for tup in lines],
     NodeLogic.NONLAZY_OR,
     force_order=False)
 
-tae_sequence = CompositeNode(
-    "ActivityTAE", [
-        lines, global_decision,
-        make_routingbits_writer(lines=line_algorithms, rb_map=routingbit_map),
-        rate_validation(lines=line_algorithms)
-    ],
+hlt1_node = CompositeNode(
+    "ActivityTAE",
+    [lines, persistency_node,
+     rate_validation(lines=line_algorithms)],
     NodeLogic.NONLAZY_AND,
     force_order=True)
 
-generate(tae_sequence)
+generate(hlt1_node)
