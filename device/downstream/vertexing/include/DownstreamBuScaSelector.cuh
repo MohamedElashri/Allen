@@ -49,7 +49,7 @@ namespace downstream_busca_selector {
 
     Allen::Property<std::string> m_NN_selection_path {this,
                                                       "nn_selection_path",
-                                                      "/HLT1Downstream/Hlt1_Downstream_BuScaSelector_v2.json",
+                                                      "/HLT1Downstream/Hlt1_Downstream_BuScaSelector_v2r1.json",
                                                       "path to NN which should be used for selection"};
 
     DownstreamBuscaSelector m_busca_selector {"busca_selector", m_NN_selection_path};
