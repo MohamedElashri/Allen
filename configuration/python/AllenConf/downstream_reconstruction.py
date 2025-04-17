@@ -672,6 +672,30 @@ def fit_downstream_secondary_vertices(downstream_tracks,
         combined_container=hadronic_and_leptonic_combined,
         same_sign_reco=same_sign_reco)
 
+    downstream_lepton_vertexing = make_algorithm(
+        downstream_vertexing_t,
+        name='downstream_leptonic_vertexing',
+        # Basics
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        # Downstream tracks
+        host_number_of_downstream_tracks_t=downstream_tracks[
+            'host_number_of_downstream_tracks'],
+        dev_multi_event_downstream_track_particles_view_t=downstream_tracks[
+            'dev_multi_event_downstream_track_particles_view'],
+        # Properties
+        track_min_pt_both=track_min_pt_both,
+        track_min_pt_either=track_min_pt_either,
+        track_min_ip_both=track_min_ip_both,
+        track_min_ip_either=track_min_ip_either,
+        sum_pt_min=sum_pt_min,
+        doca_max=doca_max,
+        min_vtx_z=min_vtx_z,
+        max_vtx_z=max_vtx_z,
+        min_quality=min_quality,
+        dihadron=False,
+        combined_container=False,
+    )
+
     downstream_make_secondary_vertices = make_algorithm(
         downstream_make_secondary_vertices_t,
         name='downstream_make_secondary_vertices_{hash}',
@@ -693,6 +717,28 @@ def fit_downstream_secondary_vertices(downstream_tracks,
         dev_offsets_downstream_secondary_vertices_t=downstream_vertexing.
         dev_offsets_downstream_secondary_vertices_t)
 
+    downstream_make_leptonic_secondary_vertices = make_algorithm(
+        downstream_make_secondary_vertices_t,
+        name='downstream_make_leptonic_secondary_vertices',
+        # Basics
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        dev_number_of_events_t=number_of_events["dev_number_of_events"],
+        # Downstream tracks
+        host_number_of_downstream_secondary_vertices_t=
+        downstream_lepton_vertexing.
+        host_number_of_downstream_secondary_vertices_t,
+        dev_multi_event_downstream_track_particles_view_t=downstream_tracks[
+            'dev_multi_event_downstream_track_particles_view'],
+        # PVs
+        dev_multi_final_vertices_t=pvs["dev_multi_final_vertices"],
+        dev_number_of_multi_final_vertices_t=pvs[
+            "dev_number_of_multi_final_vertices"],
+        # SVs
+        dev_downstream_secondary_vertices_t=downstream_lepton_vertexing.
+        dev_downstream_secondary_vertices_t,
+        dev_offsets_downstream_secondary_vertices_t=downstream_lepton_vertexing
+        .dev_offsets_downstream_secondary_vertices_t)
+
     downstream_composite_selector = make_algorithm(
         downstream_composite_selector_t,
         name='downstream_composite_selector_{hash}',
@@ -703,6 +749,21 @@ def fit_downstream_secondary_vertices(downstream_tracks,
         host_number_of_downstream_secondary_vertices_t,
         # Composite
         dev_multi_event_composites_view_t=downstream_make_secondary_vertices.
+        dev_multi_event_composites_view_t,
+    )
+
+    downstream_leptonic_selector = make_algorithm(
+        downstream_composite_selector_t,
+        name='downstream_leptonic_composite_selector',
+        # Basics
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        # Size
+        host_number_of_downstream_secondary_vertices_t=
+        downstream_lepton_vertexing.
+        host_number_of_downstream_secondary_vertices_t,
+        # Composite
+        dev_multi_event_composites_view_t=
+        downstream_make_leptonic_secondary_vertices.
         dev_multi_event_composites_view_t,
     )
 
@@ -732,12 +793,18 @@ def fit_downstream_secondary_vertices(downstream_tracks,
         #
         "host_number_of_svs":
         downstream_vertexing.host_number_of_downstream_secondary_vertices_t,
+        "host_number_of_leptonic_svs":
+        downstream_lepton_vertexing.
+        host_number_of_downstream_secondary_vertices_t,
         "dev_sv_offsets":
         downstream_vertexing.dev_offsets_downstream_secondary_vertices_t,
         "dev_two_track_particles":
         downstream_make_secondary_vertices.dev_two_track_composites_view_t,
         "dev_multi_event_composites":
         downstream_make_secondary_vertices.dev_multi_event_composites_view_t,
+        "dev_multi_event_leptonic_composites":
+        downstream_make_leptonic_secondary_vertices.
+        dev_multi_event_composites_view_t,
         "dev_multi_event_composites_ptr":
         downstream_make_secondary_vertices.dev_multi_event_composites_ptr_t,
         #

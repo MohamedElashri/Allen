@@ -10,7 +10,8 @@
 ###############################################################################
 from AllenCore.algorithms import (
     downstream_lambdatoppi_line_t, downstream_mva_busca_line_t,
-    downstream_kstopipi_line_t, downstream_two_track_ks_line_t)
+    downstream_kstopipi_line_t, downstream_two_track_ks_line_t,
+    downstream_gammatoee_line_t)
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenCore.configuration_options import is_allen_standalone
@@ -83,6 +84,37 @@ def make_downstream_lambda_line(downstream_tracks,
             "host_number_of_svs"],
         dev_particle_container_t=downstream_secondary_vertices[
             "dev_multi_event_composites"],
+        pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
+        post_scaler_hash_string=post_scaler_hash_string or name + "_post",
+        post_scaler=post_scaler,
+        enable_tupling=enable_tupling)
+
+
+@configurable
+def make_downstream_gamma_line(downstream_tracks,
+                               downstream_secondary_vertices,
+                               pre_scaler_hash_string=None,
+                               post_scaler_hash_string=None,
+                               post_scaler=1.0,
+                               minPt=1500.0,
+                               name='Hlt1DownstreamGammaToEE',
+                               enable_monitoring=False,
+                               enable_tupling=False):
+    number_of_events = initialize_number_of_events()
+
+    return make_algorithm(
+        downstream_gammatoee_line_t,
+        name=name,
+        minMass=0,
+        maxMass=100,
+        minPt=minPt,
+        maxArmenterosY=60,
+        enable_monitoring=is_allen_standalone() and enable_monitoring,
+        host_number_of_events_t=number_of_events["host_number_of_events"],
+        host_number_of_svs_t=downstream_secondary_vertices[
+            "host_number_of_leptonic_svs"],
+        dev_particle_container_t=downstream_secondary_vertices[
+            "dev_multi_event_leptonic_composites"],
         pre_scaler_hash_string=pre_scaler_hash_string or name + "_pre",
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         post_scaler=post_scaler,
