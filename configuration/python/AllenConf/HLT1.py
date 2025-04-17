@@ -147,6 +147,13 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 name="Hlt1DownstreamPromptLambdaToPPi",
                 enable_monitoring=True,
                 enable_tupling=enable_tupling),
+            make_downstream_gamma_line(
+                reconstructed_objects['downstream_tracks'],
+                reconstructed_objects['downstream_secondary_vertices'],
+                minPt=2500.,
+                name="Hlt1DownstreamGammaToEE",
+                enable_monitoring=True,
+                enable_tupling=enable_tupling),
             make_BuSca_line(  # BuSca HLT1 Monitoring Line / Trigger disabled
                 reconstructed_objects[
                     'downstream_combined_hadronic_and_leptonic_secondary_vertices'],
