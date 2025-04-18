@@ -64,7 +64,7 @@ def velo_micro_bas_lines(velo_tracks,
 
 
 def default_physics_lines(reconstructed_objects, with_calo, with_muon,
-                          with_v0s, thresholds, enable_tupling):
+                          with_v0s, thresholds, enable_tupling, chi2_cuts):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
     long_tracks = reconstructed_objects["long_tracks"]
@@ -84,6 +84,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
         make_track_mva_line(
             long_tracks,
             long_track_particles,
+            maxChi2Ndof=chi2_cuts.Hlt1TrackMVA_maxChi2Ndof,
             name="Hlt1TrackMVA",
             enable_tupling=enable_tupling,
             alpha=thresholds.TrackMVA_alpha,
@@ -130,12 +131,14 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
             make_single_high_pt_muon_line(
                 long_tracks,
                 long_track_particles,
+                maxChi2Ndof=chi2_cuts.Hlt1SingleHighPtMuon_maxChi2Ndof,
                 name="Hlt1SingleHighPtMuon",
                 enable_tupling=enable_tupling,
                 singleMinPt=thresholds.SingleHighPtLepton_pt),
             make_single_high_pt_muon_no_muid_line(
                 long_tracks,
                 long_track_particles,
+                maxChi2Ndof=chi2_cuts.Hlt1SingleHighPtMuonNoMuID_maxChi2Ndof,
                 name="Hlt1SingleHighPtMuonNoMuID",
                 singleMinPt=thresholds.SingleHighPtLepton_pt),
             make_di_muon_mass_line(
@@ -163,6 +166,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 long_tracks,
                 long_track_particles,
                 muonid,
+                maxChi2Ndof=chi2_cuts.Hlt1TrackMuonMVA_maxChi2Ndof,
                 maxChi2Corr=1.8,
                 name="Hlt1TrackMuonMVA",
                 enable_tupling=enable_tupling,
@@ -251,6 +255,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 long_track_particles,
                 calo_matching_objects,
                 electronid_nn,
+                maxChi2Ndof=chi2_cuts.Hlt1TrackElectronMVA_maxChi2Ndof,
                 name="Hlt1TrackElectronMVA",
                 alpha=thresholds.TrackElectronMVA_alpha,
                 enable_tupling=enable_tupling),
@@ -258,6 +263,7 @@ def default_physics_lines(reconstructed_objects, with_calo, with_muon,
                 long_tracks,
                 long_track_particles,
                 calo_matching_objects,
+                maxChi2Ndof=chi2_cuts.Hlt1SingleHighPtElectron_maxChi2Ndof,
                 name="Hlt1SingleHighPtElectron",
                 singleMinPt=thresholds.SingleHighPtLepton_pt,
                 enable_tupling=enable_tupling),
@@ -327,6 +333,7 @@ def odin_monitoring_lines(with_lumi, lumiline_name, lumilinefull_name,
 def alignment_monitoring_lines(reconstructed_objects,
                                prefilters_bx,
                                prefilters_odin_err,
+                               chi2_cuts,
                                with_muon=True):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
@@ -342,9 +349,15 @@ def alignment_monitoring_lines(reconstructed_objects,
 
     lines = [
         make_rich_1_line(
-            long_tracks, long_track_particles, name="Hlt1RICH1Alignment"),
+            long_tracks,
+            long_track_particles,
+            maxTrChi2=chi2_cuts.Hlt1RICH1Alignment_maxTrChi2,
+            name="Hlt1RICH1Alignment"),
         make_rich_2_line(
-            long_tracks, long_track_particles, name="Hlt1RICH2Alignment"),
+            long_tracks,
+            long_track_particles,
+            maxTrChi2=chi2_cuts.Hlt1RICH2Alignment_maxTrChi2,
+            name="Hlt1RICH2Alignment"),
         make_d2kpi_align_line(
             long_tracks, dihadrons, name="Hlt1D2KPiAlignment"),
         make_dst_line(dstars, name="Hlt1Dst2D0PiAlignment"),
@@ -386,6 +399,7 @@ def alignment_monitoring_lines(reconstructed_objects,
 
 @configurable
 def default_SMOG2_lines(reconstructed_objects,
+                        chi2_cuts,
                         with_muon=True,
                         with_v0s=True,
                         min_z=-541.,
@@ -414,6 +428,7 @@ def default_SMOG2_lines(reconstructed_objects,
             minTrackPt=500.,
             minTrackIPCHI2=7.,
             minFDCHI2=25.,
+            maxTrackChi2Ndf=chi2_cuts.Hlt1_SMOG2_DiTrack_maxTrackChi2Ndf,
             name="Hlt1SMOG2D2Kpi",
             pre_scaler=1.,
             enable_tupling=enable_tupling),
@@ -428,6 +443,7 @@ def default_SMOG2_lines(reconstructed_objects,
             minTrackIPCHI2=0.,
             maxTrackIPCHI2=5.,
             maxFDCHI2=20.,
+            maxTrackChi2Ndf=chi2_cuts.Hlt1_SMOG2_DiTrack_maxTrackChi2Ndf,
             minTrackP=25000.,
             minTrackPt=1000.,
             minEitherTrackPt=1200.,
@@ -451,6 +467,7 @@ def default_SMOG2_lines(reconstructed_objects,
             max_z=max_z,
             minMdipion=1300,
             minFDCHI2=25.,
+            maxTrackChi2Ndf=chi2_cuts.Hlt1_SMOG2_DiTrack_maxTrackChi2Ndf,
             minTrackIPCHI2=7.,
             name="Hlt1SMOG22BodyGeneric",
             enable_monitoring=False,
@@ -463,6 +480,7 @@ def default_SMOG2_lines(reconstructed_objects,
             min_z=min_z,
             max_z=max_z,
             minTrackIPCHI2=0.,
+            maxTrackChi2Ndf=chi2_cuts.Hlt1_SMOG2_DiTrack_maxTrackChi2Ndf,
             enable_monitoring=False,
             enable_tupling=False,
             name="Hlt1SMOG22BodyGenericPrompt",
@@ -470,6 +488,7 @@ def default_SMOG2_lines(reconstructed_objects,
         make_SMOG2_singletrack_line(
             long_tracks,
             long_track_particles,
+            maxChi2Ndof=chi2_cuts.Hlt1SMOG2SingleTrackVeryHighPt_maxChi2Ndof,
             name="Hlt1SMOG2SingleTrackVeryHighPt",
             minPt=5000.,
             pre_scaler=1,
@@ -478,6 +497,7 @@ def default_SMOG2_lines(reconstructed_objects,
         make_SMOG2_singletrack_line(
             long_tracks,
             long_track_particles,
+            maxChi2Ndof=chi2_cuts.Hlt1SMOG2SingleTrackHighPt_maxChi2Ndof,
             name="Hlt1SMOG2SingleTrackHighPt",
             minPt=3000.,
             pre_scaler=0.1,
@@ -492,6 +512,7 @@ def default_SMOG2_lines(reconstructed_objects,
                 dileptons,
                 long_tracks,
                 muonid,
+                maxTrackChi2Ndf=chi2_cuts.Hlt1SMOG2DiMuonHighMass_maxTrackChi2,
                 maxChi2Corr=9999.,
                 enable_tupling=enable_tupling,
                 name="Hlt1SMOG2DiMuonHighMass"),
@@ -499,6 +520,7 @@ def default_SMOG2_lines(reconstructed_objects,
                 long_tracks,
                 long_track_particles,
                 muonid,
+                maxChi2Ndof=chi2_cuts.Hlt1SMOG2SingleMuon_maxChi2Ndof,
                 maxChi2Corr=1.8,
                 MinPt=700,
                 name="Hlt1SMOG2SingleMuon",
@@ -767,9 +789,13 @@ def setup_hlt1_node(enablePhysics=True,
                     data_quality=False,
                     smog2_lumi_prescale=0.1,
                     with_fullKF=False,
-                    track_max_chi2ndof=10.0,
                     enabled_lines=[r'.*?'],
                     disabled_lines=[]):
+
+    if with_fullKF:
+        from AllenConf.secondary_vertex_reconstruction import ParKF_cuts as chi2_cuts
+    else:
+        from AllenConf.secondary_vertex_reconstruction import Velo_only_cuts as chi2_cuts
 
     hlt1_config = {}
     # Reconstruct objects needed as input for selection lines
@@ -783,7 +809,7 @@ def setup_hlt1_node(enablePhysics=True,
         with_AC_split=with_AC_split,
         with_rich=with_rich,
         with_fullKF=with_fullKF,
-        track_max_chi2ndof=track_max_chi2ndof)
+        track_max_chi2ndof=chi2_cuts.SV_track_max_chi2ndof)
 
     hlt1_config['reconstruction'] = reconstructed_objects
 
@@ -808,7 +834,7 @@ def setup_hlt1_node(enablePhysics=True,
         with line_maker.bind(prefilter=prefilters):
             physics_lines += default_physics_lines(
                 reconstructed_objects, with_calo, with_muon, with_v0s,
-                threshold_settings, enableTupling)
+                threshold_settings, enableTupling, chi2_cuts)
 
     lumiline_name = "Hlt1ODINLumi"
     lumilinefull_name = "Hlt1ODIN1kHzLumi"
@@ -867,8 +893,9 @@ def setup_hlt1_node(enablePhysics=True,
             decode_calo(),
             prefilter=bgi_prefilters)
 
-    monitoring_lines += alignment_monitoring_lines(
-        reconstructed_objects, prefilters, odin_err_filter, with_muon)
+    monitoring_lines += alignment_monitoring_lines(reconstructed_objects,
+                                                   prefilters, odin_err_filter,
+                                                   chi2_cuts, with_muon)
 
     bx_BE = make_bxtype(bx_type=1)
     with line_maker.bind(
@@ -958,6 +985,7 @@ def setup_hlt1_node(enablePhysics=True,
 
             SMOG2_lines += default_SMOG2_lines(
                 reconstructed_objects,
+                chi2_cuts,
                 with_muon,
                 with_v0s,
                 enable_tupling=enableTupling)

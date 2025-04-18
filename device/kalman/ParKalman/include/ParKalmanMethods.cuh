@@ -69,18 +69,39 @@ __device__ inline float SciFi_yMin(const Allen::Views::SciFi::Consolidated::Trac
   // endPointY is the inner (small abs(y)) end of the fibre. For top that's what we want for
   // Bottom we need the subtract the length of the fibre.
   // Special case if the fibre is shorter because we are in the beam pipe region, which is easily checked based
-  // on the value of teh endPointY.
+  // on the value of the endPointY.
+  // There is a clear seperation between fibre in the beam hole region and outside by the absolute value
+  // of endPointY being smaller or larger than 50 mm, this also works for tilted mats.
+  constexpr float min_beamhole_clearance = 50.f;
   float y_inner = track.hit(hit_counter).endPointY();
-  bool isBeamHole = abs(y_inner) > 50.f;
+  bool isBeamHole = abs(y_inner) > min_beamhole_clearance;
   return y_inner - track.hit(hit_counter).isBottom() * (Approx_dy - isBeamHole * Approx_BeamHole_dy);
 }
 
 __device__ inline float SciFi_dy(const Allen::Views::SciFi::Consolidated::Track& track, unsigned& hit_counter)
 {
   // return the fibre length, as defined in ParKalmanDefinitions.cuh under consideration of the beam pipe hole.
+  // for more explanation see above.
+  constexpr float min_beamhole_clearance = 50.f;
   float y_inner = track.hit(hit_counter).endPointY();
-  bool isBeamHole = abs(y_inner) > 50.f;
+  bool isBeamHole = abs(y_inner) > min_beamhole_clearance;
   return Approx_dy - isBeamHole * Approx_BeamHole_dy;
+}
+
+__device__ inline KalmanFloat scattering_qop(const KalmanFloat& tx, const KalmanFloat& ty, const KalmanFloat& qop)
+{
+  // TODO: updates to the parametrisation should make this obsolete ASAP.
+  // Implementation of the scattering qop
+  // This enforces a lower limit on the qop used for Q
+  // These parameters are determined by looking at the mean extrapolation error that exceeds the multiple
+  // scattering error. See https://indico.cern.ch/event/1492027/ for more detail.
+  constexpr float scaling_factor = 2500.;           // Comes from the inital observation that very misbehaved track have
+                                                    // par. error on the scale of a well-behaved track with p=2.5 GeV
+  constexpr float offset = -0.02f / scaling_factor; // Since the paramter fitter overcorrected in the central
+                                                    // region, we have a small negative offset
+  constexpr float tx_factor = 0.7f / scaling_factor; // Scaling of the mean parametrsiation error with tx
+  constexpr float ty_factor = 2.7f / scaling_factor; // Scaling of the mean parametrsiation error with ty
+  return fabsf(fabsf(qop) + (offset + tx_factor * fabsf(tx) + ty_factor * fabsf(ty)));
 }
 ////////////////////////////////////////////////////////////////////////
 // Functions for doing the extrapolation.
@@ -98,8 +119,6 @@ ExtrapolateInV(const float* dev_pars, KalmanFloat zTo, Vector5& x, Matrix2x2& F,
   float par =
     (dev_pars[index_offset + 2] * ((KalmanFloat) 1.0e-5) * dz *
      ((dz > 0 ? tI.m_Lastz : zTo) + dev_pars[index_offset + 3] * ((KalmanFloat) 1.0e3)));
-
-  // unsigned parSet = dz>0 ? 0 : 1;
 
   // parametrizations for state extrapolation
   x[0] += (x[2]) * ((KalmanFloat) 0.5) * dz;
@@ -146,14 +165,10 @@ ExtrapolateVUT(const float* dev_pars, KalmanFloat zTo, Vector5& x, Matrix5x5& F,
   // which set of parameters should be used
   // extrapolate the current state and define noise
 
-  float par = dev_pars[0];
-
   // ty
+  float par = dev_pars[0];
   x[3] = x_old[3] + par * std::copysign((KalmanFloat) 1.0, x[1]) * x_old[4] * x_old[2];
 
-  KalmanFloat tyErr = dev_pars[1] * fabsf(x_old[4]);
-  // here for coalescent memory access, but could also reorder parameters
-  Q(0, 2) = dev_pars[2];
   // calculate jacobian
   // ty
   F(3, 2) = par * x_old[4];
@@ -168,12 +183,8 @@ ExtrapolateVUT(const float* dev_pars, KalmanFloat zTo, Vector5& x, Matrix5x5& F,
   // y
   x[1] = x_old[1] + (par * x_old[3] + (((KalmanFloat) 1.0) - par) * x[3]) * dz;
 
-  // [4,7]
-  par = dev_pars[7];
-
-  KalmanFloat yErr = dev_pars[4] * fabsf(dz * x_old[4]);
-
   // tx
+  par = dev_pars[7];
   KalmanFloat coeff = dev_pars[5] * ((KalmanFloat) 1e1) + dev_pars[6] * ((KalmanFloat) 1e-2) * zFrom +
                       par * ((KalmanFloat) 1e2) * x_old[3] * x_old[3];
 
@@ -188,21 +199,14 @@ ExtrapolateVUT(const float* dev_pars, KalmanFloat zTo, Vector5& x, Matrix5x5& F,
   // tx
   KalmanFloat DtxDty = a * x[3] * ((KalmanFloat) 1.0) / sqrtTmp;
   KalmanFloat DtxDa = sqrtTmp / ((a * a - ((KalmanFloat) 1.0)) * (a * a - ((KalmanFloat) 1.0)));
-  F(2, 0) = (KalmanFloat) 0.0;
-  F(2, 1) = (KalmanFloat) 0.0;
-
   sqrtTmp = sqrtf(((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3]);
   F(2, 2) = DtxDa * (((KalmanFloat) 1.0) + x_old[3] * x_old[3]) /
               (sqrtTmp * (((KalmanFloat) 1.0) + x_old[2] * x_old[2] + x_old[3] * x_old[3])) +
             DtxDty * F(3, 2);
-
   F(2, 3) = DtxDa * (-x_old[2] * x_old[3] / (sqrtTmp * (1 + x_old[2] * x_old[2] + x_old[3] * x_old[3])) -
                      x_old[4] * 2 * par * ((KalmanFloat) 1e2) * x_old[3]) +
             DtxDty * F(3, 3);
-
   F(2, 4) = DtxDa * (-coeff) + DtxDty * F(3, 4);
-  ///////////////////////////////////////
-  KalmanFloat txErr = dev_pars[8] * fabsf(x_old[4]);
 
   par = dev_pars[12];
   // x
@@ -212,22 +216,20 @@ ExtrapolateVUT(const float* dev_pars, KalmanFloat zTo, Vector5& x, Matrix5x5& F,
 
   x[0] = x_old[0] + (zmag - zFrom) * x_old[2] + (zTo - zmag) * x[2];
 
-  KalmanFloat xErr = dev_pars[13] * fabsf(dz * x_old[4]);
-
-  // calculate jacobian
-
   // x
   F(0, 2) = (zmag - zFrom) + (zTo - zmag) * F(2, 2);
-
   F(0, 3) = (zTo - zmag) * F(2, 3) + (x_old[2] - x[2]) * ((KalmanFloat) 2.0) * par * ((KalmanFloat) 1e3) * x_old[3];
-
   F(0, 4) = (zTo - zmag) * F(2, 4);
 
-  // qop
-
   // add noise
+  KalmanFloat tyErr = dev_pars[1] * fabsf(x_old[4]);
+  KalmanFloat yErr = dev_pars[4] * fabsf(dz * x_old[4]);
+  KalmanFloat s_qop = scattering_qop(tI.m_RefStateForwardV[2], tI.m_RefStateForwardV[3], x_old[4]);
+  KalmanFloat txErr = dev_pars[8] * s_qop;
+  KalmanFloat xErr = dev_pars[13] * fabsf(dz * s_qop);
+
   Q(0, 0) = xErr * xErr;
-  Q(0, 2) *= xErr * txErr;
+  Q(0, 2) = dev_pars[2] * xErr * txErr;
   Q(1, 1) = yErr * yErr;
   Q(1, 3) = dev_pars[14] * yErr * tyErr;
   Q(2, 2) = txErr * txErr;
@@ -478,7 +480,7 @@ __device__ inline void ExtrapolateUTT(
   // extrapolating from last UT layer (z=2642.5) to fixed z in T (z=7855)
 
   // determine the momentum at this state from the momentum saved in the state vector
-  //(representing always the PV qop)
+  // (representing always the PV qop)
   float par = dev_pars[18];
 
   KalmanFloat qopHere =

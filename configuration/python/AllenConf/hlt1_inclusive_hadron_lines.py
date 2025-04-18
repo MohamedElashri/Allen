@@ -44,6 +44,7 @@ def make_kstopipi_line(long_tracks,
 
 def make_track_mva_line(long_tracks,
                         long_track_particles,
+                        maxChi2Ndof,
                         pre_scaler_hash_string=None,
                         post_scaler_hash_string=None,
                         name='Hlt1TrackMVA_{hash}',
@@ -65,6 +66,7 @@ def make_track_mva_line(long_tracks,
         post_scaler_hash_string=post_scaler_hash_string or name + "_post",
         enable_tupling=enable_tupling,
         enable_monitoring=is_allen_standalone() and enable_monitoring,
+        maxChi2Ndof=maxChi2Ndof,
         alpha=alpha,
         maxGhostProb=maxGhostProb)
 

@@ -17,7 +17,5 @@ from AllenConf.scifi_reconstruction import make_forward_tracks
 with (make_velo_scifi_matches.bind(ghost_killer_threshold=1.0),\
       make_forward_tracks.bind(ghost_killer_threshold=1.0)):
     hlt1_node = setup_hlt1_node(
-        tracking_type=TrackingType.FORWARD_THEN_MATCHING,
-        with_fullKF=True,
-        track_max_chi2ndof=20.0)
+        tracking_type=TrackingType.FORWARD_THEN_MATCHING, with_fullKF=True)
 generate(hlt1_node)

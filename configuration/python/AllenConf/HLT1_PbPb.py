@@ -31,7 +31,7 @@ import re
 
 
 def default_physics_lines(reconstructed_objects, prescale, reco_particles,
-                          with_muon):
+                          with_muon, chi2_cuts):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
     long_tracks = reconstructed_objects["long_tracks"]
@@ -251,6 +251,7 @@ def odin_monitoring_lines(lumiline_name, lumilinefull_name, with_gec,
 
 def alignment_monitoring_lines(reconstructed_objects,
                                reco_particles,
+                               chi2_cuts,
                                with_muon=True):
 
     velo_tracks = reconstructed_objects["velo_tracks"]
@@ -266,9 +267,15 @@ def alignment_monitoring_lines(reconstructed_objects,
 
     lines = [
         make_rich_1_line(
-            long_tracks, long_track_particles, name="Hlt1RICH1Alignment"),
+            long_tracks,
+            long_track_particles,
+            maxTrChi2=chi2_cuts.Hlt1RICH1Alignment_maxTrChi2,
+            name="Hlt1RICH1Alignment"),
         make_rich_2_line(
-            long_tracks, long_track_particles, name="Hlt1RICH2Alignment"),
+            long_tracks,
+            long_track_particles,
+            maxTrChi2=chi2_cuts.Hlt1RICH2Alignment_maxTrChi2,
+            name="Hlt1RICH2Alignment"),
         make_z_range_materialvertex_seed_line(
             material_interaction_tracks,
             min_z_materialvertex_seed=300,
@@ -356,9 +363,13 @@ def setup_hlt1_node(withMCChecking=False,
                     DisableLinesDuringVPClosing=False,
                     mini=False,
                     with_fullKF=False,
-                    track_max_chi2ndof=10.0,
                     enabled_lines=[r'.*?'],
                     disabled_lines=[]):
+
+    if with_fullKF:
+        from AllenConf.secondary_vertex_reconstruction import ParKF_cuts as chi2_cuts
+    else:
+        from AllenConf.secondary_vertex_reconstruction import Velo_only_cuts as chi2_cuts
 
     hlt1_config = {}
 
@@ -373,7 +384,7 @@ def setup_hlt1_node(withMCChecking=False,
         with_AC_split=with_AC_split,
         with_rich=with_rich,
         with_fullKF=with_fullKF,
-        track_max_chi2ndof=track_max_chi2ndof)
+        track_max_chi2ndof=chi2_cuts.SV_track_max_chi2ndof)
 
     hlt1_config['reconstruction'] = reconstructed_objects
 
@@ -532,8 +543,9 @@ def setup_hlt1_node(withMCChecking=False,
             ]
     else:
         with line_maker.bind(prefilter=prefilters):
-            physics_lines = default_physics_lines(
-                reconstructed_objects, prescale, reco_particles, with_muon)
+            physics_lines = default_physics_lines(reconstructed_objects,
+                                                  prescale, reco_particles,
+                                                  with_muon, chi2_cuts)
         with line_maker.bind(prefilter=prefilter_photon_velo_upc):
             physics_lines += upc_physics_lines(reconstructed_objects)
 
@@ -571,7 +583,7 @@ def setup_hlt1_node(withMCChecking=False,
     # alignment lines within the GEC
     with line_maker.bind(prefilter=(prefilter_upc if mini else prefilters)):
         monitoring_lines += alignment_monitoring_lines(
-            reconstructed_objects, reco_particles, with_muon)
+            reconstructed_objects, reco_particles, chi2_cuts, with_muon)
 
     # velo microbias lines for Velo closing & alignment inside minimal activity filter
     with line_maker.bind(prefilter=odin_err_filter + [velo_open_event] + gec +

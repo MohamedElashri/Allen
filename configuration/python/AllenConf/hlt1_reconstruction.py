@@ -19,7 +19,7 @@ from AllenConf.primary_vertex_reconstruction import make_pvs
 from AllenConf.secondary_vertex_reconstruction import (
     make_kalman_velo_only, make_basic_particles, fit_secondary_vertices,
     make_sv_track_pairs, make_sv_pairs, make_generic_sv_pairs,
-    make_three_body_svs)
+    make_three_body_svs, make_kalman_long)
 from AllenConf.jet_reconstruction import make_cone_jets
 from AllenConf.validators import (
     velo_validation, veloUT_validation, seeding_validation,
@@ -32,7 +32,6 @@ from AllenConf.persistency import make_gather_selections, make_sel_report_writer
 from AllenConf.filters import make_gec
 from AllenConf.best_track_creator import best_track_creator
 from AllenConf.enum_types import TrackingType
-from AllenConf.secondary_vertex_reconstruction import make_kalman_long
 
 
 def hlt1_reconstruction(algorithm_name='',
