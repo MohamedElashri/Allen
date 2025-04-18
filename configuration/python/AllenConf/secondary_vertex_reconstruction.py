@@ -538,3 +538,88 @@ def make_three_body_svs(secondary_vertices,
         "dev_three_body_svs":
         make_flat_svs.dev_multi_event_composites_view_t,
     }
+
+
+# tables of chi2 cuts for the two different kalamn filters
+
+from typing import NamedTuple
+
+
+class chi2_cuts(NamedTuple):
+    ###
+    # The name is the [LINE NAME]_[CHI CUT PROPERTY]
+    ###
+    # calibration
+    Hlt1RICH1Alignment_maxTrChi2: float
+    Hlt1RICH2Alignment_maxTrChi2: float
+    #electon
+    Hlt1SingleHighPtElectron_maxChi2Ndof: float
+    Hlt1TrackElectronMVA_maxChi2Ndof: float
+    # inclusive hadron
+    Hlt1TrackMVA_maxChi2Ndof: float
+    # muon
+    Hlt1DiMuonNoIP_maxTrChi2: float
+    Hlt1SingleHighPtMuon_maxChi2Ndof: float
+    Hlt1SingleHighPtMuonNoMuID_maxChi2Ndof: float
+    Hlt1TrackMuonMVA_maxChi2Ndof: float
+    # SMOG
+    Hlt1SMOG2DiMuonHighMass_maxTrackChi2: float
+    Hlt1_SMOG2_DiTrack_maxTrackChi2Ndf: float
+    Hlt1SMOG2JPsiToMuMuTaP_maxTrackChi2Ndf: float
+    Hlt1SMOG2SingleMuon_maxChi2Ndof: float
+    Hlt1SMOG2SingleTrackVeryHighPt_maxChi2Ndof: float
+    Hlt1SMOG2SingleTrackHighPt_maxChi2Ndof: float
+    # Secondary vertex reconstruction
+    SV_track_max_chi2ndof: float
+
+
+Velo_only_cuts = chi2_cuts(
+    #calibration
+    Hlt1RICH1Alignment_maxTrChi2=2.0,
+    Hlt1RICH2Alignment_maxTrChi2=2.0,
+    #electron
+    Hlt1SingleHighPtElectron_maxChi2Ndof=100.0,
+    Hlt1TrackElectronMVA_maxChi2Ndof=2.5,
+    # inclusive hadron
+    Hlt1TrackMVA_maxChi2Ndof=2.5,
+    # muon
+    Hlt1DiMuonNoIP_maxTrChi2=3.0,
+    Hlt1SingleHighPtMuon_maxChi2Ndof=100.0,
+    Hlt1SingleHighPtMuonNoMuID_maxChi2Ndof=100.0,
+    Hlt1TrackMuonMVA_maxChi2Ndof=100.0,
+    # SMOG
+    Hlt1SMOG2DiMuonHighMass_maxTrackChi2=5.0,
+    Hlt1_SMOG2_DiTrack_maxTrackChi2Ndf=4.0,
+    Hlt1SMOG2JPsiToMuMuTaP_maxTrackChi2Ndf=5.0,
+    Hlt1SMOG2SingleMuon_maxChi2Ndof=100.0,
+    Hlt1SMOG2SingleTrackVeryHighPt_maxChi2Ndof=3.0,
+    Hlt1SMOG2SingleTrackHighPt_maxChi2Ndof=3.0,
+    # Secondary vertex reconstruction
+    SV_track_max_chi2ndof=10.0,
+)
+
+ParKF_cuts = chi2_cuts(
+    #calibration
+    Hlt1RICH1Alignment_maxTrChi2=
+    6.0,  # higher threshold because of eta < 2 requirement
+    Hlt1RICH2Alignment_maxTrChi2=2.0,
+    #electron
+    Hlt1SingleHighPtElectron_maxChi2Ndof=100.0,
+    Hlt1TrackElectronMVA_maxChi2Ndof=3.0,
+    # inclusive hadron
+    Hlt1TrackMVA_maxChi2Ndof=3.0,
+    # muon
+    Hlt1DiMuonNoIP_maxTrChi2=4.5,
+    Hlt1SingleHighPtMuon_maxChi2Ndof=100.0,
+    Hlt1SingleHighPtMuonNoMuID_maxChi2Ndof=100.0,
+    Hlt1TrackMuonMVA_maxChi2Ndof=100.0,
+    # SMOG
+    Hlt1SMOG2DiMuonHighMass_maxTrackChi2=11.0,
+    Hlt1_SMOG2_DiTrack_maxTrackChi2Ndf=7.5,
+    Hlt1SMOG2JPsiToMuMuTaP_maxTrackChi2Ndf=11.0,
+    Hlt1SMOG2SingleMuon_maxChi2Ndof=100.0,
+    Hlt1SMOG2SingleTrackVeryHighPt_maxChi2Ndof=4.5,
+    Hlt1SMOG2SingleTrackHighPt_maxChi2Ndof=4.5,
+    # Secondary vertex reconstruction
+    SV_track_max_chi2ndof=20.0,
+)

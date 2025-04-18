@@ -8,11 +8,7 @@
 # granted to it by virtue of its status as an Intergovernmental Organization  #
 # or submit itself to any jurisdiction.                                       #
 ###############################################################################
-from AllenCore.algorithms import (
-    track_electron_mva_line_t, single_high_pt_electron_line_t,
-    displaced_dielectron_line_t, displaced_leptons_line_t,
-    single_high_et_line_t, lowmass_dielectron_line_t,
-    highmass_dielectron_line_t, kplus_to_three_tracks_line_t)
+from AllenCore.algorithms import kplus_to_three_tracks_line_t
 from AllenConf.utils import initialize_number_of_events
 from AllenCore.generator import make_algorithm
 from AllenCore.configuration_options import is_allen_standalone

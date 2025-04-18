@@ -80,6 +80,7 @@ namespace ParKalmanFilter {
   constexpr bool m_UseForwardChi2Estimate = true;
   constexpr int nMaxOutliers = 2;
 
+  // SciFi Geo constants
   constexpr float Approx_dy = 2424.0f;         // TODO simplified SCIFI GEO
   constexpr float Approx_BeamHole_dy = 116.5f; // TODO simplified SCIFI GEO
 } // namespace ParKalmanFilter
