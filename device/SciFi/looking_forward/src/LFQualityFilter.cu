@@ -246,7 +246,7 @@ __device__ void quality_filter(
       const auto velo_eta = asinhf(1.f / velo_rho);
 
       float ghost_killer_inputs[LFQualityNN::DeviceType::nInput] = {
-        zMagnet, distX, distY, dSlopeX, dSlopeY, velo_eta, logf(best_quality)};
+        zMagnet, -fabsf(distX), distY, -fabsf(dSlopeX), dSlopeY, velo_eta, logf(best_quality)};
 
       const auto ghost_killer_score = dev_forward_ghost_killer->evaluate(ghost_killer_inputs);
 
