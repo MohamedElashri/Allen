@@ -42,11 +42,9 @@ namespace pv_beamline_cleanup {
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType,
-    Allen::Monitoring::Histogram<>::DeviceType,
     Allen::Monitoring::Histogram<>::DeviceType);
 
   struct pv_beamline_cleanup_t : public DeviceAlgorithm, Parameters {
-    void init();
     void set_arguments_size(ArgumentReferences<Parameters> arguments, const RuntimeOptions&, const Constants&) const;
 
     void operator()(
@@ -61,19 +59,12 @@ namespace pv_beamline_cleanup {
                                           "minChi2Dist",
                                           BeamlinePVConstants::CleanUp::minChi2Dist,
                                           "minimum chi2 distance"};
-    Allen::Property<unsigned> m_nbins_histo_smogpvz {this,
-                                                     "nbins_histo_smogpvz",
-                                                     100,
-                                                     "Number of bins for SMOGPVz histogram"};
-    Allen::Property<float> m_min_histo_smogpvz {this, "min_histo_smogpvz", -600.f, "Minimum of SMOGPVz histogram"};
-    Allen::Property<float> m_max_histo_smogpvz {this, "max_histo_smogpvz", -200.f, "Maximum of SMOGPVz histogram"};
 
     Allen::Monitoring::AveragingCounter<> m_pvs {this, "n_PVs"};
     Allen::Monitoring::Histogram<> m_histogram_n_pvs {this, "n_pvs_event", "n_pvs_event", {21u, -0.5f, 20.5f}};
     Allen::Monitoring::Histogram<> m_histogram_pv_x {this, "pv_x", "pv_x", {1000u, -2.f, 2.f}};
     Allen::Monitoring::Histogram<> m_histogram_pv_y {this, "pv_y", "pv_y", {1000u, -2.f, 2.f}};
-    Allen::Monitoring::Histogram<> m_histogram_pv_z {this, "pv_z", "pv_z", {1000u, -200.f, 200.f}};
+    Allen::Monitoring::Histogram<> m_histogram_pv_z {this, "pv_z", "pv_z", {2000u, -600.f, 200.f}};
     Allen::Monitoring::Histogram<> m_histogram_n_smogpvs {this, "n_smog2_PVs", "n_smog2_PVs", {10, -0.5f, 9.5f}};
-    Allen::Monitoring::Histogram<> m_histogram_smogpv_z {this, "smogpv_z", "smogpv_z", {100u, -600.f, -200.f}};
   };
 } // namespace pv_beamline_cleanup
