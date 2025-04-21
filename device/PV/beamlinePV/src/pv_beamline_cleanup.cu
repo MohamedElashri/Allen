@@ -12,13 +12,6 @@
 
 INSTANTIATE_ALGORITHM(pv_beamline_cleanup::pv_beamline_cleanup_t)
 
-void pv_beamline_cleanup::pv_beamline_cleanup_t::init()
-{
-  m_histogram_smogpv_z.x_axis().nBins = m_nbins_histo_smogpvz;
-  m_histogram_smogpv_z.x_axis().minValue = m_min_histo_smogpvz;
-  m_histogram_smogpv_z.x_axis().maxValue = m_max_histo_smogpvz;
-}
-
 void pv_beamline_cleanup::pv_beamline_cleanup_t::set_arguments_size(
   ArgumentReferences<Parameters> arguments,
   const RuntimeOptions&,
@@ -44,8 +37,7 @@ void pv_beamline_cleanup::pv_beamline_cleanup_t::operator()(
     m_histogram_n_smogpvs.data(context),
     m_histogram_pv_x.data(context),
     m_histogram_pv_y.data(context),
-    m_histogram_pv_z.data(context),
-    m_histogram_smogpv_z.data(context));
+    m_histogram_pv_z.data(context));
 }
 
 __device__ void pv_beamline_cleanup::sort_pvs_by_z(PV::Vertex* final_vertices, unsigned n_vertices)
@@ -88,8 +80,7 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(
   Allen::Monitoring::Histogram<>::DeviceType dev_n_smogpvs_histo,
   Allen::Monitoring::Histogram<>::DeviceType dev_pv_x_histo,
   Allen::Monitoring::Histogram<>::DeviceType dev_pv_y_histo,
-  Allen::Monitoring::Histogram<>::DeviceType dev_pv_z_histo,
-  Allen::Monitoring::Histogram<>::DeviceType dev_smogpv_z_histo)
+  Allen::Monitoring::Histogram<>::DeviceType dev_pv_z_histo)
 {
 
   __shared__ unsigned tmp_number_vertices[1];
@@ -126,16 +117,13 @@ __global__ void pv_beamline_cleanup::pv_beamline_cleanup(
       final_vertices[vtx_index] = vertex1;
 
       // monitoring
+      dev_pv_z_histo.increment(vertex1.position.z);
       if (-200 < vertex1.position.z && vertex1.position.z < 200) {
         dev_pv_x_histo.increment(vertex1.position.x);
         dev_pv_y_histo.increment(vertex1.position.y);
-        dev_pv_z_histo.increment(vertex1.position.z);
       }
 
-      if (dev_smogpv_z_histo.inAcceptance(vertex1.position.z)) {
-        dev_smogpv_z_histo.increment(vertex1.position.z);
-        atomicAdd(tmp_number_SMOG_vertices, 1);
-      }
+      if (vertex1.position.z < BeamlinePVConstants::Common::SMOG2_pp_separation) atomicAdd(tmp_number_SMOG_vertices, 1);
     }
   }
   __syncthreads();
